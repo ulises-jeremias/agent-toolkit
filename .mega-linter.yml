@@ -1,0 +1,25 @@
+# MegaLinter configuration
+ENABLE_LINTERS:
+  - YAML_YAMLLINT
+  - JSON_JSONLINT
+  - MARKDOWN_MARKDOWNLINT
+  - BASH_SHELLCHECK
+  - PYTHON_PYLINT
+  - REPOSITORY_SECRETLINT
+
+# Disable errors on these (warnings only)
+DISABLE_ERRORS_LINTERS:
+  - MARKDOWN_MARKDOWNLINT
+  - PYTHON_PYLINT
+
+# Only lint changed files on PR, all files on main
+VALIDATE_ALL_CODEBASE: false
+
+FILTER_REGEX_EXCLUDE: '(\.git|node_modules|\.venv|skills/.*/data/.*\.csv|profiles/claude-code/settings\.json)'
+
+MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.yaml
+YAML_YAMLLINT_CONFIG_FILE: .yamllint.yaml
+
+LOG_LEVEL: WARNING
+SHOW_ELAPSED_TIME: true
+FILEIO_REPORTER: false

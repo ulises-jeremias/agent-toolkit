@@ -1,0 +1,337 @@
+{
+  "layout": "skills/<group>/<skill>/SKILL.md",
+  "groups": {
+    "core": [
+      "assistant",
+      "dev-companion",
+      "onboarding",
+      "output-handshake",
+      "pr-fallback",
+      "workspace-knowledge-sync"
+    ],
+    "data": [
+      "dbt-validation",
+      "snowflake-validation"
+    ],
+    "delivery": [
+      "adr",
+      "agreement",
+      "bug",
+      "decision-log",
+      "development-workflow",
+      "epic",
+      "incident",
+      "management-unit-assessment",
+      "meeting-minutes",
+      "planning",
+      "prd",
+      "project-assessment",
+      "project-assessment-evidence",
+      "spike",
+      "task",
+      "technical-unit-assessment",
+      "trd",
+      "user-story",
+      "work-item",
+      "workflow-client-bootstrap",
+      "workflow-generic-project"
+    ],
+    "design": [
+      "figma",
+      "figma-code-connect-components",
+      "figma-create-design-system-rules",
+      "figma-create-new-file",
+      "figma-implement-design",
+      "ui-ux-pro-max"
+    ],
+    "forge": [
+      "gh-address-comments",
+      "gh-contribution-planner",
+      "gh-fix-ci",
+      "github-cli-workflow",
+      "gitlab-cli-workflow",
+      "workflow-client-bootstrap",
+      "workflow-generic-project"
+    ],
+    "integrations": [
+      "clickup-cli",
+      "linear",
+      "slack-assistant",
+      "slack-cli"
+    ],
+    "loops": [
+      "loop-runner"
+    ],
+    "ops": [
+      "docs-generator",
+      "llm-cost-advisor",
+      "triage"
+    ],
+    "tooling": [
+      "jupyter-notebook",
+      "playwright-cli"
+    ]
+  },
+  "skills": [
+    {
+      "name": "assistant",
+      "group": "core",
+      "path": "skills/core/assistant"
+    },
+    {
+      "name": "dev-companion",
+      "group": "core",
+      "path": "skills/core/dev-companion"
+    },
+    {
+      "name": "onboarding",
+      "group": "core",
+      "path": "skills/core/onboarding"
+    },
+    {
+      "name": "output-handshake",
+      "group": "core",
+      "path": "skills/core/output-handshake"
+    },
+    {
+      "name": "pr-fallback",
+      "group": "core",
+      "path": "skills/core/pr-fallback"
+    },
+    {
+      "name": "workspace-knowledge-sync",
+      "group": "core",
+      "path": "skills/core/workspace-knowledge-sync"
+    },
+    {
+      "name": "dbt-validation",
+      "group": "data",
+      "path": "skills/data/dbt-validation"
+    },
+    {
+      "name": "snowflake-validation",
+      "group": "data",
+      "path": "skills/data/snowflake-validation"
+    },
+    {
+      "name": "adr",
+      "group": "delivery",
+      "path": "skills/delivery/adr"
+    },
+    {
+      "name": "agreement",
+      "group": "delivery",
+      "path": "skills/delivery/agreement"
+    },
+    {
+      "name": "bug",
+      "group": "delivery",
+      "path": "skills/delivery/bug"
+    },
+    {
+      "name": "decision-log",
+      "group": "delivery",
+      "path": "skills/delivery/decision-log"
+    },
+    {
+      "name": "development-workflow",
+      "group": "delivery",
+      "path": "skills/delivery/development-workflow"
+    },
+    {
+      "name": "epic",
+      "group": "delivery",
+      "path": "skills/delivery/epic"
+    },
+    {
+      "name": "incident",
+      "group": "delivery",
+      "path": "skills/delivery/incident"
+    },
+    {
+      "name": "management-unit-assessment",
+      "group": "delivery",
+      "path": "skills/delivery/management-unit-assessment"
+    },
+    {
+      "name": "meeting-minutes",
+      "group": "delivery",
+      "path": "skills/delivery/meeting-minutes"
+    },
+    {
+      "name": "planning",
+      "group": "delivery",
+      "path": "skills/delivery/planning"
+    },
+    {
+      "name": "prd",
+      "group": "delivery",
+      "path": "skills/delivery/prd"
+    },
+    {
+      "name": "project-assessment",
+      "group": "delivery",
+      "path": "skills/delivery/project-assessment"
+    },
+    {
+      "name": "project-assessment-evidence",
+      "group": "delivery",
+      "path": "skills/delivery/project-assessment-evidence"
+    },
+    {
+      "name": "spike",
+      "group": "delivery",
+      "path": "skills/delivery/spike"
+    },
+    {
+      "name": "task",
+      "group": "delivery",
+      "path": "skills/delivery/task"
+    },
+    {
+      "name": "technical-unit-assessment",
+      "group": "delivery",
+      "path": "skills/delivery/technical-unit-assessment"
+    },
+    {
+      "name": "trd",
+      "group": "delivery",
+      "path": "skills/delivery/trd"
+    },
+    {
+      "name": "user-story",
+      "group": "delivery",
+      "path": "skills/delivery/user-story"
+    },
+    {
+      "name": "work-item",
+      "group": "delivery",
+      "path": "skills/delivery/work-item"
+    },
+    {
+      "name": "workflow-client-bootstrap",
+      "group": "delivery",
+      "path": "skills/delivery/workflow-client-bootstrap"
+    },
+    {
+      "name": "workflow-generic-project",
+      "group": "delivery",
+      "path": "skills/delivery/workflow-generic-project"
+    },
+    {
+      "name": "figma",
+      "group": "design",
+      "path": "skills/design/figma"
+    },
+    {
+      "name": "figma-code-connect-components",
+      "group": "design",
+      "path": "skills/design/figma-code-connect-components"
+    },
+    {
+      "name": "figma-create-design-system-rules",
+      "group": "design",
+      "path": "skills/design/figma-create-design-system-rules"
+    },
+    {
+      "name": "figma-create-new-file",
+      "group": "design",
+      "path": "skills/design/figma-create-new-file"
+    },
+    {
+      "name": "figma-implement-design",
+      "group": "design",
+      "path": "skills/design/figma-implement-design"
+    },
+    {
+      "name": "ui-ux-pro-max",
+      "group": "design",
+      "path": "skills/design/ui-ux-pro-max"
+    },
+    {
+      "name": "gh-address-comments",
+      "group": "forge",
+      "path": "skills/forge/gh-address-comments"
+    },
+    {
+      "name": "gh-contribution-planner",
+      "group": "forge",
+      "path": "skills/forge/gh-contribution-planner"
+    },
+    {
+      "name": "gh-fix-ci",
+      "group": "forge",
+      "path": "skills/forge/gh-fix-ci"
+    },
+    {
+      "name": "github-cli-workflow",
+      "group": "forge",
+      "path": "skills/forge/github-cli-workflow"
+    },
+    {
+      "name": "gitlab-cli-workflow",
+      "group": "forge",
+      "path": "skills/forge/gitlab-cli-workflow"
+    },
+    {
+      "name": "workflow-client-bootstrap",
+      "group": "forge",
+      "path": "skills/forge/workflow-client-bootstrap"
+    },
+    {
+      "name": "workflow-generic-project",
+      "group": "forge",
+      "path": "skills/forge/workflow-generic-project"
+    },
+    {
+      "name": "clickup-cli",
+      "group": "integrations",
+      "path": "skills/integrations/clickup-cli"
+    },
+    {
+      "name": "linear",
+      "group": "integrations",
+      "path": "skills/integrations/linear"
+    },
+    {
+      "name": "slack-assistant",
+      "group": "integrations",
+      "path": "skills/integrations/slack-assistant"
+    },
+    {
+      "name": "slack-cli",
+      "group": "integrations",
+      "path": "skills/integrations/slack-cli"
+    },
+    {
+      "name": "loop-runner",
+      "group": "loops",
+      "path": "skills/loops/loop-runner"
+    },
+    {
+      "name": "docs-generator",
+      "group": "ops",
+      "path": "skills/ops/docs-generator"
+    },
+    {
+      "name": "llm-cost-advisor",
+      "group": "ops",
+      "path": "skills/ops/llm-cost-advisor"
+    },
+    {
+      "name": "triage",
+      "group": "ops",
+      "path": "skills/ops/triage"
+    },
+    {
+      "name": "jupyter-notebook",
+      "group": "tooling",
+      "path": "skills/tooling/jupyter-notebook"
+    },
+    {
+      "name": "playwright-cli",
+      "group": "tooling",
+      "path": "skills/tooling/playwright-cli"
+    }
+  ]
+}

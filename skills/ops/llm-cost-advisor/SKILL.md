@@ -5,7 +5,7 @@ description: >-
   Shows estimated cost per run across available providers and integrates with
   dots-devcompanion llm-status to show what is actually available.
 metadata:
-  author: 
+  author: ulises-jeremias
   version: "1.0"
   tags: [llm, cost, provider, optimization]
 ---

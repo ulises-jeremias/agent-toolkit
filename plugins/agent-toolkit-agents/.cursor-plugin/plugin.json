@@ -1,0 +1,13 @@
+{
+  "name": "agent-toolkit-agents",
+  "version": "1.0.0",
+  "description": "Full set of AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
+  "author": {
+    "name": "ulises-jeremias",
+    "email": "ulisescf.24@gmail.com"
+  },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "repository": "https://github.com/ulises-jeremias/agent-toolkit",
+  "license": "MIT",
+  "keywords": ["agent-toolkit", "agents", "subagents", "reviewers", "architect", "planner"]
+}

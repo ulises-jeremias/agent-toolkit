@@ -2,7 +2,7 @@
 name: triage
 description: Workstation health triage — validate tooling, directory layout, and run dots-doctor with remediation suggestions.
 metadata:
-  author: 
+  author: ulises-jeremias
   version: "1.1"
 ---
 

@@ -5,7 +5,7 @@ description: >-
   CHANGELOG.md from git history, API reference from OpenAPI/GraphQL schemas,
   and AGENTS.md starters for new projects.
 metadata:
-  author: 
+  author: ulises-jeremias
   version: "1.0"
   tags: [docs, readme, changelog, api-reference, agents]
 ---

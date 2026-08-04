@@ -2,7 +2,7 @@
 name: loop-runner
 description: Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding session via bin/loop CLI.
 metadata:
-  author: agent-toolkit
+  author: ulises-jeremias
   version: "1.0"
 ---
 

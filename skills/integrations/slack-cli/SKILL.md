@@ -2,7 +2,7 @@
 name: slack-cli
 description: Interact with the official Slack CLI to create, run, deploy, and manage Slack apps, environments, manifests, and triggers. Use when the user asks about Slack app development workflows, not workspace chat automation.
 metadata:
-  author: agent-toolkit
+  author: ulises-jeremias
   version: "1.0"
 compatibility: Requires official Slack CLI from docs.slack.dev (not rockymadden/slack-cli), plus curl and jq. See references/INSTALLATION.md.
 ---
