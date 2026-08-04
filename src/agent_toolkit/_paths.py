@@ -25,15 +25,21 @@ def find_toolkit_root() -> Path:
             if (p / "skills").is_dir() or (p / "loops").is_dir():
                 return p
 
-    # 2. Importlib resources (wheel installs pack data alongside the package)
+    # 2. Importlib resources (wheel installs — data packed as agent_toolkit/data/)
     try:
         import importlib.resources as _ir
-        import agent_toolkit.data as _data_pkg  # noqa: F401
-        data_path = Path(str(_ir.files("agent_toolkit.data")))
-        if data_path.is_dir():
+        # Data is packed at agent_toolkit/data/{profiles,loops,skills,...}
+        data_path = Path(str(_ir.files("agent_toolkit").joinpath("data")))
+        if data_path.is_dir() and (data_path / "profiles").is_dir():
             return data_path
-    except (ImportError, TypeError, ModuleNotFoundError):
+    except (ImportError, TypeError, ModuleNotFoundError, FileNotFoundError):
         pass
+
+    # 2b. Direct path relative to the package (uvx / pip installs)
+    pkg_dir = Path(__file__).resolve().parent  # .../site-packages/agent_toolkit/
+    data_dir = pkg_dir / "data"
+    if data_dir.is_dir() and (data_dir / "profiles").is_dir():
+        return data_dir
 
     # 3. Walk up from this file (editable install)
     here = Path(__file__).resolve()

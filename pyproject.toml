@@ -89,3 +89,11 @@ path = "src/agent_toolkit/__init__.py"
 "mcp/" = "agent_toolkit/data/mcp"
 "agents/" = "agent_toolkit/data/agents"
 "catalogs/" = "agent_toolkit/data/catalogs"
+
+[tool.hatch.build.targets.wheel.force-include]
+"profiles" = "agent_toolkit/data/profiles"
+"loops" = "agent_toolkit/data/loops"
+"skills" = "agent_toolkit/data/skills"
+"mcp" = "agent_toolkit/data/mcp"
+"agents" = "agent_toolkit/data/agents"
+"catalogs" = "agent_toolkit/data/catalogs"

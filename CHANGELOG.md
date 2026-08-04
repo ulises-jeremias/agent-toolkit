@@ -26,6 +26,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - release.yml YAML syntax fixed for GitHub Actions validator
 
+## [1.0.4] — 2026-08-04
+
+### Fixed
+- **Wheel install**: data files (profiles/, loops/, skills/, etc.) now packed inside
+  the wheel at `agent_toolkit/data/` — works correctly with pip, uvx, and brew
+- `_paths.py`: resolve data from `importlib.resources` and direct package path
+  before falling back to walking up the filesystem (which breaks in uvx cache)
+- Added `agent-toolkit-cli` as script alias so `uvx agent-toolkit-cli` works
+
 ## [Unreleased]
 
 ### Added
