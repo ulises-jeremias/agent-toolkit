@@ -19,6 +19,15 @@ import sys
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
 
+import sys as _sys_win
+if _sys_win.platform == "win32":
+    try:
+        _sys_win.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys_win.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+
 
 
 
