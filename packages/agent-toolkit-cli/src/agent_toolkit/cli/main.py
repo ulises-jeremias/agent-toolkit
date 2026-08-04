@@ -8,6 +8,7 @@ Usage:
 Commands:
     install       Install profiles for detected AI tools
     doctor        Check system health and tool availability
+    diff          Show changes vs currently installed plugin bundles
     build         Compile canonical capabilities into target-native artifacts
     inventory     List all canonical skills, agents, and products
     matrix        Show platform capability matrix
@@ -44,6 +45,9 @@ def main() -> None:
     rest = argv[1:]
 
     match command:
+        case "diff":
+            from agent_toolkit.cli.diff import cmd_diff
+            sys.exit(cmd_diff(rest))
         case "build":
             from agent_toolkit.cli.build import cmd_build
             sys.exit(cmd_build(rest))
