@@ -22,7 +22,7 @@ jobs:
         with:
           generate_release_notes: true
           draft: false
-          prerelease: ${{ contains(github.ref_name, "-") }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
 
   publish-pypi:
     name: Publish to PyPI
@@ -64,15 +64,15 @@ jobs:
       - run: pip install pyinstaller && pip install -e .
       - name: Build standalone binary
         shell: bash
-        run: |
-          pyinstaller --onefile --name agent-toolkit \
-            --add-data "skills:skills" \
-            --add-data "agents:agents" \
-            --add-data "loops:loops" \
-            --add-data "profiles:profiles" \
-            --add-data "mcp:mcp" \
-            --add-data "catalogs:catalogs" \
-            src/agent_toolkit/cli/main.py
+        run: >-
+          pyinstaller --onefile --name agent-toolkit
+          --add-data "skills:skills"
+          --add-data "agents:agents"
+          --add-data "loops:loops"
+          --add-data "profiles:profiles"
+          --add-data "mcp:mcp"
+          --add-data "catalogs:catalogs"
+          src/agent_toolkit/cli/main.py
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
