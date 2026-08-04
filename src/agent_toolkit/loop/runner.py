@@ -22,6 +22,16 @@ Usage:
 """
 from __future__ import annotations
 
+import sys as _sys_win
+
+# Windows: force UTF-8 output so Unicode chars (── ✓ ✗) don't crash
+if _sys_win.platform == "win32":
+    try:
+        _sys_win.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore
+        _sys_win.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore
+    except Exception:
+        pass
+
 import argparse
 import hashlib
 import json
