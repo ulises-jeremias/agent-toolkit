@@ -14,16 +14,36 @@ Exit codes:
     1 — one or more errors detected
 """
 from __future__ import annotations
+from __future__ import annotations
+
 
 import json
+import json
+import os
 import os
 import platform
+import platform
+import shutil
 import shutil
 import subprocess
+import subprocess
+import sys
 import sys
 import urllib.request
+import urllib.request
+from pathlib import Path
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
+from agent_toolkit._paths import toolkit_root
+
+
+# Windows: force UTF-8 output so emoji chars (✓ ✗ ⚠) don't crash
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
