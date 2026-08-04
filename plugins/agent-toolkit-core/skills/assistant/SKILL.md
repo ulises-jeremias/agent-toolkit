@@ -1,6 +1,6 @@
 ---
 name: assistant
-description: Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs before code; cite sources; prefer AGENTS.md for agent behavior; portable across Cursor/Copilot/Claude; org dots-* routing when needed.
+description: Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs before code; cite sources; prefer AGENTS.md for agent behavior; portable across Cursor/Copilot/Claude; use agent-toolkit CLI when needed.
 metadata:
   author: ulises-jeremias
   version: "2.1"
@@ -16,7 +16,7 @@ This skill is the **default orchestrator and fallback** for agent work. **Read**
 
 **Hard rules**
 
-- Derive answers from **files in the repo** and **machine-local baseline** (`dots-*`, `~/.local/share//`). **Cite paths** when you recommend workflows.
+- Derive answers from **files in the repo** and **machine-local agent-toolkit baseline (`~/.local/share/agent-toolkit/`). **Cite paths** when you recommend workflows.
 - **Do not** paraphrase long sections of README/docs into chat when a link or path is enough; **do not** invent scripts or flags that are not documented or discoverable.
 - **AGENTS.md** (when present) is the **primary contract for agent behavior** in that repo; see [Agent instruction map](#agent-instruction-map) for tie-breakers with tool-specific files.
 
@@ -130,12 +130,12 @@ Offer **small, copy-ready** fixes (e.g. a minimal `AGENTS.md` from `references/A
 When the open repo **is** (or includes) `` / chezmoi `home/`:
 
 - Read repo root **`AGENTS.md`**, **`docs/*.md`**, **`home/.chezmoidata/*`**, **`home/.chezmoiscripts/*.tmpl`**, **`home/dot_local/share//.chezmoiexternal.toml.tmpl`** as needed.
-- For **`dots-*` flags**, run `dots-<tool> --help`; do not cache outdated help text in answers.
+- For **`agent-toolkit` commands**, run `agent-toolkit --help`.
 
 On **any** machine with the baseline applied:
 
 - **`~/.local/share//`** — bundled skills, templates, MCP examples, `skills-registry.yaml`.
-- **`dots-skills list`**, **`dots-doctor`**, **`dots-loadenv`** — operational discovery.
+- **`skills list`**, **`doctor`**, **`loadenv`** — operational discovery.
 
 ### New Developer Onboarding
 
@@ -152,7 +152,7 @@ When a developer asks about **setup**, **getting started**, or **validation**:
 
 2. **Post-setup validation**:
    ```bash
-   dots-doctor
+   doctor
    ```
    Expected: `result: COMPLIANT`
 
@@ -162,18 +162,18 @@ When a developer asks about **setup**, **getting started**, or **validation**:
    ls ~/.config/opencode/skills/
    ```
 
-4. **If issues found**: Run `dots-doctor` and address failures. For persistent issues, escalate via `dots-update-check` and contact #tech-support.
+4. **If issues found**: Run `doctor` and address failures. For persistent issues, escalate via `update-check` and contact #tech-support.
 
 ### Helpful Commands for Developers
 
 | Task | Command |
 | --- | --- |
-| Validate setup | `dots-doctor` |
-| Check updates | `dots-update-check` |
+| Validate setup | `doctor` |
+| Check updates | `update-check` |
 | Update workstation | `chezmoi update && chezmoi apply --source=. -c ~/.config/chezmoi/.toml` |
-| List AI skills | `dots-skills list` |
-| Sync skills | `dots-skills sync` |
-| Health check | **`triage`** (runs **`dots-doctor`**, layout checks) |
+| List AI skills | `skills list` |
+| Sync skills | `skills sync` |
+| Health check | **`triage`** (runs **`doctor`**, layout checks) |
 
 ### Where to route next (bundled HOW skills)
 
@@ -189,9 +189,9 @@ Use **`skill-catalog.yaml`** next to bundled skills for domains, triggers and **
 | UI patterns / stacks | **`ui-ux-pro-max`** | Design intelligence; complements Figma skills |
 | Playwright | **`playwright-cli`** | CLI browser automation from the shell |
 | Playwright **test** specs | **`e2e-runner`** | Not the same as **`playwright-cli`** |
-| Jupyter notebooks | **`jupyter-notebook`** | Scaffold via **`dots-newnotebook`** |
-| Workstation health | **`triage`** | **`dots-doctor`**, **`dots-doctor --issue`** |
-| Slack | **`slack-cli`**, **`dots-slack-assistant`** | App CLI vs workspace chat |
+| Jupyter notebooks | **`jupyter-notebook`** | Scaffold via **`newnotebook`** |
+| Workstation health | **`triage`** | **`doctor`**, **`doctor --issue`** |
+| Slack | **`slack-cli`**, **`slack-assistant`** | App CLI vs workspace chat |
 | Tickets (external packs) | **`clickup-cli`**, **jira-***, **confluence-*** | As installed via registry / chezmoiexternal |
 | Data | **`dbt-validation`**, **`snowflake-validation`** | Read-only validation patterns |
 

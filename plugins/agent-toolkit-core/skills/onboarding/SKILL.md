@@ -24,17 +24,17 @@ Welcome to . This skill guides new users through initial setup and daily usage.
 ## Step 1 — Validate setup
 
 ```bash
-dots-doctor
+doctor
 ```
 
-Expected: `result: COMPLIANT`. If any check fails, `dots-doctor` shows the fix command.
+Expected: `result: COMPLIANT`. If any check fails, `doctor` shows the fix command.
 
 For persistent issues:
 
 ```bash
-dots-update-check            # check for available updates
-dots-skills list             # verify skills are installed
-dots-skills sync             # re-sync symlinks to AI tools
+update-check            # check for available updates
+skills list             # verify skills are installed
+skills sync             # re-sync symlinks to AI tools
 ```
 
 ## Step 2 — Understand the hierarchy
@@ -86,7 +86,7 @@ Tool skill (HOW — executes CLI commands)
 
 ```bash
 # Check workstation health
-dots-doctor
+doctor
 
 # Find which skill to use
 # → ask the orchestrator: "what skill should I use for X?"
@@ -108,7 +108,7 @@ dots-doctor
 
 ## Anti-patterns
 
-- Do not skip `dots-doctor` — it catches 90% of setup issues
+- Do not skip `doctor` — it catches 90% of setup issues
 - Do not invoke agents via the skill tool — use `@mention`
 - Do not run L3 loops without 3+ clean L1 runs first
 
