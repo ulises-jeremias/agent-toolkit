@@ -230,6 +230,11 @@ def _install_copilot(*, dry_run: bool, force: bool) -> bool:
         _dry("Would copy copilot-instructions.md to <project>/.github/")
         return True
 
+    import sys as _sys
+    if not _sys.stdin.isatty():
+        _skip("Non-interactive — run 'agent-toolkit install --tools copilot' interactively")
+        return True
+
     try:
         project_dir_raw = input("  Enter project directory path (or press Enter to skip): ").strip()
     except EOFError:
@@ -370,10 +375,12 @@ def cmd_install(args: list[str]) -> int:
             tools.append("pi")
             _info("  Detected: Pi Coding Agent")
 
-        # Copilot is per-project — ask
-        print()
-        if _confirm("Install GitHub Copilot instructions for a project?", force=False):
-            tools.append("copilot")
+        # Copilot is per-project — only ask in interactive sessions
+        import sys as _sys
+        if _sys.stdin.isatty() and not dry_run:
+            print()
+            if _confirm("Install GitHub Copilot instructions for a project?", force=False):
+                tools.append("copilot")
 
         if not tools:
             _warn("No AI tools detected. Install at least one supported tool and re-run,")

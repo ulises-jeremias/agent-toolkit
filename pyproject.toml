@@ -35,6 +35,7 @@ all = ["pyyaml>=6.0"]
 
 [project.scripts]
 agent-toolkit = "agent_toolkit.cli.main:main"
+agent-toolkit-cli = "agent_toolkit.cli.main:main"
 
 [project.urls]
 Homepage = "https://github.com/ulises-jeremias/agent-toolkit"

@@ -24,13 +24,26 @@ import sys
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
 
+def _parse_skill_description(skill_dir):
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.exists():
+        return ""
+    text = skill_md.read_text(errors="replace")
+    fm_match = re.match(r"^---[ \t]*\n(.*?)\n---", text, re.DOTALL)
+    if not fm_match:
+        return ""
+    fm = fm_match.group(1)
+    # Block scalar: description: >-\n  content
+    block = re.search(r"^description:[ \t]*[|>][\-+]?[ \t]*\n((?:[ \t]+.+\n?)+)", fm, re.MULTILINE)
+    if block:
+        lines = [l.strip() for l in block.group(1).splitlines() if l.strip()]
+        return " ".join(lines)[:120]
+    # Inline: description: text
+    inline = re.search(r"^description:[ \t]+(.+)$", fm, re.MULTILINE)
+    if inline:
+        return inline.group(1).strip()[:120]
+    return ""
 
-
-
-
-# ---------------------------------------------------------------------------
-# Skills layout loading
-# ---------------------------------------------------------------------------
 
 def _load_layout(toolkit_dir: Path) -> dict | None:
     layout_path = toolkit_dir / "catalogs" / "skills-layout.json"
@@ -53,20 +66,35 @@ _SIMPLE_KV_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$")
 
 
 def _parse_frontmatter_simple(content: str) -> dict | None:
-    """Parse simple YAML frontmatter (key: value pairs only, no nesting)."""
+    """Parse YAML frontmatter — handles inline values and block scalars (>-, |-)."""
     match = _FRONTMATTER_RE.match(content)
     if not match:
         return None
     result: dict[str, str] = {}
-    for line in match.group(1).splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
+    lines = match.group(1).splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            i += 1
             continue
-        m = _SIMPLE_KV_RE.match(line)
+        m = _SIMPLE_KV_RE.match(stripped)
         if m:
             key = m.group(1).strip()
             val = m.group(2).strip().strip('"').strip("'")
+            # YAML block scalar — collect indented lines that follow
+            if val in (">", ">-", "|-", "|", ">+", "|+"):
+                block_lines = []
+                j = i + 1
+                while j < len(lines) and (lines[j].startswith(" ") or lines[j].startswith("\t")):
+                    block_lines.append(lines[j].strip())
+                    j += 1
+                result[key] = " ".join(block_lines)
+                i = j
+                continue
             result[key] = val
+        i += 1
     return result
 
 

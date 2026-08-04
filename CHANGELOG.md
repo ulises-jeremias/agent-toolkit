@@ -50,6 +50,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed module-level `TOOLKIT_DIR: Path = toolkit_root()` (evaluated at import time,
   crashed before any function ran) — replaced with lazy `toolkit_root()` per call site
 
+## [1.0.7] — 2026-08-04
+
+### Fixed
+- `skills list`: now correctly parses YAML block scalars (>-, |-) in SKILL.md descriptions
+  — all 52 skill descriptions now display properly instead of showing ">-"
+- `install` command: Copilot prompt no longer blocks in non-interactive/dry-run mode
+  (stdin.isatty() check; skips automatically in CI, pipes, --dry-run)
+- `pyproject.toml`: added agent-toolkit-cli script alias so `uvx agent-toolkit-cli` works
+
 ## [Unreleased]
 
 ### Added
