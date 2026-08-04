@@ -20,17 +20,7 @@ from pathlib import Path
 from agent_toolkit._paths import toolkit_root
 
 
-# ---------------------------------------------------------------------------
-# Toolkit directory resolution
-# ---------------------------------------------------------------------------
 
-def toolkit_root() -> Path | None:
-    candidate = Path(__file__).resolve()
-    for _ in range(10):
-        candidate = candidate.parent
-        if (candidate / "profiles").is_dir():
-            return candidate
-    return None
 
 
 # ---------------------------------------------------------------------------

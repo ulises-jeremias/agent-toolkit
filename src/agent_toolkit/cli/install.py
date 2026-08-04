@@ -19,24 +19,9 @@ from pathlib import Path
 from agent_toolkit._paths import toolkit_root
 
 
-# ---------------------------------------------------------------------------
-# Toolkit directory resolution
-# ---------------------------------------------------------------------------
-
-def toolkit_root() -> Path:
-    """Walk up from this file until we find the directory containing profiles/."""
-    candidate = Path(__file__).resolve()
-    for _ in range(10):
-        candidate = candidate.parent
-        if (candidate / "profiles").is_dir():
-            return candidate
-    raise FileNotFoundError(
-        "Cannot locate toolkit root (directory containing profiles/). "
-        "Make sure agent-toolkit is installed from its source tree."
-    )
 
 
-TOOLKIT_DIR: Path = toolkit_root()
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -181,7 +166,7 @@ def _windsurf_config_dir() -> Path:
 def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Claude Code")
-    src = TOOLKIT_DIR / "profiles" / "claude-code"
+    src = toolkit_root() / "profiles" / "claude-code"
 
     if not src.is_dir():
         _warn(f"Profile directory not found: {src}")
@@ -202,7 +187,7 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
 def _install_cursor(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Cursor")
-    src = TOOLKIT_DIR / "profiles" / "cursor" / "rules"
+    src = toolkit_root() / "profiles" / "cursor" / "rules"
 
     if not src.is_dir():
         _warn(f"Cursor rules directory not found: {src}")
@@ -215,7 +200,7 @@ def _install_cursor(*, dry_run: bool, force: bool) -> bool:
 def _install_opencode(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: OpenCode")
-    src = TOOLKIT_DIR / "profiles" / "opencode"
+    src = toolkit_root() / "profiles" / "opencode"
 
     if not src.is_dir():
         _warn(f"OpenCode profile directory not found: {src}")
@@ -236,7 +221,7 @@ def _install_copilot(*, dry_run: bool, force: bool) -> bool:
     _info("Installing: GitHub Copilot")
     _info("Copilot instructions are per-project and committed to the repository.")
 
-    src = TOOLKIT_DIR / "profiles" / "copilot" / "copilot-instructions.md"
+    src = toolkit_root() / "profiles" / "copilot" / "copilot-instructions.md"
     if not src.is_file():
         _warn(f"Copilot instructions not found: {src}")
         return False
@@ -272,7 +257,7 @@ def _install_copilot(*, dry_run: bool, force: bool) -> bool:
 def _install_windsurf(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Windsurf")
-    src = TOOLKIT_DIR / "profiles" / "windsurf"
+    src = toolkit_root() / "profiles" / "windsurf"
 
     if not src.is_dir():
         _warn(f"Windsurf profile directory not found: {src}")
@@ -292,7 +277,7 @@ def _install_windsurf(*, dry_run: bool, force: bool) -> bool:
 def _install_pi(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Pi Coding Agent")
-    src = TOOLKIT_DIR / "profiles" / "pi" / "skills"
+    src = toolkit_root() / "profiles" / "pi" / "skills"
 
     if not src.is_dir():
         _warn(f"Pi skills directory not found: {src}")
@@ -359,7 +344,7 @@ def cmd_install(args: list[str]) -> int:
 
     print()
     print("agent-toolkit installer")
-    print(f"Toolkit: {TOOLKIT_DIR}")
+    print(f"Toolkit: {toolkit_root()}")
 
     if dry_run:
         print()

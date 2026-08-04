@@ -41,6 +41,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - loop runner: resolve toolkit root from package data dir before CWD fallback,
   preventing it from picking up the user's ai-workspace loops when run via uvx/pip
 
+## [1.0.6] — 2026-08-04
+
+### Fixed
+- **CRITICAL**: Local `toolkit_root()` in cli/install.py, doctor.py, mcp.py, skills.py,
+  plugin.py was defined *after* the import from `_paths.py`, shadowing it — so the
+  correct resolution logic was never called in wheel/uvx installs
+- Removed module-level `TOOLKIT_DIR: Path = toolkit_root()` (evaluated at import time,
+  crashed before any function ran) — replaced with lazy `toolkit_root()` per call site
+
 ## [Unreleased]
 
 ### Added
