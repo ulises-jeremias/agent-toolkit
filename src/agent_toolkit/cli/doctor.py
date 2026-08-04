@@ -36,6 +36,15 @@ from pathlib import Path
 from agent_toolkit._paths import toolkit_root
 from agent_toolkit._paths import toolkit_root
 
+# Windows: force UTF-8 output so emoji chars (✓ ✗ ⚠) don't crash
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+
 
 # Windows: force UTF-8 output so emoji chars (✓ ✗ ⚠) don't crash
 if sys.platform == "win32":
