@@ -10,3 +10,5 @@ recursive-include docs *.md
 recursive-include examples *.md *.yaml
 recursive-include packaging *.rb *.sh
 exclude .github
+
+include src/agent_toolkit/loop/loop-gh-gate

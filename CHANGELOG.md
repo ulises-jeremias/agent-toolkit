@@ -72,6 +72,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows compatibility: `os.getuid()` doesn't exist on Windows — wrapped in try/except
   so `agent-toolkit doctor` no longer crashes on Windows runners
 
+## [1.0.10] — 2026-08-04
+
+### Fixed
+- `loop run` now works from pip/uvx installs — `loop-gh-gate` (the gh CLI
+  security shim) is now included in the wheel at `agent_toolkit/loop/loop-gh-gate`
+- Windows compatibility: `os.getuid()` wrapped in try/except AttributeError
+
+### Added  
+- uv workspace structure: `packages/agent-toolkit-cli/` — ready for future packages
+  (`agent-toolkit-server`, `agent-toolkit-mcp`, etc.)
+- Root `pyproject.toml` with `[tool.uv.workspace]` and shared dev tooling
+
 ## [Unreleased]
 
 ### Added
