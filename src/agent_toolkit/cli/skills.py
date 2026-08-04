@@ -24,6 +24,16 @@ import sys
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
 
+# Windows: force UTF-8 output so Unicode chars (✓ ✗ ──) don't crash
+import sys as _sys
+if _sys.platform == 'win32':
+    try:
+        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
+
 def _parse_skill_description(skill_dir):
     skill_md = skill_dir / "SKILL.md"
     if not skill_md.exists():

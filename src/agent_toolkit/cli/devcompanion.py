@@ -21,6 +21,14 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+import sys as _sys
+if _sys.platform == 'win32':
+    try:
+        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 
 # ── workspace detection ───────────────────────────────────────────────────────
 

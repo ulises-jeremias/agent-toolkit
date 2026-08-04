@@ -26,6 +26,14 @@ from pathlib import Path
 
 from agent_toolkit._paths import toolkit_root
 
+import sys as _sys
+if _sys.platform == 'win32':
+    try:
+        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+
 
 def _find_repo_root() -> Path:
     """Find the repo root (where distributions/ lives)."""
