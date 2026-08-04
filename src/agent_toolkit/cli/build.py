@@ -99,7 +99,7 @@ def cmd_build(args: list[str]) -> int:
         products_to_build = [graph.products[parsed.product]]
 
     # Select targets
-    available_targets = {"claude-code", "cursor"}  # expand as adapters are added
+    available_targets = {"claude-code", "cursor", "opencode"}  # expand as adapters are added
     targets_to_build = [parsed.target] if parsed.target else list(available_targets)
 
     for t in targets_to_build:
@@ -214,4 +214,7 @@ def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
     if target_id == "cursor":
         from agent_toolkit.compiler.targets.cursor import CursorAdapter
         return CursorAdapter(output_dir, repo_root)
+    if target_id == "opencode":
+        from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
+        return OpenCodeAdapter(output_dir, repo_root)
     return None

@@ -1,0 +1,55 @@
+# OpenCode target definition
+# Research: docs/research/platform-capability-matrix.md (2026-08-04)
+# Official docs: https://opencode.ai/docs/plugins/
+id: opencode
+name: "OpenCode"
+description: Open-source AI coding agent (opencode.ai)
+maturity: stable
+package_type: companion-assets  # NOT a plugin — accurately labeled
+
+# OpenCode does NOT have a plugin marketplace.
+# Distribution: npm packages or local paths (Bun/Node).
+# The full plugin API uses JS/TS modules, not JSON manifests.
+
+capabilities:
+  skills:
+    supported: true
+    method: generated
+    discovery: .opencode/skills/<name>/SKILL.md from project root
+    format: SKILL.md (Agent Skills spec)
+  agents:
+    supported: true
+    method: generated
+    discovery: .opencode/agents/<name>/AGENT.md from project root
+    format: AGENT.md
+  opencode_json:
+    supported: true
+    method: generated
+    notes: Safe defaults only — no provider config, no private URLs
+  hooks:
+    supported: false
+    requires: TypeScript runtime plugin (packages/opencode-plugin/ — issue #10)
+  custom_tools:
+    supported: false
+    requires: TypeScript plugin with tool registration API
+  mcp_config:
+    supported: false
+    requires: TypeScript plugin (no static opencode.json format for MCP)
+  plugin_marketplace:
+    supported: false
+    notes: OpenCode uses npm/Bun; no marketplace format like Claude/Cursor
+
+security:
+  no_provider_config: true
+  no_private_hostnames: true
+  notes: opencode.json must not contain provider.baseURL (DEFECT-002 class)
+
+runtime_plugin:
+  status: pending
+  issue: 10
+  location: packages/opencode-plugin/
+  language: TypeScript
+  note: >-
+    Static companion assets work without runtime code.
+    The full plugin API (hooks, tools, MCP, interception)
+    requires a TypeScript package — separate work item.
