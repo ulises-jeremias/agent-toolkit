@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "development-workflow",
+  "version": "1.0.0",
+  "description": "WHAT: Default development workflow, task lifecycle, DoR, DoD, validation, and evidence model when a project has no explicit override.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "agent-toolkit",
+    "development-workflow",
+    "validation",
+    "definition-of-ready",
+    "definition-of-done",
+    "delivery"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

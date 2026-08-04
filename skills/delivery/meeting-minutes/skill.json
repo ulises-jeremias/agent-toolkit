@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "meeting-minutes",
+  "version": "1.0.0",
+  "description": "WHAT: Create structured meeting minutes from notes or transcripts using agent-toolkit meeting templates, with redaction, action items, decisions, and traceability.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "agent-toolkit",
+    "meeting-minutes",
+    "actions",
+    "decisions",
+    "clickup"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

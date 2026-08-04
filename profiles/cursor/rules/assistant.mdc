@@ -1,0 +1,25 @@
+---
+description: agent-toolkit development conventions and standards. Apply when working in any agent-toolkit or client repository to ensure compliance with internal standards.
+alwaysApply: false
+---
+
+# agent-toolkit Dev Companion
+
+## Repository inspection order
+Before writing any code, read in this order:
+1. README.md → docs/ → AGENTS.md or CLAUDE.md → CONTRIBUTING.md → PR templates → task runners → CI
+
+Always cite which file a convention comes from.
+
+## Standards
+- Shell scripts: `set -euo pipefail`, idempotent, OS-aware
+- chezmoi repos: `.chezmoiroot` points to `home/`, `dots-` prefix for internal commands
+- Never commit secrets — use `.env.example`
+- English: all documentation, commits, and ticket descriptions
+- Update documentation when behavior changes
+
+## Client projects
+- Respect existing patterns and conventions
+- Check for project-specific AGENTS.md or CLAUDE.md first
+- Follow the project's branching and PR strategy
+- Surface conflicts between agent-toolkit standards and project conventions

@@ -1,0 +1,25 @@
+# OSS Maintenance Pack Configuration
+pack: oss-maintenance
+version: "1.0"
+
+# List your repositories here (owner/repo format)
+repos: []
+  # - myorg/my-repo
+  # - myorg/another-repo
+
+# Per-loop settings (override defaults from loop.yaml)
+loops:
+  oss-pr-monitor:
+    enabled: true
+    cadence: 1d
+    # Override budget if you have more/fewer repos
+    # budget:
+    #   max_tokens: 300000
+
+  oss-triage:
+    enabled: true
+    cadence: 1d
+
+  oss-daily-briefing:
+    enabled: true
+    cadence: 1d

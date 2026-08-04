@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
+  "title": "agent-toolkit Skill Manifest",
+  "description": "Schema for skill.json — the universal skill manifest for agent-toolkit AI tools",
+  "type": "object",
+  "required": ["name", "version", "description", "source", "compatibility"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference URI"
+    },
+    "name": {
+      "type": "string",
+      "description": "Unique kebab-case identifier for the skill",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of this skill manifest",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short human-readable description (used by AI tools in skill selection)"
+    },
+    "source": {
+      "type": "string",
+      "description": "Where this skill comes from",
+      "enum": ["bundled", "npm", "github", "url"]
+    },
+    "package": {
+      "type": "string",
+      "description": "npm package name. Required when source is 'npm'"
+    },
+    "repo": {
+      "type": "string",
+      "description": "GitHub repo in 'owner/repo' format. Required when source is 'github'"
+    },
+    "ref": {
+      "type": "string",
+      "description": "Git ref (branch, tag, or SHA) for GitHub sources. Defaults to 'main'",
+      "default": "main"
+    },
+    "url": {
+      "type": "string",
+      "description": "Direct download URL. Required when source is 'url'",
+      "format": "uri"
+    },
+    "author": {
+      "type": "string",
+      "description": "Author or organization name"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Searchable tags for skill discovery",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "requires": {
+      "type": "array",
+      "description": "CLI tools or commands that must be available for this skill to work",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "pip_packages": {
+      "type": "array",
+      "description": "Python packages to install via uv/pip before this skill can work",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Other skills or CLI tools this skill depends on at runtime. Use string for name-only or object for version-constrained dependency.",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["name"],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Skill name"
+              },
+              "version": {
+                "type": "string",
+                "description": "Semver constraint (e.g. >=1.2.0, ~1.2.0, ^1.0.0)",
+                "pattern": "^[~^]?[0-9]+\\.[0-9]+\\.[0-9]+$"
+              }
+            }
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "trigger_points": {
+      "type": "array",
+      "description": "Semantic event names that auto-trigger this skill (e.g. task_creation, decision_made)",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "knowledge_targets": {
+      "type": "array",
+      "description": "Paths to knowledge files this skill writes to (relative to ai-workspace root)",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "compatibility": {
+      "type": "object",
+      "description": "Per-tool compatibility declarations. Add an entry for each AI tool this skill supports.",
+      "additionalProperties": {
+        "$ref": "#/definitions/toolCompatibility"
+      },
+      "properties": {
+        "claude-code":  { "$ref": "#/definitions/toolCompatibility" },
+        "copilot-cli":  { "$ref": "#/definitions/toolCompatibility" },
+        "cursor":       { "$ref": "#/definitions/toolCompatibility" },
+        "opencode":     { "$ref": "#/definitions/toolCompatibility" },
+        "pi":           { "$ref": "#/definitions/toolCompatibility" },
+        "windsurf":     { "$ref": "#/definitions/toolCompatibility" }
+      }
+    }
+  },
+  "if": { "required": ["source"], "properties": { "source": { "const": "npm" } } },
+  "then": { "required": ["package"] },
+  "else": {
+    "if": { "required": ["source"], "properties": { "source": { "const": "github" } } },
+    "then": { "required": ["repo"] },
+    "else": {
+      "if": { "required": ["source"], "properties": { "source": { "const": "url" } } },
+      "then": { "required": ["url"] }
+    }
+  },
+  "definitions": {
+    "toolCompatibility": {
+      "type": "object",
+      "required": ["supported"],
+      "additionalProperties": false,
+      "properties": {
+        "supported": {
+          "type": "boolean",
+          "description": "Whether this skill works with this AI tool"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes about compatibility caveats or limitations"
+        }
+      }
+    }
+  }
+}

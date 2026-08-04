@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "epic",
+  "version": "1.0.0",
+  "description": "WHAT: Draft and review epics using the agent-toolkit Best Practices Epic Template; includes objectives, success criteria, related tasks, stakeholders, and effort metadata.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "agent-toolkit",
+    "epic",
+    "work-item",
+    "clickup",
+    "delivery"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
+  "name": "gh-fix-ci",
+  "version": "1.0.0",
+  "description": "Diagnose failing GitHub Actions checks on a PR via gh, summarize failures, and propose a fix plan before implementing.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "github",
+    "ci",
+    "pull-request",
+    "github-actions"
+  ],
+  "requires": [
+    "gh",
+    "python3"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "cursor": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

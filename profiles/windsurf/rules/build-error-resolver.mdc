@@ -1,0 +1,20 @@
+---
+description: Build and TypeScript error resolution. Apply when encountering compilation errors, type errors, lint failures, or CI pipeline failures.
+alwaysApply: false
+---
+
+# Build Error Resolution
+
+When fixing build errors:
+
+- Read the full error message and stack trace before changing anything
+- Locate the exact source files mentioned in the error
+- Understand WHY the error occurs — not just WHERE
+- Apply the minimal fix that resolves the root cause
+- Verify the fix doesn't introduce new errors
+
+## Hard rules
+- Never use `any` as a quick fix without explicit documentation
+- Never suppress with `// @ts-ignore` without a detailed comment explaining why
+- Never silence ESLint with `// eslint-disable` without justification
+- Check related files (imports, type definitions, configs) before patching

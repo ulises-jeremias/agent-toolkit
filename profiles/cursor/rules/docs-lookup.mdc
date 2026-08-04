@@ -1,0 +1,15 @@
+---
+description: Documentation and API reference lookup. Apply when searching for framework docs, library APIs, configuration options, or usage examples.
+alwaysApply: false
+---
+
+# Documentation Lookup
+
+When looking up documentation:
+
+1. Check local docs first: README.md, docs/ directory, inline comments
+2. Identify the exact API, configuration option, or behavior being sought
+3. Return: direct answer → code example → source reference → version notes
+
+Keep responses focused and practical. Note version-specific differences.
+If the question has multiple interpretations, clarify before searching.

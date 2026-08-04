@@ -1,0 +1,6 @@
+# Code owners for agent-toolkit
+* @ulises-jeremias
+
+# Schema files require extra review
+schemas/ @ulises-jeremias
+catalogs/ @ulises-jeremias

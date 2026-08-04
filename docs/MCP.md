@@ -1,0 +1,297 @@
+# MCP Templates
+
+Model Context Protocol (MCP) is an open standard that lets AI tools connect to external services as structured data sources and action providers. With MCP, your AI coding assistant can read GitHub issues, post Slack messages, query Linear, and more — all through a secure, declarative interface.
+
+agent-toolkit ships MCP configuration templates for the most commonly used services. These templates are stubs — they contain no secrets. All credential values are represented as `${ENV_VAR}` placeholders that you fill in at install time.
+
+Templates live in `mcp/templates/<provider>/`. Each template directory contains:
+- `config.template.json` — the MCP configuration stub (copy and fill in credentials)
+- `README.md` — provider-specific setup notes
+- `wrapper.sh` — optional shell wrapper for complex launch patterns (not all providers)
+
+---
+
+## Why Env Var Placeholders?
+
+MCP configurations reference secrets (API tokens, OAuth credentials). Committing those to a repository — even a private one — creates a security risk. agent-toolkit templates use `${VARIABLE_NAME}` placeholders so:
+
+1. The templates can be committed and shared safely
+2. Secrets stay in your environment (`.env` files, shell profile, secret manager)
+3. Rotating a token requires only updating the environment variable, not editing config files
+
+Never substitute real credentials directly into the template files and commit them.
+
+---
+
+## Provider Table
+
+| Provider | Type | Transport | Env vars | Description |
+|----------|------|-----------|----------|-------------|
+| GitHub | Command | stdio | `GITHUB_TOKEN` | Repos, PRs, issues, releases, Actions |
+| Slack | Command | stdio | `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN` | Channels, messages, reactions, canvases |
+| Notion | Command | stdio | `NOTION_API_TOKEN` | Pages, databases, blocks |
+| Linear | HTTP/SSE | streamable_http | None (OAuth via browser) | Issues, projects, cycles, comments |
+| Figma | HTTP | streamable_http | `FIGMA_OAUTH_TOKEN`, `FIGMA_REGION` | Files, components, design tokens |
+| ClickUp | Command | stdio | `CLICKUP_API_TOKEN` | Tasks, lists, spaces, docs, comments |
+
+---
+
+## Per-Provider Setup
+
+### GitHub
+
+**Template:** `mcp/templates/github/config.template.json`
+
+```json
+{
+  "name": "github",
+  "command": "mcp-github-server",
+  "env": {
+    "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+  }
+}
+```
+
+**Setup:**
+
+1. Create a GitHub personal access token (classic or fine-grained) at https://github.com/settings/tokens
+   - Required scopes: `repo`, `read:org`, `workflow` (add `delete_repo` only if needed)
+2. Export the token:
+   ```bash
+   export GITHUB_TOKEN=ghp_your_token_here
+   ```
+3. Install the MCP server:
+   ```bash
+   npm install -g @anthropic-ai/mcp-server-github
+   # or follow your tool's MCP server install instructions
+   ```
+4. Copy the template to your tool's MCP config location (see [Adding MCP to Your Tool](#adding-mcp-to-your-tool) below)
+
+**What it enables:** List and create issues, review PRs, check Actions run status, read repository contents, manage releases.
+
+---
+
+### Slack
+
+**Template:** `mcp/templates/slack/config.template.json`
+
+```json
+{
+  "name": "slack",
+  "command": "mcp-slack-server",
+  "env": {
+    "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
+    "SLACK_APP_TOKEN": "${SLACK_APP_TOKEN}"
+  }
+}
+```
+
+**Setup:**
+
+1. Create a Slack app at https://api.slack.com/apps
+2. Under **OAuth & Permissions**, add bot token scopes:
+   - `channels:history`, `channels:read`, `chat:write`, `reactions:write`, `users:read`
+3. Under **Socket Mode**, enable Socket Mode and create an App-Level Token with `connections:write` scope
+4. Install the app to your workspace
+5. Export the tokens:
+   ```bash
+   export SLACK_BOT_TOKEN=xoxb-your-bot-token
+   export SLACK_APP_TOKEN=xapp-your-app-token
+   ```
+6. Install the MCP server and copy the template
+
+**What it enables:** Read channel history, post messages, add reactions, browse Slack canvases.
+
+---
+
+### Notion
+
+**Template:** `mcp/templates/notion/config.template.json`
+
+```json
+{
+  "name": "notion",
+  "command": "mcp-notion-server",
+  "env": {
+    "NOTION_API_TOKEN": "${NOTION_API_TOKEN}"
+  }
+}
+```
+
+**Setup:**
+
+1. Create a Notion integration at https://www.notion.so/my-integrations
+   - Select the workspace you want to connect
+   - Grant read/write content access
+2. Copy the Internal Integration Token
+3. In Notion, share each database or page with your integration (use the Share menu → Connect to integration)
+4. Export the token:
+   ```bash
+   export NOTION_API_TOKEN=secret_your_token_here
+   ```
+5. Install the MCP server and copy the template
+
+**What it enables:** Read and write Notion pages and databases, query blocks, create content.
+
+---
+
+### Linear
+
+**Template:** `mcp/templates/linear/config.template.json`
+
+```json
+{
+  "name": "linear",
+  "transport": "streamable_http",
+  "url": "https://mcp.linear.app/mcp",
+  "auth": "oauth"
+}
+```
+
+Linear's MCP uses OAuth — there are no API keys to manage. The MCP client handles the browser-based OAuth flow automatically on first connection.
+
+**Setup:**
+
+1. No token setup required — Linear MCP uses OAuth
+2. Copy the template to your tool's MCP config (see below)
+3. On first use, your AI tool will open a browser to authorize the Linear connection
+4. Accept the permissions and the connection is established
+
+**Windows/WSL fallback:** If the streamable HTTP transport is not available in your environment, use the SSE fallback:
+```json
+{
+  "name": "linear",
+  "command": "wsl",
+  "args": ["npx", "-y", "mcp-remote", "https://mcp.linear.app/sse", "--transport", "sse-only"]
+}
+```
+
+**What it enables:** Create and update issues, manage projects and cycles, add comments, query sprints and assignments.
+
+---
+
+### Figma
+
+**Template:** `mcp/templates/figma/config.template.json`
+
+```json
+{
+  "name": "figma",
+  "transport": "streamable_http",
+  "url": "https://mcp.figma.com/mcp",
+  "headers": {
+    "Authorization": "Bearer ${FIGMA_OAUTH_TOKEN}",
+    "X-Figma-Region": "${FIGMA_REGION}"
+  }
+}
+```
+
+**Setup:**
+
+1. Generate a Figma personal access token at https://www.figma.com/settings → Security → Personal access tokens
+   - Scope: `File content (read-only)` is sufficient for design-to-code workflows
+2. Find your region (typically `us` or `eu` — check your Figma account settings)
+3. Export the values:
+   ```bash
+   export FIGMA_OAUTH_TOKEN=figd_your_token_here
+   export FIGMA_REGION=us
+   ```
+4. Copy the template to your tool's MCP config
+
+**What it enables:** Fetch design context, read file structure, extract component metadata, get screenshots for design-to-code workflows. Required for the `figma`, `figma-implement-design`, and `figma-code-connect-components` skills.
+
+---
+
+### ClickUp
+
+**Template:** `mcp/templates/clickup/config.template.json`
+
+```json
+{
+  "name": "clickup",
+  "command": "mcp-clickup-server",
+  "env": {
+    "CLICKUP_API_TOKEN": "${CLICKUP_API_TOKEN}"
+  }
+}
+```
+
+**Setup:**
+
+1. Get your ClickUp API token at https://app.clickup.com/settings/apps
+2. Export the token:
+   ```bash
+   export CLICKUP_API_TOKEN=pk_your_token_here
+   ```
+3. Install the MCP server and copy the template
+
+**What it enables:** View and create tasks, manage lists and spaces, add comments, read and write Docs.
+
+---
+
+## Adding MCP to Your AI Tool
+
+### Claude Code
+
+Add your filled-in MCP config to `~/.claude/claude_desktop_config.json` (or the project-level `.claude/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "github": {
+      "command": "mcp-github-server",
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_token"
+      }
+    },
+    "slack": {
+      "command": "mcp-slack-server",
+      "env": {
+        "SLACK_BOT_TOKEN": "xoxb-...",
+        "SLACK_APP_TOKEN": "xapp-..."
+      }
+    }
+  }
+}
+```
+
+Claude Code reads MCP servers from this file and makes their tools available in every session.
+
+### Cursor
+
+Go to **Cursor Settings → MCP** and add server entries. Cursor supports both command-based (stdio) and HTTP-based (streamable_http) transports.
+
+For command-based servers, fill in the command and environment variables directly in the Cursor MCP settings UI. For HTTP-based servers (Linear, Figma), paste the URL and headers.
+
+### OpenCode
+
+Add MCP server entries to `~/.config/opencode/opencode.json`:
+
+```json
+{
+  "mcp": {
+    "github": {
+      "command": "mcp-github-server",
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_token"
+      }
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add MCP entries to Windsurf's MCP configuration file (typically `~/.codeium/windsurf/mcp_config.json` — check your Windsurf version's documentation for the exact path).
+
+---
+
+## Security Notes
+
+- Store tokens in a password manager or secrets manager, not in `.bashrc` or `.zshrc` (which may be committed)
+- Use `.env` files with `direnv` or a similar tool for per-project secrets
+- Prefer fine-grained tokens with the minimum required scopes
+- Rotate tokens periodically — MCP servers use whatever scope the token has, so a compromised token with broad scopes is a significant risk
+- Never commit filled-in MCP config files containing real tokens to any repository
+
+The `validate-skills.sh` script scans for common secret patterns. It will warn if it detects what looks like a real token in any tracked file.

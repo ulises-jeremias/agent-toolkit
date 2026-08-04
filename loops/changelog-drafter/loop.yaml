@@ -1,0 +1,40 @@
+# Loop starter: changelog-drafter
+# An L1 loop that drafts release notes daily from merged PRs.
+# Cadence: 1 day. Cost: low. Tier: L1 (report-only).
+
+name: changelog-drafter
+description: "Draft release notes from merged PRs (L1, report-only)"
+tier: L1
+cadence: 1d
+
+goal: |
+  Collect all PRs merged since the last tag or release.
+  Draft release notes in keep-a-changelog format.
+  Write to report.md only — do NOT commit or push.
+
+allowlist: []
+deny:
+  - merge
+  - push
+  - commit
+  - tag
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+
+budget:
+  max_tokens: 20000
+  max_runs_per_day: 1
+  max_wall_seconds: 180
+
+verifier: null
+
+request: |
+  You are the changelog drafter for this repository.
+  1. Find the latest git tag (git describe --tags --abbrev=0).
+  2. List all PRs merged since that tag (gh pr list --state merged --search "merged:>DATE").
+  3. Group by: Added, Changed, Fixed, Deprecated, Removed, Security.
+  4. Write a draft CHANGELOG entry in keep-a-changelog format to report.md.
+  5. Include: version placeholder [Unreleased], today's date, grouped PR entries.
+  6. Do NOT commit or push. This is L1 — observation and drafting only.

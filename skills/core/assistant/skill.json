@@ -1,0 +1,49 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "assistant",
+  "version": "2.1.3",
+  "description": "agent-toolkit Assistant: inspect any repo in order README→docs→AGENTS→CONTRIBUTING→PR templates→Make/just/npm→devcontainer→CI→configs→code; route delivery artifacts and project assessments to atomic skills; cite sources; AGENTS.md wins for agent behavior; suggest consolidation for portable rules; dots-* when on agent-toolkit baseline.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "agent-toolkit",
+    "assistant",
+    "companion",
+    "workflow",
+    "client-work",
+    "readme",
+    "docs",
+    "agents-md",
+    "contributing",
+    "ci",
+    "devcontainer",
+    "chezmoi",
+    "workstation",
+    "skills",
+    "portability",
+    "best-practices"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

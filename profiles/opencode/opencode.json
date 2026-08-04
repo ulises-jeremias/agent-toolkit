@@ -1,0 +1,37 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "colibri-coding": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Colibri — Coding (vLLM)",
+      "options": {
+        "baseURL": "http://colibri.skypiea.local:8000/v1"
+      },
+      "models": {
+        "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ": {
+          "name": "Qwen2.5 Coder 7B AWQ",
+          "limit": {
+            "context": 16384,
+            "output": 8192
+          }
+        }
+      }
+    },
+    "colibri-reasoning": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Colibri — Reasoning (Ollama)",
+      "options": {
+        "baseURL": "http://colibri.skypiea.local:11434/v1"
+      },
+      "models": {
+        "deepseek-r1:latest": {
+          "name": "DeepSeek R1 7B Q4 (chain-of-thought)",
+          "limit": {
+            "context": 16384,
+            "output": 4096
+          }
+        }
+      }
+    }
+  }
+}

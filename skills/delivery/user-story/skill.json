@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "user-story",
+  "version": "1.0.0",
+  "description": "WHAT: Draft and review user stories using the agent-toolkit task template plus the As a/I want/so that format from Best Practices examples.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "agent-toolkit",
+    "user-story",
+    "work-item",
+    "acceptance-criteria",
+    "clickup"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

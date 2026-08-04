@@ -1,0 +1,20 @@
+---
+description: agent-toolkit reference examples lookup. Apply when looking for official agent-toolkit examples, starter templates, or established patterns from the agent-toolkit ecosystem.
+alwaysApply: false
+---
+
+# agent-toolkit Reference Lookup
+
+## Sources
+- **public examples**: https://github.com/ulises-jeremias/public examples
+- Examples API: https://raw.githubusercontent.com/agent-toolkit/public examples/refs/heads/main/examples.json
+- Local docs/ directory
+- Existing patterns in the current codebase
+
+## Process
+1. Fetch and scan the public examples examples API
+2. Identify the most relevant matches for the requested pattern
+3. Summarize with key implementation points
+4. Adapt to the current project's context and conventions
+
+Always cite the source URL or repository path.

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
+  "name": "slack-cli",
+  "version": "1.0.0",
+  "description": "Interact with the official Slack CLI to create, run, deploy, and manage Slack apps, environments, manifests, and triggers. Use when the user asks about Slack app development workflows, not workspace chat automation.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "slack",
+    "developer-tools",
+    "cli"
+  ],
+  "requires": [
+    "slack"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

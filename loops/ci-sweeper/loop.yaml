@@ -1,0 +1,53 @@
+# Loop starter: ci-sweeper
+# An L2 loop that monitors CI failures and proposes fixes via draft PRs.
+# Cadence: 15 minutes. Cost: very high. Tier: L2 (PR-gated, cautious).
+#
+# WARNING: This loop runs frequently and is expensive. Start at L1 to observe
+# before enabling writes. Default budget is conservative.
+
+name: ci-sweeper
+description: "Detect CI failures and propose fixes via draft PRs (L2, cautious)"
+tier: L2
+cadence: 15m
+
+goal: |
+  Detect failing CI runs on open PRs or the main branch.
+  Diagnose the root cause and propose a minimal fix as a draft PR.
+  Never auto-merge. Never force-push.
+
+allowlist:
+  - comment
+  - create_draft_pr
+deny:
+  - merge
+  - approve
+  - close
+  - force-push
+  - delete-branch
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+  - human_escalation
+  - max_iterations
+
+budget:
+  max_tokens: 100000
+  max_runs_per_day: 48
+  max_wall_seconds: 900
+  max_iterations: 3
+
+verifier: agent-toolkit-code-reviewer
+
+request: |
+  You are the CI sweeper for this repository.
+  1. List failing CI runs (gh run list --status failure).
+  2. For each failure (max 2 per run):
+     a. Fetch logs (gh run view --log).
+     b. Identify root cause.
+     c. If fix is straightforward (< 20 lines, no design impact):
+        - Create a worktree, make the fix.
+        - Open a DRAFT PR with clear description.
+     d. Otherwise: post a comment with diagnosis only.
+  3. Write plan.md with: failures found, fixes attempted, PRs opened.
+  4. Max 2 PRs per run. If you cannot confidently fix: escalate.

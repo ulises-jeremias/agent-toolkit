@@ -1,0 +1,40 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
+  "name": "figma-code-connect-components",
+  "version": "1.0.0",
+  "description": "Connects Figma design components to code components using the Figma MCP Code Connect tools.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "figma",
+    "mcp",
+    "code-connect",
+    "design-system"
+  ],
+  "requires": [
+    "python3"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "cursor": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

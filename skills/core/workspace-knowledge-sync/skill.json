@@ -1,0 +1,48 @@
+{
+  "name": "workspace-knowledge-sync",
+  "version": "1.0.0",
+  "description": "Syncs knowledge to ai-workspace knowledge base. Auto-triggers from tech-assistant.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "dependencies": [
+    "assistant-memory"
+  ],
+  "trigger_points": [
+    "task_creation",
+    "task_update",
+    "space_discovery",
+    "decision_made",
+    "user_preference_learned",
+    "manual_sync_request"
+  ],
+  "knowledge_targets": [
+    "knowledge/skills/discovered.md",
+    "knowledge/processes/clickup/",
+    "knowledge/processes/general.md",
+    "knowledge/learnings/general.md",
+    "knowledge/todos/pending.md"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

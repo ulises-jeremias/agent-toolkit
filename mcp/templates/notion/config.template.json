@@ -1,0 +1,7 @@
+{
+  "name": "notion",
+  "command": "mcp-notion-server",
+  "env": {
+    "NOTION_API_TOKEN": "${NOTION_API_TOKEN}"
+  }
+}

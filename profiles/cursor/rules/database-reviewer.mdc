@@ -1,0 +1,29 @@
+---
+description: PostgreSQL and database review. Apply for schema design, query optimization, migration review, index analysis, and ORM usage.
+alwaysApply: false
+---
+
+# Database Review Guidelines
+
+## Schema
+- 3NF normalization unless intentionally denormalized for performance
+- Appropriate data types (avoid overusing TEXT/VARCHAR)
+- Constraints: NOT NULL, UNIQUE, FK, CHECK where appropriate
+- snake_case naming, plural table names
+
+## Queries
+- Use EXPLAIN ANALYZE for performance analysis
+- Detect and eliminate N+1 queries in ORM calls
+- Use keyset pagination over LIMIT/OFFSET for large datasets
+- Index query predicates and join columns
+
+## Migrations (production safety)
+- Avoid operations that take long locks (e.g., `ADD COLUMN DEFAULT` on large tables)
+- Make migrations reversible
+- Plan backfill strategies for schema changes on large tables
+- Use zero-downtime patterns (expand/contract)
+
+## ORM
+- Correct eager vs lazy loading
+- Proper transaction scope and isolation level
+- Manage connection pool settings

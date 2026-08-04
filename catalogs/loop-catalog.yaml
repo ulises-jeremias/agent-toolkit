@@ -1,0 +1,165 @@
+# agent-toolkit — Loop Catalog
+# Metadata for all bundled loop templates.
+# Each entry describes a loops/<name>/loop.yaml template.
+#
+# Tier definitions:
+#   L1  — read-only or propose-only; no mutations; safe to run unattended
+#   L2  — limited writes (PRs, comments, labels); PR-gated; cautious budget
+#   L3  — full write access; reserved for high-trust environments
+#
+# Scope definitions:
+#   single-repo   — operates on one repository per run
+#   multi-repo    — reads pack/config to iterate across many repositories
+#
+# cost_estimate legend: low / medium / high / very-high (relative token usage per run)
+
+version: 1
+
+loops:
+
+  # ── Single-Repo Loops ────────────────────────────────────────────────────────
+
+  - name: daily-triage
+    tier: L1
+    cadence: 1d
+    scope: single-repo
+    resumable: false
+    cost_estimate: low
+    description: >
+      Scans all open issues created in the last 24 hours and proposes labels,
+      priority scores, and a brief summary for each. Writes a report only —
+      no changes are applied. Safe to run unattended every day.
+    use_case: >
+      Maintainers who want a daily digest of new issues with proposed routing,
+      without automating label application yet.
+
+  - name: issue-triage
+    tier: L1
+    cadence: 4h
+    scope: single-repo
+    resumable: false
+    cost_estimate: low
+    description: >
+      Finds unlabeled open issues (up to 20 per run) and proposes labels,
+      type classification, and priority. Outputs proposals to report.md.
+      No labels or comments are written.
+    use_case: >
+      Repositories with high issue volume where labeling must stay human-approved
+      but proposals can be automated at higher frequency.
+
+  - name: changelog-drafter
+    tier: L1
+    cadence: 1d
+    scope: single-repo
+    resumable: false
+    cost_estimate: low
+    description: >
+      Collects all PRs merged since the latest git tag and drafts release notes
+      in keep-a-changelog format. Writes draft to report.md only — does not
+      commit, tag, or push.
+    use_case: >
+      Teams who cut releases manually but want a first-pass CHANGELOG entry
+      generated automatically from merged PR titles.
+
+  - name: dep-sweeper
+    tier: L2
+    cadence: 1d
+    scope: single-repo
+    resumable: false
+    cost_estimate: medium
+    description: >
+      Detects patch-level dependency updates across all ecosystems (npm, pip,
+      cargo, etc.), applies them in a worktree, runs the test suite, and opens
+      a draft PR per ecosystem if tests pass. Skips major and minor version bumps.
+    use_case: >
+      Projects that want patch security updates merged quickly without manual
+      PR review overhead, while keeping major/minor bumps under human control.
+
+  - name: pr-babysitter
+    tier: L2
+    cadence: 15m
+    scope: single-repo
+    resumable: false
+    cost_estimate: high
+    description: >
+      Monitors open PRs every 15 minutes. For any PR without a review in the
+      last hour, posts a constructive review comment with a summary and 1-3
+      suggestions. Does not approve or request changes.
+    use_case: >
+      Teams that want faster PR feedback loops on active branches without
+      requiring a dedicated human reviewer to be online.
+
+  - name: ci-sweeper
+    tier: L2
+    cadence: 15m
+    scope: single-repo
+    resumable: false
+    cost_estimate: very-high
+    description: >
+      Detects failing CI runs on open PRs or the main branch, diagnoses the
+      root cause by fetching run logs, and proposes a minimal fix as a draft PR.
+      Never auto-merges. Designed to run conservatively with a low max_iterations
+      budget.
+    use_case: >
+      Teams with frequent CI noise who want automated triage and proposed
+      fixes surfaced before a human engineer investigates.
+
+  - name: post-merge-cleanup
+    tier: L2
+    cadence: 6h
+    scope: single-repo
+    resumable: false
+    cost_estimate: low
+    description: >
+      Runs off-peak housekeeping after merges: deletes stale merged branches
+      (older than 7 days, excluding protected branches), closes issues resolved
+      by merged PRs, and posts a "stale?" comment on issues inactive for 90 days.
+      Never deletes branches with open PRs.
+    use_case: >
+      Repositories that accumulate merged branches and stale issues over time
+      and want automated cleanup without human toil.
+
+  # ── Multi-Repo Loops ─────────────────────────────────────────────────────────
+
+  - name: oss-pr-monitor
+    tier: L2
+    cadence: 1d
+    scope: multi-repo
+    resumable: true
+    cost_estimate: high
+    description: >
+      Monitors open PRs across all repos configured in an ecosystem pack. Merges
+      Dependabot PRs with passing CI, closes dirty Dependabot PRs that will
+      regenerate, and writes a status report for human PRs. Supports resumability
+      via STATE.md so runs can survive interruption across large repo sets.
+    use_case: >
+      OSS maintainers managing 20-50 repositories who want automated Dependabot
+      handling and a daily PR status digest without reviewing every repo manually.
+
+  - name: oss-triage
+    tier: L1
+    cadence: 1d
+    scope: multi-repo
+    resumable: true
+    cost_estimate: medium
+    description: >
+      Scans open issues across all configured repos. Applies labels and posts
+      responses to obvious questions; reports everything else. Uses resumability
+      via STATE.md to continue from the last processed repo on interruption.
+    use_case: >
+      OSS maintainers who need consistent issue hygiene across a large ecosystem
+      without spending hours on manual triage each day.
+
+  - name: oss-daily-briefing
+    tier: L1
+    cadence: 1d
+    scope: multi-repo
+    resumable: true
+    cost_estimate: low
+    description: >
+      Read-only loop that generates a daily briefing covering new PRs, open
+      issues needing attention, and CI health across all configured repos.
+      No mutations of any kind. Writes output to report.md only.
+    use_case: >
+      Maintainers who want a single morning digest of ecosystem activity
+      without any automated actions — pure visibility.

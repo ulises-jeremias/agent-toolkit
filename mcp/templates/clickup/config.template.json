@@ -1,0 +1,7 @@
+{
+  "name": "clickup",
+  "command": "mcp-clickup-server",
+  "env": {
+    "CLICKUP_API_TOKEN": "${CLICKUP_API_TOKEN}"
+  }
+}

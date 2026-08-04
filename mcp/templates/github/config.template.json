@@ -1,0 +1,7 @@
+{
+  "name": "github",
+  "command": "mcp-github-server",
+  "env": {
+    "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+  }
+}

@@ -1,0 +1,23 @@
+---
+description: Software architecture and system design guidance. Apply when designing systems, evaluating architectural patterns, choosing between technical approaches, or planning large-scale structural changes.
+alwaysApply: false
+---
+
+# Architecture Guidelines
+
+When approaching architectural decisions:
+
+- Apply SOLID principles and prefer clean, layered architecture
+- Propose 2–3 alternatives with explicit trade-offs before recommending
+- Prefer simple solutions over clever ones — complexity is a cost
+- Document architecture decisions (consider ADR format)
+- Consider scalability, maintainability, and testability as first-class concerns
+- Define clear service boundaries and API contracts before implementation
+- Migration strategies should minimize blast radius and support rollback
+
+## Output structure
+1. Context summary
+2. Options with trade-offs
+3. Recommendation with rationale
+4. Risks and mitigations
+5. Concrete next steps

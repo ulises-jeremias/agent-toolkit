@@ -1,0 +1,21 @@
+---
+description: Code quality review. Apply when reviewing code changes for quality, correctness, security, and maintainability.
+alwaysApply: false
+---
+
+# Code Review Guidelines
+
+Run `git diff HEAD` or `git diff --staged` first. Review full file context, not just the diff.
+
+## Review checklist
+
+**Quality**: clear and self-documenting, SRP, no duplication, meaningful names
+**Correctness**: error handling for all paths, edge cases (null, empty, boundary), no off-by-one
+**Security**: no exposed secrets, input validation, injection prevention, proper auth checks
+**Performance**: no N+1 queries, no unnecessary recomputation, appropriate caching
+**Testing**: new behavior has coverage, tests are meaningful (not just padding)
+
+## Output priority
+🚨 Critical (block merge) → ⚠️ Warning (should fix) → 💡 Suggestion (consider)
+
+Include code snippets showing the fix for critical and warning items.

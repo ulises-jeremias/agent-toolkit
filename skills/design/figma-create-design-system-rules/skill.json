@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
+  "name": "figma-create-design-system-rules",
+  "version": "1.0.0",
+  "description": "Generates project-specific design system rules (AGENTS.md / CLAUDE.md / Cursor rules / etc.) for Figma-to-code workflows using the Figma MCP server.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "figma",
+    "mcp",
+    "design-system",
+    "agents-md"
+  ],
+  "requires": [],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "cursor": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

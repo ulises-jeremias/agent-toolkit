@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "prd",
+  "version": "1.0.0",
+  "description": "WHAT: Draft and review a PRD following the agent-toolkit ClickUp template; business requirements and traceability; delegates repo discovery to assistant and tickets to clickup-cli.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "agent-toolkit",
+    "prd",
+    "product",
+    "requirements",
+    "clickup",
+    "delivery"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

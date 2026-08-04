@@ -1,0 +1,47 @@
+# Loop starter: daily-triage
+# A low-cost L1 observation loop that labels new issues daily.
+# Cadence: once per day. Cost: low. Tier: L1 (report-only).
+#
+# Usage:
+#   ./bin/loop init daily-triage --repo owner/repo
+#   ./bin/loop run daily-triage
+
+name: daily-triage
+description: "Triage new issues and propose labels (report-only)"
+tier: L1
+cadence: 1d
+
+goal: |
+  Review all open issues created in the last 24 hours.
+  Propose labels and priority scores. Do NOT apply them — write a report.
+
+allowlist: []
+deny:
+  - merge
+  - close
+  - label
+  - comment
+  - push
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+  - human_escalation
+
+budget:
+  max_tokens: 30000
+  max_runs_per_day: 1
+  max_wall_seconds: 300
+
+verifier: null
+
+request: |
+  You are running the daily-triage loop for this repository.
+  1. List all open issues created in the last 24 hours (use gh cli).
+  2. For each issue, propose:
+     - Priority: critical / high / medium / low
+     - Labels: based on content and existing label taxonomy
+     - Brief (1-2 sentence) summary
+  3. Write a report.md with the proposals.
+  4. Do NOT make any changes — this is observation-only (L1 tier).
+  5. If you find a security issue: escalate immediately.

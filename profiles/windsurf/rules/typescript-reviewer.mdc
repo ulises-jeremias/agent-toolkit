@@ -1,0 +1,28 @@
+---
+description: TypeScript and JavaScript type safety review. Apply for type safety improvements, modern TS patterns, and resolving type complexity.
+alwaysApply: false
+---
+
+# TypeScript Review
+
+## Type safety rules
+- Avoid `any` — use `unknown` and narrow it
+- Avoid type assertions (`as`) except at system boundaries
+- `strict: true` in tsconfig — no exceptions
+- Use discriminated unions for state modeling
+- Use `unknown` + type guards over `any` + casting
+
+## Leverage utility types
+`Partial`, `Required`, `Readonly`, `Pick`, `Omit`, `Record`, `ReturnType`, `Parameters`, `NonNullable`
+
+## Generic constraints
+```typescript
+// Good: constrained and expressive
+function getProperty<T, K extends keyof T>(obj: T, key: K): T[K]
+```
+
+## Common issues to catch
+- Missing null checks in strict mode
+- Implicit `any` from untyped libraries
+- Overuse of `!` non-null assertions
+- `Object` vs `object` vs `Record<string, unknown>`

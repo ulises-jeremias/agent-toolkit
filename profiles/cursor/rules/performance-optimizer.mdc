@@ -1,0 +1,27 @@
+---
+description: Performance analysis and optimization. Apply when code is slow, has memory leaks, or fails performance benchmarks.
+alwaysApply: false
+---
+
+# Performance Optimization
+
+**Profile first, optimize second — never guess at bottlenecks.**
+
+## Measure before changing
+- Frontend: React DevTools Profiler, Lighthouse, bundle analyzer
+- Backend: query logging, heap snapshots, APM traces
+- Database: EXPLAIN ANALYZE
+
+## Common bottleneck areas
+- Frontend: unnecessary re-renders, large bundle, unoptimized assets
+- Backend: N+1 queries, sync I/O in hot paths, connection pool exhaustion
+- DB: missing indexes, full table scans, lock contention
+- Algorithm: O(n²) loops, redundant computation
+
+## Safe first optimizations
+- Caching (memoization, Redis, HTTP headers)
+- Lazy loading and code splitting
+- Database indexes on query predicates
+- Batch operations over one-by-one loops
+
+## Output: current metric → bottleneck with evidence → fix → verification method → trade-offs

@@ -1,0 +1,699 @@
+# agent-toolkit — Skill Catalog
+# Source of truth for skill routing metadata.
+# skill.json holds install/compatibility info; this file holds domain,
+# responsibility, triggers, and dependency graph used by orchestrators.
+#
+# Responsibility legend:
+#   HOW  — tool skill; knows how to operate a specific CLI or API
+#   WHAT — workflow skill; knows what to do at each phase of a task
+#
+# Domain legend:
+#   core          — orchestration, session management, handshake primitives
+#   delivery      — software-delivery lifecycle (PRD → ADR → work items → PR)
+#   design        — UI/UX and Figma integration
+#   forge         — version-control forge automation (GitHub, GitLab)
+#   integrations  — third-party platform connectors (Slack, Linear, ClickUp)
+#   data          — data platform validation (dbt, Snowflake)
+#   tooling       — developer tooling (Jupyter, Playwright CLI)
+#   ops           — operational and health-check utilities
+#   loops         — recurring automation loop management
+
+version: 1
+
+skills:
+
+  # ── Core ─────────────────────────────────────────────────────────────────────
+
+  - name: assistant
+    domain: core
+    responsibility: HOW
+    role: orchestrator_and_fallback
+    triggers:
+      - Default entry point when no other skill matches
+      - Multi-domain tasks requiring cross-skill coordination
+      - Repository inspection and convention verification
+      - Conflict resolution between project and global rules
+    depends_on: []
+
+  - name: dev-companion
+    domain: core
+    responsibility: WHAT
+    role: general_dev_companion
+    triggers:
+      - General client or project delivery work
+      - Task requires L2 framing or queue delegation
+      - Unclear which workflow skill applies
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+      - name: workflow-generic-project
+        version: ">=1.0.0"
+
+  - name: output-handshake
+    domain: core
+    responsibility: WHAT
+    role: artifact_destination_gate
+    triggers:
+      - where to save
+      - final artifact
+      - deliverable destination
+      - output destination
+      - confirm human review before writing
+    depends_on: []
+
+  - name: pr-fallback
+    domain: core
+    responsibility: WHAT
+    role: default_pr_mr_body
+    triggers:
+      - no pull request template in repo
+      - default PR body
+      - PR description needed
+      - MR description when no template
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: workspace-knowledge-sync
+    domain: core
+    responsibility: HOW
+    role: workspace_knowledge_management
+    triggers:
+      - Sync workspace knowledge base
+      - Save learnings or todos to knowledge/
+      - Inject session context at start
+      - Memory management across sessions
+    depends_on: []
+
+  - name: onboarding
+    domain: core
+    responsibility: WHAT
+    role: new_user_and_project_onboarding
+    triggers:
+      - First run or fresh install
+      - Onboard a new team member
+      - Initialize workspace for a new project
+      - What do I do first?
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+
+  # ── Delivery ─────────────────────────────────────────────────────────────────
+
+  - name: adr
+    domain: delivery
+    responsibility: WHAT
+    role: adr_process
+    triggers:
+      - ADR
+      - architecture decision record
+      - technical decision record
+      - long-lasting architectural decision
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: agreement
+    domain: delivery
+    responsibility: WHAT
+    role: agreement_document
+    triggers:
+      - agreement
+      - terms and conditions
+      - explicit commitment between parties
+      - SLA or contract artifact
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: bug
+    domain: delivery
+    responsibility: WHAT
+    role: bug_report_template
+    triggers:
+      - bug
+      - defect
+      - reproduction steps
+      - unexpected behavior report
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: decision-log
+    domain: delivery
+    responsibility: WHAT
+    role: lightweight_decision_log
+    triggers:
+      - decision log
+      - lightweight decision entry
+      - log a decision
+      - decision made in meeting
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: development-workflow
+    domain: delivery
+    responsibility: WHAT
+    role: default_development_lifecycle
+    triggers:
+      - development workflow
+      - definition of ready
+      - definition of done
+      - validation model
+      - task lifecycle
+      - DoR DoD
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+
+  - name: epic
+    domain: delivery
+    responsibility: WHAT
+    role: epic_template
+    triggers:
+      - epic
+      - large body of work
+      - feature group
+      - initiative
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: planning
+        version: ">=1.0.0"
+
+  - name: incident
+    domain: delivery
+    responsibility: WHAT
+    role: incident_report_and_rca
+    triggers:
+      - incident
+      - RCA
+      - root cause analysis
+      - production outage
+      - service degradation
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: meeting-minutes
+        version: ">=1.0.0"
+
+  - name: management-unit-assessment
+    domain: delivery
+    responsibility: WHAT
+    role: management_scorecard
+    triggers:
+      - management unit assessment
+      - governance assessment
+      - delivery process assessment
+      - management scorecard
+      - ai-native management readiness
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: project-assessment-evidence
+        version: ">=1.0.0"
+
+  - name: meeting-minutes
+    domain: delivery
+    responsibility: WHAT
+    role: meeting_minutes_template
+    triggers:
+      - meeting minutes
+      - meeting notes
+      - transcript processing
+      - action items from meeting
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: planning
+    domain: delivery
+    responsibility: WHAT
+    role: planning_and_estimation
+    triggers:
+      - planning
+      - estimation
+      - sprint planning
+      - iteration capacity
+      - task breakdown
+      - story points
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: prd
+    domain: delivery
+    responsibility: WHAT
+    role: product_requirements_document
+    triggers:
+      - PRD
+      - product requirements document
+      - requirements document
+      - product spec
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: planning
+        version: ">=1.0.0"
+
+  - name: project-assessment
+    domain: delivery
+    responsibility: WHAT
+    role: project_assessment_router
+    triggers:
+      - project assessment
+      - maturity assessment
+      - quality audit
+      - project audit
+      - assessment report
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: project-assessment-evidence
+        version: ">=1.0.0"
+      - name: technical-unit-assessment
+        version: ">=1.0.0"
+      - name: management-unit-assessment
+        version: ">=1.0.0"
+
+  - name: project-assessment-evidence
+    domain: delivery
+    responsibility: WHAT
+    role: assessment_evidence_intake
+    triggers:
+      - assessment evidence
+      - evidence map
+      - audit evidence
+      - collect evidence for assessment
+      - missing evidence
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: spike
+    domain: delivery
+    responsibility: WHAT
+    role: spike_research_findings
+    triggers:
+      - spike
+      - technical exploration
+      - research findings
+      - tradeoffs analysis
+      - proof of concept writeup
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+
+  - name: task
+    domain: delivery
+    responsibility: WHAT
+    role: technical_task_template
+    triggers:
+      - task
+      - technical task
+      - operational task
+      - work item that is not a story
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: planning
+        version: ">=1.0.0"
+
+  - name: technical-unit-assessment
+    domain: delivery
+    responsibility: WHAT
+    role: technical_scorecard
+    triggers:
+      - technical unit assessment
+      - frontend assessment
+      - backend assessment
+      - infrastructure assessment
+      - technical scorecard
+      - ai-native structural readiness
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: project-assessment-evidence
+        version: ">=1.0.0"
+
+  - name: trd
+    domain: delivery
+    responsibility: WHAT
+    role: technical_requirements_document
+    triggers:
+      - TRD
+      - technical requirements document
+      - technical design document
+      - architecture spec
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: spike
+        version: ">=1.0.0"
+      - name: adr
+        version: ">=1.0.0"
+
+  - name: user-story
+    domain: delivery
+    responsibility: WHAT
+    role: user_story_template
+    triggers:
+      - user story
+      - as a ... I want ... so that
+      - user-centered requirement
+      - acceptance criteria
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: planning
+        version: ">=1.0.0"
+
+  - name: work-item
+    domain: delivery
+    responsibility: WHAT
+    role: work_item_router
+    triggers:
+      - work item
+      - classify work item
+      - route epic story task bug incident
+    depends_on:
+      - name: output-handshake
+        version: ">=1.0.0"
+      - name: planning
+        version: ">=1.0.0"
+
+  - name: workflow-client-bootstrap
+    domain: delivery
+    responsibility: WHAT
+    role: client_workflow_generator
+    triggers:
+      - onboard new client project workflow
+      - bootstrap workflow for client
+      - add client workflow
+      - generate client-specific workflow skill
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+      - name: github-cli-workflow
+        version: ">=1.0.0"
+      - name: gitlab-cli-workflow
+        version: ">=1.0.0"
+
+  - name: workflow-generic-project
+    domain: delivery
+    responsibility: WHAT
+    role: generic_client_delivery_phases
+    triggers:
+      - client delivery work
+      - plan implement review PR phases
+      - generic project workflow
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+      - name: github-cli-workflow
+        version: ">=1.0.0"
+      - name: gitlab-cli-workflow
+        version: ">=1.0.0"
+
+  # ── Design ───────────────────────────────────────────────────────────────────
+
+  - name: figma
+    domain: design
+    responsibility: HOW
+    role: figma_mcp_entry_point
+    triggers:
+      - Figma URL provided
+      - design-to-code task from Figma
+      - Figma MCP setup or usage question
+    depends_on: []
+
+  - name: figma-code-connect-components
+    domain: design
+    responsibility: HOW
+    role: figma_code_connect_mapper
+    triggers:
+      - code connect mapping
+      - link Figma component to existing code component
+      - Code Connect annotation
+    depends_on:
+      - name: figma
+        version: ">=1.0.0"
+
+  - name: figma-create-design-system-rules
+    domain: design
+    responsibility: HOW
+    role: figma_design_system_rules_generator
+    triggers:
+      - create design system rules
+      - generate AGENTS.md for design system
+      - encode unwritten Figma conventions
+    depends_on:
+      - name: figma
+        version: ">=1.0.0"
+
+  - name: figma-create-new-file
+    domain: design
+    responsibility: HOW
+    role: figma_file_bootstrap
+    triggers:
+      - new Figma file
+      - create Figma file from scratch
+      - initialize Figma canvas
+    depends_on:
+      - name: figma
+        version: ">=1.0.0"
+
+  - name: figma-implement-design
+    domain: design
+    responsibility: HOW
+    role: figma_design_to_code
+    triggers:
+      - implement Figma design
+      - generate production code from Figma node
+      - build component from Figma with pixel fidelity
+    depends_on:
+      - name: figma
+        version: ">=1.0.0"
+
+  - name: ui-ux-pro-max
+    domain: design
+    responsibility: HOW
+    role: ui_ux_design_intelligence
+    triggers:
+      - UI or UX implementation task
+      - design system token enforcement
+      - layout, palette, accessibility review
+      - UI component design without a Figma source
+    depends_on: []
+
+  # ── Forge ────────────────────────────────────────────────────────────────────
+
+  - name: github-cli-workflow
+    domain: forge
+    responsibility: HOW
+    role: github_pr_automation
+    triggers:
+      - remote origin is GitHub
+      - push branch and create draft PR
+      - gh CLI operations
+    depends_on: []
+
+  - name: gitlab-cli-workflow
+    domain: forge
+    responsibility: HOW
+    role: gitlab_mr_automation
+    triggers:
+      - remote origin is GitLab
+      - push branch and create draft MR
+      - glab CLI operations
+    depends_on: []
+
+  - name: gh-address-comments
+    domain: forge
+    responsibility: HOW
+    role: github_pr_review_comment_handler
+    triggers:
+      - address PR review comments
+      - resolve open review threads
+      - respond to PR feedback
+      - apply reviewer-requested changes
+    depends_on:
+      - name: github-cli-workflow
+        version: ">=1.0.0"
+
+  - name: gh-fix-ci
+    domain: forge
+    responsibility: HOW
+    role: github_actions_ci_triage
+    triggers:
+      - fix CI
+      - debug failing GitHub Actions checks
+      - why is the build red
+      - CI check triage
+    depends_on:
+      - name: github-cli-workflow
+        version: ">=1.0.0"
+
+  - name: gh-contribution-planner
+    domain: forge
+    responsibility: WHAT
+    role: oss_contribution_planner
+    triggers:
+      - plan OSS contribution
+      - what issues can I pick up
+      - contribution strategy for repository
+      - first good issue suggestions
+    depends_on:
+      - name: github-cli-workflow
+        version: ">=1.0.0"
+
+  # ── Integrations ─────────────────────────────────────────────────────────────
+
+  - name: clickup-cli
+    domain: integrations
+    responsibility: HOW
+    role: clickup_task_and_doc_cli
+    triggers:
+      - ClickUp task ID (CU- prefix or numeric)
+      - view ClickUp task details
+      - add comment to ClickUp task
+      - update task status in ClickUp
+    depends_on: []
+
+  - name: slack-cli
+    domain: integrations
+    responsibility: HOW
+    role: slack_app_development_cli
+    triggers:
+      - Slack app development
+      - scaffold Slack bolt app
+      - deploy Slack app via CLI
+    depends_on: []
+
+  - name: slack-assistant
+    domain: integrations
+    responsibility: HOW
+    role: slack_workspace_read_write
+    triggers:
+      - Read Slack channel or messages
+      - Send Slack message or notification
+      - Add Slack reaction
+      - Browse Slack canvases
+    depends_on: []
+
+  - name: linear
+    domain: integrations
+    responsibility: HOW
+    role: linear_mcp_issue_and_project_management
+    triggers:
+      - Linear ticket or issue
+      - sprint planning in Linear
+      - triage Linear bugs
+      - Linear project or cycle management
+    depends_on: []
+
+  # ── Data ─────────────────────────────────────────────────────────────────────
+
+  - name: dbt-validation
+    domain: data
+    responsibility: HOW
+    role: dbt_model_and_test_runner
+    triggers:
+      - dbt_project.yml present in repo
+      - run dbt parse, compile, test, or run
+      - validate dbt model changes
+    depends_on: []
+
+  - name: snowflake-validation
+    domain: data
+    responsibility: HOW
+    role: snowflake_read_only_validation
+    triggers:
+      - Snowflake referenced in repo or task
+      - validate Snowflake query or table
+      - read-only Snowflake checks
+    depends_on: []
+
+  # ── Tooling ──────────────────────────────────────────────────────────────────
+
+  - name: jupyter-notebook
+    domain: tooling
+    responsibility: HOW
+    role: jupyter_notebook_scaffold
+    triggers:
+      - new Jupyter notebook
+      - scaffold .ipynb from template
+      - convert Python script to notebook
+      - reproducible experiment notebook
+    depends_on: []
+
+  - name: playwright-cli
+    domain: tooling
+    responsibility: HOW
+    role: playwright_browser_cli_automation
+    triggers:
+      - browser automation from CLI
+      - data extraction from rendered page
+      - reproduce UI bug interactively
+      - Playwright snapshot or screenshot without test spec
+    depends_on: []
+
+  # ── Ops ──────────────────────────────────────────────────────────────────────
+
+  - name: triage
+    domain: ops
+    responsibility: HOW
+    role: workstation_and_environment_healthcheck
+    triggers:
+      - workstation health check
+      - environment diagnosis
+      - missing tool or broken config
+      - triage errors on workstation
+    depends_on: []
+
+  - name: llm-cost-advisor
+    domain: ops
+    responsibility: HOW
+    role: llm_token_and_cost_analysis
+    triggers:
+      - estimate LLM cost for workflow
+      - compare token cost across providers
+      - budget LLM calls for a loop
+      - llm cost advice
+    depends_on: []
+
+  - name: docs-generator
+    domain: ops
+    responsibility: HOW
+    role: automated_documentation_generation
+    triggers:
+      - generate docs from code
+      - auto-generate README or API docs
+      - update documentation after code change
+    depends_on:
+      - name: assistant
+        version: ">=1.0.0"
+
+  # ── Loops ────────────────────────────────────────────────────────────────────
+
+  - name: loop-runner
+    domain: loops
+    responsibility: HOW
+    role: recurring_loop_executor
+    triggers:
+      - run a recurring loop
+      - start loop template
+      - schedule loop cadence
+      - loop runner setup
+    depends_on:
+      - name: workspace-knowledge-sync
+        version: ">=1.0.0"

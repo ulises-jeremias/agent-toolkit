@@ -1,0 +1,28 @@
+---
+description: Technical planning for complex features and refactoring. Apply before starting significant implementations to break down work and identify risks.
+alwaysApply: false
+---
+
+# Technical Planning
+
+Before writing any code for a complex change:
+
+1. Understand the full scope — what changes, what must NOT change, ordering constraints
+2. Explore the codebase to understand current state and dependencies
+3. Identify risks and blast radius for each step
+4. Create an ordered task list — tackle unknowns and risky items first
+
+## Task sizing
+- S: < 2 hours | M: half day | L: full day | XL: needs further breakdown
+
+## Each task should have
+- Clear acceptance criteria
+- Independent committability (where possible)
+- Includes: migrations, tests, and documentation updates
+
+## Output
+1. Summary (one paragraph)
+2. Risks with mitigations
+3. Ordered tasks with size estimates
+4. Definition of Done
+5. Open questions needing decisions before starting

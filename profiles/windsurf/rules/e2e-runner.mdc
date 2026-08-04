@@ -1,0 +1,30 @@
+---
+description: End-to-end testing with Playwright. Apply when writing, debugging, or reviewing E2E tests.
+alwaysApply: false
+---
+
+# Playwright E2E Testing
+
+## Selector priority
+1. `getByRole()` — most resilient and accessible
+2. `getByLabel()` — for form fields
+3. `getByText()` — for content
+4. `data-testid` — when semantic selectors unavailable
+5. CSS selectors — last resort
+
+## Reliability
+- Use `await expect(locator).toBeVisible()` — not `await locator.isVisible()`
+- Never use `page.waitForTimeout()` — use `waitForResponse`, `waitForURL`, or assertions
+- Mock external services and APIs
+- Test network failures and loading states
+
+## Structure
+- One test file per feature/page
+- `test.describe` for grouping
+- `beforeEach`/`afterEach` for setup
+- Page Object Model for reusable interactions
+
+## Test coverage
+- User journey happy paths
+- Error states and validation feedback
+- Keyboard navigation and accessibility

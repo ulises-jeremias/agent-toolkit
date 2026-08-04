@@ -1,0 +1,26 @@
+---
+description: Test-Driven Development guidance. Apply when implementing new features to enforce write-tests-first methodology.
+alwaysApply: false
+---
+
+# TDD — Red, Green, Refactor
+
+**Write the failing test first. Always.**
+
+## The cycle
+1. **Red**: Write a failing test describing the desired behavior
+2. **Green**: Write the minimum code to pass the test
+3. **Refactor**: Clean up while keeping tests green
+4. Repeat
+
+## Test design
+- Descriptive names: `it('returns empty array when no users match the filter')`
+- AAA pattern: Arrange → Act → Assert
+- Mock external dependencies (HTTP, DB, email) in unit tests
+- Use real dependencies in integration tests
+
+## What to test
+- Happy path, error paths, boundary conditions (null, empty, max/min), state transitions
+
+## What NOT to test
+- Implementation details, third-party library internals, simple getters with no logic

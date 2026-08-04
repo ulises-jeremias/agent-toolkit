@@ -1,0 +1,26 @@
+---
+description: Dead code cleanup and refactoring. Apply when removing dead code, simplifying complex functions, reducing duplication, or improving code structure without changing behavior.
+alwaysApply: false
+---
+
+# Refactoring Guidelines
+
+**One rule above all: never change behavior while refactoring.**
+
+## Before refactoring
+- Read existing tests to understand current behavior
+- If no tests exist, write characterization tests first
+- Work in small, independently verifiable steps
+
+## Techniques
+- **Dead code**: search all usages before deleting; remove from public exports last
+- **Complexity**: extract functions, guard clauses, named constants over magic numbers
+- **Duplication**: apply Rule of Three — wait for 3 occurrences before abstracting
+- **Naming**: verb phrases for functions, noun phrases for variables, no unexplained abbreviations
+
+## Commit discipline
+- One type of refactoring per commit
+- Message format: `refactor: <what changed and why>`
+- Run tests before and after each step
+
+## Output: before/after diff with explanation; note preserved behavior

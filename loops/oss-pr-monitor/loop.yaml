@@ -1,0 +1,85 @@
+# Loop starter: oss-pr-monitor
+# An L2 loop that monitors open PRs across a multi-repo OSS ecosystem.
+# Cadence: daily. Cost: high (scales with repo count).
+# Designed for maintainers managing 20-50 repos.
+#
+# Usage:
+#   ./bin/loop init oss-pr-monitor --pack packs/my-ecosystem.yaml
+
+name: oss-pr-monitor
+description: "Monitor open PRs across OSS ecosystem repos and take action (L2, daily)"
+tier: L2
+cadence: 1d
+resumable: true
+
+goal: |
+  Review all open PRs across all configured repos. For each PR:
+  - Dependabot PR with passing CI → merge
+  - Dependabot PR with dirty state → close (it will regenerate)
+  - Human PR with CI failures → report with diagnosis
+  - Human PR with conflicts → report, do not close
+  - Any security concern → escalate
+
+allowlist:
+  - merge
+  - close
+  - comment
+  - label
+deny:
+  - approve
+  - force-push
+  - push-to-main
+  - delete-branch
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+  - human_escalation
+
+budget:
+  max_tokens: 300000
+  max_runs_per_day: 1
+  max_wall_seconds: 1800
+
+verifier: agent-toolkit-code-reviewer
+
+request: |
+  You are running the OSS PR Monitor loop.
+
+  **Resumability (read first):**
+  Read loops/oss-pr-monitor/STATE.md. If `last_processed_repo` is set, skip all
+  repos before that name. After processing each repo, update STATE.md:
+    last_processed_repo: <owner>/<repo>
+  On successful completion, clear last_processed_repo and set last_run_status: success.
+
+  **Style rules:**
+  - Never @mention anyone. Never leave AI-looking comments.
+  - If the right action is obvious → do it silently.
+  - If not obvious → skip and note in report.
+  - The report is reviewed by a human — that is where pending items get discussed.
+
+  **Step 1 — List open PRs**
+  For each repo in your pack/config:
+    gh api "repos/$repo/pulls?state=open&per_page=50" \
+      --jq '.[] | "\(.number)|\(.title)|\(.user.login)|\(.created_at)"'
+
+  **Step 2 — Classify each PR**
+  - author = dependabot[bot] → dep PR
+  - author = github-actions[bot] → bot PR (skip unless release PR)
+  - otherwise → human PR
+
+  **Step 3 — Act**
+  For dep PRs: check CI with `gh pr checks <num> --repo <repo>`.
+  - All passing → merge: `gh pr merge <num> --repo <repo> --squash`
+  - Failing → skip and note
+  - Dirty (will regenerate) → close: `gh pr close <num> --repo <repo>`
+
+  For human PRs: read diff summary, check CI, check conflicts.
+  - Report status only. Never merge or close.
+
+  **Step 4 — Write report**
+  Write to loops/oss-pr-monitor/report.md with a table:
+  | # | Repo | Title | Author | Type | CI | Action | Pending Reason |
+
+  **Step 5 — Update STATE.md**
+  Set last_run_status, last_run, clear last_processed_repo on success.

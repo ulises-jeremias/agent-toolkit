@@ -1,0 +1,29 @@
+playwright-cli (agent-toolkit distribution)
+=====================================
+
+This skill includes material derived from two upstream sources, both Apache-2.0:
+
+1. Microsoft `playwright-cli` (Copyright (c) Microsoft Corporation).
+2. The OpenAI "skills" repository wrapper around playwright-cli:
+   https://github.com/openai/skills (skills/.curated/playwright)
+
+Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
+
+- Renamed the skill from `playwright` to `playwright-cli` to disambiguate it
+  from `e2e-runner` (which targets `@playwright/test`).
+- Replaced `CODEX_HOME`-based path setup with the chezmoi-managed install
+  location (`~/.local/share/agent-toolkit/skills/playwright-cli/`).
+- Removed Codex-specific guidance (`sandbox_permissions`, `~/.codex/skills`,
+  references to Codex restart flow). Replaced with a generic note about
+  authorizing outbound network for `npx`.
+- Removed the `agents/openai.yaml` manifest in favor of the agent-toolkit
+  `skill.json` schema.
+- Renamed the wrapper script source file to `executable_playwright_cli.sh` so
+  chezmoi preserves the executable bit; the installed name remains
+  `playwright_cli.sh`.
+- Cross-referenced `e2e-runner` as the test-authoring counterpart.
+- Dropped vendor logo assets (`assets/playwright*`).
+
+`scripts/playwright_cli.sh` and `references/cli.md` / `references/workflows.md`
+are preserved with only the Codex-specific path/setup lines rewritten.
+Original LICENSE.txt is preserved in this directory.

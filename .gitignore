@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+*.swp
+
+# Secrets - never commit
+*.env
+.env.*
+!.env.example
+
+# Build artifacts
+dist/
+build/
+
+# Editor
+.idea/
+.vscode/settings.json

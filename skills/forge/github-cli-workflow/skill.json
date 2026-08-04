@@ -1,0 +1,41 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
+  "name": "github-cli-workflow",
+  "version": "1.0.0",
+  "description": "HOW: gh push/draft PR with body file; untracked PR_DESCRIPTION fallback for manual draft PR.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "github",
+    "gh",
+    "pr",
+    "draft",
+    "forge"
+  ],
+  "requires": [
+    "gh"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": false
+    },
+    "cursor": {
+      "supported": false
+    },
+    "copilot-cli": {
+      "supported": false
+    }
+  }
+}

@@ -1,0 +1,20 @@
+---
+description: Security vulnerability review. Apply after implementing authentication, data handling, API endpoints, file uploads, or any user-facing functionality.
+alwaysApply: false
+---
+
+# Security Review
+
+Run `git diff HEAD` first. Check full context, not just the diff.
+
+## Key checks
+- **Injection**: parameterized queries only; no unsanitized shell input; XSS encoding in templates
+- **Auth/Authz**: no hardcoded credentials; JWT signature+expiry validation; session security; IDOR prevention
+- **Data exposure**: no sensitive data in logs; API responses don't leak internal schema or stack traces
+- **Dependencies**: `npm audit` / `pip audit` for known CVEs
+- **Input validation**: validate all inputs; file uploads need type+size+content checks
+
+## Output priority
+🚨 Critical (fix immediately) → ⚠️ High (fix before deploy) → 📋 Medium (next sprint) → ℹ️ Low
+
+Include CVE references where applicable.

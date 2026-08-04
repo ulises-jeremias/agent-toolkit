@@ -1,0 +1,39 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "slack-assistant",
+  "version": "1.0.0",
+  "description": "Interact with Slack workspaces for reading channels/messages, sending messages, adding reactions, and browsing canvases. Use when the user asks about agent-toolkit Slack channels, messages, or notifications — NOT for Slack app development (use the slack-cli skill for that).",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "slack",
+    "workspace",
+    "automation"
+  ],
+  "requires": [
+    "slackcli"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": true
+    },
+    "cursor": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "copilot-cli": {
+      "supported": false
+    },
+    "pi": {
+      "supported": true
+    }
+  }
+}

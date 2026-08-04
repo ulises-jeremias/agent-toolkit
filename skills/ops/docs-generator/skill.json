@@ -1,0 +1,38 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/lib/schemas/skill.schema.json",
+  "name": "docs-generator",
+  "version": "1.0.0",
+  "description": "WHAT: Generate or update documentation from code \u2014 README from repo structure, CHANGELOG from git history, API reference from OpenAPI/GraphQL schemas, and AGENTS.md starters.",
+  "source": "bundled",
+  "author": "agent-toolkit",
+  "tags": [
+    "docs",
+    "readme",
+    "changelog",
+    "api-reference",
+    "agents"
+  ],
+  "compatibility": {
+    "universal": {
+      "supported": true
+    },
+    "claude-code": {
+      "supported": true
+    },
+    "pi": {
+      "supported": true
+    },
+    "windsurf": {
+      "supported": true
+    },
+    "opencode": {
+      "supported": true
+    },
+    "cursor": {
+      "supported": true
+    },
+    "copilot-cli": {
+      "supported": true
+    }
+  }
+}

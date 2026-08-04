@@ -1,0 +1,19 @@
+figma-create-design-system-rules (agent-toolkit distribution)
+=======================================================
+
+This skill is derived from the OpenAI "skills" repository, originally licensed
+under the Apache License 2.0:
+
+  https://github.com/openai/skills (skills/.curated/figma-create-design-system-rules)
+
+Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
+
+- Removed the `agents/openai.yaml` manifest in favor of the agent-toolkit
+  `skill.json` schema.
+- Updated the supported-agents tables: removed `Codex CLI` and added
+  `opencode`, `Gemini CLI`, `GitHub Copilot`, and `Windsurf`. Promoted the
+  agent-toolkit convention of a single `AGENTS.md` with tool-specific symlinks.
+- Dropped vendor logo assets (`assets/figma*`).
+
+`scripts/check_agents_md.sh` and `references/rule-template.md` are preserved
+unmodified. Original LICENSE.txt is preserved in this directory.

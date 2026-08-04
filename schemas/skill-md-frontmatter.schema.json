@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agentic-workstation/main/lib/schemas/skill-md-frontmatter.schema.json",
+  "title": "agentic-workstation SKILL.md Frontmatter",
+  "description": "YAML frontmatter schema for bundled SKILL.md files. All fields except name and description are optional to maintain backwards compatibility.",
+  "type": "object",
+  "required": ["name", "description"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Kebab-case skill name (must match the directory name and skill.json name)."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short human-readable summary (used in skill selection)."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional skill metadata.",
+      "additionalProperties": true,
+      "properties": {
+        "author": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "requires": {
+      "type": "array",
+      "description": "CLI tools, commands, or env vars this skill needs.",
+      "items": { "type": "string" }
+    },
+    "produces": {
+      "type": "array",
+      "description": "Artifact types this skill outputs (e.g. plan.md, PR, comment).",
+      "items": { "type": "string" }
+    },
+    "tools": {
+      "type": "array",
+      "description": "AI tools this SKILL.md is verified to work with.",
+      "items": {
+        "type": "string",
+        "enum": ["claude-code", "opencode", "cursor", "windsurf", "copilot-cli", "pi", "universal"]
+      }
+    },
+    "triggers": {
+      "type": "array",
+      "description": "Natural-language phrases or events that should invoke this skill.",
+      "items": { "type": "string" }
+    },
+    "compatibility": {
+      "type": "string",
+      "description": "Human-readable compatibility note (prerequisites, caveats)."
+    }
+  }
+}
