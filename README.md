@@ -81,26 +81,41 @@ npx skills add ulises-jeremias/agent-toolkit -g
 
 ## 🚀 Quick Install
 
-### Method 1: Claude Code Plugin Marketplace (recommended)
+### Method 1: Python CLI — `uvx` or `pip` *(works with all tools)*
 
 ```bash
+# No install needed — run directly with uvx
+uvx --from agent-toolkit-cli agent-toolkit install
+
+# Or install persistently with pip
+pip install agent-toolkit-cli
+agent-toolkit install          # auto-detects Claude, Cursor, OpenCode, Windsurf, Pi
+agent-toolkit doctor           # verify everything is set up
+```
+
+### Method 2: Claude Code Plugin Marketplace
+
+```
 /plugin marketplace add ulises-jeremias/agent-toolkit
 /plugin install agent-toolkit-core@agent-toolkit
 /plugin install agent-toolkit-agents@agent-toolkit
 /plugin install agent-toolkit-forge@agent-toolkit
 ```
 
-### Method 2: npx skills (Agent Skills standard)
+### Method 3: npx skills (Agent Skills standard — skills only)
 
 ```bash
-# Global install — all tools pick up skills automatically
 npx skills add ulises-jeremias/agent-toolkit -g
-
-# Project-scoped
-npx skills add ulises-jeremias/agent-toolkit
 ```
 
-### Method 3: Manual install (per tool)
+### Method 4: Homebrew / AUR
+
+```bash
+brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
+yay -S agent-toolkit   # Arch Linux
+```
+
+### Method 5: Manual install (per tool)
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
