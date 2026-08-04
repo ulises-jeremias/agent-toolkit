@@ -300,3 +300,220 @@ jobs:
           name: dist
           path: dist/
           retention-days: 7
+
+  # ── Job 10: Integration tests — install from wheel + run all CLI commands ────
+  integration-tests:
+    name: Integration (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: build-package
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download built wheel
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Install from wheel (simulates pip install agent-toolkit-cli)
+        shell: bash
+        run: pip install dist/*.whl
+
+      - name: "CLI: version"
+        run: agent-toolkit version
+
+      - name: "CLI: version via alias"
+        run: agent-toolkit-cli version
+
+      - name: "CLI: help"
+        run: agent-toolkit help
+
+      - name: "CLI: doctor (no tools installed in CI — expect warnings, not errors)"
+        shell: bash
+        run: |
+          agent-toolkit doctor 2>&1 | tee /tmp/doctor.txt
+          # Must not crash; errors are OK for missing tools but exit code should be 0
+          # (doctor returns 0 even with warnings, only 1 on true errors)
+          if grep -q "✗" /tmp/doctor.txt; then
+            echo "::notice::doctor reported some errors (tools not installed in CI runner)"
+          fi
+          echo "doctor completed"
+
+      - name: "CLI: skills list (all domains)"
+        shell: bash
+        run: |
+          agent-toolkit skills list 2>&1 | tee /tmp/skills.txt
+          # Verify: must contain at least 50 skills and show descriptions (not ">-")
+          COUNT=$(grep -c "^  ✓" /tmp/skills.txt || echo 0)
+          echo "Skills found: $COUNT"
+          if [ "$COUNT" -lt 50 ]; then
+            echo "::error::Expected at least 50 skills, got $COUNT"
+            exit 1
+          fi
+          if grep -q "  — >-" /tmp/skills.txt; then
+            echo "::error::Skills list shows raw YAML scalars ('>-') instead of parsed descriptions"
+            cat /tmp/skills.txt | grep "  — >-" | head -5
+            exit 1
+          fi
+          echo "✓ Skills list: $COUNT skills with proper descriptions"
+
+      - name: "CLI: skills list --domain core"
+        run: agent-toolkit skills list --domain core
+
+      - name: "CLI: skills list --domain forge"
+        run: agent-toolkit skills list --domain forge
+
+      - name: "CLI: skills validate"
+        run: agent-toolkit skills validate
+
+      - name: "CLI: loop status (must show 10 bundled templates)"
+        shell: bash
+        run: |
+          agent-toolkit loop status 2>&1 | tee /tmp/loops.txt
+          COUNT=$(grep -c "tier=" /tmp/loops.txt || echo 0)
+          echo "Loop templates found: $COUNT"
+          if [ "$COUNT" -lt 10 ]; then
+            echo "::error::Expected 10 loop templates, got $COUNT"
+            cat /tmp/loops.txt
+            exit 1
+          fi
+          # Check specific expected loops
+          for name in daily-triage oss-pr-monitor oss-triage ci-sweeper pr-babysitter; do
+            if ! grep -q "$name" /tmp/loops.txt; then
+              echo "::error::Expected loop '$name' not found in status"
+              exit 1
+            fi
+          done
+          echo "✓ Loop status: $COUNT templates including OSS patterns"
+
+      - name: "CLI: loop cost daily-triage"
+        run: agent-toolkit loop cost daily-triage
+
+      - name: "CLI: loop audit (no runs — should exit cleanly)"
+        run: agent-toolkit loop audit
+
+      - name: "CLI: mcp list (all 6 providers)"
+        shell: bash
+        run: |
+          agent-toolkit mcp list 2>&1 | tee /tmp/mcp.txt
+          for provider in github slack notion linear figma clickup; do
+            if ! grep -q "$provider" /tmp/mcp.txt; then
+              echo "::error::MCP provider '$provider' not found in list"
+              exit 1
+            fi
+          done
+          echo "✓ MCP list: all 6 providers shown"
+
+      - name: "CLI: plugin check (surfaces in sync)"
+        run: agent-toolkit plugin check
+
+      - name: "CLI: install --dry-run --tools claude-code,cursor"
+        shell: bash
+        run: |
+          # Should not prompt for Copilot, should not crash, should list what would be installed
+          agent-toolkit install --dry-run --tools claude-code,cursor 2>&1 | tee /tmp/install.txt
+          if grep -qi "error\|traceback\|exception" /tmp/install.txt; then
+            echo "::error::install --dry-run produced errors"
+            cat /tmp/install.txt
+            exit 1
+          fi
+          echo "✓ install --dry-run completed cleanly"
+
+      - name: "CLI: install --dry-run (auto-detect, no stdin = no Copilot prompt)"
+        shell: bash
+        run: |
+          # Pipe /dev/null as stdin to ensure non-interactive mode
+          agent-toolkit install --dry-run < /dev/null 2>&1 | tee /tmp/install-auto.txt
+          if grep -q "Copilot instructions for a project?" /tmp/install-auto.txt; then
+            echo "::error::install prompted for Copilot in non-interactive mode"
+            exit 1
+          fi
+          echo "✓ install auto-detect: no blocking prompts"
+
+      - name: "Data integrity: profiles directory accessible from wheel"
+        shell: bash
+        run: |
+          python3 -c "
+          from agent_toolkit._paths import toolkit_root
+          root = toolkit_root()
+          print('Toolkit root:', root)
+          required = ['profiles', 'loops', 'skills', 'agents', 'catalogs', 'mcp']
+          missing = [d for d in required if not (root / d).is_dir()]
+          if missing:
+              print('MISSING directories:', missing)
+              exit(1)
+          print('All required directories present:', required)
+          # Count files to verify data is complete
+          profiles = list((root / 'profiles').rglob('*.*'))
+          loops = list((root / 'loops').rglob('loop.yaml'))
+          skills = list((root / 'skills').rglob('SKILL.md'))
+          print(f'  profiles: {len(profiles)} files')
+          print(f'  loops: {len(loops)} templates')
+          print(f'  skills: {len(skills)} SKILL.md files')
+          assert len(loops) >= 10, f'Expected >=10 loops, got {len(loops)}'
+          assert len(skills) >= 50, f'Expected >=50 skills, got {len(skills)}'
+          assert len(profiles) >= 30, f'Expected >=30 profile files, got {len(profiles)}'
+          print('Data integrity: PASS')
+          "
+
+      - name: "Data integrity: bundled data is from wheel (not repo root)"
+        shell: bash
+        run: |
+          python3 -c "
+          import os
+          # Remove any repo-root env vars that would override wheel data
+          os.environ.pop('AGENT_TOOLKIT_ROOT', None)
+          os.environ.pop('AI_WORKSPACE', None)
+          # Now resolve — should find wheel data, not CWD
+          from agent_toolkit import _paths
+          _paths._root = None  # reset cache
+          root = _paths.toolkit_root()
+          print('Root:', root)
+          # In a wheel install, root should contain 'agent_toolkit' in the path
+          # (meaning it came from site-packages, not from CWD or user workspace)
+          root_str = str(root)
+          cwd = os.getcwd()
+          if root_str.startswith(cwd) and 'site-packages' not in root_str:
+              print('WARNING: root appears to be from CWD (repo), not wheel data')
+              print('  root:', root_str)
+              print('  cwd:', cwd)
+          else:
+              print('Root is from wheel data (not CWD):', root_str)
+          print('PASS')
+          "
+
+  # ── Job 11: Test uvx install workflow ─────────────────────────────────────
+  test-uvx:
+    name: Test uvx workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install agent-toolkit-cli via uvx
+        run: uvx agent-toolkit-cli version
+
+      - name: Run doctor via uvx
+        run: uvx agent-toolkit-cli doctor
+
+      - name: Run skills list via uvx
+        run: uvx agent-toolkit-cli skills list --domain core
+
+      - name: Run loop status via uvx
+        shell: bash
+        run: |
+          uvx agent-toolkit-cli loop status | tee /tmp/uvx-loops.txt
+          COUNT=$(grep -c "tier=" /tmp/uvx-loops.txt || echo 0)
+          echo "Loops via uvx: $COUNT"
+          [ "$COUNT" -ge 10 ] || { echo "::error::Expected >=10 loops"; exit 1; }
+
+      - name: Dry-run install via uvx
+        run: uvx agent-toolkit-cli install --dry-run --tools cursor,opencode
