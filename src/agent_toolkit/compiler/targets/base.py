@@ -1,5 +1,7 @@
 """Abstract base for target adapters."""
 from __future__ import annotations
+
+import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -30,14 +32,27 @@ class TargetAdapter(ABC):
         """
 
     def check(self, graph: CanonicalGraph, product: Product) -> CompilationResult:
-        """Dry-run: validate without writing artifacts."""
-        result = self.compile(graph, product)
-        # Remove artifacts (check mode)
+        """Dry-run: validate without writing any files to disk.
+
+        Uses a temporary directory that is discarded after compilation,
+        so the real output_root is never touched.
+        """
+        with tempfile.TemporaryDirectory(prefix="agent-toolkit-check-") as tmpdir:
+            # Temporarily redirect output to the throwaway temp dir
+            real_output_root = self.output_root
+            self.output_root = Path(tmpdir)
+            try:
+                result = self.compile(graph, product)
+            finally:
+                self.output_root = real_output_root
+
+        # Artifacts were in the temp dir (now deleted) — report paths as relative
+        # so callers know what WOULD have been created, but clear actual paths
         result.artifacts.clear()
         return result
 
     def _write_file(self, path: Path, content: str, result: CompilationResult) -> None:
-        """Atomic file write with provenance header where format allows."""
+        """Write content to path and record it in result.artifacts."""
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         result.artifacts.append(path)

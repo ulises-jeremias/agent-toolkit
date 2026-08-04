@@ -201,14 +201,21 @@ def test_no_silent_drops(adapter, graph):
 # ── check mode ────────────────────────────────────────────────────────────────
 
 
-def test_check_mode_produces_no_files(adapter, graph):
-    """--check must not write any files."""
+def test_check_mode_produces_no_files(adapter, graph, tmp_path):
+    """--check must not write any files to the output directory."""
     product = graph.products["agent-toolkit-core"]
+
+    # Record directory contents before check
+    before = set(tmp_path.rglob("*"))
+
     result = adapter.check(graph, product)
 
-    assert result.artifacts == [], (
-        f"check mode wrote {len(result.artifacts)} files — should write nothing"
+    # Verify no files were written to the output_root
+    after = set(tmp_path.rglob("*"))
+    assert after == before, (
+        f"check mode wrote {after - before} files — output_root must not be modified"
     )
+    assert result.artifacts == [], "check mode must clear artifacts list"
     assert result.is_valid
 
 
