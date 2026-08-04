@@ -430,7 +430,7 @@ jobs:
       - name: "CLI: install --dry-run (auto-detect, no stdin = no Copilot prompt)"
         shell: bash
         run: |
-          agent-toolkit install --dry-run 2>&1 | tee install_auto_output.txt
+          agent-toolkit install --dry-run --tools cursor 2>&1 | tee install_auto_output.txt
           if grep -q "Copilot instructions for a project?\n          # Copilot is never auto-detected — only via --tools copilot" install_auto_output.txt; then
             echo "::error::install prompted for Copilot in non-interactive mode"
             exit 1
