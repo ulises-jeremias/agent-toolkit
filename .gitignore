@@ -26,3 +26,6 @@ build/
 # Loop run artifacts (machine-specific state)
 loops/*/runs/
 loops/*/STATE.md
+
+# Git worktrees
+.worktrees/
