@@ -1,25 +1,78 @@
 # OSS Maintenance Pack Configuration
+# Copy this file to your workspace and edit the repos list.
+#
+# Usage:
+#   cp packs/oss-maintenance/config.yaml ~/.ai-workspace/packs/oss-maintenance.yaml
+#   # Edit repos list, then run:
+#   ./bin/loop run oss-daily-briefing --pack ~/.ai-workspace/packs/oss-maintenance.yaml
+#
+# See packs/oss-maintenance/README.md for full setup instructions.
+
 pack: oss-maintenance
 version: "1.0"
 
-# List your repositories here (owner/repo format)
-repos: []
-  # - myorg/my-repo
-  # - myorg/another-repo
+# ---------------------------------------------------------------------------
+# Repository list
+# ---------------------------------------------------------------------------
+# Add repositories in owner/repo format. The loops will process each repo
+# in order. Repos are processed sequentially to enable checkpointing.
+#
+# Budget guidance (see README for full sizing table):
+#   10 repos → oss-pr-monitor needs ~80k tokens
+#   40 repos → oss-pr-monitor needs ~300k tokens
+#   60 repos → oss-pr-monitor needs ~450k tokens
+#
+# If you have more than 50 repos, split into two config files.
 
-# Per-loop settings (override defaults from loop.yaml)
+repos:
+  # Add your repositories here
+  # - owner/repo1
+  # - owner/repo2
+  # - owner/repo3
+
+# ---------------------------------------------------------------------------
+# Loop settings
+# ---------------------------------------------------------------------------
+# Each loop can be individually enabled/disabled and configured.
+# Settings here override the defaults in loops/<name>/loop.yaml.
+#
+# Recommended activation order (run each tier for ~1 week before enabling next):
+#   1. oss-daily-briefing  (read-only, zero risk)
+#   2. oss-triage          (labels + comments, low risk)
+#   3. oss-pr-monitor      (merges Dependabot PRs, medium risk — REVIEW REPORT DAILY)
+
 loops:
-  oss-pr-monitor:
+  oss-daily-briefing:
     enabled: true
     cadence: 1d
-    # Override budget if you have more/fewer repos
     # budget:
-    #   max_tokens: 300000
+    #   max_tokens: 80000       # default; increase for 40+ repos
+    #   max_wall_seconds: 900
 
   oss-triage:
     enabled: true
     cadence: 1d
+    # budget:
+    #   max_tokens: 150000      # default; increase for 40+ repos
+    #   max_wall_seconds: 1200
 
-  oss-daily-briefing:
+  oss-pr-monitor:
     enabled: true
     cadence: 1d
+    # budget:
+    #   max_tokens: 300000      # default; increase for 40+ repos
+    #   max_wall_seconds: 1800
+
+# ---------------------------------------------------------------------------
+# Notifications (optional)
+# ---------------------------------------------------------------------------
+# Configure where loop reports and escalations are sent.
+# Requires the relevant MCP integration to be configured.
+
+# notifications:
+#   slack:
+#     channel: "#oss-maintenance"
+#     on: [escalation, report_ready]
+#   github:
+#     issue_repo: owner/oss-ops   # repo to file escalation issues in
+#     on: [escalation]
