@@ -8,6 +8,9 @@ Usage:
 Commands:
     install       Install profiles for detected AI tools
     doctor        Check system health and tool availability
+    build         Compile canonical capabilities into target-native artifacts
+    inventory     List all canonical skills, agents, and products
+    matrix        Show platform capability matrix
     loop          Loop engineering: init, run, status, audit, cost, schedule, sync
     workspace     Workspace scaffolding: init, context, sync
     memory        Knowledge base: add, search, inject, review, todo
@@ -41,6 +44,15 @@ def main() -> None:
     rest = argv[1:]
 
     match command:
+        case "build":
+            from agent_toolkit.cli.build import cmd_build
+            sys.exit(cmd_build(rest))
+        case "inventory":
+            from agent_toolkit.cli.build import cmd_inventory
+            sys.exit(cmd_inventory(rest))
+        case "matrix":
+            from agent_toolkit.cli.build import cmd_matrix
+            sys.exit(cmd_matrix(rest))
         case "install":
             from agent_toolkit.cli.install import cmd_install
             sys.exit(cmd_install(rest))

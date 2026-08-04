@@ -211,4 +211,7 @@ def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
     if target_id == "claude-code":
         from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
         return ClaudeCodeAdapter(output_dir, repo_root)
+    if target_id == "cursor":
+        from agent_toolkit.compiler.targets.cursor import CursorAdapter
+        return CursorAdapter(output_dir, repo_root)
     return None
