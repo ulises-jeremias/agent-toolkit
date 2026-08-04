@@ -35,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   before falling back to walking up the filesystem (which breaks in uvx cache)
 - Added `agent-toolkit-cli` as script alias so `uvx agent-toolkit-cli` works
 
+## [1.0.5] — 2026-08-04
+
+### Fixed
+- loop runner: resolve toolkit root from package data dir before CWD fallback,
+  preventing it from picking up the user's ai-workspace loops when run via uvx/pip
+
 ## [Unreleased]
 
 ### Added

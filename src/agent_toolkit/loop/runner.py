@@ -56,22 +56,32 @@ signal.signal(signal.SIGTERM, _handle_sig)
 
 # ── paths ─────────────────────────────────────────────────────────────────────
 
-# WORKSPACE_ROOT: prefer env var (for users running from their own workspace),
-# then fall back to the repo root where agent-toolkit is installed/cloned.
-# When installed as a package via pip, data files live alongside the source.
-def _find_repo_root() -> Path:
-    """Walk up from this file to find the repo root (where loops/ lives)."""
+# WORKSPACE_ROOT resolution (in priority order):
+# 1. AGENT_TOOLKIT_ROOT env var — explicit user override / ai-workspace session
+# 2. AI_WORKSPACE env var — compatibility with ai-workspace sessions
+# 3. Package data dir (pip/uvx/brew installs) — agent_toolkit/data/ in wheel
+# 4. Walk up from this file — editable/source installs
+# 5. CWD fallback
+def _find_toolkit_root() -> Path:
+    """Locate the directory that contains loops/, profiles/, skills/, etc."""
+    # Try package data directory first (pip/uvx wheel installs)
+    try:
+        pkg_data = Path(__file__).resolve().parent.parent / "data"
+        if pkg_data.is_dir() and (pkg_data / "loops").is_dir():
+            return pkg_data
+    except Exception:
+        pass
+    # Walk up from this file (editable/source installs)
     here = Path(__file__).resolve().parent
     for candidate in [here.parent.parent.parent, here.parent.parent, here.parent]:
         if (candidate / "loops").is_dir():
             return candidate
-    # Fallback to CWD
     return Path.cwd()
 
 WORKSPACE_ROOT = Path(
     os.environ.get("AGENT_TOOLKIT_ROOT", "")
     or os.environ.get("AI_WORKSPACE", "")
-    or _find_repo_root()
+    or _find_toolkit_root()
 )
 LOOPS_DIR = WORKSPACE_ROOT / "loops"
 TEMPLATES_DIR = WORKSPACE_ROOT / "loops"  # templates are the loops/ dir itself
