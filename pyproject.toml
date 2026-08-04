@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agent-toolkit"
+name = "agent-toolkit-cli"
 version = "1.0.0"
 description = "Composable AI agent toolkit — loops, skills, profiles, and MCP for Claude Code, Cursor, OpenCode, Windsurf, and more"
 readme = "README.md"
@@ -11,7 +11,7 @@ license = { file = "LICENSE" }
 requires-python = ">=3.10"
 keywords = [
     "ai-agents", "claude-code", "cursor", "opencode", "windsurf",
-    "github-copilot", "skills", "loops", "mcp", "agent-toolkit"
+    "github-copilot", "skills", "loops", "mcp", "agent-toolkit", "agent-toolkit-cli"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
