@@ -1,0 +1,51 @@
+name: MegaLinter
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  APPLY_FIXES: none
+  APPLY_FIXES_EVENT: pull_request
+  APPLY_FIXES_MODE: commit
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  megalinter:
+    name: MegaLinter
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: MegaLinter
+        uses: oxsecurity/megalinter@v9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # On push to main, validate the entire codebase.
+          # On pull_request, validate only changed files.
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          ENABLE_LINTERS: >-
+            YAML_YAMLLINT,
+            JSON_JSONLINT,
+            MARKDOWN_MARKDOWNLINT,
+            BASH_SHELLCHECK,
+            PYTHON_PYLINT,
+            REPOSITORY_SECRETLINT,
+            REPOSITORY_CHECKOV
+          # Linters that produce warnings only -- do not fail the build.
+          DISABLE_ERRORS_LINTERS: >-
+            MARKDOWN_MARKDOWNLINT,
+            PYTHON_PYLINT
+          # Directories to exclude from all linters.
+          FILTER_REGEX_EXCLUDE: "(node_modules|.git|megalinter-reports)"

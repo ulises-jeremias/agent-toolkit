@@ -2,54 +2,15 @@ name: Validate
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
-    branches: ["**"]
 
 permissions:
   contents: read
 
 jobs:
   validate-skills:
-    name: Validate skill structure
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Check SKILL.md and skill.json present in each skill directory
-        run: |
-          set -euo pipefail
-          errors=0
-
-          if [ ! -d skills ]; then
-            echo "No skills/ directory found — skipping skill structure check."
-            exit 0
-          fi
-
-          for skill_dir in skills/*/; do
-            skill_name="$(basename "$skill_dir")"
-
-            if [ ! -f "${skill_dir}SKILL.md" ]; then
-              echo "ERROR: skills/${skill_name}/SKILL.md is missing"
-              errors=$((errors + 1))
-            fi
-
-            if [ ! -f "${skill_dir}skill.json" ]; then
-              echo "ERROR: skills/${skill_name}/skill.json is missing"
-              errors=$((errors + 1))
-            fi
-          done
-
-          if [ "$errors" -gt 0 ]; then
-            echo ""
-            echo "${errors} skill structure error(s) found. Each skill directory must contain SKILL.md and skill.json."
-            exit 1
-          fi
-
-          echo "All skill directories have SKILL.md and skill.json."
-
-  validate-skill-json:
-    name: Validate skill.json against schema
+    name: Validate skill structure and frontmatter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -58,53 +19,46 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install jsonschema
-        run: pip install jsonschema==4.23.0
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2
 
-      - name: Validate each skill.json against schemas/skill.schema.json
-        run: |
-          set -euo pipefail
+      - name: Validate SKILL.md frontmatter across all skills
+        run: python3 scripts/validate-skills.py
 
-          if [ ! -f schemas/skill.schema.json ]; then
-            echo "schemas/skill.schema.json not found — skipping."
-            exit 0
-          fi
+      - name: Validate AGENT.md frontmatter across all agents
+        run: python3 scripts/validate-agents.py
 
-          if [ ! -d skills ]; then
-            echo "No skills/ directory — skipping skill.json validation."
-            exit 0
-          fi
+  validate-manifests:
+    name: Validate plugin manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-          errors=0
-          for manifest in skills/*/skill.json; do
-            python3 - "$manifest" schemas/skill.schema.json <<'PYEOF'
-          import json, jsonschema, sys
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-          instance_path = sys.argv[1]
-          schema_path   = sys.argv[2]
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
-          with open(schema_path) as f:
-              schema = json.load(f)
-          with open(instance_path) as f:
-              instance = json.load(f)
+      - name: Validate marketplace and plugin manifests
+        run: python3 scripts/validate-manifests.py
 
-          try:
-              jsonschema.validate(instance, schema)
-              print(f"OK: {instance_path}")
-          except jsonschema.ValidationError as e:
-              print(f"FAIL: {instance_path} -- {e.message}", file=sys.stderr)
-              sys.exit(1)
-          PYEOF
-            status=$?
-            if [ $status -ne 0 ]; then
-              errors=$((errors + 1))
-            fi
-          done
+  check-surfaces:
+    name: Check plugin surface drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-          if [ "$errors" -gt 0 ]; then
-            echo "${errors} skill.json validation error(s)."
-            exit 1
-          fi
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2
+
+      - name: Check surfaces are in sync with canonical sources
+        run: python3 scripts/gen-surfaces.py --check
 
   validate-loops:
     name: Validate loop templates
@@ -116,77 +70,81 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install PyYAML and jsonschema
+      - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
-      - name: Validate loop.yaml files against schemas/loop.schema.json
+      - name: Validate loop.yaml files against loop.schema.json
         run: |
           set -euo pipefail
 
           if [ ! -f schemas/loop.schema.json ]; then
-            echo "schemas/loop.schema.json not found — skipping loop validation."
+            echo "schemas/loop.schema.json not found — skipping."
             exit 0
           fi
 
           if [ ! -d loops ]; then
-            echo "No loops/ directory — skipping loop validation."
+            echo "No loops/ directory — skipping."
             exit 0
           fi
 
-          python3 - schemas/loop.schema.json loops <<'PYEOF'
-          import json, sys
-          import yaml
-          import jsonschema
+          python3 - <<'PYEOF'
+          import json, sys, yaml
           from pathlib import Path
+          from jsonschema import validate, ValidationError
 
-          schema_path = Path(sys.argv[1])
-          loops_dir   = Path(sys.argv[2])
+          schema = json.loads(Path("schemas/loop.schema.json").read_text())
 
-          with open(schema_path) as f:
-              schema = json.load(f)
+          errors = []
+          loop_files = sorted(Path("loops").rglob("loop.yaml"))
 
-          errors = 0
-          for loop_yaml in sorted(loops_dir.glob("*/loop.yaml")):
-              with open(loop_yaml) as f:
-                  instance = yaml.safe_load(f)
+          if not loop_files:
+              print("No loop.yaml files found — nothing to validate.")
+              sys.exit(0)
 
+          for f in loop_files:
               try:
-                  jsonschema.validate(instance, schema)
-                  print(f"OK: {loop_yaml}")
-              except jsonschema.ValidationError as e:
-                  print(f"FAIL: {loop_yaml} -- {e.message}", file=sys.stderr)
-                  errors += 1
+                  d = yaml.safe_load(f.read_text())
+                  validate(d, schema)
+                  print(f"  OK: {f}")
+              except ValidationError as e:
+                  errors.append(f"  FAIL: {f}: {e.message}")
+                  print(f"  FAIL: {f}: {e.message}", file=sys.stderr)
 
+          print()
           if errors:
-              print(f"\n{errors} loop validation error(s).", file=sys.stderr)
+              print(f"{len(errors)} loop validation error(s).", file=sys.stderr)
               sys.exit(1)
 
-          print(f"\nAll loop templates validated successfully.")
+          print(f"All {len(loop_files)} loop template(s) valid.")
           PYEOF
 
-  check-secrets:
-    name: Check for secret patterns
+  secret-scan:
+    name: Scan for secret patterns
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Scan for common secret patterns
+      - name: Scan common secret patterns in toolkit files
         run: |
           set -euo pipefail
 
-          # Patterns that should never appear in committed files.
+          # Patterns that should never appear in committed toolkit files.
+          # Keep in sync with SECURITY.md allowlist of false-positive exclusions.
           PATTERNS=(
             'AKIA[0-9A-Z]{16}'
             'sk-[a-zA-Z0-9]{32,}'
+            'sk-ant-[a-zA-Z0-9]'
             'ghp_[a-zA-Z0-9]{36}'
             'gho_[a-zA-Z0-9]{36}'
             'ghs_[a-zA-Z0-9]{36}'
             'github_pat_[a-zA-Z0-9_]{82}'
-            'xox[baprs]-[a-zA-Z0-9-]+'
+            'xoxb-[a-zA-Z0-9-]+'
+            'xoxp-[a-zA-Z0-9-]+'
+            'ghr_[a-zA-Z0-9]'
             'AIza[0-9A-Za-z\-_]{35}'
-            'eyJ[a-zA-Z0-9_-]{10,}\.eyJ[a-zA-Z0-9_-]{10,}'
           )
 
+          SCAN_DIRS=(skills agents profiles mcp loops)
           EXCLUDE_DIRS=(
             '--exclude-dir=.git'
             '--exclude-dir=node_modules'
@@ -194,17 +152,20 @@ jobs:
 
           found=0
           for pattern in "${PATTERNS[@]}"; do
-            if grep -rEq "${EXCLUDE_DIRS[@]}" "$pattern" . 2>/dev/null; then
-              echo "WARN: Possible secret matched pattern: $pattern"
-              grep -rE "${EXCLUDE_DIRS[@]}" "$pattern" . 2>/dev/null || true
-              found=$((found + 1))
-            fi
+            for scan_dir in "${SCAN_DIRS[@]}"; do
+              [ -d "$scan_dir" ] || continue
+              if grep -rEq "${EXCLUDE_DIRS[@]}" "$pattern" "$scan_dir" 2>/dev/null; then
+                echo "WARN: Possible secret matched pattern '$pattern' in $scan_dir/"
+                grep -rE "${EXCLUDE_DIRS[@]}" "$pattern" "$scan_dir" 2>/dev/null || true
+                found=$((found + 1))
+              fi
+            done
           done
 
           if [ "$found" -gt 0 ]; then
             echo ""
-            echo "Potential secrets detected. Review the matches above."
-            echo "If these are false positives, exclude the file or use a placeholder."
+            echo "${found} potential secret pattern(s) detected. Review the matches above."
+            echo "If these are false positives, use a placeholder value or add an inline exclusion."
             exit 1
           fi
 
@@ -225,10 +186,16 @@ jobs:
 
       - name: Run markdownlint
         run: |
-          # Exits 0 when no .markdownlint.yaml is present (tolerant mode).
-          # To enforce strictly: commit a .markdownlint.yaml at repo root.
+          # Strict when .markdownlint.yaml is present; tolerant mode otherwise.
           if [ -f .markdownlint.yaml ]; then
-            markdownlint --config .markdownlint.yaml --ignore node_modules --ignore .git '**/*.md'
+            markdownlint \
+              --config .markdownlint.yaml \
+              --ignore node_modules \
+              --ignore .git \
+              '**/*.md'
           else
-            markdownlint --ignore node_modules --ignore .git '**/*.md' || true
+            markdownlint \
+              --ignore node_modules \
+              --ignore .git \
+              '**/*.md' || true
           fi
