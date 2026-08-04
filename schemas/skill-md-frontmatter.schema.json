@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agentic-workstation/main/lib/schemas/skill-md-frontmatter.schema.json",
-  "title": "agentic-workstation SKILL.md Frontmatter",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill-md-frontmatter.schema.json",
+  "title": "agent-toolkit SKILL.md Frontmatter",
   "description": "YAML frontmatter schema for bundled SKILL.md files. All fields except name and description are optional to maintain backwards compatibility.",
   "type": "object",
   "required": ["name", "description"],

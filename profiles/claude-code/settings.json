@@ -16,7 +16,6 @@
     "figma@claude-plugins-official": true,
     "pr-review-toolkit@claude-plugins-official": true
   },
-  "skipDangerousModePermissionPrompt": true,
   "agents": {
     "architect": {
       "description": "Software architecture and system design specialist",

@@ -1,7 +1,7 @@
 {
   "name": "agent-toolkit-core",
-  "version": "1.0.0",
-  "description": "Core AI agent capabilities: orchestrator, dev companion, PR fallback, output handshake, knowledge sync, and code-reviewer agent.",
+  "version": "1.1.0",
+  "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
   "author": {
     "name": "ulises-jeremias",
     "email": "ulisescf.24@gmail.com"
@@ -9,5 +9,8 @@
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",
   "license": "MIT",
-  "keywords": ["agent-toolkit", "core", "orchestrator", "assistant", "companion"]
+  "keywords": [
+    "agent-toolkit",
+    "core"
+  ]
 }
