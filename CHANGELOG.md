@@ -84,6 +84,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`agent-toolkit-server`, `agent-toolkit-mcp`, etc.)
 - Root `pyproject.toml` with `[tool.uv.workspace]` and shared dev tooling
 
+## [1.1.0] — 2026-08-04
+
+### Added — Full workspace capability
+
+agent-toolkit is now a complete workspace toolkit. Every capability from
+~/.ai-workspace and agentic-harness is available as a CLI subcommand:
+
+**`agent-toolkit workspace`** — Workspace scaffolding and session context
+- `workspace init [--dir PATH]` — scaffold harness workspace (AGENTS.md, knowledge/, packs/, personas/, loops/, projects/, repos/)
+- `workspace context` — session state snapshot for AI session start
+- `workspace sync` — sync loop escalations into knowledge todos
+
+**`agent-toolkit memory`** — Persistent knowledge base (replaces bin/assistant-memory)
+- `memory add --type <learning|process|todo> "content"` — add to knowledge base
+- `memory search "query"` — search all knowledge files
+- `memory inject` — output full knowledge context block for AI session
+- `memory review` — show stale entries
+- `memory todo` — list pending todos
+
+**`agent-toolkit project`** — Project clone and symlink manager (replaces bin/project-indexer)
+- `project clone owner/repo` — clone + symlink into projects/
+- `project list` — list indexed projects
+- `project add <path>` — symlink existing repo
+- `project remove <name>` — remove symlink
+- `project scan` — consistency check
+
+**`agent-toolkit devcompanion`** — Background job queue (replaces bin/devcompanion)
+- `devcompanion queue <project> [--request "..."] [--template NAME]` — queue a job
+- `devcompanion run-once [--no-llm]` — execute oldest pending job
+- `devcompanion status` — show all jobs
+- `devcompanion done <job-id>` — mark job complete
+- `devcompanion sync-todos` — sync plan.md todos to knowledge
+
+**`agent-toolkit insights`** — AI tool usage analytics (replaces bin/tool-insights)
+- `insights opencode` — OpenCode sessions from SQLite DB
+- `insights cursor` — Cursor agent transcripts
+- `insights claude` — Claude Code sessions
+- `insights all` — aggregate across all tools
+
+**Templates** — workspace scaffold templates bundled in the wheel
+- 12 CLI modules, 42 template files (AGENTS.md, personas, knowledge, etc.)
+- `agent-toolkit workspace init` = what agentic-harness now scaffolds from
+
+**Profile updates** — Claude Code, Cursor, OpenCode, Windsurf profiles updated with
+agent-toolkit CLI reference and session-start protocol
+
+### Changed
+- agentic-harness: bin/workspace-context and bin/assistant-memory are now
+  thin wrappers that delegate to agent-toolkit CLI
+
 ## [Unreleased]
 
 ### Added

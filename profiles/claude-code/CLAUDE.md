@@ -57,6 +57,50 @@ These are agents defined in `~/.claude/agents/` — they are NOT skills.
 - Follow the project's established branching and PR strategy
 - Escalate conflicts between agent-toolkit standards and project conventions
 
+## agent-toolkit CLI
+
+The `agent-toolkit` CLI is available and should be used for workspace operations:
+
+```bash
+# Workspace management
+agent-toolkit workspace context          # inject session state at start
+agent-toolkit workspace init [--dir .]  # scaffold a new workspace
+
+# Knowledge management
+agent-toolkit memory add --type learning "pattern you discovered"
+agent-toolkit memory add --type todo "follow-up item"
+agent-toolkit memory search "topic"    # search before asking known questions
+agent-toolkit memory inject            # output all knowledge for context
+agent-toolkit memory todo              # show pending items
+
+# Loop engineering
+agent-toolkit loop run <name>          # run a loop template
+agent-toolkit loop status              # show all templates
+agent-toolkit loop schedule <name>     # install systemd/launchd timer
+
+# Project management
+agent-toolkit project clone owner/repo # clone + symlink
+agent-toolkit project list             # list indexed projects
+
+# Background jobs
+agent-toolkit devcompanion queue <project> --request "..."
+agent-toolkit devcompanion run-once
+agent-toolkit devcompanion status
+
+# Analysis
+agent-toolkit insights opencode        # OpenCode usage report
+agent-toolkit insights cursor          # Cursor usage report
+
+# Health check
+agent-toolkit doctor                   # verify everything is set up
+```
+
+**Session start protocol:**
+
+1. Run `agent-toolkit workspace context` to get workspace state
+2. Run `agent-toolkit memory inject` to load persistent knowledge
+3. Check `agent-toolkit memory todo` for pending follow-ups
+
 ## Output
 
 Cite sources (which file the convention came from). Surface conflicts explicitly. Ask when instructions are ambiguous rather than assuming.

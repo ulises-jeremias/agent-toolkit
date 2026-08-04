@@ -6,12 +6,17 @@ Usage:
     agent-toolkit <command> [args...]
 
 Commands:
-    install      Install profiles for detected AI tools
-    doctor       Check system health and tool availability
-    loop         Loop engineering: init, run, status, audit, cost, schedule, sync
-    mcp          MCP provider management: setup, list, doctor
-    skills       Skill management: sync, list, validate
-    plugin       Plugin bundle management: sync, check
+    install       Install profiles for detected AI tools
+    doctor        Check system health and tool availability
+    loop          Loop engineering: init, run, status, audit, cost, schedule, sync
+    workspace     Workspace scaffolding: init, context, sync
+    memory        Knowledge base: add, search, inject, review, todo
+    project       Project management: clone, list, add, remove, scan
+    devcompanion  Background job queue: queue, run-once, status, done, sync-todos
+    insights      AI tool usage insights: opencode, cursor, claude
+    skills        Skill management: sync, list, validate
+    mcp           MCP provider management: setup, list, doctor
+    plugin        Plugin bundle management: sync, check
 
 Run 'agent-toolkit <command> --help' for details.
 """
@@ -56,6 +61,21 @@ def main() -> None:
         case "plugin":
             from agent_toolkit.cli.plugin import cmd_plugin
             sys.exit(cmd_plugin(rest))
+        case "workspace":
+            from agent_toolkit.cli.workspace import cmd_workspace
+            sys.exit(cmd_workspace(rest))
+        case "memory":
+            from agent_toolkit.cli.memory import cmd_memory
+            sys.exit(cmd_memory(rest))
+        case "project":
+            from agent_toolkit.cli.project import cmd_project
+            sys.exit(cmd_project(rest))
+        case "devcompanion" | "dc":
+            from agent_toolkit.cli.devcompanion import cmd_devcompanion
+            sys.exit(cmd_devcompanion(rest))
+        case "insights":
+            from agent_toolkit.cli.insights import cmd_insights
+            sys.exit(cmd_insights(rest))
         case _:
             print(f"Unknown command: {command}", file=sys.stderr)
             print("Run 'agent-toolkit help' for usage.", file=sys.stderr)

@@ -67,6 +67,46 @@ These specialized agents are available via @mention:
 - **@tdd-guide** — Test-driven development cycle enforcement
 - **@typescript-reviewer** — TypeScript type safety and modern patterns
 
+## agent-toolkit CLI
+
+Use these commands for workspace operations:
+
+```bash
+# Workspace
+agent-toolkit workspace context          # session state at start
+agent-toolkit workspace init [--dir .]  # scaffold a new workspace
+
+# Knowledge
+agent-toolkit memory add --type learning "pattern"
+agent-toolkit memory add --type todo "follow-up"
+agent-toolkit memory search "topic"
+agent-toolkit memory inject
+agent-toolkit memory todo
+
+# Loops
+agent-toolkit loop run <name>
+agent-toolkit loop status
+agent-toolkit loop schedule <name>
+
+# Projects
+agent-toolkit project clone owner/repo
+agent-toolkit project list
+
+# Background jobs
+agent-toolkit devcompanion queue <project> --request "..."
+agent-toolkit devcompanion run-once
+agent-toolkit devcompanion status
+
+# Analysis
+agent-toolkit insights opencode        # OpenCode usage report
+agent-toolkit insights cursor          # Cursor usage report
+
+# Health check
+agent-toolkit doctor
+```
+
+**Session start:** run `agent-toolkit workspace context` then `agent-toolkit memory inject` then check `agent-toolkit memory todo`.
+
 ## Git and delivery
 - Commit messages: present tense, imperative, concise (`add user auth`, not `added user auth`)
 - Reference ticket in commits for traced projects: `[TICKET-123] Description`

@@ -43,6 +43,50 @@ Available subagents (invoke with `@name` in your message, NOT via the skill tool
 
 These are agents defined in `~/.config/opencode/agents/` — they are NOT skills.
 
+## agent-toolkit CLI
+
+Use these commands for workspace operations:
+
+```bash
+# Workspace
+agent-toolkit workspace context          # session state at start
+agent-toolkit workspace init [--dir .]  # scaffold a new workspace
+
+# Knowledge
+agent-toolkit memory add --type learning "pattern"
+agent-toolkit memory add --type todo "follow-up"
+agent-toolkit memory search "topic"
+agent-toolkit memory inject
+agent-toolkit memory todo
+
+# Loops
+agent-toolkit loop run <name>
+agent-toolkit loop status
+agent-toolkit loop schedule <name>
+
+# Projects
+agent-toolkit project clone owner/repo
+agent-toolkit project list
+
+# Background jobs
+agent-toolkit devcompanion queue <project> --request "..."
+agent-toolkit devcompanion run-once
+agent-toolkit devcompanion status
+
+# Analysis
+agent-toolkit insights opencode        # OpenCode usage report
+agent-toolkit insights cursor          # Cursor usage report
+
+# Health check
+agent-toolkit doctor
+```
+
+**Session start protocol:**
+
+1. Run `agent-toolkit workspace context` to get workspace state
+2. Run `agent-toolkit memory inject` to load persistent knowledge
+3. Check `agent-toolkit memory todo` for pending follow-ups
+
 ## When working on client projects
 - Respect existing patterns and conventions
 - Check for project-specific AGENTS.md or CLAUDE.md
