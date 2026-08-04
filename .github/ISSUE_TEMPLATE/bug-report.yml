@@ -1,0 +1,97 @@
+name: Bug report
+description: Report a broken skill, agent, loop, profile, or CLI command
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report.
+        Please be as specific as possible — vague reports are hard to reproduce and fix.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong? Be specific about the skill, agent, loop, or command.
+    validations:
+      required: true
+
+  - type: input
+    id: component
+    attributes:
+      label: Affected component
+      description: "Exact path to the affected skill, agent, loop, or module"
+      placeholder: "e.g. skills/core/assistant, agents/code-reviewer, loops/oss-pr-monitor, src/agent_toolkit/cli/install.py"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: tool
+    attributes:
+      label: AI tool
+      description: Which tool(s) were you using when the bug occurred?
+      options:
+        - label: Claude Code
+        - label: Cursor
+        - label: OpenCode
+        - label: GitHub Copilot
+        - label: Windsurf
+        - label: Pi Coding Agent
+        - label: CLI (agent-toolkit command)
+        - label: Other
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal, deterministic steps. Include exact commands run.
+      placeholder: |
+        1. Run `agent-toolkit install --tools cursor`
+        2. Open Cursor in a project
+        3. Invoke skill `assistant`
+        4. Observe that ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include full error messages, stack traces, or unexpected output.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: agent-toolkit version or commit
+      description: Run `agent-toolkit version` or `git log --oneline -1`
+      placeholder: "1.1.0 or abc1234"
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, shell, Python version, and relevant CLI tool versions
+      placeholder: "Ubuntu 24.04, zsh, Python 3.12, gh 2.97"
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, recordings, or anything else that helps.
+    validations:
+      required: false
