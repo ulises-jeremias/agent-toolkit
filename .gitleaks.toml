@@ -1,0 +1,14 @@
+title = "agent-toolkit gitleaks config"
+
+[allowlist]
+description = "Allowlist for agent-toolkit"
+paths = [
+    '''packaging/''',
+    '''\.github/''',
+    '''tests/''',
+]
+regexes = [
+    '''PLACEHOLDER''',
+    '''SKIP''',
+    '''your@.*\.com''',
+]

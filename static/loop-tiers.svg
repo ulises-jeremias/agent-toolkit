@@ -1,0 +1,248 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="250" viewBox="0 0 800 250">
+  <defs>
+    <!-- Dot grid -->
+    <pattern id="dotgrid" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="0.8" fill="#0a0a2a" opacity="0.5"/>
+    </pattern>
+
+    <!-- Scanlines -->
+    <pattern id="scanlines" x="0" y="0" width="1" height="3" patternUnits="userSpaceOnUse">
+      <rect width="1" height="1" fill="#000008" opacity="0.12"/>
+    </pattern>
+
+    <!-- Gradient: the progression track (green → orange → red) -->
+    <linearGradient id="track-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00ff88"/>
+      <stop offset="50%" stop-color="#ff6b35"/>
+      <stop offset="100%" stop-color="#ff2244"/>
+    </linearGradient>
+
+    <!-- Track glow -->
+    <filter id="track-glow" x="-5%" y="-100%" width="110%" height="300%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Node glows -->
+    <filter id="node-green" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="node-orange" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="node-red" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="text-glow-green" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="text-glow-orange" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="text-glow-red" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Gradient backgrounds for tier boxes -->
+    <linearGradient id="box-l1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#031808"/>
+      <stop offset="100%" stop-color="#020e05"/>
+    </linearGradient>
+    <linearGradient id="box-l2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a0e02"/>
+      <stop offset="100%" stop-color="#0e0702"/>
+    </linearGradient>
+    <linearGradient id="box-l3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a0206"/>
+      <stop offset="100%" stop-color="#0e0204"/>
+    </linearGradient>
+
+    <!-- Arrow marker -->
+    <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#00ff88"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ff6b35"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#ff2244"/>
+    </marker>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="800" height="250" fill="#050510"/>
+  <rect width="800" height="250" fill="url(#dotgrid)"/>
+  <rect width="800" height="250" fill="url(#scanlines)"/>
+
+  <!-- Borders -->
+  <line x1="0" y1="0" x2="800" y2="0" stroke="#0a0a2a" stroke-width="1.5"/>
+  <line x1="0" y1="249" x2="800" y2="249" stroke="#0a0a2a" stroke-width="1.5"/>
+  <line x1="0" y1="0" x2="0" y2="250" stroke="#0a0a2a" stroke-width="1.5"/>
+  <line x1="799" y1="0" x2="799" y2="250" stroke="#0a0a2a" stroke-width="1.5"/>
+
+  <!-- Corner brackets -->
+  <path d="M 8,8 L 8,24 M 8,8 L 24,8" stroke="#00ff88" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M 792,8 L 792,24 M 792,8 L 776,8" stroke="#ff2244" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M 8,242 L 8,226 M 8,242 L 24,242" stroke="#00ff88" stroke-width="1.5" fill="none" opacity="0.6"/>
+  <path d="M 792,242 L 792,226 M 792,242 L 776,242" stroke="#ff2244" stroke-width="1.5" fill="none" opacity="0.6"/>
+
+  <!-- ── Header ── -->
+  <text x="400" y="26" font-family="'Courier New', monospace" font-size="10" fill="#4a4a8a" text-anchor="middle" letter-spacing="5">LOOP AUTONOMY TIERS  ◈  agent-toolkit</text>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- ── Main progression bar ── -->
+  <!-- ══════════════════════════════════════ -->
+
+  <!-- Track shadow -->
+  <rect x="85" y="93" width="630" height="8" rx="4" fill="url(#track-gradient)" opacity="0.15" filter="url(#track-glow)"/>
+
+  <!-- Track fill -->
+  <rect x="85" y="95" width="630" height="6" rx="3" fill="url(#track-gradient)" filter="url(#track-glow)"/>
+
+  <!-- Track tick marks -->
+  <line x1="250" y1="90" x2="250" y2="106" stroke="#ff6b35" stroke-width="1" opacity="0.4"/>
+  <line x1="550" y1="90" x2="550" y2="106" stroke="#ff2244" stroke-width="1" opacity="0.4"/>
+
+  <!-- ── L1 NODE — green ── -->
+  <!-- Outer ring -->
+  <circle cx="100" cy="98" r="18" fill="#031808" stroke="#00ff88" stroke-width="2" filter="url(#node-green)" opacity="0.6"/>
+  <!-- Inner fill -->
+  <circle cx="100" cy="98" r="12" fill="#00ff88" opacity="0.9" filter="url(#node-green)"/>
+  <!-- Label inside -->
+  <text x="100" y="102" font-family="'Courier New', monospace" font-size="9" font-weight="bold" fill="#050510" text-anchor="middle">L1</text>
+
+  <!-- Pulsing ring on L1 -->
+  <circle cx="100" cy="98" r="18" fill="none" stroke="#00ff88" stroke-width="2" opacity="0">
+    <animate attributeName="r" values="18;28;18" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.6;0;0.6" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-width" values="2;1;2" dur="2s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ── L2 NODE — orange ── -->
+  <circle cx="400" cy="98" r="18" fill="#1a0e02" stroke="#ff6b35" stroke-width="2" filter="url(#node-orange)" opacity="0.6"/>
+  <circle cx="400" cy="98" r="12" fill="#ff6b35" opacity="0.9" filter="url(#node-orange)"/>
+  <text x="400" y="102" font-family="'Courier New', monospace" font-size="9" font-weight="bold" fill="#050510" text-anchor="middle">L2</text>
+
+  <!-- Pulsing ring on L2 -->
+  <circle cx="400" cy="98" r="18" fill="none" stroke="#ff6b35" stroke-width="2" opacity="0">
+    <animate attributeName="r" values="18;28;18" dur="2.4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;0;0.5" dur="2.4s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-width" values="2;1;2" dur="2.4s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ── L3 NODE — red ── -->
+  <circle cx="700" cy="98" r="18" fill="#1a0206" stroke="#ff2244" stroke-width="2" filter="url(#node-red)" opacity="0.6"/>
+  <circle cx="700" cy="98" r="12" fill="#ff2244" opacity="0.9" filter="url(#node-red)"/>
+  <text x="700" y="102" font-family="'Courier New', monospace" font-size="9" font-weight="bold" fill="#050510" text-anchor="middle">L3</text>
+
+  <!-- Pulsing ring on L3 -->
+  <circle cx="700" cy="98" r="18" fill="none" stroke="#ff2244" stroke-width="2" opacity="0">
+    <animate attributeName="r" values="18;28;18" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="stroke-width" values="2;1;2" dur="2s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- ── Tier labels (above bar) ── -->
+  <!-- ══════════════════════════════════════ -->
+
+  <!-- L1 label -->
+  <text x="100" y="68" font-family="'Courier New', monospace" font-size="13" font-weight="bold" fill="#00ff88" text-anchor="middle" filter="url(#text-glow-green)">OBSERVE</text>
+  <text x="100" y="81" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a" text-anchor="middle" letter-spacing="2">REPORT ONLY</text>
+
+  <!-- L2 label -->
+  <text x="400" y="68" font-family="'Courier New', monospace" font-size="13" font-weight="bold" fill="#ff6b35" text-anchor="middle" filter="url(#text-glow-orange)">ACT</text>
+  <text x="400" y="81" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a" text-anchor="middle" letter-spacing="2">PR-GATED</text>
+
+  <!-- L3 label -->
+  <text x="700" y="68" font-family="'Courier New', monospace" font-size="13" font-weight="bold" fill="#ff2244" text-anchor="middle" filter="url(#text-glow-red)">AUTONOMOUS</text>
+  <text x="700" y="81" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a" text-anchor="middle" letter-spacing="2">UNATTENDED</text>
+
+  <!-- Connector arrows between tier nodes -->
+  <line x1="122" y1="98" x2="372" y2="98" stroke="url(#track-gradient)" stroke-width="0" opacity="0"/>
+  <text x="250" y="94" font-family="'Courier New', monospace" font-size="11" fill="#4a4a8a" text-anchor="middle" opacity="0.6">──────────►</text>
+  <text x="550" y="94" font-family="'Courier New', monospace" font-size="11" fill="#4a4a8a" text-anchor="middle" opacity="0.6">──────────►</text>
+
+  <!-- ══════════════════════════════════════ -->
+  <!-- ── Tier detail cards (below) ── -->
+  <!-- ══════════════════════════════════════ -->
+
+  <!-- ── L1 Card ── -->
+  <rect x="20" y="126" width="220" height="106" rx="3" fill="url(#box-l1)" stroke="#00ff88" stroke-width="1.5"/>
+  <!-- Top tab -->
+  <rect x="20" y="126" width="220" height="3" rx="2" fill="#00ff88" opacity="0.6"/>
+
+  <text x="130" y="144" font-family="'Courier New', monospace" font-size="10" fill="#00ff88" text-anchor="middle" font-weight="bold" filter="url(#text-glow-green)">L1 :: report-only</text>
+  <line x1="24" y1="150" x2="236" y2="150" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="30" y="165" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="42" y="165" font-family="'Courier New', monospace" font-size="9" fill="#00aa66">oss-daily-briefing</text>
+  <text x="30" y="180" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="42" y="180" font-family="'Courier New', monospace" font-size="9" fill="#00aa66">pr-health-monitor</text>
+  <text x="30" y="195" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="42" y="195" font-family="'Courier New', monospace" font-size="9" fill="#00aa66">oss-triage</text>
+
+  <!-- Safety badge -->
+  <rect x="130" y="216" width="108" height="14" rx="2" fill="#003a20" stroke="#00ff88" stroke-width="1"/>
+  <text x="184" y="226" font-family="'Courier New', monospace" font-size="8" fill="#00ff88" text-anchor="middle">● SAFE · NO WRITES</text>
+
+  <!-- Vertical connector from node to card -->
+  <line x1="100" y1="116" x2="100" y2="126" stroke="#00ff88" stroke-width="1" opacity="0.5" stroke-dasharray="3,2"/>
+
+  <!-- ── L2 Card ── -->
+  <rect x="288" y="126" width="224" height="106" rx="3" fill="url(#box-l2)" stroke="#ff6b35" stroke-width="1.5"/>
+  <rect x="288" y="126" width="224" height="3" rx="2" fill="#ff6b35" opacity="0.6"/>
+
+  <text x="400" y="144" font-family="'Courier New', monospace" font-size="10" fill="#ff6b35" text-anchor="middle" font-weight="bold" filter="url(#text-glow-orange)">L2 :: PR-gated</text>
+  <line x1="292" y1="150" x2="508" y2="150" stroke="#ff6b35" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="298" y="165" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="310" y="165" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">dep-update-pr</text>
+  <text x="298" y="180" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="310" y="180" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">oss-pr-monitor</text>
+  <text x="298" y="195" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="310" y="195" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">issue-labeler</text>
+
+  <!-- Caution badge -->
+  <rect x="298" y="216" width="204" height="14" rx="2" fill="#3a1a00" stroke="#ff6b35" stroke-width="1"/>
+  <text x="400" y="226" font-family="'Courier New', monospace" font-size="8" fill="#ff6b35" text-anchor="middle">⚠ WRITES · HUMAN REVIEW REQUIRED</text>
+
+  <!-- Vertical connector -->
+  <line x1="400" y1="116" x2="400" y2="126" stroke="#ff6b35" stroke-width="1" opacity="0.5" stroke-dasharray="3,2"/>
+
+  <!-- ── L3 Card ── -->
+  <rect x="556" y="126" width="224" height="106" rx="3" fill="url(#box-l3)" stroke="#ff2244" stroke-width="1.5"/>
+  <rect x="556" y="126" width="224" height="3" rx="2" fill="#ff2244" opacity="0.6"/>
+
+  <text x="668" y="144" font-family="'Courier New', monospace" font-size="10" fill="#ff2244" text-anchor="middle" font-weight="bold" filter="url(#text-glow-red)">L3 :: unattended</text>
+  <line x1="560" y1="150" x2="776" y2="150" stroke="#ff2244" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="566" y="165" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="578" y="165" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">auto-merge-green</text>
+  <text x="566" y="180" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="578" y="180" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">repo-house-keeper</text>
+  <text x="566" y="195" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
+  <text x="578" y="195" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">release-publisher</text>
+
+  <!-- Danger badge -->
+  <rect x="566" y="216" width="204" height="14" rx="2" fill="#3a0210" stroke="#ff2244" stroke-width="1"/>
+  <text x="668" y="226" font-family="'Courier New', monospace" font-size="8" fill="#ff2244" text-anchor="middle">◉ AUTONOMOUS · TIGHT ALLOWLIST</text>
+
+  <!-- Vertical connector -->
+  <line x1="700" y1="116" x2="668" y2="126" stroke="#ff2244" stroke-width="1" opacity="0.5" stroke-dasharray="3,2"/>
+
+  <!-- ── Footer label ── -->
+  <text x="400" y="243" font-family="'Courier New', monospace" font-size="8" fill="#2a2a4a" text-anchor="middle" letter-spacing="3">LOOP TIERS  ◈  agent-toolkit  ◈  2026</text>
+
+</svg>

@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="200" viewBox="0 0 900 200">
+  <defs>
+    <!-- Dot grid pattern -->
+    <pattern id="dotgrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="0.8" fill="#0a0a2a" opacity="0.6"/>
+    </pattern>
+
+    <!-- Scanlines -->
+    <pattern id="scanlines" x="0" y="0" width="1" height="3" patternUnits="userSpaceOnUse">
+      <rect width="1" height="1" fill="#000008" opacity="0.12"/>
+    </pattern>
+
+    <!-- Glow filters per tool color -->
+    <filter id="glow-purple" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-cyan" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-orange" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-green" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-blue" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="glow-magenta" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <filter id="text-glow" x="-20%" y="-50%" width="140%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- Card gradients -->
+    <linearGradient id="card-purple" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#110525"/>
+      <stop offset="100%" stop-color="#080215"/>
+    </linearGradient>
+    <linearGradient id="card-cyan" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#030e1e"/>
+      <stop offset="100%" stop-color="#020810"/>
+    </linearGradient>
+    <linearGradient id="card-orange" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1a0803"/>
+      <stop offset="100%" stop-color="#0e0402"/>
+    </linearGradient>
+    <linearGradient id="card-green" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#031a0a"/>
+      <stop offset="100%" stop-color="#020e05"/>
+    </linearGradient>
+    <linearGradient id="card-blue" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#020a1c"/>
+      <stop offset="100%" stop-color="#01060f"/>
+    </linearGradient>
+    <linearGradient id="card-magenta" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#18021a"/>
+      <stop offset="100%" stop-color="#0c020e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ── Background ── -->
+  <rect width="900" height="200" fill="#050510"/>
+  <rect width="900" height="200" fill="url(#dotgrid)"/>
+  <rect width="900" height="200" fill="url(#scanlines)"/>
+
+  <!-- Top/bottom accent lines -->
+  <line x1="0" y1="0" x2="900" y2="0" stroke="#0a0a2a" stroke-width="1.5" opacity="0.8"/>
+  <line x1="0" y1="199" x2="900" y2="199" stroke="#0a0a2a" stroke-width="1.5" opacity="0.8"/>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CARD 1: CLAUDE — purple (#9945ff) — x=8 -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <rect x="8" y="8" width="140" height="184" rx="4" fill="url(#card-purple)" stroke="#9945ff" stroke-width="2"/>
+  <!-- Top glow bar -->
+  <rect x="8" y="8" width="140" height="4" rx="2" fill="#9945ff" opacity="0.7" filter="url(#glow-purple)"/>
+  <!-- Inner top accent line -->
+  <line x1="10" y1="30" x2="146" y2="30" stroke="#9945ff" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Tool name -->
+  <text x="78" y="50" font-family="'Courier New', monospace" font-size="15" font-weight="bold" fill="#9945ff" text-anchor="middle" filter="url(#text-glow)">CLAUDE</text>
+  <text x="78" y="63" font-family="'Courier New', monospace" font-size="8" fill="#4a3a6a" text-anchor="middle" letter-spacing="2">CODE + DESKTOP</text>
+
+  <!-- Status indicator -->
+  <line x1="18" y1="74" x2="140" y2="74" stroke="#9945ff" stroke-width="0.5" opacity="0.2"/>
+  <text x="22" y="88" font-family="'Courier New', monospace" font-size="9" fill="#9945ff" filter="url(#text-glow)">● SUPPORTED</text>
+
+  <!-- Install snippet box -->
+  <rect x="12" y="96" width="132" height="60" rx="2" fill="#070215" stroke="#2a1a4a" stroke-width="1"/>
+  <text x="16" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
+  <text x="16" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#9945ff">/plugin install</text>
+  <text x="16" y="134" font-family="'Courier New', monospace" font-size="7.5" fill="#cc88ff">agent-toolkit</text>
+  <text x="16" y="148" font-family="'Courier New', monospace" font-size="7.5" fill="#cc88ff">-core</text>
+
+  <!-- Bottom stats -->
+  <line x1="18" y1="164" x2="140" y2="164" stroke="#9945ff" stroke-width="0.5" opacity="0.2"/>
+  <text x="22" y="176" font-family="'Courier New', monospace" font-size="8" fill="#4a3a6a">SKILLS  AGENTS  LOOPS</text>
+  <text x="22" y="188" font-family="'Courier New', monospace" font-size="8" fill="#9945ff">✓       ✓       ✓</text>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CARD 2: CURSOR — cyan (#00d4ff) — x=158 -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <rect x="158" y="8" width="140" height="184" rx="4" fill="url(#card-cyan)" stroke="#00d4ff" stroke-width="2"/>
+  <rect x="158" y="8" width="140" height="4" rx="2" fill="#00d4ff" opacity="0.7" filter="url(#glow-cyan)"/>
+  <line x1="160" y1="30" x2="296" y2="30" stroke="#00d4ff" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="228" y="50" font-family="'Courier New', monospace" font-size="15" font-weight="bold" fill="#00d4ff" text-anchor="middle" filter="url(#text-glow)">CURSOR</text>
+  <text x="228" y="63" font-family="'Courier New', monospace" font-size="8" fill="#003a4a" text-anchor="middle" letter-spacing="2">IDE + AGENT MODE</text>
+
+  <line x1="168" y1="74" x2="290" y2="74" stroke="#00d4ff" stroke-width="0.5" opacity="0.2"/>
+  <text x="172" y="88" font-family="'Courier New', monospace" font-size="9" fill="#00d4ff" filter="url(#text-glow)">● SUPPORTED</text>
+
+  <rect x="162" y="96" width="132" height="60" rx="2" fill="#020d18" stroke="#002a3a" stroke-width="1"/>
+  <text x="166" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
+  <text x="166" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#00d4ff">copy rules/*.mdc</text>
+  <text x="166" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#66ddff">→ .cursor/rules/</text>
+  <text x="166" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">.mdc format</text>
+
+  <line x1="168" y1="164" x2="290" y2="164" stroke="#00d4ff" stroke-width="0.5" opacity="0.2"/>
+  <text x="172" y="176" font-family="'Courier New', monospace" font-size="8" fill="#003a4a">RULES  AGENTS  MCP</text>
+  <text x="172" y="188" font-family="'Courier New', monospace" font-size="8" fill="#00d4ff">✓      ✓       ✓</text>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CARD 3: OPENCODE — orange (#ff6b35) — x=308 -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <rect x="308" y="8" width="140" height="184" rx="4" fill="url(#card-orange)" stroke="#ff6b35" stroke-width="2"/>
+  <rect x="308" y="8" width="140" height="4" rx="2" fill="#ff6b35" opacity="0.7" filter="url(#glow-orange)"/>
+  <line x1="310" y1="30" x2="446" y2="30" stroke="#ff6b35" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="378" y="50" font-family="'Courier New', monospace" font-size="13" font-weight="bold" fill="#ff6b35" text-anchor="middle" filter="url(#text-glow)">OPENCODE</text>
+  <text x="378" y="63" font-family="'Courier New', monospace" font-size="8" fill="#4a2a1a" text-anchor="middle" letter-spacing="2">TUI + AGENTS</text>
+
+  <line x1="318" y1="74" x2="440" y2="74" stroke="#ff6b35" stroke-width="0.5" opacity="0.2"/>
+  <text x="322" y="88" font-family="'Courier New', monospace" font-size="9" fill="#ff6b35" filter="url(#text-glow)">● SUPPORTED</text>
+
+  <rect x="312" y="96" width="132" height="60" rx="2" fill="#140603" stroke="#3a1a08" stroke-width="1"/>
+  <text x="316" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
+  <text x="316" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#ff6b35">copy agents/*.md</text>
+  <text x="316" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#ff9966">→ .opencode/</text>
+  <text x="316" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">agents/</text>
+
+  <line x1="318" y1="164" x2="440" y2="164" stroke="#ff6b35" stroke-width="0.5" opacity="0.2"/>
+  <text x="322" y="176" font-family="'Courier New', monospace" font-size="8" fill="#4a2a1a">AGENTS SKILLS MCP</text>
+  <text x="322" y="188" font-family="'Courier New', monospace" font-size="8" fill="#ff6b35">✓      ✓      ✓</text>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CARD 4: COPILOT — green (#00ff88) — x=458 -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <rect x="458" y="8" width="140" height="184" rx="4" fill="url(#card-green)" stroke="#00ff88" stroke-width="2"/>
+  <rect x="458" y="8" width="140" height="4" rx="2" fill="#00ff88" opacity="0.7" filter="url(#glow-green)"/>
+  <line x1="460" y1="30" x2="596" y2="30" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="528" y="50" font-family="'Courier New', monospace" font-size="13" font-weight="bold" fill="#00ff88" text-anchor="middle" filter="url(#text-glow)">COPILOT</text>
+  <text x="528" y="63" font-family="'Courier New', monospace" font-size="8" fill="#003a1a" text-anchor="middle" letter-spacing="2">GITHUB + VS CODE</text>
+
+  <line x1="468" y1="74" x2="590" y2="74" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+  <text x="472" y="88" font-family="'Courier New', monospace" font-size="9" fill="#00ff88" filter="url(#text-glow)">● SUPPORTED</text>
+
+  <rect x="462" y="96" width="132" height="60" rx="2" fill="#020e05" stroke="#003a1a" stroke-width="1"/>
+  <text x="466" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
+  <text x="466" y="122" font-family="'Courier New', monospace" font-size="6.5" fill="#00ff88">copilot-instructions</text>
+  <text x="466" y="134" font-family="'Courier New', monospace" font-size="7.5" fill="#66ffaa">.md</text>
+  <text x="466" y="148" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">→ .github/</text>
+
+  <line x1="468" y1="164" x2="590" y2="164" stroke="#00ff88" stroke-width="0.5" opacity="0.2"/>
+  <text x="472" y="176" font-family="'Courier New', monospace" font-size="8" fill="#003a1a">INSTRUCT AGENTS MCP</text>
+  <text x="472" y="188" font-family="'Courier New', monospace" font-size="8" fill="#00ff88">✓       ✓      –</text>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CARD 5: WINDSURF — blue (#0080ff) — x=608 -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <rect x="608" y="8" width="140" height="184" rx="4" fill="url(#card-blue)" stroke="#0080ff" stroke-width="2"/>
+  <rect x="608" y="8" width="140" height="4" rx="2" fill="#0080ff" opacity="0.7" filter="url(#glow-blue)"/>
+  <line x1="610" y1="30" x2="746" y2="30" stroke="#0080ff" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="678" y="50" font-family="'Courier New', monospace" font-size="13" font-weight="bold" fill="#0080ff" text-anchor="middle" filter="url(#text-glow)">WINDSURF</text>
+  <text x="678" y="63" font-family="'Courier New', monospace" font-size="8" fill="#001a3a" text-anchor="middle" letter-spacing="2">IDE + CASCADE</text>
+
+  <line x1="618" y1="74" x2="740" y2="74" stroke="#0080ff" stroke-width="0.5" opacity="0.2"/>
+  <text x="622" y="88" font-family="'Courier New', monospace" font-size="9" fill="#0080ff" filter="url(#text-glow)">● SUPPORTED</text>
+
+  <rect x="612" y="96" width="132" height="60" rx="2" fill="#020814" stroke="#001a38" stroke-width="1"/>
+  <text x="616" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
+  <text x="616" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#0080ff">copy rules/*.mdc</text>
+  <text x="616" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#4499ff">→ .windsurf/</text>
+  <text x="616" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">rules/</text>
+
+  <line x1="618" y1="164" x2="740" y2="164" stroke="#0080ff" stroke-width="0.5" opacity="0.2"/>
+  <text x="622" y="176" font-family="'Courier New', monospace" font-size="8" fill="#001a3a">RULES  CASCADE MCP</text>
+  <text x="622" y="188" font-family="'Courier New', monospace" font-size="8" fill="#0080ff">✓      ✓       –</text>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- CARD 6: PI — magenta (#ff00aa) — x=758 -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <rect x="758" y="8" width="134" height="184" rx="4" fill="url(#card-magenta)" stroke="#ff00aa" stroke-width="2"/>
+  <rect x="758" y="8" width="134" height="4" rx="2" fill="#ff00aa" opacity="0.7" filter="url(#glow-magenta)"/>
+  <line x1="760" y1="30" x2="890" y2="30" stroke="#ff00aa" stroke-width="0.5" opacity="0.3"/>
+
+  <text x="825" y="50" font-family="'Courier New', monospace" font-size="14" font-weight="bold" fill="#ff00aa" text-anchor="middle" filter="url(#text-glow)">PI AGENT</text>
+  <text x="825" y="63" font-family="'Courier New', monospace" font-size="8" fill="#4a003a" text-anchor="middle" letter-spacing="2">AGENTIC HARNESS</text>
+
+  <line x1="768" y1="74" x2="888" y2="74" stroke="#ff00aa" stroke-width="0.5" opacity="0.2"/>
+  <text x="772" y="88" font-family="'Courier New', monospace" font-size="9" fill="#ff00aa" filter="url(#text-glow)">● SUPPORTED</text>
+
+  <rect x="762" y="96" width="126" height="60" rx="2" fill="#130210" stroke="#3a0038" stroke-width="1"/>
+  <text x="766" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
+  <text x="766" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#ff00aa">copy skills/*.md</text>
+  <text x="766" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#ff66cc">→ ~/.pi/skills/</text>
+  <text x="766" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">+ loops/</text>
+
+  <line x1="768" y1="164" x2="888" y2="164" stroke="#ff00aa" stroke-width="0.5" opacity="0.2"/>
+  <text x="772" y="176" font-family="'Courier New', monospace" font-size="8" fill="#4a003a">SKILLS LOOPS  MCP</text>
+  <text x="772" y="188" font-family="'Courier New', monospace" font-size="8" fill="#ff00aa">✓      ✓      ✓</text>
+
+</svg>
