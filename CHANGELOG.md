@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - release.yml now correctly builds wheel and publishes to PyPI
 
+## [1.0.3] — 2026-08-04
+
+### Fixed
+- release.yml YAML syntax fixed for GitHub Actions validator
+
 ## [Unreleased]
 
 ### Added
