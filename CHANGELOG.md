@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CLI wheel install: shared _paths.py resolves toolkit root correctly in all install modes
 - CI: remove pytest || true so test failures block the pipeline
 
+## [1.0.2] — 2026-08-04
+
+### Fixed
+- release.yml now correctly builds wheel and publishes to PyPI
+
 ## [Unreleased]
 
 ### Added
