@@ -3,20 +3,95 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
+  id-token: write
 
 jobs:
-  release:
+  create-release:
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Create release
+        with:
+          fetch-depth: 0
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(github.ref_name, "-") }}
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: create-release
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build wheel and sdist
+        run: |
+          pip install build hatchling
+          python -m build
+          ls -lh dist/
+      - name: Publish to PyPI (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  build-binaries:
+    name: Build ${{ matrix.artifact }}
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    environment: release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,  artifact: agent-toolkit-linux-x86_64 }
+          - { os: macos-latest,   artifact: agent-toolkit-macos-arm64 }
+          - { os: windows-latest, artifact: agent-toolkit-windows-x86_64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pyinstaller && pip install -e .
+      - name: Build standalone binary
+        shell: bash
+        run: |
+          pyinstaller --onefile --name agent-toolkit \
+            --add-data "skills:skills" \
+            --add-data "agents:agents" \
+            --add-data "loops:loops" \
+            --add-data "profiles:profiles" \
+            --add-data "mcp:mcp" \
+            --add-data "catalogs:catalogs" \
+            src/agent_toolkit/cli/main.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/agent-toolkit*
+          retention-days: 7
+
+  upload-assets:
+    name: Attach binaries to release
+    needs: [create-release, build-binaries]
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: binaries/
+          merge-multiple: true
+      - run: gh release upload "${GITHUB_REF_NAME}" binaries/agent-toolkit* --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
