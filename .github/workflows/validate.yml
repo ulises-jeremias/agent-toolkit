@@ -45,6 +45,11 @@ jobs:
         # are skipped in some environments (e.g. missing optional data dirs).
         run: pytest tests/ -v --tb=short
 
+      - name: Run compiler contract tests
+        run: PYTHONPATH=src pytest tests/compiler/ -v --tb=short
+        env:
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+
   # ── Job 2: Validate SKILL.md and AGENT.md frontmatter ─────────────────────
   validate-skills:
     name: Validate Skills & Agents
