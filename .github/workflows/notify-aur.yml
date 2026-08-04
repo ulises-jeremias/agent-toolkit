@@ -14,6 +14,7 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
+    environment: aur
     steps:
       - name: Resolve version
         id: ver
