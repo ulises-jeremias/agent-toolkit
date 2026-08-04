@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] — 2026-08-04
+
+### Fixed
+- Publish agent-toolkit-cli to PyPI (release.yml was missing build + publish steps in v1.0.0)
+- SVG animations: replace CSS @keyframes with native SVG <animate> (GitHub strips CSS)
+- Banner SVG: fix text overlap between title and right panel (shift from x=575 to x=530)
+- CLI wheel install: shared _paths.py resolves toolkit root correctly in all install modes
+- CI: remove pytest || true so test failures block the pipeline
+
 ## [Unreleased]
 
 ### Added
