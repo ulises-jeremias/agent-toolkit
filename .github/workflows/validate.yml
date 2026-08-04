@@ -339,10 +339,10 @@ jobs:
       - name: "CLI: doctor (no tools installed in CI — expect warnings, not errors)"
         shell: bash
         run: |
-          agent-toolkit doctor 2>&1 | tee /tmp/doctor.txt
+          agent-toolkit doctor 2>&1 | tee doctor_output.txt
           # Must not crash; errors are OK for missing tools but exit code should be 0
           # (doctor returns 0 even with warnings, only 1 on true errors)
-          if grep -q "✗" /tmp/doctor.txt; then
+          if grep -q "✗" doctor_output.txt; then
             echo "::notice::doctor reported some errors (tools not installed in CI runner)"
           fi
           echo "doctor completed"
@@ -350,17 +350,17 @@ jobs:
       - name: "CLI: skills list (all domains)"
         shell: bash
         run: |
-          agent-toolkit skills list 2>&1 | tee /tmp/skills.txt
+          agent-toolkit skills list 2>&1 | tee skills_output.txt
           # Verify: must contain at least 50 skills and show descriptions (not ">-")
-          COUNT=$(grep -c "^  ✓" /tmp/skills.txt || echo 0)
+          COUNT=$(grep -c "^  ✓" skills_output.txt || echo 0)
           echo "Skills found: $COUNT"
           if [ "$COUNT" -lt 50 ]; then
             echo "::error::Expected at least 50 skills, got $COUNT"
             exit 1
           fi
-          if grep -q "  — >-" /tmp/skills.txt; then
+          if grep -q "  — >-" skills_output.txt; then
             echo "::error::Skills list shows raw YAML scalars ('>-') instead of parsed descriptions"
-            cat /tmp/skills.txt | grep "  — >-" | head -5
+            cat skills_output.txt | grep "  — >-" | head -5
             exit 1
           fi
           echo "✓ Skills list: $COUNT skills with proper descriptions"
@@ -377,17 +377,17 @@ jobs:
       - name: "CLI: loop status (must show 10 bundled templates)"
         shell: bash
         run: |
-          agent-toolkit loop status 2>&1 | tee /tmp/loops.txt
-          COUNT=$(grep -c "tier=" /tmp/loops.txt || echo 0)
+          agent-toolkit loop status 2>&1 | tee loops_output.txt
+          COUNT=$(grep -c "tier=" loops_output.txt || echo 0)
           echo "Loop templates found: $COUNT"
           if [ "$COUNT" -lt 10 ]; then
             echo "::error::Expected 10 loop templates, got $COUNT"
-            cat /tmp/loops.txt
+            cat loops_output.txt
             exit 1
           fi
           # Check specific expected loops
           for name in daily-triage oss-pr-monitor oss-triage ci-sweeper pr-babysitter; do
-            if ! grep -q "$name" /tmp/loops.txt; then
+            if ! grep -q "$name" loops_output.txt; then
               echo "::error::Expected loop '$name' not found in status"
               exit 1
             fi
@@ -403,9 +403,9 @@ jobs:
       - name: "CLI: mcp list (all 6 providers)"
         shell: bash
         run: |
-          agent-toolkit mcp list 2>&1 | tee /tmp/mcp.txt
+          agent-toolkit mcp list 2>&1 | tee mcp_output.txt
           for provider in github slack notion linear figma clickup; do
-            if ! grep -q "$provider" /tmp/mcp.txt; then
+            if ! grep -q "$provider" mcp_output.txt; then
               echo "::error::MCP provider '$provider' not found in list"
               exit 1
             fi
@@ -419,10 +419,10 @@ jobs:
         shell: bash
         run: |
           # Should not prompt for Copilot, should not crash, should list what would be installed
-          agent-toolkit install --dry-run --tools claude-code,cursor 2>&1 | tee /tmp/install.txt
-          if grep -qi "error\|traceback\|exception" /tmp/install.txt; then
+          agent-toolkit install --dry-run --tools claude-code,cursor 2>&1 | tee install_output.txt
+          if grep -qi "error\|traceback\|exception" install_output.txt; then
             echo "::error::install --dry-run produced errors"
-            cat /tmp/install.txt
+            cat install_output.txt
             exit 1
           fi
           echo "✓ install --dry-run completed cleanly"
@@ -430,9 +430,8 @@ jobs:
       - name: "CLI: install --dry-run (auto-detect, no stdin = no Copilot prompt)"
         shell: bash
         run: |
-          # Pipe /dev/null as stdin to ensure non-interactive mode
-          agent-toolkit install --dry-run < /dev/null 2>&1 | tee /tmp/install-auto.txt
-          if grep -q "Copilot instructions for a project?" /tmp/install-auto.txt; then
+          agent-toolkit install --dry-run 2>&1 | tee install_auto_output.txt
+          if grep -q "Copilot instructions for a project?\n          # Copilot is never auto-detected — only via --tools copilot" install_auto_output.txt; then
             echo "::error::install prompted for Copilot in non-interactive mode"
             exit 1
           fi
@@ -510,8 +509,8 @@ jobs:
       - name: Run loop status via uvx
         shell: bash
         run: |
-          uvx agent-toolkit-cli loop status | tee /tmp/uvx-loops.txt
-          COUNT=$(grep -c "tier=" /tmp/uvx-loops.txt || echo 0)
+          uvx agent-toolkit-cli loop status | tee uvx_loops_output.txt
+          COUNT=$(grep -c "tier=" uvx_loops_output.txt || echo 0)
           echo "Loops via uvx: $COUNT"
           [ "$COUNT" -ge 10 ] || { echo "::error::Expected >=10 loops"; exit 1; }
 

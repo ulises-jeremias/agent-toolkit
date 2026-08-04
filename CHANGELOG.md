@@ -59,6 +59,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (stdin.isatty() check; skips automatically in CI, pipes, --dry-run)
 - `pyproject.toml`: added agent-toolkit-cli script alias so `uvx agent-toolkit-cli` works
 
+## [1.0.8] — 2026-08-04
+
+### Fixed
+- Copilot never auto-installed during `install` auto-detect — always requires `--tools copilot` (it needs a project path)
+- CI integration tests: use relative file paths instead of /tmp (cross-platform)
+- CI integration tests: fix Windows runner compatibility
+
 ## [Unreleased]
 
 ### Added

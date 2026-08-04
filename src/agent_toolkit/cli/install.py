@@ -375,12 +375,9 @@ def cmd_install(args: list[str]) -> int:
             tools.append("pi")
             _info("  Detected: Pi Coding Agent")
 
-        # Copilot is per-project — only ask in interactive sessions
-        import sys as _sys
-        if _sys.stdin.isatty() and not dry_run:
-            print()
-            if _confirm("Install GitHub Copilot instructions for a project?", force=False):
-                tools.append("copilot")
+        # Copilot is per-project and requires a path — never auto-install.
+        # Only installed when explicitly passed via --tools copilot.
+        _info("  [info] Copilot: use --tools copilot to install per-project")
 
         if not tools:
             _warn("No AI tools detected. Install at least one supported tool and re-run,")
