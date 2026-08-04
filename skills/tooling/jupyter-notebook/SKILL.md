@@ -1,6 +1,6 @@
 ---
 name: jupyter-notebook
-description: Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments and tutorials. Prefer the bundled templates and the helper script (`new_notebook.py`, also exposed as `dots-newnotebook`) to generate a clean starting notebook instead of authoring raw notebook JSON.
+description: Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments and tutorials. Prefer the bundled templates and the helper script (`new_notebook.py`, also exposed as `newnotebook`) to generate a clean starting notebook instead of authoring raw notebook JSON.
 ---
 
 # Jupyter Notebook
@@ -29,11 +29,11 @@ fewer JSON mistakes.
 
 ## Prerequisites
 
-- `python3` (provided by `dots-bootstrap`).
+- `python3` (provided by `bootstrap`).
 - Optional: `uv` for local notebook execution and dependency isolation
-  (also from `dots-bootstrap`).
+  (also from `bootstrap`).
 
-`dots-skills check jupyter-notebook` validates `python3` is present.
+`skills check jupyter-notebook` validates `python3` is present.
 
 ## Helper script
 
@@ -41,17 +41,17 @@ The bundled scaffolder (`scripts/new_notebook.py`, stdlib only) loads a
 template, updates the title cell, and writes a notebook to `--out`. Two ways
 to invoke it:
 
-### Option A — `dots-newnotebook` wrapper (recommended)
+### Option A — `newnotebook` wrapper (recommended)
 
-`dots-bootstrap` installs a tiny wrapper at `~/.local/bin/dots-newnotebook` so
+`bootstrap` installs a tiny wrapper at `~/.local/bin/newnotebook` so
 the script is available without remembering its full path:
 
 ```bash
-dots-newnotebook --kind experiment \
+newnotebook --kind experiment \
   --title "Compare prompt variants" \
   --out output/jupyter-notebook/compare-prompt-variants.ipynb
 
-dots-newnotebook --kind tutorial \
+newnotebook --kind tutorial \
   --title "Intro to embeddings" \
   --out output/jupyter-notebook/intro-to-embeddings.ipynb
 ```
@@ -79,7 +79,7 @@ The script uses **only the Python standard library** — no extra deps required.
 
 1. **Lock the intent.** Pick `experiment` or `tutorial`. Capture the objective,
    audience, and what "done" looks like.
-2. **Scaffold from the template** (use `dots-newnotebook` or option B above).
+2. **Scaffold from the template** (use `newnotebook` or option B above).
 3. **Fill the notebook with small, runnable steps.** Keep each code cell
    focused on one step. Add short markdown cells that explain purpose and
    expected result. Avoid large, noisy outputs when a short summary works.

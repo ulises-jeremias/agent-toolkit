@@ -24,7 +24,7 @@ Always cite which file a convention comes from.
 
 ### chezmoi repositories
 - `.chezmoiroot` must point to `home/`
-- Internal commands use `dots-` prefix
+- Internal commands: `agent-toolkit <cmd>` (install, doctor, loop, skills, mcp)
 - Never modify source state directly on the managed machine
 
 ### Code quality

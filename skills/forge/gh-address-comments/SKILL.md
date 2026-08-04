@@ -17,12 +17,12 @@ when you also need to push changes or update the PR description.
 
 ## Prerequisites
 
-- `gh` (GitHub CLI) installed and on `PATH` (covered by `dots-bootstrap`).
+- `gh` (GitHub CLI) installed and on `PATH` (covered by `bootstrap`).
 - `gh auth status` exits 0. If not, ask the user to run `gh auth login` once
   (workflow + repo scopes recommended).
 - `python3` (used by the bundled inspection script).
 
-`dots-doctor` already reports `gh auth status` under "Integrations" — confirm it
+`doctor` already reports `gh auth status` under "Integrations" — confirm it
 is green before invoking this skill.
 
 ## Workflow
@@ -65,5 +65,5 @@ is green before invoking this skill.
 
 ## Validation
 
-- `dots-skills check` reports the `gh` requirement.
-- `dots-doctor` shows `gh auth status` under Integrations.
+- `skills check` reports the `gh` requirement.
+- `doctor` shows `gh auth status` under Integrations.

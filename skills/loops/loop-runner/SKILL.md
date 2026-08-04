@@ -38,7 +38,7 @@ rollout tiers (L1 report-only → L2 PR-gated → L3 unattended).
 
 ```bash
 # Check if ai-workspace loop CLI is available
-dots-loop status
+loop status
 
 # Or invoke directly
 ~/.ai-workspace/bin/loop status

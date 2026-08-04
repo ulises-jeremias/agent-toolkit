@@ -22,12 +22,12 @@ wrapper script runs the CLI through `npx`, so a global install is not required.
 
 ## Prerequisites
 
-- `npx` on `PATH` (provided by Node.js / `volta` from `dots-bootstrap`).
+- `npx` on `PATH` (provided by Node.js / `volta` from `bootstrap`).
 - Optional but recommended: a global install for faster startup —
   `npm install -g @playwright/cli@latest`.
 - Outbound HTTPS access to npm and to the target sites.
 
-`dots-skills check playwright-cli` validates `npx` is present.
+`skills check playwright-cli` validates `npx` is present.
 
 ## Wrapper script (set once per shell)
 

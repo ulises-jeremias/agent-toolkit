@@ -55,7 +55,7 @@ The queue worker is **mandatory infrastructure** (installed by workstation). The
 
 ### LLM policy gate (client engagements)
 
-Before queueing background jobs for a client repo, confirm the active LLM policy with **`dots-devcompanion llm-status`**. If the engagement requires a single AI account (e.g. only the customer's Anthropic key), the workstation/pack must set **`DOTS_WORKSTATION_DEVCOMPANION_LLM_ALLOWLIST`** and **`DOTS_WORKSTATION_DEVCOMPANION_LLM_STRICT=1`** so the runner fails closed instead of falling back to OpenCode. For Cursor/Copilot-only engagements, prefer **`run-once --no-llm`** (skeleton plan) plus IDE-driven execution. Full reference: **`docs/DEV_COMPANION_LLM.md`**.
+Before queueing background jobs for a client repo, confirm the active LLM policy with **`devcompanion llm-status`**. If the engagement requires a single AI account (e.g. only the customer's Anthropic key), the workstation/pack must set **`DOTS_WORKSTATION_DEVCOMPANION_LLM_ALLOWLIST`** and **`DOTS_WORKSTATION_DEVCOMPANION_LLM_STRICT=1`** so the runner fails closed instead of falling back to OpenCode. For Cursor/Copilot-only engagements, prefer **`run-once --no-llm`** (skeleton plan) plus IDE-driven execution. Full reference: **`docs/DEV_COMPANION_LLM.md`**.
 
 ## Checklist
 

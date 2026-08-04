@@ -11,7 +11,7 @@ Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
 - Replaced `<path-to-skill>` placeholders in the SKILL.md with the chezmoi-
   managed install location (`~/.local/share/agent-toolkit/skills/gh-fix-ci/`).
 - Removed Codex-specific guidance and the `agents/openai.yaml` manifest in
-  favor of the agent-toolkit `skill.json` schema and `dots-skills` integration.
+  favor of the agent-toolkit `skill.json` schema and `agent-toolkit skills` integration.
 - Documented hand-off to `github-cli-workflow` for push/merge actions and to
   `planning` for plan structure.
 - Dropped vendor logo assets (`assets/github*`).

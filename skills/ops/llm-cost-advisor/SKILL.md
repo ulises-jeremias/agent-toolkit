@@ -3,7 +3,7 @@ name: llm-cost-advisor
 description: >-
   WHAT — Recommend the most cost-effective LLM provider for a given task type.
   Shows estimated cost per run across available providers and integrates with
-  dots-devcompanion llm-status to show what is actually available.
+  devcompanion llm-status to show what is actually available.
 metadata:
   author: ulises-jeremias
   version: "1.0"
@@ -23,7 +23,7 @@ Recommend the right provider for the task at hand — balancing quality, cost, a
 
 ## Out of scope
 
-- Does NOT configure providers — that's done via env vars and `dots-loadenv`
+- Does NOT configure providers — that's done via env vars and `loadenv`
 - Does NOT run LLM calls — it advises, the runner executes
 
 ## Workflow
@@ -31,7 +31,7 @@ Recommend the right provider for the task at hand — balancing quality, cost, a
 **Step 1 — Check available providers:**
 
 ```bash
-dots-devcompanion llm-status
+devcompanion llm-status
 ```
 
 **Step 2 — Classify the task:**

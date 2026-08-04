@@ -13,7 +13,7 @@ Always cite which file a convention comes from.
 
 ## Standards
 - Shell scripts: `set -euo pipefail`, idempotent, OS-aware
-- chezmoi repos: `.chezmoiroot` points to `home/`, `dots-` prefix for internal commands
+- chezmoi repos: `Internal chezmoi commands use the `dots-` prefix (agentic-workstation convention)
 - Never commit secrets — use `.env.example`
 - English: all documentation, commits, and ticket descriptions
 - Update documentation when behavior changes

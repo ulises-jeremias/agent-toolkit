@@ -11,7 +11,7 @@ Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
 - Removed Codex-specific guidance (`sandbox_permissions=require_escalated`
   language, references to `~/.codex/skills`).
 - Replaced `metadata.short-description` and `agents/openai.yaml` with the
-  agent-toolkit skill manifest (`skill.json`) and `dots-skills` integration.
+  agent-toolkit skill manifest (`skill.json`) and `agent-toolkit skills` integration.
 - Hard-coded the bundled script path to the chezmoi-managed install location
   (`~/.local/share/agent-toolkit/skills/gh-address-comments/`).
 - Documented hand-off to `github-cli-workflow` for push/merge actions.

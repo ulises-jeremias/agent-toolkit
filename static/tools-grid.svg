@@ -71,7 +71,21 @@
       <stop offset="0%" stop-color="#18021a"/>
       <stop offset="100%" stop-color="#0c020e"/>
     </linearGradient>
-  </defs>
+  
+  <!-- Status indicator pulse animations -->
+  <style>
+    .pulse-1 { animation: pulse 2s ease-in-out infinite; }
+    .pulse-2 { animation: pulse 2s ease-in-out 0.33s infinite; }
+    .pulse-3 { animation: pulse 2s ease-in-out 0.66s infinite; }
+    .pulse-4 { animation: pulse 2s ease-in-out 1.0s infinite; }
+    .pulse-5 { animation: pulse 2s ease-in-out 1.33s infinite; }
+    .pulse-6 { animation: pulse 2s ease-in-out 1.66s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+</defs>
 
   <!-- ── Background ── -->
   <rect width="900" height="200" fill="#050510"/>

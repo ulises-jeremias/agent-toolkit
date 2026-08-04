@@ -8,7 +8,7 @@ from an environment variable. agent-toolkit ships a tool-agnostic template at
 
 1. In Figma → Settings → **Personal access tokens** (or your org's OAuth flow).
 2. Create a token with the scopes you need (read + assets at minimum).
-3. Store it persistently in `~/.config/agent-toolkit/env.d/` (covered by `dots-loadenv`):
+3. Store it persistently in `~/.config/agent-toolkit/env.d/` (covered by `loadenv`):
 
    ```bash
    mkdir -p ~/.config/agent-toolkit/env.d
@@ -19,7 +19,7 @@ from an environment variable. agent-toolkit ships a tool-agnostic template at
    chmod 600 ~/.config/agent-toolkit/env.d/figma.env
    ```
 
-   `dots-doctor` will pick up `figma.env` under "Integrations" without ever
+   `doctor` will pick up `figma.env` under "Integrations" without ever
    printing the token value.
 
 > [!CAUTION]
@@ -45,12 +45,12 @@ Required headers:
   uses another region)
 
 Make sure `FIGMA_OAUTH_TOKEN` is exported in the shell that launches your AI
-tool. With `dots-loadenv` already wired in `dots-bootstrap`, sourcing your shell
+tool. With `loadenv` already wired in `bootstrap`, sourcing your shell
 profile is enough.
 
 ## 3) Verify
 
-1. Run `dots-doctor` and confirm `~/.config/agent-toolkit/env.d/figma.env` is listed
+1. Run `doctor` and confirm `~/.config/agent-toolkit/env.d/figma.env` is listed
    under Integrations.
 2. Restart your AI tool so it re-reads its MCP config.
 3. Ask the AI to list Figma tools or call `whoami` — it should return your

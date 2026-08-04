@@ -42,13 +42,13 @@ The skill uses the stable `assistant-memory` API with `--from-skill` for origin 
 assistant-memory search "<query>"
 
 # Add a learning (with origin tracking)
-assistant-memory add --type learning --from-skill dots-harness-knowledge-sync "Pattern: <description>"
+assistant-memory add --type learning --from-skill knowledge-sync "Pattern: <description>"
 
 # Add a skill (with tags)
-assistant-memory add --type skill --from-skill dots-harness-knowledge-sync --tags jira,workflow "New skill: <name>"
+assistant-memory add --type skill --from-skill knowledge-sync --tags jira,workflow "New skill: <name>"
 
 # Add a pending todo
-assistant-memory add --type todo --from-skill dots-harness-knowledge-sync "<description>"
+assistant-memory add --type todo --from-skill knowledge-sync "<description>"
 ```
 
 ---
@@ -88,7 +88,7 @@ Assistant: → Use knowledge-sync to preserve the pattern
 The tech-assistant skill checks for these automatic sync opportunities:
 
 1. **After task creation/update** → Sync initiative info
-2. **After discovering space/list IDs** → Sync to knowledge base (per `dots-harness-knowledge-sync`).
+2. **After discovering space/list IDs** → Sync to knowledge base (per `knowledge-sync`).
 3. **After learning user preferences** → Sync to learnings
 4. **When user mentions follow-up** → Add to pending
 
@@ -138,4 +138,4 @@ The skill uses these environment variables:
 
 ---
 
-Base directory: `~/.local/share//skills/dots-harness-knowledge-sync`
+Base directory: `~/.local/share//skills/knowledge-sync`

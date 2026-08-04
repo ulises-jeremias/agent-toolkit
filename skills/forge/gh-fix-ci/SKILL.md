@@ -17,7 +17,7 @@ a focused failure snippet, and propose a fix plan before making any change.
 ## Prerequisites
 
 - `gh` installed and authenticated (`gh auth status` exits 0).
-  `dots-doctor` reports this under Integrations.
+  `doctor` reports this under Integrations.
 - `python3` for the bundled analyzer.
 - The current directory is inside the target Git repository (or pass `--repo`).
 
@@ -67,5 +67,5 @@ a focused failure snippet, and propose a fix plan before making any change.
 
 ## Validation
 
-- `dots-skills check` reports the `gh` and `python3` requirements.
-- `dots-doctor` shows `gh auth status` under Integrations.
+- `skills check` reports the `gh` and `python3` requirements.
+- `doctor` shows `gh auth status` under Integrations.

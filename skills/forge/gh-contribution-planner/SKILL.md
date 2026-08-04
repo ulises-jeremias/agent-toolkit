@@ -25,7 +25,7 @@ Do **not** use this skill to operate on a specific PR you already picked — use
 ## Prerequisites
 
 - `gh` installed and authenticated (`gh auth status` exits 0). Scopes
-  typically required: `repo`, `read:org`. `dots-doctor` reports this under
+  typically required: `repo`, `read:org`. `doctor` reports this under
   Integrations.
 - `python3` for the bundled analyzer.
 - Network access to `api.github.com` (or the host configured via `GH_HOST`).
@@ -148,8 +148,8 @@ Do **not** use this skill to operate on a specific PR you already picked — use
 
 ## Validation
 
-- `dots-skills check` reports the `gh` and `python3` requirements.
-- `dots-doctor` shows `gh auth status` under Integrations.
+- `skills check` reports the `gh` and `python3` requirements.
+- `doctor` shows `gh auth status` under Integrations.
 - Smoke test:
 
   ```bash

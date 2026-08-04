@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Workstation health triage — validate tooling, directory layout, and run dots-doctor with remediation suggestions.
+description: Workstation health triage — validate tooling, directory layout, and run doctor with remediation suggestions.
 metadata:
   author: ulises-jeremias
   version: "1.1"
@@ -14,10 +14,10 @@ Use when the user reports workstation issues, install problems, tool failures, o
 
 Run this skill on the **local workstation** where the user is experiencing issues. Do not run it on a remote server unless the user confirms the remote has the setup.
 
-Verify `dots-doctor` is installed:
+Verify `doctor` is installed:
 
 ```bash
-command -v dots-doctor
+command -v doctor
 ```
 
 If missing, install via chezmoi (`chezmoi apply`) or direct installation.
@@ -28,13 +28,13 @@ Use the mode that matches the user's need:
 
 | Mode | Command | When to use |
 |------|---------|-------------|
-| **Colored** (default) | `dots-doctor` | Interactive terminal session — human-readable colored output |
-| **Markdown** | `dots-doctor --issue` | GitHub issues, Slack threads, tickets — paste-ready block |
-| **JSON** | `dots-doctor --json` | Automation scripts, CI parsing — single-line machine-readable |
+| **Colored** (default) | `doctor` | Interactive terminal session — human-readable colored output |
+| **Markdown** | `doctor --issue` | GitHub issues, Slack threads, tickets — paste-ready block |
+| **JSON** | `doctor --json` | Automation scripts, CI parsing — single-line machine-readable |
 
 ### Markdown output (`--issue`)
 
-Always use `dots-doctor --issue` (not the default) when the output will be shared in:
+Always use `doctor --issue` (not the default) when the output will be shared in:
 - GitHub issues or PR comments
 - Slack messages
 - Support tickets
@@ -42,7 +42,7 @@ Always use `dots-doctor --issue` (not the default) when the output will be share
 
 ### JSON output (`--json`)
 
-Use `dots-doctor --json` only when:
+Use `doctor --json` only when:
 - A script or automation pipeline needs to parse the result
 - You need a single-line summary for programmatic handling
 - Requires `python3` in PATH
@@ -87,7 +87,7 @@ Propose fixes in order of lowest risk first:
 
 ## Common issues
 
-### dots-doctor exits 1 (NON-COMPLIANT)
+### doctor exits 1 (NON-COMPLIANT)
 
 Run with `--issue` to get the full markdown checklist. Address failures in this order:
 1. Install any missing core commands
@@ -95,11 +95,11 @@ Run with `--issue` to get the full markdown checklist. Address failures in this 
 3. Re-authenticate CLIs (`gh`, `clickup`, `glab`)
 4. Verify `~/.config//profile.env` matches the intended profile
 
-### dots-doctor --json requires python3
+### doctor --json requires python3
 
-If `python3` is not available, fall back to `dots-doctor --issue` and parse the markdown manually.
+If `python3` is not available, fall back to `doctor --issue` and parse the markdown manually.
 
-### dots-doctor: Missing dependency: easyoptions.sh
+### doctor: Missing dependency: easyoptions.sh
 
 The `easyoptions.sh` library is missing from `~/.local/lib/`. Re-run `chezmoi apply` to restore it, or check if the installation is incomplete.
 
@@ -112,6 +112,6 @@ The `easyoptions.sh` library is missing from `~/.local/lib/`. Re-run `chezmoi ap
 
 ## References
 
-- `dots-doctor --help` — full option list
+- `doctor --help` — full option list
 - `~/.config//profile.env` — check group configuration
 - `~/.local/lib//easy-options/easyoptions.sh` — dependency library

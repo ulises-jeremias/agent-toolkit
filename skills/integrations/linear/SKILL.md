@@ -125,7 +125,7 @@ re-assignments, follow-up comments).
 
 ## Validation
 
-- `dots-doctor` lists the Linear MCP template under `mcp/linear/` once
+- `doctor` lists the Linear MCP template under `mcp/linear/` once
   `chezmoi apply` has run.
 - The first MCP tool call triggers the OAuth flow; from then on the AI tool
   caches the session.

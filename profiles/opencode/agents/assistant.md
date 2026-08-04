@@ -23,7 +23,7 @@ Always cite which file a rule or convention comes from.
 
 ## agent-toolkit standards
 - Shell scripts: `set -euo pipefail`, idempotent, OS detection before package manager calls
-- chezmoi repos: `.chezmoiroot` points to `home/`, `dots-` prefix for internal commands
+- chezmoi repos: `Internal chezmoi commands use the `dots-` prefix (agentic-workstation convention)
 - Documentation: update when behavior changes
 - Secrets: never commit — use `.env.example` for templates
 - English: all documentation, commit messages, and ticket descriptions
@@ -31,7 +31,7 @@ Always cite which file a rule or convention comes from.
 ## CLI tool names to know
 - **Confluence CLI**: `confluence-as` (also available as `confluence` via wrapper). The external skill pack docs reference `confluence` — both work.
 - **JIRA CLI**: `jira-as`
-- All other agent-toolkit helpers use `dots-` prefix: `dots-doctor`, `dots-skills`, `dots-update-check`
+- Use `agent-toolkit doctor`, `agent-toolkit skills`, `agent-toolkit install` instead
 
 ## Agent delegation
 Available subagents (invoke with `@name` in your message, NOT via the skill tool):
