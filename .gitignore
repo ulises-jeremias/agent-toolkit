@@ -23,3 +23,6 @@ build/
 # Editor
 .idea/
 .vscode/settings.json
+# Loop run artifacts (machine-specific state)
+loops/*/runs/
+loops/*/STATE.md

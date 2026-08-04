@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-exec "/tmp/gate-test/bin/python3" "/tmp/gate-test/lib/python3.14/site-packages/agent_toolkit/loop/loop-gh-gate" -- "$@"

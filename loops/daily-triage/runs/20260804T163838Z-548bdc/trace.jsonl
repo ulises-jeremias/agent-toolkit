@@ -1,3 +1,0 @@
-{"ts": "2026-08-04T16:38:38Z", "kind": "run_start", "run_id": "20260804T163838Z-548bdc", "tier": "L1", "allowlist": ["[]"], "deny": ["merge", "close", "label", "comment", "push"], "verifier": "null", "agents_md_hash": "73aa9e85edd8", "force": false}
-{"ts": "2026-08-04T16:38:38Z", "kind": "worktree_created", "path": "/home/ulisesjcf/.local/share/agent-toolkit/worktrees/daily-triage/20260804T163838Z-548bdc"}
-{"ts": "2026-08-04T16:40:00Z", "kind": "run_end", "status": "completed"}
