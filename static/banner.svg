@@ -145,24 +145,24 @@
 
   <!-- ── Center: Main Title ── -->
   <!-- Title glow background -->
-  <ellipse cx="570" cy="145" rx="300" ry="80" fill="url(#title-glow-bg)"/>
+  <ellipse cx="530" cy="145" rx="265" ry="80" fill="url(#title-glow-bg)"/>
 
   <!-- Prefix -->
-  <text x="340" y="108" font-family="'Courier New', monospace" font-size="11" fill="#4a4a8a" letter-spacing="3">~/toolkit $</text>
-  <text x="430" y="108" font-family="'Courier New', monospace" font-size="11" fill="#00ff88" opacity="0.8" letter-spacing="1">run --mode=production</text>
+  <text x="295" y="108" font-family="'Courier New', monospace" font-size="11" fill="#4a4a8a" letter-spacing="3">~/toolkit $</text>
+  <text x="385" y="108" font-family="'Courier New', monospace" font-size="11" fill="#00ff88" opacity="0.8" letter-spacing="1">run --mode=production</text>
 
   <!-- Main title -->
-  <text x="575" y="175" font-family="'Courier New', monospace" font-size="68" font-weight="bold" fill="url(#title-gradient)" text-anchor="middle" letter-spacing="-1" filter="url(#glow-cyan)">agent-toolkit</text>
+  <text x="530" y="175" font-family="'Courier New', monospace" font-size="64" font-weight="bold" fill="url(#title-gradient)" text-anchor="middle" letter-spacing="-1" filter="url(#glow-cyan)">agent-toolkit</text>
 
   <!-- Subtitle -->
-  <text x="575" y="207" font-family="'Courier New', monospace" font-size="13" fill="#9945ff" text-anchor="middle" letter-spacing="5" filter="url(#glow-purple)">◈  COMPOSABLE AI AGENT CAPABILITIES  ◈</text>
+  <text x="530" y="207" font-family="'Courier New', monospace" font-size="13" fill="#9945ff" text-anchor="middle" letter-spacing="5" filter="url(#glow-purple)">◈  COMPOSABLE AI AGENT CAPABILITIES  ◈</text>
 
   <!-- Tagline -->
-  <text x="575" y="235" font-family="'Courier New', monospace" font-size="11" fill="#4a4a8a" text-anchor="middle" letter-spacing="2">skills · agents · loops · profiles · mcp</text>
+  <text x="530" y="235" font-family="'Courier New', monospace" font-size="11" fill="#4a4a8a" text-anchor="middle" letter-spacing="2">skills · agents · loops · profiles · mcp</text>
 
   <!-- Decorative horizontal rule -->
-  <line x1="340" y1="243" x2="445" y2="243" stroke="#0a2a4a" stroke-width="1"/>
-  <line x1="456" y1="243" x2="694" y2="243" stroke="#00d4ff" stroke-width="1" opacity="0.4"/>
+  <line x1="295" y1="243" x2="400" y2="243" stroke="#0a2a4a" stroke-width="1"/>
+  <line x1="411" y1="243" x2="649" y2="243" stroke="#00d4ff" stroke-width="1" opacity="0.4"/>
   <line x1="705" y1="243" x2="810" y2="243" stroke="#0a2a4a" stroke-width="1"/>
 
   <!-- ── Right side: Tool cards ── -->
