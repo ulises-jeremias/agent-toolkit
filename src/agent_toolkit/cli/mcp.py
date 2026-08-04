@@ -21,13 +21,14 @@ import sys
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from agent_toolkit._paths import toolkit_root
 
 
 # ---------------------------------------------------------------------------
 # Toolkit directory & config paths
 # ---------------------------------------------------------------------------
 
-def _find_toolkit_dir() -> Path | None:
+def toolkit_root() -> Path | None:
     candidate = Path(__file__).resolve()
     for _ in range(10):
         candidate = candidate.parent
@@ -395,7 +396,7 @@ def cmd_mcp(args: list[str]) -> int:
         print(__doc__)
         return 0
 
-    toolkit_dir = _find_toolkit_dir()
+    toolkit_dir = toolkit_root()
     subcommand = args[0]
     rest = args[1:]
 

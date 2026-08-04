@@ -43,7 +43,7 @@ jobs:
       - name: Run test suite
         # Allow test failures to surface without blocking the matrix when tests
         # are skipped in some environments (e.g. missing optional data dirs).
-        run: pytest tests/ -v --tb=short || true
+        run: pytest tests/ -v --tb=short
 
   # ── Job 2: Validate SKILL.md and AGENT.md frontmatter ─────────────────────
   validate-skills:

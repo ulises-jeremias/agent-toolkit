@@ -23,6 +23,7 @@ import subprocess
 import sys
 import urllib.request
 from pathlib import Path
+from agent_toolkit._paths import toolkit_root
 
 
 # ---------------------------------------------------------------------------
@@ -59,7 +60,7 @@ class CheckResult:
 # Toolkit directory resolution
 # ---------------------------------------------------------------------------
 
-def _find_toolkit_dir() -> Path | None:
+def toolkit_root() -> Path | None:
     candidate = Path(__file__).resolve()
     for _ in range(10):
         candidate = candidate.parent
@@ -367,7 +368,7 @@ def cmd_doctor(args: list[str]) -> int:
         return 0
 
     json_output, fix = result
-    toolkit_dir = _find_toolkit_dir()
+    toolkit_dir = toolkit_root()
 
     # Run all checks
     all_results: list[CheckResult] = []

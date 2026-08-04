@@ -16,13 +16,14 @@ from __future__ import annotations
 import shutil
 import sys
 from pathlib import Path
+from agent_toolkit._paths import toolkit_root
 
 
 # ---------------------------------------------------------------------------
 # Toolkit directory resolution
 # ---------------------------------------------------------------------------
 
-def _find_toolkit_dir() -> Path:
+def toolkit_root() -> Path:
     """Walk up from this file until we find the directory containing profiles/."""
     candidate = Path(__file__).resolve()
     for _ in range(10):
@@ -35,7 +36,7 @@ def _find_toolkit_dir() -> Path:
     )
 
 
-TOOLKIT_DIR: Path = _find_toolkit_dir()
+TOOLKIT_DIR: Path = toolkit_root()
 
 # ---------------------------------------------------------------------------
 # Helpers

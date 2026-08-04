@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "agent-toolkit-cli"
-version = "1.0.0"
+dynamic = ["version"]
 description = "Composable AI agent toolkit — loops, skills, profiles, and MCP for Claude Code, Cursor, OpenCode, Windsurf, and more"
 readme = "README.md"
 license = { file = "LICENSE" }
