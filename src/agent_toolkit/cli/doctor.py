@@ -222,8 +222,12 @@ def _check_llm_providers() -> list[CheckResult]:
         results.append(CheckResult("llm", "ollama", CheckResult.STATUS_WARN,
                                    "not reachable at localhost:11434"))
 
-    # opencode socket
-    xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    # opencode socket (Linux/macOS only — os.getuid() doesn't exist on Windows)
+    try:
+        uid = os.getuid()  # type: ignore[attr-defined]
+    except AttributeError:
+        uid = 0
+    xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{uid}")
     socket_paths = [
         Path(xdg_runtime) / "opencode.sock",
         Path.home() / ".config" / "opencode" / "opencode.sock",

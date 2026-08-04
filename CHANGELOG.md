@@ -66,6 +66,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI integration tests: use relative file paths instead of /tmp (cross-platform)
 - CI integration tests: fix Windows runner compatibility
 
+## [1.0.9] — 2026-08-04
+
+### Fixed
+- Windows compatibility: `os.getuid()` doesn't exist on Windows — wrapped in try/except
+  so `agent-toolkit doctor` no longer crashes on Windows runners
+
 ## [Unreleased]
 
 ### Added
