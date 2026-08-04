@@ -45,6 +45,9 @@ def main() -> None:
     rest = argv[1:]
 
     match command:
+        case "release":
+            from agent_toolkit.cli.release import cmd_release
+            sys.exit(cmd_release(rest))
         case "diff":
             from agent_toolkit.cli.diff import cmd_diff
             sys.exit(cmd_diff(rest))

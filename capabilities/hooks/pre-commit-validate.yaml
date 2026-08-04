@@ -1,0 +1,27 @@
+# Canonical hook definition: pre-commit code validation
+# Runs before a file write to validate code quality
+id: pre-commit-validate
+event: tool.before
+matcher:
+  tool: write_file
+  path_patterns: ["*.py", "*.ts", "*.js"]
+handler:
+  type: command
+  command: ["echo", "Validation hook placeholder"]
+  timeout_ms: 10000
+  fail_closed: true
+blocking: true
+concurrency: serial
+failure_policy: abort
+security:
+  classification: safe
+  default_enabled: false  # opt-in; user must explicitly enable
+platforms:
+  claude-code: native
+  cursor: native-experimental
+  copilot-cli: unknown-blocked
+  gemini-cli: native
+  opencode: unsupported
+  pi: unsupported
+  windsurf: unsupported
+  codex: unknown-blocked
