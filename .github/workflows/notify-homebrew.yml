@@ -1,0 +1,58 @@
+# Notify homebrew-tap to update the agent-toolkit formula on release.
+name: Notify Homebrew Tap
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release (e.g. 1.0.0)
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            # Strip leading 'v' from tag
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          # Validate semver
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([a-zA-Z0-9.-]+)?$'; then
+            echo "::error::Invalid version: $VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Notifying Homebrew tap for v$VERSION"
+
+      - name: Wait for GitHub release tarball
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          URL="https://github.com/ulises-jeremias/agent-toolkit/archive/refs/tags/v${VERSION}.tar.gz"
+          for attempt in $(seq 1 24); do
+            if curl -fsSL --head "$URL" 2>/dev/null | grep -q "200\|302"; then
+              echo "✓ Tarball available: $URL"
+              break
+            fi
+            if [ "$attempt" = "24" ]; then echo "::error::Tarball not available after 24 attempts"; exit 1; fi
+            echo "Attempt $attempt/24: not yet available, retrying in 15s..."
+            sleep 15
+          done
+
+      - name: Dispatch to homebrew-tap
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          gh api /repos/ulises-jeremias/homebrew-tap/dispatches \
+            -f event_type="new-release" \
+            -f "client_payload[formula_name]=agent-toolkit" \
+            -f "client_payload[version]=$VERSION"
+          echo "✓ Dispatched new-release event to homebrew-tap for v$VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}

@@ -1,0 +1,41 @@
+# Notify aur-packages to update and publish the agent-toolkit PKGBUILD on release.
+name: Notify AUR Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to release (e.g. 1.0.0)
+        required: true
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([a-zA-Z0-9.-]+)?$'; then
+            echo "::error::Invalid version: $VERSION"; exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Notifying AUR packages for v$VERSION"
+
+      - name: Dispatch to aur-packages
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          gh api /repos/ulises-jeremias/aur-packages/dispatches \
+            -f event_type="new-release" \
+            -f "client_payload[package_name]=agent-toolkit" \
+            -f "client_payload[version]=$VERSION"
+          echo "✓ Dispatched new-release event to aur-packages for v$VERSION"
+        env:
+          GH_TOKEN: ${{ secrets.AUR_REPO_TOKEN }}
