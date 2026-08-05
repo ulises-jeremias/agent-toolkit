@@ -434,7 +434,7 @@ PR description checklist:
 
 | Command | What it checks |
 |---------|---------------|
-| `bash scripts/validate-skills.sh` | All skill directories have SKILL.md and skill.json; frontmatter is valid; no secrets |
+| `bash scripts/validate-skills.sh` | All skill directories have `SKILL.md`; frontmatter is valid; no secrets; no deprecated `skill.json` |
 | `python3 scripts/validate-skills.py` | Same as above with more detailed error output |
 | `bash scripts/validate-loops.sh` | All loop.yaml files pass the JSON schema in `schemas/loop.schema.json` |
 | `python3 scripts/validate-manifests.py` | All loop manifests |

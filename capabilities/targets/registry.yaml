@@ -4,27 +4,71 @@ targets:
   - id: claude-code
     adapter: agent_toolkit.compiler.targets.claude_code.ClaudeCodeAdapter
     aliases: []
+    commands:
+      build: true
+      diff: true
+      release: true
+
   - id: cursor
     adapter: agent_toolkit.compiler.targets.cursor.CursorAdapter
     aliases: []
+    commands:
+      build: true
+      diff: true
+      release: true
+
   - id: opencode
     adapter: agent_toolkit.compiler.targets.opencode.OpenCodeAdapter
     aliases: []
+    commands:
+      build: true
+      diff: true
+      release: true
+
   - id: gemini-cli
     adapter: agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter
     aliases: [gemini]
+    commands:
+      build: true
+      diff: false
+      release: true
+
   - id: copilot-cli
     adapter: agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter
     aliases: [copilot]
+    commands:
+      build: true
+      diff: false
+      release: true
+
   - id: copilot-repository
     adapter: agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter
     aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true
+
   - id: pi
     adapter: agent_toolkit.compiler.targets.pi.PiAdapter
     aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true
+
   - id: windsurf
     adapter: agent_toolkit.compiler.targets.windsurf.WindsurfAdapter
     aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true
+
   - id: codex
     adapter: agent_toolkit.compiler.targets.codex.CodexAdapter
     aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true

@@ -69,8 +69,27 @@ def cmd_diff(args: list[str]) -> int:
         return 1
 
     plugins_dir = repo_root / "plugins"
-    from agent_toolkit.compiler.target_registry import available_target_ids
-    targets = [parsed.target] if parsed.target else sorted(available_target_ids(repo_root))
+    from agent_toolkit.compiler.target_registry import (
+        load_target_registry,
+        resolve_target_id,
+        target_ids_for,
+    )
+
+    reg = load_target_registry(repo_root)
+    if parsed.target:
+        canonical = resolve_target_id(parsed.target, reg)
+        diff_ids = target_ids_for("diff", reg)
+        if canonical not in diff_ids:
+            available = ", ".join(diff_ids)
+            print(
+                f"  ✗  Unknown or unsupported diff target '{parsed.target}'. "
+                f"Available: {available}",
+                file=sys.stderr,
+            )
+            return 1
+        targets = [canonical]
+    else:
+        targets = target_ids_for("diff", reg)
     products_to_diff = (
         [graph.products[parsed.product]] if parsed.product and parsed.product in graph.products
         else list(graph.products.values())

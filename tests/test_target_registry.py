@@ -11,6 +11,7 @@ from agent_toolkit.compiler.target_registry import (
     adapter_import_path,
     load_target_registry,
     registry_by_id,
+    resolve_adapter_class,
     resolve_target_id,
     target_ids_for,
 )
@@ -19,7 +20,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_registry_file_exists() -> None:
-    path = REPO_ROOT / "schemas" / "targets-registry.yaml"
+    path = REPO_ROOT / "capabilities" / "targets" / "registry.yaml"
     assert path.is_file()
 
 
@@ -51,8 +52,14 @@ def test_aliases_resolve_to_canonical_id() -> None:
     assert resolve_target_id("copilot", registry) == "copilot-cli"
 
 
+def test_resolve_adapter_class_for_alias() -> None:
+    cls = resolve_adapter_class("gemini", REPO_ROOT)
+    assert cls is not None
+    assert cls.__name__ == "GeminiCLIAdapter"
+
+
 def test_registry_yaml_is_valid() -> None:
-    path = REPO_ROOT / "schemas" / "targets-registry.yaml"
+    path = REPO_ROOT / "capabilities" / "targets" / "registry.yaml"
     data = yaml.safe_load(path.read_text(encoding="utf-8"))
     assert data["version"] == 1
     ids = [entry["id"] for entry in data["targets"]]

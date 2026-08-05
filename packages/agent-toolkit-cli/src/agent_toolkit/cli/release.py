@@ -79,14 +79,29 @@ def cmd_release(args: list[str]) -> int:
 
     print(f"\nRelease dry run — output: {output_dir}\n")
 
-    from agent_toolkit.compiler.target_registry import load_target_registry
-    registry = load_target_registry(repo_root)
-    # canonical id -> adapter path (dedupe aliases)
-    targets = {spec.id: spec.adapter for spec in {s.id: s for s in registry.values()}.values()}
+    from agent_toolkit.compiler.target_registry import (
+        adapter_import_path,
+        load_target_registry,
+        resolve_target_id,
+        target_ids_for,
+    )
+
+    reg = load_target_registry(repo_root)
+    release_specs = {spec.id: spec for spec in reg if spec.release}
 
     target_filter = parsed.target
     if target_filter != "all":
-        targets = {k: v for k, v in targets.items() if k == target_filter}
+        canonical = resolve_target_id(target_filter, reg)
+        if canonical not in release_specs:
+            available = ", ".join(sorted(release_specs))
+            print(
+                f"  ✗  Unknown release target '{target_filter}'. Available: {available}",
+                file=sys.stderr,
+            )
+            return 1
+        release_specs = {canonical: release_specs[canonical]}
+
+    targets = {spec_id: adapter_import_path(spec) for spec_id, spec in release_specs.items()}
 
     artifacts_summary = []
     checksums: dict[str, str] = {}

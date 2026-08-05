@@ -98,18 +98,25 @@ def cmd_build(args: list[str]) -> int:
             return 1
         products_to_build = [graph.products[parsed.product]]
 
-    # Select targets from declarative registry
-    from agent_toolkit.compiler.target_registry import available_target_ids
-    available_targets = available_target_ids(repo_root)
-    if not available_targets:
-        print("  ✗  No targets found in capabilities/targets/registry.yaml", file=sys.stderr)
-        return 1
-    targets_to_build = [parsed.target] if parsed.target else sorted(available_targets)
+    from agent_toolkit.compiler.target_registry import (
+        load_target_registry,
+        resolve_target_id,
+        target_ids_for,
+    )
 
-    for t in targets_to_build:
-        if t not in available_targets:
-            print(f"  ✗  Unknown target '{t}'. Available: {', '.join(available_targets)}")
+    reg = load_target_registry(repo_root)
+    if parsed.target:
+        canonical = resolve_target_id(parsed.target, reg)
+        build_ids = target_ids_for("build", reg)
+        if canonical not in build_ids:
+            print(
+                f"  ✗  Unknown target '{parsed.target}'. "
+                f"Available: {', '.join(build_ids)}"
+            )
             return 1
+        targets_to_build = [canonical]
+    else:
+        targets_to_build = target_ids_for("build", reg)
 
     output_dir = Path(parsed.output) if parsed.output else repo_root / "plugins"
     mode = "check" if parsed.check else "build"
@@ -126,10 +133,13 @@ def cmd_build(args: list[str]) -> int:
 
         for product in products_to_build:
             print(f"  Building {product.id} → {target_id}...")
+            adapter._provenance_records = []
             if parsed.check:
                 result = adapter.check(graph, product)
             else:
                 result = adapter.compile(graph, product)
+                if hasattr(adapter, "_finalize_provenance"):
+                    adapter._finalize_provenance(product, result)
 
             all_results.append(result)
             print(result.report())
