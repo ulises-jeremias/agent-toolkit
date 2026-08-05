@@ -33,16 +33,16 @@ if _sys.platform == 'win32':
 # ── workspace detection ───────────────────────────────────────────────────────
 
 def _find_workspace() -> Path:
-    """Return workspace root: AGENT_TOOLKIT_WORKSPACE env, or walk up from CWD."""
-    env = os.environ.get("AGENT_TOOLKIT_WORKSPACE")
-    if env:
-        return Path(env).resolve()
-    # Walk up looking for a marker (.devcompanion dir, AGENTS.md, or CLAUDE.md)
+    """Return workspace root: AGENT_TOOLKIT_WORKSPACE / HARNESS_DIR / walk-up / cwd."""
+    from agent_toolkit._paths import find_workspace_root
+
+    ws = find_workspace_root()
+    if ws is not None:
+        return ws
+    # Devcompanion also accepts .devcompanion as a marker
     cwd = Path.cwd().resolve()
     for parent in [cwd, *cwd.parents]:
         if (parent / ".devcompanion").is_dir():
-            return parent
-        if (parent / "AGENTS.md").exists() or (parent / "CLAUDE.md").exists():
             return parent
     return cwd
 

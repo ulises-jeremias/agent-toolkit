@@ -187,35 +187,53 @@ signal.signal(signal.SIGTERM, _handle_sig)
 
 # ── paths ─────────────────────────────────────────────────────────────────────
 
-# WORKSPACE_ROOT resolution (in priority order):
-# 1. AGENT_TOOLKIT_ROOT env var — explicit user override / ai-workspace session
-# 2. AI_WORKSPACE env var — compatibility with ai-workspace sessions
-# 3. Package data dir (pip/uvx/brew installs) — agent_toolkit/data/ in wheel
-# 4. Walk up from this file — editable/source installs
-# 5. CWD fallback
 def _find_toolkit_root() -> Path:
-    """Locate the directory that contains loops/, profiles/, skills/, etc."""
-    # Try package data directory first (pip/uvx wheel installs)
+    """Locate toolkit data (bundled loops/profiles). Prefer shared toolkit_root()."""
+    try:
+        from agent_toolkit._paths import toolkit_root
+        return toolkit_root()
+    except Exception:
+        pass
     try:
         pkg_data = Path(__file__).resolve().parent.parent / "data"
         if pkg_data.is_dir() and (pkg_data / "loops").is_dir():
             return pkg_data
     except Exception:
         pass
-    # Walk up from this file (editable/source installs)
     here = Path(__file__).resolve().parent
     for candidate in [here.parent.parent.parent, here.parent.parent, here.parent]:
         if (candidate / "loops").is_dir():
             return candidate
     return Path.cwd()
 
-WORKSPACE_ROOT = Path(
-    os.environ.get("AGENT_TOOLKIT_ROOT", "")
-    or os.environ.get("AI_WORKSPACE", "")
-    or _find_toolkit_root()
-)
-LOOPS_DIR = WORKSPACE_ROOT / "loops"
-TEMPLATES_DIR = WORKSPACE_ROOT / "loops"  # templates are the loops/ dir itself
+
+def workspace_root() -> Path:
+    """User workspace root for loop instances (#200 / #207)."""
+    from agent_toolkit._paths import find_workspace_root
+    ws = find_workspace_root()
+    if ws is not None:
+        return ws
+    for env in ("AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"):
+        val = os.environ.get(env, "").strip()
+        if val:
+            return Path(val).expanduser().resolve()
+    return Path.cwd()
+
+
+def loops_dir() -> Path:
+    """User-created loop instances live under workspace/loops/ (#200)."""
+    return workspace_root() / "loops"
+
+
+def toolkit_loops_dir() -> Path:
+    """Bundled reference templates under toolkit data/loops/."""
+    return _find_toolkit_root() / "loops"
+
+
+# Back-compat aliases (recomputed each access via functions preferred)
+WORKSPACE_ROOT = Path.cwd()  # placeholder; prefer workspace_root()
+LOOPS_DIR = Path.cwd() / "loops"
+TEMPLATES_DIR = Path.cwd() / "loops"
 WORKTREES_HOME = Path(
     os.environ.get("HARNESS_WORKTREES_DIR", "")
     or Path.home() / ".local" / "share" / "agent-toolkit" / "worktrees"
@@ -417,27 +435,83 @@ def write_state_md(loop_dir: Path, state: dict[str, Any]) -> None:
 
 
 def list_loops() -> list[Path]:
-    """Return all loop directories sorted by name. Supports both LOOP.md and loop.yaml."""
-    if not LOOPS_DIR.is_dir():
+    """Return user loop instances under workspace/loops/ (#201).
+
+    Prefers directories with LOOP.md (init output). Also accepts loop.yaml for
+    compatibility. Bundled templates are not listed here — use list_templates().
+    """
+    if not loops_dir().is_dir():
         return []
     return sorted([
-        d for d in LOOPS_DIR.iterdir()
+        d for d in loops_dir().iterdir()
         if d.is_dir() and ((d / "LOOP.md").exists() or (d / "loop.yaml").exists())
     ])
 
 
 def list_templates() -> list[Path]:
-    """Return available loop templates from loops/ directory."""
-    if not TEMPLATES_DIR.is_dir():
-        return []
-    # Each loop dir contains a loop.yaml — use those as templates
-    results = []
-    for d in TEMPLATES_DIR.iterdir():
-        if d.is_dir() and (d / "loop.yaml").exists():
-            results.append(d / "loop.yaml")
-    # Also check for flat *.yaml files (legacy format)
-    results.extend(f for f in TEMPLATES_DIR.glob("*.yaml") if f not in results)
-    return sorted(results)
+    """Return available loop templates (workspace overrides + bundled) (#200/#202)."""
+    results: list[Path] = []
+    seen: set[str] = set()
+
+    ws = workspace_root()
+    user_flat = ws / "templates" / "loops"
+    if user_flat.is_dir():
+        for f in sorted(user_flat.glob("*.yaml")):
+            results.append(f)
+            seen.add(f.stem)
+        for d in sorted(user_flat.iterdir()):
+            if d.is_dir() and (d / "loop.yaml").exists() and d.name not in seen:
+                results.append(d / "loop.yaml")
+                seen.add(d.name)
+
+    bundled = toolkit_loops_dir()
+    if bundled.is_dir():
+        for d in sorted(bundled.iterdir()):
+            if d.is_dir() and (d / "loop.yaml").exists() and d.name not in seen:
+                results.append(d / "loop.yaml")
+                seen.add(d.name)
+        for f in sorted(bundled.glob("*.yaml")):
+            if f.stem not in seen:
+                results.append(f)
+                seen.add(f.stem)
+    return results
+
+
+def resolve_template(pattern: str) -> Path | None:
+    """Resolve a loop template path (#200 / #202).
+
+    Order:
+    1. ``$WORKSPACE/templates/loops/<pattern>.yaml``
+    2. ``$WORKSPACE/templates/loops/<pattern>/loop.yaml``
+    3. Bundled ``data/loops/<pattern>/loop.yaml``
+    4. Bundled flat ``data/loops/<pattern>.yaml``
+    """
+    ws = workspace_root()
+    candidates = [
+        ws / "templates" / "loops" / f"{pattern}.yaml",
+        ws / "templates" / "loops" / pattern / "loop.yaml",
+        toolkit_loops_dir() / pattern / "loop.yaml",
+        toolkit_loops_dir() / f"{pattern}.yaml",
+    ]
+    for path in candidates:
+        if path.is_file():
+            return path
+    return None
+
+
+def resolve_loop_dir(name: str) -> Path | None:
+    """Resolve a runnable loop directory (#201).
+
+    Prefer user instance ``$WORKSPACE/loops/<name>/`` (LOOP.md or loop.yaml).
+    Fall back to bundled toolkit ``loops/<name>/`` when present.
+    """
+    user = loops_dir() / name
+    if user.is_dir() and ((user / "LOOP.md").exists() or (user / "loop.yaml").exists()):
+        return user
+    bundled = toolkit_loops_dir() / name
+    if bundled.is_dir() and ((bundled / "LOOP.md").exists() or (bundled / "loop.yaml").exists()):
+        return bundled
+    return None
 
 
 # ── autonomy / prompt assembly ────────────────────────────────────────────────
@@ -545,7 +619,7 @@ def _build_runner_prompt(
     contract = _autonomy_contract(meta, loop_dir)
     return (
         "You are executing an autonomous loop run in an agent-toolkit workspace.\n"
-        f"Workspace root: {WORKSPACE_ROOT}\n"
+        f"Workspace root: {workspace_root()}\n"
         f"Loop directory: {loop_dir}\n"
         f"Output directory: {run_dir}\n\n"
         f"{contract}\n\n"
@@ -626,7 +700,7 @@ def _try_claude_runner(
             [claude_bin, "--print",
              "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
             input_text=prompt,
-            cwd=str(WORKSPACE_ROOT),
+            cwd=str(workspace_root()),
             env=env,
             trace_file=trace_file or (run_dir / "trace.jsonl"),
         )
@@ -666,7 +740,7 @@ def _try_opencode_runner(
         result = _run_with_live_output(
             [opencode_bin, "run", "--print-logs"],
             input_text=prompt,
-            cwd=str(WORKSPACE_ROOT),
+            cwd=str(workspace_root()),
             env=env,
             trace_file=trace_file or (run_dir / "trace.jsonl"),
         )
@@ -719,7 +793,7 @@ def _queue_via_devcompanion(
         "id": job_id,
         "created_at": utc_now(),
         "request": request,
-        "repo_path": str(WORKSPACE_ROOT),
+        "repo_path": str(workspace_root()),
         "loop_run_dir": str(run_dir),
         "llm": True,
         "limits": {
@@ -749,52 +823,73 @@ def _queue_via_devcompanion(
 # ── commands ──────────────────────────────────────────────────────────────────
 
 def cmd_init(args: list[str]) -> int:
-    """Scaffold a new loop from a starter template."""
-    if not args:
-        err("Usage: loop init <pattern>")
+    """Scaffold a new loop from a starter template (#200)."""
+    if not args or args[0] in ("-h", "--help"):
+        err("Usage: agent-toolkit loop init <pattern> [--name <custom-name>]")
         print("\nAvailable patterns:")
         for t in list_templates():
-            print(f"  {t.stem}")
-        return 1
+            label = t.parent.name if t.name == "loop.yaml" else t.stem
+            print(f"  {label}")
+        return 0 if args and args[0] in ("-h", "--help") else 1
 
     pattern = args[0]
-    template_file = TEMPLATES_DIR / f"{pattern}.yaml"
-    if not template_file.exists():
+    loop_name = pattern
+    i = 1
+    while i < len(args):
+        if args[i] == "--name" and i + 1 < len(args):
+            loop_name = args[i + 1]
+            i += 2
+        else:
+            i += 1
+
+    template_file = resolve_template(pattern)
+    if template_file is None:
         err(f"Template '{pattern}' not found.")
         print("\nAvailable patterns:")
         for t in list_templates():
-            print(f"  {t.stem}")
+            label = t.parent.name if t.name == "loop.yaml" else t.stem
+            print(f"  {label}")
         return 1
 
-    # Parse the template for defaults
     text = template_file.read_text(encoding="utf-8")
     name_match = re.search(r"^name:\s+(\S+)", text, re.MULTILINE)
-    loop_name = name_match.group(1) if name_match else pattern
+    if loop_name == pattern and name_match:
+        loop_name = name_match.group(1)
 
-    loop_dir = LOOPS_DIR / loop_name
+    loop_dir = loops_dir() / loop_name
     if loop_dir.exists():
         warn(f"Loop '{loop_name}' already exists at {loop_dir}")
         return 1
 
     loop_dir.mkdir(parents=True)
-    runs_dir = loop_dir / "runs"
-    runs_dir.mkdir()
+    (loop_dir / "runs").mkdir()
 
-    # Build LOOP.md from template
-    loop_md = loop_dir / "LOOP.md"
-    loop_md.write_text(
+    # Body of frontmatter: drop full-line comments from template YAML
+    fm_lines = [
+        line for line in text.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    ]
+    # Ensure name matches instance directory
+    rewritten: list[str] = []
+    saw_name = False
+    for line in fm_lines:
+        if re.match(r"^name:\s+", line):
+            rewritten.append(f"name: {loop_name}")
+            saw_name = True
+        else:
+            rewritten.append(line)
+    if not saw_name:
+        rewritten.insert(0, f"name: {loop_name}")
+
+    (loop_dir / "LOOP.md").write_text(
         "---\n"
-        + "\n".join(
-            line for line in text.splitlines()
-            if not line.startswith("#") or line.strip() == "#"
-        )
+        + "\n".join(rewritten)
         + "\n---\n\n"
         f"# {loop_name.replace('-', ' ').title()} Loop\n\n"
         "<!-- Describe the goal, constraints, and escalation rules here. -->\n",
         encoding="utf-8",
     )
 
-    # Build initial STATE.md
     write_state_md(
         loop_dir,
         {
@@ -807,9 +902,10 @@ def cmd_init(args: list[str]) -> int:
         },
     )
 
-    ok(f"Initialized loop '{loop_name}' at {loop_dir.relative_to(WORKSPACE_ROOT)}")
-    print(f"\n  Edit {loop_dir.relative_to(WORKSPACE_ROOT)}/LOOP.md to customize.")
-    print(f"  Then run: ./bin/loop run {loop_name}")
+    rel = loop_dir.relative_to(workspace_root())
+    ok(f"Initialized loop '{loop_name}' at {rel}")
+    print(f"\n  Edit {rel}/LOOP.md to customize.")
+    print(f"  Then run: agent-toolkit loop run {loop_name}")
     return 0
 
 
@@ -833,9 +929,9 @@ def cmd_run(args: list[str]) -> int:
         err("Usage: loop run <loop-name> [--force] [--quiet]")
         return 1
 
-    loop_dir = LOOPS_DIR / loop_name
-    if not loop_dir.exists():
-        err(f"Loop '{loop_name}' not found. Run: ./bin/loop init {loop_name}")
+    loop_dir = resolve_loop_dir(loop_name)
+    if loop_dir is None:
+        err(f"Loop '{loop_name}' not found. Run: agent-toolkit loop init {loop_name}")
         return 1
 
     meta = parse_loop_md(loop_dir)
@@ -875,7 +971,7 @@ def cmd_run(args: list[str]) -> int:
 
     if runs_today >= max_runs and not force:
         warn(f"Budget: max_runs_per_day ({max_runs}) reached for today. Skipping.")
-        warn("  Re-run with: ./bin/loop run <loop> --force")
+        warn("  Re-run with: agent-toolkit loop run <loop> --force")
         return 0
     if force and runs_today >= max_runs:
         warn(f"Budget gate bypassed via --force (runs_today={runs_today}, max={max_runs})")
@@ -886,7 +982,7 @@ def cmd_run(args: list[str]) -> int:
     run_dir.mkdir(parents=True)
 
     log(f"Starting run {rid} for '{loop_name}' (tier={tier})")
-    log(f"Run artifacts: {run_dir.relative_to(WORKSPACE_ROOT)}")
+    log(f"Run artifacts: {run_dir.relative_to(workspace_root())}")
     allow = _as_str_list(meta.get("allowlist"))
     deny = _as_str_list(meta.get("deny"))
     log(
@@ -896,7 +992,7 @@ def cmd_run(args: list[str]) -> int:
     )
 
     # Write initial trace entry with AGENTS.md spec hash
-    agents_md = WORKSPACE_ROOT / "AGENTS.md"
+    agents_md = workspace_root() / "AGENTS.md"
     agents_md_hash = hashlib.sha256(agents_md.read_bytes()).hexdigest()[:12] if agents_md.exists() else "?"
 
     trace_file = run_dir / "trace.jsonl"
@@ -918,13 +1014,13 @@ def cmd_run(args: list[str]) -> int:
     # Create git worktree (if in a git repo)
     worktree_path: Path | None = None
     if subprocess.run(
-        ["git", "-C", str(WORKSPACE_ROOT), "rev-parse", "--git-dir"],
+        ["git", "-C", str(workspace_root()), "rev-parse", "--git-dir"],
         capture_output=True,
     ).returncode == 0:
         worktree_base = WORKTREES_HOME / loop_name / rid
         worktree_base.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
-            ["git", "-C", str(WORKSPACE_ROOT), "worktree", "add",
+            ["git", "-C", str(workspace_root()), "worktree", "add",
              str(worktree_base), "HEAD"],
             capture_output=True,
             text=True,
@@ -1067,7 +1163,7 @@ def cmd_run(args: list[str]) -> int:
         # Clean up worktree — the devcompanion worker runs independently
         if worktree_path and worktree_path.is_dir():
             subprocess.run(
-                ["git", "-C", str(WORKSPACE_ROOT), "worktree", "remove",
+                ["git", "-C", str(workspace_root()), "worktree", "remove",
                  str(worktree_path), "--force"],
                 capture_output=True,
             )
@@ -1078,7 +1174,7 @@ def cmd_run(args: list[str]) -> int:
     # Cleanup worktree on inline completion
     if worktree_path and worktree_path.is_dir():
         subprocess.run(
-            ["git", "-C", str(WORKSPACE_ROOT), "worktree", "remove",
+            ["git", "-C", str(workspace_root()), "worktree", "remove",
              str(worktree_path), "--force"],
             capture_output=True,
         )
@@ -1103,7 +1199,7 @@ def finalize_run(
     # Cleanup worktree
     if worktree_path and worktree_path.is_dir():
         subprocess.run(
-            ["git", "-C", str(WORKSPACE_ROOT), "worktree", "remove",
+            ["git", "-C", str(workspace_root()), "worktree", "remove",
              str(worktree_path), "--force"],
             capture_output=True,
         )
@@ -1118,7 +1214,7 @@ def finalize_run(
     if status == "completed":
         # Loop closure: extract learning events from trace and sync to knowledge
         _close_loop(run_dir, rid)
-        ok(f"Run {rid} complete. Artifacts at: {run_dir.relative_to(WORKSPACE_ROOT)}")
+        ok(f"Run {rid} complete. Artifacts at: {run_dir.relative_to(workspace_root())}")
     else:
         warn(f"Run {rid} finished with status: {status}")
 
@@ -1138,7 +1234,7 @@ def _close_loop(run_dir: Path, rid: str) -> None:
         if event.get("kind") == "decision" and event.get("tag") == "learning":
             content = event.get("content", "")
             if content:
-                add_script = WORKSPACE_ROOT / "bin" / "assistant-memory"
+                add_script = workspace_root() / "bin" / "assistant-memory"
                 if add_script.exists():
                     subprocess.run(
                         [sys.executable, str(add_script), "add",
@@ -1158,10 +1254,10 @@ def _close_loop(run_dir: Path, rid: str) -> None:
 def cmd_status(args: list[str]) -> int:
     """Show loop status."""
     target = args[0] if args else None
-    loops = [LOOPS_DIR / target] if target else list_loops()
+    loops = ([resolve_loop_dir(target)] if target else list_loops())
 
     if not loops:
-        print("No loops found. Run: ./bin/loop init <pattern>")
+        print("No loops found. Run: agent-toolkit loop init <pattern>")
         return 0
 
     print("")
@@ -1199,7 +1295,7 @@ def cmd_status(args: list[str]) -> int:
 def cmd_audit(args: list[str]) -> int:
     """Summarize past runs."""
     target = args[0] if args else None
-    loops = [LOOPS_DIR / target] if target else list_loops()
+    loops = ([resolve_loop_dir(target)] if target else list_loops())
 
     print("")
     print(blue("── Loop Audit ───────────────────────────────────────────"))
@@ -1255,7 +1351,10 @@ def cmd_cost(args: list[str]) -> int:
         return 1
 
     loop_name = args[0]
-    loop_dir = LOOPS_DIR / loop_name
+    loop_dir = resolve_loop_dir(loop_name)
+    if loop_dir is None:
+        err(f"Loop '{loop_name}' not found. Run: agent-toolkit loop init {loop_name}")
+        return 1
     meta = parse_loop_md(loop_dir) if loop_dir.exists() else {}
 
     tier = meta.get("tier", "L1")
@@ -1311,19 +1410,22 @@ def cmd_schedule(args: list[str]) -> int:
     if remove_mode:
         loop_name = next((a for a in args if not a.startswith("-") and a != "schedule"), None)
         if not loop_name:
-            err("Usage: bin/loop schedule <name> --remove")
+            err("Usage: agent-toolkit loop schedule <name> --remove")
             return 1
         return _schedule_remove(loop_name, dry_run)
 
     # schedule <name>: install timer
     loop_name = next((a for a in args if not a.startswith("-") and a != "schedule"), None)
     if not loop_name:
-        err("Usage: bin/loop schedule <name> [--cron EXPR] [--dry-run]")
+        err("Usage: agent-toolkit loop schedule <name> [--cron EXPR] [--dry-run]")
         return 1
 
-    loop_dir = LOOPS_DIR / loop_name
+    loop_dir = resolve_loop_dir(loop_name)
+    if loop_dir is None:
+        err(f"Loop '{loop_name}' not found. Run: agent-toolkit loop init {loop_name}")
+        return 1
     if not loop_dir.is_dir():
-        err(f"Loop not found: {loop_name} (run 'bin/loop init {loop_name}' first)")
+        err(f"Loop not found: {loop_name} (run 'agent-toolkit loop init {loop_name}' first)")
         return 1
 
     loopyaml = loop_dir / "LOOP.md"
@@ -1345,7 +1447,7 @@ def cmd_schedule(args: list[str]) -> int:
 def _schedule_dry_run(loop_name: str, cron: str) -> int:
     """Print timer files without installing."""
     system = platform.system()
-    harness_dir = WORKSPACE_ROOT
+    harness_dir = workspace_root()
     loop_cmd = f"{harness_dir}/bin/loop run {loop_name}"
 
     print(f"\n{blue('[loop]')} Would schedule: {loop_name}")
@@ -1379,7 +1481,7 @@ def _schedule_dry_run(loop_name: str, cron: str) -> int:
 def _schedule_install(loop_name: str, cron: str) -> int:
     """Install systemd timer (Linux) or launchd plist (macOS)."""
     system = platform.system()
-    harness_dir = WORKSPACE_ROOT
+    harness_dir = workspace_root()
     loop_cmd = f"{harness_dir}/bin/loop run {loop_name}"
 
     if system == "Linux":
@@ -1625,7 +1727,7 @@ def _launchd_plist(loop_name: str, cron: str) -> str:
     <string>com.agent-toolkit.{loop_name}</string>
     <key>ProgramArguments</key>
     <array>
-        <string>{WORKSPACE_ROOT}/bin/loop</string>
+        <string>{workspace_root()}/bin/loop</string>
         <string>run</string>
         <string>{loop_name}</string>
     </array>
@@ -1640,12 +1742,12 @@ def _launchd_plist(loop_name: str, cron: str) -> str:
 
 def cmd_sync() -> int:
     """Regenerate knowledge todos from completed loop runs."""
-    knowledge_todos = WORKSPACE_ROOT / "knowledge" / "todos" / "pending.md"
-    if not LOOPS_DIR.is_dir():
+    knowledge_todos = workspace_root() / "knowledge" / "todos" / "pending.md"
+    if not loops_dir().is_dir():
         return 0
 
     entries = []
-    for loop_dir in sorted(LOOPS_DIR.iterdir()):
+    for loop_dir in sorted(loops_dir().iterdir()):
         if not (loop_dir / "STATE.md").exists():
             continue
         state = parse_state_md(loop_dir)
@@ -1667,7 +1769,7 @@ def cmd_sync() -> int:
         else:
             existing += f"\n{header}\n{block}<!-- /loop-escalations -->\n"
         knowledge_todos.write_text(existing, encoding="utf-8")
-        ok(f"Synced {len(entries)} escalation(s) to {knowledge_todos.relative_to(WORKSPACE_ROOT)}")
+        ok(f"Synced {len(entries)} escalation(s) to {knowledge_todos.relative_to(workspace_root())}")
 
     return 0
 
@@ -1703,7 +1805,7 @@ def main() -> None:
                 print(f"  {t.stem}")
         case _:
             err(f"Unknown command: {command}")
-            print("Run 'bin/loop help' for usage.")
+            print("Run 'agent-toolkit loop help' for usage.")
             sys.exit(1)
 
 

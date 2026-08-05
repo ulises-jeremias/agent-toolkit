@@ -59,21 +59,9 @@ def _dim(t: str) -> str:    return _c("0;37", t)
 
 def _find_workspace(override: str | None = None) -> Path | None:
     """Locate workspace root via env, override, or walking up from CWD."""
-    if override:
-        p = Path(override).expanduser().resolve()
-        return p if p.is_dir() else None
+    from agent_toolkit._paths import find_workspace_root
 
-    env = os.environ.get("AGENT_TOOLKIT_WORKSPACE")
-    if env:
-        p = Path(env).expanduser().resolve()
-        return p if p.is_dir() else None
-
-    current = Path.cwd()
-    for candidate in [current, *current.parents]:
-        if (candidate / "AGENTS.md").exists() or (candidate / "knowledge").is_dir():
-            return candidate
-
-    return None
+    return find_workspace_root(override=override)
 
 
 # ---------------------------------------------------------------------------
