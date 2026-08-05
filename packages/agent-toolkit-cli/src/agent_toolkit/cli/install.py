@@ -19,6 +19,8 @@ import shutil
 import sys
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
+
 from agent_toolkit._paths import toolkit_root
 from agent_toolkit.installer.merge import merge_json_file
 from agent_toolkit.installer.sources import (
@@ -27,6 +29,9 @@ from agent_toolkit.installer.sources import (
     plugins_dir,
     profile_file,
 )
+
+if TYPE_CHECKING:
+    from agent_toolkit.installer.tracking import InstallTracker
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -83,7 +88,14 @@ def _files_identical(a: Path, b: Path) -> bool:
     return a.read_bytes() == b.read_bytes()
 
 
-def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
+def _copy_file(
+    src: Path,
+    dst: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+    tracker: InstallTracker | None = None,
+) -> bool:
     """Copy src to dst, respecting dry-run, force, and idempotency.
 
     Returns True on success (including skip), False on failure.
@@ -109,6 +121,8 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         _ok(f"Installed: {dst}")
+        if tracker is not None:
+            tracker.record_created(dst)
         return True
     except PermissionError as exc:
         _err(f"Permission denied writing {dst}: {exc}")
@@ -118,7 +132,14 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         return False
 
 
-def _copy_dir(src_dir: Path, dst_dir: Path, *, dry_run: bool, force: bool) -> bool:
+def _copy_dir(
+    src_dir: Path,
+    dst_dir: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+    tracker: InstallTracker | None = None,
+) -> bool:
     """Recursively copy all files from src_dir into dst_dir."""
     if not src_dir.is_dir():
         _warn(f"Source directory not found, skipping: {src_dir}")
@@ -135,7 +156,9 @@ def _copy_dir(src_dir: Path, dst_dir: Path, *, dry_run: bool, force: bool) -> bo
             continue
         rel = src_file.relative_to(src_dir)
         dst_file = dst_dir / rel
-        if not _copy_file(src_file, dst_file, dry_run=dry_run, force=force):
+        if not _copy_file(
+            src_file, dst_file, dry_run=dry_run, force=force, tracker=tracker
+        ):
             success = False
     return success
 
@@ -192,6 +215,7 @@ def _install_agent_files(
     dry_run: bool,
     force: bool,
     data_root: Path | None = None,
+    tracker: InstallTracker | None = None,
 ) -> bool:
     """Install agent files from compiled plugins/ or profiles/ fallback."""
     root = data_root or toolkit_root()
@@ -207,7 +231,7 @@ def _install_agent_files(
     success = True
     for name, src in sorted(agents.items()):
         dst = dst_dir / f"{name}.md"
-        success &= _copy_file(src, dst, dry_run=dry_run, force=force)
+        success &= _copy_file(src, dst, dry_run=dry_run, force=force, tracker=tracker)
     return success
 
 
@@ -252,16 +276,28 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
 
 
 def _install_cursor(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: Cursor")
-    src = profile_file("cursor", "rules")
+    root = toolkit_root()
+    src = profile_file("cursor", "rules", data_root=root)
+    tracker = InstallTracker("cursor", dry_run=dry_run, toolkit_root=root)
 
     if not src.is_dir():
         _warn(f"Cursor rules directory not found: {src}")
         return False
 
-    return _copy_dir(src, Path.home() / ".cursor" / "rules",
-                     dry_run=dry_run, force=force)
+    ok = _copy_dir(
+        src,
+        Path.home() / ".cursor" / "rules",
+        dry_run=dry_run,
+        force=force,
+        tracker=tracker,
+    )
+    if ok and tracker.save():
+        _ok("Saved install receipt for cursor")
+    return ok
 
 
 def _install_json_config(
