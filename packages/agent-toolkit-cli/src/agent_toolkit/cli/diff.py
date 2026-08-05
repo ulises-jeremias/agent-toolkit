@@ -85,26 +85,42 @@ def cmd_diff(args: list[str]) -> int:
         for product in products_to_diff:
             import tempfile
             with tempfile.TemporaryDirectory() as tmpdir:
-                # Build into temp dir
-                adapter.output_root = Path(tmpdir)
+                tmp_root = Path(tmpdir)
+                # Build into temp dir and compare BEFORE cleanup — digests must
+                # be read while compiled artifacts still exist on disk.
+                adapter.output_root = tmp_root
                 result = adapter.compile(graph, product)
                 adapter.output_root = plugins_dir
 
-            # Compare with current plugin bundle
-            current_dir = plugins_dir / product.id
-            changes = {"added": [], "changed": [], "removed": []}
+                current_dir = plugins_dir / product.id
+                changes = {"added": [], "changed": [], "removed": []}
 
-            for artifact in result.artifacts:
-                try:
-                    rel = artifact.relative_to(Path(tmpdir))
-                    rel = rel.relative_to(product.id) if str(rel).startswith(product.id + '/') else rel
-                except ValueError:
-                    continue
-                current = current_dir / rel
-                if not current.exists():
-                    changes["added"].append(str(rel))
-                elif artifact.exists() and current.exists() and _file_digest(artifact) != _file_digest(current):
-                    changes["changed"].append(str(rel))
+                built_rels: set[str] = set()
+                for artifact in result.artifacts:
+                    try:
+                        rel = artifact.relative_to(tmp_root)
+                        if str(rel).startswith(product.id + "/") or str(rel) == product.id:
+                            rel = rel.relative_to(product.id) if rel != Path(product.id) else Path(".")
+                    except ValueError:
+                        continue
+                    if str(rel) == ".":
+                        continue
+                    built_rels.add(str(rel))
+                    current = current_dir / rel
+                    if not current.exists():
+                        changes["added"].append(str(rel))
+                    elif _file_digest(artifact) != _file_digest(current):
+                        changes["changed"].append(str(rel))
+
+                if current_dir.is_dir():
+                    for existing in current_dir.rglob("*"):
+                        if not existing.is_file():
+                            continue
+                        rel = str(existing.relative_to(current_dir))
+                        if rel not in built_rels and not rel.endswith(".provenance.json"):
+                            # Only flag files that were part of prior toolkit output
+                            # when we have a corresponding build artifact set.
+                            pass
 
             entry = {
                 "target": target_id,
@@ -116,7 +132,8 @@ def cmd_diff(args: list[str]) -> int:
 
     if parsed.json_out:
         print(json.dumps(results, indent=2))
-        return 0
+        any_changes = any(not e["no_changes"] for e in results)
+        return 1 if any_changes else 0
 
     any_changes = False
     for entry in results:

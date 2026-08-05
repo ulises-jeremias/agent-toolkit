@@ -266,7 +266,7 @@ deny: [comment, label, assign, merge, close, push, approve, force-push]
 
 | Attribute | Value |
 |-----------|-------|
-| **Tier** | L2 |
+| **Tier** | L3 |
 | **Cadence** | daily |
 | **Max tokens** | 300,000 |
 | **Resumable** | Yes |

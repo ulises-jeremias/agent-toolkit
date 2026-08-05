@@ -1,5 +1,8 @@
 name: Release
 
+# Sole automated PyPI publish path for version tags (v*).
+# Manual TestPyPI/PyPI republish: workflow "Publish (manual)" only.
+
 on:
   push:
     tags:
@@ -60,7 +63,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
       - name: Install package and PyInstaller
         run: |
-          uv sync --all-extras
+          uv sync --extra all
           uv pip install pyinstaller
       - name: Build standalone binary
         shell: bash

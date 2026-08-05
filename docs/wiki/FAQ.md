@@ -276,7 +276,7 @@ The three OSS loops (`oss-daily-briefing`, `oss-triage`, `oss-pr-monitor`) are s
 - `oss-daily-briefing` (L1) — read-only. Safe to run from day one with no risk.
 - `oss-triage` (L1 + limited writes) — applies labels and posts comments. Requires a week of clean
   briefing runs to validate the AI's judgment before enabling.
-- `oss-pr-monitor` (L2) — merges Dependabot PRs. The highest-autonomy loop. Requires a week of
+- `oss-pr-monitor` (L3) — merges Dependabot PRs. The highest-autonomy loop. Requires a week of
   stable triage runs before enabling.
 
 This graduated structure lets you build confidence incrementally. You observe behavior at each tier
