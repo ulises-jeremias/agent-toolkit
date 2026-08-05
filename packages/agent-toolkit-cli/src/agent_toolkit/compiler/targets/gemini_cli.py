@@ -163,13 +163,7 @@ class GeminiCLIAdapter(TargetAdapter):
         content = skill.source_path.read_text(encoding="utf-8", errors="replace")
         self._write_file(dst / "SKILL.md", content, result)
 
-        refs_src = skill.source_path.parent / "references"
-        if refs_src.is_dir():
-            for ref_file in sorted(refs_src.rglob("*")):
-                if ref_file.is_file():
-                    rel = ref_file.relative_to(skill.source_path.parent)
-                    ref_content = ref_file.read_text(encoding="utf-8", errors="replace")
-                    self._write_file(dst / rel, ref_content, result)
+        self._copy_skill_references(skill, dst, result, text_mode=True)
 
         return f"skills/{skill.name}/SKILL.md"
 
