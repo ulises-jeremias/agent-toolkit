@@ -80,7 +80,7 @@ class GeminiCLIAdapter(TargetAdapter):
         )
         result.emitted.append("extension-manifest")
 
-        # 2. Skills → TOML commands (Gemini uses TOML, not YAML frontmatter)
+        # 2. Skills → bundled SKILL.md + TOML commands that inject the body via @{…}
         commands_toml_lines: list[str] = []
         for skill_id in product.included_skills:
             skill = graph.skills.get(skill_id)
@@ -88,7 +88,10 @@ class GeminiCLIAdapter(TargetAdapter):
                 result.warnings.append(f"Skill '{skill_id}' not found — skipping")
                 result.omitted.append(f"skill:{skill_id}")
                 continue
-            commands_toml_lines.extend(self._skill_to_toml_command(skill))
+            rel_skill = self._emit_skill_file(skill, out_dir, result)
+            if rel_skill is None:
+                continue
+            commands_toml_lines.extend(self._skill_to_toml_command(skill, rel_skill))
             result.emitted.append(f"skill:{skill_id}")
 
         if commands_toml_lines:
@@ -146,25 +149,49 @@ class GeminiCLIAdapter(TargetAdapter):
         }
         return manifest
 
-    def _skill_to_toml_command(self, skill: Skill) -> list[str]:
+    def _emit_skill_file(
+        self, skill: Skill, out_dir: Path, result: CompilationResult
+    ) -> str | None:
+        """Copy SKILL.md into the extension bundle; return path relative to out_dir."""
+        if not skill.source_path.exists():
+            result.warnings.append(f"Skill source missing: {skill.source_path}")
+            result.omitted.append(f"skill:{skill.id}")
+            return None
+
+        dst = out_dir / "skills" / skill.name
+        dst.mkdir(parents=True, exist_ok=True)
+        content = skill.source_path.read_text(encoding="utf-8", errors="replace")
+        self._write_file(dst / "SKILL.md", content, result)
+
+        refs_src = skill.source_path.parent / "references"
+        if refs_src.is_dir():
+            for ref_file in sorted(refs_src.rglob("*")):
+                if ref_file.is_file():
+                    rel = ref_file.relative_to(skill.source_path.parent)
+                    ref_content = ref_file.read_text(encoding="utf-8", errors="replace")
+                    self._write_file(dst / rel, ref_content, result)
+
+        return f"skills/{skill.name}/SKILL.md"
+
+    def _skill_to_toml_command(self, skill: Skill, skill_relpath: str) -> list[str]:
         """Convert a canonical skill to a Gemini TOML command block.
 
-        Gemini CLI uses TOML for command definitions — different from the
-        YAML frontmatter used by Claude Code, Cursor, and Copilot.
+        Gemini CLI uses TOML for command definitions. The prompt injects the
+        bundled SKILL.md via ``@{path}`` so maturity=stable ships real body
+        content (not a stub pointer).
         """
-        # Sanitize name for TOML key (no spaces, safe chars)
         safe_name = skill.name.replace("-", "_").replace(" ", "_")
-        # Truncate description for TOML inline value
         desc = (skill.description or "").replace('"', "'")[:200]
 
         lines = [
-            f'[[commands]]',
+            "[[commands]]",
             f'name = "{safe_name}"',
             f'description = "{desc}"',
-            # Reference the SKILL.md body as the command prompt
-            f'prompt = """',
-            f'See {skill.name} skill for full instructions.',
-            f'"""',
+            'prompt = """',
+            f"Follow the `{skill.name}` skill instructions for {{{{args}}}}.",
+            "",
+            f"@{{{skill_relpath}}}",
+            '"""',
             "",
         ]
         return lines

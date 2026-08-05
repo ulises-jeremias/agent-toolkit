@@ -80,6 +80,22 @@ def test_commands_toml_valid_toml_like(adapter, graph):
     assert "description" in text
 
 
+def test_commands_prompt_injects_skill_body_not_stub(adapter, graph):
+    """Regression #90: prompts must @{skills/.../SKILL.md}, not stub one-liners."""
+    product = graph.products["agent-toolkit-core"]
+    adapter.compile(graph, product)
+    out = adapter.output_root / "agent-toolkit-core"
+    commands = (out / "commands.toml").read_text()
+    assert "skill for full instructions" not in commands
+    assert "@{skills/" in commands
+    assert "/SKILL.md}" in commands
+    # Bundled skill files exist and contain real markdown body
+    skill_mds = list((out / "skills").rglob("SKILL.md"))
+    assert skill_mds, "expected bundled skills/*/SKILL.md"
+    body = skill_mds[0].read_text()
+    assert len(body) > 80
+
+
 def test_package_type_is_extension(adapter):
     assert adapter.package_type == "extension"
 
