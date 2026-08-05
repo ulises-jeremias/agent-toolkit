@@ -2,53 +2,54 @@ version: 1
 generated: true
 count: 10
 loops:
-- id: changelog-drafter
-  name: changelog-drafter
-  tier: L1
-  cadence: 1d
-  description: Draft release notes from merged PRs (L1, report-only)
-- id: ci-sweeper
-  name: ci-sweeper
-  tier: L2
-  cadence: 15m
-  description: Detect CI failures and propose fixes via draft PRs (L2, cautious)
-- id: daily-triage
-  name: daily-triage
-  tier: L1
-  cadence: 1d
-  description: Triage new issues and propose labels (report-only)
-- id: dep-sweeper
-  name: dep-sweeper
-  tier: L2
-  cadence: 1d
-  description: Apply patch-level dependency updates via draft PRs (L2)
-- id: issue-triage
-  name: issue-triage
-  tier: L1
-  cadence: 4h
-  description: Propose labels and routing for new issues (L1, propose-only)
-- id: oss-daily-briefing
-  name: oss-daily-briefing
-  tier: L1
-  cadence: 1d
-  description: Daily read-only briefing across OSS ecosystem repos (L1)
-- id: oss-pr-monitor
-  name: oss-pr-monitor
-  tier: L3
-  cadence: 1d
-  description: Monitor open PRs across OSS ecosystem repos and take action (L3, daily)
-- id: oss-triage
-  name: oss-triage
-  tier: L1
-  cadence: 1d
-  description: Triage issues across OSS ecosystem repos (L1, daily)
-- id: post-merge-cleanup
-  name: post-merge-cleanup
-  tier: L2
-  cadence: 6h
-  description: Off-peak housekeeping after merges (L2, low impact)
-- id: pr-babysitter
-  name: pr-babysitter
-  tier: L2
-  cadence: 15m
-  description: Monitor open PRs and post review comments (L2, PR-gated)
+  - id: changelog-drafter
+    name: changelog-drafter
+    tier: L1
+    cadence: 1d
+    description: Draft release notes from merged PRs (L1, report-only)
+  - id: ci-sweeper
+    name: ci-sweeper
+    tier: L2
+    cadence: 15m
+    description: Detect CI failures and propose fixes via draft PRs (L2, cautious)
+  - id: daily-triage
+    name: daily-triage
+    tier: L1
+    cadence: 1d
+    description: Triage new issues and propose labels (report-only)
+  - id: dep-sweeper
+    name: dep-sweeper
+    tier: L2
+    cadence: 1d
+    description: Apply patch-level dependency updates via draft PRs (L2)
+  - id: issue-triage
+    name: issue-triage
+    tier: L1
+    cadence: 4h
+    description: Propose labels and routing for new issues (L1, propose-only)
+  - id: oss-daily-briefing
+    name: oss-daily-briefing
+    tier: L1
+    cadence: 1d
+    description: Daily read-only briefing across OSS ecosystem repos (L1)
+  - id: oss-pr-monitor
+    name: oss-pr-monitor
+    tier: L3
+    cadence: 1d
+    description: Monitor open PRs across OSS ecosystem repos and take action (L3,
+      daily)
+  - id: oss-triage
+    name: oss-triage
+    tier: L1
+    cadence: 1d
+    description: Triage issues across OSS ecosystem repos (L1, daily)
+  - id: post-merge-cleanup
+    name: post-merge-cleanup
+    tier: L2
+    cadence: 6h
+    description: Off-peak housekeeping after merges (L2, low impact)
+  - id: pr-babysitter
+    name: pr-babysitter
+    tier: L2
+    cadence: 15m
+    description: Monitor open PRs and post review comments (L2, PR-gated)

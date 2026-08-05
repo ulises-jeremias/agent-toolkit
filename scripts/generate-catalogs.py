@@ -15,6 +15,14 @@ except ImportError:
 ROOT = Path(__file__).resolve().parents[1]
 
 
+class IndentDumper(yaml.SafeDumper):
+    """Force indented sequences so yamllint indentation rule passes."""
+
+    def increase_indent(self, flow=False, indentless=False):
+        return super().increase_indent(flow, False)
+
+
+
 def _fm(text: str) -> dict:
     m = re.match(r"^---\s*\n(.*?)\n---", text, re.S)
     if not m:
@@ -76,7 +84,7 @@ def main() -> int:
     }
     for name, data in mapping.items():
         path = out / name
-        path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True))
+        path.write_text(yaml.dump(data, Dumper=IndentDumper, sort_keys=False, allow_unicode=True, default_flow_style=False))
         print(f"wrote {path} ({data['count']} entries)")
     return 0
 

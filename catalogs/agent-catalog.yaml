@@ -2,74 +2,75 @@ version: 1
 generated: true
 count: 16
 agents:
-- id: architect
-  name: architect
-  description: Software architecture and system design specialist. Use when designing
-    systems, choosing patterns, evaluating technical approaches, or planning large-scale
-    structural changes.
-- id: assistant
-  name: assistant
-  description: agent-toolkit Dev Companion — follows internal conventions and best
-    practices. Use for any work in agent-toolkit or client repositories to ensure
-    compliance with agent-toolkit standards.
-- id: build-error-resolver
-  name: build-error-resolver
-  description: Build and TypeScript error resolution specialist. Use proactively when
-    encountering compilation errors, type errors, lint failures, or CI pipeline failures.
-- id: client-workflow-bootstrap
-  name: client-workflow-bootstrap
-  description: agent-toolkit client workflow bootstrap specialist. Use when onboarding
-    a new client project or updating an existing delivery workflow skill pair. Conducts
-    a structured interview and generates <client
-- id: code-reviewer
-  name: code-reviewer
-  description: Expert code review specialist. Proactively reviews code for quality,
-    security, and maintainability. Use immediately after writing or modifying any
-    significant code.
-- id: database-reviewer
-  name: database-reviewer
-  description: PostgreSQL and database specialist. Use for schema design, query optimization,
-    migration review, index analysis, and ORM usage questions.
-- id: docs-lookup
-  name: docs-lookup
-  description: Documentation and API reference specialist. Use when searching for
-    framework docs, library APIs, configuration options, or usage examples.
-- id: e2e-runner
-  name: e2e-runner
-  description: End-to-end testing specialist using Playwright. Use when writing, debugging,
-    or running E2E tests, or when setting up Playwright test infrastructure.
-- id: performance-optimizer
-  name: performance-optimizer
-  description: Performance analysis and optimization specialist. Use when code is
-    slow, has memory leaks, fails performance benchmarks, or needs profiling.
-- id: planner
-  name: planner
-  description: Expert planning specialist for complex features and refactoring. Use
-    before starting any significant implementation to break down work, identify risks,
-    and create an actionable plan.
-- id: refactor-cleaner
-  name: refactor-cleaner
-  description: Dead code cleanup and refactoring specialist. Use when removing dead
-    code, simplifying complex functions, reducing duplication, or improving code structure
-    without changing behavior.
-- id: reference-lookup
-  name: reference-lookup
-  description: Lookup agent-toolkit reference examples and patterns from public examples.
-    Use when looking for official agent-toolkit examples, starter templates, or established
-    patterns in the agent-toolkit ecosyst
-- id: security-reviewer
-  name: security-reviewer
-  description: Security vulnerability detection specialist. Use proactively after
-    implementing authentication, data handling, API endpoints, or any user-facing
-    functionality.
-- id: tdd-guide
-  name: tdd-guide
-  description: Test-Driven Development specialist. Enforces write-tests-first methodology.
-    Use when implementing new features to ensure proper test coverage from the start.
-- id: tech-assistant
-  name: tech-assistant
-  description: Technical operations assistant — ops specialist
-- id: typescript-reviewer
-  name: typescript-reviewer
-  description: TypeScript and JavaScript code review specialist. Use for type safety
-    improvements, modern TS/JS patterns, and resolving type complexity issues.
+  - id: architect
+    name: architect
+    description: Software architecture and system design specialist. Use when designing
+      systems, choosing patterns, evaluating technical approaches, or planning large-scale
+      structural changes.
+  - id: assistant
+    name: assistant
+    description: agent-toolkit Dev Companion — follows internal conventions and best
+      practices. Use for any work in agent-toolkit or client repositories to ensure
+      compliance with agent-toolkit standards.
+  - id: build-error-resolver
+    name: build-error-resolver
+    description: Build and TypeScript error resolution specialist. Use proactively
+      when encountering compilation errors, type errors, lint failures, or CI pipeline
+      failures.
+  - id: client-workflow-bootstrap
+    name: client-workflow-bootstrap
+    description: agent-toolkit client workflow bootstrap specialist. Use when onboarding
+      a new client project or updating an existing delivery workflow skill pair. Conducts
+      a structured interview and generates <client
+  - id: code-reviewer
+    name: code-reviewer
+    description: Expert code review specialist. Proactively reviews code for quality,
+      security, and maintainability. Use immediately after writing or modifying any
+      significant code.
+  - id: database-reviewer
+    name: database-reviewer
+    description: PostgreSQL and database specialist. Use for schema design, query
+      optimization, migration review, index analysis, and ORM usage questions.
+  - id: docs-lookup
+    name: docs-lookup
+    description: Documentation and API reference specialist. Use when searching for
+      framework docs, library APIs, configuration options, or usage examples.
+  - id: e2e-runner
+    name: e2e-runner
+    description: End-to-end testing specialist using Playwright. Use when writing,
+      debugging, or running E2E tests, or when setting up Playwright test infrastructure.
+  - id: performance-optimizer
+    name: performance-optimizer
+    description: Performance analysis and optimization specialist. Use when code is
+      slow, has memory leaks, fails performance benchmarks, or needs profiling.
+  - id: planner
+    name: planner
+    description: Expert planning specialist for complex features and refactoring.
+      Use before starting any significant implementation to break down work, identify
+      risks, and create an actionable plan.
+  - id: refactor-cleaner
+    name: refactor-cleaner
+    description: Dead code cleanup and refactoring specialist. Use when removing dead
+      code, simplifying complex functions, reducing duplication, or improving code
+      structure without changing behavior.
+  - id: reference-lookup
+    name: reference-lookup
+    description: Lookup agent-toolkit reference examples and patterns from public
+      examples. Use when looking for official agent-toolkit examples, starter templates,
+      or established patterns in the agent-toolkit ecosyst
+  - id: security-reviewer
+    name: security-reviewer
+    description: Security vulnerability detection specialist. Use proactively after
+      implementing authentication, data handling, API endpoints, or any user-facing
+      functionality.
+  - id: tdd-guide
+    name: tdd-guide
+    description: Test-Driven Development specialist. Enforces write-tests-first methodology.
+      Use when implementing new features to ensure proper test coverage from the start.
+  - id: tech-assistant
+    name: tech-assistant
+    description: Technical operations assistant — ops specialist
+  - id: typescript-reviewer
+    name: typescript-reviewer
+    description: TypeScript and JavaScript code review specialist. Use for type safety
+      improvements, modern TS/JS patterns, and resolving type complexity issues.
