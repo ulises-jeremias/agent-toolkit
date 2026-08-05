@@ -2,6 +2,11 @@ name: Release
 
 # Sole automated PyPI publish path for version tags (v*).
 # Manual TestPyPI/PyPI republish: workflow "Publish (manual)" only.
+#
+# Job graph:
+#   create-release ─┬─► publish-pypi
+#                   ├─► build-binaries ─► upload-assets
+#                   └─► sbom (attach after release exists)
 
 on:
   push:
@@ -12,10 +17,16 @@ permissions:
   contents: write
   id-token: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -26,6 +37,22 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: ${{ contains(github.ref_name, '-') }}
+      - name: Wait until release API is readable
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          for attempt in $(seq 1 30); do
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              echo "✓ Release $TAG is visible via API"
+              exit 0
+            fi
+            echo "Attempt $attempt/30: release not visible yet..."
+            sleep 5
+          done
+          echo "::error::Release $TAG never became visible"
+          exit 1
 
   publish-pypi:
     name: Publish to PyPI
@@ -46,6 +73,25 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
+      - name: Verify PyPI shows this version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          for attempt in $(seq 1 24); do
+            LATEST=$(curl -fsSL "https://pypi.org/pypi/agent-toolkit-cli/json" \
+              | python3 -c "import json,sys; print(json.load(sys.stdin)['info']['version'])" 2>/dev/null || echo "")
+            if [ "$LATEST" = "$VERSION" ]; then
+              echo "✓ PyPI latest is $LATEST"
+              exit 0
+            fi
+            # Also accept if this version exists even when not "latest" (yanked older etc.)
+            if curl -fsSL "https://pypi.org/pypi/agent-toolkit-cli/${VERSION}/json" >/dev/null 2>&1; then
+              echo "✓ PyPI has agent-toolkit-cli==$VERSION (latest reported: ${LATEST:-unknown})"
+              exit 0
+            fi
+            echo "Attempt $attempt/24: waiting for PyPI (saw '${LATEST:-none}')..."
+            sleep 15
+          done
+          echo "::warning::PyPI verification timed out — publish step succeeded; CDN may lag"
 
   build-binaries:
     name: Build ${{ matrix.artifact }}
@@ -96,13 +142,26 @@ jobs:
         with:
           path: binaries/
           merge-multiple: true
-      - run: gh release upload "${GITHUB_REF_NAME}" binaries/agent-toolkit* --clobber
+      - name: Upload binaries (retry)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 10); do
+            if gh release upload "${GITHUB_REF_NAME}" binaries/agent-toolkit* --clobber; then
+              echo "✓ Binaries attached"
+              exit 0
+            fi
+            echo "Attempt $attempt/10 failed; retrying in 10s..."
+            sleep 10
+          done
+          echo "::error::Failed to attach binaries"
+          exit 1
 
   sbom:
     name: Generate SBOM
+    needs: create-release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -120,12 +179,21 @@ jobs:
         with:
           name: sbom
           path: sbom.cyclonedx.json
-      - name: Attach SBOM to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Attach SBOM to GitHub Release (retry)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if [ -f sbom.cyclonedx.json ]; then
-            gh release upload "${GITHUB_REF_NAME}" sbom.cyclonedx.json --clobber
-          fi
+          set -euo pipefail
+          test -f sbom.cyclonedx.json
+          for attempt in $(seq 1 15); do
+            if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1 \
+              && gh release upload "${GITHUB_REF_NAME}" sbom.cyclonedx.json --clobber; then
+              echo "✓ SBOM attached to ${GITHUB_REF_NAME}"
+              exit 0
+            fi
+            echo "Attempt $attempt/15: release not ready or upload failed; retrying in 8s..."
+            sleep 8
+          done
+          echo "::error::Failed to attach SBOM after retries"
+          exit 1

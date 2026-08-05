@@ -11,6 +11,10 @@ on:
         description: Version to release (e.g. 1.0.0)
         required: true
 
+concurrency:
+  group: notify-homebrew-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   notify:
     runs-on: ubuntu-latest
@@ -22,38 +26,57 @@ jobs:
           if [ -n "${{ github.event.inputs.version }}" ]; then
             VERSION="${{ github.event.inputs.version }}"
           else
-            # Strip leading 'v' from tag
             VERSION="${GITHUB_REF_NAME#v}"
           fi
-          # Validate semver
-          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([a-zA-Z0-9.-]+)?$'; then
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+([a-zA-Z0-9.+-]+)?$'; then
             echo "::error::Invalid version: $VERSION"
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Notifying Homebrew tap for v$VERSION"
 
-      - name: Wait for GitHub release tarball
-        run: |
-          VERSION="${{ steps.ver.outputs.version }}"
-          URL="https://github.com/ulises-jeremias/agent-toolkit/archive/refs/tags/v${VERSION}.tar.gz"
-          for attempt in $(seq 1 24); do
-            if curl -fsSL --head "$URL" 2>/dev/null | grep -q "200\|302"; then
-              echo "✓ Tarball available: $URL"
-              break
-            fi
-            if [ "$attempt" = "24" ]; then echo "::error::Tarball not available after 24 attempts"; exit 1; fi
-            echo "Attempt $attempt/24: not yet available, retrying in 15s..."
-            sleep 15
-          done
-
-      - name: Dispatch to homebrew-tap
-        run: |
-          VERSION="${{ steps.ver.outputs.version }}"
-          gh api /repos/ulises-jeremias/homebrew-tap/dispatches \
-            -f event_type="new-release" \
-            -f "client_payload[formula_name]=agent-toolkit" \
-            -f "client_payload[version]=$VERSION"
-          echo "✓ Dispatched new-release event to homebrew-tap for v$VERSION"
+      - name: Wait for GitHub Release + source tarball
         env:
           GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          TAG="v${VERSION}"
+          URL="https://github.com/ulises-jeremias/agent-toolkit/archive/refs/tags/${TAG}.tar.gz"
+          for attempt in $(seq 1 36); do
+            REL_OK=0
+            TAR_OK=0
+            if gh release view "$TAG" --repo ulises-jeremias/agent-toolkit >/dev/null 2>&1; then
+              REL_OK=1
+            fi
+            CODE=$(curl -fsSL -o /dev/null -w '%{http_code}' --head "$URL" 2>/dev/null || echo 000)
+            if [ "$CODE" = "200" ] || [ "$CODE" = "302" ]; then
+              TAR_OK=1
+            fi
+            if [ "$REL_OK" = "1" ] && [ "$TAR_OK" = "1" ]; then
+              echo "✓ Release $TAG and tarball are available"
+              exit 0
+            fi
+            echo "Attempt $attempt/36: release=$REL_OK tarball_http=$CODE — waiting 15s..."
+            sleep 15
+          done
+          echo "::error::Release/tarball not available after retries"
+          exit 1
+
+      - name: Dispatch to homebrew-tap (retry)
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          for attempt in $(seq 1 8); do
+            if gh api /repos/ulises-jeremias/homebrew-tap/dispatches \
+              -f event_type="new-release" \
+              -f "client_payload[formula_name]=agent-toolkit" \
+              -f "client_payload[version]=$VERSION"; then
+              echo "✓ Dispatched new-release to homebrew-tap for v$VERSION"
+              exit 0
+            fi
+            echo "Attempt $attempt/8: dispatch failed; retrying in 20s..."
+            sleep 20
+          done
+          echo "::error::Failed to dispatch homebrew-tap update"
+          exit 1
