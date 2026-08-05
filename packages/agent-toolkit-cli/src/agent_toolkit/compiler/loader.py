@@ -9,9 +9,18 @@ from pathlib import Path
 from typing import Any
 
 from agent_toolkit.compiler.model import (
-    Agent, CanonicalGraph, ModelClass, Product, Provenance,
-    Requirement, SecurityPolicy, Skill, Stability,
+    AbstractTool,
+    Agent,
+    CanonicalGraph,
+    ModelClass,
+    Product,
+    Provenance,
+    Requirement,
+    SecurityPolicy,
+    Skill,
+    Stability,
 )
+from agent_toolkit.compiler.tool_mapping import map_claude_tools, parse_claude_tool_names
 
 try:
     import yaml
@@ -132,9 +141,16 @@ def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
                 f"frontmatter name '{declared_name}' in {agent_md}"
             )
 
-        # Map tools string to list
-        tools_str = fm.get("tools", "")
-        # abstract_tools = []  # TODO: map from Claude-specific to abstract
+        claude_names = parse_claude_tool_names(fm.get("tools"))
+        allowed_tools, unknown_tools = map_claude_tools(claude_names)
+        if unknown_tools:
+            errors.append(
+                f"{agent_md}: unknown Claude tool(s): {', '.join(unknown_tools)}"
+            )
+            continue
+
+        write_tools = {AbstractTool.FS_WRITE, AbstractTool.SHELL_EXECUTE, AbstractTool.GIT_WRITE}
+        read_only = bool(allowed_tools) and not any(t in write_tools for t in allowed_tools)
 
         mc_str = fm.get("model_class", "inherit")
         mc = ModelClass(mc_str) if mc_str in ("fast", "balanced", "deep", "inherit") else ModelClass.INHERIT
@@ -145,6 +161,8 @@ def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
             description=str(fm.get("description", ""))[:200],
             instructions=body.strip(),
             model_class=mc,
+            allowed_tools=allowed_tools,
+            read_only=read_only,
             source_path=agent_md,
             metadata=fm,
         )
