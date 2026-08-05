@@ -21,6 +21,7 @@ Commands:
     skills        Skill management: sync, list, validate
     mcp           MCP provider management: setup, list, doctor
     plugin        Plugin bundle management: sync, check
+    update        Refresh installed profiles from latest toolkit data
 
 Run 'agent-toolkit <command> --help' for details.
 """
@@ -63,6 +64,9 @@ def main() -> None:
         case "install":
             from agent_toolkit.cli.install import cmd_install
             sys.exit(cmd_install(rest))
+        case "update":
+            from agent_toolkit.cli.update import cmd_update
+            sys.exit(cmd_update(rest))
         case "doctor":
             from agent_toolkit.cli.doctor import cmd_doctor
             sys.exit(cmd_doctor(rest))
