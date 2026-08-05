@@ -1,41 +1,51 @@
 #!/usr/bin/env python3
-"""
+"""agent-toolkit CLI entrypoint — see docs/CLI_SURFACES.md."""
+from __future__ import annotations
+
+import sys
+
+CONSUMER_COMMANDS: tuple[str, ...] = (
+    "install", "doctor", "diff", "skills", "mcp", "plugin",
+)
+ADVANCED_COMMANDS: tuple[str, ...] = (
+    "loop", "workspace", "memory", "project", "devcompanion", "dc", "insights",
+    "build", "inventory", "matrix", "release",
+)
+
+_CONSUMER_HELP = """\
 agent-toolkit — Composable AI agent toolkit CLI
 
 Usage:
     agent-toolkit <command> [args...]
 
-Commands:
+Consumer commands:
     install       Install profiles for detected AI tools
     doctor        Check system health and tool availability
     diff          Show changes vs currently installed plugin bundles
-    build         Compile canonical capabilities into target-native artifacts
-    inventory     List all canonical skills, agents, and products
-    matrix        Show platform capability matrix
+    skills        Skill management: sync, list, validate
+    mcp           MCP provider management: setup, list, doctor
+    plugin        Plugin bundle management: sync, check
+
+Advanced commands (workstation / power-user — docs/CLI_SURFACES.md):
     loop          Loop engineering: init, run, status, audit, cost, schedule, sync
     workspace     Workspace scaffolding: init, context, sync
     memory        Knowledge base: add, search, inject, review, todo
     project       Project management: clone, list, add, remove, scan
     devcompanion  Background job queue: queue, run-once, status, done, sync-todos
     insights      AI tool usage insights: opencode, cursor, claude
-    skills        Skill management: sync, list, validate
-    mcp           MCP provider management: setup, list, doctor
-    plugin        Plugin bundle management: sync, check
-    update        Refresh installed profiles from toolkit data
-    completion    Emit shell completion scripts (bash, zsh, fish)
+    build         Compile canonical capabilities into target-native artifacts
+    inventory     List all canonical skills, agents, and products
+    matrix        Show platform capability matrix
+    release       Generate release artifacts (maintainer)
 
 Run 'agent-toolkit <command> --help' for details.
 """
-from __future__ import annotations
-
-import sys
-from pathlib import Path
 
 
 def main() -> None:
     argv = sys.argv[1:]
     if not argv or argv[0] in ("-h", "--help", "help"):
-        print(__doc__)
+        print(_CONSUMER_HELP)
         sys.exit(0)
 
     if argv[0] in ("-V", "--version", "version"):
@@ -69,7 +79,6 @@ def main() -> None:
             from agent_toolkit.cli.doctor import cmd_doctor
             sys.exit(cmd_doctor(rest))
         case "loop":
-            # Delegate to loop runner
             from agent_toolkit.loop import runner
             sys.argv = ["agent-toolkit loop"] + rest
             runner.main()
@@ -97,12 +106,14 @@ def main() -> None:
         case "insights":
             from agent_toolkit.cli.insights import cmd_insights
             sys.exit(cmd_insights(rest))
-        case "completion":
-            from agent_toolkit.cli.completion import cmd_completion
-            sys.exit(cmd_completion(rest))
         case _:
             print(f"Unknown command: {command}", file=sys.stderr)
             print("Run 'agent-toolkit help' for usage.", file=sys.stderr)
+            if command not in CONSUMER_COMMANDS and command not in ADVANCED_COMMANDS:
+                print(
+                    "See docs/CLI_SURFACES.md for consumer vs advanced commands.",
+                    file=sys.stderr,
+                )
             sys.exit(1)
 
 
