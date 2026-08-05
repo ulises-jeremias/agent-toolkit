@@ -14,6 +14,7 @@ from agent_toolkit.compiler.registry_emit import (
     emit_claude_mcp_json,
     resolve_hook_ids,
     resolve_mcp_ids,
+    rewrite_hook_command_for_bundle,
 )
 from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
 
@@ -58,6 +59,24 @@ def test_emit_claude_hooks_json():
     assert "session-start-context" in payload["hooks"]["SessionStart"][0]["command"]
 
 
+def test_emit_claude_hooks_json_bundle_relative():
+    payload = emit_claude_hooks_json(
+        ["session-start-context"],
+        HOOKS_DIR,
+        bundle_relative=True,
+    )
+    assert payload is not None
+    command = payload["hooks"]["SessionStart"][0]["command"]
+    assert command.startswith("bash hooks/scripts/")
+    assert "capabilities/" not in command
+
+
+def test_rewrite_hook_command_for_bundle():
+    canonical = ["bash", "capabilities/hooks/scripts/session-start-context.sh"]
+    rewritten = rewrite_hook_command_for_bundle(canonical)
+    assert rewritten == ["bash", "hooks/scripts/session-start-context.sh"]
+
+
 def test_emit_claude_mcp_json():
     payload = emit_claude_mcp_json(["github"], MCP_DIR)
     assert payload is not None
@@ -79,6 +98,13 @@ def test_adapter_emits_hooks_and_mcp(adapter, graph):
     mcp = json.loads((out / ".mcp.json").read_text())
     assert "SessionStart" in hooks["hooks"]
     assert "github" in mcp["mcpServers"]
+
+    command = hooks["hooks"]["SessionStart"][0]["command"]
+    assert command.startswith("bash hooks/scripts/")
+    assert "capabilities/" not in command
+    script = out / "hooks" / "scripts" / "session-start-context.sh"
+    assert script.is_file()
+    assert script.stat().st_mode & 0o111
 
 
 def test_agents_product_without_hooks_mcp(adapter, graph):
