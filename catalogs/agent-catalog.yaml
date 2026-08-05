@@ -1,202 +1,75 @@
-# agent-toolkit — Agent Catalog
-# Role hierarchy and handoff map for all agent personas.
-#
-# Agents are deployed per AI tool via the toolkit installer.
-# Each entry maps to an agent definition file under agents/<name>/
-#
-# fields:
-#   name:     kebab-case identifier matching the agent's frontmatter name
-#   role:     short functional description (snake_case)
-#   domain:   orchestration | review | design | testing | ops | delivery
-#   triggers: when to invoke this agent (prefer specific over vague)
-#   handoffs: agent names this agent is expected to delegate to
-
 version: 1
-
+generated: true
+count: 16
 agents:
-
-  # ── Orchestration ────────────────────────────────────────────────────────────
-
-  - name: architect
-    role: system_design_and_adrs
-    domain: orchestration
-    triggers:
-      - System or service design task
-      - Architecture decision needed
-      - Evaluate technical tradeoffs
-      - Design distributed system component
-      - Choose between competing implementation strategies
-    handoffs:
-      - planner
-      - code-reviewer
-      - security-reviewer
-
-  - name: assistant
-    role: primary_orchestrator_and_fallback
-    domain: orchestration
-    triggers:
-      - Default entry point when no specialized agent is obvious
-      - Repo inspection and convention verification
-      - Multi-agent coordination across domains
-      - Ambiguous or cross-cutting tasks
-    handoffs:
-      - architect
-      - planner
-      - code-reviewer
-      - security-reviewer
-      - docs-lookup
-      - tech-assistant
-
-  - name: planner
-    role: feature_and_iteration_planning
-    domain: orchestration
-    triggers:
-      - Feature breakdown into tasks or stories
-      - Sprint or iteration capacity planning
-      - Estimation and story-point assignment
-      - Dependency mapping for a delivery unit
-    handoffs:
-      - code-reviewer
-      - architect
-
-  - name: client-workflow-bootstrap
-    role: client_project_onboarding
-    domain: delivery
-    triggers:
-      - Onboard a new client project
-      - Bootstrap workflow skill pair for a client
-      - Generate client-specific delivery conventions
-    handoffs:
-      - assistant
-      - planner
-
-  # ── Review ───────────────────────────────────────────────────────────────────
-
-  - name: code-reviewer
-    role: code_quality_and_correctness_review
-    domain: review
-    triggers:
-      - Review a diff or PR for correctness
-      - Identify dead code, duplication, or complexity
-      - Validate implementation against requirements
-      - Post-implementation quality gate
-    handoffs: []
-
-  - name: database-reviewer
-    role: database_schema_and_query_review
-    domain: review
-    triggers:
-      - Review database schema migration
-      - Evaluate SQL query performance
-      - PostgreSQL index or constraint review
-      - Supabase RLS policy audit
-    handoffs: []
-
-  - name: performance-optimizer
-    role: performance_analysis_and_recommendations
-    domain: review
-    triggers:
-      - Profile slow code path or query
-      - Identify memory or CPU bottlenecks
-      - Benchmark comparison between implementations
-      - Performance regression investigation
-    handoffs: []
-
-  - name: security-reviewer
-    role: security_vulnerability_audit
-    domain: review
-    triggers:
-      - Security audit of code or configuration
-      - Check for secrets, injections, or insecure patterns
-      - OWASP or CVE-related review
-      - Dependency vulnerability assessment
-    handoffs: []
-
-  - name: typescript-reviewer
-    role: typescript_type_safety_review
-    domain: review
-    triggers:
-      - TypeScript or JavaScript type audit
-      - Strict mode compliance check
-      - Type inference or generics review
-      - JS-to-TS migration review
-    handoffs: []
-
-  # ── Design ───────────────────────────────────────────────────────────────────
-
-  - name: tech-assistant
-    role: technical_procedures_and_references
-    domain: design
-    triggers:
-      - Questions about internal technical procedures
-      - Architecture or infrastructure references
-      - Career development or training plans
-      - Lookup of internal runbooks
-    handoffs:
-      - architect
-      - docs-lookup
-      - reference-lookup
-
-  # ── Testing ──────────────────────────────────────────────────────────────────
-
-  - name: e2e-runner
-    role: playwright_end_to_end_test_execution
-    domain: testing
-    triggers:
-      - Run or write Playwright end-to-end tests
-      - Reproduce a UI regression with automation
-      - Validate user flows against a live environment
-      - Set up Playwright test suite from scratch
-    handoffs: []
-
-  - name: tdd-guide
-    role: test_driven_development_coach
-    domain: testing
-    triggers:
-      - Write tests before implementation
-      - TDD cycle: red → green → refactor
-      - Coverage gap analysis
-      - Unit or integration test scaffolding
-    handoffs: []
-
-  # ── Ops ──────────────────────────────────────────────────────────────────────
-
-  - name: build-error-resolver
-    role: build_and_type_error_triage
-    domain: ops
-    triggers:
-      - Build fails with compilation or type errors
-      - CI fails on lint or type check step
-      - npm, pnpm, or yarn install errors
-      - TypeScript or bundler error diagnosis
-    handoffs: []
-
-  - name: docs-lookup
-    role: documentation_and_api_reference_search
-    domain: ops
-    triggers:
-      - Fetch current library or framework docs
-      - API usage syntax or version migration
-      - SDK setup or configuration reference
-      - "How do I use X in Y version?"
-    handoffs: []
-
-  - name: reference-lookup
-    role: public_example_and_pattern_search
-    domain: ops
-    triggers:
-      - Find real-world implementation examples
-      - Locate community patterns for a problem
-      - Compare approaches across open-source projects
-      - Validate a design against public references
-    handoffs: []
-
-  - name: refactor-cleaner
-    role: dead_code_removal_and_simplification
-    domain: ops
-    triggers:
-      - Remove dead or unused code
-      - Simplify overly complex function or module
-      - Consolidate duplicate logic
-      - Cleanup after feature flag removal
-    handoffs: []
+- id: architect
+  name: architect
+  description: Software architecture and system design specialist. Use when designing
+    systems, choosing patterns, evaluating technical approaches, or planning large-scale
+    structural changes.
+- id: assistant
+  name: assistant
+  description: agent-toolkit Dev Companion — follows internal conventions and best
+    practices. Use for any work in agent-toolkit or client repositories to ensure
+    compliance with agent-toolkit standards.
+- id: build-error-resolver
+  name: build-error-resolver
+  description: Build and TypeScript error resolution specialist. Use proactively when
+    encountering compilation errors, type errors, lint failures, or CI pipeline failures.
+- id: client-workflow-bootstrap
+  name: client-workflow-bootstrap
+  description: agent-toolkit client workflow bootstrap specialist. Use when onboarding
+    a new client project or updating an existing delivery workflow skill pair. Conducts
+    a structured interview and generates <client
+- id: code-reviewer
+  name: code-reviewer
+  description: Expert code review specialist. Proactively reviews code for quality,
+    security, and maintainability. Use immediately after writing or modifying any
+    significant code.
+- id: database-reviewer
+  name: database-reviewer
+  description: PostgreSQL and database specialist. Use for schema design, query optimization,
+    migration review, index analysis, and ORM usage questions.
+- id: docs-lookup
+  name: docs-lookup
+  description: Documentation and API reference specialist. Use when searching for
+    framework docs, library APIs, configuration options, or usage examples.
+- id: e2e-runner
+  name: e2e-runner
+  description: End-to-end testing specialist using Playwright. Use when writing, debugging,
+    or running E2E tests, or when setting up Playwright test infrastructure.
+- id: performance-optimizer
+  name: performance-optimizer
+  description: Performance analysis and optimization specialist. Use when code is
+    slow, has memory leaks, fails performance benchmarks, or needs profiling.
+- id: planner
+  name: planner
+  description: Expert planning specialist for complex features and refactoring. Use
+    before starting any significant implementation to break down work, identify risks,
+    and create an actionable plan.
+- id: refactor-cleaner
+  name: refactor-cleaner
+  description: Dead code cleanup and refactoring specialist. Use when removing dead
+    code, simplifying complex functions, reducing duplication, or improving code structure
+    without changing behavior.
+- id: reference-lookup
+  name: reference-lookup
+  description: Lookup agent-toolkit reference examples and patterns from public examples.
+    Use when looking for official agent-toolkit examples, starter templates, or established
+    patterns in the agent-toolkit ecosyst
+- id: security-reviewer
+  name: security-reviewer
+  description: Security vulnerability detection specialist. Use proactively after
+    implementing authentication, data handling, API endpoints, or any user-facing
+    functionality.
+- id: tdd-guide
+  name: tdd-guide
+  description: Test-Driven Development specialist. Enforces write-tests-first methodology.
+    Use when implementing new features to ensure proper test coverage from the start.
+- id: tech-assistant
+  name: tech-assistant
+  description: Technical operations assistant — ops specialist
+- id: typescript-reviewer
+  name: typescript-reviewer
+  description: TypeScript and JavaScript code review specialist. Use for type safety
+    improvements, modern TS/JS patterns, and resolving type complexity issues.

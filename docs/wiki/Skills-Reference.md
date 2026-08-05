@@ -36,31 +36,8 @@ produces:
 [Skill body here — instructions, steps, safety rules, examples]
 ```
 
-### skill.json
-
-The machine-readable manifest. Install scripts, validators, and tool integrations read this file
-to understand the skill's capabilities and compatibility.
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
-  "name": "gh-fix-ci",
-  "version": "1.0.0",
-  "description": "Triage failing GitHub Actions checks and propose minimal fixes",
-  "source": "bundled",
-  "author": "ulises-jeremias",
-  "tags": ["ci", "github-actions", "debugging"],
-  "requires": ["gh"],
-  "compatibility": {
-    "claude-code": { "supported": true },
-    "cursor":      { "supported": true },
-    "opencode":    { "supported": true },
-    "windsurf":    { "supported": true },
-    "copilot-cli": { "supported": false },
-    "pi":          { "supported": true }
-  }
-}
-```
+Skills use `SKILL.md` frontmatter only — no `skill.json` required. See `docs/MIGRATION.md` for
+historical notes on retiring legacy `skill.json` manifests.
 
 ---
 
@@ -325,8 +302,9 @@ python3 scripts/validate-skills.py
 
 The validators check:
 
-- Every skill directory has both `SKILL.md` and `skill.json`
+- Every skill directory has `SKILL.md`
 - `SKILL.md` frontmatter has required `name` and `description` fields
-- `skill.json` has required `name`, `version`, and `compatibility` fields
+- Frontmatter validates against `schemas/skill-md-frontmatter.schema.json`
+- No deprecated `skill.json` files are present
 - `name` in frontmatter matches the directory name exactly
 - No secrets or credential patterns are present in any file

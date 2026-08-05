@@ -1,3 +1,47 @@
 # MCP Provider: linear
-# Research: docs/research/platform-capability-matrix.md (2026-08-04)
+# Research: docs/wiki/MCP-Setup.md · mcp/templates/linear/
 id: linear
+display_name: Linear
+purpose: Create and update issues, manage projects and cycles, add comments, query sprints
+implementation:
+  provenance: official
+  package: "https://mcp.linear.app/mcp"
+  repository: https://linear.app/docs/mcp
+  license: proprietary
+  version_policy: remote hosted
+transport:
+  supported: [streamable_http, sse]
+  preferred: streamable_http
+auth:
+  supported: [oauth]
+  preferred: oauth
+  env: []
+tools:
+  read:
+    - list_issues
+    - get_issue
+    - list_projects
+    - list_cycles
+  write:
+    - create_issue
+    - update_issue
+    - create_comment
+  destructive: []
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [mcp.linear.app, linear.app]
+  secret_storage: oauth browser flow
+  notes: Official Linear MCP uses OAuth; no API token required for streamable HTTP

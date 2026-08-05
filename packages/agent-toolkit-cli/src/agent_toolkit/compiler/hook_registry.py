@@ -50,26 +50,36 @@ class HookDefinition:
         )
 
 
-def load_hooks(hooks_dir: Path) -> dict[str, HookDefinition]:
-    """Load all hook definitions from capabilities/hooks/*.yaml."""
+def load_hooks(hooks_dir: Path) -> tuple[dict[str, HookDefinition], list[str]]:
+    """Load all hook definitions from capabilities/hooks/*.yaml.
+
+    Returns (hooks, errors). Malformed files are skipped and reported.
+    """
     hooks: dict[str, HookDefinition] = {}
+    errors: list[str] = []
     if not hooks_dir.is_dir():
-        return hooks
+        return hooks, errors
 
     try:
         import yaml
     except ImportError:
-        return hooks
+        return hooks, ["PyYAML is required to load hook definitions"]
 
     for yaml_file in sorted(hooks_dir.glob("*.yaml")):
         try:
             data = yaml.safe_load(yaml_file.read_text())
-            if data and "id" in data:
-                hooks[data["id"]] = HookDefinition.from_dict(data)
-        except Exception:
+        except Exception as exc:
+            errors.append(f"{yaml_file}: invalid YAML: {exc}")
             continue
+        if not data or "id" not in data:
+            errors.append(f"{yaml_file}: missing required 'id' field")
+            continue
+        try:
+            hooks[data["id"]] = HookDefinition.from_dict(data)
+        except Exception as exc:
+            errors.append(f"{yaml_file}: {exc}")
 
-    return hooks
+    return hooks, errors
 
 
 def generate_parity_document(hooks: dict[str, HookDefinition]) -> str:
