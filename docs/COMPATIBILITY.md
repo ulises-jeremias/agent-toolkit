@@ -9,9 +9,9 @@
 | GitHub Copilot CLI | Any current | Open Plugin Spec optional |
 | Gemini CLI | 0.1.0+ | Extension system available |
 | OpenCode | 0.3+ | JS/TS module plugins |
-| Pi Coding Agent | Any current | npm package system — see `docs/certification/pi.md` |
-| Windsurf/Devin | Any current | No marketplace — bundle only |
-| OpenAI Codex | Recent | Marketplace launched March 2026 (experimental) — see `docs/certification/codex.md` |
+| Pi Coding Agent | Any current | npm package system |
+| Windsurf/Devin | Any current | No marketplace — bundle only — see `docs/certification/windsurf.md` |
+| OpenAI Codex | Recent | Marketplace launched March 2026 (experimental) |
 
 ## Python version
 

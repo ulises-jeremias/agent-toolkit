@@ -50,11 +50,11 @@ Per-target certification packages document official contracts vs adapter behavio
 
 | Target | Certification doc |
 |--------|-------------------|
-| Cursor IDE/CLI | [`docs/targets/cursor-certification.md`](targets/cursor-certification.md) |
+| Claude Code | [`docs/targets/claude-code-certification.md`](targets/claude-code-certification.md) |
 
 ## Research sources
 
 All capability claims are based on official documentation as of 2026-08-04.
 See `docs/research/platform-capability-matrix.md` and `docs/research/source-ledger.md`.
 
-Per-target certification records: `docs/certification/` (Pi, Windsurf, Codex).
+Per-target certification: `docs/certification/windsurf.md` (customization bundle, ADR-002).
