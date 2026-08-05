@@ -9,6 +9,7 @@ Options:
                     Valid: claude-code, cursor, opencode, copilot, windsurf, pi
     --dry-run       Show what would happen without making changes
     --force         Overwrite existing files without prompting
+    --offline       Use only bundled/cached data (no network download)
     --help          Show this help message
 """
 from __future__ import annotations
@@ -16,7 +17,7 @@ from __future__ import annotations
 import shutil
 import sys
 from pathlib import Path
-from agent_toolkit._paths import toolkit_root
+from agent_toolkit._paths import reset_toolkit_root, toolkit_root
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -322,9 +323,10 @@ _PARSE_ERROR = object()
 
 
 def _parse_args(args: list[str]):
-    """Return (tools, dry_run, force), _PARSE_HELP, or _PARSE_ERROR."""
+    """Return (tools, dry_run, force, offline), _PARSE_HELP, or _PARSE_ERROR."""
     dry_run = False
     force = False
+    offline = False
     requested: str = ""
 
     i = 0
@@ -337,6 +339,8 @@ def _parse_args(args: list[str]):
             dry_run = True
         elif arg == "--force":
             force = True
+        elif arg == "--offline":
+            offline = True
         elif arg == "--tools":
             if i + 1 >= len(args):
                 _err("--tools requires an argument")
@@ -351,7 +355,7 @@ def _parse_args(args: list[str]):
     tools: list[str] = []
     if requested:
         tools = [t.strip() for t in requested.split(",") if t.strip()]
-    return tools, dry_run, force
+    return tools, dry_run, force, offline
 
 
 # ---------------------------------------------------------------------------
@@ -369,11 +373,22 @@ def cmd_install(args: list[str]) -> int:
     if result is _PARSE_ERROR:
         return 2
 
-    tools, dry_run, force = result
+    tools, dry_run, force, offline = result
+
+    if offline:
+        os.environ["AGENT_TOOLKIT_OFFLINE"] = "1"
+        reset_toolkit_root()
 
     print()
     print("agent-toolkit installer")
-    print(f"Toolkit: {toolkit_root()}")
+    try:
+        root = toolkit_root(offline=offline)
+    except EnvironmentError as exc:
+        _err(str(exc))
+        return 1
+    print(f"Toolkit: {root}")
+    if offline:
+        _info("Offline mode — using bundled/cached data only")
 
     if dry_run:
         print()
