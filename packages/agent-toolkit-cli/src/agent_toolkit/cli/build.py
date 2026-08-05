@@ -9,7 +9,6 @@ Options:
     --product PRODUCT  Product ID to compile (agent-toolkit-core, etc.)
     --check            Dry-run: validate without writing files
     --output DIR       Output directory (default: plugins/)
-    --emit-registries  Emit all registry hooks/MCP supported by the target (Claude Code)
     --json             Output results as JSON
     --help             Show this help
 
@@ -57,7 +56,6 @@ def cmd_build(args: list[str]) -> int:
     parser.add_argument("--product", default=None)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--output", default=None)
-    parser.add_argument("--emit-registries", action="store_true")
     parser.add_argument("--json", dest="json_out", action="store_true")
     parser.add_argument("--help", "-h", action="store_true")
 
@@ -100,14 +98,25 @@ def cmd_build(args: list[str]) -> int:
             return 1
         products_to_build = [graph.products[parsed.product]]
 
-    # Select targets
-    available_targets = {"claude-code", "cursor", "opencode", "gemini-cli", "copilot-cli", "copilot-repository", "pi", "windsurf", "codex"}  # expand as adapters are added
-    targets_to_build = [parsed.target] if parsed.target else list(available_targets)
+    from agent_toolkit.compiler.target_registry import (
+        load_target_registry,
+        resolve_target_id,
+        target_ids_for,
+    )
 
-    for t in targets_to_build:
-        if t not in available_targets:
-            print(f"  ✗  Unknown target '{t}'. Available: {', '.join(available_targets)}")
+    reg = load_target_registry(repo_root)
+    if parsed.target:
+        canonical = resolve_target_id(parsed.target, reg)
+        build_ids = target_ids_for("build", reg)
+        if canonical not in build_ids:
+            print(
+                f"  ✗  Unknown target '{parsed.target}'. "
+                f"Available: {', '.join(build_ids)}"
+            )
             return 1
+        targets_to_build = [canonical]
+    else:
+        targets_to_build = target_ids_for("build", reg)
 
     output_dir = Path(parsed.output) if parsed.output else repo_root / "plugins"
     mode = "check" if parsed.check else "build"
@@ -127,12 +136,8 @@ def cmd_build(args: list[str]) -> int:
             adapter._provenance_records = []
             if parsed.check:
                 result = adapter.check(graph, product)
-            elif parsed.emit_registries and target_id == "claude-code":
-                result = adapter.compile(graph, product, emit_registries=True)
             else:
                 result = adapter.compile(graph, product)
-                if hasattr(adapter, "_cleanup_stale_artifacts"):
-                    adapter._cleanup_stale_artifacts(product, result)
                 if hasattr(adapter, "_finalize_provenance"):
                     adapter._finalize_provenance(product, result)
 
@@ -216,32 +221,9 @@ def cmd_matrix(args: list[str]) -> int:
 
 
 def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
-    """Return the adapter for a given target ID."""
-    if target_id == "claude-code":
-        from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
-        return ClaudeCodeAdapter(output_dir, repo_root)
-    if target_id == "cursor":
-        from agent_toolkit.compiler.targets.cursor import CursorAdapter
-        return CursorAdapter(output_dir, repo_root)
-    if target_id in ("gemini-cli", "gemini"):
-        from agent_toolkit.compiler.targets.gemini_cli import GeminiCLIAdapter
-        return GeminiCLIAdapter(output_dir, repo_root)
-    if target_id in ("copilot-cli", "copilot"):
-        from agent_toolkit.compiler.targets.copilot import CopilotCLIAdapter
-        return CopilotCLIAdapter(output_dir, repo_root)
-    if target_id == "copilot-repository":
-        from agent_toolkit.compiler.targets.copilot import CopilotRepositoryAdapter
-        return CopilotRepositoryAdapter(output_dir, repo_root)
-    if target_id == "pi":
-        from agent_toolkit.compiler.targets.pi import PiAdapter
-        return PiAdapter(output_dir, repo_root)
-    if target_id == "windsurf":
-        from agent_toolkit.compiler.targets.windsurf import WindsurfAdapter
-        return WindsurfAdapter(output_dir, repo_root)
-    if target_id == "codex":
-        from agent_toolkit.compiler.targets.codex import CodexAdapter
-        return CodexAdapter(output_dir, repo_root)
-    if target_id == "opencode":
-        from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
-        return OpenCodeAdapter(output_dir, repo_root)
-    return None
+    """Return the adapter for a given target ID via declarative registry."""
+    from agent_toolkit.compiler.target_registry import resolve_adapter_class
+    cls = resolve_adapter_class(target_id, repo_root)
+    if cls is None:
+        return None
+    return cls(output_dir, repo_root)

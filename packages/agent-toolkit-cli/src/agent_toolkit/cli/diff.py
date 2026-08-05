@@ -69,7 +69,27 @@ def cmd_diff(args: list[str]) -> int:
         return 1
 
     plugins_dir = repo_root / "plugins"
-    targets = [parsed.target] if parsed.target else ["claude-code", "cursor", "opencode"]
+    from agent_toolkit.compiler.target_registry import (
+        load_target_registry,
+        resolve_target_id,
+        target_ids_for,
+    )
+
+    reg = load_target_registry(repo_root)
+    if parsed.target:
+        canonical = resolve_target_id(parsed.target, reg)
+        diff_ids = target_ids_for("diff", reg)
+        if canonical not in diff_ids:
+            available = ", ".join(diff_ids)
+            print(
+                f"  ✗  Unknown or unsupported diff target '{parsed.target}'. "
+                f"Available: {available}",
+                file=sys.stderr,
+            )
+            return 1
+        targets = [canonical]
+    else:
+        targets = target_ids_for("diff", reg)
     products_to_diff = (
         [graph.products[parsed.product]] if parsed.product and parsed.product in graph.products
         else list(graph.products.values())
@@ -154,13 +174,8 @@ def cmd_diff(args: list[str]) -> int:
 
 
 def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
-    if target_id == "claude-code":
-        from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
-        return ClaudeCodeAdapter(output_dir, repo_root)
-    if target_id == "cursor":
-        from agent_toolkit.compiler.targets.cursor import CursorAdapter
-        return CursorAdapter(output_dir, repo_root)
-    if target_id == "opencode":
-        from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
-        return OpenCodeAdapter(output_dir, repo_root)
-    return None
+    from agent_toolkit.compiler.target_registry import resolve_adapter_class
+    cls = resolve_adapter_class(target_id, repo_root)
+    if cls is None:
+        return None
+    return cls(output_dir, repo_root)

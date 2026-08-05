@@ -79,21 +79,29 @@ def cmd_release(args: list[str]) -> int:
 
     print(f"\nRelease dry run — output: {output_dir}\n")
 
-    targets = {
-        "claude-code": "agent_toolkit.compiler.targets.claude_code.ClaudeCodeAdapter",
-        "cursor": "agent_toolkit.compiler.targets.cursor.CursorAdapter",
-        "opencode": "agent_toolkit.compiler.targets.opencode.OpenCodeAdapter",
-        "copilot-cli": "agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter",
-        "copilot-repository": "agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter",
-        "gemini-cli": "agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter",
-        "windsurf": "agent_toolkit.compiler.targets.windsurf.WindsurfAdapter",
-        "pi": "agent_toolkit.compiler.targets.pi.PiAdapter",
-        "codex": "agent_toolkit.compiler.targets.codex.CodexAdapter",
-    }
+    from agent_toolkit.compiler.target_registry import (
+        adapter_import_path,
+        load_target_registry,
+        resolve_target_id,
+        target_ids_for,
+    )
+
+    reg = load_target_registry(repo_root)
+    release_specs = {spec.id: spec for spec in reg if spec.release}
 
     target_filter = parsed.target
     if target_filter != "all":
-        targets = {k: v for k, v in targets.items() if k == target_filter}
+        canonical = resolve_target_id(target_filter, reg)
+        if canonical not in release_specs:
+            available = ", ".join(sorted(release_specs))
+            print(
+                f"  ✗  Unknown release target '{target_filter}'. Available: {available}",
+                file=sys.stderr,
+            )
+            return 1
+        release_specs = {canonical: release_specs[canonical]}
+
+    targets = {spec_id: adapter_import_path(spec) for spec_id, spec in release_specs.items()}
 
     artifacts_summary = []
     checksums: dict[str, str] = {}
