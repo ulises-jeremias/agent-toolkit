@@ -1,169 +1,165 @@
 version: '1.0'
 generated_from: distributions/products.yaml
 products:
-- id: agent-toolkit-core
-  name: Agent Toolkit Core
-  description: Core orchestration skills, dev companion, output handshake, PR fallback,
-    and code-reviewer agent. The baseline install for any project.
-  version_source: src/agent_toolkit/__init__.py
-  stability: stable
-  includes:
-    skills:
-    - core/assistant
-    - core/dev-companion
-    - core/output-handshake
-    - core/pr-fallback
-    - core/workspace-knowledge-sync
-    - core/onboarding
-    agents:
-    - code-reviewer
-    hooks:
-    - session-start-context
-    mcp:
-    - github
-  excludes: []
-  targets:
-    claude-code:
-      plugin_id: agent-toolkit-core
-      manifest: plugins/agent-toolkit-core/.claude-plugin/plugin.json
-    cursor:
-      plugin_id: agent-toolkit-core
-      manifest: plugins/agent-toolkit-core/.cursor-plugin/plugin.json
-  requires:
-    executables: []
-    env: []
-  security:
-    approval_required: false
-    default_enabled: true
-    rationale: Core skills are read-only instruction files with no side effects.
-- id: agent-toolkit-agents
-  name: Agent Toolkit Agents
-  description: 'Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer,
-    planner, database-reviewer, TypeScript-reviewer, and more.'
-  version_source: src/agent_toolkit/__init__.py
-  stability: stable
-  includes:
-    skills: []
-    agents:
-    - architect
-    - assistant
-    - build-error-resolver
-    - client-workflow-bootstrap
-    - code-reviewer
-    - database-reviewer
-    - docs-lookup
-    - e2e-runner
-    - performance-optimizer
-    - planner
-    - refactor-cleaner
-    - reference-lookup
-    - security-reviewer
-    - tdd-guide
-    - tech-assistant
-    - typescript-reviewer
-    hooks: []
-    mcp: []
-  targets:
-    claude-code:
-      plugin_id: agent-toolkit-agents
-      manifest: plugins/agent-toolkit-agents/.claude-plugin/plugin.json
-    cursor:
-      plugin_id: agent-toolkit-agents
-      manifest: plugins/agent-toolkit-agents/.cursor-plugin/plugin.json
-- id: agent-toolkit-forge
-  name: Agent Toolkit Forge
-  description: 'GitHub and GitLab automation skills: PR workflows, CI fixes, comment
-    resolution, and contribution planning.'
-  version_source: src/agent_toolkit/__init__.py
-  stability: stable
-  includes:
-    skills:
-    - forge/github-cli-workflow
-    - forge/gitlab-cli-workflow
-    - forge/gh-address-comments
-    - forge/gh-fix-ci
-    - forge/gh-contribution-planner
-    - forge/workflow-client-bootstrap
-    - forge/workflow-generic-project
-    agents: []
-    hooks: []
-    mcp: []
-  requires:
-    executables:
-    - name: gh
-      description: GitHub CLI
-      install_url: https://cli.github.com/
-      required: false
-  targets:
-    claude-code:
-      plugin_id: agent-toolkit-forge
-      manifest: plugins/agent-toolkit-forge/.claude-plugin/plugin.json
-    cursor:
-      plugin_id: agent-toolkit-forge
-      manifest: plugins/agent-toolkit-forge/.cursor-plugin/plugin.json
-- id: agent-toolkit-complete
-  name: Agent Toolkit Complete
-  description: Full stable skill catalog coverage for consumers who want everything
-    (#50)
-  stability: experimental
-  includes:
-    skills:
-    - core/assistant
-    - core/dev-companion
-    - core/onboarding
-    - core/output-handshake
-    - core/pr-fallback
-    - core/workspace-knowledge-sync
-    - data/dbt-validation
-    - data/snowflake-validation
-    - delivery/adr
-    - delivery/agreement
-    - delivery/bug
-    - delivery/decision-log
-    - delivery/development-workflow
-    - delivery/epic
-    - delivery/incident
-    - delivery/management-unit-assessment
-    - delivery/meeting-minutes
-    - delivery/planning
-    - delivery/prd
-    - delivery/project-assessment
-    - delivery/project-assessment-evidence
-    - delivery/spike
-    - delivery/task
-    - delivery/technical-unit-assessment
-    - delivery/trd
-    - delivery/user-story
-    - delivery/work-item
-    - delivery/workflow-client-bootstrap
-    - delivery/workflow-generic-project
-    - design/figma
-    - design/figma-code-connect-components
-    - design/figma-create-design-system-rules
-    - design/figma-create-new-file
-    - design/figma-implement-design
-    - design/ui-ux-pro-max
-    - forge/gh-address-comments
-    - forge/gh-contribution-planner
-    - forge/gh-fix-ci
-    - forge/github-cli-workflow
-    - forge/gitlab-cli-workflow
-    - forge/workflow-client-bootstrap
-    - forge/workflow-generic-project
-    - integrations/clickup-cli
-    - integrations/linear
-    - integrations/slack-assistant
-    - integrations/slack-cli
-    - loops/loop-runner
-    - ops/docs-generator
-    - ops/llm-cost-advisor
-    - ops/triage
-    - tooling/jupyter-notebook
-    - tooling/playwright-cli
-    agents: []
-    hooks: []
-    mcp: []
-  security:
-    approval_required: false
-    default_enabled: true
-    rationale: opt-in complete catalog
+  - id: agent-toolkit-core
+    name: Agent Toolkit Core
+    description: Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - core/assistant
+        - core/dev-companion
+        - core/output-handshake
+        - core/pr-fallback
+        - core/workspace-knowledge-sync
+        - core/onboarding
+      agents:
+        - code-reviewer
+      hooks:
+        - session-start-context
+      mcp:
+        - github
+    excludes: []
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-core
+        manifest: plugins/agent-toolkit-core/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-core
+        manifest: plugins/agent-toolkit-core/.cursor-plugin/plugin.json
+    requires:
+      executables: []
+      env: []
+    security:
+      approval_required: false
+      default_enabled: true
+      rationale: Core skills are read-only instruction files with no side effects.
+  - id: agent-toolkit-agents
+    name: Agent Toolkit Agents
+    description: 'Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.'
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills: []
+      agents:
+        - architect
+        - assistant
+        - build-error-resolver
+        - client-workflow-bootstrap
+        - code-reviewer
+        - database-reviewer
+        - docs-lookup
+        - e2e-runner
+        - performance-optimizer
+        - planner
+        - refactor-cleaner
+        - reference-lookup
+        - security-reviewer
+        - tdd-guide
+        - tech-assistant
+        - typescript-reviewer
+      hooks: []
+      mcp: []
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-agents
+        manifest: plugins/agent-toolkit-agents/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-agents
+        manifest: plugins/agent-toolkit-agents/.cursor-plugin/plugin.json
+  - id: agent-toolkit-forge
+    name: Agent Toolkit Forge
+    description: 'GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.'
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - forge/github-cli-workflow
+        - forge/gitlab-cli-workflow
+        - forge/gh-address-comments
+        - forge/gh-fix-ci
+        - forge/gh-contribution-planner
+        - forge/workflow-client-bootstrap
+        - forge/workflow-generic-project
+      agents: []
+      hooks: []
+      mcp: []
+    requires:
+      executables:
+        - name: gh
+          description: GitHub CLI
+          install_url: https://cli.github.com/
+          required: false
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-forge
+        manifest: plugins/agent-toolkit-forge/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-forge
+        manifest: plugins/agent-toolkit-forge/.cursor-plugin/plugin.json
+  - id: agent-toolkit-complete
+    name: Agent Toolkit Complete
+    description: Full stable skill catalog coverage for consumers who want everything (#50)
+    stability: experimental
+    includes:
+      skills:
+        - core/assistant
+        - core/dev-companion
+        - core/onboarding
+        - core/output-handshake
+        - core/pr-fallback
+        - core/workspace-knowledge-sync
+        - data/dbt-validation
+        - data/snowflake-validation
+        - delivery/adr
+        - delivery/agreement
+        - delivery/bug
+        - delivery/decision-log
+        - delivery/development-workflow
+        - delivery/epic
+        - delivery/incident
+        - delivery/management-unit-assessment
+        - delivery/meeting-minutes
+        - delivery/planning
+        - delivery/prd
+        - delivery/project-assessment
+        - delivery/project-assessment-evidence
+        - delivery/spike
+        - delivery/task
+        - delivery/technical-unit-assessment
+        - delivery/trd
+        - delivery/user-story
+        - delivery/work-item
+        - delivery/workflow-client-bootstrap
+        - delivery/workflow-generic-project
+        - design/figma
+        - design/figma-code-connect-components
+        - design/figma-create-design-system-rules
+        - design/figma-create-new-file
+        - design/figma-implement-design
+        - design/ui-ux-pro-max
+        - forge/gh-address-comments
+        - forge/gh-contribution-planner
+        - forge/gh-fix-ci
+        - forge/github-cli-workflow
+        - forge/gitlab-cli-workflow
+        - forge/workflow-client-bootstrap
+        - forge/workflow-generic-project
+        - integrations/clickup-cli
+        - integrations/linear
+        - integrations/slack-assistant
+        - integrations/slack-cli
+        - loops/loop-runner
+        - ops/docs-generator
+        - ops/llm-cost-advisor
+        - ops/triage
+        - tooling/jupyter-notebook
+        - tooling/playwright-cli
+      agents: []
+      hooks: []
+      mcp: []
+    security:
+      approval_required: false
+      default_enabled: true
+      rationale: opt-in complete catalog
