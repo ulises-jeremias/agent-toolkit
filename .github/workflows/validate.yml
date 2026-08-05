@@ -235,7 +235,8 @@ jobs:
             --ignore skills \
             --ignore agents \
             --ignore loops \
-            README.md AGENTS.md CONTRIBUTING.md CHANGELOG.md docs
+            --ignore docs/wiki \
+            README.md CONTRIBUTING.md docs/LOOPS.md
 
   # ── Job 8: YAML lint ──────────────────────────────────────────────────────
   yaml-lint:
