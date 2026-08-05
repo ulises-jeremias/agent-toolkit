@@ -15,19 +15,20 @@ def test_registry_dir_exists():
 
 
 def test_registry_loads_all_providers():
-    providers = load_registry(REGISTRY_DIR)
+    providers, errors = load_registry(REGISTRY_DIR)
+    assert not errors, f"Registry load errors: {errors}"
     assert len(providers) >= 6, f"Expected at least 6 providers, got {len(providers)}"
 
 
 def test_all_required_providers_present():
-    providers = load_registry(REGISTRY_DIR)
+    providers, _ = load_registry(REGISTRY_DIR)
     required = {"github", "slack", "notion", "linear", "figma", "clickup"}
     missing = required - set(providers.keys())
     assert not missing, f"Missing providers: {missing}"
 
 
 def test_github_provider_fields():
-    providers = load_registry(REGISTRY_DIR)
+    providers, _ = load_registry(REGISTRY_DIR)
     gh = providers["github"]
     assert gh.id == "github"
     assert gh.display_name == "GitHub"
@@ -39,7 +40,7 @@ def test_github_provider_fields():
 
 def test_all_providers_have_complete_metadata():
     """Regression: stubs with only `id` must not count as complete providers (#73)."""
-    providers = load_registry(REGISTRY_DIR)
+    providers, _ = load_registry(REGISTRY_DIR)
     required = {"github", "slack", "notion", "linear", "figma", "clickup"}
     for pid in required:
         p = providers[pid]
@@ -55,17 +56,16 @@ def test_all_providers_have_complete_metadata():
 
 def test_no_secrets_in_registry():
     """Registry files must contain only env var names, never values."""
+    import re
     for yaml_file in REGISTRY_DIR.glob("*.yaml"):
         text = yaml_file.read_text()
-        # These patterns suggest actual secret values
-        import re
         assert not re.search(r"ghp_[A-Za-z0-9]{36}", text), f"Token in {yaml_file}"
         assert not re.search(r"xoxb-[A-Za-z0-9-]+", text), f"Slack token in {yaml_file}"
         assert "api_key:" not in text.lower() or "${" in text, f"Possible hardcoded key in {yaml_file}"
 
 
 def test_provider_platform_support():
-    providers = load_registry(REGISTRY_DIR)
+    providers, _ = load_registry(REGISTRY_DIR)
     gh = providers["github"]
     assert gh.is_supported_for("claude-code")
     assert gh.is_supported_for("cursor")
@@ -79,5 +79,6 @@ def test_registry_no_private_hostnames():
 
 
 def test_load_registry_graceful_on_missing_dir(tmp_path):
-    providers = load_registry(tmp_path / "nonexistent")
+    providers, errors = load_registry(tmp_path / "nonexistent")
     assert providers == {}
+    assert errors == []
