@@ -208,7 +208,9 @@ install_claude_code() {
   fi
 
   copy_file "${src}/CLAUDE.md"     "${HOME}/.claude/CLAUDE.md"
-  copy_file "${src}/settings.json" "${HOME}/.claude/settings.json"
+  # Never overwrite ~/.claude/settings.json — user-owned (plugins/permissions).
+  # Toolkit capabilities install via marketplace plugins, not global settings.
+  info "Skipping ~/.claude/settings.json (user-owned)"
 
   if [[ -d "${src}/agents" ]]; then
     copy_dir "${src}/agents" "${HOME}/.claude/agents"

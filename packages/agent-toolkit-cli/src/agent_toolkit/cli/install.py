@@ -183,10 +183,18 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
 
     home = Path.home()
     success = True
+    # Install instruction/agent files only. Never write ~/.claude/settings.json —
+    # that file is user-owned (plugins, permissions, env). Target contract:
+    # distributions/targets/claude-code.yaml → plugin_settings_scope: plugin-local.
     success &= _copy_file(src / "CLAUDE.md", home / ".claude" / "CLAUDE.md",
                           dry_run=dry_run, force=force)
-    success &= _copy_file(src / "settings.json", home / ".claude" / "settings.json",
-                          dry_run=dry_run, force=force)
+    settings_src = src / "settings.json"
+    if settings_src.is_file():
+        _info(
+            "Skipping ~/.claude/settings.json (user-owned). "
+            "Use Claude Code marketplace plugins for toolkit capabilities; "
+            f"reference profile kept at {settings_src}"
+        )
     if (src / "agents").is_dir():
         success &= _copy_dir(src / "agents", home / ".claude" / "agents",
                              dry_run=dry_run, force=force)
