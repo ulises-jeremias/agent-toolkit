@@ -944,6 +944,68 @@ def _try_copilot_runner(
     return False
 
 
+def _try_codex_runner(
+    prompt: str,
+    run_dir: Path,
+    meta: dict[str, Any] | None = None,
+    *,
+    trace_file: Path | None = None,
+    wall_timeout: int | None = None,
+    max_tokens: int | None = None,
+) -> bool:
+    """Invoke OpenAI Codex CLI headless (``codex exec``) as a loop runner (#225).
+
+    See https://developers.openai.com/codex/noninteractive
+    """
+    codex_bin = shutil.which("codex")
+    if not codex_bin:
+        return False
+
+    from agent_toolkit.loop.budget import DEFAULT_WALL_SECONDS
+
+    timeout = wall_timeout if wall_timeout is not None else DEFAULT_WALL_SECONDS
+    env = _install_gate_into_environ(run_dir, meta or {})
+    report_md = run_dir / "report.md"
+    # ``codex exec -`` reads the full prompt from stdin; workspace-write + never
+    # ask keeps loops unattended; ``-o`` captures the final agent message.
+    cmd = [
+        codex_bin,
+        "exec",
+        "--ask-for-approval",
+        "never",
+        "--sandbox",
+        "workspace-write",
+        "--output-last-message",
+        str(report_md),
+        "-",
+    ]
+    try:
+        result = _run_with_live_output(
+            cmd,
+            input_text=prompt,
+            cwd=str(workspace_root()),
+            env=env,
+            trace_file=trace_file or (run_dir / "trace.jsonl"),
+            timeout=timeout,
+            max_tokens=max_tokens,
+        )
+    except subprocess.TimeoutExpired:
+        warn(f"codex runner hit budget limit (wall={timeout}s or max_tokens)")
+        return False
+
+    if result.returncode == 0:
+        if not report_md.exists() and result.stdout.strip():
+            report_md.write_text(result.stdout, encoding="utf-8")
+        ok("codex runner completed")
+        return True
+
+    error_output = (result.stderr + result.stdout).strip()[:400]
+    warn(f"codex runner exited {result.returncode}: {error_output or '(no output)'}")
+    if result.returncode != 0 and not error_output:
+        warn("  Hint: Codex CLI may not be authenticated — set OPENAI_API_KEY / CODEX_API_KEY")
+    return False
+
+
 def _queue_via_devcompanion(
     request: str,
     run_dir: Path,
@@ -1409,6 +1471,15 @@ def cmd_run(args: list[str]) -> int:
             max_tokens=token_limit,
         ):
             pass  # GitHub Copilot CLI handled it
+        elif _try_codex_runner(
+            prompt,
+            run_dir,
+            meta,
+            trace_file=trace_file,
+            wall_timeout=wall_timeout,
+            max_tokens=token_limit,
+        ):
+            pass  # OpenAI Codex CLI handled it
         elif _queue_via_devcompanion(
             prompt, run_dir, loop_name, rid, meta, wall_timeout=wall_timeout
         ):
