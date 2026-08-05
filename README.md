@@ -84,6 +84,8 @@ npx skills add ulises-jeremias/agent-toolkit -g
 
 ## 🚀 Quick Install
 
+Consumer vs advanced CLI: [`docs/CLI_SURFACES.md`](docs/CLI_SURFACES.md).
+
 ### Method 1: Python CLI — `uvx` or `pip` *(works with all tools)*
 
 ```bash

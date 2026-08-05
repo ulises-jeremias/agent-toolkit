@@ -1,3 +1,16 @@
+"""agent-toolkit CLI entrypoint.
+
+See docs/CLI_SURFACES.md for consumer vs advanced commands.
+"""
+# Public command surfaces (#48 / #84)
+CONSUMER_COMMANDS = (
+    "version", "help", "install", "doctor", "diff", "build", "inventory", "matrix",
+)
+ADVANCED_COMMANDS = (
+    "loop", "workspace", "memory", "project", "devcompanion", "insights", "release",
+    "mcp", "update", "uninstall",
+)
+
 #!/usr/bin/env python3
 """
 agent-toolkit — Composable AI agent toolkit CLI
