@@ -21,6 +21,12 @@ import os
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
 from agent_toolkit.installer.merge import merge_json_file
+from agent_toolkit.installer.sources import (
+    agent_install_sources,
+    compiled_agent_files,
+    plugins_dir,
+    profile_file,
+)
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -176,13 +182,43 @@ def _windsurf_config_dir() -> Path:
 # Per-tool installers
 # ---------------------------------------------------------------------------
 
+    return success
+
+
+def _install_agent_files(
+    tool: str,
+    dst_dir: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+    data_root: Path | None = None,
+) -> bool:
+    """Install agent files from compiled plugins/ or profiles/ fallback."""
+    root = data_root or toolkit_root()
+    agents = agent_install_sources(tool, data_root=root)
+    if not agents:
+        _warn(f"No agent sources found for {tool}")
+        return True
+
+    plugins = plugins_dir(root)
+    if plugins is not None:
+        _info(f"Using compiler artifacts from {plugins}")
+
+    success = True
+    for name, src in sorted(agents.items()):
+        dst = dst_dir / f"{name}.md"
+        success &= _copy_file(src, dst, dry_run=dry_run, force=force)
+    return success
+
+
 def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Claude Code")
-    src = toolkit_root() / "profiles" / "claude-code"
+    root = toolkit_root()
+    profile = profile_file("claude-code", data_root=root)
 
-    if not src.is_dir():
-        _warn(f"Profile directory not found: {src}")
+    if not profile.is_dir() and not compiled_agent_files(root):
+        _warn(f"Profile directory not found: {profile}")
         return False
 
     home = Path.home()
@@ -190,25 +226,35 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
     # Install instruction/agent files only. Never write ~/.claude/settings.json —
     # that file is user-owned (plugins, permissions, env). Target contract:
     # distributions/targets/claude-code.yaml → plugin_settings_scope: plugin-local.
-    success &= _copy_file(src / "CLAUDE.md", home / ".claude" / "CLAUDE.md",
-                          dry_run=dry_run, force=force)
-    settings_src = src / "settings.json"
+    claude_md = profile_file("claude-code", "CLAUDE.md", data_root=root)
+    if claude_md.is_file():
+        success &= _copy_file(
+            claude_md,
+            home / ".claude" / "CLAUDE.md",
+            dry_run=dry_run,
+            force=force,
+        )
+    settings_src = profile / "settings.json"
     if settings_src.is_file():
         _info(
             "Skipping ~/.claude/settings.json (user-owned). "
             "Use Claude Code marketplace plugins for toolkit capabilities; "
             f"reference profile kept at {settings_src}"
         )
-    if (src / "agents").is_dir():
-        success &= _copy_dir(src / "agents", home / ".claude" / "agents",
-                             dry_run=dry_run, force=force)
+    success &= _install_agent_files(
+        "claude-code",
+        home / ".claude" / "agents",
+        dry_run=dry_run,
+        force=force,
+        data_root=root,
+    )
     return success
 
 
 def _install_cursor(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Cursor")
-    src = toolkit_root() / "profiles" / "cursor" / "rules"
+    src = profile_file("cursor", "rules")
 
     if not src.is_dir():
         _warn(f"Cursor rules directory not found: {src}")
@@ -266,16 +312,17 @@ def _install_json_config(
 def _install_opencode(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: OpenCode")
-    src = toolkit_root() / "profiles" / "opencode"
+    root = toolkit_root()
+    profile = profile_file("opencode", data_root=root)
 
-    if not src.is_dir():
-        _warn(f"OpenCode profile directory not found: {src}")
+    if not profile.is_dir() and not compiled_agent_files(root):
+        _warn(f"OpenCode profile directory not found: {profile}")
         return False
 
-    profile_config = src / "opencode.json"
-    if profile_config.is_file():
+    opencode_json = profile_file("opencode", "opencode.json", data_root=root)
+    if opencode_json.is_file():
         try:
-            profile_data = json.loads(profile_config.read_text(encoding="utf-8"))
+            profile_data = json.loads(opencode_json.read_text(encoding="utf-8"))
         except json.JSONDecodeError as exc:
             _err(f"Invalid profiles/opencode/opencode.json: {exc}")
             return False
@@ -289,16 +336,20 @@ def _install_opencode(*, dry_run: bool, force: bool) -> bool:
 
     home = Path.home()
     success = True
-    if profile_config.is_file():
+    if opencode_json.is_file():
         success &= _install_json_config(
-            profile_config,
+            opencode_json,
             home / ".config" / "opencode" / "opencode.json",
             dry_run=dry_run,
             force=force,
         )
-    if (src / "agents").is_dir():
-        success &= _copy_dir(src / "agents", home / ".config" / "opencode" / "agents",
-                             dry_run=dry_run, force=force)
+    success &= _install_agent_files(
+        "opencode",
+        home / ".config" / "opencode" / "agents",
+        dry_run=dry_run,
+        force=force,
+        data_root=root,
+    )
     return success
 
 
