@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "agent-toolkit workspace context",
+        "timeout": 5000
+      }
+    ]
+  }
+}
