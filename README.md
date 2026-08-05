@@ -211,7 +211,7 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 | 🔎 `reference-lookup` | Cross-repo pattern and convention search |
 | 🤝 `assistant` | General-purpose project assistant |
 | ⚙️ `tech-assistant` | Stack-specific technical guidance |
-| 🔭 `explore` | Fast codebase search and discovery |
+| 🚀 `client-workflow-bootstrap` | Client project onboarding and delivery workflow bootstrap |
 
 Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml)
 
