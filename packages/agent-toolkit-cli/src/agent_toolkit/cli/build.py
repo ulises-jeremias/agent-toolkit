@@ -131,6 +131,8 @@ def cmd_build(args: list[str]) -> int:
                 result = adapter.compile(graph, product, emit_registries=True)
             else:
                 result = adapter.compile(graph, product)
+                if hasattr(adapter, "_cleanup_stale_artifacts"):
+                    adapter._cleanup_stale_artifacts(product, result)
                 if hasattr(adapter, "_finalize_provenance"):
                     adapter._finalize_provenance(product, result)
 
