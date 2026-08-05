@@ -99,7 +99,7 @@ def cmd_build(args: list[str]) -> int:
         products_to_build = [graph.products[parsed.product]]
 
     # Select targets
-    available_targets = {"claude-code", "cursor", "opencode", "gemini-cli"}  # expand as adapters are added
+    available_targets = {"claude-code", "cursor", "opencode", "gemini-cli", "copilot-cli", "copilot-repository", "pi", "windsurf", "codex"}  # expand as adapters are added
     targets_to_build = [parsed.target] if parsed.target else list(available_targets)
 
     for t in targets_to_build:
@@ -217,6 +217,21 @@ def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
     if target_id in ("gemini-cli", "gemini"):
         from agent_toolkit.compiler.targets.gemini_cli import GeminiCLIAdapter
         return GeminiCLIAdapter(output_dir, repo_root)
+    if target_id in ("copilot-cli", "copilot"):
+        from agent_toolkit.compiler.targets.copilot import CopilotCLIAdapter
+        return CopilotCLIAdapter(output_dir, repo_root)
+    if target_id == "copilot-repository":
+        from agent_toolkit.compiler.targets.copilot import CopilotRepositoryAdapter
+        return CopilotRepositoryAdapter(output_dir, repo_root)
+    if target_id == "pi":
+        from agent_toolkit.compiler.targets.pi import PiAdapter
+        return PiAdapter(output_dir, repo_root)
+    if target_id == "windsurf":
+        from agent_toolkit.compiler.targets.windsurf import WindsurfAdapter
+        return WindsurfAdapter(output_dir, repo_root)
+    if target_id == "codex":
+        from agent_toolkit.compiler.targets.codex import CodexAdapter
+        return CodexAdapter(output_dir, repo_root)
     if target_id == "opencode":
         from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
         return OpenCodeAdapter(output_dir, repo_root)

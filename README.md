@@ -27,7 +27,8 @@
   <img src="https://img.shields.io/badge/skills-52-9945ff?style=for-the-badge&labelColor=0d1117" alt="52 Skills"/>
   <img src="https://img.shields.io/badge/agents-16-00d4ff?style=for-the-badge&labelColor=0d1117" alt="16 Agents"/>
   <img src="https://img.shields.io/badge/loops-10-ff6b35?style=for-the-badge&labelColor=0d1117" alt="10 Loops"/>
-  <img src="https://img.shields.io/badge/plugins-3-ff00aa?style=for-the-badge&labelColor=0d1117" alt="3 Plugins"/>
+  <img src="https://img.shields.io/badge/tests-195-00ff88?style=for-the-badge&labelColor=0d1117" alt="195 Tests"/>
+  <img src="https://img.shields.io/badge/targets-9-ff00aa?style=for-the-badge&labelColor=0d1117" alt="9 Targets"/>
 </p>
 
 <p>

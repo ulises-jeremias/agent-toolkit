@@ -403,3 +403,21 @@ The script prints the exact file and field that failed. Common causes:
 | Missing frontmatter `description` | Add `description:` to the `---` block |
 | Missing `version` in skill.json | Add `"version": "1.0.0"` to `skill.json` |
 | Secret pattern detected | Remove the credential and use `${ENV_VAR}` placeholder instead |
+
+
+## Compiler commands
+
+After installation, use the compiler to generate native plugin bundles:
+
+```bash
+# Compile for Claude Code (dry-run)
+agent-toolkit build --target claude-code --check
+
+# Compile and install for Cursor
+agent-toolkit build --target cursor --product agent-toolkit-core
+
+# Show all platform capabilities
+agent-toolkit matrix
+```
+
+See [Compiler Guide](Compiler) for full documentation.

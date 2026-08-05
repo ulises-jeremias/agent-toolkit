@@ -1,0 +1,23 @@
+# Canonical hook definition: inject workspace context at session start
+id: session-start-context
+event: session.start
+handler:
+  type: command
+  command: ["agent-toolkit", "workspace", "context"]
+  timeout_ms: 5000
+  fail_closed: false  # fail-open: session continues even if context fails
+blocking: false
+concurrency: serial
+failure_policy: continue
+security:
+  classification: safe
+  default_enabled: true
+platforms:
+  claude-code: native
+  cursor: native-experimental
+  gemini-cli: native
+  copilot-cli: unknown-blocked
+  opencode: unsupported
+  pi: unsupported
+  windsurf: unsupported
+  codex: unknown-blocked

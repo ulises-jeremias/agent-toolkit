@@ -248,3 +248,32 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 - Open a [GitHub Discussion](https://github.com/ulises-jeremias/agent-toolkit/discussions) for questions about skill design, compatibility, or architecture
 - Open an [issue](https://github.com/ulises-jeremias/agent-toolkit/issues) for bugs or feature requests
 - For security issues, see [SECURITY.md](SECURITY.md)
+
+## Compiler workflow
+
+When adding a new skill, agent, or loop, verify the compiler pipeline:
+
+```bash
+# Validate your changes
+python3 scripts/validate-skills.py
+python3 scripts/validate-manifests.py
+python3 scripts/gen-surfaces.py --check
+
+# Run the compiler in check mode
+agent-toolkit build --check
+
+# Check for drift vs installed bundles
+agent-toolkit diff
+
+# Run all tests including contract tests
+PYTHONPATH=src pytest tests/ -v
+```
+
+## Adding a new compiler target
+
+1. Create `src/agent_toolkit/compiler/targets/<target>.py` extending `TargetAdapter`
+2. Copy to `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/`
+3. Register in both `src/agent_toolkit/cli/build.py` and `packages/.../build.py`
+4. Add `distributions/targets/<target>.yaml` with capability declarations
+5. Write contract tests in `tests/compiler/test_<target>_adapter.py`
+6. Ensure `CompilationResult` always reports unsupported capabilities explicitly

@@ -1,0 +1,46 @@
+id: github
+display_name: GitHub
+purpose: Access GitHub repositories, issues, PRs, code, and CI via MCP tools
+implementation:
+  provenance: official
+  package: "@modelcontextprotocol/server-github"
+  repository: https://github.com/modelcontextprotocol/servers
+  license: MIT
+  version_policy: pin to minor
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [bearer-env]
+  preferred: bearer-env
+  env: [GITHUB_TOKEN]
+tools:
+  read:
+    - get_repository
+    - list_issues
+    - get_pull_request
+    - search_repositories
+    - get_file_contents
+  write:
+    - create_issue
+    - create_pull_request
+  destructive:
+    - delete_file
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 5000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: native
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [api.github.com]
+  secret_storage: environment variable
+  notes: Use fine-grained PAT with minimal scopes
