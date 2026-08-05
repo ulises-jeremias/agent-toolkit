@@ -876,6 +876,74 @@ def _try_cursor_runner(
     return False
 
 
+def _resolve_copilot_cli_bin() -> str | None:
+    """Locate GitHub Copilot CLI (`copilot`).
+
+    Prefers the standalone ``copilot`` binary (programmatic ``-p`` mode).
+    Does not use legacy ``gh copilot suggest``, which is not a free-form agent.
+    """
+    return shutil.which("copilot")
+
+
+def _try_copilot_runner(
+    prompt: str,
+    run_dir: Path,
+    meta: dict[str, Any] | None = None,
+    *,
+    trace_file: Path | None = None,
+    wall_timeout: int | None = None,
+    max_tokens: int | None = None,
+) -> bool:
+    """Invoke GitHub Copilot CLI headless (``copilot -p``) as a loop runner (#224).
+
+    See https://docs.github.com/en/copilot/how-tos/copilot-cli/automate-copilot-cli/run-cli-programmatically
+    """
+    copilot_bin = _resolve_copilot_cli_bin()
+    if not copilot_bin:
+        return False
+
+    from agent_toolkit.loop.budget import DEFAULT_WALL_SECONDS
+
+    timeout = wall_timeout if wall_timeout is not None else DEFAULT_WALL_SECONDS
+    env = _install_gate_into_environ(run_dir, meta or {})
+    # -p: non-interactive prompt; -s: silent (response only); --no-ask-user /
+    # --allow-all: unattended tool use (gh mutations still go through loop-gh-gate).
+    cmd = [
+        copilot_bin,
+        "-p",
+        prompt,
+        "-s",
+        "--no-ask-user",
+        "--allow-all",
+    ]
+    try:
+        result = _run_with_live_output(
+            cmd,
+            input_text="",
+            cwd=str(workspace_root()),
+            env=env,
+            trace_file=trace_file or (run_dir / "trace.jsonl"),
+            timeout=timeout,
+            max_tokens=max_tokens,
+        )
+    except subprocess.TimeoutExpired:
+        warn(f"copilot runner hit budget limit (wall={timeout}s or max_tokens)")
+        return False
+
+    if result.returncode == 0:
+        report_md = run_dir / "report.md"
+        if not report_md.exists() and result.stdout.strip():
+            report_md.write_text(result.stdout, encoding="utf-8")
+        ok("copilot runner completed")
+        return True
+
+    error_output = (result.stderr + result.stdout).strip()[:400]
+    warn(f"copilot runner exited {result.returncode}: {error_output or '(no output)'}")
+    if result.returncode != 0 and not error_output:
+        warn("  Hint: Copilot CLI may not be authenticated — set COPILOT_GITHUB_TOKEN or run: copilot")
+    return False
+
+
 def _queue_via_devcompanion(
     request: str,
     run_dir: Path,
@@ -1332,6 +1400,15 @@ def cmd_run(args: list[str]) -> int:
             max_tokens=token_limit,
         ):
             pass  # cursor agent CLI handled it
+        elif _try_copilot_runner(
+            prompt,
+            run_dir,
+            meta,
+            trace_file=trace_file,
+            wall_timeout=wall_timeout,
+            max_tokens=token_limit,
+        ):
+            pass  # GitHub Copilot CLI handled it
         elif _queue_via_devcompanion(
             prompt, run_dir, loop_name, rid, meta, wall_timeout=wall_timeout
         ):
