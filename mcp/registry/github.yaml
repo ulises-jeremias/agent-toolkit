@@ -1,46 +1,52 @@
+# MCP Provider: github
+# Official: https://github.com/github/github-mcp-server
+# Note: @modelcontextprotocol/server-github is deprecated (Apr 2025).
 id: github
 display_name: GitHub
-purpose: Access GitHub repositories, issues, PRs, code, and CI via MCP tools
+purpose: Access GitHub repositories, issues, PRs, code, and CI via the official GitHub MCP server
 implementation:
   provenance: official
-  package: "@modelcontextprotocol/server-github"
-  repository: https://github.com/modelcontextprotocol/servers
+  package: ghcr.io/github/github-mcp-server
+  repository: https://github.com/github/github-mcp-server
   license: MIT
-  version_policy: pin to minor
+  version_policy: pin image digest or minor tag
 transport:
   supported: [stdio]
   preferred: stdio
 auth:
-  supported: [bearer-env]
+  supported: [bearer-env, oauth]
   preferred: bearer-env
-  env: [GITHUB_TOKEN]
+  env: [GITHUB_PERSONAL_ACCESS_TOKEN]
 tools:
   read:
-    - get_repository
+    - get_file_contents
     - list_issues
+    - get_issue
+    - list_pull_requests
     - get_pull_request
     - search_repositories
-    - get_file_contents
+    - search_code
   write:
     - create_issue
     - create_pull_request
+    - create_or_update_file
   destructive:
     - delete_file
 approval:
   default: read-only
 healthcheck:
   strategy: tools-list
-  timeout_ms: 5000
+  timeout_ms: 8000
 platforms:
   claude-code: native
   cursor: native
   opencode: bridged
-  copilot-cli: unknown-blocked
+  copilot-cli: native
   gemini-cli: native
   windsurf: manual
   pi: bridged
-  codex: unknown-blocked
+  codex: bridged
 security:
-  network_hosts: [api.github.com]
+  network_hosts: [api.github.com, ghcr.io]
   secret_storage: environment variable
-  notes: Use fine-grained PAT with minimal scopes
+  notes: Prefer fine-grained PAT via GITHUB_PERSONAL_ACCESS_TOKEN; OAuth also supported by official server

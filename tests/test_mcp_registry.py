@@ -33,9 +33,19 @@ def test_github_provider_fields():
     assert gh.id == "github"
     assert gh.display_name == "GitHub"
     assert gh.provenance == "official"
-    assert "GITHUB_TOKEN" in gh.env_vars
+    assert gh.package == "ghcr.io/github/github-mcp-server"
+    assert "GITHUB_PERSONAL_ACCESS_TOKEN" in gh.env_vars
+    assert "GITHUB_TOKEN" not in gh.env_vars
     assert len(gh.read_tools) > 0
     assert len(gh.write_tools) > 0
+
+
+def test_github_template_matches_official_server():
+    """Regression #74: template must not reference deprecated npm package."""
+    template = (REPO_ROOT / "mcp" / "templates" / "github" / "config.template.json").read_text()
+    assert "ghcr.io/github/github-mcp-server" in template
+    assert "@modelcontextprotocol/server-github" not in template
+    assert "GITHUB_PERSONAL_ACCESS_TOKEN" in template
 
 
 def test_all_providers_have_complete_metadata():
