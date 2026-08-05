@@ -13,13 +13,15 @@ Options:
 """
 from __future__ import annotations
 
-import json
 import shutil
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from agent_toolkit._paths import toolkit_root
-from agent_toolkit.installer.merge import merge_json_file
+
+if TYPE_CHECKING:
+    from agent_toolkit.installer.tracking import InstallTracker
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -76,7 +78,14 @@ def _files_identical(a: Path, b: Path) -> bool:
     return a.read_bytes() == b.read_bytes()
 
 
-def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
+def _copy_file(
+    src: Path,
+    dst: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+    tracker: InstallTracker | None = None,
+) -> bool:
     """Copy src to dst, respecting dry-run, force, and idempotency.
 
     Returns True on success (including skip), False on failure.
@@ -94,13 +103,16 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         return True
 
     if dst.exists() and not force:
-        _skip(f"Preserving user-owned file (use --force to overwrite): {dst}")
-        return True
+        if not _confirm(f"Overwrite existing file: {dst}?", force=False):
+            _skip(f"Skipped: {dst}")
+            return True
 
     try:
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         _ok(f"Installed: {dst}")
+        if tracker is not None:
+            tracker.record_created(dst)
         return True
     except PermissionError as exc:
         _err(f"Permission denied writing {dst}: {exc}")
@@ -110,7 +122,14 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         return False
 
 
-def _copy_dir(src_dir: Path, dst_dir: Path, *, dry_run: bool, force: bool) -> bool:
+def _copy_dir(
+    src_dir: Path,
+    dst_dir: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+    tracker: InstallTracker | None = None,
+) -> bool:
     """Recursively copy all files from src_dir into dst_dir."""
     if not src_dir.is_dir():
         _warn(f"Source directory not found, skipping: {src_dir}")
@@ -127,7 +146,9 @@ def _copy_dir(src_dir: Path, dst_dir: Path, *, dry_run: bool, force: bool) -> bo
             continue
         rel = src_file.relative_to(src_dir)
         dst_file = dst_dir / rel
-        if not _copy_file(src_file, dst_file, dry_run=dry_run, force=force):
+        if not _copy_file(
+            src_file, dst_file, dry_run=dry_run, force=force, tracker=tracker
+        ):
             success = False
     return success
 
@@ -175,9 +196,12 @@ def _windsurf_config_dir() -> Path:
 # ---------------------------------------------------------------------------
 
 def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: Claude Code")
     src = toolkit_root() / "profiles" / "claude-code"
+    tracker = InstallTracker("claude-code", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"Profile directory not found: {src}")
@@ -189,7 +213,7 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
     # that file is user-owned (plugins, permissions, env). Target contract:
     # distributions/targets/claude-code.yaml → plugin_settings_scope: plugin-local.
     success &= _copy_file(src / "CLAUDE.md", home / ".claude" / "CLAUDE.md",
-                          dry_run=dry_run, force=force)
+                          dry_run=dry_run, force=force, tracker=tracker)
     settings_src = src / "settings.json"
     if settings_src.is_file():
         _info(
@@ -199,72 +223,43 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
         )
     if (src / "agents").is_dir():
         success &= _copy_dir(src / "agents", home / ".claude" / "agents",
-                             dry_run=dry_run, force=force)
+                             dry_run=dry_run, force=force, tracker=tracker)
+    if tracker.save():
+        _ok(f"Saved install receipt for claude-code")
     return success
 
 
 def _install_cursor(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: Cursor")
     src = toolkit_root() / "profiles" / "cursor" / "rules"
+    tracker = InstallTracker("cursor", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"Cursor rules directory not found: {src}")
         return False
 
-    return _copy_dir(src, Path.home() / ".cursor" / "rules",
-                     dry_run=dry_run, force=force)
-
-
-def _install_json_config(
-    src: Path,
-    dst: Path,
-    *,
-    dry_run: bool,
-    force: bool,
-) -> bool:
-    """Install a JSON config with non-destructive merge when dst already exists."""
-    if not src.is_file():
-        _warn(f"Source not found, skipping: {src}")
-        return True
-
-    if dry_run:
-        if dst.is_file() and not force:
-            _dry(f"Would merge: {src.name} → {dst}")
-        else:
-            _dry(f"Would copy: {src.name} → {dst}")
-        return True
-
-    try:
-        merged, patches, ownership = merge_json_file(src, dst, force=force)
-    except (json.JSONDecodeError, OSError) as exc:
-        _err(f"Failed to merge {src} → {dst}: {exc}")
-        return False
-
-    if ownership == "unchanged":
-        _skip(f"Already up to date: {dst}")
-        return True
-
-    if ownership == "skipped":
-        _skip(f"Preserving user-owned file (use --force to overwrite): {dst}")
-        return True
-
-    if merged is None:
-        return _copy_file(src, dst, dry_run=False, force=force)
-
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    dst.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
-    if ownership == "merged" and patches:
-        _ok(f"Merged config ({len(patches)} key(s) added): {dst}")
-    else:
-        _ok(f"Installed: {dst}")
-    return True
+    ok = _copy_dir(
+        src,
+        Path.home() / ".cursor" / "rules",
+        dry_run=dry_run,
+        force=force,
+        tracker=tracker,
+    )
+    if tracker.save():
+        _ok("Saved install receipt for cursor")
+    return ok
 
 
 def _install_opencode(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: OpenCode")
     src = toolkit_root() / "profiles" / "opencode"
+    tracker = InstallTracker("opencode", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"OpenCode profile directory not found: {src}")
@@ -272,11 +267,12 @@ def _install_opencode(*, dry_run: bool, force: bool) -> bool:
 
     home = Path.home()
     success = True
-    success &= _install_json_config(
+    success &= _copy_file(
         src / "opencode.json",
         home / ".config" / "opencode" / "opencode.json",
         dry_run=dry_run,
         force=force,
+        tracker=tracker,
     )
     if (src / "agents").is_dir():
         success &= _copy_dir(
@@ -284,7 +280,10 @@ def _install_opencode(*, dry_run: bool, force: bool) -> bool:
             home / ".config" / "opencode" / "agents",
             dry_run=dry_run,
             force=force,
+            tracker=tracker,
         )
+    if tracker.save():
+        _ok("Saved install receipt for opencode")
     return success
 
 
@@ -325,16 +324,24 @@ def _install_copilot(*, dry_run: bool, force: bool) -> bool:
         return False
 
     dst = project_dir / ".github" / "copilot-instructions.md"
-    success = _copy_file(src, dst, dry_run=dry_run, force=force)
+    from agent_toolkit.installer.tracking import InstallTracker
+
+    tracker = InstallTracker("copilot", dry_run=dry_run, toolkit_root=toolkit_root())
+    success = _copy_file(src, dst, dry_run=dry_run, force=force, tracker=tracker)
+    if success and tracker.save():
+        _ok("Saved install receipt for copilot")
     if success:
         _info("Remember to: git add .github/copilot-instructions.md && git commit")
     return success
 
 
 def _install_windsurf(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: Windsurf")
     src = toolkit_root() / "profiles" / "windsurf"
+    tracker = InstallTracker("windsurf", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"Windsurf profile directory not found: {src}")
@@ -343,25 +350,48 @@ def _install_windsurf(*, dry_run: bool, force: bool) -> bool:
     config_dir = _windsurf_config_dir()
     success = True
     if (src / "rules").is_dir():
-        success &= _copy_dir(src / "rules", config_dir / "rules",
-                             dry_run=dry_run, force=force)
+        success &= _copy_dir(
+            src / "rules",
+            config_dir / "rules",
+            dry_run=dry_run,
+            force=force,
+            tracker=tracker,
+        )
     if (src / "memories").is_dir():
-        success &= _copy_dir(src / "memories", config_dir / "memories",
-                             dry_run=dry_run, force=force)
+        success &= _copy_dir(
+            src / "memories",
+            config_dir / "memories",
+            dry_run=dry_run,
+            force=force,
+            tracker=tracker,
+        )
+    if tracker.save():
+        _ok("Saved install receipt for windsurf")
     return success
 
 
 def _install_pi(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: Pi Coding Agent")
     src = toolkit_root() / "profiles" / "pi" / "skills"
+    tracker = InstallTracker("pi", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"Pi skills directory not found: {src}")
         return False
 
-    return _copy_dir(src, Path.home() / ".pi" / "agent" / "skills",
-                     dry_run=dry_run, force=force)
+    ok = _copy_dir(
+        src,
+        Path.home() / ".pi" / "agent" / "skills",
+        dry_run=dry_run,
+        force=force,
+        tracker=tracker,
+    )
+    if tracker.save():
+        _ok("Saved install receipt for pi")
+    return ok
 
 
 # ---------------------------------------------------------------------------
