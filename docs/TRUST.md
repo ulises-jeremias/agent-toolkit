@@ -81,7 +81,7 @@ agent-toolkit follows these principles (see also
 - No private hostnames in distributed configs
 - No permission-bypass flags (e.g. skip dangerous-mode prompts) in shipped artifacts
 - MCP credentials via environment variables only
-- Secret scanning (Gitleaks) and dependency scanning (Trivy) in CI
+- Secret scanning (Gitleaks) in CI — Trivy **Planned** (see #262 Wave 2); CodeQL **Planned** (see #262)
 
 ---
 
