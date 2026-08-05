@@ -197,7 +197,7 @@ Formulas live in dedicated repos ([homebrew-tap](https://github.com/ulises-jerem
 
 ```bash
 brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
-yay -S agent-toolkit   # Arch Linux (AUR)
+yay -S agent-toolkit   # Arch Linux (AUR) — pending publish, use `uv tool install agent-toolkit-cli` until AUR RPC shows package
 ```
 
 </details>
@@ -275,9 +275,9 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 // .claude/settings.json
 {
   "skills": [
-    "ulises-jeremias/agent-toolkit/skills/delivery/code-review",
-    "ulises-jeremias/agent-toolkit/skills/delivery/github-cli-workflow",
-    "ulises-jeremias/agent-toolkit/skills/delivery/gh-fix-ci"
+    "ulises-jeremias/agent-toolkit/skills/core/assistant",
+    "ulises-jeremias/agent-toolkit/skills/delivery/workflow-generic-project",
+    "ulises-jeremias/agent-toolkit/skills/delivery/bug"
   ]
 }
 ```
