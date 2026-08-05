@@ -159,6 +159,40 @@ def _detect_pi() -> bool:
     return shutil.which("pi") is not None or (home / ".pi").is_dir()
 
 
+def _detect_gemini_cli() -> bool:
+    return shutil.which("gemini") is not None or (Path.home() / ".gemini").is_dir()
+
+
+def _detect_codex() -> bool:
+    return shutil.which("codex") is not None or (Path.home() / ".codex").is_dir()
+
+
+def _ensure_compiler_artifacts(target: str, product: str = "agent-toolkit-core") -> Path | None:
+    """Build target artifacts if missing; return plugins/<product> directory."""
+    root = toolkit_root()
+    artifact_dir = root / "plugins" / product
+    marker = {
+        "gemini-cli": "gemini-extension.json",
+        "codex": ".codex-plugin",
+    }.get(target)
+    if marker:
+        if marker == ".codex-plugin":
+            built = (artifact_dir / marker / "plugin.json").is_file()
+        else:
+            built = (artifact_dir / marker).is_file()
+        if built:
+            return artifact_dir
+
+    _info(f"Compiler output missing for {target} — running build...")
+    from agent_toolkit.cli.build import cmd_build
+
+    rc = cmd_build(["--target", target, "--product", product])
+    if rc != 0:
+        _err(f"Build failed for target {target}")
+        return None
+    return artifact_dir if artifact_dir.is_dir() else None
+
+
 def _windsurf_config_dir() -> Path:
     home = Path.home()
     if (home / ".codeium" / "windsurf").is_dir():
@@ -309,11 +343,49 @@ def _install_pi(*, dry_run: bool, force: bool) -> bool:
                      dry_run=dry_run, force=force)
 
 
+def _install_gemini_cli(*, dry_run: bool, force: bool) -> bool:
+    print()
+    _info("Installing: Gemini CLI (compiler-generated extension)")
+    if dry_run:
+        _dry("Would compile agent-toolkit-core → gemini-cli and copy to ~/.gemini/extensions/")
+        return True
+
+    artifacts = _ensure_compiler_artifacts("gemini-cli")
+    if artifacts is None or not (artifacts / "gemini-extension.json").is_file():
+        _warn("Gemini extension artifacts not found after build")
+        return False
+
+    dest = Path.home() / ".gemini" / "extensions" / "agent-toolkit-core"
+    ok = _copy_dir(artifacts, dest, dry_run=False, force=force)
+    if ok:
+        _info("Tip: run `gemini extensions link ~/.gemini/extensions/agent-toolkit-core` if needed")
+    return ok
+
+
+def _install_codex(*, dry_run: bool, force: bool) -> bool:
+    print()
+    _info("Installing: OpenAI Codex (compiler-generated plugin)")
+    if dry_run:
+        _dry("Would compile agent-toolkit-core → codex and copy to ~/.codex/plugins/")
+        return True
+
+    artifacts = _ensure_compiler_artifacts("codex")
+    if artifacts is None or not (artifacts / ".codex-plugin" / "plugin.json").is_file():
+        _warn("Codex plugin artifacts not found after build")
+        return False
+
+    dest = Path.home() / ".codex" / "plugins" / "agent-toolkit-core"
+    return _copy_dir(artifacts, dest, dry_run=False, force=force)
+
+
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
 
-_VALID_TOOLS = ("claude-code", "cursor", "opencode", "copilot", "windsurf", "pi")
+_VALID_TOOLS = (
+    "claude-code", "cursor", "opencode", "copilot", "windsurf", "pi",
+    "gemini-cli", "codex",
+)
 
 
 # Sentinel parse outcomes — must not be confused with a successful empty-tools tuple.
@@ -398,6 +470,12 @@ def cmd_install(args: list[str]) -> int:
         if _detect_pi():
             tools.append("pi")
             _info("  Detected: Pi Coding Agent")
+        if _detect_gemini_cli():
+            tools.append("gemini-cli")
+            _info("  Detected: Gemini CLI")
+        if _detect_codex():
+            tools.append("codex")
+            _info("  Detected: OpenAI Codex")
 
         # Copilot is per-project and requires a path — never auto-install.
         # Only installed when explicitly passed via --tools copilot.
@@ -405,7 +483,10 @@ def cmd_install(args: list[str]) -> int:
 
         if not tools:
             _warn("No AI tools detected. Install at least one supported tool and re-run,")
-            _warn("or specify with: --tools claude-code,cursor,opencode,copilot,windsurf,pi")
+            _warn(
+                "or specify with: --tools claude-code,cursor,opencode,copilot,"
+                "windsurf,pi,gemini-cli,codex"
+            )
             return 1
 
     print()
@@ -422,6 +503,8 @@ def cmd_install(args: list[str]) -> int:
         "copilot": _install_copilot,
         "windsurf": _install_windsurf,
         "pi": _install_pi,
+        "gemini-cli": _install_gemini_cli,
+        "codex": _install_codex,
     }
 
     for tool in tools:
