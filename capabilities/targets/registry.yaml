@@ -72,3 +72,11 @@ targets:
       build: true
       diff: false
       release: true
+
+  - id: muse-code
+    adapter: agent_toolkit.compiler.targets.muse_code.MuseCodeAdapter
+    aliases: [muse]
+    commands:
+      build: true
+      diff: false
+      release: true

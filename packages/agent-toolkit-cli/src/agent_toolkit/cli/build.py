@@ -104,7 +104,7 @@ def cmd_build(args: list[str]) -> int:
         products_to_build = [graph.products[parsed.product]]
 
     # Select targets
-    available_targets = {"claude-code", "cursor", "opencode", "gemini-cli", "copilot-cli", "copilot-repository", "pi", "windsurf", "codex"}  # expand as adapters are added
+    available_targets = {"claude-code", "cursor", "opencode", "gemini-cli", "copilot-cli", "copilot-repository", "pi", "windsurf", "codex", "muse-code", "muse"}  # expand as adapters are added
     targets_to_build = [parsed.target] if parsed.target else list(available_targets)
 
     for t in targets_to_build:
@@ -243,4 +243,7 @@ def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
     if target_id == "opencode":
         from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
         return OpenCodeAdapter(output_dir, repo_root)
+    if target_id in ("muse-code", "muse"):
+        from agent_toolkit.compiler.targets.muse_code import MuseCodeAdapter
+        return MuseCodeAdapter(output_dir, repo_root)
     return None

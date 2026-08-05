@@ -6,7 +6,7 @@ Usage:
 
 Options:
     --tools <list>  Comma-separated tools to install (default: auto-detect)
-                    Valid: claude-code, cursor, opencode, copilot, windsurf, pi
+                    Valid: claude-code, cursor, opencode, copilot, windsurf, pi, muse-code
     --dry-run       Show what would happen without making changes
     --force         Overwrite existing files without prompting
     --offline       Use only bundled/wheel data (skip GitHub Release cache)
@@ -189,6 +189,10 @@ def _detect_windsurf() -> bool:
 def _detect_pi() -> bool:
     home = Path.home()
     return shutil.which("pi") is not None or (home / ".pi").is_dir()
+
+def _detect_muse() -> bool:
+    home = Path.home()
+    return shutil.which("muse") is not None or (home / ".config" / "muse").is_dir() or (home / ".agents").is_dir()
 
 
 def _windsurf_config_dir() -> Path:
@@ -451,6 +455,50 @@ def _install_windsurf(*, dry_run: bool, force: bool) -> bool:
     return success
 
 
+def _install_muse(*, dry_run: bool, force: bool) -> bool:
+    print()
+    _info("Installing: Muse Code (Meta)")
+    # Muse uses Agent Skills spec: ~/.config/muse/skills (user) and .agents/skills (project)
+    # We deploy compiled skills from the build output or profile fallback
+    from agent_toolkit._paths import toolkit_root as _root
+    # Prefer compiled output if available
+    # Prefer compiled output per product if available
+    for prod in ("agent-toolkit-complete", "agent-toolkit-core"):
+        compiled = _root() / "plugins" / prod / "skills"
+        if compiled.is_dir():
+            success = _copy_dir(compiled, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force)
+            # Also ensure universal .agents/skills gets populated for project-scope compatibility
+            _copy_dir(compiled, Path.home() / ".agents" / "skills", dry_run=dry_run, force=force)
+            return success
+    # Check dedicated muse plugin dir
+    compiled = _root() / "plugins" / "muse-code"
+    if compiled.is_dir():
+        src = compiled / "skills"
+        if src.is_dir():
+            success = _copy_dir(src, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force)
+            _copy_dir(src, Path.home() / ".agents" / "skills", dry_run=dry_run, force=force)
+            return success
+    # Fallback: direct skills source (portable SKILL.md)
+    src_skills = _root() / "skills"
+    if src_skills.is_dir():
+        # Count skills for dry-run feedback
+        if not dry_run:
+            _copy_dir(src_skills, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force)
+            _copy_dir(src_skills, Path.home() / ".agents" / "skills", dry_run=dry_run, force=force)
+            return True
+        # dry-run: report count
+        count = sum(1 for _ in (src_skills).rglob("SKILL.md") if _.is_file())
+        _info(f"Would deploy {count} skills to ~/.config/muse/skills/ and ~/.agents/skills/")
+        return True
+    # Fallback: copy profile if exists
+    src_profile = _root() / "profiles" / "muse-code"
+    if src_profile.is_dir():
+        return _copy_dir(src_profile, Path.home() / ".config" / "muse", dry_run=dry_run, force=force)
+    # Generic fallback: install universal skills via installer
+    _info("No pre-built Muse profile; using universal skills via agent-toolkit build")
+    return True
+
+
 def _install_pi(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Pi Coding Agent")
@@ -468,7 +516,7 @@ def _install_pi(*, dry_run: bool, force: bool) -> bool:
 # Argument parsing
 # ---------------------------------------------------------------------------
 
-_VALID_TOOLS = ("claude-code", "cursor", "opencode", "copilot", "windsurf", "pi")
+_VALID_TOOLS = ("claude-code", "cursor", "opencode", "copilot", "windsurf", "pi", "muse-code", "muse")
 
 
 # Sentinel parse outcomes — must not be confused with a successful empty-tools tuple.
@@ -560,6 +608,9 @@ def cmd_install(args: list[str]) -> int:
         if _detect_pi():
             tools.append("pi")
             _info("  Detected: Pi Coding Agent")
+        if _detect_muse():
+            tools.append("muse-code")
+            _info("  Detected: Muse Code")
 
         # Copilot is per-project and requires a path — never auto-install.
         # Only installed when explicitly passed via --tools copilot.
@@ -567,7 +618,7 @@ def cmd_install(args: list[str]) -> int:
 
         if not tools:
             _warn("No AI tools detected. Install at least one supported tool and re-run,")
-            _warn("or specify with: --tools claude-code,cursor,opencode,copilot,windsurf,pi")
+            _warn("or specify with: --tools claude-code,cursor,opencode,copilot,windsurf,pi,muse-code")
             return 1
 
     print()
@@ -584,6 +635,8 @@ def cmd_install(args: list[str]) -> int:
         "copilot": _install_copilot,
         "windsurf": _install_windsurf,
         "pi": _install_pi,
+        "muse-code": _install_muse,
+        "muse": _install_muse,
     }
 
     for tool in tools:
