@@ -4,60 +4,32 @@
 
 <div align="center">
 
-# 🛠️ agent-toolkit
+# agent-toolkit
 
 **Composable AI agent capabilities for every major coding assistant**
 
-<p>
-  <a href="https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=for-the-badge&labelColor=0d1117&color=9945ff" alt="Validate"/>
-  </a>
-  <a href="https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=megalinter&style=for-the-badge&labelColor=0d1117&color=00d4ff" alt="MegaLinter"/>
-  </a>
-  <a href="https://github.com/vercel-labs/skills">
-    <img src="https://img.shields.io/badge/Agent%20Skills-compatible-00ff88?style=for-the-badge&labelColor=0d1117" alt="Agent Skills compatible"/>
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-ff6b35?style=for-the-badge&labelColor=0d1117" alt="MIT License"/>
-  </a>
-</p>
+[![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+[![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
 
-<p>
-  <img src="https://img.shields.io/badge/skills-52-9945ff?style=for-the-badge&labelColor=0d1117" alt="52 Skills"/>
-  <img src="https://img.shields.io/badge/agents-16-00d4ff?style=for-the-badge&labelColor=0d1117" alt="16 Agents"/>
-  <img src="https://img.shields.io/badge/loops-10-ff6b35?style=for-the-badge&labelColor=0d1117" alt="10 Loops"/>
-  <img src="https://img.shields.io/badge/tests-227-00ff88?style=for-the-badge&labelColor=0d1117" alt="227 Tests"/>
-  <img src="https://img.shields.io/badge/targets-9-ff00aa?style=for-the-badge&labelColor=0d1117" alt="9 Targets"/>
-</p>
+![skills](https://img.shields.io/badge/skills-52-7c3aed?style=flat&labelColor=1f2937)
+![agents](https://img.shields.io/badge/agents-16-0891b2?style=flat&labelColor=1f2937)
+![loops](https://img.shields.io/badge/loops-10-ea580c?style=flat&labelColor=1f2937)
 
-<p>
-  <a href="profiles/claude-code/">
-    <img src="https://img.shields.io/badge/Claude%20Code-plugin-9945ff?style=for-the-badge&labelColor=0d1117&logo=anthropic&logoColor=white" alt="Claude Code"/>
-  </a>
-  <a href="profiles/cursor/">
-    <img src="https://img.shields.io/badge/Cursor-rules-00d4ff?style=for-the-badge&labelColor=0d1117" alt="Cursor"/>
-  </a>
-  <a href="profiles/opencode/">
-    <img src="https://img.shields.io/badge/OpenCode-agents-ff6b35?style=for-the-badge&labelColor=0d1117" alt="OpenCode"/>
-  </a>
-  <a href="profiles/copilot/">
-    <img src="https://img.shields.io/badge/GitHub%20Copilot-instructions-00ff88?style=for-the-badge&labelColor=0d1117&logo=github&logoColor=white" alt="GitHub Copilot"/>
-  </a>
-  <a href="profiles/windsurf/">
-    <img src="https://img.shields.io/badge/Windsurf-rules-0080ff?style=for-the-badge&labelColor=0d1117" alt="Windsurf"/>
-  </a>
-  <a href="profiles/pi/">
-    <img src="https://img.shields.io/badge/Pi%20Agent-skills-ff00aa?style=for-the-badge&labelColor=0d1117" alt="Pi Agent"/>
-  </a>
-</p>
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-7c3aed?style=flat&labelColor=1f2937&logo=anthropic&logoColor=white)](profiles/claude-code/)
+[![Cursor](https://img.shields.io/badge/Cursor-rules-0891b2?style=flat&labelColor=1f2937)](profiles/cursor/)
+[![OpenCode](https://img.shields.io/badge/OpenCode-agents-ea580c?style=flat&labelColor=1f2937)](profiles/opencode/)
+[![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-16a34a?style=flat&labelColor=1f2937&logo=github&logoColor=white)](profiles/copilot/)
+[![Windsurf](https://img.shields.io/badge/Windsurf-rules-2563eb?style=flat&labelColor=1f2937)](profiles/windsurf/)
+[![Pi](https://img.shields.io/badge/Pi%20Agent-skills-db2777?style=flat&labelColor=1f2937)](profiles/pi/)
 
-[📖 Documentation](docs/) •
-[🚀 Quick Install](#-quick-install) •
-[🛠️ Skills](#%EF%B8%8F-skills--52-across-9-domains) •
-[🤖 Agents](#-agent-personas) •
-[🔄 Loops](#-loop-engineering) •
-[🤝 Contributing](#-contributing)
+[Documentation](docs/) ·
+[Quick Install](#-quick-install) ·
+[Skills](#%EF%B8%8F-skills--52-across-9-domains) ·
+[Agents](#-agent-personas) ·
+[Loops](#-loop-engineering) ·
+[Contributing](#-contributing)
 
 </div>
 
@@ -112,6 +84,50 @@ Use these only when the primary CLI flow above does not fit your setup.
 /plugin install agent-toolkit-agents@agent-toolkit
 /plugin install agent-toolkit-forge@agent-toolkit
 ```
+
+</details>
+
+<details>
+<summary><strong>Cursor plugins</strong> — Cursor IDE and Cursor Agent CLI</summary>
+
+Native plugins from [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json):
+`agent-toolkit-core`, `agent-toolkit-agents`, `agent-toolkit-forge`.
+
+**Cursor IDE**
+
+1. Open **Customize** in the sidebar (or Command Palette → *Cursor: Open Plugin Marketplace*).
+2. Import the marketplace repo: `https://github.com/ulises-jeremias/agent-toolkit`
+3. Install the plugins you need (`agent-toolkit-core` is the baseline).
+
+User-scoped installs sync to Cursor Agent CLI sessions automatically.
+
+**Cursor Agent CLI**
+
+```bash
+# Interactive — browse / install from the Marketplace tab
+cursor-agent
+# then type: /plugin
+```
+
+Load a local plugin directory for one session (useful while developing):
+
+```bash
+cursor-agent --plugin-dir ./plugins/agent-toolkit-core
+cursor-agent --plugin-dir ./plugins/agent-toolkit-agents
+cursor-agent --plugin-dir ./plugins/agent-toolkit-forge
+```
+
+**Local / offline**
+
+```bash
+# Symlink into Cursor's local plugin dir, then reload the window
+mkdir -p ~/.cursor/plugins/local
+ln -s "$(pwd)/plugins/agent-toolkit-core" ~/.cursor/plugins/local/agent-toolkit-core
+ln -s "$(pwd)/plugins/agent-toolkit-agents" ~/.cursor/plugins/local/agent-toolkit-agents
+ln -s "$(pwd)/plugins/agent-toolkit-forge" ~/.cursor/plugins/local/agent-toolkit-forge
+```
+
+→ [Cursor plugins docs](https://cursor.com/docs/plugins) · [Plugin marketplace guide](docs/wiki/Plugin-Marketplace.md)
 
 </details>
 
@@ -177,7 +193,7 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 | Tool | Type | What's deployed |
 |------|------|-----------------|
 | **Claude Code** | Plugin + CLI | Plugin manifest, skill references, settings |
-| **Cursor** | IDE | `.mdc` rule files per domain |
+| **Cursor** | Plugin + IDE + Agent CLI | Marketplace plugins (`.cursor-plugin/`), `.mdc` rules via profile |
 | **OpenCode** | TUI | System prompt overlays, agent configs |
 | **GitHub Copilot** | IDE | `copilot-instructions.md` with domain selection |
 | **Windsurf** | IDE | Rules and memory files via Cascade |
