@@ -87,7 +87,13 @@ class ClaudeCodeAdapter(TargetAdapter):
             hooks_dir=hooks_dir,
             emit_registries=emit_registries,
         )
-        hooks_text = hooks_json_text(hook_ids, hooks_dir, self.target_id)
+        self._emit_hook_scripts(hook_ids, hooks_dir, out_dir, result)
+        hooks_text = hooks_json_text(
+            hook_ids,
+            hooks_dir,
+            self.target_id,
+            bundle_relative=True,
+        )
         if hooks_text:
             self._write_file(out_dir / "hooks" / "hooks.json", hooks_text, result)
             result.emitted.append("hooks")
@@ -178,6 +184,45 @@ class ClaudeCodeAdapter(TargetAdapter):
         content = agent.source_path.read_text(encoding="utf-8", errors="replace")
         self._write_file(dst / "AGENT.md", content, result)
         result.emitted.append(f"agent:{agent.id}")
+
+    def _emit_hook_scripts(
+        self,
+        hook_ids: list[str],
+        hooks_dir: Path,
+        out_dir: Path,
+        result: CompilationResult,
+    ) -> None:
+        """Copy hook handler scripts into the plugin bundle for bundle-relative commands."""
+        from agent_toolkit.compiler.hook_registry import load_hooks
+        from agent_toolkit.compiler.registry_emit import (
+            hook_script_basename,
+            hook_script_source,
+        )
+
+        registry, _errors = load_hooks(hooks_dir)
+        scripts_dir = out_dir / "hooks" / "scripts"
+        copied: set[str] = set()
+
+        for hook_id in hook_ids:
+            hook = registry.get(hook_id)
+            if hook is None or hook.handler_type != "command" or not hook.command:
+                continue
+            script_name = hook_script_basename(hook.command)
+            if script_name is None or script_name in copied:
+                continue
+            src = hook_script_source(hook.command, self.repo_root)
+            if src is None:
+                result.warnings.append(
+                    f"Hook '{hook_id}' script not found: {hook.command[-1]}"
+                )
+                continue
+            scripts_dir.mkdir(parents=True, exist_ok=True)
+            dst = scripts_dir / script_name
+            dst.write_bytes(src.read_bytes())
+            dst.chmod(dst.stat().st_mode | 0o111)
+            result.artifacts.append(dst)
+            copied.add(script_name)
+            result.emitted.append(f"hook-script:{script_name}")
 
     @staticmethod
     def validate_settings(settings: dict) -> list[str]:
