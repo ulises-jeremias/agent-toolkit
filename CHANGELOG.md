@@ -196,6 +196,11 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ## [Unreleased]
 
+## [1.2.2] — 2026-08-05
+
+### Changed
+- Publish an elevated `packages/agent-toolkit-cli/README.md` to PyPI (parity with the monorepo root README: install, CLI surfaces, tool matrix, ecosystem)
+
 ## [1.2.1] — 2026-08-05
 
 ### Fixed
@@ -204,7 +209,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.2.2
 [1.2.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.2.1
 [1.2.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.2.0
 [1.1.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.1.0

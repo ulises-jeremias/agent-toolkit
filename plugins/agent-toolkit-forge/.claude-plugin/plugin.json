@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-forge",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
   "author": {
     "name": "ulises-jeremias",
