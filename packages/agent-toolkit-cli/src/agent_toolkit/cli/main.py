@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 
 CONSUMER_COMMANDS: tuple[str, ...] = (
-    "install", "doctor", "diff", "skills", "mcp", "plugin",
+    "install", "update", "doctor", "diff", "skills", "mcp", "plugin",
 )
 ADVANCED_COMMANDS: tuple[str, ...] = (
     "loop", "workspace", "memory", "project", "devcompanion", "dc", "insights",
@@ -20,6 +20,7 @@ Usage:
 
 Consumer commands:
     install       Install profiles for detected AI tools
+    update        Refresh installed profiles from latest toolkit data
     doctor        Check system health and tool availability
     diff          Show changes vs currently installed plugin bundles
     skills        Skill management: sync, list, validate
@@ -75,6 +76,9 @@ def main() -> None:
         case "install":
             from agent_toolkit.cli.install import cmd_install
             sys.exit(cmd_install(rest))
+        case "update":
+            from agent_toolkit.cli.update import cmd_update
+            sys.exit(cmd_update(rest))
         case "doctor":
             from agent_toolkit.cli.doctor import cmd_doctor
             sys.exit(cmd_doctor(rest))
