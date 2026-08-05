@@ -5,7 +5,7 @@ on:
     types: [published]
   push:
     branches: [main]
-    paths: [Dockerfile, src/**, pyproject.toml]
+    paths: [Dockerfile, packages/agent-toolkit-cli/src/**, pyproject.toml]
 
 env:
   REGISTRY: ghcr.io

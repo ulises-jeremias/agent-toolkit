@@ -22,7 +22,7 @@ body:
     attributes:
       label: Affected component
       description: "Exact path to the affected skill, agent, loop, or module"
-      placeholder: "e.g. skills/core/assistant, agents/code-reviewer, loops/oss-pr-monitor, src/agent_toolkit/cli/install.py"
+      placeholder: "e.g. skills/core/assistant, agents/code-reviewer, loops/oss-pr-monitor, packages/agent-toolkit-cli/src/agent_toolkit/cli/install.py"
     validations:
       required: true
 

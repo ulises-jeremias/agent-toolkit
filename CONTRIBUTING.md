@@ -271,9 +271,9 @@ PYTHONPATH=src pytest tests/ -v
 
 ## Adding a new compiler target
 
-1. Create `src/agent_toolkit/compiler/targets/<target>.py` extending `TargetAdapter`
-2. Copy to `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/`
-3. Register in both `src/agent_toolkit/cli/build.py` and `packages/.../build.py`
+1. Create `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/<target>.py` extending `TargetAdapter`
+2. Register the adapter in `packages/agent-toolkit-cli/src/agent_toolkit/cli/build.py`
+3. Add contract tests under `tests/compiler/`
 4. Add `distributions/targets/<target>.yaml` with capability declarations
 5. Write contract tests in `tests/compiler/test_<target>_adapter.py`
 6. Ensure `CompilationResult` always reports unsupported capabilities explicitly
