@@ -13,6 +13,7 @@ Boris Cherny, Peter Steinberger, Addy Osmani — 2026).
 Usage:
     loop init <pattern>           Scaffold a loop from a starter template
     loop run <loop> [--force]     Execute a loop run (one iteration; --force bypasses daily budget)
+    loop run <loop> [--quiet]     Suppress live runner progress output
     loop status [loop]            Show loop status (all, or one)
     loop audit [loop]             Summarize past runs (success rate, cost)
     loop cost <loop>              Estimate cost for one run
@@ -487,7 +488,9 @@ def _install_gate_into_environ(run_dir: Path, meta: dict[str, Any]) -> dict[str,
     return env
 
 
-def _try_claude_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None = None) -> bool:
+def _try_claude_runner(
+    prompt: str, run_dir: Path, meta: dict[str, Any] | None = None, *, quiet: bool = False
+) -> bool:
     """Invoke `claude --print` as a built-in runner for Claude Code users."""
     claude_bin = shutil.which("claude")
     if not claude_bin:
@@ -495,36 +498,52 @@ def _try_claude_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None =
 
     env = _install_gate_into_environ(run_dir, meta or {})
     try:
-        result = subprocess.run(
-            [claude_bin, "--print",
-             "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
-            input=prompt,
-            capture_output=True,
-            text=True,
-            cwd=str(WORKSPACE_ROOT),
-            timeout=900,
-            env=env,
-        )
+        if quiet:
+            result = subprocess.run(
+                [claude_bin, "--print",
+                 "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
+                input=prompt,
+                capture_output=True,
+                text=True,
+                cwd=str(WORKSPACE_ROOT),
+                timeout=900,
+                env=env,
+            )
+        else:
+            log("Streaming claude runner output...")
+            result = subprocess.run(
+                [claude_bin, "--print",
+                 "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
+                input=prompt,
+                text=True,
+                cwd=str(WORKSPACE_ROOT),
+                timeout=900,
+                env=env,
+            )
     except subprocess.TimeoutExpired:
         warn("claude runner timed out (900s)")
         return False
 
     if result.returncode == 0:
         report_md = run_dir / "report.md"
-        if not report_md.exists() and result.stdout.strip():
+        if not report_md.exists() and result.stdout and result.stdout.strip():
             report_md.write_text(result.stdout, encoding="utf-8")
         ok("claude runner completed")
         return True
 
     # Claude Code writes auth/error output to stdout, not stderr — show both.
-    error_output = (result.stderr + result.stdout).strip()[:400]
+    stdout = getattr(result, "stdout", "") or ""
+    stderr = getattr(result, "stderr", "") or ""
+    error_output = (stderr + stdout).strip()[:400]
     warn(f"claude runner exited {result.returncode}: {error_output or '(no output)'}")
     if result.returncode == 1 and not error_output:
         warn("  Hint: Claude Code may not be authenticated — run: claude /login")
     return False
 
 
-def _try_opencode_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None = None) -> bool:
+def _try_opencode_runner(
+    prompt: str, run_dir: Path, meta: dict[str, Any] | None = None, *, quiet: bool = False
+) -> bool:
     """Invoke `opencode run` as a headless runner."""
     opencode_bin = shutil.which("opencode")
     if not opencode_bin:
@@ -532,27 +551,41 @@ def _try_opencode_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None
 
     env = _install_gate_into_environ(run_dir, meta or {})
     try:
-        result = subprocess.run(
-            [opencode_bin, "run", "--print-logs"],
-            input=prompt,
-            capture_output=True,
-            text=True,
-            cwd=str(WORKSPACE_ROOT),
-            timeout=900,
-            env=env,
-        )
+        if quiet:
+            result = subprocess.run(
+                [opencode_bin, "run", "--print-logs"],
+                input=prompt,
+                capture_output=True,
+                text=True,
+                cwd=str(WORKSPACE_ROOT),
+                timeout=900,
+                env=env,
+            )
+        else:
+            log("Streaming opencode runner output...")
+            result = subprocess.run(
+                [opencode_bin, "run", "--print-logs"],
+                input=prompt,
+                text=True,
+                cwd=str(WORKSPACE_ROOT),
+                timeout=900,
+                env=env,
+            )
     except subprocess.TimeoutExpired:
         warn("opencode runner timed out (900s)")
         return False
 
     if result.returncode == 0:
         report_md = run_dir / "report.md"
-        if not report_md.exists() and result.stdout.strip():
-            report_md.write_text(result.stdout, encoding="utf-8")
+        stdout = getattr(result, "stdout", "") or ""
+        if not report_md.exists() and stdout.strip():
+            report_md.write_text(stdout, encoding="utf-8")
         ok("opencode runner completed")
         return True
 
-    error_output = (result.stderr + result.stdout).strip()[:400]
+    stdout = getattr(result, "stdout", "") or ""
+    stderr = getattr(result, "stderr", "") or ""
+    error_output = (stderr + stdout).strip()[:400]
     warn(f"opencode runner exited {result.returncode}: {error_output or '(no output)'}")
     return False
 
@@ -695,6 +728,7 @@ def cmd_run(args: list[str]) -> int:
         return 1
 
     force = "--force" in args
+    quiet = "--quiet" in args
     loop_name = next((a for a in args if not a.startswith("-")), "")
     if not loop_name:
         err("Usage: loop run <loop-name> [--force]")
@@ -753,6 +787,10 @@ def cmd_run(args: list[str]) -> int:
     run_dir.mkdir(parents=True)
 
     log(f"Starting run {rid} for '{loop_name}' (tier={tier})")
+    if quiet:
+        log("Quiet mode — runner progress suppressed")
+    else:
+        log("Live progress enabled — streaming runner output")
     log(f"Run artifacts: {run_dir.relative_to(WORKSPACE_ROOT)}")
     allow = _as_str_list(meta.get("allowlist"))
     deny = _as_str_list(meta.get("deny"))
@@ -861,9 +899,9 @@ def cmd_run(args: list[str]) -> int:
                 runner_mod.main(["--job", str(job_file), "--out", str(run_dir)])
             except Exception as e:
                 err(f"Runner error: {e}")
-        elif _try_claude_runner(prompt, run_dir, meta):
+        elif _try_claude_runner(prompt, run_dir, meta, quiet=quiet):
             pass  # claude runner handled it
-        elif _try_opencode_runner(prompt, run_dir, meta):
+        elif _try_opencode_runner(prompt, run_dir, meta, quiet=quiet):
             pass  # opencode runner handled it
         elif _queue_via_devcompanion(prompt, run_dir, loop_name, rid, meta):
             queued = True  # queued for async devcompanion processing
