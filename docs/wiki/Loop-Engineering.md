@@ -539,18 +539,28 @@ launchctl start com.agent-toolkit.oss-briefing
 
 ## Runner Hierarchy
 
-When a loop runs, the runner selects which AI engine to use in this priority order:
+When a loop runs with `--runner auto` (default), the runner selects which AI engine to use
+in this priority order:
 
-1. **agentic-workstation runner** — if the agentic-workstation harness is configured and
-   `HARNESS_RUNNER_DIR` is set, the loop is dispatched to the workstation runner. This is the
-   preferred path for teams using agentic-workstation.
+1. **harness** — if `HARNESS_RUNNER_DIR` points at a `dots-ai-devcompanion` runner package
+2. **claude** — Claude Code CLI (`claude` on `$PATH`)
+3. **opencode** — OpenCode CLI (`opencode` on `$PATH`)
+4. **cursor** — Cursor Agent CLI (`cursor-agent` / `agent` / `cursor`)
+5. **copilot** — GitHub Copilot CLI (`copilot`)
+6. **codex** — OpenAI Codex CLI (`codex`)
+7. **queue** — async `devcompanion` job queue
+8. **skeleton** — write `plan.md` only (no LLM)
 
-2. **claude CLI** — if `claude` is on `$PATH` and `ANTHROPIC_API_KEY` is set.
+Force a specific engine (no silent fallthrough if missing):
 
-3. **opencode** — if `opencode` is on `$PATH`.
+```bash
+agent-toolkit loop run oss-daily-briefing --runner claude
+agent-toolkit loop run oss-pr-monitor --runner cursor --force
+AGENT_TOOLKIT_LOOP_RUNNER=codex agent-toolkit loop run ci-sweeper
+```
 
-4. **skeleton mode** — if no AI engine is available, the runner generates a skeleton `report.md`
-   and `plan.md` without AI content. Useful for CI validation and dry-run testing.
+See `agent-toolkit loop help` for the full flag list and auth/workspace environment variables
+(`CURSOR_API_KEY`, `COPILOT_GITHUB_TOKEN`, `OPENAI_API_KEY` / `CODEX_API_KEY`, `HARNESS_RUNNER_DIR`, …).
 
 ### Locking the runner for client engagements
 
