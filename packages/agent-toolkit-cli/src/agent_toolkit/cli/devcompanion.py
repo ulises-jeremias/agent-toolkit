@@ -12,7 +12,6 @@ Aliases: dc
 """
 from __future__ import annotations
 
-import json
 import os
 import re
 import shutil
@@ -28,6 +27,20 @@ if _sys.platform == 'win32':
         _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
     except Exception:
         pass
+
+from agent_toolkit.cli.devcompanion_queue import (
+    DCConfig,
+    find_job_path,
+    get_dc_config,
+    iter_jobs,
+    job_project_name,
+    job_project_path,
+    mark_job_done,
+    pending_jobs,
+    queue_job_path,
+    read_job,
+    write_job,
+)
 
 
 # ── workspace detection ───────────────────────────────────────────────────────
@@ -48,13 +61,27 @@ def _find_workspace() -> Path:
 
 
 WORKSPACE_ROOT: Path = _find_workspace()
-PROJECTS_DIR: Path   = WORKSPACE_ROOT / "projects"
-TEMPLATES_DIR: Path  = WORKSPACE_ROOT / "templates" / "jobs"
-KNOWLEDGE_TODOS: Path = WORKSPACE_ROOT / "knowledge" / "todos" / "pending.md"
 
-_DC_HOME: Path = WORKSPACE_ROOT / ".devcompanion"
-QUEUE_DIR: Path  = _DC_HOME / "queue"
-RUNS_DIR: Path   = _DC_HOME / "runs"
+
+def _workspace() -> Path:
+    """Fresh workspace root (respects env changes in tests)."""
+    return _find_workspace()
+
+
+def _projects_dir() -> Path:
+    return _workspace() / "projects"
+
+
+def _templates_dir() -> Path:
+    return _workspace() / "templates" / "jobs"
+
+
+def _knowledge_todos() -> Path:
+    return _workspace() / "knowledge" / "todos" / "pending.md"
+
+
+def _cfg() -> DCConfig:
+    return get_dc_config(_workspace())
 
 
 # ── colors ────────────────────────────────────────────────────────────────────
@@ -85,42 +112,28 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-# ── job I/O ───────────────────────────────────────────────────────────────────
-
-def _read_job(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def _write_job(path: Path, data: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-
-
-def _job_path(job_id: str) -> Path:
-    return QUEUE_DIR / f"{job_id}.json"
-
-
 # ── project resolution ────────────────────────────────────────────────────────
 
 def _resolve_project(name: str) -> Path | None:
     """Resolve project name → real repo path via projects/ symlinks."""
-    if not PROJECTS_DIR.is_dir():
+    projects_dir = _projects_dir()
+    if not projects_dir.is_dir():
         return None
-    link = PROJECTS_DIR / name
+    link = projects_dir / name
     if link.is_symlink():
         return link.resolve()
-    # Fuzzy: partial match
-    for entry in PROJECTS_DIR.iterdir():
+    for entry in projects_dir.iterdir():
         if entry.is_symlink() and name in entry.name:
             return entry.resolve()
     return None
 
 
 def _list_projects() -> list[tuple[str, Path | None]]:
-    if not PROJECTS_DIR.is_dir():
+    projects_dir = _projects_dir()
+    if not projects_dir.is_dir():
         return []
     result = []
-    for entry in sorted(PROJECTS_DIR.iterdir()):
+    for entry in sorted(projects_dir.iterdir()):
         if entry.is_symlink():
             target = entry.resolve() if entry.resolve().is_dir() else None
             result.append((entry.name, target))
@@ -130,9 +143,10 @@ def _list_projects() -> list[tuple[str, Path | None]]:
 # ── template loading ──────────────────────────────────────────────────────────
 
 def _load_template(name: str) -> dict:
-    tpl_file = TEMPLATES_DIR / f"{name}.yaml"
+    templates_dir = _templates_dir()
+    tpl_file = templates_dir / f"{name}.yaml"
     if not tpl_file.exists():
-        _err(f"Template not found: {name}  (looked in {TEMPLATES_DIR}/)")
+        _err(f"Template not found: {name}  (looked in {templates_dir}/)")
         sys.exit(1)
 
     text = tpl_file.read_text(encoding="utf-8")
@@ -169,8 +183,9 @@ def _load_template(name: str) -> dict:
 def _sync_todos() -> None:
     """Scan done job plans for checklist items and sync to knowledge/todos/pending.md."""
     todos: list[str] = []
+    cfg = _cfg()
+    runs_dir = cfg.runs_dir
 
-    runs_dir = RUNS_DIR
     if runs_dir.is_dir():
         for plan_md in sorted(runs_dir.rglob("plan.md")):
             try:
@@ -180,39 +195,75 @@ def _sync_todos() -> None:
             except Exception:
                 pass
 
-    KNOWLEDGE_TODOS.parent.mkdir(parents=True, exist_ok=True)
+    knowledge_todos = _knowledge_todos()
+    knowledge_todos.parent.mkdir(parents=True, exist_ok=True)
     existing = ""
-    if KNOWLEDGE_TODOS.exists():
-        existing = KNOWLEDGE_TODOS.read_text(encoding="utf-8")
+    if knowledge_todos.exists():
+        existing = knowledge_todos.read_text(encoding="utf-8")
 
-    # Build a new section
     if todos:
         block = "\n## Synced from devcompanion runs\n\n" + "\n".join(todos) + "\n"
-        # Replace existing synced section if present, else append
         marker = "\n## Synced from devcompanion runs\n"
         if marker in existing:
             pre = existing[: existing.index(marker)]
-            KNOWLEDGE_TODOS.write_text(pre + block, encoding="utf-8")
+            knowledge_todos.write_text(pre + block, encoding="utf-8")
         else:
-            KNOWLEDGE_TODOS.write_text((existing.rstrip() + "\n" + block) if existing else block, encoding="utf-8")
-        _ok(f"Synced {len(todos)} todo(s) → {KNOWLEDGE_TODOS}")
+            knowledge_todos.write_text((existing.rstrip() + "\n" + block) if existing else block, encoding="utf-8")
+        _ok(f"Synced {len(todos)} todo(s) → {knowledge_todos}")
     else:
         _ok("No '- [ ]' items found in run plans.")
 
 
 # ── runners ───────────────────────────────────────────────────────────────────
 
+def _import_harness_runner():
+    """Try to import the harness workstation runner."""
+    runner_root = os.environ.get("HARNESS_RUNNER_DIR", "").strip()
+    if not runner_root:
+        runner_root = str(Path.home() / ".local" / "share" / "agentic-harness" / "runner")
+    runner_dir = Path(runner_root) / "runner"
+    if not runner_dir.is_dir():
+        return None, f"runner dir not found: {runner_dir}"
+    if str(runner_dir) not in sys.path:
+        sys.path.insert(0, str(runner_dir))
+    try:
+        import dots_ai_devcompanion_runner as runner_mod
+        return runner_mod, None
+    except ImportError as exc:
+        return None, str(exc)
+
+
 def _has_loops(repo_path: str) -> bool:
-    """Check if project has agent-toolkit loops configured."""
     if not repo_path:
         return False
     loops_dir = Path(repo_path) / "loops"
     return loops_dir.is_dir() and any(loops_dir.iterdir())
 
 
+def _try_harness_runner(job_file: Path, out_dir: Path) -> bool:
+    runner, _reason = _import_harness_runner()
+    if runner is None:
+        return False
+
+    argv = ["--job", str(job_file), "--out", str(out_dir)]
+    try:
+        rc = runner.main(argv)
+    except Exception as exc:
+        _warn(f"Harness runner failed: {exc}")
+        return False
+
+    if rc is None:
+        rc = 0
+    if rc == 0:
+        _ok("Harness runner completed")
+        return True
+
+    _warn(f"Harness runner exited {rc}")
+    return False
+
+
 def _try_loop_runner(job: dict, out_dir: Path) -> bool:
-    """Try agent-toolkit loop run for the project."""
-    repo_path = job.get("project_path", "")
+    repo_path = job_project_path(job)
     if not _has_loops(repo_path):
         return False
 
@@ -246,18 +297,17 @@ def _try_loop_runner(job: dict, out_dir: Path) -> bool:
 
 
 def _try_claude_runner(job: dict, out_dir: Path) -> bool:
-    """Try claude --print as a runner."""
     claude_bin = shutil.which("claude")
     if not claude_bin:
         return False
 
-    repo_path = job.get("project_path", "")
+    repo_path = job_project_path(job)
     request = job.get("request", "")
     context = f"Repository: {repo_path}\n" if repo_path else ""
 
     prompt = (
         f"You are an AI assistant executing a background job.\n"
-        f"Workspace root: {WORKSPACE_ROOT}\n"
+        f"Workspace root: {_workspace()}\n"
         f"{context}"
         f"Output directory: {out_dir}\n\n"
         f"{request}\n\n"
@@ -271,7 +321,7 @@ def _try_claude_runner(job: dict, out_dir: Path) -> bool:
             input=prompt,
             capture_output=True,
             text=True,
-            cwd=str(WORKSPACE_ROOT),
+            cwd=str(_workspace()),
             timeout=1800,
         )
     except subprocess.TimeoutExpired:
@@ -290,13 +340,51 @@ def _try_claude_runner(job: dict, out_dir: Path) -> bool:
     return False
 
 
+def _try_opencode_runner(job: dict, out_dir: Path) -> bool:
+    opencode_bin = shutil.which("opencode")
+    if not opencode_bin:
+        return False
+
+    request = job.get("request", "")
+    prompt = (
+        f"You are executing an autonomous loop run in an agentic-harness workspace.\n"
+        f"Workspace root: {_workspace()}\n"
+        f"Output directory: {out_dir}\n\n"
+        f"{request}\n\n"
+        f"Write your final report to {out_dir}/report.md and your plan to "
+        f"{out_dir}/plan.md. Work from the workspace root shown above."
+    )
+    try:
+        result = subprocess.run(
+            [opencode_bin, "run", "--print-logs"],
+            input=prompt,
+            capture_output=True,
+            text=True,
+            cwd=str(_workspace()),
+            timeout=900,
+        )
+    except subprocess.TimeoutExpired:
+        _warn("opencode runner timed out (900s)")
+        return False
+
+    if result.returncode == 0:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        report_md = out_dir / "report.md"
+        if not report_md.exists() and result.stdout.strip():
+            report_md.write_text(result.stdout, encoding="utf-8")
+        _ok("opencode runner completed")
+        return True
+
+    _warn(f"opencode runner exited {result.returncode}: {result.stderr[:200]}")
+    return False
+
+
 def _skeleton_run(job: dict, out_dir: Path) -> int:
-    """Built-in skeleton runner — generates a plan stub without LLM."""
     out_dir.mkdir(parents=True, exist_ok=True)
     try:
-        job_id   = job.get("id", "unknown")
-        project  = job.get("project", "unknown")
-        request  = job.get("request", "(no request)")
+        job_id = job.get("id", "unknown")
+        project = job_project_name(job)
+        request = job.get("request", "(no request)")
 
         plan = f"""# Plan — {job_id}
 
@@ -322,7 +410,7 @@ def _skeleton_run(job: dict, out_dir: Path) -> int:
 ## Notes
 
 - Job ID: {job_id}
-- Project path: {job.get("project_path", "not set")}
+- Project path: {job_project_path(job) or "not set"}
 """
         (out_dir / "plan.md").write_text(plan, encoding="utf-8")
         _ok(f"Skeleton plan written → {out_dir / 'plan.md'}")
@@ -330,6 +418,34 @@ def _skeleton_run(job: dict, out_dir: Path) -> int:
     except Exception as exc:
         _err(f"Skeleton runner failed: {exc}")
         return 1
+
+
+def _dispatch_run(cfg: DCConfig, job_file: Path, job: dict, out_dir: Path, no_llm: bool) -> int:
+    if no_llm:
+        _log("--no-llm flag set, using skeleton runner.")
+        return _skeleton_run(job, out_dir)
+
+    if cfg.harness_mode:
+        runner, reason = _import_harness_runner()
+        if runner is not None:
+            if _try_harness_runner(job_file, out_dir):
+                return 0
+        elif reason:
+            _warn(f"Harness runner not available ({reason}). Trying fallbacks.")
+
+        if _try_claude_runner(job, out_dir):
+            return 0
+        if _try_opencode_runner(job, out_dir):
+            return 0
+        _warn("No LLM runner found, falling back to skeleton plan.")
+        return _skeleton_run(job, out_dir)
+
+    if _try_loop_runner(job, out_dir):
+        return 0
+    if _try_claude_runner(job, out_dir):
+        return 0
+    _warn("No LLM runner found, falling back to skeleton plan.")
+    return _skeleton_run(job, out_dir)
 
 
 # ── subcommands ───────────────────────────────────────────────────────────────
@@ -348,7 +464,6 @@ def _cmd_queue(argv: list[str]) -> int:
         _err("Usage: agent-toolkit devcompanion queue <project> [--template NAME] [--request \"...\"]")
         return 1
 
-    # Resolve project path
     project_path = _resolve_project(args.project)
     if project_path is None:
         _err(f"Project not found: '{args.project}'")
@@ -362,7 +477,6 @@ def _cmd_queue(argv: list[str]) -> int:
             print("  (no projects indexed)")
         return 1
 
-    # Build request
     request = ""
     if args.template:
         tpl = _load_template(args.template)
@@ -375,19 +489,32 @@ def _cmd_queue(argv: list[str]) -> int:
         _err("Provide --request or --template")
         return 1
 
+    cfg = _cfg()
     job_id = args.id or f"{args.project}-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-    job: dict = {
-        "id":           job_id,
-        "created_at":   _utc_now(),
-        "project":      args.project,
-        "project_path": str(project_path),
-        "request":      request,
-        "template":     args.template or "",
-        "status":       "pending",
-    }
 
-    job_file = _job_path(job_id)
-    _write_job(job_file, job)
+    if cfg.harness_mode:
+        job: dict = {
+            "id":              job_id,
+            "created_at":      _utc_now(),
+            "request":         request,
+            "repo_path":       str(project_path),
+            "llm":             True,
+            "limits":          {"timeout_sec": 1800, "max_steps": 25},
+            "actions_allowed": ["plan_only"],
+        }
+    else:
+        job = {
+            "id":           job_id,
+            "created_at":   _utc_now(),
+            "project":      args.project,
+            "project_path": str(project_path),
+            "request":      request,
+            "template":     args.template or "",
+            "status":       "pending",
+        }
+
+    job_file = queue_job_path(cfg, job_id)
+    write_job(job_file, job)
 
     _log(f"Project : {args.project}")
     _log(f"Path    : {project_path}")
@@ -395,8 +522,8 @@ def _cmd_queue(argv: list[str]) -> int:
     _ok(f"Job written → {job_file}")
     print()
     print(_cyan("Plan stub:"))
-    print(f"  Run 'agent-toolkit devcompanion run-once' to execute")
-    print(f"  Run 'agent-toolkit devcompanion status' to check progress")
+    print("  Run 'agent-toolkit devcompanion run-once' to execute")
+    print("  Run 'agent-toolkit devcompanion status' to check progress")
     return 0
 
 
@@ -407,53 +534,41 @@ def _cmd_run_once(argv: list[str]) -> int:
     p.add_argument("--no-llm", action="store_true", help="Always use skeleton plan, skip LLM")
     args = p.parse_args(argv)
 
-    QUEUE_DIR.mkdir(parents=True, exist_ok=True)
-
-    # Find the oldest pending job
-    pending = sorted(
-        (f for f in QUEUE_DIR.glob("*.json")),
-        key=lambda f: f.stat().st_mtime,
-    )
-    # Filter to pending status only
-    pending = [f for f in pending if _read_job(f).get("status") == "pending"]
+    cfg = _cfg()
+    pending = pending_jobs(cfg)
 
     if not pending:
         _ok("No pending jobs.")
         return 0
 
-    job_file = pending[0]
-    job = _read_job(job_file)
+    job_file, job = pending[0]
     job_id = job["id"]
-    out_dir = RUNS_DIR / job_id
+    out_dir = cfg.runs_dir / job_id
 
     _log(f"Running job: {job_id}")
-    _log(f"Project    : {job.get('project', '?')}")
+    _log(f"Project    : {job_project_name(job)}")
     _log(f"Artifacts  → {out_dir}")
 
-    # Mark as running
-    job["status"] = "running"
-    _write_job(job_file, job)
-
-    rc = 1
-    if args.no_llm:
-        _log("--no-llm flag set, using skeleton runner.")
-        rc = _skeleton_run(job, out_dir)
+    if cfg.harness_mode:
+        cfg.queue_processing.mkdir(parents=True, exist_ok=True)
+        processing_file = cfg.queue_processing / job_file.name
+        job_file.rename(processing_file)
+        job_file = processing_file
     else:
-        # 1. agent-toolkit loop run (if project has loops)
-        if _try_loop_runner(job, out_dir):
-            rc = 0
-        # 2. claude --print
-        elif _try_claude_runner(job, out_dir):
-            rc = 0
-        # 3. Skeleton fallback
-        else:
-            _warn("No LLM runner found, falling back to skeleton plan.")
-            rc = _skeleton_run(job, out_dir)
+        job["status"] = "running"
+        write_job(job_file, job)
 
-    # Update status
-    job["status"] = "done" if rc == 0 else "failed"
-    job["completed_at"] = _utc_now()
-    _write_job(job_file, job)
+    rc = _dispatch_run(cfg, job_file, job, out_dir, args.no_llm)
+
+    if cfg.harness_mode:
+        dest_dir = cfg.queue_done if rc == 0 else cfg.queue_failed
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        if job_file.exists():
+            job_file.rename(dest_dir / job_file.name)
+    else:
+        job["status"] = "done" if rc == 0 else "failed"
+        job["completed_at"] = _utc_now()
+        write_job(job_file, job)
 
     if rc == 0:
         _ok(f"Job done: {job_id}")
@@ -469,21 +584,41 @@ def _cmd_run_once(argv: list[str]) -> int:
 
 
 def _cmd_status(_argv: list[str]) -> int:
+    cfg = _cfg()
     print()
     print(_blue("=== devcompanion queue status ==="))
     print()
 
-    QUEUE_DIR.mkdir(parents=True, exist_ok=True)
-    all_jobs = sorted(QUEUE_DIR.glob("*.json"), key=lambda f: f.stat().st_mtime)
-
-    if not all_jobs:
+    jobs = iter_jobs(cfg)
+    if not jobs:
         print("  (queue is empty)")
         print()
         return 0
 
-    col_id      = 42
+    if cfg.harness_mode:
+        for state, directory, color in (
+            ("pending", cfg.queue_pending, _yellow),
+            ("processing", cfg.queue_processing, _cyan),
+            ("done", cfg.queue_done, _green),
+            ("failed", cfg.queue_failed, _red),
+        ):
+            if not directory.is_dir():
+                continue
+            state_jobs = [item for item in jobs if item[0] == state]
+            print(f"{color(f'{state:<12}')} {len(state_jobs)} job(s)")
+            for _, jf, job in state_jobs[:5]:
+                jid = job.get("id", jf.stem)
+                project = job_project_name(job)
+                request = job.get("request", "").split("\n")[0][:60]
+                print(f"  {_cyan(f'{jid:<45}')} [{project}] {request}")
+            if len(state_jobs) > 5:
+                print(f"  … and {len(state_jobs) - 5} more")
+            print()
+        return 0
+
+    col_id = 42
     col_project = 20
-    col_status  = 12
+    col_status = 12
     col_created = 20
 
     header = (
@@ -498,18 +633,16 @@ def _cmd_status(_argv: list[str]) -> int:
     status_color = {
         "pending": _yellow,
         "running": _cyan,
-        "done":    _green,
-        "failed":  _red,
+        "done": _green,
+        "failed": _red,
     }
 
-    for jf in all_jobs:
+    for status, jf, job in jobs:
         try:
-            job = _read_job(jf)
-            jid      = job.get("id", jf.stem)[:col_id]
-            project  = job.get("project", "?")[:col_project]
-            status   = job.get("status", "?")
-            created  = job.get("created_at", "")[:19]
-            color    = status_color.get(status, lambda x: x)
+            jid = job.get("id", jf.stem)[:col_id]
+            project = job_project_name(job)[:col_project]
+            created = job.get("created_at", "")[:19]
+            color = status_color.get(status, lambda x: x)
             print(
                 f"{jid:<{col_id}}  "
                 f"{project:<{col_project}}  "
@@ -534,18 +667,26 @@ def _cmd_done(argv: list[str]) -> int:
         _err("Usage: agent-toolkit devcompanion done <job-id>")
         return 1
 
-    job_file = _job_path(args.job_id)
-    if not job_file.exists():
-        _warn(f"Job file not found: {args.job_id}.json")
+    cfg = _cfg()
+    job_id = args.job_id
+
+    if cfg.harness_mode:
+        if mark_job_done(cfg, job_id, _utc_now()):
+            _ok(f"Marked as done: {job_id}")
+            return 0
+        _warn(f"Job file not found: {job_id}.job")
         return 1
 
-    job = _read_job(job_file)
+    job_file = find_job_path(cfg, job_id)
+    if job_file is None:
+        _warn(f"Job file not found: {job_id}.json")
+        return 1
+
+    job = read_job(job_file)
     job["status"] = "done"
     job["completed_at"] = _utc_now()
-    _write_job(job_file, job)
-    _ok(f"Marked as done: {args.job_id}")
-
-    # Archive: move to runs dir (informational only — file stays in queue with status=done)
+    write_job(job_file, job)
+    _ok(f"Marked as done: {job_id}")
     return 0
 
 
@@ -555,6 +696,9 @@ def _cmd_sync_todos(_argv: list[str]) -> int:
 
 
 def _cmd_help(_argv: list[str]) -> int:
+    cfg = _cfg()
+    queue_loc = str(cfg.dc_home / "queue") if cfg.harness_mode else str(cfg.queue_dir)
+    mode = "harness (.job files)" if cfg.harness_mode else "workspace (.json files)"
     print(f"""
 {_blue('agent-toolkit devcompanion')} — background job queue for AI Workspace
 
@@ -573,11 +717,15 @@ def _cmd_help(_argv: list[str]) -> int:
 {_cyan('Workspace detection:')}
   AGENT_TOOLKIT_WORKSPACE env var, or walk up from CWD looking for .devcompanion/
 
+{_cyan('Queue mode:')}
+  {mode}
+  HARNESS_DC_HOME or HARNESS_DIR → harness queue under ~/.local/share/agentic-harness/dev-companion
+
 {_cyan('Queue location:')}
-  {QUEUE_DIR}
+  {queue_loc}
 
 {_cyan('Runs location:')}
-  {RUNS_DIR}
+  {cfg.runs_dir}
 
 {_cyan('Examples:')}
   agent-toolkit devcompanion queue my-api --template code-review
@@ -593,8 +741,6 @@ def _cmd_help(_argv: list[str]) -> int:
 """)
     return 0
 
-
-# ── entry point ───────────────────────────────────────────────────────────────
 
 def cmd_devcompanion(argv: list[str]) -> int:
     if not argv or argv[0] in ("-h", "--help", "help"):
