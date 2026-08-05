@@ -14,11 +14,13 @@ Options:
 """
 from __future__ import annotations
 
+import json
 import shutil
 import sys
 import os
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
+from agent_toolkit.installer.merge import merge_json_file
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -216,6 +218,51 @@ def _install_cursor(*, dry_run: bool, force: bool) -> bool:
                      dry_run=dry_run, force=force)
 
 
+def _install_json_config(
+    src: Path,
+    dst: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+) -> bool:
+    """Install a JSON config with non-destructive merge when dst already exists."""
+    if not src.is_file():
+        _warn(f"Source not found, skipping: {src}")
+        return True
+
+    if dry_run:
+        if dst.is_file() and not force:
+            _dry(f"Would merge: {src.name} → {dst}")
+        else:
+            _dry(f"Would copy: {src.name} → {dst}")
+        return True
+
+    try:
+        merged, patches, ownership = merge_json_file(src, dst, force=force)
+    except (json.JSONDecodeError, OSError) as exc:
+        _err(f"Failed to merge {src} → {dst}: {exc}")
+        return False
+
+    if ownership == "unchanged":
+        _skip(f"Already up to date: {dst}")
+        return True
+
+    if ownership == "skipped":
+        _skip(f"Preserving user-owned file (use --force to overwrite): {dst}")
+        return True
+
+    if merged is None:
+        return _copy_file(src, dst, dry_run=False, force=force)
+
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
+    if ownership == "merged" and patches:
+        _ok(f"Merged config ({len(patches)} key(s) added): {dst}")
+    else:
+        _ok(f"Installed: {dst}")
+    return True
+
+
 def _install_opencode(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: OpenCode")
@@ -225,10 +272,30 @@ def _install_opencode(*, dry_run: bool, force: bool) -> bool:
         _warn(f"OpenCode profile directory not found: {src}")
         return False
 
+    profile_config = src / "opencode.json"
+    if profile_config.is_file():
+        try:
+            profile_data = json.loads(profile_config.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            _err(f"Invalid profiles/opencode/opencode.json: {exc}")
+            return False
+        from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
+
+        validation_errors = OpenCodeAdapter.validate_opencode_json(profile_data)
+        if validation_errors:
+            for msg in validation_errors:
+                _err(msg)
+            return False
+
     home = Path.home()
     success = True
-    success &= _copy_file(src / "opencode.json", home / ".config" / "opencode" / "opencode.json",
-                          dry_run=dry_run, force=force)
+    if profile_config.is_file():
+        success &= _install_json_config(
+            profile_config,
+            home / ".config" / "opencode" / "opencode.json",
+            dry_run=dry_run,
+            force=force,
+        )
     if (src / "agents").is_dir():
         success &= _copy_dir(src / "agents", home / ".config" / "opencode" / "agents",
                              dry_run=dry_run, force=force)

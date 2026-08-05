@@ -214,6 +214,12 @@ def test_parity_notes_documented():
     )
 
 
+def test_typescript_plugin_status_documented():
+    status = OpenCodeAdapter.typescript_plugin_status()
+    assert "issue #10" in status.lower() or "issue" in status.lower()
+    assert "typescript" in status.lower()
+
+
 # ── all products ──────────────────────────────────────────────────────────────
 
 
