@@ -91,9 +91,8 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         return True
 
     if dst.exists() and not force:
-        if not _confirm(f"Overwrite existing file: {dst}?", force=False):
-            _skip(f"Skipped: {dst}")
-            return True
+        _skip(f"Preserving user-owned file (use --force to overwrite): {dst}")
+        return True
 
     try:
         dst.parent.mkdir(parents=True, exist_ok=True)
