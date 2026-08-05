@@ -5,14 +5,9 @@
 
 ## Supported Versions
 
-Only the latest commit on the `main` branch is actively supported. There are no versioned releases with backported security patches at this time.
+This project ships **semver-tagged GitHub Releases** and **PyPI `agent-toolkit-cli`** (see [RELEASING.md](docs/RELEASING.md)). Those are the supported distribution channels.
 
-| Version | Supported |
-|---|---|
-| `main` (latest) | Yes |
-| Any tagged release | Best-effort only |
-
-If you are using a pinned commit or an older tag, we recommend updating to `main` before reporting an issue, in case it has already been fixed.
+**Support policy:** **latest released minor only** (e.g. `1.3.x` when `v1.3.0` is latest). The previous minor receives best-effort guidance to upgrade; we do not backport patches unless the maintainer announces otherwise. `main` is pre-release and may contain fixes ahead of the next tag.
 
 ---
 
