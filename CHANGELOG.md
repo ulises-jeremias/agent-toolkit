@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+<!-- markdownlint-disable MD024 -->
+## [Unreleased]
+
+### Added
+
+- **Muse Code support (Meta, <https://developer.meta.com/ai/products/muse-code/>)** — new `muse-code` build target (`muse` alias) via `MuseCodeAdapter` (`packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/muse_code.py`) registered in `capabilities/targets/registry.yaml` (stable). `agent-toolkit build --target muse-code` and `install --tools muse-code` now deploy 50 skills to `~/.config/muse/skills/<name>/SKILL.md` plus `.agents/skills` (universal fallback) per Agent Skills spec (`muse skills import --from claude`). New profile `profiles/muse-code/README.md` and docs `README.md`.
+
 ## [1.0.1] — 2026-08-04
 
 ### Fixed
@@ -79,7 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   security shim) is now included in the wheel at `agent_toolkit/loop/loop-gh-gate`
 - Windows compatibility: `os.getuid()` wrapped in try/except AttributeError
 
-### Added  
+### Added
 - uv workspace structure: `packages/agent-toolkit-cli/` — ready for future packages
   (`agent-toolkit-server`, `agent-toolkit-mcp`, etc.)
 - Root `pyproject.toml` with `[tool.uv.workspace]` and shared dev tooling
