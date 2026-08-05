@@ -54,6 +54,8 @@
 
 [📖 Documentation](docs/) •
 [🚀 Quick Install](#-quick-install) •
+[🔄 Migration](docs/MIGRATION.md) •
+[🛡️ Trust](docs/TRUST.md) •
 [🛠️ Skills](#%EF%B8%8F-skills--52-across-9-domains) •
 [🤖 Agents](#-agent-personas) •
 [🔄 Loops](#-loop-engineering) •
@@ -299,6 +301,10 @@ Browse packs: [`packs/`](packs/)
 
 | Guide | Description |
 |-------|-------------|
+| [🚀 Installation](docs/INSTALLATION.md) | Primary consumer install flow (`uvx` / CLI) |
+| [🔄 Migration](docs/MIGRATION.md) | Switch install methods without duplicate profiles |
+| [🗑️ Uninstall](docs/UNINSTALL.md) | Remove toolkit artifacts from your machine |
+| [🛡️ Trust & security](docs/TRUST.md) | What gets installed, verification, receipts |
 | [🔨 How to add a skill](docs/HOW_TO_ADD_SKILL.md) | Create a new skill with SKILL.md frontmatter |
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |

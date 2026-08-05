@@ -1,5 +1,8 @@
 # Security Policy
 
+> **Consumers:** see [docs/TRUST.md](docs/TRUST.md) for install verification, receipts,
+> and what files the toolkit writes on your machine.
+
 ## Supported Versions
 
 Only the latest commit on the `main` branch is actively supported. There are no versioned releases with backported security patches at this time.
