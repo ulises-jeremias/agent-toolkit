@@ -21,6 +21,8 @@ Commands:
     skills        Skill management: sync, list, validate
     mcp           MCP provider management: setup, list, doctor
     plugin        Plugin bundle management: sync, check
+    update        Refresh installed profiles from toolkit data
+    completion    Emit shell completion scripts (bash, zsh, fish)
 
 Run 'agent-toolkit <command> --help' for details.
 """
@@ -95,6 +97,9 @@ def main() -> None:
         case "insights":
             from agent_toolkit.cli.insights import cmd_insights
             sys.exit(cmd_insights(rest))
+        case "completion":
+            from agent_toolkit.cli.completion import cmd_completion
+            sys.exit(cmd_completion(rest))
         case _:
             print(f"Unknown command: {command}", file=sys.stderr)
             print("Run 'agent-toolkit help' for usage.", file=sys.stderr)
