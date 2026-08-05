@@ -122,12 +122,15 @@ def cmd_build(args: list[str]) -> int:
 
         for product in products_to_build:
             print(f"  Building {product.id} → {target_id}...")
+            adapter._provenance_records = []
             if parsed.check:
                 result = adapter.check(graph, product)
             else:
                 result = adapter.compile(graph, product)
                 if hasattr(adapter, "_cleanup_stale_artifacts"):
                     adapter._cleanup_stale_artifacts(product, result)
+                if hasattr(adapter, "_finalize_provenance"):
+                    adapter._finalize_provenance(product, result)
 
             all_results.append(result)
             print(result.report())

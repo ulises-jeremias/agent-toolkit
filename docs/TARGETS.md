@@ -25,7 +25,7 @@ Each target receives the strongest integration it actually supports.
 | Gemini CLI | extension (gemini-extension.json) | native | native | unsupported* | unsupported* | stable |
 | Pi Coding Agent | companion-assets | native | native | unsupported† | unsupported† | stable |
 | Windsurf | customization-bundle | native | generated (rules) | unsupported | unsupported | stable |
-| OpenAI Codex | plugin (.codex-plugin/) | native | native | unknown-blocked | unknown-blocked | experimental |
+| OpenAI Codex (experimental) | plugin (.codex-plugin/) | native | native | unknown-blocked | unknown-blocked | experimental |
 
 *pending canonical hook model (issue #16)
 †requires TypeScript runtime plugin
@@ -44,7 +44,17 @@ agent-toolkit install --tools cursor,claude-code
 agent-toolkit release --dry-run --output dist/
 ```
 
+## Target certification
+
+Per-target certification packages document official contracts vs adapter behavior:
+
+| Target | Certification doc |
+|--------|-------------------|
+| Claude Code | [`docs/targets/claude-code-certification.md`](targets/claude-code-certification.md) |
+
 ## Research sources
 
 All capability claims are based on official documentation as of 2026-08-04.
 See `docs/research/platform-capability-matrix.md` and `docs/research/source-ledger.md`.
+
+Codex certification (experimental strategy): `docs/certification/codex.md`.

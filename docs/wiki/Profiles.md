@@ -443,10 +443,9 @@ If you want to add support for a new AI tool:
 
 1. Create `profiles/<new-tool>/` directory
 2. Add tool-specific config files using that tool's native format
-3. Add the tool to the compatibility matrix in each relevant skill's `skill.json`
-4. Document the install path in `docs/PROFILES.md` and `docs/INSTALLATION.md`
-5. Add detection and copy logic to `scripts/install.sh`
-6. Open a PR — see [Contributing](Contributing)
+3. Document the install path in `docs/PROFILES.md` and `docs/INSTALLATION.md`
+4. Add detection and copy logic to `scripts/install.sh`
+5. Open a PR — see [Contributing](Contributing)
 
 See [docs/HOW_TO_ADD_PROFILE.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/HOW_TO_ADD_PROFILE.md)
 in the repository for the step-by-step guide.

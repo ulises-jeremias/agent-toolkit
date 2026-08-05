@@ -211,10 +211,9 @@ In summary:
 
 1. Create `profiles/<new-tool>/` directory
 2. Add tool-specific config files using that tool's native format
-3. Add the tool to the compatibility matrix in each relevant skill's `skill.json`
-4. Document the install path in `docs/PROFILES.md` and `docs/INSTALLATION.md`
-5. Add detection and copy logic to `scripts/install.sh`
-6. Open a PR
+3. Document the install path in `docs/PROFILES.md` and `docs/INSTALLATION.md`
+4. Add detection and copy logic to `scripts/install.sh`
+5. Open a PR
 
 ---
 

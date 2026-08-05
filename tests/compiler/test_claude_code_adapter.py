@@ -71,3 +71,25 @@ def test_all_products(adapter, graph, product_id):
         pytest.skip(f"Product {product_id} not defined")
     result = adapter.compile(graph, graph.products[product_id])
     assert result.errors == []
+
+
+def test_plugin_manifest_uses_claude_plugin_dir(adapter, graph):
+    """Official contract: manifest lives under .claude-plugin/, not plugin root."""
+    product = graph.products["agent-toolkit-core"]
+    adapter.compile(graph, product)
+    manifest = adapter.output_root / "agent-toolkit-core" / ".claude-plugin" / "plugin.json"
+    wrong = adapter.output_root / "agent-toolkit-core" / "plugin.json"
+    assert manifest.is_file()
+    assert not wrong.exists()
+
+
+def test_validate_settings_rejects_dangerous_bypass():
+    errors = ClaudeCodeAdapter.validate_settings({"skipDangerousModePermissionPrompt": True})
+    assert errors
+
+
+def test_parity_notes_document_plugin_local_settings():
+    notes = ClaudeCodeAdapter.parity_notes()
+    assert "settings.json" in notes.lower() or "plugin-local" in notes.lower()
+    assert "hook" in notes.lower()
+    assert "mcp" in notes.lower()

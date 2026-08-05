@@ -15,11 +15,29 @@ pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.model import CanonicalGraph, Skill, Agent, Product, Stability
 from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
+from agent_toolkit.compiler.targets.codex import CodexAdapter
+from agent_toolkit.compiler.targets.copilot import CopilotCLIAdapter, CopilotRepositoryAdapter
 from agent_toolkit.compiler.targets.cursor import CursorAdapter
+from agent_toolkit.compiler.targets.gemini_cli import GeminiCLIAdapter
 from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
+from agent_toolkit.compiler.targets.pi import PiAdapter
+from agent_toolkit.compiler.targets.windsurf import WindsurfAdapter
 
 FIXTURES_DIR = Path(__file__).parent / "golden" / "fixtures"
 REPO_ROOT = Path(__file__).parent.parent
+
+# All nine compiler adapters (matches build.py available_targets count).
+ALL_ADAPTERS = [
+    ClaudeCodeAdapter,
+    CursorAdapter,
+    OpenCodeAdapter,
+    GeminiCLIAdapter,
+    CopilotCLIAdapter,
+    CopilotRepositoryAdapter,
+    PiAdapter,
+    WindsurfAdapter,
+    CodexAdapter,
+]
 
 
 def build_fixture_graph() -> CanonicalGraph:
@@ -60,9 +78,7 @@ def content_digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
 
 
-@pytest.mark.parametrize("adapter_cls", [
-    ClaudeCodeAdapter, CursorAdapter, OpenCodeAdapter
-])
+@pytest.mark.parametrize("adapter_cls", ALL_ADAPTERS)
 def test_output_is_deterministic(adapter_cls):
     """Same input must produce identical output on every run."""
     graph = build_fixture_graph()
@@ -92,9 +108,7 @@ def test_output_is_deterministic(adapter_cls):
     )
 
 
-@pytest.mark.parametrize("adapter_cls", [
-    ClaudeCodeAdapter, CursorAdapter, OpenCodeAdapter
-])
+@pytest.mark.parametrize("adapter_cls", ALL_ADAPTERS)
 def test_no_machine_paths_in_output(adapter_cls):
     """Generated files must not contain absolute machine paths."""
     graph = build_fixture_graph()
@@ -103,7 +117,25 @@ def test_no_machine_paths_in_output(adapter_cls):
         adapter = adapter_cls(Path(d), REPO_ROOT)
         adapter.compile(graph, graph.products["fixture-product"])
         for f in sorted(Path(d).rglob("*")):
-            if f.is_file() and f.suffix in (".md", ".json", ".yaml", ".toml"):
+            if f.is_file() and f.suffix in (".md", ".json", ".yaml", ".toml", ".agent"):
                 text = f.read_text(errors="replace")
                 assert "/home/" not in text, f"Machine /home/ path in {f}"
                 assert str(Path.home()) not in text
+
+
+def test_all_nine_adapters_covered():
+    """Guard: golden suite must track every adapter in build.py available_targets."""
+    assert len(ALL_ADAPTERS) == 9
+    names = {cls.__name__ for cls in ALL_ADAPTERS}
+    expected = {
+        "ClaudeCodeAdapter",
+        "CursorAdapter",
+        "OpenCodeAdapter",
+        "GeminiCLIAdapter",
+        "CopilotCLIAdapter",
+        "CopilotRepositoryAdapter",
+        "PiAdapter",
+        "WindsurfAdapter",
+        "CodexAdapter",
+    }
+    assert names == expected

@@ -1,3 +1,5 @@
+> **Note:** Canonical documentation lives under [`docs/`](../). This wiki may lag.
+
 # agent-toolkit Wiki
 
 > Composable AI capabilities for every major coding assistant — one toolkit, any tool.
