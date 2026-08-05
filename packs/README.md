@@ -8,8 +8,8 @@ into outcome-oriented workflows for common team setups.
 | Pack | Description | Status |
 |------|-------------|--------|
 | [oss-maintenance](oss-maintenance/) | Automate PR review, issue triage, and daily briefings across OSS repos | ✅ Ready |
-| [engineering-workflow](engineering-workflow/) | End-to-end engineering delivery: planning → implementation → review → deploy | 🚧 Draft |
-| [delivery-discipline](delivery-discipline/) | Ticket hygiene, traceability, and process compliance | 🚧 Draft |
+| [engineering-workflow](engineering-workflow/) | End-to-end engineering delivery: planning → implementation → review → deploy | ✅ Ready (config shipped) |
+| [delivery-discipline](delivery-discipline/) | Ticket hygiene, traceability, and process compliance | ✅ Ready (config shipped) |
 
 ## Using a Pack
 
