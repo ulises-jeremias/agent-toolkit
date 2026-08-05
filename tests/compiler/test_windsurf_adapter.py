@@ -231,6 +231,31 @@ def test_package_type_not_plugin(adapter):
     )
 
 
+def test_maturity_is_stable(adapter):
+    """Customization bundle layout is stable; no marketplace gate applies."""
+    assert adapter.maturity == "stable", (
+        f"WindsurfAdapter.maturity must be 'stable', got '{adapter.maturity}'"
+    )
+
+
+def test_adr002_semantic_contract(adapter, graph):
+    """ADR-002: rules (always-on) and skills (on-demand) must coexist; no memories."""
+    product = graph.products["agent-toolkit-core"]
+    adapter.compile(graph, product)
+
+    out_dir = adapter.output_root / "agent-toolkit-core"
+    assert (out_dir / "rules").is_dir(), "rules/ required for behavioral constraints"
+    assert (out_dir / "skills").is_dir(), "skills/ required for on-demand procedures"
+    assert not (out_dir / "memories").exists(), "memories/ must not be generated (ADR-002)"
+
+
+def test_install_paths_documented_in_parity_notes():
+    """Install UX paths must be documented for certification traceability."""
+    notes = WindsurfAdapter.parity_notes().lower()
+    assert "project" in notes, "Parity notes must document project scope"
+    assert "rule" in notes and "skill" in notes, "Parity notes must distinguish rules vs skills"
+
+
 # ── unsupported capabilities ──────────────────────────────────────────────────
 
 
