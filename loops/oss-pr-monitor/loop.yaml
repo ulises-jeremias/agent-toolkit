@@ -1,14 +1,15 @@
 # Loop starter: oss-pr-monitor
-# An L2 loop that monitors open PRs across a multi-repo OSS ecosystem.
+# An L3 loop that monitors open PRs across a multi-repo OSS ecosystem.
 # Cadence: daily. Cost: high (scales with repo count).
 # Designed for maintainers managing 20-50 repos.
+# Tier L3 is required: merge/close are forbidden at L2 by loop-gh-gate.
 #
 # Usage:
 #   ./bin/loop init oss-pr-monitor --pack packs/my-ecosystem.yaml
 
 name: oss-pr-monitor
-description: "Monitor open PRs across OSS ecosystem repos and take action (L2, daily)"
-tier: L2
+description: "Monitor open PRs across OSS ecosystem repos and take action (L3, daily)"
+tier: L3
 cadence: 1d
 resumable: true
 
