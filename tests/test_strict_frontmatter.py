@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.loader import _parse_frontmatter, load_skills
 from agent_toolkit.compiler.hook_registry import load_hooks

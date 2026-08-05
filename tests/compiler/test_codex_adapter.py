@@ -25,7 +25,6 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.loader import load_graph
 from agent_toolkit.compiler.targets.codex import CodexAdapter

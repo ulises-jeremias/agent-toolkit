@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
-yaml = pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.hook_registry import (
     HookDefinition,

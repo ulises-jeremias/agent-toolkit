@@ -36,27 +36,23 @@ dev = [
 [[package]]
 name = "agent-toolkit-cli"
 source = { editable = "packages/agent-toolkit-cli" }
-
-[package.optional-dependencies]
-all = [
+dependencies = [
     { name = "pyyaml" },
 ]
+
+[package.optional-dependencies]
 dev = [
     { name = "pytest" },
     { name = "ruff" },
-]
-yaml = [
-    { name = "pyyaml" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0" },
-    { name = "pyyaml", marker = "extra == 'all'", specifier = ">=6.0" },
-    { name = "pyyaml", marker = "extra == 'yaml'", specifier = ">=6.0" },
+    { name = "pyyaml", specifier = ">=6.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
 ]
-provides-extras = ["all", "dev", "yaml"]
+provides-extras = ["dev"]
 
 [[package]]
 name = "colorama"

@@ -10,6 +10,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+_PYYAML_REQUIRED = (
+    "PyYAML is required to load hook definitions from capabilities/hooks/*.yaml. "
+    "Install with: uv sync"
+)
+
+
+def _require_yaml():
+    try:
+        import yaml
+    except ImportError as exc:
+        raise ImportError(_PYYAML_REQUIRED) from exc
+    return yaml
+
 
 @dataclass
 class HookDefinition:
@@ -60,10 +73,7 @@ def load_hooks(hooks_dir: Path) -> tuple[dict[str, HookDefinition], list[str]]:
     if not hooks_dir.is_dir():
         return hooks, errors
 
-    try:
-        import yaml
-    except ImportError:
-        return hooks, ["PyYAML is required to load hook definitions"]
+    yaml = _require_yaml()
 
     for yaml_file in sorted(hooks_dir.glob("*.yaml")):
         try:

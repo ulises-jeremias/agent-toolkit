@@ -7,7 +7,6 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("yaml")
 
 REPO_ROOT = Path(__file__).parent.parent
 

@@ -6,7 +6,6 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.mcp_registry import load_registry
 

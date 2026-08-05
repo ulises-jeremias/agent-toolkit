@@ -13,11 +13,18 @@ from agent_toolkit.compiler.model import (
     Requirement, SecurityPolicy, Skill, Stability,
 )
 
-try:
-    import yaml
-    _YAML = True
-except ImportError:
-    _YAML = False
+_PYYAML_REQUIRED = (
+    "PyYAML is required to load YAML sources (products.yaml, frontmatter). "
+    "Install with: uv sync"
+)
+
+
+def _require_yaml():
+    try:
+        import yaml
+    except ImportError as exc:
+        raise ImportError(_PYYAML_REQUIRED) from exc
+    return yaml
 
 
 def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str, str | None]:
@@ -32,19 +39,17 @@ def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str, str | None]:
         return {}, text, None
     fm_text = m.group(1)
     body = m.group(2)
-    if _YAML:
-        try:
-            loaded = yaml.safe_load(fm_text)
-        except Exception as exc:
-            return {}, body, f"invalid YAML frontmatter: {exc}"
-        if loaded is None:
-            fm: dict[str, Any] = {}
-        elif not isinstance(loaded, dict):
-            return {}, body, f"frontmatter must be a mapping, got {type(loaded).__name__}"
-        else:
-            fm = loaded
+    yaml = _require_yaml()
+    try:
+        loaded = yaml.safe_load(fm_text)
+    except Exception as exc:
+        return {}, body, f"invalid YAML frontmatter: {exc}"
+    if loaded is None:
+        fm: dict[str, Any] = {}
+    elif not isinstance(loaded, dict):
+        return {}, body, f"frontmatter must be a mapping, got {type(loaded).__name__}"
     else:
-        fm = _simple_yaml(fm_text)
+        fm = loaded
     return fm, body, None
 
 
@@ -160,10 +165,8 @@ def load_products(products_yaml: Path) -> tuple[dict[str, Product], list[str]]:
     if not products_yaml.exists():
         return products, [f"products.yaml not found: {products_yaml}"]
 
-    if _YAML:
-        data = yaml.safe_load(products_yaml.read_text()) or {}
-    else:
-        return products, ["PyYAML required to load products.yaml"]
+    yaml = _require_yaml()
+    data = yaml.safe_load(products_yaml.read_text()) or {}
 
     for p in data.get("products", []):
         pid = p.get("id", "")

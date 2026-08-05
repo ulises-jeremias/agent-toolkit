@@ -10,6 +10,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+_PYYAML_REQUIRED = (
+    "PyYAML is required to load MCP providers from mcp/registry/*.yaml. "
+    "Install with: uv sync"
+)
+
+
+def _require_yaml():
+    try:
+        import yaml
+    except ImportError as exc:
+        raise ImportError(_PYYAML_REQUIRED) from exc
+    return yaml
+
 
 @dataclass
 class McpProvider:
@@ -63,10 +76,7 @@ def load_registry(registry_dir: Path) -> tuple[dict[str, McpProvider], list[str]
     if not registry_dir.is_dir():
         return providers, errors
 
-    try:
-        import yaml
-    except ImportError:
-        return providers, ["PyYAML is required to load MCP registry"]
+    yaml = _require_yaml()
 
     for yaml_file in sorted(registry_dir.glob("*.yaml")):
         try:

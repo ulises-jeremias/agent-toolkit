@@ -11,7 +11,6 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.model import CanonicalGraph, Skill, Agent, Product, Stability
 from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
