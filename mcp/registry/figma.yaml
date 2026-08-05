@@ -1,3 +1,44 @@
 # MCP Provider: figma
-# Research: docs/research/platform-capability-matrix.md (2026-08-04)
+# Research: docs/wiki/MCP-Setup.md · mcp/templates/figma/
 id: figma
+display_name: Figma
+purpose: Fetch design context, file structure, component metadata, and screenshots for design-to-code
+implementation:
+  provenance: official
+  package: "https://mcp.figma.com/mcp"
+  repository: https://www.figma.com/developers/mcp
+  license: proprietary
+  version_policy: remote hosted
+transport:
+  supported: [streamable_http]
+  preferred: streamable_http
+auth:
+  supported: [bearer-env]
+  preferred: bearer-env
+  env: [FIGMA_OAUTH_TOKEN, FIGMA_REGION]
+tools:
+  read:
+    - get_design_context
+    - get_file_structure
+    - get_screenshot
+    - get_metadata
+  write: []
+  destructive: []
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [mcp.figma.com, api.figma.com]
+  secret_storage: environment variable
+  notes: Prefer file-content read-only PAT; set FIGMA_REGION (us|eu) for regional routing
