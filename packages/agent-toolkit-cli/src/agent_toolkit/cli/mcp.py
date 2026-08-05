@@ -7,10 +7,13 @@ Usage:
 Subcommands:
     list                   List available MCP providers
     setup <provider>       Interactive wizard to configure a provider
+    health [provider]      Validate registry entry and required env var names (no network)
     doctor [provider]      Check env vars and connectivity for provider(s)
+    uninstall <provider>   Remove a provider from local MCP config
 
 Options:
-    --help    Show this help message
+    --offline              Skip network connectivity checks (setup/doctor)
+    --help                 Show this help message
 """
 from __future__ import annotations
 
@@ -37,6 +40,35 @@ def _mcp_config_path() -> Path:
 
 def _templates_dir(toolkit_dir: Path) -> Path:
     return toolkit_dir / "mcp" / "templates"
+
+
+def _registry_dir(toolkit_dir: Path) -> Path:
+    return toolkit_dir / "mcp" / "registry"
+
+
+def _load_registry_provider(toolkit_dir: Path, provider: str):
+    """Load provider metadata from mcp/registry/<provider>.yaml."""
+    from agent_toolkit.compiler.mcp_registry import load_registry
+
+    registry, _errors = load_registry(_registry_dir(toolkit_dir))
+    return registry.get(provider)
+
+
+def _registry_env_vars(toolkit_dir: Path, provider: str) -> list[str]:
+    entry = _load_registry_provider(toolkit_dir, provider)
+    if entry is None:
+        template = _load_template(_templates_dir(toolkit_dir), provider)
+        return _extract_env_vars(template) if template else []
+    return list(entry.env_vars)
+
+
+def _list_known_providers(toolkit_dir: Path) -> list[str]:
+    reg_dir = _registry_dir(toolkit_dir)
+    names = {p.stem for p in reg_dir.glob("*.yaml")} if reg_dir.is_dir() else set()
+    tdir = _templates_dir(toolkit_dir)
+    if tdir.is_dir():
+        names.update(p.name for p in tdir.iterdir() if p.is_dir())
+    return sorted(names)
 
 
 # ---------------------------------------------------------------------------
@@ -192,7 +224,7 @@ def _cmd_list(toolkit_dir: Path | None) -> int:
     return 0
 
 
-def _cmd_setup(provider: str, toolkit_dir: Path | None) -> int:
+def _cmd_setup(provider: str, toolkit_dir: Path | None, *, offline: bool = False) -> int:
     """Interactive wizard to configure an MCP provider."""
     if toolkit_dir is None:
         print("  ✗  Cannot locate toolkit directory", file=sys.stderr)
@@ -200,14 +232,17 @@ def _cmd_setup(provider: str, toolkit_dir: Path | None) -> int:
 
     tdir = _templates_dir(toolkit_dir)
     template = _load_template(tdir, provider)
-    if template is None:
-        providers = sorted(p.name for p in tdir.iterdir() if p.is_dir()) if tdir.is_dir() else []
+    entry = _load_registry_provider(toolkit_dir, provider)
+    if entry is None and template is None:
+        providers = _list_known_providers(toolkit_dir)
         print(f"  ✗  Provider '{provider}' not found.", file=sys.stderr)
         if providers:
             print(f"  Available: {', '.join(providers)}", file=sys.stderr)
         return 1
 
-    env_vars = _extract_env_vars(template)
+    env_vars = _registry_env_vars(toolkit_dir, provider)
+    if not env_vars and template is not None:
+        env_vars = _extract_env_vars(template)
     readme = _load_readme(tdir, provider)
 
     print()
@@ -261,13 +296,18 @@ def _cmd_setup(provider: str, toolkit_dir: Path | None) -> int:
 
     # Validate / test connectivity
     print()
-    print("  Testing connectivity...")
-    ok, detail = _test_connectivity(provider, env_vals)
+    if offline:
+        print("  ✓  Offline mode — skipping connectivity check")
+        ok, detail = True, "registry and env var names validated"
+    else:
+        print("  Testing connectivity...")
+        ok, detail = _test_connectivity(provider, env_vals)
     if ok:
         print(f"  ✓  {detail}")
     else:
         print(f"  ⚠  Connectivity check failed: {detail}")
-        print("     Saving configuration anyway — double-check your credentials.")
+        if not offline:
+            print("     Saving configuration anyway — double-check your credentials.")
 
     # Save config: store env var names (not plaintext values)
     cfg = _load_config()
@@ -377,9 +417,72 @@ def _cmd_doctor(providers_arg: list[str], toolkit_dir: Path | None) -> int:
     return 1 if total_err else 0
 
 
+def _cmd_health(providers_arg: list[str], toolkit_dir: Path | None) -> int:
+    """Validate registry metadata and env var names without network calls."""
+    if toolkit_dir is None:
+        print("  ✗  Cannot locate toolkit directory", file=sys.stderr)
+        return 1
+
+    targets = providers_arg or _list_known_providers(toolkit_dir)
+    if not targets:
+        print("  ⚠  No MCP providers found in registry or templates")
+        return 0
+
+    print()
+    print("MCP health (offline)")
+    errors = 0
+    for provider in targets:
+        print(f"\n── {provider} ──")
+        entry = _load_registry_provider(toolkit_dir, provider)
+        if entry is None:
+            print(f"  ✗  Not in mcp/registry/ and no template directory")
+            errors += 1
+            continue
+        print(f"  ✓  registry: {entry.display_name} ({entry.id})")
+        if entry.package:
+            print(f"  ✓  package: {entry.package}")
+        env_vars = entry.env_vars
+        if env_vars:
+            print(f"  ✓  required env: {', '.join(env_vars)}")
+            for var in env_vars:
+                if os.environ.get(var):
+                    print(f"  ✓  {var}: set")
+                else:
+                    print(f"  -  {var}: not set (expected until configured)")
+        else:
+            print("  ✓  required env: (none)")
+
+    print()
+    return 1 if errors else 0
+
+
+def _cmd_uninstall(provider: str) -> int:
+    """Remove a provider from the local MCP config file."""
+    cfg = _load_config()
+    providers = cfg.get("providers", {})
+    if provider not in providers:
+        print(f"  ⚠  Provider '{provider}' is not configured")
+        return 0
+    del providers[provider]
+    cfg["providers"] = providers
+    _save_config(cfg)
+    print(f"  ✓  Removed '{provider}' from {_mcp_config_path()}")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # Argument parsing & dispatch
 # ---------------------------------------------------------------------------
+
+def _pop_offline_flag(args: list[str]) -> tuple[list[str], bool]:
+    rest: list[str] = []
+    offline = False
+    for arg in args:
+        if arg == "--offline":
+            offline = True
+        else:
+            rest.append(arg)
+    return rest, offline
 
 def cmd_mcp(args: list[str]) -> int:
     """MCP provider management entry point.
@@ -391,22 +494,38 @@ def cmd_mcp(args: list[str]) -> int:
         return 0
 
     toolkit_dir = toolkit_root()
-    subcommand = args[0]
-    rest = args[1:]
+    rest, offline = _pop_offline_flag(args)
+    if not rest or rest[0] in ("-h", "--help"):
+        print(__doc__)
+        return 0
+
+    subcommand = rest[0]
+    subargs = rest[1:]
 
     if subcommand == "list":
         return _cmd_list(toolkit_dir)
 
     elif subcommand == "setup":
-        if not rest:
+        if not subargs:
             print("  ✗  Usage: agent-toolkit mcp setup <provider>", file=sys.stderr)
             return 1
-        return _cmd_setup(rest[0], toolkit_dir)
+        return _cmd_setup(subargs[0], toolkit_dir, offline=offline)
+
+    elif subcommand == "health":
+        return _cmd_health(subargs, toolkit_dir)
 
     elif subcommand == "doctor":
-        return _cmd_doctor(rest, toolkit_dir)
+        if offline:
+            return _cmd_health(subargs, toolkit_dir)
+        return _cmd_doctor(subargs, toolkit_dir)
+
+    elif subcommand == "uninstall":
+        if not subargs:
+            print("  ✗  Usage: agent-toolkit mcp uninstall <provider>", file=sys.stderr)
+            return 1
+        return _cmd_uninstall(subargs[0])
 
     else:
         print(f"  ✗  Unknown subcommand: {subcommand}", file=sys.stderr)
-        print("  Valid subcommands: list, setup, doctor", file=sys.stderr)
+        print("  Valid subcommands: list, setup, health, doctor, uninstall", file=sys.stderr)
         return 1
