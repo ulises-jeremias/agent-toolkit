@@ -134,12 +134,30 @@ def test_registry_loads_hooks():
     assert len(hooks) >= 2
 
 
-def test_hooks_have_required_fields():
+def test_hook_command_scripts_exist():
+    """Command handlers must reference real script files on disk (#71)."""
     hooks, _errs = load_hooks(HOOKS_DIR)
     for hook in hooks.values():
-        assert hook.id
-        assert hook.event
-        assert hook.handler_type in VALID_HANDLER_TYPES
+        if hook.handler_type != "command" or len(hook.command) < 2:
+            continue
+        script = Path(hook.command[-1])
+        if not script.is_absolute():
+            script = REPO_ROOT / script
+        assert script.is_file(), f"missing handler script for {hook.id}: {script}"
+
+
+def test_no_echo_stub_handlers():
+    """Hook handlers must not use echo placeholders (#71)."""
+    hooks, _errs = load_hooks(HOOKS_DIR)
+    for hook in hooks.values():
+        if hook.handler_type == "command" and hook.command:
+            joined = " ".join(hook.command).lower()
+            assert "placeholder" not in joined, (
+                f"Hook '{hook.id}' uses a placeholder command: {hook.command!r}"
+            )
+            assert hook.command[0].lower() != "echo", (
+                f"Hook '{hook.id}' must not use echo stubs: {hook.command!r}"
+            )
 
 
 def test_no_placeholder_handlers_in_default_enabled_hooks():
