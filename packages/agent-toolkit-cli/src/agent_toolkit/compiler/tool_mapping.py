@@ -19,6 +19,10 @@ CLAUDE_TOOL_MAP: dict[str, AbstractTool] = {
     "GitPush": AbstractTool.GIT_WRITE,
 }
 
+_WRITE_TOOLS = frozenset(
+    {AbstractTool.FS_WRITE, AbstractTool.SHELL_EXECUTE, AbstractTool.GIT_WRITE}
+)
+
 
 def parse_claude_tool_names(tools_value: str | list[str] | None) -> list[str]:
     """Parse a frontmatter ``tools`` field into normalized Claude tool names."""
@@ -50,3 +54,28 @@ def map_claude_tools(
             seen.add(abstract)
 
     return mapped, unknown
+
+
+def parse_abstract_tool_list(
+    value: str | list[str] | None,
+) -> tuple[list[AbstractTool], list[str]]:
+    """Parse explicit abstract tool IDs from frontmatter."""
+    if value is None:
+        return [], []
+    raw_items = value if isinstance(value, list) else [v.strip() for v in str(value).split(",")]
+    mapped: list[AbstractTool] = []
+    invalid: list[str] = []
+    for item in raw_items:
+        token = str(item).strip()
+        if not token:
+            continue
+        try:
+            mapped.append(AbstractTool(token))
+        except ValueError:
+            invalid.append(token)
+    return mapped, invalid
+
+
+def infer_read_only(tools: list[AbstractTool]) -> bool:
+    """True when the agent has tools but none that mutate state."""
+    return bool(tools) and not any(t in _WRITE_TOOLS for t in tools)

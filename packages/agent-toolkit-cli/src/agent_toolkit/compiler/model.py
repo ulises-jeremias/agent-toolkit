@@ -95,6 +95,7 @@ class Agent:
     max_turns: int = 0               # 0 = platform default
     allowed_tools: list[AbstractTool] = field(default_factory=list)
     denied_tools: list[AbstractTool] = field(default_factory=list)
+    delegates_to: list[str] = field(default_factory=list)
     read_only: bool = False
     background_eligible: bool = False
     dependent_skills: list[str] = field(default_factory=list)

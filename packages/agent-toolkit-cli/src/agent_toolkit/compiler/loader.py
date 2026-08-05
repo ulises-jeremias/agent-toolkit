@@ -20,7 +20,12 @@ from agent_toolkit.compiler.model import (
     Skill,
     Stability,
 )
-from agent_toolkit.compiler.tool_mapping import map_claude_tools, parse_claude_tool_names
+from agent_toolkit.compiler.tool_mapping import (
+    infer_read_only,
+    map_claude_tools,
+    parse_abstract_tool_list,
+    parse_claude_tool_names,
+)
 
 try:
     import yaml
@@ -122,6 +127,22 @@ def load_skills(skills_root: Path) -> tuple[dict[str, Skill], list[str]]:
     return skills, errors
 
 
+def _parse_string_list(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [str(v).strip() for v in value if str(v).strip()]
+    return [v.strip() for v in str(value).split(",") if v.strip()]
+
+
+def _parse_bool(value: Any, default: bool = False) -> bool:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in ("true", "yes", "1")
+
+
 def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
     """Load all AGENT.md files from agents/<name>/AGENT.md."""
     agents: dict[str, Agent] = {}
@@ -140,17 +161,42 @@ def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
                 f"Agent name mismatch: directory '{agent_name}' vs "
                 f"frontmatter name '{declared_name}' in {agent_md}"
             )
+            continue
 
-        claude_names = parse_claude_tool_names(fm.get("tools"))
-        allowed_tools, unknown_tools = map_claude_tools(claude_names)
-        if unknown_tools:
+        allowed_tools: list[AbstractTool]
+        denied_tools: list[AbstractTool]
+
+        if fm.get("allowed_tools") is not None:
+            allowed_tools, invalid_allowed = parse_abstract_tool_list(fm.get("allowed_tools"))
+            if invalid_allowed:
+                errors.append(
+                    f"{agent_md}: invalid allowed_tools: {', '.join(invalid_allowed)}"
+                )
+                continue
+        else:
+            claude_names = parse_claude_tool_names(fm.get("tools"))
+            allowed_tools, unknown_tools = map_claude_tools(claude_names)
+            if unknown_tools:
+                errors.append(
+                    f"{agent_md}: unknown Claude tool(s): {', '.join(unknown_tools)}"
+                )
+                continue
+
+        denied_tools, invalid_denied = parse_abstract_tool_list(fm.get("denied_tools"))
+        if invalid_denied:
             errors.append(
-                f"{agent_md}: unknown Claude tool(s): {', '.join(unknown_tools)}"
+                f"{agent_md}: invalid denied_tools: {', '.join(invalid_denied)}"
             )
             continue
 
-        write_tools = {AbstractTool.FS_WRITE, AbstractTool.SHELL_EXECUTE, AbstractTool.GIT_WRITE}
-        read_only = bool(allowed_tools) and not any(t in write_tools for t in allowed_tools)
+        delegates_to = _parse_string_list(fm.get("delegates_to"))
+
+        if "read_only" in fm:
+            read_only = _parse_bool(fm.get("read_only"))
+        else:
+            read_only = infer_read_only(allowed_tools)
+
+        background_eligible = _parse_bool(fm.get("background_eligible"))
 
         mc_str = fm.get("model_class", "inherit")
         mc = ModelClass(mc_str) if mc_str in ("fast", "balanced", "deep", "inherit") else ModelClass.INHERIT
@@ -162,12 +208,38 @@ def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
             instructions=body.strip(),
             model_class=mc,
             allowed_tools=allowed_tools,
+            denied_tools=denied_tools,
+            delegates_to=delegates_to,
             read_only=read_only,
+            background_eligible=background_eligible,
             source_path=agent_md,
             metadata=fm,
         )
 
     return agents, errors
+
+
+def validate_agent_contracts(graph: CanonicalGraph) -> None:
+    """Validate agent tool requirements and delegation references."""
+    agent_ids = set(graph.agents)
+
+    for agent_id, agent in graph.agents.items():
+        overlap = {t.value for t in agent.allowed_tools} & {t.value for t in agent.denied_tools}
+        if overlap:
+            graph.errors.append(
+                f"Agent '{agent_id}' lists the same tool in allowed_tools and denied_tools: "
+                f"{', '.join(sorted(overlap))}"
+            )
+
+        for delegate_id in agent.delegates_to:
+            if delegate_id not in agent_ids:
+                graph.errors.append(
+                    f"Agent '{agent_id}' delegates_to unknown agent '{delegate_id}'"
+                )
+            elif delegate_id == agent_id:
+                graph.errors.append(
+                    f"Agent '{agent_id}' cannot delegate_to itself"
+                )
 
 
 def load_products(products_yaml: Path) -> tuple[dict[str, Product], list[str]]:
@@ -228,7 +300,9 @@ def load_graph(repo_root: Path) -> CanonicalGraph:
     graph.products.update(products)
     graph.errors.extend(errs)
 
-    # Validate references
+    validate_agent_contracts(graph)
+
+    # Validate product references
     for pid, product in graph.products.items():
         for skill_id in product.included_skills:
             if skill_id not in graph.skills:
