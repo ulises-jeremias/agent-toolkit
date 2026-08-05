@@ -55,6 +55,14 @@ agent-toolkit release --dry-run --output dist/
 
 See [INSTALLATION.md](INSTALLATION.md) for marketplace, Homebrew/AUR, and manual methods.
 
+## Target certification
+
+Per-target certification packages document official contracts vs adapter behavior:
+
+| Target | Certification doc |
+|--------|-------------------|
+| OpenCode | [`docs/targets/opencode-certification.md`](targets/opencode-certification.md) |
+
 ## Research sources
 
 All capability claims are based on official documentation as of 2026-08-04.

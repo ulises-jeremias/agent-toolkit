@@ -189,6 +189,15 @@ class OpenCodeAdapter(TargetAdapter):
     # ── parity notes ──────────────────────────────────────────────────────────
 
     @staticmethod
+    def typescript_plugin_status() -> str:
+        """Document TypeScript runtime plugin gap for certification."""
+        return (
+            "pending TypeScript runtime plugin — packages/opencode-plugin/ must export "
+            "OpenCode's plugin function for hooks, MCP, custom tools, and tool-call "
+            "interception (issue #10)"
+        )
+
+    @staticmethod
     def parity_notes() -> str:
         return (
             "OpenCode companion assets are static files discoverable from the project "
