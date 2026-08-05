@@ -35,7 +35,23 @@ def find_toolkit_root() -> Path:
     except (ImportError, TypeError, ModuleNotFoundError, FileNotFoundError):
         pass
 
-    # 2b. Direct path relative to the package (uvx / pip installs)
+    # 2b. XDG cache (GitHub Release download on first run — see data_cache.py)
+    if os.environ.get("AGENT_TOOLKIT_OFFLINE", "").strip() not in ("1", "true", "yes"):
+        try:
+            from agent_toolkit.data_cache import ensure_cached_data
+
+            cached = ensure_cached_data(offline=False)
+            if cached and (cached / "profiles").is_dir():
+                return cached
+        except Exception:
+            pass
+    else:
+        cache_home = Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache")))
+        cached_data = cache_home / "agent-toolkit"
+        if (cached_data / "profiles").is_dir():
+            return cached_data
+
+    # 2c. Direct path relative to the package (uvx / pip installs)
     pkg_dir = Path(__file__).resolve().parent  # .../site-packages/agent_toolkit/
     data_dir = pkg_dir / "data"
     if data_dir.is_dir() and (data_dir / "profiles").is_dir():

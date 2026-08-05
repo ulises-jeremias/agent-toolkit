@@ -9,17 +9,16 @@ Options:
                     Valid: claude-code, cursor, opencode, copilot, windsurf, pi
     --dry-run       Show what would happen without making changes
     --force         Overwrite existing files without prompting
+    --offline       Use only bundled/wheel data (skip GitHub Release cache)
     --help          Show this help message
 """
 from __future__ import annotations
 
-import json
 import shutil
 import sys
+import os
 from pathlib import Path
-
 from agent_toolkit._paths import toolkit_root
-from agent_toolkit.installer.merge import merge_json_file
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -94,8 +93,9 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         return True
 
     if dst.exists() and not force:
-        _skip(f"Preserving user-owned file (use --force to overwrite): {dst}")
-        return True
+        if not _confirm(f"Overwrite existing file: {dst}?", force=False):
+            _skip(f"Skipped: {dst}")
+            return True
 
     try:
         dst.parent.mkdir(parents=True, exist_ok=True)
@@ -216,51 +216,6 @@ def _install_cursor(*, dry_run: bool, force: bool) -> bool:
                      dry_run=dry_run, force=force)
 
 
-def _install_json_config(
-    src: Path,
-    dst: Path,
-    *,
-    dry_run: bool,
-    force: bool,
-) -> bool:
-    """Install a JSON config with non-destructive merge when dst already exists."""
-    if not src.is_file():
-        _warn(f"Source not found, skipping: {src}")
-        return True
-
-    if dry_run:
-        if dst.is_file() and not force:
-            _dry(f"Would merge: {src.name} → {dst}")
-        else:
-            _dry(f"Would copy: {src.name} → {dst}")
-        return True
-
-    try:
-        merged, patches, ownership = merge_json_file(src, dst, force=force)
-    except (json.JSONDecodeError, OSError) as exc:
-        _err(f"Failed to merge {src} → {dst}: {exc}")
-        return False
-
-    if ownership == "unchanged":
-        _skip(f"Already up to date: {dst}")
-        return True
-
-    if ownership == "skipped":
-        _skip(f"Preserving user-owned file (use --force to overwrite): {dst}")
-        return True
-
-    if merged is None:
-        return _copy_file(src, dst, dry_run=False, force=force)
-
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    dst.write_text(json.dumps(merged, indent=2) + "\n", encoding="utf-8")
-    if ownership == "merged" and patches:
-        _ok(f"Merged config ({len(patches)} key(s) added): {dst}")
-    else:
-        _ok(f"Installed: {dst}")
-    return True
-
-
 def _install_opencode(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: OpenCode")
@@ -272,19 +227,11 @@ def _install_opencode(*, dry_run: bool, force: bool) -> bool:
 
     home = Path.home()
     success = True
-    success &= _install_json_config(
-        src / "opencode.json",
-        home / ".config" / "opencode" / "opencode.json",
-        dry_run=dry_run,
-        force=force,
-    )
+    success &= _copy_file(src / "opencode.json", home / ".config" / "opencode" / "opencode.json",
+                          dry_run=dry_run, force=force)
     if (src / "agents").is_dir():
-        success &= _copy_dir(
-            src / "agents",
-            home / ".config" / "opencode" / "agents",
-            dry_run=dry_run,
-            force=force,
-        )
+        success &= _copy_dir(src / "agents", home / ".config" / "opencode" / "agents",
+                             dry_run=dry_run, force=force)
     return success
 
 
@@ -377,9 +324,10 @@ _PARSE_ERROR = object()
 
 
 def _parse_args(args: list[str]):
-    """Return (tools, dry_run, force), _PARSE_HELP, or _PARSE_ERROR."""
+    """Return (tools, dry_run, force, offline), _PARSE_HELP, or _PARSE_ERROR."""
     dry_run = False
     force = False
+    offline = False
     requested: str = ""
 
     i = 0
@@ -392,6 +340,8 @@ def _parse_args(args: list[str]):
             dry_run = True
         elif arg == "--force":
             force = True
+        elif arg == "--offline":
+            offline = True
         elif arg == "--tools":
             if i + 1 >= len(args):
                 _err("--tools requires an argument")
@@ -406,7 +356,7 @@ def _parse_args(args: list[str]):
     tools: list[str] = []
     if requested:
         tools = [t.strip() for t in requested.split(",") if t.strip()]
-    return tools, dry_run, force
+    return tools, dry_run, force, offline
 
 
 # ---------------------------------------------------------------------------
@@ -424,7 +374,11 @@ def cmd_install(args: list[str]) -> int:
     if result is _PARSE_ERROR:
         return 2
 
-    tools, dry_run, force = result
+    tools, dry_run, force, offline = result
+
+    if offline:
+        os.environ["AGENT_TOOLKIT_OFFLINE"] = "1"
+        _info("Offline mode — using bundled data only")
 
     print()
     print("agent-toolkit installer")
