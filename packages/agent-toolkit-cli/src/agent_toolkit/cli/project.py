@@ -1,14 +1,16 @@
 """
-project — Project clone and symlink management.
+project — Project-first lifecycle: init, clone, list, add, remove, sync, scan.
 
 Usage:
     agent-toolkit project <subcommand> [args]
 
 Subcommands:
+    init [--workspace PATH]               Initialize projects/ and projects.yaml
     clone owner/repo [--workspace PATH]   Clone a GitHub repo and create a symlink
     list [--workspace PATH]               List all symlinked projects
     add <path> [--workspace PATH]         Symlink an already-cloned repo
     remove <name> [--workspace PATH]      Remove symlink (keeps the actual repo)
+    sync [--workspace PATH]               Sync projects.yaml from projects/ symlinks
     scan [--workspace PATH]               Check project/repo consistency
 
 Structure:
@@ -144,6 +146,75 @@ def _upsert_project(ws: Path, name: str, path: str, source: str = "") -> None:
 # ---------------------------------------------------------------------------
 # Subcommands
 # ---------------------------------------------------------------------------
+
+def cmd_init(args: list[str], ws: Path) -> int:
+    """Initialize projects/ directory and projects.yaml manifest."""
+    for arg in args:
+        if arg in ("--help", "-h"):
+            print("Usage: agent-toolkit project init [--workspace PATH]")
+            return 0
+
+    created: list[str] = []
+    for dirname in ("projects", "repos"):
+        path = ws / dirname
+        if not path.is_dir():
+            path.mkdir(parents=True, exist_ok=True)
+            created.append(f"{dirname}/")
+
+    yaml_path = _projects_yaml_path(ws)
+    if not yaml_path.exists():
+        _save_projects_yaml(ws, {"projects": []})
+        created.append("projects.yaml")
+
+    print(f"\n{_green('Project lifecycle initialized:')} {ws}\n")
+    if created:
+        for rel in created:
+            print(f"  {_green('++')}  {rel}")
+    else:
+        print(_dim("  (already initialized)"))
+    print()
+    print(_dim("Next: agent-toolkit project clone owner/repo"))
+    print()
+    return 0
+
+
+def cmd_sync(args: list[str], ws: Path) -> int:
+    """Rebuild projects.yaml entries from projects/ symlinks."""
+    for arg in args:
+        if arg in ("--help", "-h"):
+            print("Usage: agent-toolkit project sync [--workspace PATH]")
+            return 0
+
+    projects_dir = ws / "projects"
+    if not projects_dir.is_dir():
+        print("Error: projects/ not found — run 'agent-toolkit project init' first.", file=sys.stderr)
+        return 1
+
+    from datetime import date
+
+    entries: list[dict] = []
+    for link in sorted(projects_dir.iterdir()):
+        if not link.is_symlink():
+            continue
+        target = link.resolve()
+        entry: dict = {
+            "name": link.name,
+            "path": str(target),
+            "cloned_at": date.today().isoformat(),
+        }
+        # Infer github.com source when under repos/github.com/
+        try:
+            rel = target.relative_to(ws / "repos")
+            if len(rel.parts) >= 3 and rel.parts[0] == "github.com":
+                entry["source"] = "/".join(rel.parts[:3])
+        except ValueError:
+            pass
+        entries.append(entry)
+
+    _save_projects_yaml(ws, {"projects": entries})
+    print(_green(f"Synced {len(entries)} project(s) to projects.yaml"))
+    return 0
+
 
 def cmd_clone(args: list[str], ws: Path) -> int:
     """Clone a GitHub repo and create a symlink in projects/."""
@@ -387,6 +458,8 @@ def cmd_project(args: list[str]) -> int:
         return 1
 
     match sub:
+        case "init":
+            return cmd_init(rest, ws)
         case "clone":
             return cmd_clone(rest, ws)
         case "list":
@@ -395,6 +468,8 @@ def cmd_project(args: list[str]) -> int:
             return cmd_add(rest, ws)
         case "remove":
             return cmd_remove(rest, ws)
+        case "sync":
+            return cmd_sync(rest, ws)
         case "scan":
             return cmd_scan(rest, ws)
         case _:
