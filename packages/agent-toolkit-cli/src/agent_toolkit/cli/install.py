@@ -16,7 +16,12 @@ from __future__ import annotations
 import shutil
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
+
 from agent_toolkit._paths import toolkit_root
+
+if TYPE_CHECKING:
+    from agent_toolkit.installer.tracking import InstallTracker
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -73,7 +78,14 @@ def _files_identical(a: Path, b: Path) -> bool:
     return a.read_bytes() == b.read_bytes()
 
 
-def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
+def _copy_file(
+    src: Path,
+    dst: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+    tracker: InstallTracker | None = None,
+) -> bool:
     """Copy src to dst, respecting dry-run, force, and idempotency.
 
     Returns True on success (including skip), False on failure.
@@ -99,6 +111,8 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dst)
         _ok(f"Installed: {dst}")
+        if tracker is not None:
+            tracker.record_created(dst)
         return True
     except PermissionError as exc:
         _err(f"Permission denied writing {dst}: {exc}")
@@ -108,7 +122,14 @@ def _copy_file(src: Path, dst: Path, *, dry_run: bool, force: bool) -> bool:
         return False
 
 
-def _copy_dir(src_dir: Path, dst_dir: Path, *, dry_run: bool, force: bool) -> bool:
+def _copy_dir(
+    src_dir: Path,
+    dst_dir: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+    tracker: InstallTracker | None = None,
+) -> bool:
     """Recursively copy all files from src_dir into dst_dir."""
     if not src_dir.is_dir():
         _warn(f"Source directory not found, skipping: {src_dir}")
@@ -125,7 +146,9 @@ def _copy_dir(src_dir: Path, dst_dir: Path, *, dry_run: bool, force: bool) -> bo
             continue
         rel = src_file.relative_to(src_dir)
         dst_file = dst_dir / rel
-        if not _copy_file(src_file, dst_file, dry_run=dry_run, force=force):
+        if not _copy_file(
+            src_file, dst_file, dry_run=dry_run, force=force, tracker=tracker
+        ):
             success = False
     return success
 
@@ -173,9 +196,12 @@ def _windsurf_config_dir() -> Path:
 # ---------------------------------------------------------------------------
 
 def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: Claude Code")
     src = toolkit_root() / "profiles" / "claude-code"
+    tracker = InstallTracker("claude-code", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"Profile directory not found: {src}")
@@ -187,7 +213,7 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
     # that file is user-owned (plugins, permissions, env). Target contract:
     # distributions/targets/claude-code.yaml → plugin_settings_scope: plugin-local.
     success &= _copy_file(src / "CLAUDE.md", home / ".claude" / "CLAUDE.md",
-                          dry_run=dry_run, force=force)
+                          dry_run=dry_run, force=force, tracker=tracker)
     settings_src = src / "settings.json"
     if settings_src.is_file():
         _info(
@@ -197,27 +223,43 @@ def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
         )
     if (src / "agents").is_dir():
         success &= _copy_dir(src / "agents", home / ".claude" / "agents",
-                             dry_run=dry_run, force=force)
+                             dry_run=dry_run, force=force, tracker=tracker)
+    if tracker.save():
+        _ok("Saved install receipt for claude-code")
     return success
 
 
 def _install_cursor(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: Cursor")
     src = toolkit_root() / "profiles" / "cursor" / "rules"
+    tracker = InstallTracker("cursor", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"Cursor rules directory not found: {src}")
         return False
 
-    return _copy_dir(src, Path.home() / ".cursor" / "rules",
-                     dry_run=dry_run, force=force)
+    ok = _copy_dir(
+        src,
+        Path.home() / ".cursor" / "rules",
+        dry_run=dry_run,
+        force=force,
+        tracker=tracker,
+    )
+    if tracker.save():
+        _ok("Saved install receipt for cursor")
+    return ok
 
 
 def _install_opencode(*, dry_run: bool, force: bool) -> bool:
+    from agent_toolkit.installer.tracking import InstallTracker
+
     print()
     _info("Installing: OpenCode")
     src = toolkit_root() / "profiles" / "opencode"
+    tracker = InstallTracker("opencode", dry_run=dry_run, toolkit_root=toolkit_root())
 
     if not src.is_dir():
         _warn(f"OpenCode profile directory not found: {src}")
@@ -225,11 +267,23 @@ def _install_opencode(*, dry_run: bool, force: bool) -> bool:
 
     home = Path.home()
     success = True
-    success &= _copy_file(src / "opencode.json", home / ".config" / "opencode" / "opencode.json",
-                          dry_run=dry_run, force=force)
+    success &= _copy_file(
+        src / "opencode.json",
+        home / ".config" / "opencode" / "opencode.json",
+        dry_run=dry_run,
+        force=force,
+        tracker=tracker,
+    )
     if (src / "agents").is_dir():
-        success &= _copy_dir(src / "agents", home / ".config" / "opencode" / "agents",
-                             dry_run=dry_run, force=force)
+        success &= _copy_dir(
+            src / "agents",
+            home / ".config" / "opencode" / "agents",
+            dry_run=dry_run,
+            force=force,
+            tracker=tracker,
+        )
+    if tracker.save():
+        _ok("Saved install receipt for opencode")
     return success
 
 
