@@ -806,6 +806,76 @@ def _try_opencode_runner(
     return False
 
 
+def _resolve_cursor_cli_bin() -> str | None:
+    """Locate Cursor Agent CLI (`cursor-agent`, then `agent`, then `cursor`)."""
+    for name in ("cursor-agent", "agent", "cursor"):
+        found = shutil.which(name)
+        if found:
+            return found
+    return None
+
+
+def _try_cursor_runner(
+    prompt: str,
+    run_dir: Path,
+    meta: dict[str, Any] | None = None,
+    *,
+    trace_file: Path | None = None,
+    wall_timeout: int | None = None,
+    max_tokens: int | None = None,
+) -> bool:
+    """Invoke Cursor Agent CLI headless (`--print`) as a loop runner (#223).
+
+    Official headless form: ``agent -p --force --trust`` (also shipped as
+    ``cursor-agent``). See https://cursor.com/docs/cli/headless
+    """
+    cursor_bin = _resolve_cursor_cli_bin()
+    if not cursor_bin:
+        return False
+
+    from agent_toolkit.loop.budget import DEFAULT_WALL_SECONDS
+
+    timeout = wall_timeout if wall_timeout is not None else DEFAULT_WALL_SECONDS
+    env = _install_gate_into_environ(run_dir, meta or {})
+    # Prompt as CLI arg (print mode); --force applies edits; --trust skips
+    # workspace trust prompts in headless environments.
+    cmd = [
+        cursor_bin,
+        "--print",
+        "--force",
+        "--trust",
+        "--output-format",
+        "text",
+        prompt,
+    ]
+    try:
+        result = _run_with_live_output(
+            cmd,
+            input_text="",
+            cwd=str(workspace_root()),
+            env=env,
+            trace_file=trace_file or (run_dir / "trace.jsonl"),
+            timeout=timeout,
+            max_tokens=max_tokens,
+        )
+    except subprocess.TimeoutExpired:
+        warn(f"cursor runner hit budget limit (wall={timeout}s or max_tokens)")
+        return False
+
+    if result.returncode == 0:
+        report_md = run_dir / "report.md"
+        if not report_md.exists() and result.stdout.strip():
+            report_md.write_text(result.stdout, encoding="utf-8")
+        ok("cursor runner completed")
+        return True
+
+    error_output = (result.stderr + result.stdout).strip()[:400]
+    warn(f"cursor runner exited {result.returncode}: {error_output or '(no output)'}")
+    if result.returncode != 0 and not error_output:
+        warn("  Hint: Cursor Agent CLI may not be authenticated — run: agent login")
+    return False
+
+
 def _queue_via_devcompanion(
     request: str,
     run_dir: Path,
@@ -1253,6 +1323,15 @@ def cmd_run(args: list[str]) -> int:
             max_tokens=token_limit,
         ):
             pass  # opencode runner handled it
+        elif _try_cursor_runner(
+            prompt,
+            run_dir,
+            meta,
+            trace_file=trace_file,
+            wall_timeout=wall_timeout,
+            max_tokens=token_limit,
+        ):
+            pass  # cursor agent CLI handled it
         elif _queue_via_devcompanion(
             prompt, run_dir, loop_name, rid, meta, wall_timeout=wall_timeout
         ):
