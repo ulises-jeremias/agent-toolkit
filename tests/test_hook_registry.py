@@ -15,12 +15,12 @@ def test_hooks_dir_exists():
 
 
 def test_registry_loads_hooks():
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, _errs = load_hooks(HOOKS_DIR)
     assert len(hooks) >= 2
 
 
 def test_hooks_have_required_fields():
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, _errs = load_hooks(HOOKS_DIR)
     for hook in hooks.values():
         assert hook.id
         assert hook.event
@@ -29,7 +29,7 @@ def test_hooks_have_required_fields():
 
 def test_destructive_hooks_disabled_by_default():
     """Write/destructive hooks must be opt-in (default_enabled=False)."""
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, _errs = load_hooks(HOOKS_DIR)
     for hook in hooks.values():
         if hook.security_classification == "destructive":
             assert not hook.default_enabled, (
@@ -38,7 +38,7 @@ def test_destructive_hooks_disabled_by_default():
 
 
 def test_all_hooks_have_bounded_timeout():
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, _errs = load_hooks(HOOKS_DIR)
     for hook in hooks.values():
         assert 100 <= hook.timeout_ms <= 60000, (
             f"Hook '{hook.id}' timeout {hook.timeout_ms}ms out of bounds [100, 60000]"
@@ -46,12 +46,12 @@ def test_all_hooks_have_bounded_timeout():
 
 
 def test_parity_document_generated():
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, _errs = load_hooks(HOOKS_DIR)
     doc = generate_parity_document(hooks)
     assert "| Hook |" in doc
     assert "claude-code" in doc
 
 
 def test_load_graceful_missing_dir(tmp_path):
-    hooks = load_hooks(tmp_path / "nonexistent")
+    hooks, _errs = load_hooks(tmp_path / "nonexistent")
     assert hooks == {}

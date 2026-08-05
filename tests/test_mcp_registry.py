@@ -15,19 +15,19 @@ def test_registry_dir_exists():
 
 
 def test_registry_loads_all_providers():
-    providers = load_registry(REGISTRY_DIR)
+    providers, _errs = load_registry(REGISTRY_DIR)
     assert len(providers) >= 6, f"Expected at least 6 providers, got {len(providers)}"
 
 
 def test_all_required_providers_present():
-    providers = load_registry(REGISTRY_DIR)
+    providers, _errs = load_registry(REGISTRY_DIR)
     required = {"github", "slack", "notion", "linear", "figma", "clickup"}
     missing = required - set(providers.keys())
     assert not missing, f"Missing providers: {missing}"
 
 
 def test_github_provider_fields():
-    providers = load_registry(REGISTRY_DIR)
+    providers, _errs = load_registry(REGISTRY_DIR)
     gh = providers["github"]
     assert gh.id == "github"
     assert gh.display_name == "GitHub"
@@ -49,7 +49,7 @@ def test_no_secrets_in_registry():
 
 
 def test_provider_platform_support():
-    providers = load_registry(REGISTRY_DIR)
+    providers, _errs = load_registry(REGISTRY_DIR)
     gh = providers["github"]
     assert gh.is_supported_for("claude-code")
     assert gh.is_supported_for("cursor")
@@ -63,5 +63,5 @@ def test_registry_no_private_hostnames():
 
 
 def test_load_registry_graceful_on_missing_dir(tmp_path):
-    providers = load_registry(tmp_path / "nonexistent")
+    providers, _errs = load_registry(tmp_path / "nonexistent")
     assert providers == {}
