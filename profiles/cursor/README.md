@@ -27,7 +27,7 @@ skills from agent-toolkit, which wrap `gh copilot` functionality.
 ## Install via agent-toolkit CLI
 
 ```bash
-pip install agent-toolkit-cli      # or: uvx agent-toolkit-cli
+uv tool install agent-toolkit-cli      # or: uvx agent-toolkit-cli
 agent-toolkit install --tools copilot
 # Prompts for your project path and copies copilot-instructions.md
 ```

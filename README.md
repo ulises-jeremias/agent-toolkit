@@ -63,7 +63,7 @@ uvx --from agent-toolkit-cli agent-toolkit install
 
 # Or install the CLI persistently
 uv tool install agent-toolkit-cli          # preferred over pip when using uv
-# pip install agent-toolkit-cli            # alternative
+# uv tool install agent-toolkit-cli            # alternative
 
 agent-toolkit install    # auto-detects Claude, Cursor, OpenCode, Windsurf, Pi, Copilot
 agent-toolkit doctor     # verify everything is set up
@@ -348,6 +348,22 @@ Browse packs: [`packs/`](packs/)
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
 | [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-maintenance pack |
 | [🚀 Project onboarding example](examples/project-onboarding/) | Bootstrap a new project with agent-toolkit |
+
+---
+
+## 🌐 Ecosystem
+
+`agent-toolkit` is the **capability distribution layer (L1.5)** in a three-tier personal DX stack. It's designed to be consumed by two companion repos:
+
+| Layer | Repo | Role |
+|-------|------|------|
+| **L1** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
+| **L1.5** | **agent-toolkit** (this repo) | Capability distribution — skills, loops, profiles, MCP |
+| **L3** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold for multi-repo orchestration |
+
+**agentic-workstation** installs `agent-toolkit-cli` automatically during `chezmoi apply` (via AUR on Arch Linux or pip elsewhere). Running `agent-toolkit install` deploys skills and profiles to all detected AI tools.
+
+**agentic-harness** is an opinionated workspace scaffold that uses `agent-toolkit loop`, `agent-toolkit memory`, `agent-toolkit devcompanion`, and `agent-toolkit project` as its primary CLI interface.
 
 ---
 

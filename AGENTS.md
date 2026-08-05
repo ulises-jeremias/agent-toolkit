@@ -284,3 +284,92 @@ bash scripts/build-catalog.sh      # Regenerates and checks catalogs
 ```
 
 All three must exit 0.
+
+---
+
+## Ecosystem — Where This Fits
+
+`agent-toolkit` is the **capability distribution layer (L1.5)** in a three-tier personal DX stack:
+
+```
+L1  │ agentic-workstation  │ Machine provisioning (chezmoi, shell, packages, LLM policy)
+    │                      │ https://github.com/ulises-jeremias/agentic-workstation
+────┼──────────────────────┼─────────────────────────────────────────────────────────────
+L1.5│ agent-toolkit        │ THIS REPO — Capability distribution (skills, loops, profiles)
+    │ (this repo)          │ uv tool install agent-toolkit-cli / uvx agent-toolkit-cli
+────┼──────────────────────┼─────────────────────────────────────────────────────────────
+L3  │ agentic-harness      │ AI workspace scaffold for multi-repo orchestration
+    │                      │ https://github.com/ulises-jeremias/agentic-harness
+```
+
+**Integration flow:**
+1. `agentic-workstation` installs `agent-toolkit-cli` automatically during `chezmoi apply`
+2. `agent-toolkit install` deploys profiles to detected AI tools (Claude Code, Cursor, etc.)
+3. `agentic-harness` workspaces call `agent-toolkit loop`, `agent-toolkit memory`, etc.
+
+---
+
+## CLI Reference for Agents
+
+When working in a workspace that has `agent-toolkit` installed, use these commands:
+
+```bash
+# Installation
+uvx agent-toolkit-cli                          # run without installing
+uv tool install agent-toolkit-cli                  # permanent install
+agent-toolkit install [--force]                # deploy profiles to detected AI tools
+agent-toolkit doctor                           # verify installation health
+
+# Skills and inventory
+agent-toolkit inventory                        # list all 52+ skills
+agent-toolkit skills list                      # list with domain breakdown
+agent-toolkit skills validate                  # check SKILL.md compliance
+
+# Knowledge base (from any workspace with knowledge/)
+agent-toolkit memory search "topic"            # find existing knowledge
+agent-toolkit memory add --type learning "..." # save a pattern or discovery
+agent-toolkit memory add --type todo "..."     # track a follow-up
+agent-toolkit memory inject                    # output knowledge for context
+agent-toolkit memory todo                      # review pending items
+
+# Loop engineering (from workspace with loops/ or templates/loops/)
+agent-toolkit loop init <pattern>              # scaffold from template
+agent-toolkit loop run <name>                  # execute one iteration
+agent-toolkit loop status                      # show all loop instances
+agent-toolkit loop audit <name>                # review past runs
+agent-toolkit loop schedule <name>             # install systemd/launchd timer
+agent-toolkit loop templates                   # list available templates
+
+# Workspace management
+agent-toolkit workspace context                # session state snapshot
+agent-toolkit workspace use-persona <name>     # activate a work mode
+agent-toolkit workspace load packs/<n>.yaml    # load client context bundle
+agent-toolkit workspace validate               # validate workspace schemas
+
+# Project / repo management
+agent-toolkit project init                     # create repos/ + projects/ dirs
+agent-toolkit project clone owner/repo [--ssh] # clone + symlink
+agent-toolkit project list                     # list indexed projects
+
+# Background jobs
+agent-toolkit devcompanion queue <project> --request "..." # queue async job
+agent-toolkit devcompanion run-once            # process next job
+agent-toolkit devcompanion status              # show queue state
+
+# MCP providers
+agent-toolkit mcp list                         # available providers
+agent-toolkit mcp setup <provider>             # interactive MCP setup
+agent-toolkit mcp doctor                       # check provider health
+
+# Build and deploy
+agent-toolkit build --check                    # dry-run compilation
+agent-toolkit build --target claude-code       # compile one target
+agent-toolkit diff                             # show changes vs installed bundles
+```
+
+---
+
+## Cross-Repo Links
+
+- **agentic-workstation** → [`AGENTS.md`](https://github.com/ulises-jeremias/agentic-workstation/blob/main/AGENTS.md) | [`docs/AGENT_TOOLKIT.md`](https://github.com/ulises-jeremias/agentic-workstation/blob/main/docs/AGENT_TOOLKIT.md)
+- **agentic-harness** → [`AGENTS.md`](https://github.com/ulises-jeremias/agentic-harness/blob/main/AGENTS.md) | [`docs/ARCHITECTURE.md`](https://github.com/ulises-jeremias/agentic-harness/blob/main/docs/ARCHITECTURE.md)
