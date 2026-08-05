@@ -77,31 +77,29 @@ def cmd_release(args: list[str]) -> int:
             print(f"  ✗  {err}", file=sys.stderr)
         return 1
 
-    print(f"\nRelease dry run — output: {output_dir}\n")
+    json_mode = parsed.json_out
 
-    from agent_toolkit.compiler.target_registry import (
-        adapter_import_path,
-        load_target_registry,
-        resolve_target_id,
-        target_ids_for,
-    )
+    def _say(*args, **kwargs):
+        if not json_mode:
+            print(*args, **kwargs)
 
-    reg = load_target_registry(repo_root)
-    release_specs = {spec.id: spec for spec in reg if spec.release}
+    _say(f"\nRelease dry run — output: {output_dir}\n")
+
+    targets = {
+        "claude-code": "agent_toolkit.compiler.targets.claude_code.ClaudeCodeAdapter",
+        "cursor": "agent_toolkit.compiler.targets.cursor.CursorAdapter",
+        "opencode": "agent_toolkit.compiler.targets.opencode.OpenCodeAdapter",
+        "copilot-cli": "agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter",
+        "copilot-repository": "agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter",
+        "gemini-cli": "agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter",
+        "windsurf": "agent_toolkit.compiler.targets.windsurf.WindsurfAdapter",
+        "pi": "agent_toolkit.compiler.targets.pi.PiAdapter",
+        "codex": "agent_toolkit.compiler.targets.codex.CodexAdapter",
+    }
 
     target_filter = parsed.target
     if target_filter != "all":
-        canonical = resolve_target_id(target_filter, reg)
-        if canonical not in release_specs:
-            available = ", ".join(sorted(release_specs))
-            print(
-                f"  ✗  Unknown release target '{target_filter}'. Available: {available}",
-                file=sys.stderr,
-            )
-            return 1
-        release_specs = {canonical: release_specs[canonical]}
-
-    targets = {spec_id: adapter_import_path(spec) for spec_id, spec in release_specs.items()}
+        targets = {k: v for k, v in targets.items() if k == target_filter}
 
     artifacts_summary = []
     checksums: dict[str, str] = {}
@@ -113,7 +111,7 @@ def cmd_release(args: list[str]) -> int:
             mod = importlib.import_module(module_path)
             AdapterCls = getattr(mod, cls_name)
         except (ImportError, AttributeError):
-            print(f"  ⚠  {target_id}: adapter not available — skipping")
+            _say(f"  ⚠  {target_id}: adapter not available — skipping")
             continue
 
         target_out = output_dir / target_id
@@ -124,7 +122,7 @@ def cmd_release(args: list[str]) -> int:
             for product in graph.products.values():
                 result = adapter.compile(graph, product)
                 if result.errors:
-                    print(f"  ✗  {target_id}/{product.id}: {result.errors}")
+                    print(f"  ✗  {target_id}/{product.id}: {result.errors}", file=sys.stderr)
                     continue
 
                 # Create tarball
@@ -141,7 +139,7 @@ def cmd_release(args: list[str]) -> int:
                         "artifact": str(tarball),
                         "digest": digest,
                     })
-                    print(f"  ✓  {target_id}/{product.id} → {tarball.name}")
+                    _say(f"  ✓  {target_id}/{product.id} → {tarball.name}")
 
     # Write checksums
     checksums_dir = output_dir / "checksums"
@@ -163,12 +161,12 @@ def cmd_release(args: list[str]) -> int:
         json.dumps(manifest, indent=2) + "\n"
     )
 
-    print(f"\n  ✓  {len(artifacts_summary)} artifacts generated")
-    print(f"  ✓  Checksums: {checksums_file}")
-    print(f"  ✓  Manifest: {manifests_dir / 'release-manifest.json'}")
-    print(f"\n  ℹ  Dry run complete — nothing published\n")
+    _say(f"\n  ✓  {len(artifacts_summary)} artifacts generated")
+    _say(f"  ✓  Checksums: {checksums_file}")
+    _say(f"  ✓  Manifest: {manifests_dir / 'release-manifest.json'}")
+    _say(f"\n  ℹ  Dry run complete — nothing published\n")
 
-    if parsed.json_out:
+    if json_mode:
         print(json.dumps(artifacts_summary, indent=2))
 
     return 0
