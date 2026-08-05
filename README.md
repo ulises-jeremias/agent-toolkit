@@ -27,7 +27,7 @@
   <img src="https://img.shields.io/badge/skills-52-9945ff?style=for-the-badge&labelColor=0d1117" alt="52 Skills"/>
   <img src="https://img.shields.io/badge/agents-16-00d4ff?style=for-the-badge&labelColor=0d1117" alt="16 Agents"/>
   <img src="https://img.shields.io/badge/loops-10-ff6b35?style=for-the-badge&labelColor=0d1117" alt="10 Loops"/>
-  <img src="https://img.shields.io/badge/tests-195-00ff88?style=for-the-badge&labelColor=0d1117" alt="195 Tests"/>
+  <img src="https://img.shields.io/badge/tests-227-00ff88?style=for-the-badge&labelColor=0d1117" alt="227 Tests"/>
   <img src="https://img.shields.io/badge/targets-9-ff00aa?style=for-the-badge&labelColor=0d1117" alt="9 Targets"/>
 </p>
 
@@ -289,9 +289,9 @@ Packs bundle skills, agents, and loops for a specific team context. Load a pack 
 
 | Pack | Description |
 |------|-------------|
-| `oss-maintenance` | OSS maintainer automation: PR monitor, triage, daily briefings |
-| `engineering-workflow` | End-to-end delivery: planning → implementation → review *(draft)* |
-| `delivery-discipline` | Ticket hygiene, traceability, process compliance *(draft)* |
+| `oss-ecosystem` | Full OSS maintainer setup: triage, PR monitor, briefings, contributor digest |
+| `startup-delivery` | Fast delivery focus: code review, CI fix, PR automation, security sweep |
+| `enterprise-ops` | Governance-heavy: incident response, security review, codeowner workflows |
 
 Browse packs: [`packs/`](packs/)
 
@@ -301,14 +301,14 @@ Browse packs: [`packs/`](packs/)
 
 | Guide | Description |
 |-------|-------------|
-| [📦 Concepts](docs/CONCEPTS.md) | Products, plugins, profiles, packs — one mental model |
+| [🚀 Installation](docs/INSTALLATION.md) | Primary consumer install flow (`uvx` / CLI) |
 | [🔄 Migration](docs/MIGRATION.md) | Switch install methods without duplicate profiles |
 | [🗑️ Uninstall](docs/UNINSTALL.md) | Remove toolkit artifacts from your machine |
 | [🛡️ Trust & security](docs/TRUST.md) | What gets installed, verification, receipts |
 | [🔨 How to add a skill](docs/HOW_TO_ADD_SKILL.md) | Create a new skill with SKILL.md frontmatter |
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
-| [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-maintenance pack |
+| [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-ecosystem pack |
 | [🚀 Project onboarding example](examples/project-onboarding/) | Bootstrap a new project with agent-toolkit |
 
 ---
@@ -317,7 +317,7 @@ Browse packs: [`packs/`](packs/)
 
 One source of truth, deployed per-tool. Each profile in `profiles/` adapts the shared skills and agents to the conventions of its target tool.
 
-```
+```text
 agent-toolkit/
 ├── skills/              # 52 skills across 9 domains (SKILL.md frontmatter)
 ├── agents/              # 16 tool-agnostic agent persona definitions
@@ -355,7 +355,8 @@ bash scripts/validate-skills.sh
 bash scripts/validate-loops.sh
 ```
 
-Both scripts exit non-zero on failure with human-readable error messages. They run automatically in CI via the Validate and MegaLinter workflows.
+Both scripts exit non-zero on failure with human-readable error messages.
+They run automatically in CI via the Validate and MegaLinter workflows.
 
 ---
 
@@ -374,7 +375,9 @@ See [How to add a skill](docs/HOW_TO_ADD_SKILL.md) for the full authoring guide.
 
 <div align="center">
 
-[📖 Docs](docs/) · [🐛 Issues](https://github.com/ulises-jeremias/agent-toolkit/issues) · [💬 Discussions](https://github.com/ulises-jeremias/agent-toolkit/discussions) · [MIT License](LICENSE)
+[📖 Docs](docs/) · [🐛 Issues](https://github.com/ulises-jeremias/agent-toolkit/issues) ·
+[💬 Discussions](https://github.com/ulises-jeremias/agent-toolkit/discussions) ·
+[MIT License](LICENSE)
 
 <sub>Built for the agentic age — one toolkit, every assistant.</sub>
 
