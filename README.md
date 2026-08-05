@@ -219,7 +219,7 @@ Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml)
 
 ## 🔄 Loop Engineering
 
-Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier model:
+Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier **mutation-safety** model enforced by `loop-gh-gate` (cadence is independent of tier):
 
 <div align="center">
 <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/loop-tiers.svg?raw=true" width="88%">
@@ -244,9 +244,9 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 | `oss-pr-monitor` | L3 | 1d | Monitor open PRs across OSS ecosystem repos and take action (L3, daily) |
 | `oss-triage` | L1 | 1d | Triage issues across OSS ecosystem repos (L1, daily) |
 | `post-merge-cleanup` | L2 | 6h | Off-peak housekeeping after merges (L2, low impact) |
-| `pr-babysitter` | L2 | 15m | Monitor open PRs and post review comments (L2, PR-gated) | L3 | Weekly | Generate contributor activity digest |
+| `pr-babysitter` | L2 | 15m | Monitor open PRs and post review comments (L2, PR-gated) |
 
-Each loop template lives in `loops/<name>/` and contains a `request.md` prompt template, `report.md` output template, and `runbook.md` for human operators.
+Each loop template lives in `loops/<name>/` with a `loop.yaml` definition (prompt in `request:`). At runtime the runner writes `STATE.md` and `report.md` under that directory.
 
 ---
 

@@ -117,10 +117,10 @@ If any script exits non-zero, read the output carefully — it will tell you whi
 
 1. **Check existing loops** in the `loops/` directory to avoid duplication.
 
-2. **Determine the tier**:
-   - **L1** — reactive, event-driven (runs every few minutes to hours)
-   - **L2** — daily summaries, health checks, or briefings
-   - **L3** — weekly or monthly trend analysis, reports, or sweeps
+2. **Determine the tier** (mutation safety — cadence is separate):
+   - **L1** — read-only or propose-only; no mutations
+   - **L2** — PR-gated writes (comments, labels, draft PRs); merge/close forbidden
+   - **L3** — allowlisted merge/close and other high-trust writes (proven loops only)
 
 3. **Create the loop directory**:
 
