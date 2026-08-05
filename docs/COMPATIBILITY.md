@@ -11,7 +11,7 @@
 | OpenCode | 0.3+ | JS/TS module plugins |
 | Pi Coding Agent | Any current | npm package system |
 | Windsurf/Devin | Any current | No marketplace — bundle only |
-| OpenAI Codex | Recent | Marketplace launched March 2026 (experimental) |
+| OpenAI Codex | Recent | Marketplace launched March 2026 (experimental) — see `docs/certification/codex.md` |
 
 ## Python version
 

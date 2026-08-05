@@ -48,3 +48,5 @@ agent-toolkit release --dry-run --output dist/
 
 All capability claims are based on official documentation as of 2026-08-04.
 See `docs/research/platform-capability-matrix.md` and `docs/research/source-ledger.md`.
+
+Codex certification (experimental strategy): `docs/certification/codex.md`.
