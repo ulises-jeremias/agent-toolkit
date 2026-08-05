@@ -1,5 +1,8 @@
 name: Release
 
+# Sole automated PyPI publish path for version tags (v*).
+# Manual TestPyPI/PyPI republish: workflow "Publish (manual)" only.
+
 on:
   push:
     tags:
@@ -33,13 +36,11 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
       - name: Build wheel and sdist
         run: |
-          pip install build hatchling
-          python -m build
+          uv build
           ls -lh dist/
       - name: Publish to PyPI (Trusted Publishing)
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -58,14 +59,16 @@ jobs:
           - { os: windows-latest, artifact: agent-toolkit-windows-x86_64 }
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - run: pip install pyinstaller && pip install -e .
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Install package and PyInstaller
+        run: |
+          uv sync --extra all
+          uv pip install pyinstaller
       - name: Build standalone binary
         shell: bash
         run: >-
-          pyinstaller --onefile --name agent-toolkit
+          uv run pyinstaller --onefile --name agent-toolkit
           --add-data "skills:skills"
           --add-data "agents:agents"
           --add-data "loops:loops"
