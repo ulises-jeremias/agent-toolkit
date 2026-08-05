@@ -49,20 +49,12 @@ path = "src/agent_toolkit/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_toolkit"]
 
-# Canonical capability data lives at the monorepo root; package-local `data/`
-# symlinks keep hatch sdist/wheel builds self-contained.
-[tool.hatch.build.targets.wheel.force-include]
-"data/profiles" = "agent_toolkit/data/profiles"
-"data/loops" = "agent_toolkit/data/loops"
-"data/skills" = "agent_toolkit/data/skills"
-"data/mcp" = "agent_toolkit/data/mcp"
-"data/agents" = "agent_toolkit/data/agents"
-"data/catalogs" = "agent_toolkit/data/catalogs"
-
+# Capability trees are copied into src/agent_toolkit/data/ by
+# scripts/prepare-package-data.sh before sdist/wheel builds. Editable
+# installs resolve monorepo root via agent_toolkit._paths (no packed data).
 [tool.hatch.build.targets.sdist]
 include = [
     "src/",
-    "data/",
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
