@@ -1,3 +1,46 @@
 # MCP Provider: slack
-# Research: docs/research/platform-capability-matrix.md (2026-08-04)
+# Research: docs/wiki/MCP-Setup.md · mcp/templates/slack/
 id: slack
+display_name: Slack
+purpose: Read channel history, post messages, add reactions, and browse Slack canvases
+implementation:
+  provenance: official
+  package: "@anthropic-ai/mcp-server-slack"
+  repository: https://github.com/anthropics/mcp-servers
+  license: MIT
+  version_policy: pin to minor
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [bearer-env]
+  preferred: bearer-env
+  env: [SLACK_BOT_TOKEN, SLACK_APP_TOKEN]
+tools:
+  read:
+    - conversations_history
+    - conversations_list
+    - users_list
+    - canvases_sections_lookup
+  write:
+    - chat_post_message
+    - reactions_add
+  destructive: []
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 5000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [slack.com, api.slack.com]
+  secret_storage: environment variable
+  notes: Requires both bot token (API) and app token (Socket Mode); invite bot to channels
