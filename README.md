@@ -88,6 +88,50 @@ Use these only when the primary CLI flow above does not fit your setup.
 </details>
 
 <details>
+<summary><strong>Cursor plugins</strong> — Cursor IDE and Cursor Agent CLI</summary>
+
+Native plugins from [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json):
+`agent-toolkit-core`, `agent-toolkit-agents`, `agent-toolkit-forge`.
+
+**Cursor IDE**
+
+1. Open **Customize** in the sidebar (or Command Palette → *Cursor: Open Plugin Marketplace*).
+2. Import the marketplace repo: `https://github.com/ulises-jeremias/agent-toolkit`
+3. Install the plugins you need (`agent-toolkit-core` is the baseline).
+
+User-scoped installs sync to Cursor Agent CLI sessions automatically.
+
+**Cursor Agent CLI**
+
+```bash
+# Interactive — browse / install from the Marketplace tab
+cursor-agent
+# then type: /plugin
+```
+
+Load a local plugin directory for one session (useful while developing):
+
+```bash
+cursor-agent --plugin-dir ./plugins/agent-toolkit-core
+cursor-agent --plugin-dir ./plugins/agent-toolkit-agents
+cursor-agent --plugin-dir ./plugins/agent-toolkit-forge
+```
+
+**Local / offline**
+
+```bash
+# Symlink into Cursor's local plugin dir, then reload the window
+mkdir -p ~/.cursor/plugins/local
+ln -s "$(pwd)/plugins/agent-toolkit-core" ~/.cursor/plugins/local/agent-toolkit-core
+ln -s "$(pwd)/plugins/agent-toolkit-agents" ~/.cursor/plugins/local/agent-toolkit-agents
+ln -s "$(pwd)/plugins/agent-toolkit-forge" ~/.cursor/plugins/local/agent-toolkit-forge
+```
+
+→ [Cursor plugins docs](https://cursor.com/docs/plugins) · [Plugin marketplace guide](docs/wiki/Plugin-Marketplace.md)
+
+</details>
+
+<details>
 <summary><strong>npx skills</strong> — Agent Skills standard (skills only, no agents/loops)</summary>
 
 ```bash
@@ -149,7 +193,7 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 | Tool | Type | What's deployed |
 |------|------|-----------------|
 | **Claude Code** | Plugin + CLI | Plugin manifest, skill references, settings |
-| **Cursor** | IDE | `.mdc` rule files per domain |
+| **Cursor** | Plugin + IDE + Agent CLI | Marketplace plugins (`.cursor-plugin/`), `.mdc` rules via profile |
 | **OpenCode** | TUI | System prompt overlays, agent configs |
 | **GitHub Copilot** | IDE | `copilot-instructions.md` with domain selection |
 | **Windsurf** | IDE | Rules and memory files via Cascade |
