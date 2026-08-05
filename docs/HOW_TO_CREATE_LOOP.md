@@ -30,9 +30,9 @@ Prerequisite: the equivalent L1 loop has run reliably for at least 3 clean runs.
 
 Token budgets: 50,000 – 300,000 per run.
 
-### L3 — High-Autonomy
+### L3 — High-Autonomy (merge/close allowlisted)
 
-L3 is reserved for loops that have been running stably as L2 for an extended period. The permission set is the same as L2 — L3 is an operational maturity designation, not a different code path.
+L3 is required when a loop's allowlist includes **merge** or **close** — `loop-gh-gate` forbids those actions at L2 regardless of allowlist. Use L3 only for proven automation (for example `oss-pr-monitor` merging Dependabot PRs with passing CI). L3 loops still require explicit allowlist/deny lists and operator approval before production use.
 
 In practice, most teams run all loops at L1 or L2. Start with L1.
 

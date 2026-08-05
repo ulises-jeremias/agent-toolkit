@@ -109,25 +109,22 @@ Token budgets: 20,000 – 150,000 per run.
 
 ### L2 — Controlled Mutations
 
-L2 loops can make changes within a tightly scoped `allowlist`. Common L2 actions: merge Dependabot
-PRs with passing CI, apply labels, post comments, close merged branches, open draft PRs.
+L2 loops can make changes within a tightly scoped `allowlist`. Common L2 actions: apply labels, post comments, open draft PRs, branch housekeeping.
 
+- **`loop-gh-gate` forbids merge and close at L2** regardless of allowlist
 - Every L2 loop has an explicit `deny` list that prevents high-risk actions
-- Typical denies: `force-push`, `approve`, `push-to-main`, `delete-unmerged-branch`
 - Prerequisite: the equivalent L1 loop has run reliably for at least 3 clean runs
 - Human should review the `report.md` after each run
 
 Token budgets: 50,000 – 300,000 per run.
 
-### L3 — High-Autonomy
+### L3 — High-Autonomy (merge/close allowlisted)
 
-L3 is reserved for loops that have been running stably as L2 for an extended period. The
-permission set is the same as L2 — L3 is an operational maturity designation, not a different
-code path.
+L3 is required when a loop's allowlist includes **merge** or **close** — for example `oss-pr-monitor`, which auto-merges Dependabot PRs with passing CI. Beyond that gate difference, L3 follows the same allowlist/deny discipline as L2. Promote a loop to L3 only after stable L1/L2 runs and explicit operator approval.
 
-In practice, most teams run all loops at L1 or L2. L3 should be rare.
+In practice, most teams run all loops at L1 or L2. Reserve L3 for proven, tightly scoped automation.
 
-**Graduation sequence:** L1 (3+ clean runs) → L2 (1+ week stable) → L3 (operational maturity)
+**Graduation sequence:** L1 (3+ clean runs) → L2 (stable controlled mutations) → L3 (only when merge/close are required)
 
 ---
 

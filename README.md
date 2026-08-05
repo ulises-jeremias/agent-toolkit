@@ -54,8 +54,6 @@
 
 [📖 Documentation](docs/) •
 [🚀 Quick Install](#-quick-install) •
-[🔄 Migration](docs/MIGRATION.md) •
-[🛡️ Trust](docs/TRUST.md) •
 [🛠️ Skills](#%EF%B8%8F-skills--52-across-9-domains) •
 [🤖 Agents](#-agent-personas) •
 [🔄 Loops](#-loop-engineering) •
@@ -215,7 +213,7 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 | 🔎 `reference-lookup` | Cross-repo pattern and convention search |
 | 🤝 `assistant` | General-purpose project assistant |
 | ⚙️ `tech-assistant` | Stack-specific technical guidance |
-| 🚀 `client-workflow-bootstrap` | Client project onboarding and delivery workflow bootstrap |
+| 🔭 `explore` | Fast codebase search and discovery |
 
 Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · 16 personas on disk under `agents/`
 
@@ -223,34 +221,34 @@ Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · 16
 
 ## 🔄 Loop Engineering
 
-Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier model:
+Loops are recurring agentic workflows that run on a schedule or cadence. They follow a three-tier **mutation-safety** model enforced by `loop-gh-gate` (cadence is independent of tier):
 
 <div align="center">
 <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/loop-tiers.svg?raw=true" width="88%">
 </div>
 
-| Tier | Cadence | Purpose |
-|------|---------|---------|
-| **L1** | Minutes to hours | Reactive, event-driven — PR monitoring, triage, CI alerts |
-| **L2** | Daily | Summaries, health checks, security sweeps, briefings |
-| **L3** | Weekly / monthly | Trend analysis, reporting, maintenance sweeps |
+| Tier | Mutation posture | Purpose |
+|------|------------------|---------|
+| **L1** | Observe / propose | Read-only or proposal-only — no repository mutations |
+| **L2** | Controlled mutations | Allowlisted writes (label, comment, limited housekeeping) — merge/close denied |
+| **L3** | High-autonomy mutations | Mature allowlisted mutations including merge/close when explicitly permitted |
 
 ### Loop Templates
 
 | Template | Tier | Default Cadence | Description |
 |----------|------|-----------------|-------------|
-| `issue-triage` | L1 | Every 4 hours | Propose labels and routing for new issues (report-only) |
-| `oss-triage` | L1 | Daily | Triage issues across OSS ecosystem repos |
-| `oss-daily-briefing` | L1 | Daily | Daily read-only briefing across OSS ecosystem repos |
-| `changelog-drafter` | L1 | Daily | Draft release notes from merged PRs (report-only) |
-| `daily-triage` | L1 | Daily | Triage new issues and propose labels (report-only) |
-| `ci-sweeper` | L2 | Every 15 min | Detect CI failures and propose fixes via draft PRs |
-| `dep-sweeper` | L2 | Daily | Apply patch-level dependency updates via draft PRs |
-| `post-merge-cleanup` | L2 | Every 6 hours | Off-peak housekeeping after merges |
-| `pr-babysitter` | L2 | Every 15 min | Monitor open PRs and post review comments |
-| `oss-pr-monitor` | L3 | Daily | Monitor open PRs across OSS ecosystem repos and take action |
+| `changelog-drafter` | L1 | 1d | Draft release notes from merged PRs (L1, report-only) |
+| `ci-sweeper` | L2 | 15m | Detect CI failures and propose fixes via draft PRs (L2, cautious) |
+| `daily-triage` | L1 | 1d | Triage new issues and propose labels (report-only) |
+| `dep-sweeper` | L2 | 1d | Apply patch-level dependency updates via draft PRs (L2) |
+| `issue-triage` | L1 | 4h | Propose labels and routing for new issues (L1, propose-only) |
+| `oss-daily-briefing` | L1 | 1d | Daily read-only briefing across OSS ecosystem repos (L1) |
+| `oss-pr-monitor` | L3 | 1d | Monitor open PRs across OSS ecosystem repos and take action (L3, daily) |
+| `oss-triage` | L1 | 1d | Triage issues across OSS ecosystem repos (L1, daily) |
+| `post-merge-cleanup` | L2 | 6h | Off-peak housekeeping after merges (L2, low impact) |
+| `pr-babysitter` | L2 | 15m | Monitor open PRs and post review comments (L2, PR-gated) |
 
-Each loop template lives in `loops/<name>/` (10 templates on disk) and contains a `request.md` prompt template, `report.md` output template, and `runbook.md` for human operators.
+Each loop template lives in `loops/<name>/` (10 templates on disk) with a `loop.yaml` definition (prompt in `request:`). At runtime the runner writes `STATE.md` and `report.md` under that directory.
 
 ---
 
@@ -344,9 +342,9 @@ agent-toolkit/
 
 | Tier | Trigger | Example |
 |------|---------|---------|
-| **L1** | Report-only / propose-only | `issue-triage`, `daily-triage`, `changelog-drafter` |
-| **L2** | PR-gated writes / reactive sweeps | `ci-sweeper`, `dep-sweeper`, `pr-babysitter` |
-| **L3** | Merge/close allowlisted actions | `oss-pr-monitor` |
+| **L1** | Observe / propose | `oss-triage`, `oss-daily-briefing`, `issue-triage` |
+| **L2** | Controlled mutations | `ci-sweeper`, `pr-babysitter`, `dep-sweeper` |
+| **L3** | High-autonomy (merge/close allowlist) | `oss-pr-monitor` |
 
 ---
 

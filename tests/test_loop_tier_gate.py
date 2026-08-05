@@ -12,6 +12,18 @@ from agent_toolkit.loop.gh_gate import evaluate_action, tier_forbids
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_l1_forbids_all_mutations() -> None:
+    for action in ("merge", "close", "comment", "label"):
+        assert tier_forbids("L1", action)
+        ok, _ = evaluate_action(
+            action,
+            tier="L1",
+            allowlist=[action],
+            deny=[],
+        )
+        assert ok is False
+
+
 def test_l2_forbids_merge_and_close() -> None:
     assert tier_forbids("L2", "merge")
     assert tier_forbids("L2", "close")

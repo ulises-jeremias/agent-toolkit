@@ -60,7 +60,7 @@ request: |
 
 ## The L1 / L2 / L3 Tier System
 
-Tiers describe the risk level of a loop's actions. The tier determines what a loop is allowed to do and how much human oversight is required.
+Tiers describe the **mutation/risk** level of a loop's actions (not schedule cadence). Cadence is independent of tier. The tier determines what a loop is allowed to do and how much human oversight is required.
 
 ### L1 — Observe and Report
 
@@ -72,17 +72,17 @@ Token budgets: 20,000 – 150,000 per run.
 
 ### L2 — Controlled Mutations
 
-L2 loops can make changes, but only within a tightly scoped allowlist. Common L2 actions include merging Dependabot PRs with passing CI, applying labels, posting comments, closing merged branches, or opening draft PRs. Every L2 loop has an explicit deny list that prevents high-risk actions (force-push, approve, push to main).
+L2 loops can make changes, but only within a tightly scoped allowlist. Common L2 actions include applying labels, posting comments, opening draft PRs, and branch housekeeping — but **`loop-gh-gate` forbids merge and close at L2**. Every L2 loop has an explicit deny list that prevents high-risk actions (force-push, approve, push to main).
 
 L2 loops typically require human review of their report before the next run. They are suitable for daily automation once the L1 equivalent has been running reliably.
 
 Token budgets: 50,000 – 300,000 per run.
 
-### L3 — High-Autonomy
+### L3 — High-Autonomy (merge/close allowlisted)
 
-L3 loops are reserved for well-understood, low-risk housekeeping tasks that have been running stably as L2 for some time. The distinction from L2 is operational maturity, not a fundamentally different permission set. A loop graduates to L3 when its pattern is well understood and its error rate is acceptably low.
+L3 is required when a loop's allowlist includes **merge** or **close** — for example `oss-pr-monitor`, which auto-merges Dependabot PRs with passing CI. Beyond that gate difference, L3 follows the same allowlist/deny discipline as L2. Promote a loop to L3 only after stable L2 (or L1) runs and explicit operator approval.
 
-In practice, most teams run all loops at L1 or L2. L3 is a designation, not a different code path.
+In practice, most teams run all loops at L1 or L2. Reserve L3 for proven, tightly scoped automation.
 
 ---
 

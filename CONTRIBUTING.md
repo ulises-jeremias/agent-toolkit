@@ -76,19 +76,40 @@ If any script exits non-zero, read the output carefully — it will tell you whi
    ...usage guide...
    ```
 
-5. **Run validation**:
+5. **Write `skill.json`** with the compatibility matrix:
+
+   ```json
+   {
+     "name": "my-skill-name",
+     "version": "1.0.0",
+     "description": "One-sentence description matching SKILL.md.",
+     "source": "skills/delivery/my-skill-name",
+     "author": "your-github-username",
+     "tags": ["tag1", "tag2"],
+     "compatibility": {
+       "claude-code": true,
+       "cursor": true,
+       "opencode": true,
+       "copilot": false,
+       "windsurf": true,
+       "pi": false
+     }
+   }
+   ```
+
+6. **Run validation**:
 
    ```bash
    bash scripts/validate-skills.sh
    ```
 
-6. **Regenerate catalogs**:
+7. **Regenerate catalogs**:
 
    ```bash
    bash scripts/build-catalog.sh
    ```
 
-7. Open a PR — see the PR checklist below.
+8. Open a PR — see the PR checklist below.
 
 ---
 
@@ -96,10 +117,10 @@ If any script exits non-zero, read the output carefully — it will tell you whi
 
 1. **Check existing loops** in the `loops/` directory to avoid duplication.
 
-2. **Determine the tier**:
-   - **L1** — reactive, event-driven (runs every few minutes to hours)
-   - **L2** — daily summaries, health checks, or briefings
-   - **L3** — weekly or monthly trend analysis, reports, or sweeps
+2. **Determine the tier** (mutation safety — cadence is separate):
+   - **L1** — read-only or propose-only; no mutations
+   - **L2** — PR-gated writes (comments, labels, draft PRs); merge/close forbidden
+   - **L3** — allowlisted merge/close and other high-trust writes (proven loops only)
 
 3. **Create the loop directory**:
 
@@ -194,7 +215,7 @@ Before submitting a PR, confirm the following:
 - [ ] `bash scripts/validate-loops.sh` passes with exit 0 (if you added/modified loops)
 - [ ] `bash scripts/build-catalog.sh` was run and catalog changes are included in the commit
 - [ ] `SKILL.md` frontmatter is complete (name, description, author, version, tags, domain)
-- [ ] `SKILL.md` frontmatter `tools` list is accurate — only list tools you have verified
+- [ ] `skill.json` compatibility matrix is accurate — only mark `true` for tools you have verified
 - [ ] No secrets, API keys, or credentials in any file
 - [ ] PR description explains what the skill/loop/profile does and which tools it targets
 - [ ] If this is a new domain, an issue was opened and discussed before work started
@@ -221,13 +242,6 @@ Format: `<type>(<scope>): <short imperative description>`
 This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you agree to uphold its standards. Report unacceptable behavior by opening a private GitHub security advisory or contacting the maintainer directly.
 
 ---
-
-## Issue template labels
-
-Issue templates apply GitHub labels at creation time. Labels referenced in
-`.github/ISSUE_TEMPLATE/` must exist on the repository — see
-[`.github/labels.md`](.github/labels.md) for the canonical list and
-`gh label create` commands.
 
 ## Getting Help
 
