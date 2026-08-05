@@ -12,13 +12,14 @@ from agent_toolkit.loop.pack import apply_loop_pack_overrides, load_pack
 
 
 def test_parse_run_args_with_pack() -> None:
-    name, force, quiet, pack_path = runner._parse_run_args(
+    name, force, quiet, pack_path, selected = runner._parse_run_args(
         ["oss-daily-briefing", "--pack", "/tmp/pack.yaml", "--force", "--quiet"]
     )
     assert name == "oss-daily-briefing"
     assert force is True
     assert quiet is True
     assert pack_path == Path("/tmp/pack.yaml")
+    assert selected == "auto"
 
 
 def test_apply_pack_overrides_budget_and_cadence() -> None:

@@ -12,15 +12,40 @@ Boris Cherny, Peter Steinberger, Addy Osmani — 2026).
 
 Usage:
     loop init <pattern>           Scaffold a loop from a starter template
-    loop run <loop> [--force] [--quiet] [--pack PATH]
-      Execute a loop run (--force bypasses max_runs_per_day only; --quiet suppresses live output;
-      --pack loads loop overrides from a pack YAML)
+    loop run <loop> [options]     Execute a loop run
     loop status [loop]            Show loop status (all, or one)
     loop audit [loop]             Summarize past runs (success rate, cost)
     loop cost <loop>              Estimate cost for one run
     loop schedule <loop>          Install systemd/launchd timer
     loop sync                     Regenerate knowledge todos from completed runs
     loop help                     Show this help
+
+loop run options:
+    --force                 Bypass max_runs_per_day only (not wall/token budgets)
+    --quiet                 Suppress live runner output and trace progress lines
+    --pack PATH             Apply loop overrides (enabled/cadence/budget) from pack YAML
+    --runner NAME           Force a runner (default: auto, or $AGENT_TOOLKIT_LOOP_RUNNER)
+
+Runners (auto tries in order until one is available):
+    auto        Try harness → claude → opencode → cursor → copilot → codex → queue
+    harness     agentic-workstation / dots-ai-devcompanion runner (HARNESS_RUNNER_DIR)
+    claude      Claude Code CLI (`claude --print`)
+    opencode    OpenCode CLI (`opencode run`)
+    cursor      Cursor Agent CLI (`cursor-agent` / `agent` / `cursor` --print)
+    copilot     GitHub Copilot CLI (`copilot -p`)
+    codex       OpenAI Codex CLI (`codex exec`)
+    queue       Queue via agent-toolkit devcompanion (async worker)
+    skeleton    Write plan.md only (no LLM)
+
+Environment:
+    AGENT_TOOLKIT_LOOP_RUNNER   Default --runner when the flag is omitted (e.g. claude)
+    AGENT_TOOLKIT_WORKSPACE     Workspace root override (also: HARNESS_DIR)
+    HARNESS_RUNNER_DIR          Path to dots-ai-devcompanion runner package (harness)
+    HARNESS_DC_HOME             Devcompanion queue home (queue runner / harness jobs)
+    CURSOR_API_KEY              Auth for Cursor Agent CLI (cursor runner)
+    COPILOT_GITHUB_TOKEN        Auth for Copilot CLI (also: GH_TOKEN / GITHUB_TOKEN)
+    OPENAI_API_KEY / CODEX_API_KEY
+                                Auth for Codex CLI (codex runner)
 """
 from __future__ import annotations
 
@@ -52,6 +77,27 @@ from typing import Any
 
 _CANCELLED = False
 _PROGRESS_QUIET = False
+
+# Explicit + auto runner selection (--runner / AGENT_TOOLKIT_LOOP_RUNNER)
+RUNNER_AUTO = "auto"
+RUNNER_NAMES = (
+    "harness",
+    "claude",
+    "opencode",
+    "cursor",
+    "copilot",
+    "codex",
+    "queue",
+    "skeleton",
+)
+RUNNER_ALIASES = {
+    "devcompanion": "queue",
+    "dc": "queue",
+    "agent-toolkit": "harness",
+    "cursor-agent": "cursor",
+    "github-copilot": "copilot",
+    "openai-codex": "codex",
+}
 
 
 class _TraceTailer:
@@ -1157,11 +1203,26 @@ def cmd_init(args: list[str]) -> int:
     return 0
 
 
-def _parse_run_args(args: list[str]) -> tuple[str, bool, bool, Path | None]:
-    """Parse loop run argv into (loop_name, force, quiet, pack_path)."""
+def _normalize_runner_name(raw: str | None) -> str:
+    """Return a canonical runner name or raise ValueError."""
+    if raw is None or not str(raw).strip():
+        return RUNNER_AUTO
+    name = str(raw).strip().lower().replace("_", "-")
+    name = RUNNER_ALIASES.get(name, name)
+    if name == RUNNER_AUTO:
+        return RUNNER_AUTO
+    if name not in RUNNER_NAMES:
+        known = ", ".join((RUNNER_AUTO,) + RUNNER_NAMES)
+        raise ValueError(f"Unknown runner '{raw}'. Choose one of: {known}")
+    return name
+
+
+def _parse_run_args(args: list[str]) -> tuple[str, bool, bool, Path | None, str]:
+    """Parse loop run argv into (loop_name, force, quiet, pack_path, runner)."""
     force = "--force" in args
     quiet = "--quiet" in args
     pack_path: Path | None = None
+    runner_flag: str | None = None
     positional: list[str] = []
     i = 0
     while i < len(args):
@@ -1169,12 +1230,23 @@ def _parse_run_args(args: list[str]) -> tuple[str, bool, bool, Path | None]:
             pack_path = Path(args[i + 1]).expanduser()
             i += 2
             continue
+        if args[i] == "--runner" and i + 1 < len(args):
+            runner_flag = args[i + 1]
+            i += 2
+            continue
+        if args[i].startswith("--runner="):
+            runner_flag = args[i].split("=", 1)[1]
+            i += 1
+            continue
         if args[i].startswith("-"):
             i += 1
             continue
         positional.append(args[i])
         i += 1
-    return positional[0] if positional else "", force, quiet, pack_path
+
+    env_runner = os.environ.get("AGENT_TOOLKIT_LOOP_RUNNER", "").strip() or None
+    runner = _normalize_runner_name(runner_flag if runner_flag is not None else env_runner)
+    return positional[0] if positional else "", force, quiet, pack_path, runner
 
 
 def _run_harness_runner_with_timeout(
@@ -1205,24 +1277,272 @@ def _run_harness_runner_with_timeout(
         raise exc_holder[0]
 
 
+def _load_harness_runner_mod() -> Any | None:
+    runner_dir = Path(
+        os.environ.get("HARNESS_RUNNER_DIR", "")
+        or Path.home() / ".local" / "share" / "agent-toolkit" / "runner"
+    )
+    if not runner_dir.is_dir():
+        return None
+    if str(runner_dir) not in sys.path:
+        sys.path.insert(0, str(runner_dir))
+    try:
+        import dots_ai_devcompanion_runner as r  # type: ignore
+        return r
+    except ImportError:
+        return None
+
+
+def _try_harness_runner(
+    prompt: str,
+    run_dir: Path,
+    rid: str,
+    meta: dict[str, Any],
+    *,
+    wall_timeout: int,
+) -> tuple[bool, bool]:
+    """Run harness/devcompanion-runner. Returns (handled, budget_exhausted)."""
+    runner_mod = _load_harness_runner_mod()
+    if runner_mod is None:
+        return False, False
+    _install_gate_into_environ(run_dir, meta)
+    try:
+        job_file = run_dir / "job.json"
+        job_file.write_text(
+            json.dumps({
+                "id": rid,
+                "created_at": utc_now(),
+                "request": prompt,
+                "loop_gate": {
+                    "tier": str(meta.get("tier", "L1")),
+                    "allowlist": _as_str_list(meta.get("allowlist")),
+                    "deny": _as_str_list(meta.get("deny")),
+                    "verifier": str(meta.get("verifier") or ""),
+                    "run_dir": str(run_dir),
+                },
+                "limits": {"timeout_sec": wall_timeout},
+            }),
+            encoding="utf-8",
+        )
+        _run_harness_runner_with_timeout(runner_mod, job_file, run_dir, wall_timeout)
+        return True, False
+    except subprocess.TimeoutExpired:
+        warn(f"Run exceeded max_wall_seconds ({wall_timeout}s)")
+        return True, True
+    except Exception as e:
+        err(f"Runner error: {e}")
+        return True, False
+
+
+def _write_skeleton_plan(
+    plan_md: Path,
+    *,
+    loop_name: str,
+    rid: str,
+    tier: str,
+    meta: dict[str, Any],
+    reason: str,
+) -> None:
+    plan_md.write_text(
+        f"# Loop Run: {loop_name}\n\n"
+        f"**Run ID**: {rid}  \n"
+        f"**Tier**: {tier}  \n"
+        f"**Started**: {utc_now()}  \n\n"
+        "## Goal\n\n"
+        f"{meta.get('goal', '(no goal defined in LOOP.md)')}\n\n"
+        "## Status\n\n"
+        f"⚠ {reason}\n\n"
+        "Options:\n"
+        "  1. `agent-toolkit loop run <loop> --runner claude` (Claude Code CLI in PATH)\n"
+        "  2. `--runner opencode` / `cursor` / `copilot` / `codex`\n"
+        "  3. `--runner harness` with `HARNESS_RUNNER_DIR` set\n"
+        "  4. `--runner queue` for async devcompanion processing\n"
+        "See: `agent-toolkit loop help`\n",
+        encoding="utf-8",
+    )
+
+
+def _dispatch_loop_runner(
+    runner: str,
+    *,
+    prompt: str,
+    run_dir: Path,
+    rid: str,
+    loop_name: str,
+    meta: dict[str, Any],
+    trace_file: Path,
+    wall_timeout: int,
+    token_limit: int | None,
+    plan_md: Path,
+    tier: str,
+) -> tuple[bool, bool]:
+    """Dispatch to the selected runner.
+
+    Returns ``(queued, budget_exhausted)``.
+    Raises ``RuntimeError`` for gate failures (caller maps to exit 2).
+    Raises ``ValueError`` when an explicit runner is unavailable.
+    """
+    kwargs = dict(
+        trace_file=trace_file,
+        wall_timeout=wall_timeout,
+        max_tokens=token_limit,
+    )
+
+    def _one(name: str) -> bool | None:
+        """Return True if handled, False if unavailable, None if failed after attempt."""
+        if name == "harness":
+            handled, _budget = _try_harness_runner(
+                prompt, run_dir, rid, meta, wall_timeout=wall_timeout
+            )
+            return handled
+        if name == "claude":
+            if not shutil.which("claude"):
+                return False
+            return True if _try_claude_runner(prompt, run_dir, meta, **kwargs) else None
+        if name == "opencode":
+            if not shutil.which("opencode"):
+                return False
+            return True if _try_opencode_runner(prompt, run_dir, meta, **kwargs) else None
+        if name == "cursor":
+            if _resolve_cursor_cli_bin() is None:
+                return False
+            return True if _try_cursor_runner(prompt, run_dir, meta, **kwargs) else None
+        if name == "copilot":
+            if _resolve_copilot_cli_bin() is None:
+                return False
+            return True if _try_copilot_runner(prompt, run_dir, meta, **kwargs) else None
+        if name == "codex":
+            if not shutil.which("codex"):
+                return False
+            return True if _try_codex_runner(prompt, run_dir, meta, **kwargs) else None
+        if name == "queue":
+            return (
+                True
+                if _queue_via_devcompanion(
+                    prompt, run_dir, loop_name, rid, meta, wall_timeout=wall_timeout
+                )
+                else False
+            )
+        if name == "skeleton":
+            _write_skeleton_plan(
+                plan_md,
+                loop_name=loop_name,
+                rid=rid,
+                tier=tier,
+                meta=meta,
+                reason="Skeleton runner requested (--runner skeleton).",
+            )
+            return True
+        return False
+
+    queued = False
+    budget_exhausted = False
+
+    if runner == RUNNER_AUTO:
+        # Preserve prior semantics: if harness package is present, use it and
+        # do not fall through to CLI runners on failure.
+        if _load_harness_runner_mod() is not None:
+            _handled, budget_exhausted = _try_harness_runner(
+                prompt, run_dir, rid, meta, wall_timeout=wall_timeout
+            )
+            return False, budget_exhausted
+        for name in ("claude", "opencode", "cursor", "copilot", "codex", "queue"):
+            result = _one(name)
+            if result is True:
+                if name == "queue":
+                    queued = True
+                    log(
+                        "Loop dispatched to devcompanion queue — "
+                        "worker will process asynchronously."
+                    )
+                return queued, budget_exhausted
+            # False = missing; None = attempted and failed → try next
+            continue
+        warn("No runner found — writing skeleton plan.md")
+        if not _PROGRESS_QUIET:
+            log("step: prepare skeleton plan")
+        _write_skeleton_plan(
+            plan_md,
+            loop_name=loop_name,
+            rid=rid,
+            tier=tier,
+            meta=meta,
+            reason="No runner found.",
+        )
+        if not _PROGRESS_QUIET:
+            log("step: skeleton plan written (no LLM runner available)")
+            trace_file.write_text(
+                trace_file.read_text(encoding="utf-8")
+                + json.dumps({
+                    "ts": utc_now(),
+                    "kind": "progress",
+                    "label": "skeleton",
+                    "message": "plan.md written",
+                })
+                + "\n",
+                encoding="utf-8",
+            )
+        return False, False
+
+    # Explicit runner — do not silently fall through.
+    log(f"Using runner: {runner}")
+    if runner == "harness":
+        if _load_harness_runner_mod() is None:
+            raise ValueError(
+                "harness runner unavailable — set HARNESS_RUNNER_DIR to the "
+                "dots-ai-devcompanion runner package"
+            )
+        _handled, budget_exhausted = _try_harness_runner(
+            prompt, run_dir, rid, meta, wall_timeout=wall_timeout
+        )
+        return False, budget_exhausted
+
+    result = _one(runner)
+    if result is False:
+        hints = {
+            "claude": "install Claude Code CLI (`claude` on PATH)",
+            "opencode": "install OpenCode (`opencode` on PATH)",
+            "cursor": "install Cursor Agent CLI (`cursor-agent` / `agent` on PATH); set CURSOR_API_KEY",
+            "copilot": "install GitHub Copilot CLI (`copilot` on PATH); set COPILOT_GITHUB_TOKEN",
+            "codex": "install Codex CLI (`codex` on PATH); set OPENAI_API_KEY or CODEX_API_KEY",
+            "queue": "ensure workspace queue dirs are writable (HARNESS_DC_HOME / workspace)",
+        }
+        raise ValueError(
+            f"runner '{runner}' is not available — {hints.get(runner, 'check installation')}"
+        )
+    if result is None:
+        raise ValueError(f"runner '{runner}' started but exited unsuccessfully")
+    if runner == "queue":
+        queued = True
+        log("Loop dispatched to devcompanion queue — worker will process asynchronously.")
+    return queued, budget_exhausted
+
+
 def cmd_run(args: list[str]) -> int:
     """Execute one loop run.
 
-    Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH]
-      --force  bypass max_runs_per_day only (does not bypass max_wall_seconds or max_tokens)
-      --quiet  suppress live runner output and trace progress lines
-      --pack   apply loop overrides (enabled, cadence, budget) from pack YAML
+    Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH] [--runner NAME]
     """
     global _PROGRESS_QUIET
 
+    usage = (
+        "Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH] [--runner NAME]\n"
+        "  --runner  auto|harness|claude|opencode|cursor|copilot|codex|queue|skeleton\n"
+        "  (default: auto, or $AGENT_TOOLKIT_LOOP_RUNNER)\n"
+        "See: agent-toolkit loop help"
+    )
     if not args:
-        err("Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH]")
+        err(usage)
         return 1
 
-    loop_name, force, quiet, pack_path = _parse_run_args(args)
+    try:
+        loop_name, force, quiet, pack_path, runner = _parse_run_args(args)
+    except ValueError as exc:
+        err(str(exc))
+        return 1
     _PROGRESS_QUIET = quiet
     if not loop_name:
-        err("Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH]")
+        err(usage)
         return 1
 
     loop_dir = resolve_loop_dir(loop_name)
@@ -1343,6 +1663,7 @@ def cmd_run(args: list[str]) -> int:
             "verifier": meta.get("verifier"),
             "agents_md_hash": agents_md_hash,
             "force": force,
+            "runner": runner,
             "max_wall_seconds": wall_timeout,
             "max_tokens": token_limit,
         }) + "\n",
@@ -1381,137 +1702,32 @@ def cmd_run(args: list[str]) -> int:
         finalize_run(loop_dir, run_dir, rid, worktree_path, trace_file, "cancelled")
         return 1
 
-    # Dispatch to runner (agent-toolkit or skeleton)
-    runner_dir = Path(
-        os.environ.get("HARNESS_RUNNER_DIR", "")
-        or Path.home() / ".local" / "share" / "agent-toolkit" / "runner"
-    )
-
+    # Dispatch to selected runner (auto chain or --runner NAME)
     plan_md = run_dir / "plan.md"
     prompt = _build_runner_prompt(loop_dir, meta, loop_name, run_dir)
     # Persist the exact prompt for audit / autonomy debugging
     (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
 
-    runner_mod = None
-    if runner_dir.is_dir():
-        if str(runner_dir) not in sys.path:
-            sys.path.insert(0, str(runner_dir))
-        try:
-            import dots_ai_devcompanion_runner as r  # type: ignore
-            runner_mod = r
-        except ImportError:
-            pass
-
-    # Dispatch: agent-toolkit → claude CLI → opencode → devcompanion queue → skeleton
-    # Install the hard gate before any runner that can invoke `gh`.
     queued = False
     budget_exhausted = False
     try:
-        if runner_mod is not None:
-            _install_gate_into_environ(run_dir, meta)
-            try:
-                job_file = run_dir / "job.json"
-                job_file.write_text(
-                    json.dumps({
-                        "id": rid,
-                        "created_at": utc_now(),
-                        "request": prompt,
-                        "loop_gate": {
-                            "tier": str(meta.get("tier", "L1")),
-                            "allowlist": _as_str_list(meta.get("allowlist")),
-                            "deny": _as_str_list(meta.get("deny")),
-                            "verifier": str(meta.get("verifier") or ""),
-                            "run_dir": str(run_dir),
-                        },
-                        "limits": {"timeout_sec": wall_timeout},
-                    }),
-                    encoding="utf-8",
-                )
-                _run_harness_runner_with_timeout(
-                    runner_mod, job_file, run_dir, wall_timeout
-                )
-            except subprocess.TimeoutExpired:
-                budget_exhausted = True
-                warn(f"Run exceeded max_wall_seconds ({wall_timeout}s)")
-            except Exception as e:
-                err(f"Runner error: {e}")
-        elif _try_claude_runner(
-            prompt,
-            run_dir,
-            meta,
+        queued, budget_exhausted = _dispatch_loop_runner(
+            runner,
+            prompt=prompt,
+            run_dir=run_dir,
+            rid=rid,
+            loop_name=loop_name,
+            meta=meta,
             trace_file=trace_file,
             wall_timeout=wall_timeout,
-            max_tokens=token_limit,
-        ):
-            pass  # claude runner handled it
-        elif _try_opencode_runner(
-            prompt,
-            run_dir,
-            meta,
-            trace_file=trace_file,
-            wall_timeout=wall_timeout,
-            max_tokens=token_limit,
-        ):
-            pass  # opencode runner handled it
-        elif _try_cursor_runner(
-            prompt,
-            run_dir,
-            meta,
-            trace_file=trace_file,
-            wall_timeout=wall_timeout,
-            max_tokens=token_limit,
-        ):
-            pass  # cursor agent CLI handled it
-        elif _try_copilot_runner(
-            prompt,
-            run_dir,
-            meta,
-            trace_file=trace_file,
-            wall_timeout=wall_timeout,
-            max_tokens=token_limit,
-        ):
-            pass  # GitHub Copilot CLI handled it
-        elif _try_codex_runner(
-            prompt,
-            run_dir,
-            meta,
-            trace_file=trace_file,
-            wall_timeout=wall_timeout,
-            max_tokens=token_limit,
-        ):
-            pass  # OpenAI Codex CLI handled it
-        elif _queue_via_devcompanion(
-            prompt, run_dir, loop_name, rid, meta, wall_timeout=wall_timeout
-        ):
-            queued = True  # queued for async devcompanion processing
-            log("Loop dispatched to devcompanion queue — worker will process asynchronously.")
-        else:
-            warn("No runner found — writing skeleton plan.md")
-            if not _PROGRESS_QUIET:
-                log("step: prepare skeleton plan")
-            plan_md.write_text(
-                f"# Loop Run: {loop_name}\n\n"
-                f"**Run ID**: {rid}  \n"
-                f"**Tier**: {tier}  \n"
-                f"**Started**: {utc_now()}  \n\n"
-                "## Goal\n\n"
-                f"{meta.get('goal', '(no goal defined in LOOP.md)')}\n\n"
-                "## Status\n\n"
-                "⚠ No runner found. Options:\n"
-                "  1. Install Claude Code CLI (`claude` in PATH) for native execution.\n"
-                "  2. Install opencode CLI (`opencode` in PATH) for headless execution.\n"
-                "  3. Install agent-toolkit and set HARNESS_RUNNER_DIR.\n"
-                "See: https://github.com/ulises-jeremias/agent-toolkit\n",
-                encoding="utf-8",
-            )
-            if not _PROGRESS_QUIET:
-                log("step: skeleton plan written (no LLM runner available)")
-                trace_file.write_text(
-                    trace_file.read_text(encoding="utf-8")
-                    + json.dumps({"ts": utc_now(), "kind": "progress",
-                                  "label": "skeleton", "message": "plan.md written"}) + "\n",
-                    encoding="utf-8",
-                )
+            token_limit=token_limit,
+            plan_md=plan_md,
+            tier=tier,
+        )
+    except ValueError as runner_exc:
+        err(str(runner_exc))
+        finalize_run(loop_dir, run_dir, rid, worktree_path, trace_file, "runner_unavailable")
+        return 1
     except RuntimeError as gate_exc:
         err(str(gate_exc))
         finalize_run(loop_dir, run_dir, rid, worktree_path, trace_file, "gate_failed")
