@@ -7,38 +7,71 @@ Thank you for your interest in contributing. This document covers everything you
 ## Prerequisites
 
 - **Git** 2.30 or later
-- **Bash** 5.0 or later (macOS ships with Bash 3; install via Homebrew: `brew install bash`)
 - **Python** 3.10 or later (used by validation scripts)
-- **jq** 1.6 or later (used by catalog generation scripts)
+- **uv** (recommended) — see https://docs.astral.sh/uv/getting-started/installation/
 - A GitHub account and a fork of this repository
 
 Verify your setup:
 
 ```bash
 git --version
-bash --version
 python3 --version
-jq --version
+uv --version
+```
+
+Install workspace dependencies (first time or after pulling):
+
+```bash
+uv sync --all-extras
 ```
 
 ---
 
 ## Validation Commands
 
-Always run validation before opening a PR. All checks must pass.
+Always run validation before opening a PR. All checks must pass. These match `.github/workflows/validate.yml`.
 
 ```bash
-# Validate all skill manifests against the JSON schema
-bash scripts/validate-skills.sh
+# Validate SKILL.md frontmatter (Agent Skills spec)
+python3 scripts/validate-skills.py
 
-# Validate all loop template frontmatter
-bash scripts/validate-loops.sh
+# Validate AGENT.md frontmatter
+python3 scripts/validate-agents.py
+
+# Validate loop.yaml files against schemas/loop.schema.json (as CI does)
+python3 - <<'PY'
+import json, sys, yaml
+from pathlib import Path
+from jsonschema import validate, ValidationError
+schema = json.loads(Path("schemas/loop.schema.json").read_text())
+errors = []
+for f in sorted(Path("loops").rglob("loop.yaml")):
+    d = yaml.safe_load(f.read_text())
+    try:
+        validate(d, schema)
+        print(f"  OK: {f}")
+    except ValidationError as e:
+        errors.append(f"  FAIL: {f}: {e.message}")
+        print(f"  FAIL: {f}: {e.message}", file=sys.stderr)
+if errors:
+    sys.exit(1)
+print(f"All {len(list(Path('loops').rglob('loop.yaml')))} loop template(s) valid.")
+PY
+
+# Validate marketplace manifests
+python3 scripts/validate-manifests.py
+
+# Detect plugin surface drift
+python3 scripts/gen-surfaces.py --check
 
 # Regenerate catalogs and verify they match source files
-bash scripts/build-catalog.sh
+python3 scripts/generate-catalogs.py
+
+# Full test suite (CI parity)
+AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v
 ```
 
-If any script exits non-zero, read the output carefully — it will tell you which file failed and why.
+If any command exits non-zero, read the output — it will tell you which file failed and why.
 
 ---
 
@@ -81,13 +114,13 @@ If any script exits non-zero, read the output carefully — it will tell you whi
 6. **Run validation**:
 
    ```bash
-   bash scripts/validate-skills.sh
+   python3 scripts/validate-skills.py
    ```
 
 7. **Regenerate catalogs**:
 
    ```bash
-   bash scripts/build-catalog.sh
+   python3 scripts/generate-catalogs.py
    ```
 
 8. Open a PR — see the PR checklist below.
@@ -95,6 +128,8 @@ If any script exits non-zero, read the output carefully — it will tell you whi
 ---
 
 ## How to Add a Loop Template
+
+Loops are defined by `loops/<loop-name>/loop.yaml` (see `docs/HOW_TO_CREATE_LOOP.md` for the full guide and `schemas/loop.schema.json` for the authoritative schema). `request.md` was the pre-v1 loop format and is no longer used — all loop content now lives in `loop.yaml`.
 
 1. **Check existing loops** in the `loops/` directory to avoid duplication.
 
@@ -109,38 +144,57 @@ If any script exits non-zero, read the output carefully — it will tell you whi
    mkdir -p loops/<loop-name>
    ```
 
-4. **Write `request.md`** with the required YAML frontmatter:
+4. **Write `loops/<loop-name>/loop.yaml`** following `docs/HOW_TO_CREATE_LOOP.md` and the schema. Minimal required fields are `name`, `goal`, `request`; typical loops also set `tier`, `cadence`, `allowlist`/`deny`, `budget`, and `exit_conditions`:
 
-   ```markdown
-   ---
+   ```yaml
    name: my-loop-name
+   description: "Daily L2 triage with PR-gated comments"
    tier: L2
-   cadence: "0 8 * * *"
-   goal: "Daily summary of repository activity."
+   cadence: 1d
+   goal: |
+     Review open issues created in the last 24h and post triage comments.
+     Do NOT merge or close.
    allowlist:
-     - github
+     - comment
+     - label
    deny:
-     - file_write
+     - merge
+     - close
+     - push
+     - approve
+     - force-push
+   exit_conditions:
+     - goal_met
+     - budget_exhausted
+     - human_escalation
    budget:
-     tokens: 40000
-     duration_minutes: 8
+     max_tokens: 80000
+     max_runs_per_day: 1
+     max_wall_seconds: 600
+   verifier: null
    resumable: false
-   ---
-
-   [Prompt body here]
+   request: |
+     You are running the my-loop-name loop...
+     [Full prompt — see docs/HOW_TO_CREATE_LOOP.md section 4]
    ```
 
-5. **Write `report.md`** — define the output structure your loop will populate.
+   Field reference: `tier` is `L1`|`L2`|`L3`; `cadence` matches `^\d+[mhd]$` (e.g. `15m`, `1d`); `budget` may include `max_tokens`, `max_runs_per_day`, `max_wall_seconds`, `max_iterations`; `exit_conditions` values include `goal_met`, `budget_exhausted`, `human_escalation`, `max_iterations`, `no_work_found`, `error`.
 
-6. **Write `runbook.md`** — cover: what the loop does, how to trigger it manually, how to interpret output, common failure modes, escalation path.
-
-7. **Run loop validation**:
+5. **Validate your loop** against the schema (same check CI runs in `validate-loops`):
 
    ```bash
-   bash scripts/validate-loops.sh
+   python3 - <<'PY'
+   import json, yaml
+   from pathlib import Path
+   from jsonschema import validate
+   schema = json.loads(Path("schemas/loop.schema.json").read_text())
+   d = yaml.safe_load(Path("loops/<loop-name>/loop.yaml").read_text())
+   validate(d, schema)
+   print("Valid: loops/<loop-name>/loop.yaml")
+   PY
    ```
 
-8. Open a PR.
+6. Open a PR. Runtime artifacts `STATE.md` and `report.md` are written by the loop runner — do not commit them.
 
 ---
 
@@ -192,9 +246,11 @@ chore/regenerate-catalogs
 Before submitting a PR, confirm the following:
 
 - [ ] Branch name follows the naming convention above
-- [ ] `bash scripts/validate-skills.sh` passes with exit 0
-- [ ] `bash scripts/validate-loops.sh` passes with exit 0 (if you added/modified loops)
-- [ ] `bash scripts/build-catalog.sh` was run and catalog changes are included in the commit
+- [ ] `python3 scripts/validate-skills.py` passes with exit 0
+- [ ] `python3 scripts/validate-agents.py` passes with exit 0 (if you added/modified agents)
+- [ ] Loop `loop.yaml` validates against `schemas/loop.schema.json` (if you added/modified loops) — see Validation Commands
+- [ ] `python3 scripts/generate-catalogs.py` was run and catalog changes are included (if you added/modified skills/agents/loops)
+- [ ] `python3 scripts/gen-surfaces.py --check` passes (if you added/modified skills/agents/loops or surfaces)
 - [ ] `SKILL.md` frontmatter is complete (name, description, author, version, tags, domain)
 - [ ] Optional `tools:` frontmatter in `SKILL.md` is accurate — only mark tools you have verified
 - [ ] No deprecated `skill.json` files under `skills/`
@@ -210,7 +266,7 @@ Follow conventional commits:
 
 ```
 feat(delivery): add gh-address-comments skill
-fix(oss-triage): correct deny list in request.md
+fix(oss-triage): correct deny list in loop.yaml
 docs(readme): expand MCP templates section
 chore(catalogs): regenerate after adding security-sweep loop
 ```
@@ -236,19 +292,23 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 When adding a new skill, agent, or loop, verify the compiler pipeline:
 
 ```bash
+# Sync workspace deps first
+uv sync --all-extras
+
 # Validate your changes
 python3 scripts/validate-skills.py
+python3 scripts/validate-agents.py
 python3 scripts/validate-manifests.py
 python3 scripts/gen-surfaces.py --check
 
 # Run the compiler in check mode
-agent-toolkit build --check
+uv run agent-toolkit build --check
 
 # Check for drift vs installed bundles
-agent-toolkit diff
+uv run agent-toolkit diff
 
 # Run all tests including contract tests
-PYTHONPATH=src pytest tests/ -v
+AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v
 ```
 
 ## Adding a new compiler target
