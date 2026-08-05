@@ -37,6 +37,22 @@ def test_github_provider_fields():
     assert len(gh.write_tools) > 0
 
 
+def test_all_providers_have_complete_metadata():
+    """Regression: stubs with only `id` must not count as complete providers (#73)."""
+    providers = load_registry(REGISTRY_DIR)
+    required = {"github", "slack", "notion", "linear", "figma", "clickup"}
+    for pid in required:
+        p = providers[pid]
+        assert p.display_name and p.display_name != pid, f"{pid}: missing display_name"
+        assert p.purpose, f"{pid}: missing purpose"
+        assert p.package, f"{pid}: missing implementation.package"
+        assert p.provenance and p.provenance != "unknown", f"{pid}: missing provenance"
+        assert p.read_tools, f"{pid}: missing read tools"
+        # OAuth-only remotes (e.g. Linear) may omit env vars; token-based must list them.
+        if pid != "linear":
+            assert p.env_vars, f"{pid}: missing auth.env"
+
+
 def test_no_secrets_in_registry():
     """Registry files must contain only env var names, never values."""
     for yaml_file in REGISTRY_DIR.glob("*.yaml"):
