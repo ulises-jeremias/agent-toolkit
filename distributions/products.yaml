@@ -111,3 +111,128 @@ products:
       cursor:
         plugin_id: agent-toolkit-forge
         manifest: plugins/agent-toolkit-forge/.cursor-plugin/plugin.json
+
+  - id: agent-toolkit-delivery
+    name: "Agent Toolkit Delivery"
+    description: >-
+      Product-delivery skills: PRDs, user stories, epics, bugs, incidents,
+      assessments, ADRs, and workflow templates for client engagements.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - delivery/adr
+        - delivery/agreement
+        - delivery/bug
+        - delivery/decision-log
+        - delivery/development-workflow
+        - delivery/epic
+        - delivery/incident
+        - delivery/management-unit-assessment
+        - delivery/meeting-minutes
+        - delivery/planning
+        - delivery/prd
+        - delivery/project-assessment
+        - delivery/project-assessment-evidence
+        - delivery/spike
+        - delivery/task
+        - delivery/technical-unit-assessment
+        - delivery/trd
+        - delivery/user-story
+        - delivery/workflow-client-bootstrap
+        - delivery/workflow-generic-project
+        - delivery/work-item
+      agents: []
+      hooks: []
+      mcp: []
+
+  - id: agent-toolkit-design
+    name: "Agent Toolkit Design"
+    description: >-
+      UI/UX and Figma skills for design-system rules, code connect,
+      and design-to-code workflows.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - design/figma
+        - design/figma-code-connect-components
+        - design/figma-create-design-system-rules
+        - design/figma-create-new-file
+        - design/figma-implement-design
+        - design/ui-ux-pro-max
+      agents: []
+      hooks: []
+      mcp: []
+
+  - id: agent-toolkit-integrations
+    name: "Agent Toolkit Integrations"
+    description: >-
+      Third-party integrations: Slack, ClickUp, and Linear CLI assistants.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - integrations/clickup-cli
+        - integrations/linear
+        - integrations/slack-assistant
+        - integrations/slack-cli
+      agents: []
+      hooks: []
+      mcp: []
+
+  - id: agent-toolkit-data
+    name: "Agent Toolkit Data"
+    description: >-
+      Data engineering validation skills for dbt and Snowflake pipelines.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - data/dbt-validation
+        - data/snowflake-validation
+      agents: []
+      hooks: []
+      mcp: []
+
+  - id: agent-toolkit-ops
+    name: "Agent Toolkit Ops"
+    description: >-
+      Operational skills: workstation triage, LLM cost advisory, and docs generation.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - ops/docs-generator
+        - ops/llm-cost-advisor
+        - ops/triage
+      agents: []
+      hooks: []
+      mcp: []
+
+  - id: agent-toolkit-tooling
+    name: "Agent Toolkit Tooling"
+    description: >-
+      Developer tooling skills: Playwright CLI and Jupyter notebook workflows.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - tooling/jupyter-notebook
+        - tooling/playwright-cli
+      agents: []
+      hooks: []
+      mcp: []
+
+  - id: agent-toolkit-loops
+    name: "Agent Toolkit Loops"
+    description: >-
+      Loop engineering runner skill for autonomous background workflows.
+    version_source: src/agent_toolkit/__init__.py
+    stability: stable
+    includes:
+      skills:
+        - loops/loop-runner
+      agents: []
+      hooks: []
+      mcp: []
