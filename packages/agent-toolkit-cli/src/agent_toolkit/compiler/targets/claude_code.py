@@ -35,9 +35,17 @@ class ClaudeCodeAdapter(TargetAdapter):
     package_type = "plugin"
     maturity = "stable"
 
-    def compile(self, graph: CanonicalGraph, product: Product) -> CompilationResult:
+    def compile(
+        self,
+        graph: CanonicalGraph,
+        product: Product,
+        *,
+        emit_registries: bool = False,
+    ) -> CompilationResult:
         result = CompilationResult(target=self.target_id, product=product.id)
         out_dir = self.output_root / product.id
+        hooks_dir = self.repo_root / "capabilities" / "hooks"
+        mcp_dir = self.repo_root / "mcp" / "registry"
 
         # Emit plugin.json
         plugin_json = self._build_plugin_json(product, graph)
@@ -66,11 +74,41 @@ class ClaudeCodeAdapter(TargetAdapter):
                 continue
             self._emit_agent(agent, out_dir, result)
 
-        # Capabilities this adapter does NOT yet implement
-        result.unsupported.extend([
-            "hooks (hooks/hooks.json — pending hook canonical model)",
-            ".mcp.json (pending MCP registry implementation)",
-        ])
+        from agent_toolkit.compiler.registry_emit import (
+            hooks_json_text,
+            mcp_json_text,
+            resolve_hook_ids,
+            resolve_mcp_ids,
+        )
+
+        hook_ids = resolve_hook_ids(
+            product.included_hooks,
+            target_id=self.target_id,
+            hooks_dir=hooks_dir,
+            emit_registries=emit_registries,
+        )
+        hooks_text = hooks_json_text(hook_ids, hooks_dir, self.target_id)
+        if hooks_text:
+            self._write_file(out_dir / "hooks" / "hooks.json", hooks_text, result)
+            result.emitted.append("hooks")
+
+        mcp_ids = resolve_mcp_ids(
+            product.included_mcp,
+            target_id=self.target_id,
+            registry_dir=mcp_dir,
+            emit_registries=emit_registries,
+        )
+        mcp_text = mcp_json_text(mcp_ids, mcp_dir, self.target_id)
+        if mcp_text:
+            self._write_file(out_dir / ".mcp.json", mcp_text, result)
+            result.emitted.append("mcp")
+
+        pending: list[str] = []
+        if not hook_ids:
+            pending.append("hooks (hooks/hooks.json — none included for this product)")
+        if not mcp_ids:
+            pending.append(".mcp.json (none included for this product)")
+        result.unsupported.extend(pending)
 
         return result
 

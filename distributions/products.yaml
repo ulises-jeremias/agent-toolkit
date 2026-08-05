@@ -17,8 +17,10 @@ products:
     - core/onboarding
     agents:
     - code-reviewer
-    hooks: []
-    mcp: []
+    hooks:
+    - session-start-context
+    mcp:
+    - github
   excludes: []
   targets:
     claude-code:
@@ -160,6 +162,7 @@ products:
     - tooling/playwright-cli
     agents: []
     hooks: []
+    mcp: []
   security:
     approval_required: false
     default_enabled: true

@@ -9,6 +9,7 @@ Options:
     --product PRODUCT  Product ID to compile (agent-toolkit-core, etc.)
     --check            Dry-run: validate without writing files
     --output DIR       Output directory (default: plugins/)
+    --emit-registries  Emit all registry hooks/MCP supported by the target (Claude Code)
     --json             Output results as JSON
     --help             Show this help
 
@@ -56,6 +57,7 @@ def cmd_build(args: list[str]) -> int:
     parser.add_argument("--product", default=None)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--output", default=None)
+    parser.add_argument("--emit-registries", action="store_true")
     parser.add_argument("--json", dest="json_out", action="store_true")
     parser.add_argument("--help", "-h", action="store_true")
 
@@ -125,6 +127,8 @@ def cmd_build(args: list[str]) -> int:
             adapter._provenance_records = []
             if parsed.check:
                 result = adapter.check(graph, product)
+            elif parsed.emit_registries and target_id == "claude-code":
+                result = adapter.compile(graph, product, emit_registries=True)
             else:
                 result = adapter.compile(graph, product)
                 if hasattr(adapter, "_finalize_provenance"):
