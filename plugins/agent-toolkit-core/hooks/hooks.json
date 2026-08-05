@@ -3,7 +3,7 @@
     "SessionStart": [
       {
         "type": "command",
-        "command": "agent-toolkit workspace context",
+        "command": "bash capabilities/hooks/scripts/session-start-context.sh",
         "timeout": 5000
       }
     ]

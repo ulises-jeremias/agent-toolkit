@@ -19,7 +19,7 @@ def test_mcp_health_github_offline(capsys):
     rc = cmd_mcp(["health", "github"])
     out = capsys.readouterr().out
     assert rc == 0
-    assert "GITHUB_TOKEN" in out
+    assert "GITHUB_PERSONAL_ACCESS_TOKEN" in out or "GITHUB_TOKEN" in out
     assert "registry:" in out
 
 

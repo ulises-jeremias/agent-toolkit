@@ -239,7 +239,7 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 | 🔎 `reference-lookup` | Cross-repo pattern and convention search |
 | 🤝 `assistant` | General-purpose project assistant |
 | ⚙️ `tech-assistant` | Stack-specific technical guidance |
-| 🔭 `explore` | Fast codebase search and discovery |
+| 🧭 `client-workflow-bootstrap` | Client workflow bootstrap |
 
 Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · 16 personas on disk under `agents/`
 
@@ -315,9 +315,9 @@ Packs bundle skills, agents, and loops for a specific team context. Load a pack 
 
 | Pack | Description |
 |------|-------------|
-| `oss-ecosystem` | Full OSS maintainer setup: triage, PR monitor, briefings, contributor digest |
-| `startup-delivery` | Fast delivery focus: code review, CI fix, PR automation, security sweep |
-| `enterprise-ops` | Governance-heavy: incident response, security review, codeowner workflows |
+| `oss-maintenance` | Full OSS maintainer setup: triage, PR monitor, briefings, contributor digest |
+| `engineering-workflow` | Fast delivery focus: code review, CI fix, PR automation, security sweep |
+| `delivery-discipline` | Governance-heavy: incident response, security review, codeowner workflows |
 
 Browse packs: [`packs/`](packs/)
 
@@ -330,7 +330,7 @@ Browse packs: [`packs/`](packs/)
 | [🔨 How to add a skill](docs/HOW_TO_ADD_SKILL.md) | Create a new skill with SKILL.md frontmatter |
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
-| [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-ecosystem pack |
+| [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-maintenance pack |
 | [🚀 Project onboarding example](examples/project-onboarding/) | Bootstrap a new project with agent-toolkit |
 
 ---

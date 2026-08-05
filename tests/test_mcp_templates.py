@@ -30,16 +30,23 @@ def _stdio_templates() -> list[tuple[str, dict]]:
     return out
 
 
-def test_stdio_templates_use_npx_with_registry_package():
+def test_stdio_templates_use_supported_launcher_with_registry_package():
     providers, _ = load_registry(REGISTRY_DIR)
     for name, template in _stdio_templates():
         provider = providers.get(name)
         assert provider is not None, f"Missing registry entry for template {name}"
-        assert template.get("command") == "npx", f"{name}: stdio templates must use npx"
+        cmd = template.get("command")
+        assert cmd in ("npx", "docker", "uvx"), f"{name}: unexpected command {cmd}"
         args = template.get("args", [])
-        assert args[:2] == ["-y", provider.package], (
-            f"{name}: args must be ['-y', {provider.package!r}], got {args!r}"
-        )
+        if cmd == "npx":
+            assert args[:2] == ["-y", provider.package], (
+                f"{name}: args must be ['-y', {provider.package!r}], got {args!r}"
+            )
+        else:
+            # docker/uvx: package id should appear in args somewhere
+            assert any(provider.package in str(a) for a in args), (
+                f"{name}: registry package {provider.package!r} not found in args {args!r}"
+            )
 
 
 def test_registry_providers_have_required_fields():

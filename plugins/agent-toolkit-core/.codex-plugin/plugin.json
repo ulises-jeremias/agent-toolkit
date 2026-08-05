@@ -2,6 +2,7 @@
   "name": "agent-toolkit-core",
   "version": "1.2.0",
   "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
+  "maturity": "experimental",
   "author": {
     "name": "ulises-jeremias",
     "email": "ulisescf.24@gmail.com"
@@ -12,7 +13,7 @@
   "keywords": [
     "agent-toolkit",
     "core",
-    "cursor",
+    "codex",
     "skills",
     "agents"
   ]

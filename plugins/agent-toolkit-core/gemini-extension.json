@@ -2,18 +2,10 @@
   "name": "agent-toolkit-core",
   "version": "1.2.0",
   "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
-  "author": {
-    "name": "ulises-jeremias",
-    "email": "ulisescf.24@gmail.com"
-  },
-  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "author": "ulises-jeremias",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",
   "license": "MIT",
-  "keywords": [
-    "agent-toolkit",
-    "core",
-    "cursor",
-    "skills",
-    "agents"
-  ]
+  "geminiCliVersion": ">=0.1.0",
+  "contextFiles": [],
+  "commands": "${extensionPath}/commands.toml"
 }

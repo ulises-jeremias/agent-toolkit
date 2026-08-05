@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Composable AI agent capabilities for Claude Code \u2014 skills, agents, and automation for every major workflow.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [

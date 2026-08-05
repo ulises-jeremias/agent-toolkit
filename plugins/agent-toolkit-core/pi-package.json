@@ -1,0 +1,30 @@
+{
+  "name": "@agent-toolkit/agent-toolkit-core",
+  "version": "1.2.0",
+  "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit"
+  },
+  "keywords": [
+    "agent-toolkit",
+    "pi",
+    "skills",
+    "agents",
+    "core"
+  ],
+  "pi": {
+    "skills": [
+      "skills/assistant/SKILL.md",
+      "skills/dev-companion/SKILL.md",
+      "skills/output-handshake/SKILL.md",
+      "skills/pr-fallback/SKILL.md",
+      "skills/workspace-knowledge-sync/SKILL.md",
+      "skills/onboarding/SKILL.md"
+    ],
+    "agents": [
+      "agents/code-reviewer/AGENT.md"
+    ]
+  }
+}
