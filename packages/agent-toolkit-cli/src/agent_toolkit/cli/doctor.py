@@ -355,15 +355,19 @@ def _print_result(r: CheckResult) -> None:
 # Argument parsing
 # ---------------------------------------------------------------------------
 
-def _parse_args(args: list[str]) -> tuple[bool, bool] | None:
-    """Return (json_output, fix) or None to signal early exit."""
+_PARSE_HELP = object()
+_PARSE_ERROR = object()
+
+
+def _parse_args(args: list[str]):
+    """Return (json_output, fix), _PARSE_HELP, or _PARSE_ERROR."""
     json_output = False
     fix = False
 
     for arg in args:
         if arg in ("-h", "--help"):
             print(__doc__)
-            return None
+            return _PARSE_HELP
         elif arg == "--json":
             json_output = True
         elif arg == "--fix":
@@ -371,7 +375,7 @@ def _parse_args(args: list[str]) -> tuple[bool, bool] | None:
         else:
             print(f"  ✗  Unknown option: {arg}  (run 'agent-toolkit doctor --help')",
                   file=sys.stderr)
-            return None
+            return _PARSE_ERROR
 
     return json_output, fix
 
@@ -383,11 +387,13 @@ def _parse_args(args: list[str]) -> tuple[bool, bool] | None:
 def cmd_doctor(args: list[str]) -> int:
     """Run health checks for the agent-toolkit installation.
 
-    Returns 0 if no errors, 1 if any errors found.
+    Returns 0 if no errors, 1 if any check errors, 2 on usage/parse errors.
     """
     result = _parse_args(args)
-    if result is None:
+    if result is _PARSE_HELP:
         return 0
+    if result is _PARSE_ERROR:
+        return 2
 
     json_output, fix = result
     toolkit_dir = toolkit_root()

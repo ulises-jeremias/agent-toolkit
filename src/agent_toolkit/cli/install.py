@@ -316,8 +316,13 @@ def _install_pi(*, dry_run: bool, force: bool) -> bool:
 _VALID_TOOLS = ("claude-code", "cursor", "opencode", "copilot", "windsurf", "pi")
 
 
-def _parse_args(args: list[str]) -> tuple[list[str], bool, bool] | None:
-    """Return (tools, dry_run, force) or None to signal early exit."""
+# Sentinel parse outcomes — must not be confused with a successful empty-tools tuple.
+_PARSE_HELP = object()
+_PARSE_ERROR = object()
+
+
+def _parse_args(args: list[str]):
+    """Return (tools, dry_run, force), _PARSE_HELP, or _PARSE_ERROR."""
     dry_run = False
     force = False
     requested: str = ""
@@ -327,7 +332,7 @@ def _parse_args(args: list[str]) -> tuple[list[str], bool, bool] | None:
         arg = args[i]
         if arg in ("-h", "--help"):
             print(__doc__)
-            return None
+            return _PARSE_HELP
         elif arg == "--dry-run":
             dry_run = True
         elif arg == "--force":
@@ -335,12 +340,12 @@ def _parse_args(args: list[str]) -> tuple[list[str], bool, bool] | None:
         elif arg == "--tools":
             if i + 1 >= len(args):
                 _err("--tools requires an argument")
-                return None
+                return _PARSE_ERROR
             requested = args[i + 1]
             i += 1
         else:
             _err(f"Unknown option: {arg}  (run 'agent-toolkit install --help' for usage)")
-            return None
+            return _PARSE_ERROR
         i += 1
 
     tools: list[str] = []
@@ -356,11 +361,13 @@ def _parse_args(args: list[str]) -> tuple[list[str], bool, bool] | None:
 def cmd_install(args: list[str]) -> int:
     """Install agent-toolkit profiles for AI coding assistants.
 
-    Returns 0 on success, 1 on any failure.
+    Returns 0 on success, 1 on install failure, 2 on usage/parse errors.
     """
     result = _parse_args(args)
-    if result is None:
+    if result is _PARSE_HELP:
         return 0
+    if result is _PARSE_ERROR:
+        return 2
 
     tools, dry_run, force = result
 
