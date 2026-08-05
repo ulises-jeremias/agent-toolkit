@@ -10,7 +10,7 @@ This example shows how to set up automated maintenance for a multi-repository Gi
 |------|------|---------|-------------|
 | `oss-daily-briefing` | L1 | Daily | Reads all repos, writes a single Markdown briefing |
 | `oss-triage` | L1 → L2 | Daily | Identifies issues needing attention; optionally labels them |
-| `oss-pr-monitor` | L1 → L2 | Every 15 min | Tracks PR status; optionally merges Dependabot PRs |
+| `oss-pr-monitor` | L3 | 1d | Tracks PR status; optionally merges Dependabot PRs |
 
 ---
 
@@ -39,11 +39,13 @@ python3 --version         # 3.11 or later
 ## Step 1: Install agent-toolkit
 
 ```bash
-git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-bash ~/.agent-toolkit/scripts/install.sh
+# Preferred consumer path (no clone required)
+uvx --from agent-toolkit-cli agent-toolkit install
+# or permanently
+uv tool install agent-toolkit-cli && agent-toolkit install
 ```
 
-The install script detects your AI tools and copies the appropriate profiles. When prompted, confirm the installation for your tools.
+This detects your AI tools and deploys the appropriate profiles. No `git clone` or `install.sh` required.
 
 ---
 
