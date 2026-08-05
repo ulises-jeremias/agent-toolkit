@@ -1,0 +1,4 @@
+# Prepared monorepo capability trees (copied by scripts/prepare-package-data.sh).
+*
+!.gitignore
+!__init__.py

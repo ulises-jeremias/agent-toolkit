@@ -6,12 +6,12 @@ build-backend = "hatchling.build"
 name = "agent-toolkit-cli"
 dynamic = ["version"]
 description = "Composable AI agent toolkit — loops, skills, profiles, and MCP for Claude Code, Cursor, OpenCode, Windsurf, and more"
-readme = { file = "../../README.md", content-type = "text/markdown" }
-license = { file = "../../LICENSE" }
+readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.10"
 keywords = [
     "ai-agents", "claude-code", "cursor", "opencode", "windsurf",
-    "github-copilot", "skills", "loops", "mcp", "agent-toolkit"
+    "github-copilot", "skills", "loops", "mcp", "agent-toolkit", "agent-toolkit-cli",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dependencies = []
@@ -48,23 +49,14 @@ path = "src/agent_toolkit/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_toolkit"]
 
-[tool.hatch.build.targets.wheel.force-include]
-"../../profiles" = "agent_toolkit/data/profiles"
-"../../loops" = "agent_toolkit/data/loops"
-"../../skills" = "agent_toolkit/data/skills"
-"../../mcp" = "agent_toolkit/data/mcp"
-"../../agents" = "agent_toolkit/data/agents"
-"../../catalogs" = "agent_toolkit/data/catalogs"
-
+# Capability trees are copied into src/agent_toolkit/data/ by
+# scripts/prepare-package-data.sh before sdist/wheel builds. Editable
+# installs resolve monorepo root via agent_toolkit._paths (no packed data).
 [tool.hatch.build.targets.sdist]
 include = [
     "src/",
-    "../../skills/",
-    "../../agents/",
-    "../../loops/",
-    "../../profiles/",
-    "../../mcp/",
-    "../../agents/",
-    "../../catalogs/",
-    "../../schemas/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md",
+    "pyproject.toml",
 ]

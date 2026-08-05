@@ -1,74 +1,38 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+# uv workspace root — not published to PyPI.
+# Published package: packages/agent-toolkit-cli (name: agent-toolkit-cli)
 
 [project]
-name = "agent-toolkit-cli"
-dynamic = ["version"]
-description = "Composable AI agent toolkit — loops, skills, profiles, and MCP for Claude Code, Cursor, OpenCode, Windsurf, and more"
+name = "agent-toolkit"
+version = "0.0.0"
+description = "uv workspace root for the agent-toolkit monorepo"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
-keywords = [
-    "ai-agents", "claude-code", "cursor", "opencode", "windsurf",
-    "github-copilot", "skills", "loops", "mcp", "agent-toolkit", "agent-toolkit-cli"
+dependencies = [
+    "agent-toolkit-cli",
 ]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Environment :: Console",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.1.0",
+    "pyyaml>=6.0",
 ]
-dependencies = []  # Zero external dependencies — stdlib only
 
-[project.optional-dependencies]
-dev = ["pytest>=7.0", "ruff>=0.1.0"]
-yaml = ["pyyaml>=6.0"]      # Better YAML parsing (fallback: built-in mini-parser)
-all = ["pyyaml>=6.0"]
+[tool.uv]
+package = false
+default-groups = ["dev"]
 
-[project.scripts]
-agent-toolkit = "agent_toolkit.cli.main:main"
-agent-toolkit-cli = "agent_toolkit.cli.main:main"
+[tool.uv.workspace]
+members = ["packages/agent-toolkit-cli"]
 
-[project.urls]
-Homepage = "https://github.com/ulises-jeremias/agent-toolkit"
-Repository = "https://github.com/ulises-jeremias/agent-toolkit.git"
-Issues = "https://github.com/ulises-jeremias/agent-toolkit/issues"
-Changelog = "https://github.com/ulises-jeremias/agent-toolkit/blob/main/CHANGELOG.md"
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/agent_toolkit"]
-
-[tool.hatch.build.targets.sdist]
-include = [
-    "src/",
-    "skills/",
-    "agents/",
-    "loops/",
-    "profiles/",
-    "mcp/",
-    "plugins/",
-    "catalogs/",
-    "schemas/",
-    "scripts/",
-    "examples/",
-    "docs/",
-    "LICENSE",
-    "README.md",
-    "CHANGELOG.md",
-    "AGENTS.md",
-]
+[tool.uv.sources]
+agent-toolkit-cli = { workspace = true }
 
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+src = ["packages/agent-toolkit-cli/src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
@@ -77,24 +41,4 @@ ignore = ["E501"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
-
-[tool.hatch.version]
-path = "src/agent_toolkit/__init__.py"
-
-[tool.hatch.build.targets.wheel.shared-data]
-# Include non-Python data directories so they are accessible at runtime
-# via importlib.resources or the bundled data path.
-"skills/" = "agent_toolkit/data/skills"
-"loops/" = "agent_toolkit/data/loops"
-"profiles/" = "agent_toolkit/data/profiles"
-"mcp/" = "agent_toolkit/data/mcp"
-"agents/" = "agent_toolkit/data/agents"
-"catalogs/" = "agent_toolkit/data/catalogs"
-
-[tool.hatch.build.targets.wheel.force-include]
-"profiles" = "agent_toolkit/data/profiles"
-"loops" = "agent_toolkit/data/loops"
-"skills" = "agent_toolkit/data/skills"
-"mcp" = "agent_toolkit/data/mcp"
-"agents" = "agent_toolkit/data/agents"
-"catalogs" = "agent_toolkit/data/catalogs"
+pythonpath = ["packages/agent-toolkit-cli/src"]

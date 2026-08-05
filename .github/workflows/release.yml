@@ -40,7 +40,7 @@ jobs:
         uses: astral-sh/setup-uv@v6
       - name: Build wheel and sdist
         run: |
-          uv build
+          bash scripts/prepare-package-data.sh && uv build --package agent-toolkit-cli
           ls -lh dist/
       - name: Publish to PyPI (Trusted Publishing)
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -75,7 +75,7 @@ jobs:
           --add-data "profiles:profiles"
           --add-data "mcp:mcp"
           --add-data "catalogs:catalogs"
-          src/agent_toolkit/cli/main.py
+          packages/agent-toolkit-cli/src/agent_toolkit/cli/main.py
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
