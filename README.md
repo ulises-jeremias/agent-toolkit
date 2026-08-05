@@ -207,15 +207,15 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 
 | Domain | Count | Key Skills |
 |--------|-------|------------|
-| 🧠 `core` | 6 | assistant, dev-companion, output-handshake, pr-fallback, workspace-knowledge-sync, onboarding |
-| 🚀 `delivery` | 21 | adr, bug, epic, development-workflow, planning, prd, user-story, work-item |
-| 🎨 `design` | 6 | ui-ux-pro-max, figma-implement-design, figma-code-connect-components, design-system-rules |
-| ⚡ `forge` | 7 | github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, gh-address-comments, gh-contribution-planner |
-| 🔗 `integrations` | 4 | slack-cli, slack-assistant, linear, clickup-cli |
-| 📊 `data` | 2 | dbt-validation, snowflake-validation |
-| 🔧 `tooling` | 2 | jupyter-notebook, playwright-cli |
-| 🛡️ `ops` | 3 | triage, docs-generator, llm-cost-advisor |
-| 🔄 `loops` | 1 | loop-runner (see [Loop Engineering](#-loop-engineering) for 10 templates) |
+| 🧠 `core` | 6 | memory, planning, context injection, session bootstrap |
+| 🚀 `delivery` | 21 | code-review, github-cli-workflow, gh-fix-ci, pr-fallback, commit |
+| 🎨 `design` | 6 | ui-ux-pro-max, figma-implement-design, design-system-rules |
+| ⚡ `forge` | 7 | feature-dev, tdd, refactor-cleaner, simplify, code-connect |
+| 🔗 `integrations` | 4 | jira, confluence, slack, linear, clickup, notion |
+| 📊 `data` | 2 | dbt-validation, snowflake-validation, pipeline-review |
+| 🔧 `tooling` | 2 | git-worktrees, docker, ci-cd, env-setup, keybindings |
+| 🛡️ `ops` | 3 | incident, security-review, performance-optimizer |
+| 🔄 `loops` | 1 | loop skill wrappers (see [Loop Engineering](#-loop-engineering) for 10 templates) |
 
 Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · regenerate with `bash scripts/validate-skills.sh` (CI) and inspect live inventory via `agent-toolkit inventory`
 
@@ -313,14 +313,13 @@ Templates live in [`mcp/templates/`](mcp/templates/). Each file is a `.json` wit
 
 ## 📦 Plugins
 
-Product bundles are declared in [`distributions/products.yaml`](distributions/products.yaml). Three ship in the Claude Code and Cursor marketplaces; a fourth experimental catalog product is build-only today:
+Three plugins are available in the Claude Code and Cursor marketplaces:
 
-| Product | What's included |
-|---------|-----------------|
-| `agent-toolkit-core` | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
-| `agent-toolkit-agents` | 16 agent personas — architect, assistant, build-error-resolver, client-workflow-bootstrap, code-reviewer, database-reviewer, docs-lookup, e2e-runner, performance-optimizer, planner, refactor-cleaner, reference-lookup, security-reviewer, tdd-guide, tech-assistant, typescript-reviewer |
-| `agent-toolkit-forge` | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
-| `agent-toolkit-complete` | Full stable skill catalog (experimental; not in marketplace manifests yet) |
+| Plugin | What's included |
+|--------|-----------------|
+| `agent-toolkit-core` | Core, delivery, integrations, ops, and tooling domains — everyday coding workflows |
+| `agent-toolkit-agents` | All 16 agent personas — architect, planner, reviewers, TDD guide, and more |
+| `agent-toolkit-forge` | Design, forge, and data domains — code generation, UI/UX, TDD, dbt/Snowflake |
 
 Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json)
 

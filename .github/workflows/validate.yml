@@ -147,35 +147,6 @@ jobs:
           print(f"All {len(loop_files)} loop template(s) valid.")
           PYEOF
 
-  # ── Job 5b: Validate products.yaml against products.schema.yaml ─────────
-  validate-products:
-    name: Validate Product Catalog
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
-      - name: Install dependencies
-        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
-
-      - name: Validate distributions/products.yaml against products.schema.yaml
-        run: |
-          python3 - <<'PYEOF'
-          import sys, yaml
-          from pathlib import Path
-          from jsonschema import validate, ValidationError
-
-          schema = yaml.safe_load(Path("schemas/products.schema.yaml").read_text())
-          data = yaml.safe_load(Path("distributions/products.yaml").read_text())
-
-          try:
-              validate(data, schema)
-          except ValidationError as e:
-              print(f"FAIL: distributions/products.yaml: {e.message}", file=sys.stderr)
-              sys.exit(1)
-
-          print("OK: distributions/products.yaml validates against products.schema.yaml")
-          PYEOF
-
   # ── Job 6: Secret pattern scan ────────────────────────────────────────────
   secret-scan:
     name: Secret Scan
