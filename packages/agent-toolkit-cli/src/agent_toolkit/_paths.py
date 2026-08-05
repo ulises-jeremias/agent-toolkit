@@ -114,3 +114,31 @@ def toolkit_root(*, offline: bool | None = None) -> Path:
             _root = resolved
         return resolved
     return _root
+
+
+def find_workspace_root(*, override: str | None = None) -> Path | None:
+    """Locate the user harness / AI workspace root (not toolkit package data).
+
+    Resolution order (#207):
+    1. Explicit override (CLI ``--workspace``)
+    2. ``AGENT_TOOLKIT_WORKSPACE``
+    3. ``HARNESS_DIR`` (agentic-harness compatibility)
+    4. Walk up from CWD for ``AGENTS.md`` or ``knowledge/``
+    """
+    if override:
+        p = Path(override).expanduser().resolve()
+        return p if p.is_dir() else None
+
+    for env in ("AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"):
+        val = os.environ.get(env, "").strip()
+        if val:
+            p = Path(val).expanduser().resolve()
+            if p.is_dir():
+                return p
+
+    current = Path.cwd()
+    for candidate in [current, *current.parents]:
+        if (candidate / "AGENTS.md").exists() or (candidate / "knowledge").is_dir():
+            return candidate
+
+    return None

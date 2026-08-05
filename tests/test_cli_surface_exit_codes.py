@@ -16,7 +16,7 @@ def test_skills_sync_unknown_tool_exits_1(tmp_path: Path) -> None:
 def test_load_template_missing_raises(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     import agent_toolkit.cli.devcompanion as dc
 
-    monkeypatch.setattr(dc, "TEMPLATES_DIR", tmp_path)
+    monkeypatch.setattr(dc, "_templates_dir", lambda: tmp_path)
     with pytest.raises(TemplateNotFoundError):
         _load_template("missing-template")
 
@@ -38,10 +38,16 @@ def test_devcompanion_queue_missing_template_returns_1(
     projects = tmp_path / "projects"
     projects.mkdir()
     (projects / "demo").symlink_to(tmp_path, target_is_directory=True)
-    monkeypatch.setattr(dc, "PROJECTS_DIR", projects)
-    monkeypatch.setattr(dc, "TEMPLATES_DIR", tmp_path / "templates")
-    monkeypatch.setattr(dc, "QUEUE_DIR", tmp_path / "queue")
-    (tmp_path / "templates").mkdir()
-    (tmp_path / "queue").mkdir()
+    templates = tmp_path / "templates" / "jobs"
+    templates.mkdir(parents=True)
+    queue = tmp_path / ".devcompanion" / "queue"
+    queue.mkdir(parents=True)
+
+    monkeypatch.setenv("AGENT_TOOLKIT_WORKSPACE", str(tmp_path))
+    monkeypatch.delenv("HARNESS_DC_HOME", raising=False)
+    monkeypatch.delenv("HARNESS_DIR", raising=False)
+    monkeypatch.setattr(dc, "_projects_dir", lambda: projects)
+    monkeypatch.setattr(dc, "_templates_dir", lambda: templates)
+    monkeypatch.setattr(dc, "_find_workspace", lambda: tmp_path)
 
     assert cmd_devcompanion(["queue", "demo", "--template", "nope"]) == 1

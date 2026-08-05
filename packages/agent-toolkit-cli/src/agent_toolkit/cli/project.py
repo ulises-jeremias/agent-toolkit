@@ -5,7 +5,8 @@ Usage:
     agent-toolkit project <subcommand> [args]
 
 Subcommands:
-    clone owner/repo [--workspace PATH]   Clone a GitHub repo and create a symlink
+    init [--workspace PATH]               Create repos/ and projects/ scaffolding
+    clone owner/repo [--ssh] [--workspace PATH]   Clone a GitHub repo and create a symlink
     list [--workspace PATH]               List all symlinked projects
     add <path> [--workspace PATH]         Symlink an already-cloned repo
     remove <name> [--workspace PATH]      Remove symlink (keeps the actual repo)
@@ -59,21 +60,9 @@ def _dim(t: str) -> str:    return _c("0;37", t)
 
 def _find_workspace(override: str | None = None) -> Path | None:
     """Locate workspace root via env, override, or walking up from CWD."""
-    if override:
-        p = Path(override).expanduser().resolve()
-        return p if p.is_dir() else None
+    from agent_toolkit._paths import find_workspace_root
 
-    env = os.environ.get("AGENT_TOOLKIT_WORKSPACE")
-    if env:
-        p = Path(env).expanduser().resolve()
-        return p if p.is_dir() else None
-
-    current = Path.cwd()
-    for candidate in [current, *current.parents]:
-        if (candidate / "AGENTS.md").exists() or (candidate / "knowledge").is_dir():
-            return candidate
-
-    return None
+    return find_workspace_root(override=override)
 
 
 # ---------------------------------------------------------------------------
@@ -145,13 +134,50 @@ def _upsert_project(ws: Path, name: str, path: str, source: str = "") -> None:
 # Subcommands
 # ---------------------------------------------------------------------------
 
+def _gitignore_append(ws: Path, entries: list[str]) -> None:
+    gi = ws / ".gitignore"
+    existing = gi.read_text(encoding="utf-8") if gi.exists() else ""
+    lines = existing.splitlines()
+    changed = False
+    for entry in entries:
+        if entry not in lines:
+            lines.append(entry)
+            changed = True
+    if changed or not gi.exists():
+        text = "\n".join(lines)
+        if text and not text.endswith("\n"):
+            text += "\n"
+        gi.write_text(text, encoding="utf-8")
+
+
+def cmd_init(args: list[str], ws: Path) -> int:
+    """Create repos/ and projects/ scaffolding (#208)."""
+    if args and args[0] in ("--help", "-h"):
+        print("Usage: agent-toolkit project init [--workspace PATH]")
+        print("Creates repos/github.com/ and projects/, updates .gitignore.")
+        return 0
+    if args:
+        print(f"Error: unexpected arguments for project init: {' '.join(args)}", file=sys.stderr)
+        print("Usage: agent-toolkit project init [--workspace PATH]", file=sys.stderr)
+        return 1
+
+    (ws / "repos" / "github.com").mkdir(parents=True, exist_ok=True)
+    (ws / "projects").mkdir(parents=True, exist_ok=True)
+    _gitignore_append(ws, ["repos/", "projects/"])
+    print(_green("Initialized project directories"))
+    print(f"  {ws / 'repos' / 'github.com'}")
+    print(f"  {ws / 'projects'}")
+    return 0
+
+
 def cmd_clone(args: list[str], ws: Path) -> int:
     """Clone a GitHub repo and create a symlink in projects/."""
     if not args or args[0] in ("--help", "-h"):
-        print("Usage: agent-toolkit project clone owner/repo [--workspace PATH]")
+        print("Usage: agent-toolkit project clone owner/repo [--ssh] [--workspace PATH]")
         return 0
 
     repo_slug = args[0]
+    use_ssh = "--ssh" in args
     if "/" not in repo_slug:
         print(f"Error: expected owner/repo, got: {repo_slug}", file=sys.stderr)
         return 1
@@ -167,8 +193,11 @@ def cmd_clone(args: list[str], ws: Path) -> int:
         print(f"{_yellow('Already cloned:')} {target_dir}")
     else:
         repos_dir.mkdir(parents=True, exist_ok=True)
-        # Prefer `gh repo clone` if available, fall back to git clone HTTPS
-        if shutil.which("gh"):
+        if use_ssh:
+            url = f"git@github.com:{owner}/{repo_name}.git"
+            cmd = ["git", "clone", url, str(target_dir)]
+            verb = "git clone (ssh)"
+        elif shutil.which("gh"):
             cmd = ["gh", "repo", "clone", f"{owner}/{repo_name}", str(target_dir)]
             verb = "gh repo clone"
         else:
@@ -178,7 +207,7 @@ def cmd_clone(args: list[str], ws: Path) -> int:
 
         print(f"Cloning {owner}/{repo_name} via {verb} ...")
         try:
-            result = subprocess.run(cmd, check=True)
+            subprocess.run(cmd, check=True)
         except subprocess.CalledProcessError as exc:
             print(f"Error: clone failed (exit {exc.returncode})", file=sys.stderr)
             return 1
@@ -387,6 +416,8 @@ def cmd_project(args: list[str]) -> int:
         return 1
 
     match sub:
+        case "init":
+            return cmd_init(rest, ws)
         case "clone":
             return cmd_clone(rest, ws)
         case "list":
