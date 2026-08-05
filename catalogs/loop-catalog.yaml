@@ -2,10 +2,10 @@
 # Metadata for all bundled loop templates.
 # Each entry describes a loops/<name>/loop.yaml template.
 #
-# Tier definitions:
+# Tier definitions (mutation safety — enforced by loop-gh-gate):
 #   L1  — read-only or propose-only; no mutations; safe to run unattended
-#   L2  — limited writes (PRs, comments, labels); PR-gated; cautious budget
-#   L3  — full write access; reserved for high-trust environments
+#   L2  — limited writes (comment, label, draft PR); merge/close forbidden at L2
+#   L3  — merge/close allowed when explicitly allowlisted (e.g. oss-pr-monitor)
 #
 # Scope definitions:
 #   single-repo   — operates on one repository per run
