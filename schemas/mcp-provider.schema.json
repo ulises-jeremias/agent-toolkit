@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/ulises-jeremias/agent-toolkit/schemas/mcp-provider.schema.json",
+  "title": "MCP Provider Registry Entry",
+  "type": "object",
+  "required": ["id"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "display_name": { "type": "string" },
+    "purpose": { "type": "string" },
+    "implementation": {
+      "type": "object",
+      "properties": {
+        "provenance": { "type": "string" },
+        "package": { "type": "string" },
+        "repository": { "type": "string" },
+        "license": { "type": "string" },
+        "version_policy": { "type": "string" }
+      }
+    },
+    "transport": {
+      "type": "object",
+      "properties": {
+        "supported": { "type": "array", "items": { "type": "string" } },
+        "preferred": { "type": "string" }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "supported": { "type": "array", "items": { "type": "string" } },
+        "preferred": { "type": "string" },
+        "env": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "tools": {
+      "type": "object",
+      "properties": {
+        "read": { "type": "array", "items": { "type": "string" } },
+        "write": { "type": "array", "items": { "type": "string" } },
+        "destructive": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "properties": {
+        "default": { "type": "string" }
+      }
+    },
+    "healthcheck": {
+      "type": "object",
+      "properties": {
+        "strategy": { "type": "string" },
+        "timeout_ms": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "platforms": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "network_hosts": { "type": "array", "items": { "type": "string" } },
+        "secret_storage": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": true
+}

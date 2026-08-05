@@ -1,6 +1,7 @@
 {
   "name": "slack",
-  "command": "mcp-slack-server",
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-slack"],
   "env": {
     "SLACK_BOT_TOKEN": "${SLACK_BOT_TOKEN}",
     "SLACK_APP_TOKEN": "${SLACK_APP_TOKEN}"

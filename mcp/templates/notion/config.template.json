@@ -1,7 +1,8 @@
 {
   "name": "notion",
-  "command": "mcp-notion-server",
+  "command": "npx",
+  "args": ["-y", "@notionhq/notion-mcp-server"],
   "env": {
-    "NOTION_API_TOKEN": "${NOTION_API_TOKEN}"
+    "NOTION_TOKEN": "${NOTION_TOKEN}"
   }
 }
