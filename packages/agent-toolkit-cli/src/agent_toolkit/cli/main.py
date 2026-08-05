@@ -7,6 +7,7 @@ Usage:
 
 Commands:
     install       Install profiles for detected AI tools
+    uninstall     Remove toolkit-owned files using install receipts
     doctor        Check system health and tool availability
     diff          Show changes vs currently installed plugin bundles
     build         Compile canonical capabilities into target-native artifacts
@@ -63,6 +64,9 @@ def main() -> None:
         case "install":
             from agent_toolkit.cli.install import cmd_install
             sys.exit(cmd_install(rest))
+        case "uninstall":
+            from agent_toolkit.cli.uninstall import cmd_uninstall
+            sys.exit(cmd_uninstall(rest))
         case "doctor":
             from agent_toolkit.cli.doctor import cmd_doctor
             sys.exit(cmd_doctor(rest))
