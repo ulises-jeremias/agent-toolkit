@@ -243,6 +243,13 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 
 ---
 
+## Issue template labels
+
+Issue templates apply GitHub labels at creation time. Labels referenced in
+`.github/ISSUE_TEMPLATE/` must exist on the repository — see
+[`.github/labels.md`](.github/labels.md) for the canonical list and
+`gh label create` commands.
+
 ## Getting Help
 
 - Open a [GitHub Discussion](https://github.com/ulises-jeremias/agent-toolkit/discussions) for questions about skill design, compatibility, or architecture
