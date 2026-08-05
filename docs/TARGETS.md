@@ -62,6 +62,8 @@ Per-target certification packages document official contracts vs adapter behavio
 | Target | Certification doc |
 |--------|-------------------|
 | OpenCode | [`docs/targets/opencode-certification.md`](targets/opencode-certification.md) |
+| Copilot CLI | [`docs/targets/copilot-certification.md`](targets/copilot-certification.md) |
+| Copilot Repository | [`docs/targets/copilot-certification.md`](targets/copilot-certification.md) |
 
 ## Research sources
 

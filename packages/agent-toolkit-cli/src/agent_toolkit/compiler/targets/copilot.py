@@ -162,6 +162,14 @@ class CopilotCLIAdapter(TargetAdapter):
         self._write_file(dst / f"{agent.name}.agent.md", content, result)
         result.emitted.append(f"agent:{agent.id}")
 
+    @staticmethod
+    def parity_notes() -> str:
+        return (
+            "Copilot CLI plugins use root-level plugin.json (not .copilot-plugin/). "
+            "Agents use the .agent.md extension. Hooks and MCP are not generated — "
+            "hooks need cross-platform handlers; MCP is unknown-blocked pending official docs."
+        )
+
 
 class CopilotRepositoryAdapter(TargetAdapter):
     """Generates GitHub Copilot repository-scoped assets.
@@ -260,3 +268,11 @@ class CopilotRepositoryAdapter(TargetAdapter):
         content = agent.source_path.read_text(encoding="utf-8", errors="replace")
         self._write_file(dst / f"{agent.name}.agent.md", content, result)
         result.emitted.append(f"agent:{agent.id}")
+
+    @staticmethod
+    def parity_notes() -> str:
+        return (
+            "Repository surface emits .github/copilot-instructions.md, "
+            ".github/agents/*.agent.md, and .github/skills/*/SKILL.md. "
+            "Hooks and MCP are not generated for the repository surface."
+        )
