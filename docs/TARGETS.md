@@ -27,7 +27,7 @@ Each target receives the strongest integration it actually supports.
 | Windsurf | customization-bundle | native | generated (rules) | unsupported | unsupported | stable |
 | OpenAI Codex | plugin (.codex-plugin/) | native | native | unknown-blocked | unknown-blocked | experimental |
 
-*pending canonical hook model (issue #16)
+*hooks: no stable cross-tool canonical model yet — see target certification docs
 †requires TypeScript runtime plugin
 
 ## Install commands
@@ -38,6 +38,11 @@ Each target receives the strongest integration it actually supports.
 uvx --from agent-toolkit-cli agent-toolkit install
 agent-toolkit doctor
 ```
+
+`agent-toolkit install` deploys profiles for: Claude Code, Cursor, OpenCode,
+Copilot, Windsurf, and Pi. **Gemini CLI** and **OpenAI Codex** are compile /
+release targets today (`agent-toolkit build --target …`); profile install for
+those tools is deferred until consumer install paths are certified.
 
 **Advanced** (build, selective tools, release engineering):
 

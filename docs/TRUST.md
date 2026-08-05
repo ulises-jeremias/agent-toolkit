@@ -51,9 +51,9 @@ JSON schema for recording what was installed:
 - **Fields:** product, target, version, file paths, content digests
 - **Secrets:** always empty (`secrets: []`)
 
-Receipts help you audit changes and support future uninstall-by-receipt
-workflows. Full install integration is rolling out; tests cover create/save/load
-today.
+Receipts are written by `agent-toolkit install` / `update` and consumed by
+`agent-toolkit uninstall` / rollback. Lifecycle tests cover create, save, load,
+and uninstall-by-receipt.
 
 Example shape (illustrative):
 

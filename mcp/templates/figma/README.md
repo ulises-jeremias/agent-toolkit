@@ -9,7 +9,7 @@ Connects an AI tool to the remote Figma MCP server
   assets scopes.
 - `FIGMA_REGION` — Figma region header (default `us-east-1`).
 
-Store them in `~/.config/agent-toolkit/env.d/figma.env` (covered by `dots-loadenv`):
+Store them in a local env file (never commit tokens):
 
 ```bash
 mkdir -p ~/.config/agent-toolkit/env.d
@@ -18,10 +18,8 @@ export FIGMA_OAUTH_TOKEN="<paste-token-here>"
 export FIGMA_REGION="us-east-1"
 EOF
 chmod 600 ~/.config/agent-toolkit/env.d/figma.env
+# Then: source ~/.config/agent-toolkit/env.d/figma.env
 ```
-
-`dots-doctor` will pick up `figma.env` under "Integrations" without printing
-the value.
 
 > [!CAUTION]
 > Tokens copied from the Figma UI must not include surrounding quotes. Never

@@ -1,0 +1,61 @@
+---
+description: agent-toolkit development conventions and standards. Apply when working in any agent-toolkit or client repository to ensure compliance with internal standards.
+alwaysApply: false
+---
+
+# agent-toolkit Dev Companion
+
+## Repository inspection order
+Before writing any code, read in this order:
+1. README.md → docs/ → AGENTS.md or CLAUDE.md → CONTRIBUTING.md → PR templates → task runners → CI
+
+Always cite which file a convention comes from.
+
+## Standards
+- Shell scripts: `set -euo pipefail`, idempotent, OS-aware
+- chezmoi repos: `Internal chezmoi commands use the `dots-` prefix (agentic-workstation convention)
+- Never commit secrets — use `.env.example`
+- English: all documentation, commits, and ticket descriptions
+- Update documentation when behavior changes
+
+## agent-toolkit CLI
+
+Use these commands for workspace operations:
+
+```bash
+# Workspace
+agent-toolkit workspace context          # session state at start
+agent-toolkit workspace init [--dir .]  # scaffold a new workspace
+
+# Knowledge
+agent-toolkit memory add --type learning "pattern"
+agent-toolkit memory add --type todo "follow-up"
+agent-toolkit memory search "topic"
+agent-toolkit memory inject
+agent-toolkit memory todo
+
+# Loops
+agent-toolkit loop run <name>
+agent-toolkit loop status
+agent-toolkit loop schedule <name>
+
+# Projects
+agent-toolkit project clone owner/repo
+agent-toolkit project list
+
+# Background jobs
+agent-toolkit devcompanion queue <project> --request "..."
+agent-toolkit devcompanion run-once
+agent-toolkit devcompanion status
+
+# Health check
+agent-toolkit doctor
+```
+
+**Session start:** run `agent-toolkit workspace context` then `agent-toolkit memory inject`.
+
+## Client projects
+- Respect existing patterns and conventions
+- Check for project-specific AGENTS.md or CLAUDE.md first
+- Follow the project's branching and PR strategy
+- Surface conflicts between agent-toolkit standards and project conventions

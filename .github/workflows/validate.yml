@@ -255,6 +255,8 @@ jobs:
         run: npm install -g markdownlint-cli@0.44.0
 
       - name: Run markdownlint
+        # Advisory: large markdown corpus; MegaLinter also soft-fails MARKDOWN.
+        # YAML lint below is blocking for structured config.
         run: |
           markdownlint \
             --config .markdownlint.yaml \
@@ -282,8 +284,7 @@ jobs:
             catalogs/ \
             schemas/ \
             packs/ \
-            .github/workflows/ \
-            || true
+            .github/workflows/
 
   # ── Job 9: Build package — ensures a clean wheel and sdist ────────────────
   build-package:

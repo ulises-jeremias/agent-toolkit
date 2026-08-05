@@ -60,10 +60,12 @@ Edit `~/.agent-toolkit/loops/oss-daily-briefing/loop.yaml`. Find the repo list s
 # You can embed it directly in your workspace config or pack.
 ```
 
-For the OSS ecosystem loops, create or edit a pack file at `packs/oss-ecosystem.yaml` in your ai-workspace:
+For the OSS maintenance loops, create or edit a pack file at
+`packs/oss-maintenance/config.yaml` in your workspace (or copy from this
+repo's [`packs/oss-maintenance/`](../../packs/oss-maintenance/)):
 
 ```yaml
-name: oss-ecosystem
+name: oss-maintenance
 repos:
   - owner/repo-one
   - owner/repo-two

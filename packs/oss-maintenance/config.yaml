@@ -23,12 +23,9 @@ version: "1.0"
 #   60 repos → oss-pr-monitor needs ~450k tokens
 #
 # If you have more than 50 repos, split into two config files.
+# Add repositories below in owner/repo format, e.g. - owner/repo1
 
-repos:
-  # Add your repositories here
-  # - owner/repo1
-  # - owner/repo2
-  # - owner/repo3
+repos: []
 
 # ---------------------------------------------------------------------------
 # Loop settings

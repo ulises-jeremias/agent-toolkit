@@ -53,6 +53,55 @@ agent-toolkit doctor
 
 ---
 
+## Key Concepts
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🛠️ Skills</h3>
+      <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery workflows, forge CLIs, design, data, ops.</sub>
+      <br><br>
+      <sub>52 skills across 9 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🤖 Agents</h3>
+      <sub>Personas that constrain <em>how</em> the AI works in a session — review, plan, architect, fix CI — without rewriting your prompts each time.</sub>
+      <br><br>
+      <sub>16 personas under <code>agents/</code>, compiled into each target's native format.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🔄 Loops</h3>
+      <sub>Recurring agentic workflows with mutation-safety tiers (L1 observe → L2 controlled → L3 high autonomy).</sub>
+      <br><br>
+      <sub><code>agent-toolkit loop run daily-triage</code> · 10 templates in <code>loops/</code></sub>
+    </td>
+    <td width="50%" valign="top">
+      <h3>📦 Packs</h3>
+      <sub>Solution bundles that combine skills, agents, and loops for a team context (OSS maintenance, engineering workflow, delivery discipline).</sub>
+      <br><br>
+      <sub>Declared under <code>packs/</code>; load with your workspace tooling.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🧩 Plugins</h3>
+      <sub>Product distributions for Claude Code / Cursor marketplaces — core, agents, forge — compiled from one catalog.</sub>
+      <br><br>
+      <sub>Source of truth: <code>distributions/products.yaml</code></sub>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🔗 MCP</h3>
+      <sub>Provider registry + ready templates (GitHub, Slack, Notion, Linear, Figma, ClickUp) emitted into target-native MCP configs.</sub>
+      <br><br>
+      <sub><code>mcp/registry/</code> · <code>mcp/templates/</code> · <code>agent-toolkit mcp</code></sub>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## 🚀 Quick Install
 
 **Recommended:** use the Python CLI with [uv](https://docs.astral.sh/uv/) — one flow for every supported tool.
