@@ -121,11 +121,12 @@ def test_all_hooks_validate_against_schema():
 def test_registry_loads_all_hook_files():
     """load_hooks must not silently skip broken definitions."""
     yaml_files = _hook_yaml_files()
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, errors = load_hooks(HOOKS_DIR)
     assert len(hooks) == len(yaml_files), (
         f"Expected {len(yaml_files)} hooks loaded, got {len(hooks)} — "
         "check for silent parse failures in hook_registry.load_hooks"
     )
+    assert errors == []
 
 
 def test_registry_loads_hooks():
@@ -143,7 +144,7 @@ def test_hooks_have_required_fields():
 
 def test_no_placeholder_handlers_in_default_enabled_hooks():
     """Production hooks (default_enabled) must not use stub/placeholder commands."""
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, _errs = load_hooks(HOOKS_DIR)
     for hook in hooks.values():
         if not hook.default_enabled:
             continue
@@ -159,7 +160,7 @@ def test_no_placeholder_handlers_in_default_enabled_hooks():
 
 def test_opt_in_hooks_with_placeholders_are_documented():
     """Opt-in hooks may stub handlers but must stay disabled by default."""
-    hooks = load_hooks(HOOKS_DIR)
+    hooks, _errs = load_hooks(HOOKS_DIR)
     for hook in hooks.values():
         if hook.default_enabled:
             continue
@@ -222,5 +223,6 @@ def test_broken_canonical_hook_would_fail_file_count_check(tmp_path):
     (tmp_path / "good-hook.yaml").write_text(good.read_text(encoding="utf-8"), encoding="utf-8")
 
     yaml_files = sorted(tmp_path.glob("*.yaml"))
-    hooks = load_hooks(tmp_path)
+    hooks, errors = load_hooks(tmp_path)
     assert len(hooks) < len(yaml_files), "Broken hook YAML must not load silently without detection"
+    assert errors, "Broken hook YAML must be reported in errors"
