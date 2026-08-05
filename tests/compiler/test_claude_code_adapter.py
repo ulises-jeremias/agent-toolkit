@@ -50,11 +50,21 @@ def test_no_dangerous_mode_bypass(adapter, graph):
             assert "skipDangerousModePermissionPrompt" not in data
 
 
-def test_unsupported_reported(adapter, graph):
+def test_hooks_and_mcp_emitted(adapter, graph):
     product = graph.products["agent-toolkit-core"]
     result = adapter.compile(graph, product)
+    out = adapter.output_root / "agent-toolkit-core"
+    assert (out / "hooks" / "hooks.json").exists()
+    assert (out / ".mcp.json").exists()
+    assert "hooks" in result.emitted
+    assert "mcp" in result.emitted
+
+
+def test_agents_product_reports_pending_registries(adapter, graph):
+    product = graph.products["agent-toolkit-agents"]
+    result = adapter.compile(graph, product)
     unsupported = " ".join(result.unsupported).lower()
-    assert "hook" in unsupported
+    assert "hooks" in unsupported
     assert "mcp" in unsupported
 
 

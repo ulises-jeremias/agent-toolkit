@@ -186,6 +186,8 @@ def load_products(products_yaml: Path) -> tuple[dict[str, Product], list[str]]:
             stability=Stability(p.get("stability", "stable")) if p.get("stability") in ("stable", "experimental", "deprecated") else Stability.STABLE,
             included_skills=inc.get("skills", []),
             included_agents=inc.get("agents", []),
+            included_hooks=inc.get("hooks", []),
+            included_mcp=inc.get("mcp", []),
             security=sec,
             target_overrides=p.get("targets", {}),
         )
@@ -210,6 +212,14 @@ def load_graph(repo_root: Path) -> CanonicalGraph:
     graph.products.update(products)
     graph.errors.extend(errs)
 
+    from agent_toolkit.compiler.hook_registry import load_hooks
+    from agent_toolkit.compiler.mcp_registry import load_registry
+
+    hooks_registry, hook_errs = load_hooks(repo_root / "capabilities" / "hooks")
+    mcp_registry, mcp_errs = load_registry(repo_root / "mcp" / "registry")
+    graph.errors.extend(hook_errs)
+    graph.errors.extend(mcp_errs)
+
     # Validate references
     for pid, product in graph.products.items():
         for skill_id in product.included_skills:
@@ -221,6 +231,16 @@ def load_graph(repo_root: Path) -> CanonicalGraph:
             if agent_id not in graph.agents:
                 graph.warnings.append(
                     f"Product '{pid}' references agent '{agent_id}' not found in agents/"
+                )
+        for hook_id in product.included_hooks:
+            if hook_id not in hooks_registry:
+                graph.warnings.append(
+                    f"Product '{pid}' references hook '{hook_id}' not found in capabilities/hooks/"
+                )
+        for mcp_id in product.included_mcp:
+            if mcp_id not in mcp_registry:
+                graph.warnings.append(
+                    f"Product '{pid}' references MCP provider '{mcp_id}' not found in mcp/registry/"
                 )
 
     return graph
