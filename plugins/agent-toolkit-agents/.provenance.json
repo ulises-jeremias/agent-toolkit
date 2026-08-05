@@ -1,0 +1,109 @@
+{
+  "generatorVersion": "1.2.0",
+  "product": "agent-toolkit-agents",
+  "target": "windsurf",
+  "artifacts": [
+    {
+      "path": "agent-toolkit-agents/AGENTS.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "2bd54f41c989"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/architect.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "19874be0eb9a"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/assistant.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "3b1d50df3036"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/build-error-resolver.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "cd49b12c46c9"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/client-workflow-bootstrap.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "6b41f1e399e3"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/code-reviewer.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "729380d68005"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/database-reviewer.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "7b4f80bc7c86"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/docs-lookup.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "cd37e78a1dce"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/e2e-runner.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "bd80fd17e45d"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/performance-optimizer.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8fd2ead8e205"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/planner.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "80ad56e7e021"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/refactor-cleaner.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8578069732d7"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/reference-lookup.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "e1e521eed351"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/security-reviewer.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8cae149818ef"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/tdd-guide.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "274b449ab84e"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/tech-assistant.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "6f77fe9997da"
+    },
+    {
+      "path": "agent-toolkit-agents/rules/typescript-reviewer.mdc",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "f25ca6255018"
+    }
+  ]
+}

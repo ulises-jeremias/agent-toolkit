@@ -1,0 +1,20 @@
+{
+  "name": "agent-toolkit-complete",
+  "version": "1.2.0",
+  "description": "Full stable skill catalog coverage for consumers who want everything (#50)",
+  "maturity": "experimental",
+  "author": {
+    "name": "ulises-jeremias",
+    "email": "ulisescf.24@gmail.com"
+  },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "repository": "https://github.com/ulises-jeremias/agent-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "agent-toolkit",
+    "complete",
+    "codex",
+    "skills",
+    "agents"
+  ]
+}

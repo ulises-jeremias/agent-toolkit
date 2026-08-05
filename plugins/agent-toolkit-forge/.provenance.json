@@ -1,0 +1,55 @@
+{
+  "generatorVersion": "1.2.0",
+  "product": "agent-toolkit-forge",
+  "target": "windsurf",
+  "artifacts": [
+    {
+      "path": "agent-toolkit-forge/AGENTS.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "2b839df28e92"
+    },
+    {
+      "path": "agent-toolkit-forge/skills/github-cli-workflow/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "2813e86f9c1e"
+    },
+    {
+      "path": "agent-toolkit-forge/skills/gitlab-cli-workflow/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "ef582ea65db5"
+    },
+    {
+      "path": "agent-toolkit-forge/skills/gh-address-comments/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "fdfd6e4040f3"
+    },
+    {
+      "path": "agent-toolkit-forge/skills/gh-fix-ci/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "68e21c62289b"
+    },
+    {
+      "path": "agent-toolkit-forge/skills/gh-contribution-planner/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "01ee997ed3c7"
+    },
+    {
+      "path": "agent-toolkit-forge/skills/workflow-client-bootstrap/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "d952988341c7"
+    },
+    {
+      "path": "agent-toolkit-forge/skills/workflow-generic-project/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "f176551e71cd"
+    }
+  ]
+}
