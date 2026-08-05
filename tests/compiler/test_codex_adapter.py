@@ -325,6 +325,30 @@ def test_parity_notes_documented():
     assert "codex-plugin" in notes.lower(), "Parity notes must document the manifest path"
 
 
+def test_agent_skills_layout(adapter, graph):
+    """Skills and agents follow Agent Skills convention (agentskills.io alignment)."""
+    product = graph.products["agent-toolkit-core"]
+    adapter.compile(graph, product)
+
+    out_dir = adapter.output_root / "agent-toolkit-core"
+    skill_mds = list((out_dir / "skills").rglob("SKILL.md"))
+    agent_mds = list((out_dir / "agents").rglob("AGENT.md"))
+
+    assert skill_mds, "skills/<name>/SKILL.md required for Agent Skills alignment"
+    assert agent_mds, "agents/<name>/AGENT.md required for agent personas"
+    for skill_md in skill_mds:
+        assert skill_md.parent.name != "skills", "Skills must be nested skills/<name>/SKILL.md"
+
+
+def test_maturity_must_remain_experimental_contract():
+    """Contract guard: Codex must stay experimental until official API stabilizes."""
+    assert CodexAdapter.maturity == "experimental"
+    notes = CodexAdapter.parity_notes().lower()
+    assert "stable" in notes or "must not" in notes or "not be changed" in notes, (
+        "Parity notes must warn against premature stable labeling"
+    )
+
+
 # ── all products ──────────────────────────────────────────────────────────────
 
 
