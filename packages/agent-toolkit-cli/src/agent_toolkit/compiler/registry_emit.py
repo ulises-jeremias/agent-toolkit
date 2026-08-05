@@ -7,6 +7,8 @@ from pathlib import Path
 from agent_toolkit.compiler.hook_registry import HookDefinition, load_hooks
 from agent_toolkit.compiler.mcp_registry import McpProvider, load_registry
 
+_BUNDLE_SCRIPTS_PREFIX = "hooks/scripts"
+
 # Canonical event → Claude Code hook event name
 _CLAUDE_HOOK_EVENTS: dict[str, str] = {
     "session.start": "SessionStart",
@@ -67,10 +69,50 @@ def resolve_mcp_ids(
     ]
 
 
+def hook_script_basename(command: list[str]) -> str | None:
+    """Return the script filename from a command handler, if present."""
+    if len(command) < 2:
+        return None
+    script = command[-1]
+    if script.endswith((".sh", ".py", ".bash")):
+        return Path(script).name
+    return None
+
+
+def hook_script_source(command: list[str], repo_root: Path) -> Path | None:
+    """Resolve the repo-relative script path referenced by a hook command."""
+    if len(command) < 2:
+        return None
+    script = Path(command[-1])
+    if script.is_absolute():
+        return script if script.is_file() else None
+    candidate = repo_root / script
+    return candidate if candidate.is_file() else None
+
+
+def rewrite_hook_command_for_bundle(
+    command: list[str],
+    *,
+    bundle_scripts_prefix: str = _BUNDLE_SCRIPTS_PREFIX,
+) -> list[str]:
+    """Rewrite repo-relative script paths to plugin-bundle-relative paths."""
+    if len(command) < 2:
+        return command
+    script = command[-1]
+    if script.startswith("/") or "://" in script:
+        return command
+    if "/" not in script and not script.endswith((".sh", ".py", ".bash")):
+        return command
+    name = Path(script).name
+    return [*command[:-1], f"{bundle_scripts_prefix}/{name}"]
+
+
 def emit_claude_hooks_json(
     hook_ids: list[str],
     hooks_dir: Path,
     target_id: str = "claude-code",
+    *,
+    bundle_relative: bool = False,
 ) -> dict | None:
     """Build Claude Code hooks/hooks.json content from canonical hook IDs."""
     registry = _hooks_dict(hooks_dir)
@@ -83,9 +125,14 @@ def emit_claude_hooks_json(
         event_name = _CLAUDE_HOOK_EVENTS.get(hook.event, hook.event)
         if hook.handler_type != "command" or not hook.command:
             continue
+        command = (
+            rewrite_hook_command_for_bundle(hook.command)
+            if bundle_relative
+            else hook.command
+        )
         entry = {
             "type": "command",
-            "command": " ".join(hook.command),
+            "command": " ".join(command),
             "timeout": hook.timeout_ms,
         }
         hooks_block.setdefault(event_name, []).append(entry)
@@ -126,8 +173,19 @@ def emit_claude_mcp_json(
     return {"mcpServers": servers}
 
 
-def hooks_json_text(hook_ids: list[str], hooks_dir: Path, target_id: str = "claude-code") -> str | None:
-    payload = emit_claude_hooks_json(hook_ids, hooks_dir, target_id)
+def hooks_json_text(
+    hook_ids: list[str],
+    hooks_dir: Path,
+    target_id: str = "claude-code",
+    *,
+    bundle_relative: bool = False,
+) -> str | None:
+    payload = emit_claude_hooks_json(
+        hook_ids,
+        hooks_dir,
+        target_id,
+        bundle_relative=bundle_relative,
+    )
     if payload is None:
         return None
     return json.dumps(payload, indent=2) + "\n"

@@ -160,6 +160,26 @@ def test_no_echo_stub_handlers():
             )
 
 
+def test_hook_handler_scripts_are_not_placeholders():
+    """Hook script files must not contain stub/placeholder handlers."""
+    hooks, _errs = load_hooks(HOOKS_DIR)
+    for hook in hooks.values():
+        if hook.handler_type != "command" or len(hook.command) < 2:
+            continue
+        script = Path(hook.command[-1])
+        if not script.is_absolute():
+            script = REPO_ROOT / script
+        if not script.is_file():
+            continue
+        content = script.read_text(encoding="utf-8").lower()
+        assert "validation hook placeholder" not in content, (
+            f"Hook script for '{hook.id}' is still a placeholder: {script}"
+        )
+        assert 'echo "placeholder' not in content, (
+            f"Hook script for '{hook.id}' uses echo placeholder: {script}"
+        )
+
+
 def test_no_placeholder_handlers_in_default_enabled_hooks():
     """Production hooks (default_enabled) must not use stub/placeholder commands."""
     hooks, _errs = load_hooks(HOOKS_DIR)
