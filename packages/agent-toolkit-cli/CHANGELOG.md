@@ -185,8 +185,6 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 - Replaced private LAN URLs in OpenCode profile with portable defaults
 - Updated schema `$id` to remove stale agentic-workstation references
 
-## [Unreleased]
-
 ## [1.2.2] — 2026-08-05
 
 ### Changed
