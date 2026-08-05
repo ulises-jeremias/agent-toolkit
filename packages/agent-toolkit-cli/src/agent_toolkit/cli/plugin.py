@@ -18,6 +18,7 @@ import shutil
 import sys
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
+from agent_toolkit.compiler.provenance import verify_generated_digests
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -156,6 +157,14 @@ def _run_gen_surfaces(toolkit_dir: Path, *, check: bool) -> int:
             ok = _sync_surface(src, dst, toolkit_dir, check=check)
             if not ok:
                 drift = True
+
+        if check:
+            provenance_path = plugin_dir / ".provenance.json"
+            if provenance_path.exists():
+                for msg in verify_generated_digests(plugins_dir, provenance_path):
+                    print(f"  ✗  {msg}")
+                    drift = True
+
         print()
 
     if drift:

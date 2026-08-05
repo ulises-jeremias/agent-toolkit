@@ -83,3 +83,54 @@ def write_provenance(
     provenance_path = out_dir / ".provenance.json"
     provenance_path.write_text(manifest.to_json(), encoding="utf-8")
     return provenance_path
+
+
+def load_provenance(path: Path) -> ProvenanceManifest | None:
+    """Load a .provenance.json manifest. Returns None if missing or invalid."""
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    artifacts = [
+        ArtifactRecord(
+            path=item["path"],
+            source_file=item["sourceFile"],
+            source_digest=item["sourceDigest"],
+            generated_digest=item["generatedDigest"],
+        )
+        for item in data.get("artifacts", [])
+    ]
+    return ProvenanceManifest(
+        generator_version=data.get("generatorVersion", "unknown"),
+        product=data.get("product", ""),
+        target=data.get("target", ""),
+        artifacts=artifacts,
+    )
+
+
+def verify_generated_digests(
+    plugins_dir: Path,
+    provenance_path: Path,
+) -> list[str]:
+    """Compare recorded generatedDigest values to current artifact content.
+
+    Artifact paths in the manifest are relative to *plugins_dir* (compiler
+    output root). Returns human-readable drift messages (empty when in sync).
+    """
+    manifest = load_provenance(provenance_path)
+    if manifest is None:
+        return []
+
+    errors: list[str] = []
+    for record in manifest.artifacts:
+        artifact_path = plugins_dir / record.path
+        current = file_digest(artifact_path)
+        if current != record.generated_digest:
+            errors.append(
+                f"provenance digest drift: {record.path} "
+                f"(expected {record.generated_digest}, got {current})"
+            )
+    return errors

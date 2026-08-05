@@ -5,8 +5,12 @@ import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-from agent_toolkit.compiler.model import CanonicalGraph, CompilationResult, Product
+from agent_toolkit.compiler.model import CanonicalGraph, CompilationResult, Product, Skill
 from agent_toolkit.compiler.provenance import ArtifactRecord, file_digest, write_provenance
+
+
+class PathEscapeError(ValueError):
+    """Raised when a path resolves outside its containment root."""
 
 
 class TargetAdapter(ABC):
@@ -107,3 +111,85 @@ class TargetAdapter(ABC):
                     pass
         if removed:
             result.emitted.append(f"stale-cleaned:{removed}")
+
+    def _safe_relpath(self, file: Path, root: Path) -> Path:
+        """Return *file* relative to *root* after resolving symlinks.
+
+        Raises PathEscapeError when the resolved path is not under *root*.
+        """
+        root_resolved = root.resolve()
+        file_resolved = file.resolve()
+        try:
+            return file_resolved.relative_to(root_resolved)
+        except ValueError as exc:
+            raise PathEscapeError(
+                f"Path escapes containment root {root}: {file} -> {file_resolved}"
+            ) from exc
+
+    def _iter_contained_files(
+        self,
+        root: Path,
+        result: CompilationResult,
+        *,
+        label: str = "",
+    ) -> list[Path]:
+        """List files under *root*, skipping entries that escape after symlink resolution."""
+        if not root.is_dir():
+            return []
+
+        root_resolved = root.resolve()
+        prefix = f"{label}: " if label else ""
+        safe: list[Path] = []
+
+        for path in sorted(root.rglob("*")):
+            if path.is_dir():
+                continue
+            try:
+                resolved = path.resolve()
+            except OSError as exc:
+                result.errors.append(f"{prefix}cannot resolve {path}: {exc}")
+                continue
+            if not resolved.is_file():
+                continue
+            try:
+                resolved.relative_to(root_resolved)
+            except ValueError:
+                result.errors.append(
+                    f"{prefix}reference escapes containment root {root}: {path}"
+                )
+                continue
+            safe.append(path)
+
+        return safe
+
+    def _copy_skill_references(
+        self,
+        skill: Skill,
+        dst: Path,
+        result: CompilationResult,
+        *,
+        text_mode: bool = False,
+    ) -> None:
+        """Copy skill ``references/`` into *dst* with path containment checks."""
+        refs_src = skill.source_path.parent / "references"
+        if not refs_src.is_dir():
+            return
+
+        skill_root = skill.source_path.parent
+        label = f"skill:{skill.id}"
+
+        for ref_file in self._iter_contained_files(refs_src, result, label=label):
+            try:
+                rel = self._safe_relpath(ref_file, skill_root)
+            except PathEscapeError as exc:
+                result.errors.append(f"{label}: {exc}")
+                continue
+
+            ref_dst = dst / rel
+            if text_mode:
+                ref_content = ref_file.read_text(encoding="utf-8", errors="replace")
+                self._write_file(ref_dst, ref_content, result, source_file=ref_file)
+            else:
+                ref_dst.parent.mkdir(parents=True, exist_ok=True)
+                ref_dst.write_bytes(ref_file.read_bytes())
+                result.artifacts.append(ref_dst)

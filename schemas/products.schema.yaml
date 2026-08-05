@@ -1,0 +1,113 @@
+# JSON Schema for the product catalog (distributions/products.yaml)
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/products.schema.yaml"
+title: "agent-toolkit Product Catalog"
+type: object
+required: [version, products]
+additionalProperties: false
+properties:
+  version:
+    type: string
+    pattern: "^[0-9]+\\.[0-9]+$"
+  generated_from:
+    type: string
+  products:
+    type: array
+    minItems: 1
+    items:
+      $ref: "#/$defs/product"
+$defs:
+  product:
+    type: object
+    required: [id, name, description, includes]
+    additionalProperties: true
+    properties:
+      id:
+        type: string
+        pattern: "^[a-z][a-z0-9-]*$"
+      name:
+        type: string
+        minLength: 1
+      description:
+        type: string
+        minLength: 1
+      version_source:
+        type: string
+      stability:
+        type: string
+        enum: [stable, experimental, deprecated]
+      includes:
+        type: object
+        required: [skills, agents, hooks, mcp]
+        additionalProperties: false
+        properties:
+          skills:
+            type: array
+            items:
+              type: string
+              pattern: "^[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$"
+          agents:
+            type: array
+            items:
+              type: string
+              pattern: "^[a-z][a-z0-9-]*$"
+          hooks:
+            type: array
+            items:
+              type: string
+              pattern: "^[a-z][a-z0-9-]*$"
+          mcp:
+            type: array
+            items:
+              type: string
+              pattern: "^[a-z][a-z0-9-]*$"
+      excludes:
+        type: array
+        items:
+          type: string
+      targets:
+        type: object
+        additionalProperties:
+          type: object
+          required: [plugin_id, manifest]
+          additionalProperties: false
+          properties:
+            plugin_id:
+              type: string
+              pattern: "^[a-z][a-z0-9-]*$"
+            manifest:
+              type: string
+              minLength: 1
+      requires:
+        type: object
+        additionalProperties: true
+        properties:
+          executables:
+            type: array
+            items:
+              type: object
+              required: [name]
+              additionalProperties: true
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                install_url:
+                  type: string
+                required:
+                  type: boolean
+          env:
+            type: array
+            items:
+              type: string
+      security:
+        type: object
+        additionalProperties: true
+        properties:
+          approval_required:
+            type: boolean
+          default_enabled:
+            type: boolean
+          rationale:
+            type: string

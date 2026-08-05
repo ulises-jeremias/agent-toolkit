@@ -14,37 +14,17 @@ Exit codes:
     1 — one or more errors detected
 """
 from __future__ import annotations
-from __future__ import annotations
-
 
 import json
-import json
-import os
 import os
 import platform
-import platform
-import shutil
 import shutil
 import subprocess
-import subprocess
-import sys
 import sys
 import urllib.request
-import urllib.request
 from pathlib import Path
-from pathlib import Path
+
 from agent_toolkit._paths import toolkit_root
-from agent_toolkit._paths import toolkit_root
-
-# Windows: force UTF-8 output so emoji chars (✓ ✗ ⚠) don't crash
-if sys.platform == "win32":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[attr-defined]
-    except Exception:
-        pass
-
-
 
 # Windows: force UTF-8 output so emoji chars (✓ ✗ ⚠) don't crash
 if sys.platform == "win32":
@@ -466,6 +446,7 @@ def cmd_doctor(args: list[str]) -> int:
         print()
 
     # --fix: call install for warnings/errors related to profiles
+    install_rc = 0
     if fix:
         has_profile_issues = any(
             r.category == "profiles" and r.status != CheckResult.STATUS_OK
@@ -476,13 +457,17 @@ def cmd_doctor(args: list[str]) -> int:
                 print("── Auto-fix: running install ──")
             from agent_toolkit.cli.install import cmd_install
             if json_output:
-                import io
                 import contextlib
+                import io
                 # Keep stdout JSON-pure: swallow install chatter.
                 with contextlib.redirect_stdout(io.StringIO()):
-                    cmd_install([])
+                    install_rc = cmd_install([])
             else:
-                cmd_install([])
+                install_rc = cmd_install([])
 
     errors = [r for r in all_results if r.status == CheckResult.STATUS_ERR]
-    return 1 if errors else 0
+    if errors:
+        return 1
+    if install_rc:
+        return install_rc
+    return 0
