@@ -319,7 +319,7 @@ Browse packs: [`packs/`](packs/)
 
 One source of truth, deployed per-tool. Each profile in `profiles/` adapts the shared skills and agents to the conventions of its target tool.
 
-```
+```text
 agent-toolkit/
 ├── skills/              # 52 skills across 9 domains (SKILL.md frontmatter)
 ├── agents/              # 16 tool-agnostic agent persona definitions
@@ -357,7 +357,8 @@ bash scripts/validate-skills.sh
 bash scripts/validate-loops.sh
 ```
 
-Both scripts exit non-zero on failure with human-readable error messages. They run automatically in CI via the Validate and MegaLinter workflows.
+Both scripts exit non-zero on failure with human-readable error messages.
+They run automatically in CI via the Validate and MegaLinter workflows.
 
 ---
 
@@ -376,7 +377,9 @@ See [How to add a skill](docs/HOW_TO_ADD_SKILL.md) for the full authoring guide.
 
 <div align="center">
 
-[📖 Docs](docs/) · [🐛 Issues](https://github.com/ulises-jeremias/agent-toolkit/issues) · [💬 Discussions](https://github.com/ulises-jeremias/agent-toolkit/discussions) · [MIT License](LICENSE)
+[📖 Docs](docs/) · [🐛 Issues](https://github.com/ulises-jeremias/agent-toolkit/issues) ·
+[💬 Discussions](https://github.com/ulises-jeremias/agent-toolkit/discussions) ·
+[MIT License](LICENSE)
 
 <sub>Built for the agentic age — one toolkit, every assistant.</sub>
 
