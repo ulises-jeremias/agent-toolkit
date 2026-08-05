@@ -1,0 +1,325 @@
+{
+  "generatorVersion": "1.2.0",
+  "product": "agent-toolkit-complete",
+  "target": "windsurf",
+  "artifacts": [
+    {
+      "path": "agent-toolkit-complete/AGENTS.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "948e923b1bb4"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/assistant/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8d752e774043"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/dev-companion/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "97e6e487514a"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/onboarding/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "be04af0af5cd"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/output-handshake/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "a9948ef0dad3"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/pr-fallback/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "ae0ed4f57759"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/workspace-knowledge-sync/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8a7138abd914"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/dbt-validation/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8bce98e7f9d8"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/snowflake-validation/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "644d13d88999"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/adr/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "e9bde6f1f190"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/agreement/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "2f9a992ffd83"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/bug/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "7ae75b4adf5b"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/decision-log/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "11e7b12fe05c"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/development-workflow/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "faaa75bc920f"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/epic/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "20f789c0f135"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/incident/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "d02c6deaa8cb"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/management-unit-assessment/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "6857151d232b"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/meeting-minutes/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "28c5a3e017c9"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/planning/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "4985e117defd"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/prd/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "bdfe53c27914"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/project-assessment/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "acafb35d7d66"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/project-assessment-evidence/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "ab44c42c3ce1"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/spike/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "9b260b8bb486"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/task/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "2f757e9cc859"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/technical-unit-assessment/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "a39289e1bedc"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/trd/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "25474fb40016"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/user-story/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "1b0cda291a70"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/work-item/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "49b995b74025"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/workflow-client-bootstrap/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "14227789491b"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/workflow-generic-project/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "d5adf6554319"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/figma/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "ff145be92507"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/figma-code-connect-components/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "6e85e2a6184e"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/figma-create-design-system-rules/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "30aa82ea0be7"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/figma-create-new-file/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "998c1c2eeef0"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/figma-implement-design/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "b477f73f7ef4"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/ui-ux-pro-max/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "464bc8af7575"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/gh-address-comments/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "fdfd6e4040f3"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/gh-contribution-planner/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "01ee997ed3c7"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/gh-fix-ci/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "68e21c62289b"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/github-cli-workflow/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "2813e86f9c1e"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/gitlab-cli-workflow/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "ef582ea65db5"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/workflow-client-bootstrap/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "d952988341c7"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/workflow-generic-project/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "f176551e71cd"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/clickup-cli/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "3aec29be4914"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/linear/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "953a596172d7"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/slack-assistant/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "faa0569a903f"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/slack-cli/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "9ec221307880"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/loop-runner/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "562b9e692152"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/docs-generator/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "9a216910ee12"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/llm-cost-advisor/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8748bf1283e7"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/triage/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "5f107dd66b96"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/jupyter-notebook/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "e0684b682ae1"
+    },
+    {
+      "path": "agent-toolkit-complete/skills/playwright-cli/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8fcf8d73a6e5"
+    }
+  ]
+}

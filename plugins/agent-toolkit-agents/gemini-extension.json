@@ -1,0 +1,11 @@
+{
+  "name": "agent-toolkit-agents",
+  "version": "1.2.0",
+  "description": "Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
+  "author": "ulises-jeremias",
+  "repository": "https://github.com/ulises-jeremias/agent-toolkit",
+  "license": "MIT",
+  "geminiCliVersion": ">=0.1.0",
+  "contextFiles": [],
+  "commands": "${extensionPath}/commands.toml"
+}

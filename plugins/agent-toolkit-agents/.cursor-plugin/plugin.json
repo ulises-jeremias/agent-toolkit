@@ -1,7 +1,7 @@
 {
   "name": "agent-toolkit-agents",
-  "version": "1.1.0",
-  "description": "Full set of AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
+  "version": "1.2.0",
+  "description": "Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
   "author": {
     "name": "ulises-jeremias",
     "email": "ulisescf.24@gmail.com"
@@ -12,9 +12,8 @@
   "keywords": [
     "agent-toolkit",
     "agents",
-    "subagents",
-    "reviewers",
-    "architect",
-    "planner"
+    "cursor",
+    "skills",
+    "agents"
   ]
 }

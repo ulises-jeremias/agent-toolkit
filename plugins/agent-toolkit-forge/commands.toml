@@ -1,0 +1,63 @@
+[[commands]]
+name = "github_cli_workflow"
+description = "HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file; fallback untracked PR_DESCRIP"
+prompt = """
+Follow the `github-cli-workflow` skill instructions for {{args}}.
+
+@{skills/github-cli-workflow/SKILL.md}
+"""
+
+[[commands]]
+name = "gitlab_cli_workflow"
+description = "HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown. Use when origin is G"
+prompt = """
+Follow the `gitlab-cli-workflow` skill instructions for {{args}}.
+
+@{skills/gitlab-cli-workflow/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_address_comments"
+description = "Triage and address open GitHub PR review and conversation comments using the gh CLI. Use when the user wants to 'address"
+prompt = """
+Follow the `gh-address-comments` skill instructions for {{args}}.
+
+@{skills/gh-address-comments/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_fix_ci"
+description = "Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure context, propose a plan, and only implement"
+prompt = """
+Follow the `gh-fix-ci` skill instructions for {{args}}.
+
+@{skills/gh-fix-ci/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_contribution_planner"
+description = "Daily GitHub contribution planner — analyzes the gh-logged-in user's non-archived repos (owned + forks) and recent contr"
+prompt = """
+Follow the `gh-contribution-planner` skill instructions for {{args}}.
+
+@{skills/gh-contribution-planner/SKILL.md}
+"""
+
+[[commands]]
+name = "workflow_client_bootstrap"
+description = "DEPRECATED alias. Use workflow-client-bootstrap instead."
+prompt = """
+Follow the `workflow-client-bootstrap` skill instructions for {{args}}.
+
+@{skills/workflow-client-bootstrap/SKILL.md}
+"""
+
+[[commands]]
+name = "workflow_generic_project"
+description = "DEPRECATED alias. Use workflow-generic-project instead."
+prompt = """
+Follow the `workflow-generic-project` skill instructions for {{args}}.
+
+@{skills/workflow-generic-project/SKILL.md}
+"""
+

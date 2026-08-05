@@ -1,0 +1,20 @@
+{
+  "name": "agent-toolkit-forge",
+  "version": "1.2.0",
+  "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
+  "maturity": "experimental",
+  "author": {
+    "name": "ulises-jeremias",
+    "email": "ulisescf.24@gmail.com"
+  },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "repository": "https://github.com/ulises-jeremias/agent-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "agent-toolkit",
+    "forge",
+    "codex",
+    "skills",
+    "agents"
+  ]
+}
