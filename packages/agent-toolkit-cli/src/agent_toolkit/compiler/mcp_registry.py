@@ -53,23 +53,33 @@ class McpProvider:
         return status in ("native", "bridged", "generated")
 
 
-def load_registry(registry_dir: Path) -> dict[str, McpProvider]:
-    """Load all providers from mcp/registry/*.yaml."""
+def load_registry(registry_dir: Path) -> tuple[dict[str, McpProvider], list[str]]:
+    """Load all providers from mcp/registry/*.yaml.
+
+    Returns (providers, errors). Malformed files are skipped and reported.
+    """
     providers: dict[str, McpProvider] = {}
+    errors: list[str] = []
     if not registry_dir.is_dir():
-        return providers
+        return providers, errors
 
     try:
         import yaml
     except ImportError:
-        return providers
+        return providers, ["PyYAML is required to load MCP registry"]
 
     for yaml_file in sorted(registry_dir.glob("*.yaml")):
         try:
             data = yaml.safe_load(yaml_file.read_text())
-            if data and "id" in data:
-                providers[data["id"]] = McpProvider.from_dict(data)
-        except Exception:
+        except Exception as exc:
+            errors.append(f"{yaml_file}: invalid YAML: {exc}")
             continue
+        if not data or "id" not in data:
+            errors.append(f"{yaml_file}: missing required 'id' field")
+            continue
+        try:
+            providers[data["id"]] = McpProvider.from_dict(data)
+        except Exception as exc:
+            errors.append(f"{yaml_file}: {exc}")
 
-    return providers
+    return providers, errors
