@@ -307,6 +307,7 @@ def _cmd_sync(args: list[str], toolkit_dir: Path) -> int:
             print()
         else:
             print(f"  ⚠  Unknown tool: {tool}  (valid: {', '.join(valid_tools)})")
+            success = False  # CLI-012 / #48 — unknown --tools must fail
 
     return 0 if success else 1
 

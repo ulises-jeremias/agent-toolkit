@@ -13,13 +13,15 @@ Install, verify, and sync toolkit content for coding assistants:
 | Command | Purpose |
 |---------|---------|
 | `install` | Install profiles for detected or selected AI tools |
+| `update` | Refresh installed profiles from latest toolkit data |
+| `uninstall` | Remove toolkit-owned files using install receipts |
 | `doctor` | Check toolkit data and tool availability |
 | `diff` | Show changes vs installed plugin bundles |
 | `skills` | Sync, list, and validate skills |
 | `mcp` | MCP provider setup, health, doctor, uninstall |
 | `plugin` | Plugin bundle sync and check |
 
-Also: `version`, `help`. See other open PRs for `update` and `completion`.
+Also: `version`, `help`.
 
 ## Advanced commands
 
@@ -44,3 +46,10 @@ Still available on the same binary — de-emphasized in top-level help:
 Existing scripts invoking advanced commands continue to work unchanged.
 New users should start with `install`, `doctor`, and `skills` only; adopt
 advanced commands when running an ai-workspace-style harness.
+
+## Exit-code contract (#48)
+
+Consumer and advanced commands return integer status codes from their `cmd_*`
+handlers. They must not call `sys.exit` for recoverable errors (missing
+templates, unknown `--tools` values). argparse `--help` stays exit 0; bad
+flags stay exit 2.
