@@ -48,15 +48,49 @@ def test_no_secrets_in_artifacts(graph, tmp_path, adapter_cls):
                     pytest.fail(f"Secret pattern '{pattern}' in {f}: {match.group()[:20]}...")
 
 
+PRIVATE_HOSTNAME_NEEDLES = (
+    ".local",
+    "colibri",
+    "skypiea",
+    "192.168.",
+    "10.",
+)
+
+
+def _assert_no_private_hostnames(path: Path, text: str) -> None:
+    lower = text.lower()
+    for needle in PRIVATE_HOSTNAME_NEEDLES:
+        # Avoid false positives on path segments like ".local/share" instructions
+        # that are not hostnames — only flag URL-like or provider host usage.
+        if needle in (".local", "10."):
+            if re.search(rf"https?://[^\s\"']*{re.escape(needle)}", text, re.I):
+                pytest.fail(f"Private hostname pattern {needle!r} in {path}")
+            if needle == "10." and re.search(r"\b10\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", text):
+                pytest.fail(f"Private IPv4 10.x address in {path}")
+            continue
+        if needle in lower:
+            pytest.fail(f"Private hostname pattern {needle!r} in {path}")
+
+
 def test_private_hostnames_not_in_opencode_json(graph, tmp_path):
-    """opencode.json must never contain private LAN hostnames."""
+    """Compiled opencode.json must never contain private LAN hostnames."""
     product = graph.products["agent-toolkit-core"]
     adapter = OpenCodeAdapter(tmp_path / "plugins", REPO_ROOT)
     adapter.compile(graph, product)
 
     opencode_json = tmp_path / "plugins" / "agent-toolkit-core" / "opencode.json"
     if opencode_json.exists():
-        text = opencode_json.read_text()
-        assert ".local" not in text
-        assert "colibri" not in text.lower()
-        assert "192.168." not in text
+        _assert_no_private_hostnames(opencode_json, opencode_json.read_text())
+
+
+def test_private_hostnames_not_in_profiles():
+    """Installer profiles must not ship private LAN hostnames or org-specific hosts."""
+    profiles = REPO_ROOT / "profiles"
+    assert profiles.is_dir()
+    for path in profiles.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.suffix.lower() not in {".json", ".yaml", ".yml", ".md", ".mdc", ".toml"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        _assert_no_private_hostnames(path, text)
