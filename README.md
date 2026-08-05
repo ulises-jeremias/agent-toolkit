@@ -10,17 +10,19 @@
 
 [![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
 [![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-informational?style=flat)](https://github.com/vercel-labs/skills)
 
-52 skills · 16 agents · 10 loops
+![skills](https://img.shields.io/badge/skills-52-blue?style=flat)
+![agents](https://img.shields.io/badge/agents-16-blue?style=flat)
+![loops](https://img.shields.io/badge/loops-10-blue?style=flat)
 
-[Claude Code](profiles/claude-code/) ·
-[Cursor](profiles/cursor/) ·
-[OpenCode](profiles/opencode/) ·
-[Copilot](profiles/copilot/) ·
-[Windsurf](profiles/windsurf/) ·
-[Pi](profiles/pi/)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-informational?style=flat)](profiles/claude-code/)
+[![Cursor](https://img.shields.io/badge/Cursor-rules-informational?style=flat)](profiles/cursor/)
+[![OpenCode](https://img.shields.io/badge/OpenCode-agents-informational?style=flat)](profiles/opencode/)
+[![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-informational?style=flat)](profiles/copilot/)
+[![Windsurf](https://img.shields.io/badge/Windsurf-rules-informational?style=flat)](profiles/windsurf/)
+[![Pi](https://img.shields.io/badge/Pi%20Agent-skills-informational?style=flat)](profiles/pi/)
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
