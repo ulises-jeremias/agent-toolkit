@@ -8,7 +8,8 @@ import tempfile
 import pytest
 
 from agent_toolkit.compiler.provenance import (
-    ArtifactRecord, ProvenanceManifest, file_digest, write_provenance
+    ArtifactRecord, ProvenanceManifest, file_digest, load_provenance,
+    verify_generated_digests, write_provenance,
 )
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -75,3 +76,55 @@ def test_provenance_json_no_timestamps():
     content = manifest.to_json()
     assert "timestamp" not in content.lower()
     assert "date" not in content.lower()
+
+
+def test_load_provenance_round_trip(tmp_path):
+    records = [
+        ArtifactRecord(
+            path="agent-toolkit-core/skills/foo/SKILL.md",
+            source_file="skills/core/foo/SKILL.md",
+            source_digest="abc123",
+            generated_digest="def456",
+        )
+    ]
+    path = write_provenance(tmp_path, "agent-toolkit-core", "cursor", records)
+    loaded = load_provenance(path)
+    assert loaded is not None
+    assert loaded.product == "agent-toolkit-core"
+    assert len(loaded.artifacts) == 1
+    assert loaded.artifacts[0].generated_digest == "def456"
+
+
+def test_verify_generated_digests_detects_drift(tmp_path):
+    plugins_dir = tmp_path / "plugins"
+    bundle = plugins_dir / "agent-toolkit-core" / "skills" / "foo"
+    bundle.mkdir(parents=True)
+    skill_md = bundle / "SKILL.md"
+    skill_md.write_text("original", encoding="utf-8")
+    digest = file_digest(skill_md)
+
+    provenance_path = plugins_dir / "agent-toolkit-core" / ".provenance.json"
+    provenance_path.parent.mkdir(parents=True, exist_ok=True)
+    provenance_path.write_text(
+        ProvenanceManifest(
+            generator_version="1.0.0",
+            product="agent-toolkit-core",
+            target="cursor",
+            artifacts=[
+                ArtifactRecord(
+                    path="agent-toolkit-core/skills/foo/SKILL.md",
+                    source_file="generated",
+                    source_digest="n/a",
+                    generated_digest=digest,
+                )
+            ],
+        ).to_json(),
+        encoding="utf-8",
+    )
+
+    assert verify_generated_digests(plugins_dir, provenance_path) == []
+
+    skill_md.write_text("tampered", encoding="utf-8")
+    drift = verify_generated_digests(plugins_dir, provenance_path)
+    assert len(drift) == 1
+    assert "digest drift" in drift[0]

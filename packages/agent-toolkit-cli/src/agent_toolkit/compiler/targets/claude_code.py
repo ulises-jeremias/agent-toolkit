@@ -153,15 +153,7 @@ class ClaudeCodeAdapter(TargetAdapter):
         self._write_file(dst / "SKILL.md", content, result)
 
         # Copy references/ directory if present
-        refs_src = skill.source_path.parent / "references"
-        if refs_src.is_dir():
-            for ref_file in sorted(refs_src.rglob("*")):
-                if ref_file.is_file():
-                    rel = ref_file.relative_to(skill.source_path.parent)
-                    ref_dst = dst / rel
-                    ref_dst.parent.mkdir(parents=True, exist_ok=True)
-                    ref_dst.write_bytes(ref_file.read_bytes())
-                    result.artifacts.append(ref_dst)
+        self._copy_skill_references(skill, dst, result)
 
         result.emitted.append(f"skill:{skill.id}")
 
