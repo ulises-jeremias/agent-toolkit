@@ -60,6 +60,8 @@ request: |
 
 ## The L1 / L2 / L3 Tier System
 
+Tiers describe the **mutation/risk** level of a loop's actions (not schedule cadence). Cadence is independent of tier.
+
 Tiers describe the risk level of a loop's actions. The tier determines what a loop is allowed to do and how much human oversight is required.
 
 ### L1 — Observe and Report

@@ -225,26 +225,26 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/loop-tiers.svg?raw=true" width="88%">
 </div>
 
-| Tier | Cadence | Purpose |
-|------|---------|---------|
-| **L1** | Minutes to hours | Reactive, event-driven — PR monitoring, triage, CI alerts |
-| **L2** | Daily | Summaries, health checks, security sweeps, briefings |
-| **L3** | Weekly / monthly | Trend analysis, reporting, maintenance sweeps |
+| Tier | Mutation posture | Purpose |
+|------|------------------|---------|
+| **L1** | Observe / propose | Read-only or proposal-only — no repository mutations |
+| **L2** | Controlled mutations | Allowlisted writes (label, comment, limited housekeeping) — merge/close denied |
+| **L3** | High-autonomy mutations | Mature allowlisted mutations including merge/close when explicitly permitted |
 
 ### Loop Templates
 
 | Template | Tier | Default Cadence | Description |
 |----------|------|-----------------|-------------|
-| `oss-pr-monitor` | L1 | Every 30 min | Monitor open PRs across OSS repos, flag stale or failing ones |
-| `oss-triage` | L1 | Every hour | Triage new issues, apply labels, draft responses |
-| `ci-health` | L1 | Every 15 min | Watch CI status, auto-diagnose failures |
-| `oss-daily-briefing` | L2 | Daily | Summarize activity across all tracked OSS repos |
-| `dependency-drift` | L2 | Daily | Detect outdated dependencies and open upgrade PRs |
-| `security-sweep` | L2 | Daily | Run vulnerability scan across repos |
-| `codeowner-review` | L2 | Daily | Remind code owners of pending reviews |
-| `release-notes` | L3 | Weekly | Draft release notes from merged PRs |
-| `stale-branch-cleanup` | L3 | Weekly | Identify and archive stale branches |
-| `contributor-digest` | L3 | Weekly | Generate contributor activity digest |
+| `changelog-drafter` | L1 | 1d | Draft release notes from merged PRs (L1, report-only) |
+| `ci-sweeper` | L2 | 15m | Detect CI failures and propose fixes via draft PRs (L2, cautious) |
+| `daily-triage` | L1 | 1d | Triage new issues and propose labels (report-only) |
+| `dep-sweeper` | L2 | 1d | Apply patch-level dependency updates via draft PRs (L2) |
+| `issue-triage` | L1 | 4h | Propose labels and routing for new issues (L1, propose-only) |
+| `oss-daily-briefing` | L1 | 1d | Daily read-only briefing across OSS ecosystem repos (L1) |
+| `oss-pr-monitor` | L3 | 1d | Monitor open PRs across OSS ecosystem repos and take action (L3, daily) |
+| `oss-triage` | L1 | 1d | Triage issues across OSS ecosystem repos (L1, daily) |
+| `post-merge-cleanup` | L2 | 6h | Off-peak housekeeping after merges (L2, low impact) |
+| `pr-babysitter` | L2 | 15m | Monitor open PRs and post review comments (L2, PR-gated) | L3 | Weekly | Generate contributor activity digest |
 
 Each loop template lives in `loops/<name>/` and contains a `request.md` prompt template, `report.md` output template, and `runbook.md` for human operators.
 
@@ -336,9 +336,9 @@ agent-toolkit/
 
 | Tier | Trigger | Example |
 |------|---------|---------|
-| **L1** | Event / short interval | `oss-pr-monitor`, `ci-health` |
-| **L1.5** | Scheduled short-cadence | `oss-triage`, `dependency-drift` |
-| **L3** | Weekly / monthly | `release-notes`, `contributor-digest` |
+| **L1** | Observe / propose | `oss-triage`, `oss-daily-briefing`, `issue-triage` |
+| **L2** | Controlled mutations | `ci-sweeper`, `pr-babysitter`, `dep-sweeper` |
+| **L3** | High-autonomy (merge/close allowlist) | `oss-pr-monitor` |
 
 ---
 
