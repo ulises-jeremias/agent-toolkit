@@ -155,8 +155,7 @@ def _check_profiles() -> list[CheckResult]:
     if shutil.which("claude") or (home / ".claude").is_dir():
         results.append(_profile_installed("profiles", "claude-code CLAUDE.md",
                                           home / ".claude" / "CLAUDE.md"))
-        results.append(_profile_installed("profiles", "claude-code settings.json",
-                                          home / ".claude" / "settings.json"))
+        # settings.json is user-owned and must not be managed by the installer.
         results.append(_profile_installed("profiles", "claude-code agents/",
                                           home / ".claude" / "agents"))
 
