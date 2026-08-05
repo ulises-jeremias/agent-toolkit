@@ -70,8 +70,9 @@
 One toolkit. Any coding assistant. Zero duplication.
 
 ```bash
-# Get everything in one command
-npx skills add ulises-jeremias/agent-toolkit -g
+# Primary install — auto-detects your AI tools
+uvx --from agent-toolkit-cli agent-toolkit install
+agent-toolkit doctor
 ```
 
 <div align="center">
@@ -82,19 +83,28 @@ npx skills add ulises-jeremias/agent-toolkit -g
 
 ## 🚀 Quick Install
 
-### Method 1: Python CLI — `uvx` or `pip` *(works with all tools)*
+**Recommended:** use the Python CLI with [uv](https://docs.astral.sh/uv/) — one flow for every supported tool.
 
 ```bash
-# No install needed — run directly with uvx
+# No install needed — run directly (preferred)
 uvx --from agent-toolkit-cli agent-toolkit install
 
-# Or install persistently with pip
-pip install agent-toolkit-cli
-agent-toolkit install          # auto-detects Claude, Cursor, OpenCode, Windsurf, Pi
-agent-toolkit doctor           # verify everything is set up
+# Or install the CLI persistently
+uv tool install agent-toolkit-cli          # preferred over pip when using uv
+# pip install agent-toolkit-cli            # alternative
+
+agent-toolkit install    # auto-detects Claude, Cursor, OpenCode, Windsurf, Pi, Copilot
+agent-toolkit doctor     # verify everything is set up
 ```
 
-### Method 2: Claude Code Plugin Marketplace
+→ Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md)
+
+### Advanced install methods
+
+Use these only when the primary CLI flow above does not fit your setup.
+
+<details>
+<summary><strong>Claude Code plugin marketplace</strong> — native plugins for Claude Code only</summary>
 
 ```
 /plugin marketplace add ulises-jeremias/agent-toolkit
@@ -103,22 +113,43 @@ agent-toolkit doctor           # verify everything is set up
 /plugin install agent-toolkit-forge@agent-toolkit
 ```
 
-### Method 3: npx skills (Agent Skills standard — skills only)
+</details>
+
+<details>
+<summary><strong>npx skills</strong> — Agent Skills standard (skills only, no agents/loops)</summary>
 
 ```bash
 npx skills add ulises-jeremias/agent-toolkit -g
 ```
 
-### Method 4: Homebrew / AUR
+</details>
+
+<details>
+<summary><strong>Homebrew / AUR</strong> — system package managers</summary>
 
 Formulas live in dedicated repos ([homebrew-tap](https://github.com/ulises-jeremias/homebrew-tap), [aur-packages](https://github.com/ulises-jeremias/aur-packages)); release workflows notify them on tag.
 
 ```bash
 brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
-yay -S agent-toolkit   # Arch Linux
+yay -S agent-toolkit   # Arch Linux (AUR)
 ```
 
-### Method 5: Manual install (per tool)
+</details>
+
+<details>
+<summary><strong>Git clone + install script</strong> — offline or pinned commit</summary>
+
+```bash
+git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
+bash ~/.agent-toolkit/scripts/install.sh
+```
+
+The script detects active tools and deploys profiles. Options: `--tools`, `--dry-run`, `--force`.
+
+</details>
+
+<details>
+<summary><strong>Manual per-tool copy</strong> — full control over paths</summary>
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
@@ -131,14 +162,9 @@ git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
 # Pi Agent — copy profiles/pi/skills/ → ~/.pi/agent/skills/
 ```
 
-### Method 4: Auto-detect install script
+Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manual-install)
 
-```bash
-git clone https://github.com/ulises-jeremias/agent-toolkit.git
-bash agent-toolkit/scripts/install.sh
-```
-
-The script detects your active tools and deploys the right profiles automatically.
+</details>
 
 ---
 
@@ -301,10 +327,6 @@ Browse packs: [`packs/`](packs/)
 
 | Guide | Description |
 |-------|-------------|
-| [🚀 Installation](docs/INSTALLATION.md) | Primary consumer install flow (`uvx` / CLI) |
-| [🔄 Migration](docs/MIGRATION.md) | Switch install methods without duplicate profiles |
-| [🗑️ Uninstall](docs/UNINSTALL.md) | Remove toolkit artifacts from your machine |
-| [🛡️ Trust & security](docs/TRUST.md) | What gets installed, verification, receipts |
 | [🔨 How to add a skill](docs/HOW_TO_ADD_SKILL.md) | Create a new skill with SKILL.md frontmatter |
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
