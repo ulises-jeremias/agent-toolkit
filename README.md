@@ -4,60 +4,30 @@
 
 <div align="center">
 
-# 🛠️ agent-toolkit
+# agent-toolkit
 
 **Composable AI agent capabilities for every major coding assistant**
 
-<p>
-  <a href="https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=for-the-badge&labelColor=0d1117&color=9945ff" alt="Validate"/>
-  </a>
-  <a href="https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=megalinter&style=for-the-badge&labelColor=0d1117&color=00d4ff" alt="MegaLinter"/>
-  </a>
-  <a href="https://github.com/vercel-labs/skills">
-    <img src="https://img.shields.io/badge/Agent%20Skills-compatible-00ff88?style=for-the-badge&labelColor=0d1117" alt="Agent Skills compatible"/>
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-ff6b35?style=for-the-badge&labelColor=0d1117" alt="MIT License"/>
-  </a>
-</p>
+[![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+[![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENSE)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-informational?style=flat)](https://github.com/vercel-labs/skills)
 
-<p>
-  <img src="https://img.shields.io/badge/skills-52-9945ff?style=for-the-badge&labelColor=0d1117" alt="52 Skills"/>
-  <img src="https://img.shields.io/badge/agents-16-00d4ff?style=for-the-badge&labelColor=0d1117" alt="16 Agents"/>
-  <img src="https://img.shields.io/badge/loops-10-ff6b35?style=for-the-badge&labelColor=0d1117" alt="10 Loops"/>
-  <img src="https://img.shields.io/badge/tests-227-00ff88?style=for-the-badge&labelColor=0d1117" alt="227 Tests"/>
-  <img src="https://img.shields.io/badge/targets-9-ff00aa?style=for-the-badge&labelColor=0d1117" alt="9 Targets"/>
-</p>
+52 skills · 16 agents · 10 loops
 
-<p>
-  <a href="profiles/claude-code/">
-    <img src="https://img.shields.io/badge/Claude%20Code-plugin-9945ff?style=for-the-badge&labelColor=0d1117&logo=anthropic&logoColor=white" alt="Claude Code"/>
-  </a>
-  <a href="profiles/cursor/">
-    <img src="https://img.shields.io/badge/Cursor-rules-00d4ff?style=for-the-badge&labelColor=0d1117" alt="Cursor"/>
-  </a>
-  <a href="profiles/opencode/">
-    <img src="https://img.shields.io/badge/OpenCode-agents-ff6b35?style=for-the-badge&labelColor=0d1117" alt="OpenCode"/>
-  </a>
-  <a href="profiles/copilot/">
-    <img src="https://img.shields.io/badge/GitHub%20Copilot-instructions-00ff88?style=for-the-badge&labelColor=0d1117&logo=github&logoColor=white" alt="GitHub Copilot"/>
-  </a>
-  <a href="profiles/windsurf/">
-    <img src="https://img.shields.io/badge/Windsurf-rules-0080ff?style=for-the-badge&labelColor=0d1117" alt="Windsurf"/>
-  </a>
-  <a href="profiles/pi/">
-    <img src="https://img.shields.io/badge/Pi%20Agent-skills-ff00aa?style=for-the-badge&labelColor=0d1117" alt="Pi Agent"/>
-  </a>
-</p>
+[Claude Code](profiles/claude-code/) ·
+[Cursor](profiles/cursor/) ·
+[OpenCode](profiles/opencode/) ·
+[Copilot](profiles/copilot/) ·
+[Windsurf](profiles/windsurf/) ·
+[Pi](profiles/pi/)
 
-[📖 Documentation](docs/) •
-[🚀 Quick Install](#-quick-install) •
-[🛠️ Skills](#%EF%B8%8F-skills--52-across-9-domains) •
-[🤖 Agents](#-agent-personas) •
-[🔄 Loops](#-loop-engineering) •
-[🤝 Contributing](#-contributing)
+[Documentation](docs/) ·
+[Quick Install](#-quick-install) ·
+[Skills](#%EF%B8%8F-skills--52-across-9-domains) ·
+[Agents](#-agent-personas) ·
+[Loops](#-loop-engineering) ·
+[Contributing](#-contributing)
 
 </div>
 
