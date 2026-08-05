@@ -425,6 +425,8 @@ def cmd_todo(args: list[str], knowledge: Path) -> int:
 
 def cmd_memory(args: list[str]) -> int:
     """Router for memory subcommands."""
+    from agent_toolkit.cli.parse_utils import reject_unknown_flags
+
     # Extract --workspace before routing
     workspace_path: str | None = None
     filtered_args: list[str] = []
@@ -440,6 +442,9 @@ def cmd_memory(args: list[str]) -> int:
     if not filtered_args or filtered_args[0] in ("-h", "--help", "help"):
         print(__doc__)
         return 0
+
+    if err := reject_unknown_flags(filtered_args[1:], {"-h", "--help", "--type", "--title", "--workspace"}):
+        return err
 
     ws = _find_workspace(workspace_path)
     if ws is None:

@@ -358,7 +358,7 @@ def cmd_init(args: list[str]) -> int:
                 return 0
             case _:
                 print(f"Unknown option: {args[i]}", file=sys.stderr)
-                return 1
+                return 2
 
     if name:
         target_dir = target_dir / name
@@ -426,7 +426,7 @@ def cmd_context(args: list[str]) -> int:
                 return 0
             case _:
                 print(f"Unknown option: {args[i]}", file=sys.stderr)
-                return 1
+                return 2
 
     ws = _find_workspace(workspace_path)
     if ws is None:
@@ -571,7 +571,7 @@ def cmd_sync(args: list[str]) -> int:
                 return 0
             case _:
                 print(f"Unknown option: {args[i]}", file=sys.stderr)
-                return 1
+                return 2
 
     ws = _find_workspace(workspace_path)
     if ws is None:
@@ -637,9 +637,15 @@ def cmd_sync(args: list[str]) -> int:
 
 def cmd_workspace(args: list[str]) -> int:
     """Router for workspace subcommands."""
+    from agent_toolkit.cli.parse_utils import reject_unknown_flags
+
     if not args or args[0] in ("-h", "--help", "help"):
         print(__doc__)
         return 0
+
+    if args[0].startswith("-"):
+        err = reject_unknown_flags(args, {"-h", "--help"})
+        return err if err is not None else 0
 
     sub = args[0]
     rest = args[1:]

@@ -361,6 +361,8 @@ def cmd_scan(args: list[str], ws: Path) -> int:
 
 def cmd_project(args: list[str]) -> int:
     """Router for project subcommands."""
+    from agent_toolkit.cli.parse_utils import reject_unknown_flags
+
     # Extract --workspace before routing
     workspace_path: str | None = None
     filtered_args: list[str] = []
@@ -376,6 +378,13 @@ def cmd_project(args: list[str]) -> int:
     if not filtered_args or filtered_args[0] in ("-h", "--help", "help"):
         print(__doc__)
         return 0
+
+    if filtered_args[0].startswith("-"):
+        err = reject_unknown_flags(filtered_args, {"-h", "--help", "--workspace"})
+        return err if err is not None else 0
+
+    if err := reject_unknown_flags(filtered_args[1:], {"-h", "--help"}):
+        return err
 
     sub = filtered_args[0]
     rest = filtered_args[1:]
