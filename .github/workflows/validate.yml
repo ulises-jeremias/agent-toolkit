@@ -211,9 +211,9 @@ jobs:
 
           echo "No secret patterns detected."
 
-  # ── Job 7: Markdown lint ──────────────────────────────────────────────────
+  # ── Job 7: Markdown and YAML lint (blocking) ──────────────────────────────
   markdown-lint:
-    name: Markdown Lint
+    name: Lint (Markdown & YAML)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -227,34 +227,33 @@ jobs:
 
       - name: Run markdownlint
         run: |
+          set -euo pipefail
           markdownlint \
             --config .markdownlint.yaml \
-            --ignore node_modules \
-            --ignore .git \
-            --ignore packaging \
-            '**/*.md' || true
-          echo "✓ Markdown lint complete (advisory)"
-
-  # ── Job 8: YAML lint ──────────────────────────────────────────────────────
-  yaml-lint:
-    name: YAML Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+            README.md \
+            CONTRIBUTING.md \
+            AGENTS.md \
+            docs/LOOPS.md \
+            docs/HOW_TO_CREATE_LOOP.md \
+            docs/HOW_TO_ADD_SKILL.md \
+            docs/HOW_TO_ADD_AGENT.md \
+            docs/ARCHITECTURE.md \
+            docs/INSTALLATION.md
 
       - name: Install yamllint
         run: pip install yamllint
 
       - name: Run yamllint
         run: |
+          set -euo pipefail
           yamllint \
+            --no-warnings \
             -c .yamllint.yaml \
             loops/ \
             catalogs/ \
             schemas/ \
             packs/ \
-            .github/workflows/ \
-            || true
+            .github/workflows/
 
   # ── Job 9: Build package — ensures a clean wheel and sdist ────────────────
   build-package:

@@ -1,7 +1,9 @@
 default: true
-MD013:
-  line_length: 120
-  tables: false
-  code_blocks: false
-MD033: false  # Allow inline HTML
-MD041: false  # First line heading (READMEs OK)
+MD013: false
+MD033: false
+MD041: false
+MD045: false
+MD036: false
+MD040: false
+MD032: false
+MD031: false

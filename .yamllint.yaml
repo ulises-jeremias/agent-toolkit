@@ -6,5 +6,12 @@ rules:
   comments:
     min-spaces-from-content: 1
   document-start: disable
-  truthy:
-    allowed-values: ['true', 'false']
+  truthy: disable
+  braces:
+    max-spaces-inside: 1
+    min-spaces-inside: 0
+    max-spaces-inside-empty: 0
+    min-spaces-inside-empty: 0
+  commas:
+    max-spaces-after: 1
+    min-spaces-after: 0

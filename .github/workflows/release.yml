@@ -54,9 +54,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: ubuntu-latest,  artifact: agent-toolkit-linux-x86_64 }
-          - { os: macos-latest,   artifact: agent-toolkit-macos-arm64 }
-          - { os: windows-latest, artifact: agent-toolkit-windows-x86_64 }
+          - os: ubuntu-latest
+            artifact: agent-toolkit-linux-x86_64
+          - os: macos-latest
+            artifact: agent-toolkit-macos-arm64
+          - os: windows-latest
+            artifact: agent-toolkit-windows-x86_64
     steps:
       - uses: actions/checkout@v4
       - name: Install uv
