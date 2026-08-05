@@ -23,7 +23,7 @@
 [![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-16a34a?style=flat&labelColor=1f2937&logo=github&logoColor=white)](profiles/copilot/)
 [![Windsurf](https://img.shields.io/badge/Windsurf-rules-2563eb?style=flat&labelColor=1f2937)](profiles/windsurf/)
 [![Pi](https://img.shields.io/badge/Pi%20Agent-skills-db2777?style=flat&labelColor=1f2937)](profiles/pi/)
-[![Muse Code](https://img.shields.io/badge/Muse%20Code-skills-ff6b35?style=flat&labelColor=1f2937)](https://dev.meta.ai)
+[![Muse Code](https://img.shields.io/badge/Muse%20Code-skills-ff6b35?style=flat&labelColor=1f2937)](https://developer.meta.com/ai/products/muse-code/)
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·

@@ -1,6 +1,6 @@
 # Muse Code Profile
 
-> Meta's Muse Code — `muse` CLI (https://dev.meta.ai)
+> Meta's Muse Code — `muse` CLI (https://developer.meta.com/ai/products/muse-code/)
 
 Muse Code follows the [Agent Skills specification](https://agentskills.io):
 

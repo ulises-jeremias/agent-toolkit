@@ -1,7 +1,7 @@
 """
 Muse Code target adapter (Meta).
 
-Muse Code (https://dev.meta.ai) is Meta's agentic CLI for complex coding
+Muse Code (https://developer.meta.com/ai/products/muse-code/) is Meta's agentic CLI for complex coding
 workstreams. It follows the Agent Skills specification:
 
   Project scope: .agents/skills/<name>/SKILL.md

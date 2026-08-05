@@ -24,10 +24,10 @@ def test_registry_file_exists() -> None:
     assert path.is_file()
 
 
-def test_loads_nine_build_targets() -> None:
+def test_loads_ten_build_targets() -> None:
     registry = load_target_registry(REPO_ROOT)
     build_ids = target_ids_for("build", registry)
-    assert len(build_ids) == 9
+    assert len(build_ids) == 10
     assert "claude-code" in build_ids
     assert "codex" in build_ids
 
