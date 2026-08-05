@@ -1,0 +1,54 @@
+[[commands]]
+name = "assistant"
+description = "Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs before c"
+prompt = """
+Follow the `assistant` skill instructions for {{args}}.
+
+@{skills/assistant/SKILL.md}
+"""
+
+[[commands]]
+name = "dev_companion"
+description = "WHAT — Dev Companion (general): layered companion for client delivery; modes, gates, delegation to assistant and workflo"
+prompt = """
+Follow the `dev-companion` skill instructions for {{args}}.
+
+@{skills/dev-companion/SKILL.md}
+"""
+
+[[commands]]
+name = "output_handshake"
+description = "WHAT — Default gate for any deliverable: confirm where the final artifact will be stored and that a human will review, b"
+prompt = """
+Follow the `output-handshake` skill instructions for {{args}}.
+
+@{skills/output-handshake/SKILL.md}
+"""
+
+[[commands]]
+name = "pr_fallback"
+description = "WHAT — When the repo has no GitHub PR template, structure the pull-request body using the default in references/pr-body-"
+prompt = """
+Follow the `pr-fallback` skill instructions for {{args}}.
+
+@{skills/pr-fallback/SKILL.md}
+"""
+
+[[commands]]
+name = "workspace_knowledge_sync"
+description = "Syncs knowledge to the ai-workspace knowledge base. Use when the assistant discovers new patterns, learns user preferenc"
+prompt = """
+Follow the `workspace-knowledge-sync` skill instructions for {{args}}.
+
+@{skills/workspace-knowledge-sync/SKILL.md}
+"""
+
+[[commands]]
+name = "onboarding"
+description = "Getting started guide for new users. Walks through setup validation, the skill/agent hierarchy, and the three most usefu"
+prompt = """
+Follow the `onboarding` skill instructions for {{args}}.
+
+@{skills/onboarding/SKILL.md}
+"""
+

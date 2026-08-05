@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
   "author": {
     "name": "ulises-jeremias",

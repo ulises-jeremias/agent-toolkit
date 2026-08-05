@@ -115,6 +115,8 @@ class Product:
     stability: Stability = Stability.STABLE
     included_skills: list[str] = field(default_factory=list)   # skill IDs
     included_agents: list[str] = field(default_factory=list)   # agent IDs
+    included_hooks: list[str] = field(default_factory=list)    # hook IDs
+    included_mcp: list[str] = field(default_factory=list)      # MCP provider IDs
     excluded: list[str] = field(default_factory=list)
     requires: list[Requirement] = field(default_factory=list)
     security: SecurityPolicy = field(default_factory=SecurityPolicy)

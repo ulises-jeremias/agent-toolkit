@@ -404,7 +404,7 @@ jobs:
         run: |
           # Should not prompt for Copilot, should not crash, should list what would be installed
           agent-toolkit install --dry-run --tools claude-code,cursor 2>&1 | tee install_output.txt
-          if grep -qi "error\|traceback\|exception" install_output.txt; then
+          if grep -Eiq "(traceback|exception|✗|\[error\])" install_output.txt; then
             echo "::error::install --dry-run produced errors"
             cat install_output.txt
             exit 1

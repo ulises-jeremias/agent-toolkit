@@ -1,0 +1,55 @@
+{
+  "generatorVersion": "1.2.0",
+  "product": "agent-toolkit-core",
+  "target": "copilot-repository",
+  "artifacts": [
+    {
+      "path": "agent-toolkit-core/.github/copilot-instructions.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "fe669258dad9"
+    },
+    {
+      "path": "agent-toolkit-core/.github/skills/assistant/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8d752e774043"
+    },
+    {
+      "path": "agent-toolkit-core/.github/skills/dev-companion/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "97e6e487514a"
+    },
+    {
+      "path": "agent-toolkit-core/.github/skills/output-handshake/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "a9948ef0dad3"
+    },
+    {
+      "path": "agent-toolkit-core/.github/skills/pr-fallback/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "ae0ed4f57759"
+    },
+    {
+      "path": "agent-toolkit-core/.github/skills/workspace-knowledge-sync/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "8a7138abd914"
+    },
+    {
+      "path": "agent-toolkit-core/.github/skills/onboarding/SKILL.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "be04af0af5cd"
+    },
+    {
+      "path": "agent-toolkit-core/.github/agents/code-reviewer.agent.md",
+      "sourceFile": "generated",
+      "sourceDigest": "n/a",
+      "generatedDigest": "0a0af737a06b"
+    }
+  ]
+}
