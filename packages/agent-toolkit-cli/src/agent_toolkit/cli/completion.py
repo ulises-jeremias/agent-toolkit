@@ -35,7 +35,7 @@ INSTALL_FLAGS = ("--tools", "--dry-run", "--force", "--offline", "--help")
 
 UPDATE_FLAGS = ("--tools", "--check", "--pin", "--help")
 
-LOOP_RUN_FLAGS = ("--force", "--quiet", "--help")
+LOOP_RUN_FLAGS = ("--force", "--quiet", "--pack", "--help")
 
 
 def _loop_names() -> list[str]:

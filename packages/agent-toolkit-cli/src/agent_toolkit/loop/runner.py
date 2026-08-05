@@ -12,7 +12,9 @@ Boris Cherny, Peter Steinberger, Addy Osmani — 2026).
 
 Usage:
     loop init <pattern>           Scaffold a loop from a starter template
-    loop run <loop> [--force] [--quiet]  Execute a loop run (--force bypasses budget; --quiet suppresses live output)
+    loop run <loop> [--force] [--quiet] [--pack PATH]
+      Execute a loop run (--force bypasses max_runs_per_day only; --quiet suppresses live output;
+      --pack loads loop overrides from a pack YAML)
     loop status [loop]            Show loop status (all, or one)
     loop audit [loop]             Summarize past runs (success rate, cost)
     loop cost <loop>              Estimate cost for one run
@@ -55,10 +57,13 @@ _PROGRESS_QUIET = False
 class _TraceTailer:
     """Print trace.jsonl events as they are appended during a run."""
 
-    def __init__(self, trace_file: Path) -> None:
+    def __init__(self, trace_file: Path, *, max_tokens: int | None = None) -> None:
         self._trace_file = trace_file
         self._offset = 0
         self._stop = False
+        self._max_tokens = max_tokens
+        self.tokens_used = 0
+        self.budget_exhausted = False
 
     def poll(self) -> None:
         if not self._trace_file.exists():
@@ -86,11 +91,26 @@ class _TraceTailer:
             log(f"repo: {event.get('name', event.get('path', '?'))}")
         elif kind == "token_usage":
             total = event.get("total_tokens") or event.get("total")
+            if total is not None:
+                self.tokens_used = max(self.tokens_used, int(total))
             cost = event.get("cost_usd")
             if cost is not None:
                 log(f"tokens: {total} (~${cost})")
             elif total is not None:
                 log(f"tokens: {total}")
+            if (
+                self._max_tokens is not None
+                and self.tokens_used >= self._max_tokens
+            ):
+                self.budget_exhausted = True
+        elif kind in ("prompt", "completion"):
+            self.tokens_used += int(event.get("prompt_tokens", 0) or 0)
+            self.tokens_used += int(event.get("completion_tokens", 0) or 0)
+            if (
+                self._max_tokens is not None
+                and self.tokens_used >= self._max_tokens
+            ):
+                self.budget_exhausted = True
         elif kind == "progress":
             current = event.get("current")
             total = event.get("total")
@@ -112,6 +132,7 @@ def _run_with_live_output(
     env: dict[str, str],
     trace_file: Path | None = None,
     timeout: int = 900,
+    max_tokens: int | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run a subprocess, streaming stdout/stderr unless --quiet."""
     if _PROGRESS_QUIET:
@@ -128,7 +149,9 @@ def _run_with_live_output(
     import threading
     import time
 
-    tailer = _TraceTailer(trace_file) if trace_file else None
+    tailer = (
+        _TraceTailer(trace_file, max_tokens=max_tokens) if trace_file else None
+    )
     proc = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
@@ -153,6 +176,13 @@ def _run_with_live_output(
         while proc.poll() is None and not _CANCELLED:
             if tailer:
                 tailer.poll()
+                if tailer.budget_exhausted:
+                    warn(
+                        f"Token budget exhausted ({tailer.tokens_used:,} tokens); "
+                        "terminating runner"
+                    )
+                    proc.kill()
+                    break
             time.sleep(0.25)
         if tailer:
             tailer.poll()
@@ -166,6 +196,8 @@ def _run_with_live_output(
     except subprocess.TimeoutExpired:
         proc.kill()
         raise
+    if tailer and tailer.budget_exhausted:
+        raise subprocess.TimeoutExpired(cmd, timeout)
     pump_thread.join(timeout=1)
     tail_thread.join(timeout=1)
     stdout = "".join(lines)
@@ -688,12 +720,17 @@ def _try_claude_runner(
     meta: dict[str, Any] | None = None,
     *,
     trace_file: Path | None = None,
+    wall_timeout: int | None = None,
+    max_tokens: int | None = None,
 ) -> bool:
     """Invoke `claude --print` as a built-in runner for Claude Code users."""
     claude_bin = shutil.which("claude")
     if not claude_bin:
         return False
 
+    from agent_toolkit.loop.budget import DEFAULT_WALL_SECONDS
+
+    timeout = wall_timeout if wall_timeout is not None else DEFAULT_WALL_SECONDS
     env = _install_gate_into_environ(run_dir, meta or {})
     try:
         result = _run_with_live_output(
@@ -703,9 +740,11 @@ def _try_claude_runner(
             cwd=str(workspace_root()),
             env=env,
             trace_file=trace_file or (run_dir / "trace.jsonl"),
+            timeout=timeout,
+            max_tokens=max_tokens,
         )
     except subprocess.TimeoutExpired:
-        warn("claude runner timed out (900s)")
+        warn(f"claude runner hit budget limit (wall={timeout}s or max_tokens)")
         return False
 
     if result.returncode == 0:
@@ -729,12 +768,17 @@ def _try_opencode_runner(
     meta: dict[str, Any] | None = None,
     *,
     trace_file: Path | None = None,
+    wall_timeout: int | None = None,
+    max_tokens: int | None = None,
 ) -> bool:
     """Invoke `opencode run` as a headless runner."""
     opencode_bin = shutil.which("opencode")
     if not opencode_bin:
         return False
 
+    from agent_toolkit.loop.budget import DEFAULT_WALL_SECONDS
+
+    timeout = wall_timeout if wall_timeout is not None else DEFAULT_WALL_SECONDS
     env = _install_gate_into_environ(run_dir, meta or {})
     try:
         result = _run_with_live_output(
@@ -743,9 +787,11 @@ def _try_opencode_runner(
             cwd=str(workspace_root()),
             env=env,
             trace_file=trace_file or (run_dir / "trace.jsonl"),
+            timeout=timeout,
+            max_tokens=max_tokens,
         )
     except subprocess.TimeoutExpired:
-        warn("opencode runner timed out (900s)")
+        warn(f"opencode runner hit budget limit (wall={timeout}s or max_tokens)")
         return False
 
     if result.returncode == 0:
@@ -766,6 +812,8 @@ def _queue_via_devcompanion(
     loop_name: str,
     rid: str,
     meta: dict[str, Any] | None = None,
+    *,
+    wall_timeout: int | None = None,
 ) -> bool:
     """Queue the loop run as a devcompanion job for async processing.
 
@@ -797,7 +845,7 @@ def _queue_via_devcompanion(
         "loop_run_dir": str(run_dir),
         "llm": True,
         "limits": {
-            "timeout_sec": 1800,
+            "timeout_sec": wall_timeout or 1800,
             "max_steps": 25,
         },
         "actions_allowed": ["plan_only"],
@@ -909,24 +957,72 @@ def cmd_init(args: list[str]) -> int:
     return 0
 
 
+def _parse_run_args(args: list[str]) -> tuple[str, bool, bool, Path | None]:
+    """Parse loop run argv into (loop_name, force, quiet, pack_path)."""
+    force = "--force" in args
+    quiet = "--quiet" in args
+    pack_path: Path | None = None
+    positional: list[str] = []
+    i = 0
+    while i < len(args):
+        if args[i] == "--pack" and i + 1 < len(args):
+            pack_path = Path(args[i + 1]).expanduser()
+            i += 2
+            continue
+        if args[i].startswith("-"):
+            i += 1
+            continue
+        positional.append(args[i])
+        i += 1
+    return positional[0] if positional else "", force, quiet, pack_path
+
+
+def _run_harness_runner_with_timeout(
+    runner_mod: Any,
+    job_file: Path,
+    run_dir: Path,
+    wall_timeout: int,
+) -> None:
+    """Invoke harness runner with a wall-clock timeout."""
+    import threading
+
+    exc_holder: list[BaseException] = []
+
+    def _target() -> None:
+        try:
+            runner_mod.main(["--job", str(job_file), "--out", str(run_dir)])
+        except BaseException as exc:  # noqa: BLE001
+            exc_holder.append(exc)
+
+    thread = threading.Thread(target=_target, daemon=True)
+    thread.start()
+    thread.join(timeout=wall_timeout)
+    if thread.is_alive():
+        raise subprocess.TimeoutExpired(
+            ["harness-runner", str(job_file)], wall_timeout
+        )
+    if exc_holder:
+        raise exc_holder[0]
+
+
 def cmd_run(args: list[str]) -> int:
     """Execute one loop run.
 
-    Usage: loop run <loop-name> [--force] [--quiet]
-      --force  bypass max_runs_per_day budget gate
+    Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH]
+      --force  bypass max_runs_per_day only (does not bypass max_wall_seconds or max_tokens)
       --quiet  suppress live runner output and trace progress lines
+      --pack   apply loop overrides (enabled, cadence, budget) from pack YAML
     """
     global _PROGRESS_QUIET
 
     if not args:
-        err("Usage: loop run <loop-name> [--force] [--quiet]")
+        err("Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH]")
         return 1
 
-    _PROGRESS_QUIET = "--quiet" in args
-    force = "--force" in args
-    loop_name = next((a for a in args if not a.startswith("-")), "")
+    loop_name, force, quiet, pack_path = _parse_run_args(args)
+    _PROGRESS_QUIET = quiet
     if not loop_name:
-        err("Usage: loop run <loop-name> [--force] [--quiet]")
+        err("Usage: loop run <loop-name> [--force] [--quiet] [--pack PATH]")
         return 1
 
     loop_dir = resolve_loop_dir(loop_name)
@@ -935,9 +1031,40 @@ def cmd_run(args: list[str]) -> int:
         return 1
 
     meta = parse_loop_md(loop_dir)
+
+    if pack_path is not None:
+        from agent_toolkit.loop.pack import (
+            apply_loop_pack_overrides,
+            load_pack,
+            resolve_pack_path,
+        )
+
+        resolved = resolve_pack_path(pack_path, workspace_root())
+        if resolved is None:
+            err(f"Pack not found: {pack_path}")
+            return 1
+        pack_data = load_pack(resolved)
+        meta = apply_loop_pack_overrides(meta, pack_data, loop_name)
+        if meta.get("enabled") is False:
+            warn(f"Loop '{loop_name}' disabled in pack {resolved.name}. Skipping.")
+            return 0
+        log(f"Pack overrides loaded from {resolved}")
+
+    from agent_toolkit.loop.budget import (
+        max_tokens_limit,
+        soft_token_precheck,
+        token_budget_exceeded,
+        tokens_from_trace,
+        wall_timeout_seconds,
+    )
+
     tier = meta.get("tier", "L1")
     budget = meta.get("budget", {})
+    if not isinstance(budget, dict):
+        budget = {}
     max_runs = int(budget.get("max_runs_per_day", 10))
+    wall_timeout = wall_timeout_seconds(budget)
+    token_limit = max_tokens_limit(budget)
 
     # Load current state
     state_md = loop_dir / "STATE.md"
@@ -976,6 +1103,15 @@ def cmd_run(args: list[str]) -> int:
     if force and runs_today >= max_runs:
         warn(f"Budget gate bypassed via --force (runs_today={runs_today}, max={max_runs})")
 
+    precheck_msg = soft_token_precheck(state, budget)
+    if precheck_msg:
+        warn(f"Budget: {precheck_msg}")
+
+    log(
+        f"Budget: max_wall_seconds={wall_timeout}, "
+        f"max_tokens={token_limit if token_limit is not None else 'unset'}"
+    )
+
     # Create run directory
     rid = run_id()
     run_dir = loop_dir / "runs" / rid
@@ -1007,6 +1143,8 @@ def cmd_run(args: list[str]) -> int:
             "verifier": meta.get("verifier"),
             "agents_md_hash": agents_md_hash,
             "force": force,
+            "max_wall_seconds": wall_timeout,
+            "max_tokens": token_limit,
         }) + "\n",
         encoding="utf-8",
     )
@@ -1067,6 +1205,7 @@ def cmd_run(args: list[str]) -> int:
     # Dispatch: agent-toolkit → claude CLI → opencode → devcompanion queue → skeleton
     # Install the hard gate before any runner that can invoke `gh`.
     queued = False
+    budget_exhausted = False
     try:
         if runner_mod is not None:
             _install_gate_into_environ(run_dir, meta)
@@ -1084,17 +1223,39 @@ def cmd_run(args: list[str]) -> int:
                             "verifier": str(meta.get("verifier") or ""),
                             "run_dir": str(run_dir),
                         },
+                        "limits": {"timeout_sec": wall_timeout},
                     }),
                     encoding="utf-8",
                 )
-                runner_mod.main(["--job", str(job_file), "--out", str(run_dir)])
+                _run_harness_runner_with_timeout(
+                    runner_mod, job_file, run_dir, wall_timeout
+                )
+            except subprocess.TimeoutExpired:
+                budget_exhausted = True
+                warn(f"Run exceeded max_wall_seconds ({wall_timeout}s)")
             except Exception as e:
                 err(f"Runner error: {e}")
-        elif _try_claude_runner(prompt, run_dir, meta, trace_file=trace_file):
+        elif _try_claude_runner(
+            prompt,
+            run_dir,
+            meta,
+            trace_file=trace_file,
+            wall_timeout=wall_timeout,
+            max_tokens=token_limit,
+        ):
             pass  # claude runner handled it
-        elif _try_opencode_runner(prompt, run_dir, meta, trace_file=trace_file):
+        elif _try_opencode_runner(
+            prompt,
+            run_dir,
+            meta,
+            trace_file=trace_file,
+            wall_timeout=wall_timeout,
+            max_tokens=token_limit,
+        ):
             pass  # opencode runner handled it
-        elif _queue_via_devcompanion(prompt, run_dir, loop_name, rid, meta):
+        elif _queue_via_devcompanion(
+            prompt, run_dir, loop_name, rid, meta, wall_timeout=wall_timeout
+        ):
             queued = True  # queued for async devcompanion processing
             log("Loop dispatched to devcompanion queue — worker will process asynchronously.")
         else:
@@ -1129,14 +1290,39 @@ def cmd_run(args: list[str]) -> int:
         finalize_run(loop_dir, run_dir, rid, worktree_path, trace_file, "gate_failed")
         return 2
 
+    tokens_used = tokens_from_trace(trace_file)
+    if token_budget_exceeded(tokens_used, budget):
+        budget_exhausted = True
+        warn(
+            f"Run exceeded max_tokens ({token_limit:,}); "
+            f"recorded {tokens_used:,} in trace"
+        )
+
+    if budget_exhausted:
+        trace_file.write_text(
+            trace_file.read_text(encoding="utf-8")
+            + json.dumps({
+                "ts": utc_now(),
+                "kind": "budget_exhausted",
+                "tokens_used": tokens_used,
+                "max_wall_seconds": wall_timeout,
+                "max_tokens": token_limit,
+            }) + "\n",
+            encoding="utf-8",
+        )
+
     # Update state — preserve pending/escalations/notes the agent wrote (or prior)
-    run_status = "queued" if queued else "completed"
+    if budget_exhausted:
+        run_status = "partial (budget_exhausted)"
+    else:
+        run_status = "queued" if queued else "completed"
     post = parse_state_md(loop_dir) if state_md.exists() else {}
     new_state: dict[str, Any] = {
         "last_run": utc_now(),
         "last_run_status": run_status,
         "last_run_id": rid,
         "runs_today": runs_today + 1,
+        "last_run_tokens": tokens_used,
     }
     # Prefer agent-updated lists when present; otherwise keep prior
     for key in ("pending", "escalations", "notes"):
@@ -1179,8 +1365,15 @@ def cmd_run(args: list[str]) -> int:
             capture_output=True,
         )
 
-    finalize_run(loop_dir, run_dir, rid, worktree_path, trace_file, "completed")
-    return 0
+    finalize_run(
+        loop_dir,
+        run_dir,
+        rid,
+        worktree_path,
+        trace_file,
+        "budget_exhausted" if budget_exhausted else "completed",
+    )
+    return 1 if budget_exhausted else 0
 
 
 def finalize_run(
