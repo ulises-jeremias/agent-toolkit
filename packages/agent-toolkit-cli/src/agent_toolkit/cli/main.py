@@ -95,6 +95,9 @@ def main() -> None:
         case "insights":
             from agent_toolkit.cli.insights import cmd_insights
             sys.exit(cmd_insights(rest))
+        case "completion":
+            from agent_toolkit.cli.completion import cmd_completion
+            sys.exit(cmd_completion(rest))
         case _:
             print(f"Unknown command: {command}", file=sys.stderr)
             print("Run 'agent-toolkit help' for usage.", file=sys.stderr)
