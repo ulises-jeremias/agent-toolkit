@@ -218,3 +218,26 @@ def test_repo_all_products(repo_adapter, graph, product_id):
         pytest.skip(f"Product {product_id} not defined")
     result = repo_adapter.compile(graph, graph.products[product_id])
     assert result.errors == []
+
+
+def test_cli_manifest_includes_skill_agent_paths(cli_adapter, graph):
+    """Official Copilot CLI plugin.json references skills/ and agents/ directories."""
+    product = graph.products["agent-toolkit-core"]
+    cli_adapter.compile(graph, product)
+    data = json.loads(
+        (cli_adapter.output_root / "agent-toolkit-core" / "plugin.json").read_text()
+    )
+    assert data.get("skills") == "skills/"
+    assert data.get("agents") == "agents/"
+
+
+def test_cli_parity_notes_documented():
+    notes = CopilotCLIAdapter.parity_notes()
+    assert ".agent.md" in notes
+    assert "plugin.json" in notes
+
+
+def test_repo_parity_notes_document_copilot_instructions():
+    notes = CopilotRepositoryAdapter.parity_notes()
+    assert "copilot-instructions" in notes
+    assert ".github" in notes
