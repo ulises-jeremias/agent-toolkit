@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.1] — 2026-08-04
 
 ### Fixed
+
 - Publish agent-toolkit-cli to PyPI (release.yml was missing build + publish steps in v1.0.0)
 - SVG animations: replace CSS @keyframes with native SVG <animate> (GitHub strips CSS)
 - Banner SVG: fix text overlap between title and right panel (shift from x=575 to x=530)
@@ -26,16 +27,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.2] — 2026-08-04
 
 ### Fixed
+
 - release.yml now correctly builds wheel and publishes to PyPI
 
 ## [1.0.3] — 2026-08-04
 
 ### Fixed
+
 - release.yml YAML syntax fixed for GitHub Actions validator
 
 ## [1.0.4] — 2026-08-04
 
 ### Fixed
+
 - **Wheel install**: data files (profiles/, loops/, skills/, etc.) now packed inside
   the wheel at `agent_toolkit/data/` — works correctly with pip, uvx, and brew
 - `_paths.py`: resolve data from `importlib.resources` and direct package path
@@ -45,12 +49,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.5] — 2026-08-04
 
 ### Fixed
+
 - loop runner: resolve toolkit root from package data dir before CWD fallback,
   preventing it from picking up the user's ai-workspace loops when run via uvx/pip
 
 ## [1.0.6] — 2026-08-04
 
 ### Fixed
+
 - **CRITICAL**: Local `toolkit_root()` in cli/install.py, doctor.py, mcp.py, skills.py,
   plugin.py was defined *after* the import from `_paths.py`, shadowing it — so the
   correct resolution logic was never called in wheel/uvx installs
@@ -60,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.7] — 2026-08-04
 
 ### Fixed
+
 - `skills list`: now correctly parses YAML block scalars (>-, |-) in SKILL.md descriptions
   — all 52 skill descriptions now display properly instead of showing ">-"
 - `install` command: Copilot prompt no longer blocks in non-interactive/dry-run mode
@@ -69,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.8] — 2026-08-04
 
 ### Fixed
+
 - Copilot never auto-installed during `install` auto-detect — always requires `--tools copilot` (it needs a project path)
 - CI integration tests: use relative file paths instead of /tmp (cross-platform)
 - CI integration tests: fix Windows runner compatibility
@@ -76,17 +84,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.9] — 2026-08-04
 
 ### Fixed
+
 - Windows compatibility: `os.getuid()` doesn't exist on Windows — wrapped in try/except
   so `agent-toolkit doctor` no longer crashes on Windows runners
 
 ## [1.0.10] — 2026-08-04
 
 ### Fixed
+
 - `loop run` now works from pip/uvx installs — `loop-gh-gate` (the gh CLI
   security shim) is now included in the wheel at `agent_toolkit/loop/loop-gh-gate`
 - Windows compatibility: `os.getuid()` wrapped in try/except AttributeError
 
 ### Added
+
 - uv workspace structure: `packages/agent-toolkit-cli/` — ready for future packages
   (`agent-toolkit-server`, `agent-toolkit-mcp`, etc.)
 - Root `pyproject.toml` with `[tool.uv.workspace]` and shared dev tooling
@@ -138,6 +149,7 @@ agent-toolkit is now a complete workspace toolkit. Every capability from
 agent-toolkit CLI reference and session-start protocol
 
 ### Changed
+
 - agentic-harness: bin/workspace-context and bin/assistant-memory are now
   thin wrappers that delegate to agent-toolkit CLI
 
@@ -188,6 +200,7 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 - `docs/security/` — threat model
 
 ### Security
+
 - Removed `skipDangerousModePermissionPrompt` from Claude Code profile
 - Replaced private LAN URLs in OpenCode profile with portable defaults
 - Updated schema `$id` to remove stale agentic-workstation references
@@ -206,11 +219,13 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 ## [1.2.2] — 2026-08-05
 
 ### Changed
+
 - Publish an elevated `packages/agent-toolkit-cli/README.md` to PyPI (parity with the monorepo root README: install, CLI surfaces, tool matrix, ecosystem)
 
 ## [1.2.1] — 2026-08-05
 
 ### Fixed
+
 - `loop status` falls back to bundled templates when no workspace instances exist (uvx/pip installs)
 - Release CI: `uv sync --package agent-toolkit-cli --extra all` and current SBOM action pins
 
