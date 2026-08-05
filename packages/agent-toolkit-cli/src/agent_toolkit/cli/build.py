@@ -126,6 +126,8 @@ def cmd_build(args: list[str]) -> int:
                 result = adapter.check(graph, product)
             else:
                 result = adapter.compile(graph, product)
+                if hasattr(adapter, "_cleanup_stale_artifacts"):
+                    adapter._cleanup_stale_artifacts(product, result)
 
             all_results.append(result)
             print(result.report())
