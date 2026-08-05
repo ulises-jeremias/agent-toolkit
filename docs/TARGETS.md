@@ -50,7 +50,7 @@ Per-target certification packages document official contracts vs adapter behavio
 
 | Target | Certification doc |
 |--------|-------------------|
-| Claude Code | [`docs/targets/claude-code-certification.md`](targets/claude-code-certification.md) |
+| Cursor IDE/CLI | [`docs/targets/cursor-certification.md`](targets/cursor-certification.md) |
 
 ## Research sources
 
