@@ -140,6 +140,79 @@ def _list_projects() -> list[tuple[str, Path | None]]:
     return result
 
 
+# ── gh gate (reuse loop runner shim) ─────────────────────────────────────────
+
+_MUTATING_DC_TEMPLATES = frozenset({
+    "create-pr",
+    "fix-ci",
+    "refactor",
+    "implement",
+    "investigate",
+})
+
+
+def _gate_script_path() -> Path:
+    return Path(__file__).resolve().parent.parent / "loop" / "loop-gh-gate"
+
+
+def _job_is_mutating(job: dict) -> bool:
+    template = str(job.get("template") or "")
+    if template in _MUTATING_DC_TEMPLATES:
+        return True
+    actions = job.get("actions_allowed") or []
+    return bool(actions) and actions != ["plan_only"]
+
+
+def _install_dc_gate(job: dict, out_dir: Path) -> dict[str, str]:
+    """Install loop-gh-gate PATH shim for devcompanion LLM runners."""
+    from agent_toolkit.loop.gh_gate import install_gh_shim
+
+    gate_script = _gate_script_path()
+    if not gate_script.is_file():
+        raise RuntimeError(f"loop-gh-gate missing at {gate_script} — refusing ungated run")
+
+    gate = job.get("loop_gate") or {}
+    tier = str(gate.get("tier", "L1"))
+    allow = list(gate.get("allowlist") or [])
+    deny = list(gate.get("deny") or [])
+    verifier = str(gate.get("verifier") or "")
+    run_dir = gate.get("run_dir")
+    gate_run_dir = Path(run_dir) if run_dir else out_dir
+
+    env = install_gh_shim(
+        gate_run_dir,
+        tier=tier,
+        allowlist=allow,
+        deny=deny,
+        verifier=verifier,
+        gate_script=gate_script,
+    )
+    _log(
+        f"Hard gate active: gh shim → tier={tier} "
+        f"allow=[{', '.join(allow) or '∅'}]"
+    )
+    return env
+
+
+def _runner_env_for_job(job: dict, out_dir: Path) -> dict[str, str]:
+    """Return subprocess env with gh gate installed; fail closed for mutating jobs."""
+    base = os.environ.copy()
+    try:
+        gate_env = _install_dc_gate(job, out_dir)
+    except RuntimeError as exc:
+        if _job_is_mutating(job):
+            raise RuntimeError(
+                f"mutating devcompanion job requires gh gate: {exc}"
+            ) from exc
+        _warn(f"gh gate not installed ({exc}); proceeding without gate")
+        return base
+    merged = base.copy()
+    for key, value in gate_env.items():
+        if key.startswith("LOOP_GATE_") or key == "PATH":
+            merged[key] = value
+    return merged
+
+
 # ── template loading ──────────────────────────────────────────────────────────
 
 class TemplateNotFoundError(FileNotFoundError):
@@ -321,16 +394,26 @@ def _try_claude_runner(job: dict, out_dir: Path) -> bool:
     )
 
     try:
+        env = _runner_env_for_job(job, out_dir)
+    except RuntimeError as exc:
+        _err(str(exc))
+        return False
+
+    limits = job.get("limits") or {}
+    timeout = int(limits.get("timeout_sec", 1800))
+
+    try:
         result = subprocess.run(
             [claude_bin, "--print", "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
             input=prompt,
             capture_output=True,
             text=True,
             cwd=str(_workspace()),
-            timeout=1800,
+            timeout=timeout,
+            env=env,
         )
     except subprocess.TimeoutExpired:
-        _warn("claude runner timed out (1800s)")
+        _warn(f"claude runner timed out ({timeout}s)")
         return False
 
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -359,6 +442,16 @@ def _try_opencode_runner(job: dict, out_dir: Path) -> bool:
         f"Write your final report to {out_dir}/report.md and your plan to "
         f"{out_dir}/plan.md. Work from the workspace root shown above."
     )
+
+    try:
+        env = _runner_env_for_job(job, out_dir)
+    except RuntimeError as exc:
+        _err(str(exc))
+        return False
+
+    limits = job.get("limits") or {}
+    timeout = int(limits.get("timeout_sec", 900))
+
     try:
         result = subprocess.run(
             [opencode_bin, "run", "--print-logs"],
@@ -366,10 +459,11 @@ def _try_opencode_runner(job: dict, out_dir: Path) -> bool:
             capture_output=True,
             text=True,
             cwd=str(_workspace()),
-            timeout=900,
+            timeout=timeout,
+            env=env,
         )
     except subprocess.TimeoutExpired:
-        _warn("opencode runner timed out (900s)")
+        _warn(f"opencode runner timed out ({timeout}s)")
         return False
 
     if result.returncode == 0:
@@ -429,6 +523,13 @@ def _dispatch_run(cfg: DCConfig, job_file: Path, job: dict, out_dir: Path, no_ll
     if no_llm:
         _log("--no-llm flag set, using skeleton runner.")
         return _skeleton_run(job, out_dir)
+
+    if _job_is_mutating(job) and not shutil.which("gh"):
+        _err(
+            "Mutating devcompanion job requires `gh` on PATH for loop-gh-gate "
+            f"(template={job.get('template') or 'custom'})"
+        )
+        return 2
 
     if cfg.harness_mode:
         runner, reason = _import_harness_runner()
