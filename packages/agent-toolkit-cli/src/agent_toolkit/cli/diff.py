@@ -69,27 +69,7 @@ def cmd_diff(args: list[str]) -> int:
         return 1
 
     plugins_dir = repo_root / "plugins"
-    from agent_toolkit.compiler.target_registry import (
-        load_target_registry,
-        resolve_target_id,
-        target_ids_for,
-    )
-
-    reg = load_target_registry(repo_root)
-    if parsed.target:
-        canonical = resolve_target_id(parsed.target, reg)
-        diff_ids = target_ids_for("diff", reg)
-        if canonical not in diff_ids:
-            available = ", ".join(diff_ids)
-            print(
-                f"  ✗  Unknown or unsupported diff target '{parsed.target}'. "
-                f"Available: {available}",
-                file=sys.stderr,
-            )
-            return 1
-        targets = [canonical]
-    else:
-        targets = target_ids_for("diff", reg)
+    targets = [parsed.target] if parsed.target else ["claude-code", "cursor", "opencode"]
     products_to_diff = (
         [graph.products[parsed.product]] if parsed.product and parsed.product in graph.products
         else list(graph.products.values())
@@ -150,18 +130,17 @@ def cmd_diff(args: list[str]) -> int:
             }
             results.append(entry)
 
+    any_changes = any(not entry["no_changes"] for entry in results)
+
     if parsed.json_out:
         print(json.dumps(results, indent=2))
-        any_changes = any(not e["no_changes"] for e in results)
         return 1 if any_changes else 0
 
-    any_changes = False
     for entry in results:
         header = f"~ {entry['product']} → {entry['target']}"
         if entry["no_changes"]:
             print(f"  ✓  {header}: no changes")
             continue
-        any_changes = True
         print(f"\n  {header}:")
         for f in entry["changes"]["added"]:
             print(f"    + {f}")
@@ -174,8 +153,13 @@ def cmd_diff(args: list[str]) -> int:
 
 
 def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
-    from agent_toolkit.compiler.target_registry import resolve_adapter_class
-    cls = resolve_adapter_class(target_id, repo_root)
-    if cls is None:
-        return None
-    return cls(output_dir, repo_root)
+    if target_id == "claude-code":
+        from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
+        return ClaudeCodeAdapter(output_dir, repo_root)
+    if target_id == "cursor":
+        from agent_toolkit.compiler.targets.cursor import CursorAdapter
+        return CursorAdapter(output_dir, repo_root)
+    if target_id == "opencode":
+        from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
+        return OpenCodeAdapter(output_dir, repo_root)
+    return None

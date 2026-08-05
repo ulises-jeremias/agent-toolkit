@@ -475,7 +475,14 @@ def cmd_doctor(args: list[str]) -> int:
             if not json_output:
                 print("── Auto-fix: running install ──")
             from agent_toolkit.cli.install import cmd_install
-            cmd_install([])
+            if json_output:
+                import io
+                import contextlib
+                # Keep stdout JSON-pure: swallow install chatter.
+                with contextlib.redirect_stdout(io.StringIO()):
+                    cmd_install([])
+            else:
+                cmd_install([])
 
     errors = [r for r in all_results if r.status == CheckResult.STATUS_ERR]
     return 1 if errors else 0
