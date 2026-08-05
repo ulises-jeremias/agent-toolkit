@@ -1,3 +1,48 @@
 # MCP Provider: clickup
-# Research: docs/research/platform-capability-matrix.md (2026-08-04)
+# Research: docs/wiki/MCP-Setup.md · mcp/templates/clickup/
 id: clickup
+display_name: ClickUp
+purpose: View and create tasks, manage lists and spaces, add comments, read and write Docs
+implementation:
+  provenance: community
+  package: mcp-clickup-server
+  repository: https://github.com/nazruden/clickup-mcp-server
+  license: MIT
+  version_policy: pin to minor
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [bearer-env]
+  preferred: bearer-env
+  env: [CLICKUP_API_TOKEN]
+tools:
+  read:
+    - get_task
+    - get_list
+    - get_space
+    - get_doc
+  write:
+    - create_task
+    - update_task
+    - create_comment
+  destructive:
+    - delete_task
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 5000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [api.clickup.com, app.clickup.com]
+  secret_storage: environment variable
+  notes: Prefer clickup-cli skill for day-to-day task ops; MCP for agent tool use

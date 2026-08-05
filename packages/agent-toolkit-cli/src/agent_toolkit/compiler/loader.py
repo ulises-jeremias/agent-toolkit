@@ -20,21 +20,32 @@ except ImportError:
     _YAML = False
 
 
-def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str]:
-    """Parse YAML frontmatter from a Markdown file. Returns (frontmatter, body)."""
+def _parse_frontmatter(text: str) -> tuple[dict[str, Any], str, str | None]:
+    """Parse YAML frontmatter from a Markdown file.
+
+    Returns (frontmatter, body, error). On YAML parse failure, frontmatter is
+    empty and error describes the failure (fail-closed — callers must not treat
+    the file as valid metadata).
+    """
     m = re.match(r"^---[ \t]*\n(.*?)\n---[ \t]*\n?(.*)", text, re.DOTALL)
     if not m:
-        return {}, text
+        return {}, text, None
     fm_text = m.group(1)
     body = m.group(2)
     if _YAML:
         try:
-            fm = yaml.safe_load(fm_text) or {}
-        except Exception:
-            fm = {}
+            loaded = yaml.safe_load(fm_text)
+        except Exception as exc:
+            return {}, body, f"invalid YAML frontmatter: {exc}"
+        if loaded is None:
+            fm: dict[str, Any] = {}
+        elif not isinstance(loaded, dict):
+            return {}, body, f"frontmatter must be a mapping, got {type(loaded).__name__}"
+        else:
+            fm = loaded
     else:
         fm = _simple_yaml(fm_text)
-    return fm, body
+    return fm, body, None
 
 
 def _simple_yaml(text: str) -> dict[str, Any]:
@@ -58,7 +69,10 @@ def load_skills(skills_root: Path) -> tuple[dict[str, Skill], list[str]]:
         skill_name = skill_md.parent.name
         skill_id = f"{domain}/{skill_name}"
 
-        fm, _body = _parse_frontmatter(skill_md.read_text(errors="replace"))
+        fm, _body, fm_err = _parse_frontmatter(skill_md.read_text(errors="replace"))
+        if fm_err:
+            errors.append(f"{skill_md}: {fm_err}")
+            continue
 
         declared_name = fm.get("name", "")
         if declared_name and declared_name != skill_name:
@@ -106,7 +120,10 @@ def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
 
     for agent_md in sorted(agents_root.rglob("AGENT.md")):
         agent_name = agent_md.parent.name
-        fm, body = _parse_frontmatter(agent_md.read_text(errors="replace"))
+        fm, body, fm_err = _parse_frontmatter(agent_md.read_text(errors="replace"))
+        if fm_err:
+            errors.append(f"{agent_md}: {fm_err}")
+            continue
 
         declared_name = fm.get("name", "")
         if declared_name and declared_name != agent_name:

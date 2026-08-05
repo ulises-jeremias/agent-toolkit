@@ -289,10 +289,9 @@ The script prints the exact file and field that failed. Common causes and fixes:
 | Error | Fix |
 |-------|-----|
 | Missing `SKILL.md` | Add `SKILL.md` to the skill directory |
-| Missing `skill.json` | Add `skill.json` to the skill directory |
 | Missing frontmatter `name` | Add `name:` to the `---` block in `SKILL.md` |
 | Missing frontmatter `description` | Add `description:` to the `---` block |
-| Missing `version` in skill.json | Add `"version": "1.0.0"` to `skill.json` |
+| `skill.json` present | Remove it — only `SKILL.md` frontmatter is needed (see `docs/MIGRATION.md`) |
 | Secret pattern detected | Remove the credential and use `${ENV_VAR}` placeholder instead |
 
 ---

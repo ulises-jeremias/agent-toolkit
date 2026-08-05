@@ -367,7 +367,6 @@ This avoids divergence between tool-specific instruction files. The install scri
 
 1. Create `profiles/<new-tool>/` directory
 2. Add tool-specific config files using that tool's native format
-3. Add the tool to the compatibility matrix in each skill's `skill.json`
-4. Document the install path in this file and in `INSTALLATION.md`
-5. Add detection and copy logic to `scripts/install.sh`
-6. Open a PR with the new profile
+3. Document the install path in this file and in `INSTALLATION.md`
+4. Add detection and copy logic to `scripts/install.sh`
+5. Open a PR with the new profile

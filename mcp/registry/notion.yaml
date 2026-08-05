@@ -1,3 +1,48 @@
 # MCP Provider: notion
-# Research: docs/research/platform-capability-matrix.md (2026-08-04)
+# Research: docs/wiki/MCP-Setup.md · mcp/templates/notion/
 id: notion
+display_name: Notion
+purpose: Read and write Notion pages and databases, query blocks, and create content
+implementation:
+  provenance: community
+  package: mcp-notion-server
+  repository: https://github.com/suekou/mcp-notion-server
+  license: MIT
+  version_policy: pin to minor
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [bearer-env]
+  preferred: bearer-env
+  env: [NOTION_API_TOKEN]
+tools:
+  read:
+    - notion_retrieve_page
+    - notion_retrieve_database
+    - notion_query_database
+    - notion_retrieve_block_children
+  write:
+    - notion_create_page
+    - notion_update_page
+    - notion_append_block_children
+  destructive:
+    - notion_delete_block
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 5000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [api.notion.com]
+  secret_storage: environment variable
+  notes: Integration can only access pages/databases explicitly shared with it

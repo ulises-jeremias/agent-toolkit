@@ -76,10 +76,9 @@ Precedence (highest to lowest): Project overlay > agent-toolkit defaults > tool 
 
 ### Skills
 
-A skill is a self-contained capability definition that tells an AI tool what to do in a specific situation. Every skill is a directory containing exactly two files:
+A skill is a self-contained capability definition that tells an AI tool what to do in a specific situation. Every skill is a directory containing a single `SKILL.md` file — the human-readable (and AI-readable) prompt body, written in Markdown with YAML frontmatter declaring `name`, `description`, `tools`, `triggers`, and `requires`.
 
-- `SKILL.md` — the human-readable (and AI-readable) prompt body, written in Markdown with YAML frontmatter declaring `name`, `description`, `tools`, `triggers`, and `requires`
-- `skill.json` — the machine-readable manifest declaring `name`, `version`, `description`, `source`, and `compatibility` for each supported AI tool
+No `skill.json` is required. Skills follow the [Agent Skills spec](https://github.com/vercel-labs/skills) (`SKILL.md` frontmatter only). See `docs/MIGRATION.md` for notes on retiring legacy `skill.json` files.
 
 Skills are portable: the same skill directory can be referenced by Claude Code, Cursor, OpenCode, Windsurf, GitHub Copilot, and Pi Coding Agent. Each tool reads the file format it understands.
 
