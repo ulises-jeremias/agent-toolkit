@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
-"""Regenerate catalogs/{skill,agent,loop}-catalog.yaml from the filesystem (#78)."""
+"""Regenerate catalogs/{skill,agent,loop}-catalog.yaml from the filesystem (#78).
+
+Usage:
+    python3 scripts/generate-catalogs.py          # write catalogs/
+    python3 scripts/generate-catalogs.py --check  # fail if catalogs would change (CI)
+"""
 from __future__ import annotations
 
+import argparse
 import re
 import sys
 from pathlib import Path
@@ -41,7 +47,7 @@ def gen_skills() -> dict:
 
 def gen_agents() -> dict:
     agents = []
-    for agent_md in sorted((ROOT / "agents").rglob("AGENT.md")):
+    for agent_md in sorted((ROOT / "agents").glob("*/AGENT.md")):
         name = agent_md.parent.name
         fm = _fm(agent_md.read_text(errors="replace"))
         agents.append({
@@ -55,10 +61,11 @@ def gen_agents() -> dict:
 def gen_loops() -> dict:
     loops = []
     for loop_yaml in sorted((ROOT / "loops").glob("*/loop.yaml")):
-        data = yaml.safe_load(loop_yaml.read_text()) or {}
+        data = yaml.safe_load(loop_yaml.read_text(encoding="utf-8")) or {}
+        loop_name = data.get("name", loop_yaml.parent.name)
         loops.append({
-            "id": data.get("id", loop_yaml.parent.name),
-            "name": data.get("name", loop_yaml.parent.name),
+            "id": loop_name,
+            "name": loop_name,
             "tier": data.get("tier"),
             "cadence": data.get("cadence") or data.get("schedule"),
             "description": str(data.get("description", ""))[:200],
@@ -66,18 +73,46 @@ def gen_loops() -> dict:
     return {"version": 1, "generated": True, "count": len(loops), "loops": loops}
 
 
-def main() -> int:
-    out = ROOT / "catalogs"
-    out.mkdir(exist_ok=True)
-    mapping = {
+def _render(data: dict) -> str:
+    return yaml.safe_dump(data, sort_keys=False, allow_unicode=True)
+
+
+def _catalogs() -> dict[str, dict]:
+    return {
         "skill-catalog.yaml": gen_skills(),
         "agent-catalog.yaml": gen_agents(),
         "loop-catalog.yaml": gen_loops(),
     }
-    for name, data in mapping.items():
-        path = out / name
-        path.write_text(yaml.safe_dump(data, sort_keys=False, allow_unicode=True))
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Exit non-zero if on-disk catalogs differ from generated output",
+    )
+    args = parser.parse_args()
+
+    out_dir = ROOT / "catalogs"
+    out_dir.mkdir(exist_ok=True)
+    drift = False
+
+    for name, data in _catalogs().items():
+        path = out_dir / name
+        rendered = _render(data)
+        if args.check:
+            if not path.is_file() or path.read_text(encoding="utf-8") != rendered:
+                print(f"  DRIFT: {path} is out of date — run: python3 scripts/generate-catalogs.py")
+                drift = True
+            else:
+                print(f"  OK: {path} ({data['count']} entries)")
+            continue
+        path.write_text(rendered, encoding="utf-8")
         print(f"wrote {path} ({data['count']} entries)")
+
+    if args.check and drift:
+        return 1
     return 0
 
 

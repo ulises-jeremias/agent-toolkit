@@ -92,6 +92,19 @@ jobs:
       - name: Assert plugin surfaces are in sync with canonical sources
         run: python3 scripts/gen-surfaces.py --check
 
+  # ── Job 4b: Catalog drift check ───────────────────────────────────────────
+  check-catalogs:
+    name: Check Catalog Sync
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install PyYAML
+        run: pip install pyyaml==6.0.2
+
+      - name: Assert catalogs match skills/agents/loops filesystem
+        run: python3 scripts/generate-catalogs.py --check
+
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
     name: Validate Loop Templates

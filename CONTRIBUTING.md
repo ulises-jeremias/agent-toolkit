@@ -195,6 +195,14 @@ Profiles translate toolkit skills into tool-specific configuration.
 | `chore/` | Maintenance: dependency update, script fix, catalog regeneration |
 | `schema/` | Changes to JSON schemas |
 
+After adding or removing skills, agents, or loop templates, regenerate catalogs:
+
+```bash
+python3 scripts/generate-catalogs.py
+```
+
+CI runs `python3 scripts/generate-catalogs.py --check` — commit catalog updates with your change.
+
 Examples:
 
 ```
@@ -213,7 +221,7 @@ Before submitting a PR, confirm the following:
 - [ ] Branch name follows the naming convention above
 - [ ] `bash scripts/validate-skills.sh` passes with exit 0
 - [ ] `bash scripts/validate-loops.sh` passes with exit 0 (if you added/modified loops)
-- [ ] `bash scripts/build-catalog.sh` was run and catalog changes are included in the commit
+- [ ] `python3 scripts/generate-catalogs.py --check` passes (if you added/removed skills, agents, or loops)
 - [ ] `SKILL.md` frontmatter is complete (name, description, author, version, tags, domain)
 - [ ] `skill.json` compatibility matrix is accurate — only mark `true` for tools you have verified
 - [ ] No secrets, API keys, or credentials in any file
