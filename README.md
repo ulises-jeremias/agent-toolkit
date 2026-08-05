@@ -289,9 +289,9 @@ Packs bundle skills, agents, and loops for a specific team context. Load a pack 
 
 | Pack | Description |
 |------|-------------|
-| `oss-ecosystem` | Full OSS maintainer setup: triage, PR monitor, briefings, contributor digest |
-| `startup-delivery` | Fast delivery focus: code review, CI fix, PR automation, security sweep |
-| `enterprise-ops` | Governance-heavy: incident response, security review, codeowner workflows |
+| `oss-maintenance` | OSS maintainer automation: PR monitor, triage, daily briefings |
+| `engineering-workflow` | End-to-end delivery: planning → implementation → review *(draft)* |
+| `delivery-discipline` | Ticket hygiene, traceability, process compliance *(draft)* |
 
 Browse packs: [`packs/`](packs/)
 
@@ -301,14 +301,14 @@ Browse packs: [`packs/`](packs/)
 
 | Guide | Description |
 |-------|-------------|
-| [🚀 Installation](docs/INSTALLATION.md) | Primary consumer install flow (`uvx` / CLI) |
+| [📦 Concepts](docs/CONCEPTS.md) | Products, plugins, profiles, packs — one mental model |
 | [🔄 Migration](docs/MIGRATION.md) | Switch install methods without duplicate profiles |
 | [🗑️ Uninstall](docs/UNINSTALL.md) | Remove toolkit artifacts from your machine |
 | [🛡️ Trust & security](docs/TRUST.md) | What gets installed, verification, receipts |
 | [🔨 How to add a skill](docs/HOW_TO_ADD_SKILL.md) | Create a new skill with SKILL.md frontmatter |
 | [🤖 How to add an agent](docs/HOW_TO_ADD_AGENT.md) | Define a new agent persona |
 | [🔄 How to create a loop](docs/HOW_TO_CREATE_LOOP.md) | Build a recurring agentic workflow |
-| [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-ecosystem pack |
+| [🌐 OSS Maintenance example](examples/oss-maintenance/) | Full walkthrough of the oss-maintenance pack |
 | [🚀 Project onboarding example](examples/project-onboarding/) | Bootstrap a new project with agent-toolkit |
 
 ---
