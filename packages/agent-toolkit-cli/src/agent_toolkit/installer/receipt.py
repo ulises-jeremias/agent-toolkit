@@ -68,4 +68,5 @@ class InstallReceipt:
                 source_digest=data.get("sourceDigest", ""))
         for a in data.get("artifacts", []):
             r.artifacts.append(ArtifactEntry(a["path"], a["digest"], a["ownership"]))
+        r.config_patches = list(data.get("configPatches", []))
         return r

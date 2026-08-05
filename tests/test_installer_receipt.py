@@ -38,6 +38,16 @@ def test_receipt_valid_json(tmp_path):
     assert data["secrets"] == []
 
 
+def test_receipt_load_preserves_config_patches(tmp_path):
+    r = InstallReceipt.create("agent-toolkit-core", "opencode", "project", "1.0.0", "abc")
+    r.config_patches = [{"op": "add", "path": "/toolkit", "value": True}]
+    r.save(tmp_path)
+
+    loaded = InstallReceipt.load("opencode", "agent-toolkit-core", tmp_path)
+    assert loaded is not None
+    assert loaded.config_patches == [{"op": "add", "path": "/toolkit", "value": True}]
+
+
 def test_receipt_missing_returns_none(tmp_path):
     result = InstallReceipt.load("nonexistent", "product", tmp_path)
     assert result is None
