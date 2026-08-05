@@ -95,6 +95,7 @@ class Agent:
     max_turns: int = 0               # 0 = platform default
     allowed_tools: list[AbstractTool] = field(default_factory=list)
     denied_tools: list[AbstractTool] = field(default_factory=list)
+    delegates_to: list[str] = field(default_factory=list)
     read_only: bool = False
     background_eligible: bool = False
     dependent_skills: list[str] = field(default_factory=list)
@@ -114,8 +115,6 @@ class Product:
     stability: Stability = Stability.STABLE
     included_skills: list[str] = field(default_factory=list)   # skill IDs
     included_agents: list[str] = field(default_factory=list)   # agent IDs
-    included_hooks: list[str] = field(default_factory=list)    # hook IDs
-    included_mcp: list[str] = field(default_factory=list)      # MCP provider IDs
     excluded: list[str] = field(default_factory=list)
     requires: list[Requirement] = field(default_factory=list)
     security: SecurityPolicy = field(default_factory=SecurityPolicy)
