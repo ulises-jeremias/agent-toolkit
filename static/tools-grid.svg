@@ -121,7 +121,7 @@
   <line x1="160" y1="30" x2="296" y2="30" stroke="#00d4ff" stroke-width="0.5" opacity="0.3"/>
 
   <text x="228" y="50" font-family="'Courier New', monospace" font-size="15" font-weight="bold" fill="#00d4ff" text-anchor="middle" filter="url(#text-glow)">CURSOR</text>
-  <text x="228" y="63" font-family="'Courier New', monospace" font-size="8" fill="#003a4a" text-anchor="middle" letter-spacing="2">IDE + AGENT MODE</text>
+  <text x="228" y="63" font-family="'Courier New', monospace" font-size="8" fill="#003a4a" text-anchor="middle" letter-spacing="2">PLUGIN + IDE + CLI</text>
 
   <line x1="168" y1="74" x2="290" y2="74" stroke="#00d4ff" stroke-width="0.5" opacity="0.2"/>
   <text x="172" y="88" font-family="'Courier New', monospace" font-size="9" fill="#00d4ff" filter="url(#text-glow)">● SUPPORTED
@@ -156,8 +156,8 @@
   <rect x="312" y="96" width="132" height="60" rx="2" fill="#140603" stroke="#3a1a08" stroke-width="1"/>
   <text x="316" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
   <text x="316" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#ff6b35">copy agents/*.md</text>
-  <text x="316" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#ff9966">→ .opencode/</text>
-  <text x="316" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">agents/</text>
+  <text x="316" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#ff9966">→ ~/.config/</text>
+  <text x="316" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">opencode/</text>
 
   <line x1="318" y1="164" x2="440" y2="164" stroke="#ff6b35" stroke-width="0.5" opacity="0.2"/>
   <text x="322" y="176" font-family="'Courier New', monospace" font-size="8" fill="#4a2a1a">AGENTS SKILLS MCP</text>
@@ -205,9 +205,9 @@
 
   <rect x="612" y="96" width="132" height="60" rx="2" fill="#020814" stroke="#001a38" stroke-width="1"/>
   <text x="616" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
-  <text x="616" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#0080ff">copy rules/*.mdc</text>
-  <text x="616" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#4499ff">→ .windsurf/</text>
-  <text x="616" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">rules/</text>
+  <text x="616" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#0080ff">copy rules + memory</text>
+  <text x="616" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#4499ff">→ ~/.codeium/</text>
+  <text x="616" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">windsurf/</text>
 
   <line x1="618" y1="164" x2="740" y2="164" stroke="#0080ff" stroke-width="0.5" opacity="0.2"/>
   <text x="622" y="176" font-family="'Courier New', monospace" font-size="8" fill="#001a3a">RULES  CASCADE MCP</text>
@@ -231,8 +231,8 @@
   <rect x="762" y="96" width="126" height="60" rx="2" fill="#130210" stroke="#3a0038" stroke-width="1"/>
   <text x="766" y="108" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">$ install</text>
   <text x="766" y="122" font-family="'Courier New', monospace" font-size="7.5" fill="#ff00aa">copy skills/*.md</text>
-  <text x="766" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#ff66cc">→ ~/.pi/skills/</text>
-  <text x="766" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">+ loops/</text>
+  <text x="766" y="136" font-family="'Courier New', monospace" font-size="7.5" fill="#ff66cc">→ ~/.pi/agent/</text>
+  <text x="766" y="150" font-family="'Courier New', monospace" font-size="7" fill="#4a4a8a">skills/ + loops</text>
 
   <line x1="768" y1="164" x2="888" y2="164" stroke="#ff00aa" stroke-width="0.5" opacity="0.2"/>
   <text x="772" y="176" font-family="'Courier New', monospace" font-size="8" fill="#4a003a">SKILLS LOOPS  MCP</text>

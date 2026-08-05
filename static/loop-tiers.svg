@@ -189,7 +189,7 @@
   <text x="30" y="165" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
   <text x="42" y="165" font-family="'Courier New', monospace" font-size="9" fill="#00aa66">oss-daily-briefing</text>
   <text x="30" y="180" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
-  <text x="42" y="180" font-family="'Courier New', monospace" font-size="9" fill="#00aa66">pr-health-monitor</text>
+  <text x="42" y="180" font-family="'Courier New', monospace" font-size="9" fill="#00aa66">daily-triage</text>
   <text x="30" y="195" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
   <text x="42" y="195" font-family="'Courier New', monospace" font-size="9" fill="#00aa66">oss-triage</text>
 
@@ -208,11 +208,11 @@
   <line x1="292" y1="150" x2="508" y2="150" stroke="#ff6b35" stroke-width="0.5" opacity="0.3"/>
 
   <text x="298" y="165" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
-  <text x="310" y="165" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">dep-update-pr</text>
+  <text x="310" y="165" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">ci-sweeper</text>
   <text x="298" y="180" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
-  <text x="310" y="180" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">oss-pr-monitor</text>
+  <text x="310" y="180" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">dep-sweeper</text>
   <text x="298" y="195" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
-  <text x="310" y="195" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">issue-labeler</text>
+  <text x="310" y="195" font-family="'Courier New', monospace" font-size="9" fill="#cc5520">pr-babysitter</text>
 
   <!-- Caution badge -->
   <rect x="298" y="216" width="204" height="14" rx="2" fill="#3a1a00" stroke="#ff6b35" stroke-width="1"/>
@@ -229,11 +229,11 @@
   <line x1="560" y1="150" x2="776" y2="150" stroke="#ff2244" stroke-width="0.5" opacity="0.3"/>
 
   <text x="566" y="165" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
-  <text x="578" y="165" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">auto-merge-green</text>
+  <text x="578" y="165" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">oss-pr-monitor</text>
   <text x="566" y="180" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
-  <text x="578" y="180" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">repo-house-keeper</text>
+  <text x="578" y="180" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">(+ custom L3 loops)</text>
   <text x="566" y="195" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a">►</text>
-  <text x="578" y="195" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">release-publisher</text>
+  <text x="578" y="195" font-family="'Courier New', monospace" font-size="9" fill="#cc1133">merge/close allowlist</text>
 
   <!-- Danger badge -->
   <rect x="566" y="216" width="204" height="14" rx="2" fill="#3a0210" stroke="#ff2244" stroke-width="1"/>

@@ -176,7 +176,7 @@
   <text x="465" y="215" font-family="'Courier New', monospace" font-size="9" fill="#00ff88" text-anchor="middle" font-weight="bold" filter="url(#glow-green)">◈  THIS REPO  ◈</text>
 
   <text x="42" y="241" font-family="'Courier New', monospace" font-size="20" font-weight="bold" fill="#00ff88" filter="url(#glow-green)">agent-toolkit</text>
-  <text x="42" y="261" font-family="'Courier New', monospace" font-size="11" fill="#00aa66">pip install agent-toolkit  ·  brew install agent-toolkit  ·  docker pull</text>
+  <text x="42" y="261" font-family="'Courier New', monospace" font-size="11" fill="#00aa66">uvx --from agent-toolkit-cli  ·  uv tool install  ·  brew / AUR</text>
 
   <!-- Component chips -->
   <rect x="42" y="272" width="68" height="22" rx="3" fill="#003a20" stroke="#00ff88" stroke-width="1"/>
@@ -206,7 +206,7 @@
   <polygon points="334,340 340,352 346,340" fill="#4a4a8a" opacity="0.6"/>
 
   <rect x="350" y="320" width="80" height="14" rx="2" fill="#080818" stroke="#0a0a2a" stroke-width="1"/>
-  <text x="390" y="330" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a" text-anchor="middle">deploys to ↓</text>
+  <text x="390" y="330" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a" text-anchor="middle">consumed by ↓</text>
 
   <!-- ══════════════════════════════════════ -->
   <!-- ── L3 Layer ── -->
@@ -223,11 +223,11 @@
   <rect x="28" y="363" width="32" height="14" rx="2" fill="#0a0820" stroke="#1a1040" stroke-width="1"/>
   <text x="44" y="374" font-family="'Courier New', monospace" font-size="8" fill="#4a4a8a" text-anchor="middle" font-weight="bold">L3</text>
 
-  <text x="68" y="374" font-family="'Courier New', monospace" font-size="10" fill="#2a2a5a" letter-spacing="3">:: PROJECT OVERLAY LAYER</text>
+  <text x="68" y="374" font-family="'Courier New', monospace" font-size="10" fill="#2a2a5a" letter-spacing="3">:: AI WORKSPACE RUNTIME</text>
 
-  <text x="42" y="400" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#2a2a5a">per-project overlay</text>
-  <text x="42" y="420" font-family="'Courier New', monospace" font-size="11" fill="#1a1a4a">project-specific customization · client packs · team conventions</text>
-  <text x="42" y="436" font-family="'Courier New', monospace" font-size="9" fill="#1a1a3a" letter-spacing="2">EXTENDS DISTRIBUTION LAYER</text>
+  <text x="42" y="400" font-family="'Courier New', monospace" font-size="16" font-weight="bold" fill="#2a2a5a">agentic-harness</text>
+  <text x="42" y="420" font-family="'Courier New', monospace" font-size="11" fill="#1a1a4a">memory · loops · personas · packs · multi-repo orchestration</text>
+  <text x="42" y="436" font-family="'Courier New', monospace" font-size="9" fill="#1a1a3a" letter-spacing="2">CONSUMES DISTRIBUTION LAYER</text>
 
   <!-- ══════════════════════════════════════ -->
   <!-- ── Right Column: AI Tools ── -->
