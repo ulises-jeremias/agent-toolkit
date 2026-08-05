@@ -177,9 +177,38 @@ def _cmd_sync(toolkit_dir: Path) -> int:
     return _run_gen_surfaces(toolkit_dir, check=False)
 
 
+def _check_provenance_sidecars(plugins_dir: Path) -> bool:
+    """Verify compiled plugin bundles include .provenance.json (#67)."""
+    ok = True
+    if not plugins_dir.is_dir():
+        return ok
+    for product_dir in sorted(p for p in plugins_dir.iterdir() if p.is_dir()):
+        prov = product_dir / ".provenance.json"
+        if not prov.is_file():
+            print(f"  ⚠  Missing provenance sidecar: {product_dir.name}/.provenance.json")
+            print("     Run: agent-toolkit build --target <target> --product <product>")
+            ok = False
+            continue
+        try:
+            import json
+
+            data = json.loads(prov.read_text(encoding="utf-8"))
+            if "artifacts" not in data or "generatorVersion" not in data:
+                print(f"  ✗  Invalid provenance manifest: {prov}")
+                ok = False
+        except (json.JSONDecodeError, OSError) as exc:
+            print(f"  ✗  Cannot read provenance: {prov} ({exc})")
+            ok = False
+    return ok
+
+
 def _cmd_check(toolkit_dir: Path) -> int:
     """Verify plugin bundles are in sync. Exit 1 if drift detected."""
-    return _run_gen_surfaces(toolkit_dir, check=True)
+    code = _run_gen_surfaces(toolkit_dir, check=True)
+    plugins_dir = toolkit_dir / "plugins"
+    if not _check_provenance_sidecars(plugins_dir):
+        return 1
+    return code
 
 
 # ---------------------------------------------------------------------------

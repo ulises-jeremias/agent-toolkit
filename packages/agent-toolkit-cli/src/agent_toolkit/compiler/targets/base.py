@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from agent_toolkit.compiler.model import CanonicalGraph, CompilationResult, Product
+from agent_toolkit.compiler.provenance import ArtifactRecord, file_digest, write_provenance
 
 
 class TargetAdapter(ABC):
@@ -18,6 +19,7 @@ class TargetAdapter(ABC):
     def __init__(self, output_root: Path, repo_root: Path):
         self.output_root = output_root
         self.repo_root = repo_root
+        self._provenance_records: list[ArtifactRecord] = []
 
     @abstractmethod
     def compile(
@@ -35,24 +37,88 @@ class TargetAdapter(ABC):
         """Dry-run: validate without writing any files to disk.
 
         Uses a temporary directory that is discarded after compilation,
-        so the real output_root is never touched.
+        so the real output_root is never touched. Provenance is generated
+        in the temp dir to validate the sidecar would be emitted (#67).
         """
         with tempfile.TemporaryDirectory(prefix="agent-toolkit-check-") as tmpdir:
-            # Temporarily redirect output to the throwaway temp dir
             real_output_root = self.output_root
             self.output_root = Path(tmpdir)
+            self._provenance_records = []
             try:
                 result = self.compile(graph, product)
+                self._finalize_provenance(product, result)
             finally:
                 self.output_root = real_output_root
+                self._provenance_records = []
 
         # Artifacts were in the temp dir (now deleted) — report paths as relative
         # so callers know what WOULD have been created, but clear actual paths
         result.artifacts.clear()
         return result
 
-    def _write_file(self, path: Path, content: str, result: CompilationResult) -> None:
-        """Write content to path and record it in result.artifacts."""
+    def _write_file(
+        self,
+        path: Path,
+        content: str,
+        result: CompilationResult,
+        *,
+        source_file: str | Path | None = None,
+    ) -> None:
+        """Write content to path and record it in result.artifacts (+ provenance)."""
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         result.artifacts.append(path)
+
+        source = str(source_file) if source_file is not None else "generated"
+        try:
+            rel = str(path.relative_to(self.output_root))
+        except ValueError:
+            rel = path.name
+        src_path = Path(source_file) if source_file is not None else None
+        self._provenance_records.append(
+            ArtifactRecord(
+                path=rel,
+                source_file=source,
+                source_digest=file_digest(src_path) if src_path and src_path.exists() else "n/a",
+                generated_digest=file_digest(path),
+            )
+        )
+
+    def _record_binary_artifact(
+        self,
+        path: Path,
+        result: CompilationResult,
+        *,
+        source_file: str | Path | None = None,
+    ) -> None:
+        """Record a copied binary artifact for provenance (e.g. references/)."""
+        result.artifacts.append(path)
+        source = str(source_file) if source_file is not None else "generated"
+        try:
+            rel = str(path.relative_to(self.output_root))
+        except ValueError:
+            rel = path.name
+        src_path = Path(source_file) if source_file is not None else None
+        self._provenance_records.append(
+            ArtifactRecord(
+                path=rel,
+                source_file=source,
+                source_digest=file_digest(src_path) if src_path and src_path.exists() else "n/a",
+                generated_digest=file_digest(path),
+            )
+        )
+
+    def _finalize_provenance(self, product: Product, result: CompilationResult) -> None:
+        """Write .provenance.json under the product output directory (#67)."""
+        out_dir = self.output_root / product.id
+        if not out_dir.exists():
+            return
+        path = write_provenance(
+            out_dir,
+            product.id,
+            self.target_id,
+            list(self._provenance_records),
+        )
+        result.artifacts.append(path)
+        result.emitted.append("provenance")
+        self._provenance_records = []
