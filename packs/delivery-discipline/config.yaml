@@ -1,0 +1,39 @@
+# Delivery Discipline Pack Configuration
+# Copy this file to your workspace and toggle skills or agents for your team.
+#
+# Usage:
+#   cp packs/delivery-discipline/config.yaml ~/.ai-workspace/packs/delivery-discipline.yaml
+#
+# See packs/delivery-discipline/README.md for full setup instructions.
+
+pack: delivery-discipline
+version: "1.0"
+
+# ---------------------------------------------------------------------------
+# Skills
+# ---------------------------------------------------------------------------
+# Domain/path IDs matching catalogs/skill-catalog.yaml.
+
+skills:
+  delivery/task:
+    enabled: true
+  delivery/bug:
+    enabled: true
+  delivery/epic:
+    enabled: true
+  delivery/user-story:
+    enabled: true
+  delivery/project-assessment:
+    enabled: true
+  delivery/development-workflow:
+    enabled: true
+
+# ---------------------------------------------------------------------------
+# Agents
+# ---------------------------------------------------------------------------
+
+agents:
+  tech-assistant:
+    enabled: true
+  planner:
+    enabled: true
