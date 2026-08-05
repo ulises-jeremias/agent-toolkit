@@ -8,21 +8,21 @@
 
 **Composable AI agent capabilities for every major coding assistant**
 
-[![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
-[![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat)](LICENSE)
-[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-informational?style=flat)](https://github.com/vercel-labs/skills)
+[![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+[![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
 
-![skills](https://img.shields.io/badge/skills-52-blue?style=flat)
-![agents](https://img.shields.io/badge/agents-16-blue?style=flat)
-![loops](https://img.shields.io/badge/loops-10-blue?style=flat)
+![skills](https://img.shields.io/badge/skills-52-7c3aed?style=flat&labelColor=1f2937)
+![agents](https://img.shields.io/badge/agents-16-0891b2?style=flat&labelColor=1f2937)
+![loops](https://img.shields.io/badge/loops-10-ea580c?style=flat&labelColor=1f2937)
 
-[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-informational?style=flat)](profiles/claude-code/)
-[![Cursor](https://img.shields.io/badge/Cursor-rules-informational?style=flat)](profiles/cursor/)
-[![OpenCode](https://img.shields.io/badge/OpenCode-agents-informational?style=flat)](profiles/opencode/)
-[![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-informational?style=flat)](profiles/copilot/)
-[![Windsurf](https://img.shields.io/badge/Windsurf-rules-informational?style=flat)](profiles/windsurf/)
-[![Pi](https://img.shields.io/badge/Pi%20Agent-skills-informational?style=flat)](profiles/pi/)
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-7c3aed?style=flat&labelColor=1f2937&logo=anthropic&logoColor=white)](profiles/claude-code/)
+[![Cursor](https://img.shields.io/badge/Cursor-rules-0891b2?style=flat&labelColor=1f2937)](profiles/cursor/)
+[![OpenCode](https://img.shields.io/badge/OpenCode-agents-ea580c?style=flat&labelColor=1f2937)](profiles/opencode/)
+[![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-16a34a?style=flat&labelColor=1f2937&logo=github&logoColor=white)](profiles/copilot/)
+[![Windsurf](https://img.shields.io/badge/Windsurf-rules-2563eb?style=flat&labelColor=1f2937)](profiles/windsurf/)
+[![Pi](https://img.shields.io/badge/Pi%20Agent-skills-db2777?style=flat&labelColor=1f2937)](profiles/pi/)
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
