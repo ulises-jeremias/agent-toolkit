@@ -73,3 +73,8 @@ def test_project_init_via_router(tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 def test_project_init_unknown_subcommand(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("AGENT_TOOLKIT_WORKSPACE", str(tmp_path))
     assert cmd_project(["nope"]) == 1
+
+
+def test_project_init_rejects_unexpected_args(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("AGENT_TOOLKIT_WORKSPACE", str(tmp_path))
+    assert cmd_init(["--workspace"], tmp_path) == 1

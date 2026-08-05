@@ -156,6 +156,10 @@ def cmd_init(args: list[str], ws: Path) -> int:
         print("Usage: agent-toolkit project init [--workspace PATH]")
         print("Creates repos/github.com/ and projects/, updates .gitignore.")
         return 0
+    if args:
+        print(f"Error: unexpected arguments for project init: {' '.join(args)}", file=sys.stderr)
+        print("Usage: agent-toolkit project init [--workspace PATH]", file=sys.stderr)
+        return 1
 
     (ws / "repos" / "github.com").mkdir(parents=True, exist_ok=True)
     (ws / "projects").mkdir(parents=True, exist_ok=True)
