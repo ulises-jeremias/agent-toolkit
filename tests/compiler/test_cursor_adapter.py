@@ -228,6 +228,17 @@ def test_parity_notes_documented():
     assert "rule" in notes.lower(), "Parity notes must explain rules vs skills"
     assert "mcp" in notes.lower(), "Parity notes must explain MCP status"
     assert "hook" in notes.lower(), "Parity notes must explain hooks status"
+    assert "plugin bundle" in notes.lower() or "profile" in notes.lower()
+
+
+def test_plugin_manifest_uses_cursor_plugin_dir(adapter, graph):
+    """Official contract: manifest lives under .cursor-plugin/."""
+    product = graph.products["agent-toolkit-core"]
+    adapter.compile(graph, product)
+    manifest = adapter.output_root / "agent-toolkit-core" / ".cursor-plugin" / "plugin.json"
+    wrong = adapter.output_root / "agent-toolkit-core" / "plugin.json"
+    assert manifest.is_file()
+    assert not wrong.exists()
 
 
 # ── all products ──────────────────────────────────────────────────────────────

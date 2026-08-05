@@ -23,10 +23,12 @@ capabilities:
     note: Rules are persistent constraints; skills are on-demand procedures
   mcp:
     supported: true
-    method: native
+    method: manual
+    note: User configures ~/.cursor/mcp.json; not bundled in plugin compile output
   hooks:
-    supported: native-experimental
-    note: Hook support available in recent versions; verify event names
+    supported: false
+    method: unsupported
+    note: Platform supports hooks; toolkit pending canonical hook model (#16)
   commands:
     supported: unknown-blocked
     note: Need to verify if Cursor plugin format supports slash commands
