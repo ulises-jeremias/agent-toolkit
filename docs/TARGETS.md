@@ -44,6 +44,14 @@ agent-toolkit install --tools cursor,claude-code
 agent-toolkit release --dry-run --output dist/
 ```
 
+## Target certification
+
+Per-target certification packages document official contracts vs adapter behavior:
+
+| Target | Certification doc |
+|--------|-------------------|
+| Claude Code | [`docs/targets/claude-code-certification.md`](targets/claude-code-certification.md) |
+
 ## Research sources
 
 All capability claims are based on official documentation as of 2026-08-04.

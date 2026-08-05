@@ -149,3 +149,16 @@ class ClaudeCodeAdapter(TargetAdapter):
             for k in FORBIDDEN_SETTINGS
             if k in settings
         ]
+
+    @staticmethod
+    def parity_notes() -> str:
+        """Return honest parity notes for certification docs."""
+        return (
+            "Claude Code plugin bundles emit skills, agents, and plugin.json under "
+            ".claude-plugin/. Hooks and .mcp.json are not generated yet — reported as "
+            "unsupported until the canonical hook model and MCP registry are wired in.\n"
+            "\n"
+            "Never ship or overwrite ~/.claude/settings.json from public profiles. "
+            "Plugin settings are plugin-local; users enable marketplace plugins in their "
+            "own settings file."
+        )

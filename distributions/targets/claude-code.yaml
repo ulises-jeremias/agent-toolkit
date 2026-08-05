@@ -19,13 +19,15 @@ capabilities:
     discovery: plugin bundle agents/ directory
     format: AGENT.md with YAML frontmatter
   hooks:
-    supported: true
-    method: native
+    supported: false
+    method: unsupported
     config: hooks/hooks.json in plugin bundle
+    note: Registry exists; adapter compile not wired yet (issue #16)
   mcp:
-    supported: true
-    method: native
+    supported: false
+    method: unsupported
     config: .mcp.json in plugin bundle or project root
+    note: MCP registry exists; adapter compile not wired yet
   commands:
     supported: true
     method: native
