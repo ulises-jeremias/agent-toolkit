@@ -57,4 +57,4 @@ Per-target certification packages document official contracts vs adapter behavio
 All capability claims are based on official documentation as of 2026-08-04.
 See `docs/research/platform-capability-matrix.md` and `docs/research/source-ledger.md`.
 
-Codex certification (experimental strategy): `docs/certification/codex.md`.
+Per-target certification records: `docs/certification/` (Pi, Windsurf, Codex).

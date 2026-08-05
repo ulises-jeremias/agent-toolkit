@@ -184,6 +184,51 @@ def test_package_type_is_companion_assets(adapter):
     )
 
 
+def test_maturity_is_stable(adapter):
+    """Static companion assets are stable; runtime TypeScript features are unsupported."""
+    assert adapter.maturity == "stable", (
+        f"PiAdapter.maturity must be 'stable' for static assets, got '{adapter.maturity}'"
+    )
+
+
+def test_pi_field_skills_paths_match_emitted_files(adapter, graph):
+    """pi.skills paths must reference emitted SKILL.md files (official package contract)."""
+    product = graph.products["agent-toolkit-core"]
+    adapter.compile(graph, product)
+
+    pkg = adapter.output_root / "agent-toolkit-core" / "pi-package.json"
+    data = json.loads(pkg.read_text())
+    pi_skills = data.get("pi", {}).get("skills", [])
+
+    assert pi_skills, "pi.skills must be non-empty after compile"
+    for skill_path in pi_skills:
+        assert skill_path.endswith("/SKILL.md"), (
+            f"pi.skills entry must end with /SKILL.md, got '{skill_path}'"
+        )
+        assert (adapter.output_root / "agent-toolkit-core" / skill_path).exists(), (
+            f"pi.skills references missing file: {skill_path}"
+        )
+
+
+def test_pi_field_agents_paths_match_emitted_files(adapter, graph):
+    """pi.agents paths must reference emitted AGENT.md files (official package contract)."""
+    product = graph.products["agent-toolkit-core"]
+    adapter.compile(graph, product)
+
+    pkg = adapter.output_root / "agent-toolkit-core" / "pi-package.json"
+    data = json.loads(pkg.read_text())
+    pi_agents = data.get("pi", {}).get("agents", [])
+
+    assert pi_agents, "pi.agents must be non-empty after compile"
+    for agent_path in pi_agents:
+        assert agent_path.endswith("/AGENT.md"), (
+            f"pi.agents entry must end with /AGENT.md, got '{agent_path}'"
+        )
+        assert (adapter.output_root / "agent-toolkit-core" / agent_path).exists(), (
+            f"pi.agents references missing file: {agent_path}"
+        )
+
+
 # ── check mode ────────────────────────────────────────────────────────────────
 
 
