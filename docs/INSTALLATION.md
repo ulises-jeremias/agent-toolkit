@@ -98,6 +98,46 @@ Native plugins for Claude Code only:
 /plugin install agent-toolkit-forge@agent-toolkit
 ```
 
+### Cursor plugins (IDE + Agent CLI)
+
+Native plugins from [`.cursor-plugin/marketplace.json`](../.cursor-plugin/marketplace.json):
+`agent-toolkit-core`, `agent-toolkit-agents`, `agent-toolkit-forge`.
+
+**Cursor IDE**
+
+1. Open **Customize** in the sidebar (or Command Palette → *Cursor: Open Plugin Marketplace*).
+2. Import the marketplace repo: `https://github.com/ulises-jeremias/agent-toolkit`
+3. Install the plugins you need (`agent-toolkit-core` is the baseline).
+
+User-scoped installs sync to Cursor Agent CLI sessions automatically.
+
+**Cursor Agent CLI**
+
+```bash
+# Interactive — browse / install from the Marketplace tab
+cursor-agent
+# then type: /plugin
+```
+
+Load a local plugin directory for one session:
+
+```bash
+cursor-agent --plugin-dir ./plugins/agent-toolkit-core
+cursor-agent --plugin-dir ./plugins/agent-toolkit-agents
+cursor-agent --plugin-dir ./plugins/agent-toolkit-forge
+```
+
+**Local / offline**
+
+```bash
+mkdir -p ~/.cursor/plugins/local
+ln -s "$(pwd)/plugins/agent-toolkit-core" ~/.cursor/plugins/local/agent-toolkit-core
+ln -s "$(pwd)/plugins/agent-toolkit-agents" ~/.cursor/plugins/local/agent-toolkit-agents
+ln -s "$(pwd)/plugins/agent-toolkit-forge" ~/.cursor/plugins/local/agent-toolkit-forge
+```
+
+See [Cursor plugins docs](https://cursor.com/docs/plugins).
+
 ### npx skills (skills only)
 
 Installs skills via the [Agent Skills](https://github.com/vercel-labs/skills) standard.

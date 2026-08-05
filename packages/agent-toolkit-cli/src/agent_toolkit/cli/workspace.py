@@ -1,13 +1,21 @@
 """
-workspace — AI workspace scaffolding and session context.
+workspace — AI workspace scaffolding, session context, and persona management.
 
 Usage:
     agent-toolkit workspace <subcommand> [args]
 
 Subcommands:
-    init [--dir PATH] [--name NAME]   Scaffold a new harness workspace
-    context [--workspace PATH]        Output a session state snapshot
-    sync [--workspace PATH]           Sync loop escalations into todos
+    init [--dir PATH] [--name NAME]        Scaffold a new harness workspace
+    context [--workspace PATH]             Output a session state snapshot
+    sync [--workspace PATH]                Sync loop escalations into todos
+    use-persona <name>                     Activate a work mode persona
+    handoff <name>                         Transition to another persona (validates rules)
+    history [count]                        Show recent persona transitions
+    personas                               List available personas
+    load <pack.yaml>                       Load a context pack
+    load --profile <name>                  Load a composable profile (pack + persona)
+    profiles                               List available profiles
+    validate [surface]                     Validate workspace schema integrity
 
 Options:
     --help    Show this help message
