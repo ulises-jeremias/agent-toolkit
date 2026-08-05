@@ -235,16 +235,16 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 
 | Template | Tier | Default Cadence | Description |
 |----------|------|-----------------|-------------|
-| `oss-pr-monitor` | L1 | Every 30 min | Monitor open PRs across OSS repos, flag stale or failing ones |
-| `oss-triage` | L1 | Every hour | Triage new issues, apply labels, draft responses |
-| `ci-health` | L1 | Every 15 min | Watch CI status, auto-diagnose failures |
-| `oss-daily-briefing` | L2 | Daily | Summarize activity across all tracked OSS repos |
-| `dependency-drift` | L2 | Daily | Detect outdated dependencies and open upgrade PRs |
-| `security-sweep` | L2 | Daily | Run vulnerability scan across repos |
-| `codeowner-review` | L2 | Daily | Remind code owners of pending reviews |
-| `release-notes` | L3 | Weekly | Draft release notes from merged PRs |
-| `stale-branch-cleanup` | L3 | Weekly | Identify and archive stale branches |
-| `contributor-digest` | L3 | Weekly | Generate contributor activity digest |
+| `issue-triage` | L1 | Every 4 hours | Propose labels and routing for new issues (report-only) |
+| `oss-triage` | L1 | Daily | Triage issues across OSS ecosystem repos |
+| `oss-daily-briefing` | L1 | Daily | Daily read-only briefing across OSS ecosystem repos |
+| `changelog-drafter` | L1 | Daily | Draft release notes from merged PRs (report-only) |
+| `daily-triage` | L1 | Daily | Triage new issues and propose labels (report-only) |
+| `ci-sweeper` | L2 | Every 15 min | Detect CI failures and propose fixes via draft PRs |
+| `dep-sweeper` | L2 | Daily | Apply patch-level dependency updates via draft PRs |
+| `post-merge-cleanup` | L2 | Every 6 hours | Off-peak housekeeping after merges |
+| `pr-babysitter` | L2 | Every 15 min | Monitor open PRs and post review comments |
+| `oss-pr-monitor` | L3 | Daily | Monitor open PRs across OSS ecosystem repos and take action |
 
 Each loop template lives in `loops/<name>/` and contains a `request.md` prompt template, `report.md` output template, and `runbook.md` for human operators.
 
@@ -336,9 +336,9 @@ agent-toolkit/
 
 | Tier | Trigger | Example |
 |------|---------|---------|
-| **L1** | Event / short interval | `oss-pr-monitor`, `ci-health` |
-| **L1.5** | Scheduled short-cadence | `oss-triage`, `dependency-drift` |
-| **L3** | Weekly / monthly | `release-notes`, `contributor-digest` |
+| **L1** | Report-only / propose-only | `issue-triage`, `daily-triage`, `changelog-drafter` |
+| **L2** | PR-gated writes / reactive sweeps | `ci-sweeper`, `dep-sweeper`, `pr-babysitter` |
+| **L3** | Merge/close allowlisted actions | `oss-pr-monitor` |
 
 ---
 
