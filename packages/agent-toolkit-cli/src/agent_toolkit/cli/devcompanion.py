@@ -129,11 +129,16 @@ def _list_projects() -> list[tuple[str, Path | None]]:
 
 # ── template loading ──────────────────────────────────────────────────────────
 
+class TemplateNotFoundError(FileNotFoundError):
+    """Raised when a job template YAML is missing (#48 / CLI-011)."""
+
+
 def _load_template(name: str) -> dict:
     tpl_file = TEMPLATES_DIR / f"{name}.yaml"
     if not tpl_file.exists():
-        _err(f"Template not found: {name}  (looked in {TEMPLATES_DIR}/)")
-        sys.exit(1)
+        raise TemplateNotFoundError(
+            f"Template not found: {name}  (looked in {TEMPLATES_DIR}/)"
+        )
 
     text = tpl_file.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -334,6 +339,16 @@ def _skeleton_run(job: dict, out_dir: Path) -> int:
 
 # ── subcommands ───────────────────────────────────────────────────────────────
 
+def _safe_parse(parser, argv: list[str]) -> tuple[object | None, int | None]:
+    """Parse argv without letting argparse SystemExit bypass cmd return codes (#48)."""
+    try:
+        return parser.parse_args(argv), None
+    except SystemExit as exc:
+        if exc.code in (0, None):
+            return None, 0
+        return None, int(exc.code) if isinstance(exc.code, int) else 2
+
+
 def _cmd_queue(argv: list[str]) -> int:
     import argparse
 
@@ -342,7 +357,9 @@ def _cmd_queue(argv: list[str]) -> int:
     p.add_argument("--template", "-t",     help="Job template name from templates/jobs/")
     p.add_argument("--request",  "-r",     help="Custom request string")
     p.add_argument("--id",                 help="Custom job ID (default: <project>-<timestamp>)")
-    args = p.parse_args(argv)
+    args, parse_err = _safe_parse(p, argv)
+    if parse_err is not None:
+        return parse_err
 
     if not args.project:
         _err("Usage: agent-toolkit devcompanion queue <project> [--template NAME] [--request \"...\"]")
@@ -365,7 +382,11 @@ def _cmd_queue(argv: list[str]) -> int:
     # Build request
     request = ""
     if args.template:
-        tpl = _load_template(args.template)
+        try:
+            tpl = _load_template(args.template)
+        except TemplateNotFoundError as exc:
+            _err(str(exc))
+            return 1
         request = tpl["request"]
         if args.request:
             request = f"{request}\n\n---\n\n{args.request}"
@@ -405,7 +426,9 @@ def _cmd_run_once(argv: list[str]) -> int:
 
     p = argparse.ArgumentParser(prog="agent-toolkit devcompanion run-once", add_help=True)
     p.add_argument("--no-llm", action="store_true", help="Always use skeleton plan, skip LLM")
-    args = p.parse_args(argv)
+    args, parse_err = _safe_parse(p, argv)
+    if parse_err is not None:
+        return parse_err
 
     QUEUE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -528,7 +551,9 @@ def _cmd_done(argv: list[str]) -> int:
 
     p = argparse.ArgumentParser(prog="agent-toolkit devcompanion done", add_help=True)
     p.add_argument("job_id", nargs="?", help="Job ID to mark as done")
-    args = p.parse_args(argv)
+    args, parse_err = _safe_parse(p, argv)
+    if parse_err is not None:
+        return parse_err
 
     if not args.job_id:
         _err("Usage: agent-toolkit devcompanion done <job-id>")
