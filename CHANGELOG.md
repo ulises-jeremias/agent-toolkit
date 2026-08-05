@@ -165,7 +165,7 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 - `capabilities/hooks/` — canonical hook definitions with platform parity matrix
 - `schemas/hook.schema.yaml` — JSON Schema for hook definitions
 
-**Testing (195 tests):**
+**Testing (227 tests):**
 - Contract tests for all 9 compiler adapters
 - Golden/snapshot tests for deterministic output
 - Security tests: path traversal, secret redaction

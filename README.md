@@ -27,7 +27,7 @@
   <img src="https://img.shields.io/badge/skills-52-9945ff?style=for-the-badge&labelColor=0d1117" alt="52 Skills"/>
   <img src="https://img.shields.io/badge/agents-16-00d4ff?style=for-the-badge&labelColor=0d1117" alt="16 Agents"/>
   <img src="https://img.shields.io/badge/loops-10-ff6b35?style=for-the-badge&labelColor=0d1117" alt="10 Loops"/>
-  <img src="https://img.shields.io/badge/tests-195-00ff88?style=for-the-badge&labelColor=0d1117" alt="195 Tests"/>
+  <img src="https://img.shields.io/badge/tests-227-00ff88?style=for-the-badge&labelColor=0d1117" alt="227 Tests"/>
   <img src="https://img.shields.io/badge/targets-9-ff00aa?style=for-the-badge&labelColor=0d1117" alt="9 Targets"/>
 </p>
 
@@ -167,17 +167,17 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 
 | Domain | Count | Key Skills |
 |--------|-------|------------|
-| 🧠 `core` | 8 | memory, planning, context injection, session bootstrap |
-| 🚀 `delivery` | 9 | code-review, github-cli-workflow, gh-fix-ci, pr-fallback, commit |
+| 🧠 `core` | 6 | memory, planning, context injection, session bootstrap |
+| 🚀 `delivery` | 21 | code-review, github-cli-workflow, gh-fix-ci, pr-fallback, commit |
 | 🎨 `design` | 6 | ui-ux-pro-max, figma-implement-design, design-system-rules |
 | ⚡ `forge` | 7 | feature-dev, tdd, refactor-cleaner, simplify, code-connect |
-| 🔗 `integrations` | 8 | jira, confluence, slack, linear, clickup, notion |
-| 📊 `data` | 5 | dbt-validation, snowflake-validation, pipeline-review |
-| 🔧 `tooling` | 6 | git-worktrees, docker, ci-cd, env-setup, keybindings |
+| 🔗 `integrations` | 4 | jira, confluence, slack, linear, clickup, notion |
+| 📊 `data` | 2 | dbt-validation, snowflake-validation, pipeline-review |
+| 🔧 `tooling` | 2 | git-worktrees, docker, ci-cd, env-setup, keybindings |
 | 🛡️ `ops` | 3 | incident, security-review, performance-optimizer |
-| 🔄 `loops` | 10 | oss-pr-monitor, oss-triage, oss-daily-briefing |
+| 🔄 `loops` | 1 | loop skill wrappers (see [Loop Engineering](#-loop-engineering) for 10 templates) |
 
-Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml)
+Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · regenerate with `bash scripts/validate-skills.sh` (CI) and inspect live inventory via `agent-toolkit inventory`
 
 ### Loading skills in Claude Code
 
@@ -217,7 +217,7 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 | ⚙️ `tech-assistant` | Stack-specific technical guidance |
 | 🚀 `client-workflow-bootstrap` | Client project onboarding and delivery workflow bootstrap |
 
-Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml)
+Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · 16 personas on disk under `agents/`
 
 ---
 
@@ -250,7 +250,7 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 | `pr-babysitter` | L2 | Every 15 min | Monitor open PRs and post review comments |
 | `oss-pr-monitor` | L3 | Daily | Monitor open PRs across OSS ecosystem repos and take action |
 
-Each loop template lives in `loops/<name>/` and contains a `request.md` prompt template, `report.md` output template, and `runbook.md` for human operators.
+Each loop template lives in `loops/<name>/` (10 templates on disk) and contains a `request.md` prompt template, `report.md` output template, and `runbook.md` for human operators.
 
 ---
 
