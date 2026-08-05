@@ -5,8 +5,8 @@
     "email": "ulisescf.24@gmail.com"
   },
   "metadata": {
-    "description": "Composable AI agent capabilities for Cursor — skills, agents, and automation for every major workflow.",
-    "version": "1.0.0",
+    "description": "Composable AI agent capabilities for Cursor \u2014 skills, agents, and automation for every major workflow.",
+    "version": "1.1.0",
     "pluginRoot": "plugins"
   },
   "plugins": [
@@ -14,25 +14,38 @@
       "name": "agent-toolkit-core",
       "source": "agent-toolkit-core",
       "description": "Core orchestrator, dev companion, output handshake, PR fallback, knowledge sync, and code-reviewer agent",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "productivity",
-      "tags": ["core", "orchestrator", "assistant"]
+      "tags": [
+        "core",
+        "orchestrator",
+        "assistant"
+      ]
     },
     {
       "name": "agent-toolkit-agents",
       "source": "agent-toolkit-agents",
       "description": "Full set of AI agent personas: architect, code-reviewer, security-reviewer, planner, and 12 more",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "productivity",
-      "tags": ["agents", "subagents", "review"]
+      "tags": [
+        "agents",
+        "subagents",
+        "review"
+      ]
     },
     {
       "name": "agent-toolkit-forge",
       "source": "agent-toolkit-forge",
       "description": "GitHub and GitLab automation: PR workflows, CI fixes, comment resolution",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "category": "developer-tools",
-      "tags": ["github", "gitlab", "ci", "pr"]
+      "tags": [
+        "github",
+        "gitlab",
+        "ci",
+        "pr"
+      ]
     }
   ]
 }
