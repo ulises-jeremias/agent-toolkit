@@ -35,9 +35,22 @@ bash ~/.agent-toolkit/scripts/install.sh
 The script will:
 1. Detect which AI tools are installed on your machine
 2. Show you what it will install and ask for confirmation
-3. Copy profiles to the correct locations for each detected tool
+3. Copy artifacts to the correct locations for each detected tool
 4. Ask before overwriting any existing files
 5. Print a summary of what was installed
+
+### Install source priority
+
+The Python installer (`agent-toolkit install`) prefers **compiler-generated**
+artifacts under `plugins/` (or `dist/plugins/` after a release build) when they
+exist — for example agent personas from `plugins/agent-toolkit-agents/agents/`
+instead of the hand-maintained `profiles/*/agents/` copies.
+
+Surfaces with no plugin equivalent (Cursor `.mdc` rules, Windsurf memories,
+OpenCode `opencode.json`) always come from `profiles/`. When a hand profile
+set is smaller than the reference baseline (e.g. Windsurf rules vs Cursor),
+the installer prints a **warning** so you know the install may be incomplete.
+Run `agent-toolkit build` to refresh `plugins/` from canonical sources.
 
 ### Install Options
 

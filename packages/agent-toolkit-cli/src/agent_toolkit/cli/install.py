@@ -17,6 +17,15 @@ import shutil
 import sys
 from pathlib import Path
 from agent_toolkit._paths import toolkit_root
+from agent_toolkit.installer.sources import (
+    InstallSource,
+    collect_pi_skill_files,
+    list_plugin_agent_files,
+    resolve_agents_source,
+    resolve_pi_skills_source,
+    resolve_profile_dir,
+    uneven_profile_warnings,
+)
 
 import sys as _sys_win
 if _sys_win.platform == "win32":
@@ -159,6 +168,58 @@ def _detect_pi() -> bool:
     return shutil.which("pi") is not None or (home / ".pi").is_dir()
 
 
+def _announce_source(source: InstallSource) -> None:
+    if source.kind == "plugins":
+        _info(f"Using compiler artifacts: {source.label}")
+    else:
+        _info(f"Fallback to hand profile: {source.label}")
+
+
+def _warn_uneven(root: Path, tool: str) -> None:
+    for message in uneven_profile_warnings(root, tool):
+        _warn(message)
+
+
+def _copy_plugin_agents(
+    agents_source: InstallSource,
+    dst_dir: Path,
+    *,
+    dry_run: bool,
+    force: bool,
+) -> bool:
+    pairs = list_plugin_agent_files(agents_source.path)
+    if not pairs:
+        _warn(f"No plugin agents found at {agents_source.path}")
+        return True
+    success = True
+    for src_file, dst_name in pairs:
+        if not _copy_file(src_file, dst_dir / dst_name, dry_run=dry_run, force=force):
+            success = False
+    return success
+
+
+def _install_pi_skills(root: Path, *, dry_run: bool, force: bool) -> bool:
+    source = resolve_pi_skills_source(root)
+    _announce_source(source)
+    if source.kind == "profiles":
+        _warn_uneven(root, "pi")
+    skill_pairs = collect_pi_skill_files(root, source)
+    if not skill_pairs:
+        _warn(f"No Pi skills found for source {source.label}")
+        return False
+    dst_root = Path.home() / ".pi" / "agent" / "skills"
+    success = True
+    for src_file, skill_name in skill_pairs:
+        dst = (
+            dst_root / skill_name / "skill.md"
+            if source.kind == "plugins"
+            else dst_root / src_file.relative_to(source.path)
+        )
+        if not _copy_file(src_file, dst, dry_run=dry_run, force=force):
+            success = False
+    return success
+
+
 def _windsurf_config_dir() -> Path:
     home = Path.home()
     if (home / ".codeium" / "windsurf").is_dir():
@@ -175,61 +236,81 @@ def _windsurf_config_dir() -> Path:
 def _install_claude_code(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Claude Code")
-    src = toolkit_root() / "profiles" / "claude-code"
-
-    if not src.is_dir():
-        _warn(f"Profile directory not found: {src}")
+    root = toolkit_root()
+    profile = resolve_profile_dir(root, "claude-code")
+    if not profile.path.is_dir():
+        _warn(f"Profile directory not found: {profile.path}")
         return False
-
     home = Path.home()
-    success = True
-    # Install instruction/agent files only. Never write ~/.claude/settings.json —
-    # that file is user-owned (plugins, permissions, env). Target contract:
-    # distributions/targets/claude-code.yaml → plugin_settings_scope: plugin-local.
-    success &= _copy_file(src / "CLAUDE.md", home / ".claude" / "CLAUDE.md",
-                          dry_run=dry_run, force=force)
-    settings_src = src / "settings.json"
+    success = _copy_file(
+        profile.path / "CLAUDE.md", home / ".claude" / "CLAUDE.md",
+        dry_run=dry_run, force=force,
+    )
+    settings_src = profile.path / "settings.json"
     if settings_src.is_file():
         _info(
             "Skipping ~/.claude/settings.json (user-owned). "
             "Use Claude Code marketplace plugins for toolkit capabilities; "
             f"reference profile kept at {settings_src}"
         )
-    if (src / "agents").is_dir():
-        success &= _copy_dir(src / "agents", home / ".claude" / "agents",
-                             dry_run=dry_run, force=force)
+    agents_source = resolve_agents_source(root, "claude-code")
+    _announce_source(agents_source)
+    if agents_source.kind == "profiles":
+        _warn_uneven(root, "claude-code")
+        if agents_source.path.is_dir():
+            success &= _copy_dir(
+                agents_source.path, home / ".claude" / "agents",
+                dry_run=dry_run, force=force,
+            )
+    else:
+        success &= _copy_plugin_agents(
+            agents_source, home / ".claude" / "agents",
+            dry_run=dry_run, force=force,
+        )
     return success
 
 
 def _install_cursor(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Cursor")
-    src = toolkit_root() / "profiles" / "cursor" / "rules"
-
-    if not src.is_dir():
-        _warn(f"Cursor rules directory not found: {src}")
+    root = toolkit_root()
+    source = resolve_profile_dir(root, "cursor", "rules")
+    _announce_source(source)
+    _warn_uneven(root, "cursor")
+    if not source.path.is_dir():
+        _warn(f"Cursor rules directory not found: {source.path}")
         return False
-
-    return _copy_dir(src, Path.home() / ".cursor" / "rules",
-                     dry_run=dry_run, force=force)
+    return _copy_dir(source.path, Path.home() / ".cursor" / "rules", dry_run=dry_run, force=force)
 
 
 def _install_opencode(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: OpenCode")
-    src = toolkit_root() / "profiles" / "opencode"
-
-    if not src.is_dir():
-        _warn(f"OpenCode profile directory not found: {src}")
+    root = toolkit_root()
+    profile = resolve_profile_dir(root, "opencode")
+    if not profile.path.is_dir():
+        _warn(f"OpenCode profile directory not found: {profile.path}")
         return False
-
     home = Path.home()
-    success = True
-    success &= _copy_file(src / "opencode.json", home / ".config" / "opencode" / "opencode.json",
-                          dry_run=dry_run, force=force)
-    if (src / "agents").is_dir():
-        success &= _copy_dir(src / "agents", home / ".config" / "opencode" / "agents",
-                             dry_run=dry_run, force=force)
+    _announce_source(profile)
+    success = _copy_file(
+        profile.path / "opencode.json",
+        home / ".config" / "opencode" / "opencode.json",
+        dry_run=dry_run, force=force,
+    )
+    agents_source = resolve_agents_source(root, "opencode")
+    _announce_source(agents_source)
+    if agents_source.kind == "profiles":
+        if agents_source.path.is_dir():
+            success &= _copy_dir(
+                agents_source.path, home / ".config" / "opencode" / "agents",
+                dry_run=dry_run, force=force,
+            )
+    else:
+        success &= _copy_plugin_agents(
+            agents_source, home / ".config" / "opencode" / "agents",
+            dry_run=dry_run, force=force,
+        )
     return success
 
 
@@ -279,34 +360,26 @@ def _install_copilot(*, dry_run: bool, force: bool) -> bool:
 def _install_windsurf(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Windsurf")
-    src = toolkit_root() / "profiles" / "windsurf"
-
-    if not src.is_dir():
-        _warn(f"Windsurf profile directory not found: {src}")
+    root = toolkit_root()
+    src = resolve_profile_dir(root, "windsurf")
+    _announce_source(src)
+    _warn_uneven(root, "windsurf")
+    if not src.path.is_dir():
+        _warn(f"Windsurf profile directory not found: {src.path}")
         return False
-
     config_dir = _windsurf_config_dir()
     success = True
-    if (src / "rules").is_dir():
-        success &= _copy_dir(src / "rules", config_dir / "rules",
-                             dry_run=dry_run, force=force)
-    if (src / "memories").is_dir():
-        success &= _copy_dir(src / "memories", config_dir / "memories",
-                             dry_run=dry_run, force=force)
+    if (src.path / "rules").is_dir():
+        success &= _copy_dir(src.path / "rules", config_dir / "rules", dry_run=dry_run, force=force)
+    if (src.path / "memories").is_dir():
+        success &= _copy_dir(src.path / "memories", config_dir / "memories", dry_run=dry_run, force=force)
     return success
 
 
 def _install_pi(*, dry_run: bool, force: bool) -> bool:
     print()
     _info("Installing: Pi Coding Agent")
-    src = toolkit_root() / "profiles" / "pi" / "skills"
-
-    if not src.is_dir():
-        _warn(f"Pi skills directory not found: {src}")
-        return False
-
-    return _copy_dir(src, Path.home() / ".pi" / "agent" / "skills",
-                     dry_run=dry_run, force=force)
+    return _install_pi_skills(toolkit_root(), dry_run=dry_run, force=force)
 
 
 # ---------------------------------------------------------------------------
