@@ -5,17 +5,21 @@ agent-toolkit — Composable AI agent toolkit CLI
 Usage:
     agent-toolkit <command> [args...]
 
-Commands:
+Consumer commands (install, verify, and discover):
     install       Install profiles for detected AI tools
     doctor        Check system health and tool availability
-    diff          Show changes vs currently installed plugin bundles
+    version       Show version (--version / -V)
+    help          Show this help (--help / -h)
+
+Advanced commands (workspace orchestration and power users):
     build         Compile canonical capabilities into target-native artifacts
+    diff          Show changes vs currently installed plugin bundles
     inventory     List all canonical skills, agents, and products
     matrix        Show platform capability matrix
     loop          Loop engineering: init, run, status, audit, cost, schedule, sync
     workspace     Workspace scaffolding: init, context, sync
     memory        Knowledge base: add, search, inject, review, todo
-    project       Project management: clone, list, add, remove, scan
+    project       Project lifecycle: init, clone, list, add, remove, sync, scan
     devcompanion  Background job queue: queue, run-once, status, done, sync-todos
     insights      AI tool usage insights: opencode, cursor, claude
     skills        Skill management: sync, list, validate

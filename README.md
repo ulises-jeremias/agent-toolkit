@@ -140,6 +140,36 @@ The script detects your active tools and deploys the right profiles automaticall
 
 ---
 
+## 🎛️ CLI: Consumer vs Advanced
+
+The Python CLI groups commands by audience so everyday workflows stay simple while power-user tooling stays discoverable.
+
+**Consumer commands** — install, verify, and get help:
+
+| Command | Purpose |
+|---------|---------|
+| `install` | Deploy profiles to detected AI tools |
+| `doctor` | Verify installation health |
+| `version` / `--version` | Show CLI version |
+| `help` / `--help` | Show command list |
+
+**Advanced commands** — workspace orchestration and compilation:
+
+| Command | Purpose |
+|---------|---------|
+| `build`, `diff`, `inventory`, `matrix` | Compile and inspect canonical capabilities |
+| `loop` | Loop engineering (init, run, status, audit, …) |
+| `workspace` | Scaffold and sync harness workspaces |
+| `memory` | Persistent knowledge base (add, search, inject, …) |
+| `project` | Project lifecycle (init, clone, list, sync, …) |
+| `devcompanion` | Background job queue for deferred work |
+| `insights` | Usage analytics for OpenCode, Cursor, Claude |
+| `skills`, `mcp`, `plugin` | Skill/MCP/plugin bundle management |
+
+Run `agent-toolkit <command> --help` for subcommand details.
+
+---
+
 ## 🖥️ Supported Tools
 
 <div align="center">
