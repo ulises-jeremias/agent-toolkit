@@ -154,9 +154,9 @@ See the [OSS Maintenance Patterns](#oss-maintenance-patterns) section below for 
 
 ### oss-pr-monitor
 
-**Tier:** L2 | **Cadence:** daily | **Max tokens:** 300,000
+**Tier:** L3 | **Cadence:** daily | **Max tokens:** 300,000
 
-The most powerful loop in the toolkit. Monitors all open PRs across every configured OSS repo. Merges Dependabot PRs with passing CI, closes dirty Dependabot PRs (they regenerate automatically), and reports on human PRs with CI failures or conflicts. Never merges or closes human PRs.
+The most powerful loop in the toolkit. Monitors all open PRs across every configured OSS repo. Merges Dependabot PRs with passing CI, closes dirty Dependabot PRs (they regenerate automatically), and reports on human PRs with CI failures or conflicts. Never merges or closes human PRs. Requires **L3** because `loop-gh-gate` forbids merge/close at L2.
 
 Supports resumability via `STATE.md` checkpointing — if interrupted mid-run, it resumes from the last processed repo on the next execution.
 

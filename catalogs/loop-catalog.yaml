@@ -122,7 +122,7 @@ loops:
   # ── Multi-Repo Loops ─────────────────────────────────────────────────────────
 
   - name: oss-pr-monitor
-    tier: L2
+    tier: L3
     cadence: 1d
     scope: multi-repo
     resumable: true
@@ -132,6 +132,7 @@ loops:
       Dependabot PRs with passing CI, closes dirty Dependabot PRs that will
       regenerate, and writes a status report for human PRs. Supports resumability
       via STATE.md so runs can survive interruption across large repo sets.
+      Requires L3 because loop-gh-gate forbids merge/close at L2.
     use_case: >
       OSS maintainers managing 20-50 repositories who want automated Dependabot
       handling and a daily PR status digest without reviewing every repo manually.
