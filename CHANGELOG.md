@@ -134,6 +134,57 @@ agent-toolkit CLI reference and session-start protocol
 - agentic-harness: bin/workspace-context and bin/assistant-memory are now
   thin wrappers that delegate to agent-toolkit CLI
 
+## [1.2.0] — 2026-08-04
+
+### Added — Native multi-runtime compiler platform (Phases 3-7)
+
+The canonical compiler pipeline now generates native artifacts for 9 AI coding targets:
+
+**Compiler targets:**
+- Claude Code (plugin — .claude-plugin/) — stable GA
+- Cursor IDE/CLI (plugin — .cursor-plugin/) — stable GA
+- GitHub Copilot CLI (plugin — plugin.json) — stable GA
+- GitHub Copilot Repository (.github/ assets) — stable GA
+- Gemini CLI (extension — gemini-extension.json + commands.toml) — stable GA
+- OpenCode (companion-assets — .opencode/) — stable
+- Pi Coding Agent (companion-assets — pi-package.json) — stable
+- Windsurf/Devin (customization-bundle — rules + AGENTS.md) — accurately labeled (no marketplace)
+- OpenAI Codex (plugin — .codex-plugin/) — experimental
+
+**Canonical compiler pipeline:**
+- `distributions/products.yaml` — declarative product catalog
+- `src/agent_toolkit/compiler/` — model, loader, targets/
+- `agent-toolkit build` — compile to any target
+- `agent-toolkit diff` — show changes vs installed
+- `agent-toolkit inventory` — list all capabilities
+- `agent-toolkit matrix` — platform capability matrix
+- `agent-toolkit release --dry-run` — generate dist/ artifacts + checksums
+
+**MCP and hooks:**
+- `mcp/registry/` — canonical registry for 6 providers (github, slack, notion, linear, figma, clickup)
+- `capabilities/hooks/` — canonical hook definitions with platform parity matrix
+- `schemas/hook.schema.yaml` — JSON Schema for hook definitions
+
+**Testing (195 tests):**
+- Contract tests for all 9 compiler adapters
+- Golden/snapshot tests for deterministic output
+- Security tests: path traversal, secret redaction
+- Installer receipt tests
+- MCP registry tests
+- Hook registry tests
+- Provenance/diff tests
+
+**Docs:**
+- `docs/TARGETS.md` — honest capability matrix for all 9 targets
+- `docs/research/` — platform capability matrix, source ledger, audit
+- `docs/adrs/` — ADR-001 (canonical IR), ADR-002 (Windsurf bundle)
+- `docs/security/` — threat model
+
+### Security
+- Removed `skipDangerousModePermissionPrompt` from Claude Code profile
+- Replaced private LAN URLs in OpenCode profile with portable defaults
+- Updated schema `$id` to remove stale agentic-workstation references
+
 ## [Unreleased]
 
 ### Added
