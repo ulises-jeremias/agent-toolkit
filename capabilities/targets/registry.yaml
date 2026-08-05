@@ -1,0 +1,30 @@
+# Declarative target registry — single source for CLI build/diff/release target lists.
+version: 1
+targets:
+  - id: claude-code
+    adapter: agent_toolkit.compiler.targets.claude_code.ClaudeCodeAdapter
+    aliases: []
+  - id: cursor
+    adapter: agent_toolkit.compiler.targets.cursor.CursorAdapter
+    aliases: []
+  - id: opencode
+    adapter: agent_toolkit.compiler.targets.opencode.OpenCodeAdapter
+    aliases: []
+  - id: gemini-cli
+    adapter: agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter
+    aliases: [gemini]
+  - id: copilot-cli
+    adapter: agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter
+    aliases: [copilot]
+  - id: copilot-repository
+    adapter: agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter
+    aliases: []
+  - id: pi
+    adapter: agent_toolkit.compiler.targets.pi.PiAdapter
+    aliases: []
+  - id: windsurf
+    adapter: agent_toolkit.compiler.targets.windsurf.WindsurfAdapter
+    aliases: []
+  - id: codex
+    adapter: agent_toolkit.compiler.targets.codex.CodexAdapter
+    aliases: []

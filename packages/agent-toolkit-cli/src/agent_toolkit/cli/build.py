@@ -98,9 +98,13 @@ def cmd_build(args: list[str]) -> int:
             return 1
         products_to_build = [graph.products[parsed.product]]
 
-    # Select targets
-    available_targets = {"claude-code", "cursor", "opencode", "gemini-cli", "copilot-cli", "copilot-repository", "pi", "windsurf", "codex"}  # expand as adapters are added
-    targets_to_build = [parsed.target] if parsed.target else list(available_targets)
+    # Select targets from declarative registry
+    from agent_toolkit.compiler.target_registry import available_target_ids
+    available_targets = available_target_ids(repo_root)
+    if not available_targets:
+        print("  ✗  No targets found in capabilities/targets/registry.yaml", file=sys.stderr)
+        return 1
+    targets_to_build = [parsed.target] if parsed.target else sorted(available_targets)
 
     for t in targets_to_build:
         if t not in available_targets:
@@ -207,32 +211,9 @@ def cmd_matrix(args: list[str]) -> int:
 
 
 def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
-    """Return the adapter for a given target ID."""
-    if target_id == "claude-code":
-        from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
-        return ClaudeCodeAdapter(output_dir, repo_root)
-    if target_id == "cursor":
-        from agent_toolkit.compiler.targets.cursor import CursorAdapter
-        return CursorAdapter(output_dir, repo_root)
-    if target_id in ("gemini-cli", "gemini"):
-        from agent_toolkit.compiler.targets.gemini_cli import GeminiCLIAdapter
-        return GeminiCLIAdapter(output_dir, repo_root)
-    if target_id in ("copilot-cli", "copilot"):
-        from agent_toolkit.compiler.targets.copilot import CopilotCLIAdapter
-        return CopilotCLIAdapter(output_dir, repo_root)
-    if target_id == "copilot-repository":
-        from agent_toolkit.compiler.targets.copilot import CopilotRepositoryAdapter
-        return CopilotRepositoryAdapter(output_dir, repo_root)
-    if target_id == "pi":
-        from agent_toolkit.compiler.targets.pi import PiAdapter
-        return PiAdapter(output_dir, repo_root)
-    if target_id == "windsurf":
-        from agent_toolkit.compiler.targets.windsurf import WindsurfAdapter
-        return WindsurfAdapter(output_dir, repo_root)
-    if target_id == "codex":
-        from agent_toolkit.compiler.targets.codex import CodexAdapter
-        return CodexAdapter(output_dir, repo_root)
-    if target_id == "opencode":
-        from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
-        return OpenCodeAdapter(output_dir, repo_root)
-    return None
+    """Return the adapter for a given target ID via declarative registry."""
+    from agent_toolkit.compiler.target_registry import resolve_adapter_class
+    cls = resolve_adapter_class(target_id, repo_root)
+    if cls is None:
+        return None
+    return cls(output_dir, repo_root)

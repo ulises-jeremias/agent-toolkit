@@ -1,0 +1,85 @@
+# Declarative compile-target registry for agent-toolkit CLI.
+# Consumed by build, diff, and release commands — adapter wiring stays in Python.
+version: 1
+
+targets:
+  - id: claude-code
+    adapter_module: agent_toolkit.compiler.targets.claude_code
+    adapter_class: ClaudeCodeAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: true
+      release: true
+
+  - id: cursor
+    adapter_module: agent_toolkit.compiler.targets.cursor
+    adapter_class: CursorAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: true
+      release: true
+
+  - id: opencode
+    adapter_module: agent_toolkit.compiler.targets.opencode
+    adapter_class: OpenCodeAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: true
+      release: true
+
+  - id: gemini-cli
+    adapter_module: agent_toolkit.compiler.targets.gemini_cli
+    adapter_class: GeminiCLIAdapter
+    aliases: [gemini]
+    commands:
+      build: true
+      diff: false
+      release: true
+
+  - id: copilot-cli
+    adapter_module: agent_toolkit.compiler.targets.copilot
+    adapter_class: CopilotCLIAdapter
+    aliases: [copilot]
+    commands:
+      build: true
+      diff: false
+      release: true
+
+  - id: copilot-repository
+    adapter_module: agent_toolkit.compiler.targets.copilot
+    adapter_class: CopilotRepositoryAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true
+
+  - id: pi
+    adapter_module: agent_toolkit.compiler.targets.pi
+    adapter_class: PiAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true
+
+  - id: windsurf
+    adapter_module: agent_toolkit.compiler.targets.windsurf
+    adapter_class: WindsurfAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true
+
+  - id: codex
+    adapter_module: agent_toolkit.compiler.targets.codex
+    adapter_class: CodexAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: false
+      release: true

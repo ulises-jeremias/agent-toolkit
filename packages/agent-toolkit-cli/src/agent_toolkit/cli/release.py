@@ -79,17 +79,10 @@ def cmd_release(args: list[str]) -> int:
 
     print(f"\nRelease dry run — output: {output_dir}\n")
 
-    targets = {
-        "claude-code": "agent_toolkit.compiler.targets.claude_code.ClaudeCodeAdapter",
-        "cursor": "agent_toolkit.compiler.targets.cursor.CursorAdapter",
-        "opencode": "agent_toolkit.compiler.targets.opencode.OpenCodeAdapter",
-        "copilot-cli": "agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter",
-        "copilot-repository": "agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter",
-        "gemini-cli": "agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter",
-        "windsurf": "agent_toolkit.compiler.targets.windsurf.WindsurfAdapter",
-        "pi": "agent_toolkit.compiler.targets.pi.PiAdapter",
-        "codex": "agent_toolkit.compiler.targets.codex.CodexAdapter",
-    }
+    from agent_toolkit.compiler.target_registry import load_target_registry
+    registry = load_target_registry(repo_root)
+    # canonical id -> adapter path (dedupe aliases)
+    targets = {spec.id: spec.adapter for spec in {s.id: s for s in registry.values()}.values()}
 
     target_filter = parsed.target
     if target_filter != "all":

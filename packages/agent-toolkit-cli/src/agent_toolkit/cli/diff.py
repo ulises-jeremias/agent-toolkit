@@ -69,7 +69,8 @@ def cmd_diff(args: list[str]) -> int:
         return 1
 
     plugins_dir = repo_root / "plugins"
-    targets = [parsed.target] if parsed.target else ["claude-code", "cursor", "opencode"]
+    from agent_toolkit.compiler.target_registry import available_target_ids
+    targets = [parsed.target] if parsed.target else sorted(available_target_ids(repo_root))
     products_to_diff = (
         [graph.products[parsed.product]] if parsed.product and parsed.product in graph.products
         else list(graph.products.values())
@@ -154,13 +155,8 @@ def cmd_diff(args: list[str]) -> int:
 
 
 def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
-    if target_id == "claude-code":
-        from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
-        return ClaudeCodeAdapter(output_dir, repo_root)
-    if target_id == "cursor":
-        from agent_toolkit.compiler.targets.cursor import CursorAdapter
-        return CursorAdapter(output_dir, repo_root)
-    if target_id == "opencode":
-        from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
-        return OpenCodeAdapter(output_dir, repo_root)
-    return None
+    from agent_toolkit.compiler.target_registry import resolve_adapter_class
+    cls = resolve_adapter_class(target_id, repo_root)
+    if cls is None:
+        return None
+    return cls(output_dir, repo_root)
