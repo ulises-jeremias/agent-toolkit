@@ -39,9 +39,11 @@ agent-toolkit-cli = "agent_toolkit.cli.main:main"
 
 [project.urls]
 Homepage = "https://github.com/ulises-jeremias/agent-toolkit"
+Documentation = "https://github.com/ulises-jeremias/agent-toolkit/tree/main/docs"
 Repository = "https://github.com/ulises-jeremias/agent-toolkit.git"
 Issues = "https://github.com/ulises-jeremias/agent-toolkit/issues"
 Changelog = "https://github.com/ulises-jeremias/agent-toolkit/blob/main/CHANGELOG.md"
+PyPI = "https://pypi.org/project/agent-toolkit-cli/"
 
 [tool.hatch.version]
 path = "src/agent_toolkit/__init__.py"
