@@ -76,40 +76,19 @@ If any script exits non-zero, read the output carefully — it will tell you whi
    ...usage guide...
    ```
 
-5. **Write `skill.json`** with the compatibility matrix:
-
-   ```json
-   {
-     "name": "my-skill-name",
-     "version": "1.0.0",
-     "description": "One-sentence description matching SKILL.md.",
-     "source": "skills/delivery/my-skill-name",
-     "author": "your-github-username",
-     "tags": ["tag1", "tag2"],
-     "compatibility": {
-       "claude-code": true,
-       "cursor": true,
-       "opencode": true,
-       "copilot": false,
-       "windsurf": true,
-       "pi": false
-     }
-   }
-   ```
-
-6. **Run validation**:
+5. **Run validation**:
 
    ```bash
    bash scripts/validate-skills.sh
    ```
 
-7. **Regenerate catalogs**:
+6. **Regenerate catalogs**:
 
    ```bash
    bash scripts/build-catalog.sh
    ```
 
-8. Open a PR — see the PR checklist below.
+7. Open a PR — see the PR checklist below.
 
 ---
 
@@ -215,7 +194,7 @@ Before submitting a PR, confirm the following:
 - [ ] `bash scripts/validate-loops.sh` passes with exit 0 (if you added/modified loops)
 - [ ] `bash scripts/build-catalog.sh` was run and catalog changes are included in the commit
 - [ ] `SKILL.md` frontmatter is complete (name, description, author, version, tags, domain)
-- [ ] `skill.json` compatibility matrix is accurate — only mark `true` for tools you have verified
+- [ ] `SKILL.md` frontmatter `tools` list is accurate — only list tools you have verified
 - [ ] No secrets, API keys, or credentials in any file
 - [ ] PR description explains what the skill/loop/profile does and which tools it targets
 - [ ] If this is a new domain, an issue was opened and discussed before work started

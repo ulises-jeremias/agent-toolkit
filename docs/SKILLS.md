@@ -45,40 +45,7 @@ Required frontmatter fields (validated by `schemas/skill-md-frontmatter.schema.j
 | `produces` | array | No | Artifact types the skill outputs |
 | `compatibility` | string | No | Human-readable notes about caveats or prerequisites |
 
-### skill.json
-
-The machine-readable manifest. This is what install scripts, validators, and tool integrations read to understand the skill's capabilities and compatibility.
-
-```json
-{
-  "$schema": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill.schema.json",
-  "name": "gh-fix-ci",
-  "version": "1.0.0",
-  "description": "Triage failing GitHub Actions checks and propose minimal fixes",
-  "source": "bundled",
-  "author": "ulises-jeremias",
-  "tags": ["ci", "github-actions", "debugging"],
-  "requires": ["gh"],
-  "compatibility": {
-    "claude-code": { "supported": true },
-    "cursor":      { "supported": true },
-    "opencode":    { "supported": true },
-    "windsurf":    { "supported": true },
-    "copilot-cli": { "supported": false, "notes": "Copilot does not support custom skill loading" },
-    "pi":          { "supported": true }
-  }
-}
-```
-
-Required fields (validated by `schemas/skill.schema.json`):
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Kebab-case, must match directory name and SKILL.md name |
-| `version` | string | Yes | Semantic version (e.g. `1.0.0`) |
-| `description` | string | Yes | Short summary |
-| `source` | string | Yes | One of: `bundled`, `npm`, `github`, `url` |
-| `compatibility` | object | Yes | Per-tool compatibility declarations |
+Tool compatibility is declared via optional `tools` frontmatter and validated by `scripts/validate-skills.py`. Legacy `skill.json` manifests were removed in v1.0.4 — see `docs/MIGRATION.md`.
 
 ---
 
@@ -278,11 +245,11 @@ cp -r /path/to/agent-toolkit/profiles/pi/skills/. ~/.pi/agent/skills/
 
 ## Compatibility Matrix Explained
 
-The `compatibility` field in `skill.json` declares support per AI tool. The value `supported: true` means the skill has been tested and works with that tool's native skill-loading mechanism. `supported: false` means either the tool does not support custom skills, or the skill relies on a feature (e.g. MCP, specific API) not available in that tool.
+Tool compatibility is declared in `SKILL.md` frontmatter via the optional `tools` list and in generated catalogs (`catalogs/skill-catalog.yaml`). A tool listed in `tools` means the skill has been tested and works with that tool's native skill-loading mechanism.
 
-A skill being `supported: false` for a tool does not mean you cannot use its concepts — it means the structured loading mechanism is not available. You can always paste `SKILL.md` content into a tool's system prompt manually.
+A skill not listing a tool does not mean you cannot use its concepts — it means structured loading for that tool has not been verified. You can always paste `SKILL.md` content into a tool's system prompt manually.
 
-Tools in the compatibility matrix:
+Common tool identifiers in frontmatter and catalogs:
 
 | Key | Tool |
 |-----|------|
@@ -304,7 +271,8 @@ bash scripts/validate-skills.sh
 ```
 
 This checks:
-- Every skill directory has both `SKILL.md` and `skill.json`
+- Every skill directory has `SKILL.md`
 - `SKILL.md` frontmatter has required `name` and `description` fields
-- `skill.json` has required `name`, `version`, and `compatibility` fields
+- Frontmatter validates against `schemas/skill-md-frontmatter.schema.json`
+- No `skill.json` files are present (deprecated since v1.0.4)
 - No secrets or credential patterns are present in any file
