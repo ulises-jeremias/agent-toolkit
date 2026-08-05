@@ -12,7 +12,7 @@ Boris Cherny, Peter Steinberger, Addy Osmani — 2026).
 
 Usage:
     loop init <pattern>           Scaffold a loop from a starter template
-    loop run <loop> [--force]     Execute a loop run (one iteration; --force bypasses daily budget)
+    loop run <loop> [--force] [--quiet]  Execute a loop run (--force bypasses budget; --quiet suppresses live output)
     loop status [loop]            Show loop status (all, or one)
     loop audit [loop]             Summarize past runs (success rate, cost)
     loop cost <loop>              Estimate cost for one run
@@ -49,6 +49,127 @@ from typing import Any
 # ── cancellation ──────────────────────────────────────────────────────────────
 
 _CANCELLED = False
+_PROGRESS_QUIET = False
+
+
+class _TraceTailer:
+    """Print trace.jsonl events as they are appended during a run."""
+
+    def __init__(self, trace_file: Path) -> None:
+        self._trace_file = trace_file
+        self._offset = 0
+        self._stop = False
+
+    def poll(self) -> None:
+        if not self._trace_file.exists():
+            return
+        data = self._trace_file.read_text(encoding="utf-8")
+        if len(data) <= self._offset:
+            return
+        chunk = data[self._offset :]
+        self._offset = len(data)
+        for line in chunk.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            self._emit(event)
+
+    def _emit(self, event: dict[str, Any]) -> None:
+        kind = event.get("kind", "")
+        if kind in ("run_start", "run_end", "worktree_created", "queued"):
+            log(f"trace:{kind}")
+        elif kind == "repo":
+            log(f"repo: {event.get('name', event.get('path', '?'))}")
+        elif kind == "token_usage":
+            total = event.get("total_tokens") or event.get("total")
+            cost = event.get("cost_usd")
+            if cost is not None:
+                log(f"tokens: {total} (~${cost})")
+            elif total is not None:
+                log(f"tokens: {total}")
+        elif kind == "progress":
+            current = event.get("current")
+            total = event.get("total")
+            label = event.get("label", "progress")
+            if current is not None and total is not None:
+                log(f"{label}: {current}/{total}")
+            else:
+                log(f"{label}: {event.get('message', '')}")
+
+    def stop(self) -> None:
+        self._stop = True
+
+
+def _run_with_live_output(
+    cmd: list[str],
+    *,
+    input_text: str,
+    cwd: str,
+    env: dict[str, str],
+    trace_file: Path | None = None,
+    timeout: int = 900,
+) -> subprocess.CompletedProcess[str]:
+    """Run a subprocess, streaming stdout/stderr unless --quiet."""
+    if _PROGRESS_QUIET:
+        return subprocess.run(
+            cmd,
+            input=input_text,
+            capture_output=True,
+            text=True,
+            cwd=cwd,
+            timeout=timeout,
+            env=env,
+        )
+
+    import threading
+    import time
+
+    tailer = _TraceTailer(trace_file) if trace_file else None
+    proc = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        cwd=cwd,
+        env=env,
+    )
+    assert proc.stdin is not None and proc.stdout is not None
+    proc.stdin.write(input_text)
+    proc.stdin.close()
+
+    lines: list[str] = []
+
+    def _pump() -> None:
+        for line in iter(proc.stdout.readline, ""):
+            lines.append(line)
+            print(f"{dim('[runner]')} {line.rstrip()}", flush=True)
+
+    def _tail() -> None:
+        while proc.poll() is None and not _CANCELLED:
+            if tailer:
+                tailer.poll()
+            time.sleep(0.25)
+        if tailer:
+            tailer.poll()
+
+    pump_thread = threading.Thread(target=_pump, daemon=True)
+    tail_thread = threading.Thread(target=_tail, daemon=True)
+    pump_thread.start()
+    tail_thread.start()
+    try:
+        proc.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        raise
+    pump_thread.join(timeout=1)
+    tail_thread.join(timeout=1)
+    stdout = "".join(lines)
+    return subprocess.CompletedProcess(cmd, proc.returncode or 0, stdout, "")
 
 
 def _handle_sig(signum: int, _frame) -> None:
@@ -487,7 +608,13 @@ def _install_gate_into_environ(run_dir: Path, meta: dict[str, Any]) -> dict[str,
     return env
 
 
-def _try_claude_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None = None) -> bool:
+def _try_claude_runner(
+    prompt: str,
+    run_dir: Path,
+    meta: dict[str, Any] | None = None,
+    *,
+    trace_file: Path | None = None,
+) -> bool:
     """Invoke `claude --print` as a built-in runner for Claude Code users."""
     claude_bin = shutil.which("claude")
     if not claude_bin:
@@ -495,15 +622,13 @@ def _try_claude_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None =
 
     env = _install_gate_into_environ(run_dir, meta or {})
     try:
-        result = subprocess.run(
+        result = _run_with_live_output(
             [claude_bin, "--print",
              "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
-            input=prompt,
-            capture_output=True,
-            text=True,
+            input_text=prompt,
             cwd=str(WORKSPACE_ROOT),
-            timeout=900,
             env=env,
+            trace_file=trace_file or (run_dir / "trace.jsonl"),
         )
     except subprocess.TimeoutExpired:
         warn("claude runner timed out (900s)")
@@ -524,7 +649,13 @@ def _try_claude_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None =
     return False
 
 
-def _try_opencode_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None = None) -> bool:
+def _try_opencode_runner(
+    prompt: str,
+    run_dir: Path,
+    meta: dict[str, Any] | None = None,
+    *,
+    trace_file: Path | None = None,
+) -> bool:
     """Invoke `opencode run` as a headless runner."""
     opencode_bin = shutil.which("opencode")
     if not opencode_bin:
@@ -532,14 +663,12 @@ def _try_opencode_runner(prompt: str, run_dir: Path, meta: dict[str, Any] | None
 
     env = _install_gate_into_environ(run_dir, meta or {})
     try:
-        result = subprocess.run(
+        result = _run_with_live_output(
             [opencode_bin, "run", "--print-logs"],
-            input=prompt,
-            capture_output=True,
-            text=True,
+            input_text=prompt,
             cwd=str(WORKSPACE_ROOT),
-            timeout=900,
             env=env,
+            trace_file=trace_file or (run_dir / "trace.jsonl"),
         )
     except subprocess.TimeoutExpired:
         warn("opencode runner timed out (900s)")
@@ -687,17 +816,21 @@ def cmd_init(args: list[str]) -> int:
 def cmd_run(args: list[str]) -> int:
     """Execute one loop run.
 
-    Usage: loop run <loop-name> [--force]
+    Usage: loop run <loop-name> [--force] [--quiet]
       --force  bypass max_runs_per_day budget gate
+      --quiet  suppress live runner output and trace progress lines
     """
+    global _PROGRESS_QUIET
+
     if not args:
-        err("Usage: loop run <loop-name> [--force]")
+        err("Usage: loop run <loop-name> [--force] [--quiet]")
         return 1
 
+    _PROGRESS_QUIET = "--quiet" in args
     force = "--force" in args
     loop_name = next((a for a in args if not a.startswith("-")), "")
     if not loop_name:
-        err("Usage: loop run <loop-name> [--force]")
+        err("Usage: loop run <loop-name> [--force] [--quiet]")
         return 1
 
     loop_dir = LOOPS_DIR / loop_name
@@ -861,15 +994,17 @@ def cmd_run(args: list[str]) -> int:
                 runner_mod.main(["--job", str(job_file), "--out", str(run_dir)])
             except Exception as e:
                 err(f"Runner error: {e}")
-        elif _try_claude_runner(prompt, run_dir, meta):
+        elif _try_claude_runner(prompt, run_dir, meta, trace_file=trace_file):
             pass  # claude runner handled it
-        elif _try_opencode_runner(prompt, run_dir, meta):
+        elif _try_opencode_runner(prompt, run_dir, meta, trace_file=trace_file):
             pass  # opencode runner handled it
         elif _queue_via_devcompanion(prompt, run_dir, loop_name, rid, meta):
             queued = True  # queued for async devcompanion processing
             log("Loop dispatched to devcompanion queue — worker will process asynchronously.")
         else:
             warn("No runner found — writing skeleton plan.md")
+            if not _PROGRESS_QUIET:
+                log("step: prepare skeleton plan")
             plan_md.write_text(
                 f"# Loop Run: {loop_name}\n\n"
                 f"**Run ID**: {rid}  \n"
@@ -885,6 +1020,14 @@ def cmd_run(args: list[str]) -> int:
                 "See: https://github.com/ulises-jeremias/agent-toolkit\n",
                 encoding="utf-8",
             )
+            if not _PROGRESS_QUIET:
+                log("step: skeleton plan written (no LLM runner available)")
+                trace_file.write_text(
+                    trace_file.read_text(encoding="utf-8")
+                    + json.dumps({"ts": utc_now(), "kind": "progress",
+                                  "label": "skeleton", "message": "plan.md written"}) + "\n",
+                    encoding="utf-8",
+                )
     except RuntimeError as gate_exc:
         err(str(gate_exc))
         finalize_run(loop_dir, run_dir, rid, worktree_path, trace_file, "gate_failed")
