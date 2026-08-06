@@ -274,6 +274,12 @@ switching from profile-copy installs to marketplace plugins.
 
 ---
 
+## Data packaging and resolution
+
+Runtime data can come from an editable checkout, the wheel-bundled `agent_toolkit/data/` copy, or an XDG cache populated from a GitHub Release. The full source-of-truth and resolution order (env override → wheel data → XDG cache → editable walk-up → CWD) is documented in `docs/adrs/ADR-005-data-packaging.md`.
+
+Packagers (Homebrew/AUR) should read that ADR and `scripts/prepare-package-data.sh` — set `AGENT_TOOLKIT_ROOT` or `AGENT_TOOLKIT_OFFLINE=1` for sandboxed builds. See also #257/#258.
+
 ## Troubleshooting
 
 ### Claude Code: skills not loading
