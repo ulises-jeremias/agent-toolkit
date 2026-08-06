@@ -489,3 +489,8 @@ See [How to add a skill](docs/HOW_TO_ADD_SKILL.md) for the full authoring guide.
 <sub>Built for the agentic age — one toolkit, every assistant.</sub>
 
 </div>
+
+
+## Showcase
+
+See [SHOWCASE.md](SHOWCASE.md).
