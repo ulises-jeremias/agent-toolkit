@@ -40,6 +40,9 @@ Still available on the same binary — de-emphasized in top-level help:
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
 | `release` | Generate release artifacts (maintainer / CI) |
+| `swarm` | Multi-agent swarm orchestration (pair/team/full, Herdr/tmux, budgets, handoffs) |
+
+Swarm details: `docs/SWARMS.md`, `docs/SWARM_ARCHITECTURE.md`.
 
 ## Migration
 

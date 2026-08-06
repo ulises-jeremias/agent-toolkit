@@ -117,7 +117,12 @@ A pack bundles skills, agents, and loops into an outcome-oriented workflow. A pa
 
 Packs are the recommended entry point for teams. Instead of picking individual skills, you load a pack and get a coherent setup for your context (OSS maintainer, startup delivery team, data platform, etc.).
 
+### Swarms
+
+Swarms coordinate multiple coding-agent sessions with worktree isolation and durable handoffs. See `docs/SWARMS.md` and `docs/SWARM_ARCHITECTURE.md`. Orchestration engine + UI backends (Herdr/tmux) + runner adapters (OpenCode etc.) with filesystem state authoritative, commit-based handoffs, human gates, and budgets. Details in ADR-008.
+
 ---
+
 
 ## Repository Structure
 

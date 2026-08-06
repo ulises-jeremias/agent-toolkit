@@ -72,6 +72,55 @@ agent-toolkit build --check
 
 See `docs/CONCEPTS.md` and `docs/ARCHITECTURE.md` ADR-003/004.
 
+## 6. Swarm: Herdr not found
+
+**Symptom:** `agent-toolkit swarm start --ui herdr` fails with "Herdr was explicitly requested but was not found."
+
+**Fix:**
+
+```bash
+herdr --version                # check presence
+# Install per https://herdr.dev/docs/install/
+brew install herdr              # macOS
+curl -fsSL https://herdr.dev/install.sh | sh   # Linux
+# Or use portable fallback:
+agent-toolkit swarm start --ui tmux ...
+```
+
+## 7. Swarm: Runner not found
+
+**Symptom:** `runner opencode not found` or model unavailable.
+
+**Fix:**
+
+```bash
+agent-toolkit swarm runners    # capability matrix
+agent-toolkit swarm models --runner opencode
+opencode models
+# Use skeleton for dry-run:
+agent-toolkit swarm start --runner skeleton "task"
+```
+
+## 8. Swarm: Worktree dirty
+
+**Symptom:** `Worktree contains uncommitted changes. Toolkit will not remove it.`
+
+**Fix:** commit or stash inside worktree, then `agent-toolkit swarm cleanup RUN_ID` or with `--force` if intentional.
+
+## 9. Swarm: Blocking feedback loop
+
+**Symptom:** `The reviewer returned blocking feedback twice. The configured round-trip limit has been reached.`
+
+**Fix:**
+
+```bash
+agent-toolkit swarm artifacts RUN_ID
+agent-toolkit swarm handoffs RUN_ID
+# Then choose: resume with higher limit, promote to team, or human intervention
+```
+
+See `docs/SWARMS.md`.
+
 ---
 
 If none of these match, run `agent-toolkit doctor --verbose` and open an issue with the output (redact paths if needed).

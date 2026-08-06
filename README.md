@@ -416,7 +416,7 @@ Browse packs: [`packs/`](packs/)
 
 **agentic-workstation** installs `agent-toolkit-cli` automatically during `chezmoi apply` (via AUR on Arch Linux or pip elsewhere). Running `agent-toolkit install` deploys skills and profiles to all detected AI tools.
 
-**agentic-harness** is an opinionated workspace scaffold that uses `agent-toolkit loop`, `agent-toolkit memory`, `agent-toolkit devcompanion`, and `agent-toolkit project` as its primary CLI interface.
+**agentic-harness** is an opinionated workspace scaffold that uses `agent-toolkit loop`, `agent-toolkit memory`, `agent-toolkit devcompanion`, `agent-toolkit project`, and `agent-toolkit swarm` as its primary CLI interface.
 
 ---
 

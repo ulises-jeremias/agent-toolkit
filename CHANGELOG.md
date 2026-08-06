@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+- **Swarm orchestration** — new `agent-toolkit swarm` CLI (ADR-008) with backend-neutral orchestration (Herdr recommended, tmux fallback), recipes `pair`/`team`/`full` (lazy/elastic, `pair→team→full` promotion), Git worktree isolation per writer, durable filesystem handoffs (artifact/commit/feedback/decision_request), commit-based code transfer, human approval gates, budgets (tokens/cost/wall-clock/concurrency/round-trips), model profiles (`economy`/`balanced`/`quality`/`private`), runner abstraction (OpenCode primary), OpenCode per-role agent generation, Herdr plugin (`integrations/herdr/agent-toolkit-swarm`), and docs (`docs/SWARMS.md`, `SWARM_ARCHITECTURE.md`, etc.).
+
 ## [1.6.0] — 2026-08-06
 
 ### Added
