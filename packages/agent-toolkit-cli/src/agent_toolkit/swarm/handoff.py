@@ -7,12 +7,11 @@ import json
 import os
 import re
 import tempfile
-import time
 from pathlib import Path
 from typing import Any
 
 from .models import HANDOFF_VERSION
-from .store import atomic_write_text, is_path_contained, now_ts, validate_artifact_path
+from .store import now_ts, validate_artifact_path
 
 ALLOWED_TYPES = {"artifact", "commit", "feedback", "decision_request"}
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")

@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 DEFAULTS = {
     "max_total_tokens": 900000,
     "max_cost_usd": 4.00,

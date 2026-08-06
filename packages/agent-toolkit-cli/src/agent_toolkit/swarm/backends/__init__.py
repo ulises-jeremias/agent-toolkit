@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 from typing import Any, Protocol
 
+
 class SwarmUIBackend(Protocol):
     name: str
     def doctor(self) -> dict[str, Any]: ...

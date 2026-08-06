@@ -6,8 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .store import atomic_write_json, now_ts, append_trace
-
+from .store import append_trace, atomic_write_json, now_ts
 
 GATE_DESCRIPTIONS = {
     "plan": "Plan approval: review task contract, acceptance criteria, risk assessment before implementation.",

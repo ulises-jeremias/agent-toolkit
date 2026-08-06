@@ -11,8 +11,6 @@ import hashlib
 import json
 import os
 import re
-import shlex
-import shutil
 import subprocess
 import sys
 import time
@@ -25,32 +23,48 @@ from .approvals import (
     default_gates_for_recipe,
     load_approvals,
     reject_gate,
-    request_approval,
     save_approvals,
 )
+from .backends import get_backend
 from .budget import load_budget, resolve_budget, save_budget
 from .config import find_repo_root, resolve_config
-from .handoff import handoff_id_for, list_handoffs, validate_handoff, write_handoff_outbox, move_handoff, validate_commit_exists
+from .handoff import (
+    list_handoffs,
+    move_handoff,
+    validate_commit_exists,
+    validate_handoff,
+    write_handoff_outbox,
+)
 from .models import API_VERSION
 from .prompts import compose_role_prompt
-from .recipes import BUILTIN_RECIPES, get_recipe, list_recipes, validate_recipe
-from .runner import MODEL_PROFILES, capability_matrix, discover_models, generate_opencode_agent, resolve_model, runner_available
-from .backends import get_backend
+from .recipes import get_recipe, list_recipes
+from .runner import (
+    MODEL_PROFILES,
+    capability_matrix,
+    discover_models,
+    generate_opencode_agent,
+    resolve_model,
+    runner_available,
+)
 from .store import (
+    append_trace,
     atomic_write_json,
     atomic_write_text,
-    append_trace,
     ensure_run_dirs,
     is_path_contained,
+    list_runs,
     now_ts,
     read_state,
     run_dir_for,
-    swarm_root_for_repo,
-    write_state,
-    list_runs,
     validate_artifact_path,
+    write_state,
 )
-from .worktree import branch_for_run_role, create_worktree, remove_worktree, is_worktree_dirty, worktree_path_for
+from .worktree import (
+    branch_for_run_role,
+    create_worktree,
+    is_worktree_dirty,
+    remove_worktree,
+)
 
 NO_COLOR = os.environ.get("NO_COLOR") is not None or not sys.stdout.isatty()
 
@@ -433,7 +447,7 @@ def cmd_start(args: list[str]) -> int:
         backend_name = "tmux"
         backend = tmux_be
         cfg["ui"] = "tmux"
-        print(f"[swarm] auto: herdr unavailable, falling back to tmux", file=sys.stderr)
+        print("[swarm] auto: herdr unavailable, falling back to tmux", file=sys.stderr)
     # Validate runner
     runner_name = cfg.get("runner", "opencode")
     if not runner_available(runner_name) and runner_name != "skeleton":
@@ -527,7 +541,7 @@ def cmd_start(args: list[str]) -> int:
     if state.get("run_state") == "awaiting_plan_approval":
         print(f"  status: awaiting_plan_approval — approve with: agent-toolkit swarm approve {run_id} plan")
     else:
-        print(f"  status: running")
+        print("  status: running")
     print(f"Inspect: agent-toolkit swarm status {run_id}")
     return 0
 
@@ -563,7 +577,7 @@ def cmd_status(args: list[str]) -> int:
         return cmd_list(["--json"] if ns.json else [])
     run_dir = run_dir_for(repo, ns.run_id)
     if not run_dir.is_dir():
-        return _error(f"Run not found: {ns.run_id}", hint=f"List runs: agent-toolkit swarm list")
+        return _error(f"Run not found: {ns.run_id}", hint="List runs: agent-toolkit swarm list")
     state = read_state(run_dir) or {}
     budget_data = load_budget(run_dir)
     trace_path = run_dir / "trace.jsonl"
@@ -586,7 +600,7 @@ def cmd_status(args: list[str]) -> int:
     # Approvals
     gates = load_approvals(run_dir)
     if gates:
-        print(f"  approvals:")
+        print("  approvals:")
         for g in gates:
             print(f"    {g['id']}: {'approved' if g.get('approved') else 'pending'} - {g.get('description','')[:60]}")
     if ns.watch:
