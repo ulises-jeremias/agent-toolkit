@@ -6,6 +6,8 @@
 
 # agent-toolkit
 
+> **New here?** Start with [Getting Started](docs/GETTING_STARTED.md) — install → doctor → first skill.
+
 **Composable AI agent capabilities for every major coding assistant**
 
 [![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
