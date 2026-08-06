@@ -95,6 +95,16 @@ Failure visibility on the releasing repo:
 * If downstream is red, re-dispatch per playbook (see below) and re-check; do not close the release as done until both downstream runs are green or explicitly deferred for maintenance.
 * For AUR, a maintenance failure is expected — document it in the release comment and retry when AUR leaves maintenance; do not auto-open issues on every window.
 
+
+## Downstream install source (PyPI wheel preferred)
+
+Homebrew (`homebrew-tap`) and AUR (`aur-packages`) should install from the PyPI wheel/sdist (which bundles `skills/` data via `prepare-package-data.sh`) rather than building from the GitHub source tarball without that step. This avoids silent incomplete installs (see #257, #258).
+
+- **Homebrew:** Formula `agent-toolkit.rb` should `url` the PyPI wheel (`https://files.pythonhosted.org/.../agent-toolkit_cli-*.whl`) or run `scripts/prepare-package-data.sh` before `pip install` from tarball. Verify via `brew install --build-from-source` then `agent-toolkit doctor`.
+- **AUR:** `PKGBUILD` should `source` the PyPI sdist/wheel and run `prepare-package-data.sh` if building from source. Verify via `makepkg -si` then `agent-toolkit doctor`.
+
+See `docs/AUR_PLAYBOOK.md` for re-dispatch; downstream repos are the source of truth for their formulas.
+
 ## AUR retry playbook
 
 See `docs/AUR_PLAYBOOK.md` for re-dispatch when AUR leaves maintenance.
