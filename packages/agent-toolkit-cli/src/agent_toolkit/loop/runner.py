@@ -13,6 +13,7 @@ Boris Cherny, Peter Steinberger, Addy Osmani — 2026).
 Usage:
     loop init <pattern>           Scaffold a loop from a starter template
     loop run <loop> [options]     Execute a loop run
+    loop list                     List detected loops (same as run resolution)
     loop status [loop]            Show loop status (all, or one)
     loop audit [loop]             Summarize past runs (success rate, cost)
     loop cost <loop>              Estimate cost for one run
@@ -2535,6 +2536,48 @@ def _launchd_plist(loop_name: str, cron: str) -> str:
 """
 
 
+def cmd_list(args: list[str]) -> int:
+    """List detected loops (same places `loop run <name>` searches)."""
+    # Same resolution as `run`/`status`: workspace instances first, then bundled fallback
+    loops = list_loops()
+    bundled_fallback = False
+    if not loops:
+        bundled = toolkit_loops_dir()
+        if bundled.is_dir():
+            loops = [
+                d
+                for d in sorted(bundled.iterdir())
+                if d.is_dir() and ((d / "loop.yaml").exists() or (d / "LOOP.md").exists())
+            ]
+            bundled_fallback = True
+
+    if not loops:
+        print("No loops found. Run: agent-toolkit loop init <pattern>")
+        return 0
+
+    ws = workspace_root()
+    bundled_dir = toolkit_loops_dir()
+    print("")
+    print(blue("── Loops (detected) ─────────────────────────────────────"))
+    for loop_dir in loops:
+        try:
+            rel = loop_dir.relative_to(ws)
+            source = "workspace"
+        except ValueError:
+            try:
+                rel = loop_dir.relative_to(bundled_dir)
+                source = "bundled"
+            except ValueError:
+                rel = loop_dir
+                source = "bundled" if bundled_fallback else "workspace"
+        meta = parse_loop_md(loop_dir) if (loop_dir / "LOOP.md").exists() else {}
+        tier = meta.get("tier", "?") if isinstance(meta, dict) else "?"
+        cadence = meta.get("cadence", "?") if isinstance(meta, dict) else "?"
+        print(f"  {loop_dir.name:<30} {dim(f'source={source}'):<18} tier={tier} cadence={cadence}  {dim(str(rel.parent))}")
+    print("")
+    return 0
+
+
 def cmd_sync() -> int:
     """Regenerate knowledge todos from completed loop runs."""
     knowledge_todos = workspace_root() / "knowledge" / "todos" / "pending.md"
@@ -2598,6 +2641,8 @@ def main() -> None:
             sys.exit(cmd_schedule(rest))
         case "sync":
             sys.exit(cmd_sync())
+        case "list" | "ls":
+            sys.exit(cmd_list(rest))
         case "templates":
             for t in list_templates():
                 print(f"  {t.stem}")
