@@ -92,6 +92,16 @@ jobs:
       - name: Assert plugin surfaces are in sync with canonical sources
         run: python3 scripts/gen-surfaces.py --check
 
+  check-skill-matrix:
+    name: Check Skill→Product Matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Install PyYAML
+        run: pip install pyyaml==6.0.2
+      - name: Check skill→product→target matrix is up to date
+        run: python3 scripts/generate-skill-matrix.py --check
+
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
     name: Validate Loop Templates

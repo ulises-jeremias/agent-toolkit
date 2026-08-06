@@ -4,6 +4,13 @@ Skills are the core unit of capability in agent-toolkit. Each skill is a portabl
 
 ---
 
+## Product membership
+
+Discoverability: only a minority of skills appear in stable marketplace products. Check membership via:
+
+- **Matrix (checked in):** [`docs/SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) — generated from `distributions/products.yaml` (`python3 scripts/generate-skill-matrix.py --check` in CI)
+- **Live CLI:** `agent-toolkit inventory` (lists skills by domain + products)
+
 ## What Is a Skill?
 
 A skill is a directory containing exactly two files:
