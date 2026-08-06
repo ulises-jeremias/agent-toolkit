@@ -18,6 +18,8 @@ dev = [
     "ruff>=0.1.0",
     "pyyaml>=6.0",
     "jsonschema>=4.23.0",
+    "pytest-cov>=7.1.0",
+    "mypy>=1.10.0",
 ]
 
 [tool.uv]
@@ -43,3 +45,33 @@ ignore = ["E501"]
 testpaths = ["tests"]
 addopts = "-v --tb=short"
 pythonpath = ["packages/agent-toolkit-cli/src"]
+
+[tool.coverage.run]
+branch = true
+source = ["agent_toolkit"]
+relative_files = true
+omit = ["*/tests/*", "*/__pycache__/*", "*/site-packages/*"]
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+# Scoped gate (#271): compiler + installer + cli/install.py only.
+# Current combined coverage ~75% (2026-08); gate at 70% gives ~5% headroom.
+# Does NOT require full coverage of loop/runner.py / workspace / devcompanion.
+fail_under = 70
+include = [
+    "*/agent_toolkit/compiler/*",
+    "*/agent_toolkit/installer/*",
+    "*/agent_toolkit/cli/install.py",
+]
+skip_covered = false
+
+[tool.mypy]
+python_version = "3.10"
+# Incremental typing (#275): narrow, warn-only in CI.
+follow_imports = "skip"
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
+strict_optional = true

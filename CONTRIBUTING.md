@@ -71,6 +71,29 @@ python3 scripts/generate-catalogs.py
 AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v
 ```
 
+Install pre-commit hooks (one-time, #274):
+
+```bash
+pip install pre-commit   # or: uv tool install pre-commit
+pre-commit install
+pre-commit run --all-files  # optional: run all hooks now
+```
+
+Python style is enforced in CI by **Ruff** (`validate.yml` → `ruff` job, blocking on PRs).
+MegaLinter still runs on `main` only with `PYTHON_RUFF` set to advisory (`DISABLE_ERRORS`);
+do not add a conflicting blocking MegaLinter Python config — `validate.yml` is the
+single source of truth for PR style gating. Fix Ruff issues locally with:
+
+```bash
+uv run ruff check --fix packages/agent-toolkit-cli/src tests
+uv run ruff format packages/agent-toolkit-cli/src tests
+```
+
+Type checking is incremental and **warn-only** in CI (`mypy` job, `continue-on-error: true`).
+Only `agent_toolkit.compiler` and `agent_toolkit.installer` are checked initially
+(`follow_imports=skip`, narrow allowlist, see `pyproject.toml` `[tool.mypy]` and
+`validate.yml` `mypy` job). Do not add `# type: ignore` sprees — fix types properly.
+
 If any command exits non-zero, read the output — it will tell you which file failed and why.
 
 ---

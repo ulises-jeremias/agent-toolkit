@@ -296,7 +296,67 @@ jobs:
             packs/ \
             .github/workflows/
 
-  # ── Job 9: Build package — ensures a clean wheel and sdist ────────────────
+# ── Job 8b: Ruff — blocking on PRs (single source of truth for Python style) ──
+# MegaLinter still runs on main (push) with PYTHON_RUFF DISABLE_ERRORS (advisory).
+# This job is the blocking gate for PRs; do not add a conflicting MegaLinter PYTHON_RUFF
+# blocking config — validate.yml is the source of truth for PR style gating (#274).
+ruff:
+  name: Ruff (check + format)
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: "3.11"
+    - name: Sync workspace
+      run: uv sync --all-extras
+    - name: Ruff check
+      run: uv run ruff check packages/agent-toolkit-cli/src tests
+    - name: Ruff format check
+      run: uv run ruff format --check packages/agent-toolkit-cli/src tests
+
+# ── Job 8c: Scoped coverage gate — compiler + installer + cli/install.py (#271) ──
+coverage:
+  name: Coverage (compiler/install scoped)
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: "3.11"
+    - name: Sync workspace
+      run: uv sync --all-extras
+    - name: Run scoped coverage (fail_under=70)
+      run: |
+        uv run pytest \
+          --cov=agent_toolkit.compiler \
+          --cov=agent_toolkit.installer \
+          --cov=agent_toolkit.cli.install \
+          --cov-report=term-missing \
+          --cov-fail-under=70 \
+          tests/compiler/ tests/test_installer_receipt.py tests/test_install_sources.py tests/test_install_lifecycle.py tests/test_install_claude_settings.py tests/test_install_opencode_profile.py tests/test_install_non_destructive.py tests/test_install_uninstall.py
+      env:
+        AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+
+# ── Job 8d: Incremental mypy — warn-only, narrow allowlist (#275) ──────────
+mypy:
+  name: mypy (incremental, warn-only)
+  runs-on: ubuntu-latest
+  continue-on-error: true
+  steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: "3.11"
+    - name: Sync workspace
+      run: uv sync --all-extras
+    - name: Run mypy on allowlisted packages (compiler + installer)
+      run: uv run mypy packages/agent-toolkit-cli/src/agent_toolkit/compiler packages/agent-toolkit-cli/src/agent_toolkit/installer
+
+# ── Job 9: Build package — ensures a clean wheel and sdist ────────────────
   build-package:
     name: Build Package
     runs-on: ubuntu-latest
