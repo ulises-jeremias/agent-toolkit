@@ -1,4 +1,5 @@
 """README loop tier table must match loops/*/loop.yaml (#83)."""
+
 from __future__ import annotations
 
 import re

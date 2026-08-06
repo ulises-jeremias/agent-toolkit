@@ -1,10 +1,12 @@
 """Tests for the canonical MCP provider registry."""
+
 from pathlib import Path
+
 import pytest
 
 pytest.importorskip("yaml")
 
-from agent_toolkit.compiler.mcp_registry import load_registry, McpProvider
+from agent_toolkit.compiler.mcp_registry import load_registry
 
 REPO_ROOT = Path(__file__).parent.parent
 REGISTRY_DIR = REPO_ROOT / "mcp" / "registry"
@@ -67,11 +69,14 @@ def test_all_providers_have_complete_metadata():
 def test_no_secrets_in_registry():
     """Registry files must contain only env var names, never values."""
     import re
+
     for yaml_file in REGISTRY_DIR.glob("*.yaml"):
         text = yaml_file.read_text()
         assert not re.search(r"ghp_[A-Za-z0-9]{36}", text), f"Token in {yaml_file}"
         assert not re.search(r"xoxb-[A-Za-z0-9-]+", text), f"Slack token in {yaml_file}"
-        assert "api_key:" not in text.lower() or "${" in text, f"Possible hardcoded key in {yaml_file}"
+        assert "api_key:" not in text.lower() or "${" in text, (
+            f"Possible hardcoded key in {yaml_file}"
+        )
 
 
 def test_provider_platform_support():

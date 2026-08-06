@@ -14,6 +14,7 @@ Examples:
     agent-toolkit diff --target cursor
     agent-toolkit diff --target claude-code --product agent-toolkit-core
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -57,6 +58,7 @@ def cmd_diff(args: list[str]) -> int:
 
     try:
         import yaml  # noqa: F401
+
         from agent_toolkit.compiler.loader import load_graph
     except ImportError as e:
         print(f"  ✗  Compiler unavailable: {e}", file=sys.stderr)
@@ -71,7 +73,8 @@ def cmd_diff(args: list[str]) -> int:
     plugins_dir = repo_root / "plugins"
     targets = [parsed.target] if parsed.target else ["claude-code", "cursor", "opencode"]
     products_to_diff = (
-        [graph.products[parsed.product]] if parsed.product and parsed.product in graph.products
+        [graph.products[parsed.product]]
+        if parsed.product and parsed.product in graph.products
         else list(graph.products.values())
     )
 
@@ -84,6 +87,7 @@ def cmd_diff(args: list[str]) -> int:
 
         for product in products_to_diff:
             import tempfile
+
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_root = Path(tmpdir)
                 # Build into temp dir and compare BEFORE cleanup — digests must
@@ -100,7 +104,11 @@ def cmd_diff(args: list[str]) -> int:
                     try:
                         rel = artifact.relative_to(tmp_root)
                         if str(rel).startswith(product.id + "/") or str(rel) == product.id:
-                            rel = rel.relative_to(product.id) if rel != Path(product.id) else Path(".")
+                            rel = (
+                                rel.relative_to(product.id)
+                                if rel != Path(product.id)
+                                else Path(".")
+                            )
                     except ValueError:
                         continue
                     if str(rel) == ".":
@@ -155,11 +163,14 @@ def cmd_diff(args: list[str]) -> int:
 def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
     if target_id == "claude-code":
         from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
+
         return ClaudeCodeAdapter(output_dir, repo_root)
     if target_id == "cursor":
         from agent_toolkit.compiler.targets.cursor import CursorAdapter
+
         return CursorAdapter(output_dir, repo_root)
     if target_id == "opencode":
         from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
+
         return OpenCodeAdapter(output_dir, repo_root)
     return None

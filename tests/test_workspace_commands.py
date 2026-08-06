@@ -1,4 +1,5 @@
 """Tests for workspace persona, load, and validate commands (#204/#205/#206)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -80,7 +81,9 @@ def test_profiles_list(workspace: Path, capsys: pytest.CaptureFixture[str]) -> N
     assert "pack=acme" in out
 
 
-def test_context_includes_persona_constraints(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+def test_context_includes_persona_constraints(
+    workspace: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     ws.cmd_use_persona(["implementer"])
     ws.cmd_load(["packs/acme.yaml"])
     assert ws.cmd_context([]) == 0

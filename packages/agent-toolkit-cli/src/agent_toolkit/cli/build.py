@@ -18,19 +18,20 @@ Examples:
     agent-toolkit inventory
     agent-toolkit matrix
 """
+
 from __future__ import annotations
 
 import json
 import sys
+import sys as _sys
 from pathlib import Path
 
 from agent_toolkit._paths import toolkit_root
 
-import sys as _sys
-if _sys.platform == 'win32':
+if _sys.platform == "win32":
     try:
-        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -91,8 +92,10 @@ def cmd_build(args: list[str]) -> int:
         for w in graph.warnings:
             _say(f"  ⚠  {w}")
 
-    _say(f"  ✓  {len(graph.skills)} skills, {len(graph.agents)} agents, "
-         f"{len(graph.products)} products loaded")
+    _say(
+        f"  ✓  {len(graph.skills)} skills, {len(graph.agents)} agents, "
+        f"{len(graph.products)} products loaded"
+    )
 
     # Select products to build
     products_to_build = list(graph.products.values())
@@ -104,12 +107,27 @@ def cmd_build(args: list[str]) -> int:
         products_to_build = [graph.products[parsed.product]]
 
     # Select targets
-    available_targets = {"claude-code", "cursor", "opencode", "gemini-cli", "copilot-cli", "copilot-repository", "pi", "windsurf", "codex", "muse-code", "muse"}  # expand as adapters are added
+    available_targets = {
+        "claude-code",
+        "cursor",
+        "opencode",
+        "gemini-cli",
+        "copilot-cli",
+        "copilot-repository",
+        "pi",
+        "windsurf",
+        "codex",
+        "muse-code",
+        "muse",
+    }  # expand as adapters are added
     targets_to_build = [parsed.target] if parsed.target else list(available_targets)
 
     for t in targets_to_build:
         if t not in available_targets:
-            print(f"  ✗  Unknown target '{t}'. Available: {', '.join(sorted(available_targets))}", file=sys.stderr)
+            print(
+                f"  ✗  Unknown target '{t}'. Available: {', '.join(sorted(available_targets))}",
+                file=sys.stderr,
+            )
             return 1
 
     output_dir = Path(parsed.output) if parsed.output else repo_root / "plugins"
@@ -191,8 +209,9 @@ def cmd_inventory(args: list[str]) -> int:
     print(f"\nProducts: {len(graph.products)}")
     for product in sorted(graph.products.values(), key=lambda p: p.id):
         print(f"  ✓  {product.id}")
-        print(f"     skills: {len(product.included_skills)}  "
-              f"agents: {len(product.included_agents)}")
+        print(
+            f"     skills: {len(product.included_skills)}  agents: {len(product.included_agents)}"
+        )
 
     if graph.errors:
         print(f"\nErrors: {len(graph.errors)}")
@@ -218,32 +237,42 @@ def _get_adapter(target_id: str, output_dir: Path, repo_root: Path):
     """Return the adapter for a given target ID."""
     if target_id == "claude-code":
         from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
+
         return ClaudeCodeAdapter(output_dir, repo_root)
     if target_id == "cursor":
         from agent_toolkit.compiler.targets.cursor import CursorAdapter
+
         return CursorAdapter(output_dir, repo_root)
     if target_id in ("gemini-cli", "gemini"):
         from agent_toolkit.compiler.targets.gemini_cli import GeminiCLIAdapter
+
         return GeminiCLIAdapter(output_dir, repo_root)
     if target_id in ("copilot-cli", "copilot"):
         from agent_toolkit.compiler.targets.copilot import CopilotCLIAdapter
+
         return CopilotCLIAdapter(output_dir, repo_root)
     if target_id == "copilot-repository":
         from agent_toolkit.compiler.targets.copilot import CopilotRepositoryAdapter
+
         return CopilotRepositoryAdapter(output_dir, repo_root)
     if target_id == "pi":
         from agent_toolkit.compiler.targets.pi import PiAdapter
+
         return PiAdapter(output_dir, repo_root)
     if target_id == "windsurf":
         from agent_toolkit.compiler.targets.windsurf import WindsurfAdapter
+
         return WindsurfAdapter(output_dir, repo_root)
     if target_id == "codex":
         from agent_toolkit.compiler.targets.codex import CodexAdapter
+
         return CodexAdapter(output_dir, repo_root)
     if target_id == "opencode":
         from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
+
         return OpenCodeAdapter(output_dir, repo_root)
     if target_id in ("muse-code", "muse"):
         from agent_toolkit.compiler.targets.muse_code import MuseCodeAdapter
+
         return MuseCodeAdapter(output_dir, repo_root)
     return None

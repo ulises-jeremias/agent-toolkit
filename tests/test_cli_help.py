@@ -1,4 +1,5 @@
 """Tests for consumer vs advanced help grouping."""
+
 from __future__ import annotations
 
 from agent_toolkit.cli import main as main_module

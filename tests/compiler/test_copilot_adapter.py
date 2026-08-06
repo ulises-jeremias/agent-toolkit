@@ -4,6 +4,7 @@ Two distinct surfaces are tested independently:
 1. CopilotCLIAdapter — root-level plugin.json, agents as .agent.md
 2. CopilotRepositoryAdapter — .github/ directory assets
 """
+
 from __future__ import annotations
 
 import json
@@ -123,9 +124,7 @@ def test_repo_copilot_instructions_created(repo_adapter, graph):
         repo_adapter.output_root / "agent-toolkit-core" / ".github" / "copilot-instructions.md"
     )
     assert instructions.exists(), ".github/copilot-instructions.md not found"
-    assert "copilot-instructions.md" in [
-        e for e in repo_adapter.compile(graph, product).emitted
-    ]
+    assert "copilot-instructions.md" in [e for e in repo_adapter.compile(graph, product).emitted]
 
 
 def test_repo_copilot_instructions_content(repo_adapter, graph):
@@ -193,16 +192,17 @@ def test_two_surfaces_are_independent(cli_adapter, repo_adapter, graph):
     # CLI has root plugin.json, repo has .github/ — they're different
     assert cli_result.emitted != repo_result.emitted or (
         cli_result.artifacts[0].name != repo_result.artifacts[0].name
-        if cli_result.artifacts and repo_result.artifacts else True
+        if cli_result.artifacts and repo_result.artifacts
+        else True
     )
 
 
 # ── All products ──────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("product_id", [
-    "agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"
-])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_cli_all_products(cli_adapter, graph, product_id):
     if product_id not in graph.products:
         pytest.skip(f"Product {product_id} not defined")
@@ -210,9 +210,9 @@ def test_cli_all_products(cli_adapter, graph, product_id):
     assert result.errors == []
 
 
-@pytest.mark.parametrize("product_id", [
-    "agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"
-])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_repo_all_products(repo_adapter, graph, product_id):
     if product_id not in graph.products:
         pytest.skip(f"Product {product_id} not defined")
@@ -224,9 +224,7 @@ def test_cli_manifest_includes_skill_agent_paths(cli_adapter, graph):
     """Official Copilot CLI plugin.json references skills/ and agents/ directories."""
     product = graph.products["agent-toolkit-core"]
     cli_adapter.compile(graph, product)
-    data = json.loads(
-        (cli_adapter.output_root / "agent-toolkit-core" / "plugin.json").read_text()
-    )
+    data = json.loads((cli_adapter.output_root / "agent-toolkit-core" / "plugin.json").read_text())
     assert data.get("skills") == "skills/"
     assert data.get("agents") == "agents/"
 

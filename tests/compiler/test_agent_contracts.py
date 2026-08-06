@@ -1,4 +1,5 @@
 """Tests for agent abstract tool requirements and delegation contracts."""
+
 from __future__ import annotations
 
 from pathlib import Path

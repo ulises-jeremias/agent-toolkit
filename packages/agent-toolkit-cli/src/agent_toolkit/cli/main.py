@@ -1,15 +1,32 @@
 #!/usr/bin/env python3
 """agent-toolkit CLI entrypoint — see docs/CLI_SURFACES.md."""
+
 from __future__ import annotations
 
 import sys
 
 CONSUMER_COMMANDS: tuple[str, ...] = (
-    "install", "update", "uninstall", "doctor", "diff", "skills", "mcp", "plugin",
+    "install",
+    "update",
+    "uninstall",
+    "doctor",
+    "diff",
+    "skills",
+    "mcp",
+    "plugin",
 )
 ADVANCED_COMMANDS: tuple[str, ...] = (
-    "loop", "workspace", "memory", "project", "devcompanion", "dc", "insights",
-    "build", "inventory", "matrix", "release",
+    "loop",
+    "workspace",
+    "memory",
+    "project",
+    "devcompanion",
+    "dc",
+    "insights",
+    "build",
+    "inventory",
+    "matrix",
+    "release",
 )
 
 _CONSUMER_HELP = """\
@@ -52,6 +69,7 @@ def main() -> None:
 
     if argv[0] in ("-V", "--version", "version"):
         from agent_toolkit import __version__
+
         print(f"agent-toolkit {__version__}")
         sys.exit(0)
 
@@ -61,58 +79,76 @@ def main() -> None:
     match command:
         case "release":
             from agent_toolkit.cli.release import cmd_release
+
             sys.exit(cmd_release(rest))
         case "diff":
             from agent_toolkit.cli.diff import cmd_diff
+
             sys.exit(cmd_diff(rest))
         case "build":
             from agent_toolkit.cli.build import cmd_build
+
             sys.exit(cmd_build(rest))
         case "inventory":
             from agent_toolkit.cli.build import cmd_inventory
+
             sys.exit(cmd_inventory(rest))
         case "matrix":
             from agent_toolkit.cli.build import cmd_matrix
+
             sys.exit(cmd_matrix(rest))
         case "install":
             from agent_toolkit.cli.install import cmd_install
+
             sys.exit(cmd_install(rest))
         case "update":
             from agent_toolkit.cli.update import cmd_update
+
             sys.exit(cmd_update(rest))
         case "uninstall" | "rollback":
             from agent_toolkit.cli.uninstall import cmd_uninstall
+
             sys.exit(cmd_uninstall(rest))
         case "doctor":
             from agent_toolkit.cli.doctor import cmd_doctor
+
             sys.exit(cmd_doctor(rest))
         case "loop":
             from agent_toolkit.loop import runner
+
             sys.argv = ["agent-toolkit loop"] + rest
             runner.main()
         case "mcp":
             from agent_toolkit.cli.mcp import cmd_mcp
+
             sys.exit(cmd_mcp(rest))
         case "skills":
             from agent_toolkit.cli.skills import cmd_skills
+
             sys.exit(cmd_skills(rest))
         case "plugin":
             from agent_toolkit.cli.plugin import cmd_plugin
+
             sys.exit(cmd_plugin(rest))
         case "workspace":
             from agent_toolkit.cli.workspace import cmd_workspace
+
             sys.exit(cmd_workspace(rest))
         case "memory":
             from agent_toolkit.cli.memory import cmd_memory
+
             sys.exit(cmd_memory(rest))
         case "project":
             from agent_toolkit.cli.project import cmd_project
+
             sys.exit(cmd_project(rest))
         case "devcompanion" | "dc":
             from agent_toolkit.cli.devcompanion import cmd_devcompanion
+
             sys.exit(cmd_devcompanion(rest))
         case "insights":
             from agent_toolkit.cli.insights import cmd_insights
+
             sys.exit(cmd_insights(rest))
         case _:
             print(f"Unknown command: {command}", file=sys.stderr)

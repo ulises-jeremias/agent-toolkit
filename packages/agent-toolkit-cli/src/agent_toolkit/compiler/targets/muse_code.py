@@ -28,7 +28,6 @@ Install path: `agent-toolkit install --target muse-code` copies skills to
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from agent_toolkit.compiler.model import (

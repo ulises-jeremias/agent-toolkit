@@ -15,21 +15,24 @@ Options:
                       Valid: claude-code, cursor, opencode
     --help            Show this help message
 """
+
 from __future__ import annotations
 
 import json
 import re
 import shutil
 import sys
-from pathlib import Path
-from agent_toolkit._paths import toolkit_root
 
 # Windows: force UTF-8 output so Unicode chars (✓ ✗ ──) don't crash
 import sys as _sys
-if _sys.platform == 'win32':
+from pathlib import Path
+
+from agent_toolkit._paths import toolkit_root
+
+if _sys.platform == "win32":
     try:
-        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -46,7 +49,7 @@ def _parse_skill_description(skill_dir):
     # Block scalar: description: >-\n  content
     block = re.search(r"^description:[ \t]*[|>][\-+]?[ \t]*\n((?:[ \t]+.+\n?)+)", fm, re.MULTILINE)
     if block:
-        lines = [l.strip() for l in block.group(1).splitlines() if l.strip()]
+        lines = [line.strip() for line in block.group(1).splitlines() if line.strip()]
         return " ".join(lines)[:120]
     # Inline: description: text
     inline = re.search(r"^description:[ \t]+(.+)$", fm, re.MULTILINE)
@@ -112,6 +115,7 @@ def _parse_frontmatter_simple(content: str) -> dict | None:
 # list subcommand
 # ---------------------------------------------------------------------------
 
+
 def _cmd_list(args: list[str], toolkit_dir: Path) -> int:
     """Display skills grouped by domain."""
     domain_filter: str | None = None
@@ -173,6 +177,7 @@ def _cmd_list(args: list[str], toolkit_dir: Path) -> int:
 # sync subcommand
 # ---------------------------------------------------------------------------
 
+
 def _sync_claude_code(toolkit_dir: Path) -> bool:
     """Copy/symlink SKILL.md files into ~/.claude/skills/<name>/."""
     skills_dir = toolkit_dir / "skills"
@@ -210,7 +215,7 @@ def _sync_cursor(toolkit_dir: Path) -> bool:
     index: list[dict] = []
     for skill_info in layout.get("skills", []):
         name = skill_info["name"]
-        path = toolkit_dir / skill_info.get("path", f"skills/{skill_info.get('group','')}/{name}")
+        path = toolkit_dir / skill_info.get("path", f"skills/{skill_info.get('group', '')}/{name}")
         skill_md = path / "SKILL.md"
         description = ""
         if skill_md.exists():
@@ -220,12 +225,14 @@ def _sync_cursor(toolkit_dir: Path) -> bool:
                     description = fm.get("description", "")
             except OSError:
                 pass
-        index.append({
-            "name": name,
-            "group": skill_info.get("group", ""),
-            "description": description,
-            "path": str(path),
-        })
+        index.append(
+            {
+                "name": name,
+                "group": skill_info.get("group", ""),
+                "description": description,
+                "path": str(path),
+            }
+        )
 
     dst = Path.home() / ".cursor" / "skills-index.json"
     try:
@@ -316,6 +323,7 @@ def _cmd_sync(args: list[str], toolkit_dir: Path) -> int:
 # validate subcommand
 # ---------------------------------------------------------------------------
 
+
 def _validate_skill(skill_dir: Path, toolkit_dir: Path) -> tuple[int, int]:
     """Validate a single skill directory. Returns (errors, warnings)."""
     rel = skill_dir.relative_to(toolkit_dir)
@@ -346,7 +354,9 @@ def _validate_skill(skill_dir: Path, toolkit_dir: Path) -> tuple[int, int]:
             ok = False
 
     if fm.get("name") and fm["name"] != skill_dir.name:
-        print(f"  ⚠  {rel}/SKILL.md: name '{fm['name']}' does not match directory '{skill_dir.name}'")
+        print(
+            f"  ⚠  {rel}/SKILL.md: name '{fm['name']}' does not match directory '{skill_dir.name}'"
+        )
         warnings += 1
 
     if (skill_dir / "skill.json").exists():
@@ -420,6 +430,7 @@ def _cmd_validate(toolkit_dir: Path) -> int:
 # ---------------------------------------------------------------------------
 # Argument parsing & dispatch
 # ---------------------------------------------------------------------------
+
 
 def cmd_skills(args: list[str]) -> int:
     """Skill management entry point.

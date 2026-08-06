@@ -19,19 +19,20 @@ Structure:
 Options:
     --help    Show this help message
 """
+
 from __future__ import annotations
 
 import os
 import shutil
 import subprocess
 import sys
+import sys as _sys
 from pathlib import Path
 
-import sys as _sys
-if _sys.platform == 'win32':
+if _sys.platform == "win32":
     try:
-        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -47,16 +48,30 @@ def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
 
 
-def _blue(t: str) -> str:   return _c("1;34", t)
-def _green(t: str) -> str:  return _c("1;32", t)
-def _yellow(t: str) -> str: return _c("1;33", t)
-def _cyan(t: str) -> str:   return _c("0;36", t)
-def _dim(t: str) -> str:    return _c("0;37", t)
+def _blue(t: str) -> str:
+    return _c("1;34", t)
+
+
+def _green(t: str) -> str:
+    return _c("1;32", t)
+
+
+def _yellow(t: str) -> str:
+    return _c("1;33", t)
+
+
+def _cyan(t: str) -> str:
+    return _c("0;36", t)
+
+
+def _dim(t: str) -> str:
+    return _c("0;37", t)
 
 
 # ---------------------------------------------------------------------------
 # Workspace root detection
 # ---------------------------------------------------------------------------
+
 
 def _find_workspace(override: str | None = None) -> Path | None:
     """Locate workspace root via env, override, or walking up from CWD."""
@@ -68,6 +83,7 @@ def _find_workspace(override: str | None = None) -> Path | None:
 # ---------------------------------------------------------------------------
 # projects.yaml helpers
 # ---------------------------------------------------------------------------
+
 
 def _projects_yaml_path(ws: Path) -> Path:
     return ws / "projects.yaml"
@@ -86,13 +102,13 @@ def _load_projects_yaml(ws: Path) -> dict:
         if stripped.startswith("- name:"):
             if current is not None:
                 projects.append(current)
-            current = {"name": stripped[len("- name:"):].strip()}
+            current = {"name": stripped[len("- name:") :].strip()}
         elif stripped.startswith("name:") and current is None:
-            current = {"name": stripped[len("name:"):].strip()}
+            current = {"name": stripped[len("name:") :].strip()}
         elif current is not None:
             for key in ("path", "source", "cloned_at"):
                 if stripped.startswith(f"{key}:"):
-                    current[key] = stripped[len(f"{key}:"):].strip()
+                    current[key] = stripped[len(f"{key}:") :].strip()
     if current is not None:
         projects.append(current)
     return {"projects": projects}
@@ -113,6 +129,7 @@ def _save_projects_yaml(ws: Path, data: dict) -> None:
 def _upsert_project(ws: Path, name: str, path: str, source: str = "") -> None:
     """Add or update an entry in projects.yaml."""
     from datetime import date
+
     data = _load_projects_yaml(ws)
     projects = data["projects"]
     for entry in projects:
@@ -133,6 +150,7 @@ def _upsert_project(ws: Path, name: str, path: str, source: str = "") -> None:
 # ---------------------------------------------------------------------------
 # Subcommands
 # ---------------------------------------------------------------------------
+
 
 def _gitignore_append(ws: Path, entries: list[str]) -> None:
     gi = ws / ".gitignore"
@@ -222,7 +240,7 @@ def cmd_clone(args: list[str], ws: Path) -> int:
 
     # Update projects.yaml
     _upsert_project(ws, repo_name, str(target_dir), source=f"github.com/{owner}/{repo_name}")
-    print(_dim(f"Updated projects.yaml"))
+    print(_dim("Updated projects.yaml"))
 
     return 0
 
@@ -279,7 +297,11 @@ def cmd_add(args: list[str], ws: Path) -> int:
 
     projects_dir.mkdir(parents=True, exist_ok=True)
     if link_path.is_symlink():
-        existing = link_path.readlink() if hasattr(link_path, "readlink") else Path(os.readlink(str(link_path)))
+        existing = (
+            link_path.readlink()
+            if hasattr(link_path, "readlink")
+            else Path(os.readlink(str(link_path)))
+        )
         print(f"{_yellow('Replacing existing symlink:')} {existing}")
         link_path.unlink()
 
@@ -388,6 +410,7 @@ def cmd_scan(args: list[str], ws: Path) -> int:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def cmd_project(args: list[str]) -> int:
     """Router for project subcommands."""
     # Extract --workspace before routing
@@ -412,7 +435,9 @@ def cmd_project(args: list[str]) -> int:
     ws = _find_workspace(workspace_path)
     if ws is None:
         print("Error: workspace not found.", file=sys.stderr)
-        print("Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr)
+        print(
+            "Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr
+        )
         return 1
 
     match sub:

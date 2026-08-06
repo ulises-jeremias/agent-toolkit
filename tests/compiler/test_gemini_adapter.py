@@ -1,4 +1,5 @@
 """Contract tests for the Gemini CLI extension adapter."""
+
 from __future__ import annotations
 
 import json
@@ -118,9 +119,9 @@ def test_check_mode_no_files(adapter, graph, tmp_path):
     assert result.is_valid
 
 
-@pytest.mark.parametrize("product_id", [
-    "agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"
-])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_all_products(adapter, graph, product_id):
     if product_id not in graph.products:
         pytest.skip(f"Product {product_id} not defined")

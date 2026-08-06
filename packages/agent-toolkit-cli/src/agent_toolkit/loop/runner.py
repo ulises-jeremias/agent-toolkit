@@ -47,6 +47,7 @@ Environment:
     OPENAI_API_KEY / CODEX_API_KEY
                                 Auth for Codex CLI (codex runner)
 """
+
 from __future__ import annotations
 
 import sys as _sys_win
@@ -59,7 +60,6 @@ if _sys_win.platform == "win32":
     except Exception:
         pass
 
-import argparse
 import hashlib
 import json
 import os
@@ -144,18 +144,12 @@ class _TraceTailer:
                 log(f"tokens: {total} (~${cost})")
             elif total is not None:
                 log(f"tokens: {total}")
-            if (
-                self._max_tokens is not None
-                and self.tokens_used >= self._max_tokens
-            ):
+            if self._max_tokens is not None and self.tokens_used >= self._max_tokens:
                 self.budget_exhausted = True
         elif kind in ("prompt", "completion"):
             self.tokens_used += int(event.get("prompt_tokens", 0) or 0)
             self.tokens_used += int(event.get("completion_tokens", 0) or 0)
-            if (
-                self._max_tokens is not None
-                and self.tokens_used >= self._max_tokens
-            ):
+            if self._max_tokens is not None and self.tokens_used >= self._max_tokens:
                 self.budget_exhausted = True
         elif kind == "progress":
             current = event.get("current")
@@ -195,9 +189,7 @@ def _run_with_live_output(
     import threading
     import time
 
-    tailer = (
-        _TraceTailer(trace_file, max_tokens=max_tokens) if trace_file else None
-    )
+    tailer = _TraceTailer(trace_file, max_tokens=max_tokens) if trace_file else None
     proc = subprocess.Popen(
         cmd,
         stdin=subprocess.PIPE,
@@ -265,10 +257,12 @@ signal.signal(signal.SIGTERM, _handle_sig)
 
 # ── paths ─────────────────────────────────────────────────────────────────────
 
+
 def _find_toolkit_root() -> Path:
     """Locate toolkit data (bundled loops/profiles). Prefer shared toolkit_root()."""
     try:
         from agent_toolkit._paths import toolkit_root
+
         return toolkit_root()
     except Exception:
         pass
@@ -288,6 +282,7 @@ def _find_toolkit_root() -> Path:
 def workspace_root() -> Path:
     """User workspace root for loop instances (#200 / #207)."""
     from agent_toolkit._paths import find_workspace_root
+
     ws = find_workspace_root()
     if ws is not None:
         return ws
@@ -322,9 +317,9 @@ _DC_HOME = Path(
     os.environ.get("HARNESS_DC_HOME")
     or Path.home() / ".local" / "share" / "agent-toolkit" / "dev-companion"
 )
-_QUEUE_PENDING    = _DC_HOME / "queue" / "pending"
-_QUEUE_DONE       = _DC_HOME / "queue" / "done"
-_QUEUE_FAILED     = _DC_HOME / "queue" / "failed"
+_QUEUE_PENDING = _DC_HOME / "queue" / "pending"
+_QUEUE_DONE = _DC_HOME / "queue" / "done"
+_QUEUE_FAILED = _DC_HOME / "queue" / "failed"
 
 # ── colors ────────────────────────────────────────────────────────────────────
 
@@ -373,6 +368,7 @@ def err(msg: str) -> None:
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
+
 def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -380,6 +376,7 @@ def utc_now() -> str:
 def run_id() -> str:
     ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     import uuid
+
     return f"{ts}-{uuid.uuid4().hex[:6]}"
 
 
@@ -393,13 +390,14 @@ def parse_md_frontmatter(md_path: Path) -> dict[str, Any]:
     if not lines or lines[0].strip() != "---":
         return {}
 
-    end = next((i for i, l in enumerate(lines[1:], 1) if l.strip() == "---"), None)
+    end = next((i for i, line in enumerate(lines[1:], 1) if line.strip() == "---"), None)
     if end is None:
         return {}
 
     yaml_block = "\n".join(lines[1:end])
     try:
         import yaml  # type: ignore
+
         return yaml.safe_load(yaml_block) or {}
     except ImportError:
         return _parse_simple_yaml(yaml_block)
@@ -520,10 +518,13 @@ def list_loops() -> list[Path]:
     """
     if not loops_dir().is_dir():
         return []
-    return sorted([
-        d for d in loops_dir().iterdir()
-        if d.is_dir() and ((d / "LOOP.md").exists() or (d / "loop.yaml").exists())
-    ])
+    return sorted(
+        [
+            d
+            for d in loops_dir().iterdir()
+            if d.is_dir() and ((d / "LOOP.md").exists() or (d / "loop.yaml").exists())
+        ]
+    )
 
 
 def list_templates() -> list[Path]:
@@ -593,6 +594,7 @@ def resolve_loop_dir(name: str) -> Path | None:
 
 
 # ── autonomy / prompt assembly ────────────────────────────────────────────────
+
 
 def _as_str_list(value: Any) -> list[str]:
     if value is None:
@@ -666,7 +668,7 @@ def _autonomy_contract(meta: dict[str, Any], loop_dir: Path) -> str:
         "- For merge/close: an *independent* verifier must write a receipt JSON "
         "(do NOT self-approve as the maker):",
         "  `$OUTPUT_DIR/verifier-receipts/<slug>.json` with keys:",
-        '  `action`, `repo` (owner/name), `number`, `approved` (true), '
+        "  `action`, `repo` (owner/name), `number`, `approved` (true), "
         f'`verifier` ("{verifier}"), `rationale`, `ts` (ISO8601 Z).',
         "- When `LOOP_GATE_RECEIPT_SECRET` is set, receipts must include "
         "`sig` (HMAC-SHA256 hex of the canonical JSON payload).",
@@ -710,6 +712,7 @@ def _build_runner_prompt(
 
 
 # ── built-in runners ──────────────────────────────────────────────────────────
+
 
 def _gate_script() -> Path:
     return Path(__file__).resolve().parent / "loop-gh-gate"
@@ -780,8 +783,7 @@ def _try_claude_runner(
     env = _install_gate_into_environ(run_dir, meta or {})
     try:
         result = _run_with_live_output(
-            [claude_bin, "--print",
-             "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
+            [claude_bin, "--print", "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep"],
             input_text=prompt,
             cwd=str(workspace_root()),
             env=env,
@@ -986,7 +988,9 @@ def _try_copilot_runner(
     error_output = (result.stderr + result.stdout).strip()[:400]
     warn(f"copilot runner exited {result.returncode}: {error_output or '(no output)'}")
     if result.returncode != 0 and not error_output:
-        warn("  Hint: Copilot CLI may not be authenticated — set COPILOT_GITHUB_TOKEN or run: copilot")
+        warn(
+            "  Hint: Copilot CLI may not be authenticated — set COPILOT_GITHUB_TOKEN or run: copilot"
+        )
     return False
 
 
@@ -1105,9 +1109,9 @@ def _queue_via_devcompanion(
         log(f"Queued as devcompanion job: {job_id}")
         log(f"  Job file  : {job_file}")
         log(f"  Run dir   : {run_dir}")
-        log(f"  Next step : the worker (systemd timer every 5m) will pick it up")
-        log(f"  Or run    : devcompanion run-once  to process immediately")
-        log(f"  Check     : devcompanion status")
+        log("  Next step : the worker (systemd timer every 5m) will pick it up")
+        log("  Or run    : devcompanion run-once  to process immediately")
+        log("  Check     : devcompanion status")
         return True
     except OSError as e:
         warn(f"Could not queue devcompanion job: {e}")
@@ -1115,6 +1119,7 @@ def _queue_via_devcompanion(
 
 
 # ── commands ──────────────────────────────────────────────────────────────────
+
 
 def cmd_init(args: list[str]) -> int:
     """Scaffold a new loop from a starter template (#200)."""
@@ -1160,8 +1165,7 @@ def cmd_init(args: list[str]) -> int:
 
     # Body of frontmatter: drop full-line comments from template YAML
     fm_lines = [
-        line for line in text.splitlines()
-        if line.strip() and not line.lstrip().startswith("#")
+        line for line in text.splitlines() if line.strip() and not line.lstrip().startswith("#")
     ]
     # Ensure name matches instance directory
     rewritten: list[str] = []
@@ -1176,9 +1180,7 @@ def cmd_init(args: list[str]) -> int:
         rewritten.insert(0, f"name: {loop_name}")
 
     (loop_dir / "LOOP.md").write_text(
-        "---\n"
-        + "\n".join(rewritten)
-        + "\n---\n\n"
+        "---\n" + "\n".join(rewritten) + "\n---\n\n"
         f"# {loop_name.replace('-', ' ').title()} Loop\n\n"
         "<!-- Describe the goal, constraints, and escalation rules here. -->\n",
         encoding="utf-8",
@@ -1270,9 +1272,7 @@ def _run_harness_runner_with_timeout(
     thread.start()
     thread.join(timeout=wall_timeout)
     if thread.is_alive():
-        raise subprocess.TimeoutExpired(
-            ["harness-runner", str(job_file)], wall_timeout
-        )
+        raise subprocess.TimeoutExpired(["harness-runner", str(job_file)], wall_timeout)
     if exc_holder:
         raise exc_holder[0]
 
@@ -1288,6 +1288,7 @@ def _load_harness_runner_mod() -> Any | None:
         sys.path.insert(0, str(runner_dir))
     try:
         import dots_ai_devcompanion_runner as r  # type: ignore
+
         return r
     except ImportError:
         return None
@@ -1309,19 +1310,21 @@ def _try_harness_runner(
     try:
         job_file = run_dir / "job.json"
         job_file.write_text(
-            json.dumps({
-                "id": rid,
-                "created_at": utc_now(),
-                "request": prompt,
-                "loop_gate": {
-                    "tier": str(meta.get("tier", "L1")),
-                    "allowlist": _as_str_list(meta.get("allowlist")),
-                    "deny": _as_str_list(meta.get("deny")),
-                    "verifier": str(meta.get("verifier") or ""),
-                    "run_dir": str(run_dir),
-                },
-                "limits": {"timeout_sec": wall_timeout},
-            }),
+            json.dumps(
+                {
+                    "id": rid,
+                    "created_at": utc_now(),
+                    "request": prompt,
+                    "loop_gate": {
+                        "tier": str(meta.get("tier", "L1")),
+                        "allowlist": _as_str_list(meta.get("allowlist")),
+                        "deny": _as_str_list(meta.get("deny")),
+                        "verifier": str(meta.get("verifier") or ""),
+                        "run_dir": str(run_dir),
+                    },
+                    "limits": {"timeout_sec": wall_timeout},
+                }
+            ),
             encoding="utf-8",
         )
         _run_harness_runner_with_timeout(runner_mod, job_file, run_dir, wall_timeout)
@@ -1473,12 +1476,14 @@ def _dispatch_loop_runner(
             log("step: skeleton plan written (no LLM runner available)")
             trace_file.write_text(
                 trace_file.read_text(encoding="utf-8")
-                + json.dumps({
-                    "ts": utc_now(),
-                    "kind": "progress",
-                    "label": "skeleton",
-                    "message": "plan.md written",
-                })
+                + json.dumps(
+                    {
+                        "ts": utc_now(),
+                        "kind": "progress",
+                        "label": "skeleton",
+                        "message": "plan.md written",
+                    }
+                )
                 + "\n",
                 encoding="utf-8",
             )
@@ -1607,7 +1612,9 @@ def cmd_run(args: list[str]) -> int:
         try:
             # PyYAML may parse ISO timestamps as datetime objects
             if hasattr(last_run_ts, "isoformat"):
-                last_dt = last_run_ts if last_run_ts.tzinfo else last_run_ts.replace(tzinfo=timezone.utc)
+                last_dt = (
+                    last_run_ts if last_run_ts.tzinfo else last_run_ts.replace(tzinfo=timezone.utc)
+                )
             else:
                 last_dt = datetime.fromisoformat(str(last_run_ts).replace("Z", "+00:00"))
             today = datetime.now(timezone.utc).date()
@@ -1649,38 +1656,45 @@ def cmd_run(args: list[str]) -> int:
 
     # Write initial trace entry with AGENTS.md spec hash
     agents_md = workspace_root() / "AGENTS.md"
-    agents_md_hash = hashlib.sha256(agents_md.read_bytes()).hexdigest()[:12] if agents_md.exists() else "?"
+    agents_md_hash = (
+        hashlib.sha256(agents_md.read_bytes()).hexdigest()[:12] if agents_md.exists() else "?"
+    )
 
     trace_file = run_dir / "trace.jsonl"
     trace_file.write_text(
-        json.dumps({
-            "ts": utc_now(),
-            "kind": "run_start",
-            "run_id": rid,
-            "tier": tier,
-            "allowlist": allow,
-            "deny": deny,
-            "verifier": meta.get("verifier"),
-            "agents_md_hash": agents_md_hash,
-            "force": force,
-            "runner": runner,
-            "max_wall_seconds": wall_timeout,
-            "max_tokens": token_limit,
-        }) + "\n",
+        json.dumps(
+            {
+                "ts": utc_now(),
+                "kind": "run_start",
+                "run_id": rid,
+                "tier": tier,
+                "allowlist": allow,
+                "deny": deny,
+                "verifier": meta.get("verifier"),
+                "agents_md_hash": agents_md_hash,
+                "force": force,
+                "runner": runner,
+                "max_wall_seconds": wall_timeout,
+                "max_tokens": token_limit,
+            }
+        )
+        + "\n",
         encoding="utf-8",
     )
 
     # Create git worktree (if in a git repo)
     worktree_path: Path | None = None
-    if subprocess.run(
-        ["git", "-C", str(workspace_root()), "rev-parse", "--git-dir"],
-        capture_output=True,
-    ).returncode == 0:
+    if (
+        subprocess.run(
+            ["git", "-C", str(workspace_root()), "rev-parse", "--git-dir"],
+            capture_output=True,
+        ).returncode
+        == 0
+    ):
         worktree_base = WORKTREES_HOME / loop_name / rid
         worktree_base.mkdir(parents=True, exist_ok=True)
         result = subprocess.run(
-            ["git", "-C", str(workspace_root()), "worktree", "add",
-             str(worktree_base), "HEAD"],
+            ["git", "-C", str(workspace_root()), "worktree", "add", str(worktree_base), "HEAD"],
             capture_output=True,
             text=True,
         )
@@ -1689,8 +1703,10 @@ def cmd_run(args: list[str]) -> int:
             log(f"Worktree: {worktree_path}")
             trace_file.write_text(
                 trace_file.read_text(encoding="utf-8")
-                + json.dumps({"ts": utc_now(), "kind": "worktree_created",
-                              "path": str(worktree_path)}) + "\n",
+                + json.dumps(
+                    {"ts": utc_now(), "kind": "worktree_created", "path": str(worktree_path)}
+                )
+                + "\n",
                 encoding="utf-8",
             )
         else:
@@ -1736,21 +1752,21 @@ def cmd_run(args: list[str]) -> int:
     tokens_used = tokens_from_trace(trace_file)
     if token_budget_exceeded(tokens_used, budget):
         budget_exhausted = True
-        warn(
-            f"Run exceeded max_tokens ({token_limit:,}); "
-            f"recorded {tokens_used:,} in trace"
-        )
+        warn(f"Run exceeded max_tokens ({token_limit:,}); recorded {tokens_used:,} in trace")
 
     if budget_exhausted:
         trace_file.write_text(
             trace_file.read_text(encoding="utf-8")
-            + json.dumps({
-                "ts": utc_now(),
-                "kind": "budget_exhausted",
-                "tokens_used": tokens_used,
-                "max_wall_seconds": wall_timeout,
-                "max_tokens": token_limit,
-            }) + "\n",
+            + json.dumps(
+                {
+                    "ts": utc_now(),
+                    "kind": "budget_exhausted",
+                    "tokens_used": tokens_used,
+                    "max_wall_seconds": wall_timeout,
+                    "max_tokens": token_limit,
+                }
+            )
+            + "\n",
             encoding="utf-8",
         )
 
@@ -1785,26 +1801,40 @@ def cmd_run(args: list[str]) -> int:
     if queued:
         trace_file.write_text(
             trace_file.read_text(encoding="utf-8")
-            + json.dumps({"ts": utc_now(), "kind": "queued",
-                          "job_id": f"loop-{loop_name}-{rid}"}) + "\n",
+            + json.dumps({"ts": utc_now(), "kind": "queued", "job_id": f"loop-{loop_name}-{rid}"})
+            + "\n",
             encoding="utf-8",
         )
         # Clean up worktree — the devcompanion worker runs independently
         if worktree_path and worktree_path.is_dir():
             subprocess.run(
-                ["git", "-C", str(workspace_root()), "worktree", "remove",
-                 str(worktree_path), "--force"],
+                [
+                    "git",
+                    "-C",
+                    str(workspace_root()),
+                    "worktree",
+                    "remove",
+                    str(worktree_path),
+                    "--force",
+                ],
                 capture_output=True,
             )
         ok(f"Run {rid} queued for async processing. State: {run_status}")
-        ok(f"  Check later with: devcompanion status")
+        ok("  Check later with: devcompanion status")
         return 0
 
     # Cleanup worktree on inline completion
     if worktree_path and worktree_path.is_dir():
         subprocess.run(
-            ["git", "-C", str(workspace_root()), "worktree", "remove",
-             str(worktree_path), "--force"],
+            [
+                "git",
+                "-C",
+                str(workspace_root()),
+                "worktree",
+                "remove",
+                str(worktree_path),
+                "--force",
+            ],
             capture_output=True,
         )
 
@@ -1835,15 +1865,23 @@ def finalize_run(
     # Cleanup worktree
     if worktree_path and worktree_path.is_dir():
         subprocess.run(
-            ["git", "-C", str(workspace_root()), "worktree", "remove",
-             str(worktree_path), "--force"],
+            [
+                "git",
+                "-C",
+                str(workspace_root()),
+                "worktree",
+                "remove",
+                str(worktree_path),
+                "--force",
+            ],
             capture_output=True,
         )
 
     # Finalize trace
     trace_file.write_text(
         trace_file.read_text(encoding="utf-8")
-        + json.dumps({"ts": utc_now(), "kind": "run_end", "status": status}) + "\n",
+        + json.dumps({"ts": utc_now(), "kind": "run_end", "status": status})
+        + "\n",
         encoding="utf-8",
     )
 
@@ -1873,15 +1911,21 @@ def _close_loop(run_dir: Path, rid: str) -> None:
                 add_script = workspace_root() / "bin" / "assistant-memory"
                 if add_script.exists():
                     subprocess.run(
-                        [sys.executable, str(add_script), "add",
-                         "--type", "learning",
-                         "--from-loop", rid,
-                         content],
+                        [
+                            sys.executable,
+                            str(add_script),
+                            "add",
+                            "--type",
+                            "learning",
+                            "--from-loop",
+                            rid,
+                            content,
+                        ],
                         capture_output=True,
                     )
                     added += 1
         if event.get("kind") == "run_start":
-            loop_name = event.get("run_id", rid)
+            event.get("run_id", rid)
 
     if added:
         ok(f"Synced {added} learning event(s) from run {rid} to knowledge base")
@@ -1902,8 +1946,7 @@ def cmd_status(args: list[str]) -> int:
                 loops = [
                     d
                     for d in sorted(bundled.iterdir())
-                    if d.is_dir()
-                    and ((d / "loop.yaml").exists() or (d / "LOOP.md").exists())
+                    if d.is_dir() and ((d / "loop.yaml").exists() or (d / "LOOP.md").exists())
                 ]
 
     if not loops:
@@ -1928,11 +1971,13 @@ def cmd_status(args: list[str]) -> int:
             lines = state_text.splitlines()
             # Extract frontmatter
             if lines and lines[0].strip() == "---":
-                end = next((i for i, l in enumerate(lines[1:], 1) if l.strip() == "---"), None)
+                end = next(
+                    (i for i, line in enumerate(lines[1:], 1) if line.strip() == "---"), None
+                )
                 if end:
-                    for l in lines[1:end]:
-                        if l.strip().startswith("last_run_status:"):
-                            last_status = l.split(":", 1)[1].strip()
+                    for line in lines[1:end]:
+                        if line.strip().startswith("last_run_status:"):
+                            last_status = line.split(":", 1)[1].strip()
                             break
         print(
             f"  {dim(loop_dir.name):<35} tier={tier}  cadence={cadence}  "
@@ -1945,7 +1990,7 @@ def cmd_status(args: list[str]) -> int:
 def cmd_audit(args: list[str]) -> int:
     """Summarize past runs."""
     target = args[0] if args else None
-    loops = ([resolve_loop_dir(target)] if target else list_loops())
+    loops = [resolve_loop_dir(target)] if target else list_loops()
 
     print("")
     print(blue("── Loop Audit ───────────────────────────────────────────"))
@@ -1983,7 +2028,7 @@ def cmd_audit(args: list[str]) -> int:
                     pass
 
         total = completed + failed
-        rate = f"{completed/total*100:.0f}%" if total else "—"
+        rate = f"{completed / total * 100:.0f}%" if total else "—"
         print(
             f"\n  {dim(loop_dir.name)}\n"
             f"    runs={total}  success={completed}  failed={failed}  "
@@ -2118,7 +2163,11 @@ def _schedule_dry_run(loop_name: str, cron: str) -> int:
         plist = _launchd_plist(loop_name, cron)
         print(dim("--- launchd plist (would create) ---"))
         print(plist)
-        print(dim(f"Would load: launchctl load ~/Library/LaunchAgents/com.agent-toolkit.{loop_name}.plist"))
+        print(
+            dim(
+                f"Would load: launchctl load ~/Library/LaunchAgents/com.agent-toolkit.{loop_name}.plist"
+            )
+        )
     else:
         print(yellow(f"Manual scheduling required on {system}:"))
         print(f"  {loop_cmd}")
@@ -2151,16 +2200,22 @@ def _schedule_install(loop_name: str, cron: str) -> int:
         try:
             subprocess.run(
                 ["systemctl", "--user", "enable", f"agent-toolkit-{loop_name}.timer"],
-                capture_output=True, text=True, check=False,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             subprocess.run(
                 ["systemctl", "--user", "start", f"agent-toolkit-{loop_name}.timer"],
-                capture_output=True, text=True, check=False,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             ok(f"Enabled and started: agent-toolkit-{loop_name}.timer")
         except Exception as e:
             warn(f"Could not enable timer: {e}")
-            ok("Timer files created manually — enable with: systemctl --user enable agent-toolkit-{loop_name}.timer")
+            ok(
+                "Timer files created manually — enable with: systemctl --user enable agent-toolkit-{loop_name}.timer"
+            )
 
         return 0
 
@@ -2176,12 +2231,16 @@ def _schedule_install(loop_name: str, cron: str) -> int:
         try:
             subprocess.run(
                 ["launchctl", "load", str(plist_path)],
-                capture_output=True, text=True, check=False,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             ok(f"Loaded: com.agent-toolkit.{loop_name}")
         except Exception as e:
             warn(f"Could not load plist: {e}")
-            ok(f"Plist created — load with: launchctl load ~/Library/LaunchAgents/com.agent-toolkit.{loop_name}.plist")
+            ok(
+                f"Plist created — load with: launchctl load ~/Library/LaunchAgents/com.agent-toolkit.{loop_name}.plist"
+            )
 
         return 0
 
@@ -2232,7 +2291,9 @@ def _schedule_status() -> int:
             # Check if timer is active
             result = subprocess.run(
                 ["systemctl", "--user", "is-active", f"agent-toolkit-{name}.timer"],
-                capture_output=True, text=True, check=False,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             status = result.stdout.strip()
             if status != "active":
@@ -2243,7 +2304,9 @@ def _schedule_status() -> int:
             name = p.stem.replace("com.agent-toolkit.", "")
             result = subprocess.run(
                 ["launchctl", "list", f"com.agent-toolkit.{name}"],
-                capture_output=True, text=True, check=False,
+                capture_output=True,
+                text=True,
+                check=False,
             )
             if result.returncode != 0:
                 issues.append(f"{name}: not loaded")
@@ -2274,11 +2337,15 @@ def _schedule_remove(loop_name: str, dry_run: bool) -> int:
         # Stop and disable first
         subprocess.run(
             ["systemctl", "--user", "stop", f"agent-toolkit-{loop_name}.timer"],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         subprocess.run(
             ["systemctl", "--user", "disable", f"agent-toolkit-{loop_name}.timer"],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         svc.unlink(missing_ok=True)
         timer.unlink(missing_ok=True)
@@ -2292,7 +2359,9 @@ def _schedule_remove(loop_name: str, dry_run: bool) -> int:
 
         subprocess.run(
             ["launchctl", "unload", str(plist)],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         plist.unlink(missing_ok=True)
         ok(f"Removed schedule: {loop_name}")
@@ -2309,7 +2378,9 @@ def _schedule_enabled(loop_name: str) -> bool:
     if system == "Linux":
         result = subprocess.run(
             ["systemctl", "--user", "is-enabled", f"agent-toolkit-{loop_name}.timer"],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         return result.stdout.strip() == "enabled"
     elif system == "Darwin":
@@ -2318,7 +2389,9 @@ def _schedule_enabled(loop_name: str) -> bool:
             return False
         result = subprocess.run(
             ["launchctl", "list", f"com.agent-toolkit.{loop_name}"],
-            capture_output=True, text=True, check=False,
+            capture_output=True,
+            text=True,
+            check=False,
         )
         return result.returncode == 0
     return False
@@ -2419,12 +2492,15 @@ def cmd_sync() -> int:
         else:
             existing += f"\n{header}\n{block}<!-- /loop-escalations -->\n"
         knowledge_todos.write_text(existing, encoding="utf-8")
-        ok(f"Synced {len(entries)} escalation(s) to {knowledge_todos.relative_to(workspace_root())}")
+        ok(
+            f"Synced {len(entries)} escalation(s) to {knowledge_todos.relative_to(workspace_root())}"
+        )
 
     return 0
 
 
 # ── main ──────────────────────────────────────────────────────────────────────
+
 
 def main() -> None:
     argv = sys.argv[1:]

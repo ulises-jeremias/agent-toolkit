@@ -1,4 +1,5 @@
 """Tests for loop --runner selection and help documentation."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -64,7 +65,9 @@ def test_loop_help_documents_runner_and_env() -> None:
     assert "skeleton" in doc
 
 
-def test_dispatch_explicit_missing_claude_raises(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_dispatch_explicit_missing_claude_raises(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(runner.shutil, "which", lambda _n: None)
     with pytest.raises(ValueError, match="claude"):
         runner._dispatch_loop_runner(

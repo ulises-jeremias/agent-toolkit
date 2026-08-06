@@ -1,4 +1,5 @@
 """#48 — consumer/advanced surface exit-code contract (CLI-011, CLI-012)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -6,7 +7,12 @@ from pathlib import Path
 import pytest
 
 from agent_toolkit.cli import skills as skills_mod
-from agent_toolkit.cli.devcompanion import TemplateNotFoundError, _load_template, _safe_parse, cmd_devcompanion
+from agent_toolkit.cli.devcompanion import (
+    TemplateNotFoundError,
+    _load_template,
+    _safe_parse,
+    cmd_devcompanion,
+)
 
 
 def test_skills_sync_unknown_tool_exits_1(tmp_path: Path) -> None:

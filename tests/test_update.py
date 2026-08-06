@@ -1,4 +1,5 @@
 """Tests for agent-toolkit update command."""
+
 from __future__ import annotations
 
 from pathlib import Path

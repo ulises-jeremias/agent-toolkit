@@ -21,10 +21,10 @@ Key differences from Claude Code / Cursor:
 - Path variables: use ${extensionPath} (not absolute paths)
 - Context files: NOT a large always-on GEMINI.md — prefer minimal context
 """
+
 from __future__ import annotations
 
 import json
-import textwrap
 from pathlib import Path
 
 from agent_toolkit.compiler.model import (
@@ -112,11 +112,13 @@ class GeminiCLIAdapter(TargetAdapter):
             self._emit_agent_context(agent, out_dir, result)
 
         # 4. Explicitly document pending capabilities
-        result.unsupported.extend([
-            "hooks (hooks/hooks.json — pending canonical hook model #16)",
-            "mcp (mcpServers — pending MCP registry #15; field reserved in manifest)",
-            "excludeTools (tool restrictions — pending agent model with abstract tools)",
-        ])
+        result.unsupported.extend(
+            [
+                "hooks (hooks/hooks.json — pending canonical hook model #16)",
+                "mcp (mcpServers — pending MCP registry #15; field reserved in manifest)",
+                "excludeTools (tool restrictions — pending agent model with abstract tools)",
+            ]
+        )
 
         return result
 
@@ -128,6 +130,7 @@ class GeminiCLIAdapter(TargetAdapter):
         """
         try:
             from agent_toolkit import __version__
+
             version = __version__
         except ImportError:
             version = "1.0.0"
@@ -140,7 +143,7 @@ class GeminiCLIAdapter(TargetAdapter):
             "repository": "https://github.com/ulises-jeremias/agent-toolkit",
             "license": "MIT",
             "geminiCliVersion": f">={MIN_GEMINI_CLI_VERSION}",
-            "contextFiles": [],      # Minimal context — no large always-on files
+            "contextFiles": [],  # Minimal context — no large always-on files
             "commands": "${extensionPath}/commands.toml",
             # MCP servers placeholder — populated by MCP registry (issue #15)
             # "mcpServers": [],
@@ -190,9 +193,7 @@ class GeminiCLIAdapter(TargetAdapter):
         ]
         return lines
 
-    def _emit_agent_context(
-        self, agent: Agent, out_dir: Path, result: CompilationResult
-    ) -> None:
+    def _emit_agent_context(self, agent: Agent, out_dir: Path, result: CompilationResult) -> None:
         """Emit a minimal agent context file.
 
         Gemini prefers on-demand commands over large always-on context.

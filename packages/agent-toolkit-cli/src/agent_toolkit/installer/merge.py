@@ -1,4 +1,5 @@
 """Non-destructive JSON config merge for profile installs."""
+
 from __future__ import annotations
 
 import json

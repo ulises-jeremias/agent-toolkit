@@ -41,8 +41,8 @@ class OpenAIProvider(LLMProvider):
         repo_path: Optional[Path] = None,
         timeout_sec: int = 300,
     ) -> LLMResponse:
-        import urllib.request
         import urllib.error
+        import urllib.request
 
         start_time = time.time()
 
@@ -75,9 +75,7 @@ class OpenAIProvider(LLMProvider):
 
             duration = time.time() - start_time
 
-            content = (
-                result.get("choices", [{}])[0].get("message", {}).get("content", "")
-            )
+            content = result.get("choices", [{}])[0].get("message", {}).get("content", "")
             usage = result.get("usage", {})
 
             return LLMResponse(

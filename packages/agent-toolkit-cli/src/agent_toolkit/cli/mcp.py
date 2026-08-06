@@ -15,6 +15,7 @@ Options:
     --offline              Skip network connectivity checks (setup/doctor)
     --help                 Show this help message
 """
+
 from __future__ import annotations
 
 import json
@@ -24,14 +25,12 @@ import sys
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from agent_toolkit._paths import toolkit_root
 
+from agent_toolkit._paths import toolkit_root
 
 # ---------------------------------------------------------------------------
 # Toolkit directory & config paths
 # ---------------------------------------------------------------------------
-
-
 
 
 def _mcp_config_path() -> Path:
@@ -75,6 +74,7 @@ def _list_known_providers(toolkit_dir: Path) -> list[str]:
 # Config I/O
 # ---------------------------------------------------------------------------
 
+
 def _load_config() -> dict:
     path = _mcp_config_path()
     if not path.exists():
@@ -97,6 +97,7 @@ def _save_config(cfg: dict) -> None:
 # ---------------------------------------------------------------------------
 # Template parsing
 # ---------------------------------------------------------------------------
+
 
 def _extract_env_vars(template: dict) -> list[str]:
     """Extract ${ENV_VAR} names from all string values in a dict (recursive)."""
@@ -146,6 +147,7 @@ def _load_readme(templates_dir: Path, provider: str) -> str:
 # Connectivity tests
 # ---------------------------------------------------------------------------
 
+
 def _test_github(token: str) -> tuple[bool, str]:
     try:
         req = urllib.request.Request("https://api.github.com/user")
@@ -174,6 +176,7 @@ def _test_connectivity(provider: str, env_vals: dict[str, str]) -> tuple[bool, s
 # ---------------------------------------------------------------------------
 # Subcommands
 # ---------------------------------------------------------------------------
+
 
 def _cmd_list(toolkit_dir: Path | None) -> int:
     """List available MCP providers from mcp/templates/."""
@@ -264,6 +267,7 @@ def _cmd_setup(provider: str, toolkit_dir: Path | None, *, offline: bool = False
 
     # Collect env var values
     import getpass
+
     env_vals: dict[str, str] = {}
     token_words = ("TOKEN", "KEY", "SECRET", "PASSWORD", "PASS")
 
@@ -272,7 +276,7 @@ def _cmd_setup(provider: str, toolkit_dir: Path | None, *, offline: bool = False
         is_sensitive = any(w in var.upper() for w in token_words)
 
         if current:
-            hint = f"[already set in env"
+            hint = "[already set in env"
             if is_sensitive:
                 hint += ", press Enter to keep]"
             else:
@@ -326,7 +330,7 @@ def _cmd_setup(provider: str, toolkit_dir: Path | None, *, offline: bool = False
     print("  Export env vars in your shell profile (e.g. ~/.zshrc / ~/.bashrc):")
     print()
     for var in env_vars:
-        print(f"    export {var}=\"<your-value>\"")
+        print(f'    export {var}="<your-value>"')
     print()
     print("  Then configure each AI tool:")
     print("    Claude Code  → add MCP server to ~/.claude/settings.json")
@@ -435,7 +439,7 @@ def _cmd_health(providers_arg: list[str], toolkit_dir: Path | None) -> int:
         print(f"\n── {provider} ──")
         entry = _load_registry_provider(toolkit_dir, provider)
         if entry is None:
-            print(f"  ✗  Not in mcp/registry/ and no template directory")
+            print("  ✗  Not in mcp/registry/ and no template directory")
             errors += 1
             continue
         print(f"  ✓  registry: {entry.display_name} ({entry.id})")
@@ -474,6 +478,7 @@ def _cmd_uninstall(provider: str) -> int:
 # Argument parsing & dispatch
 # ---------------------------------------------------------------------------
 
+
 def _pop_offline_flag(args: list[str]) -> tuple[list[str], bool]:
     rest: list[str] = []
     offline = False
@@ -483,6 +488,7 @@ def _pop_offline_flag(args: list[str]) -> tuple[list[str], bool]:
         else:
             rest.append(arg)
     return rest, offline
+
 
 def cmd_mcp(args: list[str]) -> int:
     """MCP provider management entry point.

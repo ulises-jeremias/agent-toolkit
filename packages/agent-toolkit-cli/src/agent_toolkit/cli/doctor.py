@@ -13,6 +13,7 @@ Exit codes:
     0 — no errors detected
     1 — one or more errors detected
 """
+
 from __future__ import annotations
 
 import json
@@ -39,12 +40,13 @@ if sys.platform == "win32":
 # Result model
 # ---------------------------------------------------------------------------
 
+
 class CheckResult:
     """A single health-check item."""
 
-    STATUS_OK   = "ok"
+    STATUS_OK = "ok"
     STATUS_WARN = "warn"
-    STATUS_ERR  = "error"
+    STATUS_ERR = "error"
 
     def __init__(self, category: str, name: str, status: str, detail: str = "") -> None:
         self.category = category
@@ -65,20 +67,19 @@ class CheckResult:
         }
 
 
-
-
-
 # ---------------------------------------------------------------------------
 # Individual checks
 # ---------------------------------------------------------------------------
+
 
 def _check_python_version() -> CheckResult:
     vi = sys.version_info
     version_str = f"{vi.major}.{vi.minor}.{vi.micro}"
     if (vi.major, vi.minor) >= (3, 10):
         return CheckResult("system", "python >= 3.10", CheckResult.STATUS_OK, version_str)
-    return CheckResult("system", "python >= 3.10", CheckResult.STATUS_ERR,
-                       f"Found {version_str} — need 3.10+")
+    return CheckResult(
+        "system", "python >= 3.10", CheckResult.STATUS_ERR, f"Found {version_str} — need 3.10+"
+    )
 
 
 def _check_command(category: str, name: str, cmd: str) -> CheckResult:
@@ -86,9 +87,7 @@ def _check_command(category: str, name: str, cmd: str) -> CheckResult:
     if path:
         # Try to get version
         try:
-            result = subprocess.run(
-                [cmd, "--version"], capture_output=True, text=True, timeout=5
-            )
+            result = subprocess.run([cmd, "--version"], capture_output=True, text=True, timeout=5)
             version = (result.stdout or result.stderr or "").strip().splitlines()[0]
         except Exception:
             version = path
@@ -105,8 +104,12 @@ def _check_gh_auth() -> CheckResult:
         )
         if result.returncode == 0:
             return CheckResult("system", "gh auth", CheckResult.STATUS_OK, "authenticated")
-        return CheckResult("system", "gh auth", CheckResult.STATUS_WARN,
-                           "gh installed but not authenticated — run: gh auth login")
+        return CheckResult(
+            "system",
+            "gh auth",
+            CheckResult.STATUS_WARN,
+            "gh installed but not authenticated — run: gh auth login",
+        )
     except Exception as exc:
         return CheckResult("system", "gh auth", CheckResult.STATUS_WARN, str(exc))
 
@@ -115,15 +118,15 @@ def _check_ai_tool(name: str, cmd: str) -> CheckResult:
     path = shutil.which(cmd)
     if path:
         return CheckResult("ai_tools", name, CheckResult.STATUS_OK, path)
-    return CheckResult("ai_tools", name, CheckResult.STATUS_WARN,
-                       f"'{cmd}' not found — tool may not be installed")
+    return CheckResult(
+        "ai_tools", name, CheckResult.STATUS_WARN, f"'{cmd}' not found — tool may not be installed"
+    )
 
 
 def _profile_installed(category: str, name: str, path: Path) -> CheckResult:
     if path.exists():
         return CheckResult(category, name, CheckResult.STATUS_OK, str(path))
-    return CheckResult(category, name, CheckResult.STATUS_WARN,
-                       f"Not installed: {path}")
+    return CheckResult(category, name, CheckResult.STATUS_WARN, f"Not installed: {path}")
 
 
 def _check_profiles() -> list[CheckResult]:
@@ -133,23 +136,32 @@ def _check_profiles() -> list[CheckResult]:
 
     # claude-code
     if shutil.which("claude") or (home / ".claude").is_dir():
-        results.append(_profile_installed("profiles", "claude-code CLAUDE.md",
-                                          home / ".claude" / "CLAUDE.md"))
+        results.append(
+            _profile_installed("profiles", "claude-code CLAUDE.md", home / ".claude" / "CLAUDE.md")
+        )
         # settings.json is user-owned and must not be managed by the installer.
-        results.append(_profile_installed("profiles", "claude-code agents/",
-                                          home / ".claude" / "agents"))
+        results.append(
+            _profile_installed("profiles", "claude-code agents/", home / ".claude" / "agents")
+        )
 
     # cursor
     if shutil.which("cursor") or (home / ".cursor").is_dir():
-        results.append(_profile_installed("profiles", "cursor rules/",
-                                          home / ".cursor" / "rules"))
+        results.append(_profile_installed("profiles", "cursor rules/", home / ".cursor" / "rules"))
 
     # opencode
     if shutil.which("opencode") or (home / ".config" / "opencode").is_dir():
-        results.append(_profile_installed("profiles", "opencode agents/",
-                                          home / ".config" / "opencode" / "agents"))
-        results.append(_profile_installed("profiles", "opencode opencode.json",
-                                          home / ".config" / "opencode" / "opencode.json"))
+        results.append(
+            _profile_installed(
+                "profiles", "opencode agents/", home / ".config" / "opencode" / "agents"
+            )
+        )
+        results.append(
+            _profile_installed(
+                "profiles",
+                "opencode opencode.json",
+                home / ".config" / "opencode" / "opencode.json",
+            )
+        )
 
     # windsurf
     windsurf_dir: Path | None = None
@@ -161,15 +173,16 @@ def _check_profiles() -> list[CheckResult]:
         windsurf_dir = home / ".codeium" / "windsurf"
 
     if windsurf_dir is not None:
-        results.append(_profile_installed("profiles", "windsurf rules/",
-                                          windsurf_dir / "rules"))
-        results.append(_profile_installed("profiles", "windsurf memories/",
-                                          windsurf_dir / "memories"))
+        results.append(_profile_installed("profiles", "windsurf rules/", windsurf_dir / "rules"))
+        results.append(
+            _profile_installed("profiles", "windsurf memories/", windsurf_dir / "memories")
+        )
 
     # pi
     if shutil.which("pi") or (home / ".pi").is_dir():
-        results.append(_profile_installed("profiles", "pi skills/",
-                                          home / ".pi" / "agent" / "skills"))
+        results.append(
+            _profile_installed("profiles", "pi skills/", home / ".pi" / "agent" / "skills")
+        )
 
     return results
 
@@ -181,27 +194,58 @@ def _check_loop_runtime(toolkit_dir: Path | None) -> list[CheckResult]:
     try:
         subprocess.run(
             [sys.executable, "-m", "agent_toolkit", "loop", "--help"],
-            capture_output=True, timeout=10
+            capture_output=True,
+            timeout=10,
         )
-        results.append(CheckResult("loops", "loop subcommand", CheckResult.STATUS_OK,
-                                   "agent-toolkit loop --help succeeded"))
+        results.append(
+            CheckResult(
+                "loops",
+                "loop subcommand",
+                CheckResult.STATUS_OK,
+                "agent-toolkit loop --help succeeded",
+            )
+        )
     except Exception as exc:
-        results.append(CheckResult("loops", "loop subcommand", CheckResult.STATUS_WARN,
-                                   f"Could not run loop command: {exc}"))
+        results.append(
+            CheckResult(
+                "loops",
+                "loop subcommand",
+                CheckResult.STATUS_WARN,
+                f"Could not run loop command: {exc}",
+            )
+        )
 
     # Check loops/ templates
     if toolkit_dir:
         loops_dir = toolkit_dir / "loops"
         if loops_dir.is_dir():
             count = sum(1 for d in loops_dir.iterdir() if d.is_dir())
-            results.append(CheckResult("loops", "loop templates", CheckResult.STATUS_OK,
-                                       f"{count} template(s) found in {loops_dir}"))
+            results.append(
+                CheckResult(
+                    "loops",
+                    "loop templates",
+                    CheckResult.STATUS_OK,
+                    f"{count} template(s) found in {loops_dir}",
+                )
+            )
         else:
-            results.append(CheckResult("loops", "loop templates", CheckResult.STATUS_WARN,
-                                       f"loops/ directory not found at {loops_dir}"))
+            results.append(
+                CheckResult(
+                    "loops",
+                    "loop templates",
+                    CheckResult.STATUS_WARN,
+                    f"loops/ directory not found at {loops_dir}",
+                )
+            )
     else:
-        results.append(CheckResult("loops", "loop templates", CheckResult.STATUS_WARN,
-                                   "Toolkit directory not found — cannot check loop templates"))
+        results.append(
+            CheckResult(
+                "loops",
+                "loop templates",
+                CheckResult.STATUS_WARN,
+                "Toolkit directory not found — cannot check loop templates",
+            )
+        )
 
     return results
 
@@ -224,11 +268,15 @@ def _check_llm_providers() -> list[CheckResult]:
         req.add_header("User-Agent", "agent-toolkit-doctor/1")
         with urllib.request.urlopen(req, timeout=3):
             pass
-        results.append(CheckResult("llm", "ollama", CheckResult.STATUS_OK,
-                                   "running at localhost:11434"))
+        results.append(
+            CheckResult("llm", "ollama", CheckResult.STATUS_OK, "running at localhost:11434")
+        )
     except Exception:
-        results.append(CheckResult("llm", "ollama", CheckResult.STATUS_WARN,
-                                   "not reachable at localhost:11434"))
+        results.append(
+            CheckResult(
+                "llm", "ollama", CheckResult.STATUS_WARN, "not reachable at localhost:11434"
+            )
+        )
 
     # opencode socket (Linux/macOS only — os.getuid() doesn't exist on Windows)
     try:
@@ -242,12 +290,17 @@ def _check_llm_providers() -> list[CheckResult]:
     ]
     for sp in socket_paths:
         if sp.exists():
-            results.append(CheckResult("llm", "opencode socket", CheckResult.STATUS_OK,
-                                       str(sp)))
+            results.append(CheckResult("llm", "opencode socket", CheckResult.STATUS_OK, str(sp)))
             break
     else:
-        results.append(CheckResult("llm", "opencode socket", CheckResult.STATUS_WARN,
-                                   "socket not found (opencode may not be running)"))
+        results.append(
+            CheckResult(
+                "llm",
+                "opencode socket",
+                CheckResult.STATUS_WARN,
+                "socket not found (opencode may not be running)",
+            )
+        )
 
     return results
 
@@ -257,26 +310,47 @@ def _check_mcp() -> list[CheckResult]:
     config_path = Path.home() / ".config" / "agent-toolkit" / "mcp-config.json"
 
     if not config_path.exists():
-        results.append(CheckResult("mcp", "mcp-config.json", CheckResult.STATUS_WARN,
-                                   f"Not found: {config_path}  (run: agent-toolkit mcp setup <provider>)"))
+        results.append(
+            CheckResult(
+                "mcp",
+                "mcp-config.json",
+                CheckResult.STATUS_WARN,
+                f"Not found: {config_path}  (run: agent-toolkit mcp setup <provider>)",
+            )
+        )
         return results
 
     try:
         data = json.loads(config_path.read_text())
         providers = data.get("providers", {})
         if not providers:
-            results.append(CheckResult("mcp", "mcp providers", CheckResult.STATUS_WARN,
-                                       "Config exists but no providers configured"))
+            results.append(
+                CheckResult(
+                    "mcp",
+                    "mcp providers",
+                    CheckResult.STATUS_WARN,
+                    "Config exists but no providers configured",
+                )
+            )
             return results
         for name, cfg in providers.items():
             enabled = cfg.get("enabled", False)
             validated = cfg.get("validated_at", "never")
             status = CheckResult.STATUS_OK if enabled else CheckResult.STATUS_WARN
-            results.append(CheckResult("mcp", f"provider:{name}", status,
-                                       f"enabled={enabled}, validated_at={validated}"))
+            results.append(
+                CheckResult(
+                    "mcp",
+                    f"provider:{name}",
+                    status,
+                    f"enabled={enabled}, validated_at={validated}",
+                )
+            )
     except (json.JSONDecodeError, OSError) as exc:
-        results.append(CheckResult("mcp", "mcp-config.json", CheckResult.STATUS_ERR,
-                                   f"Cannot read config: {exc}"))
+        results.append(
+            CheckResult(
+                "mcp", "mcp-config.json", CheckResult.STATUS_ERR, f"Cannot read config: {exc}"
+            )
+        )
 
     return results
 
@@ -293,11 +367,23 @@ def _check_scheduled_loops() -> list[CheckResult]:
                 for t in sorted(timers):
                     results.append(CheckResult("scheduled", t.name, CheckResult.STATUS_OK, str(t)))
             else:
-                results.append(CheckResult("scheduled", "systemd timers", CheckResult.STATUS_WARN,
-                                           "No agent-toolkit-*.timer files found"))
+                results.append(
+                    CheckResult(
+                        "scheduled",
+                        "systemd timers",
+                        CheckResult.STATUS_WARN,
+                        "No agent-toolkit-*.timer files found",
+                    )
+                )
         else:
-            results.append(CheckResult("scheduled", "systemd user dir", CheckResult.STATUS_WARN,
-                                       f"Not found: {timer_dir}"))
+            results.append(
+                CheckResult(
+                    "scheduled",
+                    "systemd user dir",
+                    CheckResult.STATUS_WARN,
+                    f"Not found: {timer_dir}",
+                )
+            )
     elif system == "Darwin":
         launchd_dir = Path.home() / "Library" / "LaunchAgents"
         if launchd_dir.is_dir():
@@ -306,14 +392,32 @@ def _check_scheduled_loops() -> list[CheckResult]:
                 for p in sorted(plists):
                     results.append(CheckResult("scheduled", p.name, CheckResult.STATUS_OK, str(p)))
             else:
-                results.append(CheckResult("scheduled", "launchd plists", CheckResult.STATUS_WARN,
-                                           "No com.agent-toolkit.*.plist files found"))
+                results.append(
+                    CheckResult(
+                        "scheduled",
+                        "launchd plists",
+                        CheckResult.STATUS_WARN,
+                        "No com.agent-toolkit.*.plist files found",
+                    )
+                )
         else:
-            results.append(CheckResult("scheduled", "LaunchAgents dir", CheckResult.STATUS_WARN,
-                                       f"Not found: {launchd_dir}"))
+            results.append(
+                CheckResult(
+                    "scheduled",
+                    "LaunchAgents dir",
+                    CheckResult.STATUS_WARN,
+                    f"Not found: {launchd_dir}",
+                )
+            )
     else:
-        results.append(CheckResult("scheduled", "scheduled loops", CheckResult.STATUS_WARN,
-                                   f"Unsupported platform: {system}"))
+        results.append(
+            CheckResult(
+                "scheduled",
+                "scheduled loops",
+                CheckResult.STATUS_WARN,
+                f"Unsupported platform: {system}",
+            )
+        )
 
     return results
 
@@ -321,6 +425,7 @@ def _check_scheduled_loops() -> list[CheckResult]:
 # ---------------------------------------------------------------------------
 # Formatting
 # ---------------------------------------------------------------------------
+
 
 def _print_section(title: str) -> None:
     print(f"\n── {title} ──")
@@ -353,8 +458,9 @@ def _parse_args(args: list[str]):
         elif arg == "--fix":
             fix = True
         else:
-            print(f"  ✗  Unknown option: {arg}  (run 'agent-toolkit doctor --help')",
-                  file=sys.stderr)
+            print(
+                f"  ✗  Unknown option: {arg}  (run 'agent-toolkit doctor --help')", file=sys.stderr
+            )
             return _PARSE_ERROR
 
     return json_output, fix
@@ -363,6 +469,7 @@ def _parse_args(args: list[str]):
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def cmd_doctor(args: list[str]) -> int:
     """Run health checks for the agent-toolkit installation.
@@ -420,12 +527,12 @@ def cmd_doctor(args: list[str]) -> int:
 
         categories_seen: list[str] = []
         category_labels = {
-            "system":    "System baseline",
-            "ai_tools":  "AI tools",
-            "profiles":  "Profiles",
-            "loops":     "Loop runtime",
-            "llm":       "LLM providers",
-            "mcp":       "MCP",
+            "system": "System baseline",
+            "ai_tools": "AI tools",
+            "profiles": "Profiles",
+            "loops": "Loop runtime",
+            "llm": "LLM providers",
+            "mcp": "MCP",
             "scheduled": "Scheduled loops",
         }
         for r in all_results:
@@ -436,9 +543,9 @@ def cmd_doctor(args: list[str]) -> int:
             _print_result(r)
 
         # Summary
-        n_ok   = sum(1 for r in all_results if r.status == CheckResult.STATUS_OK)
+        n_ok = sum(1 for r in all_results if r.status == CheckResult.STATUS_OK)
         n_warn = sum(1 for r in all_results if r.status == CheckResult.STATUS_WARN)
-        n_err  = sum(1 for r in all_results if r.status == CheckResult.STATUS_ERR)
+        n_err = sum(1 for r in all_results if r.status == CheckResult.STATUS_ERR)
 
         print()
         print("── Summary ──")
@@ -449,16 +556,17 @@ def cmd_doctor(args: list[str]) -> int:
     install_rc = 0
     if fix:
         has_profile_issues = any(
-            r.category == "profiles" and r.status != CheckResult.STATUS_OK
-            for r in all_results
+            r.category == "profiles" and r.status != CheckResult.STATUS_OK for r in all_results
         )
         if has_profile_issues:
             if not json_output:
                 print("── Auto-fix: running install ──")
             from agent_toolkit.cli.install import cmd_install
+
             if json_output:
                 import contextlib
                 import io
+
                 # Keep stdout JSON-pure: swallow install chatter.
                 with contextlib.redirect_stdout(io.StringIO()):
                     install_rc = cmd_install([])

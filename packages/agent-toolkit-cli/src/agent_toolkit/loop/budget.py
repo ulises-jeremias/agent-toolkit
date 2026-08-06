@@ -1,11 +1,11 @@
 """Loop budget helpers: wall-clock timeout and token accounting."""
+
 from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
 
 DEFAULT_WALL_SECONDS = 900
 
@@ -102,7 +102,6 @@ def soft_token_precheck(state: dict[str, Any], budget: dict[str, Any]) -> str | 
         return None
     if last >= limit:
         return (
-            f"Last run used {last:,} tokens (limit {limit:,}). "
-            "Run may exit with budget_exhausted."
+            f"Last run used {last:,} tokens (limit {limit:,}). Run may exit with budget_exhausted."
         )
     return None

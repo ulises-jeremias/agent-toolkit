@@ -1,4 +1,5 @@
 """Tests for OpenAI Codex CLI loop runner (#225)."""
+
 from __future__ import annotations
 
 import subprocess

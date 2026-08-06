@@ -41,8 +41,8 @@ class AnthropicProvider(LLMProvider):
         repo_path: Optional[Path] = None,
         timeout_sec: int = 300,
     ) -> LLMResponse:
-        import urllib.request
         import urllib.error
+        import urllib.request
 
         start_time = time.time()
 

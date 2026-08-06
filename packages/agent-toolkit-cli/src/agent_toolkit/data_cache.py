@@ -1,4 +1,5 @@
 """GitHub Release data cache for lighter wheel installs."""
+
 from __future__ import annotations
 
 import json
@@ -7,6 +8,7 @@ import urllib.request
 from pathlib import Path
 
 from agent_toolkit import __version__
+
 
 def _xdg_cache_home() -> Path:
     return Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache")))
@@ -18,9 +20,7 @@ def cache_dir() -> Path:
 
 CACHE_DIR = cache_dir()  # default at import; tests should patch cache_dir()
 CACHE_VERSION_FILE = cache_dir() / "cached_version.json"
-GITHUB_RELEASES_API = (
-    "https://api.github.com/repos/ulises-jeremias/agent-toolkit/releases/latest"
-)
+GITHUB_RELEASES_API = "https://api.github.com/repos/ulises-jeremias/agent-toolkit/releases/latest"
 
 
 def cached_version() -> str | None:

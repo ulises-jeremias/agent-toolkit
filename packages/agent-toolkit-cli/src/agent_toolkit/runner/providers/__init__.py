@@ -5,11 +5,11 @@ Provider-agnostic abstraction layer for LLM generation.
 Supports local (free) and cloud (paid) providers with automatic fallback.
 """
 
-from .base import LLMProvider, LLMResponse
-from .opencode_provider import OpenCodeProvider
-from .ollama_provider import OllamaProvider
 from .anthropic_provider import AnthropicProvider
+from .base import LLMProvider, LLMResponse
+from .ollama_provider import OllamaProvider
 from .openai_provider import OpenAIProvider
+from .opencode_provider import OpenCodeProvider
 
 __all__ = [
     "LLMProvider",

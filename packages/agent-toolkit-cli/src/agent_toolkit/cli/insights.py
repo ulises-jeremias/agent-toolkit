@@ -11,6 +11,7 @@ Subcommands:
     cursor      Analyse Cursor agent transcripts from ~/.cursor/projects/
     claude      Analyse Claude Code usage from ~/.claude/usage-data/ JSONL files
 """
+
 from __future__ import annotations
 
 import json
@@ -18,20 +19,20 @@ import os
 import re
 import sqlite3
 import sys
+import sys as _sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import sys as _sys
-if _sys.platform == 'win32':
+if _sys.platform == "win32":
     try:
-        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
-OPENCODE_DB     = Path.home() / ".local" / "share" / "opencode" / "opencode.db"
+OPENCODE_DB = Path.home() / ".local" / "share" / "opencode" / "opencode.db"
 CURSOR_PROJECTS = Path.home() / ".cursor" / "projects"
-CLAUDE_USAGE    = Path.home() / ".claude" / "usage-data"
+CLAUDE_USAGE = Path.home() / ".claude" / "usage-data"
 
 
 # ── colors ────────────────────────────────────────────────────────────────────
@@ -43,12 +44,20 @@ def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
 
 
-def _blue(t: str) -> str:  return _c("1;34", t)
-def _cyan(t: str) -> str:  return _c("0;36", t)
-def _green(t: str) -> str: return _c("1;32", t)
+def _blue(t: str) -> str:
+    return _c("1;34", t)
+
+
+def _cyan(t: str) -> str:
+    return _c("0;36", t)
+
+
+def _green(t: str) -> str:
+    return _c("1;32", t)
 
 
 # ── OpenCode ──────────────────────────────────────────────────────────────────
+
 
 def _opencode_stats(db_path: Path, days: int | None = None) -> dict:
     con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
@@ -126,8 +135,8 @@ def _opencode_markdown(stats: dict, days: int | None) -> str:
         "",
         "## Stats",
         "",
-        f"| Metric | Value |",
-        f"|--------|-------|",
+        "| Metric | Value |",
+        "|--------|-------|",
         f"| Sessions | {stats.get('total_sessions', 0):,} |",
         f"| Total Cost | ${stats.get('total_cost', 0):,.4f} |",
         f"| Total Tokens | {total_tokens:,} |",
@@ -167,7 +176,7 @@ def _opencode_markdown(stats: dict, days: int | None) -> str:
     if recent:
         lines += ["## Recent Sessions (last 10)", ""]
         for s in recent:
-            title   = (s.get("title") or "(untitled)")[:80]
+            title = (s.get("title") or "(untitled)")[:80]
             created = (s.get("created") or "")[:10]
             lines.append(f"- {created}  {title}")
         lines.append("")
@@ -186,18 +195,25 @@ def _opencode_html(stats: dict, days: int | None) -> str:
     def _tr(*cols: str) -> str:
         return "<tr>" + "".join(f"<td>{c}</td>" for c in cols) + "</tr>"
 
-    stats_rows = "".join([
-        _tr("Sessions",     f"{stats.get('total_sessions', 0):,}"),
-        _tr("Total Cost",   f"${stats.get('total_cost', 0):,.4f}"),
-        _tr("Total Tokens", f"{total_tokens:,}"),
-        _tr("Tokens In",    f"{stats.get('total_tokens_in', 0):,}"),
-        _tr("Tokens Out",   f"{stats.get('total_tokens_out', 0):,}"),
-        _tr("Date Range",   f"{stats.get('first_session','N/A')[:10]} &rarr; {stats.get('last_session','N/A')[:10]}"),
-    ])
+    stats_rows = "".join(
+        [
+            _tr("Sessions", f"{stats.get('total_sessions', 0):,}"),
+            _tr("Total Cost", f"${stats.get('total_cost', 0):,.4f}"),
+            _tr("Total Tokens", f"{total_tokens:,}"),
+            _tr("Tokens In", f"{stats.get('total_tokens_in', 0):,}"),
+            _tr("Tokens Out", f"{stats.get('total_tokens_out', 0):,}"),
+            _tr(
+                "Date Range",
+                f"{stats.get('first_session', 'N/A')[:10]} &rarr; {stats.get('last_session', 'N/A')[:10]}",
+            ),
+        ]
+    )
 
     dir_rows = ""
     for row in (stats.get("by_directory") or [])[:5]:
-        dir_rows += _tr(f"<code>{row['dir']}</code>", str(row["sessions"]), f"${row.get('cost', 0):,.4f}")
+        dir_rows += _tr(
+            f"<code>{row['dir']}</code>", str(row["sessions"]), f"${row.get('cost', 0):,.4f}"
+        )
 
     model_rows = ""
     for row in (stats.get("by_model") or [])[:5]:
@@ -209,8 +225,8 @@ def _opencode_html(stats: dict, days: int | None) -> str:
         )
 
     recent_items = ""
-    for s in (stats.get("recent_sessions") or []):
-        title   = (s.get("title") or "(untitled)")[:80]
+    for s in stats.get("recent_sessions") or []:
+        title = (s.get("title") or "(untitled)")[:80]
         created = (s.get("created") or "")[:10]
         recent_items += f"<li><span class='date'>{created}</span> {title}</li>"
 
@@ -270,8 +286,8 @@ def _sub_opencode(argv: list[str]) -> int:
     import argparse
 
     p = argparse.ArgumentParser(prog="agent-toolkit insights opencode", add_help=True)
-    p.add_argument("--days",   type=int, default=None, help="Limit to last N days")
-    p.add_argument("--output", metavar="PATH",         help="Save HTML report to PATH")
+    p.add_argument("--days", type=int, default=None, help="Limit to last N days")
+    p.add_argument("--output", metavar="PATH", help="Save HTML report to PATH")
     args = p.parse_args(argv)
 
     if not OPENCODE_DB.exists():
@@ -296,6 +312,7 @@ def _sub_opencode(argv: list[str]) -> int:
 
 
 # ── Cursor ────────────────────────────────────────────────────────────────────
+
 
 def _cursor_stats(projects_dir: Path) -> dict:
     project_counts: dict[str, int] = {}
@@ -331,7 +348,9 @@ def _cursor_stats(projects_dir: Path) -> dict:
                                 if isinstance(part, dict) and part.get("type") == "text":
                                     txt = part.get("text", "")
                                     txt = re.sub(r"<timestamp>[^<]*</timestamp>", "", txt).strip()
-                                    uq = re.search(r"<user_query>(.*?)</user_query>", txt, re.DOTALL)
+                                    uq = re.search(
+                                        r"<user_query>(.*?)</user_query>", txt, re.DOTALL
+                                    )
                                     if uq:
                                         txt = uq.group(1).strip()
                                     if txt:
@@ -342,11 +361,15 @@ def _cursor_stats(projects_dir: Path) -> dict:
                     if descriptions:
                         break
                 if descriptions:
-                    sample_tasks.append({
-                        "project": project_name,
-                        "description": descriptions[0],
-                        "mtime": datetime.fromtimestamp(jf.stat().st_mtime).strftime("%Y-%m-%d"),
-                    })
+                    sample_tasks.append(
+                        {
+                            "project": project_name,
+                            "description": descriptions[0],
+                            "mtime": datetime.fromtimestamp(jf.stat().st_mtime).strftime(
+                                "%Y-%m-%d"
+                            ),
+                        }
+                    )
             except Exception:
                 continue
 
@@ -359,9 +382,9 @@ def _cursor_stats(projects_dir: Path) -> dict:
 
     return {
         "total_transcripts": total,
-        "total_projects":    len(project_counts),
-        "by_project":        by_project,
-        "recent_tasks":      sample_tasks[:20],
+        "total_projects": len(project_counts),
+        "by_project": by_project,
+        "recent_tasks": sample_tasks[:20],
     }
 
 
@@ -371,8 +394,8 @@ def _cursor_markdown(stats: dict) -> str:
         "",
         "## Stats",
         "",
-        f"| Metric | Value |",
-        f"|--------|-------|",
+        "| Metric | Value |",
+        "|--------|-------|",
         f"| Total Transcripts | {stats.get('total_transcripts', 0):,} |",
         f"| Projects | {stats.get('total_projects', 0):,} |",
         "",
@@ -409,10 +432,12 @@ def _cursor_html(stats: dict) -> str:
     def _th(*cols: str) -> str:
         return "<tr>" + "".join(f"<th>{c}</th>" for c in cols) + "</tr>"
 
-    stats_rows = "".join([
-        _tr("Total Transcripts", f"{stats.get('total_transcripts', 0):,}"),
-        _tr("Projects",          f"{stats.get('total_projects', 0):,}"),
-    ])
+    stats_rows = "".join(
+        [
+            _tr("Total Transcripts", f"{stats.get('total_transcripts', 0):,}"),
+            _tr("Projects", f"{stats.get('total_projects', 0):,}"),
+        ]
+    )
 
     project_rows = ""
     for name, count in list((stats.get("by_project") or {}).items())[:10]:
@@ -498,6 +523,7 @@ def _sub_cursor(argv: list[str]) -> int:
 
 # ── Claude Code ───────────────────────────────────────────────────────────────
 
+
 def _claude_stats(usage_dir: Path, days: int | None = None) -> dict:
     if not usage_dir.is_dir():
         return {}
@@ -510,7 +536,7 @@ def _claude_stats(usage_dir: Path, days: int | None = None) -> dict:
     total_messages = 0
     total_tool_calls = 0
     first_ts: str | None = None
-    last_ts:  str | None = None
+    last_ts: str | None = None
     jsonl_files = sorted(usage_dir.rglob("*.jsonl"), key=lambda f: f.stat().st_mtime)
 
     for jf in jsonl_files:
@@ -554,20 +580,19 @@ def _claude_stats(usage_dir: Path, days: int | None = None) -> dict:
                 content = obj.get("content") or []
                 if isinstance(content, list):
                     total_tool_calls += sum(
-                        1 for c in content
-                        if isinstance(c, dict) and c.get("type") == "tool_use"
+                        1 for c in content if isinstance(c, dict) and c.get("type") == "tool_use"
                     )
 
         except Exception:
             continue
 
     return {
-        "total_sessions":   total_sessions,
-        "total_messages":   total_messages,
+        "total_sessions": total_sessions,
+        "total_messages": total_messages,
         "total_tool_calls": total_tool_calls,
-        "first_session":    (first_ts or "")[:10],
-        "last_session":     (last_ts or "")[:10],
-        "files_scanned":    len(jsonl_files),
+        "first_session": (first_ts or "")[:10],
+        "last_session": (last_ts or "")[:10],
+        "files_scanned": len(jsonl_files),
         "note": (
             "Claude Code usage data is limited without the /insights skill. "
             "Counts reflect what is available in JSONL files."
@@ -606,13 +631,18 @@ def _claude_html(stats: dict, days: int | None) -> str:
     def _th(*cols: str) -> str:
         return "<tr>" + "".join(f"<th>{c}</th>" for c in cols) + "</tr>"
 
-    rows = "".join([
-        _tr("Sessions",           f"{stats.get('total_sessions', 0):,}"),
-        _tr("Messages",           f"{stats.get('total_messages', 0):,}"),
-        _tr("Tool Calls",         f"{stats.get('total_tool_calls', 0):,}"),
-        _tr("Date Range",         f"{stats.get('first_session','N/A')} &rarr; {stats.get('last_session','N/A')}"),
-        _tr("JSONL Files Scanned", str(stats.get("files_scanned", 0))),
-    ])
+    rows = "".join(
+        [
+            _tr("Sessions", f"{stats.get('total_sessions', 0):,}"),
+            _tr("Messages", f"{stats.get('total_messages', 0):,}"),
+            _tr("Tool Calls", f"{stats.get('total_tool_calls', 0):,}"),
+            _tr(
+                "Date Range",
+                f"{stats.get('first_session', 'N/A')} &rarr; {stats.get('last_session', 'N/A')}",
+            ),
+            _tr("JSONL Files Scanned", str(stats.get("files_scanned", 0))),
+        ]
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="en">
@@ -651,7 +681,7 @@ def _claude_html(stats: dict, days: int | None) -> str:
   <h2>Stats</h2>
   <table><thead>{_th("Metric", "Value")}</thead><tbody>{rows}</tbody></table>
 
-  <div class="note">{stats.get('note', '')}</div>
+  <div class="note">{stats.get("note", "")}</div>
 </div>
 </body>
 </html>"""
@@ -661,8 +691,8 @@ def _sub_claude(argv: list[str]) -> int:
     import argparse
 
     p = argparse.ArgumentParser(prog="agent-toolkit insights claude", add_help=True)
-    p.add_argument("--days",   type=int, default=None, help="Limit to last N days")
-    p.add_argument("--output", metavar="PATH",         help="Save HTML report to PATH")
+    p.add_argument("--days", type=int, default=None, help="Limit to last N days")
+    p.add_argument("--output", metavar="PATH", help="Save HTML report to PATH")
     args = p.parse_args(argv)
 
     if not CLAUDE_USAGE.exists():
@@ -685,26 +715,27 @@ def _sub_claude(argv: list[str]) -> int:
 
 # ── help ─────────────────────────────────────────────────────────────────────
 
+
 def _sub_help(_argv: list[str]) -> int:
     print(f"""
-{_blue('agent-toolkit insights')} — AI tool usage insights
+{_blue("agent-toolkit insights")} — AI tool usage insights
 
-{_cyan('Usage:')}
+{_cyan("Usage:")}
   agent-toolkit insights opencode [--days N] [--output PATH]
   agent-toolkit insights cursor   [--output PATH]
   agent-toolkit insights claude   [--days N] [--output PATH]
 
-{_cyan('Subcommands:')}
+{_cyan("Subcommands:")}
   opencode   Analyse OpenCode sessions from ~/.local/share/opencode/opencode.db
   cursor     Analyse Cursor agent transcripts from ~/.cursor/projects/
   claude     Analyse Claude Code usage from ~/.claude/usage-data/ JSONL files
 
-{_cyan('Options:')}
+{_cyan("Options:")}
   --days N       Limit analysis to last N days (opencode, claude)
   --output PATH  Save HTML report to PATH (all subcommands)
                  Without --output: prints Markdown to stdout
 
-{_cyan('Examples:')}
+{_cyan("Examples:")}
   agent-toolkit insights opencode
   agent-toolkit insights opencode --days 30
   agent-toolkit insights opencode --output ~/opencode-report.html
@@ -716,6 +747,7 @@ def _sub_help(_argv: list[str]) -> int:
 
 # ── entry point ───────────────────────────────────────────────────────────────
 
+
 def cmd_insights(argv: list[str]) -> int:
     if not argv or argv[0] in ("-h", "--help", "help"):
         return _sub_help([])
@@ -725,9 +757,9 @@ def cmd_insights(argv: list[str]) -> int:
 
     dispatch = {
         "opencode": _sub_opencode,
-        "cursor":   _sub_cursor,
-        "claude":   _sub_claude,
-        "help":     _sub_help,
+        "cursor": _sub_cursor,
+        "claude": _sub_claude,
+        "help": _sub_help,
     }
 
     fn = dispatch.get(subcommand)

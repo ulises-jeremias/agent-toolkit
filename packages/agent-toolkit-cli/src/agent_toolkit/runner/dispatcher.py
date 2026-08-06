@@ -13,11 +13,10 @@ from __future__ import annotations
 
 import logging
 import os
-from pathlib import Path
-from typing import Optional
-
 import sys
+from pathlib import Path
 from pathlib import Path as _Path
+from typing import Optional
 
 sys.path.insert(0, str(_Path(__file__).parent))
 

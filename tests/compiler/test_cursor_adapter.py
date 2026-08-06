@@ -9,10 +9,10 @@ Verifies:
 - No forbidden settings (no dangerous bypasses)
 - No private provider URLs
 """
+
 from __future__ import annotations
 
 import json
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -21,9 +21,7 @@ import pytest
 pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.loader import load_graph
-from agent_toolkit.compiler.model import CompilationResult
 from agent_toolkit.compiler.targets.cursor import CursorAdapter
-
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 
@@ -82,9 +80,7 @@ def test_manifest_no_dangerous_settings(adapter, graph):
     """Cursor plugin must not bypass permission prompts."""
     for product in graph.products.values():
         adapter.compile(graph, product)
-        manifest_path = (
-            adapter.output_root / product.id / ".cursor-plugin" / "plugin.json"
-        )
+        manifest_path = adapter.output_root / product.id / ".cursor-plugin" / "plugin.json"
         if manifest_path.exists():
             data = json.loads(manifest_path.read_text())
             assert "skipDangerousModePermissionPrompt" not in data
@@ -95,9 +91,7 @@ def test_manifest_no_private_providers(adapter, graph):
     """Plugin manifest must not contain internal hostnames."""
     for product in graph.products.values():
         adapter.compile(graph, product)
-        manifest_path = (
-            adapter.output_root / product.id / ".cursor-plugin" / "plugin.json"
-        )
+        manifest_path = adapter.output_root / product.id / ".cursor-plugin" / "plugin.json"
         if manifest_path.exists():
             text = manifest_path.read_text()
             assert ".local" not in text, "Private .local hostname in manifest"
@@ -244,7 +238,9 @@ def test_plugin_manifest_uses_cursor_plugin_dir(adapter, graph):
 # ── all products ──────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_all_products_compile_cleanly(adapter, graph, product_id):
     """All defined products must compile without errors."""
     if product_id not in graph.products:

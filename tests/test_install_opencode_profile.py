@@ -1,4 +1,5 @@
 """Certification: OpenCode profile install path must stay sanitized."""
+
 from __future__ import annotations
 
 import json

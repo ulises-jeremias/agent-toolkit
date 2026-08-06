@@ -10,16 +10,20 @@ Compiles canonical IR into Claude Code plugin bundles:
 
 Official docs: https://code.claude.com/docs/en/plugins
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
 from agent_toolkit.compiler.model import (
-    CanonicalGraph, CompilationResult, Product, Skill, Agent,
+    Agent,
+    CanonicalGraph,
+    CompilationResult,
+    Product,
+    Skill,
 )
 from agent_toolkit.compiler.targets.base import TargetAdapter
-
 
 FORBIDDEN_SETTINGS = {
     "skipDangerousModePermissionPrompt",
@@ -120,11 +124,11 @@ class ClaudeCodeAdapter(TargetAdapter):
 
     def _build_plugin_json(self, product: Product, graph: CanonicalGraph) -> dict:
         """Build the .claude-plugin/plugin.json manifest."""
-        import sys
 
         # Import version from package
         try:
             from agent_toolkit import __version__
+
             version = __version__
         except ImportError:
             version = "1.0.0"
@@ -204,9 +208,7 @@ class ClaudeCodeAdapter(TargetAdapter):
                 continue
             src = hook_script_source(hook.command, self.repo_root)
             if src is None:
-                result.warnings.append(
-                    f"Hook '{hook_id}' script not found: {hook.command[-1]}"
-                )
+                result.warnings.append(f"Hook '{hook_id}' script not found: {hook.command[-1]}")
                 continue
             scripts_dir.mkdir(parents=True, exist_ok=True)
             dst = scripts_dir / script_name

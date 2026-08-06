@@ -14,6 +14,7 @@ Verifies:
 - check mode leaves filesystem unchanged
 - All products compile cleanly (parametrized)
 """
+
 from __future__ import annotations
 
 import json
@@ -247,29 +248,29 @@ def test_check_mode_no_files_written(adapter, graph, tmp_path):
 
 
 def test_validate_detects_private_ip():
-    errors = PiAdapter.validate_pi_package_json({
-        "name": "test",
-        "registry": "http://192.168.1.100:4873"
-    })
+    errors = PiAdapter.validate_pi_package_json(
+        {"name": "test", "registry": "http://192.168.1.100:4873"}
+    )
     assert len(errors) > 0, "Should detect private 192.168.x.x IP"
 
 
 def test_validate_detects_private_hostname():
-    errors = PiAdapter.validate_pi_package_json({
-        "name": "test",
-        "publishConfig": {"registry": "http://colibri.local/npm"}
-    })
+    errors = PiAdapter.validate_pi_package_json(
+        {"name": "test", "publishConfig": {"registry": "http://colibri.local/npm"}}
+    )
     assert len(errors) > 0, "Should detect private .local hostname"
 
 
 def test_validate_accepts_safe_config():
-    errors = PiAdapter.validate_pi_package_json({
-        "name": "@agent-toolkit/core",
-        "version": "1.0.0",
-        "description": "Agent Toolkit for Pi",
-        "license": "MIT",
-        "pi": {"skills": ["skills/assistant/SKILL.md"]},
-    })
+    errors = PiAdapter.validate_pi_package_json(
+        {
+            "name": "@agent-toolkit/core",
+            "version": "1.0.0",
+            "description": "Agent Toolkit for Pi",
+            "license": "MIT",
+            "pi": {"skills": ["skills/assistant/SKILL.md"]},
+        }
+    )
     assert errors == [], f"Safe config wrongly rejected: {errors}"
 
 
@@ -286,9 +287,9 @@ def test_parity_notes_documented():
 # ── all products ──────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("product_id", [
-    "agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"
-])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_all_products_compile(adapter, graph, product_id):
     """All defined products must compile without errors."""
     if product_id not in graph.products:

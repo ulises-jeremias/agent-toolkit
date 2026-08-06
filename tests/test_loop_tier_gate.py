@@ -1,4 +1,5 @@
 """Gate/tier consistency for loops that allowlist merge/close."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,7 +8,7 @@ import pytest
 
 yaml = pytest.importorskip("yaml")
 
-from agent_toolkit.loop.gh_gate import evaluate_action, tier_forbids
+from agent_toolkit.loop.gh_gate import evaluate_action, tier_forbids  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 

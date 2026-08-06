@@ -4,6 +4,7 @@ Canonical lifecycle hook registry loader.
 Loads hook definitions from capabilities/hooks/*.yaml and validates
 them against schemas/hook.schema.yaml.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,6 +15,7 @@ from typing import Any
 @dataclass
 class HookDefinition:
     """A canonical lifecycle hook definition."""
+
     id: str
     event: str
     handler_type: str
@@ -85,8 +87,14 @@ def load_hooks(hooks_dir: Path) -> tuple[dict[str, HookDefinition], list[str]]:
 def generate_parity_document(hooks: dict[str, HookDefinition]) -> str:
     """Generate a hook parity document from canonical hook definitions."""
     targets = [
-        "claude-code", "cursor", "gemini-cli", "copilot-cli",
-        "opencode", "pi", "windsurf", "codex"
+        "claude-code",
+        "cursor",
+        "gemini-cli",
+        "copilot-cli",
+        "opencode",
+        "pi",
+        "windsurf",
+        "codex",
     ]
 
     lines = ["# Hook Parity", "", "| Hook | Event | " + " | ".join(targets) + " |"]

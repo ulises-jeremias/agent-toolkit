@@ -1,4 +1,5 @@
 """Stale artifacts under product output are removed on recompile (#69)."""
+
 from __future__ import annotations
 
 from pathlib import Path

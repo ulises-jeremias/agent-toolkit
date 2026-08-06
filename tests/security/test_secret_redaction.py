@@ -1,7 +1,8 @@
 """Security tests: secrets must never appear in generated artifacts."""
-from pathlib import Path
-import tempfile
+
 import re
+from pathlib import Path
+
 import pytest
 
 pytest.importorskip("yaml")
@@ -14,11 +15,11 @@ from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter
 REPO_ROOT = Path(__file__).parent.parent.parent
 
 SECRET_PATTERNS = [
-    r"ghp_[A-Za-z0-9]{36}",      # GitHub tokens
-    r"sk-[A-Za-z0-9]{20,}",      # OpenAI keys
-    r"sk-ant-[A-Za-z0-9]",       # Anthropic keys
-    r"xoxb-[A-Za-z0-9-]+",       # Slack bot tokens
-    r"AKIA[0-9A-Z]{16}",          # AWS keys
+    r"ghp_[A-Za-z0-9]{36}",  # GitHub tokens
+    r"sk-[A-Za-z0-9]{20,}",  # OpenAI keys
+    r"sk-ant-[A-Za-z0-9]",  # Anthropic keys
+    r"xoxb-[A-Za-z0-9-]+",  # Slack bot tokens
+    r"AKIA[0-9A-Z]{16}",  # AWS keys
 ]
 
 
@@ -27,9 +28,7 @@ def graph():
     return load_graph(REPO_ROOT)
 
 
-@pytest.mark.parametrize("adapter_cls", [
-    ClaudeCodeAdapter, CursorAdapter, OpenCodeAdapter
-])
+@pytest.mark.parametrize("adapter_cls", [ClaudeCodeAdapter, CursorAdapter, OpenCodeAdapter])
 def test_no_secrets_in_artifacts(graph, tmp_path, adapter_cls):
     """Generated artifacts must not contain any secret values."""
     product = graph.products["agent-toolkit-core"]

@@ -1,4 +1,5 @@
 """Tests for agent-toolkit diff command."""
+
 from __future__ import annotations
 
 import json
@@ -14,8 +15,11 @@ REPO_ROOT = Path(__file__).parent.parent
 
 def run_diff(args=None):
     sys.path.insert(0, str(REPO_ROOT / "src"))
-    import os; os.environ["AGENT_TOOLKIT_ROOT"] = str(REPO_ROOT)
+    import os
+
+    os.environ["AGENT_TOOLKIT_ROOT"] = str(REPO_ROOT)
     from agent_toolkit.cli.diff import cmd_diff
+
     return cmd_diff(args or [])
 
 
@@ -26,8 +30,9 @@ def test_diff_no_changes_returns_0():
 
 
 def test_diff_json_output():
-    out_lines = []
-    import io, contextlib
+    import contextlib
+    import io
+
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
         run_diff(["--target", "claude-code", "--json"])
@@ -49,22 +54,25 @@ def test_diff_detects_content_changes():
     original = target.read_bytes()
     try:
         target.write_bytes(original + b"\n")
-        from agent_toolkit.cli.diff import cmd_diff
-        import io
         import contextlib
+        import io
+
+        from agent_toolkit.cli.diff import cmd_diff
 
         buf = io.StringIO()
         with contextlib.redirect_stdout(buf):
-            cmd_diff([
-                "--target", "claude-code",
-                "--product", "agent-toolkit-core",
-                "--json",
-            ])
+            cmd_diff(
+                [
+                    "--target",
+                    "claude-code",
+                    "--product",
+                    "agent-toolkit-core",
+                    "--json",
+                ]
+            )
         data = json.loads(buf.getvalue())
         entry = next(e for e in data if e["product"] == "agent-toolkit-core")
-        assert entry["changes"]["changed"], (
-            f"expected content changes, got: {entry['changes']}"
-        )
+        assert entry["changes"]["changed"], f"expected content changes, got: {entry['changes']}"
         assert entry["no_changes"] is False
     finally:
         target.write_bytes(original)

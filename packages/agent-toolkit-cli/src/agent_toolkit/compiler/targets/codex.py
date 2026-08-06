@@ -32,6 +32,7 @@ Path distinction from Claude Code / Cursor:
 Research: docs/research/platform-capability-matrix.md (2026-08-04)
 Marketplace: https://marketplace.openai.com/codex (gated, submission "coming soon")
 """
+
 from __future__ import annotations
 
 import json
@@ -45,7 +46,6 @@ from agent_toolkit.compiler.model import (
     Skill,
 )
 from agent_toolkit.compiler.targets.base import TargetAdapter
-
 
 # Settings that must never appear in a publicly distributed Codex plugin.
 # These bypass safety mechanisms and are forbidden in any marketplace submission.
@@ -118,10 +118,12 @@ class CodexAdapter(TargetAdapter):
 
         # 4. Explicitly document unsupported capabilities.
         #    Never silently drop a capability — always report.
-        result.unsupported.extend([
-            "hooks — unknown-blocked: lifecycle hooks not confirmed in official Codex plugin docs",
-            "mcp — unknown-blocked: MCP integration not confirmed in official Codex plugin docs",
-        ])
+        result.unsupported.extend(
+            [
+                "hooks — unknown-blocked: lifecycle hooks not confirmed in official Codex plugin docs",
+                "mcp — unknown-blocked: MCP integration not confirmed in official Codex plugin docs",
+            ]
+        )
 
         # 5. Add an experimental maturity warning to every compilation result.
         result.warnings.append(
@@ -147,6 +149,7 @@ class CodexAdapter(TargetAdapter):
         """
         try:
             from agent_toolkit import __version__
+
             version = __version__
         except ImportError:
             version = "1.0.0"

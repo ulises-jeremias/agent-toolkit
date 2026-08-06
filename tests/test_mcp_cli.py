@@ -1,4 +1,5 @@
 """Tests for MCP CLI health/setup/uninstall surface."""
+
 from __future__ import annotations
 
 import json

@@ -1,4 +1,5 @@
 """Non-destructive install: preserve user-modified profile files."""
+
 from __future__ import annotations
 
 import json

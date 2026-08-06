@@ -1,4 +1,5 @@
 """Security tests: profiles/ must not ship secrets or private hostnames."""
+
 from __future__ import annotations
 
 import re
@@ -84,15 +85,14 @@ def test_profiles_have_scannable_files(profile_files):
 @pytest.mark.parametrize("pattern_label", [label for _, label in SECRET_PATTERNS])
 def test_no_secret_patterns_in_profiles(profile_files, pattern_label):
     """Installer profiles must not contain credential-like values."""
-    patterns = dict(SECRET_PATTERNS)
+    dict(SECRET_PATTERNS)
     pattern = next(p for p, label in SECRET_PATTERNS if label == pattern_label)
     for path in profile_files:
         text = path.read_text(encoding="utf-8", errors="replace")
         match = re.search(pattern, text)
         if match:
             pytest.fail(
-                f"{pattern_label} in {path.relative_to(REPO_ROOT)}: "
-                f"{match.group()[:24]}..."
+                f"{pattern_label} in {path.relative_to(REPO_ROOT)}: {match.group()[:24]}..."
             )
 
 

@@ -1,4 +1,5 @@
 """Tests for loop budget enforcement, --pack overrides, and devcompanion gh-gate (#42)."""
+
 from __future__ import annotations
 
 import json
@@ -96,8 +97,10 @@ def test_token_trace_tailer_triggers_budget_exhausted() -> None:
 def test_tokens_from_trace_and_budget_check() -> None:
     trace = Path("/tmp/loop-budget-sum-test.jsonl")
     trace.write_text(
-        json.dumps({"kind": "prompt", "prompt_tokens": 1000, "completion_tokens": 0}) + "\n"
-        + json.dumps({"kind": "completion", "prompt_tokens": 0, "completion_tokens": 500}) + "\n",
+        json.dumps({"kind": "prompt", "prompt_tokens": 1000, "completion_tokens": 0})
+        + "\n"
+        + json.dumps({"kind": "completion", "prompt_tokens": 0, "completion_tokens": 500})
+        + "\n",
         encoding="utf-8",
     )
     assert budget.tokens_from_trace(trace) == 1500
@@ -121,7 +124,9 @@ def test_cmd_run_records_pack_budget_in_trace(
         "budget:\n  max_runs_per_day: 5\n  max_wall_seconds: 120\n  max_tokens: 25000\n---\n",
         encoding="utf-8",
     )
-    (loop_dir / "STATE.md").write_text("---\nlast_run: never\nruns_today: 0\n---\n", encoding="utf-8")
+    (loop_dir / "STATE.md").write_text(
+        "---\nlast_run: never\nruns_today: 0\n---\n", encoding="utf-8"
+    )
 
     pack_file = tmp_path / "packs" / "override.yaml"
     pack_file.parent.mkdir(parents=True)

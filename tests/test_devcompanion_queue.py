@@ -1,4 +1,5 @@
 """Tests for devcompanion harness queue storage (#203)."""
+
 from __future__ import annotations
 
 import json
@@ -140,9 +141,7 @@ def test_job_project_path_normalizes_repo_path() -> None:
     assert dq.job_project_name({"repo_path": "/repos/bar"}) == "bar"
 
 
-def test_devcompanion_queue_integration(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_devcompanion_queue_integration(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """End-to-end queue + run-once with harness layout (--no-llm)."""
     workspace = tmp_path / "ws"
     workspace.mkdir()

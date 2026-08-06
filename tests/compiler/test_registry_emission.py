@@ -1,4 +1,5 @@
 """Tests for registry-based hooks/MCP emission."""
+
 from __future__ import annotations
 
 import json
@@ -118,9 +119,11 @@ def test_agents_product_without_hooks_mcp(adapter, graph):
 
 def test_emit_registries_flag(adapter, graph):
     product = graph.products["agent-toolkit-agents"]
-    result = adapter.compile(graph, product, emit_registries=True)
+    adapter.compile(graph, product, emit_registries=True)
     out = adapter.output_root / "agent-toolkit-agents"
     assert (out / "hooks" / "hooks.json").is_file()
     assert (out / ".mcp.json").is_file()
-    mcp_ids = resolve_mcp_ids([], target_id="claude-code", registry_dir=MCP_DIR, emit_registries=True)
+    mcp_ids = resolve_mcp_ids(
+        [], target_id="claude-code", registry_dir=MCP_DIR, emit_registries=True
+    )
     assert mcp_ids  # at least github from registry

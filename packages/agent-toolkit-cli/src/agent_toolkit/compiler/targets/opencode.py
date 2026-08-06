@@ -29,6 +29,7 @@ Key differences from Claude Code/Cursor:
 - Skills go in .opencode/skills/, agents in .opencode/agents/
 - opencode.json for model config MUST NOT contain private provider URLs
 """
+
 from __future__ import annotations
 
 import json
@@ -43,7 +44,6 @@ from agent_toolkit.compiler.model import (
 )
 from agent_toolkit.compiler.targets.base import TargetAdapter
 
-
 # opencode.json safe defaults — NO private providers, NO hardcoded models.
 # Users customize their own ~/.config/opencode/opencode.json.
 _OPENCODE_JSON_TEMPLATE = {
@@ -53,7 +53,7 @@ _OPENCODE_JSON_TEMPLATE = {
 # opencode.json fields that indicate private/personal configuration.
 # These must never appear in generated output.
 _FORBIDDEN_OPENCODE_FIELDS = {
-    "provider",     # provider config with baseURL can contain private LAN URLs
+    "provider",  # provider config with baseURL can contain private LAN URLs
 }
 
 
@@ -106,13 +106,15 @@ class OpenCodeAdapter(TargetAdapter):
             self._emit_agent(agent, out_dir, result)
 
         # 4. Explicitly document what requires the runtime TypeScript plugin
-        result.unsupported.extend([
-            "lifecycle hooks — requires packages/opencode-plugin/ TypeScript runtime (issue #10)",
-            "custom tools — requires TypeScript plugin with tool registration API",
-            "MCP server config — requires TypeScript plugin (no static opencode.json format)",
-            "model/tool-call interception — requires TypeScript plugin",
-            "plugin marketplace install — OpenCode uses npm/Bun; no marketplace format",
-        ])
+        result.unsupported.extend(
+            [
+                "lifecycle hooks — requires packages/opencode-plugin/ TypeScript runtime (issue #10)",
+                "custom tools — requires TypeScript plugin with tool registration API",
+                "MCP server config — requires TypeScript plugin (no static opencode.json format)",
+                "model/tool-call interception — requires TypeScript plugin",
+                "plugin marketplace install — OpenCode uses npm/Bun; no marketplace format",
+            ]
+        )
 
         return result
 

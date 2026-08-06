@@ -1,4 +1,5 @@
 """Docs and catalog tier labels must match loop.yaml mutation-safety tiers."""
+
 from __future__ import annotations
 
 from pathlib import Path

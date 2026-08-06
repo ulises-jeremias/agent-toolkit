@@ -16,10 +16,10 @@ Examples:
     agent-toolkit update --check
     agent-toolkit update --pin 1.1.0
 """
+
 from __future__ import annotations
 
 import hashlib
-import os
 import shutil
 import sys
 from collections.abc import Callable, Iterator

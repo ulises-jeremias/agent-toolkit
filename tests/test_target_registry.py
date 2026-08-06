@@ -1,4 +1,5 @@
 """Tests for declarative compile-target registry."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,7 +8,7 @@ import pytest
 
 yaml = pytest.importorskip("yaml")
 
-from agent_toolkit.compiler.target_registry import (
+from agent_toolkit.compiler.target_registry import (  # noqa: E402
     adapter_import_path,
     load_target_registry,
     registry_by_id,

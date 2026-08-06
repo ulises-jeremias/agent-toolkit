@@ -1,4 +1,5 @@
 """Tests for GitHub Release data cache resolution."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -27,5 +28,7 @@ def test_ensure_cached_data_offline_with_profiles(tmp_path, monkeypatch):
 
 
 def test_is_cache_current_false_when_missing(monkeypatch):
-    monkeypatch.setattr("agent_toolkit.data_cache.CACHE_VERSION_FILE", Path("/nonexistent/version.json"))
+    monkeypatch.setattr(
+        "agent_toolkit.data_cache.CACHE_VERSION_FILE", Path("/nonexistent/version.json")
+    )
     assert is_cache_current() is False

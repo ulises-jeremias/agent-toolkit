@@ -1,4 +1,5 @@
 """Tests for Cursor Agent CLI loop runner (#223)."""
+
 from __future__ import annotations
 
 import subprocess

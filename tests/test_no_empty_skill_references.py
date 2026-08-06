@@ -1,4 +1,5 @@
 """Fail when advertised skill reference files are empty (#76)."""
+
 from __future__ import annotations
 
 from pathlib import Path

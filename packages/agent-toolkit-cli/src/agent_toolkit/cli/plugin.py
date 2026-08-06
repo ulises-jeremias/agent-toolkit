@@ -11,16 +11,18 @@ Subcommands:
 Options:
     --help   Show this help message
 """
+
 from __future__ import annotations
 
 import filecmp
 import shutil
 import sys
+import sys as _sys_win
 from pathlib import Path
+
 from agent_toolkit._paths import toolkit_root
 from agent_toolkit.compiler.provenance import verify_generated_digests
 
-import sys as _sys_win
 if _sys_win.platform == "win32":
     try:
         _sys_win.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -29,13 +31,10 @@ if _sys_win.platform == "win32":
         pass
 
 
-
-
-
-
 # ---------------------------------------------------------------------------
 # gen-surfaces logic (inlined from scripts/gen-surfaces.py)
 # ---------------------------------------------------------------------------
+
 
 def _build_surfaces(toolkit_dir: Path) -> dict[str, list[tuple[str, str]]]:
     """Return the plugin→surfaces mapping, mirroring scripts/gen-surfaces.py."""
@@ -44,13 +43,13 @@ def _build_surfaces(toolkit_dir: Path) -> dict[str, list[tuple[str, str]]]:
 
     surfaces: dict[str, list[tuple[str, str]]] = {
         "agent-toolkit-core": [
-            ("agents/code-reviewer",                  "agents/code-reviewer"),
-            ("skills/core/assistant",                 "skills/assistant"),
-            ("skills/core/dev-companion",             "skills/dev-companion"),
-            ("skills/core/output-handshake",          "skills/output-handshake"),
-            ("skills/core/pr-fallback",               "skills/pr-fallback"),
-            ("skills/core/workspace-knowledge-sync",  "skills/workspace-knowledge-sync"),
-            ("skills/core/onboarding",                "skills/onboarding"),
+            ("agents/code-reviewer", "agents/code-reviewer"),
+            ("skills/core/assistant", "skills/assistant"),
+            ("skills/core/dev-companion", "skills/dev-companion"),
+            ("skills/core/output-handshake", "skills/output-handshake"),
+            ("skills/core/pr-fallback", "skills/pr-fallback"),
+            ("skills/core/workspace-knowledge-sync", "skills/workspace-knowledge-sync"),
+            ("skills/core/onboarding", "skills/onboarding"),
         ],
     }
 
@@ -58,7 +57,8 @@ def _build_surfaces(toolkit_dir: Path) -> dict[str, list[tuple[str, str]]]:
     if agents_dir.is_dir():
         surfaces["agent-toolkit-agents"] = [
             (f"agents/{d.name}", f"agents/{d.name}")
-            for d in sorted(agents_dir.iterdir()) if d.is_dir()
+            for d in sorted(agents_dir.iterdir())
+            if d.is_dir()
         ]
     else:
         surfaces["agent-toolkit-agents"] = []
@@ -68,7 +68,8 @@ def _build_surfaces(toolkit_dir: Path) -> dict[str, list[tuple[str, str]]]:
     if forge_dir.is_dir():
         surfaces["agent-toolkit-forge"] = [
             (f"skills/forge/{d.name}", f"skills/{d.name}")
-            for d in sorted(forge_dir.iterdir()) if d.is_dir()
+            for d in sorted(forge_dir.iterdir())
+            if d.is_dir()
         ]
     else:
         surfaces["agent-toolkit-forge"] = []
@@ -181,6 +182,7 @@ def _run_gen_surfaces(toolkit_dir: Path, *, check: bool) -> int:
 # Subcommands
 # ---------------------------------------------------------------------------
 
+
 def _cmd_sync(toolkit_dir: Path) -> int:
     """Sync canonical agents/skills into plugin bundles."""
     return _run_gen_surfaces(toolkit_dir, check=False)
@@ -194,6 +196,7 @@ def _cmd_check(toolkit_dir: Path) -> int:
 # ---------------------------------------------------------------------------
 # Argument parsing & dispatch
 # ---------------------------------------------------------------------------
+
 
 def cmd_plugin(args: list[str]) -> int:
     """Plugin bundle management entry point.

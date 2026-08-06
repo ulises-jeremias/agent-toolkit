@@ -27,10 +27,10 @@ Key differences from Claude Code / Cursor:
 - Hooks require both Bash (.sh) AND PowerShell (.ps1) handlers
 - MCP: unknown-blocked (not confirmed from official docs as of research date)
 """
+
 from __future__ import annotations
 
 import json
-import textwrap
 from pathlib import Path
 
 from agent_toolkit.compiler.model import (
@@ -92,16 +92,19 @@ class CopilotCLIAdapter(TargetAdapter):
             self._emit_agent_cli(agent, out_dir, result)
 
         # 4. Explicitly report what is not yet implemented
-        result.unsupported.extend([
-            "hooks (cross-platform Bash+PowerShell handlers required — pending #16)",
-            "mcp (unknown-blocked: not confirmed in official Copilot CLI docs)",
-        ])
+        result.unsupported.extend(
+            [
+                "hooks (cross-platform Bash+PowerShell handlers required — pending #16)",
+                "mcp (unknown-blocked: not confirmed in official Copilot CLI docs)",
+            ]
+        )
 
         return result
 
     def _build_plugin_json(self, product: Product) -> dict:
         try:
             from agent_toolkit import __version__
+
             version = __version__
         except ImportError:
             version = "1.0.0"
@@ -206,10 +209,12 @@ class CopilotRepositoryAdapter(TargetAdapter):
                 continue
             self._emit_agent_repo(agent, out_dir, result)
 
-        result.unsupported.extend([
-            "hooks (unknown-blocked for repository surface)",
-            "mcp (unknown-blocked for repository surface)",
-        ])
+        result.unsupported.extend(
+            [
+                "hooks (unknown-blocked for repository surface)",
+                "mcp (unknown-blocked for repository surface)",
+            ]
+        )
         return result
 
     def _emit_instructions(

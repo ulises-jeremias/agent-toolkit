@@ -12,12 +12,13 @@ Options:
     --offline       Use only bundled/wheel data (skip GitHub Release cache)
     --help          Show this help message
 """
+
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import sys
-import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
     from agent_toolkit.installer.tracking import InstallTracker
 
 import sys as _sys_win
+
 if _sys_win.platform == "win32":
     try:
         _sys_win.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -42,29 +44,30 @@ if _sys_win.platform == "win32":
         pass
 
 
-
-
-
-
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _info(msg: str) -> None:
     print(f"  [info]  {msg}")
+
 
 def _ok(msg: str) -> None:
     print(f"  ✓  {msg}")
 
+
 def _warn(msg: str) -> None:
     print(f"  ⚠  {msg}")
+
 
 def _skip(msg: str) -> None:
     print(f"  -  {msg}")
 
+
 def _dry(msg: str) -> None:
     print(f"  [dry]   {msg}")
+
 
 def _err(msg: str) -> None:
     print(f"  ✗  {msg}", file=sys.stderr)
@@ -155,9 +158,7 @@ def _copy_dir(
             continue
         rel = src_file.relative_to(src_dir)
         dst_file = dst_dir / rel
-        if not _copy_file(
-            src_file, dst_file, dry_run=dry_run, force=force, tracker=tracker
-        ):
+        if not _copy_file(src_file, dst_file, dry_run=dry_run, force=force, tracker=tracker):
             success = False
     return success
 
@@ -166,17 +167,21 @@ def _copy_dir(
 # Tool detection
 # ---------------------------------------------------------------------------
 
+
 def _detect_claude_code() -> bool:
     home = Path.home()
     return shutil.which("claude") is not None or (home / ".claude").is_dir()
+
 
 def _detect_cursor() -> bool:
     home = Path.home()
     return shutil.which("cursor") is not None or (home / ".cursor").is_dir()
 
+
 def _detect_opencode() -> bool:
     home = Path.home()
     return shutil.which("opencode") is not None or (home / ".config" / "opencode").is_dir()
+
 
 def _detect_windsurf() -> bool:
     home = Path.home()
@@ -186,13 +191,19 @@ def _detect_windsurf() -> bool:
         or (home / ".windsurf").is_dir()
     )
 
+
 def _detect_pi() -> bool:
     home = Path.home()
     return shutil.which("pi") is not None or (home / ".pi").is_dir()
 
+
 def _detect_muse() -> bool:
     home = Path.home()
-    return shutil.which("muse") is not None or (home / ".config" / "muse").is_dir() or (home / ".agents").is_dir()
+    return (
+        shutil.which("muse") is not None
+        or (home / ".config" / "muse").is_dir()
+        or (home / ".agents").is_dir()
+    )
 
 
 def _windsurf_config_dir() -> Path:
@@ -207,8 +218,6 @@ def _windsurf_config_dir() -> Path:
 # ---------------------------------------------------------------------------
 # Per-tool installers
 # ---------------------------------------------------------------------------
-
-    return success
 
 
 def _install_agent_files(
@@ -407,6 +416,7 @@ def _install_copilot(*, dry_run: bool, force: bool) -> bool:
         return True
 
     import sys as _sys
+
     if not _sys.stdin.isatty():
         _skip("Non-interactive — run 'agent-toolkit install --tools copilot' interactively")
         return True
@@ -447,11 +457,11 @@ def _install_windsurf(*, dry_run: bool, force: bool) -> bool:
     config_dir = _windsurf_config_dir()
     success = True
     if (src / "rules").is_dir():
-        success &= _copy_dir(src / "rules", config_dir / "rules",
-                             dry_run=dry_run, force=force)
+        success &= _copy_dir(src / "rules", config_dir / "rules", dry_run=dry_run, force=force)
     if (src / "memories").is_dir():
-        success &= _copy_dir(src / "memories", config_dir / "memories",
-                             dry_run=dry_run, force=force)
+        success &= _copy_dir(
+            src / "memories", config_dir / "memories", dry_run=dry_run, force=force
+        )
     return success
 
 
@@ -461,12 +471,15 @@ def _install_muse(*, dry_run: bool, force: bool) -> bool:
     # Muse uses Agent Skills spec: ~/.config/muse/skills (user) and .agents/skills (project)
     # We deploy compiled skills from the build output or profile fallback
     from agent_toolkit._paths import toolkit_root as _root
+
     # Prefer compiled output if available
     # Prefer compiled output per product if available
     for prod in ("agent-toolkit-complete", "agent-toolkit-core"):
         compiled = _root() / "plugins" / prod / "skills"
         if compiled.is_dir():
-            success = _copy_dir(compiled, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force)
+            success = _copy_dir(
+                compiled, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force
+            )
             # Also ensure universal .agents/skills gets populated for project-scope compatibility
             _copy_dir(compiled, Path.home() / ".agents" / "skills", dry_run=dry_run, force=force)
             return success
@@ -475,7 +488,9 @@ def _install_muse(*, dry_run: bool, force: bool) -> bool:
     if compiled.is_dir():
         src = compiled / "skills"
         if src.is_dir():
-            success = _copy_dir(src, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force)
+            success = _copy_dir(
+                src, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force
+            )
             _copy_dir(src, Path.home() / ".agents" / "skills", dry_run=dry_run, force=force)
             return success
     # Fallback: direct skills source (portable SKILL.md)
@@ -483,7 +498,12 @@ def _install_muse(*, dry_run: bool, force: bool) -> bool:
     if src_skills.is_dir():
         # Count skills for dry-run feedback
         if not dry_run:
-            _copy_dir(src_skills, Path.home() / ".config" / "muse" / "skills", dry_run=dry_run, force=force)
+            _copy_dir(
+                src_skills,
+                Path.home() / ".config" / "muse" / "skills",
+                dry_run=dry_run,
+                force=force,
+            )
             _copy_dir(src_skills, Path.home() / ".agents" / "skills", dry_run=dry_run, force=force)
             return True
         # dry-run: report count
@@ -493,7 +513,9 @@ def _install_muse(*, dry_run: bool, force: bool) -> bool:
     # Fallback: copy profile if exists
     src_profile = _root() / "profiles" / "muse-code"
     if src_profile.is_dir():
-        return _copy_dir(src_profile, Path.home() / ".config" / "muse", dry_run=dry_run, force=force)
+        return _copy_dir(
+            src_profile, Path.home() / ".config" / "muse", dry_run=dry_run, force=force
+        )
     # Generic fallback: install universal skills via installer
     _info("No pre-built Muse profile; using universal skills via agent-toolkit build")
     return True
@@ -508,15 +530,23 @@ def _install_pi(*, dry_run: bool, force: bool) -> bool:
         _warn(f"Pi skills directory not found: {src}")
         return False
 
-    return _copy_dir(src, Path.home() / ".pi" / "agent" / "skills",
-                     dry_run=dry_run, force=force)
+    return _copy_dir(src, Path.home() / ".pi" / "agent" / "skills", dry_run=dry_run, force=force)
 
 
 # ---------------------------------------------------------------------------
 # Argument parsing
 # ---------------------------------------------------------------------------
 
-_VALID_TOOLS = ("claude-code", "cursor", "opencode", "copilot", "windsurf", "pi", "muse-code", "muse")
+_VALID_TOOLS = (
+    "claude-code",
+    "cursor",
+    "opencode",
+    "copilot",
+    "windsurf",
+    "pi",
+    "muse-code",
+    "muse",
+)
 
 
 # Sentinel parse outcomes — must not be confused with a successful empty-tools tuple.
@@ -563,6 +593,7 @@ def _parse_args(args: list[str]):
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def cmd_install(args: list[str]) -> int:
     """Install agent-toolkit profiles for AI coding assistants.
@@ -618,7 +649,9 @@ def cmd_install(args: list[str]) -> int:
 
         if not tools:
             _warn("No AI tools detected. Install at least one supported tool and re-run,")
-            _warn("or specify with: --tools claude-code,cursor,opencode,copilot,windsurf,pi,muse-code")
+            _warn(
+                "or specify with: --tools claude-code,cursor,opencode,copilot,windsurf,pi,muse-code"
+            )
             return 1
 
     print()

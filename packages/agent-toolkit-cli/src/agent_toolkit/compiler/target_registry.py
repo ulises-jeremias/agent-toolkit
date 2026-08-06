@@ -1,4 +1,5 @@
 """Load declarative compile-target registry from capabilities/targets/registry.yaml."""
+
 from __future__ import annotations
 
 import importlib

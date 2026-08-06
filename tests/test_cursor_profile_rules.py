@@ -1,4 +1,5 @@
 """Certification: Cursor profile rules (.mdc) match official frontmatter contract."""
+
 from __future__ import annotations
 
 import re

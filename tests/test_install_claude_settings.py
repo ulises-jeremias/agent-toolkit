@@ -1,4 +1,5 @@
 """Regression: Claude Code install must not overwrite ~/.claude/settings.json."""
+
 from __future__ import annotations
 
 import json

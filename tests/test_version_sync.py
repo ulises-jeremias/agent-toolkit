@@ -1,4 +1,5 @@
 """Single version source of truth across packaging surfaces (#62)."""
+
 from __future__ import annotations
 
 import json
@@ -33,4 +34,5 @@ def test_marketplace_metadata_matches_python():
 
 def test_cli_reports_python_version():
     from agent_toolkit import __version__
+
     assert __version__ == _python_version()

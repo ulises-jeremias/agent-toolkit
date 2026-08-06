@@ -1,4 +1,5 @@
 """Download and cache agent-toolkit capability data from GitHub Releases."""
+
 from __future__ import annotations
 
 import json

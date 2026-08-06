@@ -1,4 +1,5 @@
 """Map Claude Code tool names to the platform-neutral AbstractTool vocabulary."""
+
 from __future__ import annotations
 
 from agent_toolkit.compiler.model import AbstractTool

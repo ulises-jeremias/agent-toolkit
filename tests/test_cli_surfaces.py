@@ -1,4 +1,5 @@
 """CLI surface grouping tests (#84)."""
+
 from agent_toolkit.cli import main as main_mod
 
 

@@ -18,6 +18,7 @@ Verifies:
 - No absolute paths in generated output
 - All products compile cleanly (parametrized)
 """
+
 from __future__ import annotations
 
 import json
@@ -75,8 +76,7 @@ def test_plugin_json_not_at_cursor_path(adapter, graph):
 
     wrong_path = adapter.output_root / "agent-toolkit-core" / ".cursor-plugin" / "plugin.json"
     assert not wrong_path.exists(), (
-        ".cursor-plugin/plugin.json must NOT exist for Codex adapter — "
-        "Codex uses .codex-plugin/"
+        ".cursor-plugin/plugin.json must NOT exist for Codex adapter — Codex uses .codex-plugin/"
     )
 
 
@@ -133,9 +133,7 @@ def test_plugin_json_no_dangerous_settings(adapter, graph):
     """Plugin must not bypass permission prompts or safety mechanisms."""
     for product in graph.products.values():
         adapter.compile(graph, product)
-        manifest_path = (
-            adapter.output_root / product.id / ".codex-plugin" / "plugin.json"
-        )
+        manifest_path = adapter.output_root / product.id / ".codex-plugin" / "plugin.json"
         if manifest_path.exists():
             data = json.loads(manifest_path.read_text())
             assert "skipDangerousModePermissionPrompt" not in data
@@ -148,9 +146,7 @@ def test_plugin_json_no_private_hostnames(adapter, graph):
     """plugin.json must not contain private hostnames or IPs."""
     for product in graph.products.values():
         adapter.compile(graph, product)
-        manifest_path = (
-            adapter.output_root / product.id / ".codex-plugin" / "plugin.json"
-        )
+        manifest_path = adapter.output_root / product.id / ".codex-plugin" / "plugin.json"
         if manifest_path.exists():
             text = manifest_path.read_text()
             assert ".local" not in text, "Private .local hostname in manifest"
@@ -265,37 +261,45 @@ def test_experimental_warning_in_result(adapter, graph):
 
 
 def test_validate_detects_dangerous_settings():
-    errors = CodexAdapter.validate_plugin_json({
-        "name": "test",
-        "skipDangerousModePermissionPrompt": True,
-    })
+    errors = CodexAdapter.validate_plugin_json(
+        {
+            "name": "test",
+            "skipDangerousModePermissionPrompt": True,
+        }
+    )
     assert len(errors) > 0, "Should detect skipDangerousModePermissionPrompt"
 
 
 def test_validate_detects_private_ip():
-    errors = CodexAdapter.validate_plugin_json({
-        "name": "test",
-        "server": "http://192.168.1.100:8080",
-    })
+    errors = CodexAdapter.validate_plugin_json(
+        {
+            "name": "test",
+            "server": "http://192.168.1.100:8080",
+        }
+    )
     assert len(errors) > 0, "Should detect private 192.168.x.x IP"
 
 
 def test_validate_detects_private_hostname():
-    errors = CodexAdapter.validate_plugin_json({
-        "name": "test",
-        "endpoint": "http://colibri.local/v1",
-    })
+    errors = CodexAdapter.validate_plugin_json(
+        {
+            "name": "test",
+            "endpoint": "http://colibri.local/v1",
+        }
+    )
     assert len(errors) > 0, "Should detect private .local hostname"
 
 
 def test_validate_accepts_safe_manifest():
-    errors = CodexAdapter.validate_plugin_json({
-        "name": "agent-toolkit-core",
-        "version": "1.0.0",
-        "description": "Agent Toolkit for Codex",
-        "maturity": "experimental",
-        "license": "MIT",
-    })
+    errors = CodexAdapter.validate_plugin_json(
+        {
+            "name": "agent-toolkit-core",
+            "version": "1.0.0",
+            "description": "Agent Toolkit for Codex",
+            "maturity": "experimental",
+            "license": "MIT",
+        }
+    )
     assert errors == [], f"Safe manifest wrongly rejected: {errors}"
 
 
@@ -352,9 +356,9 @@ def test_maturity_must_remain_experimental_contract():
 # ── all products ──────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("product_id", [
-    "agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"
-])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_all_products_compile(adapter, graph, product_id):
     """All defined products must compile without errors."""
     if product_id not in graph.products:

@@ -1,9 +1,9 @@
 """--json must emit pure JSON on stdout; diff --json preserves change exit codes (#53)."""
+
 from __future__ import annotations
 
 import io
 import json
-import sys
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 

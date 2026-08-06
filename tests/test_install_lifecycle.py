@@ -1,4 +1,5 @@
 """Install lifecycle tests in isolated HOME directories (clean-home)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -8,7 +9,7 @@ import pytest
 from agent_toolkit.cli.install import cmd_install
 from agent_toolkit.cli.uninstall import cmd_uninstall
 from agent_toolkit.installer.receipt import InstallReceipt
-from agent_toolkit.installer.tracking import PRODUCT, receipt_dir
+from agent_toolkit.installer.tracking import PRODUCT
 
 
 @pytest.fixture()

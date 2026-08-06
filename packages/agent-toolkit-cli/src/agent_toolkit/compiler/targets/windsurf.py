@@ -35,6 +35,7 @@ AGENTS.md and rules/ from the project root when the workspace is opened.
 
 Research: docs/research/platform-capability-matrix.md (2026-08-04)
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -47,7 +48,6 @@ from agent_toolkit.compiler.model import (
     Skill,
 )
 from agent_toolkit.compiler.targets.base import TargetAdapter
-
 
 # .mdc frontmatter template for Windsurf behavioral rules.
 # alwaysApply: true means the rule is injected into every session context.
@@ -109,14 +109,16 @@ class WindsurfAdapter(TargetAdapter):
 
         # 4. Explicitly document unsupported / intentionally-not-generated surfaces.
         #    Never silently drop a capability — always report.
-        result.unsupported.extend([
-            "hooks — no official Windsurf extension format for lifecycle hooks",
-            "mcp — no official Windsurf MCP configuration format",
-            "memories — intentionally NOT generated; memories are personal per-user "
-            "state and must not be distributed as a shared project artifact (ADR-002). "
-            "Users manage their own Windsurf memories independently.",
-            "plugin-manifest — Windsurf has no marketplace; no manifest format to target",
-        ])
+        result.unsupported.extend(
+            [
+                "hooks — no official Windsurf extension format for lifecycle hooks",
+                "mcp — no official Windsurf MCP configuration format",
+                "memories — intentionally NOT generated; memories are personal per-user "
+                "state and must not be distributed as a shared project artifact (ADR-002). "
+                "Users manage their own Windsurf memories independently.",
+                "plugin-manifest — Windsurf has no marketplace; no manifest format to target",
+            ]
+        )
 
         return result
 
@@ -160,14 +162,16 @@ class WindsurfAdapter(TargetAdapter):
                     lines.append(f"- **{agent.name}**: {desc}")
             lines.append("")
 
-        lines.extend([
-            "## Scope",
-            "",
-            "These instructions are project-scoped. Rules in `rules/` provide "
-            "always-on behavioral constraints. Skills in `skills/` are on-demand "
-            "procedures invoked explicitly.",
-            "",
-        ])
+        lines.extend(
+            [
+                "## Scope",
+                "",
+                "These instructions are project-scoped. Rules in `rules/` provide "
+                "always-on behavioral constraints. Skills in `skills/` are on-demand "
+                "procedures invoked explicitly.",
+                "",
+            ]
+        )
 
         content = "\n".join(lines)
         self._write_file(out_dir / "AGENTS.md", content, result)

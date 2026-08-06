@@ -10,6 +10,7 @@ Usage:
 
 Aliases: dc
 """
+
 from __future__ import annotations
 
 import os
@@ -17,14 +18,14 @@ import re
 import shutil
 import subprocess
 import sys
+import sys as _sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import sys as _sys
-if _sys.platform == 'win32':
+if _sys.platform == "win32":
     try:
-        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -42,8 +43,8 @@ from agent_toolkit.cli.devcompanion_queue import (
     write_job,
 )
 
-
 # ── workspace detection ───────────────────────────────────────────────────────
+
 
 def _find_workspace() -> Path:
     """Return workspace root: AGENT_TOOLKIT_WORKSPACE / HARNESS_DIR / walk-up / cwd."""
@@ -93,26 +94,51 @@ def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
 
 
-def _blue(t: str) -> str:   return _c("1;34", t)
-def _green(t: str) -> str:  return _c("1;32", t)
-def _yellow(t: str) -> str: return _c("1;33", t)
-def _red(t: str) -> str:    return _c("1;31", t)
-def _cyan(t: str) -> str:   return _c("0;36", t)
+def _blue(t: str) -> str:
+    return _c("1;34", t)
 
 
-def _log(msg: str) -> None:  print(f"{_blue('[devcompanion]')} {msg}")
-def _ok(msg: str) -> None:   print(f"{_green('[devcompanion]')} {msg}")
-def _warn(msg: str) -> None: print(f"{_yellow('[devcompanion]')} {msg}")
-def _err(msg: str) -> None:  print(f"{_red('[devcompanion]')} {msg}", file=sys.stderr)
+def _green(t: str) -> str:
+    return _c("1;32", t)
+
+
+def _yellow(t: str) -> str:
+    return _c("1;33", t)
+
+
+def _red(t: str) -> str:
+    return _c("1;31", t)
+
+
+def _cyan(t: str) -> str:
+    return _c("0;36", t)
+
+
+def _log(msg: str) -> None:
+    print(f"{_blue('[devcompanion]')} {msg}")
+
+
+def _ok(msg: str) -> None:
+    print(f"{_green('[devcompanion]')} {msg}")
+
+
+def _warn(msg: str) -> None:
+    print(f"{_yellow('[devcompanion]')} {msg}")
+
+
+def _err(msg: str) -> None:
+    print(f"{_red('[devcompanion]')} {msg}", file=sys.stderr)
 
 
 # ── time helpers ──────────────────────────────────────────────────────────────
+
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 # ── project resolution ────────────────────────────────────────────────────────
+
 
 def _resolve_project(name: str) -> Path | None:
     """Resolve project name → real repo path via projects/ symlinks."""
@@ -142,13 +168,15 @@ def _list_projects() -> list[tuple[str, Path | None]]:
 
 # ── gh gate (reuse loop runner shim) ─────────────────────────────────────────
 
-_MUTATING_DC_TEMPLATES = frozenset({
-    "create-pr",
-    "fix-ci",
-    "refactor",
-    "implement",
-    "investigate",
-})
+_MUTATING_DC_TEMPLATES = frozenset(
+    {
+        "create-pr",
+        "fix-ci",
+        "refactor",
+        "implement",
+        "investigate",
+    }
+)
 
 
 def _gate_script_path() -> Path:
@@ -187,10 +215,7 @@ def _install_dc_gate(job: dict, out_dir: Path) -> dict[str, str]:
         verifier=verifier,
         gate_script=gate_script,
     )
-    _log(
-        f"Hard gate active: gh shim → tier={tier} "
-        f"allow=[{', '.join(allow) or '∅'}]"
-    )
+    _log(f"Hard gate active: gh shim → tier={tier} allow=[{', '.join(allow) or '∅'}]")
     return env
 
 
@@ -201,9 +226,7 @@ def _runner_env_for_job(job: dict, out_dir: Path) -> dict[str, str]:
         gate_env = _install_dc_gate(job, out_dir)
     except RuntimeError as exc:
         if _job_is_mutating(job):
-            raise RuntimeError(
-                f"mutating devcompanion job requires gh gate: {exc}"
-            ) from exc
+            raise RuntimeError(f"mutating devcompanion job requires gh gate: {exc}") from exc
         _warn(f"gh gate not installed ({exc}); proceeding without gate")
         return base
     merged = base.copy()
@@ -215,6 +238,7 @@ def _runner_env_for_job(job: dict, out_dir: Path) -> dict[str, str]:
 
 # ── template loading ──────────────────────────────────────────────────────────
 
+
 class TemplateNotFoundError(FileNotFoundError):
     """Raised when a job template YAML is missing (#48 / CLI-011)."""
 
@@ -223,9 +247,7 @@ def _load_template(name: str) -> dict:
     templates_dir = _templates_dir()
     tpl_file = templates_dir / f"{name}.yaml"
     if not tpl_file.exists():
-        raise TemplateNotFoundError(
-            f"Template not found: {name}  (looked in {templates_dir}/)"
-        )
+        raise TemplateNotFoundError(f"Template not found: {name}  (looked in {templates_dir}/)")
 
     text = tpl_file.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -250,13 +272,14 @@ def _load_template(name: str) -> dict:
         return ""
 
     return {
-        "name":        _extract("name") or name,
+        "name": _extract("name") or name,
         "description": _extract("description"),
-        "request":     _extract("request"),
+        "request": _extract("request"),
     }
 
 
 # ── todos sync ────────────────────────────────────────────────────────────────
+
 
 def _sync_todos() -> None:
     """Scan done job plans for checklist items and sync to knowledge/todos/pending.md."""
@@ -286,13 +309,16 @@ def _sync_todos() -> None:
             pre = existing[: existing.index(marker)]
             knowledge_todos.write_text(pre + block, encoding="utf-8")
         else:
-            knowledge_todos.write_text((existing.rstrip() + "\n" + block) if existing else block, encoding="utf-8")
+            knowledge_todos.write_text(
+                (existing.rstrip() + "\n" + block) if existing else block, encoding="utf-8"
+            )
         _ok(f"Synced {len(todos)} todo(s) → {knowledge_todos}")
     else:
         _ok("No '- [ ]' items found in run plans.")
 
 
 # ── runners ───────────────────────────────────────────────────────────────────
+
 
 def _import_harness_runner():
     """Try to import the harness workstation runner."""
@@ -306,6 +332,7 @@ def _import_harness_runner():
         sys.path.insert(0, str(runner_dir))
     try:
         import dots_ai_devcompanion_runner as runner_mod
+
         return runner_mod, None
     except ImportError as exc:
         return None, str(exc)
@@ -556,6 +583,7 @@ def _dispatch_run(cfg: DCConfig, job_file: Path, job: dict, out_dir: Path, no_ll
 
 # ── subcommands ───────────────────────────────────────────────────────────────
 
+
 def _safe_parse(parser, argv: list[str]) -> tuple[object | None, int | None]:
     """Parse argv without letting argparse SystemExit bypass cmd return codes (#48)."""
     try:
@@ -570,16 +598,18 @@ def _cmd_queue(argv: list[str]) -> int:
     import argparse
 
     p = argparse.ArgumentParser(prog="agent-toolkit devcompanion queue", add_help=True)
-    p.add_argument("project",    nargs="?", help="Project name (maps to projects/<project>)")
-    p.add_argument("--template", "-t",     help="Job template name from templates/jobs/")
-    p.add_argument("--request",  "-r",     help="Custom request string")
-    p.add_argument("--id",                 help="Custom job ID (default: <project>-<timestamp>)")
+    p.add_argument("project", nargs="?", help="Project name (maps to projects/<project>)")
+    p.add_argument("--template", "-t", help="Job template name from templates/jobs/")
+    p.add_argument("--request", "-r", help="Custom request string")
+    p.add_argument("--id", help="Custom job ID (default: <project>-<timestamp>)")
     args, parse_err = _safe_parse(p, argv)
     if parse_err is not None:
         return parse_err
 
     if not args.project:
-        _err("Usage: agent-toolkit devcompanion queue <project> [--template NAME] [--request \"...\"]")
+        _err(
+            'Usage: agent-toolkit devcompanion queue <project> [--template NAME] [--request "..."]'
+        )
         return 1
 
     project_path = _resolve_project(args.project)
@@ -616,23 +646,23 @@ def _cmd_queue(argv: list[str]) -> int:
 
     if cfg.harness_mode:
         job: dict = {
-            "id":              job_id,
-            "created_at":      _utc_now(),
-            "request":         request,
-            "repo_path":       str(project_path),
-            "llm":             True,
-            "limits":          {"timeout_sec": 1800, "max_steps": 25},
+            "id": job_id,
+            "created_at": _utc_now(),
+            "request": request,
+            "repo_path": str(project_path),
+            "llm": True,
+            "limits": {"timeout_sec": 1800, "max_steps": 25},
             "actions_allowed": ["plan_only"],
         }
     else:
         job = {
-            "id":           job_id,
-            "created_at":   _utc_now(),
-            "project":      args.project,
+            "id": job_id,
+            "created_at": _utc_now(),
+            "project": args.project,
             "project_path": str(project_path),
-            "request":      request,
-            "template":     args.template or "",
-            "status":       "pending",
+            "request": request,
+            "template": args.template or "",
+            "status": "pending",
         }
 
     job_file = queue_job_path(cfg, job_id)
@@ -826,34 +856,34 @@ def _cmd_help(_argv: list[str]) -> int:
     queue_loc = str(cfg.dc_home / "queue") if cfg.harness_mode else str(cfg.queue_dir)
     mode = "harness (.job files)" if cfg.harness_mode else "workspace (.json files)"
     print(f"""
-{_blue('agent-toolkit devcompanion')} — background job queue for AI Workspace
+{_blue("agent-toolkit devcompanion")} — background job queue for AI Workspace
 
-{_cyan('Usage:')}
+{_cyan("Usage:")}
   agent-toolkit devcompanion queue <project> [options]   Queue a job
   agent-toolkit devcompanion run-once [--no-llm]         Run oldest pending job
   agent-toolkit devcompanion status                      Show all jobs
   agent-toolkit devcompanion done <job-id>               Mark a job as done
   agent-toolkit devcompanion sync-todos                  Sync todos from plan.md files
 
-{_cyan('Queue options:')}
+{_cyan("Queue options:")}
   --template NAME    Job template from templates/jobs/ directory
   --request "..."    Custom request string (required if no --template)
   --id ID            Custom job ID (default: <project>-<timestamp>)
 
-{_cyan('Workspace detection:')}
+{_cyan("Workspace detection:")}
   AGENT_TOOLKIT_WORKSPACE env var, or walk up from CWD looking for .devcompanion/
 
-{_cyan('Queue mode:')}
+{_cyan("Queue mode:")}
   {mode}
   HARNESS_DC_HOME or HARNESS_DIR → harness queue under ~/.local/share/agentic-harness/dev-companion
 
-{_cyan('Queue location:')}
+{_cyan("Queue location:")}
   {queue_loc}
 
-{_cyan('Runs location:')}
+{_cyan("Runs location:")}
   {cfg.runs_dir}
 
-{_cyan('Examples:')}
+{_cyan("Examples:")}
   agent-toolkit devcompanion queue my-api --template code-review
   agent-toolkit devcompanion queue my-api --request "add pagination to GET /users"
   agent-toolkit devcompanion run-once
@@ -862,7 +892,7 @@ def _cmd_help(_argv: list[str]) -> int:
   agent-toolkit devcompanion done my-api-20260804-120000
   agent-toolkit devcompanion sync-todos
 
-{_cyan('Alias:')}
+{_cyan("Alias:")}
   agent-toolkit dc <subcommand>
 """)
     return 0
@@ -876,12 +906,12 @@ def cmd_devcompanion(argv: list[str]) -> int:
     rest = argv[1:]
 
     dispatch = {
-        "queue":      _cmd_queue,
-        "run-once":   _cmd_run_once,
-        "status":     _cmd_status,
-        "done":       _cmd_done,
+        "queue": _cmd_queue,
+        "run-once": _cmd_run_once,
+        "status": _cmd_status,
+        "done": _cmd_done,
         "sync-todos": _cmd_sync_todos,
-        "help":       _cmd_help,
+        "help": _cmd_help,
     }
 
     fn = dispatch.get(subcommand)

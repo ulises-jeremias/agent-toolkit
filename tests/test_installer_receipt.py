@@ -1,8 +1,8 @@
 """Tests for installation receipts."""
+
 import json
-from pathlib import Path
-import pytest
-from agent_toolkit.installer.receipt import InstallReceipt, ArtifactEntry
+
+from agent_toolkit.installer.receipt import ArtifactEntry, InstallReceipt
 
 
 def test_receipt_create():

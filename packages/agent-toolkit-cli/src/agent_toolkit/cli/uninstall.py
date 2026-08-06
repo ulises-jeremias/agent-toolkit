@@ -10,6 +10,7 @@ Options:
     --rollback       Alias for uninstall (removes toolkit-owned files from receipt)
     --help           Show this help message
 """
+
 from __future__ import annotations
 
 import sys

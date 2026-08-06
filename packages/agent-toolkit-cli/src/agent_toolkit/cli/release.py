@@ -14,11 +14,11 @@ Options:
 Example:
     agent-toolkit release --dry-run --output dist/
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
-import shutil
 import sys
 import tarfile
 import tempfile
@@ -44,8 +44,12 @@ def cmd_release(args: list[str]) -> int:
     import argparse
 
     parser = argparse.ArgumentParser(prog="agent-toolkit release", add_help=False)
-    parser.add_argument("--dry-run", action="store_true", required=True,
-                        help="Required: prevents accidental publishing")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        required=True,
+        help="Required: prevents accidental publishing",
+    )
     parser.add_argument("--output", default="dist/")
     parser.add_argument("--target", default="all")
     parser.add_argument("--json", dest="json_out", action="store_true")
@@ -66,6 +70,7 @@ def cmd_release(args: list[str]) -> int:
 
     try:
         import yaml  # noqa: F401
+
         from agent_toolkit.compiler.loader import load_graph
     except ImportError as e:
         print(f"  ✗  Compiler unavailable: {e}", file=sys.stderr)
@@ -108,6 +113,7 @@ def cmd_release(args: list[str]) -> int:
         try:
             module_path, cls_name = adapter_path.rsplit(".", 1)
             import importlib
+
             mod = importlib.import_module(module_path)
             AdapterCls = getattr(mod, cls_name)
         except (ImportError, AttributeError):
@@ -133,12 +139,14 @@ def cmd_release(args: list[str]) -> int:
                         tar.add(product_dir, arcname=product.id)
                     digest = _file_digest(tarball)
                     checksums[str(tarball.relative_to(output_dir))] = digest
-                    artifacts_summary.append({
-                        "target": target_id,
-                        "product": product.id,
-                        "artifact": str(tarball),
-                        "digest": digest,
-                    })
+                    artifacts_summary.append(
+                        {
+                            "target": target_id,
+                            "product": product.id,
+                            "artifact": str(tarball),
+                            "digest": digest,
+                        }
+                    )
                     _say(f"  ✓  {target_id}/{product.id} → {tarball.name}")
 
     # Write checksums
@@ -157,14 +165,12 @@ def cmd_release(args: list[str]) -> int:
         "products": list(graph.products.keys()),
         "artifactCount": len(artifacts_summary),
     }
-    (manifests_dir / "release-manifest.json").write_text(
-        json.dumps(manifest, indent=2) + "\n"
-    )
+    (manifests_dir / "release-manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
 
     _say(f"\n  ✓  {len(artifacts_summary)} artifacts generated")
     _say(f"  ✓  Checksums: {checksums_file}")
     _say(f"  ✓  Manifest: {manifests_dir / 'release-manifest.json'}")
-    _say(f"\n  ℹ  Dry run complete — nothing published\n")
+    _say("\n  ℹ  Dry run complete — nothing published\n")
 
     if json_mode:
         print(json.dumps(artifacts_summary, indent=2))

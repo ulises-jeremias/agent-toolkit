@@ -1,4 +1,5 @@
 """CLI parse failures must exit non-zero; --help stays 0."""
+
 from __future__ import annotations
 
 from agent_toolkit.cli import doctor as doctor_mod

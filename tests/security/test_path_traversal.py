@@ -1,5 +1,7 @@
 """Security tests: path traversal prevention in compiler."""
+
 from pathlib import Path
+
 import pytest
 
 pytest.importorskip("yaml")

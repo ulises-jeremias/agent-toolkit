@@ -22,21 +22,22 @@ Options:
     --workspace PATH   Override workspace root
     --help             Show this help message
 """
+
 from __future__ import annotations
 
 import os
 import re
 import sys
+import sys as _sys
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from difflib import SequenceMatcher
 from pathlib import Path
 
-import sys as _sys
-if _sys.platform == 'win32':
+if _sys.platform == "win32":
     try:
-        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -52,16 +53,30 @@ def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
 
 
-def _blue(t: str) -> str:   return _c("1;34", t)
-def _green(t: str) -> str:  return _c("1;32", t)
-def _yellow(t: str) -> str: return _c("1;33", t)
-def _cyan(t: str) -> str:   return _c("0;36", t)
-def _dim(t: str) -> str:    return _c("0;37", t)
+def _blue(t: str) -> str:
+    return _c("1;34", t)
+
+
+def _green(t: str) -> str:
+    return _c("1;32", t)
+
+
+def _yellow(t: str) -> str:
+    return _c("1;33", t)
+
+
+def _cyan(t: str) -> str:
+    return _c("0;36", t)
+
+
+def _dim(t: str) -> str:
+    return _c("0;37", t)
 
 
 # ---------------------------------------------------------------------------
 # Workspace root detection
 # ---------------------------------------------------------------------------
+
 
 def _find_workspace(override: str | None = None) -> Path | None:
     """Locate workspace root via env, override, or walking up from CWD."""
@@ -73,6 +88,7 @@ def _find_workspace(override: str | None = None) -> Path | None:
 # ---------------------------------------------------------------------------
 # File helpers
 # ---------------------------------------------------------------------------
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8") if path.exists() else ""
@@ -111,6 +127,7 @@ def _prepend_table_row(path: Path, header_row: str, new_row: str) -> None:
 # Subcommands
 # ---------------------------------------------------------------------------
 
+
 def cmd_add(args: list[str], knowledge: Path) -> int:
     """Add a new entry to the knowledge base."""
     type_ = ""
@@ -120,18 +137,21 @@ def cmd_add(args: list[str], knowledge: Path) -> int:
     while i < len(args):
         match args[i]:
             case "--type" if i + 1 < len(args):
-                type_ = args[i + 1]; i += 2
+                type_ = args[i + 1]
+                i += 2
             case "--title" if i + 1 < len(args):
-                title = args[i + 1]; i += 2
+                title = args[i + 1]
+                i += 2
             case "--help" | "-h":
-                print("Usage: agent-toolkit memory add --type <type> [--title TITLE] \"content\"")
+                print('Usage: agent-toolkit memory add --type <type> [--title TITLE] "content"')
                 print("Types: learning, process, todo")
                 return 0
             case _:
-                content = args[i]; i += 1
+                content = args[i]
+                i += 1
 
     if not type_ or not content:
-        print("Usage: agent-toolkit memory add --type <type> \"content\"", file=sys.stderr)
+        print('Usage: agent-toolkit memory add --type <type> "content"', file=sys.stderr)
         print("Types: learning, process, todo", file=sys.stderr)
         return 1
 
@@ -141,7 +161,10 @@ def cmd_add(args: list[str], knowledge: Path) -> int:
         case "learning":
             path = knowledge / "learnings" / "general.md"
             if not path.exists():
-                _write(path, "# General Learnings\n\n| Date | Learning | Context |\n|------|----------|---------|")
+                _write(
+                    path,
+                    "# General Learnings\n\n| Date | Learning | Context |\n|------|----------|---------|",
+                )
             row = f"| {today} | {content} | Session |"
             _prepend_table_row(path, "| Date | Learning | Context |", row)
             print(_green(f"Added learning to {path.relative_to(knowledge.parent)}"))
@@ -179,14 +202,15 @@ def cmd_search(args: list[str], knowledge: Path) -> int:
     while i < len(args):
         match args[i]:
             case "--help" | "-h":
-                print("Usage: agent-toolkit memory search \"query\"")
+                print('Usage: agent-toolkit memory search "query"')
                 return 0
             case _:
-                query_parts.append(args[i]); i += 1
+                query_parts.append(args[i])
+                i += 1
 
     query = " ".join(query_parts)
     if not query:
-        print("Usage: agent-toolkit memory search \"query\"", file=sys.stderr)
+        print('Usage: agent-toolkit memory search "query"', file=sys.stderr)
         return 1
 
     query_lower = query.lower()
@@ -202,8 +226,7 @@ def cmd_search(args: list[str], knowledge: Path) -> int:
         content = _read(md_file)
         lines = content.splitlines()
         matched: list[tuple[int, str]] = [
-            (i + 1, line) for i, line in enumerate(lines)
-            if query_lower in line.lower()
+            (i + 1, line) for i, line in enumerate(lines) if query_lower in line.lower()
         ]
         if not matched:
             continue
@@ -220,7 +243,7 @@ def cmd_search(args: list[str], knowledge: Path) -> int:
             ctx_start = max(0, lineno - 2)
             ctx_end = min(len(lines), lineno + 1)
             for ci in range(ctx_start, ctx_end):
-                prefix = _dim(f"  {ci + 1}:") + " "
+                _dim(f"  {ci + 1}:") + " "
                 text = lines[ci].strip()
                 if ci == lineno - 1:
                     # Highlight the matching line
@@ -253,7 +276,7 @@ def cmd_inject(args: list[str], knowledge: Path) -> int:
     todos_path = knowledge / "todos" / "pending.md"
     if todos_path.exists():
         content = todos_path.read_text(encoding="utf-8")
-        unchecked = [l for l in content.splitlines() if l.startswith("- [ ]")]
+        unchecked = [line for line in content.splitlines() if line.startswith("- [ ]")]
         if unchecked:
             print("### Pending Todos\n")
             for item in unchecked[:15]:
@@ -265,7 +288,7 @@ def cmd_inject(args: list[str], knowledge: Path) -> int:
     learnings_path = knowledge / "learnings" / "general.md"
     if learnings_path.exists():
         content = learnings_path.read_text(encoding="utf-8")
-        rows = [l for l in content.splitlines() if re.match(r"^\| \d{4}", l)]
+        rows = [line for line in content.splitlines() if re.match(r"^\| \d{4}", line)]
         if rows:
             print("### Recent Learnings\n")
             print("| Date | Learning | Context |")
@@ -279,8 +302,7 @@ def cmd_inject(args: list[str], knowledge: Path) -> int:
     procs_dir = knowledge / "processes"
     if procs_dir.is_dir():
         proc_files = sorted(
-            p.stem for p in procs_dir.iterdir()
-            if p.is_file() and p.suffix == ".md"
+            p.stem for p in procs_dir.iterdir() if p.is_file() and p.suffix == ".md"
         )
         if proc_files:
             print("### Known Processes\n")
@@ -404,7 +426,9 @@ def _resolve_ref(ref: str, workspace: Path) -> Path:
     return (workspace / ref).resolve()
 
 
-def _find_duplicates(entries: list[KnowledgeEntry], *, threshold: float = 0.8) -> list[tuple[KnowledgeEntry, KnowledgeEntry, float]]:
+def _find_duplicates(
+    entries: list[KnowledgeEntry], *, threshold: float = 0.8
+) -> list[tuple[KnowledgeEntry, KnowledgeEntry, float]]:
     dupes: list[tuple[KnowledgeEntry, KnowledgeEntry, float]] = []
     for i, left in enumerate(entries):
         for right in entries[i + 1 :]:
@@ -416,7 +440,9 @@ def _find_duplicates(entries: list[KnowledgeEntry], *, threshold: float = 0.8) -
     return dupes
 
 
-def _find_contradictions(entries: list[KnowledgeEntry]) -> list[tuple[KnowledgeEntry, KnowledgeEntry, str]]:
+def _find_contradictions(
+    entries: list[KnowledgeEntry],
+) -> list[tuple[KnowledgeEntry, KnowledgeEntry, str]]:
     """Detect 'use X' vs 'don't use X' pairs across the knowledge base."""
     use_map: dict[str, list[KnowledgeEntry]] = {}
     avoid_map: dict[str, list[KnowledgeEntry]] = {}
@@ -541,9 +567,7 @@ def cmd_review(args: list[str], knowledge: Path) -> int:
             issue_count += 1
             rel_l = left.path.name
             rel_r = right.path.name
-            print(
-                f"  • {ratio:.0%}  {rel_l}:{left.line_no} ↔ {rel_r}:{right.line_no}"
-            )
+            print(f"  • {ratio:.0%}  {rel_l}:{left.line_no} ↔ {rel_r}:{right.line_no}")
             print(_dim(f"      A: {left.text[:100]}"))
             print(_dim(f"      B: {right.text[:100]}"))
             if fix:
@@ -568,7 +592,9 @@ def cmd_review(args: list[str], knowledge: Path) -> int:
             issue_count += 1
             print(f"  • subject `{key}`")
             print(_dim(f"      use:     {user.path.name}:{user.line_no} — {user.text[:100]}"))
-            print(_dim(f"      avoid:   {avoider.path.name}:{avoider.line_no} — {avoider.text[:100]}"))
+            print(
+                _dim(f"      avoid:   {avoider.path.name}:{avoider.line_no} — {avoider.text[:100]}")
+            )
             if fix:
                 print(
                     _yellow(
@@ -637,8 +663,8 @@ def cmd_todo(args: list[str], knowledge: Path) -> int:
     content = path.read_text(encoding="utf-8")
     lines = content.splitlines()
 
-    unchecked = [l for l in lines if l.startswith("- [ ]")]
-    done = [l for l in lines if l.startswith("- [x]") or l.startswith("- [X]")]
+    unchecked = [line for line in lines if line.startswith("- [ ]")]
+    done = [line for line in lines if line.startswith("- [x]") or line.startswith("- [X]")]
 
     if not unchecked and not done:
         print(_dim("(no todos found)"))
@@ -665,6 +691,7 @@ def cmd_todo(args: list[str], knowledge: Path) -> int:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def cmd_memory(args: list[str]) -> int:
     """Router for memory subcommands."""
     # Extract --workspace before routing
@@ -686,7 +713,9 @@ def cmd_memory(args: list[str]) -> int:
     ws = _find_workspace(workspace_path)
     if ws is None:
         print("Error: workspace not found.", file=sys.stderr)
-        print("Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr)
+        print(
+            "Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr
+        )
         return 1
 
     knowledge = ws / "knowledge"

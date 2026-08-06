@@ -1,4 +1,5 @@
 """Installation receipt management — records what was installed and where."""
+
 from __future__ import annotations
 
 import json
@@ -33,19 +34,30 @@ class InstallReceipt:
     @classmethod
     def create(cls, product, target, scope, version, source_digest):
         return cls(
-            schema_version=1, product=product, target=target, scope=scope,
-            version=version, installed_at=datetime.now(timezone.utc).isoformat(),
+            schema_version=1,
+            product=product,
+            target=target,
+            scope=scope,
+            version=version,
+            installed_at=datetime.now(timezone.utc).isoformat(),
             source_digest=source_digest,
         )
 
     def to_dict(self):
         return {
-            "schemaVersion": self.schema_version, "product": self.product,
-            "target": self.target, "scope": self.scope, "version": self.version,
-            "installedAt": self.installed_at, "sourceDigest": self.source_digest,
-            "artifacts": [{"path": a.path, "digest": a.digest, "ownership": a.ownership}
-                         for a in self.artifacts],
-            "configPatches": self.config_patches, "secrets": [],
+            "schemaVersion": self.schema_version,
+            "product": self.product,
+            "target": self.target,
+            "scope": self.scope,
+            "version": self.version,
+            "installedAt": self.installed_at,
+            "sourceDigest": self.source_digest,
+            "artifacts": [
+                {"path": a.path, "digest": a.digest, "ownership": a.ownership}
+                for a in self.artifacts
+            ],
+            "configPatches": self.config_patches,
+            "secrets": [],
         }
 
     def save(self, receipt_dir=None):
@@ -62,10 +74,15 @@ class InstallReceipt:
         if not p.exists():
             return None
         data = json.loads(p.read_text())
-        r = cls(schema_version=data.get("schemaVersion", 1), product=data["product"],
-                target=data["target"], scope=data.get("scope", "project"),
-                version=data["version"], installed_at=data.get("installedAt", ""),
-                source_digest=data.get("sourceDigest", ""))
+        r = cls(
+            schema_version=data.get("schemaVersion", 1),
+            product=data["product"],
+            target=data["target"],
+            scope=data.get("scope", "project"),
+            version=data["version"],
+            installed_at=data.get("installedAt", ""),
+            source_digest=data.get("sourceDigest", ""),
+        )
         for a in data.get("artifacts", []):
             r.artifacts.append(ArtifactEntry(a["path"], a["digest"], a["ownership"]))
         r.config_patches = list(data.get("configPatches", []))

@@ -1,4 +1,5 @@
 """Tests for Claude → abstract tool mapping (#70)."""
+
 from __future__ import annotations
 
 from pathlib import Path

@@ -1,4 +1,5 @@
 """Emit hooks and MCP configurations from canonical registries into target formats."""
+
 from __future__ import annotations
 
 import json
@@ -42,11 +43,7 @@ def resolve_hook_ids(
         return [hid for hid in product_hooks if hid in registry]
     if not emit_registries:
         return []
-    return [
-        hook.id
-        for hook in registry.values()
-        if hook.is_supported_for(target_id)
-    ]
+    return [hook.id for hook in registry.values() if hook.is_supported_for(target_id)]
 
 
 def resolve_mcp_ids(
@@ -62,11 +59,7 @@ def resolve_mcp_ids(
         return [pid for pid in product_mcp if pid in registry]
     if not emit_registries:
         return []
-    return [
-        provider.id
-        for provider in registry.values()
-        if provider.is_supported_for(target_id)
-    ]
+    return [provider.id for provider in registry.values() if provider.is_supported_for(target_id)]
 
 
 def hook_script_basename(command: list[str]) -> str | None:
@@ -125,11 +118,7 @@ def emit_claude_hooks_json(
         event_name = _CLAUDE_HOOK_EVENTS.get(hook.event, hook.event)
         if hook.handler_type != "command" or not hook.command:
             continue
-        command = (
-            rewrite_hook_command_for_bundle(hook.command)
-            if bundle_relative
-            else hook.command
-        )
+        command = rewrite_hook_command_for_bundle(hook.command) if bundle_relative else hook.command
         entry = {
             "type": "command",
             "command": " ".join(command),

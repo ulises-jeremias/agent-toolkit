@@ -26,6 +26,7 @@ Usage (normally via shim):
   loop-gh-gate --classify pr merge 123 --repo owner/repo
   loop-gh-gate --check-receipt merge --repo owner/repo --number 123
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -39,20 +40,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 # Actions that mutate GitHub state and must be gated.
-MUTATING_ACTIONS = frozenset({
-    "merge",
-    "close",
-    "comment",
-    "label",
-    "assign",
-    "approve",
-    "push",
-    "commit",
-    "force-push",
-    "delete",
-})
+MUTATING_ACTIONS = frozenset(
+    {
+        "merge",
+        "close",
+        "comment",
+        "label",
+        "assign",
+        "approve",
+        "push",
+        "commit",
+        "force-push",
+        "delete",
+    }
+)
 
 # Merge/close always need a verifier receipt at L2+ (and are denied at L1).
 RECEIPT_REQUIRED = frozenset({"merge", "close"})
@@ -70,7 +72,9 @@ def _split_csv(value: str | None) -> list[str]:
 def gate_config_from_env() -> dict[str, Any]:
     return {
         "real_gh": os.environ.get("LOOP_GATE_REAL_GH", ""),
-        "run_dir": Path(os.environ["LOOP_GATE_RUN_DIR"]) if os.environ.get("LOOP_GATE_RUN_DIR") else None,
+        "run_dir": Path(os.environ["LOOP_GATE_RUN_DIR"])
+        if os.environ.get("LOOP_GATE_RUN_DIR")
+        else None,
         "tier": (os.environ.get("LOOP_GATE_TIER") or "L1").upper(),
         "allowlist": _split_csv(os.environ.get("LOOP_GATE_ALLOWLIST")),
         "deny": _split_csv(os.environ.get("LOOP_GATE_DENY")),
@@ -80,10 +84,22 @@ def gate_config_from_env() -> dict[str, Any]:
     }
 
 
-_SENSITIVE_FLAGS = frozenset({
-    "-H", "--header", "-b", "--body", "--body-file", "-F", "-f",
-    "--raw-field", "--field", "--input", "-i", "--jq",
-})
+_SENSITIVE_FLAGS = frozenset(
+    {
+        "-H",
+        "--header",
+        "-b",
+        "--body",
+        "--body-file",
+        "-F",
+        "-f",
+        "--raw-field",
+        "--field",
+        "--input",
+        "-i",
+        "--jq",
+    }
+)
 
 
 def redact_argv(argv: list[str]) -> list[str]:
@@ -295,7 +311,15 @@ def tier_forbids(tier: str, action: str) -> str | None:
     t = tier.upper()
     if t.startswith("L1") or t == "1":
         return f"L1 report-only forbids '{action}'"
-    if (t.startswith("L2") or t == "2") and action in ("merge", "close", "approve", "push", "commit", "force-push", "delete"):
+    if (t.startswith("L2") or t == "2") and action in (
+        "merge",
+        "close",
+        "approve",
+        "push",
+        "commit",
+        "force-push",
+        "delete",
+    ):
         return f"L2 assisted forbids '{action}' (allow comment/label/assign only)"
     return None
 
@@ -435,7 +459,7 @@ def require_receipt(
     if action not in RECEIPT_REQUIRED:
         return True, "receipt not required"
     if repo is None or number is None:
-        return False, f"merge/close require --repo and PR/issue number for receipt binding"
+        return False, "merge/close require --repo and PR/issue number for receipt binding"
     receipt = find_verifier_receipt(
         run_dir,
         action,
@@ -543,6 +567,7 @@ def install_gh_shim(
 
 def shutil_which_gh() -> str | None:
     import shutil
+
     # Prefer a real gh that is NOT our shim (avoid recursion if already gated).
     path = os.environ.get("PATH", "")
     for directory in path.split(os.pathsep):
@@ -609,14 +634,19 @@ def main(argv: list[str] | None = None) -> int:
         if run_dir:
             audit = Path(run_dir) / "gate-allow.jsonl"
             with audit.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps({
-                    "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    "kind": "allowed",
-                    "action": action,
-                    "reason": reason,
-                    "argv": redact_argv(gh_args),
-                    "meta": {k: v for k, v in meta.items() if k != "raw"},
-                }) + "\n")
+                fh.write(
+                    json.dumps(
+                        {
+                            "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                            "kind": "allowed",
+                            "action": action,
+                            "reason": reason,
+                            "argv": redact_argv(gh_args),
+                            "meta": {k: v for k, v in meta.items() if k != "raw"},
+                        }
+                    )
+                    + "\n"
+                )
 
     result = subprocess.run([real, *gh_args])
     return int(result.returncode)

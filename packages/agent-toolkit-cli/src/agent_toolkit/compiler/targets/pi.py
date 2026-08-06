@@ -32,6 +32,7 @@ Unsupported by this static adapter:
 Research: docs/research/platform-capability-matrix.md (2026-08-04)
 Official registry: https://pi.dev/registry (npm-compatible)
 """
+
 from __future__ import annotations
 
 import json
@@ -46,11 +47,10 @@ from agent_toolkit.compiler.model import (
 )
 from agent_toolkit.compiler.targets.base import TargetAdapter
 
-
 # Fields that must never appear in a publicly distributed pi-package.json.
 # Private LAN URLs committed to public packages are a DEFECT-002 class bug.
 _FORBIDDEN_PI_FIELDS = {
-    "private",      # marks private packages — companion packs should be public
+    "private",  # marks private packages — companion packs should be public
 }
 
 _PRIVATE_HOSTNAME_PATTERNS = (".local", "192.168.", "10.", "172.16.")
@@ -107,13 +107,15 @@ class PiAdapter(TargetAdapter):
 
         # 4. Explicitly document what requires the TypeScript ExtensionAPI
         #    Never silently drop a capability — always report.
-        result.unsupported.extend([
-            "lifecycle hooks — requires TypeScript ExtensionAPI (packages/pi-package/)",
-            "custom tools — requires TypeScript ExtensionAPI with tool registration",
-            "MCP server config — no static format; requires TypeScript runtime",
-            "session state — runtime only; not expressible in static assets",
-            "plugin marketplace install — Pi uses npm/pi.dev registry, not a marketplace",
-        ])
+        result.unsupported.extend(
+            [
+                "lifecycle hooks — requires TypeScript ExtensionAPI (packages/pi-package/)",
+                "custom tools — requires TypeScript ExtensionAPI with tool registration",
+                "MCP server config — no static format; requires TypeScript runtime",
+                "session state — runtime only; not expressible in static assets",
+                "plugin marketplace install — Pi uses npm/pi.dev registry, not a marketplace",
+            ]
+        )
 
         return result
 
@@ -137,6 +139,7 @@ class PiAdapter(TargetAdapter):
         """
         try:
             from agent_toolkit import __version__
+
             version = __version__
         except ImportError:
             version = "1.0.0"

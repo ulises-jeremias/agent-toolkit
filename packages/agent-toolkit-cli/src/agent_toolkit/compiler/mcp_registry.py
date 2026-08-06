@@ -4,6 +4,7 @@ Canonical MCP provider registry loader.
 Loads provider metadata from mcp/registry/*.yaml and provides
 a registry for the compiler to use when rendering MCP configurations.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -14,6 +15,7 @@ from typing import Any
 @dataclass
 class McpProvider:
     """Canonical MCP provider definition."""
+
     id: str
     display_name: str
     purpose: str

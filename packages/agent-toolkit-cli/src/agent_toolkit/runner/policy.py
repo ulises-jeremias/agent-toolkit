@@ -97,7 +97,9 @@ class LLMPolicy:
         pinned = _normalize_name(env.get("DOTS_WORKSTATION_DEVCOMPANION_LLM_PINNED_PROVIDER"))
         pinned_model_raw = env.get("DOTS_WORKSTATION_DEVCOMPANION_LLM_PINNED_MODEL")
         pinned_model = (
-            pinned_model_raw.strip() if isinstance(pinned_model_raw, str) and pinned_model_raw.strip() else None
+            pinned_model_raw.strip()
+            if isinstance(pinned_model_raw, str) and pinned_model_raw.strip()
+            else None
         )
         strict = _truthy(env.get("DOTS_WORKSTATION_DEVCOMPANION_LLM_STRICT"))
 
@@ -238,7 +240,9 @@ class LLMPolicy:
                     ordered.append(provider)
             return ordered
 
-        sorted_providers = sorted(by_name.values(), key=lambda p: getattr(p, "get_priority", lambda: 100)())
+        sorted_providers = sorted(
+            by_name.values(), key=lambda p: getattr(p, "get_priority", lambda: 100)()
+        )
         return [p for p in sorted_providers if _provider_name(p) not in denied]
 
     # ── audit ──────────────────────────────────────────────────────────────
@@ -301,9 +305,7 @@ def merge_policies(
         # Keep overlay order, but only entries also in base.
         merged_allow = tuple(name for name in overlay.allowlist if name in base.allowlist)
         if not merged_allow:
-            raise PolicyError(
-                "job allowlist is empty after intersecting with global allowlist"
-            )
+            raise PolicyError("job allowlist is empty after intersecting with global allowlist")
 
     # Denylist (always additive)
     merged_deny = tuple(sorted(set(base.denylist) | set(overlay.denylist)))
@@ -324,11 +326,20 @@ def merge_policies(
 
     # Strict can only escalate (False -> True). A job cannot lower a globally-strict policy.
     merged_strict = base.strict or overlay.strict
-    if _validate_restriction and base.strict and overlay.strict is False and "job" in overlay.sources:
+    if (
+        _validate_restriction
+        and base.strict
+        and overlay.strict is False
+        and "job" in overlay.sources
+    ):
         # Job explicitly set strict=false but base is strict: warn, keep True.
-        warnings = list(base.warnings) + list(overlay.warnings) + [
-            "job tried to set strict=false while global policy is strict; keeping strict=true",
-        ]
+        warnings = (
+            list(base.warnings)
+            + list(overlay.warnings)
+            + [
+                "job tried to set strict=false while global policy is strict; keeping strict=true",
+            ]
+        )
     else:
         warnings = list(base.warnings) + list(overlay.warnings)
 

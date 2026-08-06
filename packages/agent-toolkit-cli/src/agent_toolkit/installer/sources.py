@@ -1,4 +1,5 @@
 """Resolve install source paths — prefer compiler-generated plugins/ over hand profiles/."""
+
 from __future__ import annotations
 
 import os
@@ -82,11 +83,7 @@ def agent_install_sources(
     if not profile_agents.is_dir():
         return {}
 
-    return {
-        path.stem: path
-        for path in sorted(profile_agents.glob("*.md"))
-        if path.is_file()
-    }
+    return {path.stem: path for path in sorted(profile_agents.glob("*.md")) if path.is_file()}
 
 
 def profile_file(tool: str, *parts: str, data_root: Path | None = None) -> Path:

@@ -1,4 +1,5 @@
 """Tests for canonical hook registry — fail CI on incomplete or unloadable hooks."""
+
 from __future__ import annotations
 
 import re
@@ -9,7 +10,7 @@ import pytest
 
 yaml = pytest.importorskip("yaml")
 
-from agent_toolkit.compiler.hook_registry import (
+from agent_toolkit.compiler.hook_registry import (  # noqa: E402
     HookDefinition,
     generate_parity_document,
     load_hooks,
@@ -53,7 +54,11 @@ def _load_hook_yaml(path: Path) -> dict[str, Any]:
 
 def _validate_hook_schema(data: dict[str, Any], path: Path) -> None:
     """Validate hook dict against schemas/hook.schema.yaml required fields and enums."""
-    missing = [field for field in ("id", "event", "handler", "blocking", "failure_policy", "security") if field not in data]
+    missing = [
+        field
+        for field in ("id", "event", "handler", "blocking", "failure_policy", "security")
+        if field not in data
+    ]
     if missing:
         raise ValueError(f"{path.name}: missing required field(s): {', '.join(missing)}")
 
@@ -72,7 +77,11 @@ def _validate_hook_schema(data: dict[str, Any], path: Path) -> None:
 
     if handler_type == "command":
         command = handler.get("command")
-        if not command or not isinstance(command, list) or not all(isinstance(c, str) for c in command):
+        if (
+            not command
+            or not isinstance(command, list)
+            or not all(isinstance(c, str) for c in command)
+        ):
             raise ValueError(f"{path.name}: command handler requires non-empty command: list[str]")
 
     timeout_ms = handler.get("timeout_ms", 5000)

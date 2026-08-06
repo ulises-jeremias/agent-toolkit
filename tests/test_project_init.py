@@ -1,4 +1,5 @@
 """Tests for agent-toolkit project init (#208)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -75,6 +76,8 @@ def test_project_init_unknown_subcommand(tmp_path: Path, monkeypatch: pytest.Mon
     assert cmd_project(["nope"]) == 1
 
 
-def test_project_init_rejects_unexpected_args(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_project_init_rejects_unexpected_args(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("AGENT_TOOLKIT_WORKSPACE", str(tmp_path))
     assert cmd_init(["--workspace"], tmp_path) == 1

@@ -9,6 +9,7 @@ Every generated plugin bundle gets a .provenance.json sidecar that records:
 This enables drift detection: agent-toolkit plugin check compares
 artifact digests against provenance to catch manual edits.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -20,15 +21,17 @@ from pathlib import Path
 @dataclass
 class ArtifactRecord:
     """Provenance record for a single generated file."""
-    path: str               # relative path from plugin root
-    source_file: str        # canonical source (e.g. skills/core/assistant/SKILL.md)
-    source_digest: str      # SHA256[:12] of source content
-    generated_digest: str   # SHA256[:12] of generated content
+
+    path: str  # relative path from plugin root
+    source_file: str  # canonical source (e.g. skills/core/assistant/SKILL.md)
+    source_digest: str  # SHA256[:12] of source content
+    generated_digest: str  # SHA256[:12] of generated content
 
 
 @dataclass
 class ProvenanceManifest:
     """Provenance manifest for a complete plugin bundle."""
+
     generator_version: str
     product: str
     target: str
@@ -70,6 +73,7 @@ def write_provenance(
     """Write .provenance.json to the plugin bundle root."""
     try:
         from agent_toolkit import __version__
+
         version = __version__
     except ImportError:
         version = "unknown"

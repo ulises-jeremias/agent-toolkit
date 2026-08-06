@@ -1,9 +1,8 @@
 """Plugin check verifies .provenance.json digest drift when present."""
+
 from __future__ import annotations
 
 from pathlib import Path
-
-import pytest
 
 from agent_toolkit.cli.plugin import _run_gen_surfaces
 from agent_toolkit.compiler.provenance import (

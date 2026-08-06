@@ -1,4 +1,5 @@
 """Tests for loop init / template resolution / workspace loops (#200/#201/#202/#207)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -65,7 +66,9 @@ def test_loop_init_custom_name_and_user_template(
     assert "tier: L2" in text
 
 
-def test_resolve_loop_dir_prefers_workspace(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resolve_loop_dir_prefers_workspace(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("AGENT_TOOLKIT_WORKSPACE", str(tmp_path))
     user = tmp_path / "loops" / "oss-pr-monitor"
     user.mkdir(parents=True)

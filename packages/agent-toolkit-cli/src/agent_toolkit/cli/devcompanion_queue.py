@@ -6,6 +6,7 @@ Legacy (workspace-local):
 Harness-compatible:
     $HARNESS_DC_HOME/queue/{pending,processing,done,failed}/<job-id>.job
 """
+
 from __future__ import annotations
 
 import json

@@ -1,4 +1,5 @@
 """Contract tests for Pi, Windsurf, and Codex adapters."""
+
 from __future__ import annotations
 
 import json
@@ -9,9 +10,9 @@ import pytest
 pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.loader import load_graph
+from agent_toolkit.compiler.targets.codex import CodexAdapter
 from agent_toolkit.compiler.targets.pi import PiAdapter
 from agent_toolkit.compiler.targets.windsurf import WindsurfAdapter
-from agent_toolkit.compiler.targets.codex import CodexAdapter
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 
@@ -22,6 +23,7 @@ def graph():
 
 
 # ── Pi ────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def pi_adapter(tmp_path):
@@ -85,6 +87,7 @@ def test_pi_check_mode_no_files(pi_adapter, graph, tmp_path):
 
 # ── Windsurf ──────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def windsurf_adapter(tmp_path):
     return WindsurfAdapter(tmp_path / "plugins", REPO_ROOT)
@@ -145,6 +148,7 @@ def test_windsurf_check_mode_no_files(windsurf_adapter, graph, tmp_path):
 
 # ── Codex ─────────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def codex_adapter(tmp_path):
     return CodexAdapter(tmp_path / "plugins", REPO_ROOT)
@@ -153,7 +157,7 @@ def codex_adapter(tmp_path):
 def test_codex_manifest_in_codex_plugin_dir(codex_adapter, graph):
     """.codex-plugin/plugin.json — different path from .claude-plugin/."""
     product = graph.products["agent-toolkit-core"]
-    result = codex_adapter.compile(graph, product)
+    codex_adapter.compile(graph, product)
     manifest = codex_adapter.output_root / "agent-toolkit-core" / ".codex-plugin" / "plugin.json"
     assert manifest.exists(), ".codex-plugin/plugin.json not found"
 
@@ -196,14 +200,17 @@ def test_codex_check_mode_no_files(codex_adapter, graph, tmp_path):
 # ── All products for all new targets ─────────────────────────────────────────
 
 
-@pytest.mark.parametrize("target_cls,product_id", [
-    (PiAdapter, "agent-toolkit-core"),
-    (PiAdapter, "agent-toolkit-agents"),
-    (WindsurfAdapter, "agent-toolkit-core"),
-    (WindsurfAdapter, "agent-toolkit-forge"),
-    (CodexAdapter, "agent-toolkit-core"),
-    (CodexAdapter, "agent-toolkit-agents"),
-])
+@pytest.mark.parametrize(
+    "target_cls,product_id",
+    [
+        (PiAdapter, "agent-toolkit-core"),
+        (PiAdapter, "agent-toolkit-agents"),
+        (WindsurfAdapter, "agent-toolkit-core"),
+        (WindsurfAdapter, "agent-toolkit-forge"),
+        (CodexAdapter, "agent-toolkit-core"),
+        (CodexAdapter, "agent-toolkit-agents"),
+    ],
+)
 def test_all_adapters_all_products_compile(graph, tmp_path, target_cls, product_id):
     if product_id not in graph.products:
         pytest.skip(f"Product {product_id} not defined")

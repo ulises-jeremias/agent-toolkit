@@ -1,4 +1,5 @@
 """Shared toolkit path resolution — works in both editable and wheel installs."""
+
 from __future__ import annotations
 
 import os

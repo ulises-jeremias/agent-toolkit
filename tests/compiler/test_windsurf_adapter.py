@@ -18,6 +18,7 @@ Verifies:
 - check mode leaves filesystem unchanged
 - No absolute paths in generated output
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -325,9 +326,9 @@ def test_parity_notes_documented():
 # ── all products ──────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("product_id", [
-    "agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"
-])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_all_products_compile(adapter, graph, product_id):
     """All defined products must compile without errors."""
     if product_id not in graph.products:

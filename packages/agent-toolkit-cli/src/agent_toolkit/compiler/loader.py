@@ -1,10 +1,10 @@
 """
 Loads canonical sources (SKILL.md, AGENT.md, products.yaml) into the CanonicalGraph IR.
 """
+
 from __future__ import annotations
 
 import re
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -14,8 +14,6 @@ from agent_toolkit.compiler.model import (
     CanonicalGraph,
     ModelClass,
     Product,
-    Provenance,
-    Requirement,
     SecurityPolicy,
     Skill,
     Stability,
@@ -29,6 +27,7 @@ from agent_toolkit.compiler.tool_mapping import (
 
 try:
     import yaml
+
     _YAML = True
 except ImportError:
     _YAML = False
@@ -105,10 +104,11 @@ def load_skills(skills_root: Path) -> tuple[dict[str, Skill], list[str]]:
                 fm_text = fm_match.group(1)
                 block = re.search(
                     r"^description:[ \t]*[|>][\-+]?[ \t]*\n((?:[ \t]+.+\n?)+)",
-                    fm_text, re.MULTILINE
+                    fm_text,
+                    re.MULTILINE,
                 )
                 if block:
-                    lines = [l.strip() for l in block.group(1).splitlines() if l.strip()]
+                    lines = [line.strip() for line in block.group(1).splitlines() if line.strip()]
                     raw_desc = " ".join(lines)
         description = str(raw_desc).strip()[:120]
 
@@ -117,7 +117,9 @@ def load_skills(skills_root: Path) -> tuple[dict[str, Skill], list[str]]:
             name=skill_name,
             domain=domain,
             description=str(description).strip()[:120],
-            stability=Stability(fm.get("stability", "stable")) if fm.get("stability") in ("stable", "experimental", "deprecated") else Stability.STABLE,
+            stability=Stability(fm.get("stability", "stable"))
+            if fm.get("stability") in ("stable", "experimental", "deprecated")
+            else Stability.STABLE,
             source_path=skill_md,
             tags=fm.get("tags", []) if isinstance(fm.get("tags"), list) else [],
             compatibility=str(fm.get("compatibility", "")),
@@ -169,24 +171,18 @@ def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
         if fm.get("allowed_tools") is not None:
             allowed_tools, invalid_allowed = parse_abstract_tool_list(fm.get("allowed_tools"))
             if invalid_allowed:
-                errors.append(
-                    f"{agent_md}: invalid allowed_tools: {', '.join(invalid_allowed)}"
-                )
+                errors.append(f"{agent_md}: invalid allowed_tools: {', '.join(invalid_allowed)}")
                 continue
         else:
             claude_names = parse_claude_tool_names(fm.get("tools"))
             allowed_tools, unknown_tools = map_claude_tools(claude_names)
             if unknown_tools:
-                errors.append(
-                    f"{agent_md}: unknown Claude tool(s): {', '.join(unknown_tools)}"
-                )
+                errors.append(f"{agent_md}: unknown Claude tool(s): {', '.join(unknown_tools)}")
                 continue
 
         denied_tools, invalid_denied = parse_abstract_tool_list(fm.get("denied_tools"))
         if invalid_denied:
-            errors.append(
-                f"{agent_md}: invalid denied_tools: {', '.join(invalid_denied)}"
-            )
+            errors.append(f"{agent_md}: invalid denied_tools: {', '.join(invalid_denied)}")
             continue
 
         delegates_to = _parse_string_list(fm.get("delegates_to"))
@@ -199,7 +195,11 @@ def load_agents(agents_root: Path) -> tuple[dict[str, Agent], list[str]]:
         background_eligible = _parse_bool(fm.get("background_eligible"))
 
         mc_str = fm.get("model_class", "inherit")
-        mc = ModelClass(mc_str) if mc_str in ("fast", "balanced", "deep", "inherit") else ModelClass.INHERIT
+        mc = (
+            ModelClass(mc_str)
+            if mc_str in ("fast", "balanced", "deep", "inherit")
+            else ModelClass.INHERIT
+        )
 
         agents[agent_name] = Agent(
             id=agent_name,
@@ -237,9 +237,7 @@ def validate_agent_contracts(graph: CanonicalGraph) -> None:
                     f"Agent '{agent_id}' delegates_to unknown agent '{delegate_id}'"
                 )
             elif delegate_id == agent_id:
-                graph.errors.append(
-                    f"Agent '{agent_id}' cannot delegate_to itself"
-                )
+                graph.errors.append(f"Agent '{agent_id}' cannot delegate_to itself")
 
 
 def load_products(products_yaml: Path) -> tuple[dict[str, Product], list[str]]:
@@ -273,7 +271,9 @@ def load_products(products_yaml: Path) -> tuple[dict[str, Product], list[str]]:
             id=pid,
             name=p.get("name", pid),
             description=p.get("description", ""),
-            stability=Stability(p.get("stability", "stable")) if p.get("stability") in ("stable", "experimental", "deprecated") else Stability.STABLE,
+            stability=Stability(p.get("stability", "stable"))
+            if p.get("stability") in ("stable", "experimental", "deprecated")
+            else Stability.STABLE,
             included_skills=inc.get("skills", []),
             included_agents=inc.get("agents", []),
             included_hooks=inc.get("hooks", []),

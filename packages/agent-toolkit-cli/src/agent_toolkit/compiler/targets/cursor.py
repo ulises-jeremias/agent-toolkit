@@ -19,10 +19,10 @@ Key differences from Claude Code:
 Official docs: https://cursor.com/docs/plugins
 Research: docs/research/platform-capability-matrix.md (2026-08-04)
 """
+
 from __future__ import annotations
 
 import json
-import shutil
 from pathlib import Path
 
 from agent_toolkit.compiler.model import (
@@ -33,7 +33,6 @@ from agent_toolkit.compiler.model import (
     Skill,
 )
 from agent_toolkit.compiler.targets.base import TargetAdapter
-
 
 # Cursor supports these .mdc rule frontmatter fields.
 # We generate rules only from skill/agent behavioral constraints —
@@ -97,11 +96,13 @@ class CursorAdapter(TargetAdapter):
 
         # 4. Explicitly document unsupported/pending capabilities
         #    (never silently drop — always report)
-        result.unsupported.extend([
-            "hooks (pending canonical hook model — Cursor uses workspaceOpen/sessionStart events)",
-            "mcp (.cursor/mcp.json — user configures manually; not bundled in plugin)",
-            "cursor-rules (.mdc) — generated as a separate profile surface, not in plugin bundle",
-        ])
+        result.unsupported.extend(
+            [
+                "hooks (pending canonical hook model — Cursor uses workspaceOpen/sessionStart events)",
+                "mcp (.cursor/mcp.json — user configures manually; not bundled in plugin)",
+                "cursor-rules (.mdc) — generated as a separate profile surface, not in plugin bundle",
+            ]
+        )
 
         return result
 
@@ -115,6 +116,7 @@ class CursorAdapter(TargetAdapter):
         """
         try:
             from agent_toolkit import __version__
+
             version = __version__
         except ImportError:
             version = "1.0.0"

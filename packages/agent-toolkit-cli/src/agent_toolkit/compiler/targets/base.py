@@ -1,4 +1,5 @@
 """Abstract base for target adapters."""
+
 from __future__ import annotations
 
 import tempfile
@@ -154,9 +155,7 @@ class TargetAdapter(ABC):
             try:
                 resolved.relative_to(root_resolved)
             except ValueError:
-                result.errors.append(
-                    f"{prefix}reference escapes containment root {root}: {path}"
-                )
+                result.errors.append(f"{prefix}reference escapes containment root {root}: {path}")
                 continue
             safe.append(path)
 

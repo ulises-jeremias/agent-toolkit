@@ -1,4 +1,5 @@
 """doctor --fix must propagate install return codes (CLI-005 residual)."""
+
 from __future__ import annotations
 
 from agent_toolkit.cli import doctor as doctor_mod
@@ -9,15 +10,21 @@ def _stub_minimal_ok(monkeypatch):
     ok = doctor_mod.CheckResult("system", "python", doctor_mod.CheckResult.STATUS_OK, "ok")
     monkeypatch.setattr(doctor_mod, "_check_python_version", lambda: ok)
     monkeypatch.setattr(
-        doctor_mod, "_check_command", lambda *a, **k: doctor_mod.CheckResult(a[0], a[1], doctor_mod.CheckResult.STATUS_OK, "ok")
+        doctor_mod,
+        "_check_command",
+        lambda *a, **k: doctor_mod.CheckResult(a[0], a[1], doctor_mod.CheckResult.STATUS_OK, "ok"),
     )
     monkeypatch.setattr(
-        doctor_mod, "_check_gh_auth",
+        doctor_mod,
+        "_check_gh_auth",
         lambda: doctor_mod.CheckResult("system", "gh auth", doctor_mod.CheckResult.STATUS_OK, "ok"),
     )
     monkeypatch.setattr(
-        doctor_mod, "_check_ai_tool",
-        lambda *a, **k: doctor_mod.CheckResult("ai_tools", a[0], doctor_mod.CheckResult.STATUS_OK, "ok"),
+        doctor_mod,
+        "_check_ai_tool",
+        lambda *a, **k: doctor_mod.CheckResult(
+            "ai_tools", a[0], doctor_mod.CheckResult.STATUS_OK, "ok"
+        ),
     )
     monkeypatch.setattr(doctor_mod, "_check_loop_runtime", lambda *_a, **_k: [])
     monkeypatch.setattr(doctor_mod, "_check_llm_providers", lambda: [])

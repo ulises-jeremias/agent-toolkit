@@ -1,4 +1,5 @@
 """Tests for GitHub Copilot CLI loop runner (#224)."""
+
 from __future__ import annotations
 
 import subprocess
@@ -9,7 +10,9 @@ from agent_toolkit.loop import runner
 
 
 def test_resolve_copilot_cli_bin(monkeypatch):
-    monkeypatch.setattr(runner.shutil, "which", lambda n: "/usr/bin/copilot" if n == "copilot" else None)
+    monkeypatch.setattr(
+        runner.shutil, "which", lambda n: "/usr/bin/copilot" if n == "copilot" else None
+    )
     assert runner._resolve_copilot_cli_bin() == "/usr/bin/copilot"
 
 

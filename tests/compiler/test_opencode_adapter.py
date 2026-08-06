@@ -12,6 +12,7 @@ Verifies:
 - check mode leaves filesystem unchanged
 - No absolute machine paths in generated output
 """
+
 from __future__ import annotations
 
 import json
@@ -22,7 +23,7 @@ import pytest
 pytest.importorskip("yaml")
 
 from agent_toolkit.compiler.loader import load_graph
-from agent_toolkit.compiler.targets.opencode import OpenCodeAdapter, _OPENCODE_JSON_TEMPLATE
+from agent_toolkit.compiler.targets.opencode import _OPENCODE_JSON_TEMPLATE, OpenCodeAdapter
 
 REPO_ROOT = Path(__file__).parent.parent.parent
 
@@ -181,24 +182,24 @@ def test_check_mode_no_files_written(adapter, graph, tmp_path):
 
 
 def test_validate_detects_provider_field():
-    errors = OpenCodeAdapter.validate_opencode_json({
-        "provider": {"my-provider": {"baseURL": "http://colibri.local/v1"}}
-    })
+    errors = OpenCodeAdapter.validate_opencode_json(
+        {"provider": {"my-provider": {"baseURL": "http://colibri.local/v1"}}}
+    )
     assert len(errors) > 0, "Should detect 'provider' field with private URL"
 
 
 def test_validate_detects_private_ip():
-    errors = OpenCodeAdapter.validate_opencode_json({
-        "server": "http://192.168.1.100:8080"
-    })
+    errors = OpenCodeAdapter.validate_opencode_json({"server": "http://192.168.1.100:8080"})
     assert len(errors) > 0, "Should detect private 192.168.x.x IP"
 
 
 def test_validate_accepts_safe_config():
-    errors = OpenCodeAdapter.validate_opencode_json({
-        "$schema": "https://opencode.ai/config.schema.json",
-        "model": "anthropic/claude-sonnet-4-5",
-    })
+    errors = OpenCodeAdapter.validate_opencode_json(
+        {
+            "$schema": "https://opencode.ai/config.schema.json",
+            "model": "anthropic/claude-sonnet-4-5",
+        }
+    )
     assert errors == [], f"Safe config wrongly rejected: {errors}"
 
 
@@ -223,9 +224,9 @@ def test_typescript_plugin_status_documented():
 # ── all products ──────────────────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("product_id", [
-    "agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"
-])
+@pytest.mark.parametrize(
+    "product_id", ["agent-toolkit-core", "agent-toolkit-agents", "agent-toolkit-forge"]
+)
 def test_all_products_compile(adapter, graph, product_id):
     if product_id not in graph.products:
         pytest.skip(f"Product {product_id} not defined")

@@ -1,4 +1,5 @@
 """Validate distributions/products.yaml against schemas/products.schema.yaml."""
+
 from __future__ import annotations
 
 import copy
@@ -10,7 +11,7 @@ import pytest
 yaml = pytest.importorskip("yaml")
 jsonschema = pytest.importorskip("jsonschema")
 
-from jsonschema import ValidationError, validate
+from jsonschema import ValidationError, validate  # noqa: E402
 
 REPO_ROOT = Path(__file__).parent.parent
 PRODUCTS_PATH = REPO_ROOT / "distributions" / "products.yaml"

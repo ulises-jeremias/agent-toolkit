@@ -1,4 +1,5 @@
 """Install source resolution prefers compiler-generated plugins/ artifacts."""
+
 from __future__ import annotations
 
 from pathlib import Path

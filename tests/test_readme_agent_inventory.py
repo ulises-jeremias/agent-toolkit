@@ -1,4 +1,5 @@
 """README agent persona table must match agents/ directories."""
+
 from __future__ import annotations
 
 import re

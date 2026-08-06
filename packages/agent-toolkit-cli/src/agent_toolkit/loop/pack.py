@@ -1,4 +1,5 @@
 """Pack YAML loading and loop override application for `loop run --pack`."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -40,7 +41,9 @@ def loop_pack_entry(pack_data: dict[str, Any], loop_name: str) -> dict[str, Any]
     return entry if isinstance(entry, dict) else {}
 
 
-def apply_loop_pack_overrides(meta: dict[str, Any], pack_data: dict[str, Any], loop_name: str) -> dict[str, Any]:
+def apply_loop_pack_overrides(
+    meta: dict[str, Any], pack_data: dict[str, Any], loop_name: str
+) -> dict[str, Any]:
     """Merge pack loop settings (enabled, cadence, budget, tier, …) into loop meta."""
     entry = loop_pack_entry(pack_data, loop_name)
     if not entry:

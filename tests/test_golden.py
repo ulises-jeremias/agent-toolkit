@@ -3,6 +3,7 @@
 Compiles a small representative fixture set into every implemented target
 and verifies the output is deterministic (same input → same output every run).
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -13,7 +14,7 @@ import pytest
 
 pytest.importorskip("yaml")
 
-from agent_toolkit.compiler.model import CanonicalGraph, Skill, Agent, Product, Stability
+from agent_toolkit.compiler.model import Agent, CanonicalGraph, Product, Skill, Stability
 from agent_toolkit.compiler.targets.claude_code import ClaudeCodeAdapter
 from agent_toolkit.compiler.targets.codex import CodexAdapter
 from agent_toolkit.compiler.targets.copilot import CopilotCLIAdapter, CopilotRepositoryAdapter

@@ -20,21 +20,21 @@ Subcommands:
 Options:
     --help    Show this help message
 """
+
 from __future__ import annotations
 
-import json
 import os
 import re
 import subprocess
 import sys
+import sys as _sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import sys as _sys
-if _sys.platform == 'win32':
+if _sys.platform == "win32":
     try:
-        _sys.stdout.reconfigure(encoding='utf-8', errors='replace')
-        _sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+        _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     except Exception:
         pass
 
@@ -50,16 +50,30 @@ def _c(code: str, text: str) -> str:
     return f"\033[{code}m{text}\033[0m" if _USE_COLOR else text
 
 
-def _blue(t: str) -> str:   return _c("1;34", t)
-def _green(t: str) -> str:  return _c("1;32", t)
-def _yellow(t: str) -> str: return _c("1;33", t)
-def _cyan(t: str) -> str:   return _c("0;36", t)
-def _dim(t: str) -> str:    return _c("0;37", t)
+def _blue(t: str) -> str:
+    return _c("1;34", t)
+
+
+def _green(t: str) -> str:
+    return _c("1;32", t)
+
+
+def _yellow(t: str) -> str:
+    return _c("1;33", t)
+
+
+def _cyan(t: str) -> str:
+    return _c("0;36", t)
+
+
+def _dim(t: str) -> str:
+    return _c("0;37", t)
 
 
 # ---------------------------------------------------------------------------
 # Workspace root detection
 # ---------------------------------------------------------------------------
+
 
 def _find_workspace(override: str | None = None) -> Path | None:
     """Locate workspace root via env, override, or walking up from CWD."""
@@ -71,6 +85,7 @@ def _find_workspace(override: str | None = None) -> Path | None:
 # ---------------------------------------------------------------------------
 # File helpers
 # ---------------------------------------------------------------------------
+
 
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -85,7 +100,9 @@ def _require_workspace(override: str | None = None) -> Path | None:
     ws = _find_workspace(override)
     if ws is None:
         print("Error: workspace not found.", file=sys.stderr)
-        print("Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr)
+        print(
+            "Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr
+        )
     return ws
 
 
@@ -96,12 +113,13 @@ def _parse_frontmatter_text(content: str) -> dict:
     lines = content.splitlines()
     if not lines or lines[0].strip() != "---":
         return {}
-    end = next((i for i, l in enumerate(lines[1:], 1) if l.strip() == "---"), None)
+    end = next((i for i, line in enumerate(lines[1:], 1) if line.strip() == "---"), None)
     if end is None:
         return {}
     yaml_block = "\n".join(lines[1:end])
     try:
         import yaml  # type: ignore
+
         loaded = yaml.safe_load(yaml_block)
         return loaded if isinstance(loaded, dict) else {}
     except ImportError:
@@ -115,6 +133,7 @@ def _parse_yaml_file(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
     try:
         import yaml  # type: ignore
+
         loaded = yaml.safe_load(text)
         return loaded if isinstance(loaded, dict) else {}
     except ImportError:
@@ -455,6 +474,7 @@ projects/
 # Subcommands
 # ---------------------------------------------------------------------------
 
+
 def cmd_init(args: list[str]) -> int:
     """Scaffold a new harness workspace."""
     target_dir = Path.cwd()
@@ -519,10 +539,10 @@ def cmd_init(args: list[str]) -> int:
     for rel in created:
         print(f"  {_green('++')}  {rel}")
     print()
-    print(f"Next steps:")
+    print("Next steps:")
     print(f"  cd {target_dir}")
-    print(f"  agent-toolkit workspace context")
-    print(f"  agent-toolkit project clone owner/my-repo")
+    print("  agent-toolkit workspace context")
+    print("  agent-toolkit project clone owner/my-repo")
     print()
     return 0
 
@@ -546,14 +566,16 @@ def cmd_context(args: list[str]) -> int:
     ws = _find_workspace(workspace_path)
     if ws is None:
         print("Error: workspace not found.", file=sys.stderr)
-        print("Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr)
+        print(
+            "Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr
+        )
         return 1
 
     now = datetime.now(timezone.utc)
     knowledge = ws / "knowledge"
     projects_dir = ws / "projects"
     loops_dir = ws / "loops"
-    packs_dir = ws / "packs"
+    ws / "packs"
 
     print()
     print(_blue("=== AI Workspace — Session Context ==="))
@@ -566,7 +588,9 @@ def cmd_context(args: list[str]) -> int:
     try:
         result = subprocess.run(
             ["git", "-C", str(ws), "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if result.returncode == 0:
             print(f"Branch    : {result.stdout.strip()}")
@@ -595,7 +619,7 @@ def cmd_context(args: list[str]) -> int:
     todos_path = knowledge / "todos" / "pending.md"
     if todos_path.exists():
         content = todos_path.read_text(encoding="utf-8")
-        unchecked = [l for l in content.splitlines() if l.startswith("- [ ]")]
+        unchecked = [line for line in content.splitlines() if line.startswith("- [ ]")]
         if unchecked:
             for item in unchecked[:10]:
                 print(f"  {item}")
@@ -612,7 +636,7 @@ def cmd_context(args: list[str]) -> int:
     learnings_path = knowledge / "learnings" / "general.md"
     if learnings_path.exists():
         content = learnings_path.read_text(encoding="utf-8")
-        rows = [l for l in content.splitlines() if re.match(r"^\| \d{4}", l)]
+        rows = [line for line in content.splitlines() if re.match(r"^\| \d{4}", line)]
         if rows:
             for row in rows[:3]:
                 print(f"  {row}")
@@ -672,6 +696,7 @@ def cmd_context(args: list[str]) -> int:
     agents_md = ws / "AGENTS.md"
     if agents_md.exists():
         import hashlib
+
         spec_hash = hashlib.sha256(agents_md.read_bytes()).hexdigest()[:12]
         print(f"Spec      : AGENTS.md@{spec_hash}")
         print()
@@ -700,7 +725,9 @@ def cmd_sync(args: list[str]) -> int:
     ws = _find_workspace(workspace_path)
     if ws is None:
         print("Error: workspace not found.", file=sys.stderr)
-        print("Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr)
+        print(
+            "Set AGENT_TOOLKIT_WORKSPACE or run from inside a workspace directory.", file=sys.stderr
+        )
         return 1
 
     loops_dir = ws / "loops"
@@ -724,7 +751,10 @@ def cmd_sync(args: list[str]) -> int:
                 continue
             content = report.read_text(encoding="utf-8")
             for line in content.splitlines():
-                if any(marker in line.lower() for marker in ["escalat", "action required", "todo:", "follow-up:"]):
+                if any(
+                    marker in line.lower()
+                    for marker in ["escalat", "action required", "todo:", "follow-up:"]
+                ):
                     # Extract the meaningful part
                     clean = line.strip().lstrip("#").lstrip("-").lstrip(">").strip()
                     if len(clean) < 10:
@@ -824,7 +854,10 @@ def cmd_handoff(args: list[str]) -> int:
 
     active_file = ws / ".active-persona"
     if not active_file.exists():
-        print("No active persona to handoff from. Use 'workspace use-persona <name>' first.", file=sys.stderr)
+        print(
+            "No active persona to handoff from. Use 'workspace use-persona <name>' first.",
+            file=sys.stderr,
+        )
         return 1
 
     from_persona = active_file.read_text(encoding="utf-8").strip()
@@ -980,9 +1013,7 @@ def _load_pack(ws: Path, pack_arg: str) -> int:
         packs_dir = ws / "packs"
         if packs_dir.is_dir():
             available = sorted(
-                str(p.relative_to(ws))
-                for p in packs_dir.rglob("*.yaml")
-                if p.is_file()
+                str(p.relative_to(ws)) for p in packs_dir.rglob("*.yaml") if p.is_file()
             )
             if available:
                 print("\nAvailable packs:", file=sys.stderr)
@@ -1030,7 +1061,9 @@ def _load_profile(ws: Path, profile_name: str) -> int:
             print(f"  (persona '{persona}' not found — skipped)", file=sys.stderr)
         else:
             active_file = ws / ".active-persona"
-            from_persona = active_file.read_text(encoding="utf-8").strip() if active_file.exists() else ""
+            from_persona = (
+                active_file.read_text(encoding="utf-8").strip() if active_file.exists() else ""
+            )
             ts = _utc_timestamp()
             if from_persona and from_persona != persona:
                 _append_persona_history(ws, f"{ts} profile: {from_persona} → {persona}")
@@ -1240,7 +1273,10 @@ def cmd_validate(args: list[str]) -> int:
 
     if surface != "all" and surface not in _SURFACES:
         print(f"Unknown surface: {surface}", file=sys.stderr)
-        print("Valid surfaces: all, packs, loops, personas, profiles, knowledge, jobs", file=sys.stderr)
+        print(
+            "Valid surfaces: all, packs, loops, personas, profiles, knowledge, jobs",
+            file=sys.stderr,
+        )
         return 1
 
     print()
@@ -1271,6 +1307,7 @@ def cmd_validate(args: list[str]) -> int:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
 
 def cmd_workspace(args: list[str]) -> int:
     """Router for workspace subcommands."""

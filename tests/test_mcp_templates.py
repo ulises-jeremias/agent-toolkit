@@ -1,4 +1,5 @@
 """Validate MCP templates align with registry packages (no invented binaries)."""
+
 from __future__ import annotations
 
 import json

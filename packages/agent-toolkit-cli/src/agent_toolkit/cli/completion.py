@@ -11,23 +11,50 @@ Install:
     agent-toolkit completion zsh  >> ~/.zshrc
     agent-toolkit completion fish >> ~/.config/fish/completions/agent-toolkit.fish
 """
+
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 from agent_toolkit._paths import toolkit_root
 
 TOP_LEVEL_COMMANDS = (
-    "install", "doctor", "diff", "build", "inventory", "matrix",
-    "loop", "workspace", "memory", "project", "devcompanion", "dc",
-    "insights", "skills", "mcp", "plugin", "release", "update",
-    "completion", "help", "version",
+    "install",
+    "doctor",
+    "diff",
+    "build",
+    "inventory",
+    "matrix",
+    "loop",
+    "workspace",
+    "memory",
+    "project",
+    "devcompanion",
+    "dc",
+    "insights",
+    "skills",
+    "mcp",
+    "plugin",
+    "release",
+    "update",
+    "completion",
+    "help",
+    "version",
 )
 
 INSTALL_TOOLS = ("claude-code", "cursor", "opencode", "copilot", "windsurf", "pi")
 
-LOOP_SUBCOMMANDS = ("init", "run", "status", "audit", "cost", "schedule", "sync", "templates", "help")
+LOOP_SUBCOMMANDS = (
+    "init",
+    "run",
+    "status",
+    "audit",
+    "cost",
+    "schedule",
+    "sync",
+    "templates",
+    "help",
+)
 
 MCP_SUBCOMMANDS = ("list", "setup", "doctor", "help")
 
@@ -47,7 +74,8 @@ def _loop_names() -> list[str]:
     if not loops_dir.is_dir():
         return []
     return sorted(
-        d.name for d in loops_dir.iterdir()
+        d.name
+        for d in loops_dir.iterdir()
         if d.is_dir() and ((d / "LOOP.md").exists() or (d / "loop.yaml").exists())
     )
 
@@ -140,12 +168,12 @@ def completion_zsh() -> str:
 
 _agent_toolkit() {{
     local -a commands install_tools loop_cmds loop_names mcp_cmds mcp_providers
-    commands=({' '.join(TOP_LEVEL_COMMANDS)})
-    install_tools=({' '.join(INSTALL_TOOLS)})
-    loop_cmds=({' '.join(LOOP_SUBCOMMANDS)})
-    loop_names=({' '.join(loops)})
-    mcp_cmds=({' '.join(MCP_SUBCOMMANDS)})
-    mcp_providers=({' '.join(mcps)})
+    commands=({" ".join(TOP_LEVEL_COMMANDS)})
+    install_tools=({" ".join(INSTALL_TOOLS)})
+    loop_cmds=({" ".join(LOOP_SUBCOMMANDS)})
+    loop_names=({" ".join(loops)})
+    mcp_cmds=({" ".join(MCP_SUBCOMMANDS)})
+    mcp_providers=({" ".join(mcps)})
 
     _arguments -C \\
         '1:command:->command' \\
@@ -213,15 +241,17 @@ def completion_fish() -> str:
             f"complete -c agent-toolkit -n '__fish_seen_subcommand_from install update; "
             f"and __fish_seen_argument --tools' -a '{tool}'"
         )
-    lines.extend([
-        "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l tools -d 'Tools to install'",
-        "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l dry-run",
-        "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l force",
-        "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l offline",
-        "complete -c agent-toolkit -n '__fish_seen_subcommand_from update' -l tools -d 'Tools to update'",
-        "complete -c agent-toolkit -n '__fish_seen_subcommand_from update' -l check",
-        "complete -c agent-toolkit -n '__fish_seen_subcommand_from update' -l pin -d 'Release version'",
-    ])
+    lines.extend(
+        [
+            "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l tools -d 'Tools to install'",
+            "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l dry-run",
+            "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l force",
+            "complete -c agent-toolkit -n '__fish_seen_subcommand_from install' -l offline",
+            "complete -c agent-toolkit -n '__fish_seen_subcommand_from update' -l tools -d 'Tools to update'",
+            "complete -c agent-toolkit -n '__fish_seen_subcommand_from update' -l check",
+            "complete -c agent-toolkit -n '__fish_seen_subcommand_from update' -l pin -d 'Release version'",
+        ]
+    )
     lines.append(
         f"complete -c agent-toolkit -n '__fish_seen_subcommand_from loop' -a '{' '.join(LOOP_SUBCOMMANDS)}'"
     )
