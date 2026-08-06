@@ -72,6 +72,36 @@ Release binaries are platform-suffixed to avoid upload collisions (see #256):
 
 Darwin x86_64 is intentionally deferred (documented skip). Release notes / this doc mention naming.
 
+## Downstream publish verification (notify success ≠ publish success)
+
+`notify-homebrew` / `notify-aur` only confirm that a `repository_dispatch` reached the downstream repo (see `.github/workflows/notify-*.yml`). A green `Notify` run does **not** guarantee the Homebrew formula or AUR PKGBUILD was actually published.
+
+After tagging, verify downstream **workflow conclusion**, not just dispatch:
+
+```bash
+# Homebrew tap: last 3 runs should be success; a failure means formula did not update
+gh run list --repo ulises-jeremias/homebrew-tap --limit 3
+gh run view <run-id> --repo ulises-jeremias/homebrew-tap --log | grep -i "error\|fail" || echo "no errors"
+
+# AUR packages: same check, but distinguish maintenance vs real failure
+gh run list --repo ulises-jeremias/aur-packages --limit 3
+# AUR maintenance windows return exit 0 with message "AUR is in maintenance"; check logs:
+gh run view <run-id> --repo ulises-jeremias/aur-packages --log | grep -i "maintenance" && echo "maintenance — retry later" || echo "real failure"
+```
+
+Failure visibility on the releasing repo:
+
+* The `Release` workflow itself does not fail on downstream errors — check the two downstream repos' **Actions → workflow runs** as above.
+* If downstream is red, re-dispatch per playbook (see below) and re-check; do not close the release as done until both downstream runs are green or explicitly deferred for maintenance.
+* For AUR, a maintenance failure is expected — document it in the release comment and retry when AUR leaves maintenance; do not auto-open issues on every window.
+
 ## AUR retry playbook
 
 See `docs/AUR_PLAYBOOK.md` for re-dispatch when AUR leaves maintenance.
+
+Re-dispatch example:
+
+```bash
+gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit' -f 'client_payload[version]=v1.3.0'
+gh api repos/ulises-jeremias/homebrew-tap/dispatches -f event_type=new-release -f 'client_payload[formula_name]=agent-toolkit' -f 'client_payload[version]=1.3.0'
+```
