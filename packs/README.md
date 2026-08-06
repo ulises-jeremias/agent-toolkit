@@ -1,5 +1,7 @@
 # Solution Packs
 
+> **Docs-only** — packs are not loaded by the compiler (`agent-toolkit build`). They are workflow templates that reference skills/loops. For plugin composition, edit `distributions/products.yaml` (see `docs/adrs/ADR-006-packs-docs-only.md`).
+
 Solution packs bundle related skills, agent personas, loop templates, and MCP configurations
 into outcome-oriented workflows for common team setups.
 
