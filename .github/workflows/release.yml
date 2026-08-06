@@ -126,7 +126,7 @@ jobs:
           --add-data "mcp:mcp"
           --add-data "catalogs:catalogs"
           packages/agent-toolkit-cli/src/agent_toolkit/cli/main.py
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: dist/agent-toolkit*
@@ -177,7 +177,7 @@ jobs:
           output-file: sbom.cyclonedx.json
           upload-release-assets: false
       - name: Upload SBOM artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom.cyclonedx.json
