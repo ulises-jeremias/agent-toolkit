@@ -101,6 +101,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # darwin-x86_64 intentionally deferred — x86_64 Intel Macs are legacy;
+        # arm64 covers Apple Silicon. Revisit if demand justifies a second macOS runner (see #256).
         include:
           - {os: ubuntu-latest, artifact: agent-toolkit-linux-x86_64}
           - {os: macos-latest, artifact: agent-toolkit-macos-arm64}

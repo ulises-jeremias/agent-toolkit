@@ -1,0 +1,77 @@
+# Releasing agent-toolkit
+
+Runbook for cutting a versioned release.
+
+## Bump → validate → tag → watch → verify
+
+```bash
+# 1. Bump all version sources atomically
+python3 scripts/bump-version.py 1.3.0
+git diff --stat  # VERSION, packages/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
+
+# 2. Validate (CI parity)
+uv sync --all-extras
+AGENT_TOOLKIT_ROOT="$PWD" uv run pytest tests/ -v
+python3 scripts/validate-skills.py
+python3 scripts/validate-agents.py
+python3 scripts/generate-catalogs.py
+python3 scripts/gen-surfaces.py --check
+
+# 3. Commit + tag
+git add -A && git commit -m "chore(release): bump to v1.3.0"
+git tag -a v1.3.0 -m "v1.3.0"
+git push origin main --follow-tags
+
+# 4. Watch Release + downstream
+gh run list --repo ulises-jeremias/agent-toolkit --limit 5  # Release v1.3.0 should be completed success
+gh release view v1.3.0 --repo ulises-jeremias/agent-toolkit
+# Homebrew/AUR notifies run after Release create-release; check their repos
+gh run list --repo ulises-jeremias/homebrew-tap --limit 3
+gh run list --repo ulises-jeremias/aur-packages --limit 3
+
+# 5. Verify PyPI / AUR / formula
+curl -sS https://pypi.org/pypi/agent-toolkit-cli/json | python3 -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://pypi.org/pypi/agent-toolkit-cli/json'))['info']['version'])"
+curl -sS 'https://aur.archlinux.org/rpc/v5/info?arg[]=agent-toolkit' | python3 -m json.tool  # resultcount 0 until published
+# Homebrew formula version matches tag
+```
+
+## Bump script
+
+`scripts/bump-version.py` updates atomically:
+
+* `VERSION`
+* `packages/agent-toolkit-cli/src/agent_toolkit/__init__.py` (`__version__`)
+* `package.json` (`version`)
+* `.claude-plugin/marketplace.json` (`metadata.version` + `plugins[].version`)
+* `.cursor-plugin/marketplace.json` (same)
+* Plugin manifests `plugins/*/plugin.json` if present
+
+Usage:
+
+```bash
+python3 scripts/bump-version.py --check 1.3.0  # dry-run, exits 1 if would change
+python3 scripts/bump-version.py 1.3.0         # writes files
+```
+
+## Rollback / republish
+
+* **PyPI:** Trusted Publishing only via `release.yml` on tag `v*`. Manual republish: workflow `Publish (manual)` (`.github/workflows/publish.yml`) with `TestPyPI`/`PyPI` env.
+* **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete v1.3.0 --yes && git tag -d v1.3.0 && git push origin :v1.3.0`.
+* **Homebrew/AUR:** downstream repos are notified via `repository_dispatch` from `release.yml` `create-release`. If they missed, replay per `docs/AUR_PLAYBOOK.md`:
+  ```bash
+  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit' -f 'client_payload[version]=v1.3.0'
+  ```
+
+## Asset naming
+
+Release binaries are platform-suffixed to avoid upload collisions (see #256):
+
+* `agent-toolkit-linux-x86_64`
+* `agent-toolkit-macos-arm64`
+* `agent-toolkit-windows-x86_64.exe`
+
+Darwin x86_64 is intentionally deferred (documented skip). Release notes / this doc mention naming.
+
+## AUR retry playbook
+
+See `docs/AUR_PLAYBOOK.md` for re-dispatch when AUR leaves maintenance.
