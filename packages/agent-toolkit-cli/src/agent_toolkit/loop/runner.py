@@ -2573,7 +2573,9 @@ def cmd_list(args: list[str]) -> int:
         meta = parse_loop_md(loop_dir) if (loop_dir / "LOOP.md").exists() else {}
         tier = meta.get("tier", "?") if isinstance(meta, dict) else "?"
         cadence = meta.get("cadence", "?") if isinstance(meta, dict) else "?"
-        print(f"  {loop_dir.name:<30} {dim(f'source={source}'):<18} tier={tier} cadence={cadence}  {dim(str(rel.parent))}")
+        print(
+            f"  {loop_dir.name:<30} {dim(f'source={source}'):<18} tier={tier} cadence={cadence}  {dim(str(rel.parent))}"
+        )
     print("")
     return 0
 
