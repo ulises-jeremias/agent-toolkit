@@ -27,6 +27,7 @@ ADVANCED_COMMANDS: tuple[str, ...] = (
     "inventory",
     "matrix",
     "release",
+    "swarm",
 )
 
 _CONSUMER_HELP = """\
@@ -56,6 +57,7 @@ Advanced commands (workstation / power-user — docs/CLI_SURFACES.md):
     inventory     List all canonical skills, agents, and products
     matrix        Show platform capability matrix
     release       Generate release artifacts (maintainer)
+    swarm         Multi-agent swarm orchestration (pair/team/full, Herdr/tmux)
 
 Run 'agent-toolkit <command> --help' for details.
 """
@@ -150,6 +152,10 @@ def main() -> None:
             from agent_toolkit.cli.insights import cmd_insights
 
             sys.exit(cmd_insights(rest))
+        case "swarm":
+            from agent_toolkit.swarm.cli import main as swarm_main
+
+            sys.exit(swarm_main(rest))
         case _:
             print(f"Unknown command: {command}", file=sys.stderr)
             print("Run 'agent-toolkit help' for usage.", file=sys.stderr)
