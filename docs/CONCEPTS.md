@@ -10,7 +10,7 @@ One mental model for how agent-toolkit pieces fit together.
 | **Products** | `distributions/products.yaml` | Named bundles of skills/agents/hooks/MCP for plugins | Shipping a marketplace plugin |
 | **Compiler output** | `plugins/` | Target-native manifests + copied SKILL.md/AGENT.md | **Generated** — do not hand-edit; validated by `build --check` (ADR-003/004) |
 | **Profiles** | `profiles/` | Legacy hand-copied install layouts per tool | **Deprecated** — fallback only; prefer `plugins/` via `installer/sources.py` (ADR-004) |
-| **Packs** | `packs/` | Solution-oriented README + config | Team workflow templates, not plugin composition |
+| **Packs** | `packs/` | Solution-oriented README + config | **Docs-only** workflow templates; not loaded by compiler (ADR-006) |
 | **Presets** | *(planned)* | Named capability sets for `agent-toolkit.yaml` projects | Future — not implemented yet |
 
 ## Key rules
@@ -18,7 +18,7 @@ One mental model for how agent-toolkit pieces fit together.
 1. **Products compose capabilities** — edit `distributions/products.yaml`, then `build`.
 2. **Plugins are compiler output** — Claude `.claude-plugin/`, Cursor `.cursor-plugin/`, etc.
 3. **Profiles are install shortcuts** — being replaced by build + copy for parity with plugins.
-4. **Packs are documentation bundles** — they reference loops/skills but are not loaded by the compiler today.
+4. **Packs are **docs-only** bundles (ADR-006)** — they reference loops/skills but are not loaded by the compiler today.
 
 ## README / docs alignment
 

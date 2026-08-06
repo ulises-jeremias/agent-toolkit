@@ -113,7 +113,7 @@ Loops follow a three-tier model (L1/L2/L3) based on the risk level of their acti
 
 ### Packs
 
-A pack bundles skills, agents, and loops into an outcome-oriented workflow. A pack is a `pack.yaml` file (or directory with a `README.md` and `config.yaml`) that declares which skills to activate, which loops to enable, and any configuration overrides.
+A pack bundles skills, agents, and loops into an outcome-oriented workflow. A pack is a `pack.yaml` file (or directory with a `README.md` and `config.yaml`) that declares which skills to activate, which loops to enable, and any configuration overrides. **Packs are docs-only** (ADR-006): they are not loaded by `agent-toolkit build`; product composition lives in `distributions/products.yaml`.
 
 Packs are the recommended entry point for teams. Instead of picking individual skills, you load a pack and get a coherent setup for your context (OSS maintainer, startup delivery team, data platform, etc.).
 
