@@ -154,16 +154,20 @@ brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
 yay -S agent-toolkit   # Arch Linux (AUR)
 ```
 
-### Git clone + install script
+### Git clone + legacy script fallback (deprecated — see ADR-007)
+
+> **Deprecated:** `scripts/install.sh` prints a warning and is kept only for offline `git clone` installs. Prefer `uvx --from agent-toolkit-cli agent-toolkit install` above. The bash script may delegate to `agent-toolkit install` when available.
 
 For offline installs or pinning a specific commit:
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-bash ~/.agent-toolkit/scripts/install.sh
+AGENT_TOOLKIT_NO_DEPRECATION_WARNING=1 bash ~/.agent-toolkit/scripts/install.sh  # legacy fallback
+# Preferred (same clone, via CLI):
+uvx --from agent-toolkit-cli --from ~/.agent-toolkit agent-toolkit install
 ```
 
-Script options:
+Legacy script options (still accepted):
 
 ```bash
 bash ~/.agent-toolkit/scripts/install.sh --tools claude-code,cursor

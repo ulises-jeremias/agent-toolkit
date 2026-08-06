@@ -8,11 +8,13 @@ This covers four AI tools: Claude Code, Cursor, GitHub Copilot, and OpenCode. Do
 
 ## Prerequisites
 
-- **agent-toolkit installed** on your machine:
+- **agent-toolkit installed** on your machine (preferred: Python CLI):
   ```bash
-  git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-  bash ~/.agent-toolkit/scripts/install.sh --dry-run    # Preview what will be installed
-  bash ~/.agent-toolkit/scripts/install.sh              # Install
+  uvx --from agent-toolkit-cli agent-toolkit install --dry-run    # Preview (auto-detects tools)
+  uvx --from agent-toolkit-cli agent-toolkit install              # Install
+  # Legacy/offline fallback (deprecated, see docs/adrs/ADR-007-install-sh-deprecation.md):
+  # git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
+  # bash ~/.agent-toolkit/scripts/install.sh --dry-run
   ```
 
 - **Your project cloned** and the working directory set to its root:
