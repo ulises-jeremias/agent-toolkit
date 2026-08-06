@@ -935,6 +935,7 @@ def cmd_activate(args: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="agent-toolkit swarm activate")
     parser.add_argument("run_id")
     parser.add_argument("role")
+    parser.add_argument("--specialist", default=None, help="For hardener: security-reviewer|database-reviewer|performance-optimizer|typescript-reviewer")
     ns = parser.parse_args(args)
     repo = _need_repo()
     run_dir = run_dir_for(repo, ns.run_id)
@@ -948,7 +949,12 @@ def cmd_activate(args: list[str]) -> int:
     state["roles"][ns.role] = "ready"
     # Create worktree if needed
     recipe = get_recipe(state.get("recipe", "pair"))
-    rdef = (recipe.get("spec", {}).get("roles", {}) if recipe else {}).get(ns.role, {})
+    rdef = (recipe.get("spec", {}).get("roles", {}) if recipe else {}).get(ns.role, {}).copy()
+    if ns.role == "hardener" and ns.specialist:
+        if ns.specialist not in ("security-reviewer", "database-reviewer", "performance-optimizer", "typescript-reviewer"):
+            return _error(f"Invalid specialist {ns.specialist!r}", hint="Choose: security-reviewer, database-reviewer, performance-optimizer, typescript-reviewer")
+        rdef["persona"] = ns.specialist
+        append_trace(run_dir, {"ts": now_ts(), "kind": "specialist_selected", "role": "hardener", "persona": ns.specialist})
     wt_name = rdef.get("worktree")
     if wt_name:
         try:
@@ -959,9 +965,19 @@ def cmd_activate(args: list[str]) -> int:
             append_trace(run_dir, {"ts": now_ts(), "kind": "worktree_created", "role": ns.role})
         except Exception as e:
             return _error(str(e))
+    # Regenerate prompt/agent for specialist
+    if ns.role == "hardener" and ns.specialist:
+        try:
+            model = resolve_model(state.get("model_profile", "balanced"), rdef.get("model_profile", "hardening")) or "unknown/model"
+            generate_opencode_agent(run_dir, "hardener", ns.specialist, rdef.get("policy", "reviewer-writer"), model, state.get("recipe", "full"), ns.run_id, rdef.get("worktree"))
+            prompt, manifest = compose_role_prompt(get_recipe(state.get("recipe", "full")) or {}, "hardener", rdef, state.get("task"), None, rdef.get("skills"))
+            (run_dir / "prompts" / "hardener.md").write_text(prompt, encoding="utf-8")
+            (run_dir / "prompts" / "hardener.manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+        except Exception:
+            pass
     write_state(run_dir, state)
     append_trace(run_dir, {"ts": now_ts(), "kind": "role_activated", "role": ns.role})
-    print(f"Activated {ns.role} in {ns.run_id}")
+    print(f"Activated {ns.role} in {ns.run_id}" + (f" specialist={ns.specialist}" if ns.specialist else ""))
     return 0
 
 def cmd_deactivate(args: list[str]) -> int:
@@ -1096,6 +1112,24 @@ def cmd_handoff_create(args: list[str]) -> int:
         data["branch"] = ns.branch
     if ns.htype == "feedback":
         data["blocking"] = bool(ns.blocking)
+        if data["blocking"]:
+            # Enforce max_role_round_trips (default 2)
+            try:
+                budget = (read_state(run_dir) or {}).get("budget", {}) or {}
+                limit = int(budget.get("max_role_round_trips", 2))
+                # Count existing blocking feedback reviewer->implementer
+                all_states = ["queued", "active", "completed"]
+                count = 0
+                for st in all_states:
+                    for h in list_handoffs(run_dir, st):
+                        if h.get("type") == "feedback" and h.get("blocking") and h.get("from") == ns.from_role and h.get("to") == ns.to_role:
+                            count += 1
+                if count >= limit:
+                    return _error(
+                        f"The reviewer returned blocking feedback {count} times. The configured round-trip limit ({limit}) has been reached.\n\nInspect:\n  agent-toolkit swarm artifacts {run_id}\n\nChoose:\n  resume with a higher limit\n  escalate to team\n  request human intervention",
+                    )
+            except Exception:
+                pass
     # Validate
     errs = validate_handoff(data, run_dir, roles)
     if errs:

@@ -31,6 +31,7 @@ marketplace consumer path:
 | `project` | Project index / clone helpers |
 | `devcompanion` | Background LLM job queue |
 | `insights` | Usage analytics from local tool stores |
+| `swarm` | Multi-agent swarm orchestration (pair/team/full, Herdr/tmux) |
 
 These commands remain available without a separate binary; help text lists
 them under **Advanced commands** so new users are not overwhelmed.
