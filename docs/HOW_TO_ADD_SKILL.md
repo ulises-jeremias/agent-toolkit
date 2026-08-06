@@ -133,17 +133,15 @@ Fix any reported errors before proceeding.
 
 ## 6. Update catalogs/skills-layout.json
 
-If your skill should appear in a plugin bundle (most skills should), you need to register it in `catalogs/skills-layout.json`.
+If your skill should appear in a plugin bundle (most skills should), it must be listed in `distributions/products.yaml` (see ADR-001 and ADR-003).
 
-Open the file and add your skill's name to the appropriate group array. The `skills` array at the bottom is generated automatically — do not edit it by hand. Instead, run:
+The compiler is the source of truth. Run the canonical build check:
 
 ```bash
-python3 scripts/gen-surfaces.py
+AGENT_TOOLKIT_ROOT="$PWD" uv run agent-toolkit build --check
 ```
 
-This syncs the canonical `skills/` tree into the plugin bundles under `plugins/` and regenerates the `skills` array in `skills-layout.json`.
-
-Verify there is no drift:
+Legacy fallback (deprecated, see ADR-003):
 
 ```bash
 python3 scripts/gen-surfaces.py --check
@@ -182,7 +180,7 @@ Use the standard PR workflow. Include this checklist in your PR description:
 - [ ] `python3 scripts/validate-skills.py` passes with no errors
 - [ ] Registered in `catalogs/skills-layout.json` (correct group)
 - [ ] Registered in `catalogs/skill-catalog.yaml` (with triggers)
-- [ ] `python3 scripts/gen-surfaces.py --check` passes
+- [ ] `AGENT_TOOLKIT_ROOT="$PWD" uv run agent-toolkit build --check` passes (or `python3 scripts/gen-surfaces.py --check` during dual-run, see ADR-003)
 - [ ] No secrets or hardcoded tokens in skill body
 - [ ] `references/` documents linked from skill body (if present)
 ```
