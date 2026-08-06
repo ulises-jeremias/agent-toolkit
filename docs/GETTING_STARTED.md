@@ -62,3 +62,5 @@ You should see the assistant skill instructions load. Browse the full catalog: `
 * `agent-toolkit doctor` reports missing tool → install that tool first
 * `inventory` empty → re-run `agent-toolkit install` with `--force`
 * Broken install channel → prefer `uv tool install agent-toolkit-cli` (AUR pending)
+
+See also: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for doctor error recipes.

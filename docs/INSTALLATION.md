@@ -336,3 +336,5 @@ Restart OpenCode after adding agent files.
 | [TARGETS.md](TARGETS.md) | Supported compile targets and capability matrix |
 | [MIGRATION.md](MIGRATION.md) | Move from profile-copy to native plugins |
 | [MCP.md](MCP.md) | MCP provider setup |
+
+See also: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for doctor error recipes.
