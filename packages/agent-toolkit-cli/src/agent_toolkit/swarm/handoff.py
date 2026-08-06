@@ -76,7 +76,7 @@ def validate_handoff(data: dict[str, Any], run_dir: Path, roles: set[str]) -> li
 
 
 def write_handoff_outbox(run_dir: Path, data: dict[str, Any]) -> Path:
-    # Atomically write to handoffs/outbox/<id>.json
+    # Atomically write to handoffs/outbox/<id>.json — ensure unique ID if collision
     hid = data.get("handoff_id") or handoff_id_for(data)
     data = dict(data)
     data["handoff_id"] = hid
@@ -84,6 +84,16 @@ def write_handoff_outbox(run_dir: Path, data: dict[str, Any]) -> Path:
     data.setdefault("version", HANDOFF_VERSION)
     outbox = run_dir / "handoffs" / "outbox"
     outbox.mkdir(parents=True, exist_ok=True)
+    # Ensure unique hid if file exists in any state
+    tried = 0
+    while any((run_dir / "handoffs" / st / f"{hid}.json").exists() for st in ["outbox", "queued", "active", "completed", "failed"]):
+        # Append random suffix
+        import secrets
+        hid = handoff_id_for(data) + secrets.token_hex(2)
+        data["handoff_id"] = hid
+        tried += 1
+        if tried > 5:
+            break
     tmp_fd, tmp_path = tempfile.mkstemp(dir=str(outbox), prefix=".tmp-")
     try:
         with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
