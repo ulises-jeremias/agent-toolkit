@@ -112,9 +112,12 @@ def test_missing_data_raises_environment_error(
     monkeypatch.delenv("AI_WORKSPACE", raising=False)
     monkeypatch.setenv("AGENT_TOOLKIT_OFFLINE", "1")
     monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "empty-cache"))
+    monkeypatch.chdir(tmp_path)
+    # Walk-up from __file__ would still find repo data; mock is_dir to simulate minimal install
     with mock.patch.object(paths_mod, "_bundled_data_paths", return_value=[]):
-        with pytest.raises(EnvironmentError, match="Cannot locate"):
-            find_toolkit_root()
+        with mock.patch.object(Path, "is_dir", return_value=False):
+            with pytest.raises(EnvironmentError, match="Cannot locate"):
+                find_toolkit_root()
 
 
 def test_toolkit_root_caching_and_reset(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

@@ -63,7 +63,7 @@ def test_tokens_from_trace_missing_file(tmp_path: Path) -> None:
 
 def test_tokens_from_trace_malformed_lines_ignored(tmp_path: Path) -> None:
     trace = tmp_path / "trace.jsonl"
-    trace.write_text('{not json\n}{"kind": "token_usage", "total": 5}\n', encoding="utf-8")
+    trace.write_text('{not json}\n{"kind": "token_usage", "total": 5}\n', encoding="utf-8")
     assert budget_mod.tokens_from_trace(trace) == 5
 
 
