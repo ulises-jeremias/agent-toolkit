@@ -81,7 +81,7 @@ agent-toolkit follows these principles (see also
 - No private hostnames in distributed configs
 - No permission-bypass flags (e.g. skip dangerous-mode prompts) in shipped artifacts
 - MCP credentials via environment variables only
-- Secret scanning (Gitleaks) and dependency scanning (Trivy) in CI
+- Secret scanning (Gitleaks), dependency scanning (Trivy), and CodeQL Python analysis in CI (`.github/workflows/codeql.yml` — PRs and `main`, results visible as check runs)
 
 ---
 
