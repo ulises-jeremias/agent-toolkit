@@ -97,6 +97,8 @@ A profile is the tool-specific configuration that wires skills into an AI tool. 
 
 Profiles reference skills but do not duplicate them. The install script copies profiles to the locations each tool expects.
 
+> **Note (ADR-004):** `profiles/` is deprecated as the marketplace delivery path. `plugins/` is now the generated output of `agent-toolkit build` (from `distributions/products.yaml` + `skills/`/`agents/`). `plugins/` must not be hand-edited (CI `build --check` enforces this). The installer prefers compiled `plugins/` via `installer/sources.py` and falls back to `profiles/` only when `plugins/` is absent. Add new capabilities to `skills/` + `products.yaml`, not to `profiles/` alone.
+
 ### Loops
 
 A loop is a recurring agentic workflow with a declared goal, safety gates, and a token budget. Each loop lives in `loops/<name>/loop.yaml` and contains:
