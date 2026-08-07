@@ -13,6 +13,51 @@ One mental model for how agent-toolkit pieces fit together.
 | **Packs** | `packs/` | Solution-oriented README + config | **Docs-only** workflow templates; not loaded by compiler (ADR-006) |
 | **Presets** | *(planned)* | Named capability sets for `agent-toolkit.yaml` projects | Future — not implemented yet |
 
+## Three kinds of packs
+
+The word "pack" has three distinct meanings in this project. The noun is not ambiguous, but the context selects the meaning.
+
+### 1. Solution packs (`packs/` in the toolkit repo)
+
+Solution packs are **docs-only workflow templates** under the repository `packs/` directory. Each pack bundles related skills, agent personas, loop templates, and MCP configurations into an outcome-oriented workflow for a common team setup. Examples: `oss-maintenance`, `engineering-workflow`, `delivery-discipline`.
+
+A solution pack is a directory with `README.md`, `config.yaml`, and optional references to loops and skills. The compiler does **not** load solution packs. `distributions/products.yaml` is the sole compiler input for marketplace plugins. See `docs/adrs/ADR-006-packs-docs-only.md`.
+
+### 2. Workspace packs (`packs/*.yaml` in a harness workspace)
+
+Workspace packs are **YAML context files** inside a harness workspace `packs/` directory. They carry per-client or per-project context: project names, notes, and configuration. A user loads a workspace pack with:
+
+```bash
+agent-toolkit workspace load packs/my-client.yaml
+```
+
+The pack content is surfaced by `agent-toolkit workspace context`. These packs are local to one workspace. They have no connection to the toolkit repository solution packs.
+
+### 3. Loop `--pack` overrides (loaded by `loop run --pack`)
+
+Loop packs are **YAML files that override loop settings at runtime**. A user passes `--pack <path>` to `agent-toolkit loop run`. The pack resolves relative to the workspace `packs/` directory. The loader (`loop/pack.py`) merges enabled, cadence, budget, tier, and other fields from the pack into the loop meta before the loop runs.
+
+A loop pack file has a `loops` key mapping loop names to their override blocks:
+
+```yaml
+loops:
+  oss-triage:
+    enabled: false
+    cadence: 12h
+    budget:
+      max_tokens: 30000
+```
+
+### Summary
+
+| Noun | Location | Loaded by | Purpose |
+|------|----------|-----------|---------|
+| Solution pack | `packs/<name>/` (repo) | Not loaded — docs-only reference | Workflow template for a team setup |
+| Workspace pack | `packs/*.yaml` (workspace) | `agent-toolkit workspace load` | Per-client context bundle |
+| Loop pack | `packs/*.yaml` (workspace) | `agent-toolkit loop run --pack` | Runtime loop setting overrides |
+
+See also: `packs/README.md` (solution packs), `workspace load` CLI help, `loop/pack.py` (override logic), `docs/adrs/ADR-006-packs-docs-only.md`.
+
 ## Key rules
 
 1. **Products compose capabilities** — edit `distributions/products.yaml`, then `build`.

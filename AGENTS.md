@@ -43,7 +43,10 @@ agent-toolkit/
 │       ├── loop.yaml   # Required: loop definition (tier, cadence, goal, request, budget, allow/deny)
 │       ├── STATE.md    # Runtime: checkpoint state (written by runner, not committed)
 │       └── report.md   # Runtime: output report (written by agent, not committed)
-├── packs/              # Solution packs (YAML bundles)
+├── packs/              # Docs-only solution packs (ADR-006) — workflow templates, not loaded by compiler
+├── plugins/            # Compiler-generated target manifests (do not hand-edit; ADR-003/004)
+├── distributions/      # Product specification for compiler input (products.yaml)
+├── integrations/       # Swarm UI integrations (e.g., Herdr plugin; ADR-008)
 ├── catalogs/
 │   ├── skill-catalog.yaml
 │   └── agent-catalog.yaml
@@ -51,6 +54,8 @@ agent-toolkit/
 │   ├── skill.schema.json
 │   └── loop.schema.json
 ├── docs/               # Human-facing documentation
+│   ├── CONCEPTS.md     # Public concept model — see "Three kinds of packs"
+│   └── adrs/           # Architecture Decision Records
 └── scripts/            # validate-skills.py, validate-agents.py, generate-catalogs.py, gen-surfaces.py
 ```
 
