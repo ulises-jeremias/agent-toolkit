@@ -15,6 +15,23 @@ GLOBAL_PROTOCOL = """# Agent Toolkit Swarm — Global Protocol
 - Record decisions in artifacts and trace events.
 """
 
+# Interactive bootstrap — when swarm starts without a task, the first agent must NOT invent work.
+# It does a very brief context analysis and then waits for the user to provide the first request.
+INTERACTIVE_BOOTSTRAP = """# Interactive mode — No initial task
+> This swarm was started **without an initial prompt/task**. The user will provide the first request next in this same Herdr/Tmux session.
+
+**Instructions for the first agent (planner/implementer):**
+- **Do NOT invent work** or start tasks on your own. Do not create a plan or code yet.
+- Do only a **very brief** context analysis (max 3-4 sentences / 30 seconds):
+  - If you detect a **workspace** (exists `AGENTS.md` and/or `knowledge/` or `find_workspace_root()` is not None, e.g. `~/.ai-workspace`):
+    Run `agent-toolkit workspace context` and briefly review `AGENTS.md` + `knowledge/todos/pending.md`.
+    Also check `projects/` and `loops/` if present. Summarize in 2-3 lines what workspace it is.
+  - If no workspace, briefly review the current repo (`git status`, `cat README.md` / `pyproject.toml`).
+- Then **stay on standby** and confirm with a short message:
+  "Brief analysis done — awaiting your first request. When you provide the task, I will apply `assistant` (discovery) + `workflow-generic-project` (plan -> approval -> implement -> review -> draft PR)."
+- When the user sends the request (via chat or `agent-toolkit swarm handoff create --type artifact --from planner --to implementer --artifact artifacts/task-contract.md --run-id <run-id>`), apply the full flow: discovery per `assistant` (order README -> docs/ -> AGENTS.md -> CONTRIBUTING -> PR templates -> Makefile/package.json -> devcontainer/CI), then `workflow-generic-project` with plan approval gate before implementing, and `github-cli-workflow` for draft PR.
+"""
+
 
 def load_persona_text(persona: str) -> str:
     # Load from bundled data/agents/<persona>/AGENT.md if exists
@@ -54,8 +71,23 @@ def compose_role_prompt(
     spec = recipe.get("spec", {})
     workflow = f"Execution: {spec.get('execution', {})}\nWorkspace: {spec.get('workspace', {})}\n"
     parts.append(workflow)
-    if task_contract:
+    # Empty / whitespace-only task_contract means interactive bootstrap — do not invent work
+    if task_contract and task_contract.strip():
         parts.append(f"# Task Contract\n{task_contract[:3000]}")
+    else:
+        # No task provided — inject bootstrap: analyze context very briefly, then wait for user
+        parts.append(INTERACTIVE_BOOTSTRAP)
+        # Also hint workspace context command for faster readiness
+        try:
+            from agent_toolkit._paths import find_workspace_root
+
+            ws = find_workspace_root()
+            if ws is not None:
+                parts.append(
+                    f"# Workspace context hint\nDetected workspace at `{ws}` — run `agent-toolkit workspace context` to see session state before waiting."
+                )
+        except Exception:
+            pass
     if handoff:
         parts.append(f"# Current Handoff\n{handoff}")
     if included_skills:
@@ -122,6 +154,7 @@ def compose_role_prompt(
     text = "\n\n".join(parts)
     if len(text) > 12000:
         text = text[:12000] + "\n[truncated]"
+    is_interactive = not task_contract or not task_contract.strip()
     manifest = {
         "role": role,
         "persona": persona,
@@ -131,12 +164,14 @@ def compose_role_prompt(
             "global_protocol",
             "recipe_workflow",
             "persona",
-            "task_contract" if task_contract else None,
+            "interactive_bootstrap" if is_interactive else None,
+            "task_contract" if task_contract and task_contract.strip() else None,
             "handoff" if handoff else None,
             "skills" if included_skills else None,
         ],
         "size_chars": len(text),
         "model_profile_task": role_def.get("model_profile"),
+        "is_interactive": is_interactive,
     }
     manifest["includes"] = [x for x in manifest["includes"] if x]
     return text, manifest

@@ -989,11 +989,26 @@ def cmd_start(args: list[str]) -> int:
                 )
     except Exception:
         pass
-    # Create artifacts placeholder
-    (run_dir / "artifacts" / "task-contract.md").write_text(
-        f"# Task Contract\n\n{task_text}\n\nRecipe: {recipe_name}\nRun: {run_id}\n",
-        encoding="utf-8",
-    )
+    # Create artifacts placeholder — interactive mode gets bootstrap note instead of empty contract
+    is_interactive_run = not task_text or not task_text.strip()
+    if is_interactive_run:
+        task_contract_body = (
+            "# Task Contract — Interactive mode (no initial task)\n\n"
+            "This swarm was started without an initial prompt. The first agent (planner/implementer) "
+            "must do a very brief context analysis and stay on standby awaiting the user's first request.\n\n"
+            "- If inside a workspace (e.g. `~/.ai-workspace`): run `agent-toolkit workspace context` and briefly review `AGENTS.md` + `knowledge/todos/pending.md`.\n"
+            "- Otherwise, briefly review the current repo (`git status`, `README.md`).\n"
+            '- Do not invent work. Confirm with: "Brief analysis done — awaiting your first request."\n\n'
+            f"Recipe: {recipe_name}\nRun: {run_id}\n"
+            f"Run dir: {run_dir}\n"
+            f"Initial roles: {', '.join(initial_roles)}\n"
+            f"When the user provides the task, apply discovery (`assistant`) + `workflow-generic-project` (plan -> approval -> implement -> draft PR).\n"
+        )
+    else:
+        task_contract_body = (
+            f"# Task Contract\n\n{task_text}\n\nRecipe: {recipe_name}\nRun: {run_id}\n"
+        )
+    (run_dir / "artifacts" / "task-contract.md").write_text(task_contract_body, encoding="utf-8")
     if ns.json:
         return _json_out(
             {
