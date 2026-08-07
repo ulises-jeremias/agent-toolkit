@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-core",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
   "author": "ulises-jeremias",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",

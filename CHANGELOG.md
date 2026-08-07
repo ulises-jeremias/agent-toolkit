@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.8.4] — 2026-08-07
+
+### Fixed
+- **Swarm interactive bootstrap** — when `swarm start` is run without a prompt (`--recipe full --ui herdr --runner claude --attach`), the first agent now does only a very brief context analysis (runs `agent-toolkit workspace context` if inside a workspace like `~/.ai-workspace`, otherwise brief `README`/`git status` check) and stays on standby awaiting the user's first request. Applies `assistant` discovery + `workflow-generic-project` (plan -> approval -> implement -> draft PR) once the task arrives. Prevents the planner from inventing work.
+
 ## [1.8.3] — 2026-08-06
 
 ### Fixed

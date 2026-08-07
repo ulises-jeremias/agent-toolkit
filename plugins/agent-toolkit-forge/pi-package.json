@@ -1,6 +1,6 @@
 {
   "name": "@agent-toolkit/agent-toolkit-forge",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
   "license": "MIT",
   "repository": {

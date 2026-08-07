@@ -1,6 +1,6 @@
 {
   "name": "@agent-toolkit/agent-toolkit-agents",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
   "license": "MIT",
   "repository": {
