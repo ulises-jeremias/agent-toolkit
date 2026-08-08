@@ -466,6 +466,8 @@ projects/
 .active-persona
 .active-pack
 .active-profile
+.active-skills
+.active-loops
 .persona-history
 """
 
@@ -691,6 +693,30 @@ def cmd_context(args: list[str]) -> int:
         if meta:
             print(_format_persona_constraints(persona, meta))
         print()
+
+    # Active skills (from profile load)
+    active_skills_file = ws / ".active-skills"
+    if active_skills_file.exists():
+        skills_text = active_skills_file.read_text(encoding="utf-8").strip()
+        if skills_text:
+            skills_list = [s.strip() for s in skills_text.splitlines() if s.strip()]
+            if skills_list:
+                print(_blue("── Active Skills ─────────────────────────────────────────"))
+                for s in skills_list:
+                    print(f"  - {s}")
+                print()
+
+    # Active loops (from profile load)
+    active_loops_file = ws / ".active-loops"
+    if active_loops_file.exists():
+        loops_text = active_loops_file.read_text(encoding="utf-8").strip()
+        if loops_text:
+            loops_list = [ln.strip() for ln in loops_text.splitlines() if ln.strip()]
+            if loops_list:
+                print(_blue("── Active Loops ──────────────────────────────────────────"))
+                for ln in loops_list:
+                    print(f"  - {ln}")
+                print()
 
     # AGENTS.md hash
     agents_md = ws / "AGENTS.md"
@@ -1072,6 +1098,16 @@ def _load_profile(ws: Path, profile_name: str) -> int:
             _write(active_file, str(persona) + "\n")
             print(_green(f"  Persona: {persona}"))
 
+    skills = data.get("skills")
+    if isinstance(skills, list) and skills:
+        _write(ws / ".active-skills", "\n".join(str(s) for s in skills) + "\n")
+        print(_green(f"  Skills: {', '.join(str(s) for s in skills)}"))
+
+    loops = data.get("loops")
+    if isinstance(loops, list) and loops:
+        _write(ws / ".active-loops", "\n".join(str(ln) for ln in loops) + "\n")
+        print(_green(f"  Loops: {', '.join(str(ln) for ln in loops)}"))
+
     return 0
 
 
@@ -1110,7 +1146,13 @@ def cmd_profiles(args: list[str]) -> int:
         pack = data.get("pack") or "-"
         persona = data.get("persona") or "-"
         desc = data.get("description") or ""
+        skills = data.get("skills")
+        loops = data.get("loops")
         print(f"  {name:25s} pack={pack} persona={persona}")
+        if isinstance(skills, list) and skills:
+            print(_dim(f"    skills: {', '.join(str(s) for s in skills)}"))
+        if isinstance(loops, list) and loops:
+            print(_dim(f"    loops: {', '.join(str(ln) for ln in loops)}"))
         if desc:
             print(_dim(f"    {desc}"))
 
@@ -1201,6 +1243,26 @@ def _validate_profiles(ws: Path) -> list[str]:
         persona = data.get("persona")
         if persona and not _persona_path(ws, str(persona)).exists():
             errors.append(f"{path.name}: referenced persona '{persona}' not found")
+        skills = data.get("skills")
+        if skills is not None:
+            if not isinstance(skills, list):
+                errors.append(f"{path.name}: 'skills' must be a list of strings")
+            else:
+                for idx, s in enumerate(skills):
+                    if not isinstance(s, str) or not s.strip():
+                        errors.append(
+                            f"{path.name}: skills[{idx}] must be a non-empty string"
+                        )
+        loops = data.get("loops")
+        if loops is not None:
+            if not isinstance(loops, list):
+                errors.append(f"{path.name}: 'loops' must be a list of strings")
+            else:
+                for idx, ln in enumerate(loops):
+                    if not isinstance(ln, str) or not ln.strip():
+                        errors.append(
+                            f"{path.name}: loops[{idx}] must be a non-empty string"
+                        )
     return errors
 
 
