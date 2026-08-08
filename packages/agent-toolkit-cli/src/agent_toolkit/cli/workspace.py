@@ -16,6 +16,8 @@ Subcommands:
     load --profile <name>                  Load a composable profile (pack + persona)
     profiles                               List available profiles
     validate [surface]                     Validate workspace schema integrity
+    budget [--pack NAME] [--profile NAME]  Analyze context footprint
+    budget --json [--pack NAME] [--profile NAME]  Machine-readable output
 
 Options:
     --help    Show this help message
@@ -1309,6 +1311,98 @@ def cmd_validate(args: list[str]) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _cmd_budget(args: list[str]) -> int:
+    """Analyze context-budget footprint for a pack, profile, or full workspace."""
+    from agent_toolkit.cli.context_budget import analyze_workspace
+
+    pack_ref: str | None = None
+    profile_ref: str | None = None
+    json_out = False
+    i = 0
+    while i < len(args):
+        match args[i]:
+            case "--pack" if i + 1 < len(args):
+                pack_ref = args[i + 1]
+                i += 2
+            case "--profile" if i + 1 < len(args):
+                profile_ref = args[i + 1]
+                i += 2
+            case "--json":
+                json_out = True
+                i += 1
+            case "--help" | "-h":
+                print(
+                    "Usage: agent-toolkit workspace budget"
+                    " [--pack NAME] [--profile NAME] [--json]"
+                )
+                return 0
+            case _:
+                print(f"Unknown option: {args[i]}", file=sys.stderr)
+                return 1
+
+    ws = _require_workspace()
+    if ws is None:
+        return 1
+
+    result = analyze_workspace(ws, pack_ref=pack_ref, profile_ref=profile_ref)
+
+    if json_out:
+        import json
+
+        print(json.dumps(result.to_dict(), indent=2))
+        return 0
+
+    print()
+    print(_blue("Context Budget Analysis"))
+    print(_blue("-----------------------"))
+    print()
+    print(f"  Workspace : {result.workspace}")
+    print(f"  Target    : {result.target}")
+    print(f"  Footprint : {result.total_chars:,} chars"
+          f" (~{result.total_tokens:,} tokens)")
+    print(f"  Risk      : {_color_for_risk(result.risk)}")
+    print()
+
+    if result.sections:
+        print(_dim("  Breakdown:"))
+        print()
+        for s in result.sections:
+            indent = "    "
+            print(
+                f"{indent}{s.label:<40}"
+                f" {s.chars:>7,} chars"
+                f"  ~{s.estimated_tokens:>6,} tokens"
+            )
+        print()
+
+    if result.warnings:
+        print(_yellow("  Warnings:"))
+        for w in result.warnings:
+            print(f"    - {w}")
+        print()
+
+    if result.suggestions:
+        print(_cyan("  Suggestions:"))
+        for s in result.suggestions:
+            print(f"    - {s}")
+        print()
+
+    return 0
+
+
+def _color_for_risk(risk: str) -> str:
+    if risk == "HIGH":
+        return _c("1;31", risk)
+    if risk == "MEDIUM":
+        return _yellow(risk)
+    return _green(risk)
+
+
+# ---------------------------------------------------------------------------
+# Entry point (continued)
+# ---------------------------------------------------------------------------
+
+
 def cmd_workspace(args: list[str]) -> int:
     """Router for workspace subcommands."""
     if not args or args[0] in ("-h", "--help", "help"):
@@ -1339,6 +1433,8 @@ def cmd_workspace(args: list[str]) -> int:
             return cmd_profiles(rest)
         case "validate":
             return cmd_validate(rest)
+        case "budget":
+            return _cmd_budget(rest)
         case _:
             print(f"Unknown workspace subcommand: {sub}", file=sys.stderr)
             print("Run 'agent-toolkit workspace --help' for usage.", file=sys.stderr)
