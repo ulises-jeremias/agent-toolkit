@@ -37,7 +37,11 @@ No such implementation occurs in this decision issue.
 
 ## Docs updates
 
-- `packs/README.md` header now states “Docs-only — not loaded by `agent-toolkit build`”
+- `packs/README.md` header now states "Docs-only — not loaded by `agent-toolkit build`"
+- `packs/README.md` now documents that `skills:` and `agents:` keys in pack config.yaml
+  are advisory only and are not applied by `loop run --pack` (see `loop/pack.py`).
+- `packs/engineering-workflow/config.yaml` and `packs/delivery-discipline/config.yaml`
+  now carry advisory-only comments above their `skills:` and `agents:` sections.
 - `docs/CONCEPTS.md` and `docs/ARCHITECTURE.md` explicitly call packs docs-only (not plugin composition)
 - This ADR is the decision log; `README.md` and `packs/README.md` cross-link here
 

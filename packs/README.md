@@ -24,6 +24,23 @@ cp packs/oss-maintenance/config.yaml ~/.ai-workspace/packs/
 # Then use loops/oss-pr-monitor, loops/oss-triage, loops/oss-daily-briefing
 ```
 
+## Pack config.yaml fields
+
+The `config.yaml` declares three top-level sections:
+
+- `loops` — Loop overrides (`enabled`, `cadence`, `tier`, `verifier`, `goal`, `budget`).
+  These are applied by `loop run --pack`. See `loop/pack.py`.
+- `skills` — Advisory only. Lists which skills the pack recommends. The `loop run --pack`
+  command does **not** read or apply `skills:` entries. Authors may list them as
+  documentation.
+- `agents` — Advisory only. Lists which agent personas the pack recommends. The `loop run --pack`
+  command does **not** read or apply `agents:` entries. Authors may list them as
+  documentation.
+
+The `skills:` and `agents:` keys are human-readable labels, not machine-applied actions.
+The pack format may grow a loader in the future (see ADR-006 follow-up note), but today
+only `loops:` is handled by the code.
+
 ## Creating a Pack
 
 A pack is a directory containing:
