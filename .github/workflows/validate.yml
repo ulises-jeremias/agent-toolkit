@@ -50,6 +50,39 @@ jobs:
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
 
+  # ── Job 2a: Mechanical smoke for skills/ and agents/ ─────────────────────
+  # Fast mechanical integrity check: frontmatter, name-directory match,
+  # description quality, and internal link resolution.
+  smoke-test-skills:
+    name: Smoke Test Skills & Agents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Detect changed paths (PR only)
+        id: paths
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1 2>/dev/null || true
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" 2>/dev/null | grep -qE '^(skills|agents)/'; then
+            echo "run_smoke=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_smoke=false" >> "$GITHUB_OUTPUT"
+            echo "No skills/ or agents/ changes detected — skipping smoke test."
+          fi
+
+      - name: Install PyYAML
+        if: |
+          github.event_name != 'pull_request' ||
+          steps.paths.outputs.run_smoke == 'true'
+        run: pip install pyyaml==6.0.2
+
+      - name: Run skill/agent mechanical smoke
+        if: |
+          github.event_name != 'pull_request' ||
+          steps.paths.outputs.run_smoke == 'true'
+        run: python3 scripts/smoke-test-skills.py
+
   # ── Job 2: Validate SKILL.md and AGENT.md frontmatter ─────────────────────
   validate-skills:
     name: Validate Skills & Agents
