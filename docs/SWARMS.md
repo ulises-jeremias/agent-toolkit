@@ -5,7 +5,7 @@
 ## Quickstart
 
 ```bash
-# Check prerequisites
+# Check prerequisites (also surfaced by `agent-toolkit doctor`)
 agent-toolkit swarm doctor
 
 # List recipes
@@ -160,6 +160,19 @@ Related: [SWARM_RECIPES.md](SWARM_RECIPES.md) · [SWARM_HANDOFFS.md](SWARM_HANDO
 ## Configuration Precedence
 
 `CLI flags → project-local swarm.yaml → workspace config → user ~/.config/agent-toolkit/swarm.yaml → built-in defaults`. Env vars override runtime paths only.
+
+## Doctor Integration
+
+`agent-toolkit doctor` reports swarm tooling status under a **Swarm tooling** section:
+
+- tmux availability and version
+- herdr availability and version
+- swarm offline plan check with skeleton runner
+
+Missing tools produce actionable installation guidance. Run `agent-toolkit doctor` for a
+complete installation health picture that includes swarm prerequisites alongside system,
+AI tool, profile, loop, LLM, MCP, and scheduled-loops checks. See [CLI_REFERENCE.md](CLI_REFERENCE.md)
+for the full list.
 
 ## No Cloud Required
 

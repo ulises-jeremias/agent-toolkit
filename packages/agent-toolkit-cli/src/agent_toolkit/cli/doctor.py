@@ -1,5 +1,5 @@
 """
-doctor — Check system health and AI tool availability.
+doctor — Check system health, AI tool availability, and Swarm prerequisites.
 
 Usage:
     agent-toolkit doctor [options]
@@ -446,6 +446,98 @@ def _check_scheduled_loops() -> list[CheckResult]:
     return results
 
 
+def _check_swarm() -> list[CheckResult]:
+    results: list[CheckResult] = []
+
+    tmux_path = shutil.which("tmux")
+    if tmux_path:
+        try:
+            result = subprocess.run(["tmux", "-V"], capture_output=True, text=True, timeout=5)
+            version = result.stdout.strip()
+            results.append(CheckResult("swarm", "tmux", CheckResult.STATUS_OK, version))
+        except Exception:
+            results.append(CheckResult("swarm", "tmux", CheckResult.STATUS_OK, str(tmux_path)))
+    else:
+        results.append(
+            CheckResult(
+                "swarm",
+                "tmux",
+                CheckResult.STATUS_WARN,
+                "not found — install with: brew install tmux / apt install tmux",
+            )
+        )
+
+    herdr_path = shutil.which("herdr")
+    if herdr_path:
+        try:
+            result = subprocess.run(
+                ["herdr", "--version"], capture_output=True, text=True, timeout=5
+            )
+            version = result.stdout.strip() or result.stderr.strip()
+            results.append(CheckResult("swarm", "herdr", CheckResult.STATUS_OK, version))
+        except Exception:
+            results.append(CheckResult("swarm", "herdr", CheckResult.STATUS_OK, str(herdr_path)))
+    else:
+        results.append(
+            CheckResult(
+                "swarm",
+                "herdr",
+                CheckResult.STATUS_WARN,
+                "not found — install from https://herdr.dev/docs/install/",
+            )
+        )
+
+    try:
+        plan_result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "agent_toolkit",
+                "swarm",
+                "plan",
+                "--runner",
+                "skeleton",
+                "--ui",
+                "tmux",
+                "doctor check",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if plan_result.returncode == 0:
+            results.append(
+                CheckResult(
+                    "swarm",
+                    "swarm plan (offline)",
+                    CheckResult.STATUS_OK,
+                    "skeleton runner plan succeeded",
+                )
+            )
+        else:
+            stderr = (plan_result.stderr or "").strip().splitlines()
+            detail = stderr[-1] if stderr else f"plan exited {plan_result.returncode}"
+            results.append(
+                CheckResult(
+                    "swarm",
+                    "swarm plan (offline)",
+                    CheckResult.STATUS_WARN,
+                    detail,
+                )
+            )
+    except Exception as exc:
+        results.append(
+            CheckResult(
+                "swarm",
+                "swarm plan (offline)",
+                CheckResult.STATUS_WARN,
+                f"could not run plan: {exc}",
+            )
+        )
+
+    return results
+
+
 # ---------------------------------------------------------------------------
 # Formatting
 # ---------------------------------------------------------------------------
@@ -543,6 +635,9 @@ def cmd_doctor(args: list[str]) -> int:
     # 7. Scheduled loops
     all_results.extend(_check_scheduled_loops())
 
+    # 8. Swarm tooling
+    all_results.extend(_check_swarm())
+
     # Output
     if json_output:
         print(json.dumps({"checks": [r.to_dict() for r in all_results]}, indent=2))
@@ -559,6 +654,7 @@ def cmd_doctor(args: list[str]) -> int:
             "llm": "LLM providers",
             "mcp": "MCP",
             "scheduled": "Scheduled loops",
+            "swarm": "Swarm tooling",
         }
         for r in all_results:
             if r.category not in categories_seen:
