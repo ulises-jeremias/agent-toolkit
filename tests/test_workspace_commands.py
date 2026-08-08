@@ -1,4 +1,4 @@
-"""Tests for workspace persona, load, and validate commands (#204/#205/#206)."""
+"""Tests for workspace persona, load, validate, and context-budget commands (#204/#205/#206/#335)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from agent_toolkit.cli import workspace as ws
+from agent_toolkit.cli.context_budget import analyze_workspace
 
 
 def _scaffold_workspace(tmp_path: Path) -> Path:
@@ -112,3 +113,49 @@ def test_validate_knowledge_missing_dir(workspace: Path) -> None:
 
 def test_validate_unknown_surface(workspace: Path) -> None:
     assert ws.cmd_validate(["nope"]) == 1
+
+
+def test_budget_workspace(workspace: Path) -> None:
+    assert ws._cmd_budget([]) == 0
+
+
+def test_budget_pack(workspace: Path) -> None:
+    assert ws._cmd_budget(["--pack", "acme"]) == 0
+
+
+def test_budget_nonexistent_pack(workspace: Path) -> None:
+    result = analyze_workspace(workspace, pack_ref="nope")
+    assert result.warnings
+
+
+def test_budget_json_output(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert ws._cmd_budget(["--json"]) == 0
+    out = capsys.readouterr().out
+    assert "estimated_tokens" in out
+    assert "risk" in out
+
+
+def test_budget_risk_levels() -> None:
+    from agent_toolkit.cli.context_budget import _risk_level
+
+    assert _risk_level(10_000) == "LOW"
+    assert _risk_level(25_000) == "MEDIUM"
+    assert _risk_level(50_000) == "HIGH"
+
+
+def test_budget_large_section_detected(workspace: Path) -> None:
+    big_text = "x" * 6000
+    (workspace / "packs" / "big.yaml").write_text(
+        f"name: big\ndescription: Test pack\nnotes: |\n  {big_text}\n",
+        encoding="utf-8",
+    )
+    result = analyze_workspace(workspace, pack_ref="big")
+    large = [w for w in result.warnings if "Large section" in w]
+    assert len(large) >= 1
+
+
+def test_budget_profile_references_pack(workspace: Path) -> None:
+    result = analyze_workspace(workspace, profile_ref="oss-contributor")
+    pack_labels = [s.label for s in result.sections]
+    assert any("pack:" in lbl for lbl in pack_labels)
+    assert any("persona:" in lbl for lbl in pack_labels)
