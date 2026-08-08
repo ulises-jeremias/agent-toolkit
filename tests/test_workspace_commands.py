@@ -21,6 +21,13 @@ def _scaffold_workspace(tmp_path: Path) -> Path:
         "name: oss-contributor\ndescription: OSS mode\npack: acme\npersona: implementer\n",
         encoding="utf-8",
     )
+    (root / "profiles" / "full-stack.yaml").write_text(
+        "name: full-stack\ndescription: Full stack profile with skills and loops\n"
+        "pack: acme\npersona: reviewer\n"
+        "skills:\n  - delivery/gh-address-comments\n  - core/memory\n"
+        "loops:\n  - daily-triage\n  - weekly-report\n",
+        encoding="utf-8",
+    )
     (root / "templates" / "jobs").mkdir(parents=True, exist_ok=True)
     (root / "templates" / "jobs" / "code-review.yaml").write_text(
         "name: code-review\nrequest: Review the code\n",
@@ -112,3 +119,56 @@ def test_validate_knowledge_missing_dir(workspace: Path) -> None:
 
 def test_validate_unknown_surface(workspace: Path) -> None:
     assert ws.cmd_validate(["nope"]) == 1
+
+
+def test_load_profile_stores_skills_and_loops(workspace: Path) -> None:
+    assert ws.cmd_load(["--profile", "full-stack"]) == 0
+    assert (workspace / ".active-profile").read_text(encoding="utf-8").strip() == "full-stack"
+    skills = (workspace / ".active-skills").read_text(encoding="utf-8").strip()
+    assert "delivery/gh-address-comments" in skills
+    assert "core/memory" in skills
+    loops = (workspace / ".active-loops").read_text(encoding="utf-8").strip()
+    assert "daily-triage" in loops
+    assert "weekly-report" in loops
+
+
+def test_context_shows_skills_and_loops(
+    workspace: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    ws.cmd_load(["--profile", "full-stack"])
+    assert ws.cmd_context([]) == 0
+    out = capsys.readouterr().out
+    assert "Active Skills" in out
+    assert "delivery/gh-address-comments" in out
+    assert "core/memory" in out
+    assert "Active Loops" in out
+    assert "daily-triage" in out
+    assert "weekly-report" in out
+
+
+def test_profiles_list_shows_skills_and_loops(
+    workspace: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert ws.cmd_profiles([]) == 0
+    out = capsys.readouterr().out
+    assert "full-stack" in out
+    assert "delivery/gh-address-comments" in out
+    assert "daily-triage" in out
+
+
+def test_validate_profile_bad_skills(workspace: Path) -> None:
+    (workspace / "profiles" / "bad-skills.yaml").write_text(
+        "name: bad-skills\ndescription: Bad skills field\n"
+        "skills:\n  - ''\n  - 42\n",
+        encoding="utf-8",
+    )
+    assert ws.cmd_validate(["profiles"]) == 1
+
+
+def test_validate_profile_bad_loops(workspace: Path) -> None:
+    (workspace / "profiles" / "bad-loops.yaml").write_text(
+        "name: bad-loops\ndescription: Bad loops field\n"
+        "loops: not-a-list\n",
+        encoding="utf-8",
+    )
+    assert ws.cmd_validate(["profiles"]) == 1
