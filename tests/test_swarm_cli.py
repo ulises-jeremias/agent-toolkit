@@ -213,3 +213,61 @@ def test_swarm_status_json_and_artifacts():
         assert res2.returncode == 0
         arts = json.loads(res2.stdout)
         assert any(a["name"] == "task-contract.md" for a in arts)
+
+
+# budget_exhausted resume / report path — see docs/SWARM_ARCHITECTURE.md
+
+
+def test_swarm_status_surfaces_budget_exhausted():
+    with tempfile.TemporaryDirectory() as td:
+        repo = init_repo(Path(td))
+        run_swarm(
+            ["start", "--recipe", "pair", "--ui", "tmux", "--runner", "skeleton", "Task"], repo
+        )
+        run_id = next((repo / ".agent-toolkit" / "swarm" / "runs").iterdir()).name
+        run_dir = repo / ".agent-toolkit" / "swarm" / "runs" / run_id
+        state = json.loads((run_dir / "state.json").read_text())
+        state["run_state"] = "budget_exhausted"
+        (run_dir / "state.json").write_text(json.dumps(state))
+        res = run_swarm(["status", run_id, "--json"], repo)
+        assert res.returncode == 0, res.stderr
+        data = json.loads(res.stdout)
+        assert data["state"]["run_state"] == "budget_exhausted"
+
+
+def test_swarm_resume_from_budget_exhausted():
+    with tempfile.TemporaryDirectory() as td:
+        repo = init_repo(Path(td))
+        run_swarm(
+            ["start", "--recipe", "pair", "--ui", "tmux", "--runner", "skeleton", "Task"], repo
+        )
+        run_id = next((repo / ".agent-toolkit" / "swarm" / "runs").iterdir()).name
+        run_dir = repo / ".agent-toolkit" / "swarm" / "runs" / run_id
+        state = json.loads((run_dir / "state.json").read_text())
+        state["run_state"] = "budget_exhausted"
+        (run_dir / "state.json").write_text(json.dumps(state))
+        res = run_swarm(["resume", run_id], repo)
+        assert res.returncode == 0, res.stderr
+        assert "running" in res.stdout
+        state2 = json.loads((run_dir / "state.json").read_text())
+        assert state2["run_state"] == "running"
+
+
+def test_swarm_report_on_budget_exhausted():
+    with tempfile.TemporaryDirectory() as td:
+        repo = init_repo(Path(td))
+        run_swarm(
+            ["start", "--recipe", "pair", "--ui", "tmux", "--runner", "skeleton", "Task"], repo
+        )
+        run_id = next((repo / ".agent-toolkit" / "swarm" / "runs").iterdir()).name
+        run_dir = repo / ".agent-toolkit" / "swarm" / "runs" / run_id
+        state = json.loads((run_dir / "state.json").read_text())
+        state["run_state"] = "budget_exhausted"
+        (run_dir / "state.json").write_text(json.dumps(state))
+        res = run_swarm(["report", run_id], repo)
+        output = res.stdout + res.stderr
+        assert (
+            "No final-report.md yet" in output
+            or "budget_exhausted" in output
+            or "partial" in output.lower()
+        )
