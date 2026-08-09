@@ -27,6 +27,27 @@ uv sync --all-extras
 
 ---
 
+## Smoke Test Skills and Agents
+
+Run a mechanical integrity check on every `SKILL.md` and `AGENT.md`:
+
+```bash
+python3 scripts/smoke-test-skills.py
+```
+
+This command checks:
+- YAML frontmatter parses
+- Required fields (`name`, `description`) are present
+- The `name` field matches the directory name
+- The description is not a placeholder (TBD, TODO, etc.)
+- Internal file references in markdown links resolve
+- Scripts have shebang lines and executable bits
+
+Run this before you open a pull request that touches `skills/` or `agents/`.
+It runs in CI when those directories change.
+
+---
+
 ## Validation Commands
 
 Always run validation before opening a PR. All checks must pass. These match `.github/workflows/validate.yml`.
