@@ -21,7 +21,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
 _TOKENS_PER_CHAR = 0.25
 
 _RISK_LOW = 20_000
@@ -144,8 +143,7 @@ def _detect_duplicates(sections: list[SectionFootprint]) -> list[str]:
         for b in sections[i + 1 :]:
             if a.kind == b.kind and a.chars > 0 and a.chars == b.chars:
                 warnings.append(
-                    f"Duplicate identical blocks: {a.label} and {b.label}"
-                    f" ({a.chars} chars each)"
+                    f"Duplicate identical blocks: {a.label} and {b.label} ({a.chars} chars each)"
                 )
     return warnings
 
@@ -155,8 +153,7 @@ def _detect_large_sections(sections: list[SectionFootprint]) -> list[str]:
     for s in sections:
         if s.chars > _LARGE_SECTION_CHARS:
             warnings.append(
-                f"Large section: {s.label} ({s.chars:,} chars,"
-                f" ~{s.estimated_tokens:,} tokens)"
+                f"Large section: {s.label} ({s.chars:,} chars, ~{s.estimated_tokens:,} tokens)"
             )
     return warnings
 
@@ -434,27 +431,23 @@ def _build_suggestions(result: BudgetResult) -> None:
     skill_sections = [s for s in result.sections if s.kind == "pack_skills"]
     agent_sections = [s for s in result.sections if s.kind == "pack_agents"]
     large_instruction = [
-        s for s in result.sections
+        s
+        for s in result.sections
         if s.kind in ("persona_body", "pack_notes") and s.chars > _LARGE_SECTION_CHARS
     ]
     persona_count = len({s.path for s in result.sections if s.kind == "persona_body"})
 
     if skill_sections:
-        result.suggestions.append(
-            "Consider reducing the number of enabled skills per pack."
-        )
+        result.suggestions.append("Consider reducing the number of enabled skills per pack.")
     if agent_sections:
-        result.suggestions.append(
-            "Consider reducing the number of enabled agents per pack."
-        )
+        result.suggestions.append("Consider reducing the number of enabled agents per pack.")
     if large_instruction:
         result.suggestions.append(
             "Split large instruction sections into optional referenced files."
         )
     if persona_count > 2:
         result.suggestions.append(
-            "Prefer a narrower profile set; more than 2 personas"
-            " increases context footprint."
+            "Prefer a narrower profile set; more than 2 personas increases context footprint."
         )
     if result.total_tokens >= _RISK_MEDIUM:
         result.suggestions.append(

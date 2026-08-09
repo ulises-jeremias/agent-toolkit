@@ -470,6 +470,8 @@ projects/
 .active-persona
 .active-pack
 .active-profile
+.active-skills
+.active-loops
 .persona-history
 """
 
@@ -551,17 +553,193 @@ def cmd_init(args: list[str]) -> int:
     return 0
 
 
+def _approx_size(path: Path) -> int:
+    """Return approximate byte size for a file or directory."""
+    if not path.exists():
+        return 0
+    if path.is_file():
+        return path.stat().st_size
+    total = 0
+    for entry in path.rglob("*"):
+        if entry.is_file():
+            total += entry.stat().st_size
+    return total
+
+
+def _knowledge_summary(ws: Path, knowledge: Path) -> dict:
+    """Summarise knowledge/ learnings, todos, and processes."""
+    result: dict = {"learnings": 0, "todos": 0, "processes": 0}
+    for key, sub in [
+        ("learnings", "learnings"),
+        ("todos", "todos"),
+        ("processes", "processes"),
+    ]:
+        subdir = knowledge / sub
+        if subdir.is_dir():
+            result[key] = sum(1 for _ in subdir.rglob("*") if _.is_file())
+    return result
+
+
+def _print_context_json(
+    ws: Path,
+    now: datetime,
+    active_pack_file: Path,
+    active_persona_file: Path,
+    knowledge: Path,
+    agents_md: Path,
+    spec_hash: str | None,
+) -> None:
+    import json
+
+    pack_path = None
+    pack_size = None
+    if active_pack_file.exists():
+        pack_ref = active_pack_file.read_text(encoding="utf-8").strip()
+        pack_path = pack_ref
+        pack_abs = Path(pack_ref)
+        if not pack_abs.is_absolute():
+            pack_abs = ws / pack_ref
+        if pack_abs.exists():
+            pack_size = _approx_size(pack_abs)
+
+    persona_name = None
+    persona_size = None
+    if active_persona_file.exists():
+        persona_name = active_persona_file.read_text(encoding="utf-8").strip()
+        persona_abs = ws / "personas" / f"{persona_name}.md"
+        if persona_abs.exists():
+            persona_size = _approx_size(persona_abs)
+
+    ks = _knowledge_summary(ws, knowledge)
+
+    manifest = {
+        "workspace": str(ws),
+        "timestamp": now.isoformat(),
+        "sources": {
+            "pack": {"path": pack_path, "size_bytes": pack_size} if pack_path else None,
+            "persona": {
+                "name": persona_name,
+                "size_bytes": persona_size,
+            }
+            if persona_name
+            else None,
+            "knowledge": ks,
+        },
+    }
+    if spec_hash is not None:
+        manifest["spec"] = f"AGENTS.md@{spec_hash}"
+
+    print(json.dumps(manifest, indent=2, default=str))
+
+
+def _print_context_explain(
+    ws: Path,
+    active_pack_file: Path,
+    active_persona_file: Path,
+    knowledge: Path,
+    agents_md: Path,
+) -> None:
+    print()
+    print(_cyan("── Composition Sources ────────────────────────────────────"))
+
+    if active_pack_file.exists():
+        pack_ref = active_pack_file.read_text(encoding="utf-8").strip()
+        pack_abs = Path(pack_ref)
+        if not pack_abs.is_absolute():
+            pack_abs = ws / pack_ref
+        pack_exists = pack_abs.exists()
+        size_str = ""
+        if pack_exists:
+            psize = _approx_size(pack_abs)
+            if psize >= 1024:
+                size_str = f" ({psize // 1024} KB)"
+            else:
+                size_str = f" ({psize} B)"
+        status = _green("found") if pack_exists else _yellow("missing")
+        print(f"  pack      : [{status}] {pack_ref}{size_str}")
+        if pack_exists:
+            data = _parse_yaml_file(pack_abs)
+            desc = data.get("description")
+            if desc:
+                print(f"              {_dim(str(desc))}")
+            projects = data.get("projects")
+            if isinstance(projects, list) and projects:
+                print(f"              projects: {', '.join(str(p) for p in projects)}")
+    else:
+        print(_dim("  pack      : (none active)"))
+
+    if active_persona_file.exists():
+        persona_name = active_persona_file.read_text(encoding="utf-8").strip()
+        persona_abs = ws / "personas" / f"{persona_name}.md"
+        persona_exists = persona_abs.exists()
+        psize = _approx_size(persona_abs) if persona_exists else 0
+        size_str = ""
+        if persona_exists:
+            if psize >= 1024:
+                size_str = f" ({psize // 1024} KB)"
+            else:
+                size_str = f" ({psize} B)"
+        status = _green("found") if persona_exists else _yellow("missing")
+        print(f"  persona   : [{status}] {persona_name}{size_str}")
+    else:
+        print(_dim("  persona   : (none active)"))
+
+    ks = _knowledge_summary(ws, knowledge)
+    if knowledge.is_dir():
+        ksize = _approx_size(knowledge)
+        if ksize >= 1024:
+            ksize_str = f" ({ksize // 1024} KB)"
+        else:
+            ksize_str = f" ({ksize} B)"
+    else:
+        ksize_str = ""
+    print(
+        f"  knowledge : {_green('present') if knowledge.is_dir() else _yellow('missing')}"
+        f"{ksize_str} (learnings={ks['learnings']}, todos={ks['todos']}, processes={ks['processes']})"
+    )
+
+    if agents_md.exists():
+        agents_size = _approx_size(agents_md)
+        if agents_size >= 1024:
+            asize_str = f" ({agents_size // 1024} KB)"
+        else:
+            asize_str = f" ({agents_size} B)"
+        print(f"  AGENTS.md : {_green('found')}{asize_str}")
+    else:
+        print(_dim("  AGENTS.md : (none)"))
+
+    print()
+    print(_dim("  Budget analysis: see #335"))
+    print()
+
+
 def cmd_context(args: list[str]) -> int:
     """Output a session state snapshot."""
+
     workspace_path: str | None = None
+    explain = False
+    json_out = False
     i = 0
     while i < len(args):
         match args[i]:
             case "--workspace" if i + 1 < len(args):
                 workspace_path = args[i + 1]
                 i += 2
+            case "--explain":
+                explain = True
+                i += 1
+            case "--json":
+                json_out = True
+                i += 1
             case "--help" | "-h":
-                print("Usage: agent-toolkit workspace context [--workspace PATH]")
+                print(
+                    "Usage: agent-toolkit workspace context [--workspace PATH] [--explain] [--json]"
+                )
+                print()
+                print("Options:")
+                print("  --workspace PATH  Path to workspace root")
+                print("  --explain         Show composition sources with paths and sizes")
+                print("  --json            Output JSON (implies --explain for tooling)")
                 return 0
             case _:
                 print(f"Unknown option: {args[i]}", file=sys.stderr)
@@ -580,6 +758,26 @@ def cmd_context(args: list[str]) -> int:
     projects_dir = ws / "projects"
     loops_dir = ws / "loops"
     ws / "packs"
+    active_pack_file = ws / ".active-pack"
+    active_persona_file = ws / ".active-persona"
+    agents_md = ws / "AGENTS.md"
+
+    if json_out:
+        import hashlib
+
+        spec_hash = None
+        if agents_md.exists():
+            spec_hash = hashlib.sha256(agents_md.read_bytes()).hexdigest()[:12]
+        _print_context_json(
+            ws,
+            now,
+            active_pack_file,
+            active_persona_file,
+            knowledge,
+            agents_md,
+            spec_hash,
+        )
+        return 0
 
     print()
     print(_blue("=== AI Workspace — Session Context ==="))
@@ -672,7 +870,6 @@ def cmd_context(args: list[str]) -> int:
         print()
 
     # Active pack
-    active_pack_file = ws / ".active-pack"
     if active_pack_file.exists():
         pack = active_pack_file.read_text(encoding="utf-8").strip()
         print(_blue("── Active Pack ────────────────────────────────────────────"))
@@ -685,7 +882,6 @@ def cmd_context(args: list[str]) -> int:
         print()
 
     # Active persona
-    active_persona_file = ws / ".active-persona"
     if active_persona_file.exists():
         persona = active_persona_file.read_text(encoding="utf-8").strip()
         print(_blue("── Active Persona ─────────────────────────────────────────"))
@@ -696,14 +892,46 @@ def cmd_context(args: list[str]) -> int:
             print(_format_persona_constraints(persona, meta))
         print()
 
+    # Active skills (from profile load)
+    active_skills_file = ws / ".active-skills"
+    if active_skills_file.exists():
+        skills_text = active_skills_file.read_text(encoding="utf-8").strip()
+        if skills_text:
+            skills_list = [s.strip() for s in skills_text.splitlines() if s.strip()]
+            if skills_list:
+                print(_blue("── Active Skills ─────────────────────────────────────────"))
+                for s in skills_list:
+                    print(f"  - {s}")
+                print()
+
+    # Active loops (from profile load)
+    active_loops_file = ws / ".active-loops"
+    if active_loops_file.exists():
+        loops_text = active_loops_file.read_text(encoding="utf-8").strip()
+        if loops_text:
+            loops_list = [ln.strip() for ln in loops_text.splitlines() if ln.strip()]
+            if loops_list:
+                print(_blue("── Active Loops ──────────────────────────────────────────"))
+                for ln in loops_list:
+                    print(f"  - {ln}")
+                print()
+
     # AGENTS.md hash
-    agents_md = ws / "AGENTS.md"
     if agents_md.exists():
         import hashlib
 
         spec_hash = hashlib.sha256(agents_md.read_bytes()).hexdigest()[:12]
         print(f"Spec      : AGENTS.md@{spec_hash}")
         print()
+
+    if explain:
+        _print_context_explain(
+            ws,
+            active_pack_file,
+            active_persona_file,
+            knowledge,
+            agents_md,
+        )
 
     print(_blue("──────────────────────────────────────────────────────────"))
     print()
@@ -1076,6 +1304,16 @@ def _load_profile(ws: Path, profile_name: str) -> int:
             _write(active_file, str(persona) + "\n")
             print(_green(f"  Persona: {persona}"))
 
+    skills = data.get("skills")
+    if isinstance(skills, list) and skills:
+        _write(ws / ".active-skills", "\n".join(str(s) for s in skills) + "\n")
+        print(_green(f"  Skills: {', '.join(str(s) for s in skills)}"))
+
+    loops = data.get("loops")
+    if isinstance(loops, list) and loops:
+        _write(ws / ".active-loops", "\n".join(str(ln) for ln in loops) + "\n")
+        print(_green(f"  Loops: {', '.join(str(ln) for ln in loops)}"))
+
     return 0
 
 
@@ -1114,7 +1352,13 @@ def cmd_profiles(args: list[str]) -> int:
         pack = data.get("pack") or "-"
         persona = data.get("persona") or "-"
         desc = data.get("description") or ""
+        skills = data.get("skills")
+        loops = data.get("loops")
         print(f"  {name:25s} pack={pack} persona={persona}")
+        if isinstance(skills, list) and skills:
+            print(_dim(f"    skills: {', '.join(str(s) for s in skills)}"))
+        if isinstance(loops, list) and loops:
+            print(_dim(f"    loops: {', '.join(str(ln) for ln in loops)}"))
         if desc:
             print(_dim(f"    {desc}"))
 
@@ -1205,6 +1449,22 @@ def _validate_profiles(ws: Path) -> list[str]:
         persona = data.get("persona")
         if persona and not _persona_path(ws, str(persona)).exists():
             errors.append(f"{path.name}: referenced persona '{persona}' not found")
+        skills = data.get("skills")
+        if skills is not None:
+            if not isinstance(skills, list):
+                errors.append(f"{path.name}: 'skills' must be a list of strings")
+            else:
+                for idx, s in enumerate(skills):
+                    if not isinstance(s, str) or not s.strip():
+                        errors.append(f"{path.name}: skills[{idx}] must be a non-empty string")
+        loops = data.get("loops")
+        if loops is not None:
+            if not isinstance(loops, list):
+                errors.append(f"{path.name}: 'loops' must be a list of strings")
+            else:
+                for idx, ln in enumerate(loops):
+                    if not isinstance(ln, str) or not ln.strip():
+                        errors.append(f"{path.name}: loops[{idx}] must be a non-empty string")
     return errors
 
 
@@ -1334,8 +1594,7 @@ def _cmd_budget(args: list[str]) -> int:
                 i += 1
             case "--help" | "-h":
                 print(
-                    "Usage: agent-toolkit workspace budget"
-                    " [--pack NAME] [--profile NAME] [--json]"
+                    "Usage: agent-toolkit workspace budget [--pack NAME] [--profile NAME] [--json]"
                 )
                 return 0
             case _:
@@ -1360,8 +1619,7 @@ def _cmd_budget(args: list[str]) -> int:
     print()
     print(f"  Workspace : {result.workspace}")
     print(f"  Target    : {result.target}")
-    print(f"  Footprint : {result.total_chars:,} chars"
-          f" (~{result.total_tokens:,} tokens)")
+    print(f"  Footprint : {result.total_chars:,} chars (~{result.total_tokens:,} tokens)")
     print(f"  Risk      : {_color_for_risk(result.risk)}")
     print()
 
@@ -1370,11 +1628,7 @@ def _cmd_budget(args: list[str]) -> int:
         print()
         for s in result.sections:
             indent = "    "
-            print(
-                f"{indent}{s.label:<40}"
-                f" {s.chars:>7,} chars"
-                f"  ~{s.estimated_tokens:>6,} tokens"
-            )
+            print(f"{indent}{s.label:<40} {s.chars:>7,} chars  ~{s.estimated_tokens:>6,} tokens")
         print()
 
     if result.warnings:

@@ -12,7 +12,9 @@ version: "1.0"
 # ---------------------------------------------------------------------------
 # Skills
 # ---------------------------------------------------------------------------
+# Advisory only — not applied by `loop run --pack`.
 # Domain/path IDs matching catalogs/skill-catalog.yaml.
+# See packs/README.md and ADR-006.
 
 skills:
   delivery/task:
@@ -31,6 +33,7 @@ skills:
 # ---------------------------------------------------------------------------
 # Agents
 # ---------------------------------------------------------------------------
+# Advisory only — not applied by `loop run --pack`.
 
 agents:
   tech-assistant:

@@ -22,6 +22,13 @@ def _scaffold_workspace(tmp_path: Path) -> Path:
         "name: oss-contributor\ndescription: OSS mode\npack: acme\npersona: implementer\n",
         encoding="utf-8",
     )
+    (root / "profiles" / "full-stack.yaml").write_text(
+        "name: full-stack\ndescription: Full stack profile with skills and loops\n"
+        "pack: acme\npersona: reviewer\n"
+        "skills:\n  - delivery/gh-address-comments\n  - core/memory\n"
+        "loops:\n  - daily-triage\n  - weekly-report\n",
+        encoding="utf-8",
+    )
     (root / "templates" / "jobs").mkdir(parents=True, exist_ok=True)
     (root / "templates" / "jobs" / "code-review.yaml").write_text(
         "name: code-review\nrequest: Review the code\n",
@@ -159,3 +166,102 @@ def test_budget_profile_references_pack(workspace: Path) -> None:
     pack_labels = [s.label for s in result.sections]
     assert any("pack:" in lbl for lbl in pack_labels)
     assert any("persona:" in lbl for lbl in pack_labels)
+
+
+def test_load_profile_stores_skills_and_loops(workspace: Path) -> None:
+    assert ws.cmd_load(["--profile", "full-stack"]) == 0
+    assert (workspace / ".active-profile").read_text(encoding="utf-8").strip() == "full-stack"
+    skills = (workspace / ".active-skills").read_text(encoding="utf-8").strip()
+    assert "delivery/gh-address-comments" in skills
+    assert "core/memory" in skills
+    loops = (workspace / ".active-loops").read_text(encoding="utf-8").strip()
+    assert "daily-triage" in loops
+    assert "weekly-report" in loops
+
+
+def test_context_shows_skills_and_loops(
+    workspace: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    ws.cmd_load(["--profile", "full-stack"])
+    assert ws.cmd_context([]) == 0
+    out = capsys.readouterr().out
+    assert "Active Skills" in out
+    assert "delivery/gh-address-comments" in out
+    assert "core/memory" in out
+    assert "Active Loops" in out
+    assert "daily-triage" in out
+    assert "weekly-report" in out
+
+
+def test_profiles_list_shows_skills_and_loops(
+    workspace: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert ws.cmd_profiles([]) == 0
+    out = capsys.readouterr().out
+    assert "full-stack" in out
+    assert "delivery/gh-address-comments" in out
+    assert "daily-triage" in out
+
+
+def test_validate_profile_bad_skills(workspace: Path) -> None:
+    (workspace / "profiles" / "bad-skills.yaml").write_text(
+        "name: bad-skills\ndescription: Bad skills field\nskills:\n  - ''\n  - 42\n",
+        encoding="utf-8",
+    )
+    assert ws.cmd_validate(["profiles"]) == 1
+
+
+def test_validate_profile_bad_loops(workspace: Path) -> None:
+    (workspace / "profiles" / "bad-loops.yaml").write_text(
+        "name: bad-loops\ndescription: Bad loops field\nloops: not-a-list\n",
+        encoding="utf-8",
+    )
+    assert ws.cmd_validate(["profiles"]) == 1
+
+
+def test_context_explain_shows_sources(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    ws.cmd_use_persona(["implementer"])
+    ws.cmd_load(["packs/acme.yaml"])
+    assert ws.cmd_context(["--explain"]) == 0
+    out = capsys.readouterr().out
+    assert "Composition Sources" in out
+    assert "pack" in out
+    assert "acme" in out
+    assert "persona" in out
+    assert "implementer" in out
+    assert "knowledge" in out
+    assert "AGENTS.md" in out
+    assert "Budget analysis: see #335" in out
+
+
+def test_context_explain_no_pack_no_persona(
+    workspace: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert ws.cmd_context(["--explain"]) == 0
+    out = capsys.readouterr().out
+    assert "Composition Sources" in out
+    assert "(none active)" in out
+
+
+def test_context_json_output(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    import json
+
+    ws.cmd_use_persona(["implementer"])
+    ws.cmd_load(["packs/acme.yaml"])
+    capsys.readouterr()
+    assert ws.cmd_context(["--json"]) == 0
+    out = capsys.readouterr().out
+    data = json.loads(out)
+    assert "sources" in data
+    assert data["sources"]["pack"] is not None
+    assert "acme" in data["sources"]["pack"]["path"]
+    assert data["sources"]["persona"] is not None
+    assert data["sources"]["persona"]["name"] == "implementer"
+    assert "knowledge" in data["sources"]
+
+
+def test_context_help_mentions_flags(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert ws.cmd_context(["--help"]) == 0
+    out = capsys.readouterr().out
+    assert "--explain" in out
+    assert "--json" in out
