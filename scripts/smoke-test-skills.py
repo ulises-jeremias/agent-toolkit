@@ -80,9 +80,7 @@ def path_relative(path: Path) -> str:
 def check_file_exists(ref_path: Path, source: Path) -> bool:
     if ref_path.exists():
         return True
-    error(
-        f"{path_relative(source)}: references '{ref_path}' which does not exist"
-    )
+    error(f"{path_relative(source)}: references '{ref_path}' which does not exist")
     return False
 
 
@@ -132,9 +130,7 @@ def resolve_links(content: str, source_path: Path) -> None:
         except ValueError:
             continue
         if not candidate.exists():
-            error(
-                f"{path_relative(source_path)}: link target '{file_part}' does not resolve"
-            )
+            error(f"{path_relative(source_path)}: link target '{file_part}' does not resolve")
 
 
 def validate_skill(skill_dir: Path) -> bool:
@@ -158,16 +154,12 @@ def validate_skill(skill_dir: Path) -> bool:
 
     name = fm.get("name", "")
     if name and name != skill_dir.name:
-        error(
-            f"{rel}/SKILL.md: name '{name}' does not match directory '{skill_dir.name}'"
-        )
+        error(f"{rel}/SKILL.md: name '{name}' does not match directory '{skill_dir.name}'")
         ok_flag = False
 
     desc = fm.get("description", "")
     if isinstance(desc, str) and desc.strip() in PLACEHOLDER_DESCRIPTIONS:
-        error(
-            f"{rel}/SKILL.md: description is a placeholder ('{desc.strip()}')"
-        )
+        error(f"{rel}/SKILL.md: description is a placeholder ('{desc.strip()}')")
         ok_flag = False
 
     content = skill_md.read_text(errors="replace")
@@ -199,16 +191,12 @@ def validate_agent(agent_dir: Path) -> bool:
 
     name = fm.get("name", "")
     if name and name != agent_dir.name:
-        error(
-            f"{rel}/AGENT.md: name '{name}' does not match directory '{agent_dir.name}'"
-        )
+        error(f"{rel}/AGENT.md: name '{name}' does not match directory '{agent_dir.name}'")
         ok_flag = False
 
     desc = fm.get("description", "")
     if isinstance(desc, str) and desc.strip() in PLACEHOLDER_DESCRIPTIONS:
-        error(
-            f"{rel}/AGENT.md: description is a placeholder ('{desc.strip()}')"
-        )
+        error(f"{rel}/AGENT.md: description is a placeholder ('{desc.strip()}')")
         ok_flag = False
 
     content = agent_md.read_text(errors="replace")

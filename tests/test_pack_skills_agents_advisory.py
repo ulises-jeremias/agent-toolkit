@@ -96,9 +96,7 @@ def test_pack_skills_and_agents_are_advisory_in_all_pack_configs() -> None:
         has_agents = "agents" in data
 
         if has_skills or has_agents:
-            assert (
-                "advisory" in text.lower() or "not applied" in text.lower()
-            ), (
+            assert "advisory" in text.lower() or "not applied" in text.lower(), (
                 f"{config_path.relative_to(repo_root)} has skills: or agents: "
                 "but does not state they are advisory"
             )
@@ -108,9 +106,7 @@ def test_load_pack_preserves_skills_and_agents_keys() -> None:
     """load_pack returns the raw YAML dict including skills and agents keys."""
     import tempfile
 
-    with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".yaml", delete=False, encoding="utf-8"
-    ) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False, encoding="utf-8") as f:
         f.write(
             "pack: test\n"
             "skills:\n  forge/test:\n    enabled: true\n"
