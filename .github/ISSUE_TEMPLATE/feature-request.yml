@@ -29,6 +29,8 @@ body:
         - "Platform target (Claude Code, Cursor, Copilot, etc.)"
         - "MCP integration"
         - "Loop engineering"
+        - "Swarm"
+        - "Workspace / packs"
         - "Installation / distribution"
         - "CI / validation"
         - "Schemas / canonical model"
