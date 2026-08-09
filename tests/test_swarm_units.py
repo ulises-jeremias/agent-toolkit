@@ -192,3 +192,34 @@ def test_atomic_write_json():
         assert json.loads(p.read_text())["a"] == 1
         atomic_write_json(p, {"b": 2})
         assert json.loads(p.read_text())["b"] == 2
+
+
+def test_budget_exhausted_state_transitions():
+    assert can_transition_run("running", "budget_exhausted")
+    assert can_transition_run("budget_exhausted", "running")
+    assert can_transition_run("budget_exhausted", "cancelled")
+    assert can_transition_run("budget_exhausted", "cleanup_pending")
+    assert not can_transition_run("budget_exhausted", "completed")
+    assert not can_transition_run("completed", "budget_exhausted")
+
+
+def test_budget_tight_limits_detection():
+    b = resolve_budget({"max_total_tokens": 10, "max_cost_usd": 0.01, "max_wall_seconds": 5})
+    violated = check_limits(b, {"total_tokens": 11, "cost_usd": 0.02, "wall_seconds": 6})
+    assert "max_total_tokens" in violated
+    assert "max_cost_usd" in violated
+    assert "max_wall_seconds" in violated
+
+
+def test_budget_limits_exact_boundary():
+    b = resolve_budget({"max_total_tokens": 100, "max_cost_usd": 1.0, "max_wall_seconds": 60})
+    violated_at_limit = check_limits(b, {"total_tokens": 100, "cost_usd": 1.0, "wall_seconds": 60})
+    assert "max_total_tokens" in violated_at_limit
+    assert "max_cost_usd" in violated_at_limit
+    assert "max_wall_seconds" in violated_at_limit
+    under = check_limits(b, {"total_tokens": 99, "cost_usd": 0.99, "wall_seconds": 59})
+    assert under == []
+
+
+def test_budget_exhausted_to_running_resume_path():
+    assert can_transition_run("budget_exhausted", "running")
