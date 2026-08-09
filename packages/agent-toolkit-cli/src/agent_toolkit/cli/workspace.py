@@ -1252,9 +1252,7 @@ def _validate_profiles(ws: Path) -> list[str]:
             else:
                 for idx, s in enumerate(skills):
                     if not isinstance(s, str) or not s.strip():
-                        errors.append(
-                            f"{path.name}: skills[{idx}] must be a non-empty string"
-                        )
+                        errors.append(f"{path.name}: skills[{idx}] must be a non-empty string")
         loops = data.get("loops")
         if loops is not None:
             if not isinstance(loops, list):
@@ -1262,9 +1260,7 @@ def _validate_profiles(ws: Path) -> list[str]:
             else:
                 for idx, ln in enumerate(loops):
                     if not isinstance(ln, str) or not ln.strip():
-                        errors.append(
-                            f"{path.name}: loops[{idx}] must be a non-empty string"
-                        )
+                        errors.append(f"{path.name}: loops[{idx}] must be a non-empty string")
     return errors
 
 

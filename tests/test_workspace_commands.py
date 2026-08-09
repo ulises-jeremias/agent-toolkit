@@ -158,8 +158,7 @@ def test_profiles_list_shows_skills_and_loops(
 
 def test_validate_profile_bad_skills(workspace: Path) -> None:
     (workspace / "profiles" / "bad-skills.yaml").write_text(
-        "name: bad-skills\ndescription: Bad skills field\n"
-        "skills:\n  - ''\n  - 42\n",
+        "name: bad-skills\ndescription: Bad skills field\nskills:\n  - ''\n  - 42\n",
         encoding="utf-8",
     )
     assert ws.cmd_validate(["profiles"]) == 1
@@ -167,8 +166,7 @@ def test_validate_profile_bad_skills(workspace: Path) -> None:
 
 def test_validate_profile_bad_loops(workspace: Path) -> None:
     (workspace / "profiles" / "bad-loops.yaml").write_text(
-        "name: bad-loops\ndescription: Bad loops field\n"
-        "loops: not-a-list\n",
+        "name: bad-loops\ndescription: Bad loops field\nloops: not-a-list\n",
         encoding="utf-8",
     )
     assert ws.cmd_validate(["profiles"]) == 1
