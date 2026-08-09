@@ -112,3 +112,51 @@ def test_validate_knowledge_missing_dir(workspace: Path) -> None:
 
 def test_validate_unknown_surface(workspace: Path) -> None:
     assert ws.cmd_validate(["nope"]) == 1
+
+
+def test_context_explain_shows_sources(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    ws.cmd_use_persona(["implementer"])
+    ws.cmd_load(["packs/acme.yaml"])
+    assert ws.cmd_context(["--explain"]) == 0
+    out = capsys.readouterr().out
+    assert "Composition Sources" in out
+    assert "pack" in out
+    assert "acme" in out
+    assert "persona" in out
+    assert "implementer" in out
+    assert "knowledge" in out
+    assert "AGENTS.md" in out
+    assert "Budget analysis: see #335" in out
+
+
+def test_context_explain_no_pack_no_persona(
+    workspace: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert ws.cmd_context(["--explain"]) == 0
+    out = capsys.readouterr().out
+    assert "Composition Sources" in out
+    assert "(none active)" in out
+
+
+def test_context_json_output(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    import json
+
+    ws.cmd_use_persona(["implementer"])
+    ws.cmd_load(["packs/acme.yaml"])
+    capsys.readouterr()
+    assert ws.cmd_context(["--json"]) == 0
+    out = capsys.readouterr().out
+    data = json.loads(out)
+    assert "sources" in data
+    assert data["sources"]["pack"] is not None
+    assert "acme" in data["sources"]["pack"]["path"]
+    assert data["sources"]["persona"] is not None
+    assert data["sources"]["persona"]["name"] == "implementer"
+    assert "knowledge" in data["sources"]
+
+
+def test_context_help_mentions_flags(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert ws.cmd_context(["--help"]) == 0
+    out = capsys.readouterr().out
+    assert "--explain" in out
+    assert "--json" in out
