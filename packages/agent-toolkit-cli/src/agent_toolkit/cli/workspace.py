@@ -313,7 +313,9 @@ notes: |
   Key contacts: ...
 ```
 
-Load with: `agent-toolkit workspace context --pack packs/my-client.yaml`
+Load with: `agent-toolkit workspace load packs/my-client.yaml`
+
+Snapshot with: `agent-toolkit workspace context`
 """
 
 _PERSONA_IMPLEMENTER = """\
