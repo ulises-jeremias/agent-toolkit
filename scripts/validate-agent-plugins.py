@@ -10,9 +10,10 @@ Usage:
 """
 
 from __future__ import annotations
+
 import json
-import sys
 import re
+import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -145,7 +146,6 @@ def validate_mcp(plugin_dir: Path):
 
 
 def main():
-    check = "--check" in sys.argv
     plugins = [d for d in PLUGINS_DIR.iterdir() if d.is_dir()] if PLUGINS_DIR.exists() else []
     if not plugins:
         print("No plugins found in plugins/", file=sys.stderr)

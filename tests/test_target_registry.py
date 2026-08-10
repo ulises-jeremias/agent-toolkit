@@ -28,15 +28,26 @@ def test_registry_file_exists() -> None:
 def test_loads_ten_build_targets() -> None:
     registry = load_target_registry(REPO_ROOT)
     build_ids = target_ids_for("build", registry)
-    assert len(build_ids) == 10
+    assert len(build_ids) == 11
     assert "claude-code" in build_ids
     assert "codex" in build_ids
+    assert "agent-plugins" in build_ids
+
+
+def test_loads_eleven_build_targets() -> None:
+    # Alias for backward compatibility — delegates to the canonical test above.
+    test_loads_ten_build_targets()
 
 
 def test_diff_defaults_to_three_targets() -> None:
     registry = load_target_registry(REPO_ROOT)
     diff_ids = target_ids_for("diff", registry)
-    assert diff_ids == ["claude-code", "cursor", "opencode"]
+    assert diff_ids == ["claude-code", "cursor", "opencode", "agent-plugins"]
+
+
+def test_diff_defaults_to_four_targets() -> None:
+    # Alias for backward compatibility.
+    test_diff_defaults_to_three_targets()
 
 
 def test_release_includes_adapter_paths() -> None:
