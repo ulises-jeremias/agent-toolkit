@@ -1,7 +1,14 @@
 version: 1
 generated: true
-count: 61
+count: 62
 skills:
+  - id: agentic-security/supply-chain-audit
+    name: supply-chain-audit
+    domain: agentic-security
+    description: Inspect agent supply chain — skills/plugins/MCP/npm/py packages,
+      hooks, scripts, remote prompts, provenance, version pins, hashes, licenses,
+      network and dangerous permissions — before adopting.
+    stability: stable
   - id: core/assistant
     name: assistant
     domain: core
