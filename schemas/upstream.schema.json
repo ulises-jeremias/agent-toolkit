@@ -140,6 +140,11 @@
         "reviewed_by": {
           "type": "string",
           "description": "Reviewer handle (GitHub username)"
+        },
+        "reviewed_provenance": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "description": "Digest binding human review to the lock's provenance_digest (hash of resolved commits+checksums+licenses). Updating upstream.lock changes this digest and invalidates prior review until declaration is re-audited. See ADR-0001."
         }
       }
     },

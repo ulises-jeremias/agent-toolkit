@@ -147,6 +147,12 @@ jobs:
 
       - name: Check upstream provenance (immutable refs, SPDX)
         run: uv run python scripts/validate-upstream.py --check
+      - name: Check provenance lock ↔ declaration ↔ vendored bytes (offline)
+        run: uv run python scripts/provenance.py check
+      - name: Check lock is deterministic from declarations
+        run: uv run python scripts/provenance.py lock --check
+      - name: Check generated UPSTREAM.md
+        run: uv run python scripts/provenance.py docs --check
 
   # ── Job 4: Detect plugin surface drift ────────────────────────────────────
   check-surfaces:

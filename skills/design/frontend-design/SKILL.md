@@ -15,6 +15,7 @@ trust:
   tier: reviewed
   reviewed_at: '2026-08-11'
   reviewed_by: ulises-jeremias
+  reviewed_provenance: sha256:c591059c29a3601310808f04b20cd277806a79e7825319977d1da5937177d101
 maintenance:
   status: active
   last_activity: '2026-08-07'

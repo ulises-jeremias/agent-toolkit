@@ -321,7 +321,7 @@ def main(argv: list[str] | None = None) -> int:
 
     count = len(list(SKILLS_DIR.rglob("SKILL.md")))
     print(f"upstream validation OK — {count} skills checked, origin + provenance + SPDX + SHA40 enforced.")
-    print("Note: SKILL.md frontmatter is authoritative until #370 introduces capabilities/upstream.lock (gate 3 Option B).")
+    print("Note: SKILL.md declarations are semantic authority; capabilities/upstream.lock is resolution authority per ADR-0001.")
     return 0
 
 

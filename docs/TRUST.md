@@ -98,21 +98,56 @@ Prefer tagged releases or marketplace installs over unreviewed forks.
 
 ### Provenance & third-party capabilities (per #364) — P0 foundation
 
-**Implemented now (in #399):** Explicit origin classification + immutable provenance in `SKILL.md` frontmatter, validated in CI via `scripts/validate-upstream.py`. Every distributable `SKILL.md` must declare `origin.type`.
+**Architecture per ADR-0001 (PR #403 — external provenance lock, accepted 2026-08-11):**
 
-**Planned in #370:** `capabilities/upstream.lock` will become the canonical provenance registry (single source of truth). Until #370 merges, `SKILL.md` frontmatter is authoritative. Do not document `upstream.lock` as already implemented — target architecture is:
-
+```text
+CAPABILITY DECLARATION        — “What is this capability and what external sources does it intend to use?”
+        ↓ resolution              SKILL.md frontmatter (origin, sources/upstream, trust, maintenance, distribution, security)
+EXTERNAL PROVENANCE LOCK      — “What exact immutable external artifacts were resolved?”
+        ↓ integrity verification  capabilities/upstream.lock v2: capability ID → source ID → {requested, resolved {commit, content_checksum, license, resolved_at}, provenance_digest}
+VENDORED / EXTERNAL STATE     — “What bytes/package/plugin actually correspond to that resolution?”
+        ↓ generation             skills/design/frontend-design/SKILL.md + LICENSE.txt (vendored) or external/native-plugin reference
+TARGET SURFACES               — “How Claude/Cursor/Copilot/OpenCode/etc. consume the capability”
+                                 plugins/*, catalogs/*, docs/UPSTREAM.md (generated from declaration+lock)
 ```
-canonical registry (capabilities/upstream.lock)  ← planned in #370
-    ↓
-validation (validate-upstream.py)
-    ↓
-SKILL.md frontmatter projection (currently authoritative)
-    ↓
-catalog/inventory
-```
 
-**Planned in #387:** `agent-toolkit inventory` and `doctor` provenance wiring (display upstream/sources, warn on stale pins, missing provenance). Until #387, provenance is visible via `validate-upstream.py --check` and frontmatter inspection only.
+> **Lock is a resolution artifact, not a second capability catalog.** It is sparse — only `origin: upstream` capabilities with external content appear; `first-party` never appears. Runtime package resolution (`uv.lock`, `pnpm-lock.yaml`, Docker digest) stays in ecosystem locks, not `upstream.lock`. See `docs/adr/0001-capability-declaration-and-external-provenance-lock.md` and `schemas/upstream-lock.schema.json`.
+
+Validation is offline/deterministic: `SKILL.md` + committed `capabilities/upstream.lock` + vendored bytes are enough for `uv run python scripts/provenance.py check` (schema, SHA40, SPDX, checksum vs bytes, provenance_digest, orphan/missing, review binding). Network is only for explicit `provenance.py updates` / scheduled update workflow.
+
+**Implemented now (in #399):** Explicit origin classification + immutable provenance in `SKILL.md` frontmatter, validated via `scripts/validate-upstream.py` (`origin.type` required, 40-char SHA, SPDX subset — `schemas/upstream.schema.json`).
+
+**Implemented now (in #403):** `capabilities/upstream.lock` v2 as external provenance lock (separate schema `schemas/upstream-lock.schema.json`, deterministic `scripts/provenance.py lock` / `check`). Vertical slice is `design/frontend-design` (`anthropics/skills` `f17010c9bb483898c1d9c9f42dde2b3a98889434`, `Apache-2.0`, `sha256:7e906c…` + `0d542e…`, `provenance_digest sha256:c59105…`, `trust.reviewed_provenance` bound — see `capabilities/upstream.lock`).
+
+**Planned in follow-up (split from #370):** Automated upstream update discovery + reviewed PR generation (scheduled `tracking` ref resolution → candidate branch → `lock` + vendored files + `UPSTREAM.md` → supply-chain audit → tests → open PR with old/new commit/checksum/license and `provenance_digest` review-required). Current `scripts/provenance.py updates` is a stub; full workflow will live in `.github/workflows/update-upstream.yml`.
+
+**Planned in #387:** `agent-toolkit inventory` and `doctor` provenance wiring (display `sources`/`provenance_digest`, warn on stale pins, missing provenance). Until #387, provenance is visible via `scripts/provenance.py check` and frontmatter inspection only.
+
+#### Canonical source table
+
+| Data                           | Canonical source                           |
+| ------------------------------ | ------------------------------------------ |
+| Capability behavior            | `SKILL.md` / capability declaration        |
+| Capability ID                  | declaration / catalog identity (`design/frontend-design`) |
+| Origin                         | declaration (`origin.type`)                |
+| Source intent (`requested` ref)| declaration (`upstream`/`sources`)         |
+| Trust status                   | declaration (`trust`)                      |
+| Security declaration           | declaration (`security`)                   |
+| Distribution policy            | declaration (`distribution`)               |
+| Requested upstream version/ref | declaration (`upstream.ref` / `sources[].ref`) |
+| Resolved commit                | `capabilities/upstream.lock` (`resolved.commit`) |
+| Content checksum               | `capabilities/upstream.lock` (`resolved.content_checksum`) |
+| Observed resolved license      | `capabilities/upstream.lock` (`resolved.license`) |
+| Resolution timestamp           | `capabilities/upstream.lock` (`resolved.resolved_at`) |
+| Provenance digest              | `capabilities/upstream.lock` (`provenance_digest`) + declaration `trust.reviewed_provenance` binding |
+| Product membership             | `distributions/products.yaml`              |
+| Generated catalogs             | `catalogs/*` generator output              |
+| Target plugin copies           | `scripts/gen-surfaces.py` output           |
+| Runtime package versions       | ecosystem-specific lock (`uv.lock`, etc.)  |
+
+**Review lifecycle:** `provenance_digest = hash(source IDs + resolved commits + content_checksum + license spdx)`. Human review sets `trust.reviewed_provenance = provenance_digest`. Updating `capabilities/upstream.lock` to new commit/checksum/license changes the digest → existing `reviewed_provenance` mismatch → `provenance.py check` fails with *review binding invalid* until declaration is re-audited and `trust.reviewed_provenance` (and `reviewed_at`/`reviewed_by`) are updated. This elegantly separates lock resolution from human trust state (see ADR-0001 §13-14).
+
+**Security lifecycle:** Declarations keep `security: {scripts, shell, network, mcp, hooks, dangerous_permissions, cve_policy}` as enforceable policy. Update tooling recomputes detected signals (`scripts/audit-capability.py`) and compares to declarations; a PR that introduces `shell: true` where declaration said `shell: false` fails or requires explicit declaration change + review. License policy vs observed: declaration `upstream.license` is expected `spdx: Apache-2.0`; lock `resolved.license.spdx` is observed. CI detects `expected vs observed` drift.
 
 Every `SKILL.md` must have an explicit origin — no inference from path or absence (gate 2):
 

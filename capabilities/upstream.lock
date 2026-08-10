@@ -1,0 +1,21 @@
+capabilities:
+  design/frontend-design:
+    provenance_digest: sha256:c591059c29a3601310808f04b20cd277806a79e7825319977d1da5937177d101
+    sources:
+      upstream:
+        path: skills/frontend-design
+        repository: anthropics/skills
+        requested:
+          ref: f17010c9bb483898c1d9c9f42dde2b3a98889434
+          type: commit
+        resolved:
+          commit: f17010c9bb483898c1d9c9f42dde2b3a98889434
+          content_checksum: sha256:7e906c7f68bd4fcfa383e237b773384b4562443d72dd75e6835ddf82f68c46ab
+          license:
+            checksum: sha256:0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594
+            source_path: skills/design/frontend-design/LICENSE.txt
+            spdx: Apache-2.0
+          resolved_at: '2026-08-11T15:51:47.698560Z'
+          version: f17010c
+generated_at: '2026-08-11T15:54:32.420188Z'
+version: 2
