@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-agents",
   "version": "1.8.4",
   "description": "Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
@@ -6,8 +7,23 @@
     "name": "ulises-jeremias",
     "url": "https://github.com/ulises-jeremias/agent-toolkit"
   },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",
   "license": "MIT",
-  "skills": "skills/",
-  "agents": "agents/"
+  "keywords": [
+    "agent-toolkit",
+    "agents",
+    "personas"
+  ],
+  "extensions": {
+    "com.anthropic.claude-code": {
+      "agents": "agents/",
+      "hooks": "hooks/",
+      "skills": "skills/"
+    },
+    "com.agent-toolkit.cli": {
+      "product": "agent-toolkit-agents",
+      "stability": "stable"
+    }
+  }
 }

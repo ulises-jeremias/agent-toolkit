@@ -1,4 +1,5 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-forge",
   "version": "1.8.4",
   "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
@@ -6,8 +7,25 @@
     "name": "ulises-jeremias",
     "url": "https://github.com/ulises-jeremias/agent-toolkit"
   },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",
   "license": "MIT",
-  "skills": "skills/",
-  "agents": "agents/"
+  "keywords": [
+    "agent-toolkit",
+    "forge",
+    "github",
+    "gitlab",
+    "skills"
+  ],
+  "extensions": {
+    "com.anthropic.claude-code": {
+      "agents": "agents/",
+      "hooks": "hooks/",
+      "skills": "skills/"
+    },
+    "com.agent-toolkit.cli": {
+      "product": "agent-toolkit-forge",
+      "stability": "stable"
+    }
+  }
 }

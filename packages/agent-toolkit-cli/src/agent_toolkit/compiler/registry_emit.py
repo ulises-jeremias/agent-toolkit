@@ -189,3 +189,74 @@ def mcp_json_text(
     if payload is None:
         return None
     return json.dumps(payload, indent=2) + "\n"
+
+
+def emit_agent_plugins_mcp_json(
+    provider_ids: list[str],
+    registry_dir: Path,
+    target_id: str = "agent-plugins",
+) -> dict | None:
+    """Build Agent Plugins 1.0 mcp.json content per spec §7.2.
+
+    Uses stdio transport with PLUGIN_ROOT/PLUGIN_DATA aware cwd/env.
+    """
+    registry = _mcp_dict(registry_dir)
+    servers: dict[str, dict] = {}
+
+    for provider_id in provider_ids:
+        provider = registry.get(provider_id)
+        if provider is None:
+            continue
+        # Only emit if provider has some tool definition (avoid empty)
+        # Use docker for ghcr, npx for npm packages
+        if provider.package.startswith("ghcr.io"):
+            servers[provider_id] = {
+                "type": "stdio",
+                "command": "docker",
+                "args": [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    provider.env_vars[0] if provider.env_vars else "TOKEN",
+                    provider.package,
+                ],
+                "cwd": "${PLUGIN_ROOT}",
+            }
+            if provider.env_vars:
+                servers[provider_id]["env"] = {var: f"${{{var}}}" for var in provider.env_vars}
+        elif provider.package.startswith("@"):
+            servers[provider_id] = {
+                "type": "stdio",
+                "command": "npx",
+                "args": ["-y", provider.package],
+                "cwd": "${PLUGIN_ROOT}",
+            }
+            if provider.env_vars:
+                servers[provider_id]["env"] = {var: f"${{{var}}}" for var in provider.env_vars}
+        else:
+            servers[provider_id] = {
+                "type": "stdio",
+                "command": provider.package or provider_id,
+                "cwd": "${PLUGIN_ROOT}",
+            }
+            if provider.env_vars:
+                servers[provider_id]["env"] = {var: f"${{{var}}}" for var in provider.env_vars}
+
+    if not servers:
+        return None
+    return {
+        "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+        "mcpServers": servers,
+    }
+
+
+def mcp_json_text_agent_plugins(
+    provider_ids: list[str],
+    registry_dir: Path,
+    target_id: str = "agent-plugins",
+) -> str | None:
+    payload = emit_agent_plugins_mcp_json(provider_ids, registry_dir, target_id)
+    if payload is None:
+        return None
+    return json.dumps(payload, indent=2) + "\n"

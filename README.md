@@ -14,6 +14,7 @@
 [![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
+[![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
 
 ![skills](https://img.shields.io/badge/skills-60-7c3aed?style=flat&labelColor=1f2937)
 ![agents](https://img.shields.io/badge/agents-16-0891b2?style=flat&labelColor=1f2937)
@@ -363,18 +364,20 @@ Templates live in [`mcp/templates/`](mcp/templates/). Each file is a `.json` wit
 
 ---
 
-## 📦 Plugins
+## 📦 Plugins — Agent Plugins 1.0 Portable
 
-Product bundles are declared in [`distributions/products.yaml`](distributions/products.yaml). Three ship in the Claude Code and Cursor marketplaces; a fourth experimental catalog product is build-only today:
+> **New:** Every plugin in [`plugins/`](./plugins/) now ships as an **Agent Plugins 1.0** portable bundle (`plugin.json` + `skills/` + `mcp.json`) for **Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro** — plus legacy `.claude-plugin/` for **Claude Code** (dual emit until Claude supports the spec). See [docs/AGENT_PLUGINS.md](docs/AGENT_PLUGINS.md).
 
-| Product | What's included |
-|---------|-----------------|
-| `agent-toolkit-core` | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
-| `agent-toolkit-agents` | 16 agent personas — architect, assistant, build-error-resolver, client-workflow-bootstrap, code-reviewer, database-reviewer, docs-lookup, e2e-runner, performance-optimizer, planner, refactor-cleaner, reference-lookup, security-reviewer, tdd-guide, tech-assistant, typescript-reviewer |
-| `agent-toolkit-forge` | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
-| `agent-toolkit-complete` | Full stable skill catalog (experimental; not in marketplace manifests yet) |
+Product bundles are declared in [`distributions/products.yaml`](distributions/products.yaml). Four products are built for every compatible client; three ship in the Claude Code and Cursor marketplaces:
 
-Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json)
+| Product | Portable (Agent Plugins 1.0) | What's included |
+|---------|------------------------------|-----------------|
+| `agent-toolkit-core` | `plugin.json` + `skills/` (6) + `mcp.json` (github) | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
+| `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 16 agent personas — architect, assistant, build-error-resolver, client-workflow-bootstrap, code-reviewer, database-reviewer, docs-lookup, e2e-runner, performance-optimizer, planner, refactor-cleaner, reference-lookup, security-reviewer, tdd-guide, tech-assistant, typescript-reviewer |
+| `agent-toolkit-forge` | `plugin.json` + `skills/` (7) | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
+| `agent-toolkit-complete` | `plugin.json` + `skills/` (60) + `mcp.json` | Full stable skill catalog (experimental; portable manifest included, marketplace pending) |
+
+Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) · `plugins/<id>/plugin.json` (Agent Plugins `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) · `plugins/<id>/mcp.json` (where applicable)
 
 ---
 

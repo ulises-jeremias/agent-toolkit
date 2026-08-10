@@ -8,7 +8,7 @@ One mental model for how agent-toolkit pieces fit together.
 |-------|----------|------------|--------------|
 | **Canonical content** | `skills/`, `agents/`, `loops/` | Source-of-truth capability definitions | Adding or changing skills/agents/loops |
 | **Products** | `distributions/products.yaml` | Named bundles of skills/agents/hooks/MCP for plugins | Shipping a marketplace plugin |
-| **Compiler output** | `plugins/` | Target-native manifests + copied SKILL.md/AGENT.md | **Generated** — do not hand-edit; validated by `build --check` (ADR-003/004) |
+| **Compiler output** | `plugins/` | Agent Plugins `plugin.json` + `skills/` + `mcp.json` + target-native manifests + copied SKILL.md/AGENT.md | **Generated** — do not hand-edit; validated by `build --check` (ADR-003/004) + `validate-agent-plugins.py` |
 | **Profiles** | `profiles/` | Legacy hand-copied install layouts per tool | **Deprecated** — fallback only; prefer `plugins/` via `installer/sources.py` (ADR-004) |
 | **Packs** | `packs/` | Solution-oriented README + config | **Docs-only** workflow templates; not loaded by compiler (ADR-006) |
 | **Presets** | *(planned)* | Named capability sets for `agent-toolkit.yaml` projects | Future — not implemented yet |
@@ -61,7 +61,7 @@ See also: `packs/README.md` (solution packs), `workspace load` CLI help, `loop/p
 ## Key rules
 
 1. **Products compose capabilities** — edit `distributions/products.yaml`, then `build`.
-2. **Plugins are compiler output** — Claude `.claude-plugin/`, Cursor `.cursor-plugin/`, etc.
+2. **Plugins are compiler output** — `plugin.json` (Agent Plugins 1.0 portable for Cursor/VS Code/Copilot/Codex/Kiro) + Claude `.claude-plugin/`, Cursor `.cursor-plugin/`, etc. See `docs/AGENT_PLUGINS.md`.
 3. **Profiles are install shortcuts** — being replaced by build + copy for parity with plugins.
 4. **Packs are **docs-only** bundles (ADR-006)** — they reference loops/skills but are not loaded by the compiler today.
 

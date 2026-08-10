@@ -31,6 +31,10 @@
 
 5. **Third-party never in products** — external npm / github / url packs (former `ui-ux-pro-max`, JIRA/Confluence external packs) never enter `distributions/products.yaml` or `plugins/`. They live in `agentic-workstation` via `chezmoiexternal` + `skills-external/` (see `docs/CONCEPTS.md` “Third-party boundary” and `agentic-workstation/docs/AGENT_TOOLKIT.md`). This keeps `agent-toolkit` vendor-neutral and avoids supply-chain bloat.
 
+## Agent Plugins 1.0
+
+Every product in `distributions/products.yaml` now emits **dual bundles**: portable `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json` + `skills/` + `mcp.json`) for Cursor/VS Code/Copilot/Codex/Kiro, and legacy `.claude-plugin/plugin.json` for Claude Code. The compiler target `agent-plugins` (`capabilities/targets/registry.yaml`) is the source of truth for the portable manifest; `scripts/bump-version.py` preserves `$schema`/`extensions` on version bumps. Keep `plugins/README.md` and `docs/AGENT_PLUGINS.md` in sync when curation changes the portable surface.
+
 ## Process
 
 - Propose membership changes via an issue labeled `product-curation` referencing `docs/SKILL_PRODUCT_MATRIX.md`.

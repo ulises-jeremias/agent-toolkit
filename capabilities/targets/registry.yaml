@@ -80,3 +80,11 @@ targets:
       build: true
       diff: false
       release: true
+
+  - id: agent-plugins
+    adapter: agent_toolkit.compiler.targets.agent_plugins.AgentPluginsAdapter
+    aliases: []
+    commands:
+      build: true
+      diff: true
+      release: true

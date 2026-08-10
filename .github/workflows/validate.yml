@@ -112,6 +112,19 @@ jobs:
       - name: Validate Claude Code and Cursor marketplace manifests
         run: python3 scripts/validate-manifests.py
 
+  # ── Job 3b: Validate Agent Plugins 1.0 manifests ───────────────────────
+  validate-agent-plugins:
+    name: Validate Agent Plugins 1.0
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install jsonschema==4.23.0 pyyaml==6.0.2
+
+      - name: Validate Agent Plugins 1.0 manifests (plugin.json + mcp.json)
+        run: python3 scripts/validate-agent-plugins.py --check
+
   # ── Job 4: Detect plugin surface drift ────────────────────────────────────
   check-surfaces:
     name: Check Plugin Bundle Sync

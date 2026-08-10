@@ -78,13 +78,22 @@ def main():
                 if not check:
                     mp_path.write_text(json.dumps(data, indent=2) + "\n")
                 changed += 1
-    # plugins/*/plugin.json
+    # plugins/*/plugin.json (Agent Plugins 1.0 — preserve $schema and extensions)
     for pl in (ROOT / "plugins").glob("*/plugin.json"):
         data = json.loads(pl.read_text())
         if data.get("version") != version:
             print(f"bumped {pl.relative_to(ROOT)}")
             if not check:
                 data["version"] = version
+                # Ensure Agent Plugins fields preserved: $schema, extensions
+                if "$schema" not in data:
+                    data["$schema"] = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+                pl.write_text(json.dumps(data, indent=2) + "\n")
+            changed += 1
+        elif "$schema" not in data:
+            print(f"fixing $schema for {pl.relative_to(ROOT)}")
+            if not check:
+                data["$schema"] = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
                 pl.write_text(json.dumps(data, indent=2) + "\n")
             changed += 1
     if check and changed:
