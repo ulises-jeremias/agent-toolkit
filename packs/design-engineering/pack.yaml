@@ -1,0 +1,5 @@
+name: design-engineering
+description: Curated packs design-engineering + agentic-security + code-quality + architecture per #390.
+includes:
+  skills: [frontend-design, supply-chain-audit]
+  agents: [code-reviewer]
