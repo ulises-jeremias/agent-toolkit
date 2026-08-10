@@ -145,8 +145,10 @@ class AgentPluginsAdapter(TargetAdapter):
         self._copy_skill_references(skill, dst, result)
         result.emitted.append(f"skill:{skill.id}")
 
-    def _copy_skill_references(self, skill: Skill, dst: Path, result: CompilationResult) -> None:
-        # Copy references/ if present
+    def _copy_skill_references(
+        self, skill: Skill, dst: Path, result: CompilationResult, *, text_mode: bool = False
+    ) -> None:
+        # Copy references/ if present (text_mode kept for base compatibility)
         src_ref = skill.source_path.parent / "references"
         if src_ref.is_dir():
             import shutil
