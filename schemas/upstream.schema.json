@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/upstream.schema.json",
+  "title": "agent-toolkit Upstream Provenance",
+  "description": "Schema for third-party capability provenance — where every external skill/plugin/MCP came from and what it can do (per #364).",
+  "type": "object",
+  "required": ["upstream"],
+  "additionalProperties": true,
+  "properties": {
+    "upstream": {
+      "type": "object",
+      "required": ["repository", "path", "ref", "license"],
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[^/]+/[^/]+$",
+          "description": "GitHub repo in owner/repo format"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path within upstream repo to the capability"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 7,
+          "description": "Immutable tag or commit SHA (40-char SHA preferred, 7+ hex, or semver tag). Must NOT be 'main'/'master'/'latest'.",
+          "pattern": "^(?!main$|master$|latest$|HEAD$)[a-zA-Z0-9._/\\-]+$"
+        },
+        "version": {
+          "type": "string",
+          "description": "Optional human version (semver or date)"
+        },
+        "license": {
+          "type": "string",
+          "description": "SPDX identifier or 'unknown' if no LICENSE file"
+        },
+        "author": {
+          "type": "string",
+          "description": "Upstream author/org"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$",
+          "description": "Full or short commit SHA when ref is tag"
+        },
+        "checksum": {
+          "type": "string",
+          "description": "Optional sha256 of vendored content for verification"
+        }
+      }
+    },
+    "trust": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["first-party", "verified", "community", "experimental"],
+          "description": "Trust tier — influences default install, auto-update, permissions"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "format": "date",
+          "description": "Date of last human review"
+        },
+        "reviewed_by": {
+          "type": "string",
+          "description": "Reviewer handle"
+        }
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["vendored", "external", "generated", "native-plugin"],
+          "description": "How the capability is distributed"
+        },
+        "redistribution_allowed": {
+          "type": "boolean",
+          "description": "Whether upstream license allows redistribution"
+        },
+        "attribution_file": {
+          "type": "string",
+          "description": "Path to LICENSE/NOTICE preserved alongside vendored content"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scripts": { "type": "boolean", "description": "Contains executable scripts" },
+        "shell": { "type": "boolean", "description": "Executes shell commands" },
+        "network": { "type": "boolean", "description": "Requires network at runtime" },
+        "mcp": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "MCP servers required"
+        },
+        "hooks": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Hooks registered"
+        },
+        "dangerous_permissions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Dangerous permissions required"
+        }
+      }
+    },
+    "updates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["pull-request", "manual", "renovate", "dependabot"],
+          "description": "Update strategy — must be pull-request for vendored (never silent)"
+        },
+        "cadence": {
+          "type": "string",
+          "description": "Check cadence (e.g. weekly, monthly)"
+        }
+      }
+    }
+  }
+}
