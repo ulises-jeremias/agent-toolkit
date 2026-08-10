@@ -96,6 +96,57 @@ agent-toolkit follows these principles (see also
 
 Prefer tagged releases or marketplace installs over unreviewed forks.
 
+### Provenance & third-party capabilities (per #364)
+
+Every third-party skill/plugin/MCP declares immutable provenance in its `SKILL.md` frontmatter:
+
+```yaml
+upstream:
+  repository: anthropics/skills
+  path: skills/frontend-design
+  ref: abc1234def5678abc1234def5678abc1234def56  # 40-char SHA or tag, never main/master/latest
+  license: MIT
+trust:
+  tier: verified  # first-party | verified | community | experimental
+distribution:
+  mode: vendored  # vendored | external | generated | native-plugin
+  redistribution_allowed: true
+security:
+  scripts: false
+  shell: false
+  network: false
+```
+
+**Trust tiers:**
+
+| Tier | Meaning | Default install | Auto-update | Permissions gate |
+|------|---------|-----------------|-------------|------------------|
+| `first-party` | Toolkit-authored | enabled | via Toolkit release | none special |
+| `verified` | Well-maintained upstream, reviewed & pinned | enabled | PR with diff + license/security check → human review | declare `security.*` |
+| `community` | Useful but not verified | **opt-in** only | manual PR | explicit opt-in + `dangerous_permissions` review |
+| `experimental` | Unstable/research | opt-in | manual | human gate required |
+
+**Decision matrix:**
+
+| Situation | Decision | Distribution |
+|-----------|----------|--------------|
+| Stable, small, MIT/Apache, secure, cross-platform | **ADOPT / VENDORED** pinned SHA | `vendored` |
+| Useful but large/license-sensitive/actively maintained/AGPL | **PIN EXTERNALLY** | `external` (Renovate PR, not bundled) |
+| Product-native integration materially better | **USE NATIVE PLUGIN/MCP** | `native-plugin` |
+| Core knowledge useful but tool-specific | **ADAPT** | ported prompt, new upstream path |
+| Stale/redundant/insecure/unclear-license | **REJECT** | — |
+
+Validate locally and in CI:
+
+```bash
+python3 scripts/validate-upstream.py --check
+python3 scripts/validate-skills.py
+agent-toolkit inventory --json | jq .upstream
+agent-toolkit doctor  # reports missing provenance / mutable refs
+```
+
+See `schemas/upstream.schema.json` and `schemas/skill-md-frontmatter.schema.json` for the canonical model.
+
 ---
 
 ## Reporting issues
