@@ -209,7 +209,8 @@ def emit_agent_plugins_mcp_json(
             continue
         # Only emit if provider has some tool definition (avoid empty)
         # Use docker for ghcr, npx for npm packages
-        if provider.package.startswith("ghcr.io"):
+        # Use strict host check to avoid substring bypass (CodeQL: py/incomplete-url-substring-sanitization)
+        if provider.package.split("/", 1)[0] == "ghcr.io":
             servers[provider_id] = {
                 "type": "stdio",
                 "command": "docker",
