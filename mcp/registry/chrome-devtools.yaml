@@ -1,0 +1,11 @@
+id: chrome-devtools
+display_name: Chrome DevTools
+purpose: Browser diagnostics — network, performance, rendering
+implementation:
+  provenance: community
+  package: chrome-devtools-mcp
+auth:
+  env: []
+platforms:
+  claude-code: native
+  cursor: native
