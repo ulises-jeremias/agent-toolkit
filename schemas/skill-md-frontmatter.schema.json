@@ -53,6 +53,72 @@
     "compatibility": {
       "type": "string",
       "description": "Human-readable compatibility note (prerequisites, caveats)."
+    },
+    "upstream": {
+      "type": "object",
+      "description": "Provenance for third-party capabilities (per #364). Omit for first-party bundled skills.",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {
+          "type": "string",
+          "pattern": "^[^/]+/[^/]+$",
+          "description": "GitHub repo owner/repo"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path within upstream repo"
+        },
+        "ref": {
+          "type": "string",
+          "minLength": 7,
+          "pattern": "^(?!main$|master$|latest$|HEAD$)[a-zA-Z0-9._/\\-]+$",
+          "description": "Immutable tag or commit SHA (must NOT be main/master/latest)"
+        },
+        "license": {
+          "type": "string",
+          "description": "SPDX identifier or 'unknown'"
+        },
+        "author": { "type": "string" },
+        "version": { "type": "string" }
+      },
+      "required": ["repository", "path", "ref", "license"]
+    },
+    "trust": {
+      "type": "object",
+      "description": "Trust tier (per #364)",
+      "additionalProperties": false,
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["first-party", "verified", "community", "experimental"]
+        }
+      }
+    },
+    "distribution": {
+      "type": "object",
+      "description": "Distribution mode",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["vendored", "external", "generated", "native-plugin"]
+        },
+        "redistribution_allowed": { "type": "boolean" }
+      }
+    },
+    "security": {
+      "type": "object",
+      "description": "Security surface declaration",
+      "additionalProperties": false,
+      "properties": {
+        "scripts": { "type": "boolean" },
+        "shell": { "type": "boolean" },
+        "network": { "type": "boolean" },
+        "mcp": { "type": "array", "items": { "type": "string" } },
+        "hooks": { "type": "array", "items": { "type": "string" } },
+        "dangerous_permissions": { "type": "array", "items": { "type": "string" } }
+      }
     }
   }
 }
