@@ -96,6 +96,62 @@ agent-toolkit follows these principles (see also
 
 Prefer tagged releases or marketplace installs over unreviewed forks.
 
+### Provenance & third-party capabilities (per #364)
+
+Every third-party skill/plugin/MCP declares immutable provenance in its `SKILL.md` frontmatter:
+
+```yaml
+upstream:
+  repository: anthropics/skills
+  path: skills/frontend-design
+  ref: f17010c9bb483898c1d9c9f42dde2b3a98889434  # 40-char SHA (verified 2026-08-11: LICENSE.txt Apache-2.0, not MIT)
+  license: Apache-2.0
+  commit: f17010c9bb483898c1d9c9f42dde2b3a98889434  # required for tag, optional for SHA (redundant but explicit)
+trust:
+  tier: verified  # first-party | verified | community | experimental
+distribution:
+  mode: vendored  # vendored | external | generated | native-plugin
+  redistribution_allowed: true
+security:
+  scripts: false
+  shell: false
+  network: false
+```
+
+**Trust tiers — objective criteria (per review §9):**
+
+| Tier | Criteria (all must hold) | Default install | Auto-update | Permissions gate |
+|------|---------|-----------------|-------------|------------------|
+| `first-party` | Toolkit-authored, no external ref, passes `validate-skills.py` | enabled | via Toolkit release | none |
+| `verified` | Immutable ref (40-char SHA or tag+commit) + SPDX license known + `security.*` declared + `audit-capability.py` no high findings + human review recorded (`trust.reviewed_at/by`) + upstream active <90d + no critical CVE | enabled | PR with diff + license/security surface check → human review (never auto-merge if `shell/network` changes) | declare `security.*` |
+| `community` | Useful but missing ≥1 verified criterion (e.g., no human review, unknown license) | **opt-in** only | manual PR | explicit opt-in + `dangerous_permissions` review |
+| `experimental` | Unstable/research, no provenance or high findings | opt-in | manual | human gate required |
+
+> `verified` ≠ popular (stars irrelevant). Popularity is metadata only (per §46).
+
+**Note on scope (§10):** Provenance is not skill-only. `upstream.lock` is source of truth for all capability types (skills, agents, MCP, hooks, plugins, scripts). `SKILL.md` frontmatter `upstream:` is a convenience projection; canonical registry is `capabilities/upstream.lock` (generated, not hand-copied). Do not duplicate without sync.
+
+**Decision matrix:**
+
+| Situation | Decision | Distribution |
+|-----------|----------|--------------|
+| Stable, small, MIT/Apache, secure, cross-platform | **ADOPT / VENDORED** pinned SHA | `vendored` |
+| Useful but large/license-sensitive/actively maintained/AGPL | **PIN EXTERNALLY** | `external` (Renovate PR, not bundled) |
+| Product-native integration materially better | **USE NATIVE PLUGIN/MCP** | `native-plugin` |
+| Core knowledge useful but tool-specific | **ADAPT** | ported prompt, new upstream path |
+| Stale/redundant/insecure/unclear-license | **REJECT** | — |
+
+Validate locally and in CI:
+
+```bash
+python3 scripts/validate-upstream.py --check
+python3 scripts/validate-skills.py
+agent-toolkit inventory --json | jq .upstream
+agent-toolkit doctor  # reports missing provenance / mutable refs
+```
+
+See `schemas/upstream.schema.json` and `schemas/skill-md-frontmatter.schema.json` for the canonical model.
+
 ---
 
 ## Reporting issues
