@@ -19,6 +19,7 @@ Each target receives the strongest integration it actually supports.
 |--------|-------------|--------|--------|-------|-----|----------|
 | Claude Code | plugin (.claude-plugin/) | native | native | unsupported* | unsupported* | stable |
 | Cursor IDE/CLI | plugin (.cursor-plugin/) | native | native | unsupported* | manual | stable |
+| **Agent Plugins 1.0** | plugin (`plugin.json` + `mcp.json` + `skills/`) | native (portable) | native (via `com.anthropic.claude-code` extension) | unsupported* | native (stdio `mcp.json`) | stable |
 | OpenCode | companion-assets | native | native | unsupported† | unsupported† | stable |
 | Copilot CLI | plugin (plugin.json) | native | native | unsupported* | unknown-blocked | stable |
 | Copilot Repository | repository-customization | native | native | unsupported | unsupported | stable |
@@ -29,6 +30,8 @@ Each target receives the strongest integration it actually supports.
 
 *hooks: no stable cross-tool canonical model yet — see target certification docs
 †requires TypeScript runtime plugin
+
+> **Agent Plugins 1.0** is the portable `plugin.json` target for Cursor, VS Code, Copilot, Kiro, and Codex. It emits `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` (+ `com.anthropic.claude-code` extension for Claude compatibility). Validate with `python3 scripts/validate-agent-plugins.py --check`; CI job is `Validate Agent Plugins 1.0`. See `docs/AGENT_PLUGINS.md`.
 
 ## Install commands
 

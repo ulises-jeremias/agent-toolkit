@@ -4,14 +4,20 @@
 
 | Target | Minimum version | Notes |
 |--------|----------------|-------|
-| Claude Code | Any current version | Plugin marketplace supported |
-| Cursor | 2.5+ | Plugin system added in 2.5 |
+| Claude Code | Any current version | Plugin marketplace supported — legacy `.claude-plugin/` only (does not yet support Agent Plugins 1.0) |
+| Cursor | 2.5+ | Plugin system added in 2.5 — supports Agent Plugins 1.0 (`plugin.json` + `mcp.json` + `skills/`) |
+| VS Code + GitHub Copilot | Any current | Agent Plugins 1.0 via `plugin.json` (extension `com.github.copilot`) — see `docs/AGENT_PLUGINS.md` |
+| Kiro | Any current | Agent Plugins 1.0 supported |
 | GitHub Copilot CLI | Any current | Open Plugin Spec optional |
 | Gemini CLI | 0.1.0+ | Extension system available |
 | OpenCode | 0.3+ | JS/TS module plugins |
 | Pi Coding Agent | Any current | npm package system |
 | Windsurf/Devin | Any current | No marketplace — bundle only — see `docs/certification/windsurf.md` |
-| OpenAI Codex | Recent | Marketplace launched March 2026 (experimental) |
+| OpenAI Codex | Recent | Marketplace launched March 2026 (experimental) — also supports Agent Plugins 1.0 |
+
+### Agent Plugins 1.0
+
+[Agent Plugins 1.0](https://agent-plugins.org) (`plugin.json` `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json` + `skills/` + `mcp.json` + `com.*` extensions) is the portable standard for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, and Kiro. Every `plugins/<name>/` bundle in this repo is dual-emit: portable `plugin.json`/`mcp.json` for those clients and legacy `.claude-plugin/plugin.json` for Claude Code. The compiler target is `agent-plugins` (`capabilities/targets/registry.yaml` → `AgentPluginsAdapter`); validation is `scripts/validate-agent-plugins.py --check` and CI job `Validate Agent Plugins 1.0`. Until Claude Code implements the spec, keep `.claude-plugin/` and the `com.anthropic.claude-code` extension. See `docs/AGENT_PLUGINS.md` and `plugins/README.md`.
 
 ## Python version
 
