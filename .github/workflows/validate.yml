@@ -125,6 +125,19 @@ jobs:
       - name: Validate Agent Plugins 1.0 manifests (plugin.json + mcp.json)
         run: python3 scripts/validate-agent-plugins.py --check
 
+  # ── Job 3c: Validate upstream provenance (no mutable refs) ──────────────
+  validate-upstream:
+    name: Validate Upstream Provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install PyYAML
+        run: pip install pyyaml==6.0.2
+
+      - name: Check upstream provenance (immutable refs, SPDX)
+        run: python3 scripts/validate-upstream.py --check
+
   # ── Job 4: Detect plugin surface drift ────────────────────────────────────
   check-surfaces:
     name: Check Plugin Bundle Sync
