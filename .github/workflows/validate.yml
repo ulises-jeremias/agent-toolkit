@@ -612,7 +612,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@v7
 
       - name: Install agent-toolkit-cli via uvx
         run: uvx agent-toolkit-cli version
