@@ -15,7 +15,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
 
-![skills](https://img.shields.io/badge/skills-61-7c3aed?style=flat&labelColor=1f2937)
+![skills](https://img.shields.io/badge/skills-60-7c3aed?style=flat&labelColor=1f2937)
 ![agents](https://img.shields.io/badge/agents-16-0891b2?style=flat&labelColor=1f2937)
 ![loops](https://img.shields.io/badge/loops-10-ea580c?style=flat&labelColor=1f2937)
 
@@ -29,7 +29,7 @@
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
-[Skills](#%EF%B8%8F-skills--61-across-9-domains) ·
+[Skills](#%EF%B8%8F-skills--60-across-9-domains) ·
 [Agents](#-agent-personas) ·
 [Loops](#-loop-engineering) ·
 [Contributing](#-contributing)
@@ -64,7 +64,7 @@ agent-toolkit doctor
       <h3>🛠️ Skills</h3>
       <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery workflows, forge CLIs, design, data, ops.</sub>
       <br><br>
-      <sub>61 skills across 9 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
+      <sub>60 skills across 9 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
@@ -253,7 +253,7 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 
 ---
 
-## 🛠️ Skills — 61 across 9 domains
+## 🛠️ Skills — 60 across 9 domains
 
 All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills).
 
@@ -261,7 +261,7 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 |--------|-------|------------|
 | 🧠 `core` | 6 | assistant, dev-companion, output-handshake, pr-fallback, workspace-knowledge-sync, onboarding |
 | 🚀 `delivery` | 21 | adr, bug, epic, development-workflow, planning, prd, user-story, work-item |
-| 🎨 `design` | 6 | ui-ux-pro-max, figma-implement-design, figma-code-connect-components, design-system-rules |
+| 🎨 `design` | 5 | figma-implement-design, figma-code-connect-components, design-system-rules |
 | ⚡ `forge` | 7 | github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, gh-address-comments, gh-contribution-planner |
 | 🔗 `integrations` | 4 | slack-cli, slack-assistant, linear, clickup-cli |
 | 📊 `data` | 2 | dbt-validation, snowflake-validation |
@@ -426,7 +426,7 @@ One source of truth, deployed per-tool. Each profile in `profiles/` adapts the s
 
 ```text
 agent-toolkit/
-├── skills/              # 61 skills across 9 domains (SKILL.md frontmatter)
+├── skills/              # 60 skills across 9 domains (SKILL.md frontmatter)
 ├── agents/              # 16 tool-agnostic agent persona definitions
 ├── profiles/
 │   ├── claude-code/     # Plugin manifest, skill references, settings

@@ -1,7 +1,7 @@
 # Skills Reference
 
 Skills are the core unit of capability in agent-toolkit. Each skill is a portable, self-contained
-definition that tells an AI coding assistant what to do in a specific situation. There are 61
+definition that tells an AI coding assistant what to do in a specific situation. There are 60
 skills across 9 domains.
 
 ---
@@ -117,7 +117,7 @@ ADRs, work items, meetings, incidents, and assessments.
 
 ### design — UI/UX and Figma integration
 
-6 skills that bridge design tools and code.
+5 skills that bridge design tools and code.
 
 | Skill | Description | CC | Cursor | OC | CP | WS | Pi |
 |-------|-------------|:--:|:------:|:--:|:--:|:--:|:--:|
@@ -126,7 +126,6 @@ ADRs, work items, meetings, incidents, and assessments.
 | `figma-create-design-system-rules` | Generates design system rule files (AGENTS.md style) from an existing Figma file. Encodes unwritten conventions. | Yes | No | Yes | No | Yes | No |
 | `figma-create-new-file` | Creates a new Figma file with sane defaults, naming conventions, and initial frame structure. | Yes | No | Yes | No | Yes | No |
 | `figma-implement-design` | Translates a Figma node to production code with pixel-level fidelity. Uses Figma MCP to extract design context. | Yes | Yes | Yes | No | Yes | No |
-| `ui-ux-pro-max` | UI/UX design, palette enforcement, component architecture, and accessibility review. Does not require Figma. | Yes | Yes | Yes | Yes | Yes | Yes |
 
 **Note:** All `figma-*` skills require the Figma MCP provider to be configured. See [MCP Setup](MCP-Setup) for details.
 

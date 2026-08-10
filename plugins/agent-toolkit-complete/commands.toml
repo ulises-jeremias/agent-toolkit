@@ -305,15 +305,6 @@ Follow the `figma-implement-design` skill instructions for {{args}}.
 """
 
 [[commands]]
-name = "ui_ux_pro_max"
-description = "UI/UX design intelligence. 67 styles, 96 palettes, 57 font pairings, 25 charts, 13 stacks (React, Next.js, Vue, Svelte,"
-prompt = """
-Follow the `ui-ux-pro-max` skill instructions for {{args}}.
-
-@{skills/ui-ux-pro-max/SKILL.md}
-"""
-
-[[commands]]
 name = "gh_address_comments"
 description = "Triage and address open GitHub PR review and conversation comments using the gh CLI. Use when the user wants to 'address"
 prompt = """

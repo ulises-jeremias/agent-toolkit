@@ -1,55 +1,55 @@
 {
   "generatorVersion": "1.8.4",
   "product": "agent-toolkit-core",
-  "target": "windsurf",
+  "target": "opencode",
   "artifacts": [
     {
-      "path": "agent-toolkit-core/AGENTS.md",
+      "path": "agent-toolkit-core/opencode.json",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "d312620363f4"
+      "generatedDigest": "7d5f7ec21da5"
     },
     {
-      "path": "agent-toolkit-core/skills/assistant/SKILL.md",
+      "path": "agent-toolkit-core/.opencode/skills/assistant/SKILL.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "8d752e774043"
+      "generatedDigest": "31485443b147"
     },
     {
-      "path": "agent-toolkit-core/skills/dev-companion/SKILL.md",
+      "path": "agent-toolkit-core/.opencode/skills/dev-companion/SKILL.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "97e6e487514a"
+      "generatedDigest": "e1611e0bb108"
     },
     {
-      "path": "agent-toolkit-core/skills/output-handshake/SKILL.md",
+      "path": "agent-toolkit-core/.opencode/skills/output-handshake/SKILL.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
       "generatedDigest": "a9948ef0dad3"
     },
     {
-      "path": "agent-toolkit-core/skills/pr-fallback/SKILL.md",
+      "path": "agent-toolkit-core/.opencode/skills/pr-fallback/SKILL.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
       "generatedDigest": "ae0ed4f57759"
     },
     {
-      "path": "agent-toolkit-core/skills/workspace-knowledge-sync/SKILL.md",
+      "path": "agent-toolkit-core/.opencode/skills/workspace-knowledge-sync/SKILL.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
       "generatedDigest": "8a7138abd914"
     },
     {
-      "path": "agent-toolkit-core/skills/onboarding/SKILL.md",
+      "path": "agent-toolkit-core/.opencode/skills/onboarding/SKILL.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
       "generatedDigest": "be04af0af5cd"
     },
     {
-      "path": "agent-toolkit-core/rules/code-reviewer.mdc",
+      "path": "agent-toolkit-core/.opencode/agents/code-reviewer/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "729380d68005"
+      "generatedDigest": "0a0af737a06b"
     }
   ]
 }

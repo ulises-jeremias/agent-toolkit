@@ -12,7 +12,7 @@ Skills are organized into domains that reflect the type of work they support:
 |--------|---------|---------|
 | `core` | Orchestration, session management, handshake primitives | `assistant`, `output-handshake`, `onboarding` |
 | `delivery` | Software-delivery lifecycle (PRD → ADR → work items → PR) | `adr`, `planning`, `development-workflow` |
-| `design` | UI/UX and Figma integration | `ui-ux-pro-max`, `figma-implement-design` |
+| `design` | UI/UX and Figma integration | `figma-implement-design`, `figma-create-design-system-rules` |
 | `forge` | Version-control forge automation (GitHub, GitLab) | `github-cli-workflow`, `gh-fix-ci` |
 | `integrations` | Third-party platform connectors | `slack-cli`, `linear`, `clickup-cli` |
 | `data` | Data platform validation | `dbt-validation`, `snowflake-validation` |

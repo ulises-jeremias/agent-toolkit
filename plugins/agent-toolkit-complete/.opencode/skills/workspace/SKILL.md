@@ -72,7 +72,7 @@ Per `AGENTS.md` routing table:
 |------|----------|
 | Discovery / first repo look | `assistant` skill |
 | Generic delivery | `workflow-generic-project` |
-| UI/UX | `ui-ux-pro-max` |
+| UI/UX | `figma` / `figma-implement-design` |
 | JIRA / Confluence / ClickUp | `jira-assistant` / `confluence-assistant` / `clickup-cli` |
 | Swarm orchestration | `swarm`, `swarm-observer`, `swarm-handoff` |
 | Herdr/tmux backend | `herdr`, `worktree` |

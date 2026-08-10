@@ -53,6 +53,6 @@ without explaining weighting. Request validator for subjective scores.
 |------|-------|
 | Evidence intake | **`project-assessment-evidence`** |
 | Multi-unit routing | **`project-assessment`** |
-| Deep UI/UX review | **`ui-ux-pro-max`** |
+| Deep UI/UX review | **`figma`** / **`figma-implement-design`** |
 | Repo discovery | **`assistant`** |
 | Final output gate | **`output-handshake`** |

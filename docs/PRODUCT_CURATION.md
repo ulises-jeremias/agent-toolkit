@@ -29,6 +29,8 @@
    - niche (e.g. single-domain), or
    - awaiting curation (needs matrix + example before promotion).
 
+5. **Third-party never in products** — external npm / github / url packs (former `ui-ux-pro-max`, JIRA/Confluence external packs) never enter `distributions/products.yaml` or `plugins/`. They live in `agentic-workstation` via `chezmoiexternal` + `skills-external/` (see `docs/CONCEPTS.md` “Third-party boundary” and `agentic-workstation/docs/AGENT_TOOLKIT.md`). This keeps `agent-toolkit` vendor-neutral and avoids supply-chain bloat.
+
 ## Process
 
 - Propose membership changes via an issue labeled `product-curation` referencing `docs/SKILL_PRODUCT_MATRIX.md`.

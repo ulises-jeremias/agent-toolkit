@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 61
+count: 60
 skills:
   - id: core/assistant
     name: assistant
@@ -244,13 +244,6 @@ skills:
     description: Translates Figma designs into production-ready application code with
       1:1 visual fidelity. Use when implementing UI code from Figma files, when user
       mentions "implement design", "generate code", "imple
-    stability: stable
-  - id: design/ui-ux-pro-max
-    name: ui-ux-pro-max
-    domain: design
-    description: 'UI/UX design intelligence. 67 styles, 96 palettes, 57 font pairings,
-      25 charts, 13 stacks (React, Next.js, Vue, Svelte, SwiftUI, React Native, Flutter,
-      Tailwind, shadcn/ui). Actions: plan, build, crea'
     stability: stable
   - id: forge/gh-address-comments
     name: gh-address-comments

@@ -163,8 +163,7 @@ agent-toolkit/
 │   │   ├── figma-code-connect-components/
 │   │   ├── figma-create-design-system-rules/
 │   │   ├── figma-create-new-file/
-│   │   ├── figma-implement-design/
-│   │   └── ui-ux-pro-max/
+│   │   └── figma-implement-design/
 │   ├── forge/                   # GitHub/GitLab CLI, PR automation
 │   │   ├── gh-address-comments/
 │   │   ├── gh-contribution-planner/

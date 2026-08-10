@@ -41,7 +41,7 @@ If engagement triggers match, load the appropriate **workspace pack overlay** fi
 | Confluence | External **confluence-*** pack (**confluence-assistant** router; CLI: `confluence-as` or `confluence`) |
 | Draft PR GitHub / GitLab | **github-cli-workflow** / **gitlab-cli-workflow** (for default body when the repo has no template: **pr-fallback** first) |
 | Where to save deliverables + human review | **output-handshake** |
-| UI depth | **ui-ux-pro-max** |
+| UI depth | **figma** / **figma-implement-design** |
 | Workstation health | **triage** |
 
 Do **not** paste forge or ticket CLI sequences here.

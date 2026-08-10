@@ -10,7 +10,7 @@ wrapper script runs the CLI through `npx`, so a global install is not required.
 
 > Treat this skill as **CLI-first automation**. Do NOT pivot to
 > `@playwright/test` test files unless the user explicitly asks for them — for
-> Playwright tests use [`e2e-runner`](../e2e-runner/SKILL.md).
+> Playwright tests use [`e2e-runner`](../../../agents/e2e-runner/AGENT.md).
 
 ## When to use
 
@@ -147,5 +147,5 @@ pwcli open https://demo.playwright.dev/todomvc
 
 ## See also
 
-- [`e2e-runner`](../e2e-runner/SKILL.md) — Playwright **test**
+- [`e2e-runner`](../../../agents/e2e-runner/AGENT.md) — Playwright **test**
   authoring & execution (different mental model than this skill).

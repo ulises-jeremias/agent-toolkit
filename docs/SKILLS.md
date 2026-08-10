@@ -76,7 +76,7 @@ Skills: `adr`, `agreement`, `bug`, `decision-log`, `development-workflow`, `epic
 
 UI/UX design, Figma integration, and design system rules. These skills bridge design tools and code.
 
-Skills: `figma`, `figma-code-connect-components`, `figma-create-design-system-rules`, `figma-create-new-file`, `figma-implement-design`, `ui-ux-pro-max`
+Skills: `figma`, `figma-code-connect-components`, `figma-create-design-system-rules`, `figma-create-new-file`, `figma-implement-design`
 
 ### forge
 
@@ -152,7 +152,6 @@ Skills: `loop-runner`
 | `figma-create-design-system-rules` | design | Generate design system rule files from Figma | Yes | No | Yes | No | Yes | No |
 | `figma-create-new-file` | design | Create a new Figma file with sane defaults | Yes | No | Yes | No | Yes | No |
 | `figma-implement-design` | design | Translate Figma node to production code | Yes | Yes | Yes | No | Yes | No |
-| `ui-ux-pro-max` | design | UI/UX design, palettes, patterns, component architecture | Yes | Yes | Yes | Yes | Yes | Yes |
 | `gh-address-comments` | forge | Inspect and apply fixes for open PR review comments | Yes | Yes | Yes | No | Yes | Yes |
 | `gh-contribution-planner` | forge | Plan OSS contributions across repos | Yes | Yes | Yes | No | Yes | Yes |
 | `gh-fix-ci` | forge | Triage failing GitHub Actions, propose minimal fixes | Yes | Yes | Yes | No | Yes | Yes |

@@ -38,7 +38,6 @@ Full stable skill catalog coverage for consumers who want everything (#50)
 - **figma-create-design-system-rules**: Generates custom design system rules for the user's codebase. Use when user says
 - **figma-create-new-file**: Create a new blank Figma file. Use when the user wants to create a new Figma des
 - **figma-implement-design**: Translates Figma designs into production-ready application code with 1:1 visual 
-- **ui-ux-pro-max**: UI/UX design intelligence. 67 styles, 96 palettes, 57 font pairings, 25 charts, 
 - **gh-address-comments**: Triage and address open GitHub PR review and conversation comments using the gh 
 - **gh-contribution-planner**: Daily GitHub contribution planner — analyzes the gh-logged-in user's non-archive
 - **gh-fix-ci**: Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure con

@@ -68,7 +68,7 @@ users can skip this — `claude --print` is used automatically.
 
 - [agentic-harness loop docs](https://github.com/ulises-jeremias/agentic-harness/blob/main/docs/LOOPS.md)
 - [Loop engineering patterns](https://github.com/cobusgreyling/loop-engineering)
-- [docs/LOOPS.md](../../docs/LOOPS.md) — full reference
+- [docs/LOOPS.md](../../../docs/LOOPS.md) — full reference
 
 ---
 

@@ -1,109 +1,109 @@
 {
   "generatorVersion": "1.8.4",
   "product": "agent-toolkit-agents",
-  "target": "windsurf",
+  "target": "opencode",
   "artifacts": [
     {
-      "path": "agent-toolkit-agents/AGENTS.md",
+      "path": "agent-toolkit-agents/opencode.json",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "2bd54f41c989"
+      "generatedDigest": "7d5f7ec21da5"
     },
     {
-      "path": "agent-toolkit-agents/rules/architect.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/architect/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "19874be0eb9a"
+      "generatedDigest": "dad9c2ee4c70"
     },
     {
-      "path": "agent-toolkit-agents/rules/assistant.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/assistant/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "3b1d50df3036"
+      "generatedDigest": "77fd851ba607"
     },
     {
-      "path": "agent-toolkit-agents/rules/build-error-resolver.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/build-error-resolver/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "cd49b12c46c9"
+      "generatedDigest": "d2a13b8e8621"
     },
     {
-      "path": "agent-toolkit-agents/rules/client-workflow-bootstrap.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/client-workflow-bootstrap/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "6b41f1e399e3"
+      "generatedDigest": "79c7936f25b5"
     },
     {
-      "path": "agent-toolkit-agents/rules/code-reviewer.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/code-reviewer/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "729380d68005"
+      "generatedDigest": "0a0af737a06b"
     },
     {
-      "path": "agent-toolkit-agents/rules/database-reviewer.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/database-reviewer/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "7b4f80bc7c86"
+      "generatedDigest": "ab66984faa2a"
     },
     {
-      "path": "agent-toolkit-agents/rules/docs-lookup.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/docs-lookup/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "cd37e78a1dce"
+      "generatedDigest": "5206522a2363"
     },
     {
-      "path": "agent-toolkit-agents/rules/e2e-runner.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/e2e-runner/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "bd80fd17e45d"
+      "generatedDigest": "ac51f0f3fc9e"
     },
     {
-      "path": "agent-toolkit-agents/rules/performance-optimizer.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/performance-optimizer/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "8fd2ead8e205"
+      "generatedDigest": "d035ea34107e"
     },
     {
-      "path": "agent-toolkit-agents/rules/planner.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/planner/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "80ad56e7e021"
+      "generatedDigest": "92b55d54cf66"
     },
     {
-      "path": "agent-toolkit-agents/rules/refactor-cleaner.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/refactor-cleaner/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "8578069732d7"
+      "generatedDigest": "e4828f8cec38"
     },
     {
-      "path": "agent-toolkit-agents/rules/reference-lookup.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/reference-lookup/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "e1e521eed351"
+      "generatedDigest": "f0674180bbfc"
     },
     {
-      "path": "agent-toolkit-agents/rules/security-reviewer.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/security-reviewer/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "8cae149818ef"
+      "generatedDigest": "d02e943d1927"
     },
     {
-      "path": "agent-toolkit-agents/rules/tdd-guide.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/tdd-guide/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "274b449ab84e"
+      "generatedDigest": "23df27096541"
     },
     {
-      "path": "agent-toolkit-agents/rules/tech-assistant.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/tech-assistant/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "6f77fe9997da"
+      "generatedDigest": "a58d992b720d"
     },
     {
-      "path": "agent-toolkit-agents/rules/typescript-reviewer.mdc",
+      "path": "agent-toolkit-agents/.opencode/agents/typescript-reviewer/AGENT.md",
       "sourceFile": "generated",
       "sourceDigest": "n/a",
-      "generatedDigest": "f25ca6255018"
+      "generatedDigest": "236cd9453692"
     }
   ]
 }

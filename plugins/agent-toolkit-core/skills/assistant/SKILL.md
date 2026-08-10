@@ -186,7 +186,7 @@ Use **`skill-catalog.yaml`** next to bundled skills for domains, triggers and **
 | Draft PR / MR | **`github-cli-workflow`**, **`gitlab-cli-workflow`** | After **`output-handshake`** / **`pr-fallback`** when needed |
 | Linear | **`linear`** | Linear MCP (OAuth); issues, cycles, docs |
 | Figma | **`figma`** (entry), **`figma-implement-design`**, **`figma-code-connect-components`**, **`figma-create-design-system-rules`**, **`figma-create-new-file`** | MCP templates under `~/.local/share//mcp/figma/` |
-| UI patterns / stacks | **`ui-ux-pro-max`** | Design intelligence; complements Figma skills |
+| Figma design | **`figma`** / **`figma-implement-design`** | Design-to-code via Figma MCP; use **`figma-create-design-system-rules`** for system rules |
 | Playwright | **`playwright-cli`** | CLI browser automation from the shell |
 | Playwright **test** specs | **`e2e-runner`** | Not the same as **`playwright-cli`** |
 | Jupyter notebooks | **`jupyter-notebook`** | Scaffold via **`newnotebook`** |

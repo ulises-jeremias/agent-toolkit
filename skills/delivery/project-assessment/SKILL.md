@@ -34,7 +34,7 @@ This is a router skill. Keep it focused on assessment flow, gates, and delegatio
 3. **Unit assessment**
    - For technical workloads, delegate to **`technical-unit-assessment`**.
    - For project management and delivery scopes, delegate to **`management-unit-assessment`**.
-   - If UI depth is required, pair the technical unit assessment with **`ui-ux-pro-max`**.
+   - If UI depth is required, pair the technical unit assessment with **`figma`** / **`figma-implement-design`**.
    - If repository discovery is required, pair with **`assistant`** and the repository-specific rules.
 4. **Consensus and scoring**
    - Use the 1 to 5 maturity scale from the assessment indicators.

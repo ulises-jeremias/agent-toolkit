@@ -38,7 +38,7 @@ data delivery and consumption readiness.
 ## UI/UX indicators
 
 User interface design, responsiveness, accessibility, user-centered design,
-usability, visual aesthetics. For deep UI review, delegate to **`ui-ux-pro-max`**.
+usability, visual aesthetics. For deep UI review, use **`figma`** / **`figma-implement-design`**.
 
 ## AI-native structural readiness
 

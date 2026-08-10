@@ -14,7 +14,7 @@ This skill helps you connect Figma design components to their corresponding code
 - Use this skill for `get_code_connect_suggestions` + `send_code_connect_mappings` workflows.
 - If the task requires writing to the Figma canvas with Plugin API scripts,
   install the opt-in `figma-use` pack (see `docs/SKILLS.md`).
-- If the task is building or updating a full-page screen in Figma from code or a description, switch to [figma-generate-design](../figma-generate-design/SKILL.md).
+- If the task is building or updating a full-page screen in Figma from code or a description, switch to [figma-create-new-file](../figma-create-new-file/SKILL.md).
 - If the task is implementing product code from Figma, switch to [figma-implement-design](../figma-implement-design/SKILL.md).
 
 ## Prerequisites

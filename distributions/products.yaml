@@ -138,7 +138,6 @@ products:
         - design/figma-create-design-system-rules
         - design/figma-create-new-file
         - design/figma-implement-design
-        - design/ui-ux-pro-max
         - forge/gh-address-comments
         - forge/gh-contribution-planner
         - forge/gh-fix-ci

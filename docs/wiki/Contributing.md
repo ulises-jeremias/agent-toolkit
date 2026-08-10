@@ -108,7 +108,7 @@ Full guide: [`docs/HOW_TO_ADD_SKILL.md`](https://github.com/ulises-jeremias/agen
 |--------|---------|---------|
 | `core` | Orchestration, session management | `assistant`, `output-handshake` |
 | `delivery` | Software-delivery lifecycle | `adr`, `planning`, `development-workflow` |
-| `design` | UI/UX and Figma integration | `ui-ux-pro-max`, `figma-implement-design` |
+| `design` | UI/UX and Figma integration | `figma-implement-design`, `figma-create-design-system-rules` |
 | `forge` | Version-control forge automation | `github-cli-workflow`, `gh-fix-ci` |
 | `integrations` | Third-party platform connectors | `slack-cli`, `linear`, `clickup-cli` |
 | `data` | Data platform validation | `dbt-validation`, `snowflake-validation` |
