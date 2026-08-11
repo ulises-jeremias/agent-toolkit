@@ -167,6 +167,7 @@ products:
         - tooling/jupyter-notebook
         - accessibility/review
         - agentic-security/mcp-audit
+        - agentic-security/owasp-agentic-review
         - tooling/chrome-devtools
         - tooling/playwright-cli
         - core/project

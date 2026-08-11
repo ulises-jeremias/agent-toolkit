@@ -289,7 +289,7 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 
 ## 🤖 Agent Personas
 
-16 tool-agnostic agent persona definitions in `agents/`. Any supported AI coding assistant can import these via its profile config.
+17 tool-agnostic agent persona definitions in `agents/`. Any supported AI coding assistant can import these via its profile config.
 
 | Persona | Role |
 |---------|------|
@@ -309,8 +309,9 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 | 🤝 `assistant` | General-purpose project assistant |
 | ⚙️ `tech-assistant` | Stack-specific technical guidance |
 | 🧭 `client-workflow-bootstrap` | Client workflow bootstrap |
+| 🛡️ `agentic-security-reviewer` | Agentic security — prompt injection, tool poisoning, excessive agency, MCP/plugin supply chain |
 
-Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · 16 personas on disk under `agents/`
+Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · 17 personas on disk under `agents/`
 
 ---
 
@@ -373,7 +374,7 @@ Product bundles are declared in [`distributions/products.yaml`](distributions/pr
 | Product | Portable (Agent Plugins 1.0) | What's included |
 |---------|------------------------------|-----------------|
 | `agent-toolkit-core` | `plugin.json` + `skills/` (6) + `mcp.json` (github) | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
-| `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 16 agent personas — architect, assistant, build-error-resolver, client-workflow-bootstrap, code-reviewer, database-reviewer, docs-lookup, e2e-runner, performance-optimizer, planner, refactor-cleaner, reference-lookup, security-reviewer, tdd-guide, tech-assistant, typescript-reviewer |
+| `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 17 agent personas — agentic-security-reviewer, architect, assistant, build-error-resolver, client-workflow-bootstrap, code-reviewer, database-reviewer, docs-lookup, e2e-runner, performance-optimizer, planner, refactor-cleaner, reference-lookup, security-reviewer, tdd-guide, tech-assistant, typescript-reviewer |
 | `agent-toolkit-forge` | `plugin.json` + `skills/` (7) | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
 | `agent-toolkit-complete` | `plugin.json` + `skills/` (60) + `mcp.json` | Full stable skill catalog (experimental; portable manifest included, marketplace pending) |
 
@@ -430,7 +431,7 @@ One source of truth, deployed per-tool. Each profile in `profiles/` adapts the s
 ```text
 agent-toolkit/
 ├── skills/              # 60 skills across 9 domains (SKILL.md frontmatter)
-├── agents/              # 16 tool-agnostic agent persona definitions
+├── agents/              # 17 tool-agnostic agent persona definitions
 ├── profiles/
 │   ├── claude-code/     # Plugin manifest, skill references, settings
 │   ├── cursor/          # .mdc rule files per domain

@@ -1,7 +1,12 @@
 version: 1
 generated: true
-count: 16
+count: 17
 agents:
+  - id: agentic-security-reviewer
+    name: agentic-security-reviewer
+    description: Agentic security review specialist — prompt injection, tool poisoning,
+      excessive agency, credential exposure, supply-chain, MCP/plugin security. Use
+      after agentic capability changes or before adopting
   - id: architect
     name: architect
     description: Software architecture and system design specialist. Use when designing
