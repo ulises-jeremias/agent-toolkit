@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `python3 scripts/generate-skill-matrix.py` to regenerate, or `python3 scripts/generate-skill-matrix.py --check` in CI.
 
-_Generated from 4 products × 70 skills × 17 agents._
+_Generated from 4 products × 71 skills × 17 agents._
 
 ## Products and targets
 
@@ -11,7 +11,7 @@ _Generated from 4 products × 70 skills × 17 agents._
 | `agent-toolkit-core` | stable | claude-code, cursor | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 16 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 7 | 0 |
-| `agent-toolkit-complete` | experimental | — | 70 | 0 |
+| `agent-toolkit-complete` | experimental | — | 71 | 0 |
 
 ## Skills → Products
 
@@ -21,6 +21,7 @@ _Generated from 4 products × 70 skills × 17 agents._
 | `agentic-security/mcp-audit` | `agent-toolkit-complete` | — |
 | `agentic-security/owasp-agentic-review` | `agent-toolkit-complete` | — |
 | `agentic-security/supply-chain-audit` | `agent-toolkit-complete` | — |
+| `agentic-security/threat-modeling` | `agent-toolkit-complete` | — |
 | `core/assistant` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
 | `core/dev-companion` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
 | `core/onboarding` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |

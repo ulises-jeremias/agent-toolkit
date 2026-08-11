@@ -50,7 +50,7 @@ Curated OWASP LLM Top 10 (2025) + OWASP Agentic Security review for **agents, sk
 | System design tradeoffs | `architect` | C4/Mermaid, ADRs, threat model input |
 | Full supply-chain surface | `agentic-security/supply-chain-audit` | Provenance, pins, hashes, licenses |
 | MCP config/impl | `agentic-security/mcp-audit` | MCP-specific audit (two modes) |
-| Threat model (assets/boundaries/actors → STRIDE + agentic) | `agentic-security/threat-modeling` (next) | STRIDE + agentic threats → mitigations |
+| Threat model (assets/boundaries/actors → STRIDE + agentic) | `agentic-security/threat-modeling` | STRIDE + agentic threats → mitigations |
 
 ## Delegation table
 

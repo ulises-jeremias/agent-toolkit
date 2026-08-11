@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 70
+count: 71
 skills:
   - id: accessibility/review
     name: review
@@ -29,6 +29,13 @@ skills:
     description: Inspect agent supply chain — skills/plugins/MCP/npm/py packages,
       hooks, scripts, remote prompts, provenance, version pins, hashes, licenses,
       network and dangerous permissions — before adopting.
+    stability: stable
+  - id: agentic-security/threat-modeling
+    name: threat-modeling
+    domain: agentic-security
+    description: STRIDE + agentic threat modeling — architecture discovery → assets/trust
+      boundaries/data flows/actors → STRIDE + agentic threats → risk-ranked mitigations
+      → incremental review → security acceptance cr
     stability: stable
   - id: core/assistant
     name: assistant

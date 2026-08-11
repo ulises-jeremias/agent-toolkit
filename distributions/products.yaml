@@ -168,6 +168,7 @@ products:
         - accessibility/review
         - agentic-security/mcp-audit
         - agentic-security/owasp-agentic-review
+        - agentic-security/threat-modeling
         - tooling/chrome-devtools
         - tooling/playwright-cli
         - core/project
