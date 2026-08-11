@@ -96,79 +96,84 @@ agent-toolkit follows these principles (see also
 
 Prefer tagged releases or marketplace installs over unreviewed forks.
 
-### Provenance & third-party capabilities (per #364)
+### Provenance & third-party capabilities (per #364) — P0 foundation
 
-Every third-party skill/plugin/MCP declares immutable provenance in its `SKILL.md` frontmatter:
+**Implemented now (in #399):** Explicit origin classification + immutable provenance in `SKILL.md` frontmatter, validated in CI via `scripts/validate-upstream.py`. Every distributable `SKILL.md` must declare `origin.type`.
+
+**Planned in #370:** `capabilities/upstream.lock` will become the canonical provenance registry (single source of truth). Until #370 merges, `SKILL.md` frontmatter is authoritative. Do not document `upstream.lock` as already implemented — target architecture is:
+
+```
+canonical registry (capabilities/upstream.lock)  ← planned in #370
+    ↓
+validation (validate-upstream.py)
+    ↓
+SKILL.md frontmatter projection (currently authoritative)
+    ↓
+catalog/inventory
+```
+
+**Planned in #387:** `agent-toolkit inventory` and `doctor` provenance wiring (display upstream/sources, warn on stale pins, missing provenance). Until #387, provenance is visible via `validate-upstream.py --check` and frontmatter inspection only.
+
+Every `SKILL.md` must have an explicit origin — no inference from path or absence (gate 2):
 
 ```yaml
+origin:
+  type: first-party  # or upstream
+```
+
+For `first-party`, no provenance is allowed. For `upstream`, one or more sources are required (gate 9).
+
+#### First-party example
+
+```yaml
+---
+name: assistant
+description: Assistant — scan README→docs→AGENTS before code; cite sources.
+origin:
+  type: first-party
+---
+```
+
+#### Single-source upstream (Anthropic frontend-design — Apache-2.0 verified 2026-08-11)
+
+```yaml
+---
+name: frontend-design
+description: Distinctive, intentional visual design (Anthropic).
+origin:
+  type: upstream
 upstream:
   repository: anthropics/skills
   path: skills/frontend-design
-  ref: f17010c9bb483898c1d9c9f42dde2b3a98889434  # 40-char SHA (verified 2026-08-11: LICENSE.txt Apache-2.0, not MIT)
-  license: Apache-2.0
-  commit: f17010c9bb483898c1d9c9f42dde2b3a98889434  # required for tag, optional for SHA (redundant but explicit)
+  ref: f17010c9bb483898c1d9c9f42dde2b3a98889434  # full 40-char SHA, never short SHA (gate 1)
+  license: Apache-2.0  # SPDX subset (gate 6) — verified 2026-08-11: LICENSE.txt Apache-2.0, not MIT
 trust:
-  tier: verified  # first-party | verified | community | experimental
+  tier: reviewed  # gate 5: 'reviewed' replaces 'verified' (verified is deprecated alias)
+  reviewed_at: "2026-08-11"
+  reviewed_by: ulises-jeremias
+maintenance:
+  status: active  # gate 4: independent of trust tier
+  last_activity: "2026-08-07"
 distribution:
-  mode: vendored  # vendored | external | generated | native-plugin
+  mode: vendored  # gate 8: mutually exclusive delivery channel (see semantics below)
   redistribution_allowed: true
 security:
   scripts: false
   shell: false
   network: false
+  cve_policy: not-applicable  # gate 4: for pure instruction assets, not package CVE
+---
 ```
 
-**Trust tiers — objective criteria (per review §9):**
+#### Multi-source upstream (Vercel web-design-guidelines — gate 9)
 
-| Tier | Criteria (all must hold) | Default install | Auto-update | Permissions gate |
-|------|---------|-----------------|-------------|------------------|
-| `first-party` | Toolkit-authored, no external ref, passes `validate-skills.py` | enabled | via Toolkit release | none |
-| `verified` | Immutable ref (40-char SHA or tag+commit) + SPDX license known + `security.*` declared + `audit-capability.py` no high findings + human review recorded (`trust.reviewed_at/by`) + upstream active <90d + no critical CVE | enabled | PR with diff + license/security surface check → human review (never auto-merge if `shell/network` changes) | declare `security.*` |
-| `community` | Useful but missing ≥1 verified criterion (e.g., no human review, unknown license) | **opt-in** only | manual PR | explicit opt-in + `dangerous_permissions` review |
-| `experimental` | Unstable/research, no provenance or high findings | opt-in | manual | human gate required |
+One capability may derive from multiple artifacts. Use `sources` with `role`:
 
-> `verified` ≠ popular (stars irrelevant). Popularity is metadata only (per §46).
-
-**Note on scope (§10):** Provenance is not skill-only. `upstream.lock` is source of truth for all capability types (skills, agents, MCP, hooks, plugins, scripts). `SKILL.md` frontmatter `upstream:` is a convenience projection; canonical registry is `capabilities/upstream.lock` (generated, not hand-copied). Do not duplicate without sync.
-
-**Decision matrix:**
-
-| Situation | Decision | Distribution |
-|-----------|----------|--------------|
-| Stable, small, MIT/Apache, secure, cross-platform | **ADOPT / VENDORED** pinned SHA | `vendored` |
-| Useful but large/license-sensitive/actively maintained/AGPL | **PIN EXTERNALLY** | `external` (Renovate PR, not bundled) |
-| Product-native integration materially better | **USE NATIVE PLUGIN/MCP** | `native-plugin` |
-| Core knowledge useful but tool-specific | **ADAPT** | ported prompt, new upstream path |
-| Stale/redundant/insecure/unclear-license | **REJECT** | — |
-
-Validate locally and in CI:
-
-```bash
-python3 scripts/validate-upstream.py --check
-python3 scripts/validate-skills.py
-agent-toolkit inventory --json | jq .upstream
-agent-toolkit doctor  # reports missing provenance / mutable refs
-```
-
-See `schemas/upstream.schema.json` and `schemas/skill-md-frontmatter.schema.json` for the canonical model.
-
----
-
-## Reporting issues
-
-| Concern type | Where to report |
-|--------------|-----------------|
-| Security vulnerability | [SECURITY.md](../SECURITY.md) — private disclosure only |
-| Incorrect/harmful prompt output | GitHub Issues (functionality) |
-| Install left unexpected files | GitHub Issues with `agent-toolkit doctor` output |
-
----
-
-## Related guides
-
-| Guide | Description |
-|-------|-------------|
-| [UNINSTALL.md](UNINSTALL.md) | Remove installed artifacts |
-| [MIGRATION.md](MIGRATION.md) | Change install method safely |
-| [INSTALLATION.md](INSTALLATION.md) | Primary install flow |
-| [SECURITY.md](../SECURITY.md) | Vulnerability reporting policy |
+```yaml
+origin:
+  type: upstream
+sources:
+  - role: wrapper
+    repository: vercel-labs/agent-skills
+    path: skills/web-design-guidelines
+    ref: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a

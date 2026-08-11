@@ -1,9 +1,11 @@
 ---
 name: pr-fallback
-description: >-
-  WHAT — When the repo has no GitHub PR template, structure the pull-request body using the default in references/pr-body-default.md. Pair with output-handshake and github-cli-workflow. Does not open the PR; HOW stays in the forge skill.
+description: WHAT — When the repo has no GitHub PR template, structure the pull-request body using the
+  default in references/pr-body-default.md. Pair with output-handshake and github-cli-workflow. Does not
+  open the PR; HOW stays in the forge skill.
+origin:
+  type: first-party
 ---
-
 # PR body — default when no repo template (WHAT)
 
 ## When to use

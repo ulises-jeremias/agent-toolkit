@@ -1,49 +1,121 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/upstream.schema.json",
-  "title": "agent-toolkit Upstream Provenance",
-  "description": "Schema for third-party capability provenance — where every external skill/plugin/MCP came from and what it can do (per #364).",
+  "title": "Agent Toolkit Capability Provenance",
+  "description": "Canonical provenance for any distributable capability (skill, agent, MCP provider, hook/script, external package). SKILL.md frontmatter is authoritative until #370 introduces capabilities/upstream.lock as canonical registry. See docs/TRUST.md.",
   "type": "object",
-  "required": ["upstream"],
-  "additionalProperties": true,
-  "properties": {
-    "upstream": {
+  "$defs": {
+    "sha40": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "Full 40-character lowercase hex Git commit SHA. Short SHAs are never canonical."
+    },
+    "semverTag": {
+      "type": "string",
+      "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+.*$",
+      "description": "Semver version tag (e.g. v1.2.3, 1.0.0-beta). Requires separate resolved commit SHA."
+    },
+    "immutableRef": {
+      "description": "Either a full 40-char SHA, or a semver tag. Tag alone without commit is not immutable — validator enforces tag+commit.",
+      "anyOf": [
+        { "$ref": "#/$defs/sha40" },
+        { "$ref": "#/$defs/semverTag" }
+      ]
+    },
+    "repository": {
+      "type": "string",
+      "pattern": "^[^/]+/[^/]+$",
+      "description": "GitHub repo in owner/repo format"
+    },
+    "spdxId": {
+      "type": "string",
+      "description": "SPDX identifier subset (single id). See spdxExpression for compound.",
+      "anyOf": [
+        {
+          "enum": [
+            "MIT",
+            "Apache-2.0",
+            "Apache-2.0 WITH LLVM-exception",
+            "BSD-2-Clause",
+            "BSD-3-Clause",
+            "ISC",
+            "MPL-2.0",
+            "GPL-2.0-only",
+            "GPL-3.0-only",
+            "LGPL-2.1-only",
+            "LGPL-3.0-only",
+            "AGPL-3.0",
+            "AGPL-3.0-only",
+            "AGPL-3.0-or-later",
+            "CC0-1.0",
+            "CC-BY-4.0",
+            "CC-BY-SA-4.0",
+            "Unlicense",
+            "0BSD",
+            "NOASSERTION"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^LicenseRef-.+$",
+          "description": "Custom license reference, e.g. LicenseRef-Unknown"
+        }
+      ]
+    },
+    "spdxExpression": {
+      "type": "string",
+      "description": "Controlled SPDX subset: single id, or 'A AND B' / 'A OR B' where A,B are valid SPDX ids. Parentheses not supported in V1. Garbage identifiers are rejected.",
+      "anyOf": [
+        { "$ref": "#/$defs/spdxId" },
+        {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9.\\-+/ ]+ (AND|OR) [A-Za-z0-9.\\-+/ ]+$"
+        }
+      ]
+    },
+    "origin": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["first-party", "upstream"],
+          "description": "Explicit origin classification. Every distributable capability must declare this — no inference from path or absence."
+        }
+      }
+    },
+    "source": {
       "type": "object",
       "required": ["repository", "path", "ref", "license"],
       "additionalProperties": false,
       "properties": {
-        "repository": {
-          "type": "string",
-          "pattern": "^[^/]+/[^/]+$",
-          "description": "GitHub repo in owner/repo format"
-        },
+        "repository": { "$ref": "#/$defs/repository" },
         "path": {
           "type": "string",
           "minLength": 1,
-          "description": "Path within upstream repo to the capability"
+          "description": "Path within upstream repo to the capability artifact"
         },
         "ref": {
+          "$ref": "#/$defs/immutableRef",
+          "description": "Immutable ref: full 40-char SHA OR semver tag (tag requires commit field with 40-char SHA)"
+        },
+        "commit": {
+          "$ref": "#/$defs/sha40",
+          "description": "Resolved 40-char commit SHA when ref is a tag. Forbidden/must be absent when ref is already a SHA (validator enforces)."
+        },
+        "license": {
+          "$ref": "#/$defs/spdxExpression",
+          "description": "SPDX expression for this source artifact"
+        },
+        "role": {
           "type": "string",
-          "minLength": 7,
-          "description": "Immutable tag or commit SHA (40-char SHA preferred, 7+ hex, or semver tag). Must NOT be 'main'/'master'/'latest'.",
-          "pattern": "^(?!main$|master$|latest$|HEAD$)[a-zA-Z0-9._/\\-]+$"
+          "minLength": 1,
+          "description": "Role of this source when multiple sources compose one capability (e.g. wrapper, rules, content). Optional for single-source."
         },
         "version": {
           "type": "string",
-          "description": "Optional human version (semver or date)"
-        },
-        "license": {
-          "type": "string",
-          "description": "SPDX identifier or 'unknown' if no LICENSE file"
-        },
-        "author": {
-          "type": "string",
-          "description": "Upstream author/org"
-        },
-        "commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{7,40}$",
-          "description": "Full or short commit SHA when ref is tag"
+          "description": "Optional human version (semver or date) for display"
         },
         "checksum": {
           "type": "string",
@@ -57,36 +129,38 @@
       "properties": {
         "tier": {
           "type": "string",
-          "enum": ["first-party", "verified", "community", "experimental"],
-          "description": "Trust tier — influences default install, auto-update, permissions"
+          "enum": ["first-party", "reviewed", "community", "experimental"],
+          "description": "Review trust tier. 'reviewed' means human-reviewed upstream with immutable pin + SPDX + security surface declared + audit script no high findings. Does not imply formal security certification. 'verified' is deprecated alias for 'reviewed'."
         },
         "reviewed_at": {
           "type": "string",
           "format": "date",
-          "description": "Date of last human review"
+          "description": "Date of last human review (YYYY-MM-DD)"
         },
         "reviewed_by": {
           "type": "string",
-          "description": "Reviewer handle"
+          "description": "Reviewer handle (GitHub username)"
         }
       }
     },
-    "distribution": {
+    "maintenance": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "mode": {
+        "status": {
           "type": "string",
-          "enum": ["vendored", "external", "generated", "native-plugin"],
-          "description": "How the capability is distributed"
+          "enum": ["active", "quiet", "archived", "unknown"],
+          "description": "Upstream maintenance freshness — independent of trust tier. A quiet/stable upstream does not lose 'reviewed' status."
         },
-        "redistribution_allowed": {
-          "type": "boolean",
-          "description": "Whether upstream license allows redistribution"
-        },
-        "attribution_file": {
+        "last_activity": {
           "type": "string",
-          "description": "Path to LICENSE/NOTICE preserved alongside vendored content"
+          "format": "date",
+          "description": "Date of last upstream commit/release observed"
+        },
+        "last_checked": {
+          "type": "string",
+          "format": "date",
+          "description": "Date when maintenance status was last checked"
         }
       }
     },
@@ -94,9 +168,10 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "scripts": { "type": "boolean", "description": "Contains executable scripts" },
+        "scripts": { "type": "boolean", "description": "Capability contains or executes scripts" },
         "shell": { "type": "boolean", "description": "Executes shell commands" },
         "network": { "type": "boolean", "description": "Requires network at runtime" },
+        "requires_secrets": { "type": "boolean", "description": "Requires secrets/tokens at runtime" },
         "mcp": {
           "type": "array",
           "items": { "type": "string" },
@@ -110,10 +185,70 @@
         "dangerous_permissions": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Dangerous permissions required"
+          "description": "Dangerous permissions required (e.g. read-all-files, exec)"
+        },
+        "cve_policy": {
+          "type": "string",
+          "enum": ["not-applicable", "no-known-cve", "cve-present"],
+          "description": "CVE status — only applicable when capability has an executable/package/image dependency. For pure prompt/instruction assets, use 'not-applicable' and evaluate instruction surface instead."
         }
       }
     },
+    "distribution": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["vendored", "external", "native-plugin", "generated"],
+          "description": "Distribution mode (mutually exclusive delivery channel): vendored=copied into toolkit repo and shipped in release; external=not copied, consumer fetches via external manager with pinned ref; native-plugin=delivered via target's native plugin marketplace (e.g. Claude marketplace); generated=content generated at build time from upstream. Exactly one mode per capability."
+        },
+        "redistribution_allowed": {
+          "type": "boolean",
+          "description": "Whether upstream license allows redistribution (required for vendored)"
+        },
+        "attribution_file": {
+          "type": "string",
+          "description": "Path to LICENSE/NOTICE preserved alongside vendored content"
+        }
+      },
+      "required": ["mode"]
+    },
+    "capabilityRef": {
+      "type": "object",
+      "required": ["kind", "id"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["skill", "agent", "mcp", "hook", "plugin", "script"],
+          "description": "Capability kind — proves model works beyond skills"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Capability id (e.g. skill name, agent name, mcp provider id)"
+        }
+      }
+    }
+  },
+  "properties": {
+    "origin": { "$ref": "#/$defs/origin" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" },
+      "description": "One or more source artifacts. Multi-source example: Vercel wrapper + rules/content upstream (see #372)."
+    },
+    "upstream": {
+      "$ref": "#/$defs/source",
+      "description": "Deprecated single-source alias. Prefer 'sources'. Validator accepts either but not both."
+    },
+    "trust": { "$ref": "#/$defs/trust" },
+    "maintenance": { "$ref": "#/$defs/maintenance" },
+    "security": { "$ref": "#/$defs/security" },
+    "distribution": { "$ref": "#/$defs/distribution" },
+    "capability": { "$ref": "#/$defs/capabilityRef" },
     "updates": {
       "type": "object",
       "additionalProperties": false,
@@ -129,5 +264,35 @@
         }
       }
     }
-  }
+  },
+  "required": ["origin"],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "origin": { "properties": { "type": { "const": "upstream" } } } },
+        "required": ["origin"]
+      },
+      "then": {
+        "anyOf": [
+          { "required": ["sources"] },
+          { "required": ["upstream"] }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": { "origin": { "properties": { "type": { "const": "first-party" } } } },
+        "required": ["origin"]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            { "required": ["sources"] },
+            { "required": ["upstream"] }
+          ]
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
 }

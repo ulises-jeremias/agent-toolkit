@@ -1,12 +1,18 @@
 ---
 name: inventory
-description: Discover installed skills, agents, loops, and platform capabilities via agent-toolkit inventory, matrix, and skills list.
+description: Discover installed skills, agents, loops, and platform capabilities via agent-toolkit inventory,
+  matrix, and skills list.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [inventory, matrix, catalog, discovery]
+  version: '1.0'
+  tags:
+  - inventory
+  - matrix
+  - catalog
+  - discovery
 ---
-
 # Inventory
 
 Discover what the toolkit can do before you build — **skills, agents, loops, MCP, and platform support** — via `agent-toolkit inventory`, `matrix`, `build --check`, and `skills list`.

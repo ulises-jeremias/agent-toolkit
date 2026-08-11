@@ -1,11 +1,11 @@
 ---
 name: project-assessment
-description: >-
-  WHAT - Interactive project assessment router: define assessment scope and units,
-  collect evidence through project-assessment-evidence, then delegate to
-  technical or management unit assessment skills. Always evidence-based and human-reviewed.
+description: 'WHAT - Interactive project assessment router: define assessment scope and units, collect
+  evidence through project-assessment-evidence, then delegate to technical or management unit assessment
+  skills. Always evidence-based and human-reviewed.'
+origin:
+  type: first-party
 ---
-
 # Project Assessment (WHAT)
 
 Use this skill when the user asks for a project assessment, maturity assessment, delivery audit, technical assessment, management assessment, quality indicator review, or improvement roadmap.

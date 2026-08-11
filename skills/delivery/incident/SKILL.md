@@ -1,9 +1,10 @@
 ---
 name: incident
-description: >-
-  WHAT - Draft and review incident reports and RCA notes using Incident Management guidance; includes detection, impact, timeline, RCA, resolution, and follow-ups.
+description: WHAT - Draft and review incident reports and RCA notes using Incident Management guidance;
+  includes detection, impact, timeline, RCA, resolution, and follow-ups.
+origin:
+  type: first-party
 ---
-
 # Incident (WHAT)
 
 Use for unplanned events that disrupt or degrade production systems, live users, or critical operations.

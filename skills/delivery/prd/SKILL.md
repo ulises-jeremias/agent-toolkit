@@ -1,9 +1,11 @@
 ---
 name: prd
-description: >-
-  WHAT — Draft and review a Product Requirements Document (PRD) using the template. Business-level requirements, acceptance criteria, and traceability. Does not replace the product owner. English for tickets, PRs, and client-facing text unless the user asks otherwise.
+description: WHAT — Draft and review a Product Requirements Document (PRD) using the template. Business-level
+  requirements, acceptance criteria, and traceability. Does not replace the product owner. English for
+  tickets, PRs, and client-facing text unless the user asks otherwise.
+origin:
+  type: first-party
 ---
-
 # PRD — Product Requirements (WHAT)
 
 **Template:** `references/default-template.md` — local reference, kept up to date with the standard structure.

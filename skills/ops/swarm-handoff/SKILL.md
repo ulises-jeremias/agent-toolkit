@@ -1,12 +1,19 @@
 ---
 name: swarm-handoff
-description: Create artifact/commit file handoffs for Agent Toolkit swarms with worktree-per-writer, branch, and promotion integration.
+description: Create artifact/commit file handoffs for Agent Toolkit swarms with worktree-per-writer, branch,
+  and promotion integration.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [swarm, handoff, worktree, artifact, promotion]
+  version: '1.0'
+  tags:
+  - swarm
+  - handoff
+  - worktree
+  - artifact
+  - promotion
 ---
-
 # Swarm Handoff
 
 Create correct file handoffs between swarm roles so work moves via **Git + filesystem**, not chat copy. Every writer gets an isolated worktree/branch; the filesystem `state.json` is authoritative.

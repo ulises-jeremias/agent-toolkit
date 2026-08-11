@@ -1,11 +1,11 @@
 ---
 name: workflow-client-bootstrap
-description: >-
-  WHAT — Interactive interview to capture client delivery context and store it inside the user's
-  ~/.ai-workspace (or similar) as packs + knowledge (no client skills). Use when onboarding a
-  new client project or updating an existing workspace context.
+description: WHAT — Interactive interview to capture client delivery context and store it inside the user's
+  ~/.ai-workspace (or similar) as packs + knowledge (no client skills). Use when onboarding a new client
+  project or updating an existing workspace context.
+origin:
+  type: first-party
 ---
-
 # Workflow Client Bootstrap
 
 Use this skill to **create or update** a client-specific delivery context for any project.

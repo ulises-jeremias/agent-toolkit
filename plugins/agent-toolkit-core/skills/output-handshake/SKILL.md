@@ -1,9 +1,11 @@
 ---
 name: output-handshake
-description: >-
-  WHAT — Default gate for any deliverable: confirm where the final artifact will be stored and that a human will review, before writing PRDs, TRDs, ADRs, or PR bodies. Repository paths, wikis, and ticket tools differ by engagement; never assume a single location.
+description: 'WHAT — Default gate for any deliverable: confirm where the final artifact will be stored
+  and that a human will review, before writing PRDs, TRDs, ADRs, or PR bodies. Repository paths, wikis,
+  and ticket tools differ by engagement; never assume a single location.'
+origin:
+  type: first-party
 ---
-
 # Output handshake (WHAT)
 
 **Use first** when producing a **final** version of any deliverable that will leave the chat session: PRD, TRD, ADR, work item, planning notes, workflow/validation summary, project assessment, assessment scorecard, evidence map, meeting minutes, decision log, agreement, incident report, spike, or PR/MR body.

@@ -1,9 +1,11 @@
 ---
 name: adr
-description: >-
-  WHAT — Create and maintain Architecture Decision Records (ADRs) per the process. Covers when to write an ADR, required sections, review, and linking to epics/PRs. English for cross-team artifacts unless the user asks otherwise.
+description: WHAT — Create and maintain Architecture Decision Records (ADRs) per the process. Covers when
+  to write an ADR, required sections, review, and linking to epics/PRs. English for cross-team artifacts
+  unless the user asks otherwise.
+origin:
+  type: first-party
 ---
-
 # ADR — Architecture Decisions (WHAT)
 
 **Template:** `references/default-template.md` — local reference for ADR structure and workflow.

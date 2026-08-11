@@ -1,11 +1,13 @@
 ---
 name: loop-runner
-description: Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding session via bin/loop CLI.
+description: Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding
+  session via bin/loop CLI.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
+  version: '1.0'
 ---
-
 # loop-runner
 
 > Execute and manage loop engineering primitives from an AI coding session.

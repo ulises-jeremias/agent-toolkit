@@ -1,15 +1,19 @@
 ---
 name: docs-generator
-description: >-
-  WHAT — Generate or update documentation from code: README.md from repo structure,
-  CHANGELOG.md from git history, API reference from OpenAPI/GraphQL schemas,
-  and AGENTS.md starters for new projects.
+description: 'WHAT — Generate or update documentation from code: README.md from repo structure, CHANGELOG.md
+  from git history, API reference from OpenAPI/GraphQL schemas, and AGENTS.md starters for new projects.'
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [docs, readme, changelog, api-reference, agents]
+  version: '1.0'
+  tags:
+  - docs
+  - readme
+  - changelog
+  - api-reference
+  - agents
 ---
-
 # Docs Generator (WHAT)
 
 Generate or refresh documentation from the actual code, schema, and git history.

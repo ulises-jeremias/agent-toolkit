@@ -1,12 +1,19 @@
 ---
 name: herdr
-description: Manage Herdr workspaces, tabs, and panes for Agent Toolkit swarms with eager windows, shell-aware execution, and reuse.
+description: Manage Herdr workspaces, tabs, and panes for Agent Toolkit swarms with eager windows, shell-aware
+  execution, and reuse.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [herdr, swarm, workspace, tmux, orchestration]
+  version: '1.0'
+  tags:
+  - herdr
+  - swarm
+  - workspace
+  - tmux
+  - orchestration
 ---
-
 # Herdr
 
 Operate Herdr as the primary UI for `agent-toolkit swarm` — eager tabs, shell-consistent execution (`zsh`/`bash` via `_user_shell()`), and clean reuse of windows. This skill is the Herdr complement to `swarm` and `swarm-observer`.

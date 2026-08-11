@@ -1,12 +1,19 @@
 ---
 name: mcp
-description: Configure and manage MCP providers for Agent Toolkit — setup, list, doctor, and per-tool deployment.
+description: Configure and manage MCP providers for Agent Toolkit — setup, list, doctor, and per-tool
+  deployment.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [mcp, integrations, github, slack, context]
+  version: '1.0'
+  tags:
+  - mcp
+  - integrations
+  - github
+  - slack
+  - context
 ---
-
 # MCP
 
 Wire **Model Context Protocol** servers so agents can call external tools (GitHub, ClickUp, Slack, etc.) natively. This skill wraps `agent-toolkit mcp` and the MCP definitions in `mcp/` and `~/.local/share/agent-toolkit/mcp/`.

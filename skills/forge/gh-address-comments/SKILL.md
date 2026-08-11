@@ -1,8 +1,11 @@
 ---
 name: gh-address-comments
-description: Triage and address open GitHub PR review and conversation comments using the gh CLI. Use when the user wants to "address PR comments", "resolve review threads", or "respond to reviewers" on the current branch's pull request.
+description: Triage and address open GitHub PR review and conversation comments using the gh CLI. Use
+  when the user wants to "address PR comments", "resolve review threads", or "respond to reviewers" on
+  the current branch's pull request.
+origin:
+  type: first-party
 ---
-
 # Address GitHub PR Comments
 
 Find the open PR for the current branch and walk through its review/conversation

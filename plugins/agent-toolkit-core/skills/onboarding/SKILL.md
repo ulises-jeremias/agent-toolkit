@@ -1,15 +1,18 @@
 ---
 name: onboarding
-description: >-
-  Getting started guide for new users. Walks through setup validation,
-  the skill/agent hierarchy, and the three most useful commands per role (developer,
-  PM, tech lead). Use when someone is new to the workstation or asks "where do I start?"
+description: Getting started guide for new users. Walks through setup validation, the skill/agent hierarchy,
+  and the three most useful commands per role (developer, PM, tech lead). Use when someone is new to the
+  workstation or asks "where do I start?"
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [onboarding, setup, getting-started]
+  version: '1.0'
+  tags:
+  - onboarding
+  - setup
+  - getting-started
 ---
-
 # Onboarding
 
 Welcome to . This skill guides new users through initial setup and daily usage.

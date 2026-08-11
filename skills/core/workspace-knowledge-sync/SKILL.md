@@ -1,12 +1,11 @@
 ---
 name: workspace-knowledge-sync
-description: >-
-  Syncs knowledge to the ai-workspace knowledge base. Use when the assistant
-  discovers new patterns, learns user preferences, or identifies information worth
-  preserving for future sessions. Integrates with tech-assistant for automatic
-  trigger points.
+description: Syncs knowledge to the ai-workspace knowledge base. Use when the assistant discovers new
+  patterns, learns user preferences, or identifies information worth preserving for future sessions. Integrates
+  with tech-assistant for automatic trigger points.
+origin:
+  type: first-party
 ---
-
 # Workspace Knowledge Sync
 
 Automatically syncs valuable discoveries, patterns, and decisions to the ai-workspace knowledge base.

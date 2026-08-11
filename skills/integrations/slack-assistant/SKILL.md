@@ -1,12 +1,16 @@
 ---
 name: slack-assistant
-description: Interact with Slack workspaces for reading channels/messages, sending messages, adding reactions, and browsing canvases. Use when the user asks about Slack channels, messages, or notifications — NOT for Slack app development (use the slack-cli skill for that).
+description: Interact with Slack workspaces for reading channels/messages, sending messages, adding reactions,
+  and browsing canvases. Use when the user asks about Slack channels, messages, or notifications — NOT
+  for Slack app development (use the slack-cli skill for that).
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-compatibility: Requires slackcli (shaharia-lab) — install via run_onchange_45 script. Authenticate with `slackcli auth login` before first use.
+  version: '1.0'
+compatibility: Requires slackcli (shaharia-lab) — install via run_onchange_45 script. Authenticate with
+  `slackcli auth login` before first use.
 ---
-
 # Slack Assistant (`slackcli`)
 
 Use the `slackcli` CLI (from [shaharia-lab/slackcli](https://github.com/shaharia-lab/slackcli))

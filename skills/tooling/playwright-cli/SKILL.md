@@ -1,8 +1,11 @@
 ---
 name: playwright-cli
-description: Drive a real browser from the terminal using the Playwright CLI (snapshot, click, fill, screenshots, traces). Use when the task is CLI-first browser automation (data extraction, UI debugging, form fills, multi-tab work). For Playwright **test specs**, use `e2e-runner` instead.
+description: Drive a real browser from the terminal using the Playwright CLI (snapshot, click, fill, screenshots,
+  traces). Use when the task is CLI-first browser automation (data extraction, UI debugging, form fills,
+  multi-tab work). For Playwright **test specs**, use `e2e-runner` instead.
+origin:
+  type: first-party
 ---
-
 # Playwright CLI
 
 Drive a real browser from the terminal using `playwright-cli`. The bundled

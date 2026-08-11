@@ -1,10 +1,11 @@
 ---
 name: workflow-generic-project
-description: >-
-  WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates, English traceability
-  on tickets, draft PR via delegated forge skills. Use workspace packs for client/account overlays.
+description: 'WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates, English
+  traceability on tickets, draft PR via delegated forge skills. Use workspace packs for client/account
+  overlays.'
+origin:
+  type: first-party
 ---
-
 # Workflow — Generic Project (WHAT)
 
 **All skill instructions, ticket comments, and PR text must be in English.**

@@ -1,9 +1,10 @@
 ---
 name: task
-description: >-
-  WHAT - Draft and review technical tasks using the Best Practices Task Template; includes summary, technical notes, AC, estimate, owner, and due date.
+description: WHAT - Draft and review technical tasks using the Best Practices Task Template; includes
+  summary, technical notes, AC, estimate, owner, and due date.
+origin:
+  type: first-party
 ---
-
 # Task (WHAT)
 
 Use for technical or operational work that is not best represented as a user story.

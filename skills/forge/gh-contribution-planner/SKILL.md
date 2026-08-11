@@ -1,8 +1,11 @@
 ---
 name: gh-contribution-planner
-description: Daily GitHub contribution planner — analyzes the gh-logged-in user's non-archived repos (owned + forks) and recent contributions, produces a prioritized plan, halts for approval, then dispatches parallel sub-agents to execute approved items via existing PR/CI/review skills.
+description: Daily GitHub contribution planner — analyzes the gh-logged-in user's non-archived repos (owned
+  + forks) and recent contributions, produces a prioritized plan, halts for approval, then dispatches
+  parallel sub-agents to execute approved items via existing PR/CI/review skills.
+origin:
+  type: first-party
 ---
-
 # GitHub Contribution Planner
 
 Discover what to work on across **your** GitHub footprint, propose a prioritized

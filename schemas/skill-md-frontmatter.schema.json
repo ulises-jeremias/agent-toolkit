@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill-md-frontmatter.schema.json",
-  "title": "agent-toolkit SKILL.md Frontmatter",
-  "description": "YAML frontmatter schema for bundled SKILL.md files. All fields except name and description are optional to maintain backwards compatibility.",
+  "title": "Agent Toolkit SKILL.md Frontmatter",
+  "description": "YAML frontmatter schema for bundled SKILL.md files. All fields except name/description are optional for backwards compat, but origin is required for any distributable capability (gate 2). Reuses definitions from upstream.schema.json via $ref (single-source).",
   "type": "object",
   "required": ["name", "description"],
   "additionalProperties": false,
@@ -54,71 +54,45 @@
       "type": "string",
       "description": "Human-readable compatibility note (prerequisites, caveats)."
     },
-    "upstream": {
-      "type": "object",
-      "description": "Provenance for third-party capabilities (per #364). Omit for first-party bundled skills.",
-      "additionalProperties": false,
-      "properties": {
-        "repository": {
-          "type": "string",
-          "pattern": "^[^/]+/[^/]+$",
-          "description": "GitHub repo owner/repo"
-        },
-        "path": {
-          "type": "string",
-          "minLength": 1,
-          "description": "Path within upstream repo"
-        },
-        "ref": {
-          "type": "string",
-          "minLength": 7,
-          "pattern": "^(?!main$|master$|latest$|HEAD$)[a-zA-Z0-9._/\\-]+$",
-          "description": "Immutable tag or commit SHA (must NOT be main/master/latest)"
-        },
-        "license": {
-          "type": "string",
-          "description": "SPDX identifier or 'unknown'"
-        },
-        "author": { "type": "string" },
-        "version": { "type": "string" }
-      },
-      "required": ["repository", "path", "ref", "license"]
+    "origin": { "$ref": "upstream.schema.json#/$defs/origin" },
+    "upstream": { "$ref": "upstream.schema.json#/$defs/source" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "upstream.schema.json#/$defs/source" },
+      "description": "Multi-source provenance (preferred over single 'upstream' for Vercel-style dual upstream)."
     },
-    "trust": {
-      "type": "object",
-      "description": "Trust tier (per #364)",
-      "additionalProperties": false,
-      "properties": {
-        "tier": {
-          "type": "string",
-          "enum": ["first-party", "verified", "community", "experimental"]
+    "trust": { "$ref": "upstream.schema.json#/$defs/trust" },
+    "maintenance": { "$ref": "upstream.schema.json#/$defs/maintenance" },
+    "distribution": { "$ref": "upstream.schema.json#/$defs/distribution" },
+    "security": { "$ref": "upstream.schema.json#/$defs/security" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "origin": { "properties": { "type": { "const": "upstream" } } } },
+        "required": ["origin"]
+      },
+      "then": {
+        "anyOf": [
+          { "required": ["sources"] },
+          { "required": ["upstream"] }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": { "origin": { "properties": { "type": { "const": "first-party" } } } },
+        "required": ["origin"]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            { "required": ["sources"] },
+            { "required": ["upstream"] }
+          ]
         }
       }
-    },
-    "distribution": {
-      "type": "object",
-      "description": "Distribution mode",
-      "additionalProperties": false,
-      "properties": {
-        "mode": {
-          "type": "string",
-          "enum": ["vendored", "external", "generated", "native-plugin"]
-        },
-        "redistribution_allowed": { "type": "boolean" }
-      }
-    },
-    "security": {
-      "type": "object",
-      "description": "Security surface declaration",
-      "additionalProperties": false,
-      "properties": {
-        "scripts": { "type": "boolean" },
-        "shell": { "type": "boolean" },
-        "network": { "type": "boolean" },
-        "mcp": { "type": "array", "items": { "type": "string" } },
-        "hooks": { "type": "array", "items": { "type": "string" } },
-        "dangerous_permissions": { "type": "array", "items": { "type": "string" } }
-      }
     }
-  }
+  ]
 }

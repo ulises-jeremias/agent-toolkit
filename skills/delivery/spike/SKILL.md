@@ -1,9 +1,10 @@
 ---
 name: spike
-description: >-
-  WHAT - Produce spike and research findings using the spike template; captures purpose, findings, implementation strategy, risks, tradeoffs, open questions, and references.
+description: WHAT - Produce spike and research findings using the spike template; captures purpose, findings,
+  implementation strategy, risks, tradeoffs, open questions, and references.
+origin:
+  type: first-party
 ---
-
 # Spike and Research Findings (WHAT)
 
 Use for technical exploration, feasibility validation, architecture assessment, or research outputs that should influence design or implementation.

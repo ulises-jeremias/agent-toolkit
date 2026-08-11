@@ -1,15 +1,19 @@
 ---
 name: llm-cost-advisor
-description: >-
-  WHAT — Recommend the most cost-effective LLM provider for a given task type.
-  Shows estimated cost per run across available providers and integrates with
-  devcompanion llm-status to show what is actually available.
+description: WHAT — Recommend the most cost-effective LLM provider for a given task type. Shows estimated
+  cost per run across available providers and integrates with devcompanion llm-status to show what is
+  actually available.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [llm, cost, provider, optimization]
+  version: '1.0'
+  tags:
+  - llm
+  - cost
+  - provider
+  - optimization
 ---
-
 # LLM Cost Advisor (WHAT)
 
 Recommend the right provider for the task at hand — balancing quality, cost, and privacy.
