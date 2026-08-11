@@ -683,6 +683,47 @@ def test_content_checksum_is_vendored_artifact_normalized():
     )
 
 
+def test_updates_discovery_reports_no_update_when_at_head(monkeypatch):
+    # Mock _fetch_latest_commit to return locked commit → no update
+    lock = yaml.safe_load(prov.LOCK_PATH.read_text())
+    locked = lock["capabilities"]["design/frontend-design"]["sources"]["upstream"]["resolved"][
+        "commit"
+    ]
+    monkeypatch.setattr(prov, "_fetch_latest_commit", lambda repo, path=None: locked)
+    # Capture JSON output
+    import contextlib
+    import io
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = prov.cmd_updates(argparse.Namespace(json=True))
+    assert rc == 0
+    data = json.loads(buf.getvalue())
+    assert data["count"] == 0
+    assert data["updates"] == []
+
+
+def test_updates_discovery_reports_update_when_remote_ahead(monkeypatch):
+    lock = yaml.safe_load(prov.LOCK_PATH.read_text())
+    locked = lock["capabilities"]["design/frontend-design"]["sources"]["upstream"]["resolved"][
+        "commit"
+    ]
+    fake_latest = "f" * 40 if locked != "f" * 40 else "e" * 40
+    monkeypatch.setattr(prov, "_fetch_latest_commit", lambda repo, path=None: fake_latest)
+    import contextlib
+    import io
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = prov.cmd_updates(argparse.Namespace(json=True))
+    assert rc == 0
+    data = json.loads(buf.getvalue())
+    assert data["count"] == 1
+    assert data["updates"][0]["locked_commit"] == locked
+    assert data["updates"][0]["latest_commit"] == fake_latest
+    assert data["updates"][0]["capability"] == "design/frontend-design"
+
+
 # ---------------------------------------------------------------------------
 # Import shim
 # ---------------------------------------------------------------------------

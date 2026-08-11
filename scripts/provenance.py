@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-Provenance tool — declaration → lock → integrity verification.
+Provenance tool — declaration → lock → integrity verification + update discovery.
 
 Commands:
   lock    Resolve SKILL.md declarations and write deterministic capabilities/upstream.lock (v2)
   check   Offline validation: declaration↔lock consistency, schema, SHA40, SPDX, checksum vs vendored bytes, orphan/missing, review-binding
   docs    Generate docs/UPSTREAM.md from declaration+lock
+  updates Online discovery: compare locked commits to remote default-branch HEAD (read-only, --json); --apply would update lock/vendored (future)
 
 Lock semantics (ADR-0001):
   - Sparse: only origin: upstream with external content appears; first-party omitted.
@@ -17,6 +18,7 @@ Usage:
   uv run python scripts/provenance.py lock [--check]
   uv run python scripts/provenance.py check
   uv run python scripts/provenance.py docs [--check]
+  uv run python scripts/provenance.py updates [--json]  # read-only discovery
 
 See docs/adr/0001-capability-declaration-and-external-provenance-lock.md
 """
@@ -26,8 +28,11 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
+import subprocess
 import sys
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -738,6 +743,149 @@ def cmd_docs(args: argparse.Namespace) -> int:
     return 0
 
 
+def _gh_api_json(path: str) -> dict | list | None:
+    """Try gh api first, fallback to urllib with GITHUB_TOKEN."""
+    # Try gh
+    try:
+        out = subprocess.check_output(
+            ["gh", "api", path, "--paginate"], text=True, stderr=subprocess.DEVNULL, timeout=10
+        )
+        # gh --paginate joins pages; for single object it returns JSON object
+        # For list endpoints without paginate we get array
+        return json.loads(out) if out.strip().startswith(("[", "{")) else None
+    except Exception:
+        pass
+    # Fallback urllib
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    headers = {"Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    url = f"https://api.github.com/{path.lstrip('/')}"
+    try:
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return json.loads(resp.read().decode())
+    except Exception as e:
+        print(f"warn: GitHub API {path} failed: {e}", file=sys.stderr)
+        return None
+
+
+def _fetch_latest_commit(repository: str, path: str | None = None) -> str | None:
+    """Fetch latest commit SHA for repository default branch (ignoring path for now)."""
+    # Get default branch
+    info = _gh_api_json(f"repos/{repository}")
+    if not isinstance(info, dict):
+        return None
+    branch = info.get("default_branch", "main")
+    # Get commit for branch
+    commit_info = _gh_api_json(f"repos/{repository}/commits/{branch}")
+    if isinstance(commit_info, dict) and "sha" in commit_info:
+        sha = commit_info["sha"]
+        if SHA40_RE.match(sha):
+            return sha
+    # Fallback: list commits
+    commits = _gh_api_json(f"repos/{repository}/commits?sha={branch}&per_page=1")
+    if isinstance(commits, list) and commits and isinstance(commits[0], dict):
+        sha = commits[0].get("sha", "")
+        if SHA40_RE.match(sha):
+            return sha
+    return None
+
+
+def cmd_updates(args: argparse.Namespace) -> int:
+    """
+    Online discovery: compare locked resolved commits to remote HEAD.
+
+    Read-only by default (--json prints machine-readable). With --apply (future),
+    would update lock/vendored bytes and docs, but for #428 foundation we keep
+    read-only and let the workflow open a PR manually.
+
+    Never auto-merges; human review required.
+    """
+    lock = _load_lock()
+    if lock is None:
+        print(f"lock not found at {LOCK_PATH}", file=sys.stderr)
+        return 1
+    caps = lock.get("capabilities", {})
+    updates: list[dict] = []
+    for cap_id in sorted(caps.keys()):
+        for source_id, src in sorted(caps[cap_id].get("sources", {}).items()):
+            repo = src.get("repository", "")
+            locked = (src.get("resolved") or {}).get("commit", "")
+            # Skip if no repo or not commit-typed (tag tracking would need release API)
+            req_type = (src.get("requested") or {}).get("type", "commit")
+            if req_type != "commit":
+                continue
+            latest = _fetch_latest_commit(repo, src.get("path"))
+            if not latest:
+                if args.json:
+                    continue
+                print(
+                    f"{cap_id} {source_id}: {repo} — could not fetch latest (offline?)",
+                    file=sys.stderr,
+                )
+                continue
+            if latest != locked:
+                # Also check staleness >90d via resolved_at
+                resolved_at = (src.get("resolved") or {}).get("resolved_at", "")
+                stale = False
+                try:
+                    rt = datetime.fromisoformat(resolved_at.replace("Z", "+00:00"))
+                    stale = (datetime.now(timezone.utc) - rt).days > 90
+                except Exception:
+                    stale = False
+                entry = {
+                    "capability": cap_id,
+                    "source": source_id,
+                    "repository": repo,
+                    "path": src.get("path"),
+                    "locked_commit": locked,
+                    "latest_commit": latest,
+                    "stale": stale,
+                    "license_locked": (src.get("resolved") or {}).get("license", {}).get("spdx"),
+                }
+                updates.append(entry)
+                if not args.json:
+                    print(
+                        f"{cap_id} {source_id}: update available {locked[:7]} → {latest[:7]} ({repo})"
+                        + (" STALE>90d" if stale else "")
+                    )
+            else:
+                if not args.json:
+                    print(f"{cap_id} {source_id}: up-to-date {locked[:7]} ({repo})")
+    if args.json:
+        print(json.dumps({"updates": updates, "count": len(updates)}, indent=2))
+        # Also check staleness even without update
+        if not updates:
+            # Still report staleness for existing lock entries
+            for cap_id in sorted(caps.keys()):
+                for source_id, src in caps[cap_id].get("sources", {}).items():
+                    resolved_at = (src.get("resolved") or {}).get("resolved_at", "")
+                    try:
+                        rt = datetime.fromisoformat(resolved_at.replace("Z", "+00:00"))
+                        if (datetime.now(timezone.utc) - rt).days > 90:
+                            print(
+                                f"warn: {cap_id} {source_id} pin >90d stale ({resolved_at})",
+                                file=sys.stderr,
+                            )
+                    except Exception:
+                        pass
+        return 0 if not updates else 0  # exit 0 even with updates; caller checks JSON
+
+    if updates:
+        print(
+            f"\n{len(updates)} update(s) available — run workflow to open PR (see #428).",
+            file=sys.stderr,
+        )
+        print(
+            "PR body must include: old/new commit, checksum, license, shell/network/mcp/hook diff, provenance_digest review-required.",
+            file=sys.stderr,
+        )
+    else:
+        print("No updates — all locked commits are at remote HEAD.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="provenance: declaration → lock → check")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -760,6 +908,10 @@ def main(argv: list[str] | None = None) -> int:
     p_docs = sub.add_parser("docs", help="generate docs/UPSTREAM.md from declaration+lock")
     p_docs.add_argument("--check", action="store_true", help="fail if docs/UPSTREAM.md differs")
     p_docs.set_defaults(func=cmd_docs)
+
+    p_up = sub.add_parser("updates", help="online discovery: compare locked commits to remote HEAD")
+    p_up.add_argument("--json", action="store_true", help="machine-readable JSON")
+    p_up.set_defaults(func=cmd_updates)
 
     args = p.parse_args(argv)
     return args.func(args)
