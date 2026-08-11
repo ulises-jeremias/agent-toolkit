@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 65
+count: 66
 skills:
   - id: agentic-security/supply-chain-audit
     name: supply-chain-audit
@@ -223,6 +223,13 @@ skills:
     description: WHAT - Evidence-based design-unit assessment orchestrated by project-assessment.
       Evaluates visual hierarchy, UX friction, interaction, a11y, responsiveness,
       design-system compliance, and distinctivene
+    stability: stable
+  - id: design/design-improvement
+    name: design-improvement
+    domain: design
+    description: WHAT - Browser-grounded iterative design improvement. Consumes design-assessment
+      findings, defines direction, prioritizes safe vs ambiguous changes, implements
+      within existing design system, runs app,
     stability: stable
   - id: design/figma
     name: figma

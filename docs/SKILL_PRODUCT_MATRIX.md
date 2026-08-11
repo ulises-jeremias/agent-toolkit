@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `python3 scripts/generate-skill-matrix.py` to regenerate, or `python3 scripts/generate-skill-matrix.py --check` in CI.
 
-_Generated from 4 products × 65 skills × 16 agents._
+_Generated from 4 products × 66 skills × 16 agents._
 
 ## Products and targets
 
@@ -11,7 +11,7 @@ _Generated from 4 products × 65 skills × 16 agents._
 | `agent-toolkit-core` | stable | claude-code, cursor | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 16 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 7 | 0 |
-| `agent-toolkit-complete` | experimental | — | 65 | 0 |
+| `agent-toolkit-complete` | experimental | — | 66 | 0 |
 
 ## Skills → Products
 
@@ -50,6 +50,7 @@ _Generated from 4 products × 65 skills × 16 agents._
 | `delivery/workflow-client-bootstrap` | `agent-toolkit-complete` | — |
 | `delivery/workflow-generic-project` | `agent-toolkit-complete` | — |
 | `design/design-assessment` | `agent-toolkit-complete` | — |
+| `design/design-improvement` | `agent-toolkit-complete` | — |
 | `design/figma` | `agent-toolkit-complete` | — |
 | `design/figma-code-connect-components` | `agent-toolkit-complete` | — |
 | `design/figma-create-design-system-rules` | `agent-toolkit-complete` | — |
