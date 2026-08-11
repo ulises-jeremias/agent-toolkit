@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 66
+count: 67
 skills:
   - id: agentic-security/supply-chain-audit
     name: supply-chain-audit
@@ -414,6 +414,13 @@ skills:
     domain: ops
     description: Workstation health triage — validate tooling, directory layout, and
       run doctor with remediation suggestions.
+    stability: stable
+  - id: tooling/chrome-devtools
+    name: chrome-devtools
+    domain: tooling
+    description: Use Chrome DevTools MCP to control and inspect a live Chrome instance
+      for network, console, performance, rendering, and Deep debugging. Pairs with
+      playwright-cli (deterministic interaction/E2E) — comp
     stability: stable
   - id: tooling/herdr
     name: herdr

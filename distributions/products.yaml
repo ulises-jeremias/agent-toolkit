@@ -165,6 +165,7 @@ products:
         - tooling/herdr
         - tooling/inventory
         - tooling/jupyter-notebook
+        - tooling/chrome-devtools
         - tooling/playwright-cli
         - core/project
         - core/workspace

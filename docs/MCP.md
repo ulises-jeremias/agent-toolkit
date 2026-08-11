@@ -33,6 +33,7 @@ Never substitute real credentials directly into the template files and commit th
 | Linear | HTTP/SSE | streamable_http | None (OAuth via browser) | Issues, projects, cycles, comments |
 | Figma | HTTP | streamable_http | `FIGMA_OAUTH_TOKEN`, `FIGMA_REGION` | Files, components, design tokens |
 | ClickUp | Command | stdio | `CLICKUP_API_TOKEN` | Tasks, lists, spaces, docs, comments |
+| Chrome DevTools | Command | stdio | None (opt `CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS`, `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS`) | Live Chrome: network, console, performance traces, rendering diagnostics |
 
 ---
 
@@ -295,3 +296,21 @@ Add MCP entries to Windsurf's MCP configuration file (typically `~/.codeium/wind
 - Never commit filled-in MCP config files containing real tokens to any repository
 
 The `validate-skills.sh` script scans for common secret patterns. It will warn if it detects what looks like a real token in any tracked file.
+
+### Chrome DevTools
+
+**Template:** `mcp/templates/chrome-devtools/config.template.json`
+**Registry:** `mcp/registry/chrome-devtools.yaml` (ChromeDevTools/chrome-devtools-mcp, Apache-2.0)
+
+```json
+{
+  "name": "chrome-devtools",
+  "command": "npx",
+  "args": ["-y", "chrome-devtools-mcp@latest"]
+}
+```
+
+**Setup:** See `skills/tooling/chrome-devtools/SKILL.md` for Playwright vs DevTools decision table and `mcp/templates/chrome-devtools/README.md` for host-specific wiring. `mcp/registry/chrome-devtools.yaml` documents provenance (official Google ChromeDevTools, npm `chrome-devtools-mcp`, Apache-2.0). Chrome DevTools MCP exposes all browser content — avoid sensitive pages. Usage stats enabled by default — opt out with `CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1` or `--no-usage-statistics`. Update checks ping npm — disable with `CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS=1`.
+
+**When to use:** `design-assessment` / `design-improvement` request `browser.performance / browser.network / browser.console / browser.runtime-debug` → Chrome DevTools; `browser.interact / browser.assert` → Playwright. Either alone is valid degraded mode.
+
