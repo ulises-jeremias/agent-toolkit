@@ -1,7 +1,14 @@
 version: 1
 generated: true
-count: 67
+count: 68
 skills:
+  - id: accessibility/review
+    name: review
+    domain: accessibility
+    description: WCAG 2.2 AA curated accessibility review — distinguishes automatically
+      detectable, browser-assisted, and manual/human-judgment findings with evidence
+      citations and SC mapping. Composes with design-ass
+    stability: stable
   - id: agentic-security/supply-chain-audit
     name: supply-chain-audit
     domain: agentic-security
