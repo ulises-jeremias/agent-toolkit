@@ -74,10 +74,19 @@ def _skill_id_from_path(skill_path: Path) -> str:
 
 
 def _file_sha256(path: Path) -> str:
-    # For SKILL.md, normalize out trust.reviewed_provenance to avoid circular digest:
-    # reviewed_provenance is a binding TO the lock digest; including it in content_checksum
-    # would make lock generation self-referential (checksum → digest → reviewed_provenance → checksum).
-    # We strip that single line before hashing; the rest of file is integrity-checked.
+    """
+    Vendored artifact checksum (normalized).
+
+    Invariant: content_checksum in capabilities/upstream.lock is the sha256 of the
+    *local vendored file* as it exists in the repo, not the pure upstream raw bytes.
+    For SKILL.md this includes Toolkit-owned frontmatter (origin, trust, distribution)
+    plus the upstream body (which is byte-identical to upstream at resolved commit).
+    The only normalization is stripping trust.reviewed_provenance, which is a binding
+    TO the lock digest; including it would make lock generation circular
+    (checksum → digest → reviewed_provenance → checksum). All other bytes are
+    integrity-checked. For LICENSE.txt the file is byte-identical to upstream LICENSE
+    at the resolved commit, so upstream and vendored checksums are identical.
+    """
     data = path.read_bytes()
     if path.name == "SKILL.md":
         text = data.decode("utf-8", errors="ignore")
