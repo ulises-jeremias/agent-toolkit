@@ -383,7 +383,9 @@ def test_first_party_omitted_from_lock():
     assert "design/frontend-design" in lock["capabilities"]
     assert "design/frontend-design-review" in lock["capabilities"]
     assert "design/web-design-guidelines" in lock["capabilities"]
-    assert len(lock["capabilities"]) == 4, "lock should be sparse: 72 skills → 4 upstream (3 vendored + quality/megalinter external)"
+    assert len(lock["capabilities"]) == 4, (
+        "lock should be sparse: 72 skills → 4 upstream (3 vendored + quality/megalinter external)"
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -39,11 +39,15 @@ PATTERNS: dict[str, tuple[str, str]] = {
     "hook": (r"hooks?:", "hook registration"),
     "mcp": (r"mcp/registry|mcp\.json", "MCP reference"),
     "env_secret": (r"(SECRET|TOKEN|KEY|PASSWORD)\s*[:=]", "possible credential"),
-    "dangerous_skip": (r"skipDangerousMode|dangerouslySkipPermissions", "dangerous: skip permission prompt"),
+    "dangerous_skip": (
+        r"skipDangerousMode|dangerouslySkipPermissions",
+        "dangerous: skip permission prompt",
+    ),
 }
 
 SKIP_DIRS = {".git", ".venv", "__pycache__", "node_modules", ".ruff_cache", ".mypy_cache"}
 SKIP_EXTS = {".pyc", ".png", ".jpg", ".svg"}
+
 
 def _should_skip(path: Path) -> bool:
     if any(p in SKIP_DIRS for p in path.parts):
@@ -51,6 +55,7 @@ def _should_skip(path: Path) -> bool:
     if path.suffix in SKIP_EXTS:
         return True
     return False
+
 
 def audit_path(path: Path) -> list[dict]:
     findings: list[dict] = []
@@ -79,11 +84,14 @@ def audit_path(path: Path) -> list[dict]:
                 )
     return findings
 
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Static audit for capabilities")
     parser.add_argument("paths", nargs="*", default=["skills", "mcp"], help="paths to audit")
     parser.add_argument("--json", action="store_true", help="JSON output")
-    parser.add_argument("--fail-on", choices=["high", "never"], default="never", help="fail CI on high findings")
+    parser.add_argument(
+        "--fail-on", choices=["high", "never"], default="never", help="fail CI on high findings"
+    )
     args = parser.parse_args(argv)
 
     all_findings: list[dict] = []
@@ -103,17 +111,22 @@ def main(argv=None) -> int:
         print(json.dumps({"findings": all_findings, "high": high}, indent=2))
     else:
         if not all_findings:
-            print("audit-capability: no static findings (checked patterns: shell/curl/MCP/hooks/env).")
+            print(
+                "audit-capability: no static findings (checked patterns: shell/curl/MCP/hooks/env)."
+            )
         else:
             for f in all_findings:
                 print(f"{f['file']}:{f['line']}: [{f['rule']}] {f['label']}: {f['match']}")
             print(f"\n{len(all_findings)} finding(s), {len(high)} high-severity.")
             if high:
-                print("High: raw.*main, rm -rf, push default, skip permission prompt — requires human review before merge.")
+                print(
+                    "High: raw.*main, rm -rf, push default, skip permission prompt — requires human review before merge."
+                )
 
     if args.fail_on == "high" and high:
         return 2
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -31,19 +31,42 @@ SKILLS_DIR = TOOLKIT_ROOT / "skills"
 
 # Gate 1: mutable refs - expanded set, short SHAs are NEVER immutable
 MUTABLE_REFS = {
-    "main", "master", "latest", "HEAD", "", "develop", "stable", "release",
-    "production", "next", "dev", "staging",
+    "main",
+    "master",
+    "latest",
+    "HEAD",
+    "",
+    "develop",
+    "stable",
+    "release",
+    "production",
+    "next",
+    "dev",
+    "staging",
 }
 
 # Gate 6: SPDX allowlist — controlled subset. See docs/TRUST.md for policy.
 SPDX_KNOWN = {
-    "MIT", "Apache-2.0", "Apache-2.0 WITH LLVM-exception",
-    "BSD-2-Clause", "BSD-3-Clause",
-    "ISC", "MPL-2.0",
-    "GPL-2.0-only", "GPL-3.0-only", "LGPL-2.1-only", "LGPL-3.0-only",
-    "AGPL-3.0", "AGPL-3.0-only", "AGPL-3.0-or-later",
-    "CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0",
-    "Unlicense", "0BSD", "NOASSERTION",
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",
+    "GPL-2.0-only",
+    "GPL-3.0-only",
+    "LGPL-2.1-only",
+    "LGPL-3.0-only",
+    "AGPL-3.0",
+    "AGPL-3.0-only",
+    "AGPL-3.0-or-later",
+    "CC0-1.0",
+    "CC-BY-4.0",
+    "CC-BY-SA-4.0",
+    "Unlicense",
+    "0BSD",
+    "NOASSERTION",
 }
 
 SHA40_RE = re.compile(r"^[0-9a-f]{40}$")
@@ -55,6 +78,7 @@ DISTRIBUTION_MODES = {"vendored", "external", "native-plugin", "generated"}
 TRUST_TIERS = {"first-party", "reviewed", "community", "experimental"}
 TRUST_TIERS_DEPRECATED = {"verified": "reviewed"}
 MAINTENANCE_STATUSES = {"active", "quiet", "archived", "unknown"}
+
 
 def _is_immutable_ref(ref: str, commit: str | None) -> tuple[bool, str]:
     if not ref or ref in MUTABLE_REFS:
@@ -72,8 +96,12 @@ def _is_immutable_ref(ref: str, commit: str | None) -> tuple[bool, str]:
         return False, f"tag {ref!r} requires commit: 40-char SHA (got {commit!r})"
     # Anything else is not immutable — covers short SHAs (7,12,39) explicitly
     if re.match(r"^[0-9a-f]{7,39}$", ref):
-        return False, f"short SHA {ref!r} (len {len(ref)}) is not allowed — must be full 40-char SHA (gate 1)"
+        return (
+            False,
+            f"short SHA {ref!r} (len {len(ref)}) is not allowed — must be full 40-char SHA (gate 1)",
+        )
     return False, f"ref {ref!r} not immutable (must be 40-char SHA or semver tag+commit)"
+
 
 def _is_valid_spdx(expr: str) -> tuple[bool, str]:
     """Gate 6: controlled SPDX subset.
@@ -88,7 +116,10 @@ def _is_valid_spdx(expr: str) -> tuple[bool, str]:
         # Only support single AND or single OR, not complex nesting
         # Split on AND/OR
         if expr.count(" AND ") + expr.count(" OR ") > 1:
-            return False, f"SPDX expression {expr!r} too complex for V1 subset (only single AND/OR supported)"
+            return (
+                False,
+                f"SPDX expression {expr!r} too complex for V1 subset (only single AND/OR supported)",
+            )
         sep = " AND " if " AND " in expr else " OR "
         parts = [p.strip().strip("() ") for p in expr.split(sep)]
         for p in parts:
@@ -99,7 +130,11 @@ def _is_valid_spdx(expr: str) -> tuple[bool, str]:
     # Single id
     if expr in SPDX_KNOWN or expr.startswith("LicenseRef-"):
         return True, ""
-    return False, f"SPDX {expr!r} not in allowlist (see SPDX_KNOWN; use LicenseRef- prefix for custom)"
+    return (
+        False,
+        f"SPDX {expr!r} not in allowlist (see SPDX_KNOWN; use LicenseRef- prefix for custom)",
+    )
+
 
 def _load_frontmatter(path: Path) -> dict:
     text = path.read_text(encoding="utf-8")
@@ -114,6 +149,7 @@ def _load_frontmatter(path: Path) -> dict:
         return data if isinstance(data, dict) else {}
     except Exception:
         return {}
+
 
 def _validate_source(src: dict, skill_path: Path, idx: int | None = None) -> list[str]:
     errors: list[str] = []
@@ -153,8 +189,11 @@ def _validate_source(src: dict, skill_path: Path, idx: int | None = None) -> lis
                 errors.append(f"{prefix}: license {reason}")
     # Gate 1: short SHAs explicitly rejected — also check commit field short
     if commit is not None and re.match(r"^[0-9a-f]{7,39}$", commit) and not SHA40_RE.match(commit):
-        errors.append(f"{prefix}: commit short SHA len {len(commit)} not allowed — must be full 40-char (gate 1)")
+        errors.append(
+            f"{prefix}: commit short SHA len {len(commit)} not allowed — must be full 40-char (gate 1)"
+        )
     return errors
+
 
 def validate_one(skill_path: Path, strict: bool = False) -> list[str]:
     errors: list[str] = []
@@ -163,14 +202,18 @@ def validate_one(skill_path: Path, strict: bool = False) -> list[str]:
     origin = fm.get("origin")
     if origin is None:
         # Policy exceeds schema (schema makes origin optional for backwards compat, validator requires it)
-        errors.append(f"{skill_path}: missing origin.type — every distributable SKILL.md must declare origin: {{type: first-party|upstream}} (gate 2, see docs/TRUST.md)")
+        errors.append(
+            f"{skill_path}: missing origin.type — every distributable SKILL.md must declare origin: {{type: first-party|upstream}} (gate 2, see docs/TRUST.md)"
+        )
         return errors
     if not isinstance(origin, dict):
         errors.append(f"{skill_path}: origin must be object with type")
         return errors
     origin_type = origin.get("type")
     if origin_type not in {"first-party", "upstream"}:
-        errors.append(f"{skill_path}: origin.type must be 'first-party' or 'upstream', got {origin_type!r}")
+        errors.append(
+            f"{skill_path}: origin.type must be 'first-party' or 'upstream', got {origin_type!r}"
+        )
         return errors
 
     # Collect sources: support both single 'upstream' (deprecated) and multi 'sources'
@@ -180,24 +223,32 @@ def validate_one(skill_path: Path, strict: bool = False) -> list[str]:
     has_sources = sources is not None
 
     if has_upstream and has_sources:
-        errors.append(f"{skill_path}: cannot have both 'upstream' and 'sources' — use 'sources' for multi-source (gate 9)")
+        errors.append(
+            f"{skill_path}: cannot have both 'upstream' and 'sources' — use 'sources' for multi-source (gate 9)"
+        )
         return errors
 
     if origin_type == "first-party":
         if has_upstream or has_sources:
-            errors.append(f"{skill_path}: origin first-party must not have upstream/sources (found upstream={has_upstream} sources={has_sources})")
+            errors.append(
+                f"{skill_path}: origin first-party must not have upstream/sources (found upstream={has_upstream} sources={has_sources})"
+            )
         # Validate trust tier if present
         trust = fm.get("trust")
         if isinstance(trust, dict):
             tier = trust.get("tier")
             if tier is not None and tier not in TRUST_TIERS and tier not in TRUST_TIERS_DEPRECATED:
-                errors.append(f"{skill_path}: trust.tier {tier!r} invalid (must be one of {sorted(TRUST_TIERS)})")
+                errors.append(
+                    f"{skill_path}: trust.tier {tier!r} invalid (must be one of {sorted(TRUST_TIERS)})"
+                )
         # Gate 11: inventory/doctor not required for #364, so no check
         return errors
 
     # origin_type == upstream
     if not has_upstream and not has_sources:
-        errors.append(f"{skill_path}: origin upstream requires 'upstream' or 'sources' provenance (gate 2)")
+        errors.append(
+            f"{skill_path}: origin upstream requires 'upstream' or 'sources' provenance (gate 2)"
+        )
         return errors
 
     # Validate sources
@@ -229,7 +280,9 @@ def validate_one(skill_path: Path, strict: bool = False) -> list[str]:
         else:
             mode = dist.get("mode")
             if mode is not None and mode not in DISTRIBUTION_MODES:
-                errors.append(f"{skill_path}: distribution.mode {mode!r} invalid (must be one of {sorted(DISTRIBUTION_MODES)})")
+                errors.append(
+                    f"{skill_path}: distribution.mode {mode!r} invalid (must be one of {sorted(DISTRIBUTION_MODES)})"
+                )
             # Gate 8: distribution semantics — each mode is mutually exclusive delivery channel
             # No additional cross-field checks needed beyond enum
 
@@ -243,14 +296,18 @@ def validate_one(skill_path: Path, strict: bool = False) -> list[str]:
                 # We'll allow but suggest migration; not an error for now
                 pass
             elif tier not in TRUST_TIERS:
-                errors.append(f"{skill_path}: trust.tier {tier!r} invalid (must be one of {sorted(TRUST_TIERS)}; 'verified' is deprecated alias for 'reviewed')")
+                errors.append(
+                    f"{skill_path}: trust.tier {tier!r} invalid (must be one of {sorted(TRUST_TIERS)}; 'verified' is deprecated alias for 'reviewed')"
+                )
 
     # Validate maintenance (separate from trust — gate 4)
     maintenance = fm.get("maintenance")
     if isinstance(maintenance, dict):
         status = maintenance.get("status")
         if status is not None and status not in MAINTENANCE_STATUSES:
-            errors.append(f"{skill_path}: maintenance.status {status!r} invalid (must be one of {sorted(MAINTENANCE_STATUSES)})")
+            errors.append(
+                f"{skill_path}: maintenance.status {status!r} invalid (must be one of {sorted(MAINTENANCE_STATUSES)})"
+            )
 
     # Validate security
     sec = fm.get("security")
@@ -269,14 +326,24 @@ def validate_capability_fixture(data: dict, path_hint: str = "fixture") -> list[
     errors: list[str] = []
     # Reuse same logic but data is already parsed dict, not file
     origin = data.get("origin")
-    if origin is None or not isinstance(origin, dict) or origin.get("type") not in {"first-party", "upstream"}:
+    if (
+        origin is None
+        or not isinstance(origin, dict)
+        or origin.get("type") not in {"first-party", "upstream"}
+    ):
         errors.append(f"{path_hint}: origin.type must be 'first-party' or 'upstream'")
         return errors
     # Check capability field if present
     cap = data.get("capability")
     if cap is not None:
-        if not isinstance(cap, dict) or cap.get("kind") not in {"skill", "agent", "mcp", "hook", "plugin", "script"} or not cap.get("id"):
-            errors.append(f"{path_hint}: capability must be {{kind: skill|agent|mcp|hook|plugin|script, id}}")
+        if (
+            not isinstance(cap, dict)
+            or cap.get("kind") not in {"skill", "agent", "mcp", "hook", "plugin", "script"}
+            or not cap.get("id")
+        ):
+            errors.append(
+                f"{path_hint}: capability must be {{kind: skill|agent|mcp|hook|plugin|script, id}}"
+            )
     # Then same source checks
     has_upstream = "upstream" in data
     has_sources = "sources" in data
@@ -299,7 +366,11 @@ def validate_capability_fixture(data: dict, path_hint: str = "fixture") -> list[
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Validate upstream provenance")
     parser.add_argument("--check", action="store_true", help="alias for default check")
-    parser.add_argument("--strict", action="store_true", help="strict mode (currently same as default; origin always required)")
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help="strict mode (currently same as default; origin always required)",
+    )
     parser.add_argument("--json", action="store_true", help="JSON output")
     args = parser.parse_args(argv)
 
@@ -314,14 +385,26 @@ def main(argv: list[str] | None = None) -> int:
         if args.json:
             print(json.dumps({"errors": all_errors}, indent=2))
         print(f"\n{len(all_errors)} upstream validation error(s).", file=sys.stderr)
-        print("Fix: declare origin.type and provenance per docs/TRUST.md#provenance", file=sys.stderr)
-        print("Gate 2: every distributable SKILL.md must have origin: {type: first-party|upstream}", file=sys.stderr)
-        print("Gate 1: ref must be full 40-char SHA or tag+40-char commit (short SHAs rejected)", file=sys.stderr)
+        print(
+            "Fix: declare origin.type and provenance per docs/TRUST.md#provenance", file=sys.stderr
+        )
+        print(
+            "Gate 2: every distributable SKILL.md must have origin: {type: first-party|upstream}",
+            file=sys.stderr,
+        )
+        print(
+            "Gate 1: ref must be full 40-char SHA or tag+40-char commit (short SHAs rejected)",
+            file=sys.stderr,
+        )
         return 1
 
     count = len(list(SKILLS_DIR.rglob("SKILL.md")))
-    print(f"upstream validation OK — {count} skills checked, origin + provenance + SPDX + SHA40 enforced.")
-    print("Note: SKILL.md declarations are semantic authority; capabilities/upstream.lock is resolution authority per ADR-0001.")
+    print(
+        f"upstream validation OK — {count} skills checked, origin + provenance + SPDX + SHA40 enforced."
+    )
+    print(
+        "Note: SKILL.md declarations are semantic authority; capabilities/upstream.lock is resolution authority per ADR-0001."
+    )
     return 0
 
 

@@ -260,6 +260,7 @@ def _build_lock_data(
                     else:
                         # Fetch upstream
                         import urllib.request
+
                         url = f"https://raw.githubusercontent.com/{repo}/{commit}/{spath}"
                         try:
                             with urllib.request.urlopen(url, timeout=10) as resp:
@@ -270,14 +271,19 @@ def _build_lock_data(
                                 content_checksum = f"sha256:{h.hexdigest()}"
                         except Exception as e:
                             # Fallback to local if fetch fails (offline)
-                            print(f"warn: external fetch failed for {repo}/{spath}@{commit[:7]}: {e} — falling back to local", file=sys.stderr)
+                            print(
+                                f"warn: external fetch failed for {repo}/{spath}@{commit[:7]}: {e} — falling back to local",
+                                file=sys.stderr,
+                            )
                             raise
                 # Fallback: vendored local file
                 if not content_checksum or content_checksum == "sha256:" + "0" * 64:
                     vendored_path = skill_path
                     if len(src_list) > 1:
                         if sid == "rules" or spath == "command.md":
-                            candidate = skill_path.parent / "references" / "web-interface-guidelines.md"
+                            candidate = (
+                                skill_path.parent / "references" / "web-interface-guidelines.md"
+                            )
                             if candidate.exists():
                                 vendored_path = candidate
                             else:
@@ -578,12 +584,18 @@ def cmd_check(args: argparse.Namespace) -> int:
                 if dist == "vendored" or dist is None:  # default assume vendored for upstream
                     try:
                         vendored_path = skill_path
-                        if len(decl_src_list) > 1 and (sid == "rules" or dsrc.get("path") == "command.md"):
+                        if len(decl_src_list) > 1 and (
+                            sid == "rules" or dsrc.get("path") == "command.md"
+                        ):
                             cand = skill_path.parent / "references" / "web-interface-guidelines.md"
                             if cand.exists():
                                 vendored_path = cand
                             else:
-                                cand2 = skill_path.parent / "references" / Path(dsrc.get("path", "")).name
+                                cand2 = (
+                                    skill_path.parent
+                                    / "references"
+                                    / Path(dsrc.get("path", "")).name
+                                )
                                 if cand2.exists():
                                     vendored_path = cand2
                         actual = _file_sha256(vendored_path)
