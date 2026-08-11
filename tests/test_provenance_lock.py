@@ -379,11 +379,11 @@ def test_first_party_omitted_from_lock():
     # 61 first-party skills must not appear — lock is sparse
     assert "core/assistant" not in lock["capabilities"], "first-party must not be in lock"
     assert "core/onboarding" not in lock["capabilities"]
-    # Only upstream with external content — now 3 vendored (frontend-design + frontend-design-review + web-design-guidelines)
+    # Only upstream with external content — now 4 (3 vendored + quality/megalinter external) (frontend-design + frontend-design-review + web-design-guidelines)
     assert "design/frontend-design" in lock["capabilities"]
     assert "design/frontend-design-review" in lock["capabilities"]
     assert "design/web-design-guidelines" in lock["capabilities"]
-    assert len(lock["capabilities"]) == 3, "lock should be sparse: 70 skills → 3 upstream vendored"
+    assert len(lock["capabilities"]) == 4, "lock should be sparse: 72 skills → 4 upstream (3 vendored + quality/megalinter external)"
 
 
 # ---------------------------------------------------------------------------
