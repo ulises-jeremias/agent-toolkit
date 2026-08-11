@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `python3 scripts/generate-skill-matrix.py` to regenerate, or `python3 scripts/generate-skill-matrix.py --check` in CI.
 
-_Generated from 4 products × 60 skills × 16 agents._
+_Generated from 4 products × 61 skills × 16 agents._
 
 ## Products and targets
 
@@ -53,6 +53,7 @@ _Generated from 4 products × 60 skills × 16 agents._
 | `design/figma-create-design-system-rules` | `agent-toolkit-complete` | — |
 | `design/figma-create-new-file` | `agent-toolkit-complete` | — |
 | `design/figma-implement-design` | `agent-toolkit-complete` | — |
+| `design/frontend-design` | _uncovered_ | — |
 | `forge/gh-address-comments` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-contribution-planner` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-fix-ci` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
