@@ -232,30 +232,55 @@ def _build_lock_data(
                 # Cannot build resolved without 40-char SHA — use placeholder but mark error elsewhere
                 # For now fallback to ref if it's SHA, else empty and check will fail
                 commit = ref if SHA40_RE.match(ref or "") else ""
-            # Content checksum: sha256 of vendored SKILL.md (and for multi-file, SKILL.md is primary)
-            # For vendored distribution, file should exist at skill_path
+            # Content checksum: per-source vendored artifact
+            # For single-source, it's SKILL.md; for multi-source, each source maps to its vendored file:
+            # - wrapper (vercel-labs/agent-skills) -> SKILL.md
+            # - rules (vercel-labs/web-interface-guidelines) -> references/web-interface-guidelines.md
+            # Generic fallback: skill_path for most, references/<basename> for others
             content_checksum = ""
             try:
-                if skill_path.exists():
-                    content_checksum = _file_sha256(skill_path)
+                vendored_path = skill_path
+                if len(src_list) > 1:
+                    # Multi-source: resolve per source
+                    if sid == "rules" or spath == "command.md":
+                        candidate = skill_path.parent / "references" / "web-interface-guidelines.md"
+                        if candidate.exists():
+                            vendored_path = candidate
+                        else:
+                            # Fallback to generic references/<basename>
+                            candidate = skill_path.parent / "references" / Path(spath).name
+                            if candidate.exists():
+                                vendored_path = candidate
+                    # wrapper and others keep SKILL.md
+                if vendored_path.exists():
+                    content_checksum = _file_sha256(vendored_path)
                 else:
                     content_checksum = "sha256:" + "0" * 64
             except Exception:
                 content_checksum = "sha256:" + "0" * 64
-            # License observed: use declaration license + LICENSE.txt checksum if present
+            # License observed: per-source
             license_obj: dict = {"spdx": lic}
-            # Try to find LICENSE.txt alongside SKILL.md
-            lic_path = skill_path.parent / "LICENSE.txt"
-            if lic_path.exists():
+            # For multi-source, try per-source LICENSE
+            lic_path = None
+            if len(src_list) > 1 and (sid == "rules" or lic == "MIT"):
+                # rules source has LICENSE in references/
+                cand = skill_path.parent / "references" / "LICENSE"
+                if cand.exists():
+                    lic_path = cand
+            if lic_path is None:
+                # Fallback to skill dir LICENSE.txt / LICENSE
+                cand = skill_path.parent / "LICENSE.txt"
+                if cand.exists():
+                    lic_path = cand
+                elif (skill_path.parent / "LICENSE").exists():
+                    lic_path = skill_path.parent / "LICENSE"
+            if lic_path is not None and lic_path.exists():
                 license_obj["source_path"] = str(lic_path.relative_to(REPO_ROOT))
                 try:
-                    license_obj["checksum"] = _file_sha256(lic_path)
+                    # Use raw for LICENSE (not normalized)
+                    license_obj["checksum"] = _file_sha256_raw(lic_path)
                 except Exception:
                     pass
-            elif (skill_path.parent / "LICENSE").exists():
-                lp = skill_path.parent / "LICENSE"
-                license_obj["source_path"] = str(lp.relative_to(REPO_ROOT))
-                license_obj["checksum"] = _file_sha256(lp)
             # Preserve existing resolved_at if source material unchanged (deterministic lock)
             existing_resolved_at = None
             if cap_id in existing_caps:
@@ -511,7 +536,7 @@ def cmd_check(args: argparse.Namespace) -> int:
                     f"{cap_id}.sources.{sid}.resolved.content_checksum {cksum!r} is not sha256:64hex"
                 )
             else:
-                # Verify against actual vendored file if vendored
+                # Verify against actual vendored file if vendored (per-source)
                 dist = (
                     (fm.get("distribution") or {}).get("mode")
                     if isinstance(fm.get("distribution"), dict)
@@ -519,10 +544,19 @@ def cmd_check(args: argparse.Namespace) -> int:
                 )
                 if dist == "vendored" or dist is None:  # default assume vendored for upstream
                     try:
-                        actual = _file_sha256(skill_path)
+                        vendored_path = skill_path
+                        if len(decl_src_list) > 1 and (sid == "rules" or dsrc.get("path") == "command.md"):
+                            cand = skill_path.parent / "references" / "web-interface-guidelines.md"
+                            if cand.exists():
+                                vendored_path = cand
+                            else:
+                                cand2 = skill_path.parent / "references" / Path(dsrc.get("path", "")).name
+                                if cand2.exists():
+                                    vendored_path = cand2
+                        actual = _file_sha256(vendored_path)
                         if actual != cksum:
                             errors.append(
-                                f"{cap_id}.sources.{sid}: content_checksum mismatch — lock {cksum[:16]}… vs vendored SKILL.md {actual[:16]}… ({skill_path} drift; run provenance.py lock after updating vendored bytes)"
+                                f"{cap_id}.sources.{sid}: content_checksum mismatch — lock {cksum[:16]}… vs vendored {vendored_path} {actual[:16]}… (drift; run provenance.py lock after updating vendored bytes)"
                             )
                     except FileNotFoundError:
                         errors.append(

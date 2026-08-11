@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `python3 scripts/generate-skill-matrix.py` to regenerate, or `python3 scripts/generate-skill-matrix.py --check` in CI.
 
-_Generated from 4 products × 62 skills × 16 agents._
+_Generated from 4 products × 63 skills × 16 agents._
 
 ## Products and targets
 
@@ -11,7 +11,7 @@ _Generated from 4 products × 62 skills × 16 agents._
 | `agent-toolkit-core` | stable | claude-code, cursor | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 16 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 7 | 0 |
-| `agent-toolkit-complete` | experimental | — | 62 | 0 |
+| `agent-toolkit-complete` | experimental | — | 63 | 0 |
 
 ## Skills → Products
 
@@ -55,6 +55,7 @@ _Generated from 4 products × 62 skills × 16 agents._
 | `design/figma-create-new-file` | `agent-toolkit-complete` | — |
 | `design/figma-implement-design` | `agent-toolkit-complete` | — |
 | `design/frontend-design` | `agent-toolkit-complete` | — |
+| `design/web-design-guidelines` | `agent-toolkit-complete` | — |
 | `forge/gh-address-comments` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-contribution-planner` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-fix-ci` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |

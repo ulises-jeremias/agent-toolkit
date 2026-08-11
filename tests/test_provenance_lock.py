@@ -379,8 +379,10 @@ def test_first_party_omitted_from_lock():
     # 61 first-party skills must not appear — lock is sparse
     assert "core/assistant" not in lock["capabilities"], "first-party must not be in lock"
     assert "core/onboarding" not in lock["capabilities"]
-    # Only upstream with external content
-    assert set(lock["capabilities"].keys()) == {"design/frontend-design"}
+    # Only upstream with external content — now 2 vendored (frontend-design + web-design-guidelines)
+    assert "design/frontend-design" in lock["capabilities"]
+    assert "design/web-design-guidelines" in lock["capabilities"]
+    assert len(lock["capabilities"]) == 2, "lock should be sparse: 63 skills → 2 upstream vendored"
 
 
 # ---------------------------------------------------------------------------
@@ -684,13 +686,18 @@ def test_content_checksum_is_vendored_artifact_normalized():
 
 
 def test_updates_discovery_reports_no_update_when_at_head(monkeypatch):
-    # Mock _fetch_latest_commit to return locked commit → no update
+    # Mock to return locked commit for each repo → no update (handles 2 capabilities, 3 sources)
     lock = yaml.safe_load(prov.LOCK_PATH.read_text())
-    locked = lock["capabilities"]["design/frontend-design"]["sources"]["upstream"]["resolved"][
-        "commit"
-    ]
-    monkeypatch.setattr(prov, "_fetch_latest_commit", lambda repo, path=None: locked)
-    # Capture JSON output
+
+    def _mock(repo, path=None):
+        # Return locked commit per repository
+        for cap in lock["capabilities"].values():
+            for src in cap["sources"].values():
+                if src["repository"] == repo:
+                    return src["resolved"]["commit"]
+        return None
+
+    monkeypatch.setattr(prov, "_fetch_latest_commit", _mock)
     import contextlib
     import io
 
@@ -699,17 +706,33 @@ def test_updates_discovery_reports_no_update_when_at_head(monkeypatch):
         rc = prov.cmd_updates(argparse.Namespace(json=True))
     assert rc == 0
     data = json.loads(buf.getvalue())
-    assert data["count"] == 0
+    assert data["count"] == 0, data
     assert data["updates"] == []
 
 
 def test_updates_discovery_reports_update_when_remote_ahead(monkeypatch):
     lock = yaml.safe_load(prov.LOCK_PATH.read_text())
-    locked = lock["capabilities"]["design/frontend-design"]["sources"]["upstream"]["resolved"][
-        "commit"
-    ]
-    fake_latest = "f" * 40 if locked != "f" * 40 else "e" * 40
-    monkeypatch.setattr(prov, "_fetch_latest_commit", lambda repo, path=None: fake_latest)
+    # Fake ahead for one repo only (anthropics/skills) to prove per-source detection
+    target_repo = "anthropics/skills"
+    fake_latest = "e" * 40
+    orig_locked = None
+    for cap in lock["capabilities"].values():
+        for src in cap["sources"].values():
+            if src["repository"] == target_repo:
+                orig_locked = src["resolved"]["commit"]
+                break
+
+    def _mock(repo, path=None):
+        if repo == target_repo:
+            return fake_latest
+        # Others return locked (no update)
+        for cap in lock["capabilities"].values():
+            for src in cap["sources"].values():
+                if src["repository"] == repo:
+                    return src["resolved"]["commit"]
+        return None
+
+    monkeypatch.setattr(prov, "_fetch_latest_commit", _mock)
     import contextlib
     import io
 
@@ -718,10 +741,10 @@ def test_updates_discovery_reports_update_when_remote_ahead(monkeypatch):
         rc = prov.cmd_updates(argparse.Namespace(json=True))
     assert rc == 0
     data = json.loads(buf.getvalue())
-    assert data["count"] == 1
-    assert data["updates"][0]["locked_commit"] == locked
+    assert data["count"] == 1, data
+    assert data["updates"][0]["repository"] == target_repo
+    assert data["updates"][0]["locked_commit"] == orig_locked
     assert data["updates"][0]["latest_commit"] == fake_latest
-    assert data["updates"][0]["capability"] == "design/frontend-design"
 
 
 # ---------------------------------------------------------------------------

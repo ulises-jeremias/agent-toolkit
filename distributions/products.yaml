@@ -139,6 +139,7 @@ products:
         - design/figma-create-new-file
         - design/figma-implement-design
         - design/frontend-design
+        - design/web-design-guidelines
         - agentic-security/supply-chain-audit
         - forge/gh-address-comments
         - forge/gh-contribution-planner

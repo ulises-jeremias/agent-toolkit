@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 62
+count: 63
 skills:
   - id: agentic-security/supply-chain-audit
     name: supply-chain-audit
@@ -258,6 +258,13 @@ skills:
     description: Guidance for distinctive, intentional visual design when building
       new UI or reshaping an existing one. Helps with aesthetic direction, typography,
       and making choices that don't read as templated defau
+    stability: stable
+  - id: design/web-design-guidelines
+    name: web-design-guidelines
+    domain: design
+    description: Review UI code for Web Interface Guidelines compliance — accessibility,
+      focus, forms, animation, typography, performance, and anti-patterns. Use when
+      asked to "review my UI", "check accessibility", "a
     stability: stable
   - id: forge/gh-address-comments
     name: gh-address-comments

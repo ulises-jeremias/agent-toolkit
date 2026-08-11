@@ -17,4 +17,33 @@ capabilities:
             spdx: Apache-2.0
           resolved_at: '2026-08-11T15:51:47.698560Z'
           version: f17010c
+  design/web-design-guidelines:
+    provenance_digest: sha256:7c23f915c756d4322d1b8ca17ed1d57a98cc6accd11a11ae765e288a181ff870
+    sources:
+      rules:
+        path: command.md
+        repository: vercel-labs/web-interface-guidelines
+        requested:
+          ref: 4e799d45c17aec1498c269287a83b9dba22b966b
+          type: commit
+        resolved:
+          commit: 4e799d45c17aec1498c269287a83b9dba22b966b
+          content_checksum: sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab
+          license:
+            checksum: sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2
+            source_path: skills/design/web-design-guidelines/references/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-11T17:00:49.944318Z'
+      wrapper:
+        path: skills/web-design-guidelines
+        repository: vercel-labs/agent-skills
+        requested:
+          ref: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
+          type: commit
+        resolved:
+          commit: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
+          content_checksum: sha256:bc7ec87473c51ec4e03ef44756ec03032848cb81ff27bdbfecad13e652b8757f
+          license:
+            spdx: NOASSERTION
+          resolved_at: '2026-08-11T17:01:53.930839Z'
 version: 2

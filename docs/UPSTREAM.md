@@ -7,8 +7,8 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-11T16:23:42.565146Z
-Capabilities with external provenance: 1 (first-party omitted; lock is sparse)
+Generated: 2026-08-11T17:03:13.883265Z
+Capabilities with external provenance: 2 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
 
@@ -31,6 +31,37 @@ Capabilities with external provenance: 1 (first-party omitted; lock is sparse)
 - **Resolved at:** `2026-08-11T15:51:47.698560Z` version=`f17010c`
 
 - **Per-skill attribution:** `skills/design/frontend-design/UPSTREAM.md`
+
+## `design/web-design-guidelines`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-11 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:7c23f915c756d4322d1b8ca17ed1d57a98cc6accd11a11ae765e288a181ff870` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=2026-07-24
+- **Distribution:** `vendored` redistribution_allowed=False
+- **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:7c23f915c756d4322d1b8ca17ed1d57a98cc6accd11a11ae765e288a181ff870`
+
+### Source `wrapper` — `vercel-labs/agent-skills/skills/web-design-guidelines`
+
+- **Repository:** `vercel-labs/agent-skills`
+- **Path:** `skills/web-design-guidelines`
+- **Requested:** `commit` `7c180d9044c9ae2b442b567aad4e42a28dd5ed62` (declaration intent)
+- **Resolved commit:** `7c180d9044c9ae2b442b567aad4e42a28dd5ed62`
+- **Content checksum:** `sha256:bc7ec87473c51ec4e03ef44756ec03032848cb81ff27bdbfecad13e652b8757f`
+- **Observed license:** `NOASSERTION` source_path=`?` checksum=`?`
+  - Declaration expected `license: NOASSERTION` — mismatch requires review
+- **Resolved at:** `2026-08-11T17:01:53.930839Z` version=`?`
+
+### Source `rules` — `vercel-labs/web-interface-guidelines/command.md`
+
+- **Repository:** `vercel-labs/web-interface-guidelines`
+- **Path:** `command.md`
+- **Requested:** `commit` `4e799d45c17aec1498c269287a83b9dba22b966b` (declaration intent)
+- **Resolved commit:** `4e799d45c17aec1498c269287a83b9dba22b966b`
+- **Content checksum:** `sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab`
+- **Observed license:** `MIT` source_path=`skills/design/web-design-guidelines/references/LICENSE` checksum=`sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-11T17:00:49.944318Z` version=`?`
 
 ---
 
