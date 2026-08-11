@@ -1374,7 +1374,7 @@ def _validate_packs(ws: Path) -> list[str]:
     packs_dir = ws / "packs"
     if not packs_dir.is_dir():
         return errors
-    for path in sorted(packs_dir.glob("*.yaml")):
+    for path in sorted(packs_dir.rglob("*.yaml")):
         try:
             data = _parse_yaml_file(path)
         except Exception as exc:
@@ -1457,6 +1457,10 @@ def _validate_profiles(ws: Path) -> list[str]:
                 for idx, s in enumerate(skills):
                     if not isinstance(s, str) or not s.strip():
                         errors.append(f"{path.name}: skills[{idx}] must be a non-empty string")
+            print(
+                f"  {_yellow('⚠')}  {path.name}: profile key 'skills' is schema-supported but currently not applied by the toolkit loader.",
+                file=sys.stderr,
+            )
         loops = data.get("loops")
         if loops is not None:
             if not isinstance(loops, list):
@@ -1465,6 +1469,15 @@ def _validate_profiles(ws: Path) -> list[str]:
                 for idx, ln in enumerate(loops):
                     if not isinstance(ln, str) or not ln.strip():
                         errors.append(f"{path.name}: loops[{idx}] must be a non-empty string")
+            print(
+                f"  {_yellow('⚠')}  {path.name}: profile key 'loops' is schema-supported but currently not applied by the toolkit loader.",
+                file=sys.stderr,
+            )
+
+        allowed_keys = {"name", "description", "pack", "persona", "skills", "loops"}
+        for k in data.keys():
+            if k not in allowed_keys:
+                errors.append(f"{path.name}: unknown profile key '{k}'")
     return errors
 
 
@@ -1523,6 +1536,9 @@ def cmd_validate(args: list[str]) -> int:
             case "--help" | "-h":
                 print("Usage: agent-toolkit workspace validate [surface] [--workspace PATH]")
                 print("Surfaces: all, packs, loops, personas, profiles, knowledge, jobs")
+                print(
+                    "Note: profile validation may warn about schema-supported keys that the Toolkit does not currently apply."
+                )
                 return 0
             case arg if not arg.startswith("-"):
                 surface = arg

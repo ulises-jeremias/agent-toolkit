@@ -111,6 +111,13 @@ def test_validate_packs_missing_field(workspace: Path) -> None:
     assert ws.cmd_validate(["packs"]) == 1
 
 
+def test_validate_packs_nested(workspace: Path) -> None:
+    nested = workspace / "packs" / "nested"
+    nested.mkdir()
+    (nested / "bad.yaml").write_text("name: bad_nested\n", encoding="utf-8")
+    assert ws.cmd_validate(["packs"]) == 1
+
+
 def test_validate_knowledge_missing_dir(workspace: Path) -> None:
     import shutil
 
@@ -214,6 +221,26 @@ def test_validate_profile_bad_skills(workspace: Path) -> None:
 def test_validate_profile_bad_loops(workspace: Path) -> None:
     (workspace / "profiles" / "bad-loops.yaml").write_text(
         "name: bad-loops\ndescription: Bad loops field\nloops: not-a-list\n",
+        encoding="utf-8",
+    )
+    assert ws.cmd_validate(["profiles"]) == 1
+
+
+def test_validate_profile_unused_keys(workspace: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    (workspace / "profiles" / "unused-keys.yaml").write_text(
+        "name: unused\ndescription: ok\nskills:\n  - some-skill\nloops:\n  - some-loop\n",
+        encoding="utf-8",
+    )
+    assert ws.cmd_validate(["profiles"]) == 0
+    err = capsys.readouterr().err
+    assert "schema-supported but currently not applied" in err
+    assert "skills" in err
+    assert "loops" in err
+
+
+def test_validate_profile_unknown_keys(workspace: Path) -> None:
+    (workspace / "profiles" / "unknown-key.yaml").write_text(
+        "name: unknown\ndescription: ok\ninvalid_key: true\n",
         encoding="utf-8",
     )
     assert ws.cmd_validate(["profiles"]) == 1
