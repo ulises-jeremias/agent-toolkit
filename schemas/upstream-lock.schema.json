@@ -12,11 +12,6 @@
       "const": 2,
       "description": "Lock format version. v1 (upstreams[]) is deprecated; v2 is capabilities->{sources->{requested, resolved}} minimal resolution."
     },
-    "generated_at": {
-      "type": "string",
-      "format": "date-time",
-      "description": "When the lock was generated (ISO-8601). Informational; not used for validation."
-    },
     "capabilities": {
       "type": "object",
       "description": "Sparse map: only capabilities with origin: upstream and external content. first-party capabilities MUST NOT appear. First-party with external inspiration (awesome-copilot/OWASP/blog) also omitted — references belong in docs, not lock.",

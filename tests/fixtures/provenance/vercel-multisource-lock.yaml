@@ -2,7 +2,6 @@
 # Illustrates ADR-0001 minimal resolution artifact — version 2.
 # Deterministic SHAs: wrapper a*40, rules b*40; checksums are fixture sha256 of content.
 version: 2
-generated_at: "2026-08-11T00:00:00Z"
 capabilities:
   design/web-design-guidelines:
     provenance_digest: sha256:0000000000000000000000000000000000000000000000000000000000000000

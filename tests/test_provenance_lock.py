@@ -62,7 +62,6 @@ def test_lock_schema_valid_minimal():
     schema = _load_lock_schema()
     data = {
         "version": 2,
-        "generated_at": "2026-08-11T00:00:00Z",
         "capabilities": {
             "design/frontend-design": {
                 "provenance_digest": _sha256_hex("x"),
@@ -257,7 +256,7 @@ def test_lock_generation_stable_ordering():
     orig = prov._file_sha256
     prov._file_sha256 = lambda p: CK_A  # type: ignore
     try:
-        data = prov._build_lock_data(decl, generated_at="2026-08-11T00:00:00Z")
+        data = prov._build_lock_data(decl)
     finally:
         prov._file_sha256 = orig  # type: ignore
     keys = list(data["capabilities"].keys())
@@ -502,7 +501,6 @@ def test_orphan_and_missing_detection_via_check(monkeypatch, tmp_path):
     # Use tmp lock file
     fake_lock = {
         "version": 2,
-        "generated_at": "2026-08-11T00:00:00Z",
         "capabilities": {
             "design/frontend-design": {
                 "sources": {
@@ -579,6 +577,110 @@ def test_upstream_lock_schema_reuses_shared_defs_but_separate_file():
     lock_schema = json.loads(prov.LOCK_SCHEMA_PATH.read_text())
     assert lock_schema["title"] == "External Provenance Lock"
     assert "capabilities" in lock_schema["properties"]
+    assert "generated_at" not in lock_schema["properties"], (
+        "generated_at must not be in lock schema (byte-stable)"
+    )
+
+
+def test_provenance_digest_source_added_removed_invalidates():
+    base = {
+        "upstream": {
+            "resolved": {"commit": SHA_A, "content_checksum": CK_A, "license": {"spdx": "MIT"}}
+        },
+    }
+    d_base = _digest(base)
+    # Added source
+    with_added = {
+        "upstream": {
+            "resolved": {"commit": SHA_A, "content_checksum": CK_A, "license": {"spdx": "MIT"}}
+        },
+        "extra": {
+            "resolved": {"commit": SHA_B, "content_checksum": CK_B, "license": {"spdx": "MIT"}}
+        },
+    }
+    assert _digest(with_added) != d_base, "added source must change digest"
+    # Removed source (single vs empty not allowed but hash differs)
+    assert _digest({}) != d_base  # empty should differ
+
+
+def test_provenance_digest_source_id_change_invalidates():
+    a = {
+        "wrapper": {
+            "resolved": {"commit": SHA_A, "content_checksum": CK_A, "license": {"spdx": "MIT"}}
+        }
+    }
+    b = {
+        "rules": {
+            "resolved": {"commit": SHA_A, "content_checksum": CK_A, "license": {"spdx": "MIT"}}
+        }
+    }
+    assert _digest(a) != _digest(b), (
+        "source ID/role change must invalidate digest (different logical source)"
+    )
+
+
+def test_provenance_digest_resolved_at_only_does_not_invalidate():
+    # resolved_at is NOT part of digest — changing timestamp alone must not invalidate review
+    sources = {
+        "upstream": {
+            "repository": "anthropics/skills",
+            "path": "skills/frontend-design",
+            "requested": {"type": "commit", "ref": SHA_A},
+            "resolved": {
+                "commit": SHA_A,
+                "content_checksum": CK_A,
+                "license": {"spdx": "MIT"},
+                "resolved_at": "2026-08-11T00:00:00Z",
+            },
+        }
+    }
+    d1 = _digest(sources)
+    sources["upstream"]["resolved"]["resolved_at"] = "2026-08-12T00:00:00Z"
+    d2 = _digest(sources)
+    assert d1 == d2, (
+        "resolved_at change alone must NOT invalidate digest (only material fields matter)"
+    )
+
+
+def test_license_checksum_is_vendored_bytes():
+    # Frontend-design LICENSE.txt vendored bytes are byte-identical to upstream LICENSE at resolved commit
+    # For now we prove vendored checksum matches file on disk and is sha256:*
+    lock = yaml.safe_load(prov.LOCK_PATH.read_text())
+    lic = lock["capabilities"]["design/frontend-design"]["sources"]["upstream"]["resolved"][
+        "license"
+    ]
+    assert lic["spdx"] == "Apache-2.0"
+    assert lic["source_path"] == "skills/design/frontend-design/LICENSE.txt"
+    lic_file = prov.REPO_ROOT / lic["source_path"]
+    assert lic_file.exists()
+    import hashlib
+
+    raw = hashlib.sha256(lic_file.read_bytes()).hexdigest()
+    assert lic["checksum"] == f"sha256:{raw}", (
+        "license checksum must be sha256 of vendored LICENSE.txt bytes (upstream-identical)"
+    )
+
+
+def test_content_checksum_is_vendored_artifact_normalized():
+    # content_checksum is vendored SKILL.md bytes normalized (reviewed_provenance excluded),
+    # not pure upstream body. Document invariant.
+    lock = yaml.safe_load(prov.LOCK_PATH.read_text())
+    cksum = lock["capabilities"]["design/frontend-design"]["sources"]["upstream"]["resolved"][
+        "content_checksum"
+    ]
+    # Verify it matches provenance's normalized file hash
+    skill_path = prov.REPO_ROOT / "skills/design/frontend-design/SKILL.md"
+    assert cksum == prov._file_sha256(skill_path)
+    # Body-only checksum would be different (031d4d...)
+    import hashlib
+
+    raw_text = skill_path.read_text()
+    body_start = raw_text.find("# Frontend Design")
+    body = raw_text[body_start:].encode()
+    body_sha = f"sha256:{hashlib.sha256(body).hexdigest()}"
+    assert cksum != body_sha, (
+        "content_checksum must be vendored artifact (with frontmatter), not body-only upstream bytes"
+    )
 
 
 # ---------------------------------------------------------------------------

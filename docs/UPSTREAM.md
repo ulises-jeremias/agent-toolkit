@@ -7,7 +7,7 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-11T15:52:50.040805Z
+Generated: 2026-08-11T16:23:42.565146Z
 Capabilities with external provenance: 1 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
@@ -34,4 +34,4 @@ Capabilities with external provenance: 1 (first-party omitted; lock is sparse)
 
 ---
 
-Update workflow (follow-up): `provenance.py updates` → candidate branch → `provenance.py lock` → vendored bytes + this doc → `audit-capability` → tests → PR with old/new commit/checksum/license and `provenance_digest` review-required.
+Update workflow (follow-up #428): resolve tracking refs → candidate branch → `provenance.py lock` → vendored bytes + this doc → `audit-capability` → tests → PR with old/new commit/checksum/license and `provenance_digest` review-required.

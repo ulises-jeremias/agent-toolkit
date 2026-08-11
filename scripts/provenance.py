@@ -5,7 +5,7 @@ Provenance tool — declaration → lock → integrity verification.
 Commands:
   lock    Resolve SKILL.md declarations and write deterministic capabilities/upstream.lock (v2)
   check   Offline validation: declaration↔lock consistency, schema, SHA40, SPDX, checksum vs vendored bytes, orphan/missing, review-binding
-  updates Online discovery (stub — split to follow-up automation issue)
+  docs    Generate docs/UPSTREAM.md from declaration+lock
 
 Lock semantics (ADR-0001):
   - Sparse: only origin: upstream with external content appears; first-party omitted.
@@ -14,9 +14,9 @@ Lock semantics (ADR-0001):
   - Multi-source: capability → sources: {id: {repository, path, requested, resolved}}.
 
 Usage:
-  uv run python scripts/provenance.py lock [--check] [--write]
+  uv run python scripts/provenance.py lock [--check]
   uv run python scripts/provenance.py check
-  uv run python scripts/provenance.py updates [--json]
+  uv run python scripts/provenance.py docs [--check]
 
 See docs/adr/0001-capability-declaration-and-external-provenance-lock.md
 """
@@ -181,12 +181,12 @@ def _discover_declarations() -> dict[str, dict]:
 
 def _build_lock_data(
     declarations: dict[str, dict],
-    generated_at: str | None = None,
     existing_lock: dict | None = None,
 ) -> dict:
-    if generated_at is None:
-        generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    # For determinism, reuse existing resolved_at when source unchanged
+    # For determinism, reuse existing resolved_at when source unchanged;
+    # otherwise use now for new resolutions. Top-level generated_at is omitted
+    # to keep the committed lock byte-stable (only resolved_at per source matters).
+    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     existing_caps = (existing_lock or {}).get("capabilities", {}) if existing_lock else {}
     capabilities: dict = {}
     for cap_id in sorted(declarations.keys()):
@@ -262,7 +262,7 @@ def _build_lock_data(
                 "commit": commit,
                 "content_checksum": content_checksum,
                 "license": license_obj,
-                "resolved_at": existing_resolved_at or generated_at,
+                "resolved_at": existing_resolved_at or now,
             }
             # Preserve version if present in declaration
             if src.get("version"):
@@ -282,7 +282,6 @@ def _build_lock_data(
         }
     return {
         "version": 2,
-        "generated_at": generated_at,
         "capabilities": capabilities,
     }
 
@@ -308,9 +307,8 @@ def cmd_lock(args: argparse.Namespace) -> int:
     if not declarations:
         print("no upstream declarations found (all 62 may be first-party)", file=sys.stderr)
     # Use existing lock generated_at if --check and file exists to keep deterministic
-    generated_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     existing = _load_lock() if LOCK_PATH.exists() else None
-    data = _build_lock_data(declarations, generated_at=generated_at, existing_lock=existing)
+    data = _build_lock_data(declarations, existing_lock=existing)
     # Validate against schema before write
     errs = _validate_lock_schema(data)
     if errs:
@@ -336,18 +334,12 @@ def cmd_lock(args: argparse.Namespace) -> int:
             )
             print(new_text)
             return 1
-        # Compare ignoring generated_at (timestamp always moves)
         existing_data = _load_lock()
         new_data_cmp = json.loads(json.dumps(data))
         existing_cmp = json.loads(json.dumps(existing_data)) if existing_data else {}
-        # Remove generated_at for comparison
-        new_data_cmp.pop("generated_at", None)
-        if isinstance(existing_cmp, dict):
-            existing_cmp.pop("generated_at", None)
         if new_data_cmp != existing_cmp:
             print(f"lock drift: {LOCK_PATH} differs from declarations", file=sys.stderr)
             print("Fix: uv run python scripts/provenance.py lock", file=sys.stderr)
-            # Show diff-ish: print expected vs actual minimal
             import difflib
 
             exp_lines = _dump(new_data_cmp).splitlines(keepends=True)
@@ -359,12 +351,12 @@ def cmd_lock(args: argparse.Namespace) -> int:
             diff = difflib.unified_diff(
                 act_lines,
                 exp_lines,
-                fromfile="committed lock (w/o generated_at)",
+                fromfile="committed lock",
                 tofile="expected from declarations",
             )
             sys.stderr.writelines(diff)
             return 1
-        print("lock check OK — declarations ↔ lock in sync (generated_at ignored)")
+        print("lock check OK — declarations ↔ lock in sync")
         return 0
     else:
         # Write
@@ -688,7 +680,9 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
     lines.append("---")
     lines.append("")
     lines.append(
-        "Update workflow (follow-up): `provenance.py updates` → candidate branch → `provenance.py lock` → vendored bytes + this doc → `audit-capability` → tests → PR with old/new commit/checksum/license and `provenance_digest` review-required."
+        "Update workflow (follow-up #428): resolve tracking refs → candidate branch → "
+        "`provenance.py lock` → vendored bytes + this doc → `audit-capability` → tests → "
+        "PR with old/new commit/checksum/license and `provenance_digest` review-required."
     )
     lines.append("")
     return "\n".join(lines)
@@ -735,35 +729,6 @@ def cmd_docs(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_updates(args: argparse.Namespace) -> int:
-    # Stub intentionally minimal — full online discovery + PR automation split to follow-up
-    print(
-        "updates: online upstream discovery is not implemented in this PR (split to follow-up per ADR)."
-    )
-    print("This command would (in follow-up):")
-    print("  - Resolve each sources[].requested ref (commit/tag/main) via GitHub API")
-    print("  - Compare to sources[].resolved.commit / content_checksum")
-    print(
-        "  - If changed, create candidate branch, run provenance.py lock, update vendored bytes, UPSTREAM.md, audit, tests, open PR"
-    )
-    print(
-        "  - PR body shows: old/new commit, checksum, license, shell/network/mcp/hook diff, provenance_digest review-required"
-    )
-    print(
-        "For now, manually check upstream: curl -fsSL https://api.github.com/repos/REPO/commits/REF"
-    )
-    if args.json:
-        print(
-            json.dumps(
-                {
-                    "status": "not_implemented",
-                    "follow_up": "Automate upstream update discovery and reviewed PR generation",
-                }
-            )
-        )
-    return 0
-
-
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="provenance: declaration → lock → check")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -774,7 +739,7 @@ def main(argv: list[str] | None = None) -> int:
     p_lock.add_argument(
         "--check",
         action="store_true",
-        help="do not write; fail if committed lock differs (ignores generated_at)",
+        help="do not write; fail if committed lock differs",
     )
     p_lock.set_defaults(func=cmd_lock)
 
@@ -782,10 +747,6 @@ def main(argv: list[str] | None = None) -> int:
         "check", help="offline validation declaration↔lock + checksums + digest + review binding"
     )
     p_check.set_defaults(func=cmd_check)
-
-    p_up = sub.add_parser("updates", help="online discovery (stub until follow-up)")
-    p_up.add_argument("--json", action="store_true")
-    p_up.set_defaults(func=cmd_updates)
 
     p_docs = sub.add_parser("docs", help="generate docs/UPSTREAM.md from declaration+lock")
     p_docs.add_argument("--check", action="store_true", help="fail if docs/UPSTREAM.md differs")
