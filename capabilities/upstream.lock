@@ -17,6 +17,24 @@ capabilities:
             spdx: Apache-2.0
           resolved_at: '2026-08-11T15:51:47.698560Z'
           version: f17010c
+  design/frontend-design-review:
+    provenance_digest: sha256:5394cd7cf5d9c56acd77c251da40cb603795ac5e5b4d817578991d12d57d2be7
+    sources:
+      upstream:
+        path: .github/skills/frontend-design-review
+        repository: microsoft/skills
+        requested:
+          ref: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
+          type: commit
+        resolved:
+          commit: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
+          content_checksum: sha256:66aa155ca3da88f51b2d03377d0d6009eccf9eecd7a36e4a13a7240d1474b67f
+          license:
+            checksum: sha256:d9a1b1e30d633d5732ea18e3cba9538d293ebc53e1a9e4e96ab739e0c5c4f1cb
+            source_path: skills/design/frontend-design-review/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-11T17:12:46.950377Z'
+          version: e58528d
   design/web-design-guidelines:
     provenance_digest: sha256:7c23f915c756d4322d1b8ca17ed1d57a98cc6accd11a11ae765e288a181ff870
     sources:

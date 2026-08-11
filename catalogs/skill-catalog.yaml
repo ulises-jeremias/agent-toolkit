@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 63
+count: 64
 skills:
   - id: agentic-security/supply-chain-audit
     name: supply-chain-audit
@@ -258,6 +258,13 @@ skills:
     description: Guidance for distinctive, intentional visual design when building
       new UI or reshaping an existing one. Helps with aesthetic direction, typography,
       and making choices that don't read as templated defau
+    stability: stable
+  - id: design/frontend-design-review
+    name: frontend-design-review
+    domain: design
+    description: 'Review and create distinctive, production-grade frontend interfaces
+      with high design quality and design system compliance. Evaluates using three
+      pillars: frictionless insight-to-action, quality craft,'
     stability: stable
   - id: design/web-design-guidelines
     name: web-design-guidelines

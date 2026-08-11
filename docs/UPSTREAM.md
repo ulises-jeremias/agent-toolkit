@@ -7,8 +7,8 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-11T17:03:13.883265Z
-Capabilities with external provenance: 2 (first-party omitted; lock is sparse)
+Generated: 2026-08-11T17:13:16.578897Z
+Capabilities with external provenance: 3 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
 
@@ -31,6 +31,26 @@ Capabilities with external provenance: 2 (first-party omitted; lock is sparse)
 - **Resolved at:** `2026-08-11T15:51:47.698560Z` version=`f17010c`
 
 - **Per-skill attribution:** `skills/design/frontend-design/UPSTREAM.md`
+
+## `design/frontend-design-review`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-11 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:5394cd7cf5d9c56acd77c251da40cb603795ac5e5b4d817578991d12d57d2be7` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=2026-08-11
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:5394cd7cf5d9c56acd77c251da40cb603795ac5e5b4d817578991d12d57d2be7`
+
+### Source `upstream` — `microsoft/skills/.github/skills/frontend-design-review`
+
+- **Repository:** `microsoft/skills`
+- **Path:** `.github/skills/frontend-design-review`
+- **Requested:** `commit` `e58528db9a006528a5fb0a2c029790fa6a9a7c0e` (declaration intent)
+- **Resolved commit:** `e58528db9a006528a5fb0a2c029790fa6a9a7c0e`
+- **Content checksum:** `sha256:66aa155ca3da88f51b2d03377d0d6009eccf9eecd7a36e4a13a7240d1474b67f`
+- **Observed license:** `MIT` source_path=`skills/design/frontend-design-review/LICENSE` checksum=`sha256:d9a1b1e30d633d5732ea18e3cba9538d293ebc53e1a9e4e96ab739e0c5c4f1cb`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-11T17:12:46.950377Z` version=`e58528d`
 
 ## `design/web-design-guidelines`
 
