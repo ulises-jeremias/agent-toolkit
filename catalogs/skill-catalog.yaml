@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 72
+count: 73
 skills:
   - id: accessibility/review
     name: review
@@ -442,6 +442,13 @@ skills:
     domain: ops
     description: Workstation health triage — validate tooling, directory layout, and
       run doctor with remediation suggestions.
+    stability: stable
+  - id: quality/codeql
+    name: codeql
+    domain: quality
+    description: CodeQL operational workflow — discover/config, run/inspect, triage
+      SARIF findings (rule/query ID, source→sink, evidence), remediate, re-validate.
+      Distinguishes broad MegaLinter linting from semantic s
     stability: stable
   - id: quality/megalinter
     name: megalinter

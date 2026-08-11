@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `python3 scripts/generate-skill-matrix.py` to regenerate, or `python3 scripts/generate-skill-matrix.py --check` in CI.
 
-_Generated from 4 products × 72 skills × 17 agents._
+_Generated from 4 products × 73 skills × 17 agents._
 
 ## Products and targets
 
@@ -11,7 +11,7 @@ _Generated from 4 products × 72 skills × 17 agents._
 | `agent-toolkit-core` | stable | claude-code, cursor | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 16 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 7 | 0 |
-| `agent-toolkit-complete` | experimental | — | 72 | 0 |
+| `agent-toolkit-complete` | experimental | — | 73 | 0 |
 
 ## Skills → Products
 
@@ -83,6 +83,7 @@ _Generated from 4 products × 72 skills × 17 agents._
 | `ops/swarm-handoff` | `agent-toolkit-complete` | — |
 | `ops/swarm-observer` | `agent-toolkit-complete` | — |
 | `ops/triage` | `agent-toolkit-complete` | — |
+| `quality/codeql` | `agent-toolkit-complete` | — |
 | `quality/megalinter` | `agent-toolkit-complete` | — |
 | `tooling/chrome-devtools` | `agent-toolkit-complete` | — |
 | `tooling/herdr` | `agent-toolkit-complete` | — |
