@@ -64,4 +64,55 @@ capabilities:
           license:
             spdx: NOASSERTION
           resolved_at: '2026-08-11T17:01:53.930839Z'
+  quality/megalinter:
+    provenance_digest: sha256:a261350125bc434d73807cadb9f4616219e0266369887895f95b076c13e0c95c
+    sources:
+      check:
+        path: skills/megalinter-check/SKILL.md
+        repository: oxsecurity/megalinter
+        requested:
+          ref: v10.0.0
+          type: tag
+        resolved:
+          commit: 15e5b45552097e318c93de385779ce3b1084052c
+          content_checksum: sha256:bb8e475961a2e57eb45687a8f138ea8039c7c5ee29f68cd165632d702097dad4
+          license:
+            spdx: AGPL-3.0
+          resolved_at: '2026-08-11T22:13:29.168686Z'
+      fix:
+        path: skills/megalinter-fix/SKILL.md
+        repository: oxsecurity/megalinter
+        requested:
+          ref: v10.0.0
+          type: tag
+        resolved:
+          commit: 15e5b45552097e318c93de385779ce3b1084052c
+          content_checksum: sha256:fff5202aaa55441d1b0c19a63d7daf5c34757f6a5f6ddb8624450a15f2bee0ca
+          license:
+            spdx: AGPL-3.0
+          resolved_at: '2026-08-11T22:13:29.168686Z'
+      orchestrator:
+        path: skills/megalinter/SKILL.md
+        repository: oxsecurity/megalinter
+        requested:
+          ref: v10.0.0
+          type: tag
+        resolved:
+          commit: 15e5b45552097e318c93de385779ce3b1084052c
+          content_checksum: sha256:ffd79b1c0c831f206b0b39fa35c463e976c37eeef85218320342348eaed9ffc9
+          license:
+            spdx: AGPL-3.0
+          resolved_at: '2026-08-11T22:13:29.168686Z'
+      setup:
+        path: skills/megalinter-setup/SKILL.md
+        repository: oxsecurity/megalinter
+        requested:
+          ref: v10.0.0
+          type: tag
+        resolved:
+          commit: 15e5b45552097e318c93de385779ce3b1084052c
+          content_checksum: sha256:b1cba3934bbb096ca21988ccd0d0042271d83975c3d3bbbbdf6b44d628daddb1
+          license:
+            spdx: AGPL-3.0
+          resolved_at: '2026-08-11T22:13:29.168686Z'
 version: 2

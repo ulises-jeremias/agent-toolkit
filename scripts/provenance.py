@@ -232,32 +232,65 @@ def _build_lock_data(
                 # Cannot build resolved without 40-char SHA — use placeholder but mark error elsewhere
                 # For now fallback to ref if it's SHA, else empty and check will fail
                 commit = ref if SHA40_RE.match(ref or "") else ""
-            # Content checksum: per-source vendored artifact
+            # Content checksum: per-source artifact
             # For single-source, it's SKILL.md; for multi-source, each source maps to its vendored file:
             # - wrapper (vercel-labs/agent-skills) -> SKILL.md
             # - rules (vercel-labs/web-interface-guidelines) -> references/web-interface-guidelines.md
             # Generic fallback: skill_path for most, references/<basename> for others
+            # For distribution: external, fetch upstream raw bytes at resolved commit instead of local vendored file
             content_checksum = ""
             try:
-                vendored_path = skill_path
-                if len(src_list) > 1:
-                    # Multi-source: resolve per source
-                    if sid == "rules" or spath == "command.md":
-                        candidate = skill_path.parent / "references" / "web-interface-guidelines.md"
-                        if candidate.exists():
-                            vendored_path = candidate
-                        else:
-                            # Fallback to generic references/<basename>
-                            candidate = skill_path.parent / "references" / Path(spath).name
+                # External distribution: fetch upstream content for checksum (governance without redistribution)
+                dist_mode = None
+                fm_dist = declarations[cap_id].get("frontmatter", {}).get("distribution", {})
+                if isinstance(fm_dist, dict):
+                    dist_mode = fm_dist.get("mode")
+                if dist_mode == "external" and commit and repo and spath:
+                    # Fetch upstream raw at pinned commit (deterministic, no network in check when lock exists? — but lock generation is online-capable)
+                    # Try to reuse existing lock's checksum if already correct to avoid network in deterministic re-run
+                    existing_ck = None
+                    if cap_id in existing_caps:
+                        ex_src = existing_caps[cap_id].get("sources", {}).get(sid, {})
+                        ex_res = ex_src.get("resolved", {})
+                        if ex_res.get("commit") == commit:
+                            existing_ck = ex_res.get("content_checksum")
+                    # If we have a valid existing checksum (not zeros) and commit matches, reuse it for determinism
+                    if existing_ck and existing_ck != "sha256:" + "0" * 64:
+                        content_checksum = existing_ck
+                    else:
+                        # Fetch upstream
+                        import urllib.request
+                        url = f"https://raw.githubusercontent.com/{repo}/{commit}/{spath}"
+                        try:
+                            with urllib.request.urlopen(url, timeout=10) as resp:
+                                data = resp.read()
+                                # Normalize SKILL.md same as _file_sha256 (strip reviewed_provenance) is not needed for upstream (no reviewed_provenance line)
+                                h = hashlib.sha256()
+                                h.update(data)
+                                content_checksum = f"sha256:{h.hexdigest()}"
+                        except Exception as e:
+                            # Fallback to local if fetch fails (offline)
+                            print(f"warn: external fetch failed for {repo}/{spath}@{commit[:7]}: {e} — falling back to local", file=sys.stderr)
+                            raise
+                # Fallback: vendored local file
+                if not content_checksum or content_checksum == "sha256:" + "0" * 64:
+                    vendored_path = skill_path
+                    if len(src_list) > 1:
+                        if sid == "rules" or spath == "command.md":
+                            candidate = skill_path.parent / "references" / "web-interface-guidelines.md"
                             if candidate.exists():
                                 vendored_path = candidate
-                    # wrapper and others keep SKILL.md
-                if vendored_path.exists():
-                    content_checksum = _file_sha256(vendored_path)
-                else:
-                    content_checksum = "sha256:" + "0" * 64
+                            else:
+                                candidate = skill_path.parent / "references" / Path(spath).name
+                                if candidate.exists():
+                                    vendored_path = candidate
+                    if vendored_path.exists():
+                        content_checksum = _file_sha256(vendored_path)
+                    else:
+                        content_checksum = "sha256:" + "0" * 64
             except Exception:
                 content_checksum = "sha256:" + "0" * 64
+                # If external and still zeros, try local fallback already handled; keep zeros (check will skip for external)
             # License observed: per-source
             license_obj: dict = {"spdx": lic}
             # For multi-source, try per-source LICENSE

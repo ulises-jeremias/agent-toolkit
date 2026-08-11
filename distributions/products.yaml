@@ -169,6 +169,7 @@ products:
         - agentic-security/mcp-audit
         - agentic-security/owasp-agentic-review
         - agentic-security/threat-modeling
+        - quality/megalinter
         - tooling/chrome-devtools
         - tooling/playwright-cli
         - core/project

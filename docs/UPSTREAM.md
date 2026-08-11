@@ -7,8 +7,8 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-11T17:13:16.578897Z
-Capabilities with external provenance: 3 (first-party omitted; lock is sparse)
+Generated: 2026-08-11T22:14:22.246586Z
+Capabilities with external provenance: 4 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
 
@@ -82,6 +82,59 @@ Capabilities with external provenance: 3 (first-party omitted; lock is sparse)
 - **Observed license:** `MIT` source_path=`skills/design/web-design-guidelines/references/LICENSE` checksum=`sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2`
   - Declaration expected `license: MIT` — mismatch requires review
 - **Resolved at:** `2026-08-11T17:00:49.944318Z` version=`?`
+
+## `quality/megalinter`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-12 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:a261350125bc434d73807cadb9f4616219e0266369887895f95b076c13e0c95c` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=2026-08-08
+- **Distribution:** `external` redistribution_allowed=False
+- **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:a261350125bc434d73807cadb9f4616219e0266369887895f95b076c13e0c95c`
+
+### Source `orchestrator` — `oxsecurity/megalinter/skills/megalinter/SKILL.md`
+
+- **Repository:** `oxsecurity/megalinter`
+- **Path:** `skills/megalinter/SKILL.md`
+- **Requested:** `tag` `v10.0.0` (declaration intent)
+- **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
+- **Content checksum:** `sha256:ffd79b1c0c831f206b0b39fa35c463e976c37eeef85218320342348eaed9ffc9`
+- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
+  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
+
+### Source `setup` — `oxsecurity/megalinter/skills/megalinter-setup/SKILL.md`
+
+- **Repository:** `oxsecurity/megalinter`
+- **Path:** `skills/megalinter-setup/SKILL.md`
+- **Requested:** `tag` `v10.0.0` (declaration intent)
+- **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
+- **Content checksum:** `sha256:b1cba3934bbb096ca21988ccd0d0042271d83975c3d3bbbbdf6b44d628daddb1`
+- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
+  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
+
+### Source `check` — `oxsecurity/megalinter/skills/megalinter-check/SKILL.md`
+
+- **Repository:** `oxsecurity/megalinter`
+- **Path:** `skills/megalinter-check/SKILL.md`
+- **Requested:** `tag` `v10.0.0` (declaration intent)
+- **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
+- **Content checksum:** `sha256:bb8e475961a2e57eb45687a8f138ea8039c7c5ee29f68cd165632d702097dad4`
+- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
+  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
+
+### Source `fix` — `oxsecurity/megalinter/skills/megalinter-fix/SKILL.md`
+
+- **Repository:** `oxsecurity/megalinter`
+- **Path:** `skills/megalinter-fix/SKILL.md`
+- **Requested:** `tag` `v10.0.0` (declaration intent)
+- **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
+- **Content checksum:** `sha256:fff5202aaa55441d1b0c19a63d7daf5c34757f6a5f6ddb8624450a15f2bee0ca`
+- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
+  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
 
 ---
 

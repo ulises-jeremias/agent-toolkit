@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 71
+count: 72
 skills:
   - id: accessibility/review
     name: review
@@ -442,6 +442,13 @@ skills:
     domain: ops
     description: Workstation health triage — validate tooling, directory layout, and
       run doctor with remediation suggestions.
+    stability: stable
+  - id: quality/megalinter
+    name: megalinter
+    domain: quality
+    description: MegaLinter coding-agent orchestration — discover config, run/check
+      (CI watch or local Docker), classify findings, apply safe fixes, targeted re-check
+      (bounded 3 iterations), report remaining. Consumes
     stability: stable
   - id: tooling/chrome-devtools
     name: chrome-devtools
