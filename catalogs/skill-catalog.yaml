@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 64
+count: 65
 skills:
   - id: agentic-security/supply-chain-audit
     name: supply-chain-audit
@@ -216,6 +216,13 @@ skills:
     description: 'WHAT — Generic client delivery: Jira or ClickUp, full repo context,
       human gates, English traceability on tickets, draft PR via delegated forge skills.
       Use workspace packs for client/account overlays.'
+    stability: stable
+  - id: design/design-assessment
+    name: design-assessment
+    domain: design
+    description: WHAT - Evidence-based design-unit assessment orchestrated by project-assessment.
+      Evaluates visual hierarchy, UX friction, interaction, a11y, responsiveness,
+      design-system compliance, and distinctivene
     stability: stable
   - id: design/figma
     name: figma
