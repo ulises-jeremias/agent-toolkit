@@ -166,6 +166,7 @@ products:
         - tooling/inventory
         - tooling/jupyter-notebook
         - accessibility/review
+        - agentic-security/mcp-audit
         - tooling/chrome-devtools
         - tooling/playwright-cli
         - core/project

@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 68
+count: 69
 skills:
   - id: accessibility/review
     name: review
@@ -8,6 +8,13 @@ skills:
     description: WCAG 2.2 AA curated accessibility review — distinguishes automatically
       detectable, browser-assisted, and manual/human-judgment findings with evidence
       citations and SC mapping. Composes with design-ass
+    stability: stable
+  - id: agentic-security/mcp-audit
+    name: mcp-audit
+    domain: agentic-security
+    description: 'MCP config + implementation security audit — config secrets/auth,
+      unpinned versions, remote vs local, OAuth, env exposure; implementation command
+      injection, SSRF, unsafe args, tool poisoning. Static, '
     stability: stable
   - id: agentic-security/supply-chain-audit
     name: supply-chain-audit
