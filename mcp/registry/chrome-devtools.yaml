@@ -7,7 +7,7 @@ display_name: Chrome DevTools
 purpose: Control and inspect a live Chrome instance — network, console, performance traces, rendering diagnostics, reliable automation via Puppeteer + DevTools protocol
 implementation:
   provenance: official
-  package: "npm:chrome-devtools-mcp"
+  package: "chrome-devtools-mcp@latest"
   repository: https://github.com/ChromeDevTools/chrome-devtools-mcp
   license: Apache-2.0
   version_policy: npx-latest
