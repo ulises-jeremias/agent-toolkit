@@ -45,15 +45,13 @@ from agent_toolkit.compiler.model import (
     Product,
     Skill,
 )
-from agent_toolkit.compiler.targets.base import TargetAdapter
+from agent_toolkit.compiler.targets.base import TargetAdapter, private_network_leak_errors
 
 # Fields that must never appear in a publicly distributed pi-package.json.
 # Private LAN URLs committed to public packages are a DEFECT-002 class bug.
 _FORBIDDEN_PI_FIELDS = {
     "private",  # marks private packages — companion packs should be public
 }
-
-_PRIVATE_HOSTNAME_PATTERNS = (".local", "192.168.", "10.", "172.16.")
 
 
 class PiAdapter(TargetAdapter):
@@ -200,12 +198,7 @@ class PiAdapter(TargetAdapter):
                     "companion packs should be publishable (not private)"
                 )
         text = json.dumps(data)
-        for pattern in _PRIVATE_HOSTNAME_PATTERNS:
-            if pattern in text:
-                errors.append(
-                    f"Possible private hostname '{pattern}' in pi-package.json — "
-                    "public distributions must never contain machine-specific URLs"
-                )
+        errors.extend(private_network_leak_errors(text, context="pi-package.json"))
         return errors
 
     # ── skills ────────────────────────────────────────────────────────────────

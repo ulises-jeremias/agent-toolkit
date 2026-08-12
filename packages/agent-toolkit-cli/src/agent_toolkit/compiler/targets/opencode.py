@@ -42,7 +42,7 @@ from agent_toolkit.compiler.model import (
     Product,
     Skill,
 )
-from agent_toolkit.compiler.targets.base import TargetAdapter
+from agent_toolkit.compiler.targets.base import TargetAdapter, private_network_leak_errors
 
 # opencode.json safe defaults — NO private providers, NO hardcoded models.
 # Users customize their own ~/.config/opencode/opencode.json.
@@ -132,12 +132,7 @@ class OpenCodeAdapter(TargetAdapter):
                 )
         # Check for private hostnames in the whole JSON blob
         text = json.dumps(data)
-        for pattern in (".local", "192.168.", "10.", "172.16."):
-            if pattern in text:
-                errors.append(
-                    f"Possible private hostname '{pattern}' in opencode.json — "
-                    "public distributions must never contain machine-specific URLs"
-                )
+        errors.extend(private_network_leak_errors(text, context="opencode.json"))
         return errors
 
     # ── skills ────────────────────────────────────────────────────────────────

@@ -290,6 +290,30 @@ def test_validate_detects_private_hostname():
     assert len(errors) > 0, "Should detect private .local hostname"
 
 
+def test_validate_accepts_semver_with_ten_minor():
+    """Regression: version 1.10.0 must not trip the private 10.x IP check."""
+    errors = CodexAdapter.validate_plugin_json(
+        {
+            "name": "agent-toolkit-core",
+            "version": "1.10.0",
+            "description": "Agent Toolkit for Codex",
+            "maturity": "experimental",
+            "license": "MIT",
+        }
+    )
+    assert errors == [], f"Semver 1.10.0 wrongly rejected: {errors}"
+
+
+def test_validate_detects_private_10_dot_ip():
+    errors = CodexAdapter.validate_plugin_json(
+        {
+            "name": "test",
+            "server": "http://10.0.0.5:8080",
+        }
+    )
+    assert len(errors) > 0, "Should detect private 10.x.x.x IP"
+
+
 def test_validate_accepts_safe_manifest():
     errors = CodexAdapter.validate_plugin_json(
         {

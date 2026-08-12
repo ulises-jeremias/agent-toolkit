@@ -720,8 +720,7 @@ def _autonomy_contract(meta: dict[str, Any], loop_dir: Path) -> str:
         ]
     else:
         lines += [
-            "- Comment/review attribution: DISABLED for this loop "
-            "(`attribution.enabled: false`).",
+            "- Comment/review attribution: DISABLED for this loop (`attribution.enabled: false`).",
         ]
 
     lines += [

@@ -45,7 +45,7 @@ from agent_toolkit.compiler.model import (
     Product,
     Skill,
 )
-from agent_toolkit.compiler.targets.base import TargetAdapter
+from agent_toolkit.compiler.targets.base import TargetAdapter, private_network_leak_errors
 
 # Settings that must never appear in a publicly distributed Codex plugin.
 # These bypass safety mechanisms and are forbidden in any marketplace submission.
@@ -55,8 +55,6 @@ _FORBIDDEN_CODEX_SETTINGS = {
     "disablePermissionPrompts",
     "allowUnsafeCode",
 }
-
-_PRIVATE_HOSTNAME_PATTERNS = (".local", "192.168.", "10.", "172.16.")
 
 
 class CodexAdapter(TargetAdapter):
@@ -196,12 +194,7 @@ class CodexAdapter(TargetAdapter):
                     "in any Codex marketplace submission"
                 )
         text = json.dumps(data)
-        for pattern in _PRIVATE_HOSTNAME_PATTERNS:
-            if pattern in text:
-                errors.append(
-                    f"Possible private hostname '{pattern}' in plugin.json — "
-                    "public distributions must never contain machine-specific URLs"
-                )
+        errors.extend(private_network_leak_errors(text, context="plugin.json"))
         return errors
 
     # ── skills ────────────────────────────────────────────────────────────────

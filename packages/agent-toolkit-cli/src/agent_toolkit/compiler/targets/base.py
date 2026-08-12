@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import tempfile
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -12,6 +13,40 @@ from agent_toolkit.compiler.provenance import ArtifactRecord, file_digest, write
 
 class PathEscapeError(ValueError):
     """Raised when a path resolves outside its containment root."""
+
+
+# Private LAN markers for public plugin/package manifests.
+# Use IP regexes (not bare "10.") so semver like 1.10.0 does not false-positive.
+_PRIVATE_IPV4_10 = re.compile(r"\b10\.\d{1,3}\.\d{1,3}\.\d{1,3}\b")
+_PRIVATE_IPV4_192 = re.compile(r"\b192\.168\.\d{1,3}\.\d{1,3}\b")
+_PRIVATE_IPV4_172 = re.compile(r"\b172\.(?:1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}\b")
+_LOCAL_HOSTNAME = re.compile(r"(?:https?://[^\s\"']*|\b)[a-z0-9-]+\.local\b", re.I)
+
+
+def private_network_leak_errors(text: str, *, context: str) -> list[str]:
+    """Return error messages when *text* embeds private hostnames/IPs."""
+    errors: list[str] = []
+    if _PRIVATE_IPV4_10.search(text):
+        errors.append(
+            f"Possible private hostname '10.x' in {context} — "
+            "public distributions must never contain machine-specific URLs"
+        )
+    if _PRIVATE_IPV4_192.search(text):
+        errors.append(
+            f"Possible private hostname '192.168.x' in {context} — "
+            "public distributions must never contain machine-specific URLs"
+        )
+    if _PRIVATE_IPV4_172.search(text):
+        errors.append(
+            f"Possible private hostname '172.16-31.x' in {context} — "
+            "public distributions must never contain machine-specific URLs"
+        )
+    if _LOCAL_HOSTNAME.search(text):
+        errors.append(
+            f"Possible private hostname '.local' in {context} — "
+            "public distributions must never contain machine-specific URLs"
+        )
+    return errors
 
 
 class TargetAdapter(ABC):
