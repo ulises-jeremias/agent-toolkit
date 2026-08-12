@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — configuration/env precedence contract (`flags > env > config > defaults`) + `AGENT_TOOLKIT_*` inventory (Closes #559)
 - **Docs** — machine-readable CLI contract manifest (`docs/compatibility/cli-contract.yaml`) (Closes #549)
 - **Docs** — Python↔V golden CLI parity harness design (taxonomy EXACT/NORMALIZED/SCHEMA/SEMANTIC/BEHAVIORAL; no harness code) (Closes #476)
 - **Docs** — ADR-015 runtime resolution (amends ADR-005 for V binary hybrid packaging) (Closes #547)
