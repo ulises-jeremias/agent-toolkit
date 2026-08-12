@@ -966,4 +966,3 @@ providers:
     security:
       source_trust: 'official + community (distinct)'
       runtime_privilege: 'read-write vs admin — separate'
-
