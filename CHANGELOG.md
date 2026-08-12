@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V shared HTTP/network client (offline short-circuit, TLS, checksum hook) (Closes #558)
 - **Feat** — V process service (no-shell spawn, cwd/env/timeout/capture) (Closes #500)
 - **Feat** — V filesystem service (XDG paths, join, atomic write) (Closes #499)
 - **Feat** — V domain error model + CLI exit-code mapping (ADR-010 classes) (Closes #498)
