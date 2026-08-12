@@ -325,6 +325,17 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 
 ---
 
+
+## V modules (experimental)
+
+Agent Toolkit is growing a V binary-first path beside the Python CLI ([#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)).
+
+- Pin: root [`.v-version`](.v-version) — see [`docs/v/upgrade-policy.md`](docs/v/upgrade-policy.md)
+- Layout: `modules/agent_toolkit_core` + `modules/agent_toolkit_cli` ([ADR-009](docs/adrs/ADR-009-v-module-architecture.md))
+- Local toolchain: install V matching `.v-version`, then use Makefile targets from [#497](https://github.com/ulises-jeremias/agent-toolkit/issues/497) once merged (`make test`, `make fmt-check`, …)
+
+Python remains the canonical shipped CLI until cutover ([ADR-012](docs/adrs/ADR-012-python-v-coexistence.md)).
+
 ## Getting Help
 
 - Open a [GitHub Discussion](https://github.com/ulises-jeremias/agent-toolkit/discussions) for questions about skill design, compatibility, or architecture
