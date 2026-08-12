@@ -48,6 +48,9 @@ pub fn dispatch(args []string) int {
 			return 0
 		}
 	}
+	if cmd_name == 'matrix' {
+		return render(agent_toolkit_core.matrix_result(), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
