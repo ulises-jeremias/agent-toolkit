@@ -24,7 +24,7 @@ def test_schema_valid():
 def test_registry_has_three_pilots():
     data = yaml.safe_load(REGISTRY_PATH.read_text())
     assert data["version"] == "1"
-    assert set(data["providers"].keys()) == {"linear", "slack", "figma"}
+    assert {"linear", "slack", "figma"}.issubset(set(data["providers"].keys()))
     for pid in ["linear", "slack", "figma"]:
         prov = data["providers"][pid]
         assert "what" in prov and "how" in prov

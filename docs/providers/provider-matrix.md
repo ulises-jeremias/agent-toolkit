@@ -77,3 +77,22 @@ security: {source_trust, runtime_privilege}  # summary, distinct
 No `official plugin > MCP > CLI` law — provider selection is per-capability and per-target (e.g., Linear OAuth MCP for Claude vs PAT MCP for solo vs API for admin).
 
 See `providers/providers.yaml` (machine-readable) and `schemas/provider.schema.json` (validation).
+## Extension — #393 candidates (2026-08-12)
+
+Research per #393 at `docs/providers/research-393-candidates.md` (purpose/findings/risks/tradeoffs) validates generalization beyond 3 pilots per §36-37.
+
+| Candidate | Verdict | Preferred HOW | Fallback HOWs | Reason |
+|-----------|---------|---------------|---------------|--------|
+| **Notion** | **ADOPT** | official `makenotion/notion-mcp-server` `https://mcp.notion.com/mcp` remote OAuth | community `suekou/mcp-notion-server` `stdio` PAT, REST `api.notion.com/v1`, skill | Official remote dominates; community keep for offline |
+| **Sentry** | **ADOPT** | official `https://mcp.sentry.dev/mcp` `Sentry-Bearer` remote | `sentry-cli`, REST `sentry.io/api/0`, skill | On-call triage |
+| **Vercel** | **ADOPT** | official `https://mcp.vercel.com` OAuth remote | `vercel` CLI, REST `api.vercel.com/v1`, skill | Inspection vs deploy split |
+| **Jira** | **ADOPT** | official Atlassian Rovo `https://mcp.atlassian.com/mcp` OAuth 2.1 | `sooperset/mcp-atlassian` community `stdio` (Data Center), REST `*.atlassian.net/rest/api/3`, skill | Cloud official, on-prem fallback |
+| **Confluence** | **ADOPT** | same Rovo as Jira (`mcp.atlassian.com/mcp`) | `sooperset/mcp-atlassian` + `iotashan-llc/atlassian-attachments-mcp` local attachments, REST, skill | Cloud official, attachments need local |
+| **Datadog** | **REJECT** | — | `datadog-ci` CLI / REST only if needed | No stable official MCP, benefit not proven |
+| **AWS** | **REJECT** | — | `awslabs/mcp` portfolio per-service later | Too broad, admin risk |
+| **Supabase** | **REJECT** | — | `supabase` CLI / REST | Benefit not proven |
+
+5 ADOPT (notion, sentry, vercel, jira, confluence) added to `providers/providers.yaml` (now 8 providers, 32 HOWs) using same WHAT vs HOW schema — validates that only genuinely common fields generalize (ADR-0004). No custom skill where official MCP is materially better. `mcp/registry/{notion,sentry,vercel,atlassian}.yaml` sync + `inventory` wiring deferred per #387 (Phase 2) — matrix + registry are interim truth.
+
+Sources 2026-08-12: `makenotion/notion-mcp-server` + `hub.docker.com/r/mcp/notion` + `suekou/mcp-notion-server`; `mcp.sentry.dev` + `getsentry/sentry-mcp` + `getsentry/sentry-cli`; `vercel.com/docs/agent-resources/vercel-mcp` + `vercel/vercel-mcp-overview` + `vercel` CLI; `atlassian/atlassian-mcp-server` (Rovo) + `sooperset/mcp-atlassian` + `iotashan-llc/atlassian-attachments-mcp` (attachments) + `support.atlassian.com/atlassian-rovo-mcp-server`.
+
