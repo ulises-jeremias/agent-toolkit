@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — ADR-010 CLI/core boundary: structured domain results; CLI renders human/JSON; exit-code classes (Closes #480)
 - **Docs** — ADR-009 V module architecture: `agent_toolkit_core` + `agent_toolkit_cli` (no premature server/TUI stubs) (Closes #479)
 
 ## [1.10.0] — 2026-08-12
