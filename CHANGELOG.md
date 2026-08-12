@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — ADR-013 YAML strategy: use `vlib/yaml` for toolkit config; no custom general YAML parser (Closes #483)
 - **Docs** — ADR-012 Python/V coexistence via experimental V binary; Python remains canonical until cutover (Closes #482)
 - **Fixed** — `agent-toolkit update` honors `AGENT_TOOLKIT_OFFLINE` and maps download `OSError` to skippable errors (CI flake)
 - **Docs** — ADR-011 hybrid capability packaging (embedded baseline + external override); resolution order remains ADR-005/#547 (Closes #481)
