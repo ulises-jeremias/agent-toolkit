@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/provider.schema.json",
+  "title": "Provider Registry",
+  "description": "Minimal provider model for WHAT vs HOW — capability → providers per target/mechanism. Dated 2026-08-12.",
+  "type": "object",
+  "required": ["version", "providers"],
+  "properties": {
+    "version": {"type": "string"},
+    "providers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["id", "display_name", "purpose", "what", "how"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "display_name": {"type": "string"},
+          "purpose": {"type": "string"},
+          "what": {
+            "type": "object",
+            "description": "Capability intent — independent of HOW",
+            "required": ["verbs"],
+            "properties": {
+              "verbs": {"type": "array", "items": {"type": "string"}},
+              "entities": {"type": "array", "items": {"type": "string"}}
+            }
+          },
+          "how": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "mechanism", "targets", "provenance", "read", "write"],
+              "properties": {
+                "id": {"type": "string"},
+                "mechanism": {"enum": ["native_plugin", "mcp", "cli", "api", "skill_fallback", "community_mcp"]},
+                "targets": {"type": "array", "items": {"type": "string"}},
+                "package": {"type": "string"},
+                "repository": {"type": "string"},
+                "license": {"type": "string"},
+                "transport": {"type": "string"},
+                "auth": {
+                  "type": "object",
+                  "properties": {
+                    "type": {"enum": ["none", "bearer-env", "oauth", "api_key"]},
+                    "env": {"type": "array", "items": {"type": "string"}},
+                    "scopes": {"type": "array", "items": {"type": "string"}}
+                  }
+                },
+                "read": {"type": "array", "items": {"type": "string"}},
+                "write": {"type": "array", "items": {"type": "string"}},
+                "destructive": {"type": "array", "items": {"type": "string"}},
+                "permissions": {
+                  "type": "object",
+                  "properties": {
+                    "source_trust": {"enum": ["official", "community", "first-party"]},
+                    "runtime_privilege": {"enum": ["read-only", "read-write", "admin"]},
+                    "requires_approval": {"type": "boolean"}
+                  }
+                },
+                "runtime": {
+                  "type": "object",
+                  "properties": {
+                    "local_vs_remote": {"enum": ["local", "remote", "hybrid"]},
+                    "sandbox": {"type": "string"},
+                    "latency": {"type": "string"},
+                    "context_overhead": {"type": "string"},
+                    "offline": {"type": "boolean"}
+                  }
+                },
+                "availability": {
+                  "type": "object",
+                  "properties": {
+                    "maintenance": {"type": "string"},
+                    "cross_agent": {"type": "array", "items": {"type": "string"}},
+                    "native_ux": {"type": "string"}
+                  }
+                },
+                "provenance": {"type": "string"},
+                "version_policy": {"type": "string"}
+              }
+            }
+          },
+          "evaluation": {
+            "type": "object",
+            "description": "Provider evaluation per HOW — not a ranking, capability-dependent",
+            "properties": {
+              "notes": {"type": "string"}
+            }
+          },
+          "security": {
+            "type": "object",
+            "properties": {
+              "source_trust": {"type": "string"},
+              "runtime_privilege": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

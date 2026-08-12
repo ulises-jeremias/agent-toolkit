@@ -1,0 +1,563 @@
+version: '1'
+providers:
+  linear:
+    id: linear
+    display_name: Linear
+    purpose: Manage Linear issues, projects, cycles, and comments
+    what:
+      verbs:
+        - list
+        - get
+        - create
+        - update
+        - comment
+        - triage
+        - plan
+      entities:
+        - issue
+        - project
+        - cycle
+        - comment
+        - team
+    how:
+      - id: linear-mcp-official
+        mechanism: mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+          - windsurf
+          - vscode
+        package: https://mcp.linear.app/mcp
+        repository: https://linear.app/docs/mcp
+        license: proprietary
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: oauth
+          env: []
+          scopes:
+            - read
+            - write
+        read:
+          - list_issues
+          - get_issue
+          - list_projects
+          - list_cycles
+          - search_issues
+        write:
+          - create_issue
+          - update_issue
+          - create_comment
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: browser OAuth, no token in env
+          latency: medium (HTTP)
+          context_overhead: low (tool definitions)
+          offline: false
+        availability:
+          maintenance: active (2026-08-12)
+          cross_agent:
+            - claude-code
+            - cursor
+            - opencode
+          native_ux: MCP tool calls
+      - id: linear-mcp-community-pat
+        mechanism: community_mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+        package: '@ibraheem4/linear-mcp'
+        repository: https://github.com/ibraheem4/linear-mcp
+        license: MIT
+        transport: stdio
+        provenance: community
+        version_policy: pin to minor
+        auth:
+          type: api_key
+          env:
+            - LINEAR_API_KEY
+          scopes:
+            - read
+            - write
+        read:
+          - list_issues
+          - get_issue
+          - list_projects
+        write:
+          - create_issue
+          - update_issue
+        destructive: []
+        permissions:
+          source_trust: community
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: local
+          sandbox: stdio, env var
+          latency: low
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: community (2026-08-12)
+          cross_agent:
+            - claude-code
+          native_ux: MCP
+      - id: linear-api-graphql
+        mechanism: api
+        targets:
+          - universal
+        package: https://api.linear.app/graphql
+        repository: https://developers.linear.app/docs/graphql/working-with-the-graphql-api
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: api_key
+          env:
+            - LINEAR_API_KEY
+          scopes:
+            - read
+            - write
+            - admin
+        read:
+          - query issues (GraphQL)
+          - query projects
+        write:
+          - mutation createIssue
+          - updateIssue
+        destructive:
+          - deleteIssue
+        permissions:
+          source_trust: official
+          runtime_privilege: admin
+          requires_approval: true
+        runtime:
+          local_vs_remote: remote
+          sandbox: https, token in header
+          latency: low
+          context_overhead: none (direct)
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: curl/GraphQL
+      - id: linear-skill-fallback
+        mechanism: skill_fallback
+        targets:
+          - universal
+        package: skills/integrations/linear
+        repository: https://github.com/ulises-jeremias/agent-toolkit
+        license: MIT
+        transport: skill
+        provenance: first-party
+        version_policy: vendored
+        auth:
+          type: oauth
+          env: []
+          scopes: []
+        read:
+          - via MCP tools (delegates)
+        write:
+          - via MCP tools
+        destructive: []
+        permissions:
+          source_trust: first-party
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: hybrid
+          sandbox: skill delegates to MCP
+          latency: n/a
+          context_overhead: skill body ~4k tokens, lazy
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: skill instructions
+    evaluation:
+      notes: "Official MCP (OAuth, streamable_http) is preferred for most targets\
+        \ (native, low context, no token env). Community PAT MCP is fallback for single-workspace/PAT\
+        \ use. API is most powerful but requires approval for admin/destructive. No\
+        \ universal ranking \u2014 choice depends on auth (OAuth vs PAT) and target\
+        \ (Claude/Cursor native vs pi fallback)."
+    security:
+      source_trust: "official (mcp.linear.app) \u2014 highly trusted as source"
+      runtime_privilege: "read-write (can create/update issues, no delete by default)\
+        \ \u2014 separate from trust; requires approval for bulk/destructive"
+  slack:
+    id: slack
+    display_name: Slack
+    purpose: Slack app development, channel history, messaging, and workspace automation
+    what:
+      verbs:
+        - list
+        - post
+        - react
+        - create
+        - deploy
+        - api
+      entities:
+        - channel
+        - message
+        - reaction
+        - app
+        - manifest
+        - trigger
+    how:
+      - id: slack-mcp-official
+        mechanism: mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+          - vscode
+        package: '@anthropic-ai/mcp-server-slack'
+        repository: https://docs.slack.dev/ai/mcp-server/
+        license: MIT
+        transport: stdio
+        provenance: official
+        version_policy: pin to minor
+        auth:
+          type: bearer-env
+          env:
+            - SLACK_BOT_TOKEN
+            - SLACK_APP_TOKEN
+          scopes:
+            - channels:history
+            - chat:write
+            - reactions:write
+        read:
+          - conversations_history
+          - conversations_list
+          - users_list
+        write:
+          - chat_post_message
+          - reactions_add
+          - conversations_create
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: local
+          sandbox: stdio, Socket Mode
+          latency: low
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: active (2026-08-12)
+          cross_agent:
+            - claude-code
+            - cursor
+          native_ux: MCP tools
+      - id: slack-cli-official
+        mechanism: cli
+        targets:
+          - universal
+        package: slack-cli
+        repository: https://docs.slack.dev/tools/slack-cli/
+        license: Apache-2.0
+        transport: cli
+        provenance: official
+        version_policy: pin to minor
+        auth:
+          type: oauth
+          env: []
+          scopes:
+            - apps:write
+            - admin
+        read:
+          - slack list
+          - slack doctor
+          - slack api conversations.list
+        write:
+          - slack create
+          - slack deploy
+          - slack api chat.postMessage
+        destructive:
+          - slack delete
+        permissions:
+          source_trust: official
+          runtime_privilege: admin
+          requires_approval: true
+        runtime:
+          local_vs_remote: local
+          sandbox: CLI, OAuth
+          latency: medium
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: CLI
+      - id: slack-api-web
+        mechanism: api
+        targets:
+          - universal
+        package: https://slack.com/api/chat.postMessage
+        repository: https://docs.slack.dev/reference/methods/chat.postMessage
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: bearer-env
+          env:
+            - SLACK_BOT_TOKEN
+          scopes:
+            - chat:write
+        read:
+          - conversations.history
+          - users.list
+        write:
+          - chat.postMessage
+          - reactions.add
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: https
+          latency: low
+          context_overhead: none
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: curl
+      - id: slack-skill-fallback
+        mechanism: skill_fallback
+        targets:
+          - universal
+        package: skills/integrations/slack-cli
+        repository: https://github.com/ulises-jeremias/agent-toolkit
+        license: MIT
+        transport: skill
+        provenance: first-party
+        version_policy: vendored
+        auth:
+          type: bearer-env
+          env:
+            - SLACK_BOT_TOKEN
+          scopes: []
+        read:
+          - via CLI/API delegates
+        write:
+          - via CLI/API
+        destructive: []
+        permissions:
+          source_trust: first-party
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: hybrid
+          sandbox: skill
+          latency: n/a
+          context_overhead: skill body
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: skill
+    evaluation:
+      notes: "MCP (Socket Mode) is best for workspace chat automation (native, low\
+        \ latency). CLI (slack-cli) is for app development (admin, requires approval).\
+        \ API is direct fallback. No universal ranking \u2014 chat automation prefers\
+        \ MCP, app scaffolding prefers CLI."
+    security:
+      source_trust: "official (docs.slack.dev) \u2014 highly trusted"
+      runtime_privilege: "read-write (MCP) vs admin (CLI) \u2014 separate; CLI can\
+        \ delete apps, MCP cannot"
+  figma:
+    id: figma
+    display_name: Figma
+    purpose: Fetch design context, screenshots, variables, and implement Figma nodes
+      to code
+    what:
+      verbs:
+        - get_design_context
+        - get_screenshot
+        - get_metadata
+        - implement
+      entities:
+        - file
+        - node
+        - component
+        - variable
+        - screenshot
+    how:
+      - id: figma-mcp-official
+        mechanism: mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+          - vscode
+        package: https://mcp.figma.com/mcp
+        repository: https://www.figma.com/developers/mcp
+        license: proprietary
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: bearer-env
+          env:
+            - FIGMA_OAUTH_TOKEN
+            - FIGMA_REGION
+          scopes:
+            - file_content:read
+        read:
+          - get_design_context
+          - get_file_structure
+          - get_screenshot
+          - get_metadata
+        write: []
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: remote hosted, OAuth
+          latency: medium
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: active (2026-08-12)
+          cross_agent:
+            - claude-code
+            - cursor
+            - opencode
+          native_ux: MCP tools
+      - id: figma-rest-api
+        mechanism: api
+        targets:
+          - universal
+        package: https://api.figma.com/v1/files/:file_key
+        repository: https://www.figma.com/developers/api
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: bearer-env
+          env:
+            - FIGMA_PERSONAL_ACCESS_TOKEN
+          scopes:
+            - file_content:read
+        read:
+          - GET files, nodes, images
+        write: []
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: https
+          latency: low
+          context_overhead: none
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: curl
+      - id: figma-plugin-api
+        mechanism: api
+        targets:
+          - figma-plugin
+        package: figma plugin API
+        repository: https://www.figma.com/plugin-docs/api/
+        license: proprietary
+        transport: plugin
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: none
+          env: []
+          scopes: []
+        read:
+          - read node
+          - write node (if plugin)
+        write:
+          - create frames, fills, variables (plugin only)
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: true
+        runtime:
+          local_vs_remote: local
+          sandbox: Figma Desktop
+          latency: low
+          context_overhead: n/a
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - figma
+          native_ux: plugin
+      - id: figma-skill-fallback
+        mechanism: skill_fallback
+        targets:
+          - universal
+        package: skills/design/figma
+        repository: https://github.com/ulises-jeremias/agent-toolkit
+        license: MIT
+        transport: skill
+        provenance: first-party
+        version_policy: vendored
+        auth:
+          type: bearer-env
+          env:
+            - FIGMA_OAUTH_TOKEN
+          scopes: []
+        read:
+          - via MCP delegates
+        write: []
+        destructive: []
+        permissions:
+          source_trust: first-party
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: hybrid
+          sandbox: skill
+          latency: n/a
+          context_overhead: skill body
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: skill
+    evaluation:
+      notes: "Official MCP (streamable_http, OAuth) is preferred for design-to-code\
+        \ (read-only, remote, low context). REST API is fallback for file reads without\
+        \ MCP. Plugin API is write-capable but requires Figma Desktop plugin context\
+        \ \u2014 needs approval. No universal ranking \u2014 read-only design context\
+        \ prefers MCP, write via plugin needs Figma plugin target."
+    security:
+      source_trust: "official (mcp.figma.com) \u2014 highly trusted"
+      runtime_privilege: "read-only (MCP/REST) vs read-write (plugin) \u2014 separate;\
+        \ MCP cannot mutate files"
