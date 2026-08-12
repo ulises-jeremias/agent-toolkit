@@ -62,7 +62,68 @@ pub fn dispatch(args []string) int {
 		snap := agent_toolkit_core.run_doctor_readonly()
 		return render(agent_toolkit_core.doctor_result(snap), mode)
 	}
+	if cmd_name == 'build' {
+		opts := parse_build_options(argv[1..])
+		report := agent_toolkit_core.run_build(opts)
+		return render(agent_toolkit_core.build_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
+}
+
+fn parse_build_options(args []string) agent_toolkit_core.BuildOptions {
+	mut check := false
+	mut write_files := true
+	mut target := ''
+	mut product := ''
+	mut output_dir := ''
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a == '--check' {
+			check = true
+			write_files = false
+			i++
+			continue
+		}
+		if a == '--target' && i + 1 < args.len {
+			target = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--target=') {
+			target = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--product' && i + 1 < args.len {
+			product = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--product=') {
+			product = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--output' && i + 1 < args.len {
+			output_dir = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--output=') {
+			output_dir = a.all_after('=')
+			i++
+			continue
+		}
+		i++
+	}
+	return agent_toolkit_core.BuildOptions{
+		check:       check
+		target:      target
+		product:     product
+		output_dir:  output_dir
+		write_files: write_files
+	}
 }
 
 fn allowed_flag(cmd string, a string) bool {
@@ -71,6 +132,14 @@ fn allowed_flag(cmd string, a string) bool {
 	}
 	if cmd == 'doctor' && a in ['--fix', '--provenance'] {
 		return true
+	}
+	if cmd == 'build' {
+		if a in ['--check'] {
+			return true
+		}
+		if a.starts_with('--target') || a.starts_with('--product') || a.starts_with('--output') {
+			return true
+		}
 	}
 	return false
 }
@@ -160,6 +229,18 @@ fn help_commands() []cli.Command {
 }
 
 fn subcommand_help(name string) string {
+	if name == 'build' {
+		return 'Usage: agent-toolkit build [--check] [--target TARGET] [--product PRODUCT] [--output DIR] [--json]
+
+Compile canonical capabilities into Tier-1 target artifacts (cursor, claude-code, opencode).
+
+  --check            Dry-run + compare emitted skills/agents to plugins/ (exit 1 on drift)
+  --target TARGET    Tier-1 target id (default: all Tier-1)
+  --product PRODUCT  Product id (default: all products)
+  --output DIR       Output directory (default: <repo>/plugins)
+  --json             Structured CommandResult JSON
+'
+	}
 	mut c := cli.Command{
 		name:        name
 		description: '${name} — not yet implemented in V experimental binary'

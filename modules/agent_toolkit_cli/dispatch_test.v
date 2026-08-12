@@ -46,6 +46,16 @@ fn test_dispatch_doctor_fix_is_readonly() {
 	assert code == 0
 }
 
+fn test_dispatch_build_check_unknown_target_fails() {
+	code := dispatch(['agent-toolkit', 'build', '--check', '--target', 'not-a-target', '--json'])
+	assert code != 0
+}
+
+fn test_dispatch_build_help() {
+	code := dispatch(['agent-toolkit', 'build', '--help'])
+	assert code == 0
+}
+
 fn test_grouped_help_mentions_consumer_and_advanced() {
 	h := grouped_help()
 	assert h.contains('Consumer') || h.to_lower().contains('install')

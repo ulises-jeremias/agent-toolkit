@@ -46,6 +46,13 @@
       "required_keys": ["engine", "version", "platform"]
     },
     {
+      "command": "build-check",
+      "args": ["build", "--check", "--target", "cursor", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
       "command": "install-bad-flag",
       "args": ["install", "--not-a-real-flag"],
       "class": "EXACT",
