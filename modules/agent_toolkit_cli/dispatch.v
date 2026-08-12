@@ -39,7 +39,7 @@ pub fn dispatch(args []string) int {
 	}
 	// Remaining tokens may include unknown flags → exit 2
 	for a in argv[1..] {
-		if a.starts_with('-') && a !in ['-h', '--help', '--json', '--quiet'] {
+		if a.starts_with('-') && !allowed_flag(cmd_name, a) {
 			e := agent_toolkit_core.err_usage_flags('flag.unknown', 'unknown flag: ${a}')
 			return render_error(e, mode)
 		}
@@ -58,7 +58,21 @@ pub fn dispatch(args []string) int {
 	if cmd_name == 'matrix' {
 		return render(agent_toolkit_core.matrix_result(), mode)
 	}
+	if cmd_name == 'doctor' {
+		snap := agent_toolkit_core.run_doctor_readonly()
+		return render(agent_toolkit_core.doctor_result(snap), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
+}
+
+fn allowed_flag(cmd string, a string) bool {
+	if a in ['-h', '--help', '--json', '--quiet'] {
+		return true
+	}
+	if cmd == 'doctor' && a in ['--fix', '--provenance'] {
+		return true
+	}
+	return false
 }
 
 fn resolve_alias(name string) string {

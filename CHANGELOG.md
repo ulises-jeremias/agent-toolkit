@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V `doctor` read-only + `--json` with engine/version/platform (Closes #505)
 - **Feat** — V `inventory` lists skills/agents/products from the toolkit tree (Closes #503)
 - **Feat** — V `matrix` prints the platform capability matrix (Closes #504)
 - **Feat** — V `version` / `--version` resolves from VERSION file (fallback synced via bump-version) (Closes #502)
