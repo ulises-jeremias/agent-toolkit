@@ -192,6 +192,11 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ## [Unreleased]
 
+### Fixed
+
+- Codex/OpenCode/Pi manifest validators no longer treat semver `1.10.0` as a
+  private `10.x` hostname (false positive after the v1.10.0 bump).
+
 ### Added
 
 - **Loop comment attribution (default ON):** `loop-gh-gate` prepends
