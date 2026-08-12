@@ -177,6 +177,10 @@ products:
         - core/workspace
         - forge/worktree
         - integrations/mcp
+        - cloud/cloud-design-patterns
+        - cloud/aws-well-architected-review
+        - tooling/mermaid
+        - architecture/c4-model
       agents: []
       hooks: []
       mcp: []
