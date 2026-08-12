@@ -3,9 +3,6 @@ module agent_toolkit_cli
 import agent_toolkit_core
 import cli
 
-// experimental_version is the V binary version string (keep in sync with Python / VERSION).
-pub const experimental_version = '1.10.0'
-
 // run is the library entry used by cmd/agent-toolkit.
 pub fn run(args []string) int {
 	return dispatch(args)
@@ -24,7 +21,8 @@ pub fn dispatch(args []string) int {
 		return 0
 	}
 	if argv[0] in ['-V', '--version', 'version'] {
-		return render(agent_toolkit_core.version_result(experimental_version), mode)
+		ver := agent_toolkit_core.resolve_toolkit_version()
+		return render(agent_toolkit_core.version_result(ver), mode)
 	}
 	// Bad flags before a command (argparse parity → exit 2)
 	if argv[0].starts_with('-')
@@ -100,7 +98,7 @@ fn grouped_help() string {
 	mut root := cli.Command{
 		name:        'agent-toolkit'
 		description: 'Composable AI agent toolkit CLI (V experimental)\n\nSee docs/CLI_SURFACES.md for consumer vs advanced commands.'
-		version:     experimental_version
+		version:     agent_toolkit_core.resolve_toolkit_version()
 		commands:    help_commands()
 	}
 	root.setup()

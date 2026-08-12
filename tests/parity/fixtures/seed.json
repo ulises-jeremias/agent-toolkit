@@ -3,8 +3,14 @@
     {
       "command": "version",
       "args": ["version"],
-      "class": "NORMALIZED_EXACT",
-      "stdout_prefix": "agent-toolkit "
+      "class": "EXACT",
+      "expect_exit": 0
+    },
+    {
+      "command": "version-flag",
+      "args": ["--version"],
+      "class": "EXACT",
+      "expect_exit": 0
     },
     {
       "command": "help",

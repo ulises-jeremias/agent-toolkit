@@ -52,6 +52,13 @@ def main():
         '__version__ = "{version}"',
         version,
     )
+    # V embedded_version fallback (parity with VERSION / __init__.py)
+    changed += bump_file(
+        "modules/agent_toolkit_core/version.v",
+        r"pub const embedded_version = '.*'",
+        "pub const embedded_version = '{version}'",
+        version,
+    )
     # package.json
     pkg = ROOT / "package.json"
     if pkg.exists():
