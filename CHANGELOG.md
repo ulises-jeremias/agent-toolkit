@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V content cache service (XDG hit/miss/offline; no network) (Closes #556)
 - **Feat** — V `doctor` read-only + `--json` with engine/version/platform (Closes #505)
 - **Feat** — V `inventory` lists skills/agents/products from the toolkit tree (Closes #503)
 - **Feat** — V `matrix` prints the platform capability matrix (Closes #504)
