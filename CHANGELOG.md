@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Chore** — Makefile `fmt`/`fmt-check`/`vet`/`test`/`build` for V modules (Closes #497)
 - **Chore** — pin V compiler via `.v-version` (0.5.2) + upgrade policy (Closes #496)
 - **Docs** — configuration/env precedence contract (`flags > env > config > defaults`) + `AGENT_TOOLKIT_*` inventory (Closes #559)
 - **Docs** — machine-readable CLI contract manifest (`docs/compatibility/cli-contract.yaml`) (Closes #549)

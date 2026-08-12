@@ -1,0 +1,63 @@
+# V foundation targets for modules/ (ADR-009). Python tooling remains uv/pytest.
+# Pattern adapted from Create-Vlang-App (VMODULES + fmt/vet/test/build).
+# Do NOT require VPM for normal binary installs.
+
+ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+export VMODULES := $(ROOT)/modules
+
+V_MODULES := agent_toolkit_core agent_toolkit_cli
+V ?= v
+
+.PHONY: help ensure-v fmt fmt-check vet test build
+
+help:
+	@echo "V targets (pin: $$(cat $(ROOT)/.v-version 2>/dev/null || echo 'pending #496'))"
+	@echo "  make fmt         Format V modules"
+	@echo "  make fmt-check   Verify formatting"
+	@echo "  make vet         Vet V modules"
+	@echo "  make test        Run V unit tests"
+	@echo "  make build       Typecheck/compile smoke for each module"
+
+ensure-v:
+	@command -v $(V) >/dev/null || (echo "v not found; install V matching .v-version" >&2; exit 1)
+	@if [ -f $(ROOT)/.v-version ]; then \
+	  pinned=$$(tr -d '[:space:]' < $(ROOT)/.v-version); \
+	  have=$$($(V) version | awk '{print $$2}'); \
+	  if [ "$$have" != "$$pinned" ]; then \
+	    echo "warning: v version $$have != pinned $$pinned (see docs/v/upgrade-policy.md)" >&2; \
+	  fi; \
+	fi
+
+fmt: ensure-v
+	@for m in $(V_MODULES); do \
+	  echo "==> fmt $$m"; \
+	  $(V) fmt -w $(ROOT)/modules/$$m; \
+	done
+
+fmt-check: ensure-v
+	@for m in $(V_MODULES); do \
+	  echo "==> fmt-check $$m"; \
+	  $(V) fmt -verify $(ROOT)/modules/$$m; \
+	done
+
+vet: ensure-v
+	@for m in $(V_MODULES); do \
+	  echo "==> vet $$m"; \
+	  $(V) vet $(ROOT)/modules/$$m; \
+	done
+
+test: ensure-v
+	@for m in $(V_MODULES); do \
+	  echo "==> test $$m"; \
+	  $(V) test $(ROOT)/modules/$$m; \
+	done
+
+# Compile each module via `v -o` using a temporary main that imports it.
+build: ensure-v
+	@for m in $(V_MODULES); do \
+	  echo "==> build $$m"; \
+	  tmp=$$(mktemp -d); \
+	  printf 'module main\nimport %s\nfn main() {}\n' "$$m" > "$$tmp/main.v"; \
+	  $(V) -o "$$tmp/out" "$$tmp/main.v"; \
+	  rm -rf "$$tmp"; \
+	done
