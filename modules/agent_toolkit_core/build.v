@@ -65,7 +65,7 @@ pub fn run_build(opts BuildOptions) BuildReport {
 			report.message = "unknown emit target '${opts.target}' (available: ${all_emit_targets().join(', ')})"
 			return report
 		}
-		targets << opts.target
+		targets << normalize_emit_target(opts.target)
 	} else {
 		targets = all_emit_targets()
 	}

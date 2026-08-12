@@ -1,5 +1,5 @@
-# V Copilot emitters (remaining targets)
+# V Copilot emitters
 
-**Issue:** [#552](https://github.com/ulises-jeremias/agent-toolkit/issues/552) (partial)
+**Issue:** [#552](https://github.com/ulises-jeremias/agent-toolkit/issues/552)
 
-Adds `copilot-cli` (root `plugin.json` + `skills/` + `agents/*.agent.md`) and `copilot-repository` (`.github/copilot-instructions.md` + skills/agents). Wired into `compile_target` / `build --check`. Remaining families (windsurf, pi, gemini, muse, codex, …) still open under #552.
+See [`emitters-remaining.md`](emitters-remaining.md) for the full remaining-target set. Copilot surfaces: `copilot-cli` and `copilot-repository`.

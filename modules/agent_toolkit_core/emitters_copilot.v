@@ -2,30 +2,41 @@ module agent_toolkit_core
 
 import os
 
-// remaining_targets lists non-Tier-1 emitters under #552 (partial).
+// remaining_targets lists non-Tier-1 emitters (#552).
 pub fn remaining_targets() []string {
-	return ['copilot-cli', 'copilot-repository']
+	return [
+		'copilot-cli',
+		'copilot-repository',
+		'windsurf',
+		'pi',
+		'gemini-cli',
+		'muse-code',
+		'codex',
+		'agent-plugins',
+	]
 }
 
-// all_emit_targets returns Tier-1 + implemented remaining emitters.
+// all_emit_targets returns Tier-1 + remaining emitters.
 pub fn all_emit_targets() []string {
 	mut out := tier1_targets()
 	out << remaining_targets()
 	return out
 }
 
-// is_known_emit_target reports whether target_id has a V emitter.
+// is_known_emit_target reports whether target_id has a V emitter (incl. aliases).
 pub fn is_known_emit_target(target_id string) bool {
-	return is_tier1_target(target_id) || target_id in remaining_targets()
+	id := normalize_emit_target(target_id)
+	return is_tier1_target(id) || id in remaining_targets()
 }
 
 // compile_target dispatches Tier-1 and remaining emitters.
 pub fn compile_target(target_id string, graph CanonicalGraph, product LoadedProduct, output_root string, repo_root string) CompilationResult {
-	if is_tier1_target(target_id) {
-		return compile_tier1(target_id, graph, product, output_root, repo_root)
+	id := normalize_emit_target(target_id)
+	if is_tier1_target(id) {
+		return compile_tier1(id, graph, product, output_root, repo_root)
 	}
 	mut result := CompilationResult{
-		target:  target_id
+		target:  id
 		product: product.id
 	}
 	if output_root.len == 0 {
@@ -38,12 +49,30 @@ pub fn compile_target(target_id string, graph CanonicalGraph, product LoadedProd
 		return result
 	}
 	mut records := []ArtifactRecord{}
-	match target_id {
+	match id {
 		'copilot-cli' {
 			emit_copilot_cli(mut result, mut records, graph, product, out_dir, output_root)
 		}
 		'copilot-repository' {
 			emit_copilot_repository(mut result, mut records, graph, product, out_dir, output_root)
+		}
+		'windsurf' {
+			emit_windsurf(mut result, mut records, graph, product, out_dir, output_root)
+		}
+		'pi' {
+			emit_pi(mut result, mut records, graph, product, out_dir, output_root)
+		}
+		'gemini-cli' {
+			emit_gemini_cli(mut result, mut records, graph, product, out_dir, output_root)
+		}
+		'muse-code' {
+			emit_muse_code(mut result, mut records, graph, product, out_dir, output_root)
+		}
+		'codex' {
+			emit_codex(mut result, mut records, graph, product, out_dir, output_root)
+		}
+		'agent-plugins' {
+			emit_agent_plugins(mut result, mut records, graph, product, out_dir, output_root)
 		}
 		else {
 			result.errors << "unknown emit target '${target_id}'"
@@ -51,7 +80,7 @@ pub fn compile_target(target_id string, graph CanonicalGraph, product LoadedProd
 	}
 	_ = repo_root
 	if result.is_valid() && records.len > 0 {
-		prov := write_provenance(out_dir, product.id, target_id, records) or {
+		prov := write_provenance(out_dir, product.id, id, records) or {
 			result.warnings << 'provenance write skipped: ${err}'
 			return result
 		}

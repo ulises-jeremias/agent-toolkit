@@ -53,6 +53,55 @@
       "required_keys": ["command", "mode", "ok"]
     },
     {
+      "command": "build-check-copilot-cli",
+      "args": ["build", "--check", "--target", "copilot-cli", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
+      "command": "build-check-windsurf",
+      "args": ["build", "--check", "--target", "windsurf", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
+      "command": "build-check-pi",
+      "args": ["build", "--check", "--target", "pi", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
+      "command": "build-check-gemini",
+      "args": ["build", "--check", "--target", "gemini-cli", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
+      "command": "build-check-muse",
+      "args": ["build", "--check", "--target", "muse-code", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
+      "command": "build-check-codex",
+      "args": ["build", "--check", "--target", "codex", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
+      "command": "build-check-agent-plugins",
+      "args": ["build", "--check", "--target", "agent-plugins", "--product", "agent-toolkit-core", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": ["command", "mode", "ok"]
+    },
+    {
       "command": "install-bad-flag",
       "args": ["install", "--not-a-real-flag"],
       "class": "EXACT",

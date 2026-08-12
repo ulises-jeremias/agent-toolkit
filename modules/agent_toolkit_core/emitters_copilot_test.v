@@ -7,7 +7,7 @@ fn test_remaining_targets_include_copilot() {
 	assert 'copilot-cli' in ids
 	assert 'copilot-repository' in ids
 	assert is_known_emit_target('copilot-cli')
-	assert !is_known_emit_target('muse-code')
+	assert is_known_emit_target('muse-code')
 }
 
 fn test_compile_copilot_cli_and_repo() {
