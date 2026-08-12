@@ -114,6 +114,31 @@
       "description": "Whether the loop writes STATE.md checkpoints so it can resume from the last processed item after interruption",
       "default": false
     },
+    "attribution": {
+      "description": "AI disclosure for outbound gh comments/reviews. Default ON; hard gate prepends a `> 🤖 AI-assisted …` blockquote when missing. Set false to disable.",
+      "oneOf": [
+        {
+          "type": "boolean",
+          "description": "true (default) enables attribution; false disables it for this loop"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Whether the hard gate injects attribution into comment/review bodies",
+              "default": true
+            },
+            "template": {
+              "type": "string",
+              "description": "Optional custom prefix template. Placeholders: {login}, {loop}, {loop_suffix}, {url}"
+            }
+          }
+        }
+      ],
+      "default": true
+    },
     "request": {
       "type": "string",
       "description": "The full prompt/instructions passed to the agent at each run. Should be self-contained and include all steps."

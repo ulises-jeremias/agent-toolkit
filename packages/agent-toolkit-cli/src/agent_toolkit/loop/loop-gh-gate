@@ -11,7 +11,7 @@ mutating GitHub CLI commands and enforces LOOP.md allowlist / deny / tier
 rules. Merge and close additionally require a verifier receipt under the
 active run directory.
 
-Environment (set by bin/loop):
+Environment (set by agent-toolkit loop / install_gh_shim):
   LOOP_GATE_REAL_GH       Absolute path to the real `gh` binary
   LOOP_GATE_RUN_DIR       Active run artifacts directory
   LOOP_GATE_TIER          L1 | L2 | L3
@@ -20,12 +20,18 @@ Environment (set by bin/loop):
   LOOP_GATE_VERIFIER      Verifier skill/agent name (optional)
   LOOP_GATE_RECEIPT_SECRET  If set, verifier receipts must carry a matching HMAC
   LOOP_GATE_DISABLED      If "1", pass through without checks (tests only)
+  LOOP_GATE_ATTRIBUTION   "1" (default) or "0" to disable comment attribution
+  LOOP_GATE_LOOP_NAME     Loop name for attribution footer (optional)
+  LOOP_GATE_GITHUB_LOGIN  Authenticated GitHub login (optional; resolved at install)
+  LOOP_GATE_ATTRIBUTION_TEMPLATE  Optional custom prefix template with
+                                  {login} and {loop} placeholders
 
 Usage (normally via shim):
   loop-gh-gate -- pr merge 123 --repo owner/repo --squash
   loop-gh-gate --classify pr merge 123 --repo owner/repo
   loop-gh-gate --check-receipt merge --repo owner/repo --number 123
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -39,26 +45,40 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-
 # Actions that mutate GitHub state and must be gated.
-MUTATING_ACTIONS = frozenset({
-    "merge",
-    "close",
-    "comment",
-    "label",
-    "assign",
-    "approve",
-    "push",
-    "commit",
-    "force-push",
-    "delete",
-})
+MUTATING_ACTIONS = frozenset(
+    {
+        "merge",
+        "close",
+        "comment",
+        "label",
+        "assign",
+        "approve",
+        "push",
+        "commit",
+        "force-push",
+        "delete",
+    }
+)
 
 # Merge/close always need a verifier receipt at L2+ (and are denied at L1).
 RECEIPT_REQUIRED = frozenset({"merge", "close"})
 
 # Max age for a verifier receipt (seconds).
 RECEIPT_MAX_AGE_SEC = 3600
+
+# Outbound prose posted via gh that should carry AI attribution (default ON).
+ATTRIBUTION_ACTIONS = frozenset({"comment"})
+
+ATTRIBUTION_MARKER = "> 🤖 AI-assisted"
+
+DEFAULT_ATTRIBUTION_TEMPLATE = (
+    "> 🤖 AI-assisted message posted as `@{login}` by "
+    "[agent-toolkit](https://github.com/ulises-jeremias/agent-toolkit)"
+    "{loop_suffix}."
+)
+
+AGENT_TOOLKIT_REPO_URL = "https://github.com/ulises-jeremias/agent-toolkit"
 
 
 def _split_csv(value: str | None) -> list[str]:
@@ -67,23 +87,48 @@ def _split_csv(value: str | None) -> list[str]:
     return [p.strip() for p in value.split(",") if p.strip()]
 
 
+def _env_flag_enabled(name: str, *, default: bool = True) -> bool:
+    raw = os.environ.get(name)
+    if raw is None or raw == "":
+        return default
+    return raw.strip().lower() not in {"0", "false", "no", "off"}
+
+
 def gate_config_from_env() -> dict[str, Any]:
     return {
         "real_gh": os.environ.get("LOOP_GATE_REAL_GH", ""),
-        "run_dir": Path(os.environ["LOOP_GATE_RUN_DIR"]) if os.environ.get("LOOP_GATE_RUN_DIR") else None,
+        "run_dir": Path(os.environ["LOOP_GATE_RUN_DIR"])
+        if os.environ.get("LOOP_GATE_RUN_DIR")
+        else None,
         "tier": (os.environ.get("LOOP_GATE_TIER") or "L1").upper(),
         "allowlist": _split_csv(os.environ.get("LOOP_GATE_ALLOWLIST")),
         "deny": _split_csv(os.environ.get("LOOP_GATE_DENY")),
         "verifier": os.environ.get("LOOP_GATE_VERIFIER") or "",
         "receipt_secret": os.environ.get("LOOP_GATE_RECEIPT_SECRET") or "",
         "disabled": os.environ.get("LOOP_GATE_DISABLED") == "1",
+        "attribution_enabled": _env_flag_enabled("LOOP_GATE_ATTRIBUTION", default=True),
+        "loop_name": os.environ.get("LOOP_GATE_LOOP_NAME") or "",
+        "github_login": os.environ.get("LOOP_GATE_GITHUB_LOGIN") or "",
+        "attribution_template": os.environ.get("LOOP_GATE_ATTRIBUTION_TEMPLATE") or "",
     }
 
 
-_SENSITIVE_FLAGS = frozenset({
-    "-H", "--header", "-b", "--body", "--body-file", "-F", "-f",
-    "--raw-field", "--field", "--input", "-i", "--jq",
-})
+_SENSITIVE_FLAGS = frozenset(
+    {
+        "-H",
+        "--header",
+        "-b",
+        "--body",
+        "--body-file",
+        "-F",
+        "-f",
+        "--raw-field",
+        "--field",
+        "--input",
+        "-i",
+        "--jq",
+    }
+)
 
 
 def redact_argv(argv: list[str]) -> list[str]:
@@ -295,7 +340,15 @@ def tier_forbids(tier: str, action: str) -> str | None:
     t = tier.upper()
     if t.startswith("L1") or t == "1":
         return f"L1 report-only forbids '{action}'"
-    if (t.startswith("L2") or t == "2") and action in ("merge", "close", "approve", "push", "commit", "force-push", "delete"):
+    if (t.startswith("L2") or t == "2") and action in (
+        "merge",
+        "close",
+        "approve",
+        "push",
+        "commit",
+        "force-push",
+        "delete",
+    ):
         return f"L2 assisted forbids '{action}' (allow comment/label/assign only)"
     return None
 
@@ -435,7 +488,7 @@ def require_receipt(
     if action not in RECEIPT_REQUIRED:
         return True, "receipt not required"
     if repo is None or number is None:
-        return False, f"merge/close require --repo and PR/issue number for receipt binding"
+        return False, "merge/close require --repo and PR/issue number for receipt binding"
     receipt = find_verifier_receipt(
         run_dir,
         action,
@@ -497,6 +550,211 @@ def check_command(
     return True, reason, action, meta
 
 
+def body_already_attributed(body: str) -> bool:
+    """Return True when the body already starts with the AI-assisted marker."""
+    return body.lstrip().startswith(ATTRIBUTION_MARKER)
+
+
+def format_attribution_prefix(
+    *,
+    login: str = "",
+    loop_name: str = "",
+    template: str = "",
+) -> str:
+    """Build the markdown attribution blockquote line(s)."""
+    login_s = (login or "unknown").lstrip("@")
+    loop_s = (loop_name or "").strip()
+    loop_suffix = f" (`{loop_s}`)" if loop_s else ""
+    raw = (template or "").strip() or DEFAULT_ATTRIBUTION_TEMPLATE
+    try:
+        text = raw.format(
+            login=login_s,
+            loop=loop_s or "loop",
+            loop_suffix=loop_suffix,
+            url=AGENT_TOOLKIT_REPO_URL,
+        )
+    except (KeyError, ValueError, IndexError):
+        text = DEFAULT_ATTRIBUTION_TEMPLATE.format(
+            login=login_s,
+            loop_suffix=loop_suffix,
+        )
+    text = text.rstrip()
+    if not text.startswith(">"):
+        text = f"> {text}"
+    return text
+
+
+def apply_attribution_to_body(body: str, prefix: str) -> str:
+    """Prepend attribution when missing. Idempotent."""
+    if body_already_attributed(body):
+        return body
+    prefix = prefix.rstrip()
+    if not body:
+        return f"{prefix}\n"
+    return f"{prefix}\n\n{body.lstrip()}"
+
+
+def resolve_github_login(real_gh: str | None = None) -> str:
+    """Resolve the authenticated GitHub login via `gh api user`."""
+    cached = os.environ.get("LOOP_GATE_GITHUB_LOGIN") or ""
+    if cached:
+        return cached
+    real = real_gh or shutil_which_gh() or os.environ.get("LOOP_GATE_REAL_GH") or ""
+    if not real:
+        return ""
+    try:
+        result = subprocess.run(
+            [real, "api", "user", "-q", ".login"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    if result.returncode != 0:
+        return ""
+    return (result.stdout or "").strip()
+
+
+def _rewrite_flag_value(
+    argv: list[str],
+    *,
+    flags: tuple[str, ...],
+    new_value: str,
+) -> tuple[list[str], bool]:
+    """Replace the value for any of the given CLI flags. Returns (argv, changed)."""
+    out = list(argv)
+    changed = False
+    i = 0
+    while i < len(out):
+        a = out[i]
+        for flag in flags:
+            if a == flag and i + 1 < len(out):
+                out[i + 1] = new_value
+                changed = True
+                i += 2
+                break
+            if a.startswith(f"{flag}="):
+                out[i] = f"{flag}={new_value}"
+                changed = True
+                i += 1
+                break
+        else:
+            i += 1
+    return out, changed
+
+
+def _rewrite_field_body(argv: list[str], new_body: str) -> tuple[list[str], bool]:
+    """Rewrite `-f body=` / `-F body=` / `--raw-field body=` style args."""
+    out = list(argv)
+    changed = False
+    field_flags = ("-f", "-F", "--field", "--raw-field")
+    i = 0
+    while i < len(out):
+        a = out[i]
+        if a in field_flags and i + 1 < len(out) and out[i + 1].startswith("body="):
+            out[i + 1] = f"body={new_body}"
+            changed = True
+            i += 2
+            continue
+        for flag in field_flags:
+            prefix = f"{flag}body="
+            # gh allows -fbody=value without space
+            if a.startswith(prefix) or a.startswith(f"{flag} body="):
+                out[i] = f"{flag}body={new_body}" if not a.startswith(f"{flag} ") else a
+                if a.startswith(prefix):
+                    out[i] = f"{prefix}{new_body}"
+                    changed = True
+            elif a.startswith("-f") and a[2:].startswith("body="):
+                out[i] = f"-fbody={new_body}"
+                changed = True
+            elif a.startswith("-F") and a[2:].startswith("body="):
+                out[i] = f"-Fbody={new_body}"
+                changed = True
+        i += 1
+    return out, changed
+
+
+def inject_attribution_argv(
+    argv: list[str],
+    *,
+    prefix: str,
+    run_dir: Path | None = None,
+) -> tuple[list[str], bool]:
+    """Rewrite gh argv so comment/review bodies include attribution.
+
+    Supports ``--body`` / ``-b``, ``--body-file``, and ``-f/-F body=``.
+    Returns (new_argv, injected).
+    """
+    # --body / -b
+    body_flags = ("--body", "-b")
+    for i, a in enumerate(argv):
+        for flag in body_flags:
+            if a == flag and i + 1 < len(argv):
+                new_body = apply_attribution_to_body(argv[i + 1], prefix)
+                if new_body == argv[i + 1]:
+                    return list(argv), False
+                out, _ = _rewrite_flag_value(argv, flags=body_flags, new_value=new_body)
+                return out, True
+            if a.startswith(f"{flag}="):
+                raw = a.split("=", 1)[1]
+                new_body = apply_attribution_to_body(raw, prefix)
+                if new_body == raw:
+                    return list(argv), False
+                out, _ = _rewrite_flag_value(argv, flags=body_flags, new_value=new_body)
+                return out, True
+
+    # --body-file
+    for i, a in enumerate(argv):
+        path_s: str | None = None
+        flag_eq = False
+        if a in ("--body-file",) and i + 1 < len(argv):
+            path_s = argv[i + 1]
+        elif a.startswith("--body-file="):
+            path_s = a.split("=", 1)[1]
+            flag_eq = True
+        if path_s is None:
+            continue
+        try:
+            original = Path(path_s).read_text(encoding="utf-8")
+        except OSError:
+            return list(argv), False
+        new_body = apply_attribution_to_body(original, prefix)
+        if new_body == original:
+            return list(argv), False
+        dest_dir = (run_dir / ".gate") if run_dir else Path(path_s).parent
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dest = dest_dir / f"attributed-body-{hashlib.sha256(new_body.encode()).hexdigest()[:10]}.md"
+        dest.write_text(new_body, encoding="utf-8")
+        if flag_eq:
+            out = list(argv)
+            out[i] = f"--body-file={dest}"
+            return out, True
+        out, _ = _rewrite_flag_value(argv, flags=("--body-file",), new_value=str(dest))
+        return out, True
+
+    # -f / -F body=
+    for i, a in enumerate(argv):
+        field_flags = ("-f", "-F", "--field", "--raw-field")
+        if a in field_flags and i + 1 < len(argv) and argv[i + 1].startswith("body="):
+            raw = argv[i + 1].split("=", 1)[1]
+            new_body = apply_attribution_to_body(raw, prefix)
+            if new_body == raw:
+                return list(argv), False
+            return _rewrite_field_body(argv, new_body)
+        for flag in ("-f", "-F"):
+            prefix_f = f"{flag}body="
+            if a.startswith(prefix_f):
+                raw = a[len(prefix_f) :]
+                new_body = apply_attribution_to_body(raw, prefix)
+                if new_body == raw:
+                    return list(argv), False
+                return _rewrite_field_body(argv, new_body)
+
+    return list(argv), False
+
+
 def install_gh_shim(
     run_dir: Path,
     *,
@@ -506,6 +764,10 @@ def install_gh_shim(
     verifier: str = "",
     gate_script: Path | None = None,
     real_gh: str | None = None,
+    attribution_enabled: bool = True,
+    loop_name: str = "",
+    github_login: str = "",
+    attribution_template: str = "",
 ) -> dict[str, str]:
     """Create a PATH-first `gh` shim and return env vars for the runner."""
     real = real_gh or shutil_which_gh()
@@ -526,6 +788,8 @@ def install_gh_shim(
     )
     shim.chmod(0o755)
 
+    login = github_login or resolve_github_login(real)
+
     env = os.environ.copy()
     env["PATH"] = f"{shim_dir}{os.pathsep}{env.get('PATH', '')}"
     env["LOOP_GATE_REAL_GH"] = real
@@ -534,6 +798,13 @@ def install_gh_shim(
     env["LOOP_GATE_ALLOWLIST"] = ",".join(allowlist)
     env["LOOP_GATE_DENY"] = ",".join(deny)
     env["LOOP_GATE_VERIFIER"] = verifier
+    env["LOOP_GATE_ATTRIBUTION"] = "1" if attribution_enabled else "0"
+    if loop_name:
+        env["LOOP_GATE_LOOP_NAME"] = loop_name
+    if login:
+        env["LOOP_GATE_GITHUB_LOGIN"] = login
+    if attribution_template:
+        env["LOOP_GATE_ATTRIBUTION_TEMPLATE"] = attribution_template
     # Preserve receipt secret from the parent environment when present.
     if os.environ.get("LOOP_GATE_RECEIPT_SECRET"):
         env["LOOP_GATE_RECEIPT_SECRET"] = os.environ["LOOP_GATE_RECEIPT_SECRET"]
@@ -543,6 +814,7 @@ def install_gh_shim(
 
 def shutil_which_gh() -> str | None:
     import shutil
+
     # Prefer a real gh that is NOT our shim (avoid recursion if already gated).
     path = os.environ.get("PATH", "")
     for directory in path.split(os.pathsep):
@@ -603,20 +875,45 @@ def main(argv: list[str] | None = None) -> int:
         print("[loop-gh-gate] real gh not found (LOOP_GATE_REAL_GH unset)", file=sys.stderr)
         return 127
 
+    attribution_injected = False
+    if (
+        action in ATTRIBUTION_ACTIONS
+        and cfg.get("attribution_enabled", True)
+        and not cfg.get("disabled")
+    ):
+        login = str(cfg.get("github_login") or "") or resolve_github_login(str(real))
+        prefix = format_attribution_prefix(
+            login=login,
+            loop_name=str(cfg.get("loop_name") or ""),
+            template=str(cfg.get("attribution_template") or ""),
+        )
+        run_dir = cfg.get("run_dir")
+        gh_args, attribution_injected = inject_attribution_argv(
+            gh_args,
+            prefix=prefix,
+            run_dir=Path(run_dir) if run_dir else None,
+        )
+
     if action:
         # Audit allowed mutations.
         run_dir = cfg.get("run_dir")
         if run_dir:
             audit = Path(run_dir) / "gate-allow.jsonl"
             with audit.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps({
-                    "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-                    "kind": "allowed",
-                    "action": action,
-                    "reason": reason,
-                    "argv": redact_argv(gh_args),
-                    "meta": {k: v for k, v in meta.items() if k != "raw"},
-                }) + "\n")
+                fh.write(
+                    json.dumps(
+                        {
+                            "ts": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                            "kind": "allowed",
+                            "action": action,
+                            "reason": reason,
+                            "argv": redact_argv(gh_args),
+                            "meta": {k: v for k, v in meta.items() if k != "raw"},
+                            "attribution_injected": attribution_injected,
+                        }
+                    )
+                    + "\n"
+                )
 
     result = subprocess.run([real, *gh_args])
     return int(result.returncode)

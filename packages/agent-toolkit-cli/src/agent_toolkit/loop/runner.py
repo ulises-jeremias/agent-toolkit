@@ -610,6 +610,37 @@ def _as_str_list(value: Any) -> list[str]:
     return []
 
 
+def _parse_attribution_config(meta: dict[str, Any]) -> dict[str, Any]:
+    """Parse LOOP.md / loop.yaml ``attribution`` field.
+
+    Default: enabled. Accepts ``false``, ``true``, or a mapping with
+    ``enabled`` / ``template``.
+    """
+    raw = meta.get("attribution", True)
+    if raw is False or raw is None:
+        return {"enabled": False, "template": ""}
+    if raw is True:
+        return {"enabled": True, "template": ""}
+    if isinstance(raw, (int, float)):
+        return {"enabled": bool(raw), "template": ""}
+    if isinstance(raw, str):
+        low = raw.strip().lower()
+        if low in {"0", "false", "no", "off", "disabled"}:
+            return {"enabled": False, "template": ""}
+        if low in {"1", "true", "yes", "on", "enabled"}:
+            return {"enabled": True, "template": ""}
+        return {"enabled": True, "template": raw}
+    if isinstance(raw, dict):
+        enabled_raw = raw.get("enabled", True)
+        if isinstance(enabled_raw, str):
+            enabled = enabled_raw.strip().lower() not in {"0", "false", "no", "off"}
+        else:
+            enabled = bool(enabled_raw)
+        template = str(raw.get("template") or "")
+        return {"enabled": enabled, "template": template}
+    return {"enabled": True, "template": ""}
+
+
 def _load_request_body(loop_dir: Path, meta: dict[str, Any], loop_name: str) -> str:
     """Prefer request.md; fall back to LOOP.md goal / generic execute line."""
     request_md = loop_dir / "request.md"
@@ -677,6 +708,23 @@ def _autonomy_contract(meta: dict[str, Any], loop_dir: Path) -> str:
         "- When `LOOP_GATE_RECEIPT_SECRET` is set, receipts must include "
         "`sig` (HMAC-SHA256 hex of the canonical JSON payload).",
         "- Receipts require exact repo + number + verifier match and expire after 1 hour.",
+    ]
+
+    attr = _parse_attribution_config(meta)
+    if attr["enabled"]:
+        lines += [
+            "- Comment/review attribution (default ON): outbound `gh` comment/review "
+            "bodies are prefixed with `> 🤖 AI-assisted …` by the hard gate if missing. "
+            "Do not invent a different disclaimer; the gate injects the canonical one. "
+            "Set `attribution: false` (or `attribution.enabled: false`) in LOOP.md to disable.",
+        ]
+    else:
+        lines += [
+            "- Comment/review attribution: DISABLED for this loop "
+            "(`attribution.enabled: false`).",
+        ]
+
+    lines += [
         "",
         "Before finishing:",
         f"1. Update `{loop_dir / 'STATE.md'}` frontmatter `pending:` and `escalations:` "
@@ -740,17 +788,34 @@ def _runner_env(run_dir: Path, meta: dict[str, Any]) -> dict[str, str]:
         allow = _as_str_list(meta.get("allowlist"))
         deny = _as_str_list(meta.get("deny"))
         verifier = str(meta.get("verifier") or "")
-        env = mod["install_gh_shim"](
-            run_dir,
-            tier=tier,
-            allowlist=allow,
-            deny=deny,
-            verifier=verifier,
-            gate_script=gate_path,
-        )
+        attr = _parse_attribution_config(meta)
+        loop_name = str(meta.get("name") or run_dir.parent.parent.name)
+        # Prefer keyword args when the gate supports attribution; fall back for
+        # older copied loop-gh-gate binaries that only accept the classic kwargs.
+        install_kwargs: dict[str, Any] = {
+            "tier": tier,
+            "allowlist": allow,
+            "deny": deny,
+            "verifier": verifier,
+            "gate_script": gate_path,
+            "attribution_enabled": bool(attr["enabled"]),
+            "loop_name": loop_name,
+            "attribution_template": str(attr.get("template") or ""),
+        }
+        try:
+            env = mod["install_gh_shim"](run_dir, **install_kwargs)
+        except TypeError:
+            for key in (
+                "attribution_enabled",
+                "loop_name",
+                "attribution_template",
+            ):
+                install_kwargs.pop(key, None)
+            env = mod["install_gh_shim"](run_dir, **install_kwargs)
+        attr_label = "on" if attr["enabled"] else "off"
         log(
             f"Hard gate active: gh shim → allow=[{', '.join(allow) or '∅'}] "
-            f"deny=[{', '.join(deny) or '∅'}]"
+            f"deny=[{', '.join(deny) or '∅'}] attribution={attr_label}"
         )
         return env
     except Exception as exc:  # noqa: BLE001

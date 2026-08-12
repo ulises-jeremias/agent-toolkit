@@ -39,6 +39,12 @@ deny:               # Explicit list of forbidden actions
   - approve
   - force-push
 
+# Optional. Default ON: hard gate prepends AI disclosure to comments/reviews.
+# attribution: false
+# attribution:
+#   enabled: true
+#   template: "> 🤖 AI-assisted message posted as `@{login}` by [agent-toolkit](https://github.com/ulises-jeremias/agent-toolkit){loop_suffix}."
+
 exit_conditions:
   - goal_met
   - budget_exhausted
@@ -55,6 +61,30 @@ request: |
   The prompt template executed by the loop runner.
   This is the full instruction set for the AI.
 ```
+
+---
+
+## Comment attribution (default ON)
+
+When a loop posts a GitHub comment or review body via `gh`, `loop-gh-gate` prepends a disclosure if it is missing:
+
+```markdown
+> 🤖 AI-assisted message posted as `@your-login` by [agent-toolkit](https://github.com/ulises-jeremias/agent-toolkit) (`loop-name`).
+```
+
+- **Default:** enabled for every loop run (no config required).
+- **Login:** resolved from the authenticated `gh` token (`gh api user`).
+- **Idempotent:** bodies that already start with `> 🤖 AI-assisted` are left unchanged.
+- **Disable per loop:**
+
+```yaml
+attribution: false
+# or
+attribution:
+  enabled: false
+```
+
+Supported injection surfaces (v1): `--body` / `-b`, `--body-file`, and `-f`/`-F body=` on comment/review commands classified as `comment` by the hard gate.
 
 ---
 
@@ -311,4 +341,5 @@ request: string (multiline)     # The prompt template executed by the loop runne
 # Optional fields
 resumable: boolean               # Default: false
 verifier: string | null          # Agent name to verify output (e.g. code-reviewer)
+attribution: boolean | object    # Default: true; false disables AI comment disclosure
 ```
