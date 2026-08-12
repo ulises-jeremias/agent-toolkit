@@ -25,11 +25,19 @@ Use **`decision-log`** for lightweight product/project/operational decisions and
 
 ## Instructions
 
+0. **Match existing convention first** (per `addyosmani/agent-skills` `documentation-and-adrs` 2026-08-12, diff `docs/research/diff-394-documentation-and-adrs.md`): inspect `docs/adr/` (or `Documentation/Decisions/`, MADR, `adr-tools` `.adr-dir`) — location/format (Markdown vs reStructuredText), numbering/naming (`0004-*.md` vs `ADR-004-*.rst`), section headings. Surface conflict rather than silently introducing another scheme. Only when no convention can be established, default to `docs/adr/000N-*.md` six-part structure.
+
 1. **Confirm the decision qualifies** (new service, tech selection, schema change, deployment change, etc.) per the "When to Create an ADR" criteria.
-2. **Draft** using the six-part structure: Title & status, Context, Options, Decision, Consequences, References (link **PRD/TRD**, tasks, PRs, diagrams as applicable).
+2. **Draft** using the six-part structure: Title & status, Context, Options, Decision, Consequences, References (link **PRD/TRD**, tasks, PRs, diagrams as applicable). Use lifecycle `PROPOSED → ACCEPTED → (SUPERSEDED | DEPRECATED)` and **don't delete old ADRs** — when decision changes, write new ADR that references and supersedes old (per upstream 2026-08-12).
 3. **Review** with the tech lead / peers as in the workflow; keep ADRs **short and actionable** (clarity over completeness).
 4. **Link** the ADR to the relevant **epic or story** and to **PRs** in the forge (use **`github-cli-workflow` / `gitlab-cli-workflow`** for PR text when applicable).
 5. If an ADR is **superseded**, **preserve history**: update status and point to the replacement document.
+
+### Red flags & verification (after documenting)
+
+* **No ADR for significant architectural choices** — every expensive-to-reverse decision needs one.
+* **README missing quick start / architecture overview**, API without types, rules files (`CLAUDE.md`/`AGENTS.md`) stale, commented-out code, week-old `TODO`s, or docs that restate code.
+* Verify: ADRs exist, README covers quick start/commands/architecture (link ADRs), API docs have types, gotchas inline, no commented-out code, `personas/` (HOW agent thinks) vs `skills/` (HOW task executes) preserved — see `docs/CONCEPTS.md`.
 
 ## What not to do
 

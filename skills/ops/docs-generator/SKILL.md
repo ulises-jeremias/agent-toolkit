@@ -70,6 +70,41 @@ Use the template from `~/.local/share//skills-catalog.yaml` patterns:
 - Key commands (build, test, lint)
 - Links to key docs
 
+## Inline Documentation (why, not what) — per `addyosmani/agent-skills` `documentation-and-adrs` 2026-08-12 diff `docs/research/diff-394-documentation-and-adrs.md`
+
+Comment the *why*, not the *what*:
+
+```typescript
+// BAD: Restates the code
+// Increment counter by 1
+counter += 1;
+
+// GOOD: Explains non-obvious intent
+// Rate limit uses a sliding window — reset counter at window boundary,
+// not on a fixed schedule, to prevent burst attacks at window edges
+if (now - windowStart > WINDOW_SIZE_MS) {
+  counter = 0;
+  windowStart = now;
+}
+```
+
+* **When NOT to comment:** self-explanatory code (`calculateTotal` reduce), week-old `TODO`s (do it now), commented-out code (delete — git has history).
+* **Document Known Gotchas inline** where they matter:
+```typescript
+/**
+ * IMPORTANT: Must be called before first render — after hydration causes FOUC
+ * (theme context not available during SSR). See ADR-003.
+ */
+export function initializeTheme(theme: Theme): void { ... }
+```
+
+**Do not invent docs from thin air** — derive from code/specs/git history (this skill) vs ADR *why* (via `adr` skill). `personas/` (HOW agent thinks) vs `skills/` (HOW task executes) preserved — see `docs/CONCEPTS.md`.
+
+## Verification (after documenting)
+
+* [ ] ADRs exist for all significant decisions, README covers quick start/commands/architecture (link ADRs), API docs have types, gotchas inline, no commented-out code, `CLAUDE.md`/`AGENTS.md` current.
+* Rationalizations table — "code is self-documenting" (reality: code shows what, not why/alternatives), "docs when API stabilizes" (doc is first test of design), "ADRs are overhead" (10-min ADR prevents 2-hour debate).
+
 ## Anti-patterns
 
 - Do not guess stack or commands — read from actual config files
