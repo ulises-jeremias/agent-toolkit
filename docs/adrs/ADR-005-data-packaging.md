@@ -4,6 +4,8 @@
 **Date:** 2026-08-06  
 **Deciders:** maintainers (Wave 3 #266, parent #263)
 
+> **Amendment (V binary-first):** For the V product and dual-run V path, runtime resolution order is defined by [ADR-015](ADR-015-runtime-resolution.md) ([#547](https://github.com/ulises-jeremias/agent-toolkit/issues/547)). This ADR remains the historical Python wheel-era record; where they differ, ADR-015 wins for V.
+
 ## Context
 
 Toolkit data can come from multiple places: editable repo checkout (`skills/`, `profiles/`, `loops/` at repo root), wheel-bundled `agent_toolkit/data/` (populated by `scripts/prepare-package-data.sh` before `uv build`), XDG cache (`~/.cache/agent-toolkit` or `~/.local/share/agent-toolkit/data`), or a GitHub Release tarball download. The resolution logic lives in `packages/agent-toolkit-cli/src/agent_toolkit/_paths.py` / `data_cache.py` / `data_sync.py` and is tribal knowledge for Homebrew/AUR packagers (#257/#258).

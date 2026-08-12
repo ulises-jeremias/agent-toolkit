@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — ADR-015 runtime resolution (amends ADR-005 for V binary hybrid packaging) (Closes #547)
 - **Docs** — ADR-014 schema validation: typed validators in core + Python bridge only during parity (Closes #546)
 - **Docs** — ADR-013 YAML strategy: use `vlib/yaml` for toolkit config; no custom general YAML parser (Closes #483)
 - **Docs** — ADR-012 Python/V coexistence via experimental V binary; Python remains canonical until cutover (Closes #482)
