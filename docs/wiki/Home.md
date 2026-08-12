@@ -150,7 +150,7 @@ agent-toolkit/
 ├── profiles/       # Per-tool configurations (6 tools)
 ├── mcp/templates/  # 6 MCP provider config stubs
 ├── plugins/        # 3 marketplace plugin bundles
-├── packs/          # 3 solution packs
+├── packs/          # 7 solution packs
 ├── catalogs/       # skill-catalog.yaml, agent-catalog.yaml
 ├── schemas/        # JSON validation schemas
 ├── docs/           # Documentation and how-to guides

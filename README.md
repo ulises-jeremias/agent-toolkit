@@ -65,7 +65,7 @@ agent-toolkit doctor
       <h3>🛠️ Skills</h3>
       <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery workflows, forge CLIs, design, data, ops.</sub>
       <br><br>
-      <sub>60 skills across 9 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
+      <sub>77 skills across 9 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
@@ -434,7 +434,7 @@ One source of truth, deployed per-tool. Each profile in `profiles/` adapts the s
 
 ```text
 agent-toolkit/
-├── skills/              # 60 skills across 9 domains (SKILL.md frontmatter)
+├── skills/              # 77 skills across 9 domains (SKILL.md frontmatter)
 ├── agents/              # 17 tool-agnostic agent persona definitions
 ├── profiles/
 │   ├── claude-code/     # Plugin manifest, skill references, settings
