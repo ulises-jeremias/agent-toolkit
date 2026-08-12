@@ -31,6 +31,11 @@ fn test_dispatch_matrix_exit_zero() {
 	assert code == 0
 }
 
+fn test_dispatch_inventory_exit_zero() {
+	code := dispatch(['agent-toolkit', 'inventory'])
+	assert code == 0
+}
+
 fn test_grouped_help_mentions_consumer_and_advanced() {
 	h := grouped_help()
 	assert h.contains('Consumer') || h.to_lower().contains('install')

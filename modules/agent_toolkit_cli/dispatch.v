@@ -48,6 +48,13 @@ pub fn dispatch(args []string) int {
 			return 0
 		}
 	}
+	if cmd_name == 'inventory' {
+		snap := agent_toolkit_core.load_inventory() or {
+			e := agent_toolkit_core.err_env('root.missing', err.msg())
+			return render_error(e, mode)
+		}
+		return render(agent_toolkit_core.inventory_result(snap), mode)
+	}
 	if cmd_name == 'matrix' {
 		return render(agent_toolkit_core.matrix_result(), mode)
 	}
