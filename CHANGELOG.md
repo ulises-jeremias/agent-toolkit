@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V Copilot emitters (`copilot-cli`, `copilot-repository`) as first #552 remaining-target slice
 - **Feat** — V `build --check` Tier-1 dry-run + plugins/ skill/agent drift detection (Closes #510)
 - **Feat** — V Tier-1 target emitters (cursor, claude-code, opencode) with provenance (Closes #509)
 - **Feat** — V provenance emission compatible with Python `.provenance.json` schema (Closes #508)

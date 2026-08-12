@@ -105,5 +105,5 @@ fn test_run_build_unknown_target() {
 		target: 'not-a-target'
 	})
 	assert !report.ok
-	assert report.message.contains('unknown Tier-1 target'), report.message
+	assert report.message.contains('unknown emit target'), report.message
 }

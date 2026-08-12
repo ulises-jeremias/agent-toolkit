@@ -60,14 +60,14 @@ pub fn run_build(opts BuildOptions) BuildReport {
 
 	mut targets := []string{}
 	if opts.target.len > 0 {
-		if !is_tier1_target(opts.target) {
+		if !is_known_emit_target(opts.target) {
 			report.ok = false
-			report.message = "unknown Tier-1 target '${opts.target}' (available: ${tier1_targets().join(', ')})"
+			report.message = "unknown emit target '${opts.target}' (available: ${all_emit_targets().join(', ')})"
 			return report
 		}
 		targets << opts.target
 	} else {
-		targets = tier1_targets()
+		targets = all_emit_targets()
 	}
 
 	output_root := if opts.output_dir.len > 0 {
@@ -99,7 +99,7 @@ pub fn run_build(opts BuildOptions) BuildReport {
 
 	for t in targets {
 		for p in products {
-			r := compile_tier1(t, graph, p, work_root, repo)
+			r := compile_target(t, graph, p, work_root, repo)
 			report.results << r
 			lines << r.report()
 			lines << ''

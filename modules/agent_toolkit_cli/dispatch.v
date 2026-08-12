@@ -232,10 +232,10 @@ fn subcommand_help(name string) string {
 	if name == 'build' {
 		return 'Usage: agent-toolkit build [--check] [--target TARGET] [--product PRODUCT] [--output DIR] [--json]
 
-Compile canonical capabilities into Tier-1 target artifacts (cursor, claude-code, opencode).
+Compile canonical capabilities into target artifacts (Tier-1 + remaining emitters).
 
   --check            Dry-run + compare emitted skills/agents to plugins/ (exit 1 on drift)
-  --target TARGET    Tier-1 target id (default: all Tier-1)
+  --target TARGET    Target id (default: all implemented emitters)
   --product PRODUCT  Product id (default: all products)
   --output DIR       Output directory (default: <repo>/plugins)
   --json             Structured CommandResult JSON
