@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — ADR-016 versioning during Python→V migration: major at cutover, not experimental binary (Closes #495)
 - **Feat** — V content sync/download client (GitHub release data; offline never networks; staging validation) (Closes #557)
 - **Feat** — V content cache service (XDG hit/miss/offline; no network) (Closes #556)
 - **Feat** — V `doctor` read-only + `--json` with engine/version/platform (Closes #505)
