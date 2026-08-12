@@ -687,3 +687,53 @@ jobs:
 
       - name: Dry-run install via uvx
         run: uvx agent-toolkit-cli install --dry-run --tools cursor,opencode
+
+  # ── Aggregate required gate — single stable context for branch protection (#243) ──
+  required-ci:
+    name: Required CI
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - test-package
+      - smoke-test-skills
+      - validate-skills
+      - validate-manifests
+      - validate-agent-plugins
+      - validate-upstream
+      - check-skill-matrix
+      - validate-loops
+      - validate-products
+      - secret-scan
+      - yaml-lint
+      - ruff
+      - coverage
+      - build-package
+      - integration-tests
+      - test-uvx
+    steps:
+      - name: Check required jobs
+        run: |
+          # Fail if any required dependency failed or was cancelled
+          failed="false"
+          # Use GitHub's needs context to check each job result
+          if [[ "${{ needs.test-package.result }}" != "success" && "${{ needs.test-package.result }}" != "skipped" ]]; then echo "test-package failed: ${{ needs.test-package.result }}"; failed="true"; fi
+          if [[ "${{ needs.smoke-test-skills.result }}" != "success" && "${{ needs.smoke-test-skills.result }}" != "skipped" ]]; then echo "smoke-test-skills failed: ${{ needs.smoke-test-skills.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-skills.result }}" != "success" ]]; then echo "validate-skills failed: ${{ needs.validate-skills.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-manifests.result }}" != "success" ]]; then echo "validate-manifests failed: ${{ needs.validate-manifests.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-agent-plugins.result }}" != "success" ]]; then echo "validate-agent-plugins failed: ${{ needs.validate-agent-plugins.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-upstream.result }}" != "success" ]]; then echo "validate-upstream failed: ${{ needs.validate-upstream.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-products.result }}" != "success" ]]; then echo "validate-products failed: ${{ needs.validate-products.result }}"; failed="true"; fi
+          if [[ "${{ needs.secret-scan.result }}" != "success" ]]; then echo "secret-scan failed: ${{ needs.secret-scan.result }}"; failed="true"; fi
+          if [[ "${{ needs.yaml-lint.result }}" != "success" ]]; then echo "yaml-lint failed: ${{ needs.yaml-lint.result }}"; failed="true"; fi
+          if [[ "${{ needs.ruff.result }}" != "success" ]]; then echo "ruff failed: ${{ needs.ruff.result }}"; failed="true"; fi
+          if [[ "${{ needs.coverage.result }}" != "success" ]]; then echo "coverage failed: ${{ needs.coverage.result }}"; failed="true"; fi
+          if [[ "${{ needs.build-package.result }}" != "success" ]]; then echo "build-package failed: ${{ needs.build-package.result }}"; failed="true"; fi
+          if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then echo "integration-tests failed: ${{ needs.integration-tests.result }}"; failed="true"; fi
+          if [[ "${{ needs.test-uvx.result }}" != "success" ]]; then echo "test-uvx failed: ${{ needs.test-uvx.result }}"; failed="true"; fi
+          if [[ "$failed" == "true" ]]; then
+            echo "::error::Required CI failed"
+            exit 1
+          fi
+          echo "All required jobs passed"
