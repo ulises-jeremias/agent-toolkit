@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — experimental V CLI dispatcher + `make build-cli` (`build/agent-toolkit-v`) (Closes #553)
 - **Feat** — V structured CommandResult + CLI human/JSON/quiet renderers (Closes #501)
 - **Feat** — V shared HTTP/network client (offline short-circuit, TLS, checksum hook) (Closes #558)
 - **Feat** — V process service (no-shell spawn, cwd/env/timeout/capture) (Closes #500)

@@ -8,7 +8,7 @@ export VMODULES := $(ROOT)/modules
 V_MODULES := agent_toolkit_core agent_toolkit_cli
 V ?= v
 
-.PHONY: help ensure-v fmt fmt-check vet test build
+.PHONY: help ensure-v fmt fmt-check vet test build build-cli
 
 help:
 	@echo "V targets (pin: $$(cat $(ROOT)/.v-version 2>/dev/null || echo 'pending #496'))"
@@ -17,6 +17,7 @@ help:
 	@echo "  make vet         Vet V modules"
 	@echo "  make test        Run V unit tests"
 	@echo "  make build       Typecheck/compile smoke for each module"
+	@echo "  make build-cli   Build experimental V binary to build/agent-toolkit-v"
 
 ensure-v:
 	@command -v $(V) >/dev/null || (echo "v not found; install V matching .v-version" >&2; exit 1)
@@ -61,3 +62,8 @@ build: ensure-v
 	  $(V) -o "$$tmp/out" "$$tmp/main.v"; \
 	  rm -rf "$$tmp"; \
 	done
+
+# Experimental V CLI binary (ADR-012 / #553).
+build-cli: ensure-v
+	@mkdir -p $(ROOT)/build
+	$(V) -o $(ROOT)/build/agent-toolkit-v $(ROOT)/cmd/agent-toolkit
