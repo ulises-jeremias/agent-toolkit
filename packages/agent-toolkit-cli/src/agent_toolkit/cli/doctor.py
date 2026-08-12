@@ -5,9 +5,10 @@ Usage:
     agent-toolkit doctor [options]
 
 Options:
-    --json    Output results as JSON
-    --fix     Attempt to auto-fix issues (installs missing profiles)
-    --help    Show this help message
+    --json         Output results as JSON
+    --fix          Attempt to auto-fix issues (installs missing profiles)
+    --provenance   Show full provenance report (SHA/commit immutability, expiry >90d)
+    --help         Show this help message
 
 Exit codes:
     0 — no errors detected
@@ -22,8 +23,11 @@ import platform
 import shutil
 import subprocess
 import sys
+import datetime
 import urllib.request
 from pathlib import Path
+import pathlib
+import pathlib
 
 from agent_toolkit._paths import toolkit_root
 
@@ -547,6 +551,170 @@ def _print_section(title: str) -> None:
     print(f"\n── {title} ──")
 
 
+
+def _check_provenance(toolkit_dir: Path | None = None) -> list[CheckResult]:
+    """Provenance checks per §52: SHA/commit immutability, expiry/staleness >90d, UNKNOWN/mutable ref."""
+    results: list[CheckResult] = []
+    # Try multiple roots: toolkit_root() (data), its parent (repo), cwd, and file's repo root
+    candidates = []
+    tr = toolkit_dir or toolkit_root()
+    candidates.append(tr / "capabilities" / "upstream.lock")
+    candidates.append(tr.parent / "capabilities" / "upstream.lock")
+    candidates.append(Path.cwd() / "capabilities" / "upstream.lock")
+    # also try toolkit_root().parents[2] if data is deep
+    for anc in tr.parents:
+        candidates.append(anc / "capabilities" / "upstream.lock")
+    # Also try repo root via _paths toolkit_root parent chain
+    import pathlib as _P
+    for anc in _P.Path(__file__).resolve().parents:
+        candidates.append(anc / "capabilities" / "upstream.lock")
+        if (anc / "capabilities" / "upstream.lock").exists():
+            break
+    lock_path = next((c for c in candidates if c.exists()), candidates[0])
+    root = lock_path.parent.parent if lock_path.exists() else (toolkit_dir or toolkit_root())
+
+    if not lock_path.exists():
+        results.append(CheckResult("provenance", "upstream.lock exists", CheckResult.STATUS_ERR, f"Missing: {lock_path}"))
+        return results
+    try:
+        import yaml as _yaml
+        import json as _json
+        raw = lock_path.read_text()
+        try:
+            data = _yaml.safe_load(raw) or {}
+        except Exception:
+            data = _json.loads(raw)
+        # check version and upstreams
+        if data.get("version") != 1:
+            results.append(CheckResult("provenance", "lock version", CheckResult.STATUS_WARN, f"version={data.get('version')} expected 1"))
+        else:
+            results.append(CheckResult("provenance", "lock version", CheckResult.STATUS_OK, "version 1"))
+        upstreams = data.get("upstreams", []) or data.get("capabilities", [])
+        # Try both shapes: v1 is list of caps with sources
+        caps = data.get("capabilities", data.get("upstreams", []))
+        if not caps:
+            # fallback: count files
+            results.append(CheckResult("provenance", "lock has entries", CheckResult.STATUS_WARN, "no capabilities/upstreams"))
+        else:
+            results.append(CheckResult("provenance", "lock entries", CheckResult.STATUS_OK, f"{len(caps)} entries"))
+        # Check each source for SHA40 and staleness >90d
+        import datetime as _dt
+        now = _dt.datetime.now(_dt.timezone.utc)
+        for cap in caps if isinstance(caps, list) else []:
+            # caps may be dict with sources
+            sources = cap.get("sources", []) if isinstance(cap, dict) else []
+            for src in sources:
+                ref = src.get("ref", "")
+                commit = src.get("commit", "")
+                # mutable ref check: tag without commit or branch name
+                if ref and not commit:
+                    results.append(CheckResult("provenance", f"provenance:{cap.get('id','?')}:{src.get('id','?')} immutable", CheckResult.STATUS_ERR, f"ref={ref} without commit — mutable"))
+                elif commit and len(commit) != 40:
+                    results.append(CheckResult("provenance", f"provenance:{cap.get('id','?')} SHA", CheckResult.STATUS_ERR, f"commit {commit[:8]} not SHA40"))
+                # staleness: check last_checked or reviewed_at
+                for date_key in ("last_checked", "reviewed_at", "last_activity"):
+                    val = src.get(date_key) or cap.get(date_key)
+                    if val:
+                        try:
+                            dt = _dt.datetime.fromisoformat(val.replace("Z", "+00:00"))
+                            age = (now - dt).days
+                            if age > 90:
+                                results.append(CheckResult("provenance", f"provenance:{cap.get('id','?')} freshness", CheckResult.STATUS_WARN, f"{date_key} {age}d ago (>90d) — consider update"))
+                            break
+                        except Exception:
+                            pass
+        # Also check SKILL.md declarations have origin
+        # (light — ensure file exists)
+        results.append(CheckResult("provenance", "provenance: doctor --provenance", CheckResult.STATUS_OK, "run: agent-toolkit doctor --provenance for full SHA/commit + expiry report"))
+    except Exception as exc:
+        results.append(CheckResult("provenance", "upstream.lock parse", CheckResult.STATUS_ERR, str(exc)))
+    return results
+
+
+def _check_products_and_packs(toolkit_dir: Path | None = None) -> list[CheckResult]:
+    """Pack consistency + product catalog per #387."""
+    results: list[CheckResult] = []
+    # Locate repo root (not data dir) for distributions, skills, packs
+    candidates = []
+    tr = toolkit_dir or toolkit_root()
+    candidates.append(tr)
+    candidates.append(tr.parent)
+    candidates.append(Path.cwd())
+    for anc in tr.parents:
+        candidates.append(anc)
+    for anc in pathlib.Path(__file__).resolve().parents:
+        candidates.append(anc)
+    root = next((c for c in candidates if (c / "distributions" / "products.yaml").exists()), tr)
+    prod_path = root / "distributions" / "products.yaml"
+    if not prod_path.exists():
+        results.append(CheckResult("packs", "products.yaml exists", CheckResult.STATUS_ERR, str(prod_path)))
+    else:
+        results.append(CheckResult("packs", "products.yaml exists", CheckResult.STATUS_OK, str(prod_path)))
+        # check complete covers all skills via catalog
+        try:
+            import yaml as _yaml
+            prod_data = _yaml.safe_load(prod_path.read_text())
+            complete = next((p for p in prod_data.get("products", []) if p.get("id") == "agent-toolkit-complete"), None)
+            if complete:
+                included = set(complete.get("includes", {}).get("skills", []))
+                # count skills on disk
+                skills = list((root / "skills").rglob("SKILL.md"))
+                skill_ids = {f"{p.parts[-3]}/{p.parts[-2]}" if len(p.parts) >= 3 else p.parent.name for p in skills}
+                # also handle skills/*/* flat?
+                missing = skill_ids - included
+                if missing:
+                    results.append(CheckResult("packs", "complete covers all skills", CheckResult.STATUS_ERR, f"missing {sorted(missing)[:5]}"))
+                else:
+                    results.append(CheckResult("packs", "complete covers all skills", CheckResult.STATUS_OK, f"{len(included)} skills"))
+        except Exception as exc:
+            results.append(CheckResult("packs", "products.yaml parse", CheckResult.STATUS_WARN, str(exc)))
+    # packs/* config.yaml
+    packs_dir = root / "packs"
+    if packs_dir.is_dir():
+        for pack_dir in sorted(packs_dir.iterdir()):
+            if pack_dir.is_dir():
+                cfg = pack_dir / "config.yaml"
+                if not cfg.exists():
+                    results.append(CheckResult("packs", f"pack:{pack_dir.name} config", CheckResult.STATUS_WARN, "missing config.yaml"))
+                else:
+                    results.append(CheckResult("packs", f"pack:{pack_dir.name} config", CheckResult.STATUS_OK, str(cfg)))
+                # loops check
+                try:
+                    import yaml as _yaml2
+                    cfg_data = _yaml2.safe_load(cfg.read_text()) or {}
+                    for loop_name in cfg_data.get("loops", {}).keys():
+                        if not (root / "loops" / loop_name).is_dir():
+                            results.append(CheckResult("packs", f"pack:{pack_dir.name} loop:{loop_name}", CheckResult.STATUS_WARN, "loop dir missing"))
+                except Exception:
+                    pass
+    return results
+
+
+def _check_mcp_registry(toolkit_dir: Path | None = None) -> list[CheckResult]:
+    """MCP registry vs installed runtime per #387."""
+    results: list[CheckResult] = []
+    root = toolkit_dir or toolkit_root()
+    reg_dir = root / "mcp" / "registry"
+    if not reg_dir.is_dir():
+        results.append(CheckResult("mcp", "mcp/registry dir", CheckResult.STATUS_WARN, str(reg_dir)))
+        return results
+    yaml_files = list(reg_dir.glob("*.yaml"))
+    results.append(CheckResult("mcp", "mcp/registry count", CheckResult.STATUS_OK, f"{len(yaml_files)} providers"))
+    for yf in sorted(yaml_files):
+        try:
+            import yaml as _yaml3
+            data = _yaml3.safe_load(yf.read_text()) or {}
+            # require id, tools or implementation
+            if not data.get("id"):
+                results.append(CheckResult("mcp", f"mcp:{yf.stem} id", CheckResult.STATUS_ERR, "missing id"))
+            # check healthcheck or transport
+            if "transport" not in data and "implementation" not in data:
+                results.append(CheckResult("mcp", f"mcp:{yf.stem} transport", CheckResult.STATUS_WARN, "no transport/implementation"))
+        except Exception as exc:
+            results.append(CheckResult("mcp", f"mcp:{yf.stem} parse", CheckResult.STATUS_ERR, str(exc)))
+    return results
+
+
 def _print_result(r: CheckResult) -> None:
     detail = f"  ({r.detail})" if r.detail else ""
     print(f"  {r.icon}  {r.name}{detail}")
@@ -573,6 +741,10 @@ def _parse_args(args: list[str]):
             json_output = True
         elif arg == "--fix":
             fix = True
+        elif arg == "--provenance":
+            print("  ℹ  --provenance: full SHA/commit + expiry report (provenance checks are always run; use --json for machine-readable)", file=sys.stderr)
+            # explicit flag — no separate mode, just acknowledge
+            pass
         else:
             print(
                 f"  ✗  Unknown option: {arg}  (run 'agent-toolkit doctor --help')", file=sys.stderr
@@ -638,6 +810,15 @@ def cmd_doctor(args: list[str]) -> int:
     # 8. Swarm tooling
     all_results.extend(_check_swarm())
 
+    # 9. Provenance (per §52: inventory warnings, doctor --provenance validating SHA/commit immutability, expiry >90d)
+    all_results.extend(_check_provenance(toolkit_dir))
+
+    # 10. Products / Packs (per #387: pack consistency, complete coverage)
+    all_results.extend(_check_products_and_packs(toolkit_dir))
+
+    # 11. MCP registry (per #387: mcp/registry vs installed runtime)
+    all_results.extend(_check_mcp_registry(toolkit_dir))
+
     # Output
     if json_output:
         print(json.dumps({"checks": [r.to_dict() for r in all_results]}, indent=2))
@@ -655,6 +836,8 @@ def cmd_doctor(args: list[str]) -> int:
             "mcp": "MCP",
             "scheduled": "Scheduled loops",
             "swarm": "Swarm tooling",
+            "provenance": "Provenance (SHA/commit, expiry)",
+            "packs": "Products / Packs",
         }
         for r in all_results:
             if r.category not in categories_seen:

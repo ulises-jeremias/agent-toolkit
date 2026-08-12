@@ -150,3 +150,67 @@ agent-toolkit swarm models --runner skeleton --profile balanced
 ---
 
 If none of these match, run `agent-toolkit doctor --verbose` and open an issue with the output (redact paths if needed).
+
+## 13. Provenance: upstream.lock missing or mutable ref
+
+**Symptom:** `agent-toolkit doctor` → `provenance: upstream.lock exists` `✗ Missing` or `provenance:<id> immutable` `ref without commit — mutable` or `lock version` `⚠ version=2 expected 1` (legacy) or `commit ... not SHA40`.
+
+**Cause:** `SKILL.md` `sources[].ref` is a tag/branch without `commit` pin, or lock not generated.
+
+**Fix:**
+
+```bash
+# Ensure SKILL.md has immutable pin
+#   sources:
+#     - id: upstream
+#       repository: org/repo
+#       ref: v1.2.3        # requested tag
+#       commit: abc123...  # 40-char SHA (resolved)
+
+uv run python scripts/provenance.py lock      # resolve declarations → capabilities/upstream.lock
+uv run python scripts/provenance.py check     # offline validation declaration↔lock + checksums + digest + review binding
+uv run python scripts/provenance.py docs      # regenerate docs/UPSTREAM.md
+```
+
+See `docs/adr/0001-capability-declaration-and-external-provenance-lock.md` (declaration → lock → vendored → sources) and `scripts/provenance.py {lock,check,docs,updates}`.
+
+## 14. Provenance: staleness >90d
+
+**Symptom:** `provenance:<id> freshness` `⚠ 95d ago (>90d) — consider update`
+
+**Fix:**
+
+```bash
+uv run python scripts/provenance.py updates   # compare locked commits to remote HEAD
+# open update PR with new commit/digest
+```
+
+Provenance `reviewed_provenance` binds human review to old bytes — lock update invalidates prior review.
+
+## 15. Packs: complete covers all skills
+
+**Symptom:** `packs: complete covers all skills` `✗ missing ['architecture/c4-model', ...]`
+
+**Fix:**
+
+```bash
+# Add skill to distributions/products.yaml agent-toolkit-complete includes.skills
+# Then regenerate matrix:
+python3 scripts/generate-skill-matrix.py
+python3 scripts/generate-skill-matrix.py --check  # CI gate
+```
+
+See `docs/compatibility/matrix-generation.md` (matrix generated from `distributions/products.yaml` + `skills-layout.json`).
+
+## 16. MCP registry: transport/implementation
+
+**Symptom:** `mcp:<name> id` `✗ missing id` or `mcp:<name> transport` `⚠ no transport/implementation`
+
+**Fix:** check `mcp/registry/*.yaml` frontmatter (`id`, `transport`/`implementation`, `platforms`). See `docs/MCP.md`.
+
+## 17. Ask skill: post-archive Confluence JIRA
+
+**Symptom:** `ask` skill at repo root references Confluence JIRA stack after archive.
+
+**Fix:** `ask` is evaluated as `UNKNOWN` then `REJECT` per vendor evaluation — not a `doctor` gate. Use `jira-*` / `confluence-*` skills via `mcp/registry` + `providers/providers.yaml` (Atlassian Rovo official) instead.
+
