@@ -1,0 +1,37 @@
+{
+  "fixtures": [
+    {
+      "command": "version",
+      "args": ["version"],
+      "class": "NORMALIZED_EXACT",
+      "stdout_prefix": "agent-toolkit "
+    },
+    {
+      "command": "help",
+      "args": ["--help"],
+      "class": "SEMANTIC",
+      "must_contain": ["install", "doctor", "inventory"]
+    },
+    {
+      "command": "inventory",
+      "args": ["inventory", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 1,
+      "required_keys": ["command", "data"]
+    },
+    {
+      "command": "doctor",
+      "args": ["doctor", "--json"],
+      "class": "SCHEMA",
+      "expect_v_exit": 1,
+      "required_keys": ["command", "data"]
+    },
+    {
+      "command": "install-bad-flag",
+      "args": ["install", "--not-a-real-flag"],
+      "class": "EXACT",
+      "expect_exit": 2,
+      "compare": "exit_only"
+    }
+  ]
+}

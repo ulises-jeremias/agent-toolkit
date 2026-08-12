@@ -1,0 +1,45 @@
+name: Parity (Python↔V)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}-parity
+  cancel-in-progress: true
+
+jobs:
+  parity-seed:
+    name: Golden CLI parity (seed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Sync Python CLI
+        run: uv sync --all-extras
+
+      - name: Install V (${{ format('{0}', 'pinned') }})
+        run: |
+          set -euo pipefail
+          PIN="$(tr -d '[:space:]' < .v-version)"
+          echo "Installing V ${PIN}"
+          git clone --depth=1 --branch "${PIN}" https://github.com/vlang/v /tmp/vlang-v
+          make -C /tmp/vlang-v
+          echo "/tmp/vlang-v" >> "${GITHUB_PATH}"
+          /tmp/vlang-v/v version
+
+      - name: Build experimental V CLI
+        run: make build-cli
+
+      - name: Run parity harness (seed fixtures)
+        run: python3 tests/parity/run_harness.py --v-bin build/agent-toolkit-v
+        env:
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
