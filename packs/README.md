@@ -49,3 +49,14 @@ A pack is a directory containing:
 - `README.md` — purpose, setup, usage
 - `config.yaml` — configurable parameters
 - Optional: `AGENTS.md` snippet, skill list, loop references
+
+## New Packs — #390 (docs-only, curated)
+
+| Pack | Description | Status |
+|------|-------------|--------|
+| [design-engineering](design-engineering/) | Frontend/design-engineering: figma → frontend-design → review + a11y → mermaid/C4 | ✅ Ready (config shipped, trust_tier community) |
+| [agentic-security](agentic-security/) | Supply-chain + MCP audit + OWASP agentic + threat-modeling | ✅ Ready |
+| [code-quality](code-quality/) | MegaLinter v10 + CodeQL + gh-fix-ci | ✅ Ready |
+| [architecture](architecture/) | Vendor-neutral core (adr/trd/threat-model/mermaid/c4) + optional cloud (cloud-design-patterns/aws-well-architected-review) | ✅ Ready |
+
+All packs are **docs-only** per ADR-0003 (advisory `skills:`/`agents:`; only `loops:` handled by `loop run --pack`). See `docs/CONCEPTS.md#three-kinds-of-packs`. Not a giant default pack — `complete` stays experimental per #390.

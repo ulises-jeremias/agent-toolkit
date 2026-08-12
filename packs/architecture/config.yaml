@@ -1,0 +1,25 @@
+# Architecture Pack — docs-only per ADR-0003, vendor-neutral core per #384
+pack: architecture
+version: "1.0"
+skills:
+  delivery/adr:
+    enabled: true
+  delivery/trd:
+    enabled: true
+  agentic-security/threat-modeling:
+    enabled: true
+  tooling/mermaid:
+    enabled: true
+  architecture/c4-model:
+    enabled: true
+  cloud/cloud-design-patterns:
+    enabled: false
+  cloud/aws-well-architected-review:
+    enabled: false
+agents:
+  architect:
+    enabled: true
+loops:
+  architecture-review:
+    enabled: false
+    cadence: 1w

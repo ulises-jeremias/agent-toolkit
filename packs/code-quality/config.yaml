@@ -1,0 +1,19 @@
+# Code-Quality Pack — docs-only per ADR-0003
+pack: code-quality
+version: "1.0"
+skills:
+  quality/megalinter:
+    enabled: true
+  quality/codeql:
+    enabled: true
+  forge/gh-fix-ci:
+    enabled: true
+  tooling/inventory:
+    enabled: true
+agents:
+  code-reviewer:
+    enabled: true
+loops:
+  ci-sweeper:
+    enabled: false
+    cadence: 15m

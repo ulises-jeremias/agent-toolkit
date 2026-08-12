@@ -1,0 +1,23 @@
+# Agentic-Security Pack — docs-only per ADR-0003
+pack: agentic-security
+version: "1.0"
+skills:
+  agentic-security/supply-chain-audit:
+    enabled: true
+  agentic-security/mcp-audit:
+    enabled: true
+  agentic-security/owasp-agentic-review:
+    enabled: true
+  agentic-security/threat-modeling:
+    enabled: true
+  tooling/inventory:
+    enabled: true
+agents:
+  security-reviewer:
+    enabled: true
+  agentic-security-reviewer:
+    enabled: true
+loops:
+  security-audit:
+    enabled: false
+    cadence: 1d
