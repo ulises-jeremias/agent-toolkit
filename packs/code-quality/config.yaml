@@ -1,6 +1,7 @@
 # Code-Quality Pack — docs-only per ADR-0003
 pack: code-quality
 version: "1.0"
+# Advisory only — not applied by `loop run --pack`.
 skills:
   quality/megalinter:
     enabled: true
@@ -10,6 +11,7 @@ skills:
     enabled: true
   tooling/inventory:
     enabled: true
+# Advisory only — not applied by `loop run --pack`.
 agents:
   code-reviewer:
     enabled: true

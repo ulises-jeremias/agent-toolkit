@@ -1,6 +1,7 @@
 # Agentic-Security Pack — docs-only per ADR-0003
 pack: agentic-security
 version: "1.0"
+# Advisory only — not applied by `loop run --pack`.
 skills:
   agentic-security/supply-chain-audit:
     enabled: true
@@ -12,6 +13,7 @@ skills:
     enabled: true
   tooling/inventory:
     enabled: true
+# Advisory only — not applied by `loop run --pack`.
 agents:
   security-reviewer:
     enabled: true

@@ -1,6 +1,7 @@
 # Design-Engineering Pack — docs-only per ADR-0003 (not loaded by `agent-toolkit build`)
 pack: design-engineering
 version: "1.0"
+# Advisory only — not applied by `loop run --pack`.
 skills:
   design/frontend-design:
     enabled: true
@@ -26,6 +27,7 @@ skills:
     enabled: true
   tooling/mermaid:
     enabled: true
+# Advisory only — not applied by `loop run --pack`.
 agents:
   architect:
     enabled: true

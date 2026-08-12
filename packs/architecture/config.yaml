@@ -1,6 +1,7 @@
 # Architecture Pack — docs-only per ADR-0003, vendor-neutral core per #384
 pack: architecture
 version: "1.0"
+# Advisory only — not applied by `loop run --pack`.
 skills:
   delivery/adr:
     enabled: true
@@ -16,6 +17,7 @@ skills:
     enabled: false
   cloud/aws-well-architected-review:
     enabled: false
+# Advisory only — not applied by `loop run --pack`.
 agents:
   architect:
     enabled: true

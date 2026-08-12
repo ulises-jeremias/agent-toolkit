@@ -391,6 +391,10 @@ Packs bundle skills, agents, and loops for a specific team context. Load a pack 
 | `oss-maintenance` | Full OSS maintainer setup: triage, PR monitor, briefings, contributor digest |
 | `engineering-workflow` | Fast delivery focus: code review, CI fix, PR automation, security sweep |
 | `delivery-discipline` | Governance-heavy: incident response, security review, codeowner workflows |
+| `agentic-security` | Agentic security, supply-chain, MCP, OWASP, threat modeling |
+| `architecture` | Architecture, ADRs, cloud design, diagramming, C4 |
+| `code-quality` | Code quality, MegaLinter, CodeQL, CI fix, inventory |
+| `design-engineering` | Design-engineering, frontend, a11y, Chrome DevTools |
 
 Browse packs: [`packs/`](packs/)
 
@@ -441,7 +445,7 @@ agent-toolkit/
 │   └── pi/              # Skill definitions in Pi's native format
 ├── loops/               # 10 recurring loop engineering templates
 ├── mcp/templates/       # 6 MCP config templates (JSON)
-├── packs/               # 3 solution packs
+├── packs/               # 7 solution packs
 ├── catalogs/            # skill-catalog.yaml, agent-catalog.yaml
 ├── schemas/             # JSON schemas for validation
 ├── docs/                # How-to guides and reference docs

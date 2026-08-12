@@ -14,6 +14,10 @@ into outcome-oriented workflows for common team setups.
 | [oss-maintenance](oss-maintenance/) | Automate PR review, issue triage, and daily briefings across OSS repos | ✅ Ready |
 | [engineering-workflow](engineering-workflow/) | End-to-end engineering delivery: planning → implementation → review → deploy | ✅ Ready (config shipped) |
 | [delivery-discipline](delivery-discipline/) | Ticket hygiene, traceability, and process compliance | ✅ Ready (config shipped) |
+| [agentic-security](agentic-security/) | Agentic security, supply-chain, MCP, OWASP, threat modeling | ✅ Ready (config shipped) |
+| [architecture](architecture/) | Architecture, ADRs, cloud design, diagramming, C4 | ✅ Ready (config shipped) |
+| [code-quality](code-quality/) | Code quality, MegaLinter, CodeQL, CI fix, inventory | ✅ Ready (config shipped) |
+| [design-engineering](design-engineering/) | Design-engineering, frontend, a11y, Chrome DevTools | ✅ Ready (config shipped) |
 
 ## Using a Pack
 
