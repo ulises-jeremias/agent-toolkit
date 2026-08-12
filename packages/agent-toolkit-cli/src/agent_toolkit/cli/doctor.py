@@ -695,7 +695,7 @@ def _check_provenance(toolkit_dir: Path | None = None) -> list[CheckResult]:
                 "provenance",
                 "provenance: doctor --provenance",
                 CheckResult.STATUS_OK,
-                "run: agent-toolkit doctor --provenance for full SHA/commit + expiry report",
+                "run with --provenance for full SHA/commit + expiry report",
             )
         )
     except Exception as exc:
