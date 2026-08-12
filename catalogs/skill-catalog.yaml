@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 73
+count: 77
 skills:
   - id: accessibility/review
     name: review
@@ -36,6 +36,27 @@ skills:
     description: STRIDE + agentic threat modeling — architecture discovery → assets/trust
       boundaries/data flows/actors → STRIDE + agentic threats → risk-ranked mitigations
       → incremental review → security acceptance cr
+    stability: stable
+  - id: architecture/c4-model
+    name: c4-model
+    domain: architecture
+    description: WHAT — C4 model methodology (Context, Container, Component, Code)
+      guidance — what to draw at each level, when, and how to render C4-inspired diagrams
+      via Mermaid (PlantUML/Structurizr optional advance
+    stability: stable
+  - id: cloud/aws-well-architected-review
+    name: aws-well-architected-review
+    domain: cloud
+    description: WHAT — AWS Well-Architected Framework review (6 pillars) — operational
+      excellence, security, reliability, performance, cost, sustainability + WAR process.
+      Checklist for workload evaluation on AWS; com
+    stability: stable
+  - id: cloud/cloud-design-patterns
+    name: cloud-design-patterns
+    domain: cloud
+    description: WHAT — Vendor-neutral distributed cloud patterns (Retry, Bulkhead,
+      Circuit Breaker, CQRS, Event Sourcing, etc.) abstracted from AWS/Azure/GCP sources
+      — when to apply, tradeoffs, mapping to AWS/GCP/Azu
     stability: stable
   - id: core/assistant
     name: assistant
@@ -482,6 +503,13 @@ skills:
     description: Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments
       and tutorials. Prefer the bundled templates and the helper script (`new_notebook.py`,
       also exposed as `newnotebook`) to generat
+    stability: stable
+  - id: tooling/mermaid
+    name: mermaid
+    domain: tooling
+    description: WHAT — Mermaid diagrams from text (flowchart, sequence, class, state,
+      ER, gantt, gitGraph) — Markdown-native, Git-native, MIT. Primary renderer for
+      architecture pack; renders via GitHub native or merm
     stability: stable
   - id: tooling/playwright-cli
     name: playwright-cli
