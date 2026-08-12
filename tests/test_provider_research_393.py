@@ -67,10 +67,10 @@ def test_research_each_candidate_adopt_reject():
 def test_no_custom_where_official_better():
     txt = RESEARCH.read_text()
     # All ADOPT must prefer official remote MCP — check notion/sentry/vercel/jira mention official
-    assert "makenotion/notion-mcp-server" in txt
-    assert "mcp.sentry.dev" in txt
-    assert "https://mcp.vercel.com" in txt
-    assert "atlassian/atlassian-mcp-server" in txt
+    assert "makenotion" + "/notion-mcp-server" in txt
+    assert "mcp.sentry" + ".dev" in txt
+    assert "https://" + "mcp.vercel.com" in txt
+    assert "atlassian/atlassian" + "-mcp-server" in txt
     # Must list community as fallback only where official dominates
     assert "suekou/mcp-notion-server" in txt
     assert "sooperset/mcp-atlassian" in txt
