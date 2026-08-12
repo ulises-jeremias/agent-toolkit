@@ -232,15 +232,19 @@ def cmd_update(args: list[str]) -> int:
             return 1
     else:
         from agent_toolkit import __version__
+        from agent_toolkit._paths import _offline_mode
         from agent_toolkit.data_sync import cached_version, download_data
 
         cv = cached_version()
         if cv is None or cv.lstrip("v") != __version__.lstrip("v"):
-            try:
-                download_data(__version__, force=True, quiet=check_only)
-                reset_toolkit_root()
-            except RuntimeError as exc:
-                print(f"  ⚠  Data refresh skipped: {exc}")
+            if _offline_mode():
+                print("  ⚠  Data refresh skipped: offline mode (AGENT_TOOLKIT_OFFLINE)")
+            else:
+                try:
+                    download_data(__version__, force=True, quiet=check_only)
+                    reset_toolkit_root()
+                except (RuntimeError, OSError) as exc:
+                    print(f"  ⚠  Data refresh skipped: {exc}")
 
     try:
         data_root = toolkit_root()

@@ -96,6 +96,11 @@ def download_data(
                 f"Failed to download {url} (HTTP {exc.code}). "
                 "Set AGENT_TOOLKIT_ROOT to a checkout or run with bundled wheel data."
             ) from exc
+        except OSError as exc:
+            raise RuntimeError(
+                f"Failed to download {url} ({exc}). "
+                "Set AGENT_TOOLKIT_ROOT to a checkout or run with bundled wheel data."
+            ) from exc
 
         extract_dir = Path(tmp) / "extract"
         extract_dir.mkdir()
