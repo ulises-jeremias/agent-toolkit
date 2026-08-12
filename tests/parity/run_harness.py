@@ -103,7 +103,7 @@ def check_fixture(fx: dict[str, Any], v_bin: str) -> None:
                 fail(command, cls, f"v missing prefix {prefix}")
             return
         if py_n != v_n:
-            fail(command, cls, f"normalized stdout mismatch")
+            fail(command, cls, "normalized stdout mismatch")
         return
 
     if cls == "SEMANTIC":

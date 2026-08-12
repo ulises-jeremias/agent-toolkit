@@ -26,15 +26,26 @@ jobs:
       - name: Sync Python CLI
         run: uv sync --all-extras
 
-      - name: Install V (${{ format('{0}', 'pinned') }})
+      - name: Install pinned V from GitHub Release
         run: |
           set -euo pipefail
           PIN="$(tr -d '[:space:]' < .v-version)"
-          echo "Installing V ${PIN}"
-          git clone --depth=1 --branch "${PIN}" https://github.com/vlang/v /tmp/vlang-v
-          make -C /tmp/vlang-v
-          echo "/tmp/vlang-v" >> "${GITHUB_PATH}"
-          /tmp/vlang-v/v version
+          echo "Installing V ${PIN} (prebuilt)"
+          curl -fsSL -o /tmp/v_linux.zip "https://github.com/vlang/v/releases/download/${PIN}/v_linux.zip"
+          sudo rm -rf /usr/local/v
+          sudo unzip -q /tmp/v_linux.zip -d /usr/local
+          # zip usually extracts to /usr/local/v
+          if [ -x /usr/local/v/v ]; then
+            echo "/usr/local/v" >> "${GITHUB_PATH}"
+            /usr/local/v/v version
+          elif [ -x /usr/local/v_linux/v ]; then
+            echo "/usr/local/v_linux" >> "${GITHUB_PATH}"
+            /usr/local/v_linux/v version
+          else
+            echo "Unexpected V zip layout:" >&2
+            find /usr/local -maxdepth 2 -type f -name v >&2 || true
+            exit 1
+          fi
 
       - name: Build experimental V CLI
         run: make build-cli
