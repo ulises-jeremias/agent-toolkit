@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V domain error model + CLI exit-code mapping (ADR-010 classes) (Closes #498)
 - **Docs** — vlib/cli spike matrix vs CLI contract; GO with thin exit/completion wrapper (Closes #554)
 - **Chore** — Makefile `fmt`/`fmt-check`/`vet`/`test`/`build` for V modules (Closes #497)
 - **Chore** — pin V compiler via `.v-version` (0.5.2) + upgrade policy (Closes #496)
