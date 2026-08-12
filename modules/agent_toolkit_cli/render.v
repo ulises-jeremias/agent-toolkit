@@ -1,7 +1,7 @@
 module agent_toolkit_cli
 
 import agent_toolkit_core
-import json2
+import json
 
 // render writes a CommandResult to stdout according to mode; returns exit code.
 pub fn render(result agent_toolkit_core.CommandResult, mode agent_toolkit_core.RenderMode) int {
@@ -13,7 +13,7 @@ pub fn render(result agent_toolkit_core.CommandResult, mode agent_toolkit_core.R
 			return agent_toolkit_core.err_user('command.failed', result.message).exit_code()
 		}
 		.json {
-			println(json2.encode(result, escape_unicode: true))
+			println(json.encode(result))
 			if result.ok {
 				return 0
 			}
@@ -40,7 +40,7 @@ pub fn render_error(err agent_toolkit_core.DomainError, mode agent_toolkit_core.
 				'class':   err.class.str()
 				'message': err.message
 			}
-			println(json2.encode(payload, escape_unicode: true))
+			println(json.encode(payload))
 		}
 		.human {
 			eprintln(err.message)
