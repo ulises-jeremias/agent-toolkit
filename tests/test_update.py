@@ -13,6 +13,7 @@ REPO_ROOT = Path(__file__).parent.parent
 def fake_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("AGENT_TOOLKIT_ROOT", str(REPO_ROOT))
+    monkeypatch.setenv("AGENT_TOOLKIT_OFFLINE", "1")
     from agent_toolkit._paths import reset_toolkit_root
 
     reset_toolkit_root()
