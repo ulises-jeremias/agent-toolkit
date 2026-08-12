@@ -29,3 +29,4 @@ loops/*/STATE.md
 
 # Git worktrees
 .worktrees/
+modules/.cache/

@@ -57,7 +57,7 @@ build: ensure-v
 	@for m in $(V_MODULES); do \
 	  echo "==> build $$m"; \
 	  tmp=$$(mktemp -d); \
-	  printf 'module main\nimport %s\nfn main() {}\n' "$$m" > "$$tmp/main.v"; \
+	  printf 'module main\nimport %s as _\nfn main() {}\n' "$$m" > "$$tmp/main.v"; \
 	  $(V) -o "$$tmp/out" "$$tmp/main.v"; \
 	  rm -rf "$$tmp"; \
 	done
