@@ -1,0 +1,349 @@
+# Machine-readable CLI contract for Python↔V parity.
+# Issue: https://github.com/ulises-jeremias/agent-toolkit/issues/549
+# Surfaces index: docs/CLI_SURFACES.md
+# Parity design: docs/compatibility/parity-harness-design.md
+# Schema version for this manifest (not the product version).
+schema_version: 1
+product: agent-toolkit
+python_entry: packages/agent-toolkit-cli/src/agent_toolkit/cli/main.py
+notes:
+  - Exit-code classes follow ADR-010; argparse bad flags remain exit 2; --help/version exit 0.
+  - Disposition values: keep | rewrite-v | wrapper | defer | retire
+  - Subcommand detail is summarized; expand during harness implementation (#548).
+
+commands:
+  - name: help
+    aliases: ["-h", "--help"]
+    surface: meta
+    module: agent_toolkit.cli.main
+    summary: Print consumer-first help text
+    stdin: none
+    stdout: human help
+    stderr: none
+    exit_codes: {success: 0}
+    flags: []
+    env: []
+    effects: {filesystem: none, network: none, processes: none}
+    platform_notes: []
+    tests: []
+    migration: {wave: 0, complexity: low, risk: low, disposition: keep}
+
+  - name: version
+    aliases: ["-V", "--version"]
+    surface: meta
+    module: agent_toolkit.cli.main
+    summary: Print agent-toolkit version string
+    stdin: none
+    stdout: "agent-toolkit <version>"
+    stderr: none
+    exit_codes: {success: 0}
+    flags: []
+    env: []
+    effects: {filesystem: none, network: none, processes: none}
+    platform_notes: []
+    tests: ["tests/test_version_sync.py"]
+    migration: {wave: 1, complexity: low, risk: low, disposition: rewrite-v}
+
+  - name: install
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.install
+    summary: Install profiles for detected or selected AI tools
+    stdin: none
+    stdout: human progress / optional JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--tools", "--offline", "--json"]
+    env: ["AGENT_TOOLKIT_OFFLINE", "AGENT_TOOLKIT_INSTALL_SOURCE", "AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: write-profiles-receipts, network: optional-data-fetch, processes: none}
+    platform_notes: ["tool detection differs by OS"]
+    tests: ["tests/test_install.py"]
+    migration: {wave: 3, complexity: high, risk: high, disposition: rewrite-v}
+
+  - name: update
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.update
+    summary: Refresh installed profiles from latest toolkit data
+    stdin: none
+    stdout: human progress
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--check", "--offline"]
+    env: ["AGENT_TOOLKIT_OFFLINE", "AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: update-profiles-cache, network: optional-data-fetch, processes: none}
+    platform_notes: []
+    tests: ["tests/test_update.py"]
+    migration: {wave: 3, complexity: high, risk: high, disposition: rewrite-v}
+
+  - name: uninstall
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.uninstall
+    summary: Remove toolkit-owned files using install receipts
+    stdin: none
+    stdout: human progress
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--tools", "--force"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: delete-owned-files, network: none, processes: none}
+    platform_notes: []
+    tests: ["tests/test_uninstall.py"]
+    migration: {wave: 3, complexity: medium, risk: high, disposition: rewrite-v}
+
+  - name: doctor
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.doctor
+    summary: Check toolkit data and tool availability
+    stdin: none
+    stdout: human report / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--json", "--fix"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE", "AGENT_TOOLKIT_OFFLINE"]
+    effects: {filesystem: "read; optional-fix-writes", network: optional, processes: none}
+    platform_notes: []
+    tests: ["tests/test_doctor.py"]
+    migration: {wave: 2, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: diff
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.diff
+    summary: Show changes vs installed plugin bundles
+    stdin: none
+    stdout: human diff
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--tools"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: read, network: none, processes: none}
+    platform_notes: []
+    tests: []
+    migration: {wave: 3, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: skills
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.skills
+    summary: Sync, list, and validate skills
+    stdin: none
+    stdout: human / structured lists
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["sync", "list", "validate"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: sync-writes, network: optional, processes: none}
+    platform_notes: []
+    tests: ["tests/test_skills_cli.py"]
+    migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: mcp
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.mcp
+    summary: MCP provider setup, health, doctor, uninstall
+    stdin: none
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["setup", "list", "doctor", "uninstall"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: config-writes, network: optional-health, processes: none}
+    platform_notes: []
+    tests: ["tests/test_mcp_cli.py"]
+    migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: plugin
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.plugin
+    summary: Plugin bundle sync and check
+    stdin: none
+    stdout: human
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["sync", "check"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: sync-writes, network: none, processes: none}
+    platform_notes: []
+    tests: []
+    migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: loop
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.loop.runner
+    summary: Loop engineering (init, run, status, audit, cost, schedule, sync)
+    stdin: optional
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--runner", "init", "run", "status", "audit", "cost", "schedule", "sync"]
+    env: ["AGENT_TOOLKIT_LOOP_RUNNER", "AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR", "AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: workspace-writes, network: optional, processes: spawn-runners}
+    platform_notes: ["runner availability varies"]
+    tests: ["tests/test_loop_*.py"]
+    migration: {wave: 5, complexity: high, risk: high, disposition: rewrite-v}
+
+  - name: workspace
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.workspace
+    summary: Workspace scaffolding (init, context, sync, validate, budget, …)
+    stdin: none
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["init", "context", "sync", "validate", "budget"]
+    env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
+    effects: {filesystem: workspace-writes, network: none, processes: none}
+    platform_notes: []
+    tests: ["tests/test_workspace_commands.py"]
+    migration: {wave: 5, complexity: high, risk: medium, disposition: rewrite-v}
+
+  - name: memory
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.memory
+    summary: Knowledge base (add, search, inject, review, todo)
+    stdin: optional
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["add", "search", "inject", "review", "todo"]
+    env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
+    effects: {filesystem: knowledge-writes, network: none, processes: none}
+    platform_notes: []
+    tests: ["tests/test_memory.py"]
+    migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: project
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.project
+    summary: Project index (clone, list, add, remove, scan)
+    stdin: none
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["clone", "list", "add", "remove", "scan"]
+    env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
+    effects: {filesystem: index-writes, network: optional-git-clone, processes: git}
+    platform_notes: ["requires git"]
+    tests: ["tests/test_project.py"]
+    migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: devcompanion
+    aliases: ["dc"]
+    surface: advanced
+    module: agent_toolkit.cli.devcompanion
+    summary: Background job queue
+    stdin: none
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["queue", "run-once", "status", "done", "sync-todos"]
+    env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
+    effects: {filesystem: queue-writes, network: none, processes: optional-workers}
+    platform_notes: []
+    tests: ["tests/test_devcompanion.py"]
+    migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: insights
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.insights
+    summary: Local usage analytics (OpenCode, Cursor, Claude)
+    stdin: none
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["opencode", "cursor", "claude"]
+    env: []
+    effects: {filesystem: read-local-logs, network: none, processes: none}
+    platform_notes: ["log paths differ by OS/tool"]
+    tests: ["tests/test_insights.py"]
+    migration: {wave: 5, complexity: medium, risk: low, disposition: rewrite-v}
+
+  - name: build
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.build
+    summary: Compile canonical capabilities into target artifacts
+    stdin: none
+    stdout: human progress / diagnostics
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--target", "--product"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: write-generated-artifacts, network: none, processes: none}
+    platform_notes: []
+    tests: ["tests/test_compiler*.py", "tests/test_build*.py"]
+    migration: {wave: 2, complexity: high, risk: high, disposition: rewrite-v}
+
+  - name: inventory
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.build
+    summary: List skills, agents, and products
+    stdin: none
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--json"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: read, network: none, processes: none}
+    platform_notes: []
+    tests: ["tests/test_inventory.py"]
+    migration: {wave: 2, complexity: low, risk: low, disposition: rewrite-v}
+
+  - name: matrix
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.build
+    summary: Platform capability matrix
+    stdin: none
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--json"]
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: read, network: none, processes: none}
+    platform_notes: []
+    tests: []
+    migration: {wave: 2, complexity: low, risk: low, disposition: rewrite-v}
+
+  - name: release
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.release
+    summary: Generate release artifacts (maintainer / CI)
+    stdin: none
+    stdout: human progress
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: []
+    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
+    effects: {filesystem: write-release-artifacts, network: none, processes: none}
+    platform_notes: ["CI-oriented"]
+    tests: []
+    migration: {wave: 6, complexity: medium, risk: medium, disposition: rewrite-v}
+
+  - name: swarm
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.swarm.cli
+    summary: Multi-agent swarm orchestration
+    stdin: optional
+    stdout: human / JSON
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--run-id", "pair", "team", "full"]
+    env: ["AGENT_TOOLKIT_SWARM_RUN_ID", "AGENT_TOOLKIT_SWARM_RUN_DIR", "AGENT_TOOLKIT_SWARM_REPO", "AGENT_TOOLKIT_SWARM_RUNS_DIR"]
+    effects: {filesystem: run-dir-writes, network: optional, processes: tmux-herdr}
+    platform_notes: ["tmux/Herdr required for full modes"]
+    tests: ["tests/test_swarm*.py"]
+    migration: {wave: 6, complexity: high, risk: high, disposition: rewrite-v}
