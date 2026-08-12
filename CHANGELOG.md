@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V toolkit root resolution per ADR-015 (env override → XDG → embedded → checkout → CWD; offline never downloads) (Closes #506)
 - **Test** — Python↔V golden CLI parity harness + CI seed job (Closes #548)
 - **Feat** — experimental V CLI dispatcher + `make build-cli` (`build/agent-toolkit-v`) (Closes #553)
 - **Feat** — V structured CommandResult + CLI human/JSON/quiet renderers (Closes #501)
