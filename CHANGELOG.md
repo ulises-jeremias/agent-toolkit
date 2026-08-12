@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V capability loader + product selection from `distributions/products.yaml` (Closes #507)
 - **Docs** — ADR-016 versioning during Python→V migration: major at cutover, not experimental binary (Closes #495)
 - **Feat** — V content sync/download client (GitHub release data; offline never networks; staging validation) (Closes #557)
 - **Feat** — V content cache service (XDG hit/miss/offline; no network) (Closes #556)
