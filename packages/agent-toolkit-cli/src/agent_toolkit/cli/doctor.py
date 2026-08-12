@@ -19,15 +19,13 @@ from __future__ import annotations
 
 import json
 import os
+import pathlib
 import platform
 import shutil
 import subprocess
 import sys
-import datetime
 import urllib.request
 from pathlib import Path
-import pathlib
-import pathlib
 
 from agent_toolkit._paths import toolkit_root
 
@@ -551,7 +549,6 @@ def _print_section(title: str) -> None:
     print(f"\n── {title} ──")
 
 
-
 def _check_provenance(toolkit_dir: Path | None = None) -> list[CheckResult]:
     """Provenance checks per §52: SHA/commit immutability, expiry/staleness >90d, UNKNOWN/mutable ref."""
     results: list[CheckResult] = []
@@ -566,39 +563,86 @@ def _check_provenance(toolkit_dir: Path | None = None) -> list[CheckResult]:
         candidates.append(anc / "capabilities" / "upstream.lock")
     # Also try repo root via _paths toolkit_root parent chain
     import pathlib as _P
+
     for anc in _P.Path(__file__).resolve().parents:
         candidates.append(anc / "capabilities" / "upstream.lock")
         if (anc / "capabilities" / "upstream.lock").exists():
             break
     lock_path = next((c for c in candidates if c.exists()), candidates[0])
-    root = lock_path.parent.parent if lock_path.exists() else (toolkit_dir or toolkit_root())
-
     if not lock_path.exists():
-        results.append(CheckResult("provenance", "upstream.lock exists", CheckResult.STATUS_ERR, f"Missing: {lock_path}"))
+        results.append(
+            CheckResult(
+                "provenance",
+                "upstream.lock exists",
+                CheckResult.STATUS_ERR,
+                f"Missing: {lock_path}",
+            )
+        )
         return results
     try:
-        import yaml as _yaml
-        import json as _json
-        raw = lock_path.read_text()
         try:
-            data = _yaml.safe_load(raw) or {}
-        except Exception:
-            data = _json.loads(raw)
+            import yaml as _yaml
+
+            has_yaml = True
+        except ImportError:
+            _yaml = None
+            has_yaml = False
+        import json as _json
+
+        raw = lock_path.read_text()
+        if has_yaml:
+            try:
+                data = _yaml.safe_load(raw) or {}
+            except Exception:
+                data = _json.loads(raw)
+        else:
+            # yaml not available in this env (e.g., minimal install) — try json, else warn
+            try:
+                data = _json.loads(raw)
+            except Exception:
+                results.append(
+                    CheckResult(
+                        "provenance",
+                        "upstream.lock parse",
+                        CheckResult.STATUS_WARN,
+                        "yaml not installed — install pyyaml to validate provenance (pip install pyyaml)",
+                    )
+                )
+                return results
         # check version and upstreams
         if data.get("version") != 1:
-            results.append(CheckResult("provenance", "lock version", CheckResult.STATUS_WARN, f"version={data.get('version')} expected 1"))
+            results.append(
+                CheckResult(
+                    "provenance",
+                    "lock version",
+                    CheckResult.STATUS_WARN,
+                    f"version={data.get('version')} expected 1",
+                )
+            )
         else:
-            results.append(CheckResult("provenance", "lock version", CheckResult.STATUS_OK, "version 1"))
-        upstreams = data.get("upstreams", []) or data.get("capabilities", [])
-        # Try both shapes: v1 is list of caps with sources
+            results.append(
+                CheckResult("provenance", "lock version", CheckResult.STATUS_OK, "version 1")
+            )
         caps = data.get("capabilities", data.get("upstreams", []))
         if not caps:
             # fallback: count files
-            results.append(CheckResult("provenance", "lock has entries", CheckResult.STATUS_WARN, "no capabilities/upstreams"))
+            results.append(
+                CheckResult(
+                    "provenance",
+                    "lock has entries",
+                    CheckResult.STATUS_WARN,
+                    "no capabilities/upstreams",
+                )
+            )
         else:
-            results.append(CheckResult("provenance", "lock entries", CheckResult.STATUS_OK, f"{len(caps)} entries"))
+            results.append(
+                CheckResult(
+                    "provenance", "lock entries", CheckResult.STATUS_OK, f"{len(caps)} entries"
+                )
+            )
         # Check each source for SHA40 and staleness >90d
         import datetime as _dt
+
         now = _dt.datetime.now(_dt.timezone.utc)
         for cap in caps if isinstance(caps, list) else []:
             # caps may be dict with sources
@@ -608,9 +652,23 @@ def _check_provenance(toolkit_dir: Path | None = None) -> list[CheckResult]:
                 commit = src.get("commit", "")
                 # mutable ref check: tag without commit or branch name
                 if ref and not commit:
-                    results.append(CheckResult("provenance", f"provenance:{cap.get('id','?')}:{src.get('id','?')} immutable", CheckResult.STATUS_ERR, f"ref={ref} without commit — mutable"))
+                    results.append(
+                        CheckResult(
+                            "provenance",
+                            f"provenance:{cap.get('id', '?')}:{src.get('id', '?')} immutable",
+                            CheckResult.STATUS_ERR,
+                            f"ref={ref} without commit — mutable",
+                        )
+                    )
                 elif commit and len(commit) != 40:
-                    results.append(CheckResult("provenance", f"provenance:{cap.get('id','?')} SHA", CheckResult.STATUS_ERR, f"commit {commit[:8]} not SHA40"))
+                    results.append(
+                        CheckResult(
+                            "provenance",
+                            f"provenance:{cap.get('id', '?')} SHA",
+                            CheckResult.STATUS_ERR,
+                            f"commit {commit[:8]} not SHA40",
+                        )
+                    )
                 # staleness: check last_checked or reviewed_at
                 for date_key in ("last_checked", "reviewed_at", "last_activity"):
                     val = src.get(date_key) or cap.get(date_key)
@@ -619,15 +677,31 @@ def _check_provenance(toolkit_dir: Path | None = None) -> list[CheckResult]:
                             dt = _dt.datetime.fromisoformat(val.replace("Z", "+00:00"))
                             age = (now - dt).days
                             if age > 90:
-                                results.append(CheckResult("provenance", f"provenance:{cap.get('id','?')} freshness", CheckResult.STATUS_WARN, f"{date_key} {age}d ago (>90d) — consider update"))
+                                results.append(
+                                    CheckResult(
+                                        "provenance",
+                                        f"provenance:{cap.get('id', '?')} freshness",
+                                        CheckResult.STATUS_WARN,
+                                        f"{date_key} {age}d ago (>90d) — consider update",
+                                    )
+                                )
                             break
                         except Exception:
                             pass
         # Also check SKILL.md declarations have origin
         # (light — ensure file exists)
-        results.append(CheckResult("provenance", "provenance: doctor --provenance", CheckResult.STATUS_OK, "run: agent-toolkit doctor --provenance for full SHA/commit + expiry report"))
+        results.append(
+            CheckResult(
+                "provenance",
+                "provenance: doctor --provenance",
+                CheckResult.STATUS_OK,
+                "run: agent-toolkit doctor --provenance for full SHA/commit + expiry report",
+            )
+        )
     except Exception as exc:
-        results.append(CheckResult("provenance", "upstream.lock parse", CheckResult.STATUS_ERR, str(exc)))
+        results.append(
+            CheckResult("provenance", "upstream.lock parse", CheckResult.STATUS_ERR, str(exc))
+        )
     return results
 
 
@@ -647,27 +721,68 @@ def _check_products_and_packs(toolkit_dir: Path | None = None) -> list[CheckResu
     root = next((c for c in candidates if (c / "distributions" / "products.yaml").exists()), tr)
     prod_path = root / "distributions" / "products.yaml"
     if not prod_path.exists():
-        results.append(CheckResult("packs", "products.yaml exists", CheckResult.STATUS_ERR, str(prod_path)))
+        results.append(
+            CheckResult("packs", "products.yaml exists", CheckResult.STATUS_ERR, str(prod_path))
+        )
     else:
-        results.append(CheckResult("packs", "products.yaml exists", CheckResult.STATUS_OK, str(prod_path)))
+        results.append(
+            CheckResult("packs", "products.yaml exists", CheckResult.STATUS_OK, str(prod_path))
+        )
         # check complete covers all skills via catalog
         try:
-            import yaml as _yaml
+            try:
+                import yaml as _yaml
+            except ImportError:
+                results.append(
+                    CheckResult(
+                        "packs",
+                        "products.yaml parse",
+                        CheckResult.STATUS_WARN,
+                        "yaml not installed — install pyyaml to validate packs",
+                    )
+                )
+                return results
             prod_data = _yaml.safe_load(prod_path.read_text())
-            complete = next((p for p in prod_data.get("products", []) if p.get("id") == "agent-toolkit-complete"), None)
+            complete = next(
+                (
+                    p
+                    for p in prod_data.get("products", [])
+                    if p.get("id") == "agent-toolkit-complete"
+                ),
+                None,
+            )
             if complete:
                 included = set(complete.get("includes", {}).get("skills", []))
                 # count skills on disk
                 skills = list((root / "skills").rglob("SKILL.md"))
-                skill_ids = {f"{p.parts[-3]}/{p.parts[-2]}" if len(p.parts) >= 3 else p.parent.name for p in skills}
+                skill_ids = {
+                    f"{p.parts[-3]}/{p.parts[-2]}" if len(p.parts) >= 3 else p.parent.name
+                    for p in skills
+                }
                 # also handle skills/*/* flat?
                 missing = skill_ids - included
                 if missing:
-                    results.append(CheckResult("packs", "complete covers all skills", CheckResult.STATUS_ERR, f"missing {sorted(missing)[:5]}"))
+                    results.append(
+                        CheckResult(
+                            "packs",
+                            "complete covers all skills",
+                            CheckResult.STATUS_ERR,
+                            f"missing {sorted(missing)[:5]}",
+                        )
+                    )
                 else:
-                    results.append(CheckResult("packs", "complete covers all skills", CheckResult.STATUS_OK, f"{len(included)} skills"))
+                    results.append(
+                        CheckResult(
+                            "packs",
+                            "complete covers all skills",
+                            CheckResult.STATUS_OK,
+                            f"{len(included)} skills",
+                        )
+                    )
         except Exception as exc:
-            results.append(CheckResult("packs", "products.yaml parse", CheckResult.STATUS_WARN, str(exc)))
+            results.append(
+                CheckResult("packs", "products.yaml parse", CheckResult.STATUS_WARN, str(exc))
+            )
     # packs/* config.yaml
     packs_dir = root / "packs"
     if packs_dir.is_dir():
@@ -675,16 +790,37 @@ def _check_products_and_packs(toolkit_dir: Path | None = None) -> list[CheckResu
             if pack_dir.is_dir():
                 cfg = pack_dir / "config.yaml"
                 if not cfg.exists():
-                    results.append(CheckResult("packs", f"pack:{pack_dir.name} config", CheckResult.STATUS_WARN, "missing config.yaml"))
+                    results.append(
+                        CheckResult(
+                            "packs",
+                            f"pack:{pack_dir.name} config",
+                            CheckResult.STATUS_WARN,
+                            "missing config.yaml",
+                        )
+                    )
                 else:
-                    results.append(CheckResult("packs", f"pack:{pack_dir.name} config", CheckResult.STATUS_OK, str(cfg)))
+                    results.append(
+                        CheckResult(
+                            "packs", f"pack:{pack_dir.name} config", CheckResult.STATUS_OK, str(cfg)
+                        )
+                    )
                 # loops check
                 try:
-                    import yaml as _yaml2
+                    try:
+                        import yaml as _yaml2
+                    except ImportError:
+                        continue
                     cfg_data = _yaml2.safe_load(cfg.read_text()) or {}
                     for loop_name in cfg_data.get("loops", {}).keys():
                         if not (root / "loops" / loop_name).is_dir():
-                            results.append(CheckResult("packs", f"pack:{pack_dir.name} loop:{loop_name}", CheckResult.STATUS_WARN, "loop dir missing"))
+                            results.append(
+                                CheckResult(
+                                    "packs",
+                                    f"pack:{pack_dir.name} loop:{loop_name}",
+                                    CheckResult.STATUS_WARN,
+                                    "loop dir missing",
+                                )
+                            )
                 except Exception:
                     pass
     return results
@@ -696,22 +832,50 @@ def _check_mcp_registry(toolkit_dir: Path | None = None) -> list[CheckResult]:
     root = toolkit_dir or toolkit_root()
     reg_dir = root / "mcp" / "registry"
     if not reg_dir.is_dir():
-        results.append(CheckResult("mcp", "mcp/registry dir", CheckResult.STATUS_WARN, str(reg_dir)))
+        results.append(
+            CheckResult("mcp", "mcp/registry dir", CheckResult.STATUS_WARN, str(reg_dir))
+        )
         return results
     yaml_files = list(reg_dir.glob("*.yaml"))
-    results.append(CheckResult("mcp", "mcp/registry count", CheckResult.STATUS_OK, f"{len(yaml_files)} providers"))
+    results.append(
+        CheckResult(
+            "mcp", "mcp/registry count", CheckResult.STATUS_OK, f"{len(yaml_files)} providers"
+        )
+    )
     for yf in sorted(yaml_files):
         try:
-            import yaml as _yaml3
+            try:
+                import yaml as _yaml3
+            except ImportError:
+                results.append(
+                    CheckResult(
+                        "mcp",
+                        "mcp/registry count",
+                        CheckResult.STATUS_WARN,
+                        "yaml not installed — install pyyaml to validate mcp",
+                    )
+                )
+                break
             data = _yaml3.safe_load(yf.read_text()) or {}
             # require id, tools or implementation
             if not data.get("id"):
-                results.append(CheckResult("mcp", f"mcp:{yf.stem} id", CheckResult.STATUS_ERR, "missing id"))
+                results.append(
+                    CheckResult("mcp", f"mcp:{yf.stem} id", CheckResult.STATUS_ERR, "missing id")
+                )
             # check healthcheck or transport
             if "transport" not in data and "implementation" not in data:
-                results.append(CheckResult("mcp", f"mcp:{yf.stem} transport", CheckResult.STATUS_WARN, "no transport/implementation"))
+                results.append(
+                    CheckResult(
+                        "mcp",
+                        f"mcp:{yf.stem} transport",
+                        CheckResult.STATUS_WARN,
+                        "no transport/implementation",
+                    )
+                )
         except Exception as exc:
-            results.append(CheckResult("mcp", f"mcp:{yf.stem} parse", CheckResult.STATUS_ERR, str(exc)))
+            results.append(
+                CheckResult("mcp", f"mcp:{yf.stem} parse", CheckResult.STATUS_ERR, str(exc))
+            )
     return results
 
 
@@ -742,7 +906,10 @@ def _parse_args(args: list[str]):
         elif arg == "--fix":
             fix = True
         elif arg == "--provenance":
-            print("  ℹ  --provenance: full SHA/commit + expiry report (provenance checks are always run; use --json for machine-readable)", file=sys.stderr)
+            print(
+                "  ℹ  --provenance: full SHA/commit + expiry report (provenance checks are always run; use --json for machine-readable)",
+                file=sys.stderr,
+            )
             # explicit flag — no separate mode, just acknowledge
             pass
         else:
