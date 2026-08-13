@@ -19,6 +19,7 @@ Do **not** duplicate Formula/PKGBUILD/npm `package.json` here. Those live in the
 | AUR | `ulises-jeremias/aur-packages` | [aur/README.md](aur/README.md) · [#539](https://github.com/ulises-jeremias/agent-toolkit/issues/539) · ADR [#491](https://github.com/ulises-jeremias/agent-toolkit/issues/491) |
 | npm | future adapter | [npm/README.md](npm/README.md) · [#536](https://github.com/ulises-jeremias/agent-toolkit/issues/536) · ADR [#487](https://github.com/ulises-jeremias/agent-toolkit/issues/487) |
 | Docker | this repo (`.github/workflows/docker.yml`) | [docker/README.md](docker/README.md) · [#537](https://github.com/ulises-jeremias/agent-toolkit/issues/537) |
+| Workstation (L1) | `ulises-jeremias/agentic-workstation` | [workstation/README.md](workstation/README.md) · [#469](https://github.com/ulises-jeremias/agent-toolkit/issues/469) |
 
 ## Verification
 

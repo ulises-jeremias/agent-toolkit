@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Agentic Workstation adapter: CLI-only bootstrap, channel preference, no `import agent_toolkit` (#469)
 - **Docs** — V vs Python CLI performance baseline (startup/help/inventory/doctor) (Closes #533)
 - **Docs** — Audit: no first-party Python `import agent_toolkit` consumers outside this repo (Closes #561)
 - **Docs** — V development & distribution documentation index (Closes #545)

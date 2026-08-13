@@ -27,6 +27,7 @@ Canonical artifacts: **GitHub Releases** ([ADR-018](../adrs/ADR-018-release-arti
 | Homebrew | [distribution/homebrew](../../distribution/homebrew/README.md) · ADR-023 | `ulises-jeremias/homebrew-tap` |
 | AUR `agent-toolkit-bin` | [distribution/aur](../../distribution/aur/README.md) · ADR-024 | `ulises-jeremias/aur-packages` |
 | Docker | [distribution/docker](../../distribution/docker/README.md) | debian-slim + glibc V binary |
+| Workstation | [distribution/workstation](../../distribution/workstation/README.md) | L1 CLI-only bootstrap (#469) |
 
 Checksums **MUST**. Attestations/SBOM prove provenance only ([code-signing-policy.md](code-signing-policy.md)).
 
