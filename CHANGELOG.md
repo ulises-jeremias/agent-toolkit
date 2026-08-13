@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Audit: no first-party Python `import agent_toolkit` consumers outside this repo (Closes #561)
 - **Docs** — V development & distribution documentation index (Closes #545)
 
 ## [1.11.0] — 2026-08-13

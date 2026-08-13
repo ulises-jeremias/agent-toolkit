@@ -39,6 +39,7 @@ Checksums **MUST**. Attestations/SBOM prove provenance only ([code-signing-polic
 | [advanced-command-disposition.md](advanced-command-disposition.md) | PORT/REDESIGN/DEPRECATE/REMOVE (#560) |
 | [../compatibility/cli-contract.yaml](../compatibility/cli-contract.yaml) | Machine-readable flags/IO (#549) |
 | [cutover.md](cutover.md) | Engine cutover |
+| [python-api-consumers.md](python-api-consumers.md) | Python import audit (#561); #540 must cite this |
 | [migration-risk-register.md](migration-risk-register.md) | Risks (#478) |
 
 ## Core services (V)
