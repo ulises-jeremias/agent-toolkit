@@ -10,7 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+<<<<<<< HEAD
 - **Docs** — ADR-024 AUR `agent-toolkit-bin` installs GitHub Release V binaries (Closes #491)
+=======
+- **Docs** — ADR-023 Homebrew Formula installs GitHub Release V binaries (Closes #490)
+>>>>>>> origin/main
 - **Docs** — Distribution wrapper threat model (wheel-bundle vs runtime download) (Closes #563)
 - **Docs** — ADR-022 machine-readable GitHub Release `manifest.json` (Closes #488)
 - **Feat** — PyPI `agent-toolkit` is a thin launcher over the bundled V binary (Closes #535)
