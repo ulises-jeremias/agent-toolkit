@@ -122,6 +122,35 @@ pub fn find_toolkit_root_with(fs FsService) !ToolkitRoot {
 	return error('Cannot locate agent-toolkit data directory. ${hint}')
 }
 
+// find_workspace_root locates a harness workspace (AGENTS.md / knowledge/), not toolkit data.
+// Order: CLI override, AGENT_TOOLKIT_WORKSPACE, HARNESS_DIR, walk-up from CWD (#207 / #520).
+pub fn find_workspace_root(override string) ?string {
+	if override.len > 0 {
+		if os.is_dir(override) {
+			return override
+		}
+		return none
+	}
+	for env in ['AGENT_TOOLKIT_WORKSPACE', 'HARNESS_DIR'] {
+		val := os.getenv(env).trim_space()
+		if val.len > 0 && os.is_dir(val) {
+			return val
+		}
+	}
+	mut cur := os.getwd()
+	for {
+		if os.is_file(os.join_path(cur, 'AGENTS.md')) || os.is_dir(os.join_path(cur, 'knowledge')) {
+			return cur
+		}
+		parent := os.dir(cur)
+		if parent == cur || parent.len == 0 {
+			break
+		}
+		cur = parent
+	}
+	return none
+}
+
 // find_repo_root prefers a root that contains distributions/ (compiler/inventory).
 pub fn find_repo_root() !string {
 	root := find_toolkit_root()!

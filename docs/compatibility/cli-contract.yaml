@@ -192,16 +192,16 @@ commands:
     aliases: []
     surface: advanced
     module: agent_toolkit.cli.workspace
-    summary: Workspace scaffolding (init, context, sync, validate, budget, …)
+    summary: Workspace scaffolding (init, context, sync)
     stdin: none
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["init", "context", "sync", "validate", "budget"]
+    flags: ["init", "context", "sync", "--dir", "--name", "--workspace", "--explain", "--json"]
     env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
-    effects: {filesystem: workspace-writes, network: none, processes: none}
+    effects: {filesystem: workspace-writes, network: none, processes: git-optional}
     platform_notes: []
-    tests: ["tests/test_workspace_commands.py"]
+    tests: ["tests/test_workspace_commands.py", "modules/agent_toolkit_core/workspace_test.v"]
     migration: {wave: 5, complexity: high, risk: medium, disposition: rewrite-v}
 
   - name: memory

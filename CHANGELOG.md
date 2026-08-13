@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Docs** — ADR-018 canonical release artifact names (floating stable + versioned archives; experimental prefix) (Closes #484)
+- **Feat** — V `workspace` command family (init/context/sync + personas/packs) (Closes #520)
 - **Fixed** — V install JSON merge (`ownership=merged`) writes without `--force` (Closes #611)
 - **Feat** — V binary is the in-repo canonical `agent-toolkit` (consumer CLI; Python package fallback for unfinished advanced commands) (Closes #555)
 - **Docs** — EPIC 5 advanced-command disposition (PORT/REDESIGN/DEPRECATE/REMOVE) (Closes #560)
