@@ -97,6 +97,11 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_skills(opts)
 		return render(agent_toolkit_core.skills_result(report), mode)
 	}
+	if cmd_name == 'mcp' {
+		opts := parse_mcp_options(argv[1..])
+		report := agent_toolkit_core.run_mcp(opts)
+		return render(agent_toolkit_core.mcp_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -377,6 +382,36 @@ fn parse_skills_options(args []string) !agent_toolkit_core.SkillsOptions {
 	}
 }
 
+fn parse_mcp_options(args []string) agent_toolkit_core.McpOptions {
+	mut sub := ''
+	mut provider := ''
+	mut offline := false
+	for a in args {
+		if a in ['--json', '--quiet'] {
+			continue
+		}
+		if a == '--offline' {
+			offline = true
+			continue
+		}
+		if a.starts_with('-') {
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+			continue
+		}
+		if provider.len == 0 {
+			provider = a
+		}
+	}
+	return agent_toolkit_core.McpOptions{
+		subcommand: sub
+		provider:   provider
+		offline:    offline
+	}
+}
+
 fn allowed_flag(cmd string, a string) bool {
 	if a in ['-h', '--help', '--json', '--quiet'] {
 		return true
@@ -402,6 +437,11 @@ fn allowed_flag(cmd string, a string) bool {
 	}
 	if cmd == 'skills' {
 		if a.starts_with('--domain') || a.starts_with('--tools') {
+			return true
+		}
+	}
+	if cmd == 'mcp' {
+		if a in ['--offline'] {
 			return true
 		}
 	}
@@ -562,6 +602,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'skills' {
 		return agent_toolkit_core.skills_help_text()
+	}
+	if name == 'mcp' {
+		return agent_toolkit_core.mcp_help_text()
 	}
 	mut c := cli.Command{
 		name:        name

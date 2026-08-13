@@ -311,6 +311,19 @@
         "sync",
         "validate"
       ]
+    },
+    {
+      "command": "mcp-help",
+      "args": [
+        "mcp",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "list",
+        "setup",
+        "uninstall"
+      ]
     }
   ]
 }
