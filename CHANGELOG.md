@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V atomic install transaction (stage/commit/rollback + receipt save) (Closes #513)
 - **Feat** — V read-only install receipt parser (SCHEMA + path-escape/secrets refuse) (Closes #512)
 - **Feat** — V remaining target emitters (copilot, windsurf, pi, gemini, muse, codex, agent-plugins) (Closes #552)
 - **Feat** — V `build --check` Tier-1 dry-run + plugins/ skill/agent drift detection (Closes #510)
