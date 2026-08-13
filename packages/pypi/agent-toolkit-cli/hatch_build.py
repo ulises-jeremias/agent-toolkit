@@ -71,18 +71,10 @@ def has_native_binary(root: Path) -> bool:
 
 class CustomBuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict) -> None:
-        # Editable installs have no bundled binary; the launcher exits 127 at runtime.
-        if version == "editable":
+        # Editable installs and sdist→wheel (macOS/Windows CI) have no bundled ELF.
+        # Product scripts still point at the launcher (exit 127), not agent-toolkit-py.
+        if version == "editable" or not has_native_binary(Path(self.root)):
             return
-        # sdist is source-only.
-        if getattr(self, "target_name", "wheel") != "wheel":
-            return
-        if not has_native_binary(Path(self.root)):
-            raise RuntimeError(
-                "platform wheel requires a bundled V binary under "
-                "src/agent_toolkit/bin/ (scripts/prepare-native-bin.sh or "
-                "scripts/pack_pypi.py). Refusing py3-none-any (ADR-021)."
-            )
         # Binary is CPython-ABI agnostic; cp311-cp311-* wheels fail on other Pythons.
         build_data["pure_python"] = False
         build_data["infer_tag"] = False

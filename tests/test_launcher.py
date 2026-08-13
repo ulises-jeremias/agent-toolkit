@@ -54,7 +54,9 @@ def test_resolve_from_toolkit_root_build(monkeypatch, tmp_path: Path):
 
 
 def test_product_scripts_point_at_launcher():
-    pyproject = Path(__file__).resolve().parents[1] / "packages/pypi/agent-toolkit-cli/pyproject.toml"
+    pyproject = (
+        Path(__file__).resolve().parents[1] / "packages/pypi/agent-toolkit-cli/pyproject.toml"
+    )
     text = pyproject.read_text(encoding="utf-8")
     assert 'agent-toolkit = "agent_toolkit.launcher:main"' in text
     assert 'agent-toolkit-cli = "agent_toolkit.launcher:main"' in text
