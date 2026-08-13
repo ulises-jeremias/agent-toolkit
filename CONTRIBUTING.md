@@ -96,7 +96,8 @@ PY
 python3 scripts/validate-manifests.py
 
 # Detect plugin surface drift
-python3 scripts/gen-surfaces.py --check
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check  # primary (ADR-003)
+python3 scripts/gen-surfaces.py --check  # legacy dual-run
 
 # Regenerate catalogs and verify they match source files
 python3 scripts/generate-catalogs.py

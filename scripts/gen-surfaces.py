@@ -4,8 +4,9 @@ Sync canonical agents/ and skills/ into plugin bundle surfaces.
 Run with --check to fail on drift (used in CI).
 
 .. deprecated::
-   Use `agent-toolkit build --check` (see ADR-003). This script is kept for
-   backward compatibility during the dual-run period and will be removed in v1.6.0.
+   Prefer `agent-toolkit build --check` (see ADR-003). This script remains for
+   dual-run CI compatibility and will be removed once `build --check` is the sole
+   required gate (target: v1.14.0+; timeline updated — v1.6.0 was superseded).
 """
 
 import argparse
