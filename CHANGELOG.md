@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Feat** — npm `agent-toolkit-cli` launcher over GitHub Release V binaries with OIDC trusted publish (Closes #536)
+- **Docs** — ADR-024 AUR `agent-toolkit-bin` installs GitHub Release V binaries (Closes #491)
 - **Feat** — GitHub Releases attach native V binaries, SHA256SUMS, and `manifest.json` (Closes #530)
 - **Docs** — ADR-023 Homebrew Formula installs GitHub Release V binaries (Closes #490)
 - **Docs** — Distribution wrapper threat model (wheel-bundle vs runtime download) (Closes #563)
