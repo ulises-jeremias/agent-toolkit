@@ -61,6 +61,17 @@ fn test_dispatch_build_help() {
 	assert code == 0
 }
 
+fn test_dispatch_install_help() {
+	code := dispatch(['agent-toolkit', 'install', '--help'])
+	assert code == 0
+}
+
+fn test_dispatch_install_dry_run_json() {
+	code := dispatch(['agent-toolkit', 'install', '--tools', 'cursor', '--dry-run', '--offline',
+		'--json'])
+	assert code == 0
+}
+
 fn test_dispatch_uninstall_help() {
 	code := dispatch(['agent-toolkit', 'uninstall', '--help'])
 	assert code == 0

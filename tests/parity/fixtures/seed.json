@@ -235,6 +235,51 @@
       ]
     },
     {
+      "command": "install-help",
+      "args": [
+        "install",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "install",
+        "dry-run",
+        "tools"
+      ]
+    },
+    {
+      "command": "install-dry-run",
+      "args": [
+        "install",
+        "--tools",
+        "cursor",
+        "--dry-run",
+        "--offline"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "cursor",
+        "dry"
+      ]
+    },
+    {
+      "command": "install-dry-run-json",
+      "args": [
+        "install",
+        "--tools",
+        "cursor",
+        "--dry-run",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "ok",
+        "dry_run"
+      ]
+    },
+    {
       "command": "install-bad-flag",
       "args": [
         "install",

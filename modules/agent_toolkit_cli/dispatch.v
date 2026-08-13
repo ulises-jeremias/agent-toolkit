@@ -68,6 +68,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_build(opts)
 		return render(agent_toolkit_core.build_result(report), mode)
 	}
+	if cmd_name == 'install' {
+		opts := parse_install_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_install(opts)
+		return render(agent_toolkit_core.install_result(report), mode)
+	}
 	if cmd_name == 'uninstall' {
 		opts := parse_uninstall_options(argv[1..]) or {
 			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
@@ -175,6 +183,65 @@ fn parse_build_options(args []string) agent_toolkit_core.BuildOptions {
 		product:     product
 		output_dir:  output_dir
 		write_files: write_files
+	}
+}
+
+fn parse_install_options(args []string) !agent_toolkit_core.InstallOptions {
+	mut dry_run := false
+	mut force := false
+	mut offline := false
+	mut tools_raw := ''
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--dry-run' {
+			dry_run = true
+			i++
+			continue
+		}
+		if a == '--force' {
+			force = true
+			i++
+			continue
+		}
+		if a == '--offline' {
+			offline = true
+			i++
+			continue
+		}
+		if a == '--tools' {
+			if i + 1 >= args.len {
+				return error('--tools requires an argument')
+			}
+			tools_raw = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--tools=') {
+			tools_raw = a.all_after('=')
+			i++
+			continue
+		}
+		i++
+	}
+	mut tools := []string{}
+	if tools_raw.len > 0 {
+		for part in tools_raw.split(',') {
+			t := part.trim_space()
+			if t.len > 0 {
+				tools << t
+			}
+		}
+	}
+	return agent_toolkit_core.InstallOptions{
+		tools:   tools
+		dry_run: dry_run
+		force:   force
+		offline: offline
 	}
 }
 
@@ -442,6 +509,14 @@ fn allowed_flag(cmd string, a string) bool {
 	if cmd == 'doctor' && a in ['--fix', '--provenance'] {
 		return true
 	}
+	if cmd == 'install' {
+		if a in ['--dry-run', '--force', '--offline'] {
+			return true
+		}
+		if a.starts_with('--tools') {
+			return true
+		}
+	}
 	if cmd == 'uninstall' {
 		if a in ['--dry-run', '--rollback'] {
 			return true
@@ -451,7 +526,7 @@ fn allowed_flag(cmd string, a string) bool {
 		}
 	}
 	if cmd == 'update' {
-		if a in ['--check'] {
+		if a == '--check' {
 			return true
 		}
 		if a.starts_with('--tools') || a.starts_with('--pin') {
@@ -464,7 +539,7 @@ fn allowed_flag(cmd string, a string) bool {
 		}
 	}
 	if cmd == 'mcp' {
-		if a in ['--offline'] {
+		if a == '--offline' {
 			return true
 		}
 	}
@@ -474,7 +549,7 @@ fn allowed_flag(cmd string, a string) bool {
 		}
 	}
 	if cmd == 'build' {
-		if a in ['--check'] {
+		if a == '--check' {
 			return true
 		}
 		if a.starts_with('--target') || a.starts_with('--product') || a.starts_with('--output') {
@@ -578,7 +653,20 @@ Compile canonical capabilities into target artifacts (Tier-1 + remaining emitter
   --target TARGET    Target id (default: all implemented emitters)
   --product PRODUCT  Product id (default: all products)
   --output DIR       Output directory (default: <repo>/plugins)
-  --json             Structured CommandResult JSON
+	--json             Structured CommandResult JSON
+'
+	}
+	if name == 'install' {
+		return 'Usage: agent-toolkit install [--tools LIST] [--dry-run] [--force] [--offline] [--json]
+
+Install profiles for detected or selected AI tools.
+
+  --tools LIST   Comma-separated tools (default: auto-detect)
+                 Valid: claude-code, cursor, opencode, copilot, windsurf, pi, muse-code
+  --dry-run      Show what would happen without making changes
+  --force        Overwrite existing files without prompting
+  --offline      Use only bundled/cached data (skip GitHub Release refresh)
+  --json         Structured CommandResult JSON
 '
 	}
 	if name == 'uninstall' {
