@@ -7,7 +7,7 @@ Runbook for cutting a versioned release.
 ```bash
 # 1. Bump all version sources atomically
 python3 scripts/bump-version.py 1.3.0
-git diff --stat  # VERSION, packages/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
+git diff --stat  # VERSION, packages/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
 
 # 2. Validate (CI parity)
 uv sync --all-extras
@@ -29,8 +29,9 @@ gh release view v1.3.0 --repo ulises-jeremias/agent-toolkit
 gh run list --repo ulises-jeremias/homebrew-tap --limit 3
 gh run list --repo ulises-jeremias/aur-packages --limit 3
 
-# 5. Verify PyPI / AUR / formula
+# 5. Verify PyPI / npm / AUR / formula
 curl -sS https://pypi.org/pypi/agent-toolkit-cli/json | python3 -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://pypi.org/pypi/agent-toolkit-cli/json'))['info']['version'])"
+npm view agent-toolkit-cli version
 curl -sS 'https://aur.archlinux.org/rpc/v5/info?arg[]=agent-toolkit' | python3 -m json.tool  # resultcount 0 until published
 # Homebrew formula version matches tag
 ```
@@ -41,7 +42,8 @@ curl -sS 'https://aur.archlinux.org/rpc/v5/info?arg[]=agent-toolkit' | python3 -
 
 * `VERSION`
 * `packages/agent-toolkit-cli/src/agent_toolkit/__init__.py` (`__version__`)
-* `package.json` (`version`)
+* `package.json` (`version`) — skills marketplace metadata, not the CLI
+* `packages/npm/*/package.json` (`version` + `optionalDependencies` pins)
 * `.claude-plugin/marketplace.json` (`metadata.version` + `plugins[].version`)
 * `.cursor-plugin/marketplace.json` (same)
 * Plugin manifests `plugins/*/plugin.json` if present
@@ -56,6 +58,10 @@ python3 scripts/bump-version.py 1.3.0         # writes files
 ## Rollback / republish
 
 * **PyPI:** Trusted Publishing only via `release.yml` on tag `v*`. Manual republish: workflow `Publish (manual)` (`.github/workflows/publish.yml`) with `TestPyPI`/`PyPI` env.
+* **npm:** OIDC trusted publishing via `publish-npm.yml` on tag `v*` (npm CLI ≥ 11.5.1, `id-token: write`, no `NPM_TOKEN`). First publish of a new package name is local (`npm login` then `npm publish`). Then pin GitHub:
+  ```bash
+  npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y
+  ```
 * **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete v1.3.0 --yes && git tag -d v1.3.0 && git push origin :v1.3.0`.
 * **Homebrew/AUR:** downstream repos are notified via `repository_dispatch` from `release.yml` `create-release`. If they missed, replay per `docs/AUR_PLAYBOOK.md`:
   ```bash

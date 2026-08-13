@@ -1,0 +1,26 @@
+{
+  "name": "agent-toolkit-cli-linux-x64",
+  "version": "1.10.0",
+  "description": "Native V binary for agent-toolkit-cli-linux-x64 (optionalDependency of agent-toolkit-cli)",
+  "license": "MIT",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "bin/agent-toolkit"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ulises-jeremias/agent-toolkit.git",
+    "directory": "packages/npm/agent-toolkit-cli-linux-x64"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "libc": [
+    "glibc"
+  ]
+}

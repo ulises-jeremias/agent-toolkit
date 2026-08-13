@@ -1,0 +1,23 @@
+{
+  "name": "agent-toolkit-cli-darwin-x64",
+  "version": "1.10.0",
+  "description": "Native V binary for agent-toolkit-cli-darwin-x64 (optionalDependency of agent-toolkit-cli)",
+  "license": "MIT",
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "bin/agent-toolkit"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ulises-jeremias/agent-toolkit.git",
+    "directory": "packages/npm/agent-toolkit-cli-darwin-x64"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

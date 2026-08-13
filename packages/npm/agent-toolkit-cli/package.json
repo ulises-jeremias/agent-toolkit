@@ -1,0 +1,45 @@
+{
+  "name": "agent-toolkit-cli",
+  "version": "1.10.0",
+  "description": "Thin Node launcher for the agent-toolkit native V CLI (same product as PyPI)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ulises-jeremias/agent-toolkit.git",
+    "directory": "packages/npm/agent-toolkit-cli"
+  },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "bugs": {
+    "url": "https://github.com/ulises-jeremias/agent-toolkit/issues"
+  },
+  "bin": {
+    "agent-toolkit": "bin/agent-toolkit.js",
+    "agent-toolkit-cli": "bin/agent-toolkit.js"
+  },
+  "files": [
+    "bin/",
+    "platforms.json",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/launcher.test.js"
+  },
+  "optionalDependencies": {
+    "agent-toolkit-cli-linux-x64": "1.10.0",
+    "agent-toolkit-cli-linux-arm64": "1.10.0",
+    "agent-toolkit-cli-darwin-arm64": "1.10.0",
+    "agent-toolkit-cli-darwin-x64": "1.10.0",
+    "agent-toolkit-cli-win32-x64": "1.10.0"
+  },
+  "keywords": [
+    "agent-toolkit",
+    "cli",
+    "ai-agents"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

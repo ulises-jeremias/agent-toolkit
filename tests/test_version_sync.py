@@ -25,6 +25,18 @@ def test_package_json_matches_python():
     assert pkg["version"] == _python_version()
 
 
+def test_npm_cli_packages_match_python():
+    ver = _python_version()
+    meta = json.loads((REPO / "packages/npm/agent-toolkit-cli/package.json").read_text())
+    assert meta["name"] == "agent-toolkit-cli"
+    assert meta["version"] == ver
+    for name, pin in meta["optionalDependencies"].items():
+        assert pin == ver, name
+        plat = json.loads((REPO / "packages/npm" / name / "package.json").read_text())
+        assert plat["name"] == name
+        assert plat["version"] == ver
+
+
 def test_marketplace_metadata_matches_python():
     ver = _python_version()
     for rel in (".claude-plugin/marketplace.json", ".cursor-plugin/marketplace.json"):

@@ -1,0 +1,39 @@
+[
+  {
+    "npm": "agent-toolkit-cli-linux-x64",
+    "os": "linux",
+    "cpu": "x64",
+    "libc": "glibc",
+    "floating": "agent-toolkit-linux-x86_64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "npm": "agent-toolkit-cli-linux-arm64",
+    "os": "linux",
+    "cpu": "arm64",
+    "libc": "glibc",
+    "floating": "agent-toolkit-linux-arm64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "npm": "agent-toolkit-cli-darwin-arm64",
+    "os": "darwin",
+    "cpu": "arm64",
+    "floating": "agent-toolkit-macos-arm64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "npm": "agent-toolkit-cli-darwin-x64",
+    "os": "darwin",
+    "cpu": "x64",
+    "floating": "agent-toolkit-macos-x86_64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "npm": "agent-toolkit-cli-win32-x64",
+    "os": "win32",
+    "cpu": "x64",
+    "floating": "agent-toolkit-windows-x86_64.exe",
+    "bin": "agent-toolkit.exe"
+  }
+]

@@ -59,7 +59,7 @@ def main():
         "pub const embedded_version = '{version}'",
         version,
     )
-    # package.json
+    # package.json (skills marketplace metadata — not the CLI npm package)
     pkg = ROOT / "package.json"
     if pkg.exists():
         data = json.loads(pkg.read_text())
@@ -69,6 +69,21 @@ def main():
                 data["version"] = version
                 pkg.write_text(json.dumps(data, indent=2) + "\n")
             changed += 1
+    # npm CLI packages (agent-toolkit-cli + platform optionalDependencies)
+    npm_root = ROOT / "packages/npm"
+    if npm_root.is_dir():
+        for pkg_path in sorted(npm_root.glob("*/package.json")):
+            data = json.loads(pkg_path.read_text())
+            orig = json.dumps(data, sort_keys=True)
+            data["version"] = version
+            if "optionalDependencies" in data:
+                data["optionalDependencies"] = {k: version for k in data["optionalDependencies"]}
+            if json.dumps(data, sort_keys=True) != orig:
+                rel = pkg_path.relative_to(ROOT)
+                print(f"bumped {rel}")
+                if not check:
+                    pkg_path.write_text(json.dumps(data, indent=2) + "\n")
+                changed += 1
     # marketplace jsons
     for mp in [".claude-plugin/marketplace.json", ".cursor-plugin/marketplace.json"]:
         mp_path = ROOT / mp

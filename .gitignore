@@ -21,6 +21,8 @@ dist/
 build/
 packages/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit
 packages/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit.exe
+packages/npm/*/bin/agent-toolkit
+packages/npm/*/bin/agent-toolkit.exe
 
 # Editor
 .idea/
