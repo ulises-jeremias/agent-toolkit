@@ -49,7 +49,7 @@ Experimental and stable binaries should expose engine/language, version, and com
 - From-source `make build-cli` / `make install-cli` installs V as `agent-toolkit`.
 - Consumer commands (install lifecycle + skills/mcp/plugin) are implemented in V.
 - GitHub native artifacts remain **experimental** until MUST-platform promotion ([#562](https://github.com/ulises-jeremias/agent-toolkit/issues/562) / [#529](https://github.com/ulises-jeremias/agent-toolkit/issues/529)); they must not overwrite stable channel names without that gate.
-- **PyPI/`uvx` still runs the Python wheel** until binary wrappers ([#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)). That is a packaging lag, not a dual-engine switch.
+- **PyPI/`uvx`:** packaging strategy is [ADR-021](ADR-021-pypi-binary.md) (platform wheels + thin launcher over the V binary). Implementation is [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535). Not a dual-engine switch (options B/C still rejected).
 - Unfinished advanced commands stay `not_implemented` in V. Fallback is a **separate** Python entry (`uvx --from agent-toolkit-cli`), not option C (V exec of Python).
 - Observability: `doctor --json` and `version --json` include `engine`, `version`, and `commit` without changing human stdout.
 
