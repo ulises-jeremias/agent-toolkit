@@ -16,8 +16,8 @@
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
 [![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
 
-![skills](https://img.shields.io/badge/skills-60-7c3aed?style=flat&labelColor=1f2937)
-![agents](https://img.shields.io/badge/agents-16-0891b2?style=flat&labelColor=1f2937)
+![skills](https://img.shields.io/badge/skills-77-7c3aed?style=flat&labelColor=1f2937)
+![agents](https://img.shields.io/badge/agents-17-0891b2?style=flat&labelColor=1f2937)
 ![loops](https://img.shields.io/badge/loops-10-ea580c?style=flat&labelColor=1f2937)
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-7c3aed?style=flat&labelColor=1f2937&logo=anthropic&logoColor=white)](profiles/claude-code/)
@@ -30,7 +30,7 @@
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
-[Skills](#%EF%B8%8F-skills--60-across-9-domains) ·
+[Skills](#%EF%B8%8F-skills--77-across-14-domains) ·
 [Agents](#-agent-personas) ·
 [Loops](#-loop-engineering) ·
 [Contributing](#-contributing)
@@ -65,13 +65,13 @@ agent-toolkit doctor
       <h3>🛠️ Skills</h3>
       <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery workflows, forge CLIs, design, data, ops.</sub>
       <br><br>
-      <sub>77 skills across 9 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
+      <sub>77 skills across 14 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
       <sub>Personas that constrain <em>how</em> the AI works in a session — review, plan, architect, fix CI — without rewriting your prompts each time.</sub>
       <br><br>
-      <sub>16 personas under <code>agents/</code>, compiled into each target's native format.</sub>
+      <sub>17 personas under <code>agents/</code>, compiled into each target's native format.</sub>
     </td>
   </tr>
   <tr>
@@ -97,9 +97,9 @@ agent-toolkit doctor
     </td>
     <td width="50%" valign="top">
       <h3>🔗 MCP</h3>
-      <sub>Provider registry + ready templates (GitHub, Slack, Notion, Linear, Figma, ClickUp) emitted into target-native MCP configs.</sub>
+      <sub>Provider registry + ready templates (GitHub, Slack, Notion, Linear, Figma, ClickUp, Chrome DevTools) emitted into target-native MCP configs.</sub>
       <br><br>
-      <sub><code>mcp/registry/</code> · <code>mcp/templates/</code> · <code>agent-toolkit mcp</code></sub>
+      <sub>7 templates · <code>mcp/registry/</code> · <code>mcp/templates/</code> · <code>agent-toolkit mcp</code></sub>
     </td>
   </tr>
 </table>
@@ -220,10 +220,11 @@ npm i -g agent-toolkit-cli # optionalDependencies platform packages
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-bash ~/.agent-toolkit/scripts/install.sh
+make install-cli    # canonical V binary → ~/.local/bin
+agent-toolkit install
 ```
 
-The script detects active tools and deploys profiles. Options: `--tools`, `--dry-run`, `--force`.
+`scripts/install.sh` is a deprecated fallback ([ADR-007](docs/adrs/ADR-007-install-sh-deprecation.md)). Prefer `make install-cli` or a release channel above.
 
 </details>
 
@@ -261,24 +262,30 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 | **GitHub Copilot** | IDE | `copilot-instructions.md` with domain selection |
 | **Windsurf** | IDE | Rules and memory files via Cascade |
 | **Pi Agent** | Agentic harness | Skills and loop templates in Pi's native format |
+| **Muse Code** | CLI | Agent Skills under `~/.config/muse/skills/` |
 
 ---
 
-## 🛠️ Skills — 60 across 9 domains
+## 🛠️ Skills — 77 across 14 domains
 
-All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills).
+All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills). Marketplace plugins ship a subset (core + forge); `agent-toolkit-complete` is the full catalog.
 
 | Domain | Count | Key Skills |
 |--------|-------|------------|
-| 🧠 `core` | 6 | assistant, dev-companion, output-handshake, pr-fallback, workspace-knowledge-sync, onboarding |
+| 🧠 `core` | 8 | assistant, dev-companion, workspace, project, onboarding |
 | 🚀 `delivery` | 21 | adr, bug, epic, development-workflow, planning, prd, user-story, work-item |
-| 🎨 `design` | 5 | figma-implement-design, figma-code-connect-components, design-system-rules |
-| ⚡ `forge` | 7 | github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, gh-address-comments, gh-contribution-planner |
-| 🔗 `integrations` | 4 | slack-cli, slack-assistant, linear, clickup-cli |
+| 🎨 `design` | 10 | figma-implement-design, figma-code-connect-components, frontend-design |
+| ⚡ `forge` | 8 | github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, worktree |
+| 🔗 `integrations` | 5 | slack-cli, slack-assistant, linear, clickup-cli, mcp |
 | 📊 `data` | 2 | dbt-validation, snowflake-validation |
-| 🔧 `tooling` | 2 | jupyter-notebook, playwright-cli |
-| 🛡️ `ops` | 3 | triage, docs-generator, llm-cost-advisor |
+| 🔧 `tooling` | 6 | jupyter-notebook, playwright-cli, herdr, inventory |
+| 🛡️ `ops` | 6 | triage, docs-generator, llm-cost-advisor, swarm |
 | 🔄 `loops` | 1 | loop-runner (see [Loop Engineering](#-loop-engineering) for 10 templates) |
+| 🔐 `agentic-security` | 4 | threat-modeling, owasp-agentic-review, mcp-audit |
+| ☁️ `cloud` | 2 | cloud-design-patterns, aws-well-architected-review |
+| 🏛️ `architecture` | 1 | c4-model |
+| ♿ `accessibility` | 1 | review |
+| ✅ `quality` | 2 | megalinter, codeql |
 
 Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.py --check` in CI) · regenerate with `bash scripts/validate-skills.sh` (CI) and inspect live inventory via `agent-toolkit inventory`
 
@@ -370,8 +377,9 @@ Ready-to-use Model Context Protocol configuration templates. Drop into your MCP 
 | `linear` | Issues, projects, cycles, comments |
 | `figma` | Files, components, design tokens |
 | `clickup` | Tasks, lists, spaces, docs, comments |
+| `chrome-devtools` | Browser automation and page inspection |
 
-Templates live in [`mcp/templates/`](mcp/templates/). Each file is a `.json` with clearly marked placeholder values.
+Templates live in [`mcp/templates/`](mcp/templates/) (7 providers). Each file is a `.json` with clearly marked placeholder values.
 
 ---
 
@@ -384,9 +392,9 @@ Product bundles are declared in [`distributions/products.yaml`](distributions/pr
 | Product | Portable (Agent Plugins 1.0) | What's included |
 |---------|------------------------------|-----------------|
 | `agent-toolkit-core` | `plugin.json` + `skills/` (6) + `mcp.json` (github) | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
-| `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 17 agent personas — agentic-security-reviewer, architect, assistant, build-error-resolver, client-workflow-bootstrap, code-reviewer, database-reviewer, docs-lookup, e2e-runner, performance-optimizer, planner, refactor-cleaner, reference-lookup, security-reviewer, tdd-guide, tech-assistant, typescript-reviewer |
+| `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 16 marketplace personas (disk has 17; `agentic-security-reviewer` is not in this plugin) |
 | `agent-toolkit-forge` | `plugin.json` + `skills/` (7) | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
-| `agent-toolkit-complete` | `plugin.json` + `skills/` (60) + `mcp.json` | Full stable skill catalog (experimental; portable manifest included, marketplace pending) |
+| `agent-toolkit-complete` | `plugin.json` + `skills/` (77) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) |
 
 Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) · `plugins/<id>/plugin.json` (Agent Plugins `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) · `plugins/<id>/mcp.json` (where applicable)
 
@@ -432,7 +440,7 @@ Browse packs: [`packs/`](packs/)
 | **L1.5** | **agent-toolkit** (this repo) | Capability distribution — skills, loops, profiles, MCP |
 | **L3** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold for multi-repo orchestration |
 
-**agentic-workstation** installs `agent-toolkit-cli` automatically during `chezmoi apply` (via AUR on Arch Linux or pip elsewhere). Running `agent-toolkit install` deploys skills and profiles to all detected AI tools.
+**agentic-workstation** installs the V CLI during `chezmoi apply` (Homebrew, AUR `agent-toolkit-bin`, GitHub Release, or the PyPI launcher). Running `agent-toolkit install` deploys skills and profiles to all detected AI tools.
 
 **agentic-harness** is an opinionated workspace scaffold that uses `agent-toolkit loop`, `agent-toolkit memory`, `agent-toolkit devcompanion`, `agent-toolkit project`, and `agent-toolkit swarm` as its primary CLI interface.
 
@@ -444,7 +452,7 @@ One source of truth, deployed per-tool. Each profile in `profiles/` adapts the s
 
 ```text
 agent-toolkit/
-├── skills/              # 77 skills across 9 domains (SKILL.md frontmatter)
+├── skills/              # 77 skills (SKILL.md frontmatter)
 ├── agents/              # 17 tool-agnostic agent persona definitions
 ├── profiles/
 │   ├── claude-code/     # Plugin manifest, skill references, settings
@@ -452,9 +460,10 @@ agent-toolkit/
 │   ├── opencode/        # System prompt overlays, agent configs
 │   ├── copilot/         # copilot-instructions.md with domain selection
 │   ├── windsurf/        # rules.md and memory files
-│   └── pi/              # Skill definitions in Pi's native format
+│   ├── pi/              # Skill definitions in Pi's native format
+│   └── muse-code/       # Muse Code Agent Skills
 ├── loops/               # 10 recurring loop engineering templates
-├── mcp/templates/       # 6 MCP config templates (JSON)
+├── mcp/templates/       # 7 MCP config templates (JSON)
 ├── packs/               # 7 solution packs
 ├── catalogs/            # skill-catalog.yaml, agent-catalog.yaml
 ├── schemas/             # JSON schemas for validation
@@ -476,12 +485,14 @@ agent-toolkit/
 ## ✅ Validation
 
 ```bash
+agent-toolkit doctor          # consumer health check
 bash scripts/validate-skills.sh
 bash scripts/validate-loops.sh
 ```
 
-Both scripts exit non-zero on failure with human-readable error messages.
+The bash scripts exit non-zero on failure with human-readable error messages.
 They run automatically in CI via the Validate and MegaLinter workflows.
+Contributors: [`CONTRIBUTING.md`](CONTRIBUTING.md) (`make test`, `make build-cli`).
 
 ---
 

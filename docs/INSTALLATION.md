@@ -18,6 +18,7 @@ The product CLI is the **native V binary** (GitHub Releases). `uvx agent-toolkit
   - [GitHub Copilot](https://github.com/features/copilot) (VS Code or JetBrains + extension)
   - [Windsurf](https://codeium.com/windsurf) (Codeium)
   - [Pi Coding Agent](https://pi.ai)
+  - [Muse Code](https://developer.meta.com/ai/products/muse-code/) (Meta)
 
 Optional but recommended:
 
@@ -295,17 +296,25 @@ See [MCP.md](MCP.md) for per-tool config locations and provider setup.
 
 ## Staying up to date
 
-With the CLI installed:
+Match the channel you installed:
 
 ```bash
-uv tool upgrade agent-toolkit-cli   # or: pip install -U agent-toolkit-cli
+brew upgrade agent-toolkit
+# AUR
+yay -Syu agent-toolkit-bin
+# PyPI launcher
+uv tool upgrade agent-toolkit-cli
+# npm
+npm update -g agent-toolkit-cli
+# GitHub Release: download the new binary + SHA256SUMS from /releases/latest
+
 agent-toolkit install --force
 ```
 
-With a git checkout:
+From a git checkout:
 
 ```bash
-cd ~/.agent-toolkit && git pull && bash scripts/install.sh --force
+cd ~/.agent-toolkit && git pull && make install-cli && agent-toolkit install --force
 ```
 
 Back up customized profile files before `--force`. See [MIGRATION.md](MIGRATION.md) when
@@ -315,9 +324,7 @@ switching from profile-copy installs to marketplace plugins.
 
 ## Data packaging and resolution
 
-Runtime data can come from an editable checkout, the wheel-bundled `agent_toolkit/data/` copy, or an XDG cache populated from a GitHub Release. The full source-of-truth and resolution order (env override → wheel data → XDG cache → editable walk-up → CWD) is documented in `docs/adrs/ADR-005-data-packaging.md`.
-
-Packagers (Homebrew/AUR) should read that ADR and `scripts/prepare-package-data.sh` — set `AGENT_TOOLKIT_ROOT` or `AGENT_TOOLKIT_OFFLINE=1` for sandboxed builds. See also #257/#258.
+The product CLI is the native V binary. Homebrew and AUR consume GitHub Release assets ([distribution/](../distribution/README.md), ADR-023/024). The PyPI launcher wheel still bundles capability data; resolution order for that path is [ADR-005](adrs/ADR-005-data-packaging.md) / [ADR-015](adrs/ADR-015-runtime-resolution.md).
 
 ## Troubleshooting
 

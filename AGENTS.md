@@ -6,7 +6,7 @@
 
 ## What This Toolkit Does
 
-`agent-toolkit` is a modular library of AI capabilities — skills, agent personas, loop templates, MCP configs, and per-tool profiles — designed to work across every major AI coding assistant (Claude Code, Cursor, OpenCode, GitHub Copilot, Windsurf, Pi Coding Agent).
+`agent-toolkit` is a modular library of AI capabilities — skills, agent personas, loop templates, MCP configs, and per-tool profiles — designed to work across every major AI coding assistant (Claude Code, Cursor, OpenCode, GitHub Copilot, Windsurf, Pi Coding Agent, Muse Code).
 
 The goal is a single source of truth: author a skill once, deploy it to any tool via its profile. When you add, modify, or remove anything here, you are affecting every downstream consumer who installs this toolkit.
 
@@ -19,15 +19,20 @@ The goal is a single source of truth: author a skill once, deploy it to any tool
 ```
 agent-toolkit/
 ├── skills/
-│   ├── core/           # Memory, planning, context injection
-│   ├── delivery/       # Code review, PR workflows, CI fix
-│   ├── design/         # UI/UX, design systems, components
-│   ├── forge/          # Code generation, TDD, refactoring
-│   ├── integrations/   # JIRA, Confluence, Slack, Linear, ClickUp, Notion
-│   ├── data/           # DBT, Snowflake, data pipelines
-│   ├── tooling/        # Git, Docker, CI/CD, env setup
-│   ├── ops/            # Incident, security review, performance
-│   └── loops/          # Recurring agentic workflow skills
+│   ├── core/           # Session bootstrap, handshake, workspace, project
+│   ├── delivery/       # PRD, ADR, work items, delivery workflows
+│   ├── design/         # UI/UX, Figma, frontend
+│   ├── forge/          # GitHub/GitLab CLI, CI, PRs, worktrees
+│   ├── integrations/   # Slack, Linear, ClickUp, MCP
+│   ├── data/           # dbt, Snowflake
+│   ├── tooling/        # Playwright, Jupyter, Herdr, inventory
+│   ├── ops/            # Triage, swarm, docs, cost
+│   ├── loops/          # loop-runner
+│   ├── agentic-security/
+│   ├── architecture/
+│   ├── cloud/
+│   ├── accessibility/
+│   └── quality/
 ├── agents/             # Tool-agnostic agent persona definitions
 ├── profiles/
 │   ├── claude-code/    # .claude/settings.json overlay + CLAUDE.md
@@ -35,7 +40,8 @@ agent-toolkit/
 │   ├── opencode/       # System prompt overlays for OpenCode
 │   ├── copilot/        # copilot-instructions.md for GitHub Copilot
 │   ├── windsurf/       # rules.md + memory files for Windsurf
-│   └── pi/             # Skill files for Pi Coding Agent
+│   ├── pi/             # Skill files for Pi Coding Agent
+│   └── muse-code/      # Muse Code Agent Skills
 ├── mcp/
 │   └── templates/      # MCP server config templates (JSON)
 ├── loops/              # Loop engineering templates (loop.yaml per docs/HOW_TO_CREATE_LOOP.md)
@@ -341,7 +347,7 @@ agent-toolkit install [--force]                # deploy profiles to detected AI 
 agent-toolkit doctor                           # verify installation health
 
 # Skills and inventory
-agent-toolkit inventory                        # list all 52+ skills
+agent-toolkit inventory                        # list all 77 skills
 agent-toolkit skills list                      # list with domain breakdown
 agent-toolkit skills validate                  # check SKILL.md compliance
 

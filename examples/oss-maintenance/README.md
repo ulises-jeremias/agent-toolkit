@@ -39,10 +39,10 @@ python3 --version         # 3.11 or later
 ## Step 1: Install agent-toolkit
 
 ```bash
-# Preferred consumer path (no clone required)
+# Any V channel — GitHub Release, Homebrew, AUR agent-toolkit-bin, npm, or:
 uvx --from agent-toolkit-cli agent-toolkit install
-# or permanently
-uv tool install agent-toolkit-cli && agent-toolkit install
+# permanently
+uv tool install 'agent-toolkit-cli>=1.11.0' && agent-toolkit install
 ```
 
 This detects your AI tools and deploys the appropriate profiles. No `git clone` or `install.sh` required.

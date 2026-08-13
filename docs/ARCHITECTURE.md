@@ -13,11 +13,11 @@ agent-toolkit is organized around three layers that compose to form a complete A
 The outermost layer is the installer or workstation harness that provisions agent-toolkit onto a machine. This layer is responsible for:
 
 - Cloning or updating the toolkit repository
-- Running `agent-toolkit install` (canonical **V** CLI; PyPI/`uv` is a thin launcher — ADR-021. `scripts/install.sh` is a deprecated legacy fallback — see ADR-007) to copy profiles/plugins to the right tool-specific locations
+- Running `agent-toolkit install` (canonical **V** CLI from GitHub Release, Homebrew, AUR `agent-toolkit-bin`, PyPI launcher, or npm — ADR-021. `scripts/install.sh` is a deprecated legacy fallback — see ADR-007) to copy profiles/plugins to the right tool-specific locations
 - Managing credentials and environment variables (but never storing secrets in this repo)
 - Scheduling recurring loops via a cron or loop-runner daemon
 
-This layer is typically managed by a separate bootstrapping tool (such as a dotfiles manager or a workstation provisioner). agent-toolkit itself does not own this layer — it only provides the install script and profiles for it to use.
+This layer is typically managed by a separate bootstrapping tool (such as a dotfiles manager or a workstation provisioner). agent-toolkit itself does not own this layer — it provides the V CLI, profiles, and a deprecated install-script fallback.
 
 ### L1.5 — agent-toolkit (this repo)
 
@@ -128,141 +128,29 @@ Swarms coordinate multiple coding-agent sessions with worktree isolation and dur
 
 ## Repository Structure
 
+Counts: 77 skills (14 domains), 17 agents, 10 loops, 7 packs, 7 MCP templates, 7 profiles. Live inventory: `agent-toolkit inventory` / `catalogs/`.
+
 ```
 agent-toolkit/
-│
-├── skills/                      # Portable capability definitions
-│   ├── core/                    # Foundational patterns: memory, planning, context
-│   │   ├── assistant/
-│   │   ├── dev-companion/
-│   │   ├── onboarding/
-│   │   ├── output-handshake/
-│   │   ├── pr-fallback/
-│   │   └── workspace-knowledge-sync/
-│   ├── delivery/                # Code review, PRs, CI, work items
-│   │   ├── adr/
-│   │   ├── agreement/
-│   │   ├── bug/
-│   │   ├── decision-log/
-│   │   ├── development-workflow/
-│   │   ├── epic/
-│   │   ├── incident/
-│   │   ├── meeting-minutes/
-│   │   ├── planning/
-│   │   ├── prd/
-│   │   ├── project-assessment/
-│   │   ├── project-assessment-evidence/
-│   │   ├── spike/
-│   │   ├── task/
-│   │   ├── technical-unit-assessment/
-│   │   ├── trd/
-│   │   ├── user-story/
-│   │   ├── work-item/
-│   │   ├── workflow-client-bootstrap/
-│   │   └── workflow-generic-project/
-│   ├── design/                  # UI/UX, Figma, design systems
-│   │   ├── figma/
-│   │   ├── figma-code-connect-components/
-│   │   ├── figma-create-design-system-rules/
-│   │   ├── figma-create-new-file/
-│   │   └── figma-implement-design/
-│   ├── forge/                   # GitHub/GitLab CLI, PR automation
-│   │   ├── gh-address-comments/
-│   │   ├── gh-contribution-planner/
-│   │   ├── gh-fix-ci/
-│   │   ├── github-cli-workflow/
-│   │   ├── gitlab-cli-workflow/
-│   │   ├── workflow-client-bootstrap/
-│   │   └── workflow-generic-project/
-│   ├── integrations/            # Slack, Linear, ClickUp
-│   │   ├── clickup-cli/
-│   │   ├── linear/
-│   │   ├── slack-assistant/
-│   │   └── slack-cli/
-│   ├── data/                    # dbt, Snowflake, data pipelines
-│   │   ├── dbt-validation/
-│   │   └── snowflake-validation/
-│   ├── tooling/                 # Jupyter, Playwright CLI
-│   │   ├── jupyter-notebook/
-│   │   └── playwright-cli/
-│   ├── ops/                     # Triage, docs generation, cost advising
-│   │   ├── docs-generator/
-│   │   ├── llm-cost-advisor/
-│   │   └── triage/
-│   └── loops/                   # Loop runner skill
-│       └── loop-runner/
-│
-├── agents/                      # Tool-agnostic agent persona definitions
-│   ├── architect/
-│   ├── assistant/
-│   ├── build-error-resolver/
-│   ├── client-workflow-bootstrap/
-│   ├── code-reviewer/
-│   ├── database-reviewer/
-│   ├── docs-lookup/
-│   ├── e2e-runner/
-│   ├── performance-optimizer/
-│   ├── planner/
-│   ├── refactor-cleaner/
-│   ├── reference-lookup/
-│   ├── security-reviewer/
-│   ├── tdd-guide/
-│   ├── tech-assistant/
-│   └── typescript-reviewer/
-│
-├── profiles/                    # Tool-specific configuration files
-│   ├── claude-code/             # CLAUDE.md + settings.json + agents/
-│   ├── cursor/                  # rules/*.mdc
-│   ├── opencode/                # opencode.json + agents/
-│   ├── copilot/                 # copilot-instructions.md
-│   ├── windsurf/                # rules/*.mdc + memories/
-│   └── pi/                      # skills/*.md
-│
-├── loops/                       # Recurring agentic workflow templates
-│   ├── changelog-drafter/
-│   ├── ci-sweeper/
-│   ├── daily-triage/
-│   ├── dep-sweeper/
-│   ├── issue-triage/
-│   ├── oss-daily-briefing/
-│   ├── oss-pr-monitor/
-│   ├── oss-triage/
-│   ├── post-merge-cleanup/
-│   └── pr-babysitter/
-│
-├── mcp/
-│   └── templates/               # MCP config stubs (env var placeholders only)
-│       ├── clickup/
-│       ├── figma/
-│       ├── github/
-│       ├── linear/
-│       ├── notion/
-│       └── slack/
-│
-├── packs/                       # Outcome-oriented bundles
-│   ├── delivery-discipline/
-│   ├── engineering-workflow/
-│   └── oss-maintenance/
-│
-├── catalogs/                    # Machine-readable indexes
-│   ├── agent-catalog.yaml
-│   └── skill-catalog.yaml
-│
-├── schemas/                     # JSON schemas for validation
-│   ├── skill-md-frontmatter.schema.json
-│   └── skill.schema.json
-│
-├── docs/                        # Documentation
-│   ├── ARCHITECTURE.md          # This file
-│   ├── INSTALLATION.md
-│   ├── LOOPS.md
-│   ├── MCP.md
-│   ├── PROFILES.md
-│   └── SKILLS.md
-│
-└── scripts/                     # Install and validation scripts
-    ├── install.sh
-    └── validate-skills.sh
+├── skills/                      # 77 SKILL.md trees (14 domains)
+│   ├── core/  delivery/  design/  forge/  integrations/
+│   ├── data/  tooling/  ops/  loops/
+│   ├── agentic-security/  architecture/  cloud/
+│   └── accessibility/  quality/
+├── agents/                      # 17 personas (incl. agentic-security-reviewer)
+├── profiles/                    # claude-code, cursor, opencode, copilot,
+│                                # windsurf, pi, muse-code
+├── loops/                       # 10 loop.yaml templates
+├── mcp/templates/               # 7 providers (incl. chrome-devtools)
+├── packs/                       # 7 docs-only packs (ADR-006)
+├── catalogs/                    # generated skill/agent catalogs
+├── schemas/
+├── modules/                     # V CLI (canonical product)
+├── packages/                    # pypi/ + npm/ adapters
+├── distribution/                # channel contracts (not Formula/PKGBUILD copies)
+├── docs/
+└── scripts/                     # validate-*, gen-surfaces, bump-version
+                                 # install.sh is deprecated (ADR-007)
 ```
 
 ---

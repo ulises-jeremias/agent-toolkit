@@ -34,7 +34,7 @@ Per-tool paths are tabled in `docs/INSTALLATION.md`.
 
 ## 3. Partial install (skills without agents/loops)
 
-**Symptom:** `doctor` shows `skills: 61, agents: 0` or similar.
+**Symptom:** `doctor` shows `skills: 77, agents: 0` or similar.
 
 **Fix:**
 
@@ -167,9 +167,9 @@ If none of these match, run `agent-toolkit doctor --verbose` and open an issue w
 #       ref: v1.2.3        # requested tag
 #       commit: abc123...  # 40-char SHA (resolved)
 
-uv run python scripts/provenance.py lock      # resolve declarations → capabilities/upstream.lock
-uv run python scripts/provenance.py check     # offline validation declaration↔lock + checksums + digest + review binding
-uv run python scripts/provenance.py docs      # regenerate docs/UPSTREAM.md
+python3 scripts/provenance.py lock      # resolve declarations → capabilities/upstream.lock
+python3 scripts/provenance.py check     # offline validation declaration↔lock + checksums + digest + review binding
+python3 scripts/provenance.py docs      # regenerate docs/UPSTREAM.md
 ```
 
 See `docs/adr/0001-capability-declaration-and-external-provenance-lock.md` (declaration → lock → vendored → sources) and `scripts/provenance.py {lock,check,docs,updates}`.
@@ -181,7 +181,7 @@ See `docs/adr/0001-capability-declaration-and-external-provenance-lock.md` (decl
 **Fix:**
 
 ```bash
-uv run python scripts/provenance.py updates   # compare locked commits to remote HEAD
+python3 scripts/provenance.py updates   # compare locked commits to remote HEAD
 # open update PR with new commit/digest
 ```
 

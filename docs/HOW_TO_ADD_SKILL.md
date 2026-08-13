@@ -17,8 +17,13 @@ Skills are organized into domains that reflect the type of work they support:
 | `integrations` | Third-party platform connectors | `slack-cli`, `linear`, `clickup-cli` |
 | `data` | Data platform validation | `dbt-validation`, `snowflake-validation` |
 | `tooling` | Developer tooling (Jupyter, Playwright, etc.) | `jupyter-notebook`, `playwright-cli` |
-| `ops` | Operational and health-check utilities | `triage`, `llm-cost-advisor` |
+| `ops` | Operational and health-check utilities | `triage`, `llm-cost-advisor`, `swarm` |
 | `loops` | Recurring automation loop management | `loop-runner` |
+| `agentic-security` | Agentic threat modeling, OWASP, MCP/supply-chain | `threat-modeling`, `mcp-audit` |
+| `architecture` | Architecture diagrams and C4 | `c4-model` |
+| `cloud` | Cloud design and well-architected review | `cloud-design-patterns` |
+| `accessibility` | Accessibility review | `review` |
+| `quality` | Linters and static analysis | `megalinter`, `codeql` |
 
 **Decision rule**: choose the domain whose existing skills feel most similar to yours. If your skill tells an agent *how* to operate a CLI or API, it's likely `forge`, `integrations`, or `tooling`. If it tells an agent *what to do* during a project phase, it's likely `delivery` or `core`.
 

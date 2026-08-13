@@ -8,13 +8,11 @@ This covers four AI tools: Claude Code, Cursor, GitHub Copilot, and OpenCode. Do
 
 ## Prerequisites
 
-- **agent-toolkit installed** on your machine (preferred: Python CLI):
+- **agent-toolkit installed** on your machine (native V CLI — any channel in [`docs/INSTALLATION.md`](../../docs/INSTALLATION.md)):
   ```bash
-  uvx --from agent-toolkit-cli agent-toolkit install --dry-run    # Preview (auto-detects tools)
-  uvx --from agent-toolkit-cli agent-toolkit install              # Install
-  # Legacy/offline fallback (deprecated, see docs/adrs/ADR-007-install-sh-deprecation.md):
-  # git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-  # bash ~/.agent-toolkit/scripts/install.sh --dry-run
+  uvx --from 'agent-toolkit-cli>=1.11.0' agent-toolkit install --dry-run
+  uvx --from 'agent-toolkit-cli>=1.11.0' agent-toolkit install
+  # also: brew / AUR agent-toolkit-bin / GitHub Release / npm i -g agent-toolkit-cli
   ```
 
 - **Your project cloned** and the working directory set to its root:
@@ -165,44 +163,15 @@ The template from agent-toolkit covers:
 
 ---
 
-## Step 4: Verify with doctor.sh
-
-Run the built-in doctor script to confirm all installed profiles are correctly configured:
+## Step 4: Verify with doctor
 
 ```bash
-bash ~/.agent-toolkit/scripts/doctor.sh
+agent-toolkit doctor
 ```
 
-Expected output:
+Expected: detected tools show profiles installed and healthy. See [`docs/TROUBLESHOOTING.md`](../../docs/TROUBLESHOOTING.md) if not.
 
-```
-agent-toolkit doctor v1.0
-
-Checking installed tools...
-
-  Claude Code
-    CLAUDE.md           ✓  ~/.claude/CLAUDE.md
-    settings.json       ✓  ~/.claude/settings.json
-    agents/             ✓  16 agent files found
-
-  Cursor
-    Global rules        ✓  ~/.cursor/rules/ (8 files)
-    Project rules       ✓  .cursor/rules/ (8 files)
-
-  GitHub Copilot
-    copilot-instructions.md  ✓  .github/copilot-instructions.md
-
-  OpenCode
-    opencode.json       -  not installed (run: install.sh --tools opencode)
-    agents/             -  not installed
-
-Summary: 3 tools configured, 1 not installed.
-
-To install missing tools:
-  bash ~/.agent-toolkit/scripts/install.sh --tools opencode
-```
-
-If a tool shows `✗` (error), the doctor output will explain what is missing and how to fix it.
+If OpenCode is missing, install it and re-run `agent-toolkit install --tools opencode`.
 
 ---
 

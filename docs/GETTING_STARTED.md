@@ -45,7 +45,7 @@ agent-toolkit install --tools claude-code
 agent-toolkit inventory
 ```
 
-For Claude Code marketplace (alternative, no pip): `/plugin marketplace add ulises-jeremias/agent-toolkit` then `/plugin install agent-toolkit-core@agent-toolkit`.
+For Claude Code marketplace (alternative): `/plugin marketplace add ulises-jeremias/agent-toolkit` then `/plugin install agent-toolkit-core@agent-toolkit`.
 
 ## 4. Open a supported tool
 
@@ -63,7 +63,7 @@ In your AI tool, invoke an existing core skill — e.g. `core/assistant`:
 > Use the core/assistant skill to bootstrap this workspace
 ```
 
-You should see the assistant skill instructions load. Browse the full catalog: `catalogs/skill-catalog.yaml` (61 skills), regenerate with `python3 scripts/generate-catalogs.py`.
+You should see the assistant skill instructions load. Browse the full catalog: `catalogs/skill-catalog.yaml` (77 skills), regenerate with `python3 scripts/generate-catalogs.py`.
 
 ## 6. Try Swarms (optional — multi-agent orchestration)
 
@@ -109,7 +109,7 @@ Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#sw
 
 ## Next steps
 
-* **Agents:** see `agents/` (16 personas) and `catalogs/agent-catalog.yaml`
+* **Agents:** see `agents/` (17 personas) and `catalogs/agent-catalog.yaml`
 * **MCP:** see `mcp/` templates (placeholders only, add credentials locally)
 * **Advanced CLI:** see [docs/SCOPE.md](SCOPE.md) and [docs/CLI_SURFACES.md](CLI_SURFACES.md) for the single-binary progressive disclosure model
 * **Loops:** see `loops/` (10 templates) and `docs/HOW_TO_CREATE_LOOP.md`
@@ -120,6 +120,6 @@ Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#sw
 
 * `agent-toolkit doctor` reports missing tool → install that tool first
 * `inventory` empty → re-run `agent-toolkit install` with `--force`
-* Broken install channel → prefer `uv tool install agent-toolkit-cli` (AUR pending)
+* Broken install channel → pick another: Homebrew, AUR `agent-toolkit-bin`, GitHub Release, `uv tool install 'agent-toolkit-cli>=1.11.0'`, or `npm i -g agent-toolkit-cli`
 
 See also: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for doctor error recipes.

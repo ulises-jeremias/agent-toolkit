@@ -36,10 +36,10 @@ Offline (`AGENT_TOOLKIT_OFFLINE=1|true|yes`) skips the network step and only che
 
 ### Packaging notes
 
-- **Wheel build:** `scripts/prepare-package-data.sh` copies all capability trees into `packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/` before `uv build --package agent-toolkit-cli`. CI job `build-package` runs this; local dev must run it before `pip install` from sdist.
-- **Editable install:** `uv sync` + `AGENT_TOOLKIT_ROOT=$PWD` uses the repo root directly; no need to prepare package data.
-- **Homebrew:** formula should either vendor the wheel (which already bundles `data/`) or set `AGENT_TOOLKIT_ROOT` to the keg's share dir if unpacking data separately. Do not rely on network download in sandboxed builds — set `AGENT_TOOLKIT_OFFLINE=1` and ensure data is present (see #257).
-- **AUR:** PKGBUILD should install the wheel or copy `data/` alongside the module; for offline builds, pre-populate `XDG_DATA_HOME` or set `AGENT_TOOLKIT_ROOT` to `/usr/share/agent-toolkit` (see #258). Validate with `agent-toolkit doctor` in `check()`.
+- **Wheel build:** `scripts/prepare-package-data.sh` copies all capability trees into `packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/` before `uv build --project packages/pypi/agent-toolkit-cli`. CI job `build-package` runs this; local dev must run it before `pip install` from sdist.
+- **Editable install:** `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` + `AGENT_TOOLKIT_ROOT=$PWD` uses the repo root directly; no need to prepare package data. The repo root is not a uv workspace.
+- **Homebrew / AUR (current):** Formula and `agent-toolkit-bin` install **GitHub Release V binaries** ([ADR-023](ADR-023-homebrew.md), [ADR-024](ADR-024-aur.md)). They do not consume this Python wheel. See [`distribution/`](../../distribution/README.md).
+- **Historical Python-wheel packaging notes:** if unpacking wheel `data/` separately, set `AGENT_TOOLKIT_ROOT` and `AGENT_TOOLKIT_OFFLINE=1` in sandboxed builds (see #257/#258).
 
 ## Alternatives Considered
 

@@ -139,7 +139,7 @@ If any command exits non-zero, read the output — it will tell you which file f
    grep -i "your-skill-topic" catalogs/skill-catalog.yaml
    ```
 
-2. **Pick a domain** — choose the most specific domain from: `core`, `delivery`, `design`, `forge`, `integrations`, `data`, `tooling`, `ops`, `loops`. If nothing fits, open an issue to discuss adding a new domain before proceeding.
+2. **Pick a domain** — choose the most specific domain from: `core`, `delivery`, `design`, `forge`, `integrations`, `data`, `tooling`, `ops`, `loops`, `agentic-security`, `architecture`, `cloud`, `accessibility`, `quality`. If nothing fits, open an issue to discuss adding a new domain before proceeding.
 
 3. **Create the skill directory**:
 
@@ -267,6 +267,7 @@ Profiles translate toolkit skills into tool-specific configuration.
    - GitHub Copilot: `copilot-instructions.md` (self-contained — no external file references)
    - Windsurf: `rules.md` + optional `memories/`
    - Pi: individual `skills/<skill-name>.md` files (self-contained)
+   - Muse Code: Agent Skills under `~/.config/muse/skills/` — see `profiles/muse-code/`
 
 3. **Keep profiles thin** — profiles reference skills; they don't duplicate skill content.
 

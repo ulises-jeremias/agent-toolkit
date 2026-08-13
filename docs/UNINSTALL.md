@@ -84,10 +84,13 @@ version uses a different remove command.
 # Homebrew
 brew uninstall agent-toolkit
 
-# AUR (yay)
-yay -R agent-toolkit
+# AUR (yay) — native V package
+yay -R agent-toolkit-bin
 
-# pip / uv tool
+# npm
+npm uninstall -g agent-toolkit-cli
+
+# pip / uv tool (PyPI launcher)
 pip uninstall agent-toolkit-cli
 uv tool uninstall agent-toolkit-cli
 ```

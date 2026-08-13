@@ -13,7 +13,7 @@ Discoverability: only a minority of skills appear in stable marketplace products
 
 ## What Is a Skill?
 
-A skill is a directory containing exactly two files:
+A skill is a directory containing a `SKILL.md` (YAML frontmatter + Markdown). No `skill.json`.
 
 ### SKILL.md
 
@@ -58,119 +58,26 @@ Tool compatibility is declared via optional `tools` frontmatter and validated by
 
 ## Skill Domains
 
-Skills are grouped into 9 domains based on their primary responsibility.
+Skills live under `skills/<domain>/<name>/`. There are **14 domains** (77 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
 
-### core
+| Domain | Count | Examples |
+|--------|------:|----------|
+| `core` | 8 | `assistant`, `dev-companion`, `workspace`, `project`, `onboarding` |
+| `delivery` | 21 | `adr`, `prd`, `bug`, `planning`, `work-item` |
+| `design` | 10 | `figma-implement-design`, `frontend-design` |
+| `forge` | 8 | `github-cli-workflow`, `gh-fix-ci`, `worktree` |
+| `integrations` | 5 | `slack-cli`, `linear`, `clickup-cli`, `mcp` |
+| `data` | 2 | `dbt-validation`, `snowflake-validation` |
+| `tooling` | 6 | `playwright-cli`, `jupyter-notebook`, `herdr`, `inventory` |
+| `ops` | 6 | `triage`, `swarm`, `llm-cost-advisor` |
+| `loops` | 1 | `loop-runner` |
+| `agentic-security` | 4 | `threat-modeling`, `mcp-audit` |
+| `cloud` | 2 | `cloud-design-patterns` |
+| `architecture` | 1 | `c4-model` |
+| `accessibility` | 1 | `review` |
+| `quality` | 2 | `megalinter`, `codeql` |
 
-Foundational patterns that underpin how the AI agent operates in any session. These are the skills most likely to be loaded by default in every profile.
-
-Skills: `assistant`, `dev-companion`, `onboarding`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`
-
-### delivery
-
-Work-item lifecycle, documentation artifacts, and project delivery processes. These skills handle the full spectrum from requirements (PRD, TRD, ADR) through execution (tasks, bugs, incidents) to handoff.
-
-Skills: `adr`, `agreement`, `bug`, `decision-log`, `development-workflow`, `epic`, `incident`, `management-unit-assessment`, `meeting-minutes`, `planning`, `prd`, `project-assessment`, `project-assessment-evidence`, `spike`, `task`, `technical-unit-assessment`, `trd`, `user-story`, `work-item`, `workflow-client-bootstrap`, `workflow-generic-project`
-
-### design
-
-UI/UX design, Figma integration, and design system rules. These skills bridge design tools and code.
-
-Skills: `figma`, `figma-code-connect-components`, `figma-create-design-system-rules`, `figma-create-new-file`, `figma-implement-design`
-
-### forge
-
-GitHub and GitLab CLI workflows, PR automation, and contribution planning. These skills handle the mechanics of code delivery on hosted platforms.
-
-Skills: `gh-address-comments`, `gh-contribution-planner`, `gh-fix-ci`, `github-cli-workflow`, `gitlab-cli-workflow`, `workflow-client-bootstrap`, `workflow-generic-project`
-
-### integrations
-
-External service integrations for team collaboration tools. These skills provide structured interfaces to Slack, Linear, and ClickUp.
-
-Skills: `clickup-cli`, `linear`, `slack-assistant`, `slack-cli`
-
-### data
-
-Data platform skills for dbt, Snowflake, and pipeline validation. These skills know the idioms of data engineering and run read-only validation by default.
-
-Skills: `dbt-validation`, `snowflake-validation`
-
-### tooling
-
-Developer tooling skills for browser automation and notebook workflows.
-
-Skills: `jupyter-notebook`, `playwright-cli`
-
-### ops
-
-Operational skills for triage, documentation generation, and LLM cost analysis.
-
-Skills: `docs-generator`, `llm-cost-advisor`, `triage`
-
-### loops
-
-Skills that support the loop engineering system, including the loop-runner skill that manages scheduling and state.
-
-Skills: `loop-runner`
-
----
-
-## Full Skill Table
-
-| Skill | Domain | Description | Claude Code | Cursor | OpenCode | Copilot | Windsurf | Pi |
-|-------|--------|-------------|:-----------:|:------:|:--------:|:-------:|:--------:|:--:|
-| `assistant` | core | General-purpose AI assistant with repo inspection | Yes | Yes | Yes | Yes | Yes | Yes |
-| `dev-companion` | core | Dev companion orchestration and routing | Yes | Yes | Yes | No | Yes | Yes |
-| `onboarding` | core | Project onboarding and convention discovery | Yes | Yes | Yes | Yes | Yes | Yes |
-| `output-handshake` | core | Artifact destination gate before writing deliverables | Yes | Yes | Yes | No | Yes | Yes |
-| `pr-fallback` | core | Default PR/MR body when no repo template exists | Yes | Yes | Yes | Yes | Yes | Yes |
-| `workspace-knowledge-sync` | core | Sync workspace knowledge base and inject session context | Yes | No | Yes | No | No | No |
-| `adr` | delivery | Architecture Decision Record lifecycle and authoring | Yes | Yes | Yes | Yes | Yes | Yes |
-| `agreement` | delivery | Agreement document with parties, terms, and validity | Yes | Yes | Yes | Yes | Yes | Yes |
-| `bug` | delivery | Bug report template and bug-vs-incident classification | Yes | Yes | Yes | Yes | Yes | Yes |
-| `decision-log` | delivery | Lightweight decision log entries with rationale | Yes | Yes | Yes | Yes | Yes | Yes |
-| `development-workflow` | delivery | Default task lifecycle, DoR, DoD, validation model | Yes | Yes | Yes | Yes | Yes | Yes |
-| `epic` | delivery | Epic template with objectives and success criteria | Yes | Yes | Yes | Yes | Yes | Yes |
-| `incident` | delivery | Incident report and RCA template | Yes | Yes | Yes | Yes | Yes | Yes |
-| `management-unit-assessment` | delivery | Management scorecard for governance and delivery | Yes | Yes | Yes | No | Yes | No |
-| `meeting-minutes` | delivery | Meeting minutes with agenda, decisions, action items | Yes | Yes | Yes | Yes | Yes | Yes |
-| `planning` | delivery | Planning, estimation, and task breakdown | Yes | Yes | Yes | Yes | Yes | Yes |
-| `prd` | delivery | Product Requirements Document authoring | Yes | Yes | Yes | Yes | Yes | Yes |
-| `project-assessment` | delivery | Interactive project assessment intake and scoring | Yes | Yes | Yes | No | Yes | No |
-| `project-assessment-evidence` | delivery | Evidence map for assessment sources and confidence | Yes | Yes | Yes | No | Yes | No |
-| `spike` | delivery | Spike and research findings with tradeoffs | Yes | Yes | Yes | Yes | Yes | Yes |
-| `task` | delivery | Technical task template with acceptance criteria | Yes | Yes | Yes | Yes | Yes | Yes |
-| `technical-unit-assessment` | delivery | Technical scorecard for frontend, backend, infra | Yes | Yes | Yes | No | Yes | No |
-| `trd` | delivery | Technical Requirements Document authoring | Yes | Yes | Yes | Yes | Yes | Yes |
-| `user-story` | delivery | User story template with persona and acceptance criteria | Yes | Yes | Yes | Yes | Yes | Yes |
-| `work-item` | delivery | Route epics, stories, tasks, bugs to atomic templates | Yes | Yes | Yes | Yes | Yes | Yes |
-| `workflow-client-bootstrap` | delivery | Generate client-specific workflow skill pairs | Yes | Yes | Yes | No | Yes | No |
-| `workflow-generic-project` | delivery | Delivery phases for any client project | Yes | Yes | Yes | Yes | Yes | Yes |
-| `figma` | design | Figma MCP entry point with required flow | Yes | No | Yes | No | Yes | No |
-| `figma-code-connect-components` | design | Map Figma nodes to existing code components | Yes | No | Yes | No | Yes | No |
-| `figma-create-design-system-rules` | design | Generate design system rule files from Figma | Yes | No | Yes | No | Yes | No |
-| `figma-create-new-file` | design | Create a new Figma file with sane defaults | Yes | No | Yes | No | Yes | No |
-| `figma-implement-design` | design | Translate Figma node to production code | Yes | Yes | Yes | No | Yes | No |
-| `gh-address-comments` | forge | Inspect and apply fixes for open PR review comments | Yes | Yes | Yes | No | Yes | Yes |
-| `gh-contribution-planner` | forge | Plan OSS contributions across repos | Yes | Yes | Yes | No | Yes | Yes |
-| `gh-fix-ci` | forge | Triage failing GitHub Actions, propose minimal fixes | Yes | Yes | Yes | No | Yes | Yes |
-| `github-cli-workflow` | forge | Push branch and create draft PR with gh | Yes | Yes | Yes | No | Yes | Yes |
-| `gitlab-cli-workflow` | forge | Push branch and create draft MR with glab | Yes | Yes | Yes | No | Yes | Yes |
-| `clickup-cli` | integrations | Task view, comments, and status via ClickUp CLI | Yes | Yes | Yes | No | Yes | No |
-| `linear` | integrations | Manage Linear issues and cycles via Linear MCP | Yes | No | Yes | No | Yes | No |
-| `slack-assistant` | integrations | Read channels, send messages, browse canvases | Yes | No | Yes | No | Yes | No |
-| `slack-cli` | integrations | Slack app development via slack CLI | Yes | Yes | Yes | No | Yes | No |
-| `dbt-validation` | data | Run dbt parse, compile, test, run per repo docs | Yes | Yes | Yes | No | Yes | No |
-| `snowflake-validation` | data | Read-only validation patterns via CLI or SQL | Yes | Yes | Yes | No | Yes | No |
-| `jupyter-notebook` | tooling | Scaffold reproducible Jupyter notebooks | Yes | Yes | Yes | No | Yes | No |
-| `playwright-cli` | tooling | Drive a real browser from the terminal via Playwright | Yes | Yes | Yes | No | Yes | No |
-| `docs-generator` | ops | Generate documentation from code and comments | Yes | Yes | Yes | Yes | Yes | Yes |
-| `llm-cost-advisor` | ops | Analyze and advise on LLM token costs | Yes | Yes | Yes | No | Yes | No |
-| `triage` | ops | General-purpose issue and task triage | Yes | Yes | Yes | Yes | Yes | Yes |
-| `loop-runner` | loops | Schedule and manage recurring agentic loops | Yes | No | Yes | No | No | No |
-
----
+Tool compatibility is declared in each `SKILL.md` `tools:` frontmatter. Do not maintain a second compatibility matrix here — use the catalog.
 
 ## Installing Skills
 

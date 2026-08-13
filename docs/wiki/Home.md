@@ -15,13 +15,13 @@ what each tool needs.
 
 | Component | Count | Description |
 |-----------|-------|-------------|
-| Skills | 61 | Portable capability definitions across 9 domains |
-| Agent personas | 16 | Tool-agnostic specialist role definitions |
+| Skills | 77 | Portable capability definitions (`SKILL.md`) |
+| Agent personas | 17 | Tool-agnostic specialist role definitions |
 | Loop templates | 10 | Recurring agentic workflows across 3 tiers |
-| Plugins | 3 | Claude Code and Cursor marketplace bundles |
-| Tool profiles | 6 | Per-tool configurations (Claude Code, Cursor, OpenCode, Copilot, Windsurf, Pi) |
-| MCP templates | 6 | Ready-to-use Model Context Protocol configs |
-| Solution packs | 3 | Curated bundles for common team setups |
+| Plugins | 3 | Claude Code and Cursor marketplace bundles (plus experimental complete) |
+| Tool profiles | 7 | Claude Code, Cursor, OpenCode, Copilot, Windsurf, Pi, Muse Code |
+| MCP templates | 7 | Ready-to-use Model Context Protocol configs |
+| Solution packs | 7 | Curated bundles for common team setups |
 
 ---
 
@@ -29,15 +29,15 @@ what each tool needs.
 
 ### Getting Started
 
-- [Installation](Installation) — all 4 install methods, prerequisites, verification, updating, uninstalling
-- [Profiles](Profiles) — per-tool profile guide for all 6 supported tools
+- [Installation](Installation) — V CLI channels (GitHub, Homebrew, AUR, PyPI launcher, npm)
+- [Profiles](Profiles) — per-tool profile index (7 supported tools)
 
 ### Reference
 
-- [Skills Reference](Skills-Reference) — all 61 skills organized by domain, frontmatter spec, compatibility matrix
-- [Agents Reference](Agents-Reference) — all 16 agent personas, triggers, handoffs, invocation patterns
+- [Skills Reference](Skills-Reference) — catalog pointers (77 skills)
+- [Agents Reference](Agents-Reference) — catalog pointers (17 personas)
 - [Loop Engineering](Loop-Engineering) — loop YAML spec, all 10 templates, checkpointing, budget sizing, scheduling
-- [MCP Setup](MCP-Setup) — all 6 MCP providers with env vars, setup commands, and per-tool configuration
+- [MCP Setup](MCP-Setup) — MCP providers with env vars and per-tool configuration
 
 ### Marketplace
 
@@ -52,38 +52,27 @@ what each tool needs.
 
 ## Quick Install
 
-### Claude Code Plugin (recommended)
+The product is the **native V CLI**. Then `agent-toolkit install`.
+
+```bash
+brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
+# or: yay -S agent-toolkit-bin
+# or: uv tool install 'agent-toolkit-cli>=1.11.0'
+# or: npm i -g agent-toolkit-cli
+# GitHub Release: https://github.com/ulises-jeremias/agent-toolkit/releases/latest
+
+agent-toolkit install
+agent-toolkit doctor
+```
+
+Claude Code marketplace plugins (skills/agents only — not the full CLI):
 
 ```text
 /plugin marketplace add ulises-jeremias/agent-toolkit
 /plugin install agent-toolkit-core@agent-toolkit
-/plugin install agent-toolkit-agents@agent-toolkit
-/plugin install agent-toolkit-forge@agent-toolkit
 ```
 
-### npx (Agent Skills standard)
-
-```bash
-# Global install — all compatible tools pick up skills automatically
-npx skills add ulises-jeremias/agent-toolkit -g
-
-# Project-scoped install
-npx skills add ulises-jeremias/agent-toolkit
-```
-
-### Auto-detect script
-
-```bash
-git clone https://github.com/ulises-jeremias/agent-toolkit.git
-bash agent-toolkit/scripts/install.sh
-```
-
-### Manual clone
-
-```bash
-git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-bash ~/.agent-toolkit/scripts/install.sh
-```
+Full options: [Installation](Installation) → [`docs/INSTALLATION.md`](../INSTALLATION.md).
 
 ---
 
@@ -144,12 +133,12 @@ new PRs, issues needing attention, and CI health on main.
 
 ```text
 agent-toolkit/
-├── skills/         # 61 skills across 9 domains
-├── agents/         # 16 agent persona definitions
+├── skills/         # 77 skills
+├── agents/         # 17 agent persona definitions
 ├── loops/          # 10 loop engineering templates
-├── profiles/       # Per-tool configurations (6 tools)
-├── mcp/templates/  # 6 MCP provider config stubs
-├── plugins/        # 3 marketplace plugin bundles
+├── profiles/       # Per-tool configurations (7 tools)
+├── mcp/templates/  # 7 MCP provider config stubs
+├── plugins/        # Marketplace plugin bundles
 ├── packs/          # 7 solution packs
 ├── catalogs/       # skill-catalog.yaml, agent-catalog.yaml
 ├── schemas/        # JSON validation schemas
@@ -169,6 +158,7 @@ agent-toolkit/
 | GitHub Copilot | No | No | Yes |
 | Windsurf | No | Yes | Yes |
 | Pi Coding Agent | No | Yes | Yes |
+| Muse Code | No | Yes | Yes |
 
 ---
 

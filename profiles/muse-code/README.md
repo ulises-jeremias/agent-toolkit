@@ -25,7 +25,7 @@ muse skills import --from claude --scope user
 
 ## Skills Mapping
 
-All 52 agent-toolkit skills are compatible with Muse Code via `muse-code: supported: true`.
+All agent-toolkit skills are compatible with Muse Code via `muse-code: supported: true`.
 The compiler emits to `skills/<name>/SKILL.md` which the installer maps to both
 `~/.config/muse/skills/` and `~/.agents/skills/` (universal).
 

@@ -78,7 +78,7 @@ code reviewer available for every project.
 
 **Install command:** `/plugin install agent-toolkit-agents@agent-toolkit`
 
-The full persona library. All 16 agent personas, ready to invoke with `@mention`.
+The marketplace persona plugin (16 agents). Disk has 17 including `agentic-security-reviewer`, which is not in this plugin. Invoke with `@mention`.
 
 **Included agents:**
 
@@ -209,7 +209,7 @@ version of the repository.
 ```bash
 cd ~/.agent-toolkit
 git pull
-bash scripts/install.sh --force  # re-deploy updated profiles
+make install-cli && agent-toolkit install --force
 ```
 
 ---

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Align inventory counts (77 skills / 17 agents / 7 MCP / 7 packs), V-first install/update/uninstall, and collapse stale wiki mirrors that still described Python/`install.sh` as the product
 - **Docs** — Quarantine Python CLI as named `agent-toolkit-py` fallback (ADR-021 launcher stays; #540/#470). Product path remains V.
 - **Docs** — Contributor how-tos are V-first: `docs/HOW_TO_DEVELOP_V.md` (V 0.5.2, `import json`, Makefile), install matrix GitHub/brew/AUR/PyPI/npm, GitHub Release adapter no longer claims PyInstaller, `uv run agent-toolkit` removed from HOW_TO/certification docs
 - **Docs** — Install/release docs match V-first channels: GitHub Release, PyPI launcher, Homebrew, AUR `agent-toolkit-bin`, npm `agent-toolkit-cli` + platform packages, Docker `debian:trixie-slim`

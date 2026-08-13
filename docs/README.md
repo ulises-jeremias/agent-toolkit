@@ -10,4 +10,4 @@
 | Target matrix | `docs/TARGETS.md`, `docs/targets/*-certification.md` | |
 | Research / historical | `docs/research/`, `docs/wiki/` | Wiki pages may lag; treat as mirrors until sync |
 
-When `docs/` and `docs/wiki/` disagree, **`docs/` wins**. Update or delete the wiki page in the same PR (#101).
+When `docs/` and `docs/wiki/` disagree, **`docs/` wins**. Wiki pages are **indexes** that should link here — not a second catalog. Update or delete a wiki page in the same PR if it duplicates or contradicts `docs/` (#101).

@@ -16,6 +16,7 @@ Profiles reference skills but do not duplicate them. When a skill changes, the p
 | GitHub Copilot | `profiles/copilot/` | `copilot-instructions.md` | `.github/` (per project) |
 | Windsurf | `profiles/windsurf/` | `rules/*.mdc`, `memories/global_rules.md` | `~/.codeium/windsurf/` |
 | Pi Coding Agent | `profiles/pi/` | `skills/*.md` | `~/.pi/agent/skills/` |
+| Muse Code | `profiles/muse-code/` | Agent Skills (`SKILL.md`) | `~/.config/muse/skills/` |
 
 ---
 

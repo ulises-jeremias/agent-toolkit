@@ -6,16 +6,17 @@
 
 ### Is this only for Claude Code?
 
-No. agent-toolkit supports 6 AI coding assistants:
+No. agent-toolkit supports these coding assistants:
 
 | Tool | Plugin | npx | Manual |
 |------|--------|-----|--------|
-| Claude Code | Yes (recommended) | Yes | Yes |
+| Claude Code | Yes | Yes | Yes |
 | Cursor | Yes | Yes | Yes |
 | OpenCode | No | Yes | Yes |
 | GitHub Copilot | No | No | Yes |
 | Windsurf | No | Yes | Yes |
 | Pi Coding Agent | No | Yes | Yes |
+| Muse Code | No | Yes | Yes |
 
 Skills use the `SKILL.md` frontmatter-only format from the Agent Skills spec, which is designed
 to be tool-agnostic. Profiles in `profiles/<tool>/` adapt the shared skills to each tool's
@@ -29,14 +30,12 @@ They work at different layers of the stack:
 
 | | agent-toolkit | agentic-workstation |
 |---|---|---|
-| **Layer** | Distribution — skills, agents, loops, profiles, MCP templates | Runtime — harness, runners, worker processes, CI integration |
-| **What it provides** | Portable capability definitions and per-tool configs | Execution infrastructure for running loops and background jobs |
-| **Self-sufficient?** | Yes — works standalone with any supported AI tool | Requires a host AI tool and optionally agent-toolkit for skills |
-| **Installs to** | `~/.claude/`, `~/.cursor/`, etc. | `~/.local/share/agentic-workstation/` |
+| **Layer** | L1.5 — skills, agents, loops, profiles, MCP templates | L1 — machine provisioning (chezmoi, packages, LLM policy) |
+| **What it provides** | Portable capability definitions and the **V CLI** | Dotfiles, package groups, runner logic |
+| **Self-sufficient?** | Yes — works standalone with any supported AI tool | Optionally installs agent-toolkit during `chezmoi apply` |
+| **Installs to** | `~/.claude/`, `~/.cursor/`, etc. via `agent-toolkit install` | `~/.local/share/agentic-workstation/` |
 
-agent-toolkit is the **content layer**: the skills, agent personas, loop definitions, and MCP
-templates that define what an AI can do. agentic-workstation is the **execution layer**: the
-harness that runs loops on schedules, manages job queues, and provides a runner hierarchy.
+agent-toolkit is the **capability layer** (skills, personas, loops, MCP, V CLI). agentic-workstation is **L1 machine provisioning** (chezmoi, packages, LLM policy). Loop scheduling and job queues live in **agentic-harness** / systemd / `agent-toolkit loop`, not in workstation.
 
 You do not need agentic-workstation to use agent-toolkit. The two are designed to work well
 together, but agent-toolkit is fully self-sufficient on its own.
@@ -203,16 +202,14 @@ Linear workspaces.
 
 ### How do I add a new tool profile?
 
-See the [Profiles](Profiles) wiki page and the
-[`docs/HOW_TO_ADD_PROFILE.md`](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/HOW_TO_ADD_PROFILE.md)
-guide in the repository.
+See [`docs/PROFILES.md`](../PROFILES.md) and [`CONTRIBUTING.md`](../../CONTRIBUTING.md) (How to Add a Profile).
 
 In summary:
 
 1. Create `profiles/<new-tool>/` directory
 2. Add tool-specific config files using that tool's native format
 3. Document the install path in `docs/PROFILES.md` and `docs/INSTALLATION.md`
-4. Add detection and copy logic to `scripts/install.sh`
+4. Implement detection in the V installer (`modules/agent_toolkit_cli`) — not `scripts/install.sh`
 5. Open a PR
 
 ---
@@ -250,15 +247,11 @@ a profile for it. See [Contributing](Contributing).
 ### How do I stay up to date with new skills and agents?
 
 ```bash
-cd ~/.agent-toolkit
-git pull
-bash scripts/install.sh  # re-deploy updated profiles
-```
-
-Or with forced overwrite:
-
-```bash
-bash scripts/install.sh --force
+# Match the channel you installed
+brew upgrade agent-toolkit
+# or: yay -Syu agent-toolkit-bin
+# or: uv tool upgrade agent-toolkit-cli
+agent-toolkit install --force
 ```
 
 Subscribe to
