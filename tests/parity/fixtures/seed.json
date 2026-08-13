@@ -29,6 +29,21 @@
       ]
     },
     {
+      "command": "version-json",
+      "args": [
+        "version",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "version",
+        "engine",
+        "commit"
+      ]
+    },
+    {
       "command": "inventory",
       "args": [
         "inventory",
@@ -79,7 +94,8 @@
       "required_keys": [
         "engine",
         "version",
-        "platform"
+        "platform",
+        "commit"
       ]
     },
     {

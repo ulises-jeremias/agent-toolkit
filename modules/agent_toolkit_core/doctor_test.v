@@ -11,6 +11,7 @@ fn test_run_doctor_readonly_has_observability_fields() {
 	r := doctor_result(snap)
 	assert r.data['engine'] == 'v'
 	assert r.data['version'] == snap.version
+	assert r.data['commit'].len > 0
 	assert r.data['platform'] == snap.platform
 	assert r.data['fix_applied'] == 'false'
 }

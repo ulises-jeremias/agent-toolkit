@@ -34,3 +34,21 @@ fn test_resolve_returns_nonempty() {
 	v := resolve_toolkit_version()
 	assert v.len > 0
 }
+
+fn test_resolve_commit_env_override() {
+	old := os.getenv('AGENT_TOOLKIT_COMMIT')
+	os.setenv('AGENT_TOOLKIT_COMMIT', 'deadbeef', true)
+	defer {
+		restore_env_ver('AGENT_TOOLKIT_COMMIT', old)
+	}
+	assert resolve_commit() == 'deadbeef'
+}
+
+fn test_version_result_json_fields_not_in_message() {
+	r := version_result('1.2.3')
+	assert r.ok
+	assert r.message == 'agent-toolkit 1.2.3'
+	assert r.data['engine'] == 'v'
+	assert r.data['version'] == '1.2.3'
+	assert r.data['commit'].len > 0
+}
