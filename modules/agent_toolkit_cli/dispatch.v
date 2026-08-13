@@ -67,6 +67,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_build(opts)
 		return render(agent_toolkit_core.build_result(report), mode)
 	}
+	if cmd_name == 'uninstall' {
+		opts := parse_uninstall_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_uninstall(opts)
+		return render(agent_toolkit_core.uninstall_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -126,12 +134,71 @@ fn parse_build_options(args []string) agent_toolkit_core.BuildOptions {
 	}
 }
 
+fn parse_uninstall_options(args []string) !agent_toolkit_core.UninstallOptions {
+	mut dry_run := false
+	mut tools_raw := ''
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--dry-run' {
+			dry_run = true
+			i++
+			continue
+		}
+		if a == '--rollback' {
+			// Alias semantics: uninstall with side effects (not dry-run).
+			dry_run = false
+			i++
+			continue
+		}
+		if a == '--tools' {
+			if i + 1 >= args.len {
+				return error('--tools requires an argument')
+			}
+			tools_raw = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--tools=') {
+			tools_raw = a.all_after('=')
+			i++
+			continue
+		}
+		i++
+	}
+	mut tools := []string{}
+	if tools_raw.len > 0 {
+		for part in tools_raw.split(',') {
+			t := part.trim_space()
+			if t.len > 0 {
+				tools << t
+			}
+		}
+	}
+	return agent_toolkit_core.UninstallOptions{
+		tools:   tools
+		dry_run: dry_run
+	}
+}
+
 fn allowed_flag(cmd string, a string) bool {
 	if a in ['-h', '--help', '--json', '--quiet'] {
 		return true
 	}
 	if cmd == 'doctor' && a in ['--fix', '--provenance'] {
 		return true
+	}
+	if cmd == 'uninstall' {
+		if a in ['--dry-run', '--rollback'] {
+			return true
+		}
+		if a.starts_with('--tools') {
+			return true
+		}
 	}
 	if cmd == 'build' {
 		if a in ['--check'] {
@@ -239,6 +306,18 @@ Compile canonical capabilities into target artifacts (Tier-1 + remaining emitter
   --product PRODUCT  Product id (default: all products)
   --output DIR       Output directory (default: <repo>/plugins)
   --json             Structured CommandResult JSON
+'
+	}
+	if name == 'uninstall' {
+		return 'Usage: agent-toolkit uninstall [--tools LIST] [--dry-run] [--rollback] [--json]
+
+Remove agent-toolkit profile files recorded in install receipts.
+Alias: rollback
+
+  --tools LIST   Comma-separated tools (default: all with receipts)
+  --dry-run      Show what would be removed without deleting
+  --rollback     Alias for uninstall (removes toolkit-owned files)
+  --json         Structured CommandResult JSON
 '
 	}
 	mut c := cli.Command{

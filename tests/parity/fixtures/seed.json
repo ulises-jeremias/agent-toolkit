@@ -2,111 +2,260 @@
   "fixtures": [
     {
       "command": "version",
-      "args": ["version"],
+      "args": [
+        "version"
+      ],
       "class": "EXACT",
       "expect_exit": 0
     },
     {
       "command": "version-flag",
-      "args": ["--version"],
+      "args": [
+        "--version"
+      ],
       "class": "EXACT",
       "expect_exit": 0
     },
     {
       "command": "help",
-      "args": ["--help"],
+      "args": [
+        "--help"
+      ],
       "class": "SEMANTIC",
-      "must_contain": ["install", "doctor", "inventory"]
+      "must_contain": [
+        "install",
+        "doctor",
+        "inventory"
+      ]
     },
     {
       "command": "inventory",
-      "args": ["inventory", "--json"],
+      "args": [
+        "inventory",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "skills_count", "agents_count", "products_count"]
+      "required_keys": [
+        "command",
+        "skills_count",
+        "agents_count",
+        "products_count"
+      ]
     },
     {
       "command": "inventory-human",
-      "args": ["inventory"],
+      "args": [
+        "inventory"
+      ],
       "class": "SEMANTIC",
-      "must_contain": ["Skills:", "Agents:", "Products:"]
+      "must_contain": [
+        "Skills:",
+        "Agents:",
+        "Products:"
+      ]
     },
     {
       "command": "matrix",
-      "args": ["matrix", "--json"],
+      "args": [
+        "matrix",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "found"]
+      "required_keys": [
+        "command",
+        "found"
+      ]
     },
     {
       "command": "doctor",
-      "args": ["doctor", "--json"],
+      "args": [
+        "doctor",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["engine", "version", "platform"]
+      "required_keys": [
+        "engine",
+        "version",
+        "platform"
+      ]
     },
     {
       "command": "build-check",
-      "args": ["build", "--check", "--target", "cursor", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "cursor",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "build-check-copilot-cli",
-      "args": ["build", "--check", "--target", "copilot-cli", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "copilot-cli",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "build-check-windsurf",
-      "args": ["build", "--check", "--target", "windsurf", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "windsurf",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "build-check-pi",
-      "args": ["build", "--check", "--target", "pi", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "pi",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "build-check-gemini",
-      "args": ["build", "--check", "--target", "gemini-cli", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "gemini-cli",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "build-check-muse",
-      "args": ["build", "--check", "--target", "muse-code", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "muse-code",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "build-check-codex",
-      "args": ["build", "--check", "--target", "codex", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "codex",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "build-check-agent-plugins",
-      "args": ["build", "--check", "--target", "agent-plugins", "--product", "agent-toolkit-core", "--json"],
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "agent-plugins",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
       "class": "SCHEMA",
       "expect_v_exit": 0,
-      "required_keys": ["command", "mode", "ok"]
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
     },
     {
       "command": "install-bad-flag",
-      "args": ["install", "--not-a-real-flag"],
+      "args": [
+        "install",
+        "--not-a-real-flag"
+      ],
       "class": "EXACT",
       "expect_exit": 2,
       "compare": "exit_only"
+    },
+    {
+      "command": "uninstall-help",
+      "args": [
+        "uninstall",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "uninstall",
+        "dry-run",
+        "tools"
+      ]
     }
   ]
 }

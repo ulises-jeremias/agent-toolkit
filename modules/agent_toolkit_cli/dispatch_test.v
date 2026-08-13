@@ -56,6 +56,17 @@ fn test_dispatch_build_help() {
 	assert code == 0
 }
 
+fn test_dispatch_uninstall_help() {
+	code := dispatch(['agent-toolkit', 'uninstall', '--help'])
+	assert code == 0
+}
+
+fn test_dispatch_rollback_alias_allowed() {
+	// No receipts in default dir may exit non-zero; alias must be known (not unknown command).
+	code := dispatch(['agent-toolkit', 'rollback', '--dry-run', '--json'])
+	assert code != 2
+}
+
 fn test_grouped_help_mentions_consumer_and_advanced() {
 	h := grouped_help()
 	assert h.contains('Consumer') || h.to_lower().contains('install')
