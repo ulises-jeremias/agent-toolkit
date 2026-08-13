@@ -147,6 +147,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_devcompanion(opts)
 		return render(agent_toolkit_core.devcompanion_result(report), mode)
 	}
+	if cmd_name == 'swarm' {
+		opts := parse_swarm_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_swarm(opts)
+		return render(agent_toolkit_core.swarm_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -747,6 +755,111 @@ fn parse_dc_options(args []string) !agent_toolkit_core.DevcompanionOptions {
 	}
 }
 
+fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
+	mut sub := ''
+	mut workspace_path := ''
+	mut run_id := ''
+	mut gate_id := ''
+	mut recipe := ''
+	mut backend := ''
+	mut reason := ''
+	mut dry_run := false
+	mut force := false
+	mut task_parts := []string{}
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--dry-run' {
+			dry_run = true
+			i++
+			continue
+		}
+		if a == '--force' {
+			force = true
+			i++
+			continue
+		}
+		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--recipe' { recipe = val }
+				'--backend' { backend = val }
+				'--ui' { backend = val }
+				'--workspace' { workspace_path = val }
+				'--reason' { reason = val }
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--recipe=') {
+			recipe = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--backend=') || a.starts_with('--ui=') {
+			backend = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--workspace=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--reason=') {
+			reason = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+			i++
+			continue
+		}
+		if run_id.len == 0 {
+			run_id = a
+			i++
+			continue
+		}
+		if gate_id.len == 0 && sub in ['approve', 'reject'] {
+			gate_id = a
+			i++
+			continue
+		}
+		task_parts << a
+		i++
+	}
+	mut task := task_parts.join(' ')
+	if sub == 'start' && task.len == 0 {
+		task = run_id
+		run_id = ''
+	}
+	return agent_toolkit_core.SwarmOptions{
+		subcommand:     sub
+		workspace_path: workspace_path
+		run_id:         run_id
+		gate_id:        gate_id
+		recipe:         recipe
+		backend:        backend
+		task:           task
+		reason:         reason
+		dry_run:        dry_run
+		force:          force
+	}
+}
+
 fn parse_plugin_options(args []string) agent_toolkit_core.PluginOptions {
 	mut sub := ''
 	for a in args {
@@ -940,6 +1053,15 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 	}
+	if cmd == 'swarm' {
+		if a in ['--dry-run', '--force', '--recipe', '--backend', '--ui', '--workspace', '--reason'] {
+			return true
+		}
+		if a.starts_with('--recipe') || a.starts_with('--backend') || a.starts_with('--ui')
+			|| a.starts_with('--workspace') || a.starts_with('--reason') {
+			return true
+		}
+	}
 	return false
 }
 
@@ -1115,6 +1237,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'devcompanion' {
 		return agent_toolkit_core.dc_help_text()
+	}
+	if name == 'swarm' {
+		return agent_toolkit_core.swarm_help_text()
 	}
 	mut c := cli.Command{
 		name:        name

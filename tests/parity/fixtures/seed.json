@@ -496,6 +496,33 @@
         "queue",
         "status"
       ]
+    },
+    {
+      "command": "swarm-help",
+      "args": [
+        "swarm",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "start",
+        "doctor",
+        "approve"
+      ]
+    },
+    {
+      "command": "swarm-recipes",
+      "args": [
+        "swarm",
+        "recipes",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "recipes"
+      ]
     }
   ]
 }

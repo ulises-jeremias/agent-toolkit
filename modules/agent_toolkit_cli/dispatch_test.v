@@ -131,6 +131,11 @@ fn test_dispatch_dc_alias_help() {
 	assert code == 0
 }
 
+fn test_dispatch_swarm_help() {
+	code := dispatch(['agent-toolkit', 'swarm', '--help'])
+	assert code == 0
+}
+
 fn test_dispatch_rollback_alias_allowed() {
 	// No receipts in default dir may exit non-zero; alias must be known (not unknown command).
 	code := dispatch(['agent-toolkit', 'rollback', '--dry-run', '--json'])
