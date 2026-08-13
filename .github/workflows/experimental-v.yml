@@ -11,6 +11,7 @@ on:
       - ".v-version"
       - "docs/v/experimental-binaries.md"
       - "docs/v/release-matrix.md"
+      - "docs/v/artifact-smoke.md"
   push:
     branches: [main]
     paths:
@@ -18,6 +19,7 @@ on:
       - ".v-version"
       - "docs/v/experimental-binaries.md"
       - "docs/v/release-matrix.md"
+      - "docs/v/artifact-smoke.md"
 
 permissions:
   contents: read
@@ -38,22 +40,27 @@ jobs:
             asset: agent-toolkit-v-experimental-linux-x86_64
             v_zip: v_linux.zip
             bin: agent-toolkit
+            expect_arch: x86_64
           - os: ubuntu-24.04-arm
             asset: agent-toolkit-v-experimental-linux-arm64
             v_zip: v_linux_arm64.zip
             bin: agent-toolkit
+            expect_arch: arm64
           - os: macos-latest
             asset: agent-toolkit-v-experimental-macos-arm64
             v_zip: v_macos_arm64.zip
             bin: agent-toolkit
+            expect_arch: arm64
           - os: macos-15-intel
             asset: agent-toolkit-v-experimental-macos-x86_64
             v_zip: v_macos_x86_64.zip
             bin: agent-toolkit
+            expect_arch: x86_64
           - os: windows-latest
             asset: agent-toolkit-v-experimental-windows-x86_64.exe
             v_zip: v_windows.zip
             bin: agent-toolkit.exe
+            expect_arch: x86_64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -93,14 +100,28 @@ jobs:
           "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
 
-      - name: Smoke --version / --help
+      - name: Smoke --version / --help / inventory / doctor
         shell: bash
         env:
           OUT_BIN: ${{ matrix.bin }}
+          EXPECT_ARCH: ${{ matrix.expect_arch }}
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
         run: |
           set -euo pipefail
+          got="$(uname -m | tr 'A-Z' 'a-z')"
+          case "${got}" in
+            aarch64|arm64) got=arm64 ;;
+            x86_64|amd64) got=x86_64 ;;
+          esac
+          if [ "${got}" != "${EXPECT_ARCH}" ]; then
+            echo "architecture mismatch: runner uname -m normalized to ${got}, expected ${EXPECT_ARCH} for this artifact" >&2
+            exit 1
+          fi
+          echo "arch_ok runner=${got} asset_expect=${EXPECT_ARCH}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
+          "build/${OUT_BIN}" inventory
+          "build/${OUT_BIN}" doctor --json
 
       - uses: actions/upload-artifact@v7
         with:

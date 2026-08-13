@@ -34,4 +34,4 @@ macOS x86_64 is **MUST here** (experimental channel). The historical #256 skip (
 
 `.github/workflows/experimental-v.yml` — `fail-fast: false`, `contents: read`, Actions artifacts only (no `gh release upload`).
 
-Smoke: `--version` / `--help`. Broader smoke is #531.
+Smoke: `--version` / `--help` / `inventory` / `doctor --json` plus an arch mismatch gate ([#531](https://github.com/ulises-jeremias/agent-toolkit/issues/531), [artifact-smoke.md](artifact-smoke.md)).

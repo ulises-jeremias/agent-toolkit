@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — Execute MUST-platform V artifacts (`--version`/`--help`/`inventory`/`doctor`) with arch mismatch fail (Closes #531)
 - **Feat** — Native V MUST build matrix (linux x86_64/arm64, macos arm64/x86_64, windows x86_64; experimental names) (Closes #529)
 - **Feat** — Experimental native V CI artifacts (linux-x86_64, macos-arm64, windows-x86_64; experimental names only) (Closes #562)
 - **Docs** — ADR-020 V concurrency: process-per-run supervisor (no Python threads / no `go` workers) (Closes #528)
