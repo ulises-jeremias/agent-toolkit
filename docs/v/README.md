@@ -41,6 +41,7 @@ Checksums **MUST**. Attestations/SBOM prove provenance only ([code-signing-polic
 | [cutover.md](cutover.md) | Engine cutover |
 | [python-api-consumers.md](python-api-consumers.md) | Python import audit (#561); #540 must cite this |
 | [migration-risk-register.md](migration-risk-register.md) | Risks (#478) |
+| [performance-baseline.md](performance-baseline.md) | Startup/help/inventory/doctor timings (#533) |
 
 ## Core services (V)
 
