@@ -4,6 +4,12 @@ Thank you for your interest in contributing. This document covers everything you
 
 ---
 
+## Wiki mirror links
+
+The `docs/wiki/` tree is a mirror for GitHub Wiki sync. Wiki-style `[[Page]]` links there
+are intentional — see `docs/wiki/Contributing.md`. Do not rewrite them to relative markdown
+as a drive-by fix.
+
 ## Prerequisites
 
 - **Git** 2.30 or later
