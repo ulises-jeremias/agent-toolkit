@@ -36,7 +36,7 @@
 
 ## What is this package?
 
-`agent-toolkit-cli` on npm is the **Node adapter** for the agent-toolkit monorepo ([ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm.md)). It is a **thin launcher** — no JavaScript business logic. The real CLI is the native **V** binary from [GitHub Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest).
+`agent-toolkit-cli` on npm is the **Node adapter** for the agent-toolkit monorepo ([ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md)). It is a **thin launcher** — no JavaScript business logic. The real CLI is the native **V** binary from [GitHub Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest).
 
 Same product name as [PyPI](https://pypi.org/project/agent-toolkit-cli/). Same binary. Different install channel.
 
@@ -244,7 +244,7 @@ npm uninstall -g agent-toolkit-cli
 | [README (monorepo)](https://github.com/ulises-jeremias/agent-toolkit#readme) | Full product overview, skills, agents, packs |
 | [INSTALLATION.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/INSTALLATION.md) | Install paths per tool |
 | [CLI_SURFACES.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/CLI_SURFACES.md) | Consumer vs advanced commands |
-| [ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm.md) | npm topology (meta + optionalDeps) |
+| [ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md) | npm topology (meta + optionalDeps) |
 | [TRUST.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/TRUST.md) | Trust boundaries and supply chain |
 | [Wiki](https://github.com/ulises-jeremias/agent-toolkit/wiki) | Extended reference |
 

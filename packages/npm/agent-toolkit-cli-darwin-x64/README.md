@@ -10,12 +10,12 @@
 
 [![npm](https://img.shields.io/npm/v/agent-toolkit-cli-darwin-x64?style=flat&labelColor=1f2937&color=7c3aed)](https://www.npmjs.com/package/agent-toolkit-cli-darwin-x64)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/LICENSE)
-[![os](https://img.shields.io/badge/os-darwin-0891b2?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm.md)
-[![cpu](https://img.shields.io/badge/cpu-x64-ea580c?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm.md)
+[![os](https://img.shields.io/badge/os-darwin-0891b2?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md)
+[![cpu](https://img.shields.io/badge/cpu-x64-ea580c?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md)
 
 [Meta-package](https://www.npmjs.com/package/agent-toolkit-cli) ·
 [GitHub Release](https://github.com/ulises-jeremias/agent-toolkit/releases/latest) ·
-[ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm.md) ·
+[ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md) ·
 [Installation](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/INSTALLATION.md)
 
 </div>
@@ -57,7 +57,7 @@ npm selects this package via `optionalDependencies` when `os=darwin` and `cpu=x6
 | Guide | Description |
 |-------|-------------|
 | [agent-toolkit-cli (npm)](https://www.npmjs.com/package/agent-toolkit-cli) | Meta-package README — install, commands, tools |
-| [ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm.md) | npm topology |
+| [ADR-025](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md) | npm topology |
 | [ADR-018](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-018-release-artifacts.md) | Canonical Release asset names |
 | [Monorepo](https://github.com/ulises-jeremias/agent-toolkit) | Source of truth |
 
