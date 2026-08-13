@@ -1,12 +1,14 @@
-# ADR-007: Deprecate scripts/install.sh Behind Python CLI (Thin Wrapper)
+# ADR-007: Deprecate scripts/install.sh Behind V CLI (Thin Wrapper)
 
-**Status:** Accepted  
+**Status:** Accepted (V-first amendment — see #682)  
 **Date:** 2026-08-06  
 **Deciders:** maintainers (Wave 3 #270, parent #263)
 
+> **V-first note (2026-08):** Primary consumer path is the native V `agent-toolkit` binary. PyPI remains a launcher channel (ADR-021), not a separate product CLI. Thin wrappers: `scripts/install.sh` → `agent-toolkit install`, `scripts/doctor.sh` → `agent-toolkit doctor`.
+
 ## Context
 
-Two installers exist: `scripts/install.sh` (bash, profile-copy) and `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/install.py` (Python, `agent-toolkit install`). Dual paths drift — examples still teach `bash install.sh`, `INSTALLATION.md` lists both, and bash lacks the CLI's detection, receipts, and target-aware logic (`installer/sources.py`).
+Two installers existed: `scripts/install.sh` (bash, profile-copy) and the product CLI (`agent-toolkit install`). The **product** is the native **V** binary (brew / AUR `agent-toolkit-bin` / GitHub Release); PyPI `agent-toolkit-cli` is a thin launcher over that binary (ADR-021). Dual bash/CLI paths drifted — examples taught `bash install.sh` while INSTALLATION.md moved V-first.
 
 The goal is one consumer install path to reduce support load.
 
@@ -18,14 +20,14 @@ The goal is one consumer install path to reduce support load.
   ```
   [warn] scripts/install.sh is deprecated — use `uvx --from agent-toolkit-cli agent-toolkit install` (or `agent-toolkit install` after `uv tool install`). See docs/INSTALLATION.md and docs/adrs/ADR-007-install-sh-deprecation.md
   ```
-- **Primary install** is the Python CLI (`uvx` one-liner or `uv tool install`):
+- **Primary install** is the **V CLI** (`agent-toolkit install`) via brew / AUR / GitHub Release, or the PyPI launcher:
   ```bash
   uvx --from agent-toolkit-cli agent-toolkit install
   uvx --from agent-toolkit-cli agent-toolkit install --dry-run
   agent-toolkit install --tools claude-code,cursor --force
   ```
-- **Examples and INSTALLATION.md** now point at the Python CLI first; `bash install.sh` is documented under “Legacy / offline fallback” with the deprecation note.
-- **Bash as thin caller (optional):** if `agent-toolkit` is on PATH, `install.sh` may delegate to it (preserving flags `--tools`, `--dry-run`, `--force`) while still printing the deprecation warning. Implementation is a small `if command -v agent-toolkit >/dev/null; then exec agent-toolkit install "$@"; fi` guard — out of scope for this ADR's docs-only PR but recorded as the intended wrapper direction.
+- **Examples and INSTALLATION.md** point at the V CLI first; `bash scripts/install.sh` is legacy and prints a deprecation warning.
+- **Bash as thin caller:** `scripts/install.sh` and `scripts/doctor.sh` `exec` `agent-toolkit install|doctor` when on PATH (P01 / #683); otherwise they fail with channel install hints.
 - No removal in this ADR's PR. Removal requires the migration notes in INSTALLATION.md and a deprecation period (see timeline).
 
 ## Migration checklist
@@ -42,7 +44,7 @@ The goal is one consumer install path to reduce support load.
 | Phase | Window | Action |
 |-------|--------|--------|
 | **Deprecate (now)** | v1.3.x | ADR-007 accepted; `install.sh` prints warning; docs point to CLI |
-| **Wrapper (optional, next minor)** | v1.4.x | Teach `install.sh` to `exec agent-toolkit install` when available (thin caller), still warning |
+| **Wrapper** | v1.12.x+ | `install.sh` / `doctor.sh` `exec` V CLI when available (thin caller), still warning (#683) |
 | **Remove** | v2.0 | Maintainer vote to delete `scripts/install.sh` if CLI covers all needs; keep fallback copy in release notes if offline users need it |
 
 ## Alternatives Considered
