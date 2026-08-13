@@ -8,7 +8,9 @@ manual file copies.
 
 ## Prerequisites
 
-- **Python** 3.10 or later — for the CLI (`uv` / `uvx` recommended)
+The product CLI is the **native V binary** (GitHub Releases). `uvx agent-toolkit-cli` / PyPI still wrap that binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). Index: [`docs/v/README.md`](v/README.md).
+
+- **Python** 3.10 or later — for the PyPI launcher and `agent-toolkit-py` fallback (`uv` / `uvx` recommended)
 - At least one supported AI coding assistant:
   - [Claude Code](https://claude.ai/code) (Anthropic)
   - [Cursor](https://cursor.sh)
