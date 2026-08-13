@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Docs** — V development & distribution documentation index (Closes #545)
+## [1.11.0] — 2026-08-13
+
+First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256SUMS, manifest.json). `v1.10.0` has empty assets — do not retag it.
+
 - **Docs** — Docker adapter: debian-slim + GitHub Release V binary; git/gh MUST (Closes #537)
 - **Docs** — macOS Gatekeeper / Windows SmartScreen / code signing policy (Closes #543)
 - **Docs** — V migration risk register with ADR status (Closes #478)
@@ -402,7 +406,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.11.0...HEAD
+[1.11.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.11.0
 [1.2.2]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.2.2
 [1.2.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.2.1
 [1.2.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.2.0
