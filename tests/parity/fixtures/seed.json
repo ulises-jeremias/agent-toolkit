@@ -537,6 +537,53 @@
         "command",
         "recipes"
       ]
+    },
+    {
+      "command": "help-insights-disposition",
+      "args": [
+        "--help"
+      ],
+      "class": "V_SEMANTIC",
+      "must_contain": [
+        "insights",
+        "deprecated"
+      ]
+    },
+    {
+      "command": "help-release-disposition",
+      "args": [
+        "--help"
+      ],
+      "class": "V_SEMANTIC",
+      "must_contain": [
+        "release",
+        "RELEASING.md"
+      ]
+    },
+    {
+      "command": "insights-help-disposition",
+      "args": [
+        "insights"
+      ],
+      "class": "V_SEMANTIC",
+      "expect_v_exit": 0,
+      "must_contain": [
+        "deprecated",
+        "#526",
+        "agent-toolkit-py"
+      ]
+    },
+    {
+      "command": "release-help-disposition",
+      "args": [
+        "release"
+      ],
+      "class": "V_SEMANTIC",
+      "expect_v_exit": 1,
+      "must_contain": [
+        "#527",
+        "RELEASING.md"
+      ]
     }
   ]
 }

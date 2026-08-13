@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Tests** — Parity harness V_SEMANTIC disposition fixtures for insights/release; widen docs/v paths (Fixes #691)
 - **Docs** — Teach `agent-toolkit loop` instead of obsolete `bin/loop` in skills/packs/loop.yaml (Fixes #680)
 - **Tests** — Stop treating `insights` as a normal ADVANCED_COMMANDS harness entry (DEPRECATE #526)
 - **CI** — Fix validate.yml yamllint empty-lines after check-build insert
