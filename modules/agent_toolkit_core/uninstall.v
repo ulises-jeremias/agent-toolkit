@@ -10,6 +10,7 @@ pub const uninstall_tool_targets = {
 	'copilot':     'copilot'
 	'windsurf':    'windsurf'
 	'pi':          'pi'
+	'muse-code':   'muse-code'
 }
 
 // UninstallOptions configures receipt-based uninstall / rollback.
