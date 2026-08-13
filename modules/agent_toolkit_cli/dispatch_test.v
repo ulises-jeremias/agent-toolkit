@@ -131,6 +131,11 @@ fn test_dispatch_dc_alias_help() {
 	assert code == 0
 }
 
+fn test_dispatch_loop_help() {
+	code := dispatch(['agent-toolkit', 'loop', '--help'])
+	assert code == 0
+}
+
 fn test_dispatch_swarm_help() {
 	code := dispatch(['agent-toolkit', 'swarm', '--help'])
 	assert code == 0
