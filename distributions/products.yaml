@@ -43,6 +43,7 @@ products:
     includes:
       skills: []
       agents:
+        - agentic-security-reviewer
         - architect
         - assistant
         - build-error-resolver
