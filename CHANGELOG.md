@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Teach `agent-toolkit loop` instead of obsolete `bin/loop` in skills/packs/loop.yaml (Fixes #680)
 - **Tests** — Stop treating `insights` as a normal ADVANCED_COMMANDS harness entry (DEPRECATE #526)
 - **CI** — Fix validate.yml yamllint empty-lines after check-build insert
 - **CI** — ADR-003 dual-run: add `check-build` (`build --check`) alongside gen-surfaces (Fixes #678)

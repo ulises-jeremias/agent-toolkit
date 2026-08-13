@@ -4,7 +4,7 @@
 # Usage:
 #   cp packs/oss-maintenance/config.yaml ~/.ai-workspace/packs/oss-maintenance.yaml
 #   # Edit repos list, then run:
-#   ./bin/loop run oss-daily-briefing --pack ~/.ai-workspace/packs/oss-maintenance.yaml
+#   agent-toolkit loop run oss-daily-briefing --pack ~/.ai-workspace/packs/oss-maintenance.yaml
 #
 # See packs/oss-maintenance/README.md for full setup instructions.
 

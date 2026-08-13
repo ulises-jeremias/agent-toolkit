@@ -3,8 +3,8 @@
 # Cadence: once per day. Cost: low. Tier: L1 (report-only).
 #
 # Usage:
-#   ./bin/loop init daily-triage --repo owner/repo
-#   ./bin/loop run daily-triage
+#   agent-toolkit loop init daily-triage --repo owner/repo
+#   agent-toolkit loop run daily-triage
 
 name: daily-triage
 description: "Triage new issues and propose labels (report-only)"

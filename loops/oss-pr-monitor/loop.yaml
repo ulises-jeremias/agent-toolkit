@@ -5,7 +5,7 @@
 # Tier L3 is required: merge/close are forbidden at L2 by loop-gh-gate.
 #
 # Usage:
-#   ./bin/loop init oss-pr-monitor --pack packs/my-ecosystem.yaml
+#   agent-toolkit loop init oss-pr-monitor --pack packs/my-ecosystem.yaml
 
 name: oss-pr-monitor
 description: "Monitor open PRs across OSS ecosystem repos and take action (L3, daily)"

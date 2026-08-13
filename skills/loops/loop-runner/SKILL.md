@@ -1,12 +1,12 @@
 ---
 name: loop-runner
 description: Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding
-  session via bin/loop CLI.
+  session via the agent-toolkit loop CLI.
 origin:
   type: first-party
 metadata:
   author: ulises-jeremias
-  version: '1.0'
+  version: '1.1'
 ---
 # loop-runner
 
@@ -16,8 +16,7 @@ metadata:
 
 ## What this skill does
 
-This skill wraps the `bin/loop` CLI from
-[ai-workspace](https://github.com/ulises-jeremias/ai-workspace), exposing loop
+This skill wraps the **`agent-toolkit loop`** CLI (V product command), exposing loop
 operations to AI coding agents without requiring the user to remember CLI flags.
 
 **Loop engineering** is the practice of designing recursive, autonomous processes
@@ -34,31 +33,34 @@ rollout tiers (L1 report-only → L2 PR-gated → L3 unattended).
 | `loop status` | Show all loops: tier, cadence, last run |
 | `loop audit [loop]` | Summarize past run success/cost |
 | `loop cost <loop>` | Estimate per-run token cost |
+| `loop schedule <loop>` | Install systemd/launchd timer |
 | `loop sync` | Push escalations to knowledge/todos |
 
 ## How to invoke
 
 ```bash
-# Check if ai-workspace loop CLI is available
-loop status
-
-# Or invoke directly
-~/.ai-workspace/bin/loop status
+# Preferred — agent-toolkit V CLI
+agent-toolkit loop status
+agent-toolkit loop run daily-triage
+agent-toolkit loop init oss-pr-monitor
 ```
+
+Historical note: older docs referred to `./bin/loop` or `~/.ai-workspace/bin/loop`.
+Those entrypoints are obsolete; use `agent-toolkit loop` after installing via
+brew / AUR `agent-toolkit-bin` / GitHub Release / `uv tool install agent-toolkit-cli`.
 
 ## Routing
 
-1. Check if `~/.ai-workspace/bin/loop` exists → use it
-2. Otherwise check `AI_WORKSPACE_LOOP_BIN` env var
-3. Otherwise: guide the user to install ai-workspace
+1. Prefer `agent-toolkit loop …` on PATH (V binary or PyPI launcher)
+2. Otherwise guide the user to install per `docs/INSTALLATION.md`
 
-## Runner hierarchy (inside bin/loop)
+## Runner hierarchy
 
-When `./bin/loop run` dispatches a loop, it tries runners in this order:
+When `agent-toolkit loop run` dispatches a loop, it tries runners in this order:
 
 | Priority | Runner | How to enable |
 |----------|--------|---------------|
-| 1 | **runner** | `export HARNESS_RUNNER_DIR="$HOME/.local/share//dev-companion/runner"` |
+| 1 | **runner** | `export HARNESS_RUNNER_DIR="$HOME/.local/share/agentic-workstation/dev-companion/runner"` |
 | 2 | **`claude --print`** (Claude Code CLI) | `claude` in PATH — zero setup for Claude Code users |
 | 3 | Skeleton plan | Always available |
 

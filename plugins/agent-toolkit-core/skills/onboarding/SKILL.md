@@ -119,4 +119,4 @@ doctor
 
 - Load a project pack: `./bin/workspace-context load packs/<project>.yaml`
 - Run your first task: `/workflow-generic-project`
-- Set up daily loop: `./bin/loop init daily-triage`
+- Set up daily loop: `agent-toolkit loop init daily-triage`

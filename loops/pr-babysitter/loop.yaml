@@ -3,7 +3,7 @@
 # Cadence: 15 minutes. Cost: high. Tier: L2 (PR-gated).
 #
 # Usage:
-#   ./bin/loop init pr-babysitter --repo owner/repo
+#   agent-toolkit loop init pr-babysitter --repo owner/repo
 
 name: pr-babysitter
 description: "Monitor open PRs and post review comments (L2, PR-gated)"

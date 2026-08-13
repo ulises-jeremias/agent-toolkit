@@ -23,7 +23,7 @@ Automate PR review, issue triage, and daily briefings across a multi-repo OSS ec
   gh auth status
   gh auth login   # if not authenticated
   ```
-- A loop runner available. The loops are designed for use with the `bin/loop` runner from [ai-workspace](https://github.com/ulises-jeremias/ai-workspace), but the `request` prompt in each `loop.yaml` can be run manually or with any compatible runner.
+- A loop runner available. The loops are designed for use with the `agent-toolkit loop` runner from [agentic-harness](https://github.com/ulises-jeremias/agentic-harness), but the `request` prompt in each `loop.yaml` can be run manually or with any compatible runner.
 - Token budget: see [Budget Sizing](#budget-sizing) below.
 
 ---
@@ -71,13 +71,13 @@ Start read-only. Graduate to each tier only after confirming the previous tier r
 
 ```bash
 # Tier 1: Daily briefing (read-only, lowest cost)
-./bin/loop run oss-daily-briefing
+agent-toolkit loop run oss-daily-briefing
 
 # Tier 1: Issue triage (label + comment, medium cost)
-./bin/loop run oss-triage
+agent-toolkit loop run oss-triage
 
 # Tier 2: PR monitor (merge + close, highest cost — REVIEW THE REPORT FIRST)
-./bin/loop run oss-pr-monitor
+agent-toolkit loop run oss-pr-monitor
 ```
 
 ---
