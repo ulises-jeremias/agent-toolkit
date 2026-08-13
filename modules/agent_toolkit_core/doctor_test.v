@@ -2,10 +2,15 @@ module agent_toolkit_core
 
 import os
 
+fn test_doctor_version_matches_resolve_toolkit_version() {
+	assert doctor_version() == resolve_toolkit_version()
+}
+
 fn test_run_doctor_readonly_has_observability_fields() {
 	snap := run_doctor_readonly()
 	assert snap.engine == 'v'
 	assert snap.version.len > 0
+	assert snap.version == resolve_toolkit_version()
 	assert snap.platform.contains('/')
 	assert !snap.fix_applied
 	r := doctor_result(snap)

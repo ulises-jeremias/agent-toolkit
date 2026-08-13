@@ -262,38 +262,7 @@ fn tools_needing_profile_fix(home string, checks []DoctorCheck) []string {
 }
 
 fn doctor_version() string {
-	for env in ['AGENT_TOOLKIT_ROOT', 'AI_WORKSPACE'] {
-		val := os.getenv(env).trim_space()
-		if val.len == 0 {
-			continue
-		}
-		vf := os.join_path(val, 'VERSION')
-		if os.is_file(vf) {
-			text := os.read_file(vf) or { continue }
-			v := text.trim_space()
-			if v.len > 0 {
-				return v
-			}
-		}
-	}
-	mut cur := os.getwd()
-	for {
-		vf := os.join_path(cur, 'VERSION')
-		if os.is_file(vf) && (os.is_dir(os.join_path(cur, 'skills'))
-			|| os.is_dir(os.join_path(cur, 'loops'))) {
-			text := os.read_file(vf) or { '' }
-			v := text.trim_space()
-			if v.len > 0 {
-				return v
-			}
-		}
-		parent := os.dir(cur)
-		if parent == cur || parent.len == 0 {
-			break
-		}
-		cur = parent
-	}
-	return '1.10.0'
+	return resolve_toolkit_version()
 }
 
 fn doctor_is_offline() bool {
@@ -302,29 +271,6 @@ fn doctor_is_offline() bool {
 }
 
 fn doctor_lookup_root() string {
-	for env in ['AGENT_TOOLKIT_ROOT', 'AI_WORKSPACE'] {
-		val := os.getenv(env).trim_space()
-		if val.len == 0 {
-			continue
-		}
-		if os.is_dir(os.join_path(val, 'skills')) || os.is_dir(os.join_path(val, 'profiles')) {
-			return val
-		}
-	}
-	mut cur := os.getwd()
-	for {
-		if os.is_dir(os.join_path(cur, 'skills')) && os.is_dir(os.join_path(cur, 'loops')) {
-			return cur
-		}
-		parent := os.dir(cur)
-		if parent == cur || parent.len == 0 {
-			break
-		}
-		cur = parent
-	}
-	cwd := os.getwd()
-	if os.is_dir(os.join_path(cwd, 'skills')) || os.is_dir(os.join_path(cwd, 'loops')) {
-		return cwd
-	}
-	return ''
+	root := find_toolkit_root() or { return '' }
+	return root.path
 }

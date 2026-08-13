@@ -686,7 +686,13 @@ jobs:
   test-uvx:
     name: Test uvx workflow
     runs-on: ubuntu-latest
+    env:
+      AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
     steps:
+      # Published wheels still need a toolkit tree until doctor/skills use
+      # find_toolkit_root embedded data (agent_toolkit/data next to the ELF).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 

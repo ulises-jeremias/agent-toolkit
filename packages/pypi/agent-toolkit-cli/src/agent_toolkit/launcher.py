@@ -23,6 +23,14 @@ def bundled_binary() -> Path | None:
     return None
 
 
+def bundled_data_root() -> Path | None:
+    """Wheel layout: agent_toolkit/data/{skills,loops,profiles} next to this module."""
+    cand = Path(__file__).resolve().parent / "data"
+    if (cand / "skills").is_dir() or (cand / "loops").is_dir() or (cand / "profiles").is_dir():
+        return cand
+    return None
+
+
 def resolve_native_bin() -> Path | None:
     env = os.environ.get("AGENT_TOOLKIT_BIN", "").strip()
     if env:
@@ -43,6 +51,9 @@ def resolve_native_bin() -> Path | None:
 
 
 def run_native(bin_path: Path, rest: list[str]) -> None:
+    data = bundled_data_root()
+    if data is not None and not os.environ.get("AGENT_TOOLKIT_ROOT", "").strip():
+        os.environ["AGENT_TOOLKIT_ROOT"] = str(data)
     argv = [str(bin_path), *rest]
     if os.name == "nt":
         proc = subprocess.run(argv, check=False)

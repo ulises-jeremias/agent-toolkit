@@ -2,6 +2,20 @@ module agent_toolkit_core
 
 import os
 
+fn test_embedded_data_candidates_wheel_layout() {
+	cands := embedded_data_candidates('/opt/pkg/bin')
+	assert cands.len == 2
+	assert cands[0].ends_with('/bin/data') || cands[0].ends_with('\\bin\\data')
+	assert cands[1].contains('..')
+	base := os.join_path(os.temp_dir(), 'at-embed-${os.getpid()}')
+	pkg_data := os.join_path(base, 'data')
+	os.mkdir_all(os.join_path(pkg_data, 'skills')) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	assert is_valid_toolkit_root(pkg_data)
+}
+
 fn test_is_valid_toolkit_root_profiles() {
 	dir := os.join_path(os.temp_dir(), 'at-paths-profiles-${os.getpid()}')
 	os.mkdir_all(os.join_path(dir, 'profiles')) or { assert false, err.msg() }

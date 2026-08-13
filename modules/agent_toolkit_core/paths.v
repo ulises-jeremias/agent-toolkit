@@ -15,6 +15,12 @@ pub fn is_offline() bool {
 	return v in ['1', 'true', 'yes']
 }
 
+// embedded_data_candidates are toolkit-data dirs relative to the V binary directory.
+// PyPI wheels: agent_toolkit/bin/agent-toolkit + agent_toolkit/data/{skills,loops,profiles}.
+pub fn embedded_data_candidates(exe_dir string) []string {
+	return [os.join_path(exe_dir, 'data'), os.join_path(exe_dir, '..', 'data')]
+}
+
 // is_valid_toolkit_root reports whether path looks like toolkit data or a checkout.
 pub fn is_valid_toolkit_root(path string) bool {
 	if path.len == 0 || !os.is_dir(path) {
@@ -75,11 +81,12 @@ pub fn find_toolkit_root_with(fs FsService) !ToolkitRoot {
 		}
 	}
 
-	// 3. Embedded baseline — next to executable (ADR-011); absent until packaging ships it
+	// 3. Embedded baseline — next to executable (ADR-011).
+	// Wheel layout: agent_toolkit/bin/agent-toolkit + agent_toolkit/data/.
 	exe := os.executable()
 	if exe.len > 0 {
 		exe_dir := os.dir(exe)
-		for cand in [os.join_path(exe_dir, 'data'), os.join_path(exe_dir, '..', 'data')] {
+		for cand in embedded_data_candidates(exe_dir) {
 			if is_valid_toolkit_root(cand) {
 				return ToolkitRoot{
 					path: cand
