@@ -10,15 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-- **Docs** — Mark `insights` DEPRECATE (#526) and `release` REMOVE (#527) in SCOPE.md / CLI_SURFACES.md
-- **Docs** — Polish published npm/PyPI package READMEs to the cozy banner/badge style of `packages/pypi/agent-toolkit-cli/README.md`; document why the PyPI `src/` launcher tree stays
-- **CI** — Build/push the Docker image from `release.yml` after V assets exist (`GITHUB_TOKEN` cannot trigger `on: release`)
+- **CI** — Docker push-to-main is smoke-only; registry push requires Release assets (Fixes #679)
 - **Docs** — AUR playbook and release replay use `agent-toolkit-bin`; warn off legacy `agent-toolkit` AUR (Fixes #675)
 - **Docs** — Align AUR playbook with canonical `agent-toolkit-bin` (warn on legacy `agent-toolkit` AUR name)
+- **Docs** — Polish published npm/PyPI package READMEs to the cozy banner/badge style of `packages/pypi/agent-toolkit-cli/README.md`; document why the PyPI `src/` launcher tree stays
+- **CI** — Build/push the Docker image from `release.yml` after V assets exist (`GITHUB_TOKEN` cannot trigger `on: release`)
 - **Docs** — PyPI republish guidance uses `release.yml` OIDC (not Publish manual)
 - **Docs** — Fix broken `docs/SWARMS.md` link to missing `CLI_REFERENCE.md` → `CLI_SURFACES.md`
 - **Packaging** — Bump Dockerfile default `ARG VERSION` to match `VERSION` (1.12.1)
 - **Docs** — Note that wiki-style `[[Page]]` links in docs/wiki are intentional for wiki-sync
+- **Docs** — Mark `insights` DEPRECATE (#526) and `release` REMOVE (#527) in SCOPE.md / CLI_SURFACES.md
 
 
 ## [1.12.1] — 2026-08-13

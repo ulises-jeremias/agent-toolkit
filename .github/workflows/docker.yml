@@ -71,8 +71,41 @@ jobs:
         if: github.event_name == 'pull_request'
         run: docker run --rm agent-toolkit:ci version
 
+      # Push only when Release assets exist (workflow_call from release.yml),
+      # a published release, or an explicit workflow_dispatch. Push-to-main is
+      # smoke-only so VERSION bumps cannot publish before GitHub Release assets.
+      - name: Build native image (main smoke)
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          platforms: linux/amd64
+          build-args: |
+            VERSION=${{ steps.ver.outputs.version }}
+          tags: agent-toolkit:ci
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke native image (main)
+        if: github.event_name == 'push'
+        run: docker run --rm agent-toolkit:ci version
+
+      - name: Require Release assets before push
+        if: github.event_name == 'workflow_call' || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          echo "Checking Release assets for $TAG"
+          assets=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets -q '.assets[].name' || true)
+          echo "$assets"
+          echo "$assets" | grep -q 'agent-toolkit-linux-x86_64' || {
+            echo "::error::Missing agent-toolkit-linux-x86_64 on $TAG — refuse Docker push"
+            exit 1
+          }
+
       - name: Build and push
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'workflow_call' || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -84,7 +117,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Smoke published amd64 image
-        if: github.event_name != 'pull_request'
+        if: github.event_name == 'workflow_call' || github.event_name == 'release' || github.event_name == 'workflow_dispatch'
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.version }}
         run: |

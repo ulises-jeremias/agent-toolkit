@@ -42,3 +42,15 @@ The Dockerfile MUST NOT `exec` the V binary during `RUN` (QEMU user-mode for the
 - Multi-arch: `linux/amd64` + `linux/arm64` (glibc), matching ADR-018.
 
 Owner of the Dockerfile remains this repo (unlike Homebrew/AUR).
+
+## CI triggers
+
+| Event | Behavior |
+|-------|----------|
+| `pull_request` (Dockerfile paths) | Native smoke build (`load`); no registry push |
+| `push` to `main` (Dockerfile paths) | Native smoke build only — **no push** (avoids racing ahead of Release assets) |
+| `workflow_call` from `release.yml` after `upload-assets` | Multi-arch build **and push** (preferred path) |
+| `release: published` / `workflow_dispatch` | Multi-arch build **and push**, after verifying `v$(VERSION)` Release has linux assets |
+
+`GITHUB_TOKEN`-created Releases do not start sibling `on: release` workflows; prefer `workflow_call` from `release.yml`.
+
