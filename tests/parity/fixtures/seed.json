@@ -298,6 +298,19 @@
         "platform",
         "fix_applied"
       ]
+    },
+    {
+      "command": "skills-help",
+      "args": [
+        "skills",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "list",
+        "sync",
+        "validate"
+      ]
     }
   ]
 }

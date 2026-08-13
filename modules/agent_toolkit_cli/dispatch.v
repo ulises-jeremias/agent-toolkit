@@ -89,6 +89,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_update(opts)
 		return render(agent_toolkit_core.update_result(report), mode)
 	}
+	if cmd_name == 'skills' {
+		opts := parse_skills_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_skills(opts)
+		return render(agent_toolkit_core.skills_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -309,6 +317,66 @@ fn parse_update_options(args []string) !agent_toolkit_core.UpdateOptions {
 	}
 }
 
+fn parse_skills_options(args []string) !agent_toolkit_core.SkillsOptions {
+	mut sub := ''
+	mut domain := ''
+	mut tools_raw := ''
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--domain' {
+			if i + 1 >= args.len {
+				return error('--domain requires an argument')
+			}
+			domain = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--domain=') {
+			domain = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--tools' {
+			if i + 1 >= args.len {
+				return error('--tools requires an argument')
+			}
+			tools_raw = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--tools=') {
+			tools_raw = a.all_after('=')
+			i++
+			continue
+		}
+		if !a.starts_with('-') && sub.len == 0 {
+			sub = a
+			i++
+			continue
+		}
+		i++
+	}
+	mut tools := []string{}
+	if tools_raw.len > 0 {
+		for part in tools_raw.split(',') {
+			t := part.trim_space()
+			if t.len > 0 {
+				tools << t
+			}
+		}
+	}
+	return agent_toolkit_core.SkillsOptions{
+		subcommand: sub
+		domain:     domain
+		tools:      tools
+	}
+}
+
 fn allowed_flag(cmd string, a string) bool {
 	if a in ['-h', '--help', '--json', '--quiet'] {
 		return true
@@ -329,6 +397,11 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 		if a.starts_with('--tools') || a.starts_with('--pin') {
+			return true
+		}
+	}
+	if cmd == 'skills' {
+		if a.starts_with('--domain') || a.starts_with('--tools') {
 			return true
 		}
 	}
@@ -486,6 +559,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
   --fix   Attempt auto-repair for missing profiles (runs capability update)
   --json  Structured CommandResult JSON
 '
+	}
+	if name == 'skills' {
+		return agent_toolkit_core.skills_help_text()
 	}
 	mut c := cli.Command{
 		name:        name
