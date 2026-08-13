@@ -52,6 +52,43 @@ Existing scripts invoking advanced commands continue to work unchanged.
 New users should start with `install`, `doctor`, and `skills` only; adopt
 advanced commands when running an ai-workspace-style harness.
 
+## Migration inventory (#475)
+
+Authoritative **index** of every top-level command. Machine-readable flags,
+stdin/stdout/stderr, exit codes, env, effects, and tests live in
+[`docs/compatibility/cli-contract.yaml`](compatibility/cli-contract.yaml)
+([#549](https://github.com/ulises-jeremias/agent-toolkit/issues/549), closed).
+Do not duplicate that contract here.
+
+Disposition for advanced commands: [`v/advanced-command-disposition.md`](v/advanced-command-disposition.md) (#560).
+Wave/complexity/risk in the YAML `migration:` block.
+
+| Command | Surface | Owner | Disposition |
+|---------|---------|-------|-------------|
+| `help` | meta | — | keep |
+| `version` | meta | [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) | PORT (V canonical) |
+| `install` | consumer | [#607](https://github.com/ulises-jeremias/agent-toolkit/issues/607) | PORT |
+| `update` | consumer | [ADR-017](adrs/ADR-017-update-ownership.md) | PORT (capability-only) |
+| `uninstall` | consumer | [#461](https://github.com/ulises-jeremias/agent-toolkit/issues/461) | PORT |
+| `doctor` | consumer | [#514](https://github.com/ulises-jeremias/agent-toolkit/issues/514) | PORT |
+| `diff` | consumer | [#515](https://github.com/ulises-jeremias/agent-toolkit/issues/515) | PORT |
+| `skills` | consumer | [#517](https://github.com/ulises-jeremias/agent-toolkit/issues/517) | PORT |
+| `mcp` | consumer | [#518](https://github.com/ulises-jeremias/agent-toolkit/issues/518) | PORT |
+| `plugin` | consumer | [#519](https://github.com/ulises-jeremias/agent-toolkit/issues/519) | PORT |
+| `workspace` | advanced | [#520](https://github.com/ulises-jeremias/agent-toolkit/issues/520) | PORT |
+| `memory` | advanced | [#521](https://github.com/ulises-jeremias/agent-toolkit/issues/521) | PORT |
+| `project` | advanced | [#522](https://github.com/ulises-jeremias/agent-toolkit/issues/522) | PORT |
+| `loop` | advanced | [#523](https://github.com/ulises-jeremias/agent-toolkit/issues/523) | REDESIGN |
+| `swarm` | advanced | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | REDESIGN |
+| `devcompanion` | advanced | [#525](https://github.com/ulises-jeremias/agent-toolkit/issues/525) | PORT |
+| `insights` | advanced | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | DEPRECATE (no V requirement) |
+| `build` | advanced | compiler EPIC | PORT (V `build` exists) |
+| `inventory` | advanced | [#516](https://github.com/ulises-jeremias/agent-toolkit/issues/516) | PORT |
+| `matrix` | advanced | compiler EPIC | PORT |
+| `release` | advanced | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | REMOVE (CI / `docs/RELEASING.md`) |
+
+JSON/`--json` and full flag lists: `cli-contract.yaml`, not this table.
+
 ## Exit-code contract (#48)
 
 Consumer and advanced commands return integer status codes from their `cmd_*`
