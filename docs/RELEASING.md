@@ -74,6 +74,8 @@ Release binaries are platform-suffixed to avoid upload collisions (see #256 and 
 
 Darwin x86_64 is intentionally deferred (documented skip). Release notes / this doc mention naming.
 
+Packaging **adapter contracts** (this repo, no Formula/PKGBUILD copies): [`distribution/README.md`](../distribution/README.md) ([#534](https://github.com/ulises-jeremias/agent-toolkit/issues/534)).
+
 ## Downstream publish verification (notify success ≠ publish success)
 
 `notify-homebrew` / `notify-aur` only confirm that a `repository_dispatch` reached the downstream repo (see `.github/workflows/notify-*.yml`). A green `Notify` run does **not** guarantee the Homebrew formula or AUR PKGBUILD was actually published.
