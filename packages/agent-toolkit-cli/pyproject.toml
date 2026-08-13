@@ -34,8 +34,8 @@ yaml = ["pyyaml>=6.0"]
 all = ["pyyaml>=6.0"]
 
 [project.scripts]
-agent-toolkit = "agent_toolkit.cli.main:main"
-agent-toolkit-cli = "agent_toolkit.cli.main:main"
+agent-toolkit = "agent_toolkit.launcher:main"
+agent-toolkit-cli = "agent_toolkit.launcher:main"
 agent-toolkit-py = "agent_toolkit.cli.main:main"
 
 [project.urls]
@@ -52,6 +52,9 @@ path = "src/agent_toolkit/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent_toolkit"]
 
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
 # Capability trees are copied into src/agent_toolkit/data/ by
 # scripts/prepare-package-data.sh before sdist/wheel builds. Editable
 # installs resolve monorepo root via agent_toolkit._paths (no packed data).
@@ -62,4 +65,5 @@ include = [
     "LICENSE",
     "CHANGELOG.md",
     "pyproject.toml",
+    "hatch_build.py",
 ]

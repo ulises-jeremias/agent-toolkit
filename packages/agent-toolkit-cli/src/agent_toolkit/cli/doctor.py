@@ -219,7 +219,7 @@ def _check_loop_runtime(toolkit_dir: Path | None) -> list[CheckResult]:
     # Check if `agent-toolkit loop` resolves (basic import test)
     try:
         subprocess.run(
-            [sys.executable, "-m", "agent_toolkit", "loop", "--help"],
+            [sys.executable, "-m", "agent_toolkit.cli", "loop", "--help"],
             capture_output=True,
             timeout=10,
         )

@@ -10,10 +10,9 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def _run_doctor(extra_args=None, env=None, cwd=None):
-    # Use uv run
-    # Fallback to `uv run agent-toolkit doctor --json`
+    # Python doctor (product `agent-toolkit` is the V launcher).
     result = subprocess.run(
-        ["uv", "run", "agent-toolkit", "doctor", "--json"] + (extra_args or []),
+        ["uv", "run", "agent-toolkit-py", "doctor", "--json"] + (extra_args or []),
         capture_output=True,
         text=True,
         cwd=cwd or str(ROOT),
@@ -39,7 +38,7 @@ def test_doctor_has_provenance_packs_mcp_categories():
 def test_doctor_provenance_flag():
     # --provenance should be accepted and still produce same categories (prints to stderr)
     result = subprocess.run(
-        ["uv", "run", "agent-toolkit", "doctor", "--provenance", "--json"],
+        ["uv", "run", "agent-toolkit-py", "doctor", "--provenance", "--json"],
         capture_output=True,
         text=True,
         cwd=str(ROOT),

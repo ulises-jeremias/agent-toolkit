@@ -6,7 +6,7 @@ import sys
 
 def test_help():
     result = subprocess.run(
-        [sys.executable, "-m", "agent_toolkit", "help"],
+        [sys.executable, "-m", "agent_toolkit.cli", "help"],
         capture_output=True,
         text=True,
         cwd=str(__file__).split("tests")[0],
@@ -18,7 +18,7 @@ def test_help():
 
 def test_version():
     result = subprocess.run(
-        [sys.executable, "-m", "agent_toolkit", "version"],
+        [sys.executable, "-m", "agent_toolkit.cli", "version"],
         capture_output=True,
         text=True,
         cwd=str(__file__).split("tests")[0],

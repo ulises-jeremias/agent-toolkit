@@ -20,7 +20,7 @@ def run_swarm(args, cwd, extra_env=None):
         "run",
         "--project",
         str(repo_root),
-        "agent-toolkit",
+        "agent-toolkit-py",
         "swarm",
     ] + args
     res = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, env=env, timeout=15)

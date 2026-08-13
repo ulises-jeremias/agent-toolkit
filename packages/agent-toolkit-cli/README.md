@@ -36,9 +36,10 @@
 
 ## What is this package?
 
-`agent-toolkit-cli` is the **published Python entrypoint** for the agent-toolkit monorepo. It ships:
+`agent-toolkit-cli` is the **PyPI adapter** for the agent-toolkit monorepo ([ADR-021](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-021-pypi-binary.md)). Platform wheels bundle the native V binary; `agent-toolkit` / `agent-toolkit-cli` are a thin launcher. The Python implementation remains as `agent-toolkit-py` until retirement.
 
-- the `agent-toolkit` / `agent-toolkit-cli` console scripts
+It also ships:
+
 - bundled skills, agents, loops, profiles, packs, and MCP templates
 - install / doctor / sync workflows that deploy the right artifacts per AI tool
 
