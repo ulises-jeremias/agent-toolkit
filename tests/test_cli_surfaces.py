@@ -1,6 +1,18 @@
 """CLI surface grouping tests (#84)."""
 
+from pathlib import Path
+
 from agent_toolkit.cli import main as main_mod
+
+# Required advanced harness surfaces (PORT/REDESIGN per #560). Not DEPRECATE/REMOVE.
+REQUIRED_ADVANCED = (
+    "loop",
+    "workspace",
+    "memory",
+    "project",
+    "devcompanion",
+    "swarm",
+)
 
 
 def test_help_lists_advanced_section() -> None:
@@ -12,16 +24,19 @@ def test_help_lists_advanced_section() -> None:
 
 
 def test_advanced_commands_include_harness() -> None:
-    """Active advanced harness commands (excludes DEPRECATE/REMOVE dispositions)."""
-    for cmd in ("loop", "workspace", "memory", "project", "devcompanion", "swarm"):
+    for cmd in REQUIRED_ADVANCED:
         assert cmd in main_mod.ADVANCED_COMMANDS
 
 
-def test_insights_deprecated_not_primary_advanced() -> None:
-    """insights remains wired for back-compat but is DEPRECATE (#526/#560), not a normal advanced cmd."""
-    assert "insights" in main_mod.ADVANCED_COMMANDS  # still registered
-    # Consumer help advanced blurb should not present insights as a featured harness command
-    # in the same breath as loop/workspace (disposition: DEPRECATE — no V requirement).
-    advanced_help = main_mod._CONSUMER_HELP
-    # Prefer explicit disposition docs over help-table membership; ensure release REMOVE (#527)
-    assert "release" in main_mod.ADVANCED_COMMANDS
+def test_insights_release_not_required_advanced() -> None:
+    """insights is DEPRECATE (#526); release is REMOVE (#527) — not required ADVANCED_COMMANDS.
+
+    Quarantined Python may still register the names for compatibility; tests must not
+    treat them as members of the required advanced harness set (T01 / #692).
+    """
+    assert "insights" not in REQUIRED_ADVANCED
+    assert "release" not in REQUIRED_ADVANCED
+
+    surfaces = Path("docs/CLI_SURFACES.md").read_text()
+    assert "DEPRECATE" in surfaces and "#526" in surfaces
+    assert "REMOVE" in surfaces and "#527" in surfaces
