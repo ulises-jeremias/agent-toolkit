@@ -10,8 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **CI** — ADR-003 dual-run: add `check-build` (`agent-toolkit build --check`) alongside gen-surfaces
 - **Docs** — AUR playbook and release replay use `agent-toolkit-bin`; warn off legacy `agent-toolkit` AUR (Fixes #675)
-- **Docs** — Align AUR playbook with canonical `agent-toolkit-bin` (warn on legacy `agent-toolkit` AUR name)
 - **Docs** — Polish published npm/PyPI package READMEs to the cozy banner/badge style of `packages/pypi/agent-toolkit-cli/README.md`; document why the PyPI `src/` launcher tree stays
 - **CI** — Build/push the Docker image from `release.yml` after V assets exist (`GITHUB_TOKEN` cannot trigger `on: release`)
 

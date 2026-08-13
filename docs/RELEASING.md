@@ -23,7 +23,8 @@ AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --dir
 python3 scripts/validate-skills.py
 python3 scripts/validate-agents.py
 python3 scripts/generate-catalogs.py
-python3 scripts/gen-surfaces.py --check
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
+python3 scripts/gen-surfaces.py --check  # dual-run legacy until v1.6.0+
 
 # 3. Commit + tag
 git add -A && git commit -m "chore(release): bump to v1.3.0"
