@@ -269,6 +269,19 @@
         "target",
         "product"
       ]
+    },
+    {
+      "command": "update-help",
+      "args": [
+        "update",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "update",
+        "check",
+        "tools"
+      ]
     }
   ]
 }

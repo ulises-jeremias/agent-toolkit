@@ -80,6 +80,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_diff(opts)
 		return render(agent_toolkit_core.diff_result(report), mode)
 	}
+	if cmd_name == 'update' {
+		opts := parse_update_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_update(opts)
+		return render(agent_toolkit_core.update_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -228,6 +236,66 @@ fn parse_diff_options(args []string) agent_toolkit_core.DiffOptions {
 	}
 }
 
+fn parse_update_options(args []string) !agent_toolkit_core.UpdateOptions {
+	mut check_only := false
+	mut tools_raw := ''
+	mut pin := ''
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--check' {
+			check_only = true
+			i++
+			continue
+		}
+		if a == '--tools' {
+			if i + 1 >= args.len {
+				return error('--tools requires an argument')
+			}
+			tools_raw = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--tools=') {
+			tools_raw = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--pin' {
+			if i + 1 >= args.len {
+				return error('--pin requires an argument')
+			}
+			pin = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--pin=') {
+			pin = a.all_after('=')
+			i++
+			continue
+		}
+		i++
+	}
+	mut tools := []string{}
+	if tools_raw.len > 0 {
+		for part in tools_raw.split(',') {
+			t := part.trim_space()
+			if t.len > 0 {
+				tools << t
+			}
+		}
+	}
+	return agent_toolkit_core.UpdateOptions{
+		tools:      tools
+		check_only: check_only
+		pin:        pin
+	}
+}
+
 fn allowed_flag(cmd string, a string) bool {
 	if a in ['-h', '--help', '--json', '--quiet'] {
 		return true
@@ -240,6 +308,14 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 		if a.starts_with('--tools') {
+			return true
+		}
+	}
+	if cmd == 'update' {
+		if a in ['--check'] {
+			return true
+		}
+		if a.starts_with('--tools') || a.starts_with('--pin') {
 			return true
 		}
 	}
@@ -376,6 +452,17 @@ Show what would change between freshly compiled output and plugins/.
   --target TARGET    Target platform (default: Tier-1 cursor/claude-code/opencode)
   --product PRODUCT  Product ID to diff (default: all products)
   --json             Structured CommandResult JSON
+'
+	}
+	if name == 'update' {
+		return 'Usage: agent-toolkit update [--tools LIST] [--check] [--pin VERSION] [--json]
+
+Refresh installed profiles from toolkit capability data (not binary self-update).
+
+  --tools LIST   Comma-separated tools (default: auto-detect installed)
+  --check        Dry-run — show what would change without writing
+  --pin VERSION  Download capability data for a release before updating
+  --json         Structured CommandResult JSON
 '
 	}
 	mut c := cli.Command{

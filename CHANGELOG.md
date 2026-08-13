@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V capability `update` (profile refresh; --check/--pin; not self-update) (Closes #516)
 - **Feat** — V `agent-toolkit diff` (compile vs plugins/ added/changed) (Closes #515)
 - **Feat** — install receipt compatibility schema (`schemas/install-receipt.schema.json`) (Closes #511)
 - **Feat** — V uninstall/rollback from install receipts (created-only; dry-run) (Closes #514)
