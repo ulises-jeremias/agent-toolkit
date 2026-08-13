@@ -4,9 +4,9 @@ name: Release
 # Manual TestPyPI/PyPI republish: workflow "Publish (manual)" only.
 #
 # Job graph:
-#   create-release ─┬─► publish-pypi
-#                   ├─► build-binaries ─► upload-assets
-#                   └─► sbom (attach after release exists)
+#   create-release ─┬─► publish-pypi (Linux V wheel)
+#                   ├─► build-binaries (native V, ADR-018 names) ─► pack SHA256SUMS+manifest
+#                   └─► sbom (SHOULD CycloneDX; does not prove “secure software”)
 
 on:
   push:
@@ -125,64 +125,122 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # darwin-x86_64 intentionally deferred — x86_64 Intel Macs are legacy;
-        # arm64 covers Apple Silicon. Revisit if demand justifies a second macOS runner (see #256).
         include:
-          - {os: ubuntu-latest, artifact: agent-toolkit-linux-x86_64}
-          - {os: macos-latest, artifact: agent-toolkit-macos-arm64}
-          - {os: windows-latest, artifact: agent-toolkit-windows-x86_64}
+          - os: ubuntu-latest
+            artifact: agent-toolkit-linux-x86_64
+            v_zip: v_linux.zip
+            bin: agent-toolkit
+            expect_arch: x86_64
+          - os: ubuntu-24.04-arm
+            artifact: agent-toolkit-linux-arm64
+            v_zip: v_linux_arm64.zip
+            bin: agent-toolkit
+            expect_arch: arm64
+          - os: macos-latest
+            artifact: agent-toolkit-macos-arm64
+            v_zip: v_macos_arm64.zip
+            bin: agent-toolkit
+            expect_arch: arm64
+          - os: macos-15-intel
+            artifact: agent-toolkit-macos-x86_64
+            v_zip: v_macos_x86_64.zip
+            bin: agent-toolkit
+            expect_arch: x86_64
+          - os: windows-latest
+            artifact: agent-toolkit-windows-x86_64.exe
+            v_zip: v_windows.zip
+            bin: agent-toolkit.exe
+            expect_arch: x86_64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-      - name: Install package and PyInstaller
-        run: |
-          uv sync --package agent-toolkit-cli --extra all
-          uv pip install pyinstaller
-      - name: Build standalone binary
+
+      - name: Install pinned V from GitHub Release
         shell: bash
-        run: >-
-          uv run --package agent-toolkit-cli pyinstaller --onefile --name agent-toolkit
-          --add-data "skills:skills"
-          --add-data "agents:agents"
-          --add-data "loops:loops"
-          --add-data "profiles:profiles"
-          --add-data "mcp:mcp"
-          --add-data "catalogs:catalogs"
-          packages/agent-toolkit-cli/src/agent_toolkit/cli/main.py
+        env:
+          V_ZIP: ${{ matrix.v_zip }}
+        run: |
+          set -euo pipefail
+          PIN="$(tr -d '[:space:]' < .v-version)"
+          curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${PIN}/${V_ZIP}"
+          rm -rf "${HOME}/vlang"
+          mkdir -p "${HOME}/vlang"
+          unzip -q /tmp/v.zip -d "${HOME}/vlang"
+          VBIN="$(find "${HOME}/vlang" -type f \( -name v -o -name v.exe \) | head -n 1)"
+          test -n "$VBIN"
+          echo "VBIN=${VBIN}" >> "$GITHUB_ENV"
+          echo "$(dirname "${VBIN}")" >> "$GITHUB_PATH"
+          "${VBIN}" version
+
+      - name: Build native V CLI
+        shell: bash
+        env:
+          OUT_BIN: ${{ matrix.bin }}
+          ASSET: ${{ matrix.artifact }}
+          VMODULES: ${{ github.workspace }}/modules
+          EXPECT_ARCH: ${{ matrix.expect_arch }}
+        run: |
+          set -euo pipefail
+          got="$(uname -m | tr 'A-Z' 'a-z')"
+          case "${got}" in
+            aarch64|arm64) got=arm64 ;;
+            x86_64|amd64) got=x86_64 ;;
+          esac
+          if [ "${got}" != "${EXPECT_ARCH}" ]; then
+            echo "architecture mismatch: ${got} != ${EXPECT_ARCH}" >&2
+            exit 1
+          fi
+          mkdir -p build
+          COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+          "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
+          cp -f "build/${OUT_BIN}" "build/${ASSET}"
+          "build/${OUT_BIN}" --version
+          "build/${OUT_BIN}" --help | head -n 20
+
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
-          path: dist/agent-toolkit*
+          path: build/${{ matrix.artifact }}
+          if-no-files-found: error
           retention-days: 7
 
   upload-assets:
-    name: Attach binaries to release
+    name: Attach V binaries, archives, SHA256SUMS, manifest
     needs: [create-release, build-binaries]
     runs-on: ubuntu-latest
     environment: release
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/download-artifact@v8
         with:
           path: binaries/
           merge-multiple: true
-      - name: Upload binaries (retry)
+      - name: Pack archives + SHA256SUMS + manifest.json
+        env:
+          RELEASE_BIN_DIR: binaries
+          RELEASE_OUT_DIR: release-assets
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
+          python3 scripts/pack_release_assets.py
+          ls -lh release-assets/
+      - name: Upload release assets (retry)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           for attempt in $(seq 1 10); do
-            if gh release upload "${GITHUB_REF_NAME}" binaries/agent-toolkit* --clobber; then
-              echo "✓ Binaries attached"
+            if gh release upload "${GITHUB_REF_NAME}" release-assets/* --clobber; then
+              echo "✓ V binaries, archives, SHA256SUMS, manifest attached"
               exit 0
             fi
             echo "Attempt $attempt/10 failed; retrying in 10s..."
             sleep 10
           done
-          echo "::error::Failed to attach binaries"
+          echo "::error::Failed to attach release assets"
           exit 1
 
   sbom:

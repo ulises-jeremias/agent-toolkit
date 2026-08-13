@@ -64,15 +64,25 @@ python3 scripts/bump-version.py 1.3.0         # writes files
 
 ## Asset naming
 
-Release binaries are platform-suffixed to avoid upload collisions (see #256 and [ADR-018](adrs/ADR-018-release-artifacts.md)):
+Stable GitHub Release assets are **native V binaries** (not PyInstaller). Names follow [ADR-018](adrs/ADR-018-release-artifacts.md):
 
-* `agent-toolkit-linux-x86_64`
-* `agent-toolkit-macos-arm64`
+* `agent-toolkit-linux-x86_64` / `agent-toolkit-linux-arm64` (glibc, [ADR-019](adrs/ADR-019-linux-libc.md))
+* `agent-toolkit-macos-arm64` / `agent-toolkit-macos-x86_64`
 * `agent-toolkit-windows-x86_64.exe`
+* Versioned archives `agent-toolkit-<semver>-<os>-<arch>.tar.gz` (Windows `.zip`) containing `agent-toolkit` + `LICENSE`
+* `SHA256SUMS` and `manifest.json` ([ADR-022](adrs/ADR-022-release-manifest.md))
 
-**Stable channel:** those floating names. **Linux (`linux-x86_64` / `linux-arm64`) is glibc** ([ADR-019](adrs/ADR-019-linux-libc.md)); an optional musl extra uses a distinct name (`agent-toolkit-linux-x86_64-musl`) and must not overwrite the stable glibc artifact. **Versioned archives** (`agent-toolkit-<semver>-<os>-<arch>.tar.gz` / Windows `.zip`) are the checksum and attestation unit. **Experimental V** assets use `agent-toolkit-v-experimental-<os>-<arch>` ([#562](https://github.com/ulises-jeremias/agent-toolkit/issues/562), workflow `experimental-v.yml`, [docs/v/experimental-binaries.md](v/experimental-binaries.md)) and must not overwrite stable names.
+**Checksums are MUST.** Verify:
 
-Darwin x86_64 is intentionally deferred (documented skip). Release notes / this doc mention naming.
+```bash
+curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.10.0/SHA256SUMS"
+curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.10.0/agent-toolkit-linux-x86_64"
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+**SBOM (SHOULD):** `sbom.cyclonedx.json` lists ingredients; it is not a vulnerability scan. **Artifact attestations (FUTURE / SHOULD when enabled):** they record which workflow produced an asset; they do not prove the software is secure. **Code signing / notarization:** [#543](https://github.com/ulises-jeremias/agent-toolkit/issues/543).
+
+**Experimental V** CI artifacts use `agent-toolkit-v-experimental-<os>-<arch>` and must not overwrite stable names. Optional musl extra uses `agent-toolkit-linux-x86_64-musl`.
 
 Packaging **adapter contracts** (this repo, no Formula/PKGBUILD copies): [`distribution/README.md`](../distribution/README.md) ([#534](https://github.com/ulises-jeremias/agent-toolkit/issues/534)).
 
