@@ -154,6 +154,18 @@ jobs:
       - name: Assert plugin surfaces are in sync with canonical sources
         run: python3 scripts/gen-surfaces.py --check
 
+  check-catalogs:
+    name: Check Generated Catalogs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2
+
+      - name: Assert catalogs match filesystem sources
+        run: python3 scripts/generate-catalogs.py --check
+
   check-skill-matrix:
     name: Check Skill→Product Matrix
     runs-on: ubuntu-latest
@@ -728,6 +740,7 @@ jobs:
       - validate-manifests
       - validate-agent-plugins
       - validate-upstream
+      - check-catalogs
       - check-skill-matrix
       - validate-loops
       - validate-products
@@ -750,6 +763,7 @@ jobs:
           if [[ "${{ needs.validate-manifests.result }}" != "success" ]]; then echo "validate-manifests failed: ${{ needs.validate-manifests.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-agent-plugins.result }}" != "success" ]]; then echo "validate-agent-plugins failed: ${{ needs.validate-agent-plugins.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-upstream.result }}" != "success" ]]; then echo "validate-upstream failed: ${{ needs.validate-upstream.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-catalogs.result }}" != "success" ]]; then echo "check-catalogs failed: ${{ needs.check-catalogs.result }}"; failed="true"; fi
           if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-products.result }}" != "success" ]]; then echo "validate-products failed: ${{ needs.validate-products.result }}"; failed="true"; fi

@@ -80,7 +80,27 @@ def gen_loops() -> dict:
     return {"version": 1, "generated": True, "count": len(loops), "loops": loops}
 
 
-def main() -> int:
+def _dump(data: dict) -> str:
+    return yaml.dump(
+        data,
+        Dumper=IndentDumper,
+        sort_keys=False,
+        allow_unicode=True,
+        default_flow_style=False,
+    )
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Fail if committed catalogs differ from regenerated content (no write)",
+    )
+    args = parser.parse_args(argv)
+
     out = ROOT / "catalogs"
     out.mkdir(exist_ok=True)
     mapping = {
@@ -88,18 +108,27 @@ def main() -> int:
         "agent-catalog.yaml": gen_agents(),
         "loop-catalog.yaml": gen_loops(),
     }
+    drifted = False
     for name, data in mapping.items():
         path = out / name
-        path.write_text(
-            yaml.dump(
-                data,
-                Dumper=IndentDumper,
-                sort_keys=False,
-                allow_unicode=True,
-                default_flow_style=False,
-            )
-        )
+        rendered = _dump(data)
+        if args.check:
+            if not path.is_file():
+                print(f"MISSING {path}", flush=True)
+                drifted = True
+                continue
+            existing = path.read_text()
+            if existing != rendered:
+                print(f"DRIFT {path} (committed != regenerated)", flush=True)
+                drifted = True
+            else:
+                print(f"ok {path} ({data['count']} entries)")
+            continue
+        path.write_text(rendered)
         print(f"wrote {path} ({data['count']} entries)")
+    if args.check and drifted:
+        print("Catalogs out of sync — run: python3 scripts/generate-catalogs.py", flush=True)
+        return 1
     return 0
 
 
