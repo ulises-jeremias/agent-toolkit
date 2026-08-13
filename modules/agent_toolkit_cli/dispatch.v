@@ -75,6 +75,11 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_uninstall(opts)
 		return render(agent_toolkit_core.uninstall_result(report), mode)
 	}
+	if cmd_name == 'diff' {
+		opts := parse_diff_options(argv[1..])
+		report := agent_toolkit_core.run_diff(opts)
+		return render(agent_toolkit_core.diff_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -185,6 +190,44 @@ fn parse_uninstall_options(args []string) !agent_toolkit_core.UninstallOptions {
 	}
 }
 
+fn parse_diff_options(args []string) agent_toolkit_core.DiffOptions {
+	mut target := ''
+	mut product := ''
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--target' && i + 1 < args.len {
+			target = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--target=') {
+			target = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--product' && i + 1 < args.len {
+			product = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--product=') {
+			product = a.all_after('=')
+			i++
+			continue
+		}
+		i++
+	}
+	return agent_toolkit_core.DiffOptions{
+		target:  target
+		product: product
+	}
+}
+
 fn allowed_flag(cmd string, a string) bool {
 	if a in ['-h', '--help', '--json', '--quiet'] {
 		return true
@@ -197,6 +240,11 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 		if a.starts_with('--tools') {
+			return true
+		}
+	}
+	if cmd == 'diff' {
+		if a.starts_with('--target') || a.starts_with('--product') {
 			return true
 		}
 	}
@@ -318,6 +366,16 @@ Alias: rollback
   --dry-run      Show what would be removed without deleting
   --rollback     Alias for uninstall (removes toolkit-owned files)
   --json         Structured CommandResult JSON
+'
+	}
+	if name == 'diff' {
+		return 'Usage: agent-toolkit diff [--target TARGET] [--product PRODUCT] [--json]
+
+Show what would change between freshly compiled output and plugins/.
+
+  --target TARGET    Target platform (default: Tier-1 cursor/claude-code/opencode)
+  --product PRODUCT  Product ID to diff (default: all products)
+  --json             Structured CommandResult JSON
 '
 	}
 	mut c := cli.Command{

@@ -256,6 +256,19 @@
         "dry-run",
         "tools"
       ]
+    },
+    {
+      "command": "diff-help",
+      "args": [
+        "diff",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "diff",
+        "target",
+        "product"
+      ]
     }
   ]
 }
