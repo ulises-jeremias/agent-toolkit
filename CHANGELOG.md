@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Fixed** — V install JSON merge (`ownership=merged`) writes without `--force` (Closes #611)
+- **Docs** — ADR-017 package-manager ownership: `update` is capability-only; never overwrite brew/AUR/npm/uv binaries (Closes #489)
 - **Feat** — V `agent-toolkit install` via InstallTransaction (dry-run/force/receipts) (Closes #607)
 - **Feat** — V `plugin sync|check` gen-surfaces parity (Closes #519)
 - **Feat** — V `mcp` list/setup/health/doctor/uninstall (env names only; no secrets) (Closes #518)
