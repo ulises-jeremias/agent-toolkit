@@ -537,6 +537,42 @@
         "command",
         "recipes"
       ]
+    },
+    {
+      "command": "insights-disposition",
+      "args": [
+        "insights"
+      ],
+      "class": "V_SEMANTIC",
+      "expect_v_exit": 0,
+      "must_contain": [
+        "#526",
+        "deprecat"
+      ]
+    },
+    {
+      "command": "release-disposition",
+      "args": [
+        "release"
+      ],
+      "class": "V_SEMANTIC",
+      "expect_v_exit": 1,
+      "must_contain": [
+        "#527",
+        "RELEASING"
+      ]
+    },
+    {
+      "command": "help-disposition-blurbs",
+      "args": [
+        "--help"
+      ],
+      "class": "V_SEMANTIC",
+      "expect_v_exit": 0,
+      "must_contain": [
+        "deprecated in V",
+        "Not in V"
+      ]
     }
   ]
 }

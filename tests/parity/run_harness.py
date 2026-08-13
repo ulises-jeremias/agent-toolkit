@@ -120,6 +120,17 @@ def check_fixture(fx: dict[str, Any], v_bin: str) -> None:
                 fail(command, cls, f"v missing {needle!r}")
         return
 
+    if cls == "V_SEMANTIC":
+        # V-only semantic checks (disposition / docs contract). Python may differ.
+        expect_v = fx.get("expect_v_exit", 0)
+        if v.exit_code != expect_v:
+            fail(command, cls, f"v exit {v.exit_code} != {expect_v}")
+        blob_v = v.stdout + v.stderr
+        for needle in fx.get("must_contain", []):
+            if needle.lower() not in blob_v.lower():
+                fail(command, cls, f"v missing {needle!r}")
+        return
+
     if cls == "SCHEMA":
         expect_v = fx.get("expect_v_exit", 0)
         if v.exit_code != expect_v:
