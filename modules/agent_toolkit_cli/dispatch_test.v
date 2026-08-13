@@ -112,6 +112,11 @@ fn test_dispatch_workspace_context_json() {
 	assert code == 0
 }
 
+fn test_dispatch_project_help() {
+	code := dispatch(['agent-toolkit', 'project', '--help'])
+	assert code == 0
+}
+
 fn test_dispatch_memory_help() {
 	code := dispatch(['agent-toolkit', 'memory', '--help'])
 	assert code == 0

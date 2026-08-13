@@ -131,6 +131,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_memory(opts)
 		return render(agent_toolkit_core.memory_result(report), mode)
 	}
+	if cmd_name == 'project' {
+		opts := parse_project_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_project(opts)
+		return render(agent_toolkit_core.project_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -593,6 +601,58 @@ fn parse_workspace_options(args []string) !agent_toolkit_core.WorkspaceOptions {
 	}
 }
 
+fn parse_project_options(args []string) !agent_toolkit_core.ProjectOptions {
+	mut sub := ''
+	mut workspace_path := ''
+	mut arg := ''
+	mut ssh := false
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--ssh' {
+			ssh = true
+			i++
+			continue
+		}
+		if a == '--workspace' {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			workspace_path = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--workspace=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+			i++
+			continue
+		}
+		if arg.len == 0 {
+			arg = a
+		}
+		i++
+	}
+	return agent_toolkit_core.ProjectOptions{
+		subcommand:     sub
+		workspace_path: workspace_path
+		arg:            arg
+		ssh:            ssh
+	}
+}
+
 fn parse_plugin_options(args []string) agent_toolkit_core.PluginOptions {
 	mut sub := ''
 	for a in args {
@@ -769,6 +829,14 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 	}
+	if cmd == 'project' {
+		if a in ['--ssh', '--workspace'] {
+			return true
+		}
+		if a.starts_with('--workspace') {
+			return true
+		}
+	}
 	return false
 }
 
@@ -935,6 +1003,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'workspace' {
 		return agent_toolkit_core.workspace_help_text()
+	}
+	if name == 'project' {
+		return agent_toolkit_core.project_help_text()
 	}
 	if name == 'memory' {
 		return agent_toolkit_core.memory_help_text()

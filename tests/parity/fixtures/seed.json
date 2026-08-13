@@ -440,6 +440,36 @@
         "inject",
         "todo"
       ]
+    },
+    {
+      "command": "project-help",
+      "args": [
+        "project",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "clone",
+        "list",
+        "add",
+        "remove",
+        "scan"
+      ]
+    },
+    {
+      "command": "project-list-json",
+      "args": [
+        "project",
+        "list",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "workspace",
+        "subcommand"
+      ]
     }
   ]
 }
