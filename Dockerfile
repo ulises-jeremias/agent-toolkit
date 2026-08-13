@@ -35,7 +35,10 @@ RUN set -euo pipefail; \
     (cd /tmp && sha256sum -c SHA256SUMS --ignore-missing); \
     install -m 0755 "/tmp/${asset}" /usr/local/bin/agent-toolkit; \
     rm -f "/tmp/${asset}" /tmp/SHA256SUMS; \
-    /usr/local/bin/agent-toolkit --help >/dev/null
+    test -x /usr/local/bin/agent-toolkit
+    # Do not exec the ELF here: QEMU user-mode for the non-native
+    # --platform often reports "not found" (missing foreign ld-linux).
+    # Smoke `agent-toolkit version` in docker.yml after a native load.
 
 ENTRYPOINT ["/usr/local/bin/agent-toolkit"]
 CMD ["--help"]

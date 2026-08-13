@@ -6,6 +6,8 @@ on:
   push:
     branches: [main]
     paths: [Dockerfile, .dockerignore, distribution/docker/**, .github/workflows/docker.yml]
+  pull_request:
+    paths: [Dockerfile, .dockerignore, distribution/docker/**, .github/workflows/docker.yml]
   workflow_dispatch:
 
 env:
@@ -50,7 +52,24 @@ jobs:
             type=ref,event=branch
             type=sha
 
+      - name: Build native image (PR smoke)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          platforms: linux/amd64
+          build-args: |
+            VERSION=${{ steps.ver.outputs.version }}
+          tags: agent-toolkit:ci
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke native image
+        if: github.event_name == 'pull_request'
+        run: docker run --rm agent-toolkit:ci version
+
       - name: Build and push
+        if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -60,3 +79,11 @@ jobs:
             VERSION=${{ steps.ver.outputs.version }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke published amd64 image
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+        run: |
+          docker pull --platform linux/amd64 "$IMAGE"
+          docker run --rm --platform linux/amd64 "$IMAGE" version

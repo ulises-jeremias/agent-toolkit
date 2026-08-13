@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-- **Fixed** — Docker multi-arch image honors BuildKit `TARGETARCH` (no amd64 default) so linux/arm64 installs `agent-toolkit-linux-arm64`
+- **Fixed** — Docker multi-arch image honors BuildKit `TARGETARCH` (no amd64 default) so linux/arm64 installs `agent-toolkit-linux-arm64`; skip exec during QEMU cross-build and smoke `version` on a native load
 - **Fixed** — Install `types-PyYAML` in the PyPI adapter dev extra so incremental mypy can type `yaml` imports
 - **Fixed** — PyPI launcher exports wheel `data/` as `AGENT_TOOLKIT_ROOT`; V `doctor` uses `find_toolkit_root` (wheel `bin/../data`) and `embedded_version` instead of a hardcoded 1.10.0; uvx CI checks out the repo so published wheels can resolve skills/loops
 - **CI** — Republish PyPI via `workflow_dispatch` on `release.yml` (Trusted Publishing is registered for that workflow, not `publish.yml`)

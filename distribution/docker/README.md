@@ -33,6 +33,8 @@ Build-arg `VERSION` (default from `VERSION` file) selects the GitHub Release tag
 
 `ARG TARGETARCH` MUST be declared **without a default**. BuildKit injects `amd64` or `arm64` per `--platform`. A Dockerfile default of `amd64` installs the x86_64 ELF into the linux/arm64 image; running it then fails with `agent-toolkit: not found` (missing amd64 dynamic linker).
 
+The Dockerfile MUST NOT `exec` the V binary during `RUN` (QEMU user-mode for the foreign `--platform` lacks that ELF's dynamic linker). Smoke `agent-toolkit version` from `.github/workflows/docker.yml` after a native `load` (PRs) or after push (main).
+
 ## Tags
 
 - `latest` / semver: **stable V** image after a GitHub Release has floating linux assets.
