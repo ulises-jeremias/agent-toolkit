@@ -171,7 +171,7 @@ Related: [SWARM_RECIPES.md](SWARM_RECIPES.md) · [SWARM_HANDOFFS.md](SWARM_HANDO
 
 Missing tools produce actionable installation guidance. Run `agent-toolkit doctor` for a
 complete installation health picture that includes swarm prerequisites alongside system,
-AI tool, profile, loop, LLM, MCP, and scheduled-loops checks. See [CLI_REFERENCE.md](CLI_REFERENCE.md)
+AI tool, profile, loop, LLM, MCP, and scheduled-loops checks. See [CLI_SURFACES.md](CLI_SURFACES.md)
 for the full list.
 
 ## No Cloud Required
