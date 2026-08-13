@@ -123,6 +123,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_workspace(opts)
 		return render(agent_toolkit_core.workspace_result(report), mode)
 	}
+	if cmd_name == 'memory' {
+		opts := parse_memory_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_memory(opts)
+		return render(agent_toolkit_core.memory_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -603,6 +611,92 @@ fn parse_plugin_options(args []string) agent_toolkit_core.PluginOptions {
 	}
 }
 
+fn parse_memory_options(args []string) !agent_toolkit_core.MemoryOptions {
+	mut sub := ''
+	mut entry_type := ''
+	mut title := ''
+	mut workspace_path := ''
+	mut fix := false
+	mut stale_after := 0
+	mut done := false
+	mut rest := []string{}
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--fix' {
+			fix = true
+			i++
+			continue
+		}
+		if a == '--done' {
+			done = true
+			i++
+			continue
+		}
+		if a in ['--type', '--title', '--workspace', '--stale-after'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--type' { entry_type = val }
+				'--title' { title = val }
+				'--workspace' { workspace_path = val }
+				'--stale-after' { stale_after = val.int() }
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--type=') {
+			entry_type = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--title=') {
+			title = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--workspace=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--stale-after=') {
+			stale_after = a.all_after('=').int()
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+			i++
+			continue
+		}
+		rest << a
+		i++
+	}
+	return agent_toolkit_core.MemoryOptions{
+		subcommand:     sub
+		entry_type:     entry_type
+		title:          title
+		content:        rest.join(' ')
+		query:          rest.join(' ')
+		workspace_path: workspace_path
+		fix:            fix
+		stale_after:    stale_after
+		show_done:      done
+	}
+}
+
 fn allowed_flag(cmd string, a string) bool {
 	if a in ['-h', '--help', '--json', '--quiet'] {
 		return true
@@ -663,6 +757,15 @@ fn allowed_flag(cmd string, a string) bool {
 		}
 		if a.starts_with('--dir') || a.starts_with('--name') || a.starts_with('--workspace')
 			|| a.starts_with('--profile') || a.starts_with('--pack') {
+			return true
+		}
+	}
+	if cmd == 'memory' {
+		if a in ['--fix', '--done'] {
+			return true
+		}
+		if a.starts_with('--type') || a.starts_with('--title') || a.starts_with('--workspace')
+			|| a.starts_with('--stale-after') {
 			return true
 		}
 	}
@@ -832,6 +935,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'workspace' {
 		return agent_toolkit_core.workspace_help_text()
+	}
+	if name == 'memory' {
+		return agent_toolkit_core.memory_help_text()
 	}
 	mut c := cli.Command{
 		name:        name

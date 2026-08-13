@@ -217,7 +217,7 @@ commands:
     env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
     effects: {filesystem: knowledge-writes, network: none, processes: none}
     platform_notes: []
-    tests: ["tests/test_memory.py"]
+    tests: ["tests/test_memory.py", "modules/agent_toolkit_core/memory_test.v"]
     migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
 
   - name: project

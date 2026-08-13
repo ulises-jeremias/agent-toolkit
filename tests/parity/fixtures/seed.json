@@ -426,6 +426,20 @@
         "subcommand",
         "timestamp"
       ]
+    },
+    {
+      "command": "memory-help",
+      "args": [
+        "memory",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "add",
+        "search",
+        "inject",
+        "todo"
+      ]
     }
   ]
 }

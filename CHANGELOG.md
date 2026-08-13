@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V `memory` add/search/inject/review/todo (knowledge markdown; atomic writes) (Closes #521)
 - **Feat** — V `workspace` command family (init/context/sync + personas/packs) (Closes #520)
 - **Fixed** — V install JSON merge (`ownership=merged`) writes without `--force` (Closes #611)
 - **Feat** — V binary is the in-repo canonical `agent-toolkit` (consumer CLI; Python package fallback for unfinished advanced commands) (Closes #555)
