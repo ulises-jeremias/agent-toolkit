@@ -54,8 +54,17 @@ agent-toolkit swarm runners --json
 
 One command auto-detects your AI tools and deploys the right profiles.
 
+**Canonical implementation (from git checkout)** is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)):
+
 ```bash
-# Run without installing the CLI (preferred)
+make install-cli    # PREFIX/bin/agent-toolkit, default ~/.local/bin
+agent-toolkit doctor --json
+```
+
+See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` still ships the Python wheel until native wrappers.
+
+```bash
+# Run without installing the CLI (preferred for PyPI)
 uvx --from agent-toolkit-cli agent-toolkit install
 
 # Verify

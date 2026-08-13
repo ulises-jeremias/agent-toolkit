@@ -6,9 +6,9 @@ import os
 pub struct DoctorOptions {
 pub:
 	fix               bool
-	home_dir           string // empty → os.home_dir()
-	data_root          string // empty → resolve via update/find_toolkit_root
-	skip_data_refresh  bool
+	home_dir          string // empty → os.home_dir()
+	data_root         string // empty → resolve via update/find_toolkit_root
+	skip_data_refresh bool
 }
 
 // DoctorCheck is one health check row.
@@ -25,6 +25,7 @@ pub struct DoctorSnapshot {
 pub:
 	engine      string
 	version     string
+	commit      string
 	platform    string
 	root        string
 	root_ok     bool
@@ -143,17 +144,18 @@ pub fn run_doctor(opts DoctorOptions) DoctorSnapshot {
 	lines << ''
 
 	return DoctorSnapshot{
-		engine:       'v'
-		version:      ver
-		platform:     platform
-		root:         root
-		root_ok:      root_ok
-		offline:      offline
-		ok:           ok
-		message:      lines.join('\n')
-		fix_applied:  fix_applied
-		fix_action:   fix_action
-		checks:       checks
+		engine:      'v'
+		version:     ver
+		commit:      resolve_commit()
+		platform:    platform
+		root:        root
+		root_ok:     root_ok
+		offline:     offline
+		ok:          ok
+		message:     lines.join('\n')
+		fix_applied: fix_applied
+		fix_action:  fix_action
+		checks:      checks
 	}
 }
 
@@ -174,16 +176,17 @@ pub fn doctor_result(snap DoctorSnapshot) CommandResult {
 		ok:      snap.ok
 		message: snap.message
 		data:    {
-			'engine':       snap.engine
-			'version':      snap.version
-			'platform':     snap.platform
-			'root':         snap.root
-			'root_ok':      if snap.root_ok { 'true' } else { 'false' }
-			'offline':      if snap.offline { 'true' } else { 'false' }
-			'fix_applied':  if snap.fix_applied { 'true' } else { 'false' }
-			'fix_action':   snap.fix_action
-			'warnings':     '${warn_n}'
-			'errors':       '${err_n}'
+			'engine':      snap.engine
+			'version':     snap.version
+			'commit':      snap.commit
+			'platform':    snap.platform
+			'root':        snap.root
+			'root_ok':     if snap.root_ok { 'true' } else { 'false' }
+			'offline':     if snap.offline { 'true' } else { 'false' }
+			'fix_applied': if snap.fix_applied { 'true' } else { 'false' }
+			'fix_action':  snap.fix_action
+			'warnings':    '${warn_n}'
+			'errors':      '${err_n}'
 		}
 	}
 }
@@ -207,7 +210,8 @@ fn collect_profile_checks(home string) []DoctorCheck {
 		out << profile_check('cursor rules/', os.join_path(home, '.cursor', 'rules'))
 	}
 	if os.is_dir(os.join_path(home, '.config', 'opencode')) {
-		out << profile_check('opencode agents/', os.join_path(home, '.config', 'opencode', 'agents'))
+		out << profile_check('opencode agents/',
+			os.join_path(home, '.config', 'opencode', 'agents'))
 		out << profile_check('opencode opencode.json', os.join_path(home, '.config', 'opencode',
 			'opencode.json'))
 	}
@@ -275,8 +279,8 @@ fn doctor_version() string {
 	mut cur := os.getwd()
 	for {
 		vf := os.join_path(cur, 'VERSION')
-		if os.is_file(vf)
-			&& (os.is_dir(os.join_path(cur, 'skills')) || os.is_dir(os.join_path(cur, 'loops'))) {
+		if os.is_file(vf) && (os.is_dir(os.join_path(cur, 'skills'))
+			|| os.is_dir(os.join_path(cur, 'loops'))) {
 			text := os.read_file(vf) or { '' }
 			v := text.trim_space()
 			if v.len > 0 {

@@ -605,7 +605,7 @@ fn mode_from_argv(argv []string) agent_toolkit_core.RenderMode {
 fn grouped_help() string {
 	mut root := cli.Command{
 		name:        'agent-toolkit'
-		description: 'Composable AI agent toolkit CLI (V experimental)\n\nSee docs/CLI_SURFACES.md for consumer vs advanced commands.'
+		description: 'Composable AI agent toolkit CLI\n\nSee docs/CLI_SURFACES.md for consumer vs advanced commands.'
 		version:     agent_toolkit_core.resolve_toolkit_version()
 		commands:    help_commands()
 	}
@@ -722,7 +722,7 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	mut c := cli.Command{
 		name:        name
-		description: '${name} — not yet implemented in V experimental binary'
+		description: '${name} — not yet implemented in V; use the Python package for unfinished advanced commands (docs/v/cutover.md)'
 	}
 	c.setup()
 	return c.help_message()

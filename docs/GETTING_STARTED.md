@@ -9,6 +9,15 @@ uv tool install agent-toolkit-cli
 agent-toolkit install
 ```
 
+From a git checkout, the **canonical CLI implementation is V** ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)):
+
+```bash
+make install-cli    # ~/.local/bin/agent-toolkit
+agent-toolkit doctor --json
+```
+
+PyPI/`uvx` still runs the Python wheel until native binary wrappers. Unfinished advanced commands: `uvx --from agent-toolkit-cli agent-toolkit <cmd>` (see [docs/v/cutover.md](v/cutover.md)). Rollback: [docs/v/rollback.md](v/rollback.md).
+
 Alternatives: `uvx --from agent-toolkit-cli agent-toolkit install` (one-shot) or `yay -S agent-toolkit-cli && agent-toolkit install` on Arch Linux (AUR pending publish — use `uv` until RPC shows package).
 
 See [docs/INSTALLATION.md](INSTALLATION.md) for full options.

@@ -42,9 +42,22 @@ Experimental and stable binaries should expose engine/language, version, and com
 - Cutover [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) requires parity gates before renaming/replacing the canonical binary.
 - Doctor/version diagnostics report which binary ran.
 
+## Cutover status (#555, 2026-08-13)
+
+[#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) is **accepted for the source/canonical implementation**:
+
+- From-source `make build-cli` / `make install-cli` installs V as `agent-toolkit`.
+- Consumer commands (install lifecycle + skills/mcp/plugin) are implemented in V.
+- GitHub native artifacts remain **experimental** until MUST-platform promotion ([#562](https://github.com/ulises-jeremias/agent-toolkit/issues/562) / [#529](https://github.com/ulises-jeremias/agent-toolkit/issues/529)); they must not overwrite stable channel names without that gate.
+- **PyPI/`uvx` still runs the Python wheel** until binary wrappers ([#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)). That is a packaging lag, not a dual-engine switch.
+- Unfinished advanced commands stay `not_implemented` in V. Fallback is a **separate** Python entry (`uvx --from agent-toolkit-cli`), not option C (V exec of Python).
+- Observability: `doctor --json` and `version --json` include `engine`, `version`, and `commit` without changing human stdout.
+
+Rollback: [docs/v/rollback.md](../v/rollback.md). Cutover narrative: [docs/v/cutover.md](../v/cutover.md).
+
 ## References
 
 - Issues [#482](https://github.com/ulises-jeremias/agent-toolkit/issues/482), [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [#562](https://github.com/ulises-jeremias/agent-toolkit/issues/562)
 - Program [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)
 
-**Verified:** 2026-08-12
+**Verified:** 2026-08-13
