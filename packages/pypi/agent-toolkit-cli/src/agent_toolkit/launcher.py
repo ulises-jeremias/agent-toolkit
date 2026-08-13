@@ -66,7 +66,7 @@ def missing_binary_message() -> str:
         "agent-toolkit: native V binary not found (ADR-021).\n"
         "  Packaged wheels bundle the binary under agent_toolkit/bin/.\n"
         "  Dev: make build-cli, or set AGENT_TOOLKIT_BIN to that executable.\n"
-        "  Python implementation (fallback): agent-toolkit-py\n"
+        "  Quarantined Python fallback: agent-toolkit-py\n"
     )
 
 

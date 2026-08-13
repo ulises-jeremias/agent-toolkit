@@ -24,7 +24,7 @@ Adopt **A** as the **MUST** migration outcome. Source `agent-toolkit` is **OPTIO
 
 1. Package **`agent-toolkit-bin`**: download `agent-toolkit-linux-x86_64` / `agent-toolkit-linux-arm64` (ADR-018), verify sha256, install `/usr/bin/agent-toolkit`.
 2. `provides=('agent-toolkit')` and `conflicts=('agent-toolkit')`.
-3. Existing Python `agent-toolkit` PKGBUILD may remain as an optional source/wheel package until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540); it is **not** canonical.
+3. Existing Python `agent-toolkit` PKGBUILD may remain as an optional source/wheel package; it is **not** canonical. Product install is `agent-toolkit-bin`.
 4. Automation prefers GitHub-mirror commits plus AUR publish; first AUR push needs an empty `aur.archlinux.org/agent-toolkit-bin.git`. `notify-aur.yml` should dispatch `package_name=agent-toolkit-bin` (and may still bump the optional source package).
 5. `pacman -Syu` / AUR helpers own the binary ([ADR-017](ADR-017-update-ownership.md)).
 

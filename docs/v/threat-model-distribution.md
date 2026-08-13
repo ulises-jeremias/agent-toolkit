@@ -53,7 +53,7 @@ CI copies a GitHub Release (or just-built) binary into the wheel at **publish** 
 | Malicious PyPI wheel (account/token theft, dependency confusion) | Critical | Keep dist name `agent-toolkit-cli`; Trusted Publishing; users pin version+hash when they can | PyPI is still a second host of the bytes |
 | Wheel tag mismatch (macOS installs a Linux binary) | High | Platform tags (`infer_tag`); hatch `pure_python=False` when a native bin is present; missing/wrong bin → exit 127, **no** Python CLI fallback | sdist has no binary — must not silently become the product |
 | `AGENT_TOOLKIT_BIN` / writable `agent_toolkit/bin/` TOCTOU | Medium | Document as trusted-operator; do not search `PATH` for a random `agent-toolkit` | Local privilege already implies PATH hijack |
-| Launcher reimplements CLI in Python | High | Product scripts call launcher only; `agent-toolkit-py` is explicit fallback (#535) | Until #540, Python still ships in the same dist |
+| Launcher reimplements CLI in Python | High | Product scripts call launcher only; `agent-toolkit-py` is explicit quarantined fallback (#535 / [python-fallback.md](python-fallback.md)) | Same wheel still ships Python modules; they are not the product path |
 | Offline install | Info | A is **offline-capable** after the wheel is fetched | — |
 
 **npm/Homebrew/AUR** using A-equivalent (Formula/PKGBUILD copies Release bytes at *package build* or install-from-URL with checksum) inherit the same row for “compromised Release.”

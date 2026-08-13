@@ -1,9 +1,32 @@
 #!/usr/bin/env python3
-"""agent-toolkit CLI entrypoint — see docs/CLI_SURFACES.md."""
+"""Quarantined Python CLI (`agent-toolkit-py`) — not the product.
+
+Product commands are `agent-toolkit` / `agent-toolkit-cli` (V launcher).
+See docs/v/python-fallback.md.
+"""
 
 from __future__ import annotations
 
+import os
 import sys
+
+_QUIET_VALUES = frozenset({"1", "true", "yes", "on"})
+
+
+def emit_quarantine_notice() -> None:
+    """Warn interactive users; stay quiet in CI / captured pytest."""
+    raw = os.environ.get("AGENT_TOOLKIT_PY_QUIET", "").strip().lower()
+    if raw in _QUIET_VALUES:
+        return
+    try:
+        if not sys.stderr.isatty():
+            return
+    except OSError:
+        return
+    sys.stderr.write(
+        "agent-toolkit-py: quarantined Python fallback (not the product CLI). "
+        "Use `agent-toolkit` (native V). See docs/v/python-fallback.md\n"
+    )
 
 CONSUMER_COMMANDS: tuple[str, ...] = (
     "install",
@@ -64,6 +87,7 @@ Run 'agent-toolkit <command> --help' for details.
 
 
 def main() -> None:
+    emit_quarantine_notice()
     argv = sys.argv[1:]
     if not argv or argv[0] in ("-h", "--help", "help"):
         print(_CONSUMER_HELP)

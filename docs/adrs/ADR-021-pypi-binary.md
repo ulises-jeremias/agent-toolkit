@@ -28,7 +28,7 @@ Adopt **A**.
 1. **Product path is the V binary.** The commands `agent-toolkit` and `agent-toolkit-cli` MUST `exec` (or equivalent spawn+wait with signal/stdio/exit forwarding) a native V binary. They MUST NOT run Python business logic.
 2. **Bundle at wheel-build time.** CI downloads the matching GitHub Release asset (stable floating name after promotion; `agent-toolkit-v-experimental-<os>-<arch>` until then) into the wheel. Runtime download (option B) is **not** the default and is blocked on the distribution threat model ([#563](https://github.com/ulises-jeremias/agent-toolkit/issues/563)).
 3. **Thin Python process is allowed.** `uv tool install` may start a tiny Python entrypoint whose only job is locate-binary + `os.execv` / `subprocess` with forwarded argv, env, cwd, stdio, signals, and exit code. **Zero Python implementation**, not zero Python process.
-4. **Python CLI remains a named fallback.** Console script `agent-toolkit-py` keeps the Python implementation until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540). It is not the product command.
+4. **Python CLI remains a named fallback.** Console script `agent-toolkit-py` keeps the quarantined Python implementation ([python-fallback.md](../v/python-fallback.md)). It is not the product command. [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) does **not** require deleting this script or the thin launcher.
 
 ### Name continuity
 
@@ -36,7 +36,7 @@ Adopt **A**.
 |------|----------|
 | PyPI **distribution** name | Keep **`agent-toolkit-cli`**. Do not require acquiring the unused `agent-toolkit` name on PyPI. |
 | Console **command** name | **`agent-toolkit`** (and alias `agent-toolkit-cli`) → V launcher. |
-| Python **import** name | `agent_toolkit` stays for the thin launcher and, until #540/#561, the Python modules. Importing `agent_toolkit.cli.main` is advanced/fallback, not the product path. |
+| Python **import** name | `agent_toolkit` stays for the thin launcher and quarantined modules. Importing `agent_toolkit.cli.main` is advanced/fallback, not the product path. |
 
 ### Platform tags (glibc MUST)
 
@@ -82,6 +82,10 @@ Sources live under **`packages/pypi/agent-toolkit-cli/`**, parallel to **`packag
 CI copies GitHub Release V binaries into the wheel (`scripts/pack_pypi.py` + `scripts/prepare-native-bin.sh`). The repo root is not a uv workspace; `uv.lock` belongs next to the adapter if present. Pre-commit Ruff uses `language: python` (`ruff-pre-commit`) with root `ruff.toml` — no product uv workspace.
 
 Contract: [`distribution/pypi/README.md`](../../distribution/pypi/README.md).
+
+## Retirement follow-up (2026-08-13)
+
+[#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) / [#470](https://github.com/ulises-jeremias/agent-toolkit/issues/470) close with this ADR still in force: the PyPI **product** path is the bundled V binary + thin launcher. `agent-toolkit-py` stays as a quarantined fallback for DEPRECATE/REMOVE commands and pytest. Deleting `packages/pypi` would break `uv tool install agent-toolkit-cli`.
 
 ## Validation plan
 

@@ -9,7 +9,7 @@
 |--------|----------------|
 | `agent-toolkit` | V launcher |
 | `agent-toolkit-cli` | V launcher (alias) |
-| `agent-toolkit-py` | Python CLI (fallback until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540)) |
+| `agent-toolkit-py` | Quarantined Python CLI ([python-fallback.md](python-fallback.md)) |
 
 Resolution order: `AGENT_TOOLKIT_BIN` → `agent_toolkit/bin/agent-toolkit` inside the wheel → `AGENT_TOOLKIT_ROOT/build/agent-toolkit{,-v}`.
 

@@ -44,6 +44,7 @@ all = ["pyyaml>=6.0"]
 [project.scripts]
 agent-toolkit = "agent_toolkit.launcher:main"
 agent-toolkit-cli = "agent_toolkit.launcher:main"
+# Quarantined fallback (insights/release + pytest). Not the product. docs/v/python-fallback.md
 agent-toolkit-py = "agent_toolkit.cli.main:main"
 
 [project.urls]

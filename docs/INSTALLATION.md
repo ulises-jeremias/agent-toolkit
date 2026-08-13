@@ -79,7 +79,7 @@ make install-cli    # PREFIX/bin/agent-toolkit, default ~/.local/bin
 agent-toolkit doctor --json
 ```
 
-See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` ships a thin Python launcher over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)); `agent-toolkit-py` remains as fallback until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540). Do not retag empty `v1.10.0`.
+See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` ships a thin Python launcher over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)); `agent-toolkit-py` is a quarantined fallback ([python-fallback.md](v/python-fallback.md)). Do not retag empty `v1.10.0`.
 
 ### Install options
 

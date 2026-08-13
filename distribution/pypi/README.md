@@ -6,7 +6,7 @@
 
 | Path | Role |
 |------|------|
-| `packages/pypi/agent-toolkit-cli/` | Hatchling project **`agent-toolkit-cli`**: thin launcher + `agent-toolkit-py` fallback |
+| `packages/pypi/agent-toolkit-cli/` | Hatchling project **`agent-toolkit-cli`**: thin launcher + quarantined `agent-toolkit-py` fallback |
 | `packages/pypi/agent-toolkit-cli/platforms.json` | GitHub Release asset → PEP 425/600 wheel tag |
 | `scripts/pack_pypi.py` | Copies Release V binaries into the wheel at CI time (like `scripts/pack_npm.py`) |
 | `scripts/prepare-native-bin.sh` | Local/PR helper: copy `build/agent-toolkit` into `src/agent_toolkit/bin/` |
@@ -39,4 +39,4 @@ python3 scripts/pack_pypi.py   # sdist + one wheel per present asset → dist/
 - Tag releases: `.github/workflows/release.yml` `publish-pypi` (after `upload-assets`).
 - Manual republish (e.g. v1.11.0 after the manylinux fix): workflow **Publish (manual)** — downloads `v$(cat VERSION)` Release assets and packs the same way.
 
-Console scripts: `agent-toolkit` / `agent-toolkit-cli` → `agent_toolkit.launcher:main` (exec V). `agent-toolkit-py` remains until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540).
+Console scripts: `agent-toolkit` / `agent-toolkit-cli` → `agent_toolkit.launcher:main` (exec V). `agent-toolkit-py` is a quarantined fallback ([docs/v/python-fallback.md](../../docs/v/python-fallback.md)).

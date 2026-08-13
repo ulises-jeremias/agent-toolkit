@@ -7,7 +7,7 @@ This directory is **documentation-only contracts** for packaging adapters. It is
 
 ## Canonical source
 
-**GitHub Releases** on `ulises-jeremias/agent-toolkit` are the canonical binary source ([ADR-018](../docs/adrs/ADR-018-release-artifacts.md)). PyPI, Homebrew, AUR, npm, and Docker are **adapters** that fetch or wrap those V artifacts. Python remains a launcher/tooling layer (`packages/pypi/agent-toolkit-cli`, `agent-toolkit-py` fallback) — not the product CLI.
+**GitHub Releases** on `ulises-jeremias/agent-toolkit` are the canonical binary source ([ADR-018](../docs/adrs/ADR-018-release-artifacts.md)). PyPI, Homebrew, AUR, npm, and Docker are **adapters** that fetch or wrap those V artifacts. Python remains a launcher/tooling layer (`packages/pypi/agent-toolkit-cli`, quarantined `agent-toolkit-py`) — not the product CLI.
 
 Do **not** duplicate Formula/PKGBUILD/npm `package.json` here. Those live in their owner repos:
 

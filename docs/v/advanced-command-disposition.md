@@ -15,7 +15,7 @@ Legend: **PORT** 1:1 V rewrite · **REDESIGN** V rewrite with a different shape 
 | `loop` | [#523](https://github.com/ulises-jeremias/agent-toolkit/issues/523) | **REDESIGN** | Yes | Product differentiator; do not clone Python threads — follow [#528](https://github.com/ulises-jeremias/agent-toolkit/issues/528) + process service. |
 | `swarm` | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | **REDESIGN** | Yes | Keep surface; backends (Herdr/tmux) behind interfaces (ADR-008). Concurrency via #528. |
 | `devcompanion` | [#525](https://github.com/ulises-jeremias/agent-toolkit/issues/525) | **PORT** | Yes | Filesystem job queue used by AGENTS.md. Keep **`dc` alias** (already in V dispatcher). |
-| `insights` | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **DEPRECATE** | **No** | Local DB/path parsers churn with Cursor/OpenCode; privacy-sensitive; not required for consumer cutover or Python removal. Python may keep it until #540; V need not port. |
+| `insights` | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **DEPRECATE** | **No** | Local DB/path parsers churn with Cursor/OpenCode; privacy-sensitive; not required for consumer cutover or Python removal. Quarantined `agent-toolkit-py` may keep it; V need not port. |
 | `release` | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVE** | **No** | Maintainer artifact generation belongs in GitHub Actions / `docs/RELEASING.md`, not the runtime CLI. V help may list it as unsupported; do not port. |
 
 ## Alias policy
@@ -37,4 +37,4 @@ Legend: **PORT** 1:1 V rewrite · **REDESIGN** V rewrite with a different shape 
 4. REDESIGN `swarm` after loop/process patterns exist (`docs/v/swarm.md`).
 5. Close #526/#527 as dispositioned without V implementations.
 
-Python remains available for DEPRECATE/REMOVE commands until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540), matching [ADR-012](../adrs/ADR-012-python-v-coexistence.md) (no per-command mixed engine).
+Quarantined `agent-toolkit-py` remains available for DEPRECATE/REMOVE commands ([python-fallback.md](python-fallback.md)), matching [ADR-012](../adrs/ADR-012-python-v-coexistence.md) (no per-command mixed engine).

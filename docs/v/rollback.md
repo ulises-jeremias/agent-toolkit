@@ -2,47 +2,60 @@
 
 **Issue:** [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)
 
-Rollback restores a **Python** `agent-toolkit` (or a previous V binary). Channels are independent — pick the one you installed from.
+The product is a **native V** binary on every channel. Rollback means pin a previous **V** release on the same channel — not switch back to Python as `agent-toolkit`.
 
-## GitHub (from-source / experimental binary)
+`agent-toolkit-py` is a quarantined Python entry in the same PyPI wheel ([python-fallback.md](python-fallback.md)). It is not a channel rollback.
+
+## GitHub Release
+
+Download `agent-toolkit-<os>-<arch>` + `SHA256SUMS` from a previous tag (do **not** retag empty `v1.10.0`):
+
+https://github.com/ulises-jeremias/agent-toolkit/releases
+
+From a git checkout:
 
 ```bash
-# Remove V binary installed by make install-cli
-rm -f ~/.local/bin/agent-toolkit
-
-# Restore Python CLI on PATH
-uv tool install agent-toolkit-cli
-# or pin a previous release:
-uv tool install agent-toolkit-cli==1.10.0
+git checkout v1.11.0
+make build-cli
+make install-cli
 ```
 
-To run a previous V build: check out that git tag, `make build-cli`, `make install-cli`.
+To undo `make install-cli` only: `rm -f ~/.local/bin/agent-toolkit` (do not overwrite a brew/AUR/npm-managed binary — [ADR-017](../adrs/ADR-017-update-ownership.md)).
 
 ## PyPI
 
-PyPI still publishes the Python wheel until binary wrappers ([#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)):
+Wheels since `1.11.0` bundle V and exec it via the thin launcher ([ADR-021](../adrs/ADR-021-pypi-binary.md)):
 
 ```bash
-uv tool install agent-toolkit-cli==<previous>
+uv tool install 'agent-toolkit-cli==1.11.0'
 # or
-pip install 'agent-toolkit-cli==<previous>'
+pip install 'agent-toolkit-cli==1.11.0'
 ```
 
-`agent-toolkit-py` is the explicit Python entry after cutover (same package).
+The console script `agent-toolkit-py` remains in the wheel as the quarantined fallback.
 
 ## Homebrew
 
-Formulae live in the Homebrew tap (not this repo). Until the Homebrew epic ([#467](https://github.com/ulises-jeremias/agent-toolkit/issues/467) / [#538](https://github.com/ulises-jeremias/agent-toolkit/issues/538)), `brew` installs remain the Python formula. Rollback: `brew reinstall agent-toolkit` from the last known Python bottle, or `brew uninstall` and use `uv tool install`.
+Formulae live in [`ulises-jeremias/homebrew-tap`](https://github.com/ulises-jeremias/homebrew-tap) and install GitHub Release V binaries ([ADR-023](../adrs/ADR-023-homebrew.md)).
 
-Do not overwrite a brew-managed binary with `make install-cli` (ADR-017 / [#489](https://github.com/ulises-jeremias/agent-toolkit/issues/489)).
+```bash
+brew reinstall agent-toolkit
+# or pin a tap revision / previous formula version
+```
 
 ## AUR
 
-Until the AUR epic ([#468](https://github.com/ulises-jeremias/agent-toolkit/issues/468) / [#539](https://github.com/ulises-jeremias/agent-toolkit/issues/539)), Arch users install via `uv` or a Python PKGBUILD. Rollback: reinstall the previous `agent-toolkit-cli` package or `uv tool install agent-toolkit-cli==<previous>`.
+Canonical package is **`agent-toolkit-bin`** ([ADR-024](../adrs/ADR-024-aur.md)):
+
+```bash
+yay -S agent-toolkit-bin
+```
+
+Optional Python `agent-toolkit` PKGBUILD is not the product.
 
 ## Verify engine
 
 ```bash
-agent-toolkit doctor --json   # "engine": "v" or Python doctor without that key
+agent-toolkit doctor --json   # "engine": "v"
 agent-toolkit version --json  # V: engine + commit in data; human line unchanged
 ```

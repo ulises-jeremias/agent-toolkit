@@ -2,7 +2,7 @@
 
 **Issue:** [#477](https://github.com/ulises-jeremias/agent-toolkit/issues/477)  
 **Parent:** [#457](https://github.com/ulises-jeremias/agent-toolkit/issues/457) (EPIC 0)  
-**Product runtime:** native V binary is canonical ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)). Python remains a fallback CLI (`agent-toolkit-py`) and the PyPI/npm launcher host until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540).
+**Product runtime:** native V binary is canonical ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)). Python is a quarantined fallback CLI (`agent-toolkit-py`) plus the PyPI launcher host ([python-fallback.md](python-fallback.md) / [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540)).
 
 Tree: `packages/pypi/agent-toolkit-cli/src/agent_toolkit/`.
 
