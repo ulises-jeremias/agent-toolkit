@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V `plugin sync|check` gen-surfaces parity (Closes #519)
 - **Feat** — V `mcp` list/setup/health/doctor/uninstall (env names only; no secrets) (Closes #518)
 - **Feat** — V `skills` list/sync/validate command family (Closes #517)
 - **Feat** — V `doctor --fix` allowlisted profile refresh (Closes #550)

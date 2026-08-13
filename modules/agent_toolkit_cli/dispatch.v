@@ -102,6 +102,11 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_mcp(opts)
 		return render(agent_toolkit_core.mcp_result(report), mode)
 	}
+	if cmd_name == 'plugin' {
+		opts := parse_plugin_options(argv[1..])
+		report := agent_toolkit_core.run_plugin(opts)
+		return render(agent_toolkit_core.plugin_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -412,6 +417,24 @@ fn parse_mcp_options(args []string) agent_toolkit_core.McpOptions {
 	}
 }
 
+fn parse_plugin_options(args []string) agent_toolkit_core.PluginOptions {
+	mut sub := ''
+	for a in args {
+		if a in ['--json', '--quiet'] {
+			continue
+		}
+		if a.starts_with('-') {
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+		}
+	}
+	return agent_toolkit_core.PluginOptions{
+		subcommand: sub
+	}
+}
+
 fn allowed_flag(cmd string, a string) bool {
 	if a in ['-h', '--help', '--json', '--quiet'] {
 		return true
@@ -605,6 +628,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'mcp' {
 		return agent_toolkit_core.mcp_help_text()
+	}
+	if name == 'plugin' {
+		return agent_toolkit_core.plugin_help_text()
 	}
 	mut c := cli.Command{
 		name:        name

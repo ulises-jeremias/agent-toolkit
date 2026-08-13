@@ -324,6 +324,18 @@
         "setup",
         "uninstall"
       ]
+    },
+    {
+      "command": "plugin-help",
+      "args": [
+        "plugin",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "sync",
+        "check"
+      ]
     }
   ]
 }
