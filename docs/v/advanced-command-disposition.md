@@ -34,7 +34,7 @@ Legend: **PORT** 1:1 V rewrite · **REDESIGN** V rewrite with a different shape 
 1. PORT `workspace` → `memory` → `project` (shared workspace root).
 2. PORT `devcompanion` (queue is independent of loops).
 3. REDESIGN `loop` after [#528](https://github.com/ulises-jeremias/agent-toolkit/issues/528) / [ADR-020](../adrs/ADR-020-v-concurrency.md) (process-per-run supervisor).
-4. REDESIGN `swarm` after loop/process patterns exist.
+4. REDESIGN `swarm` after loop/process patterns exist (`docs/v/swarm.md`).
 5. Close #526/#527 as dispositioned without V implementations.
 
 Python remains available for DEPRECATE/REMOVE commands until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540), matching [ADR-012](../adrs/ADR-012-python-v-coexistence.md) (no per-command mixed engine).
