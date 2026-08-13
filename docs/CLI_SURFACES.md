@@ -44,6 +44,8 @@ Still available on the same binary — de-emphasized in top-level help:
 
 Swarm details: `docs/SWARMS.md`, `docs/SWARM_ARCHITECTURE.md`.
 
+V-port dispositions for advanced commands: [`docs/v/advanced-command-disposition.md`](v/advanced-command-disposition.md) (#560).
+
 ## Migration
 
 Existing scripts invoking advanced commands continue to work unchanged.
