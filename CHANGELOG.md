@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — V `workspace` command family (init/context/sync + personas/packs) (Closes #520)
 - **Feat** — V binary is the in-repo canonical `agent-toolkit` (consumer CLI; Python package fallback for unfinished advanced commands) (Closes #555)
 - **Docs** — EPIC 5 advanced-command disposition (PORT/REDESIGN/DEPRECATE/REMOVE) (Closes #560)
 - **Docs** — ADR-017 package-manager ownership: `update` is capability-only; never overwrite brew/AUR/npm/uv binaries (Closes #489)

@@ -397,6 +397,35 @@
         "sync",
         "check"
       ]
+    },
+    {
+      "command": "workspace-help",
+      "args": [
+        "workspace",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "init",
+        "context",
+        "sync"
+      ]
+    },
+    {
+      "command": "workspace-context-json",
+      "args": [
+        "workspace",
+        "context",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "workspace",
+        "subcommand",
+        "timestamp"
+      ]
     }
   ]
 }

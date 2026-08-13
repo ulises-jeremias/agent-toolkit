@@ -115,6 +115,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_plugin(opts)
 		return render(agent_toolkit_core.plugin_result(report), mode)
 	}
+	if cmd_name == 'workspace' {
+		opts := parse_workspace_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_workspace(opts)
+		return render(agent_toolkit_core.workspace_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -484,6 +492,99 @@ fn parse_mcp_options(args []string) agent_toolkit_core.McpOptions {
 	}
 }
 
+fn parse_workspace_options(args []string) !agent_toolkit_core.WorkspaceOptions {
+	mut sub := ''
+	mut dir := ''
+	mut name := ''
+	mut workspace_path := ''
+	mut explain := false
+	mut json_out := false
+	mut arg := ''
+	mut profile := ''
+	mut pack := ''
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			if a == '--json' {
+				json_out = true
+			}
+			i++
+			continue
+		}
+		if a == '--explain' {
+			explain = true
+			i++
+			continue
+		}
+		if a in ['--dir', '--name', '--workspace', '--profile', '--pack'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--dir' { dir = val }
+				'--name' { name = val }
+				'--workspace' { workspace_path = val }
+				'--profile' { profile = val }
+				'--pack' { pack = val }
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--dir=') {
+			dir = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--name=') {
+			name = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--workspace=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--profile=') {
+			profile = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--pack=') {
+			pack = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+			i++
+			continue
+		}
+		if arg.len == 0 {
+			arg = a
+		}
+		i++
+	}
+	return agent_toolkit_core.WorkspaceOptions{
+		subcommand:     sub
+		dir:            dir
+		name:           name
+		workspace_path: workspace_path
+		explain:        explain
+		json_out:       json_out
+		arg:            arg
+		profile:        profile
+		pack:           pack
+	}
+}
+
 fn parse_plugin_options(args []string) agent_toolkit_core.PluginOptions {
 	mut sub := ''
 	for a in args {
@@ -553,6 +654,15 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 		if a.starts_with('--target') || a.starts_with('--product') || a.starts_with('--output') {
+			return true
+		}
+	}
+	if cmd == 'workspace' {
+		if a in ['--explain', '--dir', '--name', '--workspace', '--profile', '--pack'] {
+			return true
+		}
+		if a.starts_with('--dir') || a.starts_with('--name') || a.starts_with('--workspace')
+			|| a.starts_with('--profile') || a.starts_with('--pack') {
 			return true
 		}
 	}
@@ -719,6 +829,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'plugin' {
 		return agent_toolkit_core.plugin_help_text()
+	}
+	if name == 'workspace' {
+		return agent_toolkit_core.workspace_help_text()
 	}
 	mut c := cli.Command{
 		name:        name
