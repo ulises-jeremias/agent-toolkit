@@ -1,44 +1,22 @@
 #!/usr/bin/env bash
-# doctor.sh — Check AI tool availability and profile installation status
+# doctor.sh — thin wrapper → `agent-toolkit doctor` (ADR-007 / V-first)
+#
+# Deprecated entrypoint kept for muscle memory. Prefer:
+#   agent-toolkit doctor
 set -euo pipefail
 
-echo ""
-echo "🏥 agent-toolkit doctor"
-echo ""
+if [[ -z "${AGENT_TOOLKIT_NO_DEPRECATION_WARNING:-}" ]]; then
+  printf '  [warn]  scripts/doctor.sh is deprecated — prefer `agent-toolkit doctor` (V CLI). See docs/INSTALLATION.md and docs/adrs/ADR-007-install-sh-deprecation.md\n' >&2
+fi
 
-check_tool() {
-  local name=$1 cmd=$2 install_hint=$3
-  if command -v "$cmd" &>/dev/null; then
-    version=$("$cmd" --version 2>/dev/null | head -1 || echo "installed")
-    echo "  ✓ $name: $version"
-  else
-    echo "  ✗ $name: not found ($install_hint)"
-  fi
-}
+if command -v agent-toolkit >/dev/null 2>&1; then
+  exec agent-toolkit doctor "$@"
+fi
 
-check_profile() {
-  local name=$1 path=$2
-  if [ -e "$path" ]; then
-    echo "  ✓ $name profile installed: $path"
-  else
-    echo "  - $name profile not installed ($path)"
-  fi
-}
-
-echo "── AI Tools ──"
-check_tool "Claude Code"    "claude"   "https://claude.ai/code"
-check_tool "Cursor"         "cursor"   "https://cursor.sh"
-check_tool "OpenCode"       "opencode" "https://opencode.ai"
-check_tool "Windsurf"       "windsurf" "https://codeium.com/windsurf"
-
-echo ""
-echo "── Profile Status ──"
-check_profile "Claude Code" "$HOME/.claude/CLAUDE.md"
-check_profile "Cursor rules" "$HOME/.cursor/rules/"
-check_profile "OpenCode agents" "$HOME/.config/opencode/agents/"
-check_profile "Windsurf rules" "$HOME/.codeium/windsurf/rules/"
-check_profile "Pi skills" "$HOME/.pi/agent/skills/"
-
-echo ""
-echo "Run 'bash scripts/install.sh' to install missing profiles."
-echo ""
+printf '  [error] agent-toolkit not found on PATH.\n' >&2
+printf '  Install the V CLI, then re-run (or call agent-toolkit doctor directly):\n' >&2
+printf '    brew install ulises-jeremias/homebrew-tap/agent-toolkit\n' >&2
+printf '    yay -S agent-toolkit-bin\n' >&2
+printf '    uv tool install '\''agent-toolkit-cli>=1.11.0'\''\n' >&2
+printf '  Docs: docs/INSTALLATION.md\n' >&2
+exit 1

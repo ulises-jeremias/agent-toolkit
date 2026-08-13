@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-- **CI** — Docker push-to-main is smoke-only; registry push requires Release assets (Fixes #679)
+- **Chore** — scripts/install.sh and doctor.sh are thin wrappers around the V CLI (Fixes #683)
 - **Docs** — AUR playbook and release replay use `agent-toolkit-bin`; warn off legacy `agent-toolkit` AUR (Fixes #675)
 - **Docs** — Align AUR playbook with canonical `agent-toolkit-bin` (warn on legacy `agent-toolkit` AUR name)
 - **Docs** — Polish published npm/PyPI package READMEs to the cozy banner/badge style of `packages/pypi/agent-toolkit-cli/README.md`; document why the PyPI `src/` launcher tree stays
@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Packaging** — Bump Dockerfile default `ARG VERSION` to match `VERSION` (1.12.1)
 - **Docs** — Note that wiki-style `[[Page]]` links in docs/wiki are intentional for wiki-sync
 - **Docs** — Mark `insights` DEPRECATE (#526) and `release` REMOVE (#527) in SCOPE.md / CLI_SURFACES.md
+- **CI** — Docker push-to-main is smoke-only; registry push requires Release assets (Fixes #679)
 
 
 ## [1.12.1] — 2026-08-13
