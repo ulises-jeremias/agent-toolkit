@@ -59,7 +59,8 @@ pub fn dispatch(args []string) int {
 		return render(agent_toolkit_core.matrix_result(), mode)
 	}
 	if cmd_name == 'doctor' {
-		snap := agent_toolkit_core.run_doctor_readonly()
+		opts := parse_doctor_options(argv[1..])
+		snap := agent_toolkit_core.run_doctor(opts)
 		return render(agent_toolkit_core.doctor_result(snap), mode)
 	}
 	if cmd_name == 'build' {
@@ -89,6 +90,18 @@ pub fn dispatch(args []string) int {
 		return render(agent_toolkit_core.update_result(report), mode)
 	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
+}
+
+fn parse_doctor_options(args []string) agent_toolkit_core.DoctorOptions {
+	mut fix := false
+	for a in args {
+		if a == '--fix' {
+			fix = true
+		}
+	}
+	return agent_toolkit_core.DoctorOptions{
+		fix: fix
+	}
 }
 
 fn parse_build_options(args []string) agent_toolkit_core.BuildOptions {
@@ -463,6 +476,15 @@ Refresh installed profiles from toolkit capability data (not binary self-update)
   --check        Dry-run — show what would change without writing
   --pin VERSION  Download capability data for a release before updating
   --json         Structured CommandResult JSON
+'
+	}
+	if name == 'doctor' {
+		return 'Usage: agent-toolkit doctor [--fix] [--json]
+
+Read-only health checks by default. --fix allowlists profile refresh only.
+
+  --fix   Attempt auto-repair for missing profiles (runs capability update)
+  --json  Structured CommandResult JSON
 '
 	}
 	mut c := cli.Command{

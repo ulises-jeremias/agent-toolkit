@@ -282,6 +282,22 @@
         "check",
         "tools"
       ]
+    },
+    {
+      "command": "doctor-fix",
+      "args": [
+        "doctor",
+        "--fix",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "engine",
+        "version",
+        "platform",
+        "fix_applied"
+      ]
     }
   ]
 }

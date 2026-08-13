@@ -41,8 +41,13 @@ fn test_dispatch_doctor_json_exit_zero() {
 	assert code == 0
 }
 
-fn test_dispatch_doctor_fix_is_readonly() {
+fn test_dispatch_doctor_fix_exits_zero() {
 	code := dispatch(['agent-toolkit', 'doctor', '--fix', '--json'])
+	assert code == 0
+}
+
+fn test_dispatch_doctor_help_mentions_fix() {
+	code := dispatch(['agent-toolkit', 'doctor', '--help'])
 	assert code == 0
 }
 
