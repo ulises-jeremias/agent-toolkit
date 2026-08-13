@@ -1,7 +1,7 @@
 name: Experimental V binaries
 
-# Spike (#562): native V CI artifacts with experimental names only.
-# MUST NOT upload over stable channel names (ADR-018). Full matrix/promotion is #529.
+# Native V MUST matrix (#529) with experimental artifact names (#562 / ADR-018).
+# MUST NOT upload over stable PyInstaller channel names. Promotion is a later release decision.
 
 on:
   workflow_dispatch:
@@ -10,12 +10,14 @@ on:
       - ".github/workflows/experimental-v.yml"
       - ".v-version"
       - "docs/v/experimental-binaries.md"
+      - "docs/v/release-matrix.md"
   push:
     branches: [main]
     paths:
       - ".github/workflows/experimental-v.yml"
       - ".v-version"
       - "docs/v/experimental-binaries.md"
+      - "docs/v/release-matrix.md"
 
 permissions:
   contents: read
@@ -36,9 +38,17 @@ jobs:
             asset: agent-toolkit-v-experimental-linux-x86_64
             v_zip: v_linux.zip
             bin: agent-toolkit
+          - os: ubuntu-24.04-arm
+            asset: agent-toolkit-v-experimental-linux-arm64
+            v_zip: v_linux_arm64.zip
+            bin: agent-toolkit
           - os: macos-latest
             asset: agent-toolkit-v-experimental-macos-arm64
             v_zip: v_macos_arm64.zip
+            bin: agent-toolkit
+          - os: macos-15-intel
+            asset: agent-toolkit-v-experimental-macos-x86_64
+            v_zip: v_macos_x86_64.zip
             bin: agent-toolkit
           - os: windows-latest
             asset: agent-toolkit-v-experimental-windows-x86_64.exe

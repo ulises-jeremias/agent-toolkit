@@ -4,7 +4,9 @@
 **Names:** [ADR-018](../adrs/ADR-018-release-artifacts.md)  
 **Libc:** [ADR-019](../adrs/ADR-019-linux-libc.md) (Linux MUST artifact is glibc)
 
-These are **CI artifacts only**. They are not the stable GitHub Release channel (`agent-toolkit-linux-x86_64`, `agent-toolkit-macos-arm64`, `agent-toolkit-windows-x86_64.exe` — those remain PyInstaller until [#529](https://github.com/ulises-jeremias/agent-toolkit/issues/529) promotion). Experimental names **must not** overwrite stable names.
+These are **CI artifacts only**. They are not the stable GitHub Release channel (`agent-toolkit-linux-x86_64`, `agent-toolkit-macos-arm64`, `agent-toolkit-windows-x86_64.exe` — those remain PyInstaller until promotion after [#531](https://github.com/ulises-jeremias/agent-toolkit/issues/531)). Experimental names **must not** overwrite stable names.
+
+The MUST platform matrix (Linux x86_64/ARM64, macOS ARM64/x86_64, Windows x86_64) is documented in [release-matrix.md](release-matrix.md) ([#529](https://github.com/ulises-jeremias/agent-toolkit/issues/529)).
 
 ## Workflow
 
@@ -12,15 +14,9 @@ These are **CI artifacts only**. They are not the stable GitHub Release channel 
 
 Compiler pin: `.v-version` (currently `0.5.2`).
 
-## Runner labels (verified 2026-08-13)
+## Runner labels
 
-| Experimental asset | GitHub-hosted `runs-on` | V zip | Notes |
-|--------------------|-------------------------|-------|--------|
-| `agent-toolkit-v-experimental-linux-x86_64` | `ubuntu-latest` | `v_linux.zip` | glibc (ADR-019). Not musl. |
-| `agent-toolkit-v-experimental-macos-arm64` | `macos-latest` | `v_macos_arm64.zip` | Apple Silicon. `macos-latest` was arm64 on this date; revisit if GitHub retargets the label. |
-| `agent-toolkit-v-experimental-windows-x86_64.exe` | `windows-latest` | `v_windows.zip` | |
-
-No `darwin-x86_64` job (same skip as #256 / ADR-018). Linux arm64 / musl extras are out of this spike (#529 / ADR-019 optional musl).
+Spike (#562) verified `ubuntu-latest` / `macos-latest` / `windows-latest` on 2026-08-13. The full MUST matrix (including `ubuntu-24.04-arm` and `macos-15-intel`) is in [release-matrix.md](release-matrix.md).
 
 ## Smoke
 

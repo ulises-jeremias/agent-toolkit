@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — Native V MUST build matrix (linux x86_64/arm64, macos arm64/x86_64, windows x86_64; experimental names) (Closes #529)
 - **Feat** — Experimental native V CI artifacts (linux-x86_64, macos-arm64, windows-x86_64; experimental names only) (Closes #562)
 - **Docs** — ADR-020 V concurrency: process-per-run supervisor (no Python threads / no `go` workers) (Closes #528)
 - **Feat** — V `devcompanion`/`dc` filesystem queue (queue/run-once --no-llm/status/done/sync-todos) (Closes #525)
