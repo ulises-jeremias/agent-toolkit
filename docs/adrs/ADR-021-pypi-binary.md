@@ -1,12 +1,12 @@
 # ADR-021: PyPI binary strategy (platform wheels + thin launcher)
 
-**Status:** Accepted  
+**Status:** Accepted (implemented `v1.11.0+`: platform wheels + thin launcher over stable GitHub Release V binaries)  
 **Date:** 2026-08-13  
 **Deciders:** maintainers (V migration program [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456), issue [#486](https://github.com/ulises-jeremias/agent-toolkit/issues/486))
 
 ## Context
 
-PyPI distribution **`agent-toolkit-cli`** currently ships a full Python CLI (`agent-toolkit` / `agent-toolkit-cli` console scripts). After [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), V is the in-repo canonical implementation. Leaving PyPI on the Python CLI would keep a second product runtime.
+PyPI distribution **`agent-toolkit-cli`** shipped a full Python CLI at decision time. After [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), V is the in-repo canonical implementation. Leaving PyPI on the Python CLI would keep a second product runtime.
 
 GitHub Releases are the canonical binary source ([ADR-018](ADR-018-release-artifacts.md)). PyPI must be an **adapter**, not a second implementation.
 
@@ -26,7 +26,7 @@ Adopt **A**.
 ### Strategy
 
 1. **Product path is the V binary.** The commands `agent-toolkit` and `agent-toolkit-cli` MUST `exec` (or equivalent spawn+wait with signal/stdio/exit forwarding) a native V binary. They MUST NOT run Python business logic.
-2. **Bundle at wheel-build time.** CI downloads the matching GitHub Release asset (stable floating name after promotion; `agent-toolkit-v-experimental-<os>-<arch>` until then) into the wheel. Runtime download (option B) is **not** the default and is blocked on the distribution threat model ([#563](https://github.com/ulises-jeremias/agent-toolkit/issues/563)).
+2. **Bundle at wheel-build time.** CI copies the matching GitHub Release asset (stable floating name since `v1.11.0`) into the wheel. Runtime download (option B) is **not** the default and is blocked on the distribution threat model ([#563](https://github.com/ulises-jeremias/agent-toolkit/issues/563)).
 3. **Thin Python process is allowed.** `uv tool install` may start a tiny Python entrypoint whose only job is locate-binary + `os.execv` / `subprocess` with forwarded argv, env, cwd, stdio, signals, and exit code. **Zero Python implementation**, not zero Python process.
 4. **Python CLI remains a named fallback.** Console script `agent-toolkit-py` keeps the quarantined Python implementation ([python-fallback.md](../v/python-fallback.md)). It is not the product command. [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) does **not** require deleting this script or the thin launcher.
 

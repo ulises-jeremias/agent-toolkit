@@ -180,12 +180,12 @@ If OpenCode is missing, install it and re-run `agent-toolkit install --tools ope
 Once the project files are committed (`.claude/CLAUDE.md`, `.cursor/rules/`, `.github/copilot-instructions.md`), team members need only install agent-toolkit locally:
 
 ```bash
-# One-time install per developer
-git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-bash ~/.agent-toolkit/scripts/install.sh
+# One-time install per developer (any V channel — see docs/INSTALLATION.md)
+uv tool install 'agent-toolkit-cli>=1.11.0'
+agent-toolkit install
 ```
 
-The install script detects which AI tools each developer has installed and applies only the relevant profiles. Team members who use Cursor get Cursor rules; Claude Code users get the Claude profile; all Copilot users benefit from the committed instructions without any local steps.
+`agent-toolkit install` detects which AI tools each developer has installed and applies only the relevant profiles. Team members who use Cursor get Cursor rules; Claude Code users get the Claude profile; all Copilot users benefit from the committed instructions without any local steps.
 
 ### Share a setup note in your CONTRIBUTING.md
 
@@ -197,9 +197,9 @@ Add a section to `CONTRIBUTING.md` so new team members know agent-toolkit is ava
 This project uses [agent-toolkit](https://github.com/ulises-jeremias/agent-toolkit)
 for AI-assisted development. To get the full set of agents and skills:
 
-1. Install agent-toolkit: `git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit && bash ~/.agent-toolkit/scripts/install.sh`
+1. Install agent-toolkit: `uv tool install 'agent-toolkit-cli>=1.11.0' && agent-toolkit install` (or brew / AUR `agent-toolkit-bin` / GitHub Release)
 2. Restart your AI coding assistant
-3. Verify: `bash ~/.agent-toolkit/scripts/doctor.sh`
+3. Verify: `agent-toolkit doctor`
 
 Available agents: @code-reviewer, @planner, @security-reviewer, @tdd-guide, and more.
 See `agents/` in the agent-toolkit repo for the full list.
@@ -241,10 +241,10 @@ If the frontmatter is missing or malformed, Cursor silently ignores the file.
 
 GitHub Copilot reads the file only when it is in `.github/copilot-instructions.md` at the repo root. Confirm the path is exact — Copilot does not check subdirectories. Also confirm you have the Copilot extension installed in VS Code or JetBrains (the browser-only Copilot does not load custom instructions).
 
-**doctor.sh shows a tool as not installed that I have installed.**
+**`agent-toolkit doctor` shows a tool as not installed that I have installed.**
 
-The doctor script detects tools by looking for their executables in `$PATH`. If your tool is installed in a non-standard location, the script may not find it. Run the manual install for that tool:
+Doctor detects tools by looking for their executables in `$PATH`. If your tool is installed in a non-standard location, it may not find it. Install profiles explicitly:
 
 ```bash
-bash ~/.agent-toolkit/scripts/install.sh --tools cursor
+agent-toolkit install --tools cursor
 ```

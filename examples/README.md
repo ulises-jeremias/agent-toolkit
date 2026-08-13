@@ -22,7 +22,7 @@ Path: `examples/oss-maintenance/`
 
 **Adding agent-toolkit to an existing project as a new team member.**
 
-Covers: installing the Claude Code profile, adding Cursor rules, committing `copilot-instructions.md`, and verifying the setup with `doctor.sh`.
+Covers: installing the Claude Code profile, adding Cursor rules, committing `copilot-instructions.md`, and verifying with `agent-toolkit doctor`.
 
 Best for: engineers joining a project that uses agent-toolkit, or project leads who want to onboard their team onto the toolkit's agents and skills.
 
