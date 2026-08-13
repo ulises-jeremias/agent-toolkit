@@ -93,7 +93,7 @@ Subcommands:
     inject             Output full knowledge base for AI session injection
     review [--fix] [--stale-after N]
                        Detect duplicates, stale/orphan refs, and contradictions
-    todo               List unchecked todos
+    todo [--done]       List unchecked todos (--done includes completed)
 
 Types for add:
     learning   Factual session learning (knowledge/learnings/general.md)
@@ -102,6 +102,7 @@ Types for add:
 
 Options:
     --workspace PATH   Override workspace root
+    --json             Structured CommandResult JSON
     --help             Show this help message
 '
 }

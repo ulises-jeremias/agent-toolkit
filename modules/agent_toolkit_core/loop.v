@@ -116,20 +116,24 @@ pub fn loop_help_text() string {
 
 Usage:
     agent-toolkit loop init <pattern> [--name NAME]
-    agent-toolkit loop run <loop> [--force] [--runner NAME] [--no-llm]
+    agent-toolkit loop run <loop> [--force] [--runner NAME] [--no-llm] [--quiet] [--pack PATH]
     agent-toolkit loop list
     agent-toolkit loop status [loop]
     agent-toolkit loop audit [loop]
     agent-toolkit loop cost <loop>
-    agent-toolkit loop schedule <loop> [--dry-run]
+    agent-toolkit loop schedule <loop> [--dry-run] [--cron EXPR] [--list] [--remove]
     agent-toolkit loop sync
     agent-toolkit loop templates
     agent-toolkit loop help
 
 loop run options:
     --force       Bypass max_runs_per_day only (not wall/token budgets)
+    --quiet       Suppress live runner output
+    --pack PATH   Apply loop overrides from pack YAML
+    --workspace PATH  Workspace root override
     --runner NAME auto|skeleton (LLM PATH runners fail closed to skeleton without stdin)
     --no-llm      Alias for --runner skeleton (no network)
+    --json        Structured CommandResult JSON
 
 Concurrency: one OS process per iteration via ProcessService; no Python threads / no `go` workers.
 Schedule: systemd/launchd on Unix; not supported on Windows.

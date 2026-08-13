@@ -151,7 +151,8 @@ Alias:
 }
 
 pub fn dc_help_text() string {
-	return devcompanion_help_text(DcConfig{})
+	ws := find_devcompanion_workspace('')
+	return devcompanion_help_text(get_dc_config(ws))
 }
 
 fn find_devcompanion_workspace(override string) string {

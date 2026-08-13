@@ -166,18 +166,35 @@ pub fn dispatch(args []string) int {
 	if cmd_name == 'completion' {
 		return run_completion(argv[1..])
 	}
+	if cmd_name == 'insights' {
+		print(insights_help_text())
+		if insights_subcommand(argv[1..]).len > 0 {
+			eprintln('insights is deprecated in V (#526). Use: agent-toolkit-py insights <opencode|cursor|claude>')
+			return 1
+		}
+		return 0
+	}
+	if cmd_name == 'release' {
+		print(release_help_text())
+		return 1
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
 fn parse_doctor_options(args []string) agent_toolkit_core.DoctorOptions {
 	mut fix := false
+	mut provenance := false
 	for a in args {
 		if a == '--fix' {
 			fix = true
 		}
+		if a == '--provenance' {
+			provenance = true
+		}
 	}
 	return agent_toolkit_core.DoctorOptions{
-		fix: fix
+		fix:        fix
+		provenance: provenance
 	}
 }
 
@@ -1257,44 +1274,46 @@ fn mode_from_argv(argv []string) agent_toolkit_core.RenderMode {
 }
 
 fn grouped_help() string {
-	mut root := cli.Command{
-		name:        'agent-toolkit'
-		description: 'Composable AI agent toolkit CLI\n\nSee docs/CLI_SURFACES.md for consumer vs advanced commands.'
-		version:     agent_toolkit_core.resolve_toolkit_version()
-		commands:    help_commands()
-	}
-	root.setup()
-	return root.help_message()
-}
+	ver := agent_toolkit_core.resolve_toolkit_version()
+	return 'agent-toolkit — Composable AI agent toolkit CLI (${ver})
 
-fn help_commands() []cli.Command {
-	mut cmds := []cli.Command{}
-	cmds << cli.Command{
-		name:        'version'
-		description: 'Print agent-toolkit version'
-	}
-	for name in consumer_commands() {
-		cmds << cli.Command{
-			name:        name
-			description: '${name} (consumer)'
-			group:       'Consumer'
-		}
-	}
-	for name in advanced_commands() {
-		mut c := cli.Command{
-			name:        name
-			description: '${name} (advanced)'
-			group:       'Advanced'
-		}
-		if name == 'devcompanion' {
-			c.alias = 'dc'
-		}
-		if name == 'uninstall' {
-			c.description = 'uninstall / rollback (consumer alias rollback)'
-		}
-		cmds << c
-	}
-	return cmds
+Usage:
+    agent-toolkit <command> [args...]
+    agent-toolkit [-h|--help|help]
+    agent-toolkit [-V|--version|version]
+
+Global options:
+    -h, --help       Show this help
+    -V, --version    Print version
+    --json           Structured CommandResult JSON (most commands)
+    --quiet          Suppress human output
+
+Consumer commands:
+    install       Install profiles for detected AI tools
+    update        Refresh installed profiles from latest toolkit data
+    uninstall     Remove toolkit-owned files using install receipts (alias: rollback)
+    doctor        Check system health and tool availability
+    diff          Show changes vs currently installed plugin bundles
+    skills        Skill management: sync, list, validate
+    mcp           MCP provider management: setup, list, doctor
+    plugin        Plugin bundle management: sync, check
+    completion    Emit bash/zsh/fish/PowerShell completion scripts
+
+Advanced commands (workstation / power-user — docs/CLI_SURFACES.md):
+    loop          Loop engineering: init, run, status, audit, cost, schedule, sync
+    workspace     Workspace scaffolding: init, context, sync
+    memory        Knowledge base: add, search, inject, review, todo
+    project       Project management: clone, list, add, remove, scan
+    devcompanion  Background job queue: queue, run-once, status, done, sync-todos (alias: dc)
+    insights      AI tool usage insights (deprecated in V; use agent-toolkit-py)
+    build         Compile canonical capabilities into target-native artifacts
+    inventory     List all canonical skills, agents, and products
+    matrix        Show platform capability matrix
+    release       Not in V — maintainer artifacts live in CI / docs/RELEASING.md
+    swarm         Multi-agent swarm orchestration (pair/team/full, Herdr/tmux)
+
+Run \'agent-toolkit <command> --help\' for details.
+'
 }
 
 fn subcommand_help(name string) string {
@@ -1307,7 +1326,12 @@ Compile canonical capabilities into target artifacts (Tier-1 + remaining emitter
   --target TARGET    Target id (default: all implemented emitters)
   --product PRODUCT  Product id (default: all products)
   --output DIR       Output directory (default: <repo>/plugins)
-	--json             Structured CommandResult JSON
+  --json             Structured CommandResult JSON
+
+Examples:
+  agent-toolkit build --check
+  agent-toolkit build --target cursor --product agent-toolkit-core
+  AGENT_TOOLKIT_ROOT=/path/to/checkout agent-toolkit build --check
 '
 	}
 	if name == 'install' {
@@ -1321,6 +1345,10 @@ Install profiles for detected or selected AI tools.
   --force        Overwrite existing files without prompting
   --offline      Use only bundled/cached data (skip GitHub Release refresh)
   --json         Structured CommandResult JSON
+
+Examples:
+  agent-toolkit install --dry-run --offline
+  agent-toolkit install --tools cursor,opencode --offline
 '
 	}
 	if name == 'uninstall' {
@@ -1343,6 +1371,10 @@ Show what would change between freshly compiled output and plugins/.
   --target TARGET    Target platform (default: Tier-1 cursor/claude-code/opencode)
   --product PRODUCT  Product ID to diff (default: all products)
   --json             Structured CommandResult JSON
+
+Examples:
+  agent-toolkit diff --target cursor
+  agent-toolkit diff --target claude-code --product agent-toolkit-core
 '
 	}
 	if name == 'update' {
@@ -1354,16 +1386,51 @@ Refresh installed profiles from toolkit capability data (not binary self-update)
   --check        Dry-run — show what would change without writing
   --pin VERSION  Download capability data for a release before updating
   --json         Structured CommandResult JSON
+
+Examples:
+  agent-toolkit update --check
+  agent-toolkit update --tools cursor,opencode
 '
 	}
 	if name == 'doctor' {
-		return 'Usage: agent-toolkit doctor [--fix] [--json]
+		return 'Usage: agent-toolkit doctor [--fix] [--provenance] [--json]
 
 Read-only health checks by default. --fix allowlists profile refresh only.
 
-  --fix   Attempt auto-repair for missing profiles (runs capability update)
-  --json  Structured CommandResult JSON
+  --fix          Attempt auto-repair for missing profiles (runs capability update)
+  --provenance   Report capabilities/upstream.lock presence (full SHA/expiry: agent-toolkit-py)
+  --json         Structured CommandResult JSON
+
+Exit codes:
+  0  no errors detected
+  1  one or more errors detected
 '
+	}
+	if name == 'inventory' {
+		return 'Usage: agent-toolkit inventory [--json]
+
+List canonical skills, agents, and products from the toolkit tree.
+
+  --json  Structured CommandResult JSON (counts in data)
+
+Set AGENT_TOOLKIT_ROOT to the checkout or wheel data directory if auto-detect fails.
+'
+	}
+	if name == 'matrix' {
+		return 'Usage: agent-toolkit matrix [--json]
+
+Print docs/research/platform-capability-matrix.md from the toolkit tree.
+
+  --json  Structured CommandResult JSON
+
+If the matrix file is missing, prints where it is expected (research pipeline).
+'
+	}
+	if name == 'insights' {
+		return insights_help_text()
+	}
+	if name == 'release' {
+		return release_help_text()
 	}
 	if name == 'skills' {
 		return agent_toolkit_core.skills_help_text()
@@ -1397,8 +1464,43 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	mut c := cli.Command{
 		name:        name
-		description: '${name} — not yet implemented in V; use the Python package for unfinished advanced commands (docs/v/cutover.md)'
+		description: '${name} — not yet implemented in V; use agent-toolkit-py for unfinished commands (docs/v/python-fallback.md)'
 	}
 	c.setup()
 	return c.help_message()
+}
+
+fn insights_subcommand(args []string) string {
+	for a in args {
+		if !a.starts_with('-') {
+			return a
+		}
+	}
+	return ''
+}
+
+fn insights_help_text() string {
+	return 'insights — AI tool usage analytics (deprecated in V; #526).
+
+Not ported to the V CLI. The quarantined Python fallback still implements it:
+
+  agent-toolkit-py insights opencode [--days N] [--output PATH]
+  agent-toolkit-py insights cursor   [--output PATH]
+  agent-toolkit-py insights claude   [--days N] [--output PATH]
+
+See docs/v/advanced-command-disposition.md and docs/v/python-fallback.md.
+'
+}
+
+fn release_help_text() string {
+	return 'release — Generate release artifacts (removed from V; #527).
+
+Maintainer artifact generation belongs in GitHub Actions / docs/RELEASING.md, not the runtime CLI.
+
+The quarantined Python fallback still has a --dry-run generator:
+
+  agent-toolkit-py release --dry-run [--output DIR] [--target TARGET] [--json]
+
+See docs/v/advanced-command-disposition.md.
+'
 }

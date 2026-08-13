@@ -6,6 +6,7 @@ import os
 pub struct DoctorOptions {
 pub:
 	fix               bool
+	provenance        bool // --provenance: extra lock reporting (Python flag parity)
 	home_dir          string // empty → os.home_dir()
 	data_root         string // empty → resolve via update/find_toolkit_root
 	skip_data_refresh bool
@@ -66,6 +67,9 @@ pub fn run_doctor(opts DoctorOptions) DoctorSnapshot {
 		checks << DoctorCheck{'root', 'offline', 'warn', 'AGENT_TOOLKIT_OFFLINE set'}
 	}
 	checks << collect_profile_checks(home)
+	if opts.provenance {
+		checks << collect_provenance_checks(root)
+	}
 
 	mut ok := true
 	for c in checks {
@@ -96,6 +100,14 @@ pub fn run_doctor(opts DoctorOptions) DoctorSnapshot {
 		lines << ''
 		lines << '── Profiles ──'
 		for c in profile_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	prov_checks := checks.filter(it.category == 'provenance')
+	if prov_checks.len > 0 {
+		lines << ''
+		lines << '── Provenance ──'
+		for c in prov_checks {
 			lines << doctor_format_check(c)
 		}
 	}
@@ -189,6 +201,23 @@ pub fn doctor_result(snap DoctorSnapshot) CommandResult {
 			'errors':      '${err_n}'
 		}
 	}
+}
+
+fn collect_provenance_checks(root string) []DoctorCheck {
+	mut out := []DoctorCheck{}
+	if root.len == 0 {
+		out << DoctorCheck{'provenance', 'upstream.lock exists', 'warn', 'no toolkit root'}
+		return out
+	}
+	lock_path := os.join_path(root, 'capabilities', 'upstream.lock')
+	if os.is_file(lock_path) {
+		out << DoctorCheck{'provenance', 'upstream.lock exists', 'ok', lock_path}
+		out << DoctorCheck{'provenance', 'provenance: doctor --provenance', 'ok', 'lock present; SHA/expiry detail: agent-toolkit-py doctor --provenance'}
+	} else {
+		// Warn (not err): wheel/data installs often omit capabilities/upstream.lock
+		out << DoctorCheck{'provenance', 'upstream.lock exists', 'warn', 'not found under toolkit root (checkout only)'}
+	}
+	return out
 }
 
 fn doctor_format_check(c DoctorCheck) string {

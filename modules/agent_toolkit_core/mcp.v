@@ -77,7 +77,9 @@ pub fn mcp_result(report McpReport) CommandResult {
 }
 
 pub fn mcp_help_text() string {
-	return 'Usage: agent-toolkit mcp <subcommand> [args]
+	return 'mcp — MCP (Model Context Protocol) provider management.
+
+Usage: agent-toolkit mcp <subcommand> [args]
 
 Subcommands:
     list                   List available MCP providers

@@ -56,11 +56,16 @@ pub fn plugin_result(report PluginReport) CommandResult {
 }
 
 pub fn plugin_help_text() string {
-	return 'Usage: agent-toolkit plugin <subcommand>
+	return 'plugin — Plugin bundle management for agent-toolkit.
+
+Usage: agent-toolkit plugin <subcommand> [--json]
 
 Subcommands:
     sync     Sync canonical agents/skills into plugin bundles
     check    Verify plugin bundles are in sync (exit 1 if drift)
+
+Options:
+    --json   Structured CommandResult JSON
 
 This is gen-surfaces copy/compare (core/agents/forge). Compiler emit drift is `build --check`.
 '

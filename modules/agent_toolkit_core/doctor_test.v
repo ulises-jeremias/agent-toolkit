@@ -75,3 +75,14 @@ fn test_doctor_fix_noop_when_profiles_ok() {
 	assert !snap.fix_applied
 	assert snap.message.contains('No profile issues')
 }
+
+fn test_doctor_includes_provenance_category() {
+	snap := run_doctor(DoctorOptions{ provenance: true })
+	assert snap.checks.any(it.category == 'provenance')
+	assert snap.message.contains('Provenance') || snap.checks.any(it.name.contains('upstream.lock'))
+}
+
+fn test_doctor_skips_provenance_without_flag() {
+	snap := run_doctor_readonly()
+	assert !snap.checks.any(it.category == 'provenance')
+}

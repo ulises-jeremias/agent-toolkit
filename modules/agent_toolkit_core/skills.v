@@ -81,7 +81,9 @@ pub fn skills_result(report SkillsReport) CommandResult {
 }
 
 pub fn skills_help_text() string {
-	return 'Usage: agent-toolkit skills <subcommand> [options]
+	return 'skills — Skill management for agent-toolkit.
+
+Usage: agent-toolkit skills <subcommand> [options]
 
 Subcommands:
     list [--domain DOMAIN]     List skills grouped by domain

@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Fixed** — V CLI help matches or exceeds Python: real command blurbs, inventory/matrix usage, doctor `--provenance`, examples, and honest #526/#527 insights/release dispositions
+
 ## [1.12.0] — 2026-08-13
 
 Inventory-honest docs and V-first install/upgrade paths. Ships Unreleased work since `v1.11.0` (completions, Docker `TARGETARCH`, PyPI launcher/`doctor` root, Python CLI quarantine as `agent-toolkit-py`).

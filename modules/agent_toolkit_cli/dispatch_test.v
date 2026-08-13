@@ -151,4 +151,65 @@ fn test_grouped_help_mentions_consumer_and_advanced() {
 	h := grouped_help()
 	assert h.contains('Consumer') || h.to_lower().contains('install')
 	assert h.contains('Advanced') || h.to_lower().contains('inventory')
+	assert h.contains('Install profiles for detected AI tools')
+	assert h.contains('completion')
+	assert h.contains('alias: rollback')
+	assert h.contains('alias: dc')
+	assert !h.contains('install (consumer)')
+}
+
+fn test_inventory_help_is_implemented() {
+	h := subcommand_help('inventory')
+	assert h.contains('agent-toolkit inventory')
+	assert h.contains('--json')
+	assert !h.contains('not yet implemented')
+}
+
+fn test_matrix_help_is_implemented() {
+	h := subcommand_help('matrix')
+	assert h.contains('agent-toolkit matrix')
+	assert h.contains('--json')
+	assert !h.contains('not yet implemented')
+}
+
+fn test_doctor_help_mentions_provenance() {
+	h := subcommand_help('doctor')
+	assert h.contains('--provenance')
+	assert h.contains('--fix')
+	assert h.contains('Exit codes')
+}
+
+fn test_insights_help_is_deprecate_disposition() {
+	h := subcommand_help('insights')
+	assert h.contains('agent-toolkit-py')
+	assert h.contains('#526') || h.to_lower().contains('deprecat')
+	assert !h.contains('not yet implemented')
+}
+
+fn test_release_help_is_remove_disposition() {
+	h := subcommand_help('release')
+	assert h.contains('docs/RELEASING.md')
+	assert h.contains('#527') || h.to_lower().contains('removed')
+	assert !h.contains('not yet implemented')
+}
+
+fn test_insights_no_args_exits_zero() {
+	code := dispatch(['agent-toolkit', 'insights'])
+	assert code == 0
+}
+
+fn test_insights_subcommand_exits_one() {
+	code := dispatch(['agent-toolkit', 'insights', 'opencode'])
+	assert code == 1
+}
+
+fn test_release_exits_one() {
+	code := dispatch(['agent-toolkit', 'release'])
+	assert code == 1
+}
+
+fn test_update_help_has_examples() {
+	h := subcommand_help('update')
+	assert h.contains('Examples:')
+	assert h.contains('--check')
 }
