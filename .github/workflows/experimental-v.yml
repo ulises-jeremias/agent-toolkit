@@ -1,7 +1,8 @@
 name: Experimental V binaries
 
 # Native V MUST matrix (#529) with experimental artifact names (#562 / ADR-018).
-# MUST NOT upload over stable PyInstaller channel names. Promotion is a later release decision.
+# Uploads use ADR-018 experimental names only — never overwrite stable GitHub Release
+# channel assets (agent-toolkit-<os>-<arch>). Promotion to stable is a later release decision.
 
 on:
   workflow_dispatch:
