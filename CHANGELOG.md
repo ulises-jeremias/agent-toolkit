@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **CI** — Drop stale `packaging` path from MegaLinter FILTER_REGEX_EXCLUDE
 - **Chore** — Migrate repo tooling scripts from Python to V (`.vsh`); add `make.vsh` with thin Makefile forwarder; keep `provenance.py` / `validate-upstream.py` and PyPI launcher Python; host skills use CLI / Grep (repo-root `scripts/` is checkout/CI only)
 - **Docs** — Clarify experimental-v.yml header (ADR-018; drop PyInstaller channel wording)
 - **Packaging** — PyPI classifier Development Status Beta → Production/Stable
