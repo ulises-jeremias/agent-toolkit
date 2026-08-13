@@ -9,7 +9,7 @@ _Generated from 4 products × 77 skills × 17 agents._
 | Product | Stability | Targets | Skills | Agents |
 |---------|-----------|---------|--------|--------|
 | `agent-toolkit-core` | stable | claude-code, cursor | 6 | 1 |
-| `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 16 |
+| `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 17 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 7 | 0 |
 | `agent-toolkit-complete` | experimental | — | 77 | 0 |
 
@@ -99,7 +99,7 @@ _Generated from 4 products × 77 skills × 17 agents._
 
 | Agent | Products | Targets (via products) |
 |-------|----------|------------------------|
-| `agentic-security-reviewer` | _uncovered_ | — |
+| `agentic-security-reviewer` | `agent-toolkit-agents` | claude-code, cursor |
 | `architect` | `agent-toolkit-agents` | claude-code, cursor |
 | `assistant` | `agent-toolkit-agents` | claude-code, cursor |
 | `build-error-resolver` | `agent-toolkit-agents` | claude-code, cursor |
