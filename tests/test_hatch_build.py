@@ -10,7 +10,7 @@ import pytest
 PKG = Path(__file__).resolve().parents[1] / "packages/pypi/agent-toolkit-cli"
 sys.path.insert(0, str(PKG))
 
-from hatch_build import wheel_platform_tag  # noqa: E402
+from hatch_build import CustomBuildHook, wheel_platform_tag  # noqa: E402
 
 
 @pytest.mark.parametrize(
@@ -55,3 +55,13 @@ def test_platforms_json_linux_tags_are_honest_2_38() -> None:
     for spec in linux:
         assert spec["wheel_tag"].startswith("manylinux_2_38_"), spec
         assert "linux_x86_64" not in spec["wheel_tag"]
+
+
+def test_hook_allows_sdist_wheel_without_native_binary(tmp_path: Path) -> None:
+    """pip install sdist on macOS/Windows builds a wheel with no bundled ELF."""
+    hook = CustomBuildHook.__new__(CustomBuildHook)
+    hook.root = str(tmp_path)
+    hook.target_name = "wheel"
+    build_data: dict = {}
+    hook.initialize("1.11.0", build_data)
+    assert "tag" not in build_data
