@@ -1,6 +1,6 @@
 # ADR-007: Deprecate scripts/install.sh Behind Python CLI (Thin Wrapper)
 
-**Status:** Accepted  
+**Status:** Accepted (amended: V-first primary install — brew / AUR `agent-toolkit-bin` / GitHub Release / `uv tool install agent-toolkit-cli`)  
 **Date:** 2026-08-06  
 **Deciders:** maintainers (Wave 3 #270, parent #263)
 
@@ -16,9 +16,9 @@ The goal is one consumer install path to reduce support load.
 
 - `scripts/install.sh` remains but prints a deprecation notice on every invocation:
   ```
-  [warn] scripts/install.sh is deprecated — use `uvx --from agent-toolkit-cli agent-toolkit install` (or `agent-toolkit install` after `uv tool install`). See docs/INSTALLATION.md and docs/adrs/ADR-007-install-sh-deprecation.md
+  [warn] scripts/install.sh is deprecated — prefer `agent-toolkit install` from brew/AUR/GitHub/uv (V CLI). See docs/INSTALLATION.md and docs/adrs/ADR-007-install-sh-deprecation.md
   ```
-- **Primary install** is the Python CLI (`uvx` one-liner or `uv tool install`):
+- **Primary install** is the **V CLI** via brew / AUR `agent-toolkit-bin` / GitHub Release, or the PyPI launcher (`uvx` / `uv tool install agent-toolkit-cli`) which execs V (ADR-021):
   ```bash
   uvx --from agent-toolkit-cli agent-toolkit install
   uvx --from agent-toolkit-cli agent-toolkit install --dry-run

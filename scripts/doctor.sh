@@ -40,5 +40,6 @@ check_profile "Windsurf rules" "$HOME/.codeium/windsurf/rules/"
 check_profile "Pi skills" "$HOME/.pi/agent/skills/"
 
 echo ""
-echo "Run 'bash scripts/install.sh' to install missing profiles."
+echo "Install profiles with: agent-toolkit install  (brew/AUR/GitHub/uv — see docs/INSTALLATION.md)"
+echo "Legacy: bash scripts/install.sh (deprecated; wraps agent-toolkit install when available)."
 echo ""

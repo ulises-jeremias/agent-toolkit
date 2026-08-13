@@ -19,11 +19,11 @@
 set -euo pipefail
 
 # --- Deprecation notice (ADR-007) ---
-# Primary install is now the Python CLI: `uvx --from agent-toolkit-cli agent-toolkit install`
+# Primary install is the V CLI: brew / AUR agent-toolkit-bin / GitHub Release / `uv tool install agent-toolkit-cli` then `agent-toolkit install`
 # This script is kept as a legacy/offline fallback and will be removed in v2.0.
 # It may delegate to `agent-toolkit install` when available (thin wrapper).
 if [[ -z "${AGENT_TOOLKIT_NO_DEPRECATION_WARNING:-}" ]]; then
-  printf '  [warn]  scripts/install.sh is deprecated — use `uvx --from agent-toolkit-cli agent-toolkit install` (see docs/INSTALLATION.md and docs/adrs/ADR-007-install-sh-deprecation.md)\n' >&2
+  printf '  [warn]  scripts/install.sh is deprecated — use `agent-toolkit install` (V CLI via brew/AUR/GitHub/uv; see docs/INSTALLATION.md and ADR-007)\n' >&2
 fi
 
 # ---------------------------------------------------------------------------
