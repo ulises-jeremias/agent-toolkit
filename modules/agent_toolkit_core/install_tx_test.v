@@ -214,3 +214,40 @@ fn test_save_install_receipt_roundtrip() {
 	}
 	assert loaded.config_patches_json.contains('/toolkit')
 }
+
+fn test_install_tx_merged_ownership_writes_without_force() {
+	base := os.join_path(os.temp_dir(), 'at-tx-merge-${os.getpid()}')
+	dest_root := os.join_path(base, 'dst')
+	receipt_dir := os.join_path(base, 'receipts')
+	os.mkdir_all(dest_root) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	dest := os.join_path(dest_root, 'opencode.json')
+	os.write_file(dest, '{"theme":"dark"}\n') or {
+		assert false, err.msg()
+		return
+	}
+	mut tx := new_install_transaction('opencode', InstallTxOptions{
+		receipt_dir:   receipt_dir
+		version:       '1.0.0'
+		source_digest: 'x'
+	})
+	tx.stage_write_owned(dest, '{"schema":"x","theme":"dark"}\n', 'merged') or {
+		assert false, err.msg()
+		return
+	}
+	tx.commit() or {
+		assert false, err.msg()
+		return
+	}
+	got := os.read_file(dest) or { '' }
+	assert got.contains('schema')
+	assert got.contains('theme')
+	loaded := load_install_receipt('opencode', profiles_product, receipt_dir) or {
+		assert false, 'receipt missing'
+		return
+	}
+	assert loaded.artifacts.len == 1
+	assert loaded.artifacts[0].ownership == 'merged'
+}

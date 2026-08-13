@@ -166,8 +166,9 @@ fn (mut tx InstallTransaction) apply_one(op StagedOp) ! {
 			// Idempotent: already up to date — do not re-record.
 			return
 		}
-		if !tx.force {
+		if !tx.force && op.ownership != 'merged' {
 			// Preserve user-owned file (Python install skip without --force).
+			// ownership=merged is a non-destructive JSON merge already computed by the caller.
 			return
 		}
 		tx.fs.write_atomic(dest, op.content)!
