@@ -108,7 +108,7 @@ when updated to use agent-toolkit.
 | Git clone | `git pull` in repo; re-run `scripts/install.sh --force` |
 
 Read [CHANGELOG.md](../CHANGELOG.md) for breaking changes between versions.
-Current CLI version: `packages/agent-toolkit-cli/src/agent_toolkit/__init__.py`.
+Current CLI version: `packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py`.
 
 ---
 

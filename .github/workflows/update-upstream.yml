@@ -20,12 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.11"
-      - name: Sync workspace
-        run: uv sync --all-extras
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
       - name: Check for upstream updates (online)
         id: updates
         env:
@@ -33,7 +29,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          uv run python scripts/provenance.py updates --json > /tmp/updates.json
+          python3 scripts/provenance.py updates --json > /tmp/updates.json
           cat /tmp/updates.json
           COUNT=$(python3 -c "import json; print(json.load(open('/tmp/updates.json'))['count'])")
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
@@ -47,4 +43,4 @@ jobs:
             echo "No updates — all locked commits at remote HEAD."
           fi
       - name: Check staleness (>90d) and license/security (offline)
-        run: uv run python scripts/provenance.py check
+        run: python3 scripts/provenance.py check

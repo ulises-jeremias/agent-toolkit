@@ -67,5 +67,5 @@ Immediate deletion of `profiles/` is out of scope for this ADR (explicit non-goa
 
 - ADR-001 (canonical IR), ADR-003 (retire gen-surfaces)
 - `docs/CONCEPTS.md` (concept model), `docs/ARCHITECTURE.md` (three-layer model)
-- `docs/PROFILES.md`, `packages/agent-toolkit-cli/src/agent_toolkit/installer/sources.py`
+- `docs/PROFILES.md`, `packages/pypi/agent-toolkit-cli/src/agent_toolkit/installer/sources.py`
 - `distributions/products.yaml`, `plugins/` (generated)

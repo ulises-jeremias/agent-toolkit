@@ -4,7 +4,7 @@
 **Parent:** [#457](https://github.com/ulises-jeremias/agent-toolkit/issues/457) (EPIC 0)  
 **Product runtime:** native V binary is canonical ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)). Python remains a fallback CLI (`agent-toolkit-py`) and the PyPI/npm launcher host until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540).
 
-Tree: `packages/agent-toolkit-cli/src/agent_toolkit/`.
+Tree: `packages/pypi/agent-toolkit-cli/src/agent_toolkit/`.
 
 ```
 Python package (agent_toolkit)

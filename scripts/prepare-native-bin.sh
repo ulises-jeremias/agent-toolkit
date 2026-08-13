@@ -2,7 +2,7 @@
 # Copy a native V binary into the PyPI package tree for platform wheels (ADR-021 / #535).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="$ROOT/packages/agent-toolkit-cli/src/agent_toolkit/bin"
+DEST="$ROOT/packages/pypi/agent-toolkit-cli/src/agent_toolkit/bin"
 mkdir -p "$DEST"
 SRC="${AGENT_TOOLKIT_NATIVE_BIN:-}"
 if [[ -z "$SRC" ]]; then

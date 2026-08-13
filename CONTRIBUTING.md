@@ -7,8 +7,9 @@ Thank you for your interest in contributing. This document covers everything you
 ## Prerequisites
 
 - **Git** 2.30 or later
-- **Python** 3.10 or later (used by validation scripts)
-- **uv** (recommended) — see https://docs.astral.sh/uv/getting-started/installation/
+- **Python** 3.10 or later (validation scripts, PyPI launcher tests)
+- **uv** (recommended for the PyPI adapter under `packages/pypi/`) — see https://docs.astral.sh/uv/getting-started/installation/
+- **V** matching [`.v-version`](.v-version) for the canonical CLI (`make test`, `make build-cli`)
 - A GitHub account and a fork of this repository
 
 Verify your setup:
@@ -19,10 +20,10 @@ python3 --version
 uv --version
 ```
 
-Install workspace dependencies (first time or after pulling):
+Install Python adapter + test tools (not a repo-root uv workspace):
 
 ```bash
-uv sync --all-extras
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 ```
 
 ---
@@ -89,7 +90,7 @@ python3 scripts/gen-surfaces.py --check
 python3 scripts/generate-catalogs.py
 
 # Full test suite (CI parity)
-AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v
+AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 ```
 
 Install pre-commit hooks (one-time, #274):
@@ -106,13 +107,13 @@ do not add a conflicting blocking MegaLinter Python config — `validate.yml` is
 single source of truth for PR style gating. Fix Ruff issues locally with:
 
 ```bash
-uv run ruff check --fix packages/agent-toolkit-cli/src tests
-uv run ruff format packages/agent-toolkit-cli/src tests
+uv run --project packages/pypi/agent-toolkit-cli --directory . ruff check --fix packages/pypi/agent-toolkit-cli/src tests scripts
+uv run --project packages/pypi/agent-toolkit-cli --directory . ruff format packages/pypi/agent-toolkit-cli/src tests scripts
 ```
 
 Type checking is incremental and **warn-only** in CI (`mypy` job, `continue-on-error: true`).
 Only `agent_toolkit.compiler` and `agent_toolkit.installer` are checked initially
-(`follow_imports=skip`, narrow allowlist, see `pyproject.toml` `[tool.mypy]` and
+(`follow_imports=skip`, narrow allowlist, see `packages/pypi/agent-toolkit-cli/pyproject.toml` `[tool.mypy]` and
 `validate.yml` `mypy` job). Do not add `# type: ignore` sprees — fix types properly.
 
 If any command exits non-zero, read the output — it will tell you which file failed and why.
@@ -328,7 +329,7 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 
 ## V modules (canonical consumer CLI)
 
-The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [`docs/v/cutover.md`](docs/v/cutover.md)). PyPI/Homebrew/AUR still ship Python until native artifacts are promoted.
+The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [`docs/v/cutover.md`](docs/v/cutover.md)). PyPI is a thin launcher over GitHub Release binaries ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)); `agent-toolkit-py` remains as fallback until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540).
 
 - Pin: root [`.v-version`](.v-version) — see [`docs/v/upgrade-policy.md`](docs/v/upgrade-policy.md)
 - Layout: `modules/agent_toolkit_core` + `modules/agent_toolkit_cli` ([ADR-009](docs/adrs/ADR-009-v-module-architecture.md))
@@ -346,8 +347,8 @@ The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](htt
 When adding a new skill, agent, or loop, verify the compiler pipeline:
 
 ```bash
-# Sync workspace deps first
-uv sync --all-extras
+# Sync the PyPI adapter (launcher + Python fallback tests)
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 
 # Validate your changes
 python3 scripts/validate-skills.py
@@ -355,20 +356,20 @@ python3 scripts/validate-agents.py
 python3 scripts/validate-manifests.py
 python3 scripts/gen-surfaces.py --check
 
-# Run the compiler in check mode
-uv run agent-toolkit build --check
+# Run the compiler in check mode (Python fallback)
+uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py build --check
 
 # Check for drift vs installed bundles
-uv run agent-toolkit diff
+uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py diff
 
 # Run all tests including contract tests
-AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v
+AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 ```
 
 ## Adding a new compiler target
 
-1. Create `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/<target>.py` extending `TargetAdapter`
-2. Register the adapter in `packages/agent-toolkit-cli/src/agent_toolkit/cli/build.py`
+1. Create `packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/<target>.py` extending `TargetAdapter`
+2. Register the adapter in `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/build.py`
 3. Add contract tests under `tests/compiler/`
 4. Add `distributions/targets/<target>.yaml` with capability declarations
 5. Write contract tests in `tests/compiler/test_<target>_adapter.py`

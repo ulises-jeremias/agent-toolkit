@@ -1,7 +1,7 @@
 # Windsurf / Devin Desktop — Target Certification
 
 **Status:** Certified (stable)  
-**Adapter:** `WindsurfAdapter` (`packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/windsurf.py`)  
+**Adapter:** `WindsurfAdapter` (`packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/windsurf.py`)  
 **Contract tests:** `tests/compiler/test_windsurf_adapter.py`  
 **ADR:** [ADR-002 — Windsurf Customization Bundle](../adrs/ADR-002-windsurf-bundle.md)  
 **Research date:** 2026-08-04
@@ -78,7 +78,7 @@ Reported in every `CompilationResult.unsupported`:
 ## Validation
 
 ```bash
-uv run pytest tests/compiler/test_windsurf_adapter.py -q
-uv run pytest tests/test_golden.py -k WindsurfAdapter -q
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_windsurf_adapter.py -q
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/test_golden.py -k WindsurfAdapter -q
 agent-toolkit build --target windsurf --check
 ```

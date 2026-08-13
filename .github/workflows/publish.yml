@@ -25,10 +25,33 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install uv
         uses: astral-sh/setup-uv@v7
-      - name: Build wheel and sdist
+      - name: Download GitHub Release V binaries for this VERSION
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
-          bash scripts/prepare-package-data.sh && uv build --package agent-toolkit-cli
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          mkdir -p binaries
+          gh release download "v${VERSION}" -D binaries -p 'agent-toolkit-*'
+          ls -lh binaries/
+      - name: Pack sdist + platform wheels (manylinux_2_38)
+        run: |
+          set -euo pipefail
+          bash scripts/prepare-package-data.sh
+          export RELEASE_BIN_DIR=binaries
+          export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          export RELEASE_OUT_DIR=dist
+          python3 scripts/pack_pypi.py
           ls -lh dist/
+          python3 - <<'PY'
+          from pathlib import Path
+          wheels = [p.name for p in Path("dist").glob("*.whl")]
+          print(wheels)
+          bad = [n for n in wheels if "linux_x86_64" in n and "manylinux" not in n]
+          if bad:
+              raise SystemExit(f"raw linux_x86_64 tag (PyPI will reject): {bad}")
+          PY
       - uses: actions/upload-artifact@v7
         with:
           name: dist

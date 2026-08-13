@@ -60,8 +60,10 @@ def python_argv(args: list[str]) -> list[str]:
         "uv",
         "run",
         "--project",
-        str(ROOT / "packages/agent-toolkit-cli"),
-        "agent-toolkit",
+        str(ROOT / "packages/pypi/agent-toolkit-cli"),
+        "--directory",
+        str(ROOT),
+        "agent-toolkit-py",
         *args,
     ]
 

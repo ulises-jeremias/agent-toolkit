@@ -31,22 +31,22 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Sync workspace (packages/agent-toolkit-cli)
-        run: uv sync --all-extras
+      - name: Sync PyPI adapter (packages/pypi/agent-toolkit-cli)
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 
       - name: Smoke-test Python fallback CLI (version)
-        run: uv run agent-toolkit-py version
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py version
 
       - name: Smoke-test Python fallback CLI (help)
-        run: uv run agent-toolkit-py help
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py help
 
       - name: Run test suite
-        run: uv run pytest tests/ -v --tb=short
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v --tb=short
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
 
       - name: Run compiler contract tests
-        run: uv run pytest tests/compiler/ -v --tb=short
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/ -v --tb=short
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
 
@@ -90,19 +90,14 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.11"
-
-      - name: Sync workspace
-        run: uv sync --all-extras
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
       - name: Validate SKILL.md frontmatter (Agent Skills spec)
-        run: uv run python scripts/validate-skills.py
+        run: python3 scripts/validate-skills.py
 
       - name: Validate AGENT.md frontmatter
-        run: uv run python scripts/validate-agents.py
+        run: python3 scripts/validate-agents.py
 
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
@@ -137,22 +132,17 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.11"
-
-      - name: Sync workspace (uses locked dependencies)
-        run: uv sync --all-extras
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
       - name: Check upstream provenance (immutable refs, SPDX)
-        run: uv run python scripts/validate-upstream.py --check
+        run: python3 scripts/validate-upstream.py --check
       - name: Check provenance lock ↔ declaration ↔ vendored bytes (offline)
-        run: uv run python scripts/provenance.py check
+        run: python3 scripts/provenance.py check
       - name: Check lock is deterministic from declarations
-        run: uv run python scripts/provenance.py lock --check
+        run: python3 scripts/provenance.py lock --check
       - name: Check generated UPSTREAM.md
-        run: uv run python scripts/provenance.py docs --check
+        run: python3 scripts/provenance.py docs --check
 
   # ── Job 4: Detect plugin surface drift ────────────────────────────────────
   check-surfaces:
@@ -161,16 +151,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.11"
-
-      - name: Sync workspace
-        run: uv sync --all-extras
-
       - name: Assert plugin surfaces are in sync with canonical sources
-        run: uv run python scripts/gen-surfaces.py --check
+        run: python3 scripts/gen-surfaces.py --check
 
   check-skill-matrix:
     name: Check Skill→Product Matrix
@@ -178,16 +160,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.11"
-
-      - name: Sync workspace
-        run: uv sync --all-extras
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2
 
       - name: Check skill→product→target matrix is up to date
-        run: uv run python scripts/generate-skill-matrix.py --check
+        run: python3 scripts/generate-skill-matrix.py --check
 
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
@@ -396,12 +373,12 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.11"
-      - name: Sync workspace
-        run: uv sync --all-extras
+      - name: Sync PyPI adapter
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
       - name: Ruff check
-        run: uv run ruff check packages/agent-toolkit-cli/src tests
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . ruff check packages/pypi/agent-toolkit-cli/src tests scripts
       - name: Ruff format check
-        run: uv run ruff format --check packages/agent-toolkit-cli/src tests
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . ruff format --check packages/pypi/agent-toolkit-cli/src tests scripts
 
   # ── Job 8c: Scoped coverage gate — compiler + installer + cli/install.py (#271) ──
   coverage:
@@ -413,11 +390,12 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.11"
-      - name: Sync workspace
-        run: uv sync --all-extras
+      - name: Sync PyPI adapter
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
       - name: Run scoped coverage (fail_under=70)
         run: |
-          uv run pytest \
+          uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini \
+            --cov-config=packages/pypi/agent-toolkit-cli/pyproject.toml \
             --cov=agent_toolkit.compiler \
             --cov=agent_toolkit.installer \
             --cov=agent_toolkit.cli.install \
@@ -438,10 +416,10 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.11"
-      - name: Sync workspace
-        run: uv sync --all-extras
+      - name: Sync PyPI adapter
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
       - name: Run mypy on allowlisted packages (compiler + installer)
-        run: uv run mypy packages/agent-toolkit-cli/src/agent_toolkit/compiler packages/agent-toolkit-cli/src/agent_toolkit/installer
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . mypy packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler packages/pypi/agent-toolkit-cli/src/agent_toolkit/installer
 
 # ── Job 9: Build package — ensures a clean wheel and sdist ────────────────
   build-package:
@@ -471,17 +449,27 @@ jobs:
             exit 1
           fi
 
-      - name: Build wheel and sdist from workspace package
+      - name: Build sdist then Linux V wheel (packages/pypi)
         env:
           VMODULES: ${{ github.workspace }}/modules
         run: |
           set -euo pipefail
           bash scripts/prepare-package-data.sh
-          uv build --sdist --package agent-toolkit-cli
+          uv build --sdist --out-dir dist packages/pypi/agent-toolkit-cli
           make build-cli
           bash scripts/prepare-native-bin.sh
-          uv build --wheel --package agent-toolkit-cli
+          uv build --wheel --out-dir dist packages/pypi/agent-toolkit-cli
           ls -lh dist/
+          python3 - <<'PY'
+          from pathlib import Path
+          wheels = list(Path("dist").glob("*.whl"))
+          assert wheels, "no wheel"
+          names = [p.name for p in wheels]
+          print(names)
+          bad = [n for n in names if "linux_x86_64" in n and "manylinux" not in n]
+          if bad:
+              raise SystemExit(f"raw linux_x86_64 tag (PyPI will reject): {bad}")
+          PY
 
       - name: Install built wheel and smoke-test V launcher
         run: |

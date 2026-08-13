@@ -1,7 +1,7 @@
 # Pi Coding Agent — Target Certification
 
 **Status:** Certified (stable)  
-**Adapter:** `PiAdapter` (`packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/pi.py`)  
+**Adapter:** `PiAdapter` (`packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/pi.py`)  
 **Contract tests:** `tests/compiler/test_pi_adapter.py`  
 **Research date:** 2026-08-04
 
@@ -84,7 +84,7 @@ Reported in every `CompilationResult.unsupported` (never silently dropped):
 ## Validation
 
 ```bash
-uv run pytest tests/compiler/test_pi_adapter.py -q
-uv run pytest tests/test_golden.py -k PiAdapter -q
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_pi_adapter.py -q
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/test_golden.py -k PiAdapter -q
 agent-toolkit build --target pi --check
 ```

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Packaging** — Move PyPI adapter to `packages/pypi/` (npm-parallel layout; platform-tagged wheels, not fake optionalDeps packages), drop the root uv workspace, tag Linux wheels `manylinux_2_38_*` after PyPI rejected `linux_x86_64` on 1.11.0, and ship a V-first Docker image from GitHub Release binaries
 - **Docs** — Agentic Workstation adapter: CLI-only bootstrap, channel preference, no `import agent_toolkit` (#469)
 - **Docs** — V vs Python CLI performance baseline (startup/help/inventory/doctor) (Closes #533)
 - **Docs** — Audit: no first-party Python `import agent_toolkit` consumers outside this repo (Closes #561)
@@ -151,7 +152,7 @@ First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256S
 ### Added
 - **Swarm skills (Herdr-first)** — 4 new swarm-focused skills: `swarm` (launcher via `agent-toolkit swarm start --recipe pair/team/full --ui herdr/tmux --runner opencode/claude --model-profile balanced/economy --attach "task"` with eager windows `Waiting for handoff: <pred> -> <role>` and `_user_shell()` `zsh` detection), `swarm-observer` (monitor `status/handoffs/logs/attach` and recover `worktree_failed`/`headless` fallback), `swarm-handoff` (artifact/commit file handoffs with worktree-per-writer and promotion), `herdr` (Herdr workspace/tab/pane management) and `worktree` (Git worktree isolation). All validated via `muse skills validate` and `agent-toolkit skills validate` (61 total) and integrated with `code-reviewer`/`security-reviewer`/`github-cli-workflow`/`output-handshake`.
 - **Workspace orchestration skills** — `workspace` (stateless `~/.ai-workspace` `workspace context` + `memory inject/todo` + packs), `project` (`project clone/list` multi-repo), `mcp` (`mcp setup/list/doctor`), and `inventory` (`inventory/matrix/skills list` discovery). Completes end-to-end DX: `workspace` → `project` → `swarm` → `handoff` → `promote` → `github-cli-workflow`.
-- **Skill catalog growth** — total 52 → 61 skills across 9 domains; `agent-toolkit-complete` now includes all 9 new skills; badges, `catalogs/skill-catalog.yaml`, `catalogs/skills-layout.json`, and `docs/SKILL_PRODUCT_MATRIX.md` regenerated; `README.md`, `packages/agent-toolkit-cli/README.md`, `docs/GETTING_STARTED.md`, `docs/TROUBLESHOOTING.md`, `docs/wiki/Home.md` updated.
+- **Skill catalog growth** — total 52 → 61 skills across 9 domains; `agent-toolkit-complete` now includes all 9 new skills; badges, `catalogs/skill-catalog.yaml`, `catalogs/skills-layout.json`, and `docs/SKILL_PRODUCT_MATRIX.md` regenerated; `README.md`, `packages/pypi/agent-toolkit-cli/README.md`, `docs/GETTING_STARTED.md`, `docs/TROUBLESHOOTING.md`, `docs/wiki/Home.md` updated.
 
 ### Fixed
 - **Docs 100% current** — regenerated catalogs (`scripts/generate-catalogs.py`, `prepare-package-data.sh`, `generate-skill-matrix.py`), fixed stale `skills-52` badges and `50 skills` assertions, and ensured `agent-toolkit install` deploys 61 skills to `~/.config/muse/skills` and `~/.agents/skills`.
@@ -187,7 +188,7 @@ First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256S
 
 ### Added
 
-- **Muse Code support (Meta, <https://developer.meta.com/ai/products/muse-code/>)** — new `muse-code` build target (`muse` alias) via `MuseCodeAdapter` (`packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/muse_code.py`) registered in `capabilities/targets/registry.yaml` (stable). `agent-toolkit build --target muse-code` and `install --tools muse-code` now deploy 50 skills to `~/.config/muse/skills/<name>/SKILL.md` plus `.agents/skills` (universal fallback) per Agent Skills spec (`muse skills import --from claude`). New profile `profiles/muse-code/README.md` and docs `README.md`.
+- **Muse Code support (Meta, <https://developer.meta.com/ai/products/muse-code/>)** — new `muse-code` build target (`muse` alias) via `MuseCodeAdapter` (`packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/muse_code.py`) registered in `capabilities/targets/registry.yaml` (stable). `agent-toolkit build --target muse-code` and `install --tools muse-code` now deploy 50 skills to `~/.config/muse/skills/<name>/SKILL.md` plus `.agents/skills` (universal fallback) per Agent Skills spec (`muse skills import --from claude`). New profile `profiles/muse-code/README.md` and docs `README.md`.
 
 ## [1.0.1] — 2026-08-04
 
@@ -273,7 +274,7 @@ First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256S
 
 ### Added
 
-- uv workspace structure: `packages/agent-toolkit-cli/` — ready for future packages
+- uv workspace structure: `packages/pypi/agent-toolkit-cli/` — ready for future packages
   (`agent-toolkit-server`, `agent-toolkit-mcp`, etc.)
 - Root `pyproject.toml` with `[tool.uv.workspace]` and shared dev tooling
 
@@ -399,7 +400,7 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ### Changed
 
-- Publish an elevated `packages/agent-toolkit-cli/README.md` to PyPI (parity with the monorepo root README: install, CLI surfaces, tool matrix, ecosystem)
+- Publish an elevated `packages/pypi/agent-toolkit-cli/README.md` to PyPI (parity with the monorepo root README: install, CLI surfaces, tool matrix, ecosystem)
 
 ## [1.2.1] — 2026-08-05
 

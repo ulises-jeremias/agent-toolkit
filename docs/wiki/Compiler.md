@@ -41,7 +41,7 @@ CompilationResult (emitted / unsupported / warnings)
 
 ## Target adapters
 
-Each target has its own adapter in `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/`:
+Each target has its own adapter in `packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/`:
 
 | Target | Adapter | Package type |
 |--------|---------|-------------|

@@ -7,11 +7,11 @@ Runbook for cutting a versioned release.
 ```bash
 # 1. Bump all version sources atomically
 python3 scripts/bump-version.py 1.3.0
-git diff --stat  # VERSION, packages/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
+git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
 
 # 2. Validate (CI parity)
-uv sync --all-extras
-AGENT_TOOLKIT_ROOT="$PWD" uv run pytest tests/ -v
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 python3 scripts/validate-skills.py
 python3 scripts/validate-agents.py
 python3 scripts/generate-catalogs.py
@@ -41,7 +41,7 @@ curl -sS 'https://aur.archlinux.org/rpc/v5/info?arg[]=agent-toolkit' | python3 -
 `scripts/bump-version.py` updates atomically:
 
 * `VERSION`
-* `packages/agent-toolkit-cli/src/agent_toolkit/__init__.py` (`__version__`)
+* `packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py` (`__version__`)
 * `package.json` (`version`) — skills marketplace metadata, not the CLI
 * `packages/npm/*/package.json` (`version` + `optionalDependencies` pins)
 * `.claude-plugin/marketplace.json` (`metadata.version` + `plugins[].version`)
@@ -57,7 +57,7 @@ python3 scripts/bump-version.py 1.3.0         # writes files
 
 ## Rollback / republish
 
-* **PyPI:** Trusted Publishing only via `release.yml` on tag `v*`. Manual republish: workflow `Publish (manual)` (`.github/workflows/publish.yml`) with `TestPyPI`/`PyPI` env.
+* **PyPI:** Trusted Publishing via `release.yml` `publish-pypi` after Release assets are attached (`scripts/pack_pypi.py` stamps `manylinux_2_38_*` wheels). Manual republish: workflow `Publish (manual)` (`.github/workflows/publish.yml`) with `TestPyPI`/`PyPI` — it downloads `v$(cat VERSION)` GitHub Release binaries (do not rebuild a different glibc).
 * **npm:** OIDC trusted publishing via `publish-npm.yml` on tag `v*` (npm CLI ≥ 11.5.1, `id-token: write`, no `NPM_TOKEN`). First publish of a new package name is local (`npm login` then `npm publish`). Then pin GitHub:
   ```bash
   npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y

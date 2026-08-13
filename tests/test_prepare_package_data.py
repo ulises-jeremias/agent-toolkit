@@ -7,7 +7,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "prepare-package-data.sh"
-DATA_DEST = REPO_ROOT / "packages" / "agent-toolkit-cli" / "src" / "agent_toolkit" / "data"
+DATA_DEST = REPO_ROOT / "packages" / "pypi" / "agent-toolkit-cli" / "src" / "agent_toolkit" / "data"
 
 
 def test_prepare_package_data_script_lists_capabilities():

@@ -10,9 +10,10 @@ Docker is an **adapter**. The product inside the image is the **GitHub Release V
 
 | Choice | Class | Rationale |
 |--------|-------|-----------|
-| `debian:bookworm-slim` | **MUST** (stable) | `git` + `gh` + `ca-certificates` needed for `loop`/`project`/`doctor`. Distroless cannot ship those CLIs without a second stage copy of glibc-linked tools. |
+| `debian:trixie-slim` | **MUST** (stable) | `git` + `gh` + `ca-certificates` for `loop`/`project`/`doctor`. Release linux ELF needs **GLIBC_2.38**; bookworm (2.36) cannot run v1.11.0+ binaries. |
+| `debian:bookworm-slim` | **MUST NOT** | glibc 2.36 < 2.38. |
 | `gcr.io/distroless/cc` / scratch | **FUTURE** | Only if extra tools move to a sidecar. Not the default. |
-| `python:3.11-slim` + `uv run` | **Transitional** | Current `Dockerfile` until the first Release with V assets. MUST NOT remain the stable `latest` once a V tag exists. |
+| `python:3.11-slim` + `uv run` | **REMOVED** | Legacy uv-workspace image. |
 | Alpine / musl | **MUST NOT** for stable | ADR-019: glibc is the MUST Linux binary. |
 
 ## Tool dependency set
@@ -24,18 +25,16 @@ Docker is an **adapter**. The product inside the image is the **GitHub Release V
 | `gh` | **MUST** | GH API in loops / PR skills |
 | `ca-certificates` | **MUST** | TLS |
 | `curl` | **SHOULD** | Fetch checksums in build; not required at runtime if binary is baked |
-| `uv` / CPython | **MUST NOT** in the V image | Product is the native binary. Python image is transitional only. |
+| `uv` / CPython | **MUST NOT** | Product is the native binary. |
 
 `ENTRYPOINT` MUST be `/usr/local/bin/agent-toolkit` (the V binary). `CMD` MAY be `--help`.
 
+Build-arg `VERSION` (default from `VERSION` file) selects the GitHub Release tag `v${VERSION}`.
+
 ## Tags
 
-- `latest` / semver: **stable V** image only after a GitHub Release has floating linux assets.
+- `latest` / semver: **stable V** image after a GitHub Release has floating linux assets.
 - Experimental V names (`agent-toolkit-v-experimental-*`) MUST NOT be baked into `latest`.
 - Multi-arch: `linux/amd64` + `linux/arm64` (glibc), matching ADR-018.
-
-## Implementation gate
-
-Do not rewrite `Dockerfile` to the V copy path until a tagged Release publishes `agent-toolkit-linux-x86_64` (and arm64). Until then the Python image may keep building so `ghcr` is not empty.
 
 Owner of the Dockerfile remains this repo (unlike Homebrew/AUR).

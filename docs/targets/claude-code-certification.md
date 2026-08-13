@@ -36,13 +36,13 @@
 ## Validation
 
 ```bash
-uv sync --group dev
-uv run pytest tests/compiler/test_claude_code_adapter.py tests/test_install_claude_settings.py -q
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_claude_code_adapter.py tests/test_install_claude_settings.py -q
 uv run agent-toolkit build --target claude-code --check
 ```
 
 ## References
 
 - `distributions/targets/claude-code.yaml`
-- `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/claude_code.py`
-- `packages/agent-toolkit-cli/src/agent_toolkit/cli/install.py` (`_install_claude_code`)
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/claude_code.py`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/install.py` (`_install_claude_code`)

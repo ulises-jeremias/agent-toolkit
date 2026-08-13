@@ -107,7 +107,7 @@ Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#sw
 * **Advanced CLI:** see [docs/SCOPE.md](SCOPE.md) and [docs/CLI_SURFACES.md](CLI_SURFACES.md) for the single-binary progressive disclosure model
 * **Loops:** see `loops/` (10 templates) and `docs/HOW_TO_CREATE_LOOP.md`
 * **Swarms:** see `docs/SWARMS.md`, `docs/SWARM_ARCHITECTURE.md`, `docs/HOW_TO_CREATE_SWARM_RECIPE.md`
-* **Contributing:** see [CONTRIBUTING.md](../CONTRIBUTING.md) for CI parity (`uv sync --all-extras`, `AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v`)
+* **Contributing:** see [CONTRIBUTING.md](../CONTRIBUTING.md) for CI parity (`uv sync --project packages/pypi/agent-toolkit-cli --all-extras`, `AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v`)
 
 ## Troubleshooting
 

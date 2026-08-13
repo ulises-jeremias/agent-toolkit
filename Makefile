@@ -1,4 +1,4 @@
-# V foundation targets for modules/ (ADR-009). Python tooling remains uv/pytest.
+# V foundation targets for modules/ (ADR-009). Python lives under packages/pypi/ (adapter + tests).
 # Pattern adapted from Create-Vlang-App (VMODULES + fmt/vet/test/build).
 # Do NOT require VPM for normal binary installs.
 

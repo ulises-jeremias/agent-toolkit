@@ -19,8 +19,10 @@ node_modules/
 # Build artifacts
 dist/
 build/
-packages/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit
-packages/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit.exe
+packages/pypi/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit
+packages/pypi/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit.exe
+packages/pypi/agent-toolkit-cli/.venv/
+packages/pypi/agent-toolkit-cli/uv.lock
 packages/npm/*/bin/agent-toolkit
 packages/npm/*/bin/agent-toolkit.exe
 

@@ -14,10 +14,10 @@ Do **not** duplicate Formula/PKGBUILD/npm `package.json` here. Those live in the
 | Channel | Owner repo (out of this tree) | Contract in this repo |
 |---------|-------------------------------|------------------------|
 | GitHub Release | this repo (`.github/workflows/release.yml`) | [github-release/README.md](github-release/README.md) |
-| PyPI | this repo (`packages/agent-toolkit-cli`) until wrapper [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535) | [pypi/README.md](pypi/README.md) · ADR [#486](https://github.com/ulises-jeremias/agent-toolkit/issues/486) |
+| PyPI | this repo (`packages/pypi/agent-toolkit-cli`) | [pypi/README.md](pypi/README.md) · [ADR-021](../docs/adrs/ADR-021-pypi-binary.md) |
 | Homebrew | `ulises-jeremias/homebrew-tap` | [homebrew/README.md](homebrew/README.md) · [#538](https://github.com/ulises-jeremias/agent-toolkit/issues/538) · ADR [#490](https://github.com/ulises-jeremias/agent-toolkit/issues/490) |
 | AUR | `ulises-jeremias/aur-packages` | [aur/README.md](aur/README.md) · [#539](https://github.com/ulises-jeremias/agent-toolkit/issues/539) · ADR [#491](https://github.com/ulises-jeremias/agent-toolkit/issues/491) |
-| npm | future adapter | [npm/README.md](npm/README.md) · [#536](https://github.com/ulises-jeremias/agent-toolkit/issues/536) · ADR [#487](https://github.com/ulises-jeremias/agent-toolkit/issues/487) |
+| npm | this repo (`packages/npm/`) | [npm/README.md](npm/README.md) · [#536](https://github.com/ulises-jeremias/agent-toolkit/issues/536) · [ADR-025](../docs/adrs/ADR-025-npm-binary.md) |
 | Docker | this repo (`.github/workflows/docker.yml`) | [docker/README.md](docker/README.md) · [#537](https://github.com/ulises-jeremias/agent-toolkit/issues/537) |
 | Workstation (L1) | `ulises-jeremias/agentic-workstation` | [workstation/README.md](workstation/README.md) · [#469](https://github.com/ulises-jeremias/agent-toolkit/issues/469) |
 

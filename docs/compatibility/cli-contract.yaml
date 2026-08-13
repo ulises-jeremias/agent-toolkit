@@ -5,7 +5,7 @@
 # Schema version for this manifest (not the product version).
 schema_version: 1
 product: agent-toolkit
-python_entry: packages/agent-toolkit-cli/src/agent_toolkit/cli/main.py
+python_entry: packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/main.py
 notes:
   - Exit-code classes follow ADR-010; argparse bad flags remain exit 2; --help/version exit 0.
   - Disposition values: keep | rewrite-v | wrapper | defer | retire

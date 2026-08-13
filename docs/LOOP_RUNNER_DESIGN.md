@@ -117,11 +117,11 @@ flowchart TD
 
 ## Pointers to key symbols/files
 
-- `packages/agent-toolkit-cli/src/agent_toolkit/loop/runner.py` — `loops_dir`, `parse_loop_md`, `_parse_simple_yaml`, `parse_state_md`, `write_state_md`, `loop_gh_gate_env`, `_run_with_live_output`, `_TraceTailer`, `_handle_sig`, `workspace_root`, `utc_now`, `run_id`
-- `packages/agent-toolkit-cli/src/agent_toolkit/loop/budget.py` — `wall_timeout_seconds`, `max_tokens_limit`, `tokens_from_trace`, `tokens_today`, `token_budget_exceeded`, `soft_token_precheck`
-- `packages/agent-toolkit-cli/src/agent_toolkit/loop/gh_gate.py` / `loop/loop-gh-gate` — `classify_gh_argv`, `gate_config_from_env`, `RECEIPT_REQUIRED`, `MUTATING_ACTIONS`, `redact_argv`, `RECEIPT_MAX_AGE_SEC`
-- `packages/agent-toolkit-cli/src/agent_toolkit/loop/pack.py` — `resolve_pack_path`, `load_pack`, `apply_loop_pack_overrides`
-- `packages/agent-toolkit-cli/src/agent_toolkit/runner/dispatcher.py` — `LLMDispatcher` (policy-filtered LLM selection)
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/loop/runner.py` — `loops_dir`, `parse_loop_md`, `_parse_simple_yaml`, `parse_state_md`, `write_state_md`, `loop_gh_gate_env`, `_run_with_live_output`, `_TraceTailer`, `_handle_sig`, `workspace_root`, `utc_now`, `run_id`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/loop/budget.py` — `wall_timeout_seconds`, `max_tokens_limit`, `tokens_from_trace`, `tokens_today`, `token_budget_exceeded`, `soft_token_precheck`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/loop/gh_gate.py` / `loop/loop-gh-gate` — `classify_gh_argv`, `gate_config_from_env`, `RECEIPT_REQUIRED`, `MUTATING_ACTIONS`, `redact_argv`, `RECEIPT_MAX_AGE_SEC`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/loop/pack.py` — `resolve_pack_path`, `load_pack`, `apply_loop_pack_overrides`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/runner/dispatcher.py` — `LLMDispatcher` (policy-filtered LLM selection)
 - Schemas: `schemas/loop.schema.json` (validated in CI)
 - Templates: `loops/<name>/loop.yaml` (10 bundled templates), `loops/<name>/STATE.md`, `loops/<name>/runs/<run_id>/trace.jsonl`
 

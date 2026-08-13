@@ -6,7 +6,7 @@
 
 ## Context
 
-Two installers exist: `scripts/install.sh` (bash, profile-copy) and `packages/agent-toolkit-cli/src/agent_toolkit/cli/install.py` (Python, `agent-toolkit install`). Dual paths drift — examples still teach `bash install.sh`, `INSTALLATION.md` lists both, and bash lacks the CLI's detection, receipts, and target-aware logic (`installer/sources.py`).
+Two installers exist: `scripts/install.sh` (bash, profile-copy) and `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/install.py` (Python, `agent-toolkit install`). Dual paths drift — examples still teach `bash install.sh`, `INSTALLATION.md` lists both, and bash lacks the CLI's detection, receipts, and target-aware logic (`installer/sources.py`).
 
 The goal is one consumer install path to reduce support load.
 
@@ -59,6 +59,6 @@ The goal is one consumer install path to reduce support load.
 
 ## References
 
-- `scripts/install.sh`, `packages/agent-toolkit-cli/src/agent_toolkit/cli/install.py`
+- `scripts/install.sh`, `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/install.py`
 - `docs/INSTALLATION.md`, `examples/project-onboarding/README.md`, `docs/ARCHITECTURE.md`
 - #270 (parent #263)

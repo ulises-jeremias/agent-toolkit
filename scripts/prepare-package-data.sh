@@ -3,7 +3,7 @@
 # Safe to re-run. Destination contents are gitignored except .gitignore.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DEST="$ROOT/packages/agent-toolkit-cli/src/agent_toolkit/data"
+DEST="$ROOT/packages/pypi/agent-toolkit-cli/src/agent_toolkit/data"
 mkdir -p "$DEST"
 for name in skills agents loops profiles mcp catalogs distributions packs capabilities; do
   rm -rf "$DEST/$name"

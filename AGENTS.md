@@ -296,10 +296,10 @@ for f in sorted(Path("loops").rglob("loop.yaml")):
 PYEOF
 python3 scripts/generate-catalogs.py   # Regenerates and checks catalogs
 python3 scripts/gen-surfaces.py --check  # Asserts plugin surfaces are in sync
-AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v  # Full test suite (uv sync --all-extras first)
+AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 ```
 
-All checks must exit 0. Run `uv sync --all-extras` first to install workspace deps.
+All checks must exit 0. Run `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` first for pytest (the repo is not a uv workspace; V is the product CLI).
 
 ---
 

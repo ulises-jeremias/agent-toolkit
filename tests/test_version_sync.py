@@ -10,7 +10,7 @@ REPO = Path(__file__).resolve().parent.parent
 
 
 def _python_version() -> str:
-    text = (REPO / "packages/agent-toolkit-cli/src/agent_toolkit/__init__.py").read_text()
+    text = (REPO / "packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py").read_text()
     m = re.search(r'__version__\s*=\s*"([^"]+)"', text)
     assert m, "missing __version__"
     return m.group(1)

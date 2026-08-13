@@ -36,13 +36,13 @@
 ## Validation
 
 ```bash
-uv sync --group dev
-uv run pytest tests/compiler/test_cursor_adapter.py tests/test_cursor_profile_rules.py -q
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_cursor_adapter.py tests/test_cursor_profile_rules.py -q
 uv run agent-toolkit build --target cursor --check
 ```
 
 ## References
 
 - `distributions/targets/cursor.yaml`
-- `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/cursor.py`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/cursor.py`
 - `profiles/cursor/rules/*.mdc`

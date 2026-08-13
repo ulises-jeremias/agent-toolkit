@@ -54,5 +54,5 @@ Model selection uses semantic profiles (`economy`, `balanced`, `quality`, `priva
 - Swarm Forge inspiration (role separation, worktree isolation, handoff protocol) — clean-room only, no code/text copy without license
 - Herdr docs: workspace/create, worktree/create, agent/start, agent/prompt, agent/wait, agent/read, integration/install, plugin/link
 - tmux control mode docs, OpenCode docs (provider/model, agents, permissions), Git worktree/merge/rev-parse docs
-- Toolkit loop runner (`packages/agent-toolkit-cli/src/agent_toolkit/loop/runner.py`), budget (`loop/budget.py`), runner policy (`runner/policy.py`), `_paths.py`
+- Toolkit loop runner (`packages/pypi/agent-toolkit-cli/src/agent_toolkit/loop/runner.py`), budget (`loop/budget.py`), runner policy (`runner/policy.py`), `_paths.py`
 - CLI surfaces: `docs/CLI_SURFACES.md`, `docs/ARCHITECTURE.md`, `docs/LOOP_RUNNER_DESIGN.md`

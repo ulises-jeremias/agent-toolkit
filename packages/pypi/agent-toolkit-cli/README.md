@@ -287,13 +287,13 @@ Issues and PRs welcome on the monorepo:
 
 - [Contributing guide](https://github.com/ulises-jeremias/agent-toolkit/blob/main/CONTRIBUTING.md)
 - [Discord](https://discord.gg/bR5VyATgka)
-- Package changelog: [`CHANGELOG.md`](https://github.com/ulises-jeremias/agent-toolkit/blob/main/packages/agent-toolkit-cli/CHANGELOG.md)
+- Package changelog: [`CHANGELOG.md`](https://github.com/ulises-jeremias/agent-toolkit/blob/main/packages/pypi/agent-toolkit-cli/CHANGELOG.md)
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit
 cd agent-toolkit
-uv sync
-uv run agent-toolkit --help
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py --help
 ```
 
 ---

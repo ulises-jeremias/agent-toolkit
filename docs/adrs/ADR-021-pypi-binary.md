@@ -44,8 +44,8 @@ Wheels are **platform-specific** (not `py3-none-any` for the product command). T
 
 | Wheel tag (illustrative) | Bundled asset (ADR-018) |
 |--------------------------|-------------------------|
-| `manylinux_2_28_x86_64` (or the manylinux tag CI actually produces) | `agent-toolkit-linux-x86_64` (glibc) / experimental equivalent |
-| `manylinux_2_28_aarch64` | `agent-toolkit-linux-arm64` |
+| `manylinux_2_38_x86_64` | `agent-toolkit-linux-x86_64` (glibc 2.38; PyPI rejects raw `linux_x86_64`) |
+| `manylinux_2_38_aarch64` | `agent-toolkit-linux-arm64` |
 | `macosx_*_arm64` | `agent-toolkit-macos-arm64` |
 | `macosx_*_x86_64` | `agent-toolkit-macos-x86_64` when published; otherwise omit the wheel |
 | `win_amd64` | `agent-toolkit-windows-x86_64.exe` |
@@ -71,6 +71,17 @@ Musl/Alpine is **not** a PyPI MUST tag. No `py3-none-any` product wheel that sil
 - **Positive:** `uvx --from agent-toolkit-cli agent-toolkit` runs V; one implementation; checksums happen at wheel build (Release asset → wheel).
 - **Negative:** Must publish several platform wheels per release; sdist cannot usefully contain every native binary; macOS x86_64 wheel omitted until that asset exists.
 - **Follow-on:** [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535) launcher + tests; [#488](https://github.com/ulises-jeremias/agent-toolkit/issues/488) manifest so the build can pick the asset without scraping HTML; [#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530) SHA256SUMS for build-time verify.
+
+## Layout follow-up (2026-08-13)
+
+Sources live under **`packages/pypi/agent-toolkit-cli/`**, parallel to **`packages/npm/`**. That is topology only:
+
+* npm installs per-OS bits via `optionalDependencies` on separate packages.
+* PyPI installs per-OS bits via **platform-tagged wheels of one project**. There are no `agent-toolkit-cli-linux-*` Python packages (pip cannot consume them the way npm optionalDeps work).
+
+CI copies GitHub Release V binaries into the wheel (`scripts/pack_pypi.py` + `scripts/prepare-native-bin.sh`). The repo root is not a uv workspace; `uv.lock` belongs next to the adapter if present. Pre-commit Ruff uses `language: python` (`ruff-pre-commit`) with root `ruff.toml` — no product uv workspace.
+
+Contract: [`distribution/pypi/README.md`](../../distribution/pypi/README.md).
 
 ## Validation plan
 

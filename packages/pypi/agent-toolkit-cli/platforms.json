@@ -1,0 +1,27 @@
+[
+  {
+    "floating": "agent-toolkit-linux-x86_64",
+    "wheel_tag": "manylinux_2_38_x86_64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "floating": "agent-toolkit-linux-arm64",
+    "wheel_tag": "manylinux_2_38_aarch64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "floating": "agent-toolkit-macos-arm64",
+    "wheel_tag": "macosx_11_0_arm64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "floating": "agent-toolkit-macos-x86_64",
+    "wheel_tag": "macosx_11_0_x86_64",
+    "bin": "agent-toolkit"
+  },
+  {
+    "floating": "agent-toolkit-windows-x86_64.exe",
+    "wheel_tag": "win_amd64",
+    "bin": "agent-toolkit.exe"
+  }
+]

@@ -3,7 +3,7 @@
 ## Where to ask
 
 * **Q&A / how-to:** [GitHub Discussions — Q&A](https://github.com/ulises-jeremias/agent-toolkit/discussions) (preferred for open questions)
-* **Chat:** [Discord](https://discord.gg/bR5VyATgka) (same invite as `packages/agent-toolkit-cli/README.md`)
+* **Chat:** [Discord](https://discord.gg/bR5VyATgka) (same invite as `packages/pypi/agent-toolkit-cli/README.md`)
 * **Bug reports / feature requests:** [GitHub Issues](https://github.com/ulises-jeremias/agent-toolkit/issues) — search existing issues first
 * **Security reports:** see [SECURITY.md](SECURITY.md) — use private disclosure, not public issues
 

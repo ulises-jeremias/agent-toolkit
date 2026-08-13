@@ -1,7 +1,7 @@
 # OpenAI Codex — Target Certification
 
 **Status:** Experimental (bounded support)  
-**Adapter:** `CodexAdapter` (`packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/codex.py`)  
+**Adapter:** `CodexAdapter` (`packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/codex.py`)  
 **Contract tests:** `tests/compiler/test_codex_adapter.py`  
 **Research date:** 2026-08-04
 
@@ -89,7 +89,7 @@ structure validation only until self-serve submission opens.
 ## Validation
 
 ```bash
-uv run pytest tests/compiler/test_codex_adapter.py -q
-uv run pytest tests/test_golden.py -k CodexAdapter -q
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_codex_adapter.py -q
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/test_golden.py -k CodexAdapter -q
 agent-toolkit build --target codex --check
 ```

@@ -47,7 +47,7 @@ def main():
             changed += 1
     # __init__.py
     changed += bump_file(
-        "packages/agent-toolkit-cli/src/agent_toolkit/__init__.py",
+        "packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py",
         r'__version__ = ".*"',
         '__version__ = "{version}"',
         version,

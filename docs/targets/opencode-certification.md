@@ -33,13 +33,13 @@
 ## Validation
 
 ```bash
-uv sync --group dev
-uv run pytest tests/compiler/test_opencode_adapter.py tests/test_install_opencode_profile.py tests/security/test_secret_redaction.py -q
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_opencode_adapter.py tests/test_install_opencode_profile.py tests/security/test_secret_redaction.py -q
 uv run agent-toolkit build --target opencode --check
 ```
 
 ## References
 
 - `distributions/targets/opencode.yaml`
-- `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/opencode.py`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/opencode.py`
 - `profiles/opencode/opencode.json`

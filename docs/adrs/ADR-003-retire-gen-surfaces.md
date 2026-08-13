@@ -72,7 +72,7 @@ No file deletion occurs in the ADR PR itself. Deletion is deferred to the **Remo
 ## References
 
 - ADR-001: Canonical IR (`docs/adrs/ADR-001-canonical-ir.md`)
-- `packages/agent-toolkit-cli/src/agent_toolkit/cli/build.py` (`cmd_build` / `cmd_inventory`)
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/build.py` (`cmd_build` / `cmd_inventory`)
 - `scripts/gen-surfaces.py`
 - `.github/workflows/validate.yml` → jobs `check-surfaces`, `validate-products`
 - `distributions/products.yaml`

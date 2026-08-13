@@ -15,7 +15,7 @@ The published PyPI/npm **product** is the CLI. `import agent_toolkit` is not a s
 
 | Consumer | How it uses agent-toolkit | Breakage if Python modules go away |
 |----------|---------------------------|------------------------------------|
-| **This repo** (`packages/agent-toolkit-cli`, `tests/`) | First-party: `agent_toolkit.cli`, `compiler`, `installer`, `launcher` | Expected. Tests already use `agent-toolkit-py` / `-m agent_toolkit.cli` where the product launcher would exec V. |
+| **This repo** (`packages/pypi/agent-toolkit-cli`, `tests/`) | First-party: `agent_toolkit.cli`, `compiler`, `installer`, `launcher` | Expected. Tests already use `agent-toolkit-py` / `-m agent_toolkit.cli` where the product launcher would exec V. |
 | **agentic-workstation** | CLI only: `uv tool install --force agent-toolkit-cli && agent-toolkit install` | **None** for library imports. Breaks only if the `agent-toolkit` **command** disappears. After ADR-021 the command is the V launcher. |
 | **agentic-harness** / ai-workspace | Documents CLI (`agent-toolkit workspace`, `memory`, …). No `import agent_toolkit`. | None (CLI). |
 | **homebrew-tap / aur-packages** | Install GitHub Release **binary**, not the Python package | None. |

@@ -32,7 +32,7 @@ uv run python scripts/audit-capability.py skills/design/frontend-design
 uv run python scripts/provenance.py check
 agent-toolkit doctor --json | jq '.checks[] | select(.category=="provenance" or .category=="mcp")'
 agent-toolkit audit --help 2>&1 | head -n 20 || echo "audit as script-only — see docs/cli/audit-surface-decision.md"
-uv run pytest tests/test_cli*.py -v
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/test_cli*.py -v
 ```
 
 Refs #397, #364, #378, #387

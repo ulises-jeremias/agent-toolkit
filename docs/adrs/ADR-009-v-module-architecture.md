@@ -6,7 +6,7 @@
 
 ## Context
 
-Agent Toolkit is migrating from a Python CLI (`packages/agent-toolkit-cli`) to a native V binary-first product. Create-Vlang-App’s ADR-0001 documents a `modules/` layout with a core library and a thin CLI. Agent Toolkit needs the same separation so CLI, future HTTP (`serve`), and future TUI adapters share one domain core — without making VPM the primary distribution channel (binary GitHub Releases remain canonical; see program [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)).
+Agent Toolkit is migrating from a Python CLI (`packages/pypi/agent-toolkit-cli`) to a native V binary-first product. Create-Vlang-App’s ADR-0001 documents a `modules/` layout with a core library and a thin CLI. Agent Toolkit needs the same separation so CLI, future HTTP (`serve`), and future TUI adapters share one domain core — without making VPM the primary distribution channel (binary GitHub Releases remain canonical; see program [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)).
 
 ## Options considered
 
@@ -35,7 +35,7 @@ Rules:
 - **CLI is an adapter only:** parse argv, call core, render human/JSON (see ADR-010 / [#480](https://github.com/ulises-jeremias/agent-toolkit/issues/480)).
 - **Do not create** `modules/agent_toolkit_server` or `modules/agent_toolkit_tui` until EPIC 14 / EPIC 16 start. Architecture *allows* them; the filesystem does not need stubs.
 - **VPM is optional for developers**, never required for normal binary installation. Do **not** copy Create-Vlang-App’s VPM-primary distribution ADR.
-- Existing Python package layout (`packages/agent-toolkit-cli`) remains until cutover / retirement gates; V modules land beside it during the strangler.
+- Existing Python package layout (`packages/pypi/agent-toolkit-cli`) remains until cutover / retirement gates; V modules land beside it during the strangler.
 
 ## Consequences
 

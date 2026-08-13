@@ -14,22 +14,9 @@ updates:
     commit-message:
       prefix: "chore(deps)"
 
-  # Python — uv workspace (pip)
+  # Python — PyPI adapter only (no root uv workspace)
   - package-ecosystem: "pip"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-    commit-message:
-      prefix: "chore(deps)"
-
-  # Python — agent-toolkit-cli package
-  - package-ecosystem: "pip"
-    directory: "/packages/agent-toolkit-cli"
+    directory: "/packages/pypi/agent-toolkit-cli"
     schedule:
       interval: "weekly"
       day: "monday"

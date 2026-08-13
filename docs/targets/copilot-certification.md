@@ -44,14 +44,14 @@
 ## Validation
 
 ```bash
-uv sync --group dev
-uv run pytest tests/compiler/test_copilot_adapter.py -q
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_copilot_adapter.py -q
 uv run agent-toolkit build --target copilot-cli --check
 uv run agent-toolkit build --target copilot-repository --check
 ```
 
 ## References
 
-- `packages/agent-toolkit-cli/src/agent_toolkit/compiler/targets/copilot.py`
+- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler/targets/copilot.py`
 - `profiles/copilot/copilot-instructions.md`
 - `docs/TARGETS.md`

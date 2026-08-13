@@ -34,7 +34,7 @@
 - [ ] Ran `python3 scripts/validate-agents.py` (if agent changes)
 - [ ] Regenerated catalogs with `python3 scripts/generate-catalogs.py` (if skill/agent/loop added)
 - [ ] Checked `python3 scripts/gen-surfaces.py --check` (if skill/agent/loop or surface changed)
-- [ ] Confirmed `validate` CI workflow passes (or ran checks locally via `uv sync --all-extras && AGENT_TOOLKIT_ROOT=$PWD uv run pytest tests/ -v`)
+- [ ] Confirmed `validate` CI workflow passes (or ran checks locally via `uv sync --project packages/pypi/agent-toolkit-cli --all-extras && AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v`)
 - [ ] Tested with at least one supported AI tool (Claude Code, Cursor, Copilot, etc.)
 
 ## Checklist

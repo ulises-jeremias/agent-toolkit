@@ -80,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Windows compatibility: `os.getuid()` wrapped in try/except AttributeError
 
 ### Added  
-- uv workspace structure: `packages/agent-toolkit-cli/` — ready for future packages
+- uv workspace structure: `packages/pypi/agent-toolkit-cli/` — ready for future packages
   (`agent-toolkit-server`, `agent-toolkit-mcp`, etc.)
 - Root `pyproject.toml` with `[tool.uv.workspace]` and shared dev tooling
 

@@ -65,8 +65,8 @@ agent-toolkit build --check          # validate compilation without writing plug
 python3 scripts/generate-catalogs.py          # regenerate skill-catalog.yaml
 bash scripts/prepare-package-data.sh         # sync skills/catalogs to data/
 # Then update installed data if testing locally:
-cp catalogs/skills-layout.json packages/agent-toolkit-cli/src/agent_toolkit/data/catalogs/
-cp -r skills/ops/swarm packages/agent-toolkit-cli/src/agent_toolkit/data/skills/ops/
+cp catalogs/skills-layout.json packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/catalogs/
+cp -r skills/ops/swarm packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/skills/ops/
 agent-toolkit skills validate                # should show 61
 agent-toolkit skills list --domain ops       # should include new skill
 agent-toolkit install --dry-run | grep "Would deploy"
