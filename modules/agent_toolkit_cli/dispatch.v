@@ -139,6 +139,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_project(opts)
 		return render(agent_toolkit_core.project_result(report), mode)
 	}
+	if cmd_name == 'devcompanion' {
+		opts := parse_dc_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_devcompanion(opts)
+		return render(agent_toolkit_core.devcompanion_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -653,6 +661,92 @@ fn parse_project_options(args []string) !agent_toolkit_core.ProjectOptions {
 	}
 }
 
+fn parse_dc_options(args []string) !agent_toolkit_core.DevcompanionOptions {
+	mut sub := ''
+	mut workspace_path := ''
+	mut project := ''
+	mut template := ''
+	mut request := ''
+	mut job_id := ''
+	mut no_llm := false
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--no-llm' {
+			no_llm = true
+			i++
+			continue
+		}
+		if a in ['--template', '-t', '--request', '-r', '--id', '--workspace'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--template', '-t' { template = val }
+				'--request', '-r' { request = val }
+				'--id' { job_id = val }
+				'--workspace' { workspace_path = val }
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--template=') {
+			template = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--request=') {
+			request = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--id=') {
+			job_id = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--workspace=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+			i++
+			continue
+		}
+		if sub == 'queue' && project.len == 0 {
+			project = a
+		} else if sub == 'done' && job_id.len == 0 {
+			job_id = a
+		}
+		i++
+	}
+	mut arg := project
+	if sub == 'done' && job_id.len > 0 {
+		arg = job_id
+	}
+	return agent_toolkit_core.DevcompanionOptions{
+		subcommand:     sub
+		workspace_path: workspace_path
+		arg:            arg
+		template:       template
+		request:        request
+		job_id:         job_id
+		no_llm:         no_llm
+	}
+}
+
 fn parse_plugin_options(args []string) agent_toolkit_core.PluginOptions {
 	mut sub := ''
 	for a in args {
@@ -837,6 +931,15 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 	}
+	if cmd == 'devcompanion' {
+		if a in ['--no-llm', '--template', '--request', '--id', '--workspace', '-t', '-r'] {
+			return true
+		}
+		if a.starts_with('--template') || a.starts_with('--request') || a.starts_with('--id')
+			|| a.starts_with('--workspace') {
+			return true
+		}
+	}
 	return false
 }
 
@@ -1009,6 +1112,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'memory' {
 		return agent_toolkit_core.memory_help_text()
+	}
+	if name == 'devcompanion' {
+		return agent_toolkit_core.dc_help_text()
 	}
 	mut c := cli.Command{
 		name:        name

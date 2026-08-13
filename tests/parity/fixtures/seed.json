@@ -470,6 +470,32 @@
         "workspace",
         "subcommand"
       ]
+    },
+    {
+      "command": "devcompanion-help",
+      "args": [
+        "devcompanion",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "queue",
+        "run-once",
+        "status",
+        "sync-todos"
+      ]
+    },
+    {
+      "command": "dc-help",
+      "args": [
+        "dc",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "queue",
+        "status"
+      ]
     }
   ]
 }

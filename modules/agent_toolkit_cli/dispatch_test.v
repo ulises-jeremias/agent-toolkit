@@ -22,8 +22,12 @@ fn test_dispatch_unknown_flag_exit_two() {
 
 fn test_dispatch_dc_alias_not_unknown() {
 	code := dispatch(['agent-toolkit', 'dc'])
-	// not implemented → user exit 1, but known command
-	assert code == 1
+	assert code == 0
+}
+
+fn test_dispatch_devcompanion_help() {
+	code := dispatch(['agent-toolkit', 'devcompanion', '--help'])
+	assert code == 0
 }
 
 fn test_dispatch_matrix_exit_zero() {
@@ -119,6 +123,11 @@ fn test_dispatch_project_help() {
 
 fn test_dispatch_memory_help() {
 	code := dispatch(['agent-toolkit', 'memory', '--help'])
+	assert code == 0
+}
+
+fn test_dispatch_dc_alias_help() {
+	code := dispatch(['agent-toolkit', 'dc', '--help'])
 	assert code == 0
 }
 
