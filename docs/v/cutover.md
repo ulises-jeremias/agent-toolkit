@@ -21,7 +21,7 @@ Native artifacts stay **experimental** until [#562](https://github.com/ulises-je
 
 ## Python fallback (advanced commands)
 
-EPIC 5 remaining commands (`swarm`, `insights`, `release`) may still be `not_implemented` in V. `workspace` (#520), `memory` (#521), `project` (#522), `devcompanion`/`dc` (#525), and `loop` (#523, ADR-020 process-per-run) are implemented in V. Run the Python CLI explicitly for unfinished advanced commands:
+EPIC 5 remaining commands (`insights`, `release`) may still be `not_implemented` in V. `workspace` (#520), `memory` (#521), `project` (#522), `devcompanion`/`dc` (#525), `loop` (#523, ADR-020 process-per-run), and `swarm` (#524, ADR-008 filesystem SoT) are implemented in V. Run the Python CLI explicitly for unfinished advanced commands:
 
 ```bash
 agent-toolkit-py loop status
