@@ -728,6 +728,7 @@ jobs:
       - validate-manifests
       - validate-agent-plugins
       - validate-upstream
+      - check-surfaces
       - check-skill-matrix
       - validate-loops
       - validate-products
@@ -750,6 +751,7 @@ jobs:
           if [[ "${{ needs.validate-manifests.result }}" != "success" ]]; then echo "validate-manifests failed: ${{ needs.validate-manifests.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-agent-plugins.result }}" != "success" ]]; then echo "validate-agent-plugins failed: ${{ needs.validate-agent-plugins.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-upstream.result }}" != "success" ]]; then echo "validate-upstream failed: ${{ needs.validate-upstream.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-surfaces.result }}" != "success" ]]; then echo "check-surfaces failed: ${{ needs.check-surfaces.result }}"; failed="true"; fi
           if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-products.result }}" != "success" ]]; then echo "validate-products failed: ${{ needs.validate-products.result }}"; failed="true"; fi
