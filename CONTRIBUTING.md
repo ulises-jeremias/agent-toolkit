@@ -7,20 +7,26 @@ Thank you for your interest in contributing. This document covers everything you
 ## Prerequisites
 
 - **Git** 2.30 or later
-- **Python** 3.10 or later (validation scripts, PyPI launcher tests)
-- **uv** (recommended for the PyPI adapter under `packages/pypi/`) — see https://docs.astral.sh/uv/getting-started/installation/
-- **V** matching [`.v-version`](.v-version) for the canonical CLI (`make test`, `make build-cli`)
+- **V** matching [`.v-version`](.v-version) (**0.5.2**) for the canonical CLI — `import json`, not `json2`. See [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md)
+- **Python** 3.10 or later (validation scripts, PyPI launcher tests, pre-commit)
+- **uv** for the PyPI adapter under `packages/pypi/` only — see https://docs.astral.sh/uv/getting-started/installation/
 - A GitHub account and a fork of this repository
+
+The repo is **not** a uv workspace. The product CLI is `make build-cli` → `build/agent-toolkit`.
 
 Verify your setup:
 
 ```bash
 git --version
+v version                 # must match .v-version
 python3 --version
 uv --version
+make test
+make build-cli
+./build/agent-toolkit --version
 ```
 
-Install Python adapter + test tools (not a repo-root uv workspace):
+Install Python adapter + test tools (launcher/pytest only):
 
 ```bash
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
@@ -89,7 +95,12 @@ python3 scripts/gen-surfaces.py --check
 # Regenerate catalogs and verify they match source files
 python3 scripts/generate-catalogs.py
 
-# Full test suite (CI parity)
+# Canonical V CLI
+make test
+make build-cli
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
+
+# Python launcher / parity tests (CI parity; not the product)
 AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 ```
 
@@ -347,22 +358,16 @@ The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](htt
 When adding a new skill, agent, or loop, verify the compiler pipeline:
 
 ```bash
-# Sync the PyPI adapter (launcher + Python fallback tests)
-uv sync --project packages/pypi/agent-toolkit-cli --all-extras
-
-# Validate your changes
+# Canonical V CLI (see docs/HOW_TO_DEVELOP_V.md)
+make build-cli
 python3 scripts/validate-skills.py
 python3 scripts/validate-agents.py
 python3 scripts/validate-manifests.py
 python3 scripts/gen-surfaces.py --check
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
-# Run the compiler in check mode (Python fallback)
-uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py build --check
-
-# Check for drift vs installed bundles
-uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py diff
-
-# Run all tests including contract tests
+# Python adapter tests (launcher + fallback; not the product)
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 ```
 

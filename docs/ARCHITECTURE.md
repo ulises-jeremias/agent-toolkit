@@ -2,6 +2,8 @@
 
 agent-toolkit is organized around three layers that compose to form a complete AI capability stack for any project or team.
 
+**Canonical CLI:** native **V 0.5.2** (`import json`, not json2). Build with `make build-cli` → `build/agent-toolkit`. PyPI/`uv`/`npm` are distribution adapters over that binary. See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md) and [`docs/v/README.md`](v/README.md).
+
 ---
 
 ## Three-Layer Model

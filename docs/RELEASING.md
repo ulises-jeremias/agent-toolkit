@@ -2,6 +2,12 @@
 
 Runbook for cutting a versioned release.
 
+**Do not retag empty historical releases.** `v1.10.0` has **no** GitHub Release assets — leave it. The first V-binary tag is `v1.11.0` (ADR-018 names + `SHA256SUMS` + `manifest.json`).
+
+Trusted Publishing: PyPI OIDC is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. npm OIDC is `publish-npm.yml` on tag `v*`.
+
+Canonical artifacts are **native V binaries**. PyPI `packages/pypi/agent-toolkit-cli` is a launcher wheel. npm lives under `packages/npm/`. Homebrew Formula and AUR PKGBUILD are **not** in this repo (`ulises-jeremias/homebrew-tap`, `ulises-jeremias/aur-packages`).
+
 ## Bump → validate → tag → watch → verify
 
 ```bash
@@ -10,6 +16,8 @@ python3 scripts/bump-version.py 1.3.0
 git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
 
 # 2. Validate (CI parity)
+make test && make build-cli
+AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit --version
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 python3 scripts/validate-skills.py

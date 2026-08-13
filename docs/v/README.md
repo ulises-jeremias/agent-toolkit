@@ -3,7 +3,7 @@
 **Issue:** [#545](https://github.com/ulises-jeremias/agent-toolkit/issues/545)  
 **Program:** [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)
 
-The product CLI is a **native V 0.5.2** binary (`import json`, not json2). Python is a launcher (`agent-toolkit` → V) plus `agent-toolkit-py` fallback until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540).
+The product CLI is a **native V 0.5.2** binary (`import json`, not json2). Python is a launcher (`agent-toolkit` → V) plus `agent-toolkit-py` fallback until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540). Contributor how-to: [`docs/HOW_TO_DEVELOP_V.md`](../HOW_TO_DEVELOP_V.md).
 
 ## Build from source
 

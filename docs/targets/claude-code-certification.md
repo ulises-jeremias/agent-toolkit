@@ -36,9 +36,10 @@
 ## Validation
 
 ```bash
+make build-cli
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --target claude-code --check
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_claude_code_adapter.py tests/test_install_claude_settings.py -q
-uv run agent-toolkit build --target claude-code --check
 ```
 
 ## References

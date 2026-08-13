@@ -40,7 +40,7 @@ Adopt **option C (Hybrid)**.
 
 - ADR-005 (`docs/adrs/ADR-005-data-packaging.md`)
 - `scripts/prepare-package-data.sh`
-- `.github/workflows/release.yml` (PyInstaller `--add-data` — transitional)
+- `.github/workflows/release.yml` (native V binaries on ADR-018 names since v1.11.0)
 - Issues [#481](https://github.com/ulises-jeremias/agent-toolkit/issues/481), [#547](https://github.com/ulises-jeremias/agent-toolkit/issues/547)
 
 **Verified:** 2026-08-12

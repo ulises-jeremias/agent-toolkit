@@ -51,7 +51,7 @@ Immediate deletion of `profiles/` is out of scope for this ADR (explicit non-goa
 
 ## Guidance for Contributors
 
-- **Do:** edit `skills/`, `agents/`, `loops/`, and `distributions/products.yaml`, then run `AGENT_TOOLKIT_ROOT=$PWD uv run agent-toolkit build --check`.
+- **Do:** edit `skills/`, `agents/`, `loops/`, and `distributions/products.yaml`, then run `make build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check`.
 - **Do not hand-edit** `plugins/` — it is overwritten by `agent-toolkit build`. CI fails on drift.
 - **Profiles status:** `profiles/` is legacy. Do not add new skills/agents only in `profiles/`; add them canonically and let the compiler emit them.
 - **Plugins status:** generated, validated in CI via `build --check` (see ADR-003).

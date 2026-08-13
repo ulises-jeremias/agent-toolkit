@@ -18,7 +18,7 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 ## Decision
 
-`gen-surfaces.py` is deprecated. The canonical check is `agent-toolkit build --check` (equivalently: `uv run agent-toolkit build --check` from a checkout).
+`gen-surfaces.py` is deprecated. The canonical check is `agent-toolkit build --check` (from a checkout: `make build-cli && ./build/agent-toolkit build --check`). There is no product uv workspace — do not `uv run agent-toolkit`.
 
 - **Source of truth:** `distributions/products.yaml` + `skills/` + `agents/` + `compiler/targets/`
 - **Build command:** `agent-toolkit build` (writes to `plugins/`), `agent-toolkit build --check` (drift detection, exit 1 on drift)
@@ -29,7 +29,7 @@ This ADR does **not** delete code; it records the decision and migration plan.
 ### CI job swap
 
 - [x] Current `validate.yml` job `check-surfaces` runs `python3 scripts/gen-surfaces.py --check`
-- [ ] Add parallel job `check-build` that runs `AGENT_TOOLKIT_ROOT=$PWD uv run agent-toolkit build --check` (keep both during dual-run)
+- [ ] Add parallel job `check-build` that runs `make build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` (keep both during dual-run)
 - [ ] After dual-run green for 30 days, flip `check-surfaces` to advisory (`continue-on-error: true`) or remove, making `check-build` the required check
 - [ ] Update `RELEASING.md` bump → validate → tag checklist to use `build --check` instead of `gen-surfaces.py --check`
 
@@ -42,7 +42,7 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 ### How-tos
 
-- Contributors (after ADR merge): `uv sync --all-extras && AGENT_TOOLKIT_ROOT=$PWD uv run agent-toolkit build --check`
+- Contributors (after ADR merge): `make build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check`
 - Maintainers: `agent-toolkit build` to regenerate `plugins/` before tagging a release
 - CI debugging: compare `build --check --json` output (per-target emit/omit/unsupported) vs legacy drift lines
 

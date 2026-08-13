@@ -296,10 +296,12 @@ for f in sorted(Path("loops").rglob("loop.yaml")):
 PYEOF
 python3 scripts/generate-catalogs.py   # Regenerates and checks catalogs
 python3 scripts/gen-surfaces.py --check  # Asserts plugin surfaces are in sync
+make test && make build-cli
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 ```
 
-All checks must exit 0. Run `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` first for pytest (the repo is not a uv workspace; V is the product CLI).
+All checks must exit 0. V is the product CLI (pin `.v-version` / 0.5.2, `import json` not json2 — [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md)). Run `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` first for pytest only (the repo is not a uv workspace).
 
 ---
 
@@ -312,14 +314,14 @@ L1  │ agentic-workstation  │ Machine provisioning (chezmoi, shell, packages,
     │                      │ https://github.com/ulises-jeremias/agentic-workstation
 ────┼──────────────────────┼─────────────────────────────────────────────────────────────
 L1.5│ agent-toolkit        │ THIS REPO — Capability distribution (skills, loops, profiles)
-    │ (this repo)          │ uv tool install agent-toolkit-cli / uvx agent-toolkit-cli
+    │ (this repo)          │ V binary: brew / AUR agent-toolkit-bin / GitHub / uv launcher / npm
 ────┼──────────────────────┼─────────────────────────────────────────────────────────────
 L3  │ agentic-harness      │ AI workspace scaffold for multi-repo orchestration
     │                      │ https://github.com/ulises-jeremias/agentic-harness
 ```
 
 **Integration flow:**
-1. `agentic-workstation` installs `agent-toolkit-cli` automatically during `chezmoi apply`
+1. `agentic-workstation` installs the V CLI during `chezmoi apply` (brew / AUR `agent-toolkit-bin` / GitHub / `uv tool install 'agent-toolkit-cli>=1.11.0'`)
 2. `agent-toolkit install` deploys profiles to detected AI tools (Claude Code, Cursor, etc.)
 3. `agentic-harness` workspaces call `agent-toolkit loop`, `agent-toolkit memory`, etc.
 
@@ -330,9 +332,11 @@ L3  │ agentic-harness      │ AI workspace scaffold for multi-repo orchestrat
 When working in a workspace that has `agent-toolkit` installed, use these commands:
 
 ```bash
-# Installation
-uvx agent-toolkit-cli                          # run without installing
-uv tool install agent-toolkit-cli                  # permanent install
+# Installation (V binary — pick one channel; see docs/INSTALLATION.md)
+# brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
+# yay -S agent-toolkit-bin
+# GitHub Release: agent-toolkit-<os>-<arch> from /releases/latest
+uv tool install 'agent-toolkit-cli>=1.11.0'    # PyPI launcher over bundled V
 agent-toolkit install [--force]                # deploy profiles to detected AI tools
 agent-toolkit doctor                           # verify installation health
 

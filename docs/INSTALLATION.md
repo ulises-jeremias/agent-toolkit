@@ -8,9 +8,9 @@ manual file copies.
 
 ## Prerequisites
 
-The product CLI is the **native V binary** (GitHub Releases). `uvx agent-toolkit-cli` / PyPI still wrap that binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). Index: [`docs/v/README.md`](v/README.md).
+The product CLI is the **native V binary** (GitHub Releases). `uvx agent-toolkit-cli` / PyPI still wrap that binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). Index: [`docs/v/README.md`](v/README.md). Contributor build: [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md).
 
-- **Python** 3.10 or later — for the PyPI launcher and `agent-toolkit-py` fallback (`uv` / `uvx` recommended)
+- **Python** 3.10 or later — **optional** unless you use the PyPI launcher / `agent-toolkit-py` fallback (`uv` / `uvx`)
 - At least one supported AI coding assistant:
   - [Claude Code](https://claude.ai/code) (Anthropic)
   - [Cursor](https://cursor.sh)
@@ -54,33 +54,32 @@ agent-toolkit swarm runners --json
 
 ## Primary install (recommended)
 
-One command auto-detects your AI tools and deploys the right profiles.
+One command auto-detects your AI tools and deploys the right profiles. Pick **one** channel — all install the same V CLI.
 
-**Canonical implementation (from git checkout)** is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)):
+```bash
+# Homebrew
+brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
+# AUR (native V; not the Python AUR package)
+yay -S agent-toolkit-bin
+# GitHub Release — download agent-toolkit-<os>-<arch> + SHA256SUMS from
+# https://github.com/ulises-jeremias/agent-toolkit/releases/latest
+# PyPI launcher (execs bundled V)
+uv tool install 'agent-toolkit-cli>=1.11.0'
+# npm
+npm i -g agent-toolkit-cli
+
+agent-toolkit install
+agent-toolkit doctor
+```
+
+**From a git checkout** the canonical implementation is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [HOW_TO_DEVELOP_V.md](HOW_TO_DEVELOP_V.md)):
 
 ```bash
 make install-cli    # PREFIX/bin/agent-toolkit, default ~/.local/bin
 agent-toolkit doctor --json
 ```
 
-See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` ships a thin Python launcher over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)); `agent-toolkit-py` remains as fallback until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540).
-
-```bash
-# Run without installing the CLI (preferred for PyPI)
-uvx --from agent-toolkit-cli agent-toolkit install
-
-# Verify
-uvx --from agent-toolkit-cli agent-toolkit doctor
-```
-
-### Persistent CLI install
-
-```bash
-uv tool install agent-toolkit-cli
-
-agent-toolkit install                # auto-detect all tools
-agent-toolkit doctor                 # verify setup
-```
+See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` ships a thin Python launcher over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)); `agent-toolkit-py` remains as fallback until [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540). Do not retag empty `v1.10.0`.
 
 ### Install options
 

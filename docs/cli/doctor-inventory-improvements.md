@@ -37,7 +37,7 @@
 ## Tests
 
 * `tests/test_doctor_provenance.py` — isolated `HOME=$(mktemp -d)` + `toolkit_root` override: lock exists/version/entries/SHA immutability/staleness, `--provenance` flag, `--json` category presence, packs/mcp registry counts, `complete` coverage — hermetic, no mutation of ci HOME.
-* `uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/test_doctor*.py -v` green, `uv run agent-toolkit doctor --json | jq '.checks[] | select(.category=="provenance")'` shows `lock version`/`lock entries`/`doctor --provenance`.
+* `uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/test_doctor*.py -v` green; `./build/agent-toolkit doctor --json` (after `make build-cli`) shows provenance checks.
 
 ## Verification
 

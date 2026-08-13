@@ -33,9 +33,10 @@
 ## Validation
 
 ```bash
+make build-cli
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --target opencode --check
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/test_opencode_adapter.py tests/test_install_opencode_profile.py tests/security/test_secret_redaction.py -q
-uv run agent-toolkit build --target opencode --check
 ```
 
 ## References

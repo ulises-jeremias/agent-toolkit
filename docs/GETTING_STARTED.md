@@ -2,14 +2,23 @@
 
 The fastest path from install to your first successful skill use.
 
-## 1. Install (one primary method)
+## 1. Install (pick one channel — all end on the same V CLI)
 
 ```bash
-uv tool install agent-toolkit-cli
+# GitHub Release binary (native V) — see docs/INSTALLATION.md
+# Homebrew
+brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
+# AUR
+yay -S agent-toolkit-bin
+# PyPI launcher (execs bundled V; ADR-021)
+uv tool install 'agent-toolkit-cli>=1.11.0'
+# npm
+npm i -g agent-toolkit-cli
+
 agent-toolkit install
 ```
 
-From a git checkout, the **canonical CLI implementation is V** ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)):
+From a git checkout, build the canonical V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [HOW_TO_DEVELOP_V.md](HOW_TO_DEVELOP_V.md)):
 
 ```bash
 make install-cli    # ~/.local/bin/agent-toolkit
@@ -17,8 +26,6 @@ agent-toolkit doctor --json
 ```
 
 PyPI/`uvx` is a thin launcher over the bundled V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). Unfinished advanced commands fall back to `agent-toolkit-py` (see [docs/v/cutover.md](v/cutover.md)). Rollback: [docs/v/rollback.md](v/rollback.md).
-
-Alternatives: `uvx --from agent-toolkit-cli agent-toolkit install` (one-shot), `brew install agent-toolkit`, `yay -S agent-toolkit-bin`, or `npm i -g agent-toolkit-cli`.
 
 See [docs/INSTALLATION.md](INSTALLATION.md) for full options.
 

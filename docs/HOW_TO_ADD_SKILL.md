@@ -135,17 +135,15 @@ Fix any reported errors before proceeding.
 
 If your skill should appear in a plugin bundle (most skills should), it must be listed in `distributions/products.yaml` (see ADR-001 and ADR-003).
 
-The compiler is the source of truth. Run the canonical build check:
+The compiler is the source of truth. Run the canonical **V** build check (not `uv run agent-toolkit` — there is no product uv workspace):
 
 ```bash
-AGENT_TOOLKIT_ROOT="$PWD" uv run agent-toolkit build --check
-```
-
-Legacy fallback (deprecated, see ADR-003):
-
-```bash
+make build-cli
+AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
 python3 scripts/gen-surfaces.py --check
 ```
+
+See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md).
 
 ---
 
@@ -180,7 +178,8 @@ Use the standard PR workflow. Include this checklist in your PR description:
 - [ ] `python3 scripts/validate-skills.py` passes with no errors
 - [ ] Registered in `catalogs/skills-layout.json` (correct group)
 - [ ] Registered in `catalogs/skill-catalog.yaml` (with triggers)
-- [ ] `AGENT_TOOLKIT_ROOT="$PWD" uv run agent-toolkit build --check` passes (or `python3 scripts/gen-surfaces.py --check` during dual-run, see ADR-003)
+- [ ] `make build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
+- [ ] `python3 scripts/gen-surfaces.py --check` passes
 - [ ] No secrets or hardcoded tokens in skill body
 - [ ] `references/` documents linked from skill body (if present)
 ```

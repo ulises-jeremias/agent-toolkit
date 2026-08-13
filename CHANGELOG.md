@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Contributor how-tos are V-first: `docs/HOW_TO_DEVELOP_V.md` (V 0.5.2, `import json`, Makefile), install matrix GitHub/brew/AUR/PyPI/npm, GitHub Release adapter no longer claims PyInstaller, `uv run agent-toolkit` removed from HOW_TO/certification docs
 - **Docs** — Install/release docs match V-first channels: GitHub Release, PyPI launcher, Homebrew, AUR `agent-toolkit-bin`, npm `agent-toolkit-cli` + platform packages, Docker `debian:trixie-slim`
 - **Feat** — V CLI `completion` emits bash/zsh/fish/PowerShell scripts (Closes #544)
 - **Fixed** — Docker multi-arch image honors BuildKit `TARGETARCH` (no amd64 default) so linux/arm64 installs `agent-toolkit-linux-arm64`; skip exec during QEMU cross-build and smoke `version` on a native load
