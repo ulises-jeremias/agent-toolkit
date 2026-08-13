@@ -108,15 +108,17 @@ agent-toolkit doctor
 
 ## 🚀 Quick Install
 
-**Recommended:** use the Python CLI with [uv](https://docs.astral.sh/uv/) — one flow for every supported tool.
+**Recommended:** the product CLI is the **native V binary**. PyPI/`uv` is a thin launcher over that binary ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)).
 
 ```bash
-# No install needed — run directly (preferred)
+# PyPI launcher (uv) — preferred when you already use Python tooling
 uvx --from agent-toolkit-cli agent-toolkit install
+uv tool install agent-toolkit-cli
 
-# Or install the CLI persistently
-uv tool install agent-toolkit-cli          # preferred over pip when using uv
-# uv tool install agent-toolkit-cli            # alternative
+# Homebrew / AUR / npm / GitHub Release — same V binary
+brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
+yay -S agent-toolkit-bin
+npm i -g agent-toolkit-cli
 
 agent-toolkit install    # auto-detects Claude, Cursor, OpenCode, Windsurf, Pi, Copilot
 agent-toolkit doctor     # verify everything is set up
@@ -200,7 +202,8 @@ Formulas live in dedicated repos ([homebrew-tap](https://github.com/ulises-jerem
 
 ```bash
 brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
-yay -S agent-toolkit   # Arch Linux (AUR) — pending publish, use `uv tool install agent-toolkit-cli` until AUR RPC shows package
+yay -S agent-toolkit-bin   # Arch Linux (AUR) — GitHub Release V binary
+npm i -g agent-toolkit-cli # optionalDependencies platform packages
 ```
 
 </details>

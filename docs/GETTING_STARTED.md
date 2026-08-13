@@ -16,9 +16,9 @@ make install-cli    # ~/.local/bin/agent-toolkit
 agent-toolkit doctor --json
 ```
 
-PyPI/`uvx` still runs the Python wheel until native binary wrappers. Unfinished advanced commands: `uvx --from agent-toolkit-cli agent-toolkit <cmd>` (see [docs/v/cutover.md](v/cutover.md)). Rollback: [docs/v/rollback.md](v/rollback.md).
+PyPI/`uvx` is a thin launcher over the bundled V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). Unfinished advanced commands fall back to `agent-toolkit-py` (see [docs/v/cutover.md](v/cutover.md)). Rollback: [docs/v/rollback.md](v/rollback.md).
 
-Alternatives: `uvx --from agent-toolkit-cli agent-toolkit install` (one-shot) or `yay -S agent-toolkit-cli && agent-toolkit install` on Arch Linux (AUR pending publish — use `uv` until RPC shows package).
+Alternatives: `uvx --from agent-toolkit-cli agent-toolkit install` (one-shot), `brew install agent-toolkit`, `yay -S agent-toolkit-bin`, or `npm i -g agent-toolkit-cli`.
 
 See [docs/INSTALLATION.md](INSTALLATION.md) for full options.
 

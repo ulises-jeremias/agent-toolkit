@@ -11,7 +11,7 @@ agent-toolkit is organized around three layers that compose to form a complete A
 The outermost layer is the installer or workstation harness that provisions agent-toolkit onto a machine. This layer is responsible for:
 
 - Cloning or updating the toolkit repository
-- Running `agent-toolkit install` (Python CLI; `scripts/install.sh` is a deprecated legacy fallback — see ADR-007) to copy profiles/plugins to the right tool-specific locations
+- Running `agent-toolkit install` (canonical **V** CLI; PyPI/`uv` is a thin launcher — ADR-021. `scripts/install.sh` is a deprecated legacy fallback — see ADR-007) to copy profiles/plugins to the right tool-specific locations
 - Managing credentials and environment variables (but never storing secrets in this repo)
 - Scheduling recurring loops via a cron or loop-runner daemon
 

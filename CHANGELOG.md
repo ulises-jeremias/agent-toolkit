@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Install/release docs match V-first channels: GitHub Release, PyPI launcher, Homebrew, AUR `agent-toolkit-bin`, npm `agent-toolkit-cli` + platform packages, Docker `debian:trixie-slim`
 - **Feat** — V CLI `completion` emits bash/zsh/fish/PowerShell scripts (Closes #544)
 - **Fixed** — Docker multi-arch image honors BuildKit `TARGETARCH` (no amd64 default) so linux/arm64 installs `agent-toolkit-linux-arm64`; skip exec during QEMU cross-build and smoke `version` on a native load
 - **Fixed** — Install `types-PyYAML` in the PyPI adapter dev extra so incremental mypy can type `yaml` imports

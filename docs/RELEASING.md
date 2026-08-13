@@ -32,7 +32,8 @@ gh run list --repo ulises-jeremias/aur-packages --limit 3
 # 5. Verify PyPI / npm / AUR / formula
 curl -sS https://pypi.org/pypi/agent-toolkit-cli/json | python3 -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://pypi.org/pypi/agent-toolkit-cli/json'))['info']['version'])"
 npm view agent-toolkit-cli version
-curl -sS 'https://aur.archlinux.org/rpc/v5/info?arg[]=agent-toolkit' | python3 -m json.tool  # resultcount 0 until published
+npm view agent-toolkit-cli optionalDependencies
+curl -sS 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=agent-toolkit-bin' | python3 -c "import json,sys; r=json.load(sys.stdin)['results']; print(r[0]['Version'] if r else 'missing')"
 # Homebrew formula version matches tag
 ```
 
@@ -85,8 +86,8 @@ Stable GitHub Release assets are **native V binaries** (not PyInstaller). Names 
 **Checksums are MUST.** Verify:
 
 ```bash
-curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.10.0/SHA256SUMS"
-curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.10.0/agent-toolkit-linux-x86_64"
+curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.11.0/SHA256SUMS"
+curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.11.0/agent-toolkit-linux-x86_64"
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
@@ -120,12 +121,12 @@ Failure visibility on the releasing repo:
 * For AUR, a maintenance failure is expected — document it in the release comment and retry when AUR leaves maintenance; do not auto-open issues on every window.
 
 
-## Downstream install source (PyPI wheel preferred)
+## Downstream install source (GitHub Release V binaries)
 
-Homebrew (`homebrew-tap`) and AUR (`aur-packages`) should install from the PyPI wheel/sdist (which bundles `skills/` data via `prepare-package-data.sh`) rather than building from the GitHub source tarball without that step. This avoids silent incomplete installs (see #257, #258).
+Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install **GitHub Release V binaries** (ADR-018 floating names + `SHA256SUMS`), not a Python wheel. PyPI `agent-toolkit-cli` remains a thin launcher for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + `agent-toolkit-cli-{linux-x64,linux-arm64,darwin-arm64,darwin-x64,win32-x64}` wrap the same binaries ([ADR-025](adrs/ADR-025-npm-binary.md)).
 
-- **Homebrew:** Formula `agent-toolkit.rb` should `url` the PyPI wheel (`https://files.pythonhosted.org/.../agent-toolkit_cli-*.whl`) or run `scripts/prepare-package-data.sh` before `pip install` from tarball. Verify via `brew install --build-from-source` then `agent-toolkit doctor`.
-- **AUR:** `PKGBUILD` should `source` the PyPI sdist/wheel and run `prepare-package-data.sh` if building from source. Verify via `makepkg -si` then `agent-toolkit doctor`.
+- **Homebrew:** Formula `agent-toolkit.rb` `url`s `agent-toolkit-macos-*` / `agent-toolkit-linux-*` from the GitHub Release. Verify `brew install` then `agent-toolkit version`.
+- **AUR:** `agent-toolkit-bin` PKGBUILD sources the linux ELF + `SHA256SUMS`. Verify `yay -S agent-toolkit-bin` then `agent-toolkit version`.
 
 See `docs/AUR_PLAYBOOK.md` for re-dispatch; downstream repos are the source of truth for their formulas.
 
