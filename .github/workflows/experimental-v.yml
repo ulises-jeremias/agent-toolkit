@@ -1,0 +1,99 @@
+name: Experimental V binaries
+
+# Spike (#562): native V CI artifacts with experimental names only.
+# MUST NOT upload over stable channel names (ADR-018). Full matrix/promotion is #529.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/experimental-v.yml"
+      - ".v-version"
+      - "docs/v/experimental-binaries.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/experimental-v.yml"
+      - ".v-version"
+      - "docs/v/experimental-binaries.md"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}-experimental-v
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.asset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: agent-toolkit-v-experimental-linux-x86_64
+            v_zip: v_linux.zip
+            bin: agent-toolkit
+          - os: macos-latest
+            asset: agent-toolkit-v-experimental-macos-arm64
+            v_zip: v_macos_arm64.zip
+            bin: agent-toolkit
+          - os: windows-latest
+            asset: agent-toolkit-v-experimental-windows-x86_64.exe
+            v_zip: v_windows.zip
+            bin: agent-toolkit.exe
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install pinned V from GitHub Release
+        shell: bash
+        env:
+          V_ZIP: ${{ matrix.v_zip }}
+          RUNNER_OS_LABEL: ${{ matrix.os }}
+        run: |
+          set -euo pipefail
+          PIN="$(tr -d '[:space:]' < .v-version)"
+          echo "Installing V ${PIN} (${V_ZIP}) on ${RUNNER_OS_LABEL}"
+          curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${PIN}/${V_ZIP}"
+          rm -rf "${HOME}/vlang"
+          mkdir -p "${HOME}/vlang"
+          unzip -q /tmp/v.zip -d "${HOME}/vlang"
+          VBIN="$(find "${HOME}/vlang" -type f \( -name v -o -name v.exe \) | head -n 1)"
+          if [ -z "${VBIN}" ]; then
+            echo "Unexpected V zip layout:" >&2
+            find "${HOME}/vlang" -maxdepth 3 >&2 || true
+            exit 1
+          fi
+          echo "VBIN=${VBIN}" >> "${GITHUB_ENV}"
+          echo "$(dirname "${VBIN}")" >> "${GITHUB_PATH}"
+          "${VBIN}" version
+
+      - name: Build experimental V CLI
+        shell: bash
+        env:
+          OUT_BIN: ${{ matrix.bin }}
+          ASSET: ${{ matrix.asset }}
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+          "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
+          cp -f "build/${OUT_BIN}" "build/${ASSET}"
+
+      - name: Smoke --version / --help
+        shell: bash
+        env:
+          OUT_BIN: ${{ matrix.bin }}
+        run: |
+          set -euo pipefail
+          "build/${OUT_BIN}" --version
+          "build/${OUT_BIN}" --help | head -n 20
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.asset }}
+          path: build/${{ matrix.asset }}
+          if-no-files-found: error
+          retention-days: 14

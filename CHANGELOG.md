@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — Experimental native V CI artifacts (linux-x86_64, macos-arm64, windows-x86_64; experimental names only) (Closes #562)
 - **Docs** — ADR-020 V concurrency: process-per-run supervisor (no Python threads / no `go` workers) (Closes #528)
 - **Feat** — V `devcompanion`/`dc` filesystem queue (queue/run-once --no-llm/status/done/sync-todos) (Closes #525)
 - **Docs** — ADR-019 Linux glibc is the MUST/stable binary; musl is an optional extra name (Closes #485)
