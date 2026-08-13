@@ -52,6 +52,15 @@ pub fn (fs FsService) xdg_data_home() string {
 	return fs.join(fs.home(), '.local', 'share')
 }
 
+// xdg_config_home returns XDG_CONFIG_HOME or ~/.config.
+pub fn (fs FsService) xdg_config_home() string {
+	v := os.getenv('XDG_CONFIG_HOME')
+	if v.len > 0 {
+		return v
+	}
+	return fs.join(fs.home(), '.config')
+}
+
 // toolkit_cache_dir returns the Agent Toolkit cache root under XDG cache.
 pub fn (fs FsService) toolkit_cache_dir() string {
 	return fs.join(fs.xdg_cache_home(), 'agent-toolkit')
@@ -60,6 +69,16 @@ pub fn (fs FsService) toolkit_cache_dir() string {
 // toolkit_data_dir returns the Agent Toolkit data root under XDG data home.
 pub fn (fs FsService) toolkit_data_dir() string {
 	return fs.join(fs.xdg_data_home(), 'agent-toolkit', 'data')
+}
+
+// toolkit_config_dir returns ~/.config/agent-toolkit (or XDG_CONFIG_HOME).
+pub fn (fs FsService) toolkit_config_dir() string {
+	return fs.join(fs.xdg_config_home(), 'agent-toolkit')
+}
+
+// receipt_dir returns the install receipt directory.
+pub fn (fs FsService) receipt_dir() string {
+	return fs.join(fs.toolkit_config_dir(), 'receipts')
 }
 
 // ensure_dir creates a directory and parents; returns a domain error on failure.
