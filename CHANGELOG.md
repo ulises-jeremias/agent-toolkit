@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — ADR-020 V concurrency: process-per-run supervisor (no Python threads / no `go` workers) (Closes #528)
 - **Feat** — V `devcompanion`/`dc` filesystem queue (queue/run-once --no-llm/status/done/sync-todos) (Closes #525)
 - **Docs** — ADR-019 Linux glibc is the MUST/stable binary; musl is an optional extra name (Closes #485)
 - **Feat** — V `project` init/clone/list/add/remove/scan (repos/ + projects/ symlinks) (Closes #522)
