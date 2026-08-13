@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — install receipt compatibility schema (`schemas/install-receipt.schema.json`) (Closes #511)
 - **Feat** — V uninstall/rollback from install receipts (created-only; dry-run) (Closes #514)
 - **Feat** — V atomic install transaction (stage/commit/rollback + receipt save) (Closes #513)
 - **Feat** — V read-only install receipt parser (SCHEMA + path-escape/secrets refuse) (Closes #512)

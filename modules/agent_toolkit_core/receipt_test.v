@@ -40,6 +40,15 @@ fn test_parse_rejects_secrets_and_bad_ownership() {
 	assert false, 'expected secrets rejection'
 }
 
+fn test_parse_rejects_unsupported_schema_version() {
+	bad := '{"schemaVersion":2,"product":"p","target":"t","version":"1","artifacts":[],"secrets":[]}'
+	parse_install_receipt(bad) or {
+		assert err.msg().contains('schemaVersion')
+		return
+	}
+	assert false, 'expected schemaVersion rejection'
+}
+
 fn test_parse_rejects_path_escape() {
 	bad := '{"schemaVersion":1,"product":"p","target":"t","version":"1","artifacts":[{"path":"../../etc/passwd","digest":"x","ownership":"created"}],"secrets":[]}'
 	parse_install_receipt(bad) or {

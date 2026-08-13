@@ -8,6 +8,9 @@ import time
 // profiles_product is the receipt product id used by the profile installer.
 pub const profiles_product = 'agent-toolkit-profiles'
 
+// receipt_schema_version is the only supported InstallReceipt schemaVersion (#511).
+pub const receipt_schema_version = 1
+
 // ArtifactEntry is one installed file recorded in an InstallReceipt.
 pub struct ArtifactEntry {
 pub:
@@ -34,7 +37,7 @@ pub mut:
 // new_install_receipt creates a schemaVersion=1 receipt (secrets always empty).
 pub fn new_install_receipt(product string, target string, scope string, version string, source_digest string) InstallReceipt {
 	return InstallReceipt{
-		schema_version:      1
+		schema_version:      receipt_schema_version
 		product:             product
 		target:              target
 		scope:               scope
@@ -66,7 +69,10 @@ pub fn parse_install_receipt(text string) !InstallReceipt {
 	}
 	mut r := json.decode(InstallReceipt, trimmed) or { return error('receipt decode failed: ${err}') }
 	if r.schema_version < 1 {
-		r.schema_version = 1
+		r.schema_version = receipt_schema_version
+	}
+	if r.schema_version != receipt_schema_version {
+		return error('unsupported receipt schemaVersion ${r.schema_version} (expected ${receipt_schema_version})')
 	}
 	if r.product.len == 0 || r.target.len == 0 {
 		return error('receipt missing required product/target')

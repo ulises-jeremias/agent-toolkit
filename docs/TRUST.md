@@ -44,16 +44,21 @@ install or conflicting older profile.
 
 ## Installation receipts
 
-The installer receipt module (`agent_toolkit.installer.receipt`) defines a
-JSON schema for recording what was installed:
+The installer receipt module (`agent_toolkit.installer.receipt` / V
+`agent_toolkit_core`) records what was installed. The **compatibility schema**
+is published at [`schemas/install-receipt.schema.json`](../schemas/install-receipt.schema.json)
+(issue [#511](https://github.com/ulises-jeremias/agent-toolkit/issues/511)):
 
 - **Location:** `~/.config/agent-toolkit/receipts/<target>-<product>.json`
-- **Fields:** product, target, version, file paths, content digests
+- **schemaVersion:** `1` only
+- **Fields:** product, target, scope, version, installedAt, sourceDigest, artifacts, configPatches, secrets
 - **Secrets:** always empty (`secrets: []`)
+- **Ownership:** `created` (uninstall removes) or `merged` (preserved)
+- **Safety:** artifact paths must not contain `..` segments
 
 Receipts are written by `agent-toolkit install` / `update` and consumed by
 `agent-toolkit uninstall` / rollback. Lifecycle tests cover create, save, load,
-and uninstall-by-receipt.
+and uninstall-by-receipt; schema tests live in `tests/test_install_receipt_schema.py`.
 
 Example shape (illustrative):
 
@@ -64,8 +69,9 @@ Example shape (illustrative):
   "target": "cursor",
   "version": "1.2.0",
   "artifacts": [
-    { "path": "~/.cursor/rules/code-reviewer.mdc", "digest": "sha256:…", "ownership": "created" }
+    { "path": "/home/user/.cursor/rules/code-reviewer.mdc", "digest": "deadbeefcafebabe", "ownership": "created" }
   ],
+  "configPatches": [],
   "secrets": []
 }
 ```
