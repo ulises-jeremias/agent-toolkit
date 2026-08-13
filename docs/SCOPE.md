@@ -30,12 +30,19 @@ marketplace consumer path:
 | `memory` | Local knowledge base CRUD |
 | `project` | Project index / clone helpers |
 | `devcompanion` | Background LLM job queue |
-| `insights` | Usage analytics from local tool stores |
 | `swarm` | Multi-agent swarm orchestration (pair/team/full, Herdr/tmux) |
 
 These commands remain available without a separate binary; help text lists
 them under **Advanced commands** so new users are not overwhelmed.
 
-Maintainer-only: `release` (hidden from primary help; wired for CI).
+### Disposition (not primary advanced UX)
+
+| Command | Disposition | Tracking |
+|---------|-------------|----------|
+| `insights` | **DEPRECATE** (no V port requirement) | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526), [#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) |
+| `release` | **REMOVE** (CI / `docs/RELEASING.md`) | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) |
+
+`insights` may still be wired for back-compat; do not present it as a recommended harness command.
+`release` is maintainer/CI-only and is being removed from the product CLI surface.
 
 See also: [`CLI_SURFACES.md`](CLI_SURFACES.md), `docs/CONCEPTS.md`, `docs/INSTALLATION.md`.

@@ -35,11 +35,11 @@ Still available on the same binary — de-emphasized in top-level help:
 | `memory` | Knowledge base: add, search, inject, review, todo |
 | `project` | Project index: clone, list, add, remove, scan |
 | `devcompanion` | Background job queue (`dc` alias) |
-| `insights` | Local usage analytics (OpenCode, Cursor, Claude) |
+| `insights` | **DEPRECATE** — local usage analytics (OpenCode, Cursor, Claude); [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) |
 | `build` | Compile canonical capabilities into target artifacts |
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
-| `release` | Generate release artifacts (maintainer / CI) |
+| `release` | **REMOVE** — release artifacts (CI / `docs/RELEASING.md`); [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) |
 | `swarm` | Multi-agent swarm orchestration (pair/team/full, Herdr/tmux, budgets, handoffs) |
 
 Swarm details: `docs/SWARMS.md`, `docs/SWARM_ARCHITECTURE.md`.
