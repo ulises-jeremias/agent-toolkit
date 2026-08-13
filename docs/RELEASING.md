@@ -33,7 +33,10 @@ git push origin main --follow-tags
 # 4. Watch Release + downstream
 gh run list --repo ulises-jeremias/agent-toolkit --limit 5  # Release v1.3.0 should be completed success
 gh release view v1.3.0 --repo ulises-jeremias/agent-toolkit
-# Homebrew/AUR notifies run after Release create-release; check their repos
+# Docker is a reusable job on Release after upload-assets (do not rely on `on: release`;
+# GITHUB_TOKEN-created releases do not start sibling workflows). Manual fallback:
+#   gh workflow run Docker --ref v1.3.0
+# Homebrew/AUR notifies wait for V binaries then repository_dispatch; check their repos
 gh run list --repo ulises-jeremias/homebrew-tap --limit 3
 gh run list --repo ulises-jeremias/aur-packages --limit 3
 

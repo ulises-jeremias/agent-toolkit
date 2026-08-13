@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **CI** — Build/push the Docker image from `release.yml` after V assets exist (`GITHUB_TOKEN` cannot trigger `on: release`)
+
 ## [1.12.1] — 2026-08-13
 
 - **Fixed** — V CLI help matches or exceeds Python: real command blurbs, inventory/matrix usage, doctor `--provenance`, examples, and honest #526/#527 insights/release dispositions

@@ -1,6 +1,9 @@
 name: Docker
 
 on:
+  # GITHUB_TOKEN creating a GitHub Release does not fire `release: published`
+  # for other workflows. Release.yml calls this after upload-assets instead.
+  workflow_call:
   release:
     types: [published]
   push:
@@ -81,9 +84,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Smoke published amd64 image
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         env:
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.version }}
         run: |
           docker pull --platform linux/amd64 "$IMAGE"
           docker run --rm --platform linux/amd64 "$IMAGE" version

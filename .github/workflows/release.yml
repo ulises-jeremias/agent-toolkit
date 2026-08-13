@@ -5,7 +5,8 @@ name: Release
 # file — PyPI Trusted Publishing is registered for release.yml, not publish.yml.
 #
 # Job graph:
-#   create-release ─┬─► build-binaries ─► upload-assets ─► publish-pypi (platform wheels from Release assets)
+#   create-release ─┬─► build-binaries ─► upload-assets ─┬─► publish-pypi (platform wheels from Release assets)
+#                   │                                    └─► docker (reusable workflow; GITHUB_TOKEN cannot trigger on: release)
 #                   └─► sbom (SHOULD CycloneDX; does not prove “secure software”)
 
 on:
@@ -357,3 +358,12 @@ jobs:
             sleep 15
           done
           echo "::warning::PyPI verification timed out — publish step succeeded; CDN may lag"
+
+  docker:
+    name: Docker image
+    if: github.event_name == 'push'
+    needs: [upload-assets]
+    uses: ./.github/workflows/docker.yml
+    permissions:
+      contents: read
+      packages: write
