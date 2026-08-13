@@ -7,7 +7,10 @@ LABEL org.opencontainers.image.description="Composable AI agent toolkit — nati
 LABEL org.opencontainers.image.source="https://github.com/ulises-jeremias/agent-toolkit"
 LABEL org.opencontainers.image.licenses="MIT"
 
-ARG TARGETARCH=amd64
+# TARGETARCH must have no default. BuildKit injects amd64|arm64 per --platform.
+# A default of amd64 installs the x86_64 ELF into the linux/arm64 image; exec
+# then fails with "not found" (missing amd64 dynamic linker).
+ARG TARGETARCH
 ARG VERSION=1.11.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -32,7 +35,7 @@ RUN set -euo pipefail; \
     (cd /tmp && sha256sum -c SHA256SUMS --ignore-missing); \
     install -m 0755 "/tmp/${asset}" /usr/local/bin/agent-toolkit; \
     rm -f "/tmp/${asset}" /tmp/SHA256SUMS; \
-    agent-toolkit --help >/dev/null
+    /usr/local/bin/agent-toolkit --help >/dev/null
 
 ENTRYPOINT ["/usr/local/bin/agent-toolkit"]
 CMD ["--help"]

@@ -31,6 +31,8 @@ Docker is an **adapter**. The product inside the image is the **GitHub Release V
 
 Build-arg `VERSION` (default from `VERSION` file) selects the GitHub Release tag `v${VERSION}`.
 
+`ARG TARGETARCH` MUST be declared **without a default**. BuildKit injects `amd64` or `arm64` per `--platform`. A Dockerfile default of `amd64` installs the x86_64 ELF into the linux/arm64 image; running it then fails with `agent-toolkit: not found` (missing amd64 dynamic linker).
+
 ## Tags
 
 - `latest` / semver: **stable V** image after a GitHub Release has floating linux assets.
