@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json2
+import json
 import os
 import time
 
@@ -287,7 +287,7 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 			message: 'write plan failed: ${err}'
 		}
 	}
-	trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json2.encode(rid, escape_unicode: true)}}\n'
+	trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json.encode(rid)}}\n'
 	os.write_file(os.join_path(run_dir, 'trace.jsonl'), trace) or {}
 	write_state_md(loop_dir, time.utc().format_rfc3339(), 'completed', rid, runs_today + 1,
 		escalations)
