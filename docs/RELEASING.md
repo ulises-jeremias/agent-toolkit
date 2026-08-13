@@ -81,7 +81,7 @@ python3 scripts/bump-version.py 1.3.0         # writes files
 * **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete v1.3.0 --yes && git tag -d v1.3.0 && git push origin :v1.3.0`.
 * **Homebrew/AUR:** downstream repos are notified via `repository_dispatch` from `release.yml` `create-release`. If they missed, replay per `docs/AUR_PLAYBOOK.md`:
   ```bash
-  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit' -f 'client_payload[version]=v1.3.0'
+  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.3.0'
   ```
 
 ## Asset naming
@@ -148,6 +148,6 @@ See `docs/AUR_PLAYBOOK.md` for re-dispatch when AUR leaves maintenance.
 Re-dispatch example:
 
 ```bash
-gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit' -f 'client_payload[version]=v1.3.0'
+gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.3.0'
 gh api repos/ulises-jeremias/homebrew-tap/dispatches -f event_type=new-release -f 'client_payload[formula_name]=agent-toolkit' -f 'client_payload[version]=1.3.0'
 ```
