@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Python architecture map & subsystem classification for V waves (Closes #477)
 - **Feat** — npm `agent-toolkit-cli` launcher over GitHub Release V binaries with OIDC trusted publish (Closes #536)
 - **Docs** — ADR-025 npm package is `agent-toolkit-cli` with optionalDependencies platform binaries (Closes #487)
 - **Docs** — AUR adapter contract: `agent-toolkit-bin` consumes GitHub Release V binaries (Closes #539)

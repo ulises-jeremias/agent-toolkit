@@ -265,6 +265,14 @@ agent-toolkit/
 
 ---
 
+## Python package map (migration)
+
+The in-tree Python package layout and I/O vs process classification used to
+drive V waves: [`docs/v/python-architecture-map.md`](v/python-architecture-map.md)
+([#477](https://github.com/ulises-jeremias/agent-toolkit/issues/477)). Product
+commands `agent-toolkit` / `agent-toolkit-cli` exec the native V binary
+([ADR-021](adrs/ADR-021-pypi-binary.md)).
+
 ## Design Decisions
 
 **One source, many targets.** Skills are written once and deployed to every supported AI tool. This avoids the drift that happens when teams maintain separate prompt libraries per tool.
