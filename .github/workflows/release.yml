@@ -25,6 +25,7 @@ jobs:
   create-release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     outputs:
       tag: ${{ github.ref_name }}
     steps:
@@ -97,6 +98,7 @@ jobs:
     name: Build ${{ matrix.artifact }}
     needs: create-release
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
     environment: release
     strategy:
       fail-fast: false

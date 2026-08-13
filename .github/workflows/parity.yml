@@ -3,7 +3,23 @@ name: Parity (Python↔V)
 on:
   push:
     branches: [main]
+    paths:
+      - "modules/**"
+      - "cmd/**"
+      - "tests/parity/**"
+      - "packages/agent-toolkit-cli/**"
+      - "Makefile"
+      - ".v-version"
+      - ".github/workflows/parity.yml"
   pull_request:
+    paths:
+      - "modules/**"
+      - "cmd/**"
+      - "tests/parity/**"
+      - "packages/agent-toolkit-cli/**"
+      - "Makefile"
+      - ".v-version"
+      - ".github/workflows/parity.yml"
   workflow_dispatch:
 
 permissions:
@@ -17,6 +33,7 @@ jobs:
   parity-seed:
     name: Golden CLI parity (seed)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

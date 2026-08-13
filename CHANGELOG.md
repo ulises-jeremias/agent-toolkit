@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Docs** — ADR-021 PyPI ships platform wheels with bundled V binary + thin launcher (Closes #486)
+- **Docs** — CI cost tiers (PR/main/release) with path filters, timeouts, Python-lane retirement trigger (Closes #532)
 - **Feat** — V `swarm` REDESIGN (recipes/start/status/doctor/approve/reject/cancel; filesystem SoT) (Closes #524)
 - **Feat** — V `loop` REDESIGN (init/run/status/audit/cost/schedule/sync; process-per-run skeleton) (Closes #523)
 - **Feat** — Execute MUST-platform V artifacts (`--version`/`--help`/`inventory`/`doctor`) with arch mismatch fail (Closes #531)
