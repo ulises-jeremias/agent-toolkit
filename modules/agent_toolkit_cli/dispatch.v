@@ -147,6 +147,14 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_devcompanion(opts)
 		return render(agent_toolkit_core.devcompanion_result(report), mode)
 	}
+	if cmd_name == 'loop' {
+		opts := parse_loop_options(argv[1..]) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.run_loop(opts)
+		return render(agent_toolkit_core.loop_result(report), mode)
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -747,6 +755,132 @@ fn parse_dc_options(args []string) !agent_toolkit_core.DevcompanionOptions {
 	}
 }
 
+fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
+	mut sub := ''
+	mut workspace_path := ''
+	mut name := ''
+	mut custom_name := ''
+	mut force := false
+	mut quiet := false
+	mut runner := ''
+	mut pack := ''
+	mut no_llm := false
+	mut dry_run := false
+	mut cron := ''
+	mut list_mode := false
+	mut remove_mode := false
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a == '--json' {
+			i++
+			continue
+		}
+		if a == '--quiet' {
+			quiet = true
+			i++
+			continue
+		}
+		if a == '--force' {
+			force = true
+			i++
+			continue
+		}
+		if a == '--no-llm' {
+			no_llm = true
+			i++
+			continue
+		}
+		if a == '--dry-run' {
+			dry_run = true
+			i++
+			continue
+		}
+		if a == '--list' {
+			list_mode = true
+			i++
+			continue
+		}
+		if a == '--remove' {
+			remove_mode = true
+			i++
+			continue
+		}
+		if a in ['--name', '--runner', '--pack', '--workspace', '--cron'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--name' { custom_name = val }
+				'--runner' { runner = val }
+				'--pack' { pack = val }
+				'--workspace' { workspace_path = val }
+				'--cron' { cron = val }
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--name=') {
+			custom_name = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--runner=') {
+			runner = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--pack=') {
+			pack = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--workspace=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--cron=') {
+			cron = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		if sub.len == 0 {
+			sub = a
+			i++
+			continue
+		}
+		if name.len == 0 {
+			name = a
+		}
+		i++
+	}
+	if no_llm && runner.len == 0 {
+		runner = 'skeleton'
+	}
+	return agent_toolkit_core.LoopOptions{
+		subcommand:     sub
+		workspace_path: workspace_path
+		name:           name
+		custom_name:    custom_name
+		force:          force
+		quiet:          quiet
+		runner:         runner
+		pack:           pack
+		no_llm:         no_llm
+		dry_run:        dry_run
+		cron:           cron
+		list_mode:      list_mode
+		remove_mode:    remove_mode
+	}
+}
+
 fn parse_plugin_options(args []string) agent_toolkit_core.PluginOptions {
 	mut sub := ''
 	for a in args {
@@ -940,6 +1074,16 @@ fn allowed_flag(cmd string, a string) bool {
 			return true
 		}
 	}
+	if cmd == 'loop' {
+		if a in ['--force', '--quiet', '--no-llm', '--dry-run', '--list', '--remove', '--status',
+			'--name', '--runner', '--pack', '--workspace', '--cron'] {
+			return true
+		}
+		if a.starts_with('--name') || a.starts_with('--runner') || a.starts_with('--pack')
+			|| a.starts_with('--workspace') || a.starts_with('--cron') {
+			return true
+		}
+	}
 	return false
 }
 
@@ -1115,6 +1259,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'devcompanion' {
 		return agent_toolkit_core.dc_help_text()
+	}
+	if name == 'loop' {
+		return agent_toolkit_core.loop_help_text()
 	}
 	mut c := cli.Command{
 		name:        name

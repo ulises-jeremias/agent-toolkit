@@ -496,6 +496,20 @@
         "queue",
         "status"
       ]
+    },
+    {
+      "command": "loop-help",
+      "args": [
+        "loop",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "init",
+        "run",
+        "status",
+        "schedule"
+      ]
     }
   ]
 }
