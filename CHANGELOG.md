@@ -10,21 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-- **Fixed** — `distributions/products.yaml` `version_source` points at packages/pypi layout
-- **Docs** — Mark `insights` DEPRECATE (#526) and `release` REMOVE (#527) in SCOPE.md / CLI_SURFACES.md
+- **Packaging** — PyPI classifier Development Status Beta → Production/Stable
+- **Docs** — ADR-007 / install messaging aligned V-first (thin wrappers to agent-toolkit) (Fixes #682)
+- **Docs** — AUR playbook and release replay use `agent-toolkit-bin`; warn off legacy `agent-toolkit` AUR (Fixes #675)
+- **Docs** — Align AUR playbook with canonical `agent-toolkit-bin` (warn on legacy `agent-toolkit` AUR name)
 - **Docs** — Polish published npm/PyPI package READMEs to the cozy banner/badge style of `packages/pypi/agent-toolkit-cli/README.md`; document why the PyPI `src/` launcher tree stays
 - **CI** — Build/push the Docker image from `release.yml` after V assets exist (`GITHUB_TOKEN` cannot trigger `on: release`)
-- **Docs** — AUR playbook and release replay use `agent-toolkit-bin`; warn off legacy `agent-toolkit` AUR (Fixes #675)
 - **Docs** — PyPI republish guidance uses `release.yml` OIDC (not Publish manual)
 - **Docs** — Fix broken `docs/SWARMS.md` link to missing `CLI_REFERENCE.md` → `CLI_SURFACES.md`
 - **Packaging** — Bump Dockerfile default `ARG VERSION` to match `VERSION` (1.12.1)
 - **Docs** — Note that wiki-style `[[Page]]` links in docs/wiki are intentional for wiki-sync
+- **Docs** — Mark `insights` DEPRECATE (#526) and `release` REMOVE (#527) in SCOPE.md / CLI_SURFACES.md
 - **CI** — Docker push-to-main is smoke-only; registry push requires Release assets (Fixes #679)
-- **Docs** — Align AUR playbook with canonical `agent-toolkit-bin` (warn on legacy `agent-toolkit` AUR name)
 - **Chore** — scripts/install.sh and doctor.sh are thin wrappers around the V CLI (Fixes #683)
 - **CI** — Include `check-surfaces` in `required-ci` needs so surface drift cannot merge (Fixes #677)
-- **Docs** — ADR-007 / install messaging aligned V-first (thin wrappers to agent-toolkit) (Fixes #682)
 - **Docs** — Homebrew README links in-repo ADR-023 path (keep #490 as discussion)
+- **Fixed** — `distributions/products.yaml` `version_source` points at packages/pypi layout
 
 
 ## [1.12.1] — 2026-08-13
