@@ -36,7 +36,13 @@ bash scripts/prepare-package-data.sh
 python3 scripts/pack_pypi.py   # sdist + one wheel per present asset → dist/
 ```
 
-- Tag releases: `.github/workflows/release.yml` `publish-pypi` (after `upload-assets`).
-- Manual republish (e.g. v1.11.0 after the manylinux fix): workflow **Publish (manual)** — downloads `v$(cat VERSION)` Release assets and packs the same way.
+- Tag releases: `.github/workflows/release.yml` `publish-pypi` (after `upload-assets`) via **OIDC Trusted Publishing** (environment `pypi`). See [docs/RELEASING.md](../../docs/RELEASING.md).
+- Manual republish of an existing `VERSION` (no retag): re-run **Release** (`release.yml`) with `workflow_dispatch` — Trusted Publishing is registered for that workflow, not `publish.yml`:
+
+  ```bash
+  gh workflow run Release --ref main -f environment=pypi
+  ```
+
+  Historical note: `Publish (manual)` (`publish.yml`) can still pack wheels but OIDC fails until that filename is also registered on PyPI — prefer `release.yml`.
 
 Console scripts: `agent-toolkit` / `agent-toolkit-cli` → `agent_toolkit.launcher:main` (exec V). `agent-toolkit-py` is a quarantined fallback ([docs/v/python-fallback.md](../../docs/v/python-fallback.md)).
