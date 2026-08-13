@@ -28,6 +28,7 @@ def emit_quarantine_notice() -> None:
         "Use `agent-toolkit` (native V). See docs/v/python-fallback.md\n"
     )
 
+
 CONSUMER_COMMANDS: tuple[str, ...] = (
     "install",
     "update",
