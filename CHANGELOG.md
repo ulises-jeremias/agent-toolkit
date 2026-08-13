@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — ADR-025 npm package is `agent-toolkit-cli` with optionalDependencies platform binaries (Closes #487)
 - **Docs** — ADR-023 Homebrew Formula installs GitHub Release V binaries (Closes #490)
 - **Docs** — Distribution wrapper threat model (wheel-bundle vs runtime download) (Closes #563)
 - **Docs** — ADR-022 machine-readable GitHub Release `manifest.json` (Closes #488)
