@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — PyPI `agent-toolkit` is a thin launcher over the bundled V binary (Closes #535)
 - **Docs** — CI cost tiers (PR/main/release) with path filters, timeouts, Python-lane retirement trigger (Closes #532)
 - **Feat** — V `swarm` REDESIGN (recipes/start/status/doctor/approve/reject/cancel; filesystem SoT) (Closes #524)
 - **Feat** — V `loop` REDESIGN (init/run/status/audit/cost/schedule/sync; process-per-run skeleton) (Closes #523)

@@ -34,11 +34,11 @@ jobs:
       - name: Sync workspace (packages/agent-toolkit-cli)
         run: uv sync --all-extras
 
-      - name: Smoke-test CLI entry-point (version)
-        run: uv run agent-toolkit version
+      - name: Smoke-test Python fallback CLI (version)
+        run: uv run agent-toolkit-py version
 
-      - name: Smoke-test CLI entry-point (help)
-        run: uv run agent-toolkit help
+      - name: Smoke-test Python fallback CLI (help)
+        run: uv run agent-toolkit-py help
 
       - name: Run test suite
         run: uv run pytest tests/ -v --tb=short
@@ -455,15 +455,39 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Build wheel and sdist from workspace package
+      - name: Install pinned V from GitHub Release
         run: |
-          bash scripts/prepare-package-data.sh && uv build --package agent-toolkit-cli
+          set -euo pipefail
+          PIN="$(tr -d '[:space:]' < .v-version)"
+          curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${PIN}/v_linux.zip"
+          sudo rm -rf /usr/local/v
+          sudo unzip -q /tmp/v.zip -d /usr/local
+          if [ -x /usr/local/v/v ]; then
+            echo "/usr/local/v" >> "$GITHUB_PATH"
+          elif [ -x /usr/local/v_linux/v ]; then
+            echo "/usr/local/v_linux" >> "$GITHUB_PATH"
+          else
+            echo "Unexpected V zip layout" >&2
+            exit 1
+          fi
+
+      - name: Build wheel and sdist from workspace package
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          bash scripts/prepare-package-data.sh
+          uv build --sdist --package agent-toolkit-cli
+          make build-cli
+          bash scripts/prepare-native-bin.sh
+          uv build --wheel --package agent-toolkit-cli
           ls -lh dist/
 
-      - name: Install built wheel and smoke-test
+      - name: Install built wheel and smoke-test V launcher
         run: |
           pip install dist/*.whl
           agent-toolkit version
+          agent-toolkit-py version
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v7
@@ -494,23 +518,33 @@ jobs:
           name: dist
           path: dist/
 
-      - name: Install from wheel (simulates pip install agent-toolkit-cli)
+      - name: Install from dist (Linux wheel with V binary; sdist elsewhere)
         shell: bash
-        run: pip install dist/*.whl
+        run: |
+          set -euo pipefail
+          if [ "${RUNNER_OS}" = "Linux" ]; then
+            pip install dist/*.whl
+          else
+            pip install dist/*.tar.gz
+          fi
 
-      - name: "CLI: version"
+      - name: "CLI: V launcher version (Linux wheel)"
+        if: runner.os == 'Linux'
         run: agent-toolkit version
 
+      - name: "CLI: version"
+        run: agent-toolkit-py version
+
       - name: "CLI: version via alias"
-        run: agent-toolkit-cli version
+        run: agent-toolkit-py version
 
       - name: "CLI: help"
-        run: agent-toolkit help
+        run: agent-toolkit-py help
 
       - name: "CLI: doctor (no tools installed in CI — expect warnings, not errors)"
         shell: bash
         run: |
-          agent-toolkit doctor 2>&1 | tee doctor_output.txt
+          agent-toolkit-py doctor 2>&1 | tee doctor_output.txt
           # Must not crash; errors are OK for missing tools but exit code should be 0
           # (doctor returns 0 even with warnings, only 1 on true errors)
           if grep -q "✗" doctor_output.txt; then
@@ -521,7 +555,7 @@ jobs:
       - name: "CLI: skills list (all domains)"
         shell: bash
         run: |
-          agent-toolkit skills list 2>&1 | tee skills_output.txt
+          agent-toolkit-py skills list 2>&1 | tee skills_output.txt
           # Verify: must contain at least 50 skills and show descriptions (not ">-")
           COUNT=$(grep -c "^  ✓" skills_output.txt || echo 0)
           echo "Skills found: $COUNT"
@@ -537,18 +571,18 @@ jobs:
           echo "✓ Skills list: $COUNT skills with proper descriptions"
 
       - name: "CLI: skills list --domain core"
-        run: agent-toolkit skills list --domain core
+        run: agent-toolkit-py skills list --domain core
 
       - name: "CLI: skills list --domain forge"
-        run: agent-toolkit skills list --domain forge
+        run: agent-toolkit-py skills list --domain forge
 
       - name: "CLI: skills validate"
-        run: agent-toolkit skills validate
+        run: agent-toolkit-py skills validate
 
       - name: "CLI: loop status (must show 10 bundled templates)"
         shell: bash
         run: |
-          agent-toolkit loop status 2>&1 | tee loops_output.txt
+          agent-toolkit-py loop status 2>&1 | tee loops_output.txt
           COUNT=$(grep -c "tier=" loops_output.txt || echo 0)
           echo "Loop templates found: $COUNT"
           if [ "$COUNT" -lt 10 ]; then
@@ -566,15 +600,15 @@ jobs:
           echo "✓ Loop status: $COUNT templates including OSS patterns"
 
       - name: "CLI: loop cost daily-triage"
-        run: agent-toolkit loop cost daily-triage
+        run: agent-toolkit-py loop cost daily-triage
 
       - name: "CLI: loop audit (no runs — should exit cleanly)"
-        run: agent-toolkit loop audit
+        run: agent-toolkit-py loop audit
 
       - name: "CLI: mcp list (all 6 providers)"
         shell: bash
         run: |
-          agent-toolkit mcp list 2>&1 | tee mcp_output.txt
+          agent-toolkit-py mcp list 2>&1 | tee mcp_output.txt
           for provider in github slack notion linear figma clickup; do
             if ! grep -q "$provider" mcp_output.txt; then
               echo "::error::MCP provider '$provider' not found in list"
@@ -584,13 +618,13 @@ jobs:
           echo "✓ MCP list: all 6 providers shown"
 
       - name: "CLI: plugin check (surfaces in sync)"
-        run: agent-toolkit plugin check
+        run: agent-toolkit-py plugin check
 
       - name: "CLI: install --dry-run --tools claude-code,cursor"
         shell: bash
         run: |
           # Should not prompt for Copilot, should not crash, should list what would be installed
-          agent-toolkit install --dry-run --tools claude-code,cursor 2>&1 | tee install_output.txt
+          agent-toolkit-py install --dry-run --tools claude-code,cursor 2>&1 | tee install_output.txt
           if grep -Eiq "(traceback|exception|✗|\[error\])" install_output.txt; then
             echo "::error::install --dry-run produced errors"
             cat install_output.txt
@@ -601,7 +635,7 @@ jobs:
       - name: "CLI: install --dry-run (auto-detect, no stdin = no Copilot prompt)"
         shell: bash
         run: |
-          agent-toolkit install --dry-run --tools cursor 2>&1 | tee install_auto_output.txt
+          agent-toolkit-py install --dry-run --tools cursor 2>&1 | tee install_auto_output.txt
           if grep -q "Copilot instructions for a project?\n          # Copilot is never auto-detected — only via --tools copilot" install_auto_output.txt; then
             echo "::error::install prompted for Copilot in non-interactive mode"
             exit 1

@@ -19,6 +19,8 @@ node_modules/
 # Build artifacts
 dist/
 build/
+packages/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit
+packages/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit.exe
 
 # Editor
 .idea/
