@@ -43,4 +43,8 @@ Adopt **option 1**.
 - Issue [#495](https://github.com/ulises-jeremias/agent-toolkit/issues/495)
 - Epic [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)
 
+## Cutover status (2026-08-13)
+
+[#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) made V the **in-repo** canonical `agent-toolkit`. Public SemVer is **not** bumped here: PyPI/`uvx` still ship Python; GitHub native artifacts stay experimental until MUST-platform promotion. Human CLI stdout for `version` is unchanged. See [docs/v/cutover.md](../v/cutover.md).
+
 **Verified:** 2026-08-12

@@ -10,4 +10,4 @@ Wires consumer `install` through [`InstallTransaction`](install-transaction.md):
 - Receipts for created artifacts; existing files (including JSON configs) are preserved without `--force`
 - Honor `AGENT_TOOLKIT_OFFLINE` and `AGENT_TOOLKIT_INSTALL_SOURCE`
 
-Python remains the canonical `agent-toolkit` entry until cutover [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555).
+V is the in-repo canonical `agent-toolkit` entry ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)). PyPI/`uvx` still runs the Python wheel until native wrappers.
