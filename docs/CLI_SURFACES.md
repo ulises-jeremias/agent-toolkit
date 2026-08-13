@@ -21,7 +21,7 @@ Install, verify, and sync toolkit content for coding assistants:
 | `mcp` | MCP provider setup, health, doctor, uninstall |
 | `plugin` | Plugin bundle sync and check |
 
-Also: `version`, `help`.
+Also: `version`, `help`, `completion` (bash/zsh/fish/PowerShell).
 
 ## Advanced commands
 
@@ -67,6 +67,7 @@ Wave/complexity/risk in the YAML `migration:` block.
 |---------|---------|-------|-------------|
 | `help` | meta | — | keep |
 | `version` | meta | [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) | PORT (V canonical) |
+| `completion` | consumer | [#544](https://github.com/ulises-jeremias/agent-toolkit/issues/544) | PORT |
 | `install` | consumer | [#607](https://github.com/ulises-jeremias/agent-toolkit/issues/607) | PORT |
 | `update` | consumer | [ADR-017](adrs/ADR-017-update-ownership.md) | PORT (capability-only) |
 | `uninstall` | consumer | [#461](https://github.com/ulises-jeremias/agent-toolkit/issues/461) | PORT |

@@ -104,6 +104,8 @@ After the primary install:
 
 ```bash
 agent-toolkit doctor
+# Optional: shell completions (bash / zsh / fish / PowerShell)
+agent-toolkit completion bash >> ~/.bashrc
 ```
 
 Open your AI tool and ask: *"What skills do you have available?"* — responses should

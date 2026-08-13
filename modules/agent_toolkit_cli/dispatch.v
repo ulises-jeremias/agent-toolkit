@@ -163,6 +163,9 @@ pub fn dispatch(args []string) int {
 		report := agent_toolkit_core.run_swarm(opts)
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
+	if cmd_name == 'completion' {
+		return run_completion(argv[1..])
+	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
 
@@ -1198,8 +1201,7 @@ fn allowed_flag(cmd string, a string) bool {
 		}
 	}
 	if cmd == 'swarm' {
-		if a in ['--dry-run', '--force', '--recipe', '--backend', '--ui', '--workspace',
-			'--reason'] {
+		if a in ['--dry-run', '--force', '--recipe', '--backend', '--ui', '--workspace', '--reason'] {
 			return true
 		}
 		if a.starts_with('--recipe') || a.starts_with('--backend') || a.starts_with('--ui')
@@ -1233,7 +1235,8 @@ fn is_known_command(name string) bool {
 }
 
 fn consumer_commands() []string {
-	return ['install', 'update', 'uninstall', 'doctor', 'diff', 'skills', 'mcp', 'plugin']
+	return ['install', 'update', 'uninstall', 'doctor', 'diff', 'skills', 'mcp', 'plugin',
+		'completion']
 }
 
 fn advanced_commands() []string {
@@ -1388,6 +1391,9 @@ Read-only health checks by default. --fix allowlists profile refresh only.
 	}
 	if name == 'swarm' {
 		return agent_toolkit_core.swarm_help_text()
+	}
+	if name == 'completion' {
+		return completion_help_text()
 	}
 	mut c := cli.Command{
 		name:        name
