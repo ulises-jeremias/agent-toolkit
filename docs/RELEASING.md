@@ -64,11 +64,13 @@ python3 scripts/bump-version.py 1.3.0         # writes files
 
 ## Asset naming
 
-Release binaries are platform-suffixed to avoid upload collisions (see #256):
+Release binaries are platform-suffixed to avoid upload collisions (see #256 and [ADR-018](adrs/ADR-018-release-artifacts.md)):
 
 * `agent-toolkit-linux-x86_64`
 * `agent-toolkit-macos-arm64`
 * `agent-toolkit-windows-x86_64.exe`
+
+**Stable channel:** those floating names. **Versioned archives** (`agent-toolkit-<semver>-<os>-<arch>.tar.gz` / Windows `.zip`) are the checksum and attestation unit. **Experimental V** assets use `agent-toolkit-v-experimental-<os>-<arch>` and must not overwrite stable names.
 
 Darwin x86_64 is intentionally deferred (documented skip). Release notes / this doc mention naming.
 
