@@ -1,6 +1,6 @@
 # Homebrew adapter
 
-**Issue:** [#538](https://github.com/ulises-jeremias/agent-toolkit/issues/538) · **ADR:** [#490](https://github.com/ulises-jeremias/agent-toolkit/issues/490) (ADR-023)
+**Issue:** [#538](https://github.com/ulises-jeremias/agent-toolkit/issues/538) · **ADR:** [`docs/adrs/ADR-023-homebrew.md`](../../docs/adrs/ADR-023-homebrew.md) (discussion: [#490](https://github.com/ulises-jeremias/agent-toolkit/issues/490))
 
 **Owner:** [`ulises-jeremias/homebrew-tap`](https://github.com/ulises-jeremias/homebrew-tap) (not this tree). Notify: `.github/workflows/notify-homebrew.yml`.
 
