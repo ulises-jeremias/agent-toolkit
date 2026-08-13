@@ -37,7 +37,7 @@ Adopt **A**.
 ## Consequences
 
 - **Positive:** Same bytes as GitHub Releases / PyPI wheels (ADR-021 A); one implementation.
-- **Negative:** `brew install` is blocked until a tag attaches V assets (v1.10.0 currently has an empty asset list). Release.yml must upload V binaries ([#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530)), not PyInstaller, onto stable names after promotion.
+- **Negative (at decision):** `brew install` was blocked while `v1.10.0` had an empty asset list. **Update (`v1.11.0`):** GitHub Release attaches native V binaries (not PyInstaller); the tap Formula `agent-toolkit` installs that CLI. Do not retag `v1.10.0`.
 - **Follow-on:** [#538](https://github.com/ulises-jeremias/agent-toolkit/issues/538) contract README; notify workflow waits for darwin/linux **binary** assets, not only the source tarball.
 
 ## Validation plan
