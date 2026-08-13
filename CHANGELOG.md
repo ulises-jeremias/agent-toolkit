@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Docs** — Docker adapter: debian-slim + GitHub Release V binary; git/gh MUST (Closes #537)
+- **Docs** — Python architecture map & subsystem classification for V waves (Closes #477)
 - **Docs** — CLI surfaces inventory maps every command to owner issue and disposition (Closes #475)
 - **Feat** — npm `agent-toolkit-cli` launcher over GitHub Release V binaries with OIDC trusted publish (Closes #536)
 - **Docs** — ADR-025 npm package is `agent-toolkit-cli` with optionalDependencies platform binaries (Closes #487)
