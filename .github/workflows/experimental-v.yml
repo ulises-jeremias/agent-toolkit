@@ -75,6 +75,7 @@ jobs:
         env:
           OUT_BIN: ${{ matrix.bin }}
           ASSET: ${{ matrix.asset }}
+          VMODULES: ${{ github.workspace }}/modules
         run: |
           set -euo pipefail
           mkdir -p build
