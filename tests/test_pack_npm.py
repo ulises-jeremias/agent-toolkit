@@ -35,6 +35,7 @@ def test_pack_npm_copies_floating_linux_binary(tmp_path: Path) -> None:
             (REPO / "packages/npm/agent-toolkit-cli-linux-x64/package.json").read_text()
         )
         assert pkg["version"] == "9.9.9"
+        assert "README.md" in pkg["files"]
         meta = json.loads((REPO / "packages/npm/agent-toolkit-cli/package.json").read_text())
         assert meta["version"] == "9.9.9"
     finally:

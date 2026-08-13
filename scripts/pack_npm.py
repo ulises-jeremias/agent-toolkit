@@ -33,7 +33,11 @@ def write_platform_package(spec: dict, ver: str, src_bin: Path | None) -> Path:
         "license": "MIT",
         "os": [spec["os"]],
         "cpu": [spec["cpu"]],
-        "files": [f"bin/{spec['bin']}"],
+        "files": ["README.md", f"bin/{spec['bin']}"],
+        "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+        "bugs": {
+            "url": "https://github.com/ulises-jeremias/agent-toolkit/issues",
+        },
         "repository": {
             "type": "git",
             "url": "git+https://github.com/ulises-jeremias/agent-toolkit.git",

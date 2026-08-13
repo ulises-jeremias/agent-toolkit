@@ -10,8 +10,13 @@
     "x64"
   ],
   "files": [
+    "README.md",
     "bin/agent-toolkit.exe"
   ],
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "bugs": {
+    "url": "https://github.com/ulises-jeremias/agent-toolkit/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ulises-jeremias/agent-toolkit.git",
