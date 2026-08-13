@@ -57,7 +57,11 @@ python3 scripts/bump-version.py 1.3.0         # writes files
 
 ## Rollback / republish
 
-* **PyPI:** Trusted Publishing via `release.yml` `publish-pypi` after Release assets are attached (`scripts/pack_pypi.py` stamps `manylinux_2_38_*` wheels). Manual republish: workflow `Publish (manual)` (`.github/workflows/publish.yml`) with `TestPyPI`/`PyPI` — it downloads `v$(cat VERSION)` GitHub Release binaries (do not rebuild a different glibc).
+* **PyPI:** Trusted Publishing is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. Tag path: `publish-pypi` after Release assets (`scripts/pack_pypi.py` stamps `manylinux_2_38_*`). Manual republish of an existing `VERSION` (no retag):
+  ```bash
+  gh workflow run Release --ref main -f environment=pypi
+  ```
+  `Publish (manual)` (`publish.yml`) can still pack wheels but OIDC will fail until that filename is also registered on PyPI.
 * **npm:** OIDC trusted publishing via `publish-npm.yml` on tag `v*` (npm CLI ≥ 11.5.1, `id-token: write`, no `NPM_TOKEN`). First publish of a new package name is local (`npm login` then `npm publish`). Then pin GitHub:
   ```bash
   npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y

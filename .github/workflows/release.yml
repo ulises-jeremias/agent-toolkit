@@ -1,7 +1,8 @@
 name: Release
 
 # Sole automated PyPI publish path for version tags (v*).
-# Manual TestPyPI/PyPI republish: workflow "Publish (manual)" only.
+# Manual republish of an already-tagged VERSION (no retag): workflow_dispatch this
+# file — PyPI Trusted Publishing is registered for release.yml, not publish.yml.
 #
 # Job graph:
 #   create-release ─┬─► build-binaries ─► upload-assets ─► publish-pypi (platform wheels from Release assets)
@@ -11,6 +12,14 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deploy target (Trusted Publishing is registered for release.yml)"
+        required: true
+        default: "pypi"
+        type: choice
+        options: [pypi, testpypi]
 
 permissions:
   contents: write
@@ -23,6 +32,7 @@ concurrency:
 jobs:
   create-release:
     name: Create GitHub Release
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     outputs:
@@ -56,6 +66,7 @@ jobs:
 
   publish-pypi:
     name: Publish to PyPI
+    if: github.event_name == 'push'
     needs: [create-release, upload-assets]
     runs-on: ubuntu-latest
     environment: pypi
@@ -120,6 +131,7 @@ jobs:
 
   build-binaries:
     name: Build ${{ matrix.artifact }}
+    if: github.event_name == 'push'
     needs: create-release
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
@@ -207,6 +219,7 @@ jobs:
 
   upload-assets:
     name: Attach V binaries, archives, SHA256SUMS, manifest
+    if: github.event_name == 'push'
     needs: [create-release, build-binaries]
     runs-on: ubuntu-latest
     environment: release
@@ -247,6 +260,7 @@ jobs:
 
   sbom:
     name: Generate SBOM
+    if: github.event_name == 'push'
     needs: create-release
     runs-on: ubuntu-latest
     permissions:
@@ -283,3 +297,63 @@ jobs:
           done
           echo "::error::Failed to attach SBOM after retries"
           exit 1
+
+  republish-pypi:
+    name: Republish to PyPI (manual)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+      - name: Download GitHub Release V binaries for VERSION
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          mkdir -p binaries
+          gh release download "v${VERSION}" -D binaries -p 'agent-toolkit-*'
+          ls -lh binaries/
+      - name: Pack sdist + platform wheels (manylinux_2_38)
+        run: |
+          set -euo pipefail
+          bash scripts/prepare-package-data.sh
+          export RELEASE_BIN_DIR=binaries
+          export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          export RELEASE_OUT_DIR=dist
+          python3 scripts/pack_pypi.py
+          ls -lh dist/
+          python3 - <<'PY'
+          from pathlib import Path
+          wheels = [p.name for p in Path("dist").glob("*.whl")]
+          print(wheels)
+          bad = [n for n in wheels if "linux_x86_64" in n and "manylinux" not in n]
+          if bad:
+              raise SystemExit(f"raw linux_x86_64 tag (PyPI will reject): {bad}")
+          if not any("manylinux_2_38_x86_64" in n for n in wheels):
+              raise SystemExit("missing manylinux_2_38_x86_64 wheel")
+          PY
+      - name: Publish (Trusted Publishing)
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          repository-url: ${{ inputs.environment == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
+      - name: Verify PyPI shows this version
+        if: inputs.environment == 'pypi'
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          for attempt in $(seq 1 24); do
+            if curl -fsSL "https://pypi.org/pypi/agent-toolkit-cli/${VERSION}/json" >/dev/null 2>&1; then
+              echo "✓ PyPI has agent-toolkit-cli==$VERSION"
+              exit 0
+            fi
+            echo "Attempt $attempt/24: waiting for PyPI..."
+            sleep 15
+          done
+          echo "::warning::PyPI verification timed out — publish step succeeded; CDN may lag"

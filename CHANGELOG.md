@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **CI** — Republish PyPI via `workflow_dispatch` on `release.yml` (Trusted Publishing is registered for that workflow, not `publish.yml`)
 - **Packaging** — Move PyPI adapter to `packages/pypi/` (npm-parallel layout; platform-tagged wheels, not fake optionalDeps packages), drop the root uv workspace, tag Linux wheels `manylinux_2_38_*` after PyPI rejected `linux_x86_64` on 1.11.0, and ship a V-first Docker image from GitHub Release binaries
 - **Docs** — Agentic Workstation adapter: CLI-only bootstrap, channel preference, no `import agent_toolkit` (#469)
 - **Docs** — V vs Python CLI performance baseline (startup/help/inventory/doctor) (Closes #533)
