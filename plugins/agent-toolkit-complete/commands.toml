@@ -405,7 +405,7 @@ Follow the `slack-cli` skill instructions for {{args}}.
 
 [[commands]]
 name = "loop_runner"
-description = "Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding session via bin/loop CLI."
+description = "Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding session via the agent-toolkit loop CLI."
 prompt = """
 Follow the `loop-runner` skill instructions for {{args}}.
 
