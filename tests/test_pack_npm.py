@@ -31,7 +31,9 @@ def test_pack_npm_copies_floating_linux_binary(tmp_path: Path) -> None:
         )
         assert dest.is_file()
         assert dest.read_bytes() == b"fake-elf"
-        pkg = json.loads((REPO / "packages/npm/agent-toolkit-cli-linux-x64/package.json").read_text())
+        pkg = json.loads(
+            (REPO / "packages/npm/agent-toolkit-cli-linux-x64/package.json").read_text()
+        )
         assert pkg["version"] == "9.9.9"
         meta = json.loads((REPO / "packages/npm/agent-toolkit-cli/package.json").read_text())
         assert meta["version"] == "9.9.9"
