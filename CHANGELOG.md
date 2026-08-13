@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Docs** — Homebrew adapter contract: Formula consumes GitHub Release V binaries (Closes #538)
+- **Feat** — GitHub Releases attach native V binaries, SHA256SUMS, and `manifest.json` (Closes #530)
 - **Docs** — ADR-023 Homebrew Formula installs GitHub Release V binaries (Closes #490)
 - **Docs** — Distribution wrapper threat model (wheel-bundle vs runtime download) (Closes #563)
 - **Docs** — ADR-022 machine-readable GitHub Release `manifest.json` (Closes #488)
