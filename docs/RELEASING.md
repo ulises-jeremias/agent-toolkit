@@ -70,7 +70,7 @@ Release binaries are platform-suffixed to avoid upload collisions (see #256 and 
 * `agent-toolkit-macos-arm64`
 * `agent-toolkit-windows-x86_64.exe`
 
-**Stable channel:** those floating names. **Versioned archives** (`agent-toolkit-<semver>-<os>-<arch>.tar.gz` / Windows `.zip`) are the checksum and attestation unit. **Experimental V** assets use `agent-toolkit-v-experimental-<os>-<arch>` and must not overwrite stable names.
+**Stable channel:** those floating names. **Linux (`linux-x86_64` / `linux-arm64`) is glibc** ([ADR-019](adrs/ADR-019-linux-libc.md)); an optional musl extra uses a distinct name (`agent-toolkit-linux-x86_64-musl`) and must not overwrite the stable glibc artifact. **Versioned archives** (`agent-toolkit-<semver>-<os>-<arch>.tar.gz` / Windows `.zip`) are the checksum and attestation unit. **Experimental V** assets use `agent-toolkit-v-experimental-<os>-<arch>` and must not overwrite stable names.
 
 Darwin x86_64 is intentionally deferred (documented skip). Release notes / this doc mention naming.
 

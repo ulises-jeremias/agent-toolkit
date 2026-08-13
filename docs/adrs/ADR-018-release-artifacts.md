@@ -33,7 +33,7 @@ Retain the existing tokens (OS: `linux` / `macos` / `windows`; arch: `x86_64` / 
 
 | Asset | Notes |
 |-------|--------|
-| `agent-toolkit-linux-x86_64` | ELF; no extension |
+| `agent-toolkit-linux-x86_64` | ELF; **glibc** ([ADR-019](ADR-019-linux-libc.md)); no extension |
 | `agent-toolkit-linux-arm64` | When MUST-platform matrix includes it ([#529](https://github.com/ulises-jeremias/agent-toolkit/issues/529)) |
 | `agent-toolkit-macos-arm64` | Mach-O |
 | `agent-toolkit-windows-x86_64.exe` | PE; `.exe` required |
