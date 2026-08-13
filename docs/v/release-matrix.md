@@ -6,7 +6,7 @@
 
 V **cannot cross-compile to macOS**. Every macOS artifact is built **on** a macOS runner.
 
-Stable GitHub Release names (`agent-toolkit-linux-x86_64`, `agent-toolkit-macos-arm64`, `agent-toolkit-windows-x86_64.exe`) remain **PyInstaller** until an explicit promotion after [#531](https://github.com/ulises-jeremias/agent-toolkit/issues/531) smoke. This matrix publishes **experimental** names only.
+As of **v1.11.0**, stable GitHub Release names (`agent-toolkit-linux-x86_64`, `agent-toolkit-macos-arm64`, `agent-toolkit-windows-x86_64.exe`, plus linux-arm64 / macos-x86_64) are **native V binaries** with `SHA256SUMS` ([ADR-018](../adrs/ADR-018-release-artifacts.md)). This matrix still publishes **experimental** names for CI-only smoke; they must not overwrite stable names.
 
 ## MUST capabilities (verified 2026-08-13)
 
@@ -26,9 +26,9 @@ Labels are **not** forever architecture. Re-verify when GitHub retargets `-lates
 |------------|--------|
 | Windows ARM64 | Issue #529 FUTURE (`windows-11-arm` exists; not a retirement gate). |
 | Linux musl | Optional extra (ADR-019); must not overwrite glibc names. |
-| Stable floating names | Still PyInstaller in `release.yml` until promotion. |
+| Stable floating names | Native V as of v1.11.0 (`release.yml` `build-binaries` / `upload-assets`). |
 
-macOS x86_64 is **MUST here** (experimental channel). The historical #256 skip (`agent-toolkit-darwin-x86_64` / stable `macos-x86_64`) stays for the **stable** floating name until promotion.
+macOS x86_64 is **MUST** on both the experimental CI channel and the v1.11.0+ stable Release name `agent-toolkit-macos-x86_64`.
 
 ## Workflow
 

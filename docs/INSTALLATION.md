@@ -76,8 +76,7 @@ uvx --from agent-toolkit-cli agent-toolkit doctor
 ### Persistent CLI install
 
 ```bash
-uv tool install agent-toolkit-cli    # preferred when using uv
-# uv tool install agent-toolkit-cli      # alternative
+uv tool install agent-toolkit-cli
 
 agent-toolkit install                # auto-detect all tools
 agent-toolkit doctor                 # verify setup

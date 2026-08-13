@@ -13,4 +13,4 @@ MUST-platform V binaries are **executed on the same runner architecture that bui
 
 Implemented in `.github/workflows/experimental-v.yml` after `make`-equivalent V build. Failures fail the job (`fail-fast: false` so other platforms still report).
 
-Tag `release.yml` PyInstaller assets are **not** switched here; promotion after smoke stays an explicit decision.
+Tag `release.yml` stable assets are native V as of v1.11.0. This file documents the **experimental** CI smoke path (`experimental-v.yml`), not the Release upload.

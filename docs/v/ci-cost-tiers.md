@@ -12,9 +12,9 @@ Dual implementation CI is expensive. Workflows follow three **cost tiers**. Dist
 |------|------|-----------|--------|
 | **PR** | `pull_request` | Lint/fmt/validate; Python unit (validate.yml); V compile via parity seed + dispatch tests in validate if present; golden parity (`parity.yml`) only when CLI/V/Python CLI paths change | Wall: parity ≤ 15 min; experimental-v **skipped** unless its path filter matches. Cancel-in-progress: yes |
 | **main** | `push` to `main` | PR set plus fuller compile. Experimental V MUST matrix (`experimental-v.yml`) only on V/release-doc path changes | Wall: experimental-v job ≤ 25 min/platform. Cancel-in-progress: yes |
-| **release** | `v*` tags (`release.yml`) | Full native **stable** PyInstaller matrix, PyPI publish, SHA256SUMS/attestations/SBOM (#530) | Wall: release workflow ≤ 60 min. Cancel-in-progress: **no** |
+| **release** | `v*` tags (`release.yml`) | Full native **stable V** matrix, PyPI manylinux_2_38 wheels, SHA256SUMS/attestations/SBOM (#530) | Wall: release workflow ≤ 60 min. Cancel-in-progress: **no** |
 
-Experimental native V artifacts stay on the **experimental** channel ([ADR-018](../adrs/ADR-018-release-artifacts.md)) until an explicit promotion. They are **not** the release-tier stable upload.
+Experimental native V artifacts stay on the **experimental** channel ([ADR-018](../adrs/ADR-018-release-artifacts.md)). They are **not** the release-tier stable upload (stable names are native V as of v1.11.0).
 
 ## Path filters (distribution smoke)
 
