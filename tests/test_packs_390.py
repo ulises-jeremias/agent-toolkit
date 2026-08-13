@@ -41,8 +41,11 @@ def test_packs_coherent_workflow_not_everything():
 def test_packs_are_docs_only_not_compiler_wired():
     # Ensure packs not referenced in distributions/products.yaml as composition layer
     prod = yaml.safe_load((ROOT / "distributions/products.yaml").read_text())
-    # products.yaml should not have pack field
-    assert not any("pack" in str(p) for p in prod.get("products", []))
+    # products.yaml should not have pack/packs composition fields
+    # (do not substring-search product dicts — version_source may contain "packages/")
+    for p in prod.get("products", []):
+        assert "pack" not in p
+        assert "packs" not in p
 
 
 def test_inventory_and_context_budget_surface():
