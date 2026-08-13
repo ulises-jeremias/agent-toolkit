@@ -485,7 +485,7 @@ jobs:
 
       - name: Install built wheel and smoke-test V launcher
         run: |
-          pip install dist/*.whl
+          uv pip install dist/*.whl
           agent-toolkit version
           agent-toolkit-py version
 
