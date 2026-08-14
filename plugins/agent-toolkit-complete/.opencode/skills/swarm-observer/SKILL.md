@@ -1,12 +1,20 @@
 ---
 name: swarm-observer
-description: Observe, diagnose, and recover Agent Toolkit swarm runs via status, handoffs, logs, and attach with worktree and shell awareness.
+description: Observe, diagnose, and recover Agent Toolkit swarm runs via status, handoffs, logs, and attach
+  with worktree and shell awareness.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [swarm, observer, herdr, tmux, handoff, worktree]
+  version: '1.0'
+  tags:
+  - swarm
+  - observer
+  - herdr
+  - tmux
+  - handoff
+  - worktree
 ---
-
 # Swarm Observer
 
 Monitor any `agent-toolkit swarm` run, diagnose stuck handoffs or backend drift, and recover without losing windows. Works for both **Herdr** (tabs) and **tmux** (isolated socket `agent-toolkit-swarm-<run-id>`). Integrates with swarm's eager-window model (every role starts as `Waiting for handoff: <pred> -> <role>` with `agent_waiting` trace).

@@ -1,5 +1,5 @@
 ---
-description: End-to-end testing specialist using Playwright. Use when writing, debugging, or running E2E tests, o
+description: e2e-runner
 alwaysApply: true
 ---
 

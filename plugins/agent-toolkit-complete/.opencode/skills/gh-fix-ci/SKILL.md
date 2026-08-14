@@ -1,8 +1,11 @@
 ---
 name: gh-fix-ci
-description: Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure context, propose a plan, and only implement after explicit user approval. External CI providers (Buildkite, CircleCI, etc.) are reported by URL only.
+description: Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure context, propose
+  a plan, and only implement after explicit user approval. External CI providers (Buildkite, CircleCI,
+  etc.) are reported by URL only.
+origin:
+  type: first-party
 ---
-
 # Fix Failing PR Checks
 
 Inspect failing GitHub Actions checks on a PR with `gh`, fetch run logs, extract

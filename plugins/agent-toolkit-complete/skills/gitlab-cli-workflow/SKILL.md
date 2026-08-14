@@ -1,10 +1,10 @@
 ---
 name: gitlab-cli-workflow
-description: >-
-  HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown.
-  Use when origin is GitLab.
+description: 'HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked
+  markdown. Use when origin is GitLab.'
+origin:
+  type: first-party
 ---
-
 # GitLab CLI — draft MR (HOW)
 
 Use this skill when the remote is **GitLab** and you need to **push** and open a **draft** merge request. Workflow skills delegate here.

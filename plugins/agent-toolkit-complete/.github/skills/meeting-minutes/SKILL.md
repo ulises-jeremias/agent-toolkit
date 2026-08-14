@@ -1,9 +1,10 @@
 ---
 name: meeting-minutes
-description: >-
-  WHAT - Create structured meeting minutes from notes or transcripts using meeting templates, with redaction, action items, decisions, and traceability.
+description: WHAT - Create structured meeting minutes from notes or transcripts using meeting templates,
+  with redaction, action items, decisions, and traceability.
+origin:
+  type: first-party
 ---
-
 # Meeting Minutes (WHAT)
 
 Use for meeting notes, validation meetings, or AI-assisted transcript summarization.

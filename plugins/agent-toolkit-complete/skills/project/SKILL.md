@@ -1,12 +1,18 @@
 ---
 name: project
-description: Clone, index, and orchestrate multi-repo work via agent-toolkit project — symlinks, quick access, and swarm workspaces.
+description: Clone, index, and orchestrate multi-repo work via agent-toolkit project — symlinks, quick
+  access, and swarm workspaces.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [project, git, multi-repo, workspace]
+  version: '1.0'
+  tags:
+  - project
+  - git
+  - multi-repo
+  - workspace
 ---
-
 # Project
 
 Manage the local multi-repo registry (`~/.ai-workspace/repos/` and `projects/` symlinks) so swarms and agents can target any repo by name, not path.

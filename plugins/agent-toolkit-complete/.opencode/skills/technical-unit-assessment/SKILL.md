@@ -1,10 +1,10 @@
 ---
 name: technical-unit-assessment
-description: >-
-  WHAT - Evidence-based technical unit assessment for repositories, platforms,
-  frontend, backend, infrastructure, data, UI/UX, and AI-native structural readiness.
+description: WHAT - Evidence-based technical unit assessment for repositories, platforms, frontend, backend,
+  infrastructure, data, UI/UX, and AI-native structural readiness.
+origin:
+  type: first-party
 ---
-
 # Technical Unit Assessment (WHAT)
 
 Assess a technical unit: frontend app, backend API, data platform, infrastructure/IaC scope,

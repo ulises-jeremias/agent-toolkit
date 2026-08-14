@@ -1,11 +1,13 @@
 ---
 name: triage
-description: Workstation health triage — validate tooling, directory layout, and run doctor with remediation suggestions.
+description: Workstation health triage — validate tooling, directory layout, and run doctor with remediation
+  suggestions.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.1"
+  version: '1.1'
 ---
-
 # Workstation Triage ()
 
 Use when the user reports workstation issues, install problems, tool failures, or needs a health check before starting work.

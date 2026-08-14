@@ -1,9 +1,10 @@
 ---
 name: work-item
-description: >-
-  WHAT - Router for creating and refining epics, user stories, tasks, bugs, and incidents using Best Practices work item hierarchy.
+description: WHAT - Router for creating and refining epics, user stories, tasks, bugs, and incidents using
+  Best Practices work item hierarchy.
+origin:
+  type: first-party
 ---
-
 # Work Item Router (WHAT)
 
 Use this skill when the user asks to create, refine, or evaluate work items.

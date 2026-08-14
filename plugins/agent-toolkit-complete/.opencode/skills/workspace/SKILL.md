@@ -1,12 +1,19 @@
 ---
 name: workspace
-description: Scaffold and manage the stateless AI workspace — context, packs, repos, and knowledge for multi-repo orchestration.
+description: Scaffold and manage the stateless AI workspace — context, packs, repos, and knowledge for
+  multi-repo orchestration.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [workspace, packs, context, multi-repo, orchestration]
+  version: '1.0'
+  tags:
+  - workspace
+  - packs
+  - context
+  - multi-repo
+  - orchestration
 ---
-
 # Workspace
 
 Initialize and operate the **stateless AI workspace** (`~/.ai-workspace`) that orchestrates work across any repo, team, or client via `agent-toolkit workspace` and `agent-toolkit memory`. This is the entry point for multi-repo delivery; all swarm and project work runs inside it.

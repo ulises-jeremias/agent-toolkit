@@ -1,7 +1,7 @@
 {
   "name": "agent-toolkit-agents",
   "version": "1.12.2",
-  "description": "Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
+  "description": "Full set of 17 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
   "author": {
     "name": "ulises-jeremias",
     "email": "ulisescf.24@gmail.com"

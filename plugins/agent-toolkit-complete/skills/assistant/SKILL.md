@@ -1,11 +1,14 @@
 ---
 name: assistant
-description: Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs before code; cite sources; prefer AGENTS.md for agent behavior; portable across Cursor/Copilot/Claude; use agent-toolkit CLI when needed.
+description: Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs
+  before code; cite sources; prefer AGENTS.md for agent behavior; portable across Cursor/Copilot/Claude;
+  use agent-toolkit CLI when needed.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "2.1"
+  version: '2.1'
 ---
-
 # Assistant
 
 Organizational companion for anyone building **for ** in **any** repository (client, internal, or ``). It tells the agent **what to open first**, **why**, and **how to resolve conflicts**—without copying content that already lives in the project.

@@ -1,11 +1,10 @@
 ---
 name: management-unit-assessment
-description: >-
-  WHAT - Evidence-based management unit assessment for governance, delivery,
-  collaboration, culture, and AI-native management readiness. Interactive and
-  source-driven before any score is assigned.
+description: WHAT - Evidence-based management unit assessment for governance, delivery, collaboration,
+  culture, and AI-native management readiness. Interactive and source-driven before any score is assigned.
+origin:
+  type: first-party
 ---
-
 # Management Unit Assessment (WHAT)
 
 Use this skill to assess a management unit: project management, delivery execution, governance, stakeholder alignment, team collaboration, cultural health, and management-layer AI readiness.

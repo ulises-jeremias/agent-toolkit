@@ -1,10 +1,10 @@
 ---
 name: dev-companion
-description: >-
-  WHAT — Dev Companion (general): layered companion for client delivery; modes, gates,
-  delegation to assistant and workflow-generic-project; no CLI matrices.
+description: 'WHAT — Dev Companion (general): layered companion for client delivery; modes, gates, delegation
+  to assistant and workflow-generic-project; no CLI matrices.'
+origin:
+  type: first-party
 ---
-
 # Dev Companion (WHAT) — general layer (L2)
 
 This skill is the **general** dev companion for work. It does **not** replace **`assistant`** (orchestrator); it **sits above** workflows and names **what to invoke next**.

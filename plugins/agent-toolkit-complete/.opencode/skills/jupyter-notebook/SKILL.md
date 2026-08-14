@@ -1,8 +1,11 @@
 ---
 name: jupyter-notebook
-description: Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments and tutorials. Prefer the bundled templates and the helper script (`new_notebook.py`, also exposed as `newnotebook`) to generate a clean starting notebook instead of authoring raw notebook JSON.
+description: Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments and tutorials. Prefer
+  the bundled templates and the helper script (`new_notebook.py`, also exposed as `newnotebook`) to generate
+  a clean starting notebook instead of authoring raw notebook JSON.
+origin:
+  type: first-party
 ---
-
 # Jupyter Notebook
 
 Create clean, reproducible Jupyter notebooks for two primary modes:

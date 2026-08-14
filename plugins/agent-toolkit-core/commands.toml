@@ -1,6 +1,6 @@
 [[commands]]
 name = "assistant"
-description = "Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs before c"
+description = "core/assistant"
 prompt = """
 Follow the `assistant` skill instructions for {{args}}.
 
@@ -9,7 +9,7 @@ Follow the `assistant` skill instructions for {{args}}.
 
 [[commands]]
 name = "dev_companion"
-description = "WHAT — Dev Companion (general): layered companion for client delivery; modes, gates, delegation to assistant and workflo"
+description = "core/dev-companion"
 prompt = """
 Follow the `dev-companion` skill instructions for {{args}}.
 
@@ -18,7 +18,7 @@ Follow the `dev-companion` skill instructions for {{args}}.
 
 [[commands]]
 name = "output_handshake"
-description = "WHAT — Default gate for any deliverable: confirm where the final artifact will be stored and that a human will review, b"
+description = "core/output-handshake"
 prompt = """
 Follow the `output-handshake` skill instructions for {{args}}.
 
@@ -27,7 +27,7 @@ Follow the `output-handshake` skill instructions for {{args}}.
 
 [[commands]]
 name = "pr_fallback"
-description = "WHAT — When the repo has no GitHub PR template, structure the pull-request body using the default in references/pr-body-"
+description = "core/pr-fallback"
 prompt = """
 Follow the `pr-fallback` skill instructions for {{args}}.
 
@@ -36,7 +36,7 @@ Follow the `pr-fallback` skill instructions for {{args}}.
 
 [[commands]]
 name = "workspace_knowledge_sync"
-description = "Syncs knowledge to the agentic-harness knowledge base. Use when the assistant discovers new patterns, learns user preferenc"
+description = "core/workspace-knowledge-sync"
 prompt = """
 Follow the `workspace-knowledge-sync` skill instructions for {{args}}.
 
@@ -45,7 +45,7 @@ Follow the `workspace-knowledge-sync` skill instructions for {{args}}.
 
 [[commands]]
 name = "onboarding"
-description = "Getting started guide for new users. Walks through setup validation, the skill/agent hierarchy, and the three most usefu"
+description = "core/onboarding"
 prompt = """
 Follow the `onboarding` skill instructions for {{args}}.
 

@@ -1,9 +1,11 @@
 ---
 name: trd
-description: >-
-  WHAT — Draft and review a Technical Requirements Document (TRD) using the template, typically from an agreed PRD. Covers architecture, data contracts, technical decisions, risks, and test strategy. English for technical artifacts and tickets unless the user asks otherwise.
+description: WHAT — Draft and review a Technical Requirements Document (TRD) using the template, typically
+  from an agreed PRD. Covers architecture, data contracts, technical decisions, risks, and test strategy.
+  English for technical artifacts and tickets unless the user asks otherwise.
+origin:
+  type: first-party
 ---
-
 # TRD — Technical Requirements (WHAT)
 
 **Template:** `references/default-template.md` — local reference, kept up to date with the standard structure.

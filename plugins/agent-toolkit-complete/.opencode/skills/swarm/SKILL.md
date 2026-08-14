@@ -1,12 +1,19 @@
 ---
 name: swarm
-description: Launch an Agent Toolkit swarm from a natural language request using agent-toolkit swarm CLI with Herdr/tmux eager windows and file handoffs.
+description: Launch an Agent Toolkit swarm from a natural language request using agent-toolkit swarm CLI
+  with Herdr/tmux eager windows and file handoffs.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [swarm, herdr, tmux, orchestration, multi-agent]
+  version: '1.0'
+  tags:
+  - swarm
+  - herdr
+  - tmux
+  - orchestration
+  - multi-agent
 ---
-
 # Swarm
 
 Launch a production Agent Toolkit swarm from any natural language request via the `agent-toolkit swarm` CLI. Herdr is the default UI for an excellent interactive experience; tmux is the isolated fallback.

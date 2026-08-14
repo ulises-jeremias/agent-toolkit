@@ -1,8 +1,11 @@
 ---
 name: linear
-description: Manage Linear issues, projects and cycles via the Linear MCP server. Use when the user wants to read, triage, create or update Linear tickets, plan a sprint, audit Linear documentation, or rebalance team workload.
+description: Manage Linear issues, projects and cycles via the Linear MCP server. Use when the user wants
+  to read, triage, create or update Linear tickets, plan a sprint, audit Linear documentation, or rebalance
+  team workload.
+origin:
+  type: first-party
 ---
-
 # Linear
 
 Structured workflow for managing Linear issues, projects and cycles through the

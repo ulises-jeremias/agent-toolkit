@@ -1,10 +1,10 @@
 ---
 name: snowflake-validation
-description: >-
-  HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflake/sql) or SQL checks.
-  Never claim success without working credentials and evidence.
+description: 'HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflake/sql) or
+  SQL checks. Never claim success without working credentials and evidence.'
+origin:
+  type: first-party
 ---
-
 # Snowflake validation (HOW)
 
 Use when the task or repo requires **Snowflake** verification. Client workflows may delegate here alongside **dbt-validation**.

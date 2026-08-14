@@ -1,10 +1,10 @@
 ---
 name: github-cli-workflow
-description: >-
-  HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file;
-  fallback untracked PR_DESCRIPTION_*.md. Use when origin is GitHub.
+description: 'HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file;
+  fallback untracked PR_DESCRIPTION_*.md. Use when origin is GitHub.'
+origin:
+  type: first-party
 ---
-
 # GitHub CLI — draft PR (HOW)
 
 Use this skill when the remote is **GitHub** and you need to **push** and open a **draft** pull request. Workflow skills delegate here; this skill does **not** replace Jira or ClickUp procedures.

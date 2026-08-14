@@ -1,9 +1,10 @@
 ---
 name: epic
-description: >-
-  WHAT - Draft and review epics using the Best Practices Epic Template; includes objectives, success criteria, related tasks, stakeholders, and effort metadata.
+description: WHAT - Draft and review epics using the Best Practices Epic Template; includes objectives,
+  success criteria, related tasks, stakeholders, and effort metadata.
+origin:
+  type: first-party
 ---
-
 # Epic (WHAT)
 
 Use when a large body of work needs grouping into related stories, tasks, bugs, or subtasks.

@@ -1,7 +1,7 @@
 {
   "name": "@agent-toolkit/agent-toolkit-complete",
-  "version": "1.8.4",
-  "description": "Full stable skill catalog coverage for consumers who want everything (#50)",
+  "version": "1.12.2",
+  "description": "Full stable skill catalog coverage for consumers who want everything (",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -50,6 +50,12 @@
       "skills/figma-create-design-system-rules/SKILL.md",
       "skills/figma-create-new-file/SKILL.md",
       "skills/figma-implement-design/SKILL.md",
+      "skills/design-assessment/SKILL.md",
+      "skills/design-improvement/SKILL.md",
+      "skills/frontend-design/SKILL.md",
+      "skills/frontend-design-review/SKILL.md",
+      "skills/web-design-guidelines/SKILL.md",
+      "skills/supply-chain-audit/SKILL.md",
       "skills/gh-address-comments/SKILL.md",
       "skills/gh-contribution-planner/SKILL.md",
       "skills/gh-fix-ci/SKILL.md",
@@ -71,12 +77,25 @@
       "skills/herdr/SKILL.md",
       "skills/inventory/SKILL.md",
       "skills/jupyter-notebook/SKILL.md",
+      "skills/review/SKILL.md",
+      "skills/mcp-audit/SKILL.md",
+      "skills/owasp-agentic-review/SKILL.md",
+      "skills/threat-modeling/SKILL.md",
+      "skills/megalinter/SKILL.md",
+      "skills/codeql/SKILL.md",
+      "skills/chrome-devtools/SKILL.md",
       "skills/playwright-cli/SKILL.md",
       "skills/project/SKILL.md",
       "skills/workspace/SKILL.md",
       "skills/worktree/SKILL.md",
-      "skills/mcp/SKILL.md"
+      "skills/mcp/SKILL.md",
+      "skills/cloud-design-patterns/SKILL.md",
+      "skills/aws-well-architected-review/SKILL.md",
+      "skills/mermaid/SKILL.md",
+      "skills/c4-model/SKILL.md"
     ],
-    "agents": []
+    "agents": [
+      
+    ]
   }
 }

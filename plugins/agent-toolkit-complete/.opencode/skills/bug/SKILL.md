@@ -1,9 +1,10 @@
 ---
 name: bug
-description: >-
-  WHAT - Draft and review bugs using the Bug Template; classifies whether an issue should be escalated to incident based on production/user impact.
+description: WHAT - Draft and review bugs using the Bug Template; classifies whether an issue should be
+  escalated to incident based on production/user impact.
+origin:
+  type: first-party
 ---
-
 # Bug (WHAT)
 
 Use for defects that can be handled through the normal development workflow.

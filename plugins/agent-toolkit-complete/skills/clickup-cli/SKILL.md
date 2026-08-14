@@ -1,8 +1,11 @@
 ---
 name: clickup-cli
-description: ClickUp CLI for managing tasks, sprints, comments, statuses, and Docs. Use when the user needs to interact with ClickUp — creating/editing tasks, checking sprint status, adding comments, linking PRs, managing Docs and pages, or searching tasks. Prefer this CLI over raw API calls.
+description: ClickUp CLI for managing tasks, sprints, comments, statuses, and Docs. Use when the user
+  needs to interact with ClickUp — creating/editing tasks, checking sprint status, adding comments, linking
+  PRs, managing Docs and pages, or searching tasks. Prefer this CLI over raw API calls.
+origin:
+  type: first-party
 ---
-
 # ClickUp CLI (`clickup`)
 
 Use the `clickup` CLI instead of raw ClickUp API calls. Handles authentication, git integration,

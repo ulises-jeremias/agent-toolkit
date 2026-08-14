@@ -1,9 +1,10 @@
 ---
 name: development-workflow
-description: >-
-  WHAT - Default development workflow, task lifecycle, DoR, DoD, validation, and evidence model when a project has no explicit override. Repository instructions still take precedence.
+description: WHAT - Default development workflow, task lifecycle, DoR, DoD, validation, and evidence model
+  when a project has no explicit override. Repository instructions still take precedence.
+origin:
+  type: first-party
 ---
-
 # Development Workflow Fallback (WHAT)
 
 Use this skill when a project has no documented workflow override and you need the default expectations for delivery stages, validation, evidence, and traceability.

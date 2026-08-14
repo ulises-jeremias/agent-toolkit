@@ -1,6 +1,6 @@
 [[commands]]
 name = "github_cli_workflow"
-description = "HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file; fallback untracked PR_DESCRIP"
+description = "forge/github-cli-workflow"
 prompt = """
 Follow the `github-cli-workflow` skill instructions for {{args}}.
 
@@ -9,7 +9,7 @@ Follow the `github-cli-workflow` skill instructions for {{args}}.
 
 [[commands]]
 name = "gitlab_cli_workflow"
-description = "HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown. Use when origin is G"
+description = "forge/gitlab-cli-workflow"
 prompt = """
 Follow the `gitlab-cli-workflow` skill instructions for {{args}}.
 
@@ -18,7 +18,7 @@ Follow the `gitlab-cli-workflow` skill instructions for {{args}}.
 
 [[commands]]
 name = "gh_address_comments"
-description = "Triage and address open GitHub PR review and conversation comments using the gh CLI. Use when the user wants to 'address"
+description = "forge/gh-address-comments"
 prompt = """
 Follow the `gh-address-comments` skill instructions for {{args}}.
 
@@ -27,7 +27,7 @@ Follow the `gh-address-comments` skill instructions for {{args}}.
 
 [[commands]]
 name = "gh_fix_ci"
-description = "Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure context, propose a plan, and only implement"
+description = "forge/gh-fix-ci"
 prompt = """
 Follow the `gh-fix-ci` skill instructions for {{args}}.
 
@@ -36,7 +36,7 @@ Follow the `gh-fix-ci` skill instructions for {{args}}.
 
 [[commands]]
 name = "gh_contribution_planner"
-description = "Daily GitHub contribution planner — analyzes the gh-logged-in user's non-archived repos (owned + forks) and recent contr"
+description = "forge/gh-contribution-planner"
 prompt = """
 Follow the `gh-contribution-planner` skill instructions for {{args}}.
 
@@ -45,7 +45,7 @@ Follow the `gh-contribution-planner` skill instructions for {{args}}.
 
 [[commands]]
 name = "workflow_client_bootstrap"
-description = "DEPRECATED alias. Use workflow-client-bootstrap instead."
+description = "forge/workflow-client-bootstrap"
 prompt = """
 Follow the `workflow-client-bootstrap` skill instructions for {{args}}.
 
@@ -54,7 +54,7 @@ Follow the `workflow-client-bootstrap` skill instructions for {{args}}.
 
 [[commands]]
 name = "workflow_generic_project"
-description = "DEPRECATED alias. Use workflow-generic-project instead."
+description = "forge/workflow-generic-project"
 prompt = """
 Follow the `workflow-generic-project` skill instructions for {{args}}.
 

@@ -1,9 +1,10 @@
 ---
 name: user-story
-description: >-
-  WHAT - Draft and review user stories using the task template plus the As a/I want/so that format from Best Practices examples.
+description: WHAT - Draft and review user stories using the task template plus the As a/I want/so that
+  format from Best Practices examples.
+origin:
+  type: first-party
 ---
-
 # User Story (WHAT)
 
 Use for user-centered requirements that need business value, technical notes, and acceptance criteria.

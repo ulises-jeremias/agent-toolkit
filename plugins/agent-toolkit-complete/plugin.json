@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-complete",
   "version": "1.12.2",
-  "description": "Full stable skill catalog coverage for consumers who want everything",
+  "description": "Full stable skill catalog coverage for consumers who want everything (",
   "author": {
     "name": "ulises-jeremias",
     "url": "https://github.com/ulises-jeremias/agent-toolkit"
@@ -16,16 +16,5 @@
     "skills",
     "agents",
     "mcp"
-  ],
-  "extensions": {
-    "com.anthropic.claude-code": {
-      "agents": "agents/",
-      "hooks": "hooks/",
-      "skills": "skills/"
-    },
-    "com.agent-toolkit.cli": {
-      "product": "agent-toolkit-complete",
-      "stability": "experimental"
-    }
-  }
+  ]
 }

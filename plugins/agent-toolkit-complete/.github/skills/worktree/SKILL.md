@@ -1,12 +1,19 @@
 ---
 name: worktree
-description: Manage Git worktrees per writer for Agent Toolkit swarms — isolated branches, handoff promotion, and cleanup.
+description: Manage Git worktrees per writer for Agent Toolkit swarms — isolated branches, handoff promotion,
+  and cleanup.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [git, worktree, swarm, handoff, branch]
+  version: '1.0'
+  tags:
+  - git
+  - worktree
+  - swarm
+  - handoff
+  - branch
 ---
-
 # Worktree
 
 Create and maintain **worktree-per-writer** isolation for `agent-toolkit swarm` so each role works on its own branch without stepping on others. Integrates with `swarm-handoff` promotion and `github-cli-workflow` for PRs.

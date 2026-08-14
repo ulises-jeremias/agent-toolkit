@@ -1,9 +1,10 @@
 ---
 name: decision-log
-description: >-
-  WHAT - Capture lightweight project, product, or operational decisions that do not require a full ADR; includes rationale, date, owner, and references.
+description: WHAT - Capture lightweight project, product, or operational decisions that do not require
+  a full ADR; includes rationale, date, owner, and references.
+origin:
+  type: first-party
 ---
-
 # Decision Log (WHAT)
 
 Use for lightweight decisions made in meetings or project discussions.

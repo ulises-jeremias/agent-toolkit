@@ -1,9 +1,10 @@
 ---
 name: planning
-description: >-
-  WHAT - Planning, estimation, task breakdown, and iteration capacity fallback based on Best Practices. Use before finalizing backlog scope, story/task estimates, or iteration commitments.
+description: WHAT - Planning, estimation, task breakdown, and iteration capacity fallback based on Best
+  Practices. Use before finalizing backlog scope, story/task estimates, or iteration commitments.
+origin:
+  type: first-party
 ---
-
 # Planning and Estimation (WHAT)
 
 Use this skill when work needs planning, breakdown, estimation, or capacity validation before it becomes final backlog content.

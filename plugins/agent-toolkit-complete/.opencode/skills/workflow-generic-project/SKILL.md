@@ -1,9 +1,9 @@
 ---
 name: workflow-generic-project
-description: >-
-  DEPRECATED alias. Use workflow-generic-project instead.
+description: DEPRECATED alias. Use workflow-generic-project instead.
+origin:
+  type: first-party
 ---
-
 # Deprecated — workflow-generic-project
 
 This skill name is kept for backward compatibility only.

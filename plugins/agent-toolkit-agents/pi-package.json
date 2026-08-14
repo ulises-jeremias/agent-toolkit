@@ -1,7 +1,7 @@
 {
   "name": "@agent-toolkit/agent-toolkit-agents",
-  "version": "1.8.4",
-  "description": "Full set of 16 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
+  "version": "1.12.2",
+  "description": "Full set of 17 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -15,8 +15,11 @@
     "agents"
   ],
   "pi": {
-    "skills": [],
+    "skills": [
+      
+    ],
     "agents": [
+      "agents/agentic-security-reviewer/AGENT.md",
       "agents/architect/AGENT.md",
       "agents/assistant/AGENT.md",
       "agents/build-error-resolver/AGENT.md",

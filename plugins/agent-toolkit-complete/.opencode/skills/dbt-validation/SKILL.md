@@ -1,10 +1,10 @@
 ---
 name: dbt-validation
-description: >-
-  HOW — Run dbt checks as documented in the target repo (parse, compile, test, selective run).
+description: HOW — Run dbt checks as documented in the target repo (parse, compile, test, selective run).
   Does not configure Snowflake accounts or change cloud security.
+origin:
+  type: first-party
 ---
-
 # dbt validation (HOW)
 
 Use when the repository is a **dbt** project or the task requires **dbt** verification. Client workflows may delegate here.

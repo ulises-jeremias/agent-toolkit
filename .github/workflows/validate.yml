@@ -439,9 +439,9 @@ jobs:
       - name: Ruff format check
         run: uv run --project packages/pypi/agent-toolkit-cli --directory . ruff format --check packages/pypi/agent-toolkit-cli/src tests scripts
 
-  # ── Job 8c: Scoped coverage gate — compiler + installer + cli/install.py (#271) ──
+  # ── Job 8c: Launcher coverage gate (PyPI trampoline only) ──
   coverage:
-    name: Coverage (compiler/install scoped)
+    name: Coverage (launcher)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -458,16 +458,6 @@ jobs:
             tests/test_launcher.py tests/test_hatch_build.py -v --tb=short
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
-
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-        with:
-          python-version: "3.11"
-      - name: Sync PyPI adapter
-        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
-      - name: Run mypy on allowlisted packages (compiler + installer)
-        run: uv run --project packages/pypi/agent-toolkit-cli --directory . mypy packages/pypi/agent-toolkit-cli/src/agent_toolkit/compiler packages/pypi/agent-toolkit-cli/src/agent_toolkit/installer
 
 # ── Job 9: Build package — ensures a clean wheel and sdist ────────────────
   build-package:

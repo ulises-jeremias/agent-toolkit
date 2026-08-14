@@ -1,11 +1,11 @@
 ---
 name: project-assessment-evidence
-description: >-
-  WHAT - Interactive evidence intake for project assessments. Ask the user where
-  each evidence source lives, build an evidence map, track missing evidence,
-  assumptions, freshness, and confidence before any scoring happens.
+description: WHAT - Interactive evidence intake for project assessments. Ask the user where each evidence
+  source lives, build an evidence map, track missing evidence, assumptions, freshness, and confidence
+  before any scoring happens.
+origin:
+  type: first-party
 ---
-
 # Project Assessment Evidence (WHAT)
 
 Use this skill before scoring a project assessment. It turns scattered project knowledge into a structured evidence map.

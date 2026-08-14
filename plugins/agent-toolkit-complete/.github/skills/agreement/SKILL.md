@@ -1,9 +1,10 @@
 ---
 name: agreement
-description: >-
-  WHAT - Capture explicit agreements, terms, parties involved, dates, validity, and linked work items using the Agreement Document structure.
+description: WHAT - Capture explicit agreements, terms, parties involved, dates, validity, and linked
+  work items using the Agreement Document structure.
+origin:
+  type: first-party
 ---
-
 # Agreement Document (WHAT)
 
 Use for formal agreements or commitments made during meetings or project discussions.

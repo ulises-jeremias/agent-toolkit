@@ -1,69 +1,86 @@
 # Agent Toolkit Complete
 
-Full stable skill catalog coverage for consumers who want everything (#50)
+Full stable skill catalog coverage for consumers who want everything (
 
 ## Available skills
 
-- **assistant**: Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task 
-- **dev-companion**: WHAT — Dev Companion (general): layered companion for client delivery; modes, ga
-- **onboarding**: Getting started guide for new users. Walks through setup validation, the skill/a
-- **output-handshake**: WHAT — Default gate for any deliverable: confirm where the final artifact will b
-- **pr-fallback**: WHAT — When the repo has no GitHub PR template, structure the pull-request body 
-- **workspace-knowledge-sync**: Syncs knowledge to the agentic-harness knowledge base. Use when the assistant disco
-- **dbt-validation**: HOW — Run dbt checks as documented in the target repo (parse, compile, test, sel
-- **snowflake-validation**: HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflak
-- **adr**: WHAT — Create and maintain Architecture Decision Records (ADRs) per the process.
-- **agreement**: WHAT - Capture explicit agreements, terms, parties involved, dates, validity, an
-- **bug**: WHAT - Draft and review bugs using the Bug Template; classifies whether an issue
-- **decision-log**: WHAT - Capture lightweight project, product, or operational decisions that do no
-- **development-workflow**: WHAT - Default development workflow, task lifecycle, DoR, DoD, validation, and e
-- **epic**: WHAT - Draft and review epics using the Best Practices Epic Template; includes o
-- **incident**: WHAT - Draft and review incident reports and RCA notes using Incident Management
-- **management-unit-assessment**: WHAT - Evidence-based management unit assessment for governance, delivery, colla
-- **meeting-minutes**: WHAT - Create structured meeting minutes from notes or transcripts using meeting
-- **planning**: WHAT - Planning, estimation, task breakdown, and iteration capacity fallback bas
-- **prd**: WHAT — Draft and review a Product Requirements Document (PRD) using the template
-- **project-assessment**: WHAT - Interactive project assessment router: define assessment scope and units,
-- **project-assessment-evidence**: WHAT - Interactive evidence intake for project assessments. Ask the user where e
-- **spike**: WHAT - Produce spike and research findings using the spike template; captures pu
-- **task**: WHAT - Draft and review technical tasks using the Best Practices Task Template; 
-- **technical-unit-assessment**: WHAT - Evidence-based technical unit assessment for repositories, platforms, fro
-- **trd**: WHAT — Draft and review a Technical Requirements Document (TRD) using the templa
-- **user-story**: WHAT - Draft and review user stories using the task template plus the As a/I wan
-- **work-item**: WHAT - Router for creating and refining epics, user stories, tasks, bugs, and in
-- **workflow-client-bootstrap**: WHAT — Interactive interview to capture client delivery context and store it ins
-- **workflow-generic-project**: WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates,
-- **figma**: Use the Figma MCP server to fetch design context, screenshots, variables, and as
-- **figma-code-connect-components**: Connects Figma design components to code components using Code Connect mapping t
-- **figma-create-design-system-rules**: Generates custom design system rules for the user's codebase. Use when user says
-- **figma-create-new-file**: Create a new blank Figma file. Use when the user wants to create a new Figma des
-- **figma-implement-design**: Translates Figma designs into production-ready application code with 1:1 visual 
-- **gh-address-comments**: Triage and address open GitHub PR review and conversation comments using the gh 
-- **gh-contribution-planner**: Daily GitHub contribution planner — analyzes the gh-logged-in user's non-archive
-- **gh-fix-ci**: Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure con
-- **github-cli-workflow**: HOW — GitHub CLI (gh): push branch, create draft PR with title/body from templat
-- **gitlab-cli-workflow**: HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback 
-- **workflow-client-bootstrap**: DEPRECATED alias. Use workflow-client-bootstrap instead.
-- **workflow-generic-project**: DEPRECATED alias. Use workflow-generic-project instead.
-- **clickup-cli**: ClickUp CLI for managing tasks, sprints, comments, statuses, and Docs. Use when 
-- **linear**: Manage Linear issues, projects and cycles via the Linear MCP server. Use when th
-- **slack-assistant**: Interact with Slack workspaces for reading channels/messages, sending messages, 
-- **slack-cli**: Interact with the official Slack CLI to create, run, deploy, and manage Slack ap
-- **loop-runner**: Execute and manage loop engineering primitives (init, run, status, audit) from a
-- **docs-generator**: WHAT — Generate or update documentation from code: README.md from repo structure
-- **llm-cost-advisor**: WHAT — Recommend the most cost-effective LLM provider for a given task type. Sho
-- **swarm**: Launch an Agent Toolkit swarm from a natural language request using agent-toolki
-- **swarm-handoff**: Create artifact/commit file handoffs for Agent Toolkit swarms with worktree-per-
-- **swarm-observer**: Observe, diagnose, and recover Agent Toolkit swarm runs via status, handoffs, lo
-- **triage**: Workstation health triage — validate tooling, directory layout, and run doctor w
-- **herdr**: Manage Herdr workspaces, tabs, and panes for Agent Toolkit swarms with eager win
-- **inventory**: Discover installed skills, agents, loops, and platform capabilities via agent-to
-- **jupyter-notebook**: Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments and tut
-- **playwright-cli**: Drive a real browser from the terminal using the Playwright CLI (snapshot, click
-- **project**: Clone, index, and orchestrate multi-repo work via agent-toolkit project — symlin
-- **workspace**: Scaffold and manage the stateless AI workspace — context, packs, repos, and know
-- **worktree**: Manage Git worktrees per writer for Agent Toolkit swarms — isolated branches, ha
-- **mcp**: Configure and manage MCP providers for Agent Toolkit — setup, list, doctor, and 
+- **assistant**: core/assistant
+- **dev-companion**: core/dev-companion
+- **onboarding**: core/onboarding
+- **output-handshake**: core/output-handshake
+- **pr-fallback**: core/pr-fallback
+- **workspace-knowledge-sync**: core/workspace-knowledge-sync
+- **dbt-validation**: data/dbt-validation
+- **snowflake-validation**: data/snowflake-validation
+- **adr**: delivery/adr
+- **agreement**: delivery/agreement
+- **bug**: delivery/bug
+- **decision-log**: delivery/decision-log
+- **development-workflow**: delivery/development-workflow
+- **epic**: delivery/epic
+- **incident**: delivery/incident
+- **management-unit-assessment**: delivery/management-unit-assessment
+- **meeting-minutes**: delivery/meeting-minutes
+- **planning**: delivery/planning
+- **prd**: delivery/prd
+- **project-assessment**: delivery/project-assessment
+- **project-assessment-evidence**: delivery/project-assessment-evidence
+- **spike**: delivery/spike
+- **task**: delivery/task
+- **technical-unit-assessment**: delivery/technical-unit-assessment
+- **trd**: delivery/trd
+- **user-story**: delivery/user-story
+- **work-item**: delivery/work-item
+- **workflow-client-bootstrap**: delivery/workflow-client-bootstrap
+- **workflow-generic-project**: delivery/workflow-generic-project
+- **figma**: design/figma
+- **figma-code-connect-components**: design/figma-code-connect-components
+- **figma-create-design-system-rules**: design/figma-create-design-system-rules
+- **figma-create-new-file**: design/figma-create-new-file
+- **figma-implement-design**: design/figma-implement-design
+- **design-assessment**: design/design-assessment
+- **design-improvement**: design/design-improvement
+- **frontend-design**: design/frontend-design
+- **frontend-design-review**: design/frontend-design-review
+- **web-design-guidelines**: design/web-design-guidelines
+- **supply-chain-audit**: agentic-security/supply-chain-audit
+- **gh-address-comments**: forge/gh-address-comments
+- **gh-contribution-planner**: forge/gh-contribution-planner
+- **gh-fix-ci**: forge/gh-fix-ci
+- **github-cli-workflow**: forge/github-cli-workflow
+- **gitlab-cli-workflow**: forge/gitlab-cli-workflow
+- **workflow-client-bootstrap**: forge/workflow-client-bootstrap
+- **workflow-generic-project**: forge/workflow-generic-project
+- **clickup-cli**: integrations/clickup-cli
+- **linear**: integrations/linear
+- **slack-assistant**: integrations/slack-assistant
+- **slack-cli**: integrations/slack-cli
+- **loop-runner**: loops/loop-runner
+- **docs-generator**: ops/docs-generator
+- **llm-cost-advisor**: ops/llm-cost-advisor
+- **swarm**: ops/swarm
+- **swarm-handoff**: ops/swarm-handoff
+- **swarm-observer**: ops/swarm-observer
+- **triage**: ops/triage
+- **herdr**: tooling/herdr
+- **inventory**: tooling/inventory
+- **jupyter-notebook**: tooling/jupyter-notebook
+- **review**: accessibility/review
+- **mcp-audit**: agentic-security/mcp-audit
+- **owasp-agentic-review**: agentic-security/owasp-agentic-review
+- **threat-modeling**: agentic-security/threat-modeling
+- **megalinter**: quality/megalinter
+- **codeql**: quality/codeql
+- **chrome-devtools**: tooling/chrome-devtools
+- **playwright-cli**: tooling/playwright-cli
+- **project**: core/project
+- **workspace**: core/workspace
+- **worktree**: forge/worktree
+- **mcp**: integrations/mcp
+- **cloud-design-patterns**: cloud/cloud-design-patterns
+- **aws-well-architected-review**: cloud/aws-well-architected-review
+- **mermaid**: tooling/mermaid
+- **c4-model**: architecture/c4-model
 
 ## Available agents
 
