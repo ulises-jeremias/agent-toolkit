@@ -131,6 +131,8 @@ Failure visibility on the releasing repo:
 * If downstream is red, re-dispatch per playbook (see below) and re-check; do not close the release as done until both downstream runs are green or explicitly deferred for maintenance.
 * For AUR, a maintenance failure is expected — document it in the release comment and retry when AUR leaves maintenance; do not auto-open issues on every window.
 
+* Homebrew PR-create 403 (`not permitted to create or approve pull requests`): enable **Allow GitHub Actions to create and approve pull requests** on `homebrew-tap`, and/or ensure `HOMEBREW_TAP_TOKEN` has **Pull requests: Write**. See [`distribution/homebrew/README.md`](../distribution/homebrew/README.md#maintainer-formula-pr-must-open-automatically).
+
 
 
 ## Downstream install source (GitHub Release V binaries)

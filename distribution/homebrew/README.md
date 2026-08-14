@@ -22,6 +22,12 @@ After `notify-homebrew.yml` dispatches the tap, `update-formula.yml` pushes `cho
 2. Ensure environment secret `HOMEBREW_TAP_TOKEN` (fine-grained PAT) has **Contents: R/W** and **Pull requests: R/W** on `ulises-jeremias/homebrew-tap` (fallback when the Actions toggle is off).
 3. Same secret on this repo’s `homebrew` environment for `notify-homebrew.yml` → `repository_dispatch`.
 
+```bash
+gh api -X PUT repos/ulises-jeremias/homebrew-tap/actions/permissions/workflow \
+  -f default_workflow_permissions=write \
+  -F can_approve_pull_request_reviews=true
+```
+
 Details: [homebrew-tap README](https://github.com/ulises-jeremias/homebrew-tap#ci-secrets-and-permissions-maintainer).
 
 ```bash
