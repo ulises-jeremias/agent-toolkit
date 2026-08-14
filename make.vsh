@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v run
 // V foundation targets for modules/ (ADR-009).
-// Usage: v run make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
-// Optional: v run make.vsh compile-make && ./make <target>
+// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
+// Optional: ./make.vsh compile-make && ./make <target>
 //
 // vlib build: https://github.com/vlang/v/tree/master/vlib/build
 // Style: bobatea/make.vsh + examples/build_system/build.vsh
@@ -74,7 +74,7 @@ context.task(
 	help: 'Show targets (default); also: --tasks'
 	run:  fn [r] (_ build.Task) ! {
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
-		println('V targets (pin: ${pin}) — v run make.vsh --tasks')
+		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
 		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
 	}
 )
