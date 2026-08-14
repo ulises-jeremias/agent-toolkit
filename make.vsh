@@ -11,10 +11,27 @@ fn root_dir() string {
 	return getwd()
 }
 
+// Prefer Makefile/CI `V` / setup-v `VBIN` so Windows can use v.exe full path.
+fn v_bin() string {
+	for key in ['V', 'VBIN'] {
+		p := getenv(key)
+		if p.len > 0 {
+			return p
+		}
+	}
+	return 'v'
+}
+
+fn v_system(cmd_args string) int {
+	vb := v_bin()
+	return system('"${vb}" ${cmd_args}')
+}
+
 fn ensure_v(root string) {
-	res := execute('v version')
+	vb := v_bin()
+	res := execute('"${vb}" version')
 	if res.exit_code != 0 {
-		eprintln('v not found; install V matching .v-version')
+		eprintln('v not found; install V matching .v-version (or set V/VBIN)')
 		exit(1)
 	}
 	pin_path := join_path(root, '.v-version')
@@ -36,7 +53,7 @@ fn run_for_modules(root string, label string, args string) {
 	modules := ['agent_toolkit_core', 'agent_toolkit_cli']
 	for m in modules {
 		println('==> ${label} ${m}')
-		rc := system('v ${args} ${join_path(root, 'modules', m)}')
+		rc := v_system('${args} ${join_path(root, 'modules', m)}')
 		if rc != 0 {
 			exit(rc)
 		}
@@ -51,7 +68,7 @@ fn build_cli(root string) {
 	if cres.exit_code == 0 {
 		commit = cres.output.trim_space()
 	}
-	rc := system('v -d commit=${commit} -o ${join_path(root, 'build', 'agent-toolkit')} ${join_path(root, 'cmd', 'agent-toolkit')}')
+	rc := v_system('-d commit=${commit} -o ${join_path(root, 'build', 'agent-toolkit')} ${join_path(root, 'cmd', 'agent-toolkit')}')
 	if rc != 0 {
 		exit(rc)
 	}
@@ -82,7 +99,7 @@ fn build_modules(root string) {
 		mkdir_all(tmpdir) or {}
 		main_v := join_path(tmpdir, 'main.v')
 		write_file(main_v, 'module main\nimport ${m} as _\nfn main() {}\n') or {}
-		rc := system('v -o ${join_path(tmpdir, 'out')} ${main_v}')
+		rc := v_system('-o ${join_path(tmpdir, 'out')} ${main_v}')
 		rmdir_all(tmpdir) or {}
 		if rc != 0 {
 			exit(rc)

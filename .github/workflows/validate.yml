@@ -551,14 +551,19 @@ jobs:
         shell: bash
         env:
           VMODULES: ${{ github.workspace }}/modules
-          # Windows make CreateProcess does not resolve v.exe from PATH when V=v.
-          V: ${{ env.VBIN }}
         run: |
           set -euo pipefail
-          if [ -z "${V:-}" ] || { [ ! -x "${V}" ] && [ ! -f "${V}" ]; }; then
-            echo "VBIN/V not set after setup-v (got V='${V:-}')" >&2
+          # Prefer setup-v VBIN; Windows make/CreateProcess need v.exe (and a Win32 path).
+          V_PATH="${VBIN:-${V:-}}"
+          if [ -z "${V_PATH}" ] || { [ ! -x "${V_PATH}" ] && [ ! -f "${V_PATH}" ]; }; then
+            echo "VBIN/V not set after setup-v (got '${V_PATH}')" >&2
             exit 1
           fi
+          if command -v cygpath >/dev/null 2>&1; then
+            V_PATH="$(cygpath -w "${V_PATH}")"
+          fi
+          export V="${V_PATH}"
+          export VBIN="${V_PATH}"
           make build-cli
 
       - name: Install from dist (Linux wheel with V binary; sdist elsewhere)
