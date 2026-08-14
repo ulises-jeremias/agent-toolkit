@@ -6,6 +6,12 @@ import cli
 // atk_exec is the shared vlib/cli callback for command nodes.
 // Production uses Command.parse → this callback; non-zero domain codes call exit().
 fn atk_exec(cmd cli.Command) ! {
+	if cmd.flags.get_bool('help') or { false } {
+		path := command_path(cmd)
+		name := if path.len > 0 { path[0] } else { cmd.name }
+		print(subcommand_help(name))
+		return
+	}
 	code := invoke_from_cli_cmd(cmd)
 	if code != 0 {
 		exit(code)

@@ -56,7 +56,12 @@ fn preflight_bad_flags(args []string) ?int {
 		if !a.starts_with('-') {
 			continue
 		}
-		if a in ['-h', '--help', '--json', '--quiet'] {
+		if a in ['-h', '--help'] {
+			// Rich family help before parse (parity + nested Command parents).
+			print(subcommand_help(cmd.name))
+			return 0
+		}
+		if a in ['--json', '--quiet'] {
 			continue
 		}
 		if !flag_allowed_on(cmd, a) {
