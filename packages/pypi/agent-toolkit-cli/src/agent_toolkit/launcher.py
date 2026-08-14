@@ -65,7 +65,7 @@ def missing_binary_message() -> str:
     return (
         "agent-toolkit: native V binary not found (ADR-021).\n"
         "  Packaged wheels bundle the binary under agent_toolkit/bin/.\n"
-        "  Dev: make build-cli, or set AGENT_TOOLKIT_BIN to that executable.\n"
+        "  Dev: v run make.vsh build-cli, or set AGENT_TOOLKIT_BIN to that executable.\n"
         "  Other channels: GitHub Release, Homebrew, AUR agent-toolkit-bin, npm.\n"
     )
 

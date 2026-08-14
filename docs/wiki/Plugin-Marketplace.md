@@ -209,7 +209,7 @@ version of the repository.
 ```bash
 cd ~/.agent-toolkit
 git pull
-make install-cli && agent-toolkit install --force
+v run make.vsh install-cli && agent-toolkit install --force
 ```
 
 ---

@@ -105,7 +105,7 @@ when updated to use agent-toolkit.
 |----------------|--------------|
 | CLI (GitHub / brew / AUR / `uv` / npm) | Upgrade that channel, then `agent-toolkit install --force` |
 | Marketplace | Re-install or update plugins from marketplace UI |
-| Git clone | `git pull` then `make install-cli && agent-toolkit install --force` |
+| Git clone | `git pull` then `v run make.vsh install-cli && agent-toolkit install --force` |
 
 Read [CHANGELOG.md](../CHANGELOG.md) for breaking changes between versions.
 Current CLI version: `packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py`.

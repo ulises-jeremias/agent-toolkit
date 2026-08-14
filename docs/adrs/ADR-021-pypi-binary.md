@@ -58,7 +58,7 @@ Musl/Alpine is **not** a PyPI MUST tag. No `py3-none-any` product wheel that sil
 - Forward stdio; on POSIX, replace the process (`execv`) so signals hit the V binary.
 - On Windows, spawn with signal/Ctrl-C forwarding and wait; return the native exit code.
 - Version printed by `agent-toolkit version` is the **V binary** version, not the launcher’s packaging version if they ever diverge (they should not).
-- Missing bundled binary in an editable/dev tree is an error pointing at `make build-cli` / `agent-toolkit-py` — not a silent Python fallback.
+- Missing bundled binary in an editable/dev tree is an error pointing at `v run make.vsh build-cli` / `agent-toolkit-py` — not a silent Python fallback.
 
 ### Rejected
 

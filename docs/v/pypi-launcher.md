@@ -14,6 +14,6 @@ Same idea as the npm trampoline (`packages/npm/agent-toolkit-cli/bin/agent-toolk
 
 Resolution order: `AGENT_TOOLKIT_BIN` → `agent_toolkit/bin/agent-toolkit` inside the wheel → `AGENT_TOOLKIT_ROOT/build/agent-toolkit{,-v}`.
 
-Wheel builds: `scripts/prepare-native-bin.sh` after `make build-cli`. Hatch `hatch_build.py` sets `pure_python = False` when a native file is present so pip will not install a Linux wheel on macOS.
+Wheel builds: `scripts/prepare-native-bin.sh` after `v run make.vsh build-cli`. Hatch `hatch_build.py` sets `pure_python = False` when a native file is present so pip will not install a Linux wheel on macOS.
 
-Missing binary exits **127** and points at `make build-cli` / other install channels.
+Missing binary exits **127** and points at `v run make.vsh build-cli` / other install channels.

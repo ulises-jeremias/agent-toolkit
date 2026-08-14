@@ -46,7 +46,7 @@ Experimental and stable binaries should expose engine/language, version, and com
 
 [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) is **accepted for the source/canonical implementation**:
 
-- From-source `make build-cli` / `make install-cli` installs V as `agent-toolkit`.
+- From-source `v run make.vsh build-cli` / `v run make.vsh install-cli` installs V as `agent-toolkit`.
 - Consumer commands (install lifecycle + skills/mcp/plugin) are implemented in V.
 - GitHub Release binaries are **stable native V** since `v1.11.0` ([#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530) / ADR-018). Experimental CI names (`agent-toolkit-v-experimental-*`) remain a separate channel and must not overwrite stable assets.
 - **PyPI/`uvx`:** packaging strategy is [ADR-021](ADR-021-pypi-binary.md) (platform wheels + thin launcher over the V binary). Implementation is [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535). Not a dual-engine switch (options B/C still rejected).

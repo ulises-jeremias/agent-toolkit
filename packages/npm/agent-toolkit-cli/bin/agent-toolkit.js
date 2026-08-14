@@ -57,7 +57,7 @@ function missingBinaryMessage() {
   return [
     "agent-toolkit: native V binary not found (ADR-025).",
     "  npm optionalDependencies should install agent-toolkit-cli-<os>-<cpu>.",
-    "  Dev: make build-cli, or set AGENT_TOOLKIT_BIN to that executable.",
+    "  Dev: v run make.vsh build-cli, or set AGENT_TOOLKIT_BIN to that executable.",
     "",
   ].join("\n");
 }

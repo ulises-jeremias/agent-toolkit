@@ -20,7 +20,7 @@ Experimental native V artifacts stay on the **experimental** channel ([ADR-018](
 
 `.github/workflows/experimental-v.yml` already lists paths (workflow, `.v-version`, `docs/v/{experimental-binaries,release-matrix,artifact-smoke}.md`). Docs-only PRs that do not touch those files **must not** pay the 5-runner MUST matrix.
 
-`.github/workflows/parity.yml` is limited to CLI/V/parity/Makefile/`.v-version` paths so markdown-only PRs skip the golden harness.
+`.github/workflows/parity.yml` is limited to CLI/V/parity/make.vsh/`.v-version` paths so markdown-only PRs skip the golden harness.
 
 ## Python lane retirement trigger
 

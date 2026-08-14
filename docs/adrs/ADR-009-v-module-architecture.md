@@ -40,7 +40,7 @@ Rules:
 ## Consequences
 
 - **Positive:** Clear boundary for adapters; reusable core for parity harness and future surfaces; aligns with CVA patterns we REUSE/ADAPT.
-- **Negative:** Contributors learn two `v.mod` files and a Makefile orchestration (acceptable).
+- **Negative:** Contributors learn two `v.mod` files and `make.vsh` orchestration (acceptable).
 - **Rejected:** Flat module (hard to keep CLI out of domain); premature server/TUI stubs (noise and false coupling).
 
 ## Validation plan

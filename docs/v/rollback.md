@@ -16,11 +16,11 @@ From a git checkout:
 
 ```bash
 git checkout v1.11.0
-make build-cli
-make install-cli
+v run make.vsh build-cli
+v run make.vsh install-cli
 ```
 
-To undo `make install-cli` only: `rm -f ~/.local/bin/agent-toolkit` (do not overwrite a brew/AUR/npm-managed binary — [ADR-017](../adrs/ADR-017-update-ownership.md)).
+To undo `v run make.vsh install-cli` only: `rm -f ~/.local/bin/agent-toolkit` (do not overwrite a brew/AUR/npm-managed binary — [ADR-017](../adrs/ADR-017-update-ownership.md)).
 
 ## PyPI
 

@@ -14,7 +14,7 @@ if [[ -z "$SRC" ]]; then
   done
 fi
 if [[ -z "$SRC" || ! -f "$SRC" ]]; then
-  echo "prepare-native-bin: no binary (set AGENT_TOOLKIT_NATIVE_BIN or make build-cli)" >&2
+  echo "prepare-native-bin: no binary (set AGENT_TOOLKIT_NATIVE_BIN or v run make.vsh build-cli)" >&2
   exit 1
 fi
 if [[ "$SRC" == *.exe ]]; then

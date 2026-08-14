@@ -17,7 +17,7 @@ Implementation PR: [homebrew-tap#5](https://github.com/ulises-jeremias/homebrew-
 | ID | Option | Summary |
 |----|--------|---------|
 | **A** | Formula installs **upstream prebuilt GitHub Release binary** | `url` per OS/arch (ADR-018 floating names); `bin.install`; verify sha256. |
-| **B** | Formula builds from V source on the user machine | `depends_on "vlang"`; `make build-cli`. |
+| **B** | Formula builds from V source on the user machine | `depends_on "vlang"`; `v run make.vsh build-cli`. |
 | **C** | Source formula **and** Homebrew generates true **bottles** | Homebrew CI bottles the V build; still not “our” GitHub assets. |
 
 ## Decision

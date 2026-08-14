@@ -44,7 +44,7 @@
 ## Validation
 
 ```bash
-make build-cli
+v run make.vsh build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --target copilot-cli --check
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --target copilot-repository --check
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras

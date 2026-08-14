@@ -12,7 +12,7 @@ on:
       - "docs/SCOPE.md"
       - "docs/compatibility/**"
       - "packages/pypi/agent-toolkit-cli/**"
-      - "Makefile"
+      - "make.vsh"
       - ".v-version"
       - ".github/workflows/parity.yml"
   pull_request:
@@ -25,7 +25,7 @@ on:
       - "docs/SCOPE.md"
       - "docs/compatibility/**"
       - "packages/pypi/agent-toolkit-cli/**"
-      - "Makefile"
+      - "make.vsh"
       - ".v-version"
       - ".github/workflows/parity.yml"
   workflow_dispatch:
@@ -73,7 +73,7 @@ jobs:
           fi
 
       - name: Build experimental V CLI
-        run: make build-cli
+        run: v run make.vsh build-cli
 
       - name: Run parity harness (seed fixtures)
         run: python3 tests/parity/run_harness.py --v-bin build/agent-toolkit-v

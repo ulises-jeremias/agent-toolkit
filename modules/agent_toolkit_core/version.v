@@ -6,7 +6,7 @@ import os
 // and packages/.../__init__.py via scripts/bump-version.vsh.
 pub const embedded_version = '1.13.0'
 
-// embedded_commit is set at build via `v -d commit=<sha>` (Makefile build-cli).
+// embedded_commit is set at build via `v -d commit=<sha>` (make.vsh build-cli).
 const embedded_commit = $d('commit', 'unknown')
 
 // resolve_commit returns git SHA for JSON/doctor observability (not human version).

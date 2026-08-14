@@ -5,4 +5,4 @@
 
 Single dispatch table matching `docs/CLI_SURFACES.md` consumer/advanced split, aliases (`dc`, `rollback`), help via `vlib/cli` grouping, bad-flag exit **2**, unknown command exit **1**. Business logic stays in core; unfinished advanced commands return `not_implemented`. Consumer `install` is wired (#607).
 
-Build: `make build-cli` → `build/agent-toolkit` (canonical, #555) and `build/agent-toolkit-v` (parity harness alias).
+Build: `v run make.vsh build-cli` → `build/agent-toolkit` (canonical, #555) and `build/agent-toolkit-v` (parity harness alias).
