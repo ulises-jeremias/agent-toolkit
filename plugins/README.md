@@ -46,16 +46,16 @@ Portable vs legacy:
 - **Portable v1:** `plugin.json` + `skills/` + `mcp.json` (spec §4-§7). Validated via `schemas/agent-plugins/1.0.0/*.schema.json`.
 - **Not portable v1:** `agents/`, `hooks/`, `commands`, `rules` — remain client-specific in `com.anthropic.claude-code/` and are ignored by Agent Plugins clients.
 
-Plugins are kept in sync with canonical sources via `scripts/gen-surfaces.py` and the compiler (`agent_toolkit.compiler.targets.agent_plugins`). Never edit plugin bundles directly — edit the canonical source (`skills/`, `agents/`, `mcp/registry/`) and re-run the build.
+Plugins are kept in sync with canonical sources via `scripts/gen-surfaces.vsh` and the compiler (`agent_toolkit.compiler.targets.agent_plugins`). Never edit plugin bundles directly — edit the canonical source (`skills/`, `agents/`, `mcp/registry/`) and re-run the build.
 
 See [docs/AGENT_PLUGINS.md](../docs/AGENT_PLUGINS.md) for the full spec, support matrix, and migration guide.
 
 ## Validation
 
 ```bash
-python3 scripts/validate-agent-plugins.py --check  # Agent Plugins 1.0
-python3 scripts/validate-manifests.py              # Claude/Cursor legacy manifests
-python3 scripts/validate-skills.py                 # SKILL.md frontmatter
+v run scripts/validate-agent-plugins.vsh --check  # Agent Plugins 1.0
+v run scripts/validate-manifests.vsh              # Claude/Cursor legacy manifests
+v run scripts/validate-skills.vsh                 # SKILL.md frontmatter
 ```
 
 ## Spec

@@ -289,13 +289,13 @@ my-team-plugin/
 ### Important rule: never edit plugin bundles directly
 
 Plugin bundles under `plugins/` are auto-synced from canonical sources. The sync is performed by
-`scripts/gen-surfaces.py`. Editing bundles directly will result in your changes being overwritten
+`scripts/gen-surfaces.vsh`. Editing bundles directly will result in your changes being overwritten
 on the next sync.
 
 Always edit the canonical source (`skills/<domain>/<name>/SKILL.md` or `agents/<name>/AGENT.md`)
 and re-run the sync:
 
 ```bash
-python3 scripts/gen-surfaces.py
-python3 scripts/gen-surfaces.py --check  # verify no drift
+v run scripts/gen-surfaces.vsh
+v run scripts/gen-surfaces.vsh --check  # verify no drift
 ```

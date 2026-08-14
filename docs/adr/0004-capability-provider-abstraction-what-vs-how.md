@@ -55,7 +55,7 @@ CONTEXTUAL CHOICE — evaluation.notes records why no universal ranking; per-ver
                      (e.g., Linear OAuth MCP for team vs PAT MCP for solo vs API for delete)
         ↓ security reporting (distinct)
 SOURCE TRUST vs RUNTIME PRIVILEGE — reported separately in `security` + `permissions` (reuses
-                                     existing `scripts/audit-capability.py` + `mcp/registry/*.yaml`
+                                     existing `scripts/audit-capability.vsh` + `mcp/registry/*.yaml`
                                      `security`/`approval` surfaces, no new framework)
 ```
 

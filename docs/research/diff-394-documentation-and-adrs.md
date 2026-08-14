@@ -45,7 +45,7 @@ This closes #394 without duplication and keeps `personas/` vs `skills/` boundary
 ## Verification
 
 * Extended `adr` covers G1/G2/G5, `docs-generator` covers G3/G4 — no commented-out duplication.
-* `uv run python scripts/validate-skills.py` → `77 → 77` (no new skill), `uv run ruff check` clean.
+* `uv run python scripts/validate-skills.vsh` → `77 → 77` (no new skill), `uv run ruff check` clean.
 * Docs: this file is diff report (issue comments) + extensions.
 
 ## References

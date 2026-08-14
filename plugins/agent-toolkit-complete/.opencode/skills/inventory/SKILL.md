@@ -1,12 +1,18 @@
 ---
 name: inventory
-description: Discover installed skills, agents, loops, and platform capabilities via agent-toolkit inventory, matrix, and skills list.
+description: Discover installed skills, agents, loops, and platform capabilities via agent-toolkit inventory,
+  matrix, and skills list.
+origin:
+  type: first-party
 metadata:
   author: ulises-jeremias
-  version: "1.0"
-  tags: [inventory, matrix, catalog, discovery]
+  version: '1.0'
+  tags:
+  - inventory
+  - matrix
+  - catalog
+  - discovery
 ---
-
 # Inventory
 
 Discover what the toolkit can do before you build — **skills, agents, loops, MCP, and platform support** — via `agent-toolkit inventory`, `matrix`, `build --check`, and `skills list`.
@@ -52,20 +58,24 @@ agent-toolkit swarm doctor           # herdr/tmux + runner model profiles
 agent-toolkit build --check          # validate compilation without writing plugins/
 ```
 
-### 4. After adding skills
+### 4. After adding skills (host vs checkout)
+
+**Host / installed toolkit (consumers):** use the CLI only — do **not** expect repo-root `scripts/` (it is not installed to XDG/wheel):
 
 ```bash
-# After creating skills/<domain>/<id>/SKILL.md and data/skills/<domain>/<id>/SKILL.md:
-python3 scripts/generate-catalogs.py          # regenerate skill-catalog.yaml
-bash scripts/prepare-package-data.sh         # sync skills/catalogs to data/
-# Then update installed data if testing locally:
-cp catalogs/skills-layout.json packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/catalogs/
-cp -r skills/ops/swarm packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/skills/ops/
-agent-toolkit skills validate                # should show 61
-agent-toolkit skills list --domain ops       # should include new skill
-agent-toolkit install --dry-run | grep "Would deploy"
+agent-toolkit skills validate
+agent-toolkit skills list --domain ops
+agent-toolkit inventory
+agent-toolkit install --dry-run
 ```
 
+**Maintainer / repo checkout only** (CI or local clone of `agent-toolkit`): regenerate catalogs and package data from the monorepo root:
+
+```bash
+v run scripts/generate-catalogs.vsh          # regenerate catalogs/*.yaml
+bash scripts/prepare-package-data.sh         # sync skills/catalogs into packages/pypi/.../data/
+agent-toolkit skills validate
+```
 ## Delegates to
 
 | Need | Skill |

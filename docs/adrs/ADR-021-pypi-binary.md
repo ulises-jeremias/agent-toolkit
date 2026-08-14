@@ -79,7 +79,7 @@ Sources live under **`packages/pypi/agent-toolkit-cli/`**, parallel to **`packag
 * npm installs per-OS bits via `optionalDependencies` on separate packages.
 * PyPI installs per-OS bits via **platform-tagged wheels of one project**. There are no `agent-toolkit-cli-linux-*` Python packages (pip cannot consume them the way npm optionalDeps work).
 
-CI copies GitHub Release V binaries into the wheel (`scripts/pack_pypi.py` + `scripts/prepare-native-bin.sh`). The repo root is not a uv workspace; `uv.lock` belongs next to the adapter if present. Pre-commit Ruff uses `language: python` (`ruff-pre-commit`) with root `ruff.toml` — no product uv workspace.
+CI copies GitHub Release V binaries into the wheel (`scripts/pack_pypi.vsh` + `scripts/prepare-native-bin.sh`). The repo root is not a uv workspace; `uv.lock` belongs next to the adapter if present. Pre-commit Ruff uses `language: python` (`ruff-pre-commit`) with root `ruff.toml` — no product uv workspace.
 
 Contract: [`distribution/pypi/README.md`](../../distribution/pypi/README.md).
 

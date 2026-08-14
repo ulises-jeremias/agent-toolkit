@@ -7,7 +7,7 @@ The GitHub Release linux ELF needs GLIBC_2.38, so the honest tags are
 ``manylinux_2_38_x86_64`` and ``manylinux_2_38_aarch64``. Do not claim
 manylinux_2_17 / 2_35.
 
-When CI packs Release assets on a Linux runner (``scripts/pack_pypi.py``),
+When CI packs Release assets on a Linux runner (``scripts/pack_pypi.vsh``),
 set ``AGENT_TOOLKIT_WHEEL_TAG`` so the tag matches the bundled binary rather
 than the builder OS.
 """

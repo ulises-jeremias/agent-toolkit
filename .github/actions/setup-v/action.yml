@@ -1,0 +1,59 @@
+name: Setup pinned V
+description: Install V from GitHub Releases matching .v-version (auto-selects OS/arch zip)
+inputs:
+  v_zip:
+    description: Override V release asset zip name (empty = auto-detect from runner)
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Install pinned V from GitHub Release
+      shell: bash
+      env:
+        V_ZIP_INPUT: ${{ inputs.v_zip }}
+      run: |
+        set -euo pipefail
+        PIN="$(tr -d '[:space:]' < .v-version)"
+        if [ -n "${V_ZIP_INPUT}" ]; then
+          V_ZIP="${V_ZIP_INPUT}"
+        else
+          ARCH="$(uname -m)"
+          case "${RUNNER_OS:-$(uname -s)}" in
+            Linux|linux*)
+              if [ "${ARCH}" = "aarch64" ] || [ "${ARCH}" = "arm64" ]; then
+                V_ZIP=v_linux_arm64.zip
+              else
+                V_ZIP=v_linux.zip
+              fi
+              ;;
+            macOS|Darwin)
+              if [ "${ARCH}" = "arm64" ]; then
+                V_ZIP=v_macos_arm64.zip
+              else
+                V_ZIP=v_macos_x86_64.zip
+              fi
+              ;;
+            Windows*|windows*)
+              V_ZIP=v_windows.zip
+              ;;
+            *)
+              echo "Unsupported RUNNER_OS=${RUNNER_OS:-} ARCH=${ARCH}" >&2
+              exit 1
+              ;;
+          esac
+        fi
+        echo "Installing V ${PIN} (${V_ZIP})"
+        curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${PIN}/${V_ZIP}"
+        rm -rf "${HOME}/vlang"
+        mkdir -p "${HOME}/vlang"
+        unzip -q /tmp/v.zip -d "${HOME}/vlang"
+        VBIN="$(find "${HOME}/vlang" -type f \( -name v -o -name v.exe \) | head -n 1)"
+        if [ -z "${VBIN}" ]; then
+          echo "Unexpected V zip layout:" >&2
+          find "${HOME}/vlang" -maxdepth 3 >&2 || true
+          exit 1
+        fi
+        echo "VBIN=${VBIN}" >> "${GITHUB_ENV}"
+        echo "$(dirname "${VBIN}")" >> "${GITHUB_PATH}"
+        "${VBIN}" version

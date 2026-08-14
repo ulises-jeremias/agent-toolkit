@@ -32,12 +32,12 @@ if _sys_win.platform == "win32":
 
 
 # ---------------------------------------------------------------------------
-# gen-surfaces logic (inlined from scripts/gen-surfaces.py)
+# gen-surfaces logic (inlined from scripts/gen-surfaces.vsh)
 # ---------------------------------------------------------------------------
 
 
 def _build_surfaces(toolkit_dir: Path) -> dict[str, list[tuple[str, str]]]:
-    """Return the plugin→surfaces mapping, mirroring scripts/gen-surfaces.py."""
+    """Return the plugin→surfaces mapping, mirroring scripts/gen-surfaces.vsh."""
     agents_dir = toolkit_dir / "agents"
     skills_dir = toolkit_dir / "skills"
 

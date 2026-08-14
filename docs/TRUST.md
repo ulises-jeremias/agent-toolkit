@@ -150,12 +150,12 @@ Validation is offline/deterministic: `SKILL.md` + committed `capabilities/upstre
 | Provenance digest              | `capabilities/upstream.lock` (`provenance_digest`) + declaration `trust.reviewed_provenance` binding |
 | Product membership             | `distributions/products.yaml`              |
 | Generated catalogs             | `catalogs/*` generator output              |
-| Target plugin copies           | `scripts/gen-surfaces.py` output           |
+| Target plugin copies           | `scripts/gen-surfaces.vsh` output           |
 | Runtime package versions       | ecosystem-specific lock (`uv.lock`, etc.)  |
 
 **Review lifecycle:** `provenance_digest = hash(source IDs + resolved commits + content_checksum + license spdx)`. Human review sets `trust.reviewed_provenance = provenance_digest`. Updating `capabilities/upstream.lock` to new commit/checksum/license changes the digest → existing `reviewed_provenance` mismatch → `provenance.py check` fails with *review binding invalid* until declaration is re-audited and `trust.reviewed_provenance` (and `reviewed_at`/`reviewed_by`) are updated. This elegantly separates lock resolution from human trust state (see ADR-0001 §13-14).
 
-**Security lifecycle:** Declarations keep `security: {scripts, shell, network, mcp, hooks, dangerous_permissions, cve_policy}` as enforceable policy. Update tooling recomputes detected signals (`scripts/audit-capability.py`) and compares to declarations; a PR that introduces `shell: true` where declaration said `shell: false` fails or requires explicit declaration change + review. License policy vs observed: declaration `upstream.license` is expected `spdx: Apache-2.0`; lock `resolved.license.spdx` is observed. CI detects `expected vs observed` drift.
+**Security lifecycle:** Declarations keep `security: {scripts, shell, network, mcp, hooks, dangerous_permissions, cve_policy}` as enforceable policy. Update tooling recomputes detected signals (`scripts/audit-capability.vsh`) and compares to declarations; a PR that introduces `shell: true` where declaration said `shell: false` fails or requires explicit declaration change + review. License policy vs observed: declaration `upstream.license` is expected `spdx: Apache-2.0`; lock `resolved.license.spdx` is observed. CI detects `expected vs observed` drift.
 
 Every `SKILL.md` must have an explicit origin — no inference from path or absence (gate 2):
 

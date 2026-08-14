@@ -96,5 +96,5 @@ Sequence: `architecture discovery → threat-modeling (this skill) → security 
 - Microsoft STRIDE: https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats
 - OWASP Threat Modeling: https://owasp.org/www-project-threat-model/
 - OWASP Agentic Security: https://owasp.org/www-project-agentic-security/
-- `mcp/registry/*.yaml` + `scripts/audit-capability.py` — static surface
+- `mcp/registry/*.yaml` + static Grep for shell/network/mcp/hooks (repo checkout/CI: `scripts/audit-capability.vsh`)
 - `architect` / C4/Mermaid (#369) — discovery inputs

@@ -11,6 +11,6 @@ npm adapter sources. PyPI equivalent: [`packages/pypi/`](../pypi/).
 | `agent-toolkit-cli-darwin-x64/` | `agent-toolkit-cli-darwin-x64` | macOS x64 Mach-O |
 | `agent-toolkit-cli-win32-x64/` | `agent-toolkit-cli-win32-x64` | Windows x64 PE |
 
-Pack at release time: `scripts/pack_npm.py` (copies Release assets into `bin/`). Publish: `.github/workflows/publish-npm.yml` (OIDC trusted publishing).
+Pack at release time: `scripts/pack_npm.vsh` (copies Release assets into `bin/`). Publish: `.github/workflows/publish-npm.yml` (OIDC trusted publishing).
 
 Each published package has a polished `README.md`. Platform packages are shorter than the meta-package but document platform, install path, and when *not* to install them directly.

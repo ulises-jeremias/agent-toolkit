@@ -8,7 +8,7 @@
 |------|------|
 | `packages/pypi/agent-toolkit-cli/` | Hatchling project **`agent-toolkit-cli`**: thin launcher + quarantined `agent-toolkit-py` fallback |
 | `packages/pypi/agent-toolkit-cli/platforms.json` | GitHub Release asset → PEP 425/600 wheel tag |
-| `scripts/pack_pypi.py` | Copies Release V binaries into the wheel at CI time (like `scripts/pack_npm.py`) |
+| `scripts/pack_pypi.vsh` | Copies Release V binaries into the wheel at CI time (like `scripts/pack_npm.vsh`) |
 | `scripts/prepare-native-bin.sh` | Local/PR helper: copy `build/agent-toolkit` into `src/agent_toolkit/bin/` |
 
 There are **no** per-OS Python packages. npm uses `optionalDependencies`; pip consumes **platform-tagged wheels** of one distribution.
@@ -33,7 +33,7 @@ Do **not** emit raw `linux_x86_64` (PyPI 400). Do **not** claim `manylinux_2_17`
 export RELEASE_BIN_DIR=binaries
 export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
 bash scripts/prepare-package-data.sh
-python3 scripts/pack_pypi.py   # sdist + one wheel per present asset → dist/
+v run scripts/pack_pypi.vsh   # sdist + one wheel per present asset → dist/
 ```
 
 - Tag releases: `.github/workflows/release.yml` `publish-pypi` (after `upload-assets`) via **OIDC Trusted Publishing** (environment `pypi`). See [docs/RELEASING.md](../../docs/RELEASING.md).

@@ -123,7 +123,7 @@ Reference files are not loaded automatically — the skill body must explicitly 
 ## 5. Run Validation
 
 ```bash
-python3 scripts/validate-skills.py
+v run scripts/validate-skills.vsh
 ```
 
 The validator checks:
@@ -145,7 +145,7 @@ The compiler is the source of truth. Run the canonical **V** build check (not `u
 ```bash
 make build-cli
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
-python3 scripts/gen-surfaces.py --check
+v run scripts/gen-surfaces.vsh --check
 ```
 
 See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md).
@@ -180,11 +180,11 @@ Use the standard PR workflow. Include this checklist in your PR description:
 - [ ] `skills/<domain>/<skill-name>/SKILL.md` created
 - [ ] Frontmatter has `name` and `description`
 - [ ] `name` in frontmatter matches directory name
-- [ ] `python3 scripts/validate-skills.py` passes with no errors
+- [ ] `v run scripts/validate-skills.vsh` passes with no errors
 - [ ] Registered in `catalogs/skills-layout.json` (correct group)
 - [ ] Registered in `catalogs/skill-catalog.yaml` (with triggers)
 - [ ] `make build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
-- [ ] `python3 scripts/gen-surfaces.py --check` passes
+- [ ] `v run scripts/gen-surfaces.vsh --check` passes
 - [ ] No secrets or hardcoded tokens in skill body
 - [ ] `references/` documents linked from skill body (if present)
 ```

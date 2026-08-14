@@ -12,7 +12,7 @@ Canonical artifacts are **native V binaries**. PyPI `packages/pypi/agent-toolkit
 
 ```bash
 # 1. Bump all version sources atomically
-python3 scripts/bump-version.py 1.3.0
+v run scripts/bump-version.vsh 1.3.0
 git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
 
 # 2. Validate (CI parity)
@@ -20,10 +20,10 @@ make test && make build-cli
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit --version
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
-python3 scripts/validate-skills.py
-python3 scripts/validate-agents.py
-python3 scripts/generate-catalogs.py
-python3 scripts/gen-surfaces.py --check
+v run scripts/validate-skills.vsh
+v run scripts/validate-agents.vsh
+v run scripts/generate-catalogs.vsh
+v run scripts/gen-surfaces.vsh --check
 
 # 3. Commit + tag
 git add -A && git commit -m "chore(release): bump to v1.3.0"
@@ -50,7 +50,7 @@ curl -sS 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=agent-toolkit-bin' 
 
 ## Bump script
 
-`scripts/bump-version.py` updates atomically:
+`scripts/bump-version.vsh` updates atomically:
 
 * `VERSION`
 * `packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py` (`__version__`)
@@ -63,13 +63,13 @@ curl -sS 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=agent-toolkit-bin' 
 Usage:
 
 ```bash
-python3 scripts/bump-version.py --check 1.3.0  # dry-run, exits 1 if would change
-python3 scripts/bump-version.py 1.3.0         # writes files
+v run scripts/bump-version.vsh --check 1.3.0  # dry-run, exits 1 if would change
+v run scripts/bump-version.vsh 1.3.0         # writes files
 ```
 
 ## Rollback / republish
 
-* **PyPI:** Trusted Publishing is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. Tag path: `publish-pypi` after Release assets (`scripts/pack_pypi.py` stamps `manylinux_2_38_*`). Manual republish of an existing `VERSION` (no retag):
+* **PyPI:** Trusted Publishing is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. Tag path: `publish-pypi` after Release assets (`scripts/pack_pypi.vsh` stamps `manylinux_2_38_*`). Manual republish of an existing `VERSION` (no retag):
   ```bash
   gh workflow run Release --ref main -f environment=pypi
   ```

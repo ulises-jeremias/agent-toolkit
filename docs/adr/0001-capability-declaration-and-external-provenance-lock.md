@@ -93,7 +93,7 @@ Stable capability identity uses existing Toolkit-namespaced IDs (`design/fronten
 
 **Positive:**
 - Supply-chain reproducibility: `uv run python scripts/provenance.py check` offline validates SKILL.md intent, lock resolution, vendored bytes, and license without network.
-- Security-reviewable updates: lock digest change → PR shows old/new commit, checksum, license, and `scripts/audit-capability.py` detected `shell`/`network`/`mcp`/`hooks` diff.
+- Security-reviewable updates: lock digest change → PR shows old/new commit, checksum, license, and `scripts/audit-capability.vsh` detected `shell`/`network`/`mcp`/`hooks` diff.
 - No 62-file churn; migration vertical slice is exactly `design/frontend-design` (real SHA `f17010c9...`, real checksums `sha256:7e906c...` + `0d542e...`, `Apache-2.0`).
 - Vercel multi-source fixture validated; update of one source atomically bumps capability digest.
 - AGPL/missing-license risk visible: observed `spdx` snapshot detects `GPL` drift vs expected.

@@ -7,7 +7,7 @@
 
 ## Context
 
-CI still requires `scripts/gen-surfaces.py --check` while ADR-001 points at the compiler + `distributions/products.yaml` as the source of truth. Contributors must keep two pipelines in sync:
+CI still requires `scripts/gen-surfaces.vsh --check` while ADR-001 points at the compiler + `distributions/products.yaml` as the source of truth. Contributors must keep two pipelines in sync:
 
 - `gen-surfaces.py` hard-codes a `SURFACES` dict that copies a subset of `skills/` and `agents/` into `plugins/`
 - `agent-toolkit build` loads the canonical IR (`distributions/products.yaml` + SKILL.md/AGENT.md) via `compiler/loader.py` and compiles per-target adapters under `compiler/targets/`
@@ -22,13 +22,13 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 - **Source of truth:** `distributions/products.yaml` + `skills/` + `agents/` + `compiler/targets/`
 - **Build command:** `agent-toolkit build` (writes to `plugins/`), `agent-toolkit build --check` (drift detection, exit 1 on drift)
-- **Legacy script:** `scripts/gen-surfaces.py` remains for backward compatibility until removal milestone, but is no longer authoritative
+- **Legacy script:** `scripts/gen-surfaces.vsh` remains for backward compatibility until removal milestone, but is no longer authoritative
 
 ## Migration Checklist
 
 ### CI job swap
 
-- [x] Current `validate.yml` job `check-surfaces` runs `python3 scripts/gen-surfaces.py --check`
+- [x] Current `validate.yml` job `check-surfaces` runs `v run scripts/gen-surfaces.vsh --check`
 - [ ] Add parallel job `check-build` that runs `make build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` (keep both during dual-run)
 - [ ] After dual-run green for 30 days, flip `check-surfaces` to advisory (`continue-on-error: true`) or remove, making `check-build` the required check
 - [ ] Update `RELEASING.md` bump → validate → tag checklist to use `build --check` instead of `gen-surfaces.py --check`
@@ -50,9 +50,9 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 | Phase | Window | Gate | Action |
 |-------|--------|------|--------|
-| **Deprecate** | v1.3.x (now) | ADR-003 accepted | Add deprecation header to `scripts/gen-surfaces.py`, keep CI required |
+| **Deprecate** | v1.3.x (now) | ADR-003 accepted | Add deprecation header to `scripts/gen-surfaces.vsh`, keep CI required |
 | **Dual-run** | v1.4.x – v1.5.x | Both checks pass on main for 30 days | Run `gen-surfaces --check` + `build --check` in parallel; document legacy fallback |
-| **Remove** | v1.6.0+ | Maintainer vote after RELEASING checklist updated | Delete `scripts/gen-surfaces.py` and `check-surfaces` job; `build --check` is sole gate |
+| **Remove** | v1.6.0+ | Maintainer vote after RELEASING checklist updated | Delete `scripts/gen-surfaces.vsh` and `check-surfaces` job; `build --check` is sole gate |
 
 No file deletion occurs in the ADR PR itself. Deletion is deferred to the **Remove** milestone and requires a follow-up PR referencing this ADR.
 
@@ -73,6 +73,6 @@ No file deletion occurs in the ADR PR itself. Deletion is deferred to the **Remo
 
 - ADR-001: Canonical IR (`docs/adrs/ADR-001-canonical-ir.md`)
 - `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/build.py` (`cmd_build` / `cmd_inventory`)
-- `scripts/gen-surfaces.py`
+- `scripts/gen-surfaces.vsh`
 - `.github/workflows/validate.yml` → jobs `check-surfaces`, `validate-products`
 - `distributions/products.yaml`

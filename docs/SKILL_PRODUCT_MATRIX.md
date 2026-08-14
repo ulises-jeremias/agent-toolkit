@@ -1,6 +1,6 @@
 # Skill → Product → Target Membership Matrix
 
-> Generated from `distributions/products.yaml` — do not hand-edit. Run `python3 scripts/generate-skill-matrix.py` to regenerate, or `python3 scripts/generate-skill-matrix.py --check` in CI.
+> Generated from `distributions/products.yaml` — do not hand-edit. Run `v run scripts/generate-skill-matrix.vsh` to regenerate, or `v run scripts/generate-skill-matrix.vsh --check` in CI.
 
 _Generated from 4 products × 77 skills × 17 agents._
 
@@ -8,7 +8,7 @@ _Generated from 4 products × 77 skills × 17 agents._
 
 | Product | Stability | Targets | Skills | Agents |
 |---------|-----------|---------|--------|--------|
-| `agent-toolkit-core` | stable | claude-code, cursor | 6 | 1 |
+| `agent-toolkit-core` | stable | claude-code, cursor, requires, security | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 16 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 7 | 0 |
 | `agent-toolkit-complete` | experimental | — | 77 | 0 |
@@ -25,14 +25,14 @@ _Generated from 4 products × 77 skills × 17 agents._
 | `architecture/c4-model` | `agent-toolkit-complete` | — |
 | `cloud/aws-well-architected-review` | `agent-toolkit-complete` | — |
 | `cloud/cloud-design-patterns` | `agent-toolkit-complete` | — |
-| `core/assistant` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
-| `core/dev-companion` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
-| `core/onboarding` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
-| `core/output-handshake` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
-| `core/pr-fallback` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
+| `core/assistant` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `core/dev-companion` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `core/onboarding` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `core/output-handshake` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `core/pr-fallback` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
 | `core/project` | `agent-toolkit-complete` | — |
 | `core/workspace` | `agent-toolkit-complete` | — |
-| `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor |
+| `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
 | `data/dbt-validation` | `agent-toolkit-complete` | — |
 | `data/snowflake-validation` | `agent-toolkit-complete` | — |
 | `delivery/adr` | `agent-toolkit-complete` | — |
@@ -104,7 +104,7 @@ _Generated from 4 products × 77 skills × 17 agents._
 | `assistant` | `agent-toolkit-agents` | claude-code, cursor |
 | `build-error-resolver` | `agent-toolkit-agents` | claude-code, cursor |
 | `client-workflow-bootstrap` | `agent-toolkit-agents` | claude-code, cursor |
-| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-core` | claude-code, cursor |
+| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-core` | claude-code, cursor, requires, security |
 | `database-reviewer` | `agent-toolkit-agents` | claude-code, cursor |
 | `docs-lookup` | `agent-toolkit-agents` | claude-code, cursor |
 | `e2e-runner` | `agent-toolkit-agents` | claude-code, cursor |
@@ -121,11 +121,10 @@ _Generated from 4 products × 77 skills × 17 agents._
 
 - A skill appears in a marketplace plugin when its product is built for that target (`agent-toolkit build --product <id> --target <target>`).
 - `_uncovered_` means the skill/agent is not in any stable product yet — it exists canonically but is not shipped. See Wave 5 curation for promotion decisions.
-- Verify membership locally via `agent-toolkit inventory` (canonical counts) or `python3 scripts/generate-skill-matrix.py --check`.
+- Verify membership locally via `agent-toolkit inventory` (canonical counts) or `v run scripts/generate-skill-matrix.vsh --check`.
 
 ## See also
 
 - `distributions/products.yaml` — source of truth
 - `agent-toolkit inventory` — CLI inventory
 - `agent-toolkit build --check` — drift check
-

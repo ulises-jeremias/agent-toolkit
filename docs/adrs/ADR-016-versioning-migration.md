@@ -33,7 +33,7 @@ Adopt **option 1**.
 
 ## Validation plan
 
-- `scripts/bump-version.py` keeps `VERSION`, Python `__version__`, and V `embedded_version` in lockstep.
+- `scripts/bump-version.vsh` keeps `VERSION`, Python `__version__`, and V `embedded_version` in lockstep.
 - Parity harness seed grows with each migrated command; release notes call out experimental V coverage.
 - Cutover checklist (#555) explicitly records whether the major bump is required from contract diffs.
 

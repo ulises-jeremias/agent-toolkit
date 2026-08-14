@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import subprocess
-import sys
 from pathlib import Path
 
 import yaml
@@ -12,9 +11,7 @@ REPO = Path(__file__).resolve().parent.parent
 
 
 def test_generate_catalogs_matches_disk_ids():
-    subprocess.check_call(
-        [sys.executable, str(REPO / "scripts" / "generate-catalogs.py")], cwd=REPO
-    )
+    subprocess.check_call(["v", "run", str(REPO / "scripts" / "generate-catalogs.vsh")], cwd=REPO)
     skills = yaml.safe_load((REPO / "catalogs" / "skill-catalog.yaml").read_text())["skills"]
     disk = {f"{p.parent.parent.name}/{p.parent.name}" for p in (REPO / "skills").rglob("SKILL.md")}
     assert {s["id"] for s in skills} == disk

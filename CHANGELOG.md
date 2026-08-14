@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Chore** — Migrate repo tooling scripts from Python to V (`.vsh`); add `make.vsh` with thin Makefile forwarder; keep `provenance.py` / `validate-upstream.py` and PyPI launcher Python; host skills use CLI / Grep (repo-root `scripts/` is checkout/CI only)
 - **Docs** — Clarify experimental-v.yml header (ADR-018; drop PyInstaller channel wording)
 - **Packaging** — PyPI classifier Development Status Beta → Production/Stable
 - **Docs** — ADR-007 / install messaging aligned V-first (thin wrappers to agent-toolkit) (Fixes #682)
@@ -158,7 +159,7 @@ First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256S
 ## [1.9.0] — 2026-08-10
 
 ### Added
-- **Agent Plugins 1.0** portable plugin standard — every plugin in `plugins/` now ships as `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro. Dual emit keeps `.claude-plugin/plugin.json` for Claude Code (which does not yet support the spec). See `docs/AGENT_PLUGINS.md`, `plugins/README.md`, and `schemas/agent-plugins/1.0.0/`. Compiler target `agent-plugins`, validator `scripts/validate-agent-plugins.py`, and CI job `validate-agent-plugins` added; `scripts/bump-version.py` now preserves `$schema`/`extensions`.
+- **Agent Plugins 1.0** portable plugin standard — every plugin in `plugins/` now ships as `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro. Dual emit keeps `.claude-plugin/plugin.json` for Claude Code (which does not yet support the spec). See `docs/AGENT_PLUGINS.md`, `plugins/README.md`, and `schemas/agent-plugins/1.0.0/`. Compiler target `agent-plugins`, validator `scripts/validate-agent-plugins.vsh`, and CI job `validate-agent-plugins` added; `scripts/bump-version.vsh` now preserves `$schema`/`extensions`.
 
 ### Changed
 - **Docs** — `docs/COMPATIBILITY.md` clarifies Claude legacy-only and adds VS Code/Kiro + dedicated Agent Plugins 1.0 subsection; `docs/TARGETS.md` adds Agent Plugins 1.0 row to capability matrix.
@@ -191,7 +192,7 @@ First GitHub Release that attaches **native V binaries** (ADR-018 names, SHA256S
 - **Skill catalog growth** — total 52 → 61 skills across 9 domains; `agent-toolkit-complete` now includes all 9 new skills; badges, `catalogs/skill-catalog.yaml`, `catalogs/skills-layout.json`, and `docs/SKILL_PRODUCT_MATRIX.md` regenerated; `README.md`, `packages/pypi/agent-toolkit-cli/README.md`, `docs/GETTING_STARTED.md`, `docs/TROUBLESHOOTING.md`, `docs/wiki/Home.md` updated.
 
 ### Fixed
-- **Docs 100% current** — regenerated catalogs (`scripts/generate-catalogs.py`, `prepare-package-data.sh`, `generate-skill-matrix.py`), fixed stale `skills-52` badges and `50 skills` assertions, and ensured `agent-toolkit install` deploys 61 skills to `~/.config/muse/skills` and `~/.agents/skills`.
+- **Docs 100% current** — regenerated catalogs (`scripts/generate-catalogs.vsh`, `prepare-package-data.sh`, `generate-skill-matrix.py`), fixed stale `skills-52` badges and `50 skills` assertions, and ensured `agent-toolkit install` deploys 61 skills to `~/.config/muse/skills` and `~/.agents/skills`.
 
 ## [1.7.2] — 2026-08-06
 
@@ -428,8 +429,9 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ## [Unreleased]
 
+- **Chore** — Migrate repo tooling scripts from Python to V (`.vsh`); add `make.vsh` with thin Makefile forwarder; keep `provenance.py` / `validate-upstream.py` and PyPI launcher Python; host skills use CLI / Grep (repo-root `scripts/` is checkout/CI only)
 ### Added
-- **Agent Plugins 1.0** portable plugin standard — every plugin in `plugins/` now ships as `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro. Dual emit keeps `.claude-plugin/plugin.json` for Claude Code (which does not yet support the spec). See `docs/AGENT_PLUGINS.md`, `plugins/README.md`, and `schemas/agent-plugins/1.0.0/`. Compiler target `agent-plugins`, validator `scripts/validate-agent-plugins.py`, and CI job `validate-agent-plugins` added; `scripts/bump-version.py` now preserves `$schema`/`extensions`.
+- **Agent Plugins 1.0** portable plugin standard — every plugin in `plugins/` now ships as `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, Kiro. Dual emit keeps `.claude-plugin/plugin.json` for Claude Code (which does not yet support the spec). See `docs/AGENT_PLUGINS.md`, `plugins/README.md`, and `schemas/agent-plugins/1.0.0/`. Compiler target `agent-plugins`, validator `scripts/validate-agent-plugins.vsh`, and CI job `validate-agent-plugins` added; `scripts/bump-version.vsh` now preserves `$schema`/`extensions`.
 
 
 ## [1.2.2] — 2026-08-05

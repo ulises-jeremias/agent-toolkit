@@ -20,7 +20,7 @@ Consumers see [`agent-toolkit-cli/README.md`](agent-toolkit-cli/README.md) on Py
 |------|------|
 | `src/agent_toolkit/launcher.py` | Product console scripts `agent-toolkit` / `agent-toolkit-cli` → `exec` the bundled V binary |
 | `src/agent_toolkit/cli/` (+ compiler, installer, …) | Quarantined `agent-toolkit-py` fallback + pytest |
-| `src/agent_toolkit/bin/` | Wheel-time home for the Release V binary (`scripts/pack_pypi.py`) |
+| `src/agent_toolkit/bin/` | Wheel-time home for the Release V binary (`scripts/pack_pypi.vsh`) |
 | `src/agent_toolkit/data/` | Capability trees copied by `scripts/prepare-package-data.sh` before pack |
 
 Hatchling builds from this `src` layout (`pyproject.toml` → `packages = ["src/agent_toolkit"]`). Deleting `src/` would break `uv tool install agent-toolkit-cli` and the thin-launcher product path (#540 closed with the launcher kept).

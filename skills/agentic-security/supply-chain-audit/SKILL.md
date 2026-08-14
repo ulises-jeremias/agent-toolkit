@@ -52,18 +52,19 @@ Inspect a capability's supply chain **before** adopting — validate provenance,
 ### 1. Provenance
 
 Check `upstream: {repository, path, ref, license}`:
-- `ref` must be immutable tag or 40-char SHA — never `main`/`master`/`latest` (enforced by `scripts/validate-upstream.py`)
+- `ref` must be immutable tag or 40-char SHA — never `main`/`master`/`latest`
 - `license` must be SPDX or `unknown` (if unknown → prefer PIN EXTERNALLY, document why)
 - Compare `ref` to upstream latest (`gh api repos/<owner>/<repo>/commits` or `git ls-remote`) — flag drift
 - For vendored content, verify `LICENSE.txt`/`NOTICE` preserved alongside
 
-Run:
+**Host users:** apply the checks above by reading `SKILL.md` frontmatter and `capabilities/upstream.lock` (when present). Do **not** rely on repo-root `scripts/` — those paths are not installed with the toolkit.
+
+**Maintainer / repo checkout / CI only:**
 
 ```bash
 python3 scripts/validate-upstream.py --check
 python3 scripts/validate-upstream.py --strict  # flags missing provenance for third-party-looking paths
 ```
-
 ### 2. Version pins & hashes
 
 - MCP: `mcp/registry/*.yaml` `package` must be pinned (tag/SHA), not `latest`
@@ -92,15 +93,14 @@ git: hooks, subagents, default-branch push
 hooks: blocking/destructive classification per schemas/hook.schema.yaml
 ```
 
-Use the companion static scanner (counts, does not exec):
+**Host users:** perform the static scan with Grep/Read against the patterns above (do not execute untrusted code). Cite `file:line` evidence in the report.
+
+**Maintainer / repo checkout / CI only** (repo-root tooling is not on the host install):
 
 ```bash
-python3 scripts/audit-capability.py <path>            # per-capability
-python3 scripts/audit-capability.py skills/ mcp/     # whole repo
+v run scripts/audit-capability.vsh <path>            # per-capability
+v run scripts/audit-capability.vsh skills/ mcp/      # whole repo
 ```
-
-For `audit-capability.py` behavior, see `scripts/audit-capability.py --help`.
-
 ### 5. Trust tier & recommendation
 
 Map to tiers from `docs/TRUST.md`:
@@ -137,6 +137,6 @@ Emit recommendation: **ALLOW** / **CAUTION** / **BLOCK** with evidence citations
 
 - `docs/TRUST.md#provenance` (schema + matrix)
 - `schemas/upstream.schema.json`, `schemas/skill-md-frontmatter.schema.json`
-- `scripts/validate-upstream.py`, `scripts/audit-capability.py`
-- `skills/agentic-security/mcp-security-audit` (MCP-specific)
+- Repo checkout/CI only: `scripts/validate-upstream.py`, `scripts/audit-capability.vsh` (not installed on host)
+- `skills/agentic-security/mcp-audit` (MCP-specific)
 - `skills/agentic-security/owasp-agentic-review` (agentic threats)

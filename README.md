@@ -287,7 +287,7 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 | ♿ `accessibility` | 1 | review |
 | ✅ `quality` | 2 | megalinter, codeql |
 
-Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.py --check` in CI) · regenerate with `bash scripts/validate-skills.sh` (CI) and inspect live inventory via `agent-toolkit inventory`
+Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `bash scripts/validate-skills.sh` (CI) and inspect live inventory via `agent-toolkit inventory`
 
 ### Loading skills in Claude Code
 

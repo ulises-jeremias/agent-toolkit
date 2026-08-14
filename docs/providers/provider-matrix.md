@@ -55,7 +55,7 @@
 | Slack CLI (`slack-cli`, `docs.slack.dev`) | `official` — highly trusted | `admin` (can delete apps, admin scopes) — requires approval even though source is trusted | Yes |
 | Figma MCP (`mcp.figma.com`) | `official` — highly trusted | `read-only` — cannot mutate files | Yes — high trust but low privilege |
 
-Reuse existing Toolkit `security` declarations (`scripts/audit-capability.py` surface, `mcp/registry/*.yaml` `security` + `approval` fields) rather than a new framework.
+Reuse existing Toolkit `security` declarations (`scripts/audit-capability.vsh` surface, `mcp/registry/*.yaml` `security` + `approval` fields) rather than a new framework.
 
 ## Minimal provider model (recurring fields after 3 pilots)
 

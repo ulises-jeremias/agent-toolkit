@@ -11,7 +11,8 @@ Index: [`docs/v/README.md`](v/README.md) · packaging adapters: [`distribution/R
 | V pin | [`.v-version`](../.v-version) — currently **0.5.2** |
 | JSON | `import json` (stdlib). Do **not** `import json2` or run `v fmt` in a way that rewrites `json` → `json2` |
 | Layout | `modules/agent_toolkit_core`, `modules/agent_toolkit_cli`, `cmd/agent-toolkit` ([ADR-009](adrs/ADR-009-v-module-architecture.md)) |
-| Output | `make build-cli` → `build/agent-toolkit` |
+| Output | `make build-cli` / `v run make.vsh build-cli` → `build/agent-toolkit` |
+| Scripts | Repo tooling is `.vsh` (`v run scripts/…`); thin Makefile forwards to `make.vsh` |
 
 ```bash
 v version          # second field must match .v-version
@@ -23,7 +24,7 @@ make build-cli
 ./build/agent-toolkit doctor
 ```
 
-`VMODULES` is set by the Makefile (`$PWD/modules`). For a raw `v` invocation:
+`VMODULES` is set by `make.vsh` / the thin Makefile (`$PWD/modules`). For a raw `v` invocation:
 
 ```bash
 export VMODULES="$PWD/modules"
@@ -52,10 +53,10 @@ uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py 
 After changing `skills/`, `agents/`, `loops/`, or `distributions/`:
 
 ```bash
-python3 scripts/validate-skills.py
-python3 scripts/validate-agents.py
-python3 scripts/generate-catalogs.py
-python3 scripts/gen-surfaces.py --check
+v run scripts/validate-skills.vsh
+v run scripts/validate-agents.vsh
+v run scripts/generate-catalogs.vsh
+v run scripts/gen-surfaces.vsh --check
 make build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 ```

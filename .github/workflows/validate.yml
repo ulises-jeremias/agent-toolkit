@@ -26,6 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -59,6 +62,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
       - name: Detect changed paths (PR only)
         id: paths
         if: github.event_name == 'pull_request'
@@ -71,17 +78,12 @@ jobs:
             echo "No skills/ or agents/ changes detected — skipping smoke test."
           fi
 
-      - name: Install PyYAML
-        if: |
-          github.event_name != 'pull_request' ||
-          steps.paths.outputs.run_smoke == 'true'
-        run: pip install pyyaml==6.0.2
 
       - name: Run skill/agent mechanical smoke
         if: |
           github.event_name != 'pull_request' ||
           steps.paths.outputs.run_smoke == 'true'
-        run: python3 scripts/smoke-test-skills.py
+        run: v run scripts/smoke-test-skills.vsh
 
   # ── Job 2: Validate SKILL.md and AGENT.md frontmatter ─────────────────────
   validate-skills:
@@ -90,14 +92,18 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
       - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
       - name: Validate SKILL.md frontmatter (Agent Skills spec)
-        run: python3 scripts/validate-skills.py
+        run: v run scripts/validate-skills.vsh
 
       - name: Validate AGENT.md frontmatter
-        run: python3 scripts/validate-agents.py
+        run: v run scripts/validate-agents.vsh
 
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
@@ -106,11 +112,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
       - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
       - name: Validate Claude Code and Cursor marketplace manifests
-        run: python3 scripts/validate-manifests.py
+        run: v run scripts/validate-manifests.vsh
 
   # ── Job 3b: Validate Agent Plugins 1.0 manifests ───────────────────────
   validate-agent-plugins:
@@ -119,11 +129,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
       - name: Install dependencies
         run: pip install jsonschema==4.23.0 pyyaml==6.0.2
 
       - name: Validate Agent Plugins 1.0 manifests (plugin.json + mcp.json)
-        run: python3 scripts/validate-agent-plugins.py --check
+        run: v run scripts/validate-agent-plugins.vsh --check
 
   # ── Job 3c: Validate upstream provenance (no mutable refs) ──────────────
   validate-upstream:
@@ -151,8 +165,25 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
       - name: Assert plugin surfaces are in sync with canonical sources
-        run: python3 scripts/gen-surfaces.py --check
+        run: v run scripts/gen-surfaces.vsh --check
+
+
+  check-catalogs:
+    name: Check Generated Catalogs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Assert catalogs match filesystem sources
+        run: v run scripts/generate-catalogs.vsh --check
 
   check-skill-matrix:
     name: Check Skill→Product Matrix
@@ -160,11 +191,15 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
       - name: Install dependencies
         run: pip install pyyaml==6.0.2
 
       - name: Check skill→product→target matrix is up to date
-        run: python3 scripts/generate-skill-matrix.py --check
+        run: v run scripts/generate-skill-matrix.vsh --check
 
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
@@ -729,6 +764,7 @@ jobs:
       - validate-agent-plugins
       - validate-upstream
       - check-surfaces
+      - check-catalogs
       - check-skill-matrix
       - validate-loops
       - validate-products
@@ -752,6 +788,7 @@ jobs:
           if [[ "${{ needs.validate-agent-plugins.result }}" != "success" ]]; then echo "validate-agent-plugins failed: ${{ needs.validate-agent-plugins.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-upstream.result }}" != "success" ]]; then echo "validate-upstream failed: ${{ needs.validate-upstream.result }}"; failed="true"; fi
           if [[ "${{ needs.check-surfaces.result }}" != "success" ]]; then echo "check-surfaces failed: ${{ needs.check-surfaces.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-catalogs.result }}" != "success" ]]; then echo "check-catalogs failed: ${{ needs.check-catalogs.result }}"; failed="true"; fi
           if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-products.result }}" != "success" ]]; then echo "validate-products failed: ${{ needs.validate-products.result }}"; failed="true"; fi

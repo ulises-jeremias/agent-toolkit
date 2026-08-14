@@ -17,7 +17,7 @@
 
 ### Agent Plugins 1.0
 
-[Agent Plugins 1.0](https://agent-plugins.org) (`plugin.json` `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json` + `skills/` + `mcp.json` + `com.*` extensions) is the portable standard for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, and Kiro. Every `plugins/<name>/` bundle in this repo is dual-emit: portable `plugin.json`/`mcp.json` for those clients and legacy `.claude-plugin/plugin.json` for Claude Code. The compiler target is `agent-plugins` (`capabilities/targets/registry.yaml` → `AgentPluginsAdapter`); validation is `scripts/validate-agent-plugins.py --check` and CI job `Validate Agent Plugins 1.0`. Until Claude Code implements the spec, keep `.claude-plugin/` and the `com.anthropic.claude-code` extension. See `docs/AGENT_PLUGINS.md` and `plugins/README.md`.
+[Agent Plugins 1.0](https://agent-plugins.org) (`plugin.json` `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json` + `skills/` + `mcp.json` + `com.*` extensions) is the portable standard for Cursor, VS Code, GitHub Copilot, ChatGPT/Codex, and Kiro. Every `plugins/<name>/` bundle in this repo is dual-emit: portable `plugin.json`/`mcp.json` for those clients and legacy `.claude-plugin/plugin.json` for Claude Code. The compiler target is `agent-plugins` (`capabilities/targets/registry.yaml` → `AgentPluginsAdapter`); validation is `scripts/validate-agent-plugins.vsh --check` and CI job `Validate Agent Plugins 1.0`. Until Claude Code implements the spec, keep `.claude-plugin/` and the `com.anthropic.claude-code` extension. See `docs/AGENT_PLUGINS.md` and `plugins/README.md`.
 
 ## Python version
 

@@ -1,21 +1,15 @@
-"""pack_release_assets.py — SHA256SUMS + ADR-022 manifest (#530)."""
+"""pack_release_assets.vsh — SHA256SUMS + ADR-022 manifest (#530)."""
 
 from __future__ import annotations
 
-import importlib.util
 import json
+import os
+import subprocess
 from pathlib import Path
 
 import jsonschema
 
 ROOT = Path(__file__).resolve().parents[1]
-_spec = importlib.util.spec_from_file_location(
-    "pack_release_assets", ROOT / "scripts" / "pack_release_assets.py"
-)
-_pack = importlib.util.module_from_spec(_spec)
-assert _spec.loader is not None
-_spec.loader.exec_module(_pack)
-pack_main = _pack.main
 
 
 def test_pack_release_assets_manifest_and_sums(tmp_path: Path, monkeypatch) -> None:
@@ -26,12 +20,18 @@ def test_pack_release_assets_manifest_and_sums(tmp_path: Path, monkeypatch) -> N
     license_file = tmp_path / "LICENSE"
     license_file.write_text("MIT\n")
     out = tmp_path / "out"
-    monkeypatch.setenv("RELEASE_BIN_DIR", str(src))
-    monkeypatch.setenv("RELEASE_OUT_DIR", str(out))
-    monkeypatch.setenv("RELEASE_VERSION", "1.10.0")
-    monkeypatch.setenv("RELEASE_TAG", "v1.10.0")
-    monkeypatch.setenv("LICENSE_PATH", str(license_file))
-    assert pack_main() == 0
+    env = os.environ.copy()
+    env["RELEASE_BIN_DIR"] = str(src)
+    env["RELEASE_OUT_DIR"] = str(out)
+    env["RELEASE_VERSION"] = "1.10.0"
+    env["RELEASE_TAG"] = "v1.10.0"
+    env["LICENSE_PATH"] = str(license_file)
+    subprocess.run(
+        ["v", "run", str(ROOT / "scripts/pack_release_assets.vsh")],
+        cwd=ROOT,
+        env=env,
+        check=True,
+    )
     assert (out / "SHA256SUMS").is_file()
     sums = (out / "SHA256SUMS").read_text()
     assert "agent-toolkit-linux-x86_64" in sums

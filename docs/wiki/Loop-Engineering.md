@@ -86,7 +86,7 @@ resumable: boolean               # Default: false. Set true to enable STATE.md c
 verifier: string | null          # Agent name to run as post-run quality gate (e.g. code-reviewer)
 ```
 
-The schema is enforced by `schemas/loop.schema.json`. Run `python3 scripts/validate-manifests.py`
+The schema is enforced by `schemas/loop.schema.json`. Run `v run scripts/validate-manifests.vsh`
 to validate all loop manifests.
 
 ---
@@ -612,5 +612,5 @@ Quick summary:
 4. Set a conservative `max_tokens` budget
 5. List every permitted action in `allowlist` and every forbidden action in `deny`
 6. Set `resumable: true` if the loop processes 5+ items
-7. Run validation: `python3 scripts/validate-manifests.py`
+7. Run validation: `v run scripts/validate-manifests.vsh`
 8. Test with a single repo before expanding to your full ecosystem

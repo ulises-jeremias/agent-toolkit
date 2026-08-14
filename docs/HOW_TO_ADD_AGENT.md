@@ -115,7 +115,7 @@ Reference documents are domain knowledge the agent can read during a session. Th
 ## 5. Run Validation
 
 ```bash
-python3 scripts/validate-agents.py
+v run scripts/validate-agents.vsh
 ```
 
 The validator checks:
@@ -156,16 +156,16 @@ Register your agent in `catalogs/agent-catalog.yaml` so orchestrators can route 
 If your agent should be bundled into the `agent-toolkit-agents` plugin (it usually should), run:
 
 ```bash
-python3 scripts/gen-surfaces.py
+v run scripts/gen-surfaces.vsh
 ```
 
 This syncs all agents into the plugin bundle at `plugins/agent-toolkit-agents/`. Verify no drift:
 
 ```bash
-python3 scripts/gen-surfaces.py --check
+v run scripts/gen-surfaces.vsh --check
 ```
 
-The `SURFACES` map in `scripts/gen-surfaces.py` controls which agents appear in which plugins. The `agent-toolkit-agents` plugin includes all agents by default — no manual edit to the script is required for new agents.
+The `SURFACES` map in `scripts/gen-surfaces.vsh` controls which agents appear in which plugins. The `agent-toolkit-agents` plugin includes all agents by default — no manual edit to the script is required for new agents.
 
 ---
 
@@ -176,9 +176,9 @@ The `SURFACES` map in `scripts/gen-surfaces.py` controls which agents appear in 
 - [ ] `agents/<agent-name>/AGENT.md` created
 - [ ] Frontmatter has `name`, `description`, and `tools`
 - [ ] `name` in frontmatter matches directory name
-- [ ] `python3 scripts/validate-agents.py` passes with no errors
+- [ ] `v run scripts/validate-agents.vsh` passes with no errors
 - [ ] Registered in `catalogs/agent-catalog.yaml` with triggers
-- [ ] `python3 scripts/gen-surfaces.py --check` passes
+- [ ] `v run scripts/gen-surfaces.vsh --check` passes
 - [ ] `references/` documents linked from agent body (if present)
 - [ ] `tools` list is minimal — only what the agent genuinely needs
 - [ ] No secrets or hardcoded tokens in agent body or references

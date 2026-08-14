@@ -8,7 +8,7 @@ Skills are the core unit of capability in agent-toolkit. Each skill is a portabl
 
 Discoverability: only a minority of skills appear in stable marketplace products. Check membership via:
 
-- **Matrix (checked in):** [`docs/SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) — generated from `distributions/products.yaml` (`python3 scripts/generate-skill-matrix.py --check` in CI)
+- **Matrix (checked in):** [`docs/SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) — generated from `distributions/products.yaml` (`v run scripts/generate-skill-matrix.vsh --check` in CI)
 - **Live CLI:** `agent-toolkit inventory` (lists skills by domain + products)
 
 ## What Is a Skill?
@@ -52,7 +52,7 @@ Required frontmatter fields (validated by `schemas/skill-md-frontmatter.schema.j
 | `produces` | array | No | Artifact types the skill outputs |
 | `compatibility` | string | No | Human-readable notes about caveats or prerequisites |
 
-Tool compatibility is declared via optional `tools` frontmatter and validated by `scripts/validate-skills.py`. Legacy `skill.json` manifests were removed in v1.0.4 — see `docs/MIGRATION.md`.
+Tool compatibility is declared via optional `tools` frontmatter and validated by `scripts/validate-skills.vsh`. Legacy `skill.json` manifests were removed in v1.0.4 — see `docs/MIGRATION.md`.
 
 ---
 

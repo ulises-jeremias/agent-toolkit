@@ -7,7 +7,7 @@ origin:
 
 # MCP Audit — Config + Implementation Security
 
-Audit **MCP servers** before adopting — static inspection only, never execute remote servers. Use when reviewing `mcp/registry/*.yaml`, `mcp/templates/*/config.template.json`, skill/plugin MCP declarations, or when `audit-capability.py` flags MCP surface.
+Audit **MCP servers** before adopting — static inspection only, never execute remote servers. Use when reviewing `mcp/registry/*.yaml`, `mcp/templates/*/config.template.json`, skill/plugin MCP declarations, or when a static surface scan flags MCP references.
 
 **Single skill, two modes** — decision per #379 review: config and implementation scopes meaningfully overlap (both inspect `mcp/registry/*.yaml` + templates), but checklists differ enough to keep separate gates. One skill with two modes avoids duplicating registry parsing while keeping `config` (secret hygiene, version pinning) distinct from `implementation` (command injection, SSRF, tool poisoning).
 
@@ -18,7 +18,7 @@ Audit **MCP servers** before adopting — static inspection only, never execute 
 | Mode | What it checks | Evidence |
 |------|----------------|----------|
 | **Config audit** | `mcp/registry/*.yaml` auth, package provenance, version pinning, remote vs local, OAuth, env/secret exposure, permissions | Registry YAML, template JSON, env var names, `docs/MCP.md` |
-| **Implementation audit** | Command injection, shell execution, SSRF, unsafe args, tool description poisoning, secret env leakage, dangerous permissions, transport security | Skill SKILL.md + `scripts/audit-capability.py` surface, tool definitions, args validation, network_hosts |
+| **Implementation audit** | Command injection, shell execution, SSRF, unsafe args, tool description poisoning, secret env leakage, dangerous permissions, transport security | Skill SKILL.md + static surface patterns (shell/network/mcp/hooks), tool definitions, args validation, network_hosts |
 
 Run the relevant mode per request; for full adoption review, run both and emit a single `mcp-audit-report.md`.
 
@@ -77,7 +77,7 @@ Run the relevant mode per request; for full adoption review, run both and emit a
 
 1. **Load registry:** `agent_toolkit.compiler.mcp_registry.load_registry(mcp/registry)` — record `providers, errors` (evidence: registry count).
 2. **Pick mode:** `config` (default for adoption) or `implementation` (for command/SSRF/poisoning) or both.
-3. **Run checks:** For each `provider` in `providers`, apply the relevant checklist above; for `implementation`, also run `scripts/audit-capability.py mcp/registry/<provider>.yaml --json` and capture `shell|network|mcp|hooks` findings.
+3. **Run checks:** For each `provider` in `providers`, apply the relevant checklist above; for `implementation`, Grep the registry/templates for shell/network/hooks patterns and capture findings with `file:line` evidence. (Repo checkout/CI may also run `v run scripts/audit-capability.vsh mcp/registry/<provider>.yaml --json` — that script is **not** on the host install.)
 4. **Score:** `ALLOW` (no Blocking), `CAUTION` (Major, e.g., unpinned version, remote without TLS), `BLOCK` (Blocking: hardcoded secret, command injection, SSRF to metadata endpoint, provenance unknown).
 5. **Report:** Emit `mcp-audit-report.md` (see `references/mcp-audit-template.md`) with per-provider table: `provider | config verdict | impl verdict | package/license | version_policy | provenance | evidence`.
 
@@ -97,7 +97,7 @@ Run the relevant mode per request; for full adoption review, run both and emit a
 | Need | Skill |
 |------|-------|
 | Setup MCP after audit | `integrations/mcp` |
-| Full skill/plugin supply-chain | `agentic-security/supply-chain-audit` + `scripts/audit-capability.py` |
+| Full skill/plugin supply-chain | `agentic-security/supply-chain-audit` |
 | OWASP agentic review (prompt injection, tool poisoning, identity) | `agentic-security/owasp-agentic-review` (next issue) |
 | Output gate | `output-handshake` |
 
@@ -111,6 +111,6 @@ Run the relevant mode per request; for full adoption review, run both and emit a
 - `references/mcp-audit-template.md` — report template (per-provider verdict)
 - `mcp/registry/*.yaml` — canonical registry (7 providers after #375)
 - `mcp/templates/*/config.template.json` — host wiring (placeholders)
-- `scripts/audit-capability.py` — static surface scan (shell/network/mcp/hooks)
+- Static surface patterns in this skill’s checklists (shell/network/mcp/hooks); repo checkout/CI may use `scripts/audit-capability.vsh`
 - MCP spec: https://modelcontextprotocol.io/ , ChromeDevTools MCP https://github.com/ChromeDevTools/chrome-devtools-mcp
 

@@ -30,6 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
@@ -79,7 +82,7 @@ jobs:
           set -euo pipefail
           export RELEASE_BIN_DIR=binaries
           export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
-          python3 scripts/pack_npm.py
+          v run scripts/pack_npm.vsh
 
       - name: Publish platform packages then meta-package
         working-directory: packages/npm

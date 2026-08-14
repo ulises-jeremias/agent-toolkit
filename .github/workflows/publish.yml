@@ -23,6 +23,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Download GitHub Release V binaries for this VERSION
@@ -42,7 +45,7 @@ jobs:
           export RELEASE_BIN_DIR=binaries
           export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
           export RELEASE_OUT_DIR=dist
-          python3 scripts/pack_pypi.py
+          v run scripts/pack_pypi.vsh
           ls -lh dist/
           python3 - <<'PY'
           from pathlib import Path

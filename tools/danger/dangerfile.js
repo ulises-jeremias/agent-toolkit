@@ -133,7 +133,7 @@ if (skillOrAgentChanged && !pluginBundleChanged) {
   message(
     "Skills or agents were modified but no plugin bundle was updated. " +
     "If these changes should be reflected in plugin bundles, run: " +
-    "`python3 scripts/gen-surfaces.py` and commit the result."
+    "`v run scripts/gen-surfaces.vsh` and commit the result."
   );
 }
 

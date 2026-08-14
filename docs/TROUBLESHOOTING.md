@@ -52,7 +52,7 @@ See `docs/CONCEPTS.md` layer hierarchy.
 **Fix:**
 
 ```bash
-python3 scripts/generate-catalogs.py
+v run scripts/generate-catalogs.vsh
 git add catalogs/
 ```
 
@@ -60,12 +60,12 @@ See `CONTRIBUTING.md` Validation Commands.
 
 ## 5. Surface drift
 
-**Symptom:** `python3 scripts/gen-surfaces.py --check` fails.
+**Symptom:** `v run scripts/gen-surfaces.vsh --check` fails.
 
 **Fix:**
 
 ```bash
-python3 scripts/gen-surfaces.py
+v run scripts/gen-surfaces.vsh
 # or
 agent-toolkit build --check
 ```
@@ -196,8 +196,8 @@ Provenance `reviewed_provenance` binds human review to old bytes — lock update
 ```bash
 # Add skill to distributions/products.yaml agent-toolkit-complete includes.skills
 # Then regenerate matrix:
-python3 scripts/generate-skill-matrix.py
-python3 scripts/generate-skill-matrix.py --check  # CI gate
+v run scripts/generate-skill-matrix.vsh
+v run scripts/generate-skill-matrix.vsh --check  # CI gate
 ```
 
 See `docs/compatibility/matrix-generation.md` (matrix generated from `distributions/products.yaml` + `skills-layout.json`).

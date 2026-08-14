@@ -114,13 +114,13 @@ In `agent-toolkit`, `mcp/registry/*.yaml` is the canonical source; the compiler 
 Vendored schemas: `schemas/agent-plugins/1.0.0/plugin.schema.json` and `mcp.schema.json` (copied from spec).
 
 ```bash
-python3 scripts/validate-agent-plugins.py        # all plugins
-python3 scripts/validate-agent-plugins.py --check # CI mode
+v run scripts/validate-agent-plugins.vsh        # all plugins
+v run scripts/validate-agent-plugins.vsh --check # CI mode
 ```
 
 Checks: `$schema` const, `name` regex `^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$`, closed manifest (unknown top-level → report-and-ignore), `skills/` immediate children with `SKILL.md`, `mcp.json` closed, `command`/`cwd` containment, no `PLUGIN_ROOT` in `env`.
 
-Compiler target `agent-plugins` (`capabilities/targets/registry.yaml` → `agent_toolkit.compiler.targets.agent_plugins.AgentPluginsAdapter`) emits `plugin.json` + `skills/` + `mcp.json` for every product. `scripts/bump-version.py` preserves `$schema` and `extensions` when bumping `plugins/*/plugin.json`.
+Compiler target `agent-plugins` (`capabilities/targets/registry.yaml` → `agent_toolkit.compiler.targets.agent_plugins.AgentPluginsAdapter`) emits `plugin.json` + `skills/` + `mcp.json` for every product. `scripts/bump-version.vsh` preserves `$schema` and `extensions` when bumping `plugins/*/plugin.json`.
 
 ## Installation
 

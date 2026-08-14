@@ -1,11 +1,10 @@
-"""pack_npm.py copies ADR-018 floating binaries into npm platform packages."""
+"""pack_npm.vsh copies ADR-018 floating binaries into npm platform packages."""
 
 from __future__ import annotations
 
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -24,7 +23,7 @@ def test_pack_npm_copies_floating_linux_binary(tmp_path: Path) -> None:
     (tmp_path / "empty").mkdir()
     try:
         subprocess.run(
-            [sys.executable, str(REPO / "scripts/pack_npm.py")],
+            ["v", "run", str(REPO / "scripts/pack_npm.vsh")],
             cwd=REPO,
             env=env,
             check=True,
@@ -41,7 +40,7 @@ def test_pack_npm_copies_floating_linux_binary(tmp_path: Path) -> None:
     finally:
         dest.unlink(missing_ok=True)
         subprocess.run(
-            [sys.executable, str(REPO / "scripts/pack_npm.py")],
+            ["v", "run", str(REPO / "scripts/pack_npm.vsh")],
             cwd=REPO,
             env=restore,
             check=True,

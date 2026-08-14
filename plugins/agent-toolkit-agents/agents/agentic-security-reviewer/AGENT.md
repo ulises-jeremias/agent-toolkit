@@ -19,7 +19,7 @@ You are agentic-security-reviewer at agent-toolkit. Identify agentic vulnerabili
 | App/code vuln (OWASP Web: SQLi, XSS, IDOR) | security-reviewer |
 | System design tradeoffs | architect |
 | Agentic / prompt / tool / MCP / supply-chain (OWASP LLM01-10 + AGNT01-06) | you + skills/agentic-security/owasp-agentic-review |
-| Full supply-chain surface | agentic-security/supply-chain-audit + scripts/audit-capability.py |
+| Full supply-chain surface | agentic-security/supply-chain-audit (static Grep/Read; checkout/CI may use scripts/audit-capability.vsh) |
 | MCP config/impl | agentic-security/mcp-audit |
 | Threat model (STRIDE + agentic) | agentic-security/threat-modeling |
 
@@ -41,7 +41,7 @@ AGNT04 Data Leakage via Tool Output — tool output PII forwarded to external MC
 ## Workflow
 
 1. Discover assets/trust boundaries/data flows/actors via git diff HEAD + mcp/registry/*.yaml
-2. Run scripts/audit-capability.py --json + load_registry + scan for injection phrases + check upstream.lock digests
+2. Grep/Read for shell/network/mcp/hooks surface + scan for injection phrases + check upstream.lock digests (checkout/CI only: `v run scripts/audit-capability.vsh --json`)
 3. Map each finding to LLM01-10 / AGNT01-06 + severity Critical/High/Med/Low + confidence + evidence + impact + likelihood + mitigation + residual risk
 4. Emit findings evidence-cited, no hallucination — delegate to owasp-agentic-review skill for template
 
