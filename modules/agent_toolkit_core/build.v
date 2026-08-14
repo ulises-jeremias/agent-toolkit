@@ -5,13 +5,13 @@ import os
 // BuildReport aggregates Tier-1 compile / drift-check results for `build --check`.
 pub struct BuildReport {
 pub mut:
-	ok           bool
-	mode         string // check | build
-	repo_root    string
-	output_root  string
-	results      []CompilationResult
-	drift        []string
-	message      string
+	ok          bool
+	mode        string // check | build
+	repo_root   string
+	output_root string
+	results     []CompilationResult
+	drift       []string
+	message     string
 }
 
 // BuildOptions configures agent-toolkit build / build --check.

@@ -180,9 +180,7 @@ fn sync_or_check_surface(src string, dst string, root string, check bool) (bool,
 	if check {
 		return false, '  ✗  DRIFT: ${src_rel} → ${dst_rel}'
 	}
-	copy_tree(src, dst) or {
-		return false, '  ✗  Failed to sync ${src} → ${dst}: ${err}'
-	}
+	copy_tree(src, dst) or { return false, '  ✗  Failed to sync ${src} → ${dst}: ${err}' }
 	return true, '  ✓  synced: ${src_rel} → ${dst_rel}'
 }
 
