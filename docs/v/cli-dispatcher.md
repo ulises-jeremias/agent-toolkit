@@ -15,6 +15,8 @@
 
 Business logic stays in `agent_toolkit_core`. Production entry is idiomatic vlib/cli (`parse` + execute). The only hand-rolled argv pass is unknown-flag → **2** (vlib always `exit(1)`; see spike). Unit tests call `dispatch()` so they do not hit noreturn `parse()`.
 
+**Windows note:** `run()` calls `root.setup()` again after `build_root_command()` returns. vlib `setup`/`add_command` store `parent` as `&Command`; return-by-value can leave those pointers dangling under TCC, which crashed Integration on `agent-toolkit version`.
+
 Root `--help` uses `Command.help_message()` (grouped sections). Per-command rich help remains for test/parity paths via `subcommand_help`.
 
 Build: `./make.vsh build-cli` → `build/agent-toolkit` (canonical) and `build/agent-toolkit-v` (parity harness alias).

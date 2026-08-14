@@ -223,14 +223,17 @@ fn skills_command() cli.Command {
 			cli.Command{
 				name:        'list'
 				description: 'List skills grouped by domain'
+				execute:     atk_exec
 			},
 			cli.Command{
 				name:        'sync'
 				description: 'Sync skills to tool-specific directories'
+				execute:     atk_exec
 			},
 			cli.Command{
 				name:        'validate'
 				description: 'Validate SKILL.md frontmatter'
+				execute:     atk_exec
 			},
 		]
 		flags:       [
@@ -310,7 +313,7 @@ fn loop_command() cli.Command {
 			cli.Command{ name: 'cost', description: 'Estimate loop cost', usage: '<name>', execute: atk_exec },
 			cli.Command{ name: 'schedule', description: 'Install systemd/launchd timer', usage: '<name>', execute: atk_exec },
 			cli.Command{ name: 'sync', description: 'Sync loop templates', execute: atk_exec },
-			cli.Command{ name: 'list', alias: 'ls', description: 'List loop instances' },
+			cli.Command{ name: 'list', alias: 'ls', description: 'List loop instances', execute: atk_exec },
 			cli.Command{ name: 'templates', description: 'List available templates', execute: atk_exec },
 		]
 		flags:       loop_flags()

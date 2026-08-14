@@ -10,6 +10,10 @@ pub fn run(args []string) int {
 		return code
 	}
 	mut root := build_root_command()
+	// Re-link parents after return-by-value: build_root_command's setup() points
+	// subcommand.parent at a stack slot that may move on return (Windows TCC crash
+	// on `version` when execute walks parent via command_path / is_root).
+	root.setup()
 	root.parse(args)
 	return 0
 }
