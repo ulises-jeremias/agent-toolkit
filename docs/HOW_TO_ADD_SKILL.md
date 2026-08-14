@@ -321,3 +321,77 @@ chore(deps): update pyyaml from 6.0.1 to 6.0.2
 | `chore` | Maintenance tasks that don't fit above categories |
 | `revert` | Reverts a previous commit |
 ```
+
+---
+
+## Adding an upstream (vendored) skill
+
+Upstream skills copy **literal** upstream content so update detection can be automated.
+
+### Rules
+
+1. **Body fidelity:** Everything after the closing `---` in `SKILL.md` must be byte-identical to upstream at the pinned commit. Do not paraphrase, add Toolkit banners, or rewrite instructions in the body.
+2. **Frontmatter overlay:** Keep upstream-owned keys (`name`, `description`, `license`/`licence`, `metadata`, …) and add Toolkit keys only: `origin`, `sources`/`upstream`, `trust`, `maintenance`, `distribution`, `security`, `updates`.
+3. **Siblings:** Copy LICENSE and any `references/`, `agents/`, `linters/`, etc. from the upstream skill path verbatim.
+4. **Pin:** Immutable 40-char commit SHA, or semver tag **plus** `commit:` (40-char SHA).
+5. **Lock:** Run `python3 scripts/provenance.py lock` then bind `trust.reviewed_provenance` to the new `provenance_digest` after human review.
+6. **Layout / products:** Update `catalogs/skills-layout.json` and `distributions/products.yaml`, then `./scripts/generate-catalogs.vsh` and `agent-toolkit build --check`.
+
+### Example frontmatter (single source)
+
+```yaml
+---
+name: example-skill
+description: Upstream description kept verbatim.
+origin:
+  type: upstream
+upstream:
+  repository: owner/repo
+  path: skills/example-skill
+  ref: <40-char-sha>
+  license: MIT
+trust:
+  tier: reviewed
+  reviewed_at: '2026-08-14'
+  reviewed_by: your-handle
+  reviewed_provenance: sha256:<digest-from-lock>
+maintenance:
+  status: active
+  last_checked: '2026-08-14'
+distribution:
+  mode: vendored
+  redistribution_allowed: true
+  attribution_file: LICENSE
+security:
+  scripts: false
+  shell: false
+  network: false
+  mcp: []
+  hooks: []
+  dangerous_permissions: []
+  cve_policy: not-applicable
+updates:
+  strategy: pull-request
+  cadence: weekly
+---
+
+# Upstream body starts here (literal)
+```
+
+### Automation
+
+```bash
+# Discover path-scoped / tag updates
+python3 scripts/provenance.py updates --json
+
+# Apply (rewrites bodies + pins; sets trust.tier=experimental)
+python3 scripts/provenance.py updates --apply
+
+# Offline gates
+python3 scripts/validate-upstream.py --check
+python3 scripts/provenance.py check
+python3 scripts/provenance.py lock --check
+python3 scripts/provenance.py docs --check
+```
+
+Weekly GHA: `.github/workflows/update-upstream.yml` opens a **draft** PR. Humans must re-bind `reviewed_provenance` before merge. See `docs/TRUST.md` and ADR-0001.

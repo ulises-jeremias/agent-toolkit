@@ -1,13 +1,12 @@
 name: Update Upstream
 
-# Per ADR-0001 and #428: automated discovery of upstream HEAD vs locked commit.
-# This workflow is network-dependent (resolves tracking refs via GitHub API) and
-# opens a PR with security-reviewable body when updates are available.
-# Offline integrity remains in validate.yml (provenance check).
+# Per ADR-0001 / #428: path-scoped upstream discovery → apply literal vendored
+# bodies → open a draft PR for human review. Offline integrity stays in
+# validate.yml (provenance check). Never auto-merges.
 
 on:
   schedule:
-    - cron: "0 6 * * 1"  # weekly Monday 06:00 UTC
+    - cron: "0 6 * * 1" # weekly Monday 06:00 UTC
   workflow_dispatch:
 
 permissions:
@@ -15,14 +14,18 @@ permissions:
   pull-requests: write
 
 jobs:
-  discover:
-    name: Discover upstream updates
+  sync:
+    name: Discover and sync upstream
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
       - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
-      - name: Check for upstream updates (online)
+
+      - name: Discover upstream updates (online, path-scoped)
         id: updates
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -33,14 +36,112 @@ jobs:
           cat /tmp/updates.json
           COUNT=$(python3 -c "import json; print(json.load(open('/tmp/updates.json'))['count'])")
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
-          if [ "$COUNT" -gt 0 ]; then
-            echo "Updates available — workflow would open PR (see #428 lifecycle)."
-            # For #428 foundation, we only report; full PR creation (branch → lock → vendored → docs → audit → tests → open PR)
-            # will be added when vendored update automation is complete. For now, fail to signal update.
-            # Uncomment below to auto-create PR via create-pull-request when ready:
-            # echo "PR creation not yet enabled — see #428"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No updates — all locked commits current for their paths/tags."
           else
-            echo "No updates — all locked commits at remote HEAD."
+            echo "Updates available: $COUNT"
           fi
-      - name: Check staleness (>90d) and license/security (offline)
+
+      - name: Offline provenance integrity
         run: python3 scripts/provenance.py check
+
+      - name: Apply updates and open draft PR
+        if: steps.updates.outputs.count != '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +%Y%m%d)
+          BRANCH="chore/upstream-sync-${DATE}"
+
+          # Reuse open sync PR/branch for the day when present
+          EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number // empty' || true)
+          if [ -n "$EXISTING" ]; then
+            echo "Draft PR #$EXISTING already open for $BRANCH — skipping recreate."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+
+          python3 scripts/provenance.py updates --apply --json | tee /tmp/apply.json
+
+          # Drop machine summary from the commit (keep locally for PR body)
+          if [ -f capabilities/upstream-apply-summary.json ]; then
+            cp capabilities/upstream-apply-summary.json /tmp/upstream-apply-summary.json
+            rm -f capabilities/upstream-apply-summary.json
+          fi
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Apply produced no file changes."
+            exit 0
+          fi
+
+          git commit -m "$(cat <<'EOF'
+chore(upstream): sync vendored skills from upstream
+
+Automated by provenance.py updates --apply (literal body fidelity).
+trust.tier set to experimental until human re-binds reviewed_provenance.
+EOF
+)"
+
+          git push -u origin "HEAD:$BRANCH"
+
+          python3 <<'PY' > /tmp/pr-body.md
+import json
+from pathlib import Path
+summary = {}
+for cand in (Path("/tmp/upstream-apply-summary.json"), Path("/tmp/apply.json")):
+    if cand.exists():
+        try:
+            summary = json.loads(cand.read_text())
+            break
+        except Exception:
+            pass
+applied = summary.get("applied") or []
+lines = [
+    "## Summary",
+    "",
+    "Automated upstream sync via `scripts/provenance.py updates --apply`.",
+    "Vendored `SKILL.md` bodies are byte-identical to upstream; only Toolkit",
+    "frontmatter overlay differs. **Do not auto-merge.**",
+    "",
+    "## Updates",
+    "",
+]
+if not applied:
+    lines.append("_See workflow logs for details._")
+for item in applied:
+    lines.append(
+        f"- `{item.get('capability')}` / `{item.get('source')}`: "
+        f"`{str(item.get('old_commit',''))[:7]}` → `{str(item.get('new_commit',''))[:7]}` "
+        f"(body `{str(item.get('body_checksum',''))[:23]}…`)"
+    )
+lines += [
+    "",
+    "## Reviewer checklist",
+    "",
+    "- [ ] Diff shows only expected upstream body/sibling changes + pin bumps",
+    "- [ ] License SPDX unchanged (or intentional license change reviewed)",
+    "- [ ] `security.*` surface still accurate (shell/network/mcp/hooks)",
+    "- [ ] Set `trust.tier: reviewed` and `trust.reviewed_provenance` to the new",
+    "      `provenance_digest` in each updated `SKILL.md` after audit",
+    "- [ ] `python3 scripts/provenance.py check` passes",
+    "",
+    "## Notes",
+    "",
+    "- Bot leaves `trust.tier: experimental` and drops `reviewed_provenance`.",
+    "- Offline CI (`validate-upstream`) must stay green without network.",
+    "",
+]
+print("\n".join(lines))
+PY
+
+          gh pr create --draft \
+            --title "chore(upstream): sync vendored skills ($(date -u +%Y-%m-%d))" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "$BRANCH"

@@ -3,6 +3,7 @@ name: frontend-design
 description: Guidance for distinctive, intentional visual design when building new UI or reshaping an
   existing one. Helps with aesthetic direction, typography, and making choices that don't read as templated
   defaults.
+license: Complete terms in LICENSE.txt
 origin:
   type: upstream
 upstream:
@@ -13,15 +14,17 @@ upstream:
   version: f17010c
 trust:
   tier: reviewed
-  reviewed_at: '2026-08-11'
+  reviewed_at: '2026-08-14'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:c591059c29a3601310808f04b20cd277806a79e7825319977d1da5937177d101
+  reviewed_provenance: sha256:a58fd159210cf5773748b973cbda5dcdb0bb04c42b47422b19ec523bb880f748
 maintenance:
   status: active
   last_activity: '2026-08-07'
+  last_checked: '2026-08-14'
 distribution:
   mode: vendored
   redistribution_allowed: true
+  attribution_file: LICENSE.txt
 security:
   scripts: false
   shell: false
@@ -30,7 +33,11 @@ security:
   hooks: []
   dangerous_permissions: []
   cve_policy: not-applicable
+updates:
+  strategy: pull-request
+  cadence: weekly
 ---
+
 # Frontend Design
 
 Approach this as the design lead at a small studio known for giving every client a visual identity that could not be mistaken for anyone else's. This client has already rejected proposals that felt templated, and is paying for a distinctive point of view: make deliberate, opinionated choices about palette, typography, and layout that are specific to this brief, and take one real aesthetic risk you can justify.

@@ -593,6 +593,33 @@ Follow the `megalinter` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "megalinter_setup"
+description = "quality/megalinter-setup"
+prompt = """
+Follow the `megalinter-setup` skill instructions for {{args}}.
+
+@{skills/megalinter-setup/SKILL.md}
+"""
+
+[[commands]]
+name = "megalinter_check"
+description = "quality/megalinter-check"
+prompt = """
+Follow the `megalinter-check` skill instructions for {{args}}.
+
+@{skills/megalinter-check/SKILL.md}
+"""
+
+[[commands]]
+name = "megalinter_fix"
+description = "quality/megalinter-fix"
+prompt = """
+Follow the `megalinter-fix` skill instructions for {{args}}.
+
+@{skills/megalinter-fix/SKILL.md}
+"""
+
+[[commands]]
 name = "codeql"
 description = "quality/codeql"
 prompt = """

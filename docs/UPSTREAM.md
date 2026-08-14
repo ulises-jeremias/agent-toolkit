@@ -7,17 +7,17 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-11T22:14:22.246586Z
-Capabilities with external provenance: 4 (first-party omitted; lock is sparse)
+Generated: 2026-08-14T19:01:00.924276Z
+Capabilities with external provenance: 7 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
 
-- **Trust:** `reviewed` reviewed_at=2026-08-11 by=ulises-jeremias
-  - `reviewed_provenance:` `sha256:c591059c29a3601310808f04b20cd277806a79e7825319977d1da5937177d101` (must equal `provenance_digest` below)
+- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:a58fd159210cf5773748b973cbda5dcdb0bb04c42b47422b19ec523bb880f748` (must equal `provenance_digest` below)
 - **Maintenance:** `active` last_activity=2026-08-07
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:c591059c29a3601310808f04b20cd277806a79e7825319977d1da5937177d101`
+- **Provenance digest:** `sha256:a58fd159210cf5773748b973cbda5dcdb0bb04c42b47422b19ec523bb880f748`
 
 ### Source `upstream` — `anthropics/skills/skills/frontend-design`
 
@@ -25,21 +25,22 @@ Capabilities with external provenance: 4 (first-party omitted; lock is sparse)
 - **Path:** `skills/frontend-design`
 - **Requested:** `commit` `f17010c9bb483898c1d9c9f42dde2b3a98889434` (declaration intent)
 - **Resolved commit:** `f17010c9bb483898c1d9c9f42dde2b3a98889434`
-- **Content checksum:** `sha256:7e906c7f68bd4fcfa383e237b773384b4562443d72dd75e6835ddf82f68c46ab`
+- **Content checksum:** `sha256:31aae178b8fb590f608a2524687934594607ddd995535d5571c988f1c951ffb9`
+- **Body checksum:** `sha256:0df36fd5b075c15a2948a233edfb5ada7ffe34309ada32b2fd6d248522a4e9a7` (must match local SKILL.md body)
 - **Observed license:** `Apache-2.0` source_path=`skills/design/frontend-design/LICENSE.txt` checksum=`sha256:0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594`
   - Declaration expected `license: Apache-2.0` — mismatch requires review
-- **Resolved at:** `2026-08-11T15:51:47.698560Z` version=`f17010c`
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`f17010c`
 
 - **Per-skill attribution:** `skills/design/frontend-design/UPSTREAM.md`
 
 ## `design/frontend-design-review`
 
-- **Trust:** `reviewed` reviewed_at=2026-08-11 by=ulises-jeremias
-  - `reviewed_provenance:` `sha256:5394cd7cf5d9c56acd77c251da40cb603795ac5e5b4d817578991d12d57d2be7` (must equal `provenance_digest` below)
+- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:73a3738779cb374d505c889bddb8fbb0020a42a6f428a74fdd7990d6550d01bf` (must equal `provenance_digest` below)
 - **Maintenance:** `active` last_activity=2026-08-11
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:5394cd7cf5d9c56acd77c251da40cb603795ac5e5b4d817578991d12d57d2be7`
+- **Provenance digest:** `sha256:73a3738779cb374d505c889bddb8fbb0020a42a6f428a74fdd7990d6550d01bf`
 
 ### Source `upstream` — `microsoft/skills/.github/skills/frontend-design-review`
 
@@ -47,19 +48,20 @@ Capabilities with external provenance: 4 (first-party omitted; lock is sparse)
 - **Path:** `.github/skills/frontend-design-review`
 - **Requested:** `commit` `e58528db9a006528a5fb0a2c029790fa6a9a7c0e` (declaration intent)
 - **Resolved commit:** `e58528db9a006528a5fb0a2c029790fa6a9a7c0e`
-- **Content checksum:** `sha256:66aa155ca3da88f51b2d03377d0d6009eccf9eecd7a36e4a13a7240d1474b67f`
+- **Content checksum:** `sha256:9e6b4ccf09d56866875e86463643b654484751536aabd7558f307cfa032455cc`
+- **Body checksum:** `sha256:13029dfb9274aac92db5869c5977ff4923af1f213ab9571cd4f0b701829c1a78` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/frontend-design-review/LICENSE` checksum=`sha256:d9a1b1e30d633d5732ea18e3cba9538d293ebc53e1a9e4e96ab739e0c5c4f1cb`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-08-11T17:12:46.950377Z` version=`e58528d`
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`e58528d`
 
 ## `design/web-design-guidelines`
 
-- **Trust:** `reviewed` reviewed_at=2026-08-11 by=ulises-jeremias
-  - `reviewed_provenance:` `sha256:7c23f915c756d4322d1b8ca17ed1d57a98cc6accd11a11ae765e288a181ff870` (must equal `provenance_digest` below)
+- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2` (must equal `provenance_digest` below)
 - **Maintenance:** `active` last_activity=2026-07-24
 - **Distribution:** `vendored` redistribution_allowed=False
-- **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:7c23f915c756d4322d1b8ca17ed1d57a98cc6accd11a11ae765e288a181ff870`
+- **Security (declared):** scripts=False shell=False network=True cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2`
 
 ### Source `wrapper` — `vercel-labs/agent-skills/skills/web-design-guidelines`
 
@@ -67,10 +69,11 @@ Capabilities with external provenance: 4 (first-party omitted; lock is sparse)
 - **Path:** `skills/web-design-guidelines`
 - **Requested:** `commit` `7c180d9044c9ae2b442b567aad4e42a28dd5ed62` (declaration intent)
 - **Resolved commit:** `7c180d9044c9ae2b442b567aad4e42a28dd5ed62`
-- **Content checksum:** `sha256:bc7ec87473c51ec4e03ef44756ec03032848cb81ff27bdbfecad13e652b8757f`
+- **Content checksum:** `sha256:167ee30dd4224bc066445c7b6cecb5b5fb8139efcee093b6accd569c163df79d`
+- **Body checksum:** `sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f` (must match local SKILL.md body)
 - **Observed license:** `NOASSERTION` source_path=`?` checksum=`?`
   - Declaration expected `license: NOASSERTION` — mismatch requires review
-- **Resolved at:** `2026-08-11T17:01:53.930839Z` version=`?`
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`?`
 
 ### Source `rules` — `vercel-labs/web-interface-guidelines/command.md`
 
@@ -79,63 +82,95 @@ Capabilities with external provenance: 4 (first-party omitted; lock is sparse)
 - **Requested:** `commit` `4e799d45c17aec1498c269287a83b9dba22b966b` (declaration intent)
 - **Resolved commit:** `4e799d45c17aec1498c269287a83b9dba22b966b`
 - **Content checksum:** `sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab`
+- **Body checksum:** `sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/web-design-guidelines/references/LICENSE` checksum=`sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-08-11T17:00:49.944318Z` version=`?`
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`?`
 
 ## `quality/megalinter`
 
-- **Trust:** `reviewed` reviewed_at=2026-08-12 by=ulises-jeremias
-  - `reviewed_provenance:` `sha256:a261350125bc434d73807cadb9f4616219e0266369887895f95b076c13e0c95c` (must equal `provenance_digest` below)
+- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:8b16ee6b8b06d23c052b473cd5fee724b51e245891a276912b9a522b4be21ca4` (must equal `provenance_digest` below)
 - **Maintenance:** `active` last_activity=2026-08-08
-- **Distribution:** `external` redistribution_allowed=False
+- **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:a261350125bc434d73807cadb9f4616219e0266369887895f95b076c13e0c95c`
+- **Provenance digest:** `sha256:8b16ee6b8b06d23c052b473cd5fee724b51e245891a276912b9a522b4be21ca4`
 
-### Source `orchestrator` — `oxsecurity/megalinter/skills/megalinter/SKILL.md`
-
-- **Repository:** `oxsecurity/megalinter`
-- **Path:** `skills/megalinter/SKILL.md`
-- **Requested:** `tag` `v10.0.0` (declaration intent)
-- **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
-- **Content checksum:** `sha256:ffd79b1c0c831f206b0b39fa35c463e976c37eeef85218320342348eaed9ffc9`
-- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
-  - Declaration expected `license: AGPL-3.0` — mismatch requires review
-- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
-
-### Source `setup` — `oxsecurity/megalinter/skills/megalinter-setup/SKILL.md`
+### Source `orchestrator` — `oxsecurity/megalinter/skills/megalinter`
 
 - **Repository:** `oxsecurity/megalinter`
-- **Path:** `skills/megalinter-setup/SKILL.md`
+- **Path:** `skills/megalinter`
 - **Requested:** `tag` `v10.0.0` (declaration intent)
 - **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
-- **Content checksum:** `sha256:b1cba3934bbb096ca21988ccd0d0042271d83975c3d3bbbbdf6b44d628daddb1`
-- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
+- **Content checksum:** `sha256:4f7382fafee6b6dd634b8cbeb297d325c730fdb06734dfe8735b97a92feb4921`
+- **Body checksum:** `sha256:ccf08325b78ee5208938b16904269fab7310a373f2c24dcf13464441ed18fa0d` (must match local SKILL.md body)
+- **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
   - Declaration expected `license: AGPL-3.0` — mismatch requires review
-- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`v10.0.0`
 
-### Source `check` — `oxsecurity/megalinter/skills/megalinter-check/SKILL.md`
+## `quality/megalinter-check`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:97d6d7aae49cce61bf82c11ab768c0b471ff19a45aa6eb550905a8d6424f2c62` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=2026-08-08
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:97d6d7aae49cce61bf82c11ab768c0b471ff19a45aa6eb550905a8d6424f2c62`
+
+### Source `check` — `oxsecurity/megalinter/skills/megalinter-check`
 
 - **Repository:** `oxsecurity/megalinter`
-- **Path:** `skills/megalinter-check/SKILL.md`
+- **Path:** `skills/megalinter-check`
 - **Requested:** `tag` `v10.0.0` (declaration intent)
 - **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
-- **Content checksum:** `sha256:bb8e475961a2e57eb45687a8f138ea8039c7c5ee29f68cd165632d702097dad4`
-- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
+- **Content checksum:** `sha256:9cf3f48b752441e9c9871346a17f2d756c478d887ebd24354d486d7713b10f15`
+- **Body checksum:** `sha256:431e8b0540930dd21ceae6c9a4cdecf601c5659ce33acc47fc4062ce532cbb1f` (must match local SKILL.md body)
+- **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter-check/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
   - Declaration expected `license: AGPL-3.0` — mismatch requires review
-- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`v10.0.0`
 
-### Source `fix` — `oxsecurity/megalinter/skills/megalinter-fix/SKILL.md`
+## `quality/megalinter-fix`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:94613e9a4254b92a8f8fe16ca0cec93c8df1be7051c89c58713c6012aa89aa65` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=2026-08-08
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:94613e9a4254b92a8f8fe16ca0cec93c8df1be7051c89c58713c6012aa89aa65`
+
+### Source `fix` — `oxsecurity/megalinter/skills/megalinter-fix`
 
 - **Repository:** `oxsecurity/megalinter`
-- **Path:** `skills/megalinter-fix/SKILL.md`
+- **Path:** `skills/megalinter-fix`
 - **Requested:** `tag` `v10.0.0` (declaration intent)
 - **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
-- **Content checksum:** `sha256:fff5202aaa55441d1b0c19a63d7daf5c34757f6a5f6ddb8624450a15f2bee0ca`
-- **Observed license:** `AGPL-3.0` source_path=`?` checksum=`?`
+- **Content checksum:** `sha256:6e98390309aa260edc212aeaf1685699e5b1d71d83c24e308b569279b6cd44c1`
+- **Body checksum:** `sha256:29f117edfd6c9d1183c8e7b42e8faa1a6e2913fd3603ca1d90d4b90d05eb74be` (must match local SKILL.md body)
+- **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter-fix/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
   - Declaration expected `license: AGPL-3.0` — mismatch requires review
-- **Resolved at:** `2026-08-11T22:13:29.168686Z` version=`?`
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`v10.0.0`
+
+## `quality/megalinter-setup`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:e0a6d7e0fe28b92c342cd15cdf80e316c92e08cbb858685171b93a4ba4f09e71` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=2026-08-08
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=True network=True cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:e0a6d7e0fe28b92c342cd15cdf80e316c92e08cbb858685171b93a4ba4f09e71`
+
+### Source `setup` — `oxsecurity/megalinter/skills/megalinter-setup`
+
+- **Repository:** `oxsecurity/megalinter`
+- **Path:** `skills/megalinter-setup`
+- **Requested:** `tag` `v10.0.0` (declaration intent)
+- **Resolved commit:** `15e5b45552097e318c93de385779ce3b1084052c`
+- **Content checksum:** `sha256:efc32ea277f7ef6dadb470cb14b13115a719eef98669a79db6eed08bc0576e06`
+- **Body checksum:** `sha256:cd56c6291f261fd21df8a34671158644492e942a0000cc9e87284648a5362306` (must match local SKILL.md body)
+- **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter-setup/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
+  - Declaration expected `license: AGPL-3.0` — mismatch requires review
+- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`v10.0.0`
 
 ---
 
-Update workflow (follow-up #428): resolve tracking refs → candidate branch → `provenance.py lock` → vendored bytes + this doc → `audit-capability` → tests → PR with old/new commit/checksum/license and `provenance_digest` review-required.
+Update workflow: `provenance.py updates --apply` (path-scoped) → candidate branch → literal vendored bodies + lock + this doc → draft PR via `.github/workflows/update-upstream.yml` with old/new commit/`body_checksum`/license; human re-binds `reviewed_provenance` (never auto-merge).

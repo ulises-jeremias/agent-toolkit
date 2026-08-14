@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 77
+count: 80
 skills:
   - id: accessibility/review
     name: review
@@ -240,12 +240,12 @@ skills:
   - id: design/frontend-design-review
     name: frontend-design-review
     domain: design
-    description: '> Review and create distinctive, production-grade frontend interfaces with high design quality and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality craf'
+    description: '''Review and create distinctive, production-grade frontend interfaces with high design quality and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality craft'
     stability: stable
   - id: design/web-design-guidelines
     name: web-design-guidelines
     domain: design
-    description: 'Review UI code for Web Interface Guidelines compliance — accessibility, focus, forms, animation, typography, performance, and anti-patterns. Use when asked to "review my UI", "check accessibility", '
+    description: 'Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices".'
     stability: stable
   - id: forge/gh-address-comments
     name: gh-address-comments
@@ -355,7 +355,22 @@ skills:
   - id: quality/megalinter
     name: megalinter
     domain: quality
-    description: 'MegaLinter coding-agent orchestration — discover config, run/check (CI watch or local Docker), classify findings, apply safe fixes, targeted re-check (bounded 3 iterations), report remaining. Consum'
+    description: 'Entry point for everything MegaLinter. Use when the user wants to lint their repository, set up MegaLinter, check or fix lint errors, make CI lint jobs pass, or says "run megalinter", "fix lint errors'
+    stability: stable
+  - id: quality/megalinter-check
+    name: megalinter-check
+    domain: quality
+    description: 'Collect MegaLinter lint errors for the current repository. Use when the user wants to know if the code passes linting, why the MegaLinter CI job fails, or before/after fixing lint errors. Two modes - '
+    stability: stable
+  - id: quality/megalinter-fix
+    name: megalinter-fix
+    domain: quality
+    description: 'Fix the errors reported by MegaLinter. Use after megalinter-check found errors, or when the user pastes MegaLinter/CI lint errors and wants them fixed. Applies safe fixes automatically (auto-fix linte'
+    stability: stable
+  - id: quality/megalinter-setup
+    name: megalinter-setup
+    domain: quality
+    description: 'Install or upgrade MegaLinter on a repository. Use when the user wants to add MegaLinter to a project, set up linting CI, update MegaLinter configuration or version, or says "install megalinter", "set'
     stability: stable
   - id: tooling/chrome-devtools
     name: chrome-devtools

@@ -1,9 +1,13 @@
 ---
 name: frontend-design-review
-description: >
-  Review and create distinctive, production-grade frontend interfaces with high design
-  quality and design system compliance. Evaluates using three pillars: frictionless
-  insight-to-action, quality craft, and trustworthy building.
+description: 'Review and create distinctive, production-grade frontend interfaces with high design quality
+  and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality
+  craft, and trustworthy building. USE FOR: PR reviews, design reviews, accessibility audits, design system
+  compliance checks, creative frontend design, UI code review, component reviews, responsive design checks,
+  theme testing, and creating memorable UI. DO NOT USE FOR: Backend API reviews, database schema reviews,
+  infrastructure or DevOps work, pure business logic without UI, or non-frontend code.
+
+  '
 origin:
   type: upstream
 upstream:
@@ -14,15 +18,17 @@ upstream:
   version: e58528d
 trust:
   tier: reviewed
-  reviewed_at: '2026-08-11'
+  reviewed_at: '2026-08-14'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:5394cd7cf5d9c56acd77c251da40cb603795ac5e5b4d817578991d12d57d2be7
+  reviewed_provenance: sha256:73a3738779cb374d505c889bddb8fbb0020a42a6f428a74fdd7990d6550d01bf
 maintenance:
   status: active
   last_activity: '2026-08-11'
+  last_checked: '2026-08-14'
 distribution:
   mode: vendored
   redistribution_allowed: true
+  attribution_file: LICENSE
 security:
   scripts: false
   shell: false
@@ -31,11 +37,17 @@ security:
   hooks: []
   dangerous_permissions: []
   cve_policy: not-applicable
+updates:
+  strategy: pull-request
+  cadence: weekly
+acknowledgments: 'Design review principles and quality pillar framework created by @Quirinevwm (https://github.com/Quirinevwm).
+
+  Creative frontend guidance inspired by Anthropic''s frontend-design skill
+
+  (https://github.com/anthropics/skills/tree/main/skills/frontend-design). Licensed under respective terms.'
 ---
 
 # Frontend Design Review
-
-> **Frozen vendored snapshot** of `microsoft/skills` `.github/skills/frontend-design-review` at `e58528d` (commit `e58528db9a006528a5fb0a2c029790fa6a9a7c0e`, MIT) per ADR-0001 declaration→lock→vendored→surfaces. All references are local `references/` — no runtime network fetch. See `capabilities/upstream.lock` `design/frontend-design-review` and `docs/UPSTREAM.md`.
 
 Review UI implementations against design quality standards and your design system **OR** create distinctive, production-grade frontend interfaces from scratch.
 
@@ -158,37 +170,3 @@ See [references/pattern-examples.md](references/pattern-examples.md) for good/ba
 ## Acknowledgments
 
 Creative frontend principles inspired by [Anthropic's frontend-design skill](https://github.com/anthropics/skills/tree/main/skills/frontend-design). Design review principles and quality pillar framework created by [@Quirinevwm](https://github.com/Quirinevwm) for systematic UI evaluation.
-
-
----
-
-## Toolkit integration
-
-### Delegation — visual critique vs project health
-
-| Concern | Owner skill | What it does | When to use |
-|---------|-------------|--------------|-------------|
-| Project health (tech/mgmt) | `technical-unit-assessment` + `project-assessment-evidence` | Evidence-based 1–5 scoring of repo/platform/infra units; no visual judgment | Repo health, CI, security posture |
-| Design orchestration | `design-assessment` (planned #373, per ADR-0002 Option A) | Orchestrates discovery→inspect→capture→visual/UX/a11y/responsive/DS/AI-slop/perf→findings→roadmap; reuses evidence semantics; fans out to reviewers | Full product design audit |
-| Procedural visual critique | **`frontend-design-review`** (this skill) | Checklist evaluation of hierarchy, design-system compliance, three pillars (frictionless / quality craft / trustworthy), a11y, responsive, polish, AI-slop — outputs severity-ranked findings with citations | PR review, component review, creative frontend kickoff |
-| Distinctive visual direction | `frontend-design` | Studio-lead aesthetic choice, palette/type/layout thesis | New UI creation with intentional style |
-
-**This skill does not score project health.** For project health use `technical-unit-assessment`. For full design product audit, `design-assessment` will delegate to this skill for the procedural visual pass, alongside `web-design-guidelines` (Web Interface Guidelines rules) and browser/accessibility/Figma reviewers.
-
-### Evidence-cited findings — no fake scores
-
-- Never emit numeric scores (e.g. `72/100`) without observable evidence. Use **severity bands** `Blocking / Major / Minor` with `confidence` and `evidence` per finding, reusing `project-assessment-evidence` semantics where applicable.
-- Every issue must cite: **observation** (what you saw — screenshot region, code line, token mismatch), **impact** (user/task consequence), **effort**, and **recommended fix** with design-system link or token reference.
-- Mark indicators as **Not assessed** when screenshot/code unavailable rather than inventing a rating. Vision harness unavailable → text-only heuristic review with lower confidence, explicitly flagged.
-
-### Wiring to `design-assessment` (planned)
-
-This skill is a **delegate of `design-assessment`**. The orchestrator (see #373) will call it during the `VISUAL REVIEW` phase, passing captured screens/states (Playwright) and design-system manifest (Figma tokens / Storybook / Tailwind). It runs in parallel with `accessibility` / `web-design-guidelines` reviewers where the harness supports subagents, otherwise sequentially. Future `design-assessment` will document the full routing.
-
-### Provenance
-
-- Upstream: `microsoft/skills` `.github/skills/frontend-design-review` + `references/*` at `e58528db9a006528a5fb0a2c029790fa6a9a7c0e` (MIT), `LICENSE` vendored here as `LICENSE`.
-- Lock: `capabilities/upstream.lock` `design/frontend-design-review` `provenance_digest` (commit + content_checksum + license), `trust.reviewed_provenance` binding.
-- References vendored: `references/review-output-format.md`, `references/review-type-modifiers.md`, `references/quick-checklist.md`, `references/pattern-examples.md` — byte-identical to upstream at pinned commit.
-- Update: `pull-request` per `resolved_at`; never fetch `main` at runtime.
-

@@ -171,6 +171,9 @@ products:
         - agentic-security/owasp-agentic-review
         - agentic-security/threat-modeling
         - quality/megalinter
+        - quality/megalinter-setup
+        - quality/megalinter-check
+        - quality/megalinter-fix
         - quality/codeql
         - tooling/chrome-devtools
         - tooling/playwright-cli

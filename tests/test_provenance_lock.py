@@ -376,15 +376,19 @@ def test_frontend_design_review_binding_present_and_valid():
 
 def test_first_party_omitted_from_lock():
     lock = yaml.safe_load(prov.LOCK_PATH.read_text())
-    # 61 first-party skills must not appear — lock is sparse
+    # first-party skills must not appear — lock is sparse
     assert "core/assistant" not in lock["capabilities"], "first-party must not be in lock"
     assert "core/onboarding" not in lock["capabilities"]
-    # Only upstream with external content — now 4 (3 vendored + quality/megalinter external) (frontend-design + frontend-design-review + web-design-guidelines)
+    # Upstream with external content: 3 design + 4 MegaLinter coding-agent skills
     assert "design/frontend-design" in lock["capabilities"]
     assert "design/frontend-design-review" in lock["capabilities"]
     assert "design/web-design-guidelines" in lock["capabilities"]
-    assert len(lock["capabilities"]) == 4, (
-        "lock should be sparse: 72 skills → 4 upstream (3 vendored + quality/megalinter external)"
+    assert "quality/megalinter" in lock["capabilities"]
+    assert "quality/megalinter-setup" in lock["capabilities"]
+    assert "quality/megalinter-check" in lock["capabilities"]
+    assert "quality/megalinter-fix" in lock["capabilities"]
+    assert len(lock["capabilities"]) == 7, (
+        "lock should be sparse: first-party omitted; 7 upstream capabilities"
     )
 
 
@@ -689,24 +693,31 @@ def test_content_checksum_is_vendored_artifact_normalized():
 
 
 def test_updates_discovery_reports_no_update_when_at_head(monkeypatch):
-    # Mock to return locked commit for each repo → no update (handles 2 capabilities, 3 sources)
+    # Mock to return locked commit for each repo → no update
     lock = yaml.safe_load(prov.LOCK_PATH.read_text())
 
     def _mock(repo, path=None):
-        # Return locked commit per repository
         for cap in lock["capabilities"].values():
             for src in cap["sources"].values():
                 if src["repository"] == repo:
                     return src["resolved"]["commit"]
         return None
 
+    def _mock_tag(repo):
+        for cap in lock["capabilities"].values():
+            for src in cap["sources"].values():
+                if src["repository"] == repo and (src.get("requested") or {}).get("type") == "tag":
+                    return (src["requested"]["ref"], src["resolved"]["commit"])
+        return None, None
+
     monkeypatch.setattr(prov, "_fetch_latest_commit", _mock)
+    monkeypatch.setattr(prov, "_fetch_latest_semver_tag", _mock_tag)
     import contextlib
     import io
 
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        rc = prov.cmd_updates(argparse.Namespace(json=True))
+        rc = prov.cmd_updates(argparse.Namespace(json=True, apply=False))
     assert rc == 0
     data = json.loads(buf.getvalue())
     assert data["count"] == 0, data
@@ -728,20 +739,27 @@ def test_updates_discovery_reports_update_when_remote_ahead(monkeypatch):
     def _mock(repo, path=None):
         if repo == target_repo:
             return fake_latest
-        # Others return locked (no update)
         for cap in lock["capabilities"].values():
             for src in cap["sources"].values():
                 if src["repository"] == repo:
                     return src["resolved"]["commit"]
         return None
 
+    def _mock_tag(repo):
+        for cap in lock["capabilities"].values():
+            for src in cap["sources"].values():
+                if src["repository"] == repo and (src.get("requested") or {}).get("type") == "tag":
+                    return (src["requested"]["ref"], src["resolved"]["commit"])
+        return None, None
+
     monkeypatch.setattr(prov, "_fetch_latest_commit", _mock)
+    monkeypatch.setattr(prov, "_fetch_latest_semver_tag", _mock_tag)
     import contextlib
     import io
 
     buf = io.StringIO()
     with contextlib.redirect_stdout(buf):
-        rc = prov.cmd_updates(argparse.Namespace(json=True))
+        rc = prov.cmd_updates(argparse.Namespace(json=True, apply=False))
     assert rc == 0
     data = json.loads(buf.getvalue())
     assert data["count"] == 1, data

@@ -71,6 +71,11 @@
                       "pattern": "^sha256:[0-9a-f]{64}$",
                       "description": "sha256 of vendored content (SKILL.md bytes for single-file vendoring; directory hash for multi-file — documented per source)."
                     },
+                    "body_checksum": {
+                      "type": "string",
+                      "pattern": "^sha256:[0-9a-f]{64}$",
+                      "description": "sha256 of the SKILL.md body after the closing --- fence (byte-identical to upstream body at resolved commit). Required for vendored SKILL.md fidelity. For non-SKILL artifacts (e.g. command.md rules), equals content_checksum of the whole file."
+                    },
                     "tree_sha": {
                       "$ref": "upstream.schema.json#/$defs/sha40",
                       "description": "Optional Git tree SHA for the resolved path (useful for directory vendoring)."

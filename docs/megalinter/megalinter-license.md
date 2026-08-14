@@ -1,3 +1,5 @@
+> **Superseded 2026-08-14:** MegaLinter skills are now **vendored** (literal copies). See `docs/megalinter/AGPL-VENDING.md`.
+
 # MegaLinter License Analysis — 2026-08-12
 
 **Upstream:** `oxsecurity/megalinter` — `LICENSE` at repo root is **GNU Affero General Public License v3.0 (AGPL-3.0)**, 34523 bytes, SHA `be3f7b28e564e7dd05eaf59d64adba1a4065ac0e` (`gh api repos/oxsecurity/megalinter --jq .license.spdx_id` → `AGPL-3.0`).

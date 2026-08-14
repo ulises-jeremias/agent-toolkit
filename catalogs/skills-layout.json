@@ -44,7 +44,10 @@
       "figma-create-design-system-rules",
       "figma-create-new-file",
       "figma-implement-design",
-      "ui-ux-pro-max"
+      "frontend-design",
+      "frontend-design-review",
+      "ui-ux-pro-max",
+      "web-design-guidelines"
     ],
     "forge": [
       "gh-address-comments",
@@ -79,6 +82,13 @@
       "inventory",
       "jupyter-notebook",
       "playwright-cli"
+    ],
+    "quality": [
+      "codeql",
+      "megalinter",
+      "megalinter-check",
+      "megalinter-fix",
+      "megalinter-setup"
     ]
   },
   "skills": [
@@ -263,8 +273,23 @@
       "domain": "design"
     },
     {
+      "id": "design/frontend-design",
+      "name": "frontend-design",
+      "domain": "design"
+    },
+    {
+      "id": "design/frontend-design-review",
+      "name": "frontend-design-review",
+      "domain": "design"
+    },
+    {
       "id": "design/ui-ux-pro-max",
       "name": "ui-ux-pro-max",
+      "domain": "design"
+    },
+    {
+      "id": "design/web-design-guidelines",
+      "name": "web-design-guidelines",
       "domain": "design"
     },
     {
@@ -366,6 +391,31 @@
       "id": "ops/triage",
       "name": "triage",
       "domain": "ops"
+    },
+    {
+      "id": "quality/codeql",
+      "name": "codeql",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter",
+      "name": "megalinter",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter-check",
+      "name": "megalinter-check",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter-fix",
+      "name": "megalinter-fix",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter-setup",
+      "name": "megalinter-setup",
+      "domain": "quality"
     },
     {
       "id": "tooling/herdr",

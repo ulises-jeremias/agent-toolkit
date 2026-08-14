@@ -38,3 +38,4 @@ loops/*/STATE.md
 # Git worktrees
 .worktrees/
 modules/.cache/
+capabilities/upstream-apply-summary.json

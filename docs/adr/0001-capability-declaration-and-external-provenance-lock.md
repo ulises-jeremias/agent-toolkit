@@ -103,16 +103,20 @@ Stable capability identity uses existing Toolkit-namespaced IDs (`design/fronten
 - Review binding requires discipline: reviewers must update `trust.reviewed_provenance` after auditing new bytes; tooling enforces but adds step.
 - Two-schema maintenance (`upstream` vs `upstream-lock`) — reuse shared `$defs` mitigates drift.
 
-**Follow-up split:** Automated weekly `main`/`stable` tracking → resolve → candidate branch → `lock` + vendored files + `UPSTREAM.md` → supply-chain audit → tests → open PR is intentionally moved to a new issue PR after #403. #403 foundation remains: declaration/resolution split, V2 schema, generator, integrity validator, frontend-design migration, human provenance doc, CI lock validation, multi-source + non-skill fixtures, tests, TRUST.md update.
+**Follow-up split (closed by fidelity + sync PR):** Automated weekly path-scoped discovery → `provenance.py updates --apply` → candidate branch → lock + literal vendored bodies + `UPSTREAM.md` → draft PR with old/new commit/`body_checksum`/license and `provenance_digest` review-required. Never auto-merge. Bot leaves `trust.tier: experimental` until a human re-binds `reviewed_provenance`.
+
+**Amendment (2026-08-14):** Vendored `SKILL.md` bodies must be byte-identical to upstream (`resolved.body_checksum`). Toolkit may only overlay provenance frontmatter. MegaLinter coding-agent skills are vendored under AGPL-3.0 (aggregation) so automated fidelity checks can run — see `docs/megalinter/AGPL-VENDING.md`.
 
 ## References
 
 - PR #399 (15 P0 gates, provenance schema + validator, L1/L1.5 separation)
 - Issue #370 (immutable pinning + update PR automation — to be split)
+- Issue #428 (weekly update automation — completed)
 - PR #403 (this ADR target; v1 rejected)
 - `schemas/upstream.schema.json` / `schemas/upstream-lock.schema.json` (new)
 - `schemas/skill-md-frontmatter.schema.json` (`$ref` single-source)
 - `docs/TRUST.md` § Supply chain → Provenance & third-party capabilities (updated)
-- `scripts/provenance.py` (`lock`/`check`)
-- `capabilities/upstream.lock` v2 (`design/frontend-design` real slice)
+- `scripts/provenance.py` (`lock`/`check`/`docs`/`updates`/`updates --apply`)
+- `capabilities/upstream.lock` v2
 - `docs/UPSTREAM.md` (generated)
+- `.github/workflows/update-upstream.yml` (weekly draft PR)

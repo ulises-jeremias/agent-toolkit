@@ -110,24 +110,26 @@ Prefer tagged releases or marketplace installs over unreviewed forks.
 CAPABILITY DECLARATION        — “What is this capability and what external sources does it intend to use?”
         ↓ resolution              SKILL.md frontmatter (origin, sources/upstream, trust, maintenance, distribution, security)
 EXTERNAL PROVENANCE LOCK      — “What exact immutable external artifacts were resolved?”
-        ↓ integrity verification  capabilities/upstream.lock v2: capability ID → source ID → {requested, resolved {commit, content_checksum, license, resolved_at}, provenance_digest}
+        ↓ integrity verification  capabilities/upstream.lock v2: capability ID → source ID → {requested, resolved {commit, content_checksum, body_checksum, license, resolved_at}, provenance_digest}
 VENDORED / EXTERNAL STATE     — “What bytes/package/plugin actually correspond to that resolution?”
-        ↓ generation             skills/design/frontend-design/SKILL.md + LICENSE.txt (vendored) or external/native-plugin reference
+        ↓ generation             skills/<domain>/<name>/SKILL.md (Toolkit frontmatter + **literal upstream body**) + LICENSE (+ siblings)
 TARGET SURFACES               — “How Claude/Cursor/Copilot/OpenCode/etc. consume the capability”
                                  plugins/*, catalogs/*, docs/UPSTREAM.md (generated from declaration+lock)
 ```
 
 > **Lock is a resolution artifact, not a second capability catalog.** It is sparse — only `origin: upstream` capabilities with external content appear; `first-party` never appears. Runtime package resolution (`uv.lock`, `pnpm-lock.yaml`, Docker digest) stays in ecosystem locks, not `upstream.lock`. See `docs/adr/0001-capability-declaration-and-external-provenance-lock.md` and `schemas/upstream-lock.schema.json`.
 
-Validation is offline/deterministic: `SKILL.md` + committed `capabilities/upstream.lock` + vendored bytes are enough for `uv run python scripts/provenance.py check` (schema, SHA40, SPDX, checksum vs bytes, provenance_digest, orphan/missing, review binding). Network is only for follow-up #428 automation (resolve tracking refs via GitHub API, open PR); normal PR CI never requires network.
+Validation is offline/deterministic: `SKILL.md` + committed `capabilities/upstream.lock` + vendored bytes are enough for `python3 scripts/provenance.py check` (schema, SHA40, SPDX, content_checksum vs bytes, **body_checksum fidelity**, provenance_digest, orphan/missing, review binding). Network is only for scheduled/manual `updates` / `updates --apply`; normal PR CI never requires network.
+
+**Fidelity invariant (vendored):** Local `SKILL.md` body (everything after the closing `---`) must be **byte-identical** to upstream at the resolved commit. Only Toolkit overlay keys differ in frontmatter (`origin`, `sources`/`upstream`, `trust`, `maintenance`, `distribution`, `security`, `updates`). Sibling files from the upstream skill path are copied verbatim. Lock field `resolved.body_checksum` proves body identity offline.
 
 **Implemented now (in #399):** Explicit origin classification + immutable provenance in `SKILL.md` frontmatter, validated via `scripts/validate-upstream.py` (`origin.type` required, 40-char SHA, SPDX subset — `schemas/upstream.schema.json`).
 
-**Implemented now (in #403):** `capabilities/upstream.lock` v2 as external provenance lock (separate schema `schemas/upstream-lock.schema.json`, deterministic `scripts/provenance.py lock` / `check` / `docs`). Vertical slice is `design/frontend-design` (`anthropics/skills` `f17010c9bb483898c1d9c9f42dde2b3a98889434`, `Apache-2.0`, `sha256:7e906c…` + `0d542e…`, `provenance_digest sha256:c59105…`, `trust.reviewed_provenance` bound — see `capabilities/upstream.lock`). Validation is in `.github/workflows/validate.yml` (`validate-upstream` + `provenance check` + `lock --check` + `docs --check`).
+**Implemented now (in #403):** `capabilities/upstream.lock` v2 as external provenance lock (separate schema `schemas/upstream-lock.schema.json`, deterministic `scripts/provenance.py lock` / `check` / `docs`). Validation is in `.github/workflows/validate.yml` (`validate-upstream` + `provenance check` + `lock --check` + `docs --check`).
 
-**Implemented now (in #428):** Automated upstream update discovery via `scripts/provenance.py updates` (read-only, compares locked `resolved.commit` to remote default-branch HEAD via `gh api` / `GITHUB_TOKEN`, reports `old commit → new commit`, staleness `>90d`); scheduled weekly `update-upstream.yml` (cron + `workflow_dispatch`) runs discovery and signals PR creation (full vendored update → lock → `docs/UPSTREAM.md` → audit → tests → PR with old/new commit/checksum/license and `provenance_digest` review-required will complete in follow-up iteration).
+**Implemented now (closes #428):** Path-scoped / semver-tag discovery via `scripts/provenance.py updates`; `--apply` rewrites vendored skills to literal upstream bodies + Toolkit frontmatter, regenerates lock + `docs/UPSTREAM.md`, and sets `trust.tier: experimental` (drops `reviewed_provenance`) until human re-binds. Weekly `.github/workflows/update-upstream.yml` opens a **draft** PR (never auto-merges).
 
-**Planned in #387:** `agent-toolkit inventory` and `doctor` provenance wiring (display `sources`/`provenance_digest`, warn on stale pins, missing provenance). Until #387, provenance is visible via `scripts/provenance.py check` and frontmatter inspection only.
+**AGPL note:** MegaLinter coding-agent skills are vendored under AGPL-3.0 with per-skill `LICENSE` (aggregation). See `docs/megalinter/AGPL-VENDING.md`.
 
 **Planned in #387:** `agent-toolkit inventory` and `doctor` provenance wiring (display `sources`/`provenance_digest`, warn on stale pins, missing provenance). Until #387, provenance is visible via `scripts/provenance.py check` and frontmatter inspection only.
 
@@ -145,6 +147,7 @@ Validation is offline/deterministic: `SKILL.md` + committed `capabilities/upstre
 | Requested upstream version/ref | declaration (`upstream.ref` / `sources[].ref`) |
 | Resolved commit                | `capabilities/upstream.lock` (`resolved.commit`) |
 | Content checksum               | `capabilities/upstream.lock` (`resolved.content_checksum`) |
+| Body checksum (fidelity)       | `capabilities/upstream.lock` (`resolved.body_checksum`) |
 | Observed resolved license      | `capabilities/upstream.lock` (`resolved.license`) |
 | Resolution timestamp           | `capabilities/upstream.lock` (`resolved.resolved_at`) |
 | Provenance digest              | `capabilities/upstream.lock` (`provenance_digest`) + declaration `trust.reviewed_provenance` binding |

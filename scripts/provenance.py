@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
 """
-Provenance tool — declaration → lock → integrity verification + update discovery.
+Provenance tool — declaration → lock → integrity verification + update discovery/apply.
 
 Commands:
   lock    Resolve SKILL.md declarations and write deterministic capabilities/upstream.lock (v2)
-  check   Offline validation: declaration↔lock consistency, schema, SHA40, SPDX, checksum vs vendored bytes, orphan/missing, review-binding
+  check   Offline validation: declaration↔lock consistency, schema, SHA40, SPDX,
+          content_checksum vs vendored bytes, body_checksum fidelity, orphan/missing, review-binding
   docs    Generate docs/UPSTREAM.md from declaration+lock
-  updates Online discovery: compare locked commits to remote default-branch HEAD (read-only, --json); --apply would update lock/vendored (future)
+  updates Online discovery: path-scoped (and tag) update check; --apply rewrites vendored
+          bytes (upstream body literal + Toolkit frontmatter overlay), regenerates lock+docs
+
+Fidelity invariant (vendored SKILL.md):
+  - Frontmatter = upstream keys + Toolkit overlay (origin/sources/trust/…).
+  - Body after closing --- is byte-identical to upstream body at resolved commit.
+  - resolved.body_checksum proves that identity offline.
 
 Lock semantics (ADR-0001):
   - Sparse: only origin: upstream with external content appears; first-party omitted.
-  - Resolution artifact: requested {type, ref} (declaration intent) + resolved {commit, content_checksum, license, resolved_at}.
+  - Resolution artifact: requested {type, ref} + resolved {commit, content_checksum,
+    body_checksum?, license, resolved_at}.
   - Stable capability ID is namespaced Toolkit ID (e.g. design/frontend-design).
   - Multi-source: capability → sources: {id: {repository, path, requested, resolved}}.
 
@@ -18,7 +26,8 @@ Usage:
   uv run python scripts/provenance.py lock [--check]
   uv run python scripts/provenance.py check
   uv run python scripts/provenance.py docs [--check]
-  uv run python scripts/provenance.py updates [--json]  # read-only discovery
+  uv run python scripts/provenance.py updates [--json]
+  uv run python scripts/provenance.py updates --apply
 
 See docs/adr/0001-capability-declaration-and-external-provenance-lock.md
 """
@@ -32,6 +41,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
@@ -50,18 +60,142 @@ SHA256_RE = re.compile(r"^sha256:[0-9a-f]{64}$")
 # vendored content: single SKILL.md + LICENSE.txt per skill
 # For directory-hash future, keep separate; now file-level.
 
+# Toolkit-owned frontmatter keys overlaid on upstream-owned keys.
+TOOLKIT_OVERLAY_KEYS = frozenset(
+    {
+        "origin",
+        "sources",
+        "upstream",
+        "trust",
+        "maintenance",
+        "distribution",
+        "security",
+        "updates",
+        "capability",
+    }
+)
+
+# Preferred key order when writing merged SKILL.md frontmatter.
+_FRONTMATTER_KEY_ORDER = (
+    "name",
+    "description",
+    "license",
+    "licence",
+    "metadata",
+    "compatibility",
+    "argument-hint",
+    "allowed-tools",
+    "user-invocable",
+    "tools",
+    "requires",
+    "triggers",
+    "origin",
+    "sources",
+    "upstream",
+    "trust",
+    "maintenance",
+    "distribution",
+    "security",
+    "updates",
+    "capability",
+)
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
-def _load_frontmatter(path: Path) -> dict:
-    text = path.read_text(encoding="utf-8")
-    m = re.search(r"^---\n(.*?)\n---\n", text, re.DOTALL | re.MULTILINE)
+def _split_skill_text(text: str) -> tuple[dict, str]:
+    """
+    Split a SKILL.md into (frontmatter_dict, body).
+
+    Body is everything after the closing --- fence, preserved exactly
+    (including leading newline after ---). If no frontmatter fence, returns
+    ({}, text) so non-SKILL artifacts can still be checksummed as whole files.
+    """
+    m = re.match(r"^---\r?\n(.*?)\r?\n---\r?\n(.*)\Z", text, re.DOTALL)
     if not m:
-        return {}
+        return {}, text
     data = yaml.safe_load(m.group(1)) or {}
-    return data if isinstance(data, dict) else {}
+    fm = data if isinstance(data, dict) else {}
+    return fm, m.group(2)
+
+
+def _split_skill_file(path: Path) -> tuple[dict, str]:
+    return _split_skill_text(path.read_text(encoding="utf-8"))
+
+
+def _body_sha256(body: str) -> str:
+    """sha256 of skill body bytes (UTF-8)."""
+    return f"sha256:{hashlib.sha256(body.encode('utf-8')).hexdigest()}"
+
+
+def _bytes_sha256(data: bytes) -> str:
+    return f"sha256:{hashlib.sha256(data).hexdigest()}"
+
+
+def _ordered_frontmatter(fm: dict) -> dict:
+    """Stable key order for readable merged frontmatter dumps."""
+    ordered: dict = {}
+    for key in _FRONTMATTER_KEY_ORDER:
+        if key in fm:
+            ordered[key] = fm[key]
+    for key, value in fm.items():
+        if key not in ordered:
+            ordered[key] = value
+    return ordered
+
+
+def _dump_frontmatter(fm: dict) -> str:
+    return yaml.safe_dump(
+        _ordered_frontmatter(fm),
+        sort_keys=False,
+        default_flow_style=False,
+        allow_unicode=True,
+        width=100,
+    )
+
+
+def _merge_skill_md(upstream_fm: dict, toolkit_overlay: dict, body: str) -> str:
+    """
+    Build local SKILL.md: upstream frontmatter keys + Toolkit overlay + upstream body.
+
+    Toolkit overlay keys always win. Body must be the upstream body bytes (as str).
+    """
+    merged = dict(upstream_fm)
+    for key in TOOLKIT_OVERLAY_KEYS:
+        if key in toolkit_overlay:
+            merged[key] = toolkit_overlay[key]
+    # Drop reviewed_provenance from overlay when trust.tier is experimental
+    # (apply path clears it); keep whatever overlay provided.
+    text = f"---\n{_dump_frontmatter(merged)}---\n{body}"
+    if not text.endswith("\n") and body.endswith("\n"):
+        # body already ended with newline; dump may not add trailing
+        pass
+    if not text.endswith("\n"):
+        text += "\n"
+    return text
+
+
+def _toolkit_overlay_from_frontmatter(fm: dict) -> dict:
+    return {k: fm[k] for k in TOOLKIT_OVERLAY_KEYS if k in fm}
+
+
+def _skill_md_path_for_source(spath: str) -> str:
+    """Map declaration path (file or skill dir) to the SKILL.md path in upstream repo."""
+    if spath.endswith("SKILL.md") or spath.endswith(".md"):
+        return spath
+    return f"{spath.rstrip('/')}/SKILL.md"
+
+
+def _is_skill_md_source(spath: str) -> bool:
+    p = _skill_md_path_for_source(spath)
+    return p.endswith("SKILL.md")
+
+
+def _load_frontmatter(path: Path) -> dict:
+    fm, _body = _split_skill_file(path)
+    return fm
 
 
 def _skill_id_from_path(skill_path: Path) -> str:
@@ -297,6 +431,40 @@ def _build_lock_data(
             except Exception:
                 content_checksum = "sha256:" + "0" * 64
                 # If external and still zeros, try local fallback already handled; keep zeros (check will skip for external)
+
+            # body_checksum: fidelity of SKILL.md body (or whole-file for non-SKILL artifacts)
+            body_checksum = ""
+            dist_mode_for_body = None
+            fm_dist_body = declarations[cap_id].get("frontmatter", {}).get("distribution", {})
+            if isinstance(fm_dist_body, dict):
+                dist_mode_for_body = fm_dist_body.get("mode")
+            if dist_mode_for_body == "external" and cap_id in existing_caps:
+                ex_src = existing_caps[cap_id].get("sources", {}).get(sid, {})
+                ex_res = ex_src.get("resolved", {})
+                if ex_res.get("commit") == commit and ex_res.get("body_checksum"):
+                    body_checksum = ex_res["body_checksum"]
+            if not body_checksum:
+                try:
+                    vendored_for_body = skill_path
+                    if len(src_list) > 1 and (sid == "rules" or spath == "command.md"):
+                        candidate = (
+                            skill_path.parent / "references" / "web-interface-guidelines.md"
+                        )
+                        if candidate.exists():
+                            vendored_for_body = candidate
+                        else:
+                            candidate = skill_path.parent / "references" / Path(spath).name
+                            if candidate.exists():
+                                vendored_for_body = candidate
+                    if vendored_for_body.exists():
+                        if vendored_for_body.name == "SKILL.md":
+                            _fm, body = _split_skill_file(vendored_for_body)
+                            body_checksum = _body_sha256(body)
+                        else:
+                            body_checksum = _file_sha256_raw(vendored_for_body)
+                except Exception:
+                    body_checksum = ""
+
             # License observed: per-source
             license_obj: dict = {"spdx": lic}
             # For multi-source, try per-source LICENSE
@@ -329,6 +497,7 @@ def _build_lock_data(
                 if (
                     ex_res.get("commit") == commit
                     and ex_res.get("content_checksum") == content_checksum
+                    and ex_res.get("body_checksum") == body_checksum
                     and (ex_res.get("license") or {}).get("spdx") == license_obj.get("spdx")
                     and (ex_res.get("license") or {}).get("checksum") == license_obj.get("checksum")
                     and ex_res.get("version")
@@ -342,6 +511,8 @@ def _build_lock_data(
                 "license": license_obj,
                 "resolved_at": existing_resolved_at or now,
             }
+            if body_checksum and SHA256_RE.match(body_checksum):
+                resolved["body_checksum"] = body_checksum
             # Preserve version if present in declaration
             if src.get("version"):
                 resolved["version"] = str(src["version"])
@@ -603,6 +774,29 @@ def cmd_check(args: argparse.Namespace) -> int:
                             errors.append(
                                 f"{cap_id}.sources.{sid}: content_checksum mismatch — lock {cksum[:16]}… vs vendored {vendored_path} {actual[:16]}… (drift; run provenance.py lock after updating vendored bytes)"
                             )
+                        # body_checksum fidelity (vendored SKILL.md / rules file)
+                        body_ck = resolved.get("body_checksum", "")
+                        if body_ck:
+                            if not SHA256_RE.match(body_ck):
+                                errors.append(
+                                    f"{cap_id}.sources.{sid}.resolved.body_checksum {body_ck!r} is not sha256:64hex"
+                                )
+                            else:
+                                if vendored_path.name == "SKILL.md":
+                                    _fm, body = _split_skill_file(vendored_path)
+                                    actual_body = _body_sha256(body)
+                                else:
+                                    actual_body = _file_sha256_raw(vendored_path)
+                                if actual_body != body_ck:
+                                    errors.append(
+                                        f"{cap_id}.sources.{sid}: body_checksum mismatch — lock {body_ck[:16]}… vs vendored {vendored_path} {actual_body[:16]}… "
+                                        f"(body must be byte-identical to upstream; only Toolkit frontmatter overlay may differ)"
+                                    )
+                        elif dist == "vendored":
+                            errors.append(
+                                f"{cap_id}.sources.{sid}: missing resolved.body_checksum for vendored source "
+                                f"(run provenance.py lock after restoring literal upstream body)"
+                            )
                     except FileNotFoundError:
                         errors.append(
                             f"{cap_id}: vendored file not found at {skill_path} but lock expects {cksum[:16]}…"
@@ -754,6 +948,8 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
             )
             lines.append(f"- **Resolved commit:** `{res.get('commit', '?')}`")
             lines.append(f"- **Content checksum:** `{res.get('content_checksum', '?')}`")
+            if res.get("body_checksum"):
+                lines.append(f"- **Body checksum:** `{res.get('body_checksum')}` (must match local SKILL.md body)")
             lic_obj = res.get("license", {})
             lines.append(
                 f"- **Observed license:** `{lic_obj.get('spdx', lic)}` source_path=`{lic_obj.get('source_path', '?')}` checksum=`{lic_obj.get('checksum', '?')}`"
@@ -773,9 +969,9 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
     lines.append("---")
     lines.append("")
     lines.append(
-        "Update workflow (follow-up #428): resolve tracking refs → candidate branch → "
-        "`provenance.py lock` → vendored bytes + this doc → `audit-capability` → tests → "
-        "PR with old/new commit/checksum/license and `provenance_digest` review-required."
+        "Update workflow: `provenance.py updates --apply` (path-scoped) → candidate branch → "
+        "literal vendored bodies + lock + this doc → draft PR via `.github/workflows/update-upstream.yml` "
+        "with old/new commit/`body_checksum`/license; human re-binds `reviewed_provenance` (never auto-merge)."
     )
     lines.append("")
     return "\n".join(lines)
@@ -849,20 +1045,44 @@ def _gh_api_json(path: str) -> dict | list | None:
         return None
 
 
+def _fetch_raw_bytes(repository: str, commit: str, path: str) -> bytes | None:
+    """Fetch raw file bytes from raw.githubusercontent.com."""
+    url = f"https://raw.githubusercontent.com/{repository}/{commit}/{path}"
+    try:
+        req = urllib.request.Request(url, headers={"Accept": "application/octet-stream"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            return resp.read()
+    except Exception as e:
+        print(f"warn: fetch {url} failed: {e}", file=sys.stderr)
+        return None
+
+
 def _fetch_latest_commit(repository: str, path: str | None = None) -> str | None:
-    """Fetch latest commit SHA for repository default branch (ignoring path for now)."""
-    # Get default branch
+    """
+    Fetch latest commit SHA that touches `path` on the default branch.
+
+    Path-scoped to avoid false positives from unrelated commits in large monorepos.
+    Falls back to branch HEAD when path is empty or the path filter returns nothing.
+    """
     info = _gh_api_json(f"repos/{repository}")
     if not isinstance(info, dict):
         return None
     branch = info.get("default_branch", "main")
-    # Get commit for branch
+    if path:
+        # Prefer commits that touch the skill path (file or directory)
+        qpath = path.rstrip("/")
+        commits = _gh_api_json(
+            f"repos/{repository}/commits?sha={branch}&path={urllib.parse.quote(qpath)}&per_page=1"
+        )
+        if isinstance(commits, list) and commits and isinstance(commits[0], dict):
+            sha = commits[0].get("sha", "")
+            if SHA40_RE.match(sha):
+                return sha
     commit_info = _gh_api_json(f"repos/{repository}/commits/{branch}")
     if isinstance(commit_info, dict) and "sha" in commit_info:
         sha = commit_info["sha"]
         if SHA40_RE.match(sha):
             return sha
-    # Fallback: list commits
     commits = _gh_api_json(f"repos/{repository}/commits?sha={branch}&per_page=1")
     if isinstance(commits, list) and commits and isinstance(commits[0], dict):
         sha = commits[0].get("sha", "")
@@ -871,98 +1091,363 @@ def _fetch_latest_commit(repository: str, path: str | None = None) -> str | None
     return None
 
 
+def _fetch_latest_semver_tag(repository: str) -> tuple[str | None, str | None]:
+    """
+    Return (tag_name, commit_sha) for the newest semver-looking release tag.
+    Prefers GitHub releases/latest, falls back to tags list.
+    """
+    release = _gh_api_json(f"repos/{repository}/releases/latest")
+    if isinstance(release, dict):
+        tag = release.get("tag_name") or ""
+        if re.match(r"^v?[0-9]+\.[0-9]+\.[0-9]+", tag):
+            # Resolve tag → commit
+            ref = _gh_api_json(f"repos/{repository}/git/ref/tags/{tag}")
+            if isinstance(ref, dict):
+                obj = ref.get("object") or {}
+                sha = obj.get("sha", "")
+                # Annotated tags point to a tag object; peel to commit
+                if obj.get("type") == "tag":
+                    tag_obj = _gh_api_json(f"repos/{repository}/git/tags/{sha}")
+                    if isinstance(tag_obj, dict):
+                        sha = (tag_obj.get("object") or {}).get("sha", "")
+                if SHA40_RE.match(sha or ""):
+                    return tag, sha
+            # Fallback: commits API for the tag
+            commit_info = _gh_api_json(f"repos/{repository}/commits/{tag}")
+            if isinstance(commit_info, dict) and SHA40_RE.match(commit_info.get("sha", "")):
+                return tag, commit_info["sha"]
+    return None, None
+
+
+def _discover_updates(lock: dict) -> list[dict]:
+    """Compare locked sources to path-scoped HEAD / newer semver tags."""
+    updates: list[dict] = []
+    caps = lock.get("capabilities", {})
+    for cap_id in sorted(caps.keys()):
+        for source_id, src in sorted(caps[cap_id].get("sources", {}).items()):
+            repo = src.get("repository", "")
+            path = src.get("path", "")
+            locked = (src.get("resolved") or {}).get("commit", "")
+            req = src.get("requested") or {}
+            req_type = req.get("type", "commit")
+            locked_ref = req.get("ref", "")
+            resolved_at = (src.get("resolved") or {}).get("resolved_at", "")
+            stale = False
+            try:
+                rt = datetime.fromisoformat(resolved_at.replace("Z", "+00:00"))
+                stale = (datetime.now(timezone.utc) - rt).days > 90
+            except Exception:
+                stale = False
+
+            latest_commit: str | None = None
+            latest_ref: str | None = None
+            if req_type == "tag":
+                tag, sha = _fetch_latest_semver_tag(repo)
+                if tag and sha and (tag != locked_ref or sha != locked):
+                    latest_commit = sha
+                    latest_ref = tag
+            else:
+                latest_commit = _fetch_latest_commit(repo, path)
+                latest_ref = latest_commit
+
+            if not latest_commit:
+                continue
+            if latest_commit == locked and (latest_ref is None or latest_ref == locked_ref):
+                continue
+
+            entry = {
+                "capability": cap_id,
+                "source": source_id,
+                "repository": repo,
+                "path": path,
+                "requested_type": req_type,
+                "locked_ref": locked_ref,
+                "locked_commit": locked,
+                "latest_ref": latest_ref or latest_commit,
+                "latest_commit": latest_commit,
+                "stale": stale,
+                "license_locked": (src.get("resolved") or {}).get("license", {}).get("spdx"),
+                "body_checksum_locked": (src.get("resolved") or {}).get("body_checksum"),
+            }
+            updates.append(entry)
+    return updates
+
+
+def _copy_upstream_tree(
+    repository: str, commit: str, upstream_dir: str, dest_dir: Path, skip_skill_md: bool = True
+) -> list[str]:
+    """
+    Copy all files under upstream_dir at commit into dest_dir via GitHub trees API.
+    Returns list of relative paths written. SKILL.md is skipped when skip_skill_md
+    (caller merges frontmatter separately).
+    """
+    written: list[str] = []
+    tree = _gh_api_json(f"repos/{repository}/git/trees/{commit}?recursive=1")
+    if not isinstance(tree, dict):
+        return written
+    prefix = upstream_dir.rstrip("/") + "/"
+    # Also allow exact file path as "directory" of one file
+    entries = tree.get("tree") or []
+    for entry in entries:
+        if not isinstance(entry, dict) or entry.get("type") != "blob":
+            continue
+        p = entry.get("path") or ""
+        if not (p == upstream_dir.rstrip("/") or p.startswith(prefix)):
+            continue
+        rel = p[len(prefix) :] if p.startswith(prefix) else Path(p).name
+        if skip_skill_md and rel == "SKILL.md":
+            continue
+        data = _fetch_raw_bytes(repository, commit, p)
+        if data is None:
+            continue
+        out = dest_dir / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_bytes(data)
+        written.append(rel)
+    return written
+
+
+def _apply_skill_update(
+    cap_id: str,
+    source_id: str,
+    repository: str,
+    path: str,
+    new_commit: str,
+    new_ref: str,
+    req_type: str,
+    skill_path: Path,
+) -> dict:
+    """
+    Rewrite one source for a capability at new_commit.
+    For SKILL.md sources: merge Toolkit overlay + upstream body.
+    For rules (command.md): copy literal bytes to references/.
+    """
+    result: dict = {"capability": cap_id, "source": source_id, "files": []}
+    skill_dir = skill_path.parent
+    fm_local = _load_frontmatter(skill_path)
+    overlay = _toolkit_overlay_from_frontmatter(fm_local)
+
+    # Invalidate prior review on apply
+    trust = dict(overlay.get("trust") or {})
+    trust["tier"] = "experimental"
+    trust.pop("reviewed_provenance", None)
+    trust["reviewed_at"] = datetime.now(timezone.utc).date().isoformat()
+    overlay["trust"] = trust
+
+    # Bump declaration pin
+    if "upstream" in overlay and isinstance(overlay["upstream"], dict) and source_id in (
+        "upstream",
+        overlay["upstream"].get("id"),
+        overlay["upstream"].get("role"),
+        None,
+    ):
+        # Single-source: update upstream block when this is the primary source
+        if source_id == "upstream" or len(overlay.get("sources") or []) == 0:
+            u = dict(overlay["upstream"])
+            if req_type == "tag":
+                u["ref"] = new_ref
+                u["commit"] = new_commit
+            else:
+                u["ref"] = new_commit
+                u.pop("commit", None)
+            u["version"] = new_ref[:7] if req_type == "commit" else new_ref
+            overlay["upstream"] = u
+
+    if "sources" in overlay and isinstance(overlay["sources"], list):
+        new_sources = []
+        for s in overlay["sources"]:
+            if not isinstance(s, dict):
+                continue
+            sid = s.get("id") or s.get("role") or "upstream"
+            if sid == source_id:
+                s = dict(s)
+                if req_type == "tag":
+                    s["ref"] = new_ref
+                    s["commit"] = new_commit
+                else:
+                    s["ref"] = new_commit
+                    s.pop("commit", None)
+                s["version"] = new_ref[:7] if req_type == "commit" else new_ref
+            new_sources.append(s)
+        overlay["sources"] = new_sources
+
+    maint = dict(overlay.get("maintenance") or {})
+    maint["last_checked"] = datetime.now(timezone.utc).date().isoformat()
+    overlay["maintenance"] = maint
+
+    if path.endswith("command.md") or source_id == "rules":
+        data = _fetch_raw_bytes(repository, new_commit, path)
+        if data is None:
+            raise RuntimeError(f"failed to fetch {repository}/{path}@{new_commit}")
+        out = skill_dir / "references" / "web-interface-guidelines.md"
+        if path != "command.md":
+            out = skill_dir / "references" / Path(path).name
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_bytes(data)
+        result["files"].append(str(out.relative_to(REPO_ROOT)))
+        result["body_checksum"] = _bytes_sha256(data)
+        # Still rewrite SKILL.md frontmatter pin without touching body
+        local_fm, local_body = _split_skill_file(skill_path)
+        # Keep local body; only overlay pin changed
+        skill_path.write_text(
+            _merge_skill_md(
+                {k: v for k, v in local_fm.items() if k not in TOOLKIT_OVERLAY_KEYS},
+                overlay,
+                local_body,
+            ),
+            encoding="utf-8",
+        )
+        result["files"].append(str(skill_path.relative_to(REPO_ROOT)))
+        return result
+
+    # SKILL.md source (path may be dir or file)
+    skill_md_remote = _skill_md_path_for_source(path)
+    raw = _fetch_raw_bytes(repository, new_commit, skill_md_remote)
+    if raw is None:
+        raise RuntimeError(f"failed to fetch {repository}/{skill_md_remote}@{new_commit}")
+    upstream_text = raw.decode("utf-8")
+    upstream_fm, body = _split_skill_text(upstream_text)
+    merged = _merge_skill_md(upstream_fm, overlay, body)
+    skill_dir.mkdir(parents=True, exist_ok=True)
+    skill_path.write_text(merged, encoding="utf-8")
+    result["files"].append(str(skill_path.relative_to(REPO_ROOT)))
+    result["body_checksum"] = _body_sha256(body)
+
+    # Copy sibling tree when path is a skill directory
+    upstream_dir = path if not path.endswith(".md") else str(Path(path).parent)
+    if upstream_dir and upstream_dir not in (".", ""):
+        written = _copy_upstream_tree(
+            repository, new_commit, upstream_dir, skill_dir, skip_skill_md=True
+        )
+        result["files"].extend(f"{cap_id}/{w}" if False else str((skill_dir / w).relative_to(REPO_ROOT)) for w in written)
+
+        # Prefer repo-root LICENSE if skill has none
+        if not (skill_dir / "LICENSE").exists() and not (skill_dir / "LICENSE.txt").exists():
+            for cand in ("LICENSE", "LICENSE.txt", "COPYING"):
+                lic = _fetch_raw_bytes(repository, new_commit, cand)
+                if lic:
+                    (skill_dir / "LICENSE").write_bytes(lic)
+                    result["files"].append(str((skill_dir / "LICENSE").relative_to(REPO_ROOT)))
+                    break
+    return result
+
+
 def cmd_updates(args: argparse.Namespace) -> int:
     """
-    Online discovery: compare locked resolved commits to remote HEAD.
+    Online discovery (path-scoped + semver tags). With --apply, rewrite vendored
+    skills to literal upstream bodies + Toolkit frontmatter, regenerate lock+docs.
 
-    Read-only by default (--json prints machine-readable). With --apply (future),
-    would update lock/vendored bytes and docs, but for #428 foundation we keep
-    read-only and let the workflow open a PR manually.
-
-    Never auto-merges; human review required.
+    Never auto-merges; human review required. Apply sets trust.tier=experimental
+    and drops reviewed_provenance so offline check passes until human re-binds.
     """
     lock = _load_lock()
     if lock is None:
         print(f"lock not found at {LOCK_PATH}", file=sys.stderr)
         return 1
-    caps = lock.get("capabilities", {})
-    updates: list[dict] = []
-    for cap_id in sorted(caps.keys()):
-        for source_id, src in sorted(caps[cap_id].get("sources", {}).items()):
-            repo = src.get("repository", "")
-            locked = (src.get("resolved") or {}).get("commit", "")
-            # Skip if no repo or not commit-typed (tag tracking would need release API)
-            req_type = (src.get("requested") or {}).get("type", "commit")
-            if req_type != "commit":
-                continue
-            latest = _fetch_latest_commit(repo, src.get("path"))
-            if not latest:
-                if args.json:
-                    continue
-                print(
-                    f"{cap_id} {source_id}: {repo} — could not fetch latest (offline?)",
-                    file=sys.stderr,
-                )
-                continue
-            if latest != locked:
-                # Also check staleness >90d via resolved_at
-                resolved_at = (src.get("resolved") or {}).get("resolved_at", "")
-                stale = False
-                try:
-                    rt = datetime.fromisoformat(resolved_at.replace("Z", "+00:00"))
-                    stale = (datetime.now(timezone.utc) - rt).days > 90
-                except Exception:
-                    stale = False
-                entry = {
-                    "capability": cap_id,
-                    "source": source_id,
-                    "repository": repo,
-                    "path": src.get("path"),
-                    "locked_commit": locked,
-                    "latest_commit": latest,
-                    "stale": stale,
-                    "license_locked": (src.get("resolved") or {}).get("license", {}).get("spdx"),
-                }
-                updates.append(entry)
-                if not args.json:
-                    print(
-                        f"{cap_id} {source_id}: update available {locked[:7]} → {latest[:7]} ({repo})"
-                        + (" STALE>90d" if stale else "")
-                    )
-            else:
-                if not args.json:
-                    print(f"{cap_id} {source_id}: up-to-date {locked[:7]} ({repo})")
-    if args.json:
-        print(json.dumps({"updates": updates, "count": len(updates)}, indent=2))
-        # Also check staleness even without update
-        if not updates:
-            # Still report staleness for existing lock entries
-            for cap_id in sorted(caps.keys()):
-                for source_id, src in caps[cap_id].get("sources", {}).items():
-                    resolved_at = (src.get("resolved") or {}).get("resolved_at", "")
-                    try:
-                        rt = datetime.fromisoformat(resolved_at.replace("Z", "+00:00"))
-                        if (datetime.now(timezone.utc) - rt).days > 90:
-                            print(
-                                f"warn: {cap_id} {source_id} pin >90d stale ({resolved_at})",
-                                file=sys.stderr,
-                            )
-                    except Exception:
-                        pass
-        return 0 if not updates else 0  # exit 0 even with updates; caller checks JSON
 
-    if updates:
-        print(
-            f"\n{len(updates)} update(s) available — run workflow to open PR (see #428).",
-            file=sys.stderr,
-        )
-        print(
-            "PR body must include: old/new commit, checksum, license, shell/network/mcp/hook diff, provenance_digest review-required.",
-            file=sys.stderr,
-        )
+    updates = _discover_updates(lock)
+    declarations = _discover_declarations()
+
+    # Print discovery
+    apply = bool(getattr(args, "apply", False))
+    as_json = bool(getattr(args, "json", False))
+    if not apply:
+        for entry in updates:
+            msg = (
+                f"{entry['capability']} {entry['source']}: update available "
+                f"{entry['locked_commit'][:7]} → {entry['latest_commit'][:7]} "
+                f"({entry['repository']} path={entry['path']})"
+                + (" STALE>90d" if entry.get("stale") else "")
+            )
+            if not as_json:
+                print(msg)
+        # Also print up-to-date when not json
+        if not as_json:
+            caps = lock.get("capabilities", {})
+            updated_keys = {(u["capability"], u["source"]) for u in updates}
+            for cap_id in sorted(caps.keys()):
+                for source_id, src in sorted(caps[cap_id].get("sources", {}).items()):
+                    if (cap_id, source_id) in updated_keys:
+                        continue
+                    locked = (src.get("resolved") or {}).get("commit", "")
+                    print(
+                        f"{cap_id} {source_id}: up-to-date {locked[:7]} ({src.get('repository')})"
+                    )
+
+        if as_json:
+            print(json.dumps({"updates": updates, "count": len(updates)}, indent=2))
+            return 0
+
+        if updates:
+            print(
+                f"\n{len(updates)} update(s) available — run: python3 scripts/provenance.py updates --apply",
+                file=sys.stderr,
+            )
+            print(
+                "PR body must include: old/new commit, body_checksum, license, shell/network/mcp/hook diff, provenance_digest review-required.",
+                file=sys.stderr,
+            )
+        else:
+            print("No updates — all locked commits are current for their paths/tags.")
+        return 0
+
+    # --apply
+    if not updates:
+        print("No updates to apply.")
+        return 0
+
+    applied: list[dict] = []
+    errors: list[str] = []
+    # Group by capability so we apply all sources then rewrite once if needed
+    for entry in updates:
+        cap_id = entry["capability"]
+        if cap_id not in declarations:
+            errors.append(f"{cap_id}: no local declaration")
+            continue
+        skill_path: Path = declarations[cap_id]["path"]
+        try:
+            result = _apply_skill_update(
+                cap_id=cap_id,
+                source_id=entry["source"],
+                repository=entry["repository"],
+                path=entry["path"],
+                new_commit=entry["latest_commit"],
+                new_ref=entry["latest_ref"],
+                req_type=entry["requested_type"],
+                skill_path=skill_path,
+            )
+            result["old_commit"] = entry["locked_commit"]
+            result["new_commit"] = entry["latest_commit"]
+            result["old_ref"] = entry["locked_ref"]
+            result["new_ref"] = entry["latest_ref"]
+            applied.append(result)
+            print(
+                f"applied {cap_id}/{entry['source']}: {entry['locked_commit'][:7]} → {entry['latest_commit'][:7]}"
+            )
+        except Exception as e:
+            errors.append(f"{cap_id}/{entry['source']}: {e}")
+            print(f"ERROR applying {cap_id}/{entry['source']}: {e}", file=sys.stderr)
+
+    # Regenerate lock + docs from updated declarations
+    lock_rc = cmd_lock(argparse.Namespace(check=False))
+    if lock_rc != 0:
+        errors.append("provenance.py lock failed after apply")
+    docs_rc = cmd_docs(argparse.Namespace(check=False))
+    if docs_rc != 0:
+        errors.append("provenance.py docs failed after apply")
+
+    summary = {"applied": applied, "errors": errors, "count": len(applied)}
+    if as_json:
+        print(json.dumps(summary, indent=2))
     else:
-        print("No updates — all locked commits are at remote HEAD.")
-    return 0
+        print(f"Applied {len(applied)} update(s); {len(errors)} error(s).")
+        print("Next: human review → set trust.tier=reviewed + trust.reviewed_provenance to new digest.")
+
+    # Write machine-readable summary for the GHA PR body
+    summary_path = REPO_ROOT / "capabilities" / "upstream-apply-summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    print(f"wrote {summary_path}")
+    return 1 if errors else 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -988,8 +1473,16 @@ def main(argv: list[str] | None = None) -> int:
     p_docs.add_argument("--check", action="store_true", help="fail if docs/UPSTREAM.md differs")
     p_docs.set_defaults(func=cmd_docs)
 
-    p_up = sub.add_parser("updates", help="online discovery: compare locked commits to remote HEAD")
+    p_up = sub.add_parser(
+        "updates",
+        help="online discovery (path-scoped); --apply rewrites vendored bytes + lock + docs",
+    )
     p_up.add_argument("--json", action="store_true", help="machine-readable JSON")
+    p_up.add_argument(
+        "--apply",
+        action="store_true",
+        help="apply available updates: literal upstream body + Toolkit frontmatter, then lock+docs",
+    )
     p_up.set_defaults(func=cmd_updates)
 
     args = p.parse_args(argv)

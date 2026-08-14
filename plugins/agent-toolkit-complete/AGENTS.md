@@ -70,6 +70,9 @@ Full stable skill catalog coverage for consumers who want everything (
 - **owasp-agentic-review**: agentic-security/owasp-agentic-review
 - **threat-modeling**: agentic-security/threat-modeling
 - **megalinter**: quality/megalinter
+- **megalinter-setup**: quality/megalinter-setup
+- **megalinter-check**: quality/megalinter-check
+- **megalinter-fix**: quality/megalinter-fix
 - **codeql**: quality/codeql
 - **chrome-devtools**: tooling/chrome-devtools
 - **playwright-cli**: tooling/playwright-cli

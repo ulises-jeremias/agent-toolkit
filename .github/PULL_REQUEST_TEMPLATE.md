@@ -34,6 +34,7 @@
 - [ ] `./scripts/validate-agents.vsh` (if agent changes)
 - [ ] Loop schemas via `python3` + `schemas/loop.schema.json` (if loop changes) — see `validate-loops` in `.github/workflows/validate.yml`
 - [ ] `./scripts/generate-catalogs.vsh` (if skill/agent/loop added; never hand-edit `*-catalog.yaml`)
+- [ ] `python3 scripts/validate-upstream.py --check` + `python3 scripts/provenance.py check` (if upstream/vendored skills)
 - [ ] `./make.vsh test && ./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check`
 
 **Adapter-only (optional unless changing PyPI/npm trampolines):**
@@ -53,4 +54,5 @@
 - [ ] Documentation updated to reflect any behavior changes
 - [ ] Branding-neutral: no organization-specific references in public-facing files
 - [ ] Catalog entries regenerated (`./scripts/generate-catalogs.vsh`) if a skill, agent, or loop was added
+- [ ] Upstream skills: body is literal upstream copy; Toolkit overlay only in frontmatter; `body_checksum` in lock; LICENSE preserved
 - [ ] Commit messages are in English and follow conventional commits format
