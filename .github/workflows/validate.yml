@@ -40,7 +40,7 @@ jobs:
       - name: Build V CLI for launcher smoke
         env:
           VMODULES: ${{ github.workspace }}/modules
-        run: v run make.vsh build-cli
+        run: ./make.vsh build-cli
 
       - name: Smoke-test PyPI launcher → V (version/help)
         env:
@@ -210,7 +210,7 @@ jobs:
       - name: Build V CLI
         env:
           VMODULES: ${{ github.workspace }}/modules
-        run: v run make.vsh build-cli
+        run: ./make.vsh build-cli
 
       - name: agent-toolkit build --check
         env:
@@ -515,7 +515,7 @@ jobs:
           set -euo pipefail
           bash scripts/prepare-package-data.sh
           uv build --sdist --out-dir dist packages/pypi/agent-toolkit-cli
-          v run make.vsh build-cli
+          ./make.vsh build-cli
           bash scripts/prepare-native-bin.sh
           uv build --wheel --out-dir dist packages/pypi/agent-toolkit-cli
           ls -lh dist/
@@ -581,20 +581,18 @@ jobs:
         run: |
           set -euo pipefail
           # Prefer setup-v VBIN; Windows CreateProcess needs v.exe (and a Win32 path).
-          V_UNIX="${VBIN:-${V:-}}"
-          if [ -z "${V_UNIX}" ] || { [ ! -x "${V_UNIX}" ] && [ ! -f "${V_UNIX}" ]; }; then
-            echo "VBIN/V not set after setup-v (got '${V_UNIX}')" >&2
+          V_PATH="${VBIN:-${V:-}}"
+          if [ -z "${V_PATH}" ] || { [ ! -x "${V_PATH}" ] && [ ! -f "${V_PATH}" ]; }; then
+            echo "VBIN/V not set after setup-v (got '${V_PATH}')" >&2
             exit 1
           fi
-          # Shebang (`env … v`) needs unix PATH; V/VBIN may be Win32 for CreateProcess.
-          export PATH="$(dirname "${V_UNIX}"):${PATH}"
-          V_PATH="${V_UNIX}"
           if command -v cygpath >/dev/null 2>&1; then
-            V_PATH="$(cygpath -w "${V_UNIX}")"
+            V_PATH="$(cygpath -w "${V_PATH}")"
           fi
           export V="${V_PATH}"
           export VBIN="${V_PATH}"
-          v run make.vsh build-cli
+          # Windows GHA: shebang/env -S is unreliable — invoke via VBIN only here (docs stay ./make.vsh).
+          "${VBIN}" run make.vsh build-cli
 
       - name: Install from dist (Linux wheel with V binary; sdist elsewhere)
         shell: bash

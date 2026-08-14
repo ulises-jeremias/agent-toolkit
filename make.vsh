@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // V foundation targets for modules/ (ADR-009).
-// Usage: v run make.vsh (or ./make.vsh via shebang) [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
+// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
 // Optional: ./make.vsh compile-make && ./make <target>
 //
 // vlib build (context.run) only runs non-hyphen args as tasks; flags like
@@ -105,7 +105,7 @@ context.task(
 	help: 'Show targets (default); also: --tasks'
 	run:  fn [r] (_ build.Task) ! {
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
-		println('V targets (pin: ${pin}) — v run make.vsh --tasks')
+		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
 		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
 	}

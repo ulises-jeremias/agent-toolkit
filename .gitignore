@@ -19,7 +19,7 @@ node_modules/
 # Build artifacts
 dist/
 build/
-# Precompiled make.vsh (`v run make.vsh compile-make`)
+# Precompiled make.vsh (`./make.vsh compile-make`)
 /make
 packages/pypi/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit
 packages/pypi/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit.exe
