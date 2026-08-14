@@ -10,7 +10,7 @@ Product CI is **V-first**. Python/npm jobs cover trampoline adapters only ([pyth
 
 | Tier | When | What runs | Budget |
 |------|------|-----------|--------|
-| **PR** | `pull_request` | `validate.yml` Required CI: V `fmt-check`/`vet`/`test`, skills/agents/loops/products/catalogs, `build --check`, launcher pytest matrix, npm trampoline tests, integration CLI smoke | Wall: parity ≤ 15 min when path-filtered. Cancel-in-progress: yes |
+| **PR** | `pull_request` | `validate.yml` Required CI: V `vet`/`test` (fmt-check deferred; json2 risk), skills/agents/loops/products/catalogs, `build --check`, launcher pytest matrix, npm trampoline tests, integration CLI smoke | Wall: parity ≤ 15 min when path-filtered. Cancel-in-progress: yes |
 | **main** | `push` to `main` | PR set plus post-release `test-uvx` (published PyPI smoke). Experimental V matrix is **manual only** (`workflow_dispatch`) | Cancel-in-progress: yes |
 | **release** | `v*` tags (`release.yml`) | Full native **stable V** matrix, PyPI manylinux_2_38 wheels, SHA256SUMS/attestations/SBOM (#530) | Wall: release workflow ≤ 60 min. Cancel-in-progress: **no** |
 

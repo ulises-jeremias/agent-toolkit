@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Fixed** — `bump-version.vsh` updates `generatorVersion` in `plugins/*/.provenance.json` (not only digests / `"version"` sidecars)
 - **Breaking (contributor)** — Retire `scripts/gen-surfaces.vsh` and CI `check-surfaces` ([ADR-003](docs/adrs/ADR-003-retire-gen-surfaces.md) Remove). Sole surface gates: `agent-toolkit build --check` + `agent-toolkit plugin check`
-- **CI** — Add Required `check-v-modules` (`./make.vsh fmt-check` / `vet` / `test`); drop `coverage` and `test-uvx` from Required (`test-uvx` = published PyPI smoke on main/dispatch only); `experimental-v.yml` is `workflow_dispatch` only; unify V install via `setup-v` in validate/parity/release/experimental
+- **CI** — Add Required `check-v-modules` (`./make.vsh vet` / `test`; fmt-check deferred — modules not fully vfmt'ed / json2 risk); drop `coverage` and `test-uvx` from Required (`test-uvx` = published PyPI smoke on main/dispatch only); `experimental-v.yml` is `workflow_dispatch` only; unify V install via `setup-v` in validate/parity/release/experimental
 - **Chore** — Remove dead `scripts/validate-skills.sh`, `scripts/install.sh`, and `scripts/doctor.sh`; docs/CI use V CLI and `*.vsh` validators ([ADR-007](docs/adrs/ADR-007-install-sh-deprecation.md) Remove phase)
 - **Chore** — Add `scripts/validate-loops.vsh` (python3+jsonschema); `validate.yml` `validate-loops` job calls it
 - **Chore** — Archive legacy `schemas/skill.schema.json` → `docs/archive/` (skill.json removed; see [MIGRATION.md](docs/MIGRATION.md)); `products.yaml` `version_source: VERSION`
