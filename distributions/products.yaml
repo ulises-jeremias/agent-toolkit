@@ -4,7 +4,7 @@ products:
   - id: agent-toolkit-core
     name: Agent Toolkit Core
     description: Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.
-    version_source: packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py
+    version_source: VERSION
     stability: stable
     includes:
       skills:
@@ -38,7 +38,7 @@ products:
   - id: agent-toolkit-agents
     name: Agent Toolkit Agents
     description: 'Full set of 17 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.'
-    version_source: packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py
+    version_source: VERSION
     stability: stable
     includes:
       skills: []
@@ -72,7 +72,7 @@ products:
   - id: agent-toolkit-forge
     name: Agent Toolkit Forge
     description: 'GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.'
-    version_source: packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py
+    version_source: VERSION
     stability: stable
     includes:
       skills:

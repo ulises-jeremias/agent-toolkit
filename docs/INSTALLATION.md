@@ -81,7 +81,7 @@ agent-toolkit doctor
 agent-toolkit doctor --json
 ```
 
-See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` ships a thin Python trampoline over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md); [python-fallback.md](v/python-fallback.md)). Do not retag empty `v1.10.0`.
+See [docs/v/archive/cutover.md](v/archive/cutover.md) and [docs/v/archive/rollback.md](v/archive/rollback.md). PyPI/`uvx` ships a thin Python trampoline over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md); [python-fallback.md](v/python-fallback.md)). Do not retag empty `v1.10.0`.
 
 ### Install options
 
@@ -114,7 +114,7 @@ reflect the agent-toolkit skill set.
 To validate skill definitions from a git checkout:
 
 ```bash
-bash scripts/validate-skills.sh
+v run scripts/validate-skills.vsh
 ```
 
 ---
@@ -191,25 +191,19 @@ yay -S agent-toolkit-bin   # Arch Linux (AUR) — GitHub Release V binary
 npm i -g agent-toolkit-cli # npm optionalDependencies platform packages @1.11.0
 ```
 
-### Git clone + legacy script fallback (deprecated — see ADR-007)
+### Git clone (from-source CLI)
 
-> **Deprecated:** `scripts/install.sh` prints a warning and is kept only for offline `git clone` installs. Prefer `uvx --from agent-toolkit-cli agent-toolkit install` above. The bash script may delegate to `agent-toolkit install` when available.
-
-For offline installs or pinning a specific commit:
+For offline installs or pinning a specific commit, build/install the V CLI from the checkout
+([ADR-007](adrs/ADR-007-install-sh-deprecation.md) removed the deprecated `scripts/install.sh`
+wrapper):
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-AGENT_TOOLKIT_NO_DEPRECATION_WARNING=1 bash ~/.agent-toolkit/scripts/install.sh  # legacy fallback
-# Preferred (same clone, via CLI):
-uvx --from agent-toolkit-cli --from ~/.agent-toolkit agent-toolkit install
-```
-
-Legacy script options (still accepted):
-
-```bash
-bash ~/.agent-toolkit/scripts/install.sh --tools claude-code,cursor
-bash ~/.agent-toolkit/scripts/install.sh --dry-run
-bash ~/.agent-toolkit/scripts/install.sh --force
+cd ~/.agent-toolkit
+./make.vsh install-cli    # → ~/.local/bin/agent-toolkit (or --prefix=…)
+agent-toolkit install
+# Or via the PyPI trampoline against the same checkout:
+# uvx --from agent-toolkit-cli --from ~/.agent-toolkit agent-toolkit install
 ```
 
 ---
@@ -361,7 +355,7 @@ Restart OpenCode after adding agent files.
 2. Confirm env vars (e.g. `GITHUB_TOKEN`) are set in the shell your AI tool uses
 3. Check MCP logs in your tool for connection errors
 
-### validate-skills.sh fails
+### validate-skills.vsh fails
 
 | Error | Fix |
 |-------|-----|

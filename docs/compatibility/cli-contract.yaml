@@ -5,14 +5,15 @@
 # Schema version for this manifest (not the product version).
 schema_version: 1
 product: agent-toolkit
-# Historical field: Python CLI modules were removed. Product entry is the V binary
-# (PyPI trampoline: packages/pypi/agent-toolkit-cli/src/agent_toolkit/launcher.py).
-python_entry: packages/pypi/agent-toolkit-cli/src/agent_toolkit/launcher.py
+# Product entry is the V binary under cmd/agent-toolkit (modules/agent_toolkit_*.v).
+# PyPI/npm packages are trampolines that locate/download the native binary — not a Python CLI.
+launcher_entry: packages/pypi/agent-toolkit-cli/src/agent_toolkit/launcher.py
 v_entry: cmd/agent-toolkit
 notes:
   - Exit-code classes follow ADR-010; bad flags remain exit 2; --help/version exit 0.
   - Disposition values: keep | rewrite-v | wrapper | defer | retire
-  - "`module:` fields below are historical labels; implementation is modules/agent_toolkit_*.v"
+  - "`module:` fields below are historical Python labels for command identity in this contract; implementation is modules/agent_toolkit_*.v (and cmd/agent-toolkit). Do not treat module paths as importable Python packages."
+  - "`launcher_entry` is the PyPI trampoline only (formerly python_entry). There is no Python product CLI fallback."
 
 commands:
   - name: help

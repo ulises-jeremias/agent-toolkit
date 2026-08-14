@@ -33,6 +33,7 @@ $defs:
         minLength: 1
       version_source:
         type: string
+        description: Path to the single product version file (canonical: VERSION at repo root)
       stability:
         type: string
         enum: [stable, experimental, deprecated]

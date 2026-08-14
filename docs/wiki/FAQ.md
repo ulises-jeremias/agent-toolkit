@@ -166,7 +166,7 @@ Yes, provided you follow the security guidance:
 - The template files in `mcp/templates/` use `${ENV_VAR}` placeholders — they contain no real credentials.
 - Your filled-in config (with real tokens) lives in `~/.config/agent-toolkit/` or your tool's
   config directory — never committed to any repository.
-- The `validate-skills.sh` script scans for common token patterns and will warn if it detects
+- The `validate-skills.vsh` script scans for common token patterns and will warn if it detects
   what looks like a real credential in any tracked file.
 
 The risk comes from accidentally committing a filled-in config. Mitigate this by:
@@ -209,7 +209,7 @@ In summary:
 1. Create `profiles/<new-tool>/` directory
 2. Add tool-specific config files using that tool's native format
 3. Document the install path in `docs/PROFILES.md` and `docs/INSTALLATION.md`
-4. Implement detection in the V installer (`modules/agent_toolkit_cli`) — not `scripts/install.sh`
+4. Implement detection in the V installer (`modules/agent_toolkit_cli`)
 5. Open a PR
 
 ---
@@ -218,9 +218,9 @@ In summary:
 
 Yes. Common CI uses:
 
-- **Validate skill definitions:** `bash scripts/validate-skills.sh` — exits non-zero on failure,
+- **Validate skill definitions:** `v run scripts/validate-skills.vsh` — exits non-zero on failure,
   human-readable error messages. Run in your repo's CI on PRs to ensure skill definitions remain valid.
-- **Validate loop templates:** `bash scripts/validate-loops.sh` — same pattern.
+- **Validate loop templates:** `v run scripts/validate-loops.vsh` — same pattern.
 - **Skeleton mode loop runs:** `agent-toolkit loop run <name> --no-llm` — runs the loop scaffolding
   without invoking any AI. Useful for smoke-testing loop YAML parsing in CI.
 

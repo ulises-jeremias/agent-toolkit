@@ -181,22 +181,7 @@ jobs:
       - name: Check generated UPSTREAM.md
         run: python3 scripts/provenance.py docs --check
 
-  # ── Job 4: Detect plugin surface drift ────────────────────────────────────
-  check-surfaces:
-    name: Check Plugin Bundle Sync
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup pinned V
-        uses: ./.github/actions/setup-v
-
-
-      - name: Assert plugin surfaces are in sync with canonical sources
-        run: v run scripts/gen-surfaces.vsh --check
-
-
-  # ── ADR-003 dual-run: compiler build --check alongside gen-surfaces ─────────
+  # ── Job 4: Compiler surface gate (ADR-003 Remove — gen-surfaces retired) ───
   check-build:
     name: Check Build (compiler)
     runs-on: ubuntu-latest
@@ -256,50 +241,11 @@ jobs:
       - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
       - name: Validate loop.yaml files against loop.schema.json
-        run: |
-          set -euo pipefail
-
-          if [ ! -f schemas/loop.schema.json ]; then
-            echo "schemas/loop.schema.json not found — skipping."
-            exit 0
-          fi
-
-          if [ ! -d loops ]; then
-            echo "No loops/ directory — skipping."
-            exit 0
-          fi
-
-          python3 - <<'PYEOF'
-          import json, sys, yaml
-          from pathlib import Path
-          from jsonschema import validate, ValidationError
-
-          schema = json.loads(Path("schemas/loop.schema.json").read_text())
-
-          errors = []
-          loop_files = sorted(Path("loops").rglob("loop.yaml"))
-
-          if not loop_files:
-              print("No loop.yaml files found — nothing to validate.")
-              sys.exit(0)
-
-          for f in loop_files:
-              try:
-                  d = yaml.safe_load(f.read_text())
-                  validate(d, schema)
-                  print(f"  OK: {f}")
-              except ValidationError as e:
-                  errors.append(f"  FAIL: {f}: {e.message}")
-                  print(f"  FAIL: {f}: {e.message}", file=sys.stderr)
-
-          print()
-          if errors:
-              print(f"{len(errors)} loop validation error(s).", file=sys.stderr)
-              sys.exit(1)
-
-          print(f"All {len(loop_files)} loop template(s) valid.")
-          PYEOF
+        run: v run scripts/validate-loops.vsh
 
   # ── Job 5b: Validate products.yaml against products.schema.yaml ─────────
   validate-products:
@@ -462,7 +408,7 @@ jobs:
 
   # ── Job 8c: Launcher coverage gate (PyPI trampoline only) ──
   coverage:
-    name: Coverage (launcher)
+    name: Coverage (launcher, advisory)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -492,21 +438,8 @@ jobs:
         with:
           python-version: "3.14"
 
-      - name: Install pinned V from GitHub Release
-        run: |
-          set -euo pipefail
-          PIN="$(tr -d '[:space:]' < .v-version)"
-          curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${PIN}/v_linux.zip"
-          sudo rm -rf /usr/local/v
-          sudo unzip -q /tmp/v.zip -d /usr/local
-          if [ -x /usr/local/v/v ]; then
-            echo "/usr/local/v" >> "$GITHUB_PATH"
-          elif [ -x /usr/local/v_linux/v ]; then
-            echo "/usr/local/v_linux" >> "$GITHUB_PATH"
-          else
-            echo "Unexpected V zip layout" >&2
-            exit 1
-          fi
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
 
       - name: Build sdist then Linux V wheel (packages/pypi)
         env:
@@ -778,6 +711,8 @@ jobs:
   test-uvx:
     name: Test uvx workflow
     runs-on: ubuntu-latest
+    # Published PyPI smoke — not the PR commit; keep out of Required CI
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     env:
       AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
     steps:
@@ -808,6 +743,27 @@ jobs:
       - name: Dry-run install via uvx
         run: uvx agent-toolkit-cli install --dry-run --tools cursor,opencode
 
+
+  # ── V module gate (fmt / vet / unit tests) ─────────────────────────────────
+  check-v-modules:
+    name: Check V Modules
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: fmt-check, vet, test
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          ./make.vsh fmt-check
+          ./make.vsh vet
+          ./make.vsh test
+
   # ── Aggregate required gate — single stable context for branch protection (#243) ──
   required-ci:
     name: Required CI
@@ -821,8 +777,8 @@ jobs:
       - validate-manifests
       - validate-agent-plugins
       - validate-upstream
-      - check-surfaces
       - check-build
+      - check-v-modules
       - check-catalogs
       - check-skill-matrix
       - validate-loops
@@ -830,10 +786,8 @@ jobs:
       - secret-scan
       - yaml-lint
       - ruff
-      - coverage
       - build-package
       - integration-tests
-      - test-uvx
     steps:
       - name: Check required jobs
         run: |
@@ -847,8 +801,8 @@ jobs:
           if [[ "${{ needs.validate-manifests.result }}" != "success" ]]; then echo "validate-manifests failed: ${{ needs.validate-manifests.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-agent-plugins.result }}" != "success" ]]; then echo "validate-agent-plugins failed: ${{ needs.validate-agent-plugins.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-upstream.result }}" != "success" ]]; then echo "validate-upstream failed: ${{ needs.validate-upstream.result }}"; failed="true"; fi
-          if [[ "${{ needs.check-surfaces.result }}" != "success" ]]; then echo "check-surfaces failed: ${{ needs.check-surfaces.result }}"; failed="true"; fi
           if [[ "${{ needs.check-build.result }}" != "success" ]]; then echo "check-build failed: ${{ needs.check-build.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-v-modules.result }}" != "success" ]]; then echo "check-v-modules failed: ${{ needs.check-v-modules.result }}"; failed="true"; fi
           if [[ "${{ needs.check-catalogs.result }}" != "success" ]]; then echo "check-catalogs failed: ${{ needs.check-catalogs.result }}"; failed="true"; fi
           if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
@@ -856,10 +810,8 @@ jobs:
           if [[ "${{ needs.secret-scan.result }}" != "success" ]]; then echo "secret-scan failed: ${{ needs.secret-scan.result }}"; failed="true"; fi
           if [[ "${{ needs.yaml-lint.result }}" != "success" ]]; then echo "yaml-lint failed: ${{ needs.yaml-lint.result }}"; failed="true"; fi
           if [[ "${{ needs.ruff.result }}" != "success" ]]; then echo "ruff failed: ${{ needs.ruff.result }}"; failed="true"; fi
-          if [[ "${{ needs.coverage.result }}" != "success" ]]; then echo "coverage failed: ${{ needs.coverage.result }}"; failed="true"; fi
           if [[ "${{ needs.build-package.result }}" != "success" ]]; then echo "build-package failed: ${{ needs.build-package.result }}"; failed="true"; fi
           if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then echo "integration-tests failed: ${{ needs.integration-tests.result }}"; failed="true"; fi
-          if [[ "${{ needs.test-uvx.result }}" != "success" ]]; then echo "test-uvx failed: ${{ needs.test-uvx.result }}"; failed="true"; fi
           if [[ "$failed" == "true" ]]; then
             echo "::error::Required CI failed"
             exit 1

@@ -180,7 +180,7 @@ Common tool identifiers in frontmatter and catalogs:
 Run the validation script before deploying:
 
 ```bash
-bash scripts/validate-skills.sh
+v run scripts/validate-skills.vsh
 ```
 
 This checks:

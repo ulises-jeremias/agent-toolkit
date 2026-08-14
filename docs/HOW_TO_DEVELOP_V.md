@@ -70,7 +70,6 @@ After changing `skills/`, `agents/`, `loops/`, or `distributions/`:
 v run scripts/validate-skills.vsh
 v run scripts/validate-agents.vsh
 v run scripts/generate-catalogs.vsh
-v run scripts/gen-surfaces.vsh --check
 ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 ```

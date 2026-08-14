@@ -21,7 +21,7 @@ leaving orphaned profiles or breaking unrelated tool configuration.
 
 ## Remove CLI-installed profiles
 
-If you used `agent-toolkit install` or `scripts/install.sh`, remove copied
+If you used `agent-toolkit install`, remove copied
 profiles from each tool:
 
 ```bash

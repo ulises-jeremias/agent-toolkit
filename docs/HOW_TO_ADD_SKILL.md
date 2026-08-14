@@ -136,42 +136,32 @@ Fix any reported errors before proceeding.
 
 ---
 
-## 6. Update catalogs/skills-layout.json
+## 6. Update layout, products, and catalogs
 
-If your skill should appear in a plugin bundle (most skills should), it must be listed in `distributions/products.yaml` (see ADR-001 and ADR-003).
+**Never hand-edit** `catalogs/skill-catalog.yaml`, `catalogs/agent-catalog.yaml`, or `catalogs/loop-catalog.yaml`. Those are regenerated only by `v run scripts/generate-catalogs.vsh`.
 
-The compiler is the source of truth. Run the canonical **V** build check (not `uv run agent-toolkit` — there is no product uv workspace):
+### `catalogs/skills-layout.json` (hand-maintained layout SSOT)
+
+This file is **not** produced by `generate-catalogs.vsh`. It is the committed domain → skill grouping used by `agent-toolkit skills list` (`modules/agent_toolkit_core/skills.v` → `load_skills_layout`). When you add a skill under `skills/<domain>/`, add its directory name to the matching `groups.<domain>` array in `catalogs/skills-layout.json` (and keep the `skills` inventory entries consistent with that layout).
+
+### Product membership
+
+If the skill should ship in a marketplace plugin, add `domain/skill-name` under the right product in `distributions/products.yaml` (see ADR-001 / ADR-003). Skip this only when the skill is intentionally not product-bundled.
+
+### Regenerate YAML catalogs and verify digests
 
 ```bash
+v run scripts/generate-catalogs.vsh
+# If product membership changed, edit distributions/products.yaml first, then:
 ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
-v run scripts/gen-surfaces.vsh --check
 ```
 
-See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md).
+See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md). There is no `gen-surfaces` step.
 
 ---
 
-## 7. Update catalogs/skill-catalog.yaml
-
-Add your skill's routing metadata to `catalogs/skill-catalog.yaml` so orchestrators can route to it correctly:
-
-```yaml
-- name: changelog-generator
-  domain: forge
-  responsibility: HOW
-  role: changelog_and_release_notes
-  triggers:
-    - generate changelog
-    - write release notes
-    - what changed in this release
-    - CHANGELOG.md
-  depends_on: []
-```
-
----
-
-## 8. Open a PR
+## 7. Open a PR
 
 Use the standard PR workflow. Include this checklist in your PR description:
 
@@ -181,10 +171,10 @@ Use the standard PR workflow. Include this checklist in your PR description:
 - [ ] Frontmatter has `name` and `description`
 - [ ] `name` in frontmatter matches directory name
 - [ ] `v run scripts/validate-skills.vsh` passes with no errors
-- [ ] Registered in `catalogs/skills-layout.json` (correct group)
-- [ ] Registered in `catalogs/skill-catalog.yaml` (with triggers)
+- [ ] `catalogs/skills-layout.json` updated (correct domain group) — hand-maintained layout SSOT
+- [ ] `distributions/products.yaml` updated if product membership changed
+- [ ] `v run scripts/generate-catalogs.vsh` was run (do **not** hand-edit `*-catalog.yaml`)
 - [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
-- [ ] `v run scripts/gen-surfaces.vsh --check` passes
 - [ ] No secrets or hardcoded tokens in skill body
 - [ ] `references/` documents linked from skill body (if present)
 ```

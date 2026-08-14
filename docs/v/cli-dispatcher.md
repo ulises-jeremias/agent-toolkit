@@ -1,7 +1,7 @@
 # V CLI shell / dispatcher
 
 **Issue:** [#553](https://github.com/ulises-jeremias/agent-toolkit/issues/553)  
-**Spike:** [`vlib-cli-spike.md`](vlib-cli-spike.md)
+**Spike:** [`vlib-cli-spike.md`](archive/vlib-cli-spike.md)
 
 ## Layout
 

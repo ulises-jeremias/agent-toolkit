@@ -60,14 +60,17 @@ See `CONTRIBUTING.md` Validation Commands.
 
 ## 5. Surface drift
 
-**Symptom:** `v run scripts/gen-surfaces.vsh --check` fails.
+**Symptom:** `agent-toolkit build --check` or `agent-toolkit plugin check` fails.
 
 **Fix:**
 
 ```bash
-v run scripts/gen-surfaces.vsh
-# or
-agent-toolkit build --check
+./make.vsh build-cli
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
+# Plugin surface copy/compare (core/agents/forge):
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit plugin check
+# To sync plugin bundles from canonical sources:
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit plugin sync
 ```
 
 See `docs/CONCEPTS.md` and `docs/ARCHITECTURE.md` ADR-003/004.

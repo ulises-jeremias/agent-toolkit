@@ -24,7 +24,6 @@ v run scripts/validate-skills.vsh
 v run scripts/validate-agents.vsh
 v run scripts/generate-catalogs.vsh
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
-v run scripts/gen-surfaces.vsh --check  # legacy dual-run until v1.14+
 
 # 3. Commit + tag
 git add -A && git commit -m "chore(release): bump to v1.3.0"
@@ -131,6 +130,7 @@ Failure visibility on the releasing repo:
 * The `Release` workflow itself does not fail on downstream errors — check the two downstream repos' **Actions → workflow runs** as above.
 * If downstream is red, re-dispatch per playbook (see below) and re-check; do not close the release as done until both downstream runs are green or explicitly deferred for maintenance.
 * For AUR, a maintenance failure is expected — document it in the release comment and retry when AUR leaves maintenance; do not auto-open issues on every window.
+
 
 
 ## Downstream install source (GitHub Release V binaries)

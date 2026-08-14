@@ -157,7 +157,8 @@ fn detect_plugin_drift(work_root string, plugins_root string, product_id string,
 	return drift
 }
 
-// should_check_plugin_drift limits digest compare to gen-surfaces SURFACES products (ADR-003 dual-run).
+// should_check_plugin_drift limits digest compare to shared plugin products
+// (core/agents/forge) for digest parity with plugin check.
 fn should_check_plugin_drift(product_id string) bool {
 	return product_id in ['agent-toolkit-core', 'agent-toolkit-agents', 'agent-toolkit-forge']
 }
@@ -166,7 +167,7 @@ fn drift_path_pairs(target_id string, work_product string, plugin_product string
 	mut pairs := [][]string{}
 	match target_id {
 		'cursor', 'claude-code' {
-			// Shared plugin surface (ADR-003 / gen-surfaces parity).
+			// Shared plugin surface (core/agents/forge) for digest parity with plugin check.
 			pairs << skill_agent_pairs(os.join_path(work_product, 'skills'), os.join_path(plugin_product,
 				'skills'), 'SKILL.md')
 			pairs << skill_agent_pairs(os.join_path(work_product, 'agents'), os.join_path(plugin_product,

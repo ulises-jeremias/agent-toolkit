@@ -1,6 +1,6 @@
 # ADR-012: Python / V Coexistence During Strangler Migration
 
-**Status:** Accepted  
+**Status:** Accepted, completed (cutover done)  
 **Date:** 2026-08-12  
 **Deciders:** maintainers (V migration program [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456), issue [#482](https://github.com/ulises-jeremias/agent-toolkit/issues/482))
 
@@ -53,7 +53,7 @@ Experimental and stable binaries should expose engine/language, version, and com
 - Unfinished advanced commands stay `not_implemented` / disposition-only in V ([python-fallback.md](../v/python-fallback.md)); no Python fallback (option C still rejected).
 - Observability: `doctor --json` and `version --json` include `engine`, `version`, and `commit` without changing human stdout.
 
-Rollback: [docs/v/rollback.md](../v/rollback.md). Cutover narrative: [docs/v/cutover.md](../v/cutover.md).
+Rollback: [docs/v/archive/rollback.md](../v/archive/rollback.md). Cutover narrative: [docs/v/archive/cutover.md](../v/archive/cutover.md).
 
 ## References
 

@@ -1,43 +1,47 @@
-# CI cost tiers (dual Python + V)
+# CI cost tiers (post V cutover)
 
 **Issue:** [#532](https://github.com/ulises-jeremias/agent-toolkit/issues/532)  
 **Parent:** [#463](https://github.com/ulises-jeremias/agent-toolkit/issues/463)  
-**Related:** parity harness [#548](https://github.com/ulises-jeremias/agent-toolkit/issues/548) · MUST matrix [#529](https://github.com/ulises-jeremias/agent-toolkit/issues/529) · smoke [#531](https://github.com/ulises-jeremias/agent-toolkit/issues/531) · attestations [#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530) · Python removal [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540)
+**Related:** parity harness [#548](https://github.com/ulises-jeremias/agent-toolkit/issues/548) · release matrix [#529](https://github.com/ulises-jeremias/agent-toolkit/issues/529) · attestations [#530](https://github.com/ulises-jeremias/agent-toolkit/issues/530)
 
-Dual implementation CI is expensive. Workflows follow three **cost tiers**. Distribution smoke must not run on docs-only PRs.
+Product CI is **V-first**. Python/npm jobs cover trampoline adapters only ([python-fallback.md](python-fallback.md), ADR-025). Workflows follow three **cost tiers**.
 
 ## Tiers
 
 | Tier | When | What runs | Budget |
 |------|------|-----------|--------|
-| **PR** | `pull_request` | Lint/fmt/validate; Python unit (validate.yml); V compile via parity seed + dispatch tests in validate if present; golden parity (`parity.yml`) only when CLI/V/Python CLI paths change | Wall: parity ≤ 15 min; experimental-v **skipped** unless its path filter matches. Cancel-in-progress: yes |
-| **main** | `push` to `main` | PR set plus fuller compile. Experimental V MUST matrix (`experimental-v.yml`) only on V/release-doc path changes | Wall: experimental-v job ≤ 25 min/platform. Cancel-in-progress: yes |
+| **PR** | `pull_request` | `validate.yml` Required CI: V `fmt-check`/`vet`/`test`, skills/agents/loops/products/catalogs, `build --check`, launcher pytest matrix, npm trampoline tests, integration CLI smoke | Wall: parity ≤ 15 min when path-filtered. Cancel-in-progress: yes |
+| **main** | `push` to `main` | PR set plus post-release `test-uvx` (published PyPI smoke). Experimental V matrix is **manual only** (`workflow_dispatch`) | Cancel-in-progress: yes |
 | **release** | `v*` tags (`release.yml`) | Full native **stable V** matrix, PyPI manylinux_2_38 wheels, SHA256SUMS/attestations/SBOM (#530) | Wall: release workflow ≤ 60 min. Cancel-in-progress: **no** |
 
-Experimental native V artifacts stay on the **experimental** channel ([ADR-018](../adrs/ADR-018-release-artifacts.md)). They are **not** the release-tier stable upload (stable names are native V as of v1.11.0).
+Stable GitHub Release assets are native V ([ADR-018](../adrs/ADR-018-release-artifacts.md)). Experimental asset names remain for optional `workflow_dispatch` smoke only.
 
-## Path filters (distribution smoke)
+## Path filters
 
-`.github/workflows/experimental-v.yml` already lists paths (workflow, `.v-version`, `docs/v/{experimental-binaries,release-matrix,artifact-smoke}.md`). Docs-only PRs that do not touch those files **must not** pay the 5-runner MUST matrix.
+`.github/workflows/parity.yml` is limited to CLI/V/parity/`make.vsh`/`.v-version` paths so markdown-only PRs skip the golden harness.
 
-`.github/workflows/parity.yml` is limited to CLI/V/parity/make.vsh/`.v-version` paths so markdown-only PRs skip the golden harness.
+## Adapter tests (Python / npm)
 
-## Python lane retirement trigger
+[#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) is complete: V is the product; PyPI/npm are trampolines. Keep:
 
-[#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) gates are met (V is the product; PyPI is a launcher). The `test-package` matrix now covers the PyPI trampoline + packaging pytest only ([python-fallback.md](python-fallback.md)). CLI logic is covered by V unit tests and integration jobs.
+- `test-package` — PyPI launcher + packaging pytest (Python 3.10–3.14)
+- `test-npm` — Node 22/24 trampoline (`node --test`)
+- `ruff` — launcher Python style
 
-Do not drop Python tests to save CI minutes while the wheel still ships those modules.
+`test-uvx` hits **published** PyPI (not the PR commit). It runs on `main` / dispatch only and is **not** in Required CI.
+
+Launcher `coverage` is advisory (same suite as `test-package`); not in Required CI.
 
 ## Timeouts (recorded)
 
 | Workflow / job | `timeout-minutes` |
 |----------------|-------------------|
 | `parity.yml` / `parity-seed` | 15 |
-| `experimental-v.yml` / matrix build | 25 |
-| `release.yml` overall | 60 (job-level in workflow as added) |
+| `experimental-v.yml` / matrix build | 25 (manual) |
+| `release.yml` overall | 60 |
 
-`concurrency.cancel-in-progress: true` on PR/main validate, parity, and experimental-v. Release concurrency must not cancel.
+`concurrency.cancel-in-progress: true` on PR/main validate and parity. Release concurrency must not cancel.
 
 ## Cost notes
 
-The expensive axis is **Python 3.10–3.13 × ubuntu+macos** plus **five** experimental V runners. Path filters are the lever before shrinking the Python matrix. Do not add a sixth experimental OS without an issue.
+The expensive axes are the Python trampoline matrix and the release V MUST platforms. Do not re-enable automatic experimental-v on every PR. Do not add a sixth release OS without an issue.

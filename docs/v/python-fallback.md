@@ -24,4 +24,4 @@ The product command is the **native V binary**.
 
 - [ADR-021](../adrs/ADR-021-pypi-binary.md) — PyPI ships the V binary via thin launcher
 - [pypi-launcher.md](pypi-launcher.md)
-- [cutover.md](cutover.md)
+- [cutover.md](archive/cutover.md)

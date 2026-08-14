@@ -3,7 +3,7 @@ module agent_toolkit_cli
 import agent_toolkit_core
 import cli
 
-// build_root_command constructs the vlib/cli Command tree (docs/v/vlib-cli-spike.md).
+// build_root_command constructs the vlib/cli Command tree (docs/v/archive/vlib-cli-spike.md).
 // Groups mirror docs/CLI_SURFACES.md. Nested families match cli_groups.v style.
 // Production dispatch uses Command.parse + execute callbacks (see handlers.v).
 pub fn build_root_command() cli.Command {

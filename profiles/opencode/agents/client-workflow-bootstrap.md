@@ -38,9 +38,7 @@ Follow the patterns of existing bundled workflow skills as templates:
 
 - `skills/<slug>-workflow/SKILL.md` — delivery phases adapted to client lifecycle
 - `skills/<slug>-workflow/reference.md` — repos, URLs, ticket lifecycle, validation
-- `skills/<slug>-workflow/skill.json`
 - `skills/<slug>-dev-companion/SKILL.md`
-- `skills/<slug>-dev-companion/skill.json`
 - Update `skills/skill-catalog.yaml` (two new entries)
 - `dot_claude/agents/<slug>-delivery.md`
 - `dot_config/opencode/agents/<slug>-delivery.md`

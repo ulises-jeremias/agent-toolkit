@@ -317,7 +317,7 @@ Change `tier: L2`, populate `allowlist` with only the specific actions needed, a
 - [ ] `exit_conditions` includes `budget_exhausted` and `goal_met`
 - [ ] `deny` list is comprehensive for the tier (L1: deny all mutations)
 - [ ] `resumable: true` for any loop processing 5+ items
-- [ ] Validation passes: `python3 scripts/validate-loops.py` (or manual schema check)
+- [ ] Validation passes: `v run scripts/validate-loops.vsh` (or manual schema check)
 - [ ] `STATE.md` and `report.md` are in `.gitignore` (or the loop's own .gitignore)
 - [ ] No secrets or hardcoded tokens in `loop.yaml`
 - [ ] Request prompt includes explicit safety constraint statements

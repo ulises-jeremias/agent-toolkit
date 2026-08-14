@@ -46,7 +46,7 @@ Portable vs legacy:
 - **Portable v1:** `plugin.json` + `skills/` + `mcp.json` (spec §4-§7). Validated via `schemas/agent-plugins/1.0.0/*.schema.json`.
 - **Not portable v1:** `agents/`, `hooks/`, `commands`, `rules` — remain client-specific in `com.anthropic.claude-code/` and are ignored by Agent Plugins clients.
 
-Plugins are kept in sync with canonical sources via `scripts/gen-surfaces.vsh` and the compiler (`agent_toolkit.compiler.targets.agent_plugins`). Never edit plugin bundles directly — edit the canonical source (`skills/`, `agents/`, `mcp/registry/`) and re-run the build.
+Plugins are kept in sync with canonical sources via `agent-toolkit build` and `agent-toolkit plugin sync`. Never edit plugin bundles directly — edit the canonical source (`skills/`, `agents/`, `mcp/registry/`) and re-run the build.
 
 See [docs/AGENT_PLUGINS.md](../docs/AGENT_PLUGINS.md) for the full spec, support matrix, and migration guide.
 

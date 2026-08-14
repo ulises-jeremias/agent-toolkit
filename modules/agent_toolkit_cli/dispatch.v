@@ -28,7 +28,7 @@ pub fn dispatch(args []string) int {
 }
 
 // preflight_bad_flags is the only hand-rolled argv pass: vlib/cli always exit(1)
-// on unknown flags; ADR-010 / cli-contract require exit 2 (see vlib-cli-spike.md).
+// on unknown flags; ADR-010 / cli-contract require exit 2 (see docs/v/archive/vlib-cli-spike.md).
 fn preflight_bad_flags(args []string) ?int {
 	root := build_root_command()
 	mut argv := []string{}

@@ -1,5 +1,24 @@
 # Roadmap
 
+## Post-1.14 declarative cleanup
+
+After V cutover (`v1.14.x`), the toolkit SSOT is declarative and compiler-driven:
+
+| Surface | Role |
+|---------|------|
+| `skills/` · `agents/` · `loops/` | Human-authored capabilities (`SKILL.md` / `AGENT.md` / `loop.yaml`) |
+| `distributions/products.yaml` | Product membership for `agent-toolkit build` |
+| `schemas/` | Frontmatter / loop / products validation (`skill.schema.json` retired — see `docs/archive/`) |
+| `VERSION` | Single version pin for CLI + plugin sidecars |
+
+Retired or manual-only:
+
+- **`gen-surfaces`** — removed; plugin digests enforced by `agent-toolkit build --check` only ([ADR-003](adrs/ADR-003-retire-gen-surfaces.md))
+- **`scripts/install.sh` / `scripts/doctor.sh`** — removed ([ADR-007](adrs/ADR-007-install-sh-deprecation.md)); use the V CLI
+- **`experimental-v`** — workflow remains **manual** (`workflow_dispatch`); not part of the stable Release channel
+
+Historical CMP waves remain below for context.
+
 ## Current program — Contribution Master Plan
 
 The current public program of record is the **Contribution Master Plan**: Waves 0–2 (trust, truth, release) tracked under epic [#240](https://github.com/ulises-jeremias/agent-toolkit/issues/240), and Waves 3–5 (architecture, tests, delight) tracked under [#263](https://github.com/ulises-jeremias/agent-toolkit/issues/263).

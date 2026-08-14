@@ -25,7 +25,7 @@ From a git checkout, build the canonical V binary ([#555](https://github.com/uli
 agent-toolkit doctor --json
 ```
 
-PyPI/`uvx` is a thin trampoline over the bundled V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). `insights` / `release` are not ported ([advanced-command-disposition.md](v/advanced-command-disposition.md)). Rollback: [docs/v/rollback.md](v/rollback.md).
+PyPI/`uvx` is a thin trampoline over the bundled V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). `insights` / `release` are not ported ([advanced-command-disposition.md](v/advanced-command-disposition.md)). Rollback: [docs/v/archive/rollback.md](v/archive/rollback.md).
 
 See [docs/INSTALLATION.md](INSTALLATION.md) for full options.
 

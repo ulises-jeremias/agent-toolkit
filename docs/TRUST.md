@@ -33,7 +33,7 @@ agent-toolkit doctor
 agent-toolkit inventory
 
 # Validate skill definitions from a git checkout
-bash scripts/validate-skills.sh
+v run scripts/validate-skills.vsh
 ```
 
 After marketplace or CLI install, open your AI tool and confirm loaded skills
@@ -150,7 +150,7 @@ Validation is offline/deterministic: `SKILL.md` + committed `capabilities/upstre
 | Provenance digest              | `capabilities/upstream.lock` (`provenance_digest`) + declaration `trust.reviewed_provenance` binding |
 | Product membership             | `distributions/products.yaml`              |
 | Generated catalogs             | `catalogs/*` generator output              |
-| Target plugin copies           | `scripts/gen-surfaces.vsh` output           |
+| Target plugin copies           | `agent-toolkit build` / `plugin sync` output |
 | Runtime package versions       | ecosystem-specific lock (`uv.lock`, etc.)  |
 
 **Review lifecycle:** `provenance_digest = hash(source IDs + resolved commits + content_checksum + license spdx)`. Human review sets `trust.reviewed_provenance = provenance_digest`. Updating `capabilities/upstream.lock` to new commit/checksum/license changes the digest → existing `reviewed_provenance` mismatch → `provenance.py check` fails with *review binding invalid* until declaration is re-audited and `trust.reviewed_provenance` (and `reviewed_at`/`reviewed_by`) are updated. This elegantly separates lock resolution from human trust state (see ADR-0001 §13-14).

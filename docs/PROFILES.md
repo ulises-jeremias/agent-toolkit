@@ -331,7 +331,7 @@ Add additional skill files to `~/.pi/agent/skills/`. Use `SKILL.md` files from t
 
 ## Deploying profiles
 
-Use the V CLI (not `scripts/install.sh` — that is a deprecated fallback, [ADR-007](adrs/ADR-007-install-sh-deprecation.md)):
+Use the V CLI ([ADR-007](adrs/ADR-007-install-sh-deprecation.md) removed the bash install wrappers):
 
 ```bash
 agent-toolkit install
@@ -365,5 +365,5 @@ This avoids divergence between tool-specific instruction files. The install scri
 1. Create `profiles/<new-tool>/` directory
 2. Add tool-specific config files using that tool's native format
 3. Document the install path in this file and in `INSTALLATION.md`
-4. Add detection in the V installer (`modules/agent_toolkit_cli`) — do not extend `scripts/install.sh`
+4. Add detection in the V installer (`modules/agent_toolkit_cli`)
 5. Open a PR with the new profile

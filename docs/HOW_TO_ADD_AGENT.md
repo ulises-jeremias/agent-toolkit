@@ -126,50 +126,23 @@ The validator checks:
 
 ---
 
-## 6. Update catalogs/agent-catalog.yaml
+## 6. Products, catalogs, and plugin digests
 
-Register your agent in `catalogs/agent-catalog.yaml` so orchestrators can route to it:
+**Never hand-edit** `catalogs/agent-catalog.yaml` (or other `*-catalog.yaml` files). Regenerate them with `generate-catalogs.vsh` only.
 
-```yaml
-- name: accessibility-reviewer
-  role: specialist_reviewer
-  domain: design
-  triggers:
-    - review accessibility
-    - check WCAG compliance
-    - a11y audit
-    - screen reader support
-  tools:
-    - Read
-    - Grep
-    - Glob
-    - Bash
-  depends_on: []
-  handoff_to:
-    - code-reviewer    # for code-level fixes after a11y issues identified
+If the agent should ship in a marketplace plugin, ensure it is listed under the right product in `distributions/products.yaml` (see ADR-001 / ADR-003). The `agent-toolkit-agents` product typically includes all personas — add the new name there when membership must change.
+
+Then regenerate catalogs and verify compiler digests (no `gen-surfaces`):
+
+```bash
+v run scripts/generate-catalogs.vsh
+./make.vsh build-cli
+AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
 ```
 
 ---
 
-## 7. Sync into Plugin Bundles
-
-If your agent should be bundled into the `agent-toolkit-agents` plugin (it usually should), run:
-
-```bash
-v run scripts/gen-surfaces.vsh
-```
-
-This syncs all agents into the plugin bundle at `plugins/agent-toolkit-agents/`. Verify no drift:
-
-```bash
-v run scripts/gen-surfaces.vsh --check
-```
-
-The `SURFACES` map in `scripts/gen-surfaces.vsh` controls which agents appear in which plugins. The `agent-toolkit-agents` plugin includes all agents by default — no manual edit to the script is required for new agents.
-
----
-
-## 8. PR Checklist
+## 7. PR Checklist
 
 ```markdown
 ## Agent Checklist
@@ -177,8 +150,9 @@ The `SURFACES` map in `scripts/gen-surfaces.vsh` controls which agents appear in
 - [ ] Frontmatter has `name`, `description`, and `tools`
 - [ ] `name` in frontmatter matches directory name
 - [ ] `v run scripts/validate-agents.vsh` passes with no errors
-- [ ] Registered in `catalogs/agent-catalog.yaml` with triggers
-- [ ] `v run scripts/gen-surfaces.vsh --check` passes
+- [ ] `distributions/products.yaml` updated if product membership changed
+- [ ] `v run scripts/generate-catalogs.vsh` was run (do **not** hand-edit `agent-catalog.yaml`)
+- [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
 - [ ] `references/` documents linked from agent body (if present)
 - [ ] `tools` list is minimal — only what the agent genuinely needs
 - [ ] No secrets or hardcoded tokens in agent body or references

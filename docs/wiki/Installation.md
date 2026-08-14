@@ -19,4 +19,4 @@ agent-toolkit install
 agent-toolkit doctor
 ```
 
-`scripts/install.sh` is a deprecated fallback ([ADR-007](../adrs/ADR-007-install-sh-deprecation.md)).
+From a git checkout use `./make.vsh install-cli` then `agent-toolkit install` ([ADR-007](../adrs/ADR-007-install-sh-deprecation.md) removed the bash wrappers).

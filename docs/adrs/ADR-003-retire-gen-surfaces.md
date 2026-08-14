@@ -30,15 +30,15 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 - [x] Current `validate.yml` job `check-surfaces` runs `v run scripts/gen-surfaces.vsh --check`
 - [x] Add parallel job `check-build` that runs `./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` (keep both during dual-run) — see #678
-- [ ] After dual-run green for 30 days, flip `check-surfaces` to advisory (`continue-on-error: true`) or remove, making `check-build` the required check
-- [ ] Update `RELEASING.md` bump → validate → tag checklist to use `build --check` instead of `gen-surfaces.py --check`
+- [x] After dual-run green for 30 days, flip `check-surfaces` to advisory (`continue-on-error: true`) or remove, making `check-build` the required check
+- [x] Update `RELEASING.md` bump → validate → tag checklist to use `build --check` instead of `gen-surfaces.py --check`
 
 ### Contributor docs
 
 - [x] Update `docs/HOW_TO_ADD_SKILL.md` section 6 to document `agent-toolkit build --check` as primary verification, with `gen-surfaces.py --check` noted as legacy fallback
 - [x] Update `docs/RELEASING.md` and `docs/ARCHITECTURE.md` to reference `distributions/products.yaml` + `agent-toolkit build`
-- [ ] Update `CONTRIBUTING.md` if it mentions `gen-surfaces.py` directly (search and replace with compiler note)
-- [ ] PR template checklist: replace `gen-surfaces.py --check` entry with `agent-toolkit build --check`
+- [x] Update `CONTRIBUTING.md` if it mentions `gen-surfaces.py` directly (search and replace with compiler note)
+- [x] PR template checklist: replace `gen-surfaces.py --check` entry with `agent-toolkit build --check`
 
 ### How-tos
 
@@ -72,7 +72,17 @@ No file deletion occurs in the ADR PR itself. Deletion is deferred to the **Remo
 ## References
 
 - ADR-001: Canonical IR (`docs/adrs/ADR-001-canonical-ir.md`)
-- `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/build.py` (`cmd_build` / `cmd_inventory`)
-- `scripts/gen-surfaces.vsh`
-- `.github/workflows/validate.yml` → jobs `check-surfaces`, `validate-products`
+- V compiler: `modules/agent_toolkit_core/build.v` (`agent-toolkit build` / `build --check`)
+- ~~`scripts/gen-surfaces.vsh`~~ (deleted — see Amendment)
+- `.github/workflows/validate.yml` → jobs `check-build`, `validate-products`
 - `distributions/products.yaml`
+
+## Amendment — 2026-08-14
+
+**Remove phase completed at v1.14.1+.**
+
+- `scripts/gen-surfaces.vsh` deleted
+- CI job `check-surfaces` removed from `.github/workflows/validate.yml`
+- Sole surface gates are `agent-toolkit build --check` (CI job `check-build`) and `agent-toolkit plugin check` (still in integration-tests)
+
+Open migration checklist items above are marked complete as of this amendment. Historical Context / Decision / Timeline body retained for provenance.

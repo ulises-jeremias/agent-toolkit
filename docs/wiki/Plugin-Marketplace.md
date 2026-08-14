@@ -288,14 +288,15 @@ my-team-plugin/
 
 ### Important rule: never edit plugin bundles directly
 
-Plugin bundles under `plugins/` are auto-synced from canonical sources. The sync is performed by
-`scripts/gen-surfaces.vsh`. Editing bundles directly will result in your changes being overwritten
-on the next sync.
+Plugin bundles under `plugins/` are **compiler output** from `distributions/products.yaml`
+via `agent-toolkit build` (and `agent-toolkit plugin sync`). Do not hand-edit bundles —
+changes are overwritten on the next build. There is no `gen-surfaces` script.
 
-Always edit the canonical source (`skills/<domain>/<name>/SKILL.md` or `agents/<name>/AGENT.md`)
-and re-run the sync:
+Always edit the canonical source (`skills/<domain>/<name>/SKILL.md`, `agents/<name>/AGENT.md`,
+or product membership in `distributions/products.yaml`) and re-run the build/check:
 
 ```bash
-v run scripts/gen-surfaces.vsh
-v run scripts/gen-surfaces.vsh --check  # verify no drift
+./make.vsh build-cli
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit plugin check
 ```

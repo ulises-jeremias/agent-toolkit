@@ -1,10 +1,10 @@
 # ADR-007: Deprecate scripts/install.sh Behind V CLI (Thin Wrapper)
 
-**Status:** Accepted (V-first amendment — see #682)  
+**Status:** Accepted — Remove phase done (2026-08-14)  
 **Date:** 2026-08-06  
 **Deciders:** maintainers (Wave 3 #270, parent #263)
 
-> **V-first note (2026-08):** Primary consumer path is the native V `agent-toolkit` binary. PyPI remains a launcher channel (ADR-021), not a separate product CLI. Thin wrappers: `scripts/install.sh` → `agent-toolkit install`, `scripts/doctor.sh` → `agent-toolkit doctor`.
+> **V-first note (2026-08):** Primary consumer path is the native V `agent-toolkit` binary. PyPI remains a launcher channel (ADR-021), not a separate product CLI.
 
 ## Context
 
@@ -15,6 +15,8 @@ The goal is one consumer install path to reduce support load.
 ## Decision
 
 **Deprecate `scripts/install.sh` with a warning; do not remove it in this ADR.** Offer a thin-wrapper option for contributors who prefer the bash entrypoint.
+
+*(Original decision text retained for history. See Amendment below for removal.)*
 
 - `scripts/install.sh` remains but prints a deprecation notice on every invocation:
   ```
@@ -36,8 +38,8 @@ The goal is one consumer install path to reduce support load.
 - [x] Update `docs/INSTALLATION.md` — primary flow is `uvx`/CLI; bash script moved to “Git clone + legacy fallback” with deprecation callout
 - [x] Update `examples/project-onboarding/README.md` — replace `bash install.sh` tutorial with `uvx ... install` primary, keep bash as fallback with warning
 - [x] Update `docs/ARCHITECTURE.md` L1 layer note (installer is `agent-toolkit install`, not only `scripts/install.sh`)
-- [ ] CI: no job change needed (`install.sh` still works); follow-up may add a lint that fails on `bash install.sh` in new docs
-- [ ] Removal milestone: v2.0 or next major, after deprecation notice has shipped for one minor
+- [x] CI: no job depended on `install.sh`
+- [x] Removal: delete `scripts/install.sh` and `scripts/doctor.sh`; docs point only at V CLI (2026-08-14)
 
 ## Timeline
 
@@ -45,22 +47,25 @@ The goal is one consumer install path to reduce support load.
 |-------|--------|--------|
 | **Deprecate (now)** | v1.3.x | ADR-007 accepted; `install.sh` prints warning; docs point to CLI |
 | **Wrapper** | v1.12.x+ | `install.sh` / `doctor.sh` `exec` V CLI when available (thin caller), still warning (#683) |
-| **Remove** | v2.0 | Maintainer vote to delete `scripts/install.sh` if CLI covers all needs; keep fallback copy in release notes if offline users need it |
+| **Remove** | post-1.14 (2026-08-14) | Deleted `scripts/install.sh` and `scripts/doctor.sh`; INSTALLATION.md uses `./make.vsh install-cli` / channel installs only |
 
 ## Alternatives Considered
 
 - **Keep both permanently:** Rejected — doubles support and example maintenance.
-- **Immediate removal:** Rejected — breaks offline/git-clone users before migration docs land (violates CMP incrementalism, out of scope per #270).
-- **Rewrite bash as full compiler-aware installer:** Rejected — Python CLI already has receipts, detection, and `installer/sources.py` logic; bash wrapper should stay thin.
+- **Immediate removal:** Rejected at acceptance time — breaks offline/git-clone users before migration docs land (violates CMP incrementalism, out of scope per #270). Revisited after V-first docs and thin wrappers shipped.
+- **Rewrite bash as full compiler-aware installer:** Rejected — product installer is V; bash wrapper stayed thin until removal.
 
 ## Consequences
 
 - **Positive:** One documented consumer path; fewer divergent example code blocks
-- **Negative (transitional):** Two paths still work, but the warning makes the preferred path visible
-- **Risk:** Users without `uv`/`pip` still rely on bash + `git clone` — fallback remains functional with warning
+- **Negative (transitional):** Two paths still worked during deprecation (warning made the preferred path visible)
+- **Risk (resolved):** Offline/`git clone` users use `./make.vsh install-cli` or a release channel — documented in INSTALLATION.md
 
 ## References
 
-- `scripts/install.sh`, `packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/install.py`
 - `docs/INSTALLATION.md`, `examples/project-onboarding/README.md`, `docs/ARCHITECTURE.md`
-- #270 (parent #263)
+- #270 (parent #263), #683
+
+## Amendment (2026-08-14) — Remove phase done
+
+`scripts/install.sh` and `scripts/doctor.sh` are **deleted**. Canonical install/doctor is the V CLI (`agent-toolkit install` / `agent-toolkit doctor`) via brew / AUR `agent-toolkit-bin` / GitHub Release / PyPI launcher / npm, or from a checkout via `./make.vsh install-cli`.

@@ -172,22 +172,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install pinned V from GitHub Release
-        shell: bash
-        env:
-          V_ZIP: ${{ matrix.v_zip }}
-        run: |
-          set -euo pipefail
-          PIN="$(tr -d '[:space:]' < .v-version)"
-          curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${PIN}/${V_ZIP}"
-          rm -rf "${HOME}/vlang"
-          mkdir -p "${HOME}/vlang"
-          unzip -q /tmp/v.zip -d "${HOME}/vlang"
-          VBIN="$(find "${HOME}/vlang" -type f \( -name v -o -name v.exe \) | head -n 1)"
-          test -n "$VBIN"
-          echo "VBIN=${VBIN}" >> "$GITHUB_ENV"
-          echo "$(dirname "${VBIN}")" >> "$GITHUB_PATH"
-          "${VBIN}" version
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+        with:
+          v_zip: ${{ matrix.v_zip }}
 
       - name: Build native V CLI
         shell: bash

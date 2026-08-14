@@ -29,12 +29,17 @@
 
 <!-- Describe how you verified the changes work correctly. -->
 
-- [ ] Validated locally with `v run scripts/validate-skills.vsh` (if skill changes)
-- [ ] Validated loops with `python3` + `schemas/loop.schema.json` (if loop changes) — see `.github/workflows/validate.yml` `validate-loops` job
-- [ ] Ran `v run scripts/validate-agents.vsh` (if agent changes)
-- [ ] Regenerated catalogs with `v run scripts/generate-catalogs.vsh` (if skill/agent/loop added)
-- [ ] Checked `v run scripts/gen-surfaces.vsh --check` (if skill/agent/loop or surface changed)
-- [ ] Confirmed `validate` CI workflow passes (or ran checks locally via `uv sync --project packages/pypi/agent-toolkit-cli --all-extras && AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v`)
+**Primary (match CI):**
+- [ ] `v run scripts/validate-skills.vsh` (if skill changes)
+- [ ] `v run scripts/validate-agents.vsh` (if agent changes)
+- [ ] Loop schemas via `python3` + `schemas/loop.schema.json` (if loop changes) — see `validate-loops` in `.github/workflows/validate.yml`
+- [ ] `v run scripts/generate-catalogs.vsh` (if skill/agent/loop added; never hand-edit `*-catalog.yaml`)
+- [ ] `./make.vsh test && ./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check`
+
+**Adapter-only (optional unless changing PyPI/npm trampolines):**
+- [ ] `uv run … pytest` / `npm test --prefix packages/npm/agent-toolkit-cli`
+
+**Manual (optional):**
 - [ ] Tested with at least one supported AI tool (Claude Code, Cursor, Copilot, etc.)
 
 ## Checklist

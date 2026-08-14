@@ -67,5 +67,9 @@ Immediate deletion of `profiles/` is out of scope for this ADR (explicit non-goa
 
 - ADR-001 (canonical IR), ADR-003 (retire gen-surfaces)
 - `docs/CONCEPTS.md` (concept model), `docs/ARCHITECTURE.md` (three-layer model)
-- `docs/PROFILES.md`, `packages/pypi/agent-toolkit-cli/src/agent_toolkit/installer/sources.py`
+- `docs/PROFILES.md`, V installer under `modules/agent_toolkit_cli` / `modules/agent_toolkit_core`
 - `distributions/products.yaml`, `plugins/` (generated)
+
+## Amendment (2026-08-14)
+
+Installer is the **V** CLI (`modules/agent_toolkit_cli`, `modules/agent_toolkit_core`). There is **no** `installer/sources.py` (Python installer removed with the quarantined CLI). `profiles/` remain the install-copy overlay until the compiler fully emits per-target profile layouts from IR; `plugins/` remain compiler output preferred for marketplace delivery.

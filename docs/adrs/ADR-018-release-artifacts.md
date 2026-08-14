@@ -39,7 +39,7 @@ Retain the existing tokens (OS: `linux` / `macos` / `windows`; arch: `x86_64` / 
 | `agent-toolkit-windows-x86_64.exe` | PE; `.exe` required |
 | `agent-toolkit-darwin-x86_64` | **Not published** until #256 is explicitly lifted |
 
-These names are the **stable** channel. Experimental native V builds MUST NOT upload over them ([ADR-012](ADR-012-python-v-coexistence.md) / [docs/v/cutover.md](../v/cutover.md)). Experimental prefix: `agent-toolkit-v-experimental-<os>-<arch>` (prerelease GitHub assets only).
+These names are the **stable** channel. Experimental native V builds MUST NOT upload over them ([ADR-012](ADR-012-python-v-coexistence.md) / [docs/v/archive/cutover.md](../v/archive/cutover.md)). Experimental prefix: `agent-toolkit-v-experimental-<os>-<arch>` (prerelease GitHub assets only).
 
 ### Versioned archives (checksum / SBOM / attestation unit)
 

@@ -74,44 +74,23 @@ v run scripts/validate-skills.vsh
 v run scripts/validate-agents.vsh
 
 # Validate loop.yaml files against schemas/loop.schema.json (as CI does)
-python3 - <<'PY'
-import json, sys, yaml
-from pathlib import Path
-from jsonschema import validate, ValidationError
-schema = json.loads(Path("schemas/loop.schema.json").read_text())
-errors = []
-for f in sorted(Path("loops").rglob("loop.yaml")):
-    d = yaml.safe_load(f.read_text())
-    try:
-        validate(d, schema)
-        print(f"  OK: {f}")
-    except ValidationError as e:
-        errors.append(f"  FAIL: {f}: {e.message}")
-        print(f"  FAIL: {f}: {e.message}", file=sys.stderr)
-if errors:
-    sys.exit(1)
-print(f"All {len(list(Path('loops').rglob('loop.yaml')))} loop template(s) valid.")
-PY
+v run scripts/validate-loops.vsh
 
 # Validate marketplace manifests
 v run scripts/validate-manifests.vsh
 
-# Detect plugin surface drift
-AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check  # primary (ADR-003)
-v run scripts/gen-surfaces.vsh --check  # legacy dual-run
-
-# Regenerate catalogs and verify they match source files
-v run scripts/generate-catalogs.vsh
-
-# Canonical V CLI
-./make.vsh test
+# Detect plugin surface drift (canonical; no gen-surfaces)
 ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
-# Python launcher / packaging tests (CI parity; not the product)
-AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
+# Regenerate catalogs and verify they match source files (never hand-edit *-catalog.yaml)
+v run scripts/generate-catalogs.vsh
 
-# npm trampoline (node --test; ADR-025 — no V compile required)
+# Canonical V CLI unit tests
+./make.vsh test
+
+# Adapter-only — required when changing PyPI/npm trampolines; optional otherwise
+AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 npm test --prefix packages/npm/agent-toolkit-cli
 ```
 
@@ -123,7 +102,7 @@ pre-commit install
 pre-commit run --all-files  # optional: run all hooks now
 ```
 
-Python style is enforced in CI by **Ruff** (`validate.yml` → `ruff` job, blocking on PRs).
+Python style for the launcher package is enforced in CI by **Ruff** (`validate.yml` → `ruff` job, blocking on PRs).
 MegaLinter still runs on `main` only with `PYTHON_RUFF` set to advisory (`DISABLE_ERRORS`);
 do not add a conflicting blocking MegaLinter Python config — `validate.yml` is the
 single source of truth for PR style gating. Fix Ruff issues locally with:
@@ -132,11 +111,6 @@ single source of truth for PR style gating. Fix Ruff issues locally with:
 uv run --project packages/pypi/agent-toolkit-cli --directory . ruff check --fix packages/pypi/agent-toolkit-cli/src tests scripts
 uv run --project packages/pypi/agent-toolkit-cli --directory . ruff format packages/pypi/agent-toolkit-cli/src tests scripts
 ```
-
-Type checking is incremental and **warn-only** in CI (`mypy` job, `continue-on-error: true`).
-Only `agent_toolkit.compiler` and `agent_toolkit.installer` are checked initially
-(`follow_imports=skip`, narrow allowlist, see `packages/pypi/agent-toolkit-cli/pyproject.toml` `[tool.mypy]` and
-`validate.yml` `mypy` job). Do not add `# type: ignore` sprees — fix types properly.
 
 If any command exits non-zero, read the output — it will tell you which file failed and why.
 
@@ -250,15 +224,7 @@ Loops are defined by `loops/<loop-name>/loop.yaml` (see `docs/HOW_TO_CREATE_LOOP
 5. **Validate your loop** against the schema (same check CI runs in `validate-loops`):
 
    ```bash
-   python3 - <<'PY'
-   import json, yaml
-   from pathlib import Path
-   from jsonschema import validate
-   schema = json.loads(Path("schemas/loop.schema.json").read_text())
-   d = yaml.safe_load(Path("loops/<loop-name>/loop.yaml").read_text())
-   validate(d, schema)
-   print("Valid: loops/<loop-name>/loop.yaml")
-   PY
+   v run scripts/validate-loops.vsh
    ```
 
 6. Open a PR. Runtime artifacts `STATE.md` and `report.md` are written by the loop runner — do not commit them.
@@ -317,8 +283,10 @@ Before submitting a PR, confirm the following:
 - [ ] `v run scripts/validate-skills.vsh` passes with exit 0
 - [ ] `v run scripts/validate-agents.vsh` passes with exit 0 (if you added/modified agents)
 - [ ] Loop `loop.yaml` validates against `schemas/loop.schema.json` (if you added/modified loops) — see Validation Commands
-- [ ] `v run scripts/generate-catalogs.vsh` was run and catalog changes are included (if you added/modified skills/agents/loops)
-- [ ] `v run scripts/gen-surfaces.vsh --check` passes (if you added/modified skills/agents/loops or surfaces)
+- [ ] `v run scripts/generate-catalogs.vsh` was run and catalog changes are included (if you added/modified skills/agents/loops) — never hand-edit `*-catalog.yaml`
+- [ ] `./make.vsh test` passes
+- [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` passes (if you added/modified skills/agents/loops or surfaces)
+- [ ] Adapter tests (pytest / `npm test`) only if you changed PyPI or npm trampolines
 - [ ] `SKILL.md` frontmatter is complete (name, description, author, version, tags, domain)
 - [ ] Optional `tools:` frontmatter in `SKILL.md` is accurate — only mark tools you have verified
 - [ ] No deprecated `skill.json` files under `skills/`
@@ -352,7 +320,7 @@ This project follows the [Contributor Covenant Code of Conduct](https://www.cont
 
 ## V modules (canonical consumer CLI)
 
-The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [`docs/v/cutover.md`](docs/v/cutover.md)). PyPI is a thin launcher over GitHub Release binaries ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)); there is no Python CLI fallback ([`docs/v/python-fallback.md`](docs/v/python-fallback.md)).
+The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [`docs/v/archive/cutover.md`](docs/v/archive/cutover.md)). PyPI is a thin launcher over GitHub Release binaries ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)); there is no Python CLI fallback ([`docs/v/python-fallback.md`](docs/v/python-fallback.md)).
 
 - Pin: root [`.v-version`](.v-version) — see [`docs/v/upgrade-policy.md`](docs/v/upgrade-policy.md)
 - Layout: `modules/agent_toolkit_core` + `modules/agent_toolkit_cli` ([ADR-009](docs/adrs/ADR-009-v-module-architecture.md))
@@ -375,7 +343,6 @@ When adding a new skill, agent, or loop, verify the compiler pipeline:
 v run scripts/validate-skills.vsh
 v run scripts/validate-agents.vsh
 v run scripts/validate-manifests.vsh
-v run scripts/gen-surfaces.vsh --check
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
 # Python adapter tests (launcher / packaging; not the product CLI)

@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 - **Fixed** — `bump-version.vsh` updates `generatorVersion` in `plugins/*/.provenance.json` (not only digests / `"version"` sidecars)
+- **Breaking (contributor)** — Retire `scripts/gen-surfaces.vsh` and CI `check-surfaces` ([ADR-003](docs/adrs/ADR-003-retire-gen-surfaces.md) Remove). Sole surface gates: `agent-toolkit build --check` + `agent-toolkit plugin check`
+- **CI** — Add Required `check-v-modules` (`./make.vsh fmt-check` / `vet` / `test`); drop `coverage` and `test-uvx` from Required (`test-uvx` = published PyPI smoke on main/dispatch only); `experimental-v.yml` is `workflow_dispatch` only; unify V install via `setup-v` in validate/parity/release/experimental
+- **Chore** — Remove dead `scripts/validate-skills.sh`, `scripts/install.sh`, and `scripts/doctor.sh`; docs/CI use V CLI and `*.vsh` validators ([ADR-007](docs/adrs/ADR-007-install-sh-deprecation.md) Remove phase)
+- **Chore** — Add `scripts/validate-loops.vsh` (python3+jsonschema); `validate.yml` `validate-loops` job calls it
+- **Chore** — Archive legacy `schemas/skill.schema.json` → `docs/archive/` (skill.json removed; see [MIGRATION.md](docs/MIGRATION.md)); `products.yaml` `version_source: VERSION`
+- **Docs** — Present-tense V-first contributor docs (AGENT.md, generated catalogs, no `installer/sources.py`); move strangler-era `docs/v/*` to `docs/v/archive/`; ROADMAP post-1.14; ADR-003/004/007/012 amendments; `docs/adrs/README.md` index; Homebrew formula PR permissions note
 
 ## [1.14.1] — 2026-08-14
 
@@ -22,7 +28,7 @@ Patch release for post-`v1.14.0` release hygiene that landed on `main` after the
 ## [1.14.0] — 2026-08-14
 
 - **Docs** — Align `docs/v/*` and ADR-012/021 amendments with launcher-only PyPI (no `agent-toolkit-py`); scrub leftover CONTRIBUTING / distribution present-tense quarantine wording
-- **Refactor** — Migrate V CLI dispatch to `vlib/cli` Command tree (`Command.parse` + execute callbacks; Consumer/Advanced groups). ADR-010 shim only for unknown flags → exit **2** (vlib uses 1); unit tests keep `dispatch()` walk ([docs/v/cli-dispatcher.md](docs/v/cli-dispatcher.md), [vlib-cli-spike.md](docs/v/vlib-cli-spike.md))
+- **Refactor** — Migrate V CLI dispatch to `vlib/cli` Command tree (`Command.parse` + execute callbacks; Consumer/Advanced groups). ADR-010 shim only for unknown flags → exit **2** (vlib uses 1); unit tests keep `dispatch()` walk ([docs/v/cli-dispatcher.md](docs/v/cli-dispatcher.md), [vlib-cli-spike.md](docs/v/archive/vlib-cli-spike.md))
 - **Fixed** — Re-`setup()` root Command after return-by-value before `parse` so Windows TCC parent pointers stay valid (`agent-toolkit version` Integration crash)
 - **Chore** — Rewrite `make.vsh` on vlib `build` (bobatea-style short tasks + [upstream build_system example](https://github.com/vlang/v/blob/master/examples/build_system/build.vsh)); remove `Makefile`; CI/docs use `./make.vsh <target>` (shebang); `install-cli --prefix=/path` (hyphen flags skipped by `context.run`, parsed manually; `PREFIX` env fallback)
 - **Tests** — Expand npm trampoline suite (`node --test`) to mirror PyPI launcher coverage; add dedicated `test-npm` CI job (Node 22/24 × ubuntu/macOS/Windows)

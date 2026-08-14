@@ -48,31 +48,13 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: Sync Python fallback CLI
+      - name: Sync packaging/parity Python deps
         run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 
-      - name: Install pinned V from GitHub Release
-        run: |
-          set -euo pipefail
-          PIN="$(tr -d '[:space:]' < .v-version)"
-          echo "Installing V ${PIN} (prebuilt)"
-          curl -fsSL -o /tmp/v_linux.zip "https://github.com/vlang/v/releases/download/${PIN}/v_linux.zip"
-          sudo rm -rf /usr/local/v
-          sudo unzip -q /tmp/v_linux.zip -d /usr/local
-          # zip usually extracts to /usr/local/v
-          if [ -x /usr/local/v/v ]; then
-            echo "/usr/local/v" >> "${GITHUB_PATH}"
-            /usr/local/v/v version
-          elif [ -x /usr/local/v_linux/v ]; then
-            echo "/usr/local/v_linux" >> "${GITHUB_PATH}"
-            /usr/local/v_linux/v version
-          else
-            echo "Unexpected V zip layout:" >&2
-            find /usr/local -maxdepth 2 -type f -name v >&2 || true
-            exit 1
-          fi
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
 
-      - name: Build experimental V CLI
+      - name: Build V CLI for parity harness
         run: ./make.vsh build-cli
 
       - name: Run parity harness (seed fixtures)

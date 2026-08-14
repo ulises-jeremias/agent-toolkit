@@ -180,7 +180,7 @@ context.task(
 		dest := join_path(bindir, 'agent-toolkit')
 		cp(from, dest) or {}
 		chmod(dest, 0o755) or {}
-		println('Installed ${dest} (V canonical). Rollback: docs/v/rollback.md')
+		println('Installed ${dest} (V canonical). Rollback: docs/v/archive/rollback.md')
 	}
 )
 

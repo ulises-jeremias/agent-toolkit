@@ -14,6 +14,16 @@ Contract:
 - `brew upgrade` owns the binary. `agent-toolkit update` is capability/profile refresh only (ADR-017).
 - Tap updater opens an **auditable PR** with per-arch sha256; it must not force-push `main`.
 
+### Maintainer: formula PR must open automatically
+
+After `notify-homebrew.yml` dispatches the tap, `update-formula.yml` pushes `chore/agent-toolkit-v*` and must open a PR. If Actions only push the branch (as on v1.14.0 / v1.14.1), fix **on the tap**:
+
+1. Tap **Settings → Actions → General → Workflow permissions** → enable **Allow GitHub Actions to create and approve pull requests**.
+2. Ensure environment secret `HOMEBREW_TAP_TOKEN` (fine-grained PAT) has **Contents: R/W** and **Pull requests: R/W** on `ulises-jeremias/homebrew-tap` (fallback when the Actions toggle is off).
+3. Same secret on this repo’s `homebrew` environment for `notify-homebrew.yml` → `repository_dispatch`.
+
+Details: [homebrew-tap README](https://github.com/ulises-jeremias/homebrew-tap#ci-secrets-and-permissions-maintainer).
+
 ```bash
 brew tap ulises-jeremias/homebrew-tap
 brew install agent-toolkit

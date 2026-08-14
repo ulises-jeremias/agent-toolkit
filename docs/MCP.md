@@ -295,7 +295,7 @@ Add MCP entries to Windsurf's MCP configuration file (typically `~/.codeium/wind
 - Rotate tokens periodically — MCP servers use whatever scope the token has, so a compromised token with broad scopes is a significant risk
 - Never commit filled-in MCP config files containing real tokens to any repository
 
-The `validate-skills.sh` script scans for common secret patterns. It will warn if it detects what looks like a real token in any tracked file.
+The `validate-skills.vsh` script scans for common secret patterns. It will warn if it detects what looks like a real token in any tracked file.
 
 ### Chrome DevTools
 
