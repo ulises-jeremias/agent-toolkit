@@ -63,7 +63,15 @@ function missingBinaryMessage() {
 }
 
 function runNative(binPath, argv) {
-  const child = spawn(binPath, argv, {
+  // Native Release binaries are .exe / ELF / Mach-O. For Windows tests (and rare
+  // AGENT_TOOLKIT_BIN=.js helpers), invoke via node so spawn does not need shell.
+  let command = binPath;
+  let args = argv;
+  if (process.platform === "win32" && /\.js$/i.test(binPath)) {
+    command = process.execPath;
+    args = [binPath, ...argv];
+  }
+  const child = spawn(command, args, {
     stdio: "inherit",
     windowsHide: true,
   });

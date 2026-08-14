@@ -22,29 +22,36 @@ const {
 } = require(LAUNCHER);
 
 function writeFakeBin(dir) {
-  const isWin = process.platform === "win32";
-  const dest = path.join(dir, isWin ? "fake-bin.cmd" : "fake-bin");
-  if (isWin) {
-    fs.writeFileSync(
-      dest,
-      ["@echo off", "echo %*", "if not \"%FAKE_EXIT%\"==\"\" exit /b %FAKE_EXIT%", "exit /b 0"].join("\r\n"),
-    );
-  } else {
-    fs.writeFileSync(
-      dest,
-      "#!/bin/sh\nprintf '%s\\n' \"$*\"\nexit \"${FAKE_EXIT:-0}\"\n",
-      { mode: 0o755 },
-    );
-  }
+  // Portable Node stub: shebang on posix; on Windows the launcher rewrites
+  // AGENT_TOOLKIT_BIN=*.js → spawn(process.execPath, [script, ...argv]).
+  const dest = path.join(dir, process.platform === "win32" ? "fake-bin.js" : "fake-bin");
+  fs.writeFileSync(
+    dest,
+    [
+      "#!/usr/bin/env node",
+      '"use strict";',
+      'const code = Number(process.env.FAKE_EXIT || "0");',
+      'process.stdout.write(process.argv.slice(2).join(" ") + "\\n");',
+      "process.exit(Number.isFinite(code) ? code : 0);",
+      "",
+    ].join("\n"),
+    { mode: 0o755 },
+  );
   return dest;
 }
 
 function writeNativeStub(filePath) {
-  if (process.platform === "win32") {
-    fs.writeFileSync(filePath, "@echo off\r\nexit /b 0\r\n");
-  } else {
-    fs.writeFileSync(filePath, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
-  }
+  // Same portable stub used for AGENT_TOOLKIT_ROOT/build resolution tests.
+  fs.writeFileSync(
+    filePath,
+    [
+      "#!/usr/bin/env node",
+      '"use strict";',
+      "process.exit(0);",
+      "",
+    ].join("\n"),
+    { mode: 0o755 },
+  );
 }
 
 function runLauncher(args, env) {
@@ -216,24 +223,22 @@ describe("platformSpec + package metadata", () => {
 });
 
 describe("spawn: AGENT_TOOLKIT_ROOT", () => {
-  test("forwards through root-resolved stub", () => {
+  test("forwards through root-resolved stub", { skip: process.platform === "win32" }, () => {
+    // Windows Release binaries are PE (.exe); shebang stubs cannot be CreateProcess'd.
+    // Windows spawn forwarding is covered by AGENT_TOOLKIT_BIN=*.js tests above.
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "atk-npm-spawn-root-"));
     const build = path.join(tmp, "build");
     fs.mkdirSync(build);
-    const stubName = process.platform === "win32" ? "agent-toolkit.exe" : "agent-toolkit";
-    const stub = path.join(build, stubName);
-    // Reuse argv-echoing fake so we can assert forwarding.
+    const stub = path.join(build, "agent-toolkit");
     const echo = writeFakeBin(tmp);
     fs.copyFileSync(echo, stub);
-    if (process.platform !== "win32") {
-      fs.chmodSync(stub, 0o755);
-    }
+    fs.chmodSync(stub, 0o755);
     const result = runLauncher(["skills", "list"], {
       AGENT_TOOLKIT_BIN: "",
       AGENT_TOOLKIT_ROOT: tmp,
       FAKE_EXIT: "0",
     });
-    assert.equal(result.status, 0);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
     assert.match(result.stdout, /skills/);
     assert.match(result.stdout, /list/);
   });
