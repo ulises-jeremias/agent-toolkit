@@ -160,15 +160,6 @@ fn invoke_from_cli_cmd(cmd cli.Command) int {
 	return execute_command(top, rest, mode_from_cmd(cmd))
 }
 
-// wire_executes attaches atk_exec to every node that has no callback yet.
-fn wire_executes(mut cmd cli.Command) {
-	if isnil(cmd.execute) {
-		cmd.execute = atk_exec
-	}
-	for mut sub in cmd.commands {
-		wire_executes(mut sub)
-	}
-}
 
 // promote_family_flags marks flags on parents with subcommands as global so
 // `loop run name --force` works (vlib only copies Flag.global to children).
