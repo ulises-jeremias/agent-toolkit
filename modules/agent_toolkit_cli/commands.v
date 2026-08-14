@@ -207,6 +207,8 @@ fn diff_command() cli.Command {
 }
 
 fn skills_command() cli.Command {
+	// Flags live on the parent only; promote_family_flags marks them global so
+	// `skills list --domain X` works without duplicating names on children.
 	return cli.Command{
 		name:        'skills'
 		description: 'Skill management: sync, list, validate'
@@ -215,24 +217,10 @@ fn skills_command() cli.Command {
 			cli.Command{
 				name:        'list'
 				description: 'List skills grouped by domain'
-				flags:       [
-					cli.Flag{
-						flag:        .string
-						name:        'domain'
-						description: 'Filter by domain'
-					},
-				]
 			},
 			cli.Command{
 				name:        'sync'
 				description: 'Sync skills to tool-specific directories'
-				flags:       [
-					cli.Flag{
-						flag:        .string
-						name:        'tools'
-						description: 'Comma-separated tools to sync'
-					},
-				]
 			},
 			cli.Command{
 				name:        'validate'
@@ -326,7 +314,6 @@ fn loop_command() cli.Command {
 fn loop_flags() []cli.Flag {
 	return [
 		cli.Flag{ flag: .bool, name: 'force', description: 'Force overwrite' },
-		cli.Flag{ flag: .bool, name: 'quiet', description: 'Suppress human output' },
 		cli.Flag{ flag: .bool, name: 'no-llm', description: 'Use skeleton runner' },
 		cli.Flag{ flag: .bool, name: 'dry-run', description: 'Plan without applying' },
 		cli.Flag{ flag: .bool, name: 'list', description: 'List mode for schedule' },
