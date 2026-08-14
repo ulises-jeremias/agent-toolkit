@@ -158,6 +158,15 @@ fn test_grouped_help_mentions_consumer_and_advanced() {
 	assert !h.contains('install (consumer)')
 }
 
+fn test_dispatch_uses_cli_command_tree() {
+	root := build_root_command()
+	assert root.name == 'agent-toolkit'
+	_ := find_command(root, 'skills') or {
+		assert false
+		return
+	}
+}
+
 fn test_inventory_help_is_implemented() {
 	h := subcommand_help('inventory')
 	assert h.contains('agent-toolkit inventory')

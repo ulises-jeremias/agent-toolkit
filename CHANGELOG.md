@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Refactor** — Migrate V CLI dispatch to `vlib/cli` Command tree with Consumer/Advanced groups and nested families (`skills`, `mcp`, `plugin`, `loop`, `workspace`, …); keep AT exit-code wrapper (no `Command.parse`; bad flags → 2), peel leading `--json`/`--quiet`, and CommandResult render path ([docs/v/vlib-cli-spike.md](docs/v/vlib-cli-spike.md))
 - **Chore** — Rewrite `make.vsh` on vlib `build` (bobatea-style short tasks + [upstream build_system example](https://github.com/vlang/v/blob/master/examples/build_system/build.vsh)); remove `Makefile`; CI/docs use `./make.vsh <target>` (shebang); `install-cli --prefix=/path` (hyphen flags skipped by `context.run`, parsed manually; `PREFIX` env fallback)
 
 - **Tests** — Expand npm trampoline suite (`node --test`) to mirror PyPI launcher coverage; add dedicated `test-npm` CI job (Node 22/24 × ubuntu/macOS/Windows)
