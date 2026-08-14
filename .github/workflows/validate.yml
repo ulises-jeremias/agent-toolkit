@@ -40,7 +40,7 @@ jobs:
       - name: Build V CLI for launcher smoke
         env:
           VMODULES: ${{ github.workspace }}/modules
-        run: ./make.vsh build-cli
+        run: v run make.vsh build-cli
 
       - name: Smoke-test PyPI launcher → V (version/help)
         env:
@@ -210,7 +210,7 @@ jobs:
       - name: Build V CLI
         env:
           VMODULES: ${{ github.workspace }}/modules
-        run: ./make.vsh build-cli
+        run: v run make.vsh build-cli
 
       - name: agent-toolkit build --check
         env:
@@ -515,7 +515,7 @@ jobs:
           set -euo pipefail
           bash scripts/prepare-package-data.sh
           uv build --sdist --out-dir dist packages/pypi/agent-toolkit-cli
-          ./make.vsh build-cli
+          v run make.vsh build-cli
           bash scripts/prepare-native-bin.sh
           uv build --wheel --out-dir dist packages/pypi/agent-toolkit-cli
           ls -lh dist/
@@ -591,7 +591,7 @@ jobs:
           fi
           export V="${V_PATH}"
           export VBIN="${V_PATH}"
-          ./make.vsh build-cli
+          v run make.vsh build-cli
 
       - name: Install from dist (Linux wheel with V binary; sdist elsewhere)
         shell: bash

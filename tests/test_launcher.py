@@ -18,7 +18,7 @@ def test_missing_binary_exits_127(monkeypatch, capsys):
     assert ei.value.code == 127
     err = capsys.readouterr().err
     assert "native V binary not found" in err
-    assert "./make.vsh build-cli" in err or "AGENT_TOOLKIT_BIN" in err or "GitHub Release" in err
+    assert "v run make.vsh build-cli" in err or "AGENT_TOOLKIT_BIN" in err or "GitHub Release" in err
 
 
 def test_run_native_exports_wheel_data_root(monkeypatch, tmp_path: Path):
