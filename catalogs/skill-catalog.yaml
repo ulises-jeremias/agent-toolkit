@@ -315,7 +315,7 @@ skills:
   - id: loops/loop-runner
     name: loop-runner
     domain: loops
-    description: 'Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding session via bin/loop CLI.'
+    description: 'Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding session via the agent-toolkit loop CLI.'
     stability: stable
   - id: ops/docs-generator
     name: docs-generator
