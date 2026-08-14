@@ -15,7 +15,7 @@ Migration is not a performance project. These numbers exist so later changes can
 | Commit | `b356e19` (docs/python-api-audit; methodology applies to `main` at audit time) |
 | N | 7 timed runs after 1 warmup; median and p95 |
 | Python | `uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py` (not the V launcher; no root uv workspace) |
-| V binary | `v run make.vsh build-cli` → `build/agent-toolkit` (debug, tcc→cc fallback) |
+| V binary | `./make.vsh build-cli` → `build/agent-toolkit` (debug, tcc→cc fallback) |
 | V `-prod` | **Does not build** on 0.5.2: `import json` is a **error** under `-prod` (we MUST keep `json`, not json2) |
 | PyInstaller | N/A — `v1.10.0` GitHub Release has **zero** assets |
 
@@ -35,7 +35,7 @@ Binary size (debug ELF): **3.8 MiB** (3 779 000 bytes).
 
 Startup/`doctor`/`inventory` are much faster in V. `build --check` is not — compiler work is comparable; do not gate on it yet.
 
-## Proposed non-regression thresholds (Linux x86_64, V **debug** `v run make.vsh build-cli`)
+## Proposed non-regression thresholds (Linux x86_64, V **debug** `./make.vsh build-cli`)
 
 Informational until a second machine reproduces. Fail a dedicated job only after they are wired (not Required CI today):
 
@@ -53,6 +53,6 @@ Do **not** apply these to Python or to `-prod` until `-prod` builds with `import
 ## Reproduce
 
 ```bash
-v run make.vsh build-cli
+./make.vsh build-cli
 # time as in this report: 7 runs of build/agent-toolkit {--version,--help,inventory,doctor}
 ```

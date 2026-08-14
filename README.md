@@ -220,11 +220,11 @@ npm i -g agent-toolkit-cli # optionalDependencies platform packages
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-v run make.vsh install-cli    # canonical V binary → ~/.local/bin
+./make.vsh install-cli    # canonical V binary → ~/.local/bin
 agent-toolkit install
 ```
 
-`scripts/install.sh` is a deprecated fallback ([ADR-007](docs/adrs/ADR-007-install-sh-deprecation.md)). Prefer `v run make.vsh install-cli` or a release channel above.
+`scripts/install.sh` is a deprecated fallback ([ADR-007](docs/adrs/ADR-007-install-sh-deprecation.md)). Prefer `./make.vsh install-cli` or a release channel above.
 
 </details>
 
@@ -492,7 +492,7 @@ bash scripts/validate-loops.sh
 
 The bash scripts exit non-zero on failure with human-readable error messages.
 They run automatically in CI via the Validate and MegaLinter workflows.
-Contributors: [`CONTRIBUTING.md`](CONTRIBUTING.md) (`v run make.vsh test`, `v run make.vsh build-cli`).
+Contributors: [`CONTRIBUTING.md`](CONTRIBUTING.md) (`./make.vsh test`, `./make.vsh build-cli`).
 
 ---
 

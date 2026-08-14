@@ -19,7 +19,7 @@ as a drive-by fix.
 - **uv** for the PyPI adapter under `packages/pypi/` only — see https://docs.astral.sh/uv/getting-started/installation/
 - A GitHub account and a fork of this repository
 
-The repo is **not** a uv workspace. The product CLI is `v run make.vsh build-cli` → `build/agent-toolkit`.
+The repo is **not** a uv workspace. The product CLI is `./make.vsh build-cli` → `build/agent-toolkit`.
 
 Verify your setup:
 
@@ -28,8 +28,8 @@ git --version
 v version                 # must match .v-version
 python3 --version
 uv --version
-v run make.vsh test
-v run make.vsh build-cli
+./make.vsh test
+./make.vsh build-cli
 ./build/agent-toolkit --version
 ```
 
@@ -104,8 +104,8 @@ v run scripts/gen-surfaces.vsh --check  # legacy dual-run
 v run scripts/generate-catalogs.vsh
 
 # Canonical V CLI
-v run make.vsh test
-v run make.vsh build-cli
+./make.vsh test
+./make.vsh build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
 # Python launcher / packaging tests (CI parity; not the product)
@@ -356,7 +356,7 @@ The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](htt
 
 - Pin: root [`.v-version`](.v-version) — see [`docs/v/upgrade-policy.md`](docs/v/upgrade-policy.md)
 - Layout: `modules/agent_toolkit_core` + `modules/agent_toolkit_cli` ([ADR-009](docs/adrs/ADR-009-v-module-architecture.md))
-- Local toolchain: install V matching `.v-version`, then `v run make.vsh test`, `v run make.vsh fmt-check`, `v run make.vsh build-cli` → `build/agent-toolkit`
+- Local toolchain: install V matching `.v-version`, then `./make.vsh test`, `./make.vsh fmt-check`, `./make.vsh build-cli` → `build/agent-toolkit`
 - DEPRECATE/REMOVE advanced commands (`insights`, `release`): quarantined `agent-toolkit-py` ([ADR-012](docs/adrs/ADR-012-python-v-coexistence.md); no mixed-engine binary)
 
 ## Getting Help
@@ -371,7 +371,7 @@ When adding a new skill, agent, or loop, verify the compiler pipeline:
 
 ```bash
 # Canonical V CLI (see docs/HOW_TO_DEVELOP_V.md)
-v run make.vsh build-cli
+./make.vsh build-cli
 v run scripts/validate-skills.vsh
 v run scripts/validate-agents.vsh
 v run scripts/validate-manifests.vsh

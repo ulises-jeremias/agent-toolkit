@@ -143,7 +143,7 @@ If your skill should appear in a plugin bundle (most skills should), it must be 
 The compiler is the source of truth. Run the canonical **V** build check (not `uv run agent-toolkit` — there is no product uv workspace):
 
 ```bash
-v run make.vsh build-cli
+./make.vsh build-cli
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
 v run scripts/gen-surfaces.vsh --check
 ```
@@ -183,7 +183,7 @@ Use the standard PR workflow. Include this checklist in your PR description:
 - [ ] `v run scripts/validate-skills.vsh` passes with no errors
 - [ ] Registered in `catalogs/skills-layout.json` (correct group)
 - [ ] Registered in `catalogs/skill-catalog.yaml` (with triggers)
-- [ ] `v run make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
+- [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
 - [ ] `v run scripts/gen-surfaces.vsh --check` passes
 - [ ] No secrets or hardcoded tokens in skill body
 - [ ] `references/` documents linked from skill body (if present)

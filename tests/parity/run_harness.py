@@ -120,7 +120,7 @@ def main() -> int:
             v_bin = str(alt)
         else:
             print(
-                f"ERROR: V binary not found: {v_bin} (build with `v run make.vsh build-cli`)",
+                f"ERROR: V binary not found: {v_bin} (build with `./make.vsh build-cli`)",
                 file=sys.stderr,
             )
             return 2

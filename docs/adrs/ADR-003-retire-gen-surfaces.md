@@ -18,7 +18,7 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 ## Decision
 
-`gen-surfaces.py` is deprecated. The canonical check is `agent-toolkit build --check` (from a checkout: `v run make.vsh build-cli && ./build/agent-toolkit build --check`). There is no product uv workspace — do not `uv run agent-toolkit`.
+`gen-surfaces.py` is deprecated. The canonical check is `agent-toolkit build --check` (from a checkout: `./make.vsh build-cli && ./build/agent-toolkit build --check`). There is no product uv workspace — do not `uv run agent-toolkit`.
 
 - **Source of truth:** `distributions/products.yaml` + `skills/` + `agents/` + `compiler/targets/`
 - **Build command:** `agent-toolkit build` (writes to `plugins/`), `agent-toolkit build --check` (drift detection, exit 1 on drift)
@@ -29,7 +29,7 @@ This ADR does **not** delete code; it records the decision and migration plan.
 ### CI job swap
 
 - [x] Current `validate.yml` job `check-surfaces` runs `v run scripts/gen-surfaces.vsh --check`
-- [x] Add parallel job `check-build` that runs `v run make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` (keep both during dual-run) — see #678
+- [x] Add parallel job `check-build` that runs `./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` (keep both during dual-run) — see #678
 - [ ] After dual-run green for 30 days, flip `check-surfaces` to advisory (`continue-on-error: true`) or remove, making `check-build` the required check
 - [ ] Update `RELEASING.md` bump → validate → tag checklist to use `build --check` instead of `gen-surfaces.py --check`
 
@@ -42,7 +42,7 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 ### How-tos
 
-- Contributors (after ADR merge): `v run make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check`
+- Contributors (after ADR merge): `./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check`
 - Maintainers: `agent-toolkit build` to regenerate `plugins/` before tagging a release
 - CI debugging: compare `build --check --json` output (per-target emit/omit/unsupported) vs legacy drift lines
 

@@ -73,7 +73,7 @@ jobs:
           fi
 
       - name: Build experimental V CLI
-        run: v run make.vsh build-cli
+        run: ./make.vsh build-cli
 
       - name: Run parity harness (seed fixtures)
         run: python3 tests/parity/run_harness.py --v-bin build/agent-toolkit-v

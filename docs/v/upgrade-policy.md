@@ -13,7 +13,7 @@ Current pin: **0.5.2** (must match local `v version` major.minor.patch used in C
 
 1. Open a dedicated PR that **only** changes `.v-version` (and this doc if process changes).
 2. On that PR (or an immediate follow-up):
-   - Re-run `v run make.vsh fmt-check`, `v run make.vsh vet`, `v run make.vsh test`, and `v run make.vsh build` for `modules/*`
+   - Re-run `./make.vsh fmt-check`, `./make.vsh vet`, `./make.vsh test`, and `./make.vsh build` for `modules/*`
    - Re-run YAML/schema fixtures that depend on `vlib/yaml` ([ADR-013](../adrs/ADR-013-yaml-strategy.md))
    - Re-run parity seed fixtures when the harness exists ([#548](https://github.com/ulises-jeremias/agent-toolkit/issues/548))
 3. Merge only when those checks are green.

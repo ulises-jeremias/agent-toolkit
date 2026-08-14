@@ -9,11 +9,11 @@ The product CLI is a **native V 0.5.2** binary (`import json`, not json2). Pytho
 
 ```bash
 # Pin is .v-version (currently 0.5.2)
-v run make.vsh build-cli          # → build/agent-toolkit
+./make.vsh build-cli          # → build/agent-toolkit
 VMODULES=$PWD/modules ./build/agent-toolkit --version
 ```
 
-See `v run make.vsh --tasks` (`fmt` / `fmt-check` / `vet` / `test` / `build`). Do not run `v fmt` without reverting `json` → `json2`.
+See `./make.vsh --tasks` (`fmt` / `fmt-check` / `vet` / `test` / `build`). Do not run `v fmt` without reverting `json` → `json2`.
 
 ## Install channels (adapters)
 
