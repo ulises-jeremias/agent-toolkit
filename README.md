@@ -220,7 +220,7 @@ npm i -g agent-toolkit-cli # optionalDependencies platform packages
 
 ```bash
 git clone https://github.com/ulises-jeremias/agent-toolkit ~/.agent-toolkit
-./make.vsh install-cli    # canonical V binary → ~/.local/bin
+./make.vsh install-cli    # canonical V binary → ~/.local/bin (or --prefix=…)
 agent-toolkit install
 ```
 

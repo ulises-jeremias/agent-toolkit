@@ -76,7 +76,8 @@ agent-toolkit doctor
 **From a git checkout** the canonical implementation is the V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [HOW_TO_DEVELOP_V.md](HOW_TO_DEVELOP_V.md)):
 
 ```bash
-./make.vsh install-cli    # PREFIX/bin/agent-toolkit, default ~/.local/bin
+./make.vsh install-cli    # <prefix>/bin/agent-toolkit; default ~/.local/bin
+# custom prefix: ./make.vsh install-cli --prefix=/usr/local
 agent-toolkit doctor --json
 ```
 

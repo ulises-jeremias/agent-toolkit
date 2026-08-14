@@ -25,6 +25,7 @@ v version          # second field must match .v-version
 ./build/agent-toolkit doctor
 # optional: precompile the task runner → ./make (gitignored)
 # ./make.vsh compile-make && ./make test
+# install: ./make.vsh install-cli [--prefix=/usr/local]  (PREFIX env also works)
 ```
 
 `VMODULES` is set by `make.vsh` (`$PWD/modules`). For a raw `v` invocation:

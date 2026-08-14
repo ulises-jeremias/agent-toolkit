@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-- **Chore** — Rewrite `make.vsh` on vlib `build` (bobatea-style short tasks + [upstream build_system example](https://github.com/vlang/v/blob/master/examples/build_system/build.vsh)); remove `Makefile`; CI/docs use `./make.vsh <target>` (shebang; not `v run`) (`compile-make` / `--tasks` optional)
+- **Chore** — Rewrite `make.vsh` on vlib `build` (bobatea-style short tasks + [upstream build_system example](https://github.com/vlang/v/blob/master/examples/build_system/build.vsh)); remove `Makefile`; CI/docs use `./make.vsh <target>` (shebang); `install-cli --prefix=/path` (hyphen flags skipped by `context.run`, parsed manually; `PREFIX` env fallback)
 
 - **Tests** — Expand npm trampoline suite (`node --test`) to mirror PyPI launcher coverage; add dedicated `test-npm` CI job (Node 22/24 × ubuntu/macOS/Windows)
 - **CI** — Bump primary Python to **3.14** (matrix still covers 3.10–3.14); Node jobs use **24** (markdownlint / Danger; npm tests also cover 22 LTS)

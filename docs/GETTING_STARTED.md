@@ -21,7 +21,7 @@ agent-toolkit install
 From a git checkout, build the canonical V binary ([#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [HOW_TO_DEVELOP_V.md](HOW_TO_DEVELOP_V.md)):
 
 ```bash
-./make.vsh install-cli    # ~/.local/bin/agent-toolkit
+./make.vsh install-cli    # ~/.local/bin/agent-toolkit (or --prefix=/usr/local)
 agent-toolkit doctor --json
 ```
 

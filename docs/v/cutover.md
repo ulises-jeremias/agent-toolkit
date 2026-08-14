@@ -9,7 +9,7 @@ V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **th
 
 | Surface | Canonical | Notes |
 |---------|-----------|--------|
-| From-source CLI | V (`./make.vsh build-cli` / `./make.vsh install-cli`) | Installs `PREFIX/bin/agent-toolkit` (default `~/.local/bin`) |
+| From-source CLI | V (`./make.vsh build-cli` / `./make.vsh install-cli`) | Installs `<prefix>/bin/agent-toolkit` (default `~/.local/bin`) |
 | `doctor --json` / `version --json` | engine=`v`, version, commit | Human stdout unchanged (no engine/commit pollution) |
 | Consumer + PORT/REDESIGN advanced | V | install lifecycle, skills/mcp/plugin, workspace/memory/project/loop/swarm/devcompanion |
 | `insights` (DEPRECATE) / `release` (REMOVE) | disposition help / exit in V | Not ported; Python fallback removed |
@@ -33,8 +33,9 @@ Do **not** set an engine env var (ADR-012 rejected option B).
 ## Local V install
 
 ```bash
-./make.vsh install-cli                 # ~/.local/bin/agent-toolkit
-./make.vsh install-cli PREFIX=/usr/local
+./make.vsh install-cli                         # ~/.local/bin/agent-toolkit
+./make.vsh install-cli --prefix=/usr/local     # /usr/local/bin/agent-toolkit
+# (vlib/build skips hyphen flags; --prefix is parsed by make.vsh. PREFIX env still works.)
 agent-toolkit doctor --json      # engine/version/commit
 ```
 

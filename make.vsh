@@ -3,7 +3,9 @@
 // Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
 // Optional: ./make.vsh compile-make && ./make <target>
 //
-// vlib build: https://github.com/vlang/v/tree/master/vlib/build
+// vlib build (context.run) only runs non-hyphen args as tasks; flags like
+// `--prefix=/usr/local` are skipped by the runner and parsed here manually.
+// See: https://github.com/vlang/v/tree/master/vlib/build
 // Style: bobatea/make.vsh + examples/build_system/build.vsh
 
 import build
@@ -31,6 +33,35 @@ fn vbin() string {
 
 fn vcmd(args string) int {
 	return system('"${vbin()}" ${args}')
+}
+
+// flag_value reads `--name=value` or `--name value` from os.args.
+// vlib/build skips hyphen args when selecting tasks, so this is the idiomatic
+// way to pass runtime knobs (build has no task-param API; examples use consts).
+fn flag_value(name string) string {
+	long := '--${name}'
+	eq := '${long}='
+	for i, a in args {
+		if a.starts_with(eq) {
+			return a.all_after('=')
+		}
+		if a == long && i + 1 < args.len && !args[i + 1].starts_with('-') {
+			return args[i + 1]
+		}
+	}
+	return ''
+}
+
+fn install_prefix() string {
+	p := flag_value('prefix')
+	if p.len > 0 {
+		return p
+	}
+	env := getenv('PREFIX')
+	if env.len > 0 {
+		return env
+	}
+	return join_path(home_dir(), '.local')
 }
 
 fn ensure_v(r string) {
@@ -76,6 +107,7 @@ context.task(
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
 		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
 		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
+		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
 	}
 )
 
@@ -128,13 +160,10 @@ context.task(name: 'build-cli', help: 'Build build/agent-toolkit', run: fn [r] (
 
 context.task(
 	name:    'install-cli'
-	help:    'Install to PREFIX/bin/agent-toolkit'
+	help:    'Install to <prefix>/bin/agent-toolkit (--prefix=… or PREFIX)'
 	depends: ['build-cli']
 	run:     fn [r] (_ build.Task) ! {
-		mut prefix := getenv('PREFIX')
-		if prefix.len == 0 {
-			prefix = join_path(home_dir(), '.local')
-		}
+		prefix := install_prefix()
 		bindir := join_path(prefix, 'bin')
 		mkdir_all(bindir) or {}
 		src := join_path(r, 'build', 'agent-toolkit')
