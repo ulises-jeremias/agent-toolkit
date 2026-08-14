@@ -21,7 +21,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -54,6 +54,27 @@ jobs:
         run: uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v --tb=short
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+
+  # ── Job 1b: npm trampoline (node --test; ADR-025) ─────────────────────────
+  test-npm:
+    name: Test npm launcher (Node ${{ matrix.node-version }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22 = Active LTS; 24 = Current (matches publish-npm.yml)
+        node-version: ["22", "24"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run npm trampoline tests
+        working-directory: packages/npm/agent-toolkit-cli
+        run: npm test
 
   # ── Job 2a: Mechanical smoke for skills/ and agents/ ─────────────────────
   # Fast mechanical integrity check: frontmatter, name-directory match,
@@ -382,7 +403,7 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: "20"
+          node-version: "24"
 
       - name: Install markdownlint-cli
         run: npm install -g markdownlint-cli@0.44.0
@@ -431,7 +452,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.11"
+          python-version: "3.14"
       - name: Sync PyPI adapter
         run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
       - name: Ruff check
@@ -448,7 +469,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.11"
+          python-version: "3.14"
       - name: Sync PyPI adapter
         run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
       - name: Run launcher coverage (fail_under=70)
@@ -469,7 +490,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
       - name: Install pinned V from GitHub Release
         run: |
@@ -545,7 +566,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.14"
 
       - name: Download built wheel
         uses: actions/download-artifact@v8
@@ -793,6 +814,7 @@ jobs:
     if: always()
     needs:
       - test-package
+      - test-npm
       - smoke-test-skills
       - validate-skills
       - validate-manifests
@@ -818,6 +840,7 @@ jobs:
           failed="false"
           # Use GitHub's needs context to check each job result
           if [[ "${{ needs.test-package.result }}" != "success" && "${{ needs.test-package.result }}" != "skipped" ]]; then echo "test-package failed: ${{ needs.test-package.result }}"; failed="true"; fi
+          if [[ "${{ needs.test-npm.result }}" != "success" ]]; then echo "test-npm failed: ${{ needs.test-npm.result }}"; failed="true"; fi
           if [[ "${{ needs.smoke-test-skills.result }}" != "success" && "${{ needs.smoke-test-skills.result }}" != "skipped" ]]; then echo "smoke-test-skills failed: ${{ needs.smoke-test-skills.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-skills.result }}" != "success" ]]; then echo "validate-skills failed: ${{ needs.validate-skills.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-manifests.result }}" != "success" ]]; then echo "validate-manifests failed: ${{ needs.validate-manifests.result }}"; failed="true"; fi

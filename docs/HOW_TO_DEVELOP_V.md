@@ -48,6 +48,16 @@ uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --v
 uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --help
 ```
 
+## npm adapter (not the product)
+
+Thin Node launcher over the same Release V binaries ([ADR-025](adrs/ADR-025-npm-binary.md)). Tests use `node --test` (no V compile):
+
+```bash
+npm test --prefix packages/npm/agent-toolkit-cli
+```
+
+CI runs this matrix on Node **22** and **24** (`validate.yml` → `test-npm`). Pytest also invokes the same suite via `tests/test_npm_launcher.py` when `node` is on `PATH`.
+
 ## Build check (skills / plugins)
 
 After changing `skills/`, `agents/`, `loops/`, or `distributions/`:

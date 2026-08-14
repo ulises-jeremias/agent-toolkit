@@ -14,7 +14,8 @@ as a drive-by fix.
 
 - **Git** 2.30 or later
 - **V** matching [`.v-version`](.v-version) (**0.5.2**) for the canonical CLI — `import json`, not `json2`. See [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md)
-- **Python** 3.10 or later (validation scripts, PyPI launcher tests, pre-commit)
+- **Python** 3.10 or later (validation scripts, PyPI launcher tests, pre-commit); CI primary is **3.14**
+- **Node.js** 18+ for the npm trampoline tests (`packages/npm/agent-toolkit-cli`); CI uses **22** (LTS) and **24** (Current)
 - **uv** for the PyPI adapter under `packages/pypi/` only — see https://docs.astral.sh/uv/getting-started/installation/
 - A GitHub account and a fork of this repository
 
@@ -107,8 +108,11 @@ make test
 make build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
-# Python launcher / parity tests (CI parity; not the product)
+# Python launcher / packaging tests (CI parity; not the product)
 AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
+
+# npm trampoline (node --test; ADR-025 — no V compile required)
+npm test --prefix packages/npm/agent-toolkit-cli
 ```
 
 Install pre-commit hooks (one-time, #274):

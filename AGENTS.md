@@ -309,7 +309,7 @@ AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 ```
 
-All checks must exit 0. V is the product CLI (pin `.v-version` / 0.5.2, `import json` not json2 — [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md)). Run `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` first for pytest only (the repo is not a uv workspace).
+All checks must exit 0. V is the product CLI (pin `.v-version` / 0.5.2, `import json` not json2 — [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md)). Run `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` first for pytest only (the repo is not a uv workspace). For the npm trampoline: `npm test --prefix packages/npm/agent-toolkit-cli` (CI: Node 22/24).
 
 ---
 

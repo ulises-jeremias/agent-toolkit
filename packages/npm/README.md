@@ -13,4 +13,12 @@ npm adapter sources. PyPI equivalent: [`packages/pypi/`](../pypi/).
 
 Pack at release time: `scripts/pack_npm.vsh` (copies Release assets into `bin/`). Publish: `.github/workflows/publish-npm.yml` (OIDC trusted publishing).
 
+Trampoline tests (no V compile):
+
+```bash
+npm test --prefix packages/npm/agent-toolkit-cli
+```
+
+CI runs Node **22** and **24** across ubuntu/macOS/Windows (`validate.yml` → `test-npm`).
+
 Each published package has a polished `README.md`. Platform packages are shorter than the meta-package but document platform, install path, and when *not* to install them directly.
