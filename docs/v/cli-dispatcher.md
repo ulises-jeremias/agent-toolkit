@@ -8,7 +8,7 @@
 | File | Role |
 |------|------|
 | `modules/agent_toolkit_cli/commands.v` | `cli.Command` tree: Consumer/Advanced `group`, aliases (`dc`, `rollback`), nested families, global `--json`/`--quiet`, `-V` |
-| `modules/agent_toolkit_cli/dispatch.v` | AT wrapper: walk tree (does **not** call `Command.parse`), bad flags → **2**, unknown command → **1**, render CommandResult |
+| `modules/agent_toolkit_cli/dispatch.v` | AT wrapper: walk tree (does **not** call `Command.parse` — keeps integer exit codes), peel leading `--json`/`--quiet`, bad flags → **2**, unknown command → **1**, render CommandResult |
 | `modules/agent_toolkit_cli/options.v` | Flag/arg parsers → core option structs |
 | `modules/agent_toolkit_cli/render.v` | Human / JSON / quiet output |
 

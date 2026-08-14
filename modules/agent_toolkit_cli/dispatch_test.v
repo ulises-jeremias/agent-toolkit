@@ -20,6 +20,16 @@ fn test_dispatch_unknown_flag_exit_two() {
 	assert code == 2
 }
 
+fn test_dispatch_leading_json_before_command() {
+	code := dispatch(['agent-toolkit', '--json', 'matrix'])
+	assert code == 0
+}
+
+fn test_dispatch_leading_quiet_before_command() {
+	code := dispatch(['agent-toolkit', '--quiet', 'matrix'])
+	assert code == 0
+}
+
 fn test_dispatch_dc_alias_not_unknown() {
 	code := dispatch(['agent-toolkit', 'dc'])
 	assert code == 0

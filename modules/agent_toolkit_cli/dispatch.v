@@ -18,6 +18,14 @@ pub fn dispatch(args []string) int {
 		argv = args[1..].clone()
 	}
 	mode := mode_from_argv(argv)
+	// Peel leading global flags so `agent-toolkit --json doctor` works (Flag.global).
+	mut i := 0
+	for i < argv.len && argv[i] in ['--json', '--quiet'] {
+		i++
+	}
+	if i > 0 {
+		argv = argv[i..].clone()
+	}
 	if argv.len == 0 {
 		print(grouped_help_from(root))
 		return 0
@@ -41,15 +49,9 @@ pub fn dispatch(args []string) int {
 		return render(agent_toolkit_core.version_result(ver), mode)
 	}
 	// Bad flags before a command (argparse parity → exit 2)
-	if first.starts_with('-') && first !in ['--json', '--quiet'] {
+	if first.starts_with('-') {
 		e := agent_toolkit_core.err_usage_flags('flag.unknown', 'unknown flag: ${first}')
 		return render_error(e, mode)
-	}
-	if first.starts_with('-') {
-		eprintln('Unknown command: ${first}')
-		eprintln("Run 'agent-toolkit help' for usage.")
-		eprintln('See docs/CLI_SURFACES.md for consumer vs advanced commands.')
-		return 1
 	}
 	cmd := find_command(root, first) or {
 		eprintln('Unknown command: ${first}')
