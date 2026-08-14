@@ -12,16 +12,19 @@ Index: [`docs/v/README.md`](v/README.md) · packaging adapters: [`distribution/R
 | JSON | `import json` (stdlib). Do **not** `import json2` or run `v fmt` in a way that rewrites `json` → `json2` |
 | Layout | `modules/agent_toolkit_core`, `modules/agent_toolkit_cli`, `cmd/agent-toolkit` ([ADR-009](adrs/ADR-009-v-module-architecture.md)) |
 | Output | `make build-cli` / `v run make.vsh build-cli` → `build/agent-toolkit` |
-| Scripts | Repo tooling is `.vsh` (`v run scripts/…`); thin Makefile forwards to `make.vsh` |
+| Scripts | Repo tooling is `.vsh` (`v run scripts/…`); thin Makefile forwards to `make.vsh` ([vlib `build`](https://github.com/vlang/v/tree/master/vlib/build) task runner) |
 
 ```bash
 v version          # second field must match .v-version
+v run make.vsh --tasks   # list targets (or `make help`)
 make fmt-check
 make vet
 make test
 make build-cli
 ./build/agent-toolkit --version
 ./build/agent-toolkit doctor
+# optional: precompile the task runner → ./make (gitignored)
+# v run make.vsh compile-make && ./make test
 ```
 
 `VMODULES` is set by `make.vsh` / the thin Makefile (`$PWD/modules`). For a raw `v` invocation:

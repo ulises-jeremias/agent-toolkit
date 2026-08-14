@@ -1,7 +1,12 @@
 #!/usr/bin/env -S v run
-// V foundation targets for modules/ (ADR-009). Prefer this over Makefile; a thin
-// Makefile may forward here for muscle memory (`make test` → `v run make.vsh test`).
-// Usage: v run make.vsh [help|fmt|fmt-check|vet|test|build|build-cli|install-cli]
+// V foundation targets for modules/ (ADR-009).
+// Prefer this over Makefile; a thin Makefile forwards for muscle memory
+// (`make test` → `v run make.vsh test`).
+//
+// Style: vlib `build` task runner (same pattern as bobatea/make.vsh).
+// Usage: v run make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
+
+import build
 
 fn root_dir() string {
 	d := dir(@FILE)
@@ -107,55 +112,108 @@ fn build_modules(root string) {
 	}
 }
 
-fn help(root string) {
+fn print_help(root string) {
 	pin := (read_file(join_path(root, '.v-version')) or { 'pending' }).trim_space()
-	println('V targets (pin: ${pin})')
-	println('  v run make.vsh fmt         Format V modules')
-	println('  v run make.vsh fmt-check   Verify formatting')
-	println('  v run make.vsh vet         Vet V modules')
-	println('  v run make.vsh test        Run V unit tests')
-	println('  v run make.vsh build       Typecheck/compile smoke for each module')
-	println('  v run make.vsh build-cli   Build canonical V binary to build/agent-toolkit')
-	println('  v run make.vsh install-cli Install V binary to PREFIX/bin/agent-toolkit')
+	println('V targets (pin: ${pin}) — also: v run make.vsh --tasks')
+	println('  v run make.vsh fmt           Format V modules')
+	println('  v run make.vsh fmt-check     Verify formatting')
+	println('  v run make.vsh vet           Vet V modules')
+	println('  v run make.vsh test          Run V unit tests')
+	println('  v run make.vsh build         Typecheck/compile smoke for each module')
+	println('  v run make.vsh build-cli     Build canonical V binary to build/agent-toolkit')
+	println('  v run make.vsh install-cli   Install V binary to PREFIX/bin/agent-toolkit')
+	println('  v run make.vsh compile-make  Precompile this script to ./make')
 }
 
-fn main() {
-	root := root_dir()
-	setenv('VMODULES', join_path(root, 'modules'), true)
-	target := if args.len > 1 { args[1] } else { 'help' }
-	match target {
-		'help', '-h', '--help' {
-			help(root)
-		}
-		'fmt' {
-			ensure_v(root)
-			run_for_modules(root, 'fmt', 'fmt -w')
-		}
-		'fmt-check' {
-			ensure_v(root)
-			run_for_modules(root, 'fmt-check', 'fmt -verify')
-		}
-		'vet' {
-			ensure_v(root)
-			run_for_modules(root, 'vet', 'vet')
-		}
-		'test' {
-			ensure_v(root)
-			run_for_modules(root, 'test', 'test')
-		}
-		'build' {
-			build_modules(root)
-		}
-		'build-cli' {
-			build_cli(root)
-		}
-		'install-cli' {
-			install_cli(root)
-		}
-		else {
-			eprintln('unknown target: ${target}')
-			help(root)
-			exit(2)
-		}
+root := root_dir()
+setenv('VMODULES', join_path(root, 'modules'), true)
+
+mut context := build.context(
+	default: 'help'
+)
+
+context.task(
+	name: 'help'
+	help: 'Show V targets (default)'
+	run:  fn [root] (self build.Task) ! {
+		print_help(root)
 	}
-}
+)
+
+context.task(
+	name: 'fmt'
+	help: 'Format V modules (v fmt -w)'
+	run:  fn [root] (self build.Task) ! {
+		ensure_v(root)
+		run_for_modules(root, 'fmt', 'fmt -w')
+	}
+)
+
+context.task(
+	name: 'fmt-check'
+	help: 'Verify V formatting (v fmt -verify)'
+	run:  fn [root] (self build.Task) ! {
+		ensure_v(root)
+		run_for_modules(root, 'fmt-check', 'fmt -verify')
+	}
+)
+
+context.task(
+	name: 'vet'
+	help: 'Vet V modules'
+	run:  fn [root] (self build.Task) ! {
+		ensure_v(root)
+		run_for_modules(root, 'vet', 'vet')
+	}
+)
+
+context.task(
+	name: 'test'
+	help: 'Run V unit tests for agent_toolkit_core and agent_toolkit_cli'
+	run:  fn [root] (self build.Task) ! {
+		ensure_v(root)
+		run_for_modules(root, 'test', 'test')
+	}
+)
+
+context.task(
+	name: 'build'
+	help: 'Typecheck/compile smoke for each V module'
+	run:  fn [root] (self build.Task) ! {
+		build_modules(root)
+	}
+)
+
+context.task(
+	name: 'build-cli'
+	help: 'Build canonical V binary to build/agent-toolkit'
+	run:  fn [root] (self build.Task) ! {
+		build_cli(root)
+	}
+)
+
+context.task(
+	name: 'install-cli'
+	help: 'Build and install V binary to PREFIX/bin/agent-toolkit'
+	run:  fn [root] (self build.Task) ! {
+		install_cli(root)
+	}
+)
+
+context.task(
+	name: 'compile-make'
+	help: 'Precompile make.vsh to ./make (add /make to .gitignore)'
+	run:  fn [root] (self build.Task) ! {
+		ensure_v(root)
+		vb := v_bin()
+		script := join_path(root, 'make.vsh')
+		out := join_path(root, 'make')
+		rc := system('"${vb}" -prod -skip-running ${script} -o ${out}')
+		if rc != 0 {
+			exit(rc)
+		}
+		println('Wrote ${out}')
+	}
+)
+
+context.run()
