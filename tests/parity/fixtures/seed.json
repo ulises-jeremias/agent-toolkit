@@ -546,7 +546,7 @@
       "class": "V_SEMANTIC",
       "must_contain": [
         "insights",
-        "deprecated"
+        "removed"
       ]
     },
     {
@@ -568,9 +568,8 @@
       "class": "V_SEMANTIC",
       "expect_v_exit": 0,
       "must_contain": [
-        "deprecated",
-        "#526",
-        "agent-toolkit-py"
+        "removed",
+        "#526"
       ]
     },
     {

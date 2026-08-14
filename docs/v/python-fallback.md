@@ -1,31 +1,27 @@
-# Python CLI quarantine (named fallback)
+# Python on PyPI = trampoline only (quarantine removed)
 
-**Gate:** [#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) · **ADR:** [ADR-021](../adrs/ADR-021-pypi-binary.md)
+The product command is the **native V binary**.
 
-The product command is the **native V binary**. `agent-toolkit` / `agent-toolkit-cli` are a thin PyPI launcher that `exec`s that binary. Python business logic is **quarantined** behind `agent-toolkit-py` and is not the product.
+`agent-toolkit` / `agent-toolkit-cli` on PyPI are a **thin launcher** (same idea as [`packages/npm/agent-toolkit-cli/bin/agent-toolkit.js`](../../packages/npm/agent-toolkit-cli/bin/agent-toolkit.js)): resolve the bundled binary under `agent_toolkit/bin/`, set `AGENT_TOOLKIT_ROOT` to wheel `data/` when needed, then `exec` V.
 
-## What stays
+## Removed
 
-| Surface | Role |
-|---------|------|
-| `packages/pypi/agent-toolkit-cli` launcher | Permanent PyPI adapter (`uv tool install agent-toolkit-cli`). **Do not delete.** |
-| `agent-toolkit-py` | Named fallback for [#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) **DEPRECATE** `insights` and **REMOVE** `release`, plus first-party pytest |
-| `scripts/` + pytest + pre-commit | Tooling, not the product CLI |
+| Former surface | Status |
+|----------------|--------|
+| `agent-toolkit-py` console script | **Removed** |
+| `agent_toolkit.cli` / `compiler` / `installer` / … | **Removed** |
+| Python pytest suite for CLI business logic | **Removed** — coverage is `modules/**/*_test.v` + parity fixtures + integration CI |
 
-## What is not the product
+`insights` (#526 DEPRECATE) and `release` (#527 REMOVE) are **not** available via a Python fallback anymore. See [advanced-command-disposition.md](advanced-command-disposition.md).
 
-- `agent_toolkit.cli`, `compiler/`, `installer/`, `loop/`, `swarm/` — in-tree Python implementation, unsupported as a library API ([python-api-consumers.md](python-api-consumers.md))
-- `python -m agent_toolkit.cli` — same quarantined entry as `agent-toolkit-py`
-- `python -m agent_toolkit` — launcher (V), not Python business logic
+## What stays in Python
 
-Interactive `agent-toolkit-py` prints a stderr notice (silence with `AGENT_TOOLKIT_PY_QUIET=1`). Non-TTY / CI captures are quiet by default.
-
-## Why the modules are not deleted
-
-EPIC 13 ([#470](https://github.com/ulises-jeremias/agent-toolkit/issues/470)) retires Python as the **product** runtime. ADR-021 keeps a thin Python **process** on PyPI. Deleting `cli/` would break pytest parity and the documented `insights` fallback. That is not required to close #540.
-
-Future deletion of `agent-toolkit-py` is optional cleanup after `insights` is dropped; it is **not** a V CLI GA blocker.
+- PyPI trampoline (`launcher.py`)
+- Packaging / docs / schema pytest that does **not** import a Python CLI
+- Contributor scripts that are still `.py` only where noted (e.g. `validate-upstream.py` / provenance)
 
 ## See also
 
-- [cutover.md](cutover.md) · [rollback.md](rollback.md) · [pypi-launcher.md](pypi-launcher.md) · [HOW_TO_DEVELOP_V.md](../HOW_TO_DEVELOP_V.md)
+- [ADR-021](../adrs/ADR-021-pypi-binary.md) — PyPI ships the V binary via thin launcher
+- [pypi-launcher.md](pypi-launcher.md)
+- [cutover.md](cutover.md)

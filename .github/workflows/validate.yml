@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ── Job 1: Python package tests across OS × Python-version matrix ──────────
+  # ── Job 1: PyPI launcher + packaging tests (npm-style trampoline; CLI is V) ─
   test-package:
     name: Test Python ${{ matrix.python-version }} / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -37,19 +37,21 @@ jobs:
       - name: Sync PyPI adapter (packages/pypi/agent-toolkit-cli)
         run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 
-      - name: Smoke-test Python fallback CLI (version)
-        run: uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py version
-
-      - name: Smoke-test Python fallback CLI (help)
-        run: uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py help
-
-      - name: Run test suite
-        run: uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v --tb=short
+      - name: Build V CLI for launcher smoke
         env:
-          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+          VMODULES: ${{ github.workspace }}/modules
+        run: make build-cli
 
-      - name: Run compiler contract tests
-        run: uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/compiler/ -v --tb=short
+      - name: Smoke-test PyPI launcher → V (version/help)
+        env:
+          AGENT_TOOLKIT_BIN: ${{ github.workspace }}/build/agent-toolkit
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+        run: |
+          uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit version
+          uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --help | head -n 20
+
+      - name: Run launcher/packaging pytest suite
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v --tb=short
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
 
@@ -449,26 +451,15 @@ jobs:
           python-version: "3.11"
       - name: Sync PyPI adapter
         run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
-      - name: Run scoped coverage (fail_under=70)
+      - name: Run launcher coverage (fail_under=70)
         run: |
           uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini \
-            --cov-config=packages/pypi/agent-toolkit-cli/pyproject.toml \
-            --cov=agent_toolkit.compiler \
-            --cov=agent_toolkit.installer \
-            --cov=agent_toolkit.cli.install \
-            --cov-report=term-missing \
-            --cov-fail-under=70 \
-            tests/compiler/ tests/test_installer_receipt.py tests/test_install_sources.py tests/test_install_lifecycle.py tests/test_install_claude_settings.py tests/test_install_opencode_profile.py tests/test_install_non_destructive.py tests/test_install_uninstall.py
+            --cov=agent_toolkit.launcher --cov-report=term-missing --cov-fail-under=70 \
+            tests/test_launcher.py tests/test_hatch_build.py -v --tb=short
         env:
           AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
 
-  # ── Job 8d: Incremental mypy — warn-only, narrow allowlist (#275) ──────────
-  mypy:
-    name: mypy (incremental, warn-only)
-    runs-on: ubuntu-latest
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -532,7 +523,7 @@ jobs:
         run: |
           pip install dist/*.whl
           agent-toolkit version
-          agent-toolkit-py version
+          agent-toolkit --help | head -n 20
 
       - name: Upload dist artifact
         uses: actions/upload-artifact@v7
@@ -553,6 +544,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
@@ -563,6 +557,12 @@ jobs:
           name: dist
           path: dist/
 
+      - name: Build native V CLI (sdist installs have no bundled ELF)
+        shell: bash
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: make build-cli
+
       - name: Install from dist (Linux wheel with V binary; sdist elsewhere)
         shell: bash
         run: |
@@ -571,25 +571,32 @@ jobs:
             pip install dist/*.whl
           else
             pip install dist/*.tar.gz
+            # Point the thin launcher at the runner-built binary (npm-style trampoline).
+            if [ -f build/agent-toolkit.exe ]; then
+              echo "AGENT_TOOLKIT_BIN=${GITHUB_WORKSPACE}/build/agent-toolkit.exe" >> "$GITHUB_ENV"
+            else
+              echo "AGENT_TOOLKIT_BIN=${GITHUB_WORKSPACE}/build/agent-toolkit" >> "$GITHUB_ENV"
+            fi
           fi
+          echo "AGENT_TOOLKIT_ROOT=${GITHUB_WORKSPACE}" >> "$GITHUB_ENV"
 
       - name: "CLI: V launcher version (Linux wheel)"
         if: runner.os == 'Linux'
         run: agent-toolkit version
 
       - name: "CLI: version"
-        run: agent-toolkit-py version
+        run: agent-toolkit version
 
       - name: "CLI: version via alias"
-        run: agent-toolkit-py version
+        run: agent-toolkit version
 
       - name: "CLI: help"
-        run: agent-toolkit-py help
+        run: agent-toolkit help
 
       - name: "CLI: doctor (no tools installed in CI — expect warnings, not errors)"
         shell: bash
         run: |
-          agent-toolkit-py doctor 2>&1 | tee doctor_output.txt
+          agent-toolkit doctor 2>&1 | tee doctor_output.txt
           # Must not crash; errors are OK for missing tools but exit code should be 0
           # (doctor returns 0 even with warnings, only 1 on true errors)
           if grep -q "✗" doctor_output.txt; then
@@ -600,7 +607,7 @@ jobs:
       - name: "CLI: skills list (all domains)"
         shell: bash
         run: |
-          agent-toolkit-py skills list 2>&1 | tee skills_output.txt
+          agent-toolkit skills list 2>&1 | tee skills_output.txt
           # Verify: must contain at least 50 skills and show descriptions (not ">-")
           COUNT=$(grep -c "^  ✓" skills_output.txt || echo 0)
           echo "Skills found: $COUNT"
@@ -616,18 +623,18 @@ jobs:
           echo "✓ Skills list: $COUNT skills with proper descriptions"
 
       - name: "CLI: skills list --domain core"
-        run: agent-toolkit-py skills list --domain core
+        run: agent-toolkit skills list --domain core
 
       - name: "CLI: skills list --domain forge"
-        run: agent-toolkit-py skills list --domain forge
+        run: agent-toolkit skills list --domain forge
 
       - name: "CLI: skills validate"
-        run: agent-toolkit-py skills validate
+        run: agent-toolkit skills validate
 
       - name: "CLI: loop status (must show 10 bundled templates)"
         shell: bash
         run: |
-          agent-toolkit-py loop status 2>&1 | tee loops_output.txt
+          agent-toolkit loop status 2>&1 | tee loops_output.txt
           COUNT=$(grep -c "tier=" loops_output.txt || echo 0)
           echo "Loop templates found: $COUNT"
           if [ "$COUNT" -lt 10 ]; then
@@ -645,15 +652,15 @@ jobs:
           echo "✓ Loop status: $COUNT templates including OSS patterns"
 
       - name: "CLI: loop cost daily-triage"
-        run: agent-toolkit-py loop cost daily-triage
+        run: agent-toolkit loop cost daily-triage
 
       - name: "CLI: loop audit (no runs — should exit cleanly)"
-        run: agent-toolkit-py loop audit
+        run: agent-toolkit loop audit
 
       - name: "CLI: mcp list (all 6 providers)"
         shell: bash
         run: |
-          agent-toolkit-py mcp list 2>&1 | tee mcp_output.txt
+          agent-toolkit mcp list 2>&1 | tee mcp_output.txt
           for provider in github slack notion linear figma clickup; do
             if ! grep -q "$provider" mcp_output.txt; then
               echo "::error::MCP provider '$provider' not found in list"
@@ -663,13 +670,13 @@ jobs:
           echo "✓ MCP list: all 6 providers shown"
 
       - name: "CLI: plugin check (surfaces in sync)"
-        run: agent-toolkit-py plugin check
+        run: agent-toolkit plugin check
 
       - name: "CLI: install --dry-run --tools claude-code,cursor"
         shell: bash
         run: |
           # Should not prompt for Copilot, should not crash, should list what would be installed
-          agent-toolkit-py install --dry-run --tools claude-code,cursor 2>&1 | tee install_output.txt
+          agent-toolkit install --dry-run --tools claude-code,cursor 2>&1 | tee install_output.txt
           if grep -Eiq "(traceback|exception|✗|\[error\])" install_output.txt; then
             echo "::error::install --dry-run produced errors"
             cat install_output.txt
@@ -680,7 +687,7 @@ jobs:
       - name: "CLI: install --dry-run (auto-detect, no stdin = no Copilot prompt)"
         shell: bash
         run: |
-          agent-toolkit-py install --dry-run --tools cursor 2>&1 | tee install_auto_output.txt
+          agent-toolkit install --dry-run --tools cursor 2>&1 | tee install_auto_output.txt
           if grep -q "Copilot instructions for a project?\n          # Copilot is never auto-detected — only via --tools copilot" install_auto_output.txt; then
             echo "::error::install prompted for Copilot in non-interactive mode"
             exit 1
@@ -691,16 +698,16 @@ jobs:
         shell: bash
         run: |
           python3 -c "
-          from agent_toolkit._paths import toolkit_root
-          root = toolkit_root()
-          print('Toolkit root:', root)
+          from pathlib import Path
+          import agent_toolkit
+          root = Path(agent_toolkit.__file__).resolve().parent / 'data'
+          print('Toolkit data root:', root)
           required = ['profiles', 'loops', 'skills', 'agents', 'catalogs', 'mcp']
           missing = [d for d in required if not (root / d).is_dir()]
           if missing:
               print('MISSING directories:', missing)
               exit(1)
           print('All required directories present:', required)
-          # Count files to verify data is complete
           profiles = list((root / 'profiles').rglob('*.*'))
           loops = list((root / 'loops').rglob('loop.yaml'))
           skills = list((root / 'skills').rglob('SKILL.md'))
@@ -718,24 +725,21 @@ jobs:
         run: |
           python3 -c "
           import os
-          # Remove any repo-root env vars that would override wheel data
+          from pathlib import Path
+          import agent_toolkit
           os.environ.pop('AGENT_TOOLKIT_ROOT', None)
           os.environ.pop('AI_WORKSPACE', None)
-          # Now resolve — should find wheel data, not CWD
-          from agent_toolkit import _paths
-          _paths._root = None  # reset cache
-          root = _paths.toolkit_root()
+          root = Path(agent_toolkit.__file__).resolve().parent / 'data'
           print('Root:', root)
-          # In a wheel install, root should contain 'agent_toolkit' in the path
-          # (meaning it came from site-packages, not from CWD or user workspace)
           root_str = str(root)
           cwd = os.getcwd()
-          if root_str.startswith(cwd) and 'site-packages' not in root_str:
+          if 'site-packages' not in root_str and root_str.startswith(cwd):
               print('WARNING: root appears to be from CWD (repo), not wheel data')
               print('  root:', root_str)
               print('  cwd:', cwd)
           else:
               print('Root is from wheel data (not CWD):', root_str)
+          assert (root / 'skills').is_dir(), root
           print('PASS')
           "
 

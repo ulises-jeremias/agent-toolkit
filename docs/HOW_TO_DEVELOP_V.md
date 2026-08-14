@@ -1,6 +1,6 @@
 # How to develop the V CLI
 
-The **product** is a native V binary. Python is a thin PyPI launcher (`packages/pypi/agent-toolkit-cli`) plus a **quarantined** `agent-toolkit-py` fallback ([python-fallback.md](v/python-fallback.md)), scripts, tests, and pre-commit. Do not treat `uv run agent-toolkit` or a repo-root uv workspace as the product.
+The **product** is a native V binary. Python on PyPI is only a thin trampoline (`packages/pypi/agent-toolkit-cli`, [python-fallback.md](v/python-fallback.md)). CLI tests live in V (`modules/**/*_test.v`). Do not treat a repo-root uv workspace as the product.
 
 Index: [`docs/v/README.md`](v/README.md) · packaging adapters: [`distribution/README.md`](../distribution/README.md)
 
@@ -33,7 +33,7 @@ v -o build/agent-toolkit cmd/agent-toolkit
 
 ## Python adapter (not the product)
 
-Used for pytest parity, the PyPI launcher, and quarantined `agent-toolkit-py` ([#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) / ADR-021). **Do not delete the launcher.**
+Used for the PyPI trampoline and packaging pytest ([#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) / ADR-021). **Do not delete the launcher.**
 
 ```bash
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
@@ -45,7 +45,7 @@ Never `uv run agent-toolkit` from repo root (there is no product uv workspace). 
 ```bash
 uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --version
 # quarantined fallback (Python business logic, not the product):
-uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py --help
+uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --help
 ```
 
 ## Build check (skills / plugins)

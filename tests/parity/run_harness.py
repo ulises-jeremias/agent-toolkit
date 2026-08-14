@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Python↔V golden CLI parity harness (#548).
+"""V CLI contract harness (formerly Python↔V parity, #548).
 
-Design: docs/compatibility/parity-harness-design.md
+Python CLI quarantine is removed — fixtures validate the V binary only.
 
 Usage:
-  PARITY_V_BIN=./build/agent-toolkit-v \\
+  PARITY_V_BIN=./build/agent-toolkit \\
     python3 tests/parity/run_harness.py
-
-  # or:
-  python3 tests/parity/run_harness.py --v-bin ./build/agent-toolkit-v
 """
 
 from __future__ import annotations
@@ -55,97 +52,51 @@ def fail(command: str, cls: str, msg: str) -> None:
     raise AssertionError(f"[{command}] {cls}: {msg}")
 
 
-def python_argv(args: list[str]) -> list[str]:
-    return [
-        "uv",
-        "run",
-        "--project",
-        str(ROOT / "packages/pypi/agent-toolkit-cli"),
-        "--directory",
-        str(ROOT),
-        "agent-toolkit-py",
-        *args,
-    ]
-
-
 def check_fixture(fx: dict[str, Any], v_bin: str) -> None:
     command = fx["command"]
     cls = fx["class"]
     args = list(fx.get("args", []))
-
-    py = run_argv(python_argv(args))
     v = run_argv([v_bin, *args])
+    blob_v = v.stdout + v.stderr
+    v_n = normalize(v.stdout)
 
-    if cls == "EXACT":
-        expect = fx.get("expect_exit", 0)
-        if py.exit_code != expect:
-            fail(command, cls, f"python exit {py.exit_code} != {expect}")
+    if cls in ("EXACT", "NORMALIZED_EXACT", "SEMANTIC", "V_SEMANTIC", "SCHEMA"):
+        # Prefer V-specific expect keys; fall back to shared expect_exit.
+        if cls == "SCHEMA":
+            expect = fx.get("expect_v_exit", 0)
+        elif cls == "V_SEMANTIC":
+            expect = fx.get("expect_v_exit", fx.get("expect_exit", 0))
+        else:
+            expect = fx.get("expect_v_exit", fx.get("expect_exit", 0))
         if v.exit_code != expect:
             fail(command, cls, f"v exit {v.exit_code} != {expect}")
-        if fx.get("compare") == "exit_only":
-            return
-        if py.stdout != v.stdout:
-            fail(command, cls, f"stdout mismatch {py.stdout!r} vs {v.stdout!r}")
-        return
 
-    if cls == "NORMALIZED_EXACT":
-        if py.exit_code != v.exit_code:
-            fail(command, cls, f"exit {py.exit_code} != {v.exit_code}")
-        py_n, v_n = normalize(py.stdout), normalize(v.stdout)
+        if cls == "EXACT" and fx.get("compare") == "exit_only":
+            return
+
+        if cls == "SCHEMA":
+            try:
+                v_data = json.loads(v.stdout)
+            except json.JSONDecodeError as exc:
+                fail(command, cls, f"v stdout not JSON: {exc}")
+            data = v_data.get("data") if isinstance(v_data.get("data"), dict) else {}
+            for key in fx.get("required_keys", []):
+                if key not in v_data and key not in data:
+                    fail(command, cls, f"missing key {key!r}")
+            return
+
         if rx := fx.get("stdout_regex"):
-            if not re.search(rx, py_n):
-                fail(command, cls, f"python stdout !~ {rx}")
             if not re.search(rx, v_n):
                 fail(command, cls, f"v stdout !~ {rx}")
-            return
         if prefix := fx.get("stdout_prefix"):
-            if not py_n.startswith(prefix):
-                fail(command, cls, f"python missing prefix {prefix}")
             if not v_n.startswith(prefix):
                 fail(command, cls, f"v missing prefix {prefix}")
-            return
-        if py_n != v_n:
-            fail(command, cls, "normalized stdout mismatch")
-        return
-
-    if cls == "SEMANTIC":
-        if py.exit_code != v.exit_code:
-            fail(command, cls, f"exit {py.exit_code} != {v.exit_code}")
-        blob_py = py.stdout + py.stderr
-        blob_v = v.stdout + v.stderr
-        for needle in fx.get("must_contain", []):
-            if needle.lower() not in blob_py.lower():
-                fail(command, cls, f"python missing {needle!r}")
-            if needle.lower() not in blob_v.lower():
-                fail(command, cls, f"v missing {needle!r}")
-        return
-
-    if cls == "V_SEMANTIC":
-        # V-only disposition / contract checks (Python may differ for DEPRECATE/REMOVE).
-        expect = fx.get("expect_v_exit", 0)
-        if v.exit_code != expect:
-            fail(command, cls, f"v exit {v.exit_code} != {expect}")
-        blob_v = v.stdout + v.stderr
         for needle in fx.get("must_contain", []):
             if needle.lower() not in blob_v.lower():
                 fail(command, cls, f"v missing {needle!r}")
         for needle in fx.get("must_not_contain", []):
             if needle.lower() in blob_v.lower():
                 fail(command, cls, f"v unexpectedly contains {needle!r}")
-        return
-
-    if cls == "SCHEMA":
-        expect_v = fx.get("expect_v_exit", 0)
-        if v.exit_code != expect_v:
-            fail(command, cls, f"v exit {v.exit_code} != {expect_v}")
-        try:
-            v_data = json.loads(v.stdout)
-        except json.JSONDecodeError as exc:
-            fail(command, cls, f"v stdout not JSON: {exc}")
-        data = v_data.get("data") if isinstance(v_data.get("data"), dict) else {}
-        for key in fx.get("required_keys", []):
-            if key not in v_data and key not in data:
-                fail(command, cls, f"missing key {key!r}")
         return
 
     fail(command, cls, f"unsupported class {cls}")
@@ -155,13 +106,24 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--v-bin",
-        default=os.environ.get("PARITY_V_BIN", str(ROOT / "build" / "agent-toolkit-v")),
+        default=os.environ.get(
+            "PARITY_V_BIN",
+            str(ROOT / "build" / "agent-toolkit"),
+        ),
     )
     args = parser.parse_args()
     v_bin = args.v_bin
     if not Path(v_bin).exists():
-        print(f"ERROR: V binary not found: {v_bin} (build with `make build-cli`)", file=sys.stderr)
-        return 2
+        # Historical default name from dual-engine era
+        alt = ROOT / "build" / "agent-toolkit-v"
+        if alt.exists():
+            v_bin = str(alt)
+        else:
+            print(
+                f"ERROR: V binary not found: {v_bin} (build with `make build-cli`)",
+                file=sys.stderr,
+            )
+            return 2
 
     fixtures = json.loads(FIXTURES_PATH.read_text(encoding="utf-8"))["fixtures"]
     failed = 0

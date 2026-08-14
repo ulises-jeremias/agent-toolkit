@@ -4,7 +4,7 @@
 
 The product is a **native V** binary on every channel. Rollback means pin a previous **V** release on the same channel — not switch back to Python as `agent-toolkit`.
 
-`agent-toolkit-py` is a quarantined Python entry in the same PyPI wheel ([python-fallback.md](python-fallback.md)). It is not a channel rollback.
+There is no Python CLI fallback ([python-fallback.md](python-fallback.md)). Channel rollback means reinstalling a prior V binary / wheel.
 
 ## GitHub Release
 
@@ -32,7 +32,7 @@ uv tool install 'agent-toolkit-cli==1.11.0'
 pip install 'agent-toolkit-cli==1.11.0'
 ```
 
-The console script `agent-toolkit-py` remains in the wheel as the quarantined fallback.
+The wheel only ships the thin V trampoline + embedded binary + data.
 
 ## Homebrew
 

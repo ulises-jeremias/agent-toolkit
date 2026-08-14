@@ -212,7 +212,7 @@ fn collect_provenance_checks(root string) []DoctorCheck {
 	lock_path := os.join_path(root, 'capabilities', 'upstream.lock')
 	if os.is_file(lock_path) {
 		out << DoctorCheck{'provenance', 'upstream.lock exists', 'ok', lock_path}
-		out << DoctorCheck{'provenance', 'provenance: doctor --provenance', 'ok', 'lock present; SHA/expiry detail: agent-toolkit-py doctor --provenance'}
+		out << DoctorCheck{'provenance', 'provenance: doctor --provenance', 'ok', 'lock present; full SHA/expiry detail deferred'}
 	} else {
 		// Warn (not err): wheel/data installs often omit capabilities/upstream.lock
 		out << DoctorCheck{'provenance', 'upstream.lock exists', 'warn', 'not found under toolkit root (checkout only)'}

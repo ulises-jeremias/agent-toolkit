@@ -1,20 +1,9 @@
-# Python↔V golden CLI parity harness
+# V CLI contract fixtures
 
-Design: [`docs/compatibility/parity-harness-design.md`](../../docs/compatibility/parity-harness-design.md)
+Golden checks for the **native V** binary (`tests/parity/run_harness.py`).
 
-```bash
-make build-cli
-python3 tests/parity/run_harness.py --v-bin build/agent-toolkit-v
-```
+Formerly compared Python↔V; the Python CLI quarantine is removed. Fixtures now
+assert V exit codes and output contracts only.
 
-Seed fixtures: `fixtures/seed.json` (`version`, `help`, `inventory`, `doctor`, bad-flag).
-Failures cite `[command] CLASS: …`.
-
-## Disposition fixtures (insights / release)
-
-`V_SEMANTIC` fixtures assert V help encodes DEPRECATE (#526) / REMOVE (#527) without
-requiring Python parity (quarantined `agent-toolkit-py` may still implement them).
-See `docs/v/advanced-command-disposition.md` (#560).
-
-Workflow path filters include `docs/v/**` and CLI surface docs so disposition doc
-drift re-runs the harness.
+Disposition commands (`insights` / `release`) are covered as V-only semantics
+([docs/v/advanced-command-disposition.md](../../docs/v/advanced-command-disposition.md)).

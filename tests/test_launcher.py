@@ -18,7 +18,7 @@ def test_missing_binary_exits_127(monkeypatch, capsys):
     assert ei.value.code == 127
     err = capsys.readouterr().err
     assert "native V binary not found" in err
-    assert "agent-toolkit-py" in err
+    assert "make build-cli" in err or "AGENT_TOOLKIT_BIN" in err or "GitHub Release" in err
 
 
 def test_run_native_exports_wheel_data_root(monkeypatch, tmp_path: Path):
@@ -106,4 +106,5 @@ def test_product_scripts_point_at_launcher():
     text = pyproject.read_text(encoding="utf-8")
     assert 'agent-toolkit = "agent_toolkit.launcher:main"' in text
     assert 'agent-toolkit-cli = "agent_toolkit.launcher:main"' in text
-    assert 'agent-toolkit-py = "agent_toolkit.cli.main:main"' in text
+    assert "agent-toolkit-py" not in text
+    assert "agent_toolkit.cli" not in text

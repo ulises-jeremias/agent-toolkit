@@ -26,6 +26,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
+# No runtime deps — this package is an npm-style trampoline over the bundled V binary.
 dependencies = []
 
 [project.optional-dependencies]
@@ -35,17 +36,12 @@ dev = [
     "pyyaml>=6.0.3",
     "jsonschema>=4.26.0",
     "pytest-cov>=7.1.0",
-    "mypy>=2.3.0",
-    "types-PyYAML>=6.0.12",
 ]
-yaml = ["pyyaml>=6.0"]
-all = ["pyyaml>=6.0"]
 
 [project.scripts]
+# Same idea as packages/npm/agent-toolkit-cli/bin/agent-toolkit.js — exec the V binary.
 agent-toolkit = "agent_toolkit.launcher:main"
 agent-toolkit-cli = "agent_toolkit.launcher:main"
-# Quarantined fallback (insights/release + pytest). Not the product. docs/v/python-fallback.md
-agent-toolkit-py = "agent_toolkit.cli.main:main"
 
 [project.urls]
 Homepage = "https://github.com/ulises-jeremias/agent-toolkit"
@@ -65,8 +61,7 @@ packages = ["src/agent_toolkit"]
 path = "hatch_build.py"
 
 # Capability trees are copied into src/agent_toolkit/data/ by
-# scripts/prepare-package-data.sh before sdist/wheel builds. Editable
-# installs resolve monorepo root via agent_toolkit._paths (no packed data).
+# scripts/prepare-package-data.sh before sdist/wheel builds.
 [tool.hatch.build.targets.sdist]
 include = [
     "src/",
@@ -82,26 +77,20 @@ include = [
 branch = true
 source = ["agent_toolkit"]
 relative_files = true
-omit = ["*/tests/*", "*/__pycache__/*", "*/site-packages/*"]
+omit = ["*/tests/*", "*/__pycache__/*", "*/site-packages/*", "*/data/*"]
 
 [tool.coverage.report]
 precision = 1
 show_missing = true
-# Scoped gate (#271): compiler + installer + cli/install.py only.
 fail_under = 70
 include = [
-    "*/agent_toolkit/compiler/*",
-    "*/agent_toolkit/installer/*",
-    "*/agent_toolkit/cli/install.py",
+    "*/agent_toolkit/launcher.py",
 ]
 skip_covered = false
 
-[tool.mypy]
-python_version = "3.10"
-# Incremental typing (#275): narrow, warn-only in CI.
-follow_imports = "skip"
-ignore_missing_imports = true
-warn_unused_ignores = true
-warn_redundant_casts = true
-warn_unused_configs = true
-strict_optional = true
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

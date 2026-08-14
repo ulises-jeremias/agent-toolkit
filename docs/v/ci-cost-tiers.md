@@ -24,7 +24,7 @@ Experimental native V artifacts stay on the **experimental** channel ([ADR-018](
 
 ## Python lane retirement trigger
 
-[#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) gates are met (V is the product; PyPI is a launcher). **Keep** the `test-package` OS × CPython matrix while quarantined `agent-toolkit-py` and pytest still exercise Python modules ([python-fallback.md](python-fallback.md)). Drop that lane only when `agent-toolkit-py` itself is deleted — optional cleanup, not a V CLI GA blocker.
+[#540](https://github.com/ulises-jeremias/agent-toolkit/issues/540) gates are met (V is the product; PyPI is a launcher). The `test-package` matrix now covers the PyPI trampoline + packaging pytest only ([python-fallback.md](python-fallback.md)). CLI logic is covered by V unit tests and integration jobs.
 
 Do not drop Python tests to save CI minutes while the wheel still ships those modules.
 

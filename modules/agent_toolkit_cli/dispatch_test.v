@@ -181,7 +181,7 @@ fn test_doctor_help_mentions_provenance() {
 
 fn test_insights_help_is_deprecate_disposition() {
 	h := subcommand_help('insights')
-	assert h.contains('agent-toolkit-py')
+	assert h.contains('removed') || h.contains('deprecated') || h.contains('#526')
 	assert h.contains('#526') || h.to_lower().contains('deprecat')
 	assert !h.contains('not yet implemented')
 }

@@ -1,15 +1,18 @@
-# Machine-readable CLI contract for Python↔V parity.
+# Machine-readable CLI contract for the V product CLI.
 # Issue: https://github.com/ulises-jeremias/agent-toolkit/issues/549
 # Surfaces index: docs/CLI_SURFACES.md
 # Parity design: docs/compatibility/parity-harness-design.md
 # Schema version for this manifest (not the product version).
 schema_version: 1
 product: agent-toolkit
-python_entry: packages/pypi/agent-toolkit-cli/src/agent_toolkit/cli/main.py
+# Historical field: Python CLI modules were removed. Product entry is the V binary
+# (PyPI trampoline: packages/pypi/agent-toolkit-cli/src/agent_toolkit/launcher.py).
+python_entry: packages/pypi/agent-toolkit-cli/src/agent_toolkit/launcher.py
+v_entry: cmd/agent-toolkit
 notes:
-  - Exit-code classes follow ADR-010; argparse bad flags remain exit 2; --help/version exit 0.
+  - Exit-code classes follow ADR-010; bad flags remain exit 2; --help/version exit 0.
   - Disposition values: keep | rewrite-v | wrapper | defer | retire
-  - Subcommand detail is summarized; expand during harness implementation (#548).
+  - `module:` fields below are historical labels; implementation is modules/agent_toolkit_*.v
 
 commands:
   - name: help

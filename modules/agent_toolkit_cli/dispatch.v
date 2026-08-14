@@ -169,7 +169,7 @@ pub fn dispatch(args []string) int {
 	if cmd_name == 'insights' {
 		print(insights_help_text())
 		if insights_subcommand(argv[1..]).len > 0 {
-			eprintln('insights is deprecated in V (#526). Use: agent-toolkit-py insights <opencode|cursor|claude>')
+			eprintln('insights is removed from the product CLI (#526). Use external analytics or a prior release if you still need it.')
 			return 1
 		}
 		return 0
@@ -1305,7 +1305,7 @@ Advanced commands (workstation / power-user — docs/CLI_SURFACES.md):
     memory        Knowledge base: add, search, inject, review, todo
     project       Project management: clone, list, add, remove, scan
     devcompanion  Background job queue: queue, run-once, status, done, sync-todos (alias: dc)
-    insights      AI tool usage insights (deprecated in V; use agent-toolkit-py)
+    insights      AI tool usage insights (removed from product CLI; #526)
     build         Compile canonical capabilities into target-native artifacts
     inventory     List all canonical skills, agents, and products
     matrix        Show platform capability matrix
@@ -1398,7 +1398,7 @@ Examples:
 Read-only health checks by default. --fix allowlists profile refresh only.
 
   --fix          Attempt auto-repair for missing profiles (runs capability update)
-  --provenance   Report capabilities/upstream.lock presence (full SHA/expiry: agent-toolkit-py)
+  --provenance   Report capabilities/upstream.lock presence (SHA/expiry detail deferred)
   --json         Structured CommandResult JSON
 
 Exit codes:
@@ -1464,7 +1464,7 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 	}
 	mut c := cli.Command{
 		name:        name
-		description: '${name} — not yet implemented in V; use agent-toolkit-py for unfinished commands (docs/v/python-fallback.md)'
+		description: '${name} — not implemented in the product V CLI (see docs/v/advanced-command-disposition.md)'
 	}
 	c.setup()
 	return c.help_message()
@@ -1480,13 +1480,9 @@ fn insights_subcommand(args []string) string {
 }
 
 fn insights_help_text() string {
-	return 'insights — AI tool usage analytics (deprecated in V; #526).
+	return 'insights — AI tool usage analytics (removed from the product CLI; #526).
 
-Not ported to the V CLI. The quarantined Python fallback still implements it:
-
-  agent-toolkit-py insights opencode [--days N] [--output PATH]
-  agent-toolkit-py insights cursor   [--output PATH]
-  agent-toolkit-py insights claude   [--days N] [--output PATH]
+Not ported to V. The Python quarantine that used to implement this was deleted.
 
 See docs/v/advanced-command-disposition.md and docs/v/python-fallback.md.
 '
@@ -1496,10 +1492,6 @@ fn release_help_text() string {
 	return 'release — Generate release artifacts (removed from V; #527).
 
 Maintainer artifact generation belongs in GitHub Actions / docs/RELEASING.md, not the runtime CLI.
-
-The quarantined Python fallback still has a --dry-run generator:
-
-  agent-toolkit-py release --dry-run [--output DIR] [--target TARGET] [--json]
 
 See docs/v/advanced-command-disposition.md.
 '

@@ -3,7 +3,7 @@
 **Issue:** [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555)  
 **ADR:** [ADR-012](../adrs/ADR-012-python-v-coexistence.md)
 
-V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **thin launcher** over the bundled V binary ([ADR-021](../adrs/ADR-021-pypi-binary.md) / [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)). Python business logic is quarantined behind `agent-toolkit-py` ([python-fallback.md](python-fallback.md)).
+V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **thin launcher** over the bundled V binary ([ADR-021](../adrs/ADR-021-pypi-binary.md) / [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535)). There is no Python CLI fallback ([python-fallback.md](python-fallback.md)).
 
 ## What changed
 
@@ -12,11 +12,13 @@ V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **th
 | From-source CLI | V (`make build-cli` / `make install-cli`) | Installs `PREFIX/bin/agent-toolkit` (default `~/.local/bin`) |
 | `doctor --json` / `version --json` | engine=`v`, version, commit | Human stdout unchanged (no engine/commit pollution) |
 | Consumer + PORT/REDESIGN advanced | V | install lifecycle, skills/mcp/plugin, workspace/memory/project/loop/swarm/devcompanion |
-| `insights` (DEPRECATE) / `release` (REMOVE) | `not_implemented` in V | Use `agent-toolkit-py` if needed; **no** in-process Python exec (ADR-012 rejected C) |
-| PyPI `uvx` / `uv tool install` | V binary via thin launcher (ADR-021) | `agent-toolkit-py` is the quarantined fallback; not a dual-engine switch |
+| `insights` (DEPRECATE) / `release` (REMOVE) | disposition help / exit in V | Not ported; Python fallback removed |
+| PyPI `uvx` / `uv tool install` | V binary via thin launcher (ADR-021) | npm-style trampoline only |
 | GitHub Release binaries | Stable native V since `v1.11.0` | See [rollback](rollback.md). Do not retag empty `v1.10.0`. |
 
-## Python fallback (quarantined)
+## Python CLI quarantine
+
+Removed — see [python-fallback.md](python-fallback.md).
 
 [#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) left `insights` as **DEPRECATE** and `release` as **REMOVE** — V need not port them. Run the Python CLI explicitly:
 

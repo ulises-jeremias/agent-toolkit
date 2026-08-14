@@ -25,7 +25,7 @@ make install-cli    # ~/.local/bin/agent-toolkit
 agent-toolkit doctor --json
 ```
 
-PyPI/`uvx` is a thin launcher over the bundled V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). `insights` / `release` stay on quarantined `agent-toolkit-py` ([python-fallback.md](v/python-fallback.md)). Rollback: [docs/v/rollback.md](v/rollback.md).
+PyPI/`uvx` is a thin trampoline over the bundled V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). `insights` / `release` are not ported ([advanced-command-disposition.md](v/advanced-command-disposition.md)). Rollback: [docs/v/rollback.md](v/rollback.md).
 
 See [docs/INSTALLATION.md](INSTALLATION.md) for full options.
 

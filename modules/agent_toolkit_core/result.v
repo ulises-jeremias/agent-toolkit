@@ -35,7 +35,7 @@ pub fn not_implemented_result(command string) CommandResult {
 	return CommandResult{
 		command: command
 		ok:      false
-		message: 'command not implemented in V: ${command} (Python fallback: agent-toolkit-py; docs/v/cutover.md)'
+		message: 'command not implemented in V: ${command} (docs/v/advanced-command-disposition.md)'
 		data:    {
 			'status':  'not_implemented'
 			'command': command

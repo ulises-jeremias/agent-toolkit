@@ -72,7 +72,7 @@ def has_native_binary(root: Path) -> bool:
 class CustomBuildHook(BuildHookInterface):
     def initialize(self, version: str, build_data: dict) -> None:
         # Editable installs and sdist→wheel (macOS/Windows CI) have no bundled ELF.
-        # Product scripts still point at the launcher (exit 127), not agent-toolkit-py.
+        # Console scripts always point at the thin V launcher (exit 127 if binary missing).
         if version == "editable" or not has_native_binary(Path(self.root)):
             return
         # Binary is CPython-ABI agnostic; cp311-cp311-* wheels fail on other Pythons.

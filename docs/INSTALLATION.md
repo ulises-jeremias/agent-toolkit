@@ -10,7 +10,7 @@ manual file copies.
 
 The product CLI is the **native V binary** (GitHub Releases). `uvx agent-toolkit-cli` / PyPI still wrap that binary ([ADR-021](adrs/ADR-021-pypi-binary.md)). Index: [`docs/v/README.md`](v/README.md). Contributor build: [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md).
 
-- **Python** 3.10 or later — **optional** unless you use the PyPI launcher / `agent-toolkit-py` fallback (`uv` / `uvx`)
+- **Python** 3.10 or later — **optional** unless you use the PyPI trampoline (`uv` / `uvx`)
 - At least one supported AI coding assistant:
   - [Claude Code](https://claude.ai/code) (Anthropic)
   - [Cursor](https://cursor.sh)
@@ -80,7 +80,7 @@ make install-cli    # PREFIX/bin/agent-toolkit, default ~/.local/bin
 agent-toolkit doctor --json
 ```
 
-See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` ships a thin Python launcher over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md)); `agent-toolkit-py` is a quarantined fallback ([python-fallback.md](v/python-fallback.md)). Do not retag empty `v1.10.0`.
+See [docs/v/cutover.md](v/cutover.md) and [docs/v/rollback.md](v/rollback.md). PyPI/`uvx` ships a thin Python trampoline over the V binary ([ADR-021](adrs/ADR-021-pypi-binary.md); [python-fallback.md](v/python-fallback.md)). Do not retag empty `v1.10.0`.
 
 ### Install options
 

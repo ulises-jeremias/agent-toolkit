@@ -3,7 +3,7 @@
 **Issue:** [#545](https://github.com/ulises-jeremias/agent-toolkit/issues/545)  
 **Program:** [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)
 
-The product CLI is a **native V 0.5.2** binary (`import json`, not json2). Python is a launcher (`agent-toolkit` → V) plus quarantined `agent-toolkit-py` ([python-fallback.md](python-fallback.md)). Contributor how-to: [`docs/HOW_TO_DEVELOP_V.md`](../HOW_TO_DEVELOP_V.md).
+The product CLI is a **native V 0.5.2** binary (`import json`, not json2). Python on PyPI is only a thin trampoline (`agent-toolkit` → V), same idea as npm ([python-fallback.md](python-fallback.md)). Contributor how-to: [`docs/HOW_TO_DEVELOP_V.md`](../HOW_TO_DEVELOP_V.md).
 
 ## Build from source
 
@@ -40,7 +40,7 @@ Checksums **MUST**. Attestations/SBOM prove provenance only ([code-signing-polic
 | [advanced-command-disposition.md](advanced-command-disposition.md) | PORT/REDESIGN/DEPRECATE/REMOVE (#560) |
 | [../compatibility/cli-contract.yaml](../compatibility/cli-contract.yaml) | Machine-readable flags/IO (#549) |
 | [cutover.md](cutover.md) | Engine cutover |
-| [python-fallback.md](python-fallback.md) | Quarantined `agent-toolkit-py` (not the product) |
+| [python-fallback.md](python-fallback.md) | PyPI trampoline only; Python CLI quarantine removed |
 | [python-api-consumers.md](python-api-consumers.md) | Python import audit (#561) |
 | [migration-risk-register.md](migration-risk-register.md) | Risks (#478) |
 | [performance-baseline.md](performance-baseline.md) | Startup/help/inventory/doctor timings (#533) |

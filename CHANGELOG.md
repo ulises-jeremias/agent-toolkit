@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Breaking** — Remove quarantined Python CLI (`agent-toolkit-py` and `src/agent_toolkit/{cli,compiler,installer,…}`). PyPI is an npm-style trampoline over the V binary; CLI tests live in V (`modules/**/*_test.v`) and CI
 
 ## [1.12.2] — 2026-08-13
 

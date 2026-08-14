@@ -36,7 +36,7 @@
 
 ## What is this package?
 
-`agent-toolkit-cli` is the **PyPI adapter** for the agent-toolkit monorepo ([ADR-021](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-021-pypi-binary.md)). Platform wheels bundle the native V binary; `agent-toolkit` / `agent-toolkit-cli` are a thin launcher. The Python implementation is a quarantined `agent-toolkit-py` fallback ([python-fallback.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/v/python-fallback.md)).
+`agent-toolkit-cli` is the **PyPI adapter** for the agent-toolkit monorepo ([ADR-021](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-021-pypi-binary.md)). Platform wheels bundle the native V binary; `agent-toolkit` / `agent-toolkit-cli` are a thin trampoline (same idea as the npm package). There is no Python CLI fallback — see [python-fallback.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/v/python-fallback.md).
 
 It also ships:
 
@@ -293,7 +293,7 @@ Issues and PRs welcome on the monorepo:
 git clone https://github.com/ulises-jeremias/agent-toolkit
 cd agent-toolkit
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
-uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py --help
+uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --help
 ```
 
 ---

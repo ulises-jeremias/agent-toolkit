@@ -1,4 +1,4 @@
-name: Parity (Python↔V)
+name: Parity (V CLI contracts)
 
 on:
   push:

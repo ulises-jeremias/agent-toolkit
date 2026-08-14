@@ -98,3 +98,10 @@ Contract: [`distribution/pypi/README.md`](../../distribution/pypi/README.md).
 - Issues [#486](https://github.com/ulises-jeremias/agent-toolkit/issues/486), [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535), [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555), [#563](https://github.com/ulises-jeremias/agent-toolkit/issues/563)
 - [ADR-012](ADR-012-python-v-coexistence.md), [ADR-017](ADR-017-update-ownership.md), [ADR-018](ADR-018-release-artifacts.md), [ADR-019](ADR-019-linux-libc.md)
 - `distribution/pypi/README.md` ([#534](https://github.com/ulises-jeremias/agent-toolkit/issues/534) / #535)
+
+## Update — Python CLI quarantine removed
+
+The thin launcher remains (npm-style trampoline). Console script `agent-toolkit-py` and
+`src/agent_toolkit/{cli,compiler,installer,loop,runner,swarm}` were deleted. Product tests
+are V (`modules/**/*_test.v`) plus packaging/launcher pytest. See [python-fallback.md](../v/python-fallback.md).
+
