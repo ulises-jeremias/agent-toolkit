@@ -351,6 +351,8 @@ def test_frontend_design_lock_entry_matches_real_checksums():
     # content_checksum should match file (normalized)
     actual_ck = prov._file_sha256(prov.REPO_ROOT / "skills/design/frontend-design/SKILL.md")
     assert src["resolved"]["content_checksum"] == actual_ck
+    _fm, body = prov._split_skill_file(prov.REPO_ROOT / "skills/design/frontend-design/SKILL.md")
+    assert src["resolved"]["body_checksum"] == prov._body_sha256(body)
     actual_lic = prov._file_sha256(prov.REPO_ROOT / "skills/design/frontend-design/LICENSE.txt")
     assert src["resolved"]["license"]["checksum"] == actual_lic
     # Digest valid

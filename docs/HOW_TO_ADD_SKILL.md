@@ -335,7 +335,7 @@ Upstream skills copy **literal** upstream content so update detection can be aut
 3. **Siblings:** Copy LICENSE and any `references/`, `agents/`, `linters/`, etc. from the upstream skill path verbatim.
 4. **Pin:** Immutable 40-char commit SHA, or semver tag **plus** `commit:` (40-char SHA).
 5. **Lock:** Run `python3 scripts/provenance.py lock` then bind `trust.reviewed_provenance` to the new `provenance_digest` after human review.
-6. **Layout / products:** Update `catalogs/skills-layout.json` and `distributions/products.yaml`, then `./scripts/generate-catalogs.vsh` and `agent-toolkit build --check`.
+6. **Layout / products:** Update `catalogs/skills-layout.json` and `distributions/products.yaml`, then `./scripts/generate-catalogs.vsh`, `./scripts/generate-skill-matrix.vsh`, and `agent-toolkit build --check`.
 
 ### Example frontmatter (single source)
 

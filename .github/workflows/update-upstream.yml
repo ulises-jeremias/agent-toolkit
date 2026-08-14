@@ -9,6 +9,10 @@ on:
     - cron: "0 6 * * 1" # weekly Monday 06:00 UTC
   workflow_dispatch:
 
+concurrency:
+  group: update-upstream
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -55,6 +59,13 @@ jobs:
           DATE=$(date -u +%Y%m%d)
           BRANCH="chore/upstream-sync-${DATE}"
 
+          case "$BRANCH" in
+            main|master)
+              echo "Refusing to push to default branch $BRANCH"
+              exit 1
+              ;;
+          esac
+
           # Reuse open sync PR/branch for the day when present
           EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number // empty' || true)
           if [ -n "$EXISTING" ]; then
@@ -80,65 +91,16 @@ jobs:
             exit 0
           fi
 
-          git commit -m "$(cat <<'EOF'
-chore(upstream): sync vendored skills from upstream
-
-Automated by provenance.py updates --apply (literal body fidelity).
-trust.tier set to experimental until human re-binds reviewed_provenance.
-EOF
-)"
+          git commit -m "chore(upstream): sync vendored skills from upstream" \
+            -m "Automated by provenance.py updates --apply (literal body fidelity)." \
+            -m "trust.tier set to experimental until human re-binds reviewed_provenance."
 
           git push -u origin "HEAD:$BRANCH"
 
-          python3 <<'PY' > /tmp/pr-body.md
-import json
-from pathlib import Path
-summary = {}
-for cand in (Path("/tmp/upstream-apply-summary.json"), Path("/tmp/apply.json")):
-    if cand.exists():
-        try:
-            summary = json.loads(cand.read_text())
-            break
-        except Exception:
-            pass
-applied = summary.get("applied") or []
-lines = [
-    "## Summary",
-    "",
-    "Automated upstream sync via `scripts/provenance.py updates --apply`.",
-    "Vendored `SKILL.md` bodies are byte-identical to upstream; only Toolkit",
-    "frontmatter overlay differs. **Do not auto-merge.**",
-    "",
-    "## Updates",
-    "",
-]
-if not applied:
-    lines.append("_See workflow logs for details._")
-for item in applied:
-    lines.append(
-        f"- `{item.get('capability')}` / `{item.get('source')}`: "
-        f"`{str(item.get('old_commit',''))[:7]}` → `{str(item.get('new_commit',''))[:7]}` "
-        f"(body `{str(item.get('body_checksum',''))[:23]}…`)"
-    )
-lines += [
-    "",
-    "## Reviewer checklist",
-    "",
-    "- [ ] Diff shows only expected upstream body/sibling changes + pin bumps",
-    "- [ ] License SPDX unchanged (or intentional license change reviewed)",
-    "- [ ] `security.*` surface still accurate (shell/network/mcp/hooks)",
-    "- [ ] Set `trust.tier: reviewed` and `trust.reviewed_provenance` to the new",
-    "      `provenance_digest` in each updated `SKILL.md` after audit",
-    "- [ ] `python3 scripts/provenance.py check` passes",
-    "",
-    "## Notes",
-    "",
-    "- Bot leaves `trust.tier: experimental` and drops `reviewed_provenance`.",
-    "- Offline CI (`validate-upstream`) must stay green without network.",
-    "",
-]
-print("\n".join(lines))
-PY
+          python3 scripts/upstream_pr_body.py \
+            --summary /tmp/upstream-apply-summary.json \
+            --summary /tmp/apply.json \
+            --output /tmp/pr-body.md
 
           gh pr create --draft \
             --title "chore(upstream): sync vendored skills ($(date -u +%Y-%m-%d))" \

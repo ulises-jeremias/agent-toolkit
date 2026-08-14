@@ -447,9 +447,7 @@ def _build_lock_data(
                 try:
                     vendored_for_body = skill_path
                     if len(src_list) > 1 and (sid == "rules" or spath == "command.md"):
-                        candidate = (
-                            skill_path.parent / "references" / "web-interface-guidelines.md"
-                        )
+                        candidate = skill_path.parent / "references" / "web-interface-guidelines.md"
                         if candidate.exists():
                             vendored_for_body = candidate
                         else:
@@ -949,7 +947,9 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
             lines.append(f"- **Resolved commit:** `{res.get('commit', '?')}`")
             lines.append(f"- **Content checksum:** `{res.get('content_checksum', '?')}`")
             if res.get("body_checksum"):
-                lines.append(f"- **Body checksum:** `{res.get('body_checksum')}` (must match local SKILL.md body)")
+                lines.append(
+                    f"- **Body checksum:** `{res.get('body_checksum')}` (must match local SKILL.md body)"
+                )
             lic_obj = res.get("license", {})
             lines.append(
                 f"- **Observed license:** `{lic_obj.get('spdx', lic)}` source_path=`{lic_obj.get('source_path', '?')}` checksum=`{lic_obj.get('checksum', '?')}`"
@@ -1235,11 +1235,15 @@ def _apply_skill_update(
     overlay["trust"] = trust
 
     # Bump declaration pin
-    if "upstream" in overlay and isinstance(overlay["upstream"], dict) and source_id in (
-        "upstream",
-        overlay["upstream"].get("id"),
-        overlay["upstream"].get("role"),
-        None,
+    if (
+        "upstream" in overlay
+        and isinstance(overlay["upstream"], dict)
+        and source_id
+        in (
+            "upstream",
+            overlay["upstream"].get("id"),
+            overlay["upstream"].get("role"),
+        )
     ):
         # Single-source: update upstream block when this is the primary source
         if source_id == "upstream" or len(overlay.get("sources") or []) == 0:
@@ -1319,7 +1323,7 @@ def _apply_skill_update(
         written = _copy_upstream_tree(
             repository, new_commit, upstream_dir, skill_dir, skip_skill_md=True
         )
-        result["files"].extend(f"{cap_id}/{w}" if False else str((skill_dir / w).relative_to(REPO_ROOT)) for w in written)
+        result["files"].extend(str((skill_dir / w).relative_to(REPO_ROOT)) for w in written)
 
         # Prefer repo-root LICENSE if skill has none
         if not (skill_dir / "LICENSE").exists() and not (skill_dir / "LICENSE.txt").exists():
@@ -1441,7 +1445,9 @@ def cmd_updates(args: argparse.Namespace) -> int:
         print(json.dumps(summary, indent=2))
     else:
         print(f"Applied {len(applied)} update(s); {len(errors)} error(s).")
-        print("Next: human review → set trust.tier=reviewed + trust.reviewed_provenance to new digest.")
+        print(
+            "Next: human review → set trust.tier=reviewed + trust.reviewed_provenance to new digest."
+        )
 
     # Write machine-readable summary for the GHA PR body
     summary_path = REPO_ROOT / "capabilities" / "upstream-apply-summary.json"
