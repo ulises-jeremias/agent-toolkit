@@ -94,7 +94,7 @@ describe("spawn: missing / env binary", () => {
     });
     assert.equal(result.status, EXIT_MISSING);
     assert.match(result.stderr, /native V binary not found/);
-    assert.match(result.stderr, /AGENT_TOOLKIT_BIN|optionalDependencies|v run make\.vsh build-cli/);
+    assert.match(result.stderr, /AGENT_TOOLKIT_BIN|optionalDependencies|\.\/make\.vsh build-cli/);
   });
 
   test("AGENT_TOOLKIT_BIN forwards argv and exit code", () => {
@@ -218,7 +218,7 @@ describe("platformSpec + package metadata", () => {
   test("missingBinaryMessage mentions ADR-025 and recovery paths", () => {
     const msg = missingBinaryMessage();
     assert.match(msg, /ADR-025/);
-    assert.match(msg, /optionalDependencies|AGENT_TOOLKIT_BIN|v run make\.vsh build-cli/);
+    assert.match(msg, /optionalDependencies|AGENT_TOOLKIT_BIN|\.\/make\.vsh build-cli/);
   });
 });
 
