@@ -114,7 +114,7 @@ reflect the agent-toolkit skill set.
 To validate skill definitions from a git checkout:
 
 ```bash
-v run scripts/validate-skills.vsh
+./scripts/validate-skills.vsh
 ```
 
 ---

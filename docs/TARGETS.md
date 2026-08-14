@@ -31,7 +31,7 @@ Each target receives the strongest integration it actually supports.
 *hooks: no stable cross-tool canonical model yet — see target certification docs
 †requires TypeScript runtime plugin
 
-> **Agent Plugins 1.0** is the portable `plugin.json` target for Cursor, VS Code, Copilot, Kiro, and Codex. It emits `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` (+ `com.anthropic.claude-code` extension for Claude compatibility). Validate with `v run scripts/validate-agent-plugins.vsh --check`; CI job is `Validate Agent Plugins 1.0`. See `docs/AGENT_PLUGINS.md`.
+> **Agent Plugins 1.0** is the portable `plugin.json` target for Cursor, VS Code, Copilot, Kiro, and Codex. It emits `plugin.json` (`$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) + `skills/` + `mcp.json` (+ `com.anthropic.claude-code` extension for Claude compatibility). Validate with `./scripts/validate-agent-plugins.vsh --check`; CI job is `Validate Agent Plugins 1.0`. See `docs/AGENT_PLUGINS.md`.
 
 ## Install commands
 

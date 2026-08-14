@@ -21,7 +21,7 @@ No musl/Alpine npm tag (ADR-019). Launcher forwards argv/stdio/signals via `chil
 # After GitHub Release assets exist:
 export RELEASE_BIN_DIR=binaries
 export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
-v run scripts/pack_npm.vsh
+./scripts/pack_npm.vsh
 ```
 
 CI: `.github/workflows/publish-npm.yml` on tag `v*` (OIDC trusted publishing; npm CLI ≥ 11.5.1; `id-token: write`; no `NODE_AUTH_TOKEN`). Trust pin:

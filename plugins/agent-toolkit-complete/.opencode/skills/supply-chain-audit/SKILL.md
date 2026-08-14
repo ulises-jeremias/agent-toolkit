@@ -98,8 +98,8 @@ hooks: blocking/destructive classification per schemas/hook.schema.yaml
 **Maintainer / repo checkout / CI only** (repo-root tooling is not on the host install):
 
 ```bash
-v run scripts/audit-capability.vsh <path>            # per-capability
-v run scripts/audit-capability.vsh skills/ mcp/      # whole repo
+./scripts/audit-capability.vsh <path>            # per-capability
+./scripts/audit-capability.vsh skills/ mcp/      # whole repo
 ```
 ### 5. Trust tier & recommendation
 

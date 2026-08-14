@@ -45,7 +45,7 @@ jobs:
           export RELEASE_BIN_DIR=binaries
           export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
           export RELEASE_OUT_DIR=dist
-          v run scripts/pack_pypi.vsh
+          ./scripts/pack_pypi.vsh
           ls -lh dist/
           python3 - <<'PY'
           from pathlib import Path

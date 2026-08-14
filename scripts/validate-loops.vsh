@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v run
 // Validate all loops/**/loop.yaml against schemas/loop.schema.json.
 // Uses python3 + jsonschema (same engine as CI). Requires: pyyaml, jsonschema.
-// Usage: v run scripts/validate-loops.vsh   (from repo root or any subdir)
+// Usage: ./scripts/validate-loops.vsh   (from repo root or any subdir)
 
 fn repo_root() string {
 	mut d := dir(@FILE)

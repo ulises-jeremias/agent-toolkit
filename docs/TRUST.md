@@ -33,7 +33,7 @@ agent-toolkit doctor
 agent-toolkit inventory
 
 # Validate skill definitions from a git checkout
-v run scripts/validate-skills.vsh
+./scripts/validate-skills.vsh
 ```
 
 After marketplace or CLI install, open your AI tool and confirm loaded skills

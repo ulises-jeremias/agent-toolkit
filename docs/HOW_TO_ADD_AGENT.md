@@ -115,7 +115,7 @@ Reference documents are domain knowledge the agent can read during a session. Th
 ## 5. Run Validation
 
 ```bash
-v run scripts/validate-agents.vsh
+./scripts/validate-agents.vsh
 ```
 
 The validator checks:
@@ -135,7 +135,7 @@ If the agent should ship in a marketplace plugin, ensure it is listed under the 
 Then regenerate catalogs and verify compiler digests (no `gen-surfaces`):
 
 ```bash
-v run scripts/generate-catalogs.vsh
+./scripts/generate-catalogs.vsh
 ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
 ```
@@ -149,9 +149,9 @@ AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
 - [ ] `agents/<agent-name>/AGENT.md` created
 - [ ] Frontmatter has `name`, `description`, and `tools`
 - [ ] `name` in frontmatter matches directory name
-- [ ] `v run scripts/validate-agents.vsh` passes with no errors
+- [ ] `./scripts/validate-agents.vsh` passes with no errors
 - [ ] `distributions/products.yaml` updated if product membership changed
-- [ ] `v run scripts/generate-catalogs.vsh` was run (do **not** hand-edit `agent-catalog.yaml`)
+- [ ] `./scripts/generate-catalogs.vsh` was run (do **not** hand-edit `agent-catalog.yaml`)
 - [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
 - [ ] `references/` documents linked from agent body (if present)
 - [ ] `tools` list is minimal — only what the agent genuinely needs

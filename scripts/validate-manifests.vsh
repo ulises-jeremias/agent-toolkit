@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Validate Claude and Cursor marketplace manifests and plugin.json files.
-// Usage: v run scripts/validate-manifests.vsh
+// Usage: ./scripts/validate-manifests.vsh
 
 import json
 

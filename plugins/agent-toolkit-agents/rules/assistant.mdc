@@ -18,7 +18,7 @@ When starting work in any repository, read in this order:
 3. `AGENTS.md` or `.claude/CLAUDE.md` — agent-specific instructions (primary contract)
 4. `CONTRIBUTING.md` — contribution guidelines
 5. PR templates (`.github/PULL_REQUEST_TEMPLATE.md`)
-6. Task runners: `Makefile`, `package.json` scripts, `justfile`
+6. Task runners: `Makefile`, `justfile`, `package.json` scripts, and/or `make.vsh` as present in the target repo (repo-dependent; this toolkit uses `./make.vsh`)
 7. `devcontainer.json` and CI workflows (`.github/workflows/`)
 8. Configuration files
 

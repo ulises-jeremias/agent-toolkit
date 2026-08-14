@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Build PyPI sdist + platform wheels from GitHub Release V binaries (ADR-021).
-// Usage: RELEASE_BIN_DIR=binaries v run scripts/pack_pypi.vsh
+// Usage: RELEASE_BIN_DIR=binaries ./scripts/pack_pypi.vsh
 
 import json
 

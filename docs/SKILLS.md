@@ -8,7 +8,7 @@ Skills are the core unit of capability in agent-toolkit. Each skill is a portabl
 
 Discoverability: only a minority of skills appear in stable marketplace products. Check membership via:
 
-- **Matrix (checked in):** [`docs/SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) — generated from `distributions/products.yaml` (`v run scripts/generate-skill-matrix.vsh --check` in CI)
+- **Matrix (checked in):** [`docs/SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) — generated from `distributions/products.yaml` (`./scripts/generate-skill-matrix.vsh --check` in CI)
 - **Live CLI:** `agent-toolkit inventory` (lists skills by domain + products)
 
 ## What Is a Skill?
@@ -180,7 +180,7 @@ Common tool identifiers in frontmatter and catalogs:
 Run the validation script before deploying:
 
 ```bash
-v run scripts/validate-skills.vsh
+./scripts/validate-skills.vsh
 ```
 
 This checks:

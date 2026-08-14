@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Validate Agent Plugins 1.0 manifests (structural checks; no jsonschema).
-// Usage: v run scripts/validate-agent-plugins.vsh [--check]
+// Usage: ./scripts/validate-agent-plugins.vsh [--check]
 
 import json
 

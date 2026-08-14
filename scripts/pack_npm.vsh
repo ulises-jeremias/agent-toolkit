@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Copy GitHub Release V binaries into npm platform packages (ADR-025 / #536).
-// Usage: RELEASE_BIN_DIR=binaries RELEASE_VERSION=x.y.z v run scripts/pack_npm.vsh
+// Usage: RELEASE_BIN_DIR=binaries RELEASE_VERSION=x.y.z ./scripts/pack_npm.vsh
 
 import json
 

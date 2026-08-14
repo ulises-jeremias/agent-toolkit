@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Mechanical smoke validation for skills/ and agents/.
-// Usage: v run scripts/smoke-test-skills.vsh
+// Usage: ./scripts/smoke-test-skills.vsh
 
 fn repo_root() string {
 	mut d := dir(@FILE)

@@ -287,7 +287,7 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 | ♿ `accessibility` | 1 | review |
 | ✅ `quality` | 2 | megalinter, codeql |
 
-Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `v run scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory`
+Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `./scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory`
 
 ### Loading skills in Claude Code
 
@@ -486,8 +486,8 @@ agent-toolkit/
 
 ```bash
 agent-toolkit doctor          # consumer health check
-v run scripts/validate-skills.vsh
-v run scripts/validate-loops.vsh
+./scripts/validate-skills.vsh
+./scripts/validate-loops.vsh
 ```
 
 The `.vsh` validators exit non-zero on failure with human-readable error messages.
@@ -502,7 +502,7 @@ Contributions welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before ope
 
 1. Fork the repo and create a branch: `feat/my-skill`
 2. Add your skill under the appropriate domain in `skills/` — use `SKILL.md` frontmatter only
-3. Run `v run scripts/validate-skills.vsh` — all checks must pass
+3. Run `./scripts/validate-skills.vsh` — all checks must pass
 4. Open a PR with a clear description of what the skill does and which tools it supports
 
 See [How to add a skill](docs/HOW_TO_ADD_SKILL.md) for the full authoring guide.

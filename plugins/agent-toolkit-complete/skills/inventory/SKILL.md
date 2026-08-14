@@ -72,7 +72,7 @@ agent-toolkit install --dry-run
 **Maintainer / repo checkout only** (CI or local clone of `agent-toolkit`): regenerate catalogs and package data from the monorepo root:
 
 ```bash
-v run scripts/generate-catalogs.vsh          # regenerate catalogs/*.yaml
+./scripts/generate-catalogs.vsh          # regenerate catalogs/*.yaml
 bash scripts/prepare-package-data.sh         # sync skills/catalogs into packages/pypi/.../data/
 agent-toolkit skills validate
 ```

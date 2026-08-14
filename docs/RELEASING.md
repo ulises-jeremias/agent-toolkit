@@ -12,7 +12,7 @@ Canonical artifacts are **native V binaries**. PyPI `packages/pypi/agent-toolkit
 
 ```bash
 # 1. Bump all version sources atomically
-v run scripts/bump-version.vsh 1.3.0
+./scripts/bump-version.vsh 1.3.0
 git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
 
 # 2. Validate (CI parity)
@@ -20,9 +20,9 @@ git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit --version
 uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
-v run scripts/validate-skills.vsh
-v run scripts/validate-agents.vsh
-v run scripts/generate-catalogs.vsh
+./scripts/validate-skills.vsh
+./scripts/validate-agents.vsh
+./scripts/generate-catalogs.vsh
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
 # 3. Commit + tag
@@ -63,8 +63,8 @@ curl -sS 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=agent-toolkit-bin' 
 Usage:
 
 ```bash
-v run scripts/bump-version.vsh --check 1.3.0  # dry-run, exits 1 if would change
-v run scripts/bump-version.vsh 1.3.0         # writes files
+./scripts/bump-version.vsh --check 1.3.0  # dry-run, exits 1 if would change
+./scripts/bump-version.vsh 1.3.0         # writes files
 ```
 
 ## Rollback / republish

@@ -123,7 +123,7 @@ Reference files are not loaded automatically — the skill body must explicitly 
 ## 5. Run Validation
 
 ```bash
-v run scripts/validate-skills.vsh
+./scripts/validate-skills.vsh
 ```
 
 The validator checks:
@@ -138,7 +138,7 @@ Fix any reported errors before proceeding.
 
 ## 6. Update layout, products, and catalogs
 
-**Never hand-edit** `catalogs/skill-catalog.yaml`, `catalogs/agent-catalog.yaml`, or `catalogs/loop-catalog.yaml`. Those are regenerated only by `v run scripts/generate-catalogs.vsh`.
+**Never hand-edit** `catalogs/skill-catalog.yaml`, `catalogs/agent-catalog.yaml`, or `catalogs/loop-catalog.yaml`. Those are regenerated only by `./scripts/generate-catalogs.vsh`.
 
 ### `catalogs/skills-layout.json` (hand-maintained layout SSOT)
 
@@ -151,7 +151,7 @@ If the skill should ship in a marketplace plugin, add `domain/skill-name` under 
 ### Regenerate YAML catalogs and verify digests
 
 ```bash
-v run scripts/generate-catalogs.vsh
+./scripts/generate-catalogs.vsh
 # If product membership changed, edit distributions/products.yaml first, then:
 ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
@@ -170,10 +170,10 @@ Use the standard PR workflow. Include this checklist in your PR description:
 - [ ] `skills/<domain>/<skill-name>/SKILL.md` created
 - [ ] Frontmatter has `name` and `description`
 - [ ] `name` in frontmatter matches directory name
-- [ ] `v run scripts/validate-skills.vsh` passes with no errors
+- [ ] `./scripts/validate-skills.vsh` passes with no errors
 - [ ] `catalogs/skills-layout.json` updated (correct domain group) — hand-maintained layout SSOT
 - [ ] `distributions/products.yaml` updated if product membership changed
-- [ ] `v run scripts/generate-catalogs.vsh` was run (do **not** hand-edit `*-catalog.yaml`)
+- [ ] `./scripts/generate-catalogs.vsh` was run (do **not** hand-edit `*-catalog.yaml`)
 - [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
 - [ ] No secrets or hardcoded tokens in skill body
 - [ ] `references/` documents linked from skill body (if present)

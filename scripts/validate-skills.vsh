@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Validate SKILL.md frontmatter across all skills per Agent Skills spec.
-// Usage: v run scripts/validate-skills.vsh   (from repo root or any subdir)
+// Usage: ./scripts/validate-skills.vsh   (from repo root or any subdir)
 
 fn repo_root() string {
 	mut d := dir(@FILE)

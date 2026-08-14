@@ -218,9 +218,9 @@ In summary:
 
 Yes. Common CI uses:
 
-- **Validate skill definitions:** `v run scripts/validate-skills.vsh` — exits non-zero on failure,
+- **Validate skill definitions:** `./scripts/validate-skills.vsh` — exits non-zero on failure,
   human-readable error messages. Run in your repo's CI on PRs to ensure skill definitions remain valid.
-- **Validate loop templates:** `v run scripts/validate-loops.vsh` — same pattern.
+- **Validate loop templates:** `./scripts/validate-loops.vsh` — same pattern.
 - **Skeleton mode loop runs:** `agent-toolkit loop run <name> --no-llm` — runs the loop scaffolding
   without invoking any AI. Useful for smoke-testing loop YAML parsing in CI.
 

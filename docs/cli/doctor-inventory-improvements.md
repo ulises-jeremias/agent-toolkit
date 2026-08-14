@@ -30,7 +30,7 @@
 * `provenance: upstream.lock exists` `error Missing: ...` → run `uv run python scripts/provenance.py lock` to regenerate from `SKILL.md` declarations.
 * `provenance: <id> immutable` `ref without commit — mutable` → pin to `commit: <40-char SHA>` in `SKILL.md` `sources[].commit` and re-run `provenance.py lock`.
 * `provenance: ... freshness >90d` `warn` → run `uv run python scripts/provenance.py updates` and open update PR.
-* `packs: complete covers all skills` `error missing [...]` → add skill to `distributions/products.yaml` `agent-toolkit-complete` `includes.skills` and run `v run scripts/generate-skill-matrix.vsh`.
+* `packs: complete covers all skills` `error missing [...]` → add skill to `distributions/products.yaml` `agent-toolkit-complete` `includes.skills` and run `./scripts/generate-skill-matrix.vsh`.
 * `mcp/registry count` `warn` or `mcp:<name> id` `error` → check `mcp/registry/*.yaml` frontmatter (`id`, `transport`/`implementation`).
 * `ask` skill at repo root references post-archive Confluence-JIRA — evaluated as `UNKNOWN` then `REJECT` per vendor evaluation (not a `doctor` gate).
 

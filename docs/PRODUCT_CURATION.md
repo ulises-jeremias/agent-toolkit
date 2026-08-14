@@ -39,7 +39,7 @@ Every product in `distributions/products.yaml` now emits **dual bundles**: porta
 
 - Propose membership changes via an issue labeled `product-curation` referencing `docs/SKILL_PRODUCT_MATRIX.md`.
 - Keep PRs **small** — one product change per PR (e.g. “feat(product): add dbt to forge”).
-- Update the matrix via `v run scripts/generate-skill-matrix.vsh` and include the diff.
+- Update the matrix via `./scripts/generate-skill-matrix.vsh` and include the diff.
 - Link the example or pack that motivates the promotion.
 
 ## Follow-ups (tracked)

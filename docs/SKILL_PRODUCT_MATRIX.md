@@ -1,6 +1,6 @@
 # Skill → Product → Target Membership Matrix
 
-> Generated from `distributions/products.yaml` — do not hand-edit. Run `v run scripts/generate-skill-matrix.vsh` to regenerate, or `v run scripts/generate-skill-matrix.vsh --check` in CI.
+> Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
 _Generated from 4 products × 77 skills × 17 agents._
 
@@ -121,7 +121,7 @@ _Generated from 4 products × 77 skills × 17 agents._
 
 - A skill appears in a marketplace plugin when its product is built for that target (`agent-toolkit build --product <id> --target <target>`).
 - `_uncovered_` means the skill/agent is not in any stable product yet — it exists canonically but is not shipped. See Wave 5 curation for promotion decisions.
-- Verify membership locally via `agent-toolkit inventory` (canonical counts) or `v run scripts/generate-skill-matrix.vsh --check`.
+- Verify membership locally via `agent-toolkit inventory` (canonical counts) or `./scripts/generate-skill-matrix.vsh --check`.
 
 ## See also
 

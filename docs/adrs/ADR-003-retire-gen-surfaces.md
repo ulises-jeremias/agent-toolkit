@@ -28,7 +28,7 @@ This ADR does **not** delete code; it records the decision and migration plan.
 
 ### CI job swap
 
-- [x] Current `validate.yml` job `check-surfaces` runs `v run scripts/gen-surfaces.vsh --check`
+- [x] Current `validate.yml` job `check-surfaces` runs `./scripts/gen-surfaces.vsh --check`
 - [x] Add parallel job `check-build` that runs `./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` (keep both during dual-run) — see #678
 - [x] After dual-run green for 30 days, flip `check-surfaces` to advisory (`continue-on-error: true`) or remove, making `check-build` the required check
 - [x] Update `RELEASING.md` bump → validate → tag checklist to use `build --check` instead of `gen-surfaces.py --check`

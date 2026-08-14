@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Pack ADR-018 floating binaries + versioned archives, SHA256SUMS, and manifest.json.
-// Usage: RELEASE_VERSION=x.y.z RELEASE_BIN_DIR=binaries v run scripts/pack_release_assets.vsh
+// Usage: RELEASE_VERSION=x.y.z RELEASE_BIN_DIR=binaries ./scripts/pack_release_assets.vsh
 
 import crypto.sha256
 import json

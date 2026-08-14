@@ -52,7 +52,7 @@ See `docs/CONCEPTS.md` layer hierarchy.
 **Fix:**
 
 ```bash
-v run scripts/generate-catalogs.vsh
+./scripts/generate-catalogs.vsh
 git add catalogs/
 ```
 
@@ -199,8 +199,8 @@ Provenance `reviewed_provenance` binds human review to old bytes — lock update
 ```bash
 # Add skill to distributions/products.yaml agent-toolkit-complete includes.skills
 # Then regenerate matrix:
-v run scripts/generate-skill-matrix.vsh
-v run scripts/generate-skill-matrix.vsh --check  # CI gate
+./scripts/generate-skill-matrix.vsh
+./scripts/generate-skill-matrix.vsh --check  # CI gate
 ```
 
 See `docs/compatibility/matrix-generation.md` (matrix generated from `distributions/products.yaml` + `skills-layout.json`).

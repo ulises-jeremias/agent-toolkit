@@ -97,7 +97,7 @@ jobs:
           export RELEASE_BIN_DIR=binaries
           export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
           export RELEASE_OUT_DIR=dist
-          v run scripts/pack_pypi.vsh
+          ./scripts/pack_pypi.vsh
           ls -lh dist/
           python3 - <<'PY'
           from pathlib import Path
@@ -234,7 +234,7 @@ jobs:
         run: |
           set -euo pipefail
           export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
-          v run scripts/pack_release_assets.vsh
+          ./scripts/pack_release_assets.vsh
           ls -lh release-assets/
       - name: Upload release assets (retry)
         env:
@@ -325,7 +325,7 @@ jobs:
           export RELEASE_BIN_DIR=binaries
           export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
           export RELEASE_OUT_DIR=dist
-          v run scripts/pack_pypi.vsh
+          ./scripts/pack_pypi.vsh
           ls -lh dist/
           python3 - <<'PY'
           from pathlib import Path

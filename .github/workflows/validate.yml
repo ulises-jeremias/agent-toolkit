@@ -106,7 +106,7 @@ jobs:
         if: |
           github.event_name != 'pull_request' ||
           steps.paths.outputs.run_smoke == 'true'
-        run: v run scripts/smoke-test-skills.vsh
+        run: ./scripts/smoke-test-skills.vsh
 
   # ── Job 2: Validate SKILL.md and AGENT.md frontmatter ─────────────────────
   validate-skills:
@@ -123,10 +123,10 @@ jobs:
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
       - name: Validate SKILL.md frontmatter (Agent Skills spec)
-        run: v run scripts/validate-skills.vsh
+        run: ./scripts/validate-skills.vsh
 
       - name: Validate AGENT.md frontmatter
-        run: v run scripts/validate-agents.vsh
+        run: ./scripts/validate-agents.vsh
 
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
@@ -143,7 +143,7 @@ jobs:
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
       - name: Validate Claude Code and Cursor marketplace manifests
-        run: v run scripts/validate-manifests.vsh
+        run: ./scripts/validate-manifests.vsh
 
   # ── Job 3b: Validate Agent Plugins 1.0 manifests ───────────────────────
   validate-agent-plugins:
@@ -160,7 +160,7 @@ jobs:
         run: pip install jsonschema==4.23.0 pyyaml==6.0.2
 
       - name: Validate Agent Plugins 1.0 manifests (plugin.json + mcp.json)
-        run: v run scripts/validate-agent-plugins.vsh --check
+        run: ./scripts/validate-agent-plugins.vsh --check
 
   # ── Job 3c: Validate upstream provenance (no mutable refs) ──────────────
   validate-upstream:
@@ -213,7 +213,7 @@ jobs:
         uses: ./.github/actions/setup-v
 
       - name: Assert catalogs match filesystem sources
-        run: v run scripts/generate-catalogs.vsh --check
+        run: ./scripts/generate-catalogs.vsh --check
 
   check-skill-matrix:
     name: Check Skill→Product Matrix
@@ -229,7 +229,7 @@ jobs:
         run: pip install pyyaml==6.0.2
 
       - name: Check skill→product→target matrix is up to date
-        run: v run scripts/generate-skill-matrix.vsh --check
+        run: ./scripts/generate-skill-matrix.vsh --check
 
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
@@ -245,7 +245,7 @@ jobs:
         uses: ./.github/actions/setup-v
 
       - name: Validate loop.yaml files against loop.schema.json
-        run: v run scripts/validate-loops.vsh
+        run: ./scripts/validate-loops.vsh
 
   # ── Job 5b: Validate products.yaml against products.schema.yaml ─────────
   validate-products:

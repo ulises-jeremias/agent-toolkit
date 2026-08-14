@@ -37,7 +37,7 @@ Curated OWASP LLM Top 10 (2025) + OWASP Agentic Security review for **agents, sk
 ## Workflow
 
 1. **Discover scope:** `git diff HEAD` + `skills/**`/`agents/**`/`mcp/registry/*.yaml` changed → enumerate assets (skills, MCP servers, hooks, subagents) + trust boundaries (user ↔ agent ↔ MCP ↔ external host).
-2. **Run static gates:** Grep/Read for shell/network/mcp/hooks surface + injection phrases (`ignore previous`, `send secrets`, `exfiltrate`, `/etc/passwd`) + check `upstream.lock` digests. (Repo checkout/CI only: `v run scripts/audit-capability.vsh --json` — not installed on host.)
+2. **Run static gates:** Grep/Read for shell/network/mcp/hooks surface + injection phrases (`ignore previous`, `send secrets`, `exfiltrate`, `/etc/passwd`) + check `upstream.lock` digests. (Repo checkout/CI only: `./scripts/audit-capability.vsh --json` — not installed on host.)
 3. **Map to OWASP:** For each finding, assign `LLM01`–`LLM10` / `AGNT01`–`AGNT06` + `severity` (Critical/High/Med/Low vs Blocking/Major/Minor) + `confidence` High/Med/Low + `evidence` link (file:line, registry YAML, tool description) + `impact` (who/what compromised) + `likelihood` + `mitigation` + `residual risk`.
 4. **Report:** Emit `owasp-agentic-review.md` per `references/owasp-agentic-template.md` with risk-ranked table, attack path, mitigations, security acceptance criteria. Apply `output-handshake` before final artifact.
 

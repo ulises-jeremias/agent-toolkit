@@ -77,7 +77,7 @@ Run the relevant mode per request; for full adoption review, run both and emit a
 
 1. **Load registry:** `agent_toolkit.compiler.mcp_registry.load_registry(mcp/registry)` — record `providers, errors` (evidence: registry count).
 2. **Pick mode:** `config` (default for adoption) or `implementation` (for command/SSRF/poisoning) or both.
-3. **Run checks:** For each `provider` in `providers`, apply the relevant checklist above; for `implementation`, Grep the registry/templates for shell/network/hooks patterns and capture findings with `file:line` evidence. (Repo checkout/CI may also run `v run scripts/audit-capability.vsh mcp/registry/<provider>.yaml --json` — that script is **not** on the host install.)
+3. **Run checks:** For each `provider` in `providers`, apply the relevant checklist above; for `implementation`, Grep the registry/templates for shell/network/hooks patterns and capture findings with `file:line` evidence. (Repo checkout/CI may also run `./scripts/audit-capability.vsh mcp/registry/<provider>.yaml --json` — that script is **not** on the host install.)
 4. **Score:** `ALLOW` (no Blocking), `CAUTION` (Major, e.g., unpinned version, remote without TLS), `BLOCK` (Blocking: hardcoded secret, command injection, SSRF to metadata endpoint, provenance unknown).
 5. **Report:** Emit `mcp-audit-report.md` (see `references/mcp-audit-template.md`) with per-provider table: `provider | config verdict | impl verdict | package/license | version_policy | provenance | evidence`.
 

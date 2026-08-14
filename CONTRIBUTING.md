@@ -46,7 +46,7 @@ uv sync --project packages/pypi/agent-toolkit-cli --all-extras
 Run a mechanical integrity check on every `SKILL.md` and `AGENT.md`:
 
 ```bash
-v run scripts/smoke-test-skills.vsh
+./scripts/smoke-test-skills.vsh
 ```
 
 This command checks:
@@ -68,23 +68,23 @@ Always run validation before opening a PR. All checks must pass. These match `.g
 
 ```bash
 # Validate SKILL.md frontmatter (Agent Skills spec)
-v run scripts/validate-skills.vsh
+./scripts/validate-skills.vsh
 
 # Validate AGENT.md frontmatter
-v run scripts/validate-agents.vsh
+./scripts/validate-agents.vsh
 
 # Validate loop.yaml files against schemas/loop.schema.json (as CI does)
-v run scripts/validate-loops.vsh
+./scripts/validate-loops.vsh
 
 # Validate marketplace manifests
-v run scripts/validate-manifests.vsh
+./scripts/validate-manifests.vsh
 
 # Detect plugin surface drift (canonical; no gen-surfaces)
 ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
 # Regenerate catalogs and verify they match source files (never hand-edit *-catalog.yaml)
-v run scripts/generate-catalogs.vsh
+./scripts/generate-catalogs.vsh
 
 # Canonical V CLI unit tests
 ./make.vsh test
@@ -155,13 +155,13 @@ If any command exits non-zero, read the output — it will tell you which file f
 6. **Run validation**:
 
    ```bash
-   v run scripts/validate-skills.vsh
+   ./scripts/validate-skills.vsh
    ```
 
 7. **Regenerate catalogs**:
 
    ```bash
-   v run scripts/generate-catalogs.vsh
+   ./scripts/generate-catalogs.vsh
    ```
 
 8. Open a PR — see the PR checklist below.
@@ -224,7 +224,7 @@ Loops are defined by `loops/<loop-name>/loop.yaml` (see `docs/HOW_TO_CREATE_LOOP
 5. **Validate your loop** against the schema (same check CI runs in `validate-loops`):
 
    ```bash
-   v run scripts/validate-loops.vsh
+   ./scripts/validate-loops.vsh
    ```
 
 6. Open a PR. Runtime artifacts `STATE.md` and `report.md` are written by the loop runner — do not commit them.
@@ -280,10 +280,10 @@ chore/regenerate-catalogs
 Before submitting a PR, confirm the following:
 
 - [ ] Branch name follows the naming convention above
-- [ ] `v run scripts/validate-skills.vsh` passes with exit 0
-- [ ] `v run scripts/validate-agents.vsh` passes with exit 0 (if you added/modified agents)
+- [ ] `./scripts/validate-skills.vsh` passes with exit 0
+- [ ] `./scripts/validate-agents.vsh` passes with exit 0 (if you added/modified agents)
 - [ ] Loop `loop.yaml` validates against `schemas/loop.schema.json` (if you added/modified loops) — see Validation Commands
-- [ ] `v run scripts/generate-catalogs.vsh` was run and catalog changes are included (if you added/modified skills/agents/loops) — never hand-edit `*-catalog.yaml`
+- [ ] `./scripts/generate-catalogs.vsh` was run and catalog changes are included (if you added/modified skills/agents/loops) — never hand-edit `*-catalog.yaml`
 - [ ] `./make.vsh test` passes
 - [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check` passes (if you added/modified skills/agents/loops or surfaces)
 - [ ] Adapter tests (pytest / `npm test`) only if you changed PyPI or npm trampolines
@@ -340,9 +340,9 @@ When adding a new skill, agent, or loop, verify the compiler pipeline:
 ```bash
 # Canonical V CLI (see docs/HOW_TO_DEVELOP_V.md)
 ./make.vsh build-cli
-v run scripts/validate-skills.vsh
-v run scripts/validate-agents.vsh
-v run scripts/validate-manifests.vsh
+./scripts/validate-skills.vsh
+./scripts/validate-agents.vsh
+./scripts/validate-manifests.vsh
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 
 # Python adapter tests (launcher / packaging; not the product CLI)

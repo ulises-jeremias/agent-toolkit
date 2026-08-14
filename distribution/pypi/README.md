@@ -33,7 +33,7 @@ Do **not** emit raw `linux_x86_64` (PyPI 400). Do **not** claim `manylinux_2_17`
 export RELEASE_BIN_DIR=binaries
 export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
 bash scripts/prepare-package-data.sh
-v run scripts/pack_pypi.vsh   # sdist + one wheel per present asset → dist/
+./scripts/pack_pypi.vsh   # sdist + one wheel per present asset → dist/
 ```
 
 - Tag releases: `.github/workflows/release.yml` `publish-pypi` (after `upload-assets`) via **OIDC Trusted Publishing** (environment `pypi`). See [docs/RELEASING.md](../../docs/RELEASING.md).

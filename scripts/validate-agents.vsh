@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Validate AGENT.md frontmatter across all agents.
-// Usage: v run scripts/validate-agents.vsh
+// Usage: ./scripts/validate-agents.vsh
 
 fn repo_root() string {
 	mut d := dir(@FILE)

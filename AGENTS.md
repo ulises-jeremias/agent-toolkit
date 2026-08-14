@@ -72,7 +72,7 @@ agent-toolkit/
 **Always:**
 
 - Check `catalogs/skill-catalog.yaml` before adding a new skill — avoid duplicates
-- Validate with `v run scripts/validate-skills.vsh` before marking any skill work complete
+- Validate with `./scripts/validate-skills.vsh` before marking any skill work complete
 - Cite which file a convention comes from when referencing repo standards
 - Use English for all file content, commit messages, and PR descriptions
 - Check `SKILL.md` frontmatter (`tools`, `requires`) before claiming a skill works with a tool
@@ -83,7 +83,7 @@ agent-toolkit/
 - Commit credentials, API keys, or tokens to any file
 - Claim a skill is compatible with a tool without testing or explicit authorship confirmation
 - Skip required `SKILL.md` frontmatter when adding a skill
-- Hand-edit generated catalogs (`skill-catalog.yaml`, `agent-catalog.yaml`, `loop-catalog.yaml`) — regenerate with `v run scripts/generate-catalogs.vsh` only (`skills-layout.json` is hand-maintained layout SSOT; see Catalog Generation)
+- Hand-edit generated catalogs (`skill-catalog.yaml`, `agent-catalog.yaml`, `loop-catalog.yaml`) — regenerate with `./scripts/generate-catalogs.vsh` only (`skills-layout.json` is hand-maintained layout SSOT; see Catalog Generation)
 - Add content specific to any private organization — this is a public, vendor-neutral toolkit
 - Add third-party npm / github / url packs to `distributions/products.yaml` or `plugins/` — they belong in `agentic-workstation` via `chezmoiexternal` + `skills-external/` (see `docs/CONCEPTS.md` “Third-party boundary”)
 
@@ -142,7 +142,7 @@ Optional frontmatter fields for tool compatibility and discovery:
 | `requires` | list | CLI tools or env vars the skill needs |
 | `triggers` | list | Natural-language phrases that should invoke this skill |
 
-Run `v run scripts/validate-skills.vsh` to validate
+Run `./scripts/validate-skills.vsh` to validate
 frontmatter against `schemas/skill-md-frontmatter.schema.json`.
 
 ---
@@ -186,7 +186,7 @@ Required field: `name`, `goal`, `request` (per `schemas/loop.schema.json`). Comm
 Validate before committing (same as CI `validate-loops` job):
 
 ```bash
-v run scripts/validate-loops.vsh
+./scripts/validate-loops.vsh
 ```
 
 ---
@@ -271,8 +271,8 @@ Optional: `references/` beside `AGENT.md` for domain checklists. See [`docs/HOW_
 To regenerate YAML catalogs after adding or modifying skills or agents:
 
 ```bash
-v run scripts/generate-catalogs.vsh          # regenerate catalogs/*-catalog.yaml
-v run scripts/generate-catalogs.vsh --check  # fail if committed catalogs drifted
+./scripts/generate-catalogs.vsh          # regenerate catalogs/*-catalog.yaml
+./scripts/generate-catalogs.vsh --check  # fail if committed catalogs drifted
 ```
 
 The CI pipeline runs this automatically and will fail if the YAML catalogs are out of sync with the source files.
@@ -284,10 +284,10 @@ The CI pipeline runs this automatically and will fail if the YAML catalogs are o
 Before marking any contribution complete (see `.github/workflows/validate.yml` for CI parity):
 
 ```bash
-v run scripts/validate-skills.vsh     # Validates SKILL.md frontmatter (no skill.json)
-v run scripts/validate-agents.vsh     # Validates AGENT.md frontmatter
-v run scripts/validate-loops.vsh      # Validates loops/**/loop.yaml against loop.schema.json
-v run scripts/generate-catalogs.vsh   # Regenerates YAML catalogs (never hand-edit)
+./scripts/validate-skills.vsh     # Validates SKILL.md frontmatter (no skill.json)
+./scripts/validate-agents.vsh     # Validates AGENT.md frontmatter
+./scripts/validate-loops.vsh      # Validates loops/**/loop.yaml against loop.schema.json
+./scripts/generate-catalogs.vsh   # Regenerates YAML catalogs (never hand-edit)
 ./make.vsh test && ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 # Adapter-only (optional unless changing PyPI/npm trampolines):

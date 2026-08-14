@@ -76,7 +76,7 @@ find . -name "skill.json" -path "*/skills/*" -delete
 Run validation after cleanup:
 
 ```bash
-v run scripts/validate-skills.vsh
+./scripts/validate-skills.vsh
 ```
 
 The legacy `schemas/skill.schema.json` (for removed `skill.json` manifests) is archived at [`docs/archive/skill.schema.json`](archive/skill.schema.json). Skills validate via `schemas/skill-md-frontmatter.schema.json` and `scripts/validate-skills.vsh`.

@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v run
 // Regenerate catalogs/{skill,agent,loop}-catalog.yaml from the filesystem (#78).
 // Usage:
-//   v run scripts/generate-catalogs.vsh          # write catalogs
-//   v run scripts/generate-catalogs.vsh --check  # fail on drift
+//   ./scripts/generate-catalogs.vsh          # write catalogs
+//   ./scripts/generate-catalogs.vsh --check  # fail on drift
 
 import yaml
 
@@ -288,7 +288,7 @@ fn main() {
 		println('wrote ${path} (${counts[name]} entries)')
 	}
 	if check && drifted {
-		println('Catalogs out of sync — run: v run scripts/generate-catalogs.vsh')
+		println('Catalogs out of sync — run: ./scripts/generate-catalogs.vsh')
 		exit(1)
 	}
 }

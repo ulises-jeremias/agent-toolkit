@@ -12,7 +12,7 @@ Index: [`docs/v/README.md`](v/README.md) · packaging adapters: [`distribution/R
 | JSON | `import json` (stdlib). Do **not** `import json2` or run `v fmt` in a way that rewrites `json` → `json2` |
 | Layout | `modules/agent_toolkit_core`, `modules/agent_toolkit_cli`, `cmd/agent-toolkit` ([ADR-009](adrs/ADR-009-v-module-architecture.md)) |
 | Output | `./make.vsh build-cli` → `build/agent-toolkit` |
-| Scripts | Repo tooling is `.vsh` (`v run scripts/…`); task runner is `make.vsh` ([vlib `build`](https://github.com/vlang/v/tree/master/vlib/build), [example](https://github.com/vlang/v/blob/master/examples/build_system/build.vsh)) — no Makefile |
+| Scripts | Repo tooling is `.vsh` with shebang — run `./scripts/…` (not `v run scripts/…`); task runner is `./make.vsh` ([vlib `build`](https://github.com/vlang/v/tree/master/vlib/build), [example](https://github.com/vlang/v/blob/master/examples/build_system/build.vsh)) — no Makefile |
 
 ```bash
 v version          # second field must match .v-version
@@ -67,9 +67,9 @@ CI runs this matrix on Node **22** and **24** (`validate.yml` → `test-npm`). P
 After changing `skills/`, `agents/`, `loops/`, or `distributions/`:
 
 ```bash
-v run scripts/validate-skills.vsh
-v run scripts/validate-agents.vsh
-v run scripts/generate-catalogs.vsh
+./scripts/validate-skills.vsh
+./scripts/validate-agents.vsh
+./scripts/generate-catalogs.vsh
 ./make.vsh build-cli
 AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
 ```

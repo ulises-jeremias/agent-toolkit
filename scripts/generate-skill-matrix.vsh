@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v run
 // Generate docs/SKILL_PRODUCT_MATRIX.md from distributions/products.yaml.
 // Usage:
-//   v run scripts/generate-skill-matrix.vsh
-//   v run scripts/generate-skill-matrix.vsh --check
+//   ./scripts/generate-skill-matrix.vsh
+//   ./scripts/generate-skill-matrix.vsh --check
 
 import yaml
 
@@ -146,7 +146,7 @@ fn render_md(root string) string {
 	mut lines := []string{}
 	lines << '# Skill → Product → Target Membership Matrix'
 	lines << ''
-	lines << '> Generated from `distributions/products.yaml` — do not hand-edit. Run `v run scripts/generate-skill-matrix.vsh` to regenerate, or `v run scripts/generate-skill-matrix.vsh --check` in CI.'
+	lines << '> Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.'
 	lines << ''
 	lines << '_Generated from ${doc.products.len} products × ${skills.len} skills × ${agents.len} agents._'
 	lines << ''
@@ -219,7 +219,7 @@ fn render_md(root string) string {
 	lines << ''
 	lines << '- A skill appears in a marketplace plugin when its product is built for that target (`agent-toolkit build --product <id> --target <target>`).'
 	lines << '- `_uncovered_` means the skill/agent is not in any stable product yet — it exists canonically but is not shipped. See Wave 5 curation for promotion decisions.'
-	lines << '- Verify membership locally via `agent-toolkit inventory` (canonical counts) or `v run scripts/generate-skill-matrix.vsh --check`.'
+	lines << '- Verify membership locally via `agent-toolkit inventory` (canonical counts) or `./scripts/generate-skill-matrix.vsh --check`.'
 	lines << ''
 	lines << '## See also'
 	lines << ''
@@ -257,7 +257,7 @@ fn main() {
 		existing := read_file(output) or { '' }
 		if existing != content {
 			eprintln('Matrix out of date: ${output} differs from distributions/products.yaml')
-			eprintln('Run: v run scripts/generate-skill-matrix.vsh')
+			eprintln('Run: ./scripts/generate-skill-matrix.vsh')
 			exit(1)
 		}
 		println('Matrix up to date: ${output}')

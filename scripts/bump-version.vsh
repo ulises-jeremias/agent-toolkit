@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // Bump all version sources atomically.
-// Usage: v run scripts/bump-version.vsh [--check] X.Y.Z
+// Usage: ./scripts/bump-version.vsh [--check] X.Y.Z
 
 import json
 import regex

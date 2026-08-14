@@ -114,8 +114,8 @@ In `agent-toolkit`, `mcp/registry/*.yaml` is the canonical source; the compiler 
 Vendored schemas: `schemas/agent-plugins/1.0.0/plugin.schema.json` and `mcp.schema.json` (copied from spec).
 
 ```bash
-v run scripts/validate-agent-plugins.vsh        # all plugins
-v run scripts/validate-agent-plugins.vsh --check # CI mode
+./scripts/validate-agent-plugins.vsh        # all plugins
+./scripts/validate-agent-plugins.vsh --check # CI mode
 ```
 
 Checks: `$schema` const, `name` regex `^(?!.*(?:--|\\.\\.))[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$`, closed manifest (unknown top-level → report-and-ignore), `skills/` immediate children with `SKILL.md`, `mcp.json` closed, `command`/`cwd` containment, no `PLUGIN_ROOT` in `env`.

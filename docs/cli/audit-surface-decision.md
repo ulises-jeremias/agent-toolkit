@@ -8,15 +8,15 @@
 
 **ADOPT** wire `scripts/audit-capability.vsh` into `doctor` and document `audit` as **script-only** per §397 Alternative B:
 
-* **Static scan:** `v run scripts/audit-capability.vsh skills/` (shell/curl/npx/MCP/network/hooks) — already in `tests/test_audit_policy.py` + `scripts/audit-capability.vsh` security surface per #378.
+* **Static scan:** `./scripts/audit-capability.vsh skills/` (shell/curl/npx/MCP/network/hooks) — already in `tests/test_audit_policy.py` + `scripts/audit-capability.vsh` security surface per #378.
 * **`doctor` extension:** `agent-toolkit doctor` already includes `_check_mcp`, `_check_provenance`, `_check_products_and_packs` (see #387) which surface `trust_tier`/`provider`/`provenance`/`security` per #364/#386. `doctor --json` + `scripts/audit-capability.vsh --json` together answer "when to run `audit supply-chain` vs `doctor`":
   - Use `doctor` for **health** (installed tools, symlinks, manifests, MCP, env, provenance, packs) — single command.
-  - Use `scripts/audit-capability.vsh skills/<skill>` for **per-capability static security surface** before PR review (e.g., `agent-toolkit audit supply-chain skills/design/frontend-design` → `v run scripts/audit-capability.vsh skills/design/frontend-design`).
+  - Use `scripts/audit-capability.vsh skills/<skill>` for **per-capability static security surface** before PR review (e.g., `agent-toolkit audit supply-chain skills/design/frontend-design` → `./scripts/audit-capability.vsh skills/design/frontend-design`).
   - Use `agent-toolkit doctor --provenance` for **supply-chain SHA/commit + expiry** per §52 (inventory warnings).
 
 ## Concrete use cases (documented)
 
-* **Before PR review of third-party capability:** `v run scripts/audit-capability.vsh skills/design/frontend-design` → reports `shell:true`, `network:true`, `requires_secrets:false`, `mcp:[]`, `dangerous_permissions:[]` + `trust_tier: reviewed`.
+* **Before PR review of third-party capability:** `./scripts/audit-capability.vsh skills/design/frontend-design` → reports `shell:true`, `network:true`, `requires_secrets:false`, `mcp:[]`, `dangerous_permissions:[]` + `trust_tier: reviewed`.
 * **After `agent-toolkit install`:** `agent-toolkit doctor` → checks `provenance: upstream.lock exists`, `lock version`, `lock entries`, `complete covers all skills`, `mcp/registry count`.
 * **Supply-chain deep:** `uv run python scripts/provenance.py check` → offline validation `declaration↔lock + checksums + digest + review binding`; `uv run python scripts/provenance.py docs` → generate `docs/UPSTREAM.md`.
 
@@ -28,7 +28,7 @@
 ## Verification
 
 ```bash
-v run scripts/audit-capability.vsh skills/design/frontend-design
+./scripts/audit-capability.vsh skills/design/frontend-design
 uv run python scripts/provenance.py check
 agent-toolkit doctor --json | jq '.checks[] | select(.category=="provenance" or .category=="mcp")'
 agent-toolkit audit --help 2>&1 | head -n 20 || echo "audit as script-only — see docs/cli/audit-surface-decision.md"

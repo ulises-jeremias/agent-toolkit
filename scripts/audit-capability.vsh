@@ -1,9 +1,9 @@
 #!/usr/bin/env -S v run
 // Static supply-chain audit for capabilities (per #378).
 // Usage:
-//   v run scripts/audit-capability.vsh [path ...]
-//   v run scripts/audit-capability.vsh --json skills/design/
-//   v run scripts/audit-capability.vsh --fail-on high
+//   ./scripts/audit-capability.vsh [path ...]
+//   ./scripts/audit-capability.vsh --json skills/design/
+//   ./scripts/audit-capability.vsh --fail-on high
 
 import json
 import regex

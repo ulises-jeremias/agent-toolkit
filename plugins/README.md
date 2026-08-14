@@ -53,9 +53,9 @@ See [docs/AGENT_PLUGINS.md](../docs/AGENT_PLUGINS.md) for the full spec, support
 ## Validation
 
 ```bash
-v run scripts/validate-agent-plugins.vsh --check  # Agent Plugins 1.0
-v run scripts/validate-manifests.vsh              # Claude/Cursor legacy manifests
-v run scripts/validate-skills.vsh                 # SKILL.md frontmatter
+./scripts/validate-agent-plugins.vsh --check  # Agent Plugins 1.0
+./scripts/validate-manifests.vsh              # Claude/Cursor legacy manifests
+./scripts/validate-skills.vsh                 # SKILL.md frontmatter
 ```
 
 ## Spec
