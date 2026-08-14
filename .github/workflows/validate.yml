@@ -551,7 +551,15 @@ jobs:
         shell: bash
         env:
           VMODULES: ${{ github.workspace }}/modules
-        run: make build-cli
+          # Windows make CreateProcess does not resolve v.exe from PATH when V=v.
+          V: ${{ env.VBIN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${V:-}" ] || { [ ! -x "${V}" ] && [ ! -f "${V}" ]; }; then
+            echo "VBIN/V not set after setup-v (got V='${V:-}')" >&2
+            exit 1
+          fi
+          make build-cli
 
       - name: Install from dist (Linux wheel with V binary; sdist elsewhere)
         shell: bash
