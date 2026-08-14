@@ -45,7 +45,7 @@ Follow the `pr-fallback` skill instructions for {{args}}.
 
 [[commands]]
 name = "workspace_knowledge_sync"
-description = "Syncs knowledge to the ai-workspace knowledge base. Use when the assistant discovers new patterns, learns user preferenc"
+description = "Syncs knowledge to the agentic-harness knowledge base. Use when the assistant discovers new patterns, learns user preferenc"
 prompt = """
 Follow the `workspace-knowledge-sync` skill instructions for {{args}}.
 

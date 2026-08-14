@@ -1,6 +1,6 @@
 ---
 name: workspace-knowledge-sync
-description: Syncs knowledge to the ai-workspace knowledge base. Use when the assistant discovers new
+description: Syncs knowledge to the agentic-harness knowledge base. Use when the assistant discovers new
   patterns, learns user preferences, or identifies information worth preserving for future sessions. Integrates
   with tech-assistant for automatic trigger points.
 origin:
@@ -8,7 +8,7 @@ origin:
 ---
 # Workspace Knowledge Sync
 
-Automatically syncs valuable discoveries, patterns, and decisions to the ai-workspace knowledge base.
+Automatically syncs valuable discoveries, patterns, and decisions to the agentic-harness knowledge base.
 
 ---
 
@@ -133,7 +133,7 @@ The skill uses these environment variables:
 
 | Variable | Default | Purpose |
 |----------|---------|---------|
-| `KNOWLEDGE_BASE_PATH` | `~/ai-workspace/knowledge` | Knowledge base root |
+| `KNOWLEDGE_BASE_PATH` | `~/.ai-workspace/knowledge` | Knowledge base root |
 
 ---
 

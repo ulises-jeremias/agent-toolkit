@@ -92,7 +92,7 @@ doctor
 # → ask the orchestrator: "what skill should I use for X?"
 
 # Load client/project context
-./bin/workspace-context load packs/<client>.yaml   # if in ai-workspace
+./bin/workspace-context load packs/<client>.yaml   # if in an agentic-harness workspace
 ```
 
 ## Key concepts in 60 seconds

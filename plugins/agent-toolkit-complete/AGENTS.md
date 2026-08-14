@@ -9,7 +9,7 @@ Full stable skill catalog coverage for consumers who want everything (#50)
 - **onboarding**: Getting started guide for new users. Walks through setup validation, the skill/a
 - **output-handshake**: WHAT — Default gate for any deliverable: confirm where the final artifact will b
 - **pr-fallback**: WHAT — When the repo has no GitHub PR template, structure the pull-request body 
-- **workspace-knowledge-sync**: Syncs knowledge to the ai-workspace knowledge base. Use when the assistant disco
+- **workspace-knowledge-sync**: Syncs knowledge to the agentic-harness knowledge base. Use when the assistant disco
 - **dbt-validation**: HOW — Run dbt checks as documented in the target repo (parse, compile, test, sel
 - **snowflake-validation**: HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflak
 - **adr**: WHAT — Create and maintain Architecture Decision Records (ADRs) per the process.

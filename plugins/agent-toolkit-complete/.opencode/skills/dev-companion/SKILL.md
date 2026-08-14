@@ -51,7 +51,7 @@ Do **not** paste forge or ticket CLI sequences here.
 - **Interactive (default):** IDE session; user steers each step.
 - **Queued job (optional):** only when a local runner is configured; see `~/.local/share//dev-companion/README.md` (installed from chezmoi) and **references/LOOP_GUARDRAILS.md**.
 
-The queue worker is **mandatory infrastructure** (installed by workstation). The **workspace** (`~/ai-workspace`) is optional — it provides project-aware wrappers, job templates, and knowledge base integration. When both are present, the runner automatically enriches LLM prompts with workspace context (`projects.yaml`, `projects/`, `knowledge/todos/`).
+The queue worker is **mandatory infrastructure** (installed by workstation). The **workspace** (`~/.ai-workspace`) is optional — it provides project-aware wrappers, job templates, and knowledge base integration. When both are present, the runner automatically enriches LLM prompts with workspace context (`projects.yaml`, `projects/`, `knowledge/todos/`).
 
 ### LLM policy gate (client engagements)
 
