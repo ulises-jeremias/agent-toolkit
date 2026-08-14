@@ -173,7 +173,6 @@ jobs:
         run: v run scripts/gen-surfaces.vsh --check
 
 
-
   # ── ADR-003 dual-run: compiler build --check alongside gen-surfaces ─────────
   check-build:
     name: Check Build (compiler)
