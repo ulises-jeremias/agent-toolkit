@@ -14,7 +14,7 @@ Migration is not a performance project. These numbers exist so later changes can
 | V | 0.5.2 (`v version` 45e92d1), pin `.v-version` |
 | Commit | `b356e19` (docs/python-api-audit; methodology applies to `main` at audit time) |
 | N | 7 timed runs after 1 warmup; median and p95 |
-| Python | `uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit-py` (not the V launcher; no root uv workspace) |
+| Python trampoline | `uvx --from agent-toolkit-cli agent-toolkit` (execs V; no root uv workspace) |
 | V binary | `./make.vsh build-cli` → `build/agent-toolkit` (debug, tcc→cc fallback) |
 | V `-prod` | **Does not build** on 0.5.2: `import json` is a **error** under `-prod` (we MUST keep `json`, not json2) |
 | PyInstaller | N/A — `v1.10.0` GitHub Release has **zero** assets |
