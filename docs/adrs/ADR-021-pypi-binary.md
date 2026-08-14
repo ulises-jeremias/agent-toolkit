@@ -105,3 +105,6 @@ The thin launcher remains (npm-style trampoline). Console script `agent-toolkit-
 `src/agent_toolkit/{cli,compiler,installer,loop,runner,swarm}` were deleted. Product tests
 are V (`modules/**/*_test.v`) plus packaging/launcher pytest. See [python-fallback.md](../v/python-fallback.md).
 
+## Amendment (2026-08-14)
+
+`agent-toolkit-py` and the quarantined Python CLI modules were **removed** in **v1.13.0**. PyPI remains strategy **A** (platform wheels + thin launcher). Points in this ADR that name `agent-toolkit-py` / quarantined modules are historical; current policy is [python-fallback.md](../v/python-fallback.md).

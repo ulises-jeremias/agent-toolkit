@@ -20,11 +20,9 @@ V is the **canonical implementation** of `agent-toolkit`. PyPI/`uvx` runs a **th
 
 Removed — see [python-fallback.md](python-fallback.md).
 
-[#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) left `insights` as **DEPRECATE** and `release` as **REMOVE** — V need not port them. Run the Python CLI explicitly:
+[#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) left `insights` as **DEPRECATE** and `release` as **REMOVE** — not ported to V. Product command:
 
 ```bash
-agent-toolkit-py insights opencode
-# product command (V):
 uvx --from agent-toolkit-cli agent-toolkit doctor
 ```
 

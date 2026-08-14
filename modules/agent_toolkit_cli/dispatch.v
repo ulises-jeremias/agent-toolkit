@@ -4,21 +4,76 @@ import agent_toolkit_core
 import cli
 
 // run is the library entry used by cmd/agent-toolkit.
+// Idiomatic path: ADR-010 bad-flag shim (exit 2), then Command.parse + execute.
 pub fn run(args []string) int {
-	return dispatch(args)
+	if code := preflight_bad_flags(args) {
+		return code
+	}
+	mut root := build_root_command()
+	root.parse(args)
+	return 0
 }
 
-// dispatch walks the vlib/cli Command tree with an AT exit-code wrapper
-// (docs/v/vlib-cli-spike.md): bad flags → 2, unknown command → 1.
-// Does not call Command.parse() so unit tests keep integer exit codes.
+// dispatch is the return-code adapter for unit tests (Command.parse calls exit()).
+// Shares the bad-flag shim, then walks to execute_command without noreturn parse().
 pub fn dispatch(args []string) int {
+	if code := preflight_bad_flags(args) {
+		return code
+	}
+	return dispatch_walk(args)
+}
+
+// preflight_bad_flags is the only hand-rolled argv pass: vlib/cli always exit(1)
+// on unknown flags; ADR-010 / cli-contract require exit 2 (see vlib-cli-spike.md).
+fn preflight_bad_flags(args []string) ?int {
 	root := build_root_command()
 	mut argv := []string{}
 	if args.len > 1 {
 		argv = args[1..].clone()
 	}
 	mode := mode_from_argv(argv)
-	// Peel leading global flags so `agent-toolkit --json doctor` works (Flag.global).
+	mut i := 0
+	for i < argv.len && argv[i] in ['--json', '--quiet'] {
+		i++
+	}
+	mut peeled := if i > 0 { argv[i..].clone() } else { argv.clone() }
+	if peeled.len == 0 {
+		return none
+	}
+	first := peeled[0]
+	if first in ['-h', '--help', 'help', '-V', '--version', 'version'] {
+		return none
+	}
+	if first.starts_with('-') {
+		if flag_listed(root.flags, first) {
+			return none
+		}
+		e := agent_toolkit_core.err_usage_flags('flag.unknown', 'unknown flag: ${first}')
+		return render_error(e, mode)
+	}
+	cmd := find_command(root, first) or { return none }
+	for a in peeled[1..] {
+		if !a.starts_with('-') {
+			continue
+		}
+		if a in ['-h', '--help', '--json', '--quiet'] {
+			continue
+		}
+		if !flag_allowed_on(cmd, a) {
+			e := agent_toolkit_core.err_usage_flags('flag.unknown', 'unknown flag: ${a}')
+			return render_error(e, mode)
+		}
+	}
+	return none
+}
+
+fn dispatch_walk(args []string) int {
+	root := build_root_command()
+	mut argv := []string{}
+	if args.len > 1 {
+		argv = args[1..].clone()
+	}
+	mode := mode_from_argv(argv)
 	mut i := 0
 	for i < argv.len && argv[i] in ['--json', '--quiet'] {
 		i++
@@ -48,33 +103,27 @@ pub fn dispatch(args []string) int {
 		ver := agent_toolkit_core.resolve_toolkit_version()
 		return render(agent_toolkit_core.version_result(ver), mode)
 	}
-	// Bad flags before a command (argparse parity → exit 2)
-	if first.starts_with('-') {
-		e := agent_toolkit_core.err_usage_flags('flag.unknown', 'unknown flag: ${first}')
-		return render_error(e, mode)
-	}
 	cmd := find_command(root, first) or {
 		eprintln('Unknown command: ${first}')
 		eprintln("Run 'agent-toolkit help' for usage.")
 		eprintln('See docs/CLI_SURFACES.md for consumer vs advanced commands.')
 		return 1
 	}
-	cmd_name := cmd.name
 	rest := argv[1..].clone()
 	for a in rest {
-		if a.starts_with('-') && !flag_allowed_on(cmd, a) {
-			e := agent_toolkit_core.err_usage_flags('flag.unknown', 'unknown flag: ${a}')
-			return render_error(e, mode)
-		}
 		if a in ['-h', '--help'] {
-			print(subcommand_help(cmd_name))
+			print(subcommand_help(cmd.name))
 			return 0
 		}
 	}
-	return execute_command(cmd_name, rest, mode)
+	return execute_command(cmd.name, rest, mode)
 }
 
 fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.RenderMode) int {
+	if cmd_name == 'version' {
+		ver := agent_toolkit_core.resolve_toolkit_version()
+		return render(agent_toolkit_core.version_result(ver), mode)
+	}
 	if cmd_name == 'inventory' {
 		snap := agent_toolkit_core.load_inventory() or {
 			e := agent_toolkit_core.err_env('root.missing', err.msg())
@@ -435,9 +484,7 @@ fn insights_subcommand(args []string) string {
 fn insights_help_text() string {
 	return 'insights — AI tool usage analytics (removed from the product CLI; #526).
 
-Not ported to V. The Python quarantine that used to implement this was deleted.
-
-See docs/v/advanced-command-disposition.md and docs/v/python-fallback.md.
+Not ported to V. See docs/v/advanced-command-disposition.md and docs/v/python-fallback.md.
 '
 }
 

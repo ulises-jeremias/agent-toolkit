@@ -5,7 +5,7 @@ import cli
 
 // build_root_command constructs the vlib/cli Command tree (docs/v/vlib-cli-spike.md).
 // Groups mirror docs/CLI_SURFACES.md. Nested families match cli_groups.v style.
-// Dispatch does not call Command.parse (exit-code wrapper); it walks this tree.
+// Production dispatch uses Command.parse + execute callbacks (see handlers.v).
 pub fn build_root_command() cli.Command {
 	ver := agent_toolkit_core.resolve_toolkit_version()
 	mut app := cli.Command{
@@ -15,6 +15,8 @@ pub fn build_root_command() cli.Command {
 		posix_mode:  true
 		sort_flags:  false
 		sort_commands: false
+		pre_execute: root_pre_exec
+		execute:     root_exec
 		defaults:    struct {
 			help:    true
 			version: false // custom -V / version command (contract: agent-toolkit <ver>)
@@ -69,6 +71,8 @@ pub fn build_root_command() cli.Command {
 		release_command(),
 		swarm_command(),
 	])
+	promote_family_flags(mut app)
+	wire_executes(mut app)
 	app.setup()
 	return app
 }

@@ -61,3 +61,7 @@ Rollback: [docs/v/rollback.md](../v/rollback.md). Cutover narrative: [docs/v/cut
 - Program [#456](https://github.com/ulises-jeremias/agent-toolkit/issues/456)
 
 **Verified:** 2026-08-13
+
+## Amendment (2026-08-14)
+
+Cutover [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) completed: the product `agent-toolkit` command is the **V** binary (PyPI trampoline / native channels). The strangler dual-runtime period described above is closed; Python is no longer a fallback CLI ([python-fallback.md](../v/python-fallback.md)).
