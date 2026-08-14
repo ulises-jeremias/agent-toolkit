@@ -472,7 +472,7 @@ fn matrix_command() cli.Command {
 fn release_command() cli.Command {
 	return cli.Command{
 		name:        'release'
-		description: 'Not in V — maintainer artifacts live in CI / docs/RELEASING.md'
+		description: 'Not in V — use CI / docs/RELEASING.md (#527)'
 		group:       'Advanced commands'
 	}
 }
