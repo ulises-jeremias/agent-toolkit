@@ -3,10 +3,17 @@
 // Prefer this over Makefile; a thin Makefile forwards for muscle memory
 // (`make test` → `v run make.vsh test`).
 //
-// Style: vlib `build` task runner (same pattern as bobatea/make.vsh).
+// Uses vlib `build` (same idea as bobatea/make.vsh and the upstream example):
+//   https://github.com/vlang/v/tree/master/vlib/build
+//   https://github.com/vlang/v/blob/master/examples/build_system/build.vsh
+//
 // Usage: v run make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
 
 import build
+
+const v_modules = ['agent_toolkit_core', 'agent_toolkit_cli']
+const build_dir = 'build'
+const cli_out = 'build/agent-toolkit'
 
 fn root_dir() string {
 	d := dir(@FILE)
@@ -32,12 +39,11 @@ fn v_system(cmd_args string) int {
 	return system('"${vb}" ${cmd_args}')
 }
 
-fn ensure_v(root string) {
+fn ensure_v(root string) ! {
 	vb := v_bin()
 	res := execute('"${vb}" version')
 	if res.exit_code != 0 {
-		eprintln('v not found; install V matching .v-version (or set V/VBIN)')
-		exit(1)
+		return error('v not found; install V matching .v-version (or set V/VBIN)')
 	}
 	pin_path := join_path(root, '.v-version')
 	if is_file(pin_path) {
@@ -54,60 +60,12 @@ fn ensure_v(root string) {
 	}
 }
 
-fn run_for_modules(root string, label string, args string) {
-	modules := ['agent_toolkit_core', 'agent_toolkit_cli']
-	for m in modules {
+fn run_for_modules(root string, label string, args string) ! {
+	for m in v_modules {
 		println('==> ${label} ${m}')
 		rc := v_system('${args} ${join_path(root, 'modules', m)}')
 		if rc != 0 {
-			exit(rc)
-		}
-	}
-}
-
-fn build_cli(root string) {
-	ensure_v(root)
-	mkdir_all(join_path(root, 'build')) or {}
-	mut commit := 'unknown'
-	cres := execute('git -C ${root} rev-parse --short HEAD')
-	if cres.exit_code == 0 {
-		commit = cres.output.trim_space()
-	}
-	rc := v_system('-d commit=${commit} -o ${join_path(root, 'build', 'agent-toolkit')} ${join_path(root, 'cmd', 'agent-toolkit')}')
-	if rc != 0 {
-		exit(rc)
-	}
-	cp(join_path(root, 'build', 'agent-toolkit'), join_path(root, 'build', 'agent-toolkit-v')) or {}
-}
-
-fn install_cli(root string) {
-	build_cli(root)
-	mut prefix := getenv('PREFIX')
-	if prefix.len == 0 {
-		prefix = join_path(home_dir(), '.local')
-	}
-	bindir := join_path(prefix, 'bin')
-	mkdir_all(bindir) or {}
-	dest := join_path(bindir, 'agent-toolkit')
-	cp(join_path(root, 'build', 'agent-toolkit'), dest) or {}
-	chmod(dest, 0o755) or {}
-	println('Installed ${dest} (V canonical). Rollback: docs/v/rollback.md')
-}
-
-fn build_modules(root string) {
-	ensure_v(root)
-	modules := ['agent_toolkit_core', 'agent_toolkit_cli']
-	for m in modules {
-		println('==> build ${m}')
-		tmpdir := join_path(temp_dir(), 'atk-build-${m}')
-		rmdir_all(tmpdir) or {}
-		mkdir_all(tmpdir) or {}
-		main_v := join_path(tmpdir, 'main.v')
-		write_file(main_v, 'module main\nimport ${m} as _\nfn main() {}\n') or {}
-		rc := v_system('-o ${join_path(tmpdir, 'out')} ${main_v}')
-		rmdir_all(tmpdir) or {}
-		if rc != 0 {
-			exit(rc)
+			return error('${label} failed for ${m} (exit ${rc})')
 		}
 	}
 }
@@ -120,7 +78,7 @@ fn print_help(root string) {
 	println('  v run make.vsh vet           Vet V modules')
 	println('  v run make.vsh test          Run V unit tests')
 	println('  v run make.vsh build         Typecheck/compile smoke for each module')
-	println('  v run make.vsh build-cli     Build canonical V binary to build/agent-toolkit')
+	println('  v run make.vsh build-cli     Build canonical V binary to ${cli_out}')
 	println('  v run make.vsh install-cli   Install V binary to PREFIX/bin/agent-toolkit')
 	println('  v run make.vsh compile-make  Precompile this script to ./make')
 }
@@ -132,6 +90,26 @@ mut context := build.context(
 	default: 'help'
 )
 
+// `_` prefix = private task (still runnable; not meant as the primary UX).
+// See examples/build_system/build.vsh in vlang/v.
+context.task(
+	name: '_ensure_v'
+	help: 'Verify V toolchain matches .v-version'
+	run:  fn [root] (self build.Task) ! {
+		ensure_v(root)!
+	}
+)
+
+context.task(
+	name: '_mkdirs'
+	help: 'Ensure build/ exists'
+	run:  fn [root] (self build.Task) ! {
+		mkdir_all(join_path(root, build_dir)) or {
+			return error('mkdir ${build_dir} failed: ${err}')
+		}
+	}
+)
+
 context.task(
 	name: 'help'
 	help: 'Show V targets (default)'
@@ -141,79 +119,127 @@ context.task(
 )
 
 context.task(
-	name: 'fmt'
-	help: 'Format V modules (v fmt -w)'
-	run:  fn [root] (self build.Task) ! {
-		ensure_v(root)
-		run_for_modules(root, 'fmt', 'fmt -w')
+	name:    'fmt'
+	help:    'Format V modules (v fmt -w)'
+	depends: ['_ensure_v']
+	run:     fn [root] (self build.Task) ! {
+		run_for_modules(root, 'fmt', 'fmt -w')!
 	}
 )
 
 context.task(
-	name: 'fmt-check'
-	help: 'Verify V formatting (v fmt -verify)'
-	run:  fn [root] (self build.Task) ! {
-		ensure_v(root)
-		run_for_modules(root, 'fmt-check', 'fmt -verify')
+	name:    'fmt-check'
+	help:    'Verify V formatting (v fmt -verify)'
+	depends: ['_ensure_v']
+	run:     fn [root] (self build.Task) ! {
+		run_for_modules(root, 'fmt-check', 'fmt -verify')!
 	}
 )
 
 context.task(
-	name: 'vet'
-	help: 'Vet V modules'
-	run:  fn [root] (self build.Task) ! {
-		ensure_v(root)
-		run_for_modules(root, 'vet', 'vet')
+	name:    'vet'
+	help:    'Vet V modules'
+	depends: ['_ensure_v']
+	run:     fn [root] (self build.Task) ! {
+		run_for_modules(root, 'vet', 'vet')!
 	}
 )
 
 context.task(
-	name: 'test'
-	help: 'Run V unit tests for agent_toolkit_core and agent_toolkit_cli'
-	run:  fn [root] (self build.Task) ! {
-		ensure_v(root)
-		run_for_modules(root, 'test', 'test')
+	name:    'test'
+	help:    'Run V unit tests for agent_toolkit_core and agent_toolkit_cli'
+	depends: ['_ensure_v']
+	run:     fn [root] (self build.Task) ! {
+		run_for_modules(root, 'test', 'test')!
 	}
 )
 
 context.task(
-	name: 'build'
-	help: 'Typecheck/compile smoke for each V module'
-	run:  fn [root] (self build.Task) ! {
-		build_modules(root)
+	name:    'build'
+	help:    'Typecheck/compile smoke for each V module'
+	depends: ['_ensure_v']
+	run:     fn (_ build.Task) ! {
+		for m in v_modules {
+			println('==> build ${m}')
+			tmpdir := join_path(temp_dir(), 'atk-build-${m}')
+			rmdir_all(tmpdir) or {}
+			mkdir_all(tmpdir) or { return error('mkdir tmp failed: ${err}') }
+			main_v := join_path(tmpdir, 'main.v')
+			write_file(main_v, 'module main\nimport ${m} as _\nfn main() {}\n') or {
+				return error('write tmp main.v failed: ${err}')
+			}
+			rc := v_system('-o ${join_path(tmpdir, 'out')} ${main_v}')
+			rmdir_all(tmpdir) or {}
+			if rc != 0 {
+				return error('build smoke failed for ${m} (exit ${rc})')
+			}
+		}
 	}
 )
 
 context.task(
-	name: 'build-cli'
-	help: 'Build canonical V binary to build/agent-toolkit'
-	run:  fn [root] (self build.Task) ! {
-		build_cli(root)
+	name:    'build-cli'
+	help:    'Build canonical V binary to build/agent-toolkit'
+	depends: ['_ensure_v', '_mkdirs']
+	run:     fn [root] (self build.Task) ! {
+		mut commit := 'unknown'
+		cres := execute('git -C ${root} rev-parse --short HEAD')
+		if cres.exit_code == 0 {
+			commit = cres.output.trim_space()
+		}
+		out := join_path(root, cli_out)
+		rc := v_system('-d commit=${commit} -o ${out} ${join_path(root, 'cmd', 'agent-toolkit')}')
+		if rc != 0 {
+			return error('build-cli failed (exit ${rc})')
+		}
+		cp(out, join_path(root, build_dir, 'agent-toolkit-v')) or {}
 	}
 )
 
 context.task(
-	name: 'install-cli'
-	help: 'Build and install V binary to PREFIX/bin/agent-toolkit'
-	run:  fn [root] (self build.Task) ! {
-		install_cli(root)
+	name:    'install-cli'
+	help:    'Install V binary to PREFIX/bin/agent-toolkit'
+	depends: ['build-cli']
+	run:     fn [root] (self build.Task) ! {
+		mut prefix := getenv('PREFIX')
+		if prefix.len == 0 {
+			prefix = join_path(home_dir(), '.local')
+		}
+		bindir := join_path(prefix, 'bin')
+		mkdir_all(bindir) or { return error('mkdir bindir failed: ${err}') }
+		src := join_path(root, cli_out)
+		mut from := src
+		if !is_file(from) {
+			exe := src + '.exe'
+			if is_file(exe) {
+				from = exe
+			} else {
+				return error('missing ${src}; build-cli did not produce a binary')
+			}
+		}
+		dest := join_path(bindir, 'agent-toolkit')
+		cp(from, dest) or { return error('install copy failed: ${err}') }
+		chmod(dest, 0o755) or {}
+		println('Installed ${dest} (V canonical). Rollback: docs/v/rollback.md')
 	}
 )
 
 context.task(
-	name: 'compile-make'
-	help: 'Precompile make.vsh to ./make (add /make to .gitignore)'
-	run:  fn [root] (self build.Task) ! {
-		ensure_v(root)
+	name:    'compile-make'
+	help:    'Precompile make.vsh to ./make (gitignored; see vlib/build README)'
+	depends: ['_ensure_v']
+	run:     fn [root] (self build.Task) ! {
 		vb := v_bin()
 		script := join_path(root, 'make.vsh')
 		out := join_path(root, 'make')
+		// Equivalent to `v -prod -skip-running make.vsh -o make` / `v build make.vsh`.
 		rc := system('"${vb}" -prod -skip-running ${script} -o ${out}')
 		if rc != 0 {
-			exit(rc)
+			return error('compile-make failed (exit ${rc})')
 		}
 		println('Wrote ${out}')
 	}
 )
 
+// Iterate os.args and run each task (skips flags like --tasks).
 context.run()
