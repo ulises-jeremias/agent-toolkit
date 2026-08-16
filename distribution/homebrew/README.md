@@ -1,5 +1,12 @@
 # Homebrew adapter
 
+<div align="center">
+
+[![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+
+</div>
+
 **Issue:** [#538](https://github.com/ulises-jeremias/agent-toolkit/issues/538) · **ADR:** [`docs/adrs/ADR-023-homebrew.md`](../../docs/adrs/ADR-023-homebrew.md) (discussion: [#490](https://github.com/ulises-jeremias/agent-toolkit/issues/490))
 
 **Owner:** [`ulises-jeremias/homebrew-tap`](https://github.com/ulises-jeremias/homebrew-tap) (not this tree). Notify: `.github/workflows/notify-homebrew.yml`.

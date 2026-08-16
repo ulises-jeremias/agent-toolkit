@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — Add npm / PyPI version + downloads, AUR, Homebrew, GHCR, and GitHub Release badges to the root README and published adapter READMEs; align AUR install examples to `agent-toolkit-bin`
 - **Docs/CI** — Invoke shebang `.vsh` scripts as `./scripts/…` / `./make.vsh` (not `v run scripts/…`); Windows GHA keeps `"${VBIN}" run make.vsh` exception
 - **Fixed** — `bump-version.vsh` updates `generatorVersion` in `plugins/*/.provenance.json` (not only digests / `"version"` sidecars)
 - **Breaking (contributor)** — Retire `scripts/gen-surfaces.vsh` and CI `check-surfaces` ([ADR-003](docs/adrs/ADR-003-retire-gen-surfaces.md) Remove). Sole surface gates: `agent-toolkit build --check` + `agent-toolkit plugin check`

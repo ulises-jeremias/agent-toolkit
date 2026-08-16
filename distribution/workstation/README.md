@@ -1,5 +1,15 @@
 # Agentic Workstation adapter
 
+<div align="center">
+
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+[![AUR](https://img.shields.io/aur/version/agent-toolkit-bin?style=flat&label=AUR&labelColor=1f2937&logo=archlinux&logoColor=white)](https://aur.archlinux.org/packages/agent-toolkit-bin)
+[![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
+[![PyPI](https://img.shields.io/pypi/v/agent-toolkit-cli?style=flat&label=PyPI&labelColor=1f2937&color=7c3aed&logo=pypi&logoColor=white)](https://pypi.org/project/agent-toolkit-cli/)
+[![npm](https://img.shields.io/npm/v/agent-toolkit-cli?style=flat&label=npm&labelColor=1f2937&color=7c3aed&logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-toolkit-cli)
+
+</div>
+
 **Epic:** [#469](https://github.com/ulises-jeremias/agent-toolkit/issues/469)  
 **Consumer issue:** [agentic-workstation#206](https://github.com/ulises-jeremias/agentic-workstation/issues/206)  
 **Consumer docs:** [agentic-workstation/docs/AGENT_TOOLKIT.md](https://github.com/ulises-jeremias/agentic-workstation/blob/main/docs/AGENT_TOOLKIT.md)

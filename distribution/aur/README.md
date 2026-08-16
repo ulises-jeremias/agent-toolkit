@@ -1,5 +1,13 @@
 # AUR adapter
 
+<div align="center">
+
+[![AUR](https://img.shields.io/aur/version/agent-toolkit-bin?style=flat&label=AUR&labelColor=1f2937&logo=archlinux&logoColor=white)](https://aur.archlinux.org/packages/agent-toolkit-bin)
+[![AUR votes](https://img.shields.io/aur/votes/agent-toolkit-bin?style=flat&label=votes&labelColor=1f2937&color=0891b2)](https://aur.archlinux.org/packages/agent-toolkit-bin)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+
+</div>
+
 **Issue:** [#539](https://github.com/ulises-jeremias/agent-toolkit/issues/539) · **ADR:** [#491](https://github.com/ulises-jeremias/agent-toolkit/issues/491) (ADR-024)
 
 **Owner:** [`ulises-jeremias/aur-packages`](https://github.com/ulises-jeremias/aur-packages) (not this tree). Playbook: [docs/AUR_PLAYBOOK.md](../../docs/AUR_PLAYBOOK.md). Notify: `.github/workflows/notify-aur.yml`.

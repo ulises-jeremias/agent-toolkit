@@ -1,5 +1,12 @@
 # GitHub Release adapter
 
+<div align="center">
+
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/ulises-jeremias/agent-toolkit/total?style=flat&label=downloads&labelColor=1f2937&color=0891b2)](https://github.com/ulises-jeremias/agent-toolkit/releases)
+
+</div>
+
 **Owner:** this repository (`.github/workflows/release.yml`).  
 **Names:** [ADR-018](../../docs/adrs/ADR-018-release-artifacts.md).
 

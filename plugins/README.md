@@ -1,8 +1,27 @@
+<p align="center">
+  <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/banner.svg?raw=true" width="100%" alt="agent-toolkit banner">
+</p>
+
+<div align="center">
+
 # Plugins
+
+**Agent Plugins 1.0 portable bundles** plus legacy Claude Code / Cursor marketplaces.
+
+[![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](../LICENSE)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+[![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+
+[Monorepo](https://github.com/ulises-jeremias/agent-toolkit) ·
+[Installation](../docs/INSTALLATION.md) ·
+[Agent Plugins spec](../docs/AGENT_PLUGINS.md)
+
+</div>
 
 This directory contains marketplace plugin bundles — now **Agent Plugins 1.0 portable** + legacy Claude Code / Cursor.
 
-## Plugins
+## Bundles
 
 | Plugin | What's included | Portable (Agent Plugins 1.0) | Legacy |
 |--------|----------------|------------------------------|--------|

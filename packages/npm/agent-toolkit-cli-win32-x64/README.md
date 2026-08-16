@@ -9,7 +9,9 @@
 **Native V binary** for Windows x64 — optionalDependency of [`agent-toolkit-cli`](https://www.npmjs.com/package/agent-toolkit-cli).
 
 [![npm](https://img.shields.io/npm/v/agent-toolkit-cli-win32-x64?style=flat&labelColor=1f2937&color=7c3aed)](https://www.npmjs.com/package/agent-toolkit-cli-win32-x64)
+[![npm downloads](https://img.shields.io/npm/dm/agent-toolkit-cli-win32-x64?style=flat&label=downloads&labelColor=1f2937&color=0891b2)](https://www.npmjs.com/package/agent-toolkit-cli-win32-x64)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
 [![os](https://img.shields.io/badge/os-win32-0891b2?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md)
 [![cpu](https://img.shields.io/badge/cpu-x64-ea580c?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/adrs/ADR-025-npm-binary.md)
 

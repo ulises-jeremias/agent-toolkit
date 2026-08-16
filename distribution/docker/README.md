@@ -1,5 +1,12 @@
 # Docker adapter
 
+<div align="center">
+
+[![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+
+</div>
+
 **Issue:** [#537](https://github.com/ulises-jeremias/agent-toolkit/issues/537)  
 **Workflow:** `.github/workflows/docker.yml`  
 **Image:** `ghcr.io/ulises-jeremias/agent-toolkit`

@@ -1,5 +1,14 @@
 # PyPI adapter
 
+<div align="center">
+
+[![PyPI](https://img.shields.io/pypi/v/agent-toolkit-cli?style=flat&label=PyPI&labelColor=1f2937&color=7c3aed&logo=pypi&logoColor=white)](https://pypi.org/project/agent-toolkit-cli/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/agent-toolkit-cli?style=flat&label=downloads&labelColor=1f2937&color=0891b2)](https://pypi.org/project/agent-toolkit-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/agent-toolkit-cli?style=flat&labelColor=1f2937)](https://pypi.org/project/agent-toolkit-cli/)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+
+</div>
+
 **Issue:** [#535](https://github.com/ulises-jeremias/agent-toolkit/issues/535) · **ADR:** [ADR-021](../../docs/adrs/ADR-021-pypi-binary.md)
 
 **Layout** (npm parallel under `packages/`):

@@ -31,7 +31,7 @@ See [docs/CONCEPTS.md](docs/CONCEPTS.md) and [packs/README.md](packs/README.md) 
    - **Repo or snippet** (no secrets, license OK — MIT/Apache-2.0 preferred)
    - **Screenshot or GIF** if helpful
 
-We will curate accepted showcases into this file and link them from [README.md](README.md#community).
+We will curate accepted showcases into this file and link them from [README.md](README.md#showcase).
 
 ## Guidelines
 

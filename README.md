@@ -13,8 +13,18 @@
 [![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
 [![MegaLinter](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/mega-linter.yml?branch=main&label=MegaLinter&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/mega-linter.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+[![Discord](https://img.shields.io/discord/1527933660764831825?style=flat&label=Discord&labelColor=1f2937&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/bR5VyATgka)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
 [![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
+
+[![npm](https://img.shields.io/npm/v/agent-toolkit-cli?style=flat&label=npm&labelColor=1f2937&color=7c3aed&logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-toolkit-cli)
+[![npm downloads](https://img.shields.io/npm/dm/agent-toolkit-cli?style=flat&label=npm%20downloads&labelColor=1f2937&color=0891b2)](https://www.npmjs.com/package/agent-toolkit-cli)
+[![PyPI](https://img.shields.io/pypi/v/agent-toolkit-cli?style=flat&label=PyPI&labelColor=1f2937&color=7c3aed&logo=pypi&logoColor=white)](https://pypi.org/project/agent-toolkit-cli/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/agent-toolkit-cli?style=flat&label=PyPI%20downloads&labelColor=1f2937&color=0891b2)](https://pypi.org/project/agent-toolkit-cli/)
+[![AUR](https://img.shields.io/aur/version/agent-toolkit-bin?style=flat&label=AUR&labelColor=1f2937&logo=archlinux&logoColor=white)](https://aur.archlinux.org/packages/agent-toolkit-bin)
+[![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
+[![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
 
 ![skills](https://img.shields.io/badge/skills-77-7c3aed?style=flat&labelColor=1f2937)
 ![agents](https://img.shields.io/badge/agents-17-0891b2?style=flat&labelColor=1f2937)
@@ -203,14 +213,15 @@ npx skills add ulises-jeremias/agent-toolkit -g
 </details>
 
 <details>
-<summary><strong>Homebrew / AUR</strong> — system package managers</summary>
+<summary><strong>Homebrew / AUR / GHCR</strong> — system packages and container</summary>
 
-Formulas live in dedicated repos ([homebrew-tap](https://github.com/ulises-jeremias/homebrew-tap), [aur-packages](https://github.com/ulises-jeremias/aur-packages)); release workflows notify them on tag.
+Formulas live in dedicated repos ([homebrew-tap](https://github.com/ulises-jeremias/homebrew-tap), [aur-packages](https://github.com/ulises-jeremias/aur-packages)); release workflows notify them on tag. The container image ships the same GitHub Release V binary.
 
 ```bash
 brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
-yay -S agent-toolkit-bin   # Arch Linux (AUR) — GitHub Release V binary
+yay -S agent-toolkit-bin   # Arch Linux (AUR) — GitHub Release V binary; not the Python AUR package
 npm i -g agent-toolkit-cli # optionalDependencies platform packages
+docker pull ghcr.io/ulises-jeremias/agent-toolkit
 ```
 
 </details>
@@ -513,12 +524,12 @@ See [How to add a skill](docs/HOW_TO_ADD_SKILL.md) for the full authoring guide.
 
 [📖 Docs](docs/) · [🐛 Issues](https://github.com/ulises-jeremias/agent-toolkit/issues) ·
 [💬 Discussions](https://github.com/ulises-jeremias/agent-toolkit/discussions) ·
+[Discord](https://discord.gg/bR5VyATgka) ·
 [MIT License](LICENSE)
 
 <sub>Built for the agentic age — one toolkit, every assistant.</sub>
 
 </div>
-
 
 ## Showcase
 

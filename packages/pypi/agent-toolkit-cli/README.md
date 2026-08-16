@@ -9,9 +9,17 @@
 **The official CLI for [agent-toolkit](https://github.com/ulises-jeremias/agent-toolkit)** — install skills, agents, loops, and MCP configs across every major AI coding assistant.
 
 [![PyPI](https://img.shields.io/pypi/v/agent-toolkit-cli?style=flat&labelColor=1f2937&color=7c3aed)](https://pypi.org/project/agent-toolkit-cli/)
+[![PyPI downloads](https://img.shields.io/pypi/dm/agent-toolkit-cli?style=flat&label=downloads&labelColor=1f2937&color=0891b2)](https://pypi.org/project/agent-toolkit-cli/)
 [![Python](https://img.shields.io/pypi/pyversions/agent-toolkit-cli?style=flat&labelColor=1f2937)](https://pypi.org/project/agent-toolkit-cli/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/LICENSE)
 [![Validate](https://img.shields.io/github/actions/workflow/status/ulises-jeremias/agent-toolkit/validate.yml?branch=main&label=validate&style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/actions/workflows/validate.yml)
+[![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
+
+[![npm](https://img.shields.io/npm/v/agent-toolkit-cli?style=flat&label=npm&labelColor=1f2937&color=7c3aed&logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-toolkit-cli)
+[![AUR](https://img.shields.io/aur/version/agent-toolkit-bin?style=flat&label=AUR&labelColor=1f2937&logo=archlinux&logoColor=white)](https://aur.archlinux.org/packages/agent-toolkit-bin)
+[![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
+[![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
+[![Discord](https://img.shields.io/discord/1527933660764831825?style=flat&label=Discord&labelColor=1f2937&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/bR5VyATgka)
 
 ![skills](https://img.shields.io/badge/skills-77-7c3aed?style=flat&labelColor=1f2937)
 ![agents](https://img.shields.io/badge/agents-17-0891b2?style=flat&labelColor=1f2937)
@@ -23,6 +31,7 @@
 [![Copilot](https://img.shields.io/badge/GitHub%20Copilot-instructions-16a34a?style=flat&labelColor=1f2937&logo=github&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/tree/main/profiles/copilot)
 [![Windsurf](https://img.shields.io/badge/Windsurf-rules-2563eb?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/tree/main/profiles/windsurf)
 [![Pi](https://img.shields.io/badge/Pi%20Agent-skills-db2777?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/tree/main/profiles/pi)
+[![Muse Code](https://img.shields.io/badge/Muse%20Code-skills-ff6b35?style=flat&labelColor=1f2937)](https://developer.meta.com/ai/products/muse-code/)
 
 [Monorepo](https://github.com/ulises-jeremias/agent-toolkit) ·
 [Docs](https://github.com/ulises-jeremias/agent-toolkit/tree/main/docs) ·
@@ -79,7 +88,8 @@ pipx install agent-toolkit-cli
 
 # System packages (release notify → dedicated taps)
 brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
-yay -S agent-toolkit   # Arch Linux (AUR)
+yay -S agent-toolkit-bin   # Arch Linux (AUR) — GitHub Release V binary; not the Python AUR package
+docker pull ghcr.io/ulises-jeremias/agent-toolkit
 ```
 
 Full walkthrough: [docs/INSTALLATION.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/INSTALLATION.md)
@@ -135,6 +145,7 @@ Full walkthrough: [docs/INSTALLATION.md](https://github.com/ulises-jeremias/agen
 | **GitHub Copilot** | `copilot-instructions.md` with domain selection |
 | **Windsurf** | Rules and memory files via Cascade (`~/.codeium/windsurf/`) |
 | **Pi Agent** | Skills and loop templates in Pi's native format |
+| **Muse Code** | Agent Skills under `~/.config/muse/skills/` |
 
 ```bash
 # Target specific tools
@@ -300,6 +311,6 @@ uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --h
 
 <div align="center">
 
-**MIT** © [ulises-jeremias](https://github.com/ulises-jeremias) · [PyPI](https://pypi.org/project/agent-toolkit-cli/) · [GitHub](https://github.com/ulises-jeremias/agent-toolkit)
+**MIT** © [ulises-jeremias](https://github.com/ulises-jeremias) · [PyPI](https://pypi.org/project/agent-toolkit-cli/) · [npm](https://www.npmjs.com/package/agent-toolkit-cli) · [AUR](https://aur.archlinux.org/packages/agent-toolkit-bin) · [GitHub](https://github.com/ulises-jeremias/agent-toolkit)
 
 </div>
