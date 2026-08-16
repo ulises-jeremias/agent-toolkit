@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Chore** — Add `scripts/validate-loops.vsh` (python3+jsonschema); `validate.yml` `validate-loops` job calls it
 - **Chore** — Archive legacy `schemas/skill.schema.json` → `docs/archive/` (skill.json removed; see [MIGRATION.md](docs/MIGRATION.md)); `products.yaml` `version_source: VERSION`
 - **Docs** — Present-tense V-first contributor docs (AGENT.md, generated catalogs, no `installer/sources.py`); move strangler-era `docs/v/*` to `docs/v/archive/`; ROADMAP post-1.14; ADR-003/004/007/012 amendments; `docs/adrs/README.md` index; Homebrew formula PR permissions note ([#735](https://github.com/ulises-jeremias/agent-toolkit/pull/735))
+- **CI** — Skip Docker image smoke when GitHub Release `v$(VERSION)` does not exist yet (version-bump chicken-egg; `Release.yml` still publishes after assets)
 
 ## [1.14.1] — 2026-08-14
 

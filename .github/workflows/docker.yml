@@ -72,8 +72,23 @@ jobs:
             type=ref,event=branch
             type=sha
 
+      # Dockerfile curls GitHub Release assets for ARG VERSION. Bump PRs / the
+      # main push of the bump commit run before tag vX.Y.Z exists (404).
+      - name: Check VERSION GitHub Release exists
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No GitHub Release $TAG yet — skip image smoke (version-bump chicken-egg). Release.yml publishes after assets exist."
+          fi
+
       - name: Build native image (PR smoke)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.rel.outputs.exists == 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -85,13 +100,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Smoke native image
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.rel.outputs.exists == 'true'
         run: docker run --rm agent-toolkit:ci version
 
       # Push-to-main is smoke-only so VERSION bumps cannot publish before
       # GitHub Release assets. Release.yml passes publish=true via workflow_call.
       - name: Build native image (main smoke)
-        if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true'
+        if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true' && steps.rel.outputs.exists == 'true'
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -103,7 +118,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Smoke native image (main)
-        if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true'
+        if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true' && steps.rel.outputs.exists == 'true'
         run: docker run --rm agent-toolkit:ci version
 
       - name: Require Release assets before push
