@@ -58,7 +58,7 @@ Tool compatibility is declared via optional `tools` frontmatter and validated by
 
 ## Skill Domains
 
-Skills live under `skills/<domain>/<name>/`. There are **14 domains** (77 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
+Skills live under `skills/<domain>/<name>/`. There are **14 domains** (80 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
 
 | Domain | Count | Examples |
 |--------|------:|----------|

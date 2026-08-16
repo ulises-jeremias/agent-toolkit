@@ -21,7 +21,7 @@
 [![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
 [![Discord](https://img.shields.io/discord/1527933660764831825?style=flat&label=Discord&labelColor=1f2937&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/bR5VyATgka)
 
-![skills](https://img.shields.io/badge/skills-77-7c3aed?style=flat&labelColor=1f2937)
+![skills](https://img.shields.io/badge/skills-80-7c3aed?style=flat&labelColor=1f2937)
 ![agents](https://img.shields.io/badge/agents-17-0891b2?style=flat&labelColor=1f2937)
 ![loops](https://img.shields.io/badge/loops-10-ea580c?style=flat&labelColor=1f2937)
 
@@ -104,7 +104,7 @@ Full walkthrough: [docs/INSTALLATION.md](https://github.com/ulises-jeremias/agen
       <h3>🛠️ Skills</h3>
       <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery, forge CLIs, design, data, ops.</sub>
       <br><br>
-      <sub>77 skills across domains. Browse with <code>agent-toolkit inventory</code> or <code>agent-toolkit skills list</code>.</sub>
+      <sub>80 skills across domains. Browse with <code>agent-toolkit inventory</code> or <code>agent-toolkit skills list</code>.</sub>
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
