@@ -11,7 +11,7 @@
 [![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
 [![License: MIT](https://img.shields.io/badge/license-MIT-7c3aed?style=flat&labelColor=1f2937)](https://github.com/ulises-jeremias/agent-toolkit/blob/main/LICENSE)
 [![Release](https://img.shields.io/github/v/release/ulises-jeremias/agent-toolkit?style=flat&label=release&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/releases/latest)
-![skills](https://img.shields.io/badge/skills-77-7c3aed?style=flat&labelColor=1f2937)
+![skills](https://img.shields.io/badge/skills-80-7c3aed?style=flat&labelColor=1f2937)
 
 [Monorepo](https://github.com/ulises-jeremias/agent-toolkit) ·
 [Products](https://github.com/ulises-jeremias/agent-toolkit/blob/main/distributions/products.yaml) ·
