@@ -10,16 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-- **Docs** — Add npm / PyPI version + downloads, AUR, Homebrew, GHCR, and GitHub Release badges to the root README and published adapter READMEs; align AUR install examples to `agent-toolkit-bin`
-- **Docs** — Refresh `static/*.svg` to current inventory (v1.14.1, 80 skills, 7 tools including Muse Code, all 10 loop names, install channels); align live docs that still said 77 skills
-- **Docs/CI** — Invoke shebang `.vsh` scripts as `./scripts/…` / `./make.vsh` (not `v run scripts/…`); Windows GHA keeps `"${VBIN}" run make.vsh` exception
+## [1.15.0] — 2026-08-16
+
+- **Feat** — Restore literal upstream skill bodies and weekly sync PRs ([#737](https://github.com/ulises-jeremias/agent-toolkit/pull/737))
+- **Docs** — Add npm / PyPI version + downloads, AUR, Homebrew, GHCR, and GitHub Release badges to the root README and published adapter READMEs; align AUR install examples to `agent-toolkit-bin` ([#738](https://github.com/ulises-jeremias/agent-toolkit/pull/738))
+- **Docs** — Refresh `static/*.svg` to current inventory (80 skills, 7 tools including Muse Code, all 10 loop names, install channels); align live docs that still said 77 skills ([#739](https://github.com/ulises-jeremias/agent-toolkit/pull/739))
+- **Docs/CI** — Invoke shebang `.vsh` scripts as `./scripts/…` / `./make.vsh` (not `v run scripts/…`); Windows GHA keeps `"${VBIN}" run make.vsh` exception ([#736](https://github.com/ulises-jeremias/agent-toolkit/pull/736))
 - **Fixed** — `bump-version.vsh` updates `generatorVersion` in `plugins/*/.provenance.json` (not only digests / `"version"` sidecars)
-- **Breaking (contributor)** — Retire `scripts/gen-surfaces.vsh` and CI `check-surfaces` ([ADR-003](docs/adrs/ADR-003-retire-gen-surfaces.md) Remove). Sole surface gates: `agent-toolkit build --check` + `agent-toolkit plugin check`
+- **Breaking (contributor)** — Retire `scripts/gen-surfaces.vsh` and CI `check-surfaces` ([ADR-003](docs/adrs/ADR-003-retire-gen-surfaces.md) Remove). Sole surface gates: `agent-toolkit build --check` + `agent-toolkit plugin check` ([#734](https://github.com/ulises-jeremias/agent-toolkit/pull/734))
 - **CI** — Add Required `check-v-modules` (`./make.vsh vet` / `test`; fmt-check deferred — modules not fully vfmt'ed / json2 risk); drop `coverage` and `test-uvx` from Required (`test-uvx` = published PyPI smoke on main/dispatch only); `experimental-v.yml` is `workflow_dispatch` only; unify V install via `setup-v` in validate/parity/release/experimental
 - **Chore** — Remove dead `scripts/validate-skills.sh`, `scripts/install.sh`, and `scripts/doctor.sh`; docs/CI use V CLI and `*.vsh` validators ([ADR-007](docs/adrs/ADR-007-install-sh-deprecation.md) Remove phase)
 - **Chore** — Add `scripts/validate-loops.vsh` (python3+jsonschema); `validate.yml` `validate-loops` job calls it
 - **Chore** — Archive legacy `schemas/skill.schema.json` → `docs/archive/` (skill.json removed; see [MIGRATION.md](docs/MIGRATION.md)); `products.yaml` `version_source: VERSION`
-- **Docs** — Present-tense V-first contributor docs (AGENT.md, generated catalogs, no `installer/sources.py`); move strangler-era `docs/v/*` to `docs/v/archive/`; ROADMAP post-1.14; ADR-003/004/007/012 amendments; `docs/adrs/README.md` index; Homebrew formula PR permissions note
+- **Docs** — Present-tense V-first contributor docs (AGENT.md, generated catalogs, no `installer/sources.py`); move strangler-era `docs/v/*` to `docs/v/archive/`; ROADMAP post-1.14; ADR-003/004/007/012 amendments; `docs/adrs/README.md` index; Homebrew formula PR permissions note ([#735](https://github.com/ulises-jeremias/agent-toolkit/pull/735))
 
 ## [1.14.1] — 2026-08-14
 
@@ -487,7 +490,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.14.1...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.15.0...HEAD
+[1.15.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.15.0
 [1.14.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.14.1
 [1.14.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.14.0
 [1.13.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.13.0

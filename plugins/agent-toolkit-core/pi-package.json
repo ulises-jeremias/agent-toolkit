@@ -1,6 +1,6 @@
 {
   "name": "@agent-toolkit/agent-toolkit-core",
-  "version": "1.14.1",
+  "version": "1.15.0",
   "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
   "license": "MIT",
   "repository": {
