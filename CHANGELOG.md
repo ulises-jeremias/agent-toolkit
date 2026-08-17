@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.15.1] — 2026-08-17
+
+- **Docs** — Make `static/*.svg` command-accurate: real `agent-toolkit install` / documented install paths and per-tool dests from `install.v`; drop invented `~/toolkit --mode=production`, `muse skills install`, Copilot/OpenCode agents-or-skills checkmarks, Cursor `marketplace.json` as an install dest, Pi loops, and L3 `agentic-harness`
+
 ## [1.15.0] — 2026-08-16
 
 - **Feat** — Restore literal upstream skill bodies and weekly sync PRs ([#737](https://github.com/ulises-jeremias/agent-toolkit/pull/737))
@@ -491,7 +495,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.15.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.15.1...HEAD
+[1.15.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.15.1
 [1.15.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.15.0
 [1.14.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.14.1
 [1.14.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.14.0

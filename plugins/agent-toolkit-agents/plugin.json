@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-agents",
-  "version": "1.15.0",
+  "version": "1.15.1",
   "description": "Full set of 17 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
   "author": {
     "name": "ulises-jeremias",
