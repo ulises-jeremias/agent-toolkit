@@ -13,23 +13,24 @@ sources:
   role: wrapper
   repository: vercel-labs/agent-skills
   path: skills/web-design-guidelines
-  ref: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
+  ref: ba46938889d4e58635362fb8f618e1178ac3ec46
   license: NOASSERTION
+  version: ba46938
 - id: rules
   role: rules
   repository: vercel-labs/web-interface-guidelines
   path: command.md
-  ref: 4e799d45c17aec1498c269287a83b9dba22b966b
+  ref: d0a657bfe87e86dd3a4753d7ec28c7e7dd7a88fe
   license: MIT
+  version: d0a657b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-14'
+  tier: experimental
+  reviewed_at: '2026-08-17'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2
 maintenance:
   status: active
   last_activity: '2026-07-24'
-  last_checked: '2026-08-14'
+  last_checked: '2026-08-17'
 distribution:
   mode: vendored
   redistribution_allowed: false

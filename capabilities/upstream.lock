@@ -1,73 +1,75 @@
 capabilities:
   design/frontend-design:
-    provenance_digest: sha256:a58fd159210cf5773748b973cbda5dcdb0bb04c42b47422b19ec523bb880f748
+    provenance_digest: sha256:536ce9f8721850aa7f4585f955b970d68dbb65754eb16727f969f74897e08f14
     sources:
       upstream:
         path: skills/frontend-design
         repository: anthropics/skills
         requested:
-          ref: f17010c9bb483898c1d9c9f42dde2b3a98889434
+          ref: 2235be7c60b551f5de82ade908fd3816455afcda
           type: commit
         resolved:
           body_checksum: sha256:0df36fd5b075c15a2948a233edfb5ada7ffe34309ada32b2fd6d248522a4e9a7
-          commit: f17010c9bb483898c1d9c9f42dde2b3a98889434
-          content_checksum: sha256:31aae178b8fb590f608a2524687934594607ddd995535d5571c988f1c951ffb9
+          commit: 2235be7c60b551f5de82ade908fd3816455afcda
+          content_checksum: sha256:496b46bae87d80797b16e2a4f8bfbb129a58c01fc92273f616e9a2706a94a9d5
           license:
             checksum: sha256:0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594
             source_path: skills/design/frontend-design/LICENSE.txt
             spdx: Apache-2.0
-          resolved_at: '2026-08-14T18:56:03.313181Z'
-          version: f17010c
+          resolved_at: '2026-08-17T06:18:30.609016Z'
+          version: 2235be7
   design/frontend-design-review:
-    provenance_digest: sha256:73a3738779cb374d505c889bddb8fbb0020a42a6f428a74fdd7990d6550d01bf
+    provenance_digest: sha256:4588cdd310c7f9146472b46042c037e56551e7cc8de7bc531d55526dc4b27ee4
     sources:
       upstream:
         path: .github/skills/frontend-design-review
         repository: microsoft/skills
         requested:
-          ref: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
+          ref: cbfd1b6652debe08f9d329d713b382a1a0db2e3e
           type: commit
         resolved:
           body_checksum: sha256:13029dfb9274aac92db5869c5977ff4923af1f213ab9571cd4f0b701829c1a78
-          commit: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
-          content_checksum: sha256:9e6b4ccf09d56866875e86463643b654484751536aabd7558f307cfa032455cc
+          commit: cbfd1b6652debe08f9d329d713b382a1a0db2e3e
+          content_checksum: sha256:ef092b9914a688e303dc6e1b285f551afbf1f5a0877a3e4440461e64de42cf5d
           license:
             checksum: sha256:d9a1b1e30d633d5732ea18e3cba9538d293ebc53e1a9e4e96ab739e0c5c4f1cb
             source_path: skills/design/frontend-design-review/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-14T18:56:03.313181Z'
-          version: e58528d
+          resolved_at: '2026-08-17T06:18:30.609016Z'
+          version: cbfd1b6
   design/web-design-guidelines:
-    provenance_digest: sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2
+    provenance_digest: sha256:e90edd3a7272e160a4a07850c3d30475c5f98fc7cae330adf1cae0dd956877b7
     sources:
       rules:
         path: command.md
         repository: vercel-labs/web-interface-guidelines
         requested:
-          ref: 4e799d45c17aec1498c269287a83b9dba22b966b
+          ref: d0a657bfe87e86dd3a4753d7ec28c7e7dd7a88fe
           type: commit
         resolved:
           body_checksum: sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab
-          commit: 4e799d45c17aec1498c269287a83b9dba22b966b
+          commit: d0a657bfe87e86dd3a4753d7ec28c7e7dd7a88fe
           content_checksum: sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab
           license:
             checksum: sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2
             source_path: skills/design/web-design-guidelines/references/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-14T18:56:03.313181Z'
+          resolved_at: '2026-08-17T06:18:30.609016Z'
+          version: d0a657b
       wrapper:
         path: skills/web-design-guidelines
         repository: vercel-labs/agent-skills
         requested:
-          ref: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
+          ref: ba46938889d4e58635362fb8f618e1178ac3ec46
           type: commit
         resolved:
           body_checksum: sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f
-          commit: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
-          content_checksum: sha256:167ee30dd4224bc066445c7b6cecb5b5fb8139efcee093b6accd569c163df79d
+          commit: ba46938889d4e58635362fb8f618e1178ac3ec46
+          content_checksum: sha256:817ec884a4668893b76e8633816f882e52cbbd256708569710245ac68de4744d
           license:
             spdx: NOASSERTION
-          resolved_at: '2026-08-14T18:56:03.313181Z'
+          resolved_at: '2026-08-17T06:18:30.609016Z'
+          version: ba46938
   quality/megalinter:
     provenance_digest: sha256:8b16ee6b8b06d23c052b473cd5fee724b51e245891a276912b9a522b4be21ca4
     sources:
