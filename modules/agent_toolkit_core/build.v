@@ -119,6 +119,30 @@ pub fn run_build(opts BuildOptions) BuildReport {
 		}
 	}
 
+	if 'cursor' in targets {
+		mp_out_root := if write { repo } else { work_root }
+		mp_work := os.join_path(mp_out_root, '.cursor-plugin', 'marketplace.json')
+		mut mp_result := CompilationResult{
+			target:  'cursor'
+			product: 'marketplace'
+		}
+		mut mp_records := []ArtifactRecord{}
+		write_cursor_marketplace(mp_work, graph, mp_out_root, mut mp_result, mut mp_records)
+		if !mp_result.is_valid() {
+			report.ok = false
+			lines << mp_result.report()
+		} else if opts.check {
+			committed_mp := os.join_path(repo, '.cursor-plugin', 'marketplace.json')
+			if !os.is_file(committed_mp) {
+				report.drift << 'missing in repo: .cursor-plugin/marketplace.json'
+				report.ok = false
+			} else if os.is_file(mp_work) && file_digest(mp_work) != file_digest(committed_mp) {
+				report.drift << 'content digest mismatch: .cursor-plugin/marketplace.json'
+				report.ok = false
+			}
+		}
+	}
+
 	if opts.check && report.ok {
 		lines << '✅ build --check: Tier-1 compile + plugin drift OK'
 	} else if opts.check && !report.ok {

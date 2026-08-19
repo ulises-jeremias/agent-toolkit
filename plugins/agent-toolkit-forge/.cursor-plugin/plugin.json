@@ -1,5 +1,6 @@
 {
   "name": "agent-toolkit-forge",
+  "displayName": "Agent Toolkit Forge",
   "version": "1.15.1",
   "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
   "author": {
@@ -15,5 +16,13 @@
     "cursor",
     "skills",
     "agents"
-  ]
+  ],
+  "category": "developer-tools",
+  "tags": [
+    "github",
+    "gitlab",
+    "ci",
+    "pr"
+  ],
+  "skills": "./skills/"
 }

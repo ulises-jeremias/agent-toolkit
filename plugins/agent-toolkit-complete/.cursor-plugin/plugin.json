@@ -1,5 +1,6 @@
 {
   "name": "agent-toolkit-complete",
+  "displayName": "Agent Toolkit Complete",
   "version": "1.15.1",
   "description": "Full stable skill catalog coverage for consumers who want everything (",
   "author": {
@@ -15,5 +16,8 @@
     "cursor",
     "skills",
     "agents"
-  ]
+  ],
+  "category": "productivity",
+  "tags": [],
+  "skills": "./skills/"
 }

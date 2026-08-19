@@ -107,7 +107,7 @@ fn emit_cursor(mut result CompilationResult, mut records []ArtifactRecord, graph
 	manifest_path := os.join_path(out_dir, '.cursor-plugin', 'plugin.json')
 	keywords := ['agent-toolkit', product.id.replace('agent-toolkit-', ''), 'cursor', 'skills',
 		'agents']
-	write_plugin_manifest(manifest_path, product, keywords, output_root, mut result, mut records)
+	write_cursor_plugin_manifest(manifest_path, product, keywords, output_root, mut result, mut records)
 	if result.errors.len > 0 {
 		return
 	}
@@ -116,7 +116,7 @@ fn emit_cursor(mut result CompilationResult, mut records []ArtifactRecord, graph
 		output_root)
 	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
 		output_root)
-	result.unsupported << 'hooks (pending canonical hook model — Cursor uses workspaceOpen/sessionStart events)'
+	result.warnings << 'hooks (pending-adapter — canonical hook model not emitted; Cursor supports workspaceOpen/sessionStart events)'
 	result.unsupported << 'mcp (.cursor/mcp.json — user configures manually; not bundled in plugin)'
 	result.unsupported << 'cursor-rules (.mdc) — generated as a separate profile surface, not in plugin bundle'
 }
@@ -258,6 +258,118 @@ fn write_plugin_manifest(path string, product LoadedProduct, keywords []string, 
 		'  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
 		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
 		'  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]\n}\n'
+	write_text_artifact(path, body, 'generated', output_root, mut result, mut records)
+}
+
+struct CursorProductMeta {
+	category string
+	tags     []string
+}
+
+pub fn cursor_marketplace_product_ids() []string {
+	return ['agent-toolkit-core', 'agent-toolkit-agents', 'agent-toolkit-forge']
+}
+
+fn cursor_product_meta(product_id string) CursorProductMeta {
+	return match product_id {
+		'agent-toolkit-core' {
+			CursorProductMeta{
+				category: 'productivity'
+				tags:     ['core', 'orchestrator', 'assistant']
+			}
+		}
+		'agent-toolkit-agents' {
+			CursorProductMeta{
+				category: 'productivity'
+				tags:     ['agents', 'subagents', 'review']
+			}
+		}
+		'agent-toolkit-forge' {
+			CursorProductMeta{
+				category: 'developer-tools'
+				tags:     ['github', 'gitlab', 'ci', 'pr']
+			}
+		}
+		else {
+			CursorProductMeta{
+				category: 'productivity'
+				tags:     []
+			}
+		}
+	}
+}
+
+fn json_string_array(items []string) string {
+	if items.len == 0 {
+		return '[]'
+	}
+	mut parts := []string{}
+	for item in items {
+		parts << '"${json_escape(item)}"'
+	}
+	return '[\n    ${parts.join(',\n    ')}\n  ]'
+}
+
+fn write_cursor_plugin_manifest(path string, product LoadedProduct, keywords []string, output_root string, mut result CompilationResult, mut records []ArtifactRecord) {
+	ver := resolve_toolkit_version()
+	meta := cursor_product_meta(product.id)
+	mut fields := []string{}
+	fields << '"name": "${json_escape(product.id)}"'
+	fields << '"displayName": "${json_escape(product.name)}"'
+	fields << '"version": "${json_escape(ver)}"'
+	fields << '"description": "${json_escape(product.description)}"'
+	fields << '"author": {\n    "name": "ulises-jeremias",\n    "email": "ulisescf.24@gmail.com"\n  }'
+	fields << '"homepage": "https://github.com/ulises-jeremias/agent-toolkit"'
+	fields << '"repository": "https://github.com/ulises-jeremias/agent-toolkit"'
+	fields << '"license": "MIT"'
+	fields << '"keywords": ${json_string_array(keywords)}'
+	fields << '"category": "${json_escape(meta.category)}"'
+	fields << '"tags": ${json_string_array(meta.tags)}'
+	if product.included_skills.len > 0 {
+		fields << '"skills": "./skills/"'
+	}
+	if product.included_agents.len > 0 {
+		fields << '"agents": "./agents/"'
+	}
+	mut lines := []string{}
+	lines << '{'
+	for i, field in fields {
+		comma := if i < fields.len - 1 { ',' } else { '' }
+		lines << '  ${field}${comma}'
+	}
+	lines << '}'
+	lines << ''
+	body := lines.join('\n')
+	write_text_artifact(path, body, 'generated', output_root, mut result, mut records)
+}
+
+pub fn write_cursor_marketplace(path string, graph CanonicalGraph, output_root string, mut result CompilationResult, mut records []ArtifactRecord) {
+	ver := resolve_toolkit_version()
+	mut plugin_lines := []string{}
+	for product_id in cursor_marketplace_product_ids() {
+		product := graph.select_product(product_id) or {
+			result.errors << "cursor marketplace: product '${product_id}' not found"
+			return
+		}
+		meta := cursor_product_meta(product_id)
+		mut entry := []string{}
+		entry << '    {'
+		entry << '      "name": "${json_escape(product.id)}",'
+		entry << '      "source": "${json_escape(product.id)}",'
+		entry << '      "description": "${json_escape(product.description)}",'
+		entry << '      "version": "${json_escape(ver)}",'
+		entry << '      "category": "${json_escape(meta.category)}",'
+		entry << '      "tags": ${json_string_array(meta.tags)}'
+		entry << '    }'
+		plugin_lines << entry.join('\n')
+	}
+	body := '{\n' + '  "name": "agent-toolkit",\n' +
+		'  "owner": {\n' + '    "name": "ulises-jeremias",\n' +
+		'    "email": "ulisescf.24@gmail.com"\n' + '  },\n' +
+		'  "metadata": {\n' +
+		'    "description": "Composable AI agent capabilities for Cursor \\u2014 skills, agents, and automation for every major workflow.",\n' +
+		'    "version": "${json_escape(ver)}",\n' + '    "pluginRoot": "plugins"\n' + '  },\n' +
+		'  "plugins": [\n${plugin_lines.join(',\n')}\n  ]\n}\n'
 	write_text_artifact(path, body, 'generated', output_root, mut result, mut records)
 }
 

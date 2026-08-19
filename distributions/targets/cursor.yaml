@@ -26,8 +26,8 @@ capabilities:
     method: manual
     note: User configures ~/.cursor/mcp.json; not bundled in plugin compile output
   hooks:
-    supported: false
-    method: unsupported
+    supported: true
+    method: pending-adapter
     note: Platform supports hooks; toolkit pending canonical hook model (#16)
   commands:
     supported: unknown-blocked

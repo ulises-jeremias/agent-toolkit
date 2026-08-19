@@ -13,39 +13,39 @@
     {
       "name": "agent-toolkit-core",
       "source": "agent-toolkit-core",
-      "description": "Core orchestrator, dev companion, output handshake, PR fallback, knowledge sync, and code-reviewer agent",
+      "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
       "version": "1.15.1",
       "category": "productivity",
       "tags": [
-        "core",
-        "orchestrator",
-        "assistant"
-      ]
+    "core",
+    "orchestrator",
+    "assistant"
+  ]
     },
     {
       "name": "agent-toolkit-agents",
       "source": "agent-toolkit-agents",
-      "description": "Full set of AI agent personas: architect, code-reviewer, security-reviewer, planner, and 12 more",
+      "description": "Full set of 17 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.",
       "version": "1.15.1",
       "category": "productivity",
       "tags": [
-        "agents",
-        "subagents",
-        "review"
-      ]
+    "agents",
+    "subagents",
+    "review"
+  ]
     },
     {
       "name": "agent-toolkit-forge",
       "source": "agent-toolkit-forge",
-      "description": "GitHub and GitLab automation: PR workflows, CI fixes, comment resolution",
+      "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
       "version": "1.15.1",
       "category": "developer-tools",
       "tags": [
-        "github",
-        "gitlab",
-        "ci",
-        "pr"
-      ]
+    "github",
+    "gitlab",
+    "ci",
+    "pr"
+  ]
     }
   ]
 }

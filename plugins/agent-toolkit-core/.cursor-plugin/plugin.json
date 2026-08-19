@@ -1,5 +1,6 @@
 {
   "name": "agent-toolkit-core",
+  "displayName": "Agent Toolkit Core",
   "version": "1.15.1",
   "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
   "author": {
@@ -15,5 +16,13 @@
     "cursor",
     "skills",
     "agents"
-  ]
+  ],
+  "category": "productivity",
+  "tags": [
+    "core",
+    "orchestrator",
+    "assistant"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/"
 }

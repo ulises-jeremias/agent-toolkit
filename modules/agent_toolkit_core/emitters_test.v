@@ -42,6 +42,15 @@ fn test_compile_cursor_temp_product() {
 	assert 'agent:code-reviewer' in r.emitted
 	assert 'provenance' in r.emitted
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', '.cursor-plugin', 'plugin.json'))
+	manifest := os.read_file(os.join_path(out, 'agent-toolkit-core', '.cursor-plugin', 'plugin.json')) or {
+		assert false, 'missing manifest'
+		return
+	}
+	assert manifest.contains('"displayName"'), manifest
+	assert manifest.contains('"skills": "./skills/"'), manifest
+	assert manifest.contains('"agents": "./agents/"'), manifest
+	assert manifest.contains('"category"'), manifest
+	assert manifest.contains('"tags"'), manifest
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', 'skills', 'assistant', 'SKILL.md'))
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', 'agents', 'code-reviewer', 'AGENT.md'))
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', '.provenance.json'))
