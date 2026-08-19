@@ -14,7 +14,7 @@ For machine-readable triggers and `depends_on`, also read bundled `skill-catalog
 |--------|--------|---------------|
 | Orchestration | **assistant** (this skill) | Default entry; repo discovery; conflict resolution |
 | Delivery companion | **dev-companion** | Client/account delivery framing; modes and gates |
-| Workspace memory | **workspace-knowledge-sync** | Persist learnings/todos across sessions |
+| Workspace memory | **workspace-knowledge-sync** | Persist learnings/todos and learned facts across sessions |
 | Handoff | **output-handshake** | Where to save deliverables; human review gates |
 | Onboarding | **onboarding** | New developer / toolkit setup |
 

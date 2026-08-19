@@ -45,7 +45,7 @@ If engagement triggers match, load the appropriate **workspace pack overlay** fi
 | Prose quality before PR | **unslop** |
 | Code slop in diff | **deslop** |
 | Large change scope | **blast-radius** |
-| Session learnings | **workspace-knowledge-sync** |
+| Session learnings | **workspace-knowledge-sync** | Learned facts, preferences, todos — search before add; no secrets |
 | Where to save deliverables + human review | **output-handshake** |
 | UI depth | **figma** / **figma-implement-design** |
 | Workstation health | **triage** |
