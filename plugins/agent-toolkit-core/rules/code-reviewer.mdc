@@ -52,3 +52,9 @@ Organize by priority:
 **💡 Suggestion** (consider): ...
 
 Include code snippets showing the fix for each critical and warning item.
+## Delegate to skills
+
+- Escalated maintainability / structural review → `quality/deep-review` (thermos-inspired rubric; load when user asks for deep or architecture-heavy review)
+- CI failures blocking merge → `forge/gh-fix-ci` (log triage; plan before coding)
+- Static quality gates → `quality/megalinter-check` (if configured)
+

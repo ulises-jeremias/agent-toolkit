@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 4 products × 80 skills × 17 agents._
+_Generated from 4 products × 82 skills × 17 agents._
 
 ## Products and targets
 
@@ -10,8 +10,8 @@ _Generated from 4 products × 80 skills × 17 agents._
 |---------|-----------|---------|--------|--------|
 | `agent-toolkit-core` | stable | claude-code, cursor, requires, security | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 17 |
-| `agent-toolkit-forge` | stable | claude-code, cursor | 7 | 0 |
-| `agent-toolkit-complete` | experimental | — | 80 | 0 |
+| `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
+| `agent-toolkit-complete` | experimental | — | 82 | 0 |
 
 ## Skills → Products
 
@@ -66,6 +66,7 @@ _Generated from 4 products × 80 skills × 17 agents._
 | `design/frontend-design` | `agent-toolkit-complete` | — |
 | `design/frontend-design-review` | `agent-toolkit-complete` | — |
 | `design/web-design-guidelines` | `agent-toolkit-complete` | — |
+| `forge/fix-merge-conflicts` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-address-comments` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-contribution-planner` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gh-fix-ci` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
@@ -87,6 +88,7 @@ _Generated from 4 products × 80 skills × 17 agents._
 | `ops/swarm-observer` | `agent-toolkit-complete` | — |
 | `ops/triage` | `agent-toolkit-complete` | — |
 | `quality/codeql` | `agent-toolkit-complete` | — |
+| `quality/deep-review` | `agent-toolkit-complete` | — |
 | `quality/megalinter` | `agent-toolkit-complete` | — |
 | `quality/megalinter-check` | `agent-toolkit-complete` | — |
 | `quality/megalinter-fix` | `agent-toolkit-complete` | — |

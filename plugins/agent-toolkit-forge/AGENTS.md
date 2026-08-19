@@ -4,6 +4,7 @@ GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution,
 
 ## Available Skills
 
+- **fix-merge-conflicts**: forge/fix-merge-conflicts
 - **github-cli-workflow**: forge/github-cli-workflow
 - **gitlab-cli-workflow**: forge/gitlab-cli-workflow
 - **gh-address-comments**: forge/gh-address-comments

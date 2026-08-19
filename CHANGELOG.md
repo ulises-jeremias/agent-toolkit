@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — Enhance `forge/gh-fix-ci` with cursor `fix-ci` log triage patterns and `metadata.inspired_by` (#749)
+- **Feat** — Add first-party `forge/fix-merge-conflicts` skill; wire assistant/dev-companion delegates (#750)
+- **Feat** — Extend `core/workspace-knowledge-sync` with learned-facts workflow; `inspired_by` continual-learning (#751)
+- **Feat** — Add first-party `quality/deep-review` thermos-inspired rubric; wire `code-reviewer` agent (#755)
+
 - **Docs** — Add upstream vs first-party governance (`docs/UPSTREAM_VS_FIRST_PARTY.md`), skill integration checklist, and `ORCHESTRATION.md` routing table (Epic #743, Wave 0)
 
 - **Docs** — Make `static/*.svg` command-accurate: real `agent-toolkit install` / documented install paths and per-tool dests from `install.v`; drop invented `~/toolkit --mode=production`, `muse skills install`, Copilot/OpenCode agents-or-skills checkmarks, Cursor `marketplace.json` as an install dest, Pi loops, and L3 `agentic-harness`

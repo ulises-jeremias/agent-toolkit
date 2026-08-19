@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 80
+count: 82
 skills:
   - id: accessibility/review
     name: review
@@ -80,7 +80,7 @@ skills:
   - id: core/workspace-knowledge-sync
     name: workspace-knowledge-sync
     domain: core
-    description: 'Syncs knowledge to the agentic-harness knowledge base. Use when the assistant discovers new patterns, learns user preferences, or identifies information worth preserving for future sessions. Integrate'
+    description: 'Syncs knowledge to the agentic-harness knowledge base. Use when the assistant discovers new patterns, learns user preferences, records learned facts, or identifies information worth preserving for fut'
     stability: stable
   - id: data/dbt-validation
     name: dbt-validation
@@ -247,6 +247,11 @@ skills:
     domain: design
     description: 'Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices".'
     stability: stable
+  - id: forge/fix-merge-conflicts
+    name: fix-merge-conflicts
+    domain: forge
+    description: 'Resolve merge or rebase conflict markers non-interactively, validate build and tests, and summarize resolution choices. Use when git reports conflicts during merge/rebase, the user asks to fix merge c'
+    stability: stable
   - id: forge/gh-address-comments
     name: gh-address-comments
     domain: forge
@@ -351,6 +356,11 @@ skills:
     name: codeql
     domain: quality
     description: 'CodeQL operational workflow — discover/config, run/inspect, triage SARIF findings (rule/query ID, source→sink, evidence), remediate, re-validate. Distinguishes broad MegaLinter linting from semant'
+    stability: stable
+  - id: quality/deep-review
+    name: deep-review
+    domain: quality
+    description: 'Escalated maintainability review with a strict structural rubric. Use for deep code quality audit, thermo-nuclear review, architecture-heavy PR review, or when standard review is insufficient for stru'
     stability: stable
   - id: quality/megalinter
     name: megalinter

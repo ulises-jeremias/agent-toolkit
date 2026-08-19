@@ -44,6 +44,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **frontend-design-review**: design/frontend-design-review
 - **web-design-guidelines**: design/web-design-guidelines
 - **supply-chain-audit**: agentic-security/supply-chain-audit
+- **fix-merge-conflicts**: forge/fix-merge-conflicts
 - **gh-address-comments**: forge/gh-address-comments
 - **gh-contribution-planner**: forge/gh-contribution-planner
 - **gh-fix-ci**: forge/gh-fix-ci
@@ -69,6 +70,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **mcp-audit**: agentic-security/mcp-audit
 - **owasp-agentic-review**: agentic-security/owasp-agentic-review
 - **threat-modeling**: agentic-security/threat-modeling
+- **deep-review**: quality/deep-review
 - **megalinter**: quality/megalinter
 - **megalinter-setup**: quality/megalinter-setup
 - **megalinter-check**: quality/megalinter-check

@@ -57,3 +57,10 @@ These are agents defined in `~/.claude/agents/` — they are NOT skills.
 
 ## Output
 Cite sources (which file the convention came from). Surface conflicts explicitly. Ask when instructions are ambiguous rather than assuming.
+
+## Delegate to skills
+
+- Merge / rebase conflicts → `forge/fix-merge-conflicts`
+- CI failures on GitHub → `forge/gh-fix-ci`
+- GitHub PR lifecycle → `forge/github-cli-workflow`
+- Workspace memory / learned facts → `core/workspace-knowledge-sync`
