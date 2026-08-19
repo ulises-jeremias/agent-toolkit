@@ -7,8 +7,8 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-14T19:01:00.924276Z
-Capabilities with external provenance: 7 (first-party omitted; lock is sparse)
+Generated: 2026-08-19T05:54:15.797983Z
+Capabilities with external provenance: 8 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
 
@@ -170,6 +170,29 @@ Capabilities with external provenance: 7 (first-party omitted; lock is sparse)
 - **Observed license:** `AGPL-3.0` source_path=`skills/quality/megalinter-setup/LICENSE` checksum=`sha256:0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0`
   - Declaration expected `license: AGPL-3.0` — mismatch requires review
 - **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`v10.0.0`
+
+## `tooling/cli-for-agents`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-19 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:8a04cbe405bced60ca66cc792a51dca4d2991f094d21ec0997ad85911212d3be` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
+- **Provenance digest:** `sha256:8a04cbe405bced60ca66cc792a51dca4d2991f094d21ec0997ad85911212d3be`
+
+### Source `upstream` — `cursor/plugins/cli-for-agent/skills/cli-for-agents`
+
+- **Repository:** `cursor/plugins`
+- **Path:** `cli-for-agent/skills/cli-for-agents`
+- **Requested:** `commit` `60c641e4fad674784b30abcf9f8915dea39df38d` (declaration intent)
+- **Resolved commit:** `60c641e4fad674784b30abcf9f8915dea39df38d`
+- **Content checksum:** `sha256:f80e1e61532df792fdd05b1eec6d4bfa0d677377b33a16106655c93850ed1d85`
+- **Body checksum:** `sha256:2209fe1d8853f769c5e5b1385788d3d3ee0a790caa82fe0544c8a648e380bca9` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/tooling/cli-for-agents/LICENSE` checksum=`sha256:702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-19T05:48:30.826955Z` version=`?`
+
+- **Per-skill attribution:** `skills/tooling/cli-for-agents/UPSTREAM.md`
 
 ---
 

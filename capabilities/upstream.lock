@@ -144,4 +144,22 @@ capabilities:
             spdx: AGPL-3.0
           resolved_at: '2026-08-14T18:56:03.313181Z'
           version: v10.0.0
+  tooling/cli-for-agents:
+    provenance_digest: sha256:8a04cbe405bced60ca66cc792a51dca4d2991f094d21ec0997ad85911212d3be
+    sources:
+      upstream:
+        path: cli-for-agent/skills/cli-for-agents
+        repository: cursor/plugins
+        requested:
+          ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+          type: commit
+        resolved:
+          body_checksum: sha256:2209fe1d8853f769c5e5b1385788d3d3ee0a790caa82fe0544c8a648e380bca9
+          commit: 60c641e4fad674784b30abcf9f8915dea39df38d
+          content_checksum: sha256:f80e1e61532df792fdd05b1eec6d4bfa0d677377b33a16106655c93850ed1d85
+          license:
+            checksum: sha256:702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0
+            source_path: skills/tooling/cli-for-agents/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-19T05:48:30.826955Z'
 version: 2

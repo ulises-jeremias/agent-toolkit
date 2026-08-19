@@ -63,6 +63,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **swarm-observer**: ops/swarm-observer
 - **triage**: ops/triage
 - **herdr**: tooling/herdr
+- **cli-for-agents**: tooling/cli-for-agents
 - **inventory**: tooling/inventory
 - **jupyter-notebook**: tooling/jupyter-notebook
 - **review**: accessibility/review

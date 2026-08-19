@@ -186,10 +186,17 @@ Use **`skill-catalog.yaml`** next to bundled skills for domains, triggers and **
 | --- | --- | --- |
 | GitHub PR review threads | **`gh-address-comments`** | Current-branch PR; pairs with **`github-cli-workflow`** for push/PR updates |
 | GitHub Actions failures | **`gh-fix-ci`** | Fetch logs + snippet; plan before coding; pairs with **`planning`** |
+| Merge / rebase conflicts | **`fix-merge-conflicts`** | Resolve conflict markers; preserve authorship |
+| Prose / docs anti-slop | **`unslop`** | PR text, comments, docs before final review |
+| Diff-scoped code cleanup | **`deslop`** | Redundant code in changed hunks only |
+| Change impact / scope | **`blast-radius`** | Before large refactors; pairs with **`architect`** / **`planner`** |
+| Agent-facing CLI design | **`cli-for-agents`** | Building or reviewing CLIs for agent use |
+| Workspace learnings | **`workspace-knowledge-sync`** | Persist facts/todos across sessions |
 | Draft PR / MR | **`github-cli-workflow`**, **`gitlab-cli-workflow`** | After **`output-handshake`** / **`pr-fallback`** when needed |
 | Linear | **`linear`** | Linear MCP (OAuth); issues, cycles, docs |
 | Figma | **`figma`** (entry), **`figma-implement-design`**, **`figma-code-connect-components`**, **`figma-create-design-system-rules`**, **`figma-create-new-file`** | MCP templates under `~/.local/share//mcp/figma/` |
 | Figma design | **`figma`** / **`figma-implement-design`** | Design-to-code via Figma MCP; use **`figma-create-design-system-rules`** for system rules |
+| Agent-facing CLI design | **`cli-for-agents`** | Building or reviewing CLIs for agent/automation use |
 | Playwright | **`playwright-cli`** | CLI browser automation from the shell |
 | Playwright **test** specs | **`e2e-runner`** | Not the same as **`playwright-cli`** |
 | Jupyter notebooks | **`jupyter-notebook`** | Scaffold via **`newnotebook`** |

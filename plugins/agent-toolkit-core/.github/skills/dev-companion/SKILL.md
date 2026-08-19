@@ -40,6 +40,12 @@ If engagement triggers match, load the appropriate **workspace pack overlay** fi
 | Jira | External **jira-*** pack (**jira-assistant** router; CLI: `jira-as`) |
 | Confluence | External **confluence-*** pack (**confluence-assistant** router; CLI: `confluence-as` or `confluence`) |
 | Draft PR GitHub / GitLab | **github-cli-workflow** / **gitlab-cli-workflow** (for default body when the repo has no template: **pr-fallback** first) |
+| CI failures (GitHub Actions) | **gh-fix-ci** |
+| Merge / rebase conflicts | **fix-merge-conflicts** |
+| Prose quality before PR | **unslop** |
+| Code slop in diff | **deslop** |
+| Large change scope | **blast-radius** |
+| Session learnings | **workspace-knowledge-sync** |
 | Where to save deliverables + human review | **output-handshake** |
 | UI depth | **figma** / **figma-implement-design** |
 | Workstation health | **triage** |

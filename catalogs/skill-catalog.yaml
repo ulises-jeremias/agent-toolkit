@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 80
+count: 81
 skills:
   - id: accessibility/review
     name: review
@@ -376,6 +376,11 @@ skills:
     name: chrome-devtools
     domain: tooling
     description: 'Use Chrome DevTools MCP to control and inspect a live Chrome instance for network, console, performance, rendering, and Deep debugging. Pairs with playwright-cli (deterministic interaction/E2E) — co'
+    stability: stable
+  - id: tooling/cli-for-agents
+    name: cli-for-agents
+    domain: tooling
+    description: '>- Designs or reviews CLIs so coding agents can run them reliably: non-interactive flags, layered --help with examples, stdin/pipelines, fast actionable errors, idempotency, dry-run, and predictable s'
     stability: stable
   - id: tooling/herdr
     name: herdr
