@@ -192,7 +192,6 @@ Use **`skill-catalog.yaml`** next to bundled skills for domains, triggers and **
 | Change impact / scope | **`blast-radius`** | Before large refactors; pairs with **`architect`** / **`planner`** |
 | Agent-facing CLI design | **`cli-for-agents`** | Building or reviewing CLIs for agent use |
 | Workspace learnings | **`workspace-knowledge-sync`** | Persist facts/todos; record learned facts when user teaches preferences |
-| Deep / structural review | **`deep-review`** | Escalated maintainability rubric; pairs with **`@code-reviewer`** |
 | Draft PR / MR | **`github-cli-workflow`**, **`gitlab-cli-workflow`** | After **`output-handshake`** / **`pr-fallback`** when needed |
 | Linear | **`linear`** | Linear MCP (OAuth); issues, cycles, docs |
 | Figma | **`figma`** (entry), **`figma-implement-design`**, **`figma-code-connect-components`**, **`figma-create-design-system-rules`**, **`figma-create-new-file`** | MCP templates under `~/.local/share//mcp/figma/` |
