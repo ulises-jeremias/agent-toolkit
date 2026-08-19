@@ -50,6 +50,7 @@
       "web-design-guidelines"
     ],
     "forge": [
+      "fix-merge-conflicts",
       "gh-address-comments",
       "gh-contribution-planner",
       "gh-fix-ci",
@@ -84,6 +85,7 @@
       "playwright-cli"
     ],
     "quality": [
+      "deep-review",
       "codeql",
       "megalinter",
       "megalinter-check",
@@ -293,6 +295,11 @@
       "domain": "design"
     },
     {
+      "id": "forge/fix-merge-conflicts",
+      "name": "fix-merge-conflicts",
+      "domain": "forge"
+    },
+    {
       "id": "forge/gh-address-comments",
       "name": "gh-address-comments",
       "domain": "forge"
@@ -391,6 +398,11 @@
       "id": "ops/triage",
       "name": "triage",
       "domain": "ops"
+    },
+    {
+      "id": "quality/deep-review",
+      "name": "deep-review",
+      "domain": "quality"
     },
     {
       "id": "quality/codeql",

@@ -76,6 +76,7 @@ products:
     stability: stable
     includes:
       skills:
+        - forge/fix-merge-conflicts
         - forge/github-cli-workflow
         - forge/gitlab-cli-workflow
         - forge/gh-address-comments
@@ -145,6 +146,7 @@ products:
         - design/frontend-design-review
         - design/web-design-guidelines
         - agentic-security/supply-chain-audit
+        - forge/fix-merge-conflicts
         - forge/gh-address-comments
         - forge/gh-contribution-planner
         - forge/gh-fix-ci
@@ -170,6 +172,7 @@ products:
         - agentic-security/mcp-audit
         - agentic-security/owasp-agentic-review
         - agentic-security/threat-modeling
+        - quality/deep-review
         - quality/megalinter
         - quality/megalinter-setup
         - quality/megalinter-check
