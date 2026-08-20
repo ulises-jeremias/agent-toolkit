@@ -321,6 +321,7 @@ fn apply_tool_update(plan ToolUpdatePlan, _data_root string, home string, check_
 		lines << '  ✓ updated: ${display}'
 		updated++
 	}
+	_ = data_root
 	return updated, lines
 }
 
