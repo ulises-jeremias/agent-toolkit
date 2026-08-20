@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import pathlib
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "modules/agent_toolkit_core/embedded_data.v"
 DIRS = ["skills", "loops", "profiles", "mcp", "catalogs", "agents", "capabilities", "distributions", "plugins", "packs"]
