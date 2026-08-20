@@ -91,19 +91,21 @@ fn data_walk_rel(root string, cur string, mut out []string) {
 	}
 }
 
-// strip_embedded_prefix removes leading "embedded/" or "embedded" from a path.
+// strip_embedded_prefix removes leading "embedded/" or "embedded\\" from a path and normalizes \ to / for Windows.
 fn strip_embedded_prefix(path string) string {
-	if path == 'embedded' {
+	mut out := path
+	if out == 'embedded' {
 		return ''
 	}
-	if path.starts_with('embedded/') {
-		return path[9..]
+	if out.starts_with('embedded/') {
+		out = out[9..]
+	} else if out.starts_with('embedded\\') {
+		out = out[9..]
+	} else {
+		return out
 	}
-	// also handle "embedded\\"
-	if path.starts_with('embedded\\') {
-		return path[9..]
-	}
-	return path
+	// Normalize Windows separators to '/' for embedded map lookup (keys are POSIX)
+	return out.replace('\\', '/')
 }
 
 // data_map_tree_files is map_tree_files but handling embedded data_root.
