@@ -143,7 +143,21 @@ context.task(name: 'build', help: 'Compile-smoke each module', run: fn (_ build.
 	}
 })
 
-context.task(name: 'build-cli', help: 'Build build/agent-toolkit', run: fn [r] (_ build.Task) ! {
+context.task(name: 'gen-embedded', help: 'Generate modules/agent_toolkit_core/embedded_data.v', run: fn [r] (_ build.Task) ! {
+	gen := join_path(r, 'scripts', 'generate-embedded-data.py')
+	if is_file(gen) {
+		println('==> gen-embedded')
+		rc := system('python3 ${gen}')
+		if rc != 0 {
+			eprintln('gen-embedded failed')
+			exit(rc)
+		}
+	} else {
+		println('gen-embedded: ${gen} not found, skipping')
+	}
+})
+
+context.task(name: 'build-cli', help: 'Build build/agent-toolkit', depends: ['gen-embedded'], run: fn [r] (_ build.Task) ! {
 	mkdir_all(join_path(r, 'build')) or {}
 	mut commit := 'unknown'
 	cres := execute('git -C ${r} rev-parse --short HEAD')

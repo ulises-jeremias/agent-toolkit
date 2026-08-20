@@ -236,7 +236,8 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 	})
 	mut planned := 0
 	for m in mappings {
-		if !os.is_file(m.src) {
+		is_src_file := if m.src.starts_with('embedded/') { embedded_is_file(m.src[9..]) } else { os.is_file(m.src) }
+		if !is_src_file {
 			lines << '  ⚠  Source not found, skipping: ${m.src}'
 			continue
 		}
@@ -283,7 +284,11 @@ fn stage_install_mapping(mut tx InstallTransaction, m FileMapping, force bool) !
 		tx.stage_write_owned(m.dst, content, 'merged')!
 		return 'merged'
 	}
-	src := os.read_file(m.src) or { return error('read source failed: ${m.src}: ${err}') }
+	src := if m.src.starts_with('embedded/') {
+		embedded_read_file(m.src[9..]) or { return error('read source failed: ${m.src}: ${err}') }
+	} else {
+		os.read_file(m.src) or { return error('read source failed: ${m.src}: ${err}') }
+	}
 	if os.is_file(m.dst) {
 		existing := os.read_file(m.dst) or { return error('read dest failed: ${m.dst}: ${err}') }
 		if existing == src {
@@ -298,7 +303,11 @@ fn stage_install_mapping(mut tx InstallTransaction, m FileMapping, force bool) !
 }
 
 fn merge_json_install(src_path string, dst_path string) (string, string) {
-	src_text := os.read_file(src_path) or { return '', 'skipped' }
+	src_text := if src_path.starts_with('embedded/') {
+		embedded_read_file(src_path[9..]) or { return '', 'skipped' }
+	} else {
+		os.read_file(src_path) or { return '', 'skipped' }
+	}
 	dst_text := os.read_file(dst_path) or { return '', 'skipped' }
 	overlay := parse_flat_json_strings(src_text) or { return '', 'skipped' }
 	mut base := parse_flat_json_strings(dst_text) or { return '', 'skipped' }
@@ -390,34 +399,34 @@ fn install_source_present(tool string, data_root string) bool {
 	match tool {
 		'claude-code' {
 			profile := os.join_path(data_root, 'profiles', 'claude-code')
-			return os.is_dir(profile) || compiled_agent_files(data_root).len > 0
+			return data_is_dir(data_root, profile) || compiled_agent_files(data_root).len > 0
 		}
 		'cursor' {
-			return os.is_dir(os.join_path(data_root, 'profiles', 'cursor', 'rules'))
+			return data_is_dir(data_root, os.join_path(data_root, 'profiles', 'cursor', 'rules'))
 		}
 		'opencode' {
 			profile := os.join_path(data_root, 'profiles', 'opencode')
-			return os.is_dir(profile) || compiled_agent_files(data_root).len > 0
+			return data_is_dir(data_root, profile) || compiled_agent_files(data_root).len > 0
 		}
 		'windsurf' {
-			return os.is_dir(os.join_path(data_root, 'profiles', 'windsurf'))
+			return data_is_dir(data_root, os.join_path(data_root, 'profiles', 'windsurf'))
 		}
 		'pi' {
-			return os.is_dir(os.join_path(data_root, 'profiles', 'pi', 'skills'))
+			return data_is_dir(data_root, os.join_path(data_root, 'profiles', 'pi', 'skills'))
 		}
 		'muse-code' {
-			if os.is_dir(os.join_path(data_root, 'skills')) {
+			if data_is_dir(data_root, os.join_path(data_root, 'skills')) {
 				return true
 			}
-			if os.is_dir(os.join_path(data_root, 'profiles', 'muse-code')) {
+			if data_is_dir(data_root, os.join_path(data_root, 'profiles', 'muse-code')) {
 				return true
 			}
 			for prod in install_muse_products {
-				if os.is_dir(os.join_path(data_root, 'plugins', prod, 'skills')) {
+				if data_is_dir(data_root, os.join_path(data_root, 'plugins', prod, 'skills')) {
 					return true
 				}
 			}
-			return os.is_dir(os.join_path(data_root, 'plugins', 'muse-code', 'skills'))
+			return data_is_dir(data_root, os.join_path(data_root, 'plugins', 'muse-code', 'skills'))
 		}
 		else {
 			return false
@@ -431,7 +440,7 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 	match tool {
 		'claude-code' {
 			claude_md := os.join_path(data_root, 'profiles', 'claude-code', 'CLAUDE.md')
-			if os.is_file(claude_md) {
+			if data_is_file(data_root, claude_md) {
 				mappings << FileMapping{claude_md, os.join_path(home, '.claude', 'CLAUDE.md')}
 			}
 			mappings << agent_dest_mappings(tool, data_root, compiled, os.join_path(home,
@@ -439,11 +448,11 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 		}
 		'cursor' {
 			src := os.join_path(data_root, 'profiles', 'cursor', 'rules')
-			mappings << map_tree_files(src, os.join_path(home, '.cursor', 'rules'))
+			mappings << data_map_tree_files(data_root, src, os.join_path(home, '.cursor', 'rules'))
 		}
 		'opencode' {
 			cfg := os.join_path(data_root, 'profiles', 'opencode', 'opencode.json')
-			if os.is_file(cfg) {
+			if data_is_file(data_root, cfg) {
 				mappings << FileMapping{cfg, os.join_path(home, '.config', 'opencode',
 					'opencode.json')}
 			}
@@ -454,12 +463,12 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 			src := os.join_path(data_root, 'profiles', 'windsurf')
 			cfg := windsurf_config_dir(home)
 			for sub in ['rules', 'memories'] {
-				mappings << map_tree_files(os.join_path(src, sub), os.join_path(cfg, sub))
+				mappings << data_map_tree_files(data_root, os.join_path(src, sub), os.join_path(cfg, sub))
 			}
 		}
 		'pi' {
 			src := os.join_path(data_root, 'profiles', 'pi', 'skills')
-			mappings << map_tree_files(src, os.join_path(home, '.pi', 'agent', 'skills'))
+			mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent', 'skills'))
 		}
 		'muse-code' {
 			mappings << muse_skill_mappings(data_root, home)
@@ -482,10 +491,26 @@ fn agent_dest_mappings(tool string, data_root string, compiled map[string]string
 		}
 		return out
 	}
-	return map_tree_files(os.join_path(data_root, 'profiles', tool, 'agents'), dst_dir)
+	return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', tool, 'agents'), dst_dir)
 }
 
 fn compiled_agent_files(data_root string) map[string]string {
+	if is_embedded_root(data_root) {
+		mut agents := map[string]string{}
+		for product_id in install_agent_products {
+			agents_dir := 'plugins/' + product_id + '/agents'
+			if !embedded_is_dir(agents_dir) {
+				continue
+			}
+			for e in embedded_ls(agents_dir) {
+				rel := agents_dir + '/' + e + '/AGENT.md'
+				if embedded_is_file(rel) {
+					agents[e] = 'embedded/' + rel
+				}
+			}
+		}
+		return agents
+	}
 	mut plugins := os.join_path(data_root, 'plugins')
 	override := os.getenv('AGENT_TOOLKIT_INSTALL_SOURCE').trim_space()
 	if override.len > 0 && os.is_dir(override) {
@@ -518,6 +543,34 @@ fn compiled_agent_files(data_root string) map[string]string {
 }
 
 fn muse_skill_mappings(data_root string, home string) []FileMapping {
+	if is_embedded_root(data_root) {
+		mut src_emb := ''
+		for prod in install_muse_products {
+			p := 'plugins/' + prod + '/skills'
+			if embedded_is_dir(p) {
+				src_emb = 'embedded/' + p
+				break
+			}
+		}
+		if src_emb.len == 0 {
+			if embedded_is_dir('plugins/muse-code/skills') {
+				src_emb = 'embedded/plugins/muse-code/skills'
+			}
+		}
+		if src_emb.len == 0 {
+			if embedded_is_dir('skills') {
+				src_emb = 'embedded/skills'
+			}
+		}
+		if src_emb.len == 0 {
+			return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', 'muse-code'), os.join_path(home,
+				'.config', 'muse'))
+		}
+		mut out_emb := []FileMapping{}
+		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.config', 'muse', 'skills'))
+		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.agents', 'skills'))
+		return out_emb
+	}
 	mut src := ''
 	for prod in install_muse_products {
 		p := os.join_path(data_root, 'plugins', prod, 'skills')
