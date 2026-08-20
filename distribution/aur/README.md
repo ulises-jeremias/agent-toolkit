@@ -21,6 +21,7 @@ Contract:
 - Optional source/Python package `agent-toolkit` may remain; it is **not** the product (ADR-024).
 - `pacman -Syu` / AUR helpers own the binary. `agent-toolkit update` is capability/profile refresh only (ADR-017).
 - First AUR publish needs an empty `ssh://aur@aur.archlinux.org/agent-toolkit-bin.git`.
+- **Offline (ADR-026, #766):** since `v1.17.0` (PR #778) the binary is full-embed (1179 files, `embedded` tier `3a` + FHS `/usr/share/agent-toolkit/data` tier `3b` in `paths.v`). Fresh `yay -S agent-toolkit-bin` with empty `XDG_DATA` and `AI_WORKSPACE=~/.ai-workspace` correctly falls to `embedded`, not workspace. Dual sync `agent-toolkit 1.10.0→1.16.0` (aur-packages#7) keeps `provides` parity.
 
 ```bash
 yay -S agent-toolkit-bin
