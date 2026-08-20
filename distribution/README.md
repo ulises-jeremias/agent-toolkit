@@ -40,7 +40,7 @@ Consumers MUST verify checksums when [#530](https://github.com/ulises-jeremias/a
 
 ## Offline / embedded baseline (ADR-026, #766)
 
-Since `v1.17.0` (PR #778) the V binary is **full-embed**: `skills/ loops/ profiles/ mcp/ catalogs/ agents/ capabilities/ distributions/ plugins/ packs` (1179 files) via `scripts/generate-embedded-data.py` → `modules/agent_toolkit_core/embedded_data.v` (`$embed_file`). `paths.v` tier `3a` `embedded` (path `embedded`) wins over `checkout/CWD` but after `XDG_DATA`/`XDG_CACHE`, and `3b` FHS `/usr/share/agent-toolkit/data` is probed for `aur-packages` sidecar compat. Fresh `yay -S agent-toolkit-bin` (no XDG, no `AI_WORKSPACE`, no network) → `doctor --offline` `root: embedded, ok true`, `install --dry-run` all 6 tools green. `agentic-workstation#210` XDG bootstrap is now 1-release compat only.
+Since `v1.17.0` (PR #778) the V binary is **full-embed**: `skills/ loops/ profiles/ mcp/ catalogs/ agents/ capabilities/ distributions/ plugins/ packs` (1179 files) via `scripts/generate-embedded-data.vsh` → `modules/agent_toolkit_core/embedded_data.v` (`$embed_file`). `paths.v` tier `3a` `embedded` (path `embedded`) wins over `checkout/CWD` but after `XDG_DATA`/`XDG_CACHE`, and `3b` FHS `/usr/share/agent-toolkit/data` is probed for `aur-packages` sidecar compat. Fresh `yay -S agent-toolkit-bin` (no XDG, no `AI_WORKSPACE`, no network) → `doctor --offline` `root: embedded, ok true`, `install --dry-run` all 6 tools green. `agentic-workstation#210` XDG bootstrap is now 1-release compat only.
 
 ## Experimental vs stable
 

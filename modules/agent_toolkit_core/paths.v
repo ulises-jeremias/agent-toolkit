@@ -6,7 +6,7 @@ import os
 pub struct ToolkitRoot {
 pub:
 	path string
-	tier string // override | xdg_data | xdg_cache | embedded | checkout | cwd
+	tier string // override | xdg_data | xdg_cache | embedded | fhs | checkout | cwd
 }
 
 // is_offline reports AGENT_TOOLKIT_OFFLINE truthy (1|true|yes).
@@ -56,18 +56,20 @@ fn is_harness_workspace(path string) bool {
 }
 
 fn has_toolkit_tool_data(path string) bool {
-	// real toolkit data has at least one tool-specific profile or top-level skills
-	if os.is_dir(os.join_path(path, 'profiles', 'claude-code')) {
-		return true
-	}
-	if os.is_dir(os.join_path(path, 'profiles', 'cursor')) {
-		return true
-	}
+	// real toolkit data has at least one tool-specific profile dir or top-level skills
 	if os.is_dir(os.join_path(path, 'skills')) {
 		return true
 	}
 	if os.is_dir(os.join_path(path, 'plugins')) {
 		return true
+	}
+	profiles_dir := os.join_path(path, 'profiles')
+	if os.is_dir(profiles_dir) {
+		for entry in os.ls(profiles_dir) or { return false } {
+			if os.is_dir(os.join_path(profiles_dir, entry)) {
+				return true
+			}
+		}
 	}
 	return false
 }
@@ -126,7 +128,7 @@ pub fn find_toolkit_root_with(fs FsService) !ToolkitRoot {
 	if is_valid_toolkit_root('/usr/share/agent-toolkit/data') {
 		return ToolkitRoot{
 			path: '/usr/share/agent-toolkit/data'
-			tier: 'embedded'
+			tier: 'fhs'
 		}
 	}
 

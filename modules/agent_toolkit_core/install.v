@@ -236,7 +236,11 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 	})
 	mut planned := 0
 	for m in mappings {
-		is_src_file := if m.src.starts_with('embedded/') { embedded_is_file(m.src[9..]) } else { os.is_file(m.src) }
+		is_src_file := if is_embedded_src(m.src) {
+			embedded_is_file(strip_embedded_prefix(m.src))
+		} else {
+			os.is_file(m.src)
+		}
 		if !is_src_file {
 			lines << '  ⚠  Source not found, skipping: ${m.src}'
 			continue
@@ -284,8 +288,10 @@ fn stage_install_mapping(mut tx InstallTransaction, m FileMapping, force bool) !
 		tx.stage_write_owned(m.dst, content, 'merged')!
 		return 'merged'
 	}
-	src := if m.src.starts_with('embedded/') {
-		embedded_read_file(m.src[9..]) or { return error('read source failed: ${m.src}: ${err}') }
+	src := if is_embedded_src(m.src) {
+		embedded_read_file(strip_embedded_prefix(m.src)) or {
+			return error('read source failed: ${m.src}: ${err}')
+		}
 	} else {
 		os.read_file(m.src) or { return error('read source failed: ${m.src}: ${err}') }
 	}
@@ -303,8 +309,8 @@ fn stage_install_mapping(mut tx InstallTransaction, m FileMapping, force bool) !
 }
 
 fn merge_json_install(src_path string, dst_path string) (string, string) {
-	src_text := if src_path.starts_with('embedded/') {
-		embedded_read_file(src_path[9..]) or { return '', 'skipped' }
+	src_text := if is_embedded_src(src_path) {
+		embedded_read_file(strip_embedded_prefix(src_path)) or { return '', 'skipped' }
 	} else {
 		os.read_file(src_path) or { return '', 'skipped' }
 	}
@@ -463,12 +469,14 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 			src := os.join_path(data_root, 'profiles', 'windsurf')
 			cfg := windsurf_config_dir(home)
 			for sub in ['rules', 'memories'] {
-				mappings << data_map_tree_files(data_root, os.join_path(src, sub), os.join_path(cfg, sub))
+				mappings << data_map_tree_files(data_root, os.join_path(src, sub),
+					os.join_path(cfg, sub))
 			}
 		}
 		'pi' {
 			src := os.join_path(data_root, 'profiles', 'pi', 'skills')
-			mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent', 'skills'))
+			mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent',
+				'skills'))
 		}
 		'muse-code' {
 			mappings << muse_skill_mappings(data_root, home)
@@ -491,7 +499,8 @@ fn agent_dest_mappings(tool string, data_root string, compiled map[string]string
 		}
 		return out
 	}
-	return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', tool, 'agents'), dst_dir)
+	return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', tool, 'agents'),
+		dst_dir)
 }
 
 fn compiled_agent_files(data_root string) map[string]string {
@@ -567,7 +576,8 @@ fn muse_skill_mappings(data_root string, home string) []FileMapping {
 				'.config', 'muse'))
 		}
 		mut out_emb := []FileMapping{}
-		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.config', 'muse', 'skills'))
+		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.config', 'muse',
+			'skills'))
 		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.agents', 'skills'))
 		return out_emb
 	}

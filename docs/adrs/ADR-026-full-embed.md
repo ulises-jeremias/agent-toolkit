@@ -22,7 +22,7 @@ Hybrid’s minimal baseline left `install` still needing `XDG` download or works
 
 **Adopt full-embed (Option A) with FHS sidecar as tier 3b compat.**
 
-* Generate `modules/agent_toolkit_core/embedded_data.v` at `make.vsh gen-embedded` via `scripts/generate-embedded-data.py` (`$embed_file('../../skills/...')` per file, 1179 files, ~3.7M payload, `+4.8M` ELF `3.8M→8.6M`). Build `build-cli` depends on `gen-embedded`.
+* Generate `modules/agent_toolkit_core/embedded_data.v` at `make.vsh gen-embedded` via `scripts/generate-embedded-data.vsh` (`$embed_file('../../skills/...')` per file, 1179 files, ~3.7M payload, `+4.8M` ELF `3.8M→8.6M` on Linux x86_64). Build `build-cli` depends on `gen-embedded`.
 * `paths.v` tier order becomes: `override (AGENT_TOOLKIT_ROOT/AI_WORKSPACE, sanitized)` → `xdg_data` → `xdg_cache` → **`3a` in-memory `embedded` (`embedded_is_valid_root()` → path `embedded`, tier `embedded`)** → **`3b` FHS `/usr/share/agent-toolkit/data`** → **`3c` next-to-exe sidecar** → `checkout` → `cwd`. Sanitization: `is_harness_workspace()` (`AGENTS.md`/`knowledge`) without `has_toolkit_tool_data()` (`profiles/claude-code`, `profiles/cursor`, `skills`, `plugins`) → skip override, so `AI_WORKSPACE=~/.ai-workspace` correctly falls to `embedded`.
 * `data_io.v` abstraction (`is_embedded_root`, `data_is_dir/file/read/ls/map`) handles `embedded/` prefix (strip 9 chars) and routes to `embedded_*` helpers; `install.v`/`update.v` use `data_*` and `embedded_read` for `stage_install_mapping`/`update_file_hash`.
 * Release `release.yml` still publishes floating binaries + `SHA256SUMS`; data artifact `B2` is **not** needed for standalone now, but `FHS probe` keeps `aur-packages` compat if PKGBUILD ships sidecar.
@@ -43,7 +43,7 @@ Hybrid’s minimal baseline left `install` still needing `XDG` download or works
 ## References
 
 * ADR-011 (`ADR-011-resource-packaging.md`), ADR-015 (`ADR-015-runtime-resolution.md`), ADR-017, ADR-018, ADR-022
-* `scripts/generate-embedded-data.py`, `modules/agent_toolkit_core/embedded_data.v`, `data_io.v`, `paths.v`, `install.v`, `update.v`, `make.vsh:gen-embedded`
+* `scripts/generate-embedded-data.vsh`, `modules/agent_toolkit_core/embedded_data.v`, `data_io.v`, `paths.v`, `install.v`, `update.v`, `make.vsh:gen-embedded`
 * Issues #767-773 spikes, #774 ADR, #775 core, #766 epic, `aur-packages#7`
 * Repro: `chezmoi init --apply --source=. --config agentic-workstation.toml` with `agent-toolkit-bin`
 

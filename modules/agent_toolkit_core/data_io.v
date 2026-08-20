@@ -60,6 +60,8 @@ pub fn data_list_rel_files(data_root string, src_dir string) []string {
 				// root — not used for install, but handle
 				out << k
 			} else if k == rel {
+				// rel is itself a file — return its basename (callers use this only for
+				// dir sources via data_map_tree_files, which rebuilds rel + '/' + f).
 				out << os.file_name(k)
 			} else if k.starts_with(prefix) {
 				out << k[prefix.len..]
@@ -128,10 +130,8 @@ pub fn data_map_tree_files(data_root string, src_dir string, dst_dir string) []F
 	return map_tree_files(src_dir, dst_dir)
 }
 
-// Helpers for source-present checks that need to consult embedded set.
-pub fn data_has_profiles_tool(data_root string, tool string) bool {
-	if is_embedded_root(data_root) {
-		return embedded_is_dir('profiles/' + tool)
-	}
-	return os.is_dir(os.join_path(data_root, 'profiles', tool))
+// is_embedded_src reports whether a mapping source refers to the embedded memfs
+// (either "embedded" itself or a path with an embedded/ prefix in either separator).
+pub fn is_embedded_src(src string) bool {
+	return src == 'embedded' || src.starts_with('embedded/') || src.starts_with('embedded\\')
 }

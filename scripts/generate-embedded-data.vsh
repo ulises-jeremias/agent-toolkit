@@ -5,7 +5,7 @@ import os
 const dirs = ['skills', 'loops', 'profiles', 'mcp', 'catalogs', 'agents', 'capabilities', 'distributions', 'plugins', 'packs']
 
 fn main() {
-	root := os.dir(@FILE) + '/..'
+	root := os.real_path(os.join_path(os.dir(@FILE), '..'))
 	out := os.join_path(root, 'modules', 'agent_toolkit_core', 'embedded_data.v')
 	mut files := []string{}
 	for d in dirs {
@@ -23,7 +23,8 @@ fn main() {
 	out_content += '// Payload: ${files.len} files, embedded via \$embed_file at compile time.\n\n'
 	for i, rel in files {
 		v_rel := '../../' + rel
-		out_content += "const ef_${i} = \$embed_file('${v_rel}')\n"
+		v_rel_esc := v_rel.replace("'", "\\'")
+		out_content += "const ef_${i} = \$embed_file('${v_rel_esc}')\n"
 	}
 	out_content += '\n'
 	out_content += 'const embedded_file_map = {\n'
@@ -118,11 +119,17 @@ fn walk(cur string, root string, mut out []string) {
 	entries := os.ls(cur) or { return }
 	for e in entries {
 		p := os.join_path(cur, e)
+		if os.is_link(p) {
+			continue
+		}
 		if os.is_dir(p) {
 			walk(p, root, mut out)
 		} else if os.is_file(p) {
 			mut rel := p[root.len..].trim_string_left(os.path_separator)
 			rel = rel.replace('\\', '/')
+			if rel.contains('..') {
+				continue
+			}
 			out << rel
 		}
 	}

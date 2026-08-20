@@ -254,8 +254,8 @@ fn plan_tool_update(tool string, data_root string, home string) ?ToolUpdatePlan 
 		mappings: mappings
 	}
 	for m in mappings {
-		is_src := if m.src.starts_with('embedded/') {
-			embedded_is_file(m.src[9..])
+		is_src := if is_embedded_src(m.src) {
+			embedded_is_file(strip_embedded_prefix(m.src))
 		} else {
 			os.is_file(m.src)
 		}
@@ -303,8 +303,8 @@ fn apply_tool_update(plan ToolUpdatePlan, _data_root string, home string, check_
 			continue
 		}
 		mut content := ''
-		if m.src.starts_with('embedded/') {
-			content = embedded_read_file(m.src[9..]) or {
+		if is_embedded_src(m.src) {
+			content = embedded_read_file(strip_embedded_prefix(m.src)) or {
 				lines << '  ✗  failed to read ${m.src}: ${err}'
 				continue
 			}
@@ -325,8 +325,8 @@ fn apply_tool_update(plan ToolUpdatePlan, _data_root string, home string, check_
 }
 
 fn update_file_hash(path string) string {
-	data := if path.starts_with('embedded/') {
-		embedded_read_file(path[9..]) or { return '' }
+	data := if is_embedded_src(path) {
+		embedded_read_file(strip_embedded_prefix(path)) or { return '' }
 	} else {
 		os.read_file(path) or { return '' }
 	}
