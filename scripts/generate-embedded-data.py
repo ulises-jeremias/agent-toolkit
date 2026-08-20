@@ -42,62 +42,62 @@ with open(OUT, "w") as f:
     f.write("}\n\n")
     f.write(r"""
 pub fn embedded_has_file(path string) bool {
-    return path in embedded_file_map
+	return path in embedded_file_map
 }
 pub fn embedded_is_file(path string) bool {
-    return path in embedded_file_map
+	return path in embedded_file_map
 }
 pub fn embedded_is_dir(path string) bool {
-    if path in embedded_dir_set {
-        return true
-    }
-    prefix := path + '/'
-    for k, _ in embedded_file_map {
-        if k.starts_with(prefix) {
-            return true
-        }
-    }
-    return false
+	if path in embedded_dir_set {
+		return true
+	}
+	prefix := path + '/'
+	for k, _ in embedded_file_map {
+		if k.starts_with(prefix) {
+			return true
+		}
+	}
+	return false
 }
 pub fn embedded_read_file(path string) !string {
-    if path in embedded_file_map {
-        return embedded_file_map[path]
-    }
-    return error('embedded file not found: ${path}')
+	if path in embedded_file_map {
+		return embedded_file_map[path]
+	}
+	return error('embedded file not found: \${path}')
 }
 pub fn embedded_ls(dir string) []string {
-    mut out := []string{}
-    mut seen := map[string]bool{}
-    prefix := if dir.len == 0 { '' } else { dir + '/' }
-    for k, _ in embedded_file_map {
-        if !k.starts_with(prefix) {
-            continue
-        }
-        rest := k[prefix.len..]
-        idx := rest.index('/') or { -1 }
-        name := if idx == -1 { rest } else { rest[..idx] }
-        if name.len == 0 {
-            continue
-        }
-        if name !in seen {
-            seen[name] = true
-            out << name
-        }
-    }
-    out.sort()
-    return out
+	mut out := []string{}
+	mut seen := map[string]bool{}
+	prefix := if dir.len == 0 { '' } else { dir + '/' }
+	for k, _ in embedded_file_map {
+		if !k.starts_with(prefix) {
+			continue
+		}
+		rest := k[prefix.len..]
+		idx := rest.index('/') or { -1 }
+		name := if idx == -1 { rest } else { rest[..idx] }
+		if name.len == 0 {
+			continue
+		}
+		if name !in seen {
+			seen[name] = true
+			out << name
+		}
+	}
+	out.sort()
+	return out
 }
 pub fn embedded_is_valid_root() bool {
-    has_profiles := 'profiles' in embedded_dir_set
-    has_skills := 'skills' in embedded_dir_set
-    has_loops := 'loops' in embedded_dir_set
-    if !has_profiles {
-        return false
-    }
-    return has_skills || has_loops
+	has_profiles := 'profiles' in embedded_dir_set
+	has_skills := 'skills' in embedded_dir_set
+	has_loops := 'loops' in embedded_dir_set
+	if !has_profiles {
+		return false
+	}
+	return has_skills || has_loops
 }
 pub fn embedded_is_repo_checkout() bool {
-    return 'skills' in embedded_dir_set && 'loops' in embedded_dir_set
+	return 'skills' in embedded_dir_set && 'loops' in embedded_dir_set
 }
 """)
 print(f"Wrote {OUT} with {len(files)} files")
