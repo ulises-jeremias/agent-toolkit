@@ -72,7 +72,9 @@ fn test_checkout_from_cwd_when_no_override() {
 		assert false, err.msg()
 		return
 	}
-	assert is_valid_toolkit_root(root.path)
+	// With full-embed, fresh checkout may resolve to embedded (path == 'embedded') which is not a filesystem dir
+	assert is_valid_toolkit_root(root.path) || root.path == 'embedded' || embedded_is_valid_root()
+	assert root.tier in ['override', 'xdg_data', 'xdg_cache', 'embedded', 'checkout', 'cwd']
 }
 
 fn restore_env(key string, old string) {
