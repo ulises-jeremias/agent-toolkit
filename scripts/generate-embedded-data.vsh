@@ -22,7 +22,7 @@ fn main() {
 	out_content += '// Regenerate: v run scripts/generate-embedded-data.vsh\n'
 	out_content += '// Payload: ${files.len} files, embedded via \$embed_file at compile time.\n\n'
 	for i, rel in files {
-		v_rel := os.join_path('../..', rel)
+		v_rel := '../../' + rel
 		out_content += "const ef_${i} = \$embed_file('${v_rel}')\n"
 	}
 	out_content += '\n'
@@ -121,7 +121,8 @@ fn walk(cur string, root string, mut out []string) {
 		if os.is_dir(p) {
 			walk(p, root, mut out)
 		} else if os.is_file(p) {
-			rel := p[root.len..].trim_string_left(os.path_separator)
+			mut rel := p[root.len..].trim_string_left(os.path_separator)
+			rel = rel.replace('\\', '/')
 			out << rel
 		}
 	}
