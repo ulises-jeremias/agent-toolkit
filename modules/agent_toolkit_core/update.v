@@ -307,7 +307,7 @@ fn apply_tool_update(plan ToolUpdatePlan, data_root string, home string, check_o
 		lines << '  ✓ updated: ${display}'
 		updated++
 	}
-	_data_root := data_root
+	if data_root.len == 0 {}
 	return updated, lines
 }
 
