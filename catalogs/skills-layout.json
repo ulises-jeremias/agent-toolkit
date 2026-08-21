@@ -1,6 +1,22 @@
 {
   "layout": "skills/<group>/<skill>/SKILL.md",
   "groups": {
+    "accessibility": [
+      "review"
+    ],
+    "agentic-security": [
+      "mcp-audit",
+      "owasp-agentic-review",
+      "supply-chain-audit",
+      "threat-modeling"
+    ],
+    "architecture": [
+      "c4-model"
+    ],
+    "cloud": [
+      "aws-well-architected-review",
+      "cloud-design-patterns"
+    ],
     "core": [
       "assistant",
       "dev-companion",
@@ -39,6 +55,8 @@
       "workflow-generic-project"
     ],
     "design": [
+      "design-assessment",
+      "design-improvement",
       "figma",
       "figma-code-connect-components",
       "figma-create-design-system-rules",
@@ -46,7 +64,6 @@
       "figma-implement-design",
       "frontend-design",
       "frontend-design-review",
-      "ui-ux-pro-max",
       "web-design-guidelines"
     ],
     "forge": [
@@ -78,24 +95,68 @@
       "swarm-observer",
       "triage"
     ],
-    "tooling": [
-      "cli-for-agents",
-      "herdr",
-      "inventory",
-      "jupyter-notebook",
-      "playwright-cli"
-    ],
     "quality": [
       "blast-radius",
       "codeql",
+      "deep-review",
+      "deslop",
       "megalinter",
       "megalinter-check",
       "megalinter-fix",
       "megalinter-setup",
       "unslop"
+    ],
+    "tooling": [
+      "chrome-devtools",
+      "cli-for-agents",
+      "herdr",
+      "inventory",
+      "jupyter-notebook",
+      "mermaid",
+      "playwright-cli"
     ]
   },
   "skills": [
+    {
+      "id": "accessibility/review",
+      "name": "review",
+      "domain": "accessibility"
+    },
+    {
+      "id": "agentic-security/mcp-audit",
+      "name": "mcp-audit",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "agentic-security/owasp-agentic-review",
+      "name": "owasp-agentic-review",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "agentic-security/supply-chain-audit",
+      "name": "supply-chain-audit",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "agentic-security/threat-modeling",
+      "name": "threat-modeling",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "architecture/c4-model",
+      "name": "c4-model",
+      "domain": "architecture"
+    },
+    {
+      "id": "cloud/aws-well-architected-review",
+      "name": "aws-well-architected-review",
+      "domain": "cloud"
+    },
+    {
+      "id": "cloud/cloud-design-patterns",
+      "name": "cloud-design-patterns",
+      "domain": "cloud"
+    },
     {
       "id": "core/assistant",
       "name": "assistant",
@@ -252,6 +313,16 @@
       "domain": "delivery"
     },
     {
+      "id": "design/design-assessment",
+      "name": "design-assessment",
+      "domain": "design"
+    },
+    {
+      "id": "design/design-improvement",
+      "name": "design-improvement",
+      "domain": "design"
+    },
+    {
       "id": "design/figma",
       "name": "figma",
       "domain": "design"
@@ -284,11 +355,6 @@
     {
       "id": "design/frontend-design-review",
       "name": "frontend-design-review",
-      "domain": "design"
-    },
-    {
-      "id": "design/ui-ux-pro-max",
-      "name": "ui-ux-pro-max",
       "domain": "design"
     },
     {
@@ -402,8 +468,23 @@
       "domain": "ops"
     },
     {
+      "id": "quality/blast-radius",
+      "name": "blast-radius",
+      "domain": "quality"
+    },
+    {
       "id": "quality/codeql",
       "name": "codeql",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/deep-review",
+      "name": "deep-review",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/deslop",
+      "name": "deslop",
       "domain": "quality"
     },
     {
@@ -427,14 +508,14 @@
       "domain": "quality"
     },
     {
-      "id": "quality/blast-radius",
-      "name": "blast-radius",
-      "domain": "quality"
-    },
-    {
       "id": "quality/unslop",
       "name": "unslop",
       "domain": "quality"
+    },
+    {
+      "id": "tooling/chrome-devtools",
+      "name": "chrome-devtools",
+      "domain": "tooling"
     },
     {
       "id": "tooling/cli-for-agents",
@@ -454,6 +535,11 @@
     {
       "id": "tooling/jupyter-notebook",
       "name": "jupyter-notebook",
+      "domain": "tooling"
+    },
+    {
+      "id": "tooling/mermaid",
+      "name": "mermaid",
       "domain": "tooling"
     },
     {
