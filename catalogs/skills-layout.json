@@ -50,6 +50,7 @@
       "web-design-guidelines"
     ],
     "forge": [
+      "fix-merge-conflicts",
       "gh-address-comments",
       "gh-contribution-planner",
       "gh-fix-ci",
@@ -294,6 +295,11 @@
       "id": "design/web-design-guidelines",
       "name": "web-design-guidelines",
       "domain": "design"
+    },
+    {
+      "id": "forge/fix-merge-conflicts",
+      "name": "fix-merge-conflicts",
+      "domain": "forge"
     },
     {
       "id": "forge/gh-address-comments",

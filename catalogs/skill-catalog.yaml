@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 84
+count: 85
 skills:
   - id: accessibility/review
     name: review
@@ -246,6 +246,11 @@ skills:
     name: web-design-guidelines
     domain: design
     description: 'Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices".'
+    stability: stable
+  - id: forge/fix-merge-conflicts
+    name: fix-merge-conflicts
+    domain: forge
+    description: 'Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict resolution'
     stability: stable
   - id: forge/gh-address-comments
     name: gh-address-comments
