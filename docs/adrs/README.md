@@ -9,7 +9,7 @@ This repository keeps **two ADR trees**. Do **not** merge them.
 
 ## Engineering ADRs (`docs/adrs/`)
 
-Numbered `ADR-001` … `ADR-025`. Status is in each file header.
+Numbered `ADR-001` … `ADR-026`. Status is in each file header.
 
 | ADR | Title |
 |-----|-------|
@@ -38,6 +38,7 @@ Numbered `ADR-001` … `ADR-025`. Status is in each file header.
 | [ADR-023](ADR-023-homebrew.md) | Homebrew |
 | [ADR-024](ADR-024-aur.md) | AUR |
 | [ADR-025](ADR-025-npm-binary.md) | npm binary |
+| [ADR-026](ADR-026-full-embed.md) | Full embed |
 
 ## Product / pack semantics ADRs (`docs/adr/`)
 

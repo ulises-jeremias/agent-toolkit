@@ -217,7 +217,7 @@ Profiles adapt toolkit skills for a specific tool. Each profile lives in `profil
 
 ### OpenCode (`profiles/opencode/`)
 
-- `system-prompt.md` — system prompt that opencode loads on startup
+- `opencode.json` — system prompt that opencode loads on startup
 - `skills.yaml` — list of skill paths to inject
 
 ### GitHub Copilot (`profiles/copilot/`)

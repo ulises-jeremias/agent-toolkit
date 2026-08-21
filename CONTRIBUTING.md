@@ -240,7 +240,7 @@ Profiles translate toolkit skills into tool-specific configuration.
 2. **Follow the tool's format** (documented in [AGENTS.md](AGENTS.md)):
    - Claude Code: `CLAUDE.md` + `settings.json`
    - Cursor: one `.mdc` file per domain in `rules/`
-   - OpenCode: `system-prompt.md` + `skills.yaml`
+   - OpenCode: `opencode.json` + `agents/`
    - GitHub Copilot: `copilot-instructions.md` (self-contained — no external file references)
    - Windsurf: `rules.md` + optional `memories/`
    - Pi: individual `skills/<skill-name>.md` files (self-contained)

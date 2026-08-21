@@ -26,7 +26,7 @@
 [![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
 [![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
 
-![skills](https://img.shields.io/badge/skills-80-7c3aed?style=flat&labelColor=1f2937)
+![skills](https://img.shields.io/badge/skills-86-7c3aed?style=flat&labelColor=1f2937)
 ![agents](https://img.shields.io/badge/agents-17-0891b2?style=flat&labelColor=1f2937)
 ![loops](https://img.shields.io/badge/loops-10-ea580c?style=flat&labelColor=1f2937)
 
@@ -40,7 +40,7 @@
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
-[Skills](#%EF%B8%8F-skills--80-across-14-domains) ·
+ [Skills](#%EF%B8%8F-skills--86-across-14-domains) ·
 [Agents](#-agent-personas) ·
 [Loops](#-loop-engineering) ·
 [Contributing](#-contributing)
@@ -277,7 +277,7 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 
 ---
 
-## 🛠️ Skills — 80 across 14 domains
+## 🛠️ Skills — 86 across 14 domains
 
 All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills). Marketplace plugins ship a subset (core + forge); `agent-toolkit-complete` is the full catalog.
 
@@ -405,7 +405,7 @@ Product bundles are declared in [`distributions/products.yaml`](distributions/pr
 | `agent-toolkit-core` | `plugin.json` + `skills/` (6) + `mcp.json` (github) | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
 | `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 16 marketplace personas (disk has 17; `agentic-security-reviewer` is not in this plugin) |
 | `agent-toolkit-forge` | `plugin.json` + `skills/` (7) | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
-| `agent-toolkit-complete` | `plugin.json` + `skills/` (80) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) |
+| `agent-toolkit-complete` | `plugin.json` + `skills/` (86) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) |
 
 Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) · `plugins/<id>/plugin.json` (Agent Plugins `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) · `plugins/<id>/mcp.json` (where applicable)
 
