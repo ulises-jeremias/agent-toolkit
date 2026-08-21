@@ -42,6 +42,14 @@ fn test_compile_cursor_temp_product() {
 	assert 'agent:code-reviewer' in r.emitted
 	assert 'provenance' in r.emitted
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', '.cursor-plugin', 'plugin.json'))
+	manifest_raw := os.read_file(os.join_path(out, 'agent-toolkit-core', '.cursor-plugin',
+		'plugin.json')) or {
+		assert false, err.msg()
+		return
+	}
+	// #752: spec-complete manifests include the Agent Plugins 1.0.0 $schema + author.url
+	assert manifest_raw.contains('agent-plugins.org/schemas/1.0.0/plugin.schema.json')
+	assert manifest_raw.contains('"url": "https://github.com/ulises-jeremias/agent-toolkit"')
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', 'skills', 'assistant', 'SKILL.md'))
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', 'agents', 'code-reviewer', 'AGENT.md'))
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', '.provenance.json'))

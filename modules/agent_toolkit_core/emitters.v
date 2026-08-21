@@ -323,10 +323,12 @@ fn write_plugin_manifest(path string, product LoadedProduct, keywords []string, 
 	for k in keywords {
 		kw_json << '"${json_escape(k)}"'
 	}
-	body := '{\n' + '  "name": "${json_escape(product.id)}",\n' +
+	body := '{\n' + '  "\$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",\n' +
+		'  "name": "${json_escape(product.id)}",\n' +
 		'  "version": "${json_escape(ver)}",\n' +
 		'  "description": "${json_escape(product.description)}",\n' + '  "author": {\n' +
-		'    "name": "ulises-jeremias",\n' + '    "email": "ulisescf.24@gmail.com"\n' + '  },\n' +
+		'    "name": "ulises-jeremias",\n' + '    "email": "ulisescf.24@gmail.com",\n' +
+		'    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' +
 		'  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
 		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
 		'  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]\n}\n'
