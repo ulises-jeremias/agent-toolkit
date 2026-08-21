@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Feat** — New stable `agent-toolkit-craft` product (unslop + deslop + blast-radius), registered in Claude Code and Cursor marketplaces ([#796](https://github.com/ulises-jeremias/agent-toolkit/pull/796))
 - **Chore** — Integration audit: inventory counts (86 skills / 17 agents / 5 products), marketplace docs (four plugins) ([#756](https://github.com/ulises-jeremias/agent-toolkit/issues/756))
 
+## [1.17.0] — 2026-08-21
+
+- **Feat** — Embed all capability data in V binary — standalone offline-first (distribution) ([#778](https://github.com/ulises-jeremias/agent-toolkit/pull/778))
+
 ## [1.16.0] — 2026-08-19
 
 - **Docs** — Add upstream vs first-party governance (`docs/UPSTREAM_VS_FIRST_PARTY.md`), skill integration checklist, and `ORCHESTRATION.md` routing table (Epic #743, Wave 0) ([#757](https://github.com/ulises-jeremias/agent-toolkit/pull/757))
@@ -511,7 +515,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.16.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.17.0...HEAD
+[1.17.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.17.0
 [1.16.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.16.0
 [1.15.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.15.1
 [1.15.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.15.0
