@@ -201,6 +201,7 @@ products:
         - quality/unslop
         - quality/deslop
         - quality/blast-radius
+        - quality/deep-review
         - tooling/chrome-devtools
         - tooling/playwright-cli
         - core/project

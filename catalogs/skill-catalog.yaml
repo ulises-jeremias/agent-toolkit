@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 85
+count: 86
 skills:
   - id: accessibility/review
     name: review
@@ -361,6 +361,11 @@ skills:
     name: codeql
     domain: quality
     description: 'CodeQL operational workflow — discover/config, run/inspect, triage SARIF findings (rule/query ID, source→sink, evidence), remediate, re-validate. Distinguishes broad MegaLinter linting from semant'
+    stability: stable
+  - id: quality/deep-review
+    name: deep-review
+    domain: quality
+    description: 'Evidence-based deep code review rubric — severity + confidence findings across maintainability, correctness, security, performance, and testing. Push for ambitious structural simplification (code ju'
     stability: stable
   - id: quality/deslop
     name: deslop

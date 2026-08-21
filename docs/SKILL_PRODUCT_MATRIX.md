@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 85 skills × 17 agents._
+_Generated from 5 products × 86 skills × 17 agents._
 
 ## Products and targets
 
@@ -12,7 +12,7 @@ _Generated from 5 products × 85 skills × 17 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 17 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 85 | 0 |
+| `agent-toolkit-complete` | experimental | — | 86 | 0 |
 
 ## Skills → Products
 
@@ -90,6 +90,7 @@ _Generated from 5 products × 85 skills × 17 agents._
 | `ops/triage` | `agent-toolkit-complete` | — |
 | `quality/blast-radius` | `agent-toolkit-complete`, `agent-toolkit-craft` | claude-code, cursor |
 | `quality/codeql` | `agent-toolkit-complete` | — |
+| `quality/deep-review` | `agent-toolkit-complete` | — |
 | `quality/deslop` | `agent-toolkit-complete`, `agent-toolkit-craft` | claude-code, cursor |
 | `quality/megalinter` | `agent-toolkit-complete` | — |
 | `quality/megalinter-check` | `agent-toolkit-complete` | — |
