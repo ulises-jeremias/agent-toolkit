@@ -44,6 +44,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **frontend-design-review**: design/frontend-design-review
 - **web-design-guidelines**: design/web-design-guidelines
 - **supply-chain-audit**: agentic-security/supply-chain-audit
+- **fix-merge-conflicts**: forge/fix-merge-conflicts
 - **gh-address-comments**: forge/gh-address-comments
 - **gh-contribution-planner**: forge/gh-contribution-planner
 - **gh-fix-ci**: forge/gh-fix-ci

@@ -359,6 +359,15 @@ Follow the `supply-chain-audit` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "fix_merge_conflicts"
+description = "forge/fix-merge-conflicts"
+prompt = """
+Follow the `fix-merge-conflicts` skill instructions for {{args}}.
+
+@{skills/fix-merge-conflicts/SKILL.md}
+"""
+
+[[commands]]
 name = "gh_address_comments"
 description = "forge/gh-address-comments"
 prompt = """

@@ -1,4 +1,13 @@
 [[commands]]
+name = "fix_merge_conflicts"
+description = "forge/fix-merge-conflicts"
+prompt = """
+Follow the `fix-merge-conflicts` skill instructions for {{args}}.
+
+@{skills/fix-merge-conflicts/SKILL.md}
+"""
+
+[[commands]]
 name = "github_cli_workflow"
 description = "forge/github-cli-workflow"
 prompt = """
