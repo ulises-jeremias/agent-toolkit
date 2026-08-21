@@ -85,6 +85,48 @@ fn test_compile_unknown_target() {
 	assert !r.is_valid()
 }
 
+fn test_compile_cursor_hooks_emission() {
+	root := os.join_path(os.temp_dir(), 'at-emit-hooks-${os.getpid()}')
+	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'distributions')) or { assert false, err.msg() }
+	os.mkdir_all(os.join_path(root, 'capabilities', 'hooks', 'scripts')) or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'),
+		'---\nname: assistant\n---\nbody\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'capabilities', 'hooks', 'session-start-context.yaml'),
+		'id: session-start-context\nevent: session.start\nhandler:\n  command:\n    - bash\n    - capabilities/hooks/scripts/session-start-context.sh\n  timeout_ms: 5000\n') or {
+		assert false, err.msg()
+	}
+	os.write_file(os.join_path(root, 'capabilities', 'hooks', 'scripts', 'session-start-context.sh'),
+		'#!/usr/bin/env bash\necho hi\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
+		'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n      hooks:\n        - session-start-context\n') or {
+		assert false, err.msg()
+	}
+	defer {
+		os.rmdir_all(root) or {}
+	}
+	g := load_graph(root)
+	assert g.is_valid()
+	product := g.select_product('demo') or {
+		assert false, 'missing product'
+		return
+	}
+	out := os.join_path(root, 'out')
+	r := compile_tier1('cursor', g, product, out, root)
+	assert r.is_valid(), r.errors.str()
+	assert 'hooks' in r.emitted
+	hooks_json := os.join_path(out, 'demo', 'hooks', 'hooks.json')
+	assert os.is_file(hooks_json)
+	raw := os.read_file(hooks_json) or {
+		assert false, err.msg()
+		return
+	}
+	assert raw.contains('SessionStart')
+	assert raw.contains('hooks/scripts/session-start-context.sh')
+	// handler script is copied next to hooks.json
+	assert os.is_file(os.join_path(out, 'demo', 'hooks', 'scripts', 'session-start-context.sh'))
+}
+
 fn test_compile_real_core_if_checkout() {
 	root := find_repo_root() or { return }
 	g := load_graph(root)

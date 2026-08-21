@@ -26,12 +26,12 @@
 | Agents | **Certified** | Emits `agents/<name>/AGENT.md` |
 | Rules (`.mdc`) | **Profile surface** | Installed to `~/.cursor/rules/` via `agent-toolkit install`; not duplicated in plugin bundle |
 | MCP | **Manual** | User configures `~/.cursor/mcp.json`; reported as unsupported in plugin compile |
-| Hooks | **Not implemented** | Reported in `result.unsupported` |
+| Hooks | **Certified** | Emits `hooks/hooks.json` from `capabilities/hooks/*.yaml` when a product includes hooks (#754) |
 
 ## Gaps (documented, not hidden)
 
 1. Plugin compile does not emit `.mdc` rules — by design (different semantic from skills).
-2. MCP and hooks are not generated from canonical IR until registry/hook model lands.
+2. MCP is not generated from canonical IR until the MCP registry model lands; hooks are emitted for Cursor from the canonical hook registry (#754).
 
 ## Validation
 

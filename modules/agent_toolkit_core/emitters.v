@@ -79,7 +79,7 @@ pub fn compile_tier1(target_id string, graph CanonicalGraph, product LoadedProdu
 	mut records := []ArtifactRecord{}
 	match target_id {
 		'cursor' {
-			emit_cursor(mut result, mut records, graph, product, out_dir, output_root)
+			emit_cursor(mut result, mut records, graph, product, out_dir, output_root, repo_root)
 		}
 		'claude-code' {
 			emit_claude_code(mut result, mut records, graph, product, out_dir, output_root)
@@ -91,7 +91,6 @@ pub fn compile_tier1(target_id string, graph CanonicalGraph, product LoadedProdu
 			result.errors << "unknown Tier-1 target '${target_id}'"
 		}
 	}
-	_ = repo_root
 	if result.is_valid() && records.len > 0 {
 		prov := write_provenance(out_dir, product.id, target_id, records) or {
 			result.warnings << 'provenance write skipped: ${err}'
@@ -103,7 +102,7 @@ pub fn compile_tier1(target_id string, graph CanonicalGraph, product LoadedProdu
 	return result
 }
 
-fn emit_cursor(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
+fn emit_cursor(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string, repo_root string) {
 	manifest_path := os.join_path(out_dir, '.cursor-plugin', 'plugin.json')
 	keywords := ['agent-toolkit', product.id.replace('agent-toolkit-', ''), 'cursor', 'skills',
 		'agents']
@@ -116,9 +115,83 @@ fn emit_cursor(mut result CompilationResult, mut records []ArtifactRecord, graph
 		output_root)
 	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
 		output_root)
-	result.unsupported << 'hooks (pending canonical hook model — Cursor uses workspaceOpen/sessionStart events)'
+	emit_cursor_hooks(mut result, mut records, graph, product, out_dir, output_root, repo_root)
 	result.unsupported << 'mcp (.cursor/mcp.json — user configures manually; not bundled in plugin)'
 	result.unsupported << 'cursor-rules (.mdc) — generated as a separate profile surface, not in plugin bundle'
+}
+
+// emit_cursor_hooks emits hooks/hooks.json (Cursor lifecycle events) from canonical
+// capabilities/hooks/*.yaml when a product includes hooks (#754). Handler scripts are
+// copied next to hooks.json and command paths rewritten to the plugin-relative location.
+fn emit_cursor_hooks(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string, repo_root string) {
+	if product.included_hooks.len == 0 {
+		return
+	}
+	mut grouped := map[string][]string{}
+	for hid in product.included_hooks {
+		h := graph.hooks[hid] or {
+			result.warnings << "Hook '${hid}' not found — skipping"
+			continue
+		}
+		if h.cursor_event.len == 0 {
+			result.unsupported << 'hook:${hid} (event ${h.event} not supported by Cursor lifecycle)'
+			continue
+		}
+		cmd := hook_command_for_target(h.command, repo_root, out_dir, mut result)
+		timeout := if h.timeout_ms > 0 { h.timeout_ms } else { 5000 }
+		grouped[h.cursor_event] << '      {\n        "type": "command",\n        "command": "${json_escape(cmd)}",\n        "timeout": ${timeout}\n      }'
+	}
+	if grouped.len == 0 {
+		result.unsupported << 'hooks (no included hook maps to a Cursor lifecycle event)'
+		return
+	}
+	mut events := []string{}
+	for ev, _ in grouped {
+		events << ev
+	}
+	events.sort()
+	mut body := '{\n  "hooks": {\n'
+	for i, ev in events {
+		if i > 0 {
+			body += ',\n'
+		}
+		body += '    "${ev}": [\n${grouped[ev].join(',\n')}\n    ]'
+	}
+	body += '\n  }\n}\n'
+	write_text_artifact(os.join_path(out_dir, 'hooks', 'hooks.json'), body, 'generated',
+		output_root, mut result, mut records)
+	result.emitted << 'hooks'
+}
+
+// hook_command_for_target rewrites canonical hook command paths to the plugin bundle
+// (copies handler scripts under hooks/scripts/) and returns a shell command string.
+fn hook_command_for_target(command []string, repo_root string, out_dir string, mut result CompilationResult) string {
+	mut parts := []string{}
+	for arg in command {
+		mut a := arg
+		if a.starts_with('capabilities/hooks/scripts/') {
+			rel := a['capabilities/hooks/scripts/'.len..]
+			src := os.join_path(repo_root, 'capabilities', 'hooks', 'scripts', rel)
+			dst := os.join_path(out_dir, 'hooks', 'scripts', rel)
+			if os.is_file(src) {
+				os.mkdir_all(os.dir(dst)) or {
+					result.errors << 'mkdir hooks scripts failed: ${err}'
+					return a
+				}
+				content := os.read_file(src) or {
+					result.errors << 'read hook script failed: ${err}'
+					return a
+				}
+				os.write_file(dst, content) or {
+					result.errors << 'write hook script failed: ${err}'
+					return a
+				}
+				a = 'hooks/scripts/${rel}'
+			}
+		}
+		parts << a
+	}
+	return parts.join(' ')
 }
 
 fn emit_claude_code(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
@@ -252,9 +325,8 @@ fn write_plugin_manifest(path string, product LoadedProduct, keywords []string, 
 	}
 	body := '{\n' + '  "name": "${json_escape(product.id)}",\n' +
 		'  "version": "${json_escape(ver)}",\n' +
-		'  "description": "${json_escape(product.description)}",\n' +
-		'  "author": {\n' + '    "name": "ulises-jeremias",\n' +
-		'    "email": "ulisescf.24@gmail.com"\n' + '  },\n' +
+		'  "description": "${json_escape(product.description)}",\n' + '  "author": {\n' +
+		'    "name": "ulises-jeremias",\n' + '    "email": "ulisescf.24@gmail.com"\n' + '  },\n' +
 		'  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
 		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
 		'  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]\n}\n'
@@ -329,7 +401,11 @@ pub fn compilation_result_data(r CompilationResult) map[string]string {
 	return {
 		'target':      r.target
 		'product':     r.product
-		'ok':          if r.is_valid() { 'true' } else { 'false' }
+		'ok':          if r.is_valid() {
+			'true'
+		} else {
+			'false'
+		}
 		'emitted':     r.emitted.join('|')
 		'omitted':     r.omitted.join('|')
 		'unsupported': r.unsupported.join('|')

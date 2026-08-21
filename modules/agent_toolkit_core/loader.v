@@ -22,6 +22,21 @@ struct ProductsDoc {
 	products []ProductYaml
 }
 
+// HookHandlerYaml mirrors the `handler` block of a canonical hook definition
+// (capabilities/hooks/*.yaml). Only the fields needed for adapter emission are decoded.
+struct HookHandlerYaml {
+	command    []string
+	timeout_ms int
+}
+
+// HookYaml is one canonical lifecycle hook (ADR-026 hook registry, #754).
+struct HookYaml {
+	id        string
+	event     string
+	handler   HookHandlerYaml
+	platforms map[string]string
+}
+
 // LoadedSkill is a capability node from skills/<domain>/<name>/SKILL.md.
 pub struct LoadedSkill {
 pub:
@@ -37,6 +52,16 @@ pub:
 	id          string
 	name        string
 	source_path string
+}
+
+// LoadedHook is a canonical lifecycle hook from capabilities/hooks/*.yaml (#754).
+pub struct LoadedHook {
+pub:
+	id           string
+	event        string
+	command      []string
+	timeout_ms   int
+	cursor_event string // Cursor adapter event name, empty = unsupported
 }
 
 // LoadedProduct is a product selected from distributions/products.yaml.
@@ -57,6 +82,7 @@ pub struct CanonicalGraph {
 pub mut:
 	skills   map[string]LoadedSkill
 	agents   map[string]LoadedAgent
+	hooks    map[string]LoadedHook
 	products map[string]LoadedProduct
 	errors   []string
 	warnings []string
@@ -85,6 +111,7 @@ pub fn load_graph(repo_root string) CanonicalGraph {
 	}
 	g.skills = load_skill_ids(os.join_path(repo_root, 'skills'))
 	g.agents = load_agent_ids(os.join_path(repo_root, 'agents'))
+	g.hooks = load_hooks(os.join_path(repo_root, 'capabilities', 'hooks'))
 	products, perrs := load_products_file(os.join_path(repo_root, 'distributions', 'products.yaml'))
 	g.errors << perrs
 	for p in products {
@@ -100,7 +127,9 @@ pub fn load_products_file(path string) ([]LoadedProduct, []string) {
 	if !os.is_file(path) {
 		return []LoadedProduct{}, ['products.yaml not found: ${path}']
 	}
-	text := os.read_file(path) or { return []LoadedProduct{}, ['cannot read products.yaml: ${err}'] }
+	text := os.read_file(path) or {
+		return []LoadedProduct{}, ['cannot read products.yaml: ${err}']
+	}
 	doc := yaml.decode[ProductsDoc](text) or {
 		return []LoadedProduct{}, ['products.yaml decode failed: ${err}']
 	}
@@ -175,7 +204,50 @@ fn validate_product_refs(mut g CanonicalGraph) {
 				g.warnings << "Product '${pid}' references agent '${aid}' not found in agents/"
 			}
 		}
+		for hid in product.included_hooks {
+			if hid !in g.hooks {
+				g.warnings << "Product '${pid}' references hook '${hid}' not found in capabilities/hooks/"
+			}
+		}
 	}
+}
+
+// cursor_hook_event maps a canonical hook event to a Cursor lifecycle event name.
+// Returns an empty string when the event is not supported by the Cursor hook surface.
+fn cursor_hook_event(event string) string {
+	return match event {
+		'session.start' { 'SessionStart' }
+		'tool.before' { 'BeforeFileWrite' }
+		else { '' }
+	}
+}
+
+// load_hooks reads capabilities/hooks/*.yaml into canonical hook definitions.
+fn load_hooks(hooks_root string) map[string]LoadedHook {
+	mut out := map[string]LoadedHook{}
+	if !os.is_dir(hooks_root) {
+		return out
+	}
+	entries := os.ls(hooks_root) or { return out }
+	for e in entries {
+		if !e.ends_with('.yaml') {
+			continue
+		}
+		p := os.join_path(hooks_root, e)
+		text := os.read_file(p) or { continue }
+		h := yaml.decode[HookYaml](text) or { continue }
+		if h.id.len == 0 {
+			continue
+		}
+		out[h.id] = LoadedHook{
+			id:           h.id
+			event:        h.event
+			command:      h.handler.command
+			timeout_ms:   h.handler.timeout_ms
+			cursor_event: cursor_hook_event(h.event)
+		}
+	}
+	return out
 }
 
 fn collect_named_files(dir string, name string) []string {
