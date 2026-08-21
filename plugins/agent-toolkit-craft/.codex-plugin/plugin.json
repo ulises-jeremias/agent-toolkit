@@ -1,0 +1,20 @@
+{
+  "name": "agent-toolkit-craft",
+  "version": "1.17.0",
+  "description": "Writing quality and change-safety toolkit: cut AI tells (unslop), remove code slop (deslop), and prove blast radius before shipping.",
+  "maturity": "experimental",
+  "author": {
+    "name": "ulises-jeremias",
+    "email": "ulisescf.24@gmail.com"
+  },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "repository": "https://github.com/ulises-jeremias/agent-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "agent-toolkit",
+    "craft",
+    "codex",
+    "skills",
+    "agents"
+  ]
+}

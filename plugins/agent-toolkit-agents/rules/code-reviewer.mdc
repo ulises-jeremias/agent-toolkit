@@ -59,3 +59,4 @@ Include code snippets showing the fix for each critical and warning item.
 - Prose/docs anti-slop before final review → `quality/unslop`
 - Diff-scoped code slop cleanup → `quality/deslop`
 - Static quality gates → `quality/megalinter-check` (if configured)
+- Deep maintainability/abstraction audit (severity + confidence, code judo) → `quality/deep-review`

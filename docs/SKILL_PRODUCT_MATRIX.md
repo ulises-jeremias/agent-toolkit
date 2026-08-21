@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 86 skills × 17 agents._
+_Generated from 5 products × 84 skills × 17 agents._
 
 ## Products and targets
 
@@ -12,7 +12,7 @@ _Generated from 5 products × 86 skills × 17 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 17 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 86 | 0 |
+| `agent-toolkit-complete` | experimental | — | 84 | 0 |
 
 ## Skills → Products
 
@@ -55,8 +55,8 @@ _Generated from 5 products × 86 skills × 17 agents._
 | `delivery/trd` | `agent-toolkit-complete` | — |
 | `delivery/user-story` | `agent-toolkit-complete` | — |
 | `delivery/work-item` | `agent-toolkit-complete` | — |
-| `delivery/workflow-client-bootstrap` | `agent-toolkit-complete` | — |
-| `delivery/workflow-generic-project` | `agent-toolkit-complete` | — |
+| `delivery/workflow-client-bootstrap` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
+| `delivery/workflow-generic-project` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `design/design-assessment` | `agent-toolkit-complete` | — |
 | `design/design-improvement` | `agent-toolkit-complete` | — |
 | `design/figma` | `agent-toolkit-complete` | — |
@@ -73,8 +73,6 @@ _Generated from 5 products × 86 skills × 17 agents._
 | `forge/gh-fix-ci` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/github-cli-workflow` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/gitlab-cli-workflow` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
-| `forge/workflow-client-bootstrap` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
-| `forge/workflow-generic-project` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `forge/worktree` | `agent-toolkit-complete` | — |
 | `integrations/clickup-cli` | `agent-toolkit-complete` | — |
 | `integrations/linear` | `agent-toolkit-complete` | — |

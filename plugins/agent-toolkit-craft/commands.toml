@@ -1,0 +1,27 @@
+[[commands]]
+name = "unslop"
+description = "quality/unslop"
+prompt = """
+Follow the `unslop` skill instructions for {{args}}.
+
+@{skills/unslop/SKILL.md}
+"""
+
+[[commands]]
+name = "deslop"
+description = "quality/deslop"
+prompt = """
+Follow the `deslop` skill instructions for {{args}}.
+
+@{skills/deslop/SKILL.md}
+"""
+
+[[commands]]
+name = "blast_radius"
+description = "quality/blast-radius"
+prompt = """
+Follow the `blast-radius` skill instructions for {{args}}.
+
+@{skills/blast-radius/SKILL.md}
+"""
+

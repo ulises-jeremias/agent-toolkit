@@ -344,7 +344,7 @@ agent-toolkit install [--force]                # deploy profiles to detected AI 
 agent-toolkit doctor                           # verify installation health
 
 # Skills and inventory
-agent-toolkit inventory                        # list all 86 skills
+agent-toolkit inventory                        # list all 84 skills
 agent-toolkit skills list                      # list with domain breakdown
 agent-toolkit skills validate                  # check SKILL.md compliance
 

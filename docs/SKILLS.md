@@ -58,14 +58,14 @@ Tool compatibility is declared via optional `tools` frontmatter and validated by
 
 ## Skill Domains
 
-Skills live under `skills/<domain>/<name>/`. There are **14 domains** (86 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
+Skills live under `skills/<domain>/<name>/`. There are **14 domains** (84 skills). Membership in marketplace products is a subset — see [`SKILL_PRODUCT_MATRIX.md`](SKILL_PRODUCT_MATRIX.md) and `agent-toolkit inventory`.
 
 | Domain | Count | Examples |
 |--------|------:|----------|
 | `core` | 8 | `assistant`, `dev-companion`, `workspace`, `project`, `onboarding` |
 | `delivery` | 21 | `adr`, `prd`, `bug`, `planning`, `work-item` |
 | `design` | 10 | `figma-implement-design`, `frontend-design` |
-| `forge` | 9 | `github-cli-workflow`, `gh-fix-ci`, `worktree`, `fix-merge-conflicts` |
+| `forge` | 7 | `github-cli-workflow`, `gh-fix-ci`, `worktree`, `fix-merge-conflicts` |
 | `integrations` | 5 | `slack-cli`, `linear`, `clickup-cli`, `mcp` |
 | `data` | 2 | `dbt-validation`, `snowflake-validation` |
 | `tooling` | 7 | `playwright-cli`, `jupyter-notebook`, `herdr`, `inventory`, `chrome-devtools`, `mermaid`, `cli-for-agents` |

@@ -10,8 +10,8 @@ GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution,
 - **gh-address-comments**: forge/gh-address-comments
 - **gh-fix-ci**: forge/gh-fix-ci
 - **gh-contribution-planner**: forge/gh-contribution-planner
-- **workflow-client-bootstrap**: forge/workflow-client-bootstrap
-- **workflow-generic-project**: forge/workflow-generic-project
+- **workflow-client-bootstrap**: delivery/workflow-client-bootstrap
+- **workflow-generic-project**: delivery/workflow-generic-project
 
 ## Available agents
 

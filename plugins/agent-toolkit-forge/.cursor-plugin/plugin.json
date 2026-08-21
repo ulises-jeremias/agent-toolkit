@@ -1,12 +1,10 @@
 {
-  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-forge",
   "version": "1.17.0",
   "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
   "author": {
     "name": "ulises-jeremias",
-    "email": "ulisescf.24@gmail.com",
-    "url": "https://github.com/ulises-jeremias/agent-toolkit"
+    "email": "ulisescf.24@gmail.com"
   },
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",

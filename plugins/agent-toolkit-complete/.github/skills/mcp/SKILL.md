@@ -28,7 +28,7 @@ Wire **Model Context Protocol** servers so agents can call external tools (GitHu
 
 - `agent-toolkit` installed; `mcp/` definitions exist in the repo or `~/.local/share/agent-toolkit/mcp/`.
 - Auth for each provider: `gh auth login` (GitHub), `clickup auth login` (ClickUp), etc. Keys in `~/.config/agent-toolkit/` or env.
-- Target tool supports MCP (Claude Code, Cursor, OpenCode — see `mcp/README.md` and `docs/MCP.md`).
+- Target tool supports MCP (Claude Code, Cursor, OpenCode — see `docs/MCP.md`).
 
 ## Workflow
 
@@ -37,7 +37,6 @@ Wire **Model Context Protocol** servers so agents can call external tools (GitHu
 ```bash
 agent-toolkit mcp list
 agent-toolkit mcp doctor
-cat mcp/README.md
 cat docs/MCP.md
 ls mcp/
 ls ~/.local/share/agent-toolkit/mcp/ 2>&1 | head

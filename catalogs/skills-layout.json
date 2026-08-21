@@ -73,8 +73,6 @@
       "gh-fix-ci",
       "github-cli-workflow",
       "gitlab-cli-workflow",
-      "workflow-client-bootstrap",
-      "workflow-generic-project",
       "worktree"
     ],
     "integrations": [
@@ -390,16 +388,6 @@
     {
       "id": "forge/gitlab-cli-workflow",
       "name": "gitlab-cli-workflow",
-      "domain": "forge"
-    },
-    {
-      "id": "forge/workflow-client-bootstrap",
-      "name": "workflow-client-bootstrap",
-      "domain": "forge"
-    },
-    {
-      "id": "forge/workflow-generic-project",
-      "name": "workflow-generic-project",
       "domain": "forge"
     },
     {

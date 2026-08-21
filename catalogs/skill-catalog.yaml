@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 86
+count: 84
 skills:
   - id: accessibility/review
     name: review
@@ -276,16 +276,6 @@ skills:
     name: gitlab-cli-workflow
     domain: forge
     description: '''HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown. Use when origin is GitLab.'''
-    stability: stable
-  - id: forge/workflow-client-bootstrap
-    name: workflow-client-bootstrap
-    domain: forge
-    description: DEPRECATED alias. Use workflow-client-bootstrap instead.
-    stability: stable
-  - id: forge/workflow-generic-project
-    name: workflow-generic-project
-    domain: forge
-    description: DEPRECATED alias. Use workflow-generic-project instead.
     stability: stable
   - id: forge/worktree
     name: worktree

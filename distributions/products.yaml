@@ -82,8 +82,8 @@ products:
         - forge/gh-address-comments
         - forge/gh-fix-ci
         - forge/gh-contribution-planner
-        - forge/workflow-client-bootstrap
-        - forge/workflow-generic-project
+        - delivery/workflow-client-bootstrap
+        - delivery/workflow-generic-project
       agents: []
       hooks: []
       mcp: []
@@ -172,8 +172,6 @@ products:
         - forge/gh-fix-ci
         - forge/github-cli-workflow
         - forge/gitlab-cli-workflow
-        - forge/workflow-client-bootstrap
-        - forge/workflow-generic-project
         - integrations/clickup-cli
         - integrations/linear
         - integrations/slack-assistant

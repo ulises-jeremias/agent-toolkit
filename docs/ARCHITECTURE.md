@@ -128,11 +128,11 @@ Swarms coordinate multiple coding-agent sessions with worktree isolation and dur
 
 ## Repository Structure
 
-Counts: 86 skills (14 domains), 17 agents, 10 loops, 7 packs, 7 MCP templates, 7 profiles. Live inventory: `agent-toolkit inventory` / `catalogs/`.
+Counts: 84 skills (14 domains), 17 agents, 10 loops, 7 packs, 7 MCP templates, 7 profiles. Live inventory: `agent-toolkit inventory` / `catalogs/`.
 
 ```
 agent-toolkit/
-├── skills/                      # 86 SKILL.md trees (14 domains)
+├── skills/                      # 84 SKILL.md trees (14 domains)
 │   ├── core/  delivery/  design/  forge/  integrations/
 │   ├── data/  tooling/  ops/  loops/
 │   ├── agentic-security/  architecture/  cloud/
