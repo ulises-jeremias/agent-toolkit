@@ -33,3 +33,9 @@ The compiler emits to `skills/<name>/SKILL.md` which the installer maps to both
 
 - [Muse Code CLI](https://www.llama.com/products/cli/)
 - [Agent Skills Spec](https://agentskills.io)
+
+## Profile Status
+
+This profile is intentionally minimal — Muse Code discovers skills via `~/.config/muse/skills/` and `~/.agents/skills/` universally. No per-tool profile files are needed beyond this README. Skills are delivered via `agent-toolkit build --target muse-code` (see `docs/PROFILES.md`).
+
+*Related: #789*
