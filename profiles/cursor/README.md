@@ -1,33 +1,78 @@
+# Cursor Profile
 
-# Create a concise Copilot CLI note
-cat > $AT/profiles/copilot/README.md << 'EOF'
-# GitHub Copilot Profile
+Files in this directory configure [Cursor](https://cursor.com) for use with agent-toolkit.
 
-## IDE Copilot (VS Code, JetBrains, vim-copilot)
+## Structure
 
-Copy `copilot-instructions.md` to your project's `.github/` directory:
-
-```bash
-mkdir -p .github
-cp profiles/copilot/copilot-instructions.md .github/copilot-instructions.md
+```
+profiles/cursor/
+├── rules/               # Per-agent .mdc rule files
+│   ├── architect.mdc
+│   ├── assistant.mdc
+│   ├── build-error-resolver.mdc
+│   ├── code-reviewer.mdc
+│   ├── database-reviewer.mdc
+│   ├── docs-lookup.mdc
+│   ├── e2e-runner.mdc
+│   ├── performance-optimizer.mdc
+│   ├── planner.mdc
+│   ├── refactor-cleaner.mdc
+│   ├── reference-lookup.mdc
+│   ├── security-reviewer.mdc
+│   ├── tdd-guide.mdc
+│   └── typescript-reviewer.mdc
+├── README.md
+└── .cursor-plugin/
+    └── plugin.json      # Agent Plugins 1.0 manifest (Cursor marketplace)
 ```
 
-GitHub Copilot reads `.github/copilot-instructions.md` automatically.
+## Rule Format
 
-## Copilot CLI (`gh copilot`)
+Cursor uses `.mdc` files with YAML frontmatter:
 
-`gh copilot suggest` and `gh copilot explain` are CLI tools for shell command generation.
-They do **not** read `copilot-instructions.md` — they work with the model directly.
+```
+---
+description: Software architecture and system design guidance.
+alwaysApply: false
+---
 
-Install: `gh extension install github/gh-copilot`
+# Architecture Guidelines
+...
+```
 
-For Copilot CLI, the best practice is to use the `gh-fix-ci` and `gh-address-comments`
-skills from agent-toolkit, which wrap `gh copilot` functionality.
+- `description`: when the rule applies (used by Cursor for auto-apply)
+- `alwaysApply: false`: rule is applied on demand, not for every request
 
-## Install via agent-toolkit CLI
+## Installation
 
 ```bash
-uv tool install agent-toolkit-cli      # or: uvx agent-toolkit-cli
-agent-toolkit install --tools copilot
-# Prompts for your project path and copies copilot-instructions.md
+# Via agent-toolkit CLI (recommended)
+agent-toolkit install --tools cursor
+
+# Manual — global (all projects)
+mkdir -p ~/.cursor/rules
+cp profiles/cursor/rules/*.mdc ~/.cursor/rules/
+
+# Manual — project only
+mkdir -p .cursor/rules
+cp profiles/cursor/rules/*.mdc .cursor/rules/
+
+# Single agent
+cp profiles/cursor/rules/code-reviewer.mdc .cursor/rules/
 ```
+
+Alternatively, paste `.mdc` contents into **Cursor Settings → Rules for AI**.
+
+## Customization
+
+Create additional `.mdc` files in `.cursor/rules/` for project-specific conventions. Cursor merges all rules. Use a unique prefix to avoid collisions (e.g., `myproject-conventions.mdc`).
+
+## Plugin Manifest
+
+`agent-toolkit-cursor` is published to the Cursor marketplace via `.cursor-plugin/plugin.json` (Agent Plugins 1.0 schema). See `docs/PROFILES.md` for details.
+
+## References
+
+- [Cursor Rules](https://docs.cursor.com/context/rules)
+- [Agent Plugins spec](https://agent-plugins.org)
+- `docs/PROFILES.md` (Cursor section) — note: current docs list per-domain files but actual profile is per-agent (see #788)
