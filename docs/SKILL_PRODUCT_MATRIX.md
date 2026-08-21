@@ -12,7 +12,7 @@ _Generated from 5 products × 84 skills × 17 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 17 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 84 | 0 |
+| `agent-toolkit-complete` | experimental | — | 84 | 17 |
 
 ## Skills → Products
 
@@ -107,23 +107,23 @@ _Generated from 5 products × 84 skills × 17 agents._
 
 | Agent | Products | Targets (via products) |
 |-------|----------|------------------------|
-| `agentic-security-reviewer` | `agent-toolkit-agents` | claude-code, cursor |
-| `architect` | `agent-toolkit-agents` | claude-code, cursor |
-| `assistant` | `agent-toolkit-agents` | claude-code, cursor |
-| `build-error-resolver` | `agent-toolkit-agents` | claude-code, cursor |
-| `client-workflow-bootstrap` | `agent-toolkit-agents` | claude-code, cursor |
-| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-core` | claude-code, cursor, requires, security |
-| `database-reviewer` | `agent-toolkit-agents` | claude-code, cursor |
-| `docs-lookup` | `agent-toolkit-agents` | claude-code, cursor |
-| `e2e-runner` | `agent-toolkit-agents` | claude-code, cursor |
-| `performance-optimizer` | `agent-toolkit-agents` | claude-code, cursor |
-| `planner` | `agent-toolkit-agents` | claude-code, cursor |
-| `refactor-cleaner` | `agent-toolkit-agents` | claude-code, cursor |
-| `reference-lookup` | `agent-toolkit-agents` | claude-code, cursor |
-| `security-reviewer` | `agent-toolkit-agents` | claude-code, cursor |
-| `tdd-guide` | `agent-toolkit-agents` | claude-code, cursor |
-| `tech-assistant` | `agent-toolkit-agents` | claude-code, cursor |
-| `typescript-reviewer` | `agent-toolkit-agents` | claude-code, cursor |
+| `agentic-security-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `architect` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `assistant` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `build-error-resolver` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `client-workflow-bootstrap` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `database-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `docs-lookup` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `e2e-runner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `performance-optimizer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `planner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `refactor-cleaner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `reference-lookup` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `security-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `tdd-guide` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `tech-assistant` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `typescript-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 
 ## How to read
 

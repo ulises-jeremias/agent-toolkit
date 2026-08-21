@@ -210,7 +210,24 @@ products:
         - cloud/aws-well-architected-review
         - tooling/mermaid
         - architecture/c4-model
-      agents: []
+      agents:
+        - agentic-security-reviewer
+        - architect
+        - assistant
+        - build-error-resolver
+        - client-workflow-bootstrap
+        - code-reviewer
+        - database-reviewer
+        - docs-lookup
+        - e2e-runner
+        - performance-optimizer
+        - planner
+        - refactor-cleaner
+        - reference-lookup
+        - security-reviewer
+        - tdd-guide
+        - tech-assistant
+        - typescript-reviewer
       hooks: []
       mcp: []
     security:
