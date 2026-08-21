@@ -117,7 +117,7 @@ metadata:
   tags:
     - tag1
     - tag2
-  domain: delivery        # one of: core, delivery, design, forge, integrations, data, tooling, ops, loops
+  domain: delivery        # one of: accessibility, agentic-security, architecture, cloud, core, data, delivery, design, forge, integrations, loops, ops, quality, tooling
 ---
 
 # My Skill Name
