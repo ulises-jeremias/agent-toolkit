@@ -19,7 +19,4 @@ agents:
     enabled: true
   agentic-security-reviewer:
     enabled: true
-loops:
-  security-audit:
-    enabled: false
-    cadence: 1d
+# loops: none — security-audit loop does not exist (removed, see #801)

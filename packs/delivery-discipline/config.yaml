@@ -40,3 +40,8 @@ agents:
     enabled: true
   planner:
     enabled: true
+
+# ---------------------------------------------------------------------------
+# Loops
+# ---------------------------------------------------------------------------
+# No loops — pack is delivery discipline only (see #801 and packs/README.md)

@@ -19,7 +19,7 @@ version: "1.0"
 # packs/README.md and ADR-006 for the design decision.
 
 skills:
-  forge/workflow-generic-project:
+  delivery/workflow-generic-project:
     enabled: true
   delivery/development-workflow:
     enabled: true

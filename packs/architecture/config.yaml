@@ -21,7 +21,4 @@ skills:
 agents:
   architect:
     enabled: true
-loops:
-  architecture-review:
-    enabled: false
-    cadence: 1w
+# loops: none — architecture-review loop does not exist (removed, see #801)

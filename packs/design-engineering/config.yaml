@@ -33,9 +33,4 @@ agents:
     enabled: true
   code-reviewer:
     enabled: true
-  design-assessment:
-    enabled: true
-loops:
-  design-review:
-    enabled: false
-    cadence: 1d
+# loops: none — design-review loop does not exist (removed, see #801)
