@@ -80,7 +80,7 @@ skills:
   - id: core/workspace-knowledge-sync
     name: workspace-knowledge-sync
     domain: core
-    description: 'Syncs knowledge to the agentic-harness knowledge base. Use when the assistant discovers new patterns, learns user preferences, or identifies information worth preserving for future sessions. Integrate'
+    description: 'Syncs knowledge to the agentic-harness knowledge base and AGENTS.md learned facts. Use when the assistant discovers new patterns, learns user preferences, workspace facts, or identifies information wo'
     stability: stable
   - id: data/dbt-validation
     name: dbt-validation
