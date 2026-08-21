@@ -114,17 +114,17 @@ Common project-level additions:
 
 #### rules/*.mdc
 
-Cursor uses `.mdc` files (Markdown with YAML frontmatter) for its Rules for AI feature. Each file corresponds to a skill domain.
+Cursor uses `.mdc` files (Markdown with YAML frontmatter) for its Rules for AI feature. Each file corresponds to an agent persona.
 
 File format:
 
 ```
 ---
-description: Forge skills — GitHub and GitLab CLI workflows.
+description: Expert code review specialist. Proactively reviews code for quality, security, and maintainability.
 alwaysApply: false
 ---
 
-# Forge Skills
+# Code Reviewer
 
 [Rule content here]
 ```
@@ -133,16 +133,24 @@ Rules can be scoped:
 - **Global rules** in `~/.cursor/rules/` apply to all Cursor projects
 - **Project rules** in `.cursor/rules/` (inside your repo) apply to the current project only
 
-The agent-toolkit profile ships domain-organized rule files:
+The agent-toolkit profile ships per-agent rule files (14 agent personas):
 
 ```
 profiles/cursor/rules/
-├── core.mdc          # Core patterns and conventions
-├── delivery.mdc      # Work item lifecycle, PRD, TRD, ADR
-├── design.mdc        # UI/UX and Figma integration
-├── forge.mdc         # GitHub/GitLab CLI workflows
-├── integrations.mdc  # Slack, Linear, ClickUp
-└── ops.mdc           # Triage, incident response
+├── architect.mdc
+├── assistant.mdc
+├── build-error-resolver.mdc
+├── code-reviewer.mdc
+├── database-reviewer.mdc
+├── docs-lookup.mdc
+├── e2e-runner.mdc
+├── performance-optimizer.mdc
+├── planner.mdc
+├── refactor-cleaner.mdc
+├── reference-lookup.mdc
+├── security-reviewer.mdc
+├── tdd-guide.mdc
+└── typescript-reviewer.mdc
 ```
 
 ### Installation
@@ -157,7 +165,7 @@ mkdir -p .cursor/rules
 cp profiles/cursor/rules/*.mdc .cursor/rules/
 
 # Install a single domain
-cp profiles/cursor/rules/forge.mdc .cursor/rules/
+cp profiles/cursor/rules/code-reviewer.mdc .cursor/rules/
 ```
 
 Alternatively, paste `.mdc` file contents directly into **Cursor Settings → Rules for AI** in the Cursor UI.
