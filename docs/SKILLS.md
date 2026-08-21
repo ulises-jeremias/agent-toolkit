@@ -65,19 +65,21 @@ Skills live under `skills/<domain>/<name>/`. There are **14 domains** (86 skills
 | `core` | 8 | `assistant`, `dev-companion`, `workspace`, `project`, `onboarding` |
 | `delivery` | 21 | `adr`, `prd`, `bug`, `planning`, `work-item` |
 | `design` | 10 | `figma-implement-design`, `frontend-design` |
-| `forge` | 8 | `github-cli-workflow`, `gh-fix-ci`, `worktree` |
+| `forge` | 9 | `github-cli-workflow`, `gh-fix-ci`, `worktree`, `fix-merge-conflicts` |
 | `integrations` | 5 | `slack-cli`, `linear`, `clickup-cli`, `mcp` |
 | `data` | 2 | `dbt-validation`, `snowflake-validation` |
-| `tooling` | 6 | `playwright-cli`, `jupyter-notebook`, `herdr`, `inventory` |
+| `tooling` | 7 | `playwright-cli`, `jupyter-notebook`, `herdr`, `inventory`, `chrome-devtools`, `mermaid`, `cli-for-agents` |
 | `ops` | 6 | `triage`, `swarm`, `llm-cost-advisor` |
 | `loops` | 1 | `loop-runner` |
 | `agentic-security` | 4 | `threat-modeling`, `mcp-audit` |
 | `cloud` | 2 | `cloud-design-patterns` |
 | `architecture` | 1 | `c4-model` |
 | `accessibility` | 1 | `review` |
-| `quality` | 7 | `megalinter`, `codeql`, `unslop`, `blast-radius` |
+| `quality` | 9 | `megalinter`, `codeql`, `unslop`, `blast-radius`, `deslop`, `deep-review` |
 
 Tool compatibility is declared in each `SKILL.md` `tools:` frontmatter. Do not maintain a second compatibility matrix here — use the catalog.
+
+> Counts generated from `catalogs/skill-catalog.yaml` — do not hand-edit; verify with `python3 -c "import yaml; print(len(yaml.safe_load(open('catalogs/skill-catalog.yaml'))['skills']))"`.
 
 ## Installing Skills
 
