@@ -109,7 +109,7 @@ agent-toolkit doctor
       <h3>🔗 MCP</h3>
       <sub>Provider registry + ready templates (GitHub, Slack, Notion, Linear, Figma, ClickUp, Chrome DevTools) emitted into target-native MCP configs.</sub>
       <br><br>
-      <sub>7 templates · <code>mcp/registry/</code> · <code>mcp/templates/</code> · <code>agent-toolkit mcp</code></sub>
+      <sub>7 providers · <code>mcp/registry/</code> · <code>mcp/templates/</code> · <code>agent-toolkit mcp</code></sub>
     </td>
   </tr>
 </table>
@@ -474,7 +474,7 @@ agent-toolkit/
 │   ├── pi/              # Skill definitions in Pi's native format
 │   └── muse-code/       # Muse Code Agent Skills
 ├── loops/               # 10 recurring loop engineering templates
-├── mcp/templates/       # 7 MCP config templates (JSON)
+├── mcp/templates/       # 7 providers (8 JSON files — Notion has local fallback)
 ├── packs/               # 7 solution packs
 ├── catalogs/            # skill-catalog.yaml, agent-catalog.yaml
 ├── schemas/             # JSON schemas for validation

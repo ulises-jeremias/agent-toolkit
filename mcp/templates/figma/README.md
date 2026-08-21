@@ -51,4 +51,4 @@ registration time. Restart your AI tool so it re-reads the MCP config.
 
 - `~/.local/share/agent-toolkit/skills/figma/SKILL.md` and the `figma-*` skill
   family.
-- `docs/MCP_TEMPLATES.md`
+- `docs/MCP.md`

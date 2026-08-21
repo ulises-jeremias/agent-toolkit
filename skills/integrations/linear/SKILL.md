@@ -12,7 +12,7 @@ Structured workflow for managing Linear issues, projects and cycles through the
 official Linear MCP server (`https://mcp.linear.app/mcp`, OAuth).
 
 This skill assumes the MCP is wired into your AI tool. See
-[`docs/MCP_TEMPLATES.md`](../../../../../../docs/MCP_TEMPLATES.md) and
+[`docs/MCP.md`](../../../../../../docs/MCP.md) and
 `~/.local/share/agent-toolkit/mcp/linear/` for the managed template.
 
 ## When to use

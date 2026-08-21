@@ -46,4 +46,4 @@ That snippet is also embedded in `config.template.json` under the
 
 - `~/.local/share/agent-toolkit/skills/linear/SKILL.md` — the linear skill that
   drives this MCP.
-- `docs/MCP_TEMPLATES.md`
+- `docs/MCP.md`
