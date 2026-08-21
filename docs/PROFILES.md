@@ -310,11 +310,10 @@ Add project-specific rules by creating a `.windsurfrules` file in your project r
 
 Pi Coding Agent loads skill definitions from `~/.pi/agent/skills/`. Each `.md` file is a skill the agent can invoke.
 
-The Pi profile ships a curated set of the most universally applicable skills formatted for Pi's loading format:
-- Core skills: `assistant`, `development-workflow`, `pr-fallback`
-- Delivery skills: `work-item`, `planning`, `user-story`, `bug`, `incident`
-- Forge skills: `github-cli-workflow`, `gh-fix-ci`, `gh-address-comments`
-- Ops skills: `triage`
+The Pi profile ships a minimal set of 5 agent personas formatted as Pi skills (see `profiles/pi/skills/`):
+- `assistant`, `architect`, `planner`, `code-reviewer`, `security-reviewer` (agents-as-skills)
+
+> **Note:** Earlier docs listed 11 delivery/forge skills; the current profile is intentionally minimal (agents-as-skills) to match Pi's native format. For full 86 skills, use the universal Agent Skills path (`~/.pi/agent/skills/` accepts standard `SKILL.md`); track full parity in #787.
 
 ### Installation
 
