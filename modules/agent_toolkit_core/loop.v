@@ -78,7 +78,7 @@ pub fn run_loop(opts LoopOptions) LoopReport {
 			loop_schedule(ws, opts)
 		}
 		'sync' {
-			loop_sync(ws)
+			loop_sync(ws, opts)
 		}
 		'list', 'ls' {
 			loop_list(ws)
@@ -123,7 +123,7 @@ Usage:
     agent-toolkit loop audit [loop]
     agent-toolkit loop cost <loop>
     agent-toolkit loop schedule <loop> [--dry-run] [--cron EXPR] [--platform PLATFORM] [--list] [--remove]
-    agent-toolkit loop sync
+    agent-toolkit loop sync [--platform PLATFORM] [--dry-run]
     agent-toolkit loop templates
     agent-toolkit loop help
 
@@ -600,7 +600,69 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 	}
 }
 
-fn loop_sync(ws string) LoopReport {
+fn loop_sync(ws string, opts LoopOptions) LoopReport {
+	platform := opts.platform.trim_space()
+	if platform == 'github-actions' {
+		mut drifts := []string{}
+		mut missing := []string{}
+		for d in list_loop_dirs(ws) {
+			meta := parse_loop_meta(d)
+			cron := cadence_to_cron(meta.cadence) or { continue }
+			version := embedded_version
+			expected := emit_github_workflow(os.file_name(d), meta.tier, meta.cadence, cron, version)
+			path := os.join_path(ws, '.github', 'workflows', 'agent-toolkit-${os.file_name(d)}.yml')
+			if !os.is_file(path) {
+				missing << '${os.file_name(d)} (expected ${path})'
+				continue
+			}
+			actual := os.read_file(path) or { '' }
+			if actual.trim_space() != expected.trim_space() {
+				drifts << '${os.file_name(d)}'
+			}
+		}
+		if drifts.len == 0 && missing.len == 0 {
+			return LoopReport{
+				ok:      true
+				message: '[loop] sync --platform github-actions: all workflows in sync.'
+				data:    {
+					'subcommand': 'sync'
+					'platform':   platform
+					'workspace':  ws
+					'count':      '0'
+				}
+			}
+		}
+		mut msg := '[loop] sync --platform github-actions: drift detected\n'
+		if missing.len > 0 {
+			msg += '  Missing workflows: ${missing.join(", ")}\n'
+		}
+		if drifts.len > 0 {
+			msg += '  Out-of-sync: ${drifts.join(", ")}\n'
+		}
+		msg += '  Fix: agent-toolkit loop schedule <name> --platform github-actions --force'
+		return LoopReport{
+			ok:      opts.dry_run == false
+			message: msg
+			data:    {
+				'subcommand': 'sync'
+				'platform':   platform
+				'workspace':  ws
+				'count':      '${drifts.len + missing.len}'
+				'drifts':     drifts.join(',')
+				'missing':    missing.join(',')
+			}
+		}
+	}
+	if platform.len > 0 && platform != 'local' {
+		return LoopReport{
+			ok:      false
+			message: "unsupported platform '${platform}' for sync — supported: local, github-actions"
+			data:    {
+				'subcommand': 'sync'
+				'platform':   platform
+			}
+		}
+	}
 	mut entries := []string{}
 	for d in list_loop_dirs(ws) {
 		_, _, _, _, escalations := read_state_md(d)
