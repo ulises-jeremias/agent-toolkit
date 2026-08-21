@@ -1,6 +1,6 @@
 # Plugin Marketplace
 
-agent-toolkit ships three plugins for the Claude Code and Cursor marketplaces. Plugins bundle
+agent-toolkit ships four plugins for the Claude Code and Cursor marketplaces. Plugins bundle
 skills and agents into installable units so you can get exactly the capabilities you need without
 loading the entire toolkit.
 
@@ -23,13 +23,15 @@ install individual plugins from it.
 /plugin install agent-toolkit-core@agent-toolkit
 /plugin install agent-toolkit-agents@agent-toolkit
 /plugin install agent-toolkit-forge@agent-toolkit
+/plugin install agent-toolkit-craft@agent-toolkit
 ```
 
-You do not need to install all three. Install what you need:
+You do not need to install all four. Install what you need:
 
 - **Just getting started:** install `agent-toolkit-core`
 - **Want specialist subagents:** add `agent-toolkit-agents`
 - **GitHub/GitLab automation:** add `agent-toolkit-forge`
+- **Writing quality + change safety:** add `agent-toolkit-craft`
 
 ### Step 3: Verify
 
@@ -43,7 +45,7 @@ Skills from installed plugins should appear in the response.
 
 ---
 
-## The Three Plugins Explained
+## The Four Plugins Explained
 
 ### agent-toolkit-core
 
@@ -128,6 +130,24 @@ contribution planning.
 **Use this plugin if:** You do a lot of GitHub PR work and want automated CI triage and PR
 automation.
 
+### agent-toolkit-craft
+
+**Install command:** `/plugin install agent-toolkit-craft@agent-toolkit`
+
+Writing quality and change-safety skills: cut AI tells from prose, remove AI-generated code
+slop, and prove the blast radius of a change before it ships.
+
+**Included skills:**
+
+| Skill | What it does |
+|-------|-------------|
+| `unslop` | Cut AI tells from any writing. |
+| `deslop` | Remove AI-generated code slop and clean up code style. |
+| `blast-radius` | Find what a change could break before it ships, beyond the diff. |
+
+**Use this plugin if:** You want focused writing/quality guardrails without loading the full
+catalog.
+
 ---
 
 ## Cursor: Installing from the Marketplace
@@ -193,6 +213,7 @@ After a new release of agent-toolkit, update installed plugins:
 /plugin update agent-toolkit-core@agent-toolkit
 /plugin update agent-toolkit-agents@agent-toolkit
 /plugin update agent-toolkit-forge@agent-toolkit
+/plugin update agent-toolkit-craft@agent-toolkit
 ```
 
 Or update all installed plugins at once:

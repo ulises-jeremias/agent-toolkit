@@ -63,7 +63,7 @@ In your AI tool, invoke an existing core skill — e.g. `core/assistant`:
 > Use the core/assistant skill to bootstrap this workspace
 ```
 
-You should see the assistant skill instructions load. Browse the full catalog: `catalogs/skill-catalog.yaml` (80 skills), regenerate with `./scripts/generate-catalogs.vsh`.
+You should see the assistant skill instructions load. Browse the full catalog: `catalogs/skill-catalog.yaml` (86 skills), regenerate with `./scripts/generate-catalogs.vsh`.
 
 ## 6. Try Swarms (optional — multi-agent orchestration)
 

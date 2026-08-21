@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Feat** — Complete Epic #743 (cursor/plugins adoption): vendor `tooling/cli-for-agents` ([#779](https://github.com/ulises-jeremias/agent-toolkit/pull/779)), absorb fix-ci patterns into `forge/gh-fix-ci` ([#780](https://github.com/ulises-jeremias/agent-toolkit/pull/780)), add `forge/fix-merge-conflicts` ([#781](https://github.com/ulises-jeremias/agent-toolkit/pull/781)), extend `core/workspace-knowledge-sync` with learned facts ([#792](https://github.com/ulises-jeremias/agent-toolkit/pull/792)), and add first-party `quality/deep-review` rubric ([#808](https://github.com/ulises-jeremias/agent-toolkit/pull/808))
+- **Feat** — Emit `hooks/hooks.json` for Cursor from the canonical `capabilities/hooks/*.yaml` registry ([#794](https://github.com/ulises-jeremias/agent-toolkit/pull/794))
+- **Feat** — Spec-complete Cursor/Claude `plugin.json` manifests (`$schema` + `author.url` per Agent Plugins 1.0.0) ([#795](https://github.com/ulises-jeremias/agent-toolkit/pull/795))
+- **Feat** — New stable `agent-toolkit-craft` product (unslop + deslop + blast-radius), registered in Claude Code and Cursor marketplaces ([#796](https://github.com/ulises-jeremias/agent-toolkit/pull/796))
+- **Chore** — Integration audit: inventory counts (86 skills / 17 agents / 5 products), marketplace docs (four plugins) ([#756](https://github.com/ulises-jeremias/agent-toolkit/issues/756))
+
 ## [1.16.0] — 2026-08-19
 
 - **Docs** — Add upstream vs first-party governance (`docs/UPSTREAM_VS_FIRST_PARTY.md`), skill integration checklist, and `ORCHESTRATION.md` routing table (Epic #743, Wave 0) ([#757](https://github.com/ulises-jeremias/agent-toolkit/pull/757))
