@@ -618,6 +618,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 	mut cron := ''
 	mut list_mode := false
 	mut remove_mode := false
+	mut platform := ''
 	mut i := 0
 	for i < args.len {
 		a := args[i]
@@ -655,7 +656,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 			i++
 			continue
 		}
-		if a in ['--name', '--runner', '--pack', '--workspace', '--cron'] {
+		if a in ['--name', '--runner', '--pack', '--workspace', '--cron', '--platform'] {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -666,6 +667,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 				'--pack' { pack = val }
 				'--workspace' { workspace_path = val }
 				'--cron' { cron = val }
+				'--platform' { platform = val }
 				else {}
 			}
 			i += 2
@@ -693,6 +695,11 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 		}
 		if a.starts_with('--cron=') {
 			cron = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--platform=') {
+			platform = a.all_after('=')
 			i++
 			continue
 		}
@@ -727,6 +734,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 		cron:           cron
 		list_mode:      list_mode
 		remove_mode:    remove_mode
+		platform:       platform
 	}
 }
 

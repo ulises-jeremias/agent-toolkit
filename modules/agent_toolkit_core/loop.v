@@ -20,6 +20,7 @@ pub:
 	cron           string
 	list_mode      bool
 	remove_mode    bool
+	platform       string // schedule platform: local | github-actions (Phase 1, #729)
 }
 
 // LoopReport is the domain result for loop subcommands.
@@ -121,7 +122,7 @@ Usage:
     agent-toolkit loop status [loop]
     agent-toolkit loop audit [loop]
     agent-toolkit loop cost <loop>
-    agent-toolkit loop schedule <loop> [--dry-run] [--cron EXPR] [--list] [--remove]
+    agent-toolkit loop schedule <loop> [--dry-run] [--cron EXPR] [--platform PLATFORM] [--list] [--remove]
     agent-toolkit loop sync
     agent-toolkit loop templates
     agent-toolkit loop help
@@ -133,10 +134,11 @@ loop run options:
     --workspace PATH  Workspace root override
     --runner NAME auto|skeleton (LLM PATH runners fail closed to skeleton without stdin)
     --no-llm      Alias for --runner skeleton (no network)
+    --platform PLATFORM  Schedule platform: local (default, systemd/launchd) | github-actions
     --json        Structured CommandResult JSON
 
 Concurrency: one OS process per iteration via ProcessService; no Python threads / no `go` workers.
-Schedule: systemd/launchd on Unix; not supported on Windows.
+Schedule: systemd/launchd on Unix (local); GitHub Actions via --platform github-actions; not supported on Windows for local.
 '
 }
 
@@ -436,6 +438,119 @@ fn loop_cost(ws string, opts LoopOptions) LoopReport {
 }
 
 fn loop_schedule(ws string, opts LoopOptions) LoopReport {
+	mut platform := opts.platform.trim_space()
+	if platform.len == 0 {
+		platform = 'local'
+	}
+	if platform == 'github-actions' {
+		if opts.name.len == 0 {
+			return LoopReport{
+				ok:      false
+				message: 'Usage: agent-toolkit loop schedule <loop-name> --platform github-actions [--dry-run] [--force]'
+				data:    {
+					'subcommand': 'schedule'
+					'platform':   platform
+				}
+			}
+		}
+		loop_dir := resolve_loop_dir(ws, opts.name) or {
+			return LoopReport{
+				ok:      false
+				message: "Loop '${opts.name}' not found. Run: agent-toolkit loop init ${opts.name}"
+				data:    {
+					'subcommand': 'schedule'
+					'platform':   platform
+					'workspace':  ws
+				}
+			}
+		}
+		meta := parse_loop_meta(loop_dir)
+		mut cron := opts.cron.trim_space()
+		if cron.len == 0 {
+			cron = cadence_to_cron(meta.cadence) or {
+				return LoopReport{
+					ok:      false
+					message: 'invalid cadence "${meta.cadence}" for loop "${opts.name}": ${err.msg()}\n  Use --cron to override or fix loops/${opts.name}/loop.yaml'
+					data:    {
+						'subcommand': 'schedule'
+						'platform':   platform
+					}
+				}
+			}
+		}
+		version := embedded_version
+		workflow := emit_github_workflow(opts.name, meta.tier, meta.cadence, cron, version)
+		if opts.dry_run {
+			return LoopReport{
+				ok:      true
+				message: '[loop] schedule dry-run (github-actions workflow):\n${workflow}'
+				data:    {
+					'subcommand': 'schedule'
+					'workspace':  ws
+					'name':       opts.name
+					'platform':   platform
+					'mode':       'dry-run'
+					'cron':       cron
+				}
+			}
+		}
+		// Determine repo root for workflow path — prefer ws if it looks like a git repo, else fallback to git top-level
+		mut repo_root := ws
+		// If ws is a harness workspace with loops/ subdir, .github should be at ws (or its parent if ws is nested)
+		// We use ws directly; user can move file if needed.
+		dir := os.join_path(repo_root, '.github', 'workflows')
+		path := os.join_path(dir, 'agent-toolkit-${opts.name}.yml')
+		if os.is_file(path) && !opts.force {
+			return LoopReport{
+				ok:      false
+				message: '[loop] Workflow already exists at ${path}\n  Use --force to overwrite or --dry-run to preview.\n  To check drift: agent-toolkit loop sync --platform github-actions'
+				data:    {
+					'subcommand': 'schedule'
+					'platform':   platform
+					'path':       path
+				}
+			}
+		}
+		os.mkdir_all(dir) or {
+			return LoopReport{
+				ok:      false
+				message: 'mkdir failed: ${err}'
+			}
+		}
+		os.write_file(path, workflow) or {
+			return LoopReport{
+				ok:      false
+				message: 'write workflow failed: ${err}'
+			}
+		}
+		mut msg := '[loop] Wrote ${path}\n'
+		msg += '  Cron: ${cron} (cadence ${meta.cadence})\n'
+		msg += '  Version pin: agent-toolkit-cli==${version}\n'
+		msg += '  Next: commit and push, then enable Actions. Secrets: GITHUB_TOKEN is auto-provided; add ANTHROPIC_API_KEY/OPENAI_API_KEY as repo secrets if loop uses LLM.\n'
+		msg += '  Sync check: agent-toolkit loop sync --platform github-actions'
+		return LoopReport{
+			ok:      true
+			message: msg
+			data:    {
+				'subcommand': 'schedule'
+				'workspace':  ws
+				'name':       opts.name
+				'platform':   platform
+				'path':       path
+				'cron':       cron
+			}
+		}
+	}
+	if platform != 'local' {
+		return LoopReport{
+			ok:      false
+			message: "unsupported platform '${platform}' — supported: local, github-actions (see #729)\n  Use: agent-toolkit loop schedule <loop> --platform github-actions"
+			data:    {
+				'subcommand': 'schedule'
+				'platform':   platform
+			}
+		}
+	}
 	$if windows {
 		return LoopReport{
 			ok:      false
