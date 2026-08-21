@@ -343,3 +343,35 @@ resumable: boolean               # Default: false
 verifier: string | null          # Agent name to verify output (e.g. code-reviewer)
 attribution: boolean | object    # Default: true; false disables AI comment disclosure
 ```
+
+---
+
+## Remote Execution (GitHub Actions)
+
+Local `loop schedule` uses `systemd`/`launchd` and stops when the laptop sleeps. For production, run loops remotely:
+
+```bash
+# Preview
+agent-toolkit loop schedule oss-triage --platform github-actions --dry-run
+
+# Emit workflow
+agent-toolkit loop schedule oss-triage --platform github-actions
+# → writes .github/workflows/agent-toolkit-oss-triage.yml
+
+# Check drift (CI-friendly)
+agent-toolkit loop sync --platform github-actions
+agent-toolkit loop sync --platform github-actions --dry-run  # exits 1 on drift
+
+# Force overwrite
+agent-toolkit loop schedule oss-triage --platform github-actions --force
+```
+
+**How it works:**
+- `cadence` → cron: `15m`→`*/15 * * * *`, `4h`→`0 */4 * * *`, `1d`→`0 0 * * *`, `1w`→`0 0 * * 0`
+- Workflow is version-pinned: `uvx --from agent-toolkit-cli==1.18.0`
+- Permissions: `contents:write`, `pull-requests:write`, `issues:write`; `GITHUB_TOKEN` is auto-provided
+- Concurrency: `group: agent-toolkit-<name>` prevents overlapping runs
+- `STATE.md` is not persisted on ephemeral runners (remote is not resumable in v1.19.0) — daily cadence is fine; large `oss-*` at scale stays local until cache design lands
+- Secrets: add `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` as repo secrets if the loop's `request` uses LLM; never committed
+
+See `examples/remote-loops/` for a sanitized workflow.
