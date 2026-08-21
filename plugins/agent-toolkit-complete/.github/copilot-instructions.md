@@ -63,6 +63,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **swarm-observer**: ops/swarm-observer
 - **triage**: ops/triage
 - **herdr**: tooling/herdr
+- **cli-for-agents**: tooling/cli-for-agents
 - **inventory**: tooling/inventory
 - **jupyter-notebook**: tooling/jupyter-notebook
 - **review**: accessibility/review
@@ -75,6 +76,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **megalinter-fix**: quality/megalinter-fix
 - **codeql**: quality/codeql
 - **unslop**: quality/unslop
+- **deslop**: quality/deslop
 - **blast-radius**: quality/blast-radius
 - **chrome-devtools**: tooling/chrome-devtools
 - **playwright-cli**: tooling/playwright-cli

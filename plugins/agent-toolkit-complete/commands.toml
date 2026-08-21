@@ -530,6 +530,15 @@ Follow the `herdr` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "cli_for_agents"
+description = "tooling/cli-for-agents"
+prompt = """
+Follow the `cli-for-agents` skill instructions for {{args}}.
+
+@{skills/cli-for-agents/SKILL.md}
+"""
+
+[[commands]]
 name = "inventory"
 description = "tooling/inventory"
 prompt = """
@@ -635,6 +644,15 @@ prompt = """
 Follow the `unslop` skill instructions for {{args}}.
 
 @{skills/unslop/SKILL.md}
+"""
+
+[[commands]]
+name = "deslop"
+description = "quality/deslop"
+prompt = """
+Follow the `deslop` skill instructions for {{args}}.
+
+@{skills/deslop/SKILL.md}
 """
 
 [[commands]]

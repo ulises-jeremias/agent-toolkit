@@ -54,6 +54,10 @@ Available subagents (invoke with `@name` in your message):
 
 These are agents defined in `~/.claude/agents/` — they are NOT skills.
 
+## Delegate to skills
+
+- Agent-facing CLI design or review → `tooling/cli-for-agents`
+
 ## When working on client projects
 - Respect existing patterns and conventions in the project
 - Check for project-specific AGENTS.md or CLAUDE.md
