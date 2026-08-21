@@ -100,6 +100,26 @@ products:
       cursor:
         plugin_id: agent-toolkit-forge
         manifest: plugins/agent-toolkit-forge/.cursor-plugin/plugin.json
+  - id: agent-toolkit-craft
+    name: Agent Toolkit Craft
+    description: 'Writing quality and change-safety toolkit: cut AI tells (unslop), remove code slop (deslop), and prove blast radius before shipping.'
+    version_source: VERSION
+    stability: stable
+    includes:
+      skills:
+        - quality/unslop
+        - quality/deslop
+        - quality/blast-radius
+      agents: []
+      hooks: []
+      mcp: []
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-craft
+        manifest: plugins/agent-toolkit-craft/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-craft
+        manifest: plugins/agent-toolkit-craft/.cursor-plugin/plugin.json
   - id: agent-toolkit-complete
     name: Agent Toolkit Complete
     description: Full stable skill catalog coverage for consumers who want everything (#50)

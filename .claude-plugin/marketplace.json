@@ -51,6 +51,19 @@
         "automation",
         "forge"
       ]
+    },
+    {
+      "name": "agent-toolkit-craft",
+      "source": "./plugins/agent-toolkit-craft",
+      "description": "Writing quality and change-safety toolkit: cut AI tells (unslop), remove code slop (deslop), and prove blast radius before shipping.",
+      "version": "1.17.0",
+      "category": "quality",
+      "tags": [
+        "writing",
+        "quality",
+        "safety",
+        "blast-radius"
+      ]
     }
   ]
 }
