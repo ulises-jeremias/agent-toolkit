@@ -76,7 +76,7 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Domain | Skills | When to route |
 |--------|--------|---------------|
 | Figma | **figma**, **figma-implement-design**, **figma-code-connect-components** | Design-to-code, MCP |
-| Visual design | **frontend-design**, **frontend-design-review**, **ui-ux-pro-max** | UI aesthetics and review |
+| Visual design | **frontend-design**, **frontend-design-review** | UI aesthetics and review |
 | Guidelines | **web-design-guidelines** | Vercel web interface guidelines |
 
 ---
