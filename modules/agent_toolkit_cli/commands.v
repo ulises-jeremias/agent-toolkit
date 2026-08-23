@@ -70,6 +70,7 @@ pub fn build_root_command() cli.Command {
 		matrix_command(),
 		release_command(),
 		swarm_command(),
+		serve_command(),
 	])
 	promote_family_flags(mut app)
 	app.setup()
@@ -935,4 +936,40 @@ fn find_command(root cli.Command, token string) ?cli.Command {
 fn resolve_command_name(root cli.Command, token string) ?string {
 	c := find_command(root, token) or { return none }
 	return c.name
+}
+
+fn serve_command() cli.Command {
+	return cli.Command{
+		name:        'serve'
+		description: 'Run the agent-toolkit HTTP server (feature-complete API over core)'
+		execute:     atk_exec
+		group:       'Advanced commands'
+		flags:       [
+			cli.Flag{
+				flag:        .string
+				name:        'host'
+				description: 'Bind address (default 127.0.0.1; remote requires --allow-remote + token)'
+			},
+			cli.Flag{
+				flag:        .int
+				name:        'port'
+				description: 'Port (default 3847)'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'allow-remote'
+				description: 'Allow binding non-localhost (requires --auth-token)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'auth-token'
+				description: 'Bearer token for remote access (or env AGENT_TOOLKIT_TOKEN)'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'no-browser'
+				description: "Don't open browser on start"
+			},
+		]
+	}
 }

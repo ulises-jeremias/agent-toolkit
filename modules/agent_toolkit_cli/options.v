@@ -1,6 +1,8 @@
 module agent_toolkit_cli
 
 import agent_toolkit_core
+import agent_toolkit_server
+import os
 
 fn parse_doctor_options(args []string) agent_toolkit_core.DoctorOptions {
 	mut fix := false
@@ -944,5 +946,68 @@ fn parse_memory_options(args []string) !agent_toolkit_core.MemoryOptions {
 		fix:            fix
 		stale_after:    stale_after
 		show_done:      done
+	}
+}
+
+fn parse_serve_options(args []string) !agent_toolkit_server.ServeOptions {
+	mut host := ''
+	mut port := 0
+	mut allow_remote := false
+	mut auth_token := os.getenv('AGENT_TOOLKIT_TOKEN')
+	mut no_browser := false
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		if a == '--no-browser' {
+			no_browser = true
+			i++
+			continue
+		}
+		if a == '--allow-remote' {
+			allow_remote = true
+			i++
+			continue
+		}
+		if a in ['--host', '--port', '--auth-token'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--host' { host = val }
+				'--port' { port = val.int() }
+				'--auth-token' { auth_token = val }
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--host=') {
+			host = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--port=') {
+			port = a.all_after('=').int()
+			i++
+			continue
+		}
+		if a.starts_with('--auth-token=') {
+			auth_token = a.all_after('=')
+			i++
+			continue
+		}
+		i++
+	}
+	return agent_toolkit_server.ServeOptions{
+		host:         host
+		port:         port
+		allow_remote: allow_remote
+		auth_token:   auth_token
+		open_browser: !no_browser
 	}
 }

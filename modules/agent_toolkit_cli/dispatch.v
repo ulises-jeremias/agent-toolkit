@@ -1,6 +1,7 @@
 module agent_toolkit_cli
 
 import agent_toolkit_core
+import agent_toolkit_server
 import cli
 
 // run is the library entry used by cmd/agent-toolkit.
@@ -247,6 +248,20 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		}
 		report := agent_toolkit_core.run_swarm(opts)
 		return render(agent_toolkit_core.swarm_result(report), mode)
+	}
+	if cmd_name == 'serve' {
+		opts := parse_serve_options(rest) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_server.run_serve(opts)
+		res := agent_toolkit_core.CommandResult{
+			command: 'serve'
+			ok:      report.ok
+			message: report.message
+			data:    report.data
+		}
+		return render(res, mode)
 	}
 	if cmd_name == 'completion' {
 		return run_completion(rest)
