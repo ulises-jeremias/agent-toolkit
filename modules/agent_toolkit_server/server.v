@@ -128,7 +128,13 @@ pub fn handle_request(method string, path string, headers map[string]string, opt
 			return 200, body
 		}
 		else {
-			// Phase 3+ will dispatch generated routes here.
+			// Phase 3+ read routes
+			if method == 'GET' {
+				reply := handle_read(method, path, opts, started)
+				if reply.handled {
+					return reply.code, reply.body
+				}
+			}
 			return 404, json_body({
 				'ok':    'false'
 				'error': 'not found: ${path}'

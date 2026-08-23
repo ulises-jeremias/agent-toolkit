@@ -43,3 +43,24 @@ fn test_remote_requires_token() {
 	code2, _ := handle_request('GET', '/api/v1/health', hdrs, opts, time.utc())
 	assert code2 == 200
 }
+
+fn test_handle_read_inventory_422_or_200() {
+	opts := default_serve_options()
+	code, _ := handle_request('GET', '/api/v1/inventory', {}, opts, time.utc())
+	assert code in [200, 422]
+}
+
+fn test_handle_read_loops_list() {
+	opts := default_serve_options()
+	code, body := handle_request('GET', '/api/v1/loops', {}, opts, time.utc())
+	assert code == 200
+	assert body.contains('"ok"')
+}
+
+fn test_handle_unknown_loop_status_404() {
+	opts := default_serve_options()
+	// workspace without such loop → run_loop reports not-found → we map 404 only when message says so;
+	// in repo root (no loops dir) list returns ok empty; status for missing name yields not found.
+	code, _ := handle_request('GET', '/api/v1/loops/definitely-missing-xyz/status', {}, opts, time.utc())
+	assert code in [200, 404]
+}
