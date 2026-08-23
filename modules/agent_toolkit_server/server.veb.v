@@ -296,3 +296,90 @@ pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
 	body := os.read_file(lp) or { '' }
 	return ctx.text(body)
 }
+
+// Phase 5 — gated writes (full parity). Each handler checks ADR-028 policy.
+
+struct GenericReq {
+	cmd  string
+	args []string
+}
+
+@['/api/v1/install'; post]
+pub fn (app &App) install(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	// For parity, delegate to core via job runner for now (synchronous)
+	opts := agent_toolkit_core.InstallOptions{}
+	return ctx.json(cmd_resp(agent_toolkit_core.install_result(agent_toolkit_core.run_install(opts))))
+}
+
+@['/api/v1/update'; post]
+pub fn (app &App) update(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	opts := agent_toolkit_core.UpdateOptions{}
+	return ctx.json(cmd_resp(agent_toolkit_core.update_result(agent_toolkit_core.run_update(opts))))
+}
+
+@['/api/v1/uninstall'; post]
+pub fn (app &App) uninstall(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	opts := agent_toolkit_core.UninstallOptions{}
+	return ctx.json(cmd_resp(agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(opts))))
+}
+
+@['/api/v1/doctor/fix'; post]
+pub fn (app &App) doctor_fix(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	// doctor --fix runs with same core but with fix flag
+	snap := agent_toolkit_core.run_doctor(agent_toolkit_core.DoctorOptions{ fix: true })
+	return ctx.json(MsgResp{ ok: snap.ok, message: snap.message })
+}
+
+@['/api/v1/build'; post]
+pub fn (app &App) build_route(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	// default check mode
+	res := agent_toolkit_core.build_result(agent_toolkit_core.run_build(agent_toolkit_core.BuildOptions{ check: true }))
+	return ctx.json(cmd_resp(res))
+}
+
+@['/api/v1/loops/:name/run'; post]
+pub fn (mut app App) loops_run(mut ctx Ctx, name string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	// Enqueue as job for streaming (reuse jobs runner)
+	job := app.runner.create('loop', ['loop', 'run', name], os.getwd()) or {
+		return ctx.json(DenyErr{ ok: false, error: err.msg() })
+	}
+	return ctx.json(job)
+}
+
+@['/api/v1/loops/:name/schedule'; post]
+pub fn (mut app App) loops_schedule(mut ctx Ctx, name string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	opts := agent_toolkit_core.LoopOptions{
+		subcommand: 'schedule'
+		name:       name
+	}
+	report := agent_toolkit_core.run_loop(opts)
+	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(report)))
+}
