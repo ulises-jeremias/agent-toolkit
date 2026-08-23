@@ -5,6 +5,7 @@ module agent_toolkit_server
 // field `Context`, and route handlers must return veb.Result.
 import agent_toolkit_core
 import os
+import json
 import time
 import veb
 
@@ -12,6 +13,7 @@ pub struct App {
 pub mut:
 	opts    ServeOptions
 	started time.Time
+	runner  &JobRunner = unsafe { nil }
 }
 
 pub fn validate_bind(host string, allow_remote bool, token string) ! {
@@ -33,6 +35,7 @@ pub fn new_app(opts ServeOptions) &App {
 			json_logs:    opts.json_logs
 		}
 		started: time.utc()
+		runner:  new_job_runner(os.join_path(os.getwd(), '.agent-toolkit', 'server'))
 	}
 }
 
@@ -240,4 +243,56 @@ fn find_repo_root() string {
 
 fn is_file(p string) bool {
 	return os.exists(p) && !os.is_dir(p)
+}
+
+
+struct JobCreateReq {
+	cmd  string
+	args []string
+}
+
+@['/api/v1/jobs'; post]
+pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	req := json.decode(JobCreateReq, ctx.req.data) or {
+		return ctx.json(DenyErr{ ok: false, error: 'invalid JSON body' })
+	}
+	if req.cmd.len == 0 {
+		return ctx.json(DenyErr{ ok: false, error: 'cmd is required' })
+	}
+	mut args := [req.cmd]
+	args << req.args
+	job := app.runner.create(req.cmd, args, os.getwd()) or {
+		return ctx.json(DenyErr{ ok: false, error: err.msg() })
+	}
+	return ctx.json(job)
+}
+
+@['/api/v1/jobs'; get]
+pub fn (app &App) jobs_list(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	app.runner.mut.lock()
+	jobs := app.runner.jobs.clone()
+	app.runner.mut.unlock()
+	return ctx.json(jobs)
+}
+
+@['/api/v1/jobs/:id/log'; get]
+pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	lp := app.runner.log_path(id)
+	if !is_file(lp) {
+		return ctx.json(DenyErr{ ok: false, error: 'log not found: ${id}' })
+	}
+	body := os.read_file(lp) or { '' }
+	return ctx.text(body)
 }
