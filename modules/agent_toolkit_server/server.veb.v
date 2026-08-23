@@ -226,6 +226,108 @@ fn cmd_resp(res agent_toolkit_core.CommandResult) CmdResp {
 	return CmdResp{ ok: res.ok, message: res.message, data: res.data }
 }
 
+
+@['/api/v1/install'; post]
+pub fn (app &App) install(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{}))))
+}
+
+@['/api/v1/update'; post]
+pub fn (app &App) update(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.update_result(agent_toolkit_core.run_update(agent_toolkit_core.UpdateOptions{}))))
+}
+
+@['/api/v1/uninstall'; post]
+pub fn (app &App) uninstall_route(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{}))))
+}
+
+@['/api/v1/skills/:sub'; get; post]
+pub fn (app &App) skills(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.skills_result(agent_toolkit_core.run_skills(agent_toolkit_core.SkillsOptions{ subcommand: sub }))))
+}
+
+@['/api/v1/mcp/:sub'; get; post]
+pub fn (app &App) mcp_route(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.mcp_result(agent_toolkit_core.run_mcp(agent_toolkit_core.McpOptions{ subcommand: sub }))))
+}
+
+@['/api/v1/plugin/:sub'; get; post]
+pub fn (app &App) plugin_route(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.plugin_result(agent_toolkit_core.run_plugin(agent_toolkit_core.PluginOptions{ subcommand: sub }))))
+}
+
+@['/api/v1/workspace/:sub'; get; post]
+pub fn (app &App) workspace(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	opts := agent_toolkit_core.WorkspaceOptions{ subcommand: sub }
+	return ctx.json(cmd_resp(agent_toolkit_core.workspace_result(agent_toolkit_core.run_workspace(opts))))
+}
+
+@['/api/v1/memory/:sub'; get; post]
+pub fn (app &App) memory(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.memory_result(agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{ subcommand: sub }))))
+}
+
+@['/api/v1/project/:sub'; get; post]
+pub fn (app &App) project(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.project_result(agent_toolkit_core.run_project(agent_toolkit_core.ProjectOptions{ subcommand: sub }))))
+}
+
+@['/api/v1/build'; post]
+pub fn (app &App) build_route(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.build_result(agent_toolkit_core.run_build(agent_toolkit_core.BuildOptions{}))))
+}
+
+@['/api/v1/swarms'; get]
+pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{ subcommand: 'list' }))))
+}
+
+
 fn find_repo_root() string {
 	mut cur := os.getwd()
 	for {
@@ -297,64 +399,14 @@ pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
 	return ctx.text(body)
 }
 
-// Phase 5 — gated writes (full parity). Each handler checks ADR-028 policy.
-
-struct GenericReq {
-	cmd  string
-	args []string
-}
-
-@['/api/v1/install'; post]
-pub fn (app &App) install(mut ctx Ctx) veb.Result {
-	deny := deny_if_remote(app, ctx)
-	if deny != none {
-		return ctx.json(deny)
-	}
-	// For parity, delegate to core via job runner for now (synchronous)
-	opts := agent_toolkit_core.InstallOptions{}
-	return ctx.json(cmd_resp(agent_toolkit_core.install_result(agent_toolkit_core.run_install(opts))))
-}
-
-@['/api/v1/update'; post]
-pub fn (app &App) update(mut ctx Ctx) veb.Result {
-	deny := deny_if_remote(app, ctx)
-	if deny != none {
-		return ctx.json(deny)
-	}
-	opts := agent_toolkit_core.UpdateOptions{}
-	return ctx.json(cmd_resp(agent_toolkit_core.update_result(agent_toolkit_core.run_update(opts))))
-}
-
-@['/api/v1/uninstall'; post]
-pub fn (app &App) uninstall(mut ctx Ctx) veb.Result {
-	deny := deny_if_remote(app, ctx)
-	if deny != none {
-		return ctx.json(deny)
-	}
-	opts := agent_toolkit_core.UninstallOptions{}
-	return ctx.json(cmd_resp(agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(opts))))
-}
-
 @['/api/v1/doctor/fix'; post]
 pub fn (app &App) doctor_fix(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
 		return ctx.json(deny)
 	}
-	// doctor --fix runs with same core but with fix flag
 	snap := agent_toolkit_core.run_doctor(agent_toolkit_core.DoctorOptions{ fix: true })
 	return ctx.json(MsgResp{ ok: snap.ok, message: snap.message })
-}
-
-@['/api/v1/build'; post]
-pub fn (app &App) build_route(mut ctx Ctx) veb.Result {
-	deny := deny_if_remote(app, ctx)
-	if deny != none {
-		return ctx.json(deny)
-	}
-	// default check mode
-	res := agent_toolkit_core.build_result(agent_toolkit_core.run_build(agent_toolkit_core.BuildOptions{ check: true }))
-	return ctx.json(cmd_resp(res))
 }
 
 @['/api/v1/loops/:name/run'; post]
