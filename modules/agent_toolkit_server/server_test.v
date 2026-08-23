@@ -1,66 +1,35 @@
 module agent_toolkit_server
 
-import time
-
-fn test_handle_health() {
-	opts := default_serve_options()
-	started := time.utc()
-	code, body := handle_request('GET', '/api/v1/health', {}, opts, started)
-	assert code == 200
-	assert body.contains('"ok":true')
-	assert body.contains('version')
+fn test_validate_bind_local_ok() {
+	validate_bind('127.0.0.1', false, '') or { assert false, err.msg() }
 }
 
-fn test_handle_version() {
-	opts := default_serve_options()
-	code, body := handle_request('GET', '/api/v1/version', {}, opts, time.utc())
-	assert code == 200
-	assert body.contains('"ok":true')
+fn test_validate_bind_remote_requires_token() {
+	validate_bind('0.0.0.0', true, '') or {
+		assert err.msg().contains('--auth-token')
+		return
+	}
+	assert false, 'expected error'
 }
 
-fn test_unknown_route_404() {
-	opts := default_serve_options()
-	code, _ := handle_request('GET', '/nope', {}, opts, time.utc())
-	assert code == 404
+fn test_validate_bind_remote_with_token_ok() {
+	validate_bind('0.0.0.0', true, 'secret') or { assert false, err.msg() }
 }
 
-fn test_method_not_allowed() {
-	opts := default_serve_options()
-	code, _ := handle_request('POST', '/api/v1/version', {}, opts, time.utc())
-	assert code == 405
+fn test_new_app_defaults_port_and_host() {
+	app := new_app(ServeOptions{})
+	assert app.opts.host == '127.0.0.1'
+	assert app.opts.port == 3847
 }
 
-fn test_remote_requires_token() {
-	mut opts := default_serve_options()
-	opts.host = '0.0.0.0'
-	// no token set → any request unauthorized
-	code, body := handle_request('GET', '/api/v1/health', {}, opts, time.utc())
-	assert code == 401
-	assert body.contains('unauthorized')
-	// with token
-	opts.auth_token = 'secret123'
-	hdrs := {'authorization': 'Bearer secret123'}
-	code2, _ := handle_request('GET', '/api/v1/health', hdrs, opts, time.utc())
-	assert code2 == 200
-}
+fn test_result_to_http_mapping() {
+	res_ok := agent_toolkit_core.version_result('9.9.9')
+	code_ok, body_ok := result_to_http(res_ok)
+	assert code_ok == 200
+	assert body_ok.contains('"ok":true')
 
-fn test_handle_read_inventory_422_or_200() {
-	opts := default_serve_options()
-	code, _ := handle_request('GET', '/api/v1/inventory', {}, opts, time.utc())
-	assert code in [200, 422]
-}
-
-fn test_handle_read_loops_list() {
-	opts := default_serve_options()
-	code, body := handle_request('GET', '/api/v1/loops', {}, opts, time.utc())
-	assert code == 200
-	assert body.contains('"ok"')
-}
-
-fn test_handle_unknown_loop_status_404() {
-	opts := default_serve_options()
-	// workspace without such loop → run_loop reports not-found → we map 404 only when message says so;
-	// in repo root (no loops dir) list returns ok empty; status for missing name yields not found.
-	code, _ := handle_request('GET', '/api/v1/loops/definitely-missing-xyz/status', {}, opts, time.utc())
-	assert code in [200, 404]
+	res_bad := agent_toolkit_core.not_implemented_result('zzz')
+	code_bad, body_bad := result_to_http(res_bad)
+	assert code_bad == 422
+	assert body_bad.contains('"ok":false')
 }
