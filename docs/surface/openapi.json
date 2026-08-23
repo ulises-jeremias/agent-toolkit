@@ -1,0 +1,472 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "agent-toolkit serve API",
+    "version": "1.18.0",
+    "description": "Generated from docs/compatibility/cli-contract.yaml \u2014 do not hand-edit."
+  },
+  "paths": {
+    "/api/v1/help": {
+      "get": {
+        "operationId": "help",
+        "summary": "Print consumer-first help text",
+        "tags": [
+          "meta"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/version": {
+      "get": {
+        "operationId": "version",
+        "summary": "Print agent-toolkit version string",
+        "tags": [
+          "meta"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/install": {
+      "post": {
+        "operationId": "install",
+        "summary": "Install profiles for detected or selected AI tools",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "write:fs",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/update": {
+      "post": {
+        "operationId": "update",
+        "summary": "Refresh installed profiles from latest toolkit data",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "write:fs",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/uninstall": {
+      "post": {
+        "operationId": "uninstall",
+        "summary": "Remove toolkit-owned files using install receipts",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "write:fs",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/doctor": {
+      "get": {
+        "operationId": "doctor",
+        "summary": "Check toolkit data and tool availability",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/diff": {
+      "get": {
+        "operationId": "diff",
+        "summary": "Show changes vs installed plugin bundles",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/skills/{sub}": {
+      "post": {
+        "operationId": "skills",
+        "summary": "Sync, list, and validate skills",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "write:catalog",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/mcp/{sub}": {
+      "post": {
+        "operationId": "mcp",
+        "summary": "MCP provider setup, health, doctor, uninstall",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "write:mcp",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/plugin/{sub}": {
+      "post": {
+        "operationId": "plugin",
+        "summary": "Plugin bundle sync and check",
+        "tags": [
+          "consumer"
+        ],
+        "x-scope": "write:plugins",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/loops/{sub}": {
+      "post": {
+        "operationId": "loop",
+        "summary": "Loop engineering (init, run, status, audit, cost, schedule, sync)",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:loops",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/{sub}": {
+      "post": {
+        "operationId": "workspace",
+        "summary": "Workspace scaffolding (init, context, sync)",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:workspace",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/memory/{sub}": {
+      "post": {
+        "operationId": "memory",
+        "summary": "Knowledge base (add, search, inject, review, todo)",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:memory",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/project/{sub}": {
+      "post": {
+        "operationId": "project",
+        "summary": "Project index (clone, list, add, remove, scan)",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:projects",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/dc/{sub}": {
+      "post": {
+        "operationId": "devcompanion",
+        "summary": "Background job queue",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:dc",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/insights": {
+      "get": {
+        "operationId": "insights",
+        "summary": "Local usage analytics (OpenCode, Cursor, Claude)",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/build": {
+      "post": {
+        "operationId": "build",
+        "summary": "Compile canonical capabilities into target artifacts",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:plugins",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/inventory": {
+      "get": {
+        "operationId": "inventory",
+        "summary": "List skills, agents, and products",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/matrix": {
+      "get": {
+        "operationId": "matrix",
+        "summary": "Platform capability matrix",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/release": {
+      "post": {
+        "operationId": "release",
+        "summary": "Generate release artifacts (maintainer / CI)",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/{sub}": {
+      "post": {
+        "operationId": "swarm",
+        "summary": "Multi-agent swarm orchestration",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "write:swarm",
+        "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    }
+  }
+}
