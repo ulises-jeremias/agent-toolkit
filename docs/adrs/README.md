@@ -9,7 +9,7 @@ This repository keeps **two ADR trees**. Do **not** merge them.
 
 ## Engineering ADRs (`docs/adrs/`)
 
-Numbered `ADR-001` … `ADR-026`. Status is in each file header.
+Numbered `ADR-001` … `ADR-029`. Status is in each file header.
 
 | ADR | Title |
 |-----|-------|
@@ -39,6 +39,9 @@ Numbered `ADR-001` … `ADR-026`. Status is in each file header.
 | [ADR-024](ADR-024-aur.md) | AUR |
 | [ADR-025](ADR-025-npm-binary.md) | npm binary |
 | [ADR-026](ADR-026-full-embed.md) | Full embed |
+| [ADR-027](ADR-027-server-core-boundary.md) | Server/core boundary (thin adapter) |
+| [ADR-028](ADR-028-server-security-defaults.md) | Server security defaults |
+| [ADR-029](ADR-029-surface-parity-ssot.md) | Surface-parity SSOT (contract → all surfaces) |
 
 ## Product / pack semantics ADRs (`docs/adr/`)
 
