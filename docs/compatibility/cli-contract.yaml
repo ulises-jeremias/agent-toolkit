@@ -176,6 +176,22 @@ commands:
     tests: []
     migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
 
+  - name: completion
+    aliases: []
+    surface: consumer
+    module: agent_toolkit.cli.completion
+    summary: Emit bash/zsh/fish/PowerShell completion scripts
+    stdin: none
+    stdout: completion script
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["bash", "zsh", "fish", "powershell"]
+    env: []
+    effects: {filesystem: none, network: none, processes: none}
+    platform_notes: []
+    tests: []
+    migration: {wave: 1, complexity: low, risk: low, disposition: rewrite-v}
+
   - name: loop
     aliases: []
     surface: advanced
@@ -260,7 +276,7 @@ commands:
     aliases: []
     surface: advanced
     module: agent_toolkit.cli.insights
-    summary: Local usage analytics (OpenCode, Cursor, Claude)
+    summary: "DEPRECATE — Local usage analytics (OpenCode, Cursor, Claude) — not ported to V; see #526"
     stdin: none
     stdout: human / JSON
     stderr: errors
@@ -270,7 +286,7 @@ commands:
     effects: {filesystem: read-local-logs, network: none, processes: none}
     platform_notes: ["log paths differ by OS/tool"]
     tests: ["tests/test_insights.py"]
-    migration: {wave: 5, complexity: medium, risk: low, disposition: rewrite-v}
+    migration: {wave: 5, complexity: medium, risk: low, disposition: defer}
 
   - name: build
     aliases: []
@@ -324,7 +340,7 @@ commands:
     aliases: []
     surface: advanced
     module: agent_toolkit.cli.release
-    summary: Generate release artifacts (maintainer / CI)
+    summary: "REMOVE — Generate release artifacts (maintainer / CI) — not in V; use CI / docs/RELEASING.md — see #527"
     stdin: none
     stdout: human progress
     stderr: errors
@@ -334,7 +350,7 @@ commands:
     effects: {filesystem: write-release-artifacts, network: none, processes: none}
     platform_notes: ["CI-oriented"]
     tests: []
-    migration: {wave: 6, complexity: medium, risk: medium, disposition: rewrite-v}
+    migration: {wave: 6, complexity: medium, risk: medium, disposition: retire}
 
   - name: swarm
     aliases: []
@@ -351,3 +367,35 @@ commands:
     platform_notes: ["tmux/Herdr required for full modes"]
     tests: ["tests/test_swarm*.py"]
     migration: {wave: 6, complexity: high, risk: high, disposition: rewrite-v}
+
+  - name: tui
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.tui
+    summary: Interactive TUI dashboard (loops, swarms, doctor)
+    stdin: optional
+    stdout: human TUI
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--workspace"]
+    env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
+    effects: {filesystem: read, network: none, processes: none}
+    platform_notes: ["requires TTY"]
+    tests: []
+    migration: {wave: 6, complexity: medium, risk: low, disposition: rewrite-v}
+
+  - name: serve
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.serve
+    summary: Run the agent-toolkit HTTP server (feature-complete API over core)
+    stdin: none
+    stdout: human / logs
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["--host", "--port", "--allow-remote", "--auth-token", "--no-browser"]
+    env: ["AGENT_TOOLKIT_TOKEN", "AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
+    effects: {filesystem: read, network: listen, processes: http-server}
+    platform_notes: ["binds 127.0.0.1:3847 by default; remote requires token (ADR-028)"]
+    tests: []
+    migration: {wave: 6, complexity: medium, risk: medium, disposition: rewrite-v}

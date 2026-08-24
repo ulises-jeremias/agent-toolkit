@@ -56,11 +56,11 @@ advanced commands when running an ai-workspace-style harness.
 
 ## Migration inventory (#475)
 
-Authoritative **index** of every top-level command. Machine-readable flags,
-stdin/stdout/stderr, exit codes, env, effects, and tests live in
+Authoritative **index** of every top-level command — **23 commands** + `help` meta = **24 entries**, mirroring
 [`docs/compatibility/cli-contract.yaml`](compatibility/cli-contract.yaml)
 ([#549](https://github.com/ulises-jeremias/agent-toolkit/issues/549), closed).
-Do not duplicate that contract here.
+Machine-readable flags, stdin/stdout/stderr, exit codes, env, effects, and tests live in the contract YAML — do not duplicate here.
+`insights` is **DEPRECATE** (no V port) and `release` is **REMOVE** (CI-only) — both match the contract `migration.disposition` (`defer`/`retire`).
 
 Disposition for advanced commands: [`v/advanced-command-disposition.md`](v/advanced-command-disposition.md) (#560).
 Wave/complexity/risk in the YAML `migration:` block.
@@ -69,7 +69,6 @@ Wave/complexity/risk in the YAML `migration:` block.
 |---------|---------|-------|-------------|
 | `help` | meta | — | keep |
 | `version` | meta | [#555](https://github.com/ulises-jeremias/agent-toolkit/issues/555) | PORT (V canonical) |
-| `completion` | consumer | [#544](https://github.com/ulises-jeremias/agent-toolkit/issues/544) | PORT |
 | `install` | consumer | [#607](https://github.com/ulises-jeremias/agent-toolkit/issues/607) | PORT |
 | `update` | consumer | [ADR-017](adrs/ADR-017-update-ownership.md) | PORT (capability-only) |
 | `uninstall` | consumer | [#461](https://github.com/ulises-jeremias/agent-toolkit/issues/461) | PORT |
@@ -78,17 +77,20 @@ Wave/complexity/risk in the YAML `migration:` block.
 | `skills` | consumer | [#517](https://github.com/ulises-jeremias/agent-toolkit/issues/517) | PORT |
 | `mcp` | consumer | [#518](https://github.com/ulises-jeremias/agent-toolkit/issues/518) | PORT |
 | `plugin` | consumer | [#519](https://github.com/ulises-jeremias/agent-toolkit/issues/519) | PORT |
+| `completion` | consumer | [#544](https://github.com/ulises-jeremias/agent-toolkit/issues/544) | PORT |
+| `loop` | advanced | [#523](https://github.com/ulises-jeremias/agent-toolkit/issues/523) | REDESIGN |
 | `workspace` | advanced | [#520](https://github.com/ulises-jeremias/agent-toolkit/issues/520) | PORT |
 | `memory` | advanced | [#521](https://github.com/ulises-jeremias/agent-toolkit/issues/521) | PORT |
 | `project` | advanced | [#522](https://github.com/ulises-jeremias/agent-toolkit/issues/522) | PORT |
-| `loop` | advanced | [#523](https://github.com/ulises-jeremias/agent-toolkit/issues/523) | REDESIGN |
-| `swarm` | advanced | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | REDESIGN |
 | `devcompanion` | advanced | [#525](https://github.com/ulises-jeremias/agent-toolkit/issues/525) | PORT |
-| `insights` | advanced | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | DEPRECATE (no V requirement) |
+| `insights` | advanced | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **DEPRECATE** (no V requirement) |
 | `build` | advanced | compiler EPIC | PORT (V `build` exists) |
 | `inventory` | advanced | [#516](https://github.com/ulises-jeremias/agent-toolkit/issues/516) | PORT |
 | `matrix` | advanced | compiler EPIC | PORT |
-| `release` | advanced | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | REMOVE (CI / `docs/RELEASING.md`) |
+| `release` | advanced | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVE** (CI / `docs/RELEASING.md`) |
+| `swarm` | advanced | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | REDESIGN |
+| `tui` | advanced | [#837](https://github.com/ulises-jeremias/agent-toolkit/issues/837) | PORT |
+| `serve` | advanced | [#833](https://github.com/ulises-jeremias/agent-toolkit/issues/833) | PORT |
 
 JSON/`--json` and full flag lists: `cli-contract.yaml`, not this table.
 

@@ -23,6 +23,13 @@
       "title": "consumer",
       "items": [
         {
+          "name": "completion",
+          "method": "GET",
+          "route": "/api/v1/completion/{shell}",
+          "scope": "read:*",
+          "confirm": false
+        },
+        {
           "name": "diff",
           "method": "GET",
           "route": "/api/v1/diff",
@@ -147,11 +154,25 @@
           "confirm": false
         },
         {
+          "name": "serve",
+          "method": "GET",
+          "route": "/api/v1/serve",
+          "scope": "read:*",
+          "confirm": false
+        },
+        {
           "name": "swarm",
           "method": "POST",
           "route": "/api/v1/swarms/{sub}",
           "scope": "write:swarm",
           "confirm": true
+        },
+        {
+          "name": "tui",
+          "method": "GET",
+          "route": "/api/v1/tui",
+          "scope": "read:*",
+          "confirm": false
         },
         {
           "name": "workspace",
