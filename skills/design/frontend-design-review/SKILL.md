@@ -13,18 +13,17 @@ origin:
 upstream:
   repository: microsoft/skills
   path: .github/skills/frontend-design-review
-  ref: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
+  ref: cbfd1b6652debe08f9d329d713b382a1a0db2e3e
   license: MIT
-  version: e58528d
+  version: cbfd1b6
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-14'
+  tier: experimental
+  reviewed_at: '2026-08-24'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:73a3738779cb374d505c889bddb8fbb0020a42a6f428a74fdd7990d6550d01bf
 maintenance:
   status: active
   last_activity: '2026-08-11'
-  last_checked: '2026-08-14'
+  last_checked: '2026-08-24'
 distribution:
   mode: vendored
   redistribution_allowed: true

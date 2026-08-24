@@ -1,109 +1,113 @@
 capabilities:
   design/frontend-design:
-    provenance_digest: sha256:a58fd159210cf5773748b973cbda5dcdb0bb04c42b47422b19ec523bb880f748
+    provenance_digest: sha256:9c1c948e69efcc6f18d07aaa727a4a797b55759d6ae24aaabe5b00154a930185
     sources:
       upstream:
         path: skills/frontend-design
         repository: anthropics/skills
         requested:
-          ref: f17010c9bb483898c1d9c9f42dde2b3a98889434
+          ref: 2235be7c60b551f5de82ade908fd3816455afcda
           type: commit
         resolved:
           body_checksum: sha256:0df36fd5b075c15a2948a233edfb5ada7ffe34309ada32b2fd6d248522a4e9a7
-          commit: f17010c9bb483898c1d9c9f42dde2b3a98889434
-          content_checksum: sha256:31aae178b8fb590f608a2524687934594607ddd995535d5571c988f1c951ffb9
+          commit: 2235be7c60b551f5de82ade908fd3816455afcda
+          content_checksum: sha256:d120721c6b2564a5457f199be14ce30f505c87d071daf8654df898a6d3a84b93
           license:
             checksum: sha256:0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594
             source_path: skills/design/frontend-design/LICENSE.txt
             spdx: Apache-2.0
-          resolved_at: '2026-08-14T18:56:03.313181Z'
-          version: f17010c
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: 2235be7
   design/frontend-design-review:
-    provenance_digest: sha256:73a3738779cb374d505c889bddb8fbb0020a42a6f428a74fdd7990d6550d01bf
+    provenance_digest: sha256:d26098904738076569dcaadb3806585332b5d02cb7e0e319c95e329a2a289e6d
     sources:
       upstream:
         path: .github/skills/frontend-design-review
         repository: microsoft/skills
         requested:
-          ref: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
+          ref: cbfd1b6652debe08f9d329d713b382a1a0db2e3e
           type: commit
         resolved:
           body_checksum: sha256:13029dfb9274aac92db5869c5977ff4923af1f213ab9571cd4f0b701829c1a78
-          commit: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
-          content_checksum: sha256:9e6b4ccf09d56866875e86463643b654484751536aabd7558f307cfa032455cc
+          commit: cbfd1b6652debe08f9d329d713b382a1a0db2e3e
+          content_checksum: sha256:56c53e578325cb80db44134fda4cfff7e3e5946a4a2504aa42725c630744d3a5
           license:
             checksum: sha256:d9a1b1e30d633d5732ea18e3cba9538d293ebc53e1a9e4e96ab739e0c5c4f1cb
             source_path: skills/design/frontend-design-review/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-14T18:56:03.313181Z'
-          version: e58528d
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: cbfd1b6
   design/web-design-guidelines:
-    provenance_digest: sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2
+    provenance_digest: sha256:a042c012f04a9bdbbac559960475b7cffa1e549b1f8d125863cac72d04a341af
     sources:
       rules:
         path: command.md
         repository: vercel-labs/web-interface-guidelines
         requested:
-          ref: 4e799d45c17aec1498c269287a83b9dba22b966b
+          ref: e3d624baaf29dc1fc645aff3e38f03e564d2d6b1
           type: commit
         resolved:
-          body_checksum: sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab
-          commit: 4e799d45c17aec1498c269287a83b9dba22b966b
-          content_checksum: sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab
+          body_checksum: sha256:5a775e6411f790f518dbc9c1fa7c50a89e6873502d9a3530a6eb223a590bcfe8
+          commit: e3d624baaf29dc1fc645aff3e38f03e564d2d6b1
+          content_checksum: sha256:5a775e6411f790f518dbc9c1fa7c50a89e6873502d9a3530a6eb223a590bcfe8
           license:
             checksum: sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2
             source_path: skills/design/web-design-guidelines/references/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-14T18:56:03.313181Z'
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: e3d624b
       wrapper:
         path: skills/web-design-guidelines
         repository: vercel-labs/agent-skills
         requested:
-          ref: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
+          ref: ba46938889d4e58635362fb8f618e1178ac3ec46
           type: commit
         resolved:
           body_checksum: sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f
-          commit: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
-          content_checksum: sha256:167ee30dd4224bc066445c7b6cecb5b5fb8139efcee093b6accd569c163df79d
+          commit: ba46938889d4e58635362fb8f618e1178ac3ec46
+          content_checksum: sha256:1c665126432cc5a0f7e2506d7c666e6647b6927d820b608f8ddca9832c3796a0
           license:
             spdx: NOASSERTION
-          resolved_at: '2026-08-14T18:56:03.313181Z'
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: ba46938
   quality/blast-radius:
-    provenance_digest: sha256:672544bad541446f8de290191079a6fbcd009d5e07393126b20cc9101aa107d1
+    provenance_digest: sha256:979db4870f5c6e40ab1a0ee56b5976d2e1760be190877bf4f7a977baa0859c8d
     sources:
       upstream:
         path: pstack/skills/blast-radius
         repository: cursor/plugins
         requested:
-          ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+          ref: e46364b8be46000b7df0f260550cd712afbb8d36
           type: commit
         resolved:
           body_checksum: sha256:d52283c3ef18003fd7927fc31b0f88389b396cbcb93aefc846b00d570cf90a9c
-          commit: 60c641e4fad674784b30abcf9f8915dea39df38d
-          content_checksum: sha256:978d27ec9a82e570511cb5bd0503ae5451f1cf9b3a5c87f14fbd5085aaa01350
+          commit: e46364b8be46000b7df0f260550cd712afbb8d36
+          content_checksum: sha256:ebb53ce68f3460570b2fc167dc278a2dde8fb03b0f19dd071afe908f6bc96886
           license:
             checksum: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
             source_path: skills/quality/blast-radius/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-19T06:48:31.471103Z'
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: e46364b
   quality/deslop:
-    provenance_digest: sha256:7b61bbc5400565b3da44417658b7f6be1c0104f9f216b0a6965345293f8bd130
+    provenance_digest: sha256:105f1f40d13a5f92cb3b99b1f813fb661c6981bc63d4d00ae8209586305bca48
     sources:
       upstream:
         path: cursor-team-kit/skills/deslop
         repository: cursor/plugins
         requested:
-          ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+          ref: b21ab167c8d6aad6e4d91bc0de429eedd49665ed
           type: commit
         resolved:
-          body_checksum: sha256:2d8979b16620fd27c6034554afafcf133b76c172a4e0061500d2959baa18603d
-          commit: 60c641e4fad674784b30abcf9f8915dea39df38d
-          content_checksum: sha256:d94afacd406d42d0badf0e76a85ef1f6e3628f60ae1c23f77303d3ca6974b3f0
+          body_checksum: sha256:d40e71977da3326f996903185a7337c40ec00a38dde68db96603d9cef5f891b3
+          commit: b21ab167c8d6aad6e4d91bc0de429eedd49665ed
+          content_checksum: sha256:8ef47033180e3dfb6ee1c0c811b859fffd89b11046e87bb4aa69b7c27c97ea93
           license:
             checksum: sha256:702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0
             source_path: skills/quality/deslop/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-19T16:08:49.669596Z'
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: b21ab16
   quality/megalinter:
     provenance_digest: sha256:8b16ee6b8b06d23c052b473cd5fee724b51e245891a276912b9a522b4be21ca4
     sources:
@@ -181,39 +185,41 @@ capabilities:
           resolved_at: '2026-08-14T18:56:03.313181Z'
           version: v10.0.0
   quality/unslop:
-    provenance_digest: sha256:81344bee0dcaeef8acb4f8f19e5e781c27020c0dd18d4e27cba092768cc47bc8
+    provenance_digest: sha256:28546257aff303131edf6c2b7b01c1f131f1ab57275bb26fce5e26275b08cf6f
     sources:
       upstream:
         path: pstack/skills/unslop
         repository: cursor/plugins
         requested:
-          ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+          ref: 99559f2f52047978602ef365589275831e76af07
           type: commit
         resolved:
           body_checksum: sha256:6003a6a58d0c47a105256f5f0a225703574aa8ecfc404aed8757a6fcae3d97c1
-          commit: 60c641e4fad674784b30abcf9f8915dea39df38d
-          content_checksum: sha256:9fc9ee197ccaf22f6bf091411050c81b34dcc311e43b5bede799b3d9c2446ca6
+          commit: 99559f2f52047978602ef365589275831e76af07
+          content_checksum: sha256:26ca1b71d639b0fb6bbda1d38aca828b421b700a014fc50ea690376cb0487aff
           license:
             checksum: sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e
             source_path: skills/quality/unslop/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-19T05:33:45.120477Z'
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: 99559f2
   tooling/cli-for-agents:
-    provenance_digest: sha256:8a04cbe405bced60ca66cc792a51dca4d2991f094d21ec0997ad85911212d3be
+    provenance_digest: sha256:175c36568bd2c65e602ba164a8299f243a198c255ea8a832ceb436f5c4e24687
     sources:
       upstream:
         path: cli-for-agent/skills/cli-for-agents
         repository: cursor/plugins
         requested:
-          ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+          ref: 26a1497493298e36d8bf39208a57bb59252a811e
           type: commit
         resolved:
-          body_checksum: sha256:2209fe1d8853f769c5e5b1385788d3d3ee0a790caa82fe0544c8a648e380bca9
-          commit: 60c641e4fad674784b30abcf9f8915dea39df38d
-          content_checksum: sha256:f80e1e61532df792fdd05b1eec6d4bfa0d677377b33a16106655c93850ed1d85
+          body_checksum: sha256:ba559d5f67ab0ea98d5d2668581ebadba3d160cc96fda0e6a3ad1f13bd8c0b60
+          commit: 26a1497493298e36d8bf39208a57bb59252a811e
+          content_checksum: sha256:d732ae9a2a2b4c508f182514c27b63faf3524d77766f779389a413840f4003f6
           license:
             checksum: sha256:702f5f331b56aff0e33d8c7826df5202559f894145eb70355c6477b55b5bb8a0
             source_path: skills/tooling/cli-for-agents/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-21T03:22:56.753015Z'
+          resolved_at: '2026-08-24T06:20:47.137044Z'
+          version: 26a1497
 version: 2
