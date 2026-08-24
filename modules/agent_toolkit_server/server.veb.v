@@ -180,9 +180,10 @@ pub fn (app &App) loops_list(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return ctx.json(deny)
 	}
+	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
 		subcommand:     'list'
-		workspace_path: os.getwd()
+		workspace_path: ws
 	}))))
 }
 
@@ -192,9 +193,10 @@ pub fn (app &App) loops_status(mut ctx Ctx, name string) veb.Result {
 	if deny != none {
 		return ctx.json(deny)
 	}
+	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	report := agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
 		subcommand:     'status'
-		workspace_path: os.getwd()
+		workspace_path: ws
 		name:           name
 	})
 	if !report.ok && report.message.contains('not found') {
@@ -336,8 +338,9 @@ fn is_file(p string) bool {
 
 
 struct JobCreateReq {
-	cmd  string
-	args []string
+	cmd       string
+	args      []string
+	workspace string
 }
 
 @['/api/v1/jobs'; post]
@@ -352,10 +355,33 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 	if req.cmd.len == 0 {
 		return ctx.json(DenyErr{ ok: false, error: 'cmd is required' })
 	}
-	mut args := [req.cmd]
-	args << req.args
-	job := app.runner.create(req.cmd, args, os.getwd()) or {
+	mut workspace := ''
+	if req.workspace.len > 0 {
+		if !os.is_dir(req.workspace) {
+			return ctx.json(DenyErr{ ok: false, error: 'workspace not found: ${req.workspace}' })
+		}
+		workspace = req.workspace
+	} else {
+		workspace = agent_toolkit_core.find_workspace_root('') or { os.getwd() }
+	}
+	mut args := []string{}
+	if req.args.len > 0 && req.args[0] == req.cmd {
+		args = req.args.clone()
+	} else {
+		args << req.cmd
+		args << req.args
+	}
+	has_ws := args.contains('--workspace') || args.contains('-w')
+	if !has_ws && workspace.len > 0 {
+		args << '--workspace'
+		args << workspace
+	}
+	job := app.runner.create(req.cmd, args, workspace) or {
 		return ctx.json(DenyErr{ ok: false, error: err.msg() })
+	}
+	lp := app.runner.log_path(job.id)
+	if !is_file(lp) {
+		os.write_file(lp, '[running]\n') or {}
 	}
 	return ctx.json(job)
 }
@@ -402,8 +428,15 @@ pub fn (mut app App) loops_run(mut ctx Ctx, name string) veb.Result {
 	if deny != none {
 		return ctx.json(deny)
 	}
-	// Enqueue as job for streaming (reuse jobs runner)
-	job := app.runner.create('loop', ['loop', 'run', name], os.getwd()) or {
+	// Enqueue as job for streaming (reuse jobs runner) — workspace-aware
+	workspace := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
+	mut args := ['loop', 'run', name]
+	has_ws := args.contains('--workspace') || args.contains('-w')
+	if !has_ws && workspace.len > 0 {
+		args << '--workspace'
+		args << workspace
+	}
+	job := app.runner.create('loop', args, workspace) or {
 		return ctx.json(DenyErr{ ok: false, error: err.msg() })
 	}
 	return ctx.json(job)

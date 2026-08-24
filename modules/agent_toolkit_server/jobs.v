@@ -17,6 +17,7 @@ pub mut:
 	started_at string
 	ended_at   string
 	exit_code  int = -1
+	workspace  string
 }
 
 pub struct JobRunner {
@@ -60,6 +61,7 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 		args:       args
 		status:     'queued'
 		started_at: time.utc().format_rfc3339()
+		workspace:  workdir
 	}
 	r.jobs[id] = job
 	mut p := os.new_process('agent-toolkit')
@@ -72,12 +74,21 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 	r.jobs[id].status = 'running'
 	r.running++
 	r.persist_locked()
+	os.write_file(r.log_path(id), '[running]\n') or {}
 	go r.watch(id, mut p)
 	return r.jobs[id]
 }
 
 fn (mut r JobRunner) watch(id string, mut p os.Process) {
 	p.wait()
+	out := p.stdout_slurp()
+	err := p.stderr_slurp()
+	combined := out + if err.len > 0 { '\n' + err } else { '' }
+	if combined.len > 0 {
+		os.write_file(r.log_path(id), '[exit ${p.code}]\n' + combined) or {}
+	} else {
+		os.write_file(r.log_path(id), '[exit ${p.code}]') or {}
+	}
 	r.mut.lock()
 	defer {
 		r.mut.unlock()
