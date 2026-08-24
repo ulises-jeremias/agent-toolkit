@@ -328,6 +328,16 @@ pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 }
 
 
+@['/'; get]
+pub fn (app &App) index(mut ctx Ctx) veb.Result {
+	p := find_repo_root() + '/web/index.html'
+	if !os.is_file(p) {
+		return ctx.html('<html><body><h1>agent-toolkit</h1><p>Web UI not built. See docs.</p></body></html>')
+	}
+	body := os.read_file(p) or { '<h1>read error</h1>' }
+	return ctx.html(body)
+}
+
 fn find_repo_root() string {
 	mut cur := os.getwd()
 	for {

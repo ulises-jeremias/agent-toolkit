@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>agent-toolkit</title>
+<style>
+:root{--bg:#0a0a0f;--card:#11111a;--border:#1e1e2e;--text:#e2e8f0;--muted:#94a3b8;--accent:#8b5cf6;--success:#10b981}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+h1{font-size:22px;margin-bottom:4px}h2{font-size:15px;color:var(--accent);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.06em;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+th,td{padding:8px 10px;border:1px solid var(--border);text-align:left}
+th{background:rgba(255,255,255,.03);color:var(--muted);font-size:11px;text-transform:uppercase}
+.ok{color:var(--success)}.err{color:var(--danger)}.muted{color:var(--muted)}
+.btn{background:var(--accent);color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:6px}
+.btn:hover{opacity:.9}
+.health{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:600}
+#log{background:#000;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:300px;overflow:auto;display:none;margin-top:12px}
+</style>
+</head>
+<body>
+<h1>agent-toolkit <span class="muted" id="version"></span></h1>
+
+<div class="card">
+  <h2>Health</h2>
+  <span id="health-badge" class="health" style="background:rgba(239,68,68,.15);color:var(--danger)">● checking…</span>
+  <span id="uptime" class="muted"></span>
+</div>
+
+<div class="card">
+  <h2>Inventory</h2>
+  <div id="inv"></div>
+</div>
+
+<div class="card">
+  <h2>Loops</h2>
+  <div id="loops"></div>
+</div>
+
+<div class="card">
+  <h2>Doctor</h2>
+  <pre id="doctor" style="font-size:12px;background:#000;padding:10px;border-radius:6px;overflow:auto">loading…</pre>
+</div>
+
+<div class="card">
+  <h2>Run Loop</h2>
+  <input id="loop-name" placeholder="loop name (e.g. daily-triage)" style="background:#000;color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;width:200px">
+  <button class="btn" onclick="runLoop()">▶ Run</button>
+  <div id="log"></div>
+</div>
+
+<script>
+const API='/api/v1';
+async function j(path){const r=await fetch(API+path);return r.json()}
+async function refresh(){
+  try{
+    const h=await j('/health');
+    document.getElementById('version').textContent='v'+h.version;
+    document.getElementById('health-badge').textContent='● healthy';
+    document.getElementById('health-badge').style.cssText='background:rgba(16,185,129,.15);color:var(--success)';
+    document.getElementById('uptime').textContent='uptime '+h.uptime_s+'s';
+    const inv=await j('/inventory');
+    document.getElementById('inv').innerHTML=
+      '<b>'+inv.skill_count+' skills</b> · '+inv.agent_count+' agents · '+inv.product_count+' products · '+inv.domain_count+' domains';
+    const loops=await j('/loops');
+    let html='<table><tr><th>Name</th><th>Tier</th><th>Cadence</th></tr>';
+    if(loops.message)for(const line of loops.message.split('\n'))if(line.includes('\t')){
+      const[name,tier,cad]=line.split('\t');html+='<tr><td>'+name+'</td><td>'+tier+'</td><td>'+cad+'</td></tr>';
+    }
+    html+='</table>';document.getElementById('loops').innerHTML=html;
+    const doc=await j('/doctor');
+    document.getElementById('doctor').textContent=doc.message;
+  }catch(e){document.getElementById('health-badge').textContent='● offline'}
+}
+async function runLoop(){
+  const name=document.getElementById('loop-name').value;if(!name)return;
+  const logEl=document.getElementById('log');logEl.style.display='block';logEl.textContent='Starting '+name+'…\n';
+  try{
+    const r=await fetch(API+'/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:'loop',args:['run',name]})});
+    const job=await r.json();
+    logEl.textContent+=JSON.stringify(job,null,2);
+    logEl.textContent+='\n\nJob submitted. Poll GET /api/v1/jobs/'+job.id+' for status.';
+  }catch(e){logEl.textContent+='Error: '+e.message+'\n'}
+}
+refresh();setInterval(refresh,15000);
+</script>
+</body>
+</html>
