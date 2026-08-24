@@ -2,89 +2,210 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>agent-toolkit</title>
 <style>
-:root{--bg:#0a0a0f;--card:#11111a;--border:#1e1e2e;--text:#e2e8f0;--muted:#94a3b8;--accent:#8b5cf6;--success:#10b981}
+:root{--bg:#0a0a0f;--card:#11111a;--border:#1e1e2e;--text:#e2e8f0;--muted:#94a3b8;--accent:#8b5cf6;--accent2:#06b6d4;--success:#10b981;--warn:#f59e0b;--danger:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:24px}
+body{font-family:Inter,system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;display:flex;min-height:100vh}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+.sidebar h1{font-size:16px;padding:0 16px 16px;color:var(--accent);font-weight:800}
+.sidebar .nav-item{display:block;padding:10px 16px;color:var(--muted);cursor:pointer;font-size:14px;border-left:3px solid transparent;text-decoration:none}
+.sidebar .nav-item:hover,.sidebar .nav-item.active{color:var(--text);background:rgba(139,92,246,.08);border-left-color:var(--accent)}
+.main{flex:1;padding:24px;overflow:auto}
 .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-h1{font-size:22px;margin-bottom:4px}h2{font-size:15px;color:var(--accent);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.06em;font-size:12px}
-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-th,td{padding:8px 10px;border:1px solid var(--border);text-align:left}
-th{background:rgba(255,255,255,.03);color:var(--muted);font-size:11px;text-transform:uppercase}
-.ok{color:var(--success)}.err{color:var(--danger)}.muted{color:var(--muted)}
-.btn{background:var(--accent);color:white;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:6px}
-.btn:hover{opacity:.9}
-.health{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:600}
-#log{background:#000;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:300px;overflow:auto;display:none;margin-top:12px}
+h2{font-size:15px;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:8px 12px;border:1px solid var(--border);text-align:left}
+th{background:rgba(255,255,255,.03);color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+.ok{color:var(--success)}.err{color:var(--danger)}.warn{color:var(--warn)}.muted{color:var(--muted)}
+.btn{background:var(--accent);color:white;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-size:13px;margin-right:4px}
+.btn:hover{opacity:.85}.btn.green{background:var(--success)}.btn.red{background:var(--danger)}
+.health-badge{display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:600}
+#log-pane{background:#000;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:400px;overflow:auto;display:none;margin-top:12px}
+input,select{background:#000;color:var(--text);border:1px solid var(--border);padding:7px 10px;border-radius:6px;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+.stat{text-align:center;padding:16px;border:1px solid var(--border);border-radius:10px}
+.stat .num{font-size:28px;font-weight:800;color:var(--accent)}
+.stat .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+pre{background:#000;border:1px solid var(--border);border-radius:8px;padding:12px;font-family:monospace;font-size:12px;overflow:auto;white-space:pre-wrap}
+.search-box{width:100%;margin-bottom:12px}
+.hidden{display:none!important}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge.L1{background:rgba(16,185,129,.15);color:#6ee7b7}
+.badge.L2{background:rgba(245,158,11,.15);color:#fcd34d}
+.badge.L3{background:rgba(239,68,68,.15);color:#fca5a5}
 </style>
 </head>
 <body>
-<h1>agent-toolkit <span class="muted" id="version"></span></h1>
 
-<div class="card">
-  <h2>Health</h2>
-  <span id="health-badge" class="health" style="background:rgba(239,68,68,.15);color:var(--danger)">● checking…</span>
-  <span id="uptime" class="muted"></span>
+<div class="sidebar">
+  <h1>⚙ agent-toolkit</h1>
+  <a class="nav-item active" data-page="overview" onclick="showPage('overview')">📊 Overview</a>
+  <a class="nav-item" data-page="loops" onclick="showPage('loops')">🔄 Loops</a>
+  <a class="nav-item" data-page="skills" onclick="showPage('skills')">🧩 Skills</a>
+  <a class="nav-item" data-page="swarms" onclick="showPage('swarms')">🐝 Swarms</a>
+  <a class="nav-item" data-page="doctor" onclick="showPage('doctor')">🩺 Doctor</a>
+  <a class="nav-item" data-page="run" onclick="showPage('run')">▶ Run</a>
+  <div style="position:absolute;bottom:16px;left:16px;font-size:11px;color:var(--muted)">
+    <span id="version"></span><br><span id="uptime"></span>
+  </div>
 </div>
 
-<div class="card">
-  <h2>Inventory</h2>
-  <div id="inv"></div>
+<div class="main">
+
+<!-- OVERVIEW -->
+<div id="page-overview" class="page">
+  <div class="health-badge" id="hb" style="background:rgba(239,68,68,.15);color:var(--danger)">● checking…</div>
+  <span style="margin-left:12px" class="muted" id="commit"></span>
+  <br><br>
+  <div class="stats" id="stats"></div>
 </div>
 
-<div class="card">
-  <h2>Loops</h2>
-  <div id="loops"></div>
+<!-- LOOPS -->
+<div id="page-loops" class="page hidden">
+  <div class="card"><h2>Loops</h2><div id="loops-table">loading…</div></div>
 </div>
 
-<div class="card">
-  <h2>Doctor</h2>
-  <pre id="doctor" style="font-size:12px;background:#000;padding:10px;border-radius:6px;overflow:auto">loading…</pre>
+<!-- SKILLS -->
+<div id="page-skills" class="page hidden">
+  <div class="card">
+    <h2>Skills Browser</h2>
+    <input class="search-box" placeholder="Search skills…" oninput="filterSkills(this.value)" id="skill-search">
+    <div id="skills-table">loading…</div>
+  </div>
 </div>
 
-<div class="card">
-  <h2>Run Loop</h2>
-  <input id="loop-name" placeholder="loop name (e.g. daily-triage)" style="background:#000;color:var(--text);border:1px solid var(--border);padding:6px 10px;border-radius:6px;width:200px">
-  <button class="btn" onclick="runLoop()">▶ Run</button>
-  <div id="log"></div>
+<!-- SWARMS -->
+<div id="page-swarms" class="page hidden">
+  <div class="card"><h2>Swarms</h2><div id="swarms-info">Use CLI for full swarm management.<br><code>agent-toolkit swarm start --recipe pair --runner skeleton "task"</code></div></div>
+</div>
+
+<!-- DOCTOR -->
+<div id="page-doctor" class="page hidden">
+  <div class="card"><h2>Doctor Report</h2><pre id="doctor-out">loading…</pre></div>
+</div>
+
+<!-- RUN -->
+<div id="page-run" class="page hidden">
+  <div class="card">
+    <h2>Run Loop</h2>
+    <select id="loop-select"></select>
+    <button class="btn green" onclick="startJob()">▶ Start Job</button>
+  </div>
+  <div class="card">
+    <h2>Jobs</h2>
+    <div id="jobs-list"></div>
+  </div>
+  <pre id="log-pane">Select a job to see output…</pre>
+</div>
+
 </div>
 
 <script>
 const API='/api/v1';
-async function j(path){const r=await fetch(API+path);return r.json()}
+let allSkills=[],allLoops=[];
+
+async function fetchJSON(path){const r=await fetch(API+path);return r.json()}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('page-'+id).classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelector(`[data-page="${id}"]`).classList.add('active');
+}
+
 async function refresh(){
   try{
-    const h=await j('/health');
+    const h=await fetchJSON('/health');
     document.getElementById('version').textContent='v'+h.version;
-    document.getElementById('health-badge').textContent='● healthy';
-    document.getElementById('health-badge').style.cssText='background:rgba(16,185,129,.15);color:var(--success)';
-    document.getElementById('uptime').textContent='uptime '+h.uptime_s+'s';
-    const inv=await j('/inventory');
-    document.getElementById('inv').innerHTML=
-      '<b>'+inv.skill_count+' skills</b> · '+inv.agent_count+' agents · '+inv.product_count+' products · '+inv.domain_count+' domains';
-    const loops=await j('/loops');
-    let html='<table><tr><th>Name</th><th>Tier</th><th>Cadence</th></tr>';
-    if(loops.message)for(const line of loops.message.split('\n'))if(line.includes('\t')){
-      const[name,tier,cad]=line.split('\t');html+='<tr><td>'+name+'</td><td>'+tier+'</td><td>'+cad+'</td></tr>';
+    document.getElementById('uptime').textContent='up '+h.uptime_s+'s';
+    const hb=document.getElementById('hb');
+    hb.textContent='● healthy';hb.style.cssText='background:rgba(16,185,129,.15);color:var(--success)';
+    document.getElementById('commit').textContent=h.commit||'';
+    const inv=await fetchJSON('/inventory');
+    document.getElementById('stats').innerHTML=`
+      <div class="stat"><div class="num">${inv.skill_count}</div><div class="label">Skills</div></div>
+      <div class="stat"><div class="num">${inv.agent_count}</div><div class="label">Agents</div></div>
+      <div class="stat"><div class="num">${inv.product_count}</div><div class="label">Products</div></div>
+      <div class="stat"><div class="num">${inv.domain_count}</div><div class="label">Domains</div></div>`;
+    // Load loops
+    const loops=await fetchJSON('/loops');
+    let lh='<table><tr><th>Name</th><th>Tier</th><th>Cadence</th></tr>';
+    if(loops.message)for(const line of loops.message.split('\n')){
+      if(!line.includes('\t'))continue;
+      const[name,tier,cad]=line.split('\t');
+      lh+=`<tr><td>${name}</td><td><span class="badge ${tier.trim()}">${tier.trim()}</span></td><td>${cad}</td></tr>`;
     }
-    html+='</table>';document.getElementById('loops').innerHTML=html;
-    const doc=await j('/doctor');
-    document.getElementById('doctor').textContent=doc.message;
-  }catch(e){document.getElementById('health-badge').textContent='● offline'}
+    lh+='</table>';document.getElementById('loops-table').innerHTML=lh;
+    allLoops=loops.message;
+    // Load skills
+    if(allSkills.length===0){/* loaded lazily */}
+    // Load doctor
+    const doc=await fetchJSON('/doctor');
+    document.getElementById('doctor-out').textContent=doc.message;
+    // Populate loop select
+    const sel=document.getElementById('loop-select');
+    if(sel.children.length===0&&allLoops){
+      for(const line of allLoops.split('\n')){
+        if(!line.includes('\t'))continue;
+        const n=line.split('\t')[0].trim();
+        sel.innerHTML+=`<option value="${n}">${n}</option>`;
+      }
+    }
+  }catch(e){
+    const hb=document.getElementById('hb');
+    hb.textContent='● offline';hb.style.cssText='background:rgba(239,68,68,.15);color:var(--danger)';
+  }
 }
-async function runLoop(){
-  const name=document.getElementById('loop-name').value;if(!name)return;
-  const logEl=document.getElementById('log');logEl.style.display='block';logEl.textContent='Starting '+name+'…\n';
+
+async function loadSkills(){
+  try{
+    const inv=await fetchJSON('/inventory');
+    // For now show counts; full skill list needs /skills endpoint
+    document.getElementById('skills-table').innerHTML=
+      `<p>Skills: ${inv.skill_count} across ${inv.domain_count} domains. Use <code>agent-toolkit skills list</code> for full listing.</p>`;
+  }catch(e){document.getElementById('skills-table').textContent='Error loading'}
+}
+
+function filterSkills(q){/* TODO: implement client-side filter when we have full skill list */}
+
+async function loadJobs(){
+  try{
+    const jobs=await fetchJSON('/jobs');
+    let html='<table><tr><th>ID</th><th>Status</th><th>Started</th></tr>';
+    if(jobs && typeof jobs==='object'){
+      for(const[id,j]of Object.entries(jobs)){
+        html+=`<tr style="cursor:pointer" onclick="viewLog('${id}')"><td>${id}</td><td class="${j.status==='completed'?'ok':j.status==='failed'?'err':'warn'}">${j.status}</td><td>${j.started_at||''}</td></tr>`;
+      }
+    }
+    html+='</table>';document.getElementById('jobs-list').innerHTML=html;
+  }catch(e){}
+}
+
+async function viewLog(id){
+  const pane=document.getElementById('log-pane');pane.style.display='block';pane.textContent='Loading log…\n';
+  try{
+    const r=await fetch(API+'/jobs/'+id+'/log');const text=await r.text();
+    pane.textContent=text||'(empty)';
+  }catch(e){pane.textContent+='Error: '+e.message}
+}
+
+async function startJob(){
+  const name=document.getElementById('loop-select').value;if(!name)return;
+  const pane=document.getElementById('log-pane');pane.style.display='block';
+  pane.textContent='Starting '+name+'…\n';
   try{
     const r=await fetch(API+'/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:'loop',args:['run',name]})});
-    const job=await r.json();
-    logEl.textContent+=JSON.stringify(job,null,2);
-    logEl.textContent+='\n\nJob submitted. Poll GET /api/v1/jobs/'+job.id+' for status.';
-  }catch(e){logEl.textContent+='Error: '+e.message+'\n'}
+    const job=await r.json();pane.textContent+=JSON.stringify(job,null,2)+'\n\nWaiting for output…\n';
+    setTimeout(()=>loadJobs(),2000);
+  }catch(e){pane.textContent+='Error: '+e.message+'\n'}
 }
+
+// init
 refresh();setInterval(refresh,15000);
+document.querySelector('[data-page="run"]').addEventListener('click',()=>{setTimeout(loadJobs,500)});
+document.querySelector('[data-page="skills"]').addEventListener('click',()=>{setTimeout(loadSkills,300)});
 </script>
 </body>
 </html>
