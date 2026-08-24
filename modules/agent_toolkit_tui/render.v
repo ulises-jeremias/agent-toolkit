@@ -81,45 +81,41 @@ pub fn render_skills(workspace string, selected int) string {
 	lines << ansi('╭─ Skills ────────────────────────────────────────────╮', '35')
 	lines << '│  workspace: ${pad_right(workspace, 38)} │'
 	lines << '├─────────────────────────────────────────────────────┤'
-	// Try toolkit root lookup first, then workspace
-	mut root := agent_toolkit_core.lookup_checkout_root()
-	if root.len == 0 {
-		root = workspace
-	}
-	// If still not found, try to walk up from workspace
-	if !os.is_dir(os.join_path(root, 'skills')) {
+	// Use find_toolkit_root + embedded fallback per ADR-015/026 (like doctor does).
+	// load_inventory() handles embedded, XDG, FHS, checkout, and cwd transparently.
+	snap := agent_toolkit_core.load_inventory() or {
+		// Fallback for legacy: if workspace itself is a checkout with skills/
 		if os.is_dir(os.join_path(workspace, 'skills')) {
-			root = workspace
-		}
-	}
-	if !os.is_dir(os.join_path(root, 'skills')) {
-		lines << '│  (skills not found — check AGENT_TOOLKIT_ROOT)        │'
-	} else {
-		snap := agent_toolkit_core.load_inventory_at(root) or {
-			lines << '│  error: ${pad_right(err.msg(), 42)} │'
+			agent_toolkit_core.load_inventory_at(workspace) or {
+				lines << '│  (skills not found — check AGENT_TOOLKIT_ROOT)        │'
+				lines << ansi('╰─────────────────────────────────────────────────────╯', '35')
+				return lines.join('\n')
+			}
+		} else {
+			lines << '│  (skills not found — check AGENT_TOOLKIT_ROOT)        │'
 			lines << ansi('╰─────────────────────────────────────────────────────╯', '35')
 			return lines.join('\n')
 		}
-		lines << '│  Skills: ${snap.skill_count} across ${snap.domain_count} domains                │'
-		lines << '│  Agents: ${snap.agent_count}  Products: ${snap.product_count}                    │'
-		lines << '├─────────────────────────────────────────────────────┤'
-		// Show message lines truncated to box
-		for raw in snap.message.split_into_lines() {
-			if raw.trim_space().len == 0 {
-				continue
-			}
-			if raw.contains('═══') || raw.contains('──') {
-				continue
-			}
-			mut clean := raw.trim_space()
-			if clean.len > 52 {
-				clean = clean[..52]
-			}
-			lines << '│  ${pad_right(clean, 52)} │'
-			if lines.len > 22 {
-				lines << '│  ... (truncated, use `skills list` for full)         │'
-				break
-			}
+	}
+	lines << '│  Skills: ${snap.skill_count} across ${snap.domain_count} domains                │'
+	lines << '│  Agents: ${snap.agent_count}  Products: ${snap.product_count}                    │'
+	lines << '├─────────────────────────────────────────────────────┤'
+	// Show message lines truncated to box
+	for raw in snap.message.split_into_lines() {
+		if raw.trim_space().len == 0 {
+			continue
+		}
+		if raw.contains('═══') || raw.contains('──') {
+			continue
+		}
+		mut clean := raw.trim_space()
+		if clean.len > 52 {
+			clean = clean[..52]
+		}
+		lines << '│  ${pad_right(clean, 52)} │'
+		if lines.len > 22 {
+			lines << '│  ... (truncated, use `skills list` for full)         │'
+			break
 		}
 	}
 	lines << '│                                                     │'

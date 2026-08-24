@@ -45,7 +45,13 @@ pub fn run_skills(opts SkillsOptions) SkillsReport {
 			message: skills_help_text()
 		}
 	}
-	root := if opts.toolkit_root.len > 0 { opts.toolkit_root } else { lookup_checkout_root() }
+	root := if opts.toolkit_root.len > 0 {
+		opts.toolkit_root
+	} else if r := find_toolkit_root() {
+		r.path
+	} else {
+		lookup_checkout_root()
+	}
 	if root.len == 0 {
 		return SkillsReport{
 			ok:      false
@@ -144,7 +150,13 @@ fn skills_list(root string, domain_filter string) SkillsReport {
 		lines << '── ${domain} ──'
 		for name in names {
 			path := os.join_path(root, 'skills', domain, name, 'SKILL.md')
-			exists_marker := if os.is_file(path) { '✓' } else { '✗' }
+			exists_marker := if is_embedded_root(root) {
+				if embedded_is_file('skills/${domain}/${name}/SKILL.md') { '✓' } else { '✗' }
+			} else if os.is_file(path) {
+				'✓'
+			} else {
+				'✗'
+			}
 			desc := skill_description(path)
 			desc_str := if desc.len > 0 { '  — ${desc}' } else { '' }
 			lines << '  ${exists_marker}  ${name:-40}${desc_str}'
@@ -199,6 +211,9 @@ fn skills_sync(root string, home string, requested []string) SkillsReport {
 }
 
 fn skills_validate(root string) SkillsReport {
+	if is_embedded_root(root) {
+		return skills_validate_embedded()
+	}
 	skills_dir := os.join_path(root, 'skills')
 	if !os.is_dir(skills_dir) {
 		return SkillsReport{
@@ -287,6 +302,14 @@ fn skills_validate(root string) SkillsReport {
 }
 
 fn load_skills_layout(root string) !SkillsLayoutFile {
+	if is_embedded_root(root) {
+		text := embedded_read_file('catalogs/skills-layout.json') or {
+			return error('Cannot parse skills-layout.json: ${err}')
+		}
+		return json.decode(SkillsLayoutFile, text) or {
+			return error('Cannot parse skills-layout.json: ${err}')
+		}
+	}
 	path := os.join_path(root, 'catalogs', 'skills-layout.json')
 	if !os.is_file(path) {
 		return error('skills-layout.json not found: ${path}')
@@ -298,6 +321,35 @@ fn load_skills_layout(root string) !SkillsLayoutFile {
 }
 
 fn skill_description(skill_md string) string {
+	if is_embedded_root(skill_md) || skill_md.starts_with('embedded/') || skill_md.starts_with('embedded\\') {
+		rel := strip_embedded_prefix(skill_md)
+		text := embedded_read_file(rel) or { return '' }
+		fm := parse_skill_frontmatter(text) or { return '' }
+		desc := fm['description'] or { '' }
+		if desc.len > 120 {
+			return desc[..120]
+		}
+		return desc
+	}
+	// Also handle case where caller passed an embedded-constructed path but root was embedded
+	// The path will be "embedded/skills/..." so above handles it. For completeness,
+	// if the file is actually embedded but path is filesystem-style without prefix, try embedded fallback.
+	if skill_md.contains('skills/') && !os.is_file(skill_md) {
+		// Try to infer embedded rel by extracting from "skills/"
+		idx := skill_md.index('skills/') or { -1 }
+		if idx != -1 {
+			rel := skill_md[idx..].replace('\\', '/')
+			if embedded_is_file(rel) {
+				text := embedded_read_file(rel) or { return '' }
+				fm := parse_skill_frontmatter(text) or { return '' }
+				desc := fm['description'] or { '' }
+				if desc.len > 120 {
+					return desc[..120]
+				}
+				return desc
+			}
+		}
+	}
 	if !os.is_file(skill_md) {
 		return ''
 	}
@@ -439,6 +491,124 @@ fn validate_skill_dir(skill_dir string, toolkit_dir string) (int, int, string) {
 		warnings++
 	}
 	if os.is_file(os.join_path(skill_dir, 'skill.json')) {
+		lines << '  ⚠  ${rel}: skill.json found — not needed, can be removed'
+		warnings++
+	}
+	if errors == 0 {
+		lines << '  ✓  ${rel}/SKILL.md'
+	}
+	return errors, warnings, lines.join('\n')
+}
+
+fn skills_validate_embedded() SkillsReport {
+	mut lines := []string{}
+	lines << ''
+	lines << 'Validating SKILL.md frontmatter...'
+	lines << ''
+	lines << '── skills/ ──'
+	mut total_errors := 0
+	mut total_warnings := 0
+	mut skill_count := 0
+	domains := embedded_ls('skills')
+	mut domain_names := domains.clone()
+	domain_names.sort()
+	for domain in domain_names {
+		if !embedded_is_dir('skills/' + domain) {
+			continue
+		}
+		entries := embedded_ls('skills/' + domain)
+		mut names := entries.clone()
+		names.sort()
+		for name in names {
+			spath := 'skills/' + domain + '/' + name
+			if !embedded_is_dir(spath) {
+				continue
+			}
+			skill_md := spath + '/SKILL.md'
+			if !embedded_is_file(skill_md) {
+				continue
+			}
+			errs, warns, msg := validate_skill_dir_embedded(spath)
+			total_errors += errs
+			total_warnings += warns
+			skill_count++
+			lines << msg
+		}
+	}
+	if embedded_is_dir('plugins') {
+		lines << ''
+		lines << '── plugins/ (bundled copies) ──'
+		for plugin in embedded_ls('plugins') {
+			ps := 'plugins/' + plugin + '/skills'
+			if !embedded_is_dir(ps) {
+				continue
+			}
+			sk := embedded_ls(ps)
+			mut sk_names := sk.clone()
+			sk_names.sort()
+			for name in sk_names {
+				spath := ps + '/' + name
+				if !embedded_is_dir(spath) {
+					continue
+				}
+				errs, warns, msg := validate_skill_dir_embedded(spath)
+				total_errors += errs
+				total_warnings += warns
+				lines << msg
+			}
+		}
+	}
+	lines << ''
+	lines << '── Summary ──'
+	lines << '  Skills validated: ${skill_count}'
+	if total_errors > 0 {
+		lines << ''
+		lines << '  ✗  ${total_errors} error(s) found'
+	} else if total_warnings > 0 {
+		lines << ''
+		lines << '  ⚠  All valid with ${total_warnings} warning(s)'
+	} else {
+		lines << ''
+		lines << '  ✓  All SKILL.md files are valid!'
+	}
+	return SkillsReport{
+		ok:       total_errors == 0
+		message:  lines.join('\n')
+		count:    skill_count
+		errors:   total_errors
+		warnings: total_warnings
+	}
+}
+
+fn validate_skill_dir_embedded(skill_dir string) (int, int, string) {
+	rel := skill_dir
+	skill_md := skill_dir + '/SKILL.md'
+	if !embedded_is_file(skill_md) {
+		return 1, 0, '  ✗  ${rel}: missing SKILL.md'
+	}
+	content := embedded_read_file(skill_md) or {
+		return 1, 0, '  ✗  ${rel}/SKILL.md: cannot read: ${err}'
+	}
+	fm := parse_skill_frontmatter(content) or {
+		return 1, 0, '  ✗  ${rel}/SKILL.md: no YAML frontmatter found (must start with ---)'
+	}
+	mut errors := 0
+	mut warnings := 0
+	mut lines := []string{}
+	for field in ['name', 'description'] {
+		val := fm[field] or { '' }
+		if val.len == 0 {
+			lines << "  ✗  ${rel}/SKILL.md: missing required frontmatter field '${field}'"
+			errors++
+		}
+	}
+	name := fm['name'] or { '' }
+	dir_name := skill_dir.split('/').last()
+	if name.len > 0 && name != dir_name {
+		lines << "  ⚠  ${rel}/SKILL.md: name '${name}' does not match directory '${dir_name}'"
+		warnings++
+	}
+	if embedded_is_file(skill_dir + '/skill.json') {
 		lines << '  ⚠  ${rel}: skill.json found — not needed, can be removed'
 		warnings++
 	}

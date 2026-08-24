@@ -26,6 +26,9 @@ pub:
 // load_inventory lists skills/, agents/, and distributions/products.yaml.
 // Catalog YAML is not decoded (vlib/yaml rejects folded descriptions); tree walk is the source.
 pub fn load_inventory() !InventorySnapshot {
+	if root := find_toolkit_root() {
+		return load_inventory_at(root.path)
+	}
 	root := lookup_checkout_root()
 	if root.len == 0 {
 		return error('Cannot locate agent-toolkit root (set AGENT_TOOLKIT_ROOT)')
@@ -35,6 +38,9 @@ pub fn load_inventory() !InventorySnapshot {
 
 // load_inventory_at is the injectable variant for tests.
 pub fn load_inventory_at(root string) !InventorySnapshot {
+	if is_embedded_root(root) {
+		return load_inventory_embedded()
+	}
 	skill_files := collect_named(os.join_path(root, 'skills'), 'SKILL.md')
 	mut domains := map[string]int{}
 	skills_root := os.join_path(root, 'skills')
@@ -89,6 +95,80 @@ pub fn load_inventory_at(root string) !InventorySnapshot {
 		domain_count:  domains.len
 		message:       lines.join('\n')
 	}
+}
+
+fn load_inventory_embedded() InventorySnapshot {
+	mut skill_files := []string{}
+	for k, _ in embedded_file_map {
+		if k.starts_with('skills/') && k.ends_with('SKILL.md') {
+			skill_files << k
+		}
+	}
+	mut domains := map[string]int{}
+	for p in skill_files {
+		parts := p.split('/')
+		if parts.len >= 2 {
+			domain := parts[1]
+			domains[domain] = domains[domain] + 1
+		}
+	}
+	mut agent_dirs := []string{}
+	for e in embedded_ls('agents') {
+		if embedded_is_dir('agents/' + e) {
+			agent_dirs << e
+		}
+	}
+	products := load_products_embedded()
+	mut lines := []string{}
+	lines << ''
+	lines << '═══ agent-toolkit Inventory ═══'
+	lines << ''
+	lines << 'Skills: ${skill_files.len} across ${domains.len} domains'
+	lines << ''
+	mut domain_names := domains.keys()
+	domain_names.sort()
+	skill_files.sort()
+	for d in domain_names {
+		lines << '  ${d}/ (${domains[d]})'
+		for p in skill_files {
+			parts := p.split('/')
+			if parts.len < 3 {
+				continue
+			}
+			if parts[1] != d {
+				continue
+			}
+			name := parts[2]
+			lines << '    ✓  ${name}'
+		}
+	}
+	lines << ''
+	lines << 'Agents: ${agent_dirs.len}'
+	mut agents := agent_dirs.clone()
+	agents.sort()
+	for a in agents {
+		lines << '  ✓  ${a}'
+	}
+	lines << ''
+	lines << 'Products: ${products.len}'
+	for p in products {
+		lines << '  ✓  ${p.id}'
+	}
+	lines << ''
+	return InventorySnapshot{
+		root:          'embedded'
+		skill_count:   skill_files.len
+		agent_count:   agent_dirs.len
+		product_count: products.len
+		domain_count:  domains.len
+		message:       lines.join('\n')
+	}
+}
+
+fn load_products_embedded() []ProductEntry {
+	text := embedded_read_file('distributions/products.yaml') or { return [] }
+	doc := yaml.decode[ProductsFile](text) or { return [] }
+	return doc.products
 }
 
 // inventory_result maps a snapshot to CommandResult.
