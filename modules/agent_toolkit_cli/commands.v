@@ -70,6 +70,7 @@ pub fn build_root_command() cli.Command {
 		matrix_command(),
 		release_command(),
 		swarm_command(),
+		tui_command(),
 		serve_command(),
 	])
 	promote_family_flags(mut app)
@@ -971,5 +972,15 @@ fn serve_command() cli.Command {
 				description: "Don't open browser on start"
 			},
 		]
+	}
+}
+
+
+fn tui_command() cli.Command {
+	return cli.Command{
+		name:        'tui'
+		description: 'Interactive TUI dashboard (loops, swarms, doctor)'
+		execute:     atk_exec
+		group:       'Advanced commands'
 	}
 }

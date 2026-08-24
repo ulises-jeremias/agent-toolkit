@@ -1,7 +1,9 @@
 module agent_toolkit_cli
 
 import agent_toolkit_core
+import os
 import agent_toolkit_server
+import agent_toolkit_tui
 import cli
 
 // run is the library entry used by cmd/agent-toolkit.
@@ -248,6 +250,12 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		}
 		report := agent_toolkit_core.run_swarm(opts)
 		return render(agent_toolkit_core.swarm_result(report), mode)
+	}
+	if cmd_name == 'tui' {
+		opts := agent_toolkit_tui.TuiOptions{
+			workspace_path: os.getwd()
+		}
+		return agent_toolkit_tui.run_tui(opts)
 	}
 	if cmd_name == 'serve' {
 		opts := parse_serve_options(rest) or {
