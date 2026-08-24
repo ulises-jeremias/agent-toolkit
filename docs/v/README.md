@@ -2,6 +2,8 @@
 
 The product CLI is a **native V 0.5.2** binary (`import json`, not json2). Python on PyPI is only a thin trampoline (`agent-toolkit` → V), same idea as npm ([python-fallback.md](python-fallback.md)). Contributor how-to: [`docs/HOW_TO_DEVELOP_V.md`](../HOW_TO_DEVELOP_V.md).
 
+> **Terminology:** Ownership **Layers** are `L1` Machine / `L1.5` Toolkit / `L3` Workspace + Project Overlay (`docs/ARCHITECTURE.md`). Loop tiers `L1`/`L2`/`L3` and `L0`–`L3` discipline elsewhere are **Stages** (mutation-safety), not Layers.
+
 Historical strangler / cutover notes live under [`archive/`](archive/).
 
 ## Build from source
@@ -26,7 +28,7 @@ Canonical artifacts: **GitHub Releases** ([ADR-018](../adrs/ADR-018-release-arti
 | Homebrew | [distribution/homebrew](../../distribution/homebrew/README.md) · ADR-023 | `ulises-jeremias/homebrew-tap` |
 | AUR `agent-toolkit-bin` | [distribution/aur](../../distribution/aur/README.md) · ADR-024 | `ulises-jeremias/aur-packages` |
 | Docker | [distribution/docker](../../distribution/docker/README.md) | debian-slim + glibc V binary |
-| Workstation | [distribution/workstation](../../distribution/workstation/README.md) | L1 CLI-only bootstrap (#469) |
+| Workstation | [distribution/workstation](../../distribution/workstation/README.md) | L1 Machine layer bootstrap (#469) |
 
 Checksums **MUST**. Attestations/SBOM prove provenance only ([code-signing-policy.md](code-signing-policy.md)).
 
@@ -71,7 +73,7 @@ Product membership is declared in `distributions/products.yaml` and compiled wit
 | [install.md](install.md) / [uninstall.md](uninstall.md) / [update.md](update.md) | Install lifecycle |
 | [doctor.md](doctor.md) / [diff.md](diff.md) | Diagnostics |
 | [skills.md](skills.md) / [mcp.md](mcp.md) / [inventory.md](inventory.md) / [matrix.md](matrix.md) | Discovery |
-| [workspace.md](workspace.md) / [memory.md](memory.md) / [project.md](project.md) | L3 harness |
+| [workspace.md](workspace.md) / [memory.md](memory.md) / [project.md](project.md) | L3 Workspace harness |
 | [loop.md](loop.md) / [swarm.md](swarm.md) / [devcompanion.md](devcompanion.md) | Orchestration |
 
 ## Core services (V)

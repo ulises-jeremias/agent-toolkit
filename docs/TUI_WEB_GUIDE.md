@@ -10,9 +10,9 @@ Real interactive terminal dashboard (ANSI colors, keyboard navigation) — in-pr
 
 | Key | Screen | Content |
 |-----|--------|---------|
-| `1` | Dashboard | Header `agent-toolkit TUI — <version>`, workspace path, loops preview (tier colors L1 green, L2 yellow, L3 red) |
+| `1` | Dashboard | Header `agent-toolkit TUI — <version>`, workspace path, loops preview (tier colors L1 green, L2 yellow, L3 red — Stages, not Layers) |
 | `2` | Loops | Browser with tier colors, reverse-video selection, detail pane (status, runs, goal preview), `r` run |
-| `3` | Skills | Inventory grouped by domain (`84 skills / 14 domains`), `lookup_checkout_root()` + `load_inventory_at()` |
+| `3` | Skills | Inventory grouped by domain (live via `agent-toolkit inventory`), `lookup_checkout_root()` + `load_inventory_at()` |
 | `4` | Doctor | Health checks `✓ ok` / `! warn` / `✗ err` with colored status, version/platform |
 | `h` | Help | Keyboard reference + workspace auto-detection note |
 
@@ -39,7 +39,7 @@ Self-contained SPA served at `/` via `vlib/veb` — embedded at compile time wit
 ### Pages (sidebar nav, hash routing, 15s auto-refresh)
 
 - **Overview**: health badge (`/api/v1/health` `version/commit/uptime_s`), stats grid `Skills/Agents/Products/Domains` (`/inventory`), quick actions
-- **Loops**: table tier badges L1/L2/L3 color-coded, `parseLoops()` strips `tier=`/`cadence=` prefixes, safeTier whitelist, Run button → `selectLoopAndRun()`
+- **Loops**: table tier badges L1/L2/L3 (mutation-safety **Stages**, not Layers) color-coded, `parseLoops()` strips `tier=`/`cadence=` prefixes, safeTier whitelist, Run button → `selectLoopAndRun()`
 - **Skills**: searchable `skills-filter` input, domain regex `  domain/ (n)` + `✓ skill`, `skillsRows` cache, `filterSkills()` live, empty state
 - **Doctor**: `pre#doctor-out` from `/doctor` (`ok` ? `var(--text)` : `var(--warn)`)
 - **Run Job**: `select#loop-select` populated from `parseLoops()`, `Start` POST `/api/v1/jobs` `{cmd:"loop",args:["loop","run",name,"--no-llm"]}`, handle `max concurrent (2)` toast, `loadJobs()` sorted `started_at` table `ID Cmd Status Started Log`, `viewLog()` `GET /jobs/:id/log` with `content-type` check, `log-pane` monospace `max-height 350px`, `toast` system, `AbortController` dedup
@@ -64,4 +64,4 @@ Implementation: `web/index.html` (330 lines, vanilla JS, dark theme `--bg/--card
 
 Both surfaces are registered in `modules/agent_toolkit_cli/commands.v` (`tui_command()`, `serve_command()`) and `dispatch.v` (`execute_command` + `subcommand_help`), group `Advanced commands` per `docs/CLI_SURFACES.md`.
 
-See also: `docs/compatibility/cli-contract.yaml` (21 commands SSOT), `docs/surface/openapi.json` (generated), `modules/agent_toolkit_server/tui_registry.v`, `CHANGELOG.md` `1.22.0`/`1.22.1`.
+See also: `docs/compatibility/cli-contract.yaml` (23 commands + help SSOT), `docs/surface/openapi.json` (generated via `scripts/generate_surface.py` — do not hand-edit), `modules/agent_toolkit_server/tui_registry.v`, `CHANGELOG.md` `1.22.0`/`1.22.1`.

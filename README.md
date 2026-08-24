@@ -26,9 +26,9 @@
 [![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
 [![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
 
-![skills](https://img.shields.io/badge/skills-84-7c3aed?style=flat&labelColor=1f2937)
-![agents](https://img.shields.io/badge/agents-17-0891b2?style=flat&labelColor=1f2937)
-![loops](https://img.shields.io/badge/loops-10-ea580c?style=flat&labelColor=1f2937)
+![skills](https://img.shields.io/badge/skills-catalog-7c3aed?style=flat&labelColor=1f2937)
+![agents](https://img.shields.io/badge/agents-catalog-0891b2?style=flat&labelColor=1f2937)
+![loops](https://img.shields.io/badge/loops-catalog-ea580c?style=flat&labelColor=1f2937)
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-7c3aed?style=flat&labelColor=1f2937&logo=anthropic&logoColor=white)](profiles/claude-code/)
 [![Cursor](https://img.shields.io/badge/Cursor-rules-0891b2?style=flat&labelColor=1f2937)](profiles/cursor/)
@@ -75,21 +75,21 @@ agent-toolkit doctor
       <h3>🛠️ Skills</h3>
       <sub>Reusable capability units (<code>SKILL.md</code>) that teach an agent how to do a job — delivery workflows, forge CLIs, design, data, ops.</sub>
       <br><br>
-      <sub>84 skills across 14 domains. Browse <code>skills/</code> or <code>agent-toolkit inventory</code>.</sub>
+      <sub>Skills across 14 domains — live count via <code>agent-toolkit inventory</code> · Browse <code>skills/</code>.</sub>
     </td>
     <td width="50%" valign="top">
       <h3>🤖 Agents</h3>
       <sub>Personas that constrain <em>how</em> the AI works in a session — review, plan, architect, fix CI — without rewriting your prompts each time.</sub>
       <br><br>
-      <sub>17 personas under <code>agents/</code>, compiled into each target's native format.</sub>
+      <sub>Personas under <code>agents/</code>, compiled into each target's native format — see <code>agent-toolkit inventory</code>.</sub>
     </td>
   </tr>
   <tr>
     <td width="50%" valign="top">
       <h3>🔄 Loops</h3>
-      <sub>Recurring agentic workflows with mutation-safety tiers (L1 observe → L2 controlled → L3 high autonomy).</sub>
+      <sub>Recurring agentic workflows with mutation-safety Stages (L1 observe → L2 controlled → L3 high autonomy).</sub>
       <br><br>
-      <sub><code>agent-toolkit loop run daily-triage</code> · 10 templates in <code>loops/</code></sub>
+      <sub><code>agent-toolkit loop run daily-triage</code> · templates in <code>loops/</code> — see <code>agent-toolkit inventory</code></sub>
     </td>
     <td width="50%" valign="top">
       <h3>📦 Packs</h3>
@@ -277,9 +277,9 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 
 ---
 
-## 🛠️ Skills — 84 across 14 domains
+## 🛠️ Skills — catalog via `agent-toolkit inventory`
 
-All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills). Marketplace plugins ship a subset (core + forge); `agent-toolkit-complete` is the full catalog.
+All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills). Live counts: `agent-toolkit inventory` / `catalogs/skill-catalog.yaml` (source of truth, not README badges). Marketplace plugins ship a subset (core + forge); `agent-toolkit-complete` is the full catalog.
 
 | Domain | Count | Key Skills |
 |--------|-------|------------|
@@ -298,7 +298,7 @@ All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully c
 | ♿ `accessibility` | 1 | review |
 | ✅ `quality` | 5 | megalinter, megalinter-setup, megalinter-check, megalinter-fix, codeql |
 
-Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `./scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory`
+Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `./scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory` (counts shown in badges above are generic — use inventory for accurate numbers)
 
 ### Loading skills in Claude Code
 
@@ -317,7 +317,7 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 
 ## 🤖 Agent Personas
 
-17 tool-agnostic agent persona definitions in `agents/`. Any supported AI coding assistant can import these via its profile config.
+Tool-agnostic agent persona definitions in `agents/` (live count: `agent-toolkit inventory` / `catalogs/agent-catalog.yaml`). Any supported AI coding assistant can import these via its profile config.
 
 | Persona | Role |
 |---------|------|
@@ -339,7 +339,7 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 | 🧭 `client-workflow-bootstrap` | Client workflow bootstrap |
 | 🛡️ `agentic-security-reviewer` | Agentic security — prompt injection, tool poisoning, excessive agency, MCP/plugin supply chain |
 
-Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · 17 personas on disk under `agents/`
+Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · personas on disk under `agents/` (see inventory)
 
 ---
 
@@ -359,8 +359,8 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 
 ### Loop Templates
 
-| Template | Tier | Default Cadence | Description |
-|----------|------|-----------------|-------------|
+| Template | Tier (Stage) | Default Cadence | Description |
+|----------|--------------|-----------------|-------------|
 | `changelog-drafter` | L1 | 1d | Draft release notes from merged PRs (L1, report-only) |
 | `ci-sweeper` | L2 | 15m | Detect CI failures and propose fixes via draft PRs (L2, cautious) |
 | `daily-triage` | L1 | 1d | Triage new issues and propose labels (report-only) |
@@ -372,7 +372,9 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 | `post-merge-cleanup` | L2 | 6h | Off-peak housekeeping after merges (L2, low impact) |
 | `pr-babysitter` | L2 | 15m | Monitor open PRs and post review comments (L2, PR-gated) |
 
-Each loop template lives in `loops/<name>/` (10 templates on disk) with a `loop.yaml` definition (prompt in `request:`). At runtime the runner writes `STATE.md` and `report.md` under that directory.
+> **Stage vs Layer:** Loop tiers `L1`/`L2`/`L3` are mutation-safety **Stages** (Loop Engineering discipline), not ownership Layers. See `docs/ARCHITECTURE.md` for the `L1` Machine / `L1.5` Toolkit / `L3` Workspace layer model.
+
+Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for live count) with a `loop.yaml` definition (prompt in `request:`). At runtime the runner writes `STATE.md` and `report.md` under that directory.
 
 ---
 
@@ -405,7 +407,7 @@ Product bundles are declared in [`distributions/products.yaml`](distributions/pr
 | `agent-toolkit-core` | `plugin.json` + `skills/` (6) + `mcp.json` (github) | 6 core skills (`assistant`, `dev-companion`, `output-handshake`, `pr-fallback`, `workspace-knowledge-sync`, `onboarding`), `code-reviewer` agent, `session-start-context` hook, GitHub MCP |
 | `agent-toolkit-agents` | `plugin.json` + `agents/` via `com.anthropic.claude-code` extension | 16 marketplace personas (disk has 17; `agentic-security-reviewer` is not in this plugin) |
 | `agent-toolkit-forge` | `plugin.json` + `skills/` (7) | 7 forge skills — `github-cli-workflow`, `gitlab-cli-workflow`, `gh-address-comments`, `gh-fix-ci`, `gh-contribution-planner`, `workflow-client-bootstrap`, `workflow-generic-project` |
-| `agent-toolkit-complete` | `plugin.json` + `skills/` (84) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) |
+| `agent-toolkit-complete` | `plugin.json` + `skills/` (full catalog) + `mcp.json` | Full skill catalog (experimental; portable manifest included, marketplace pending) — count via `agent-toolkit inventory` |
 
 Plugin manifests: [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json) · [`.cursor-plugin/marketplace.json`](.cursor-plugin/marketplace.json) · `plugins/<id>/plugin.json` (Agent Plugins `$schema: https://agent-plugins.org/schemas/1.0.0/plugin.schema.json`) · `plugins/<id>/mcp.json` (where applicable)
 
@@ -443,13 +445,16 @@ Browse packs: [`packs/`](packs/)
 
 ## 🌐 Ecosystem
 
-`agent-toolkit` is the **capability distribution layer (L1.5)** in a three-tier personal DX stack. It's designed to be consumed by two companion repos:
+`agent-toolkit` is the **Capability + Runtime layer (L1.5)** in a four-layer ownership stack. It exposes two internal planes (Capability and Runtime) that share one binary and one release — see `docs/ARCHITECTURE.md`. Companion repos:
 
 | Layer | Repo | Role |
 |-------|------|------|
-| **L1** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
-| **L1.5** | **agent-toolkit** (this repo) | Capability distribution — skills, loops, profiles, MCP |
-| **L3** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold for multi-repo orchestration |
+| **L1 — Machine** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
+| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Capability + Runtime — skills, agents, MCP, plugins, plus workspace/memory/project/loop/devcompanion/swarm (`docs/ARCHITECTURE.md` planes) |
+| **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold for multi-repo orchestration |
+| **Project Overlay** | per-repo | Per-project `AGENTS.md`, `.cursor/rules/`, local `loops/` — highest precedence |
+
+> **Stages vs Layers:** `L0`–`L3` in Context/Harness/Loop Engineering is discipline **Stages** (mutation-safety / capability maturity), not ownership **Layers** `L1`/`L1.5`/`L3`. See `docs/ARCHITECTURE.md` terminology note and `docs/LOOPS.md` tier Stages. Loop tier `L1`/`L2`/`L3` below is Stages, not Layers.
 
 **agentic-workstation** installs the V CLI during `chezmoi apply` (Homebrew, AUR `agent-toolkit-bin`, GitHub Release, or the PyPI launcher). Running `agent-toolkit install` deploys skills and profiles to all detected AI tools.
 
@@ -459,34 +464,33 @@ Browse packs: [`packs/`](packs/)
 
 ## 🏗️ Architecture
 
-One source of truth, deployed per-tool. Each profile in `profiles/` adapts the shared skills and agents to the conventions of its target tool.
+One source of truth, deployed per-tool. See `docs/ARCHITECTURE.md` for ownership Layers `L1`/`L1.5`/`L3` + Project Overlay and the two internal planes (Capability vs Runtime, ADR-015 / ADR-026). `plugins/` is canonical compiler output; `profiles/` is a deprecated install overlay (ADR-004).
 
 ```text
-agent-toolkit/
-├── skills/              # 84 skills (SKILL.md frontmatter)
-├── agents/              # 17 tool-agnostic agent persona definitions
-├── profiles/
-│   ├── claude-code/     # Plugin manifest, skill references, settings
-│   ├── cursor/          # .mdc rule files per domain
-│   ├── opencode/        # System prompt overlays, agent configs
-│   ├── copilot/         # copilot-instructions.md with domain selection
-│   ├── windsurf/        # rules.md and memory files
-│   ├── pi/              # Skill definitions in Pi's native format
-│   └── muse-code/       # Muse Code Agent Skills
-├── loops/               # 10 recurring loop engineering templates
-├── mcp/templates/       # 7 providers (8 JSON files — Notion has local fallback)
-├── packs/               # 7 solution packs
-├── catalogs/            # skill-catalog.yaml, agent-catalog.yaml
-├── schemas/             # JSON schemas for validation
-├── docs/                # How-to guides and reference docs
-├── examples/            # Worked examples
-└── scripts/             # Install and validation scripts
+agent-toolkit/                 # L1.5 Toolkit — two planes, one binary
+├── skills/                    # Capability: SKILL.md by domain (inventory is SoT)
+├── agents/                    # Capability: tool-agnostic persona definitions
+├── plugins/                   # Capability: compiler output — canonical (build --check)
+├── profiles/                  # Capability: deprecated overlay — fallback only (ADR-004)
+├── distributions/             # Capability: products.yaml composition SoT
+├── mcp/templates/             # Capability: provider templates + registry
+├── packs/                     # Capability: docs-only packs (ADR-006)
+├── loops/                     # Runtime: loop templates (inventory is SoT)
+├── catalogs/                  # generated — skill/agent/loop catalogs
+├── schemas/                   # JSON schemas for validation
+├── modules/                   # V CLI — Capability + Runtime planes
+├── docs/                      # How-to guides and reference docs
+├── examples/                  # Worked examples
+└── scripts/                   # Install and validation scripts
 ```
+Live counts: `agent-toolkit inventory` (not hardcoded).
 
-### Automation tiers
+### Automation Stages (Loop Engineering)
 
-| Tier | Trigger | Example |
-|------|---------|---------|
+> **Stage vs Layer:** `L1`/`L2`/`L3` below are **Stages** (Loop Engineering mutation-safety), not ownership Layers.
+
+| Stage | Mutation posture | Example |
+|-------|------------------|---------|
 | **L1** | Observe / propose | `oss-triage`, `oss-daily-briefing`, `issue-triage` |
 | **L2** | Controlled mutations | `ci-sweeper`, `pr-babysitter`, `dep-sweeper` |
 | **L3** | High-autonomy (merge/close allowlist) | `oss-pr-monitor` |

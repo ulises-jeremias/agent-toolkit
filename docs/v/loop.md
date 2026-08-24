@@ -9,5 +9,5 @@ Subcommands: `init` / `run` / `list` / `status` / `audit` / `cost` / `schedule` 
 
 - Instances live under workspace `loops/<name>/loop.yaml` (+ `STATE.md`, `runs/`).
 - Bundled templates come from toolkit `loops/*/loop.yaml`.
-- `gh` mutations are classified in-core (`classify_gh_argv` / `loop_gate_allows`); L1 is read-only; merge/close require L3 + allowlist.
+- `gh` mutations are classified in-core (`classify_gh_argv` / `loop_gate_allows`); Tier L1 is read-only Stages (not Layers — see `docs/ARCHITECTURE.md`); merge/close require Stage L3 + allowlist.
 - `schedule` writes a systemd user unit on Unix; **not supported on Windows**.
