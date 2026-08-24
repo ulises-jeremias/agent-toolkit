@@ -95,7 +95,7 @@ doctor
 # → ask the orchestrator: "what skill should I use for X?"
 
 # Load client/project context
-./bin/workspace-context load packs/<client>.yaml   # if in an agentic-harness workspace
+agent-toolkit workspace load packs/<client>.yaml   # canonical; harness alias: ./bin/workspace-context load
 ```
 
 ## Key concepts in 60 seconds
@@ -117,6 +117,6 @@ doctor
 
 ## Next steps
 
-- Load a project pack: `./bin/workspace-context load packs/<project>.yaml`
+- Load a project pack: `agent-toolkit workspace load packs/<project>.yaml` (harness alias: `./bin/workspace-context`)
 - Run your first task: `/workflow-generic-project`
 - Set up daily loop: `agent-toolkit loop init daily-triage`

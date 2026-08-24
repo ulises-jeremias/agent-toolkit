@@ -1,10 +1,12 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-complete",
   "version": "1.22.3",
   "description": "Full stable skill catalog coverage for consumers who want everything (",
   "author": {
     "name": "ulises-jeremias",
-    "email": "ulisescf.24@gmail.com"
+    "email": "ulisescf.24@gmail.com",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit"
   },
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",

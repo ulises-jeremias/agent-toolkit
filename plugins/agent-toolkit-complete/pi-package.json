@@ -102,7 +102,23 @@
       "skills/c4-model/SKILL.md"
     ],
     "agents": [
-      
+      "agents/agentic-security-reviewer/AGENT.md",
+      "agents/architect/AGENT.md",
+      "agents/assistant/AGENT.md",
+      "agents/build-error-resolver/AGENT.md",
+      "agents/client-workflow-bootstrap/AGENT.md",
+      "agents/code-reviewer/AGENT.md",
+      "agents/database-reviewer/AGENT.md",
+      "agents/docs-lookup/AGENT.md",
+      "agents/e2e-runner/AGENT.md",
+      "agents/performance-optimizer/AGENT.md",
+      "agents/planner/AGENT.md",
+      "agents/refactor-cleaner/AGENT.md",
+      "agents/reference-lookup/AGENT.md",
+      "agents/security-reviewer/AGENT.md",
+      "agents/tdd-guide/AGENT.md",
+      "agents/tech-assistant/AGENT.md",
+      "agents/typescript-reviewer/AGENT.md"
     ]
   }
 }

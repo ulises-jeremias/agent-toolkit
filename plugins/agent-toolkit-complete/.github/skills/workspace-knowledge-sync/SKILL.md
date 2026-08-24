@@ -47,22 +47,22 @@ The tech-assistant will invoke this skill automatically when:
 
 ## How It Works
 
-### Knowledge base (assistant-memory)
+### Knowledge base (`agent-toolkit memory`)
 
-The skill uses the stable `assistant-memory` API with `--from-skill` for origin tracking:
+The skill uses the stable `agent-toolkit memory` API with `--from-skill` for origin tracking (harness alias: `assistant-memory` / `bin/assistant-memory`):
 
 ```bash
 # Search before adding
-assistant-memory search "<query>"
+agent-toolkit memory search "<query>"
 
 # Add a learning (with origin tracking)
-assistant-memory add --type learning --from-skill knowledge-sync "Pattern: <description>"
+agent-toolkit memory add --type learning --from-skill knowledge-sync "Pattern: <description>"
 
 # Add a skill (with tags)
-assistant-memory add --type skill --from-skill knowledge-sync --tags jira,workflow "New skill: <name>"
+agent-toolkit memory add --type skill --from-skill knowledge-sync --tags jira,workflow "New skill: <name>"
 
 # Add a pending todo
-assistant-memory add --type todo --from-skill knowledge-sync "<description>"
+agent-toolkit memory add --type todo --from-skill knowledge-sync "<description>"
 ```
 
 ### Learned facts (AGENTS.md)

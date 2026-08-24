@@ -1,10 +1,12 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-craft",
   "version": "1.22.3",
   "description": "Writing quality and change-safety toolkit: cut AI tells (unslop), remove code slop (deslop), and prove blast radius before shipping.",
   "author": {
     "name": "ulises-jeremias",
-    "email": "ulisescf.24@gmail.com"
+    "email": "ulisescf.24@gmail.com",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit"
   },
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",
