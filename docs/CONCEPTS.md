@@ -1,17 +1,37 @@
 # Public concept model
 
-One mental model for how agent-toolkit pieces fit together.
+One mental model for how agent-toolkit pieces fit together. Within the toolkit layer, two conceptual **planes** share one repo and one V binary — see [Two Planes](#two-planes-within-the-toolkit-l15--capability-vs-runtime) below. Ownership **Layers** (`L1`/`L1.5`/`L3`) are separate from Loop tier **Stages** (`L1`/`L2`/`L3` mutation-safety) — see terminology note in `docs/ARCHITECTURE.md`.
 
-## Layer hierarchy (bottom → top)
+## Ownership Layers (Machine → Toolkit → Workspace → Project)
+
+| Layer | Repo / location | Role |
+|-------|-----------------|------|
+| **L1 — Machine** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
+| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Capability + Runtime planes (see below) |
+| **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | Harness workspace — `knowledge/`, `repos/`, `projects/`, packs |
+| **Project Overlay** | per-repo | Per-project overrides — `AGENTS.md`, `.cursor/rules/`, local `loops/` |
+
+## Toolkit internals (L1.5) — build pipeline
 
 | Layer | Location | What it is | When to edit |
 |-------|----------|------------|--------------|
 | **Canonical content** | `skills/`, `agents/`, `loops/` | Source-of-truth capability definitions | Adding or changing skills/agents/loops |
 | **Products** | `distributions/products.yaml` | Named bundles of skills/agents/hooks/MCP for plugins | Shipping a marketplace plugin |
-| **Compiler output** | `plugins/` | Agent Plugins `plugin.json` + `skills/` + `mcp.json` + target-native manifests + copied SKILL.md/AGENT.md | **Generated** — do not hand-edit; validated by `build --check` (ADR-003/004) + `validate-agent-plugins.py` |
-| **Profiles** | `profiles/` | Deprecated install overlay per tool (ADR-004) | **Not** the canonical skill SoT — prefer compiled `plugins/`; install resolution lives in `modules/agent_toolkit_core/install.v` |
+| **Compiler output** | `plugins/` | Agent Plugins `plugin.json` + `skills/` + `mcp.json` + target-native manifests + copied SKILL.md/AGENT.md | **Generated — canonical** — do not hand-edit; validated by `build --check` (ADR-003/004) + `validate-agent-plugins.py` |
+| **Profiles** | `profiles/` | **Deprecated** install overlay per tool (ADR-004) — fallback only | **Not** the canonical skill SoT — prefer compiled `plugins/`; install resolution lives in `modules/agent_toolkit_core/install.v` |
 | **Packs** | `packs/` | Solution-oriented README + config | **Docs-only** workflow templates; not loaded by compiler (ADR-006) |
 | **Presets** | *(planned)* | Named capability sets for `agent-toolkit.yaml` projects | Future — not implemented yet |
+
+## Two Planes within the Toolkit (L1.5 — Capability vs Runtime)
+
+No code split — one repo, one `build/agent-toolkit` binary, one Release (ADR-026). The planes are documentary, mirroring `docs/ARCHITECTURE.md`.
+
+| Plane | Owns | Key dirs / commands | Runtime note |
+|-------|------|---------------------|--------------|
+| **Capability Plane** | What is *distributed* — portable capabilities + compiled artifacts | `skills/` + `agents/` (SoT), `distributions/products.yaml`, `plugins/` (**canonical**, `build --check`), `profiles/` (deprecated overlay), `mcp/templates/` + `mcp/registry/`, `packs/` (docs-only) | Data is **embedded** in the binary (`embedded_data.v`, FHS `/usr/share` compat) — **ADR-026** Full-Embed (supersedes ADR-011). |
+| **Runtime Plane** | What is *executed* from a harness workspace — consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` (+ `tui`/`serve` surfaces); `insights` **DEPRECATE** (#526) | Resolves data via `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized). Offline never downloads — **ADR-015** Runtime Resolution (amends ADR-005) + **ADR-026** `paths.v`/`data_io.v`. |
+
+References: `docs/adrs/ADR-015-runtime-resolution.md`, `docs/adrs/ADR-026-full-embed.md`, `docs/ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime`.
 
 ## Three kinds of packs
 

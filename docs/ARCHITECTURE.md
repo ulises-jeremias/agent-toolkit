@@ -1,16 +1,25 @@
 # Architecture
 
-agent-toolkit is organized around three layers that compose to form a complete AI capability stack for any project or team.
+agent-toolkit sits in a four-layer ownership stack and, within its own layer, separates two conceptual **planes** that share one codebase and one release artifact.
 
 **Canonical CLI:** native **V 0.5.2** (`import json`, not json2). Build with `./make.vsh build-cli` → `build/agent-toolkit`. PyPI/`uv`/`npm` are distribution adapters over that binary. See [`docs/HOW_TO_DEVELOP_V.md`](HOW_TO_DEVELOP_V.md) and [`docs/v/README.md`](v/README.md).
 
 ---
 
-## Three-Layer Model
+## Ownership Layers (Machine → Toolkit → Workspace → Project)
 
-### L1 — Workstation / Installer
+Ownership is layered; each layer is managed by a different repo. Toolkit layers use `L1`/`L1.5`/`L3` labels (stable since early docs); **Loop tiers `L1`/`L2`/`L3` are mutation-safety *Stages* in the Loop Engineering discipline, not ownership Layers** — see note below.
 
-The outermost layer is the installer or workstation harness that provisions agent-toolkit onto a machine. This layer is responsible for:
+| Layer | Repo | Role |
+|-------|------|------|
+| **L1 — Machine** | [agentic-workstation](https://github.com/ulises-jeremias/agentic-workstation) | Machine provisioning — chezmoi, shell, packages, LLM policy |
+| **L1.5 — Toolkit** | **agent-toolkit** (this repo) | Capability distribution + runtime harness — skills, agents, MCP, plugins, loops, workspace/memory/projects/devcompanion/swarm |
+| **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | AI workspace scaffold — `knowledge/`, `repos/`, `projects/`, packs, persona handoffs |
+| **Project Overlay** | per-repo | Per-project overrides — `AGENTS.md`, `.cursor/rules/project.mdc`, local `loops/` |
+
+### L1 — Machine / Workstation
+
+The outermost layer provisions the machine and installs the toolkit. It is responsible for:
 
 - Cloning or updating the toolkit repository
 - Running `agent-toolkit install` (canonical **V** CLI from GitHub Release, Homebrew, AUR `agent-toolkit-bin`, PyPI launcher, or npm — ADR-021; ADR-007 removed the bash install wrappers) to copy profiles/plugins to the right tool-specific locations
@@ -19,22 +28,19 @@ The outermost layer is the installer or workstation harness that provisions agen
 
 This layer is typically managed by a separate bootstrapping tool (such as a dotfiles manager or a workstation provisioner). agent-toolkit itself does not own this layer — it provides the V CLI and profiles.
 
-### L1.5 — agent-toolkit (this repo)
+### L1.5 — Toolkit (this repo)
 
-The middle layer is agent-toolkit itself. It is the single source of truth for:
+The middle layer is agent-toolkit itself. It owns **two planes without splitting code or releases** — see [Two Planes](#two-planes-within-the-toolkit-l15--capability-vs-runtime) below. At a high level it is the single source of truth for both planes (details in plane table).
 
-- **Skills** — portable capability definitions that work across all supported AI tools
-- **Agent personas** — tool-agnostic role definitions (architect, code-reviewer, etc.)
-- **Profiles** — tool-specific configuration files generated from the skill and agent definitions
-- **Loops** — recurring agentic workflow templates with budgets and safety gates
-- **MCP templates** — Model Context Protocol configuration stubs for external services
-- **Packs** — curated bundles that combine skills and loops for a specific outcome
+This layer is meant to be stable and opinionated. Changes here propagate to every workspace and project that uses the toolkit via `AGENT_TOOLKIT_ROOT` / embedded data.
 
-This layer is meant to be stable and opinionated. Changes here propagate to every project that uses the toolkit.
+### L3 — Workspace (Harness)
 
-### L3 — Project Overlays
+The harness workspace is the multi-repo overlay that consumes the toolkit's runtime commands (`workspace`, `memory`, `project`, `loop`, `devcompanion`, `swarm`). It provides `knowledge/`, `repos/`, `projects/`, `packs/*.yaml` context bundles, and persona handoff state. See [agentic-harness](https://github.com/ulises-jeremias/agentic-harness).
 
-The innermost layer is the project- or client-specific customization layer. Each project can:
+### Project Overlay
+
+The innermost layer is the per-project customization. Each project can:
 
 - Override or extend profile configurations (e.g. add project-specific rules to `.cursor/rules/`)
 - Define a project-level `AGENTS.md` or `.claude/CLAUDE.md` that overrides toolkit defaults
@@ -43,34 +49,52 @@ The innermost layer is the project- or client-specific customization layer. Each
 
 Project overlays never modify the toolkit itself. They sit on top and take precedence for that project only.
 
+> **Terminology note — Stages vs Layers:** Loop tiers `L1` (observe/propose), `L2` (controlled mutations), `L3` (high-autonomy merge/close) are **Stages** in the Loop Engineering discipline (and similarly `L0`–`L3` in Context/Harness/Loop Engineering). They describe mutation safety, not ownership. Ownership **Layers** are `L1` Machine / `L1.5` Toolkit / `L3` Workspace + Project Overlay. Never use `L1`/`L2`/`L3` to mean both — say "Tier L1 loop" vs "Layer L1 machine".
+
+---
+
+## Two Planes within the Toolkit (L1.5 — Capability vs Runtime)
+
+The toolkit layer itself separates two conceptual planes that **share one repo, one V binary, and one release** — no code split. The distinction clarifies what is *distributed* vs what is *executed* and how data is resolved at runtime.
+
+| Plane | Owns | Key dirs / contracts | Runtime resolution |
+|-------|------|----------------------|--------------------|
+| **Capability Plane** | What is *distributed* to AI tools — portable capabilities and their compiled artifacts | `skills/` + `agents/` (SoT), `distributions/products.yaml` (composition), `plugins/` (compiler output, canonical — ADR-004), `profiles/` (**deprecated** install overlay, fallback only), `mcp/templates/` + `mcp/registry/`, `packs/` (docs-only, ADR-006) | Authoritative data lives **embedded** in the binary payload (`modules/agent_toolkit_core/embedded_data.v`, `+4.8M` ELF) plus FHS `/usr/share` sidecar compat — see **ADR-026** (Full-Embed). Build verifies with `agent-toolkit build --check`. |
+| **Runtime Plane** | What is *executed* from a harness workspace — automation, memory, and orchestration that consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` commands; `tui` / `serve` surfaces over both planes; `insights` (**DEPRECATE**, #526) | Resolves toolkit data via ordered tiers `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized against harness `knowledge/`). Offline never downloads — see **ADR-015** (Runtime Resolution, amends ADR-005) and **ADR-026** `paths.v` tiers / `data_io.v` abstraction. |
+
+**Without splitting code:** Both planes are built by the same `make.vsh build-cli` (`gen-embedded` → `build/agent-toolkit`) and shipped in the same GitHub Release / Homebrew / AUR / PyPI / npm / Docker artifacts (ADR-018/021/023/024/025). The split is documentary: capability edits go to `skills/` + `products.yaml` then `build`; runtime is exercised from a harness via `agent-toolkit loop run …` etc. References: **ADR-015** runtime order and **ADR-026** full-embed (supersedes ADR-011) — see `docs/adrs/ADR-015-runtime-resolution.md` and `docs/adrs/ADR-026-full-embed.md`.
+
 ---
 
 ## How the Layers Interact
 
 ```
-┌─────────────────────────────────────────────┐
-│  L1 — Workstation / Installer               │
-│  (chezmoi, bootstrap script, cron runner)   │
-│                                             │
-│  ┌───────────────────────────────────────┐  │
-│  │  L1.5 — agent-toolkit (this repo)    │  │
-│  │                                       │  │
-│  │  skills/   profiles/   loops/         │  │
-│  │  agents/   mcp/        packs/         │  │
-│  │                                       │  │
-│  │  ┌─────────────────────────────────┐  │  │
-│  │  │  L3 — Project Overlay           │  │  │
-│  │  │                                 │  │  │
-│  │  │  .claude/CLAUDE.md              │  │  │
-│  │  │  .cursor/rules/project.mdc      │  │  │
-│  │  │  loops/my-loop/loop.yaml        │  │  │
-│  │  │  packs/my-pack.yaml             │  │  │
-│  │  └─────────────────────────────────┘  │  │
-│  └───────────────────────────────────────┘  │
-└─────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  L1 — Machine / Workstation                         │
+│  (chezmoi, bootstrap script, LLM policy)            │
+│                                                     │
+│  ┌───────────────────────────────────────────────┐  │
+│  │  L1.5 — Toolkit (this repo) — two planes     │  │
+│  │  Capability: skills/agents/plugins/profiles/  │  │
+│  │              mcp/packs/distributions          │  │
+│  │  Runtime:    workspace/memory/project/loop/   │  │
+│  │              devcompanion/swarm + tui/serve   │  │
+│  │                                               │  │
+│  │  ┌───────────────────────────────────────┐   │  │
+│  │  │  L3 — Workspace (Harness)             │   │  │
+│  │  │  knowledge/ repos/ projects/ packs/   │   │  │
+│  │  │                                       │   │  │
+│  │  │  ┌─────────────────────────────────┐ │   │  │
+│  │  │  │  Project Overlay                │ │   │  │
+│  │  │  │  AGENTS.md / .cursor/rules/     │ │   │  │
+│  │  │  │  loops/my-loop/loop.yaml        │ │   │  │
+│  │  │  └─────────────────────────────────┘ │   │  │
+│  │  └───────────────────────────────────────┘   │  │
+│  └───────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────┘
 ```
 
-Precedence (highest to lowest): Project overlay > agent-toolkit defaults > tool built-ins.
+Precedence (highest to lowest): Project overlay > Workspace harness > Toolkit defaults (Capability + Runtime) > tool built-ins.
 
 ---
 
@@ -111,7 +135,7 @@ A loop is a recurring agentic workflow with a declared goal, safety gates, and a
 - `exit_conditions` — when the loop should stop (goal met, budget exhausted, human escalation)
 - `request` — the prompt template the loop runner executes
 
-Loops follow a three-tier model (L1/L2/L3) based on the risk level of their actions. See [LOOPS.md](LOOPS.md) for details.
+Loops follow a three-tier **Stage** model (Tier L1 / L2 / L3) based on mutation risk — **Stages, not ownership Layers**. See [LOOPS.md](LOOPS.md) for details. Terminology note in [Ownership Layers](#ownership-layers-machine--toolkit--workspace--project) applies.
 
 ### Packs
 
@@ -128,22 +152,24 @@ Swarms coordinate multiple coding-agent sessions with worktree isolation and dur
 
 ## Repository Structure
 
-Counts: 84 skills (14 domains), 17 agents, 10 loops, 7 packs, 7 MCP templates, 7 profiles. Live inventory: `agent-toolkit inventory` / `catalogs/`.
+Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~84 skills / 14 domains, 17 agents, 10 loops, 7 packs, 7 MCP providers).
 
 ```
 agent-toolkit/
-├── skills/                      # 84 SKILL.md trees (14 domains)
+├── skills/                      # SKILL.md trees by domain (see inventory)
 │   ├── core/  delivery/  design/  forge/  integrations/
 │   ├── data/  tooling/  ops/  loops/
 │   ├── agentic-security/  architecture/  cloud/
 │   └── accessibility/  quality/
-├── agents/                      # 17 personas (incl. agentic-security-reviewer)
-├── profiles/                    # claude-code, cursor, opencode, copilot,
-│                                # windsurf, pi, muse-code
-├── loops/                       # 10 loop.yaml templates
-├── mcp/templates/               # 7 providers (incl. chrome-devtools)
-├── packs/                       # 7 docs-only packs (ADR-006)
-├── catalogs/                    # generated skill/agent catalogs
+├── agents/                      # personas (incl. agentic-security-reviewer)
+├── plugins/                     # compiler output — canonical (do not hand-edit; build --check)
+├── profiles/                    # deprecated install overlay (ADR-004; fallback only)
+├── distributions/               # products.yaml — product composition SoT
+├── loops/                       # loop.yaml templates (see inventory)
+├── mcp/templates/               # providers (incl. chrome-devtools)
+├── mcp/registry/                # provider registry
+├── packs/                       # docs-only packs (ADR-006)
+├── catalogs/                    # generated skill/agent/loop catalogs
 ├── schemas/
 ├── modules/                     # V CLI (canonical product)
 ├── packages/                    # pypi/ + npm/ adapters
