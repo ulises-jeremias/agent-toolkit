@@ -43,8 +43,15 @@ pub fn render_loops_detail(loops []LoopInfo, workspace string, selected int) str
 			lines << '│  Status: ${sel.last_status}  Runs: ${sel.runs_count}                         │'
 			loop_dir := os.join_path(workspace, 'loops', sel.name)
 			yaml_path := os.join_path(loop_dir, 'loop.yaml')
+			md_path := os.join_path(loop_dir, 'LOOP.md')
+			mut text_path := ''
 			if os.is_file(yaml_path) {
-				text := os.read_file(yaml_path) or { '' }
+				text_path = yaml_path
+			} else if os.is_file(md_path) {
+				text_path = md_path
+			}
+			if text_path.len > 0 {
+				text := os.read_file(text_path) or { '' }
 				mut goal := ''
 				for line in text.split_into_lines() {
 					t := line.trim_space()
@@ -188,7 +195,10 @@ pub fn render_help(workspace string) string {
 	lines << '│                                                     │'
 	lines << '│  Workspace:                                         │'
 	lines << '│    ${pad_right(workspace, 52)} │'
-	lines << '│  Auto-detected via walk-up (loops/.git/AGENTS.md)   │'
+	lines << '│  Flag: --workspace PATH (else AGENT_TOOLKIT_       │'
+	lines << '│  WORKSPACE / HARNESS_DIR / walk-up loops/.git)    │'
+	lines << '│  Loops: loop.yaml or legacy LOOP.md; empty →      │'
+	lines << '│  bundled loops                                     │'
 	lines << '│                                                     │'
 	lines << '│  Tips:                                              │'
 	lines << '│    • Colors: L1 ${ansi("green", "32")} L2 ${ansi("yellow", "33")} L3 ${ansi("red", "31")}                         │'

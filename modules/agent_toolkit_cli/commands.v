@@ -977,10 +977,16 @@ fn serve_command() cli.Command {
 
 
 fn tui_command() cli.Command {
-	return cli.Command{
+	mut c := cli.Command{
 		name:        'tui'
 		description: 'Interactive TUI dashboard (loops, swarms, doctor)'
 		execute:     atk_exec
 		group:       'Advanced commands'
 	}
+	c.add_flag(cli.Flag{
+		flag:        .string
+		name:        'workspace'
+		description: 'Workspace path (default: auto-detect via AGENT_TOOLKIT_WORKSPACE / walk-up)'
+	})
+	return c
 }

@@ -856,7 +856,7 @@ fn list_loop_dirs(ws string) []string {
 	return out
 }
 
-fn bundled_loop_dirs() []string {
+pub fn bundled_loop_dirs() []string {
 	mut out := []string{}
 	root := find_toolkit_root() or { return out }
 	bundled := os.join_path(root.path, 'loops')

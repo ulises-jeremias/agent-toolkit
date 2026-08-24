@@ -252,8 +252,18 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
 	if cmd_name == 'tui' {
+		mut ws := ''
+		for i, a in rest {
+			if a == '--workspace' && i + 1 < rest.len {
+				ws = rest[i + 1]
+				break
+			} else if a.starts_with('--workspace=') {
+				ws = a.all_after('=')
+				break
+			}
+		}
 		opts := agent_toolkit_tui.TuiOptions{
-			workspace_path: os.getwd()
+			workspace_path: ws
 		}
 		return agent_toolkit_tui.run_tui(opts)
 	}
@@ -494,9 +504,11 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 		return agent_toolkit_core.swarm_help_text()
 	}
 	if name == 'tui' {
-		return 'Usage: agent-toolkit tui [--help]
+		return 'Usage: agent-toolkit tui [--workspace PATH] [--help]
 
 Interactive TUI dashboard (loops, skills, doctor) — ANSI colors, keyboard nav.
+
+  --workspace PATH  Workspace path (default: auto-detect via AGENT_TOOLKIT_WORKSPACE / HARNESS_DIR / walk-up)
 
 Screens:
   1 dashboard  Overview + workspace + loops preview
@@ -510,10 +522,12 @@ Keys:
   r/enter  run selected loop (no-llm, safe)   h/?  help   q/quit/exit  quit
 
 Runs in-process core calls (no HTTP), offline-first per ADR-494.
-Workspace auto-detected via walk-up (loops/.git/AGENTS.md/knowledge).
+Workspace auto-detected via --workspace, AGENT_TOOLKIT_WORKSPACE/HARNESS_DIR, or walk-up (loops/.git/AGENTS.md/knowledge).
+Loops from loops/ support loop.yaml or legacy LOOP.md; empty workspace falls back to bundled loops for preview.
 
 Examples:
   agent-toolkit tui
+  agent-toolkit tui --workspace ~/.ai-workspace
   printf "2\nj\nr\nq\n" | agent-toolkit tui   # batch navigation
 
 See: docs/v/advanced-command-disposition.md
