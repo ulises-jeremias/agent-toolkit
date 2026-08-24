@@ -123,12 +123,7 @@ pub fn (app &App) openapi(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return ctx.json(deny)
 	}
-	p := find_repo_root() + '/docs/surface/openapi.json'
-	if !is_file(p) {
-		return ctx.json(MsgResp{ ok: false, message: 'openapi.json not generated — run scripts/generate_surface.py' })
-	}
-	body := os.read_file(p) or { '{"ok":false,"error":"read failed"}' }
-	return ctx.text(body)
+	return ctx.text(openapi_json.str())
 }
 
 @['/api/v1/inventory'; get]
@@ -214,12 +209,7 @@ pub fn (app &App) help_route(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return ctx.json(deny)
 	}
-	p := find_repo_root() + '/docs/surface/cli-help.md'
-	if !is_file(p) {
-		return ctx.json(MsgResp{ ok: false, message: 'cli-help.md not generated — run scripts/generate_surface.py' })
-	}
-	body := os.read_file(p) or { '{"ok":false,"error":"read failed"}' }
-	return ctx.text(body)
+	return ctx.text(cli_help_md.str())
 }
 
 fn cmd_resp(res agent_toolkit_core.CommandResult) CmdResp {
@@ -328,30 +318,17 @@ pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 }
 
 
+// web_index_html is embedded at compile time so serve always has a UI.
+const web_index_html = $embed_file('../../web/index.html')
+const openapi_json = $embed_file('../../docs/surface/openapi.json')
+const cli_help_md = $embed_file('../../docs/surface/cli-help.md')
+
 @['/'; get]
 pub fn (app &App) index(mut ctx Ctx) veb.Result {
-	p := find_repo_root() + '/web/index.html'
-	if !os.is_file(p) {
-		return ctx.html('<html><body><h1>agent-toolkit</h1><p>Web UI not built. See docs.</p></body></html>')
-	}
-	body := os.read_file(p) or { '<h1>read error</h1>' }
-	return ctx.html(body)
+	return ctx.html(web_index_html.str())
 }
 
-fn find_repo_root() string {
-	mut cur := os.getwd()
-	for {
-		if os.is_dir(os.join_path(cur, '.git')) && os.is_file(os.join_path(cur, 'VERSION')) {
-			return cur
-		}
-		parent := os.dir(cur)
-		if parent == cur || parent.len == 0 {
-			break
-		}
-		cur = parent
-	}
-	return os.getwd()
-}
+
 
 fn is_file(p string) bool {
 	return os.exists(p) && !os.is_dir(p)
