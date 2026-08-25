@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "agent-toolkit serve API",
-    "version": "1.22.3",
+    "version": "1.23.0",
     "description": "Generated from docs/compatibility/cli-contract.yaml \u2014 do not hand-edit."
   },
   "paths": {
@@ -226,28 +226,6 @@
         }
       }
     },
-    "/api/v1/completion/{shell}": {
-      "get": {
-        "operationId": "completion",
-        "summary": "Emit bash/zsh/fish/PowerShell completion scripts",
-        "tags": [
-          "consumer"
-        ],
-        "x-scope": "read:*",
-        "x-confirm-required": false,
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "403": {
-            "description": "scope denied"
-          },
-          "428": {
-            "description": "confirm required"
-          }
-        }
-      }
-    },
     "/api/v1/loops/{sub}": {
       "post": {
         "operationId": "loop",
@@ -358,28 +336,6 @@
         }
       }
     },
-    "/api/v1/insights": {
-      "get": {
-        "operationId": "insights",
-        "summary": "DEPRECATE \u2014 Local usage analytics (OpenCode, Cursor, Claude) \u2014 not ported to V; see #526",
-        "tags": [
-          "advanced"
-        ],
-        "x-scope": "read:*",
-        "x-confirm-required": false,
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "403": {
-            "description": "scope denied"
-          },
-          "428": {
-            "description": "confirm required"
-          }
-        }
-      }
-    },
     "/api/v1/build": {
       "post": {
         "operationId": "build",
@@ -446,28 +402,6 @@
         }
       }
     },
-    "/api/v1/release": {
-      "post": {
-        "operationId": "release",
-        "summary": "REMOVE \u2014 Generate release artifacts (maintainer / CI) \u2014 not in V; use CI / docs/RELEASING.md \u2014 see #527",
-        "tags": [
-          "advanced"
-        ],
-        "x-scope": "write:*",
-        "x-confirm-required": false,
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "403": {
-            "description": "scope denied"
-          },
-          "428": {
-            "description": "confirm required"
-          }
-        }
-      }
-    },
     "/api/v1/swarms/{sub}": {
       "post": {
         "operationId": "swarm",
@@ -477,50 +411,6 @@
         ],
         "x-scope": "write:swarm",
         "x-confirm-required": true,
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "403": {
-            "description": "scope denied"
-          },
-          "428": {
-            "description": "confirm required"
-          }
-        }
-      }
-    },
-    "/api/v1/tui": {
-      "get": {
-        "operationId": "tui",
-        "summary": "Interactive TUI dashboard (loops, swarms, doctor)",
-        "tags": [
-          "advanced"
-        ],
-        "x-scope": "read:*",
-        "x-confirm-required": false,
-        "responses": {
-          "200": {
-            "description": "ok"
-          },
-          "403": {
-            "description": "scope denied"
-          },
-          "428": {
-            "description": "confirm required"
-          }
-        }
-      }
-    },
-    "/api/v1/serve": {
-      "get": {
-        "operationId": "serve",
-        "summary": "Run the agent-toolkit HTTP server (feature-complete API over core)",
-        "tags": [
-          "advanced"
-        ],
-        "x-scope": "read:*",
-        "x-confirm-required": false,
         "responses": {
           "200": {
             "description": "ok"

@@ -126,6 +126,85 @@ pub fn (app &App) openapi(mut ctx Ctx) veb.Result {
 	return ctx.text(openapi_json.to_string())
 }
 
+// SelfcheckCheck is one named runtime coherence result.
+struct SelfcheckCheck {
+	name   string
+	status string // ok | warn | err
+	detail string
+}
+
+// SelfcheckResp reports runtime coherence of the programmatic API surface.
+// It validates what can only be checked at runtime (embedded OpenAPI freshness
+// vs the running binary, jobs dir writability, bind policy). Contract↔route
+// coverage is enforced statically by tests/test_surface_parity.py.
+struct SelfcheckResp {
+	ok      bool
+	version string
+	commit  string
+	checks  []SelfcheckCheck
+}
+
+// openapi_declared_version extracts info.version from the embedded OpenAPI
+// document to detect stale generated artifacts at runtime.
+fn openapi_declared_version(doc string) string {
+	marker := '"version": "'
+	idx := doc.index(marker) or { return '' }
+	rest := doc[idx + marker.len..]
+	end := rest.index('"') or { return '' }
+	return rest[..end]
+}
+
+@['/api/v1/selfcheck'; get]
+pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	version := agent_toolkit_core.resolve_toolkit_version()
+	mut checks := []SelfcheckCheck{}
+
+	// 1. Embedded OpenAPI freshness (stale-artifact detection).
+	declared := openapi_declared_version(openapi_json.to_string())
+	openapi_ok := declared.len > 0 && declared == version
+	checks << SelfcheckCheck{
+		name:   'openapi_fresh'
+		status: if openapi_ok { 'ok' } else { 'err' }
+		detail: if openapi_ok {
+			'embedded openapi.json matches runtime version ${version}'
+		} else {
+			'embedded openapi.json declares ${declared}, runtime is ${version} — regenerate with scripts/generate_surface.py'
+		}
+	}
+
+	// 2. Jobs directory writable (async execution available).
+	jobs_dir := app.runner.dir
+	jobs_writable := os.is_dir(jobs_dir) && os.is_writable(jobs_dir)
+	checks << SelfcheckCheck{
+		name:   'jobs_dir_writable'
+		status: if jobs_writable { 'ok' } else { 'warn' }
+		detail: jobs_dir
+	}
+
+	// 3. Bind configuration satisfies the localhost-default security policy.
+	mut bind_ok := true
+	validate_bind(app.opts.host, app.opts.allow_remote, app.opts.auth_token) or {
+		bind_ok = false
+	}
+	checks << SelfcheckCheck{
+		name:   'bind_policy'
+		status: if bind_ok { 'ok' } else { 'err' }
+		detail: '${app.opts.host} allow_remote=${app.opts.allow_remote}'
+	}
+
+	ok := checks.all(it.status != 'err')
+	return ctx.json(SelfcheckResp{
+		ok:      ok
+		version: version
+		commit:  agent_toolkit_core.resolve_commit()
+		checks:  checks
+	})
+}
+
 @['/api/v1/inventory'; get]
 pub fn (app &App) inventory(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
@@ -253,6 +332,45 @@ pub fn (app &App) skills(mut ctx Ctx, sub string) veb.Result {
 		return ctx.json(deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.skills_result(agent_toolkit_core.run_skills(agent_toolkit_core.SkillsOptions{ subcommand: sub }))))
+}
+
+@['/api/v1/loops/:sub'; post]
+pub fn (app &App) loops_generic(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
+	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
+		subcommand:     sub
+		workspace_path: ws
+	}))))
+}
+
+@['/api/v1/dc/:sub'; post]
+pub fn (app &App) devcompanion_generic(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
+	return ctx.json(cmd_resp(agent_toolkit_core.devcompanion_result(agent_toolkit_core.run_devcompanion(agent_toolkit_core.DevcompanionOptions{
+		subcommand:     sub
+		workspace_path: ws
+	}))))
+}
+
+@['/api/v1/swarms/:sub'; post]
+pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
+	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{
+		subcommand:     sub
+		workspace_path: ws
+	}))))
 }
 
 @['/api/v1/mcp/:sub'; get; post]

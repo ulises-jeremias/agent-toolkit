@@ -3,328 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>agent-toolkit</title>
+<title>Agent Toolkit — Programmatic API</title>
 <style>
-:root{--bg:#0a0a0f;--card:#11111a;--border:#1e1e2e;--text:#e2e8f0;--muted:#94a3b8;--accent:#8b5cf6;--success:#10b981;--warn:#f59e0b;--danger:#ef4444}
+:root{--bg:#0a0a0f;--card:#11111a;--border:#1e1e2e;--text:#e2e8f0;--muted:#94a3b8;--accent:#8b5cf6;--ok:#10b981}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;display:flex;min-height:100vh}
-.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;display:flex;flex-direction:column}
-.sidebar h1{font-size:15px;padding:0 16px 16px;color:var(--accent);font-weight:800}
-.nav-item{display:flex;align-items:center;gap:8px;padding:10px 16px;color:var(--muted);cursor:pointer;font-size:14px;border-left:3px solid transparent}
-.nav-item:hover{color:var(--text);background:rgba(139,92,246,.08)}
-.nav-item.active{color:var(--accent);background:rgba(139,92,246,.08);border-left-color:var(--accent);font-weight:600}
-.main{flex:1;padding:24px;overflow-y:auto;max-height:100vh}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-h2{font-size:13px;color:var(--accent);margin-bottom:14px;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th,td{padding:8px 12px;border:1px solid var(--border);text-align:left}
-th{background:rgba(255,255,255,.03);color:var(--muted);font-size:10px;text-transform:uppercase}
-.ok{color:var(--success)}.err{color:var(--danger)}.warn{color:var(--warn)}.muted{color:var(--muted)}
-.btn{background:var(--accent);color:white;border:none;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;margin-right:6px}
-.btn:hover{opacity:.85}.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn.green{background:var(--success)}.btn.red{background:var(--danger)}
-.health-badge{display:inline-block;padding:5px 14px;border-radius:999px;font-size:13px;font-weight:700}
-.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700}
-.badge.L1{background:rgba(16,185,129,.15);color:#6ee7b7}.badge.L2{background:rgba(245,158,11,.15);color:#fcd34d}.badge.L3{background:rgba(239,68,68,.15);color:#fca5a5}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px}
-.stat-card{text-align:center;padding:18px;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02)}
-.stat-card .num{font-size:30px;font-weight:800;color:var(--accent)}
-.stat-card .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:4px}
-#log-pane{background:#000;border:1px solid var(--border);border-radius:8px;padding:14px;font-family:monospace;font-size:12px;white-space:pre-wrap;max-height:350px;overflow:auto;display:none;margin-top:14px;line-height:1.6}
-input,select{background:#0f0f17;color:var(--text);border:1px solid var(--border);padding:8px 12px;border-radius:6px;font-size:13px;width:100%}
-input:focus,select:focus{outline:none;border-color:var(--accent)}
-.hidden{display:none!important}.empty{text-align:center;padding:32px;color:var(--muted)}
-.page-title{font-size:20px;font-weight:800;margin-bottom:16px}
-.search-box{width:100%;margin-bottom:14px}
-#toast{position:fixed;top:16px;right:16px;z-index:99;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4);opacity:0;transform:translateY(-6px);animation:tin .25s forwards}
-.toast.ok{background:var(--success);color:#fff}.toast.err{background:var(--danger);color:#fff}.toast.warn{background:var(--warn);color:#000}
-@keyframes tin{to{opacity:1;transform:none}}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;line-height:1.6}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:520px;width:90%}
+h1{font-size:18px;margin-bottom:4px}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.row:last-of-type{border-bottom:none}
+.k{color:var(--muted)}.v{font-weight:600;font-family:monospace;font-size:12px}
+.ok{color:var(--ok)}
+.links{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+.links a{background:var(--accent);color:#fff;text-decoration:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600}
+.links a.alt{background:transparent;border:1px solid var(--border);color:var(--text)}
+footer{margin-top:18px;color:var(--muted);font-size:11px}
 </style>
 </head>
 <body>
-<nav class="sidebar">
-<h1>⚙ agent-toolkit</h1>
-<div class="nav-item active" data-page="overview" onclick="navigate('overview')">📊 Overview</div>
-<div class="nav-item" data-page="loops" onclick="navigate('loops')">🔄 Loops</div>
-<div class="nav-item" data-page="skills" onclick="navigate('skills')">🧩 Skills</div>
-<div class="nav-item" data-page="doctor" onclick="navigate('doctor')">🩺 Doctor</div>
-<div class="nav-item" data-page="run" onclick="navigate('run')">▶ Run Job</div>
-<div style="flex:1"></div>
-<div style="padding:12px 16px;border-top:1px solid var(--border)"><span id="version" style="font-size:11px;color:var(--muted)"></span><br><span id="uptime" style="font-size:11px;color:var(--muted)"></span><br><span id="commit" style="font-size:11px;color:var(--muted)"></span></div>
-</nav>
-<div class="main">
-<div id="page-overview" class="page"><h1 class="page-title">Overview</h1><div style="margin-bottom:16px"><span id="hb" class="health-badge" style="background:rgba(239,68,68,.15);color:var(--danger)">● checking…</span></div><div class="stats-grid" id="stats"></div><div style="margin-top:16px"><button class="btn" onclick="navigate('loops')">View Loops</button> <button class="btn green" onclick="navigate('run')">▶ Start a Job</button> <button class="btn" onclick="loadOverview()">↻ Refresh</button></div><div id="overview-err" class="err" style="margin-top:12px;font-size:13px"></div></div>
-<div id="page-loops" class="page hidden"><h1 class="page-title">Loops</h1><div class="card"><div id="loops-table">loading…</div></div></div>
-<div id="page-skills" class="page hidden"><h1 class="page-title">Skills</h1><div class="card"><input id="skills-filter" class="search-box" placeholder="Filter skills or domains…" oninput="filterSkills()"><div id="skills-table">loading…</div><div id="skills-empty" class="empty hidden">No matches</div></div></div>
-<div id="page-doctor" class="page hidden"><h1 class="page-title">Doctor</h1><div class="card"><pre id="doctor-out" style="white-space:pre-wrap;word-break:break-word">loading…</pre></div></div>
-<div id="page-run" class="page hidden"><h1 class="page-title">Run Job</h1><div class="card" style="display:flex;gap:10px;align-items:center"><select id="loop-select" style="flex:1"></select><button id="start-btn" class="btn green" onclick="startJob()">▶ Start</button><span id="run-msg" style="font-size:12px"></span></div><div class="card"><h2>📋 Jobs</h2><div id="jobs-list">loading…</div></div><div id="log-pane"></div></div>
+<main class="card">
+<h1>⚙ Agent <span>Toolkit</span></h1>
+<p class="sub">Programmatic API — headless runtime surface. The CLI is the primary human interface.</p>
+<div class="row"><span class="k">Server</span><span class="v ok" id="st">checking…</span></div>
+<div class="row"><span class="k">Version</span><span class="v" id="ver">—</span></div>
+<div class="row"><span class="k">Commit</span><span class="v" id="com">—</span></div>
+<div class="row"><span class="k">Uptime</span><span class="v" id="up">—</span></div>
+<div class="row"><span class="k">API base</span><span class="v">/api/v1</span></div>
+<div class="links">
+<a href="/api/v1/openapi.json">OpenAPI spec</a>
+<a class="alt" href="/api/v1/selfcheck">Selfcheck</a>
+<a class="alt" href="/api/v1/health">Health</a>
 </div>
-<div id="toast"></div>
+<footer>This is a status page, not a product surface. External UIs are consumers of the API.</footer>
+</main>
 <script>
-const API='/api/v1';
-let currentPage='overview',refreshTimer=null,abortCtrl=null,skillsRows=[],jobsCache={};
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]))}
-function toast(msg,kind='ok'){
-  const c=document.getElementById('toast');
-  const d=document.createElement('div');
-  d.className='toast '+(kind==='error'?'err':kind);
-  d.textContent=msg;
-  c.appendChild(d);
-  setTimeout(()=>{d.style.opacity='0';d.style.transform='translateY(-6px)';setTimeout(()=>d.remove(),300)},3500);
-}
-async function j(p,opts={}){
-  const signal=abortCtrl?abortCtrl.signal:undefined;
-  const r=await fetch(API+p,{...opts,signal});
-  if(!r.ok){
-    let body='';try{body=await r.text()}catch(_){body=r.statusText}
-    let msg=body;try{const js=JSON.parse(body);msg=js.error||js.message||body}catch(_){}
-    throw new Error(msg||('HTTP '+r.status));
-  }
-  const ct=r.headers.get('content-type')||'';
-  if(ct.includes('application/json')){
-    try{return await r.json()}catch(e){throw new Error('Invalid JSON: '+e.message)}
-  }
-  return r.json();
-}
-function navigate(page){
-  if(!document.getElementById('page-'+page)) page='overview';
-  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
-  document.getElementById('page-'+page).classList.remove('hidden');
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
-  currentPage=page;location.hash=page;scheduleRefresh();
-  loadPage(page).catch(e=>{if(e.name!=='AbortError') toast(e.message,'err')});
-}
-function scheduleRefresh(){
-  if(refreshTimer) clearInterval(refreshTimer);
-  refreshTimer=setInterval(()=>{
-    if(abortCtrl) abortCtrl.abort();
-    abortCtrl=new AbortController();
-    loadPage(currentPage).catch(e=>{if(e.name!=='AbortError') toast(e.message,'err')});
-  },15000);
-}
-function loadPage(page){
-  switch(page){
-    case'overview':return loadOverview();
-    case'loops':return loadLoops();
-    case'skills':return loadSkills();
-    case'doctor':return loadDoctor();
-    case'run':return Promise.all([populateLoopSelect(),loadJobs()]);
-    default:return Promise.resolve();
-  }
-}
-async function loadOverview(){
-  const errEl=document.getElementById('overview-err');errEl.textContent='';
-  try{
-    abortCtrl=new AbortController();
-    const h=await j('/health');
-    setHealth(true);
-    document.getElementById('version').textContent='v'+(h.version||'?');
-    document.getElementById('uptime').textContent=h.uptime_s!=null?'up '+h.uptime_s+'s':'';
-    document.getElementById('commit').textContent=h.commit?'commit '+String(h.commit).slice(0,7):'';
-    let inv=null;
-    try{inv=await j('/inventory')}catch(e){
-      if(e.name==='AbortError') throw e;
-      errEl.textContent='inventory: '+e.message;toast(e.message,'err');
-    }
-    if(inv){
-      const sc=inv.skill_count!=null?inv.skill_count:(inv.skills_count||0);
-      const ac=inv.agent_count!=null?inv.agent_count:(inv.agents_count||0);
-      const pc=inv.product_count!=null?inv.product_count:(inv.products_count||0);
-      const dc=inv.domain_count!=null?inv.domain_count:(inv.domains_count||0);
-      document.getElementById('stats').innerHTML=[['Skills',sc],['Agents',ac],['Products',pc],['Domains',dc]].map(([l,n])=>`<div class="stat-card"><div class="num">${esc(n)}</div><div class="label">${esc(l)}</div></div>`).join('');
-    }
-  }catch(e){
-    if(e.name==='AbortError') return;
-    setHealth(false);
-    document.getElementById('stats').innerHTML='<div class="empty err">'+esc(e.message)+'</div>';
-    toast(e.message,'err');
-  }
-}
-function setHealth(ok){
-  const hb=document.getElementById('hb');
-  hb.textContent=ok?'● healthy':'● offline';
-  hb.style.cssText=ok?'background:rgba(16,185,129,.15);color:var(--success)':'background:rgba(239,68,68,.15);color:var(--danger)';
-}
-function parseLoops(msg){
-  const out=[];
-  for(const line of String(msg||'').split('\n')){
-    if(!line.includes('\t')) continue;
-    const parts=line.split('\t');
-    if(parts.length<3) continue;
-    const name=parts[0].trim();
-    const tier=parts[1].trim().replace(/^tier=/,'').trim();
-    const cad=parts[2].trim().replace(/^cadence=/,'').trim();
-    if(!name) continue;
-    out.push({name,tier,cadence:cad});
-  }
-  return out;
-}
-async function loadLoops(){
-  const el=document.getElementById('loops-table');el.textContent='loading…';
-  try{
-    abortCtrl=new AbortController();
-    const d=await j('/loops');
-    const loops=parseLoops(d.message);
-    if(!loops.length){el.innerHTML='<div class="empty">No loops found. Run <code>agent-toolkit loop init &lt;pattern&gt;</code></div>';return}
-    let h='<table><tr><th>Name</th><th>Tier</th><th>Cadence</th><th></th></tr>';
-    for(const lp of loops){
-      const safeTier=['L1','L2','L3'].includes(lp.tier)?lp.tier:'L1';
-      h+=`<tr><td><strong>${esc(lp.name)}</strong></td><td><span class="badge ${esc(safeTier)}">${esc(lp.tier||'?')}</span></td><td>${esc(lp.cadence)}</td><td><button class="btn" onclick="selectLoopAndRun('${esc(lp.name).replace(/'/g,"&#39;")}')">▶ Run</button></td></tr>`;
-    }
-    h+='</table>';el.innerHTML=h;
-  }catch(e){
-    if(e.name==='AbortError') return;
-    el.innerHTML='<div class="err">'+esc(e.message)+'</div>';toast(e.message,'err');
-  }
-}
-function selectLoopAndRun(name){
-  navigate('run');
-  setTimeout(()=>{const sel=document.getElementById('loop-select');if(sel) sel.value=name},300);
-}
-async function loadSkills(){
-  const el=document.getElementById('skills-table');
-  if(skillsRows.length){renderSkills(skillsRows);return}
-  el.textContent='loading…';
-  try{
-    abortCtrl=new AbortController();
-    const inv=await j('/inventory');
-    const msg=inv.message||'';
-    const domainCounts={};let curDomain=null;const rows=[];
-    for(const line of msg.split('\n')){
-      const t=line.trim();if(!t) continue;
-      const dm=line.match(/^\s{2}(\S+)\/\s*\((\d+)\)/);
-      if(dm){curDomain=dm[1];domainCounts[curDomain]=parseInt(dm[2],10);continue}
-      const sm=line.match(/^\s{4}✓\s+(.+)/);
-      if(sm&&curDomain) rows.push({domain:curDomain,name:sm[1].trim()});
-    }
-    skillsRows=rows;
-    if(!rows.length){
-      const sc=inv.skill_count||inv.skills_count||0;
-      const dc=inv.domain_count||inv.domains_count||0;
-      el.innerHTML=`<p>Total: ${esc(sc)} skills across ${esc(dc)} domains.</p><p style="margin-top:8px;color:var(--muted)">Use <code>agent-toolkit skills list</code> for the full catalog.</p><pre style="margin-top:12px;white-space:pre-wrap;font-size:11px;opacity:.7">${esc(msg.slice(0,2000))}</pre>`;
-      return;
-    }
-    renderSkills(rows);
-    const dc=inv.domain_count||inv.domains_count||Object.keys(domainCounts).length;
-    const sc=inv.skill_count||inv.skills_count||rows.length;
-    const hdr=document.createElement('div');
-    hdr.style.cssText='margin-bottom:10px;color:var(--muted);font-size:13px';
-    hdr.textContent=`Total: ${sc} skills across ${dc} domains — `+Object.entries(domainCounts).map(([k,v])=>k+':'+v).join(' · ');
-    el.prepend(hdr);
-  }catch(e){
-    if(e.name==='AbortError') return;
-    el.innerHTML='<div class="err">'+esc(e.message)+'</div>';toast(e.message,'err');
-  }
-}
-function renderSkills(rows){
-  const el=document.getElementById('skills-table');
-  const q=(document.getElementById('skills-filter').value||'').toLowerCase().trim();
-  const filtered=q?rows.filter(r=>r.name.toLowerCase().includes(q)||r.domain.toLowerCase().includes(q)):rows;
-  const emptyEl=document.getElementById('skills-empty');
-  if(!filtered.length){el.innerHTML='';emptyEl.classList.remove('hidden');return}
-  emptyEl.classList.add('hidden');
-  let h='<table><tr><th>Skill</th><th>Domain</th></tr>';
-  for(const r of filtered){h+=`<tr><td>${esc(r.name)}</td><td><span class="badge L1">${esc(r.domain)}</span></td></tr>`}
-  h+='</table><div class="muted" style="margin-top:8px;font-size:11px">'+filtered.length+' / '+rows.length+' shown</div>';
-  el.innerHTML=h;
-}
-function filterSkills(){renderSkills(skillsRows)}
-async function loadDoctor(){
-  const el=document.getElementById('doctor-out');el.textContent='loading…';
-  try{
-    abortCtrl=new AbortController();
-    const d=await j('/doctor');
-    el.textContent=d.message||'(no report)';
-    el.style.color=d.ok?'var(--text)':'var(--warn)';
-  }catch(e){
-    if(e.name==='AbortError') return;
-    el.textContent='Error: '+e.message;toast(e.message,'err');
-  }
-}
-async function populateLoopSelect(){
-  const sel=document.getElementById('loop-select');
-  try{
-    abortCtrl=new AbortController();
-    const d=await j('/loops');
-    const loops=parseLoops(d.message);
-    sel.innerHTML='';
-    if(!loops.length){sel.innerHTML='<option value="">(no loops found)</option>';return}
-    for(const lp of loops){
-      const o=document.createElement('option');
-      o.value=lp.name;o.textContent=lp.name+'  ['+lp.tier+' · '+lp.cadence+']';
-      sel.appendChild(o);
-    }
-  }catch(e){
-    if(e.name==='AbortError') return;
-    sel.innerHTML='<option value="">error: '+esc(e.message)+'</option>';toast(e.message,'err');
-  }
-}
-async function loadJobs(){
-  const el=document.getElementById('jobs-list');
-  try{
-    abortCtrl=new AbortController();
-    const jobs=await j('/jobs');
-    const entries=Object.entries(jobs||{});jobsCache=jobs||{};
-    if(!entries.length){el.innerHTML='<div class="empty">No jobs yet</div>';return}
-    entries.sort((a,b)=>String(b[1].started_at||'').localeCompare(String(a[1].started_at||'')));
-    let h='<table><tr><th>ID</th><th>Cmd</th><th>Status</th><th>Started</th><th></th></tr>';
-    for(const[id,j]of entries){
-      const cls=j.status==='completed'?'ok':j.status==='failed'?'err':'warn';
-      const cmd=Array.isArray(j.args)?j.args.join(' '):(j.cmd||'');
-      h+=`<tr><td style="font-family:monospace;font-size:11px">${esc(id)}</td><td style="font-size:11px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(cmd)}">${esc(cmd)}</td><td class="${cls}" style="font-weight:600">${esc(j.status)}</td><td class="muted" style="font-size:11px">${esc(j.started_at||'')}</td><td><button class="btn" onclick="viewLog('${esc(id).replace(/'/g,"\\'")}')">Log</button></td></tr>`;
-    }
-    h+='</table>';el.innerHTML=h;
-  }catch(e){
-    if(e.name==='AbortError') return;
-    el.innerHTML='<div class="err">'+esc(e.message)+'</div>';toast(e.message,'err');
-  }
-}
-async function startJob(){
-  const sel=document.getElementById('loop-select');
-  const name=(sel.value||'').trim();
-  const btn=document.getElementById('start-btn');
-  const msg=document.getElementById('run-msg');
-  if(!name){toast('Select a loop first','warn');return}
-  btn.disabled=true;msg.textContent='starting…';msg.className='muted';
-  try{
-    const r=await fetch(API+'/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({cmd:'loop',args:['loop','run',name,'--no-llm']})});
-    const text=await r.text();let data=null;try{data=JSON.parse(text)}catch(_){}
-    if(!r.ok){
-      const errMsg=(data&&(data.error||data.message))||text||('HTTP '+r.status);
-      throw new Error(errMsg);
-    }
-    if(data&&data.error) throw new Error(data.error);
-    if(data&&data.ok===false&&data.error) throw new Error(data.error);
-    msg.textContent='queued';msg.className='ok';toast('Job queued: '+name,'ok');await loadJobs();
-  }catch(e){
-    msg.textContent=e.message;msg.className='err';
-    if(String(e.message).includes('max concurrent')) toast('Concurrent limit reached (max 2) — wait for a job to finish','warn');
-    else toast(e.message,'err');
-  }finally{btn.disabled=false;setTimeout(()=>msg.textContent='',4000)}
-}
-async function viewLog(id){
-  const pane=document.getElementById('log-pane');pane.style.display='block';pane.textContent='Loading…';
-  try{
-    const r=await fetch(API+'/jobs/'+encodeURIComponent(id)+'/log');
-    const text=await r.text();const ct=r.headers.get('content-type')||'';
-    if(!r.ok||(ct.includes('application/json')&&text.trim().startsWith('{'))){
-      try{const js=JSON.parse(text);if(js.error||js.message){pane.textContent='Error: '+(js.error||js.message);return}if(js.ok===false){pane.textContent='Error: '+(js.error||text);return}}catch(_){}
-      if(!r.ok){pane.textContent='Error: '+text;return}
-    }
-    pane.textContent=text||'(empty)';pane.scrollTop=pane.scrollHeight;
-  }catch(e){pane.textContent='Error: '+e.message;toast(e.message,'err')}
-}
-window.addEventListener('hashchange',()=>{
-  const h=location.hash.replace(/^#/,'' );
-  if(h&&h!==currentPage) navigate(h);
-});
-(function init(){
-  const h=location.hash.replace(/^#/,'' );
-  if(h&&document.getElementById('page-'+h)) navigate(h);
-  else{navigate('overview');loadOverview()}
-  scheduleRefresh();
-})();
+fetch('/api/v1/health').then(r=>r.json()).then(h=>{
+  document.getElementById('st').textContent=h.ok?'healthy':'degraded';
+  document.getElementById('ver').textContent='v'+h.version;
+  document.getElementById('com').textContent=h.commit||'—';
+  document.getElementById('up').textContent=(h.uptime_s??'—')+'s';
+}).catch(()=>{document.getElementById('st').textContent='unreachable'});
 </script>
 </body>
 </html>

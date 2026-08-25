@@ -177,6 +177,7 @@ commands:
     migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
 
   - name: completion
+    api: false
     aliases: []
     surface: consumer
     module: agent_toolkit.cli.completion
@@ -272,21 +273,6 @@ commands:
     tests: ["tests/test_devcompanion.py"]
     migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
 
-  - name: insights
-    aliases: []
-    surface: advanced
-    module: agent_toolkit.cli.insights
-    summary: "DEPRECATE — Local usage analytics (OpenCode, Cursor, Claude) — not ported to V; see #526"
-    stdin: none
-    stdout: human / JSON
-    stderr: errors
-    exit_codes: {success: 0, usage: 2}
-    flags: ["opencode", "cursor", "claude"]
-    env: []
-    effects: {filesystem: read-local-logs, network: none, processes: none}
-    platform_notes: ["log paths differ by OS/tool"]
-    tests: ["tests/test_insights.py"]
-    migration: {wave: 5, complexity: medium, risk: low, disposition: defer}
 
   - name: build
     aliases: []
@@ -336,21 +322,6 @@ commands:
     tests: []
     migration: {wave: 2, complexity: low, risk: low, disposition: rewrite-v}
 
-  - name: release
-    aliases: []
-    surface: advanced
-    module: agent_toolkit.cli.release
-    summary: "REMOVE — Generate release artifacts (maintainer / CI) — not in V; use CI / docs/RELEASING.md — see #527"
-    stdin: none
-    stdout: human progress
-    stderr: errors
-    exit_codes: {success: 0, usage: 2}
-    flags: []
-    env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
-    effects: {filesystem: write-release-artifacts, network: none, processes: none}
-    platform_notes: ["CI-oriented"]
-    tests: []
-    migration: {wave: 6, complexity: medium, risk: medium, disposition: retire}
 
   - name: swarm
     aliases: []
@@ -368,27 +339,19 @@ commands:
     tests: ["tests/test_swarm*.py"]
     migration: {wave: 6, complexity: high, risk: high, disposition: rewrite-v}
 
-  - name: tui
-    aliases: []
-    surface: advanced
-    module: agent_toolkit.cli.tui
-    summary: Interactive TUI dashboard (loops, swarms, doctor)
-    stdin: optional
-    stdout: human TUI
-    stderr: errors
-    exit_codes: {success: 0, usage: 2}
-    flags: ["--workspace"]
-    env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
-    effects: {filesystem: read, network: none, processes: none}
-    platform_notes: ["requires TTY"]
-    tests: []
-    migration: {wave: 6, complexity: medium, risk: low, disposition: rewrite-v}
+  # NOTE (ADR-030 — capability contract over presentation parity):
+  # - `tui` REMOVED in 1.23.0 (no entry; CLI keeps a removal-notice stub).
+  # - `insights` / `release` entries removed: deprecated/retired commands are
+  #   not capabilities of the platform.
+  # - `completion` and `serve` carry `api: false`: human/CLI-only meta
+  #   capabilities with no programmatic surface.
 
   - name: serve
+    api: false
     aliases: []
     surface: advanced
     module: agent_toolkit.cli.serve
-    summary: Run the agent-toolkit HTTP server (feature-complete API over core)
+    summary: Run the programmatic API server (headless runtime surface over core)
     stdin: none
     stdout: human / logs
     stderr: errors

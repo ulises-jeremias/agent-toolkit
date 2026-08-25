@@ -29,15 +29,12 @@ _Generated from docs/compatibility/cli-contract.yaml — do not hand-edit._
 |---|---|---|---|
 | `build` | Compile canonical capabilities into target artifacts | `--target` `--product` | `write:plugins` |
 | `devcompanion` | Background job queue | `queue` `run-once` `status` `done` `sync-todos` | `write:dc` |
-| `insights` | DEPRECATE — Local usage analytics (OpenCode, Cursor, Claude) — not ported to V; see #526 | `opencode` `cursor` `claude` | `read:*` |
 | `inventory` | List skills, agents, and products | `--json` | `read:*` |
 | `loop` | Loop engineering (init, run, status, audit, cost, schedule, sync) | `--runner` `init` `run` `status` `audit` `cost` `schedule` `sync` | `write:loops` |
 | `matrix` | Platform capability matrix | `--json` | `read:*` |
 | `memory` | Knowledge base (add, search, inject, review, todo) | `add` `search` `inject` `review` `todo` | `write:memory` |
 | `project` | Project index (clone, list, add, remove, scan) | `clone` `list` `add` `remove` `scan` | `write:projects` |
-| `release` | REMOVE — Generate release artifacts (maintainer / CI) — not in V; use CI / docs/RELEASING.md — see #527 | — | `write:*` |
-| `serve` | Run the agent-toolkit HTTP server (feature-complete API over core) | `--host` `--port` `--allow-remote` `--auth-token` `--no-browser` | `read:*` |
+| `serve` | Run the programmatic API server (headless runtime surface over core) | `--host` `--port` `--allow-remote` `--auth-token` `--no-browser` | `read:*` |
 | `swarm` | Multi-agent swarm orchestration | `--run-id` `pair` `team` `full` | `write:swarm` |
-| `tui` | Interactive TUI dashboard (loops, swarms, doctor) | `--workspace` | `read:*` |
 | `workspace` | Workspace scaffolding (init, context, sync) | `init` `context` `sync` `--dir` `--name` `--workspace` `--explain` `--json` | `write:workspace` |
 

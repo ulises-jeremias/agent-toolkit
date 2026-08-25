@@ -3,7 +3,6 @@ module agent_toolkit_cli
 import agent_toolkit_core
 import os
 import agent_toolkit_server
-import agent_toolkit_tui
 import cli
 
 // run is the library entry used by cmd/agent-toolkit.
@@ -252,20 +251,9 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
 	if cmd_name == 'tui' {
-		mut ws := ''
-		for i, a in rest {
-			if a == '--workspace' && i + 1 < rest.len {
-				ws = rest[i + 1]
-				break
-			} else if a.starts_with('--workspace=') {
-				ws = a.all_after('=')
-				break
-			}
-		}
-		opts := agent_toolkit_tui.TuiOptions{
-			workspace_path: ws
-		}
-		return agent_toolkit_tui.run_tui(opts)
+		eprintln('agent-toolkit tui was removed in 1.23.0 (ADR-030: binary-first consolidation).')
+		eprintln('Use the CLI commands directly or the programmatic API: agent-toolkit serve')
+		return 1
 	}
 	if cmd_name == 'serve' {
 		opts := parse_serve_options(rest) or {
@@ -504,33 +492,16 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 		return agent_toolkit_core.swarm_help_text()
 	}
 	if name == 'tui' {
-		return 'Usage: agent-toolkit tui [--workspace PATH] [--help]
+		return 'Usage: agent-toolkit tui
 
-Interactive TUI dashboard (loops, skills, doctor) — ANSI colors, keyboard nav.
+REMOVED in 1.23.0 (ADR-030 — binary-first consolidation).
 
-  --workspace PATH  Workspace path (default: auto-detect via AGENT_TOOLKIT_WORKSPACE / HARNESS_DIR / walk-up)
+The interactive TUI is no longer a supported product surface.
+Capabilities remain available via:
+  - CLI commands (agent-toolkit --help)
+  - Programmatic API (agent-toolkit serve -> http://127.0.0.1:3847/api/v1)
 
-Screens:
-  1 dashboard  Overview + workspace + loops preview
-  2 loops      Browser with tier colors, selection highlight, run (no-llm)
-  3 skills     Inventory grouped by domain
-  4 doctor     Health checks with status colors
-  h help       This keyboard reference
-
-Keys:
-  1/2/3/4  switch screens    j/k or down/up  navigate list
-  r/enter  run selected loop (no-llm, safe)   h/?  help   q/quit/exit  quit
-
-Runs in-process core calls (no HTTP), offline-first per ADR-494.
-Workspace auto-detected via --workspace, AGENT_TOOLKIT_WORKSPACE/HARNESS_DIR, or walk-up (loops/.git/AGENTS.md/knowledge).
-Loops from loops/ support loop.yaml or legacy LOOP.md; empty workspace falls back to bundled loops for preview.
-
-Examples:
-  agent-toolkit tui
-  agent-toolkit tui --workspace ~/.ai-workspace
-  printf "2\nj\nr\nq\n" | agent-toolkit tui   # batch navigation
-
-See: docs/v/advanced-command-disposition.md
+See docs/adrs/ADR-030-capability-contract-binary-first.md
 '
 	}
 	if name == 'serve' {
