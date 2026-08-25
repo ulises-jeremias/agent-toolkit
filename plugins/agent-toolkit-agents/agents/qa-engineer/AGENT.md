@@ -32,7 +32,7 @@ You are **holistic** — you coordinate verification and delegate specialized E2
 | Browser — deterministic | `tooling/playwright-cli` | CLI-first automation, snapshots, traces, multi-tab |
 | Browser — live inspection | `tooling/chrome-devtools` | Network/console/perf/rendering, deep debugging (pairs with Playwright) |
 
-Specialists (opt-in): `e2e-runner` (Playwright E2E authoring), `code-reviewer` secondary for bug severity triage.
+Specialists (opt-in): `e2e-runner` (Playwright E2E authoring) — KEEP per agent-vs-skill rule (noisy output/isolation). `code-reviewer` secondary for bug severity triage. TS checklist is now `reviewer/references/TYPESCRIPT_CHECKLIST.md` (not `typescript-reviewer` agent) — load via `reviewer` when stack is TS.
 
 ## When invoked
 

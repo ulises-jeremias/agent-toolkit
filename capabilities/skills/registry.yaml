@@ -2099,10 +2099,9 @@ skills:
   follow_ups: []
   secondary_owners:
   - architect
-  specialist_agents:
-  - docs-lookup
+  specialist_agents: []
   specialist_justified: false
-  contraindications: Never invent — derive from evidence in repo/schema/git history; human gate via output-handshake
+  contraindications: Never invent — derive from evidence in repo/schema/git history; human gate via output-handshake; use researcher/references/LOOKUP_GUIDE.md inline (archived docs-lookup/reference-lookup #865)
 - id: ops/llm-cost-advisor
   domain: ops
   purpose: WHAT — Recommend the most cost-effective LLM provider for a given task type. Shows estimated
@@ -2250,11 +2249,10 @@ skills:
   follow_ups: []
   secondary_owners:
   - assistant
-  specialist_agents:
-  - tech-assistant
+  specialist_agents: []
   specialist_justified: false
   contraindications: Run on local workstation where issue occurs; not on remote unless confirmed; doctor
-    via dots- or agent-toolkit doctor
+    via dots- or agent-toolkit doctor; use platform-engineer/references/WORKSTATION_OPS.md inline (archived tech-assistant #865)
 - id: quality/blast-radius
   domain: quality
   purpose: Find what a change could break somewhere else before it ships, beyond the diff, and prove the
@@ -2392,10 +2390,9 @@ skills:
   - implementer
   specialist_agents:
   - code-reviewer
-  - refactor-cleaner
   specialist_justified: false
   contraindications: Diff-scoped code slop only — not prose (use unslop); minimal safe fixes; complements
-    unslop
+    unslop; apply reviewer/references/REFACTOR_CHECKLIST.md inline (archived refactor-cleaner #865)
   upstream:
     repository: cursor/plugins
     path: cursor-team-kit/skills/deslop

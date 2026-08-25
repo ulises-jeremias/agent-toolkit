@@ -152,7 +152,7 @@ Swarms coordinate multiple coding-agent sessions with worktree isolation and dur
 
 ## Repository Structure
 
-Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~85 skills / 14 domains, 25 agents = 11 holistic + orchestrator + 13 specialists, 10 loops, 7 packs, 7 MCP providers).
+Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~85 skills / 14 domains, **18 agents post-#865 = 11 holistic + 2 orchestrators + 6 specialists; 7 specialists archived to `references/`** — was 25 = 11+2+13, 10 loops, 7 packs, 7 MCP providers).
 
 ```
 agent-toolkit/
@@ -161,7 +161,7 @@ agent-toolkit/
 │   ├── data/  tooling/  ops/  loops/
 │   ├── agentic-security/  architecture/  cloud/
 │   └── accessibility/  quality/
-├── agents/                      # personas: 11 holistic + orchestrator + 13 specialists (see docs/AGENT_TAXONOMY.md)
+├── agents/                      # personas: 11 holistic + 2 orchestrators + 6 specialists (18, post-#865 — 7 archived to references/ per docs/AGENT_TAXONOMY.md §3/§8)
 ├── plugins/                     # compiler output — canonical (do not hand-edit; build --check)
 ├── profiles/                    # deprecated install overlay (ADR-004; fallback only)
 ├── distributions/               # products.yaml — product composition SoT
@@ -180,13 +180,14 @@ agent-toolkit/
 
 ### Holistic agent taxonomy — canonical
 
-Eleven holistic roles own every skill's `holistic_owner` in `capabilities/skills/registry.yaml` (85 skills, no orphans). **Optimize for cognitive simplicity, useful context isolation, and independent verification — not fewest agents, not one-per-skill.** Full roster: [`docs/AGENT_TAXONOMY.md`](AGENT_TAXONOMY.md).
+Eleven holistic roles own every skill's `holistic_owner` in `capabilities/skills/registry.yaml` (85 skills, no orphans). **Optimize for cognitive simplicity, useful context isolation, and independent verification — not fewest agents, not one-per-skill.** Full roster: [`docs/AGENT_TAXONOMY.md`](AGENT_TAXONOMY.md) — **#865 final = 18 personas** (was 25; 7 archived to `references/`).
 
 | Tier | Agents | How to invoke |
 |------|--------|---------------|
 | Orchestrator | `assistant` (default), `client-workflow-bootstrap` (meta-generator → packs/knowledge) | Implicit + `@assistant` / `@client-workflow-bootstrap` |
 | Holistic (daily) | `planner`, `architect`, `designer`, `implementer`, `reviewer`, `qa-engineer`, `security-engineer`, `platform-engineer`, `researcher`, `data-engineer` (conditional) | `@planner`, `@architect`, `@designer`, … per `assistant` routing |
-| Specialist (opt-in) | `code-reviewer`, `security-reviewer`, `agentic-security-reviewer`, `tdd-guide`, `e2e-runner`, `refactor-cleaner`, `build-error-resolver`, `tech-assistant`, + `database-reviewer`/`performance-optimizer`/`typescript-reviewer`/`docs-lookup`/`reference-lookup` (merging — see taxonomy) | Invoked by holistic owner when `specialist_justified: true` in registry |
+| Specialist (opt-in, 6 retained) | `code-reviewer` (backs `reviewer`), `security-reviewer` + `agentic-security-reviewer` (backs `security-engineer`), `e2e-runner` (backs `qa-engineer`), `tdd-guide` (backs `implementer`), `build-error-resolver` (backs `platform-engineer`) | Invoked by holistic owner when `specialist_justified: true` in registry or task explicitly warrants tight technique |
+| Archived → `references/` (7, provenance) | `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md`; `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md`; `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md` | Procedural checklists, narrow capabilities loaded inline by holistic owner per `#865` agent-vs-skill rule (see `docs/HOW_TO_ADD_AGENT.md` & `docs/AGENT_TAXONOMY.md` §3/§8) |
 
 For full migration decisions per legacy agent and 20 simulated routing tasks: `docs/AGENT_TAXONOMY.md` §3/§6. Proportional delegation examples (tiny change vs UI feature vs cross-system vs security-sensitive): `docs/AGENT_TAXONOMY.md` §5.
 

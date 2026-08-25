@@ -15,10 +15,10 @@ All 85 skills are owned. No orphans: every skill has exactly one `holistic_owner
 | `architect` | System design, tradeoffs, C4, diagrams, ADRs/TRDs | `architect` | `architecture` (c4-model, architecture-diagram), `delivery` (adr, decision-log, trd, technical-unit-assessment), `cloud` |
 | `designer` | Visual direction, UX, Figma, a11y, design system | `designer` (new) | `design` (10 skills), `accessibility` (review) |
 | `implementer` | Code delivery, scaffolding, docs generation | — (shared) | `delivery` (task), `ops` (docs-generator) |
-| `reviewer` | Quality, craft, anti-slop, change-safety | `code-reviewer`, `refactor-cleaner` | `quality` (blast-radius, deep-review, deslop, unslop) |
+| `reviewer` | Quality, craft, anti-slop, change-safety | `code-reviewer` (archived: `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md` via `deep-review`/`deslop`) | `quality` (blast-radius, deep-review, deslop, unslop) |
 | `qa-engineer` | Lint gates, browser validation, test infra | `e2e-runner`, `code-reviewer` | `quality` (megalinter*), `tooling` (playwright-cli, chrome-devtools) |
 | `security-engineer` | Hardening, threat, supply-chain, scanning | `agentic-security-reviewer`, `security-reviewer` | `agentic-security` (4), `quality` (codeql) |
-| `platform-engineer` | Forge, integrations, loops, swarm, triage | `build-error-resolver`, `tech-assistant` | `forge` (7), `integrations` (5), `loops`, `ops` (swarm*, triage, llm-cost-advisor) |
+| `platform-engineer` | Forge, integrations, loops, swarm, triage | `build-error-resolver` (archived: `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md` via `ops/triage`); `researcher` archived: `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md` | `forge` (7), `integrations` (5), `loops`, `ops` (swarm*, triage, llm-cost-advisor) |
 | `data-engineer` | Data checks, notebooks | — | `data` (dbt-validation, snowflake-validation), `tooling` (jupyter-notebook) |
 | `researcher` | Spike, evidence intake, inventory | `planner` (spike) | `delivery` (spike, project-assessment-evidence) |
 

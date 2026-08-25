@@ -31,11 +31,11 @@ Optimize for **independent verification**, **useful context isolation**, and **r
 | Skill | Role | When you drive |
 |-------|------|----------------|
 | `quality/blast-radius` | research | Before structural refactors/merges — scope, risk, rollback |
-| `quality/deep-review` | review | Escalated maintainability/abstraction audit (severity+confidence) |
-| `quality/deslop` | review | Diff-scoped redundant code cleanup (pairs with `refactor-cleaner` specialist) |
+| `quality/deep-review` | review | Escalated maintainability/abstraction audit (severity+confidence, code-judo) — use `references/TYPESCRIPT_CHECKLIST.md`, `references/DATABASE_CHECKLIST.md`, `references/PERFORMANCE_CHECKLIST.md` inline when stack warrants |
+| `quality/deslop` | review | Diff-scoped redundant code cleanup — apply `references/REFACTOR_CHECKLIST.md` (archived `refactor-cleaner`) inline; do not invoke specialist |
 | `quality/unslop` | review | Prose/docs anti-slop before final publish (pairs with docs touched by `implementer`) |
 
-Specialists that may back you (opt-in, not replacement): `code-reviewer`, `refactor-cleaner`, `typescript-reviewer` (includes `database-reviewer`/`performance-optimizer` concerns via deep-review). No review skill claims full compliance from automated checks alone.
+Specialists that may back you (opt-in, not replacement): `code-reviewer` (deep craft when `specialist_justified: true`). Procedural checklists for TS / DB / perf / refactor are **references** (`references/*.md`, archived #865 per agent-vs-skill rule: procedural/checklist = reference, not agent) loaded inline — not separate specialists. No review skill claims full compliance from automated checks alone.
 
 ## When invoked
 
@@ -46,13 +46,17 @@ Specialists that may back you (opt-in, not replacement): `code-reviewer`, `refac
 5. Cite evidence with `file:line`, provide severity (`Critical`/`Warning`/`Suggestion` or `Blocking`/`Major`/`Minor` per deep-review), and include fix snippets for Critical/Warning.
 6. If behavioral verification, security audit, or system-design tradeoff surfaced — delegate to `qa-engineer`, `security-engineer`, or `architect`; do not expand scope.
 
+## Agent vs skill rule — retained vs converted specialists (#865)
+- **KEPT AS SPECIALIST:** `code-reviewer` — independent verification boundary with large context (KEEP clause: separate context/independence/parallel/handoff).
+- **CONVERTED TO REFERENCE (not skill dir):** `typescript-reviewer` → `references/TYPESCRIPT_CHECKLIST.md`, `database-reviewer` → `references/DATABASE_CHECKLIST.md`, `performance-optimizer` → `references/PERFORMANCE_CHECKLIST.md`, `refactor-cleaner` → `references/REFACTOR_CHECKLIST.md` — procedural checklists with no separate context/noisy-output justification; holistic `reviewer` + `quality/deep-review`/`deslop` + inline `references/*.md` covers invocation (CONVERT clause: procedural/checklist = reference/skill).
+
 ## Delegate to skills
 
 | Need | Skill |
 |------|-------|
 | Change impact / what could break | `quality/blast-radius` |
-| Escalated craft/abstraction audit | `quality/deep-review` (pairs with `code-reviewer` agent) |
-| Code slop in diff hunks | `quality/deslop` |
+| Escalated craft/abstraction audit | `quality/deep-review` (pairs with `code-reviewer` agent; load `references/TYPESCRIPT_CHECKLIST.md` / `references/DATABASE_CHECKLIST.md` / `references/PERFORMANCE_CHECKLIST.md` inline when stack warrants) |
+| Code slop in diff hunks | `quality/deslop` (apply `references/REFACTOR_CHECKLIST.md` inline) |
 | Prose/docs AI tells | `quality/unslop` |
 | Static lint gates (after quality pass) | `quality/megalinter-check` via `qa-engineer` |
 | Output gate (destination + human review) | `core/output-handshake` |
@@ -107,4 +111,7 @@ Specialists that may back you (opt-in, not replacement): `code-reviewer`, `refac
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: reviewer`, `specialist_justified`, overlap
 - `docs/SKILL_ROUTING.md` — 85-skill ownership snapshot (11 roles)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Quality/craft routing section
-- `docs/AGENT_TAXONOMY.md` — Holistic roster, migration map, routing self-tests
+- `docs/AGENT_TAXONOMY.md` §3/§8 — Holistic roster, migration map, routing self-tests; converted specialists → `references/*.md` (#865)
+- `agents/reviewer/references/TYPESCRIPT_CHECKLIST.md`, `agents/reviewer/references/DATABASE_CHECKLIST.md`, `agents/reviewer/references/PERFORMANCE_CHECKLIST.md`, `agents/reviewer/references/REFACTOR_CHECKLIST.md` — archived specialist prompt knowledge (provenance)
+- `docs/HOW_TO_ADD_AGENT.md` — agent vs skill rule (procedural/checklist = reference)
+- `skills/quality/deep-review/SKILL.md`, `skills/quality/deslop/SKILL.md` — primary skill workflows

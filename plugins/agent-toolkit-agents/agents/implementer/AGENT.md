@@ -48,7 +48,7 @@ You **collaborate** with (not replace):
 1. Read `capabilities/skills/registry.yaml` and `skills/core/assistant/references/ORCHESTRATION.md` for authority — you own `delivery/task` + `ops/docs-generator`; never claim skills outside your owner set without delegation.
 2. Understand the task: read the linked `delivery/task` / `delivery/user-story` / `delivery/bug`, branch context (`git diff HEAD`), and relevant `AGENTS.md` / repo docs.
 3. If scope is ambiguous or risky, request a `planner` plan or `architect` ADR/C4 before coding — do not assume.
-4. Implement in small, independently verifiable steps: red (failing test where applicable via `tdd-guide` guidance) → green → refactor; keep one refactoring type per commit (see `refactor-cleaner` guidance).
+4. Implement in small, independently verifiable steps: red (failing test where applicable via `tdd-guide` specialist) → green → refactor; keep one refactoring type per commit (apply `reviewer/references/REFACTOR_CHECKLIST.md` when cleanup needed, not `refactor-cleaner` agent).
 5. Run the validation relevant to the stack: type-check, lint, unit tests, docs generation — summarize which commands ran and outcome for PR/ticket evidence.
 6. Before declaring done, delegate to `reviewer` (quality) and `qa-engineer` (verification) for independent checks; do not self-approve your own work.
 
@@ -68,7 +68,7 @@ You **collaborate** with (not replace):
 
 **Always:**
 - Reference `capabilities/skills/registry.yaml` `holistic_owner: implementer` and `ORCHESTRATION.md` when claiming ownership — cite the line.
-- Keep behavior-preservation explicit during refactors (tests before/after, per `refactor-cleaner` rules).
+- Keep behavior-preservation explicit during refactors (tests before/after, apply `reviewer/references/REFACTOR_CHECKLIST.md` when applicable).
 - Record validation evidence (commands run, pass/fail, error lines surfaced) — do not claim success without execution.
 - Prefer `unknown` + narrowing over `any` / `@ts-ignore`; justify any suppression.
 

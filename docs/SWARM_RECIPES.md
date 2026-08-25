@@ -16,7 +16,7 @@ Recipes are versioned `agent-toolkit.dev/v1alpha1`, kind `SwarmRecipe`.
 
 ### full
 - Roles: planner, implementer, refactorer (writer, review), architect (integrator, batch), hardener (conditional specialist), qa
-- Hardener specialization: security-reviewer | database-reviewer | performance-optimizer | typescript-reviewer (select only one justified by risk)
+- Hardener specialization (post-#865): `security-reviewer` (still specialist) | `reviewer` via `quality/deep-review` + `references/DATABASE_CHECKLIST.md` (archived `database-reviewer`), `references/PERFORMANCE_CHECKLIST.md` (archived `performance-optimizer`), `references/TYPESCRIPT_CHECKLIST.md` (archived `typescript-reviewer`) — select only one justified by risk; archived specialists are now `reviewer` references loaded inline, not agents
 - QA owns full verification, E2E, smoke tests
 - Use: security-sensitive, releases, migrations, large features
 

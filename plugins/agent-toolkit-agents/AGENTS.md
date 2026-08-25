@@ -1,6 +1,6 @@
 # Agent Toolkit Agents
 
-Full set of 25 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant) + 13 specialists — see docs/AGENT_TAXONOMY.md (#864).
+18 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant, client-workflow-bootstrap) + 5 specialists (code-reviewer, agentic-security-reviewer, security-reviewer, e2e-runner, tdd-guide, build-error-resolver) — 7 specialists archived to references in #865 (typescript/database/performance/refactor → reviewer/references/*; docs/reference-lookup → researcher/references/LOOKUP_GUIDE.md; tech-assistant → platform-engineer/references/WORKSTATION_OPS.md) — see docs/AGENT_TAXONOMY.md §8.
 
 ## Available Agents
 
@@ -11,24 +11,17 @@ Full set of 25 AI agent personas: 11 holistic (planner, architect, designer, imp
 - **client-workflow-bootstrap**: client-workflow-bootstrap
 - **code-reviewer**: code-reviewer
 - **data-engineer**: data-engineer
-- **database-reviewer**: database-reviewer
 - **designer**: designer
-- **docs-lookup**: docs-lookup
 - **e2e-runner**: e2e-runner
 - **implementer**: implementer
-- **performance-optimizer**: performance-optimizer
 - **planner**: planner
 - **platform-engineer**: platform-engineer
 - **qa-engineer**: qa-engineer
-- **refactor-cleaner**: refactor-cleaner
-- **reference-lookup**: reference-lookup
 - **researcher**: researcher
 - **reviewer**: reviewer
 - **security-engineer**: security-engineer
 - **security-reviewer**: security-reviewer
 - **tdd-guide**: tdd-guide
-- **tech-assistant**: tech-assistant
-- **typescript-reviewer**: typescript-reviewer
 
 ## Scope
 

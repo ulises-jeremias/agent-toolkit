@@ -1,7 +1,7 @@
 {
   "name": "@agent-toolkit/agent-toolkit-agents",
   "version": "1.24.0",
-  "description": "Full set of 25 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant) + 13 specialists — see docs/AGENT_TAXONOMY.md (#864).",
+  "description": "18 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant, client-workflow-bootstrap) + 5 specialists (code-reviewer, agentic-security-reviewer, security-reviewer, e2e-runner, tdd-guide, build-error-resolver) — 7 specialists archived to references in #865 (typescript/database/performance/refactor → reviewer/references/*; docs/reference-lookup → researcher/references/LOOKUP_GUIDE.md; tech-assistant → platform-engineer/references/WORKSTATION_OPS.md) — see docs/AGENT_TAXONOMY.md §8.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -26,24 +26,17 @@
       "agents/client-workflow-bootstrap/AGENT.md",
       "agents/code-reviewer/AGENT.md",
       "agents/data-engineer/AGENT.md",
-      "agents/database-reviewer/AGENT.md",
       "agents/designer/AGENT.md",
-      "agents/docs-lookup/AGENT.md",
       "agents/e2e-runner/AGENT.md",
       "agents/implementer/AGENT.md",
-      "agents/performance-optimizer/AGENT.md",
       "agents/planner/AGENT.md",
       "agents/platform-engineer/AGENT.md",
       "agents/qa-engineer/AGENT.md",
-      "agents/refactor-cleaner/AGENT.md",
-      "agents/reference-lookup/AGENT.md",
       "agents/researcher/AGENT.md",
       "agents/reviewer/AGENT.md",
       "agents/security-engineer/AGENT.md",
       "agents/security-reviewer/AGENT.md",
-      "agents/tdd-guide/AGENT.md",
-      "agents/tech-assistant/AGENT.md",
-      "agents/typescript-reviewer/AGENT.md"
+      "agents/tdd-guide/AGENT.md"
     ]
   }
 }

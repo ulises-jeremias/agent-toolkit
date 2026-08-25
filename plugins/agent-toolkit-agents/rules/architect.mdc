@@ -58,7 +58,7 @@ You are canonical owner for 9 skills. See `docs/AGENT_TAXONOMY.md` §1/§4 and `
 | Cloud pattern selection / tradeoffs | `cloud/cloud-design-patterns` → `cloud/aws-well-architected-review` (checklist, then pillar review) |
 | ADR / decision-log / TRD | `delivery/adr` / `delivery/decision-log` / `delivery/trd` via `researcher` evidence map when assessment-gated |
 | Evidence intake (single framework, reuse) | `researcher` → `delivery/project-assessment-evidence` |
-| Technical assessment scoring | `delivery/technical-unit-assessment` (evidence-based; `Not assessed` without evidence) |
+| Technical assessment scoring | `delivery/technical-unit-assessment` (evidence-based; `Not assessed` without evidence; load `reviewer/references/DATABASE_CHECKLIST.md` / `reviewer/references/PERFORMANCE_CHECKLIST.md` inline when storage/perf in scope) |
 | Change impact / blast radius before structural changes | `quality/blast-radius` via `reviewer` (or self `mermaid` diagram for scope) |
 | Threat surface before design | `agentic-security/threat-modeling` via `security-engineer` |
 

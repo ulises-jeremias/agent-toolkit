@@ -8,22 +8,33 @@ This guide walks you through creating a new agent persona in agent-toolkit. Agen
 
 Before creating an agent, confirm you need one rather than a skill.
 
-| | Agent | Skill |
+| | Agent | Skill (or reference) |
 |---|---|---|
-| **Invoked by** | `@mention` (e.g. `@code-reviewer`) | Slash command or natural language trigger |
-| **Purpose** | Specialist *persona* — the AI becomes a focused expert | Specialist *procedure* — the AI follows a workflow |
-| **Scope** | Long-lived interaction; can ask clarifying questions | Usually single-pass execution |
-| **Examples** | `@code-reviewer`, `@security-reviewer`, `@planner` | `gh-fix-ci`, `planning`, `development-workflow` |
+| **Invoked by** | `@mention` (e.g. `@code-reviewer`) | Slash command, natural-language trigger, or `references/*.md` loaded inline by holistic owner |
+| **Purpose** | Specialist *persona* — the AI becomes a focused expert | Specialist *procedure/reference* — the AI follows a workflow or checklist inline |
+| **Scope** | Long-lived interaction; can ask clarifying questions; independent context/lifecycle | Usually single-pass execution; narrow capability loaded inline |
+| **Examples** | `@code-reviewer`, `@security-reviewer`, `@planner` | `gh-fix-ci`, `planning`, `development-workflow`, `reviewer/references/TYPESCRIPT_CHECKLIST.md` |
+
+**Decision rule — keep as agent iff it benefits from separate context, independence, parallelism, focused lifecycle, unique permissions, different model profile, large/noisy output, or explicit handoff; keep as skill/reference iff it is procedural guidance, checklist, or narrow capability loaded inline.**
+
+| Keep as **agent** when | Keep as **skill/reference** when |
+|---|---|
+| Separate context helps (large logs, browser traces, agentic threat surface disjoint from appsec) | Procedural checklist with no separate context (TS types, DB schema, perf profiling steps, refactor Rule of Three) |
+| Independent verification boundary matters (review must not self-approve) | Narrow capability consumed by holistic (`reviewer` → `quality/deep-review` loads TS/DB/perf checklists) |
+| Parallelism or noisy-output isolation (`e2e-runner` browser noise, `build-error-resolver` compiler logs) | Loaded inline by holistic owner per `docs/AGENT_TAXONOMY.md` §3 (e.g. `reviewer/references/DATABASE_CHECKLIST.md`) |
+| Focused lifecycle / different model profile / explicit handoff (`tdd-guide` discipline, `agentic-security-reviewer` LLM/AGNT surface) | Reuse existing skill (`quality/deep-review`, `quality/deslop`, `delivery/spike`) instead of new agent |
+
+> **Provenance for the rule:** Captures #865 acceptance criteria (agent-vs-skill clause) — cited in `docs/AGENT_TAXONOMY.md` §2–3 and per-agent `AGENT.md` § "Agent vs skill rule — why agent". Examples of **converted** vs **retained** per #865: `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md`; `docs-lookup`/`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md`; `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md`; retained as agents: `code-reviewer`, `agentic-security-reviewer`, `security-reviewer`, `e2e-runner`, `tdd-guide`, `build-error-resolver`.
 
 **Rule of thumb:**
-- Add an **agent** when you want a persistent specialist that embodies expertise across many tasks.
-- Add a **skill** when you want a repeatable procedure the AI executes step by step.
+- Add an **agent** when you want a persistent specialist that embodies expertise across many tasks and meets the **agent** column above.
+- Add a **skill/reference** when you want a repeatable procedure or checklist the holistic agent loads inline.
 
-The same domain often has both: a `@tdd-guide` agent (the expert you talk to) and a `development-workflow` skill (the process it follows).
+The same domain often has both: a `@tdd-guide` agent (the expert you talk to) and a `development-workflow` skill (the process it follows). A converted example: `@typescript-reviewer` (pre-865 agent) → `reviewer/references/TYPESCRIPT_CHECKLIST.md` (post-865 inline reference via `quality/deep-review`).
 
 Agents **delegate to skills** for repeatable procedures — add a **"Delegate to skills"** section
 in `AGENT.md` when new skills affect the agent's domain (see
-[SKILL_INTEGRATION_CHECKLIST.md](SKILL_INTEGRATION_CHECKLIST.md) § D).
+[SKILL_INTEGRATION_CHECKLIST.md](SKILL_INTEGRATION_CHECKLIST.md) § D). Holistic agents also load **references** inline for procedural checklists (e.g. `reviewer` loads `references/TYPESCRIPT_CHECKLIST.md` during `quality/deep-review`).
 
 ---
 

@@ -131,17 +131,18 @@ Jira and Confluence skills ship via external packs when installed.
 
 ---
 
-## Agent taxonomy — holistic / orchestrator / specialist (#864)
+## Agent taxonomy — holistic / orchestrator / specialist (#865 final — `docs/AGENT_TAXONOMY.md` §3/§8)
 
-`docs/AGENT_TAXONOMY.md` is canonical. Summary:
+`docs/AGENT_TAXONOMY.md` is canonical. Summary (25 → 18 personas; 7 archived to `references/` with provenance):
 
 | Tier | Members | How `assistant` routes |
 |------|---------|------------------------|
 | Orchestrator | `assistant` (default entry), `client-workflow-bootstrap` (meta-generator → packs/knowledge) | Implicit — decide intent → pick one holistic |
 | Holistic (daily, 11) | `assistant` (as orchestrator), `planner`, `architect`, `designer`, `implementer`, `reviewer`, `qa-engineer`, `security-engineer`, `platform-engineer`, `researcher`, `data-engineer` (conditional) | Proportional: tiny change → `implementer`→`reviewer`; UI feature → `designer`→`implementer`→`reviewer`+`qa-engineer`; cross-system → `architect`+`planner`→`blast-radius`; security-sensitive → `security-engineer` early + `architect` |
-| Specialist (opt-in) | `code-reviewer`/`security-reviewer`/`agentic-security-reviewer`/`e2e-runner`/`tdd-guide`/`refactor-cleaner`/`build-error-resolver`/`tech-assistant` + deferred `database-reviewer`/`performance-optimizer`/`typescript-reviewer`/`docs-lookup`/`reference-lookup` | Only when `specialist_justified: true` in registry or task explicitly warrants narrow technique |
+| Specialist (opt-in, 6) | `code-reviewer` (backs `reviewer`), `security-reviewer` + `agentic-security-reviewer` (backs `security-engineer`), `e2e-runner` (backs `qa-engineer`), `tdd-guide` (backs `implementer`), `build-error-resolver` (backs `platform-engineer`) | Only when `specialist_justified: true` in registry (`capabilities/skills/registry.yaml`) or task explicitly warrants narrow technique; directives via holistic caller. Delegation chains: `Assistant→Implementer→TDD Guide`, `Assistant→QA→E2E`, `Assistant→Security→Agentic`, `Assistant→Platform→Build Error` |
+| Archived → `references/` (7, provenance) | `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md` (via `quality/deep-review`/`deslop`); `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md` (via `delivery/spike`/`project-assessment-evidence`); `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md` (via `ops/triage`) | Procedural checklists, narrow capabilities loaded inline by holistic owner — not specialist agents (agent-vs-skill rule: separate context/noise/verification = agent; procedural/checklist = reference/skill) |
 
-Never mechanically chain all skills in a domain — selection is contextual (see `docs/AGENT_TAXONOMY.md` §5–6).
+Never mechanically chain all skills in a domain — selection is contextual (see `docs/AGENT_TAXONOMY.md` §5–6). No specialist is a required manual entry point for day-to-day use — holistic owners are.
 
 ## Agents vs skills
 

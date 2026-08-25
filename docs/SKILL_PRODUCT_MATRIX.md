@@ -2,17 +2,17 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 85 skills × 25 agents._
+_Generated from 5 products × 85 skills × 18 agents._
 
 ## Products and targets
 
 | Product | Stability | Targets | Skills | Agents |
 |---------|-----------|---------|--------|--------|
 | `agent-toolkit-core` | stable | claude-code, cursor, requires, security | 6 | 1 |
-| `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 25 |
+| `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 85 | 25 |
+| `agent-toolkit-complete` | experimental | — | 85 | 18 |
 
 ## Skills → Products
 
@@ -115,24 +115,17 @@ _Generated from 5 products × 85 skills × 25 agents._
 | `client-workflow-bootstrap` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
 | `data-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `database-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `designer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `docs-lookup` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `e2e-runner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `implementer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `performance-optimizer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `planner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `platform-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `qa-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `refactor-cleaner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `reference-lookup` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `researcher` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `security-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `security-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `tdd-guide` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `tech-assistant` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `typescript-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 
 ## How to read
 
