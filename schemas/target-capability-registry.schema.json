@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/target-capability-registry.schema.json",
+  "title": "Target Capability Registry",
+  "description": "Canonical target capability registry — schemas for capabilities/targets/registry.yaml (issue #862). Validates display_name, adapter, aliases, commands, 15 capability fields, researched_at and sources per target.",
+  "type": "object",
+  "required": ["version", "targets"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Registry schema version",
+      "minimum": 1
+    },
+    "researched_at": {
+      "type": "string",
+      "description": "Global research date (ISO 8601) if all targets share same date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/target"
+      }
+    }
+  },
+  "$defs": {
+    "capabilityBoolean": {
+      "description": "Boolean capability with partial/unknown markers; true/false booleans or string enums partial/unknown/native variants",
+      "oneOf": [
+        { "type": "boolean" },
+        { "type": "string", "enum": ["true", "false", "partial", "unknown", "native", "native-experimental", "generated", "bridged", "manual", "unsupported", "unknown-blocked"] }
+      ]
+    },
+    "target": {
+      "type": "object",
+      "required": ["id", "display_name", "adapter", "aliases", "commands", "capabilities", "researched_at", "sources"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Kebab-case target identifier",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "display_name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Human-readable display name"
+        },
+        "adapter": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Python/V adapter class path"
+        },
+        "aliases": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9-]+$" }
+        },
+        "commands": {
+          "type": "object",
+          "required": ["build", "diff", "release"],
+          "additionalProperties": false,
+          "properties": {
+            "build": { "type": "boolean" },
+            "diff": { "type": "boolean" },
+            "release": { "type": "boolean" }
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "required": [
+            "agent_skills",
+            "agent_plugins",
+            "native_custom_agents",
+            "primary_agents",
+            "subagents",
+            "automatic_delegation",
+            "nested_delegation",
+            "parallel_agents",
+            "agent_permissions",
+            "agent_models",
+            "mcp",
+            "hooks",
+            "commands",
+            "rules",
+            "plugin_marketplace"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "agent_skills": { "$ref": "#/$defs/capabilityBoolean" },
+            "agent_plugins": {
+              "type": "string",
+              "enum": ["v1", "none", "custom"],
+              "description": "Agent Plugins spec support: v1=native portable, custom=tool-specific format, none=no plugin manifest"
+            },
+            "native_custom_agents": { "$ref": "#/$defs/capabilityBoolean" },
+            "primary_agents": { "$ref": "#/$defs/capabilityBoolean" },
+            "subagents": { "$ref": "#/$defs/capabilityBoolean" },
+            "automatic_delegation": { "$ref": "#/$defs/capabilityBoolean" },
+            "nested_delegation": { "$ref": "#/$defs/capabilityBoolean" },
+            "parallel_agents": { "$ref": "#/$defs/capabilityBoolean" },
+            "agent_permissions": { "$ref": "#/$defs/capabilityBoolean" },
+            "agent_models": { "$ref": "#/$defs/capabilityBoolean" },
+            "mcp": { "$ref": "#/$defs/capabilityBoolean" },
+            "hooks": { "$ref": "#/$defs/capabilityBoolean" },
+            "commands": { "$ref": "#/$defs/capabilityBoolean" },
+            "rules": { "$ref": "#/$defs/capabilityBoolean" },
+            "plugin_marketplace": { "$ref": "#/$defs/capabilityBoolean" }
+          }
+        },
+        "researched_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "format": "uri" }
+        },
+        "notes": {
+          "type": "string"
+        },
+        "maturity": {
+          "type": "string",
+          "enum": ["stable", "experimental", "deprecated", "limited"]
+        }
+      }
+    }
+  }
+}

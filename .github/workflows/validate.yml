@@ -231,6 +231,38 @@ jobs:
       - name: Check skill→product→target matrix is up to date
         run: ./scripts/generate-skill-matrix.vsh --check
 
+  check-target-matrix:
+    name: Check Target Capability Matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Validate target registry against schema
+        run: |
+          python3 - <<'PYEOF'
+          import json, yaml, sys
+          from pathlib import Path
+          from jsonschema import validate, ValidationError
+          schema = json.loads(Path("schemas/target-capability-registry.schema.json").read_text())
+          data = yaml.safe_load(Path("capabilities/targets/registry.yaml").read_text())
+          try:
+              validate(data, schema)
+          except ValidationError as e:
+              print(f"FAIL: capabilities/targets/registry.yaml: {e.message}", file=sys.stderr)
+              sys.exit(1)
+          print("OK: capabilities/targets/registry.yaml validates against target-capability-registry.schema.json")
+          # profiles coverage is validated inside generate-target-matrix.py
+          import subprocess
+          res = subprocess.run([sys.executable, "scripts/generate-target-matrix.py", "--check"])
+          sys.exit(res.returncode)
+          PYEOF
+
+      - name: Check target capability matrix drift
+        run: python3 scripts/generate-target-matrix.py --check
+
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
     name: Validate Loop Templates
@@ -783,6 +815,7 @@ jobs:
       - check-v-modules
       - check-catalogs
       - check-skill-matrix
+      - check-target-matrix
       - validate-loops
       - validate-products
       - secret-scan
@@ -807,6 +840,7 @@ jobs:
           if [[ "${{ needs.check-v-modules.result }}" != "success" ]]; then echo "check-v-modules failed: ${{ needs.check-v-modules.result }}"; failed="true"; fi
           if [[ "${{ needs.check-catalogs.result }}" != "success" ]]; then echo "check-catalogs failed: ${{ needs.check-catalogs.result }}"; failed="true"; fi
           if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-target-matrix.result }}" != "success" ]]; then echo "check-target-matrix failed: ${{ needs.check-target-matrix.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-products.result }}" != "success" ]]; then echo "validate-products failed: ${{ needs.validate-products.result }}"; failed="true"; fi
           if [[ "${{ needs.secret-scan.result }}" != "success" ]]; then echo "secret-scan failed: ${{ needs.secret-scan.result }}"; failed="true"; fi
