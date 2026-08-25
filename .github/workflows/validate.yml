@@ -263,6 +263,34 @@ jobs:
       - name: Check target capability matrix drift
         run: python3 scripts/generate-target-matrix.py --check
 
+  check-skill-capability:
+    name: Check Skill Capability Registry (#863)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Validate capabilities/skills/registry.yaml against schema
+        run: |
+          python3 - <<'PYEOF'
+          import json, yaml, sys
+          from pathlib import Path
+          from jsonschema import validate, ValidationError
+          schema = json.loads(Path("schemas/skill-capability-registry.schema.json").read_text())
+          data = yaml.safe_load(Path("capabilities/skills/registry.yaml").read_text())
+          try:
+              validate(data, schema)
+          except ValidationError as e:
+              print(f"FAIL: capabilities/skills/registry.yaml: {e.message} at {'/'.join(map(str, e.path))}", file=sys.stderr)
+              sys.exit(1)
+          print("OK: capabilities/skills/registry.yaml validates against skill-capability-registry.schema.json")
+          PYEOF
+
+      - name: Check skill capability registry (no orphans, 85 skills, design routing)
+        run: python3 scripts/validate-skill-capability.py --check
+
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
     name: Validate Loop Templates
@@ -816,6 +844,7 @@ jobs:
       - check-catalogs
       - check-skill-matrix
       - check-target-matrix
+      - check-skill-capability
       - validate-loops
       - validate-products
       - secret-scan
@@ -841,6 +870,7 @@ jobs:
           if [[ "${{ needs.check-catalogs.result }}" != "success" ]]; then echo "check-catalogs failed: ${{ needs.check-catalogs.result }}"; failed="true"; fi
           if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
           if [[ "${{ needs.check-target-matrix.result }}" != "success" ]]; then echo "check-target-matrix failed: ${{ needs.check-target-matrix.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-skill-capability.result }}" != "success" ]]; then echo "check-skill-capability failed: ${{ needs.check-skill-capability.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
           if [[ "${{ needs.validate-products.result }}" != "success" ]]; then echo "validate-products failed: ${{ needs.validate-products.result }}"; failed="true"; fi
           if [[ "${{ needs.secret-scan.result }}" != "success" ]]; then echo "secret-scan failed: ${{ needs.secret-scan.result }}"; failed="true"; fi

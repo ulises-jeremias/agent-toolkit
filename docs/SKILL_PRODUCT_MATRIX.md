@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 85 skills × 17 agents._
+_Generated from 5 products × 85 skills × 18 agents._
 
 ## Products and targets
 
@@ -115,6 +115,7 @@ _Generated from 5 products × 85 skills × 17 agents._
 | `client-workflow-bootstrap` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
 | `database-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
+| `designer` | _uncovered_ | — |
 | `docs-lookup` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `e2e-runner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `performance-optimizer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |

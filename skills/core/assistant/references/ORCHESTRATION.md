@@ -1,10 +1,16 @@
 # Orchestration — Domain → Skill Routing
 
 Hand-maintained routing table for the **assistant** orchestrator and **dev-companion** delegation.
-For machine-readable triggers and `depends_on`, also read bundled `skill-catalog.yaml`.
+For machine-readable routing, triggers, owners, and overlap, read `capabilities/skills/registry.yaml`
+(validated by `schemas/skill-capability-registry.schema.json` and `docs/SKILL_ROUTING.md`); `catalogs/skill-catalog.yaml`
+remains the generated id→description index.
 
 **Rule:** **WHAT** skills (workflows, companion framing) define phases and gates; **HOW** skills
 (forge, tooling, integrations) own CLI/API procedures — do not inline HOW steps inside WHAT skills.
+
+**Design routing rule (#863):** The **designer** agent owns contextual selection among the 10 `design/*`
+plus `accessibility/review` skills. Do not mechanically chain all design skills on one task — pick one
+primary driver per task (see Design section and `docs/SKILL_ROUTING.md`).
 
 ---
 
@@ -71,13 +77,19 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 
 ---
 
-## Design
+## Design (designer agent owns contextual routing — `docs/SKILL_ROUTING.md` + `agents/designer/AGENT.md`)
 
-| Domain | Skills | When to route |
-|--------|--------|---------------|
-| Figma | **figma**, **figma-implement-design**, **figma-code-connect-components** | Design-to-code, MCP |
-| Visual design | **frontend-design**, **frontend-design-review** | UI aesthetics and review |
-| Guidelines | **web-design-guidelines** | Vercel web interface guidelines |
+| Scenario | Route to |
+|----------|----------|
+| New visual direction / creative frontend (greenfield or intentional reshaping) | `design/frontend-design` |
+| Existing frontend quality / design review (PR, component, flow, theme, design-system compliance) | `design/frontend-design-review` |
+| Concrete web-interface best-practice audit (`file:line`, forms/focus/animation, Vercel WIG) | `design/web-design-guidelines` |
+| Evidence-based holistic UX/UI diagnosis (visual, UX friction, a11y, responsive, system compliance, distinctiveness, perf) | `design/design-assessment` (+ `delivery/project-assessment-evidence` if no evidence map yet) |
+| Iterative browser-grounded remediation (implement → run → capture → re-review until Blocking cleared) | `design/design-improvement` (consumes `design-assessment` findings; requires rendered evidence) |
+| Figma-driven work | `design/figma` → `figma-implement-design` (node → code 1:1), `figma-code-connect-components` (Code Connect), `figma-create-design-system-rules` (`AGENTS.md` rules), `figma-create-new-file` (new file via `whoami`); canvas Plugin API → opt-in `figma-use` pack |
+| Accessibility-sensitive UI (needs WCAG 2.2 AA, SC mapping, mode-aware findings) | `accessibility/review` |
+
+**Anti-pattern — do not mechanically chain:** `design-assessment` → `frontend-design-review` → `web-design-guidelines` → `frontend-design` → `design-improvement` on every ticket. Typically one of (assessment **or** review **or** guidelines) plus at most one Figma skill and optionally `accessibility/review`; `design-improvement` only after an assessment exists. See `capabilities/skills/registry.yaml` for `overlap`/`contraindications` and `agents/designer/AGENT.md` five-scenario test.
 
 ---
 

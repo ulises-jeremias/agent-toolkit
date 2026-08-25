@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 17
+count: 18
 agents:
   - id: agentic-security-reviewer
     name: agentic-security-reviewer
@@ -23,6 +23,9 @@ agents:
   - id: database-reviewer
     name: database-reviewer
     description: 'PostgreSQL and database specialist. Use for schema design, query optimization, migration review, index analysis, and ORM usage questions.'
+  - id: designer
+    name: designer
+    description: '>- Design routing and UI/UX specialist — owns contextual selection among design skills (frontend-design, frontend-design-review, web-design-guidelines, design-assessment, design-improvement, Figma f'
   - id: docs-lookup
     name: docs-lookup
     description: 'Documentation and API reference specialist. Use when searching for framework docs, library APIs, configuration options, or usage examples.'

@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill-capability-registry.schema.json",
+  "title": "Skill Capability Registry",
+  "description": "Canonical skill capability map — validates every skill has an owner, role, triggers, overlap/complementary, prerequisites, and design routing. No orphan skills. See capabilities/skills/registry.yaml and docs/SKILL_ROUTING.md. Issue #863.",
+  "type": "object",
+  "required": ["version", "count", "skills"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "description": "Registry schema version",
+      "minimum": 1
+    },
+    "count": {
+      "type": "integer",
+      "description": "Total skill count — must equal skills.length and match catalogs/skill-catalog.yaml count",
+      "minimum": 1
+    },
+    "generated": {
+      "type": "boolean",
+      "description": "Whether this file is generated from SKILL.md frontmatter + curated overrides (true) or hand-edited"
+    },
+    "researched_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "ISO date when capability map was last curated"
+    },
+    "skills": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/skill"
+      }
+    }
+  },
+  "$defs": {
+    "holisticOwner": {
+      "type": "string",
+      "enum": ["assistant", "planner", "architect", "designer", "implementer", "reviewer", "qa-engineer", "security-engineer", "platform-engineer", "data-engineer", "researcher"],
+      "description": "Primary holistic owner — conceptual delivery role. Must be one of 11 holistic roles per #863. Every skill has exactly one primary owner; no orphans."
+    },
+    "role": {
+      "type": "string",
+      "enum": ["creation", "review", "validation", "research", "ops"],
+      "description": "Skill role: creation (produces artifacts), review (audits/compliance), validation (checks/gates), research (spikes/evidence), ops (procedures/HOW)"
+    },
+    "contextCost": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Context cost tier: low (<5k tokens, single-file), medium (5-15k, multi-phase), high (>15k, browser/vision or iterative)"
+    },
+    "skill": {
+      "type": "object",
+      "required": ["id", "domain", "purpose", "origin", "holistic_owner", "role", "context_cost", "network_required", "mcp_required", "requires", "triggers", "overlap", "complementary", "prerequisites", "follow_ups", "secondary_owners", "specialist_agents", "specialist_justified", "contraindications"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+/[a-z0-9-]+$",
+          "description": "Canonical skill id: domain/name matching skills/<domain>/<name>/SKILL.md"
+        },
+        "domain": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Domain — must match id prefix and skills/<domain>/ directory"
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 10,
+          "description": "One-sentence purpose — derived from SKILL.md description frontmatter"
+        },
+        "origin": {
+          "type": "string",
+          "enum": ["first-party", "upstream"],
+          "description": "Provenance per UPSTREAM_VS_FIRST_PARTY.md — first-party curated here vs upstream vendored with immutable pin"
+        },
+        "upstream": {
+          "type": "object",
+          "description": "Required when origin=upstream — mirrors SKILL.md frontmatter upstream/sources block",
+          "additionalProperties": true,
+          "properties": {
+            "repository": { "type": "string", "pattern": "^[^/]+/[^/]+$" },
+            "path": { "type": "string", "minLength": 1 },
+            "ref": { "type": "string", "minLength": 1 },
+            "license": { "type": "string", "minLength": 1 },
+            "commit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+            "version": { "type": "string" },
+            "sources": {
+              "type": "array",
+              "items": { "type": "object" }
+            }
+          },
+          "required": ["repository", "path", "ref", "license"]
+        },
+        "holistic_owner": { "$ref": "#/$defs/holisticOwner" },
+        "role": { "$ref": "#/$defs/role" },
+        "context_cost": { "$ref": "#/$defs/contextCost" },
+        "network_required": {
+          "type": "boolean",
+          "description": "Whether skill requires network at runtime (gh, MCP remote, etc.)"
+        },
+        "mcp_required": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "MCP providers required (e.g. figma, chrome-devtools, linear)"
+        },
+        "requires": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "CLI tools/env vars required per SKILL.md requires"
+        },
+        "triggers": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "description": "Typical natural-language triggers that should route to this skill"
+        },
+        "overlap": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9-]+$" },
+          "description": "Skills with overlapping concerns — contextual selection required, not mechanical chaining"
+        },
+        "complementary": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9-]+$" },
+          "description": "Complementary skills that pair well (delegates, prerequisites, follow-ups)"
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9-]+$" },
+          "description": "Skills that should run/be consulted before this one"
+        },
+        "follow_ups": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-z0-9-]+/[a-z0-9-]+$" },
+          "description": "Skills that typically follow this one in a workflow"
+        },
+        "secondary_owners": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["assistant", "planner", "architect", "designer", "implementer", "reviewer", "qa-engineer", "security-engineer", "platform-engineer", "data-engineer", "researcher", "code-reviewer", "security-reviewer", "agentic-security-reviewer", "build-error-resolver", "e2e-runner", "docs-lookup", "tech-assistant"] },
+          "description": "Secondary holistic owners or specialist agents that may co-own or delegate"
+        },
+        "specialist_agents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Specialist agents that justify dedicated invocation for this skill (e.g. agentic-security-reviewer, architect). Empty means shared capability."
+        },
+        "specialist_justified": {
+          "type": "boolean",
+          "description": "Whether this skill justifies specialist-agent use vs shared capability. True for high-severity/review/research skills."
+        },
+        "contraindications": {
+          "type": "string",
+          "minLength": 10,
+          "description": "When NOT to use this skill — guards against mechanical chaining or mis-routing"
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "origin": { "const": "upstream" } } },
+          "then": { "required": ["upstream"] }
+        },
+        {
+          "if": { "properties": { "origin": { "const": "first-party" } } },
+          "then": { "not": { "required": ["upstream"] } }
+        }
+      ]
+    }
+  }
+}
