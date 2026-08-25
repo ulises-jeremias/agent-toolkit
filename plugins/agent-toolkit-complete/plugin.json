@@ -16,5 +16,9 @@
     "skills",
     "agents",
     "mcp"
-  ]
+  ],
+  "extensions": {
+    "com.anthropic.claude-code": { "agents": "com.anthropic.claude-code/agents/" },
+    "com.agent-toolkit.cli": { "product": "agent-toolkit-complete", "stability": "experimental" }
+  }
 }

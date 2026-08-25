@@ -229,7 +229,7 @@ fn emit_codex(mut result CompilationResult, mut records []ArtifactRecord, graph 
 	result.warnings << "Codex plugin API is experimental (maturity='experimental'). Do NOT submit to Codex marketplace without explicit OpenAI authorization."
 }
 
-fn emit_agent_plugins(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
+fn emit_agent_plugins(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string, repo_root string) {
 	ver := resolve_toolkit_version()
 	mut keywords := ['agent-toolkit', product.id.replace('agent-toolkit-', '')]
 	if product.id == 'agent-toolkit-core' {
@@ -241,6 +241,21 @@ fn emit_agent_plugins(mut result CompilationResult, mut records []ArtifactRecord
 	for k in keywords {
 		kw_json << '"${json_escape(k)}"'
 	}
+	mut has_agents := product.included_agents.len > 0
+	mut has_hooks := product.included_hooks.len > 0
+	mut ext_entries := []string{}
+	if has_agents || has_hooks {
+		mut claude_inner := []string{}
+		if has_agents {
+			claude_inner << '"agents": "com.anthropic.claude-code/agents/"'
+		}
+		if has_hooks {
+			claude_inner << '"hooks": "com.anthropic.claude-code/hooks/"'
+		}
+		ext_entries << '"com.anthropic.claude-code": { ${claude_inner.join(', ')} }'
+	}
+	ext_entries << '"com.agent-toolkit.cli": { "product": "${json_escape(product.id)}", "stability": "${json_escape(product.stability)}" }'
+	extensions_block := ',\n  "extensions": {\n    ${ext_entries.join(',\n    ')}\n  }'
 	body := '{\n' +
 		'  "\$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",\n' +
 		'  "name": "${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' +
@@ -249,16 +264,48 @@ fn emit_agent_plugins(mut result CompilationResult, mut records []ArtifactRecord
 		'    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' +
 		'  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
 		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]\n}\n'
+		'  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]' + extensions_block + '\n}\n'
 	write_text_artifact(os.join_path(out_dir, 'plugin.json'), body, 'generated', output_root, mut
 		result, mut records)
 	result.emitted << 'plugin-manifest'
 	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
 		output_root)
-	if product.included_agents.len > 0 || product.included_hooks.len > 0 {
-		result.unsupported << 'agents/hooks are not portable in Agent Plugins 1.0 — emitted via com.anthropic.claude-code/ extension (ignored by portable clients)'
+	// Portable core must NOT contain agents/hooks/rules at top-level per spec §7 (skills + mcp only).
+	// Emit them into extension namespace com.anthropic.claude-code/ where harness supports them.
+	if has_agents {
+		ext_agents_root := os.join_path(out_dir, 'com.anthropic.claude-code', 'agents')
+		for agent_id in product.included_agents {
+			agent := graph.agents[agent_id] or {
+				result.warnings << "Agent '${agent_id}' not found — skipping extension emit"
+				continue
+			}
+			if !os.is_file(agent.source_path) {
+				continue
+			}
+			content := os.read_file(agent.source_path) or { continue }
+			dst_dir := os.join_path(ext_agents_root, agent.name)
+			os.mkdir_all(dst_dir) or { continue }
+			dst := os.join_path(dst_dir, 'AGENT.md')
+			write_text_artifact(dst, content, agent.source_path, output_root, mut result, mut records)
+			result.emitted << 'extension-agent:${agent_id}'
+		}
 	}
-	if product.included_mcp.len > 0 {
-		result.unsupported << 'mcp.json (registry emit not yet ported to V remaining emitters)'
+	if has_hooks {
+		ext_hooks_root := os.join_path(out_dir, 'com.anthropic.claude-code', 'hooks')
+		os.mkdir_all(ext_hooks_root) or {}
+		// Emit a marker README explaining extension content; hooks themselves emitted via dedicated hook emitter if product includes.
+		write_text_artifact(os.join_path(ext_hooks_root, 'README.md'),
+			'# Claude Code Extension (non-portable)\n\nClaude-specific hooks/agents live here per Agent Plugins §8. Portable clients ignore this namespace.\n',
+			'generated', output_root, mut result, mut records)
+		result.emitted << 'extension-hooks'
+	}
+	// Portable MCP: emit mcp.json from canonical mcp/templates via registry_emit logic.
+	wrote_mcp := emit_portable_mcp(mut result, mut records, graph, product, out_dir, output_root,
+		repo_root)
+	if !wrote_mcp && product.included_mcp.len > 0 {
+		result.warnings << 'MCP requested (${product.included_mcp.join(', ')}) but no servers emitted — check mcp/templates'
+	}
+	if has_agents || has_hooks {
+		result.unsupported << 'agents/hooks are not portable in Agent Plugins 1.0 — emitted via com.anthropic.claude-code/ extension (ignored by portable clients)'
 	}
 }

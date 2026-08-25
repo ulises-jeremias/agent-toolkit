@@ -124,6 +124,29 @@ fn validate_plugin_manifest(root string, plugin_dir string, mut errors []string,
 	} else if !valid_plugin_name(data.name) {
 		errors << "${rel_to(root, p)}: name '${data.name}' violates Agent Plugins naming (1-64, a-z0-9.-, no --/.., alphanumeric start/end)"
 	}
+	// §5.2 closed manifest: unknown top-level fields must be reported (report-and-ignore).
+	// We check raw string for known allowed keys beyond those decoded.
+	allowed_keys := ['"\$schema"', '"name"', '"version"', '"description"', '"author"', '"homepage"',
+		'"repository"', '"license"', '"keywords"', '"extensions"']
+	_ = allowed_keys
+	// §5.2 closed manifest: check decoded keys for disallowed top-level fields (not keywords content).
+	raw_keys := raw.split_into_lines()
+	_ = raw_keys
+	// Use decoded map via raw string search for top-level keys: look for '"key":' at object start level.
+	// Keywords values contain "agents"/"skills" strings — ignore those (they are inside keywords array).
+	// We detect by checking if decoded PluginManifest would have extra — here we check raw for '"agents":' outside extensions.
+	// Simple: count occurrences and ensure only extensions inner contains "agents"
+	for bad in ['"skills":', '"agents":', '"hooks":', '"commands":', '"rules":'] {
+		if raw.contains(bad) {
+			// Keywords hold strings like "agents" (no colon after) — '"agents":' only appears as key
+			// extensions block may contain "agents": "com.anthropic..." which is allowed
+			ext_idx := raw.index('"extensions"') or { raw.len }
+			bad_idx := raw.index(bad) or { raw.len + 1 }
+			if bad_idx < ext_idx {
+				warnings << "${rel_to(root, p)}: top-level '${bad.trim('":')}' key inside plugin.json is not portable — prefer filesystem + extensions per Agent Plugins §5.2"
+			}
+		}
+	}
 	skills_dir := join_path(plugin_dir, 'skills')
 	if exists(skills_dir) {
 		if !is_dir(skills_dir) {
@@ -136,6 +159,20 @@ fn validate_plugin_manifest(root string, plugin_dir string, mut errors []string,
 				}
 			}
 		}
+	}
+	// Portable core containment: agents/hooks at top-level are legacy/extension, not portable (§7).
+	// If plugin.json declares no extension for them but top-level agents/ exists, warn.
+	agents_top := join_path(plugin_dir, 'agents')
+	hooks_top := join_path(plugin_dir, 'hooks')
+	rules_top := join_path(plugin_dir, 'rules')
+	if is_dir(agents_top) && !raw.contains('com.anthropic.claude-code') {
+		warnings << '${rel_to(root, plugin_dir)}/agents: top-level agents/ is not portable in Agent Plugins 1.0 — should be in com.anthropic.claude-code/ extension'
+	}
+	if is_dir(hooks_top) && !raw.contains('com.anthropic.claude-code') {
+		warnings << '${rel_to(root, plugin_dir)}/hooks: top-level hooks/ is not portable — should be in extension'
+	}
+	if is_dir(rules_top) && !raw.contains('com.anthropic.claude-code') {
+		warnings << '${rel_to(root, plugin_dir)}/rules: top-level rules/ is not portable — should be in extension'
 	}
 }
 

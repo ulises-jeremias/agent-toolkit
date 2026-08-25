@@ -15,5 +15,9 @@
     "core",
     "skills",
     "agents"
-  ]
+  ],
+  "extensions": {
+    "com.anthropic.claude-code": { "agents": "com.anthropic.claude-code/agents/", "hooks": "com.anthropic.claude-code/hooks/" },
+    "com.agent-toolkit.cli": { "product": "agent-toolkit-core", "stability": "stable" }
+  }
 }

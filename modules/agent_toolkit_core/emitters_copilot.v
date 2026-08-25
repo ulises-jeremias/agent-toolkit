@@ -72,7 +72,8 @@ pub fn compile_target(target_id string, graph CanonicalGraph, product LoadedProd
 			emit_codex(mut result, mut records, graph, product, out_dir, output_root)
 		}
 		'agent-plugins' {
-			emit_agent_plugins(mut result, mut records, graph, product, out_dir, output_root)
+			emit_agent_plugins(mut result, mut records, graph, product, out_dir, output_root,
+				repo_root)
 		}
 		else {
 			result.errors << "unknown emit target '${target_id}'"

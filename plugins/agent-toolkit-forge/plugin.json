@@ -13,5 +13,8 @@
   "keywords": [
     "agent-toolkit",
     "forge"
-  ]
+  ],
+  "extensions": {
+    "com.agent-toolkit.cli": { "product": "agent-toolkit-forge", "stability": "stable" }
+  }
 }

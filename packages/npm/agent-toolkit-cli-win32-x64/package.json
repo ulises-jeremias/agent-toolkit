@@ -3,16 +3,9 @@
   "version": "1.24.0",
   "description": "Native V binary for agent-toolkit-cli-win32-x64 (optionalDependency of agent-toolkit-cli)",
   "license": "MIT",
-  "os": [
-    "win32"
-  ],
-  "cpu": [
-    "x64"
-  ],
-  "files": [
-    "README.md",
-    "bin/agent-toolkit.exe"
-  ],
+  "os": ["win32"],
+  "cpu": ["x64"],
+  "files": ["README.md", "bin/agent-toolkit.exe"],
   "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
   "bugs": {
     "url": "https://github.com/ulises-jeremias/agent-toolkit/issues"
@@ -22,7 +15,5 @@
     "url": "git+https://github.com/ulises-jeremias/agent-toolkit.git",
     "directory": "packages/npm/agent-toolkit-cli-win32-x64"
   },
-  "publishConfig": {
-    "access": "public"
-  }
+  "publishConfig": {"access": "public"}
 }

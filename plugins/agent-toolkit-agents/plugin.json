@@ -13,5 +13,9 @@
   "keywords": [
     "agent-toolkit",
     "agents"
-  ]
+  ],
+  "extensions": {
+    "com.anthropic.claude-code": { "agents": "com.anthropic.claude-code/agents/" },
+    "com.agent-toolkit.cli": { "product": "agent-toolkit-agents", "stability": "stable" }
+  }
 }
