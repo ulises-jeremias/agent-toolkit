@@ -4,7 +4,7 @@ import os
 
 // embedded_version is the compile-time fallback; keep in sync with root VERSION
 // and packages/.../__init__.py via scripts/bump-version.vsh.
-pub const embedded_version = '1.23.1'
+pub const embedded_version = '1.24.0'
 
 // embedded_commit is set at build via `v -d commit=<sha>` (make.vsh build-cli).
 const embedded_commit = $d('commit', 'unknown')

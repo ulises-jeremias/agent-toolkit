@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 84
+count: 85
 skills:
   - id: accessibility/review
     name: review
@@ -26,6 +26,11 @@ skills:
     name: threat-modeling
     domain: agentic-security
     description: 'STRIDE + agentic threat modeling — architecture discovery → assets/trust boundaries/data flows/actors → STRIDE + agentic threats → risk-ranked mitigations → incremental review → security a'
+    stability: stable
+  - id: architecture/architecture-diagram
+    name: architecture-diagram
+    domain: architecture
+    description: '>- WHAT — Create polished dark-themed architecture diagrams as self-contained HTML+SVG files (inline SVG, CSS styling, PNG/PDF export toolbar). Use when the user asks for system, infrastructure, clo'
     stability: stable
   - id: architecture/c4-model
     name: c4-model

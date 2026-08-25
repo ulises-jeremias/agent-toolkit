@@ -1,6 +1,6 @@
 {
   "name": "@agent-toolkit/agent-toolkit-complete",
-  "version": "1.23.1",
+  "version": "1.24.0",
   "description": "Full stable skill catalog coverage for consumers who want everything (",
   "license": "MIT",
   "repository": {
@@ -99,6 +99,7 @@
       "skills/cloud-design-patterns/SKILL.md",
       "skills/aws-well-architected-review/SKILL.md",
       "skills/mermaid/SKILL.md",
+      "skills/architecture-diagram/SKILL.md",
       "skills/c4-model/SKILL.md"
     ],
     "agents": [

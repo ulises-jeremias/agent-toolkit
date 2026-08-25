@@ -746,6 +746,15 @@ Follow the `mermaid` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "architecture_diagram"
+description = "architecture/architecture-diagram"
+prompt = """
+Follow the `architecture-diagram` skill instructions for {{args}}.
+
+@{skills/architecture-diagram/SKILL.md}
+"""
+
+[[commands]]
 name = "c4_model"
 description = "architecture/c4-model"
 prompt = """

@@ -152,7 +152,7 @@ Swarms coordinate multiple coding-agent sessions with worktree isolation and dur
 
 ## Repository Structure
 
-Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~84 skills / 14 domains, 17 agents, 10 loops, 7 packs, 7 MCP providers).
+Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~85 skills / 14 domains, 17 agents, 10 loops, 7 packs, 7 MCP providers).
 
 ```
 agent-toolkit/

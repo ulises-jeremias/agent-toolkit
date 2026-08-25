@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 84 skills × 17 agents._
+_Generated from 5 products × 85 skills × 17 agents._
 
 ## Products and targets
 
@@ -12,7 +12,7 @@ _Generated from 5 products × 84 skills × 17 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 17 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 84 | 17 |
+| `agent-toolkit-complete` | experimental | — | 85 | 17 |
 
 ## Skills → Products
 
@@ -23,6 +23,7 @@ _Generated from 5 products × 84 skills × 17 agents._
 | `agentic-security/owasp-agentic-review` | `agent-toolkit-complete` | — |
 | `agentic-security/supply-chain-audit` | `agent-toolkit-complete` | — |
 | `agentic-security/threat-modeling` | `agent-toolkit-complete` | — |
+| `architecture/architecture-diagram` | `agent-toolkit-complete` | — |
 | `architecture/c4-model` | `agent-toolkit-complete` | — |
 | `cloud/aws-well-architected-review` | `agent-toolkit-complete` | — |
 | `cloud/cloud-design-patterns` | `agent-toolkit-complete` | — |

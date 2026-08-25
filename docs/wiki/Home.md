@@ -42,7 +42,7 @@ what each tool needs.
 
 ### Reference
 
-- [Skills Reference](Skills-Reference) — catalog pointers (84 skills)
+- [Skills Reference](Skills-Reference) — catalog pointers (85 skills)
 - [Agents Reference](Agents-Reference) — catalog pointers (17 personas)
 - [Loop Engineering](Loop-Engineering) — loop YAML spec, all 10 templates, checkpointing, budget sizing, scheduling
 - [MCP Setup](MCP-Setup) — MCP providers with env vars and per-tool configuration
@@ -141,7 +141,7 @@ new PRs, issues needing attention, and CI health on main.
 
 ```text
 agent-toolkit/
-├── skills/         # 84 skills
+├── skills/         # 85 skills
 ├── agents/         # 17 agent persona definitions
 ├── loops/          # 10 loop engineering templates
 ├── profiles/       # Per-tool configurations (7 tools)

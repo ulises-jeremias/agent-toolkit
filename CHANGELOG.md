@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.24.0] — 2026-08-25
+
+- **Feat** — New skill `architecture/architecture-diagram`: create polished dark-themed architecture diagrams as self-contained HTML+SVG files (semantic color palette, spacing/legend layout rules, PNG/PDF export toolbar). Ships `resources/template.html` as the customization starting point. Registered in `agent-toolkit-complete` and the architecture domain (85 skills total)
+
 ## [1.23.1] — 2026-08-25
 
 - **Feat** — `GET /api/v1/jobs/:id/events`: SSE streaming of job lifecycle (`status`/`log`/`done`) — resolves the async-execution story ([#859](https://github.com/ulises-jeremias/agent-toolkit/issues/859))
@@ -582,7 +586,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.23.1...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.24.0...HEAD
+[1.24.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.24.0
 [1.23.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.1
 [1.23.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.0
 [1.22.3]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.22.3

@@ -11,6 +11,7 @@
       "threat-modeling"
     ],
     "architecture": [
+      "architecture-diagram",
       "c4-model"
     ],
     "cloud": [
@@ -143,6 +144,11 @@
     {
       "id": "architecture/c4-model",
       "name": "c4-model",
+      "domain": "architecture"
+    },
+    {
+      "id": "architecture/architecture-diagram",
+      "name": "architecture-diagram",
       "domain": "architecture"
     },
     {

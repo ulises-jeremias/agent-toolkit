@@ -209,6 +209,7 @@ products:
         - cloud/cloud-design-patterns
         - cloud/aws-well-architected-review
         - tooling/mermaid
+        - architecture/architecture-diagram
         - architecture/c4-model
       agents:
         - agentic-security-reviewer

@@ -87,6 +87,7 @@ Full stable skill catalog coverage for consumers who want everything (
 - **cloud-design-patterns**: cloud/cloud-design-patterns
 - **aws-well-architected-review**: cloud/aws-well-architected-review
 - **mermaid**: tooling/mermaid
+- **architecture-diagram**: architecture/architecture-diagram
 - **c4-model**: architecture/c4-model
 
 ## Available agents
