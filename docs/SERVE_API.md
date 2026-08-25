@@ -32,13 +32,15 @@ python3 scripts/generate_surface.py        # or --check in CI
 
 - `GET /api/v1/health`, `/api/v1/version` — liveness/build info
 - `GET /api/v1/selfcheck` — runtime coherence: embedded OpenAPI freshness vs
-  running binary, jobs dir writability, bind policy
+  running binary, jobs dir writability, bind policy, and a live diff of
+  registered routes vs the embedded OpenAPI (`route_manifest_match`)
 - Read APIs — `inventory`, `doctor`, `matrix`, `diff`, `loops`, `swarms`
 - Execution APIs — thin proxies over core (`install`, `update`, `uninstall`,
   `skills/:sub`, `mcp/:sub`, `plugin/:sub`, `workspace/:sub`, `memory/:sub`,
   `project/:sub`, `loops/:sub`, `dc/:sub`, `swarms/:sub`, `build`)
-- Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id/log`
-  (process-per-run, bounded concurrency)
+- Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id/log`,
+  and **SSE streaming** via `GET /api/v1/jobs/:id/events` (`status` transitions,
+  `log` lines, terminal `done`; process-per-run, bounded concurrency)
 - `GET /` — minimal static status page (not a product surface)
 
 ## Security defaults (ADR-028)

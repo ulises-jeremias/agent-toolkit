@@ -103,6 +103,23 @@ fn (mut r JobRunner) watch(id string, mut p os.Process) {
 	r.persist_locked()
 }
 
+// get returns a snapshot of the job with `id` if it exists.
+pub fn (r &JobRunner) get(id string) ?Job {
+	r.mut.lock()
+	defer {
+		r.mut.unlock()
+	}
+	if id in r.jobs {
+		return r.jobs[id]
+	}
+	return none
+}
+
+// is_terminal reports whether a job status is final (no further events).
+pub fn is_terminal(status string) bool {
+	return status in ['completed', 'failed']
+}
+
 pub fn (r &JobRunner) log_path(id string) string {
 	return os.join_path(r.dir, '${id}.log')
 }

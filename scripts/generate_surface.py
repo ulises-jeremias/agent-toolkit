@@ -210,13 +210,49 @@ def gen_help_md(contract: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+# Server-native infrastructure endpoints: capabilities of the API itself,
+# not mirrors of CLI contract commands (ADR-030). Documented in OpenAPI and
+# enforced against registered veb routes by tests/test_surface_parity.py.
+SERVER_NATIVE_PATHS = {
+    "/api/v1/health": ("get", "health"),
+    "/api/v1/openapi.json": ("get", "get_openapi"),
+    "/api/v1/selfcheck": ("get", "selfcheck"),
+    "/api/v1/jobs": ("post", "create_job"),
+    "/api/v1/jobs/{id}/log": ("get", "get_job_log"),
+    "/api/v1/jobs/{id}/events": ("get", "stream_job_events"),
+    "/api/v1/doctor/fix": ("post", "doctor_fix"),
+    "/api/v1/loops/{name}/status": ("get", "loop_status_by_name"),
+    "/api/v1/loops/{name}/run": ("post", "run_loop_by_name"),
+    "/api/v1/loops/{name}/schedule": ("post", "schedule_loop_by_name"),
+    "/api/v1/swarms": ("get", "list_swarms"),
+    "/api/v1/loops": ("get", "list_loops"),
+}
+
+
+def add_native_paths(paths: dict) -> None:
+    for path, (method, op_id) in SERVER_NATIVE_PATHS.items():
+        if path in paths:
+            continue
+        paths[path] = {
+            method: {
+                "operationId": op_id,
+                "summary": f"Server-native endpoint ({op_id})",
+                "x-scope": "read:*" if method == "get" else "write:*",
+                "x-confirm-required": False,
+                "responses": {"200": {"description": "OK"}},
+            }
+        }
+
+
 def main() -> int:
     check = "--check" in sys.argv
     contract = load()
     OUT.mkdir(parents=True, exist_ok=True)
 
+    openapi = gen_openapi(contract)
+    add_native_paths(openapi["paths"])
     artifacts = {
-        OUT / "openapi.json": json.dumps(gen_openapi(contract), indent=2) + "\n",
+        OUT / "openapi.json": json.dumps(openapi, indent=2) + "\n",
         OUT / "cli-help.md": gen_help_md(contract),
     }
 

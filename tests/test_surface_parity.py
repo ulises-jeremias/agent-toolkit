@@ -1,8 +1,8 @@
 """Capability-surface gates (ADR-030).
 
-Parity semantics after ADR-030: the canonical capability contract must be
-covered by the programmatic API surface. Presentation parity (TUI/Web) is NOT
-required — external clients own their presentation.
+Parity semantics: the canonical capability contract must be covered by the
+programmatic API surface. Presentation parity (TUI/Web) is NOT required —
+external clients own their presentation.
 """
 
 from __future__ import annotations
@@ -22,30 +22,6 @@ RETIRED_ARTIFACTS = [
     ROOT / "modules" / "agent_toolkit_server" / "tui_registry.v",
     ROOT / "docs" / "surface" / "web_nav.json",
 ]
-
-
-def _commands():
-    data = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
-    return [c["name"] for c in data.get("commands", [])]
-
-
-# Server-native infrastructure endpoints. These are capabilities of the
-# programmatic API itself (platform plane), not mirrors of CLI contract
-# commands. ADR-030: capability parity applies to contract commands;
-# infrastructure endpoints live only on the API surface.
-SERVER_NATIVE_PATHS = {
-    "/api/v1/health",
-    "/api/v1/openapi.json",
-    "/api/v1/selfcheck",
-    "/api/v1/jobs",
-    "/api/v1/jobs/:id/log",
-    "/api/v1/doctor/fix",
-    "/api/v1/loops",
-    "/api/v1/loops/:name/status",
-    "/api/v1/loops/:name/run",
-    "/api/v1/loops/:name/schedule",
-    "/api/v1/swarms",
-}
 
 
 def _commands():
@@ -80,25 +56,34 @@ def test_retired_presentation_artifacts_absent():
         )
 
 
-def test_server_routes_cover_openapi_paths():
-    """Every API path declared by the contract/OpenAPI must have a registered
-    veb route in server.veb.v, and vice versa (landing '/' and server-native
-    infrastructure endpoints excluded)."""
+def test_registered_routes_const_matches_attributes():
+    """The `registered_api_routes` const consumed by runtime selfcheck must
+    exactly mirror the @['...'] route attributes in server.veb.v."""
+    text = SERVER.read_text(encoding="utf-8")
+    attrs = set(re.findall(r"@\['([^']+)';", text))
+    attrs.discard("/")
+
+    m = re.search(r"const registered_api_routes = \[(.*?)\]", text, re.DOTALL)
+    assert m, "registered_api_routes const missing"
+    const_items = set(re.findall(r"'([^']+)'", m.group(1)))
+
+    assert attrs == const_items, (
+        f"drift — attributes-only: {sorted(attrs - const_items)}, "
+        f"const-only: {sorted(const_items - attrs)}"
+    )
+
+
+def test_openapi_paths_match_registered_routes():
+    """OpenAPI must describe exactly the registered server API routes (the
+    landing '/' is presentation, not an API path)."""
     spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
     openapi_paths = {p.replace("{", ":").replace("}", "") for p in spec["paths"]}
-
     text = SERVER.read_text(encoding="utf-8")
     registered = set(re.findall(r"@\['([^']+)';", text))
-
-    # The landing page route is presentation, not a contract capability.
     registered.discard("/")
 
-    missing_in_server = openapi_paths - registered
-    assert not missing_in_server, (
-        f"contract paths without server route: {sorted(missing_in_server)}"
-    )
+    missing_in_openapi = registered - openapi_paths
+    assert not missing_in_openapi, f"routes without OpenAPI docs: {sorted(missing_in_openapi)}"
 
-    undeclared = registered - openapi_paths - SERVER_NATIVE_PATHS
-    assert not undeclared, (
-        f"server routes not covered by contract or SERVER_NATIVE_PATHS: {sorted(undeclared)}"
-    )
+    undeclared_in_server = openapi_paths - registered
+    assert not undeclared_in_server, f"OpenAPI paths without routes: {sorted(undeclared_in_server)}"

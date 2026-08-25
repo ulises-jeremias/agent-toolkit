@@ -36,6 +36,7 @@
 | **FS mutation from remote** | `POST /install` from internet | `write:fs` scope denied unless `--allow-remote-write-fs`; default `local-full` only for CLI | POST /install remotely → 403 without flag |
 | **Loop L3 merge abuse** | Remote triggers `oss-pr-monitor` merge | `loop-gh-gate` still enforced in core; `GITHUB_TOKEN` scope checked server-side | L2 cannot merge even via server |
 | **DoS: many jobs** | 100 concurrent `POST /jobs` | `max_running=2` queue, 429 when full; `max_tokens`/`max_wall_seconds` still enforced | load test script in #839 |
+| **SSE connection exhaustion** | Many idle `/jobs/:id/events` streams | Streams are localhost-gated by default; remote requires bearer; each stream is bounded by job lifetime + terminal `done` event closes; per-client concurrency bounded by job runner limits | verified in v1.23.x |
 | **XSS via report.md** | Loop writes `<script>` → rendered by an external UI | Out of scope since 1.23.0 (ADR-030): repo ships no HTML renderer; landing page is static text-only. External UIs own their CSP | mitigated by surface reduction |
 
 ## 4. Abuse-Case Checklist (CI)

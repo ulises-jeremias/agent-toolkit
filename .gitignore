@@ -39,3 +39,6 @@ loops/*/STATE.md
 .worktrees/
 modules/.cache/
 capabilities/upstream-apply-summary.json
+
+# Server runtime state (jobs, logs)
+.agent-toolkit/

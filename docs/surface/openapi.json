@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "agent-toolkit serve API",
-    "version": "1.23.0",
+    "version": "1.23.1",
     "description": "Generated from docs/compatibility/cli-contract.yaml \u2014 do not hand-edit."
   },
   "paths": {
@@ -420,6 +420,162 @@
           },
           "428": {
             "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health",
+        "summary": "Server-native endpoint (health)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/openapi.json": {
+      "get": {
+        "operationId": "get_openapi",
+        "summary": "Server-native endpoint (get_openapi)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/selfcheck": {
+      "get": {
+        "operationId": "selfcheck",
+        "summary": "Server-native endpoint (selfcheck)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs": {
+      "post": {
+        "operationId": "create_job",
+        "summary": "Server-native endpoint (create_job)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}/log": {
+      "get": {
+        "operationId": "get_job_log",
+        "summary": "Server-native endpoint (get_job_log)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}/events": {
+      "get": {
+        "operationId": "stream_job_events",
+        "summary": "Server-native endpoint (stream_job_events)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/doctor/fix": {
+      "post": {
+        "operationId": "doctor_fix",
+        "summary": "Server-native endpoint (doctor_fix)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/loops/{name}/status": {
+      "get": {
+        "operationId": "loop_status_by_name",
+        "summary": "Server-native endpoint (loop_status_by_name)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/loops/{name}/run": {
+      "post": {
+        "operationId": "run_loop_by_name",
+        "summary": "Server-native endpoint (run_loop_by_name)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/loops/{name}/schedule": {
+      "post": {
+        "operationId": "schedule_loop_by_name",
+        "summary": "Server-native endpoint (schedule_loop_by_name)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/swarms": {
+      "get": {
+        "operationId": "list_swarms",
+        "summary": "Server-native endpoint (list_swarms)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/loops": {
+      "get": {
+        "operationId": "list_loops",
+        "summary": "Server-native endpoint (list_loops)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }

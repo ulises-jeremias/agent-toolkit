@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.23.1] — 2026-08-25
+
+- **Feat** — `GET /api/v1/jobs/:id/events`: SSE streaming of job lifecycle (`status`/`log`/`done`) — resolves the async-execution story ([#859](https://github.com/ulises-jeremias/agent-toolkit/issues/859))
+- **Feat** — Deep selfcheck: `route_manifest_match` runtime diff of registered routes vs embedded OpenAPI ([#859](https://github.com/ulises-jeremias/agent-toolkit/issues/859))
+- **Feat** — OpenAPI now documents server-native endpoints (health/openapi/selfcheck/jobs+events/doctor-fix/loops conveniences/swarms)
+- **Fix** — `POST /api/v1/jobs`: inject `--workspace` only for workspace-aware commands (`loop`); other commands run with the resolved workspace as working directory
+- **Tests** — Parity gates extended: `registered_api_routes` const ↔ route attributes ↔ OpenAPI exact match
+
 ## [1.23.0] — 2026-08-25
 
 > **Breaking:** the interactive TUI is no longer a supported product surface.
@@ -574,7 +582,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.23.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.23.1...HEAD
+[1.23.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.1
 [1.23.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.0
 [1.22.3]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.22.3
 [1.22.2]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.22.2

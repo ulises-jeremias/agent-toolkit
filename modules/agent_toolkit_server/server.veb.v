@@ -6,8 +6,10 @@ module agent_toolkit_server
 import agent_toolkit_core
 import os
 import json
+import strings
 import time
 import veb
+import veb.sse
 
 pub struct App {
 pub mut:
@@ -126,6 +128,45 @@ pub fn (app &App) openapi(mut ctx Ctx) veb.Result {
 	return ctx.text(openapi_json.to_string())
 }
 
+
+// registered_api_routes mirrors every @['...'] route attribute below (the
+// landing '/' excluded). tests/test_surface_parity.py asserts this const stays
+// in sync with the actual attributes, and selfcheck uses it for the runtime
+// contract-vs-routes diff.
+const registered_api_routes = [
+	'/api/v1/health',
+	'/api/v1/version',
+	'/api/v1/openapi.json',
+	'/api/v1/selfcheck',
+	'/api/v1/inventory',
+	'/api/v1/doctor',
+	'/api/v1/doctor/fix',
+	'/api/v1/matrix',
+	'/api/v1/diff',
+	'/api/v1/loops',
+	'/api/v1/loops/:name/status',
+	'/api/v1/loops/:name/run',
+	'/api/v1/loops/:name/schedule',
+	'/api/v1/loops/:sub',
+	'/api/v1/help',
+	'/api/v1/install',
+	'/api/v1/update',
+	'/api/v1/uninstall',
+	'/api/v1/skills/:sub',
+	'/api/v1/mcp/:sub',
+	'/api/v1/plugin/:sub',
+	'/api/v1/workspace/:sub',
+	'/api/v1/memory/:sub',
+	'/api/v1/project/:sub',
+	'/api/v1/dc/:sub',
+	'/api/v1/build',
+	'/api/v1/swarms',
+	'/api/v1/swarms/:sub',
+	'/api/v1/jobs',
+	'/api/v1/jobs/:id/log',
+	'/api/v1/jobs/:id/events',
+]
+
 // SelfcheckCheck is one named runtime coherence result.
 struct SelfcheckCheck {
 	name   string
@@ -152,6 +193,26 @@ fn openapi_declared_version(doc string) string {
 	rest := doc[idx + marker.len..]
 	end := rest.index('"') or { return '' }
 	return rest[..end]
+}
+
+
+// extract_openapi_paths pulls every "/api/v1/..." path key from the embedded
+// OpenAPI JSON and normalises '{param}' placeholders to ':param'.
+fn extract_openapi_paths(doc string) []string {
+	mut paths := []string{}
+	mut rest := doc
+	for {
+		idx := rest.index('"/api/v1') or { break }
+		rest = rest[idx + 1..]
+		end := rest.index('"') or { break }
+		path := rest[..end]
+		rest = rest[end..]
+		if path.ends_with(':') || path.contains('#') {
+			continue
+		}
+		paths << path.replace('{', ':').replace('}', '')
+	}
+	return paths
 }
 
 @['/api/v1/selfcheck'; get]
@@ -194,6 +255,23 @@ pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 		name:   'bind_policy'
 		status: if bind_ok { 'ok' } else { 'err' }
 		detail: '${app.opts.host} allow_remote=${app.opts.allow_remote}'
+	}
+
+	// 4. Route manifest: every registered route must be described by the
+	// embedded OpenAPI document and vice versa (runtime drift detection).
+	openapi_paths := extract_openapi_paths(openapi_json.to_string())
+	reg := registered_api_routes.clone()
+	missing_in_openapi := reg.filter(it !in openapi_paths)
+	undeclared_in_server := openapi_paths.filter(it !in reg)
+	manifest_ok := missing_in_openapi.len == 0 && undeclared_in_server.len == 0
+	checks << SelfcheckCheck{
+		name:   'route_manifest_match'
+		status: if manifest_ok { 'ok' } else { 'err' }
+		detail: if manifest_ok {
+			'${reg.len} routes match embedded OpenAPI'
+		} else {
+			'mismatch — missing_in_openapi: ${missing_in_openapi.join(',')} undeclared_in_server: ${undeclared_in_server.join(',')}'
+		}
 	}
 
 	ok := checks.all(it.status != 'err')
@@ -489,10 +567,14 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 		args << req.cmd
 		args << req.args
 	}
-	has_ws := args.contains('--workspace') || args.contains('-w')
-	if !has_ws && workspace.len > 0 {
-		args << '--workspace'
-		args << workspace
+	// Only workspace-aware commands accept the flag; others run with the
+	// resolved workspace as their process working directory instead.
+	if req.cmd == 'loop' {
+		has_ws := args.contains('--workspace') || args.contains('-w')
+		if !has_ws && workspace.len > 0 {
+			args << '--workspace'
+			args << workspace
+		}
 	}
 	job := app.runner.create(req.cmd, args, workspace) or {
 		return ctx.json(DenyErr{ ok: false, error: err.msg() })
@@ -528,6 +610,67 @@ pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
 	}
 	body := os.read_file(lp) or { '' }
 	return ctx.text(body)
+}
+
+// jobs_events streams job lifecycle events over SSE (ADR-030 async story).
+// Emits `status` events on state transitions, `log` events for new log lines,
+// and closes the stream when the job reaches a terminal status.
+@['/api/v1/jobs/:id/events'; get]
+pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	job := app.runner.get(id) or {
+		return ctx.json(DenyErr{ ok: false, error: 'job not found: ${id}' })
+	}
+	ctx.takeover_conn()
+	// SSE responses must not carry Content-Length; write raw headers.
+	mut sb := strings.new_builder(256)
+	sb.write_string('HTTP/1.1 200 OK\r\n')
+	sb.write_string('Content-Type: text/event-stream\r\n')
+	sb.write_string('Connection: keep-alive\r\n')
+	sb.write_string('Cache-Control: no-cache\r\n')
+	sb.write_string('\r\n')
+	if ctx.conn == unsafe { nil } {
+		return ctx.text('')
+	}
+	ctx.conn.write(sb) or {}
+	runner := app.runner
+	mut stream_conn := &sse.SSEConnection{ conn: ctx.conn }
+	spawn fn [id, job, runner, mut stream_conn] () {
+		defer {
+			stream_conn.close()
+		}
+		stream_conn.send_message(event: 'status', data: job.status, id: id) or { return }
+		mut sent_lines := 0
+		mut last_status := job.status
+		for {
+			time.sleep(500 * time.millisecond)
+			current := runner.get(id) or { break }
+			if current.status != last_status {
+				stream_conn.send_message(event: 'status', data: current.status, id: id) or { break }
+				last_status = current.status
+			}
+			log_path := runner.log_path(id)
+			if os.is_file(log_path) {
+				body := os.read_file(log_path) or { '' }
+				mut lines := body.split_into_lines()
+				for lines.len > 0 && lines.last().len == 0 {
+					lines.delete_last()
+				}
+				for sent_lines < lines.len {
+					stream_conn.send_message(event: 'log', data: lines[sent_lines], id: id) or { break }
+					sent_lines++
+				}
+			}
+			if is_terminal(current.status) {
+				stream_conn.send_message(event: 'done', data: current.status, id: id) or {}
+				break
+			}
+		}
+	}()
+	return veb.no_result()
 }
 
 @['/api/v1/doctor/fix'; post]
