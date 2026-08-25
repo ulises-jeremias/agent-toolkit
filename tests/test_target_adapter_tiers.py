@@ -218,8 +218,8 @@ def test_matrix_has_build_commands_and_tiers_table():
         line
         for line in text.splitlines()
         if line.startswith("| Claude Code")
-        or l.startswith("| Cursor")
-        or l.startswith("| Windsurf")
+        or line.startswith("| Cursor")
+        or line.startswith("| Windsurf")
     ]
     assert len(rows) >= 3
 
