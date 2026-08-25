@@ -8,6 +8,11 @@ name: designer
 description: >-
   Design routing and UI/UX specialist — owns contextual selection among design skills (frontend-design, frontend-design-review, web-design-guidelines, design-assessment, design-improvement, Figma family, accessibility/review). Use when: new visual direction, design review, WIG audit, holistic UX diagnosis, browser-grounded improvement, Figma-driven work, or accessibility-sensitive UI.
 tools: Read, Grep, Glob, Bash
+kind: holistic
+collaborates_with:
+  - implementer
+  - qa-engineer
+  - researcher
 ---
 
 # Designer

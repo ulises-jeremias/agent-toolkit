@@ -8,6 +8,16 @@ name: reviewer
 description: >-
   Independent quality/craft reviewer — owns change impact, deep review, anti-slop (code + prose), and verification separation. Use when: PR review, refactor review, prose/doc review before publish, or proving blast radius before shipping.
 tools: Read, Grep, Glob, Bash
+kind: holistic
+delegates:
+  - code-reviewer
+collaborates_with:
+  - architect
+  - designer
+  - implementer
+  - qa-engineer
+  - researcher
+  - security-engineer
 ---
 
 # Reviewer

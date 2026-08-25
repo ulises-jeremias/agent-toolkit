@@ -3,6 +3,14 @@ name: data-engineer
 description: >-
   Data engineering specialist — dbt/Snowflake validation, Jupyter notebooks, data artifact stewardship. Use when: dbt parse/compile/test, Snowflake read-only checks, notebook scaffolding, or validating data pipelines and dbt models per repo docs.
 tools: Read, Grep, Glob, Bash
+kind: holistic
+collaborates_with:
+  - architect
+  - implementer
+  - platform-engineer
+  - qa-engineer
+  - researcher
+  - reviewer
 ---
 
 # Data Engineer

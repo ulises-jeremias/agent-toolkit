@@ -8,6 +8,16 @@ name: qa-engineer
 description: >-
   Quality-assurance and verification specialist — lint gates, browser automation, E2E, behavioral verification, bug triage. Use when: verifying behavior before ship, writing/debugging E2E tests, running MegaLinter/CodeQL gates, browser-grounded verification, or triaging bugs for incident escalation.
 tools: Read, Grep, Glob, Bash
+kind: holistic
+delegates:
+  - e2e-runner
+collaborates_with:
+  - data-engineer
+  - designer
+  - implementer
+  - platform-engineer
+  - reviewer
+  - security-engineer
 ---
 
 # QA Engineer

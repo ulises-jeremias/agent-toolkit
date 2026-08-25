@@ -8,6 +8,17 @@ name: security-engineer
 description: >-
   Security hardening specialist — app + agentic security, threat modeling, supply-chain/MCP audit, SARIF triage. Use when: security-sensitive PR/endpoint, agentic/MCP/plugin change, supply-chain before adoption, STRIDE/threat model, or CodeQL/SARIF triage.
 tools: Read, Grep, Glob, Bash
+kind: holistic
+delegates:
+  - agentic-security-reviewer
+  - security-reviewer
+collaborates_with:
+  - architect
+  - designer
+  - implementer
+  - platform-engineer
+  - qa-engineer
+  - reviewer
 ---
 
 # Security Engineer

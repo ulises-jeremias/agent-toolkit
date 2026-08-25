@@ -3,6 +3,17 @@ name: platform-engineer
 description: >-
   Platform and forge specialist — CI/CD, GitHub/GitLab PR lifecycle, merge-conflicts, worktrees, integrations (Slack/Linear/ClickUp/MCP), loops/swarm, triage, llm-cost-advisor, cli-for-agents, herdr. Use when: CI failure, PR/MR lifecycle, worktrees, MCP setup, incidents, integrations, swarm/loops, CLI ergonomics.
 tools: Read, Grep, Glob, Bash
+kind: holistic
+delegates:
+  - build-error-resolver
+collaborates_with:
+  - architect
+  - implementer
+  - planner
+  - qa-engineer
+  - researcher
+  - reviewer
+  - security-engineer
 ---
 
 # Platform Engineer

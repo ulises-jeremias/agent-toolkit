@@ -68,6 +68,69 @@ fn fm_field(fm string, key string) string {
 	return ''
 }
 
+fn fm_list(fm string, key string) []string {
+	prefix := '${key}:'
+	lines := fm.split_into_lines()
+	mut i := 0
+	for i < lines.len {
+		line := lines[i]
+		trimmed := line.trim_space()
+		if trimmed.starts_with(prefix) {
+			mut rest := trimmed[prefix.len..].trim_space()
+			if rest.len > 0 && rest.starts_with('[') {
+				mut inner := rest
+				if inner.contains(']') {
+					end := inner.index(']') or { inner.len - 1 }
+					inner = inner[1..end]
+				} else {
+					inner = inner[1..]
+				}
+				inner = inner.trim_space()
+				if inner.len == 0 {
+					return []string{}
+				}
+				mut out := []string{}
+				parts := inner.split(',')
+				for pp in parts {
+					mut v := pp.trim_space()
+					if v.len >= 2 && ((v[0] == `'` && v[v.len - 1] == `'`) || (v[0] == `"` && v[v.len - 1] == `"`)) {
+						v = v[1..v.len - 1]
+					}
+					if v.len > 0 {
+						out << v.trim_space()
+					}
+				}
+				return out
+			}
+			mut out := []string{}
+			i++
+			for i < lines.len {
+				l := lines[i]
+				tt := l.trim_space()
+				if tt.len == 0 {
+					i++
+					continue
+				}
+				if tt.starts_with('-') {
+					mut v := tt[1..].trim_space()
+					if v.len >= 2 && ((v[0] == `'` && v[v.len - 1] == `'`) || (v[0] == `"` && v[v.len - 1] == `"`)) {
+						v = v[1..v.len - 1]
+					}
+					if v.len > 0 {
+						out << v
+					}
+					i++
+					continue
+				}
+				break
+			}
+			return out
+		}
+		i++
+	}
+	return []string{}
+}
+
 fn truncate(s string, n int) string {
 	if s.len <= n {
 		return s
@@ -103,9 +166,12 @@ struct SkillEntry {
 }
 
 struct AgentEntry {
-	id          string
-	name        string
-	description string
+	id                string
+	name              string
+	description       string
+	kind              string
+	delegates         []string
+	collaborates_with []string
 }
 
 struct LoopEntry {
@@ -143,6 +209,19 @@ fn dump_agents(entries []AgentEntry) string {
 		s += '  - id: ${yaml_escape_scalar(e.id)}\n'
 		s += yaml_kv(4, 'name', e.name)
 		s += yaml_kv(4, 'description', e.description)
+		s += yaml_kv(4, 'kind', e.kind)
+		if e.delegates.len > 0 {
+			s += '    delegates:\n'
+			for d in e.delegates {
+				s += '      - ${yaml_escape_scalar(d)}\n'
+			}
+		}
+		if e.collaborates_with.len > 0 {
+			s += '    collaborates_with:\n'
+			for c in e.collaborates_with {
+				s += '      - ${yaml_escape_scalar(c)}\n'
+			}
+		}
 	}
 	return s
 }
@@ -210,10 +289,16 @@ fn gen_agents(root string) []AgentEntry {
 		fm := extract_frontmatter(read_file(agent_md) or { '' })
 		nm := fm_field(fm, 'name')
 		desc := fm_field(fm, 'description')
+		kind := fm_field(fm, 'kind')
+		delegates := fm_list(fm, 'delegates')
+		collab := fm_list(fm, 'collaborates_with')
 		agents << AgentEntry{
-			id:          name
-			name:        if nm.len > 0 { nm } else { name }
-			description: truncate(desc, 200)
+			id:                name
+			name:              if nm.len > 0 { nm } else { name }
+			description:       truncate(desc, 200)
+			kind:              if kind.len > 0 { kind } else { 'holistic' }
+			delegates:         delegates
+			collaborates_with: collab
 		}
 	}
 	return agents

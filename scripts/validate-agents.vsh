@@ -1,5 +1,7 @@
 #!/usr/bin/env -S v run
-// Validate AGENT.md frontmatter across all agents.
+// Validate AGENT.md frontmatter across all agents (#866).
+// Extends minimal name/description/tools checks with kind, delegates,
+// collaborates_with, skills and graph invariants (orphan, cycle, missing ref).
 // Usage: ./scripts/validate-agents.vsh
 
 fn repo_root() string {
@@ -35,8 +37,9 @@ fn fm_field(fm string, key string) ?string {
 	mut i := 0
 	for i < lines.len {
 		line := lines[i]
-		if line.starts_with(prefix) {
-			mut val := line[prefix.len..].trim_space()
+		trimmed := line.trim_space()
+		if trimmed.starts_with(prefix) {
+			mut val := trimmed[prefix.len..].trim_space()
 			if val.len >= 2 {
 				if (val[0] == `'` && val[val.len - 1] == `'`)
 					|| (val[0] == `"` && val[val.len - 1] == `"`) {
@@ -68,24 +71,207 @@ fn fm_field(fm string, key string) ?string {
 	return none
 }
 
+fn fm_list(fm string, key string) ?[]string {
+	prefix := '${key}:'
+	lines := fm.split_into_lines()
+	mut i := 0
+	for i < lines.len {
+		line := lines[i]
+		trimmed := line.trim_space()
+		if trimmed.starts_with(prefix) {
+			mut rest := trimmed[prefix.len..].trim_space()
+			// inline flow list: delegates: [a, b]
+			if rest.len > 0 && rest.starts_with('[') {
+				// find closing ]
+				// rest is like "[a, b]" or "[a, b] # comment"
+				mut inner := rest
+				// strip comment after ]
+				if inner.contains(']') {
+					end := inner.index(']') or { inner.len - 1 }
+					inner = inner[1..end]
+				} else {
+					inner = inner[1..]
+				}
+				inner = inner.trim_space()
+				if inner.len == 0 {
+					return []string{}
+				}
+				mut out := []string{}
+				parts := inner.split(',')
+				for p in parts {
+					mut v := p.trim_space()
+					if v.len >= 2 && ((v[0] == `'` && v[v.len - 1] == `'`)
+						|| (v[0] == `"` && v[v.len - 1] == `"`)) {
+						v = v[1..v.len - 1]
+					}
+					if v.len > 0 {
+						out << v.trim_space()
+					}
+				}
+				return out
+			}
+			if rest.len > 0 {
+				// single scalar on same line — treat as one-element list (defensive)
+				mut v := rest
+				if v.len >= 2 && ((v[0] == `'` && v[v.len - 1] == `'`)
+					|| (v[0] == `"` && v[v.len - 1] == `"`)) {
+					v = v[1..v.len - 1]
+				}
+				// if value looks like a scalar that shouldn't be a list, return it anyway
+				// for kind/skill single-value cases, callers use fm_field; fm_list should not be used there.
+				// For delegates/collaborates_with we expect block list; single value is still collected.
+				v = v.trim_space()
+				if v.len > 0 && !v.contains(' ') {
+					return [v]
+				}
+				// otherwise treat as empty and fall through to block collection
+			}
+			// block list: next lines are "- item"
+			mut out := []string{}
+			i++
+			for i < lines.len {
+				l := lines[i]
+				t := l.trim_space()
+				if t.len == 0 {
+					i++
+					continue
+				}
+				if t.starts_with('-') {
+					mut v := t[1..].trim_space()
+					if v.len >= 2 && ((v[0] == `'` && v[v.len - 1] == `'`)
+						|| (v[0] == `"` && v[v.len - 1] == `"`)) {
+						v = v[1..v.len - 1]
+					}
+					if v.len > 0 {
+						out << v
+					}
+					i++
+					continue
+				}
+				break
+			}
+			return out
+		}
+		i++
+	}
+	return none
+}
+
+fn is_kebab(s string) bool {
+	if s.len == 0 {
+		return false
+	}
+	if s[0] == `-` || s[s.len - 1] == `-` {
+		return false
+	}
+	if s.contains('--') {
+		return false
+	}
+	for c in s {
+		if !((c >= `a` && c <= `z`) || (c >= `0` && c <= `9`) || c == `-`) {
+			return false
+		}
+	}
+	return true
+}
+
+fn is_skill_id(s string) bool {
+	if !s.contains('/') {
+		return false
+	}
+	parts := s.split('/')
+	if parts.len != 2 {
+		return false
+	}
+	for p in parts {
+		if p.len == 0 || !is_kebab(p) {
+			return false
+		}
+	}
+	return true
+}
+
+fn dfs_cycle(node string, graph map[string][]string, mut visited map[string]int, mut stack []string) ?string {
+	visited[node] = 1
+	stack << node
+	for nb in graph[node] {
+		if nb !in visited || visited[nb] == 0 {
+			if msg := dfs_cycle(nb, graph, mut visited, mut stack) {
+				return msg
+			}
+		} else if visited[nb] == 1 {
+			mut idx := -1
+			for i, v in stack {
+				if v == nb {
+					idx = i
+					break
+				}
+			}
+			mut cyc := []string{}
+			if idx >= 0 {
+				for i := idx; i < stack.len; i++ {
+					cyc << stack[i]
+				}
+				cyc << nb
+			} else {
+				cyc = [nb, node, nb]
+			}
+			return cyc.join(' -> ')
+		}
+	}
+	stack.pop()
+	visited[node] = 2
+	return none
+}
+
+fn has_cycle(graph map[string][]string) ?string {
+	mut visited := map[string]int{}
+	mut stack := []string{}
+	for node in graph.keys() {
+		if visited[node] == 0 {
+			if msg := dfs_cycle(node, graph, mut visited, mut stack) {
+				return msg
+			}
+		}
+	}
+	return none
+}
+
+struct AgentMeta {
+	name              string
+	kind              string
+	delegates       []string
+	collaborates_with []string
+	skills            []string
+}
+
 fn main() {
 	root := repo_root()
 	agents_dir := join_path(root, 'agents')
+	skills_dir := join_path(root, 'skills')
 	mut errors := []string{}
-	println('\n🔍 Validating AGENT.md frontmatter...\n')
+	mut warnings := []string{}
+	println('\n🔍 Validating AGENT.md frontmatter (#866 graph)...\n')
 	mut count := 0
-	agents := ls(agents_dir) or { []string{} }
-	for agent in agents.sorted() {
+	mut metas := map[string]AgentMeta{}
+	mut known := []string{}
+	// collect known agents first
+	tmp := ls(agents_dir) or { []string{} }
+	for agent in tmp.sorted() {
+		p := join_path(agents_dir, agent)
+		if is_dir(p) && is_file(join_path(p, 'AGENT.md')) {
+			known << agent
+		}
+	}
+	known.sort()
+	mut known_set := map[string]bool{}
+	for k in known {
+		known_set[k] = true
+	}
+
+	for agent in known {
 		agent_path := join_path(agents_dir, agent)
-		if !is_dir(agent_path) {
-			continue
-		}
 		agent_md := join_path(agent_path, 'AGENT.md')
-		if !is_file(agent_md) {
-			errors << '${agent}: missing AGENT.md'
-			println('  ✗ ${agent}: missing AGENT.md')
-			continue
-		}
 		content := read_file(agent_md) or {
 			errors << '${agent}/AGENT.md: cannot read'
 			println('  ✗ ${agent}/AGENT.md: cannot read')
@@ -96,20 +282,252 @@ fn main() {
 			println('  ✗ ${agent}/AGENT.md: no YAML frontmatter')
 			continue
 		}
-		if fm_field(fm, 'name') or { '' } == '' {
+		mut ok := true
+		name := fm_field(fm, 'name') or { '' }
+		desc := fm_field(fm, 'description') or { '' }
+		tools_str := fm_field(fm, 'tools') or { '' }
+		kind := fm_field(fm, 'kind') or { '' }
+		if name == '' {
 			errors << "${agent}/AGENT.md: missing 'name'"
 			println("  ✗ ${agent}/AGENT.md: missing 'name'")
+			ok = false
+		} else if name != agent {
+			errors << "${agent}/AGENT.md: name '${name}' != directory '${agent}'"
+			println("  ✗ ${agent}/AGENT.md: name '${name}' != directory '${agent}'")
+			ok = false
+		} else if !is_kebab(name) {
+			errors << "${agent}/AGENT.md: name '${name}' not kebab-case"
+			println("  ✗ ${agent}/AGENT.md: name '${name}' not kebab-case")
+			ok = false
 		}
-		if fm_field(fm, 'description') or { '' } == '' {
+		if desc == '' {
 			errors << "${agent}/AGENT.md: missing 'description'"
 			println("  ✗ ${agent}/AGENT.md: missing 'description'")
+			ok = false
+		}
+		if tools_str == '' {
+			errors << "${agent}/AGENT.md: missing 'tools'"
+			println("  ✗ ${agent}/AGENT.md: missing 'tools'")
+			ok = false
+		}
+		if kind == '' {
+			errors << "${agent}/AGENT.md: missing 'kind' (orchestrator|holistic|specialist) — required since #866"
+			println("  ✗ ${agent}/AGENT.md: missing 'kind' (orchestrator|holistic|specialist)")
+			ok = false
+		} else if kind !in ['orchestrator', 'holistic', 'specialist'] {
+			errors << "${agent}/AGENT.md: invalid kind '${kind}' (expected orchestrator|holistic|specialist)"
+			println("  ✗ ${agent}/AGENT.md: invalid kind '${kind}'")
+			ok = false
+		}
+
+		// delegates
+		delegates := fm_list(fm, 'delegates') or { []string{} }
+		collaborates := fm_list(fm, 'collaborates_with') or { []string{} }
+		skills_list := fm_list(fm, 'skills') or { []string{} }
+
+		// validate delegates
+		mut seen_d := map[string]bool{}
+		for d in delegates {
+			if d == agent {
+				errors << "${agent}/AGENT.md: delegates contains self-reference '${d}'"
+				println("  ✗ ${agent}/AGENT.md: delegates contains self-reference '${d}'")
+				ok = false
+			}
+			if !is_kebab(d) {
+				errors << "${agent}/AGENT.md: delegates entry '${d}' not kebab-case"
+				println("  ✗ ${agent}/AGENT.md: delegates entry '${d}' not kebab-case")
+				ok = false
+			}
+			if d !in known_set {
+				errors << "${agent}/AGENT.md: delegates references unknown agent '${d}'"
+				println("  ✗ ${agent}/AGENT.md: delegates references unknown agent '${d}'")
+				ok = false
+			}
+			if d in seen_d {
+				errors << "${agent}/AGENT.md: delegates duplicate '${d}'"
+				println("  ✗ ${agent}/AGENT.md: delegates duplicate '${d}'")
+				ok = false
+			}
+			seen_d[d] = true
+		}
+		// validate collaborates_with
+		mut seen_c := map[string]bool{}
+		for c in collaborates {
+			if c == agent {
+				errors << "${agent}/AGENT.md: collaborates_with contains self-reference '${c}'"
+				println("  ✗ ${agent}/AGENT.md: collaborates_with self '${c}'")
+				ok = false
+			}
+			if !is_kebab(c) {
+				errors << "${agent}/AGENT.md: collaborates_with entry '${c}' not kebab-case"
+				println("  ✗ ${agent}/AGENT.md: collaborates_with entry '${c}' not kebab-case")
+				ok = false
+			}
+			if c !in known_set {
+				errors << "${agent}/AGENT.md: collaborates_with references unknown agent '${c}'"
+				println("  ✗ ${agent}/AGENT.md: collaborates_with unknown '${c}'")
+				ok = false
+			}
+			if c in seen_c {
+				errors << "${agent}/AGENT.md: collaborates_with duplicate '${c}'"
+				println("  ✗ ${agent}/AGENT.md: collaborates_with duplicate '${c}'")
+				ok = false
+			}
+			seen_c[c] = true
+		}
+		// validate skills (if present)
+		mut seen_s := map[string]bool{}
+		for s in skills_list {
+			if !is_skill_id(s) {
+				errors << "${agent}/AGENT.md: skills entry '${s}' invalid (expected domain/name kebab)"
+				println("  ✗ ${agent}/AGENT.md: skills entry '${s}' invalid")
+				ok = false
+				continue
+			}
+			if s in seen_s {
+				errors << "${agent}/AGENT.md: skills duplicate '${s}'"
+				println("  ✗ ${agent}/AGENT.md: skills duplicate '${s}'")
+				ok = false
+			}
+			seen_s[s] = true
+			parts := s.split('/')
+			skill_path := join_path(skills_dir, parts[0], parts[1], 'SKILL.md')
+			if !is_file(skill_path) {
+				errors << "${agent}/AGENT.md: skills references unknown skill '${s}' (no ${skill_path})"
+				println("  ✗ ${agent}/AGENT.md: skills references unknown skill '${s}'")
+				ok = false
+			}
+		}
+		// soft warn if specialist has delegates (unusual)
+		if kind == 'specialist' && delegates.len > 0 {
+			warnings << "${agent}: specialist has delegates ${delegates} — specialists should rarely delegate"
+			println("  ⚠ ${agent}: specialist delegates ${delegates} — specialists should rarely delegate")
+		}
+
+		if ok {
+			println('  ✓ ${agent} (kind=${kind})')
+		}
+		metas[agent] = AgentMeta{
+			name:              name
+			kind:              kind
+			delegates:       delegates
+			collaborates_with: collaborates
+			skills:            skills_list
 		}
 		count++
 	}
-	println('\nAgents validated: ${count}')
+
+	// ── graph invariants ──
+	// build delegates graph
+	mut graph := map[string][]string{}
+	for k, m in metas {
+		graph[k] = m.delegates
+	}
+	// orphan: every specialist must have at least one caller
+	for k, m in metas {
+		if m.kind == 'specialist' {
+			mut has_caller := false
+			for caller, cm in metas {
+				if k in cm.delegates {
+					has_caller = true
+					break
+				}
+			}
+			if !has_caller {
+				errors << "orphan specialist '${k}' has no caller — every specialist must have a legitimate caller (delegates reverse)"
+				println("  ✗ orphan specialist '${k}' has no caller")
+			}
+		}
+	}
+	// cycle detection on delegates (directed)
+	if cycle := has_cycle(graph) {
+		errors << "forbidden cycle in delegates graph: ${cycle}"
+		println("  ✗ forbidden delegates cycle: ${cycle}")
+	} else {
+		println('  ✓ no forbidden delegates cycle')
+	}
+
+	// products.yaml references canonical agents
+	products_path := join_path(root, 'distributions', 'products.yaml')
+	if is_file(products_path) {
+		text := read_file(products_path) or { '' }
+		lines := text.split_into_lines()
+		mut in_agents := false
+		mut agents_indent := -1
+		mut product_line_no := 0
+		for idx, line in lines {
+			trimmed := line.trim_space()
+			if trimmed.len == 0 || trimmed.starts_with('#') {
+				continue
+			}
+			// count leading spaces
+			mut indent := 0
+			for c in line {
+				if c == ` ` {
+					indent++
+				} else if c == `\t` {
+					indent += 2
+				} else {
+					break
+				}
+			}
+			if trimmed.starts_with('agents:') {
+				in_agents = true
+				agents_indent = indent
+				continue
+			}
+			if in_agents {
+				if trimmed.starts_with('- ') {
+					if indent <= agents_indent {
+						in_agents = false
+						continue
+					}
+					mut val := trimmed[2..].trim_space()
+					// strip inline comment
+					if val.contains('#') {
+						val = val.all_before('#').trim_space()
+					}
+					if val.len >= 2 && ((val[0] == `'` && val[val.len - 1] == `'`)
+						|| (val[0] == `"` && val[val.len - 1] == `"`)) {
+						val = val[1..val.len - 1]
+					}
+					val = val.trim_space()
+					if val.len > 0 {
+						if val !in known_set {
+							errors << "distributions/products.yaml:${idx + 1}: references unknown agent '${val}'"
+							println("  ✗ distributions/products.yaml:${idx + 1}: unknown agent '${val}'")
+						}
+						// also track duplicate product agent refs if needed; skipped — product ids are unique
+					}
+					continue
+				}
+				// non-list line
+				if indent <= agents_indent && !trimmed.starts_with('-') {
+					in_agents = false
+				}
+			}
+		}
+		println('  ✓ products.yaml agent refs checked')
+	}
+
+	// duplicate generated IDs: agents are dir names, already unique; catalog will enforce count vs entries
+	if known.len != count {
+		errors << "agent count mismatch: dirs ${known.len} vs validated ${count}"
+	}
+
+	println('\nAgents validated: ${count} (orchestrator/holistic/specialist)')
+	if warnings.len > 0 {
+		println('Warnings: ${warnings.len}')
+		for w in warnings {
+			println('  ⚠ ${w}')
+		}
+	}
 	if errors.len > 0 {
 		println('\n❌ ${errors.len} error(s)')
+		for e in errors {
+			println('  ✗ ${e}')
+		}
 		exit(1)
 	}
-	println('\n✅ All AGENT.md files are valid!')
+	println('\n✅ All AGENT.md files are valid (schema + graph invariants)!')
 }

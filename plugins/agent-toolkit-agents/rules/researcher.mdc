@@ -8,6 +8,14 @@ name: researcher
 description: >-
   Research and discovery specialist — spike findings, evidence-intake, framework/docs exploration, inventory, reference examples. Use when: unknown needs time-boxed investigation, implementation strategy/risks/tradeoffs, upstream/framework docs lookup, project-assessment evidence map, or discovering installed toolkit capabilities.
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
+kind: holistic
+collaborates_with:
+  - architect
+  - data-engineer
+  - designer
+  - implementer
+  - planner
+  - qa-engineer
 ---
 
 # Researcher

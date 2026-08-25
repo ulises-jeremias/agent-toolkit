@@ -71,8 +71,16 @@ description: >-
   Use when: [trigger keywords that identify when this agent should be invoked].
   The description is shown in the agent picker — make it unambiguous.
 tools: Read, Grep, Glob, Bash
+kind: holistic
+delegates:
+  - tdd-guide
+collaborates_with:
+  - reviewer
+  - qa-engineer
 ---
 ```
+
+Schema: `schemas/agent-frontmatter.schema.json` (#866). `kind` is required; `delegates`/`collaborates_with`/`skills` are optional — keep entries minimal (ids only, no procedural text). Canonical skill ownership remains in `capabilities/skills/registry.yaml` (`holistic_owner`); only list `skills:` in frontmatter when the agent explicitly handles `domain/name` ids that must be validated against `skills/`.
 
 ### Required frontmatter fields
 
@@ -81,6 +89,15 @@ tools: Read, Grep, Glob, Bash
 | `name` | string | Kebab-case identifier, must match the directory name |
 | `description` | string | Used by the AI to decide which agent to invoke |
 | `tools` | string | Comma-separated list of tools the agent is allowed to use |
+| `kind` | `orchestrator` \| `holistic` \| `specialist` | Tier per `docs/AGENT_TAXONOMY.md` §2. Required since #866 |
+
+### Optional frontmatter fields (machine-readable orchestration — #866)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `delegates` | `string[]` | Directed delegation edges — agent ids this persona may delegate to. Validated: every entry must be an existing agent, no self-ref, no forbidden cycle, every `specialist` must have a caller in the reverse graph. Holistic → `specialist`, `orchestrator` (`assistant`) → holistic. |
+| `collaborates_with` | `string[]` | Undirected collaboration peers (handoff boundaries) — holistic peers this agent frequently hands off to. Validated: every entry must be an existing agent, no self-ref. Not part of cycle detection. |
+| `skills` | `string[]` | Optional explicit `domain/name` skill ids handled by this agent. Validated against `skills/`; otherwise ownership is derived from `capabilities/skills/registry.yaml`. Omit unless the agent explicitly declares skills. |
 
 ### Tools reference
 
@@ -133,11 +150,14 @@ Reference documents are domain knowledge the agent can read during a session. Th
 ./scripts/validate-agents.vsh
 ```
 
-The validator checks:
+The validator (`scripts/validate-agents.vsh` — #866 schema + graph) checks:
 - `AGENT.md` is present in every agent directory
-- YAML frontmatter is valid
-- Required fields (`name`, `description`, `tools`) are present
-- `name` in frontmatter matches the directory name
+- YAML frontmatter is valid and validates against `schemas/agent-frontmatter.schema.json`
+- Required fields (`name`, `description`, `tools`, `kind`) are present; `kind` is `orchestrator|holistic|specialist`
+- `name` in frontmatter matches the directory name (kebab-case)
+- `delegates` / `collaborates_with` entries reference existing agents, no self-ref, no duplicates, no forbidden cycle; every `specialist` has a legitimate caller (reverse graph)
+- `skills` (if present) entries are valid `domain/name` ids that exist in `skills/`
+- `distributions/products.yaml` `agents:` entries reference canonical agents
 
 ---
 
@@ -170,11 +190,13 @@ When a new skill is routed through an agent:
 ```markdown
 ## Agent Checklist
 - [ ] `agents/<agent-name>/AGENT.md` created
-- [ ] Frontmatter has `name`, `description`, and `tools`
-- [ ] `name` in frontmatter matches directory name
-- [ ] `./scripts/validate-agents.vsh` passes with no errors
-- [ ] `distributions/products.yaml` updated if product membership changed
-- [ ] `./scripts/generate-catalogs.vsh` was run (do **not** hand-edit `agent-catalog.yaml`)
+- [ ] Frontmatter has `name`, `description`, `tools`, and `kind` (`orchestrator|holistic|specialist` — required since #866; see `schemas/agent-frontmatter.schema.json`)
+- [ ] `name` in frontmatter matches directory name (kebab-case)
+- [ ] `delegates` / `collaborates_with` (if any) list only existing agents, no self-ref/cycle — every new `specialist` has a caller in the reverse graph
+- [ ] `skills` (if present) lists only valid `domain/name` ids that exist in `skills/`
+- [ ] `./scripts/validate-agents.vsh` passes with no errors (schema + orphan/cycle/missing-delegate/products checks)
+- [ ] `distributions/products.yaml` updated if product membership changed (must reference canonical agents)
+- [ ] `./scripts/generate-catalogs.vsh` was run (do **not** hand-edit `agent-catalog.yaml` — now emits `kind`/`delegates`/`collaborates_with`)
 - [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
 - [ ] `references/` documents linked from agent body (if present)
 - [ ] `tools` list is minimal — only what the agent genuinely needs
@@ -205,6 +227,10 @@ description: >-
   Use when: reviewing a component for accessibility, auditing a PR with UI changes,
   checking WCAG compliance, fixing a11y CI failures, preparing for an accessibility audit.
 tools: Read, Grep, Glob, Bash
+kind: specialist
+collaborates_with:
+  - reviewer
+  - designer
 ---
 
 # Accessibility Reviewer

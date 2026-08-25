@@ -3,6 +3,19 @@ name: implementer
 description: >-
   Implementation specialist — feature/bug/refactoring delivery, build/test loop, TDD-aware scaffolding and docs generation. Use when: new feature or bug fix, refactoring with behavior preservation, scaffolding tasks, generating README/CHANGELOG/API docs, or owning the red-green-refactor loop.
 tools: Read, Grep, Glob, Bash, Write, Edit
+kind: holistic
+delegates:
+  - tdd-guide
+collaborates_with:
+  - architect
+  - data-engineer
+  - designer
+  - planner
+  - platform-engineer
+  - qa-engineer
+  - researcher
+  - reviewer
+  - security-engineer
 ---
 
 # Implementer
