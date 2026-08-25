@@ -124,6 +124,15 @@
         "maturity": {
           "type": "string",
           "enum": ["stable", "experimental", "deprecated", "limited"]
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D"],
+          "description": "Adapter tier: A rich multi-agent, B custom agents limited delegation, C skills+instructions, D minimal"
+        },
+        "tier_rationale": {
+          "type": "string",
+          "description": "One-sentence rationale for tier assignment"
         }
       }
     }

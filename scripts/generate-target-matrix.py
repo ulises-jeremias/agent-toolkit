@@ -147,6 +147,51 @@ def render_md(data) -> str:
     if researched:
         lines.append(f"_Researched at: {researched} — sources per target below._")
         lines.append("")
+    # Tier Definitions (#868)
+    lines.append("## Adapter Tiers (#868)")
+    lines.append("")
+    lines.append(
+        "Tiers describe the **harness adapter richness** — what the harness natively supports "
+        "and what the compiler may emit. Least-common-denominator is rejected: each target "
+        "receives the richest correct subset it supports. `tier` is stored in "
+        "`capabilities/targets/registry.yaml` (`tier: A/B/C/D`) per #868."
+    )
+    lines.append("")
+    lines.append("| Tier | Label | What the adapter supports | Targets |")
+    lines.append("|------|-------|---------------------------|---------|")
+    # Collect tier members
+    tier_members: dict[str, list[str]] = {"A": [], "B": [], "C": [], "D": []}
+    for t in targets:
+        tier = str(t.get("tier", "")).strip().upper()
+        if tier in tier_members:
+            tier_members[tier].append(t.get("display_name") or t["id"])
+    lines.append(
+        f"| **A** | Rich multi-agent | Holistic + specialist agents, delegation "
+        f"(auto/nested/parallel), permissions, models, hooks, MCP, marketplace | "
+        f"{', '.join(tier_members['A']) or '—'} |"
+    )
+    lines.append(
+        f"| **B** | Custom agents, limited delegation | Agents + routing guidance, "
+        f"explicit handoffs; some delegation/MCP/hooks partial or bridged | "
+        f"{', '.join(tier_members['B']) or '—'} |"
+    )
+    lines.append(
+        f"| **C** | Skills + instructions | Agent Skills, global routing guidance, "
+        f"rules/instructions, MCP where native; no subagents/delegation | "
+        f"{', '.join(tier_members['C']) or '—'} |"
+    )
+    lines.append(
+        f"| **D** | Minimal | Richest correct subset only (rules + manual MCP); "
+        f"no marketplace/extensions, no custom agent delegation | "
+        f"{', '.join(tier_members['D']) or '—'} |"
+    )
+    lines.append("")
+    lines.append(
+        "> **Gating:** if a capability is `false`/`unknown` the compiler **must not** emit its "
+        "config (e.g., no subagent config where `subagents: false`). "
+        "Partial/unknown degrade gracefully via instruction fallback, not invalid config."
+    )
+    lines.append("")
     # Legend
     lines.append("## Legend")
     lines.append("")
@@ -184,18 +229,29 @@ def render_md(data) -> str:
         lines.append("| " + " | ".join(row) + " |")
     lines.append("")
 
-    # Commands build/diff/release table (keep existing fields visible)
-    lines.append("## Build Commands")
+    # Commands build/diff/release + Tier table (keep existing fields visible)
+    lines.append("## Build Commands & Tiers")
     lines.append("")
-    lines.append("| Target | `build` | `diff` | `release` | Maturity | Aliases |")
-    lines.append("|--------|---------|--------|-----------|----------|---------|")
+    lines.append("| Target | `build` | `diff` | `release` | Tier | Maturity | Aliases |")
+    lines.append("|--------|---------|--------|-----------|------|----------|---------|")
     for t in targets:
         cmds = t.get("commands", {})
         aliases = ", ".join(f"`{a}`" for a in t.get("aliases", [])) or "—"
         mat = t.get("maturity", "—")
+        tier = t.get("tier", "—")
         lines.append(
-            f"| {t.get('display_name') or t['id']} (`{t['id']}`) | {fmt(cmds.get('build'))} | {fmt(cmds.get('diff'))} | {fmt(cmds.get('release'))} | {mat} | {aliases} |"
+            f"| {t.get('display_name') or t['id']} (`{t['id']}`) | {fmt(cmds.get('build'))} | {fmt(cmds.get('diff'))} | {fmt(cmds.get('release'))} | {tier} | {mat} | {aliases} |"
         )
+    lines.append("")
+    # Tier Assignment table
+    lines.append("## Tier Assignment")
+    lines.append("")
+    lines.append("| Target | Tier | Rationale |")
+    lines.append("|--------|------|-----------|")
+    for t in targets:
+        tier = t.get("tier", "—")
+        rationale = (t.get("tier_rationale", "") or "").replace("|", "\\|").replace("\n", " ")
+        lines.append(f"| {t.get('display_name') or t['id']} (`{t['id']}`) | {tier} | {rationale} |")
     lines.append("")
 
     # Per-target details: researched_at, sources, notes, adapter
@@ -210,6 +266,9 @@ def render_md(data) -> str:
         lines.append(
             f"- **Commands:** build={fmt(cmds.get('build'))} diff={fmt(cmds.get('diff'))} release={fmt(cmds.get('release'))}"
         )
+        lines.append(f"- **Tier:** {t.get('tier', '—')}")
+        if t.get("tier_rationale"):
+            lines.append(f"- **Tier rationale:** {t.get('tier_rationale')}")
         lines.append(f"- **Maturity:** {t.get('maturity', '—')}")
         lines.append(f"- **Researched at:** {t.get('researched_at', '—')}")
         srcs = t.get("sources", [])

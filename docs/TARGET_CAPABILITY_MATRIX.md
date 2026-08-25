@@ -5,6 +5,19 @@
 
 _Researched at: 2026-08-25 — sources per target below._
 
+## Adapter Tiers (#868)
+
+Tiers describe the **harness adapter richness** — what the harness natively supports and what the compiler may emit. Least-common-denominator is rejected: each target receives the richest correct subset it supports. `tier` is stored in `capabilities/targets/registry.yaml` (`tier: A/B/C/D`) per #868.
+
+| Tier | Label | What the adapter supports | Targets |
+|------|-------|---------------------------|---------|
+| **A** | Rich multi-agent | Holistic + specialist agents, delegation (auto/nested/parallel), permissions, models, hooks, MCP, marketplace | Claude Code, Cursor |
+| **B** | Custom agents, limited delegation | Agents + routing guidance, explicit handoffs; some delegation/MCP/hooks partial or bridged | OpenCode, Gemini CLI, GitHub Copilot CLI, Pi Coding Agent, OpenAI Codex |
+| **C** | Skills + instructions | Agent Skills, global routing guidance, rules/instructions, MCP where native; no subagents/delegation | GitHub Copilot Repository, Muse Code, Agent Plugins (Portable) |
+| **D** | Minimal | Richest correct subset only (rules + manual MCP); no marketplace/extensions, no custom agent delegation | Windsurf |
+
+> **Gating:** if a capability is `false`/`unknown` the compiler **must not** emit its config (e.g., no subagent config where `subagents: false`). Partial/unknown degrade gracefully via instruction fallback, not invalid config.
+
 ## Legend
 
 | Symbol | Meaning |
@@ -37,21 +50,37 @@ _Researched at: 2026-08-25 — sources per target below._
 | Rules / Instructions | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Plugin Marketplace | ✅ | ✅ | ◐ partial | ✅ | ✅ | ❌ | ◐ partial | ❌ | ✅ | ❌ | ✅ |
 
-## Build Commands
+## Build Commands & Tiers
 
-| Target | `build` | `diff` | `release` | Maturity | Aliases |
-|--------|---------|--------|-----------|----------|---------|
-| Claude Code (`claude-code`) | ✅ | ✅ | ✅ | stable | — |
-| Cursor (`cursor`) | ✅ | ✅ | ✅ | stable | — |
-| OpenCode (`opencode`) | ✅ | ✅ | ✅ | stable | — |
-| Gemini CLI (`gemini-cli`) | ✅ | ❌ | ✅ | stable | `gemini` |
-| GitHub Copilot CLI (`copilot-cli`) | ✅ | ❌ | ✅ | stable | `copilot` |
-| GitHub Copilot Repository (`copilot-repository`) | ✅ | ❌ | ✅ | stable | — |
-| Pi Coding Agent (`pi`) | ✅ | ❌ | ✅ | stable | — |
-| Windsurf (`windsurf`) | ✅ | ❌ | ✅ | limited | — |
-| OpenAI Codex (`codex`) | ✅ | ❌ | ✅ | experimental | — |
-| Muse Code (`muse-code`) | ✅ | ❌ | ✅ | stable | `muse` |
-| Agent Plugins (Portable) (`agent-plugins`) | ✅ | ✅ | ✅ | stable | — |
+| Target | `build` | `diff` | `release` | Tier | Maturity | Aliases |
+|--------|---------|--------|-----------|------|----------|---------|
+| Claude Code (`claude-code`) | ✅ | ✅ | ✅ | A | stable | — |
+| Cursor (`cursor`) | ✅ | ✅ | ✅ | A | stable | — |
+| OpenCode (`opencode`) | ✅ | ✅ | ✅ | B | stable | — |
+| Gemini CLI (`gemini-cli`) | ✅ | ❌ | ✅ | B | stable | `gemini` |
+| GitHub Copilot CLI (`copilot-cli`) | ✅ | ❌ | ✅ | B | stable | `copilot` |
+| GitHub Copilot Repository (`copilot-repository`) | ✅ | ❌ | ✅ | C | stable | — |
+| Pi Coding Agent (`pi`) | ✅ | ❌ | ✅ | B | stable | — |
+| Windsurf (`windsurf`) | ✅ | ❌ | ✅ | D | limited | — |
+| OpenAI Codex (`codex`) | ✅ | ❌ | ✅ | B | experimental | — |
+| Muse Code (`muse-code`) | ✅ | ❌ | ✅ | C | stable | `muse` |
+| Agent Plugins (Portable) (`agent-plugins`) | ✅ | ✅ | ✅ | C | stable | — |
+
+## Tier Assignment
+
+| Target | Tier | Rationale |
+|--------|------|-----------|
+| Claude Code (`claude-code`) | A | Full plugin (.claude-plugin/) - native skills/agents/subagents, nested+parallel+auto delegation, perms/models, 33 hooks, MCP, v1 marketplace |
+| Cursor (`cursor`) | A | Full plugin (.cursor-plugin/) v2.5+ - skills/agents/subagents, auto+parallel delegation, perms/models, 16+ hooks, MCP, v1 marketplace; nested partial only |
+| OpenCode (`opencode`) | B | JS/TS module - native agents/subagents/parallel/perms/models, but auto/nested partial and MCP/hooks require TypeScript runtime bridge |
+| Gemini CLI (`gemini-cli`) | B | Extension (gemini-extension.json) + TOML commands - native agents, MCP/hooks native, but primary/subagents/delegation/parallel partial |
+| GitHub Copilot CLI (`copilot-cli`) | B | Open Plugin Spec (plugin.json) - native agents/primary/subagents partial, perms/models partial, MCP/hooks unknown - limited delegation |
+| GitHub Copilot Repository (`copilot-repository`) | C | Repository customization (.github/copilot-instructions.md, .github/agents/*.agent.md, .github/skills/) - no plugin/marketplace, no subagents/delegation/hooks/MCP |
+| Pi Coding Agent (`pi`) | B | npm package (pi-package.json) - native agents/subagents/perms/models, but MCP/hooks/parallel partial requiring TypeScript ExtensionAPI |
+| Windsurf (`windsurf`) | D | No marketplace extensions per docs.devin.ai - customization bundle only: rules .mdc + manual MCP, no agents/subagents/delegation/perms/models/hooks/commands |
+| OpenAI Codex (`codex`) | B | Experimental .codex-plugin (Mar 2026) - native agents/subagents/parallel, MCP partial, hooks unknown-blocked, delegation partial |
+| Muse Code (`muse-code`) | C | Custom plugin - skills under ~/.config/muse/skills + .agents/skills fallback, agents true but no primary/subagents/delegation/hooks, MCP partial, no marketplace |
+| Agent Plugins (Portable) (`agent-plugins`) | C | Synthetic portable plugin.json + skills/ + mcp.json for Cursor/VS Code/Copilot/Kiro/Codex; agents via com.anthropic.claude-code extension; no primary/subagents/delegation |
 
 ## Per-Target Details
 
@@ -60,6 +89,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.claude_code.ClaudeCodeAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=✅ release=✅
+- **Tier:** A
+- **Tier rationale:** Full plugin (.claude-plugin/) - native skills/agents/subagents, nested+parallel+auto delegation, perms/models, 33 hooks, MCP, v1 marketplace
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -75,6 +106,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.cursor.CursorAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=✅ release=✅
+- **Tier:** A
+- **Tier rationale:** Full plugin (.cursor-plugin/) v2.5+ - skills/agents/subagents, auto+parallel delegation, perms/models, 16+ hooks, MCP, v1 marketplace; nested partial only
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -90,6 +123,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.opencode.OpenCodeAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=✅ release=✅
+- **Tier:** B
+- **Tier rationale:** JS/TS module - native agents/subagents/parallel/perms/models, but auto/nested partial and MCP/hooks require TypeScript runtime bridge
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -103,6 +138,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter`
 - **Aliases:** `gemini`
 - **Commands:** build=✅ diff=❌ release=✅
+- **Tier:** B
+- **Tier rationale:** Extension (gemini-extension.json) + TOML commands - native agents, MCP/hooks native, but primary/subagents/delegation/parallel partial
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -117,6 +154,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter`
 - **Aliases:** `copilot`
 - **Commands:** build=✅ diff=❌ release=✅
+- **Tier:** B
+- **Tier rationale:** Open Plugin Spec (plugin.json) - native agents/primary/subagents partial, perms/models partial, MCP/hooks unknown - limited delegation
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -130,6 +169,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=❌ release=✅
+- **Tier:** C
+- **Tier rationale:** Repository customization (.github/copilot-instructions.md, .github/agents/*.agent.md, .github/skills/) - no plugin/marketplace, no subagents/delegation/hooks/MCP
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -142,6 +183,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.pi.PiAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=❌ release=✅
+- **Tier:** B
+- **Tier rationale:** npm package (pi-package.json) - native agents/subagents/perms/models, but MCP/hooks/parallel partial requiring TypeScript ExtensionAPI
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -155,6 +198,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.windsurf.WindsurfAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=❌ release=✅
+- **Tier:** D
+- **Tier rationale:** No marketplace extensions per docs.devin.ai - customization bundle only: rules .mdc + manual MCP, no agents/subagents/delegation/perms/models/hooks/commands
 - **Maturity:** limited
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -168,6 +213,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.codex.CodexAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=❌ release=✅
+- **Tier:** B
+- **Tier rationale:** Experimental .codex-plugin (Mar 2026) - native agents/subagents/parallel, MCP partial, hooks unknown-blocked, delegation partial
 - **Maturity:** experimental
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -181,6 +228,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.muse_code.MuseCodeAdapter`
 - **Aliases:** `muse`
 - **Commands:** build=✅ diff=❌ release=✅
+- **Tier:** C
+- **Tier rationale:** Custom plugin - skills under ~/.config/muse/skills + .agents/skills fallback, agents true but no primary/subagents/delegation/hooks, MCP partial, no marketplace
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -193,6 +242,8 @@ _Researched at: 2026-08-25 — sources per target below._
 - **Adapter:** `agent_toolkit.compiler.targets.agent_plugins.AgentPluginsAdapter`
 - **Aliases:** —
 - **Commands:** build=✅ diff=✅ release=✅
+- **Tier:** C
+- **Tier rationale:** Synthetic portable plugin.json + skills/ + mcp.json for Cursor/VS Code/Copilot/Kiro/Codex; agents via com.anthropic.claude-code extension; no primary/subagents/delegation
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
