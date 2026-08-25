@@ -88,4 +88,4 @@ Release runbook: [`docs/RELEASING.md`](RELEASING.md). **Do not retag** empty his
 
 ## Out of scope
 
-P3 server/TUI and Bobatea ([#492](https://github.com/ulises-jeremias/agent-toolkit/issues/492)–[#494](https://github.com/ulises-jeremias/agent-toolkit/issues/494)) — do not invent APIs.
+P3 server ([#492](https://github.com/ulises-jeremias/agent-toolkit/issues/492)–[#494](https://github.com/ulises-jeremias/agent-toolkit/issues/494); the TUI was retired in 1.23.0 per ADR-030) — do not invent APIs.

@@ -1,8 +1,12 @@
 # ADR-029 — Surface-parity SSOT: cli-contract drives CLI, API, TUI and Web
 
-- **Status:** Accepted (2026-08-23)
+- **Status:** Superseded by [ADR-030](ADR-030-capability-contract-binary-first.md) (2026-08-25)
 - **Deciders:** maintainer
 - **Related issues:** epic #830, #549 (contract), #472 (web), #473/#494 (tui)
+
+> **Note:** ADR-030 retires the presentation-parity semantics below. The SSOT
+> contract itself survives, re-scoped to capability description with
+> programmatic-API parity only. Kept for historical context.
 
 ## Context
 

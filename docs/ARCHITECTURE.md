@@ -60,7 +60,7 @@ The toolkit layer itself separates two conceptual planes that **share one repo, 
 | Plane | Owns | Key dirs / contracts | Runtime resolution |
 |-------|------|----------------------|--------------------|
 | **Capability Plane** | What is *distributed* to AI tools — portable capabilities and their compiled artifacts | `skills/` + `agents/` (SoT), `distributions/products.yaml` (composition), `plugins/` (compiler output, canonical — ADR-004), `profiles/` (**deprecated** install overlay, fallback only), `mcp/templates/` + `mcp/registry/`, `packs/` (docs-only, ADR-006) | Authoritative data lives **embedded** in the binary payload (`modules/agent_toolkit_core/embedded_data.v`, `+4.8M` ELF) plus FHS `/usr/share` sidecar compat — see **ADR-026** (Full-Embed). Build verifies with `agent-toolkit build --check`. |
-| **Runtime Plane** | What is *executed* from a harness workspace — automation, memory, and orchestration that consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` commands; `tui` / `serve` surfaces over both planes; `insights` (**DEPRECATE**, #526) | Resolves toolkit data via ordered tiers `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized against harness `knowledge/`). Offline never downloads — see **ADR-015** (Runtime Resolution, amends ADR-005) and **ADR-026** `paths.v` tiers / `data_io.v` abstraction. |
+| **Runtime Plane** | What is *executed* from a harness workspace — automation, memory, and orchestration that consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` commands; `serve` programmatic API surface over both planes (TUI retired, ADR-030); `| Resolves toolkit data via ordered tiers `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized against harness `knowledge/`). Offline never downloads — see **ADR-015** (Runtime Resolution, amends ADR-005) and **ADR-026** `paths.v` tiers / `data_io.v` abstraction. |
 
 **Without splitting code:** Both planes are built by the same `make.vsh build-cli` (`gen-embedded` → `build/agent-toolkit`) and shipped in the same GitHub Release / Homebrew / AUR / PyPI / npm / Docker artifacts (ADR-018/021/023/024/025). The split is documentary: capability edits go to `skills/` + `products.yaml` then `build`; runtime is exercised from a harness via `agent-toolkit loop run …` etc. References: **ADR-015** runtime order and **ADR-026** full-embed (supersedes ADR-011) — see `docs/adrs/ADR-015-runtime-resolution.md` and `docs/adrs/ADR-026-full-embed.md`.
 
@@ -78,7 +78,7 @@ The toolkit layer itself separates two conceptual planes that **share one repo, 
 │  │  Capability: skills/agents/plugins/profiles/  │  │
 │  │              mcp/packs/distributions          │  │
 │  │  Runtime:    workspace/memory/project/loop/   │  │
-│  │              devcompanion/swarm + tui/serve   │  │
+│  │              devcompanion/swarm + serve API   │  │
 │  │                                               │  │
 │  │  ┌───────────────────────────────────────┐   │  │
 │  │  │  L3 — Workspace (Harness)             │   │  │

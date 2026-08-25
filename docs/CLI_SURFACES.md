@@ -36,8 +36,8 @@ Still available on the same binary — de-emphasized in top-level help:
 | `project` | Project index: clone, list, add, remove, scan |
 | `devcompanion` | Background job queue (`dc` alias) |
 | `insights` | **DEPRECATE** — local usage analytics (OpenCode, Cursor, Claude); [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) |
-| `tui` | Interactive TUI dashboard — dashboard/loops/skills/doctor, ANSI colors, j/k nav, r run (no-llm) |
-| `serve` | Web dashboard + API server (`vlib/veb`, 27 routes, `$embed_file` SPA) — `127.0.0.1:3847` default, `AGENT_TOOLKIT_TOKEN` for remote |
+| `tui` | **REMOVED in 1.23.0** (ADR-030) — removal-notice stub; use CLI or `serve` API |
+| `serve` | Programmatic/headless API server (`vlib/veb`) — capability discovery, read/execution APIs, jobs, OpenAPI, selfcheck; `127.0.0.1:3847` default, `AGENT_TOOLKIT_TOKEN` for remote |
 | `build` | Compile canonical capabilities into target artifacts |
 | `inventory` | List skills, agents, and products |
 | `matrix` | Platform capability matrix |
@@ -89,7 +89,7 @@ Wave/complexity/risk in the YAML `migration:` block.
 | `matrix` | advanced | compiler EPIC | PORT |
 | `release` | advanced | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVE** (CI / `docs/RELEASING.md`) |
 | `swarm` | advanced | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | REDESIGN |
-| `tui` | advanced | [#837](https://github.com/ulises-jeremias/agent-toolkit/issues/837) | PORT |
+| `tui` | advanced | [#837](https://github.com/ulises-jeremias/agent-toolkit/issues/837) | REMOVE (1.23.0, ADR-030) |
 | `serve` | advanced | [#833](https://github.com/ulises-jeremias/agent-toolkit/issues/833) | PORT |
 
 JSON/`--json` and full flag lists: `cli-contract.yaml`, not this table.

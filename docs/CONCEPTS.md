@@ -29,7 +29,7 @@ No code split — one repo, one `build/agent-toolkit` binary, one Release (ADR-0
 | Plane | Owns | Key dirs / commands | Runtime note |
 |-------|------|---------------------|--------------|
 | **Capability Plane** | What is *distributed* — portable capabilities + compiled artifacts | `skills/` + `agents/` (SoT), `distributions/products.yaml`, `plugins/` (**canonical**, `build --check`), `profiles/` (deprecated overlay), `mcp/templates/` + `mcp/registry/`, `packs/` (docs-only) | Data is **embedded** in the binary (`embedded_data.v`, FHS `/usr/share` compat) — **ADR-026** Full-Embed (supersedes ADR-011). |
-| **Runtime Plane** | What is *executed* from a harness workspace — consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` (+ `tui`/`serve` surfaces); `insights` **DEPRECATE** (#526) | Resolves data via `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized). Offline never downloads — **ADR-015** Runtime Resolution (amends ADR-005) + **ADR-026** `paths.v`/`data_io.v`. |
+| **Runtime Plane** | What is *executed* from a harness workspace — consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` (+ `serve` programmatic surface — TUI retired per ADR-030)| Resolves data via `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized). Offline never downloads — **ADR-015** Runtime Resolution (amends ADR-005) + **ADR-026** `paths.v`/`data_io.v`. |
 
 References: `docs/adrs/ADR-015-runtime-resolution.md`, `docs/adrs/ADR-026-full-embed.md`, `docs/ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime`.
 

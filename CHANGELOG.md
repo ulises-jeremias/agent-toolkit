@@ -10,6 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.23.0] — 2026-08-25
+
+> **Breaking:** the interactive TUI is no longer a supported product surface.
+> `agent-toolkit tui` now prints a removal notice (exit 1). Capabilities remain
+> fully available via the CLI and via the programmatic API (`agent-toolkit serve`).
+> Rationale and migration: [ADR-030](docs/adrs/ADR-030-capability-contract-binary-first.md).
+
+- **BREAKING** — Retire TUI: remove `modules/agent_toolkit_tui`, generated `tui_registry.v`, docs; CLI keeps an actionable removal stub ([#837] superseded by ADR-030)
+- **BREAKING** — Retire Web application: replace the dashboard SPA with a minimal static server status page; remove `web_nav.json` generation ([#838] superseded by ADR-030)
+- **Arch** — ADR-030 supersedes ADR-029: contract semantics move from presentation parity to capability description; parity gates now enforce contract ↔ OpenAPI ↔ registered server routes only
+- **Feat** — `GET /api/v1/selfcheck`: runtime coherence checks (embedded OpenAPI freshness vs running binary, jobs dir writability, bind policy)
+- **Feat** — Add missing programmatic surfaces for contract capabilities: `POST /api/v1/loops/{sub}`, `/api/v1/dc/{sub}`, `/api/v1/swarms/{sub}` (thin core proxies)
+- **Contract** — Drop `insights`/`release` entries (retired commands are not capabilities); add `api: false` for human-only meta capabilities (`completion`, `serve`)
+- **Tests** — Rewrite `test_surface_parity.py`: capability↔OpenAPI↔routes coverage, retired-artifact guard, scope/confirm metadata; TUI registry test removed
+
 ## [1.22.3] — 2026-08-24
 
 - **Fix** — TUI Skills: use `find_toolkit_root()` + embedded fallback (was `lookup_checkout_root` only, failed from `~/.ai-workspace` with `skills not found`)
@@ -559,7 +574,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.22.3...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.23.0...HEAD
+[1.23.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.0
 [1.22.3]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.22.3
 [1.22.2]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.22.2
 [1.22.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.22.1

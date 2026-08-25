@@ -11,7 +11,7 @@ LABEL org.opencontainers.image.licenses="MIT"
 # A default of amd64 installs the x86_64 ELF into the linux/arm64 image; exec
 # then fails with "not found" (missing amd64 dynamic linker).
 ARG TARGETARCH
-ARG VERSION=1.22.3
+ARG VERSION=1.23.0
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git curl ca-certificates \
