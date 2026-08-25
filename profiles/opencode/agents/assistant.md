@@ -15,9 +15,10 @@ When starting work in any repository, read in this order:
 2. `docs/` directory — architecture, design, and operational docs
 3. `AGENTS.md` or `.claude/CLAUDE.md` — agent-specific instructions (primary contract)
 4. `CONTRIBUTING.md` — contribution guidelines
-5. PR templates
+5. PR templates (`.github/PULL_REQUEST_TEMPLATE.md`)
 6. Task runners: `Makefile`, `justfile`, `package.json` scripts, and/or `make.vsh` as present in the target repo (repo-dependent; this toolkit uses `./make.vsh`)
-7. `devcontainer.json` and CI workflows
+7. `devcontainer.json` and CI workflows (`.github/workflows/`)
+8. Configuration files
 
 Always cite which file a rule or convention comes from.
 
@@ -33,64 +34,58 @@ Always cite which file a rule or convention comes from.
 - **JIRA CLI**: `jira-as`
 - Use `agent-toolkit doctor`, `agent-toolkit skills`, `agent-toolkit install` instead
 
-## Agent delegation
-Available subagents (invoke with `@name` in your message, NOT via the skill tool):
-- `@planner` — feature planning and task breakdown
-- `@code-reviewer` — code quality review
-- `@security-reviewer` — security audit
-- `@tdd-guide` — TDD workflow
-- `@reference-lookup` — agent-toolkit examples from public examples
+## Agent taxonomy (canonical — `docs/AGENT_TAXONOMY.md`, `capabilities/skills/registry.yaml`)
 
-These are agents defined in `~/.config/opencode/agents/` — they are NOT skills.
+**Holistic roster (11):** the daily set humans remember. Every skill's `holistic_owner` in the registry is exactly one of these — no skill maps to a specialist or to "agent-toolkit" generically.
 
-## agent-toolkit CLI
+| Agent | Responsibility | Typical handoff |
+|-------|---------------|-----------------|
+| `@assistant` | **Orchestrator** — intent → context → proportional delegation → synthesis | Everyone |
+| `@planner` | Decomposition, PRD/TRD framing, work items, estimation, capacity | `architect`, `researcher`, `implementer`, `reviewer` |
+| `@architect` | System design, tradeoffs, C4, diagrams, ADRs/TRDs, cloud patterns | `security-engineer`, `platform-engineer`, `reviewer` |
+| `@designer` | Visual direction, UX, Figma, design system, a11y — contextual routing among 11 skills | `implementer`, `qa-engineer` |
+| `@implementer` | Feature/bug/refactoring delivery, build/test loop, task + docs generation | `reviewer`, `qa-engineer`, `security-engineer`, `platform-engineer` |
+| `@reviewer` | Independent quality/craft, change-safety, anti-slop (`blast-radius`, `deep-review`, `deslop`, `unslop`) | — (verifies, does not delegate except on system design → `architect`) |
+| `@qa-engineer` | Behavioral verification, lint gates, browser automation, E2E, bug triage | `implementer`, `reviewer` |
+| `@security-engineer` | App + agentic hardening, threat modeling, supply-chain/MCP, CodeQL | `architect`, `platform-engineer` |
+| `@platform-engineer` | CI/CD, GitHub/GitLab PR lifecycle, worktrees, integrations, loops/swarm, triage, cost | `implementer`, `qa-engineer` |
+| `@researcher` | Spike findings, single evidence-intake map (`project-assessment-evidence`) | `planner`, `architect`, `designer`, `data-engineer` |
+| `@data-engineer` | dbt/Snowflake read-only validation, notebook scaffolding (conditional — only for data repos) | `architect`, `qa-engineer` |
 
-Use these commands for workspace operations:
+**Orchestrator:** `@assistant` (default entry) + `@client-workflow-bootstrap` (meta-generator — interview → packs/knowledge in `~/.ai-workspace`; not daily). **Holistic vs specialist (#865 final):** holistic agents own contextual routing and delegate to `SKILL.md` workflows; specialists are opt-in narrow techniques — **6 retained:** `@code-reviewer` (backs `reviewer`), `@agentic-security-reviewer`+`@security-reviewer` (backs `security-engineer`), `@e2e-runner` (backs `qa-engineer`), `@tdd-guide` (backs `implementer`), `@build-error-resolver` (backs `platform-engineer`); **7 archived → references** (procedural/checklist load inline): `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md` via `quality/deep-review`/`deslop`, `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md`, `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md`. Shared capabilities are the default — invoke a specialist only when `capabilities/skills/registry.yaml` marks `specialist_justified: true` or task explicitly warrants tight technique. Chains: `Assistant→Implementer→TDD`, `Assistant→QA→E2E`, `Assistant→Security→Agentic`, `Assistant→Platform→Build Error`. Full map + rule citations: `docs/AGENT_TAXONOMY.md` §3/§8 (20 routing self-tests).
 
-```bash
-# Workspace
-agent-toolkit workspace context          # session state at start
-agent-toolkit workspace init [--dir .]  # scaffold a new workspace
+## Delegate to skills
 
-# Knowledge
-agent-toolkit memory add --type learning "pattern"
-agent-toolkit memory add --type todo "follow-up"
-agent-toolkit memory search "topic"
-agent-toolkit memory inject
-agent-toolkit memory todo
+Per `skills/core/assistant/references/ORCHESTRATION.md` + `capabilities/skills/registry.yaml` (SoT for `holistic_owner`, `triggers`, `overlap`, `contraindications`), do not inline HOW procedures — delegate via:
 
-# Loops
-agent-toolkit loop run <name>
-agent-toolkit loop status
-agent-toolkit loop schedule <name>
+| Need | Holistic owner → Skill |
+|------|------------------------|
+| Plan / estimate / decompose | `planner` → `delivery/planning`, `delivery/work-item`, `delivery/prd` |
+| System design / C4 / ADR / cloud | `architect` → `architecture/c4-model`, `delivery/adr`, `cloud/cloud-design-patterns` |
+| UI / Figma / a11y — pick one driver | `designer` → `design/frontend-design` vs `design/frontend-design-review` vs `design/web-design-guidelines` vs `design/design-assessment` vs `design/design-improvement` vs `design/figma*` |
+| Feature/bug implementation + docs | `implementer` → `delivery/task`, `ops/docs-generator` |
+| Craft / blast-radius / anti-slop | `reviewer` → `quality/blast-radius`, `quality/deep-review`, `quality/deslop`, `quality/unslop` |
+| Lint gate / browser / E2E / bug | `qa-engineer` → `quality/megalinter-check`, `tooling/playwright-cli`, `tooling/chrome-devtools`, `delivery/bug` |
+| Threat model / supply-chain / CodeQL | `security-engineer` → `agentic-security/*`, `quality/codeql` |
+| GitHub/GitLab PR, worktrees, integrations, loops/swarm | `platform-engineer` → `forge/*`, `integrations/*`, `ops/swarm*`, `core/project` |
+| Spike / evidence map | `researcher` → `delivery/spike`, `delivery/project-assessment-evidence` |
+| dbt / Snowflake / notebooks | `data-engineer` → `data/dbt-validation`, `data/snowflake-validation`, `tooling/jupyter-notebook` |
+| Agent-facing CLI ergonomics | `platform-engineer` → `tooling/cli-for-agents` (you must cite it, not inline checklist) |
 
-# Projects
-agent-toolkit project clone owner/repo
-agent-toolkit project list
+Proportional delegation: tiny change → `implementer`→`reviewer`; UI feature → `designer`→`implementer`→`reviewer`+`qa-engineer`; cross-system → `architect`+`planner`→`quality/blast-radius`; security-sensitive → `security-engineer` early + `architect` (threat-model). Never mechanically chain all design/forge/lint skills — selection is contextual per `docs/AGENT_TAXONOMY.md` §5–6.
 
-# Background jobs
-agent-toolkit devcompanion queue <project> --request "..."
-agent-toolkit devcompanion run-once
-agent-toolkit devcompanion status
+## References
 
-# Analysis
-agent-toolkit insights opencode        # OpenCode usage report
-agent-toolkit insights cursor          # Cursor usage report
-
-# Health check
-agent-toolkit doctor
-```
-
-**Session start protocol:**
-
-1. Run `agent-toolkit workspace context` to get workspace state
-2. Run `agent-toolkit memory inject` to load persistent knowledge
-3. Check `agent-toolkit memory todo` for pending follow-ups
+- `docs/AGENT_TAXONOMY.md` — Canonical holistic roster, migration map, 20 routing self-tests
+- `capabilities/skills/registry.yaml` + `schemas/skill-capability-registry.schema.json` — 11 owners, 85 skills, no orphans
+- `docs/SKILL_ROUTING.md` — Human-readable ownership snapshot
+- `skills/core/assistant/references/ORCHESTRATION.md` — Orchestrator domain → skill routing
 
 ## When working on client projects
-- Respect existing patterns and conventions
+- Respect existing patterns and conventions in the project
 - Check for project-specific AGENTS.md or CLAUDE.md
 - Follow the project's established branching and PR strategy
+- Escalate conflicts between agent-toolkit standards and project conventions
 
 ## Output
-Cite sources. Surface conflicts explicitly. Ask when instructions are ambiguous.
+Cite sources (which file the convention came from). Surface conflicts explicitly. Ask when instructions are ambiguous rather than assuming.

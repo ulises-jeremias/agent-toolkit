@@ -49,23 +49,16 @@ Always cite which file a convention comes from.
 - Update documentation when behavior changes
 - English for all documentation, commits, and ticket descriptions
 
-## Available AI subagents (OpenCode / Claude Code)
-These specialized agents are available via @mention:
+## Available AI agents (canonical — `agents/` + `docs/AGENT_TAXONOMY.md`, Tier D = local guidance only)
 
-- **@architect** — System design and technical trade-off analysis
-- **@build-error-resolver** — Fix compilation and TypeScript errors
-- **@code-reviewer** — Code quality, security, and maintainability review
-- **@database-reviewer** — PostgreSQL schema, query optimization, migrations
-- **@docs-lookup** — Framework and library documentation search
-- **@e2e-runner** — Playwright end-to-end test writing and debugging
-- **@assistant** — agent-toolkit conventions and standards enforcement
-- **@performance-optimizer** — Profiling and performance analysis
-- **@planner** — Feature breakdown and risk analysis before implementation
-- **@refactor-cleaner** — Dead code removal and code simplification
-- **@reference-lookup** — public examples examples and agent-toolkit patterns
-- **@security-reviewer** — Vulnerability detection before deployment
-- **@tdd-guide** — Test-driven development cycle enforcement
-- **@typescript-reviewer** — TypeScript type safety and modern patterns
+Windsurf is **Tier D (minimal)** — this file is local guidance only (no marketplace, no native subagent dispatch). For rich multi-agent delegation use Tier A/B harnesses. The compiler does not emit subagent config where `subagents: false`.
+
+**Holistic (daily):** `@assistant` (orchestrator) · `@planner` · `@architect` · `@designer` · `@implementer` · `@reviewer` · `@qa-engineer` · `@security-engineer` · `@platform-engineer` · `@researcher` · `@data-engineer` (conditional)
+**Specialist (opt-in, 6):** `@code-reviewer` (backs `reviewer`), `@security-reviewer` + `@agentic-security-reviewer` (backs `security-engineer`), `@e2e-runner` (backs `qa-engineer`), `@tdd-guide` (backs `implementer`), `@build-error-resolver` (backs `platform-engineer`)
+**Meta-generator:** `@client-workflow-bootstrap` — onboarding interview → `packs/` + `knowledge/` (not daily)
+References archived from former specialists are loaded inline: `reviewer/references/{TYPESCRIPT,DATABASE,PERFORMANCE,REFACTOR}_CHECKLIST.md`, `researcher/references/LOOKUP_GUIDE.md`, `platform-engineer/references/WORKSTATION_OPS.md`.
+
+Invoke with `@name` where harness supports it; otherwise follow instructions inline.
 
 ## agent-toolkit CLI
 

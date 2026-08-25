@@ -36,12 +36,38 @@ def test_claude_settings_has_no_inline_agents():
     )
 
 
-# Parity is advisory: profiles are deprecated (ADR-004) and superseded by compiled plugins (agent-toolkit build).
-# This test documents gaps but does not fail CI for intentional minimal pi (5 agents).
+# Post-#869, deprecated profiles are synchronized to canonical 18 for harness-specific adapter correctness
+# (ADR-004 fallback). Build output remains canonical, but profiles must not drift.
 def test_profile_parity_documented():
     for rel, suffix in PROFILE_MAP.items():
         present = {p.stem for p in (REPO / rel).glob(f"*{suffix}")}
         missing = CANONICAL - present
-        # Allow missing for deprecated profiles, but fail if agentic-security-reviewer missing in non-pi (recent addition)
-        if rel in ["profiles/claude-code/agents", "profiles/opencode/agents"]:
-            assert "agentic-security-reviewer" not in missing or True  # advisory, not strict
+        extra = present - CANONICAL
+        assert missing == set(), f"{rel}: missing agents vs canonical {sorted(missing)}"
+        assert extra == set(), f"{rel}: extra agents not in canonical {sorted(extra)}"
+
+
+def test_archived_agents_not_in_profiles():
+    """#865 archived 7 specialists -> references, not agents. Profiles must not contain them."""
+    archived = {
+        "database-reviewer",
+        "performance-optimizer",
+        "refactor-cleaner",
+        "docs-lookup",
+        "reference-lookup",
+        "typescript-reviewer",
+        "tech-assistant",
+    }
+    for rel, suffix in PROFILE_MAP.items():
+        present = {p.stem for p in (REPO / rel).glob(f"*{suffix}")}
+        found = archived & present
+        assert found == set(), f"{rel}: archived agents still present {sorted(found)}"
+
+
+def test_pi_profile_parity():
+    """Pi (Tier B) now ships full 18 agents-as-skills per #869."""
+    present = {p.name for p in (REPO / "profiles/pi/skills").iterdir() if p.is_dir()}
+    missing = CANONICAL - present
+    extra = present - CANONICAL
+    assert missing == set(), f"profiles/pi/skills: missing {sorted(missing)}"
+    assert extra == set(), f"profiles/pi/skills: extra {sorted(extra)}"

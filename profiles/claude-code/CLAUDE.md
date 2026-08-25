@@ -31,24 +31,31 @@ Always cite which file a rule or convention comes from.
 - **JIRA CLI**: `jira-as`
 - All other agent-toolkit helpers use `` prefix: `doctor`, `skills`, `update-check`
 
-## Agent delegation
+## Agent delegation (canonical — `agents/` + `docs/AGENT_TAXONOMY.md`)
 
-Available subagents (invoke with `@name` in your message):
-- `@planner` — feature planning and task breakdown
-- `@code-reviewer` — code quality review
-- `@security-reviewer` — security audit
-- `@tdd-guide` — TDD workflow
-- `@reference-lookup` — agent-toolkit examples from public examples
-- `@architect` — system design and architecture decisions
-- `@build-error-resolver` — build/CI error diagnosis
-- `@database-reviewer` — SQL and database review
-- `@performance-optimizer` — performance analysis
-- `@typescript-reviewer` — TypeScript/JS code review
-- `@e2e-runner` — Playwright E2E tests
-- `@refactor-cleaner` — dead code cleanup and refactoring
-- `@tech-assistant` — agent-toolkit operational procedures
+Orchestrator `@assistant` (this session) routes to 11 holistic roles per `ORCHESTRATION.md`. Use holistic names for daily work; specialists are opt-in via holistic caller.
 
-These are agents defined in `~/.claude/agents/` — they are NOT skills.
+**Holistic (daily):**
+- `@assistant` — orchestrator (this session), repo discovery + routing
+- `@planner` — decomposition, PRD/work-item, estimation, capacity
+- `@architect` — system design, C4, ADRs/TRDs, cloud patterns
+- `@designer` — visual/UX routing among 11 design + a11y skills
+- `@implementer` — feature/bug/refactor delivery, build/test loop, docs gen
+- `@reviewer` — independent craft, blast-radius, anti-slop (never self-approves)
+- `@qa-engineer` — behavioral verification, lint/browser/E2E, bug triage
+- `@security-engineer` — app + agentic hardening, threat-model, supply-chain, CodeQL
+- `@platform-engineer` — CI/CD, forge PR lifecycle, worktrees, loops/swarm, integrations
+- `@researcher` — spike/evidence-intake (`project-assessment-evidence` is single framework)
+- `@data-engineer` — dbt/Snowflake validation, notebooks (conditional — data repos only)
+
+**Specialist (opt-in, 6):**
+- `@code-reviewer` (backs `reviewer`), `@security-reviewer` + `@agentic-security-reviewer` (backs `security-engineer`), `@e2e-runner` (backs `qa-engineer`), `@tdd-guide` (backs `implementer`), `@build-error-resolver` (backs `platform-engineer`)
+- 7 archived → `reviewer/references/*` + `researcher/references/LOOKUP_GUIDE.md` + `platform-engineer/references/WORKSTATION_OPS.md` — loaded inline, not agents.
+
+**Meta-generator:**
+- `@client-workflow-bootstrap` — onboarding interview → `packs/` + `knowledge/`, draft PR (not daily).
+
+Tier mapping in `capabilities/targets/registry.yaml` + `docs/TARGET_CAPABILITY_MATRIX.md`. All agents below are defined in `~/.claude/agents/` — they are NOT skills.
 
 ## When working on client projects
 
