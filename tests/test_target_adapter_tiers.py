@@ -9,7 +9,6 @@ Validates that:
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 import yaml
@@ -52,8 +51,12 @@ def test_every_target_has_tier_and_rationale():
         tid = t["id"]
         assert "tier" in t, f"{tid}: missing tier field"
         assert t["tier"] in ALL_TIERS, f"{tid}: invalid tier {t['tier']!r}"
-        assert "tier_rationale" in t and isinstance(t["tier_rationale"], str), f"{tid}: missing tier_rationale"
-        assert len(t["tier_rationale"].strip()) >= 20, f"{tid}: tier_rationale too short: {t['tier_rationale']!r}"
+        assert "tier_rationale" in t and isinstance(t["tier_rationale"], str), (
+            f"{tid}: missing tier_rationale"
+        )
+        assert len(t["tier_rationale"].strip()) >= 20, (
+            f"{tid}: tier_rationale too short: {t['tier_rationale']!r}"
+        )
 
 
 def test_tier_distribution_matches_model():
@@ -80,11 +83,17 @@ def test_tier_a_rich_multi_agent_invariants():
     for tid in TIER_A:
         t = by_id[tid]
         # Tier A: rich multi-agent — must support all delegation primitives
-        assert _cap(t, "native_custom_agents") is True, f"{tid}: Tier A must have native_custom_agents true"
+        assert _cap(t, "native_custom_agents") is True, (
+            f"{tid}: Tier A must have native_custom_agents true"
+        )
         assert _cap(t, "subagents") is True, f"{tid}: Tier A must have subagents true"
         assert _cap(t, "parallel_agents") is True, f"{tid}: Tier A must have parallel_agents true"
-        assert _cap(t, "automatic_delegation") is True, f"{tid}: Tier A must have automatic_delegation true"
-        assert _cap(t, "agent_permissions") is True, f"{tid}: Tier A must have agent_permissions true"
+        assert _cap(t, "automatic_delegation") is True, (
+            f"{tid}: Tier A must have automatic_delegation true"
+        )
+        assert _cap(t, "agent_permissions") is True, (
+            f"{tid}: Tier A must have agent_permissions true"
+        )
         assert _cap(t, "agent_models") is True, f"{tid}: Tier A must have agent_models true"
         assert _cap(t, "mcp") is True, f"{tid}: Tier A must have mcp true"
         assert _cap(t, "hooks") is True, f"{tid}: Tier A must have hooks true"
@@ -98,10 +107,16 @@ def test_tier_b_custom_agents_limited_delegation():
     for tid in TIER_B:
         t = by_id[tid]
         # Tier B: custom agents with limited delegation — native agents must be present
-        assert _cap(t, "native_custom_agents") is True, f"{tid}: Tier B must have native_custom_agents true"
+        assert _cap(t, "native_custom_agents") is True, (
+            f"{tid}: Tier B must have native_custom_agents true"
+        )
         assert _cap(t, "agent_skills") is True, f"{tid}: Tier B must have agent_skills true"
         # At least one delegation/parallel signal — not all false
-        delegation_vals = [_cap(t, "subagents"), _cap(t, "automatic_delegation"), _cap(t, "parallel_agents")]
+        delegation_vals = [
+            _cap(t, "subagents"),
+            _cap(t, "automatic_delegation"),
+            _cap(t, "parallel_agents"),
+        ]
         assert any(v is True or v == "partial" for v in delegation_vals), (
             f"{tid}: Tier B expected at least one of subagents/automatic/parallel to be true/partial, got {delegation_vals}"
         )
@@ -115,8 +130,12 @@ def test_tier_c_skills_plus_instructions_invariants():
         t = by_id[tid]
         # Tier C: skills + instructions — no subagent/delegation
         assert _cap(t, "subagents") is False, f"{tid}: Tier C must have subagents false"
-        assert _cap(t, "automatic_delegation") is False, f"{tid}: Tier C must have automatic_delegation false"
-        assert _cap(t, "nested_delegation") is False, f"{tid}: Tier C must have nested_delegation false"
+        assert _cap(t, "automatic_delegation") is False, (
+            f"{tid}: Tier C must have automatic_delegation false"
+        )
+        assert _cap(t, "nested_delegation") is False, (
+            f"{tid}: Tier C must have nested_delegation false"
+        )
         assert _cap(t, "parallel_agents") is False, f"{tid}: Tier C must have parallel_agents false"
         # Skills should be present (true for all C)
         assert _cap(t, "agent_skills") is True, f"{tid}: Tier C must have agent_skills true"
@@ -152,8 +171,12 @@ def test_graceful_degradation_no_subagent_where_unsupported():
     by_id = _targets_by_id()
     for tid in NO_SUBAGENT_TIERS:
         t = by_id[tid]
-        assert _cap(t, "subagents") is False, f"{tid}: graceful degradation requires subagents false"
-        assert _cap(t, "automatic_delegation") is False, f"{tid}: no delegation where subagents unsupported"
+        assert _cap(t, "subagents") is False, (
+            f"{tid}: graceful degradation requires subagents false"
+        )
+        assert _cap(t, "automatic_delegation") is False, (
+            f"{tid}: no delegation where subagents unsupported"
+        )
         assert _cap(t, "nested_delegation") is False
         assert _cap(t, "parallel_agents") is False
 
@@ -191,7 +214,11 @@ def test_matrix_has_build_commands_and_tiers_table():
     # Header must have Tier column
     assert "| Target | `build` | `diff` | `release` | Tier |" in text
     # At least 11 target rows
-    rows = [l for l in text.splitlines() if l.startswith("| Claude Code") or l.startswith("| Cursor") or l.startswith("| Windsurf")]
+    rows = [
+        l
+        for l in text.splitlines()
+        if l.startswith("| Claude Code") or l.startswith("| Cursor") or l.startswith("| Windsurf")
+    ]
     assert len(rows) >= 3
 
 
@@ -199,7 +226,14 @@ def test_matrix_has_tier_assignment_table():
     text = MATRIX.read_text(encoding="utf-8")
     assert "## Tier Assignment" in text
     assert "| Target | Tier | Rationale |" in text
-    for tid in ["claude-code", "cursor", "opencode", "windsurf", "copilot-repository", "agent-plugins"]:
+    for tid in [
+        "claude-code",
+        "cursor",
+        "opencode",
+        "windsurf",
+        "copilot-repository",
+        "agent-plugins",
+    ]:
         assert f"`{tid}`" in text, f"matrix missing tier assignment row for {tid}"
 
 
@@ -209,7 +243,9 @@ def test_matrix_per_target_details_include_tier():
     # Count occurrences of "- **Tier:**"
     tier_lines = [l for l in text.splitlines() if l.strip().startswith("- **Tier:**")]
     by_id = _targets_by_id()
-    assert len(tier_lines) >= len(by_id), f"expected tier line per target, got {len(tier_lines)} vs {len(by_id)}"
+    assert len(tier_lines) >= len(by_id), (
+        f"expected tier line per target, got {len(tier_lines)} vs {len(by_id)}"
+    )
 
 
 def test_matrix_generated_header():
