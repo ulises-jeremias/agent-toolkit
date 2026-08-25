@@ -94,7 +94,11 @@ def test_server_routes_cover_openapi_paths():
     registered.discard("/")
 
     missing_in_server = openapi_paths - registered
-    assert not missing_in_server, f"contract paths without server route: {sorted(missing_in_server)}"
+    assert not missing_in_server, (
+        f"contract paths without server route: {sorted(missing_in_server)}"
+    )
 
     undeclared = registered - openapi_paths - SERVER_NATIVE_PATHS
-    assert not undeclared, f"server routes not covered by contract or SERVER_NATIVE_PATHS: {sorted(undeclared)}"
+    assert not undeclared, (
+        f"server routes not covered by contract or SERVER_NATIVE_PATHS: {sorted(undeclared)}"
+    )
