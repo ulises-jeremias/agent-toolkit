@@ -4,21 +4,27 @@ Recipes are versioned `agent-toolkit.dev/v1alpha1`, kind `SwarmRecipe`.
 
 ## Built-ins
 
-### pair
-- Roles: implementer (writer, tdd-guide, coding), reviewer (reviewer-writer, code-reviewer, review), integrator (integrator, architect, architecture, batch)
+### pair (→ `docs/SWARM_ROLES.md` #870 — runtime roles mapped to canonical personas)
+
+- Roles: `implementer` → `implementer` (writer, `tdd-guide` backing, `coding`), `reviewer` → `reviewer` (reviewer-writer, `code-reviewer` backing, `review`), `integrator` → `architect` in integrator policy (architecture, batch)
 - No plan gate, final approval required, concurrency 2, round-trips 2
 - Use: bugs, features, refactors, docs with examples
 
 ### team
-- Roles: planner (read-only, planning), implementer, reviewer, architect (integrator, batch)
+
+- Roles: `planner` → `planner` (read-only, `planning`), `implementer` → `implementer`, `reviewer` → `reviewer`, `architect` (also `integrator`, batch)
 - Plan approval required
 - Use: medium features, cross-module, schema, integrations, public API
 
 ### full
-- Roles: planner, implementer, refactorer (writer, review), architect (integrator, batch), hardener (conditional specialist), qa
+
+- Roles: `planner` → `planner`, `implementer` → `implementer`, `refactorer` → `reviewer` inline (`review`, via `quality/deslop` + `reviewer/references/REFACTOR_CHECKLIST.md`), `architect` (integrator, batch), `hardener` → conditional specialist (see `docs/SWARM_ROLES.md` §2 — exactly one by risk), `qa` → `qa-engineer` (`e2e-runner` opt-in)
 - Hardener specialization (post-#865): `security-reviewer` (still specialist) | `reviewer` via `quality/deep-review` + `references/DATABASE_CHECKLIST.md` (archived `database-reviewer`), `references/PERFORMANCE_CHECKLIST.md` (archived `performance-optimizer`), `references/TYPESCRIPT_CHECKLIST.md` (archived `typescript-reviewer`) — select only one justified by risk; archived specialists are now `reviewer` references loaded inline, not agents
 - QA owns full verification, E2E, smoke tests
 - Use: security-sensitive, releases, migrations, large features
+- Optional: `designer` → `designer` when UI surface in scope
+
+> **Invariant:** every role maps to a canonical `agents/<name>/AGENT.md`. `integrator`/`hardener`/`refactorer` are runtime responsibilities, not permanent holistic agents. See `docs/SWARM_ROLES.md`.
 
 ## Recipe Schema
 
@@ -79,7 +85,7 @@ Recipes are backend-neutral: `spec.ui` (`auto`/`herdr`/`tmux`/`headless`) select
 - **Cleanup:** only Toolkit-owned `worktrees/<role>` and backend windows are removed by `swarm cleanup`; dirty worktrees preserved, branches never auto-deleted (see [SWARMS.md](SWARMS.md) and [SWARM_TMUX.md](SWARM_TMUX.md)).
 - **Extension:** see [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md) for full guide, config precedence (`CLI → swarm.yaml → ~/.config/agent-toolkit/swarm.yaml → defaults`), and offline validation via `swarm plan --runner skeleton`.
 
-Related: [SWARMS.md](SWARMS.md) · [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (diagrams: ecosystem boundaries, runtime layers, pair/team/full, handoff/run state machines, Herdr/tmux separation) · [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md) · [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) · [SWARM_SECURITY.md](SWARM_SECURITY.md) · [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md)
+Related: [SWARMS.md](SWARMS.md) · [SWARM_ROLES.md](SWARM_ROLES.md) (#870) · [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md) (diagrams: ecosystem boundaries, runtime layers, pair/team/full, handoff/run state machines, Herdr/tmux separation) · [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md) · [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) · [SWARM_SECURITY.md](SWARM_SECURITY.md) · [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md)
 
 ## Creating Custom Recipes
 

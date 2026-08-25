@@ -58,11 +58,13 @@ Role policy           → what the role can read/modify/execute/integrate/publis
 
 Never conflate these.
 
-## Recipes
+## Recipes (canonical roles — `docs/SWARM_ROLES.md` #870)
 
-- **pair** — implementer → reviewer/integrator → human approval (default). For bugs, features, refactors. 2 round-trip limit, concurrency 2.
-- **team** — planner → implementer → reviewer → architect → human approval. For medium features, schema changes, API changes. Requires plan approval.
-- **full** — planner → implementer → refactorer → architect → hardener (conditional specialist) → qa → human approval. For security-sensitive, releases, migrations.
+- **pair** — `implementer` (→ `reviewer` → `integrator[architect]`) → human approval (default). For bugs, features, refactors. 2 round-trip limit, concurrency 2.
+- **team** — `planner` → `implementer` → `reviewer` → `architect` (also `integrator` batch) → human approval. For medium features, schema changes, API changes. Requires plan approval.
+- **full** — `planner` → `implementer` → `refactorer[reviewer inline]` → `architect` (integrator batch) → `hardener` (conditional by risk — see `docs/SWARM_ROLES.md`) → `qa[qa-engineer]` → human approval. For security-sensitive, releases, migrations. `designer` optional when UI in scope.
+
+> **Swarm ≠ canonical taxonomy.** `integrator`/`hardener`/`refactorer` are **runtime roles**, not permanent holistic agents. Every swarm role maps to a canonical `agents/` persona (or a conditional specialist selection) per `docs/SWARM_ROLES.md`. No parallel taxonomy.
 
 All recipes are lazy/elastic: topology created logically, only roles whose inputs are ready start. Promote `pair → team → full` without losing run ID, artifacts, or budget.
 
@@ -155,7 +157,7 @@ agent-toolkit swarm models --runner opencode   # fallback to profile models when
 
 Mermaid diagrams for ecosystem boundaries, runtime layers, pair/team/full workflows, handoff/role/run state machines, and Herdr/tmux adapter separation are in [SWARM_ARCHITECTURE.md](SWARM_ARCHITECTURE.md).
 
-Related: [SWARM_RECIPES.md](SWARM_RECIPES.md) · [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md) · [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) · [SWARM_HERDR.md](SWARM_HERDR.md) · [SWARM_TMUX.md](SWARM_TMUX.md) · [SWARM_SECURITY.md](SWARM_SECURITY.md) · [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [adr/ADR-008-swarm-orchestration.md](adrs/ADR-008-swarm-orchestration.md)
+Related: [SWARM_RECIPES.md](SWARM_RECIPES.md) · [SWARM_ROLES.md](SWARM_ROLES.md) (#870) · [SWARM_HANDOFFS.md](SWARM_HANDOFFS.md) · [SWARM_MODELS_AND_COSTS.md](SWARM_MODELS_AND_COSTS.md) · [SWARM_HERDR.md](SWARM_HERDR.md) · [SWARM_TMUX.md](SWARM_TMUX.md) · [SWARM_SECURITY.md](SWARM_SECURITY.md) · [HOW_TO_CREATE_SWARM_RECIPE.md](HOW_TO_CREATE_SWARM_RECIPE.md) · [ARCHITECTURE.md](ARCHITECTURE.md) · [adr/ADR-008-swarm-orchestration.md](adrs/ADR-008-swarm-orchestration.md)
 
 ## Configuration Precedence
 
