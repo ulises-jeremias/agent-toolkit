@@ -338,6 +338,7 @@ Tool-agnostic agent persona definitions in `agents/` (live count: `agent-toolkit
 | ⚙️ `tech-assistant` | Stack-specific technical guidance |
 | 🧭 `client-workflow-bootstrap` | Client workflow bootstrap |
 | 🛡️ `agentic-security-reviewer` | Agentic security — prompt injection, tool poisoning, excessive agency, MCP/plugin supply chain |
+| 🎨 `designer` | Visual direction, UX, Figma, a11y, design system |
 
 Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · personas on disk under `agents/` (see inventory)
 
