@@ -152,7 +152,7 @@ Swarms coordinate multiple coding-agent sessions with worktree isolation and dur
 
 ## Repository Structure
 
-Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~85 skills / 14 domains, 17 agents, 10 loops, 7 packs, 7 MCP providers).
+Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~85 skills / 14 domains, 25 agents = 11 holistic + orchestrator + 13 specialists, 10 loops, 7 packs, 7 MCP providers).
 
 ```
 agent-toolkit/
@@ -161,7 +161,7 @@ agent-toolkit/
 │   ├── data/  tooling/  ops/  loops/
 │   ├── agentic-security/  architecture/  cloud/
 │   └── accessibility/  quality/
-├── agents/                      # personas (incl. agentic-security-reviewer)
+├── agents/                      # personas: 11 holistic + orchestrator + 13 specialists (see docs/AGENT_TAXONOMY.md)
 ├── plugins/                     # compiler output — canonical (do not hand-edit; build --check)
 ├── profiles/                    # deprecated install overlay (ADR-004; fallback only)
 ├── distributions/               # products.yaml — product composition SoT
@@ -174,9 +174,21 @@ agent-toolkit/
 ├── modules/                     # V CLI (canonical product)
 ├── packages/                    # pypi/ + npm/ adapters
 ├── distribution/                # channel contracts (not Formula/PKGBUILD copies)
-├── docs/
+├── docs/                        # AGENT_TAXONOMY.md — canonical holistic roster + migration map + routing self-tests
 └── scripts/                     # validate-*, generate-catalogs, bump-version
 ```
+
+### Holistic agent taxonomy — canonical
+
+Eleven holistic roles own every skill's `holistic_owner` in `capabilities/skills/registry.yaml` (85 skills, no orphans). **Optimize for cognitive simplicity, useful context isolation, and independent verification — not fewest agents, not one-per-skill.** Full roster: [`docs/AGENT_TAXONOMY.md`](AGENT_TAXONOMY.md).
+
+| Tier | Agents | How to invoke |
+|------|--------|---------------|
+| Orchestrator | `assistant` (default), `client-workflow-bootstrap` (meta-generator → packs/knowledge) | Implicit + `@assistant` / `@client-workflow-bootstrap` |
+| Holistic (daily) | `planner`, `architect`, `designer`, `implementer`, `reviewer`, `qa-engineer`, `security-engineer`, `platform-engineer`, `researcher`, `data-engineer` (conditional) | `@planner`, `@architect`, `@designer`, … per `assistant` routing |
+| Specialist (opt-in) | `code-reviewer`, `security-reviewer`, `agentic-security-reviewer`, `tdd-guide`, `e2e-runner`, `refactor-cleaner`, `build-error-resolver`, `tech-assistant`, + `database-reviewer`/`performance-optimizer`/`typescript-reviewer`/`docs-lookup`/`reference-lookup` (merging — see taxonomy) | Invoked by holistic owner when `specialist_justified: true` in registry |
+
+For full migration decisions per legacy agent and 20 simulated routing tasks: `docs/AGENT_TAXONOMY.md` §3/§6. Proportional delegation examples (tiny change vs UI feature vs cross-system vs security-sensitive): `docs/AGENT_TAXONOMY.md` §5.
 
 ---
 

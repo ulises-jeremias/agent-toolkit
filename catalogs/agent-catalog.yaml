@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 18
+count: 25
 agents:
   - id: agentic-security-reviewer
     name: agentic-security-reviewer
@@ -20,6 +20,9 @@ agents:
   - id: code-reviewer
     name: code-reviewer
     description: 'Expert code review specialist. Proactively reviews code for quality, security, and maintainability. Use immediately after writing or modifying any significant code.'
+  - id: data-engineer
+    name: data-engineer
+    description: '>- Data engineering specialist — dbt/Snowflake validation, Jupyter notebooks, data artifact stewardship. Use when: dbt parse/compile/test, Snowflake read-only checks, notebook scaffolding, or valida'
   - id: database-reviewer
     name: database-reviewer
     description: 'PostgreSQL and database specialist. Use for schema design, query optimization, migration review, index analysis, and ORM usage questions.'
@@ -32,18 +35,36 @@ agents:
   - id: e2e-runner
     name: e2e-runner
     description: 'End-to-end testing specialist using Playwright. Use when writing, debugging, or running E2E tests, or when setting up Playwright test infrastructure.'
+  - id: implementer
+    name: implementer
+    description: '>- Implementation specialist — feature/bug/refactoring delivery, build/test loop, TDD-aware scaffolding and docs generation. Use when: new feature or bug fix, refactoring with behavior preservation,'
   - id: performance-optimizer
     name: performance-optimizer
     description: 'Performance analysis and optimization specialist. Use when code is slow, has memory leaks, fails performance benchmarks, or needs profiling.'
   - id: planner
     name: planner
     description: 'Expert planning specialist for complex features and refactoring. Use before starting any significant implementation to break down work, identify risks, and create an actionable plan.'
+  - id: platform-engineer
+    name: platform-engineer
+    description: '>- Platform and forge specialist — CI/CD, GitHub/GitLab PR lifecycle, merge-conflicts, worktrees, integrations (Slack/Linear/ClickUp/MCP), loops/swarm, triage, llm-cost-advisor, cli-for-agents, herd'
+  - id: qa-engineer
+    name: qa-engineer
+    description: '>- Quality-assurance and verification specialist — lint gates, browser automation, E2E, behavioral verification, bug triage. Use when: verifying behavior before ship, writing/debugging E2E tests, ru'
   - id: refactor-cleaner
     name: refactor-cleaner
     description: 'Dead code cleanup and refactoring specialist. Use when removing dead code, simplifying complex functions, reducing duplication, or improving code structure without changing behavior.'
   - id: reference-lookup
     name: reference-lookup
     description: 'Lookup agent-toolkit reference examples and patterns from public examples. Use when looking for official agent-toolkit examples, starter templates, or established patterns in the agent-toolkit ecosyst'
+  - id: researcher
+    name: researcher
+    description: '>- Research and discovery specialist — spike findings, evidence-intake, framework/docs exploration, inventory, reference examples. Use when: unknown needs time-boxed investigation, implementation st'
+  - id: reviewer
+    name: reviewer
+    description: '>- Independent quality/craft reviewer — owns change impact, deep review, anti-slop (code + prose), and verification separation. Use when: PR review, refactor review, prose/doc review before publish,'
+  - id: security-engineer
+    name: security-engineer
+    description: '>- Security hardening specialist — app + agentic security, threat modeling, supply-chain/MCP audit, SARIF triage. Use when: security-sensitive PR/endpoint, agentic/MCP/plugin change, supply-chain be'
   - id: security-reviewer
     name: security-reviewer
     description: 'Security vulnerability detection specialist. Use proactively after implementing authentication, data handling, API endpoints, or any user-facing functionality.'

@@ -3,7 +3,7 @@
 Hand-maintained routing table for the **assistant** orchestrator and **dev-companion** delegation.
 For machine-readable routing, triggers, owners, and overlap, read `capabilities/skills/registry.yaml`
 (validated by `schemas/skill-capability-registry.schema.json` and `docs/SKILL_ROUTING.md`); `catalogs/skill-catalog.yaml`
-remains the generated id→description index.
+remains the generated id→description index. For canonical holistic roster + migration map + proportional routing examples, read `docs/AGENT_TAXONOMY.md` (#864).
 
 **Rule:** **WHAT** skills (workflows, companion framing) define phases and gates; **HOW** skills
 (forge, tooling, integrations) own CLI/API procedures — do not inline HOW steps inside WHAT skills.
@@ -11,6 +11,8 @@ remains the generated id→description index.
 **Design routing rule (#863):** The **designer** agent owns contextual selection among the 10 `design/*`
 plus `accessibility/review` skills. Do not mechanically chain all design skills on one task — pick one
 primary driver per task (see Design section and `docs/SKILL_ROUTING.md`).
+
+**Holistic taxonomy rule (#864):** 11 holistic owners (`assistant`, `planner`, `architect`, `designer`, `implementer`, `reviewer`, `qa-engineer`, `security-engineer`, `platform-engineer`, `researcher`, `data-engineer`) own every skill — `specialist_agents` are opt-in only when `specialist_justified: true`. See `docs/AGENT_TAXONOMY.md` §1–3 for migration map and §5–6 for proportional delegation examples and 20 routing self-tests.
 
 ---
 
@@ -128,6 +130,18 @@ Jira and Confluence skills ship via external packs when installed.
 | Docs generation | **docs-generator** | Bulk doc generation |
 
 ---
+
+## Agent taxonomy — holistic / orchestrator / specialist (#864)
+
+`docs/AGENT_TAXONOMY.md` is canonical. Summary:
+
+| Tier | Members | How `assistant` routes |
+|------|---------|------------------------|
+| Orchestrator | `assistant` (default entry), `client-workflow-bootstrap` (meta-generator → packs/knowledge) | Implicit — decide intent → pick one holistic |
+| Holistic (daily, 11) | `assistant` (as orchestrator), `planner`, `architect`, `designer`, `implementer`, `reviewer`, `qa-engineer`, `security-engineer`, `platform-engineer`, `researcher`, `data-engineer` (conditional) | Proportional: tiny change → `implementer`→`reviewer`; UI feature → `designer`→`implementer`→`reviewer`+`qa-engineer`; cross-system → `architect`+`planner`→`blast-radius`; security-sensitive → `security-engineer` early + `architect` |
+| Specialist (opt-in) | `code-reviewer`/`security-reviewer`/`agentic-security-reviewer`/`e2e-runner`/`tdd-guide`/`refactor-cleaner`/`build-error-resolver`/`tech-assistant` + deferred `database-reviewer`/`performance-optimizer`/`typescript-reviewer`/`docs-lookup`/`reference-lookup` | Only when `specialist_justified: true` in registry or task explicitly warrants narrow technique |
+
+Never mechanically chain all skills in a domain — selection is contextual (see `docs/AGENT_TAXONOMY.md` §5–6).
 
 ## Agents vs skills
 

@@ -317,30 +317,31 @@ Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.
 
 ## 🤖 Agent Personas
 
-Tool-agnostic agent persona definitions in `agents/` (live count: `agent-toolkit inventory` / `catalogs/agent-catalog.yaml`). Any supported AI coding assistant can import these via its profile config.
+Tool-agnostic agent persona definitions in `agents/` (live count: `agent-toolkit inventory` / `catalogs/agent-catalog.yaml`). Any supported AI coding assistant can import these via its profile config. Canonical taxonomy: [`docs/AGENT_TAXONOMY.md`](docs/AGENT_TAXONOMY.md).
 
-| Persona | Role |
-|---------|------|
-| 🏗️ `architect` | System design, tradeoffs, ADR drafting |
-| 📋 `planner` | Task decomposition, sequencing, estimation |
-| 🔍 `code-reviewer` | Quality, maintainability, bug detection |
-| 🔷 `typescript-reviewer` | TypeScript-specific review patterns |
-| 🛡️ `security-reviewer` | Vulnerability audit, threat modeling |
-| 🗄️ `database-reviewer` | Schema design, query optimization, migration safety |
-| ⚡ `performance-optimizer` | Profiling, complexity analysis, benchmarking |
-| 🧪 `tdd-guide` | Test-first development, coverage strategy |
-| 🧹 `refactor-cleaner` | Dead code removal, simplification |
-| 🔨 `build-error-resolver` | CI failure diagnosis, dependency conflicts |
-| 🎭 `e2e-runner` | End-to-end test authoring and execution |
-| 📚 `docs-lookup` | Documentation and API reference navigation |
-| 🔎 `reference-lookup` | Cross-repo pattern and convention search |
-| 🤝 `assistant` | General-purpose project assistant |
-| ⚙️ `tech-assistant` | Stack-specific technical guidance |
-| 🧭 `client-workflow-bootstrap` | Client workflow bootstrap |
-| 🛡️ `agentic-security-reviewer` | Agentic security — prompt injection, tool poisoning, excessive agency, MCP/plugin supply chain |
-| 🎨 `designer` | Visual direction, UX, Figma, a11y, design system |
+### Holistic roster — the daily set (11)
 
-Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · personas on disk under `agents/` (see inventory)
+Every skill's `holistic_owner` in `capabilities/skills/registry.yaml` is one of these. Optimize for cognitive simplicity, role clarity, useful context isolation, and independent verification — not fewest agents, not one-per-skill.
+
+| Persona | Responsibility | Main skill domains |
+|---------|---------------|--------------------|
+| 🤝 `assistant` | **Orchestrator** — intent → context → proportional delegation → synthesis | `core/*`, discovery, `output-handshake` |
+| 📋 `planner` | Decomposition, PRD/TRD, work items, estimation, capacity | `delivery` (11 inc. `planning`, `project-assessment`, `workflow-generic-project`) |
+| 🏗️ `architect` | System design, tradeoffs, C4, ADRs/TRDs, cloud patterns | `architecture` (2), `cloud` (2), `delivery` (adr/trd/decision-log/technical-assessment), `tooling/mermaid` |
+| 🎨 `designer` | Visual direction, UX, Figma, design system, a11y — contextual routing | `design` (10), `accessibility/review` |
+| 🔨 `implementer` | Feature/bug/refactoring delivery, build/test loop, docs generation | `delivery/task`, `ops/docs-generator` |
+| 🔍 `reviewer` | Independent quality/craft, change-safety, anti-slop (`blast-radius`, `deep-review`, `deslop`, `unslop`) | `quality` (4) |
+| 🧪 `qa-engineer` | Behavioral verification, lint gates, browser automation, E2E, bug triage | `quality/megalinter*` (4), `tooling/playwright-cli`, `tooling/chrome-devtools`, `delivery/bug` |
+| 🔒 `security-engineer` | App + agentic hardening, threat modeling, supply-chain/MCP, CodeQL | `agentic-security/*` (4), `quality/codeql` |
+| ⚙️ `platform-engineer` | CI/CD, GitHub/GitLab PR lifecycle, worktrees, integrations, loops/swarm, triage, cost | `forge/*` (7), `integrations/*` (5), `loops/loop-runner`, `ops/swarm*`, `tooling/cli-for-agents` |
+| 🔬 `researcher` | Spikes, single evidence-intake map (`project-assessment-evidence`), framework/docs exploration | `delivery/spike`, `delivery/project-assessment-evidence` |
+| 🗄️ `data-engineer` | dbt/Snowflake read-only validation, notebook scaffolding (conditional — data repos only) | `data/dbt-validation`, `data/snowflake-validation`, `tooling/jupyter-notebook` |
+
+**Orchestrator** (not in daily count): `client-workflow-bootstrap` — meta-generates `<client>` packs/knowledge into `~/.ai-workspace` (interview-driven; not a delivery persona).
+
+**Specialists — opt-in techniques (13):** `code-reviewer` (backs `reviewer`/`qa-engineer`/`designer`), `security-reviewer` + `agentic-security-reviewer` (backs `security-engineer`), `e2e-runner` (backs `qa-engineer`), `tdd-guide` (backs `implementer`), `refactor-cleaner` (backs `reviewer`/`deslop`), `build-error-resolver` (backs `platform-engineer`/`gh-fix-ci`), `tech-assistant` (backs `platform-engineer`/`triage`), plus `database-reviewer`/`performance-optimizer`/`typescript-reviewer` (pending #865 for specialist→skill conversion review) and `docs-lookup`/`reference-lookup` (merging into `researcher` — deferred to #865). See `docs/AGENT_TAXONOMY.md` §3 (full migration map) and §5–6 (routing examples).
+
+Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · taxonomy: [`docs/AGENT_TAXONOMY.md`](docs/AGENT_TAXONOMY.md) · routing: [`docs/SKILL_ROUTING.md`](docs/SKILL_ROUTING.md) · personas on disk under `agents/` (see inventory)
 
 ---
 

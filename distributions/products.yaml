@@ -37,7 +37,7 @@ products:
       rationale: Core skills are read-only instruction files with no side effects.
   - id: agent-toolkit-agents
     name: Agent Toolkit Agents
-    description: 'Full set of 17 AI agent personas: architect, code-reviewer, security-reviewer, planner, database-reviewer, TypeScript-reviewer, and more.'
+    description: 'Full set of 25 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant) + 13 specialists — see docs/AGENT_TAXONOMY.md (#864).'
     version_source: VERSION
     stability: stable
     includes:
@@ -49,13 +49,21 @@ products:
         - build-error-resolver
         - client-workflow-bootstrap
         - code-reviewer
+        - data-engineer
         - database-reviewer
+        - designer
         - docs-lookup
         - e2e-runner
+        - implementer
         - performance-optimizer
         - planner
+        - platform-engineer
+        - qa-engineer
         - refactor-cleaner
         - reference-lookup
+        - researcher
+        - reviewer
+        - security-engineer
         - security-reviewer
         - tdd-guide
         - tech-assistant
@@ -218,13 +226,21 @@ products:
         - build-error-resolver
         - client-workflow-bootstrap
         - code-reviewer
+        - data-engineer
         - database-reviewer
+        - designer
         - docs-lookup
         - e2e-runner
+        - implementer
         - performance-optimizer
         - planner
+        - platform-engineer
+        - qa-engineer
         - refactor-cleaner
         - reference-lookup
+        - researcher
+        - reviewer
+        - security-engineer
         - security-reviewer
         - tdd-guide
         - tech-assistant
