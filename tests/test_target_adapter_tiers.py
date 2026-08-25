@@ -215,9 +215,11 @@ def test_matrix_has_build_commands_and_tiers_table():
     assert "| Target | `build` | `diff` | `release` | Tier |" in text
     # At least 11 target rows
     rows = [
-        l
-        for l in text.splitlines()
-        if l.startswith("| Claude Code") or l.startswith("| Cursor") or l.startswith("| Windsurf")
+        line
+        for line in text.splitlines()
+        if line.startswith("| Claude Code")
+        or l.startswith("| Cursor")
+        or l.startswith("| Windsurf")
     ]
     assert len(rows) >= 3
 
@@ -241,7 +243,7 @@ def test_matrix_per_target_details_include_tier():
     text = MATRIX.read_text(encoding="utf-8")
     # Every Per-Target Details section must now have Tier + Tier rationale
     # Count occurrences of "- **Tier:**"
-    tier_lines = [l for l in text.splitlines() if l.strip().startswith("- **Tier:**")]
+    tier_lines = [line for line in text.splitlines() if line.strip().startswith("- **Tier:**")]
     by_id = _targets_by_id()
     assert len(tier_lines) >= len(by_id), (
         f"expected tier line per target, got {len(tier_lines)} vs {len(by_id)}"
