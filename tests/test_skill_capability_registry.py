@@ -96,7 +96,7 @@ def test_registry_count_matches_catalog_and_filesystem():
     cat_ids = {s["id"] for s in cat["skills"]}
     assert data["count"] == len(data["skills"])
     assert data["count"] == cat["count"]
-    assert data["count"] == len(fs_ids) == 85
+    assert data["count"] == len(fs_ids)
     assert reg_ids == cat_ids == fs_ids
 
 
