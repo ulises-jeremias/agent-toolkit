@@ -80,6 +80,7 @@ Reference upstream: [cursor/plugins](https://github.com/cursor/plugins) @
 | 2026-08-19 | Vendor unslop/deslop/cli-for-agents/blast-radius literally | Complementary, no first-party overlap |
 | 2026-08-19 | Do not vendor cursor fix-ci; enhance gh-fix-ci | Single forge CI skill |
 | 2026-08-19 | unslop excluded from agent-toolkit-core | Upstream "Must always apply" semantics |
+| 2026-08-26 | Refresh pass #871: vercel web-interface-guidelines 4e799d4→e3d624b; 10 vendored skills retained | Only rules source had instructive delta (a11y/media/motion/gesture + curly-quote fix); all others byte-identical at pinned SHA (verified via raw fetch + body SHA) — anthropics/microsoft/cursor wrapper/megalinter no copy; lock/UPSTREAM regenerated |
 
 ---
 

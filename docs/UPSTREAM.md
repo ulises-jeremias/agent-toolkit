@@ -7,7 +7,7 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-21T03:26:44.905147Z
+Generated: 2026-08-26T00:24:01.490427Z
 Capabilities with external provenance: 11 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
@@ -56,12 +56,12 @@ Capabilities with external provenance: 11 (first-party omitted; lock is sparse)
 
 ## `design/web-design-guidelines`
 
-- **Trust:** `reviewed` reviewed_at=2026-08-14 by=ulises-jeremias
-  - `reviewed_provenance:` `sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2` (must equal `provenance_digest` below)
-- **Maintenance:** `active` last_activity=2026-07-24
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:9803737469498d520b8c06994dec3142b0e5a2db48fe8edbf8f7fe61cfcae2d9` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=2026-08-18
 - **Distribution:** `vendored` redistribution_allowed=False
 - **Security (declared):** scripts=False shell=False network=True cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2`
+- **Provenance digest:** `sha256:9803737469498d520b8c06994dec3142b0e5a2db48fe8edbf8f7fe61cfcae2d9`
 
 ### Source `wrapper` — `vercel-labs/agent-skills/skills/web-design-guidelines`
 
@@ -69,23 +69,23 @@ Capabilities with external provenance: 11 (first-party omitted; lock is sparse)
 - **Path:** `skills/web-design-guidelines`
 - **Requested:** `commit` `7c180d9044c9ae2b442b567aad4e42a28dd5ed62` (declaration intent)
 - **Resolved commit:** `7c180d9044c9ae2b442b567aad4e42a28dd5ed62`
-- **Content checksum:** `sha256:167ee30dd4224bc066445c7b6cecb5b5fb8139efcee093b6accd569c163df79d`
+- **Content checksum:** `sha256:27b9d72c7695d33f642dadfcaa1156ab5ca960da7c93aac1283b27ab337613bb`
 - **Body checksum:** `sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f` (must match local SKILL.md body)
 - **Observed license:** `NOASSERTION` source_path=`?` checksum=`?`
   - Declaration expected `license: NOASSERTION` — mismatch requires review
-- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`?`
+- **Resolved at:** `2026-08-26T00:22:55.556053Z` version=`?`
 
 ### Source `rules` — `vercel-labs/web-interface-guidelines/command.md`
 
 - **Repository:** `vercel-labs/web-interface-guidelines`
 - **Path:** `command.md`
-- **Requested:** `commit` `4e799d45c17aec1498c269287a83b9dba22b966b` (declaration intent)
-- **Resolved commit:** `4e799d45c17aec1498c269287a83b9dba22b966b`
-- **Content checksum:** `sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab`
-- **Body checksum:** `sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab` (must match local SKILL.md body)
+- **Requested:** `commit` `e3d624baaf29dc1fc645aff3e38f03e564d2d6b1` (declaration intent)
+- **Resolved commit:** `e3d624baaf29dc1fc645aff3e38f03e564d2d6b1`
+- **Content checksum:** `sha256:5a775e6411f790f518dbc9c1fa7c50a89e6873502d9a3530a6eb223a590bcfe8`
+- **Body checksum:** `sha256:5a775e6411f790f518dbc9c1fa7c50a89e6873502d9a3530a6eb223a590bcfe8` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/design/web-design-guidelines/references/LICENSE` checksum=`sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-08-14T18:56:03.313181Z` version=`?`
+- **Resolved at:** `2026-08-26T00:22:55.556053Z` version=`?`
 
 ## `quality/blast-radius`
 

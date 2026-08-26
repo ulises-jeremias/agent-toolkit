@@ -38,23 +38,23 @@ capabilities:
           resolved_at: '2026-08-14T18:56:03.313181Z'
           version: e58528d
   design/web-design-guidelines:
-    provenance_digest: sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2
+    provenance_digest: sha256:9803737469498d520b8c06994dec3142b0e5a2db48fe8edbf8f7fe61cfcae2d9
     sources:
       rules:
         path: command.md
         repository: vercel-labs/web-interface-guidelines
         requested:
-          ref: 4e799d45c17aec1498c269287a83b9dba22b966b
+          ref: e3d624baaf29dc1fc645aff3e38f03e564d2d6b1
           type: commit
         resolved:
-          body_checksum: sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab
-          commit: 4e799d45c17aec1498c269287a83b9dba22b966b
-          content_checksum: sha256:eea73cb6dd46fee9faec9973e8e7fe198b5f07ec326f14d276a56e50287e1cab
+          body_checksum: sha256:5a775e6411f790f518dbc9c1fa7c50a89e6873502d9a3530a6eb223a590bcfe8
+          commit: e3d624baaf29dc1fc645aff3e38f03e564d2d6b1
+          content_checksum: sha256:5a775e6411f790f518dbc9c1fa7c50a89e6873502d9a3530a6eb223a590bcfe8
           license:
             checksum: sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2
             source_path: skills/design/web-design-guidelines/references/LICENSE
             spdx: MIT
-          resolved_at: '2026-08-14T18:56:03.313181Z'
+          resolved_at: '2026-08-26T00:22:55.556053Z'
       wrapper:
         path: skills/web-design-guidelines
         repository: vercel-labs/agent-skills
@@ -64,10 +64,10 @@ capabilities:
         resolved:
           body_checksum: sha256:17d7239c9233292386c96805dd2182708e594b0a6bec9c385fb201b3e5977b3f
           commit: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
-          content_checksum: sha256:167ee30dd4224bc066445c7b6cecb5b5fb8139efcee093b6accd569c163df79d
+          content_checksum: sha256:27b9d72c7695d33f642dadfcaa1156ab5ca960da7c93aac1283b27ab337613bb
           license:
             spdx: NOASSERTION
-          resolved_at: '2026-08-14T18:56:03.313181Z'
+          resolved_at: '2026-08-26T00:22:55.556053Z'
   quality/blast-radius:
     provenance_digest: sha256:672544bad541446f8de290191079a6fbcd009d5e07393126b20cc9101aa107d1
     sources:
