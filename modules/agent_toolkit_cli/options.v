@@ -1019,6 +1019,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
+		if a.starts_with('--base-ref=') {
+			base_ref = a.all_after('=')
+			i++
+			continue
+		}
 		if a.starts_with('-') {
 			i++
 			continue
