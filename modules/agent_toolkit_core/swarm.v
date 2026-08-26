@@ -142,8 +142,20 @@ Attach: herdr attach by default (focus UI); use --no-attach for CI/script mode.
 }
 
 fn find_swarm_workspace(override string) string {
-	if override.len > 0 && os.is_dir(override) {
-		return override
+	if override.len > 0 {
+		if os.is_dir(override) {
+			return override
+		}
+		// OWNER/REPO shorthand: search candidate workspace repos like Python find_repo_root.
+		if override.contains('/') && !override.starts_with('/') && !override.starts_with('.') {
+			for cand in swarm_candidate_repo_paths(override) {
+				if os.is_dir(os.join_path(cand, '.git')) || os.is_file(os.join_path(cand, '.git')) {
+					return cand
+				}
+			}
+			// Not found locally; return override as fallback for error hint (matches Python find_repo_root returning ws)
+			return override
+		}
 	}
 	if ws := find_workspace_root(override) {
 		return ws
@@ -152,6 +164,40 @@ fn find_swarm_workspace(override string) string {
 		return git
 	}
 	return os.getwd()
+}
+
+fn swarm_candidate_repo_paths(owner_repo string) []string {
+	parts := owner_repo.split('/')
+	if parts.len < 2 {
+		return []
+	}
+	owner := parts[0]
+	repo := parts[1]
+	mut candidates := []string{}
+	home := os.home_dir()
+	if home.len > 0 {
+		candidates << os.join_path(home, '.ai-workspace', 'repos', 'github.com', owner, repo)
+		candidates << os.join_path(home, '.ai-workspace', 'repos', owner, repo)
+	}
+	// Search from CWD upwards for .ai-workspace/repos
+	mut cur := os.getwd()
+	for _ in 0 .. 10 {
+		if os.is_dir(os.join_path(cur, 'repos')) && os.file_name(cur) == '.ai-workspace' {
+			candidates << os.join_path(cur, 'repos', 'github.com', owner, repo)
+			candidates << os.join_path(cur, 'repos', owner, repo)
+			break
+		}
+		parent := os.dir(cur)
+		if parent == cur || parent.len == 0 {
+			break
+		}
+		cur = parent
+	}
+	if home.len > 0 {
+		candidates << os.join_path(home, '.ai-workspace', 'repos', 'github.com', owner, repo)
+	}
+	candidates << os.join_path(os.getwd(), repo)
+	return candidates
 }
 
 fn swarm_root(ws string) string {
