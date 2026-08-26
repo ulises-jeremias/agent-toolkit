@@ -51,7 +51,7 @@ struct DcConfig {
 	queue_failed     string
 }
 
-// run_devcompanion implements queue/run-once/status/done/sync-todos (Python cli/devcompanion.py).
+// run_devcompanion implements queue/run-once/status/done/sync-todos/llm-status (Python cli/devcompanion.py).
 pub fn run_devcompanion(opts DevcompanionOptions) DevcompanionReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
@@ -74,6 +74,7 @@ pub fn run_devcompanion(opts DevcompanionOptions) DevcompanionReport {
 		'status' { dc_status(cfg, ws) }
 		'done' { dc_done(cfg, opts) }
 		'sync-todos' { dc_sync_todos(ws, cfg) }
+		'llm-status' { dc_llm_status() }
 		else {
 			DevcompanionReport{
 				ok:      false
@@ -117,6 +118,7 @@ Usage:
   agent-toolkit devcompanion status                      Show all jobs
   agent-toolkit devcompanion done <job-id>               Mark a job as done
   agent-toolkit devcompanion sync-todos                  Sync todos from plan.md files
+  agent-toolkit devcompanion llm-status                  Report LLM allowlist/provider
 
 Queue options:
   --template NAME    Job template from templates/jobs/ directory
@@ -128,7 +130,7 @@ Workspace detection:
 
 Queue mode:
   ${mode}
-  HARNESS_DC_HOME or HARNESS_DIR → harness queue under ~/.local/share/agentic-harness/dev-companion
+  HARNESS_RUNNER_DIR or HARNESS_DC_HOME or HARNESS_DIR → harness queue under ~/.local/share/agentic-harness/dev-companion
 
 Queue location:
   ${queue_loc}
@@ -144,6 +146,7 @@ Examples:
   agent-toolkit devcompanion status
   agent-toolkit devcompanion done my-api-20260804-120000
   agent-toolkit devcompanion sync-todos
+  agent-toolkit devcompanion llm-status
 
 Alias:
   agent-toolkit dc <subcommand>
@@ -181,6 +184,10 @@ fn default_harness_dc_home() string {
 }
 
 fn resolve_harness_dc_home() ?string {
+	runner := os.getenv('HARNESS_RUNNER_DIR').trim_space()
+	if runner.len > 0 {
+		return os.expand_tilde_to_home(runner)
+	}
 	explicit := os.getenv('HARNESS_DC_HOME').trim_space()
 	if explicit.len > 0 {
 		return os.expand_tilde_to_home(explicit)
@@ -188,6 +195,10 @@ fn resolve_harness_dc_home() ?string {
 	if os.getenv('HARNESS_DIR').trim_space().len > 0 {
 		return default_harness_dc_home()
 	}
+	// HARNESS_RUNNER_DIR may be set via env presence without value is indistinguishable via getenv,
+	// but Python also treats HARNESS_RUNNER_DIR presence as harness_mode.
+	// Fallback: if HARNESS_RUNNER_DIR is set (even empty string after trim) we already handled non-empty case;
+	// empty implies not set, so no harness.
 	return none
 }
 
@@ -623,6 +634,34 @@ fn dc_sync_todos(ws string, cfg DcConfig) DevcompanionReport {
 	}
 }
 
+fn dc_llm_status() DevcompanionReport {
+	mut allowlist := os.getenv('DOTS_AI_DEVCOMPANION_LLM_ALLOWLIST').trim_space()
+	if allowlist.len == 0 {
+		allowlist = 'anthropic,openai'
+	}
+	strict_raw := os.getenv('DOTS_AI_DEVCOMPANION_LLM_STRICT').trim_space()
+	strict := strict_raw == '1'
+	have_anthropic := os.getenv('ANTHROPIC_API_KEY').trim_space().len > 0
+	have_openai := os.getenv('OPENAI_API_KEY').trim_space().len > 0
+	have_key := have_anthropic || have_openai
+	provider := if have_key { 'anthropic' } else { 'none' }
+	offline := !have_key
+	// Build JSON payload matching Python: {"allowlist":..., "strict":..., "have_key":..., "provider":..., "offline":...}
+	payload := '{"allowlist":${json.encode(allowlist)},"strict":${strict},"have_key":${have_key},"provider":${json.encode(provider)},"offline":${offline}}'
+	return DevcompanionReport{
+		ok:      true
+		message: payload
+		data:    {
+			'subcommand': 'llm-status'
+			'allowlist':  allowlist
+			'strict':     '${strict}'
+			'have_key':   '${have_key}'
+			'provider':   provider
+			'offline':    '${offline}'
+		}
+	}
+}
+
 fn dispatch_dc_run(_cfg DcConfig, _job_file string, job DcJob, out_dir string, no_llm bool) (int, string) {
 	if no_llm {
 		return skeleton_run(job, out_dir)
@@ -745,7 +784,7 @@ fn list_dc_projects(ws string) map[string]string {
 fn load_dc_template(ws string, name string) !string {
 	tpl_file := os.join_path(ws, 'templates', 'jobs', '${name}.yaml')
 	if !os.is_file(tpl_file) {
-		return error('Template not found: ${name}  (looked in ${os.dir(tpl_file)}/)')
+		return error('Template not found: ${name}  (looked in templates/jobs/)')
 	}
 	text := os.read_file(tpl_file) or { return error('read template failed: ${err}') }
 	lines := text.split_into_lines()
