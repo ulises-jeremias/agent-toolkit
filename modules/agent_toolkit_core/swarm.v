@@ -65,29 +65,8 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	}
 	ws := find_swarm_workspace(opts.workspace_path)
 	return match sub {
-		'recipes', 'recipe' {
-			mut r_opts := opts
-			if sub == 'recipe' && r_opts.run_id == 'show' {
-				if r_opts.task.len > 0 {
-					r_opts = SwarmOptions{
-						...r_opts
-						run_id: r_opts.task
-						task: ''
-					}
-				} else if r_opts.gate_id.len > 0 {
-					r_opts = SwarmOptions{
-						...r_opts
-						run_id: r_opts.gate_id
-						gate_id: ''
-					}
-				} else {
-					r_opts = SwarmOptions{
-						...r_opts
-						run_id: ''
-					}
-				}
-			}
-			swarm_recipes(r_opts)
+		'recipes' {
+			swarm_recipes(opts)
 		}
 		'backends' {
 			swarm_backends()
@@ -237,30 +216,17 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 	names := ['full', 'pair', 'team']
 	if opts.run_id.len > 0 {
 		name := opts.run_id
-		recipe := builtin_recipes[name] or {
+		desc := swarm_recipe_description(name)
+		if desc.len == 0 {
 			return SwarmReport{
 				ok:      false
 				message: "Unknown recipe '${name}'. Built-ins: pair, team, full"
 			}
 		}
-		if opts.json_output {
-			txt := json.encode(recipe)
-			return SwarmReport{
-				ok:      true
-				message: txt
-				data:    {
-					'subcommand': 'recipes'
-					'recipe':     name
-				}
-			}
-		}
-		roles := swarm_recipe_roles(name).join(', ')
-		gates_str := if recipe.gates.len > 0 { recipe.gates.join(', ') } else { 'none' }
-		execution_str := 'max_concurrency=${recipe.execution.max_concurrency} lazy_start=${recipe.execution.lazy_start}'
-		budget_str := '${recipe.budget.max_total_tokens} tokens / \$${recipe.budget.max_cost_usd:.2f} / ${recipe.budget.max_wall_seconds}s'
+		roles := swarm_recipe_roles(name).join(',')
 		return SwarmReport{
 			ok:      true
-			message: '${name}\t${recipe.description}\nroles: ${roles}\nexecution: ${execution_str}\ngates: ${gates_str}\nbudget: ${budget_str}'
+			message: '${name}\t${desc}\nroles: ${roles}'
 			data:    {
 				'subcommand': 'recipes'
 				'recipe':     name
@@ -268,24 +234,9 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
-	if opts.json_output {
-		txt := json.encode(builtin_recipes)
-		return SwarmReport{
-			ok:      true
-			message: txt
-			data:    {
-				'subcommand': 'recipes'
-				'recipes':    names.join(',')
-			}
-		}
-	}
 	mut lines := []string{}
 	for n in names {
-		if r := builtin_recipes[n] {
-			lines << '${n}\t${r.description}'
-		} else {
-			lines << '${n}\t${swarm_recipe_description(n)}'
-		}
+		lines << '${n}\t${swarm_recipe_description(n)}'
 	}
 	return SwarmReport{
 		ok:      true

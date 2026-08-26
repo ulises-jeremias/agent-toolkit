@@ -943,26 +943,6 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	} else if task.len == 0 && issue_ref.len > 0 {
 		task = 'Implement issue ${issue_ref}'
 	}
-	// Normalize `swarm recipe show <name>` alias to `swarm recipes <name>` (Python parity)
-	if sub == 'recipe' {
-		if run_id == 'show' {
-			if task.len > 0 {
-				run_id = task
-				task = ''
-			} else if gate_id.len > 0 {
-				run_id = gate_id
-				gate_id = ''
-			} else {
-				run_id = ''
-			}
-		}
-		sub = 'recipes'
-	}
-	// also handle `swarm recipes show <name>` typo alias
-	if sub == 'recipes' && run_id == 'show' && task.len > 0 {
-		run_id = task
-		task = ''
-	}
 	// attach defaults to true for start unless explicitly disabled
 	if sub == 'start' && !attach_set && !dry_run {
 		attach = true
