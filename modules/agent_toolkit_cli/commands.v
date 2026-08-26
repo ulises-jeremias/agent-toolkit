@@ -911,6 +911,32 @@ fn swarm_command() cli.Command {
 			},
 			cli.Flag{
 				flag:        .string
+				name:        'repo'
+				description: 'Workspace path alias (OWNER/REPO)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'request-file'
+				description: 'Task file path (content used as task)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'issue'
+				description: 'Issue shorthand (e.g. 123)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'base-ref'
+				description: 'Base ref for worktree branches (default HEAD)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'C'
+				abbrev:      'C'
+				description: 'Workspace path alias'
+			},
+			cli.Flag{
+				flag:        .string
 				name:        'reason'
 				description: 'Reject reason'
 			},

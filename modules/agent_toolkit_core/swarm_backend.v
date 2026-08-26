@@ -59,7 +59,6 @@ pub fn resolve_swarm_backend(requested string) string {
 	return name
 }
 
-
 pub fn swarm_runner_names() []string {
 	return ['auto', 'skeleton', 'opencode', 'claude', 'codex', 'cursor', 'copilot', 'muse']
 }
@@ -70,6 +69,83 @@ pub fn resolve_swarm_runner(requested string) string {
 		return 'auto'
 	}
 	return name
+}
+
+pub fn herdr_runner_cmd(runner string, role string, task string, worktree string, prompt_file string) string {
+	has_task := task.trim_space().len > 0
+	q_role := shell_quote(role)
+	q_wt := shell_quote(if worktree.len > 0 { worktree } else { '.' })
+	q_prompt_file := if prompt_file.len > 0 { shell_quote(prompt_file) } else { '' }
+	q_task := shell_quote(task)
+	cat_expr := if prompt_file.len > 0 { '"$(cat ' + q_prompt_file + ')"' } else { '' }
+	match runner {
+		'opencode' {
+			if has_task {
+				if prompt_file.len > 0 {
+					return 'opencode --agent ' + q_role + ' --prompt ' + cat_expr
+				}
+				return 'opencode --agent ' + q_role + ' --prompt ' + q_task
+			}
+			return 'opencode --agent ' + q_role
+		}
+		'claude' {
+			if has_task {
+				if prompt_file.len > 0 {
+					return 'claude --dangerously-skip-permissions --append-system-prompt-file ' + q_prompt_file + ' ' + cat_expr
+				}
+				return 'claude --dangerously-skip-permissions ' + q_task
+			}
+			return 'claude --dangerously-skip-permissions'
+		}
+		'codex' {
+			if has_task {
+				if prompt_file.len > 0 {
+					return 'codex -C ' + q_wt + ' ' + cat_expr
+				}
+				return 'codex -C ' + q_wt + ' ' + q_task
+			}
+			return 'codex -C ' + q_wt
+		}
+		'cursor' {
+			if has_task {
+				if prompt_file.len > 0 {
+					return 'cursor-agent ' + cat_expr
+				}
+				return 'cursor-agent ' + q_task
+			}
+			return 'cursor-agent'
+		}
+		'copilot' {
+			if has_task {
+				if prompt_file.len > 0 {
+					return 'copilot --name ' + shell_quote('Swarm ' + role) + ' -i ' + cat_expr
+				}
+				return 'copilot --name ' + shell_quote('Swarm ' + role) + ' -i ' + q_task
+			}
+			return 'copilot --name ' + shell_quote('Swarm ' + role)
+		}
+		'muse' {
+			if has_task {
+				if prompt_file.len > 0 {
+					return 'muse chat ' + cat_expr
+				}
+				return 'muse chat ' + q_task
+			}
+			return 'muse chat'
+		}
+		'skeleton', 'auto' {
+			return "echo '[skeleton:" + role + "] ready -- no LLM' && exec " + shell_base()
+		}
+		else {
+			if has_task {
+				if prompt_file.len > 0 {
+					return shell_quote(runner) + ' ' + cat_expr
+				}
+				return shell_quote(runner) + ' ' + q_task
+			}
+			return shell_quote(runner)
+		}
+	}
 }
 
 fn probe_unix_bin(name string, argv []string) BackendDoctor {

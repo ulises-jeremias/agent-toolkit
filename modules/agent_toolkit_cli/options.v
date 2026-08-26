@@ -743,6 +743,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut sub := ''
 	mut workspace_path := ''
+	mut workspace_alias := ''
 	mut run_id := ''
 	mut gate_id := ''
 	mut recipe := ''
@@ -755,11 +756,18 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut attach := false
 	mut no_attach := false
 	mut attach_set := false
+	mut request_file := ''
+	mut issue_ref := ''
+	mut base_ref := ''
+	mut json_output := false
 	mut task_parts := []string{}
 	mut i := 0
 	for i < args.len {
 		a := args[i]
 		if a in ['--json', '--quiet'] {
+			if a == '--json' {
+				json_output = true
+			}
 			i++
 			continue
 		}
@@ -785,7 +793,59 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason', '--runner', '--model-profile'] {
+		if a == '--request-file' {
+			if i + 1 >= args.len {
+				return error('--request-file requires an argument')
+			}
+			request_file = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--request-file=') {
+			request_file = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--issue' {
+			if i + 1 >= args.len {
+				return error('--issue requires an argument')
+			}
+			issue_ref = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--issue=') {
+			issue_ref = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--base-ref' {
+			if i + 1 >= args.len {
+				return error('--base-ref requires an argument')
+			}
+			base_ref = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--base-ref=') {
+			base_ref = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '-C' {
+			if i + 1 >= args.len {
+				return error('-C requires an argument')
+			}
+			workspace_alias = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('-C=') {
+			workspace_alias = a.all_after('=')
+			i++
+			continue
+		}
+		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason', '--runner', '--model-profile', '--repo'] {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -795,6 +855,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 				'--backend' { backend = val }
 				'--ui' { backend = val }
 				'--workspace' { workspace_path = val }
+				'--repo' { workspace_alias = val }
 				'--reason' { reason = val }
 				'--runner' { runner = val }
 				'--model-profile' { model_profile = val }
@@ -828,6 +889,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
+		if a.starts_with('--repo=') {
+			workspace_alias = a.all_after('=')
+			i++
+			continue
+		}
 		if a.starts_with('--reason=') {
 			reason = a.all_after('=')
 			i++
@@ -855,10 +921,27 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		task_parts << a
 		i++
 	}
+	if workspace_path.len == 0 && workspace_alias.len > 0 {
+		workspace_path = workspace_alias
+	}
+	if base_ref.len == 0 {
+		base_ref = 'HEAD'
+	}
 	mut task := task_parts.join(' ')
 	if sub == 'start' && task.len == 0 {
 		task = run_id
 		run_id = ''
+	}
+	// precedence: positional task > request_file > issue (Python _resolve_task_text)
+	if task.len == 0 && request_file.len > 0 {
+		if !os.is_file(request_file) {
+			return error('--request-file not found: ${request_file}')
+		}
+		task = os.read_file(request_file) or {
+			return error('--request-file not found: ${request_file}')
+		}
+	} else if task.len == 0 && issue_ref.len > 0 {
+		task = 'Implement issue ${issue_ref}'
 	}
 	// attach defaults to true for start unless explicitly disabled
 	if sub == 'start' && !attach_set && !dry_run {
@@ -879,6 +962,10 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		force:          force
 		attach:         attach
 		no_attach:      no_attach
+		request_file:   request_file
+		issue_ref:      issue_ref
+		base_ref:       base_ref
+		json_output:    json_output
 	}
 }
 
