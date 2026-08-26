@@ -248,6 +248,10 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 			return render_error(e, mode)
 		}
 		report := agent_toolkit_core.run_swarm(opts)
+		if mode == .json && opts.subcommand in ['runners', 'models'] && report.ok {
+			println(report.message)
+			return 0
+		}
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
 	if cmd_name == 'tui' {
