@@ -864,6 +864,16 @@ fn swarm_command() cli.Command {
 				execute:     atk_exec
 			},
 			cli.Command{
+				name:        'runners'
+				description: 'List runner capabilities'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'models'
+				description: 'List model profiles'
+				execute:     atk_exec
+			},
+			cli.Command{
 				name:        'start'
 				description: 'Start a swarm run'
 				execute:     atk_exec
@@ -1039,6 +1049,11 @@ fn swarm_command() cli.Command {
 				flag:        .string
 				name:        'model-profile'
 				description: 'Model profile: economy|balanced|quality|private'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'profile'
+				description: 'Model profile alias: economy|balanced|quality|private (alias for --model-profile)'
 			},
 			cli.Flag{
 				flag:        .bool

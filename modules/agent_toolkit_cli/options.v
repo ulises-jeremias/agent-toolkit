@@ -979,7 +979,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason', '--runner', '--model-profile', '--repo'] {
+		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason', '--runner', '--model-profile', '--profile', '--repo'] {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -993,6 +993,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 				'--reason' { reason = val }
 				'--runner' { runner = val }
 				'--model-profile' { model_profile = val }
+				'--profile' { model_profile = val }
 				else {}
 			}
 			i += 2
@@ -1014,6 +1015,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			continue
 		}
 		if a.starts_with('--model-profile=') {
+			model_profile = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--profile=') {
 			model_profile = a.all_after('=')
 			i++
 			continue
