@@ -243,21 +243,11 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		return render(agent_toolkit_core.loop_result(report), mode)
 	}
 	if cmd_name == 'swarm' {
-		mut opts := parse_swarm_options(rest) or {
+		opts := parse_swarm_options(rest) or {
 			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
 			return render_error(e, mode)
 		}
-		if opts.subcommand == 'list' && mode == .json && !opts.json_output {
-			opts = agent_toolkit_core.SwarmOptions{
-				...opts
-				json_output: true
-			}
-		}
 		report := agent_toolkit_core.run_swarm(opts)
-		if opts.subcommand == 'list' && opts.json_output {
-			println(report.message)
-			return if report.ok { 0 } else { 1 }
-		}
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
 	if cmd_name == 'tui' {

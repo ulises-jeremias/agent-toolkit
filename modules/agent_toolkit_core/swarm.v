@@ -78,7 +78,7 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 			swarm_start(ws, opts)
 		}
 		'list' {
-			swarm_list(ws, opts)
+			swarm_list(ws)
 		}
 		'status' {
 			swarm_status(ws, opts)
@@ -125,7 +125,7 @@ Usage:
     agent-toolkit swarm backends
     agent-toolkit swarm doctor [--json]
     agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--request-file PATH] [--issue REF] [--base-ref REF] [--workspace PATH] [-C PATH] [--repo PATH] [--json] [--runner NAME] [--model-profile NAME] [--attach|--no-attach] [--dry-run] [task]
-    agent-toolkit swarm list [--json] [--workspace PATH] [-C PATH] [--repo PATH]
+    agent-toolkit swarm list
     agent-toolkit swarm status [run-id]
     agent-toolkit swarm approve <run-id> <gate>
     agent-toolkit swarm reject <run-id> <gate> --reason TEXT
@@ -627,78 +627,9 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 	return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') — ' + roles.len.str() + ' tabs, shell=' + shell + ', focused', data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
 }
 
-fn list_all_swarm_runs(ws string) []string {
-	mut out := []string{}
-	primary := swarm_runs_dir(ws)
-	if os.is_dir(primary) {
-		for n in os.ls(primary) or { []string{} } {
-			full := os.join_path(primary, n)
-			if os.is_dir(full) {
-				out << full
-			}
-		}
-	}
-	projects_dir := os.join_path(ws, 'projects')
-	if os.is_dir(projects_dir) {
-		for link in os.ls(projects_dir) or { []string{} } {
-			p := os.join_path(projects_dir, link)
-			if os.is_link(p) {
-				target := os.real_path(p)
-				if target.len == 0 {
-					continue
-				}
-				alt := os.join_path(target, '.agent-toolkit', 'swarm', 'runs')
-				if os.is_dir(alt) {
-					for n in os.ls(alt) or { []string{} } {
-						full2 := os.join_path(alt, n)
-						if os.is_dir(full2) {
-							out << full2
-						}
-					}
-				}
-			}
-		}
-	}
-	out.sort_with_compare(fn (a &string, b &string) int {
-		ma := os.file_last_mod_unix(*a)
-		mb := os.file_last_mod_unix(*b)
-		if ma > mb {
-			return -1
-		}
-		if ma < mb {
-			return 1
-		}
-		return 0
-	})
-	return out
-}
-
-fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
-	all := list_all_swarm_runs(ws)
-	if opts.json_output {
-		mut arr := []map[string]string{}
-		for rd in all {
-			st := read_swarm_state(rd) or { continue }
-			arr << {
-				'run_id':     st.run_id
-				'recipe':     st.recipe
-				'run_state':  st.run_state
-				'created_at': st.created_at
-				'workspace':  ws
-				'run_dir':    rd
-			}
-		}
-		encoded := json.encode(arr)
-		return SwarmReport{
-			ok:      true
-			message: encoded
-			data:    {
-				'subcommand': 'list'
-				'count':      '${arr.len}'
-			}
-		}
-	}
-	if all.len == 0 {
+fn swarm_list(ws string) SwarmReport {
+	dir := swarm_runs_dir(ws)
+	if !os.is_dir(dir) {
 		return SwarmReport{
 			ok:      true
 			message: 'No swarm runs found.'
@@ -708,9 +639,12 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
+	mut names := os.ls(dir) or { []string{} }
+	names.sort()
 	mut lines := []string{}
 	mut count := 0
-	for rd in all {
+	for n in names {
+		rd := os.join_path(dir, n)
 		st := read_swarm_state(rd) or { continue }
 		lines << '${st.run_id}\t${st.recipe}\t${st.run_state}\t${st.created_at}'
 		count++
@@ -737,7 +671,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 
 fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 	if opts.run_id.len == 0 {
-		return swarm_list(ws, opts)
+		return swarm_list(ws)
 	}
 	if !swarm_valid_run_id(opts.run_id) {
 		return SwarmReport{
