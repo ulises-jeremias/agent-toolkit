@@ -961,6 +961,36 @@ fn swarm_command() cli.Command {
 				execute:     atk_exec
 			},
 			cli.Command{
+				name:        'watch'
+				description: 'Tail trace + handoffs for a run (poll)'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'report'
+				description: 'Run report (artifacts + handoffs + final-report.md)'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'artifacts'
+				description: 'List artifacts in a run'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'handoffs'
+				description: 'List handoffs by queue state'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'logs'
+				description: 'Show trace.jsonl or per-role backend logs'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'approvals'
+				description: 'List approval gates'
+				execute:     atk_exec
+			},
+			cli.Command{
 				name:        'handoff'
 				description: 'Handoff operations (create)'
 				commands:    [

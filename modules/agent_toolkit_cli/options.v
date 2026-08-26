@@ -1078,6 +1078,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
+		if sub == 'logs' && role.len == 0 {
+			role = a
+			i++
+			continue
+		}
 		if to_recipe.len == 0 && sub == 'promote' && gate_id.len == 0 {
 			if a in ['pair', 'team', 'full'] {
 				to_recipe = a
