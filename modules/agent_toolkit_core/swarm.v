@@ -364,14 +364,6 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			message: 'write approvals failed: ${err}'
 		}
 	}
-	for role in swarm_recipe_roles(recipe) {
-		prompt, manifest := swarm_compose_role_prompt(recipe, role, opts.task, '', swarm_role_skills(recipe,
-			role), rid)
-		os.write_file(os.join_path(run_dir, 'prompts', role + '.md'), prompt) or {}
-		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json.encode(manifest) +
-			'\n') or {}
-		append_swarm_trace(run_dir, 'prompt_composed', role)
-	}
 	append_swarm_trace(run_dir, 'run_created', rid)
 	// Herdr UI spawn (ADR-008: UI is adapter, not engine). Only when --attach and not dry-run.
 	mut herdr_note := ''
