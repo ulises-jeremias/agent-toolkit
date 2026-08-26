@@ -485,7 +485,15 @@ fn parse_project_options(args []string) !agent_toolkit_core.ProjectOptions {
 			i++
 			continue
 		}
-		if a == '--workspace' {
+		if a == '--workspace' || a == '--repo' {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			workspace_path = args[i + 1]
+			i += 2
+			continue
+		}
+		if a == '-C' || a == '--C' {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -494,6 +502,16 @@ fn parse_project_options(args []string) !agent_toolkit_core.ProjectOptions {
 			continue
 		}
 		if a.starts_with('--workspace=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--repo=') {
+			workspace_path = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('-C=') || a.starts_with('--C=') {
 			workspace_path = a.all_after('=')
 			i++
 			continue
@@ -934,7 +952,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a == '-C' {
+		if a == '-C' || a == '--C' {
 			if i + 1 >= args.len {
 				return error('-C requires an argument')
 			}
@@ -942,7 +960,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i += 2
 			continue
 		}
-		if a.starts_with('-C=') {
+		if a.starts_with('-C=') || a.starts_with('--C=') {
 			workspace_alias = a.all_after('=')
 			i++
 			continue

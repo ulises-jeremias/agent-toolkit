@@ -336,6 +336,42 @@ fn swarm_doctor(ws string) SwarmReport {
 }
 
 fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
+	// OWNER/REPO shorthand hint parity with Python _resolve_owner_repo_from_prompt + find_repo_root
+	// When --workspace/-C/--repo is an OWNER/REPO shorthand and not found locally, emit clone hint (fixes #902)
+	if opts.workspace_path.len > 0 && is_owner_repo_shorthand(opts.workspace_path) {
+		if ws == opts.workspace_path {
+			owner_repo := opts.workspace_path
+			detected := resolve_owner_repo_from_prompt(opts.task) or { owner_repo }
+			hint := if detected == owner_repo {
+				'Hint: Run: agent-toolkit project clone ${owner_repo} or specify --workspace <path|OWNER/REPO>'
+			} else {
+				'Hint: Autodetected ${detected} from prompt. Run: agent-toolkit project clone ${detected} or specify --workspace <path>'
+			}
+			return SwarmReport{
+				ok:      false
+				message: 'Not a git repository: ${ws}\n${hint}'
+				data:    {
+					'subcommand': 'start'
+					'workspace':  ws
+				}
+			}
+		}
+	}
+	if is_owner_repo_shorthand(ws) && !os.is_dir(ws) {
+		owner_repo := ws
+		mut hint := 'Hint: Run: agent-toolkit project clone ${owner_repo} or specify --workspace <path|OWNER/REPO>'
+		if detected := resolve_owner_repo_from_prompt(opts.task) {
+			hint = 'Hint: Autodetected ${detected} from prompt. Run: agent-toolkit project clone ${detected} or specify --workspace <path>'
+		}
+		return SwarmReport{
+			ok:      false
+			message: 'Not a git repository: ${ws}\n${hint}'
+			data:    {
+				'subcommand': 'start'
+				'workspace':  ws
+			}
+		}
+	}
 	recipe := if opts.recipe.len > 0 { opts.recipe } else { 'pair' }
 	if swarm_recipe_description(recipe).len == 0 {
 		return SwarmReport{

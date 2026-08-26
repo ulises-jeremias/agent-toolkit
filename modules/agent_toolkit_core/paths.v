@@ -209,6 +209,68 @@ pub fn find_workspace_root(override string) ?string {
 	return none
 }
 
+// is_owner_repo_shorthand reports whether s matches OWNER/REPO (Python _resolve_owner_repo_from_prompt parity).
+pub fn is_owner_repo_shorthand(s string) bool {
+	if s.len == 0 || !s.contains('/') {
+		return false
+	}
+	if s.contains(' ') || s.contains('\t') || s.contains('\n') {
+		return false
+	}
+	if s.count('/') != 1 {
+		return false
+	}
+	if s.starts_with('/') || s.starts_with('.') {
+		return false
+	}
+	parts := s.split('/')
+	if parts.len != 2 {
+		return false
+	}
+	if parts[0].len == 0 || parts[1].len == 0 {
+		return false
+	}
+	for c in parts[0] {
+		if !(c.is_alnum() || c == `-` || c == `_` || c == `.`) {
+			return false
+		}
+	}
+	for c in parts[1] {
+		if !(c.is_alnum() || c == `-` || c == `_` || c == `.`) {
+			return false
+		}
+	}
+	return true
+}
+
+// resolve_owner_repo returns s if it is an OWNER/REPO shorthand, otherwise none (Python parity).
+pub fn resolve_owner_repo(s string) ?string {
+	clean := s.trim_space()
+	if is_owner_repo_shorthand(clean) {
+		return clean
+	}
+	return none
+}
+
+// resolve_owner_repo_from_prompt scans prompt for first OWNER/REPO token (Python _paths._resolve_owner_repo_from_prompt parity).
+pub fn resolve_owner_repo_from_prompt(prompt string) ?string {
+	if prompt.len == 0 {
+		return none
+	}
+	for tok in prompt.split(' ') {
+		cleaned := tok.trim(' ,;:"\'()[]')
+		if is_owner_repo_shorthand(cleaned) {
+			return cleaned
+		}
+		// also try stripping surrounding punctuation after trimming
+		inner := cleaned.trim_space()
+		if inner.len > 0 && is_owner_repo_shorthand(inner) {
+			return inner
+		}
+	}
+	return none
+}
+
 // find_repo_root prefers a root that contains distributions/ (compiler/inventory).
 pub fn find_repo_root() !string {
 	root := find_toolkit_root()!
