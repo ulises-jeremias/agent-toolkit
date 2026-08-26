@@ -760,6 +760,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut issue_ref := ''
 	mut base_ref := ''
 	mut json_output := false
+	mut current := false
 	mut task_parts := []string{}
 	mut handoff_sub := ''
 	mut htype := ''
@@ -775,6 +776,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut i := 0
 	for i < args.len {
 		a := args[i]
+		if a == '--current' {
+			current = true
+			i++
+			continue
+		}
 		if a in ['--json', '--quiet'] {
 			if a == '--json' {
 				json_output = true
@@ -1025,6 +1031,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
+		if sub == 'logs' && role.len == 0 {
+			role = a
+			i++
+			continue
+		}
 		task_parts << a
 		i++
 	}
@@ -1073,6 +1084,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		issue_ref:      issue_ref
 		base_ref:       base_ref
 		json_output:    json_output
+		current:        current
 		handoff_sub:    handoff_sub
 		htype:          htype
 		from_role:      from_role
