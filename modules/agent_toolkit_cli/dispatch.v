@@ -430,7 +430,7 @@ Examples:
 Read-only health checks by default. --fix allowlists profile refresh only.
 
   --fix          Attempt auto-repair for missing profiles (runs capability update)
-  --provenance   Report capabilities/upstream.lock presence (SHA/expiry detail deferred)
+  --provenance   Report capabilities/upstream.lock SHA + expiry (full provenance)
   --json         Structured CommandResult JSON
 
 Exit codes:

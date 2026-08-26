@@ -14,6 +14,7 @@ pub:
 	ok      bool
 	message string
 	data    map[string]string
+	checks  []DoctorCheck
 }
 
 // version_result returns the toolkit version as a domain result.

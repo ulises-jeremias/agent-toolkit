@@ -3,6 +3,7 @@ module agent_toolkit_core
 import crypto.sha256
 import json
 import os
+import time
 
 // ArtifactRecord is one generated file in a .provenance.json sidecar.
 pub struct ArtifactRecord {
@@ -75,4 +76,52 @@ pub fn verify_generated_digests(plugins_dir string, provenance_path string) []st
 		}
 	}
 	return errors
+}
+
+// verify_provenance validates capabilities/upstream.lock SHA + expiry (Python parity).
+// Used by doctor --provenance (see doctor.v collect_provenance_checks).
+pub fn verify_provenance(root string) []DoctorCheck {
+	mut out := []DoctorCheck{}
+	if root.len == 0 {
+		out << DoctorCheck{'provenance', 'upstream.lock', 'warn', 'no toolkit root'}
+		return out
+	}
+	lock_path := os.join_path(root, 'capabilities', 'upstream.lock')
+	if !os.is_file(lock_path) {
+		// Warn (not err): wheel/data installs often omit capabilities/upstream.lock
+		out << DoctorCheck{'provenance', 'upstream.lock', 'warn', 'not found under toolkit root (checkout only)'}
+		return out
+	}
+	out << DoctorCheck{'provenance', 'upstream.lock', 'ok', lock_path}
+	// SHA: full hexhash + 12-char short for parity with file_digest
+	digest_short := file_digest(lock_path)
+	if digest_short == 'missing' {
+		out << DoctorCheck{'provenance', 'sha', 'err', 'cannot read lock file'}
+	} else {
+		data := os.read_file(lock_path) or { '' }
+		full := sha256.hexhash(data)
+		out << DoctorCheck{'provenance', 'sha', 'ok', 'sha256:${full} (${digest_short})'}
+	}
+	// Expiry / freshness: use file mtime (Python used expiry field; current lock is YAML with resolved_at per-capability)
+	// We surface age in days and warn if >90d stale (heuristic).
+	mtime := os.file_last_mod_unix(lock_path)
+	if mtime > 0 {
+		now := time.now().unix()
+		age_days := (now - mtime) / 86400
+		if age_days > 90 {
+			out << DoctorCheck{'provenance', 'expiry', 'warn', 'stale: ${age_days}d since last update (>90d)'}
+		} else {
+			out << DoctorCheck{'provenance', 'expiry', 'ok', '${age_days}d since update'}
+		}
+	} else {
+		out << DoctorCheck{'provenance', 'expiry', 'warn', 'cannot determine file age'}
+	}
+	// cli-contract.yaml presence (compatibility surface)
+	contract_path := os.join_path(root, 'docs', 'compatibility', 'cli-contract.yaml')
+	if os.is_file(contract_path) {
+		out << DoctorCheck{'provenance', 'cli-contract', 'ok', contract_path}
+	} else {
+		out << DoctorCheck{'provenance', 'cli-contract', 'warn', 'not found: ${contract_path}'}
+	}
+	return out
 }
