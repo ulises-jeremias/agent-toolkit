@@ -37,6 +37,7 @@ pub:
 	blocking    bool
 	role        string
 	handoff_id  string
+	to_recipe      string
 }
 
 // SwarmReport is the domain result for swarm subcommands.
@@ -65,7 +66,7 @@ struct SwarmApprovalsFile {
 	gates []SwarmGate
 }
 
-// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/init/plan/activate/deactivate/promote.
+// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/init/plan/activate/deactivate/promote/pause/resume/stop/cleanup/handoff/task.
 pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
@@ -121,6 +122,18 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 		'cancel' {
 			swarm_cancel(ws, opts)
 		}
+		'pause' {
+			swarm_pause(ws, opts)
+		}
+		'resume' {
+			swarm_resume(ws, opts)
+		}
+		'stop' {
+			swarm_stop(ws, opts)
+		}
+		'cleanup' {
+			swarm_cleanup(ws, opts)
+		}
 		'handoff' {
 			swarm_handoff(ws, opts)
 		}
@@ -165,6 +178,11 @@ Usage:
     agent-toolkit swarm activate <run-id> <role> [--workspace PATH]
     agent-toolkit swarm deactivate <run-id> <role> [--workspace PATH]
     agent-toolkit swarm promote <run-id> [--force] [--base-ref REF] [--workspace PATH]
+    agent-toolkit swarm promote <run-id> --to <team|full>
+    agent-toolkit swarm pause <run-id>
+    agent-toolkit swarm resume <run-id>
+    agent-toolkit swarm stop <run-id>
+    agent-toolkit swarm cleanup <run-id> [--force] [--dry-run]
     agent-toolkit swarm list
     agent-toolkit swarm status [run-id]
     agent-toolkit swarm approve <run-id> <gate>
@@ -1041,6 +1059,225 @@ fn swarm_cancel(ws string, opts SwarmOptions) SwarmReport {
 	}
 }
 
+
+fn swarm_pause(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm pause <run-id>'
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	if !swarm_can_transition(st.run_state, 'paused') {
+		return SwarmReport{
+			ok:      false
+			message: "Invalid transition '${st.run_state}' -> 'paused'"
+		}
+	}
+	next := SwarmStateFile{
+		...st
+		run_state: 'paused'
+	}
+	write_swarm_state(rd, next) or {
+		return SwarmReport{
+			ok:      false
+			message: 'write state failed: ${err}'
+		}
+	}
+	append_swarm_trace(rd, 'run_state_changed', 'paused')
+	return SwarmReport{
+		ok:      true
+		message: 'Paused ${opts.run_id}: ${st.run_state} -> paused'
+		data:    {
+			'subcommand': 'pause'
+			'run_id':     opts.run_id
+			'run_state':  'paused'
+		}
+	}
+}
+
+fn swarm_resume(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm resume <run-id>'
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	if st.run_state !in ['paused', 'budget_exhausted', 'failed'] {
+		if !swarm_can_transition(st.run_state, 'running') {
+			return SwarmReport{
+				ok:      false
+				message: "Cannot resume from state '${st.run_state}' (expected paused|budget_exhausted|failed)"
+			}
+		}
+	}
+	if !swarm_can_transition(st.run_state, 'running') {
+		if st.run_state !in ['paused', 'budget_exhausted', 'failed'] {
+			return SwarmReport{
+				ok:      false
+				message: "Invalid transition '${st.run_state}' -> 'running'"
+			}
+		}
+	}
+	next := SwarmStateFile{
+		...st
+		run_state: 'running'
+	}
+	write_swarm_state(rd, next) or {
+		return SwarmReport{
+			ok:      false
+			message: 'write state failed: ${err}'
+		}
+	}
+	append_swarm_trace(rd, 'run_state_changed', 'running')
+	append_swarm_trace(rd, 'role_state_changed', 'resume')
+	return SwarmReport{
+		ok:      true
+		message: 'Resumed ${opts.run_id}: ${st.run_state} -> running'
+		data:    {
+			'subcommand': 'resume'
+			'run_id':     opts.run_id
+			'run_state':  'running'
+		}
+	}
+}
+
+fn swarm_stop(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm stop <run-id>'
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	if st.run_state != 'paused' {
+		if !swarm_can_transition(st.run_state, 'paused') {
+			if st.run_state !in ['running', 'awaiting_human', 'awaiting_plan_approval'] {
+				return SwarmReport{
+					ok:      false
+					message: "Cannot stop from state '${st.run_state}'"
+				}
+			}
+		}
+		next := SwarmStateFile{
+			...st
+			run_state: 'paused'
+		}
+		write_swarm_state(rd, next) or {
+			return SwarmReport{
+				ok:      false
+				message: 'write state failed: ${err}'
+			}
+		}
+	}
+	swarm_stop_backend_agents(st.backend, opts.run_id, st.recipe)
+	append_swarm_trace(rd, 'role_stopped', opts.run_id)
+	return SwarmReport{
+		ok:      true
+		message: 'Run ${opts.run_id} stopped (state preserved). Resume with: agent-toolkit swarm resume ${opts.run_id}'
+		data:    {
+			'subcommand': 'stop'
+			'run_id':     opts.run_id
+			'run_state':  'paused'
+		}
+	}
+}
+
+fn swarm_cleanup(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm cleanup <run-id> [--force] [--dry-run]'
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	if !os.is_dir(rd) {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	st_opt := read_swarm_state(rd)
+	backend := if st_opt != none { st_opt.backend } else { 'auto' }
+	wt_root := os.join_path(rd, 'worktrees')
+	mut disk_wts := []string{}
+	if os.is_dir(wt_root) {
+		entries := os.ls(wt_root) or { []string{} }
+		for e in entries {
+			p := os.join_path(wt_root, e)
+			if os.is_dir(p) {
+				disk_wts << p
+			}
+		}
+	}
+	if opts.dry_run {
+		return SwarmReport{
+			ok:      true
+			message: 'Would remove ${disk_wts.len} worktrees, keep branches (branches never deleted automatically)'
+			data:    {
+				'subcommand': 'cleanup'
+				'run_id':     opts.run_id
+				'mode':       'dry-run'
+				'worktrees':  '${disk_wts.len}'
+			}
+		}
+	}
+	if !opts.force {
+		for wt in disk_wts {
+			if swarm_is_worktree_dirty(wt) {
+				return SwarmReport{
+					ok:      false
+					message: 'Worktree contains uncommitted changes. Toolkit will not remove it.\n\nPath:\n  ${wt}\n\nResolve or preserve the changes, then rerun cleanup with --force.'
+				}
+			}
+		}
+	}
+	for wt in disk_wts {
+		if !wt.starts_with(wt_root + os.path_separator) && wt != wt_root {
+			continue
+		}
+		if os.is_dir(wt) {
+			if swarm_is_worktree_dirty(wt) && !opts.force {
+				return SwarmReport{
+					ok:      false
+					message: 'Worktree contains uncommitted changes.\nPath: ${wt}'
+				}
+			}
+			// Use existing helper with force flag; HEAD's version returns !bool, handle accordingly
+			swarm_remove_worktree(ws, wt, opts.force) or {}
+		}
+	}
+	swarm_teardown_backend(backend, opts.run_id)
+	append_swarm_trace(rd, 'cleanup_completed', opts.run_id)
+	return SwarmReport{
+		ok:      true
+		message: 'Cleanup completed for ${opts.run_id} (branches preserved).'
+		data:    {
+			'subcommand': 'cleanup'
+			'run_id':     opts.run_id
+		}
+	}
+}
+
 fn swarm_init(ws string, opts SwarmOptions) SwarmReport {
 	recipe := if opts.recipe.len > 0 { opts.recipe } else { 'pair' }
 	if swarm_recipe_description(recipe).len == 0 {
@@ -1331,7 +1568,81 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 	if opts.run_id.len == 0 {
 		return SwarmReport{
 			ok:      false
-			message: 'Usage: agent-toolkit swarm promote <run-id>'
+			message: 'Usage: agent-toolkit swarm promote <run-id> [--to <team|full>] [--force] [--base-ref REF]'
+		}
+	}
+	// If --to is provided, do recipe promotion (feat/887 lifecycle)
+	if opts.to_recipe.len > 0 || opts.recipe.len > 0 {
+		mut to := opts.to_recipe
+		if to.len == 0 {
+			to = opts.recipe
+		}
+		if to in ['pair', 'team', 'full'] {
+			rd := swarm_run_dir(ws, opts.run_id)
+			mut st := read_swarm_state(rd) or {
+				return SwarmReport{
+					ok:      false
+					message: 'Run not found: ${opts.run_id}'
+				}
+			}
+			order := {
+				'pair': 1
+				'team': 2
+				'full': 3
+			}
+			old_recipe := st.recipe
+			if order[to] or { 0 } <= order[old_recipe] or { 0 } {
+				return SwarmReport{
+					ok:      false
+					message: 'Cannot promote ${old_recipe} -> ${to} (must increase: pair->team->full)'
+				}
+			}
+			st = SwarmStateFile{
+				...st
+				recipe: to
+			}
+			write_swarm_state(rd, st) or {
+				return SwarmReport{
+					ok:      false
+					message: 'write state failed: ${err}'
+				}
+			}
+			mut gates := read_swarm_approvals(rd)
+			mut seen := map[string]bool{}
+			for g in gates {
+				seen[g.id] = true
+			}
+			for g in swarm_default_gates(to) {
+				if g.id !in seen {
+					gates << g
+					seen[g.id] = true
+				}
+			}
+			write_swarm_approvals(rd, gates) or {
+				return SwarmReport{
+					ok:      false
+					message: 'write approvals failed: ${err}'
+				}
+			}
+			append_swarm_trace(rd, 'recipe_promoted', '${old_recipe}->${to}')
+			return SwarmReport{
+				ok:      true
+				message: 'Promoted ${opts.run_id}: ${old_recipe} -> ${to} (run ID preserved, artifacts intact)'
+				data:    {
+					'subcommand': 'promote'
+					'run_id':     opts.run_id
+					'from':       old_recipe
+					'to':         to
+					'recipe':     to
+				}
+			}
+		}
+		// if to_recipe is not a valid recipe name, fall through to integrator promote if --to was not intended
+		if opts.to_recipe.len > 0 {
+			return SwarmReport{
+				ok:      false
+				message: "Unknown recipe '${to}'. Built-ins: pair, team, full"
+			}
 		}
 	}
 	rd := swarm_run_dir(ws, opts.run_id)
@@ -1357,10 +1668,7 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 			message: 'Worktree dirty, refusing to promote without --force'
 		}
 	}
-	// Also check ws dirty via git status if worktree not present but branch exists.
-	// Git merge guard: branch must exist? Allow missing branch -> error.
 	ps := new_process_service()
-	// Verify branch exists via git rev-parse
 	verify := ps.run(RunOptions{
 		argv:    ['git', 'rev-parse', '--verify', integrator_branch]
 		cwd:     ws
@@ -1399,7 +1707,6 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 			message: 'git merge failed: ${msg}'
 		}
 	}
-	// Transition to cleanup_pending (add edge if needed, otherwise direct)
 	next_state := 'cleanup_pending'
 	if swarm_can_transition(st.run_state, next_state) || st.run_state in ['running', 'awaiting_human', 'completed'] {
 		st = SwarmStateFile{
@@ -1413,7 +1720,6 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	} else {
-		// force anyway
 		st = SwarmStateFile{
 			...st
 			run_state: next_state
@@ -1430,6 +1736,68 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 			'run_state':  next_state
 			'branch':     integrator_branch
 		}
+	}
+}
+
+
+fn swarm_stop_backend_agents(backend string, run_id string, recipe string) {
+	ps := new_process_service()
+	effective := if backend.len == 0 { 'auto' } else { backend }
+	roles := swarm_recipe_roles(recipe)
+	if effective in ['tmux', 'auto'] {
+		sock := 'agent-toolkit-swarm-${run_id}'
+		session := 'swarm-${run_id}'
+		for role in roles {
+			ps.run(RunOptions{
+				argv:    ['tmux', '-L', sock, 'kill-window', '-t', '${session}:${role}']
+				timeout: 5 * time.second
+			}) or {}
+		}
+	}
+	if effective in ['herdr', 'auto'] {
+		for role in roles {
+			ps.run(RunOptions{
+				argv:    ['herdr', 'agent', 'stop', 'swarm-${run_id}-${role}']
+				timeout: 5 * time.second
+			}) or {}
+		}
+	}
+}
+
+fn swarm_teardown_backend(backend string, run_id string) {
+	ps := new_process_service()
+	effective := if backend.len == 0 { 'auto' } else { backend }
+	if effective in ['tmux', 'auto', 'herdr'] {
+		sock := 'agent-toolkit-swarm-${run_id}'
+		session := 'swarm-${run_id}'
+		ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'kill-session', '-t', session]
+			timeout: 5 * time.second
+		}) or {}
+		ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'kill-server']
+			timeout: 5 * time.second
+		}) or {}
+		$if !windows {
+			tmpdir := os.getenv('TMPDIR')
+			for base in ['/tmp', if tmpdir.len > 0 {
+				tmpdir
+			} else {
+				'/tmp'
+			}] {
+				uid := os.getuid()
+				cand := os.join_path(base, 'tmux-${uid}', sock)
+				if os.exists(cand) {
+					os.rm(cand) or {}
+				}
+			}
+		}
+	}
+	if effective in ['herdr', 'auto'] {
+		ps.run(RunOptions{
+			argv:    ['herdr', 'workspace', 'remove', 'swarm-${run_id}']
+			timeout: 5 * time.second
+		}) or {}
 	}
 }
 

@@ -915,7 +915,27 @@ fn swarm_command() cli.Command {
 			},
 			cli.Command{
 				name:        'promote'
-				description: 'Merge integrator branch and move to cleanup_pending'
+				description: 'Promote recipe (pair->team->full, ID preserved) or merge integrator branch'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'pause'
+				description: 'Pause a run'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'resume'
+				description: 'Resume a paused/budget_exhausted/failed run'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'stop'
+				description: 'Stop agents but preserve state (resume with resume)'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'cleanup'
+				description: 'Cleanup worktrees and backend surfaces (branches preserved)'
 				execute:     atk_exec
 			},
 			cli.Command{
@@ -1048,7 +1068,7 @@ fn swarm_command() cli.Command {
 			cli.Flag{
 				flag:        .string
 				name:        'to'
-				description: 'Handoff to role'
+				description: 'Target recipe for promote (pair|team|full) or handoff to role'
 			},
 			cli.Flag{
 				flag:        .int
