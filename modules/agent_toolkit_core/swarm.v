@@ -92,9 +92,6 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 		'cancel' {
 			swarm_cancel(ws, opts)
 		}
-		'attach' {
-			swarm_attach(ws, opts)
-		}
 		else {
 			SwarmReport{
 				ok:      false
@@ -133,7 +130,6 @@ Usage:
     agent-toolkit swarm approve <run-id> <gate>
     agent-toolkit swarm reject <run-id> <gate> --reason TEXT
     agent-toolkit swarm cancel <run-id>
-    agent-toolkit swarm attach <run-id> [--workspace PATH] [-C PATH] [--repo PATH]
     agent-toolkit swarm help
 
 Runners: opencode (default via $SHELL), claude, codex, cursor, copilot, muse, skeleton. Same capability as: agent-toolkit loop run --runner NAME.
@@ -431,28 +427,6 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		append_swarm_trace(run_dir, if spawn_res.ok { 'herdr_workspace_created' } else { 'herdr_workspace_failed' }, spawn_res.message)
 	} else if backend == 'herdr' && opts.no_attach {
 		herdr_note = '\n  Herdr: --no-attach (CI mode); workspace not created. Create manually: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid
-	}
-	// Blocking attach (execvp) — must be last statement, like Python's os.execvp. Only when not json/dry_run and attach requested.
-	if !opts.dry_run && !opts.json_output && opts.attach && !opts.no_attach {
-		if backend == 'tmux' {
-			sock := 'agent-toolkit-swarm-${rid}'
-			session := 'swarm-${rid}'
-			println('Attaching to tmux: tmux -L ${sock} attach -t ${session}')
-			os.execvp('tmux', ['tmux', '-L', sock, 'attach', '-t', session]) or {
-				return SwarmReport{
-					ok:      false
-					message: 'tmux attach failed: ${err}'
-				}
-			}
-		} else if backend == 'herdr' {
-			println('Attaching to herdr: herdr workspace open swarm-${rid}')
-			os.execvp('herdr', ['herdr', 'workspace', 'open', 'swarm-${rid}']) or {
-				return SwarmReport{
-					ok:      false
-					message: 'herdr attach failed: ${err}'
-				}
-			}
-		}
 	}
 	return SwarmReport{
 		ok:      true
@@ -899,134 +873,6 @@ fn swarm_cancel(ws string, opts SwarmOptions) SwarmReport {
 			'run_state':  'cancelled'
 		}
 	}
-}
-
-fn swarm_attach(ws string, opts SwarmOptions) SwarmReport {
-	if opts.run_id.len == 0 {
-		return SwarmReport{
-			ok:      false
-			message: 'Usage: agent-toolkit swarm attach <run-id>'
-		}
-	}
-	if !swarm_valid_run_id(opts.run_id) {
-		return SwarmReport{
-			ok:      false
-			message: "Invalid run_id '${opts.run_id}'"
-		}
-	}
-	mut rd := swarm_run_dir(ws, opts.run_id)
-	if !os.is_dir(rd) {
-		if found := swarm_find_run_dir_global(opts.run_id) {
-			rd = found
-		} else {
-			return SwarmReport{
-				ok:      false
-				message: 'Run not found: ${opts.run_id}'
-			}
-		}
-	}
-	st := read_swarm_state(rd) or {
-		return SwarmReport{
-			ok:      false
-			message: 'Run not found: ${opts.run_id}'
-		}
-	}
-	mut backend := st.backend
-	if backend.len == 0 {
-		backend = resolve_swarm_backend('auto')
-	}
-	if backend == 'auto' {
-		backend = resolve_swarm_backend('auto')
-	}
-	if backend == 'tmux' {
-		sock := 'agent-toolkit-swarm-${opts.run_id}'
-		session := 'swarm-${opts.run_id}'
-		println('Attaching to tmux: tmux -L ${sock} attach -t ${session}')
-		os.execvp('tmux', ['tmux', '-L', sock, 'attach', '-t', session]) or {
-			return SwarmReport{
-				ok:      false
-				message: 'tmux attach failed: ${err}'
-			}
-		}
-	} else if backend == 'herdr' {
-		println('Attaching to herdr: herdr workspace open swarm-${opts.run_id}')
-		os.execvp('herdr', ['herdr', 'workspace', 'open', 'swarm-${opts.run_id}']) or {
-			return SwarmReport{
-				ok:      false
-				message: 'herdr attach failed: ${err}'
-			}
-		}
-	} else {
-		return SwarmReport{
-			ok:      false
-			message: 'Attach not supported for backend ${backend}: use herdr or tmux'
-		}
-	}
-	return SwarmReport{
-		ok:      true
-		message: 'Attached ${opts.run_id}'
-	}
-}
-
-fn swarm_find_run_dir_global(run_id string) ?string {
-	home := os.home_dir()
-	mut candidates := []string{}
-	if home.len > 0 {
-		direct := os.join_path(home, '.agent-toolkit', 'swarm', 'runs', run_id)
-		if os.is_dir(direct) {
-			return direct
-		}
-		candidates << os.join_path(home, '.ai-workspace', 'repos', 'github.com')
-		candidates << os.join_path(home, '.ai-workspace', 'repos')
-	}
-	mut cur := os.getwd()
-	mut cur2 := cur
-	for _ in 0 .. 10 {
-		if os.is_dir(os.join_path(cur2, 'repos')) && os.file_name(cur2) == '.ai-workspace' {
-			candidates << os.join_path(cur2, 'repos', 'github.com')
-			candidates << os.join_path(cur2, 'repos')
-			break
-		}
-		parent := os.dir(cur2)
-		if parent == cur2 || parent.len == 0 {
-			break
-		}
-		cur2 = parent
-	}
-	for root in candidates {
-		if !os.is_dir(root) {
-			continue
-		}
-		owners := os.ls(root) or { continue }
-		for owner in owners {
-			owner_path := os.join_path(root, owner)
-			if !os.is_dir(owner_path) {
-				continue
-			}
-			if os.is_dir(os.join_path(owner_path, '.git')) || os.is_file(os.join_path(owner_path, '.git')) {
-				cand := os.join_path(owner_path, '.agent-toolkit', 'swarm', 'runs', run_id)
-				if os.is_dir(cand) {
-					return cand
-				}
-				continue
-			}
-			repos := os.ls(owner_path) or { continue }
-			for repo in repos {
-				repo_path := os.join_path(owner_path, repo)
-				if !os.is_dir(repo_path) {
-					continue
-				}
-				if !os.is_dir(os.join_path(repo_path, '.git')) && !os.is_file(os.join_path(repo_path, '.git')) {
-					continue
-				}
-				cand := os.join_path(repo_path, '.agent-toolkit', 'swarm', 'runs', run_id)
-				if os.is_dir(cand) {
-					return cand
-				}
-			}
-		}
-	}
-	return none
 }
 
 fn ensure_swarm_run_dirs(run_dir string) ! {
