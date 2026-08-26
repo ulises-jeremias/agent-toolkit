@@ -152,7 +152,7 @@ Swarms coordinate multiple coding-agent sessions with worktree isolation and dur
 
 ## Repository Structure
 
-Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~85 skills / 14 domains, **18 agents post-#865 = 11 holistic + 2 orchestrators + 6 specialists; 7 specialists archived to `references/`** — was 25 = 11+2+13, 10 loops, 7 packs, 7 MCP providers).
+Live inventory is `agent-toolkit inventory` / `catalogs/` — do not hardcode counts in docs (historical snapshot: ~116+ skills / 14 domains, **18 agents post-#865 = 11 holistic + 2 orchestrators + 6 specialists; 7 specialists archived to `references/`** — was 25 = 11+2+13, 10 loops, 7 packs, 7 MCP providers).
 
 ```
 agent-toolkit/
@@ -180,7 +180,7 @@ agent-toolkit/
 
 ### Holistic agent taxonomy — canonical
 
-Eleven holistic roles own every skill's `holistic_owner` in `capabilities/skills/registry.yaml` (85 skills, no orphans). **Optimize for cognitive simplicity, useful context isolation, and independent verification — not fewest agents, not one-per-skill.** Full roster: [`docs/AGENT_TAXONOMY.md`](AGENT_TAXONOMY.md) — **#865 final = 18 personas** (was 25; 7 archived to `references/`).
+Eleven holistic roles own every skill's `holistic_owner` in `capabilities/skills/registry.yaml` (116+ skills, no orphans). **Optimize for cognitive simplicity, useful context isolation, and independent verification — not fewest agents, not one-per-skill.** Full roster: [`docs/AGENT_TAXONOMY.md`](AGENT_TAXONOMY.md) — **#865 final = 18 personas** (was 25; 7 archived to `references/`).
 
 | Tier | Agents | How to invoke |
 |------|--------|---------------|

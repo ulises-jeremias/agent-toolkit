@@ -177,6 +177,37 @@ products:
         - integrations/linear
         - integrations/slack-assistant
         - integrations/slack-cli
+        - integrations/confluence-admin
+        - integrations/confluence-analytics
+        - integrations/confluence-assistant
+        - integrations/confluence-attachment
+        - integrations/confluence-bulk
+        - integrations/confluence-comment
+        - integrations/confluence-hierarchy
+        - integrations/confluence-jira
+        - integrations/confluence-label
+        - integrations/confluence-ops
+        - integrations/confluence-page
+        - integrations/confluence-permission
+        - integrations/confluence-property
+        - integrations/confluence-search
+        - integrations/confluence-space
+        - integrations/confluence-template
+        - integrations/confluence-watch
+        - integrations/jira-administration
+        - integrations/jira-agile-management
+        - integrations/jira-assistant
+        - integrations/jira-bulk-operations
+        - integrations/jira-collaboration
+        - integrations/jira-custom-fields
+        - integrations/jira-developer-integration
+        - integrations/jira-issue-management
+        - integrations/jira-issue-relationships
+        - integrations/jira-lifecycle-management
+        - integrations/jira-operations
+        - integrations/jira-search-jql
+        - integrations/jira-service-management
+        - integrations/jira-time-tracking
         - loops/loop-runner
         - ops/docs-generator
         - ops/llm-cost-advisor

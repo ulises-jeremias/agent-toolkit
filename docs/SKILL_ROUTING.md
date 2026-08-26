@@ -4,7 +4,7 @@
 > Validate with `python3 scripts/validate-skill-capability.py --check` and `python3 scripts/generate-skill-routing.py --check`.
 > Generated human-readable matrix: `docs/SKILL_ROUTING.md` — do not hand-edit counts; counts derive from the registry and `catalogs/skill-catalog.yaml`.
 
-All 85 skills are owned. No orphans: every skill has exactly one `holistic_owner` (11 roles) and zero-or-more `secondary_owners` / `specialist_agents`. Specialists are opt-in; shared capabilities are the default.
+All 116+ skills are owned. No orphans: every skill has exactly one `holistic_owner` (11 roles) and zero-or-more `secondary_owners` / `specialist_agents`. Specialists are opt-in; shared capabilities are the default.
 
 ## Holistic owner taxonomy (11 roles)
 
@@ -55,7 +55,7 @@ User intent: translate node → code        → figma-implement-design
            full screen from code/desc    → figma-generate-design (opt-in pack)
 ```
 
-## Full skill ownership snapshot (85 skills)
+## Full skill ownership snapshot (116+ skills)
 
 Generated from `capabilities/skills/registry.yaml`. Counts must match `catalogs/skill-catalog.yaml` and `skills/*/*/SKILL.md` on disk; CI fails on drift.
 
@@ -175,4 +175,4 @@ Generated from `capabilities/skills/registry.yaml`. Counts must match `catalogs/
 - `agents/designer/AGENT.md` — Designer agent with design routing logic and five-scenario tests
 - `skills/core/assistant/references/ORCHESTRATION.md` — Orchestrator routing table (design section mirrors this doc)
 - `scripts/validate-skill-capability.py` — CI drift/orphan checker (`--check`)
-- `tests/test_skill_capability_registry.py` — pytest coverage for 85 skills, no orphans, design routing
+- `tests/test_skill_capability_registry.py` — pytest coverage for 116+ skills, no orphans, design routing

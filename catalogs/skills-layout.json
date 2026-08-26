@@ -78,6 +78,37 @@
     ],
     "integrations": [
       "clickup-cli",
+      "confluence-admin",
+      "confluence-analytics",
+      "confluence-assistant",
+      "confluence-attachment",
+      "confluence-bulk",
+      "confluence-comment",
+      "confluence-hierarchy",
+      "confluence-jira",
+      "confluence-label",
+      "confluence-ops",
+      "confluence-page",
+      "confluence-permission",
+      "confluence-property",
+      "confluence-search",
+      "confluence-space",
+      "confluence-template",
+      "confluence-watch",
+      "jira-administration",
+      "jira-agile-management",
+      "jira-assistant",
+      "jira-bulk-operations",
+      "jira-collaboration",
+      "jira-custom-fields",
+      "jira-developer-integration",
+      "jira-issue-management",
+      "jira-issue-relationships",
+      "jira-lifecycle-management",
+      "jira-operations",
+      "jira-search-jql",
+      "jira-service-management",
+      "jira-time-tracking",
       "linear",
       "mcp",
       "slack-assistant",
@@ -142,13 +173,13 @@
       "domain": "agentic-security"
     },
     {
-      "id": "architecture/c4-model",
-      "name": "c4-model",
+      "id": "architecture/architecture-diagram",
+      "name": "architecture-diagram",
       "domain": "architecture"
     },
     {
-      "id": "architecture/architecture-diagram",
-      "name": "architecture-diagram",
+      "id": "architecture/c4-model",
+      "name": "c4-model",
       "domain": "architecture"
     },
     {
@@ -404,6 +435,161 @@
     {
       "id": "integrations/clickup-cli",
       "name": "clickup-cli",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-admin",
+      "name": "confluence-admin",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-analytics",
+      "name": "confluence-analytics",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-assistant",
+      "name": "confluence-assistant",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-attachment",
+      "name": "confluence-attachment",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-bulk",
+      "name": "confluence-bulk",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-comment",
+      "name": "confluence-comment",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-hierarchy",
+      "name": "confluence-hierarchy",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-jira",
+      "name": "confluence-jira",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-label",
+      "name": "confluence-label",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-ops",
+      "name": "confluence-ops",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-page",
+      "name": "confluence-page",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-permission",
+      "name": "confluence-permission",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-property",
+      "name": "confluence-property",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-search",
+      "name": "confluence-search",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-space",
+      "name": "confluence-space",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-template",
+      "name": "confluence-template",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-watch",
+      "name": "confluence-watch",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-administration",
+      "name": "jira-administration",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-agile-management",
+      "name": "jira-agile-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-assistant",
+      "name": "jira-assistant",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-bulk-operations",
+      "name": "jira-bulk-operations",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-collaboration",
+      "name": "jira-collaboration",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-custom-fields",
+      "name": "jira-custom-fields",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-developer-integration",
+      "name": "jira-developer-integration",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-issue-management",
+      "name": "jira-issue-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-issue-relationships",
+      "name": "jira-issue-relationships",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-lifecycle-management",
+      "name": "jira-lifecycle-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-operations",
+      "name": "jira-operations",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-search-jql",
+      "name": "jira-search-jql",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-service-management",
+      "name": "jira-service-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-time-tracking",
+      "name": "jira-time-tracking",
       "domain": "integrations"
     },
     {

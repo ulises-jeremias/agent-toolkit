@@ -1,6 +1,6 @@
 # Skills Reference
 
-**85 skills** on disk. Do not maintain a second catalog here.
+**116+ skills** on disk. Do not maintain a second catalog here.
 
 | Source | What |
 |--------|------|

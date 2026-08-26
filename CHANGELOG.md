@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.25.0] — 2026-08-26
+
+- **Feat** — Vendor 31 JIRA + Confluence skills as first-class upstream capabilities: 14 `integrations/jira-*` (grandcamel/JIRA-Assistant-Skills @ `b583731`) and 17 `integrations/confluence-*` (grandcamel/Confluence-Assistant-Skills @ `403eac8`). Bodies byte-identical to upstream; Toolkit frontmatter overlay + provenance lock + `trust.reviewed_provenance` binding. `jira-assistant` / `confluence-assistant` are the router hubs. Require `jira-as` / `confluence-as` CLIs (provisioned by workstation, not toolkit)
+- **Feat** — Skill capability registry grows 85 → 116; all 31 owned by `platform-engineer`, wired into `skills/core/assistant/references/ORCHESTRATION.md`
+- **Chore** — Docs counts switched from exact ("85 skills") to floor ("116+ skills") with a new `tests/test_docs_count_floor.py` guard (floor never overstates catalog; precise SoT remains `agent-toolkit inventory`)
+
 ## [1.24.0] — 2026-08-25
 
 - **Feat** — New skill `architecture/architecture-diagram`: create polished dark-themed architecture diagrams as self-contained HTML+SVG files (semantic color palette, spacing/legend layout rules, PNG/PDF export toolbar). Ships `resources/template.html` as the customization starting point. Registered in `agent-toolkit-complete` and the architecture domain (85 skills total)
@@ -586,7 +592,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.24.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.25.0...HEAD
+[1.25.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.25.0
 [1.24.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.24.0
 [1.23.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.1
 [1.23.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.0
