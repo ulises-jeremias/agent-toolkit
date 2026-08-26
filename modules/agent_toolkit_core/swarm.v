@@ -35,14 +35,6 @@ pub mut:
 	data    map[string]string
 }
 
-pub struct RunnerInfo {
-pub:
-	cap       string
-	available bool
-	herdr     string
-	bin       string
-}
-
 struct SwarmStateFile {
 	version       int
 	run_id        string
@@ -59,7 +51,7 @@ struct SwarmApprovalsFile {
 	gates []SwarmGate
 }
 
-// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/runners/models.
+// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel.
 pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
@@ -81,12 +73,6 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 		}
 		'doctor' {
 			swarm_doctor(ws)
-		}
-		'runners' {
-			swarm_runners(opts)
-		}
-		'models' {
-			swarm_models(opts)
 		}
 		'start' {
 			swarm_start(ws, opts)
@@ -132,24 +118,12 @@ pub fn swarm_result(report SwarmReport) CommandResult {
 }
 
 pub fn swarm_help_text() string {
-	ordered := ['opencode', 'claude', 'codex', 'cursor', 'copilot', 'muse', 'skeleton']
-	mut runners_parts := []string{}
-	for i, r in ordered {
-		if i == 0 {
-			runners_parts << '${r} (default via \$SHELL)'
-		} else {
-			runners_parts << r
-		}
-	}
-	runners_line := runners_parts.join(', ')
 	return 'swarm — Multi-agent orchestration (REDESIGN: filesystem SoT, ADR-008/ADR-020).
 
 Usage:
     agent-toolkit swarm recipes [name]
     agent-toolkit swarm backends
     agent-toolkit swarm doctor [--json]
-    agent-toolkit swarm runners [--json] [--workspace PATH]
-    agent-toolkit swarm models [--json] [--runner NAME] [--profile NAME] [--workspace PATH]
     agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--request-file PATH] [--issue REF] [--base-ref REF] [--workspace PATH] [-C PATH] [--repo PATH] [--json] [--runner NAME] [--model-profile NAME] [--attach|--no-attach] [--dry-run] [task]
     agent-toolkit swarm list
     agent-toolkit swarm status [run-id]
@@ -158,7 +132,7 @@ Usage:
     agent-toolkit swarm cancel <run-id>
     agent-toolkit swarm help
 
-Runners: ${runners_line}. Same capability as: agent-toolkit loop run --runner NAME.
+Runners: opencode (default via $SHELL), claude, codex, cursor, copilot, muse, skeleton. Same capability as: agent-toolkit loop run --runner NAME.
 Backends: herdr (recommended, auto-focus worktree), tmux (Unix fallback), headless (filesystem only).
 Windows: tmux/herdr unsupported; use --backend headless.
 Concurrency: process-per-run supervisor; UI spawn is fail-closed without ProcessService stdin.
@@ -295,145 +269,6 @@ fn swarm_backends() SwarmReport {
 			'herdr':      doctor_flag(doctor_backend('herdr'))
 			'tmux':       doctor_flag(doctor_backend('tmux'))
 			'headless':   'true'
-		}
-	}
-}
-
-fn swarm_runners(opts SwarmOptions) SwarmReport {
-	mut matrix := map[string]RunnerInfo{}
-	for r in swarm_runner_names() {
-		if r == 'auto' {
-			continue
-		}
-		cap := runner_caps[r] or { 'official' }
-		herdr := runner_herdr[r] or {
-			if r in ['opencode', 'claude', 'muse', 'skeleton'] { 'official' } else { 'custom' }
-		}
-		bin := runner_bins[r] or { r }
-		matrix[r] = RunnerInfo{
-			cap:       cap
-			available: runner_available(r)
-			herdr:     herdr
-			bin:       bin
-		}
-	}
-	if opts.json_output {
-		return SwarmReport{
-			ok:      true
-			message: json.encode(matrix)
-			data:    {
-				'subcommand': 'runners'
-				'count':      '${matrix.len}'
-			}
-		}
-	}
-	mut lines := []string{}
-	for r, info in matrix {
-		avail := if info.available { 'available' } else { 'missing' }
-		lines << '${r:12} ${info.cap:10} ${avail:10} herdr:${info.herdr}'
-	}
-	lines.sort()
-	return SwarmReport{
-		ok:      true
-		message: lines.join('\n')
-		data:    {
-			'subcommand': 'runners'
-			'count':      '${matrix.len}'
-		}
-	}
-}
-
-fn swarm_models(opts SwarmOptions) SwarmReport {
-	profiles := swarm_model_profiles()
-	if opts.runner.len > 0 && opts.model_profile.len > 0 {
-		if opts.model_profile !in profiles {
-			return SwarmReport{
-				ok:      false
-				message: "Unknown model-profile '${opts.model_profile}'. Use economy|balanced|quality|private"
-				data:    {
-					'subcommand': 'models'
-				}
-			}
-		}
-		mp := profiles[opts.model_profile].clone()
-		val := mp[opts.runner] or {
-			return SwarmReport{
-				ok:      false
-				message: "Unknown runner '${opts.runner}'. Use ${swarm_runner_names().filter(it != 'auto').join('|')}"
-				data:    {
-					'subcommand': 'models'
-				}
-			}
-		}
-		return SwarmReport{
-			ok:      true
-			message: val
-			data:    {
-				'subcommand': 'models'
-				'runner':     opts.runner
-				'profile':    opts.model_profile
-			}
-		}
-	}
-	if opts.runner.len > 0 {
-		first := profiles['economy'].clone()
-		if opts.runner !in first {
-			return SwarmReport{
-				ok:      false
-				message: "Unknown runner '${opts.runner}'. Use ${swarm_runner_names().filter(it != 'auto').join('|')}"
-				data:    {
-					'subcommand': 'models'
-				}
-			}
-		}
-		mut filtered := map[string]string{}
-		for profile, mp in profiles {
-			filtered[profile] = mp[opts.runner] or { '' }
-		}
-		return SwarmReport{
-			ok:      true
-			message: json.encode(filtered)
-			data:    {
-				'subcommand': 'models'
-				'runner':     opts.runner
-			}
-		}
-	}
-	if opts.json_output {
-		return SwarmReport{
-			ok:      true
-			message: json.encode(profiles)
-			data:    {
-				'subcommand': 'models'
-			}
-		}
-	}
-	mut lines := []string{}
-	mut header := 'profile   '
-	for r in swarm_runner_names() {
-		if r in ['auto', 'skeleton'] {
-			continue
-		}
-		header += '${r:12}'
-	}
-	lines << header
-	for profile in ['economy', 'balanced', 'quality', 'private'] {
-		mp := profiles[profile].clone()
-		mut row := '${profile:10}'
-		for r in swarm_runner_names() {
-			if r in ['auto', 'skeleton'] {
-				continue
-			}
-			val := mp[r] or { '-' }
-			row += '${val:12}'
-		}
-		lines << row
-	}
-	return SwarmReport{
-		ok:      true
-		message: lines.join('\n')
-		data:    {
-			'subcommand': 'models'
 		}
 	}
 }
