@@ -761,6 +761,17 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut base_ref := ''
 	mut json_output := false
 	mut task_parts := []string{}
+	mut handoff_sub := ''
+	mut htype := ''
+	mut from_role := ''
+	mut to_role := ''
+	mut priority := 10
+	mut artifact := ''
+	mut commit := ''
+	mut branch := ''
+	mut blocking := false
+	mut role := ''
+	mut handoff_id := ''
 	mut i := 0
 	for i < args.len {
 		a := args[i]
@@ -829,6 +840,97 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		}
 		if a.starts_with('--base-ref=') {
 			base_ref = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--run-id' {
+			if i + 1 >= args.len {
+				return error('--run-id requires an argument')
+			}
+			run_id = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--run-id=') {
+			run_id = a.all_after('=')
+			i++
+			continue
+		}
+		if a in ['--type', '--from', '--to', '--artifact', '--commit', '--branch', '--role',
+			'--handoff'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--type' { htype = val }
+				'--from' { from_role = val }
+				'--to' { to_role = val }
+				'--artifact' { artifact = val }
+				'--commit' { commit = val }
+				'--branch' { branch = val }
+				'--role' { role = val }
+				'--handoff' { handoff_id = val }
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--type=') {
+			htype = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--from=') {
+			from_role = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--to=') {
+			to_role = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--artifact=') {
+			artifact = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--commit=') {
+			commit = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--branch=') {
+			branch = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--role=') {
+			role = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--handoff=') {
+			handoff_id = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--priority' {
+			if i + 1 >= args.len {
+				return error('--priority requires an argument')
+			}
+			priority = args[i + 1].int()
+			i += 2
+			continue
+		}
+		if a.starts_with('--priority=') {
+			priority = a.all_after('=').int()
+			i++
+			continue
+		}
+		if a == '--blocking' {
+			blocking = true
 			i++
 			continue
 		}
@@ -908,6 +1010,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
+		if sub in ['handoff', 'task'] && handoff_sub.len == 0 {
+			handoff_sub = a
+			i++
+			continue
+		}
 		if run_id.len == 0 {
 			run_id = a
 			i++
@@ -966,6 +1073,17 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		issue_ref:      issue_ref
 		base_ref:       base_ref
 		json_output:    json_output
+		handoff_sub:    handoff_sub
+		htype:          htype
+		from_role:      from_role
+		to_role:        to_role
+		priority:       priority
+		artifact:       artifact
+		commit:         commit
+		branch:         branch
+		blocking:       blocking
+		role:           role
+		handoff_id:     handoff_id
 	}
 }
 

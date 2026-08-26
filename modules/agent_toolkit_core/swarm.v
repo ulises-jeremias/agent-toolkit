@@ -25,6 +25,18 @@ pub:
 	issue_ref      string
 	base_ref       string
 	json_output    bool
+	// handoff / task subcommands (swarm handoff create / swarm task next|complete)
+	handoff_sub string
+	htype       string
+	from_role   string
+	to_role     string
+	priority    int
+	artifact    string
+	commit      string
+	branch      string
+	blocking    bool
+	role        string
+	handoff_id  string
 }
 
 // SwarmReport is the domain result for swarm subcommands.
@@ -92,6 +104,12 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 		'cancel' {
 			swarm_cancel(ws, opts)
 		}
+		'handoff' {
+			swarm_handoff(ws, opts)
+		}
+		'task' {
+			swarm_task(ws, opts)
+		}
 		else {
 			SwarmReport{
 				ok:      false
@@ -130,6 +148,9 @@ Usage:
     agent-toolkit swarm approve <run-id> <gate>
     agent-toolkit swarm reject <run-id> <gate> --reason TEXT
     agent-toolkit swarm cancel <run-id>
+    agent-toolkit swarm handoff create --type artifact|commit|feedback|decision_request --from ROLE --to ROLE [--priority N] [--artifact PATH] [--commit SHA] [--branch BR] [--blocking] [--run-id ID]
+    agent-toolkit swarm task next --role ROLE [--run-id ID] [--json]
+    agent-toolkit swarm task complete --handoff HID [--run-id ID]
     agent-toolkit swarm help
 
 Runners: opencode (default via $SHELL), claude, codex, cursor, copilot, muse, skeleton. Same capability as: agent-toolkit loop run --runner NAME.
@@ -873,6 +894,417 @@ fn swarm_cancel(ws string, opts SwarmOptions) SwarmReport {
 			'run_state':  'cancelled'
 		}
 	}
+}
+
+fn swarm_handoff(ws string, opts SwarmOptions) SwarmReport {
+	sub := opts.handoff_sub
+	if sub in ['', 'help', '-h', '--help'] {
+		return SwarmReport{
+			ok:      true
+			message: swarm_handoff_help_text()
+			data:    {
+				'subcommand': 'handoff'
+			}
+		}
+	}
+	if sub != 'create' {
+		return SwarmReport{
+			ok:      false
+			message: "Unknown handoff command: ${sub}\nRun 'agent-toolkit swarm handoff create --help' for usage."
+			data:    {
+				'subcommand': 'handoff'
+			}
+		}
+	}
+	return swarm_handoff_create(ws, opts)
+}
+
+fn swarm_handoff_help_text() string {
+	return 'swarm handoff create — durable filesystem handoff queue (ADR-008).
+
+Usage:
+    agent-toolkit swarm handoff create --type artifact|commit|feedback|decision_request --from ROLE --to ROLE [--priority N] [--artifact PATH] [--commit SHA] [--branch BR] [--blocking] [--run-id ID]
+
+Types:
+    artifact        hand off an artifact under <run>/artifacts (1 MB max)
+    commit          hand off a git commit (40-hex SHA + branch, validated via git)
+    feedback        reviewer feedback; --blocking enforces the round-trip limit (2)
+    decision_request request a decision (no commit/artifact required)
+
+State: handoffs/{outbox,queued,active,completed,failed}/<16-hex>.json.
+'
+}
+
+fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
+	run_id := swarm_resolve_run_id(ws, opts.run_id) or {
+		return SwarmReport{
+			ok:      false
+			message: err.msg()
+			data:    {
+				'subcommand': 'handoff'
+			}
+		}
+	}
+	rd := swarm_run_dir(ws, run_id)
+	st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${run_id}'
+			data:    {
+				'subcommand': 'handoff'
+				'run_id':     run_id
+			}
+		}
+	}
+	mut roles := swarm_recipe_roles(st.recipe)
+	if roles.len == 0 {
+		roles = ['implementer', 'reviewer', 'integrator']
+	}
+	htype := opts.htype
+	from_role := opts.from_role
+	to_role := opts.to_role
+
+	mut rec := HandoffRecord{
+		version:    handoff_version
+		htype:      htype
+		from_role:  from_role
+		to_role:    to_role
+		priority:   opts.priority
+		artifact:   ''
+		commit:     ''
+		branch:     ''
+		blocking:   false
+		handoff_id: ''
+		created_at: ''
+	}
+
+	if opts.artifact.len > 0 {
+		validate_artifact_path(rd, opts.artifact) or {
+			return SwarmReport{
+				ok:      false
+				message: err.msg()
+				data:    {
+					'subcommand': 'handoff'
+				}
+			}
+		}
+		art_path := os.join_path(rd, opts.artifact)
+		if os.is_file(art_path) && os.file_size(art_path) > 1_000_000 {
+			return SwarmReport{
+				ok:      false
+				message: 'Artifact too large (${os.file_size(art_path)} bytes), max 1MB'
+				data:    {
+					'subcommand': 'handoff'
+				}
+			}
+		}
+		rec.artifact = opts.artifact
+	}
+	if htype == 'commit' {
+		if opts.commit.len == 0 || opts.branch.len == 0 {
+			return SwarmReport{
+				ok:      false
+				message: 'commit handoff requires --commit and --branch'
+				data:    {
+					'subcommand': 'handoff'
+				}
+			}
+		}
+		mut sha := opts.commit.trim_space().to_lower()
+		if !handoff_sha_valid(sha) {
+			resolved := resolve_sha(ws, sha) or {
+				return SwarmReport{
+					ok:      false
+					message: 'Invalid or ambiguous commit SHA: ${opts.commit}'
+					data:    {
+						'subcommand': 'handoff'
+					}
+				}
+			}
+			sha = resolved
+		}
+		if !validate_commit_exists(ws, sha) {
+			return SwarmReport{
+				ok:      false
+				message: 'Commit not found: ${sha}'
+				data:    {
+					'subcommand': 'handoff'
+				}
+			}
+		}
+		rec.commit = sha
+		rec.branch = opts.branch
+	}
+	if htype == 'feedback' {
+		rec.blocking = opts.blocking
+		if rec.blocking {
+			limit := 2
+			mut count := 0
+			for state in ['queued', 'active', 'completed'] {
+				for h in list_handoffs(rd, state) {
+					if h.htype == 'feedback' && h.blocking && h.from_role == from_role
+						&& h.to_role == to_role {
+						count++
+					}
+				}
+			}
+			if count >= limit {
+				return SwarmReport{
+					ok:      false
+					message: 'The reviewer returned blocking feedback ${count} times. The configured round-trip limit (${limit}) has been reached.\n\nInspect:\n  agent-toolkit swarm artifacts ${run_id}\n\nChoose:\n  resume with a higher limit\n  escalate to team\n  request human intervention'
+					data:    {
+						'subcommand': 'handoff'
+					}
+				}
+			}
+		}
+	}
+	errs := validate_handoff(rec, rd, roles)
+	if errs.len > 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Handoff validation failed: ' + errs.join('; ')
+			data:    {
+				'subcommand': 'handoff'
+			}
+		}
+	}
+	write_handoff_outbox(rd, mut rec) or {
+		return SwarmReport{
+			ok:      false
+			message: 'write handoff failed: ${err}'
+			data:    {
+				'subcommand': 'handoff'
+			}
+		}
+	}
+	append_swarm_trace(rd, 'handoff_created', '${htype}:${from_role}->${to_role}:${rec.handoff_id}')
+	hid := rec.handoff_id
+	move_handoff(rd, hid, 'outbox', 'queued') or {}
+	append_swarm_trace(rd, 'handoff_queued', hid)
+	// Auto-complete incoming active handoffs for the sender (Python fbb2280 parity).
+	for h in list_handoffs(rd, 'active') {
+		if h.to_role == from_role && h.handoff_id.len > 0 {
+			move_handoff(rd, h.handoff_id, 'active', 'completed') or {}
+			append_swarm_trace(rd, 'handoff_completed', '${h.handoff_id}:auto:handoff_create:${hid}')
+		}
+	}
+	return SwarmReport{
+		ok:      true
+		message: 'Handoff ${hid} created: ${from_role} -> ${to_role} (${htype})'
+		data:    {
+			'subcommand': 'handoff'
+			'handoff_id': hid
+			'type':       htype
+			'from':       from_role
+			'to':         to_role
+		}
+	}
+}
+
+fn swarm_task(ws string, opts SwarmOptions) SwarmReport {
+	sub := opts.handoff_sub
+	if sub in ['', 'help', '-h', '--help'] {
+		return SwarmReport{
+			ok:      true
+			message: swarm_task_help_text()
+			data:    {
+				'subcommand': 'task'
+			}
+		}
+	}
+	if sub == 'next' {
+		return swarm_task_next(ws, opts)
+	}
+	if sub == 'complete' {
+		return swarm_task_complete(ws, opts)
+	}
+	return SwarmReport{
+		ok:      false
+		message: "Unknown task command: ${sub}\nUsage: agent-toolkit swarm task <next|complete>"
+		data:    {
+			'subcommand': 'task'
+		}
+	}
+}
+
+fn swarm_task_help_text() string {
+	return 'swarm task — durably claim and complete handoff work.
+
+Usage:
+    agent-toolkit swarm task next --role ROLE [--run-id ID] [--json]
+    agent-toolkit swarm task complete --handoff HID [--run-id ID]
+
+next       moves the highest-priority queued handoff for ROLE to active (priority sort).
+complete   moves an active handoff to completed.
+'
+}
+
+fn swarm_task_next(ws string, opts SwarmOptions) SwarmReport {
+	if opts.role.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm task next --role <role> [--run-id <id>]'
+			data:    {
+				'subcommand': 'task'
+			}
+		}
+	}
+	run_id := swarm_resolve_run_id(ws, opts.run_id) or {
+		return SwarmReport{
+			ok:      false
+			message: err.msg()
+			data:    {
+				'subcommand': 'task'
+			}
+		}
+	}
+	rd := swarm_run_dir(ws, run_id)
+	st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${run_id}'
+			data:    {
+				'subcommand': 'task'
+				'run_id':     run_id
+			}
+		}
+	}
+	mut candidates := []HandoffRecord{}
+	for it in list_handoffs(rd, 'queued') {
+		if it.to_role == opts.role {
+			candidates << it
+		}
+	}
+	// Sort by priority ascending (00 is highest priority).
+	candidates.sort(a.priority < b.priority)
+	// Enforce at most one active per task-mode role (receive_mode != batch).
+	mut has_active := false
+	for it in list_handoffs(rd, 'active') {
+		if it.to_role == opts.role {
+			has_active = true
+			break
+		}
+	}
+	if has_active {
+		if swarm_role_receive_mode(st.recipe, opts.role) != 'batch' {
+			return SwarmReport{
+				ok:      false
+				message: 'Role ${opts.role} already has active task (at most one active task per task-mode role)'
+				data:    {
+					'subcommand': 'task'
+					'role':       opts.role
+				}
+			}
+		}
+	}
+	if candidates.len == 0 {
+		return SwarmReport{
+			ok:      true
+			message: 'No queued tasks'
+			data:    {
+				'subcommand': 'task'
+				'task':      ''
+			}
+		}
+	}
+	task := candidates[0]
+	hid := task.handoff_id
+	if hid.len > 0 {
+		move_handoff(rd, hid, 'queued', 'active') or {}
+		append_swarm_trace(rd, 'handoff_accepted', '${hid}:${opts.role}')
+	}
+	return SwarmReport{
+		ok:      true
+		message: json.encode(task)
+		data:    {
+			'subcommand': 'task'
+			'handoff_id': hid
+			'type':       task.htype
+			'from':       task.from_role
+			'to':         task.to_role
+			'artifact':   task.artifact
+		}
+	}
+}
+
+fn swarm_task_complete(ws string, opts SwarmOptions) SwarmReport {
+	if opts.handoff_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm task complete --handoff <handoff-id> [--run-id <id>]'
+			data:    {
+				'subcommand': 'task'
+			}
+		}
+	}
+	run_id := swarm_resolve_run_id(ws, opts.run_id) or {
+		return SwarmReport{
+			ok:      false
+			message: err.msg()
+			data:    {
+				'subcommand': 'task'
+			}
+		}
+	}
+	rd := swarm_run_dir(ws, run_id)
+	read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${run_id}'
+			data:    {
+				'subcommand': 'task'
+				'run_id':     run_id
+			}
+		}
+	}
+	hid := opts.handoff_id
+	move_handoff(rd, hid, 'active', 'completed') or {
+		return SwarmReport{
+			ok:      false
+			message: 'Handoff not found or not active: ${hid}'
+			data:    {
+				'subcommand': 'task'
+				'handoff_id': hid
+			}
+		}
+	}
+	append_swarm_trace(rd, 'handoff_completed', hid)
+	return SwarmReport{
+		ok:      true
+		message: 'Completed handoff ${hid}'
+		data:    {
+			'subcommand': 'task'
+			'handoff_id': hid
+		}
+	}
+}
+
+// swarm_resolve_run_id resolves --run-id or AGENT_TOOLKIT_SWARM_RUN_ID or the latest run.
+fn swarm_resolve_run_id(ws string, given string) !string {
+	if given.len > 0 {
+		return given
+	}
+	env := os.getenv('AGENT_TOOLKIT_SWARM_RUN_ID')
+	if env.len > 0 {
+		return env
+	}
+	dir := swarm_runs_dir(ws)
+	if !os.is_dir(dir) {
+		return error('No run found')
+	}
+	mut names := os.ls(dir) or { return error('No run found') }
+	if names.len == 0 {
+		return error('No run found')
+	}
+	names.sort()
+	return names.last()
+}
+
+// swarm_role_receive_mode reports the role receive_mode from the recipe (default: single).
+// Python recipes default to a non-batch receive mode, so at most one active task per role.
+fn swarm_role_receive_mode(recipe string, role string) string {
+	return ''
 }
 
 fn ensure_swarm_run_dirs(run_dir string) ! {

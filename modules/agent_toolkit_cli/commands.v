@@ -877,6 +877,35 @@ fn swarm_command() cli.Command {
 				description: 'Cancel a run'
 				execute:     atk_exec
 			},
+			cli.Command{
+				name:        'handoff'
+				description: 'Handoff operations (create)'
+				commands:    [
+					cli.Command{
+						name:        'create'
+						description: 'Create a handoff (artifact|commit|feedback|decision_request)'
+						execute:     atk_exec
+					},
+				]
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'task'
+				description: 'Task queue (next/complete)'
+				commands:    [
+					cli.Command{
+						name:        'next'
+						description: 'Claim next queued task for a role'
+						execute:     atk_exec
+					},
+					cli.Command{
+						name:        'complete'
+						description: 'Complete an active handoff'
+						execute:     atk_exec
+					},
+				]
+				execute:     atk_exec
+			},
 		]
 		flags:       [
 			cli.Flag{
@@ -959,6 +988,61 @@ fn swarm_command() cli.Command {
 				flag:        .bool
 				name:        'no-attach'
 				description: 'Skip Herdr UI attach (CI/script mode)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'run-id'
+				description: 'Run id (status/approve/reject/cancel/handoff/task)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'type'
+				description: 'Handoff type (artifact|commit|feedback|decision_request)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'from'
+				description: 'Handoff from role'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'to'
+				description: 'Handoff to role'
+			},
+			cli.Flag{
+				flag:        .int
+				name:        'priority'
+				description: 'Handoff priority 0..100 (default 10)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'artifact'
+				description: 'Artifact path (handoff create)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'commit'
+				description: 'Commit SHA (handoff create --type commit)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'branch'
+				description: 'Branch (handoff create --type commit)'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'blocking'
+				description: 'Blocking feedback (handoff create --type feedback)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'role'
+				description: 'Role (task next)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'handoff'
+				description: 'Handoff id (task complete)'
 			},
 		]
 	}
