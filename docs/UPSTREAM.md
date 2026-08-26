@@ -7,8 +7,8 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-26T00:24:01.490427Z
-Capabilities with external provenance: 11 (first-party omitted; lock is sparse)
+Generated: 2026-08-26T16:38:44.402431Z
+Capabilities with external provenance: 42 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
 
@@ -86,6 +86,657 @@ Capabilities with external provenance: 11 (first-party omitted; lock is sparse)
 - **Observed license:** `MIT` source_path=`skills/design/web-design-guidelines/references/LICENSE` checksum=`sha256:6cd1609c9c12233507cdd2ce0d32e9a721e3c27494951be06b90090deeeb7af2`
   - Declaration expected `license: MIT` — mismatch requires review
 - **Resolved at:** `2026-08-26T00:22:55.556053Z` version=`?`
+
+## `integrations/confluence-admin`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:9baa687e349f50e239490ab8843b81fa374f4325b7fc10dc6e5bedcc93213f39` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:9baa687e349f50e239490ab8843b81fa374f4325b7fc10dc6e5bedcc93213f39`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-admin`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-admin`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:62872b43fd66b90f50392c98a4dadfed5281d8250eda4b69640b94c02d083701`
+- **Body checksum:** `sha256:d3ab250bf97bac007a6b684e47b0954a5899151a0c2b56699386b1ec825dd90a` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-admin/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-analytics`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:4923ad4a63ce514adaf979d3f605282f676ee1983e2fa4f8c7ec9024e64b475d` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:4923ad4a63ce514adaf979d3f605282f676ee1983e2fa4f8c7ec9024e64b475d`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-analytics`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-analytics`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:1d6d174820db0709424e3e724026a891f24f4215ebf8c91b3e0cfdbb49b41069`
+- **Body checksum:** `sha256:4f6f27c11a7aa6cac726f36417c7cedf0b07177e660258858f9489d4c96c1d92` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-analytics/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-assistant`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:7d751c1a37136e3f6ce335b399901a408b17736c62bfc67abdd249d2d2c8fde3` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:7d751c1a37136e3f6ce335b399901a408b17736c62bfc67abdd249d2d2c8fde3`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-assistant`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-assistant`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:f868319e94f2927fe91fbadf64cadddf82aea481b88e8c5c6d7a4eafde0578f9`
+- **Body checksum:** `sha256:5c13f9522635845a5188d4fca6715295005569d4a4471f0ff4216dd13bbd13ad` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-assistant/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-attachment`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:d3996f670f1eefce64f0567015ff5a91473aeb268befd1f86bdc87cd38159bfe` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:d3996f670f1eefce64f0567015ff5a91473aeb268befd1f86bdc87cd38159bfe`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-attachment`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-attachment`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:d52c2fb6ec2deaa5ef18d633c6f16c9609c5ff35bcf0ac9f2f11a459fc031399`
+- **Body checksum:** `sha256:b540e704143b37fa106bc159d241540bdd6bddf896e72a61450da078bb7ec7ac` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-attachment/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-bulk`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:59e98e388eb863c1447ade686fa56926423076f0832ad89fc7742472692cf091` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:59e98e388eb863c1447ade686fa56926423076f0832ad89fc7742472692cf091`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-bulk`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-bulk`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:0c94bc6d11f22048551ebbf9169f9cef20d503c19b401cb9981899734e59abcf`
+- **Body checksum:** `sha256:464fd53fbbe899792afaf36d1107b596eb3b21f6492137f1229a0c36959de151` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-bulk/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-comment`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:e960c1c7b10e05801c5d267a911792c06c24a322616c585d3a0af066ecc07bd5` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:e960c1c7b10e05801c5d267a911792c06c24a322616c585d3a0af066ecc07bd5`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-comment`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-comment`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:f26353292fa1a319cb396f90df3f693128365de55f4ad9549b3d03edf62f42ea`
+- **Body checksum:** `sha256:162c8d2bd63822082b688acd843cd1eed948c2abe42651b70f8738399201866a` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-comment/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-hierarchy`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:24f5dc98f438e034eda6834f9b79d97893184b2e7557a40d2707b33915d7a157` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:24f5dc98f438e034eda6834f9b79d97893184b2e7557a40d2707b33915d7a157`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-hierarchy`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-hierarchy`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:279376d12e8161d104ad0ea99e51d5eac5a3a1c2f817be5e5cb3b93ab721773c`
+- **Body checksum:** `sha256:9d9233c7b09c4ae2d8dc5208e2e096b53ed9e77eaadaefb9f2455a2274a6f015` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-hierarchy/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-jira`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:856bee6a92047948f10c645670c4a7fc3de52662398bac49fc7ce27efbd25b7d` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:856bee6a92047948f10c645670c4a7fc3de52662398bac49fc7ce27efbd25b7d`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-jira`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-jira`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:302a8c5c18644397d92be84bdf8f04a9157e6e0ee98a991ca00904584da51f09`
+- **Body checksum:** `sha256:d0e32dd674ade44b8608913347e5cd8a226cb758218f03a0bf929617d65236d4` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-jira/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-label`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:deff7bc0e7343a05b488321445c4a790706b94aae10ef80c22e05502cdb5066b` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:deff7bc0e7343a05b488321445c4a790706b94aae10ef80c22e05502cdb5066b`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-label`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-label`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:075bf02285fa897341a44652b15e747862c0ead1fa82728f619165df682f7562`
+- **Body checksum:** `sha256:8e005338cf4038f07ccb3b007645aa0c50fee296f87f450c604f961414322622` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-label/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-ops`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:adfed15759dc823e7d28a82ff1e9dc71f62ac336092a974d3f8a9d997a810fcb` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:adfed15759dc823e7d28a82ff1e9dc71f62ac336092a974d3f8a9d997a810fcb`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-ops`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-ops`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:508c852a067a963d447e6ffaa58a2467d11d4d5b827691d69309383e00317b26`
+- **Body checksum:** `sha256:9219a10dddc1a29ff415b3d6acffbc339854f17e88ccd26ecb15f699e1138877` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-ops/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-page`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:8788b5961dcd6f1d1e9a08470b707037b74739db5fe3371776c1d8a2c7603fb2` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:8788b5961dcd6f1d1e9a08470b707037b74739db5fe3371776c1d8a2c7603fb2`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-page`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-page`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:cb8aa106e22edd0a85e2727caecf19e69471174528d80929292c7a7bdc2c6d06`
+- **Body checksum:** `sha256:b24641a012f776b6509e84610cf926c26e799b22f43af1daec6632e061ce9a0c` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-page/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-permission`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:3eb4e643e0e7732f97730bc9e6fe1b218cf78f034c9c14c844369ef521269702` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:3eb4e643e0e7732f97730bc9e6fe1b218cf78f034c9c14c844369ef521269702`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-permission`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-permission`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:6703bde19f0e8151b9c0bc2c9b1926d8bc5b02e34e185a775c21dedf1a0b5945`
+- **Body checksum:** `sha256:fc1f94e40caabbb857bb3fbff2de053566364c20bbaf1d9e6e9eb1d42d80fa0b` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-permission/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-property`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:b7806d6a7006b60c46ae6a17e3e689a09a700ae6d402e254934b3c56a58cd0c8` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:b7806d6a7006b60c46ae6a17e3e689a09a700ae6d402e254934b3c56a58cd0c8`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-property`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-property`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:26bf1c6371704acbafc26399f2e2ba606fa12cd51d2c556468e0e3556c88be3a`
+- **Body checksum:** `sha256:11cba8ff0d5b927c27d066cfb996cc4935ba39cbc98306529a3d3e08187d783a` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-property/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-search`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:e108ba43a041668431ec4786122304e851c4eff455817abf12cccced9adb15fa` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:e108ba43a041668431ec4786122304e851c4eff455817abf12cccced9adb15fa`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-search`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-search`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:0fb1478f3303885f822174ab8622f126135d052b45a7b8049d75a50310100234`
+- **Body checksum:** `sha256:2a1f2fc0d192084c17e8cc2d7c83a1eeaad3c03cbc8ba3b5e0cd3e0382352b05` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-search/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-space`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:16f27814e35abe23d71daaf1c1c4d7a126899dba9ff5871ab074f5686b64f517` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:16f27814e35abe23d71daaf1c1c4d7a126899dba9ff5871ab074f5686b64f517`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-space`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-space`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:43222efd24a90f035c8cc17026e82f109a416e327d4a5fe511ecfd2b9b1b8e85`
+- **Body checksum:** `sha256:54ae98d3bcdab85daea426e015829655e3622764163479bac3b3444a48c239a2` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-space/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-template`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:7c6d8da646e9fa5ba3370d224d1f6ec28843a0c8bcd727eb462a81ab58318c46` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:7c6d8da646e9fa5ba3370d224d1f6ec28843a0c8bcd727eb462a81ab58318c46`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-template`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-template`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:d07810e29051527d39e81583c0fc5965e3c92893ec7458f4ae4e35a70c0482ad`
+- **Body checksum:** `sha256:15a8927b7ae4d64e670cd4be29e92760144cde7aac18f4dc5f6b005a9ab8b13e` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-template/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/confluence-watch`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:0edfa007f2bf90c289f6a4e6ac5048373873c07ff9e004edab495328ae98cdd8` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:0edfa007f2bf90c289f6a4e6ac5048373873c07ff9e004edab495328ae98cdd8`
+
+### Source `upstream` — `grandcamel/Confluence-Assistant-Skills/skills/confluence-watch`
+
+- **Repository:** `grandcamel/Confluence-Assistant-Skills`
+- **Path:** `skills/confluence-watch`
+- **Requested:** `commit` `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542` (declaration intent)
+- **Resolved commit:** `403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542`
+- **Content checksum:** `sha256:c1e6e6dd523f6e2e342a07c2ff2df19e9a27fcfc58dfb73c3f6ef6df0678c2c7`
+- **Body checksum:** `sha256:52a87a02903150dbb15c23b54d8dff7221dab85f33aa09b90affc09191be78e6` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/confluence-watch/LICENSE` checksum=`sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-administration`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:3cadfca6fe921de95c0ed3d0580570cb323634b4fc85d58fabb9538f350aa9dc` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:3cadfca6fe921de95c0ed3d0580570cb323634b4fc85d58fabb9538f350aa9dc`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-admin`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-admin`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:dfe6c5eac6988beec0a9e59ee89098d07f905516202b4d914399f55f8e446542`
+- **Body checksum:** `sha256:19600da297b92b033e1ec50a5e23bec04ab1103066a96bd4efefe7ba898ec4e7` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-administration/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-agile-management`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:0985702c4d4a364797d328c7ae1f96ac60234e54ed08667b0c58252c20ce937e` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:0985702c4d4a364797d328c7ae1f96ac60234e54ed08667b0c58252c20ce937e`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-agile`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-agile`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:d29e3598f6cc522c15373a8285a503a1b5aeadcbdad6fd77b195e05aaeeb551b`
+- **Body checksum:** `sha256:6f96a3e00844c1120812f7e8cdc21f7dfa7be8402e7434e9aa9f5f7a38a5e4bc` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-agile-management/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-assistant`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:acae75886db53703d05f9318d029e8825e264594144f6db6906cdaaf82a51f1b` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:acae75886db53703d05f9318d029e8825e264594144f6db6906cdaaf82a51f1b`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-assistant`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-assistant`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:5a09387cb2a05c1270f7f91d614f300e26229d406ddb555e48e49e37a5525fef`
+- **Body checksum:** `sha256:8379f42884921047e17e38a71bc2cf84c3e34ea6c292adb3f221cea37f1558d9` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-assistant/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-bulk-operations`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:790a8d3e88fc66cfc64d08283bc717fa271ba5b1c6124fc60695ecf676acb4f4` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:790a8d3e88fc66cfc64d08283bc717fa271ba5b1c6124fc60695ecf676acb4f4`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-bulk`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-bulk`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:a73d4e05cd883b58c6f7abd50d6d6aa15fbc2a8145d987059924ca84dcddec81`
+- **Body checksum:** `sha256:7195c8f7ad39f30501a9a3ec4521a575bc6e3f55d0bfa1da089f28581d901c82` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-bulk-operations/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-collaboration`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:6abb8e59e31b41bd29008ae7544e71290343065f86163fb814c9cf5d0c210f35` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:6abb8e59e31b41bd29008ae7544e71290343065f86163fb814c9cf5d0c210f35`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-collaborate`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-collaborate`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:cb08b6d09476d465b599a9242290ff57e394df534b0216ed83930fb2d693b3ae`
+- **Body checksum:** `sha256:9cbcedc09355ac6606e220642fd318e94ae3bf5636f5334d7569f0953e2886b5` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-collaboration/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-custom-fields`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:10cab9a2d7b6846708aad3bbddd90e86bfc7244defba907c57bf6cea3275316d` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:10cab9a2d7b6846708aad3bbddd90e86bfc7244defba907c57bf6cea3275316d`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-fields`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-fields`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:973194906edb4c0c8b54b2ea1d03c11b7deba74b40f6da24d6093ce109331c93`
+- **Body checksum:** `sha256:cf813a5fbc0946e740ff413211df846b2248c7b81bc8fcd4048f462d1018a8bc` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-custom-fields/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-developer-integration`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:bcbdf4e7072b4c5f6daf337a77d6c19115d2f943b255f20585a5eab2d1e32b61` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:bcbdf4e7072b4c5f6daf337a77d6c19115d2f943b255f20585a5eab2d1e32b61`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-dev`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-dev`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:c20fc0a9eafa102dec1ab9aae36613269acce5d190d8bab18cb423386d494555`
+- **Body checksum:** `sha256:7f4da14df6c38abe4992ad3f9da916214da8d5fcc7903862417a44ad6959a141` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-developer-integration/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-issue-management`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:795ad6dfeb6db0e28036432f07c304a356cb9b4c9bac25a43eddb070b61fc1e1` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:795ad6dfeb6db0e28036432f07c304a356cb9b4c9bac25a43eddb070b61fc1e1`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-issue`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-issue`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:28276e5822b03a31c84610de2778a340e63e8b035506245406fd264aea3dabc5`
+- **Body checksum:** `sha256:e69ff12b992bf4ff3cb1a37797dbb9955110e6119cd263e332b87bad6b95d98b` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-issue-management/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-issue-relationships`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:bd6beefbbd4644404723687014fb3964ae8987773b9e2b179a2cdc7242d40df6` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:bd6beefbbd4644404723687014fb3964ae8987773b9e2b179a2cdc7242d40df6`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-relationships`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-relationships`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:1a591984b90afed87d7b0e5e100c3319fd4aa19f9060c57e827843630a279a6b`
+- **Body checksum:** `sha256:f4bf2d3dedad47be7d027d6ef71f0e138c34866e3bcae0f30d2b7b6c9d56b4a1` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-issue-relationships/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-lifecycle-management`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:f58d3081d8481a221689d45decccae58ead3a766cfd6f261da5b9b6123736bb7` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:f58d3081d8481a221689d45decccae58ead3a766cfd6f261da5b9b6123736bb7`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-lifecycle`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-lifecycle`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:6b9789d8f836122821a820fbed0c935b82ede8e34514ed7893d25b70cc8ce979`
+- **Body checksum:** `sha256:ef440bc32a7813a4cfa930dfd426a66de50a3cbbf2c8c3ff2decb682685f6b16` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-lifecycle-management/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-operations`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:d864df3b378a12155a9e210335f84bdbe00e7d4faa4be24864a22a7f21dc0a0b` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:d864df3b378a12155a9e210335f84bdbe00e7d4faa4be24864a22a7f21dc0a0b`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-ops`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-ops`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:6959c152a1079475fd6016eeeb009eb6f33f184f476be171e8a00bd10d564e38`
+- **Body checksum:** `sha256:3826b8cb000de454fb6bbb474b46d760a2df89bdae30098130e0cd3555f2fc0a` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-operations/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-search-jql`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:594109f6fd4eaf0e14253db17fba1a37ec25d7d466898b622115226c608064c4` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:594109f6fd4eaf0e14253db17fba1a37ec25d7d466898b622115226c608064c4`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-search`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-search`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:7e3faffa6f75e72b5289219e572af64dbb1ff43f392e7dbd821ea00adc55ccac`
+- **Body checksum:** `sha256:db0f323245a7218d4a563c55152b2b35201a821d0c798d399c398e6cf41e7413` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-search-jql/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-service-management`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:e78f6f614e730d93dba0fcecae6548e7acc9907090fbf76c401631f27aa03c6d` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:e78f6f614e730d93dba0fcecae6548e7acc9907090fbf76c401631f27aa03c6d`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-jsm`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-jsm`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:a336d328891a224bef9c61f766176e63431ac6433f3f7b2b4dcbf1b9721f0170`
+- **Body checksum:** `sha256:e7bdf53f466e3a6a2df93863be8b5fe7ac580a783819286be3c10321a1fec5b8` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-service-management/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
+
+## `integrations/jira-time-tracking`
+
+- **Trust:** `reviewed` reviewed_at=2026-08-26 by=ulises-jeremias
+  - `reviewed_provenance:` `sha256:7a26093bd66280f239b14d9ad947dac2dc97b47101521120058f5916e3d1ea87` (must equal `provenance_digest` below)
+- **Maintenance:** `active` last_activity=?
+- **Distribution:** `vendored` redistribution_allowed=True
+- **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
+- **Provenance digest:** `sha256:7a26093bd66280f239b14d9ad947dac2dc97b47101521120058f5916e3d1ea87`
+
+### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira-time`
+
+- **Repository:** `grandcamel/JIRA-Assistant-Skills`
+- **Path:** `skills/jira-time`
+- **Requested:** `commit` `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092` (declaration intent)
+- **Resolved commit:** `b5837311ca3ae61ac56dab8fe9c0d9a4e075c092`
+- **Content checksum:** `sha256:1c7333c108abaac36b18a676a27f4a93376289a7dad0f380b28b0d7f7bfb4a90`
+- **Body checksum:** `sha256:c613884e01d3761d296d93513b7bacbca02db46ae8a29090d1a42ac24da72960` (must match local SKILL.md body)
+- **Observed license:** `MIT` source_path=`skills/integrations/jira-time-tracking/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
+  - Declaration expected `license: MIT` — mismatch requires review
+- **Resolved at:** `2026-08-26T16:34:43.325111Z` version=`?`
 
 ## `quality/blast-radius`
 

@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 85
+count: 116
 skills:
   - id: accessibility/review
     name: review
@@ -291,6 +291,161 @@ skills:
     name: clickup-cli
     domain: integrations
     description: 'ClickUp CLI for managing tasks, sprints, comments, statuses, and Docs. Use when the user needs to interact with ClickUp — creating/editing tasks, checking sprint status, adding comments, linking PRs'
+    stability: stable
+  - id: integrations/confluence-admin
+    name: confluence-admin
+    domain: integrations
+    description: '> Confluence administration including users, groups, space settings, and permission diagnostics. Use when managing user access, group membership, viewing space configuration, or checking permissions.'
+    stability: stable
+  - id: integrations/confluence-analytics
+    name: confluence-analytics
+    domain: integrations
+    description: 'View analytics, statistics, and popularity metrics for Confluence content. ALWAYS use when user wants to see views, popularity, or contributor stats.'
+    stability: stable
+  - id: integrations/confluence-assistant
+    name: confluence-assistant
+    domain: integrations
+    description: 'Central hub for Confluence operations - routes requests to specialized skills. ALWAYS use when user mentions confluence, wiki, or Atlassian wiki operations.'
+    stability: stable
+  - id: integrations/confluence-attachment
+    name: confluence-attachment
+    domain: integrations
+    description: 'Manage file attachments - upload, download, list, and delete attachments. ALWAYS use when user wants to work with files on pages.'
+    stability: stable
+  - id: integrations/confluence-bulk
+    name: confluence-bulk
+    domain: integrations
+    description: 'Bulk operations for 50+ pages - updates, moves, deletions, labels, and permissions. Use when updating multiple pages simultaneously (dry-run preview included), needing rollback safety, or coordinating'
+    stability: stable
+  - id: integrations/confluence-comment
+    name: confluence-comment
+    domain: integrations
+    description: 'Manage comments on Confluence pages - add, get, update, delete, and resolve comments. ALWAYS use for feedback, discussions, and inline annotations.'
+    stability: stable
+  - id: integrations/confluence-hierarchy
+    name: confluence-hierarchy
+    domain: integrations
+    description: 'Navigate and manage Confluence page hierarchies, ancestors, descendants, and trees. ALWAYS use for parent/child relationships and page tree navigation.'
+    stability: stable
+  - id: integrations/confluence-jira
+    name: confluence-jira
+    domain: integrations
+    description: 'JIRA integration - embed issues, create links between products. ALWAYS use when user wants to connect Confluence and JIRA.'
+    stability: stable
+  - id: integrations/confluence-label
+    name: confluence-label
+    domain: integrations
+    description: 'Manage content labels - add, remove, and search by labels. ALWAYS use when user wants to tag, label, or categorize content.'
+    stability: stable
+  - id: integrations/confluence-ops
+    name: confluence-ops
+    domain: integrations
+    description: 'Cache management, API diagnostics, and operational utilities. Use when optimizing performance, managing cache, diagnosing API issues, or troubleshooting Confluence connectivity.'
+    stability: stable
+  - id: integrations/confluence-page
+    name: confluence-page
+    domain: integrations
+    description: 'Manage Confluence pages and blog posts - create, read, update, delete, copy, move, and version control. ALWAYS use when user wants to work with page content, create pages, update pages, or manage page'
+    stability: stable
+  - id: integrations/confluence-permission
+    name: confluence-permission
+    domain: integrations
+    description: 'Manage space and page permissions and restrictions. ALWAYS use when user wants to control access, set restrictions, or manage who can view/edit content.'
+    stability: stable
+  - id: integrations/confluence-property
+    name: confluence-property
+    domain: integrations
+    description: 'Manage content properties (custom metadata) on Confluence pages and blog posts. ALWAYS use for custom metadata, key-value data, or application-specific fields.'
+    stability: stable
+  - id: integrations/confluence-search
+    name: confluence-search
+    domain: integrations
+    description: 'Search Confluence using CQL queries, validate syntax, export results, and manage search history. ALWAYS use when user wants to find, search, or query for content.'
+    stability: stable
+  - id: integrations/confluence-space
+    name: confluence-space
+    domain: integrations
+    description: 'Manage Confluence spaces - create, list, update, delete, and configure spaces. ALWAYS use when user wants to work with spaces (not individual pages).'
+    stability: stable
+  - id: integrations/confluence-template
+    name: confluence-template
+    domain: integrations
+    description: Work with page templates and blueprints. ALWAYS use when user wants to create standardized pages or manage templates.
+    stability: stable
+  - id: integrations/confluence-watch
+    name: confluence-watch
+    domain: integrations
+    description: Content watching and notifications. ALWAYS use when user wants to follow content or manage notifications.
+    stability: stable
+  - id: integrations/jira-administration
+    name: jira-administration
+    domain: integrations
+    description: '> Complete JIRA project and system administration including projects, automation rules, permissions, users, notifications, screens, issue types, and workflows. Use when managing project structure, aut'
+    stability: stable
+  - id: integrations/jira-agile-management
+    name: jira-agile-management
+    domain: integrations
+    description: 'Epic creation and sprint management - create epics, manage sprints, view backlog, estimate with story points. TRIGGERS: ''create an epic'', ''create epic'', ''new epic'', ''show the backlog'', ''view backlog'','
+    stability: stable
+  - id: integrations/jira-assistant
+    name: jira-assistant
+    domain: integrations
+    description: 'JIRA automation hub routing to 13 specialized skills for any JIRA task: issues, workflows, agile, search, time tracking, service management, and more.'
+    stability: stable
+  - id: integrations/jira-bulk-operations
+    name: jira-bulk-operations
+    domain: integrations
+    description: 'Bulk operations for multiple issues at scale. TRIGGERS: ''bulk update'', ''bulk close'', ''bulk transition'', ''bulk assign'', ''transition N issues'' (N >= 10), ''update all bugs'', ''close 50 issues'', ''mass tran'
+    stability: stable
+  - id: integrations/jira-collaboration
+    name: jira-collaboration
+    domain: integrations
+    description: '| Collaborate on issues: add/edit comments, share attachments, notify users, track activity. For team communication and coordination on JIRA issues.'
+    stability: stable
+  - id: integrations/jira-custom-fields
+    name: jira-custom-fields
+    domain: integrations
+    description: 'Custom field discovery and configuration. TRIGGERS: ''field ID for'', ''what''s the field ID'', ''what is the field ID'', ''list custom fields'', ''what fields are available'', ''what custom fields'', ''show custom'
+    stability: stable
+  - id: integrations/jira-developer-integration
+    name: jira-developer-integration
+    domain: integrations
+    description: 'Git and developer workflow integration. TRIGGERS: ''generate branch name'', ''create branch name'', ''branch name for'', ''write PR description'', ''PR description for'', ''link PR'', ''link pull request'', ''parse '
+    stability: stable
+  - id: integrations/jira-issue-management
+    name: jira-issue-management
+    domain: integrations
+    description: 'Core JIRA issue CRUD - create bugs/tasks/stories, get issue details, update fields, delete issues. TRIGGERS: ''show me [KEY]'', ''get issue [KEY]'', ''view issue'', ''create a bug/task/story'', ''update [KEY]'''
+    stability: stable
+  - id: integrations/jira-issue-relationships
+    name: jira-issue-relationships
+    domain: integrations
+    description: 'Issue linking, blockers, and dependency analysis. TRIGGERS: ''what''s blocking'', ''what is blocking'', ''is blocked by'', ''link issues'', ''link to'', ''blockers for'', ''depends on'', ''clone issue'', ''clone with'','
+    stability: stable
+  - id: integrations/jira-lifecycle-management
+    name: jira-lifecycle-management
+    domain: integrations
+    description: 'Manage issue lifecycle through workflow transitions and status changes. Control who does what and when via assignments, versions, and components.'
+    stability: stable
+  - id: integrations/jira-operations
+    name: jira-operations
+    domain: integrations
+    description: 'JIRA cache and performance operations. TRIGGERS: ''warm the cache'', ''warm cache'', ''cache status'', ''clear cache'', ''cache warm'', ''cache for project'', ''discover project'', ''project discovery'', ''cache hit r'
+    stability: stable
+  - id: integrations/jira-search-jql
+    name: jira-search-jql
+    domain: integrations
+    description: 'Find issues by criteria (status, assignee, priority, etc.) using JQL. Create filters, export results to CSV/JSON, bulk update. Ideal for reporting and automation.'
+    stability: stable
+  - id: integrations/jira-service-management
+    name: jira-service-management
+    domain: integrations
+    description: 'Complete ITSM/ITIL workflow support for JSM - service desks, requests, SLAs, customers, approvals, knowledge base. Use when managing service desk requests, tracking SLAs, or handling customer operatio'
+    stability: stable
+  - id: integrations/jira-time-tracking
+    name: jira-time-tracking
+    domain: integrations
+    description: 'Time tracking, worklogs, and time reports. TRIGGERS: ''log time'', ''time spent on'', ''log hours'', ''log work'', ''worklog'', ''time tracking'', ''timesheet'', ''how much time'', ''time logged'', ''time report'', ''expo'
     stability: stable
   - id: integrations/linear
     name: linear

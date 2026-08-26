@@ -3,7 +3,7 @@
 # Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
 # Schema: schemas/skill-capability-registry.schema.json
 version: 1
-count: 85
+count: 116
 generated: true
 skills:
 - id: accessibility/review
@@ -2806,3 +2806,840 @@ skills:
   specialist_justified: false
   contraindications: CLI-first automation — not Playwright test specs (use e2e-runner); multi-tab via
     playwright-cli
+- id: integrations/confluence-admin
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-admin
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-admin
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-analytics
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-analytics
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-analytics
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-assistant
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: research
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-assistant
+  overlap: []
+  complementary: []
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-assistant
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-attachment
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-attachment
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-attachment
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-bulk
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-bulk
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-bulk
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-comment
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-comment
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-comment
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-hierarchy
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-hierarchy
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-hierarchy
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-jira
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-jira
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-jira
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-label
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-label
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-label
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-ops
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-ops
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-ops
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-page
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-page
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-page
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-permission
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-permission
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-permission
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-property
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-property
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-property
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-search
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-search
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-search
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-space
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-space
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-space
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-template
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-template
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-template
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-watch
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-watch
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-watch
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/jira-administration
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-administration
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-admin
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-agile-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-agile-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-agile
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-assistant
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: research
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-assistant
+  overlap: []
+  complementary: []
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-assistant
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-bulk-operations
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-bulk-operations
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-bulk
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-collaboration
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-collaboration
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-collaborate
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-custom-fields
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-custom-fields
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-fields
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-developer-integration
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-developer-integration
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-dev
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-issue-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-issue-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-issue
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-issue-relationships
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-issue-relationships
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-relationships
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-lifecycle-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-lifecycle-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-lifecycle
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-operations
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-operations
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-ops
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-search-jql
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-search-jql
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-search
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-service-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-service-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-jsm
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-time-tracking
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-time-tracking
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-time
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT

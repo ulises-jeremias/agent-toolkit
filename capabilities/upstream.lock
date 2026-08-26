@@ -68,6 +68,564 @@ capabilities:
           license:
             spdx: NOASSERTION
           resolved_at: '2026-08-26T00:22:55.556053Z'
+  integrations/confluence-admin:
+    provenance_digest: sha256:9baa687e349f50e239490ab8843b81fa374f4325b7fc10dc6e5bedcc93213f39
+    sources:
+      upstream:
+        path: skills/confluence-admin
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:d3ab250bf97bac007a6b684e47b0954a5899151a0c2b56699386b1ec825dd90a
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:62872b43fd66b90f50392c98a4dadfed5281d8250eda4b69640b94c02d083701
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-admin/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-analytics:
+    provenance_digest: sha256:4923ad4a63ce514adaf979d3f605282f676ee1983e2fa4f8c7ec9024e64b475d
+    sources:
+      upstream:
+        path: skills/confluence-analytics
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:4f6f27c11a7aa6cac726f36417c7cedf0b07177e660258858f9489d4c96c1d92
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:1d6d174820db0709424e3e724026a891f24f4215ebf8c91b3e0cfdbb49b41069
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-analytics/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-assistant:
+    provenance_digest: sha256:7d751c1a37136e3f6ce335b399901a408b17736c62bfc67abdd249d2d2c8fde3
+    sources:
+      upstream:
+        path: skills/confluence-assistant
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:5c13f9522635845a5188d4fca6715295005569d4a4471f0ff4216dd13bbd13ad
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:f868319e94f2927fe91fbadf64cadddf82aea481b88e8c5c6d7a4eafde0578f9
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-assistant/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-attachment:
+    provenance_digest: sha256:d3996f670f1eefce64f0567015ff5a91473aeb268befd1f86bdc87cd38159bfe
+    sources:
+      upstream:
+        path: skills/confluence-attachment
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:b540e704143b37fa106bc159d241540bdd6bddf896e72a61450da078bb7ec7ac
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:d52c2fb6ec2deaa5ef18d633c6f16c9609c5ff35bcf0ac9f2f11a459fc031399
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-attachment/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-bulk:
+    provenance_digest: sha256:59e98e388eb863c1447ade686fa56926423076f0832ad89fc7742472692cf091
+    sources:
+      upstream:
+        path: skills/confluence-bulk
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:464fd53fbbe899792afaf36d1107b596eb3b21f6492137f1229a0c36959de151
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:0c94bc6d11f22048551ebbf9169f9cef20d503c19b401cb9981899734e59abcf
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-bulk/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-comment:
+    provenance_digest: sha256:e960c1c7b10e05801c5d267a911792c06c24a322616c585d3a0af066ecc07bd5
+    sources:
+      upstream:
+        path: skills/confluence-comment
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:162c8d2bd63822082b688acd843cd1eed948c2abe42651b70f8738399201866a
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:f26353292fa1a319cb396f90df3f693128365de55f4ad9549b3d03edf62f42ea
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-comment/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-hierarchy:
+    provenance_digest: sha256:24f5dc98f438e034eda6834f9b79d97893184b2e7557a40d2707b33915d7a157
+    sources:
+      upstream:
+        path: skills/confluence-hierarchy
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:9d9233c7b09c4ae2d8dc5208e2e096b53ed9e77eaadaefb9f2455a2274a6f015
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:279376d12e8161d104ad0ea99e51d5eac5a3a1c2f817be5e5cb3b93ab721773c
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-hierarchy/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-jira:
+    provenance_digest: sha256:856bee6a92047948f10c645670c4a7fc3de52662398bac49fc7ce27efbd25b7d
+    sources:
+      upstream:
+        path: skills/confluence-jira
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:d0e32dd674ade44b8608913347e5cd8a226cb758218f03a0bf929617d65236d4
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:302a8c5c18644397d92be84bdf8f04a9157e6e0ee98a991ca00904584da51f09
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-jira/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-label:
+    provenance_digest: sha256:deff7bc0e7343a05b488321445c4a790706b94aae10ef80c22e05502cdb5066b
+    sources:
+      upstream:
+        path: skills/confluence-label
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:8e005338cf4038f07ccb3b007645aa0c50fee296f87f450c604f961414322622
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:075bf02285fa897341a44652b15e747862c0ead1fa82728f619165df682f7562
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-label/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-ops:
+    provenance_digest: sha256:adfed15759dc823e7d28a82ff1e9dc71f62ac336092a974d3f8a9d997a810fcb
+    sources:
+      upstream:
+        path: skills/confluence-ops
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:9219a10dddc1a29ff415b3d6acffbc339854f17e88ccd26ecb15f699e1138877
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:508c852a067a963d447e6ffaa58a2467d11d4d5b827691d69309383e00317b26
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-ops/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-page:
+    provenance_digest: sha256:8788b5961dcd6f1d1e9a08470b707037b74739db5fe3371776c1d8a2c7603fb2
+    sources:
+      upstream:
+        path: skills/confluence-page
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:b24641a012f776b6509e84610cf926c26e799b22f43af1daec6632e061ce9a0c
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:cb8aa106e22edd0a85e2727caecf19e69471174528d80929292c7a7bdc2c6d06
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-page/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-permission:
+    provenance_digest: sha256:3eb4e643e0e7732f97730bc9e6fe1b218cf78f034c9c14c844369ef521269702
+    sources:
+      upstream:
+        path: skills/confluence-permission
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:fc1f94e40caabbb857bb3fbff2de053566364c20bbaf1d9e6e9eb1d42d80fa0b
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:6703bde19f0e8151b9c0bc2c9b1926d8bc5b02e34e185a775c21dedf1a0b5945
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-permission/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-property:
+    provenance_digest: sha256:b7806d6a7006b60c46ae6a17e3e689a09a700ae6d402e254934b3c56a58cd0c8
+    sources:
+      upstream:
+        path: skills/confluence-property
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:11cba8ff0d5b927c27d066cfb996cc4935ba39cbc98306529a3d3e08187d783a
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:26bf1c6371704acbafc26399f2e2ba606fa12cd51d2c556468e0e3556c88be3a
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-property/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-search:
+    provenance_digest: sha256:e108ba43a041668431ec4786122304e851c4eff455817abf12cccced9adb15fa
+    sources:
+      upstream:
+        path: skills/confluence-search
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:2a1f2fc0d192084c17e8cc2d7c83a1eeaad3c03cbc8ba3b5e0cd3e0382352b05
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:0fb1478f3303885f822174ab8622f126135d052b45a7b8049d75a50310100234
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-search/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-space:
+    provenance_digest: sha256:16f27814e35abe23d71daaf1c1c4d7a126899dba9ff5871ab074f5686b64f517
+    sources:
+      upstream:
+        path: skills/confluence-space
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:54ae98d3bcdab85daea426e015829655e3622764163479bac3b3444a48c239a2
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:43222efd24a90f035c8cc17026e82f109a416e327d4a5fe511ecfd2b9b1b8e85
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-space/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-template:
+    provenance_digest: sha256:7c6d8da646e9fa5ba3370d224d1f6ec28843a0c8bcd727eb462a81ab58318c46
+    sources:
+      upstream:
+        path: skills/confluence-template
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:15a8927b7ae4d64e670cd4be29e92760144cde7aac18f4dc5f6b005a9ab8b13e
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:d07810e29051527d39e81583c0fc5965e3c92893ec7458f4ae4e35a70c0482ad
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-template/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/confluence-watch:
+    provenance_digest: sha256:0edfa007f2bf90c289f6a4e6ac5048373873c07ff9e004edab495328ae98cdd8
+    sources:
+      upstream:
+        path: skills/confluence-watch
+        repository: grandcamel/Confluence-Assistant-Skills
+        requested:
+          ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          type: commit
+        resolved:
+          body_checksum: sha256:52a87a02903150dbb15c23b54d8dff7221dab85f33aa09b90affc09191be78e6
+          commit: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+          content_checksum: sha256:c1e6e6dd523f6e2e342a07c2ff2df19e9a27fcfc58dfb73c3f6ef6df0678c2c7
+          license:
+            checksum: sha256:6bf15666903fee51737d201dd1735a8edef0a49752c68c063a0505747a8f2f7a
+            source_path: skills/integrations/confluence-watch/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-administration:
+    provenance_digest: sha256:3cadfca6fe921de95c0ed3d0580570cb323634b4fc85d58fabb9538f350aa9dc
+    sources:
+      upstream:
+        path: skills/jira-admin
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:19600da297b92b033e1ec50a5e23bec04ab1103066a96bd4efefe7ba898ec4e7
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:dfe6c5eac6988beec0a9e59ee89098d07f905516202b4d914399f55f8e446542
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-administration/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-agile-management:
+    provenance_digest: sha256:0985702c4d4a364797d328c7ae1f96ac60234e54ed08667b0c58252c20ce937e
+    sources:
+      upstream:
+        path: skills/jira-agile
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:6f96a3e00844c1120812f7e8cdc21f7dfa7be8402e7434e9aa9f5f7a38a5e4bc
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:d29e3598f6cc522c15373a8285a503a1b5aeadcbdad6fd77b195e05aaeeb551b
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-agile-management/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-assistant:
+    provenance_digest: sha256:acae75886db53703d05f9318d029e8825e264594144f6db6906cdaaf82a51f1b
+    sources:
+      upstream:
+        path: skills/jira-assistant
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:8379f42884921047e17e38a71bc2cf84c3e34ea6c292adb3f221cea37f1558d9
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:5a09387cb2a05c1270f7f91d614f300e26229d406ddb555e48e49e37a5525fef
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-assistant/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-bulk-operations:
+    provenance_digest: sha256:790a8d3e88fc66cfc64d08283bc717fa271ba5b1c6124fc60695ecf676acb4f4
+    sources:
+      upstream:
+        path: skills/jira-bulk
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:7195c8f7ad39f30501a9a3ec4521a575bc6e3f55d0bfa1da089f28581d901c82
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:a73d4e05cd883b58c6f7abd50d6d6aa15fbc2a8145d987059924ca84dcddec81
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-bulk-operations/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-collaboration:
+    provenance_digest: sha256:6abb8e59e31b41bd29008ae7544e71290343065f86163fb814c9cf5d0c210f35
+    sources:
+      upstream:
+        path: skills/jira-collaborate
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:9cbcedc09355ac6606e220642fd318e94ae3bf5636f5334d7569f0953e2886b5
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:cb08b6d09476d465b599a9242290ff57e394df534b0216ed83930fb2d693b3ae
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-collaboration/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-custom-fields:
+    provenance_digest: sha256:10cab9a2d7b6846708aad3bbddd90e86bfc7244defba907c57bf6cea3275316d
+    sources:
+      upstream:
+        path: skills/jira-fields
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:cf813a5fbc0946e740ff413211df846b2248c7b81bc8fcd4048f462d1018a8bc
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:973194906edb4c0c8b54b2ea1d03c11b7deba74b40f6da24d6093ce109331c93
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-custom-fields/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-developer-integration:
+    provenance_digest: sha256:bcbdf4e7072b4c5f6daf337a77d6c19115d2f943b255f20585a5eab2d1e32b61
+    sources:
+      upstream:
+        path: skills/jira-dev
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:7f4da14df6c38abe4992ad3f9da916214da8d5fcc7903862417a44ad6959a141
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:c20fc0a9eafa102dec1ab9aae36613269acce5d190d8bab18cb423386d494555
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-developer-integration/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-issue-management:
+    provenance_digest: sha256:795ad6dfeb6db0e28036432f07c304a356cb9b4c9bac25a43eddb070b61fc1e1
+    sources:
+      upstream:
+        path: skills/jira-issue
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:e69ff12b992bf4ff3cb1a37797dbb9955110e6119cd263e332b87bad6b95d98b
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:28276e5822b03a31c84610de2778a340e63e8b035506245406fd264aea3dabc5
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-issue-management/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-issue-relationships:
+    provenance_digest: sha256:bd6beefbbd4644404723687014fb3964ae8987773b9e2b179a2cdc7242d40df6
+    sources:
+      upstream:
+        path: skills/jira-relationships
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:f4bf2d3dedad47be7d027d6ef71f0e138c34866e3bcae0f30d2b7b6c9d56b4a1
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:1a591984b90afed87d7b0e5e100c3319fd4aa19f9060c57e827843630a279a6b
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-issue-relationships/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-lifecycle-management:
+    provenance_digest: sha256:f58d3081d8481a221689d45decccae58ead3a766cfd6f261da5b9b6123736bb7
+    sources:
+      upstream:
+        path: skills/jira-lifecycle
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:ef440bc32a7813a4cfa930dfd426a66de50a3cbbf2c8c3ff2decb682685f6b16
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:6b9789d8f836122821a820fbed0c935b82ede8e34514ed7893d25b70cc8ce979
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-lifecycle-management/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-operations:
+    provenance_digest: sha256:d864df3b378a12155a9e210335f84bdbe00e7d4faa4be24864a22a7f21dc0a0b
+    sources:
+      upstream:
+        path: skills/jira-ops
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:3826b8cb000de454fb6bbb474b46d760a2df89bdae30098130e0cd3555f2fc0a
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:6959c152a1079475fd6016eeeb009eb6f33f184f476be171e8a00bd10d564e38
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-operations/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-search-jql:
+    provenance_digest: sha256:594109f6fd4eaf0e14253db17fba1a37ec25d7d466898b622115226c608064c4
+    sources:
+      upstream:
+        path: skills/jira-search
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:db0f323245a7218d4a563c55152b2b35201a821d0c798d399c398e6cf41e7413
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:7e3faffa6f75e72b5289219e572af64dbb1ff43f392e7dbd821ea00adc55ccac
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-search-jql/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-service-management:
+    provenance_digest: sha256:e78f6f614e730d93dba0fcecae6548e7acc9907090fbf76c401631f27aa03c6d
+    sources:
+      upstream:
+        path: skills/jira-jsm
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:e7bdf53f466e3a6a2df93863be8b5fe7ac580a783819286be3c10321a1fec5b8
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:a336d328891a224bef9c61f766176e63431ac6433f3f7b2b4dcbf1b9721f0170
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-service-management/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
+  integrations/jira-time-tracking:
+    provenance_digest: sha256:7a26093bd66280f239b14d9ad947dac2dc97b47101521120058f5916e3d1ea87
+    sources:
+      upstream:
+        path: skills/jira-time
+        repository: grandcamel/JIRA-Assistant-Skills
+        requested:
+          ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          type: commit
+        resolved:
+          body_checksum: sha256:c613884e01d3761d296d93513b7bacbca02db46ae8a29090d1a42ac24da72960
+          commit: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+          content_checksum: sha256:1c7333c108abaac36b18a676a27f4a93376289a7dad0f380b28b0d7f7bfb4a90
+          license:
+            checksum: sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0
+            source_path: skills/integrations/jira-time-tracking/LICENSE
+            spdx: MIT
+          resolved_at: '2026-08-26T16:34:43.325111Z'
   quality/blast-radius:
     provenance_digest: sha256:672544bad541446f8de290191079a6fbcd009d5e07393126b20cc9101aa107d1
     sources:

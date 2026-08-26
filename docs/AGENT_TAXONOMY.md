@@ -1,6 +1,6 @@
 # Agent Taxonomy — Canonical Holistic Roster
 
-> Authority: `capabilities/skills/registry.yaml` (`schemas/skill-capability-registry.schema.json` — 11 `holistic_owner` values, 85 skills, no orphans) + `docs/SKILL_ROUTING.md` + `skills/core/assistant/references/ORCHESTRATION.md`.
+> Authority: `capabilities/skills/registry.yaml` (`schemas/skill-capability-registry.schema.json` — 11 `holistic_owner` values, 116+ skills, no orphans) + `docs/SKILL_ROUTING.md` + `skills/core/assistant/references/ORCHESTRATION.md`.
 > Validate with `python3 scripts/validate-skill-capability.py --check`, `./scripts/validate-agents.vsh`, `./scripts/generate-catalogs.vsh --check`.
 
 This document is the **final canonical holistic roster** for #864. It classifies all 18 agents present at `main@561595b` + `designer` (#863) and documents the daily holistic set humans should remember. **Optimize for cognitive simplicity, role clarity, useful context isolation, and independent verification — not fewest agents, not one-per-skill** (see #864 / mission brief).
@@ -289,7 +289,7 @@ Every retained specialist has documented caller, skills used, and handoff in its
 **Validation (all must exit 0):**
 ```bash
 ./scripts/validate-agents.vsh
-python3 scripts/validate-skill-capability.py --check   # 85 skills, no orphans, design routing still passes
+python3 scripts/validate-skill-capability.py --check   # 116+ skills, no orphans, design routing still passes
 ./scripts/generate-catalogs.vsh --check                  # catalogs synced (now 18 agents)
 ./scripts/generate-embedded-data.vsh                     # 1425 files embedded
 ./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
