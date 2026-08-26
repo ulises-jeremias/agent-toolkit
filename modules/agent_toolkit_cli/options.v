@@ -832,15 +832,15 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a == '-C' {
+		if a in ['-C', '--C'] {
 			if i + 1 >= args.len {
-				return error('-C requires an argument')
+				return error('${a} requires an argument')
 			}
 			workspace_alias = args[i + 1]
 			i += 2
 			continue
 		}
-		if a.starts_with('-C=') {
+		if a.starts_with('-C=') || a.starts_with('--C=') {
 			workspace_alias = a.all_after('=')
 			i++
 			continue
