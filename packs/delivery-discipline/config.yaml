@@ -36,7 +36,7 @@ skills:
 # Advisory only — not applied by `loop run --pack`.
 
 agents:
-  tech-assistant:
+  platform-engineer:
     enabled: true
   planner:
     enabled: true

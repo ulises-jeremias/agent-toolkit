@@ -135,24 +135,28 @@ Rules can be scoped:
 - **Global rules** in `~/.cursor/rules/` apply to all Cursor projects
 - **Project rules** in `.cursor/rules/` (inside your repo) apply to the current project only
 
-The agent-toolkit profile ships per-agent rule files (14 agent personas):
+The agent-toolkit profile ships per-agent rule files (18 agent personas):
 
 ```
 profiles/cursor/rules/
+├── agentic-security-reviewer.mdc
 ├── architect.mdc
 ├── assistant.mdc
 ├── build-error-resolver.mdc
+├── client-workflow-bootstrap.mdc
 ├── code-reviewer.mdc
-├── database-reviewer.mdc
-├── docs-lookup.mdc
+├── data-engineer.mdc
+├── designer.mdc
 ├── e2e-runner.mdc
-├── performance-optimizer.mdc
+├── implementer.mdc
 ├── planner.mdc
-├── refactor-cleaner.mdc
-├── reference-lookup.mdc
+├── platform-engineer.mdc
+├── qa-engineer.mdc
+├── researcher.mdc
+├── reviewer.mdc
+├── security-engineer.mdc
 ├── security-reviewer.mdc
-├── tdd-guide.mdc
-└── typescript-reviewer.mdc
+└── tdd-guide.mdc
 ```
 
 ### Installation
@@ -320,10 +324,11 @@ Add project-specific rules by creating a `.windsurfrules` file in your project r
 
 Pi Coding Agent loads skill definitions from `~/.pi/agent/skills/`. Each `.md` file is a skill the agent can invoke.
 
-The Pi profile ships a minimal set of 5 agent personas formatted as Pi skills (see `profiles/pi/skills/`):
-- `assistant`, `architect`, `planner`, `code-reviewer`, `security-reviewer` (agents-as-skills)
+The Pi profile ships 18 agent personas formatted as Pi skills (see `profiles/pi/skills/` — #869 parity, agents-as-skills):
 
-> **Note:** Earlier docs listed 11 delivery/forge skills; the current profile is intentionally minimal (agents-as-skills) to match Pi's native format. For full 86 skills, use the universal Agent Skills path (`~/.pi/agent/skills/` accepts standard `SKILL.md`); track full parity in #787.
+- `assistant`, `planner`, `architect`, `designer`, `implementer`, `reviewer`, `qa-engineer`, `security-engineer`, `platform-engineer`, `data-engineer`, `researcher`, `client-workflow-bootstrap` (holistic + orchestrators), `code-reviewer`, `agentic-security-reviewer`, `security-reviewer`, `e2e-runner`, `tdd-guide`, `build-error-resolver` (specialists)
+
+> **Note:** Earlier docs listed a minimal 5-skill subset. #869 raised parity to 18; build-time skill emit remains canonical.
 
 ### Installation
 

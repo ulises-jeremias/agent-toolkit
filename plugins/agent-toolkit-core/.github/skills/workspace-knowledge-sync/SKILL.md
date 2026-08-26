@@ -2,8 +2,8 @@
 name: workspace-knowledge-sync
 description: Syncs knowledge to the agentic-harness knowledge base and AGENTS.md learned facts.
   Use when the assistant discovers new patterns, learns user preferences, workspace facts,
-  or identifies information worth preserving for future sessions. Integrates with tech-assistant
-  for automatic trigger points.
+  or identifies information worth preserving for future sessions. Integrates with platform-engineer
+  (formerly tech-assistant) for automatic trigger points.
 origin:
   type: first-party
 metadata:
@@ -31,7 +31,7 @@ Inspired by `cursor/plugins` `continual-learning` (without hooks — no transcri
 
 ## Trigger Points (Automatic)
 
-The tech-assistant will invoke this skill automatically when:
+The platform-engineer (archived `tech-assistant` — now inline `references/WORKSTATION_OPS.md`) will invoke this skill automatically when:
 
 | Situation | What to Sync | Target |
 |-----------|--------------|--------|
@@ -82,7 +82,7 @@ For durable, reusable facts that should survive across sessions, update `AGENTS.
    - keep each learned section to at most 12 bullets
 4. If the merge produces no `AGENTS.md` changes, leave `AGENTS.md` unchanged.
 
-No hooks, no transcript index, no `followup_message` — the sync is explicit (manual or via tech-assistant trigger), not hook-driven.
+No hooks, no transcript index, no `followup_message` — the sync is explicit (manual or via platform-engineer trigger), not hook-driven.
 
 ---
 
@@ -148,9 +148,9 @@ Assistant: → Append to knowledge/learnings/general.md and AGENTS.md ## Learned
 
 ---
 
-## Integration with tech-assistant
+## Integration with platform-engineer (formerly tech-assistant)
 
-The tech-assistant skill checks for these automatic sync opportunities:
+The platform-engineer (archived `tech-assistant` → `references/WORKSTATION_OPS.md`) checks for these automatic sync opportunities:
 
 1. **After task creation/update** → Sync initiative info
 2. **After discovering space/list IDs** → Sync to knowledge base (per `knowledge-sync`).
@@ -223,4 +223,4 @@ The skill uses these environment variables:
 
 ---
 
-Base directory: `~/.local/share//skills/knowledge-sync`
+Base directory: `~/.local/share/knowledge-sync` (installer path; `~/.local/share/agent-toolkit/` when using toolkit install)

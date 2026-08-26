@@ -5,7 +5,7 @@ Ticket hygiene, traceability, and process compliance for engineering teams.
 ## Components
 
 - **Skills**: task, bug, epic, user-story, project-assessment, development-workflow
-- **Agents**: tech-assistant, planner
+- **Agents**: platform-engineer (archived `tech-assistant` → `references/WORKSTATION_OPS.md`), planner
 
 ## Setup
 

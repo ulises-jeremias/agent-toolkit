@@ -206,7 +206,7 @@ Use **`skill-catalog.yaml`** next to bundled skills for domains, triggers and **
 
 Client/account overlays live in the workspace (`~/.ai-workspace/packs/` + `knowledge/`) and should be loaded when triggered.
 
-For AI agent assistance, invoke agents using **@mention** in your message (NOT the Task tool): **@planner** (feature planning), **@code-reviewer** (code review), **@security-reviewer** (security), **@tdd-guide** (TDD workflow), **@reference-lookup** (examples from public examples). Agents are defined in `~/.config/opencode/agents/` — they are NOT skills and must NOT be loaded via the skill tool.
+For AI agent assistance, invoke agents using **@mention** in your message (NOT the Task tool): **@planner** (feature planning), **@code-reviewer** (code review), **@security-reviewer** (security), **@tdd-guide** (TDD workflow), **@researcher** + `delivery/spike` (examples from public examples via `researcher/references/LOOKUP_GUIDE.md`). Agents are defined in `~/.config/opencode/agents/` — they are NOT skills and must NOT be loaded via the skill tool.
 
 ---
 

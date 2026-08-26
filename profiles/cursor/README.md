@@ -6,21 +6,25 @@ Files in this directory configure [Cursor](https://cursor.com) for use with agen
 
 ```
 profiles/cursor/
-├── rules/               # Per-agent .mdc rule files
+├── rules/               # Per-agent .mdc rule files (18 canonical — #865)
+│   ├── agentic-security-reviewer.mdc
 │   ├── architect.mdc
 │   ├── assistant.mdc
 │   ├── build-error-resolver.mdc
+│   ├── client-workflow-bootstrap.mdc
 │   ├── code-reviewer.mdc
-│   ├── database-reviewer.mdc
-│   ├── docs-lookup.mdc
+│   ├── data-engineer.mdc
+│   ├── designer.mdc
 │   ├── e2e-runner.mdc
-│   ├── performance-optimizer.mdc
+│   ├── implementer.mdc
 │   ├── planner.mdc
-│   ├── refactor-cleaner.mdc
-│   ├── reference-lookup.mdc
+│   ├── platform-engineer.mdc
+│   ├── qa-engineer.mdc
+│   ├── researcher.mdc
+│   ├── reviewer.mdc
+│   ├── security-engineer.mdc
 │   ├── security-reviewer.mdc
-│   ├── tdd-guide.mdc
-│   └── typescript-reviewer.mdc
+│   └── tdd-guide.mdc
 ├── README.md
 └── .cursor-plugin/
     └── plugin.json      # Agent Plugins 1.0 manifest (Cursor marketplace)

@@ -80,28 +80,32 @@ code reviewer available for every project.
 
 **Install command:** `/plugin install agent-toolkit-agents@agent-toolkit`
 
-The marketplace persona plugin (16 agents). Disk has 17 including `agentic-security-reviewer`, which is not in this plugin. Invoke with `@mention`.
+18 agent personas (11 holistic + 2 orchestrators + 6 specialists). 7 former specialists (`database-reviewer`, `performance-optimizer`, `typescript-reviewer`, `refactor-cleaner`, `docs-lookup`, `reference-lookup`, `tech-assistant`) archived to `references/` per #865 — invoked inline via holistic owner (see `docs/AGENT_TAXONOMY.md` §3/§8). Invoke with `@mention`.
 
 **Included agents:**
 
 | Agent | Domain | Role |
 |-------|--------|------|
-| `architect` | Orchestration | System design and ADR drafting |
 | `assistant` | Orchestration | Primary orchestrator and fallback |
 | `planner` | Orchestration | Feature breakdown and estimation |
+| `architect` | Orchestration | System design and ADR drafting |
+| `designer` | Design | UI/UX and Figma-to-code |
+| `implementer` | Delivery | Code delivery |
+| `reviewer` | Review | Quality, craft, change-safety |
+| `qa-engineer` | QA | Lint, browser, quality gates |
+| `security-engineer` | Security | Audit and threat modeling |
+| `platform-engineer` | Platform | CI, loops, health, triage |
+| `data-engineer` | Data | dbt/Snowflake read-only validation |
+| `researcher` | Research | Discovery & evidence |
 | `client-workflow-bootstrap` | Delivery | Client project onboarding |
-| `code-reviewer` | Review | Code quality and correctness |
-| `database-reviewer` | Review | Schema design and query optimization |
-| `performance-optimizer` | Review | Profiling and benchmarking |
-| `security-reviewer` | Review | Vulnerability audit and threat modeling |
-| `typescript-reviewer` | Review | TypeScript type safety |
-| `tech-assistant` | Design | Technical procedures and references |
-| `e2e-runner` | Testing | Playwright end-to-end tests |
-| `tdd-guide` | Testing | Test-driven development |
-| `build-error-resolver` | Ops | Build and type error triage |
-| `docs-lookup` | Ops | Documentation and API reference |
-| `reference-lookup` | Ops | Public examples and pattern search |
-| `refactor-cleaner` | Ops | Dead code removal and simplification |
+| `code-reviewer` | Review | Quality & correctness (backs `reviewer`) |
+| `security-reviewer` | Security | Vulnerability audit (backs `security-engineer`) |
+| `agentic-security-reviewer` | Security | Agentic/LLM security (backs `security-engineer`) |
+| `e2e-runner` | Validation | Playwright E2E authoring (backs `qa-engineer`) |
+| `tdd-guide` | Validation | TDD authoring (backs `implementer`) |
+| `build-error-resolver` | Validation | Build/type error triage (backs `platform-engineer`) |
+
+> Archived → `references/`: `database-reviewer` → `reviewer/references/DATABASE_CHECKLIST.md`, `performance-optimizer` → `reviewer/references/PERFORMANCE_CHECKLIST.md`, `typescript-reviewer` → `reviewer/references/TYPESCRIPT_CHECKLIST.md`, `refactor-cleaner` → `reviewer/references/REFACTOR_CHECKLIST.md`, `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md`, `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md`.
 
 **Use this plugin if:** You want specialist subagents for code review, security, architecture,
 testing, and documentation tasks.

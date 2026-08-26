@@ -40,7 +40,7 @@ Update canonical agents in `agents/` (compiler emits to plugins/profiles):
 
 | Skill domain | Agents |
 |--------------|--------|
-| `quality/unslop`, `quality/deslop` | `code-reviewer`, `refactor-cleaner`, `assistant` |
+| `quality/unslop`, `quality/deslop` | `code-reviewer` (+ `reviewer` + `reviewer/references/REFACTOR_CHECKLIST.md` archived #865), `assistant` |
 | `quality/blast-radius` | `architect`, `planner`, `code-reviewer` |
 | `tooling/cli-for-agents` | `assistant`, `build-error-resolver` (if CLI-related) |
 | `forge/fix-merge-conflicts` | `assistant`; dev-companion → forge row |

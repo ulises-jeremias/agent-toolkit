@@ -524,7 +524,7 @@ skills:
   domain: core
   purpose: Syncs knowledge to the agentic-harness knowledge base and AGENTS.md learned facts. Use when
     the assistant discovers new patterns, learns user preferences, workspace facts, or identifies information
-    worth preserving for future sessions. Integrates with tech-assistant for automatic trigger points.
+    worth preserving for future sessions. Integrates with platform-engineer (archived tech-assistant → references/WORKSTATION_OPS.md) for automatic trigger points.
   origin: first-party
   holistic_owner: assistant
   role: ops

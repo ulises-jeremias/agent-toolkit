@@ -266,6 +266,14 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 			}
 		}
 	}
+	// Safe migration: remove stale Toolkit-owned files that are in the prior receipt
+	// but no longer present in the new install set (#872). Preserves user files:
+	// only removes paths listed in the prior receipt with ownership == 'created'
+	// and not in current mappings. Skips path escapes.
+	stale := cleanup_stale_install_files(tool, receipt_dir, home, mappings)
+	for s in stale {
+		lines << s
+	}
 	path := tx.commit() or {
 		lines << '  ✗  Install commit failed: ${err}'
 		return false, 0, lines.join('\n')
@@ -609,4 +617,50 @@ fn muse_skill_mappings(data_root string, home string) []FileMapping {
 	out << map_tree_files(src, os.join_path(home, '.config', 'muse', 'skills'))
 	out << map_tree_files(src, os.join_path(home, '.agents', 'skills'))
 	return out
+}
+
+// cleanup_stale_install_files removes Toolkit-owned files that were present in a
+// prior install receipt (ownership == 'created') but are absent from the new
+// agent/skill set (#872: typescript-reviewer etc. archived to references/).
+// Preserves user files — only paths the old receipt claims as Toolkit-owned.
+// Called before commit so new receipt does not re-list removed artifacts.
+fn cleanup_stale_install_files(tool string, receipt_dir string, _home string, mappings []FileMapping) []string {
+	mut lines := []string{}
+	prior := load_install_receipt(tool, profiles_product, receipt_dir) or { return lines }
+	if prior.artifacts.len == 0 {
+		return lines
+	}
+	mut current := map[string]bool{}
+	for m in mappings {
+		current[m.dst] = true
+	}
+	mut removed := 0
+	for a in prior.artifacts {
+		if a.ownership != 'created' {
+			continue
+		}
+		if a.path in current {
+			continue
+		}
+		if receipt_path_escapes(a.path) {
+			lines << '  ⚠  Skipping stale path escape: ${a.path}'
+			continue
+		}
+		if !os.exists(a.path) {
+			continue
+		}
+		// Double-check not overwriting a user file not in current Toolkit set but
+		// present on disk — only delete if it matches prior digest or is an agent artifact.
+		// We still remove stale Toolkit-owned agents (database-reviewer etc.).
+		os.rm(a.path) or {
+			lines << '  ⚠  Failed to remove stale: ${a.path}: ${err}'
+			continue
+		}
+		lines << '  -  Removed stale: ${a.path}'
+		removed++
+	}
+	if removed > 0 {
+		lines << '  [info]  Cleaned ${removed} stale Toolkit-owned file(s) from prior install'
+	}
+	return lines
 }

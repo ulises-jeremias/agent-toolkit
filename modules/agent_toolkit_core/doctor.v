@@ -234,24 +234,100 @@ fn collect_profile_checks(home string) []DoctorCheck {
 	if os.is_dir(os.join_path(home, '.claude')) {
 		out << profile_check('claude-code CLAUDE.md', os.join_path(home, '.claude', 'CLAUDE.md'))
 		out << profile_check('claude-code agents/', os.join_path(home, '.claude', 'agents'))
+		for msg in detect_stale_install_check('claude-code', home) {
+			out << DoctorCheck{'profiles', 'claude-code stale agents', 'warn', msg}
+		}
 	}
 	if os.is_dir(os.join_path(home, '.cursor')) {
 		out << profile_check('cursor rules/', os.join_path(home, '.cursor', 'rules'))
+		for msg in detect_stale_install_check('cursor', home) {
+			out << DoctorCheck{'profiles', 'cursor stale rules', 'warn', msg}
+		}
 	}
 	if os.is_dir(os.join_path(home, '.config', 'opencode')) {
 		out << profile_check('opencode agents/',
 			os.join_path(home, '.config', 'opencode', 'agents'))
 		out << profile_check('opencode opencode.json', os.join_path(home, '.config', 'opencode',
 			'opencode.json'))
+		for msg in detect_stale_install_check('opencode', home) {
+			out << DoctorCheck{'profiles', 'opencode stale agents', 'warn', msg}
+		}
 	}
 	windsurf := windsurf_config_dir(home)
 	if os.is_dir(windsurf) || os.is_dir(os.join_path(home, '.windsurf')) {
 		out << profile_check('windsurf rules/', os.join_path(windsurf, 'rules'))
 		out << profile_check('windsurf memories/', os.join_path(windsurf, 'memories'))
+		for msg in detect_stale_install_check('windsurf', home) {
+			out << DoctorCheck{'profiles', 'windsurf stale rules', 'warn', msg}
+		}
 	}
 	if os.is_dir(os.join_path(home, '.pi')) {
 		out << profile_check('pi skills/', os.join_path(home, '.pi', 'agent', 'skills'))
+		for msg in detect_stale_install_check('pi', home) {
+			out << DoctorCheck{'profiles', 'pi stale skills', 'warn', msg}
+		}
 	}
+	return out
+}
+
+// detect_stale_install_check surfaces prior-install artifacts that no longer exist
+// in the current Toolkit payload (#872). Warns when a receipt tracks stale agents
+// still present on disk but absent from current mappings. Does not fail doctor —
+// `install --force` cleans them (see install.v cleanup_stale_install_files).
+fn detect_stale_install_check(tool string, home string) []string {
+	mut out := []string{}
+	receipt := load_install_receipt(tool, profiles_product, '') or { return out }
+	if receipt.artifacts.len == 0 {
+		return out
+	}
+	// Build current mapping set (best-effort from local checkout or embedded)
+	mut data_root := find_toolkit_root() or { ToolkitRoot{} }.path
+	mut current := map[string]bool{}
+	if data_root.len > 0 {
+		for m in install_file_mappings(tool, data_root, home) {
+			current[m.dst] = true
+		}
+	} else if is_embedded_root('embedded') {
+		// Embedded CLI (published binary): use compiled agents list directly
+		compiled := compiled_agent_files('embedded')
+		for name, _ in compiled {
+			dst := match tool {
+				'claude-code' { os.join_path(home, '.claude', 'agents', '${name}.md') }
+				'cursor' { os.join_path(home, '.cursor', 'rules', '${name}.mdc') }
+				'opencode' { os.join_path(home, '.config', 'opencode', 'agents', '${name}.md') }
+				'windsurf' { '' } // windsurf rules are not agent-derived in doctor stale sense
+				'pi' { os.join_path(home, '.pi', 'agent', 'skills', name, 'skill.md') }
+				else { '' }
+			}
+			if dst.len > 0 {
+				current[dst] = true
+			}
+		}
+	}
+	mut stale := []string{}
+	for a in receipt.artifacts {
+		if a.ownership != 'created' {
+			continue
+		}
+		if a.path in current {
+			continue
+		}
+		if !os.exists(a.path) {
+			continue
+		}
+		// Heuristic: agent-like stale names (archived #865)
+		if a.path.contains('database-reviewer') || a.path.contains('typescript-reviewer')
+			|| a.path.contains('performance-optimizer') || a.path.contains('refactor-cleaner')
+			|| a.path.contains('docs-lookup') || a.path.contains('reference-lookup')
+			|| a.path.contains('tech-assistant') {
+			stale << os.file_name(a.path)
+		}
+	}
+	if stale.len == 0 {
+		return out
+	}
+	stale.sort()
+	out << 'stale Toolkit files present (${stale.len}): ${stale.join(', ')} — run `agent-toolkit install --force --tools ${tool}` to clean (preserves user files)'
 	return out
 }
 

@@ -19,17 +19,17 @@ sources:
   role: rules
   repository: vercel-labs/web-interface-guidelines
   path: command.md
-  ref: 4e799d45c17aec1498c269287a83b9dba22b966b
+  ref: e3d624baaf29dc1fc645aff3e38f03e564d2d6b1
   license: MIT
 trust:
   tier: reviewed
-  reviewed_at: '2026-08-14'
+  reviewed_at: '2026-08-26'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:7d970b261fd8cad352748cca39be76eab44e0174c528117cc5772899a6fe08c2
+  reviewed_provenance: sha256:9803737469498d520b8c06994dec3142b0e5a2db48fe8edbf8f7fe61cfcae2d9
 maintenance:
   status: active
-  last_activity: '2026-07-24'
-  last_checked: '2026-08-14'
+  last_activity: '2026-08-18'
+  last_checked: '2026-08-26'
 distribution:
   mode: vendored
   redistribution_allowed: false

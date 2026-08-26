@@ -73,7 +73,7 @@ Sort by Severity (Critical → Low), then Likelihood. Include `Residual risk` af
 
 | Need | Delegate to |
 |------|-------------|
-| System design, C4/Mermaid, ADRs | `architect` / `tech-assistant` — provides `Inputs` architecture diagram |
+| System design, C4/Mermaid, ADRs | `architect` / `platform-engineer` (`references/WORKSTATION_OPS.md`) — provides `Inputs` architecture diagram |
 | App/code vulns (OWASP Web) | `security-reviewer` / `agents/security-reviewer` — consumes threat model for prioritized review |
 | Agentic / LLM / MCP / supply-chain | `agentic-security-reviewer` + `agentic-security/owasp-agentic-review` (LLM01-10 + AGNT01-06) — joint risk table |
 | Full supply-chain surface | `agentic-security/supply-chain-audit` |
