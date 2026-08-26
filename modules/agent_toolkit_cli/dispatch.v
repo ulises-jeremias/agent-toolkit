@@ -313,7 +313,7 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 	if cmd_name == 'insights' {
 		print(insights_help_text())
 		if insights_subcommand(rest).len > 0 {
-			eprintln('insights is removed from the product CLI (#526). Use external analytics or a prior release if you still need it.')
+			eprintln('insights is removed from the product CLI (#526). Migrated to: python3 bin/tool-insights [opencode|cursor|claude] [--days N] (see docs/v/insights-migration.md). Use external analytics or a prior release if you still need it.')
 			return 1
 		}
 		return 0
@@ -574,16 +574,35 @@ See: docs/v/advanced-command-disposition.md
 }
 
 fn insights_subcommand(args []string) string {
-	for a in args {
-		if !a.starts_with('-') {
-			return a
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--days', '--output'] {
+			// flag with value: skip value if next token is not a flag
+			if i + 1 < args.len && !args[i + 1].starts_with('-') {
+				i += 2
+				continue
+			}
+			i++
+			continue
 		}
+		if a.starts_with('--days=') || a.starts_with('--output=') {
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		return a
 	}
 	return ''
 }
 
 fn insights_help_text() string {
 	return 'insights — AI tool usage analytics (removed from the product CLI; #526).
+Migrated to: python3 bin/tool-insights [opencode|cursor|claude] [--days N]
+See: docs/v/insights-migration.md + AGENTS.md bin/tool-insights section (self-bootstraps at ~/.local/share/tool-insights-venv).
 
 Not ported to V. See docs/v/advanced-command-disposition.md and docs/v/python-fallback.md.
 '

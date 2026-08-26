@@ -345,9 +345,12 @@ fn memory_inject(knowledge string) MemoryReport {
 		lines << '(knowledge base is empty)'
 	}
 	lines << '<!-- end agent-toolkit memory inject -->'
+	msg := lines.join('\n')
+	// context_budget clip 2000 parity (Python clip budget=2000 tokens ~ 8000 chars; V devcompanion clips 2000 chars)
+	clipped := if msg.len > 2000 { msg[..2000] } else { msg }
 	return MemoryReport{
 		ok:      true
-		message: lines.join('\n')
+		message: clipped
 		data:    {
 			'subcommand': 'inject'
 		}
