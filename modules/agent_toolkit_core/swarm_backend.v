@@ -59,6 +59,19 @@ pub fn resolve_swarm_backend(requested string) string {
 	return name
 }
 
+
+pub fn swarm_runner_names() []string {
+	return ['auto', 'skeleton', 'opencode', 'claude', 'codex', 'cursor', 'copilot', 'muse']
+}
+
+pub fn resolve_swarm_runner(requested string) string {
+	name := if requested.len == 0 { 'opencode' } else { requested }
+	if name == 'auto' {
+		return 'auto'
+	}
+	return name
+}
+
 fn probe_unix_bin(name string, argv []string) BackendDoctor {
 	$if windows {
 		return BackendDoctor{

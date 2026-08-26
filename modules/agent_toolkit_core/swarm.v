@@ -13,10 +13,14 @@ pub:
 	gate_id        string
 	recipe         string
 	backend        string
+	runner         string
+	model_profile  string
 	task           string
 	reason         string
 	dry_run        bool
 	force          bool
+	attach         bool
+	no_attach      bool
 }
 
 // SwarmReport is the domain result for swarm subcommands.
@@ -28,13 +32,15 @@ pub mut:
 }
 
 struct SwarmStateFile {
-	version    int
-	run_id     string
-	recipe     string
-	backend    string
-	run_state  string
-	created_at string
-	task       string
+	version       int
+	run_id        string
+	recipe        string
+	backend       string
+	runner        string
+	model_profile string
+	run_state     string
+	created_at    string
+	task          string
 }
 
 struct SwarmApprovalsFile {
@@ -114,7 +120,7 @@ Usage:
     agent-toolkit swarm recipes [name]
     agent-toolkit swarm backends
     agent-toolkit swarm doctor [--json]
-    agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--dry-run] [task]
+    agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--runner NAME] [--model-profile NAME] [--attach|--no-attach] [--dry-run] [task]
     agent-toolkit swarm list
     agent-toolkit swarm status [run-id]
     agent-toolkit swarm approve <run-id> <gate>
@@ -122,10 +128,12 @@ Usage:
     agent-toolkit swarm cancel <run-id>
     agent-toolkit swarm help
 
-Backends: herdr (recommended), tmux (Unix fallback), headless (filesystem only).
+Runners: opencode (default via $SHELL), claude, codex, cursor, copilot, muse, skeleton. Same capability as: agent-toolkit loop run --runner NAME.
+Backends: herdr (recommended, auto-focus worktree), tmux (Unix fallback), headless (filesystem only).
 Windows: tmux/herdr unsupported; use --backend headless.
 Concurrency: process-per-run supervisor; UI spawn is fail-closed without ProcessService stdin.
 State: .agent-toolkit/swarm/runs/<run-id>/ (state.json, approvals.json, trace.jsonl).
+Attach: herdr attach by default (focus UI); use --no-attach for CI/script mode.
 '
 }
 
@@ -283,17 +291,41 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
+	runner := resolve_swarm_runner(opts.runner)
+	model_profile := if opts.model_profile.len > 0 { opts.model_profile } else { 'balanced' }
+	if runner !in swarm_runner_names() {
+		return SwarmReport{
+			ok:      false
+			message: "Unknown runner '${runner}'. Use auto|skeleton|opencode|claude|codex|cursor|copilot|muse (same as: agent-toolkit loop run --runner NAME)"
+			data:    {
+				'subcommand': 'start'
+				'runner':     runner
+			}
+		}
+	}
+	if model_profile !in ['economy', 'balanced', 'quality', 'private'] {
+		return SwarmReport{
+			ok:      false
+			message: "Unknown model-profile '${model_profile}'. Use economy|balanced|quality|private (see docs/SWARM_MODELS_AND_COSTS.md)"
+			data:    {
+				'subcommand': 'start'
+				'model_profile': model_profile
+			}
+		}
+	}
 	rid := swarm_new_run_id()
 	if opts.dry_run {
 		return SwarmReport{
 			ok:      true
-			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
+			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
 			data:    {
 				'subcommand': 'start'
 				'mode':       'dry-run'
 				'recipe':     recipe
-				'backend':    backend
-				'run_id':     rid
+				'backend':       backend
+				'runner':        runner
+				'model_profile': model_profile
+				'run_id':        rid
 			}
 		}
 	}
@@ -310,13 +342,15 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		'running'
 	}
 	st := SwarmStateFile{
-		version:    1
-		run_id:     rid
-		recipe:     recipe
-		backend:    backend
-		run_state:  initial
-		created_at: time.utc().format_rfc3339()
-		task:       opts.task
+		version:       1
+		run_id:        rid
+		recipe:        recipe
+		backend:       backend
+		runner:        runner
+		model_profile: model_profile
+		run_state:     initial
+		created_at:    time.utc().format_rfc3339()
+		task:          opts.task
 	}
 	write_swarm_state(run_dir, st) or {
 		return SwarmReport{
@@ -331,18 +365,145 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	append_swarm_trace(run_dir, 'run_created', rid)
+	// Herdr UI spawn (ADR-008: UI is adapter, not engine). Only when --attach and not dry-run.
+	mut herdr_note := ''
+	if opts.attach && !opts.no_attach && backend == 'herdr' {
+		spawn_res := spawn_herdr_workspace(ws, rid, opts.task, recipe, runner, model_profile)
+		if spawn_res.ok {
+			herdr_note = '\n  Herdr: ' + spawn_res.message
+		} else {
+			herdr_note = '\n  Herdr spawn warning: ' + spawn_res.message + ' (filesystem state intact; retry: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid + ')'
+		}
+		append_swarm_trace(run_dir, if spawn_res.ok { 'herdr_workspace_created' } else { 'herdr_workspace_failed' }, spawn_res.message)
+	} else if backend == 'herdr' && opts.no_attach {
+		herdr_note = '\n  Herdr: --no-attach (CI mode); workspace not created. Create manually: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid
+	}
 	return SwarmReport{
 		ok:      true
-		message: '[swarm] started ${rid} recipe=${recipe} backend=${backend} state=${initial}\n  ${run_dir}\n  UI spawn fail-closed (ADR-020); filesystem state is authoritative (ADR-008).'
+		message: '[swarm] started ${rid} recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} state=${initial}\n  ${run_dir}' + herdr_note + '\n  UI spawn fail-closed (ADR-020); filesystem state is authoritative (ADR-008).'
 		data:    {
-			'subcommand': 'start'
-			'run_id':     rid
-			'recipe':     recipe
-			'backend':    backend
-			'run_state':  initial
+			'subcommand':    'start'
+			'run_id':        rid
+			'recipe':        recipe
+			'backend':       backend
+			'runner':        runner
+			'model_profile': model_profile
+			'run_state':     initial
 			'workspace':  ws
 		}
 	}
+}
+
+fn herdr_workspace_id(stdout string) string {
+	if !stdout.contains('workspace_id') { return '' }
+	marker := '"workspace_id":"'
+	if stdout.contains(marker) {
+		after := stdout.all_after(marker)
+		end := after.index('"') or { return '' }
+		return after[..end]
+	}
+	// fallback: workspace_id without quotes around value (just in case)
+	after := stdout.all_after('workspace_id')
+	start := after.index('"') or { return '' }
+	rest := after[start+1..]
+	if rest.starts_with(':') || rest.starts_with('":"') {
+		// handle ":" pattern
+		q := rest.index('"') or { return '' }
+		rest2 := rest[q+1..]
+		end2 := rest2.index('"') or { return '' }
+		return rest2[..end2]
+	}
+	end := rest.index('"') or { return '' }
+	return rest[..end]
+}
+
+fn herdr_pane_id(stdout string) string {
+	marker := '"pane_id":"'
+	if stdout.contains(marker) {
+		after := stdout.all_after(marker)
+		end := after.index('"') or { return '' }
+		return after[..end]
+	}
+	if !stdout.contains('pane_id') { return '' }
+	after := stdout.all_after('pane_id')
+	start := after.index('"') or { return '' }
+	rest := after[start+1..]
+	end := rest.index('"') or { return '' }
+	if rest.len > 0 && rest[0] == `:` {
+		q := rest.index('"') or { return '' }
+		rest2 := rest[q+1..]
+		end2 := rest2.index('"') or { return '' }
+		return rest2[..end2]
+	}
+	return rest[..end]
+}
+
+fn user_shell() string {
+	env := os.getenv('SHELL')
+	if env.len > 0 && os.is_file(env) { return env }
+	// fallback
+	return '/usr/bin/zsh'
+}
+
+fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, runner string, model_profile string) SwarmReport {
+	ps := new_process_service()
+	label := 'swarm-' + run_id
+	res := ps.run(RunOptions{
+		argv: ['herdr', 'workspace', 'create', '--cwd', ws, '--label', label, '--no-focus']
+	}) or {
+		return SwarmReport{ ok: false, message: err.msg(), data: { 'backend': 'herdr' } }
+	}
+	if res.exit_code != 0 {
+		mut msg := if res.stderr.len > 0 { res.stderr.trim_space() } else { res.stdout.trim_space() }
+		if msg.len == 0 { msg = 'exit ' + res.exit_code.str() }
+		return SwarmReport{ ok: false, message: msg, data: { 'backend': 'herdr' } }
+	}
+	if !res.stdout.contains('workspace_created') && !res.stdout.contains('workspace_id') {
+		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (herdr output: ' + res.stdout.trim_space().all_before('
+') + ')', data: { 'backend': 'herdr', 'run_id': run_id } }
+	}
+	ws_id := herdr_workspace_id(res.stdout)
+	if ws_id.len == 0 {
+		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' created', data: { 'backend': 'herdr', 'run_id': run_id } }
+	}
+	// Eager tabs: one per role + attach handling (graph-aware predecessor, 3-line waiting, agent_waiting trace)
+	roles := swarm_recipe_roles(recipe)
+	shell := user_shell()
+	for i, role in roles {
+		if i == 0 { continue } // first role already has the initial tab
+		tab_res := ps.run(RunOptions{
+			argv: ['herdr', 'tab', 'create', '--workspace', ws_id, '--cwd', ws, '--label', role, '--no-focus']
+		}) or { continue }
+		if tab_res.exit_code == 0 && tab_res.stdout.contains('tab_id') {
+			mut pred := swarm_role_predecessor(recipe, role)
+			if pred.len == 0 && i > 0 {
+				pred = roles[i - 1]
+			}
+			if pred.len == 0 {
+				pred = 'previous role'
+			}
+			waiting := 'Waiting for handoff: ' + pred + ' -> ' + role + ' | role: ' + role + ' | run: ' + run_id
+			tip := 'Will auto-start ' + role + ' when ' + pred + ' creates artifact handoff'
+			hint := 'Tip: agent-toolkit swarm handoffs ' + run_id
+			script := 'echo ' + shell_quote(waiting) + ' && echo ' + shell_quote(tip) + ' && echo ' + shell_quote(hint) + ' && exec ' + shell_base()
+			tab_json := tab_res.stdout
+			pane_id := herdr_pane_id(tab_json)
+			if pane_id.len > 0 {
+				msg := shell + ' -lc ' + shell_quote(script)
+				_ := ps.run(RunOptions{ argv: ['herdr', 'pane', 'run', pane_id, msg] }) or { continue }
+				run_dir := swarm_run_dir(ws, run_id)
+				append_swarm_trace(run_dir, 'agent_waiting', role + ':' + pred)
+			}
+		}
+	}
+	// Attach: focus the swarm workspace so user sees it in Herdr (unless --no-attach)
+	focus_res := ps.run(RunOptions{ argv: ['herdr', 'workspace', 'focus', ws_id] }) or {
+		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') created; focus warning: ' + err.msg(), data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
+	}
+	if focus_res.exit_code != 0 {
+		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') created; focus warning: ' + focus_res.stderr.trim_space(), data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
+	}
+	return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') — ' + roles.len.str() + ' tabs, shell=' + shell + ', focused', data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
 }
 
 fn swarm_list(ws string) SwarmReport {

@@ -747,9 +747,14 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut gate_id := ''
 	mut recipe := ''
 	mut backend := ''
+	mut runner := ''
+	mut model_profile := ''
 	mut reason := ''
 	mut dry_run := false
 	mut force := false
+	mut attach := false
+	mut no_attach := false
+	mut attach_set := false
 	mut task_parts := []string{}
 	mut i := 0
 	for i < args.len {
@@ -768,7 +773,19 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason'] {
+		if a == '--attach' {
+			attach = true
+			attach_set = true
+			i++
+			continue
+		}
+		if a == '--no-attach' {
+			no_attach = true
+			attach_set = true
+			i++
+			continue
+		}
+		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason', '--runner', '--model-profile'] {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -779,6 +796,8 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 				'--ui' { backend = val }
 				'--workspace' { workspace_path = val }
 				'--reason' { reason = val }
+				'--runner' { runner = val }
+				'--model-profile' { model_profile = val }
 				else {}
 			}
 			i += 2
@@ -791,6 +810,16 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		}
 		if a.starts_with('--backend=') || a.starts_with('--ui=') {
 			backend = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--runner=') {
+			runner = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--model-profile=') {
+			model_profile = a.all_after('=')
 			i++
 			continue
 		}
@@ -831,6 +860,10 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		task = run_id
 		run_id = ''
 	}
+	// attach defaults to true for start unless explicitly disabled
+	if sub == 'start' && !attach_set && !dry_run {
+		attach = true
+	}
 	return agent_toolkit_core.SwarmOptions{
 		subcommand:     sub
 		workspace_path: workspace_path
@@ -838,10 +871,14 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		gate_id:        gate_id
 		recipe:         recipe
 		backend:        backend
+		runner:         runner
+		model_profile:  model_profile
 		task:           task
 		reason:         reason
 		dry_run:        dry_run
 		force:          force
+		attach:         attach
+		no_attach:      no_attach
 	}
 }
 

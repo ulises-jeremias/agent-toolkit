@@ -1,5 +1,7 @@
 module agent_toolkit_core
 
+import os
+
 // Swarm run/role state machine + approval gates (#524 REDESIGN / ADR-008).
 
 pub struct SwarmGate {
@@ -88,6 +90,61 @@ pub fn swarm_recipe_description(recipe string) string {
 
 pub fn swarm_require_plan_approval(recipe string) bool {
 	return recipe in ['team', 'full']
+}
+
+pub fn swarm_role_predecessor(recipe string, role string) string {
+	return match recipe {
+		'pair' {
+			match role {
+				'reviewer' { 'implementer' }
+				'integrator' { 'reviewer' }
+				else { '' }
+			}
+		}
+		'team' {
+			match role {
+				'implementer' { 'planner' }
+				'reviewer' { 'implementer' }
+				'architect' { 'reviewer' }
+				else { '' }
+			}
+		}
+		'full' {
+			match role {
+				'implementer' { 'planner' }
+				'refactorer' { 'implementer' }
+				'architect' { 'refactorer' }
+				'hardener' { 'architect' }
+				'qa' { 'hardener' }
+				else { '' }
+			}
+		}
+		else { '' }
+	}
+}
+
+pub fn shell_quote(s string) string {
+	if s.len == 0 {
+		return "''"
+	}
+	return "'" + s.replace("'", "'\\''") + "'"
+}
+
+pub fn shell_base() string {
+	sh := user_shell_fallback()
+	idx := sh.last_index('/') or { return sh }
+	if idx + 1 >= sh.len {
+		return sh
+	}
+	return sh[idx + 1..]
+}
+
+fn user_shell_fallback() string {
+	env := os.getenv('SHELL')
+	if env.len > 0 && os.is_file(env) {
+		return env
+	}
+	return '/usr/bin/zsh'
 }
 
 pub fn swarm_default_gates(recipe string) []SwarmGate {

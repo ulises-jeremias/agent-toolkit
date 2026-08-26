@@ -914,6 +914,26 @@ fn swarm_command() cli.Command {
 				name:        'reason'
 				description: 'Reject reason'
 			},
+			cli.Flag{
+				flag:        .string
+				name:        'runner'
+				description: 'Runner: opencode|claude|codex|cursor|copilot|muse|skeleton|auto'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'model-profile'
+				description: 'Model profile: economy|balanced|quality|private'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'attach'
+				description: 'Attach Herdr UI after start (default)'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'no-attach'
+				description: 'Skip Herdr UI attach (CI/script mode)'
+			},
 		]
 	}
 }
