@@ -427,6 +427,7 @@ fn install_source_present(tool string, data_root string) bool {
 		}
 		'pi' {
 			return data_is_dir(data_root, os.join_path(data_root, 'profiles', 'pi', 'skills'))
+				|| compiled_agent_files(data_root).len > 0
 		}
 		'muse-code' {
 			if data_is_dir(data_root, os.join_path(data_root, 'skills')) {
@@ -482,9 +483,15 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 			}
 		}
 		'pi' {
-			src := os.join_path(data_root, 'profiles', 'pi', 'skills')
-			mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent',
-				'skills'))
+			// fallback to compiled_agent_files when profiles/pi/skills missing (like claude-code/opencode) — #899
+			if data_is_dir(data_root, os.join_path(data_root, 'profiles', 'pi', 'skills')) {
+				src := os.join_path(data_root, 'profiles', 'pi', 'skills')
+				mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent',
+					'skills'))
+			} else {
+				mappings << agent_dest_mappings('pi', data_root, compiled, os.join_path(home,
+					'.pi', 'agent', 'skills'))
+			}
 		}
 		'muse-code' {
 			mappings << muse_skill_mappings(data_root, home)
