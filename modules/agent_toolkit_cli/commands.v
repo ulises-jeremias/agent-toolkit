@@ -838,6 +838,18 @@ fn swarm_command() cli.Command {
 				execute:     atk_exec
 			},
 			cli.Command{
+				name:        'recipe'
+				description: 'Show recipe details (alias for recipes)'
+				execute:     atk_exec
+				commands:    [
+					cli.Command{
+						name:        'show'
+						description: 'Show a single recipe'
+						execute:     atk_exec
+					},
+				]
+			},
+			cli.Command{
 				name:        'backends'
 				description: 'List backends'
 				execute:     atk_exec
