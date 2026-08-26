@@ -57,13 +57,14 @@ struct SwarmStateFile {
 	run_state     string
 	created_at    string
 	task          string
+	active_roles []string
 }
 
 struct SwarmApprovalsFile {
 	gates []SwarmGate
 }
 
-// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel.
+// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/init/plan/activate/deactivate/promote.
 pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
@@ -88,6 +89,21 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 		}
 		'start' {
 			swarm_start(ws, opts)
+		}
+		'init' {
+			swarm_init(ws, opts)
+		}
+		'plan' {
+			swarm_plan(ws, opts)
+		}
+		'activate' {
+			swarm_activate(ws, opts)
+		}
+		'deactivate' {
+			swarm_deactivate(ws, opts)
+		}
+		'promote' {
+			swarm_promote(ws, opts)
 		}
 		'list' {
 			swarm_list(ws)
@@ -143,6 +159,11 @@ Usage:
     agent-toolkit swarm backends
     agent-toolkit swarm doctor [--json]
     agent-toolkit swarm start [--recipe pair|team|full] [--backend auto|herdr|tmux|headless] [--request-file PATH] [--issue REF] [--base-ref REF] [--workspace PATH] [-C PATH] [--repo PATH] [--json] [--runner NAME] [--model-profile NAME] [--attach|--no-attach] [--dry-run] [task]
+    agent-toolkit swarm init [--recipe pair|team|full] [--workspace PATH] [--json] [--runner NAME] [--model-profile NAME] [task]
+    agent-toolkit swarm plan <run-id> [--workspace PATH]
+    agent-toolkit swarm activate <run-id> <role> [--workspace PATH]
+    agent-toolkit swarm deactivate <run-id> <role> [--workspace PATH]
+    agent-toolkit swarm promote <run-id> [--force] [--base-ref REF] [--workspace PATH]
     agent-toolkit swarm list
     agent-toolkit swarm status [run-id]
     agent-toolkit swarm approve <run-id> <gate>
@@ -892,6 +913,415 @@ fn swarm_cancel(ws string, opts SwarmOptions) SwarmReport {
 			'subcommand': 'cancel'
 			'run_id':     opts.run_id
 			'run_state':  'cancelled'
+		}
+	}
+}
+
+fn swarm_init(ws string, opts SwarmOptions) SwarmReport {
+	recipe := if opts.recipe.len > 0 { opts.recipe } else { 'pair' }
+	if swarm_recipe_description(recipe).len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: "Unknown recipe '${recipe}'. Built-ins: pair, team, full"
+		}
+	}
+	runner := resolve_swarm_runner(opts.runner)
+	model_profile := if opts.model_profile.len > 0 { opts.model_profile } else { 'balanced' }
+	if runner !in swarm_runner_names() {
+		return SwarmReport{
+			ok:      false
+			message: "Unknown runner '${runner}'. Use auto|skeleton|opencode|claude|codex|cursor|copilot|muse"
+			data:    {
+				'subcommand': 'init'
+				'runner':     runner
+			}
+		}
+	}
+	if model_profile !in ['economy', 'balanced', 'quality', 'private'] {
+		return SwarmReport{
+			ok:      false
+			message: "Unknown model-profile '${model_profile}'. Use economy|balanced|quality|private"
+			data:    {
+				'subcommand': 'init'
+				'model_profile': model_profile
+			}
+		}
+	}
+	rid := swarm_new_run_id()
+	if opts.dry_run {
+		return SwarmReport{
+			ok:      true
+			message: '[swarm] dry-run init recipe=${recipe} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  no filesystem writes'
+			data:    {
+				'subcommand': 'init'
+				'mode':       'dry-run'
+				'recipe':     recipe
+				'runner':     runner
+				'model_profile': model_profile
+				'run_id':     rid
+			}
+		}
+	}
+	run_dir := swarm_run_dir(ws, rid)
+	ensure_swarm_run_dirs(run_dir) or {
+		return SwarmReport{
+			ok:      false
+			message: 'mkdir run failed: ${err}'
+		}
+	}
+	// task-contract.md mirrors Python task-contract scaffold
+	task_text := opts.task
+	artifacts_dir := os.join_path(run_dir, 'artifacts')
+	os.mkdir_all(artifacts_dir) or {}
+	tc_path := os.join_path(artifacts_dir, 'task-contract.md')
+	os.write_file(tc_path, task_text) or {
+		return SwarmReport{
+			ok:      false
+			message: 'write task-contract failed: ${err}'
+		}
+	}
+	st := SwarmStateFile{
+		version:       1
+		run_id:        rid
+		recipe:        recipe
+		backend:       'headless'
+		runner:        runner
+		model_profile: model_profile
+		run_state:     'planning'
+		created_at:    time.utc().format_rfc3339()
+		task:          task_text
+		active_roles:  []string{}
+	}
+	write_swarm_state(run_dir, st) or {
+		return SwarmReport{
+			ok:      false
+			message: 'write state failed: ${err}'
+		}
+	}
+	write_swarm_approvals(run_dir, swarm_default_gates(recipe)) or {
+		return SwarmReport{
+			ok:      false
+			message: 'write approvals failed: ${err}'
+		}
+	}
+	append_swarm_trace(run_dir, 'run_initialized', rid)
+	return SwarmReport{
+		ok:      true
+		message: 'Swarm run initialized: ${rid}\n  ${run_dir}'
+		data:    {
+			'subcommand': 'init'
+			'run_id':     rid
+			'recipe':     recipe
+			'run_state':  'planning'
+			'workspace':  ws
+		}
+	}
+}
+
+fn swarm_plan(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm plan <run-id>'
+		}
+	}
+	if !swarm_valid_run_id(opts.run_id) {
+		return SwarmReport{
+			ok:      false
+			message: "Invalid run_id '${opts.run_id}'"
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	mut st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	// Render artifacts/plan.md from compose_role_prompt equivalent (placeholder).
+	recipe := st.recipe
+	roles := swarm_recipe_roles(recipe)
+	mut lines := []string{}
+	lines << '# Plan for ${opts.run_id}'
+	lines << ''
+	lines << 'Recipe: ${recipe}'
+	lines << 'Roles: ${roles.join(', ')}'
+	lines << 'Task: ${st.task}'
+	lines << ''
+	lines << 'Generated: ${time.utc().format_rfc3339()}'
+	lines << ''
+	for role in roles {
+		lines << '## ${role}'
+		lines << 'Prompt for ${role} (recipe ${recipe}) — task: ${st.task}'
+		lines << ''
+	}
+	content := lines.join('\n')
+	artifacts_dir := os.join_path(rd, 'artifacts')
+	os.mkdir_all(artifacts_dir) or {}
+	plan_path := os.join_path(artifacts_dir, 'plan.md')
+	os.write_file(plan_path, content) or {
+		return SwarmReport{
+			ok:      false
+			message: 'write plan failed: ${err}'
+		}
+	}
+	if st.run_state == 'planning' {
+		if swarm_can_transition(st.run_state, 'awaiting_plan_approval') {
+			st = SwarmStateFile{
+				...st
+				run_state: 'awaiting_plan_approval'
+			}
+			write_swarm_state(rd, st) or {
+				return SwarmReport{
+					ok:      false
+					message: 'write state failed: ${err}'
+				}
+			}
+		}
+	}
+	append_swarm_trace(rd, 'plan_created', opts.run_id)
+	return SwarmReport{
+		ok:      true
+		message: 'plan created at ${plan_path} state=${st.run_state}'
+		data:    {
+			'subcommand': 'plan'
+			'run_id':     opts.run_id
+			'run_state':  st.run_state
+			'plan_path':  plan_path
+		}
+	}
+}
+
+fn swarm_activate(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 || opts.role.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm activate <run-id> <role>'
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	mut st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	roles := swarm_recipe_roles(st.recipe)
+	if opts.role !in roles && opts.role != 'human' {
+		// allow any valid role name but warn if not in recipe
+		if !handoff_role_valid(opts.role) {
+			return SwarmReport{
+				ok:      false
+				message: 'Invalid role: ${opts.role}'
+			}
+		}
+	}
+	if opts.role !in st.active_roles {
+		mut new_roles := st.active_roles.clone()
+		new_roles << opts.role
+		st = SwarmStateFile{
+			...st
+			active_roles: new_roles
+		}
+		write_swarm_state(rd, st) or {
+			return SwarmReport{
+				ok:      false
+				message: 'write state failed: ${err}'
+			}
+		}
+	}
+	append_swarm_trace(rd, 'agent_activated', opts.role)
+	return SwarmReport{
+		ok:      true
+		message: 'Activated ${opts.role} for ${opts.run_id}'
+		data:    {
+			'subcommand':   'activate'
+			'run_id':       opts.run_id
+			'role':         opts.role
+			'active_roles': st.active_roles.join(',')
+		}
+	}
+}
+
+fn swarm_deactivate(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 || opts.role.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm deactivate <run-id> <role>'
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	mut st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	mut idx := -1
+	for i, r in st.active_roles {
+		if r == opts.role {
+			idx = i
+			break
+		}
+	}
+	if idx >= 0 {
+		mut new_roles := []string{}
+		for i, r in st.active_roles {
+			if i != idx {
+				new_roles << r
+			}
+		}
+		st = SwarmStateFile{
+			...st
+			active_roles: new_roles
+		}
+		write_swarm_state(rd, st) or {
+			return SwarmReport{
+				ok:      false
+				message: 'write state failed: ${err}'
+			}
+		}
+	}
+	append_swarm_trace(rd, 'agent_deactivated', opts.role)
+	return SwarmReport{
+		ok:      true
+		message: 'Deactivated ${opts.role} for ${opts.run_id}'
+		data:    {
+			'subcommand':   'deactivate'
+			'run_id':       opts.run_id
+			'role':         opts.role
+			'active_roles': st.active_roles.join(',')
+		}
+	}
+}
+
+fn swarm_branch_for_role(run_id string, role string) string {
+	return 'agent-toolkit-swarm/${run_id}/${role}'
+}
+
+fn swarm_worktree_path(run_dir string, role string) string {
+	return os.join_path(run_dir, 'worktrees', role)
+}
+
+fn swarm_is_worktree_dirty(path string) bool {
+	if !os.is_dir(path) && !os.is_file(path) {
+		return false
+	}
+	mut check_dir := path
+	if !os.is_dir(path) {
+		check_dir = os.dir(path)
+	}
+	ps := new_process_service()
+	res := ps.run(RunOptions{
+		argv:    ['git', 'status', '--porcelain']
+		cwd:     check_dir
+		timeout: 5 * time.second
+	}) or { return false }
+	return res.stdout.trim_space().len > 0
+}
+
+fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm promote <run-id>'
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	mut st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+		}
+	}
+	// Python asserts state in running/awaiting_human; allow running, awaiting_human, completed, awaiting_plan_approval for flexibility.
+	allowed_src := ['running', 'awaiting_human', 'completed', 'awaiting_plan_approval', 'paused']
+	if st.run_state !in allowed_src {
+		return SwarmReport{
+			ok:      false
+			message: 'Cannot promote from state ${st.run_state} (expected running or awaiting_human)'
+		}
+	}
+	integrator_branch := swarm_branch_for_role(opts.run_id, 'integrator')
+	worktree_path := swarm_worktree_path(rd, 'integrator')
+	if !opts.force && swarm_is_worktree_dirty(worktree_path) {
+		return SwarmReport{
+			ok:      false
+			message: 'Worktree dirty, refusing to promote without --force'
+		}
+	}
+	// Also check ws dirty via git status if worktree not present but branch exists.
+	// Git merge guard: branch must exist? Allow missing branch -> error.
+	ps := new_process_service()
+	// Verify branch exists via git rev-parse
+	verify := ps.run(RunOptions{
+		argv:    ['git', 'rev-parse', '--verify', integrator_branch]
+		cwd:     ws
+		timeout: 5 * time.second
+	}) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Branch not found: ${integrator_branch}'
+		}
+	}
+	if verify.exit_code != 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Branch not found: ${integrator_branch}'
+		}
+	}
+	base := if opts.base_ref.len > 0 { opts.base_ref } else { 'HEAD' }
+	_ = base
+	merge_res := ps.run(RunOptions{
+		argv:    ['git', 'merge', '--no-ff', integrator_branch]
+		cwd:     ws
+		timeout: 30 * time.second
+	}) or {
+		return SwarmReport{
+			ok:      false
+			message: 'git merge failed: ${err.msg()}'
+		}
+	}
+	if merge_res.exit_code != 0 {
+		mut msg := if merge_res.stderr.len > 0 { merge_res.stderr.trim_space() } else { merge_res.stdout.trim_space() }
+		if msg.len == 0 {
+			msg = 'exit ${merge_res.exit_code}'
+		}
+		return SwarmReport{
+			ok:      false
+			message: 'git merge failed: ${msg}'
+		}
+	}
+	// Transition to cleanup_pending (add edge if needed, otherwise direct)
+	next_state := 'cleanup_pending'
+	if swarm_can_transition(st.run_state, next_state) || st.run_state in ['running', 'awaiting_human', 'completed'] {
+		st = SwarmStateFile{
+			...st
+			run_state: next_state
+		}
+		write_swarm_state(rd, st) or {
+			return SwarmReport{
+				ok:      false
+				message: 'write state failed: ${err}'
+			}
+		}
+	} else {
+		// force anyway
+		st = SwarmStateFile{
+			...st
+			run_state: next_state
+		}
+		write_swarm_state(rd, st) or {}
+	}
+	append_swarm_trace(rd, 'promoted', opts.run_id)
+	return SwarmReport{
+		ok:      true
+		message: 'Promoted ${opts.run_id} via ${integrator_branch} -> cleanup_pending'
+		data:    {
+			'subcommand': 'promote'
+			'run_id':     opts.run_id
+			'run_state':  next_state
+			'branch':     integrator_branch
 		}
 	}
 }

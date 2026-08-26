@@ -28,10 +28,10 @@ pub fn swarm_run_transitions(from_state string) []string {
 			['running', 'cancelled', 'failed']
 		}
 		'running' {
-			['awaiting_human', 'paused', 'completed', 'failed', 'cancelled', 'budget_exhausted']
+			['awaiting_human', 'paused', 'completed', 'failed', 'cancelled', 'budget_exhausted', 'cleanup_pending']
 		}
 		'awaiting_human' {
-			['running', 'paused', 'completed', 'failed', 'cancelled']
+			['running', 'paused', 'completed', 'failed', 'cancelled', 'cleanup_pending']
 		}
 		'paused' {
 			['running', 'cancelled', 'failed']
