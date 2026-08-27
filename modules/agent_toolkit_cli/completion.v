@@ -5,7 +5,7 @@ import os
 
 const completion_shells = ['bash', 'zsh', 'fish', 'powershell']
 
-const completion_commands = 'install update uninstall doctor diff skills mcp plugin loop workspace memory project devcompanion dc insights build inventory matrix release swarm completion help version'
+const completion_commands = 'install update uninstall doctor diff skills mcp plugin loop workspace memory project devcompanion dc insights build inventory matrix release swarm tui serve completion help version'
 
 const completion_loop_cmds = 'init run status audit cost schedule sync templates help'
 
@@ -169,7 +169,7 @@ fn completion_fish() string {
 fn completion_powershell() string {
 	return 'Register-ArgumentCompleter -Native -CommandName agent-toolkit,agent-toolkit-cli -ScriptBlock {
     param(\$wordToComplete, \$commandAst, \$cursorPosition)
-    \$cmds = @(\'install\',\'update\',\'uninstall\',\'doctor\',\'diff\',\'skills\',\'mcp\',\'plugin\',\'loop\',\'workspace\',\'memory\',\'project\',\'devcompanion\',\'dc\',\'insights\',\'build\',\'inventory\',\'matrix\',\'release\',\'swarm\',\'completion\',\'help\',\'version\')
+    \$cmds = @(\'install\',\'update\',\'uninstall\',\'doctor\',\'diff\',\'skills\',\'mcp\',\'plugin\',\'loop\',\'workspace\',\'memory\',\'project\',\'devcompanion\',\'dc\',\'insights\',\'build\',\'inventory\',\'matrix\',\'release\',\'swarm\',\'tui\',\'serve\',\'completion\',\'help\',\'version\')
     \$shells = @(\'bash\',\'zsh\',\'fish\',\'powershell\')
     \$tokens = \$commandAst.CommandElements | ForEach-Object { \$_.ToString() }
     if (\$tokens.Count -le 2) {
