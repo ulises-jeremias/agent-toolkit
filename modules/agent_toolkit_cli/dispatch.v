@@ -281,6 +281,11 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 			println(report.message)
 			return if report.ok { 0 } else { 1 }
 		}
+		// Fallback for __raw_json (incoming parity)
+		if mode == .json && report.data['__raw_json'] != '' {
+			println(report.data['__raw_json'])
+			return 0
+		}
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
 	if cmd_name == 'tui' {

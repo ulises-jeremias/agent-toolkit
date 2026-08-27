@@ -68,8 +68,10 @@ pub mut:
 	run_state       string
 	created_at      string
 	task            string
-	budget          Budget
-	budget_consumed BudgetConsumed
+	budget          Budget           @[json: 'budget']
+	budget_consumed BudgetConsumed   @[json: 'budget_consumed']
+	personas        map[string]string @[json: 'personas']
+	policy          map[string]string @[json: 'policy']
 	active_roles    []string
 	worktrees       []SwarmWorktree
 }
@@ -429,6 +431,7 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 				message: "Unknown recipe '${name}'. Built-ins: pair, team, full"
 			}
 		}
+		roles := swarm_recipe_roles(name).join(', ')
 		if opts.json_output {
 			txt := json.encode(recipe)
 			return SwarmReport{
@@ -437,10 +440,12 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 				data:    {
 					'subcommand': 'recipes'
 					'recipe':     name
+					'roles':      roles
+					'json':       txt
+					'__raw_json': txt
 				}
 			}
 		}
-		roles := swarm_recipe_roles(name).join(', ')
 		gates_str := if recipe.gates.len > 0 { recipe.gates.join(', ') } else { 'none' }
 		execution_str := 'max_concurrency=${recipe.execution.max_concurrency} lazy_start=${recipe.execution.lazy_start}'
 		budget_str := '${recipe.budget.max_total_tokens} tokens / \$${recipe.budget.max_cost_usd:.2f} / ${recipe.budget.max_wall_seconds}s'
@@ -469,6 +474,25 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 			data:    {
 				'subcommand': 'recipes'
 				'recipes':    names.join(',')
+				'json':       txt
+				'__raw_json': txt
+			}
+		}
+	}
+	if opts.json_output {
+		j := builtin_recipes_json()
+		return SwarmReport{
+			ok:      true
+			message: j
+			data:    {
+				'subcommand':  'recipes'
+				'recipes':     names.join(',')
+				'json':        j
+				'__raw_json':  j
+				'pair_budget': json.encode(recipe_budget('pair'))
+				'team_budget': json.encode(recipe_budget('team'))
+				'full_budget': json.encode(recipe_budget('full'))
+				'budget':      json.encode(recipe_budget('pair'))
 			}
 		}
 	}
@@ -737,7 +761,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
-	recipe := if opts.recipe.len > 0 { opts.recipe } else { 'pair' }
+	mut recipe := if opts.recipe.len > 0 { opts.recipe } else { 'pair' }
 	if swarm_recipe_description(recipe).len == 0 {
 		return SwarmReport{
 			ok:      false
@@ -763,8 +787,10 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
-	runner := resolve_swarm_runner(opts.runner)
-	model_profile := if opts.model_profile.len > 0 { opts.model_profile } else { 'balanced' }
+	runner_cli := opts.runner
+	model_profile_cli := opts.model_profile
+	runner := resolve_swarm_runner(runner_cli)
+	model_profile := if model_profile_cli.len > 0 { model_profile_cli } else { 'balanced' }
 	if runner !in swarm_runner_names() {
 		return SwarmReport{
 			ok:      false
@@ -785,11 +811,25 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
+	// Resolve full recipe config (BUILTIN + swarm.yaml + CLI overrides)
+	// Pass original CLI values (could be empty) so per-role model_profile not overridden when not provided.
+	resolved := resolve_swarm_config(ws, opts.recipe, opts.backend, runner_cli, model_profile_cli) or {
+		return SwarmReport{
+			ok:      false
+			message: err.msg()
+		}
+	}
+	recipe = resolved.metadata.name
 	rid := swarm_new_run_id()
 	if opts.dry_run {
+		mut persona_info := []string{}
+		for role, rs in resolved.spec.roles {
+			policy := if rs.model_profile.len > 0 { rs.model_profile } else { model_profile }
+			persona_info << '${role}:${rs.persona}(${policy})'
+		}
 		return SwarmReport{
 			ok:      true
-			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
+			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json.encode(resolved.budget)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
 			data:    {
 				'subcommand': 'start'
 				'mode':       'dry-run'
@@ -820,7 +860,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json.encode(manifest) + '\n') or {}
 	}
-	initial := if swarm_require_plan_approval(recipe) {
+	initial := if resolved.spec.gates.require_plan_approval {
 		'awaiting_plan_approval'
 	} else {
 		'running'
@@ -869,6 +909,15 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 		append_swarm_trace(run_dir, 'worktree_created', role + ':' + wt.branch + ':' + wt.path)
 	}
+	mut personas := map[string]string{}
+	mut policy_map := map[string]string{}
+	for role, rs in resolved.spec.roles {
+		personas[role] = rs.persona
+		policy_map[role] = rs.model_profile
+		if rs.ui_backend.len > 0 {
+			policy_map[role + '_ui'] = rs.ui_backend
+		}
+	}
 	mut st := SwarmStateFile{
 		version:         swarm_state_version
 		run_id:          rid
@@ -879,8 +928,10 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		run_state:       initial
 		created_at:      time.utc().format_rfc3339()
 		task:            opts.task
-		budget:          recipe_budget(recipe)
+		budget:          resolved.budget
 		budget_consumed: BudgetConsumed{}
+		personas:        personas
+		policy:          policy_map
 		active_roles:    []string{}
 		worktrees:       created_wts
 	}
