@@ -774,6 +774,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut attach := false
 	mut no_attach := false
 	mut attach_set := false
+	mut to_recipe := ''
 	mut request_file := ''
 	mut issue_ref := ''
 	mut base_ref := ''
@@ -819,6 +820,19 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		if a == '--no-attach' {
 			no_attach = true
 			attach_set = true
+			i++
+			continue
+		}
+		if a == '--to' {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			to_recipe = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--to=') {
+			to_recipe = a.all_after('=')
 			i++
 			continue
 		}
@@ -1058,6 +1072,13 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
+		if to_recipe.len == 0 && sub == 'promote' && gate_id.len == 0 {
+			if a in ['pair', 'team', 'full'] {
+				to_recipe = a
+				i++
+				continue
+			}
+		}
 		task_parts << a
 		i++
 	}
@@ -1117,6 +1138,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		blocking:       blocking
 		role:           role
 		handoff_id:     handoff_id
+		to_recipe:      to_recipe
 	}
 }
 
