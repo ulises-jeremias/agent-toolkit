@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Blocking attach** (`os.execvp`-style) + `swarm attach` subcommand for tmux/herdr (#886)
   - Lifecycle: `pause`/`resume`/`stop`/`cleanup`/`promote` (#887, #914); `init`/`plan`/`activate`/`deactivate` (#905, #934)
   - Observability: `watch`/`report`/`artifacts`/`handoffs`/`logs`/`approvals` (#889, #922); `status --json` full payload (#896, #925); `list --json` + `list_all_runs` (#895, #918)
-  - Atomic state store with `STATE_VERSION`, worktree dirty guard, task-contract (#891, #923); per-recipe **budget** `900k tok / $4 / 7200s` with `budget_exhausted` state (#892, #924)
+  - Atomic state store with `STATE_VERSION`, worktree dirty guard, task-contract (#891, #923); per-recipe **budget** (`900k tok / $4 / 7200s` pair/team, `1.2M / $8 / 10800s` full) with `budget_exhausted` state (#892, #924)
   - `runners` + `models` commands (#893); `recipes` detail parity (#894, #917); `config resolve_config` + `BUILTIN_RECIPES` persona/policy (#897, #926)
   - `swarm prune --older-than` (7d default) + herdr `--json` fallback (#909, #938)
   - **NEW (this release): handoff audit gate** — first `commit` handoff per (run, from, to, commit) returns `AUDIT_REQUIRED`; an identical re-run passes and queues; any payload change re-challenges (swarm-forge discipline, filesystem SoT)

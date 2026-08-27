@@ -332,7 +332,7 @@ commands:
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["recipes", "recipe", "backends", "doctor", "runners", "models", "start", "list", "ls", "status", "approve", "reject", "cancel", "prune", "init", "plan", "activate", "deactivate", "promote", "pause", "resume", "stop", "cleanup", "watch", "report", "artifacts", "handoffs", "logs", "approvals", "handoff", "task", "attach", "--recipe", "--backend", "--runner", "--model-profile", "--run-id", "--workspace", "--json", "--dry-run", "--attach", "--no-attach"]
+    flags: ["recipes", "recipe", "backends", "doctor", "runners", "models", "start", "list", "ls", "status", "approve", "reject", "cancel", "prune", "init", "plan", "activate", "deactivate", "promote", "pause", "resume", "stop", "cleanup", "watch", "report", "artifacts", "handoffs", "logs", "approvals", "handoff", "task", "attach", "--recipe", "--backend", "--runner", "--model-profile", "--run-id", "--workspace", "--json", "--dry-run", "--attach", "--no-attach", "--type", "--from", "--to", "--commit", "--branch", "--priority", "--artifact", "--blocking", "--older-than", "--force"]
     env: ["AGENT_TOOLKIT_SWARM_RUN_ID", "AGENT_TOOLKIT_SWARM_RUN_DIR", "AGENT_TOOLKIT_SWARM_REPO", "AGENT_TOOLKIT_SWARM_RUNS_DIR"]
     effects: {filesystem: run-dir-writes, network: optional, processes: tmux-herdr}
     platform_notes: ["tmux/Herdr required for full modes"]

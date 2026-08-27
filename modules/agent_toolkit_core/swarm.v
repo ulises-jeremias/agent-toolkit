@@ -532,7 +532,9 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		if r := builtin_recipes[n] {
 			lines << '${n}\t${r.description}\tbudget: ${json2.encode(b, escape_unicode: true)}'
 		} else {
-			lines << '${n}\t${swarm_recipe_description(n)}\tbudget: ${json2.encode(b, escape_unicode: true)}'
+			lines << '${n}\t${swarm_recipe_description(n)}\tbudget: ${json2.encode(b,
+				escape_unicode: true
+			)}'
 		}
 	}
 	return SwarmReport{
@@ -859,7 +861,9 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json2.encode(resolved.budget, escape_unicode: true)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
+			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json2.encode(resolved.budget,
+				escape_unicode: true
+			)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
 			data:    {
 				'subcommand':    'start'
 				'mode':          'dry-run'
@@ -888,9 +892,9 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			'task':    opts.task
 			'version': swarm_state_version.str()
 		}
-		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'),
-
-			json2.encode(manifest, escape_unicode: true) + '\n') or {}
+		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json2.encode(manifest,
+			escape_unicode: true
+		) + '\n') or {}
 	}
 	initial := if resolved.spec.gates.require_plan_approval {
 		'awaiting_plan_approval'
@@ -983,9 +987,9 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		prompt, manifest := swarm_compose_role_prompt(recipe, role, opts.task, '',
 			swarm_role_skills(recipe, role), rid)
 		os.write_file(os.join_path(run_dir, 'prompts', role + '.md'), prompt) or {}
-		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'),
-
-			json2.encode(manifest, escape_unicode: true) + '\n') or {}
+		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json2.encode(manifest,
+			escape_unicode: true
+		) + '\n') or {}
 		append_swarm_trace(run_dir, 'prompt_composed', role)
 	}
 	append_swarm_trace(run_dir, 'run_created', rid)
@@ -3815,7 +3819,8 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 		// The sender must re-verify the committed work and re-run the identical
 		// command; only an unchanged second call queues the handoff. Any change to
 		// the payload creates a new challenge.
-		digest := sha256.hexhash('${run_id}|${from_role}|${to_role}|${rec.commit}|${rec.branch}')
+		digest :=
+			sha256.hexhash('${run_id}|${from_role}|${to_role}|${rec.commit}|${rec.branch}|${opts.priority}|${opts.artifact}')
 		audit_dir := os.join_path(rd, 'handoffs', 'audit')
 		audit_file := os.join_path(audit_dir, '${digest}.json')
 		if !os.exists(audit_file) {
@@ -3854,8 +3859,8 @@ requirement and constraint to the committed work, examine boundaries and failure
 cases, fix every finding, and re-run applicable checks.
 
 Then re-run the identical handoff create command — an unchanged second call
-passes the audit and queues the handoff. Any change (commit, roles, branch)
-creates a new challenge.'
+passes the audit and queues the handoff. Any change (commit, branch, roles,
+priority, artifact) creates a new challenge.'
 				data:    {
 					'subcommand': 'handoff'
 					'run_id':     run_id
@@ -3865,8 +3870,19 @@ creates a new challenge.'
 				}
 			}
 		}
-		// Identical re-submission: consume the challenge and pass.
-		os.rm(audit_file) or {}
+		// Identical re-submission: atomically consume the challenge (a concurrent
+		// loser fails its rename and must start a fresh challenge).
+		os.mv(audit_file, '${audit_file}.consumed') or {
+			return SwarmReport{
+				ok:      false
+				message: 'audit gate: challenge already consumed by a concurrent handoff create — re-run to start a fresh challenge'
+				data:    {
+					'subcommand': 'handoff'
+					'run_id':     run_id
+					'state':      'audit_required'
+				}
+			}
+		}
 		append_swarm_trace(rd, 'audit_passed', digest)
 	}
 	if htype == 'feedback' {
@@ -3913,6 +3929,13 @@ creates a new challenge.'
 		}
 	}
 	append_swarm_trace(rd, 'handoff_created', '${htype}:${from_role}->${to_role}:${rec.handoff_id}')
+	// Audit-gate cleanup: challenge fully consumed only once the handoff is queued.
+	if htype == 'commit' {
+		audit_dir_gc := os.join_path(rd, 'handoffs', 'audit')
+		audit_digest_gc :=
+			sha256.hexhash('${run_id}|${from_role}|${to_role}|${rec.commit}|${rec.branch}|${opts.priority}|${opts.artifact}')
+		os.rm(os.join_path(audit_dir_gc, '${audit_digest_gc}.json.consumed')) or {}
+	}
 	hid := rec.handoff_id
 	move_handoff(rd, hid, 'outbox', 'queued') or {}
 	append_swarm_trace(rd, 'handoff_queued', hid)
@@ -4191,9 +4214,9 @@ fn write_swarm_approvals(run_dir string, gates []SwarmGate) ! {
 		gates: gates
 	}
 	fs := new_fs()
-	fs.write_atomic(os.join_path(run_dir, 'approvals.json'),
-
-		json2.encode(payload, escape_unicode: true) + '\n')!
+	fs.write_atomic(os.join_path(run_dir, 'approvals.json'), json2.encode(payload,
+		escape_unicode: true
+	) + '\n')!
 }
 
 fn read_swarm_approvals(run_dir string) []SwarmGate {
@@ -4207,7 +4230,9 @@ fn read_swarm_approvals(run_dir string) []SwarmGate {
 }
 
 fn append_swarm_trace(run_dir string, kind string, detail string) {
-	line := '{"ts":${json2.encode(time.utc().format_rfc3339(), escape_unicode: true)},"kind":${json2.encode(kind, escape_unicode: true)},"detail":${json2.encode(detail, escape_unicode: true)}}\n'
+	line := '{"ts":${json2.encode(time.utc().format_rfc3339(), escape_unicode: true)},"kind":${json2.encode(kind,
+		escape_unicode: true
+	)},"detail":${json2.encode(detail, escape_unicode: true)}}\n'
 	path := os.join_path(run_dir, 'trace.jsonl')
 	fs := new_fs()
 	existing := os.read_file(path) or { '' }

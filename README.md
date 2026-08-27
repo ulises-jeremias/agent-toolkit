@@ -143,7 +143,7 @@ agent-toolkit doctor     # verify everything is set up
 ```
 
 <div align="center">
-<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/quickstart.svg?raw=true" width="86%" alt="agent-toolkit quickstart: install → install → doctor → swarm" />
+<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/quickstart.svg?raw=true" width="86%" alt="agent-toolkit quickstart: install, doctor, swarm" />
 </div>
 
 → Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md)
@@ -405,11 +405,11 @@ agent-toolkit swarm promote <run-id>          # integrator merges, run moves to 
 | | agent-toolkit swarm | classic tmux swarms ([swarm-forge](https://github.com/unclebob/swarm-forge)) | legacy Python swarm |
 |---|---|---|---|
 | Recipes (personas + policy per role) | ✅ built-in `pair`/`team`/`full` | ✅ per-branch packs | ⚠️ manual |
-| Budget enforcement (tokens / $ / wall-clock) | ✅ `900k / $4 / 7200s` per recipe, `budget_exhausted` state | ❌ | ❌ |
+| Budget enforcement (tokens / $ / wall-clock) | ✅ per-recipe (pair/team `900k / $4 / 7200s`, full `1.2M / $8 / 10800s`), `budget_exhausted` state | ❌ | ❌ |
 | Handoff audit gate | ✅ `AUDIT_REQUIRED` → identical re-run passes | ✅ first-class | ❌ |
 | Blocking feedback with round-trip limit | ✅ `--blocking` (limit 2) | ⚠️ approval cards | ❌ |
 | Observability (watch / report / artifacts / logs / approvals) | ✅ CLI + `--json` | ✅ web cockpit | ⚠️ log files |
-| Single static binary, offline-first | ✅ V, 21 MB, no runtime deps | ❌ bash + tmux + bb + dashboard | ❌ Python env |
+| Single static binary, offline-first | ✅ V, ~22 MB, no runtime deps | ❌ bash + tmux + bb + dashboard | ❌ Python env |
 | JSON API / programmatic surface | ✅ `serve` + `swarm --json` everywhere | ⚠️ HTTP dashboard only | ❌ |
 | Cross-platform | ✅ linux/macOS/windows binaries + brew/AUR/npm/PyPI | ⚠️ macOS-first | ⚠️ |
 
