@@ -4,7 +4,7 @@ Per §66-68: Matrix must be generated from source of truth (distributions/produc
 
 ## Source of truth
 
-Canonical: distributions/products.yaml (products → includes.skills/includes.agents + targets mapping) + catalogs/skills-layout.json (generated from skills/**/SKILL.md frontmatter via scripts/validate-skills.vsh) + mcp/registry/*.yaml (platforms matrix) + capabilities/targets/registry.yaml (targets list).
+Canonical: distributions/products.yaml (products → includes.skills/includes.agents + targets mapping) + catalogs/skills-layout.json (generated from `skills/**/SKILL.md` via `scripts/generate-catalogs.vsh`) + mcp/registry/*.yaml (platforms matrix) + capabilities/targets/registry.yaml (targets list).
 
 Generated: docs/SKILL_PRODUCT_MATRIX.md via scripts/generate-skill-matrix.vsh (do not hand-edit — header says Generated from distributions/products.yaml — do not hand-edit).
 

@@ -246,6 +246,39 @@ fn dump_loops(entries []LoopEntry) string {
 	return s
 }
 
+fn dump_skills_layout(groups map[string][]string, skills []SkillEntry) string {
+	mut s := '{\n'
+	s += '  "layout": "skills/<group>/<skill>/SKILL.md",\n'
+	s += '  "groups": {\n'
+	mut group_keys := groups.keys()
+	group_keys.sort()
+	for i, g in group_keys {
+		names := groups[g]
+		s += '    "${g}": [\n'
+		for j, n in names {
+			comma := if j < names.len - 1 { ',' } else { '' }
+			s += '      "${n}"${comma}\n'
+		}
+		comma := if i < group_keys.len - 1 { ',' } else { '' }
+		s += '    ]${comma}\n'
+	}
+	s += '  },\n'
+	s += '  "skills": [\n'
+	mut sorted_skills := skills.clone()
+	sorted_skills.sort(a.id < b.id)
+	for i, e in sorted_skills {
+		comma := if i < sorted_skills.len - 1 { ',' } else { '' }
+		s += '    {\n'
+		s += '      "id": "${e.id}",\n'
+		s += '      "name": "${e.name}",\n'
+		s += '      "domain": "${e.domain}"\n'
+		s += '    }${comma}\n'
+	}
+	s += '  ]\n'
+	s += '}\n'
+	return s
+}
+
 fn gen_skills(root string) []SkillEntry {
 	mut skills := []SkillEntry{}
 	skills_dir := join_path(root, 'skills')
@@ -334,9 +367,22 @@ fn main() {
 	check := '--check' in args
 	out := join_path(root, 'catalogs')
 	mkdir(out) or {}
+	mut drifted := false
 	skills := gen_skills(root)
 	agents := gen_agents(root)
 	loops := gen_loops(root)
+	mut groups := map[string][]string{}
+	for e in skills {
+		mut lst := groups[e.domain]
+		if e.name !in lst {
+			lst << e.name
+		}
+		groups[e.domain] = lst
+	}
+	for _, mut lst in groups {
+		lst.sort()
+	}
+	layout_rendered := dump_skills_layout(groups, skills)
 	mapping := {
 		'skill-catalog.yaml': dump_skills(skills)
 		'agent-catalog.yaml': dump_agents(agents)
@@ -347,7 +393,28 @@ fn main() {
 		'agent-catalog.yaml': agents.len
 		'loop-catalog.yaml':  loops.len
 	}
-	mut drifted := false
+	// skills-layout.json is derived from filesystem, not hand-maintained
+	layout_path := join_path(out, 'skills-layout.json')
+	if check {
+		if !is_file(layout_path) {
+			println('MISSING ${layout_path}')
+			drifted = true
+		} else {
+			existing := read_file(layout_path) or { '' }
+			if existing != layout_rendered {
+				println('DRIFT ${layout_path} (committed != regenerated)')
+				drifted = true
+			} else {
+				println('ok ${layout_path} (${skills.len} skills, ${groups.len} groups)')
+			}
+		}
+	} else {
+		write_file(layout_path, layout_rendered) or {
+			eprintln('write failed: ${layout_path}: ${err}')
+			exit(1)
+		}
+		println('wrote ${layout_path} (${skills.len} skills, ${groups.len} groups)')
+	}
 	for name in ['skill-catalog.yaml', 'agent-catalog.yaml', 'loop-catalog.yaml'] {
 		path := join_path(out, name)
 		rendered := mapping[name]
