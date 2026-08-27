@@ -58,6 +58,7 @@ pub:
 }
 
 struct SwarmStateFile {
+pub mut:
 	version       int
 	run_id        string
 	recipe        string
@@ -741,6 +742,18 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			message: 'mkdir run failed: ${err}'
 		}
 	}
+	// task-contract + manifests (Python fbb2280 parity) — verbatim task + per-role manifest
+	fs_tc := new_fs()
+	fs_tc.write_atomic(os.join_path(run_dir, 'artifacts', 'task-contract.md'), opts.task) or {}
+	for role in swarm_recipe_roles(recipe) {
+		manifest := {
+			'role':    role
+			'run_id':  rid
+			'task':    opts.task
+			'version': swarm_state_version.str()
+		}
+		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json.encode(manifest) + '\n') or {}
+	}
 	initial := if swarm_require_plan_approval(recipe) {
 		'awaiting_plan_approval'
 	} else {
@@ -791,7 +804,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		append_swarm_trace(run_dir, 'worktree_created', role + ':' + wt.branch + ':' + wt.path)
 	}
 	mut st := SwarmStateFile{
-		version:       1
+		version:       swarm_state_version
 		run_id:        rid
 		recipe:        recipe
 		backend:       backend
@@ -3230,7 +3243,8 @@ fn ensure_swarm_run_dirs(run_dir string) ! {
 }
 
 fn write_swarm_state(run_dir string, st SwarmStateFile) ! {
-	os.write_file(os.join_path(run_dir, 'state.json'), json.encode(st) + '\n')!
+	fs := new_fs()
+	fs.write_atomic(os.join_path(run_dir, 'state.json'), json.encode(st) + '\n')!
 }
 
 fn read_swarm_state(run_dir string) ?SwarmStateFile {
@@ -3239,14 +3253,22 @@ fn read_swarm_state(run_dir string) ?SwarmStateFile {
 		return none
 	}
 	text := os.read_file(path) or { return none }
-	return json.decode(SwarmStateFile, text) or { none }
+	mut st := json.decode(SwarmStateFile, text) or { return none }
+	if st.version > swarm_state_version {
+		return none
+	}
+	if st.version < swarm_state_version {
+		migrate_swarm_state(mut st)
+	}
+	return st
 }
 
 fn write_swarm_approvals(run_dir string, gates []SwarmGate) ! {
 	payload := SwarmApprovalsFile{
 		gates: gates
 	}
-	os.write_file(os.join_path(run_dir, 'approvals.json'), json.encode(payload) + '\n')!
+	fs := new_fs()
+	fs.write_atomic(os.join_path(run_dir, 'approvals.json'), json.encode(payload) + '\n')!
 }
 
 fn read_swarm_approvals(run_dir string) []SwarmGate {
@@ -3262,8 +3284,45 @@ fn read_swarm_approvals(run_dir string) []SwarmGate {
 fn append_swarm_trace(run_dir string, kind string, detail string) {
 	line := '{"ts":${json.encode(time.utc().format_rfc3339())},"kind":${json.encode(kind)},"detail":${json.encode(detail)}}\n'
 	path := os.join_path(run_dir, 'trace.jsonl')
+	fs := new_fs()
 	existing := os.read_file(path) or { '' }
-	os.write_file(path, existing + line) or {}
+	fs.write_atomic(path, existing + line) or { os.write_file(path, existing + line) or {} }
+}
+
+// is_worktree_dirty reports whether wt_path has uncommitted changes (Python worktree.py:85 parity).
+fn is_worktree_dirty(wt_path string) bool {
+	if wt_path.len == 0 || !os.is_dir(wt_path) {
+		return false
+	}
+	ps := new_process_service()
+	res := ps.run(RunOptions{
+		argv:    ['git', '-C', wt_path, 'status', '--porcelain']
+		timeout: 5 * time.second
+	}) or { return false }
+	return res.stdout.trim_space().len > 0
+}
+
+fn remove_worktree(repo_root string, wt_path string, force bool) !bool {
+	if wt_path.len == 0 || !os.is_dir(wt_path) {
+		return false
+	}
+	if is_worktree_dirty(wt_path) && !force {
+		return error('Worktree dirty, refusing removal without --force: ${wt_path}')
+	}
+	ps := new_process_service()
+	mut argv := ['git', 'worktree', 'remove', wt_path]
+	if force {
+		argv << '--force'
+	}
+	_ := ps.run(RunOptions{
+		argv:    argv
+		cwd:     repo_root
+		timeout: 10 * time.second
+	}) or { RunResult{} }
+	if os.is_dir(wt_path) {
+		os.rmdir_all(wt_path) or {}
+	}
+	return true
 }
 
 fn swarm_new_run_id() string {

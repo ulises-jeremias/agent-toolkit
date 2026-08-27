@@ -1,8 +1,7 @@
 module agent_toolkit_core
-
 import os
 
-// Swarm run/role state machine + approval gates (#524 REDESIGN / ADR-008).
+pub const swarm_state_version = 2
 
 pub struct SwarmGate {
 pub mut:
@@ -180,6 +179,15 @@ pub fn swarm_valid_run_id(id string) bool {
 		}
 	}
 	return true
+}
+
+pub fn migrate_swarm_state(mut st SwarmStateFile) {
+	if st.version == 0 {
+		st.version = 1
+	}
+	if st.version < swarm_state_version {
+		st.version = swarm_state_version
+	}
 }
 
 // Swarm recipe detail parity — mirrors Python fbb2280 recipes.py BUILTIN_RECIPES.
