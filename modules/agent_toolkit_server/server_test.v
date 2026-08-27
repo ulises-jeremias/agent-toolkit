@@ -1,5 +1,7 @@
 module agent_toolkit_server
 
+import agent_toolkit_core
+
 fn test_validate_bind_local_ok() {
 	validate_bind('127.0.0.1', false, '') or { assert false, err.msg() }
 }

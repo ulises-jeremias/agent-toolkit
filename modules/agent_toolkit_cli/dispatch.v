@@ -505,18 +505,21 @@ See docs/adrs/ADR-030-capability-contract-binary-first.md
 '
 	}
 	if name == 'serve' {
-		return 'Usage: agent-toolkit serve [--port PORT] [--host HOST] [--no-browser] [--json]
+		return 'Usage: agent-toolkit serve [--host HOST] [--port PORT] [--allow-remote] [--auth-token TOKEN] [--no-browser] [--json]
 
-Serve the web dashboard (glassmorphism SPA) — loops, skills, doctor, jobs.
+Run the agent-toolkit HTTP server (feature-complete API over core).
 
-  --port PORT    Port to listen on (default: 8787)
-  --host HOST    Host to bind (default: 127.0.0.1)
-  --no-browser   Don\'t open browser on start
-  --json         Structured CommandResult JSON
+  --host HOST       Bind address (default 127.0.0.1; remote requires --allow-remote + token)
+  --port PORT       Port (default 3847)
+  --allow-remote    Allow binding non-localhost (requires --auth-token)
+  --auth-token TEXT Bearer token for remote access (or env AGENT_TOOLKIT_TOKEN)
+  --no-browser      Don\'t open browser on start
+  --json            Structured CommandResult JSON
 
 Examples:
   agent-toolkit serve
-  agent-toolkit serve --port 3000 --no-browser
+  agent-toolkit serve --port 3847 --no-browser
+  agent-toolkit serve --host 0.0.0.0 --allow-remote --auth-token \$TOKEN
 
 See: docs/v/advanced-command-disposition.md
 '
