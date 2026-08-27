@@ -11,6 +11,8 @@ One mental model for how agent-toolkit pieces fit together. Within the toolkit l
 | **L3 — Workspace** | [agentic-harness](https://github.com/ulises-jeremias/agentic-harness) | Harness workspace — `knowledge/`, `repos/`, `projects/`, packs |
 | **Project Overlay** | per-repo | Per-project overrides — `AGENTS.md`, `.cursor/rules/`, local `loops/` |
 
+> Canonical layer responsibilities and diagram: [`docs/ARCHITECTURE.md#ownership-layers-machine--toolkit--workspace--project`](ARCHITECTURE.md#ownership-layers-machine--toolkit--workspace--project).
+
 ## Toolkit internals (L1.5) — build pipeline
 
 | Layer | Location | What it is | When to edit |
@@ -24,14 +26,9 @@ One mental model for how agent-toolkit pieces fit together. Within the toolkit l
 
 ## Two Planes within the Toolkit (L1.5 — Capability vs Runtime)
 
-No code split — one repo, one `build/agent-toolkit` binary, one Release (ADR-026). The planes are documentary, mirroring `docs/ARCHITECTURE.md`.
+No code split — one repo, one `build/agent-toolkit` binary, one Release. Canonical definition: [`docs/ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime`](ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime) — **Capability** (what is distributed: `skills/`/`agents/` → `distributions/products.yaml` → `plugins/`) vs **Runtime** (what is executed: `workspace`/`memory`/`project`/`loop`/`swarm`).
 
-| Plane | Owns | Key dirs / commands | Runtime note |
-|-------|------|---------------------|--------------|
-| **Capability Plane** | What is *distributed* — portable capabilities + compiled artifacts | `skills/` + `agents/` (SoT), `distributions/products.yaml`, `plugins/` (**canonical**, `build --check`), `profiles/` (deprecated overlay), `mcp/templates/` + `mcp/registry/`, `packs/` (docs-only) | Data is **embedded** in the binary (`embedded_data.v`, FHS `/usr/share` compat) — **ADR-026** Full-Embed (supersedes ADR-011). |
-| **Runtime Plane** | What is *executed* from a harness workspace — consumes Capability data | `workspace` / `memory` / `project` / `loop` / `devcompanion` / `swarm` (+ `serve` programmatic surface — TUI retired per ADR-030)| Resolves data via `AGENT_TOOLKIT_ROOT` → `XDG` → **embedded `3a`** → FHS `3b` → sidecar `3c` → checkout → CWD (sanitized). Offline never downloads — **ADR-015** Runtime Resolution (amends ADR-005) + **ADR-026** `paths.v`/`data_io.v`. |
-
-References: `docs/adrs/ADR-015-runtime-resolution.md`, `docs/adrs/ADR-026-full-embed.md`, `docs/ARCHITECTURE.md#two-planes-within-the-toolkit-l15--capability-vs-runtime`.
+Summary: Capability data is **embedded** in the binary (`embedded_data.v`, ADR-026) and resolved via `AGENT_TOOLKIT_ROOT` → `XDG` → `embedded` → `FHS` (ADR-015/026). See `docs/adrs/ADR-015-runtime-resolution.md` and `docs/adrs/ADR-026-full-embed.md`.
 
 ## Three kinds of packs
 
