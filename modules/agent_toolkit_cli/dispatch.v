@@ -252,6 +252,15 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 			println(report.message)
 			return 0
 		}
+		// For `swarm recipes --json` / `swarm recipe show --json`, emit raw recipe JSON
+		// (Python parity: `json.dumps(recipe)` directly, not wrapped in CommandResult).
+		if opts.json_output && opts.subcommand in ['recipes', 'recipe'] {
+			println(report.message)
+			if report.ok {
+				return 0
+			}
+			return agent_toolkit_core.err_user('command.failed', report.message).exit_code()
+		}
 		return render(agent_toolkit_core.swarm_result(report), mode)
 	}
 	if cmd_name == 'tui' {
