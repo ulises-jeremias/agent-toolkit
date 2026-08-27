@@ -217,6 +217,28 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 			message: 'write loop.yaml failed: ${err}'
 		}
 	}
+	// pack overlay for init (P2-06 parity): --pack applies loop_overrides at scaffold time
+	if opts.pack.len > 0 {
+		mut pack_path := ''
+		if os.is_file(opts.pack) {
+			pack_path = opts.pack
+		} else if os.is_file(os.join_path(ws, opts.pack)) {
+			pack_path = os.join_path(ws, opts.pack)
+		} else if os.is_file(os.join_path(ws, 'packs', opts.pack)) {
+			pack_path = os.join_path(ws, 'packs', opts.pack)
+		} else if os.is_file(os.join_path(ws, 'packs', opts.pack + '.yaml')) {
+			pack_path = os.join_path(ws, 'packs', opts.pack + '.yaml')
+		}
+		if pack_path.len > 0 {
+			pack_text := os.read_file(pack_path) or { '' }
+			if pack_text.len > 0 {
+				overrides := parse_pack_overrides(pack_text, loop_name)
+				if overrides.tier.len > 0 || overrides.max_tokens > 0 || overrides.cadence.len > 0 || overrides.allowlist.len > 0 {
+					patch_loop_yaml_with_overrides(os.join_path(dest, 'loop.yaml'), overrides)
+				}
+			}
+		}
+	}
 	write_state_md(dest, 'never', 'not_run', '', 0, []string{})
 	return LoopReport{
 		ok:      true
@@ -251,7 +273,55 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 			}
 		}
 	}
-	meta := parse_loop_meta(loop_dir)
+	mut meta := parse_loop_meta(loop_dir)
+	// --- pack overlay (P2-06): --pack PATH or pack name under packs/*.yaml ---
+	if opts.pack.len > 0 {
+		mut pack_path := ''
+		if os.is_file(opts.pack) {
+			pack_path = opts.pack
+		} else if os.is_file(os.join_path(ws, opts.pack)) {
+			pack_path = os.join_path(ws, opts.pack)
+		} else if os.is_file(os.join_path(ws, 'packs', opts.pack)) {
+			pack_path = os.join_path(ws, 'packs', opts.pack)
+		} else if os.is_file(os.join_path(ws, 'packs', opts.pack + '.yaml')) {
+			pack_path = os.join_path(ws, 'packs', opts.pack + '.yaml')
+		} else if os.is_file(opts.pack + '.yaml') {
+			pack_path = opts.pack + '.yaml'
+		}
+		if pack_path.len > 0 {
+			pack_text := os.read_file(pack_path) or { '' }
+			if pack_text.len > 0 {
+				overrides := parse_pack_overrides(pack_text, loop_name)
+				if overrides.tier.len > 0 {
+					meta.tier = overrides.tier
+				}
+				if overrides.cadence.len > 0 && overrides.cadence != '?' {
+					meta.cadence = overrides.cadence
+				}
+				if overrides.max_tokens > 0 {
+					meta.max_tokens = overrides.max_tokens
+				}
+				if overrides.max_runs_per_day > 0 {
+					meta.max_runs_per_day = overrides.max_runs_per_day
+				}
+				if overrides.max_wall_seconds > 0 {
+					meta.max_wall_seconds = overrides.max_wall_seconds
+				}
+				if overrides.goal.len > 0 {
+					meta.goal = overrides.goal
+				}
+				if overrides.request.len > 0 {
+					meta.request = overrides.request
+				}
+				if overrides.allowlist.len > 0 {
+					meta.allowlist = overrides.allowlist.clone()
+				}
+				if overrides.deny.len > 0 {
+					meta.deny = overrides.deny.clone()
+				}
+			}
+		}
+	}
 	max_runs := if meta.max_runs_per_day > 0 { meta.max_runs_per_day } else { 10 }
 	mut last_run, _, _, mut runs_today, escalations := read_state_md(loop_dir)
 	if last_run.len > 0 && last_run != 'never' {
@@ -272,6 +342,67 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 			}
 		}
 	}
+	// --- budget enforcement (P2-06): max_tokens / max_wall_seconds vs trace.jsonl ---
+	wall := if meta.max_wall_seconds > 0 { meta.max_wall_seconds } else { 600 }
+	if !opts.force {
+		if meta.max_tokens > 0 {
+			used := total_tokens_for_loop(loop_dir)
+			if used >= meta.max_tokens {
+				rid_ex := loop_run_id()
+				os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
+				trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
+				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_tokens","tokens_used":${used},"max_tokens":${meta.max_tokens},"run_id":${json.encode(rid_ex)}}\n') or {}
+				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted',
+					rid_ex, runs_today, escalations)
+				return LoopReport{
+					ok:      true
+					message: '[loop] Budget exhausted: max_tokens ${meta.max_tokens} reached (used ${used}). Re-run after increasing budget.max_tokens.'
+					data:    {
+						'subcommand': 'run'
+						'workspace':  ws
+						'name':       loop_name
+						'status':     'budget_exhausted'
+						'run_id':     rid_ex
+					}
+				}
+			}
+		}
+		if meta.max_wall_seconds > 0 {
+			wall_used := total_wall_for_loop(loop_dir)
+			if wall_used > 0 && wall_used >= meta.max_wall_seconds {
+				rid_ex := loop_run_id()
+				os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
+				trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
+				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_wall_seconds","wall_used":${wall_used},"max_wall_seconds":${meta.max_wall_seconds},"run_id":${json.encode(rid_ex)}}\n') or {}
+				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted',
+					rid_ex, runs_today, escalations)
+				return LoopReport{
+					ok:      true
+					message: '[loop] Budget exhausted: max_wall_seconds ${meta.max_wall_seconds}s exceeded (wall ${wall_used}s).'
+					data:    {
+						'subcommand': 'run'
+						'workspace':  ws
+						'name':       loop_name
+						'status':     'budget_exhausted'
+						'run_id':     rid_ex
+					}
+				}
+			}
+		}
+	}
+	// --- gh_gate wiring (P2-06): classify + gate check logged for skeleton ---
+	// Skeleton has no gh writes, but we log the gate decision so pack/tier parity is visible and grep-able.
+	// Future LLM runner must call loop_gate_allows before any `gh` argv.
+	mut gate_info := ''
+	if true {
+		// demonstrate classify_gh_argv + loop_gate_allows are wired (read-only -> true, merge -> tier gated)
+		ro_action := classify_gh_argv(['pr', 'view', '1'])
+		merge_action := classify_gh_argv(['pr', 'merge', '1'])
+		ro_allowed := loop_gate_allows(meta.tier, meta.allowlist, meta.deny, ro_action)
+		merge_allowed := loop_gate_allows(meta.tier, meta.allowlist, meta.deny, merge_action)
+		gate_info = 'gate ro=${ro_allowed} merge=${merge_allowed} tier=${meta.tier} action_merge=${merge_action}'
+		_ = gate_info
+	}
 	rid := loop_run_id()
 	run_dir := os.join_path(loop_dir, 'runs', rid)
 	os.mkdir_all(run_dir) or {
@@ -280,11 +411,45 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 			message: 'mkdir run dir failed: ${err}'
 		}
 	}
-	wall := if meta.max_wall_seconds > 0 { meta.max_wall_seconds } else { 600 }
 	use_skeleton := opts.no_llm || opts.runner in ['skeleton', ''] || opts.runner == 'auto'
 	mut lines := []string{}
 	lines << '[loop] Running ${loop_name} (tier=${meta.tier} cadence=${meta.cadence})'
 	lines << '[loop] ADR-020 process-per-run; skeleton fail-closed without ProcessService stdin'
+	if gate_info.len > 0 {
+		lines << '[loop] ${gate_info}'
+	}
+	if opts.pack.len > 0 {
+		lines << '[loop] pack overlay: ${opts.pack} tier=${meta.tier}'
+	}
+	// dry-run: plan only, no side effects beyond run_dir creation (parity with Python --dry-run)
+	if opts.dry_run {
+		plan_path := os.join_path(run_dir, 'plan.md')
+		plan := skeleton_loop_plan(loop_name, meta, rid)
+		os.write_file(plan_path, plan) or {
+			return LoopReport{
+				ok:      false
+				message: 'write plan failed: ${err}'
+			}
+		}
+		trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json.encode(rid)},"dry_run":true,"gate":"${gate_info}"}\n'
+		os.write_file(os.join_path(run_dir, 'trace.jsonl'), trace) or {}
+		lines << '[loop] dry-run Skeleton plan written → ${plan_path}'
+		lines << '[loop] wall budget ${wall}s (not consumed by skeleton)'
+		_ = use_skeleton
+		return LoopReport{
+			ok:      true
+			message: lines.join('\n')
+			data:    {
+				'subcommand': 'run'
+				'workspace':  ws
+				'name':       loop_name
+				'run_id':     rid
+				'status':     'completed'
+				'runner':     'skeleton'
+				'mode':       'dry-run'
+			}
+		}
+	}
 	plan_path := os.join_path(run_dir, 'plan.md')
 	plan := skeleton_loop_plan(loop_name, meta, rid)
 	os.write_file(plan_path, plan) or {
@@ -295,6 +460,30 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	}
 	trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json.encode(rid)}}\n'
 	os.write_file(os.join_path(run_dir, 'trace.jsonl'), trace) or {}
+	// post-run wall/token check: if tokens now exceed limit, mark exhausted (Python tailer parity)
+	if meta.max_tokens > 0 {
+		used_after := total_tokens_for_loop(loop_dir)
+		if used_after >= meta.max_tokens {
+			write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid,
+				runs_today + 1, escalations)
+			lines << '[loop] Skeleton plan written → ${plan_path}'
+			lines << '[loop] wall budget ${wall}s (not consumed by skeleton)'
+			lines << '[loop] budget_exhausted: max_tokens ${meta.max_tokens} reached after run (used ${used_after})'
+			_ = use_skeleton
+			return LoopReport{
+				ok:      true
+				message: lines.join('\n')
+				data:    {
+					'subcommand': 'run'
+					'workspace':  ws
+					'name':       loop_name
+					'run_id':     rid
+					'status':     'budget_exhausted'
+					'runner':     'skeleton'
+				}
+			}
+		}
+	}
 	write_state_md(loop_dir, time.utc().format_rfc3339(), 'completed', rid, runs_today + 1,
 		escalations)
 	lines << '[loop] Skeleton plan written → ${plan_path}'
@@ -829,6 +1018,90 @@ fn rewrite_loop_name(text string, name string) string {
 	return out.join('\n') + '\n'
 }
 
+fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
+	mut text := os.read_file(path) or { return }
+	mut lines := text.split_into_lines()
+	mut out := []string{}
+	mut has_tier := false
+	mut has_cadence := false
+	mut has_max_tokens := false
+	mut has_max_runs := false
+	mut has_max_wall := false
+	for line in lines {
+		t := line.trim_space()
+		if t.starts_with('tier:') && overrides.tier.len > 0 {
+			out << 'tier: ${overrides.tier}'
+			has_tier = true
+			continue
+		}
+		if t.starts_with('cadence:') && overrides.cadence.len > 0 && overrides.cadence != '?' {
+			out << 'cadence: ${overrides.cadence}'
+			has_cadence = true
+			continue
+		}
+		if t.starts_with('max_tokens:') && overrides.max_tokens > 0 {
+			out << '  max_tokens: ${overrides.max_tokens}'
+			// also handle top-level max_tokens without indent
+			if !line.starts_with(' ') {
+				out[out.len - 1] = 'max_tokens: ${overrides.max_tokens}'
+			}
+			has_max_tokens = true
+			continue
+		}
+		if t.starts_with('max_runs_per_day:') && overrides.max_runs_per_day > 0 {
+			out << '  max_runs_per_day: ${overrides.max_runs_per_day}'
+			if !line.starts_with(' ') {
+				out[out.len - 1] = 'max_runs_per_day: ${overrides.max_runs_per_day}'
+			}
+			has_max_runs = true
+			continue
+		}
+		if t.starts_with('max_wall_seconds:') && overrides.max_wall_seconds > 0 {
+			out << '  max_wall_seconds: ${overrides.max_wall_seconds}'
+			if !line.starts_with(' ') {
+				out[out.len - 1] = 'max_wall_seconds: ${overrides.max_wall_seconds}'
+			}
+			has_max_wall = true
+			continue
+		}
+		if t.starts_with('allowlist:') && overrides.allowlist.len > 0 {
+			out << 'allowlist: [${overrides.allowlist.join(', ')}]'
+			// skip original list items (next lines starting with - )
+			continue
+		}
+		if t.starts_with('deny:') && overrides.deny.len > 0 {
+			out << 'deny: [${overrides.deny.join(', ')}]'
+			continue
+		}
+		// skip old allowlist/deny dash items if we already emitted replacement
+		if (t.starts_with('- ') && out.len > 0 && out[out.len - 1].contains('allowlist: [')) {
+			continue
+		}
+		if (t.starts_with('- ') && out.len > 0 && out[out.len - 1].contains('deny: [')) {
+			continue
+		}
+		out << line
+	}
+	if !has_tier && overrides.tier.len > 0 {
+		out << 'tier: ${overrides.tier}'
+	}
+	if !has_cadence && overrides.cadence.len > 0 && overrides.cadence != '?' {
+		out << 'cadence: ${overrides.cadence}'
+	}
+	// ensure budget block exists for missing keys
+	if overrides.max_tokens > 0 && !has_max_tokens {
+		out << 'budget:'
+		out << '  max_tokens: ${overrides.max_tokens}'
+		if overrides.max_runs_per_day > 0 {
+			out << '  max_runs_per_day: ${overrides.max_runs_per_day}'
+		}
+		if overrides.max_wall_seconds > 0 {
+			out << '  max_wall_seconds: ${overrides.max_wall_seconds}'
+		}
+	}
+	os.write_file(path, out.join('\n') + '\n') or {}
+}
+
 fn resolve_loop_dir(ws string, name string) ?string {
 	p := os.join_path(loops_dir(ws), name)
 	if os.is_dir(p) && (os.is_file(os.join_path(p, 'loop.yaml'))
@@ -883,8 +1156,12 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 	} else if os.is_file(md_path) {
 		text = os.read_file(md_path) or { '' }
 	}
+	return parse_loop_meta_text(text, os.file_name(loop_dir))
+}
+
+fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 	mut m := LoopMeta{
-		name:             os.file_name(loop_dir)
+		name:             default_name
 		tier:             'L1'
 		cadence:          '?'
 		max_runs_per_day: 10
@@ -892,6 +1169,7 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 	}
 	mut in_allow := false
 	mut in_deny := false
+	mut in_budget := false
 	for line in text.split_into_lines() {
 		t := line.trim_space()
 		if t.starts_with('#') || t.len == 0 {
@@ -909,14 +1187,33 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 			m.deny << t[2..].clone().trim_space()
 			continue
 		}
+		// handle budget: nested keys indented 2 spaces — we treat max_* at any indent if in_budget
+		if in_budget && (t.starts_with('max_tokens:') || t.starts_with('max_runs_per_day:') || t.starts_with('max_wall_seconds:')) {
+			if t.starts_with('max_tokens:') {
+				m.max_tokens = t.all_after('max_tokens:').trim_space().int()
+			} else if t.starts_with('max_runs_per_day:') {
+				m.max_runs_per_day = t.all_after('max_runs_per_day:').trim_space().int()
+			} else if t.starts_with('max_wall_seconds:') {
+				m.max_wall_seconds = t.all_after('max_wall_seconds:').trim_space().int()
+			}
+			continue
+		}
 		in_allow = false
 		in_deny = false
+		// reset budget context when we hit a top-level key (no indent) that's not budget child
+		if !line.starts_with(' ') && !line.starts_with('\t') && t.contains(':') {
+			in_budget = false
+		}
+		if t.starts_with('budget:') {
+			in_budget = true
+			continue
+		}
 		if t.starts_with('name:') {
 			m.name = t.all_after('name:').trim_space()
 		} else if t.starts_with('tier:') {
 			m.tier = t.all_after('tier:').trim_space()
 		} else if t.starts_with('cadence:') {
-			m.cadence = t.all_after('cadence:').trim_space().trim('"')
+			m.cadence = t.all_after('cadence:').trim_space().trim('"').trim("'")
 		} else if t.starts_with('max_tokens:') {
 			m.max_tokens = t.all_after('max_tokens:').trim_space().int()
 		} else if t.starts_with('max_runs_per_day:') {
@@ -924,9 +1221,31 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 		} else if t.starts_with('max_wall_seconds:') {
 			m.max_wall_seconds = t.all_after('max_wall_seconds:').trim_space().int()
 		} else if t.starts_with('allowlist:') {
-			in_allow = true
+			rest := t.all_after('allowlist:').trim_space()
+			if rest.starts_with('[') {
+				inner := rest.trim('[]')
+				for part in inner.split(',') {
+					v := part.trim_space().trim('"').trim("'")
+					if v.len > 0 {
+						m.allowlist << v
+					}
+				}
+			} else {
+				in_allow = true
+			}
 		} else if t.starts_with('deny:') {
-			in_deny = true
+			rest := t.all_after('deny:').trim_space()
+			if rest.starts_with('[') {
+				inner := rest.trim('[]')
+				for part in inner.split(',') {
+					v := part.trim_space().trim('"').trim("'")
+					if v.len > 0 {
+						m.deny << v
+					}
+				}
+			} else {
+				in_deny = true
+			}
 		} else if t.starts_with('goal:') {
 			m.goal = t.all_after('goal:').trim_space().trim('|').trim_space()
 		} else if t.starts_with('request:') {
@@ -934,6 +1253,211 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 		}
 	}
 	return m
+}
+
+fn parse_pack_overrides(pack_text string, loop_name string) LoopMeta {
+	// strategy 1: direct meta overrides (pack is loop.yaml-like)
+	// strategy 2: loop_overrides: block
+	// strategy 3: loops/<name>: block with nested budget
+	// we try to extract the relevant snippet and parse via parse_loop_meta_text
+	mut snippet := pack_text
+	// handle loop_overrides: wrapper (Python fbb2280 pack.py loop_overrides)
+	if pack_text.contains('loop_overrides:') {
+		idx := pack_text.index('loop_overrides:') or { -1 }
+		if idx >= 0 {
+			after := pack_text[idx + 'loop_overrides:'.len..].clone()
+			mut lines := []string{}
+			for line in after.split_into_lines() {
+				if line.trim_space().len == 0 {
+					lines << line
+					continue
+				}
+				// loop_overrides is top-level; its children are indented 2 spaces — strip 2
+				if line.starts_with('  ') {
+					lines << line[2..].clone()
+				} else if line.starts_with('\t') {
+					lines << line[1..].clone()
+				} else if line.trim_space().starts_with('#') {
+					lines << line
+				} else if line.len > 0 && !line.starts_with(' ') && line.contains(':') {
+					// next top-level key ends block
+					break
+				} else {
+					lines << line
+				}
+			}
+			snippet = lines.join('\n')
+		}
+	} else if pack_text.contains('loops:') {
+		// Python new pack format: loops: { <loop_name>: { tier, budget, ... } }
+		mut found := false
+		mut lines := []string{}
+		mut in_target := false
+		mut base_indent := 0
+		for line in pack_text.split_into_lines() {
+			trim := line.trim_space()
+			if !in_target {
+				if trim == '${loop_name}:' || trim.starts_with('${loop_name}:') {
+					in_target = true
+					base_indent = line.len - line.trim_space().len
+					// handle inline budget like `budget: {max_tokens: 500}`
+					rest := trim.all_after('${loop_name}:').trim_space()
+					if rest.len > 0 && rest != '|' {
+						// unlikely inline; ignore
+					}
+					found = true
+					continue
+				}
+			} else {
+				if trim.len == 0 {
+					lines << ''
+					continue
+				}
+				mut indent := 0
+				for ch in line {
+					if ch == ` ` || ch == `\t` {
+						indent++
+					} else {
+						break
+					}
+				}
+				if indent <= base_indent && trim.contains(':') {
+					break
+				}
+				// strip 2 or 4 spaces depending on nesting
+				stripped := if line.len > base_indent + 2 {
+					line[base_indent + 2..].clone()
+				} else {
+					line.trim_space()
+				}
+				lines << stripped
+			}
+		}
+		if found {
+			snippet = lines.join('\n')
+		}
+	}
+	return parse_loop_meta_text(snippet, loop_name)
+}
+
+fn tokens_from_trace_text(text string) int {
+	mut total := 0
+	for line in text.split_into_lines() {
+		if line.len == 0 {
+			continue
+		}
+		if line.contains('prompt_tokens') || line.contains('completion_tokens') || line.contains('total_tokens') {
+			// best-effort integer extraction for keys prompt_tokens / completion_tokens / total_tokens / total
+			// we look for `"prompt_tokens": <num>` etc.
+			for key in ['prompt_tokens', 'completion_tokens', 'total_tokens', '"total"'] {
+				search := '"${key}":'
+				mut idx := 0
+				for {
+					pos := line[idx..].index(search) or { break }
+					abs_pos := idx + pos + search.len
+					rest := line[abs_pos..].trim_space()
+					mut num_str := ''
+					for ch in rest {
+						if ch >= `0` && ch <= `9` {
+							num_str += ch.ascii_str()
+						} else if num_str.len > 0 {
+							break
+						}
+					}
+					if num_str.len > 0 {
+						total += num_str.int()
+					}
+					idx = abs_pos + 1
+					if idx >= line.len {
+						break
+					}
+				}
+			}
+		}
+		if line.contains('"tokens_used"') {
+			// budget_exhausted trace
+			search := '"tokens_used":'
+			if pos := line.index(search) {
+				rest := line[pos + search.len..].trim_space()
+				mut num_str := ''
+				for ch in rest {
+					if ch >= `0` && ch <= `9` {
+						num_str += ch.ascii_str()
+					} else if num_str.len > 0 {
+						break
+					}
+				}
+				if num_str.len > 0 {
+					total += num_str.int()
+				}
+			}
+		}
+	}
+	return total
+}
+
+fn total_tokens_for_loop(loop_dir string) int {
+	rd := os.join_path(loop_dir, 'runs')
+	if !os.is_dir(rd) {
+		return 0
+	}
+	mut total := 0
+	for name in os.ls(rd) or { []string{} } {
+		trace := os.join_path(rd, name, 'trace.jsonl')
+		if !os.is_file(trace) {
+			continue
+		}
+		text := os.read_file(trace) or { continue }
+		total += tokens_from_trace_text(text)
+	}
+	return total
+}
+
+fn total_wall_for_loop(loop_dir string) int {
+	// wall budget parity: sum of run wall times if recorded as `"wall": <secs>` or `"wall_used":`
+	// fallback: if we have no wall data, use run count * 60 as rough estimate for budget check
+	// Python budget.py wall_timeout_seconds vs trace.jsonl wall — we check explicit wall field
+	rd := os.join_path(loop_dir, 'runs')
+	if !os.is_dir(rd) {
+		return 0
+	}
+	mut total := 0
+	mut has_wall := false
+	for name in os.ls(rd) or { []string{} } {
+		trace := os.join_path(rd, name, 'trace.jsonl')
+		if !os.is_file(trace) {
+			continue
+		}
+		text := os.read_file(trace) or { continue }
+		for line in text.split_into_lines() {
+			if line.contains('"wall"') || line.contains('wall_used') {
+				for key in ['"wall":', '"wall_used":', '"duration":'] {
+					if pos := line.index(key) {
+						rest := line[pos + key.len..].trim_space()
+						mut num_str := ''
+						for ch in rest {
+							if ch >= `0` && ch <= `9` {
+								num_str += ch.ascii_str()
+							} else if num_str.len > 0 {
+								break
+							}
+						}
+						if num_str.len > 0 {
+							total += num_str.int()
+							has_wall = true
+						}
+					}
+				}
+			}
+		}
+	}
+	if !has_wall {
+		// no explicit wall data -> estimate from run count for tiny budgets (e.g., max_wall_seconds=1)
+		// return 0 so we don't falsely exhaust; gate only triggers when pack/loop sets wall to tiny value + we have at least 1 run
+		// caller checks `wall_used >0 && wall_used >= max` so this returns 0 and won't exhaust unless wall data present
+		return 0
+	}
+	return total
 }
 
 fn write_state_md(loop_dir string, last_run string, last_status string, last_id string, runs_today int, escalations []string) {
