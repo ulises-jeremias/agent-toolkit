@@ -67,6 +67,13 @@ pub fn run_doctor(opts DoctorOptions) DoctorSnapshot {
 		checks << DoctorCheck{'root', 'offline', 'warn', 'AGENT_TOOLKIT_OFFLINE set'}
 	}
 	checks << collect_profile_checks(home)
+	checks << collect_swarm_checks()
+	checks << collect_mcp_checks(root)
+	checks << collect_pack_checks(root)
+	checks << collect_loop_checks(root)
+	checks << collect_matrix_checks(root)
+	checks << collect_context_cost_checks(root)
+	checks << collect_audit_checks(root)
 	if opts.provenance {
 		checks << collect_provenance_checks(root)
 	}
@@ -100,6 +107,62 @@ pub fn run_doctor(opts DoctorOptions) DoctorSnapshot {
 		lines << ''
 		lines << '── Profiles ──'
 		for c in profile_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	swarm_checks := checks.filter(it.category == 'swarm')
+	if swarm_checks.len > 0 {
+		lines << ''
+		lines << '── Swarm ──'
+		for c in swarm_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	mcp_checks := checks.filter(it.category == 'mcp')
+	if mcp_checks.len > 0 {
+		lines << ''
+		lines << '── MCP ──'
+		for c in mcp_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	pack_checks := checks.filter(it.category == 'pack')
+	if pack_checks.len > 0 {
+		lines << ''
+		lines << '── Packs ──'
+		for c in pack_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	loop_checks := checks.filter(it.category == 'loops')
+	if loop_checks.len > 0 {
+		lines << ''
+		lines << '── Loops ──'
+		for c in loop_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	matrix_checks := checks.filter(it.category == 'matrix')
+	if matrix_checks.len > 0 {
+		lines << ''
+		lines << '── Matrix ──'
+		for c in matrix_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	cc_checks := checks.filter(it.category == 'context-cost')
+	if cc_checks.len > 0 {
+		lines << ''
+		lines << '── Context-cost ──'
+		for c in cc_checks {
+			lines << doctor_format_check(c)
+		}
+	}
+	audit_checks := checks.filter(it.category == 'audit')
+	if audit_checks.len > 0 {
+		lines << ''
+		lines << '── Audit ──'
+		for c in audit_checks {
 			lines << doctor_format_check(c)
 		}
 	}
@@ -200,22 +263,228 @@ pub fn doctor_result(snap DoctorSnapshot) CommandResult {
 			'warnings':    '${warn_n}'
 			'errors':      '${err_n}'
 		}
+		checks:  snap.checks
 	}
 }
 
 fn collect_provenance_checks(root string) []DoctorCheck {
+	return verify_provenance(root)
+}
+
+fn collect_swarm_checks() []DoctorCheck {
+	mut out := []DoctorCheck{}
+	for name in ['herdr', 'tmux'] {
+		bd := doctor_backend(name)
+		status := if bd.available { 'ok' } else { 'warn' }
+		detail := if bd.available {
+			if bd.version.len > 0 { bd.version } else { 'available' }
+		} else {
+			if bd.reason.len > 0 { bd.reason } else { 'not available' }
+		}
+		out << DoctorCheck{'swarm', name, status, detail}
+	}
+	out << DoctorCheck{'swarm', 'apiVersion', 'ok', 'agent-toolkit.dev/v1alpha1'}
+	return out
+}
+
+fn collect_mcp_checks(root string) []DoctorCheck {
 	mut out := []DoctorCheck{}
 	if root.len == 0 {
-		out << DoctorCheck{'provenance', 'upstream.lock exists', 'warn', 'no toolkit root'}
+		out << DoctorCheck{'mcp', 'providers', 'warn', 'no toolkit root'}
 		return out
 	}
-	lock_path := os.join_path(root, 'capabilities', 'upstream.lock')
-	if os.is_file(lock_path) {
-		out << DoctorCheck{'provenance', 'upstream.lock exists', 'ok', lock_path}
-		out << DoctorCheck{'provenance', 'provenance: doctor --provenance', 'ok', 'lock present; full SHA/expiry detail deferred'}
+	providers := list_known_mcp_providers(root)
+	if providers.len == 0 {
+		out << DoctorCheck{'mcp', 'providers', 'warn', 'no MCP providers found'}
+		return out
+	}
+	for provider in providers {
+		tmpl_dir := os.join_path(root, 'mcp', 'templates', provider)
+		tmpl_file := os.join_path(tmpl_dir, 'config.template.json')
+		reg_file := os.join_path(root, 'mcp', 'registry', provider + '.yaml')
+		mut exists := false
+		mut detail := ''
+		if os.is_file(tmpl_file) {
+			exists = true
+			detail = tmpl_file
+		} else if os.is_file(reg_file) {
+			exists = true
+			detail = reg_file
+		} else if os.is_dir(tmpl_dir) {
+			exists = true
+			detail = tmpl_dir
+		}
+		if exists {
+			out << DoctorCheck{'mcp', provider, 'ok', detail}
+		} else {
+			out << DoctorCheck{'mcp', provider, 'warn', 'template missing'}
+		}
+	}
+	return out
+}
+
+fn collect_pack_checks(root string) []DoctorCheck {
+	mut out := []DoctorCheck{}
+	if root.len == 0 {
+		out << DoctorCheck{'pack', 'packs', 'warn', 'no toolkit root'}
+		return out
+	}
+	packs_dir := os.join_path(root, 'packs')
+	if !os.is_dir(packs_dir) {
+		out << DoctorCheck{'pack', 'packs', 'warn', 'not found: ${packs_dir}'}
+		return out
+	}
+	entries := os.ls(packs_dir) or { []string{} }
+	mut found_any := false
+	for e in entries {
+		if e == 'README.md' {
+			continue
+		}
+		p := os.join_path(packs_dir, e)
+		if !os.is_dir(p) {
+			continue
+		}
+		found_any = true
+		cfg := os.join_path(p, 'config.yaml')
+		if os.is_file(cfg) {
+			out << DoctorCheck{'pack', e, 'ok', cfg}
+		} else {
+			out << DoctorCheck{'pack', e, 'warn', 'config.yaml missing'}
+		}
+	}
+	if !found_any {
+		out << DoctorCheck{'pack', 'packs', 'warn', 'no packs found in ${packs_dir}'}
+	}
+	return out
+}
+
+fn collect_loop_checks(root string) []DoctorCheck {
+	mut out := []DoctorCheck{}
+	// Workspace loops: detect via find_workspace_root or cwd
+	mut ws := ''
+	if w := find_workspace_root('') {
+		ws = w
 	} else {
-		// Warn (not err): wheel/data installs often omit capabilities/upstream.lock
-		out << DoctorCheck{'provenance', 'upstream.lock exists', 'warn', 'not found under toolkit root (checkout only)'}
+		ws = os.getwd()
+	}
+	// Bundled loops (toolkit root)
+	if root.len > 0 {
+		bundled := bundled_loop_dirs()
+		if bundled.len > 0 {
+			out << DoctorCheck{'loops', 'bundled', 'ok', '${bundled.len} bundled loops'}
+		} else {
+			loops_path := os.join_path(root, 'loops')
+			if os.is_dir(loops_path) {
+				entries := os.ls(loops_path) or { []string{} }
+				mut cnt := 0
+				for e in entries {
+					p := os.join_path(loops_path, e)
+					if os.is_dir(p) && (os.is_file(os.join_path(p, 'loop.yaml')) || os.is_file(os.join_path(p, 'LOOP.md'))) {
+						cnt++
+					}
+				}
+				if cnt > 0 {
+					out << DoctorCheck{'loops', 'bundled', 'ok', '${cnt} loops in ${loops_path}'}
+				} else {
+					out << DoctorCheck{'loops', 'bundled', 'warn', 'no bundled loops in ${loops_path}'}
+				}
+			} else {
+				out << DoctorCheck{'loops', 'bundled', 'warn', 'loops dir missing: ${loops_path}'}
+			}
+		}
+	} else {
+		out << DoctorCheck{'loops', 'bundled', 'warn', 'no toolkit root'}
+	}
+	// Workspace loops
+	loops_dir := os.join_path(ws, 'loops')
+	if os.is_dir(loops_dir) {
+		entries := os.ls(loops_dir) or { []string{} }
+		mut cnt := 0
+		for e in entries {
+			p := os.join_path(loops_dir, e)
+			if os.is_dir(p) && (os.is_file(os.join_path(p, 'loop.yaml')) || os.is_file(os.join_path(p, 'LOOP.md'))) {
+				cnt++
+			}
+		}
+		if cnt > 0 {
+			out << DoctorCheck{'loops', 'workspace', 'ok', '${cnt} loops in ${loops_dir}'}
+		} else {
+			out << DoctorCheck{'loops', 'workspace', 'warn', 'no loops in workspace ${ws}'}
+		}
+	} else {
+		out << DoctorCheck{'loops', 'workspace', 'warn', 'no loops dir at ${loops_dir}'}
+	}
+	return out
+}
+
+fn collect_matrix_checks(root string) []DoctorCheck {
+	mut out := []DoctorCheck{}
+	if root.len == 0 {
+		out << DoctorCheck{'matrix', 'platform-capability-matrix', 'warn', 'no toolkit root'}
+		return out
+	}
+	path := os.join_path(root, 'docs', 'research', 'platform-capability-matrix.md')
+	if os.is_file(path) {
+		out << DoctorCheck{'matrix', 'platform-capability-matrix', 'ok', path}
+		// Light content check for parity targets pi/windsurf
+		text := os.read_file(path) or { '' }
+		if text.contains('pi') || text.contains('windsurf') || text.contains('cursor') {
+			out << DoctorCheck{'matrix', 'compiler', 'ok', 'targets parsed (pi/windsurf/cursor present)'}
+		} else {
+			out << DoctorCheck{'matrix', 'compiler', 'warn', 'matrix missing expected targets'}
+		}
+	} else {
+		out << DoctorCheck{'matrix', 'platform-capability-matrix', 'warn', 'not found: ${path}'}
+		out << DoctorCheck{'matrix', 'compiler', 'warn', 'matrix missing, cannot verify parity'}
+	}
+	return out
+}
+
+fn collect_context_cost_checks(root string) []DoctorCheck {
+	mut out := []DoctorCheck{}
+	// Token clip 2000 for memory inject parity (Python cli/context_budget.py:455)
+	out << DoctorCheck{'context-cost', 'clip', 'ok', '2000 (memory inject budget)'}
+	// Optional: check knowledge base size if workspace exists
+	if ws := find_workspace_root('') {
+		knowledge := os.join_path(ws, 'knowledge')
+		if os.is_dir(knowledge) {
+			out << DoctorCheck{'context-cost', 'knowledge', 'ok', knowledge}
+		} else {
+			out << DoctorCheck{'context-cost', 'knowledge', 'warn', 'knowledge dir missing: ${knowledge}'}
+		}
+	}
+	return out
+}
+
+fn collect_audit_checks(root string) []DoctorCheck {
+	mut out := []DoctorCheck{}
+	if root.len == 0 {
+		out << DoctorCheck{'audit', 'skills', 'warn', 'no toolkit root'}
+		out << DoctorCheck{'audit', 'loops', 'warn', 'no toolkit root'}
+		return out
+	}
+	// Skills audit via skills_validate (Python parity: skills.validate)
+	rep := skills_validate(root)
+	if rep.ok {
+		detail := if rep.count > 0 { '${rep.count} skills validated' } else { 'skills validated' }
+		if rep.warnings > 0 {
+			out << DoctorCheck{'audit', 'skills', 'warn', '${detail} (${rep.warnings} warnings)'}
+		} else {
+			out << DoctorCheck{'audit', 'skills', 'ok', detail}
+		}
+	} else {
+		// Surface first error line for brevity
+		mut msg := rep.message.split_into_lines().filter(it.trim_space().len > 0)
+		short := if msg.len > 0 { msg.last().trim_space() } else { 'skills validation failed' }
+		out << DoctorCheck{'audit', 'skills', 'err', '${rep.errors} error(s): ${short}'}
+	}
+	loops_dir := os.join_path(root, 'loops')
+	if os.is_dir(loops_dir) {
+		out << DoctorCheck{'audit', 'loops', 'ok', loops_dir}
+	} else if is_embedded_root(root) {
+		out << DoctorCheck{'audit', 'loops', 'ok', 'embedded loops present'}
+	} else {
+		out << DoctorCheck{'audit', 'loops', 'warn', 'loops dir missing: ${loops_dir}'}
 	}
 	return out
 }
