@@ -267,6 +267,16 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 			}
 			return agent_toolkit_core.err_user('command.failed', report.message).exit_code()
 		}
+		if opts.subcommand in ['status', 'list'] && (opts.json_output || mode == .json) {
+			trimmed := report.message.trim_space()
+			if trimmed.starts_with('{') || trimmed.starts_with('[') {
+				println(report.message)
+				if report.ok {
+					return 0
+				}
+				return agent_toolkit_core.err_user('command.failed', report.message).exit_code()
+			}
+		}
 		if opts.subcommand == 'list' && opts.json_output {
 			println(report.message)
 			return if report.ok { 0 } else { 1 }

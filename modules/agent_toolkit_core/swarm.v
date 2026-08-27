@@ -93,6 +93,58 @@ struct SwarmArtifactInfo {
 	size int    @[json: 'size']
 }
 
+struct SwarmBudgetJson {
+pub:
+	max_total_tokens int     @[json: 'max_total_tokens']
+	total_tokens     int     @[json: 'total_tokens']
+	max_cost_usd     f64     @[json: 'max_cost_usd']
+	total_cost       f64     @[json: 'total_cost']
+	max_wall_seconds int     @[json: 'max_wall_seconds']
+	wall_seconds     int     @[json: 'wall_seconds']
+}
+
+struct SwarmHandoffsJson {
+pub mut:
+	outbox    int
+	queued    int
+	active    int
+	completed int
+	failed    int
+}
+
+struct SwarmApprovalsJson {
+pub:
+	gates []SwarmGate
+}
+
+struct SwarmStatusJson {
+pub:
+	run_id        string              @[json: 'run_id']
+	recipe        string
+	backend       string
+	runner        string
+	model_profile string              @[json: 'model_profile']
+	run_state     string              @[json: 'run_state']
+	created_at    string              @[json: 'created_at']
+	task          string
+	worktrees     []string
+	approvals     SwarmApprovalsJson
+	budget        SwarmBudgetJson
+	handoffs      SwarmHandoffsJson
+	trace_tail    []string            @[json: 'trace_tail']
+	artifacts     []string
+}
+
+struct SwarmListEntry {
+pub:
+	run_id     string @[json: 'run_id']
+	recipe     string
+	backend    string
+	run_state  string @[json: 'run_state']
+	created_at string @[json: 'created_at']
+	task       string
+}
+
 // run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/init/plan/activate/deactivate/promote/pause/resume/stop/cleanup/handoff/task/runners/models + observability watch/report/artifacts/handoffs/logs/approvals.
 pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	sub := opts.subcommand
@@ -271,7 +323,7 @@ Usage:
     agent-toolkit swarm stop <run-id>
     agent-toolkit swarm cleanup <run-id> [--force] [--dry-run]
     agent-toolkit swarm list [--json] [--workspace PATH] [-C PATH] [--repo PATH]
-    agent-toolkit swarm status [run-id]
+    agent-toolkit swarm status [run-id] [--json] [--workspace PATH] [-C PATH] [--repo PATH]
     agent-toolkit swarm approve <run-id> <gate>
     agent-toolkit swarm reject <run-id> <gate> --reason TEXT
     agent-toolkit swarm cancel <run-id>
@@ -1146,25 +1198,34 @@ fn list_all_swarm_runs(ws string) []string {
 fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 	all := list_all_swarm_runs(ws)
 	if opts.json_output {
-		mut arr := []map[string]string{}
+		mut entries := []SwarmListEntry{}
 		for rd in all {
 			st := read_swarm_state(rd) or { continue }
-			arr << {
-				'run_id':     st.run_id
-				'recipe':     st.recipe
-				'run_state':  st.run_state
-				'created_at': st.created_at
-				'workspace':  ws
-				'run_dir':    rd
+			entries << SwarmListEntry{
+				run_id:     st.run_id
+				recipe:     st.recipe
+				backend:    st.backend
+				run_state:  st.run_state
+				created_at: st.created_at
+				task:       st.task
 			}
 		}
-		encoded := json.encode(arr)
+		if entries.len == 0 {
+			return SwarmReport{
+				ok:      true
+				message: '[]'
+				data:    {
+					'subcommand': 'list'
+					'count':      '0'
+				}
+			}
+		}
 		return SwarmReport{
 			ok:      true
-			message: encoded
+			message: json.encode(entries)
 			data:    {
 				'subcommand': 'list'
-				'count':      '${arr.len}'
+				'count':      '${entries.len}'
 			}
 		}
 	}
@@ -1234,6 +1295,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 		}
 		gtxt << '${g.id}:${mark}'
 	}
+	// Worktrees from state (HEAD) + dir fallback
 	mut wlines := []string{}
 	for wt in st.worktrees {
 		wlines << '${wt.role}:${wt.branch}@${wt.path}'
@@ -1242,7 +1304,6 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 	if wlines.len > 0 {
 		wt_detail += '\nworktrees: ' + wlines.join(', ')
 	}
-	// Also reflect owned worktrees not in state but on disk
 	if st.worktrees.len == 0 {
 		wt_root := os.join_path(swarm_run_dir(ws, st.run_id), 'worktrees')
 		if os.is_dir(wt_root) {
@@ -1252,17 +1313,13 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
-	mut msg := 'run ${st.run_id} recipe=${st.recipe} backend=${st.backend} state=${st.run_state}\ngates: ${gtxt.join(', ')}'
-	if wlines.len > 0 {
-		msg += '\nworktrees: ' + wlines.join(', ')
-	}
-	mut wt_data := wlines.join(',')
-	if wt_data.len == 0 && st.worktrees.len == 0 {
+	mut wlines_joined := wlines.join(',')
+	if wlines_joined.len == 0 && st.worktrees.len == 0 {
 		wt_root2 := os.join_path(swarm_run_dir(ws, st.run_id), 'worktrees')
 		if os.is_dir(wt_root2) {
 			el := os.ls(wt_root2) or { []string{} }
 			if el.len > 0 {
-				wt_data = el.join(',')
+				wlines_joined = el.join(',')
 			}
 		}
 	}
@@ -1275,13 +1332,137 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 	bj := json.encode(b)
 	bc := st.budget_consumed
 	bcj := json.encode(bc)
-	msg += '\nbudget: ${bj} consumed: ${bcj} wall_seconds: ${wall}'
-	if wt_data.len > 0 && !msg.contains('worktrees:') {
-		msg += '\nworktrees: ${wt_data}'
+	// Feature: handoffs, worktrees dir, artifacts, trace_tail, budget json
+	mut ho := SwarmHandoffsJson{}
+	for q in ['outbox', 'queued', 'active', 'completed', 'failed'] {
+		dir := os.join_path(rd, 'handoffs', q)
+		mut cnt := 0
+		if os.is_dir(dir) {
+			entries := os.ls(dir) or { []string{} }
+			for e in entries {
+				if e.ends_with('.json') {
+					cnt++
+				}
+			}
+		}
+		match q {
+			'outbox' { ho.outbox = cnt }
+			'queued' { ho.queued = cnt }
+			'active' { ho.active = cnt }
+			'completed' { ho.completed = cnt }
+			'failed' { ho.failed = cnt }
+			else {}
+		}
+	}
+	mut worktrees := []string{}
+	wt_dir := os.join_path(rd, 'worktrees')
+	if os.is_dir(wt_dir) {
+		entries := os.ls(wt_dir) or { []string{} }
+		for e in entries {
+			if e.starts_with('.') {
+				continue
+			}
+			worktrees << e
+		}
+		worktrees.sort()
+	}
+	// Also include state worktrees if not in dir listing
+	if worktrees.len == 0 && wlines.len > 0 {
+		for wl in wlines {
+			worktrees << wl
+		}
+	}
+	mut artifacts := []string{}
+	art_dir := os.join_path(rd, 'artifacts')
+	if os.is_dir(art_dir) {
+		entries := os.ls(art_dir) or { []string{} }
+		for e in entries {
+			if e.starts_with('.') {
+				continue
+			}
+			artifacts << e
+		}
+		artifacts.sort()
+	}
+	mut trace_tail := []string{}
+	trace_path := os.join_path(rd, 'trace.jsonl')
+	if os.is_file(trace_path) {
+		content := os.read_file(trace_path) or { '' }
+		lines := content.split_into_lines()
+		mut filtered := []string{}
+		for l in lines {
+			if l.trim_space().len > 0 {
+				filtered << l
+			}
+		}
+		start := if filtered.len > 5 { filtered.len - 5 } else { 0 }
+		trace_tail = filtered[start..]
+	}
+	// Budget for JSON: combine b and bc
+	budget_json := SwarmBudgetJson{
+		max_total_tokens: b.max_total_tokens
+		total_tokens:     bc.total_tokens
+		max_cost_usd:     b.max_cost_usd
+		total_cost:       bc.total_cost
+		max_wall_seconds: b.max_wall_seconds
+		wall_seconds:     wall
+	}
+	if opts.json_output {
+		status := SwarmStatusJson{
+			run_id:        st.run_id
+			recipe:        st.recipe
+			backend:       st.backend
+			runner:        st.runner
+			model_profile: st.model_profile
+			run_state:     st.run_state
+			created_at:    st.created_at
+			task:          st.task
+			worktrees:     worktrees
+			approvals:     SwarmApprovalsJson{
+				gates: gates
+			}
+			budget:        budget_json
+			handoffs:      ho
+			trace_tail:    trace_tail
+			artifacts:     artifacts
+		}
+		return SwarmReport{
+			ok:      true
+			message: json.encode(status)
+			data:    {
+				'subcommand': 'status'
+				'run_id':     st.run_id
+				'recipe':     st.recipe
+				'backend':    st.backend
+				'run_state':  st.run_state
+				'gates':      gtxt.join(',')
+			}
+		}
+	}
+	// Human output: combine HEAD and feature
+	mut msg_lines := []string{}
+	msg_lines << 'run ${st.run_id} recipe=${st.recipe} backend=${st.backend} runner=${st.runner} state=${st.run_state}'
+	msg_lines << 'gates: ${gtxt.join(', ')}'
+	msg_lines << 'budget: ${bj} consumed: ${bcj} wall_seconds: ${wall}'
+	msg_lines << 'handoffs: outbox=${ho.outbox} queued=${ho.queued} active=${ho.active} completed=${ho.completed} failed=${ho.failed}'
+	if worktrees.len > 0 {
+		msg_lines << 'worktrees: ${worktrees.join(', ')}'
+	} else if wlines.len > 0 {
+		msg_lines << 'worktrees: ${wlines.join(', ')}'
+	} else {
+		msg_lines << 'worktrees: (none)'
+	}
+	if artifacts.len > 0 {
+		msg_lines << 'artifacts: ${artifacts.join(', ')}'
+	} else {
+		msg_lines << 'artifacts: (none)'
+	}
+	if trace_tail.len > 0 {
+		msg_lines << 'trace: ${trace_tail.join(' | ')}'
 	}
 	return SwarmReport{
 		ok:      true
-		message: msg
+		message: msg_lines.join('\n')
 		data:    {
 			'subcommand':       'status'
 			'run_id':           st.run_id
@@ -1289,7 +1470,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			'backend':          st.backend
 			'run_state':        st.run_state
 			'gates':            gtxt.join(',')
-			'worktrees':        wt_data
+			'worktrees':        if wlines_joined.len > 0 { wlines_joined } else { worktrees.join(',') }
 			'budget':           bj
 			'budget_consumed':  bcj
 			'max_total_tokens': b.max_total_tokens.str()
