@@ -1,5 +1,7 @@
 # Diff: addyosmani/agent-skills `documentation-and-adrs` vs Toolkit `adr` + `docs-generator` — #394 (2026-08-12)
 
+> Note (2026-08-27): `docs/adr/` merged into `docs/adrs/` — single ADR directory. Historical references to `docs/adr/` below reflect pre-merge layout.
+
 **Scope:** `https://github.com/addyosmani/agent-skills` MIT `skills/documentation-and-adrs/SKILL.md` (288 lines) vs `skills/delivery/adr/SKILL.md` (48 lines) + `skills/ops/docs-generator/SKILL.md` (85 lines) + `docs/adr/` (3 ADRs) + `docs-generator` loops.
 
 **Method:** `find-skills` discovery + manual `git clone --depth 1` (2026-08-12), compared headings, workflows, templates, lifecycle, verification.

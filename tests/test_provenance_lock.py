@@ -6,7 +6,7 @@ tag+commit, mutable-ref guard, single/multi-source, checksum drift,
 license mismatch, review-binding invalidation, frontend-design vertical slice
 and non-skill identity.
 
-See docs/adr/0001-capability-declaration-and-external-provenance-lock.md
+See docs/adrs/0001-capability-declaration-and-external-provenance-lock.md
 """
 
 from __future__ import annotations

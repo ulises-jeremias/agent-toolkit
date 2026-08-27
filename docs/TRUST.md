@@ -117,7 +117,7 @@ TARGET SURFACES               — “How Claude/Cursor/Copilot/OpenCode/etc. con
                                  plugins/*, catalogs/*, docs/UPSTREAM.md (generated from declaration+lock)
 ```
 
-> **Lock is a resolution artifact, not a second capability catalog.** It is sparse — only `origin: upstream` capabilities with external content appear; `first-party` never appears. Runtime package resolution (`uv.lock`, `pnpm-lock.yaml`, Docker digest) stays in ecosystem locks, not `upstream.lock`. See `docs/adr/0001-capability-declaration-and-external-provenance-lock.md` and `schemas/upstream-lock.schema.json`.
+> **Lock is a resolution artifact, not a second capability catalog.** It is sparse — only `origin: upstream` capabilities with external content appear; `first-party` never appears. Runtime package resolution (`uv.lock`, `pnpm-lock.yaml`, Docker digest) stays in ecosystem locks, not `upstream.lock`. See `docs/adrs/0001-capability-declaration-and-external-provenance-lock.md` and `schemas/upstream-lock.schema.json`.
 
 Validation is offline/deterministic: `SKILL.md` + committed `capabilities/upstream.lock` + vendored bytes are enough for `python3 scripts/provenance.py check` (schema, SHA40, SPDX, content_checksum vs bytes, **body_checksum fidelity**, provenance_digest, orphan/missing, review binding). Network is only for scheduled/manual `updates` / `updates --apply`; normal PR CI never requires network.
 
