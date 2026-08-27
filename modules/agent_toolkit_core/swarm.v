@@ -58,6 +58,7 @@ struct SwarmStateFile {
 	created_at    string
 	task          string
 	active_roles []string
+	worktrees  []SwarmWorktree
 }
 
 struct SwarmApprovalsFile {
@@ -469,7 +470,51 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 	} else {
 		'running'
 	}
-	st := SwarmStateFile{
+	// Lazy worktree per writer — port fbb2280 cli.py:688-750 initial_roles + create_worktree.
+	// Determine initial roles: planner > implementer > first role.
+	roles_all := swarm_recipe_roles(recipe)
+	mut initial_roles := []string{}
+	if 'planner' in roles_all {
+		initial_roles = ['planner']
+	} else if 'implementer' in roles_all {
+		initial_roles = ['implementer']
+	} else if roles_all.len > 0 {
+		initial_roles = [roles_all[0]]
+	}
+	lazy := swarm_recipe_lazy_start(recipe)
+	repo_root := find_git_root(ws) or { ws }
+	base_ref := if opts.base_ref != '' { opts.base_ref } else { 'HEAD' }
+	mut created_wts := []SwarmWorktree{}
+	for role in roles_all {
+		if !swarm_role_has_worktree(recipe, role) {
+			continue
+		}
+		if lazy && role !in initial_roles {
+			continue
+		}
+		wt := swarm_create_worktree(repo_root, run_dir, role, rid, base_ref) or {
+			append_swarm_trace(run_dir, 'worktree_failed', role + ':' + err.msg())
+			continue
+		}
+		created_wts << wt
+		// Copy opencode agent into worktree if a runner agent exists for that role
+		// Mirrors cli.py:709 ff: runner/opencode/agents/<role>.md -> wt/.opencode/agents/<role>.md
+		agent_src := os.join_path(run_dir, 'runner', 'opencode', 'agents', role + '.md')
+		if os.is_file(agent_src) {
+			wt_agents := os.join_path(wt.path, '.opencode', 'agents')
+			os.mkdir_all(wt_agents) or {}
+			agent_content := os.read_file(agent_src) or { '' }
+			os.write_file(os.join_path(wt_agents, role + '.md'), agent_content) or {}
+			prompt_src := os.join_path(run_dir, 'prompts', role + '.md')
+			if os.is_file(prompt_src) {
+				prompt_content := os.read_file(prompt_src) or { '' }
+				os.write_file(os.join_path(wt.path, '.agent-toolkit-prompt-' + role + '.md'),
+					prompt_content) or {}
+			}
+		}
+		append_swarm_trace(run_dir, 'worktree_created', role + ':' + wt.branch + ':' + wt.path)
+	}
+	mut st := SwarmStateFile{
 		version:       1
 		run_id:        rid
 		recipe:        recipe
@@ -479,6 +524,8 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		run_state:     initial
 		created_at:    time.utc().format_rfc3339()
 		task:          opts.task
+		active_roles:  []string{}
+		worktrees:     created_wts
 	}
 	write_swarm_state(run_dir, st) or {
 		return SwarmReport{
@@ -776,9 +823,41 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 		}
 		gtxt << '${g.id}:${mark}'
 	}
+	mut wlines := []string{}
+	for wt in st.worktrees {
+		wlines << '${wt.role}:${wt.branch}@${wt.path}'
+	}
+	mut wt_detail := gtxt.join(', ')
+	if wlines.len > 0 {
+		wt_detail += '\nworktrees: ' + wlines.join(', ')
+	}
+	// Also reflect owned worktrees not in state but on disk
+	if st.worktrees.len == 0 {
+		wt_root := os.join_path(swarm_run_dir(ws, st.run_id), 'worktrees')
+		if os.is_dir(wt_root) {
+			entries := os.ls(wt_root) or { []string{} }
+			if entries.len > 0 {
+				wt_detail += if wt_detail.len > 0 { '; ' } else { '' } + 'worktrees(dir): ' + entries.join(', ')
+			}
+		}
+	}
+	mut msg := 'run ${st.run_id} recipe=${st.recipe} backend=${st.backend} state=${st.run_state}\ngates: ${gtxt.join(', ')}'
+	if wlines.len > 0 {
+		msg += '\nworktrees: ' + wlines.join(', ')
+	}
+	mut wt_data := wlines.join(',')
+	if wt_data.len == 0 && st.worktrees.len == 0 {
+		wt_root2 := os.join_path(swarm_run_dir(ws, st.run_id), 'worktrees')
+		if os.is_dir(wt_root2) {
+			el := os.ls(wt_root2) or { []string{} }
+			if el.len > 0 {
+				wt_data = el.join(',')
+			}
+		}
+	}
 	return SwarmReport{
 		ok:      true
-		message: 'run ${st.run_id} recipe=${st.recipe} backend=${st.backend} state=${st.run_state}\ngates: ${gtxt.join(', ')}'
+		message: msg
 		data:    {
 			'subcommand': 'status'
 			'run_id':     st.run_id
@@ -786,6 +865,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			'backend':    st.backend
 			'run_state':  st.run_state
 			'gates':      gtxt.join(',')
+			'worktrees':  wt_data
 		}
 	}
 }
@@ -1237,23 +1317,6 @@ fn swarm_branch_for_role(run_id string, role string) string {
 
 fn swarm_worktree_path(run_dir string, role string) string {
 	return os.join_path(run_dir, 'worktrees', role)
-}
-
-fn swarm_is_worktree_dirty(path string) bool {
-	if !os.is_dir(path) && !os.is_file(path) {
-		return false
-	}
-	mut check_dir := path
-	if !os.is_dir(path) {
-		check_dir = os.dir(path)
-	}
-	ps := new_process_service()
-	res := ps.run(RunOptions{
-		argv:    ['git', 'status', '--porcelain']
-		cwd:     check_dir
-		timeout: 5 * time.second
-	}) or { return false }
-	return res.stdout.trim_space().len > 0
 }
 
 fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
@@ -1775,7 +1838,7 @@ fn swarm_role_receive_mode(recipe string, role string) string {
 
 fn ensure_swarm_run_dirs(run_dir string) ! {
 	for sub in ['artifacts', 'handoffs/outbox', 'handoffs/queued', 'handoffs/active',
-		'handoffs/completed', 'handoffs/failed', 'prompts', 'worktrees'] {
+		'handoffs/completed', 'handoffs/failed', 'prompts', 'worktrees', 'runner/opencode/agents'] {
 		os.mkdir_all(os.join_path(run_dir, sub))!
 	}
 }
