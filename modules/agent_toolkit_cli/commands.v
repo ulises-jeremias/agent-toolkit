@@ -989,6 +989,11 @@ fn swarm_command() cli.Command {
 				]
 				execute:     atk_exec
 			},
+			cli.Command{
+				name:        'attach'
+				description: 'Attach to a swarm workspace (blocks)'
+				execute:     atk_exec
+			},
 		]
 		flags:       [
 			cli.Flag{
