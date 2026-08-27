@@ -19,7 +19,6 @@ from pathlib import Path
 import pytest
 import scripts.provenance as prov
 import yaml
-from jsonschema import Draft202012Validator
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -31,7 +30,7 @@ def _load_lock_schema():
 
 
 def _validate(schema, data) -> list[str]:
-    v = Draft202012Validator(schema)
+    v = prov._lock_schema_validator(schema)
     return [e.message for e in v.iter_errors(data)]
 
 
