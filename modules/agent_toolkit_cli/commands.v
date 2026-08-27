@@ -707,7 +707,7 @@ fn devcompanion_command() cli.Command {
 	return cli.Command{
 		name:        'devcompanion'
 		alias:       'dc'
-		description: 'Background job queue: queue, run-once, status, done, sync-todos (alias: dc)'
+		description: 'Background job queue: queue, run-once, status, done, sync-todos, llm-status (alias: dc)'
 		group:       'Advanced commands'
 		commands:    [
 			cli.Command{
@@ -735,6 +735,11 @@ fn devcompanion_command() cli.Command {
 			cli.Command{
 				name:        'sync-todos'
 				description: 'Sync todos from knowledge'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'llm-status'
+				description: 'Report LLM allowlist/provider'
 				execute:     atk_exec
 			},
 		]
