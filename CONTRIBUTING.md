@@ -327,6 +327,10 @@ The in-repo canonical `agent-toolkit` implementation is the V binary ([#555](htt
 - Local toolchain: install V matching `.v-version`, then `./make.vsh test`, `./make.vsh fmt-check`, `./make.vsh build-cli` → `build/agent-toolkit`
 - DEPRECATE/REMOVE advanced commands (`insights`, `release`): disposition-only in V ([ADR-012](docs/adrs/ADR-012-python-v-coexistence.md); no mixed-engine binary)
 
+## Architecture Decision Records
+
+Single directory: [`docs/adrs/`](docs/adrs/) — 34 records (`ADR-001…030` + `0001…0004`). See [`docs/adrs/README.md`](docs/adrs/README.md) for index. New ADRs go there; do not recreate `docs/adr/`.
+
 ## Getting Help
 
 - Open a [GitHub Discussion](https://github.com/ulises-jeremias/agent-toolkit/discussions) for questions about skill design, compatibility, or architecture
