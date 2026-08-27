@@ -281,22 +281,22 @@ Per-tool steps: [docs/INSTALLATION.md#manual-install](docs/INSTALLATION.md#manua
 
 All skills use `SKILL.md` frontmatter only — no `skill.json` required. Fully compliant with the [Agent Skills spec](https://github.com/vercel-labs/skills). Live counts: `agent-toolkit inventory` / `catalogs/skill-catalog.yaml` (source of truth, not README badges). Marketplace plugins ship a subset (core + forge); `agent-toolkit-complete` is the full catalog.
 
-| Domain | Count | Key Skills |
-|--------|-------|------------|
-| 🧠 `core` | 8 | assistant, dev-companion, workspace, project, onboarding |
-| 🚀 `delivery` | 21 | adr, bug, epic, development-workflow, planning, prd, user-story, work-item |
-| 🎨 `design` | 10 | figma-implement-design, figma-code-connect-components, frontend-design |
-| ⚡ `forge` | 8 | github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, worktree |
-| 🔗 `integrations` | 5 | slack-cli, slack-assistant, linear, clickup-cli, mcp |
-| 📊 `data` | 2 | dbt-validation, snowflake-validation |
-| 🔧 `tooling` | 6 | jupyter-notebook, playwright-cli, herdr, inventory |
-| 🛡️ `ops` | 6 | triage, docs-generator, llm-cost-advisor, swarm |
-| 🔄 `loops` | 1 | loop-runner (see [Loop Engineering](#-loop-engineering) for 10 templates) |
-| 🔐 `agentic-security` | 4 | threat-modeling, owasp-agentic-review, mcp-audit |
-| ☁️ `cloud` | 2 | cloud-design-patterns, aws-well-architected-review |
-| 🏛️ `architecture` | 1 | c4-model |
-| ♿ `accessibility` | 1 | review |
-| ✅ `quality` | 5 | megalinter, megalinter-setup, megalinter-check, megalinter-fix, codeql |
+| Domain | Key Skills |
+|--------|------------|
+| 🧠 `core` | assistant, dev-companion, workspace, project, onboarding |
+| 🚀 `delivery` | adr, bug, epic, development-workflow, planning, prd, user-story, work-item |
+| 🎨 `design` | figma-implement-design, figma-code-connect-components, frontend-design |
+| ⚡ `forge` | github-cli-workflow, gitlab-cli-workflow, gh-fix-ci, worktree |
+| 🔗 `integrations` | slack-cli, slack-assistant, linear, clickup-cli, mcp, jira-*, confluence-* |
+| 📊 `data` | dbt-validation, snowflake-validation |
+| 🔧 `tooling` | jupyter-notebook, playwright-cli, herdr, inventory |
+| 🛡️ `ops` | triage, docs-generator, llm-cost-advisor, swarm |
+| 🔄 `loops` | loop-runner (see [Loop Engineering](#-loop-engineering) for 10 templates) |
+| 🔐 `agentic-security` | threat-modeling, owasp-agentic-review, mcp-audit |
+| ☁️ `cloud` | cloud-design-patterns, aws-well-architected-review |
+| 🏛️ `architecture` | architecture-diagram, c4-model |
+| ♿ `accessibility` | review |
+| ✅ `quality` | megalinter, megalinter-setup, megalinter-check, megalinter-fix, codeql, blast-radius |
 
 Browse the full catalog: [`catalogs/skill-catalog.yaml`](catalogs/skill-catalog.yaml) · **membership matrix** [`docs/SKILL_PRODUCT_MATRIX.md`](docs/SKILL_PRODUCT_MATRIX.md) (`scripts/generate-skill-matrix.vsh --check` in CI) · regenerate with `./scripts/validate-skills.vsh` (CI) and inspect live inventory via `agent-toolkit inventory` (counts shown in badges above are generic — use inventory for accurate numbers)
 
