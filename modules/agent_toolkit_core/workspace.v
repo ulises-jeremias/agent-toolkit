@@ -1,5 +1,6 @@
 module agent_toolkit_core
 
+import json
 import os
 import time
 
@@ -625,6 +626,16 @@ fn workspace_history(opts WorkspaceOptions) WorkspaceReport {
 	}
 	history_file := os.join_path(ws, '.persona-history')
 	if !os.is_file(history_file) {
+		if opts.json_out {
+			return WorkspaceReport{
+				ok:      true
+				message: json.encode([]string{})
+				data:    {
+					'subcommand': 'history'
+					'count':      '0'
+				}
+			}
+		}
 		return WorkspaceReport{
 			ok:      true
 			message: 'No persona transitions recorded yet.'
@@ -637,6 +648,16 @@ fn workspace_history(opts WorkspaceOptions) WorkspaceReport {
 	all := lines.split_into_lines().filter(it.len > 0)
 	start := if all.len > count { all.len - count } else { 0 }
 	recent := all[start..]
+	if opts.json_out {
+		return WorkspaceReport{
+			ok:      true
+			message: json.encode(recent)
+			data:    {
+				'subcommand': 'history'
+				'count':      '${recent.len}'
+			}
+		}
+	}
 	mut out := []string{}
 	out << 'Recent persona transitions (last ${recent.len}):'
 	out << ''
@@ -656,6 +677,76 @@ fn workspace_history(opts WorkspaceOptions) WorkspaceReport {
 fn workspace_personas(opts WorkspaceOptions) WorkspaceReport {
 	ws := find_workspace_root(opts.workspace_path) or { return missing_workspace(opts.subcommand) }
 	dir := os.join_path(ws, 'personas')
+	if opts.json_out {
+		if !os.is_dir(dir) {
+			return WorkspaceReport{
+				ok:      true
+				message: json.encode([]string{})
+				data:    {
+					'subcommand': 'personas'
+					'count':      '0'
+				}
+			}
+		}
+		entries := os.ls(dir) or { []string{} }
+		mut names := []string{}
+		for e in entries {
+			if e.ends_with('.md') {
+				names << e.all_before_last('.md')
+			}
+		}
+		names.sort()
+		if names.len == 0 {
+			return WorkspaceReport{
+				ok:      true
+				message: json.encode([]string{})
+				data:    {
+					'subcommand': 'personas'
+					'count':      '0'
+				}
+			}
+		}
+		mut items := []string{}
+		for name in names {
+			meta := load_persona_meta(ws, name)
+			// build JSON object manually to ensure proper escaping
+			mut allow_json := '['
+			for i, a in meta.allow {
+				if i > 0 {
+					allow_json += ','
+				}
+				allow_json += '"${workspace_json_escape(a)}"'
+			}
+			allow_json += ']'
+			mut deny_json := '['
+			for i, d in meta.deny {
+				if i > 0 {
+					deny_json += ','
+				}
+				deny_json += '"${workspace_json_escape(d)}"'
+			}
+			deny_json += ']'
+			mut handoffs_json := '['
+			for i, h in meta.handoff_to {
+				if i > 0 {
+					handoffs_json += ','
+				}
+				handoffs_json += '"${workspace_json_escape(h)}"'
+			}
+			handoffs_json += ']'
+			fmt_json := '"${workspace_json_escape(meta.output_format)}"'
+			items << '{"name":"${workspace_json_escape(name)}","allow":${allow_json},"deny":${deny_json},"format":${fmt_json},"handoffs":${handoffs_json}}'
+		}
+		json_msg := '[' + items.join(',') + ']'
+		return WorkspaceReport{
+			ok:      true
+			message: json_msg
+			data:    {
+				'subcommand': 'personas'
+				'count':      '${names.len}'
+			}
+		}
+	}
 	mut lines := []string{}
 	lines << '── Available Personas ─────────────────────────────────────'
 	if !os.is_dir(dir) {
