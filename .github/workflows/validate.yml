@@ -886,20 +886,10 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf /tmp/play-e2e && mkdir -p /tmp/play-e2e
-          cat > /tmp/play-e2e/app.py <<'PYEOF'
-          from fastapi import FastAPI
-          app = FastAPI()
-          @app.get("/health")
-          def health(): return {"status":"ok"}
-          PYEOF
-          mkdir -p /tmp/play-e2e/tests && cat > /tmp/play-e2e/tests/test_health.py <<'PYEOF'
-          import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
-          from fastapi.testclient import TestClient; from app import app; client=TestClient(app)
-          def test_health(): assert client.get("/health").json()=={"status":"ok"}
-          PYEOF
-          cat > /tmp/play-e2e/.gitignore <<'PYEOF'
-          .agent-toolkit/
-          PYEOF
+          printf 'from fastapi import FastAPI\napp = FastAPI()\n@app.get("/health")\ndef health(): return {"status":"ok"}\n' > /tmp/play-e2e/app.py
+          mkdir -p /tmp/play-e2e/tests
+          printf 'import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))\nfrom fastapi.testclient import TestClient; from app import app; client=TestClient(app)\ndef test_health(): assert client.get("/health").json()=={"status":"ok"}\n' > /tmp/play-e2e/tests/test_health.py
+          printf '.agent-toolkit/\n' > /tmp/play-e2e/.gitignore
           git -C /tmp/play-e2e init -q; git -C /tmp/play-e2e config user.email "ci@test.com"; git -C /tmp/play-e2e config user.name "CI"; git -C /tmp/play-e2e add .; git -C /tmp/play-e2e commit -qm "feat: health baseline"
           # Use headless for filesystem SoT in CI (herdr not installed on CI runners)
           ./build/agent-toolkit swarm start --recipe pair --backend headless --runner skeleton --model-profile balanced "Add a health check endpoint with tests" 2>&1 | tee /tmp/swarm-real.log
