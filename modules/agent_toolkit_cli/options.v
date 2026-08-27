@@ -791,9 +791,15 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut blocking := false
 	mut role := ''
 	mut handoff_id := ''
+	mut older_than := ''
 	mut i := 0
 	for i < args.len {
 		a := args[i]
+		if a in ['--help', '-h', 'help'] && sub in ['prune', 'cleanup'] {
+			handoff_sub = 'help'
+			i++
+			continue
+		}
 		if a in ['--json', '--quiet'] {
 			if a == '--json' {
 				json_output = true
@@ -872,6 +878,19 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		}
 		if a.starts_with('--base-ref=') {
 			base_ref = a.all_after('=')
+			i++
+			continue
+		}
+		if a == '--older-than' || a == '--older_than' {
+			if i + 1 >= args.len {
+				return error('--older-than requires an argument')
+			}
+			older_than = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--older-than=') || a.starts_with('--older_than=') {
+			older_than = a.all_after('=')
 			i++
 			continue
 		}
@@ -1170,6 +1189,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		role:           role
 		handoff_id:     handoff_id
 		to_recipe:      to_recipe
+		older_than:     older_than
 	}
 }
 

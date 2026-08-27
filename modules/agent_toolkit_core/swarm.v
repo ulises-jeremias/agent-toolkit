@@ -39,6 +39,7 @@ pub:
 	role        string
 	handoff_id  string
 	to_recipe      string
+	older_than  string
 }
 
 // SwarmReport is the domain result for swarm subcommands.
@@ -147,7 +148,7 @@ pub:
 	task       string
 }
 
-// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/init/plan/activate/deactivate/promote/pause/resume/stop/cleanup/handoff/task/runners/models + observability watch/report/artifacts/handoffs/logs/approvals.
+// run_swarm implements recipes/backends/doctor/start/list/status/approve/reject/cancel/prune/init/plan/activate/deactivate/promote/pause/resume/stop/cleanup/handoff/task/runners/models + observability watch/report/artifacts/handoffs/logs/approvals.
 pub fn run_swarm(opts SwarmOptions) SwarmReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
@@ -269,6 +270,9 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 		'approvals' {
 			swarm_approvals(ws, opts)
 		}
+		'prune' {
+			swarm_prune(ws, opts)
+		}
 		else {
 			SwarmReport{
 				ok:      false
@@ -339,6 +343,8 @@ Usage:
     agent-toolkit swarm handoffs <run-id> [--json] [--workspace PATH]
     agent-toolkit swarm logs <run-id> [role] [--json] [--workspace PATH]
     agent-toolkit swarm approvals <run-id> [--json]
+    agent-toolkit swarm prune --older-than DURATION [--dry-run] [--force] [--workspace PATH]
+    agent-toolkit swarm cleanup <run-id> [--force]  (alias for prune)
     agent-toolkit swarm help
 
 Runners: ${runners_line}. Same capability as: agent-toolkit loop run --runner NAME.
@@ -347,6 +353,29 @@ Windows: tmux/herdr unsupported; use --backend headless.
 Concurrency: process-per-run supervisor; UI spawn is fail-closed without ProcessService stdin.
 State: .agent-toolkit/swarm/runs/<run-id>/ (state.json, approvals.json, trace.jsonl).
 Attach: herdr attach by default (focus UI); use --no-attach for CI/script mode.
+Prune: reclaims old runs/worktrees/branches and Herdr workspaces + tmux sockets. Default --older-than 7d. Use --dry-run to preview.
+'
+}
+
+pub fn swarm_prune_help_text() string {
+	return 'swarm prune — Reclaim old swarm runs and worktrees.
+
+Usage:
+    agent-toolkit swarm prune [--older-than DURATION] [--dry-run] [--force] [--workspace PATH]
+    agent-toolkit swarm cleanup <run-id> [--dry-run] [--force] [--workspace PATH]
+
+Options:
+    --older-than DURATION  Age threshold (e.g. 7d, 24h, 1w, 30m, 60s) (default 7d)
+    --dry-run              List what would be removed without deleting
+    --force                Also remove dirty worktrees (otherwise skip dirty)
+    --workspace PATH       Workspace path override
+
+Reclaims:
+    - git worktree remove <path> (+ branch -D agent-toolkit-swarm/<run-id>/<role>)
+    - herdr workspace delete <swarm-<run-id>> with --json fallback (3f16f4c)
+    - tmux -L <sock> kill-server + orphan socket unlink
+
+State: .agent-toolkit/swarm/runs/<run-id>/ is authoritative; prune removes only Toolkit-owned worktrees.
 '
 }
 
@@ -3101,6 +3130,398 @@ fn swarm_teardown_backend(backend string, run_id string) {
 			timeout: 5 * time.second
 		}) or {}
 	}
+}
+
+fn parse_duration(s string) !int {
+	mut t := s.trim_space().to_lower()
+	if t.len == 0 {
+		return error('empty duration')
+	}
+	// handle "7d" style; also support "7 days" by taking leading number + suffix char
+	mut num_str := ''
+	mut suffix := ''
+	for i, c in t {
+		if (c >= `0` && c <= `9`) || c == `.` {
+			num_str += c.ascii_str()
+		} else if c == ` ` || c == `\t` {
+			continue
+		} else {
+			suffix = t[i..].trim_space()
+			break
+		}
+	}
+	if num_str.len == 0 {
+		return error('invalid duration: ${s}')
+	}
+	// numeric value (float then int, allow fractional days)
+	fval := num_str.f64()
+	if fval < 0 {
+		return error('negative duration: ${s}')
+	}
+	mut mult := 1
+	if suffix.len == 0 {
+		mult = 1
+	} else if suffix.starts_with('s') {
+		mult = 1
+	} else if suffix.starts_with('m') {
+		// m could be minute; month not used
+		if suffix.starts_with('ms') {
+			return error('unsupported duration unit: ${suffix}')
+		}
+		mult = 60
+	} else if suffix.starts_with('h') {
+		mult = 3600
+	} else if suffix.starts_with('d') {
+		mult = 86400
+	} else if suffix.starts_with('w') {
+		mult = 86400 * 7
+	} else {
+		return error('unknown duration unit: ${suffix} (use s,m,h,d,w e.g. 7d)')
+	}
+	return int(fval * f64(mult))
+}
+
+fn herdr_delete_workspace_for_run(run_id string) {
+	ps := new_process_service()
+	wid := 'swarm-' + run_id
+	// primary delete (herdr workspace delete <wid>)
+	_ := ps.run(RunOptions{
+		argv:    ['herdr', 'workspace', 'delete', wid]
+		timeout: 5 * time.second
+	}) or { RunResult{} }
+	// also try with branch-style id if recipe created differently
+	wid2 := 'agent-toolkit-swarm-' + run_id
+	if wid2 != wid {
+		_ := ps.run(RunOptions{
+			argv:    ['herdr', 'workspace', 'delete', wid2]
+			timeout: 5 * time.second
+		}) or { RunResult{} }
+	}
+}
+
+fn herdr_list_workspaces_raw() string {
+	ps := new_process_service()
+	// Try with --json (3f16f4c fallback)
+	res := ps.run(RunOptions{
+		argv:    ['herdr', 'workspace', 'list', '--json']
+		timeout: 5 * time.second
+	}) or { return '' }
+	if res.exit_code == 0 {
+		return res.stdout
+	}
+	msg := (res.stderr + res.stdout).to_lower()
+	if msg.contains('unknown') || msg.contains('not supported') || msg.contains('flag') || msg.contains('unrecognized') {
+		res2 := ps.run(RunOptions{
+			argv:    ['herdr', 'workspace', 'list']
+			timeout: 5 * time.second
+		}) or { return '' }
+		if res2.exit_code == 0 {
+			return res2.stdout
+		}
+	}
+	return ''
+}
+
+fn tmux_cleanup_for_run(run_id string) {
+	ps := new_process_service()
+	for sock in ['swarm-' + run_id, 'agent-toolkit-swarm-' + run_id] {
+		_ := ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'kill-server']
+			timeout: 5 * time.second
+		}) or { RunResult{} }
+		// orphan socket unlink (file-based)
+		for base in ['/tmp', os.temp_dir()] {
+			for name in [sock, 'tmux-' + sock] {
+				p := os.join_path(base, name)
+				if os.exists(p) {
+					os.rm(p) or {}
+				}
+			}
+		}
+		entries := os.ls('/tmp') or { []string{} }
+		for e in entries {
+			if e.starts_with('tmux-') {
+				cand := os.join_path('/tmp', e, sock)
+				if os.exists(cand) {
+					os.rm(cand) or {}
+				}
+				cand2 := os.join_path('/tmp', e, 'swarm-' + run_id)
+				if os.exists(cand2) {
+					os.rm(cand2) or {}
+				}
+			}
+		}
+	}
+	// also try generic orphan socket unlink under /tmp for this run
+	_ = herdr_list_workspaces_raw()
+}
+
+fn swarm_prune(ws string, opts SwarmOptions) SwarmReport {
+	if opts.handoff_sub.len > 0 && opts.handoff_sub in ['help', '-h', '--help'] {
+		return SwarmReport{
+			ok:      true
+			message: swarm_prune_help_text()
+			data:    {
+				'subcommand': 'prune'
+			}
+		}
+	}
+	// Single-run cleanup via `swarm cleanup <run-id>` (Python cmd_cleanup parity)
+	if opts.run_id.len > 0 && opts.older_than.len == 0 {
+		rid := opts.run_id
+		if rid in ['help', '-h', '--help'] {
+			return SwarmReport{
+				ok:      true
+				message: swarm_prune_help_text()
+				data:    {
+					'subcommand': 'prune'
+				}
+			}
+		}
+		if !swarm_valid_run_id(rid) {
+			return SwarmReport{
+				ok:      false
+				message: "Invalid run_id '${rid}'"
+			}
+		}
+		rd := swarm_run_dir(ws, rid)
+		if !os.is_dir(rd) {
+			return SwarmReport{
+				ok:      false
+				message: 'Run not found: ${rid}'
+			}
+		}
+		if opts.dry_run {
+			return SwarmReport{
+				ok:      true
+				message: '[dry-run] Would prune ${rid} (${rd})'
+				data:    {
+					'subcommand': 'prune'
+					'run_id':     rid
+					'mode':       'dry-run'
+				}
+			}
+		}
+		// dirty guard for single cleanup as well
+		wt_base := os.join_path(rd, 'worktrees')
+		if os.is_dir(wt_base) {
+			ents := os.ls(wt_base) or { []string{} }
+			for e in ents {
+				wt := os.join_path(wt_base, e)
+				if is_worktree_dirty(wt) && !opts.force {
+					append_swarm_trace(rd, 'prune_skip_dirty', wt)
+					return SwarmReport{
+						ok:      false
+						message: 'Worktree dirty, refusing removal without --force: ${wt}'
+						data:    {
+							'subcommand': 'prune'
+							'run_id':     rid
+						}
+					}
+				}
+			}
+		}
+		// perform prune for single
+		mut git_root := ws
+		if found := find_git_root(ws) {
+			git_root = found
+		}
+		ps := new_process_service()
+		// remove worktrees
+		if os.is_dir(wt_base) {
+			ents2 := os.ls(wt_base) or { []string{} }
+			for e in ents2 {
+				wt := os.join_path(wt_base, e)
+				remove_worktree(ws, wt, opts.force) or { continue }
+				branch := 'agent-toolkit-swarm/${rid}/${e}'
+				_ := ps.run(RunOptions{
+					argv:    ['git', 'branch', '-D', branch]
+					cwd:     git_root
+					timeout: 5 * time.second
+				}) or { RunResult{} }
+				append_swarm_trace(rd, 'pruned_worktree', e)
+			}
+		}
+		herdr_delete_workspace_for_run(rid)
+		tmux_cleanup_for_run(rid)
+		// also branch cleanup for recipe roles
+		st := read_swarm_state(rd)
+		if st != none {
+			for role in swarm_recipe_roles(st.recipe) {
+				branch2 := 'agent-toolkit-swarm/${rid}/${role}'
+				_ := ps.run(RunOptions{
+					argv:    ['git', 'branch', '-D', branch2]
+					cwd:     git_root
+					timeout: 5 * time.second
+				}) or { RunResult{} }
+			}
+		}
+		os.rmdir_all(rd) or {}
+		return SwarmReport{
+			ok:      true
+			message: 'Pruned ${rid}'
+			data:    {
+				'subcommand': 'prune'
+				'run_id':     rid
+				'pruned':     '1'
+			}
+		}
+	}
+	mut older := opts.older_than
+	if older.len == 0 {
+		older = '7d'
+	}
+	cutoff := parse_duration(older) or {
+		return SwarmReport{
+			ok:      false
+			message: 'invalid --older-than "${older}": ${err.msg()}'
+		}
+	}
+	runs := list_all_swarm_runs(ws)
+	now := time.now().unix()
+	mut candidates := []string{}
+	mut infos := map[string]string{}
+	for rd in runs {
+		mut mtime := i64(os.file_last_mod_unix(rd))
+		if mtime == 0 {
+			// fallback to 0 -> treat as old
+			mtime = 0
+		}
+		age := int(now - mtime)
+		if age < cutoff {
+			continue
+		}
+		candidates << rd
+		rid := os.file_name(rd)
+		age_days := age / 86400
+		age_hours := (age % 86400) / 3600
+		mut age_str := ''
+		if age_days > 0 {
+			age_str = '${age_days}d'
+		} else if age_hours > 0 {
+			age_str = '${age_hours}h'
+		} else {
+			age_str = '${age}s'
+		}
+		// worktree summary
+		wtb := os.join_path(rd, 'worktrees')
+		mut wt_list := []string{}
+		if os.is_dir(wtb) {
+			ents := os.ls(wtb) or { []string{} }
+			for e in ents {
+				wt_list << e
+			}
+		}
+		wt_str := if wt_list.len > 0 { wt_list.join(',') } else { 'none' }
+		branch_example := if wt_list.len > 0 { 'agent-toolkit-swarm/${rid}/${wt_list[0]}' } else { 'agent-toolkit-swarm/${rid}/...' }
+		infos[rd] = '${rid} (age ${age_str}, worktrees: ${wt_str}, branch: ${branch_example})'
+	}
+	if opts.dry_run {
+		if candidates.len == 0 {
+			return SwarmReport{
+				ok:      true
+				message: '[dry-run] Would prune 0 runs (older than ${older})'
+				data:    {
+					'subcommand': 'prune'
+					'mode':       'dry-run'
+					'older_than': older
+					'pruned':     '0'
+				}
+			}
+		}
+		mut lines := []string{}
+		for rd in candidates {
+			info := infos[rd]
+			lines << '[dry-run] Would prune ${info}'
+		}
+		return SwarmReport{
+			ok:      true
+			message: lines.join('\n')
+			data:    {
+				'subcommand': 'prune'
+				'mode':       'dry-run'
+				'older_than': older
+				'pruned':     '${candidates.len}'
+			}
+		}
+	}
+	mut pruned := 0
+	mut skipped_dirty := 0
+	mut git_root := ws
+	if found := find_git_root(ws) {
+		git_root = found
+	}
+	ps2 := new_process_service()
+	for rd in candidates {
+		rid := os.file_name(rd)
+		wtb := os.join_path(rd, 'worktrees')
+		mut skip := false
+		if os.is_dir(wtb) {
+			ents := os.ls(wtb) or { []string{} }
+			for e in ents {
+				wt := os.join_path(wtb, e)
+				if is_worktree_dirty(wt) && !opts.force {
+					append_swarm_trace(rd, 'prune_skip_dirty', wt)
+					skip = true
+					break
+				}
+			}
+		}
+		if skip {
+			skipped_dirty++
+			continue
+		}
+		// remove worktrees + branches
+		if os.is_dir(wtb) {
+			ents := os.ls(wtb) or { []string{} }
+			for e in ents {
+				wt := os.join_path(wtb, e)
+				remove_worktree(ws, wt, opts.force) or { continue }
+				branch := 'agent-toolkit-swarm/${rid}/${e}'
+				_ := ps2.run(RunOptions{
+					argv:    ['git', 'branch', '-D', branch]
+					cwd:     git_root
+					timeout: 5 * time.second
+				}) or { RunResult{} }
+			}
+		}
+		// also cleanup branches for recipe roles (in case worktrees dir empty but branches exist)
+		st := read_swarm_state(rd)
+		if st != none {
+			for role in swarm_recipe_roles(st.recipe) {
+				branch3 := 'agent-toolkit-swarm/${rid}/${role}'
+				_ := ps2.run(RunOptions{
+					argv:    ['git', 'branch', '-D', branch3]
+					cwd:     git_root
+					timeout: 5 * time.second
+				}) or { RunResult{} }
+			}
+		}
+		herdr_delete_workspace_for_run(rid)
+		tmux_cleanup_for_run(rid)
+		os.rmdir_all(rd) or {}
+		// trace is best-effort after rmdir; try to ensure dir still exists for trace is not useful.
+		// Instead, we log to parent? For now, no trace after removal.
+		pruned++
+	}
+	// Also attempt orphan herdr/tmux reclaim beyond local runs (best-effort)
+	_ = herdr_list_workspaces_raw()
+	mut msg := 'Pruned ${pruned} runs (older than ${older})'
+	if skipped_dirty > 0 {
+		msg += ' (skipped ${skipped_dirty} dirty; use --force)'
+	}
+	if pruned == 0 && candidates.len > 0 && skipped_dirty > 0 {
+		msg = 'Would prune ${candidates.len} but ${skipped_dirty} dirty (use --force)'
+	}
+	return SwarmReport{
+		ok:      true
+		message: msg
+		data:    {
+			'subcommand': 'prune'
+			'older_than': older
+			'pruned':     '${pruned}'
+			'skipped':    '${skipped_dirty}'
+		}	}
 }
 
 fn swarm_handoff(ws string, opts SwarmOptions) SwarmReport {

@@ -1036,8 +1036,18 @@ fn swarm_command() cli.Command {
 				description: 'Attach to a swarm workspace (blocks)'
 				execute:     atk_exec
 			},
+			cli.Command{
+				name:        'prune'
+				description: 'Reclaim old swarm runs/worktrees (default --older-than 7d) [--dry-run] [--force]'
+				execute:     atk_exec
+			},
 		]
 		flags:       [
+			cli.Flag{
+				flag:        .string
+				name:        'older-than'
+				description: 'Age threshold for prune (e.g. 7d, 24h, 1w, 30m) (default 7d)'
+			},
 			cli.Flag{
 				flag:        .bool
 				name:        'dry-run'
