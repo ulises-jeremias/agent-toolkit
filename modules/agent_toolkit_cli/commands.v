@@ -781,6 +781,18 @@ fn insights_command() cli.Command {
 		description: 'AI tool usage insights (removed from product CLI; #526)'
 		execute:     atk_exec
 		group:       'Advanced commands'
+		flags:       [
+			cli.Flag{
+				flag:        .int
+				name:        'days'
+				description: 'Limit to last N days (opencode, claude; parity #906)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'output'
+				description: 'Save report to PATH (parity #906)'
+			},
+		]
 	}
 }
 
