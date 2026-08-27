@@ -48,6 +48,7 @@ from pathlib import Path
 
 import yaml
 from jsonschema import Draft202012Validator
+from referencing import Registry, Resource
 
 REPO_ROOT = Path(__file__).parents[1]
 LOCK_PATH = REPO_ROOT / "capabilities" / "upstream.lock"
@@ -268,13 +269,22 @@ def _validate_lock_schema(data: dict) -> list[str]:
     if not LOCK_SCHEMA_PATH.exists():
         return [f"lock schema not found at {LOCK_SCHEMA_PATH}"]
     schema = json.loads(LOCK_SCHEMA_PATH.read_text(encoding="utf-8"))
-    validator = Draft202012Validator(schema)
+    validator = _lock_schema_validator(schema)
     errors = sorted(validator.iter_errors(data), key=lambda e: list(e.path))
     msgs = []
     for e in errors:
         loc = ".".join(str(p) for p in e.path) or "(root)"
         msgs.append(f"lock schema: {loc}: {e.message}")
     return msgs
+
+
+def _lock_schema_validator(schema: dict) -> Draft202012Validator:
+    """Build an offline validator for a lock schema with local upstream refs."""
+    upstream_schema = json.loads(UPSTREAM_SCHEMA_PATH.read_text(encoding="utf-8"))
+    upstream_resource = Resource.from_contents(upstream_schema)
+    registry = Registry().with_resource("upstream.schema.json", upstream_resource)
+    registry = registry.with_resource(upstream_schema["$id"], upstream_resource)
+    return Draft202012Validator(schema, registry=registry)
 
 
 def _discover_declarations() -> dict[str, dict]:
