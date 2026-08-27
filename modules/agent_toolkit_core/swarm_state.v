@@ -390,3 +390,35 @@ pub const builtin_recipes = {
 		ui_backend: 'herdr'
 	}
 }
+
+pub struct Budget {
+pub mut:
+	max_total_tokens int
+	max_cost_usd     f64
+	max_wall_seconds int
+	max_concurrency  int
+}
+
+pub struct BudgetConsumed {
+pub mut:
+	total_tokens int
+	total_cost   f64
+}
+
+pub fn recipe_budget(recipe string) Budget {
+	base := Budget{
+		max_total_tokens: 900000
+		max_cost_usd:     4.0
+		max_wall_seconds: 7200
+		max_concurrency:  1
+	}
+	if recipe == 'full' {
+		return Budget{
+			max_total_tokens: base.max_total_tokens
+			max_cost_usd:     base.max_cost_usd
+			max_wall_seconds: base.max_wall_seconds
+			max_concurrency:  2
+		}
+	}
+	return base
+}

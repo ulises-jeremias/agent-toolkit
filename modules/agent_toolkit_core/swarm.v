@@ -59,17 +59,19 @@ pub:
 
 struct SwarmStateFile {
 pub mut:
-	version       int
-	run_id        string
-	recipe        string
-	backend       string
-	runner        string
-	model_profile string
-	run_state     string
-	created_at    string
-	task          string
-	active_roles []string
-	worktrees  []SwarmWorktree
+	version         int
+	run_id          string
+	recipe          string
+	backend         string
+	runner          string
+	model_profile   string
+	run_state       string
+	created_at      string
+	task            string
+	budget          Budget
+	budget_consumed BudgetConsumed
+	active_roles    []string
+	worktrees       []SwarmWorktree
 }
 
 struct SwarmApprovalsFile {
@@ -390,13 +392,20 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		gates_str := if recipe.gates.len > 0 { recipe.gates.join(', ') } else { 'none' }
 		execution_str := 'max_concurrency=${recipe.execution.max_concurrency} lazy_start=${recipe.execution.lazy_start}'
 		budget_str := '${recipe.budget.max_total_tokens} tokens / \$${recipe.budget.max_cost_usd:.2f} / ${recipe.budget.max_wall_seconds}s'
+		b := recipe_budget(name)
+		bj := json.encode(b)
 		return SwarmReport{
 			ok:      true
-			message: '${name}\t${recipe.description}\nroles: ${roles}\nexecution: ${execution_str}\ngates: ${gates_str}\nbudget: ${budget_str}'
+			message: '${name}\t${recipe.description}\nroles: ${roles}\nexecution: ${execution_str}\ngates: ${gates_str}\nbudget: ${budget_str}\nbudget_json: ${bj}'
 			data:    {
-				'subcommand': 'recipes'
-				'recipe':     name
-				'roles':      roles
+				'subcommand':       'recipes'
+				'recipe':           name
+				'roles':            roles
+				'budget':           bj
+				'max_total_tokens': b.max_total_tokens.str()
+				'max_cost_usd':     b.max_cost_usd.str()
+				'max_wall_seconds': b.max_wall_seconds.str()
+				'max_concurrency':  b.max_concurrency.str()
 			}
 		}
 	}
@@ -413,18 +422,23 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 	}
 	mut lines := []string{}
 	for n in names {
+		b := recipe_budget(n)
 		if r := builtin_recipes[n] {
-			lines << '${n}\t${r.description}'
+			lines << '${n}\t${r.description}\tbudget: ${json.encode(b)}'
 		} else {
-			lines << '${n}\t${swarm_recipe_description(n)}'
+			lines << '${n}\t${swarm_recipe_description(n)}\tbudget: ${json.encode(b)}'
 		}
 	}
 	return SwarmReport{
 		ok:      true
 		message: lines.join('\n')
 		data:    {
-			'subcommand': 'recipes'
-			'recipes':    names.join(',')
+			'subcommand':  'recipes'
+			'recipes':     names.join(',')
+			'pair_budget': json.encode(recipe_budget('pair'))
+			'team_budget': json.encode(recipe_budget('team'))
+			'full_budget': json.encode(recipe_budget('full'))
+			'budget':      json.encode(recipe_budget('pair'))
 		}
 	}
 }
@@ -804,17 +818,19 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		append_swarm_trace(run_dir, 'worktree_created', role + ':' + wt.branch + ':' + wt.path)
 	}
 	mut st := SwarmStateFile{
-		version:       swarm_state_version
-		run_id:        rid
-		recipe:        recipe
-		backend:       backend
-		runner:        runner
-		model_profile: model_profile
-		run_state:     initial
-		created_at:    time.utc().format_rfc3339()
-		task:          opts.task
-		active_roles:  []string{}
-		worktrees:     created_wts
+		version:         swarm_state_version
+		run_id:          rid
+		recipe:          recipe
+		backend:         backend
+		runner:          runner
+		model_profile:   model_profile
+		run_state:       initial
+		created_at:      time.utc().format_rfc3339()
+		task:            opts.task
+		budget:          recipe_budget(recipe)
+		budget_consumed: BudgetConsumed{}
+		active_roles:    []string{}
+		worktrees:       created_wts
 	}
 	write_swarm_state(run_dir, st) or {
 		return SwarmReport{
@@ -837,6 +853,16 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		append_swarm_trace(run_dir, 'prompt_composed', role)
 	}
 	append_swarm_trace(run_dir, 'run_created', rid)
+	if _ := check_budget(run_dir) {
+		if swarm_can_transition(initial, 'budget_exhausted') {
+			ns := SwarmStateFile{
+				...st
+				run_state: 'budget_exhausted'
+			}
+			write_swarm_state(run_dir, ns) or {}
+			append_swarm_trace(run_dir, 'budget_exhausted', rid)
+		}
+	}
 	// Herdr UI spawn (ADR-008: UI is adapter, not engine). Only when --attach and not dry-run.
 	mut herdr_note := ''
 	if opts.attach && !opts.no_attach && backend == 'herdr' {
@@ -1240,17 +1266,38 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
+	mut b := st.budget
+	if b.max_total_tokens == 0 {
+		b = recipe_budget(st.recipe)
+	}
+	created := time.parse_rfc3339(st.created_at) or { time.utc() }
+	wall := int(time.utc().unix() - created.unix())
+	bj := json.encode(b)
+	bc := st.budget_consumed
+	bcj := json.encode(bc)
+	msg += '\nbudget: ${bj} consumed: ${bcj} wall_seconds: ${wall}'
+	if wt_data.len > 0 && !msg.contains('worktrees:') {
+		msg += '\nworktrees: ${wt_data}'
+	}
 	return SwarmReport{
 		ok:      true
 		message: msg
 		data:    {
-			'subcommand': 'status'
-			'run_id':     st.run_id
-			'recipe':     st.recipe
-			'backend':    st.backend
-			'run_state':  st.run_state
-			'gates':      gtxt.join(',')
-			'worktrees':  wt_data
+			'subcommand':       'status'
+			'run_id':           st.run_id
+			'recipe':           st.recipe
+			'backend':          st.backend
+			'run_state':        st.run_state
+			'gates':            gtxt.join(',')
+			'worktrees':        wt_data
+			'budget':           bj
+			'budget_consumed':  bcj
+			'max_total_tokens': b.max_total_tokens.str()
+			'total_tokens':     bc.total_tokens.str()
+			'max_cost_usd':     b.max_cost_usd.str()
+			'total_cost':       bc.total_cost.str()
+			'max_wall_seconds': b.max_wall_seconds.str()
+			'wall_seconds':     wall.str()
 		}
 	}
 }
@@ -2884,6 +2931,29 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 	}
+	if _ := check_budget(rd) {
+		if swarm_can_transition(st.run_state, 'budget_exhausted') {
+			ns := SwarmStateFile{
+				...st
+				run_state: 'budget_exhausted'
+			}
+			write_swarm_state(rd, ns) or {}
+			append_swarm_trace(rd, 'budget_exhausted', run_id)
+		}
+		mut b := st.budget
+		if b.max_total_tokens == 0 {
+			b = recipe_budget(st.recipe)
+		}
+		return SwarmReport{
+			ok:      false
+			message: 'budget_exhausted: run ${run_id} has exceeded budget (max_total_tokens=${b.max_total_tokens} max_cost_usd=${b.max_cost_usd} max_wall_seconds=${b.max_wall_seconds})'
+			data:    {
+				'subcommand': 'handoff'
+				'run_id':     run_id
+				'run_state':  'budget_exhausted'
+			}
+		}
+	}
 	mut roles := swarm_recipe_roles(st.recipe)
 	if roles.len == 0 {
 		roles = ['implementer', 'reviewer', 'integrator']
@@ -3261,6 +3331,20 @@ fn read_swarm_state(run_dir string) ?SwarmStateFile {
 		migrate_swarm_state(mut st)
 	}
 	return st
+}
+
+fn check_budget(run_dir string) ?string {
+	st := read_swarm_state(run_dir) or { return none }
+	mut b := st.budget
+	if b.max_total_tokens == 0 {
+		b = recipe_budget(st.recipe)
+	}
+	created := time.parse_rfc3339(st.created_at) or { time.utc() }
+	wall := int(time.utc().unix() - created.unix())
+	if st.budget_consumed.total_tokens >= b.max_total_tokens || st.budget_consumed.total_cost >= b.max_cost_usd || wall >= b.max_wall_seconds {
+		return 'budget_exhausted'
+	}
+	return none
 }
 
 fn write_swarm_approvals(run_dir string, gates []SwarmGate) ! {
