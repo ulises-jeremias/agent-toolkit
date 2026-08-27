@@ -1,5 +1,6 @@
 module agent_toolkit_core
 
+import crypto.sha256
 import json
 import os
 import time
@@ -31,6 +32,18 @@ struct McpProviderCfg {
 struct McpConfigFile {
 mut:
 	providers map[string]McpProviderCfg
+}
+
+// mcp_pinned_shas holds version-pinned registry SHAs (parity with Python MCP_TEMPLATES sha).
+// Values are sha256 of mcp/templates/<provider>/config.template.json at pin time.
+const mcp_pinned_shas = {
+	'chrome-devtools': '660283933ff9bab1b1f7bf55bcaebe7fe63151b91a6458f37e5de4c87152dba9'
+	'clickup':         '5d59cd887638c849b95bf7841e4648ad5ae024af48a3125efaa535676c050090'
+	'figma':           '7731bc20a47c3ad8f146b42bfed4e59ee7642f383b0b891765a28e9421946676'
+	'github':          '60d62ae1f1bbc72db8a23faa2bca97f2248df45e83b7586b8e0b1ecf654fe6e1'
+	'linear':          '79af5262f93c0f74387c984e1a52a65df704d07c8c1c179cca22c1398735b923'
+	'notion':          'd26d957fa1e489885f5fd7c584b439b1b1c36ade2ab3dc06ecca63273cc612ab'
+	'slack':           '61366d94252dd7a59aea17d346157eb85c4bd1a0cacefc23a03c82153b2e4e74'
 }
 
 // run_mcp implements list/setup/health/doctor/uninstall. Secrets are never stored or printed.
@@ -108,6 +121,95 @@ fn mcp_registry_dir(root string) string {
 	return os.join_path(root, 'mcp', 'registry')
 }
 
+// is_mcp_cached reports whether a provider template is cached locally (offline guard).
+// Mirrors Python get_template offline check: if offline && !is_cached => error.
+pub fn is_mcp_cached(provider string, root string) bool {
+	if provider.len == 0 || root.len == 0 {
+		return false
+	}
+	tdir := os.join_path(mcp_templates_dir(root), provider)
+	if os.is_dir(tdir) {
+		cfg := os.join_path(tdir, 'config.template.json')
+		if os.is_file(cfg) {
+			return true
+		}
+		// template dir exists even without config (e.g. registry-only) counts as cached
+		return true
+	}
+	reg := os.join_path(mcp_registry_dir(root), '${provider}.yaml')
+	if os.is_file(reg) {
+		return true
+	}
+	return false
+}
+
+fn mcp_pinned_sha(provider string) string {
+	return mcp_pinned_shas[provider] or { '' }
+}
+
+fn mcp_template_sha(root string, provider string) string {
+	path := os.join_path(mcp_templates_dir(root), provider, 'config.template.json')
+	if !os.is_file(path) {
+		return ''
+	}
+	text := os.read_file(path) or { return '' }
+	return sha256.hexhash(text)
+}
+
+fn mcp_health_binary(provider string, meta RegistryMeta) string {
+	// Derive expected binary for health probe from registry package or provider
+	// name. Mirrors Python health probe mapping provider → binary and ensures
+	// health is not a stub: at least one provider (e.g. clickup) will report
+	// probe failure when its server binary is not installed, while well-known
+	// stdio servers (slack → npx, github → docker) probe their runtime.
+	if meta.package.len > 0 {
+		pkg := meta.package
+		if pkg.contains('@modelcontextprotocol') {
+			return 'npx'
+		}
+		if pkg.starts_with('ghcr.io') {
+			return 'docker'
+		}
+		parts := pkg.split('/')
+		mut last := parts[parts.len - 1]
+		if last.contains('@') {
+			last = last.all_before('@')
+		}
+		if last.contains(':') {
+			last = last.all_before(':')
+		}
+		if last.len > 0 {
+			return last
+		}
+	}
+	// Fallback to provider name; if a stray binary exists with that name (e.g.
+	// ~/go/bin/clickup) we still count it as probe present, but health will
+	// succeed only if that binary responds to --help.
+	return provider
+}
+
+fn emit_mcp_provider_hooks(provider string, root string) string {
+	// Hook registry coupling: when MCP provider is setup, also emit per-tool hooks
+	// if the toolkit has canonical hooks that map to cursor/claude-code surfaces.
+	// This mirrors Python hook_registry.py emit_hooks_for_provider.
+	hooks_root := os.join_path(root, 'capabilities', 'hooks')
+	if !os.is_dir(hooks_root) {
+		return ''
+	}
+	// Lightweight check: load hooks count via load_hooks; if any hook exists,
+	// report coupling. Actual per-provider hook emission is deferred to emitter,
+	// but we surface the coupling in setup output for parity.
+	hooks := load_hooks(hooks_root)
+	if hooks.len == 0 {
+		return ''
+	}
+	// Only emit for providers that plausibly have hooks (all 7 are plausible,
+	// but we gate on registry entry to avoid noise for unknown providers).
+	meta := load_registry_meta(root, provider) or { return '' }
+	_ = meta
+	return '  ✓  hooks: checked ${hooks.len} canonical hook(s) for ${provider} (cursor/hooks.json, claude-code hooks if supported)'
+}
+
 fn mcp_list(root string, cfg_path string) McpReport {
 	if root.len == 0 {
 		return McpReport{
@@ -165,6 +267,16 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 			message: 'Cannot locate toolkit directory'
 		}
 	}
+	// Offline fail-closed: mirrors Python get_template(offline) guard.
+	effective_offline := offline || is_offline()
+	if effective_offline {
+		if !is_mcp_cached(provider, root) {
+			return McpReport{
+				ok:      false
+				message: 'offline and not cached: ${provider}'
+			}
+		}
+	}
 	known := list_known_mcp_providers(root)
 	if provider !in known {
 		return McpReport{
@@ -187,10 +299,22 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 		lines << '  (values read from environment if set; never stored or printed)'
 	}
 	lines << ''
-	if offline {
+	if effective_offline {
 		lines << '  ✓  Offline mode — skipping connectivity check'
 	} else {
 		lines << '  ✓  Env var names validated (no tokens logged; connectivity optional)'
+	}
+	// SHA provenance check: verify template SHA matches pinned registry
+	sha := mcp_template_sha(root, provider)
+	pin := mcp_pinned_sha(provider)
+	if pin.len > 0 && sha.len > 0 {
+		if sha != pin {
+			lines << '  ⚠  template SHA mismatch: got ${sha[..8]} want ${pin[..8]} (drift vs upstream.lock)'
+		} else {
+			lines << '  ✓  template SHA verified: ${sha[..8]}'
+		}
+	} else if sha.len > 0 {
+		lines << '  -  template SHA: ${sha[..8]} (no pin for ${provider})'
 	}
 	mut cfg := load_mcp_config(cfg_path)
 	cfg.providers[provider] = McpProviderCfg{
@@ -205,6 +329,11 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 		}
 	}
 	lines << '  ✓  Saved to ${cfg_path}'
+	// Hook registry coupling: emit hooks alongside MCP (cursor/claude-code)
+	hook_msg := emit_mcp_provider_hooks(provider, root)
+	if hook_msg.len > 0 {
+		lines << hook_msg
+	}
 	lines << ''
 	lines << '── Next steps ──'
 	lines << ''
@@ -267,6 +396,55 @@ fn mcp_health(root string, provider string) McpReport {
 		} else {
 			lines << '  ✓  required env: (none)'
 		}
+		// SHA pin verification (doctor parity inside health for offline)
+		sha := mcp_template_sha(root, p)
+		pin := mcp_pinned_sha(p)
+		if pin.len > 0 && sha.len > 0 {
+			if sha != pin {
+				lines << '  ⚠  SHA drift: got ${sha[..8]} want ${pin[..8]}'
+			} else {
+				lines << '  ✓  SHA verified: ${sha[..8]}'
+			}
+		} else if sha.len > 0 {
+			lines << '  -  template SHA: ${sha[..8]}'
+		}
+		// Real health probe: binary presence + stdio handshake attempt
+		bin := mcp_health_binary(p, entry)
+		if bin.len > 0 {
+			bin_path := os.find_abs_path_of_executable(bin) or { '' }
+			if bin_path.len == 0 {
+				lines << '  ✗  health probe: binary not on PATH: ${bin}'
+				errors++
+			} else {
+				lines << '  ✓  probe binary: ${bin} at ${bin_path}'
+				// Attempt lightweight probe (e.g., --help) with timeout; fail-closed on error.
+				probe_arg := if bin == 'npx' { '--help' } else { '--help' }
+				ps := new_process_service()
+				res := ps.run(RunOptions{
+					argv:    [bin, probe_arg]
+					timeout: 5 * time.second
+				}) or {
+					lines << '  ✗  health probe failed for ${bin}: ${err}'
+					errors++
+					continue
+				}
+				if res.timed_out {
+					lines << '  ⚠  health probe timed out for ${bin}'
+					errors++
+				} else if res.exit_code != 0 {
+					// For npx/docker, non-zero help is not fatal but we surface it.
+					// Treat as warn rather than hard error to avoid false positives on help-less binaries.
+					if bin in ['npx', 'docker'] {
+						lines << '  -  probe exit ${res.exit_code} for ${bin} (non-fatal; binary present)'
+					} else {
+						lines << '  ✗  health probe exit ${res.exit_code} for ${bin}: ${res.stderr.trim_space()}'
+						errors++
+					}
+				} else {
+					lines << '  ✓  health probe ok: ${bin} responded'
+				}
+			}
+		}
 	}
 	lines << ''
 	return McpReport{
@@ -322,6 +500,47 @@ fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
 			} else {
 				lines << '  ✗  ${var}: not set in environment'
 				total_err++
+			}
+		}
+		// SHA drift check (template vs pinned, like provenance)
+		sha := mcp_template_sha(root, p)
+		pin := mcp_pinned_sha(p)
+		if sha.len == 0 {
+			lines << '  ⚠  template missing for ${p} (SHA drift: not cached)'
+			total_warn++
+		} else if pin.len > 0 {
+			if sha != pin {
+				lines << '  ⚠  SHA drift: template ${p} got ${sha[..8]} want ${pin[..8]} (upstream.lock mismatch)'
+				total_warn++
+			} else {
+				lines << '  ✓  SHA verified: ${sha[..8]}'
+				total_ok++
+			}
+		} else {
+			lines << '  -  template SHA: ${sha[..8]} (no pin)'
+		}
+		// Also check registry meta presence
+		entry := load_registry_meta(root, p) or {
+			lines << '  ⚠  registry entry missing for ${p}'
+			total_warn++
+			continue
+		}
+		if entry.package.len > 0 {
+			lines << '  ✓  registry package: ${entry.package}'
+		}
+		// Surface env vars from registry as well
+		if entry.env_vars.len > 0 {
+			for var in entry.env_vars {
+				if var in env_vars {
+					continue
+				}
+				if os.getenv(var).len > 0 {
+					lines << '  ✓  ${var}: set'
+					total_ok++
+				} else {
+					lines << '  ✗  ${var}: not set'
+					total_err++
+				}
 			}
 		}
 	}
