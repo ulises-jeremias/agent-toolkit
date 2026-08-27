@@ -64,6 +64,10 @@ fn preflight_bad_flags(args []string) ?int {
 		}
 		if a in ['-h', '--help'] {
 			// Rich family help before parse (parity + nested Command parents).
+			// Defer prune/cleanup detailed help to domain (swarm_prune_help_text)
+			if cmd.name == 'swarm' && peeled.len > 1 && peeled[1] in ['prune', 'cleanup'] {
+				continue
+			}
 			print(subcommand_help(cmd.name))
 			return 0
 		}
@@ -123,6 +127,10 @@ fn dispatch_walk(args []string) int {
 	rest := argv[1..].clone()
 	for a in rest {
 		if a in ['-h', '--help'] {
+			// detailed prune help is rendered by domain; let it flow to execute_command
+			if cmd.name == 'swarm' && rest.len > 0 && rest[0] in ['prune', 'cleanup'] {
+				break
+			}
 			print(subcommand_help(cmd.name))
 			return 0
 		}
@@ -528,6 +536,9 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 	}
 	if name == 'swarm' {
 		return agent_toolkit_core.swarm_help_text()
+	}
+	if name == 'prune' || name == 'cleanup' {
+		return agent_toolkit_core.swarm_prune_help_text()
 	}
 	if name == 'tui' {
 		return 'Usage: agent-toolkit tui

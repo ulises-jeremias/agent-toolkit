@@ -8,6 +8,11 @@ import cli
 fn atk_exec(cmd cli.Command) ! {
 	if cmd.flags.get_bool('help') or { false } {
 		path := command_path(cmd)
+		// for nested prune/cleanup help, show detailed domain help
+		if path.len > 1 && path[1] in ['prune', 'cleanup'] {
+			print(subcommand_help(path[1]))
+			return
+		}
 		name := if path.len > 0 { path[0] } else { cmd.name }
 		print(subcommand_help(name))
 		return
@@ -153,6 +158,9 @@ fn invoke_from_cli_cmd(cmd cli.Command) int {
 	rest << cmd.args
 	for a in rest {
 		if a in ['-h', '--help'] {
+			if top == 'swarm' && rest.len > 0 && rest[0] in ['prune', 'cleanup'] {
+				break
+			}
 			print(subcommand_help(top))
 			return 0
 		}
