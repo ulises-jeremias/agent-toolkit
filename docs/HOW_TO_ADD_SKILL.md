@@ -149,19 +149,15 @@ Fix any reported errors before proceeding.
 
 ---
 
-## 6. Update layout, products, and catalogs
+## 6. Update products and catalogs
 
-**Never hand-edit** `catalogs/skill-catalog.yaml`, `catalogs/agent-catalog.yaml`, or `catalogs/loop-catalog.yaml`. Those are regenerated only by `./scripts/generate-catalogs.vsh`.
-
-### `catalogs/skills-layout.json` (hand-maintained layout SSOT)
-
-This file is **not** produced by `generate-catalogs.vsh`. It is the committed domain → skill grouping used by `agent-toolkit skills list` (`modules/agent_toolkit_core/skills.v` → `load_skills_layout`). When you add a skill under `skills/<domain>/`, add its directory name to the matching `groups.<domain>` array in `catalogs/skills-layout.json` (and keep the `skills` inventory entries consistent with that layout).
+**Never hand-edit** `catalogs/skill-catalog.yaml`, `catalogs/agent-catalog.yaml`, `catalogs/loop-catalog.yaml`, or `catalogs/skills-layout.json`. Those are regenerated only by `./scripts/generate-catalogs.vsh` (layout derived from `skills/<domain>/<skill>/SKILL.md`).
 
 ### Product membership
 
 If the skill should ship in a marketplace plugin, add `domain/skill-name` under the right product in `distributions/products.yaml` (see ADR-001 / ADR-003). Skip this only when the skill is intentionally not product-bundled.
 
-### Regenerate YAML catalogs and verify digests
+### Regenerate catalogs and verify digests
 
 ```bash
 ./scripts/generate-catalogs.vsh
@@ -194,9 +190,8 @@ Use the standard PR workflow. Include this checklist in your PR description:
 - [ ] Frontmatter has `name` and `description`
 - [ ] `name` in frontmatter matches directory name
 - [ ] `./scripts/validate-skills.vsh` passes with no errors
-- [ ] `catalogs/skills-layout.json` updated (correct domain group) — hand-maintained layout SSOT
+- [ ] `./scripts/generate-catalogs.vsh` was run (do **not** hand-edit `catalogs/*`)
 - [ ] `distributions/products.yaml` updated if product membership changed
-- [ ] `./scripts/generate-catalogs.vsh` was run (do **not** hand-edit `*-catalog.yaml`)
 - [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check` passes
 - [ ] No secrets or hardcoded tokens in skill body
 - [ ] `references/` documents linked from skill body (if present)
@@ -358,7 +353,7 @@ Upstream skills copy **literal** upstream content so update detection can be aut
 3. **Siblings:** Copy LICENSE and any `references/`, `agents/`, `linters/`, etc. from the upstream skill path verbatim.
 4. **Pin:** Immutable 40-char commit SHA, or semver tag **plus** `commit:` (40-char SHA).
 5. **Lock:** Run `python3 scripts/provenance.py lock` then bind `trust.reviewed_provenance` to the new `provenance_digest` after human review.
-6. **Layout / products:** Update `catalogs/skills-layout.json` and `distributions/products.yaml`, then `./scripts/generate-catalogs.vsh`, `./scripts/generate-skill-matrix.vsh`, and `agent-toolkit build --check`.
+6. **Products / catalogs:** Update `distributions/products.yaml` if needed, then `./scripts/generate-catalogs.vsh`, `./scripts/generate-skill-matrix.vsh`, and `agent-toolkit build --check` (layout derived from filesystem).
 
 ### Example frontmatter (single source)
 

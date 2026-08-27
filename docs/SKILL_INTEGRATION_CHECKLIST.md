@@ -10,7 +10,6 @@ Governance context: [UPSTREAM_VS_FIRST_PARTY.md](UPSTREAM_VS_FIRST_PARTY.md).
 ## A. Canonical skill source
 
 - [ ] `skills/<domain>/<name>/SKILL.md` with valid frontmatter (`./scripts/validate-skills.vsh`)
-- [ ] `catalogs/skills-layout.json` — skill name in the correct domain group
 - [ ] **If upstream:** `LICENSE`, `UPSTREAM.md`, `origin.type: upstream`, lock entry, `python3 scripts/provenance.py check`
 - [ ] **If first-party:** `origin.type: first-party`; if ideas absorbed → `metadata.inspired_by[]`
 
@@ -19,7 +18,7 @@ Governance context: [UPSTREAM_VS_FIRST_PARTY.md](UPSTREAM_VS_FIRST_PARTY.md).
 ## B. Catalogs and products (generated)
 
 - [ ] `distributions/products.yaml` — skill in correct product(s)
-- [ ] `./scripts/generate-catalogs.vsh` → `skill-catalog.yaml` updated
+- [ ] `./scripts/generate-catalogs.vsh` → `catalogs/skills-layout.json`, `skill-catalog.yaml` updated
 - [ ] `./scripts/generate-skill-matrix.vsh` if product membership changed
 - [ ] `./make.vsh build-cli && AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check`
 
