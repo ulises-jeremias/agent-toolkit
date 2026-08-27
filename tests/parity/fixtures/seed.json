@@ -534,8 +534,9 @@
       "class": "SCHEMA",
       "expect_v_exit": 0,
       "required_keys": [
-        "command",
-        "recipes"
+        "pair",
+        "team",
+        "full"
       ]
     },
     {

@@ -39,18 +39,23 @@ if (!CONVENTIONAL.test(pr.title)) {
 }
 
 // ── 3. New skills must have SKILL.md ─────────────────────────────────────────
-const newSkillDirs = danger.git.created_files.filter(
-  (f) => f.match(/^skills\/[^/]+\/[^/]+\//) && !f.match(/\/SKILL\.md$/)
+// Supporting files may be added below an existing skill (for example,
+// skills/<domain>/<skill>/docs/COMMANDS.md). Only direct files identify a
+// newly-created skill root for this lightweight PR-level guard.
+const newSkillRoots = new Set(
+  danger.git.created_files
+    .filter((f) => f.match(/^skills\/[^/]+\/[^/]+\/[^/]+$/))
+    .map((f) => f.split("/").slice(0, 3).join("/"))
 );
 
-const newSkillMDs = danger.git.created_files.filter(
-  (f) => f.match(/^skills\/[^/]+\/[^/]+\/SKILL\.md$/)
+const skillRootsMissingManifest = [...newSkillRoots].filter(
+  (root) => !danger.git.created_files.includes(`${root}/SKILL.md`)
 );
 
-if (newSkillDirs.length > 0 && newSkillMDs.length === 0) {
+if (skillRootsMissingManifest.length > 0) {
   fail(
-    "New files detected in a `skills/` directory but no `SKILL.md` found. " +
-    "Every skill must have a `SKILL.md` as its primary file."
+    "New skill directories must include `SKILL.md`: " +
+    `${skillRootsMissingManifest.join(", ")}.`
   );
 }
 
