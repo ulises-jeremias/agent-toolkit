@@ -1,7 +1,7 @@
 module agent_toolkit_core
 
 import crypto.sha256
-import json2
+import json
 import os
 import time
 
@@ -463,7 +463,7 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		}
 		roles := swarm_recipe_roles(name).join(', ')
 		if opts.json_output {
-			txt := json2.encode(recipe, escape_unicode: true)
+			txt := json.encode(recipe)
 			return SwarmReport{
 				ok:      true
 				message: txt
@@ -480,7 +480,7 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		execution_str := 'max_concurrency=${recipe.execution.max_concurrency} lazy_start=${recipe.execution.lazy_start}'
 		budget_str := '${recipe.budget.max_total_tokens} tokens / \$${recipe.budget.max_cost_usd:.2f} / ${recipe.budget.max_wall_seconds}s'
 		b := recipe_budget(name)
-		bj := json2.encode(b, escape_unicode: true)
+		bj := json.encode(b)
 		return SwarmReport{
 			ok:      true
 			message: '${name}\t${recipe.description}\nroles: ${roles}\nexecution: ${execution_str}\ngates: ${gates_str}\nbudget: ${budget_str}\nbudget_json: ${bj}'
@@ -497,7 +497,7 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		}
 	}
 	if opts.json_output {
-		txt := json2.encode(builtin_recipes, escape_unicode: true)
+		txt := json.encode(builtin_recipes)
 		return SwarmReport{
 			ok:      true
 			message: txt
@@ -519,10 +519,10 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 				'recipes':     names.join(',')
 				'json':        j
 				'__raw_json':  j
-				'pair_budget': json2.encode(recipe_budget('pair'), escape_unicode: true)
-				'team_budget': json2.encode(recipe_budget('team'), escape_unicode: true)
-				'full_budget': json2.encode(recipe_budget('full'), escape_unicode: true)
-				'budget':      json2.encode(recipe_budget('pair'), escape_unicode: true)
+				'pair_budget': json.encode(recipe_budget('pair'))
+				'team_budget': json.encode(recipe_budget('team'))
+				'full_budget': json.encode(recipe_budget('full'))
+				'budget':      json.encode(recipe_budget('pair'))
 			}
 		}
 	}
@@ -530,11 +530,9 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 	for n in names {
 		b := recipe_budget(n)
 		if r := builtin_recipes[n] {
-			lines << '${n}\t${r.description}\tbudget: ${json2.encode(b, escape_unicode: true)}'
+			lines << '${n}\t${r.description}\tbudget: ${json.encode(b)}'
 		} else {
-			lines << '${n}\t${swarm_recipe_description(n)}\tbudget: ${json2.encode(b,
-				escape_unicode: true
-			)}'
+			lines << '${n}\t${swarm_recipe_description(n)}\tbudget: ${json.encode(b)}'
 		}
 	}
 	return SwarmReport{
@@ -543,10 +541,10 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		data:    {
 			'subcommand':  'recipes'
 			'recipes':     names.join(',')
-			'pair_budget': json2.encode(recipe_budget('pair'), escape_unicode: true)
-			'team_budget': json2.encode(recipe_budget('team'), escape_unicode: true)
-			'full_budget': json2.encode(recipe_budget('full'), escape_unicode: true)
-			'budget':      json2.encode(recipe_budget('pair'), escape_unicode: true)
+			'pair_budget': json.encode(recipe_budget('pair'))
+			'team_budget': json.encode(recipe_budget('team'))
+			'full_budget': json.encode(recipe_budget('full'))
+			'budget':      json.encode(recipe_budget('pair'))
 		}
 	}
 }
@@ -597,7 +595,7 @@ fn swarm_runners(opts SwarmOptions) SwarmReport {
 	if opts.json_output {
 		return SwarmReport{
 			ok:      true
-			message: json2.encode(matrix, escape_unicode: true)
+			message: json.encode(matrix)
 			data:    {
 				'subcommand': 'runners'
 				'count':      '${matrix.len}'
@@ -669,7 +667,7 @@ fn swarm_models(opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: json2.encode(filtered, escape_unicode: true)
+			message: json.encode(filtered)
 			data:    {
 				'subcommand': 'models'
 				'runner':     opts.runner
@@ -679,7 +677,7 @@ fn swarm_models(opts SwarmOptions) SwarmReport {
 	if opts.json_output {
 		return SwarmReport{
 			ok:      true
-			message: json2.encode(profiles, escape_unicode: true)
+			message: json.encode(profiles)
 			data:    {
 				'subcommand': 'models'
 			}
@@ -861,9 +859,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json2.encode(resolved.budget,
-				escape_unicode: true
-			)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
+			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json.encode(resolved.budget)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
 			data:    {
 				'subcommand':    'start'
 				'mode':          'dry-run'
@@ -892,9 +888,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			'task':    opts.task
 			'version': swarm_state_version.str()
 		}
-		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json2.encode(manifest,
-			escape_unicode: true
-		) + '\n') or {}
+		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json.encode(manifest) + '\n') or {}
 	}
 	initial := if resolved.spec.gates.require_plan_approval {
 		'awaiting_plan_approval'
@@ -987,9 +981,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		prompt, manifest := swarm_compose_role_prompt(recipe, role, opts.task, '',
 			swarm_role_skills(recipe, role), rid)
 		os.write_file(os.join_path(run_dir, 'prompts', role + '.md'), prompt) or {}
-		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json2.encode(manifest,
-			escape_unicode: true
-		) + '\n') or {}
+		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json.encode(manifest) + '\n') or {}
 		append_swarm_trace(run_dir, 'prompt_composed', role)
 	}
 	append_swarm_trace(run_dir, 'run_created', rid)
@@ -1411,7 +1403,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: json2.encode(entries, escape_unicode: true)
+			message: json.encode(entries)
 			data:    {
 				'subcommand': 'list'
 				'count':      '${entries.len}'
@@ -1519,9 +1511,9 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 	}
 	created := time.parse_rfc3339(st.created_at) or { time.utc() }
 	wall := int(time.utc().unix() - created.unix())
-	bj := json2.encode(b, escape_unicode: true)
+	bj := json.encode(b)
 	bc := st.budget_consumed
-	bcj := json2.encode(bc, escape_unicode: true)
+	bcj := json.encode(bc)
 	// Feature: handoffs, worktrees dir, artifacts, trace_tail, budget json
 	mut ho := SwarmHandoffsJson{}
 	for q in ['outbox', 'queued', 'active', 'completed', 'failed'] {
@@ -1618,7 +1610,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: json2.encode(status, escape_unicode: true)
+			message: json.encode(status)
 			data:    {
 				'subcommand': 'status'
 				'run_id':     st.run_id
@@ -1904,7 +1896,7 @@ fn swarm_watch(ws string, opts SwarmOptions) SwarmReport {
 		payload['run_state'] = st.run_state
 		payload['gates'] = gtxt.join(',')
 		payload['trace'] = trace_content
-		msg := json2.encode(payload, escape_unicode: true)
+		msg := json.encode(payload)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -1992,7 +1984,7 @@ fn swarm_report(ws string, opts SwarmOptions) SwarmReport {
 			artifacts:          artifacts
 			handoffs_completed: handoffs_done.len
 		}
-		msg := json2.encode(payload, escape_unicode: true)
+		msg := json.encode(payload)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2082,7 +2074,7 @@ fn swarm_artifacts(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	if opts.json_output {
-		msg := json2.encode(items, escape_unicode: true)
+		msg := json.encode(items)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2159,7 +2151,7 @@ fn swarm_handoffs(ws string, opts SwarmOptions) SwarmReport {
 	}
 	if opts.json_output {
 		// Encode map state -> list
-		msg := json2.encode(all_items, escape_unicode: true)
+		msg := json.encode(all_items)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2229,7 +2221,7 @@ fn swarm_logs(ws string, opts SwarmOptions) SwarmReport {
 			payload['role'] = role
 			payload['trace'] = trace
 			payload['note'] = 'Logs for ${role} not available: herdr not available (trace fallback)'
-			msg := json2.encode(payload, escape_unicode: true)
+			msg := json.encode(payload)
 			return SwarmReport{
 				ok:      true
 				message: msg
@@ -2270,7 +2262,7 @@ fn swarm_logs(ws string, opts SwarmOptions) SwarmReport {
 		mut payload := map[string]string{}
 		payload['run_id'] = run_id
 		payload['trace'] = trace_content
-		msg := json2.encode(payload, escape_unicode: true)
+		msg := json.encode(payload)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2333,7 +2325,7 @@ fn swarm_approvals(ws string, opts SwarmOptions) SwarmReport {
 	}
 	gates := read_swarm_approvals(rd)
 	if opts.json_output {
-		msg := json2.encode(gates, escape_unicode: true)
+		msg := json.encode(gates)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -3833,13 +3825,13 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 					}
 				}
 			}
-			os.write_file(audit_file, json2.encode({
+			os.write_file(audit_file, json.encode({
 				'challenge': '1'
 				'commit':    rec.commit
 				'from':      from_role
 				'run_id':    run_id
 				'to':        to_role
-			}, escape_unicode: true)) or {
+			})) or {
 				return SwarmReport{
 					ok:      false
 					message: 'audit gate: cannot write ${audit_file}: ${err}'
@@ -4074,7 +4066,7 @@ fn swarm_task_next(ws string, opts SwarmOptions) SwarmReport {
 	}
 	return SwarmReport{
 		ok:      true
-		message: json2.encode(task, escape_unicode: true)
+		message: json.encode(task)
 		data:    {
 			'subcommand': 'task'
 			'handoff_id': hid
@@ -4174,7 +4166,7 @@ fn ensure_swarm_run_dirs(run_dir string) ! {
 
 fn write_swarm_state(run_dir string, st SwarmStateFile) ! {
 	fs := new_fs()
-	fs.write_atomic(os.join_path(run_dir, 'state.json'), json2.encode(st, escape_unicode: true) +
+	fs.write_atomic(os.join_path(run_dir, 'state.json'), json.encode(st) +
 		'\n')!
 }
 
@@ -4184,7 +4176,7 @@ fn read_swarm_state(run_dir string) ?SwarmStateFile {
 		return none
 	}
 	text := os.read_file(path) or { return none }
-	mut st := json2.decode[SwarmStateFile](text) or { return none }
+	mut st := json.decode(SwarmStateFile, text) or { return none }
 	if st.version > swarm_state_version {
 		return none
 	}
@@ -4214,9 +4206,7 @@ fn write_swarm_approvals(run_dir string, gates []SwarmGate) ! {
 		gates: gates
 	}
 	fs := new_fs()
-	fs.write_atomic(os.join_path(run_dir, 'approvals.json'), json2.encode(payload,
-		escape_unicode: true
-	) + '\n')!
+	fs.write_atomic(os.join_path(run_dir, 'approvals.json'), json.encode(payload) + '\n')!
 }
 
 fn read_swarm_approvals(run_dir string) []SwarmGate {
@@ -4225,14 +4215,12 @@ fn read_swarm_approvals(run_dir string) []SwarmGate {
 		return []
 	}
 	text := os.read_file(path) or { return [] }
-	file := json2.decode[SwarmApprovalsFile](text) or { return [] }
+	file := json.decode(SwarmApprovalsFile, text) or { return [] }
 	return file.gates
 }
 
 fn append_swarm_trace(run_dir string, kind string, detail string) {
-	line := '{"ts":${json2.encode(time.utc().format_rfc3339(), escape_unicode: true)},"kind":${json2.encode(kind,
-		escape_unicode: true
-	)},"detail":${json2.encode(detail, escape_unicode: true)}}\n'
+	line := '{"ts":${json.encode(time.utc().format_rfc3339())},"kind":${json.encode(kind)},"detail":${json.encode(detail)}}\n'
 	path := os.join_path(run_dir, 'trace.jsonl')
 	fs := new_fs()
 	existing := os.read_file(path) or { '' }
