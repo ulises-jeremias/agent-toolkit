@@ -966,9 +966,9 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a == '-C' || a == '--C' {
+		if a in ['-C', '--C'] {
 			if i + 1 >= args.len {
-				return error('-C requires an argument')
+				return error('${a} requires an argument')
 			}
 			workspace_alias = args[i + 1]
 			i += 2
