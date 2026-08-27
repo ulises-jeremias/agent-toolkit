@@ -114,7 +114,7 @@ Specialists (opt-in, `specialist_justified: true`): `agentic-security-reviewer` 
 ## References
 
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: security-engineer`, `specialist_justified`, overlap/complementary
-- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 85 skills)
+- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 116+ skills)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Security-adjacent routing
 - `skills/agentic-security/owasp-agentic-review/SKILL.md`, `skills/agentic-security/mcp-audit/SKILL.md`, `skills/agentic-security/supply-chain-audit/SKILL.md`, `skills/agentic-security/threat-modeling/SKILL.md`, `skills/quality/codeql/SKILL.md`
 - `docs/AGENT_TAXONOMY.md` — Holistic roster, migration map, routing self-tests

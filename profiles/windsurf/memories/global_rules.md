@@ -90,9 +90,8 @@ agent-toolkit devcompanion queue <project> --request "..."
 agent-toolkit devcompanion run-once
 agent-toolkit devcompanion status
 
-# Analysis
-agent-toolkit insights opencode        # OpenCode usage report
-agent-toolkit insights cursor          # Cursor usage report
+# Analysis (usage reports moved out of the CLI — retired #526)
+# Run: python3 ~/.ai-workspace/bin/tool-insights [opencode|cursor|claude]
 
 # Health check
 agent-toolkit doctor

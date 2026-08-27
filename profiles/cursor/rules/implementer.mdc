@@ -102,7 +102,7 @@ You **collaborate** with (not replace):
 ## References
 
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: implementer`, triggers, overlap, `specialist_justified`
-- `docs/SKILL_ROUTING.md` — Human-readable ownership snapshot (11 roles, 85 skills)
+- `docs/SKILL_ROUTING.md` — Human-readable ownership snapshot (11 roles, 116+ skills)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Orchestrator routing for delivery/quality/tooling
 - `agents/planner/AGENT.md`, `agents/reviewer/AGENT.md`, `agents/architect/AGENT.md` — collaborators
 - `docs/AGENT_TAXONOMY.md` — Canonical holistic roster + migration map + routing self-tests (this taxonomy)

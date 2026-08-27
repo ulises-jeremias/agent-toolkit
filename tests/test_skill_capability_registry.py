@@ -1,4 +1,4 @@
-"""Skill capability registry — 85 skills, no orphans, design routing (#863)."""
+"""Skill capability registry — 116+ skills, no orphans, design routing (#863)."""
 
 from __future__ import annotations
 

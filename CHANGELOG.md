@@ -10,13 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
-- **Docs** — `docs/v` parity post-`9163c93` (2026-08-14): `cutover.md` + `rollback.md` promoted from `archive/` with `9163c93 Drop (2026-08-14) — Python swarm deleted (14 files), trampoline kept` (`fbb2280` last swarm, `make.vsh:160` `build-cli` `build/agent-toolkit` + `AGENT_TOOLKIT_ROOT=$PWD` + `VMODULES=$(pwd)/modules` vs `embedded_data.v`), `pypi-launcher.md` + `python-fallback.md` synchronized to `hatch_build.py` trampoline that prefers V binary, `.v-version` `0.5.2` `import json` not `json2`, `docs/compatibility/cli-contract.yaml` vs `AGENTS.md` `validate-loops` (not `parity.yml`) and `serve`/`tui` V-extra (fixes #907)
-
 ## [1.25.0] — 2026-08-26
 
+- **Feat (swarm)** — Full multi-agent orchestration parity with the legacy Python CLI, plus new capabilities:
+  - `swarm start` flags `--request-file/--issue/--base-ref/--workspace/--json` (#883, #915); git **worktree per writer** with lazy `initial_roles` (#884, #912); `compose_role_prompt` + `GLOBAL_PROTOCOL` + per-role prompts (#885, #913)
+  - **Blocking attach** (`os.execvp`-style) + `swarm attach` subcommand for tmux/herdr (#886)
+  - Lifecycle: `pause`/`resume`/`stop`/`cleanup`/`promote` (#887, #914); `init`/`plan`/`activate`/`deactivate` (#905, #934)
+  - Observability: `watch`/`report`/`artifacts`/`handoffs`/`logs`/`approvals` (#889, #922); `status --json` full payload (#896, #925); `list --json` + `list_all_runs` (#895, #918)
+  - Atomic state store with `STATE_VERSION`, worktree dirty guard, task-contract (#891, #923); per-recipe **budget** `900k tok / $4 / 7200s` with `budget_exhausted` state (#892, #924)
+  - `runners` + `models` commands (#893); `recipes` detail parity (#894, #917); `config resolve_config` + `BUILTIN_RECIPES` persona/policy (#897, #926)
+  - `swarm prune --older-than` (7d default) + herdr `--json` fallback (#909, #938)
+  - **NEW (this release): handoff audit gate** — first `commit` handoff per (run, from, to, commit) returns `AUDIT_REQUIRED`; an identical re-run passes and queues; any payload change re-challenges (swarm-forge discipline, filesystem SoT)
+  - **NEW (this release): `swarm recipe list`, `swarm ls` alias** (Python parity) and **fix**: `handoff create --to ROLE` was shadowed by the `promote --to` parser rule and silently ignored
+- **Feat (V parity sprint)** — close the Python→V capability gap: `loop gh_gate` + budget enforcement + pack parity (#898, #927); `install` compiler targets pi/windsurf + tool_mapping (#899, #928); `doctor` provenance/pack/MCP/matrix + swarm herdr/tmux checks (#900, #929); `workspace` 11-subcommand parity (#901, #930); `project init` + `OWNER/REPO` shorthand + `--workspace/-C` (#902, #931); `devcompanion queue --template/--request/--id` + `run-once --no-llm` + `llm-status` (#903, #932); `mcp` registry + offline + health/doctor parity (#904, #933); serve/tui not masked in contract (#908, #937)
 - **Feat** — Vendor 31 JIRA + Confluence skills as first-class upstream capabilities: 14 `integrations/jira-*` (grandcamel/JIRA-Assistant-Skills @ `b583731`) and 17 `integrations/confluence-*` (grandcamel/Confluence-Assistant-Skills @ `403eac8`). Bodies byte-identical to upstream; Toolkit frontmatter overlay + provenance lock + `trust.reviewed_provenance` binding. `jira-assistant` / `confluence-assistant` are the router hubs. Require `jira-as` / `confluence-as` CLIs (provisioned by workstation, not toolkit)
 - **Feat** — Skill capability registry grows 85 → 116; all 31 owned by `platform-engineer`, wired into `skills/core/assistant/references/ORCHESTRATION.md`
 - **Chore** — Docs counts switched from exact ("85 skills") to floor ("116+ skills") with a new `tests/test_docs_count_floor.py` guard (floor never overstates catalog; precise SoT remains `agent-toolkit inventory`)
+- **Feat (taxonomy)** — Target capability registry (#862), skill capability map (#863), specialist taxonomy decision (#865), agent relationship graph (#866), portable Agent Plugin compiler (#867), adapter tiers (#868), nine-harness adapters (#869), swarm role alignment (#870)
+- **Feat (build)** — `insights claude --days` + context_budget clip 2000 parity in `bin/tool-insights` (#906, #935 — insights left the CLI per #526)
+- **Docs** — `docs/v` parity post-`9163c93`: `cutover.md` + `rollback.md` promoted from `archive/`, `pypi-launcher.md` + `python-fallback.md` synchronized to the hatch trampoline (#907, #936); single `docs/adrs/` tree (34 records); `distributions/` vs `distribution/` disambiguation README; README/CONCEPTS/CONTRIBUTING made declarative (floors over counts, no stale links); `docs/surface/openapi.json` regenerated for 1.25.0; `docs/compatibility/cli-contract.yaml` synced to the shipped V surface (flags, subcommands, 21 entries)
+- **CI** — `swarm-e2e` gate added to `Required CI`, macOS matrix for `check-v-modules` + parity, path filtering for docs-only PRs (#941); Jira operations skill checks repaired; yamllint alignment with generated data; shipped profiles/plugins refreshed to 116+ floors and retired-`insights` references removed
 
 ## [1.24.0] — 2026-08-25
 

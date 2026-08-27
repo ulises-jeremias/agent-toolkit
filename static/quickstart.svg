@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="470" viewBox="0 0 960 470" role="img" aria-label="agent-toolkit quickstart terminal">
+  <defs>
+    <linearGradient id="win-bg" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a20"/><stop offset="100%" stop-color="#050510"/>
+    </linearGradient>
+    <linearGradient id="cmd-green" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#0f8" stop-opacity=".15"/><stop offset="100%" stop-color="#0f8" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft-glow" width="200%" height="200%" x="-50%" y="-50%">
+      <feGaussianBlur result="b" stdDeviation="4"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <radialGradient id="ambient" cx="50%" cy="0%" r="120%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity=".07"/><stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="960" height="470" fill="#050510"/>
+  <rect width="960" height="470" fill="url(#ambient)"/>
+
+  <!-- window -->
+  <rect x="40" y="30" width="880" height="410" rx="12" fill="url(#win-bg)" stroke="#1a2a4a" stroke-width="1.5"/>
+  <rect x="40" y="30" width="880" height="36" rx="12" fill="#0a0f22"/>
+  <line x1="40" y1="66" x2="920" y2="66" stroke="#1a2a4a" stroke-width="1"/>
+  <circle cx="66" cy="48" r="6" fill="#ff5f57"/>
+  <circle cx="86" cy="48" r="6" fill="#febc2e"/>
+  <circle cx="106" cy="48" r="6" fill="#28c840"/>
+  <text x="480" y="53" fill="#4a4a8a" font-family="'Courier New', monospace" font-size="12" text-anchor="middle">~/.ai-workspace — agent-toolkit</text>
+
+  <!-- step 1: install -->
+  <rect x="60" y="84" width="480" height="22" rx="4" fill="url(#cmd-green)"/>
+  <text x="72" y="100" fill="#0f8" font-family="'Courier New', monospace" font-size="13" font-weight="bold">$ uv tool install agent-toolkit-cli</text>
+  <text x="72" y="122" fill="#00d4ff" font-family="'Courier New', monospace" font-size="12" opacity=".9">Installed 1 package in 412ms</text>
+  <text x="72" y="140" fill="#00d4ff" font-family="'Courier New', monospace" font-size="12" opacity=".9">agent-toolkit 1.25.0 — V binary, offline-first</text>
+
+  <!-- step 2: install capabilities -->
+  <text x="72" y="172" fill="#0f8" font-family="'Courier New', monospace" font-size="13" font-weight="bold">$ agent-toolkit install</text>
+  <text x="72" y="194" fill="#8f8fbf" font-family="'Courier New', monospace" font-size="12">✓ claude code · skills + agents + settings</text>
+  <text x="72" y="212" fill="#8f8fbf" font-family="'Courier New', monospace" font-size="12">✓ cursor · rules + plugins</text>
+  <text x="72" y="230" fill="#8f8fbf" font-family="'Courier New', monospace" font-size="12">✓ opencode · agents + skills</text>
+  <text x="72" y="248" fill="#8f8fbf" font-family="'Courier New', monospace" font-size="12">✓ copilot · windsurf · pi · muse code</text>
+
+  <!-- step 3: doctor -->
+  <text x="72" y="282" fill="#0f8" font-family="'Courier New', monospace" font-size="13" font-weight="bold">$ agent-toolkit doctor</text>
+  <text x="92" y="304" fill="#0f8" font-family="'Courier New', monospace" font-size="12">✔ workspace   ~/.ai-workspace</text>
+  <text x="92" y="322" fill="#0f8" font-family="'Courier New', monospace" font-size="12">✔ skills      116+ across 14 domains</text>
+  <text x="92" y="340" fill="#0f8" font-family="'Courier New', monospace" font-size="12">✔ agents      18 personas</text>
+  <text x="92" y="358" fill="#0f8" font-family="'Courier New', monospace" font-size="12">✔ mcp         7 providers templated</text>
+
+  <!-- step 4: swarm -->
+  <text x="72" y="392" fill="#0f8" font-family="'Courier New', monospace" font-size="13" font-weight="bold">$ agent-toolkit swarm start --recipe pair --dry-run</text>
+  <text x="92" y="414" fill="#9945ff" font-family="'Courier New', monospace" font-size="12">runner=skeleton backend=herdr state=running</text>
+
+  <!-- blinking cursor -->
+  <rect x="72" y="424" width="9" height="14" fill="#0f8" filter="url(#soft-glow)">
+    <animate attributeName="opacity" dur="1.1s" repeatCount="indefinite" values="1;0;1"/>
+  </rect>
+
+  <!-- side annotation -->
+  <rect x="580" y="270" width="320" height="150" rx="8" fill="#0a0520" stroke="#9945ff" stroke-width="1" opacity=".9"/>
+  <text x="600" y="296" fill="#9945ff" font-family="'Courier New', monospace" font-size="11" letter-spacing="2">WHY IT'S DIFFERENT</text>
+  <text x="600" y="320" fill="#c8c8e8" font-family="'Courier New', monospace" font-size="11">one source of truth →</text>
+  <text x="600" y="338" fill="#c8c8e8" font-family="'Courier New', monospace" font-size="11">every assistant, native format</text>
+  <text x="600" y="362" fill="#4a4a8a" font-family="'Courier New', monospace" font-size="11">no copy-paste drift</text>
+  <text x="600" y="380" fill="#4a4a8a" font-family="'Courier New', monospace" font-size="11">no per-tool prompt repos</text>
+  <text x="600" y="404" fill="#0f8" font-family="'Courier New', monospace" font-size="11">install → doctor → ship ✓</text>
+</svg>
