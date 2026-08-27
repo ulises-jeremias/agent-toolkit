@@ -21,15 +21,15 @@ what each tool needs.
 
 ## What Is Included
 
-| Component | Count | Description |
-|-----------|-------|-------------|
-| Skills | 84 | Portable capability definitions (`SKILL.md`) |
-| Agent personas | 17 | Tool-agnostic specialist role definitions |
-| Loop templates | 10 | Recurring agentic workflows across 3 tiers |
-| Plugins | 3 | Claude Code and Cursor marketplace bundles (plus experimental complete) |
-| Tool profiles | 7 | Claude Code, Cursor, OpenCode, Copilot, Windsurf, Pi, Muse Code |
-| MCP templates | 7 | Ready-to-use Model Context Protocol configs |
-| Solution packs | 7 | Curated bundles for common team setups |
+| Component | Description |
+|-----------|-------------|
+| Skills | Portable capability definitions (`SKILL.md`) — live via `agent-toolkit inventory` |
+| Agent personas | Tool-agnostic specialist role definitions — live via `agent-toolkit inventory` |
+| Loop templates | Recurring agentic workflows across 3 tiers — `loops/` |
+| Plugins | Claude Code and Cursor marketplace bundles (plus experimental complete) — `distributions/products.yaml` |
+| Tool profiles | Claude Code, Cursor, OpenCode, Copilot, Windsurf, Pi, Muse Code — `profiles/` (deprecated, fallback) |
+| MCP templates | Ready-to-use Model Context Protocol configs — `mcp/templates/` |
+| Solution packs | Curated bundles for common team setups — `packs/` |
 
 ---
 
