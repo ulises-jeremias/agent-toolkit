@@ -1,15 +1,6 @@
 # Architecture Decision Records
 
-This repository keeps **two ADR trees**. Do **not** merge them.
-
-| Tree | Path | Purpose |
-|------|------|---------|
-| **Engineering ADRs** | [`docs/adrs/ADR-0xx-*.md`](./) | Implementation / packaging / CLI architecture (V migration, installers, schemas, release channels) |
-| **Product / pack semantics ADRs** | [`docs/adr/000x-*.md`](../adr/) | Capability declaration, pack/product meaning, assessment units |
-
-## Engineering ADRs (`docs/adrs/`)
-
-Numbered `ADR-001` … `ADR-029`. Status is in each file header.
+Single source: [`docs/adrs/`](./) — 34 records. Engineering ADRs use `ADR-0xx` prefix; product/pack semantics ADRs use `000x` prefix (legacy numbering kept for stability). Status is in each file header.
 
 | ADR | Title |
 |-----|-------|
@@ -41,17 +32,11 @@ Numbered `ADR-001` … `ADR-029`. Status is in each file header.
 | [ADR-026](ADR-026-full-embed.md) | Full embed |
 | [ADR-027](ADR-027-server-core-boundary.md) | Server/core boundary (thin adapter) |
 | [ADR-028](ADR-028-server-security-defaults.md) | Server security defaults |
-| [ADR-029](ADR-029-surface-parity-ssot.md) | Surface-parity SSOT (contract → all surfaces) |
+| [ADR-029](ADR-029-surface-parity-ssot.md) | Surface-parity SSOT (contract → all surfaces) — **superseded by ADR-030** |
+| [ADR-030](ADR-030-capability-contract-binary-first.md) | Capability contract — binary-first (supersedes ADR-029) |
+| [0001](0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
+| [0002](0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
+| [0003](0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |
+| [0004](0004-capability-provider-abstraction-what-vs-how.md) | Capability provider abstraction (what vs how) |
 
-## Product / pack semantics ADRs (`docs/adr/`)
-
-Numbered `0001` … `0004`. These define *what* products/packs/capabilities mean for consumers and assessment — not the V CLI packaging story.
-
-| ADR | Title |
-|-----|-------|
-| [0001](../adr/0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
-| [0002](../adr/0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
-| [0003](../adr/0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |
-| [0004](../adr/0004-capability-provider-abstraction-what-vs-how.md) | Capability provider abstraction (what vs how) |
-
-When writing a new decision: put engineering/implementation choices under `docs/adrs/`; put product/pack semantics under `docs/adr/`.
+> Previous `docs/adr/000x` tree merged into this directory. Existing `docs/adr/` references now point here; legacy path kept as redirect note.

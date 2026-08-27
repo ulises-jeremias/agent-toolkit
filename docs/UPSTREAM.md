@@ -4,10 +4,10 @@
 Human-readable provenance for third-party capability content. Canonical sources:
 
 - **Declaration:** `SKILL.md` frontmatter (`origin`, `sources`/`upstream`, `trust`, `maintenance`, `distribution`, `security`) — see `schemas/upstream.schema.json`
-- **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`
+- **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-08-26T16:38:44.402431Z
+Generated: 2026-08-27T05:32:30.599540Z
 Capabilities with external provenance: 42 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`

@@ -175,7 +175,7 @@ python3 scripts/provenance.py check     # offline validation declaration↔lock 
 python3 scripts/provenance.py docs      # regenerate docs/UPSTREAM.md
 ```
 
-See `docs/adr/0001-capability-declaration-and-external-provenance-lock.md` (declaration → lock → vendored → sources) and `scripts/provenance.py {lock,check,docs,updates}`.
+See `docs/adrs/0001-capability-declaration-and-external-provenance-lock.md` (declaration → lock → vendored → sources) and `scripts/provenance.py {lock,check,docs,updates}`.
 
 ## 14. Provenance: staleness >90d
 

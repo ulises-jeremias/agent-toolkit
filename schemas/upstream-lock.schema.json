@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/upstream-lock.schema.json",
   "title": "External Provenance Lock",
-  "description": "Resolution artifact for external capability content. Maps stable capability ID → source ID → requested/resolved immutable state. See docs/adr/0001-capability-declaration-and-external-provenance-lock.md. This file is downstream of SKILL.md / capability declarations; do not make it a second capability catalog.",
+  "description": "Resolution artifact for external capability content. Maps stable capability ID → source ID → requested/resolved immutable state. See docs/adrs/0001-capability-declaration-and-external-provenance-lock.md. This file is downstream of SKILL.md / capability declarations; do not make it a second capability catalog.",
   "type": "object",
   "required": ["version", "capabilities"],
   "additionalProperties": false,

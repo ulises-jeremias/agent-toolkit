@@ -29,7 +29,7 @@ Usage:
   uv run python scripts/provenance.py updates [--json]
   uv run python scripts/provenance.py updates --apply
 
-See docs/adr/0001-capability-declaration-and-external-provenance-lock.md
+See docs/adrs/0001-capability-declaration-and-external-provenance-lock.md
 """
 
 from __future__ import annotations
@@ -885,7 +885,7 @@ def _generate_upstream_md_content(declarations: dict[str, dict], lock: dict | No
         "- **Declaration:** `SKILL.md` frontmatter (`origin`, `sources`/`upstream`, `trust`, `maintenance`, `distribution`, `security`) — see `schemas/upstream.schema.json`"
     )
     lines.append(
-        "- **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adr/0001-*.md`"
+        "- **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`"
     )
     lines.append("- **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`")
     lines.append("")
