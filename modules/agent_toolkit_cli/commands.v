@@ -894,6 +894,31 @@ fn swarm_command() cli.Command {
 				execute:     atk_exec
 			},
 			cli.Command{
+				name:        'init'
+				description: 'Scaffold a swarm run (task-contract + planning)'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'plan'
+				description: 'Render plan.md and move to awaiting_plan_approval'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'activate'
+				description: 'Activate a role for a run'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'deactivate'
+				description: 'Deactivate a role for a run'
+				execute:     atk_exec
+			},
+			cli.Command{
+				name:        'promote'
+				description: 'Merge integrator branch and move to cleanup_pending'
+				execute:     atk_exec
+			},
+			cli.Command{
 				name:        'handoff'
 				description: 'Handoff operations (create)'
 				commands:    [

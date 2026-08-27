@@ -1033,6 +1033,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
+		if sub == 'init' {
+			task_parts << a
+			i++
+			continue
+		}
 		if run_id.len == 0 {
 			run_id = a
 			i++
@@ -1040,6 +1045,11 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		}
 		if gate_id.len == 0 && sub in ['approve', 'reject'] {
 			gate_id = a
+			i++
+			continue
+		}
+		if role.len == 0 && sub in ['activate', 'deactivate'] {
+			role = a
 			i++
 			continue
 		}
