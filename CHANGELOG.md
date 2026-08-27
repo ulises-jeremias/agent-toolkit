@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+- **Docs** — `docs/v` parity post-`9163c93` (2026-08-14): `cutover.md` + `rollback.md` promoted from `archive/` with `9163c93 Drop (2026-08-14) — Python swarm deleted (14 files), trampoline kept` (`fbb2280` last swarm, `make.vsh:160` `build-cli` `build/agent-toolkit` + `AGENT_TOOLKIT_ROOT=$PWD` + `VMODULES=$(pwd)/modules` vs `embedded_data.v`), `pypi-launcher.md` + `python-fallback.md` synchronized to `hatch_build.py` trampoline that prefers V binary, `.v-version` `0.5.2` `import json` not `json2`, `docs/compatibility/cli-contract.yaml` vs `AGENTS.md` `validate-loops` (not `parity.yml`) and `serve`/`tui` V-extra (fixes #907)
+
 ## [1.25.0] — 2026-08-26
 
 - **Feat** — Vendor 31 JIRA + Confluence skills as first-class upstream capabilities: 14 `integrations/jira-*` (grandcamel/JIRA-Assistant-Skills @ `b583731`) and 17 `integrations/confluence-*` (grandcamel/Confluence-Assistant-Skills @ `403eac8`). Bodies byte-identical to upstream; Toolkit frontmatter overlay + provenance lock + `trust.reviewed_provenance` binding. `jira-assistant` / `confluence-assistant` are the router hubs. Require `jira-as` / `confluence-as` CLIs (provisioned by workstation, not toolkit)
