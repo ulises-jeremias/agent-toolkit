@@ -33,7 +33,26 @@ pub fn run_project(opts ProjectOptions) ProjectReport {
 			}
 		}
 	}
+	// init: workspace_path is a creation target, not an existing workspace; Python uses Path.cwd() fallback
+	if sub == 'init' {
+		ws := if opts.workspace_path.len > 0 {
+			opts.workspace_path
+		} else {
+			find_workspace_root('') or { os.getwd() }
+		}
+		return project_init(ws)
+	}
 	ws := find_workspace_root(opts.workspace_path) or {
+		// OWNER/REPO shorthand hint parity with Python _resolve_owner_repo_from_prompt
+		if owner_repo := resolve_owner_repo(opts.workspace_path) {
+			return ProjectReport{
+				ok:      false
+				message: 'Not a git repository: ${opts.workspace_path}\nHint: Run: agent-toolkit project clone ${owner_repo} or specify --workspace <path|OWNER/REPO>'
+				data:    {
+					'subcommand': sub
+				}
+			}
+		}
 		return ProjectReport{
 			ok:      false
 			message: workspace_missing

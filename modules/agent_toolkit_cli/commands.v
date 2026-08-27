@@ -688,6 +688,17 @@ fn project_command() cli.Command {
 				name:        'workspace'
 				description: 'Workspace path'
 			},
+			cli.Flag{
+				flag:        .string
+				name:        'repo'
+				description: 'Workspace path alias (OWNER/REPO)'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'C'
+				abbrev:      'C'
+				description: 'Workspace path alias'
+			},
 		]
 	}
 }
