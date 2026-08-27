@@ -584,6 +584,36 @@
         "#527",
         "RELEASING.md"
       ]
+    },
+    {
+      "command": "swarm-recipe-list-json",
+      "args": [
+        "swarm",
+        "recipe",
+        "list",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "pair",
+        "team",
+        "full"
+      ],
+      "must_contain": [
+        "Two-role implementer"
+      ]
+    },
+    {
+      "command": "swarm-ls-json",
+      "args": [
+        "swarm",
+        "ls",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": []
     }
   ]
 }

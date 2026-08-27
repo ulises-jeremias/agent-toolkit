@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
-import json
+import crypto.sha256
+import json2
 import os
 import time
 
@@ -38,7 +39,7 @@ pub:
 	blocking    bool
 	role        string
 	handoff_id  string
-	to_recipe      string
+	to_recipe   string
 	older_than  string
 }
 
@@ -69,8 +70,8 @@ pub mut:
 	run_state       string
 	created_at      string
 	task            string
-	budget          Budget           @[json: 'budget']
-	budget_consumed BudgetConsumed   @[json: 'budget_consumed']
+	budget          Budget            @[json: 'budget']
+	budget_consumed BudgetConsumed    @[json: 'budget_consumed']
 	personas        map[string]string @[json: 'personas']
 	policy          map[string]string @[json: 'policy']
 	active_roles    []string
@@ -98,12 +99,12 @@ struct SwarmArtifactInfo {
 
 struct SwarmBudgetJson {
 pub:
-	max_total_tokens int     @[json: 'max_total_tokens']
-	total_tokens     int     @[json: 'total_tokens']
-	max_cost_usd     f64     @[json: 'max_cost_usd']
-	total_cost       f64     @[json: 'total_cost']
-	max_wall_seconds int     @[json: 'max_wall_seconds']
-	wall_seconds     int     @[json: 'wall_seconds']
+	max_total_tokens int @[json: 'max_total_tokens']
+	total_tokens     int @[json: 'total_tokens']
+	max_cost_usd     f64 @[json: 'max_cost_usd']
+	total_cost       f64 @[json: 'total_cost']
+	max_wall_seconds int @[json: 'max_wall_seconds']
+	wall_seconds     int @[json: 'wall_seconds']
 }
 
 struct SwarmHandoffsJson {
@@ -122,19 +123,19 @@ pub:
 
 struct SwarmStatusJson {
 pub:
-	run_id        string              @[json: 'run_id']
+	run_id        string @[json: 'run_id']
 	recipe        string
 	backend       string
 	runner        string
-	model_profile string              @[json: 'model_profile']
-	run_state     string              @[json: 'run_state']
-	created_at    string              @[json: 'created_at']
+	model_profile string @[json: 'model_profile']
+	run_state     string @[json: 'run_state']
+	created_at    string @[json: 'created_at']
 	task          string
 	worktrees     []string
 	approvals     SwarmApprovalsJson
 	budget        SwarmBudgetJson
 	handoffs      SwarmHandoffsJson
-	trace_tail    []string            @[json: 'trace_tail']
+	trace_tail    []string @[json: 'trace_tail']
 	artifacts     []string
 }
 
@@ -169,12 +170,12 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 					r_opts = SwarmOptions{
 						...r_opts
 						run_id: r_opts.task
-						task: ''
+						task:   ''
 					}
 				} else if r_opts.gate_id.len > 0 {
 					r_opts = SwarmOptions{
 						...r_opts
-						run_id: r_opts.gate_id
+						run_id:  r_opts.gate_id
 						gate_id: ''
 					}
 				} else {
@@ -462,7 +463,7 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		}
 		roles := swarm_recipe_roles(name).join(', ')
 		if opts.json_output {
-			txt := json.encode(recipe)
+			txt := json2.encode(recipe, escape_unicode: true)
 			return SwarmReport{
 				ok:      true
 				message: txt
@@ -479,7 +480,7 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		execution_str := 'max_concurrency=${recipe.execution.max_concurrency} lazy_start=${recipe.execution.lazy_start}'
 		budget_str := '${recipe.budget.max_total_tokens} tokens / \$${recipe.budget.max_cost_usd:.2f} / ${recipe.budget.max_wall_seconds}s'
 		b := recipe_budget(name)
-		bj := json.encode(b)
+		bj := json2.encode(b, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: '${name}\t${recipe.description}\nroles: ${roles}\nexecution: ${execution_str}\ngates: ${gates_str}\nbudget: ${budget_str}\nbudget_json: ${bj}'
@@ -496,7 +497,7 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		}
 	}
 	if opts.json_output {
-		txt := json.encode(builtin_recipes)
+		txt := json2.encode(builtin_recipes, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: txt
@@ -518,10 +519,10 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 				'recipes':     names.join(',')
 				'json':        j
 				'__raw_json':  j
-				'pair_budget': json.encode(recipe_budget('pair'))
-				'team_budget': json.encode(recipe_budget('team'))
-				'full_budget': json.encode(recipe_budget('full'))
-				'budget':      json.encode(recipe_budget('pair'))
+				'pair_budget': json2.encode(recipe_budget('pair'), escape_unicode: true)
+				'team_budget': json2.encode(recipe_budget('team'), escape_unicode: true)
+				'full_budget': json2.encode(recipe_budget('full'), escape_unicode: true)
+				'budget':      json2.encode(recipe_budget('pair'), escape_unicode: true)
 			}
 		}
 	}
@@ -529,9 +530,9 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 	for n in names {
 		b := recipe_budget(n)
 		if r := builtin_recipes[n] {
-			lines << '${n}\t${r.description}\tbudget: ${json.encode(b)}'
+			lines << '${n}\t${r.description}\tbudget: ${json2.encode(b, escape_unicode: true)}'
 		} else {
-			lines << '${n}\t${swarm_recipe_description(n)}\tbudget: ${json.encode(b)}'
+			lines << '${n}\t${swarm_recipe_description(n)}\tbudget: ${json2.encode(b, escape_unicode: true)}'
 		}
 	}
 	return SwarmReport{
@@ -540,10 +541,10 @@ fn swarm_recipes(opts SwarmOptions) SwarmReport {
 		data:    {
 			'subcommand':  'recipes'
 			'recipes':     names.join(',')
-			'pair_budget': json.encode(recipe_budget('pair'))
-			'team_budget': json.encode(recipe_budget('team'))
-			'full_budget': json.encode(recipe_budget('full'))
-			'budget':      json.encode(recipe_budget('pair'))
+			'pair_budget': json2.encode(recipe_budget('pair'), escape_unicode: true)
+			'team_budget': json2.encode(recipe_budget('team'), escape_unicode: true)
+			'full_budget': json2.encode(recipe_budget('full'), escape_unicode: true)
+			'budget':      json2.encode(recipe_budget('pair'), escape_unicode: true)
 		}
 	}
 }
@@ -594,7 +595,7 @@ fn swarm_runners(opts SwarmOptions) SwarmReport {
 	if opts.json_output {
 		return SwarmReport{
 			ok:      true
-			message: json.encode(matrix)
+			message: json2.encode(matrix, escape_unicode: true)
 			data:    {
 				'subcommand': 'runners'
 				'count':      '${matrix.len}'
@@ -666,7 +667,7 @@ fn swarm_models(opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: json.encode(filtered)
+			message: json2.encode(filtered, escape_unicode: true)
 			data:    {
 				'subcommand': 'models'
 				'runner':     opts.runner
@@ -676,7 +677,7 @@ fn swarm_models(opts SwarmOptions) SwarmReport {
 	if opts.json_output {
 		return SwarmReport{
 			ok:      true
-			message: json.encode(profiles)
+			message: json2.encode(profiles, escape_unicode: true)
 			data:    {
 				'subcommand': 'models'
 			}
@@ -835,7 +836,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			ok:      false
 			message: "Unknown model-profile '${model_profile}'. Use economy|balanced|quality|private (see docs/SWARM_MODELS_AND_COSTS.md)"
 			data:    {
-				'subcommand': 'start'
+				'subcommand':    'start'
 				'model_profile': model_profile
 			}
 		}
@@ -858,11 +859,11 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json.encode(resolved.budget)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
+			message: '[swarm] dry-run start recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  personas: ${persona_info.join(', ')}\n  budget: ${json2.encode(resolved.budget, escape_unicode: true)}\n  no filesystem writes; UI spawn skipped (ADR-020 fail-closed)'
 			data:    {
-				'subcommand': 'start'
-				'mode':       'dry-run'
-				'recipe':     recipe
+				'subcommand':    'start'
+				'mode':          'dry-run'
+				'recipe':        recipe
 				'backend':       backend
 				'runner':        runner
 				'model_profile': model_profile
@@ -887,7 +888,9 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			'task':    opts.task
 			'version': swarm_state_version.str()
 		}
-		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json.encode(manifest) + '\n') or {}
+		fs_tc.write_atomic(os.join_path(run_dir, 'prompts', role + '.manifest.json'),
+
+			json2.encode(manifest, escape_unicode: true) + '\n') or {}
 	}
 	initial := if resolved.spec.gates.require_plan_approval {
 		'awaiting_plan_approval'
@@ -977,11 +980,12 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	for role in swarm_recipe_roles(recipe) {
-		prompt, manifest := swarm_compose_role_prompt(recipe, role, opts.task, '', swarm_role_skills(recipe,
-			role), rid)
+		prompt, manifest := swarm_compose_role_prompt(recipe, role, opts.task, '',
+			swarm_role_skills(recipe, role), rid)
 		os.write_file(os.join_path(run_dir, 'prompts', role + '.md'), prompt) or {}
-		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'), json.encode(manifest) +
-			'\n') or {}
+		os.write_file(os.join_path(run_dir, 'prompts', role + '.manifest.json'),
+
+			json2.encode(manifest, escape_unicode: true) + '\n') or {}
 		append_swarm_trace(run_dir, 'prompt_composed', role)
 	}
 	append_swarm_trace(run_dir, 'run_created', rid)
@@ -1002,11 +1006,17 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		if spawn_res.ok {
 			herdr_note = '\n  Herdr: ' + spawn_res.message
 		} else {
-			herdr_note = '\n  Herdr spawn warning: ' + spawn_res.message + ' (filesystem state intact; retry: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid + ')'
+			herdr_note = '\n  Herdr spawn warning: ' + spawn_res.message +
+				' (filesystem state intact; retry: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid + ')'
 		}
-		append_swarm_trace(run_dir, if spawn_res.ok { 'herdr_workspace_created' } else { 'herdr_workspace_failed' }, spawn_res.message)
+		append_swarm_trace(run_dir, if spawn_res.ok {
+			'herdr_workspace_created'
+		} else {
+			'herdr_workspace_failed'
+		}, spawn_res.message)
 	} else if backend == 'herdr' && opts.no_attach {
-		herdr_note = '\n  Herdr: --no-attach (CI mode); workspace not created. Create manually: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid
+		herdr_note =
+			'\n  Herdr: --no-attach (CI mode); workspace not created. Create manually: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid
 	}
 	// Blocking attach (execvp) — must be last statement, like Python's os.execvp. Only when not json/dry_run and attach requested.
 	if !opts.dry_run && !opts.json_output && opts.attach && !opts.no_attach {
@@ -1032,7 +1042,10 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 	}
 	return SwarmReport{
 		ok:      true
-		message: '[swarm] started ${rid} recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} state=${initial}\n  ${run_dir}' + herdr_note + '\n  UI spawn fail-closed (ADR-020); filesystem state is authoritative (ADR-008).'
+		message:
+			'[swarm] started ${rid} recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} state=${initial}\n  ${run_dir}' +
+			herdr_note +
+			'\n  UI spawn fail-closed (ADR-020); filesystem state is authoritative (ADR-008).'
 		data:    {
 			'subcommand':    'start'
 			'run_id':        rid
@@ -1041,7 +1054,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 			'runner':        runner
 			'model_profile': model_profile
 			'run_state':     initial
-			'workspace':  ws
+			'workspace':     ws
 		}
 	}
 }
@@ -1057,11 +1070,11 @@ fn herdr_workspace_id(stdout string) string {
 	// fallback: workspace_id without quotes around value (just in case)
 	after := stdout.all_after('workspace_id')
 	start := after.index('"') or { return '' }
-	rest := after[start+1..]
+	rest := after[start + 1..]
 	if rest.starts_with(':') || rest.starts_with('":"') {
 		// handle ":" pattern
 		q := rest.index('"') or { return '' }
-		rest2 := rest[q+1..]
+		rest2 := rest[q + 1..]
 		end2 := rest2.index('"') or { return '' }
 		return rest2[..end2]
 	}
@@ -1079,11 +1092,11 @@ fn herdr_pane_id(stdout string) string {
 	if !stdout.contains('pane_id') { return '' }
 	after := stdout.all_after('pane_id')
 	start := after.index('"') or { return '' }
-	rest := after[start+1..]
+	rest := after[start + 1..]
 	end := rest.index('"') or { return '' }
 	if rest.len > 0 && rest[0] == `:` {
 		q := rest.index('"') or { return '' }
-		rest2 := rest[q+1..]
+		rest2 := rest[q + 1..]
 		end2 := rest2.index('"') or { return '' }
 		return rest2[..end2]
 	}
@@ -1130,28 +1143,57 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 	res := ps.run(RunOptions{
 		argv: ['herdr', 'workspace', 'create', '--cwd', ws, '--label', label, '--no-focus']
 	}) or {
-		return SwarmReport{ ok: false, message: err.msg(), data: { 'backend': 'herdr' } }
+		return SwarmReport{
+			ok:      false
+			message: err.msg()
+			data:    {
+				'backend': 'herdr'
+			}
+		}
 	}
 	if res.exit_code != 0 {
 		mut msg := if res.stderr.len > 0 { res.stderr.trim_space() } else { res.stdout.trim_space() }
 		if msg.len == 0 { msg = 'exit ' + res.exit_code.str() }
-		return SwarmReport{ ok: false, message: msg, data: { 'backend': 'herdr' } }
+		return SwarmReport{
+			ok:      false
+			message: msg
+			data:    {
+				'backend': 'herdr'
+			}
+		}
 	}
 	if !res.stdout.contains('workspace_created') && !res.stdout.contains('workspace_id') {
-		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (herdr output: ' + res.stdout.trim_space().all_before('\n') + ')', data: { 'backend': 'herdr', 'run_id': run_id } }
+		return SwarmReport{
+			ok:      true
+			message: 'workspace swarm-' + run_id +
+				' (herdr output: ' + res.stdout.trim_space().all_before('\n') + ')'
+			data:    {
+				'backend': 'herdr'
+				'run_id':  run_id
+			}
+		}
 	}
 	ws_id := herdr_workspace_id(res.stdout)
 	root_pane := herdr_root_pane_id(res.stdout)
 	if ws_id.len == 0 {
-		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' created', data: { 'backend': 'herdr', 'run_id': run_id } }
+		return SwarmReport{
+			ok:      true
+			message: 'workspace swarm-' + run_id + ' created'
+			data:    {
+				'backend': 'herdr'
+				'run_id':  run_id
+			}
+		}
 	}
 	roles := swarm_recipe_roles(recipe)
 	shell := user_shell()
 	// Eager tabs: one per role (N-1 extras) with Waiting for handoff placeholder via pane run
 	for i, role in roles {
-		if i == 0 { continue } // first role owns root pane
+		if i == 0 { continue
+		 } // first role owns root pane
 		tab_res := ps.run(RunOptions{
-			argv: ['herdr', 'tab', 'create', '--workspace', ws_id, '--cwd', ws, '--label', role, '--no-focus']
+			argv: ['herdr', 'tab', 'create', '--workspace', ws_id, '--cwd', ws, '--label', role,
+				'--no-focus']
 		}) or { continue }
 		if tab_res.exit_code == 0 && tab_res.stdout.contains('tab_id') {
 			mut pred := swarm_role_predecessor(recipe, role)
@@ -1161,15 +1203,19 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 			if pred.len == 0 {
 				pred = 'previous role'
 			}
-			waiting := 'Waiting for handoff: ' + pred + ' -> ' + role + ' | role: ' + role + ' | run: ' + run_id
+			waiting := 'Waiting for handoff: ' + pred + ' -> ' + role + ' | role: ' + role +
+				' | run: ' + run_id
 			tip := 'Will auto-start ' + role + ' when ' + pred + ' creates artifact handoff'
 			hint := 'Tip: agent-toolkit swarm handoffs ' + run_id
-			script := 'echo ' + shell_quote(waiting) + ' && echo ' + shell_quote(tip) + ' && echo ' + shell_quote(hint) + ' && exec ' + shell_base()
+			script := 'echo ' + shell_quote(waiting) + ' && echo ' + shell_quote(tip) +
+				' && echo ' + shell_quote(hint) + ' && exec ' + shell_base()
 			tab_json := tab_res.stdout
 			pane_id := herdr_pane_id(tab_json)
 			if pane_id.len > 0 {
 				msg := shell + ' -lc ' + shell_quote(script)
-				_ := ps.run(RunOptions{ argv: ['herdr', 'pane', 'run', pane_id, msg] }) or { continue }
+				_ := ps.run(RunOptions{ argv: ['herdr', 'pane', 'run', pane_id, msg] }) or {
+					continue
+				}
 				run_dir := swarm_run_dir(ws, run_id)
 				append_swarm_trace(run_dir, 'agent_waiting', role + ':' + pred)
 			}
@@ -1181,16 +1227,26 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 		run_dir := swarm_run_dir(ws, run_id)
 		effective_runner := if runner == 'auto' { 'opencode' } else { runner }
 		if effective_runner == 'skeleton' {
-			skeleton_inner := "echo '[skeleton:" + first_role + "] ready -- no LLM' && exec " + shell_base_for_user()
+			skeleton_inner := "echo '[skeleton:" + first_role + "] ready -- no LLM' && exec " +
+				shell_base_for_user()
 			skeleton_cmd := shell + ' -lc ' + shell_quote(skeleton_inner)
 			res2 := ps.run(RunOptions{ argv: ['herdr', 'pane', 'run', root_pane, skeleton_cmd] }) or {
 				append_swarm_trace(run_dir, 'herdr_agent_failed', first_role + ':' + err.msg())
-				RunResult{ exit_code: -1, stdout: '', stderr: err.msg() }
+				RunResult{
+					exit_code: -1
+					stdout:    ''
+					stderr:    err.msg()
+				}
 			}
 			if res2.exit_code == 0 {
-				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' + effective_runner + ' pane=' + root_pane)
+				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' +
+					effective_runner + ' pane=' + root_pane)
 			} else if res2.stderr.len > 0 || res2.stdout.len > 0 || res2.exit_code != -1 {
-				mut m2 := if res2.stderr.len > 0 { res2.stderr.trim_space() } else { res2.stdout.trim_space() }
+				mut m2 := if res2.stderr.len > 0 {
+					res2.stderr.trim_space()
+				} else {
+					res2.stdout.trim_space()
+				}
 				if m2.len == 0 { m2 = 'exit ' + res2.exit_code.str() }
 				// Only trace failed if we actually ran something (exit -1 is the error case already traced)
 				if res2.exit_code != -1 {
@@ -1199,17 +1255,29 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 			}
 		} else {
 			runner_cmd := herdr_runner_cmd(effective_runner, first_role, task, ws, '')
-			env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) + ' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) + ' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) + ' && export SWARMFORGE_ROLE=' + shell_quote(first_role) + ' &&'
+			env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) +
+				' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) +
+				' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) +
+				' && export SWARMFORGE_ROLE=' + shell_quote(first_role) + ' &&'
 			full_inner := env_prefix + ' cd ' + shell_quote(ws) + ' && exec ' + runner_cmd
 			full_cmd := shell + ' -lc ' + shell_quote(full_inner)
 			res2 := ps.run(RunOptions{ argv: ['herdr', 'pane', 'run', root_pane, full_cmd] }) or {
 				append_swarm_trace(run_dir, 'herdr_agent_failed', first_role + ':' + err.msg())
-				RunResult{ exit_code: -1, stdout: '', stderr: err.msg() }
+				RunResult{
+					exit_code: -1
+					stdout:    ''
+					stderr:    err.msg()
+				}
 			}
 			if res2.exit_code == 0 {
-				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' + effective_runner + ' pane=' + root_pane)
+				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' +
+					effective_runner + ' pane=' + root_pane)
 			} else if res2.exit_code != -1 {
-				mut m2 := if res2.stderr.len > 0 { res2.stderr.trim_space() } else { res2.stdout.trim_space() }
+				mut m2 := if res2.stderr.len > 0 {
+					res2.stderr.trim_space()
+				} else {
+					res2.stdout.trim_space()
+				}
 				if m2.len == 0 { m2 = 'exit ' + res2.exit_code.str() }
 				append_swarm_trace(run_dir, 'herdr_agent_failed', first_role + ':' + m2)
 			}
@@ -1217,16 +1285,53 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 	}
 	// Attach: focus the swarm workspace so user sees it in Herdr
 	focus_res := ps.run(RunOptions{ argv: ['herdr', 'workspace', 'focus', ws_id] }) or {
-		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') created; focus warning: ' + err.msg(), data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
+		return SwarmReport{
+			ok:      true
+			message: 'workspace swarm-' + run_id + ' (' + ws_id + ') created; focus warning: ' +
+				err.msg()
+			data:    {
+				'backend':      'herdr'
+				'run_id':       run_id
+				'workspace_id': ws_id
+			}
+		}
 	}
 	if focus_res.exit_code != 0 {
-		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') created; focus warning: ' + focus_res.stderr.trim_space(), data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
+		return SwarmReport{
+			ok:      true
+			message: 'workspace swarm-' + run_id + ' (' + ws_id + ') created; focus warning: ' +
+				focus_res.stderr.trim_space()
+			data:    {
+				'backend':      'herdr'
+				'run_id':       run_id
+				'workspace_id': ws_id
+			}
+		}
 	}
 	if first_role.len > 0 && root_pane.len > 0 {
 		eff := if runner == 'auto' { 'opencode' } else { runner }
-		return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') — ' + roles.len.str() + ' tabs, agent ' + first_role + '=' + eff + ' (' + root_pane + '), shell=' + shell + ', focused', data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
+		return SwarmReport{
+			ok:      true
+			message: 'workspace swarm-' + run_id + ' (' + ws_id + ') — ' + roles.len.str() +
+				' tabs, agent ' + first_role + '=' + eff +
+				' (' + root_pane + '), shell=' + shell + ', focused'
+			data:    {
+				'backend':      'herdr'
+				'run_id':       run_id
+				'workspace_id': ws_id
+			}
+		}
 	}
-	return SwarmReport{ ok: true, message: 'workspace swarm-' + run_id + ' (' + ws_id + ') — ' + roles.len.str() + ' tabs, shell=' + shell + ', focused', data: { 'backend': 'herdr', 'run_id': run_id, 'workspace_id': ws_id } }
+	return SwarmReport{
+		ok:      true
+		message: 'workspace swarm-' + run_id + ' (' + ws_id + ') — ' + roles.len.str() +
+			' tabs, shell=' + shell + ', focused'
+		data:    {
+			'backend':      'herdr'
+			'run_id':       run_id
+			'workspace_id': ws_id
+		}
+	}
 }
 
 fn list_all_swarm_runs(ws string) []string {
@@ -1302,7 +1407,7 @@ fn swarm_list(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: json.encode(entries)
+			message: json2.encode(entries, escape_unicode: true)
 			data:    {
 				'subcommand': 'list'
 				'count':      '${entries.len}'
@@ -1389,7 +1494,8 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 		if os.is_dir(wt_root) {
 			entries := os.ls(wt_root) or { []string{} }
 			if entries.len > 0 {
-				wt_detail += if wt_detail.len > 0 { '; ' } else { '' } + 'worktrees(dir): ' + entries.join(', ')
+				wt_detail += if wt_detail.len > 0 { '; ' } else { '' } + 'worktrees(dir): ' +
+					entries.join(', ')
 			}
 		}
 	}
@@ -1409,9 +1515,9 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 	}
 	created := time.parse_rfc3339(st.created_at) or { time.utc() }
 	wall := int(time.utc().unix() - created.unix())
-	bj := json.encode(b)
+	bj := json2.encode(b, escape_unicode: true)
 	bc := st.budget_consumed
-	bcj := json.encode(bc)
+	bcj := json2.encode(bc, escape_unicode: true)
 	// Feature: handoffs, worktrees dir, artifacts, trace_tail, budget json
 	mut ho := SwarmHandoffsJson{}
 	for q in ['outbox', 'queued', 'active', 'completed', 'failed'] {
@@ -1508,7 +1614,7 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 		}
 		return SwarmReport{
 			ok:      true
-			message: json.encode(status)
+			message: json2.encode(status, escape_unicode: true)
 			data:    {
 				'subcommand': 'status'
 				'run_id':     st.run_id
@@ -1550,7 +1656,11 @@ fn swarm_status(ws string, opts SwarmOptions) SwarmReport {
 			'backend':          st.backend
 			'run_state':        st.run_state
 			'gates':            gtxt.join(',')
-			'worktrees':        if wlines_joined.len > 0 { wlines_joined } else { worktrees.join(',') }
+			'worktrees':        if wlines_joined.len > 0 {
+				wlines_joined
+			} else {
+				worktrees.join(',')
+			}
 			'budget':           bj
 			'budget_consumed':  bcj
 			'max_total_tokens': b.max_total_tokens.str()
@@ -1790,7 +1900,7 @@ fn swarm_watch(ws string, opts SwarmOptions) SwarmReport {
 		payload['run_state'] = st.run_state
 		payload['gates'] = gtxt.join(',')
 		payload['trace'] = trace_content
-		msg := json.encode(payload)
+		msg := json2.encode(payload, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -1878,7 +1988,7 @@ fn swarm_report(ws string, opts SwarmOptions) SwarmReport {
 			artifacts:          artifacts
 			handoffs_completed: handoffs_done.len
 		}
-		msg := json.encode(payload)
+		msg := json2.encode(payload, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -1968,7 +2078,7 @@ fn swarm_artifacts(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	if opts.json_output {
-		msg := json.encode(items)
+		msg := json2.encode(items, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2045,7 +2155,7 @@ fn swarm_handoffs(ws string, opts SwarmOptions) SwarmReport {
 	}
 	if opts.json_output {
 		// Encode map state -> list
-		msg := json.encode(all_items)
+		msg := json2.encode(all_items, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2115,7 +2225,7 @@ fn swarm_logs(ws string, opts SwarmOptions) SwarmReport {
 			payload['role'] = role
 			payload['trace'] = trace
 			payload['note'] = 'Logs for ${role} not available: herdr not available (trace fallback)'
-			msg := json.encode(payload)
+			msg := json2.encode(payload, escape_unicode: true)
 			return SwarmReport{
 				ok:      true
 				message: msg
@@ -2131,7 +2241,8 @@ fn swarm_logs(ws string, opts SwarmOptions) SwarmReport {
 			// For headless we still return trace with a header
 			return SwarmReport{
 				ok:      true
-				message: 'Logs for ${role} not available: herdr not available (trace fallback)\n' + trace
+				message:
+					'Logs for ${role} not available: herdr not available (trace fallback)\n' + trace
 				data:    {
 					'subcommand': 'logs'
 					'run_id':     run_id
@@ -2155,7 +2266,7 @@ fn swarm_logs(ws string, opts SwarmOptions) SwarmReport {
 		mut payload := map[string]string{}
 		payload['run_id'] = run_id
 		payload['trace'] = trace_content
-		msg := json.encode(payload)
+		msg := json2.encode(payload, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2218,7 +2329,7 @@ fn swarm_approvals(ws string, opts SwarmOptions) SwarmReport {
 	}
 	gates := read_swarm_approvals(rd)
 	if opts.json_output {
-		msg := json.encode(gates)
+		msg := json2.encode(gates, escape_unicode: true)
 		return SwarmReport{
 			ok:      true
 			message: msg
@@ -2365,7 +2476,8 @@ fn swarm_find_run_dir_global(run_id string) ?string {
 			if !os.is_dir(owner_path) {
 				continue
 			}
-			if os.is_dir(os.join_path(owner_path, '.git')) || os.is_file(os.join_path(owner_path, '.git')) {
+			if os.is_dir(os.join_path(owner_path, '.git'))
+				|| os.is_file(os.join_path(owner_path, '.git')) {
 				cand := os.join_path(owner_path, '.agent-toolkit', 'swarm', 'runs', run_id)
 				if os.is_dir(cand) {
 					return cand
@@ -2378,7 +2490,8 @@ fn swarm_find_run_dir_global(run_id string) ?string {
 				if !os.is_dir(repo_path) {
 					continue
 				}
-				if !os.is_dir(os.join_path(repo_path, '.git')) && !os.is_file(os.join_path(repo_path, '.git')) {
+				if !os.is_dir(os.join_path(repo_path, '.git'))
+					&& !os.is_file(os.join_path(repo_path, '.git')) {
 					continue
 				}
 				cand := os.join_path(repo_path, '.agent-toolkit', 'swarm', 'runs', run_id)
@@ -2634,7 +2747,7 @@ fn swarm_init(ws string, opts SwarmOptions) SwarmReport {
 			ok:      false
 			message: "Unknown model-profile '${model_profile}'. Use economy|balanced|quality|private"
 			data:    {
-				'subcommand': 'init'
+				'subcommand':    'init'
 				'model_profile': model_profile
 			}
 		}
@@ -2645,12 +2758,12 @@ fn swarm_init(ws string, opts SwarmOptions) SwarmReport {
 			ok:      true
 			message: '[swarm] dry-run init recipe=${recipe} run_id=${rid}\n  roles: ${swarm_recipe_roles(recipe).join(', ')}\n  no filesystem writes'
 			data:    {
-				'subcommand': 'init'
-				'mode':       'dry-run'
-				'recipe':     recipe
-				'runner':     runner
+				'subcommand':    'init'
+				'mode':          'dry-run'
+				'recipe':        recipe
+				'runner':        runner
 				'model_profile': model_profile
-				'run_id':     rid
+				'run_id':        rid
 			}
 		}
 	}
@@ -3022,14 +3135,16 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 		argv:    ['git', 'merge', '--no-ff', integrator_branch]
 		cwd:     ws
 		timeout: 30 * time.second
-	}) or {
-		return SwarmReport{
-			ok:      false
-			message: 'git merge failed: ${err.msg()}'
-		}
-	}
+	}) or { return SwarmReport{
+		ok:      false
+		message: 'git merge failed: ${err.msg()}'
+	} }
 	if merge_res.exit_code != 0 {
-		mut msg := if merge_res.stderr.len > 0 { merge_res.stderr.trim_space() } else { merge_res.stdout.trim_space() }
+		mut msg := if merge_res.stderr.len > 0 {
+			merge_res.stderr.trim_space()
+		} else {
+			merge_res.stdout.trim_space()
+		}
 		if msg.len == 0 {
 			msg = 'exit ${merge_res.exit_code}'
 		}
@@ -3039,7 +3154,8 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 	next_state := 'cleanup_pending'
-	if swarm_can_transition(st.run_state, next_state) || st.run_state in ['running', 'awaiting_human', 'completed'] {
+	if swarm_can_transition(st.run_state, next_state)
+		|| st.run_state in ['running', 'awaiting_human', 'completed'] {
 		st = SwarmStateFile{
 			...st
 			run_state: next_state
@@ -3069,7 +3185,6 @@ fn swarm_promote(ws string, opts SwarmOptions) SwarmReport {
 		}
 	}
 }
-
 
 fn swarm_stop_backend_agents(backend string, run_id string, recipe string) {
 	ps := new_process_service()
@@ -3210,7 +3325,8 @@ fn herdr_list_workspaces_raw() string {
 		return res.stdout
 	}
 	msg := (res.stderr + res.stdout).to_lower()
-	if msg.contains('unknown') || msg.contains('not supported') || msg.contains('flag') || msg.contains('unrecognized') {
+	if msg.contains('unknown') || msg.contains('not supported') || msg.contains('flag')
+		|| msg.contains('unrecognized') {
 		res2 := ps.run(RunOptions{
 			argv:    ['herdr', 'workspace', 'list']
 			timeout: 5 * time.second
@@ -3413,7 +3529,11 @@ fn swarm_prune(ws string, opts SwarmOptions) SwarmReport {
 			}
 		}
 		wt_str := if wt_list.len > 0 { wt_list.join(',') } else { 'none' }
-		branch_example := if wt_list.len > 0 { 'agent-toolkit-swarm/${rid}/${wt_list[0]}' } else { 'agent-toolkit-swarm/${rid}/...' }
+		branch_example := if wt_list.len > 0 {
+			'agent-toolkit-swarm/${rid}/${wt_list[0]}'
+		} else {
+			'agent-toolkit-swarm/${rid}/...'
+		}
 		infos[rd] = '${rid} (age ${age_str}, worktrees: ${wt_str}, branch: ${branch_example})'
 	}
 	if opts.dry_run {
@@ -3521,7 +3641,8 @@ fn swarm_prune(ws string, opts SwarmOptions) SwarmReport {
 			'older_than': older
 			'pruned':     '${pruned}'
 			'skipped':    '${skipped_dirty}'
-		}	}
+		}
+	}
 }
 
 fn swarm_handoff(ws string, opts SwarmOptions) SwarmReport {
@@ -3555,7 +3676,11 @@ Usage:
 
 Types:
     artifact        hand off an artifact under <run>/artifacts (1 MB max)
-    commit          hand off a git commit (40-hex SHA + branch, validated via git)
+    commit          hand off a git commit (40-hex SHA + branch, validated via git);
+                    subject to the audit gate: the first create per
+                    (run, from, to, commit) returns AUDIT_REQUIRED — re-run the
+                    identical command to pass and queue. A changed payload
+                    creates a new challenge (swarm-forge discipline)
     feedback        reviewer feedback; --blocking enforces the round-trip limit (2)
     decision_request request a decision (no commit/artifact required)
 
@@ -3685,6 +3810,64 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 		}
 		rec.commit = sha
 		rec.branch = opts.branch
+		// Audit gate (swarm-forge discipline, adapted to filesystem SoT ADR-008):
+		// the first commit handoff per (run, from, to, commit, branch) is challenged.
+		// The sender must re-verify the committed work and re-run the identical
+		// command; only an unchanged second call queues the handoff. Any change to
+		// the payload creates a new challenge.
+		digest := sha256.hexhash('${run_id}|${from_role}|${to_role}|${rec.commit}|${rec.branch}')
+		audit_dir := os.join_path(rd, 'handoffs', 'audit')
+		audit_file := os.join_path(audit_dir, '${digest}.json')
+		if !os.exists(audit_file) {
+			os.mkdir_all(audit_dir) or {
+				return SwarmReport{
+					ok:      false
+					message: 'audit gate: cannot create ${audit_dir}: ${err}'
+					data:    {
+						'subcommand': 'handoff'
+					}
+				}
+			}
+			os.write_file(audit_file, json2.encode({
+				'challenge': '1'
+				'commit':    rec.commit
+				'from':      from_role
+				'run_id':    run_id
+				'to':        to_role
+			}, escape_unicode: true)) or {
+				return SwarmReport{
+					ok:      false
+					message: 'audit gate: cannot write ${audit_file}: ${err}'
+					data:    {
+						'subcommand': 'handoff'
+					}
+				}
+			}
+			append_swarm_trace(rd, 'audit_required',
+				'${digest}:${from_role}->${to_role}:${rec.commit[..10]}')
+			return SwarmReport{
+				ok:      false
+				message: 'AUDIT_REQUIRED: commit handoff ${rec.commit[..10]} is challenged (challenge 1).
+
+Before re-running: re-read the complete task and referenced sources, trace every
+requirement and constraint to the committed work, examine boundaries and failure
+cases, fix every finding, and re-run applicable checks.
+
+Then re-run the identical handoff create command — an unchanged second call
+passes the audit and queues the handoff. Any change (commit, roles, branch)
+creates a new challenge.'
+				data:    {
+					'subcommand': 'handoff'
+					'run_id':     run_id
+					'state':      'audit_required'
+					'challenge':  '1'
+					'commit':     rec.commit
+				}
+			}
+		}
+		// Identical re-submission: consume the challenge and pass.
+		os.rm(audit_file) or {}
+		append_swarm_trace(rd, 'audit_passed', digest)
 	}
 	if htype == 'feedback' {
 		rec.blocking = opts.blocking
@@ -3737,7 +3920,8 @@ fn swarm_handoff_create(ws string, opts SwarmOptions) SwarmReport {
 	for h in list_handoffs(rd, 'active') {
 		if h.to_role == from_role && h.handoff_id.len > 0 {
 			move_handoff(rd, h.handoff_id, 'active', 'completed') or {}
-			append_swarm_trace(rd, 'handoff_completed', '${h.handoff_id}:auto:handoff_create:${hid}')
+			append_swarm_trace(rd, 'handoff_completed',
+				'${h.handoff_id}:auto:handoff_create:${hid}')
 		}
 	}
 	return SwarmReport{
@@ -3772,7 +3956,7 @@ fn swarm_task(ws string, opts SwarmOptions) SwarmReport {
 	}
 	return SwarmReport{
 		ok:      false
-		message: "Unknown task command: ${sub}\nUsage: agent-toolkit swarm task <next|complete>"
+		message: 'Unknown task command: ${sub}\nUsage: agent-toolkit swarm task <next|complete>'
 		data:    {
 			'subcommand': 'task'
 		}
@@ -3855,7 +4039,7 @@ fn swarm_task_next(ws string, opts SwarmOptions) SwarmReport {
 			message: 'No queued tasks'
 			data:    {
 				'subcommand': 'task'
-				'task':      ''
+				'task':       ''
 			}
 		}
 	}
@@ -3867,7 +4051,7 @@ fn swarm_task_next(ws string, opts SwarmOptions) SwarmReport {
 	}
 	return SwarmReport{
 		ok:      true
-		message: json.encode(task)
+		message: json2.encode(task, escape_unicode: true)
 		data:    {
 			'subcommand': 'task'
 			'handoff_id': hid
@@ -3967,7 +4151,8 @@ fn ensure_swarm_run_dirs(run_dir string) ! {
 
 fn write_swarm_state(run_dir string, st SwarmStateFile) ! {
 	fs := new_fs()
-	fs.write_atomic(os.join_path(run_dir, 'state.json'), json.encode(st) + '\n')!
+	fs.write_atomic(os.join_path(run_dir, 'state.json'), json2.encode(st, escape_unicode: true) +
+		'\n')!
 }
 
 fn read_swarm_state(run_dir string) ?SwarmStateFile {
@@ -3976,7 +4161,7 @@ fn read_swarm_state(run_dir string) ?SwarmStateFile {
 		return none
 	}
 	text := os.read_file(path) or { return none }
-	mut st := json.decode(SwarmStateFile, text) or { return none }
+	mut st := json2.decode[SwarmStateFile](text) or { return none }
 	if st.version > swarm_state_version {
 		return none
 	}
@@ -3994,7 +4179,8 @@ fn check_budget(run_dir string) ?string {
 	}
 	created := time.parse_rfc3339(st.created_at) or { time.utc() }
 	wall := int(time.utc().unix() - created.unix())
-	if st.budget_consumed.total_tokens >= b.max_total_tokens || st.budget_consumed.total_cost >= b.max_cost_usd || wall >= b.max_wall_seconds {
+	if st.budget_consumed.total_tokens >= b.max_total_tokens
+		|| st.budget_consumed.total_cost >= b.max_cost_usd || wall >= b.max_wall_seconds {
 		return 'budget_exhausted'
 	}
 	return none
@@ -4005,7 +4191,9 @@ fn write_swarm_approvals(run_dir string, gates []SwarmGate) ! {
 		gates: gates
 	}
 	fs := new_fs()
-	fs.write_atomic(os.join_path(run_dir, 'approvals.json'), json.encode(payload) + '\n')!
+	fs.write_atomic(os.join_path(run_dir, 'approvals.json'),
+
+		json2.encode(payload, escape_unicode: true) + '\n')!
 }
 
 fn read_swarm_approvals(run_dir string) []SwarmGate {
@@ -4014,12 +4202,12 @@ fn read_swarm_approvals(run_dir string) []SwarmGate {
 		return []
 	}
 	text := os.read_file(path) or { return [] }
-	file := json.decode(SwarmApprovalsFile, text) or { return [] }
+	file := json2.decode[SwarmApprovalsFile](text) or { return [] }
 	return file.gates
 }
 
 fn append_swarm_trace(run_dir string, kind string, detail string) {
-	line := '{"ts":${json.encode(time.utc().format_rfc3339())},"kind":${json.encode(kind)},"detail":${json.encode(detail)}}\n'
+	line := '{"ts":${json2.encode(time.utc().format_rfc3339(), escape_unicode: true)},"kind":${json2.encode(kind, escape_unicode: true)},"detail":${json2.encode(detail, escape_unicode: true)}}\n'
 	path := os.join_path(run_dir, 'trace.jsonl')
 	fs := new_fs()
 	existing := os.read_file(path) or { '' }
