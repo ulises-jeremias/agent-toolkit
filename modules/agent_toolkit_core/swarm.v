@@ -184,7 +184,7 @@ Attach: herdr attach by default (focus UI); use --no-attach for CI/script mode.
 }
 
 fn find_swarm_workspace(override string) string {
-	if override.len > 0 {
+	if override != '' {
 		if os.is_dir(override) {
 			return override
 		}
@@ -217,7 +217,7 @@ fn swarm_candidate_repo_paths(owner_repo string) []string {
 	repo := parts[1]
 	mut candidates := []string{}
 	home := os.home_dir()
-	if home.len > 0 {
+	if home != '' {
 		candidates << os.join_path(home, '.ai-workspace', 'repos', 'github.com', owner, repo)
 		candidates << os.join_path(home, '.ai-workspace', 'repos', owner, repo)
 	}
@@ -235,7 +235,7 @@ fn swarm_candidate_repo_paths(owner_repo string) []string {
 		}
 		cur = parent
 	}
-	if home.len > 0 {
+	if home != '' {
 		candidates << os.join_path(home, '.ai-workspace', 'repos', 'github.com', owner, repo)
 	}
 	candidates << os.join_path(os.getwd(), repo)
