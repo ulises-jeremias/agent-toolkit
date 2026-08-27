@@ -4,21 +4,23 @@
 
 A profile is the bridge between agent-toolkit's portable skill definitions and a specific AI coding assistant. Because each tool has its own configuration format and file layout, agent-toolkit ships a dedicated profile for each supported tool under `profiles/<tool>/` (legacy layout, kept for fallback).
 
+> **Timeline per [`ADR-004`](adrs/ADR-004-profiles-vs-plugins.md):** `v1.3` clarified → `v1.4–1.5` prefer compiled `plugins/` → `v1.6` deprecate `profiles/` (no new content) → `v2.0` freeze/remove pending vote. Do not add new skills only in `profiles/`.
+
 Profiles reference skills but do not duplicate them. When a skill changes, the profile reflects the change automatically — there is no per-tool copy of the skill logic.
 
 ---
 
 ## Profile Overview
 
-| Tool | Profile directory | Key files | Install path |
-|------|-------------------|-----------|--------------|
-| Claude Code | `profiles/claude-code/` | `CLAUDE.md`, `settings.json`, `agents/` | `~/.claude/` |
-| Cursor | `profiles/cursor/` | `rules/*.mdc` | `~/.cursor/rules/` |
-| OpenCode | `profiles/opencode/` | `opencode.json`, `agents/` | `~/.config/opencode/` |
-| GitHub Copilot | `profiles/copilot/` | `copilot-instructions.md` | `.github/` (per project) |
-| Windsurf | `profiles/windsurf/` | `rules/*.mdc`, `memories/global_rules.md` | `~/.codeium/windsurf/` |
-| Pi Coding Agent | `profiles/pi/` | `skills/*.md` | `~/.pi/agent/skills/` |
-| Muse Code | `profiles/muse-code/` | Agent Skills (`SKILL.md`) | `~/.config/muse/skills/` |
+| Tool | Profile directory | Key files | Install path | Delivery |
+|------|-------------------|-----------|--------------|----------|
+| Claude Code | `profiles/claude-code/` | `CLAUDE.md`, `settings.json`, `agents/` | `~/.claude/` | plugin preferred, profile fallback |
+| Cursor | `profiles/cursor/` | `rules/*.mdc` | `~/.cursor/rules/` | plugin preferred, profile fallback |
+| OpenCode | `profiles/opencode/` | `opencode.json`, `agents/` | `~/.config/opencode/` | plugin preferred, profile fallback |
+| GitHub Copilot | `profiles/copilot/` | `copilot-instructions.md` | `.github/` (per project) | profile (plugin pending) |
+| Windsurf | `profiles/windsurf/` | `rules/*.mdc`, `memories/global_rules.md` | `~/.codeium/windsurf/` | profile |
+| Pi Coding Agent | `profiles/pi/` | `skills/*.md` | `~/.pi/agent/skills/` | profile |
+| Muse Code | `profiles/muse-code/` | Agent Skills (`SKILL.md`) | `~/.config/muse/skills/` | profile |
 
 ---
 
