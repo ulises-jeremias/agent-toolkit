@@ -1145,11 +1145,13 @@ fn herdr_resolve_workspace_id(run_id string) string {
 	if res.exit_code != 0 {
 		return ''
 	}
+	// herdr object field order: "label" comes before "workspace_id" — search
+	// forward so we read the id of the same object, not of the previous one.
 	needle := '"label":"swarm-${run_id}"'
 	idx := res.stdout.index(needle) or { return '' }
-	seg := res.stdout[..idx]
+	seg := res.stdout[idx..]
 	prefix := '"workspace_id":"'
-	start := seg.last_index(prefix) or { return '' }
+	start := seg.index(prefix) or { return '' }
 	rest := seg[start + prefix.len..]
 	end := rest.index('"') or { return '' }
 	return rest[..end]
@@ -1309,6 +1311,235 @@ fn spawn_tmux_session(ws string, run_id string, task string, recipe string, runn
 			'run_id':  run_id
 			'socket':  sock
 			'windows': '${found}/${roles.len}'
+		}
+	}
+}
+
+// swarm_role_already_started reports whether the role's agent was already
+// launched (eager-first start or a previous auto-start) by reading trace.jsonl.
+fn swarm_role_already_started(run_dir string, role string) bool {
+	content := os.read_file(os.join_path(run_dir, 'trace.jsonl')) or { return false }
+	needle := '${role}='
+	for line in content.split_into_lines() {
+		if line.contains('agent_started') && line.contains(needle) {
+			return true
+		}
+		if line.contains('role_autostarted') && line.contains(needle) {
+			return true
+		}
+	}
+	return false
+}
+
+// swarm_autostart_role launches the runner for `role` in its existing UI
+// surface — the swarm-forge `handoffd` behavior without a daemon. Called by
+// `swarm handoff create` when a work handoff reaches a role that is still
+// waiting, making the "Will auto-start <role>" UX promise true end-to-end.
+// herdr: `pane run` on the role's tab pane (tab label == role).
+// tmux: `send-keys` into the role's window (window name == role).
+fn swarm_autostart_role(ws string, run_id string, recipe string, role string, runner string, backend string) SwarmReport {
+	run_dir := swarm_run_dir(ws, run_id)
+	roles := swarm_recipe_roles(recipe)
+	if !roles.contains(role) {
+		return SwarmReport{
+			ok:      false
+			message: 'role ${role} is not part of recipe ${recipe}'
+			data:    {
+				'role': role
+			}
+		}
+	}
+	if swarm_role_already_started(run_dir, role) {
+		return SwarmReport{
+			ok:      true
+			message: 'role ${role} already started'
+			data:    {
+				'role':    role
+				'skipped': 'true'
+			}
+		}
+	}
+	effective_runner := if runner == 'auto' { 'opencode' } else { runner }
+	prompt_file := os.join_path(run_dir, 'prompts', role + '.md')
+	shell := user_shell()
+	base_user := shell_base_for_user()
+	inner := if effective_runner == 'skeleton' {
+		"echo '[skeleton:" + role + "] ready -- no LLM' && exec " + base_user
+	} else {
+		runner_cmd := herdr_runner_cmd(effective_runner, role, '', ws, prompt_file)
+		env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) +
+			' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) +
+			' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) +
+			' && export SWARMFORGE_ROLE=' + shell_quote(role) + ' &&'
+		env_prefix + ' cd ' + shell_quote(ws) + ' && exec ' + runner_cmd
+	}
+	cmd := shell + ' -lc ' + shell_quote(inner)
+	ps := new_process_service()
+	if backend == 'tmux' {
+		sock := 'agent-toolkit-swarm-' + run_id
+		session := 'swarm-' + run_id
+		send := ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'send-keys', '-t', '${session}:${role}', '-l', cmd]
+			timeout: 5 * time.second
+		}) or {
+			return SwarmReport{
+				ok:      false
+				message: err.msg()
+				data:    {
+					'role': role
+				}
+			}
+		}
+		if send.exit_code != 0 {
+			return SwarmReport{
+				ok:      false
+				message: 'tmux send-keys failed (exit ${send.exit_code})'
+				data:    {
+					'role': role
+				}
+			}
+		}
+		ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'send-keys', '-t', '${session}:${role}', 'Enter']
+			timeout: 5 * time.second
+		}) or {}
+		append_swarm_trace(run_dir, 'role_autostarted', role + '=' + effective_runner)
+		return SwarmReport{
+			ok:      true
+			message: 'role ${role} auto-started (${effective_runner}) in tmux window ${session}:${role}'
+			data:    {
+				'role':    role
+				'runner':  effective_runner
+				'backend': 'tmux'
+			}
+		}
+	}
+	if backend == 'herdr' {
+		ws_id := herdr_resolve_workspace_id(run_id)
+		if ws_id.len == 0 {
+			return SwarmReport{
+				ok:      false
+				message: 'herdr workspace for swarm-${run_id} not found'
+				data:    {
+					'role': role
+				}
+			}
+		}
+		tabs := ps.run(RunOptions{
+			argv:    ['herdr', 'tab', 'list', '--workspace', ws_id]
+			timeout: 5 * time.second
+		}) or {
+			return SwarmReport{
+				ok:      false
+				message: err.msg()
+				data:    {
+					'role': role
+				}
+			}
+		}
+		// tab with label == role → tab_id → pane_id
+		role_label := '"label":"${role}"'
+		tidx := tabs.stdout.index(role_label) or {
+			return SwarmReport{
+				ok:      false
+				message: 'no herdr tab labeled ${role}'
+				data:    {
+					'role': role
+				}
+			}
+		}
+		// "tab_id" comes after "label" within the same tab object — search forward.
+		tseg := tabs.stdout[tidx..]
+		tprefix := '"tab_id":"'
+		tstart := tseg.index(tprefix) or {
+			return SwarmReport{
+				ok:      false
+				message: 'tab_id not found for role ${role}'
+				data:    {
+					'role': role
+				}
+			}
+		}
+		trest := tseg[tstart + tprefix.len..]
+		tend := trest.index('"') or { return SwarmReport{ ok: false, message: 'malformed tab list' } }
+		tab_id := trest[..tend]
+		panes := ps.run(RunOptions{
+			argv:    ['herdr', 'pane', 'list']
+			timeout: 5 * time.second
+		}) or {
+			return SwarmReport{
+				ok:      false
+				message: err.msg()
+				data:    {
+					'role': role
+				}
+			}
+		}
+		// scan pane objects: each contains "pane_id":"X" ... "tab_id":"T";
+		// pick the pane whose tab_id matches (tab_id sits later in the object).
+		pprefix := '"pane_id":"'
+		mut pane_id := ''
+		mut cursor := 0
+		for {
+			pstart := panes.stdout.index_after(pprefix, cursor) or { break }
+			p_id_start := pstart + pprefix.len
+			p_id_rest := panes.stdout[p_id_start..]
+			pend := p_id_rest.index('"') or { break }
+			pid := p_id_rest[..pend]
+			obj_end := p_id_rest.index('"pane_id":"') or { p_id_rest.len }
+			if p_id_rest[..obj_end].contains('"tab_id":"${tab_id}"') {
+				pane_id = pid
+				break
+			}
+			cursor = p_id_start
+		}
+		if pane_id.len == 0 {
+			return SwarmReport{
+				ok:      false
+				message: 'no pane for tab ${tab_id}'
+				data:    {
+					'role': role
+				}
+			}
+		}
+		pr := ps.run(RunOptions{
+			argv:    ['herdr', 'pane', 'run', pane_id, cmd]
+			timeout: 5 * time.second
+		}) or {
+			return SwarmReport{
+				ok:      false
+				message: err.msg()
+				data:    {
+					'role': role
+				}
+			}
+		}
+		if pr.exit_code != 0 {
+			return SwarmReport{
+				ok:      false
+				message: 'herdr pane run failed (exit ${pr.exit_code})'
+				data:    {
+					'role': role
+				}
+			}
+		}
+		append_swarm_trace(run_dir, 'role_autostarted', role + '=' + effective_runner + ' pane=' + pane_id)
+		return SwarmReport{
+			ok:      true
+			message: 'role ${role} auto-started (${effective_runner}) in herdr pane ${pane_id}'
+			data:    {
+				'role':    role
+				'runner':  effective_runner
+				'backend': 'herdr'
+				'pane_id': pane_id
+			}
+		}
+	}
+	return SwarmReport{
+		ok:      false
+		message: 'backend ${backend} does not support role auto-start'
+		data:    {
+			'role': role
 		}
 	}
 }
@@ -4118,6 +4349,16 @@ priority, artifact) creates a new challenge.'
 	hid := rec.handoff_id
 	move_handoff(rd, hid, 'outbox', 'queued') or {}
 	append_swarm_trace(rd, 'handoff_queued', hid)
+	// swarm-forge handoffd behavior without a daemon: when a work handoff
+	// reaches a role, auto-start that role's runner in its waiting surface.
+	if htype in ['artifact', 'commit'] && to_role.len > 0 {
+		autostart := swarm_autostart_role(ws, run_id, st.recipe, to_role, st.runner, st.backend)
+		append_swarm_trace(rd, if autostart.ok {
+			'handoff_autostart_ok'
+		} else {
+			'handoff_autostart_failed'
+		}, '${to_role}: ${autostart.message}')
+	}
 	// Auto-complete incoming active handoffs for the sender (Python fbb2280 parity).
 	for h in list_handoffs(rd, 'active') {
 		if h.to_role == from_role && h.handoff_id.len > 0 {
