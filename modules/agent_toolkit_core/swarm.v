@@ -997,6 +997,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 	}
 	// Herdr UI spawn (ADR-008: UI is adapter, not engine). Only when --attach and not dry-run.
 	mut herdr_note := ''
+	mut tmux_note := ''
 	if opts.attach && !opts.no_attach && backend == 'herdr' {
 		spawn_res := spawn_herdr_workspace(ws, rid, opts.task, recipe, runner, model_profile)
 		if spawn_res.ok {
@@ -1014,21 +1015,42 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		herdr_note =
 			'\n  Herdr: --no-attach (CI mode); workspace not created. Create manually: herdr workspace create --cwd ' + ws + ' --label swarm-' + rid
 	}
+	if opts.attach && !opts.no_attach && backend == 'tmux' {
+		spawn_res := spawn_tmux_session(ws, rid, opts.task, recipe, runner, model_profile)
+		if spawn_res.ok {
+			tmux_note = '\n  tmux: ' + spawn_res.message
+		} else {
+			tmux_note = '\n  tmux spawn warning: ' + spawn_res.message +
+				' (filesystem state intact; retry: tmux -L agent-toolkit-swarm-' + rid + ' new-session -d -s swarm-' + rid + ')'
+		}
+		append_swarm_trace(run_dir, if spawn_res.ok {
+			'tmux_session_created'
+		} else {
+			'tmux_session_failed'
+		}, spawn_res.message)
+	}
 	// Blocking attach (execvp) — must be last statement, like Python's os.execvp. Only when not json/dry_run and attach requested.
 	if !opts.dry_run && !opts.json_output && opts.attach && !opts.no_attach {
 		if backend == 'tmux' {
 			sock := 'agent-toolkit-swarm-${rid}'
 			session := 'swarm-${rid}'
 			println('Attaching to tmux: tmux -L ${sock} attach -t ${session}')
-			os.execvp('tmux', ['tmux', '-L', sock, 'attach', '-t', session]) or {
+			os.execvp('tmux', ['-L', sock, 'attach', '-t', session]) or {
 				return SwarmReport{
 					ok:      false
 					message: 'tmux attach failed: ${err}'
 				}
 			}
 		} else if backend == 'herdr' {
-			println('Attaching to herdr: herdr workspace open swarm-${rid}')
-			os.execvp('herdr', ['herdr', 'workspace', 'open', 'swarm-${rid}']) or {
+			ws_id := herdr_resolve_workspace_id(rid)
+			if ws_id.len == 0 {
+				return SwarmReport{
+					ok:      false
+					message: 'herdr workspace for swarm-${rid} not found (checked herdr workspace list)'
+				}
+			}
+			println('Attaching to herdr: herdr workspace focus ${ws_id} (swarm-${rid})')
+			os.execvp('herdr', ['workspace', 'focus', ws_id]) or {
 				return SwarmReport{
 					ok:      false
 					message: 'herdr attach failed: ${err}'
@@ -1040,7 +1062,7 @@ fn swarm_start(ws string, opts SwarmOptions) SwarmReport {
 		ok:      true
 		message:
 			'[swarm] started ${rid} recipe=${recipe} backend=${backend} runner=${runner} model_profile=${model_profile} state=${initial}\n  ${run_dir}' +
-			herdr_note +
+			herdr_note + tmux_note +
 			'\n  UI spawn fail-closed (ADR-020); filesystem state is authoritative (ADR-008).'
 		data:    {
 			'subcommand':    'start'
@@ -1110,6 +1132,29 @@ fn herdr_root_pane_id(stdout string) string {
 	return herdr_pane_id(stdout)
 }
 
+// herdr_resolve_workspace_id finds the herdr workspace id whose label is
+// `swarm-<run_id>` via `herdr workspace list`. Empty string when not found.
+fn herdr_resolve_workspace_id(run_id string) string {
+	ps := new_process_service()
+	res := ps.run(RunOptions{
+		argv:    ['herdr', 'workspace', 'list']
+		timeout: 5 * time.second
+	}) or {
+		return ''
+	}
+	if res.exit_code != 0 {
+		return ''
+	}
+	needle := '"label":"swarm-${run_id}"'
+	idx := res.stdout.index(needle) or { return '' }
+	seg := res.stdout[..idx]
+	prefix := '"workspace_id":"'
+	start := seg.last_index(prefix) or { return '' }
+	rest := seg[start + prefix.len..]
+	end := rest.index('"') or { return '' }
+	return rest[..end]
+}
+
 fn user_shell() string {
 	for cand in [os.getenv('SHELL'), os.getenv('SWARM_SHELL')] {
 		if cand.len > 0 && os.is_file(cand) {
@@ -1131,6 +1176,141 @@ fn shell_base_for_user() string {
 		return sh
 	}
 	return sh[idx + 1..]
+}
+
+// spawn_tmux_session creates a dedicated tmux server (socket `agent-toolkit-swarm-<run-id>`)
+// with one window per recipe role and launches the same runner command surface the
+// herdr backend uses (ADR-008: UI is an adapter, not the engine). Mirrors the herdr
+// eager-first behavior: role[0] runs the runner, remaining roles wait for handoffs.
+fn spawn_tmux_session(ws string, run_id string, task string, recipe string, runner string, model_profile string) SwarmReport {
+	ps := new_process_service()
+	sock := 'agent-toolkit-swarm-' + run_id
+	session := 'swarm-' + run_id
+	roles := swarm_recipe_roles(recipe)
+	if roles.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'no roles in recipe ${recipe}'
+			data:    {
+				'backend': 'tmux'
+			}
+		}
+	}
+	run_dir := swarm_run_dir(ws, run_id)
+	shell := user_shell()
+	base_user := shell_base_for_user()
+	effective_runner := if runner == 'auto' { 'opencode' } else { runner }
+	// 1. Detached session; the first window is named after the first role.
+	new_sess := ps.run(RunOptions{
+		argv:    ['tmux', '-L', sock, 'new-session', '-d', '-s', session, '-n', roles[0], '-c', ws]
+		timeout: 10 * time.second
+	}) or {
+		return SwarmReport{
+			ok:      false
+			message: err.msg()
+			data:    {
+				'backend': 'tmux'
+			}
+		}
+	}
+	if new_sess.exit_code != 0 {
+		mut msg := if new_sess.stderr.len > 0 { new_sess.stderr.trim_space() } else { new_sess.stdout.trim_space() }
+		if msg.len == 0 {
+			msg = 'exit ' + new_sess.exit_code.str()
+		}
+		return SwarmReport{
+			ok:      false
+			message: 'tmux new-session failed: ${msg}'
+			data:    {
+				'backend': 'tmux'
+			}
+		}
+	}
+	// Window name == role name is the observable contract; keep tmux from renaming.
+	ps.run(RunOptions{
+		argv:    ['tmux', '-L', sock, 'set-window-option', '-g', '-t', session, 'automatic-rename', 'off']
+		timeout: 5 * time.second
+	}) or {}
+	// 2. Remaining role windows.
+	for role in roles[1..] {
+		ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'new-window', '-t', session, '-n', role, '-c', ws]
+			timeout: 5 * time.second
+		}) or {}
+	}
+	// 3. Launch per-window: first role runs the runner, the rest wait for handoffs.
+	for i, role in roles {
+		inner := if i == 0 {
+			if effective_runner == 'skeleton' {
+				"echo '[skeleton:" + role + "] ready -- no LLM' && exec " + base_user
+			} else {
+				prompt_file := os.join_path(run_dir, 'prompts', role + '.md')
+				runner_cmd := herdr_runner_cmd(effective_runner, role, task, ws, prompt_file)
+				env_prefix := 'export AGENT_TOOLKIT_SWARM_RUN_ID=' + shell_quote(run_id) +
+					' && export AGENT_TOOLKIT_SWARM_RUN_DIR=' + shell_quote(run_dir) +
+					' && export AGENT_TOOLKIT_SWARM_REPO=' + shell_quote(ws) +
+					' && export SWARMFORGE_ROLE=' + shell_quote(role) + ' &&'
+				env_prefix + ' cd ' + shell_quote(ws) + ' && exec ' + runner_cmd
+			}
+		} else {
+			mut pred := swarm_role_predecessor(recipe, role)
+			if pred.len == 0 {
+				pred = 'previous role'
+			}
+			waiting := 'Waiting for handoff: ' + pred + ' -> ' + role + ' | role: ' + role +
+				' | run: ' + run_id
+			tip := 'Will auto-start ' + role + ' when ' + pred + ' creates artifact handoff'
+			hint := 'Tip: agent-toolkit swarm handoffs ' + run_id
+			'echo ' + shell_quote(waiting) + ' && echo ' + shell_quote(tip) + ' && echo ' + shell_quote(hint) +
+				' && exec ' + base_user
+		}
+		cmd := shell + ' -lc ' + shell_quote(inner)
+		send := ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'send-keys', '-t', '${session}:${role}', '-l', cmd]
+			timeout: 5 * time.second
+		}) or {
+			append_swarm_trace(run_dir, 'tmux_agent_failed', role + ':' + err.msg())
+			continue
+		}
+		if send.exit_code != 0 {
+			append_swarm_trace(run_dir, 'tmux_agent_failed', role + ':exit ' + send.exit_code.str())
+			continue
+		}
+		ps.run(RunOptions{
+			argv:    ['tmux', '-L', sock, 'send-keys', '-t', '${session}:${role}', 'Enter']
+			timeout: 5 * time.second
+		}) or {}
+		append_swarm_trace(run_dir, 'tmux_agent_started', role + '=' + effective_runner)
+	}
+	// 4. Verify the window inventory (SC1 contract: window name == role name).
+	verify := ps.run(RunOptions{
+		argv:    ['tmux', '-L', sock, 'list-windows', '-t', session, '-F', '#{window_name}']
+		timeout: 5 * time.second
+	}) or {
+		return SwarmReport{
+			ok:      false
+			message: 'tmux list-windows failed: ${err}'
+			data:    {
+				'backend': 'tmux'
+			}
+		}
+	}
+	mut found := 0
+	for role in roles {
+		if verify.stdout.split_into_lines().any(it.trim_space() == role) {
+			found++
+		}
+	}
+	return SwarmReport{
+		ok:      found == roles.len
+		message: 'tmux session swarm-${run_id} (socket ${sock}): ${found}/${roles.len} role windows (${roles.join(', ')})'
+		data:    {
+			'backend': 'tmux'
+			'run_id':  run_id
+			'socket':  sock
+			'windows': '${found}/${roles.len}'
+		}
+	}
 }
 
 fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, runner string, model_profile string) SwarmReport {
@@ -2411,15 +2591,22 @@ fn swarm_attach(ws string, opts SwarmOptions) SwarmReport {
 		sock := 'agent-toolkit-swarm-${opts.run_id}'
 		session := 'swarm-${opts.run_id}'
 		println('Attaching to tmux: tmux -L ${sock} attach -t ${session}')
-		os.execvp('tmux', ['tmux', '-L', sock, 'attach', '-t', session]) or {
+		os.execvp('tmux', ['-L', sock, 'attach', '-t', session]) or {
 			return SwarmReport{
 				ok:      false
 				message: 'tmux attach failed: ${err}'
 			}
 		}
 	} else if backend == 'herdr' {
-		println('Attaching to herdr: herdr workspace open swarm-${opts.run_id}')
-		os.execvp('herdr', ['herdr', 'workspace', 'open', 'swarm-${opts.run_id}']) or {
+		ws_id := herdr_resolve_workspace_id(opts.run_id)
+		if ws_id.len == 0 {
+			return SwarmReport{
+				ok:      false
+				message: 'herdr workspace for swarm-${opts.run_id} not found (checked herdr workspace list)'
+			}
+		}
+		println('Attaching to herdr: herdr workspace focus ${ws_id} (swarm-${opts.run_id})')
+		os.execvp('herdr', ['workspace', 'focus', ws_id]) or {
 			return SwarmReport{
 				ok:      false
 				message: 'herdr attach failed: ${err}'
