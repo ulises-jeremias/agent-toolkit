@@ -914,6 +914,11 @@ fn swarm_command() cli.Command {
 				execute:     atk_exec
 			},
 			cli.Command{
+				name:        'graph'
+				description: 'Show the run role graph with live status'
+				execute:     atk_exec
+			},
+			cli.Command{
 				name:        'approve'
 				description: 'Approve a gate'
 				execute:     atk_exec

@@ -244,6 +244,9 @@ pub fn run_swarm(opts SwarmOptions) SwarmReport {
 		'cleanup' {
 			swarm_cleanup(ws, opts)
 		}
+		'graph' {
+			swarm_graph(ws, opts)
+		}
 		'handoff' {
 			swarm_handoff(ws, opts)
 		}
@@ -330,6 +333,7 @@ Usage:
     agent-toolkit swarm stop <run-id>
     agent-toolkit swarm cleanup <run-id> [--force] [--dry-run]
     agent-toolkit swarm list [--json] [--workspace PATH] [-C PATH] [--repo PATH]
+    agent-toolkit swarm graph <run-id> [--json] [--workspace PATH]
     agent-toolkit swarm status [run-id] [--json] [--workspace PATH] [-C PATH] [--repo PATH]
     agent-toolkit swarm approve <run-id> <gate>
     agent-toolkit swarm reject <run-id> <gate> --reason TEXT
@@ -1337,6 +1341,138 @@ fn swarm_role_already_started(run_dir string, role string) bool {
 // waiting, making the "Will auto-start <role>" UX promise true end-to-end.
 // herdr: `pane run` on the role's tab pane (tab label == role).
 // tmux: `send-keys` into the role's window (window name == role).
+// swarm_wake_agent nudges a freshly launched runner so it consumes its prompt
+// even when the TUI preloads without submitting (observed with opencode when
+// launched outside the workspace-create path). herdr: wait until the agent
+// registers, then `agent prompt`. tmux: wait until the TUI paints, then
+// send-keys + Enter. Best-effort and bounded — never blocks more than ~40s.
+fn swarm_wake_agent(run_id string, role string, backend string, pane_id string, message string) {
+	ps := new_process_service()
+	wake := if message.len > 0 {
+		message
+	} else {
+		'Wake-up for role ${role} (run ${run_id}): if you have not started yet, follow your prompt protocol now — run `agent-toolkit swarm task next --role ${role} --run-id ${run_id}` to pick up your handoff and proceed. If you already started or completed it, ignore this message and continue.'
+	}
+	if backend == 'herdr' && pane_id.len > 0 {
+		for _ in 0 .. 15 {
+			al := ps.run(RunOptions{
+				argv:    ['herdr', 'agent', 'list']
+				timeout: 5 * time.second
+			}) or { return }
+			if al.stdout.contains('"pane_id":"${pane_id}"') {
+				time.sleep(2 * time.second)
+				ps.run(RunOptions{
+					argv:    ['herdr', 'agent', 'prompt', pane_id, wake]
+					timeout: 10 * time.second
+				}) or { return }
+				append_swarm_trace(swarm_run_dir_from_run_id(run_id), 'role_woken', role + ':' + pane_id)
+				return
+			}
+			time.sleep(2 * time.second)
+		}
+		return
+	}
+	if backend == 'tmux' {
+		sock := 'agent-toolkit-swarm-' + run_id
+		session := 'swarm-' + run_id
+		for _ in 0 .. 15 {
+			cap := ps.run(RunOptions{
+				argv:    ['tmux', '-L', sock, 'capture-pane', '-p', '-t', '${session}:${role}']
+				timeout: 5 * time.second
+			}) or { return }
+			lower := cap.stdout.to_lower()
+			if cap.stdout.len > 0 &&
+				(lower.contains('opencode') || lower.contains('claude') || lower.contains('ask anything')) {
+				time.sleep(2 * time.second)
+				ps.run(RunOptions{
+					argv:    ['tmux', '-L', sock, 'send-keys', '-t', '${session}:${role}', '-l', wake]
+					timeout: 5 * time.second
+				}) or { return }
+				ps.run(RunOptions{
+					argv:    ['tmux', '-L', sock, 'send-keys', '-t', '${session}:${role}', 'Enter']
+					timeout: 5 * time.second
+				}) or { return }
+				append_swarm_trace(swarm_run_dir_from_run_id(run_id), 'role_woken', role + ':tmux')
+				return
+			}
+			time.sleep(2 * time.second)
+		}
+	}
+}
+
+// swarm_run_dir_from_run_id resolves the canonical run dir for trace writes
+// when only the run id is available (global runs dir, like attach does).
+fn swarm_run_dir_from_run_id(run_id string) string {
+	found := swarm_find_run_dir_global(run_id) or { '' }
+	if found.len > 0 {
+		return found
+	}
+	return os.join_path(os.home_dir(), '.agent-toolkit', 'swarm', 'runs', run_id)
+}
+
+// herdr_role_pane_id resolves the pane id of a role's tab (tab label == role)
+// inside the run's herdr workspace. Empty when not found.
+fn herdr_role_pane_id(run_id string, role string) string {
+	ps := new_process_service()
+	ws_id := herdr_resolve_workspace_id(run_id)
+	if ws_id.len == 0 {
+		return ''
+	}
+	tabs := ps.run(RunOptions{
+		argv:    ['herdr', 'tab', 'list', '--workspace', ws_id]
+		timeout: 5 * time.second
+	}) or { return '' }
+	role_label := '"label":"${role}"'
+	tidx := tabs.stdout.index(role_label) or { return '' }
+	// "tab_id" comes after "label" within the same tab object — search forward.
+	tseg := tabs.stdout[tidx..]
+	tprefix := '"tab_id":"'
+	tstart := tseg.index(tprefix) or { return '' }
+	trest := tseg[tstart + tprefix.len..]
+	tend := trest.index('"') or { return '' }
+	tab_id := trest[..tend]
+	panes := ps.run(RunOptions{
+		argv:    ['herdr', 'pane', 'list']
+		timeout: 5 * time.second
+	}) or { return '' }
+	// scan pane objects: each contains "pane_id":"X" ... "tab_id":"T"
+	pprefix := '"pane_id":"'
+	mut cursor := 0
+	for {
+		pstart := panes.stdout.index_after(pprefix, cursor) or { break }
+		p_id_rest := panes.stdout[pstart + pprefix.len..]
+		pend := p_id_rest.index('"') or { break }
+		pid := p_id_rest[..pend]
+		obj_end := p_id_rest.index('"pane_id":"') or { p_id_rest.len }
+		if p_id_rest[..obj_end].contains('"tab_id":"${tab_id}"') {
+			return pid
+		}
+		cursor = pstart + pprefix.len + pend + 1
+	}
+	return ''
+}
+
+// swarm_wake_role wakes an already-started role so it picks up a newly queued
+// handoff (graph edge activation for cycles: reviewer→implementer feedback,
+// multi-successor fan-out, re-work loops).
+fn swarm_wake_role(ws string, run_id string, recipe string, role string, backend string, handoff_id string, htype string) {
+	_ = recipe
+	_ = ws
+	run_dir := swarm_run_dir_from_run_id(run_id)
+	_ = run_dir
+	msg := 'New ${htype} handoff ${handoff_id} is waiting for you (run ${run_id}): run `agent-toolkit swarm task next --role ${role} --run-id ${run_id}` to accept it and proceed per your protocol. If you are already handling it, continue.'
+	if backend == 'herdr' {
+		pane_id := herdr_role_pane_id(run_id, role)
+		if pane_id.len > 0 {
+			swarm_wake_agent(run_id, role, backend, pane_id, msg)
+		}
+		return
+	}
+	if backend == 'tmux' {
+		swarm_wake_agent(run_id, role, backend, '', msg)
+	}
+}
+
 fn swarm_autostart_role(ws string, run_id string, recipe string, role string, runner string, backend string) SwarmReport {
 	run_dir := swarm_run_dir(ws, run_id)
 	roles := swarm_recipe_roles(recipe)
@@ -1404,6 +1540,7 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 			timeout: 5 * time.second
 		}) or {}
 		append_swarm_trace(run_dir, 'role_autostarted', role + '=' + effective_runner)
+		swarm_wake_agent(run_id, role, 'tmux', '', '')
 		return SwarmReport{
 			ok:      true
 			message: 'role ${role} auto-started (${effective_runner}) in tmux window ${session}:${role}'
@@ -1415,88 +1552,11 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 		}
 	}
 	if backend == 'herdr' {
-		ws_id := herdr_resolve_workspace_id(run_id)
-		if ws_id.len == 0 {
-			return SwarmReport{
-				ok:      false
-				message: 'herdr workspace for swarm-${run_id} not found'
-				data:    {
-					'role': role
-				}
-			}
-		}
-		tabs := ps.run(RunOptions{
-			argv:    ['herdr', 'tab', 'list', '--workspace', ws_id]
-			timeout: 5 * time.second
-		}) or {
-			return SwarmReport{
-				ok:      false
-				message: err.msg()
-				data:    {
-					'role': role
-				}
-			}
-		}
-		// tab with label == role → tab_id → pane_id
-		role_label := '"label":"${role}"'
-		tidx := tabs.stdout.index(role_label) or {
-			return SwarmReport{
-				ok:      false
-				message: 'no herdr tab labeled ${role}'
-				data:    {
-					'role': role
-				}
-			}
-		}
-		// "tab_id" comes after "label" within the same tab object — search forward.
-		tseg := tabs.stdout[tidx..]
-		tprefix := '"tab_id":"'
-		tstart := tseg.index(tprefix) or {
-			return SwarmReport{
-				ok:      false
-				message: 'tab_id not found for role ${role}'
-				data:    {
-					'role': role
-				}
-			}
-		}
-		trest := tseg[tstart + tprefix.len..]
-		tend := trest.index('"') or { return SwarmReport{ ok: false, message: 'malformed tab list' } }
-		tab_id := trest[..tend]
-		panes := ps.run(RunOptions{
-			argv:    ['herdr', 'pane', 'list']
-			timeout: 5 * time.second
-		}) or {
-			return SwarmReport{
-				ok:      false
-				message: err.msg()
-				data:    {
-					'role': role
-				}
-			}
-		}
-		// scan pane objects: each contains "pane_id":"X" ... "tab_id":"T";
-		// pick the pane whose tab_id matches (tab_id sits later in the object).
-		pprefix := '"pane_id":"'
-		mut pane_id := ''
-		mut cursor := 0
-		for {
-			pstart := panes.stdout.index_after(pprefix, cursor) or { break }
-			p_id_start := pstart + pprefix.len
-			p_id_rest := panes.stdout[p_id_start..]
-			pend := p_id_rest.index('"') or { break }
-			pid := p_id_rest[..pend]
-			obj_end := p_id_rest.index('"pane_id":"') or { p_id_rest.len }
-			if p_id_rest[..obj_end].contains('"tab_id":"${tab_id}"') {
-				pane_id = pid
-				break
-			}
-			cursor = p_id_start
-		}
+		pane_id := herdr_role_pane_id(run_id, role)
 		if pane_id.len == 0 {
 			return SwarmReport{
 				ok:      false
-				message: 'no pane for tab ${tab_id}'
+				message: 'no herdr tab/pane for role ${role} in workspace of swarm-${run_id}'
 				data:    {
 					'role': role
 				}
@@ -1524,6 +1584,7 @@ fn swarm_autostart_role(ws string, run_id string, recipe string, role string, ru
 			}
 		}
 		append_swarm_trace(run_dir, 'role_autostarted', role + '=' + effective_runner + ' pane=' + pane_id)
+		swarm_wake_agent(run_id, role, 'herdr', pane_id, '')
 		return SwarmReport{
 			ok:      true
 			message: 'role ${role} auto-started (${effective_runner}) in herdr pane ${pane_id}'
@@ -1648,6 +1709,7 @@ fn spawn_herdr_workspace(ws string, run_id string, task string, recipe string, r
 			if res2.exit_code == 0 {
 				append_swarm_trace(run_dir, 'herdr_agent_started', first_role + '=' +
 					effective_runner + ' pane=' + root_pane)
+				swarm_wake_agent(run_id, first_role, 'herdr', root_pane, '')
 			} else if res2.stderr.len > 0 || res2.stdout.len > 0 || res2.exit_code != -1 {
 				mut m2 := if res2.stderr.len > 0 {
 					res2.stderr.trim_space()
@@ -3712,20 +3774,24 @@ fn parse_duration(s string) !int {
 
 fn herdr_delete_workspace_for_run(run_id string) {
 	ps := new_process_service()
-	wid := 'swarm-' + run_id
-	// primary delete (herdr workspace delete <wid>)
-	_ := ps.run(RunOptions{
-		argv:    ['herdr', 'workspace', 'delete', wid]
-		timeout: 5 * time.second
-	}) or { RunResult{} }
-	// also try with branch-style id if recipe created differently
-	wid2 := 'agent-toolkit-swarm-' + run_id
-	if wid2 != wid {
+	// herdr 0.8: `close <workspace_id>` (there is no `delete`; `get`/`close`
+	// match by workspace_id, not label) — resolve the id, then close.
+	ws_id := herdr_resolve_workspace_id(run_id)
+	if ws_id.len > 0 {
 		_ := ps.run(RunOptions{
-			argv:    ['herdr', 'workspace', 'delete', wid2]
+			argv:    ['herdr', 'workspace', 'close', ws_id]
 			timeout: 5 * time.second
 		}) or { RunResult{} }
 	}
+	// best-effort legacy paths (older herdr builds / alternate ids)
+	_ := ps.run(RunOptions{
+		argv:    ['herdr', 'workspace', 'close', 'swarm-' + run_id]
+		timeout: 5 * time.second
+	}) or { RunResult{} }
+	_ := ps.run(RunOptions{
+		argv:    ['herdr', 'workspace', 'delete', 'swarm-' + run_id]
+		timeout: 5 * time.second
+	}) or { RunResult{} }
 }
 
 fn herdr_list_workspaces_raw() string {
@@ -3784,6 +3850,125 @@ fn tmux_cleanup_for_run(run_id string) {
 	}
 	// also try generic orphan socket unlink under /tmp for this run
 	_ = herdr_list_workspaces_raw()
+}
+
+
+// swarm_graph renders the run's role graph (nodes = roles, edges =
+// consumes/produces successors, feedback = predecessor cycle) with live node
+// status and in-flight handoffs. `--json` for tooling.
+fn swarm_graph(ws string, opts SwarmOptions) SwarmReport {
+	if opts.run_id.len == 0 {
+		return SwarmReport{
+			ok:      false
+			message: 'Usage: agent-toolkit swarm graph <run-id> [--json]'
+			data:    {
+				'subcommand': 'graph'
+			}
+		}
+	}
+	rd := swarm_run_dir(ws, opts.run_id)
+	st := read_swarm_state(rd) or {
+		return SwarmReport{
+			ok:      false
+			message: 'Run not found: ${opts.run_id}'
+			data:    {
+				'subcommand': 'graph'
+			}
+		}
+	}
+	roles := swarm_recipe_roles(st.recipe)
+	// node status from trace
+	mut started := map[string]bool{}
+	mut waiting := map[string]bool{}
+	trace := os.read_file(os.join_path(rd, 'trace.jsonl')) or { '' }
+	for line in trace.split_into_lines() {
+		if line.contains('agent_started') || line.contains('role_autostarted') {
+			for role in roles {
+				if line.contains('${role}=') {
+					started[role] = true
+				}
+			}
+		}
+		if line.contains('agent_waiting') {
+			for role in roles {
+				if line.contains('-> ${role} ') || line.contains('| role: ${role} ') {
+					waiting[role] = true
+				}
+			}
+		}
+	}
+	// edges: successor graph + feedback cycle (to predecessor)
+	mut edges := [][]string{}
+	for role in roles {
+		for nxt in swarm_next_roles(st.recipe, role) {
+			edges << [role, nxt, 'successor']
+		}
+		pred := swarm_role_predecessor(st.recipe, role)
+		if pred.len > 0 {
+			edges << [role, pred, 'feedback']
+		}
+	}
+	// handoff counts per state + per-edge in-flight
+	mut queued := []HandoffRecord{}
+	mut active := []HandoffRecord{}
+	completed := list_handoffs(rd, 'completed')
+	for h in list_handoffs(rd, 'queued') {
+		queued << h
+	}
+	for h in list_handoffs(rd, 'active') {
+		active << h
+	}
+	if opts.json_output {
+		mut nodes_json := []string{}
+		for role in roles {
+			status := if started[role] { 'running' } else if waiting[role] { 'waiting' } else { 'unspawned' }
+			nodes_json << '{"role":"${role}","status":"${status}"}'
+		}
+		mut edges_json := []string{}
+		for e in edges {
+			edges_json << '{"from":"${e[0]}","to":"${e[1]}","kind":"${e[2]}"}'
+		}
+		msg := '{"run_id":"${opts.run_id}","recipe":"${st.recipe}","backend":"${st.backend}","state":"${st.run_state}","nodes":[${nodes_json.join(',')}],"edges":[${edges_json.join(',')}],"handoffs":{"queued":${queued.len},"active":${active.len},"completed":${completed.len}}}'
+		return SwarmReport{
+			ok:      true
+			message: msg
+			data:    {
+				'subcommand': 'graph'
+				'json':       msg
+			}
+		}
+	}
+	mut lines := []string{}
+	lines << 'Graph swarm-${opts.run_id} — recipe=${st.recipe} backend=${st.backend} state=${st.run_state}'
+	for role in roles {
+		status := if started[role] { 'running' } else if waiting[role] { 'waiting' } else { 'unspawned' }
+		done_n := completed.filter(it.from_role == role).len
+		lines << '  [${status}] ${role}' + if done_n > 0 { ' (${done_n} handoff(s) done)' } else { '' }
+	}
+	mut edge_strs := []string{}
+	for e in edges {
+		arrow := if e[2] == 'feedback' { '··feedback··▶' } else { '──▶' }
+		edge_strs << '${e[0]} ${arrow} ${e[1]}'
+	}
+	lines << '  edges: ' + edge_strs.join('  ·  ')
+	if queued.len > 0 || active.len > 0 {
+		lines << '  in flight:'
+		for h in queued {
+			lines << '    queued ${h.handoff_id[..10]} ${h.htype} ${h.from_role}→${h.to_role}'
+		}
+		for h in active {
+			lines << '    active ${h.handoff_id[..10]} ${h.htype} ${h.from_role}→${h.to_role}'
+		}
+	}
+	lines << '  cycles: feedback handoffs (--type feedback --blocking, round-trip limit 2) loop work back to the predecessor; iteration is bounded by the recipe.'
+	return SwarmReport{
+		ok:      true
+		message: lines.join('\n')
+		data:    {
+			'subcommand': 'graph'
+			'run_id':     opts.run_id
+		}
+	}
 }
 
 fn swarm_prune(ws string, opts SwarmOptions) SwarmReport {
@@ -4351,13 +4536,20 @@ priority, artifact) creates a new challenge.'
 	append_swarm_trace(rd, 'handoff_queued', hid)
 	// swarm-forge handoffd behavior without a daemon: when a work handoff
 	// reaches a role, auto-start that role's runner in its waiting surface.
-	if htype in ['artifact', 'commit'] && to_role.len > 0 {
+	// Graph edge activation: a handoff reaching an unstarted role lazily spawns
+	// it; a handoff to an already-running role (feedback cycles reviewer→
+	// implementer, re-work loops, multi-successor fan-out) wakes it so it picks
+	// the new handoff up via `task next`.
+	if to_role.len > 0 && to_role != 'human' {
 		autostart := swarm_autostart_role(ws, run_id, st.recipe, to_role, st.runner, st.backend)
-		append_swarm_trace(rd, if autostart.ok {
-			'handoff_autostart_ok'
+		if autostart.data['skipped'] == 'true' {
+			swarm_wake_role(ws, run_id, st.recipe, to_role, st.backend, hid, htype)
+			append_swarm_trace(rd, 'handoff_wake_ok', '${to_role}: new ${htype} handoff ${hid}')
+		} else if autostart.ok {
+			append_swarm_trace(rd, 'handoff_autostart_ok', '${to_role}: ${autostart.message}')
 		} else {
-			'handoff_autostart_failed'
-		}, '${to_role}: ${autostart.message}')
+			append_swarm_trace(rd, 'handoff_autostart_failed', '${to_role}: ${autostart.message}')
+		}
 	}
 	// Auto-complete incoming active handoffs for the sender (Python fbb2280 parity).
 	for h in list_handoffs(rd, 'active') {
