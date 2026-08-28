@@ -42,3 +42,5 @@ capabilities/upstream-apply-summary.json
 
 # Server runtime state (jobs, logs)
 .agent-toolkit/
+scripts/swarm-visual/.venv/
+knowledge/learnings/
