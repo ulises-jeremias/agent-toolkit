@@ -75,7 +75,7 @@ Proportional delegation: tiny change → `implementer`→`reviewer`; UI feature 
 ## References
 
 - `docs/AGENT_TAXONOMY.md` — Canonical holistic roster, migration map, 20 routing self-tests
-- `capabilities/skills/registry.yaml` + `schemas/skill-capability-registry.schema.json` — 11 owners, 85 skills, no orphans
+- `capabilities/skills/registry.yaml` + `schemas/skill-capability-registry.schema.json` — 11 owners, 116+ skills, no orphans
 - `docs/SKILL_ROUTING.md` — Human-readable ownership snapshot
 - `skills/core/assistant/references/ORCHESTRATION.md` — Orchestrator domain → skill routing
 

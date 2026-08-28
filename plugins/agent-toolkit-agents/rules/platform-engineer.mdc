@@ -127,7 +127,7 @@ Specialists: `build-error-resolver` (CI type/build errors) — retained per agen
 ## References
 
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: platform-engineer` (22 skills), `specialist_justified`
-- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 85 skills)
+- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 116+ skills)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Forge / Integrations / Ops sections
 - `capabilities/targets/registry.yaml` + `docs/TARGET_CAPABILITY_MATRIX.md` — platform target capabilities
 - `docs/AGENT_TAXONOMY.md` — Holistic roster, migration map, routing self-tests

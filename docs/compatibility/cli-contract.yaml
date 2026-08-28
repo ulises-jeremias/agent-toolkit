@@ -73,7 +73,7 @@ commands:
     stdout: human progress
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["--check", "--offline"]
+    flags: ["--tools", "--check", "--pin"]
     env: ["AGENT_TOOLKIT_OFFLINE", "AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
     effects: {filesystem: update-profiles-cache, network: optional-data-fetch, processes: none}
     platform_notes: []
@@ -89,7 +89,7 @@ commands:
     stdout: human progress
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["--tools", "--force"]
+    flags: ["--tools", "--dry-run", "--rollback"]
     env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
     effects: {filesystem: delete-owned-files, network: none, processes: none}
     platform_notes: []
@@ -105,7 +105,7 @@ commands:
     stdout: human report / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["--json", "--fix"]
+    flags: ["--json", "--fix", "--provenance"]
     env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE", "AGENT_TOOLKIT_OFFLINE"]
     effects: {filesystem: "read; optional-fix-writes", network: optional, processes: none}
     platform_notes: []
@@ -121,7 +121,7 @@ commands:
     stdout: human diff
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["--tools"]
+    flags: ["--target", "--product"]
     env: ["AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
     effects: {filesystem: read, network: none, processes: none}
     platform_notes: []
@@ -197,12 +197,12 @@ commands:
     aliases: []
     surface: advanced
     module: agent_toolkit.loop.runner
-    summary: Loop engineering (init, run, status, audit, cost, schedule, sync)
+    summary: Loop engineering (init, run, status, audit, cost, schedule, sync, list, templates)
     stdin: optional
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["--runner", "init", "run", "status", "audit", "cost", "schedule", "sync"]
+    flags: ["--runner", "init", "run", "status", "audit", "cost", "schedule", "sync", "list", "ls", "templates"]
     env: ["AGENT_TOOLKIT_LOOP_RUNNER", "AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR", "AGENT_TOOLKIT_ROOT", "AI_WORKSPACE"]
     effects: {filesystem: workspace-writes, network: optional, processes: spawn-runners}
     platform_notes: ["runner availability varies"]
@@ -213,12 +213,12 @@ commands:
     aliases: []
     surface: advanced
     module: agent_toolkit.cli.workspace
-    summary: Workspace scaffolding (init, context, sync)
+    summary: Workspace lifecycle (init, context, sync, use-persona, handoff, history, personas, load, profiles, validate, budget)
     stdin: none
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["init", "context", "sync", "--dir", "--name", "--workspace", "--explain", "--json"]
+    flags: ["init", "context", "sync", "use-persona", "handoff", "history", "personas", "load", "profiles", "validate", "budget", "--dir", "--name", "--workspace", "--explain", "--json"]
     env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
     effects: {filesystem: workspace-writes, network: none, processes: git-optional}
     platform_notes: []
@@ -245,12 +245,12 @@ commands:
     aliases: []
     surface: advanced
     module: agent_toolkit.cli.project
-    summary: Project index (clone, list, add, remove, scan)
+    summary: Project index and scaffolding (init, clone, list, add, remove, scan)
     stdin: none
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["clone", "list", "add", "remove", "scan"]
+    flags: ["init", "clone", "list", "add", "remove", "scan", "OWNER/REPO"]
     env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
     effects: {filesystem: index-writes, network: optional-git-clone, processes: git}
     platform_notes: ["requires git"]
@@ -261,12 +261,12 @@ commands:
     aliases: ["dc"]
     surface: advanced
     module: agent_toolkit.cli.devcompanion
-    summary: Background job queue
+    summary: Background job queue + LLM policy status
     stdin: none
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["queue", "run-once", "status", "done", "sync-todos"]
+    flags: ["queue", "run-once", "status", "done", "sync-todos", "llm-status"]
     env: ["AGENT_TOOLKIT_WORKSPACE", "HARNESS_DIR"]
     effects: {filesystem: queue-writes, network: none, processes: optional-workers}
     platform_notes: []
@@ -332,7 +332,7 @@ commands:
     stdout: human / JSON
     stderr: errors
     exit_codes: {success: 0, usage: 2}
-    flags: ["--run-id", "pair", "team", "full"]
+    flags: ["recipes", "recipe", "backends", "doctor", "runners", "models", "start", "list", "ls", "status", "approve", "reject", "cancel", "prune", "init", "plan", "activate", "deactivate", "promote", "pause", "resume", "stop", "cleanup", "watch", "report", "artifacts", "handoffs", "logs", "approvals", "handoff", "task", "attach", "--recipe", "--backend", "--runner", "--model-profile", "--run-id", "--workspace", "--json", "--dry-run", "--attach", "--no-attach", "--type", "--from", "--to", "--commit", "--branch", "--priority", "--artifact", "--blocking", "--older-than", "--force"]
     env: ["AGENT_TOOLKIT_SWARM_RUN_ID", "AGENT_TOOLKIT_SWARM_RUN_DIR", "AGENT_TOOLKIT_SWARM_REPO", "AGENT_TOOLKIT_SWARM_RUNS_DIR"]
     effects: {filesystem: run-dir-writes, network: optional, processes: tmux-herdr}
     platform_notes: ["tmux/Herdr required for full modes"]

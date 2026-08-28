@@ -26,9 +26,9 @@
 [![Homebrew](https://img.shields.io/badge/Homebrew-ulises--jeremias%2Ftap-ea580c?style=flat&labelColor=1f2937&logo=homebrew&logoColor=white)](https://github.com/ulises-jeremias/homebrew-tap)
 [![GHCR](https://img.shields.io/badge/GHCR-agent--toolkit-2563eb?style=flat&labelColor=1f2937&logo=docker&logoColor=white)](https://github.com/ulises-jeremias/agent-toolkit/pkgs/container/agent-toolkit)
 
-![skills](https://img.shields.io/badge/skills-catalog-7c3aed?style=flat&labelColor=1f2937)
-![agents](https://img.shields.io/badge/agents-catalog-0891b2?style=flat&labelColor=1f2937)
-![loops](https://img.shields.io/badge/loops-catalog-ea580c?style=flat&labelColor=1f2937)
+[![GitHub stars](https://img.shields.io/github/stars/ulises-jeremias/agent-toolkit?style=flat&label=stars&labelColor=1f2937&color=facc15&logo=github)](https://github.com/ulises-jeremias/agent-toolkit/stargazers)
+[![commits since latest release](https://img.shields.io/github/commits-since/ulises-jeremias/agent-toolkit/latest?style=flat&label=commits&labelColor=1f2937&color=16a34a)](https://github.com/ulises-jeremias/agent-toolkit/commits/main)
+[![contributors](https://img.shields.io/github/contributors/ulises-jeremias/agent-toolkit?style=flat&label=contributors&labelColor=1f2937&color=0891b2)](https://github.com/ulises-jeremias/agent-toolkit/graphs/contributors)
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-plugin-7c3aed?style=flat&labelColor=1f2937&logo=anthropic&logoColor=white)](profiles/claude-code/)
 [![Cursor](https://img.shields.io/badge/Cursor-rules-0891b2?style=flat&labelColor=1f2937)](profiles/cursor/)
@@ -40,9 +40,10 @@
 
 [Documentation](docs/) ·
 [Quick Install](#-quick-install) ·
- [Skills](#%EF%B8%8F-skills--84-across-14-domains) ·
+[Skills](#%EF%B8%8F-skills--catalog-via-agent-toolkit-inventory) ·
 [Agents](#-agent-personas) ·
 [Loops](#-loop-engineering) ·
+[Swarm](#-swarm-orchestration) ·
 [Contributing](#-contributing)
 
 </div>
@@ -140,6 +141,10 @@ npm i -g agent-toolkit-cli
 agent-toolkit install    # auto-detects Claude, Cursor, OpenCode, Windsurf, Pi, Copilot
 agent-toolkit doctor     # verify everything is set up
 ```
+
+<div align="center">
+<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/quickstart.svg?raw=true" width="86%" alt="agent-toolkit quickstart: install, doctor, swarm" />
+</div>
 
 → Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md)
 
@@ -339,7 +344,7 @@ Every skill's `holistic_owner` in `capabilities/skills/registry.yaml` is one of 
 
 **Orchestrator** (not in daily count): `client-workflow-bootstrap` — meta-generates `<client>` packs/knowledge into `~/.ai-workspace` (interview-driven; not a delivery persona).
 
-**Specialists — opt-in techniques (6 retained, 7 archived → `references/` #865):** `code-reviewer` (backs `reviewer`/`qa-engineer`/`designer`), `security-reviewer` + `agentic-security-reviewer` (backs `security-engineer`), `e2e-runner` (backs `qa-engineer`), `tdd-guide` (backs `implementer`), `build-error-resolver` (backs `platform-engineer`/`gh-fix-ci`) — all **KEPT** per agent-vs-skill rule (independent verification / disjoint surface / noisy output / large diagnostic context / explicit handoff; see `docs/AGENT_TAXONOMY.md` §3/§8 for cited clauses). **Archived:** `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md` (procedural checklists, loaded inline via `quality/deep-review`/`deslop`), `docs-lookup`+`reference-lookup` → `researcher/references/LOOKUP_GUIDE.md` (via `spike`/`project-assessment-evidence`), `tech-assistant` → `platform-engineer/references/WORKSTATION_OPS.md` (via `ops/triage`) — no prompt knowledge deleted; chains `Assistant→Implementer→TDD` / `Assistant→QA→E2E` / `Assistant→Security→Agentic` / `Assistant→Platform→Build Error` preserved. See `docs/AGENT_TAXONOMY.md` §3/§8 (final migration map, 18 personas) and §5–6 (routing examples).
+**Specialists (6 opt-in, archived 7 → `references/` #865):** `code-reviewer`, `security-reviewer` + `agentic-security-reviewer`, `e2e-runner`, `tdd-guide`, `build-error-resolver` — kept per the agent-vs-skill rule (independent verification, disjoint surface, noisy output, large diagnostic context). Archived specialists live on as inline references (`reviewer/references/`, `researcher/references/LOOKUP_GUIDE.md`, `platform-engineer/references/WORKSTATION_OPS.md`) — no knowledge deleted. Full migration map and routing chains: [`docs/AGENT_TAXONOMY.md`](docs/AGENT_TAXONOMY.md) §3/§8.
 
 Full catalog: [`catalogs/agent-catalog.yaml`](catalogs/agent-catalog.yaml) · taxonomy: [`docs/AGENT_TAXONOMY.md`](docs/AGENT_TAXONOMY.md) · routing: [`docs/SKILL_ROUTING.md`](docs/SKILL_ROUTING.md) · personas on disk under `agents/` (see inventory)
 
@@ -379,6 +384,36 @@ Loops are recurring agentic workflows that run on a schedule or cadence. They fo
 Each loop template lives in `loops/<name>/` (see `agent-toolkit inventory` for live count) with a `loop.yaml` definition (prompt in `request:`). At runtime the runner writes `STATE.md` and `report.md` under that directory.
 
 ---
+
+## 🐝 Swarm Orchestration
+
+One command turns a task into a coordinated multi-agent run — git worktree per writer,
+filesystem state-of-truth, budgets, and human approval gates.
+
+<div align="center">
+<img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/swarm.svg?raw=true" width="88%" alt="agent-toolkit swarm: task → recipes → backends → worktrees → handoffs → promote" />
+</div>
+
+```bash
+agent-toolkit swarm recipes                   # pair / team / full — personas + policy + budget per recipe
+agent-toolkit swarm start --recipe pair --dry-run "Add a health check endpoint with tests"
+agent-toolkit swarm start --recipe team --backend herdr "Migrate the auth module"
+agent-toolkit swarm watch <run-id>            # observability: report / artifacts / handoffs / logs / approvals
+agent-toolkit swarm promote <run-id>          # integrator merges, run moves to cleanup
+```
+
+| | agent-toolkit swarm | classic tmux swarms ([swarm-forge](https://github.com/unclebob/swarm-forge)) | legacy Python swarm |
+|---|---|---|---|
+| Recipes (personas + policy per role) | ✅ built-in `pair`/`team`/`full` | ✅ per-branch packs | ⚠️ manual |
+| Budget enforcement (tokens / $ / wall-clock) | ✅ per-recipe (pair/team `900k / $4 / 7200s`, full `1.2M / $8 / 10800s`), `budget_exhausted` state | ❌ | ❌ |
+| Handoff audit gate | ✅ `AUDIT_REQUIRED` → identical re-run passes | ✅ first-class | ❌ |
+| Blocking feedback with round-trip limit | ✅ `--blocking` (limit 2) | ⚠️ approval cards | ❌ |
+| Observability (watch / report / artifacts / logs / approvals) | ✅ CLI + `--json` | ✅ web cockpit | ⚠️ log files |
+| Single static binary, offline-first | ✅ V, ~22 MB, no runtime deps | ❌ bash + tmux + bb + dashboard | ❌ Python env |
+| JSON API / programmatic surface | ✅ `serve` + `swarm --json` everywhere | ⚠️ HTTP dashboard only | ❌ |
+| Cross-platform | ✅ linux/macOS/windows binaries + brew/AUR/npm/PyPI | ⚠️ macOS-first | ⚠️ |
+
+> Full protocol: [docs/v/swarm.md](docs/v/swarm.md) · ADR-008 (filesystem SoT) · ADR-020 (UI fail-closed)
 
 ## 🔗 MCP Templates
 
@@ -474,7 +509,8 @@ agent-toolkit/                 # L1.5 Toolkit — two planes, one binary
 ├── agents/                    # Capability: tool-agnostic persona definitions
 ├── plugins/                   # Capability: compiler output — canonical (build --check)
 ├── profiles/                  # Capability: deprecated overlay — fallback only (ADR-004)
-├── distributions/             # Capability: products.yaml composition SoT
+├── distributions/             # Capability: products.yaml composition SoT (compiler input)
+├── distribution/              # Capability: channel contracts (aur/docker/homebrew/npm/pypi)
 ├── mcp/templates/             # Capability: provider templates + registry
 ├── packs/                     # Capability: docs-only packs (ADR-006)
 ├── loops/                     # Runtime: loop templates (inventory is SoT)
@@ -538,7 +574,7 @@ See [SHOWCASE.md](SHOWCASE.md) for community usage examples and pack walkthrough
 
 [Report a bug](https://github.com/ulises-jeremias/agent-toolkit/issues/new?template=bug-report.yml) · [Request a feature](https://github.com/ulises-jeremias/agent-toolkit/issues/new?template=feature-request.yml)
 
-[📖 Docs](docs/) · [💬 Discussions](https://github.com/ulises-jeremias/agent-toolkit/discussions) · [Discord](https://discord.gg/bR5VyATgka) · [MIT License](LICENSE)
+[📖 Docs](docs/) · [📜 Changelog](CHANGELOG.md) · [🔒 Security](SECURITY.md) · [💬 Discussions](https://github.com/ulises-jeremias/agent-toolkit/discussions) · [Discord](https://discord.gg/bR5VyATgka) · [MIT License](LICENSE)
 
 <sub>Built with ❤️ for AI-assisted software delivery</sub>
 

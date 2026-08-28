@@ -101,7 +101,7 @@ You **collaborate** with:
 ## References
 
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: data-engineer` (3 skills), cost, triggers
-- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 85 skills)
+- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 116+ skills)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Data-adjacent routing
 - `skills/data/dbt-validation/SKILL.md`, `skills/data/snowflake-validation/SKILL.md`, `skills/tooling/jupyter-notebook/SKILL.md`
 - `docs/AGENT_TAXONOMY.md` — Holistic roster, migration map, routing self-tests

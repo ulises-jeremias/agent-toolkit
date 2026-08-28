@@ -118,7 +118,7 @@ Specialists that back you: `planner`, `architect` (spike). Lookup patterns are n
 ## References
 
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: researcher`, triggers, overlap, contraindications
-- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 85 skills)
+- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 116+ skills)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Delivery/research routing
 - `docs/AGENT_TAXONOMY.md` §3/§8 — Holistic roster, migration map, routing self-tests; `docs-lookup`/`reference-lookup` → `MERGE INTO HOLISTIC`
 - `agents/researcher/references/LOOKUP_GUIDE.md` — consolidated lookup guidance (archived specialists, provenance)

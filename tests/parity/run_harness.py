@@ -79,6 +79,11 @@ def check_fixture(fx: dict[str, Any], v_bin: str) -> None:
                 v_data = json.loads(v.stdout)
             except json.JSONDecodeError as exc:
                 fail(command, cls, f"v stdout not JSON: {exc}")
+            if isinstance(v_data, list):
+                # bare JSON arrays (e.g. `swarm ls --json`) carry no top-level keys
+                if fx.get("required_keys"):
+                    fail(command, cls, "array payload cannot check required_keys")
+                return
             data = v_data.get("data") if isinstance(v_data.get("data"), dict) else {}
             for key in fx.get("required_keys", []):
                 if key not in v_data and key not in data:

@@ -82,5 +82,5 @@ You are canonical owner for 11 delivery/planning skills (not a specialist). See 
 
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: planner` (11), `specialist_justified`
 - `docs/AGENT_TAXONOMY.md` — Holistic roster, migration map, 20 routing self-tests
-- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 85 skills)
+- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 116+ skills)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Delivery routing

@@ -904,7 +904,8 @@ fn swarm_command() cli.Command {
 			},
 			cli.Command{
 				name:        'list'
-				description: 'List runs'
+				alias:       'ls'
+				description: 'List runs (alias: ls)'
 				execute:     atk_exec
 			},
 			cli.Command{
@@ -1249,7 +1250,6 @@ fn serve_command() cli.Command {
 		]
 	}
 }
-
 
 fn tui_command() cli.Command {
 	return cli.Command{

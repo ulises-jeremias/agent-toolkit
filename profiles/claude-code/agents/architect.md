@@ -80,5 +80,5 @@ You are canonical owner for 9 skills. See `docs/AGENT_TAXONOMY.md` §1/§4 and `
 
 - `capabilities/skills/registry.yaml` — SoT for `holistic_owner: architect` (9), cost, triggers
 - `docs/AGENT_TAXONOMY.md` — Holistic roster, migration map, 20 routing self-tests
-- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 85 skills)
+- `docs/SKILL_ROUTING.md` — Ownership snapshot (11 roles, 116+ skills)
 - `skills/core/assistant/references/ORCHESTRATION.md` — Delivery/architecture routing

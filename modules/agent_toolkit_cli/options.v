@@ -829,7 +829,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a == '--to' {
+		if a == '--to' && sub == 'promote' {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -837,7 +837,7 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i += 2
 			continue
 		}
-		if a.starts_with('--to=') {
+		if a.starts_with('--to=') && sub == 'promote' {
 			to_recipe = a.all_after('=')
 			i++
 			continue
@@ -998,7 +998,8 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			i++
 			continue
 		}
-		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason', '--runner', '--model-profile', '--profile', '--repo'] {
+		if a in ['--recipe', '--backend', '--ui', '--workspace', '--reason', '--runner',
+			'--model-profile', '--profile', '--repo'] {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -1069,6 +1070,10 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		}
 		if sub.len == 0 {
 			sub = a
+			// Python parity: `swarm ls` was an accepted alias for `swarm list` (fbb2280).
+			if a == 'ls' {
+				sub = 'list'
+			}
 			i++
 			continue
 		}
@@ -1146,6 +1151,9 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			} else {
 				run_id = ''
 			}
+		} else if run_id == 'list' {
+			// Python parity: `recipe list` routed to the recipes list (fbb2280 cmd_recipes).
+			run_id = ''
 		}
 		sub = 'recipes'
 	}

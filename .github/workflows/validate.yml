@@ -309,7 +309,7 @@ jobs:
           print("OK: capabilities/skills/registry.yaml validates against skill-capability-registry.schema.json")
           PYEOF
 
-      - name: Check skill capability registry (no orphans, 85 skills, design routing)
+      - name: Check skill capability registry (no orphans, 116+ skills, design routing)
         run: python3 scripts/validate-skill-capability.py --check
 
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────

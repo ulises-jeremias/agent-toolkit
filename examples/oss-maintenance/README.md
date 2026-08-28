@@ -22,7 +22,7 @@ This example shows how to set up automated maintenance for a multi-repository Gi
   gh auth status          # Verify authentication
   gh auth login           # Authenticate if needed
   ```
-- **Python 3.11+** — for loop validation scripts
+- **agent-toolkit CLI** (V binary) — loop runner + validation (`docs/INSTALLATION.md`)
 - **A GitHub token** with `repo` scope (the default `gh` token works)
 - At least one AI coding assistant installed (Claude Code, Cursor, or OpenCode)
 
@@ -97,22 +97,13 @@ The loop templates default to this discovery method when no pack is configured.
 Before running anything, confirm the loop manifests are valid:
 
 ```bash
-cd ~/.agent-toolkit
-pip install pyyaml jsonschema
-python3 -c "
-import json, yaml, sys
-from pathlib import Path
-from jsonschema import validate, ValidationError
-schema = json.loads(Path('schemas/loop.schema.json').read_text())
-errors = []
-for f in sorted(Path('loops').rglob('loop.yaml')):
-    try: validate(yaml.safe_load(f.read_text()), schema)
-    except ValidationError as e: errors.append(f'{f}: {e.message}')
-if errors:
-    [print(e) for e in errors]; sys.exit(1)
-print(f'All loops valid.')
-"
+# The V CLI validates loop manifests natively (no Python needed):
+agent-toolkit loop status          # workspace + template inventory
+agent-toolkit loop run daily-triage --dry-run   # dry-run before L1
 ```
+
+> Installing from source? `./scripts/validate-loops.vsh` validates `loops/*.yaml`
+> against `schemas/loop.schema.json` in a git checkout.
 
 ---
 

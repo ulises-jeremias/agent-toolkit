@@ -68,8 +68,8 @@ agent-toolkit install --tools cursor,claude-code
 agent-toolkit build --target claude-code --check
 agent-toolkit build --target cursor --product agent-toolkit-core
 
-# Release dry run (generates dist/ without publishing)
-agent-toolkit release --dry-run --output dist/
+# Releases are CI-only (the `release` command was retired, #527)
+# See docs/RELEASING.md: push a v* tag to cut a release.
 ```
 
 See [INSTALLATION.md](INSTALLATION.md) for marketplace, Homebrew/AUR, and manual methods.

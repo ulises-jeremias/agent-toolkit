@@ -56,11 +56,11 @@ advanced commands when running an ai-workspace-style harness.
 
 ## Migration inventory (#475)
 
-Authoritative **index** of every top-level command — **23 commands** + `help` meta = **24 entries**, mirroring
+Authoritative **index** of every top-level command — **21 capability entries** in
 [`docs/compatibility/cli-contract.yaml`](compatibility/cli-contract.yaml)
 ([#549](https://github.com/ulises-jeremias/agent-toolkit/issues/549), closed).
 Machine-readable flags, stdin/stdout/stderr, exit codes, env, effects, and tests live in the contract YAML — do not duplicate here.
-`insights` is **DEPRECATE** (no V port) and `release` is **REMOVE** (CI-only) — both match the contract `migration.disposition` (`defer`/`retire`).
+`insights` is **DEPRECATE** (stub exits 1, [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526)) and `release` is **REMOVE** (stub exits 1, [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527)) — retired commands carry no contract entries (ADR-030).
 
 Disposition for advanced commands: [`v/advanced-command-disposition.md`](v/advanced-command-disposition.md) (#560).
 Wave/complexity/risk in the YAML `migration:` block.
