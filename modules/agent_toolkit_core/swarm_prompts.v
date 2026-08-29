@@ -2,8 +2,7 @@ module agent_toolkit_core
 
 import os
 
-const swarm_global_protocol = '# Agent Toolkit Swarm — Global Protocol\n- You are a role in a multi-agent swarm. Work only on your assigned task.\n- Do not push, do not merge to base branch, do not publish releases.\n- Transfer code only via validated Git commits on your Toolkit-owned branch.\n- The swarm is a directed graph of roles: hand work forward to successors, and send feedback/re-work back to your predecessor — roles are started and woken automatically when a handoff reaches them.
-- Use durable handoffs via `agent-toolkit swarm handoff create` and `agent-toolkit swarm task next/complete`.\n- Stay inside your worktree when you have one. Do not write outside `.agent-toolkit/swarm/runs/<run-id>/` except your worktree.\n- Keep artifacts under 1MB, no secrets, no full transcript forwarding.\n- Record decisions in artifacts and trace events.\n'
+const swarm_global_protocol = '# Agent Toolkit Swarm — Global Protocol\n- You are a role in a multi-agent swarm. Work only on your assigned task.\n- Do not push, do not merge to base branch, do not publish releases.\n- Transfer code only via validated Git commits on your Toolkit-owned branch.\n- The swarm is a directed graph of roles: hand work forward to successors, and send feedback/re-work back to your predecessor — roles are started and woken automatically when a handoff reaches them.\n- Use durable handoffs via `agent-toolkit swarm handoff create` and `agent-toolkit swarm task next/complete`.\n- Inside a swarm run, the ONLY way to delegate to another swarm role is `agent-toolkit swarm handoff create`. NEVER use your internal Task/subagent tools to spawn a reviewer/qa/architect — those swarm roles run in isolated worktrees and are reached ONLY via handoffs. Self-review is forbidden.\n- Stay inside your worktree when you have one. Do not write outside `.agent-toolkit/swarm/runs/<run-id>/` except your worktree.\n- Keep artifacts under 1MB, no secrets, no full transcript forwarding.\n- Record decisions in artifacts and trace events.\n'
 
 const swarm_interactive_bootstrap = '# Interactive mode — No initial task\n> This swarm was started **without an initial prompt/task**. The user will provide the first request next in this same Herdr/Tmux session.\n\n**Instructions for the first agent (planner/implementer):**\n- **Do NOT invent work** or start tasks on your own. Do not create a plan or code yet.\n- Do only a **very brief** context analysis (max 3-4 sentences / 30 seconds):\n  - If you detect a **workspace** (exists `AGENTS.md` and/or `knowledge/` or `find_workspace_root()` is not None, e.g. `~/.ai-workspace`):\n    Run `agent-toolkit workspace context` and briefly review `AGENTS.md` + `knowledge/todos/pending.md`.\n    Also check `projects/` and `loops/` if present. Summarize in 2-3 lines what workspace it is.\n  - If no workspace, briefly review the current repo (`git status`, `cat README.md` / `pyproject.toml`).\n- Then **stay on standby** and confirm with a short message:\n  "Brief analysis done — awaiting your first request. When you provide the task, I will apply `assistant` (discovery) + `workflow-generic-project` (plan -> approval -> implement -> review -> draft PR)."\n- When the user sends the request (via chat or `agent-toolkit swarm handoff create --type artifact --from planner --to implementer --artifact artifacts/task-contract.md --run-id <run-id>`), apply the full flow: discovery per `assistant` (order README -> docs/ -> AGENTS.md -> CONTRIBUTING -> PR templates -> Makefile/package.json -> devcontainer/CI), then `workflow-generic-project` with plan approval gate before implementing, and `github-cli-workflow` for draft PR.\n'
 
@@ -77,7 +76,7 @@ fn swarm_role_def(recipe string, role string) ?SwarmRoleDef {
 			match role {
 				'implementer' {
 					return SwarmRoleDef{
-						persona:       'tdd-guide'
+						persona:       'implementer'
 						policy:        'writer'
 						model_profile: 'coding'
 						consumes:      ['task-contract']
@@ -128,7 +127,7 @@ fn swarm_role_def(recipe string, role string) ?SwarmRoleDef {
 				}
 				'implementer' {
 					return SwarmRoleDef{
-						persona:       'tdd-guide'
+						persona:       'implementer'
 						policy:        'writer'
 						model_profile: 'coding'
 						consumes:      ['task-contract']
@@ -179,7 +178,7 @@ fn swarm_role_def(recipe string, role string) ?SwarmRoleDef {
 				}
 				'implementer' {
 					return SwarmRoleDef{
-						persona:       'tdd-guide'
+						persona:       'implementer'
 						policy:        'writer'
 						model_profile: 'coding'
 						consumes:      ['task-contract']
@@ -403,6 +402,7 @@ pub fn swarm_compose_role_prompt(recipe string, role string, task_contract strin
 			'   `agent-toolkit swarm handoff create --type artifact --from ${role} --to ${first_next} --artifact artifacts/<file>.md`',
 			'The next role will run `agent-toolkit swarm task next --role <next> --run-id <run_id>` to pick it up. Do not wait — the handoff is durable and the daemon will notify. The next role\'s tmux window will be auto-created by the handoff.',
 			'IMPORTANT: After you finish writing the artifact or committing code, immediately run the `handoff create` command above — do NOT ask the user for confirmation, do NOT wait for \'do the handoff\'.',
+			'FORBIDDEN: Do not run a local code review via subagent/Task tool. Do not self-correct and re-commit as "reviewer findings" — commit once, then handoff. The swarm\'s reviewer runs in an isolated worktree and is reached ONLY via `handoff create`; you will be woken for feedback if needed.',
 			'Run ID for this swarm: `${rid_display}` — if the command says \'No run found\', add `--run-id <run_id>` or ensure `AGENT_TOOLKIT_SWARM_RUN_ID` is exported (it is in your tmux env).',
 			'## Feedback — loop work back when needed',
 			'You are a node in a directed graph, not a pipeline: if the next iteration belongs to an earlier role (re-work, failing checks, missing context, spec drift), send it back instead of forcing it forward:',
