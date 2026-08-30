@@ -32,17 +32,19 @@ pub mut:
 }
 
 struct LoopMeta {
-mut:
-	name             string
-	tier             string
-	cadence          string
-	goal             string
-	request          string
-	max_tokens       int
-	max_runs_per_day int
-	max_wall_seconds int
-	allowlist        []string
-	deny             []string
+pub mut:
+	name                 string
+	tier                 string
+	cadence              string
+	goal                 string
+	request              string
+	max_tokens           int
+	max_runs_per_day     int
+	max_wall_seconds     int
+	allowlist            []string
+	deny                 []string
+	attribution_enabled  bool
+	attribution_template string
 }
 
 // run_loop implements init/run/status/audit/cost/schedule/sync/list/templates.
@@ -1159,17 +1161,20 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 	return parse_loop_meta_text(text, os.file_name(loop_dir))
 }
 
-fn parse_loop_meta_text(text string, default_name string) LoopMeta {
+pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 	mut m := LoopMeta{
-		name:             default_name
-		tier:             'L1'
-		cadence:          '?'
-		max_runs_per_day: 10
-		max_wall_seconds: 600
+		name:                 default_name
+		tier:                 'L1'
+		cadence:              '?'
+		max_runs_per_day:     10
+		max_wall_seconds:     600
+		attribution_enabled:  true
+		attribution_template: ''
 	}
 	mut in_allow := false
 	mut in_deny := false
 	mut in_budget := false
+	mut in_attribution := false
 	for line in text.split_into_lines() {
 		t := line.trim_space()
 		if t.starts_with('#') || t.len == 0 {
@@ -1198,14 +1203,57 @@ fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 			}
 			continue
 		}
+		// handle attribution object: enabled/template nested under `attribution:`
+		if in_attribution && (t.starts_with('enabled:') || t.starts_with('template:')) {
+			if t.starts_with('enabled:') {
+				raw := t.all_after('enabled:').trim_space().trim('"').trim("'").to_lower()
+				m.attribution_enabled = raw !in ['0', 'false', 'no', 'off', 'disabled']
+			} else if t.starts_with('template:') {
+				// keep raw template, strip surrounding quotes but preserve placeholders
+				mut raw := t.all_after('template:').trim_space()
+				if (raw.starts_with('"') && raw.ends_with('"')) || (raw.starts_with("'") && raw.ends_with("'")) {
+					raw = raw[1..raw.len - 1]
+				}
+				m.attribution_template = raw
+				m.attribution_enabled = true
+			}
+			continue
+		}
 		in_allow = false
 		in_deny = false
-		// reset budget context when we hit a top-level key (no indent) that's not budget child
+		// reset budget/attribution context when we hit a top-level key (no indent) that's not child
 		if !line.starts_with(' ') && !line.starts_with('\t') && t.contains(':') {
 			in_budget = false
+			in_attribution = false
 		}
 		if t.starts_with('budget:') {
 			in_budget = true
+			continue
+		}
+		if t.starts_with('attribution:') {
+			rest := t.all_after('attribution:').trim_space()
+			if rest.len == 0 {
+				// object follows on next indented lines
+				in_attribution = true
+				continue
+			}
+			// strip quotes for comparison/value
+			trimmed := rest.trim('"').trim("'")
+			low := rest.to_lower().trim('"').trim("'").trim_space()
+			if low in ['false', '0', 'no', 'off', 'disabled', 'none'] {
+				m.attribution_enabled = false
+				m.attribution_template = ''
+			} else if low in ['true', '1', 'yes', 'on', 'enabled'] {
+				m.attribution_enabled = true
+				m.attribution_template = ''
+			} else if rest.starts_with('"') || rest.starts_with("'") {
+				m.attribution_enabled = true
+				m.attribution_template = trimmed
+			} else if rest.len > 0 {
+				// raw template string without quotes (e.g. attribution: "> custom ...")
+				m.attribution_enabled = true
+				m.attribution_template = rest
+			}
 			continue
 		}
 		if t.starts_with('name:') {
