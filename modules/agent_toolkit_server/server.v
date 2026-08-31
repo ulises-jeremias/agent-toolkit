@@ -65,12 +65,24 @@ fn fire_and_forget(url string) {
 		return
 	}
 	$if windows {
-		spawn_opener('cmd /c start', url)
+		spawn_opener_with_args(['cmd', '/c', 'start', url])
 		return
 	}
 	spawn_opener('xdg-open', url)
 }
 
 fn spawn_opener(cmd string, url string) {
-	_ = os.execute('${cmd} ${url} &')
+	spawn_opener_with_args([cmd, url])
+}
+
+fn spawn_opener_with_args(args []string) {
+	if args.len == 0 {
+		return
+	}
+	mut p := os.new_process(args[0])
+	if args.len > 1 {
+		p.set_args(args[1..])
+	}
+	p.set_redirect_stdio()
+	p.run()
 }
