@@ -202,16 +202,7 @@ fn extract_claude_stats_v(days int) map[string]string {
 			mut cnt := 0
 			for f in files {
 				if f.ends_with('.jsonl') {
-					// days filter: check mtime if needed
-					if days > 0 {
-						fpath := os.join_path(p, f)
-						info := os.stat(fpath) or { continue }
-						// mtime in seconds, compare to now - days*86400
-						// For pure V without time parsing, we skip detailed filter for now and count all,
-						// but we can add mtime check if needed
-						// Simple: if file mtime is older than days, skip
-						// Use os.execute stat? For now, count all for simplicity
-					}
+					// TODO: days filter for claude JSONL via mtime (V os.stat not yet exposed)
 					cnt++
 				}
 			}

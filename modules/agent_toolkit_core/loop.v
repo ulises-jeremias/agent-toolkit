@@ -1027,8 +1027,6 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 	mut has_tier := false
 	mut has_cadence := false
 	mut has_max_tokens := false
-	mut has_max_runs := false
-	mut has_max_wall := false
 	for line in lines {
 		t := line.trim_space()
 		if t.starts_with('tier:') && overrides.tier.len > 0 {
@@ -1055,7 +1053,6 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 			if !line.starts_with(' ') {
 				out[out.len - 1] = 'max_runs_per_day: ${overrides.max_runs_per_day}'
 			}
-			has_max_runs = true
 			continue
 		}
 		if t.starts_with('max_wall_seconds:') && overrides.max_wall_seconds > 0 {
@@ -1063,7 +1060,6 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 			if !line.starts_with(' ') {
 				out[out.len - 1] = 'max_wall_seconds: ${overrides.max_wall_seconds}'
 			}
-			has_max_wall = true
 			continue
 		}
 		if t.starts_with('allowlist:') && overrides.allowlist.len > 0 {
