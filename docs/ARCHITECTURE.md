@@ -64,6 +64,51 @@ The toolkit layer itself separates two conceptual planes that **share one repo, 
 
 **Without splitting code:** Both planes are built by the same `make.vsh build-cli` (`gen-embedded` → `build/agent-toolkit`) and shipped in the same GitHub Release / Homebrew / AUR / PyPI / npm / Docker artifacts (ADR-018/021/023/024/025). The split is documentary: capability edits go to `skills/` + `products.yaml` then `build`; runtime is exercised from a harness via `agent-toolkit loop run …` etc. References: **ADR-015** runtime order and **ADR-026** full-embed (supersedes ADR-011) — see `docs/adrs/ADR-015-runtime-resolution.md` and `docs/adrs/ADR-026-full-embed.md`.
 
+### Plane boundaries and import rules (#982)
+
+```text
+Capability Plane                Runtime Plane
+┌─────────────────────┐        ┌──────────────────────────────┐
+│ skills/  agents/    │        │ agent_toolkit_core           │
+│ distributions/      │        │  ├─ swarm / swarm_state /    │
+│ plugins/ (output)   │        │  │  swarm_recipes / worktree │
+│ profiles/ (depr.)   │        │  ├─ mcp / loop / workspace / │
+│ mcp/registry        │        │  │  memory / project /       │
+│ packs/              │        │  │  devcompanion / insights   │
+│ catalogs/ (gen)     │        │  └─ embedded_data / paths   │
+└──────────┬──────────┘        └──────────────┬───────────────┘
+           │  ▲                              │  ▲
+           │  │ may depend on               │  │
+           │  └──────────────────────────────┘  │
+           │     runtime may depend on         │
+           │     capabilities (reads catalogs,  │
+           │     loads skills)                 │
+           ▼                                  │
+┌─────────────────────┐        ┌──────────────┴───────────────┐
+│ agent_toolkit_cli   │◄───────┤ agent_toolkit_server (jobs,  │
+│  (CLI dispatch,     │ depends│  serve API via veb)          │
+│   options, help)    │ on both│                              │
+└─────────────────────┘        └──────────────────────────────┘
+         ▲
+         │ CLI depends on both planes (dispatches to capability data and runtime commands)
+```
+
+**Allowed import edges:**
+
+- `agent_toolkit_cli` → `agent_toolkit_core` ✅ (CLI dispatches to runtime)
+- `agent_toolkit_server` → `agent_toolkit_core` ✅ (serve wraps core jobs)
+- `agent_toolkit_core` (Runtime) → `capabilities/*` / `distributions/*` ✅ (reads catalogs, loads skills)
+- `agent_toolkit_core` → `agent_toolkit_cli` ❌ **forbidden** (no circular import)
+- `agent_toolkit_core` → `agent_toolkit_server` / `veb` ❌ **forbidden** where it would couple core to server frameworks
+- `skills/` / `agents/` / `distributions/` → `agent_toolkit_core` ❌ **forbidden** (capabilities must not depend on runtime — they are data)
+- `plugins/` is output only; never import from it
+
+**Enforcement:** `check-planes` job in `.github/workflows/validate.yml` fails if `modules/agent_toolkit_core` imports `agent_toolkit_cli` or `agent_toolkit_server` (grep `import agent_toolkit_cli` / `import agent_toolkit_server` → exit 1). `VJOBS=2 ./make.vsh vet` also runs as part of that gate. See `scripts/` and `make.vsh`.
+
+**File size ≠ automatic split:** `modules/agent_toolkit_core/mcp.v` / `swarm.v` are large but not automatically split. Create focused refactoring issues only where coupling materially hurts security/testability (e.g. circular import, untestable side effect) — not “file is large”. See ADR-009, ADR-027.
+
+**No premature split, no TUI revival:** #279 remains open as RFC — no repository split without accepted ADR. TUI stays retired per ADR-030 (git history preserves it; do not revive). Speculative rewrite epics or repo splits without an accepted ADR are out of scope.
+
 ---
 
 ## How the Layers Interact
