@@ -8,9 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 <!-- markdownlint-disable MD024 -->
-## [Unreleased]
+## [1.26.0] — 2026-08-31
 
-## [1.25.0] — 2026-08-26
+
+- **Feat (insights)** — Re-port `agent-toolkit insights` as native V command (pure V, all runners): opencode, cursor, claude, windsurf, copilot, codex, pi, muse, all — with `--days`, `--output`, `--json`, `--no-llm`. No Python dependency. `/api/v1/insights` server route added.
+- **Feat (swarm)** — Graph-engineered swarms: feedback cycles (`reviewer⇢implementer` bounded by round-trip limit), `swarm graph --json` live topology, edge activation (autostart + wake on every handoff type)
+- **Fix (loop)** — Restore `attribution` support in V (was lost in the rewrite): `attribution: false|true|{enabled,template}` in `loop.yaml`
+- **Fix (swarm)** — Enforce graph delegation: `--to` flag shadowing fix, audit gate on commit handoffs, Python-parity aliases (`recipe list`, `ls`), `swarm attach` argv fix, herdr lifecycle fixes
+- **CI** — Validate workflow fix (`paths`+`paths-ignore` 422), swarm-e2e backend selection, macOS mcp test skip, plugin check advisory, loop help grep fix
 
 - **Feat (swarm)** — Full multi-agent orchestration parity with the legacy Python CLI, plus new capabilities:
   - `swarm start` flags `--request-file/--issue/--base-ref/--workspace/--json` (#883, #915); git **worktree per writer** with lazy `initial_roles` (#884, #912); `compose_role_prompt` + `GLOBAL_PROTOCOL` + per-role prompts (#885, #913)
