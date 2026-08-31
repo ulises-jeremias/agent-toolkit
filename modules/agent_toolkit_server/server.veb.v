@@ -4,6 +4,7 @@ module agent_toolkit_server
 // NOTE: per veb contract, the user context struct must EMBED veb.Context as
 // field `Context`, and route handlers must return veb.Result.
 import agent_toolkit_core
+import net.http
 import os
 import json
 import strings
@@ -93,6 +94,35 @@ fn origin_host(origin string) string {
 		rest = rest[..idx]
 	}
 	return rest.to_lower().trim_space()
+}
+
+fn is_read_subcommand(family string, sub string) bool {
+	// Minimal read classification for 963: only 'list' and health-like are read
+	// This satisfies the requirement that GET for mutations returns 405.
+	// Extend as needed per family.
+	match family {
+		'skills' {
+			return sub == 'list'
+		}
+		'mcp' {
+			return sub in ['list', 'health', 'doctor']
+		}
+		'plugin' {
+			return sub == 'list'
+		}
+		'workspace' {
+			return sub in ['list', 'info']
+		}
+		'memory' {
+			return sub in ['list', 'search', 'show', 'get']
+		}
+		'project' {
+			return sub in ['list', 'info']
+		}
+		else {
+			return false
+		}
+	}
 }
 
 fn is_mutation_method(ctx Ctx) bool {
@@ -198,11 +228,42 @@ fn deny_if_remote(app &App, ctx Ctx) ?DenyErr {
 	return none
 }
 
+fn deny_http_status(err_msg string) http.Status {
+	lower := err_msg.to_lower()
+	if lower.contains('invalid host') || lower.contains('bad request') {
+		return .bad_request
+	}
+	if lower.contains('unauthorized') {
+		return .unauthorized
+	}
+	if lower.contains('forbidden') || lower.contains('origin') || lower.contains('cross-site') {
+		return .forbidden
+	}
+	if lower.contains('not found') {
+		return .not_found
+	}
+	if lower.contains('conflict') {
+		return .conflict
+	}
+	if lower.contains('too many') || lower.contains('max concurrent') {
+		return .too_many_requests
+	}
+	if lower.contains('unprocessable') || lower.contains('invalid') {
+		return .unprocessable_entity
+	}
+	return .forbidden
+}
+
+fn respond_deny(mut ctx Ctx, deny DenyErr) veb.Result {
+	ctx.res.set_status(deny_http_status(deny.error))
+	return ctx.json(deny)
+}
+
 @['/api/v1/health'; get]
 pub fn (app &App) health(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	up := int(time.utc().unix() - app.started.unix())
 	return ctx.json(VersionResp{
@@ -217,7 +278,7 @@ pub fn (app &App) health(mut ctx Ctx) veb.Result {
 pub fn (app &App) api_version(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(VersionResp{
 		ok: true
@@ -229,7 +290,7 @@ pub fn (app &App) api_version(mut ctx Ctx) veb.Result {
 pub fn (app &App) openapi(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.text(openapi_json.to_string())
 }
@@ -324,7 +385,7 @@ fn extract_openapi_paths(doc string) []string {
 pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	version := agent_toolkit_core.resolve_toolkit_version()
 	mut checks := []SelfcheckCheck{}
@@ -388,7 +449,7 @@ pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 pub fn (app &App) inventory(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	snap := agent_toolkit_core.load_inventory() or {
 		return ctx.json(MsgResp{ ok: false, message: err.msg() })
@@ -408,7 +469,7 @@ pub fn (app &App) inventory(mut ctx Ctx) veb.Result {
 pub fn (app &App) doctor(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	snap := agent_toolkit_core.run_doctor_readonly()
 	return ctx.json(MsgResp{ ok: snap.ok, message: snap.message })
@@ -418,7 +479,7 @@ pub fn (app &App) doctor(mut ctx Ctx) veb.Result {
 pub fn (app &App) matrix(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.matrix_result()))
 }
@@ -427,7 +488,7 @@ pub fn (app &App) matrix(mut ctx Ctx) veb.Result {
 pub fn (app &App) insights(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.insights_result(agent_toolkit_core.run_insights(agent_toolkit_core.InsightsOptions{
 		tool: 'all'
@@ -440,7 +501,7 @@ pub fn (app &App) insights(mut ctx Ctx) veb.Result {
 pub fn (app &App) diff(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.diff_result(agent_toolkit_core.run_diff(agent_toolkit_core.DiffOptions{}))))
 }
@@ -449,7 +510,7 @@ pub fn (app &App) diff(mut ctx Ctx) veb.Result {
 pub fn (app &App) loops_list(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
@@ -462,7 +523,7 @@ pub fn (app &App) loops_list(mut ctx Ctx) veb.Result {
 pub fn (app &App) loops_status(mut ctx Ctx, name string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	report := agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
@@ -471,6 +532,7 @@ pub fn (app &App) loops_status(mut ctx Ctx, name string) veb.Result {
 		name: name
 	})
 	if !report.ok && report.message.contains('not found') {
+		ctx.res.set_status(.not_found)
 		return ctx.json(DenyErr{ ok: false, error: 'loop not found: ${name}' })
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(report)))
@@ -480,7 +542,7 @@ pub fn (app &App) loops_status(mut ctx Ctx, name string) veb.Result {
 pub fn (app &App) help_route(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.text(cli_help_md.to_string())
 }
@@ -493,7 +555,7 @@ fn cmd_resp(res agent_toolkit_core.CommandResult) CmdResp {
 pub fn (app &App) install(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{}))))
 }
@@ -502,7 +564,7 @@ pub fn (app &App) install(mut ctx Ctx) veb.Result {
 pub fn (app &App) update(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.update_result(agent_toolkit_core.run_update(agent_toolkit_core.UpdateOptions{}))))
 }
@@ -511,7 +573,7 @@ pub fn (app &App) update(mut ctx Ctx) veb.Result {
 pub fn (app &App) uninstall_route(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{}))))
 }
@@ -520,7 +582,11 @@ pub fn (app &App) uninstall_route(mut ctx Ctx) veb.Result {
 pub fn (app &App) skills(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('skills', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for skills/${sub}' })
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.skills_result(agent_toolkit_core.run_skills(agent_toolkit_core.SkillsOptions{ subcommand: sub }))))
 }
@@ -529,7 +595,7 @@ pub fn (app &App) skills(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) loops_generic(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
@@ -542,7 +608,7 @@ pub fn (app &App) loops_generic(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) devcompanion_generic(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.devcompanion_result(agent_toolkit_core.run_devcompanion(agent_toolkit_core.DevcompanionOptions{
@@ -555,7 +621,7 @@ pub fn (app &App) devcompanion_generic(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{
@@ -568,7 +634,11 @@ pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) mcp_route(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('mcp', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for mcp/${sub}' })
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.mcp_result(agent_toolkit_core.run_mcp(agent_toolkit_core.McpOptions{ subcommand: sub }))))
 }
@@ -577,7 +647,11 @@ pub fn (app &App) mcp_route(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) plugin_route(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('plugin', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for plugin/${sub}' })
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.plugin_result(agent_toolkit_core.run_plugin(agent_toolkit_core.PluginOptions{ subcommand: sub }))))
 }
@@ -586,7 +660,11 @@ pub fn (app &App) plugin_route(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) workspace(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('workspace', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for workspace/${sub}' })
 	}
 	opts := agent_toolkit_core.WorkspaceOptions{ subcommand: sub }
 	return ctx.json(cmd_resp(agent_toolkit_core.workspace_result(agent_toolkit_core.run_workspace(opts))))
@@ -596,7 +674,11 @@ pub fn (app &App) workspace(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) memory(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('memory', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for memory/${sub}' })
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.memory_result(agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{ subcommand: sub }))))
 }
@@ -605,7 +687,11 @@ pub fn (app &App) memory(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) project(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('project', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for project/${sub}' })
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.project_result(agent_toolkit_core.run_project(agent_toolkit_core.ProjectOptions{ subcommand: sub }))))
 }
@@ -614,7 +700,7 @@ pub fn (app &App) project(mut ctx Ctx, sub string) veb.Result {
 pub fn (app &App) build_route(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.build_result(agent_toolkit_core.run_build(agent_toolkit_core.BuildOptions{}))))
 }
@@ -623,7 +709,7 @@ pub fn (app &App) build_route(mut ctx Ctx) veb.Result {
 pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{ subcommand: 'list' }))))
 }
@@ -652,7 +738,7 @@ struct JobCreateReq {
 pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	req := json.decode(JobCreateReq, ctx.req.data) or {
 		return ctx.json(DenyErr{ ok: false, error: 'invalid JSON body' })
@@ -699,7 +785,7 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 pub fn (app &App) jobs_list(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	app.runner.mut.lock()
 	jobs := app.runner.jobs.clone()
@@ -711,7 +797,7 @@ pub fn (app &App) jobs_list(mut ctx Ctx) veb.Result {
 pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	lp := app.runner.log_path(id)
 	if !is_file(lp) {
@@ -728,7 +814,7 @@ pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
 pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	job := app.runner.get(id) or {
 		return ctx.json(DenyErr{ ok: false, error: 'job not found: ${id}' })
@@ -786,7 +872,7 @@ pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
 pub fn (app &App) doctor_fix(mut ctx Ctx) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	snap := agent_toolkit_core.run_doctor(agent_toolkit_core.DoctorOptions{ fix: true })
 	return ctx.json(MsgResp{ ok: snap.ok, message: snap.message })
@@ -796,7 +882,7 @@ pub fn (app &App) doctor_fix(mut ctx Ctx) veb.Result {
 pub fn (mut app App) loops_run(mut ctx Ctx, name string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	// Enqueue as job for streaming (reuse jobs runner) — workspace-aware
 	workspace := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
@@ -816,7 +902,7 @@ pub fn (mut app App) loops_run(mut ctx Ctx, name string) veb.Result {
 pub fn (mut app App) loops_schedule(mut ctx Ctx, name string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
-		return ctx.json(deny)
+		return respond_deny(mut ctx, deny)
 	}
 	opts := agent_toolkit_core.LoopOptions{
 		subcommand: 'schedule'
