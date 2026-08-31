@@ -250,6 +250,8 @@ def main() -> int:
     contract = load()
     OUT.mkdir(parents=True, exist_ok=True)
 
+    stale = []
+
     # Validate CLI_SURFACES.md contains every contract command (SSOT check for #969)
     cli_surfaces = ROOT / "docs" / "CLI_SURFACES.md"
     if cli_surfaces.exists():
@@ -270,8 +272,6 @@ def main() -> int:
         OUT / "openapi.json": json.dumps(openapi, indent=2) + "\n",
         OUT / "cli-help.md": gen_help_md(contract),
     }
-
-    stale = []
     for path, content in artifacts.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         current = path.read_text(encoding="utf-8") if path.exists() else None
