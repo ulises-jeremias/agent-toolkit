@@ -455,6 +455,13 @@ fn mcp_health(root string, provider string) McpReport {
 }
 
 fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
+	// 975: if provider is github, surface docker runtime requirement even when not configured
+	if provider == 'github' || provider.len == 0 {
+		docker_path := os.find_abs_path_of_executable('docker') or { '' }
+		if docker_path.len == 0 {
+			// still continue to normal doctor, but ensure docker hint is included via check below
+		}
+	}
 	cfg := load_mcp_config(cfg_path)
 	mut targets := []string{}
 	if provider.len > 0 {
@@ -464,6 +471,18 @@ fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
 		targets.sort()
 	}
 	if targets.len == 0 {
+		// for 975: if no configured providers but github registry exists, surface docker hint
+		if provider.len == 0 || provider == 'github' {
+			if 'github' in list_known_mcp_providers(root) {
+				docker_path := os.find_abs_path_of_executable('docker') or { '' }
+				if docker_path.len == 0 {
+					return McpReport{
+						ok:      true
+						message: '  ⚠  No MCP providers configured. Run: agent-toolkit mcp list\n  ⚠  docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/'
+					}
+				}
+			}
+		}
 		return McpReport{
 			ok:      true
 			message: '  ⚠  No MCP providers configured. Run: agent-toolkit mcp list'
@@ -541,6 +560,17 @@ fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
 					lines << '  ✗  ${var}: not set'
 					total_err++
 				}
+			}
+		}
+		// 975: docker runtime for github MCP (ghcr.io)
+		if p == 'github' {
+			docker_path := os.find_abs_path_of_executable('docker') or { '' }
+			if docker_path.len == 0 {
+				lines << '  ✗  docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/'
+				total_err++
+			} else {
+				lines << '  ✓  docker: found at ${docker_path} (for mcp:github)'
+				total_ok++
 			}
 		}
 	}

@@ -320,6 +320,15 @@ fn collect_mcp_checks(root string) []DoctorCheck {
 			out << DoctorCheck{'mcp', provider, 'warn', 'template missing'}
 		}
 	}
+	// 975: surface docker runtime for github MCP (ghcr.io image)
+	if 'github' in providers {
+		docker_path := os.find_abs_path_of_executable('docker') or { '' }
+		if docker_path.len == 0 {
+			out << DoctorCheck{'mcp', 'docker', 'warn', 'docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/'}
+		} else {
+			out << DoctorCheck{'mcp', 'docker', 'ok', 'docker at ${docker_path} (for mcp:github)'}
+		}
+	}
 	return out
 }
 
