@@ -22,6 +22,83 @@ fn is_loopback(host string) bool {
 	return host == '127.0.0.1' || host == 'localhost' || host == '::1' || host == '::ffff:127.0.0.1'
 }
 
+// secure_compare does constant-time string comparison to prevent timing leaks.
+// Returns true only if a == b, evaluated without early exit on mismatch.
+fn secure_compare(a string, b string) bool {
+	if a.len != b.len {
+		return false
+	}
+	mut diff := 0
+	for i in 0 .. a.len {
+		diff |= int(a[i] ^ b[i])
+	}
+	return diff == 0
+}
+
+// host_header_is_loopback checks whether a Host header value (may include :port
+// and is case-insensitive) is a loopback host. Empty or missing host is not loopback.
+fn host_header_is_loopback(host_header string) bool {
+	if host_header.len == 0 {
+		return false
+	}
+	mut host := host_header.trim_space().to_lower()
+	// Exact loopback without port
+	if host in ['127.0.0.1', 'localhost', '::1', '::ffff:127.0.0.1', '[::1]', '[::ffff:127.0.0.1]'] {
+		return true
+	}
+	// With port: 127.0.0.1:3847, localhost:3847
+	if host.starts_with('127.0.0.1:') || host.starts_with('localhost:') {
+		return true
+	}
+	// Bracketed IPv6 with port: [::1]:3847
+	if host.starts_with('[::1]:') || host.starts_with('[::ffff:127.0.0.1]:') {
+		return true
+	}
+	// Unbracketed ::1 without port already handled; with port would be ::1:3847 but ambiguous,
+	// we treat ::1: as loopback if it starts with ::1:
+	if host == '::1' || host.starts_with('::1:') {
+		return true
+	}
+	if host == '::ffff:127.0.0.1' || host.starts_with('::ffff:127.0.0.1:') {
+		return true
+	}
+	return false
+}
+
+// origin_host extracts the host part from an Origin header value like
+// "https://evil.com" or "http://127.0.0.1:3847". Returns "" if unparseable.
+fn origin_host(origin string) string {
+	if origin.len == 0 {
+		return ''
+	}
+	mut rest := origin.trim_space()
+	// Strip scheme
+	if idx := rest.index('://') {
+		rest = rest[idx + 3..]
+	}
+	// Strip path
+	if idx := rest.index('/') {
+		rest = rest[..idx]
+	}
+	// Handle IPv6 bracketed
+	if rest.starts_with('[') {
+		end := rest.index(']') or { -1 }
+		if end > 0 {
+			return rest[1..end].to_lower()
+		}
+		return ''
+	}
+	// Strip port
+	if idx := rest.index(':') {
+		rest = rest[..idx]
+	}
+	return rest.to_lower().trim_space()
+}
+
+fn is_mutation_method(ctx Ctx) bool {
+	return ctx.req.method == .post || ctx.req.method == .put || ctx.req.method == .patch || ctx.req.method == .delete
+}
+
 pub fn validate_bind(host string, allow_remote bool, token string) ! {
 	if !is_loopback(host) && (!allow_remote || token.len == 0) {
 		return error('remote bind requires --allow-remote AND --auth-token (ADR-028)')
@@ -84,11 +161,38 @@ pub mut:
 }
 
 fn deny_if_remote(app &App, ctx Ctx) ?DenyErr {
+	// Host header validation — when bound to loopback, Host must be loopback.
+	// Missing/invalid Host is 400-like; we return ok:false for now (status normalized in #962).
+	// This mitigates DNS rebinding where Host is spoofed as external while actually loopback.
 	if is_loopback(app.opts.host) {
+		host_h := ctx.req.header.get_custom('Host') or { ctx.req.header.get(.host) or { '' } }
+		if host_h.len > 0 && !host_header_is_loopback(host_h) {
+			return DenyErr{ ok: false, error: 'invalid host header' }
+		}
+		// Browser-origin protection for mutating routes on localhost.
+		// POST/PUT/PATCH/DELETE from a cross-origin browser page must be rejected
+		// unless the Origin is loopback or Sec-Fetch-Site is same-origin.
+		if is_mutation_method(ctx) {
+			sec_site := ctx.req.header.get_custom('Sec-Fetch-Site') or { '' }
+			if sec_site == 'cross-site' {
+				return DenyErr{ ok: false, error: 'cross-site request forbidden' }
+			}
+			origin := ctx.req.header.get_custom('Origin') or { '' }
+			if origin.len > 0 {
+				oh := origin_host(origin)
+				if oh.len > 0 && !is_loopback(oh) {
+					return DenyErr{ ok: false, error: 'origin not allowed' }
+				}
+			}
+		}
 		return none
 	}
+	// Remote binding: every request requires valid Bearer token, constant-time compare.
+	// No CORS by default (no Access-Control-Allow-Origin emitted elsewhere).
 	auth := ctx.req.header.get_custom('Authorization') or { '' }
-	if auth != 'Bearer ${app.opts.auth_token}' {
+	expected := 'Bearer ${app.opts.auth_token}'
+	// Use constant-time compare and handle token length 10k without crash.
+	if !secure_compare(auth, expected) {
 		return DenyErr{ ok: false, error: 'unauthorized' }
 	}
 	return none
