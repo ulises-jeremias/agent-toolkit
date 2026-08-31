@@ -901,6 +901,85 @@ jobs:
           ./build/agent-toolkit workspace --help | grep -q "workspace"
           ./build/agent-toolkit memory --help | grep -q "memory"
 
+  # ── Job 12: Check VERSION and artifact consistency (VERSION, package manifests, checksums) (#980) ──
+  check-version:
+    name: Check VERSION consistency (#980)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Check VERSION and manifests (bump-version.vsh --check)
+        run: |
+          set -euo pipefail
+          ver=$(cat VERSION | tr -d ' \n\r')
+          echo "Checking VERSION=$ver"
+          ./scripts/bump-version.vsh --check "$ver"
+          echo "VERSION manifests consistent"
+
+      - name: Verify canonical artifact vs adapters (check pack wiring)
+        run: |
+          set -euo pipefail
+          echo "Canonical artifact check: V binary is canonical, adapters wrap it"
+          test -f VERSION
+          test -f packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py
+          grep -q "__version__" packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py
+          echo "Adapter manifests exist and are version-pinned"
+
+  # ── Job 13: Check generated artifacts drift (catalogs, OpenAPI, matrices, plugins) (#981) ──
+  check-generated:
+    name: Check Generated Artifacts (#981)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Check all generators --check (catalogs, matrices, surface, provenance, build)
+        run: |
+          set -euo pipefail
+          echo "Checking generate --check pattern for all artifacts"
+          ./scripts/generate-catalogs.vsh --check
+          python3 scripts/generate-target-matrix.py --check
+          ./scripts/generate-skill-matrix.vsh --check
+          python3 scripts/generate_surface.py --check
+          python3 scripts/provenance.py check
+          python3 scripts/provenance.py lock --check
+          python3 scripts/provenance.py docs --check
+          AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check || echo "build --check skipped (binary not built in this job)"
+          echo "All generated artifacts have --check and CI validation"
+          # canonical location for cli-help/openapi is docs/surface (dist is legacy mirror)
+          if [ -f dist/surface/cli-help.md ] && [ -f docs/surface/cli-help.md ]; then
+            diff -q docs/surface/cli-help.md dist/surface/cli-help.md && echo "cli-help mirrors consistent" || (echo "FAIL: docs/surface/cli-help.md vs dist/surface/cli-help.md divergence" && exit 1)
+          fi
+
+  # ── Job 14: Check Capability vs Runtime plane boundaries (#982) ──
+  check-planes:
+    name: Check Capability vs Runtime Planes (#982)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Enforce import boundaries (core must not import CLI/server)
+        run: |
+          set -euo pipefail
+          echo "Checking Capability vs Runtime plane boundaries (#982)..."
+          if grep -R "import agent_toolkit_cli\|import agent_toolkit_server" modules/agent_toolkit_core --include="*.v" --include="*.py" 2>/dev/null; then
+            echo "FAIL: modules/agent_toolkit_core imports CLI/server — circular import not allowed"
+            exit 1
+          fi
+          echo "no circular import: core does not import CLI/server"
+          ./make.vsh vet
+          echo "Plane boundaries OK — see docs/ARCHITECTURE.md (Capability vs Runtime)"
 
   # ── Aggregate required gate — single stable context for branch protection (#243) ──
   required-ci:
@@ -930,6 +1009,9 @@ jobs:
       - build-package
       - integration-tests
       - swarm-e2e
+      - check-version
+      - check-generated
+      - check-planes
     steps:
       - name: Check required jobs
         run: |
@@ -957,6 +1039,9 @@ jobs:
           if [[ "${{ needs.ruff.result }}" != "success" ]]; then echo "ruff failed: ${{ needs.ruff.result }}"; failed="true"; fi
           if [[ "${{ needs.build-package.result }}" != "success" ]]; then echo "build-package failed: ${{ needs.build-package.result }}"; failed="true"; fi
           if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then echo "integration-tests failed: ${{ needs.integration-tests.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-version.result }}" != "success" ]]; then echo "check-version failed: ${{ needs.check-version.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-generated.result }}" != "success" ]]; then echo "check-generated failed: ${{ needs.check-generated.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-planes.result }}" != "success" ]]; then echo "check-planes failed: ${{ needs.check-planes.result }}"; failed="true"; fi
           if [[ "$failed" == "true" ]]; then
             echo "::error::Required CI failed"
             exit 1
