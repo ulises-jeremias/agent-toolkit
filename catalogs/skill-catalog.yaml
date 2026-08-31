@@ -30,7 +30,7 @@ skills:
   - id: architecture/architecture-diagram
     name: architecture-diagram
     domain: architecture
-    description: '>- WHAT — Create polished dark-themed architecture diagrams as self-contained HTML+SVG files (inline SVG, CSS styling, PNG/PDF export toolbar). Use when the user asks for system, infrastructure, clo'
+    description: 'WHAT — Create polished dark-themed architecture diagrams as self-contained HTML+SVG files (inline SVG, CSS styling, PNG/PDF export toolbar). Use when the user asks for system, infrastructure, cloud,'
     stability: stable
   - id: architecture/c4-model
     name: c4-model
@@ -55,7 +55,7 @@ skills:
   - id: core/dev-companion
     name: dev-companion
     domain: core
-    description: '''WHAT — Dev Companion (general): layered companion for client delivery; modes, gates, delegation to assistant and workflow-generic-project; no CLI matrices.'''
+    description: 'WHAT — Dev Companion (general): layered companion for client delivery; modes, gates, delegation to assistant and workflow-generic-project; no CLI matrices.'
     stability: stable
   - id: core/onboarding
     name: onboarding
@@ -65,7 +65,7 @@ skills:
   - id: core/output-handshake
     name: output-handshake
     domain: core
-    description: '''WHAT — Default gate for any deliverable: confirm where the final artifact will be stored and that a human will review, before writing PRDs, TRDs, ADRs, or PR bodies. Repository paths, wikis, and ti'
+    description: 'WHAT — Default gate for any deliverable: confirm where the final artifact will be stored and that a human will review, before writing PRDs, TRDs, ADRs, or PR bodies. Repository paths, wikis, and tic'
     stability: stable
   - id: core/pr-fallback
     name: pr-fallback
@@ -95,7 +95,7 @@ skills:
   - id: data/snowflake-validation
     name: snowflake-validation
     domain: data
-    description: '''HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflake/sql) or SQL checks. Never claim success without working credentials and evidence.'''
+    description: 'HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflake/sql) or SQL checks. Never claim success without working credentials and evidence.'
     stability: stable
   - id: delivery/adr
     name: adr
@@ -155,7 +155,7 @@ skills:
   - id: delivery/project-assessment
     name: project-assessment
     domain: delivery
-    description: '''WHAT - Interactive project assessment router: define assessment scope and units, collect evidence through project-assessment-evidence, then delegate to technical or management unit assessment skills.'
+    description: 'WHAT - Interactive project assessment router: define assessment scope and units, collect evidence through project-assessment-evidence, then delegate to technical or management unit assessment skills. '
     stability: stable
   - id: delivery/project-assessment-evidence
     name: project-assessment-evidence
@@ -200,7 +200,7 @@ skills:
   - id: delivery/workflow-generic-project
     name: workflow-generic-project
     domain: delivery
-    description: '''WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates, English traceability on tickets, draft PR via delegated forge skills. Use workspace packs for client/account overlay'
+    description: 'WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates, English traceability on tickets, draft PR via delegated forge skills. Use workspace packs for client/account overlays'
     stability: stable
   - id: design/design-assessment
     name: design-assessment
@@ -245,7 +245,7 @@ skills:
   - id: design/frontend-design-review
     name: frontend-design-review
     domain: design
-    description: '''Review and create distinctive, production-grade frontend interfaces with high design quality and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality craft'
+    description: 'Review and create distinctive, production-grade frontend interfaces with high design quality and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality craft,'
     stability: stable
   - id: design/web-design-guidelines
     name: web-design-guidelines
@@ -275,12 +275,12 @@ skills:
   - id: forge/github-cli-workflow
     name: github-cli-workflow
     domain: forge
-    description: '''HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file; fallback untracked PR_DESCRIPTION_*.md. Use when origin is GitHub.'''
+    description: 'HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file; fallback untracked PR_DESCRIPTION_*.md. Use when origin is GitHub.'
     stability: stable
   - id: forge/gitlab-cli-workflow
     name: gitlab-cli-workflow
     domain: forge
-    description: '''HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown. Use when origin is GitLab.'''
+    description: 'HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown. Use when origin is GitLab.'
     stability: stable
   - id: forge/worktree
     name: worktree
@@ -295,7 +295,8 @@ skills:
   - id: integrations/confluence-admin
     name: confluence-admin
     domain: integrations
-    description: '> Confluence administration including users, groups, space settings, and permission diagnostics. Use when managing user access, group membership, viewing space configuration, or checking permissions.'
+    description: 'Confluence administration including users, groups, space settings, and permission diagnostics. Use when managing user access, group membership, viewing space configuration, or checking permissions.
+'
     stability: stable
   - id: integrations/confluence-analytics
     name: confluence-analytics
@@ -380,7 +381,7 @@ skills:
   - id: integrations/jira-administration
     name: jira-administration
     domain: integrations
-    description: '> Complete JIRA project and system administration including projects, automation rules, permissions, users, notifications, screens, issue types, and workflows. Use when managing project structure, aut'
+    description: 'Complete JIRA project and system administration including projects, automation rules, permissions, users, notifications, screens, issue types, and workflows. Use when managing project structure, autom'
     stability: stable
   - id: integrations/jira-agile-management
     name: jira-agile-management
@@ -400,7 +401,9 @@ skills:
   - id: integrations/jira-collaboration
     name: jira-collaboration
     domain: integrations
-    description: '| Collaborate on issues: add/edit comments, share attachments, notify users, track activity. For team communication and coordination on JIRA issues.'
+    description: 'Collaborate on issues: add/edit comments, share attachments, notify users,
+track activity. For team communication and coordination on JIRA issues.
+'
     stability: stable
   - id: integrations/jira-custom-fields
     name: jira-custom-fields
@@ -475,7 +478,7 @@ skills:
   - id: ops/docs-generator
     name: docs-generator
     domain: ops
-    description: '''WHAT — Generate or update documentation from code: README.md from repo structure, CHANGELOG.md from git history, API reference from OpenAPI/GraphQL schemas, and AGENTS.md starters for new projects.'
+    description: 'WHAT — Generate or update documentation from code: README.md from repo structure, CHANGELOG.md from git history, API reference from OpenAPI/GraphQL schemas, and AGENTS.md starters for new projects.'
     stability: stable
   - id: ops/llm-cost-advisor
     name: llm-cost-advisor
@@ -505,7 +508,7 @@ skills:
   - id: quality/blast-radius
     name: blast-radius
     domain: quality
-    description: '| Find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it''s safe because of by running real code instead of writing it up. Use for ''blast radius of X'''
+    description: 'Find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it''s safe because of by running real code instead of writing it up. Use for ''blast radius of X'', '
     stability: stable
   - id: quality/codeql
     name: codeql
@@ -555,7 +558,7 @@ skills:
   - id: tooling/cli-for-agents
     name: cli-for-agents
     domain: tooling
-    description: '>- Designs or reviews CLIs so coding agents can run them reliably: non-interactive flags, layered --help with examples, stdin/pipelines, fast actionable errors, idempotency, dry-run, and predictable s'
+    description: 'Designs or reviews CLIs so coding agents can run them reliably: non-interactive flags, layered --help with examples, stdin/pipelines, fast actionable errors, idempotency, dry-run, and predictable stru'
     stability: stable
   - id: tooling/herdr
     name: herdr
