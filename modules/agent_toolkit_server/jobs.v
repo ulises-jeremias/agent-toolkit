@@ -84,7 +84,7 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 		return error('max concurrent jobs (${r.max_running}) reached')
 	}
 	// Use timestamp + pid + random to avoid collisions under parallel creates
-	id := 'job_' + time.utc().format_rfc3339().replace('-', '').replace(':', '').replace('.', '') + '_' + os.getpid().str() + '_' + rand.int_in_range(1000, 9999).str()
+	id := 'job_' + time.utc().format_rfc3339().replace('-', '').replace(':', '').replace('.', '') + '_' + os.getpid().str() + '_' + (rand.int_in_range(1000, 9999) or { 1000 }).str()
 	job := Job{
 		id: id
 		cmd: cmd
