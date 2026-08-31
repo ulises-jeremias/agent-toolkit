@@ -142,11 +142,13 @@ agent-toolkit install    # auto-detects Claude, Cursor, OpenCode, Windsurf, Pi, 
 agent-toolkit doctor     # verify everything is set up
 ```
 
+> **Support matrix:** see [`docs/TRUST.md#Installation channels`](docs/TRUST.md#installation-channels) for the single channel table (GitHub Releases canonical artifact, PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts) with trust anchor, support level, and verification command. The product CLI is the **native V binary**; Python is a thin launcher — see `docs/RELEASING.md` (canonical artifact) and `docs/TRUST.md`.
+
 <div align="center">
 <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/quickstart.svg?raw=true" width="86%" alt="agent-toolkit quickstart: install, doctor, swarm" />
 </div>
 
-→ Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md)
+→ Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md) · Full channel matrix: [docs/TRUST.md#Installation channels](docs/TRUST.md#installation-channels)
 
 ### Advanced install methods
 
