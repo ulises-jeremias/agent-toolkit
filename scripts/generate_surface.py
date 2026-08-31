@@ -262,9 +262,13 @@ def main() -> int:
         contract_names = {c["name"] for c in contract.get("commands", [])}
         missing = contract_names - found
         if missing:
-            stale.append(f"docs/CLI_SURFACES.md (missing contract commands: {', '.join(sorted(missing))})")
+            stale.append(
+                f"docs/CLI_SURFACES.md (missing contract commands: {', '.join(sorted(missing))})"
+            )
             if not check:
-                print(f"warning: docs/CLI_SURFACES.md missing {sorted(missing)} — update manually or regenerate")
+                print(
+                    f"warning: docs/CLI_SURFACES.md missing {sorted(missing)} — update manually or regenerate"
+                )
 
     openapi = gen_openapi(contract)
     add_native_paths(openapi["paths"])
@@ -301,24 +305,33 @@ def main() -> int:
                 target = legacy.readlink() if hasattr(legacy, "readlink") else None
                 if target is not None and canonical.exists():
                     # Resolve symlink target relative to dist/surface
-                    resolved = (legacy.parent / target).resolve() if not target.is_absolute() else target
+                    resolved = (
+                        (legacy.parent / target).resolve() if not target.is_absolute() else target
+                    )
                     if resolved != canonical.resolve():
                         stale.append(str(legacy.relative_to(ROOT)) + " (symlink target mismatch)")
                         if not check and canonical.exists():
                             legacy.unlink(missing_ok=True)
                             legacy.symlink_to(f"../../docs/surface/{canonical.name}")
-                            print(f"fixed symlink {legacy.relative_to(ROOT)} -> ../../docs/surface/{canonical.name}")
+                            print(
+                                f"fixed symlink {legacy.relative_to(ROOT)} -> ../../docs/surface/{canonical.name}"
+                            )
             else:
                 # Regular file: must be identical to canonical, else stale
                 if canonical.exists():
                     legacy_content = legacy.read_text(encoding="utf-8") if legacy.exists() else None
                     canonical_content = canonical.read_text(encoding="utf-8")
                     if legacy_content != canonical_content:
-                        stale.append(str(legacy.relative_to(ROOT)) + f" (diverged from docs/surface/{canonical.name})")
+                        stale.append(
+                            str(legacy.relative_to(ROOT))
+                            + f" (diverged from docs/surface/{canonical.name})"
+                        )
                         if not check:
                             # Remove stale duplicate; canonical is docs/surface
                             legacy.unlink(missing_ok=True)
-                            print(f"removed stale {legacy.relative_to(ROOT)} (canonical is docs/surface/{canonical.name})")
+                            print(
+                                f"removed stale {legacy.relative_to(ROOT)} (canonical is docs/surface/{canonical.name})"
+                            )
     if stale:
         print(f"{'stale' if check else 'updated'}: {', '.join(stale)}")
         if check:
