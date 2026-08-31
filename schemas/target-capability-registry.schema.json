@@ -133,6 +133,11 @@
         "tier_rationale": {
           "type": "string",
           "description": "One-sentence rationale for tier assignment"
+        },
+        "agent_plugins_extension": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Portable vs extension annotation for agent_plugins (#973): 'portable' for Agent Plugins v1 portable (agent-plugins.org), 'none' for no plugin, otherwise client-specific extension identifier like 'opencode.json', 'gemini-extension.json', 'pi-package.json', 'muse-plugin' or reverse-domain 'com.anthropic.claude-code'. Required when agent_plugins is 'custom' to avoid misleading portability claims; validates that custom agents require extension X."
         }
       }
     }

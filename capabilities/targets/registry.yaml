@@ -45,6 +45,7 @@ targets:
   tier: A
   tier_rationale: Full plugin (.claude-plugin/) - native skills/agents/subagents, nested+parallel+auto
     delegation, perms/models, 33 hooks, MCP, v1 marketplace
+  agent_plugins_extension: portable
 - id: cursor
   display_name: Cursor
   adapter: agent_toolkit.compiler.targets.cursor.CursorAdapter
@@ -82,6 +83,7 @@ targets:
   tier: A
   tier_rationale: Full plugin (.cursor-plugin/) v2.5+ - skills/agents/subagents, auto+parallel delegation,
     perms/models, 16+ hooks, MCP, v1 marketplace; nested partial only
+  agent_plugins_extension: portable
 - id: opencode
   display_name: OpenCode
   adapter: agent_toolkit.compiler.targets.opencode.OpenCodeAdapter
@@ -117,6 +119,7 @@ targets:
   tier: B
   tier_rationale: JS/TS module - native agents/subagents/parallel/perms/models, but auto/nested partial
     and MCP/hooks require TypeScript runtime bridge
+  agent_plugins_extension: opencode.json (requires TypeScript runtime)
 - id: gemini-cli
   display_name: Gemini CLI
   adapter: agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter
@@ -154,6 +157,7 @@ targets:
   tier: B
   tier_rationale: Extension (gemini-extension.json) + TOML commands - native agents, MCP/hooks native,
     but primary/subagents/delegation/parallel partial
+  agent_plugins_extension: gemini-extension.json
 - id: copilot-cli
   display_name: GitHub Copilot CLI
   adapter: agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter
@@ -190,6 +194,7 @@ targets:
   tier: B
   tier_rationale: Open Plugin Spec (plugin.json) - native agents/primary/subagents partial, perms/models
     partial, MCP/hooks unknown - limited delegation
+  agent_plugins_extension: portable
 - id: copilot-repository
   display_name: GitHub Copilot Repository
   adapter: agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter
@@ -224,6 +229,7 @@ targets:
   tier: C
   tier_rationale: Repository customization (.github/copilot-instructions.md, .github/agents/*.agent.md,
     .github/skills/) - no plugin/marketplace, no subagents/delegation/hooks/MCP
+  agent_plugins_extension: none
 - id: pi
   display_name: Pi Coding Agent
   adapter: agent_toolkit.compiler.targets.pi.PiAdapter
@@ -259,6 +265,7 @@ targets:
   tier: B
   tier_rationale: npm package (pi-package.json) - native agents/subagents/perms/models, but MCP/hooks/parallel
     partial requiring TypeScript ExtensionAPI
+  agent_plugins_extension: pi-package.json (requires TypeScript ExtensionAPI)
 - id: windsurf
   display_name: Windsurf
   adapter: agent_toolkit.compiler.targets.windsurf.WindsurfAdapter
@@ -294,6 +301,7 @@ targets:
   tier: D
   tier_rationale: 'No marketplace extensions per docs.devin.ai - customization bundle only: rules .mdc
     + manual MCP, no agents/subagents/delegation/perms/models/hooks/commands'
+  agent_plugins_extension: none
 - id: codex
   display_name: OpenAI Codex
   adapter: agent_toolkit.compiler.targets.codex.CodexAdapter
@@ -329,6 +337,7 @@ targets:
   tier: B
   tier_rationale: Experimental .codex-plugin (Mar 2026) - native agents/subagents/parallel, MCP partial,
     hooks unknown-blocked, delegation partial
+  agent_plugins_extension: portable
 - id: muse-code
   display_name: Muse Code
   adapter: agent_toolkit.compiler.targets.muse_code.MuseCodeAdapter
@@ -364,6 +373,7 @@ targets:
   tier: C
   tier_rationale: Custom plugin - skills under ~/.config/muse/skills + .agents/skills fallback, agents
     true but no primary/subagents/delegation/hooks, MCP partial, no marketplace
+  agent_plugins_extension: muse-plugin (custom ~/.config/muse/skills)
 - id: agent-plugins
   display_name: Agent Plugins (Portable)
   adapter: agent_toolkit.compiler.targets.agent_plugins.AgentPluginsAdapter
@@ -398,3 +408,4 @@ targets:
   tier: C
   tier_rationale: Synthetic portable plugin.json + skills/ + mcp.json for Cursor/VS Code/Copilot/Kiro/Codex;
     agents via com.anthropic.claude-code extension; no primary/subagents/delegation
+  agent_plugins_extension: portable

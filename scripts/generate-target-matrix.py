@@ -130,10 +130,60 @@ def validate_profiles_coverage(targets):
         sys.exit(1)
 
 
+def validate_agent_plugins_extension(targets):
+    """Validate portable vs extension annotation (#973).
+
+    - agent_plugins == v1 must have extension 'portable'
+    - agent_plugins == none must have extension 'none'
+    - agent_plugins == custom must have a client-specific extension (not portable/none)
+    Fails on ambiguous custom without extension annotation.
+    """
+    for t in targets:
+        tid = t.get("id", "<unknown>")
+        caps = t.get("capabilities", {})
+        ap = caps.get("agent_plugins")
+        ext = t.get("agent_plugins_extension")
+        if ext is None or str(ext).strip() == "":
+            print(
+                f"FAIL: {tid}: missing agent_plugins_extension (required #973 to distinguish portable vs extension)",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        ext_norm = str(ext).strip()
+        if ap == "custom":
+            if ext_norm.lower() in ("portable", "none"):
+                print(
+                    f"FAIL: {tid}: agent_plugins is 'custom' but extension is {ext!r} — must specify client extension like 'opencode.json' or 'gemini-extension.json' (#973)",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+            if len(ext_norm) < 3:
+                print(
+                    f"FAIL: {tid}: agent_plugins custom extension too short: {ext!r}",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+        elif ap == "v1":
+            if ext_norm != "portable":
+                print(
+                    f"FAIL: {tid}: agent_plugins 'v1' must have extension 'portable' (got {ext!r})",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+        elif ap == "none":
+            if ext_norm != "none":
+                print(
+                    f"FAIL: {tid}: agent_plugins 'none' must have extension 'none' (got {ext!r})",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+
+
 def render_md(data) -> str:
     targets = data["targets"]
     # preserve registry order
     validate_profiles_coverage(targets)
+    validate_agent_plugins_extension(targets)
 
     lines = []
     lines.append("# Target Capability Matrix")
@@ -202,8 +252,16 @@ def render_md(data) -> str:
     lines.append("| ◐ partial | Partial / bridged / requires runtime |")
     lines.append("| ❓ unknown | Could not confirm from official docs |")
     lines.append("| `v1` | Agent Plugins 1.0 portable |")
+    lines.append("| `v1` (portable) | Portable via agent-plugins.org (skills + mcp.json) |")
     lines.append("| `custom` | Tool-specific custom format |")
+    lines.append(
+        "| `custom` (requires extension X) | Custom agents via client extension — not portable without that extension |"
+    )
     lines.append("| — | None / not applicable |")
+    lines.append("")
+    lines.append(
+        "> **Portable vs extension (#973):** `agent_plugins: v1` with `agent_plugins_extension: portable` means portable Agent Plugins 1.0 (skills + mcp.json) per https://agent-plugins.org — guaranteed across Cursor, VS Code, Copilot, Codex, Claude Code. `custom` with `agent_plugins_extension: <extension>` (e.g. `opencode.json`, `gemini-extension.json`, `pi-package.json`) means custom-agent support requires that vendor-specific extension inside an otherwise portable `plugin.json` — not portable without it. `none` = no plugin manifest."
+    )
     lines.append("")
 
     # Main Capability x Target table
@@ -225,7 +283,19 @@ def render_md(data) -> str:
         row = [label]
         for t in targets:
             v = t.get("capabilities", {}).get(cap, "—")
-            row.append(fmt(v))
+            # #973: annotate agent_plugins with portable vs extension distinction
+            if cap == "agent_plugins":
+                ext = t.get("agent_plugins_extension", "")
+                if v == "v1" and ext == "portable":
+                    row.append("`v1` (portable)")
+                elif v == "custom" and ext and ext not in ("portable", "none"):
+                    # show custom + requires extension, truncate long extension for cell readability
+                    short = ext.split(" (")[0]
+                    row.append(f"`custom` (requires {short})")
+                else:
+                    row.append(fmt(v))
+            else:
+                row.append(fmt(v))
         lines.append("| " + " | ".join(row) + " |")
     lines.append("")
 
@@ -269,6 +339,18 @@ def render_md(data) -> str:
         lines.append(f"- **Tier:** {t.get('tier', '—')}")
         if t.get("tier_rationale"):
             lines.append(f"- **Tier rationale:** {t.get('tier_rationale')}")
+        # #973 portable vs extension
+        ext = t.get("agent_plugins_extension", "—")
+        caps = t.get("capabilities", {})
+        ap = caps.get("agent_plugins", "—")
+        if ap == "v1" and ext == "portable":
+            lines.append(f"- **Agent Plugins:** `{ap}` (portable via https://agent-plugins.org)")
+        elif ap == "custom" and ext not in ("portable", "none", "—", ""):
+            lines.append(
+                f"- **Agent Plugins:** `{ap}` (requires extension `{ext}` — not portable without it)"
+            )
+        else:
+            lines.append(f"- **Agent Plugins:** `{ap}` / extension `{ext}`")
         lines.append(f"- **Maturity:** {t.get('maturity', '—')}")
         lines.append(f"- **Researched at:** {t.get('researched_at', '—')}")
         srcs = t.get("sources", [])
