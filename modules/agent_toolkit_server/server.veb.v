@@ -96,6 +96,35 @@ fn origin_host(origin string) string {
 	return rest.to_lower().trim_space()
 }
 
+fn is_read_subcommand(family string, sub string) bool {
+	// Minimal read classification for 963: only 'list' and health-like are read
+	// This satisfies the requirement that GET for mutations returns 405.
+	// Extend as needed per family.
+	match family {
+		'skills' {
+			return sub == 'list'
+		}
+		'mcp' {
+			return sub in ['list', 'health', 'doctor']
+		}
+		'plugin' {
+			return sub == 'list'
+		}
+		'workspace' {
+			return sub in ['list', 'info']
+		}
+		'memory' {
+			return sub in ['list', 'search', 'show', 'get']
+		}
+		'project' {
+			return sub in ['list', 'info']
+		}
+		else {
+			return false
+		}
+	}
+}
+
 fn is_mutation_method(ctx Ctx) bool {
 	return ctx.req.method == .post || ctx.req.method == .put || ctx.req.method == .patch || ctx.req.method == .delete
 }
@@ -555,6 +584,10 @@ pub fn (app &App) skills(mut ctx Ctx, sub string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if ctx.req.method == .get && !is_read_subcommand('skills', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for skills/${sub}' })
+	}
 	return ctx.json(cmd_resp(agent_toolkit_core.skills_result(agent_toolkit_core.run_skills(agent_toolkit_core.SkillsOptions{ subcommand: sub }))))
 }
 
@@ -603,6 +636,10 @@ pub fn (app &App) mcp_route(mut ctx Ctx, sub string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if ctx.req.method == .get && !is_read_subcommand('mcp', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for mcp/${sub}' })
+	}
 	return ctx.json(cmd_resp(agent_toolkit_core.mcp_result(agent_toolkit_core.run_mcp(agent_toolkit_core.McpOptions{ subcommand: sub }))))
 }
 
@@ -612,6 +649,10 @@ pub fn (app &App) plugin_route(mut ctx Ctx, sub string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if ctx.req.method == .get && !is_read_subcommand('plugin', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for plugin/${sub}' })
+	}
 	return ctx.json(cmd_resp(agent_toolkit_core.plugin_result(agent_toolkit_core.run_plugin(agent_toolkit_core.PluginOptions{ subcommand: sub }))))
 }
 
@@ -620,6 +661,10 @@ pub fn (app &App) workspace(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
 		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('workspace', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for workspace/${sub}' })
 	}
 	opts := agent_toolkit_core.WorkspaceOptions{ subcommand: sub }
 	return ctx.json(cmd_resp(agent_toolkit_core.workspace_result(agent_toolkit_core.run_workspace(opts))))
@@ -631,6 +676,10 @@ pub fn (app &App) memory(mut ctx Ctx, sub string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if ctx.req.method == .get && !is_read_subcommand('memory', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for memory/${sub}' })
+	}
 	return ctx.json(cmd_resp(agent_toolkit_core.memory_result(agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{ subcommand: sub }))))
 }
 
@@ -639,6 +688,10 @@ pub fn (app &App) project(mut ctx Ctx, sub string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
 		return respond_deny(mut ctx, deny)
+	}
+	if ctx.req.method == .get && !is_read_subcommand('project', sub) {
+		ctx.res.set_status(.method_not_allowed)
+		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for project/${sub}' })
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.project_result(agent_toolkit_core.run_project(agent_toolkit_core.ProjectOptions{ subcommand: sub }))))
 }
