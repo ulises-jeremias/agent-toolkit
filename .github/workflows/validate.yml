@@ -898,7 +898,7 @@ jobs:
           find /tmp/play-e2e/.agent-toolkit -name "state.json" 2>/dev/null | head -1 | xargs test -f && echo "state.json exists" || echo "state.json check via find"
           AGENT_TOOLKIT_ROOT=/tmp/play-e2e ./build/agent-toolkit swarm list --json 2>&1 | head -5 || true
           ./build/agent-toolkit swarm prune --dry-run --older-than 0s 2>&1 | head -20 || true
-          ./build/agent-toolkit loop --help | grep -q "loop run --runner"
+          ./build/agent-toolkit loop --help | grep -q "loop run <loop>"
           ./build/agent-toolkit workspace --help | grep -q "workspace"
           ./build/agent-toolkit memory --help | grep -q "memory"
 
