@@ -741,14 +741,17 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 		return respond_deny(mut ctx, deny)
 	}
 	req := json.decode(JobCreateReq, ctx.req.data) or {
+		ctx.res.set_status(.bad_request)
 		return ctx.json(DenyErr{ ok: false, error: 'invalid JSON body' })
 	}
 	if req.cmd.len == 0 {
+		ctx.res.set_status(.unprocessable_entity)
 		return ctx.json(DenyErr{ ok: false, error: 'cmd is required' })
 	}
 	mut workspace := ''
 	if req.workspace.len > 0 {
 		if !os.is_dir(req.workspace) {
+			ctx.res.set_status(.not_found)
 			return ctx.json(DenyErr{ ok: false, error: 'workspace not found: ${req.workspace}' })
 		}
 		workspace = req.workspace
@@ -772,7 +775,13 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 		}
 	}
 	job := app.runner.create(req.cmd, args, workspace) or {
-		return ctx.json(DenyErr{ ok: false, error: err.msg() })
+		msg := err.msg()
+		if msg.contains('max concurrent') {
+			ctx.res.set_status(.too_many_requests)
+		} else {
+			ctx.res.set_status(.internal_server_error)
+		}
+		return ctx.json(DenyErr{ ok: false, error: msg })
 	}
 	lp := app.runner.log_path(job.id)
 	if !is_file(lp) {
@@ -799,8 +808,13 @@ pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if !is_valid_job_id(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
 	lp := app.runner.log_path(id)
 	if !is_file(lp) {
+		ctx.res.set_status(.not_found)
 		return ctx.json(DenyErr{ ok: false, error: 'log not found: ${id}' })
 	}
 	body := os.read_file(lp) or { '' }
@@ -816,7 +830,12 @@ pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if !is_valid_job_id(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
 	job := app.runner.get(id) or {
+		ctx.res.set_status(.not_found)
 		return ctx.json(DenyErr{ ok: false, error: 'job not found: ${id}' })
 	}
 	ctx.takeover_conn()
