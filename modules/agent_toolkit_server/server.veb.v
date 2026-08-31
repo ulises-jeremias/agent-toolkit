@@ -129,6 +129,79 @@ fn is_mutation_method(ctx Ctx) bool {
 	return ctx.req.method == .post || ctx.req.method == .put || ctx.req.method == .patch || ctx.req.method == .delete
 }
 
+// is_allowed_workspace reports whether workspace path is inside allowed roots
+// (workspace root, cwd, toolkit root) and not escaping via symlink.
+// Allows temp dirs for tests; rejects system paths like /etc outside roots.
+fn is_allowed_workspace(path string) bool {
+	if !is_valid_workspace_path(path) {
+		return false
+	}
+	real := os.real_path(path)
+	if real.len == 0 {
+		return false
+	}
+	mut allowed := []string{}
+	if ws := agent_toolkit_core.find_workspace_root('') {
+		r := os.real_path(ws)
+		if r.len > 0 {
+			allowed << r
+		}
+	}
+	cwd_real := os.real_path(os.getwd())
+	if cwd_real.len > 0 {
+		allowed << cwd_real
+	}
+	if tr := agent_toolkit_core.find_toolkit_root() {
+		r := os.real_path(tr.path)
+		if r.len > 0 {
+			allowed << r
+		}
+	}
+	// Also consider AGENT_TOOLKIT_ROOT env explicit
+	env_root := os.getenv('AGENT_TOOLKIT_ROOT').trim_space()
+	if env_root.len > 0 && os.is_dir(env_root) {
+		r := os.real_path(env_root)
+		if r.len > 0 {
+			allowed << r
+		}
+	}
+	// Allow temp dir for tests (V's os.temp_dir)
+	tmp_real := os.real_path(os.temp_dir())
+	if tmp_real.len > 0 {
+		allowed << tmp_real
+	}
+	// Also allow /tmp explicitly (symlink may differ)
+	allowed << '/tmp'
+	for root in allowed {
+		if root.len == 0 {
+			continue
+		}
+		if real == root || real.starts_with(root + '/') {
+			return true
+		}
+	}
+	return false
+}
+
+// is_valid_loop_name validates loop names (alphanumeric, -, _, no traversal)
+fn is_valid_loop_name(name string) bool {
+	if name.len == 0 || name.len > 64 {
+		return false
+	}
+	if name.contains('/') || name.contains('\\') || name.contains('..') || name.contains('%') || name.contains('\0') {
+		return false
+	}
+	if name.starts_with('-') || name.starts_with('.') {
+		return false
+	}
+	for ch in name {
+		if !((ch >= `0` && ch <= `9`) || (ch >= `a` && ch <= `z`) || (ch >= `A` && ch <= `Z`) || ch == `_` || ch == `-` || ch == `.`) {
+			return false
+		}
+	}
+	return true
+}
+
 pub fn validate_bind(host string, allow_remote bool, token string) ! {
 	if !is_loopback(host) && (!allow_remote || token.len == 0) {
 		return error('remote bind requires --allow-remote AND --auth-token (ADR-028)')
@@ -525,6 +598,10 @@ pub fn (app &App) loops_status(mut ctx Ctx, name string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if !is_valid_loop_name(name) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid loop name' })
+	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	report := agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
 		subcommand: 'status'
@@ -750,9 +827,19 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 	}
 	mut workspace := ''
 	if req.workspace.len > 0 {
+		// Reject traversal / encoded traversal early (400)
+		if req.workspace.contains('..') || req.workspace.contains('%') || req.workspace.contains('\0') {
+			ctx.res.set_status(.bad_request)
+			return ctx.json(DenyErr{ ok: false, error: 'invalid workspace path' })
+		}
 		if !os.is_dir(req.workspace) {
 			ctx.res.set_status(.not_found)
 			return ctx.json(DenyErr{ ok: false, error: 'workspace not found: ${req.workspace}' })
+		}
+		// Enforce allowed roots and symlink safety (403 if outside)
+		if !is_allowed_workspace(req.workspace) {
+			ctx.res.set_status(.forbidden)
+			return ctx.json(DenyErr{ ok: false, error: 'workspace outside allowed roots' })
 		}
 		workspace = req.workspace
 	} else {
@@ -812,10 +899,20 @@ pub fn (app &App) jobs_log(mut ctx Ctx, id string) veb.Result {
 		ctx.res.set_status(.bad_request)
 		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
 	}
+	// Symlink escape check before reading
+	if !app.runner.is_log_path_safe(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
 	lp := app.runner.log_path(id)
 	if !is_file(lp) {
 		ctx.res.set_status(.not_found)
 		return ctx.json(DenyErr{ ok: false, error: 'log not found: ${id}' })
+	}
+	// If file is symlink pointing outside runner dir, block
+	if os.is_link(lp) {
+		ctx.res.set_status(.forbidden)
+		return ctx.json(DenyErr{ ok: false, error: 'symlink not allowed' })
 	}
 	body := os.read_file(lp) or { '' }
 	return ctx.text(body)
@@ -831,6 +928,10 @@ pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
 		return respond_deny(mut ctx, deny)
 	}
 	if !is_valid_job_id(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
+	if !app.runner.is_log_path_safe(id) {
 		ctx.res.set_status(.bad_request)
 		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
 	}
@@ -903,6 +1004,10 @@ pub fn (mut app App) loops_run(mut ctx Ctx, name string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
+	if !is_valid_loop_name(name) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid loop name' })
+	}
 	// Enqueue as job for streaming (reuse jobs runner) — workspace-aware
 	workspace := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	mut args := ['loop', 'run', name]
@@ -922,6 +1027,10 @@ pub fn (mut app App) loops_schedule(mut ctx Ctx, name string) veb.Result {
 	deny := deny_if_remote(app, ctx)
 	if deny != none {
 		return respond_deny(mut ctx, deny)
+	}
+	if !is_valid_loop_name(name) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid loop name' })
 	}
 	opts := agent_toolkit_core.LoopOptions{
 		subcommand: 'schedule'
