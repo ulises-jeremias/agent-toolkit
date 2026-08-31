@@ -55,6 +55,8 @@ agent-toolkit swarm runners --json
 
 ## Primary install (recommended)
 
+> **Support matrix:** the single source is [`docs/TRUST.md#Installation channels`](TRUST.md#installation-channels) — GitHub Releases (canonical artifact), PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts. The **canonical artifact** is the native V binary from a GitHub Release; PyPI/npm/marketplaces are distribution adapters, Homebrew/AUR are downstream packages that fetch the canonical artifact. V is canonical, Python is a thin launcher.
+
 One command auto-detects your AI tools and deploys the right profiles. Pick **one** channel — all install the same V CLI.
 
 ```bash
