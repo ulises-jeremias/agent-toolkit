@@ -1,33 +1,33 @@
 ---
-
 name: confluence-hierarchy
-description: Navigate and manage Confluence page hierarchies, ancestors, descendants, and trees. ALWAYS use for parent/child relationships and page tree navigation.
+description: Navigate and manage Confluence page hierarchies, ancestors, descendants, and trees. ALWAYS
+  use for parent/child relationships and page tree navigation.
 triggers:
-  - hierarchy
-  - ancestor
-  - parent
-  - child
-  - children
-  - descendant
-  - tree
-  - breadcrumb
-  - navigation
-  - reorder
+- hierarchy
+- ancestor
+- parent
+- child
+- children
+- descendant
+- tree
+- breadcrumb
+- navigation
+- reorder
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-hierarchy
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:24f5dc98f438e034eda6834f9b79d97893184b2e7557a40d2707b33915d7a157
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

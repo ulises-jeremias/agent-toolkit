@@ -1,32 +1,32 @@
 ---
-
 name: confluence-permission
-description: Manage space and page permissions and restrictions. ALWAYS use when user wants to control access, set restrictions, or manage who can view/edit content.
+description: Manage space and page permissions and restrictions. ALWAYS use when user wants to control
+  access, set restrictions, or manage who can view/edit content.
 triggers:
-  - permission
-  - permissions
-  - restrict
-  - access
-  - security
-  - who can view
-  - who can edit
-  - lock page
-  - restrict access
+- permission
+- permissions
+- restrict
+- access
+- security
+- who can view
+- who can edit
+- lock page
+- restrict access
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-permission
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 796796686f22aa9e55da9fffa31a2863873d23f1
   license: MIT
+  version: '7967966'
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:3eb4e643e0e7732f97730bc9e6fe1b218cf78f034c9c14c844369ef521269702
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

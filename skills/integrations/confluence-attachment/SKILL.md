@@ -1,31 +1,31 @@
 ---
-
 name: confluence-attachment
-description: Manage file attachments - upload, download, list, and delete attachments. ALWAYS use when user wants to work with files on pages.
+description: Manage file attachments - upload, download, list, and delete attachments. ALWAYS use when
+  user wants to work with files on pages.
 triggers:
-  - attach
-  - attachment
-  - upload file
-  - download file
-  - upload attachment
-  - download attachment
-  - file
-  - files
+- attach
+- attachment
+- upload file
+- download file
+- upload attachment
+- download attachment
+- file
+- files
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-attachment
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:d3996f670f1eefce64f0567015ff5a91473aeb268befd1f86bdc87cd38159bfe
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

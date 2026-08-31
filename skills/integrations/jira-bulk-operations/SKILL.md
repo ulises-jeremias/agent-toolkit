@@ -1,26 +1,31 @@
 ---
-
-name: "jira-bulk-operations"
-description: "Bulk operations for multiple issues at scale. TRIGGERS: 'bulk update', 'bulk close', 'bulk transition', 'bulk assign', 'transition N issues' (N >= 10), 'update all bugs', 'close 50 issues', 'mass transition', 'update multiple issues', quantities like '50 issues', '100 bugs', '20+ tickets'. Use for operations on 10+ issues. NOT FOR: single issue transitions (use jira-lifecycle), searching only without modifications (use jira-search), single issue field updates (use jira-issue)."
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+name: jira-bulk-operations
+description: 'Bulk operations for multiple issues at scale. TRIGGERS: ''bulk update'', ''bulk close'',
+  ''bulk transition'', ''bulk assign'', ''transition N issues'' (N >= 10), ''update all bugs'', ''close
+  50 issues'', ''mass transition'', ''update multiple issues'', quantities like ''50 issues'', ''100 bugs'',
+  ''20+ tickets''. Use for operations on 10+ issues. NOT FOR: single issue transitions (use jira-lifecycle),
+  searching only without modifications (use jira-search), single issue field updates (use jira-issue).'
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-bulk
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:790a8d3e88fc66cfc64d08283bc717fa271ba5b1c6124fc60695ecf676acb4f4
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -31,6 +36,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
 ---
 
 # jira-bulk

@@ -1,33 +1,33 @@
 ---
-
 name: confluence-comment
-description: Manage comments on Confluence pages - add, get, update, delete, and resolve comments. ALWAYS use for feedback, discussions, and inline annotations.
+description: Manage comments on Confluence pages - add, get, update, delete, and resolve comments. ALWAYS
+  use for feedback, discussions, and inline annotations.
 triggers:
-  - comment
-  - comments
-  - add comment
-  - get comments
-  - update comment
-  - delete comment
-  - inline comment
-  - resolve comment
-  - footer comment
-  - reply
+- comment
+- comments
+- add comment
+- get comments
+- update comment
+- delete comment
+- inline comment
+- resolve comment
+- footer comment
+- reply
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-comment
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:e960c1c7b10e05801c5d267a911792c06c24a322616c585d3a0af066ecc07bd5
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

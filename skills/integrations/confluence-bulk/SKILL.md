@@ -1,32 +1,33 @@
 ---
-
 name: confluence-bulk
-description: Bulk operations for 50+ pages - updates, moves, deletions, labels, and permissions. Use when updating multiple pages simultaneously (dry-run preview included), needing rollback safety, or coordinating team changes. Handles partial failures gracefully.
+description: Bulk operations for 50+ pages - updates, moves, deletions, labels, and permissions. Use when
+  updating multiple pages simultaneously (dry-run preview included), needing rollback safety, or coordinating
+  team changes. Handles partial failures gracefully.
 triggers:
-  - bulk
-  - multiple pages
-  - batch
-  - mass update
-  - bulk delete
-  - bulk label
-  - bulk move
-  - all pages in space
-  - many pages
+- bulk
+- multiple pages
+- batch
+- mass update
+- bulk delete
+- bulk label
+- bulk move
+- all pages in space
+- many pages
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-bulk
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:59e98e388eb863c1447ade686fa56926423076f0832ad89fc7742472692cf091
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

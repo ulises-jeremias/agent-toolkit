@@ -1,26 +1,31 @@
 ---
-
-name: "jira-issue-relationships"
-description: "Issue linking, blockers, and dependency analysis. TRIGGERS: 'what's blocking', 'what is blocking', 'is blocked by', 'link issues', 'link to', 'blockers for', 'depends on', 'clone issue', 'clone with', 'blocking chain', 'dependency graph', 'show dependencies', 'get blockers', 'relates to', 'duplicates'. Use for issue dependencies, relationships, and cloning. NOT FOR: epic linking (use jira-agile), field updates (use jira-issue), bulk cloning (use jira-bulk)."
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+name: jira-issue-relationships
+description: 'Issue linking, blockers, and dependency analysis. TRIGGERS: ''what''s blocking'', ''what
+  is blocking'', ''is blocked by'', ''link issues'', ''link to'', ''blockers for'', ''depends on'', ''clone
+  issue'', ''clone with'', ''blocking chain'', ''dependency graph'', ''show dependencies'', ''get blockers'',
+  ''relates to'', ''duplicates''. Use for issue dependencies, relationships, and cloning. NOT FOR: epic
+  linking (use jira-agile), field updates (use jira-issue), bulk cloning (use jira-bulk).'
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-relationships
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:bd6beefbbd4644404723687014fb3964ae8987773b9e2b179a2cdc7242d40df6
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -31,6 +36,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
 ---
 
 # jira-relationships

@@ -1,26 +1,28 @@
 ---
-
-name: "jira-service-management"
-description: "Complete ITSM/ITIL workflow support for JSM - service desks, requests, SLAs, customers, approvals, knowledge base. Use when managing service desk requests, tracking SLAs, or handling customer operations."
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+name: jira-service-management
+description: Complete ITSM/ITIL workflow support for JSM - service desks, requests, SLAs, customers, approvals,
+  knowledge base. Use when managing service desk requests, tracking SLAs, or handling customer operations.
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-jsm
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:e78f6f614e730d93dba0fcecae6548e7acc9907090fbf76c401631f27aa03c6d
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -31,6 +33,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
 ---
 
 # jira-jsm

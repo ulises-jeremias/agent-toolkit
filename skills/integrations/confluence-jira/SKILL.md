@@ -1,29 +1,29 @@
 ---
-
 name: confluence-jira
-description: JIRA integration - embed issues, create links between products. ALWAYS use when user wants to connect Confluence and JIRA.
+description: JIRA integration - embed issues, create links between products. ALWAYS use when user wants
+  to connect Confluence and JIRA.
 triggers:
-  - jira
-  - embed issue
-  - link jira
-  - jira macro
-  - jira issues
-  - jira link
+- jira
+- embed issue
+- link jira
+- jira macro
+- jira issues
+- jira link
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-jira
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:856bee6a92047948f10c645670c4a7fc3de52662398bac49fc7ce27efbd25b7d
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

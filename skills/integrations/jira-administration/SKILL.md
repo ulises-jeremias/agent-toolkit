@@ -1,30 +1,31 @@
 ---
+name: jira-administration
+description: 'Complete JIRA project and system administration including projects, automation rules, permissions,
+  users, notifications, screens, issue types, and workflows. Use when managing project structure, automating
+  work, configuring team access, or setting up issue tracking.
 
-name: "jira-administration"
-description: >
-  Complete JIRA project and system administration including projects,
-  automation rules, permissions, users, notifications, screens, issue types,
-  and workflows. Use when managing project structure, automating work,
-  configuring team access, or setting up issue tracking.
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+  '
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-admin
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:3cadfca6fe921de95c0ed3d0580570cb323634b4fc85d58fabb9538f350aa9dc
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -35,6 +36,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
 ---
 
 # JIRA Admin Skill

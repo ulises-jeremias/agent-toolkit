@@ -9,18 +9,17 @@ origin:
 upstream:
   repository: anthropics/skills
   path: skills/frontend-design
-  ref: f17010c9bb483898c1d9c9f42dde2b3a98889434
+  ref: 2235be7c60b551f5de82ade908fd3816455afcda
   license: Apache-2.0
-  version: f17010c
+  version: 2235be7
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-14'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:a58fd159210cf5773748b973cbda5dcdb0bb04c42b47422b19ec523bb880f748
 maintenance:
   status: active
   last_activity: '2026-08-07'
-  last_checked: '2026-08-14'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

@@ -1,30 +1,30 @@
 ---
-
 name: confluence-label
-description: Manage content labels - add, remove, and search by labels. ALWAYS use when user wants to tag, label, or categorize content.
+description: Manage content labels - add, remove, and search by labels. ALWAYS use when user wants to
+  tag, label, or categorize content.
 triggers:
-  - label
-  - tag
-  - add label
-  - remove label
-  - labels
-  - categorize
-  - tag page
+- label
+- tag
+- add label
+- remove label
+- labels
+- categorize
+- tag page
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-label
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 796796686f22aa9e55da9fffa31a2863873d23f1
   license: MIT
+  version: '7967966'
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:deff7bc0e7343a05b488321445c4a790706b94aae10ef80c22e05502cdb5066b
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

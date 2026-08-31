@@ -6,16 +6,16 @@ origin:
 upstream:
   repository: cursor/plugins
   path: cursor-team-kit/skills/deslop
-  ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+  ref: b21ab167c8d6aad6e4d91bc0de429eedd49665ed
   license: MIT
+  version: b21ab16
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-19'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:7b61bbc5400565b3da44417658b7f6be1c0104f9f216b0a6965345293f8bd130
 maintenance:
   status: active
-  last_checked: '2026-08-19'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -32,7 +32,6 @@ updates:
   strategy: pull-request
   cadence: weekly
 ---
-
 
 # Remove AI code slop
 

@@ -1,33 +1,33 @@
 ---
-
 name: confluence-property
-description: Manage content properties (custom metadata) on Confluence pages and blog posts. ALWAYS use for custom metadata, key-value data, or application-specific fields.
+description: Manage content properties (custom metadata) on Confluence pages and blog posts. ALWAYS use
+  for custom metadata, key-value data, or application-specific fields.
 triggers:
-  - property
-  - properties
-  - metadata
-  - custom data
-  - content property
-  - page property
-  - set property
-  - get property
-  - delete property
-  - list properties
+- property
+- properties
+- metadata
+- custom data
+- content property
+- page property
+- set property
+- get property
+- delete property
+- list properties
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-property
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 796796686f22aa9e55da9fffa31a2863873d23f1
   license: MIT
+  version: '7967966'
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:b7806d6a7006b60c46ae6a17e3e689a09a700ae6d402e254934b3c56a58cd0c8
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

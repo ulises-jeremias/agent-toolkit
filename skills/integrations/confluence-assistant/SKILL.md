@@ -1,27 +1,27 @@
 ---
-
 name: confluence-assistant
-description: Central hub for Confluence operations - routes requests to specialized skills. ALWAYS use when user mentions confluence, wiki, or Atlassian wiki operations.
+description: Central hub for Confluence operations - routes requests to specialized skills. ALWAYS use
+  when user mentions confluence, wiki, or Atlassian wiki operations.
 triggers:
-  - confluence
-  - wiki
-  - atlassian wiki
-  - confluence cloud
+- confluence
+- wiki
+- atlassian wiki
+- confluence cloud
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-assistant
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: d5e1ccacd1836b2b33b2507e83d56880bec8cc92
   license: MIT
+  version: d5e1cca
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:7d751c1a37136e3f6ce335b399901a408b17736c62bfc67abdd249d2d2c8fde3
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

@@ -1,26 +1,32 @@
 ---
-
-name: "jira-agile-management"
-description: "Epic creation and sprint management - create epics, manage sprints, view backlog, estimate with story points. TRIGGERS: 'create an epic', 'create epic', 'new epic', 'show the backlog', 'view backlog', 'add to sprint', 'move to sprint', 'set story points', 'sprint planning', 'epic for', 'link to epic', 'sprint list', 'active sprint', 'velocity', 'create subtask'. NOT FOR: bugs/tasks/stories without epic context (use jira-issue), field ID discovery (use jira-fields), searching issues by JQL (use jira-search), transitioning issues through workflow (use jira-lifecycle)."
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+name: jira-agile-management
+description: 'Epic creation and sprint management - create epics, manage sprints, view backlog, estimate
+  with story points. TRIGGERS: ''create an epic'', ''create epic'', ''new epic'', ''show the backlog'',
+  ''view backlog'', ''add to sprint'', ''move to sprint'', ''set story points'', ''sprint planning'',
+  ''epic for'', ''link to epic'', ''sprint list'', ''active sprint'', ''velocity'', ''create subtask''.
+  NOT FOR: bugs/tasks/stories without epic context (use jira-issue), field ID discovery (use jira-fields),
+  searching issues by JQL (use jira-search), transitioning issues through workflow (use jira-lifecycle).'
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-agile
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:0985702c4d4a364797d328c7ae1f96ac60234e54ed08667b0c58252c20ce937e
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -31,6 +37,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
 ---
 
 # jira-agile

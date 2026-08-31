@@ -1,33 +1,38 @@
 ---
-
-name: "jira-operations"
-description: "JIRA cache and performance operations. TRIGGERS: 'warm the cache', 'warm cache', 'cache status', 'clear cache', 'cache warm', 'cache for project', 'discover project', 'project discovery', 'cache hit rate', 'optimize performance', 'rate limit'. Use for JIRA API performance optimization and project context discovery. NOT FOR: project configuration/settings (use jira-admin), issue operations (use jira-issue), bulk issue modifications (use jira-bulk)."
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+name: jira-operations
+description: 'JIRA cache and performance operations. TRIGGERS: ''warm the cache'', ''warm cache'', ''cache
+  status'', ''clear cache'', ''cache warm'', ''cache for project'', ''discover project'', ''project discovery'',
+  ''cache hit rate'', ''optimize performance'', ''rate limit''. Use for JIRA API performance optimization
+  and project context discovery. NOT FOR: project configuration/settings (use jira-admin), issue operations
+  (use jira-issue), bulk issue modifications (use jira-bulk).'
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 triggers:
-  - "Cache hit rate drops below 50%"
-  - "JIRA API responses slower than 2 seconds"
-  - "Setting up new JIRA instance"
-  - "Before bulk operations (warm cache first)"
-  - "After modifying projects (invalidate cache)"
-  - "Troubleshooting 429 rate limit errors"
+- Cache hit rate drops below 50%
+- JIRA API responses slower than 2 seconds
+- Setting up new JIRA instance
+- Before bulk operations (warm cache first)
+- After modifying projects (invalidate cache)
+- Troubleshooting 429 rate limit errors
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-ops
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:d864df3b378a12155a9e210335f84bdbe00e7d4faa4be24864a22a7f21dc0a0b
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -38,6 +43,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
 ---
 
 # JIRA Operations Skill

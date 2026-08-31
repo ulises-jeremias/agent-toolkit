@@ -1,35 +1,35 @@
 ---
-
 name: confluence-space
-description: Manage Confluence spaces - create, list, update, delete, and configure spaces. ALWAYS use when user wants to work with spaces (not individual pages).
+description: Manage Confluence spaces - create, list, update, delete, and configure spaces. ALWAYS use
+  when user wants to work with spaces (not individual pages).
 triggers:
-  - create space
-  - new space
-  - get space
-  - list spaces
-  - show spaces
-  - update space
-  - edit space
-  - delete space
-  - remove space
-  - space settings
-  - space content
-  - space pages
+- create space
+- new space
+- get space
+- list spaces
+- show spaces
+- update space
+- edit space
+- delete space
+- remove space
+- space settings
+- space content
+- space pages
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-space
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 796796686f22aa9e55da9fffa31a2863873d23f1
   license: MIT
+  version: '7967966'
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:16f27814e35abe23d71daaf1c1c4d7a126899dba9ff5871ab074f5686b64f517
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

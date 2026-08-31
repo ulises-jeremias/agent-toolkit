@@ -1,32 +1,31 @@
 ---
-
 name: confluence-admin
-description: >
-  Confluence administration including users, groups, space settings,
-  and permission diagnostics. Use when managing user access, group membership,
-  viewing space configuration, or checking permissions.
+description: 'Confluence administration including users, groups, space settings, and permission diagnostics.
+  Use when managing user access, group membership, viewing space configuration, or checking permissions.
+
+  '
 triggers:
-  - admin
-  - administration
-  - user management
-  - group management
-  - space settings
-  - configure
+- admin
+- administration
+- user management
+- group management
+- space settings
+- configure
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-admin
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 796796686f22aa9e55da9fffa31a2863873d23f1
   license: MIT
+  version: '7967966'
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:9baa687e349f50e239490ab8843b81fa374f4325b7fc10dc6e5bedcc93213f39
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

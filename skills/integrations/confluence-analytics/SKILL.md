@@ -1,35 +1,35 @@
 ---
-
 name: confluence-analytics
-description: View analytics, statistics, and popularity metrics for Confluence content. ALWAYS use when user wants to see views, popularity, or contributor stats.
+description: View analytics, statistics, and popularity metrics for Confluence content. ALWAYS use when
+  user wants to see views, popularity, or contributor stats.
 triggers:
-  - analytics
-  - statistics
-  - views
-  - popular
-  - watchers
-  - contributors
-  - page views
-  - space analytics
-  - most viewed
-  - most popular
-  - who is watching
-  - content analytics
+- analytics
+- statistics
+- views
+- popular
+- watchers
+- contributors
+- page views
+- space analytics
+- most viewed
+- most popular
+- who is watching
+- content analytics
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-analytics
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:4923ad4a63ce514adaf979d3f605282f676ee1983e2fa4f8c7ec9024e64b475d
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

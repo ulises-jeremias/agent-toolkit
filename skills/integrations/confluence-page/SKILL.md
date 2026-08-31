@@ -1,41 +1,42 @@
 ---
-
 name: confluence-page
-description: Manage Confluence pages and blog posts - create, read, update, delete, copy, move, and version control. ALWAYS use when user wants to work with page content, create pages, update pages, or manage page versions.
+description: Manage Confluence pages and blog posts - create, read, update, delete, copy, move, and version
+  control. ALWAYS use when user wants to work with page content, create pages, update pages, or manage
+  page versions.
 triggers:
-  - create page
-  - get page
-  - read page
-  - update page
-  - edit page
-  - delete page
-  - remove page
-  - blog post
-  - blogpost
-  - create blog
-  - copy page
-  - duplicate page
-  - move page
-  - relocate page
-  - page version
-  - version history
-  - restore version
-  - revert page
+- create page
+- get page
+- read page
+- update page
+- edit page
+- delete page
+- remove page
+- blog post
+- blogpost
+- create blog
+- copy page
+- duplicate page
+- move page
+- relocate page
+- page version
+- version history
+- restore version
+- revert page
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-page
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:8788b5961dcd6f1d1e9a08470b707037b74739db5fe3371776c1d8a2c7603fb2
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

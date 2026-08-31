@@ -1,33 +1,33 @@
 ---
-
 name: confluence-search
-description: Search Confluence using CQL queries, validate syntax, export results, and manage search history. ALWAYS use when user wants to find, search, or query for content.
+description: Search Confluence using CQL queries, validate syntax, export results, and manage search history.
+  ALWAYS use when user wants to find, search, or query for content.
 triggers:
-  - search confluence
-  - find pages
-  - search pages
-  - CQL
-  - query confluence
-  - export search
-  - search results
-  - find content
-  - search by label
-  - saved search
+- search confluence
+- find pages
+- search pages
+- CQL
+- query confluence
+- export search
+- search results
+- find content
+- search by label
+- saved search
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-search
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:e108ba43a041668431ec4786122304e851c4eff455817abf12cccced9adb15fa
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

@@ -1,26 +1,24 @@
 ---
 name: cli-for-agents
-description: >-
-  Designs or reviews CLIs so coding agents can run them reliably: non-interactive
-  flags, layered --help with examples, stdin/pipelines, fast actionable errors,
-  idempotency, dry-run, and predictable structure. Use when building a CLI,
-  adding commands, writing --help, or when the user mentions agents, terminals,
-  or automation-friendly CLIs.
+description: 'Designs or reviews CLIs so coding agents can run them reliably: non-interactive flags, layered
+  --help with examples, stdin/pipelines, fast actionable errors, idempotency, dry-run, and predictable
+  structure. Use when building a CLI, adding commands, writing --help, or when the user mentions agents,
+  terminals, or automation-friendly CLIs.'
 origin:
   type: upstream
 upstream:
   repository: cursor/plugins
   path: cli-for-agent/skills/cli-for-agents
-  ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+  ref: 26a1497493298e36d8bf39208a57bb59252a811e
   license: MIT
+  version: 26a1497
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-19'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:8a04cbe405bced60ca66cc792a51dca4d2991f094d21ec0997ad85911212d3be
 maintenance:
   status: active
-  last_checked: '2026-08-19'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -37,7 +35,6 @@ updates:
   strategy: pull-request
   cadence: weekly
 ---
-
 
 # CLI for agents
 

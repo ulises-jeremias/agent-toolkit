@@ -1,27 +1,28 @@
 ---
-
-name: "jira-assistant"
-description: "JIRA automation hub routing to 13 specialized skills for any JIRA task: issues, workflows, agile, search, time tracking, service management, and more."
-version: "2.1.0"
-# Implements: SKILLS_ROUTER_SKILL_PROPOSAL v2.1
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+name: jira-assistant
+description: 'JIRA automation hub routing to 13 specialized skills for any JIRA task: issues, workflows,
+  agile, search, time tracking, service management, and more.'
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-assistant
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: b3892a480940069d77e7bfb1a0551e80c4c00dd8
   license: MIT
+  version: b3892a4
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:acae75886db53703d05f9318d029e8825e264594144f6db6906cdaaf82a51f1b
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -32,6 +33,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 2.1.0
+author: jira-assistant-skills
 ---
 
 # JIRA Assistant

@@ -1,29 +1,29 @@
 ---
-
 name: confluence-template
-description: Work with page templates and blueprints. ALWAYS use when user wants to create standardized pages or manage templates.
+description: Work with page templates and blueprints. ALWAYS use when user wants to create standardized
+  pages or manage templates.
 triggers:
-  - template
-  - blueprint
-  - create from template
-  - page template
-  - list templates
-  - update template
+- template
+- blueprint
+- create from template
+- page template
+- list templates
+- update template
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-template
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:7c6d8da646e9fa5ba3370d224d1f6ec28843a0c8bcd727eb462a81ab58318c46
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true

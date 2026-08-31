@@ -1,23 +1,23 @@
 ---
 name: blast-radius
-description: |
-  Find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it's safe because of by running real code instead of writing it up. Use for 'blast radius of X', 'what could this break', or reviewing a small diff you don't trust.
-disable-model-invocation: true
+description: Find what a change could break somewhere else before it ships, beyond the diff, and prove
+  the one fact it's safe because of by running real code instead of writing it up. Use for 'blast radius
+  of X', 'what could this break', or reviewing a small diff you don't trust.
 origin:
   type: upstream
 upstream:
   repository: cursor/plugins
   path: pstack/skills/blast-radius
-  ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+  ref: e46364b8be46000b7df0f260550cd712afbb8d36
   license: MIT
+  version: e46364b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-19'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:672544bad541446f8de290191079a6fbcd009d5e07393126b20cc9101aa107d1
 maintenance:
   status: active
-  last_checked: '2026-08-19'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -33,6 +33,7 @@ security:
 updates:
   strategy: pull-request
   cadence: weekly
+disable-model-invocation: true
 ---
 
 # Blast radius

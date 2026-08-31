@@ -1,41 +1,31 @@
 ---
+name: jira-collaboration
+description: 'Collaborate on issues: add/edit comments, share attachments, notify users,
 
-name: "jira-collaboration"
-description: |
-  Collaborate on issues: add/edit comments, share attachments, notify users,
   track activity. For team communication and coordination on JIRA issues.
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
-keywords:
-  - comments
-  - attachments
-  - notifications
-  - watchers
-  - activity history
-use_when:
-  - "starting work on an issue (add comment)"
-  - "sharing screenshots or error logs (upload attachment)"
-  - "progress is blocked and needs escalation (comment + notify)"
-  - "handing off work to teammate (comment + reassign + notify)"
-  - "reviewing what changed on an issue (get activity)"
-  - "need to add team visibility (manage watchers)"
+
+  '
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-collaborate
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:6abb8e59e31b41bd29008ae7544e71290343065f86163fb814c9cf5d0c210f35
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -46,6 +36,21 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
+keywords:
+- comments
+- attachments
+- notifications
+- watchers
+- activity history
+use_when:
+- starting work on an issue (add comment)
+- sharing screenshots or error logs (upload attachment)
+- progress is blocked and needs escalation (comment + notify)
+- handing off work to teammate (comment + reassign + notify)
+- reviewing what changed on an issue (get activity)
+- need to add team visibility (manage watchers)
 ---
 
 # jira-collaborate

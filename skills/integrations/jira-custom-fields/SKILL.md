@@ -1,26 +1,32 @@
 ---
-
-name: "jira-custom-fields"
-description: "Custom field discovery and configuration. TRIGGERS: 'field ID for', 'what's the field ID', 'what is the field ID', 'list custom fields', 'what fields are available', 'what custom fields', 'show custom fields', 'customfield_', 'find field', 'agile fields', 'configure agile fields', 'story points field'. Use for JIRA field metadata and discovery. NOT FOR: setting field values on issues (use jira-issue), setting story points (use jira-agile), searching by field values (use jira-search)."
-version: "1.0.0"
-author: "jira-assistant-skills"
-license: "MIT"
-allowed-tools: ["Bash", "Read", "Glob", "Grep"]
+name: jira-custom-fields
+description: 'Custom field discovery and configuration. TRIGGERS: ''field ID for'', ''what''s the field
+  ID'', ''what is the field ID'', ''list custom fields'', ''what fields are available'', ''what custom
+  fields'', ''show custom fields'', ''customfield_'', ''find field'', ''agile fields'', ''configure agile
+  fields'', ''story points field''. Use for JIRA field metadata and discovery. NOT FOR: setting field
+  values on issues (use jira-issue), setting story points (use jira-agile), searching by field values
+  (use jira-search).'
+license: MIT
+allowed-tools:
+- Bash
+- Read
+- Glob
+- Grep
 origin:
   type: upstream
 upstream:
   repository: grandcamel/JIRA-Assistant-Skills
   path: skills/jira-fields
-  ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+  ref: dab794b74fd513df83bcec73822a4be982e6f13b
   license: MIT
+  version: dab794b
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:10cab9a2d7b6846708aad3bbddd90e86bfc7244defba907c57bf6cea3275316d
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -31,6 +37,8 @@ security:
   network: true
   mcp: false
   hooks: false
+version: 1.0.0
+author: jira-assistant-skills
 ---
 
 # jira-fields: JIRA Custom Field Management

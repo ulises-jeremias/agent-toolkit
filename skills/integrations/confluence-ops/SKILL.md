@@ -1,33 +1,33 @@
 ---
-
 name: confluence-ops
-description: Cache management, API diagnostics, and operational utilities. Use when optimizing performance, managing cache, diagnosing API issues, or troubleshooting Confluence connectivity.
+description: Cache management, API diagnostics, and operational utilities. Use when optimizing performance,
+  managing cache, diagnosing API issues, or troubleshooting Confluence connectivity.
 triggers:
-  - cache
-  - cache status
-  - cache clear
-  - cache warm
-  - api diagnostics
-  - performance
-  - rate limit
-  - troubleshoot
-  - connectivity
-  - health check
+- cache
+- cache status
+- cache clear
+- cache warm
+- api diagnostics
+- performance
+- rate limit
+- troubleshoot
+- connectivity
+- health check
 origin:
   type: upstream
 upstream:
   repository: grandcamel/Confluence-Assistant-Skills
   path: skills/confluence-ops
-  ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+  ref: 9cd07b2070b9aa0f4c6a15690306101727efe94a
   license: MIT
+  version: 9cd07b2
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-26'
+  tier: experimental
+  reviewed_at: '2026-08-31'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:adfed15759dc823e7d28a82ff1e9dc71f62ac336092a974d3f8a9d997a810fcb
 maintenance:
   status: active
-  last_checked: '2026-08-26'
+  last_checked: '2026-08-31'
 distribution:
   mode: vendored
   redistribution_allowed: true
