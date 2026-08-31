@@ -369,9 +369,10 @@ pub fn (app &App) openapi(mut ctx Ctx) veb.Result {
 }
 
 // registered_api_routes mirrors every @['...'] route attribute below (the
-// landing '/' excluded). tests/test_surface_parity.py asserts this const stays
-// in sync with the actual attributes, and selfcheck uses it for the runtime
-// contract-vs-routes diff.
+// landing '/' excluded). V cannot reflect route attributes at runtime, so this
+// const is manual and must stay in sync — tests/test_surface_parity.py
+// enforces triple parity (contract ↔ openapi ↔ routes ↔ help) and the
+// selfcheck runtime diff, and generate_surface.py --check covers openapi freshness.
 const registered_api_routes = [
 	'/api/v1/health',
 	'/api/v1/version',
