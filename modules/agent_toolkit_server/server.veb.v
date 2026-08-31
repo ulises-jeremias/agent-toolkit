@@ -143,6 +143,7 @@ const registered_api_routes = [
 	'/api/v1/doctor/fix',
 	'/api/v1/matrix',
 	'/api/v1/diff',
+	'/api/v1/insights',
 	'/api/v1/loops',
 	'/api/v1/loops/:name/status',
 	'/api/v1/loops/:name/run',
@@ -320,6 +321,21 @@ pub fn (app &App) matrix(mut ctx Ctx) veb.Result {
 		return ctx.json(deny)
 	}
 	return ctx.json(cmd_resp(agent_toolkit_core.matrix_result()))
+}
+
+@['/api/v1/insights'; get]
+pub fn (app &App) insights(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return ctx.json(deny)
+	}
+	return ctx.json(cmd_resp(agent_toolkit_core.insights_result(
+		agent_toolkit_core.run_insights(agent_toolkit_core.InsightsOptions{
+			tool:      'all'
+			no_llm:    true
+			json_mode: true
+		})
+	)))
 }
 
 @['/api/v1/diff'; get]

@@ -229,7 +229,7 @@
     "/api/v1/loops/{sub}": {
       "post": {
         "operationId": "loop",
-        "summary": "Loop engineering (init, run, status, audit, cost, schedule, sync)",
+        "summary": "Loop engineering (init, run, status, audit, cost, schedule, sync, list, templates)",
         "tags": [
           "advanced"
         ],
@@ -251,7 +251,7 @@
     "/api/v1/workspace/{sub}": {
       "post": {
         "operationId": "workspace",
-        "summary": "Workspace scaffolding (init, context, sync)",
+        "summary": "Workspace lifecycle (init, context, sync, use-persona, handoff, history, personas, load, profiles, validate, budget)",
         "tags": [
           "advanced"
         ],
@@ -295,7 +295,7 @@
     "/api/v1/project/{sub}": {
       "post": {
         "operationId": "project",
-        "summary": "Project index (clone, list, add, remove, scan)",
+        "summary": "Project index and scaffolding (init, clone, list, add, remove, scan)",
         "tags": [
           "advanced"
         ],
@@ -317,7 +317,7 @@
     "/api/v1/dc/{sub}": {
       "post": {
         "operationId": "devcompanion",
-        "summary": "Background job queue",
+        "summary": "Background job queue + LLM policy status",
         "tags": [
           "advanced"
         ],
@@ -411,6 +411,28 @@
         ],
         "x-scope": "write:swarm",
         "x-confirm-required": true,
+        "responses": {
+          "200": {
+            "description": "ok"
+          },
+          "403": {
+            "description": "scope denied"
+          },
+          "428": {
+            "description": "confirm required"
+          }
+        }
+      }
+    },
+    "/api/v1/insights": {
+      "get": {
+        "operationId": "insights",
+        "summary": "AI tool usage insights \u2014 opencode, cursor, claude, windsurf, copilot, codex, all",
+        "tags": [
+          "advanced"
+        ],
+        "x-scope": "read:*",
+        "x-confirm-required": false,
         "responses": {
           "200": {
             "description": "ok"
