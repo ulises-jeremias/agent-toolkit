@@ -778,19 +778,25 @@ fn devcompanion_command() cli.Command {
 fn insights_command() cli.Command {
 	return cli.Command{
 		name:        'insights'
-		description: 'AI tool usage insights (removed from product CLI; #526)'
+		description: 'AI tool usage insights — opencode, cursor, claude, windsurf, copilot, codex, all'
 		execute:     atk_exec
 		group:       'Advanced commands'
+		usage:       '[TOOL] [--days N] [--output PATH] [--no-llm]'
 		flags:       [
 			cli.Flag{
 				flag:        .int
 				name:        'days'
-				description: 'Limit to last N days (opencode, claude; parity #906)'
+				description: 'Limit to last N days (opencode, claude, windsurf)'
 			},
 			cli.Flag{
 				flag:        .string
 				name:        'output'
-				description: 'Save report to PATH (parity #906)'
+				description: 'Save HTML report to PATH'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'no-llm'
+				description: 'Skip LLM analysis; raw stats only'
 			},
 		]
 	}

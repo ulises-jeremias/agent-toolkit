@@ -35,7 +35,7 @@ Still available on the same binary — de-emphasized in top-level help:
 | `memory` | Knowledge base: add, search, inject, review, todo |
 | `project` | Project index: clone, list, add, remove, scan |
 | `devcompanion` | Background job queue (`dc` alias) |
-| `insights` | **DEPRECATE** — local usage analytics (OpenCode, Cursor, Claude); [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) |
+| `insights` | AI tool usage insights — opencode, cursor, claude, windsurf, copilot, codex, all | 
 | `tui` | **REMOVED in 1.23.0** (ADR-030) — removal-notice stub; use CLI or `serve` API |
 | `serve` | Programmatic/headless API server (`vlib/veb`) — capability discovery, read/execution APIs, jobs, OpenAPI, selfcheck; `127.0.0.1:3847` default, `AGENT_TOOLKIT_TOKEN` for remote |
 | `build` | Compile canonical capabilities into target artifacts |
@@ -56,11 +56,11 @@ advanced commands when running an ai-workspace-style harness.
 
 ## Migration inventory (#475)
 
-Authoritative **index** of every top-level command — **21 capability entries** in
+Authoritative **index** of every top-level command — **22 capability entries** in
 [`docs/compatibility/cli-contract.yaml`](compatibility/cli-contract.yaml)
 ([#549](https://github.com/ulises-jeremias/agent-toolkit/issues/549), closed).
 Machine-readable flags, stdin/stdout/stderr, exit codes, env, effects, and tests live in the contract YAML — do not duplicate here.
-`insights` is **DEPRECATE** (stub exits 1, [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526)) and `release` is **REMOVE** (stub exits 1, [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527)) — retired commands carry no contract entries (ADR-030).
+`release` is **REMOVE** (stub exits 1, [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527)) — retired command carries no contract entry (ADR-030). `insights` was **DEPRECATE #526** but re-ported in 1.26.0 as thin wrapper over `bin/tool-insights`.
 
 Disposition for advanced commands: [`v/advanced-command-disposition.md`](v/advanced-command-disposition.md) (#560).
 Wave/complexity/risk in the YAML `migration:` block.
@@ -83,7 +83,7 @@ Wave/complexity/risk in the YAML `migration:` block.
 | `memory` | advanced | [#521](https://github.com/ulises-jeremias/agent-toolkit/issues/521) | PORT |
 | `project` | advanced | [#522](https://github.com/ulises-jeremias/agent-toolkit/issues/522) | PORT |
 | `devcompanion` | advanced | [#525](https://github.com/ulises-jeremias/agent-toolkit/issues/525) | PORT |
-| `insights` | advanced | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **DEPRECATE** (no V requirement) |
+| `insights` | advanced | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **PORT** (re-ported 1.26.0 — wrapper over `bin/tool-insights`, supports opencode/cursor/claude/windsurf/copilot/codex/all) |
 | `build` | advanced | compiler EPIC | PORT (V `build` exists) |
 | `inventory` | advanced | [#516](https://github.com/ulises-jeremias/agent-toolkit/issues/516) | PORT |
 | `matrix` | advanced | compiler EPIC | PORT |

@@ -200,8 +200,8 @@ fn test_doctor_help_mentions_provenance() {
 
 fn test_insights_help_is_deprecate_disposition() {
 	h := subcommand_help('insights')
-	assert h.contains('removed') || h.contains('deprecated') || h.contains('#526')
-	assert h.contains('#526') || h.to_lower().contains('deprecat')
+	assert h.contains('opencode') && h.contains('cursor') && h.contains('claude')
+	assert h.contains('--days') && h.contains('--output')
 	assert !h.contains('not yet implemented')
 }
 
@@ -213,12 +213,12 @@ fn test_release_help_is_remove_disposition() {
 }
 
 fn test_insights_no_args_exits_zero() {
-	code := dispatch(['agent-toolkit', 'insights'])
+	code := dispatch(['agent-toolkit', 'insights', '--no-llm'])
 	assert code == 0
 }
 
 fn test_insights_subcommand_exits_one() {
-	code := dispatch(['agent-toolkit', 'insights', 'opencode'])
+	code := dispatch(['agent-toolkit', 'insights', 'unknown-tool', '--no-llm'])
 	assert code == 1
 }
 

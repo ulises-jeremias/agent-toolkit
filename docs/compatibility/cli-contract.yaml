@@ -341,10 +341,26 @@ commands:
 
   # NOTE (ADR-030 — capability contract over presentation parity):
   # - `tui` REMOVED in 1.23.0 (no entry; CLI keeps a removal-notice stub).
-  # - `insights` / `release` entries removed: deprecated/retired commands are
-  #   not capabilities of the platform.
+  # - `release` entry removed: deprecated/retired command is not a capability.
+  # - `insights` re-ported in 1.26.0 as thin wrapper over bin/tool-insights (was DEPRECATE #526).
   # - `completion` and `serve` carry `api: false`: human/CLI-only meta
   #   capabilities with no programmatic surface.
+
+  - name: insights
+    aliases: []
+    surface: advanced
+    module: agent_toolkit.cli.insights
+    summary: AI tool usage insights — opencode, cursor, claude, windsurf, copilot, codex, all
+    stdin: none
+    stdout: human report / HTML
+    stderr: errors
+    exit_codes: {success: 0, usage: 2}
+    flags: ["opencode", "cursor", "claude", "windsurf", "copilot", "codex", "all", "--days", "--output", "--no-llm", "--json"]
+    env: ["ANTHROPIC_API_KEY", "AGENT_TOOLKIT_ROOT"]
+    effects: {filesystem: read-reports, network: optional-llm, processes: none}
+    platform_notes: ["writes HTML to ~/.claude/usage-data/ or --output; --days filters opencode/claude/windsurf"]
+    tests: ["tests/test_insights.py"]
+    migration: {wave: 2, complexity: medium, risk: low, disposition: rewrite-v}
 
   - name: serve
     api: false

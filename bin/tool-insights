@@ -1,0 +1,1123 @@
+#!/usr/bin/env python3
+"""Generate usage insights for AI coding tools: OpenCode, Cursor, Claude Code, Windsurf."""
+
+import json
+import os
+import re
+import sqlite3
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+# Self-bootstrapping venv — installs anthropic on first run
+VENV_DIR = Path.home() / ".local/share/tool-insights-venv"
+
+def _bootstrap_venv():
+    import venv as _venv_mod
+    _venv_mod.create(str(VENV_DIR), with_pip=True, clear=False)
+    pip = VENV_DIR / "bin" / "pip"
+    subprocess.check_call([str(pip), "install", "anthropic", "--quiet"],
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+def _ensure_venv():
+    marker = VENV_DIR / "lib"
+    if not marker.exists():
+        print("→ Setting up tool-insights venv (first run)...", file=sys.stderr)
+        _bootstrap_venv()
+    # Re-exec under venv python if not already there
+    venv_py = VENV_DIR / "bin" / "python"
+    if sys.executable != str(venv_py) and venv_py.exists():
+        os.execv(str(venv_py), [str(venv_py)] + sys.argv)
+
+_ensure_venv()
+
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
+OPENCODE_DB = Path.home() / ".local/share/opencode/opencode.db"
+CURSOR_PROJECTS = Path.home() / ".cursor/projects"
+CLAUDE_PROJECTS = Path.home() / ".claude/projects"
+WINDSURF_DIRS = [
+    Path.home() / ".codeium" / "windsurf",
+    Path.home() / ".windsurf",
+]
+OUTPUT_DIR = Path.home() / ".claude/usage-data"
+
+SAMPLE_SESSIONS = 60   # how many recent sessions to send for narrative analysis
+SAMPLE_MSGS_PER_SESSION = 3  # first user msgs to capture intent
+
+KNOWN_TOOLS = ["opencode", "cursor", "claude", "windsurf", "copilot", "codex", "pi", "muse"]
+
+def _resolve_output_path(tool_key: str, timestamp: str, output_path: Path | None, tools: list[str], individual_tools: list[str]) -> Path:
+    """Resolve output path for a tool's HTML report."""
+    if output_path is not None:
+        # If single tool requested and output is a file, use it directly
+        if len(individual_tools) == 1 and tool_key in tools:
+            if output_path.suffix in (".html", ".htm") or not output_path.exists() or output_path.is_file():
+                return output_path
+            # output is a directory
+            return output_path / f"{tool_key}-insights-{timestamp}.html"
+        # For "all" or multi-tool, if output is a file, use it for aggregate, else per-tool
+        if tool_key == "all" and output_path.suffix in (".html", ".htm"):
+            return output_path
+    # default: OUTPUT_DIR with timestamp
+    return OUTPUT_DIR / f"{tool_key}-insights-{timestamp}.html"
+
+
+# ── OpenCode ──────────────────────────────────────────────────────────────────
+
+def extract_opencode_stats(db_path: Path, days: int = 0) -> dict:
+    con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()
+
+    # days filter: only sessions created in last N days (if requested)
+    days_where = ""
+    days_params: tuple = ()
+    if days and days > 0:
+        days_where = " AND time_created >= (strftime('%s','now','-{} days')*1000)".format(days)
+
+    # aggregate
+    cur.execute(f"""
+        SELECT
+            COUNT(*) total_sessions,
+            SUM(cost) total_cost,
+            SUM(tokens_input) total_tokens_in,
+            SUM(tokens_output) total_tokens_out,
+            MIN(datetime(time_created/1000,'unixepoch')) first_session,
+            MAX(datetime(time_updated/1000,'unixepoch')) last_session
+        FROM session WHERE time_archived IS NULL{days_where}
+    """ , days_params)
+    agg = dict(cur.fetchone())
+
+    # by model
+    cur.execute(f"""
+        SELECT
+            COALESCE(json_extract(model,'$.id'), 'unknown') model_id,
+            COALESCE(json_extract(model,'$.providerID'), 'unknown') provider,
+            COUNT(*) sessions, SUM(cost) cost, SUM(tokens_input+tokens_output) tokens
+        FROM session WHERE time_archived IS NULL{days_where}
+        GROUP BY model_id ORDER BY sessions DESC LIMIT 20
+    """ , days_params)
+    agg["by_model"] = [dict(r) for r in cur.fetchall()]
+
+    # by directory (top projects)
+    cur.execute(f"""
+        SELECT
+            REPLACE(directory, '/home/ulisesjcf', '~') as dir,
+            COUNT(*) sessions, SUM(cost) cost, SUM(tokens_input+tokens_output) tokens
+        FROM session WHERE time_archived IS NULL{days_where}
+        GROUP BY directory ORDER BY sessions DESC LIMIT 20
+    """ , days_params)
+    agg["by_directory"] = [dict(r) for r in cur.fetchall()]
+
+    # recent sessions sample for narrative
+    cur.execute(f"""
+        SELECT
+            s.id, s.title,
+            REPLACE(s.directory, '/home/ulisesjcf', '~') as directory,
+            json_extract(s.model,'$.id') model,
+            json_extract(s.model,'$.providerID') provider,
+            s.cost, s.tokens_input, s.tokens_output,
+            s.summary_additions, s.summary_deletions, s.summary_files,
+            datetime(s.time_created/1000,'unixepoch') created,
+            datetime(s.time_updated/1000,'unixepoch') updated
+        FROM session s WHERE s.time_archived IS NULL{days_where.replace('time_created', 's.time_created')}
+        ORDER BY s.time_created DESC LIMIT ?
+    """, (SAMPLE_SESSIONS,))
+    sessions = [dict(r) for r in cur.fetchall()]
+
+    # for each session grab first few user messages
+    for s in sessions:
+        cur.execute("""
+            SELECT json_extract(p.data,'$.text') as text
+            FROM part p
+            JOIN message m ON m.id = p.message_id
+            WHERE p.session_id = ?
+              AND json_extract(p.data,'$.type') = 'text'
+              AND json_extract(m.data,'$.role') = 'user'
+            ORDER BY p.time_created LIMIT ?
+        """, (s["id"], SAMPLE_MSGS_PER_SESSION))
+        rows = cur.fetchall()
+        s["user_messages"] = [r[0][:400] for r in rows if r[0]]
+
+    con.close()
+    agg["sessions_sample"] = sessions
+    return agg
+
+
+# ── Cursor ────────────────────────────────────────────────────────────────────
+
+def extract_cursor_stats(projects_dir: Path) -> dict:
+    all_transcripts = []
+    project_counts = {}
+
+    for project_dir in sorted(projects_dir.iterdir()):
+        transcripts_dir = project_dir / "agent-transcripts"
+        if not transcripts_dir.exists():
+            continue
+        project_name = project_dir.name
+        jsonl_files = sorted(transcripts_dir.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+        project_counts[project_name] = len(jsonl_files)
+        all_transcripts.extend((f, project_name) for f in jsonl_files[:5])  # top 5 per project
+
+    # sort all by mtime, take most recent SAMPLE_SESSIONS
+    all_transcripts.sort(key=lambda t: t[0].stat().st_mtime, reverse=True)
+    sample = all_transcripts[:SAMPLE_SESSIONS]
+
+    sessions_sample = []
+    for jsonl_path, project in sample:
+        try:
+            lines = jsonl_path.read_text(errors="replace").splitlines()
+            user_msgs = []
+            tool_calls = 0
+            for line in lines:
+                try:
+                    obj = json.loads(line)
+                    role = obj.get("role") or (obj.get("message") or {}).get("role")
+                    if role == "user":
+                        content = obj.get("message", {}).get("content", [])
+                        for part in content:
+                            if isinstance(part, dict) and part.get("type") == "text":
+                                txt = part.get("text", "")
+                                # strip timestamp tags
+                                txt = re.sub(r"<timestamp>[^<]*</timestamp>", "", txt).strip()
+                                user_query = re.search(r"<user_query>(.*?)</user_query>", txt, re.DOTALL)
+                                if user_query:
+                                    txt = user_query.group(1).strip()
+                                if txt and len(user_msgs) < SAMPLE_MSGS_PER_SESSION:
+                                    user_msgs.append(txt[:400])
+                    if role == "assistant":
+                        content = obj.get("message", {}).get("content", [])
+                        tool_calls += sum(1 for p in content if isinstance(p, dict) and p.get("type") == "tool_use")
+                except Exception:
+                    continue
+
+            sessions_sample.append({
+                "project": project,
+                "file": jsonl_path.name,
+                "mtime": datetime.fromtimestamp(jsonl_path.stat().st_mtime).isoformat(),
+                "size_kb": round(jsonl_path.stat().st_size / 1024, 1),
+                "user_messages": user_msgs,
+                "tool_calls": tool_calls,
+            })
+        except Exception:
+            continue
+
+    total_files = sum(project_counts.values())
+    return {
+        "total_transcripts": total_files,
+        "total_projects": len(project_counts),
+        "by_project": dict(sorted(project_counts.items(), key=lambda x: -x[1])[:20]),
+        "sessions_sample": sessions_sample,
+    }
+
+
+# ── Claude Code ───────────────────────────────────────────────────────────────
+
+def _decode_claude_project_dir(dir_name: str) -> str:
+    """Convert Claude project dir name back to a readable path.
+
+    Claude encodes the cwd as a dir name by replacing '/' with '-' and
+    using '--' for the home dir separator. We simply humanise it back.
+    """
+    # Replace home prefix heuristically
+    path = dir_name.lstrip("-").replace("-", "/")
+    home = str(Path.home()).lstrip("/")
+    if path.startswith(home):
+        path = "~/" + path[len(home):].lstrip("/")
+    return path or dir_name
+
+
+def extract_claude_stats(projects_dir: Path) -> dict:
+    """Extract stats from Claude Code JSONL session files."""
+    project_counts: dict[str, int] = {}
+    all_files: list[tuple[Path, str]] = []
+
+    for project_dir in sorted(projects_dir.iterdir()):
+        if not project_dir.is_dir():
+            continue
+        jsonl_files = sorted(project_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not jsonl_files:
+            continue
+        project_name = _decode_claude_project_dir(project_dir.name)
+        project_counts[project_name] = len(jsonl_files)
+        all_files.extend((f, project_name) for f in jsonl_files)
+
+    all_files.sort(key=lambda t: t[0].stat().st_mtime, reverse=True)
+    sample = all_files[:SAMPLE_SESSIONS]
+
+    sessions_sample = []
+    first_ts = None
+    last_ts = None
+
+    for jsonl_path, project in sample:
+        try:
+            lines = jsonl_path.read_text(errors="replace").splitlines()
+            user_msgs: list[str] = []
+            ai_title: str | None = None
+            model: str | None = None
+            cwd: str | None = None
+            timestamps: list[str] = []
+
+            for line in lines:
+                try:
+                    obj = json.loads(line)
+                    t = obj.get("type")
+
+                    if t == "ai-title":
+                        ai_title = obj.get("aiTitle")
+
+                    if t == "user":
+                        msg = obj.get("message", {})
+                        content = msg.get("content", "")
+                        if isinstance(content, str) and content and len(user_msgs) < SAMPLE_MSGS_PER_SESSION:
+                            user_msgs.append(content[:400])
+                        elif isinstance(content, list):
+                            for part in content:
+                                if isinstance(part, dict) and part.get("type") == "text":
+                                    txt = part.get("text", "")
+                                    if txt and len(user_msgs) < SAMPLE_MSGS_PER_SESSION:
+                                        user_msgs.append(txt[:400])
+                        ts = obj.get("timestamp")
+                        if ts:
+                            timestamps.append(ts)
+                        if not cwd:
+                            cwd = obj.get("cwd")
+
+                    if t == "assistant":
+                        msg = obj.get("message", {})
+                        if not model:
+                            model = msg.get("model")
+
+                except Exception:
+                    continue
+
+            # Date range tracking
+            for ts in timestamps:
+                try:
+                    dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+                    if first_ts is None or dt < first_ts:
+                        first_ts = dt
+                    if last_ts is None or dt > last_ts:
+                        last_ts = dt
+                except Exception:
+                    pass
+
+            mtime = datetime.fromtimestamp(jsonl_path.stat().st_mtime)
+            sessions_sample.append({
+                "project": project,
+                "file": jsonl_path.name,
+                "title": ai_title,
+                "model": model,
+                "cwd": cwd.replace("/home/ulisesjcf", "~") if cwd else project,
+                "mtime": mtime.isoformat(),
+                "size_kb": round(jsonl_path.stat().st_size / 1024, 1),
+                "user_messages": user_msgs,
+            })
+        except Exception:
+            continue
+
+    total_sessions = sum(project_counts.values())
+    return {
+        "total_sessions": total_sessions,
+        "total_projects": len(project_counts),
+        "by_project": dict(sorted(project_counts.items(), key=lambda x: -x[1])[:20]),
+        "first_session": first_ts.strftime("%Y-%m-%d %H:%M:%S") if first_ts else None,
+        "last_session": last_ts.strftime("%Y-%m-%d %H:%M:%S") if last_ts else None,
+        "sessions_sample": sessions_sample,
+    }
+
+
+# ── Windsurf ──────────────────────────────────────────────────────────────────
+
+def _find_windsurf_dir() -> Path | None:
+    """Find the Windsurf data directory across known locations."""
+    candidates = [
+        Path.home() / ".codeium" / "windsurf",
+        Path.home() / ".windsurf",
+        Path.home() / ".config" / "windsurf",
+        Path.home() / ".local" / "share" / "windsurf",
+    ]
+    for c in candidates:
+        if c.exists() and c.is_dir():
+            return c
+    return None
+
+
+def extract_windsurf_stats(windsurf_dir: Path) -> dict:
+    """Extract stats from Windsurf session/conversation data.
+
+    Windsurf stores conversations in various formats depending on version.
+    We look for JSONL files, JSON conversation files, and SQLite DBs.
+    """
+    all_sessions: list[dict] = []
+    project_counts: dict[str, int] = {}
+
+    # Search for conversation / session files recursively
+    for ext in ("*.jsonl", "*.json"):
+        for f in sorted(windsurf_dir.rglob(ext), key=lambda p: p.stat().st_mtime, reverse=True):
+            # Skip very large files (likely indexes)
+            if f.stat().st_size > 10 * 1024 * 1024:
+                continue
+            try:
+                content = f.read_text(errors="replace")
+                if ext == "*.jsonl":
+                    lines = [json.loads(l) for l in content.splitlines() if l.strip()]
+                else:
+                    try:
+                        obj = json.loads(content)
+                        lines = obj if isinstance(obj, list) else [obj]
+                    except Exception:
+                        continue
+
+                user_msgs: list[str] = []
+                for item in lines:
+                    role = item.get("role") or item.get("type")
+                    if role in ("user", "human"):
+                        content_val = item.get("content") or item.get("text") or ""
+                        if isinstance(content_val, str) and content_val.strip():
+                            user_msgs.append(content_val[:400])
+                        elif isinstance(content_val, list):
+                            for part in content_val:
+                                if isinstance(part, dict) and part.get("type") == "text":
+                                    user_msgs.append(part.get("text", "")[:400])
+
+                if not user_msgs:
+                    continue  # skip files with no user content
+
+                project = f.parent.name
+                project_counts[project] = project_counts.get(project, 0) + 1
+                all_sessions.append({
+                    "project": project,
+                    "file": f.name,
+                    "mtime": datetime.fromtimestamp(f.stat().st_mtime).isoformat(),
+                    "size_kb": round(f.stat().st_size / 1024, 1),
+                    "user_messages": user_msgs[:SAMPLE_MSGS_PER_SESSION],
+                })
+                if len(all_sessions) >= SAMPLE_SESSIONS:
+                    break
+            except Exception:
+                continue
+        if len(all_sessions) >= SAMPLE_SESSIONS:
+            break
+
+    # Also look for SQLite databases
+    for db_file in windsurf_dir.rglob("*.db"):
+        if db_file.stat().st_size == 0:
+            continue
+        try:
+            con = sqlite3.connect(f"file:{db_file}?mode=ro", uri=True)
+            cur = con.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = {r[0] for r in cur.fetchall()}
+            # Try common conversation table names
+            for tbl in ("conversations", "sessions", "messages", "chats"):
+                if tbl in tables:
+                    cur.execute(f"SELECT COUNT(*) FROM {tbl}")  # noqa: S608
+                    count = cur.fetchone()[0]
+                    if count:
+                        project_counts[f"db:{db_file.stem}"] = count
+            con.close()
+        except Exception:
+            pass
+
+    total = sum(project_counts.values())
+    return {
+        "total_sessions": total,
+        "total_projects": len(project_counts),
+        "by_project": dict(sorted(project_counts.items(), key=lambda x: -x[1])[:20]),
+        "sessions_sample": all_sessions,
+        "data_dir": str(windsurf_dir),
+    }
+
+
+# ── Aggregate (all tools) ──────────────────────────────────────────────────────
+
+def extract_all_stats(stats_by_tool: dict[str, dict]) -> dict:
+    """Build an aggregate summary across all tools."""
+    tool_summary = []
+    all_projects: dict[str, dict] = {}  # project -> {tool, sessions}
+    date_min = None
+    date_max = None
+
+    for tool_key, raw in stats_by_tool.items():
+        sessions = raw.get("total_sessions") or raw.get("total_transcripts", 0)
+        cost = raw.get("total_cost")
+        tokens_in = raw.get("total_tokens_in", 0) or 0
+        tokens_out = raw.get("total_tokens_out", 0) or 0
+
+        entry = {
+            "tool": tool_key,
+            "sessions": sessions,
+        }
+        if cost is not None:
+            entry["cost_usd"] = round(cost, 4)
+        if tokens_in or tokens_out:
+            entry["total_tokens"] = tokens_in + tokens_out
+
+        tool_summary.append(entry)
+
+        # Merge by_project / by_directory
+        by = raw.get("by_project") or {}
+        if not by:
+            # OpenCode uses by_directory
+            by = {d["dir"]: d["sessions"] for d in raw.get("by_directory", [])}
+        for project, count in by.items():
+            if project not in all_projects:
+                all_projects[project] = {"sessions": 0, "tools": []}
+            all_projects[project]["sessions"] += count if isinstance(count, int) else count
+            if tool_key not in all_projects[project]["tools"]:
+                all_projects[project]["tools"].append(tool_key)
+
+        # Date range
+        for key in ("first_session", "last_session"):
+            val = raw.get(key)
+            if not val:
+                continue
+            try:
+                dt = datetime.fromisoformat(val.replace("Z", "+00:00"))
+                if key == "first_session":
+                    if date_min is None or dt < date_min:
+                        date_min = dt
+                else:
+                    if date_max is None or dt > date_max:
+                        date_max = dt
+            except Exception:
+                pass
+
+    tool_summary.sort(key=lambda x: -x["sessions"])
+    top_projects = sorted(all_projects.items(), key=lambda x: -x[1]["sessions"])[:20]
+
+    return {
+        "tools_compared": list(stats_by_tool.keys()),
+        "tool_summary": tool_summary,
+        "top_projects": [
+            {"project": p, **info} for p, info in top_projects
+        ],
+        "first_session": date_min.strftime("%Y-%m-%d") if date_min else None,
+        "last_session": date_max.strftime("%Y-%m-%d") if date_max else None,
+        # Merge all sessions_sample for narrative analysis (up to 40 total)
+        "sessions_sample": [
+            s
+            for tool_key, raw in stats_by_tool.items()
+            for s in [{**sess, "_tool": tool_key} for sess in raw.get("sessions_sample", [])]
+        ][:40],
+    }
+
+
+# ── LLM Analysis ──────────────────────────────────────────────────────────────
+
+ANALYSIS_PROMPT = """You are analyzing a developer's AI tool usage data to generate an insights report.
+
+Below is structured data extracted from their {tool} sessions. Analyze it and return a JSON object with exactly this schema:
+
+{{
+  "at_a_glance": {{
+    "headline_stats": "string with key numbers (sessions, date range, top models/projects)",
+    "whats_working": "2-3 sentences on effective patterns",
+    "whats_hindering": "2-3 sentences on friction points",
+    "quick_wins": "2-3 sentences on easy improvements"
+  }},
+  "project_areas": [
+    {{"name": "...", "session_count": N, "description": "..."}}
+  ],
+  "interaction_style": {{
+    "narrative": "3-4 paragraph analysis of HOW they use {tool} — what's distinctive about their approach, task types, delegation patterns, quality bar",
+    "key_pattern": "one-sentence summary of their defining usage pattern"
+  }},
+  "what_works": {{
+    "intro": "one sentence",
+    "impressive_workflows": [
+      {{"title": "...", "description": "..."}}
+    ]
+  }},
+  "friction_analysis": {{
+    "intro": "one sentence",
+    "categories": [
+      {{"category": "...", "description": "...", "examples": ["..."]}}
+    ]
+  }},
+  "suggestions": {{
+    "patterns": [
+      {{
+        "title": "...",
+        "suggestion": "...",
+        "detail": "...",
+        "copyable_prompt": "a ready-to-use prompt they can paste to act on this suggestion"
+      }}
+    ]
+  }},
+  "fun_ending": {{
+    "headline": "one memorable/funny observation from the data",
+    "detail": "one sentence expanding on it"
+  }}
+}}
+
+Focus on being specific to THEIR data — mention actual project names, models used, patterns you see. Do not be generic.
+
+{tool} USAGE DATA:
+{data}
+"""
+
+ALL_ANALYSIS_PROMPT = """You are analyzing a developer's AI coding tool usage across multiple tools to generate an aggregate insights report.
+
+Below is structured data extracted from their sessions across: {tools}.
+Analyze it and return a JSON object with exactly this schema:
+
+{{
+  "at_a_glance": {{
+    "headline_stats": "string with key numbers (total sessions across all tools, date range, dominant tool)",
+    "whats_working": "2-3 sentences on effective patterns across tools",
+    "whats_hindering": "2-3 sentences on friction points or tool overlap",
+    "quick_wins": "2-3 sentences on easy improvements"
+  }},
+  "tool_breakdown": [
+    {{"tool": "...", "sessions": N, "share_pct": N, "role": "primary/secondary/occasional", "description": "one sentence on how this tool is used"}}
+  ],
+  "project_areas": [
+    {{"name": "...", "session_count": N, "tools_used": ["..."], "description": "..."}}
+  ],
+  "interaction_style": {{
+    "narrative": "3-4 paragraph analysis of HOW they use AI tools overall — multi-tool strategy, task routing, delegation patterns",
+    "key_pattern": "one-sentence summary of their defining AI usage pattern"
+  }},
+  "what_works": {{
+    "intro": "one sentence",
+    "impressive_workflows": [
+      {{"title": "...", "description": "..."}}
+    ]
+  }},
+  "friction_analysis": {{
+    "intro": "one sentence",
+    "categories": [
+      {{"category": "...", "description": "...", "examples": ["..."]}}
+    ]
+  }},
+  "suggestions": {{
+    "patterns": [
+      {{
+        "title": "...",
+        "suggestion": "...",
+        "detail": "...",
+        "copyable_prompt": "a ready-to-use prompt they can paste to act on this suggestion"
+      }}
+    ]
+  }},
+  "fun_ending": {{
+    "headline": "one memorable/funny observation from the multi-tool data",
+    "detail": "one sentence expanding on it"
+  }}
+}}
+
+Focus on being specific to THEIR data — mention actual tool names, project names, patterns you see across tools. Do not be generic.
+
+AGGREGATE USAGE DATA:
+{data}
+"""
+
+def analyze_with_claude(tool: str, data: dict, is_all: bool = False) -> dict:
+    import anthropic
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+
+    # trim sessions to keep prompt manageable
+    payload = {k: v for k, v in data.items() if k != "sessions_sample"}
+    payload["sessions_sample"] = data.get("sessions_sample", [])[:40]
+
+    data_str = json.dumps(payload, indent=2, ensure_ascii=False)
+    # hard cap at ~150k chars to stay within context
+    if len(data_str) > 150_000:
+        data_str = data_str[:150_000] + "\n... (truncated)"
+
+    if is_all:
+        tools_list = ", ".join(data.get("tools_compared", []))
+        prompt = ALL_ANALYSIS_PROMPT.format(tool=tool, tools=tools_list, data=data_str)
+    else:
+        prompt = ANALYSIS_PROMPT.format(tool=tool, data=data_str)
+
+    msg = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    text = msg.content[0].text
+    # extract JSON from possible markdown fencing
+    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if json_match:
+        text = json_match.group(1)
+    else:
+        # find first { to last }
+        start = text.find("{")
+        end = text.rfind("}") + 1
+        if start != -1 and end > start:
+            text = text[start:end]
+    return json.loads(text)
+
+
+# ── HTML Generation ───────────────────────────────────────────────────────────
+
+HTML_TEMPLATE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{tool} Usage Insights</title>
+<style>
+  :root {{
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --orange: #d29922; --red: #f85149; --purple: #bc8cff;
+  }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ background: var(--bg); color: var(--text); font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',monospace; line-height: 1.6; }}
+  .container {{ max-width: 900px; margin: 0 auto; padding: 2rem 1rem; }}
+  h1 {{ font-size: 1.8rem; margin-bottom: 0.25rem; }}
+  h2 {{ font-size: 1.2rem; color: var(--accent); margin: 2rem 0 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }}
+  h3 {{ font-size: 1rem; color: var(--green); margin: 1rem 0 0.5rem; }}
+  .subtitle {{ color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }}
+  .card {{ background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }}
+  .stat-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }}
+  .stat {{ background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }}
+  .stat-value {{ font-size: 1.6rem; font-weight: bold; color: var(--accent); }}
+  .stat-label {{ font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }}
+  .tag {{ display: inline-block; background: #1f3a5f; color: var(--accent); border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.8rem; margin: 0.15rem; }}
+  .area {{ background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; display: flex; gap: 1rem; align-items: flex-start; }}
+  .area-count {{ background: #1f3a5f; color: var(--accent); border-radius: 6px; padding: 0.25rem 0.6rem; font-weight: bold; white-space: nowrap; font-size: 0.9rem; }}
+  .friction-category {{ border-left: 3px solid var(--orange); padding-left: 1rem; margin-bottom: 1rem; }}
+  .friction-example {{ color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; font-style: italic; }}
+  .prompt-box {{ background: #0d1117; border: 1px solid var(--border); border-radius: 6px; padding: 1rem; font-family: monospace; font-size: 0.82rem; color: #a8d8a8; margin-top: 0.75rem; white-space: pre-wrap; word-break: break-word; }}
+  .fun-box {{ background: linear-gradient(135deg, #1f1b33, #1a2332); border: 1px solid var(--purple); border-radius: 8px; padding: 1.25rem; text-align: center; margin-top: 2rem; }}
+  .fun-headline {{ font-size: 1.1rem; color: var(--purple); font-weight: bold; margin-bottom: 0.5rem; }}
+  .tool-bar {{ display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }}
+  .tool-chip {{ display: inline-block; border-radius: 4px; padding: 0.15rem 0.5rem; font-size: 0.78rem; font-weight: bold; }}
+  .tool-primary {{ background: #1a3a1f; color: var(--green); }}
+  .tool-secondary {{ background: #1f3a5f; color: var(--accent); }}
+  .tool-occasional {{ background: #2a1f3a; color: var(--purple); }}
+  p {{ margin-bottom: 0.75rem; color: var(--muted); }}
+  p:last-child {{ margin-bottom: 0; }}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>{tool} Usage Insights</h1>
+  <p class="subtitle">Generated {generated_at}</p>
+
+  <div class="stat-grid">
+    {stat_cards}
+  </div>
+
+  <h2>At a Glance</h2>
+  <div class="card">
+    <p style="color:var(--text)">{headline_stats}</p>
+    <h3>What's Working</h3><p>{whats_working}</p>
+    <h3>What's Hindering</h3><p>{whats_hindering}</p>
+    <h3>Quick Wins</h3><p>{quick_wins}</p>
+  </div>
+
+  {tool_breakdown_section}
+
+  <h2>Project Areas</h2>
+  {project_areas_html}
+
+  <h2>Interaction Style</h2>
+  <div class="card">
+    {interaction_style_html}
+    <p style="margin-top:0.75rem"><strong style="color:var(--accent)">Key pattern:</strong> {key_pattern}</p>
+  </div>
+
+  <h2>What Works Well</h2>
+  <div class="card">
+    <p>{works_intro}</p>
+    {impressive_workflows_html}
+  </div>
+
+  <h2>Where Things Go Wrong</h2>
+  <div class="card">
+    <p>{friction_intro}</p>
+    {friction_html}
+  </div>
+
+  <h2>Suggestions</h2>
+  {suggestions_html}
+
+  <div class="fun-box">
+    <div class="fun-headline">"{fun_headline}"</div>
+    <p style="margin:0;color:var(--muted)">{fun_detail}</p>
+  </div>
+</div>
+</body>
+</html>"""
+
+
+def _make_stat_cards(tool_key: str, raw_stats: dict) -> str:
+    """Build stat card HTML for a single tool or aggregate report."""
+    cards = ""
+    if tool_key == "opencode":
+        cards += f'<div class="stat"><div class="stat-value">{raw_stats.get("total_sessions", 0)}</div><div class="stat-label">Total Sessions</div></div>'
+        cost = raw_stats.get("total_cost", 0) or 0
+        cards += f'<div class="stat"><div class="stat-value">${cost:,.2f}</div><div class="stat-label">Total Cost</div></div>'
+        ti = raw_stats.get("total_tokens_in", 0) or 0
+        to_ = raw_stats.get("total_tokens_out", 0) or 0
+        cards += f'<div class="stat"><div class="stat-value">{(ti + to_) / 1e6:.1f}M</div><div class="stat-label">Total Tokens</div></div>'
+        date_range = f"{(raw_stats.get('first_session') or '')[:10]} → {(raw_stats.get('last_session') or '')[:10]}"
+        cards += f'<div class="stat"><div class="stat-value" style="font-size:1rem">{date_range}</div><div class="stat-label">Date Range</div></div>'
+    elif tool_key == "cursor":
+        cards += f'<div class="stat"><div class="stat-value">{raw_stats.get("total_transcripts", 0)}</div><div class="stat-label">Total Transcripts</div></div>'
+        cards += f'<div class="stat"><div class="stat-value">{raw_stats.get("total_projects", 0)}</div><div class="stat-label">Projects</div></div>'
+    elif tool_key == "claude":
+        cards += f'<div class="stat"><div class="stat-value">{raw_stats.get("total_sessions", 0)}</div><div class="stat-label">Total Sessions</div></div>'
+        cards += f'<div class="stat"><div class="stat-value">{raw_stats.get("total_projects", 0)}</div><div class="stat-label">Projects</div></div>'
+        first = (raw_stats.get("first_session") or "")[:10]
+        last = (raw_stats.get("last_session") or "")[:10]
+        if first:
+            cards += f'<div class="stat"><div class="stat-value" style="font-size:1rem">{first} → {last}</div><div class="stat-label">Date Range</div></div>'
+    elif tool_key == "windsurf":
+        cards += f'<div class="stat"><div class="stat-value">{raw_stats.get("total_sessions", 0)}</div><div class="stat-label">Sessions Found</div></div>'
+        cards += f'<div class="stat"><div class="stat-value">{raw_stats.get("total_projects", 0)}</div><div class="stat-label">Directories</div></div>'
+    elif tool_key == "all":
+        summary = raw_stats.get("tool_summary", [])
+        total = sum(t.get("sessions", 0) for t in summary)
+        cards += f'<div class="stat"><div class="stat-value">{total}</div><div class="stat-label">Total Sessions (All Tools)</div></div>'
+        dominant = summary[0]["tool"].title() if summary else "—"
+        cards += f'<div class="stat"><div class="stat-value" style="font-size:1.2rem">{dominant}</div><div class="stat-label">Most Used Tool</div></div>'
+        cards += f'<div class="stat"><div class="stat-value">{len(summary)}</div><div class="stat-label">Tools Tracked</div></div>'
+        first = (raw_stats.get("first_session") or "")[:10]
+        last = (raw_stats.get("last_session") or "")[:10]
+        if first:
+            cards += f'<div class="stat"><div class="stat-value" style="font-size:1rem">{first} → {last}</div><div class="stat-label">Date Range</div></div>'
+    return cards
+
+
+def _make_tool_breakdown_section(analysis: dict) -> str:
+    """Render the tool breakdown section for 'all' reports."""
+    breakdown = analysis.get("tool_breakdown", [])
+    if not breakdown:
+        return ""
+    rows = ""
+    for entry in breakdown:
+        role = entry.get("role", "secondary")
+        chip_class = {"primary": "tool-primary", "secondary": "tool-secondary", "occasional": "tool-occasional"}.get(role, "tool-secondary")
+        share = entry.get("share_pct", 0)
+        rows += f"""<div class="area">
+          <div><span class="tool-chip {chip_class}">{entry.get('tool','').upper()}</span></div>
+          <div>
+            <strong>{entry.get('sessions', 0)} sessions</strong>
+            <span style="color:var(--muted);font-size:0.85rem"> ({share}% · {role})</span>
+            <br><span style="color:var(--muted);font-size:0.9rem">{entry.get('description','')}</span>
+          </div>
+        </div>"""
+    return f'<h2>Tool Breakdown</h2>\n{rows}'
+
+
+def render_html(tool_key: str, tool_display: str, raw_stats: dict, analysis: dict) -> str:
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    ag = analysis.get("at_a_glance", {})
+
+    stat_cards = _make_stat_cards(tool_key, raw_stats)
+
+    # tool breakdown (only for 'all')
+    tool_breakdown_section = _make_tool_breakdown_section(analysis) if tool_key == "all" else ""
+
+    # project areas
+    areas_html = ""
+    for area in analysis.get("project_areas", []):
+        count = area.get("session_count", "?")
+        tools_used = area.get("tools_used", [])
+        tools_html = "".join(f'<span class="tag">{t}</span>' for t in tools_used) if tools_used else ""
+        areas_html += f'''<div class="area">
+          <div class="area-count">{count}</div>
+          <div><strong>{area.get("name","")}</strong>{(" " + tools_html) if tools_html else ""}<br><span style="color:var(--muted);font-size:0.9rem">{area.get("description","")}</span></div>
+        </div>'''
+
+    # interaction style
+    narrative = analysis.get("interaction_style", {}).get("narrative", "")
+    paragraphs = [f"<p>{p.strip()}</p>" for p in narrative.split("\n\n") if p.strip()] or [f"<p>{narrative}</p>"]
+    interaction_html = "".join(paragraphs)
+    key_pattern = analysis.get("interaction_style", {}).get("key_pattern", "")
+
+    # impressive workflows
+    ww = analysis.get("what_works", {})
+    workflows_html = ""
+    for wf in ww.get("impressive_workflows", []):
+        workflows_html += f'<h3>{wf.get("title","")}</h3><p>{wf.get("description","")}</p>'
+
+    # friction
+    fr = analysis.get("friction_analysis", {})
+    friction_html = ""
+    for cat in fr.get("categories", []):
+        examples_html = "".join(f'<div class="friction-example">• {e}</div>' for e in cat.get("examples", []))
+        friction_html += f'''<div class="friction-category">
+          <strong>{cat.get("category","")}</strong>
+          <p style="margin:0.25rem 0">{cat.get("description","")}</p>
+          {examples_html}
+        </div>'''
+
+    # suggestions
+    suggestions_html = ""
+    for s in analysis.get("suggestions", {}).get("patterns", []):
+        prompt_html = ""
+        if s.get("copyable_prompt"):
+            prompt_html = f'<div class="prompt-box">{s["copyable_prompt"]}</div>'
+        suggestions_html += f'''<div class="card">
+          <h3>{s.get("title","")}</h3>
+          <p><strong style="color:var(--text)">{s.get("suggestion","")}</strong></p>
+          <p>{s.get("detail","")}</p>
+          {prompt_html}
+        </div>'''
+
+    fun = analysis.get("fun_ending", {})
+
+    return HTML_TEMPLATE.format(
+        tool=tool_display,
+        generated_at=generated_at,
+        stat_cards=stat_cards,
+        tool_breakdown_section=tool_breakdown_section,
+        headline_stats=ag.get("headline_stats", ""),
+        whats_working=ag.get("whats_working", ""),
+        whats_hindering=ag.get("whats_hindering", ""),
+        quick_wins=ag.get("quick_wins", ""),
+        project_areas_html=areas_html,
+        interaction_style_html=interaction_html,
+        key_pattern=key_pattern,
+        works_intro=ww.get("intro", ""),
+        impressive_workflows_html=workflows_html,
+        friction_intro=fr.get("intro", ""),
+        friction_html=friction_html,
+        suggestions_html=suggestions_html,
+        fun_headline=fun.get("headline", ""),
+        fun_detail=fun.get("detail", ""),
+    )
+
+
+# ── Main ──────────────────────────────────────────────────────────────────────
+
+def usage():
+    print("""Usage: tool-insights [TOOL...] [--days N] [--output PATH] [--no-llm]
+
+TOOL can be one or more of:
+  opencode   — OpenCode sessions (~/.local/share/opencode/opencode.db)
+  cursor     — Cursor agent transcripts (~/.cursor/projects/)
+  claude     — Claude Code JSONL sessions (~/.claude/projects/)
+  windsurf   — Windsurf session data (~/.codeium/windsurf/ or ~/.windsurf/)
+  copilot    — GitHub Copilot usage (no local store yet — reports "no data")
+  codex      — Codex sessions (no local store yet — reports "no data")
+  pi         — Pi agent sessions (no local store yet — reports "no data")
+  muse       — Muse Code sessions (no local store yet — reports "no data")
+  all        — Aggregate report across all available tools
+
+Options:
+  --days N     Limit to last N days (opencode, claude, windsurf)
+  --output PATH  Save HTML report to PATH (else to ~/.claude/usage-data/)
+  --no-llm   Skip LLM analysis; output raw JSON stats only
+
+If no TOOL is specified, defaults to: opencode cursor claude windsurf
+""")
+
+
+def main():
+    args = sys.argv[1:]
+
+    if "--help" in args or "-h" in args:
+        usage()
+        sys.exit(0)
+
+    no_llm = "--no-llm" in args
+    args = [a for a in args if a != "--no-llm"]
+
+    # --- parse --days and --output (for V CLI wrapper) ---
+    days = 0
+    output_path = None
+    filtered_args = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--days" and i + 1 < len(args):
+            try:
+                days = int(args[i + 1])
+            except ValueError:
+                print(f"ERROR: --days requires an integer, got '{args[i+1]}'", file=sys.stderr)
+                sys.exit(1)
+            i += 2
+            continue
+        elif a.startswith("--days="):
+            try:
+                days = int(a.split("=", 1)[1])
+            except ValueError:
+                print(f"ERROR: --days requires an integer, got '{a}'", file=sys.stderr)
+                sys.exit(1)
+            i += 1
+            continue
+        elif a == "--output" and i + 1 < len(args):
+            output_path = Path(args[i + 1]).expanduser()
+            i += 2
+            continue
+        elif a.startswith("--output="):
+            output_path = Path(a.split("=", 1)[1]).expanduser()
+            i += 1
+            continue
+        else:
+            filtered_args.append(a)
+            i += 1
+    args = filtered_args
+
+    if not args:
+        tools = KNOWN_TOOLS[:4]  # default: opencode cursor claude windsurf (not the stub tools)
+    else:
+        tools = args
+
+    # Validate
+    valid = set(KNOWN_TOOLS) | {"all"}
+    unknown = [t for t in tools if t not in valid]
+    if unknown:
+        print(f"ERROR: Unknown tool(s): {', '.join(unknown)}", file=sys.stderr)
+        print(f"Valid tools: {', '.join(sorted(valid))}", file=sys.stderr)
+        sys.exit(1)
+
+    if not no_llm and not ANTHROPIC_API_KEY:
+        print("ERROR: ANTHROPIC_API_KEY not set (use --no-llm for raw stats only)", file=sys.stderr)
+        sys.exit(1)
+
+    # If "all" is in the list, also ensure the individual tools are collected
+    run_all = "all" in tools
+    individual_tools = [t for t in tools if t != "all"]
+    if run_all and not individual_tools:
+        individual_tools = KNOWN_TOOLS
+
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+    generated = []
+    stats_by_tool: dict[str, dict] = {}
+
+    # ── Per-tool reports ───────────────────────────────────────────────────
+
+    if "opencode" in individual_tools:
+        print("→ Extracting OpenCode data...")
+        if days:
+            print(f"  Filtering to last {days} days")
+        if not OPENCODE_DB.exists():
+            print("  No data found for opencode: DB not found at ~/.local/share/opencode/opencode.db")
+        else:
+            raw = extract_opencode_stats(OPENCODE_DB, days=days)
+            stats_by_tool["opencode"] = raw
+            print(f"  {raw['total_sessions']} sessions, ${raw.get('total_cost', 0) or 0:.2f} cost")
+            if not no_llm and "opencode" in tools:
+                print("  Analyzing with Claude...")
+                analysis = analyze_with_claude("OpenCode", raw)
+                html = render_html("opencode", "OpenCode", raw, analysis)
+                out = _resolve_output_path("opencode", timestamp, output_path, tools, individual_tools)
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(html)
+                print(f"  Report: file://{out}")
+                generated.append(("OpenCode", out))
+            elif no_llm and output_path is not None and "opencode" in tools and len(individual_tools) == 1:
+                # --no-llm with --output: write raw JSON to the requested path (keep exact path)
+                out = output_path
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(json.dumps(raw, indent=2, default=str))
+                print(f"  Raw stats: file://{out}")
+                generated.append(("OpenCode (raw)", out))
+
+    if "cursor" in individual_tools:
+        print("→ Extracting Cursor data...")
+        if not CURSOR_PROJECTS.exists():
+            print("  No data found for cursor: projects dir not found at ~/.cursor/projects/")
+        else:
+            raw = extract_cursor_stats(CURSOR_PROJECTS)
+            stats_by_tool["cursor"] = raw
+            print(f"  {raw['total_transcripts']} transcripts across {raw['total_projects']} projects")
+            if not no_llm and "cursor" in tools:
+                print("  Analyzing with Claude...")
+                analysis = analyze_with_claude("Cursor", raw)
+                html = render_html("cursor", "Cursor", raw, analysis)
+                out = _resolve_output_path("cursor", timestamp, output_path, tools, individual_tools)
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(html)
+                print(f"  Report: file://{out}")
+                generated.append(("Cursor", out))
+
+    if "claude" in individual_tools:
+        print("→ Extracting Claude Code data...")
+        if not CLAUDE_PROJECTS.exists():
+            print("  No data found for claude: projects dir not found at ~/.claude/projects/")
+        else:
+            raw = extract_claude_stats(CLAUDE_PROJECTS)
+            stats_by_tool["claude"] = raw
+            print(f"  {raw['total_sessions']} sessions across {raw['total_projects']} projects")
+            if not no_llm and "claude" in tools:
+                print("  Analyzing with Claude...")
+                analysis = analyze_with_claude("Claude Code", raw)
+                html = render_html("claude", "Claude Code", raw, analysis)
+                out = _resolve_output_path("claude", timestamp, output_path, tools, individual_tools)
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(html)
+                print(f"  Report: file://{out}")
+                generated.append(("Claude Code", out))
+
+    if "windsurf" in individual_tools:
+        print("→ Extracting Windsurf data...")
+        windsurf_dir = _find_windsurf_dir()
+        if windsurf_dir is None:
+            print("  No data found for windsurf: no data directory found (~/.codeium/windsurf/, ~/.windsurf/)")
+        else:
+            raw = extract_windsurf_stats(windsurf_dir)
+            stats_by_tool["windsurf"] = raw
+            sessions = raw.get("total_sessions", 0)
+            if sessions == 0:
+                print(f"  No session data found in {windsurf_dir} (directory exists but no conversation files)")
+            else:
+                print(f"  {sessions} sessions/entries found in {windsurf_dir}")
+                if not no_llm and "windsurf" in tools:
+                    print("  Analyzing with Claude...")
+                    analysis = analyze_with_claude("Windsurf", raw)
+                    html = render_html("windsurf", "Windsurf", raw, analysis)
+                    out = _resolve_output_path("windsurf", timestamp, output_path, tools, individual_tools)
+                    out.parent.mkdir(parents=True, exist_ok=True)
+                    out.write_text(html)
+                    print(f"  Report: file://{out}")
+                    generated.append(("Windsurf", out))
+
+    # ── Aggregate "all" report ─────────────────────────────────────────────
+
+    if run_all:
+        print("→ Building aggregate report...")
+        if not stats_by_tool:
+            print("  No tool data available for aggregate report.")
+        else:
+            agg = extract_all_stats(stats_by_tool)
+            total = sum(t.get("sessions", 0) for t in agg.get("tool_summary", []))
+            print(f"  {total} total sessions across {len(stats_by_tool)} tools")
+            if not no_llm:
+                print("  Analyzing with Claude...")
+                analysis = analyze_with_claude("All AI Tools", agg, is_all=True)
+                html = render_html("all", "All AI Tools", agg, analysis)
+                if output_path is not None and ("all" in tools or len(individual_tools) > 1):
+                    out = output_path if output_path.suffix in (".html", ".htm") else output_path / f"all-insights-{timestamp}.html"
+                else:
+                    out = OUTPUT_DIR / f"all-insights-{timestamp}.html"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(html)
+                print(f"  Report: file://{out}")
+                generated.append(("All AI Tools", out))
+            else:
+                # In no-llm mode, write raw JSON
+                if output_path is not None and ("all" in tools or len(individual_tools) > 1):
+                    out = output_path if output_path.suffix == ".json" else output_path / f"all-insights-{timestamp}.json" if output_path.is_dir() or not output_path.suffix else output_path
+                    # if output_path is a file with .html suffix but no_llm, keep json ext
+                    if output_path.suffix in (".html", ".htm"):
+                        out = output_path.with_suffix(".json")
+                else:
+                    out = OUTPUT_DIR / f"all-insights-{timestamp}.json"
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(json.dumps(agg, indent=2, default=str))
+                print(f"  Raw stats: file://{out}")
+                generated.append(("All AI Tools (raw)", out))
+
+    # ── Summary ───────────────────────────────────────────────────────────
+
+    print("\nDone.")
+    for tool_name, path in generated:
+        print(f"  {tool_name}: file://{path}")
+
+
+if __name__ == "__main__":
+    main()

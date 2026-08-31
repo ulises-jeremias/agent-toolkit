@@ -319,12 +319,15 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		return run_completion(rest)
 	}
 	if cmd_name == 'insights' {
-		print(insights_help_text())
-		if insights_subcommand(rest).len > 0 {
-			eprintln('insights is removed from the product CLI (#526). Migrated to: python3 bin/tool-insights [opencode|cursor|claude] [--days N] (see docs/v/insights-migration.md). Use external analytics or a prior release if you still need it.')
-			return 1
+		mut opts := parse_insights_options(rest)
+		if mode == .json {
+			opts = agent_toolkit_core.InsightsOptions{
+				...opts
+				json_mode: true
+			}
 		}
-		return 0
+		report := agent_toolkit_core.run_insights(opts)
+		return render(agent_toolkit_core.insights_result(report), mode)
 	}
 	if cmd_name == 'release' {
 		print(release_help_text())
@@ -611,12 +614,7 @@ fn insights_subcommand(args []string) string {
 }
 
 fn insights_help_text() string {
-	return 'insights — AI tool usage analytics (removed from the product CLI; #526).
-Migrated to: python3 bin/tool-insights [opencode|cursor|claude] [--days N]
-See: docs/v/insights-migration.md + AGENTS.md bin/tool-insights section (self-bootstraps at ~/.local/share/tool-insights-venv).
-
-Not ported to V. See docs/v/advanced-command-disposition.md and docs/v/python-fallback.md.
-'
+	return agent_toolkit_core.insights_help_text()
 }
 
 fn release_help_text() string {

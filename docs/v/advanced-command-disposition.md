@@ -15,7 +15,7 @@ Legend: **PORT** 1:1 V rewrite · **REDESIGN** V rewrite with a different shape 
 | `loop` | [#523](https://github.com/ulises-jeremias/agent-toolkit/issues/523) | **REDESIGN** | Yes | Product differentiator; do not clone Python threads — follow [#528](https://github.com/ulises-jeremias/agent-toolkit/issues/528) + process service. |
 | `swarm` | [#524](https://github.com/ulises-jeremias/agent-toolkit/issues/524) | **REDESIGN** | Yes | Keep surface; backends (Herdr/tmux) behind interfaces (ADR-008). Concurrency via #528. |
 | `devcompanion` | [#525](https://github.com/ulises-jeremias/agent-toolkit/issues/525) | **PORT** | Yes | Filesystem job queue used by AGENTS.md. Keep **`dc` alias** (already in V dispatcher). |
-| `insights` | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **DEPRECATE** | **No** | Local DB/path parsers churn with Cursor/OpenCode; privacy-sensitive; not required for consumer cutover or Python removal. Python quarantine removed; V need not port. |
+| `insights` | [#526](https://github.com/ulises-jeremias/agent-toolkit/issues/526) | **PORT** | Yes | Re-ported in 1.26.0 as thin wrapper over `bin/tool-insights` — supports opencode/cursor/claude/windsurf/copilot/codex/all with --days/--output/--json/--no-llm; local DB parsers, privacy via local-only. |
 | `release` | [#527](https://github.com/ulises-jeremias/agent-toolkit/issues/527) | **REMOVE** | **No** | Maintainer artifact generation belongs in GitHub Actions / `docs/RELEASING.md`, not the runtime CLI. V help may list it as unsupported; do not port. |
 
 ## Alias policy
@@ -35,6 +35,6 @@ Legend: **PORT** 1:1 V rewrite · **REDESIGN** V rewrite with a different shape 
 2. PORT `devcompanion` (queue is independent of loops).
 3. REDESIGN `loop` after [#528](https://github.com/ulises-jeremias/agent-toolkit/issues/528) / [ADR-020](../adrs/ADR-020-v-concurrency.md) (process-per-run supervisor).
 4. REDESIGN `swarm` after loop/process patterns exist (`docs/v/swarm.md`).
-5. Close #526/#527 as dispositioned without V implementations.
+5. Close #526 as re-ported (V wrapper) and #527 as REMOVE without V implementation.
 
 Python quarantine removed ([python-fallback.md](python-fallback.md)). DEPRECATE/REMOVE commands stay disposition-only in V ([ADR-012](../adrs/ADR-012-python-v-coexistence.md)).

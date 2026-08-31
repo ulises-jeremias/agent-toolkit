@@ -1367,3 +1367,75 @@ fn parse_serve_options(args []string) !agent_toolkit_server.ServeOptions {
 		open_browser: !no_browser
 	}
 }
+
+fn parse_insights_options(args []string) agent_toolkit_core.InsightsOptions {
+	mut tool := ''
+	mut days := 0
+	mut output := ''
+	mut no_llm := false
+	mut json_mode := false
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a == '--json' {
+			json_mode = true
+			i++
+			continue
+		}
+		if a == '--quiet' {
+			i++
+			continue
+		}
+		if a == '--no-llm' {
+			no_llm = true
+			i++
+			continue
+		}
+		if a == '--days' {
+			if i + 1 < args.len {
+				days = args[i + 1].int()
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--days=') {
+			days = a.all_after('=').int()
+			i++
+			continue
+		}
+		if a == '--output' {
+			if i + 1 < args.len {
+				output = args[i + 1]
+				i += 2
+				continue
+			}
+			i++
+			continue
+		}
+		if a.starts_with('--output=') {
+			output = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		if tool.len == 0 {
+			tool = a.to_lower()
+			i++
+			continue
+		}
+		i++
+	}
+	if tool.len == 0 {
+		tool = 'all'
+	}
+	return agent_toolkit_core.InsightsOptions{
+		tool:      tool
+		days:      days
+		output:    output
+		json_mode: json_mode
+		no_llm:    no_llm
+	}
+}
