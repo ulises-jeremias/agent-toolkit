@@ -129,6 +129,9 @@ jobs:
       - name: Validate AGENT.md frontmatter
         run: ./scripts/validate-agents.vsh
 
+      - name: Validate agents taxonomy (holistic/specialist roster vs registry, products, AGENT_TAXONOMY.md)
+        run: python3 scripts/validate-agents-taxonomy.py --check
+
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
     name: Validate Marketplace Manifests
