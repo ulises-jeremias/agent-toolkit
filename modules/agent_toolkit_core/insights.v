@@ -90,7 +90,7 @@ fn find_tool_insights() string {
 }
 
 pub fn run_insights(opts InsightsOptions) InsightsReport {
-	tool := if opts.tool.len > 0 { opts.tool.to_lower() } else { 'all' }
+	mut tool := if opts.tool.len > 0 { opts.tool.to_lower() } else { 'all' }
 	if tool !in known_insights_tools {
 		return InsightsReport{
 			ok:      false
@@ -101,30 +101,13 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 			}
 		}
 	}
-	// tools with no local store yet — report "no data" without invoking Python
-	if tool in ['copilot', 'codex', 'pi', 'muse'] {
-		msg := 'No local usage data for `${tool}` yet. Supported with local stores: opencode, cursor, claude, windsurf, all. `${tool}` will report "no data" until a collector is added.'
-		if opts.json_mode {
-			return InsightsReport{
-				ok:      true
-				message: '{"tool":"${tool}","status":"no_data","message":${json.encode(msg)}}'
-				data:    {
-					'subcommand': 'insights'
-					'tool':       tool
-					'status':     'no_data'
-				}
-			}
-		}
-		return InsightsReport{
-			ok:      true
-			message: msg
-			data:    {
-				'subcommand': 'insights'
-				'tool':       tool
-				'status':     'no_data'
-			}
-		}
+	// Auto --no-llm fallback for real use: if no API key and not explicitly requesting LLM, run raw stats
+	mut effective_no_llm := opts.no_llm
+	if !effective_no_llm && os.getenv('ANTHROPIC_API_KEY').len == 0 {
+		effective_no_llm = true
 	}
+	// For tools with no dedicated collector yet, let the Python script handle it — it will report "no data" gracefully with file counts if available.
+	// We no longer short-circuit here; we delegate to the script for consistent handling.
 	script := find_tool_insights()
 	if script.len == 0 {
 		return InsightsReport{
@@ -152,7 +135,7 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 		argv << '--output'
 		argv << opts.output
 	}
-	if opts.no_llm {
+	if effective_no_llm {
 		argv << '--no-llm'
 	}
 	// Always pass --json when caller wants structured output? tool-insights doesn't have --json,
