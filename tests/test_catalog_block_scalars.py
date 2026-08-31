@@ -10,7 +10,6 @@ newlines), chomping `+`/`-`, quoted multiline and Unicode.
 from __future__ import annotations
 
 import subprocess
-import tempfile
 from pathlib import Path
 
 import yaml
@@ -26,7 +25,9 @@ def yaml_load(fm: str):
 def test_folded_block_scalar_becomes_space_joined():
     fm = "name: test\ndescription: >-\n  line1\n  line2\n"
     data = yaml_load(fm)
-    assert data["description"] == "line1 line2", f"folded >- should fold, got {data['description']!r}"
+    assert data["description"] == "line1 line2", (
+        f"folded >- should fold, got {data['description']!r}"
+    )
     assert not data["description"].startswith(">"), "marker leaked"
 
 
@@ -41,18 +42,24 @@ def test_folded_keep_chomping():
 def test_literal_block_scalar_preserves_newlines():
     fm = "name: test\ndescription: |\n  line1\n  line2\n"
     data = yaml_load(fm)
-    assert data["description"] == "line1\nline2\n", f"literal | should preserve newlines, got {data['description']!r}"
+    assert data["description"] == "line1\nline2\n", (
+        f"literal | should preserve newlines, got {data['description']!r}"
+    )
     assert not data["description"].startswith("|")
 
 
 def test_literal_keep_and_strip_chomping():
     fm_keep = "name: test\ndescription: |+\n  line1\n  line2\n  \n"
     data_keep = yaml_load(fm_keep)
-    assert data_keep["description"].endswith("\n\n") or data_keep["description"].endswith("\n"), "keep should preserve trailing blanks"
+    assert data_keep["description"].endswith("\n\n") or data_keep["description"].endswith("\n"), (
+        "keep should preserve trailing blanks"
+    )
 
     fm_strip = "name: test\ndescription: |-\n  line1\n  line2\n"
     data_strip = yaml_load(fm_strip)
-    assert data_strip["description"] == "line1\nline2", f"strip |- should remove trailing newline, got {data_strip['description']!r}"
+    assert data_strip["description"] == "line1\nline2", (
+        f"strip |- should remove trailing newline, got {data_strip['description']!r}"
+    )
 
 
 def test_quoted_strings_unwrapped():
@@ -86,8 +93,12 @@ def test_generated_catalog_has_no_block_markers():
     catalog = yaml.safe_load((REPO / "catalogs" / "skill-catalog.yaml").read_text(encoding="utf-8"))
     for skill in catalog["skills"]:
         desc = skill["description"]
-        assert not desc.startswith(">"), f"{skill['id']} description leaks folded marker: {desc[:30]!r}"
-        assert not desc.startswith("|"), f"{skill['id']} description leaks literal marker: {desc[:30]!r}"
+        assert not desc.startswith(">"), (
+            f"{skill['id']} description leaks folded marker: {desc[:30]!r}"
+        )
+        assert not desc.startswith("|"), (
+            f"{skill['id']} description leaks literal marker: {desc[:30]!r}"
+        )
         assert not desc.lstrip().startswith(">-"), f"{skill['id']} leaks >-"
         assert not desc.lstrip().startswith("|+"), f"{skill['id']} leaks |+"
 
@@ -104,7 +115,9 @@ def test_known_folded_skill_is_correct():
     subprocess.check_call(["v", "run", str(REPO / "scripts" / "generate-catalogs.vsh")], cwd=REPO)
     catalog = yaml.safe_load((REPO / "catalogs" / "skill-catalog.yaml").read_text(encoding="utf-8"))
     ad = next(s for s in catalog["skills"] if s["id"] == "architecture/architecture-diagram")
-    assert ad["description"].startswith("WHAT — Create"), f"expected folded WHAT, got {ad['description'][:30]!r}"
+    assert ad["description"].startswith("WHAT — Create"), (
+        f"expected folded WHAT, got {ad['description'][:30]!r}"
+    )
     assert not ad["description"].startswith(">-")
     assert ">-" not in ad["description"][:5]
 
