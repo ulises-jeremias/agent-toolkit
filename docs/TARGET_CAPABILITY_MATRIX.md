@@ -27,15 +27,19 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 | ◐ partial | Partial / bridged / requires runtime |
 | ❓ unknown | Could not confirm from official docs |
 | `v1` | Agent Plugins 1.0 portable |
+| `v1` (portable) | Portable via agent-plugins.org (skills + mcp.json) |
 | `custom` | Tool-specific custom format |
+| `custom` (requires extension X) | Custom agents via client extension — not portable without that extension |
 | — | None / not applicable |
+
+> **Portable vs extension (#973):** `agent_plugins: v1` with `agent_plugins_extension: portable` means portable Agent Plugins 1.0 (skills + mcp.json) per https://agent-plugins.org — guaranteed across Cursor, VS Code, Copilot, Codex, Claude Code. `custom` with `agent_plugins_extension: <extension>` (e.g. `opencode.json`, `gemini-extension.json`, `pi-package.json`) means custom-agent support requires that vendor-specific extension inside an otherwise portable `plugin.json` — not portable without it. `none` = no plugin manifest.
 
 ## Capability × Target
 
 | Capability | Claude Code | Cursor | OpenCode | Gemini CLI | GitHub Copilot CLI | GitHub Copilot Repository | Pi Coding Agent | Windsurf | OpenAI Codex | Muse Code | Agent Plugins (Portable) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | Agent Skills | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ◐ partial | ✅ | ✅ | ✅ |
-| Agent Plugins | `v1` | `v1` | `custom` | `custom` | `v1` | — | `custom` | — | `v1` | `custom` | `v1` |
+| Agent Plugins | `v1` (portable) | `v1` (portable) | `custom` (requires opencode.json) | `custom` (requires gemini-extension.json) | `v1` (portable) | — | `custom` (requires pi-package.json) | — | `v1` (portable) | `custom` (requires muse-plugin) | `v1` (portable) |
 | Native Custom Agents | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ◐ partial | ✅ | ✅ | ✅ |
 | Primary / Default Agents | ✅ | ✅ | ◐ partial | ◐ partial | ✅ | ❌ | ◐ partial | ❌ | ✅ | ❌ | ❌ |
 | Subagents | ✅ | ✅ | ✅ | ◐ partial | ◐ partial | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
@@ -91,6 +95,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=✅ release=✅
 - **Tier:** A
 - **Tier rationale:** Full plugin (.claude-plugin/) - native skills/agents/subagents, nested+parallel+auto delegation, perms/models, 33 hooks, MCP, v1 marketplace
+- **Agent Plugins:** `v1` (portable via https://agent-plugins.org)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -108,6 +113,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=✅ release=✅
 - **Tier:** A
 - **Tier rationale:** Full plugin (.cursor-plugin/) v2.5+ - skills/agents/subagents, auto+parallel delegation, perms/models, 16+ hooks, MCP, v1 marketplace; nested partial only
+- **Agent Plugins:** `v1` (portable via https://agent-plugins.org)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -125,6 +131,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=✅ release=✅
 - **Tier:** B
 - **Tier rationale:** JS/TS module - native agents/subagents/parallel/perms/models, but auto/nested partial and MCP/hooks require TypeScript runtime bridge
+- **Agent Plugins:** `custom` (requires extension `opencode.json (requires TypeScript runtime)` — not portable without it)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -140,6 +147,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=❌ release=✅
 - **Tier:** B
 - **Tier rationale:** Extension (gemini-extension.json) + TOML commands - native agents, MCP/hooks native, but primary/subagents/delegation/parallel partial
+- **Agent Plugins:** `custom` (requires extension `gemini-extension.json` — not portable without it)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -156,6 +164,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=❌ release=✅
 - **Tier:** B
 - **Tier rationale:** Open Plugin Spec (plugin.json) - native agents/primary/subagents partial, perms/models partial, MCP/hooks unknown - limited delegation
+- **Agent Plugins:** `v1` (portable via https://agent-plugins.org)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -171,6 +180,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=❌ release=✅
 - **Tier:** C
 - **Tier rationale:** Repository customization (.github/copilot-instructions.md, .github/agents/*.agent.md, .github/skills/) - no plugin/marketplace, no subagents/delegation/hooks/MCP
+- **Agent Plugins:** `none` / extension `none`
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -185,6 +195,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=❌ release=✅
 - **Tier:** B
 - **Tier rationale:** npm package (pi-package.json) - native agents/subagents/perms/models, but MCP/hooks/parallel partial requiring TypeScript ExtensionAPI
+- **Agent Plugins:** `custom` (requires extension `pi-package.json (requires TypeScript ExtensionAPI)` — not portable without it)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -200,6 +211,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=❌ release=✅
 - **Tier:** D
 - **Tier rationale:** No marketplace extensions per docs.devin.ai - customization bundle only: rules .mdc + manual MCP, no agents/subagents/delegation/perms/models/hooks/commands
+- **Agent Plugins:** `none` / extension `none`
 - **Maturity:** limited
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -215,6 +227,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=❌ release=✅
 - **Tier:** B
 - **Tier rationale:** Experimental .codex-plugin (Mar 2026) - native agents/subagents/parallel, MCP partial, hooks unknown-blocked, delegation partial
+- **Agent Plugins:** `v1` (portable via https://agent-plugins.org)
 - **Maturity:** experimental
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -230,6 +243,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=❌ release=✅
 - **Tier:** C
 - **Tier rationale:** Custom plugin - skills under ~/.config/muse/skills + .agents/skills fallback, agents true but no primary/subagents/delegation/hooks, MCP partial, no marketplace
+- **Agent Plugins:** `custom` (requires extension `muse-plugin (custom ~/.config/muse/skills)` — not portable without it)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**
@@ -244,6 +258,7 @@ Tiers describe the **harness adapter richness** — what the harness natively su
 - **Commands:** build=✅ diff=✅ release=✅
 - **Tier:** C
 - **Tier rationale:** Synthetic portable plugin.json + skills/ + mcp.json for Cursor/VS Code/Copilot/Kiro/Codex; agents via com.anthropic.claude-code extension; no primary/subagents/delegation
+- **Agent Plugins:** `v1` (portable via https://agent-plugins.org)
 - **Maturity:** stable
 - **Researched at:** 2026-08-25
 - **Sources:**

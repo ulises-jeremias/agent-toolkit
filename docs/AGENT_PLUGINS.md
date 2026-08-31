@@ -76,6 +76,30 @@ plugins/agent-toolkit-core/
 
 Other clients ignore `com.anthropic.claude-code`.
 
+## Portable vs client extension (#973)
+
+> **Single matrix:** `capabilities/targets/registry.yaml` → `docs/TARGET_CAPABILITY_MATRIX.md` (generated) is the source of truth for which targets are portable vs extension-based. See also `schemas/target-capability-registry.schema.json` (`agent_plugins_extension`).
+
+**Guaranteed portable (Agent Plugins 1.0, `v1` + `agent_plugins_extension: portable`):**
+
+- `skills/` + `mcp.json` are portable per [agent-plugins.org](https://agent-plugins.org) — discovered via `plugin.json` at root.
+- Targets: `claude-code`, `cursor`, `copilot-cli`, `codex`, `agent-plugins` (synthetic). These emit `plugin.json` + `skills/` + `mcp.json` that any v1 client can consume; `agents/`/`hooks` remain client-specific via `com.anthropic.claude-code` extension where present, but `skills`/`mcp` are portable.
+
+**Client-specific extension (custom, not portable without that extension):**
+
+- `opencode` → `opencode.json` (requires TypeScript runtime, JS/TS module via `opencode.json` + `.opencode/skills`)
+- `gemini-cli` → `gemini-extension.json` + `commands.toml` (Extension)
+- `pi` → `pi-package.json` (requires TypeScript ExtensionAPI, npm package)
+- `muse-code` → `muse-plugin` (custom `~/.config/muse/skills/<name>/SKILL.md` + `.agents/skills` fallback, no marketplace)
+
+For these `custom` targets, `agent_plugins_extension` in the registry records the required extension. A consumer must not expect a custom agent written for the portable `agent-plugins` bundle to run on a `custom` target without that extension — the matrix cell reads `` `custom` (requires <extension>) `` not `` `v1` ``. Validation: `python3 scripts/generate-target-matrix.py --check` fails on ambiguous `custom` without extension annotation — see `capabilities/targets/registry.yaml` (`agent_plugins_extension`) and `schemas/target-capability-registry.schema.json`.
+
+**Not portable / no plugin (`none` + `agent_plugins_extension: none`):**
+
+- `copilot-repository`, `windsurf` — repo-scoped customization or bundle only, no `plugin.json` marketplace.
+
+See `docs/TARGET_CAPABILITY_MATRIX.md` Legend and Per-Target Details for the rendered portable vs extension distinction and `capabilities/targets/registry.yaml` for the canonical data.
+
 ## MCP in Agent Plugins
 
 Portable `mcp.json` (closed schema, no top-level extra):
