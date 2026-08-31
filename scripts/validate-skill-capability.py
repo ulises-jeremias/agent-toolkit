@@ -41,6 +41,20 @@ ROUTING_DOC = REPO_ROOT / "docs" / "SKILL_ROUTING.md"
 DESIGNER_AGENT = REPO_ROOT / "agents" / "designer" / "AGENT.md"
 ORCHESTRATION = REPO_ROOT / "skills" / "core" / "assistant" / "references" / "ORCHESTRATION.md"
 
+HOLISTIC_OWNERS = {
+    "assistant",
+    "planner",
+    "architect",
+    "designer",
+    "implementer",
+    "reviewer",
+    "qa-engineer",
+    "security-engineer",
+    "platform-engineer",
+    "data-engineer",
+    "researcher",
+}
+
 DESIGN_SKILLS = [
     "design/frontend-design",
     "design/frontend-design-review",
@@ -123,22 +137,71 @@ def validate_registry() -> list[str]:
     else:
         errors.append(f"missing catalog: {CATALOG}")
 
-    # no orphans: every skill has holistic_owner
+    # no orphans: every skill has holistic_owner + holistic_owner validity
+    # collect physical agents for specialist validation
+    agents_dir = REPO_ROOT / "agents"
+    physical_agents = (
+        {p.name for p in agents_dir.iterdir() if p.is_dir()} if agents_dir.is_dir() else set()
+    )
+    valid_secondary = HOLISTIC_OWNERS | physical_agents
     for s in skills:
-        if not s.get("holistic_owner"):
-            errors.append(f"{s.get('id')}: missing holistic_owner (orphan)")
+        sid = s.get("id", "<unknown>")
+        owner = s.get("holistic_owner")
+        if not owner:
+            errors.append(f"{sid}: missing holistic_owner (orphan)")
+        elif owner not in HOLISTIC_OWNERS:
+            errors.append(f"{sid}: invalid holistic_owner {owner!r} (must be one of 11)")
         if not s.get("triggers"):
-            errors.append(f"{s.get('id')}: missing triggers (at least one required)")
+            errors.append(f"{sid}: missing triggers (at least one required)")
         if not s.get("contraindications") or len(s.get("contraindications", "")) < 10:
-            errors.append(f"{s.get('id')}: missing or too short contraindications")
+            errors.append(f"{sid}: missing or too short contraindications")
+        # domain coherence vs id prefix
+        domain = s.get("domain")
+        if domain and sid and "/" in sid:
+            expected_domain = sid.split("/")[0]
+            if domain != expected_domain:
+                errors.append(f"{sid}: domain {domain!r} != id prefix {expected_domain!r}")
+        # origin / upstream provenance
+        origin = s.get("origin")
+        if origin == "upstream":
+            if "upstream" not in s:
+                errors.append(f"{sid}: origin upstream must have upstream metadata")
+            else:
+                up = s["upstream"] or {}
+                for k in ("repository", "path", "ref", "license"):
+                    if not up.get(k):
+                        errors.append(f"{sid}: upstream missing required field {k!r}")
+        elif origin == "first-party":
+            if "upstream" in s:
+                errors.append(f"{sid}: first-party must not have upstream field")
+        # specialist_agents must be real agents and justified coherence
+        for ag in s.get("specialist_agents", []) or []:
+            if ag not in physical_agents:
+                errors.append(f"{sid}: specialist_agents references unknown agent {ag!r}")
+        if s.get("specialist_justified") and not s.get("specialist_agents"):
+            errors.append(f"{sid}: specialist_justified true but specialist_agents empty")
+        # secondary_owners must be known holistic or agent
+        for sec in s.get("secondary_owners", []) or []:
+            if sec not in valid_secondary:
+                errors.append(f"{sid}: secondary_owners references unknown owner/agent {sec!r}")
 
-    # validate references are real ids
+    # validate references are real ids + self-reference + broken requires
     all_ids = {s["id"] for s in skills}
     for s in skills:
+        sid = s["id"]
         for field in ("overlap", "complementary", "prerequisites", "follow_ups"):
             for ref in s.get(field, []) or []:
-                if ref not in all_ids:
-                    errors.append(f"{s['id']}: {field} references unknown skill {ref!r}")
+                if ref == sid:
+                    errors.append(f"{sid}: {field} self-reference not allowed")
+                elif ref not in all_ids:
+                    errors.append(f"{sid}: {field} references unknown skill {ref!r}")
+        # requires: tool names allowed, skill-like refs must be valid
+        for ref in s.get("requires", []) or []:
+            if "/" in ref:
+                if ref == sid:
+                    errors.append(f"{sid}: requires self-reference not allowed")
+                elif ref not in all_ids:
+                    errors.append(f"{sid}: requires references unknown skill {ref!r}")
 
     # design routing completeness
     reg_ids = {s["id"] for s in skills}
