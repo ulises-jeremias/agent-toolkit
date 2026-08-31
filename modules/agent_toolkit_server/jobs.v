@@ -2,7 +2,6 @@ module agent_toolkit_server
 
 // Phase 4 (#835): long-running job registry + process-per-run supervisor.
 // Mirrors ADR-020: spawn CLI subprocess, capture output lines, persist registry.
-
 import json
 import os
 import sync
@@ -31,10 +30,36 @@ pub mut:
 
 pub fn new_job_runner(dir string) &JobRunner {
 	os.mkdir_all(dir) or {}
+	mut jobs := map[string]Job{}
+	mut running := 0
+	data := os.read_file(os.join_path(dir, 'jobs.json')) or { '' }
+	if data.len > 0 {
+		decoded := json.decode(map[string]Job, data) or {
+			eprintln('[jobs] warning: malformed jobs.json, starting empty: ${err.msg()}')
+			map[string]Job{}
+		}
+		jobs = decoded.clone()
+		// Reconcile: running/queued at crash -> failed, do not count toward running
+		for id, mut job in jobs {
+			if job.status in ['running', 'queued'] {
+				job.status = 'failed'
+				job.ended_at = time.utc().format_rfc3339()
+				job.exit_code = -1
+				jobs[id] = job
+			}
+		}
+		// Count only truly running (should be 0 after reconcile, but keep logic)
+		for _, job in jobs {
+			if job.status == 'running' {
+				running++
+			}
+		}
+	}
 	return &JobRunner{
-		jobs:        {}
+		jobs: jobs
 		max_running: 2
-		dir:         dir
+		running: running
+		dir: dir
 	}
 }
 
@@ -43,7 +68,10 @@ fn (r &JobRunner) jobs_file() string {
 }
 
 fn (mut r JobRunner) persist_locked() {
-	os.write_file(r.jobs_file(), json.encode(r.jobs)) or {}
+	data := json.encode(r.jobs)
+	tmp := r.jobs_file() + '.tmp'
+	os.write_file(tmp, data) or { return }
+	os.mv(tmp, r.jobs_file()) or { os.write_file(r.jobs_file(), data) or {} }
 }
 
 pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job {
@@ -56,12 +84,12 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 	}
 	id := 'job_' + time.utc().format_rfc3339().replace('-', '').replace(':', '').replace('.', '')
 	job := Job{
-		id:         id
-		cmd:        cmd
-		args:       args
-		status:     'queued'
+		id: id
+		cmd: cmd
+		args: args
+		status: 'queued'
 		started_at: time.utc().format_rfc3339()
-		workspace:  workdir
+		workspace: workdir
 	}
 	r.jobs[id] = job
 	mut p := os.new_process('agent-toolkit')
