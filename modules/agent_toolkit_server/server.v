@@ -8,8 +8,8 @@ import veb
 pub struct ServeOptions {
 pub:
 	host         string // default 127.0.0.1
-	port         int    // default 3847
-	allow_remote bool   // requires auth_token
+	port         int // default 3847
+	allow_remote bool // requires auth_token
 	auth_token   string
 	open_browser bool
 	json_logs    bool
@@ -24,8 +24,8 @@ pub mut:
 
 pub fn default_serve_options() ServeOptions {
 	return ServeOptions{
-		host:         '127.0.0.1'
-		port:         3847
+		host: '127.0.0.1'
+		port: 3847
 		open_browser: true
 	}
 }
@@ -36,9 +36,9 @@ pub fn run_serve(opts ServeOptions) ServeReport {
 	port := if opts.port == 0 { 3847 } else { opts.port }
 	validate_bind(host, opts.allow_remote, opts.auth_token) or {
 		return ServeReport{
-			ok:      false
+			ok: false
 			message: err.msg()
-			data:    {
+			data: {
 				'host': host
 			}
 		}
@@ -48,11 +48,11 @@ pub fn run_serve(opts ServeOptions) ServeReport {
 	}
 	mut app := new_app(opts)
 	url := 'http://${host}:${port}'
-	veb.run[App, Ctx](mut app, port)
+	veb.run_at[App, Ctx](mut app, host: host, port: port) or { panic(err.msg()) }
 	return ServeReport{
-		ok:      true
+		ok: true
 		message: '[serve] listening on ${url} (veb)'
-		data:    {
+		data: {
 			'url':     url
 			'version': agent_toolkit_core.resolve_toolkit_version()
 		}
