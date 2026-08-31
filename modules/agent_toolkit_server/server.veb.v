@@ -18,9 +18,12 @@ pub mut:
 	runner  &JobRunner = unsafe { nil }
 }
 
+fn is_loopback(host string) bool {
+	return host == '127.0.0.1' || host == 'localhost' || host == '::1' || host == '::ffff:127.0.0.1'
+}
+
 pub fn validate_bind(host string, allow_remote bool, token string) ! {
-	remote := host != '127.0.0.1' && host != 'localhost'
-	if remote && (!allow_remote || token.len == 0) {
+	if !is_loopback(host) && (!allow_remote || token.len == 0) {
 		return error('remote bind requires --allow-remote AND --auth-token (ADR-028)')
 	}
 }
@@ -29,15 +32,15 @@ pub fn new_app(opts ServeOptions) &App {
 	host := if opts.host.len == 0 { '127.0.0.1' } else { opts.host }
 	return &App{
 		opts: ServeOptions{
-			host:         host
-			port:         if opts.port == 0 { 3847 } else { opts.port }
+			host: host
+			port: if opts.port == 0 { 3847 } else { opts.port }
 			allow_remote: opts.allow_remote
-			auth_token:   opts.auth_token
+			auth_token: opts.auth_token
 			open_browser: opts.open_browser
-			json_logs:    opts.json_logs
+			json_logs: opts.json_logs
 		}
 		started: time.utc()
-		runner:  new_job_runner(os.join_path(os.getwd(), '.agent-toolkit', 'server'))
+		runner: new_job_runner(os.join_path(os.getwd(), '.agent-toolkit', 'server'))
 	}
 }
 
@@ -52,9 +55,9 @@ struct DenyErr {
 }
 
 struct VersionResp {
-	ok      bool
-	version string
-	commit  string
+	ok       bool
+	version  string
+	commit   string
 	uptime_s int
 }
 
@@ -81,8 +84,7 @@ pub mut:
 }
 
 fn deny_if_remote(app &App, ctx Ctx) ?DenyErr {
-	is_local := app.opts.host == '127.0.0.1' || app.opts.host == 'localhost'
-	if is_local {
+	if is_loopback(app.opts.host) {
 		return none
 	}
 	auth := ctx.req.header.get_custom('Authorization') or { '' }
@@ -100,9 +102,9 @@ pub fn (app &App) health(mut ctx Ctx) veb.Result {
 	}
 	up := int(time.utc().unix() - app.started.unix())
 	return ctx.json(VersionResp{
-		ok:       true
-		version:  agent_toolkit_core.resolve_toolkit_version()
-		commit:   agent_toolkit_core.resolve_commit()
+		ok: true
+		version: agent_toolkit_core.resolve_toolkit_version()
+		commit: agent_toolkit_core.resolve_commit()
 		uptime_s: up
 	})
 }
@@ -114,7 +116,7 @@ pub fn (app &App) api_version(mut ctx Ctx) veb.Result {
 		return ctx.json(deny)
 	}
 	return ctx.json(VersionResp{
-		ok:      true
+		ok: true
 		version: agent_toolkit_core.resolve_toolkit_version()
 	})
 }
@@ -127,7 +129,6 @@ pub fn (app &App) openapi(mut ctx Ctx) veb.Result {
 	}
 	return ctx.text(openapi_json.to_string())
 }
-
 
 // registered_api_routes mirrors every @['...'] route attribute below (the
 // landing '/' excluded). tests/test_surface_parity.py asserts this const stays
@@ -196,7 +197,6 @@ fn openapi_declared_version(doc string) string {
 	return rest[..end]
 }
 
-
 // extract_openapi_paths pulls every "/api/v1/..." path key from the embedded
 // OpenAPI JSON and normalises '{param}' placeholders to ':param'.
 fn extract_openapi_paths(doc string) []string {
@@ -229,20 +229,18 @@ pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 	declared := openapi_declared_version(openapi_json.to_string())
 	openapi_ok := declared.len > 0 && declared == version
 	checks << SelfcheckCheck{
-		name:   'openapi_fresh'
+		name: 'openapi_fresh'
 		status: if openapi_ok { 'ok' } else { 'err' }
 		detail: if openapi_ok {
-			'embedded openapi.json matches runtime version ${version}'
-		} else {
-			'embedded openapi.json declares ${declared}, runtime is ${version} — regenerate with scripts/generate_surface.py'
-		}
+			'embedded openapi.json matches runtime version ${version}'} else {
+			'embedded openapi.json declares ${declared}, runtime is ${version} — regenerate with scripts/generate_surface.py'}
 	}
 
 	// 2. Jobs directory writable (async execution available).
 	jobs_dir := app.runner.dir
 	jobs_writable := os.is_dir(jobs_dir) && os.is_writable(jobs_dir)
 	checks << SelfcheckCheck{
-		name:   'jobs_dir_writable'
+		name: 'jobs_dir_writable'
 		status: if jobs_writable { 'ok' } else { 'warn' }
 		detail: jobs_dir
 	}
@@ -253,7 +251,7 @@ pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 		bind_ok = false
 	}
 	checks << SelfcheckCheck{
-		name:   'bind_policy'
+		name: 'bind_policy'
 		status: if bind_ok { 'ok' } else { 'err' }
 		detail: '${app.opts.host} allow_remote=${app.opts.allow_remote}'
 	}
@@ -266,21 +264,19 @@ pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 	undeclared_in_server := openapi_paths.filter(it !in reg)
 	manifest_ok := missing_in_openapi.len == 0 && undeclared_in_server.len == 0
 	checks << SelfcheckCheck{
-		name:   'route_manifest_match'
+		name: 'route_manifest_match'
 		status: if manifest_ok { 'ok' } else { 'err' }
 		detail: if manifest_ok {
-			'${reg.len} routes match embedded OpenAPI'
-		} else {
-			'mismatch — missing_in_openapi: ${missing_in_openapi.join(',')} undeclared_in_server: ${undeclared_in_server.join(',')}'
-		}
+			'${reg.len} routes match embedded OpenAPI'} else {
+			'mismatch — missing_in_openapi: ${missing_in_openapi.join(',')} undeclared_in_server: ${undeclared_in_server.join(',')}'}
 	}
 
 	ok := checks.all(it.status != 'err')
 	return ctx.json(SelfcheckResp{
-		ok:      ok
+		ok: ok
 		version: version
-		commit:  agent_toolkit_core.resolve_commit()
-		checks:  checks
+		commit: agent_toolkit_core.resolve_commit()
+		checks: checks
 	})
 }
 
@@ -294,13 +290,13 @@ pub fn (app &App) inventory(mut ctx Ctx) veb.Result {
 		return ctx.json(MsgResp{ ok: false, message: err.msg() })
 	}
 	return ctx.json(InvResp{
-		ok:            true
-		root:          snap.root
-		skill_count:   snap.skill_count
-		agent_count:   snap.agent_count
+		ok: true
+		root: snap.root
+		skill_count: snap.skill_count
+		agent_count: snap.agent_count
 		product_count: snap.product_count
-		domain_count:  snap.domain_count
-		message:       snap.message
+		domain_count: snap.domain_count
+		message: snap.message
 	})
 }
 
@@ -329,13 +325,11 @@ pub fn (app &App) insights(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return ctx.json(deny)
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.insights_result(
-		agent_toolkit_core.run_insights(agent_toolkit_core.InsightsOptions{
-			tool:      'all'
-			no_llm:    true
-			json_mode: true
-		})
-	)))
+	return ctx.json(cmd_resp(agent_toolkit_core.insights_result(agent_toolkit_core.run_insights(agent_toolkit_core.InsightsOptions{
+		tool: 'all'
+		no_llm: true
+		json_mode: true
+	}))))
 }
 
 @['/api/v1/diff'; get]
@@ -355,7 +349,7 @@ pub fn (app &App) loops_list(mut ctx Ctx) veb.Result {
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
-		subcommand:     'list'
+		subcommand: 'list'
 		workspace_path: ws
 	}))))
 }
@@ -368,9 +362,9 @@ pub fn (app &App) loops_status(mut ctx Ctx, name string) veb.Result {
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	report := agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
-		subcommand:     'status'
+		subcommand: 'status'
 		workspace_path: ws
-		name:           name
+		name: name
 	})
 	if !report.ok && report.message.contains('not found') {
 		return ctx.json(DenyErr{ ok: false, error: 'loop not found: ${name}' })
@@ -390,7 +384,6 @@ pub fn (app &App) help_route(mut ctx Ctx) veb.Result {
 fn cmd_resp(res agent_toolkit_core.CommandResult) CmdResp {
 	return CmdResp{ ok: res.ok, message: res.message, data: res.data }
 }
-
 
 @['/api/v1/install'; post]
 pub fn (app &App) install(mut ctx Ctx) veb.Result {
@@ -436,7 +429,7 @@ pub fn (app &App) loops_generic(mut ctx Ctx, sub string) veb.Result {
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
-		subcommand:     sub
+		subcommand: sub
 		workspace_path: ws
 	}))))
 }
@@ -449,7 +442,7 @@ pub fn (app &App) devcompanion_generic(mut ctx Ctx, sub string) veb.Result {
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.devcompanion_result(agent_toolkit_core.run_devcompanion(agent_toolkit_core.DevcompanionOptions{
-		subcommand:     sub
+		subcommand: sub
 		workspace_path: ws
 	}))))
 }
@@ -462,7 +455,7 @@ pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 	}
 	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
 	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{
-		subcommand:     sub
+		subcommand: sub
 		workspace_path: ws
 	}))))
 }
@@ -531,7 +524,6 @@ pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{ subcommand: 'list' }))))
 }
 
-
 // web_index_html is embedded at compile time so serve always has a UI.
 const web_index_html = $embed_file('../../web/index.html')
 const openapi_json = $embed_file('../../docs/surface/openapi.json')
@@ -542,12 +534,9 @@ pub fn (app &App) index(mut ctx Ctx) veb.Result {
 	return ctx.html(web_index_html.to_string())
 }
 
-
-
 fn is_file(p string) bool {
 	return os.exists(p) && !os.is_dir(p)
 }
-
 
 struct JobCreateReq {
 	cmd       string
@@ -727,7 +716,7 @@ pub fn (mut app App) loops_schedule(mut ctx Ctx, name string) veb.Result {
 	}
 	opts := agent_toolkit_core.LoopOptions{
 		subcommand: 'schedule'
-		name:       name
+		name: name
 	}
 	report := agent_toolkit_core.run_loop(opts)
 	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(report)))
