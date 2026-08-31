@@ -1,6 +1,6 @@
 {
   "name": "@agent-toolkit/agent-toolkit-craft",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "description": "Writing quality and change-safety toolkit: cut AI tells (unslop), remove code slop (deslop), and prove blast radius before shipping.",
   "license": "MIT",
   "repository": {

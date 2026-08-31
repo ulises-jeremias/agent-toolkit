@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-cli",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "description": "Thin Node launcher for the agent-toolkit native V CLI (same product as PyPI)",
   "license": "MIT",
   "repository": {
@@ -28,11 +28,11 @@
     "test": "node --test test/launcher.test.js"
   },
   "optionalDependencies": {
-    "agent-toolkit-cli-linux-x64": "1.26.0",
-    "agent-toolkit-cli-linux-arm64": "1.26.0",
-    "agent-toolkit-cli-darwin-arm64": "1.26.0",
-    "agent-toolkit-cli-darwin-x64": "1.26.0",
-    "agent-toolkit-cli-win32-x64": "1.26.0"
+    "agent-toolkit-cli-linux-x64": "1.27.0",
+    "agent-toolkit-cli-linux-arm64": "1.27.0",
+    "agent-toolkit-cli-darwin-arm64": "1.27.0",
+    "agent-toolkit-cli-darwin-x64": "1.27.0",
+    "agent-toolkit-cli-win32-x64": "1.27.0"
   },
   "keywords": [
     "agent-toolkit",

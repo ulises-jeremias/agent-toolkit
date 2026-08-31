@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-cli-darwin-arm64",
-  "version": "1.26.0",
+  "version": "1.27.0",
   "description": "Native V binary for agent-toolkit-cli-darwin-arm64 (optionalDependency of agent-toolkit-cli)",
   "license": "MIT",
   "os": ["darwin"],
