@@ -15,6 +15,25 @@ runs:
       run: |
         set -euo pipefail
         PIN="$(tr -d '[:space:]' < .v-version)"
+        if [ "$PIN" = "master" ]; then
+          case "${RUNNER_OS:-$(uname -s)}" in
+            Windows*|windows*)
+              echo "V master on Windows: falling back to 0.5.2 release (master requires MSVC, not mingw)" >&2
+              PIN="0.5.2"
+              ;;
+            *)
+              echo "Installing V from master (HEAD 78e581e) — cloning vlang/v@master"
+              rm -rf "${HOME}/vlang-master"
+              git clone --depth 1 https://github.com/vlang/v "${HOME}/vlang-master"
+              make -C "${HOME}/vlang-master" -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
+              VBIN="${HOME}/vlang-master/v"
+              echo "VBIN=${VBIN}" >> "${GITHUB_ENV}"
+              echo "${HOME}/vlang-master" >> "${GITHUB_PATH}"
+              "${VBIN}" version
+              exit 0
+              ;;
+          esac
+        fi
         if [ -n "${V_ZIP_INPUT}" ]; then
           V_ZIP="${V_ZIP_INPUT}"
         else
