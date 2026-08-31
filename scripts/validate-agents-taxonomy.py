@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """Validate agents taxonomy roster vs structured sources (#971)."""
-import sys, pathlib, re, yaml
+
+import pathlib
+import sys
+
+import yaml
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "capabilities/skills/registry.yaml"
 TAXONOMY = ROOT / "docs/AGENT_TAXONOMY.md"
 PRODUCTS = ROOT / "distributions/products.yaml"
 AGENTS_DIR = ROOT / "agents"
+
 
 def load_registry():
     data = yaml.safe_load(REGISTRY.read_text())
@@ -28,6 +33,7 @@ def load_registry():
             except Exception:
                 pass
     return holistic, specialists
+
 
 def main():
     check = "--check" in sys.argv
@@ -58,7 +64,9 @@ def main():
         if missing:
             errors.append(f"taxonomy drift: expected agents missing on filesystem: {missing}")
         if extra:
-            errors.append(f"taxonomy drift: filesystem has extra agents not in holistics+specialists+orchestrators: {extra} — adding agents/new-agent without registry update fails CI (see #971)")
+            errors.append(
+                f"taxonomy drift: filesystem has extra agents not in holistics+specialists+orchestrators: {extra} — adding agents/new-agent without registry update fails CI (see #971)"
+            )
     # product includes check: ensure agent-toolkit-agents includes list is sane (subset of physical, no archived refs)
     if PRODUCTS.exists():
         prod = yaml.safe_load(PRODUCTS.read_text())
@@ -69,17 +77,22 @@ def main():
                 # but should not contain unknown agents and should include at least all holistic
                 unknown = includes - physical
                 if unknown:
-                    errors.append(f"products.yaml agent-toolkit-agents includes unknown agents: {sorted(unknown)}")
+                    errors.append(
+                        f"products.yaml agent-toolkit-agents includes unknown agents: {sorted(unknown)}"
+                    )
     if errors:
         for e in errors:
             print(f"  ✗ {e}", file=sys.stderr)
         print(f"\n❌ {len(errors)} taxonomy error(s)", file=sys.stderr)
         sys.exit(1)
-    print(f"✓ taxonomy roster matches registry+specialists+orchestrators (18 = 11 holistic + 2 orchestrators + 6 specialists - overlap)")
-    print(f"✓ docs/AGENT_TAXONOMY.md counts validated")
+    print(
+        "✓ taxonomy roster matches registry+specialists+orchestrators (18 = 11 holistic + 2 orchestrators + 6 specialists - overlap)"
+    )
+    print("✓ docs/AGENT_TAXONOMY.md counts validated")
     if not check:
         print("All taxonomy checks passed")
     sys.exit(0)
+
 
 if __name__ == "__main__":
     main()
