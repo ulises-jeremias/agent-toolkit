@@ -8,6 +8,7 @@ Usage:
 
 Palette matches agent-toolkit branding: dark #050510 background.
 """
+
 import argparse
 import sys
 
@@ -100,9 +101,7 @@ def main():
     ap.add_argument("--cell", type=int, default=18, help="row height in px")
     args = ap.parse_args()
 
-    data = (
-        sys.stdin.buffer.read() if args.infile == "-" else open(args.infile, "rb").read()
-    )
+    data = sys.stdin.buffer.read() if args.infile == "-" else open(args.infile, "rb").read()
     text = data.decode("utf-8", errors="replace")
     screen = pyte.Screen(args.cols, args.rows)
     stream = pyte.ByteStream(screen)
