@@ -6,7 +6,9 @@ Runbook for cutting a versioned release.
 
 Trusted Publishing: PyPI OIDC is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. npm OIDC is `publish-npm.yml` on tag `v*`.
 
-Canonical artifacts are **native V binaries**. PyPI `packages/pypi/agent-toolkit-cli` is a launcher wheel. npm lives under `packages/npm/`. Homebrew Formula and AUR PKGBUILD are **not** in this repo (`ulises-jeremias/homebrew-tap`, `ulises-jeremias/aur-packages`).
+The **canonical artifact** is the native V binary from a GitHub Release (`agent-toolkit-<os>-<arch>` + `SHA256SUMS` + `manifest.json`, ADR-018/ADR-022). Canonical artifacts are **native V binaries**. PyPI `packages/pypi/agent-toolkit-cli` is a launcher wheel. npm lives under `packages/npm/`. Homebrew Formula and AUR PKGBUILD are **not** in this repo (`ulises-jeremias/homebrew-tap`, `ulises-jeremias/aur-packages`). See `distribution/README.md` and `docs/TRUST.md#Installation channels` for the support matrix — `RELEASING.md` and `docs/TRUST.md` are the single sources for the channel matrix and must agree on supported versions.
+
+> **Definitions (ADR-021/ADR-025):** **canonical artifact** = native V binary from GitHub Release (what `SHA256SUMS` covers). **distribution adapter** = PyPI wheel / npm wrapper / marketplace plugin that wraps the canonical artifact. **downstream package** = Homebrew Formula / AUR PKGBUILD that fetches the canonical artifact from the Release. Never publish adapters/downstream without a published canonical artifact.
 
 ## Bump → validate → tag → watch → verify
 

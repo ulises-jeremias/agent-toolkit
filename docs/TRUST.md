@@ -93,14 +93,34 @@ agent-toolkit follows these principles (see also
 
 ## Supply chain
 
+> **Canonical artifact:** the native V binary from a GitHub Release (`agent-toolkit-<os>-<arch>`, plus `SHA256SUMS` + `manifest.json` per ADR-018/ADR-022). All other channels are **distribution adapters** or **downstream packages** that fetch or wrap that canonical artifact. V is canonical; Python (`agent-toolkit-cli` on PyPI) is a thin launcher (ADR-021) — this repository does not treat Python or shell scripts as the core runtime.
+
+### Installation channels
+
+| Channel | Artifact | Build / Sign | Support level | Trust anchor | Verify |
+|---------|----------|--------------|----------------|--------------|--------|
+| GitHub Releases | native V binary (`agent-toolkit-<os>-<arch>`, `SHA256SUMS`, `manifest.json`, `sbom.cyclonedx.json`) | `.github/workflows/release.yml` (OIDC, `SHA256SUMS` + `manifest.json` per ADR-022) | officially supported · security-supported | GitHub Release assets + `SHA256SUMS`; see `docs/RELEASING.md` | `curl -fsSL -O https://github.com/ulises-jeremias/agent-toolkit/releases/download/<tag>/SHA256SUMS && sha256sum -c SHA256SUMS --ignore-missing` |
+| PyPI `agent-toolkit-cli` | launcher wheel (`packages/pypi/agent-toolkit-cli`, ADR-021) | `release.yml` `publish-pypi` via PyPI Trusted Publishing (OIDC env `pypi`) | officially supported · security-supported | PyPI OIDC + `uv`/`pip` metadata | `uv tool install agent-toolkit-cli && agent-toolkit --version` · `pip show agent-toolkit-cli` |
+| npm `agent-toolkit-cli` | `packages/npm/*` wrappers (`agent-toolkit-cli`, `agent-toolkit-cli-<platform>`, ADR-025) | `publish-npm.yml` via npm Trusted Publishing (OIDC `id-token: write`) | officially supported | npm registry OIDC + `optionalDependencies` pins | `npm view agent-toolkit-cli version && npm view agent-toolkit-cli optionalDependencies` |
+| Homebrew `homebrew-tap` | Formula `agent-toolkit.rb` fetching GitHub Release V binary (ADR-018 floating names) | `ulises-jeremias/homebrew-tap` (Formula `url` + `sha256`, built from Release) | downstream maintained · best effort | Homebrew Formula signature; maintainer `HOMEBREW_TAP_TOKEN` | `brew info agent-toolkit && gh run list --repo ulises-jeremias/homebrew-tap --limit 3` |
+| AUR `agent-toolkit-bin` | PKGBUILD sourcing GitHub Release V binary + `SHA256SUMS` | `ulises-jeremias/aur-packages` (PKGBUILD) | downstream maintained · best effort | AUR package metadata | `yay -Si agent-toolkit-bin && gh run list --repo ulises-jeremias/aur-packages --limit 3` |
+| GHCR `ghcr.io/ulises-jeremias/agent-toolkit` | container image wrapping GitHub Release V binary | `.github/workflows/docker.yml` (reusable job on Release) | officially supported · best effort (experimental) | GHCR signature + Docker metadata | `docker pull ghcr.io/ulises-jeremias/agent-toolkit:<tag> && docker run --rm ghcr.io/ulises-jeremias/agent-toolkit:<tag> agent-toolkit --version` |
+| Claude marketplace | `plugins/*/plugin.json` (`agent-toolkit-core`, `agent-toolkit-agents`, `agent-toolkit-forge`) | `.github/workflows/release.yml` + `plugins/*` compiler output | officially supported | Claude marketplace manifest (`plugin.json`) + GitHub repo | `/plugin marketplace add ulises-jeremias/agent-toolkit` → `/plugin install agent-toolkit-core@agent-toolkit` |
+| Cursor marketplace | `plugins/*/plugin.json` + `.cursor-plugin/marketplace.json` (Cursor plugin) | `release.yml` + `plugins/*` | officially supported | Cursor marketplace manifest | `cursor-agent` → `/plugin` → install `agent-toolkit-core` |
+| Agent Plugins artifacts | portable `plugin.json` + `skills/` + `mcp.json` (Agent Plugins 1.0) | `agent_toolkit.compiler.targets.agent_plugins` (`build` → `plugins/*`) | officially supported | `agent-plugins.org` schema + `schemas/agent-plugins/1.0.0/*.schema.json` | `agent-toolkit build && ./scripts/validate-agent-plugins.vsh --check` |
+
+> **Adapters vs downstream:** PyPI/npm/marketplaces/Agent Plugins are **distribution adapters** that wrap the canonical artifact; Homebrew/AUR are **downstream packages** that fetch the canonical artifact from the Release. Never publish an adapter without a published canonical artifact.
+
+Prefer tagged releases or marketplace installs over unreviewed forks. Single matrix source: this section. See also `SECURITY.md#Supported Versions`, `docs/RELEASING.md` (canonical artifact), `distribution/README.md`, and `docs/INSTALLATION.md`.
+
+### Legacy table (kept for compatibility)
+
 | Install method | Trust anchor |
 |----------------|--------------|
 | `uvx --from agent-toolkit-cli` | PyPI package + [CHANGELOG](../CHANGELOG.md) |
 | Claude/Cursor marketplace | GitHub repo `ulises-jeremias/agent-toolkit` |
 | `git clone` + manual copy | Pin a commit; review diff before copying |
 | Homebrew/AUR | Tap/package maintainer signatures |
-
-Prefer tagged releases or marketplace installs over unreviewed forks.
 
 ### Provenance & third-party capabilities (per #364) — P0 foundation
 

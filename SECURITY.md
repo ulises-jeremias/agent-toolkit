@@ -5,9 +5,18 @@
 
 ## Supported Versions
 
-This project ships **semver-tagged GitHub Releases** and **PyPI `agent-toolkit-cli`** (see [RELEASING.md](docs/RELEASING.md)). Those are the supported distribution channels.
+> **Single matrix:** see [`docs/TRUST.md#Installation channels`](docs/TRUST.md#installation-channels) for the full channel table (GitHub Releases, PyPI, npm, Homebrew, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts) with trust anchor, support level, and verification command. `SECURITY.md` and `docs/TRUST.md` are the single sources for the channel matrix and must agree.
 
-**Support policy:** **latest released minor only** (e.g. `1.3.x` when `v1.3.0` is latest). The previous minor receives best-effort guidance to upgrade; we do not backport patches unless the maintainer announces otherwise. `main` is pre-release and may contain fixes ahead of the next tag.
+This project ships **semver-tagged GitHub Releases** (native V binaries — the **canonical artifact**, `agent-toolkit` + `SHA256SUMS` + `manifest.json` per ADR-018/ADR-022) as the canonical distribution channel. The product CLI is the **native V binary**; Python `agent-toolkit-cli` on PyPI is a thin launcher (ADR-021) — Python or shell scripts are not the core runtime.
+
+**Supported channels** (all wrap or fetch the canonical artifact; see matrix): GitHub Releases (canonical artifact), PyPI trampoline, npm, Homebrew tap, AUR, GHCR container, Claude/Cursor marketplaces, Agent Plugins artifacts.
+
+- **GHCR container** and **marketplace artifacts** are built from the same canonical artifact and follow the same supported-version policy.
+- **Homebrew/AUR** are downstream packages that fetch the canonical artifact from the Release — they are downstream maintained (best effort) and may lag the Release until their workflow is green (see `docs/RELEASING.md#Downstream publish verification` and `distribution/README.md`).
+
+**Support policy:** **latest released minor only** (e.g. `1.3.x` when `v1.3.0` is latest). Security-supported channels are the canonical artifact + distribution adapters PyPI and npm; Homebrew/AUR are downstream maintained with best-effort security guidance. The previous minor receives best-effort guidance to upgrade; we do not backport patches unless the maintainer announces otherwise. `main` is pre-release and may contain fixes ahead of the next tag.
+
+> **Verification:** use the commands in `docs/TRUST.md#Installation channels` (e.g. `sha256sum -c SHA256SUMS --ignore-missing` for the canonical artifact, `agent-toolkit --version` for adapters). The **canonical artifact** vs **distribution adapter** vs **downstream package** vs **marketplace artifact** distinction is defined in `docs/RELEASING.md` and `docs/TRUST.md` and is used consistently — no contradictory “Python is core” wording.
 
 ---
 
