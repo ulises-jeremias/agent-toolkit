@@ -49,7 +49,7 @@ agents:
     kind: specialist
   - id: data-engineer
     name: data-engineer
-    description: '>- Data engineering specialist — dbt/Snowflake validation, Jupyter notebooks, data artifact stewardship. Use when: dbt parse/compile/test, Snowflake read-only checks, notebook scaffolding, or valida'
+    description: 'Data engineering specialist — dbt/Snowflake validation, Jupyter notebooks, data artifact stewardship. Use when: dbt parse/compile/test, Snowflake read-only checks, notebook scaffolding, or validatin'
     kind: holistic
     collaborates_with:
       - architect
@@ -60,7 +60,7 @@ agents:
       - reviewer
   - id: designer
     name: designer
-    description: '>- Design routing and UI/UX specialist — owns contextual selection among design skills (frontend-design, frontend-design-review, web-design-guidelines, design-assessment, design-improvement, Figma f'
+    description: 'Design routing and UI/UX specialist — owns contextual selection among design skills (frontend-design, frontend-design-review, web-design-guidelines, design-assessment, design-improvement, Figma fami'
     kind: holistic
     collaborates_with:
       - implementer
@@ -72,7 +72,7 @@ agents:
     kind: specialist
   - id: implementer
     name: implementer
-    description: '>- Implementation specialist — feature/bug/refactoring delivery, build/test loop, TDD-aware scaffolding and docs generation. Use when: new feature or bug fix, refactoring with behavior preservation,'
+    description: 'Implementation specialist — feature/bug/refactoring delivery, build/test loop, TDD-aware scaffolding and docs generation. Use when: new feature or bug fix, refactoring with behavior preservation, sc'
     kind: holistic
     delegates:
       - tdd-guide
@@ -98,7 +98,7 @@ agents:
       - reviewer
   - id: platform-engineer
     name: platform-engineer
-    description: '>- Platform and forge specialist — CI/CD, GitHub/GitLab PR lifecycle, merge-conflicts, worktrees, integrations (Slack/Linear/ClickUp/MCP), loops/swarm, triage, llm-cost-advisor, cli-for-agents, herd'
+    description: 'Platform and forge specialist — CI/CD, GitHub/GitLab PR lifecycle, merge-conflicts, worktrees, integrations (Slack/Linear/ClickUp/MCP), loops/swarm, triage, llm-cost-advisor, cli-for-agents, herdr. '
     kind: holistic
     delegates:
       - build-error-resolver
@@ -112,7 +112,7 @@ agents:
       - security-engineer
   - id: qa-engineer
     name: qa-engineer
-    description: '>- Quality-assurance and verification specialist — lint gates, browser automation, E2E, behavioral verification, bug triage. Use when: verifying behavior before ship, writing/debugging E2E tests, ru'
+    description: 'Quality-assurance and verification specialist — lint gates, browser automation, E2E, behavioral verification, bug triage. Use when: verifying behavior before ship, writing/debugging E2E tests, runni'
     kind: holistic
     delegates:
       - e2e-runner
@@ -125,7 +125,7 @@ agents:
       - security-engineer
   - id: researcher
     name: researcher
-    description: '>- Research and discovery specialist — spike findings, evidence-intake, framework/docs exploration, inventory, reference examples. Use when: unknown needs time-boxed investigation, implementation st'
+    description: 'Research and discovery specialist — spike findings, evidence-intake, framework/docs exploration, inventory, reference examples. Use when: unknown needs time-boxed investigation, implementation strat'
     kind: holistic
     collaborates_with:
       - architect
@@ -136,7 +136,7 @@ agents:
       - qa-engineer
   - id: reviewer
     name: reviewer
-    description: '>- Independent quality/craft reviewer — owns change impact, deep review, anti-slop (code + prose), and verification separation. Use when: PR review, refactor review, prose/doc review before publish,'
+    description: 'Independent quality/craft reviewer — owns change impact, deep review, anti-slop (code + prose), and verification separation. Use when: PR review, refactor review, prose/doc review before publish, or'
     kind: holistic
     delegates:
       - code-reviewer
@@ -149,7 +149,7 @@ agents:
       - security-engineer
   - id: security-engineer
     name: security-engineer
-    description: '>- Security hardening specialist — app + agentic security, threat modeling, supply-chain/MCP audit, SARIF triage. Use when: security-sensitive PR/endpoint, agentic/MCP/plugin change, supply-chain be'
+    description: 'Security hardening specialist — app + agentic security, threat modeling, supply-chain/MCP audit, SARIF triage. Use when: security-sensitive PR/endpoint, agentic/MCP/plugin change, supply-chain befor'
     kind: holistic
     delegates:
       - agentic-security-reviewer

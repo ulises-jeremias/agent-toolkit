@@ -4,6 +4,8 @@
 //   ./scripts/generate-catalogs.vsh          # write catalogs
 //   ./scripts/generate-catalogs.vsh --check  # fail on drift
 
+import json
+import os
 import yaml
 
 fn repo_root() string {
@@ -33,102 +35,73 @@ fn extract_frontmatter(content string) string {
 	return lines[1..end].join('\n')
 }
 
-fn fm_field(fm string, key string) string {
-	prefix := '${key}:'
-	lines := fm.split_into_lines()
-	mut i := 0
-	for i < lines.len {
-		line := lines[i]
-		if line.starts_with(prefix) {
-			mut val := line[prefix.len..].trim_space()
-			if val.len >= 2 {
-				if (val[0] == `'` && val[val.len - 1] == `'`)
-					|| (val[0] == `"` && val[val.len - 1] == `"`) {
-					val = val[1..val.len - 1]
-				}
-			}
-			mut parts := []string{}
-			if val.len > 0 {
-				parts << val
-			}
-			i++
-			for i < lines.len {
-				cont := lines[i]
-				if cont.len > 0 && (cont[0] == ` ` || cont[0] == `\t`) {
-					parts << cont.trim_space()
-					i++
-					continue
-				}
-				break
-			}
-			return parts.join(' ').trim_space()
-		}
-		i++
+// Frontmatter holds the subset of YAML frontmatter fields needed for catalogs.
+// Decoded via Python's yaml.safe_load to correctly handle block scalars (>, |,
+// |+, |-), folded/literal styles, chomping, quoted multiline and Unicode per
+// YAML 1.2 spec. This replaces the previous hand-rolled fm_field parser that
+// leaked scalar markers like `>` and `|` into catalog values.
+struct Frontmatter {
+	name                string
+	description         string
+	stability           string
+	kind                string
+	delegates         []string
+	collaborates_with   []string
+}
+
+// parse_frontmatter_yaml decodes `fm` (the raw YAML frontmatter block without
+// the surrounding `---` delimiters) using Python's yaml.safe_load, which
+// correctly implements YAML 1.2 block scalars. Results are returned as a
+// typed struct; missing keys default to "" or [] and non-string scalars are
+// stringified. On failure (python missing or parse error) an empty struct is
+// returned so callers can fall back to defaults.
+fn parse_frontmatter_yaml(fm string) Frontmatter {
+	if fm.trim_space().len == 0 {
+		return Frontmatter{}
 	}
-	return ''
+	tmp := os.join_path(os.temp_dir(), 'atk_fm_${os.getpid()}.yaml')
+	os.write_file(tmp, fm) or { return Frontmatter{} }
+	defer {
+		os.rm(tmp) or {}
+	}
+	py := os.join_path(os.temp_dir(), 'atk_yaml_parser_${os.getpid()}.py')
+	if !os.is_file(py) {
+		helper := 'import yaml, json, sys\n' + 'data = yaml.safe_load(open(sys.argv[1], encoding="utf-8").read()) or {}\n' + 'out = {}\n' + 'for k in ["name", "description", "stability", "kind", "delegates", "collaborates_with"]:\n' + '    v = data.get(k)\n' + '    if isinstance(v, list):\n' + '        out[k] = [str(x) if x is not None else "" for x in v]\n' + '    elif v is None:\n' + '        out[k] = [] if k in ("delegates", "collaborates_with") else ""\n' + '    else:\n' + '        out[k] = str(v)\n' + 'print(json.dumps(out, ensure_ascii=False))\n'
+		os.write_file(py, helper) or { return Frontmatter{} }
+	}
+	res := os.execute('python3 "${py}" "${tmp}"')
+	if res.exit_code != 0 {
+		return Frontmatter{}
+	}
+	raw := res.output.trim_space()
+	if raw.len == 0 {
+		return Frontmatter{}
+	}
+	decoded := json.decode(Frontmatter, raw) or { return Frontmatter{} }
+	return decoded
+}
+
+// fm_field and fm_list are retained for API compatibility but now delegate to
+// the real YAML parser. They parse the whole frontmatter block once per call
+// via parse_frontmatter_yaml and return the requested field.
+fn fm_field(fm string, key string) string {
+	data := parse_frontmatter_yaml(fm)
+	return match key {
+		'name' { data.name }
+		'description' { data.description }
+		'stability' { data.stability }
+		'kind' { data.kind }
+		else { '' }
+	}
 }
 
 fn fm_list(fm string, key string) []string {
-	prefix := '${key}:'
-	lines := fm.split_into_lines()
-	mut i := 0
-	for i < lines.len {
-		line := lines[i]
-		trimmed := line.trim_space()
-		if trimmed.starts_with(prefix) {
-			mut rest := trimmed[prefix.len..].trim_space()
-			if rest.len > 0 && rest.starts_with('[') {
-				mut inner := rest
-				if inner.contains(']') {
-					end := inner.index(']') or { inner.len - 1 }
-					inner = inner[1..end]
-				} else {
-					inner = inner[1..]
-				}
-				inner = inner.trim_space()
-				if inner.len == 0 {
-					return []string{}
-				}
-				mut out := []string{}
-				parts := inner.split(',')
-				for pp in parts {
-					mut v := pp.trim_space()
-					if v.len >= 2 && ((v[0] == `'` && v[v.len - 1] == `'`) || (v[0] == `"` && v[v.len - 1] == `"`)) {
-						v = v[1..v.len - 1]
-					}
-					if v.len > 0 {
-						out << v.trim_space()
-					}
-				}
-				return out
-			}
-			mut out := []string{}
-			i++
-			for i < lines.len {
-				l := lines[i]
-				tt := l.trim_space()
-				if tt.len == 0 {
-					i++
-					continue
-				}
-				if tt.starts_with('-') {
-					mut v := tt[1..].trim_space()
-					if v.len >= 2 && ((v[0] == `'` && v[v.len - 1] == `'`) || (v[0] == `"` && v[v.len - 1] == `"`)) {
-						v = v[1..v.len - 1]
-					}
-					if v.len > 0 {
-						out << v
-					}
-					i++
-					continue
-				}
-				break
-			}
-			return out
-		}
-		i++
+	data := parse_frontmatter_yaml(fm)
+	return match key {
+		'delegates' { data.delegates }
+		'collaborates_with' { data.collaborates_with }
+		else { []string{} }
 	}
-	return []string{}
 }
 
 fn truncate(s string, n int) string {
@@ -295,9 +268,10 @@ fn gen_skills(root string) []SkillEntry {
 				continue
 			}
 			fm := extract_frontmatter(read_file(skill_md) or { '' })
-			nm := fm_field(fm, 'name')
-			desc := fm_field(fm, 'description')
-			stab := fm_field(fm, 'stability')
+			data := parse_frontmatter_yaml(fm)
+			nm := data.name
+			desc := data.description
+			stab := data.stability
 			skills << SkillEntry{
 				id:          '${domain}/${name}'
 				name:        if nm.len > 0 { nm } else { name }
@@ -320,11 +294,12 @@ fn gen_agents(root string) []AgentEntry {
 			continue
 		}
 		fm := extract_frontmatter(read_file(agent_md) or { '' })
-		nm := fm_field(fm, 'name')
-		desc := fm_field(fm, 'description')
-		kind := fm_field(fm, 'kind')
-		delegates := fm_list(fm, 'delegates')
-		collab := fm_list(fm, 'collaborates_with')
+		data := parse_frontmatter_yaml(fm)
+		nm := data.name
+		desc := data.description
+		kind := data.kind
+		delegates := data.delegates
+		collab := data.collaborates_with
 		agents << AgentEntry{
 			id:                name
 			name:              if nm.len > 0 { nm } else { name }
