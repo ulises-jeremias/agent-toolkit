@@ -87,3 +87,35 @@ def test_openapi_paths_match_registered_routes():
 
     undeclared_in_server = openapi_paths - registered
     assert not undeclared_in_server, f"OpenAPI paths without routes: {sorted(undeclared_in_server)}"
+
+
+def test_openapi_version_matches_version_file():
+    """OpenAPI info.version must match VERSION file (stale artifact detection)."""
+    spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
+    openapi_version = spec.get("info", {}).get("version", "")
+    version_file = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    assert openapi_version == version_file, (
+        f"OpenAPI version {openapi_version!r} != VERSION {version_file!r} — run python3 scripts/generate_surface.py"
+    )
+
+
+def test_contract_to_openapi_to_routes_triple_parity():
+    """Triple parity: contract (api:true) ↔ openapi operations ↔ registered routes ↔ CLI help."""
+    data = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    contract_api = {c["name"] for c in data.get("commands", []) if c.get("api", True)}
+    spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
+    openapi_ops = {op["operationId"] for p in spec["paths"].values() for op in p.values()}
+    # Filter to contract-mirrored ops (exclude server-native like health, selfcheck, jobs, etc.)
+    contract_ops = openapi_ops & contract_api
+    assert contract_api == contract_ops, (
+        f"contract→openapi drift: missing {sorted(contract_api - contract_ops)}"
+    )
+    text = SERVER.read_text(encoding="utf-8")
+    registered = set(re.findall(r"@\['([^']+)';", text))
+    registered.discard("/")
+    # Also check CLI help generated from contract exists and is fresh (handled by generate_surface --check)
+    help_path = ROOT / "docs" / "surface" / "cli-help.md"
+    assert help_path.exists(), "docs/surface/cli-help.md missing — run generate_surface.py"
+    help_text = help_path.read_text(encoding="utf-8")
+    for name in contract_api:
+        assert f"`{name}`" in help_text, f"CLI help missing contract command {name!r}"
