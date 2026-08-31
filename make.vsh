@@ -10,7 +10,7 @@
 
 import build
 
-const mods = ['agent_toolkit_core', 'agent_toolkit_cli', 'agent_toolkit_server', 'agent_toolkit_gui']
+const mods = ['agent_toolkit_core', 'agent_toolkit_cli', 'agent_toolkit_server', 'agent_toolkit_gui', 'desktop_engine', 'desktop']
 
 fn root() string {
 	d := dir(@FILE)
@@ -197,6 +197,30 @@ context.task(
 		println('Installed ${dest} (V canonical). Rollback: docs/v/archive/rollback.md')
 	}
 )
+
+context.task(name: 'build-desktop', help: 'Build desktop shell (headless vet; window boot smoke)', run: fn [r] (_ build.Task) ! {
+	println('==> build-desktop (desktop shell vet + headless boot)')
+	// vet desktop + deps headless — window not opened in CI
+	rc1 := vcmd('vet ${join_path(r, 'modules', 'desktop')}')
+	if rc1 != 0 {
+		exit(rc1)
+	}
+	rc2 := vcmd('test ${join_path(r, 'modules', 'desktop')}')
+	if rc2 != 0 {
+		exit(rc2)
+	}
+	// headless boot smoke via v run of window harness
+	tmpdir := join_path(temp_dir(), 'atk-desktop-smoke')
+	rmdir_all(tmpdir) or {}
+	mkdir_all(tmpdir) or {}
+	main_v := join_path(tmpdir, 'main.v')
+	write_file(main_v, 'module main\nimport desktop\nimport os\nfn main() { os.setenv("ATK_GUI_HEADLESS", "1", true)\nmut d := desktop.new_desktop(desktop.DesktopBootArgs{})\nd.boot() or { panic(err) }\nprintln(d.smoke_message())\nd.shutdown() or { panic(err) }\nprintln("desktop smoke PASS") }\n') or {}
+	rc3 := vcmd('run ${main_v}')
+	rmdir_all(tmpdir) or {}
+	if rc3 != 0 {
+		exit(rc3)
+	}
+})
 
 context.task(name: 'compile-make', help: 'Precompile to ./make (gitignored)', run: fn [r] (_ build.Task) ! {
 	rc := system('"${vbin()}" -prod -skip-running ${join_path(r, 'make.vsh')} -o ${join_path(r, 'make')}')
