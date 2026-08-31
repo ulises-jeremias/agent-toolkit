@@ -4,6 +4,7 @@ module agent_toolkit_server
 // Mirrors ADR-020: spawn CLI subprocess, capture output lines, persist registry.
 import json
 import os
+import rand
 import sync
 import time
 
@@ -82,7 +83,8 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 	if r.running >= r.max_running {
 		return error('max concurrent jobs (${r.max_running}) reached')
 	}
-	id := 'job_' + time.utc().format_rfc3339().replace('-', '').replace(':', '').replace('.', '')
+	// Use timestamp + pid + random to avoid collisions under parallel creates
+	id := 'job_' + time.utc().format_rfc3339().replace('-', '').replace(':', '').replace('.', '') + '_' + os.getpid().str() + '_' + (rand.int_in_range(1000, 9999) or { 1000 }).str()
 	job := Job{
 		id: id
 		cmd: cmd
@@ -173,11 +175,34 @@ pub fn (r &JobRunner) get(id string) ?Job {
 	return none
 }
 
+// is_valid_job_id reports whether id matches the strict job ID format.
+// Valid IDs are `job_` + alphanumeric, underscore, hyphen; no path separators.
+pub fn is_valid_job_id(id string) bool {
+	if id.len < 5 || !id.starts_with('job_') {
+		return false
+	}
+	if id.contains('/') || id.contains('\\') || id.contains('..') || id.contains('\0') {
+		return false
+	}
+	for ch in id[4..] {
+		if !((ch >= `0` && ch <= `9`) || (ch >= `a` && ch <= `z`) || (ch >= `A` && ch <= `Z`) || ch == `_` || ch == `-`) {
+			return false
+		}
+	}
+	return true
+}
+
 // is_terminal reports whether a job status is final (no further events).
 pub fn is_terminal(status string) bool {
-	return status in ['completed', 'failed']
+	return status in ['completed', 'failed', 'canceled', 'rejected']
 }
 
 pub fn (r &JobRunner) log_path(id string) string {
+	if !is_valid_job_id(id) {
+		// Return a safe path that will not escape; caller should have validated and returned 400.
+		// We still return a path under dir but with sanitized id to avoid traversal.
+		safe := id.replace('/', '_').replace('\\', '_').replace('..', '_')
+		return os.join_path(r.dir, '${safe}.log')
+	}
 	return os.join_path(r.dir, '${id}.log')
 }
