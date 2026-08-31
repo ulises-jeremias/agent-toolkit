@@ -1,0 +1,53 @@
+---
+name: deslop
+description: Remove AI-generated code slop and clean up code style
+origin:
+  type: upstream
+upstream:
+  repository: cursor/plugins
+  path: cursor-team-kit/skills/deslop
+  ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+  license: MIT
+trust:
+  tier: reviewed
+  reviewed_at: '2026-08-19'
+  reviewed_by: ulises-jeremias
+  reviewed_provenance: sha256:7b61bbc5400565b3da44417658b7f6be1c0104f9f216b0a6965345293f8bd130
+maintenance:
+  status: active
+  last_checked: '2026-08-19'
+distribution:
+  mode: vendored
+  redistribution_allowed: true
+  attribution_file: LICENSE
+security:
+  scripts: false
+  shell: false
+  network: false
+  mcp: []
+  hooks: []
+  dangerous_permissions: []
+  cve_policy: not-applicable
+updates:
+  strategy: pull-request
+  cadence: weekly
+---
+
+
+# Remove AI code slop
+
+Check the diff against main and remove AI-generated slop introduced in the branch.
+
+## Focus Areas
+
+- Extra comments that are unnecessary or inconsistent with local style
+- Defensive checks or try/catch blocks that are abnormal for trusted code paths
+- Casts to `any` used only to bypass type issues
+- Deeply nested code that should be simplified with early returns
+- Other patterns inconsistent with the file and surrounding codebase
+
+## Guardrails
+
+- Keep behavior unchanged unless fixing a clear bug.
+- Prefer minimal, focused edits over broad rewrites.
+- Keep the final summary concise (1-3 sentences).

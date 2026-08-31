@@ -1,0 +1,77 @@
+# JSON Schema for canonical hook definitions (capabilities/hooks/*.yaml)
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/hook.schema.yaml"
+title: "agent-toolkit Hook Definition"
+type: object
+required: [id, event, handler, blocking, failure_policy, security]
+additionalProperties: false
+properties:
+  id:
+    type: string
+    pattern: "^[a-z][a-z0-9-]*$"
+  event:
+    type: string
+    enum:
+      - session.start
+      - session.end
+      - tool.before
+      - tool.after
+      - tool.error
+      - prompt.before_submit
+      - prompt.after_submit
+      - permission.request
+      - permission.denied
+      - agent.start
+      - agent.stop
+      - file.changed
+      - config.changed
+  matcher:
+    type: object
+    properties:
+      tool: {type: string}
+      path_patterns: {type: array, items: {type: string}}
+  handler:
+    type: object
+    required: [type]
+    properties:
+      type:
+        type: string
+        enum: [command, http, mcp_tool, prompt, agent_verifier]
+      command:
+        type: array
+        items: {type: string}
+      timeout_ms:
+        type: integer
+        minimum: 100
+        maximum: 60000
+      fail_closed:
+        type: boolean
+  blocking:
+    type: boolean
+  concurrency:
+    type: string
+    enum: [serial, parallel]
+  failure_policy:
+    type: string
+    enum: [abort, continue, retry]
+  security:
+    type: object
+    required: [classification, default_enabled]
+    properties:
+      classification:
+        type: string
+        enum: [safe, elevated, destructive]
+      default_enabled:
+        type: boolean
+  platforms:
+    type: object
+    additionalProperties:
+      type: string
+      enum:
+        - native
+        - native-experimental
+        - generated
+        - bridged
+        - manual
+        - unsupported
+        - unknown-blocked

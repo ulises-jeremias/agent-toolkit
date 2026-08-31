@@ -1,0 +1,36 @@
+# Design-Engineering Pack — docs-only per ADR-0003 (not loaded by `agent-toolkit build`)
+pack: design-engineering
+version: "1.0"
+# Advisory only — not applied by `loop run --pack`.
+skills:
+  design/frontend-design:
+    enabled: true
+  design/frontend-design-review:
+    enabled: true
+  design/web-design-guidelines:
+    enabled: true
+  design/design-assessment:
+    enabled: true
+  design/design-improvement:
+    enabled: true
+  design/figma:
+    enabled: true
+  design/figma-implement-design:
+    enabled: true
+  tooling/chrome-devtools:
+    enabled: true
+  tooling/playwright-cli:
+    enabled: true
+  accessibility/review:
+    enabled: true
+  architecture/c4-model:
+    enabled: true
+  tooling/mermaid:
+    enabled: true
+# Advisory only — not applied by `loop run --pack`.
+agents:
+  architect:
+    enabled: true
+  code-reviewer:
+    enabled: true
+# loops: none — design-review loop does not exist (removed, see #801)

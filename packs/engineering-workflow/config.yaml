@@ -1,0 +1,57 @@
+# Engineering Workflow Pack Configuration
+# Copy this file to your workspace and customize loop cadence or disable components.
+#
+# Usage:
+#   cp packs/engineering-workflow/config.yaml ~/.ai-workspace/packs/engineering-workflow.yaml
+#
+# See packs/engineering-workflow/README.md for full setup instructions.
+
+pack: engineering-workflow
+version: "1.0"
+
+# ---------------------------------------------------------------------------
+# Skills
+# ---------------------------------------------------------------------------
+# Advisory only — not applied by `loop run --pack`.
+# Domain/path IDs matching catalogs/skill-catalog.yaml.
+# These entries document which skills the pack recommends. The loader in
+# loop/pack.py does not read or apply skills: or agents: keys. See
+# packs/README.md and ADR-006 for the design decision.
+
+skills:
+  delivery/workflow-generic-project:
+    enabled: true
+  delivery/development-workflow:
+    enabled: true
+  forge/gh-contribution-planner:
+    enabled: true
+
+# ---------------------------------------------------------------------------
+# Agents
+# ---------------------------------------------------------------------------
+# Advisory only — not applied by `loop run --pack`.
+
+agents:
+  architect:
+    enabled: true
+  planner:
+    enabled: true
+  code-reviewer:
+    enabled: true
+  security-reviewer:
+    enabled: true
+
+# ---------------------------------------------------------------------------
+# Loop settings
+# ---------------------------------------------------------------------------
+# Each loop can be individually enabled/disabled. Settings override defaults
+# in loops/<name>/loop.yaml.
+
+loops:
+  pr-babysitter:
+    enabled: true
+    cadence: 15m
+
+  ci-sweeper:
+    enabled: true
+    cadence: 15m

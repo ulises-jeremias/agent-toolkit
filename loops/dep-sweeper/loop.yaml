@@ -1,0 +1,46 @@
+# Loop starter: dep-sweeper
+# An L2 loop that applies patch-level dependency updates daily.
+# Cadence: 1 day. Cost: medium. Tier: L2 (PR per update batch).
+
+name: dep-sweeper
+description: "Apply patch-level dependency updates via draft PRs (L2)"
+tier: L2
+cadence: 1d
+
+goal: |
+  Identify patch-level dependency updates (semver patch only).
+  Create one draft PR per ecosystem (npm, pip, cargo, etc.) with the updates.
+  Never update major or minor versions without human approval.
+
+allowlist:
+  - create_draft_pr
+  - comment
+deny:
+  - merge
+  - approve
+  - major-version-bump
+  - minor-version-bump
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+  - human_escalation
+
+budget:
+  max_tokens: 50000
+  max_runs_per_day: 1
+  max_wall_seconds: 600
+
+verifier: agent-toolkit-code-reviewer
+
+request: |
+  You are the dependency sweeper for this repository.
+  1. Detect available patch updates (use ecosystem-specific tools: npm outdated, pip list --outdated, etc.)
+  2. Group by ecosystem.
+  3. For each ecosystem with patch updates:
+     a. Create a worktree.
+     b. Apply patch updates only (no major/minor).
+     c. Run the test suite (or equivalent).
+     d. If tests pass: open a draft PR titled "chore: patch dep updates (YYYY-MM-DD)".
+     e. If tests fail: post a comment with what broke and skip the PR.
+  4. Write plan.md with: ecosystems checked, updates found, PRs opened, failures.

@@ -1,0 +1,584 @@
+version: 1
+generated: true
+count: 116
+skills:
+  - id: accessibility/review
+    name: review
+    domain: accessibility
+    description: 'WCAG 2.2 AA curated accessibility review — distinguishes automatically detectable, browser-assisted, and manual/human-judgment findings with evidence citations and SC mapping. Composes with design-a'
+    stability: stable
+  - id: agentic-security/mcp-audit
+    name: mcp-audit
+    domain: agentic-security
+    description: 'MCP config + implementation security audit — config secrets/auth, unpinned versions, remote vs local, OAuth, env exposure; implementation command injection, SSRF, unsafe args, tool poisoning. Static'
+    stability: stable
+  - id: agentic-security/owasp-agentic-review
+    name: owasp-agentic-review
+    domain: agentic-security
+    description: 'OWASP-mapped agentic security review — prompt injection, tool poisoning, identity, excessive agency, credential exposure, supply-chain, insecure output handling, overreliance, data leakage, insecure'
+    stability: stable
+  - id: agentic-security/supply-chain-audit
+    name: supply-chain-audit
+    domain: agentic-security
+    description: 'Inspect agent supply chain — skills/plugins/MCP/npm/py packages, hooks, scripts, remote prompts, provenance, version pins, hashes, licenses, network and dangerous permissions — before adopting.'
+    stability: stable
+  - id: agentic-security/threat-modeling
+    name: threat-modeling
+    domain: agentic-security
+    description: 'STRIDE + agentic threat modeling — architecture discovery → assets/trust boundaries/data flows/actors → STRIDE + agentic threats → risk-ranked mitigations → incremental review → security a'
+    stability: stable
+  - id: architecture/architecture-diagram
+    name: architecture-diagram
+    domain: architecture
+    description: '>- WHAT — Create polished dark-themed architecture diagrams as self-contained HTML+SVG files (inline SVG, CSS styling, PNG/PDF export toolbar). Use when the user asks for system, infrastructure, clo'
+    stability: stable
+  - id: architecture/c4-model
+    name: c4-model
+    domain: architecture
+    description: 'WHAT — C4 model methodology (Context, Container, Component, Code) guidance — what to draw at each level, when, and how to render C4-inspired diagrams via Mermaid (PlantUML/Structurizr optional adv'
+    stability: stable
+  - id: cloud/aws-well-architected-review
+    name: aws-well-architected-review
+    domain: cloud
+    description: 'WHAT — AWS Well-Architected Framework review (6 pillars) — operational excellence, security, reliability, performance, cost, sustainability + WAR process. Checklist for workload evaluation on AWS;'
+    stability: stable
+  - id: cloud/cloud-design-patterns
+    name: cloud-design-patterns
+    domain: cloud
+    description: 'WHAT — Vendor-neutral distributed cloud patterns (Retry, Bulkhead, Circuit Breaker, CQRS, Event Sourcing, etc.) abstracted from AWS/Azure/GCP sources — when to apply, tradeoffs, mapping to AWS/GCP'
+    stability: stable
+  - id: core/assistant
+    name: assistant
+    domain: core
+    description: 'Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs before code; cite sources; prefer AGENTS.md for agent behavior; portab'
+    stability: stable
+  - id: core/dev-companion
+    name: dev-companion
+    domain: core
+    description: '''WHAT — Dev Companion (general): layered companion for client delivery; modes, gates, delegation to assistant and workflow-generic-project; no CLI matrices.'''
+    stability: stable
+  - id: core/onboarding
+    name: onboarding
+    domain: core
+    description: 'Getting started guide for new users. Walks through setup validation, the skill/agent hierarchy, and the three most useful commands per role (developer, PM, tech lead). Use when someone is new to the w'
+    stability: stable
+  - id: core/output-handshake
+    name: output-handshake
+    domain: core
+    description: '''WHAT — Default gate for any deliverable: confirm where the final artifact will be stored and that a human will review, before writing PRDs, TRDs, ADRs, or PR bodies. Repository paths, wikis, and ti'
+    stability: stable
+  - id: core/pr-fallback
+    name: pr-fallback
+    domain: core
+    description: 'WHAT — When the repo has no GitHub PR template, structure the pull-request body using the default in references/pr-body-default.md. Pair with output-handshake and github-cli-workflow. Does not open '
+    stability: stable
+  - id: core/project
+    name: project
+    domain: core
+    description: 'Clone, index, and orchestrate multi-repo work via agent-toolkit project — symlinks, quick access, and swarm workspaces.'
+    stability: stable
+  - id: core/workspace
+    name: workspace
+    domain: core
+    description: 'Scaffold and manage the stateless AI workspace — context, packs, repos, and knowledge for multi-repo orchestration.'
+    stability: stable
+  - id: core/workspace-knowledge-sync
+    name: workspace-knowledge-sync
+    domain: core
+    description: 'Syncs knowledge to the agentic-harness knowledge base and AGENTS.md learned facts. Use when the assistant discovers new patterns, learns user preferences, workspace facts, or identifies information wo'
+    stability: stable
+  - id: data/dbt-validation
+    name: dbt-validation
+    domain: data
+    description: 'HOW — Run dbt checks as documented in the target repo (parse, compile, test, selective run). Does not configure Snowflake accounts or change cloud security.'
+    stability: stable
+  - id: data/snowflake-validation
+    name: snowflake-validation
+    domain: data
+    description: '''HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflake/sql) or SQL checks. Never claim success without working credentials and evidence.'''
+    stability: stable
+  - id: delivery/adr
+    name: adr
+    domain: delivery
+    description: 'WHAT — Create and maintain Architecture Decision Records (ADRs) per the process. Covers when to write an ADR, required sections, review, and linking to epics/PRs. English for cross-team artifacts un'
+    stability: stable
+  - id: delivery/agreement
+    name: agreement
+    domain: delivery
+    description: 'WHAT - Capture explicit agreements, terms, parties involved, dates, validity, and linked work items using the Agreement Document structure.'
+    stability: stable
+  - id: delivery/bug
+    name: bug
+    domain: delivery
+    description: WHAT - Draft and review bugs using the Bug Template; classifies whether an issue should be escalated to incident based on production/user impact.
+    stability: stable
+  - id: delivery/decision-log
+    name: decision-log
+    domain: delivery
+    description: 'WHAT - Capture lightweight project, product, or operational decisions that do not require a full ADR; includes rationale, date, owner, and references.'
+    stability: stable
+  - id: delivery/development-workflow
+    name: development-workflow
+    domain: delivery
+    description: 'WHAT - Default development workflow, task lifecycle, DoR, DoD, validation, and evidence model when a project has no explicit override. Repository instructions still take precedence.'
+    stability: stable
+  - id: delivery/epic
+    name: epic
+    domain: delivery
+    description: 'WHAT - Draft and review epics using the Best Practices Epic Template; includes objectives, success criteria, related tasks, stakeholders, and effort metadata.'
+    stability: stable
+  - id: delivery/incident
+    name: incident
+    domain: delivery
+    description: 'WHAT - Draft and review incident reports and RCA notes using Incident Management guidance; includes detection, impact, timeline, RCA, resolution, and follow-ups.'
+    stability: stable
+  - id: delivery/management-unit-assessment
+    name: management-unit-assessment
+    domain: delivery
+    description: 'WHAT - Evidence-based management unit assessment for governance, delivery, collaboration, culture, and AI-native management readiness. Interactive and source-driven before any score is assigned.'
+    stability: stable
+  - id: delivery/meeting-minutes
+    name: meeting-minutes
+    domain: delivery
+    description: 'WHAT - Create structured meeting minutes from notes or transcripts using meeting templates, with redaction, action items, decisions, and traceability.'
+    stability: stable
+  - id: delivery/planning
+    name: planning
+    domain: delivery
+    description: 'WHAT - Planning, estimation, task breakdown, and iteration capacity fallback based on Best Practices. Use before finalizing backlog scope, story/task estimates, or iteration commitments.'
+    stability: stable
+  - id: delivery/prd
+    name: prd
+    domain: delivery
+    description: 'WHAT — Draft and review a Product Requirements Document (PRD) using the template. Business-level requirements, acceptance criteria, and traceability. Does not replace the product owner. English for '
+    stability: stable
+  - id: delivery/project-assessment
+    name: project-assessment
+    domain: delivery
+    description: '''WHAT - Interactive project assessment router: define assessment scope and units, collect evidence through project-assessment-evidence, then delegate to technical or management unit assessment skills.'
+    stability: stable
+  - id: delivery/project-assessment-evidence
+    name: project-assessment-evidence
+    domain: delivery
+    description: 'WHAT - Interactive evidence intake for project assessments. Ask the user where each evidence source lives, build an evidence map, track missing evidence, assumptions, freshness, and confidence before '
+    stability: stable
+  - id: delivery/spike
+    name: spike
+    domain: delivery
+    description: 'WHAT - Produce spike and research findings using the spike template; captures purpose, findings, implementation strategy, risks, tradeoffs, open questions, and references.'
+    stability: stable
+  - id: delivery/task
+    name: task
+    domain: delivery
+    description: 'WHAT - Draft and review technical tasks using the Best Practices Task Template; includes summary, technical notes, AC, estimate, owner, and due date.'
+    stability: stable
+  - id: delivery/technical-unit-assessment
+    name: technical-unit-assessment
+    domain: delivery
+    description: 'WHAT - Evidence-based technical unit assessment for repositories, platforms, frontend, backend, infrastructure, data, UI/UX, and AI-native structural readiness.'
+    stability: stable
+  - id: delivery/trd
+    name: trd
+    domain: delivery
+    description: 'WHAT — Draft and review a Technical Requirements Document (TRD) using the template, typically from an agreed PRD. Covers architecture, data contracts, technical decisions, risks, and test strategy. '
+    stability: stable
+  - id: delivery/user-story
+    name: user-story
+    domain: delivery
+    description: WHAT - Draft and review user stories using the task template plus the As a/I want/so that format from Best Practices examples.
+    stability: stable
+  - id: delivery/work-item
+    name: work-item
+    domain: delivery
+    description: 'WHAT - Router for creating and refining epics, user stories, tasks, bugs, and incidents using Best Practices work item hierarchy.'
+    stability: stable
+  - id: delivery/workflow-client-bootstrap
+    name: workflow-client-bootstrap
+    domain: delivery
+    description: 'WHAT — Interactive interview to capture client delivery context and store it inside the user''s ~/.ai-workspace (or similar) as packs + knowledge (no client skills). Use when onboarding a new client '
+    stability: stable
+  - id: delivery/workflow-generic-project
+    name: workflow-generic-project
+    domain: delivery
+    description: '''WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates, English traceability on tickets, draft PR via delegated forge skills. Use workspace packs for client/account overlay'
+    stability: stable
+  - id: design/design-assessment
+    name: design-assessment
+    domain: design
+    description: 'WHAT - Evidence-based design-unit assessment orchestrated by project-assessment. Evaluates visual hierarchy, UX friction, interaction, a11y, responsiveness, design-system compliance, and distinctivene'
+    stability: stable
+  - id: design/design-improvement
+    name: design-improvement
+    domain: design
+    description: 'WHAT - Browser-grounded iterative design improvement. Consumes design-assessment findings, defines direction, prioritizes safe vs ambiguous changes, implements within existing design system, runs app,'
+    stability: stable
+  - id: design/figma
+    name: figma
+    domain: design
+    description: 'Use the Figma MCP server to fetch design context, screenshots, variables, and assets, and to translate Figma nodes into production code. Trigger when a task involves Figma URLs, node IDs, design-to-co'
+    stability: stable
+  - id: design/figma-code-connect-components
+    name: figma-code-connect-components
+    domain: design
+    description: 'Connects Figma design components to code components using Code Connect mapping tools. Use when user says "code connect", "connect this component to code", "map this component", "link component to code'
+    stability: stable
+  - id: design/figma-create-design-system-rules
+    name: figma-create-design-system-rules
+    domain: design
+    description: 'Generates custom design system rules for the user''s codebase. Use when user says "create design system rules", "generate rules for my project", "set up design rules", "customize design system guidelin'
+    stability: stable
+  - id: design/figma-create-new-file
+    name: figma-create-new-file
+    domain: design
+    description: 'Create a new blank Figma file. Use when the user wants to create a new Figma design or FigJam file, or when you need a new file before calling use_figma. Handles plan resolution via whoami if needed. '
+    stability: stable
+  - id: design/figma-implement-design
+    name: figma-implement-design
+    domain: design
+    description: 'Translates Figma designs into production-ready application code with 1:1 visual fidelity. Use when implementing UI code from Figma files, when user mentions "implement design", "generate code", "imple'
+    stability: stable
+  - id: design/frontend-design
+    name: frontend-design
+    domain: design
+    description: 'Guidance for distinctive, intentional visual design when building new UI or reshaping an existing one. Helps with aesthetic direction, typography, and making choices that don''t read as templated defau'
+    stability: stable
+  - id: design/frontend-design-review
+    name: frontend-design-review
+    domain: design
+    description: '''Review and create distinctive, production-grade frontend interfaces with high design quality and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality craft'
+    stability: stable
+  - id: design/web-design-guidelines
+    name: web-design-guidelines
+    domain: design
+    description: 'Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check accessibility", "audit design", "review UX", or "check my site against best practices".'
+    stability: stable
+  - id: forge/fix-merge-conflicts
+    name: fix-merge-conflicts
+    domain: forge
+    description: 'Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict resolution'
+    stability: stable
+  - id: forge/gh-address-comments
+    name: gh-address-comments
+    domain: forge
+    description: 'Triage and address open GitHub PR review and conversation comments using the gh CLI. Use when the user wants to "address PR comments", "resolve review threads", or "respond to reviewers" on the curren'
+    stability: stable
+  - id: forge/gh-contribution-planner
+    name: gh-contribution-planner
+    domain: forge
+    description: 'Daily GitHub contribution planner — analyzes the gh-logged-in user''s non-archived repos (owned + forks) and recent contributions, produces a prioritized plan, halts for approval, then dispatches par'
+    stability: stable
+  - id: forge/gh-fix-ci
+    name: gh-fix-ci
+    domain: forge
+    description: 'Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure context, propose a plan, and only implement after explicit user approval. External CI providers (Buildkite, CircleCI, etc.)'
+    stability: stable
+  - id: forge/github-cli-workflow
+    name: github-cli-workflow
+    domain: forge
+    description: '''HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file; fallback untracked PR_DESCRIPTION_*.md. Use when origin is GitHub.'''
+    stability: stable
+  - id: forge/gitlab-cli-workflow
+    name: gitlab-cli-workflow
+    domain: forge
+    description: '''HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked markdown. Use when origin is GitLab.'''
+    stability: stable
+  - id: forge/worktree
+    name: worktree
+    domain: forge
+    description: 'Manage Git worktrees per writer for Agent Toolkit swarms — isolated branches, handoff promotion, and cleanup.'
+    stability: stable
+  - id: integrations/clickup-cli
+    name: clickup-cli
+    domain: integrations
+    description: 'ClickUp CLI for managing tasks, sprints, comments, statuses, and Docs. Use when the user needs to interact with ClickUp — creating/editing tasks, checking sprint status, adding comments, linking PRs'
+    stability: stable
+  - id: integrations/confluence-admin
+    name: confluence-admin
+    domain: integrations
+    description: '> Confluence administration including users, groups, space settings, and permission diagnostics. Use when managing user access, group membership, viewing space configuration, or checking permissions.'
+    stability: stable
+  - id: integrations/confluence-analytics
+    name: confluence-analytics
+    domain: integrations
+    description: 'View analytics, statistics, and popularity metrics for Confluence content. ALWAYS use when user wants to see views, popularity, or contributor stats.'
+    stability: stable
+  - id: integrations/confluence-assistant
+    name: confluence-assistant
+    domain: integrations
+    description: 'Central hub for Confluence operations - routes requests to specialized skills. ALWAYS use when user mentions confluence, wiki, or Atlassian wiki operations.'
+    stability: stable
+  - id: integrations/confluence-attachment
+    name: confluence-attachment
+    domain: integrations
+    description: 'Manage file attachments - upload, download, list, and delete attachments. ALWAYS use when user wants to work with files on pages.'
+    stability: stable
+  - id: integrations/confluence-bulk
+    name: confluence-bulk
+    domain: integrations
+    description: 'Bulk operations for 50+ pages - updates, moves, deletions, labels, and permissions. Use when updating multiple pages simultaneously (dry-run preview included), needing rollback safety, or coordinating'
+    stability: stable
+  - id: integrations/confluence-comment
+    name: confluence-comment
+    domain: integrations
+    description: 'Manage comments on Confluence pages - add, get, update, delete, and resolve comments. ALWAYS use for feedback, discussions, and inline annotations.'
+    stability: stable
+  - id: integrations/confluence-hierarchy
+    name: confluence-hierarchy
+    domain: integrations
+    description: 'Navigate and manage Confluence page hierarchies, ancestors, descendants, and trees. ALWAYS use for parent/child relationships and page tree navigation.'
+    stability: stable
+  - id: integrations/confluence-jira
+    name: confluence-jira
+    domain: integrations
+    description: 'JIRA integration - embed issues, create links between products. ALWAYS use when user wants to connect Confluence and JIRA.'
+    stability: stable
+  - id: integrations/confluence-label
+    name: confluence-label
+    domain: integrations
+    description: 'Manage content labels - add, remove, and search by labels. ALWAYS use when user wants to tag, label, or categorize content.'
+    stability: stable
+  - id: integrations/confluence-ops
+    name: confluence-ops
+    domain: integrations
+    description: 'Cache management, API diagnostics, and operational utilities. Use when optimizing performance, managing cache, diagnosing API issues, or troubleshooting Confluence connectivity.'
+    stability: stable
+  - id: integrations/confluence-page
+    name: confluence-page
+    domain: integrations
+    description: 'Manage Confluence pages and blog posts - create, read, update, delete, copy, move, and version control. ALWAYS use when user wants to work with page content, create pages, update pages, or manage page'
+    stability: stable
+  - id: integrations/confluence-permission
+    name: confluence-permission
+    domain: integrations
+    description: 'Manage space and page permissions and restrictions. ALWAYS use when user wants to control access, set restrictions, or manage who can view/edit content.'
+    stability: stable
+  - id: integrations/confluence-property
+    name: confluence-property
+    domain: integrations
+    description: 'Manage content properties (custom metadata) on Confluence pages and blog posts. ALWAYS use for custom metadata, key-value data, or application-specific fields.'
+    stability: stable
+  - id: integrations/confluence-search
+    name: confluence-search
+    domain: integrations
+    description: 'Search Confluence using CQL queries, validate syntax, export results, and manage search history. ALWAYS use when user wants to find, search, or query for content.'
+    stability: stable
+  - id: integrations/confluence-space
+    name: confluence-space
+    domain: integrations
+    description: 'Manage Confluence spaces - create, list, update, delete, and configure spaces. ALWAYS use when user wants to work with spaces (not individual pages).'
+    stability: stable
+  - id: integrations/confluence-template
+    name: confluence-template
+    domain: integrations
+    description: Work with page templates and blueprints. ALWAYS use when user wants to create standardized pages or manage templates.
+    stability: stable
+  - id: integrations/confluence-watch
+    name: confluence-watch
+    domain: integrations
+    description: Content watching and notifications. ALWAYS use when user wants to follow content or manage notifications.
+    stability: stable
+  - id: integrations/jira-administration
+    name: jira-administration
+    domain: integrations
+    description: '> Complete JIRA project and system administration including projects, automation rules, permissions, users, notifications, screens, issue types, and workflows. Use when managing project structure, aut'
+    stability: stable
+  - id: integrations/jira-agile-management
+    name: jira-agile-management
+    domain: integrations
+    description: 'Epic creation and sprint management - create epics, manage sprints, view backlog, estimate with story points. TRIGGERS: ''create an epic'', ''create epic'', ''new epic'', ''show the backlog'', ''view backlog'','
+    stability: stable
+  - id: integrations/jira-assistant
+    name: jira-assistant
+    domain: integrations
+    description: 'JIRA automation hub routing to 13 specialized skills for any JIRA task: issues, workflows, agile, search, time tracking, service management, and more.'
+    stability: stable
+  - id: integrations/jira-bulk-operations
+    name: jira-bulk-operations
+    domain: integrations
+    description: 'Bulk operations for multiple issues at scale. TRIGGERS: ''bulk update'', ''bulk close'', ''bulk transition'', ''bulk assign'', ''transition N issues'' (N >= 10), ''update all bugs'', ''close 50 issues'', ''mass tran'
+    stability: stable
+  - id: integrations/jira-collaboration
+    name: jira-collaboration
+    domain: integrations
+    description: '| Collaborate on issues: add/edit comments, share attachments, notify users, track activity. For team communication and coordination on JIRA issues.'
+    stability: stable
+  - id: integrations/jira-custom-fields
+    name: jira-custom-fields
+    domain: integrations
+    description: 'Custom field discovery and configuration. TRIGGERS: ''field ID for'', ''what''s the field ID'', ''what is the field ID'', ''list custom fields'', ''what fields are available'', ''what custom fields'', ''show custom'
+    stability: stable
+  - id: integrations/jira-developer-integration
+    name: jira-developer-integration
+    domain: integrations
+    description: 'Git and developer workflow integration. TRIGGERS: ''generate branch name'', ''create branch name'', ''branch name for'', ''write PR description'', ''PR description for'', ''link PR'', ''link pull request'', ''parse '
+    stability: stable
+  - id: integrations/jira-issue-management
+    name: jira-issue-management
+    domain: integrations
+    description: 'Core JIRA issue CRUD - create bugs/tasks/stories, get issue details, update fields, delete issues. TRIGGERS: ''show me [KEY]'', ''get issue [KEY]'', ''view issue'', ''create a bug/task/story'', ''update [KEY]'''
+    stability: stable
+  - id: integrations/jira-issue-relationships
+    name: jira-issue-relationships
+    domain: integrations
+    description: 'Issue linking, blockers, and dependency analysis. TRIGGERS: ''what''s blocking'', ''what is blocking'', ''is blocked by'', ''link issues'', ''link to'', ''blockers for'', ''depends on'', ''clone issue'', ''clone with'','
+    stability: stable
+  - id: integrations/jira-lifecycle-management
+    name: jira-lifecycle-management
+    domain: integrations
+    description: 'Manage issue lifecycle through workflow transitions and status changes. Control who does what and when via assignments, versions, and components.'
+    stability: stable
+  - id: integrations/jira-operations
+    name: jira-operations
+    domain: integrations
+    description: 'JIRA cache and performance operations. TRIGGERS: ''warm the cache'', ''warm cache'', ''cache status'', ''clear cache'', ''cache warm'', ''cache for project'', ''discover project'', ''project discovery'', ''cache hit r'
+    stability: stable
+  - id: integrations/jira-search-jql
+    name: jira-search-jql
+    domain: integrations
+    description: 'Find issues by criteria (status, assignee, priority, etc.) using JQL. Create filters, export results to CSV/JSON, bulk update. Ideal for reporting and automation.'
+    stability: stable
+  - id: integrations/jira-service-management
+    name: jira-service-management
+    domain: integrations
+    description: 'Complete ITSM/ITIL workflow support for JSM - service desks, requests, SLAs, customers, approvals, knowledge base. Use when managing service desk requests, tracking SLAs, or handling customer operatio'
+    stability: stable
+  - id: integrations/jira-time-tracking
+    name: jira-time-tracking
+    domain: integrations
+    description: 'Time tracking, worklogs, and time reports. TRIGGERS: ''log time'', ''time spent on'', ''log hours'', ''log work'', ''worklog'', ''time tracking'', ''timesheet'', ''how much time'', ''time logged'', ''time report'', ''expo'
+    stability: stable
+  - id: integrations/linear
+    name: linear
+    domain: integrations
+    description: 'Manage Linear issues, projects and cycles via the Linear MCP server. Use when the user wants to read, triage, create or update Linear tickets, plan a sprint, audit Linear documentation, or rebalance t'
+    stability: stable
+  - id: integrations/mcp
+    name: mcp
+    domain: integrations
+    description: 'Configure and manage MCP providers for Agent Toolkit — setup, list, doctor, and per-tool deployment.'
+    stability: stable
+  - id: integrations/slack-assistant
+    name: slack-assistant
+    domain: integrations
+    description: 'Interact with Slack workspaces for reading channels/messages, sending messages, adding reactions, and browsing canvases. Use when the user asks about Slack channels, messages, or notifications — NOT'
+    stability: stable
+  - id: integrations/slack-cli
+    name: slack-cli
+    domain: integrations
+    description: 'Interact with the official Slack CLI to create, run, deploy, and manage Slack apps, environments, manifests, and triggers. Use when the user asks about Slack app development workflows, not workspace c'
+    stability: stable
+  - id: loops/loop-runner
+    name: loop-runner
+    domain: loops
+    description: 'Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding session via the agent-toolkit loop CLI.'
+    stability: stable
+  - id: ops/docs-generator
+    name: docs-generator
+    domain: ops
+    description: '''WHAT — Generate or update documentation from code: README.md from repo structure, CHANGELOG.md from git history, API reference from OpenAPI/GraphQL schemas, and AGENTS.md starters for new projects.'
+    stability: stable
+  - id: ops/llm-cost-advisor
+    name: llm-cost-advisor
+    domain: ops
+    description: 'WHAT — Recommend the most cost-effective LLM provider for a given task type. Shows estimated cost per run across available providers and integrates with devcompanion llm-status to show what is actua'
+    stability: stable
+  - id: ops/swarm
+    name: swarm
+    domain: ops
+    description: Launch an Agent Toolkit swarm from a natural language request using agent-toolkit swarm CLI with Herdr/tmux eager windows and file handoffs.
+    stability: stable
+  - id: ops/swarm-handoff
+    name: swarm-handoff
+    domain: ops
+    description: 'Create artifact/commit file handoffs for Agent Toolkit swarms with worktree-per-writer, branch, and promotion integration.'
+    stability: stable
+  - id: ops/swarm-observer
+    name: swarm-observer
+    domain: ops
+    description: 'Observe, diagnose, and recover Agent Toolkit swarm runs via status, handoffs, logs, and attach with worktree and shell awareness.'
+    stability: stable
+  - id: ops/triage
+    name: triage
+    domain: ops
+    description: 'Workstation health triage — validate tooling, directory layout, and run doctor with remediation suggestions.'
+    stability: stable
+  - id: quality/blast-radius
+    name: blast-radius
+    domain: quality
+    description: '| Find what a change could break somewhere else before it ships, beyond the diff, and prove the one fact it''s safe because of by running real code instead of writing it up. Use for ''blast radius of X'''
+    stability: stable
+  - id: quality/codeql
+    name: codeql
+    domain: quality
+    description: 'CodeQL operational workflow — discover/config, run/inspect, triage SARIF findings (rule/query ID, source→sink, evidence), remediate, re-validate. Distinguishes broad MegaLinter linting from semant'
+    stability: stable
+  - id: quality/deep-review
+    name: deep-review
+    domain: quality
+    description: 'Evidence-based deep code review rubric — severity + confidence findings across maintainability, correctness, security, performance, and testing. Push for ambitious structural simplification (code ju'
+    stability: stable
+  - id: quality/deslop
+    name: deslop
+    domain: quality
+    description: Remove AI-generated code slop and clean up code style
+    stability: stable
+  - id: quality/megalinter
+    name: megalinter
+    domain: quality
+    description: 'Entry point for everything MegaLinter. Use when the user wants to lint their repository, set up MegaLinter, check or fix lint errors, make CI lint jobs pass, or says "run megalinter", "fix lint errors'
+    stability: stable
+  - id: quality/megalinter-check
+    name: megalinter-check
+    domain: quality
+    description: 'Collect MegaLinter lint errors for the current repository. Use when the user wants to know if the code passes linting, why the MegaLinter CI job fails, or before/after fixing lint errors. Two modes - '
+    stability: stable
+  - id: quality/megalinter-fix
+    name: megalinter-fix
+    domain: quality
+    description: 'Fix the errors reported by MegaLinter. Use after megalinter-check found errors, or when the user pastes MegaLinter/CI lint errors and wants them fixed. Applies safe fixes automatically (auto-fix linte'
+    stability: stable
+  - id: quality/megalinter-setup
+    name: megalinter-setup
+    domain: quality
+    description: 'Install or upgrade MegaLinter on a repository. Use when the user wants to add MegaLinter to a project, set up linting CI, update MegaLinter configuration or version, or says "install megalinter", "set'
+    stability: stable
+  - id: quality/unslop
+    name: unslop
+    domain: quality
+    description: Cut AI tells from any writing. Must always apply.
+    stability: stable
+  - id: tooling/chrome-devtools
+    name: chrome-devtools
+    domain: tooling
+    description: 'Use Chrome DevTools MCP to control and inspect a live Chrome instance for network, console, performance, rendering, and Deep debugging. Pairs with playwright-cli (deterministic interaction/E2E) — co'
+    stability: stable
+  - id: tooling/cli-for-agents
+    name: cli-for-agents
+    domain: tooling
+    description: '>- Designs or reviews CLIs so coding agents can run them reliably: non-interactive flags, layered --help with examples, stdin/pipelines, fast actionable errors, idempotency, dry-run, and predictable s'
+    stability: stable
+  - id: tooling/herdr
+    name: herdr
+    domain: tooling
+    description: 'Manage Herdr workspaces, tabs, and panes for Agent Toolkit swarms with eager windows, shell-aware execution, and reuse.'
+    stability: stable
+  - id: tooling/inventory
+    name: inventory
+    domain: tooling
+    description: 'Discover installed skills, agents, loops, and platform capabilities via agent-toolkit inventory, matrix, and skills list.'
+    stability: stable
+  - id: tooling/jupyter-notebook
+    name: jupyter-notebook
+    domain: tooling
+    description: 'Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments and tutorials. Prefer the bundled templates and the helper script (`new_notebook.py`, also exposed as `newnotebook`) to generat'
+    stability: stable
+  - id: tooling/mermaid
+    name: mermaid
+    domain: tooling
+    description: 'WHAT — Mermaid diagrams from text (flowchart, sequence, class, state, ER, gantt, gitGraph) — Markdown-native, Git-native, MIT. Primary renderer for architecture pack; renders via GitHub native or '
+    stability: stable
+  - id: tooling/playwright-cli
+    name: playwright-cli
+    domain: tooling
+    description: 'Drive a real browser from the terminal using the Playwright CLI (snapshot, click, fill, screenshots, traces). Use when the task is CLI-first browser automation (data extraction, UI debugging, form fil'
+    stability: stable

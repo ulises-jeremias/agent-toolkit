@@ -1,0 +1,171 @@
+version: 1
+generated: true
+count: 18
+agents:
+  - id: agentic-security-reviewer
+    name: agentic-security-reviewer
+    description: 'Agentic security review specialist — prompt injection, tool poisoning, excessive agency, credential exposure, supply-chain, MCP/plugin hardening with OWASP LLM01-10 + AGNT01-06. Use when security-en'
+    kind: specialist
+  - id: architect
+    name: architect
+    description: 'Software architecture and system design specialist. Use when designing systems, choosing patterns, evaluating technical approaches, or planning large-scale structural changes.'
+    kind: holistic
+    collaborates_with:
+      - data-engineer
+      - planner
+      - platform-engineer
+      - reviewer
+      - security-engineer
+  - id: assistant
+    name: assistant
+    description: 'agent-toolkit Dev Companion — follows internal conventions and best practices. Use for any work in agent-toolkit or client repositories to ensure compliance with agent-toolkit standards.'
+    kind: orchestrator
+    delegates:
+      - architect
+      - data-engineer
+      - designer
+      - implementer
+      - planner
+      - platform-engineer
+      - qa-engineer
+      - researcher
+      - reviewer
+      - security-engineer
+    collaborates_with:
+      - client-workflow-bootstrap
+  - id: build-error-resolver
+    name: build-error-resolver
+    description: 'Build and TypeScript error resolution specialist — large diagnostic context, root-cause triage across tsc/lint/webpack/vite. Use when platform-engineer delegates CI failure logs or fix requires full'
+    kind: specialist
+  - id: client-workflow-bootstrap
+    name: client-workflow-bootstrap
+    description: 'Meta-generator / orchestrator — onboarding interview that meta-generates <client>-workflow + <client>-dev-companion skills and opens a draft PR. Use when onboarding a new client project or updating '
+    kind: orchestrator
+    collaborates_with:
+      - assistant
+  - id: code-reviewer
+    name: code-reviewer
+    description: 'Expert code review specialist — quality/correctness/security/performance/testing with severity-ranked findings. Use when reviewer/qa-engineer delegates deep craft or PR explicitly warrants independe'
+    kind: specialist
+  - id: data-engineer
+    name: data-engineer
+    description: '>- Data engineering specialist — dbt/Snowflake validation, Jupyter notebooks, data artifact stewardship. Use when: dbt parse/compile/test, Snowflake read-only checks, notebook scaffolding, or valida'
+    kind: holistic
+    collaborates_with:
+      - architect
+      - implementer
+      - platform-engineer
+      - qa-engineer
+      - researcher
+      - reviewer
+  - id: designer
+    name: designer
+    description: '>- Design routing and UI/UX specialist — owns contextual selection among design skills (frontend-design, frontend-design-review, web-design-guidelines, design-assessment, design-improvement, Figma f'
+    kind: holistic
+    collaborates_with:
+      - implementer
+      - qa-engineer
+      - researcher
+  - id: e2e-runner
+    name: e2e-runner
+    description: 'End-to-end testing specialist using Playwright — selector discipline, POM, and flake avoidance with explicit browser-output isolation. Use when qa-engineer delegates E2E authoring/debugging or task '
+    kind: specialist
+  - id: implementer
+    name: implementer
+    description: '>- Implementation specialist — feature/bug/refactoring delivery, build/test loop, TDD-aware scaffolding and docs generation. Use when: new feature or bug fix, refactoring with behavior preservation,'
+    kind: holistic
+    delegates:
+      - tdd-guide
+    collaborates_with:
+      - architect
+      - data-engineer
+      - designer
+      - planner
+      - platform-engineer
+      - qa-engineer
+      - researcher
+      - reviewer
+      - security-engineer
+  - id: planner
+    name: planner
+    description: 'Expert planning specialist for complex features and refactoring. Use before starting any significant implementation to break down work, identify risks, and create an actionable plan.'
+    kind: holistic
+    collaborates_with:
+      - architect
+      - implementer
+      - qa-engineer
+      - researcher
+      - reviewer
+  - id: platform-engineer
+    name: platform-engineer
+    description: '>- Platform and forge specialist — CI/CD, GitHub/GitLab PR lifecycle, merge-conflicts, worktrees, integrations (Slack/Linear/ClickUp/MCP), loops/swarm, triage, llm-cost-advisor, cli-for-agents, herd'
+    kind: holistic
+    delegates:
+      - build-error-resolver
+    collaborates_with:
+      - architect
+      - implementer
+      - planner
+      - qa-engineer
+      - researcher
+      - reviewer
+      - security-engineer
+  - id: qa-engineer
+    name: qa-engineer
+    description: '>- Quality-assurance and verification specialist — lint gates, browser automation, E2E, behavioral verification, bug triage. Use when: verifying behavior before ship, writing/debugging E2E tests, ru'
+    kind: holistic
+    delegates:
+      - e2e-runner
+    collaborates_with:
+      - data-engineer
+      - designer
+      - implementer
+      - platform-engineer
+      - reviewer
+      - security-engineer
+  - id: researcher
+    name: researcher
+    description: '>- Research and discovery specialist — spike findings, evidence-intake, framework/docs exploration, inventory, reference examples. Use when: unknown needs time-boxed investigation, implementation st'
+    kind: holistic
+    collaborates_with:
+      - architect
+      - data-engineer
+      - designer
+      - implementer
+      - planner
+      - qa-engineer
+  - id: reviewer
+    name: reviewer
+    description: '>- Independent quality/craft reviewer — owns change impact, deep review, anti-slop (code + prose), and verification separation. Use when: PR review, refactor review, prose/doc review before publish,'
+    kind: holistic
+    delegates:
+      - code-reviewer
+    collaborates_with:
+      - architect
+      - designer
+      - implementer
+      - qa-engineer
+      - researcher
+      - security-engineer
+  - id: security-engineer
+    name: security-engineer
+    description: '>- Security hardening specialist — app + agentic security, threat modeling, supply-chain/MCP audit, SARIF triage. Use when: security-sensitive PR/endpoint, agentic/MCP/plugin change, supply-chain be'
+    kind: holistic
+    delegates:
+      - agentic-security-reviewer
+      - security-reviewer
+    collaborates_with:
+      - architect
+      - designer
+      - implementer
+      - platform-engineer
+      - qa-engineer
+      - reviewer
+  - id: security-reviewer
+    name: security-reviewer
+    description: 'App-code security review specialist — OWASP Top 10 (injection, auth, data exposure, deps), CVE-mapped. Use when security-engineer delegates app-surface hardening or code change touches auth/data/API'
+    kind: specialist
+  - id: tdd-guide
+    name: tdd-guide
+    description: 'Test-Driven Development specialist — enforces red-green-refactor with AAA, test doubles and behavior-first coverage. Use when implementer delegates test-first discipline or task explicitly requires '
+    kind: specialist

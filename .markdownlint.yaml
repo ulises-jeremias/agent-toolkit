@@ -1,0 +1,9 @@
+default: true
+MD013: false  # Legacy docs exceed 120 cols; enforce via review not CI gate
+MD040: false  # Directory tree blocks omit language tags
+MD032: false  # Lists adjacent to headings in how-to guides
+MD031: false  # Fence spacing in generated examples
+MD045: false  # Badge/shield images in README
+MD036: false  # README tagline uses emphasis by design
+MD033: false  # Allow inline HTML
+MD041: false  # First line heading (READMEs OK)

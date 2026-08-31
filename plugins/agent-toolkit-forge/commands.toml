@@ -1,0 +1,72 @@
+[[commands]]
+name = "fix_merge_conflicts"
+description = "forge/fix-merge-conflicts"
+prompt = """
+Follow the `fix-merge-conflicts` skill instructions for {{args}}.
+
+@{skills/fix-merge-conflicts/SKILL.md}
+"""
+
+[[commands]]
+name = "github_cli_workflow"
+description = "forge/github-cli-workflow"
+prompt = """
+Follow the `github-cli-workflow` skill instructions for {{args}}.
+
+@{skills/github-cli-workflow/SKILL.md}
+"""
+
+[[commands]]
+name = "gitlab_cli_workflow"
+description = "forge/gitlab-cli-workflow"
+prompt = """
+Follow the `gitlab-cli-workflow` skill instructions for {{args}}.
+
+@{skills/gitlab-cli-workflow/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_address_comments"
+description = "forge/gh-address-comments"
+prompt = """
+Follow the `gh-address-comments` skill instructions for {{args}}.
+
+@{skills/gh-address-comments/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_fix_ci"
+description = "forge/gh-fix-ci"
+prompt = """
+Follow the `gh-fix-ci` skill instructions for {{args}}.
+
+@{skills/gh-fix-ci/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_contribution_planner"
+description = "forge/gh-contribution-planner"
+prompt = """
+Follow the `gh-contribution-planner` skill instructions for {{args}}.
+
+@{skills/gh-contribution-planner/SKILL.md}
+"""
+
+[[commands]]
+name = "workflow_client_bootstrap"
+description = "delivery/workflow-client-bootstrap"
+prompt = """
+Follow the `workflow-client-bootstrap` skill instructions for {{args}}.
+
+@{skills/workflow-client-bootstrap/SKILL.md}
+"""
+
+[[commands]]
+name = "workflow_generic_project"
+description = "delivery/workflow-generic-project"
+prompt = """
+Follow the `workflow-generic-project` skill instructions for {{args}}.
+
+@{skills/workflow-generic-project/SKILL.md}
+"""
+

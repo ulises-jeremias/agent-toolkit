@@ -1,0 +1,28 @@
+{
+  "name": "agent-toolkit",
+  "version": "1.26.0",
+  "description": "Composable AI agent toolkit \u2014 skills, agents, loops, and MCP templates for all major AI coding tools",
+  "keywords": [
+    "ai-agents",
+    "claude-code",
+    "cursor",
+    "opencode",
+    "github-copilot",
+    "windsurf",
+    "pi-coding-agent",
+    "skills",
+    "agent-toolkit",
+    "loop-engineering",
+    "mcp"
+  ],
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit.git"
+  },
+  "author": "ulises-jeremias",
+  "license": "MIT",
+  "skills": {
+    "layout": "skills/<group>/<skill>/SKILL.md"
+  }
+}

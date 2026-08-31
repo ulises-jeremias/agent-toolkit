@@ -1,0 +1,24 @@
+# Architecture Pack — docs-only per ADR-0003, vendor-neutral core per #384
+pack: architecture
+version: "1.0"
+# Advisory only — not applied by `loop run --pack`.
+skills:
+  delivery/adr:
+    enabled: true
+  delivery/trd:
+    enabled: true
+  agentic-security/threat-modeling:
+    enabled: true
+  tooling/mermaid:
+    enabled: true
+  architecture/c4-model:
+    enabled: true
+  cloud/cloud-design-patterns:
+    enabled: false
+  cloud/aws-well-architected-review:
+    enabled: false
+# Advisory only — not applied by `loop run --pack`.
+agents:
+  architect:
+    enabled: true
+# loops: none — architecture-review loop does not exist (removed, see #801)

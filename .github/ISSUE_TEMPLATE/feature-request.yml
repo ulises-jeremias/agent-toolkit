@@ -1,0 +1,78 @@
+name: Feature request
+description: Suggest an improvement to the toolkit's CLI, compiler, distribution, or infrastructure
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for improvements to the toolkit itself — CLI commands, the compiler,
+        platform targets, CI/CD, schemas, or documentation. For new skills use the Skill request form;
+        for new agents use the Agent request form; for new loops use the Loop request form.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: What user or developer problem does this address? Be specific.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the toolkit does this affect?
+      options:
+        - "CLI (agent-toolkit commands)"
+        - "Compiler / build system"
+        - "Platform target (Claude Code, Cursor, Copilot, etc.)"
+        - "MCP integration"
+        - "Loop engineering"
+        - "Swarm"
+        - "Workspace / packs"
+        - "Installation / distribution"
+        - "CI / validation"
+        - "Schemas / canonical model"
+        - "Documentation"
+        - "Security"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe your preferred approach. Include CLI examples, schema snippets, or pseudocode if helpful.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you consider and why did you prefer the one above?
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How would you verify this feature is working correctly?
+      placeholder: |
+        - `agent-toolkit build --target cursor --check` passes with no unsupported warnings
+        - Generated plugin validates against official Cursor schema
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this hasn't been requested before.
+          required: true
+        - label: This proposal does not store secrets or personal configuration in the repository.
+          required: true

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/agent-frontmatter.schema.json",
+  "title": "Agent Frontmatter — Machine-readable Agent Persona Metadata",
+  "description": "Validates agents/*/AGENT.md YAML frontmatter. Extends minimal name/description/tools with kind, delegates, and collaborates_with for machine-readable orchestration graph (#866). Skills ownership is canonical in capabilities/skills/registry.yaml (holistic_owner); frontmatter does not duplicate skill lists unless explicitly declared. Enables validation, catalog/graph generation, assistant routing, and orphan/cycle detection.",
+  "type": "object",
+  "required": ["name", "description", "tools", "kind"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Kebab-case agent identifier; must match the directory name agents/<name>/."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Selection text for the AI tool's agent picker; include when-to-use triggers."
+    },
+    "tools": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Comma-separated allowlist of tools the persona may use (e.g. 'Read, Grep, Glob, Bash'). Kept as string for backwards compat with validate-agents.vsh and existing agents."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["orchestrator", "holistic", "specialist"],
+      "description": "Tier per docs/AGENT_TAXONOMY.md §2: orchestrator (default entry/meta-generator), holistic (owns contextual routing among a coherent skill group), specialist (opt-in narrow technique with separate context/isolation). Required after #866."
+    },
+    "delegates": {
+      "type": "array",
+      "description": "Directed delegation edges: agents this persona may delegate to. Validated: every entry must be an existing agent id, no self-delegation, no forbidden cycles, every specialist must have at least one caller in the reverse graph.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "collaborates_with": {
+      "type": "array",
+      "description": "Undirected collaboration peers (hand-off boundaries) — holistic peers this agent frequently hands off to for cross-domain work. Validated: every entry must be an existing agent id, no self-reference. Not part of cycle detection (delegates is directed).",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "skills": {
+      "type": "array",
+      "description": "Optional explicit skill ids (domain/name) this agent directly handles. When omitted, ownership is derived from capabilities/skills/registry.yaml holistic_owner. If present, every id must exist in skills/. Minimal metadata keeps procedural instructions out of frontmatter.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+/[a-z0-9-]+$"
+      },
+      "uniqueItems": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "kind": { "const": "specialist" } }
+      },
+      "then": {
+        "description": "Specialists are opt-in and should not delegate further by default; delegates if present is usually empty."
+      }
+    }
+  ]
+}

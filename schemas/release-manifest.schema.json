@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/release-manifest.schema.json",
+  "title": "Agent Toolkit GitHub Release manifest",
+  "description": "Index of canonical GitHub Release assets for wrappers (PyPI/Homebrew/AUR/npm). See docs/adrs/ADR-022-release-manifest.md and ADR-018. Do not treat this file as a second download channel.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "name",
+    "version",
+    "gitTag",
+    "channel",
+    "releasedAt",
+    "assets"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "name": {
+      "type": "string",
+      "const": "agent-toolkit"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Semver without a leading v."
+    },
+    "gitTag": {
+      "type": "string",
+      "minLength": 1
+    },
+    "channel": {
+      "type": "string",
+      "enum": ["stable", "experimental"]
+    },
+    "releasedAt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "RFC 3339 UTC timestamp."
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "os",
+          "arch",
+          "channel",
+          "kind",
+          "filename",
+          "sha256",
+          "url"
+        ],
+        "properties": {
+          "os": {
+            "type": "string",
+            "enum": ["linux", "macos", "windows"]
+          },
+          "arch": {
+            "type": "string",
+            "enum": ["x86_64", "arm64"]
+          },
+          "libc": {
+            "type": "string",
+            "enum": ["gnu", "musl"]
+          },
+          "channel": {
+            "type": "string",
+            "enum": ["stable", "experimental"]
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["binary", "archive", "sums", "sbom"]
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^([0-9a-f]{64})?$"
+          },
+          "url": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

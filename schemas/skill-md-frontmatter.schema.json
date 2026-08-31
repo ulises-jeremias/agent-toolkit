@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/skill-md-frontmatter.schema.json",
+  "title": "Agent Toolkit SKILL.md Frontmatter",
+  "description": "YAML frontmatter schema for bundled SKILL.md files. All fields except name/description are optional for backwards compat, but origin is required for any distributable capability (gate 2). Reuses definitions from upstream.schema.json via $ref (single-source).",
+  "type": "object",
+  "required": ["name", "description"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Kebab-case skill name (must match the directory name and skill.json name)."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short human-readable summary (used in skill selection)."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Optional skill metadata.",
+      "additionalProperties": true,
+      "properties": {
+        "author": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    },
+    "requires": {
+      "type": "array",
+      "description": "CLI tools, commands, or env vars this skill needs.",
+      "items": { "type": "string" }
+    },
+    "produces": {
+      "type": "array",
+      "description": "Artifact types this skill outputs (e.g. plan.md, PR, comment).",
+      "items": { "type": "string" }
+    },
+    "tools": {
+      "type": "array",
+      "description": "AI tools this SKILL.md is verified to work with.",
+      "items": {
+        "type": "string",
+        "enum": ["claude-code", "opencode", "cursor", "windsurf", "copilot-cli", "pi", "universal"]
+      }
+    },
+    "triggers": {
+      "type": "array",
+      "description": "Natural-language phrases or events that should invoke this skill.",
+      "items": { "type": "string" }
+    },
+    "compatibility": {
+      "type": "string",
+      "description": "Human-readable compatibility note (prerequisites, caveats)."
+    },
+    "origin": { "$ref": "upstream.schema.json#/$defs/origin" },
+    "upstream": { "$ref": "upstream.schema.json#/$defs/source" },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "upstream.schema.json#/$defs/source" },
+      "description": "Multi-source provenance (preferred over single 'upstream' for Vercel-style dual upstream)."
+    },
+    "trust": { "$ref": "upstream.schema.json#/$defs/trust" },
+    "maintenance": { "$ref": "upstream.schema.json#/$defs/maintenance" },
+    "distribution": { "$ref": "upstream.schema.json#/$defs/distribution" },
+    "security": { "$ref": "upstream.schema.json#/$defs/security" }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "origin": { "properties": { "type": { "const": "upstream" } } } },
+        "required": ["origin"]
+      },
+      "then": {
+        "anyOf": [
+          { "required": ["sources"] },
+          { "required": ["upstream"] }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": { "origin": { "properties": { "type": { "const": "first-party" } } } },
+        "required": ["origin"]
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            { "required": ["sources"] },
+            { "required": ["upstream"] }
+          ]
+        }
+      }
+    }
+  ]
+}

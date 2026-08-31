@@ -1,0 +1,19 @@
+figma-implement-design (agent-toolkit distribution)
+=============================================
+
+This skill is derived from the OpenAI "skills" repository, originally licensed
+under the Apache License 2.0:
+
+  https://github.com/openai/skills (skills/.curated/figma-implement-design)
+
+Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
+
+- Removed the `agents/openai.yaml` manifest in favor of the agent-toolkit
+  `skill.json` schema.
+- Rewrote cross-references to mark `figma-use` and `figma-generate-design` as
+  opt-in packs (see `docs/SKILLS.md`) since they are not bundled by default.
+- Reordered the agent rule guidance to mention `AGENTS.md` first (agent-toolkit
+  convention).
+- Dropped vendor logo assets (`assets/figma*`).
+
+Original LICENSE.txt is preserved in this directory.

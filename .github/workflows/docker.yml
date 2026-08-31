@@ -1,0 +1,156 @@
+name: Docker
+
+on:
+  # GITHUB_TOKEN creating a GitHub Release does not fire `release: published`
+  # for other workflows. Release.yml calls this after upload-assets instead.
+  # Note: when invoked via workflow_call, github.event_name is still the
+  # *caller* event (usually push) — never "workflow_call". Use inputs.publish.
+  workflow_call:
+    inputs:
+      publish:
+        description: Push multi-arch image to ghcr after Release assets exist
+        type: boolean
+        required: false
+        default: false
+  release:
+    types: [published]
+  push:
+    branches: [main]
+    paths: [Dockerfile, .dockerignore, distribution/docker/**, .github/workflows/docker.yml]
+  pull_request:
+    paths: [Dockerfile, .dockerignore, distribution/docker/**, .github/workflows/docker.yml]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  # Caller event_name stays "push" under workflow_call; gate on inputs.publish.
+  DOCKER_PUBLISH: ${{ inputs.publish == true || github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Read VERSION
+        id: ver
+        run: |
+          v=$(tr -d '[:space:]' < VERSION)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          echo "mm=${v%.*}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # Always tag from VERSION file — semver tags only fire on git tag refs,
+            # so workflow_call/dispatch from a branch would otherwise miss :x.y.z.
+            type=raw,value=${{ steps.ver.outputs.version }}
+            type=raw,value=${{ steps.ver.outputs.mm }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch
+            type=sha
+
+      # Dockerfile curls GitHub Release assets for ARG VERSION. Bump PRs / the
+      # main push of the bump commit run before tag vX.Y.Z exists (404).
+      - name: Check VERSION GitHub Release exists
+        id: rel
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No GitHub Release $TAG yet — skip image smoke (version-bump chicken-egg). Release.yml publishes after assets exist."
+          fi
+
+      - name: Build native image (PR smoke)
+        if: github.event_name == 'pull_request' && steps.rel.outputs.exists == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          platforms: linux/amd64
+          build-args: |
+            VERSION=${{ steps.ver.outputs.version }}
+          tags: agent-toolkit:ci
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke native image
+        if: github.event_name == 'pull_request' && steps.rel.outputs.exists == 'true'
+        run: docker run --rm agent-toolkit:ci version
+
+      # Push-to-main is smoke-only so VERSION bumps cannot publish before
+      # GitHub Release assets. Release.yml passes publish=true via workflow_call.
+      - name: Build native image (main smoke)
+        if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true' && steps.rel.outputs.exists == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          platforms: linux/amd64
+          build-args: |
+            VERSION=${{ steps.ver.outputs.version }}
+          tags: agent-toolkit:ci
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke native image (main)
+        if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true' && steps.rel.outputs.exists == 'true'
+        run: docker run --rm agent-toolkit:ci version
+
+      - name: Require Release assets before push
+        if: env.DOCKER_PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          echo "Checking Release assets for $TAG"
+          assets=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets -q '.assets[].name' || true)
+          echo "$assets"
+          echo "$assets" | grep -q 'agent-toolkit-linux-x86_64' || {
+            echo "::error::Missing agent-toolkit-linux-x86_64 on $TAG — refuse Docker push"
+            exit 1
+          }
+
+      - name: Build and push
+        if: env.DOCKER_PUBLISH == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ steps.ver.outputs.version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Smoke published amd64 image
+        if: env.DOCKER_PUBLISH == 'true'
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.ver.outputs.version }}
+        run: |
+          docker pull --platform linux/amd64 "$IMAGE"
+          docker run --rm --platform linux/amd64 "$IMAGE" version

@@ -1,0 +1,44 @@
+# JSON Schema for canonical MCP provider definitions (mcp/registry/*.yaml)
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/mcp-provider.schema.yaml"
+title: "agent-toolkit MCP Provider"
+type: object
+required: [id, display_name, purpose, implementation, auth, platforms]
+additionalProperties: true
+properties:
+  id:
+    type: string
+    pattern: "^[a-z][a-z0-9-]*$"
+  display_name:
+    type: string
+    minLength: 1
+  purpose:
+    type: string
+  implementation:
+    type: object
+    required: [provenance, package]
+    properties:
+      provenance:
+        type: string
+        enum: [official, community, vendor, unknown]
+      package:
+        type: string
+        minLength: 1
+  auth:
+    type: object
+    properties:
+      env:
+        type: array
+        items:
+          type: string
+          pattern: "^[A-Z][A-Z0-9_]*$"
+  tools:
+    type: object
+    properties:
+      read: {type: array, items: {type: string}}
+      write: {type: array, items: {type: string}}
+      destructive: {type: array, items: {type: string}}
+  platforms:
+    type: object
+    additionalProperties:
+      type: string

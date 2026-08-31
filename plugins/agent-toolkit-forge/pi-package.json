@@ -1,0 +1,32 @@
+{
+  "name": "@agent-toolkit/agent-toolkit-forge",
+  "version": "1.26.0",
+  "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit"
+  },
+  "keywords": [
+    "agent-toolkit",
+    "pi",
+    "skills",
+    "agents",
+    "forge"
+  ],
+  "pi": {
+    "skills": [
+      "skills/fix-merge-conflicts/SKILL.md",
+      "skills/github-cli-workflow/SKILL.md",
+      "skills/gitlab-cli-workflow/SKILL.md",
+      "skills/gh-address-comments/SKILL.md",
+      "skills/gh-fix-ci/SKILL.md",
+      "skills/gh-contribution-planner/SKILL.md",
+      "skills/workflow-client-bootstrap/SKILL.md",
+      "skills/workflow-generic-project/SKILL.md"
+    ],
+    "agents": [
+      
+    ]
+  }
+}

@@ -1,0 +1,165 @@
+# workflow-client-bootstrap — interview question bank
+# Each block is an interview group. The agent MUST ask all required questions
+# and may skip optional ones if context already answers them.
+
+version: 2
+
+groups:
+  - id: workspace
+    label: "Workspace Root (where data will be stored)"
+    description: "Select the workspace directory (e.g. ~/.ai-workspace) and explain storage paths."
+    questions:
+      - id: workspace_root_override
+        required: false
+        prompt: >-
+          (Optional) If you want to explicitly set the workspace root path, paste it now.
+          Otherwise leave blank and I will auto-detect candidates (e.g. ~/.ai-workspace, ~/.ai-workspace, current dir).
+
+  - id: identity
+    label: "Project Identity"
+    description: "Establish client name, slug, and tooling stack."
+    questions:
+      - id: client_name
+        required: true
+        prompt: "What is the client or project name? (e.g. Acme Payments, Example Corp)"
+
+      - id: client_slug
+        required: true
+        prompt: "What short slug should be used for naming? Use lowercase-kebab-case (e.g. `acme-payments`). This becomes the directory name under packs/clients/ and knowledge/clients/."
+
+      - id: ticket_system
+        required: true
+        prompt: "Which ticket system does this project use?"
+        options: [jira, clickup, linear, github-issues, none, other]
+
+      - id: jira_project_key
+        required: false
+        condition: "ticket_system == jira"
+        prompt: "What is the Jira project key prefix? (e.g. PROJ, ABC)"
+
+      - id: docs_platform
+        required: true
+        prompt: "Which documentation platform does this project use?"
+        options: [confluence, notion, github-wiki, none, other]
+
+      - id: repo_host
+        required: true
+        prompt: "Where are the code repositories hosted?"
+        options: [github, gitlab, bitbucket, other]
+
+      - id: repo_org
+        required: true
+        prompt: "What is the GitHub / GitLab organization or group name? (e.g. my-client-org)"
+
+      - id: account_name
+        required: false
+        prompt: "Optional: Is there an account/engagement name you want to group this client under? (e.g. Internal, Acme)."
+
+  - id: workflow
+    label: "Ticket Lifecycle & Delivery Workflow"
+    description: "Understand the client's Jira/ClickUp workflow and delivery gates."
+    questions:
+      - id: has_custom_workflow
+        required: true
+        prompt: "Does the ticket system have a custom status workflow (beyond the default To Do / In Progress / Done)? Answer yes or no."
+        options: [yes, no]
+
+      - id: custom_statuses
+        required: false
+        condition: "has_custom_workflow == yes"
+        prompt: "List all ticket statuses in order, from creation to done. Include any blocked or failed states. (You can paste a list or describe them.)"
+
+      - id: done_status
+        required: true
+        prompt: "What status means a ticket is fully done and accepted? (e.g. Accepted, Done, Closed)"
+
+      - id: base_branch
+        required: true
+        prompt: "What is the base branch for all feature work? (e.g. main, develop, master)"
+
+      - id: branching_model
+        required: true
+        prompt: "What branching model does this client use?"
+        options: [single-branch-main, gitflow-develop, staging-and-prod-branches, release-branches, other]
+
+      - id: has_staging
+        required: true
+        prompt: "Does the project have a staging environment with a QA gate before production? Answer yes or no."
+        options: [yes, no]
+
+      - id: has_preprod_pr
+        required: false
+        condition: "has_staging == yes"
+        prompt: "Is there a separate pre-prod PR review step before the production release? Answer yes or no."
+        options: [yes, no]
+
+      - id: deploy_method
+        required: true
+        prompt: "How are changes deployed to production? (e.g. CI/CD auto-deploy on merge, manual trigger, scheduled pipeline)"
+
+      - id: environments
+        required: false
+        prompt: "List known environments and their purpose (e.g. dev, staging, prod; or ANALYTICS_STAGING vs ANALYTICS). Answer none if not applicable."
+
+  - id: stack
+    label: "Repositories & Technical Stack"
+    description: "Capture repos and any validation tools specific to this client."
+    questions:
+      - id: repos
+        required: true
+        prompt: "List the main repositories for this project, one per line. Format: `<repo-name> — <role>` (e.g. `dbt-project-main — primary dbt project`, `api-service — backend REST API`)."
+
+      - id: has_agents_md
+        required: true
+        prompt: "Do the repositories use an AGENTS.md (or CLAUDE.md) as the agent contract? Answer yes, no, or varies."
+        options: [yes, no, varies]
+
+      - id: validation_tools
+        required: true
+        prompt: "Which technical validation tools does this project require before merging? (e.g. dbt parse/test, Snowflake queries, pytest, Cypress, eslint, none)"
+
+      - id: secrets_and_credentials
+        required: false
+        prompt: "Where do credentials live (vault, 1Password, env vars)? Any strict rules to follow?"
+
+      - id: ci_system
+        required: false
+        prompt: "What CI system runs validation (GitHub Actions, GitLab CI, CircleCI, none, other)?"
+
+      - id: data_artifacts_policy
+        required: false
+        prompt: "Are there any data artifacts (CSVs, exports) that must NEVER be committed? Describe the policy or answer none."
+
+  - id: conventions
+    label: "Conventions & Guardrails"
+    description: "Branch naming, PR style, and any client-specific restrictions."
+    questions:
+      - id: branch_naming
+        required: true
+        prompt: "What is the branch naming convention? Leave blank to use the agent-toolkit default: `<username>/<ticket-id>-<short-slug>`."
+
+      - id: pr_style
+        required: true
+        prompt: "Should PRs start as drafts or go directly to review?"
+        options: [draft, direct]
+
+      - id: pr_template
+        required: false
+        prompt: "Does the repo have a PR template at `.github/PULL_REQUEST_TEMPLATE.md` or similar? Answer yes, no, or unknown."
+
+      - id: slack_channel
+        required: false
+        prompt: "Is there a primary Slack channel for communication with this client or team? (e.g. #acme-engineering)"
+
+      - id: guardrails
+        required: false
+        prompt: "Are there any special guardrails or restrictions for this client? (e.g. never commit credentials, no force-push, secrets in specific vault). Answer none if not applicable."
+
+      - id: storage_visibility
+        required: true
+        prompt: "Should the generated workspace files be local-only, or committed to the workspace repo for sharing?"
+        options: [local-only, commit-to-workspace]
+
+      - id: extra_notes
+        required: false
+        prompt: "Any additional context the workflow should capture? (e.g. time zone constraints, review SLAs, specific tooling notes)"

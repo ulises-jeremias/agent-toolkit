@@ -1,0 +1,102 @@
+name: Loop template request
+description: Propose a new recurring automated workflow (loop engineering template)
+title: "feat(loop): "
+labels: ["loop-request", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Loops are recurring AI-driven processes with safety gates and cost budgets.
+        See [Loop Engineering](https://github.com/ulises-jeremias/agent-toolkit/wiki/Loop-Engineering)
+        and review existing templates before filing.
+
+  - type: input
+    id: name
+    attributes:
+      label: Loop name
+      description: Kebab-case. Should describe the recurring action.
+      placeholder: "e.g. stale-issue-closer, dependency-audit"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Proposed tier
+      description: Start conservative — you can always graduate to a higher tier after testing.
+      options:
+        - "L1 — observe and report only (no mutations)"
+        - "L2 — assisted writes, PR-gated (mutations require human review)"
+        - "L3 — unattended writes on a tight allowlist (proven loop only)"
+    validations:
+      required: true
+
+  - type: input
+    id: cadence
+    attributes:
+      label: Cadence
+      description: How often should this loop run?
+      placeholder: "e.g. 1d, 12h, 1w"
+    validations:
+      required: true
+
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One precise sentence stating what the loop accomplishes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: Who runs this, against which repos, and what problem does it solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: allowlist
+    attributes:
+      label: Allowlist
+      description: What actions can the loop take without human review?
+      placeholder: |
+        - comment
+        - label
+        (do NOT include merge, close, push, approve unless you have a strong justification)
+    validations:
+      required: true
+
+  - type: textarea
+    id: deny
+    attributes:
+      label: Deny list
+      description: What actions must always be blocked?
+      placeholder: |
+        - merge
+        - close
+        - force-push
+        - approve
+    validations:
+      required: false
+
+  - type: input
+    id: budget
+    attributes:
+      label: Estimated token budget per run
+      description: Rough estimate. Formula — (repos × 7000) + 50000 for multi-repo loops.
+      placeholder: "e.g. 30000 (single repo), 300000 (40 repos)"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: resumable
+    attributes:
+      label: Multi-repo with checkpointing?
+      description: Does this loop scan multiple repos and need STATE.md resumability?
+      options:
+        - "No — single repo or few repos"
+        - "Yes — multi-repo, needs STATE.md per-repo checkpointing"
+    validations:
+      required: true

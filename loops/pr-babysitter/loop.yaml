@@ -1,0 +1,46 @@
+# Loop starter: pr-babysitter
+# An L2 loop that watches open PRs and posts review comments every 15 minutes.
+# Cadence: 15 minutes. Cost: high. Tier: L2 (PR-gated).
+#
+# Usage:
+#   agent-toolkit loop init pr-babysitter --repo owner/repo
+
+name: pr-babysitter
+description: "Monitor open PRs and post review comments (L2, PR-gated)"
+tier: L2
+cadence: 15m
+
+goal: |
+  Review any open PRs that have not received a review in the last hour.
+  Post constructive review comments. Do NOT approve or merge.
+
+allowlist:
+  - comment
+deny:
+  - merge
+  - approve
+  - close
+  - push
+  - label
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+  - human_escalation
+
+budget:
+  max_tokens: 80000
+  max_runs_per_day: 96
+  max_wall_seconds: 600
+
+verifier: agent-toolkit-code-reviewer
+
+request: |
+  You are the PR babysitter for this repository.
+  1. List all open PRs (gh pr list).
+  2. For each PR that has no review in the last 60 minutes:
+     a. Read the diff (gh pr diff).
+     b. Post a review comment with: summary, 1-3 specific suggestions, any blockers.
+  3. Do NOT approve or request changes — leave as a comment only.
+  4. If a PR has a security issue: escalate (human_escalation exit).
+  5. Write plan.md listing which PRs you reviewed and the comments posted.

@@ -1,0 +1,109 @@
+name: Update Upstream
+
+# Per ADR-0001 / #428: path-scoped upstream discovery → apply literal vendored
+# bodies → open a draft PR for human review. Offline integrity stays in
+# validate.yml (provenance check). Never auto-merges.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # weekly Monday 06:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: update-upstream
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Discover and sync upstream
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Discover upstream updates (online, path-scoped)
+        id: updates
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 scripts/provenance.py updates --json > /tmp/updates.json
+          cat /tmp/updates.json
+          COUNT=$(python3 -c "import json; print(json.load(open('/tmp/updates.json'))['count'])")
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$COUNT" -eq 0 ]; then
+            echo "No updates — all locked commits current for their paths/tags."
+          else
+            echo "Updates available: $COUNT"
+          fi
+
+      - name: Offline provenance integrity
+        run: python3 scripts/provenance.py check
+
+      - name: Apply updates and open draft PR
+        if: steps.updates.outputs.count != '0'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DATE=$(date -u +%Y%m%d)
+          BRANCH="chore/upstream-sync-${DATE}"
+
+          case "$BRANCH" in
+            main|master)
+              echo "Refusing to push to default branch $BRANCH"
+              exit 1
+              ;;
+          esac
+
+          # Reuse open sync PR/branch for the day when present
+          EXISTING=$(gh pr list --state open --head "$BRANCH" --json number --jq '.[0].number // empty' || true)
+          if [ -n "$EXISTING" ]; then
+            echo "Draft PR #$EXISTING already open for $BRANCH — skipping recreate."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$BRANCH"
+
+          python3 scripts/provenance.py updates --apply --json | tee /tmp/apply.json
+
+          # Drop machine summary from the commit (keep locally for PR body)
+          if [ -f capabilities/upstream-apply-summary.json ]; then
+            cp capabilities/upstream-apply-summary.json /tmp/upstream-apply-summary.json
+            rm -f capabilities/upstream-apply-summary.json
+          fi
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Apply produced no file changes."
+            exit 0
+          fi
+
+          git commit -m "chore(upstream): sync vendored skills from upstream" \
+            -m "Automated by provenance.py updates --apply (literal body fidelity)." \
+            -m "trust.tier set to experimental until human re-binds reviewed_provenance."
+
+          git push -u origin "HEAD:$BRANCH"
+
+          python3 scripts/upstream_pr_body.py \
+            --summary /tmp/upstream-apply-summary.json \
+            --summary /tmp/apply.json \
+            --output /tmp/pr-body.md
+
+          gh pr create --draft \
+            --title "chore(upstream): sync vendored skills ($(date -u +%Y-%m-%d))" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "$BRANCH"

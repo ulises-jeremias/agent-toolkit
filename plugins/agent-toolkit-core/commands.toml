@@ -1,0 +1,54 @@
+[[commands]]
+name = "assistant"
+description = "core/assistant"
+prompt = """
+Follow the `assistant` skill instructions for {{args}}.
+
+@{skills/assistant/SKILL.md}
+"""
+
+[[commands]]
+name = "dev_companion"
+description = "core/dev-companion"
+prompt = """
+Follow the `dev-companion` skill instructions for {{args}}.
+
+@{skills/dev-companion/SKILL.md}
+"""
+
+[[commands]]
+name = "output_handshake"
+description = "core/output-handshake"
+prompt = """
+Follow the `output-handshake` skill instructions for {{args}}.
+
+@{skills/output-handshake/SKILL.md}
+"""
+
+[[commands]]
+name = "pr_fallback"
+description = "core/pr-fallback"
+prompt = """
+Follow the `pr-fallback` skill instructions for {{args}}.
+
+@{skills/pr-fallback/SKILL.md}
+"""
+
+[[commands]]
+name = "workspace_knowledge_sync"
+description = "core/workspace-knowledge-sync"
+prompt = """
+Follow the `workspace-knowledge-sync` skill instructions for {{args}}.
+
+@{skills/workspace-knowledge-sync/SKILL.md}
+"""
+
+[[commands]]
+name = "onboarding"
+description = "core/onboarding"
+prompt = """
+Follow the `onboarding` skill instructions for {{args}}.
+
+@{skills/onboarding/SKILL.md}
+"""
+

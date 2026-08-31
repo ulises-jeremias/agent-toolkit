@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: "Discussion"
+    url: https://github.com/ulises-jeremias/agent-toolkit/discussions
+    about: Questions, ideas, and general discussion about agent-toolkit
+
+  - name: "Documentation"
+    url: https://github.com/ulises-jeremias/agent-toolkit/wiki
+    about: Read the agent-toolkit documentation and guides
+
+  - name: "Contributing guide"
+    url: https://github.com/ulises-jeremias/agent-toolkit/blob/main/CONTRIBUTING.md
+    about: How to add a skill, agent, loop, or profile to the toolkit

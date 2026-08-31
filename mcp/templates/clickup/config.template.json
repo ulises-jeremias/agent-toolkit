@@ -1,0 +1,8 @@
+{
+  "name": "clickup",
+  "command": "npx",
+  "args": ["-y", "mcp-clickup-server"],
+  "env": {
+    "CLICKUP_API_TOKEN": "${CLICKUP_API_TOKEN}"
+  }
+}

@@ -1,0 +1,25 @@
+figma (agent-toolkit distribution)
+============================
+
+This skill is derived from the OpenAI "skills" repository, originally licensed
+under the Apache License 2.0:
+
+  https://github.com/openai/skills (skills/.curated/figma)
+
+Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
+
+- Replaced the Codex-only `references/figma-mcp-config.md` (which assumed
+  `~/.codex/config.toml`, `bearer_token_env_var`, and
+  `[features].rmcp_client = true`) with a tool-agnostic guide that points to
+  the chezmoi-managed MCP template at `~/.local/share/agent-toolkit/mcp/figma/` and
+  documents Claude Code, Cursor, OpenCode and Windsurf registration paths.
+- Rewrote the SKILL.md introduction with a routing table to the rest of the
+  Figma family, and flagged `figma-use` and `figma-generate-design` /
+  `figma-generate-library` as opt-in packs (not bundled by default).
+- Documented secret handling via `~/.config/agent-toolkit/env.d/figma.env`
+  (`FIGMA_OAUTH_TOKEN`, `FIGMA_REGION`).
+- Removed the `agents/openai.yaml` manifest in favor of the agent-toolkit
+  `skill.json` schema.
+- Dropped vendor logo assets (`assets/figma*`).
+
+Original LICENSE.txt is preserved in this directory.

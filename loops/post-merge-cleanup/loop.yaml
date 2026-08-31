@@ -1,0 +1,44 @@
+# Loop starter: post-merge-cleanup
+# An L2 loop that runs off-peak housekeeping after merges.
+# Cadence: 6 hours. Cost: low. Tier: L2 (limited write access).
+
+name: post-merge-cleanup
+description: "Off-peak housekeeping after merges (L2, low impact)"
+tier: L2
+cadence: 6h
+
+goal: |
+  Delete merged branches, close stale issues, and compact the project board.
+  Only operate on branches/issues that are clearly finished.
+  Never delete branches with open PRs.
+
+allowlist:
+  - delete_merged_branch
+  - close_stale_issue
+  - comment
+deny:
+  - merge
+  - approve
+  - delete-unmerged-branch
+  - close-active-issue
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+  - human_escalation
+
+budget:
+  max_tokens: 20000
+  max_runs_per_day: 4
+  max_wall_seconds: 300
+
+verifier: null
+
+request: |
+  You are the post-merge cleanup loop for this repository.
+  1. List branches merged into main (git branch -r --merged main).
+  2. Delete branches that have been merged > 7 days ago (skip: main, develop, release/*).
+  3. List issues closed by merged PRs but not yet closed — close them.
+  4. List issues with no activity > 90 days — post a "stale?" comment (do NOT close).
+  5. Write plan.md: branches deleted, issues closed, stale comments posted.
+  6. If uncertain about any action: skip it and note it in plan.md.

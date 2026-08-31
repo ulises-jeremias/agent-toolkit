@@ -1,0 +1,623 @@
+{
+  "fixtures": [
+    {
+      "command": "version",
+      "args": [
+        "version"
+      ],
+      "class": "EXACT",
+      "expect_exit": 0
+    },
+    {
+      "command": "version-flag",
+      "args": [
+        "--version"
+      ],
+      "class": "EXACT",
+      "expect_exit": 0
+    },
+    {
+      "command": "help",
+      "args": [
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "install",
+        "doctor",
+        "inventory"
+      ]
+    },
+    {
+      "command": "version-json",
+      "args": [
+        "version",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "version",
+        "engine",
+        "commit"
+      ]
+    },
+    {
+      "command": "inventory",
+      "args": [
+        "inventory",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "skills_count",
+        "agents_count",
+        "products_count"
+      ]
+    },
+    {
+      "command": "inventory-human",
+      "args": [
+        "inventory"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "Skills:",
+        "Agents:",
+        "Products:"
+      ]
+    },
+    {
+      "command": "matrix",
+      "args": [
+        "matrix",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "found"
+      ]
+    },
+    {
+      "command": "doctor",
+      "args": [
+        "doctor",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "engine",
+        "version",
+        "platform",
+        "commit"
+      ]
+    },
+    {
+      "command": "build-check",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "cursor",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "build-check-copilot-cli",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "copilot-cli",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "build-check-windsurf",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "windsurf",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "build-check-pi",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "pi",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "build-check-gemini",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "gemini-cli",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "build-check-muse",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "muse-code",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "build-check-codex",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "codex",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "build-check-agent-plugins",
+      "args": [
+        "build",
+        "--check",
+        "--target",
+        "agent-plugins",
+        "--product",
+        "agent-toolkit-core",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "mode",
+        "ok"
+      ]
+    },
+    {
+      "command": "install-help",
+      "args": [
+        "install",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "install",
+        "dry-run",
+        "tools"
+      ]
+    },
+    {
+      "command": "install-dry-run",
+      "args": [
+        "install",
+        "--tools",
+        "cursor",
+        "--dry-run",
+        "--offline"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "cursor",
+        "dry"
+      ]
+    },
+    {
+      "command": "install-dry-run-json",
+      "args": [
+        "install",
+        "--tools",
+        "cursor",
+        "--dry-run",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "ok",
+        "dry_run"
+      ]
+    },
+    {
+      "command": "install-bad-flag",
+      "args": [
+        "install",
+        "--not-a-real-flag"
+      ],
+      "class": "EXACT",
+      "expect_exit": 2,
+      "compare": "exit_only"
+    },
+    {
+      "command": "uninstall-help",
+      "args": [
+        "uninstall",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "uninstall",
+        "dry-run",
+        "tools"
+      ]
+    },
+    {
+      "command": "diff-help",
+      "args": [
+        "diff",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "diff",
+        "target",
+        "product"
+      ]
+    },
+    {
+      "command": "update-help",
+      "args": [
+        "update",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "update",
+        "check",
+        "tools"
+      ]
+    },
+    {
+      "command": "doctor-fix",
+      "args": [
+        "doctor",
+        "--fix",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "engine",
+        "version",
+        "platform",
+        "fix_applied"
+      ]
+    },
+    {
+      "command": "skills-help",
+      "args": [
+        "skills",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "list",
+        "sync",
+        "validate"
+      ]
+    },
+    {
+      "command": "mcp-help",
+      "args": [
+        "mcp",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "list",
+        "setup",
+        "uninstall"
+      ]
+    },
+    {
+      "command": "plugin-help",
+      "args": [
+        "plugin",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "sync",
+        "check"
+      ]
+    },
+    {
+      "command": "workspace-help",
+      "args": [
+        "workspace",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "init",
+        "context",
+        "sync"
+      ]
+    },
+    {
+      "command": "workspace-context-json",
+      "args": [
+        "workspace",
+        "context",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "workspace",
+        "subcommand",
+        "timestamp"
+      ]
+    },
+    {
+      "command": "memory-help",
+      "args": [
+        "memory",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "add",
+        "search",
+        "inject",
+        "todo"
+      ]
+    },
+    {
+      "command": "project-help",
+      "args": [
+        "project",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "clone",
+        "list",
+        "add",
+        "remove",
+        "scan"
+      ]
+    },
+    {
+      "command": "project-list-json",
+      "args": [
+        "project",
+        "list",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "command",
+        "workspace",
+        "subcommand"
+      ]
+    },
+    {
+      "command": "devcompanion-help",
+      "args": [
+        "devcompanion",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "queue",
+        "run-once",
+        "status",
+        "sync-todos"
+      ]
+    },
+    {
+      "command": "dc-help",
+      "args": [
+        "dc",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "queue",
+        "status"
+      ]
+    },
+    {
+      "command": "loop-help",
+      "args": [
+        "loop",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "init",
+        "run",
+        "status",
+        "schedule"
+      ]
+    },
+    {
+      "command": "swarm-help",
+      "args": [
+        "swarm",
+        "--help"
+      ],
+      "class": "SEMANTIC",
+      "must_contain": [
+        "start",
+        "doctor",
+        "approve"
+      ]
+    },
+    {
+      "command": "swarm-recipes",
+      "args": [
+        "swarm",
+        "recipes",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "pair",
+        "team",
+        "full"
+      ]
+    },
+    {
+      "command": "help-insights-disposition",
+      "args": [
+        "--help"
+      ],
+      "class": "V_SEMANTIC",
+      "must_contain": [
+        "insights"
+      ]
+    },
+    {
+      "command": "help-release-disposition",
+      "args": [
+        "--help"
+      ],
+      "class": "V_SEMANTIC",
+      "must_contain": [
+        "release",
+        "RELEASING.md"
+      ]
+    },
+    {
+      "command": "insights-help-disposition",
+      "args": [
+        "insights"
+      ],
+      "class": "V_SEMANTIC",
+      "expect_v_exit": 0,
+      "must_contain": [
+        "opencode",
+        "cursor",
+        "claude"
+      ],
+      "must_not_contain": [
+        "removed",
+        "#526"
+      ]
+    },
+    {
+      "command": "release-help-disposition",
+      "args": [
+        "release"
+      ],
+      "class": "V_SEMANTIC",
+      "expect_v_exit": 1,
+      "must_contain": [
+        "#527",
+        "RELEASING.md"
+      ]
+    },
+    {
+      "command": "swarm-recipe-list-json",
+      "args": [
+        "swarm",
+        "recipe",
+        "list",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": [
+        "pair",
+        "team",
+        "full"
+      ],
+      "must_contain": [
+        "Two-role implementer"
+      ]
+    },
+    {
+      "command": "swarm-ls-json",
+      "args": [
+        "swarm",
+        "ls",
+        "--json"
+      ],
+      "class": "SCHEMA",
+      "expect_v_exit": 0,
+      "required_keys": []
+    }
+  ]
+}

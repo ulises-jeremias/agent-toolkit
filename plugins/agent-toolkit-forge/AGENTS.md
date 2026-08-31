@@ -1,0 +1,18 @@
+# Agent Toolkit Forge
+
+GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.
+
+## Available Skills
+
+- **fix-merge-conflicts**: forge/fix-merge-conflicts
+- **github-cli-workflow**: forge/github-cli-workflow
+- **gitlab-cli-workflow**: forge/gitlab-cli-workflow
+- **gh-address-comments**: forge/gh-address-comments
+- **gh-fix-ci**: forge/gh-fix-ci
+- **gh-contribution-planner**: forge/gh-contribution-planner
+- **workflow-client-bootstrap**: delivery/workflow-client-bootstrap
+- **workflow-generic-project**: delivery/workflow-generic-project
+
+## Scope
+
+These instructions are project-scoped. Rules in `rules/` provide always-on behavioral constraints. Skills in `skills/` are on-demand procedures invoked explicitly.

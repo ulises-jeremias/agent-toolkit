@@ -1,0 +1,111 @@
+name: Skill request
+description: Propose a new skill or an improvement to an existing one
+title: "feat(skill): "
+labels: ["skill-request", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Skills are on-demand AI procedures following the [Agent Skills spec](https://github.com/vercel-labs/skills).
+        Before opening this issue, check the [Skills Reference](https://github.com/ulises-jeremias/agent-toolkit/wiki/Skills-Reference)
+        to confirm the skill doesn't already exist.
+
+  - type: input
+    id: name
+    attributes:
+      label: Skill name
+      description: Kebab-case, descriptive. Must be unique within its domain.
+      placeholder: "e.g. changelog-generator, api-contract-reviewer"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      description: Which existing domain best fits this skill?
+      options:
+        - core
+        - delivery
+        - design
+        - forge
+        - integrations
+        - data
+        - tooling
+        - ops
+        - loops
+        - new domain (describe below)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: responsibility
+    attributes:
+      label: Responsibility
+      description: "HOW = executes a specific tool/API. WHAT = orchestrates a workflow phase."
+      options:
+        - "HOW — tool skill (operates a CLI, API, or specific toolchain)"
+        - "WHAT — workflow skill (orchestrates a delivery phase or decision)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What user problem does this skill solve? Who is the target?
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use case
+      description: One or two concrete scenarios where this skill would be invoked.
+      placeholder: |
+        When a developer has a failing CI run, they invoke this skill to get a root-cause
+        analysis and a concrete fix proposal without having to manually read logs.
+    validations:
+      required: true
+
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior
+      description: Step-by-step description of what the skill does. Include exit conditions and human-gate points.
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Other skills, CLI executables, environment variables, or MCP servers required.
+      placeholder: |
+        - Requires `gh` CLI (GitHub CLI)
+        - Depends on skill `github-cli-workflow`
+        - Reads GITHUB_TOKEN from environment
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: tools
+    attributes:
+      label: Target AI tools
+      description: Which tools should this skill support?
+      options:
+        - label: Claude Code
+        - label: Cursor
+        - label: OpenCode
+        - label: GitHub Copilot
+        - label: Windsurf
+        - label: Pi Coding Agent
+        - label: All tools (universal)
+
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Links to similar skills, upstream tools, specs, or prior discussions.
+    validations:
+      required: false

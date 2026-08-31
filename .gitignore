@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+*.swp
+
+# Secrets - never commit
+*.env
+.env.*
+!.env.example
+
+# Build artifacts
+dist/
+build/
+# Precompiled make.vsh (`./make.vsh compile-make`)
+/make
+packages/pypi/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit
+packages/pypi/agent-toolkit-cli/src/agent_toolkit/bin/agent-toolkit.exe
+packages/pypi/agent-toolkit-cli/.venv/
+packages/pypi/agent-toolkit-cli/uv.lock
+packages/npm/*/bin/agent-toolkit
+packages/npm/*/bin/agent-toolkit.exe
+
+# Editor
+.idea/
+.vscode/settings.json
+# Loop run artifacts (machine-specific state)
+loops/*/runs/
+loops/*/STATE.md
+
+# Git worktrees
+.worktrees/
+modules/.cache/
+capabilities/upstream-apply-summary.json
+
+# Server runtime state (jobs, logs)
+.agent-toolkit/
+scripts/swarm-visual/.venv/
+knowledge/learnings/

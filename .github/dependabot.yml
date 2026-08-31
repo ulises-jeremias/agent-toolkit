@@ -1,0 +1,41 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "infrastructure"
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Python — PyPI adapter only (no root uv workspace)
+  - package-ecosystem: "pip"
+    directory: "/packages/pypi/agent-toolkit-cli"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # npm — Danger.js tooling
+  - package-ecosystem: "npm"
+    directory: "/tools/danger"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps)"

@@ -1,0 +1,12 @@
+{
+  "name": "agent-toolkit-danger",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Danger.js configuration for agent-toolkit PRs",
+  "scripts": {
+    "danger": "danger ci"
+  },
+  "dependencies": {
+    "danger": "^13.0.0"
+  }
+}

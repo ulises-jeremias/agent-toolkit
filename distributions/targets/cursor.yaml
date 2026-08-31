@@ -1,0 +1,42 @@
+# Cursor target definition
+id: cursor
+name: "Cursor IDE / Cursor CLI"
+description: Cursor AI coding IDE and CLI
+maturity: stable
+package_type: plugin
+manifest_path: .cursor-plugin/plugin.json
+marketplace_path: .cursor-plugin/marketplace.json
+
+capabilities:
+  skills:
+    supported: true
+    method: native
+    format: SKILL.md (Agent Skills spec)
+  agents:
+    supported: true
+    method: native
+    format: Agent definitions in plugin bundle
+  rules:
+    supported: true
+    method: native
+    format: .mdc files in ~/.cursor/rules/ or .cursor/rules/
+    note: Rules are persistent constraints; skills are on-demand procedures
+  mcp:
+    supported: true
+    method: manual
+    note: User configures ~/.cursor/mcp.json; not bundled in plugin compile output
+  hooks:
+    supported: false
+    method: unsupported
+    note: Platform supports hooks; toolkit pending canonical hook model (#16)
+  commands:
+    supported: unknown-blocked
+    note: Need to verify if Cursor plugin format supports slash commands
+
+surfaces:
+  ide: full support
+  cli: reads ~/.cursor/rules/ same as IDE
+  cloud_agents: unknown-blocked
+
+security:
+  no_dangerous_mode_bypass: true

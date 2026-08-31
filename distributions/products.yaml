@@ -1,0 +1,270 @@
+version: '1.0'
+generated_from: distributions/products.yaml
+products:
+  - id: agent-toolkit-core
+    name: Agent Toolkit Core
+    description: Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.
+    version_source: VERSION
+    stability: stable
+    includes:
+      skills:
+        - core/assistant
+        - core/dev-companion
+        - core/output-handshake
+        - core/pr-fallback
+        - core/workspace-knowledge-sync
+        - core/onboarding
+      agents:
+        - code-reviewer
+      hooks:
+        - session-start-context
+      mcp:
+        - github
+    excludes: []
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-core
+        manifest: plugins/agent-toolkit-core/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-core
+        manifest: plugins/agent-toolkit-core/.cursor-plugin/plugin.json
+    requires:
+      executables: []
+      env: []
+    security:
+      approval_required: false
+      default_enabled: true
+      rationale: Core skills are read-only instruction files with no side effects.
+  - id: agent-toolkit-agents
+    name: Agent Toolkit Agents
+    description: '18 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant, client-workflow-bootstrap) + 5 specialists (code-reviewer, agentic-security-reviewer, security-reviewer, e2e-runner, tdd-guide, build-error-resolver) — 7 specialists archived to references in #865 (typescript/database/performance/refactor → reviewer/references/*; docs/reference-lookup → researcher/references/LOOKUP_GUIDE.md; tech-assistant → platform-engineer/references/WORKSTATION_OPS.md) — see docs/AGENT_TAXONOMY.md §8.'
+    version_source: VERSION
+    stability: stable
+    includes:
+      skills: []
+      agents:
+        - agentic-security-reviewer
+        - architect
+        - assistant
+        - build-error-resolver
+        - client-workflow-bootstrap
+        - code-reviewer
+        - data-engineer
+        - designer
+        - e2e-runner
+        - implementer
+        - planner
+        - platform-engineer
+        - qa-engineer
+        - researcher
+        - reviewer
+        - security-engineer
+        - security-reviewer
+        - tdd-guide
+      hooks: []
+      mcp: []
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-agents
+        manifest: plugins/agent-toolkit-agents/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-agents
+        manifest: plugins/agent-toolkit-agents/.cursor-plugin/plugin.json
+  - id: agent-toolkit-forge
+    name: Agent Toolkit Forge
+    description: 'GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.'
+    version_source: VERSION
+    stability: stable
+    includes:
+      skills:
+        - forge/fix-merge-conflicts
+        - forge/github-cli-workflow
+        - forge/gitlab-cli-workflow
+        - forge/gh-address-comments
+        - forge/gh-fix-ci
+        - forge/gh-contribution-planner
+        - delivery/workflow-client-bootstrap
+        - delivery/workflow-generic-project
+      agents: []
+      hooks: []
+      mcp: []
+    requires:
+      executables:
+        - name: gh
+          description: GitHub CLI
+          install_url: https://cli.github.com/
+          required: false
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-forge
+        manifest: plugins/agent-toolkit-forge/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-forge
+        manifest: plugins/agent-toolkit-forge/.cursor-plugin/plugin.json
+  - id: agent-toolkit-craft
+    name: Agent Toolkit Craft
+    description: 'Writing quality and change-safety toolkit: cut AI tells (unslop), remove code slop (deslop), and prove blast radius before shipping.'
+    version_source: VERSION
+    stability: stable
+    includes:
+      skills:
+        - quality/unslop
+        - quality/deslop
+        - quality/blast-radius
+      agents: []
+      hooks: []
+      mcp: []
+    targets:
+      claude-code:
+        plugin_id: agent-toolkit-craft
+        manifest: plugins/agent-toolkit-craft/.claude-plugin/plugin.json
+      cursor:
+        plugin_id: agent-toolkit-craft
+        manifest: plugins/agent-toolkit-craft/.cursor-plugin/plugin.json
+  - id: agent-toolkit-complete
+    name: Agent Toolkit Complete
+    description: Full stable skill catalog coverage for consumers who want everything (#50)
+    stability: experimental
+    includes:
+      skills:
+        - core/assistant
+        - core/dev-companion
+        - core/onboarding
+        - core/output-handshake
+        - core/pr-fallback
+        - core/workspace-knowledge-sync
+        - data/dbt-validation
+        - data/snowflake-validation
+        - delivery/adr
+        - delivery/agreement
+        - delivery/bug
+        - delivery/decision-log
+        - delivery/development-workflow
+        - delivery/epic
+        - delivery/incident
+        - delivery/management-unit-assessment
+        - delivery/meeting-minutes
+        - delivery/planning
+        - delivery/prd
+        - delivery/project-assessment
+        - delivery/project-assessment-evidence
+        - delivery/spike
+        - delivery/task
+        - delivery/technical-unit-assessment
+        - delivery/trd
+        - delivery/user-story
+        - delivery/work-item
+        - delivery/workflow-client-bootstrap
+        - delivery/workflow-generic-project
+        - design/figma
+        - design/figma-code-connect-components
+        - design/figma-create-design-system-rules
+        - design/figma-create-new-file
+        - design/figma-implement-design
+        - design/design-assessment
+        - design/design-improvement
+        - design/frontend-design
+        - design/frontend-design-review
+        - design/web-design-guidelines
+        - agentic-security/supply-chain-audit
+        - forge/fix-merge-conflicts
+        - forge/gh-address-comments
+        - forge/gh-contribution-planner
+        - forge/gh-fix-ci
+        - forge/github-cli-workflow
+        - forge/gitlab-cli-workflow
+        - integrations/clickup-cli
+        - integrations/linear
+        - integrations/slack-assistant
+        - integrations/slack-cli
+        - integrations/confluence-admin
+        - integrations/confluence-analytics
+        - integrations/confluence-assistant
+        - integrations/confluence-attachment
+        - integrations/confluence-bulk
+        - integrations/confluence-comment
+        - integrations/confluence-hierarchy
+        - integrations/confluence-jira
+        - integrations/confluence-label
+        - integrations/confluence-ops
+        - integrations/confluence-page
+        - integrations/confluence-permission
+        - integrations/confluence-property
+        - integrations/confluence-search
+        - integrations/confluence-space
+        - integrations/confluence-template
+        - integrations/confluence-watch
+        - integrations/jira-administration
+        - integrations/jira-agile-management
+        - integrations/jira-assistant
+        - integrations/jira-bulk-operations
+        - integrations/jira-collaboration
+        - integrations/jira-custom-fields
+        - integrations/jira-developer-integration
+        - integrations/jira-issue-management
+        - integrations/jira-issue-relationships
+        - integrations/jira-lifecycle-management
+        - integrations/jira-operations
+        - integrations/jira-search-jql
+        - integrations/jira-service-management
+        - integrations/jira-time-tracking
+        - loops/loop-runner
+        - ops/docs-generator
+        - ops/llm-cost-advisor
+        - ops/swarm
+        - ops/swarm-handoff
+        - ops/swarm-observer
+        - ops/triage
+        - tooling/herdr
+        - tooling/cli-for-agents
+        - tooling/inventory
+        - tooling/jupyter-notebook
+        - accessibility/review
+        - agentic-security/mcp-audit
+        - agentic-security/owasp-agentic-review
+        - agentic-security/threat-modeling
+        - quality/megalinter
+        - quality/megalinter-setup
+        - quality/megalinter-check
+        - quality/megalinter-fix
+        - quality/codeql
+        - quality/unslop
+        - quality/deslop
+        - quality/blast-radius
+        - quality/deep-review
+        - tooling/chrome-devtools
+        - tooling/playwright-cli
+        - core/project
+        - core/workspace
+        - forge/worktree
+        - integrations/mcp
+        - cloud/cloud-design-patterns
+        - cloud/aws-well-architected-review
+        - tooling/mermaid
+        - architecture/architecture-diagram
+        - architecture/c4-model
+      agents:
+        - agentic-security-reviewer
+        - architect
+        - assistant
+        - build-error-resolver
+        - client-workflow-bootstrap
+        - code-reviewer
+        - data-engineer
+        - designer
+        - e2e-runner
+        - implementer
+        - planner
+        - platform-engineer
+        - qa-engineer
+        - researcher
+        - reviewer
+        - security-engineer
+        - security-reviewer
+        - tdd-guide
+      hooks: []
+      mcp: []
+    security:
+      approval_required: false
+      default_enabled: true
+      rationale: opt-in complete catalog

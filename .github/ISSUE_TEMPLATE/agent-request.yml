@@ -1,0 +1,73 @@
+name: Agent persona request
+description: Propose a new specialist agent persona or improvement to an existing one
+title: "feat(agent): "
+labels: ["agent-request", "enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Agent personas are specialist AI roles invoked via `@mention` or delegation.
+        See the [Agents Reference](https://github.com/ulises-jeremias/agent-toolkit/wiki/Agents-Reference)
+        for existing personas before filing.
+
+  - type: input
+    id: name
+    attributes:
+      label: Agent name
+      description: Kebab-case. Must be unique within agents/.
+      placeholder: "e.g. accessibility-reviewer, api-contract-validator"
+    validations:
+      required: true
+
+  - type: textarea
+    id: role
+    attributes:
+      label: Role and scope
+      description: What specialist domain does this agent cover? When should it be invoked vs. a skill?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tools
+    attributes:
+      label: Abstract tool requirements
+      description: |
+        What filesystem, shell, or network capabilities does this agent need?
+        Use abstract vocabulary: fs.read, fs.write, shell.readonly, shell.execute, git.read, git.write, web.search, web.fetch.
+      placeholder: |
+        - fs.read (reads source files for review)
+        - web.fetch (fetches relevant specs/docs)
+        - Does NOT need shell.execute or git.write
+    validations:
+      required: true
+
+  - type: dropdown
+    id: write_capability
+    attributes:
+      label: Write capability
+      description: Should this agent be able to modify files or only read/analyze?
+      options:
+        - "Read-only — analysis and recommendations only"
+        - "Write-capable — can create or modify files with appropriate gates"
+    validations:
+      required: true
+
+  - type: textarea
+    id: triggers
+    attributes:
+      label: Delegation triggers
+      description: When should the orchestrator delegate to this agent? Give 3-5 concrete trigger examples.
+      placeholder: |
+        - "review this for accessibility"
+        - "check WCAG compliance"
+        - "audit contrast ratios"
+    validations:
+      required: true
+
+  - type: textarea
+    id: handoffs
+    attributes:
+      label: Handoffs
+      description: Which other agents does this one delegate to or receive from?
+    validations:
+      required: false

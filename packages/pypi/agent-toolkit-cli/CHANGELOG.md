@@ -1,0 +1,240 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.0.1] — 2026-08-04
+
+### Fixed
+- Publish agent-toolkit-cli to PyPI (release.yml was missing build + publish steps in v1.0.0)
+- SVG animations: replace CSS @keyframes with native SVG <animate> (GitHub strips CSS)
+- Banner SVG: fix text overlap between title and right panel (shift from x=575 to x=530)
+- CLI wheel install: shared _paths.py resolves toolkit root correctly in all install modes
+- CI: remove pytest || true so test failures block the pipeline
+
+## [1.0.2] — 2026-08-04
+
+### Fixed
+- release.yml now correctly builds wheel and publishes to PyPI
+
+## [1.0.3] — 2026-08-04
+
+### Fixed
+- release.yml YAML syntax fixed for GitHub Actions validator
+
+## [1.0.4] — 2026-08-04
+
+### Fixed
+- **Wheel install**: data files (profiles/, loops/, skills/, etc.) now packed inside
+  the wheel at `agent_toolkit/data/` — works correctly with pip, uvx, and brew
+- `_paths.py`: resolve data from `importlib.resources` and direct package path
+  before falling back to walking up the filesystem (which breaks in uvx cache)
+- Added `agent-toolkit-cli` as script alias so `uvx agent-toolkit-cli` works
+
+## [1.0.5] — 2026-08-04
+
+### Fixed
+- loop runner: resolve toolkit root from package data dir before CWD fallback,
+  preventing it from picking up the user's ai-workspace loops when run via uvx/pip
+
+## [1.0.6] — 2026-08-04
+
+### Fixed
+- **CRITICAL**: Local `toolkit_root()` in cli/install.py, doctor.py, mcp.py, skills.py,
+  plugin.py was defined *after* the import from `_paths.py`, shadowing it — so the
+  correct resolution logic was never called in wheel/uvx installs
+- Removed module-level `TOOLKIT_DIR: Path = toolkit_root()` (evaluated at import time,
+  crashed before any function ran) — replaced with lazy `toolkit_root()` per call site
+
+## [1.0.7] — 2026-08-04
+
+### Fixed
+- `skills list`: now correctly parses YAML block scalars (>-, |-) in SKILL.md descriptions
+  — all 52 skill descriptions now display properly instead of showing ">-"
+- `install` command: Copilot prompt no longer blocks in non-interactive/dry-run mode
+  (stdin.isatty() check; skips automatically in CI, pipes, --dry-run)
+- `pyproject.toml`: added agent-toolkit-cli script alias so `uvx agent-toolkit-cli` works
+
+## [1.0.8] — 2026-08-04
+
+### Fixed
+- Copilot never auto-installed during `install` auto-detect — always requires `--tools copilot` (it needs a project path)
+- CI integration tests: use relative file paths instead of /tmp (cross-platform)
+- CI integration tests: fix Windows runner compatibility
+
+## [1.0.9] — 2026-08-04
+
+### Fixed
+- Windows compatibility: `os.getuid()` doesn't exist on Windows — wrapped in try/except
+  so `agent-toolkit doctor` no longer crashes on Windows runners
+
+## [1.0.10] — 2026-08-04
+
+### Fixed
+- `loop run` now works from pip/uvx installs — `loop-gh-gate` (the gh CLI
+  security shim) is now included in the wheel at `agent_toolkit/loop/loop-gh-gate`
+- Windows compatibility: `os.getuid()` wrapped in try/except AttributeError
+
+### Added  
+- uv workspace structure: `packages/pypi/agent-toolkit-cli/` — ready for future packages
+  (`agent-toolkit-server`, `agent-toolkit-mcp`, etc.)
+- Root `pyproject.toml` with `[tool.uv.workspace]` and shared dev tooling
+
+## [1.1.0] — 2026-08-04
+
+### Added — Full workspace capability
+
+agent-toolkit is now a complete workspace toolkit. Every capability from
+~/.ai-workspace and agentic-harness is available as a CLI subcommand:
+
+**`agent-toolkit workspace`** — Workspace scaffolding and session context
+- `workspace init [--dir PATH]` — scaffold harness workspace (AGENTS.md, knowledge/, packs/, personas/, loops/, projects/, repos/)
+- `workspace context` — session state snapshot for AI session start
+- `workspace sync` — sync loop escalations into knowledge todos
+
+**`agent-toolkit memory`** — Persistent knowledge base (replaces bin/assistant-memory)
+- `memory add --type <learning|process|todo> "content"` — add to knowledge base
+- `memory search "query"` — search all knowledge files
+- `memory inject` — output full knowledge context block for AI session
+- `memory review` — show stale entries
+- `memory todo` — list pending todos
+
+**`agent-toolkit project`** — Project clone and symlink manager (replaces bin/project-indexer)
+- `project clone owner/repo` — clone + symlink into projects/
+- `project list` — list indexed projects
+- `project add <path>` — symlink existing repo
+- `project remove <name>` — remove symlink
+- `project scan` — consistency check
+
+**`agent-toolkit devcompanion`** — Background job queue (replaces bin/devcompanion)
+- `devcompanion queue <project> [--request "..."] [--template NAME]` — queue a job
+- `devcompanion run-once [--no-llm]` — execute oldest pending job
+- `devcompanion status` — show all jobs
+- `devcompanion done <job-id>` — mark job complete
+- `devcompanion sync-todos` — sync plan.md todos to knowledge
+
+**`agent-toolkit insights`** — AI tool usage analytics (replaces bin/tool-insights)
+- `insights opencode` — OpenCode sessions from SQLite DB
+- `insights cursor` — Cursor agent transcripts
+- `insights claude` — Claude Code sessions
+- `insights all` — aggregate across all tools
+
+**Templates** — workspace scaffold templates bundled in the wheel
+- 12 CLI modules, 42 template files (AGENTS.md, personas, knowledge, etc.)
+- `agent-toolkit workspace init` = what agentic-harness now scaffolds from
+
+**Profile updates** — Claude Code, Cursor, OpenCode, Windsurf profiles updated with
+agent-toolkit CLI reference and session-start protocol
+
+### Changed
+- agentic-harness: bin/workspace-context and bin/assistant-memory are now
+  thin wrappers that delegate to agent-toolkit CLI
+
+## [1.2.0] — 2026-08-04
+
+### Added — Native multi-runtime compiler platform (Phases 3-7)
+
+The canonical compiler pipeline now generates native artifacts for 9 AI coding targets:
+
+**Compiler targets:**
+- Claude Code (plugin — .claude-plugin/) — stable GA
+- Cursor IDE/CLI (plugin — .cursor-plugin/) — stable GA
+- GitHub Copilot CLI (plugin — plugin.json) — stable GA
+- GitHub Copilot Repository (.github/ assets) — stable GA
+- Gemini CLI (extension — gemini-extension.json + commands.toml) — stable GA
+- OpenCode (companion-assets — .opencode/) — stable
+- Pi Coding Agent (companion-assets — pi-package.json) — stable
+- Windsurf/Devin (customization-bundle — rules + AGENTS.md) — accurately labeled (no marketplace)
+- OpenAI Codex (plugin — .codex-plugin/) — experimental
+
+**Canonical compiler pipeline:**
+- `distributions/products.yaml` — declarative product catalog
+- `src/agent_toolkit/compiler/` — model, loader, targets/
+- `agent-toolkit build` — compile to any target
+- `agent-toolkit diff` — show changes vs installed
+- `agent-toolkit inventory` — list all capabilities
+- `agent-toolkit matrix` — platform capability matrix
+- `agent-toolkit release --dry-run` — generate dist/ artifacts + checksums
+
+**MCP and hooks:**
+- `mcp/registry/` — canonical registry for 6 providers (github, slack, notion, linear, figma, clickup)
+- `capabilities/hooks/` — canonical hook definitions with platform parity matrix
+- `schemas/hook.schema.yaml` — JSON Schema for hook definitions
+
+**Testing (418 tests):**
+- Contract tests for all 9 compiler adapters
+- Golden/snapshot tests for deterministic output
+- Security tests: path traversal, secret redaction
+- Installer receipt tests
+- MCP registry tests
+- Hook registry tests
+- Provenance/diff tests
+
+**Docs:**
+- `docs/TARGETS.md` — honest capability matrix for all 9 targets
+- `docs/research/` — platform capability matrix, source ledger, audit
+- `docs/adrs/` — ADR-001 (canonical IR), ADR-002 (Windsurf bundle)
+- `docs/security/` — threat model
+
+### Security
+- Removed `skipDangerousModePermissionPrompt` from Claude Code profile
+- Replaced private LAN URLs in OpenCode profile with portable defaults
+- Updated schema `$id` to remove stale agentic-workstation references
+
+## [1.2.2] — 2026-08-05
+
+### Changed
+- Elevate package README for PyPI: banners, badges, install paths, consumer/advanced CLI surfaces, tool matrix, and ecosystem docs (absolute GitHub links)
+
+## [Unreleased]
+
+### Fixed
+
+- Codex/OpenCode/Pi manifest validators no longer treat semver `1.10.0` as a
+  private `10.x` hostname (false positive after the v1.10.0 bump).
+
+### Added
+
+- **Loop comment attribution (default ON):** `loop-gh-gate` prepends
+  `> 🤖 AI-assisted message posted as @{login} by [agent-toolkit](...) (`loop`)`
+  to outbound `gh` comment/review bodies (`--body`, `--body-file`, `-f body=`).
+  Opt out per loop with `attribution: false` or `attribution.enabled: false` in
+  LOOP.md / `loop.yaml`. Login is resolved from the authenticated `gh` token.
+
+### Added (historical backlog)
+
+- Initial toolkit release with 53+ skills across 9 domains (core, delivery, design, forge, integrations, data, tooling, ops, loops)
+- Agent personas for all major AI coding tools: architect, planner, code-reviewer, security-reviewer, performance-optimizer, tdd-guide, refactor-cleaner, docs-lookup
+- Profiles for Claude Code, Cursor, OpenCode, GitHub Copilot, Windsurf, and Pi Coding Agent
+- 10 loop engineering templates including OSS maintenance patterns:
+  - `oss-pr-monitor` (L1) — monitor open PRs across OSS repos
+  - `oss-triage` (L1) — triage new issues and apply labels
+  - `oss-daily-briefing` (L2) — daily activity summary across tracked repos
+  - `dependency-drift` (L2) — detect and PR outdated dependencies
+  - `ci-health` (L1) — watch CI status and auto-diagnose failures
+  - `release-notes` (L3) — draft release notes from merged PRs
+  - `security-sweep` (L2) — vulnerability scan across repos
+  - `codeowner-review` (L2) — remind code owners of pending reviews
+  - `stale-branch-cleanup` (L3) — identify and archive stale branches
+  - `contributor-digest` (L3) — generate weekly contributor activity digest
+- MCP configuration templates for 6 services: GitHub, Slack, Notion, Linear, Figma, ClickUp
+- Solution packs: `oss-ecosystem`, `startup-delivery`, `enterprise-ops`, `data-platform`
+- JSON schemas for skill and loop validation (`schemas/skill.schema.json`, `schemas/loop.schema.json`)
+- `catalogs/skill-catalog.yaml` — machine-readable index of all skills
+- `catalogs/agent-catalog.yaml` — machine-readable index of all agent personas
+- `scripts/validate-skills.sh` — validates all skill.json manifests against schema
+- `scripts/validate-loops.sh` — validates all loop frontmatter against schema
+- `scripts/build-catalog.sh` — regenerates skill and agent catalogs
+- `scripts/install.sh` — quick-setup installer for all supported tools
+- `AGENTS.md` — AI agent contract with authoring specs for skills, loops, and profiles
+- `CONTRIBUTING.md` — contributor guide with step-by-step instructions
+- `SECURITY.md` — security policy including private disclosure process
+- GitHub Actions CI workflow for automated skill and loop validation on every push and PR
+
+---
+
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/HEAD...HEAD

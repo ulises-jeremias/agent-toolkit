@@ -1,0 +1,23 @@
+linear (agent-toolkit distribution)
+=============================
+
+This skill is derived from the OpenAI "skills" repository, originally licensed
+under the Apache License 2.0:
+
+  https://github.com/openai/skills (skills/.curated/linear)
+
+Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
+
+- Removed Codex-specific setup (`codex mcp add`, `codex mcp login`,
+  `[features].rmcp_client`, `--enable rmcp_client`, references to restarting
+  Codex).
+- Removed `metadata.short-description: "Manage Linear issues in Codex"` and
+  `agents/openai.yaml` in favor of the agent-toolkit `skill.json` schema.
+- Replaced the setup section with a tool-agnostic matrix (Claude Code, Cursor,
+  OpenCode, Windsurf) that points to the chezmoi-managed MCP template at
+  `~/.local/share/agent-toolkit/mcp/linear/`.
+- Added a Boundaries section forbidding direct Linear REST/GraphQL access in
+  favor of the auditable MCP path.
+- Dropped vendor logo assets (`assets/linear*`).
+
+Original LICENSE.txt is preserved in this directory.

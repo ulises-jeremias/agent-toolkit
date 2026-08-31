@@ -1,0 +1,969 @@
+version: '1'
+providers:
+  linear:
+    id: linear
+    display_name: Linear
+    purpose: Manage Linear issues, projects, cycles, and comments
+    what:
+      verbs:
+        - list
+        - get
+        - create
+        - update
+        - comment
+        - triage
+        - plan
+      entities:
+        - issue
+        - project
+        - cycle
+        - comment
+        - team
+    how:
+      - id: linear-mcp-official
+        mechanism: mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+          - windsurf
+          - vscode
+        package: https://mcp.linear.app/mcp
+        repository: https://linear.app/docs/mcp
+        license: proprietary
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: oauth
+          env: []
+          scopes:
+            - read
+            - write
+        read:
+          - list_issues
+          - get_issue
+          - list_projects
+          - list_cycles
+          - search_issues
+        write:
+          - create_issue
+          - update_issue
+          - create_comment
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: browser OAuth, no token in env
+          latency: medium (HTTP)
+          context_overhead: low (tool definitions)
+          offline: false
+        availability:
+          maintenance: active (2026-08-12)
+          cross_agent:
+            - claude-code
+            - cursor
+            - opencode
+          native_ux: MCP tool calls
+      - id: linear-mcp-community-pat
+        mechanism: community_mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+        package: '@ibraheem4/linear-mcp'
+        repository: https://github.com/ibraheem4/linear-mcp
+        license: MIT
+        transport: stdio
+        provenance: community
+        version_policy: pin to minor
+        auth:
+          type: api_key
+          env:
+            - LINEAR_API_KEY
+          scopes:
+            - read
+            - write
+        read:
+          - list_issues
+          - get_issue
+          - list_projects
+        write:
+          - create_issue
+          - update_issue
+        destructive: []
+        permissions:
+          source_trust: community
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: local
+          sandbox: stdio, env var
+          latency: low
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: community (2026-08-12)
+          cross_agent:
+            - claude-code
+          native_ux: MCP
+      - id: linear-api-graphql
+        mechanism: api
+        targets:
+          - universal
+        package: https://api.linear.app/graphql
+        repository: https://developers.linear.app/docs/graphql/working-with-the-graphql-api
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: api_key
+          env:
+            - LINEAR_API_KEY
+          scopes:
+            - read
+            - write
+            - admin
+        read:
+          - query issues (GraphQL)
+          - query projects
+        write:
+          - mutation createIssue
+          - updateIssue
+        destructive:
+          - deleteIssue
+        permissions:
+          source_trust: official
+          runtime_privilege: admin
+          requires_approval: true
+        runtime:
+          local_vs_remote: remote
+          sandbox: https, token in header
+          latency: low
+          context_overhead: none (direct)
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: curl/GraphQL
+      - id: linear-skill-fallback
+        mechanism: skill_fallback
+        targets:
+          - universal
+        package: skills/integrations/linear
+        repository: https://github.com/ulises-jeremias/agent-toolkit
+        license: MIT
+        transport: skill
+        provenance: first-party
+        version_policy: vendored
+        auth:
+          type: oauth
+          env: []
+          scopes: []
+        read:
+          - via MCP tools (delegates)
+        write:
+          - via MCP tools
+        destructive: []
+        permissions:
+          source_trust: first-party
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: hybrid
+          sandbox: skill delegates to MCP
+          latency: n/a
+          context_overhead: skill body ~4k tokens, lazy
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: skill instructions
+    evaluation:
+      notes: "Official MCP (OAuth, streamable_http) is preferred for most targets\
+        \ (native, low context, no token env). Community PAT MCP is fallback for single-workspace/PAT\
+        \ use. API is most powerful but requires approval for admin/destructive. No\
+        \ universal ranking \u2014 choice depends on auth (OAuth vs PAT) and target\
+        \ (Claude/Cursor native vs pi fallback)."
+    security:
+      source_trust: "official (mcp.linear.app) \u2014 highly trusted as source"
+      runtime_privilege: "read-write (can create/update issues, no delete by default)\
+        \ \u2014 separate from trust; requires approval for bulk/destructive"
+  slack:
+    id: slack
+    display_name: Slack
+    purpose: Slack app development, channel history, messaging, and workspace automation
+    what:
+      verbs:
+        - list
+        - post
+        - react
+        - create
+        - deploy
+        - api
+      entities:
+        - channel
+        - message
+        - reaction
+        - app
+        - manifest
+        - trigger
+    how:
+      - id: slack-mcp-official
+        mechanism: mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+          - vscode
+        package: '@modelcontextprotocol/server-slack'
+        repository: https://github.com/modelcontextprotocol/servers/tree/main/src/slack
+        license: MIT
+        transport: stdio
+        provenance: official
+        version_policy: pin to minor
+        auth:
+          type: bearer-env
+          env:
+            - SLACK_BOT_TOKEN
+            - SLACK_TEAM_ID
+            - SLACK_CHANNEL_IDS
+          scopes:
+            - channels:history
+            - chat:write
+            - reactions:write
+        read:
+          - conversations_history
+          - conversations_list
+          - users_list
+        write:
+          - chat_post_message
+          - reactions_add
+          - conversations_create
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: local
+          sandbox: stdio, Socket Mode
+          latency: low
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: active (2026-08-12)
+          cross_agent:
+            - claude-code
+            - cursor
+          native_ux: MCP tools
+      - id: slack-cli-official
+        mechanism: cli
+        targets:
+          - universal
+        package: slack-cli
+        repository: https://docs.slack.dev/tools/slack-cli/
+        license: Apache-2.0
+        transport: cli
+        provenance: official
+        version_policy: pin to minor
+        auth:
+          type: oauth
+          env: []
+          scopes:
+            - apps:write
+            - admin
+        read:
+          - slack list
+          - slack doctor
+          - slack api conversations.list
+        write:
+          - slack create
+          - slack deploy
+          - slack api chat.postMessage
+        destructive:
+          - slack delete
+        permissions:
+          source_trust: official
+          runtime_privilege: admin
+          requires_approval: true
+        runtime:
+          local_vs_remote: local
+          sandbox: CLI, OAuth
+          latency: medium
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: CLI
+      - id: slack-api-web
+        mechanism: api
+        targets:
+          - universal
+        package: https://slack.com/api/chat.postMessage
+        repository: https://docs.slack.dev/reference/methods/chat.postMessage
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: bearer-env
+          env:
+            - SLACK_BOT_TOKEN
+          scopes:
+            - chat:write
+        read:
+          - conversations.history
+          - users.list
+        write:
+          - chat.postMessage
+          - reactions.add
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: https
+          latency: low
+          context_overhead: none
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: curl
+      - id: slack-skill-fallback
+        mechanism: skill_fallback
+        targets:
+          - universal
+        package: skills/integrations/slack-cli
+        repository: https://github.com/ulises-jeremias/agent-toolkit
+        license: MIT
+        transport: skill
+        provenance: first-party
+        version_policy: vendored
+        auth:
+          type: bearer-env
+          env:
+            - SLACK_BOT_TOKEN
+          scopes: []
+        read:
+          - via CLI/API delegates
+        write:
+          - via CLI/API
+        destructive: []
+        permissions:
+          source_trust: first-party
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: hybrid
+          sandbox: skill
+          latency: n/a
+          context_overhead: skill body
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: skill
+    evaluation:
+      notes: "MCP (Socket Mode) is best for workspace chat automation (native, low\
+        \ latency). CLI (slack-cli) is for app development (admin, requires approval).\
+        \ API is direct fallback. No universal ranking \u2014 chat automation prefers\
+        \ MCP, app scaffolding prefers CLI."
+    security:
+      source_trust: "official (docs.slack.dev) \u2014 highly trusted"
+      runtime_privilege: "read-write (MCP) vs admin (CLI) \u2014 separate; CLI can\
+        \ delete apps, MCP cannot"
+  figma:
+    id: figma
+    display_name: Figma
+    purpose: Fetch design context, screenshots, variables, and implement Figma nodes
+      to code
+    what:
+      verbs:
+        - get_design_context
+        - get_screenshot
+        - get_metadata
+        - implement
+      entities:
+        - file
+        - node
+        - component
+        - variable
+        - screenshot
+    how:
+      - id: figma-mcp-official
+        mechanism: mcp
+        targets:
+          - claude-code
+          - cursor
+          - opencode
+          - vscode
+        package: https://mcp.figma.com/mcp
+        repository: https://www.figma.com/developers/mcp
+        license: proprietary
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: bearer-env
+          env:
+            - FIGMA_OAUTH_TOKEN
+            - FIGMA_REGION
+          scopes:
+            - file_content:read
+        read:
+          - get_design_context
+          - get_file_structure
+          - get_screenshot
+          - get_metadata
+        write: []
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: remote hosted, OAuth
+          latency: medium
+          context_overhead: low
+          offline: false
+        availability:
+          maintenance: active (2026-08-12)
+          cross_agent:
+            - claude-code
+            - cursor
+            - opencode
+          native_ux: MCP tools
+      - id: figma-rest-api
+        mechanism: api
+        targets:
+          - universal
+        package: https://api.figma.com/v1/files/:file_key
+        repository: https://www.figma.com/developers/api
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: bearer-env
+          env:
+            - FIGMA_PERSONAL_ACCESS_TOKEN
+          scopes:
+            - file_content:read
+        read:
+          - GET files, nodes, images
+        write: []
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: remote
+          sandbox: https
+          latency: low
+          context_overhead: none
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: curl
+      - id: figma-plugin-api
+        mechanism: api
+        targets:
+          - figma-plugin
+        package: figma plugin API
+        repository: https://www.figma.com/plugin-docs/api/
+        license: proprietary
+        transport: plugin
+        provenance: official
+        version_policy: remote hosted
+        auth:
+          type: none
+          env: []
+          scopes: []
+        read:
+          - read node
+          - write node (if plugin)
+        write:
+          - create frames, fills, variables (plugin only)
+        destructive: []
+        permissions:
+          source_trust: official
+          runtime_privilege: read-write
+          requires_approval: true
+        runtime:
+          local_vs_remote: local
+          sandbox: Figma Desktop
+          latency: low
+          context_overhead: n/a
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - figma
+          native_ux: plugin
+      - id: figma-skill-fallback
+        mechanism: skill_fallback
+        targets:
+          - universal
+        package: skills/design/figma
+        repository: https://github.com/ulises-jeremias/agent-toolkit
+        license: MIT
+        transport: skill
+        provenance: first-party
+        version_policy: vendored
+        auth:
+          type: bearer-env
+          env:
+            - FIGMA_OAUTH_TOKEN
+          scopes: []
+        read:
+          - via MCP delegates
+        write: []
+        destructive: []
+        permissions:
+          source_trust: first-party
+          runtime_privilege: read-only
+          requires_approval: false
+        runtime:
+          local_vs_remote: hybrid
+          sandbox: skill
+          latency: n/a
+          context_overhead: skill body
+          offline: false
+        availability:
+          maintenance: active
+          cross_agent:
+            - universal
+          native_ux: skill
+    evaluation:
+      notes: "Official MCP (streamable_http, OAuth) is preferred for design-to-code\
+        \ (read-only, remote, low context). REST API is fallback for file reads without\
+        \ MCP. Plugin API is write-capable but requires Figma Desktop plugin context\
+        \ \u2014 needs approval. No universal ranking \u2014 read-only design context\
+        \ prefers MCP, write via plugin needs Figma plugin target."
+    security:
+      source_trust: "official (mcp.figma.com) \u2014 highly trusted"
+      runtime_privilege: "read-only (MCP/REST) vs read-write (plugin) \u2014 separate;\
+        \ MCP cannot mutate files"
+  notion:
+    id: notion
+    display_name: Notion
+    purpose: Read/write Notion pages/databases, query blocks
+    what:
+      verbs: [list, get, query, create, update, append]
+      entities: [page, database, block, comment]
+    how:
+      - id: notion-mcp-official
+        mechanism: mcp
+        targets: [claude-code, cursor, opencode, vscode]
+        package: https://mcp.notion.com/mcp
+        repository: https://github.com/makenotion/notion-mcp-server
+        license: MIT
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth: {type: oauth, env: [], scopes: []}
+        read: [notion_retrieve_page, notion_query_database, notion_retrieve_block_children]
+        write: [notion_create_page, notion_update_page, notion_append_block_children]
+        destructive: [notion_delete_block]
+        permissions: {source_trust: official, runtime_privilege: read-write, requires_approval: false}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: low, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [claude-code, cursor, opencode], native_ux: card}
+      - id: notion-mcp-community
+        mechanism: community_mcp
+        targets: [claude-code, cursor, opencode]
+        package: '@notionhq/notion-mcp-server'
+        repository: https://github.com/makenotion/notion-mcp-server
+        license: MIT
+        transport: stdio
+        provenance: official
+        version_policy: pin to minor
+        auth: {type: bearer-env, env: [NOTION_TOKEN], scopes: []}
+        read: [notion_retrieve_page, notion_query_database]
+        write: [notion_create_page, notion_update_page]
+        destructive: [notion_delete_block]
+        permissions: {source_trust: community, runtime_privilege: read-write, requires_approval: true}
+        runtime: {local_vs_remote: local, sandbox: none, latency: low, context_overhead: medium, offline: false}
+        availability: {maintenance: community 2026-08-12, cross_agent: [claude-code, cursor], native_ux: none}
+      - id: notion-api-rest
+        mechanism: api
+        targets: [universal]
+        package: https://api.notion.com/v1
+        repository: https://developers.notion.com/reference/intro
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: versioned
+        auth: {type: bearer-env, env: [NOTION_API_TOKEN], scopes: []}
+        read: [GET pages, databases, blocks]
+        write: [POST pages, PATCH pages, PATCH blocks]
+        destructive: [DELETE blocks]
+        permissions: {source_trust: official, runtime_privilege: admin, requires_approval: true}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: none, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [], native_ux: none}
+      - id: notion-skill-fallback
+        mechanism: skill_fallback
+        targets: [universal]
+        package: skills/integrations/notion
+        repository: 'n/a (skill)'
+        license: 'n/a'
+        transport: skill
+        provenance: first-party
+        version_policy: bundled
+        auth: {type: bearer-env, env: [NOTION_API_TOKEN], scopes: []}
+        read: [via MCP]
+        write: [via MCP]
+        destructive: []
+        permissions: {source_trust: first-party, runtime_privilege: read-only, requires_approval: false}
+        runtime: {local_vs_remote: hybrid, sandbox: none, latency: medium, context_overhead: medium, offline: false}
+        availability: {maintenance: active, cross_agent: [], native_ux: none}
+    evaluation:
+      notes: "No universal plugin > MCP > CLI ranking — official remote MCP for team OAuth vs community PAT for solo vs REST API for admin/batch."
+    security:
+      source_trust: 'official + community (distinct)'
+      runtime_privilege: 'read-write vs admin — separate'
+
+  sentry:
+    id: sentry
+    display_name: Sentry
+    purpose: Retrieve and triage Sentry issues, releases, alerts
+    what:
+      verbs: [list, get, triage, assign, resolve, search]
+      entities: [issue, event, stacktrace, project, release, alert]
+    how:
+      - id: sentry-mcp-official
+        mechanism: mcp
+        targets: [claude-code, cursor, opencode, vscode]
+        package: https://mcp.sentry.dev/mcp
+        repository: https://github.com/getsentry/sentry-mcp
+        license: MIT
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth: {type: bearer-env, env: [SENTRY_ACCESS_TOKEN], scopes: []}
+        read: [sentry_list_issues, sentry_get_issue, sentry_list_releases, sentry_list_alert_rules]
+        write: [sentry_assign_issue, sentry_resolve_issue]
+        destructive: []
+        permissions: {source_trust: official, runtime_privilege: read-write, requires_approval: false}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: low, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [claude-code, cursor], native_ux: card}
+      - id: sentry-cli-official
+        mechanism: cli
+        targets: [universal]
+        package: sentry-cli
+        repository: https://github.com/getsentry/sentry-cli
+        license: MIT
+        transport: cli
+        provenance: official
+        version_policy: pinned
+        auth: {type: bearer-env, env: [SENTRY_AUTH_TOKEN], scopes: []}
+        read: [sentry-cli info, releases list]
+        write: [sentry-cli releases new, deploys new]
+        destructive: [sentry-cli releases delete]
+        permissions: {source_trust: official, runtime_privilege: admin, requires_approval: true}
+        runtime: {local_vs_remote: local, sandbox: none, latency: low, context_overhead: none, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [], native_ux: none}
+      - id: sentry-api-rest
+        mechanism: api
+        targets: [universal]
+        package: https://sentry.io/api/0/
+        repository: https://docs.sentry.io/api/
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: versioned
+        auth: {type: bearer-env, env: [SENTRY_AUTH_TOKEN], scopes: []}
+        read: [GET issues, events, releases]
+        write: [PUT issues assign]
+        destructive: [DELETE issues]
+        permissions: {source_trust: official, runtime_privilege: admin, requires_approval: true}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: none, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [], native_ux: none}
+      - id: sentry-skill-fallback
+        mechanism: skill_fallback
+        targets: [universal]
+        package: skills/integrations/sentry
+        repository: 'n/a (skill)'
+        license: 'n/a'
+        transport: skill
+        provenance: first-party
+        version_policy: bundled
+        auth: {type: bearer-env, env: [SENTRY_ACCESS_TOKEN], scopes: []}
+        read: [via MCP]
+        write: [via MCP]
+        destructive: []
+        permissions: {source_trust: first-party, runtime_privilege: read-only, requires_approval: false}
+        runtime: {local_vs_remote: hybrid, sandbox: none, latency: medium, context_overhead: medium, offline: false}
+        availability: {maintenance: active, cross_agent: [], native_ux: none}
+    evaluation:
+      notes: "No universal ranking — official MCP for on-call triage vs CLI for releases vs REST for admin batch."
+    security:
+      source_trust: 'official'
+      runtime_privilege: 'read-write vs admin — separate'
+
+  vercel:
+    id: vercel
+    display_name: Vercel
+    purpose: Manage Vercel projects, deployments, logs, domains, docs
+    what:
+      verbs: [list, get, deploy, logs, search]
+      entities: [project, deployment, log, domain, docs]
+    how:
+      - id: vercel-mcp-official
+        mechanism: mcp
+        targets: [claude-code, cursor, vscode]
+        package: https://mcp.vercel.com
+        repository: https://github.com/vercel/vercel-mcp-overview
+        license: proprietary
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth: {type: oauth, env: [], scopes: []}
+        read: [get_project, get_deployment, get_logs, search_docs, web_fetch_vercel_url]
+        write: []
+        destructive: []
+        permissions: {source_trust: official, runtime_privilege: read-only, requires_approval: false}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: low, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [claude-code, cursor], native_ux: card}
+      - id: vercel-cli-official
+        mechanism: cli
+        targets: [universal]
+        package: vercel
+        repository: https://github.com/vercel/vercel
+        license: Apache-2.0
+        transport: cli
+        provenance: official
+        version_policy: pinned
+        auth: {type: oauth, env: [VERCEL_TOKEN], scopes: []}
+        read: [vc list, vc logs]
+        write: [vc deploy, vc env add]
+        destructive: [vc remove]
+        permissions: {source_trust: official, runtime_privilege: admin, requires_approval: true}
+        runtime: {local_vs_remote: local, sandbox: none, latency: low, context_overhead: none, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [], native_ux: none}
+      - id: vercel-api-rest
+        mechanism: api
+        targets: [universal]
+        package: https://api.vercel.com/v1
+        repository: https://vercel.com/docs/rest-api
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: versioned
+        auth: {type: bearer-env, env: [VERCEL_TOKEN], scopes: []}
+        read: [GET projects, deployments, logs]
+        write: [POST deployments]
+        destructive: [DELETE projects]
+        permissions: {source_trust: official, runtime_privilege: admin, requires_approval: true}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: none, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [], native_ux: none}
+      - id: vercel-skill-fallback
+        mechanism: skill_fallback
+        targets: [universal]
+        package: skills/cloud/vercel
+        repository: 'n/a (skill)'
+        license: 'n/a'
+        transport: skill
+        provenance: first-party
+        version_policy: bundled
+        auth: {type: bearer-env, env: [VERCEL_TOKEN], scopes: []}
+        read: [via MCP]
+        write: [via CLI]
+        destructive: []
+        permissions: {source_trust: first-party, runtime_privilege: read-only, requires_approval: false}
+        runtime: {local_vs_remote: hybrid, sandbox: none, latency: medium, context_overhead: medium, offline: false}
+        availability: {maintenance: active, cross_agent: [], native_ux: none}
+    evaluation:
+      notes: "No universal ranking — MCP for inspection/logs/docs (read-only, reviewed clients) vs CLI for deploy (admin)."
+    security:
+      source_trust: 'official'
+      runtime_privilege: 'read-only vs admin — separate'
+
+  jira:
+    id: jira
+    display_name: Jira
+    purpose: Manage Jira issues, boards, sprints, transitions
+    what:
+      verbs: [list, get, create, update, transition, search, comment]
+      entities: [issue, sprint, board, project, workflow]
+    how:
+      - id: jira-mcp-rovo-official
+        mechanism: mcp
+        targets: [claude-code, cursor, opencode, vscode]
+        package: https://mcp.atlassian.com/mcp
+        repository: https://github.com/atlassian/atlassian-mcp-server
+        license: proprietary
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth: {type: oauth, env: [], scopes: []}
+        read: [jira_search, jira_get_issue, jira_get_boards]
+        write: [jira_create_issue, jira_update_issue, jira_transition_issue, jira_add_comment]
+        destructive: [jira_delete_issue]
+        permissions: {source_trust: official, runtime_privilege: read-write, requires_approval: false}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: low, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [claude-code, cursor], native_ux: card}
+      - id: jira-mcp-community
+        mechanism: community_mcp
+        targets: [claude-code, cursor, opencode]
+        package: mcp-atlassian
+        repository: https://github.com/sooperset/mcp-atlassian
+        license: MIT
+        transport: stdio
+        provenance: community
+        version_policy: pin to minor
+        auth: {type: bearer-env, env: [JIRA_URL, JIRA_API_TOKEN], scopes: []}
+        read: [jira_search, jira_get_issue]
+        write: [jira_create_issue, jira_transition_issue]
+        destructive: []
+        permissions: {source_trust: community, runtime_privilege: read-write, requires_approval: true}
+        runtime: {local_vs_remote: local, sandbox: none, latency: low, context_overhead: medium, offline: false}
+        availability: {maintenance: community active 2026-08-12, cross_agent: [claude-code], native_ux: none}
+      - id: jira-api-rest
+        mechanism: api
+        targets: [universal]
+        package: https://*.atlassian.net/rest/api/3
+        repository: https://developer.atlassian.com/cloud/jira/platform/rest/v3/
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: versioned
+        auth: {type: bearer-env, env: [JIRA_API_TOKEN], scopes: []}
+        read: [GET issues, boards]
+        write: [POST issues, PUT issues, POST transitions]
+        destructive: [DELETE issues]
+        permissions: {source_trust: official, runtime_privilege: admin, requires_approval: true}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: none, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [], native_ux: none}
+      - id: jira-skill-fallback
+        mechanism: skill_fallback
+        targets: [universal]
+        package: skills/integrations/jira
+        repository: 'n/a (skill)'
+        license: 'n/a'
+        transport: skill
+        provenance: first-party
+        version_policy: bundled
+        auth: {type: bearer-env, env: [JIRA_API_TOKEN], scopes: []}
+        read: [via MCP]
+        write: [via MCP]
+        destructive: []
+        permissions: {source_trust: first-party, runtime_privilege: read-only, requires_approval: false}
+        runtime: {local_vs_remote: hybrid, sandbox: none, latency: medium, context_overhead: medium, offline: false}
+        availability: {maintenance: active, cross_agent: [], native_ux: none}
+    evaluation:
+      notes: "No universal ranking — Rovo remote for Cloud OAuth vs community stdio for Data Center vs REST for admin."
+    security:
+      source_trust: 'official + community (distinct)'
+      runtime_privilege: 'read-write vs admin — separate'
+
+  confluence:
+    id: confluence
+    display_name: Confluence
+    purpose: Read/write Confluence pages, spaces, comments
+    what:
+      verbs: [list, get, create, update, search, comment]
+      entities: [page, space, blogpost, comment, attachment]
+    how:
+      - id: confluence-mcp-rovo-official
+        mechanism: mcp
+        targets: [claude-code, cursor, opencode, vscode]
+        package: https://mcp.atlassian.com/mcp
+        repository: https://github.com/atlassian/atlassian-mcp-server
+        license: proprietary
+        transport: streamable_http
+        provenance: official
+        version_policy: remote hosted
+        auth: {type: oauth, env: [], scopes: []}
+        read: [confluence_search, confluence_get_page, confluence_get_spaces]
+        write: [confluence_create_page, confluence_update_page, confluence_add_comment]
+        destructive: []
+        permissions: {source_trust: official, runtime_privilege: read-write, requires_approval: false}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: low, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [claude-code, cursor], native_ux: card}
+      - id: confluence-mcp-community
+        mechanism: community_mcp
+        targets: [claude-code, cursor, opencode]
+        package: mcp-atlassian
+        repository: https://github.com/sooperset/mcp-atlassian
+        license: MIT
+        transport: stdio
+        provenance: community
+        version_policy: pin to minor
+        auth: {type: bearer-env, env: [CONFLUENCE_URL, CONFLUENCE_API_TOKEN], scopes: []}
+        read: [confluence_search, confluence_get_page]
+        write: [confluence_create_page, confluence_update_page]
+        destructive: []
+        permissions: {source_trust: community, runtime_privilege: read-write, requires_approval: true}
+        runtime: {local_vs_remote: local, sandbox: none, latency: low, context_overhead: medium, offline: false}
+        availability: {maintenance: community active 2026-08-12, cross_agent: [claude-code], native_ux: none}
+      - id: confluence-attachments-local
+        mechanism: community_mcp
+        targets: [claude-code, cursor]
+        package: atlassian-attachments-mcp
+        repository: https://github.com/iotashan-llc/atlassian-attachments-mcp
+        license: MIT
+        transport: stdio
+        provenance: community
+        version_policy: pin to minor
+        auth: {type: bearer-env, env: [CONFLUENCE_API_TOKEN], scopes: []}
+        read: [list_attachments]
+        write: [upload_attachment, download_attachment]
+        destructive: []
+        permissions: {source_trust: community, runtime_privilege: read-write, requires_approval: true}
+        runtime: {local_vs_remote: local, sandbox: none, latency: low, context_overhead: medium, offline: true}
+        availability: {maintenance: community 2026-08-12, cross_agent: [claude-code], native_ux: none}
+      - id: confluence-api-rest
+        mechanism: api
+        targets: [universal]
+        package: https://*.atlassian.net/wiki/rest/api
+        repository: https://developer.atlassian.com/cloud/confluence/rest/v2/
+        license: proprietary
+        transport: https
+        provenance: official
+        version_policy: versioned
+        auth: {type: bearer-env, env: [CONFLUENCE_API_TOKEN], scopes: []}
+        read: [GET pages, spaces]
+        write: [POST pages, PUT pages]
+        destructive: [DELETE pages]
+        permissions: {source_trust: official, runtime_privilege: admin, requires_approval: true}
+        runtime: {local_vs_remote: remote, sandbox: remote, latency: medium, context_overhead: none, offline: false}
+        availability: {maintenance: active 2026-08-12, cross_agent: [], native_ux: none}
+      - id: confluence-skill-fallback
+        mechanism: skill_fallback
+        targets: [universal]
+        package: skills/integrations/confluence
+        repository: 'n/a (skill)'
+        license: 'n/a'
+        transport: skill
+        provenance: first-party
+        version_policy: bundled
+        auth: {type: bearer-env, env: [CONFLUENCE_API_TOKEN], scopes: []}
+        read: [via MCP]
+        write: [via MCP]
+        destructive: []
+        permissions: {source_trust: first-party, runtime_privilege: read-only, requires_approval: false}
+        runtime: {local_vs_remote: hybrid, sandbox: none, latency: medium, context_overhead: medium, offline: false}
+        availability: {maintenance: active, cross_agent: [], native_ux: none}
+    evaluation:
+      notes: "No universal ranking — Rovo remote for Cloud vs community stdio for Data Center; attachments need local complement."
+    security:
+      source_trust: 'official + community (distinct)'
+      runtime_privilege: 'read-write vs admin — separate'

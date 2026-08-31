@@ -1,0 +1,49 @@
+# MCP Provider: notion
+# Official: https://github.com/makenotion/notion-mcp-server · https://mcp.notion.com/mcp
+id: notion
+display_name: Notion
+purpose: Read and write Notion pages and databases, query blocks, and create content
+implementation:
+  provenance: official
+  package: https://mcp.notion.com/mcp
+  local_package: "@notionhq/notion-mcp-server"
+  repository: https://github.com/makenotion/notion-mcp-server
+  license: MIT
+  version_policy: remote hosted (OAuth); pin local npm to minor
+transport:
+  supported: [streamable_http, stdio]
+  preferred: streamable_http
+auth:
+  supported: [oauth, bearer-env]
+  preferred: oauth
+  env: [NOTION_TOKEN]
+tools:
+  read:
+    - notion_retrieve_page
+    - notion_retrieve_database
+    - notion_query_database
+    - notion_retrieve_block_children
+  write:
+    - notion_create_page
+    - notion_update_page
+    - notion_append_block_children
+  destructive:
+    - notion_delete_block
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 5000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [api.notion.com, mcp.notion.com]
+  secret_storage: OAuth (preferred) or environment variable for local stdio
+  notes: Remote OAuth is Notion's supported path; local stdio uses NOTION_TOKEN and requires explicit page/database sharing

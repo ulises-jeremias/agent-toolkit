@@ -1,0 +1,74 @@
+id = "agent-toolkit-swarm"
+name = "agent-toolkit-swarm"
+version = "0.1.0"
+description = "Thin Herdr plugin for Agent Toolkit Swarms — start, observe, and manage swarms"
+min_herdr_version = "0.7.0"
+author = "ulises-jeremias"
+license = "MIT"
+homepage = "https://github.com/ulises-jeremias/agent-toolkit"
+
+[[actions]]
+id = "start-pair-swarm"
+title = "Start Pair Swarm"
+description = "Start a two-agent pair swarm (implementer + reviewer)"
+command = ["agent-toolkit", "swarm", "start", "--recipe", "pair", "--ui", "herdr", "--runner", "opencode", "--model-profile", "balanced"]
+
+[[actions]]
+id = "start-team-swarm"
+title = "Start Team Swarm"
+description = "Start a four-agent team swarm (planner → implementer → reviewer → architect)"
+command = ["agent-toolkit", "swarm", "start", "--recipe", "team", "--ui", "herdr", "--runner", "opencode", "--model-profile", "balanced"]
+
+[[actions]]
+id = "start-full-swarm"
+title = "Start Full Swarm"
+description = "Start a six-agent full swarm (planner → ... → hardener → qa)"
+command = ["agent-toolkit", "swarm", "start", "--recipe", "full", "--ui", "herdr", "--runner", "opencode", "--model-profile", "balanced"]
+
+[[actions]]
+id = "open-swarm-status"
+title = "Open Swarm Status"
+description = "Show status of current swarm runs"
+command = ["agent-toolkit", "swarm", "status", "--json"]
+
+[[actions]]
+id = "open-handoff-queue"
+title = "Open Handoff Queue"
+description = "Show handoff queue for current run"
+command = ["agent-toolkit", "swarm", "handoffs"]
+
+[[actions]]
+id = "open-final-report"
+title = "Open Final Report"
+description = "Show final report for a swarm run"
+command = ["agent-toolkit", "swarm", "report"]
+
+[[actions]]
+id = "pause-swarm"
+title = "Pause Active Swarm"
+description = "Pause a running swarm (preserves state)"
+command = ["agent-toolkit", "swarm", "pause"]
+
+[[actions]]
+id = "resume-swarm"
+title = "Resume Active Swarm"
+description = "Resume a paused swarm"
+command = ["agent-toolkit", "swarm", "resume"]
+
+[[actions]]
+id = "stop-swarm"
+title = "Stop Active Swarm"
+description = "Stop active agents (preserves artifacts)"
+command = ["agent-toolkit", "swarm", "stop"]
+
+[[actions]]
+id = "cleanup-swarm"
+title = "Clean Up Completed Swarm"
+description = "Clean up owned worktrees (branches preserved, dirty refused)"
+command = ["agent-toolkit", "swarm", "cleanup"]
+
+[[panes]]
+id = "swarm-status"
+title = "Swarm Status"
+command = ["agent-toolkit", "swarm", "watch", "--current"]
+description = "Live status for current swarm"

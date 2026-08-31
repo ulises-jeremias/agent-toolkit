@@ -1,0 +1,67 @@
+# Loop starter: oss-triage
+# An L1 loop that triages issues across a multi-repo OSS ecosystem.
+# Cadence: daily. Cost: medium. Tier: L1 (report-only + label/comment).
+# Designed for maintainers managing 20-50 repos.
+
+name: oss-triage
+description: "Triage issues across OSS ecosystem repos (L1, daily)"
+tier: L1
+cadence: 1d
+resumable: true
+
+goal: |
+  Scan open issues across all configured repos for items needing attention.
+  Apply labels and respond to questions where obvious. Report everything else.
+
+allowlist:
+  - label
+  - comment
+  - assign
+deny:
+  - merge
+  - close
+  - push
+  - approve
+  - force-push
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+  - human_escalation
+
+budget:
+  max_tokens: 150000
+  max_runs_per_day: 1
+  max_wall_seconds: 1200
+
+verifier: null
+
+request: |
+  You are running the OSS Issue Triage loop.
+
+  **Resumability (read first):**
+  Read loops/oss-triage/STATE.md. If `last_processed_repo` is set, skip all
+  repos before that name. After each repo, update STATE.md:
+    last_processed_repo: <owner>/<repo>
+  On successful completion, clear last_processed_repo and set last_run_status: success.
+
+  **Style rules:**
+  - Never @mention anyone. Never leave AI-looking comments.
+  - If action is obvious (label, response) → do it silently.
+  - If unsure → skip and note in report.
+
+  **Step 1 — Find issues needing attention**
+  For each repo, find issues where the most recent comment is NOT from the maintainer:
+    gh api "repos/$repo/issues?state=open&per_page=50" --jq '...'
+
+  **Step 2 — Classify and act**
+  - Question with no response → draft a response, post as comment
+  - Issue with no label → apply appropriate label (bug, enhancement, documentation, etc.)
+  - Bug with no reproducer → comment asking for minimal reproduction
+  - Security report → escalate (human_escalation)
+
+  **Step 3 — Write report**
+  Write to loops/oss-triage/report.md with sections:
+  - Actions taken (labels applied, comments posted)
+  - Pending items (issues that need human review)
+  - Escalations (if any)

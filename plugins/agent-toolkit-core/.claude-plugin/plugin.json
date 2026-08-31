@@ -1,0 +1,18 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "agent-toolkit-core",
+  "version": "1.26.0",
+  "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
+  "author": {
+    "name": "ulises-jeremias",
+    "email": "ulisescf.24@gmail.com",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit"
+  },
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "repository": "https://github.com/ulises-jeremias/agent-toolkit",
+  "license": "MIT",
+  "keywords": [
+    "agent-toolkit",
+    "core"
+  ]
+}

@@ -1,0 +1,61 @@
+# MCP Provider: chrome-devtools
+# Research: https://github.com/ChromeDevTools/chrome-devtools-mcp (Apache-2.0, 48k+ stars, 2026-08-11)
+# Docs: https://github.com/ChromeDevTools/chrome-devtools-mcp/blob/main/docs/tool-reference.md
+# npm: https://www.npmjs.com/package/chrome-devtools-mcp (npx -y chrome-devtools-mcp@latest)
+id: chrome-devtools
+display_name: Chrome DevTools
+purpose: Control and inspect a live Chrome instance — network, console, performance traces, rendering diagnostics, reliable automation via Puppeteer + DevTools protocol
+implementation:
+  provenance: official
+  package: "chrome-devtools-mcp@latest"
+  repository: https://github.com/ChromeDevTools/chrome-devtools-mcp
+  license: Apache-2.0
+  version_policy: npx-latest
+transport:
+  supported: [stdio]
+  preferred: stdio
+  command: npx
+  args: ["-y", "chrome-devtools-mcp@latest"]
+auth:
+  supported: [none]
+  preferred: none
+  env: [CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS, CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS, CI]
+  notes: No secrets — browser runs locally. Opt out of usage stats with --no-usage-statistics or env CHROME_DEVTOOLS_MCP_NO_USAGE_STATISTICS=1; update checks ping npm — disable with CHROME_DEVTOOLS_MCP_NO_UPDATE_CHECKS=1
+tools:
+  read:
+    - take_snapshot
+    - take_screenshot
+    - list_console_messages
+    - list_network_requests
+    - get_network_request
+    - performance_start_trace
+    - performance_stop_trace
+    - performance_analyze_insight
+    - evaluate_script
+  write:
+    - navigate_page
+    - click
+    - fill
+    - drag
+    - hover
+    - press_key
+  destructive: []
+approval:
+  default: read-write
+  notes: Can inspect, debug, and modify any loaded page — treat as read-write (unlike Figma read-only)
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 8000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: native
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: bridged
+security:
+  network_hosts: [registry.npmjs.org, chrome-devtools-mcp, mcp.chrome.devtools, crux.googleapis.com]
+  secret_storage: none
+  notes: Exposes all browser content to MCP client — avoid loading pages with personal/sensitive data without scoping. Usage stats enabled by default (Google) — opt out via --no-usage-statistics or env. Chrome for Testing / stable only officially supported.

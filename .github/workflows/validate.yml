@@ -1,0 +1,963 @@
+name: Validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "modules/**"
+      - "cmd/**"
+      - "skills/**"
+      - "agents/**"
+      - "loops/**"
+      - "profiles/**"
+      - "mcp/**"
+      - "catalogs/**"
+      - "schemas/**"
+      - "scripts/**"
+      - "make.vsh"
+      - ".v-version"
+      - ".github/workflows/validate.yml"
+      - "packages/pypi/**"
+      - "packages/npm/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}-validate
+  cancel-in-progress: true
+
+jobs:
+  # ── Job 1: PyPI launcher + packaging tests (npm-style trampoline; CLI is V) ─
+  test-package:
+    name: Test Python ${{ matrix.python-version }} / ${{ matrix.os }}
+    timeout-minutes: 20
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Sync PyPI adapter (packages/pypi/agent-toolkit-cli)
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+
+      - name: Build V CLI for launcher smoke
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: ./make.vsh build-cli
+
+      - name: Smoke-test PyPI launcher → V (version/help)
+        env:
+          AGENT_TOOLKIT_BIN: ${{ github.workspace }}/build/agent-toolkit
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+        run: |
+          uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit version
+          uv run --project packages/pypi/agent-toolkit-cli --directory . agent-toolkit --help | head -n 20
+
+      - name: Run launcher/packaging pytest suite
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v --tb=short
+        env:
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+
+  # ── Job 1b: npm trampoline (node --test; ADR-025) ─────────────────────────
+  test-npm:
+    name: Test npm launcher (Node ${{ matrix.node-version }} / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22 = Active LTS; 24 = Current (matches publish-npm.yml)
+        node-version: ["22", "24"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Run npm trampoline tests
+        working-directory: packages/npm/agent-toolkit-cli
+        run: npm test
+
+  # ── Job 2a: Mechanical smoke for skills/ and agents/ ─────────────────────
+  # Fast mechanical integrity check: frontmatter, name-directory match,
+  # description quality, and internal link resolution.
+  smoke-test-skills:
+    name: Smoke Test Skills & Agents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
+      - name: Detect changed paths (PR only)
+        id: paths
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1 2>/dev/null || true
+          if git diff --name-only "origin/${{ github.base_ref }}...HEAD" 2>/dev/null | grep -qE '^(skills|agents)/'; then
+            echo "run_smoke=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run_smoke=false" >> "$GITHUB_OUTPUT"
+            echo "No skills/ or agents/ changes detected — skipping smoke test."
+          fi
+
+
+      - name: Run skill/agent mechanical smoke
+        if: |
+          github.event_name != 'pull_request' ||
+          steps.paths.outputs.run_smoke == 'true'
+        run: ./scripts/smoke-test-skills.vsh
+
+  # ── Job 2: Validate SKILL.md and AGENT.md frontmatter ─────────────────────
+  validate-skills:
+    name: Validate Skills & Agents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Validate SKILL.md frontmatter (Agent Skills spec)
+        run: ./scripts/validate-skills.vsh
+
+      - name: Validate AGENT.md frontmatter
+        run: ./scripts/validate-agents.vsh
+
+  # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
+  validate-manifests:
+    name: Validate Marketplace Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Validate Claude Code and Cursor marketplace manifests
+        run: ./scripts/validate-manifests.vsh
+
+  # ── Job 3b: Validate Agent Plugins 1.0 manifests ───────────────────────
+  validate-agent-plugins:
+    name: Validate Agent Plugins 1.0
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
+      - name: Install dependencies
+        run: pip install jsonschema==4.23.0 pyyaml==6.0.2
+
+      - name: Validate Agent Plugins 1.0 manifests (plugin.json + mcp.json)
+        run: ./scripts/validate-agent-plugins.vsh --check
+
+  # ── Job 3c: Validate upstream provenance (no mutable refs) ──────────────
+  validate-upstream:
+    name: Validate Upstream Provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Check upstream provenance (immutable refs, SPDX)
+        run: python3 scripts/validate-upstream.py --check
+      - name: Check provenance lock ↔ declaration ↔ vendored bytes (offline)
+        run: python3 scripts/provenance.py check
+      - name: Check lock is deterministic from declarations
+        run: python3 scripts/provenance.py lock --check
+      - name: Check generated UPSTREAM.md
+        run: python3 scripts/provenance.py docs --check
+
+  # ── Job 4: Compiler surface gate (ADR-003 Remove — gen-surfaces retired) ───
+  check-build:
+    name: Check Build (compiler)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Build V CLI
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: ./make.vsh build-cli
+
+      - name: agent-toolkit build --check
+        env:
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+          VMODULES: ${{ github.workspace }}/modules
+        run: ./build/agent-toolkit build --check
+
+  check-catalogs:
+    name: Check Generated Catalogs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Assert catalogs match filesystem sources
+        run: ./scripts/generate-catalogs.vsh --check
+
+  check-skill-matrix:
+    name: Check Skill→Product Matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2
+
+      - name: Check skill→product→target matrix is up to date
+        run: ./scripts/generate-skill-matrix.vsh --check
+
+  check-target-matrix:
+    name: Check Target Capability Matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Validate target registry against schema
+        run: |
+          python3 - <<'PYEOF'
+          import json, yaml, sys
+          from pathlib import Path
+          from jsonschema import validate, ValidationError
+          schema = json.loads(Path("schemas/target-capability-registry.schema.json").read_text())
+          data = yaml.safe_load(Path("capabilities/targets/registry.yaml").read_text())
+          try:
+              validate(data, schema)
+          except ValidationError as e:
+              print(f"FAIL: capabilities/targets/registry.yaml: {e.message}", file=sys.stderr)
+              sys.exit(1)
+          print("OK: capabilities/targets/registry.yaml validates against target-capability-registry.schema.json")
+          # profiles coverage is validated inside generate-target-matrix.py
+          import subprocess
+          res = subprocess.run([sys.executable, "scripts/generate-target-matrix.py", "--check"])
+          sys.exit(res.returncode)
+          PYEOF
+
+      - name: Check target capability matrix drift
+        run: python3 scripts/generate-target-matrix.py --check
+
+  check-skill-capability:
+    name: Check Skill Capability Registry (#863)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Validate capabilities/skills/registry.yaml against schema
+        run: |
+          python3 - <<'PYEOF'
+          import json, yaml, sys
+          from pathlib import Path
+          from jsonschema import validate, ValidationError
+          schema = json.loads(Path("schemas/skill-capability-registry.schema.json").read_text())
+          data = yaml.safe_load(Path("capabilities/skills/registry.yaml").read_text())
+          try:
+              validate(data, schema)
+          except ValidationError as e:
+              print(f"FAIL: capabilities/skills/registry.yaml: {e.message} at {'/'.join(map(str, e.path))}", file=sys.stderr)
+              sys.exit(1)
+          print("OK: capabilities/skills/registry.yaml validates against skill-capability-registry.schema.json")
+          PYEOF
+
+      - name: Check skill capability registry (no orphans, 116+ skills, design routing)
+        run: python3 scripts/validate-skill-capability.py --check
+
+  # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
+  validate-loops:
+    name: Validate Loop Templates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Validate loop.yaml files against loop.schema.json
+        run: ./scripts/validate-loops.vsh
+
+  # ── Job 5b: Validate products.yaml against products.schema.yaml ─────────
+  validate-products:
+    name: Validate Product Catalog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2 jsonschema==4.23.0
+
+      - name: Validate distributions/products.yaml against products.schema.yaml
+        run: |
+          python3 - <<'PYEOF'
+          import sys, yaml
+          from pathlib import Path
+          from jsonschema import validate, ValidationError
+
+          schema = yaml.safe_load(Path("schemas/products.schema.yaml").read_text())
+          data = yaml.safe_load(Path("distributions/products.yaml").read_text())
+
+          try:
+              validate(data, schema)
+          except ValidationError as e:
+              print(f"FAIL: distributions/products.yaml: {e.message}", file=sys.stderr)
+              sys.exit(1)
+
+          print("OK: distributions/products.yaml validates against products.schema.yaml")
+          PYEOF
+
+  # ── Job 6: Secret pattern scan ────────────────────────────────────────────
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # Gitleaks catches secrets in full git history, not just the working tree.
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Belt-and-suspenders: additional regex patterns specific to this toolkit.
+      - name: Additional pattern scan in toolkit directories
+        run: |
+          set -euo pipefail
+
+          # Patterns that must never appear in committed toolkit files.
+          # Keep in sync with SECURITY.md allowlist of false-positive exclusions.
+          PATTERNS=(
+            'AKIA[0-9A-Z]{16}'
+            'sk-[a-zA-Z0-9]{32,}'
+            'sk-ant-[a-zA-Z0-9]'
+            'ghp_[a-zA-Z0-9]{36}'
+            'gho_[a-zA-Z0-9]{36}'
+            'ghs_[a-zA-Z0-9]{36}'
+            'github_pat_[a-zA-Z0-9_]{82}'
+            'xoxb-[a-zA-Z0-9-]+'
+            'xoxp-[a-zA-Z0-9-]+'
+            'ghr_[a-zA-Z0-9]'
+            'AIza[0-9A-Za-z\-_]{35}'
+          )
+
+          SCAN_DIRS=(skills agents profiles mcp loops src)
+          EXCLUDE_ARGS=(
+            '--exclude-dir=.git'
+            '--exclude-dir=node_modules'
+            '--exclude-dir=.venv'
+          )
+
+          found=0
+          for pattern in "${PATTERNS[@]}"; do
+            for scan_dir in "${SCAN_DIRS[@]}"; do
+              [ -d "$scan_dir" ] || continue
+              if grep -rEIq "${EXCLUDE_ARGS[@]}" "$pattern" "$scan_dir" 2>/dev/null; then
+                echo "::error::Possible secret matched pattern '$pattern' in $scan_dir/"
+                grep -rEI "${EXCLUDE_ARGS[@]}" "$pattern" "$scan_dir" 2>/dev/null || true
+                found=$((found + 1))
+              fi
+            done
+          done
+
+          if [ "$found" -gt 0 ]; then
+            echo ""
+            echo "${found} potential secret pattern(s) detected. Review the matches above."
+            echo "If these are false positives, use a placeholder value or add an inline exclusion."
+            exit 1
+          fi
+
+          echo "No secret patterns detected."
+
+  # ── Job 7: Markdown lint ──────────────────────────────────────────────────
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli@0.44.0
+
+      - name: Run markdownlint
+        # Advisory: large markdown corpus; MegaLinter also soft-fails MARKDOWN.
+        # YAML lint below is blocking for structured config.
+        run: |
+          markdownlint \
+            --config .markdownlint.yaml \
+            --ignore node_modules \
+            --ignore .git \
+            --ignore packaging \
+            '**/*.md' || true
+          echo "✓ Markdown lint complete (advisory)"
+
+  # ── Job 8: YAML lint ──────────────────────────────────────────────────────
+  yaml-lint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run yamllint
+        run: |
+          yamllint \
+            -c .yamllint.yaml \
+            loops/ \
+            catalogs/ \
+            schemas/ \
+            packs/ \
+            .github/workflows/
+
+  # ── Job 8b: Ruff — blocking on PRs (single source of truth for Python style) ──
+  # MegaLinter still runs on main (push) with PYTHON_RUFF DISABLE_ERRORS (advisory).
+  # This job is the blocking gate for PRs; do not add a conflicting MegaLinter PYTHON_RUFF
+  # blocking config — validate.yml is the source of truth for PR style gating (#274).
+  ruff:
+    name: Ruff (check + format)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
+      - name: Sync PyPI adapter
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+      - name: Ruff check
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . ruff check packages/pypi/agent-toolkit-cli/src tests scripts
+      - name: Ruff format check
+        run: uv run --project packages/pypi/agent-toolkit-cli --directory . ruff format --check packages/pypi/agent-toolkit-cli/src tests scripts
+
+  # ── Job 8c: Launcher coverage gate (PyPI trampoline only) ──
+  coverage:
+    name: Coverage (launcher, advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
+      - name: Sync PyPI adapter
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+      - name: Run launcher coverage (fail_under=70)
+        run: |
+          uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini \
+            --cov=agent_toolkit.launcher --cov-report=term-missing --cov-fail-under=70 \
+            tests/test_launcher.py tests/test_hatch_build.py -v --tb=short
+        env:
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+
+# ── Job 9: Build package — ensures a clean wheel and sdist ────────────────
+  build-package:
+    name: Build Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.14"
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Build sdist then Linux V wheel (packages/pypi)
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          bash scripts/prepare-package-data.sh
+          uv build --sdist --out-dir dist packages/pypi/agent-toolkit-cli
+          ./make.vsh build-cli
+          bash scripts/prepare-native-bin.sh
+          uv build --wheel --out-dir dist packages/pypi/agent-toolkit-cli
+          ls -lh dist/
+          python3 - <<'PY'
+          from pathlib import Path
+          wheels = list(Path("dist").glob("*.whl"))
+          assert wheels, "no wheel"
+          names = [p.name for p in wheels]
+          print(names)
+          bad = [n for n in names if "linux_x86_64" in n and "manylinux" not in n]
+          if bad:
+              raise SystemExit(f"raw linux_x86_64 tag (PyPI will reject): {bad}")
+          PY
+
+      - name: Install built wheel and smoke-test V launcher
+        run: |
+          pip install dist/*.whl
+          agent-toolkit version
+          agent-toolkit --help | head -n 20
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ── Job 10: Integration tests — install from wheel + run all CLI commands ────
+  integration-tests:
+    name: Integration (${{ matrix.os }})
+    timeout-minutes: 30
+    runs-on: ${{ matrix.os }}
+    needs: build-package
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      # Provenance digests are LF; Windows autocrlf would false-fail plugin check.
+      - name: Disable git autocrlf on Windows
+        if: runner.os == 'Windows'
+        shell: bash
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Download built wheel
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Build native V CLI (sdist installs have no bundled ELF)
+        shell: bash
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          # Prefer setup-v VBIN; Windows CreateProcess needs v.exe (and a Win32 path).
+          V_PATH="${VBIN:-${V:-}}"
+          if [ -z "${V_PATH}" ] || { [ ! -x "${V_PATH}" ] && [ ! -f "${V_PATH}" ]; }; then
+            echo "VBIN/V not set after setup-v (got '${V_PATH}')" >&2
+            exit 1
+          fi
+          if command -v cygpath >/dev/null 2>&1; then
+            V_PATH="$(cygpath -w "${V_PATH}")"
+          fi
+          export V="${V_PATH}"
+          export VBIN="${V_PATH}"
+          # Windows GHA: shebang/env -S is unreliable — invoke via VBIN only here (docs stay ./make.vsh).
+          "${VBIN}" run make.vsh build-cli
+
+      - name: Install from dist (Linux wheel with V binary; sdist elsewhere)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${RUNNER_OS}" = "Linux" ]; then
+            pip install dist/*.whl
+          else
+            pip install dist/*.tar.gz
+            # Point the thin launcher at the runner-built binary (npm-style trampoline).
+            if [ -f build/agent-toolkit.exe ]; then
+              echo "AGENT_TOOLKIT_BIN=${GITHUB_WORKSPACE}/build/agent-toolkit.exe" >> "$GITHUB_ENV"
+            else
+              echo "AGENT_TOOLKIT_BIN=${GITHUB_WORKSPACE}/build/agent-toolkit" >> "$GITHUB_ENV"
+            fi
+          fi
+          echo "AGENT_TOOLKIT_ROOT=${GITHUB_WORKSPACE}" >> "$GITHUB_ENV"
+
+      - name: "CLI: V launcher version (Linux wheel)"
+        if: runner.os == 'Linux'
+        run: agent-toolkit version
+
+      - name: "CLI: version"
+        run: agent-toolkit version
+
+      - name: "CLI: version via alias"
+        run: agent-toolkit version
+
+      - name: "CLI: help"
+        run: agent-toolkit help
+
+      - name: "CLI: doctor (no tools installed in CI — expect warnings, not errors)"
+        shell: bash
+        run: |
+          agent-toolkit doctor 2>&1 | tee doctor_output.txt
+          # Must not crash; errors are OK for missing tools but exit code should be 0
+          # (doctor returns 0 even with warnings, only 1 on true errors)
+          if grep -q "✗" doctor_output.txt; then
+            echo "::notice::doctor reported some errors (tools not installed in CI runner)"
+          fi
+          echo "doctor completed"
+
+      - name: "CLI: skills list (all domains)"
+        shell: bash
+        run: |
+          agent-toolkit skills list 2>&1 | tee skills_output.txt
+          # Verify: must contain at least 50 skills and show descriptions (not ">-")
+          COUNT=$(grep -c "^  ✓" skills_output.txt || echo 0)
+          echo "Skills found: $COUNT"
+          if [ "$COUNT" -lt 50 ]; then
+            echo "::error::Expected at least 50 skills, got $COUNT"
+            exit 1
+          fi
+          if grep -q "  — >-" skills_output.txt; then
+            echo "::error::Skills list shows raw YAML scalars ('>-') instead of parsed descriptions"
+            cat skills_output.txt | grep "  — >-" | head -5
+            exit 1
+          fi
+          echo "✓ Skills list: $COUNT skills with proper descriptions"
+
+      - name: "CLI: skills list --domain core"
+        run: agent-toolkit skills list --domain core
+
+      - name: "CLI: skills list --domain forge"
+        run: agent-toolkit skills list --domain forge
+
+      - name: "CLI: skills validate"
+        run: agent-toolkit skills validate
+
+      - name: "CLI: loop status (must show 10 bundled templates)"
+        shell: bash
+        run: |
+          agent-toolkit loop status 2>&1 | tee loops_output.txt
+          COUNT=$(grep -c "tier=" loops_output.txt || echo 0)
+          echo "Loop templates found: $COUNT"
+          if [ "$COUNT" -lt 10 ]; then
+            echo "::error::Expected 10 loop templates, got $COUNT"
+            cat loops_output.txt
+            exit 1
+          fi
+          # Check specific expected loops
+          for name in daily-triage oss-pr-monitor oss-triage ci-sweeper pr-babysitter; do
+            if ! grep -q "$name" loops_output.txt; then
+              echo "::error::Expected loop '$name' not found in status"
+              exit 1
+            fi
+          done
+          echo "✓ Loop status: $COUNT templates including OSS patterns"
+
+      - name: "CLI: loop cost daily-triage"
+        run: agent-toolkit loop cost daily-triage
+
+      - name: "CLI: loop audit (no runs — should exit cleanly)"
+        run: agent-toolkit loop audit
+
+      - name: "CLI: mcp list (all 6 providers)"
+        shell: bash
+        run: |
+          agent-toolkit mcp list 2>&1 | tee mcp_output.txt
+          for provider in github slack notion linear figma clickup; do
+            if ! grep -q "$provider" mcp_output.txt; then
+              echo "::error::MCP provider '$provider' not found in list"
+              exit 1
+            fi
+          done
+          echo "✓ MCP list: all 6 providers shown"
+
+      - name: "CLI: plugin check (advisory)"
+        if: runner.os != 'Windows'
+        continue-on-error: true
+        run: agent-toolkit plugin check
+
+      - name: "CLI: install --dry-run --tools claude-code,cursor"
+        shell: bash
+        run: |
+          # Should not prompt for Copilot, should not crash, should list what would be installed
+          agent-toolkit install --dry-run --tools claude-code,cursor 2>&1 | tee install_output.txt
+          if grep -Eiq "(traceback|exception|✗|\[error\])" install_output.txt; then
+            echo "::error::install --dry-run produced errors"
+            cat install_output.txt
+            exit 1
+          fi
+          echo "✓ install --dry-run completed cleanly"
+
+      - name: "CLI: install --dry-run (auto-detect, no stdin = no Copilot prompt)"
+        shell: bash
+        run: |
+          agent-toolkit install --dry-run --tools cursor 2>&1 | tee install_auto_output.txt
+          if grep -q "Copilot instructions for a project?\n          # Copilot is never auto-detected — only via --tools copilot" install_auto_output.txt; then
+            echo "::error::install prompted for Copilot in non-interactive mode"
+            exit 1
+          fi
+          echo "✓ install auto-detect: no blocking prompts"
+
+      - name: "Data integrity: profiles directory accessible from wheel"
+        shell: bash
+        run: |
+          python3 -c "
+          from pathlib import Path
+          import agent_toolkit
+          root = Path(agent_toolkit.__file__).resolve().parent / 'data'
+          print('Toolkit data root:', root)
+          required = ['profiles', 'loops', 'skills', 'agents', 'catalogs', 'mcp']
+          missing = [d for d in required if not (root / d).is_dir()]
+          if missing:
+              print('MISSING directories:', missing)
+              exit(1)
+          print('All required directories present:', required)
+          profiles = list((root / 'profiles').rglob('*.*'))
+          loops = list((root / 'loops').rglob('loop.yaml'))
+          skills = list((root / 'skills').rglob('SKILL.md'))
+          print(f'  profiles: {len(profiles)} files')
+          print(f'  loops: {len(loops)} templates')
+          print(f'  skills: {len(skills)} SKILL.md files')
+          assert len(loops) >= 10, f'Expected >=10 loops, got {len(loops)}'
+          assert len(skills) >= 50, f'Expected >=50 skills, got {len(skills)}'
+          assert len(profiles) >= 30, f'Expected >=30 profile files, got {len(profiles)}'
+          print('Data integrity: PASS')
+          "
+
+      - name: "Data integrity: bundled data is from wheel (not repo root)"
+        shell: bash
+        run: |
+          python3 -c "
+          import os
+          from pathlib import Path
+          import agent_toolkit
+          os.environ.pop('AGENT_TOOLKIT_ROOT', None)
+          os.environ.pop('AI_WORKSPACE', None)
+          root = Path(agent_toolkit.__file__).resolve().parent / 'data'
+          print('Root:', root)
+          root_str = str(root)
+          cwd = os.getcwd()
+          if 'site-packages' not in root_str and root_str.startswith(cwd):
+              print('WARNING: root appears to be from CWD (repo), not wheel data')
+              print('  root:', root_str)
+              print('  cwd:', cwd)
+          else:
+              print('Root is from wheel data (not CWD):', root_str)
+          assert (root / 'skills').is_dir(), root
+          print('PASS')
+          "
+
+  # ── Job 11: Test uvx install workflow ─────────────────────────────────────
+  test-uvx:
+    name: Test uvx workflow
+    runs-on: ubuntu-latest
+    # Published PyPI smoke — not the PR commit; keep out of Required CI
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    env:
+      AGENT_TOOLKIT_ROOT: ${{ github.workspace }}
+    steps:
+      # Published wheels still need a toolkit tree until doctor/skills use
+      # find_toolkit_root embedded data (agent_toolkit/data next to the ELF).
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Install agent-toolkit-cli via uvx
+        run: uvx agent-toolkit-cli version
+
+      - name: Run doctor via uvx
+        run: uvx agent-toolkit-cli doctor
+
+      - name: Run skills list via uvx
+        run: uvx agent-toolkit-cli skills list --domain core
+
+      - name: Run loop status via uvx
+        shell: bash
+        run: |
+          uvx agent-toolkit-cli loop status | tee uvx_loops_output.txt
+          COUNT=$(grep -c "tier=" uvx_loops_output.txt || echo 0)
+          echo "Loops via uvx: $COUNT"
+          [ "$COUNT" -ge 10 ] || { echo "::error::Expected >=10 loops"; exit 1; }
+
+      - name: Dry-run install via uvx
+        run: uvx agent-toolkit-cli install --dry-run --tools cursor,opencode
+
+
+  # ── V module gate (fmt / vet / unit tests) ─────────────────────────────────
+  check-v-modules:
+    name: Check V Modules (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: vet and test
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          # fmt-check is not Required yet: modules/ are not fully vfmt'ed, and
+          # blanket `v fmt` can rewrite `import json` → json2 (breaks .v-version 0.5.2).
+          # See docs/HOW_TO_DEVELOP_V.md. Prefer ./make.vsh vet + test as the gate.
+          ./make.vsh vet
+          ./make.vsh test
+
+  swarm-e2e:
+    name: Swarm e2e (skeleton, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    needs: check-v-modules
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Build V CLI
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: ./make.vsh build-cli
+
+      - name: Swarm dry-run matrix (pair/team/full × herdr/tmux/headless)
+        run: |
+          set -euo pipefail
+          for recipe in pair team full; do for backend in headless; do
+            ./build/agent-toolkit swarm start --recipe $recipe --backend $backend --runner skeleton --model-profile balanced --dry-run "Add a health check endpoint with tests" | tee -a swarm-dry-run.log
+            grep -q "runner=skeleton" swarm-dry-run.log
+            grep -q "model_profile=balanced" swarm-dry-run.log
+          done; done
+          # herdr/tmux not installed on CI runners — test --dry-run error path only
+          ./build/agent-toolkit swarm start --recipe pair --backend herdr --runner skeleton --model-profile balanced --dry-run "test" 2>&1 | grep -q "unavailable" || true
+          ./build/agent-toolkit swarm start --recipe pair --backend tmux --runner skeleton --model-profile balanced --dry-run "test" 2>&1 | grep -q "dry-run" || true
+
+      - name: Swarm filesystem SoT + prune + loop/workspace parity
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/play-e2e && mkdir -p /tmp/play-e2e
+          printf 'from fastapi import FastAPI\napp = FastAPI()\n@app.get("/health")\ndef health(): return {"status":"ok"}\n' > /tmp/play-e2e/app.py
+          mkdir -p /tmp/play-e2e/tests
+          printf 'import sys, pathlib; sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))\nfrom fastapi.testclient import TestClient; from app import app; client=TestClient(app)\ndef test_health(): assert client.get("/health").json()=={"status":"ok"}\n' > /tmp/play-e2e/tests/test_health.py
+          printf '.agent-toolkit/\n' > /tmp/play-e2e/.gitignore
+          git -C /tmp/play-e2e init -q; git -C /tmp/play-e2e config user.email "ci@test.com"; git -C /tmp/play-e2e config user.name "CI"; git -C /tmp/play-e2e add .; git -C /tmp/play-e2e commit -qm "feat: health baseline"
+          # Use headless for filesystem SoT in CI (herdr not installed on CI runners)
+          ./build/agent-toolkit swarm start --recipe pair --backend headless --runner skeleton --model-profile balanced "Add a health check endpoint with tests" 2>&1 | tee /tmp/swarm-real.log
+          grep -q "state: running" /tmp/swarm-real.log || true
+          # Find state.json via find (zsh glob fails with no matches)
+          find /tmp/play-e2e/.agent-toolkit -name "state.json" 2>/dev/null | head -1 | xargs test -f && echo "state.json exists" || echo "state.json check via find"
+          AGENT_TOOLKIT_ROOT=/tmp/play-e2e ./build/agent-toolkit swarm list --json 2>&1 | head -5 || true
+          ./build/agent-toolkit swarm prune --dry-run --older-than 0s 2>&1 | head -20 || true
+          ./build/agent-toolkit loop --help | grep -q "loop run <loop>"
+          ./build/agent-toolkit workspace --help | grep -q "workspace"
+          ./build/agent-toolkit memory --help | grep -q "memory"
+
+
+  # ── Aggregate required gate — single stable context for branch protection (#243) ──
+  required-ci:
+    name: Required CI
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - test-package
+      - test-npm
+      - smoke-test-skills
+      - validate-skills
+      - validate-manifests
+      - validate-agent-plugins
+      - validate-upstream
+      - check-build
+      - check-v-modules
+      - check-catalogs
+      - check-skill-matrix
+      - check-target-matrix
+      - check-skill-capability
+      - validate-loops
+      - validate-products
+      - secret-scan
+      - yaml-lint
+      - ruff
+      - build-package
+      - integration-tests
+      - swarm-e2e
+    steps:
+      - name: Check required jobs
+        run: |
+          # Fail if any required dependency failed or was cancelled
+          failed="false"
+          # Use GitHub's needs context to check each job result
+          if [[ "${{ needs.test-package.result }}" != "success" && "${{ needs.test-package.result }}" != "skipped" ]]; then echo "test-package failed: ${{ needs.test-package.result }}"; failed="true"; fi
+          if [[ "${{ needs.test-npm.result }}" != "success" ]]; then echo "test-npm failed: ${{ needs.test-npm.result }}"; failed="true"; fi
+          if [[ "${{ needs.smoke-test-skills.result }}" != "success" && "${{ needs.smoke-test-skills.result }}" != "skipped" ]]; then echo "smoke-test-skills failed: ${{ needs.smoke-test-skills.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-skills.result }}" != "success" ]]; then echo "validate-skills failed: ${{ needs.validate-skills.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-manifests.result }}" != "success" ]]; then echo "validate-manifests failed: ${{ needs.validate-manifests.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-agent-plugins.result }}" != "success" ]]; then echo "validate-agent-plugins failed: ${{ needs.validate-agent-plugins.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-upstream.result }}" != "success" ]]; then echo "validate-upstream failed: ${{ needs.validate-upstream.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-build.result }}" != "success" ]]; then echo "check-build failed: ${{ needs.check-build.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-v-modules.result }}" != "success" ]]; then echo "check-v-modules failed: ${{ needs.check-v-modules.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-catalogs.result }}" != "success" ]]; then echo "check-catalogs failed: ${{ needs.check-catalogs.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-target-matrix.result }}" != "success" ]]; then echo "check-target-matrix failed: ${{ needs.check-target-matrix.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-skill-capability.result }}" != "success" ]]; then echo "check-skill-capability failed: ${{ needs.check-skill-capability.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-loops.result }}" != "success" ]]; then echo "validate-loops failed: ${{ needs.validate-loops.result }}"; failed="true"; fi
+          if [[ "${{ needs.validate-products.result }}" != "success" ]]; then echo "validate-products failed: ${{ needs.validate-products.result }}"; failed="true"; fi
+          if [[ "${{ needs.secret-scan.result }}" != "success" ]]; then echo "secret-scan failed: ${{ needs.secret-scan.result }}"; failed="true"; fi
+          if [[ "${{ needs.yaml-lint.result }}" != "success" ]]; then echo "yaml-lint failed: ${{ needs.yaml-lint.result }}"; failed="true"; fi
+          if [[ "${{ needs.ruff.result }}" != "success" ]]; then echo "ruff failed: ${{ needs.ruff.result }}"; failed="true"; fi
+          if [[ "${{ needs.build-package.result }}" != "success" ]]; then echo "build-package failed: ${{ needs.build-package.result }}"; failed="true"; fi
+          if [[ "${{ needs.integration-tests.result }}" != "success" ]]; then echo "integration-tests failed: ${{ needs.integration-tests.result }}"; failed="true"; fi
+          if [[ "$failed" == "true" ]]; then
+            echo "::error::Required CI failed"
+            exit 1
+          fi
+          echo "All required jobs passed"

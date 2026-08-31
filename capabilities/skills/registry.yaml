@@ -1,0 +1,3645 @@
+# Skill capability registry — single source for skill routing, ownership, and design decisions.
+# Generated from curated overrides + catalogs/skill-catalog.yaml + SKILL.md frontmatter.
+# Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
+# Schema: schemas/skill-capability-registry.schema.json
+version: 1
+count: 116
+generated: true
+skills:
+- id: accessibility/review
+  domain: accessibility
+  purpose: WCAG 2.2 AA curated accessibility review — distinguishes automatically detectable, browser-assisted,
+    and manual/human-judgment findings with evidence citations and SC mapping. Composes with design-assessment/design-improvement/frontend-design-review.
+  origin: first-party
+  holistic_owner: designer
+  role: review
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - accessibility audit
+  - a11y review
+  - WCAG 2.2 AA check
+  - screen reader review
+  - keyboard navigation audit
+  - inclusive design review
+  overlap:
+  - design/web-design-guidelines
+  - design/design-assessment
+  complementary:
+  - design/design-assessment
+  - design/design-improvement
+  - design/web-design-guidelines
+  - tooling/playwright-cli
+  - tooling/chrome-devtools
+  prerequisites: []
+  follow_ups:
+  - design/design-improvement
+  secondary_owners:
+  - qa-engineer
+  - reviewer
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: false
+  contraindications: Do not claim full WCAG AA conformance from automated checks alone (~30-40% coverage);
+    manual and browser-assisted judgment required
+- id: agentic-security/mcp-audit
+  domain: agentic-security
+  purpose: MCP config + implementation security audit — config secrets/auth, unpinned versions, remote
+    vs local, OAuth, env exposure; implementation command injection, SSRF, unsafe args, tool poisoning.
+    Static, evidence-cited.
+  origin: first-party
+  holistic_owner: security-engineer
+  role: validation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - MCP audit
+  - MCP config review
+  - MCP security audit
+  - tool poisoning check
+  overlap:
+  - agentic-security/supply-chain-audit
+  complementary:
+  - agentic-security/supply-chain-audit
+  - agentic-security/owasp-agentic-review
+  - integrations/mcp
+  prerequisites: []
+  follow_ups:
+  - agentic-security/owasp-agentic-review
+  secondary_owners:
+  - platform-engineer
+  specialist_agents:
+  - agentic-security-reviewer
+  specialist_justified: true
+  contraindications: Static inspection only — do not execute or call remote MCP servers during audit
+- id: agentic-security/owasp-agentic-review
+  domain: agentic-security
+  purpose: OWASP-mapped agentic security review — prompt injection, tool poisoning, identity, excessive
+    agency, credential exposure, supply-chain, insecure output handling, overreliance, data leakage, insecure
+    plugin/MCP design. Evidence-cited, severity-ranked.
+  origin: first-party
+  holistic_owner: security-engineer
+  role: review
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - OWASP agentic review
+  - prompt injection review
+  - agent security audit
+  - LLM Top 10 review
+  overlap:
+  - agentic-security/threat-modeling
+  complementary:
+  - agentic-security/threat-modeling
+  - agentic-security/mcp-audit
+  - agentic-security/supply-chain-audit
+  prerequisites:
+  - agentic-security/threat-modeling
+  follow_ups: []
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - agentic-security-reviewer
+  - security-reviewer
+  specialist_justified: true
+  contraindications: Not a substitute for application-level OWASP Top 10 review (security-reviewer); focus
+    is agentic/LLM surface
+- id: agentic-security/supply-chain-audit
+  domain: agentic-security
+  purpose: Inspect agent supply chain — skills/plugins/MCP/npm/py packages, hooks, scripts, remote prompts,
+    provenance, version pins, hashes, licenses, network and dangerous permissions — before adopting.
+  origin: first-party
+  holistic_owner: security-engineer
+  role: validation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - audit supply chain
+  - inspect skill provenance
+  - check plugin security
+  - review MCP packages
+  overlap:
+  - agentic-security/mcp-audit
+  complementary:
+  - agentic-security/mcp-audit
+  - agentic-security/owasp-agentic-review
+  prerequisites: []
+  follow_ups:
+  - agentic-security/owasp-agentic-review
+  secondary_owners:
+  - platform-engineer
+  specialist_agents:
+  - agentic-security-reviewer
+  specialist_justified: true
+  contraindications: Do not auto-reject NOASSERTION without human license review; verify SPDX and pinning
+- id: agentic-security/threat-modeling
+  domain: agentic-security
+  purpose: STRIDE + agentic threat modeling — architecture discovery → assets/trust boundaries/data flows/actors
+    → STRIDE + agentic threats → risk-ranked mitigations → incremental review → security acceptance criteria.
+    Swarm-friendly.
+  origin: first-party
+  holistic_owner: security-engineer
+  role: research
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - threat model
+  - STRIDE review
+  - trust boundary analysis
+  - agentic threat modeling
+  overlap:
+  - agentic-security/owasp-agentic-review
+  complementary:
+  - architecture/c4-model
+  - tooling/mermaid
+  - agentic-security/owasp-agentic-review
+  prerequisites:
+  - architecture/c4-model
+  follow_ups:
+  - agentic-security/owasp-agentic-review
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - agentic-security-reviewer
+  - architect
+  specialist_justified: true
+  contraindications: Discovery artifact, not a full implementation audit — downstream security review
+    still required
+- id: architecture/architecture-diagram
+  domain: architecture
+  purpose: WHAT — Create polished dark-themed architecture diagrams as self-contained HTML+SVG files (inline
+    SVG, CSS styling, PNG/PDF export toolbar). Use when the user asks for system, infrastructure, cloud,
+    security, or network topology diagrams rendered as a shareable visual artifact rather than code.
+  origin: first-party
+  holistic_owner: architect
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draw architecture diagram
+  - create system diagram
+  - infrastructure diagram
+  - network topology diagram
+  - cloud architecture diagram
+  overlap:
+  - tooling/mermaid
+  - architecture/c4-model
+  complementary:
+  - architecture/c4-model
+  - tooling/mermaid
+  prerequisites:
+  - architecture/c4-model
+  follow_ups: []
+  secondary_owners:
+  - designer
+  specialist_agents:
+  - architect
+  specialist_justified: false
+  contraindications: Use for shareable rendered artifact (HTML+SVG); use mermaid for lightweight text
+    diagrams in repo
+- id: architecture/c4-model
+  domain: architecture
+  purpose: WHAT — C4 model methodology (Context, Container, Component, Code) guidance — what to draw at
+    each level, when, and how to render C4-inspired diagrams via Mermaid (PlantUML/Structurizr optional
+    advanced). Methodology not renderer.
+  origin: first-party
+  holistic_owner: architect
+  role: research
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - C4 model
+  - context container component code
+  - system architecture levels
+  - what to draw at each C4 level
+  overlap:
+  - architecture/architecture-diagram
+  complementary:
+  - architecture/architecture-diagram
+  - tooling/mermaid
+  prerequisites: []
+  follow_ups:
+  - architecture/architecture-diagram
+  secondary_owners:
+  - researcher
+  specialist_agents:
+  - architect
+  specialist_justified: false
+  contraindications: Methodology overlay, not renderer — pair with mermaid for rendering; Structurizr/PlantUML
+    optional
+- id: cloud/aws-well-architected-review
+  domain: cloud
+  purpose: WHAT — AWS Well-Architected Framework review (6 pillars) — operational excellence, security,
+    reliability, performance, cost, sustainability + WAR process. Checklist for workload evaluation on
+    AWS; complementary to official AWS MCP for live account data.
+  origin: first-party
+  holistic_owner: architect
+  role: review
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - Well-Architected review
+  - AWS WAR
+  - six pillars review
+  - reliability security review AWS
+  overlap:
+  - cloud/cloud-design-patterns
+  complementary:
+  - cloud/cloud-design-patterns
+  - architecture/c4-model
+  prerequisites:
+  - cloud/cloud-design-patterns
+  follow_ups: []
+  secondary_owners:
+  - platform-engineer
+  specialist_agents:
+  - architect
+  specialist_justified: true
+  contraindications: Checklist only; not a substitute for live AWS account data via official MCP
+- id: cloud/cloud-design-patterns
+  domain: cloud
+  purpose: WHAT — Vendor-neutral distributed cloud patterns (Retry, Bulkhead, Circuit Breaker, CQRS, Event
+    Sourcing, etc.) abstracted from AWS/Azure/GCP sources — when to apply, tradeoffs, mapping to AWS/GCP/Azure
+    primitives. Offline checklist, no live account required.
+  origin: first-party
+  holistic_owner: architect
+  role: research
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - cloud design pattern
+  - circuit breaker pattern
+  - CQRS
+  - event sourcing
+  - retry bulkhead when to apply
+  overlap:
+  - cloud/aws-well-architected-review
+  complementary:
+  - cloud/aws-well-architected-review
+  - architecture/c4-model
+  prerequisites: []
+  follow_ups:
+  - cloud/aws-well-architected-review
+  secondary_owners:
+  - platform-engineer
+  specialist_agents:
+  - architect
+  specialist_justified: false
+  contraindications: Vendor-neutral abstractions — map to actual AWS/GCP/Azure primitives before implementation
+- id: core/assistant
+  domain: core
+  purpose: Assistant — on any repo, scan README→docs→AGENTS→CONTRIBUTING→PR templates→task runners→devcontainer→CI→configs
+    before code; cite sources; prefer AGENTS.md for agent behavior; portable across Cursor/Copilot/Claude;
+    use agent-toolkit CLI when needed.
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - assistant orchestrator
+  - repo discovery
+  - where to start
+  - how to route next
+  - what skill to use
+  overlap: []
+  complementary:
+  - core/output-handshake
+  - core/workspace-knowledge-sync
+  - tooling/inventory
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Orchestrator fallback — do not inline HOW procedures; delegate to specialist skills
+    per ORCHESTRATION.md
+- id: core/dev-companion
+  domain: core
+  purpose: 'WHAT — Dev Companion (general): layered companion for client delivery; modes, gates, delegation
+    to assistant and workflow-generic-project; no CLI matrices.'
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - dev companion
+  - client delivery framing
+  - delivery modes and gates
+  overlap:
+  - delivery/workflow-generic-project
+  complementary:
+  - core/assistant
+  - delivery/workflow-generic-project
+  prerequisites:
+  - core/assistant
+  follow_ups:
+  - delivery/workflow-generic-project
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Companion framing only — delegate CLI operations to HOW skills (forge, integrations)
+- id: core/onboarding
+  domain: core
+  purpose: Getting started guide for new users. Walks through setup validation, the skill/agent hierarchy,
+    and the three most useful commands per role (developer, PM, tech lead). Use when someone is new to
+    the workstation or asks "where do I start?"
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - where do I start
+  - getting started
+  - setup validation
+  - how does toolkit work
+  overlap: []
+  complementary:
+  - core/assistant
+  - tooling/inventory
+  prerequisites: []
+  follow_ups:
+  - tooling/inventory
+  secondary_owners: []
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Setup validation only — not for ongoing delivery workflows
+- id: core/output-handshake
+  domain: core
+  purpose: 'WHAT — Default gate for any deliverable: confirm where the final artifact will be stored and
+    that a human will review, before writing PRDs, TRDs, ADRs, or PR bodies. Repository paths, wikis,
+    and ticket tools differ by engagement; never assume a single location.'
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - where to save deliverable
+  - human review gate
+  - output handshake
+  - confirm artifact destination
+  overlap: []
+  complementary:
+  - core/pr-fallback
+  - delivery/prd
+  - delivery/trd
+  - delivery/adr
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Gate only — do not generate artifact content without confirming destination and human
+    reviewer
+- id: core/pr-fallback
+  domain: core
+  purpose: WHAT — When the repo has no GitHub PR template, structure the pull-request body using the default
+    in references/pr-body-default.md. Pair with output-handshake and github-cli-workflow. Does not open
+    the PR; HOW stays in the forge skill.
+  origin: first-party
+  holistic_owner: assistant
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - PR body default
+  - no PR template
+  - fallback PR description
+  - default pull request body
+  overlap: []
+  complementary:
+  - core/output-handshake
+  - forge/github-cli-workflow
+  prerequisites:
+  - core/output-handshake
+  follow_ups:
+  - forge/github-cli-workflow
+  secondary_owners:
+  - reviewer
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Only when repo has no PR template — prefer repo template when present
+- id: core/project
+  domain: core
+  purpose: Clone, index, and orchestrate multi-repo work via agent-toolkit project — symlinks, quick access,
+    and swarm workspaces.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - clone repo
+  - add project
+  - list projects
+  - multi-repo workspace
+  - symlink projects
+  overlap:
+  - core/workspace
+  complementary:
+  - core/workspace
+  - ops/swarm
+  - forge/worktree
+  - core/assistant
+  prerequisites: []
+  follow_ups:
+  - ops/swarm
+  secondary_owners:
+  - assistant
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Local registry only — does not replace forge clone auth flows or remote permissions
+- id: core/workspace
+  domain: core
+  purpose: Scaffold and manage the stateless AI workspace — context, packs, repos, and knowledge for multi-repo
+    orchestration.
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - scaffold workspace
+  - workspace packs
+  - knowledge context
+  - workspace context
+  overlap:
+  - core/project
+  complementary:
+  - core/project
+  - core/workspace-knowledge-sync
+  - core/assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - platform-engineer
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Scaffold only — packs are docs-only (ADR-006), not compiler input for products
+- id: core/workspace-knowledge-sync
+  domain: core
+  purpose: Syncs knowledge to the agentic-harness knowledge base and AGENTS.md learned facts. Use when
+    the assistant discovers new patterns, learns user preferences, workspace facts, or identifies information
+    worth preserving for future sessions. Integrates with platform-engineer (archived tech-assistant → references/WORKSTATION_OPS.md) for automatic trigger points.
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - sync knowledge
+  - persist learning
+  - save discovery
+  - knowledge base sync
+  - AGENTS.md learned facts
+  overlap: []
+  complementary:
+  - core/workspace
+  - core/assistant
+  prerequisites:
+  - core/workspace
+  follow_ups: []
+  secondary_owners:
+  - researcher
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Sync only — do not invent learnings without evidence; cite source files
+- id: data/dbt-validation
+  domain: data
+  purpose: HOW — Run dbt checks as documented in the target repo (parse, compile, test, selective run).
+    Does not configure Snowflake accounts or change cloud security.
+  origin: first-party
+  holistic_owner: data-engineer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - dbt
+  triggers:
+  - dbt parse validation
+  - dbt compile check
+  - dbt test
+  - dbt run selective
+  - validate dbt model
+  overlap:
+  - data/snowflake-validation
+  complementary:
+  - data/snowflake-validation
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - qa-engineer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Does not configure Snowflake accounts or change cloud security; repo-documented CLI
+    only
+- id: data/snowflake-validation
+  domain: data
+  purpose: 'HOW — Read-only Snowflake validation patterns: use repo-documented CLI (snowflake/sql) or
+    SQL checks. Never claim success without working credentials and evidence.'
+  origin: first-party
+  holistic_owner: data-engineer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - snow
+  triggers:
+  - snowflake validation
+  - snowflake CLI check
+  - SQL validation snowflake
+  - validate snowflake access
+  overlap:
+  - data/dbt-validation
+  complementary:
+  - data/dbt-validation
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - platform-engineer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Read-only checks only — never claim success without working credentials and evidence
+- id: delivery/adr
+  domain: delivery
+  purpose: WHAT — Create and maintain Architecture Decision Records (ADRs) per the process. Covers when
+    to write an ADR, required sections, review, and linking to epics/PRs. English for cross-team artifacts
+    unless the user asks otherwise.
+  origin: first-party
+  holistic_owner: architect
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - create ADR
+  - architecture decision record
+  - when to write ADR
+  - ADR review
+  overlap:
+  - delivery/decision-log
+  - delivery/trd
+  complementary:
+  - delivery/trd
+  - delivery/decision-log
+  - delivery/spike
+  prerequisites:
+  - delivery/spike
+  follow_ups: []
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - architect
+  specialist_justified: false
+  contraindications: Write ADRs for cross-team architectural decisions only — use decision-log for lightweight
+    choices
+- id: delivery/agreement
+  domain: delivery
+  purpose: WHAT - Capture explicit agreements, terms, parties involved, dates, validity, and linked work
+    items using the Agreement Document structure.
+  origin: first-party
+  holistic_owner: planner
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - capture agreement
+  - terms parties dates validity
+  - agreement document
+  overlap:
+  - delivery/decision-log
+  - delivery/adr
+  complementary:
+  - delivery/decision-log
+  - delivery/adr
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: For explicit agreements with parties/dates/validity — not for informal decisions
+    (use decision-log)
+- id: delivery/bug
+  domain: delivery
+  purpose: WHAT - Draft and review bugs using the Bug Template; classifies whether an issue should be
+    escalated to incident based on production/user impact.
+  origin: first-party
+  holistic_owner: qa-engineer
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draft bug report
+  - bug template
+  - classify bug severity
+  - escalate bug to incident
+  overlap:
+  - delivery/incident
+  - delivery/task
+  complementary:
+  - delivery/incident
+  - delivery/task
+  - delivery/work-item
+  prerequisites: []
+  follow_ups:
+  - delivery/incident
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: false
+  contraindications: Classify production/user impact correctly to decide incident escalation; include
+    reproduction steps
+- id: delivery/decision-log
+  domain: delivery
+  purpose: WHAT - Capture lightweight project, product, or operational decisions that do not require a
+    full ADR; includes rationale, date, owner, and references.
+  origin: first-party
+  holistic_owner: architect
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - capture decision
+  - lightweight decision log
+  - decision rationale date owner
+  overlap:
+  - delivery/adr
+  - delivery/agreement
+  complementary:
+  - delivery/adr
+  - delivery/agreement
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - architect
+  specialist_justified: false
+  contraindications: Use for decisions not warranting full ADR; include rationale/date/owner/references
+- id: delivery/development-workflow
+  domain: delivery
+  purpose: WHAT - Default development workflow, task lifecycle, DoR, DoD, validation, and evidence model
+    when a project has no explicit override. Repository instructions still take precedence.
+  origin: first-party
+  holistic_owner: planner
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - development workflow
+  - task lifecycle DoR DoD
+  - validation gates default workflow
+  overlap:
+  - delivery/planning
+  complementary:
+  - delivery/planning
+  - delivery/work-item
+  prerequisites: []
+  follow_ups:
+  - delivery/planning
+  secondary_owners:
+  - assistant
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: Default workflow only — repository instructions and project packs take precedence
+- id: delivery/epic
+  domain: delivery
+  purpose: WHAT - Draft and review epics using the Best Practices Epic Template; includes objectives,
+    success criteria, related tasks, stakeholders, and effort metadata.
+  origin: first-party
+  holistic_owner: planner
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draft epic
+  - epic template objectives
+  - epic success criteria
+  - epic stakeholders
+  overlap:
+  - delivery/user-story
+  - delivery/task
+  complementary:
+  - delivery/user-story
+  - delivery/task
+  - delivery/work-item
+  - delivery/planning
+  prerequisites:
+  - delivery/planning
+  follow_ups:
+  - delivery/user-story
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: Epics group related tasks/stories — not a single story or task; include effort metadata
+- id: delivery/incident
+  domain: delivery
+  purpose: WHAT - Draft and review incident reports and RCA notes using Incident Management guidance;
+    includes detection, impact, timeline, RCA, resolution, and follow-ups.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draft incident report
+  - incident RCA
+  - detection impact timeline
+  - resolution follow-ups
+  overlap:
+  - delivery/bug
+  complementary:
+  - delivery/bug
+  - delivery/decision-log
+  prerequisites:
+  - delivery/bug
+  follow_ups: []
+  secondary_owners:
+  - planner
+  - security-reviewer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: For production/user-impacting incidents — include detection/impact/timeline/RCA/resolution/follow-ups;
+    link to bug if needed
+- id: delivery/management-unit-assessment
+  domain: delivery
+  purpose: WHAT - Evidence-based management unit assessment for governance, delivery, collaboration, culture,
+    and AI-native management readiness. Interactive and source-driven before any score is assigned.
+  origin: first-party
+  holistic_owner: planner
+  role: review
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - management assessment
+  - governance delivery culture review
+  - AI-native management readiness
+  overlap:
+  - delivery/technical-unit-assessment
+  - delivery/project-assessment
+  complementary:
+  - delivery/project-assessment
+  - delivery/project-assessment-evidence
+  - delivery/technical-unit-assessment
+  - design/design-assessment
+  prerequisites:
+  - delivery/project-assessment-evidence
+  follow_ups:
+  - delivery/project-assessment
+  secondary_owners:
+  - researcher
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: Evidence-based, interactive — do not score without evidence; use project-assessment
+    router
+- id: delivery/meeting-minutes
+  domain: delivery
+  purpose: WHAT - Create structured meeting minutes from notes or transcripts using meeting templates,
+    with redaction, action items, decisions, and traceability.
+  origin: first-party
+  holistic_owner: planner
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - meeting minutes
+  - structured minutes from transcript
+  - action items decisions traceability
+  overlap: []
+  complementary:
+  - delivery/decision-log
+  - delivery/agreement
+  - core/output-handshake
+  prerequisites:
+  - core/output-handshake
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Redact sensitive data before sharing; capture action items/decisions with owners
+- id: delivery/planning
+  domain: delivery
+  purpose: WHAT - Planning, estimation, task breakdown, and iteration capacity fallback based on Best
+    Practices. Use before finalizing backlog scope, story/task estimates, or iteration commitments.
+  origin: first-party
+  holistic_owner: planner
+  role: research
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - planning estimation
+  - task breakdown iteration capacity
+  - story points estimation
+  overlap:
+  - delivery/development-workflow
+  - delivery/epic
+  complementary:
+  - delivery/development-workflow
+  - delivery/epic
+  - delivery/work-item
+  prerequisites:
+  - delivery/development-workflow
+  follow_ups:
+  - delivery/work-item
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - planner
+  specialist_justified: true
+  contraindications: Use before finalizing backlog scope/estimates — include iteration capacity fallback
+- id: delivery/prd
+  domain: delivery
+  purpose: WHAT — Draft and review a Product Requirements Document (PRD) using the template. Business-level
+    requirements, acceptance criteria, and traceability. Does not replace the product owner. English for
+    tickets, PRs, and client-facing text unless the user asks otherwise.
+  origin: first-party
+  holistic_owner: planner
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draft PRD
+  - product requirements document
+  - business-level requirements PRD template
+  overlap:
+  - delivery/trd
+  complementary:
+  - delivery/trd
+  - core/output-handshake
+  - delivery/user-story
+  prerequisites:
+  - core/output-handshake
+  follow_ups:
+  - delivery/trd
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: PRDs are business-level — do not replace product owner; include acceptance criteria
+    and traceability
+- id: delivery/project-assessment
+  domain: delivery
+  purpose: 'WHAT - Interactive project assessment router: define assessment scope and units, collect evidence
+    through project-assessment-evidence, then delegate to technical or management unit assessment skills.
+    Always evidence-based and human-reviewed.'
+  origin: first-party
+  holistic_owner: planner
+  role: research
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - project assessment router
+  - define assessment scope units
+  - evidence map intake
+  overlap:
+  - delivery/project-assessment-evidence
+  - delivery/technical-unit-assessment
+  complementary:
+  - delivery/project-assessment-evidence
+  - delivery/technical-unit-assessment
+  - delivery/management-unit-assessment
+  - design/design-assessment
+  prerequisites:
+  - delivery/project-assessment-evidence
+  follow_ups:
+  - delivery/technical-unit-assessment
+  - delivery/management-unit-assessment
+  - design/design-assessment
+  secondary_owners:
+  - researcher
+  specialist_agents:
+  - planner
+  - architect
+  specialist_justified: true
+  contraindications: Router only — delegates to technical/management/design units after evidence intake;
+    do not re-ask evidence
+- id: delivery/project-assessment-evidence
+  domain: delivery
+  purpose: WHAT - Interactive evidence intake for project assessments. Ask the user where each evidence
+    source lives, build an evidence map, track missing evidence, assumptions, freshness, and confidence
+    before any scoring happens.
+  origin: first-party
+  holistic_owner: researcher
+  role: research
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - evidence intake
+  - evidence map
+  - ask where evidence lives
+  - freshness confidence
+  overlap:
+  - delivery/project-assessment
+  complementary:
+  - delivery/project-assessment
+  - delivery/technical-unit-assessment
+  - delivery/management-unit-assessment
+  - design/design-assessment
+  prerequisites: []
+  follow_ups:
+  - delivery/project-assessment
+  secondary_owners:
+  - researcher
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: Single evidence framework — reuse map in downstream assessments; do not duplicate
+    intake
+- id: delivery/spike
+  domain: delivery
+  purpose: WHAT - Produce spike and research findings using the spike template; captures purpose, findings,
+    implementation strategy, risks, tradeoffs, open questions, and references.
+  origin: first-party
+  holistic_owner: researcher
+  role: research
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - spike research findings
+  - implementation strategy risks tradeoffs
+  - spike template open questions
+  overlap:
+  - delivery/planning
+  - delivery/adr
+  complementary:
+  - delivery/adr
+  - delivery/planning
+  prerequisites: []
+  follow_ups:
+  - delivery/adr
+  - delivery/trd
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - planner
+  - architect
+  specialist_justified: false
+  contraindications: Time-boxed research — capture purpose/findings/strategy/risks/open questions; not
+    an implementation plan
+- id: delivery/task
+  domain: delivery
+  purpose: WHAT - Draft and review technical tasks using the Best Practices Task Template; includes summary,
+    technical notes, AC, estimate, owner, and due date.
+  origin: first-party
+  holistic_owner: implementer
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draft technical task
+  - task template technical notes AC estimate
+  overlap:
+  - delivery/user-story
+  - delivery/bug
+  complementary:
+  - delivery/user-story
+  - delivery/work-item
+  - delivery/planning
+  prerequisites:
+  - delivery/work-item
+  follow_ups: []
+  secondary_owners:
+  - planner
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Technical tasks need summary/technical notes/AC/estimate/owner/due date; link to
+    epic/story
+- id: delivery/technical-unit-assessment
+  domain: delivery
+  purpose: WHAT - Evidence-based technical unit assessment for repositories, platforms, frontend, backend,
+    infrastructure, data, UI/UX, and AI-native structural readiness.
+  origin: first-party
+  holistic_owner: architect
+  role: review
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - technical assessment
+  - repo platform readiness
+  - frontend backend infra data assessment
+  overlap:
+  - delivery/management-unit-assessment
+  - design/design-assessment
+  complementary:
+  - delivery/project-assessment
+  - delivery/project-assessment-evidence
+  - delivery/management-unit-assessment
+  prerequisites:
+  - delivery/project-assessment-evidence
+  follow_ups:
+  - delivery/project-assessment
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - architect
+  - code-reviewer
+  specialist_justified: true
+  contraindications: Evidence-based per indicator groups — use Not assessed when evidence missing; no
+    fake precision
+- id: delivery/trd
+  domain: delivery
+  purpose: WHAT — Draft and review a Technical Requirements Document (TRD) using the template, typically
+    from an agreed PRD. Covers architecture, data contracts, technical decisions, risks, and test strategy.
+    English for technical artifacts and tickets unless the user asks otherwise.
+  origin: first-party
+  holistic_owner: architect
+  role: creation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draft TRD
+  - technical requirements document architecture data contracts
+  overlap:
+  - delivery/prd
+  - delivery/adr
+  complementary:
+  - delivery/prd
+  - delivery/adr
+  - architecture/c4-model
+  prerequisites:
+  - delivery/prd
+  follow_ups:
+  - delivery/adr
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - architect
+  specialist_justified: false
+  contraindications: TRDs follow agreed PRDs — cover architecture/data contracts/decisions/risks/test
+    strategy
+- id: delivery/user-story
+  domain: delivery
+  purpose: WHAT - Draft and review user stories using the task template plus the As a/I want/so that format
+    from Best Practices examples.
+  origin: first-party
+  holistic_owner: planner
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - draft user story
+  - As a I want so that
+  - user story acceptance criteria
+  overlap:
+  - delivery/task
+  - delivery/epic
+  complementary:
+  - delivery/task
+  - delivery/work-item
+  - delivery/prd
+  prerequisites:
+  - delivery/work-item
+  follow_ups:
+  - delivery/task
+  secondary_owners:
+  - designer
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: Use As a/I want/so that format plus task template fields; link to epic
+- id: delivery/work-item
+  domain: delivery
+  purpose: WHAT - Router for creating and refining epics, user stories, tasks, bugs, and incidents using
+    Best Practices work item hierarchy.
+  origin: first-party
+  holistic_owner: planner
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - create work item
+  - router epic story task bug incident
+  - work item hierarchy
+  overlap: []
+  complementary:
+  - delivery/epic
+  - delivery/user-story
+  - delivery/task
+  - delivery/bug
+  - delivery/incident
+  prerequisites:
+  - delivery/planning
+  follow_ups:
+  - delivery/task
+  - delivery/user-story
+  secondary_owners: []
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: Router — pick correct hierarchy level (epic>story>task vs bug vs incident) per impact
+- id: delivery/workflow-client-bootstrap
+  domain: delivery
+  purpose: WHAT — Interactive interview to capture client delivery context and store it inside the user's
+    ~/.ai-workspace (or similar) as packs + knowledge (no client skills). Use when onboarding a new client
+    project or updating an existing workspace context.
+  origin: first-party
+  holistic_owner: assistant
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - onboard client delivery context
+  - client pack interview
+  - store packs knowledge
+  overlap:
+  - delivery/workflow-generic-project
+  complementary:
+  - core/workspace
+  - delivery/workflow-generic-project
+  - core/dev-companion
+  prerequisites:
+  - core/workspace
+  follow_ups:
+  - delivery/workflow-generic-project
+  secondary_owners:
+  - planner
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Captures client context into ~/.ai-workspace packs/knowledge — not a client skill;
+    no secrets in repo
+- id: delivery/workflow-generic-project
+  domain: delivery
+  purpose: 'WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates, English traceability
+    on tickets, draft PR via delegated forge skills. Use workspace packs for client/account overlays.'
+  origin: first-party
+  holistic_owner: planner
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - generic client delivery
+  - full repo context human gates
+  - English traceability tickets draft PR
+  overlap:
+  - delivery/workflow-client-bootstrap
+  - core/dev-companion
+  complementary:
+  - core/dev-companion
+  - core/assistant
+  - forge/github-cli-workflow
+  - integrations/clickup-cli
+  - integrations/linear
+  prerequisites:
+  - core/dev-companion
+  - core/assistant
+  follow_ups:
+  - forge/github-cli-workflow
+  secondary_owners:
+  - assistant
+  specialist_agents:
+  - planner
+  specialist_justified: false
+  contraindications: Use workspace packs for client overlay; delegate CLI/ticket ops to forge/integrations;
+    human gates required
+- id: design/design-assessment
+  domain: design
+  purpose: WHAT - Evidence-based design-unit assessment orchestrated by project-assessment. Evaluates
+    visual hierarchy, UX friction, interaction, a11y, responsiveness, design-system compliance, and distinctiveness
+    with severity/confidence evidence citations. Reuses project-assessment-evidence semantics — no second
+    framework.
+  origin: first-party
+  holistic_owner: designer
+  role: review
+  context_cost: high
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - design audit
+  - visual review UX assessment
+  - design-system compliance check
+  - distinctive identity review
+  overlap:
+  - design/frontend-design-review
+  - design/web-design-guidelines
+  - accessibility/review
+  complementary:
+  - design/design-improvement
+  - design/frontend-design
+  - design/frontend-design-review
+  - design/web-design-guidelines
+  - accessibility/review
+  - tooling/playwright-cli
+  - tooling/chrome-devtools
+  - design/figma
+  prerequisites:
+  - delivery/project-assessment-evidence
+  follow_ups:
+  - design/design-improvement
+  secondary_owners:
+  - qa-engineer
+  - researcher
+  specialist_agents:
+  - architect
+  specialist_justified: true
+  contraindications: Do not run all design skills mechanically — selection is contextual; reuse single
+    evidence framework; vision-required else Low confidence
+- id: design/design-improvement
+  domain: design
+  purpose: WHAT - Browser-grounded iterative design improvement. Consumes design-assessment findings,
+    defines direction, prioritizes safe vs ambiguous changes, implements within existing design system,
+    runs app, captures rendered evidence via browser, reviews and iterates. Reuses evidence model — no
+    new scoring framework.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: high
+  network_required: true
+  mcp_required:
+  - chrome-devtools
+  requires:
+  - playwright-cli or chrome-devtools
+  triggers:
+  - improve interface from assessment
+  - browser-grounded iteration
+  - design improvement loop
+  - implement within design system
+  overlap:
+  - design/design-assessment
+  - design/frontend-design-review
+  complementary:
+  - design/design-assessment
+  - design/frontend-design
+  - design/frontend-design-review
+  - accessibility/review
+  - tooling/playwright-cli
+  - tooling/chrome-devtools
+  - design/figma
+  prerequisites:
+  - design/design-assessment
+  follow_ups: []
+  secondary_owners:
+  - implementer
+  - qa-engineer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Consume assessment findings; do not invent findings; preserve design-system tokens;
+    rendered evidence required before good
+- id: design/figma
+  domain: design
+  purpose: Use the Figma MCP server to fetch design context, screenshots, variables, and assets, and to
+    translate Figma nodes into production code. Trigger when a task involves Figma URLs, node IDs, design-to-code
+    implementation, or Figma MCP setup and troubleshooting.
+  origin: first-party
+  holistic_owner: designer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required:
+  - figma
+  requires:
+  - Figma MCP
+  triggers:
+  - Figma MCP setup
+  - fetch design context
+  - Figma variables assets
+  - design-to-code Figma URL
+  overlap: []
+  complementary:
+  - design/figma-implement-design
+  - design/figma-code-connect-components
+  - design/figma-create-design-system-rules
+  - design/figma-create-new-file
+  prerequisites: []
+  follow_ups:
+  - design/figma-implement-design
+  secondary_owners:
+  - implementer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Entry-point router — switch to specialized Figma skill once intent clear (implement
+    vs code-connect vs rules vs new file)
+- id: design/figma-code-connect-components
+  domain: design
+  purpose: Connects Figma design components to code components using Code Connect mapping tools. Use when
+    user says "code connect", "connect this component to code", "map this component", "link component
+    to code", "create code connect mapping", or wants to establish mappings between Figma designs and
+    code implementations. For canvas writes (Plugin API), install the opt-in `figma-use` pack documented
+    in `docs/SKILLS.md`.
+  origin: first-party
+  holistic_owner: designer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required:
+  - figma
+  requires:
+  - Figma MCP
+  - figma-desktop optional
+  triggers:
+  - code connect mapping
+  - connect component to code
+  - link component to code
+  - get_code_connect_suggestions
+  overlap:
+  - design/figma-implement-design
+  complementary:
+  - design/figma
+  - design/figma-implement-design
+  prerequisites:
+  - design/figma
+  follow_ups: []
+  secondary_owners:
+  - implementer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Requires published components + team library; Organization/Enterprise plan only;
+    needs node-id
+- id: design/figma-create-design-system-rules
+  domain: design
+  purpose: Generates custom design system rules for the user's codebase. Use when user says "create design
+    system rules", "generate rules for my project", "set up design rules", "customize design system guidelines",
+    or wants to establish project-specific conventions for Figma-to-code workflows. Requires Figma MCP
+    server connection.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: low
+  network_required: true
+  mcp_required:
+  - figma
+  requires:
+  - Figma MCP
+  triggers:
+  - create design system rules
+  - generate rules for project
+  - design system guidelines
+  - customize design system conventions
+  overlap: []
+  complementary:
+  - design/figma
+  - design/figma-implement-design
+  prerequisites:
+  - design/figma
+  follow_ups:
+  - design/figma-implement-design
+  secondary_owners:
+  - platform-engineer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Project-specific conventions — analyze codebase component patterns before authoring
+    rules; reuse existing tokens
+- id: design/figma-create-new-file
+  domain: design
+  purpose: Create a new blank Figma file. Use when the user wants to create a new Figma design or FigJam
+    file, or when you need a new file before calling use_figma. Handles plan resolution via whoami if
+    needed. Usage — /figma-create-new-file [editorType] [fileName] (e.g. /figma-create-new-file figjam
+    My Whiteboard)
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: low
+  network_required: true
+  mcp_required:
+  - figma
+  requires:
+  - Figma MCP
+  - whoami
+  triggers:
+  - create new Figma file
+  - create FigJam file
+  - new blank Figma file
+  - create_new_file
+  overlap: []
+  complementary:
+  - design/figma
+  prerequisites:
+  - design/figma
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Requires planKey via whoami — single vs multi-plan selection; creates in drafts folder
+- id: design/figma-implement-design
+  domain: design
+  purpose: Translates Figma designs into production-ready application code with 1:1 visual fidelity. Use
+    when implementing UI code from Figma files, when user mentions "implement design", "generate code",
+    "implement component", provides Figma URLs, or asks to build components matching Figma specs. For
+    Figma canvas writes (Plugin API), see the opt-in `figma-use` pack documented in `docs/SKILLS.md`.
+  origin: first-party
+  holistic_owner: designer
+  role: creation
+  context_cost: high
+  network_required: true
+  mcp_required:
+  - figma
+  requires:
+  - Figma MCP
+  - get_design_context
+  - get_screenshot
+  triggers:
+  - implement Figma design
+  - translate Figma node to code
+  - design to code implementation
+  - pixel perfect Figma
+  overlap:
+  - design/figma-code-connect-components
+  - design/frontend-design
+  complementary:
+  - design/figma
+  - design/figma-create-design-system-rules
+  - design/frontend-design
+  - tooling/playwright-cli
+  prerequisites:
+  - design/figma
+  follow_ups: []
+  secondary_owners:
+  - implementer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Code deliverable is in repo — not canvas writes (use figma-use pack); follow get_design_context
+    → get_screenshot → assets → implement → validate 1:1
+- id: design/frontend-design
+  domain: design
+  purpose: Guidance for distinctive, intentional visual design when building new UI or reshaping an existing
+    one. Helps with aesthetic direction, typography, and making choices that don't read as templated defaults.
+  origin: upstream
+  holistic_owner: designer
+  role: creation
+  context_cost: high
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - new visual direction
+  - creative frontend design
+  - distinctive UI from scratch
+  - aesthetic direction typography palette
+  overlap:
+  - design/frontend-design-review
+  - design/design-assessment
+  complementary:
+  - design/frontend-design-review
+  - design/design-improvement
+  - design/figma-implement-design
+  - accessibility/review
+  prerequisites:
+  - delivery/spike
+  follow_ups:
+  - design/frontend-design-review
+  secondary_owners:
+  - implementer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: For greenfield or intentional reshaping — not for auditing existing UI (use frontend-design-review);
+    take one justifiable aesthetic risk
+  upstream:
+    repository: anthropics/skills
+    path: skills/frontend-design
+    ref: f17010c9bb483898c1d9c9f42dde2b3a98889434
+    license: Apache-2.0
+    version: f17010c
+- id: design/frontend-design-review
+  domain: design
+  purpose: 'Review and create distinctive, production-grade frontend interfaces with high design quality
+    and design system compliance. Evaluates using three pillars: frictionless insight-to-action, quality
+    craft, and trustworthy building. USE FOR: PR reviews, design reviews, accessibility audits, design
+    system compliance checks, creative frontend design, UI code review, component reviews, responsive
+    design checks, theme testing, and creating memorable UI. DO NOT USE FOR: Backend API reviews, database
+    schema reviews, infrastructure or DevOps work, pure business logic without UI, or non-frontend code.'
+  origin: upstream
+  holistic_owner: designer
+  role: review
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - frontend quality review
+  - design review PR review UI
+  - design system compliance check
+  - component review responsive theme
+  overlap:
+  - design/frontend-design
+  - design/web-design-guidelines
+  - design/design-assessment
+  complementary:
+  - design/frontend-design
+  - design/web-design-guidelines
+  - design/design-assessment
+  - accessibility/review
+  prerequisites: []
+  follow_ups:
+  - design/design-improvement
+  secondary_owners:
+  - reviewer
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: true
+  contraindications: Do NOT use for backend/API/database/infra reviews — frontend/UI only; evaluates three
+    pillars (frictionless/quality craft/trustworthy)
+  upstream:
+    repository: microsoft/skills
+    path: .github/skills/frontend-design-review
+    ref: e58528db9a006528a5fb0a2c029790fa6a9a7c0e
+    license: MIT
+    version: e58528d
+- id: design/web-design-guidelines
+  domain: design
+  purpose: Review UI code for Web Interface Guidelines compliance. Use when asked to "review my UI", "check
+    accessibility", "audit design", "review UX", or "check my site against best practices".
+  origin: upstream
+  holistic_owner: designer
+  role: review
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - review UI best practices
+  - check web interface guidelines
+  - audit design UX best practices
+  - Vercel guidelines
+  overlap:
+  - design/frontend-design-review
+  - accessibility/review
+  - design/design-assessment
+  complementary:
+  - design/frontend-design-review
+  - design/design-assessment
+  - accessibility/review
+  prerequisites: []
+  follow_ups:
+  - design/design-improvement
+  secondary_owners:
+  - reviewer
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: false
+  contraindications: Concrete web-interface best-practice audit (forms/focus/animation/a11y) — not holistic
+    UX diagnosis (use design-assessment)
+  upstream:
+    repository: vercel-labs/agent-skills
+    path: skills/web-design-guidelines
+    ref: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
+    license: NOASSERTION
+    sources:
+    - id: wrapper
+      role: wrapper
+      repository: vercel-labs/agent-skills
+      path: skills/web-design-guidelines
+      ref: 7c180d9044c9ae2b442b567aad4e42a28dd5ed62
+      license: NOASSERTION
+    - id: rules
+      role: rules
+      repository: vercel-labs/web-interface-guidelines
+      path: command.md
+      ref: 4e799d45c17aec1498c269287a83b9dba22b966b
+      license: MIT
+- id: forge/fix-merge-conflicts
+  domain: forge
+  purpose: Resolve merge conflicts non-interactively, validate build and tests, and finalize conflict
+    resolution
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires:
+  - git
+  triggers:
+  - fix merge conflicts
+  - resolve conflicts
+  - rebase and fix
+  - make branch mergeable
+  overlap:
+  - forge/worktree
+  complementary:
+  - forge/github-cli-workflow
+  - forge/gitlab-cli-workflow
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Non-interactive resolution — regenerate lockfiles rather than hand-edit; validate
+    via compile/lint/tests after
+- id: forge/gh-address-comments
+  domain: forge
+  purpose: Triage and address open GitHub PR review and conversation comments using the gh CLI. Use when
+    the user wants to "address PR comments", "resolve review threads", or "respond to reviewers" on the
+    current branch's pull request.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required: []
+  requires:
+  - gh
+  - python3
+  triggers:
+  - address PR comments
+  - resolve review threads
+  - respond to PR feedback
+  - triage GitHub comments
+  overlap:
+  - forge/github-cli-workflow
+  complementary:
+  - forge/github-cli-workflow
+  - forge/gh-fix-ci
+  prerequisites:
+  - forge/github-cli-workflow
+  follow_ups: []
+  secondary_owners:
+  - reviewer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Requires gh auth with repo/workflow scopes; branch must have open PR
+- id: forge/gh-contribution-planner
+  domain: forge
+  purpose: Daily GitHub contribution planner — analyzes the gh-logged-in user's non-archived repos (owned
+    + forks) and recent contributions, produces a prioritized plan, halts for approval, then dispatches
+    parallel sub-agents to execute approved items via existing PR/CI/review skills.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: research
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - gh
+  triggers:
+  - plan contributions today
+  - what should I work on
+  - daily contribution plan
+  - find good first issues
+  overlap: []
+  complementary:
+  - forge/github-cli-workflow
+  - forge/gh-fix-ci
+  - forge/gh-address-comments
+  prerequisites: []
+  follow_ups:
+  - forge/github-cli-workflow
+  secondary_owners:
+  - planner
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Halt for approval before dispatching sub-agents; does not operate on already-picked
+    PR
+- id: forge/gh-fix-ci
+  domain: forge
+  purpose: Diagnose failing GitHub Actions checks on a PR via gh, summarize the failure context, propose
+    a plan, and only implement after explicit user approval. External CI providers (Buildkite, CircleCI,
+    etc.) are reported by URL only.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: validation
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - gh
+  triggers:
+  - fix CI
+  - debug failing checks
+  - why is build red
+  - triage failing GitHub Actions
+  overlap: []
+  complementary:
+  - delivery/planning
+  - forge/github-cli-workflow
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - build-error-resolver
+  specialist_justified: false
+  contraindications: Iterative fix-one-failure-at-a-time; propose plan before code changes; external CI
+    providers reported by URL only
+- id: forge/github-cli-workflow
+  domain: forge
+  purpose: 'HOW — GitHub CLI (gh): push branch, create draft PR with title/body from template or file;
+    fallback untracked PR_DESCRIPTION_*.md. Use when origin is GitHub.'
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required: []
+  requires:
+  - gh
+  triggers:
+  - push branch open draft PR
+  - gh pr create draft
+  - GitHub PR lifecycle
+  overlap:
+  - forge/gitlab-cli-workflow
+  complementary:
+  - core/pr-fallback
+  - core/output-handshake
+  - forge/gh-fix-ci
+  prerequisites:
+  - core/pr-fallback
+  follow_ups:
+  - forge/gh-fix-ci
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: GitHub only — use gitlab-cli-workflow for GitLab remotes; prefer repo PR template
+    over pr-fallback
+- id: forge/gitlab-cli-workflow
+  domain: forge
+  purpose: 'HOW — GitLab CLI (glab): push branch, create draft MR with title/body; fallback untracked
+    markdown. Use when origin is GitLab.'
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required: []
+  requires:
+  - glab
+  triggers:
+  - push branch open draft MR
+  - glab mr create draft
+  - GitLab MR lifecycle
+  overlap:
+  - forge/github-cli-workflow
+  complementary:
+  - core/pr-fallback
+  - core/output-handshake
+  prerequisites:
+  - core/pr-fallback
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: GitLab only — check glab --help for draft flags; prefer project MR template
+- id: forge/worktree
+  domain: forge
+  purpose: Manage Git worktrees per writer for Agent Toolkit swarms — isolated branches, handoff promotion,
+    and cleanup.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires:
+  - git
+  triggers:
+  - manage git worktrees
+  - worktree per writer swarm
+  - isolated branches handoff
+  overlap:
+  - ops/swarm
+  - ops/swarm-handoff
+  complementary:
+  - ops/swarm
+  - ops/swarm-handoff
+  - ops/swarm-observer
+  prerequisites: []
+  follow_ups:
+  - ops/swarm-handoff
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Requires git worktree; one isolated worktree per writer on agent-toolkit-swarm/<run>/<role>;
+    validated SHAs only
+- id: integrations/clickup-cli
+  domain: integrations
+  purpose: ClickUp CLI for managing tasks, sprints, comments, statuses, and Docs. Use when the user needs
+    to interact with ClickUp — creating/editing tasks, checking sprint status, adding comments, linking
+    PRs, managing Docs and pages, or searching tasks. Prefer this CLI over raw API calls.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required: []
+  requires:
+  - clickup
+  triggers:
+  - manage ClickUp tasks
+  - ClickUp sprint status
+  - create edit ClickUp task
+  overlap:
+  - integrations/linear
+  complementary:
+  - delivery/workflow-generic-project
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - planner
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Does not replace project management decisions; does not push code/PRs (delegate to
+    github-cli-workflow)
+- id: integrations/linear
+  domain: integrations
+  purpose: Manage Linear issues, projects and cycles via the Linear MCP server. Use when the user wants
+    to read, triage, create or update Linear tickets, plan a sprint, audit Linear documentation, or rebalance
+    team workload.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required:
+  - linear
+  requires:
+  - Linear MCP
+  - OAuth
+  triggers:
+  - manage Linear issues
+  - Linear sprint plan
+  - triage Linear bugs
+  - Linear cycle planning
+  overlap:
+  - integrations/clickup-cli
+  complementary:
+  - delivery/workflow-generic-project
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - planner
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Requires Linear MCP OAuth and workspace access; template at ~/.local/share/agent-toolkit/mcp/linear/
+- id: integrations/mcp
+  domain: integrations
+  purpose: Configure and manage MCP providers for Agent Toolkit — setup, list, doctor, and per-tool deployment.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required: []
+  requires: []
+  triggers:
+  - setup MCP
+  - connect GitHub ClickUp Slack MCP
+  - MCP server configuration
+  overlap: []
+  complementary:
+  - integrations/slack-assistant
+  - integrations/linear
+  - integrations/clickup-cli
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Wraps agent-toolkit mcp CLI; auth via env or ~/.config/agent-toolkit/; not for skill
+    content
+- id: integrations/slack-assistant
+  domain: integrations
+  purpose: Interact with Slack workspaces for reading channels/messages, sending messages, adding reactions,
+    and browsing canvases. Use when the user asks about Slack channels, messages, or notifications — NOT
+    for Slack app development (use the slack-cli skill for that).
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required: []
+  requires:
+  - slackcli
+  triggers:
+  - read Slack channels messages
+  - send Slack message
+  - Slack workspace automation
+  overlap:
+  - integrations/slack-cli
+  complementary:
+  - integrations/slack-cli
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: NOT for Slack app development — use slack-cli skill; requires slackcli auth
+- id: integrations/slack-cli
+  domain: integrations
+  purpose: Interact with the official Slack CLI to create, run, deploy, and manage Slack apps, environments,
+    manifests, and triggers. Use when the user asks about Slack app development workflows, not workspace
+    chat automation.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: true
+  mcp_required: []
+  requires:
+  - slack
+  - curl
+  - jq
+  triggers:
+  - create Slack app project
+  - Slack app deploy trigger
+  - Slack CLI manage manifest
+  overlap:
+  - integrations/slack-assistant
+  complementary:
+  - integrations/slack-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Official Slack Developer CLI only (docs.slack.dev) — not community chat CLI; distinct
+    auth
+- id: loops/loop-runner
+  domain: loops
+  purpose: Execute and manage loop engineering primitives (init, run, status, audit) from an AI coding
+    session via the agent-toolkit loop CLI.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - execute loop engineering
+  - loop init run status audit
+  - run agent-toolkit loop CLI
+  overlap: []
+  complementary:
+  - ops/swarm
+  - core/assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Exposes loop CLI primitives without re-implementing; requires agent-toolkit loop
+    setup; budget/allowlist gates apply
+- id: ops/docs-generator
+  domain: ops
+  purpose: 'WHAT — Generate or update documentation from code: README.md from repo structure, CHANGELOG.md
+    from git history, API reference from OpenAPI/GraphQL schemas, and AGENTS.md starters for new projects.'
+  origin: first-party
+  holistic_owner: implementer
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - generate README from repo
+  - generate CHANGELOG from git
+  - API reference from OpenAPI
+  - AGENTS.md starter
+  overlap: []
+  complementary:
+  - tooling/mermaid
+  - architecture/c4-model
+  prerequisites:
+  - tooling/inventory
+  follow_ups: []
+  secondary_owners:
+  - architect
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Never invent — derive from evidence in repo/schema/git history; human gate via output-handshake; use researcher/references/LOOKUP_GUIDE.md inline (archived docs-lookup/reference-lookup #865)
+- id: ops/llm-cost-advisor
+  domain: ops
+  purpose: WHAT — Recommend the most cost-effective LLM provider for a given task type. Shows estimated
+    cost per run across available providers and integrates with devcompanion llm-status to show what is
+    actually available.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: research
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - recommend LLM provider
+  - most cost-effective model
+  - devcompanion llm-status cost
+  overlap: []
+  complementary:
+  - ops/swarm
+  - loops/loop-runner
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - researcher
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Recommendation only — does not configure providers; env-based; integrate with devcompanion
+    status
+- id: ops/swarm
+  domain: ops
+  purpose: Launch an Agent Toolkit swarm from a natural language request using agent-toolkit swarm CLI
+    with Herdr/tmux eager windows and file handoffs.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - agent-toolkit swarm
+  - herdr or tmux
+  triggers:
+  - launch swarm
+  - start swarm team
+  - swarm this task
+  - pair team full swarm
+  overlap:
+  - ops/swarm-handoff
+  - ops/swarm-observer
+  - tooling/herdr
+  complementary:
+  - ops/swarm-handoff
+  - ops/swarm-observer
+  - tooling/herdr
+  - forge/worktree
+  prerequisites:
+  - forge/worktree
+  follow_ups:
+  - ops/swarm-handoff
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Filesystem state under .agent-toolkit/swarm/runs/<run>/ is authoritative; Herdr preferred,
+    tmux fallback
+- id: ops/swarm-handoff
+  domain: ops
+  purpose: Create artifact/commit file handoffs for Agent Toolkit swarms with worktree-per-writer, branch,
+    and promotion integration.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires:
+  - git
+  triggers:
+  - create swarm handoff
+  - hand off artifact commit
+  - worktree per writer promotion
+  overlap:
+  - ops/swarm
+  complementary:
+  - ops/swarm
+  - ops/swarm-observer
+  - forge/worktree
+  prerequisites:
+  - ops/swarm
+  follow_ups:
+  - ops/swarm-observer
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Artifact must be under repo; commit/branch must exist locally; filesystem queue handoffs/{outbox,queued,active,completed,failed}/
+- id: ops/swarm-observer
+  domain: ops
+  purpose: Observe, diagnose, and recover Agent Toolkit swarm runs via status, handoffs, logs, and attach
+    with worktree and shell awareness.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires:
+  - herdr or tmux
+  triggers:
+  - observe swarm status
+  - diagnose stuck handoff
+  - recover swarm run logs attach
+  overlap:
+  - ops/swarm
+  complementary:
+  - ops/swarm
+  - ops/swarm-handoff
+  - tooling/herdr
+  prerequisites:
+  - ops/swarm
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Handle headless fallback extra workspaces w7-wA; eager windows Waiting for handoff;
+    check worktree_failed traces
+- id: ops/triage
+  domain: ops
+  purpose: Workstation health triage — validate tooling, directory layout, and run doctor with remediation
+    suggestions.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - workstation health triage
+  - validate tooling directory layout
+  - run doctor remediation
+  overlap: []
+  complementary:
+  - tooling/inventory
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Run on local workstation where issue occurs; not on remote unless confirmed; doctor
+    via dots- or agent-toolkit doctor; use platform-engineer/references/WORKSTATION_OPS.md inline (archived tech-assistant #865)
+- id: quality/blast-radius
+  domain: quality
+  purpose: Find what a change could break somewhere else before it ships, beyond the diff, and prove the
+    one fact it's safe because of by running real code instead of writing it up. Use for 'blast radius
+    of X', 'what could this break', or reviewing a small diff you don't trust.
+  origin: upstream
+  holistic_owner: reviewer
+  role: research
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - blast radius of change
+  - what could this break
+  - review small diff safety
+  overlap:
+  - quality/deep-review
+  - quality/codeql
+  complementary:
+  - quality/deep-review
+  - quality/megalinter-check
+  prerequisites: []
+  follow_ups:
+  - quality/deep-review
+  secondary_owners:
+  - architect
+  - qa-engineer
+  specialist_agents:
+  - architect
+  - planner
+  - code-reviewer
+  specialist_justified: true
+  contraindications: Prove safety by running real code, not writing it up; beyond diff analysis; evidence
+    before synthesis
+  upstream:
+    repository: cursor/plugins
+    path: pstack/skills/blast-radius
+    ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+    license: MIT
+- id: quality/codeql
+  domain: quality
+  purpose: CodeQL operational workflow — discover/config, run/inspect, triage SARIF findings (rule/query
+    ID, source→sink, evidence), remediate, re-validate. Distinguishes broad MegaLinter linting from semantic
+    security analysis.
+  origin: first-party
+  holistic_owner: security-engineer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - codeql or codeql-action
+  triggers:
+  - CodeQL operational workflow
+  - triage SARIF findings
+  - source sink taint
+  - remediate codeql alert
+  overlap:
+  - quality/megalinter
+  - quality/deep-review
+  complementary:
+  - quality/megalinter
+  - quality/deep-review
+  prerequisites:
+  - quality/megalinter-check
+  follow_ups:
+  - quality/deep-review
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - security-reviewer
+  specialist_justified: false
+  contraindications: Semantic security analysis — not a replacement for broad linting (MegaLinter); SARIF
+    alerts require evidence triage
+- id: quality/deep-review
+  domain: quality
+  purpose: Evidence-based deep code review rubric — severity + confidence findings across maintainability,
+    correctness, security, performance, and testing. Push for ambitious structural simplification (code
+    judo), not just local cleanup. Escalate hands-on triage to the code-reviewer agent.
+  origin: first-party
+  holistic_owner: reviewer
+  role: review
+  context_cost: high
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - deep code review audit
+  - thermo-nuclear review
+  - harsh maintainability review
+  - code judo structural simplification
+  overlap:
+  - quality/blast-radius
+  - quality/deslop
+  complementary:
+  - quality/blast-radius
+  - quality/deslop
+  - quality/unslop
+  prerequisites:
+  - quality/blast-radius
+  follow_ups: []
+  secondary_owners:
+  - architect
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: true
+  contraindications: Severity + confidence findings across maintainability/correctness/security/performance/testing;
+    escalate to code-reviewer agent
+- id: quality/deslop
+  domain: quality
+  purpose: Remove AI-generated code slop and clean up code style
+  origin: upstream
+  holistic_owner: reviewer
+  role: review
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - remove AI code slop
+  - clean up code style slop
+  - diff-scoped slop cleanup
+  overlap:
+  - quality/unslop
+  - quality/deep-review
+  complementary:
+  - quality/unslop
+  - quality/deep-review
+  prerequisites:
+  - quality/unslop
+  follow_ups:
+  - quality/deep-review
+  secondary_owners:
+  - implementer
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: false
+  contraindications: Diff-scoped code slop only — not prose (use unslop); minimal safe fixes; complements
+    unslop; apply reviewer/references/REFACTOR_CHECKLIST.md inline (archived refactor-cleaner #865)
+  upstream:
+    repository: cursor/plugins
+    path: cursor-team-kit/skills/deslop
+    ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+    license: MIT
+- id: quality/megalinter
+  domain: quality
+  purpose: Entry point for everything MegaLinter. Use when the user wants to lint their repository, set
+    up MegaLinter, check or fix lint errors, make CI lint jobs pass, or says "run megalinter", "fix lint
+    errors", "make the linters happy", "clean up code quality". Detects the repository state and orchestrates
+    the megalinter-setup, megalinter-check and megalinter-fix skills in a loop until the repository is
+    clean.
+  origin: upstream
+  holistic_owner: qa-engineer
+  role: ops
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - run megalinter
+  - fix lint errors
+  - make linters happy
+  - clean up code quality megalinter
+  overlap:
+  - quality/megalinter-check
+  - quality/megalinter-fix
+  - quality/megalinter-setup
+  complementary:
+  - quality/megalinter-check
+  - quality/megalinter-fix
+  - quality/megalinter-setup
+  - quality/codeql
+  prerequisites:
+  - quality/megalinter-setup
+  follow_ups:
+  - quality/megalinter-check
+  secondary_owners:
+  - reviewer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Entry point orchestrator — detects repo state and loops setup→check→fix until clean;
+    not for single linter
+  upstream:
+    repository: oxsecurity/megalinter
+    path: skills/megalinter
+    ref: v10.0.0
+    license: AGPL-3.0
+    commit: 15e5b45552097e318c93de385779ce3b1084052c
+    version: v10.0.0
+- id: quality/megalinter-check
+  domain: quality
+  purpose: Collect MegaLinter lint errors for the current repository. Use when the user wants to know
+    if the code passes linting, why the MegaLinter CI job fails, or before/after fixing lint errors. Two
+    modes - watch a CI job (GitHub Actions, GitLab CI, Azure Pipelines, Bitbucket Pipelines) and parse
+    its logs, or run MegaLinter locally with Docker (full run or fast parallel standalone linter runs).
+  origin: upstream
+  holistic_owner: qa-engineer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - docker or gh
+  triggers:
+  - collect megalinter lint errors
+  - why MegaLinter CI fails
+  - does code pass linting
+  overlap:
+  - quality/megalinter
+  complementary:
+  - quality/megalinter-fix
+  - quality/megalinter-setup
+  prerequisites:
+  - quality/megalinter-setup
+  follow_ups:
+  - quality/megalinter-fix
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: 'Two modes: watch CI job logs vs run locally with Docker; fast parallel standalone
+    runs possible'
+  upstream:
+    repository: oxsecurity/megalinter
+    path: skills/megalinter-check
+    ref: v10.0.0
+    license: AGPL-3.0
+    commit: 15e5b45552097e318c93de385779ce3b1084052c
+    version: v10.0.0
+- id: quality/megalinter-fix
+  domain: quality
+  purpose: Fix the errors reported by MegaLinter. Use after megalinter-check found errors, or when the
+    user pastes MegaLinter/CI lint errors and wants them fixed. Applies safe fixes automatically (auto-fix
+    linters first, then guided manual fixes using per-linter fix guides), asks the user when fixing is
+    ambiguous, and can disable rules or linters with user confirmation. Never pushes to the default branch.
+  origin: upstream
+  holistic_owner: qa-engineer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - docker or linter tools
+  triggers:
+  - fix megalinter errors
+  - apply safe fixes auto
+  - guided manual fixes linter
+  overlap:
+  - quality/megalinter
+  complementary:
+  - quality/megalinter-check
+  - quality/megalinter-setup
+  prerequisites:
+  - quality/megalinter-check
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: After megalinter-check; auto-fix first then guided; ask when ambiguous; never push
+    to default branch
+  upstream:
+    repository: oxsecurity/megalinter
+    path: skills/megalinter-fix
+    ref: v10.0.0
+    license: AGPL-3.0
+    commit: 15e5b45552097e318c93de385779ce3b1084052c
+    version: v10.0.0
+- id: quality/megalinter-setup
+  domain: quality
+  purpose: Install or upgrade MegaLinter on a repository. Use when the user wants to add MegaLinter to
+    a project, set up linting CI, update MegaLinter configuration or version, or says "install megalinter",
+    "setup linting", "add code quality checks". Always goes through npx mega-linter-runner (--install
+    or --upgrade), then refines .mega-linter.yml.
+  origin: upstream
+  holistic_owner: qa-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires:
+  - npx
+  triggers:
+  - install megalinter
+  - setup linting CI
+  - add code quality checks Megalinter
+  - upgrade megalinter
+  overlap:
+  - quality/megalinter
+  complementary:
+  - quality/megalinter-check
+  - quality/megalinter
+  prerequisites: []
+  follow_ups:
+  - quality/megalinter-check
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Via npx mega-linter-runner --install/--upgrade then refine .mega-linter.yml; never
+    bypass root cause with overrides
+  upstream:
+    repository: oxsecurity/megalinter
+    path: skills/megalinter-setup
+    ref: v10.0.0
+    license: AGPL-3.0
+    commit: 15e5b45552097e318c93de385779ce3b1084052c
+    version: v10.0.0
+- id: quality/unslop
+  domain: quality
+  purpose: Cut AI tells from any writing. Must always apply.
+  origin: upstream
+  holistic_owner: reviewer
+  role: review
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - cut AI tells from writing
+  - remove AI phrases
+  - prose anti-slop
+  overlap:
+  - quality/deslop
+  complementary:
+  - quality/deslop
+  - quality/deep-review
+  prerequisites: []
+  follow_ups:
+  - quality/deslop
+  secondary_owners: []
+  specialist_agents:
+  - code-reviewer
+  specialist_justified: false
+  contraindications: Prose/docs only — not code (use deslop); must always apply for user-facing text
+  upstream:
+    repository: cursor/plugins
+    path: pstack/skills/unslop
+    ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+    license: MIT
+- id: tooling/chrome-devtools
+  domain: tooling
+  purpose: Use Chrome DevTools MCP to control and inspect a live Chrome instance for network, console,
+    performance, rendering, and Deep debugging. Pairs with playwright-cli (deterministic interaction/E2E)
+    — complements, not duplicates.
+  origin: first-party
+  holistic_owner: qa-engineer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required:
+  - chrome-devtools
+  requires:
+  - Chrome MCP
+  triggers:
+  - Chrome DevTools MCP
+  - inspect live Chrome network console performance rendering
+  overlap:
+  - tooling/playwright-cli
+  complementary:
+  - tooling/playwright-cli
+  - design/design-assessment
+  - design/design-improvement
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - qa-engineer
+  specialist_agents:
+  - e2e-runner
+  specialist_justified: false
+  contraindications: Use for network/console/performance/rendering diagnostics; use playwright-cli for
+    deterministic interaction/E2E
+- id: tooling/cli-for-agents
+  domain: tooling
+  purpose: 'Designs or reviews CLIs so coding agents can run them reliably: non-interactive flags, layered
+    --help with examples, stdin/pipelines, fast actionable errors, idempotency, dry-run, and predictable
+    structure. Use when building a CLI, adding commands, writing --help, or when the user mentions agents,
+    terminals, or automation-friendly CLIs.'
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: review
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - design CLI for agents
+  - review CLI ergonomics
+  - agent-friendly CLI flags help
+  overlap: []
+  complementary:
+  - core/assistant
+  - tooling/inventory
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents:
+  - assistant
+  - build-error-resolver
+  specialist_justified: false
+  contraindications: For CLIs that agents run reliably — non-interactive flags, layered --help, stdin/pipelines,
+    idempotency
+  upstream:
+    repository: cursor/plugins
+    path: cli-for-agent/skills/cli-for-agents
+    ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+    license: MIT
+- id: tooling/herdr
+  domain: tooling
+  purpose: Manage Herdr workspaces, tabs, and panes for Agent Toolkit swarms with eager windows, shell-aware
+    execution, and reuse.
+  origin: first-party
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires:
+  - herdr
+  triggers:
+  - manage Herdr workspaces tabs panes
+  - Herdr eager windows swarm
+  overlap:
+  - ops/swarm
+  complementary:
+  - ops/swarm
+  - ops/swarm-observer
+  prerequisites:
+  - ops/swarm
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Herdr primary UI for swarm; manage shell-aware execution and reuse; requires daemon
+    running
+- id: tooling/inventory
+  domain: tooling
+  purpose: Discover installed skills, agents, loops, and platform capabilities via agent-toolkit inventory,
+    matrix, and skills list.
+  origin: first-party
+  holistic_owner: assistant
+  role: research
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - discover installed skills inventory
+  - what can toolkit do
+  - list skills agents loops platform capabilities
+  overlap: []
+  complementary:
+  - core/assistant
+  - tooling/mermaid
+  - architecture/c4-model
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - platform-engineer
+  specialist_agents:
+  - assistant
+  specialist_justified: false
+  contraindications: Discovery only — not execution; use before building to check which workflow/forge/ops
+    skills apply
+- id: tooling/jupyter-notebook
+  domain: tooling
+  purpose: Create, scaffold, or refactor Jupyter notebooks (.ipynb) for experiments and tutorials. Prefer
+    the bundled templates and the helper script (`new_notebook.py`, also exposed as `newnotebook`) to
+    generate a clean starting notebook instead of authoring raw notebook JSON.
+  origin: first-party
+  holistic_owner: data-engineer
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires:
+  - python
+  - jupyter
+  triggers:
+  - create Jupyter notebook
+  - scaffold notebook experiment tutorial
+  - refactor notebook
+  overlap: []
+  complementary:
+  - data/dbt-validation
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Prefer bundled templates and new_notebook.py helper; avoid raw notebook JSON authoring
+- id: tooling/mermaid
+  domain: tooling
+  purpose: WHAT — Mermaid diagrams from text (flowchart, sequence, class, state, ER, gantt, gitGraph)
+    — Markdown-native, Git-native, MIT. Primary renderer for architecture pack; renders via GitHub native
+    or mermaid CLI (mmdc) to SVG/PNG.
+  origin: first-party
+  holistic_owner: architect
+  role: creation
+  context_cost: low
+  network_required: false
+  mcp_required: []
+  requires: []
+  triggers:
+  - Mermaid diagrams
+  - flowchart sequence class state ER gantt gitGraph
+  - render Mermaid to SVG
+  overlap:
+  - architecture/c4-model
+  - architecture/architecture-diagram
+  complementary:
+  - architecture/c4-model
+  - architecture/architecture-diagram
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - designer
+  specialist_agents:
+  - architect
+  specialist_justified: false
+  contraindications: Primary renderer for architecture pack via Markdown-native mermaid; PlantUML/Structurizr
+    optional advanced
+- id: tooling/playwright-cli
+  domain: tooling
+  purpose: Drive a real browser from the terminal using the Playwright CLI (snapshot, click, fill, screenshots,
+    traces). Use when the task is CLI-first browser automation (data extraction, UI debugging, form fills,
+    multi-tab work). For Playwright **test specs**, use `e2e-runner` instead.
+  origin: first-party
+  holistic_owner: qa-engineer
+  role: validation
+  context_cost: medium
+  network_required: false
+  mcp_required: []
+  requires:
+  - npx
+  - playwright
+  triggers:
+  - browser automation snapshot click fill screenshots traces
+  - CLI-first browser tasks
+  overlap:
+  - tooling/chrome-devtools
+  complementary:
+  - tooling/chrome-devtools
+  - design/design-assessment
+  - design/design-improvement
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - implementer
+  specialist_agents:
+  - e2e-runner
+  specialist_justified: false
+  contraindications: CLI-first automation — not Playwright test specs (use e2e-runner); multi-tab via
+    playwright-cli
+- id: integrations/confluence-admin
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-admin
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-admin
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-analytics
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-analytics
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-analytics
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-assistant
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: research
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-assistant
+  overlap: []
+  complementary: []
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-assistant
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-attachment
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-attachment
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-attachment
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-bulk
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-bulk
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-bulk
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-comment
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-comment
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-comment
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-hierarchy
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-hierarchy
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-hierarchy
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-jira
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-jira
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-jira
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-label
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-label
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-label
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-ops
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-ops
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-ops
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-page
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-page
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-page
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-permission
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-permission
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-permission
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-property
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-property
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-property
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-search
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-search
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-search
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-space
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-space
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-space
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-template
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-template
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-template
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/confluence-watch
+  domain: integrations
+  purpose: Confluence integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - confluence-as
+  triggers:
+  - confluence-watch
+  overlap: []
+  complementary:
+  - integrations/confluence-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Confluence operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/Confluence-Assistant-Skills
+    path: skills/confluence-watch
+    ref: 403eac8ad8a0812e6d41ed70cbc0fdf2ff4b7542
+    license: MIT
+- id: integrations/jira-administration
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-administration
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-admin
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-agile-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-agile-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-agile
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-assistant
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: research
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-assistant
+  overlap: []
+  complementary: []
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - assistant
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-assistant
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-bulk-operations
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-bulk-operations
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-bulk
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-collaboration
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-collaboration
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-collaborate
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-custom-fields
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-custom-fields
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-fields
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-developer-integration
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-developer-integration
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-dev
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-issue-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-issue-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-issue
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-issue-relationships
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-issue-relationships
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-relationships
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-lifecycle-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-lifecycle-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-lifecycle
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-operations
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-operations
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-ops
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-search-jql
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-search-jql
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-search
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-service-management
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-service-management
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-jsm
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT
+- id: integrations/jira-time-tracking
+  domain: integrations
+  purpose: Jira integration capability; see SKILL.md for operation-specific guidance.
+  origin: upstream
+  holistic_owner: platform-engineer
+  role: ops
+  context_cost: medium
+  network_required: true
+  mcp_required: []
+  requires:
+  - jira-as
+  triggers:
+  - jira-time-tracking
+  overlap: []
+  complementary:
+  - integrations/jira-assistant
+  prerequisites: []
+  follow_ups: []
+  secondary_owners: []
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Use only for Jira operations supported by the CLI; confirm destructive mutations before execution.
+  upstream:
+    repository: grandcamel/JIRA-Assistant-Skills
+    path: skills/jira-time
+    ref: b5837311ca3ae61ac56dab8fe9c0d9a4e075c092
+    license: MIT

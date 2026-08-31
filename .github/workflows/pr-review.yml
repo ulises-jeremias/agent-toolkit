@@ -1,0 +1,34 @@
+name: PR Review (Danger)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  danger:
+    name: Danger JS
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: tools/danger/package.json
+
+      - name: Install Danger dependencies
+        run: npm install
+        working-directory: tools/danger
+
+      - name: Run Danger
+        run: npx danger ci --dangerfile tools/danger/dangerfile.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,32 @@
+# MegaLinter configuration — keep in sync with .github/workflows/mega-linter.yml
+# Python stack: Ruff is canonical (lint + format + imports). Pylint/Flake8/Black/isort are intentionally not enabled.
+ENABLE_LINTERS:
+  - YAML_YAMLLINT
+  - JSON_JSONLINT
+  - MARKDOWN_MARKDOWNLINT
+  - BASH_SHELLCHECK
+  - PYTHON_RUFF
+  - REPOSITORY_SECRETLINT
+  - REPOSITORY_CHECKOV
+
+# Warnings only — never fail the build but surface in report
+DISABLE_ERRORS_LINTERS:
+  - MARKDOWN_MARKDOWNLINT
+  - PYTHON_RUFF
+  - REPOSITORY_CHECKOV
+
+# Only lint changed files on PR, all files on main
+VALIDATE_ALL_CODEBASE: false
+
+FILTER_REGEX_EXCLUDE: '(\.git|node_modules|\.venv|megalinter-reports|skills/.*/data/.*\.csv|profiles/claude-code/settings\.json)'
+
+# Jira and Confluence are byte-preserved upstream vendored content. Keep them
+# in all other scans, but do not impose local YAML formatting on their examples.
+YAML_YAMLLINT_FILTER_REGEX_EXCLUDE: 'skills/integrations/(jira|confluence)-.*/.*\.ya?ml'
+
+MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.yaml
+YAML_YAMLLINT_CONFIG_FILE: .yamllint.yaml
+
+LOG_LEVEL: WARNING
+SHOW_ELAPSED_TIME: true
+FILEIO_REPORTER: false

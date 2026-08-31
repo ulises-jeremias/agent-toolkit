@@ -1,0 +1,77 @@
+name: MegaLinter
+
+# Run only on pushes to main.  PRs get fast feedback from the validate.yml
+# workflow; running MegaLinter there too would exhaust GitHub Actions minutes
+# and slow reviewer turnaround on every PR.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-megalinter
+  cancel-in-progress: true
+
+jobs:
+  megalinter:
+    name: MegaLinter
+    runs-on: ubuntu-latest
+    permissions:
+      # write is required so MegaLinter can post PR annotations and
+      # optionally push auto-fix commits.
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history so MegaLinter can surface regressions across commits.
+          fetch-depth: 0
+
+      - name: MegaLinter
+        uses: oxsecurity/megalinter@v10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # On push to main, scan the full codebase.
+          VALIDATE_ALL_CODEBASE: true
+
+          # Curated linter set — covers every file type in this repo.
+          # Changing this list? Also update .mega-linter.yml for local runs.
+          ENABLE_LINTERS: >-
+            YAML_YAMLLINT,
+            JSON_JSONLINT,
+            MARKDOWN_MARKDOWNLINT,
+            BASH_SHELLCHECK,
+            PYTHON_RUFF,
+            REPOSITORY_SECRETLINT,
+            REPOSITORY_CHECKOV
+
+          # Warnings only — these never fail the build but surface in the
+          # MegaLinter report so they can be addressed incrementally.
+          DISABLE_ERRORS_LINTERS: >-
+            MARKDOWN_MARKDOWNLINT,
+            PYTHON_RUFF,
+            REPOSITORY_CHECKOV
+
+          # Paths to exclude from all linters.  Keep in sync with .mega-linter.yml.
+          FILTER_REGEX_EXCLUDE: >-
+            (\.git|node_modules|\.venv|megalinter-reports|skills/.*/data/.*\.csv|profiles/claude-code/settings\.json|packaging)
+
+          # Vendored upstream examples remain covered by all other linters.
+          # YAML formatting uses Toolkit conventions only for Toolkit-owned files.
+          YAML_YAMLLINT_FILTER_REGEX_EXCLUDE: >-
+            skills/integrations/(jira|confluence)-.*/.*\.ya?ml
+
+          # Point linters at project-level config so local and CI runs are identical.
+          MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.yaml
+          YAML_YAMLLINT_CONFIG_FILE: .yamllint.yaml
+
+          # Suppress verbose linter output; only failures surface.
+          LOG_LEVEL: WARNING
+          SHOW_ELAPSED_TIME: true
+
+          # Disable the GitHub file reporter — it requires extra permissions
+          # and clutters the PR with low-signal annotations.
+          FILEIO_REPORTER: false

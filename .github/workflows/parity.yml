@@ -1,0 +1,67 @@
+name: Parity (V CLI contracts)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "modules/**"
+      - "cmd/**"
+      - "tests/parity/**"
+      - "docs/v/**"
+      - "docs/CLI_SURFACES.md"
+      - "docs/SCOPE.md"
+      - "docs/compatibility/**"
+      - "packages/pypi/agent-toolkit-cli/**"
+      - "make.vsh"
+      - ".v-version"
+      - ".github/workflows/parity.yml"
+  pull_request:
+    paths:
+      - "modules/**"
+      - "cmd/**"
+      - "tests/parity/**"
+      - "docs/v/**"
+      - "docs/CLI_SURFACES.md"
+      - "docs/SCOPE.md"
+      - "docs/compatibility/**"
+      - "packages/pypi/agent-toolkit-cli/**"
+      - "make.vsh"
+      - ".v-version"
+      - ".github/workflows/parity.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.ref }}-parity
+  cancel-in-progress: true
+
+jobs:
+  parity-seed:
+    name: Golden CLI parity (seed, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: Sync packaging/parity Python deps
+        run: uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Build V CLI for parity harness
+        run: ./make.vsh build-cli
+
+      - name: Run parity harness (seed fixtures)
+        run: python3 tests/parity/run_harness.py --v-bin build/agent-toolkit-v
+        env:
+          AGENT_TOOLKIT_ROOT: ${{ github.workspace }}

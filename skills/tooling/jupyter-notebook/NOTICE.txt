@@ -1,0 +1,27 @@
+jupyter-notebook (agent-toolkit distribution)
+=======================================
+
+This skill is derived from the OpenAI "skills" repository, originally licensed
+under the Apache License 2.0:
+
+  https://github.com/openai/skills (skills/.curated/jupyter-notebook)
+
+Modifications by agent-toolkit S.A. for distribution via agent-toolkit:
+
+- Replaced `CODEX_HOME` / `~/.codex/skills/jupyter-notebook/...` paths with the
+  chezmoi-managed install location
+  (`~/.local/share/agent-toolkit/skills/jupyter-notebook/`).
+- Added the `agent-toolkit` (via jupyter-notebook skill) wrapper script at `~/.local/bin/dots-newnotebook`
+  that delegates to the bundled `scripts/new_notebook.py`.
+- Removed the `agents/openai.yaml` manifest in favor of the agent-toolkit
+  `skill.json` schema.
+- Dropped vendor logo assets (`assets/jupyter*`); kept the two notebook
+  templates (`experiment-template.ipynb`, `tutorial-template.ipynb`).
+- Updated `references/notebook-structure.md` to reference the agent-toolkit install
+  path instead of `$CODEX_HOME`.
+
+`scripts/new_notebook.py` and the four reference markdown files are preserved.
+The helper script is self-contained — it discovers its skill directory via
+`Path(__file__).resolve().parents[1]` and uses only the Python standard library.
+
+Original LICENSE.txt is preserved in this directory.

@@ -1,0 +1,6 @@
+{
+  "name": "notion",
+  "transport": "streamable_http",
+  "url": "https://mcp.notion.com/mcp",
+  "auth": "oauth"
+}

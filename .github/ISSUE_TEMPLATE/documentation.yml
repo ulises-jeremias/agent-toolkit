@@ -1,0 +1,31 @@
+name: Documentation
+description: Report unclear, missing, outdated, or incorrect documentation
+title: "docs: "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: issue
+    attributes:
+      label: Documentation issue
+      description: What is unclear, wrong, or missing? Which page or file is affected?
+    validations:
+      required: true
+
+  - type: textarea
+    id: location
+    attributes:
+      label: Affected files or pages
+      description: Links to docs, wiki pages, or file paths.
+      placeholder: |
+        - docs/LOOPS.md — budget sizing formula is unclear
+        - wiki/Installation — missing uvx instructions
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested improvement
+      description: Optional — provide replacement text, a rewrite, or a structural suggestion.
+    validations:
+      required: false

@@ -1,0 +1,147 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/loop.schema.json",
+  "title": "Agent Toolkit Loop Template",
+  "description": "Schema for loop.yaml — the loop template manifest for agent-toolkit recurring automation loops",
+  "type": "object",
+  "required": ["name", "goal", "request"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique kebab-case identifier for the loop template",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short human-readable description of what the loop does and its tier"
+    },
+    "tier": {
+      "type": "string",
+      "description": "Safety tier: L1=read-only or propose-only, L2=limited writes PR-gated, L3=full write access",
+      "enum": ["L1", "L2", "L3"]
+    },
+    "cadence": {
+      "type": "string",
+      "description": "How often the loop runs, expressed as a number followed by m (minutes), h (hours), or d (days)",
+      "pattern": "^\\d+[mhd]$"
+    },
+    "goal": {
+      "type": "string",
+      "description": "Declarative statement of what success looks like. The loop stops when this is achieved or budget is exhausted."
+    },
+    "allowlist": {
+      "type": "array",
+      "description": "Explicit list of permitted mutation actions. Empty array means read-only (L1 typical).",
+      "items": {
+        "type": "string",
+        "description": "Action name (e.g. comment, label, merge, create_draft_pr)"
+      },
+      "uniqueItems": true
+    },
+    "deny": {
+      "type": "array",
+      "description": "Explicit list of prohibited actions. The loop must never attempt these.",
+      "items": {
+        "type": "string",
+        "description": "Prohibited action name (e.g. merge, approve, force-push)"
+      },
+      "uniqueItems": true
+    },
+    "exit_conditions": {
+      "type": "array",
+      "description": "Conditions under which the loop terminates normally. Evaluated after each iteration.",
+      "items": {
+        "type": "string",
+        "description": "Exit condition identifier",
+        "enum": [
+          "goal_met",
+          "budget_exhausted",
+          "human_escalation",
+          "max_iterations",
+          "no_work_found",
+          "error"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "budget": {
+      "type": "object",
+      "description": "Resource constraints that prevent runaway token or time consumption",
+      "additionalProperties": false,
+      "properties": {
+        "max_tokens": {
+          "type": "integer",
+          "description": "Maximum total tokens (prompt + completion) allowed per run",
+          "minimum": 1000,
+          "maximum": 2000000
+        },
+        "max_runs_per_day": {
+          "type": "integer",
+          "description": "Maximum number of times this loop may execute in a 24-hour window",
+          "minimum": 1,
+          "maximum": 1440
+        },
+        "max_wall_seconds": {
+          "type": "integer",
+          "description": "Maximum wall-clock seconds a single run may consume before forced termination",
+          "minimum": 30,
+          "maximum": 86400
+        },
+        "max_iterations": {
+          "type": "integer",
+          "description": "Maximum number of agent iterations (tool calls) allowed within a single run",
+          "minimum": 1,
+          "maximum": 500
+        }
+      }
+    },
+    "verifier": {
+      "description": "Agent or skill name to invoke as a post-run quality gate before results are accepted. Null disables verification.",
+      "oneOf": [
+        {
+          "type": "string",
+          "description": "Agent or skill name (e.g. code-reviewer, security-reviewer)",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "resumable": {
+      "type": "boolean",
+      "description": "Whether the loop writes STATE.md checkpoints so it can resume from the last processed item after interruption",
+      "default": false
+    },
+    "attribution": {
+      "description": "AI disclosure for outbound gh comments/reviews. Default ON; hard gate prepends a `> 🤖 AI-assisted …` blockquote when missing. Set false to disable.",
+      "oneOf": [
+        {
+          "type": "boolean",
+          "description": "true (default) enables attribution; false disables it for this loop"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Whether the hard gate injects attribution into comment/review bodies",
+              "default": true
+            },
+            "template": {
+              "type": "string",
+              "description": "Optional custom prefix template. Placeholders: {login}, {loop}, {loop_suffix}, {url}"
+            }
+          }
+        }
+      ],
+      "default": true
+    },
+    "request": {
+      "type": "string",
+      "description": "The full prompt/instructions passed to the agent at each run. Should be self-contained and include all steps."
+    }
+  }
+}

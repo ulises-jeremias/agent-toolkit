@@ -1,0 +1,400 @@
+# Declarative target registry — single source for CLI build/diff/release target lists.
+# Extended per #862: canonical target capability registry for all harness targets.
+# Extended per #868: harness adapter tier model (A rich multi-agent, B custom agents limited delegation, C skills+instructions, D minimal).
+# Each target is researched against official docs; uncertain fields are marked
+# `partial` or `unknown` rather than guessed. Consumers should read
+# docs/TARGET_CAPABILITY_MATRIX.md (generated) or this file directly.
+# Validate with: python3 scripts/generate-target-matrix.py --check
+# Schema: schemas/target-capability-registry.schema.json
+version: 1
+targets:
+- id: claude-code
+  display_name: Claude Code
+  adapter: agent_toolkit.compiler.targets.claude_code.ClaudeCodeAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: true
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: v1
+    native_custom_agents: true
+    primary_agents: true
+    subagents: true
+    automatic_delegation: true
+    nested_delegation: true
+    parallel_agents: true
+    agent_permissions: true
+    agent_models: true
+    mcp: true
+    hooks: true
+    commands: true
+    rules: true
+    plugin_marketplace: true
+  researched_at: '2026-08-25'
+  sources:
+  - https://docs.anthropic.com/en/docs/claude-code
+  - https://code.claude.com/docs/en/plugins
+  - https://code.claude.com/docs/en/hooks
+  - https://agent-plugins.org
+  - https://modelcontextprotocol.io
+  maturity: stable
+  notes: Full plugin (.claude-plugin/) with native skills, agents, subagents, hooks (33 events), MCP,
+    and Agent Plugins v1 portable.
+  tier: A
+  tier_rationale: Full plugin (.claude-plugin/) - native skills/agents/subagents, nested+parallel+auto
+    delegation, perms/models, 33 hooks, MCP, v1 marketplace
+- id: cursor
+  display_name: Cursor
+  adapter: agent_toolkit.compiler.targets.cursor.CursorAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: true
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: v1
+    native_custom_agents: true
+    primary_agents: true
+    subagents: true
+    automatic_delegation: true
+    nested_delegation: partial
+    parallel_agents: true
+    agent_permissions: true
+    agent_models: true
+    mcp: true
+    hooks: true
+    commands: true
+    rules: true
+    plugin_marketplace: true
+  researched_at: '2026-08-25'
+  sources:
+  - https://docs.cursor.com
+  - https://cursor.com/docs/plugins
+  - https://docs.cursor.com/context/rules
+  - https://docs.cursor.com/context/mcp
+  - https://agent-plugins.org
+  maturity: stable
+  notes: Plugin (.cursor-plugin/) stable GA v2.5+; hooks 16+ events, MCP native, rules .mdc. Nested delegation
+    partially confirmed.
+  tier: A
+  tier_rationale: Full plugin (.cursor-plugin/) v2.5+ - skills/agents/subagents, auto+parallel delegation,
+    perms/models, 16+ hooks, MCP, v1 marketplace; nested partial only
+- id: opencode
+  display_name: OpenCode
+  adapter: agent_toolkit.compiler.targets.opencode.OpenCodeAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: true
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: custom
+    native_custom_agents: true
+    primary_agents: partial
+    subagents: true
+    automatic_delegation: partial
+    nested_delegation: partial
+    parallel_agents: true
+    agent_permissions: true
+    agent_models: true
+    mcp: partial
+    hooks: partial
+    commands: true
+    rules: true
+    plugin_marketplace: partial
+  researched_at: '2026-08-25'
+  sources:
+  - https://opencode.ai/docs
+  - https://opencode.ai/docs/plugins
+  - https://opencode.ai/docs/mcp
+  maturity: stable
+  notes: JS/TS module via opencode.json + .opencode/skills; hooks/MCP/tool interception require TypeScript
+    runtime plugin (issue
+  tier: B
+  tier_rationale: JS/TS module - native agents/subagents/parallel/perms/models, but auto/nested partial
+    and MCP/hooks require TypeScript runtime bridge
+- id: gemini-cli
+  display_name: Gemini CLI
+  adapter: agent_toolkit.compiler.targets.gemini_cli.GeminiCLIAdapter
+  aliases:
+  - gemini
+  commands:
+    build: true
+    diff: false
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: custom
+    native_custom_agents: true
+    primary_agents: partial
+    subagents: partial
+    automatic_delegation: partial
+    nested_delegation: partial
+    parallel_agents: partial
+    agent_permissions: true
+    agent_models: true
+    mcp: true
+    hooks: true
+    commands: true
+    rules: true
+    plugin_marketplace: true
+  researched_at: '2026-08-25'
+  sources:
+  - https://github.com/google-gemini/gemini-cli/blob/main/docs/extensions/index.md
+  - https://github.com/google-gemini/gemini-cli
+  - https://geminicli.com/docs
+  - https://modelcontextprotocol.io
+  maturity: stable
+  notes: Extension (gemini-extension.json) + commands.toml; hooks 8+ events, MCP native, TOML commands.
+    Subagent/parallel partially confirmed.
+  tier: B
+  tier_rationale: Extension (gemini-extension.json) + TOML commands - native agents, MCP/hooks native,
+    but primary/subagents/delegation/parallel partial
+- id: copilot-cli
+  display_name: GitHub Copilot CLI
+  adapter: agent_toolkit.compiler.targets.copilot.CopilotCLIAdapter
+  aliases:
+  - copilot
+  commands:
+    build: true
+    diff: false
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: v1
+    native_custom_agents: true
+    primary_agents: true
+    subagents: partial
+    automatic_delegation: partial
+    nested_delegation: partial
+    parallel_agents: partial
+    agent_permissions: partial
+    agent_models: partial
+    mcp: unknown
+    hooks: unknown
+    commands: true
+    rules: true
+    plugin_marketplace: true
+  researched_at: '2026-08-25'
+  sources:
+  - https://docs.github.com/en/copilot
+  - https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference
+  - https://agent-plugins.org
+  maturity: stable
+  notes: Plugin (root plugin.json) via Open Plugin Spec; MCP/hooks not confirmed in official docs — marked
+    unknown per source-ledger.
+  tier: B
+  tier_rationale: Open Plugin Spec (plugin.json) - native agents/primary/subagents partial, perms/models
+    partial, MCP/hooks unknown - limited delegation
+- id: copilot-repository
+  display_name: GitHub Copilot Repository
+  adapter: agent_toolkit.compiler.targets.copilot.CopilotRepositoryAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: false
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: none
+    native_custom_agents: true
+    primary_agents: false
+    subagents: false
+    automatic_delegation: false
+    nested_delegation: false
+    parallel_agents: false
+    agent_permissions: partial
+    agent_models: false
+    mcp: false
+    hooks: false
+    commands: partial
+    rules: true
+    plugin_marketplace: false
+  researched_at: '2026-08-25'
+  sources:
+  - https://docs.github.com/en/copilot/customizing-copilot
+  - https://docs.github.com/en/copilot/customizing-copilot/using-custom-instructions
+  maturity: stable
+  notes: Repository customization (.github/copilot-instructions.md, .github/agents/*.agent.md, .github/skills/);
+    no plugin marketplace — repo-scoped only.
+  tier: C
+  tier_rationale: Repository customization (.github/copilot-instructions.md, .github/agents/*.agent.md,
+    .github/skills/) - no plugin/marketplace, no subagents/delegation/hooks/MCP
+- id: pi
+  display_name: Pi Coding Agent
+  adapter: agent_toolkit.compiler.targets.pi.PiAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: false
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: custom
+    native_custom_agents: true
+    primary_agents: partial
+    subagents: true
+    automatic_delegation: partial
+    nested_delegation: partial
+    parallel_agents: partial
+    agent_permissions: true
+    agent_models: true
+    mcp: partial
+    hooks: partial
+    commands: true
+    rules: true
+    plugin_marketplace: partial
+  researched_at: '2026-08-25'
+  sources:
+  - https://pi.dev/docs/latest/extensions
+  - https://pi.dev/docs
+  - https://opencode.ai/docs/plugins
+  maturity: stable
+  notes: npm package (pi-package.json) auto-discovery; hooks/MCP/tool registration require TypeScript
+    ExtensionAPI — partial.
+  tier: B
+  tier_rationale: npm package (pi-package.json) - native agents/subagents/perms/models, but MCP/hooks/parallel
+    partial requiring TypeScript ExtensionAPI
+- id: windsurf
+  display_name: Windsurf
+  adapter: agent_toolkit.compiler.targets.windsurf.WindsurfAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: false
+    release: true
+  capabilities:
+    agent_skills: partial
+    agent_plugins: none
+    native_custom_agents: partial
+    primary_agents: false
+    subagents: false
+    automatic_delegation: false
+    nested_delegation: false
+    parallel_agents: false
+    agent_permissions: false
+    agent_models: false
+    mcp: true
+    hooks: false
+    commands: false
+    rules: true
+    plugin_marketplace: false
+  researched_at: '2026-08-25'
+  sources:
+  - https://docs.devin.ai/desktop/getting-started
+  - https://docs.codeium.com/windsurf
+  - https://docs.codeium.com/windsurf/cascade
+  maturity: limited
+  notes: No open marketplace extensions (docs.devin.ai) — distributed as customization bundle (rules .mdc
+    + manual MCP). Skills via generated rules.
+  tier: D
+  tier_rationale: 'No marketplace extensions per docs.devin.ai - customization bundle only: rules .mdc
+    + manual MCP, no agents/subagents/delegation/perms/models/hooks/commands'
+- id: codex
+  display_name: OpenAI Codex
+  adapter: agent_toolkit.compiler.targets.codex.CodexAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: false
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: v1
+    native_custom_agents: true
+    primary_agents: true
+    subagents: true
+    automatic_delegation: partial
+    nested_delegation: partial
+    parallel_agents: true
+    agent_permissions: partial
+    agent_models: true
+    mcp: partial
+    hooks: unknown
+    commands: partial
+    rules: true
+    plugin_marketplace: true
+  researched_at: '2026-08-25'
+  sources:
+  - https://developers.openai.com/codex
+  - https://github.com/openai/codex
+  - https://agent-plugins.org
+  maturity: experimental
+  notes: Plugin (.codex-plugin/) experimental launched March 2026; hooks/MCP not confirmed — marked unknown/partial;
+    self-serve marketplace pending.
+  tier: B
+  tier_rationale: Experimental .codex-plugin (Mar 2026) - native agents/subagents/parallel, MCP partial,
+    hooks unknown-blocked, delegation partial
+- id: muse-code
+  display_name: Muse Code
+  adapter: agent_toolkit.compiler.targets.muse_code.MuseCodeAdapter
+  aliases:
+  - muse
+  commands:
+    build: true
+    diff: false
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: custom
+    native_custom_agents: true
+    primary_agents: false
+    subagents: false
+    automatic_delegation: false
+    nested_delegation: false
+    parallel_agents: false
+    agent_permissions: partial
+    agent_models: partial
+    mcp: partial
+    hooks: false
+    commands: true
+    rules: true
+    plugin_marketplace: false
+  researched_at: '2026-08-25'
+  sources:
+  - https://developer.meta.com/ai/products/muse-code/
+  - https://github.com/vercel-labs/skills
+  maturity: stable
+  notes: Agent Skills under ~/.config/muse/skills/<name>/SKILL.md + .agents/skills fallback; custom plugin
+    format, no marketplace yet.
+  tier: C
+  tier_rationale: Custom plugin - skills under ~/.config/muse/skills + .agents/skills fallback, agents
+    true but no primary/subagents/delegation/hooks, MCP partial, no marketplace
+- id: agent-plugins
+  display_name: Agent Plugins (Portable)
+  adapter: agent_toolkit.compiler.targets.agent_plugins.AgentPluginsAdapter
+  aliases: []
+  commands:
+    build: true
+    diff: true
+    release: true
+  capabilities:
+    agent_skills: true
+    agent_plugins: v1
+    native_custom_agents: true
+    primary_agents: false
+    subagents: false
+    automatic_delegation: false
+    nested_delegation: false
+    parallel_agents: false
+    agent_permissions: false
+    agent_models: false
+    mcp: true
+    hooks: false
+    commands: true
+    rules: false
+    plugin_marketplace: true
+  researched_at: '2026-08-25'
+  sources:
+  - https://agent-plugins.org
+  - https://github.com/vercel-labs/skills
+  maturity: stable
+  notes: Synthetic portable target (plugin.json + skills/ + mcp.json) for Cursor/VS Code/Copilot/Kiro/Codex;
+    agents via com.anthropic.claude-code extension; not a harness.
+  tier: C
+  tier_rationale: Synthetic portable plugin.json + skills/ + mcp.json for Cursor/VS Code/Copilot/Kiro/Codex;
+    agents via com.anthropic.claude-code extension; no primary/subagents/delegation

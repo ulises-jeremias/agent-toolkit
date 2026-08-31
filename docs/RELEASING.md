@@ -1,0 +1,156 @@
+# Releasing agent-toolkit
+
+Runbook for cutting a versioned release.
+
+**Do not retag empty historical releases.** `v1.10.0` has **no** GitHub Release assets — leave it. The first V-binary tag is `v1.11.0` (ADR-018 names + `SHA256SUMS` + `manifest.json`).
+
+Trusted Publishing: PyPI OIDC is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. npm OIDC is `publish-npm.yml` on tag `v*`.
+
+Canonical artifacts are **native V binaries**. PyPI `packages/pypi/agent-toolkit-cli` is a launcher wheel. npm lives under `packages/npm/`. Homebrew Formula and AUR PKGBUILD are **not** in this repo (`ulises-jeremias/homebrew-tap`, `ulises-jeremias/aur-packages`).
+
+## Bump → validate → tag → watch → verify
+
+```bash
+# 1. Bump all version sources atomically
+./scripts/bump-version.vsh 1.3.0
+git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
+
+# 2. Validate (CI parity)
+./make.vsh test && ./make.vsh build-cli
+AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit --version
+uv sync --project packages/pypi/agent-toolkit-cli --all-extras
+AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
+./scripts/validate-skills.vsh
+./scripts/validate-agents.vsh
+./scripts/generate-catalogs.vsh
+AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
+
+# 3. Commit + tag
+git add -A && git commit -m "chore(release): bump to v1.3.0"
+git tag -a v1.3.0 -m "v1.3.0"
+git push origin main --follow-tags
+
+# 4. Watch Release + downstream
+gh run list --repo ulises-jeremias/agent-toolkit --limit 5  # Release v1.3.0 should be completed success
+gh release view v1.3.0 --repo ulises-jeremias/agent-toolkit
+# Docker is a reusable job on Release after upload-assets (do not rely on `on: release`;
+# GITHUB_TOKEN-created releases do not start sibling workflows). Manual fallback:
+#   gh workflow run Docker --ref v1.3.0
+# Homebrew/AUR notifies wait for V binaries then repository_dispatch; check their repos
+gh run list --repo ulises-jeremias/homebrew-tap --limit 3
+gh run list --repo ulises-jeremias/aur-packages --limit 3
+
+# 5. Verify PyPI / npm / AUR / formula
+curl -sS https://pypi.org/pypi/agent-toolkit-cli/json | python3 -c "import json,urllib.request; print(json.load(urllib.request.urlopen('https://pypi.org/pypi/agent-toolkit-cli/json'))['info']['version'])"
+npm view agent-toolkit-cli version
+npm view agent-toolkit-cli optionalDependencies
+curl -sS 'https://aur.archlinux.org/rpc/?v=5&type=info&arg[]=agent-toolkit-bin' | python3 -c "import json,sys; r=json.load(sys.stdin)['results']; print(r[0]['Version'] if r else 'missing')"
+# Homebrew formula version matches tag
+```
+
+## Bump script
+
+`scripts/bump-version.vsh` updates atomically:
+
+* `VERSION`
+* `packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py` (`__version__`)
+* `package.json` (`version`) — skills marketplace metadata, not the CLI
+* `packages/npm/*/package.json` (`version` + `optionalDependencies` pins)
+* `.claude-plugin/marketplace.json` (`metadata.version` + `plugins[].version`)
+* `.cursor-plugin/marketplace.json` (same)
+* Plugin manifests `plugins/*/plugin.json` if present
+
+Usage:
+
+```bash
+./scripts/bump-version.vsh --check 1.3.0  # dry-run, exits 1 if would change
+./scripts/bump-version.vsh 1.3.0         # writes files
+```
+
+## Rollback / republish
+
+* **PyPI:** Trusted Publishing is registered for **`release.yml`** (environment `pypi`), not `publish.yml`. Tag path: `publish-pypi` after Release assets (`scripts/pack_pypi.vsh` stamps `manylinux_2_38_*`). Manual republish of an existing `VERSION` (no retag):
+  ```bash
+  gh workflow run Release --ref main -f environment=pypi
+  ```
+  `Publish (manual)` (`publish.yml`) can still pack wheels but OIDC will fail until that filename is also registered on PyPI.
+* **npm:** OIDC trusted publishing via `publish-npm.yml` on tag `v*` (npm CLI ≥ 11.5.1, `id-token: write`, no `NPM_TOKEN`). First publish of a new package name is local (`npm login` then `npm publish`). Then pin GitHub:
+  ```bash
+  npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y
+  ```
+* **GitHub Release:** delete tag locally + remote + release, fix, re-tag. Prefer `gh release delete v1.3.0 --yes && git tag -d v1.3.0 && git push origin :v1.3.0`.
+* **Homebrew/AUR:** downstream repos are notified via `repository_dispatch` from `release.yml` `create-release`. If they missed, replay per `docs/AUR_PLAYBOOK.md`:
+  ```bash
+  gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.3.0'
+  ```
+
+## Asset naming
+
+Stable GitHub Release assets are **native V binaries** (not PyInstaller). Names follow [ADR-018](adrs/ADR-018-release-artifacts.md):
+
+* `agent-toolkit-linux-x86_64` / `agent-toolkit-linux-arm64` (glibc, [ADR-019](adrs/ADR-019-linux-libc.md))
+* `agent-toolkit-macos-arm64` / `agent-toolkit-macos-x86_64`
+* `agent-toolkit-windows-x86_64.exe`
+* Versioned archives `agent-toolkit-<semver>-<os>-<arch>.tar.gz` (Windows `.zip`) containing `agent-toolkit` + `LICENSE`
+* `SHA256SUMS` and `manifest.json` ([ADR-022](adrs/ADR-022-release-manifest.md))
+
+**Checksums are MUST.** Verify:
+
+```bash
+curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.11.0/SHA256SUMS"
+curl -fsSL -O "https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.11.0/agent-toolkit-linux-x86_64"
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+**SBOM (SHOULD):** `sbom.cyclonedx.json` lists ingredients; it is not a vulnerability scan. **Artifact attestations (FUTURE / SHOULD when enabled):** they record which workflow produced an asset; they do not prove the software is secure. **Code signing / notarization:** [#543](https://github.com/ulises-jeremias/agent-toolkit/issues/543).
+
+**Experimental V** CI artifacts use `agent-toolkit-v-experimental-<os>-<arch>` and must not overwrite stable names. Optional musl extra uses `agent-toolkit-linux-x86_64-musl`.
+
+Packaging **adapter contracts** (this repo, no Formula/PKGBUILD copies): [`distribution/README.md`](../distribution/README.md) ([#534](https://github.com/ulises-jeremias/agent-toolkit/issues/534)).
+
+## Downstream publish verification (notify success ≠ publish success)
+
+`notify-homebrew` / `notify-aur` only confirm that a `repository_dispatch` reached the downstream repo (see `.github/workflows/notify-*.yml`). A green `Notify` run does **not** guarantee the Homebrew formula or AUR PKGBUILD was actually published.
+
+After tagging, verify downstream **workflow conclusion**, not just dispatch:
+
+```bash
+# Homebrew tap: last 3 runs should be success; a failure means formula did not update
+gh run list --repo ulises-jeremias/homebrew-tap --limit 3
+gh run view <run-id> --repo ulises-jeremias/homebrew-tap --log | grep -i "error\|fail" || echo "no errors"
+
+# AUR packages: same check, but distinguish maintenance vs real failure
+gh run list --repo ulises-jeremias/aur-packages --limit 3
+# AUR maintenance windows return exit 0 with message "AUR is in maintenance"; check logs:
+gh run view <run-id> --repo ulises-jeremias/aur-packages --log | grep -i "maintenance" && echo "maintenance — retry later" || echo "real failure"
+```
+
+Failure visibility on the releasing repo:
+
+* The `Release` workflow itself does not fail on downstream errors — check the two downstream repos' **Actions → workflow runs** as above.
+* If downstream is red, re-dispatch per playbook (see below) and re-check; do not close the release as done until both downstream runs are green or explicitly deferred for maintenance.
+* For AUR, a maintenance failure is expected — document it in the release comment and retry when AUR leaves maintenance; do not auto-open issues on every window.
+
+* Homebrew PR-create 403 (`not permitted to create or approve pull requests`): enable **Allow GitHub Actions to create and approve pull requests** on `homebrew-tap`, and/or ensure `HOMEBREW_TAP_TOKEN` has **Pull requests: Write**. See [`distribution/homebrew/README.md`](../distribution/homebrew/README.md#maintainer-formula-pr-must-open-automatically).
+
+
+
+## Downstream install source (GitHub Release V binaries)
+
+Homebrew (`homebrew-tap`) and AUR (`aur-packages`) install **GitHub Release V binaries** (ADR-018 floating names + `SHA256SUMS`), not a Python wheel. PyPI `agent-toolkit-cli` remains a thin launcher for `uv`/`pip` users ([ADR-021](adrs/ADR-021-pypi-binary.md)). npm `agent-toolkit-cli` + `agent-toolkit-cli-{linux-x64,linux-arm64,darwin-arm64,darwin-x64,win32-x64}` wrap the same binaries ([ADR-025](adrs/ADR-025-npm-binary.md)).
+
+- **Homebrew:** Formula `agent-toolkit.rb` `url`s `agent-toolkit-macos-*` / `agent-toolkit-linux-*` from the GitHub Release. Verify `brew install` then `agent-toolkit version`.
+- **AUR:** `agent-toolkit-bin` PKGBUILD sources the linux ELF + `SHA256SUMS`. Verify `yay -S agent-toolkit-bin` then `agent-toolkit version`.
+
+See `docs/AUR_PLAYBOOK.md` for re-dispatch; downstream repos are the source of truth for their formulas.
+
+## AUR retry playbook
+
+See `docs/AUR_PLAYBOOK.md` for re-dispatch when AUR leaves maintenance.
+
+Re-dispatch example:
+
+```bash
+gh api repos/ulises-jeremias/aur-packages/dispatches -f event_type=new-release -f 'client_payload[package_name]=agent-toolkit-bin' -f 'client_payload[version]=v1.3.0'
+gh api repos/ulises-jeremias/homebrew-tap/dispatches -f event_type=new-release -f 'client_payload[formula_name]=agent-toolkit' -f 'client_payload[version]=1.3.0'
+```

@@ -1,0 +1,65 @@
+# Loop starter: oss-daily-briefing
+# An L1 read-only loop that generates a daily OSS ecosystem briefing.
+# Cadence: daily. Cost: low. Tier: L1 (report only, no mutations).
+
+name: oss-daily-briefing
+description: "Daily read-only briefing across OSS ecosystem repos (L1)"
+tier: L1
+cadence: 1d
+resumable: true
+
+goal: |
+  Produce a concise daily briefing covering all active OSS repos.
+  No mutations. Read-only.
+
+allowlist: []
+deny:
+  - comment
+  - label
+  - assign
+  - merge
+  - close
+  - push
+  - approve
+  - force-push
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+
+budget:
+  max_tokens: 80000
+  max_runs_per_day: 1
+  max_wall_seconds: 900
+
+verifier: null
+
+request: |
+  You are running the OSS Daily Briefing loop.
+
+  **Resumability (read first):**
+  Read loops/oss-daily-briefing/STATE.md. If `last_processed_repo` is set, resume from there.
+  After each repo, update STATE.md: last_processed_repo: <owner>/<repo>.
+
+  **Step 1 — Gather data (read-only)**
+  For each repo, collect:
+  - New PRs in last 24h: gh api "repos/$repo/pulls?state=open&sort=created"
+  - New issues in last 24h
+  - CI status on main: gh api "repos/$repo/commits/HEAD/check-suites"
+
+  **Step 2 — Write briefing**
+  Write to loops/oss-daily-briefing/report.md:
+
+  ## OSS Daily Briefing — <date>
+
+  ### New PRs (last 24h)
+  | Repo | # | Title | Author |
+
+  ### Issues needing attention
+  | Repo | # | Title | Last comment |
+
+  ### CI Health
+  | Repo | Status |
+
+  ### Highlights
+  Notable merges, releases, or milestones.

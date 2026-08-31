@@ -1,0 +1,42 @@
+{
+  "name": "@agent-toolkit/agent-toolkit-agents",
+  "version": "1.26.0",
+  "description": "18 AI agent personas: 11 holistic (planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer) + orchestrator (assistant, client-workflow-bootstrap) + 5 specialists (code-reviewer, agentic-security-reviewer, security-reviewer, e2e-runner, tdd-guide, build-error-resolver) — 7 specialists archived to references in #865 (typescript/database/performance/refactor → reviewer/references/*; docs/reference-lookup → researcher/references/LOOKUP_GUIDE.md; tech-assistant → platform-engineer/references/WORKSTATION_OPS.md) — see docs/AGENT_TAXONOMY.md §8.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit"
+  },
+  "keywords": [
+    "agent-toolkit",
+    "pi",
+    "skills",
+    "agents",
+    "agents"
+  ],
+  "pi": {
+    "skills": [
+      
+    ],
+    "agents": [
+      "agents/agentic-security-reviewer/AGENT.md",
+      "agents/architect/AGENT.md",
+      "agents/assistant/AGENT.md",
+      "agents/build-error-resolver/AGENT.md",
+      "agents/client-workflow-bootstrap/AGENT.md",
+      "agents/code-reviewer/AGENT.md",
+      "agents/data-engineer/AGENT.md",
+      "agents/designer/AGENT.md",
+      "agents/e2e-runner/AGENT.md",
+      "agents/implementer/AGENT.md",
+      "agents/planner/AGENT.md",
+      "agents/platform-engineer/AGENT.md",
+      "agents/qa-engineer/AGENT.md",
+      "agents/researcher/AGENT.md",
+      "agents/reviewer/AGENT.md",
+      "agents/security-engineer/AGENT.md",
+      "agents/security-reviewer/AGENT.md",
+      "agents/tdd-guide/AGENT.md"
+    ]
+  }
+}

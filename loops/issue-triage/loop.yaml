@@ -1,0 +1,40 @@
+# Loop starter: issue-triage
+# An L1 loop that proposes labels for issues every 4 hours.
+# Cadence: 4 hours. Cost: low. Tier: L1 (propose-only, no changes).
+
+name: issue-triage
+description: "Propose labels and routing for new issues (L1, propose-only)"
+tier: L1
+cadence: 4h
+
+goal: |
+  Propose labels and triage routing for issues that have not yet been labeled.
+  Write proposals to report.md. Never apply labels directly.
+
+allowlist: []
+deny:
+  - label
+  - comment
+  - close
+  - merge
+
+exit_conditions:
+  - goal_met
+  - budget_exhausted
+
+budget:
+  max_tokens: 25000
+  max_runs_per_day: 6
+  max_wall_seconds: 240
+
+verifier: null
+
+request: |
+  You are the issue triage loop for this repository.
+  1. List open issues with no labels (gh issue list --label "").
+  2. For each unlabeled issue (max 20 per run):
+     a. Read the title and body.
+     b. Propose: label(s), type (bug/feature/question/docs), priority.
+     c. If it looks like a security issue: flag for immediate human escalation.
+  3. Write report.md with: issue number, title, proposed labels, reasoning.
+  4. This is L1 — do NOT apply labels or post comments.

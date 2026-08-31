@@ -1,0 +1,11 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "bash hooks/scripts/session-start-context.sh",
+        "timeout": 5000
+      }
+    ]
+  }
+}

@@ -1,0 +1,731 @@
+{
+  "layout": "skills/<group>/<skill>/SKILL.md",
+  "groups": {
+    "accessibility": [
+      "review"
+    ],
+    "agentic-security": [
+      "mcp-audit",
+      "owasp-agentic-review",
+      "supply-chain-audit",
+      "threat-modeling"
+    ],
+    "architecture": [
+      "architecture-diagram",
+      "c4-model"
+    ],
+    "cloud": [
+      "aws-well-architected-review",
+      "cloud-design-patterns"
+    ],
+    "core": [
+      "assistant",
+      "dev-companion",
+      "onboarding",
+      "output-handshake",
+      "pr-fallback",
+      "project",
+      "workspace",
+      "workspace-knowledge-sync"
+    ],
+    "data": [
+      "dbt-validation",
+      "snowflake-validation"
+    ],
+    "delivery": [
+      "adr",
+      "agreement",
+      "bug",
+      "decision-log",
+      "development-workflow",
+      "epic",
+      "incident",
+      "management-unit-assessment",
+      "meeting-minutes",
+      "planning",
+      "prd",
+      "project-assessment",
+      "project-assessment-evidence",
+      "spike",
+      "task",
+      "technical-unit-assessment",
+      "trd",
+      "user-story",
+      "work-item",
+      "workflow-client-bootstrap",
+      "workflow-generic-project"
+    ],
+    "design": [
+      "design-assessment",
+      "design-improvement",
+      "figma",
+      "figma-code-connect-components",
+      "figma-create-design-system-rules",
+      "figma-create-new-file",
+      "figma-implement-design",
+      "frontend-design",
+      "frontend-design-review",
+      "web-design-guidelines"
+    ],
+    "forge": [
+      "fix-merge-conflicts",
+      "gh-address-comments",
+      "gh-contribution-planner",
+      "gh-fix-ci",
+      "github-cli-workflow",
+      "gitlab-cli-workflow",
+      "worktree"
+    ],
+    "integrations": [
+      "clickup-cli",
+      "confluence-admin",
+      "confluence-analytics",
+      "confluence-assistant",
+      "confluence-attachment",
+      "confluence-bulk",
+      "confluence-comment",
+      "confluence-hierarchy",
+      "confluence-jira",
+      "confluence-label",
+      "confluence-ops",
+      "confluence-page",
+      "confluence-permission",
+      "confluence-property",
+      "confluence-search",
+      "confluence-space",
+      "confluence-template",
+      "confluence-watch",
+      "jira-administration",
+      "jira-agile-management",
+      "jira-assistant",
+      "jira-bulk-operations",
+      "jira-collaboration",
+      "jira-custom-fields",
+      "jira-developer-integration",
+      "jira-issue-management",
+      "jira-issue-relationships",
+      "jira-lifecycle-management",
+      "jira-operations",
+      "jira-search-jql",
+      "jira-service-management",
+      "jira-time-tracking",
+      "linear",
+      "mcp",
+      "slack-assistant",
+      "slack-cli"
+    ],
+    "loops": [
+      "loop-runner"
+    ],
+    "ops": [
+      "docs-generator",
+      "llm-cost-advisor",
+      "swarm",
+      "swarm-handoff",
+      "swarm-observer",
+      "triage"
+    ],
+    "quality": [
+      "blast-radius",
+      "codeql",
+      "deep-review",
+      "deslop",
+      "megalinter",
+      "megalinter-check",
+      "megalinter-fix",
+      "megalinter-setup",
+      "unslop"
+    ],
+    "tooling": [
+      "chrome-devtools",
+      "cli-for-agents",
+      "herdr",
+      "inventory",
+      "jupyter-notebook",
+      "mermaid",
+      "playwright-cli"
+    ]
+  },
+  "skills": [
+    {
+      "id": "accessibility/review",
+      "name": "review",
+      "domain": "accessibility"
+    },
+    {
+      "id": "agentic-security/mcp-audit",
+      "name": "mcp-audit",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "agentic-security/owasp-agentic-review",
+      "name": "owasp-agentic-review",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "agentic-security/supply-chain-audit",
+      "name": "supply-chain-audit",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "agentic-security/threat-modeling",
+      "name": "threat-modeling",
+      "domain": "agentic-security"
+    },
+    {
+      "id": "architecture/architecture-diagram",
+      "name": "architecture-diagram",
+      "domain": "architecture"
+    },
+    {
+      "id": "architecture/c4-model",
+      "name": "c4-model",
+      "domain": "architecture"
+    },
+    {
+      "id": "cloud/aws-well-architected-review",
+      "name": "aws-well-architected-review",
+      "domain": "cloud"
+    },
+    {
+      "id": "cloud/cloud-design-patterns",
+      "name": "cloud-design-patterns",
+      "domain": "cloud"
+    },
+    {
+      "id": "core/assistant",
+      "name": "assistant",
+      "domain": "core"
+    },
+    {
+      "id": "core/dev-companion",
+      "name": "dev-companion",
+      "domain": "core"
+    },
+    {
+      "id": "core/onboarding",
+      "name": "onboarding",
+      "domain": "core"
+    },
+    {
+      "id": "core/output-handshake",
+      "name": "output-handshake",
+      "domain": "core"
+    },
+    {
+      "id": "core/pr-fallback",
+      "name": "pr-fallback",
+      "domain": "core"
+    },
+    {
+      "id": "core/project",
+      "name": "project",
+      "domain": "core"
+    },
+    {
+      "id": "core/workspace",
+      "name": "workspace",
+      "domain": "core"
+    },
+    {
+      "id": "core/workspace-knowledge-sync",
+      "name": "workspace-knowledge-sync",
+      "domain": "core"
+    },
+    {
+      "id": "data/dbt-validation",
+      "name": "dbt-validation",
+      "domain": "data"
+    },
+    {
+      "id": "data/snowflake-validation",
+      "name": "snowflake-validation",
+      "domain": "data"
+    },
+    {
+      "id": "delivery/adr",
+      "name": "adr",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/agreement",
+      "name": "agreement",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/bug",
+      "name": "bug",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/decision-log",
+      "name": "decision-log",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/development-workflow",
+      "name": "development-workflow",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/epic",
+      "name": "epic",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/incident",
+      "name": "incident",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/management-unit-assessment",
+      "name": "management-unit-assessment",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/meeting-minutes",
+      "name": "meeting-minutes",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/planning",
+      "name": "planning",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/prd",
+      "name": "prd",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/project-assessment",
+      "name": "project-assessment",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/project-assessment-evidence",
+      "name": "project-assessment-evidence",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/spike",
+      "name": "spike",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/task",
+      "name": "task",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/technical-unit-assessment",
+      "name": "technical-unit-assessment",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/trd",
+      "name": "trd",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/user-story",
+      "name": "user-story",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/work-item",
+      "name": "work-item",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/workflow-client-bootstrap",
+      "name": "workflow-client-bootstrap",
+      "domain": "delivery"
+    },
+    {
+      "id": "delivery/workflow-generic-project",
+      "name": "workflow-generic-project",
+      "domain": "delivery"
+    },
+    {
+      "id": "design/design-assessment",
+      "name": "design-assessment",
+      "domain": "design"
+    },
+    {
+      "id": "design/design-improvement",
+      "name": "design-improvement",
+      "domain": "design"
+    },
+    {
+      "id": "design/figma",
+      "name": "figma",
+      "domain": "design"
+    },
+    {
+      "id": "design/figma-code-connect-components",
+      "name": "figma-code-connect-components",
+      "domain": "design"
+    },
+    {
+      "id": "design/figma-create-design-system-rules",
+      "name": "figma-create-design-system-rules",
+      "domain": "design"
+    },
+    {
+      "id": "design/figma-create-new-file",
+      "name": "figma-create-new-file",
+      "domain": "design"
+    },
+    {
+      "id": "design/figma-implement-design",
+      "name": "figma-implement-design",
+      "domain": "design"
+    },
+    {
+      "id": "design/frontend-design",
+      "name": "frontend-design",
+      "domain": "design"
+    },
+    {
+      "id": "design/frontend-design-review",
+      "name": "frontend-design-review",
+      "domain": "design"
+    },
+    {
+      "id": "design/web-design-guidelines",
+      "name": "web-design-guidelines",
+      "domain": "design"
+    },
+    {
+      "id": "forge/fix-merge-conflicts",
+      "name": "fix-merge-conflicts",
+      "domain": "forge"
+    },
+    {
+      "id": "forge/gh-address-comments",
+      "name": "gh-address-comments",
+      "domain": "forge"
+    },
+    {
+      "id": "forge/gh-contribution-planner",
+      "name": "gh-contribution-planner",
+      "domain": "forge"
+    },
+    {
+      "id": "forge/gh-fix-ci",
+      "name": "gh-fix-ci",
+      "domain": "forge"
+    },
+    {
+      "id": "forge/github-cli-workflow",
+      "name": "github-cli-workflow",
+      "domain": "forge"
+    },
+    {
+      "id": "forge/gitlab-cli-workflow",
+      "name": "gitlab-cli-workflow",
+      "domain": "forge"
+    },
+    {
+      "id": "forge/worktree",
+      "name": "worktree",
+      "domain": "forge"
+    },
+    {
+      "id": "integrations/clickup-cli",
+      "name": "clickup-cli",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-admin",
+      "name": "confluence-admin",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-analytics",
+      "name": "confluence-analytics",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-assistant",
+      "name": "confluence-assistant",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-attachment",
+      "name": "confluence-attachment",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-bulk",
+      "name": "confluence-bulk",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-comment",
+      "name": "confluence-comment",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-hierarchy",
+      "name": "confluence-hierarchy",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-jira",
+      "name": "confluence-jira",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-label",
+      "name": "confluence-label",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-ops",
+      "name": "confluence-ops",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-page",
+      "name": "confluence-page",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-permission",
+      "name": "confluence-permission",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-property",
+      "name": "confluence-property",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-search",
+      "name": "confluence-search",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-space",
+      "name": "confluence-space",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-template",
+      "name": "confluence-template",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/confluence-watch",
+      "name": "confluence-watch",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-administration",
+      "name": "jira-administration",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-agile-management",
+      "name": "jira-agile-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-assistant",
+      "name": "jira-assistant",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-bulk-operations",
+      "name": "jira-bulk-operations",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-collaboration",
+      "name": "jira-collaboration",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-custom-fields",
+      "name": "jira-custom-fields",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-developer-integration",
+      "name": "jira-developer-integration",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-issue-management",
+      "name": "jira-issue-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-issue-relationships",
+      "name": "jira-issue-relationships",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-lifecycle-management",
+      "name": "jira-lifecycle-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-operations",
+      "name": "jira-operations",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-search-jql",
+      "name": "jira-search-jql",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-service-management",
+      "name": "jira-service-management",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/jira-time-tracking",
+      "name": "jira-time-tracking",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/linear",
+      "name": "linear",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/mcp",
+      "name": "mcp",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/slack-assistant",
+      "name": "slack-assistant",
+      "domain": "integrations"
+    },
+    {
+      "id": "integrations/slack-cli",
+      "name": "slack-cli",
+      "domain": "integrations"
+    },
+    {
+      "id": "loops/loop-runner",
+      "name": "loop-runner",
+      "domain": "loops"
+    },
+    {
+      "id": "ops/docs-generator",
+      "name": "docs-generator",
+      "domain": "ops"
+    },
+    {
+      "id": "ops/llm-cost-advisor",
+      "name": "llm-cost-advisor",
+      "domain": "ops"
+    },
+    {
+      "id": "ops/swarm",
+      "name": "swarm",
+      "domain": "ops"
+    },
+    {
+      "id": "ops/swarm-handoff",
+      "name": "swarm-handoff",
+      "domain": "ops"
+    },
+    {
+      "id": "ops/swarm-observer",
+      "name": "swarm-observer",
+      "domain": "ops"
+    },
+    {
+      "id": "ops/triage",
+      "name": "triage",
+      "domain": "ops"
+    },
+    {
+      "id": "quality/blast-radius",
+      "name": "blast-radius",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/codeql",
+      "name": "codeql",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/deep-review",
+      "name": "deep-review",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/deslop",
+      "name": "deslop",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter",
+      "name": "megalinter",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter-check",
+      "name": "megalinter-check",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter-fix",
+      "name": "megalinter-fix",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/megalinter-setup",
+      "name": "megalinter-setup",
+      "domain": "quality"
+    },
+    {
+      "id": "quality/unslop",
+      "name": "unslop",
+      "domain": "quality"
+    },
+    {
+      "id": "tooling/chrome-devtools",
+      "name": "chrome-devtools",
+      "domain": "tooling"
+    },
+    {
+      "id": "tooling/cli-for-agents",
+      "name": "cli-for-agents",
+      "domain": "tooling"
+    },
+    {
+      "id": "tooling/herdr",
+      "name": "herdr",
+      "domain": "tooling"
+    },
+    {
+      "id": "tooling/inventory",
+      "name": "inventory",
+      "domain": "tooling"
+    },
+    {
+      "id": "tooling/jupyter-notebook",
+      "name": "jupyter-notebook",
+      "domain": "tooling"
+    },
+    {
+      "id": "tooling/mermaid",
+      "name": "mermaid",
+      "domain": "tooling"
+    },
+    {
+      "id": "tooling/playwright-cli",
+      "name": "playwright-cli",
+      "domain": "tooling"
+    }
+  ]
+}

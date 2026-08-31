@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/schemas/install-receipt.schema.json",
+  "title": "Agent Toolkit Install Receipt",
+  "description": "Compatibility schema for installer receipts written under ~/.config/agent-toolkit/receipts/<target>-<product>.json. Matches Python agent_toolkit.installer.receipt and V agent_toolkit_core receipt.v (schemaVersion 1). Secrets MUST be empty. Artifact paths MUST NOT contain '..' segments (path-escape refuse). See docs/TRUST.md and docs/v/receipt-schema.md.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "product",
+    "target",
+    "version",
+    "artifacts",
+    "secrets"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1,
+      "description": "Receipt format version. Only 1 is supported."
+    },
+    "product": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Product id (e.g. agent-toolkit-profiles, agent-toolkit-core)."
+    },
+    "target": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Install target id (cursor, claude-code, opencode, …)."
+    },
+    "scope": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Install scope (project | user-home).",
+      "default": "project"
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Toolkit version recorded at install time."
+    },
+    "installedAt": {
+      "type": "string",
+      "description": "ISO-8601 / RFC3339 timestamp when the receipt was written."
+    },
+    "sourceDigest": {
+      "type": "string",
+      "description": "Short digest of install source (profiles tree or version fallback)."
+    },
+    "artifacts": {
+      "type": "array",
+      "description": "Installed files with digests and ownership.",
+      "items": {
+        "$ref": "#/$defs/artifactEntry"
+      }
+    },
+    "configPatches": {
+      "type": "array",
+      "description": "Optional JSON-merge / patch records applied to tool configs.",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "secrets": {
+      "type": "array",
+      "description": "Always empty — receipts must never store secrets.",
+      "maxItems": 0,
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "$defs": {
+    "artifactEntry": {
+      "type": "object",
+      "required": ["path", "digest", "ownership"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Absolute or resolved install path. Must not contain '..' path segments.",
+          "not": {
+            "pattern": "(^|[/\\\\])\\.\\.([/\\\\]|$)"
+          }
+        },
+        "digest": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Content digest (SHA256 hex truncated to 16 chars in current installers)."
+        },
+        "ownership": {
+          "type": "string",
+          "enum": ["created", "merged"],
+          "description": "created = toolkit-owned (uninstall removes); merged = user-preserved."
+        }
+      }
+    }
+  }
+}

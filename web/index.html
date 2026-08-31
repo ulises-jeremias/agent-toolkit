@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent Toolkit — Programmatic API</title>
+<style>
+:root{--bg:#0a0a0f;--card:#11111a;--border:#1e1e2e;--text:#e2e8f0;--muted:#94a3b8;--accent:#8b5cf6;--ok:#10b981}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;line-height:1.6}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:520px;width:90%}
+h1{font-size:18px;margin-bottom:4px}
+h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.row:last-of-type{border-bottom:none}
+.k{color:var(--muted)}.v{font-weight:600;font-family:monospace;font-size:12px}
+.ok{color:var(--ok)}
+.links{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
+.links a{background:var(--accent);color:#fff;text-decoration:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600}
+.links a.alt{background:transparent;border:1px solid var(--border);color:var(--text)}
+footer{margin-top:18px;color:var(--muted);font-size:11px}
+</style>
+</head>
+<body>
+<main class="card">
+<h1>⚙ Agent <span>Toolkit</span></h1>
+<p class="sub">Programmatic API — headless runtime surface. The CLI is the primary human interface.</p>
+<div class="row"><span class="k">Server</span><span class="v ok" id="st">checking…</span></div>
+<div class="row"><span class="k">Version</span><span class="v" id="ver">—</span></div>
+<div class="row"><span class="k">Commit</span><span class="v" id="com">—</span></div>
+<div class="row"><span class="k">Uptime</span><span class="v" id="up">—</span></div>
+<div class="row"><span class="k">API base</span><span class="v">/api/v1</span></div>
+<div class="links">
+<a href="/api/v1/openapi.json">OpenAPI spec</a>
+<a class="alt" href="/api/v1/selfcheck">Selfcheck</a>
+<a class="alt" href="/api/v1/health">Health</a>
+</div>
+<footer>This is a status page, not a product surface. External UIs are consumers of the API.</footer>
+</main>
+<script>
+fetch('/api/v1/health').then(r=>r.json()).then(h=>{
+  document.getElementById('st').textContent=h.ok?'healthy':'degraded';
+  document.getElementById('ver').textContent='v'+h.version;
+  document.getElementById('com').textContent=h.commit||'—';
+  document.getElementById('up').textContent=(h.uptime_s??'—')+'s';
+}).catch(()=>{document.getElementById('st').textContent='unreachable'});
+</script>
+</body>
+</html>

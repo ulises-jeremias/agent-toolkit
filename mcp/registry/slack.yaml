@@ -1,0 +1,48 @@
+# MCP Provider: slack
+# Official: https://github.com/modelcontextprotocol/servers/tree/main/src/slack
+id: slack
+display_name: Slack
+purpose: Read channel history, post messages, add reactions, and browse Slack workspaces
+implementation:
+  provenance: official
+  package: "@modelcontextprotocol/server-slack"
+  repository: https://github.com/modelcontextprotocol/servers
+  license: MIT
+  version_policy: pin to minor
+transport:
+  supported: [stdio]
+  preferred: stdio
+auth:
+  supported: [bearer-env]
+  preferred: bearer-env
+  env: [SLACK_BOT_TOKEN, SLACK_TEAM_ID, SLACK_CHANNEL_IDS]
+tools:
+  read:
+    - slack_list_channels
+    - slack_get_channel_history
+    - slack_get_thread_replies
+    - slack_get_users
+    - slack_get_user_profile
+  write:
+    - slack_post_message
+    - slack_reply_to_thread
+    - slack_add_reaction
+  destructive: []
+approval:
+  default: read-only
+healthcheck:
+  strategy: tools-list
+  timeout_ms: 5000
+platforms:
+  claude-code: native
+  cursor: native
+  opencode: bridged
+  copilot-cli: unknown-blocked
+  gemini-cli: bridged
+  windsurf: manual
+  pi: bridged
+  codex: unknown-blocked
+security:
+  network_hosts: [slack.com, api.slack.com]
+  secret_storage: environment variable
+  notes: Bot token API (no Socket Mode / SLACK_APP_TOKEN); invite bot to channels; optional SLACK_CHANNEL_IDS scopes visibility

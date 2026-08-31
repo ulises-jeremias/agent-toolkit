@@ -1,0 +1,38 @@
+# Fixture lock for design/web-design-guidelines (multi-source)
+# Illustrates ADR-0001 minimal resolution artifact — version 2.
+# Deterministic SHAs: wrapper a*40, rules b*40; checksums are fixture sha256 of content.
+version: 2
+capabilities:
+  design/web-design-guidelines:
+    provenance_digest: sha256:0000000000000000000000000000000000000000000000000000000000000000
+    sources:
+      wrapper:
+        repository: vercel-labs/agent-skills
+        path: skills/web-design-guidelines
+        requested:
+          type: commit
+          ref: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        resolved:
+          commit: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          content_checksum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          license:
+            spdx: MIT
+            source_path: skills/design/web-design-guidelines/wrapper/LICENSE
+            checksum: sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          resolved_at: "2026-08-11T00:00:00Z"
+          version: wrapper-a
+      rules:
+        repository: vercel-labs/web-interface-guidelines
+        path: command.md
+        requested:
+          type: commit
+          ref: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+        resolved:
+          commit: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          content_checksum: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          license:
+            spdx: MIT
+            source_path: skills/design/web-design-guidelines/rules/LICENSE
+            checksum: sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+          resolved_at: "2026-08-11T00:00:00Z"
+          version: rules-b

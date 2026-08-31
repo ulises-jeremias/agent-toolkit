@@ -1,0 +1,47 @@
+# Claude Code target definition
+id: claude-code
+name: "Claude Code"
+description: Anthropic's Claude Code AI coding assistant
+maturity: stable
+package_type: plugin
+manifest_path: .claude-plugin/plugin.json
+marketplace_path: .claude-plugin/marketplace.json
+
+capabilities:
+  skills:
+    supported: true
+    method: native
+    discovery: plugin bundle skills/ directory
+    format: SKILL.md (Agent Skills spec)
+  agents:
+    supported: true
+    method: native
+    discovery: plugin bundle agents/ directory
+    format: AGENT.md with YAML frontmatter
+  hooks:
+    supported: false
+    method: unsupported
+    config: hooks/hooks.json in plugin bundle
+    note: Registry exists; adapter compile not wired yet (issue #16)
+  mcp:
+    supported: false
+    method: unsupported
+    config: .mcp.json in plugin bundle or project root
+    note: MCP registry exists; adapter compile not wired yet
+  commands:
+    supported: true
+    method: native
+    format: slash commands in plugin bundle
+  rules:
+    supported: false
+    note: Claude Code does not use .mdc rule files; uses skills/agents instead
+
+security:
+  no_dangerous_mode_bypass: true
+  no_permission_auto_approve: true
+  plugin_settings_scope: plugin-local only, not ~/.claude/settings.json
+
+distribution:
+  local_dev: /plugin marketplace add <local-path>
+  github: /plugin marketplace add owner/repo
+  validation: claude plugin validate (if available)

@@ -1,0 +1,47 @@
+# Delivery Discipline Pack Configuration
+# Copy this file to your workspace and toggle skills or agents for your team.
+#
+# Usage:
+#   cp packs/delivery-discipline/config.yaml ~/.ai-workspace/packs/delivery-discipline.yaml
+#
+# See packs/delivery-discipline/README.md for full setup instructions.
+
+pack: delivery-discipline
+version: "1.0"
+
+# ---------------------------------------------------------------------------
+# Skills
+# ---------------------------------------------------------------------------
+# Advisory only — not applied by `loop run --pack`.
+# Domain/path IDs matching catalogs/skill-catalog.yaml.
+# See packs/README.md and ADR-006.
+
+skills:
+  delivery/task:
+    enabled: true
+  delivery/bug:
+    enabled: true
+  delivery/epic:
+    enabled: true
+  delivery/user-story:
+    enabled: true
+  delivery/project-assessment:
+    enabled: true
+  delivery/development-workflow:
+    enabled: true
+
+# ---------------------------------------------------------------------------
+# Agents
+# ---------------------------------------------------------------------------
+# Advisory only — not applied by `loop run --pack`.
+
+agents:
+  platform-engineer:
+    enabled: true
+  planner:
+    enabled: true
+
+# ---------------------------------------------------------------------------
+# Loops
+# ---------------------------------------------------------------------------
+# No loops — pack is delivery discipline only (see #801 and packs/README.md)

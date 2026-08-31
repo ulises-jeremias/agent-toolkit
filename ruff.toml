@@ -1,0 +1,8 @@
+# Lint remaining Python (PyPI launcher, tests, repo scripts). Not a product workspace.
+line-length = 100
+target-version = "py310"
+src = ["packages/pypi/agent-toolkit-cli/src", "tests", "scripts"]
+
+[lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

@@ -1,0 +1,765 @@
+[[commands]]
+name = "assistant"
+description = "core/assistant"
+prompt = """
+Follow the `assistant` skill instructions for {{args}}.
+
+@{skills/assistant/SKILL.md}
+"""
+
+[[commands]]
+name = "dev_companion"
+description = "core/dev-companion"
+prompt = """
+Follow the `dev-companion` skill instructions for {{args}}.
+
+@{skills/dev-companion/SKILL.md}
+"""
+
+[[commands]]
+name = "onboarding"
+description = "core/onboarding"
+prompt = """
+Follow the `onboarding` skill instructions for {{args}}.
+
+@{skills/onboarding/SKILL.md}
+"""
+
+[[commands]]
+name = "output_handshake"
+description = "core/output-handshake"
+prompt = """
+Follow the `output-handshake` skill instructions for {{args}}.
+
+@{skills/output-handshake/SKILL.md}
+"""
+
+[[commands]]
+name = "pr_fallback"
+description = "core/pr-fallback"
+prompt = """
+Follow the `pr-fallback` skill instructions for {{args}}.
+
+@{skills/pr-fallback/SKILL.md}
+"""
+
+[[commands]]
+name = "workspace_knowledge_sync"
+description = "core/workspace-knowledge-sync"
+prompt = """
+Follow the `workspace-knowledge-sync` skill instructions for {{args}}.
+
+@{skills/workspace-knowledge-sync/SKILL.md}
+"""
+
+[[commands]]
+name = "dbt_validation"
+description = "data/dbt-validation"
+prompt = """
+Follow the `dbt-validation` skill instructions for {{args}}.
+
+@{skills/dbt-validation/SKILL.md}
+"""
+
+[[commands]]
+name = "snowflake_validation"
+description = "data/snowflake-validation"
+prompt = """
+Follow the `snowflake-validation` skill instructions for {{args}}.
+
+@{skills/snowflake-validation/SKILL.md}
+"""
+
+[[commands]]
+name = "adr"
+description = "delivery/adr"
+prompt = """
+Follow the `adr` skill instructions for {{args}}.
+
+@{skills/adr/SKILL.md}
+"""
+
+[[commands]]
+name = "agreement"
+description = "delivery/agreement"
+prompt = """
+Follow the `agreement` skill instructions for {{args}}.
+
+@{skills/agreement/SKILL.md}
+"""
+
+[[commands]]
+name = "bug"
+description = "delivery/bug"
+prompt = """
+Follow the `bug` skill instructions for {{args}}.
+
+@{skills/bug/SKILL.md}
+"""
+
+[[commands]]
+name = "decision_log"
+description = "delivery/decision-log"
+prompt = """
+Follow the `decision-log` skill instructions for {{args}}.
+
+@{skills/decision-log/SKILL.md}
+"""
+
+[[commands]]
+name = "development_workflow"
+description = "delivery/development-workflow"
+prompt = """
+Follow the `development-workflow` skill instructions for {{args}}.
+
+@{skills/development-workflow/SKILL.md}
+"""
+
+[[commands]]
+name = "epic"
+description = "delivery/epic"
+prompt = """
+Follow the `epic` skill instructions for {{args}}.
+
+@{skills/epic/SKILL.md}
+"""
+
+[[commands]]
+name = "incident"
+description = "delivery/incident"
+prompt = """
+Follow the `incident` skill instructions for {{args}}.
+
+@{skills/incident/SKILL.md}
+"""
+
+[[commands]]
+name = "management_unit_assessment"
+description = "delivery/management-unit-assessment"
+prompt = """
+Follow the `management-unit-assessment` skill instructions for {{args}}.
+
+@{skills/management-unit-assessment/SKILL.md}
+"""
+
+[[commands]]
+name = "meeting_minutes"
+description = "delivery/meeting-minutes"
+prompt = """
+Follow the `meeting-minutes` skill instructions for {{args}}.
+
+@{skills/meeting-minutes/SKILL.md}
+"""
+
+[[commands]]
+name = "planning"
+description = "delivery/planning"
+prompt = """
+Follow the `planning` skill instructions for {{args}}.
+
+@{skills/planning/SKILL.md}
+"""
+
+[[commands]]
+name = "prd"
+description = "delivery/prd"
+prompt = """
+Follow the `prd` skill instructions for {{args}}.
+
+@{skills/prd/SKILL.md}
+"""
+
+[[commands]]
+name = "project_assessment"
+description = "delivery/project-assessment"
+prompt = """
+Follow the `project-assessment` skill instructions for {{args}}.
+
+@{skills/project-assessment/SKILL.md}
+"""
+
+[[commands]]
+name = "project_assessment_evidence"
+description = "delivery/project-assessment-evidence"
+prompt = """
+Follow the `project-assessment-evidence` skill instructions for {{args}}.
+
+@{skills/project-assessment-evidence/SKILL.md}
+"""
+
+[[commands]]
+name = "spike"
+description = "delivery/spike"
+prompt = """
+Follow the `spike` skill instructions for {{args}}.
+
+@{skills/spike/SKILL.md}
+"""
+
+[[commands]]
+name = "task"
+description = "delivery/task"
+prompt = """
+Follow the `task` skill instructions for {{args}}.
+
+@{skills/task/SKILL.md}
+"""
+
+[[commands]]
+name = "technical_unit_assessment"
+description = "delivery/technical-unit-assessment"
+prompt = """
+Follow the `technical-unit-assessment` skill instructions for {{args}}.
+
+@{skills/technical-unit-assessment/SKILL.md}
+"""
+
+[[commands]]
+name = "trd"
+description = "delivery/trd"
+prompt = """
+Follow the `trd` skill instructions for {{args}}.
+
+@{skills/trd/SKILL.md}
+"""
+
+[[commands]]
+name = "user_story"
+description = "delivery/user-story"
+prompt = """
+Follow the `user-story` skill instructions for {{args}}.
+
+@{skills/user-story/SKILL.md}
+"""
+
+[[commands]]
+name = "work_item"
+description = "delivery/work-item"
+prompt = """
+Follow the `work-item` skill instructions for {{args}}.
+
+@{skills/work-item/SKILL.md}
+"""
+
+[[commands]]
+name = "workflow_client_bootstrap"
+description = "delivery/workflow-client-bootstrap"
+prompt = """
+Follow the `workflow-client-bootstrap` skill instructions for {{args}}.
+
+@{skills/workflow-client-bootstrap/SKILL.md}
+"""
+
+[[commands]]
+name = "workflow_generic_project"
+description = "delivery/workflow-generic-project"
+prompt = """
+Follow the `workflow-generic-project` skill instructions for {{args}}.
+
+@{skills/workflow-generic-project/SKILL.md}
+"""
+
+[[commands]]
+name = "figma"
+description = "design/figma"
+prompt = """
+Follow the `figma` skill instructions for {{args}}.
+
+@{skills/figma/SKILL.md}
+"""
+
+[[commands]]
+name = "figma_code_connect_components"
+description = "design/figma-code-connect-components"
+prompt = """
+Follow the `figma-code-connect-components` skill instructions for {{args}}.
+
+@{skills/figma-code-connect-components/SKILL.md}
+"""
+
+[[commands]]
+name = "figma_create_design_system_rules"
+description = "design/figma-create-design-system-rules"
+prompt = """
+Follow the `figma-create-design-system-rules` skill instructions for {{args}}.
+
+@{skills/figma-create-design-system-rules/SKILL.md}
+"""
+
+[[commands]]
+name = "figma_create_new_file"
+description = "design/figma-create-new-file"
+prompt = """
+Follow the `figma-create-new-file` skill instructions for {{args}}.
+
+@{skills/figma-create-new-file/SKILL.md}
+"""
+
+[[commands]]
+name = "figma_implement_design"
+description = "design/figma-implement-design"
+prompt = """
+Follow the `figma-implement-design` skill instructions for {{args}}.
+
+@{skills/figma-implement-design/SKILL.md}
+"""
+
+[[commands]]
+name = "design_assessment"
+description = "design/design-assessment"
+prompt = """
+Follow the `design-assessment` skill instructions for {{args}}.
+
+@{skills/design-assessment/SKILL.md}
+"""
+
+[[commands]]
+name = "design_improvement"
+description = "design/design-improvement"
+prompt = """
+Follow the `design-improvement` skill instructions for {{args}}.
+
+@{skills/design-improvement/SKILL.md}
+"""
+
+[[commands]]
+name = "frontend_design"
+description = "design/frontend-design"
+prompt = """
+Follow the `frontend-design` skill instructions for {{args}}.
+
+@{skills/frontend-design/SKILL.md}
+"""
+
+[[commands]]
+name = "frontend_design_review"
+description = "design/frontend-design-review"
+prompt = """
+Follow the `frontend-design-review` skill instructions for {{args}}.
+
+@{skills/frontend-design-review/SKILL.md}
+"""
+
+[[commands]]
+name = "web_design_guidelines"
+description = "design/web-design-guidelines"
+prompt = """
+Follow the `web-design-guidelines` skill instructions for {{args}}.
+
+@{skills/web-design-guidelines/SKILL.md}
+"""
+
+[[commands]]
+name = "supply_chain_audit"
+description = "agentic-security/supply-chain-audit"
+prompt = """
+Follow the `supply-chain-audit` skill instructions for {{args}}.
+
+@{skills/supply-chain-audit/SKILL.md}
+"""
+
+[[commands]]
+name = "fix_merge_conflicts"
+description = "forge/fix-merge-conflicts"
+prompt = """
+Follow the `fix-merge-conflicts` skill instructions for {{args}}.
+
+@{skills/fix-merge-conflicts/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_address_comments"
+description = "forge/gh-address-comments"
+prompt = """
+Follow the `gh-address-comments` skill instructions for {{args}}.
+
+@{skills/gh-address-comments/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_contribution_planner"
+description = "forge/gh-contribution-planner"
+prompt = """
+Follow the `gh-contribution-planner` skill instructions for {{args}}.
+
+@{skills/gh-contribution-planner/SKILL.md}
+"""
+
+[[commands]]
+name = "gh_fix_ci"
+description = "forge/gh-fix-ci"
+prompt = """
+Follow the `gh-fix-ci` skill instructions for {{args}}.
+
+@{skills/gh-fix-ci/SKILL.md}
+"""
+
+[[commands]]
+name = "github_cli_workflow"
+description = "forge/github-cli-workflow"
+prompt = """
+Follow the `github-cli-workflow` skill instructions for {{args}}.
+
+@{skills/github-cli-workflow/SKILL.md}
+"""
+
+[[commands]]
+name = "gitlab_cli_workflow"
+description = "forge/gitlab-cli-workflow"
+prompt = """
+Follow the `gitlab-cli-workflow` skill instructions for {{args}}.
+
+@{skills/gitlab-cli-workflow/SKILL.md}
+"""
+
+[[commands]]
+name = "clickup_cli"
+description = "integrations/clickup-cli"
+prompt = """
+Follow the `clickup-cli` skill instructions for {{args}}.
+
+@{skills/clickup-cli/SKILL.md}
+"""
+
+[[commands]]
+name = "linear"
+description = "integrations/linear"
+prompt = """
+Follow the `linear` skill instructions for {{args}}.
+
+@{skills/linear/SKILL.md}
+"""
+
+[[commands]]
+name = "slack_assistant"
+description = "integrations/slack-assistant"
+prompt = """
+Follow the `slack-assistant` skill instructions for {{args}}.
+
+@{skills/slack-assistant/SKILL.md}
+"""
+
+[[commands]]
+name = "slack_cli"
+description = "integrations/slack-cli"
+prompt = """
+Follow the `slack-cli` skill instructions for {{args}}.
+
+@{skills/slack-cli/SKILL.md}
+"""
+
+[[commands]]
+name = "loop_runner"
+description = "loops/loop-runner"
+prompt = """
+Follow the `loop-runner` skill instructions for {{args}}.
+
+@{skills/loop-runner/SKILL.md}
+"""
+
+[[commands]]
+name = "docs_generator"
+description = "ops/docs-generator"
+prompt = """
+Follow the `docs-generator` skill instructions for {{args}}.
+
+@{skills/docs-generator/SKILL.md}
+"""
+
+[[commands]]
+name = "llm_cost_advisor"
+description = "ops/llm-cost-advisor"
+prompt = """
+Follow the `llm-cost-advisor` skill instructions for {{args}}.
+
+@{skills/llm-cost-advisor/SKILL.md}
+"""
+
+[[commands]]
+name = "swarm"
+description = "ops/swarm"
+prompt = """
+Follow the `swarm` skill instructions for {{args}}.
+
+@{skills/swarm/SKILL.md}
+"""
+
+[[commands]]
+name = "swarm_handoff"
+description = "ops/swarm-handoff"
+prompt = """
+Follow the `swarm-handoff` skill instructions for {{args}}.
+
+@{skills/swarm-handoff/SKILL.md}
+"""
+
+[[commands]]
+name = "swarm_observer"
+description = "ops/swarm-observer"
+prompt = """
+Follow the `swarm-observer` skill instructions for {{args}}.
+
+@{skills/swarm-observer/SKILL.md}
+"""
+
+[[commands]]
+name = "triage"
+description = "ops/triage"
+prompt = """
+Follow the `triage` skill instructions for {{args}}.
+
+@{skills/triage/SKILL.md}
+"""
+
+[[commands]]
+name = "herdr"
+description = "tooling/herdr"
+prompt = """
+Follow the `herdr` skill instructions for {{args}}.
+
+@{skills/herdr/SKILL.md}
+"""
+
+[[commands]]
+name = "cli_for_agents"
+description = "tooling/cli-for-agents"
+prompt = """
+Follow the `cli-for-agents` skill instructions for {{args}}.
+
+@{skills/cli-for-agents/SKILL.md}
+"""
+
+[[commands]]
+name = "inventory"
+description = "tooling/inventory"
+prompt = """
+Follow the `inventory` skill instructions for {{args}}.
+
+@{skills/inventory/SKILL.md}
+"""
+
+[[commands]]
+name = "jupyter_notebook"
+description = "tooling/jupyter-notebook"
+prompt = """
+Follow the `jupyter-notebook` skill instructions for {{args}}.
+
+@{skills/jupyter-notebook/SKILL.md}
+"""
+
+[[commands]]
+name = "review"
+description = "accessibility/review"
+prompt = """
+Follow the `review` skill instructions for {{args}}.
+
+@{skills/review/SKILL.md}
+"""
+
+[[commands]]
+name = "mcp_audit"
+description = "agentic-security/mcp-audit"
+prompt = """
+Follow the `mcp-audit` skill instructions for {{args}}.
+
+@{skills/mcp-audit/SKILL.md}
+"""
+
+[[commands]]
+name = "owasp_agentic_review"
+description = "agentic-security/owasp-agentic-review"
+prompt = """
+Follow the `owasp-agentic-review` skill instructions for {{args}}.
+
+@{skills/owasp-agentic-review/SKILL.md}
+"""
+
+[[commands]]
+name = "threat_modeling"
+description = "agentic-security/threat-modeling"
+prompt = """
+Follow the `threat-modeling` skill instructions for {{args}}.
+
+@{skills/threat-modeling/SKILL.md}
+"""
+
+[[commands]]
+name = "megalinter"
+description = "quality/megalinter"
+prompt = """
+Follow the `megalinter` skill instructions for {{args}}.
+
+@{skills/megalinter/SKILL.md}
+"""
+
+[[commands]]
+name = "megalinter_setup"
+description = "quality/megalinter-setup"
+prompt = """
+Follow the `megalinter-setup` skill instructions for {{args}}.
+
+@{skills/megalinter-setup/SKILL.md}
+"""
+
+[[commands]]
+name = "megalinter_check"
+description = "quality/megalinter-check"
+prompt = """
+Follow the `megalinter-check` skill instructions for {{args}}.
+
+@{skills/megalinter-check/SKILL.md}
+"""
+
+[[commands]]
+name = "megalinter_fix"
+description = "quality/megalinter-fix"
+prompt = """
+Follow the `megalinter-fix` skill instructions for {{args}}.
+
+@{skills/megalinter-fix/SKILL.md}
+"""
+
+[[commands]]
+name = "codeql"
+description = "quality/codeql"
+prompt = """
+Follow the `codeql` skill instructions for {{args}}.
+
+@{skills/codeql/SKILL.md}
+"""
+
+[[commands]]
+name = "unslop"
+description = "quality/unslop"
+prompt = """
+Follow the `unslop` skill instructions for {{args}}.
+
+@{skills/unslop/SKILL.md}
+"""
+
+[[commands]]
+name = "deslop"
+description = "quality/deslop"
+prompt = """
+Follow the `deslop` skill instructions for {{args}}.
+
+@{skills/deslop/SKILL.md}
+"""
+
+[[commands]]
+name = "blast_radius"
+description = "quality/blast-radius"
+prompt = """
+Follow the `blast-radius` skill instructions for {{args}}.
+
+@{skills/blast-radius/SKILL.md}
+"""
+
+[[commands]]
+name = "deep_review"
+description = "quality/deep-review"
+prompt = """
+Follow the `deep-review` skill instructions for {{args}}.
+
+@{skills/deep-review/SKILL.md}
+"""
+
+[[commands]]
+name = "chrome_devtools"
+description = "tooling/chrome-devtools"
+prompt = """
+Follow the `chrome-devtools` skill instructions for {{args}}.
+
+@{skills/chrome-devtools/SKILL.md}
+"""
+
+[[commands]]
+name = "playwright_cli"
+description = "tooling/playwright-cli"
+prompt = """
+Follow the `playwright-cli` skill instructions for {{args}}.
+
+@{skills/playwright-cli/SKILL.md}
+"""
+
+[[commands]]
+name = "project"
+description = "core/project"
+prompt = """
+Follow the `project` skill instructions for {{args}}.
+
+@{skills/project/SKILL.md}
+"""
+
+[[commands]]
+name = "workspace"
+description = "core/workspace"
+prompt = """
+Follow the `workspace` skill instructions for {{args}}.
+
+@{skills/workspace/SKILL.md}
+"""
+
+[[commands]]
+name = "worktree"
+description = "forge/worktree"
+prompt = """
+Follow the `worktree` skill instructions for {{args}}.
+
+@{skills/worktree/SKILL.md}
+"""
+
+[[commands]]
+name = "mcp"
+description = "integrations/mcp"
+prompt = """
+Follow the `mcp` skill instructions for {{args}}.
+
+@{skills/mcp/SKILL.md}
+"""
+
+[[commands]]
+name = "cloud_design_patterns"
+description = "cloud/cloud-design-patterns"
+prompt = """
+Follow the `cloud-design-patterns` skill instructions for {{args}}.
+
+@{skills/cloud-design-patterns/SKILL.md}
+"""
+
+[[commands]]
+name = "aws_well_architected_review"
+description = "cloud/aws-well-architected-review"
+prompt = """
+Follow the `aws-well-architected-review` skill instructions for {{args}}.
+
+@{skills/aws-well-architected-review/SKILL.md}
+"""
+
+[[commands]]
+name = "mermaid"
+description = "tooling/mermaid"
+prompt = """
+Follow the `mermaid` skill instructions for {{args}}.
+
+@{skills/mermaid/SKILL.md}
+"""
+
+[[commands]]
+name = "architecture_diagram"
+description = "architecture/architecture-diagram"
+prompt = """
+Follow the `architecture-diagram` skill instructions for {{args}}.
+
+@{skills/architecture-diagram/SKILL.md}
+"""
+
+[[commands]]
+name = "c4_model"
+description = "architecture/c4-model"
+prompt = """
+Follow the `c4-model` skill instructions for {{args}}.
+
+@{skills/c4-model/SKILL.md}
+"""
+

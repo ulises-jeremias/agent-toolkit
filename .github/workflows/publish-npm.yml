@@ -1,0 +1,111 @@
+name: Publish npm
+
+# Sole automated npm publish path for version tags (v*).
+# Trusted publishing (OIDC): https://docs.npmjs.com/trusted-publishers
+# Trust pin (after first publish):
+#   npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: publish-npm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish agent-toolkit-cli to npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+
+      - name: Ensure npm CLI supports OIDC trusted publishing
+        run: |
+          set -euo pipefail
+          npm install -g npm@latest
+          npm --version
+
+      - name: Wait for GitHub Release V binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          mkdir -p binaries
+          ASSETS=(
+            agent-toolkit-linux-x86_64
+            agent-toolkit-linux-arm64
+            agent-toolkit-macos-arm64
+            agent-toolkit-macos-x86_64
+            agent-toolkit-windows-x86_64.exe
+          )
+          for attempt in $(seq 1 36); do
+            for asset in "${ASSETS[@]}"; do
+              if [[ ! -f "binaries/${asset}" ]]; then
+                gh release download "$TAG" -D binaries -p "$asset" >/dev/null 2>&1 || true
+              fi
+            done
+            if [[ -f binaries/agent-toolkit-linux-x86_64 ]]; then
+              echo "✓ linux-x86_64 present (attempt $attempt)"
+              ls -lh binaries/ || true
+              exit 0
+            fi
+            echo "Attempt $attempt/36: waiting for V assets on $TAG..."
+            sleep 10
+          done
+          echo "::error::Timed out waiting for GitHub Release V binaries"
+          exit 1
+
+      - name: Pack npm platform packages
+        run: |
+          set -euo pipefail
+          export RELEASE_BIN_DIR=binaries
+          export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
+          ./scripts/pack_npm.vsh
+
+      - name: Publish platform packages then meta-package
+        working-directory: packages/npm
+        run: |
+          set -euo pipefail
+          publish_one() {
+            local dir="$1"
+            local name version
+            name="$(node -p "require('./${dir}/package.json').name")"
+            version="$(node -p "require('./${dir}/package.json').version")"
+            if [[ "${name}" != "agent-toolkit-cli" ]]; then
+              if [[ ! -f "${dir}/bin/agent-toolkit" && ! -f "${dir}/bin/agent-toolkit.exe" ]]; then
+                echo "skip ${name} (no packed binary)"
+                return 0
+              fi
+            fi
+            if npm view "${name}@${version}" version >/dev/null 2>&1; then
+              echo "skip ${name}@${version} (already on registry)"
+              return 0
+            fi
+            (cd "$dir" && npm publish --access public)
+          }
+          for dir in agent-toolkit-cli-linux-x64 agent-toolkit-cli-linux-arm64 agent-toolkit-cli-darwin-arm64 agent-toolkit-cli-darwin-x64 agent-toolkit-cli-win32-x64; do
+            publish_one "$dir"
+          done
+          publish_one agent-toolkit-cli
