@@ -2,7 +2,8 @@ module agent_toolkit_server
 
 // Phase 4 (#835): long-running job registry + process-per-run supervisor.
 // Mirrors ADR-020: spawn CLI subprocess, capture output lines, persist registry.
-import json2
+
+import json
 import os
 import sync
 import time
@@ -31,9 +32,9 @@ pub mut:
 pub fn new_job_runner(dir string) &JobRunner {
 	os.mkdir_all(dir) or {}
 	return &JobRunner{
-		jobs: {}
+		jobs:        {}
 		max_running: 2
-		dir: dir
+		dir:         dir
 	}
 }
 
@@ -42,7 +43,7 @@ fn (r &JobRunner) jobs_file() string {
 }
 
 fn (mut r JobRunner) persist_locked() {
-	os.write_file(r.jobs_file(), json2.encode(r.jobs, escape_unicode: true)) or {}
+	os.write_file(r.jobs_file(), json.encode(r.jobs)) or {}
 }
 
 pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job {
@@ -55,12 +56,12 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 	}
 	id := 'job_' + time.utc().format_rfc3339().replace('-', '').replace(':', '').replace('.', '')
 	job := Job{
-		id: id
-		cmd: cmd
-		args: args
-		status: 'queued'
+		id:         id
+		cmd:        cmd
+		args:       args
+		status:     'queued'
 		started_at: time.utc().format_rfc3339()
-		workspace: workdir
+		workspace:  workdir
 	}
 	r.jobs[id] = job
 	mut p := os.new_process('agent-toolkit')
