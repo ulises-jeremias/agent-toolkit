@@ -29,7 +29,12 @@ products:
         plugin_id: agent-toolkit-core
         manifest: plugins/agent-toolkit-core/.cursor-plugin/plugin.json
     requires:
-      executables: []
+      executables:
+        - name: docker
+          description: Docker for GitHub MCP (ghcr.io/github/github-mcp-server)
+          install_url: https://docs.docker.com/get-docker/
+          required: false
+          capability: mcp:github
       env: []
     security:
       approval_required: false

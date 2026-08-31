@@ -8,7 +8,7 @@ _Generated from 5 products × 116 skills × 18 agents._
 
 | Product | Stability | Targets | Skills | Agents |
 |---------|-----------|---------|--------|--------|
-| `agent-toolkit-core` | stable | claude-code, cursor, requires, security | 6 | 1 |
+| `agent-toolkit-core` | stable | claude-code, cursor, executables, requires, security | 6 | 1 |
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
@@ -27,14 +27,14 @@ _Generated from 5 products × 116 skills × 18 agents._
 | `architecture/c4-model` | `agent-toolkit-complete` | — |
 | `cloud/aws-well-architected-review` | `agent-toolkit-complete` | — |
 | `cloud/cloud-design-patterns` | `agent-toolkit-complete` | — |
-| `core/assistant` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
-| `core/dev-companion` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
-| `core/onboarding` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
-| `core/output-handshake` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
-| `core/pr-fallback` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `core/assistant` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `core/dev-companion` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `core/onboarding` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `core/output-handshake` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
+| `core/pr-fallback` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
 | `core/project` | `agent-toolkit-complete` | — |
 | `core/workspace` | `agent-toolkit-complete` | — |
-| `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `core/workspace-knowledge-sync` | `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
 | `data/dbt-validation` | `agent-toolkit-complete` | — |
 | `data/snowflake-validation` | `agent-toolkit-complete` | — |
 | `delivery/adr` | `agent-toolkit-complete` | — |
@@ -144,7 +144,7 @@ _Generated from 5 products × 116 skills × 18 agents._
 | `assistant` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `build-error-resolver` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `client-workflow-bootstrap` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
-| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, requires, security |
+| `code-reviewer` | `agent-toolkit-agents`, `agent-toolkit-complete`, `agent-toolkit-core` | claude-code, cursor, executables, requires, security |
 | `data-engineer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `designer` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
 | `e2e-runner` | `agent-toolkit-agents`, `agent-toolkit-complete` | claude-code, cursor |
