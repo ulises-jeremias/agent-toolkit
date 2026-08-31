@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""generate-surface.py — emit OpenAPI, CLI help, TUI registry and Web nav
-from docs/compatibility/cli-contract.yaml (SSOT for all surfaces).
+"""generate-surface.py — emit OpenAPI, CLI help from cli-contract.yaml SSOT.
 
-Part of feature-complete serve epic (#831, Phase 0).
+Part of feature-complete serve epic (#831, Phase 0), ADR-030 canonical.
 Usage:
   python3 scripts/generate_surface.py            # write artifacts
   python3 scripts/generate_surface.py --check    # fail if stale
-Outputs (idempotent):
-  dist/surface/openapi.json
-  dist/surface/cli-help.md
+Outputs (idempotent, canonical per ADR-030):
+  docs/surface/openapi.json  (embedded by server, parity-gated)
+  docs/surface/cli-help.md   (docs/reference)
+Legacy dist/surface/cli-help.md is deprecated — canonical is docs/surface;
+dist is kept as symlink or removed (checked in --check).
 """
 
 from __future__ import annotations
@@ -249,14 +250,32 @@ def main() -> int:
     contract = load()
     OUT.mkdir(parents=True, exist_ok=True)
 
+    stale = []
+
+    # Validate CLI_SURFACES.md contains every contract command (SSOT check for #969)
+    cli_surfaces = ROOT / "docs" / "CLI_SURFACES.md"
+    if cli_surfaces.exists():
+        import re as _re
+
+        text = cli_surfaces.read_text(encoding="utf-8")
+        found = set(_re.findall(r"\| `([^`]+)` \|", text))
+        contract_names = {c["name"] for c in contract.get("commands", [])}
+        missing = contract_names - found
+        if missing:
+            stale.append(
+                f"docs/CLI_SURFACES.md (missing contract commands: {', '.join(sorted(missing))})"
+            )
+            if not check:
+                print(
+                    f"warning: docs/CLI_SURFACES.md missing {sorted(missing)} — update manually or regenerate"
+                )
+
     openapi = gen_openapi(contract)
     add_native_paths(openapi["paths"])
     artifacts = {
         OUT / "openapi.json": json.dumps(openapi, indent=2) + "\n",
         OUT / "cli-help.md": gen_help_md(contract),
     }
-
-    stale = []
     for path, content in artifacts.items():
         path.parent.mkdir(parents=True, exist_ok=True)
         current = path.read_text(encoding="utf-8") if path.exists() else None
@@ -265,6 +284,54 @@ def main() -> int:
             if not check:
                 path.write_text(content, encoding="utf-8")
                 print(f"wrote {path.relative_to(ROOT)}")
+    # Legacy dist/surface handling: canonical is docs/surface per ADR-030.
+    # dist/surface/* is deprecated; canonical is docs/surface. Any file under
+    # dist/surface that is not a symlink to canonical must be removed.
+    legacy_files = [
+        (ROOT / "dist" / "surface" / "cli-help.md", OUT / "cli-help.md"),
+        (ROOT / "dist" / "surface" / "openapi.json", OUT / "openapi.json"),
+    ]
+    # web_nav.json is retired per ADR-030 and must not exist
+    retired = ROOT / "dist" / "surface" / "web_nav.json"
+    if retired.exists() or retired.is_symlink():
+        stale.append(str(retired.relative_to(ROOT)) + " (retired per ADR-030)")
+        if not check:
+            retired.unlink(missing_ok=True)
+            print(f"removed retired {retired.relative_to(ROOT)}")
+    for legacy, canonical in legacy_files:
+        if legacy.exists() or legacy.is_symlink():
+            if legacy.is_symlink():
+                # Symlink should point to canonical
+                target = legacy.readlink() if hasattr(legacy, "readlink") else None
+                if target is not None and canonical.exists():
+                    # Resolve symlink target relative to dist/surface
+                    resolved = (
+                        (legacy.parent / target).resolve() if not target.is_absolute() else target
+                    )
+                    if resolved != canonical.resolve():
+                        stale.append(str(legacy.relative_to(ROOT)) + " (symlink target mismatch)")
+                        if not check and canonical.exists():
+                            legacy.unlink(missing_ok=True)
+                            legacy.symlink_to(f"../../docs/surface/{canonical.name}")
+                            print(
+                                f"fixed symlink {legacy.relative_to(ROOT)} -> ../../docs/surface/{canonical.name}"
+                            )
+            else:
+                # Regular file: must be identical to canonical, else stale
+                if canonical.exists():
+                    legacy_content = legacy.read_text(encoding="utf-8") if legacy.exists() else None
+                    canonical_content = canonical.read_text(encoding="utf-8")
+                    if legacy_content != canonical_content:
+                        stale.append(
+                            str(legacy.relative_to(ROOT))
+                            + f" (diverged from docs/surface/{canonical.name})"
+                        )
+                        if not check:
+                            # Remove stale duplicate; canonical is docs/surface
+                            legacy.unlink(missing_ok=True)
+                            print(
+                                f"removed stale {legacy.relative_to(ROOT)} (canonical is docs/surface/{canonical.name})"
+                            )
     if stale:
         print(f"{'stale' if check else 'updated'}: {', '.join(stale)}")
         if check:

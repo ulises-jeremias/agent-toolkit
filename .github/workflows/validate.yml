@@ -204,6 +204,18 @@ jobs:
           VMODULES: ${{ github.workspace }}/modules
         run: ./build/agent-toolkit build --check
 
+  check-surface:
+    name: Check Surface (OpenAPI + CLI help)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        run: pip install pyyaml==6.0.2
+
+      - name: Check generated surface artifacts (OpenAPI, CLI help) from cli-contract.yaml
+        run: python3 scripts/generate_surface.py --check
+
   check-catalogs:
     name: Check Generated Catalogs
     runs-on: ubuntu-latest
@@ -902,6 +914,7 @@ jobs:
       - validate-upstream
       - check-build
       - check-v-modules
+      - check-surface
       - check-catalogs
       - check-skill-matrix
       - check-target-matrix
@@ -929,6 +942,7 @@ jobs:
           if [[ "${{ needs.validate-upstream.result }}" != "success" ]]; then echo "validate-upstream failed: ${{ needs.validate-upstream.result }}"; failed="true"; fi
           if [[ "${{ needs.check-build.result }}" != "success" ]]; then echo "check-build failed: ${{ needs.check-build.result }}"; failed="true"; fi
           if [[ "${{ needs.check-v-modules.result }}" != "success" ]]; then echo "check-v-modules failed: ${{ needs.check-v-modules.result }}"; failed="true"; fi
+          if [[ "${{ needs.check-surface.result }}" != "success" ]]; then echo "check-surface failed: ${{ needs.check-surface.result }}"; failed="true"; fi
           if [[ "${{ needs.check-catalogs.result }}" != "success" ]]; then echo "check-catalogs failed: ${{ needs.check-catalogs.result }}"; failed="true"; fi
           if [[ "${{ needs.check-skill-matrix.result }}" != "success" ]]; then echo "check-skill-matrix failed: ${{ needs.check-skill-matrix.result }}"; failed="true"; fi
           if [[ "${{ needs.check-target-matrix.result }}" != "success" ]]; then echo "check-target-matrix failed: ${{ needs.check-target-matrix.result }}"; failed="true"; fi
