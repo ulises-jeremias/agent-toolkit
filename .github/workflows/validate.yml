@@ -20,10 +20,6 @@ on:
       - ".github/workflows/validate.yml"
       - "packages/pypi/**"
       - "packages/npm/**"
-    paths-ignore:
-      - "docs/**/*.md"
-      - ".gitignore"
-      - "*.md"
   workflow_dispatch:
 
 permissions:
