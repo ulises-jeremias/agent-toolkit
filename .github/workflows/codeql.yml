@@ -16,6 +16,8 @@ jobs:
   analyze:
     name: Analyze Python
     runs-on: ubuntu-latest
+    # CodeQL here covers Python tooling only (packages/pypi launcher, scripts/).
+    # V core (modules/agent_toolkit_*) is validated via `VJOBS=2 ./make.vsh vet` + `v test` in validate.yml (Check V Modules).
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4
