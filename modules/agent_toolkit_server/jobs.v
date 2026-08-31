@@ -108,15 +108,45 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 }
 
 fn (mut r JobRunner) watch(id string, mut p os.Process) {
+	// Stream stdout/stderr incrementally to avoid 64KB deadlock and enable live SSE/log.
+	// Write incrementally to log file so GET /jobs/:id/log and SSE see progress before exit.
+	mut buf := ''
+	// Ensure log exists with running marker
+	os.write_file(r.log_path(id), '[running]\n') or {}
+	for p.is_alive() {
+		out := p.stdout_read()
+		err := p.stderr_read()
+		if out.len > 0 {
+			buf += out
+			// Append incrementally (overwrite with full buf for simplicity, file is small)
+			os.write_file(r.log_path(id), '[running]\n' + buf) or {}
+		}
+		if err.len > 0 {
+			buf += err
+			os.write_file(r.log_path(id), '[running]\n' + buf) or {}
+		}
+		// Avoid busy loop; 50ms matches SSE poll interval
+		time.sleep(50 * time.millisecond)
+	}
+	// Final drain after process exit (wait ensures code available)
 	p.wait()
 	out := p.stdout_slurp()
 	err := p.stderr_slurp()
-	combined := out + if err.len > 0 { '\n' + err } else { '' }
-	if combined.len > 0 {
-		os.write_file(r.log_path(id), '[exit ${p.code}]\n' + combined) or {}
-	} else {
-		os.write_file(r.log_path(id), '[exit ${p.code}]') or {}
+	if out.len > 0 {
+		buf += out
 	}
+	if err.len > 0 {
+		if buf.len > 0 {
+			buf += '\n'
+		}
+		buf += err
+	}
+	final_log := if buf.len > 0 {
+		'[running]\n' + buf + '\n[exit ${p.code}]\n'
+	} else {
+		'[exit ${p.code}]\n'
+	}
+	os.write_file(r.log_path(id), final_log) or {}
 	r.mut.lock()
 	defer {
 		r.mut.unlock()
