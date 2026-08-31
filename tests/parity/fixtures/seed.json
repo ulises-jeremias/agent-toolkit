@@ -546,8 +546,7 @@
       ],
       "class": "V_SEMANTIC",
       "must_contain": [
-        "insights",
-        "removed"
+        "insights"
       ]
     },
     {
@@ -569,6 +568,11 @@
       "class": "V_SEMANTIC",
       "expect_v_exit": 0,
       "must_contain": [
+        "opencode",
+        "cursor",
+        "claude"
+      ],
+      "must_not_contain": [
         "removed",
         "#526"
       ]

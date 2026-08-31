@@ -1076,6 +1076,75 @@ def main():
                     print(f"  Report: file://{out}")
                     generated.append(("Windsurf", out))
 
+    # ── Copilot / Codex / Pi / Muse (no dedicated local store yet — basic file counts) ─
+    for extra_tool in ["copilot", "codex", "pi", "muse"]:
+        if extra_tool in individual_tools:
+            print(f"→ Checking {extra_tool} data...")
+            extra_raw: dict = {}
+            try:
+                if extra_tool == "copilot":
+                    # Copilot session store (if exists)
+                    copilot_db = Path.home() / ".copilot" / "session-store.db"
+                    if copilot_db.exists():
+                        try:
+                            con = sqlite3.connect(f"file:{copilot_db}?mode=ro", uri=True)
+                            cur = con.cursor()
+                            cur.execute("SELECT COUNT(*) FROM sessions")
+                            cnt = cur.fetchone()[0] if cur.fetchone else 0
+                            # fallback: try again
+                            cur.execute("SELECT COUNT(*) FROM sessions")
+                            cnt = cur.fetchone()[0]
+                            con.close()
+                            extra_raw = {"total_sessions": cnt, "data_dir": str(copilot_db), "note": "Copilot session count from session-store.db"}
+                            print(f"  {cnt} copilot sessions in {copilot_db}")
+                        except Exception as e:
+                            extra_raw = {"total_sessions": 0, "error": str(e), "data_dir": str(copilot_db)}
+                            print(f"  Copilot DB found but could not read: {e}")
+                    else:
+                        print(f"  No data for copilot: no session store at ~/.copilot/session-store.db")
+                        extra_raw = {"total_sessions": 0, "data_dir": str(copilot_db), "note": "No session store"}
+                elif extra_tool == "codex":
+                    codex_dir = Path.home() / ".codex"
+                    if codex_dir.exists():
+                        files = list(codex_dir.rglob("*.jsonl")) + list(codex_dir.rglob("*.json"))
+                        extra_raw = {"total_sessions": len(files), "data_dir": str(codex_dir), "files_sample": [str(p) for p in files[:5]]}
+                        print(f"  {len(files)} codex-related files in {codex_dir}")
+                    else:
+                        print(f"  No data for codex: no directory at ~/.codex")
+                        extra_raw = {"total_sessions": 0, "data_dir": "~/.codex"}
+                elif extra_tool == "pi":
+                    pi_dir = Path.home() / ".pi" / "agent"
+                    if pi_dir.exists():
+                        # count installed skills as a proxy for usage
+                        skills = list((pi_dir / "skills").rglob("skill.md")) if (pi_dir / "skills").exists() else []
+                        extra_raw = {"total_sessions": len(skills), "data_dir": str(pi_dir), "installed_skills": len(skills)}
+                        print(f"  {len(skills)} pi skills installed in {pi_dir}")
+                    else:
+                        print(f"  No data for pi: no directory at ~/.pi/agent")
+                        extra_raw = {"total_sessions": 0}
+                elif extra_tool == "muse":
+                    muse_dir = Path.home() / ".config" / "muse"
+                    if muse_dir.exists():
+                        files = list(muse_dir.rglob("*.json"))
+                        extra_raw = {"total_sessions": len(files), "data_dir": str(muse_dir)}
+                        print(f"  {len(files)} muse files in {muse_dir}")
+                    else:
+                        print(f"  No data for muse: no directory at ~/.config/muse")
+                        extra_raw = {"total_sessions": 0}
+            except Exception as e:
+                print(f"  Error checking {extra_tool}: {e}")
+                extra_raw = {"total_sessions": 0, "error": str(e)}
+            stats_by_tool[extra_tool] = extra_raw
+            if output_path is not None and len(individual_tools) == 1 and extra_tool in tools:
+                out = output_path
+                out.parent.mkdir(parents=True, exist_ok=True)
+                out.write_text(json.dumps(extra_raw, indent=2, default=str))
+                print(f"  Raw stats: file://{out}")
+                generated.append((extra_tool.title(), out))
+            elif not no_llm and extra_tool in tools:
+                # LLM analysis for these stub tools is not yet implemented — just note
+                print(f"  Skipping LLM analysis for {extra_tool} (no collector yet — raw stats only)")
+
     # ── Aggregate "all" report ─────────────────────────────────────────────
 
     if run_all:
