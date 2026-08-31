@@ -4,22 +4,6 @@ on:
   push:
     branches: [main]
   pull_request:
-    paths:
-      - "modules/**"
-      - "cmd/**"
-      - "skills/**"
-      - "agents/**"
-      - "loops/**"
-      - "profiles/**"
-      - "mcp/**"
-      - "catalogs/**"
-      - "schemas/**"
-      - "scripts/**"
-      - "make.vsh"
-      - ".v-version"
-      - ".github/workflows/validate.yml"
-      - "packages/pypi/**"
-      - "packages/npm/**"
   workflow_dispatch:
 
 permissions:
