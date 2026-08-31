@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: MegaLinter
-        uses: oxsecurity/megalinter@v10
+        uses: oxsecurity/megalinter@15e5b45552097e318c93de385779ce3b1084052c # v10
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
