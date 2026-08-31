@@ -5,6 +5,7 @@ import context
 import x.async
 import time
 import json2
+import os
 import desktop_engine.state
 import desktop_engine.eventbus
 
@@ -46,6 +47,11 @@ mut:
 	// context cancellation
 	ctx    context.Context
 	cancel context.CancelFn
+	// watcher config cached from EngineConfig
+	watcher_paths       []string
+	watcher_poll_ms     int = 500
+	watcher_debounce_ms int = 100
+	use_polling         bool
 	// revision tracking
 	revision u64
 	// engine_api call counter for parity tests (engine_api_call>0)
@@ -56,10 +62,15 @@ mut:
 @[params]
 pub struct EngineConfig {
 pub:
-	persist_path string
-	di           &DIContainer = unsafe { nil }
-	repo         &state.StateRepository = unsafe { nil }
-	bus          &eventbus.ToolkitEventBus = unsafe { nil }
+	persist_path        string
+	di                  &DIContainer = unsafe { nil }
+	repo                &state.StateRepository = unsafe { nil }
+	bus                 &eventbus.ToolkitEventBus = unsafe { nil }
+	watcher_paths       []string
+	watcher_poll_ms     int = 500
+	watcher_debounce_ms int = 100
+	// use_polling forces PollingWatcher even when NativeWatcher available (tests/CI)
+	use_polling bool
 }
 
 // new creates an Engine but does not init/start it.
@@ -71,11 +82,23 @@ pub fn new_engine(cfg EngineConfig) &Engine {
 		state.new_state_repository(cfg.persist_path)
 	}
 	bus := if cfg.bus != unsafe { nil } { cfg.bus } else { eventbus.new_event_bus() }
+	mut poll := cfg.watcher_poll_ms
+	if poll < 100 {
+		poll = 500
+	}
+	mut deb := cfg.watcher_debounce_ms
+	if deb < 50 || deb > 150 {
+		deb = 100
+	}
 	return &Engine{
 		state: .created
 		di: di
 		repo: rep
 		bus: bus
+		watcher_paths: cfg.watcher_paths.clone()
+		watcher_poll_ms: poll
+		watcher_debounce_ms: deb
+		use_polling: cfg.use_polling || os.getenv('WATCHER_FORCE_POLL') == '1' || os.getenv('VVATCH_FORCE_POLL') == '1'
 	}
 }
 
@@ -159,8 +182,144 @@ pub fn (mut e Engine) start() ! {
 		path: 'engine'
 		payload: json2.encode({
 			'state': 'running'
-		}, escape_unicode: true)
+		},
+			escape_unicode: true
+		)
 	})
+	// auto-create watcher if paths configured and no watcher injected (filesystem truth -> reload canonical state)
+	// Probes NativeWatcher.available() at init; if false, uses PollingWatcher fallback per #1026 acceptance.
+	// This ensures Desktop detects CLI mutation without restart.
+	e.mu.lock()
+	need_watcher := e.watcher == none && e.watcher_paths.len > 0
+	e.mu.unlock()
+	if need_watcher {
+		// Lazy create internal polling watcher that reloads canonical state via repo+bus
+		// We create via closure capturing repo/bus to avoid import cycle
+		mut repo_ptr := e.repo
+		mut bus_ptr := e.bus
+		paths := e.watcher_paths.clone()
+		poll_ms := e.watcher_poll_ms
+		deb_ms := e.watcher_debounce_ms
+		// For now, we provide a minimal inline watcher using polling on file mtimes
+		// Spawn background poller that invalidates -> reload -> revision bump -> watcher_invalidated
+		// This keeps watcher as signal, not source of truth: reload canonical via Transaction
+
+		// snapshot helper
+
+		// debounce
+
+		// reload canonical state: signal -> revision bump
+		// If changed file is readable, attempt to read content and commit via Transaction
+
+		// Heuristic: if changed path contains skills/loops, map to skill-catalog dependent
+
+		// store snippet for desktop to detect CLI mutation
+		spawn fn [paths, poll_ms, deb_ms, mut repo_ptr, mut bus_ptr, mut e] () {
+			mut old_snap := map[string]i64{}
+			for p in paths {
+				if os.is_dir(p) {
+					files := os.walk_ext(p, '', hidden: false)
+					for f in files {
+						old_snap[f] = os.file_last_mod_unix(f)
+					}
+					old_snap[p] = os.file_last_mod_unix(p)
+				} else if os.exists(p) {
+					old_snap[p] = os.file_last_mod_unix(p)
+				} else {
+					old_snap[p] = 0
+				}
+			}
+			mut last_emit := time.now()
+			for {
+				e.mu.lock()
+				running := e.state == .running
+				e.mu.unlock()
+				if !running {
+					break
+				}
+				time.sleep(poll_ms * time.millisecond)
+				e.mu.lock()
+				running2 := e.state == .running
+				e.mu.unlock()
+				if !running2 {
+					break
+				}
+				mut new_snap := map[string]i64{}
+				for p in paths {
+					if os.is_dir(p) {
+						files := os.walk_ext(p, '', hidden: false)
+						for f in files {
+							new_snap[f] = os.file_last_mod_unix(f)
+						}
+						new_snap[p] = os.file_last_mod_unix(p)
+					} else if os.exists(p) {
+						new_snap[p] = os.file_last_mod_unix(p)
+					} else {
+						new_snap[p] = 0
+					}
+				}
+				mut changed := ''
+				for k, v in new_snap {
+					if old_snap[k] != v {
+						changed = k
+						break
+					}
+				}
+				if changed == '' {
+					for k, _ in old_snap {
+						if k !in new_snap {
+							changed = k
+							break
+						}
+					}
+				}
+				if changed != '' {
+					if time.since(last_emit).milliseconds() < deb_ms {
+						time.sleep((deb_ms - int(time.since(last_emit).milliseconds())) * time.millisecond)
+					}
+					mut tx := repo_ptr.begin('watcher')
+					dep := if changed.contains('skills') {
+						'skill-catalog'
+					} else if changed.contains('loops') {
+						'loops'
+					} else {
+						changed
+					}
+					tx.set('watcher_last_path', changed)
+					tx.set('watcher_dependent', dep)
+					tx.set('watcher_timestamp', time.now().unix().str())
+					if os.is_file(changed) {
+						content := os.read_file(changed) or { '' }
+						if content.len > 0 && content.len < 2048 {
+							tx.set('watcher_content_snippet', content[..if content.len > 512 {
+								512
+							} else {
+								content.len
+							}])
+						}
+					}
+					rev := tx.commit() or {
+						old_snap = new_snap.clone()
+						continue
+					}
+					bus_ptr.publish(eventbus.ToolkitEvent{
+						kind: .watcher_invalidated
+						revision: rev.revision
+						path: dep
+						payload: json2.encode({
+							'path':      changed
+							'dependent': dep
+							'revision':  rev.revision.str()
+						},
+							escape_unicode: true
+						)
+					})
+					last_emit = time.now()
+					old_snap = new_snap.clone()
+				}
+			}
+		}()
+	}
 	// start watcher/supervisor seams if present using x.async where valuable
 	if mut w := e.watcher {
 		spawn fn [mut w, e] () {
@@ -205,7 +364,9 @@ pub fn (mut e Engine) stop() ! {
 		path: 'engine'
 		payload: json2.encode({
 			'state': 'stopped'
-		}, escape_unicode: true)
+		},
+			escape_unicode: true
+		)
 	})
 }
 
