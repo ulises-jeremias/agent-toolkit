@@ -7,6 +7,6 @@
     "danger": "danger ci"
   },
   "dependencies": {
-    "danger": "^13.0.0"
+    "danger": "^14.0.7"
   }
 }
