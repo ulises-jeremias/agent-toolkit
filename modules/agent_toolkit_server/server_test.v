@@ -18,6 +18,27 @@ fn test_validate_bind_remote_with_token_ok() {
 	validate_bind('0.0.0.0', true, 'secret') or { assert false, err.msg() }
 }
 
+fn test_validate_bind_ipv6_loopback() {
+	validate_bind('::1', false, '') or { assert false, err.msg() }
+}
+
+fn test_validate_bind_ipv6_remote_requires_token() {
+	validate_bind('::', true, '') or {
+		assert err.msg().contains('--auth-token')
+		return
+	}
+	assert false, 'expected error'
+}
+
+fn test_is_loopback_variants() {
+	assert is_loopback('127.0.0.1')
+	assert is_loopback('localhost')
+	assert is_loopback('::1')
+	assert !is_loopback('0.0.0.0')
+	assert !is_loopback('::')
+	assert !is_loopback('192.168.1.1')
+}
+
 fn test_new_app_defaults_port_and_host() {
 	app := new_app(ServeOptions{})
 	assert app.opts.host == '127.0.0.1'
