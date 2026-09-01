@@ -111,7 +111,11 @@ fn main() {
 		mut archive_name := ''
 		mut archive_path := ''
 		if spec.archive_kind == 'zip' {
-			archive_name = 'agent-toolkit-${version}-windows-${spec.arch}.zip'
+			archive_name = if spec.floating.contains('desktop') {
+				'agent-toolkit-desktop-${version}-windows-${spec.arch}.zip'
+			} else {
+				'agent-toolkit-${version}-windows-${spec.arch}.zip'
+			}
 			archive_path = join_path(out, archive_name)
 			// Prefer zip CLI for portability in CI.
 			rm(archive_path) or {}
@@ -137,7 +141,11 @@ fn main() {
 				exit(rc)
 			}
 		} else {
-			archive_name = 'agent-toolkit-${version}-${spec.os_name}-${spec.arch}.tar.gz'
+			archive_name = if spec.floating.contains('desktop') {
+				'agent-toolkit-desktop-${version}-${spec.os_name}-${spec.arch}.tar.gz'
+			} else {
+				'agent-toolkit-${version}-${spec.os_name}-${spec.arch}.tar.gz'
+			}
 			archive_path = join_path(out, archive_name)
 			tmpdir := join_path(temp_dir(), 'atk-pack-${spec.os_name}-${spec.arch}')
 			rmdir_all(tmpdir) or {}
