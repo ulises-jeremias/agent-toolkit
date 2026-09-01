@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-cli-linux-x64",
-  "version": "1.29.1",
+  "version": "1.29.2",
   "description": "Native V binary for agent-toolkit-cli-linux-x64 (optionalDependency of agent-toolkit-cli)",
   "license": "MIT",
   "os": ["linux"],

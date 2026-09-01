@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-forge",
-  "version": "1.29.1",
+  "version": "1.29.2",
   "description": "GitHub and GitLab automation skills: PR workflows, CI fixes, comment resolution, and contribution planning.",
   "author": "ulises-jeremias",
   "repository": "https://github.com/ulises-jeremias/agent-toolkit",
