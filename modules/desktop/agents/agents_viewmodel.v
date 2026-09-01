@@ -1,0 +1,84 @@
+module agents
+
+import desktop_engine
+import desktop.theme
+import desktop.state as app_state
+
+pub struct AgentsViewModel {
+mut:
+	engine &desktop_engine.Engine
+	all    []desktop_engine.AgentEntry
+	filtered []desktop_engine.AgentEntry
+	search string
+	tier   string
+	revision u64
+}
+
+pub fn new_agents_viewmodel(mut engine &desktop_engine.Engine) AgentsViewModel {
+	cat := engine.agents_catalog()
+	return AgentsViewModel{
+		engine: engine
+		all: cat.clone()
+		filtered: cat.clone()
+		revision: engine.revision()
+	}
+}
+
+pub fn (mut vm AgentsViewModel) refresh() {
+	vm.all = vm.engine.agents_catalog()
+	vm.apply_filter()
+	vm.revision = vm.engine.revision()
+}
+
+pub fn (mut vm AgentsViewModel) apply_filter() {
+	mut out := []desktop_engine.AgentEntry{}
+	for a in vm.all {
+		if vm.tier != '' && a.tier != vm.tier {
+			continue
+		}
+		if vm.search != '' {
+			q := vm.search.to_lower()
+			if !a.id.to_lower().contains(q) && !a.role.to_lower().contains(q) {
+				continue
+			}
+		}
+		out << a
+	}
+	vm.filtered = out
+}
+
+pub fn (mut vm AgentsViewModel) set_search(q string) {
+	vm.search = q
+	vm.apply_filter()
+}
+
+pub fn (mut vm AgentsViewModel) set_tier(t string) {
+	vm.tier = t
+	vm.apply_filter()
+}
+
+pub fn (vm AgentsViewModel) filtered_agents() []desktop_engine.AgentEntry {
+	return vm.filtered.clone()
+}
+
+pub fn (mut vm AgentsViewModel) detail(id string) !desktop_engine.AgentEntry {
+	return vm.engine.agent_detail(id)
+}
+
+pub fn (mut vm AgentsViewModel) holistic_owner(agent_id string) string {
+	ag := vm.engine.agent_detail(agent_id) or { return '' }
+	return ag.holistic_owner
+}
+
+pub fn (mut vm AgentsViewModel) tier_counts() map[string]int {
+	return vm.engine.agents_tier_counts()
+}
+
+pub fn (mut vm AgentsViewModel) app_state_projection() app_state.AppState {
+	snap := vm.engine.snapshot()
+	return app_state.derive_app_state(snap)
+}
+
+pub fn (vm AgentsViewModel) theme_tokens(t theme.Theme) theme.Theme {
+	return t
+}

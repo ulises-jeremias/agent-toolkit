@@ -1,0 +1,86 @@
+module loops
+
+import desktop_engine
+import desktop.theme
+import desktop.state as app_state
+import desktop_engine.eventbus
+
+pub struct LoopsViewModel {
+mut:
+	engine &desktop_engine.Engine
+	loops  []desktop_engine.LoopEntry
+	bus    &eventbus.ToolkitEventBus
+	revision u64
+}
+
+pub fn new_loops_viewmodel(mut engine &desktop_engine.Engine, bus &eventbus.ToolkitEventBus) LoopsViewModel {
+	return LoopsViewModel{
+		engine: engine
+		loops: engine.loops_catalog()
+		bus: bus
+		revision: engine.revision()
+	}
+}
+
+pub fn (mut vm LoopsViewModel) refresh() {
+	vm.loops = vm.engine.loops_catalog()
+	vm.revision = vm.engine.revision()
+}
+
+pub fn (vm LoopsViewModel) all_loops() []desktop_engine.LoopEntry {
+	return vm.loops.clone()
+}
+
+pub fn (mut vm LoopsViewModel) upsert(entry desktop_engine.LoopEntry) !u64 {
+	rev := vm.engine.upsert_loop(entry)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm LoopsViewModel) validate(name string, content string) []desktop_engine.BuildDiagnostic {
+	return vm.engine.loop_validate(name, content)
+}
+
+pub fn (mut vm LoopsViewModel) run(name string) !string {
+	id := vm.engine.run_loop(name)!
+	vm.bus.publish(eventbus.ToolkitEvent{
+		kind: .process_log
+		revision: vm.revision
+		path: name
+		payload: '{"loop":"${name}","job_id":"${id}"}'
+	})
+	vm.refresh()
+	return id
+}
+
+pub fn (mut vm LoopsViewModel) toggle_cron(name string, enabled bool) !u64 {
+	rev := vm.engine.toggle_loop_cron(name, enabled)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm LoopsViewModel) history(loop_name string) []desktop_engine.LoopHistory {
+	return vm.engine.loops_history(loop_name)
+}
+
+pub fn (mut vm LoopsViewModel) mission_board() map[string]int {
+	mut board := map[string]int{}
+	for l in vm.loops {
+		key := l.tier.str()
+		board[key]++
+	}
+	jobs := vm.engine.jobs_catalog()
+	for j in jobs {
+		board[j.status.str()]++
+	}
+	return board
+}
+
+pub fn (mut vm LoopsViewModel) app_state_projection() app_state.AppState {
+	snap := vm.engine.snapshot()
+	return app_state.derive_app_state(snap)
+}
+
+pub fn (vm LoopsViewModel) theme_tokens(t theme.Theme) theme.Theme {
+	return t
+}
