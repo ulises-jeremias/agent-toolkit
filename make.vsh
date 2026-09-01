@@ -222,6 +222,48 @@ context.task(name: 'build-desktop', help: 'Build desktop shell (headless vet; wi
 	}
 })
 
+context.task(name: 'package-desktop-macos', help: 'Package macOS bundle + DMG (cross-build on Linux, real on macos-latest)', run: fn [r] (_ build.Task) ! {
+	script := join_path(r, 'distribution', 'desktop', 'macos', 'package.sh')
+	if !is_file(script) {
+		eprintln('missing ${script}')
+		exit(1)
+	}
+	rc := system('bash ${script}')
+	if rc != 0 {
+		exit(rc)
+	}
+})
+
+context.task(name: 'package-desktop-windows', help: 'Package Windows installer (cross-build on Linux, real on windows-latest)', run: fn [r] (_ build.Task) ! {
+	script := join_path(r, 'distribution', 'desktop', 'windows', 'package.sh')
+	if !is_file(script) {
+		eprintln('missing ${script}')
+		exit(1)
+	}
+	rc := system('bash ${script}')
+	if rc != 0 {
+		exit(rc)
+	}
+})
+
+context.task(name: 'package-desktop', help: 'Package desktop for current host (macos/windows bundle structure)', run: fn [r] (_ build.Task) ! {
+	// cross-build both structures on Linux for CI artifact
+	macos := join_path(r, 'distribution', 'desktop', 'macos', 'package.sh')
+	windows := join_path(r, 'distribution', 'desktop', 'windows', 'package.sh')
+	if is_file(macos) {
+		rc1 := system('bash ${macos}')
+		if rc1 != 0 {
+			exit(rc1)
+		}
+	}
+	if is_file(windows) {
+		rc2 := system('bash ${windows}')
+		if rc2 != 0 {
+			exit(rc2)
+		}
+	}
+})
+
 context.task(name: 'compile-make', help: 'Precompile to ./make (gitignored)', run: fn [r] (_ build.Task) ! {
 	rc := system('"${vbin()}" -prod -skip-running ${join_path(r, 'make.vsh')} -o ${join_path(r, 'make')}')
 	if rc != 0 {
