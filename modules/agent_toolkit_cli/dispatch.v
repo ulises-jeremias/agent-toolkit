@@ -6,15 +6,12 @@ import agent_toolkit_server
 import cli
 
 fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
-	root := os.getwd() // approximated toolkit root for help text; actual build uses $VMODULES
+	ver := agent_toolkit_core.resolve_toolkit_version()
 	headless := opts.headless
-	// --dry-run preview (idempotent, no side effects)
+	// --dry-run preview (idempotent, no side effects) — no repo required
 	if opts.dry_run {
 		mut lines := []string{}
 		lines << 'gui dry-run preview (no changes):'
-		if opts.build || opts.install {
-			lines << '  build: VMODULES=modules v -o build/agent-toolkit-desktop modules/desktop (headless vet+test)'
-		}
 		if opts.install {
 			mut prefix := opts.prefix
 			if prefix == '' {
@@ -23,16 +20,16 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 			if prefix == '' {
 				prefix = os.join_path(os.home_dir(), '.local')
 			}
-			lines << '  install: cp build/agent-toolkit-desktop ${prefix}/bin/agent-toolkit-desktop (force=${opts.force})'
+			lines << '  install: download agent-toolkit-desktop ${ver} from GitHub Release to ${prefix}/bin/agent-toolkit-desktop (force=${opts.force})'
 		}
-		if opts.run || (!opts.build && !opts.install) {
-			lines << '  run: ${if headless { "ATK_GUI_HEADLESS=1 " } else { "" }}build/agent-toolkit-desktop'
+		if opts.run || !opts.install {
+			lines << '  run: ${if headless { "ATK_GUI_HEADLESS=1 " } else { "" }}${os.join_path(os.home_dir(), ".local", "bin", "agent-toolkit-desktop")} (or \$AGENT_TOOLKIT_DESKTOP_BIN)'
 		}
 		if headless {
-			lines << '  headless: no window, Sokol not opened, 60 FPS harness via make.vsh build-desktop'
+			lines << '  headless: no window, Sokol not opened (CI friendly)'
 		}
-		lines << '  binary: build/agent-toolkit-desktop (separate from agent-toolkit, same version)'
-		lines << '  path: ' + root
+		lines << '  binary: agent-toolkit-desktop ${ver} (separate from agent-toolkit, distributed via Release)'
+		lines << '  release: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
 		res := agent_toolkit_core.CommandResult{
 			command: 'gui'
 			ok: true
@@ -44,25 +41,20 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 		}
 		return render(res, mode)
 	}
-	// headless smoke (CI friendly, no window) — reuse make.vsh build-desktop harness
-	if headless && !opts.install && !opts.build {
-		// quick headless vet via build-desktop is heavier; here we just report headless intent
+	// headless smoke — no build, just intent
+	if headless && !opts.install {
 		res := agent_toolkit_core.CommandResult{
 			command: 'gui'
 			ok: true
-			message: 'gui headless: would run ATK_GUI_HEADLESS=1 build/agent-toolkit-desktop (smoke via `make.vsh build-desktop`)\nRun: VMODULES=modules ATK_GUI_HEADLESS=1 v run /tmp/atk-desktop/main.v — see docs/ARCHITECTURE.md'
+			message: 'gui headless: would run ATK_GUI_HEADLESS=1 agent-toolkit-desktop (no build from repo)\nDownload: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver} — see docs/ARCHITECTURE.md'
 			data: {
 				'mode': 'headless'
 			}
 		}
 		return render(res, mode)
 	}
-	// build/install/run — for now report intent; actual build is via make.vsh build-desktop / package-desktop
-	// Keep CLI thin: real build delegates to V toolchain, not duplicated here
+	// install/run — distribution via GitHub Release, never repo build
 	mut msg := []string{}
-	if opts.build || opts.install {
-		msg << 'gui build: run `VMODULES=modules ./make.vsh build-desktop` (vet+test+headless smoke) then `v -o build/agent-toolkit-desktop`'
-	}
 	if opts.install {
 		mut prefix := opts.prefix
 		if prefix == '' {
@@ -71,16 +63,23 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 		if prefix == '' {
 			prefix = os.join_path(os.home_dir(), '.local')
 		}
-		msg << 'gui install: would install to ${prefix}/bin/agent-toolkit-desktop (use --force to overwrite)'
+		msg << 'gui install: download agent-toolkit-desktop ${ver} from https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver} to ${prefix}/bin/agent-toolkit-desktop (use --force to overwrite)'
 	}
-	if opts.run || (!opts.build && !opts.install) {
-		bin := 'build/agent-toolkit-desktop'
-		exists := os.is_file(bin) || os.is_file(bin + '.exe')
+	if opts.run || !opts.install {
+		// prefer installed binary, fallback to env var
+		mut bin := os.getenv('AGENT_TOOLKIT_DESKTOP_BIN')
+		if bin == '' {
+			bin = os.join_path(os.home_dir(), '.local', 'bin', 'agent-toolkit-desktop')
+			if os.is_file(bin + '.exe') {
+				bin = bin + '.exe'
+			}
+		}
+		exists := os.is_file(bin)
 		if exists {
 			msg << 'gui run: would exec ${bin} ${if headless { "(headless)" } else { "" }}'
 		} else {
-			msg << 'gui run: binary not found at ${bin} — run `agent-toolkit gui --build` or `agent-toolkit gui --install` first'
-			msg << '  hint: VMODULES=modules ./make.vsh build-desktop && v -o build/agent-toolkit-desktop modules/desktop'
+			msg << 'gui run: binary not found at ${bin} — run `agent-toolkit gui --install` first'
+			msg << '  download: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
 		}
 	}
 	if msg.len == 0 {

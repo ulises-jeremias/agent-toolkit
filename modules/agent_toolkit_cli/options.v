@@ -7,7 +7,6 @@ import os
 pub struct GuiOptions {
 pub:
 	install  bool
-	build    bool
 	run      bool
 	headless bool
 	prefix   string
@@ -18,7 +17,6 @@ pub:
 
 pub fn parse_gui_options(args []string) GuiOptions {
 	mut install := false
-	mut build := false
 	mut run := false
 	mut headless := false
 	mut prefix := ''
@@ -30,11 +28,6 @@ pub fn parse_gui_options(args []string) GuiOptions {
 		a := args[i]
 		if a == '--install' {
 			install = true
-			i++
-			continue
-		}
-		if a == '--build' {
-			build = true
 			i++
 			continue
 		}
@@ -75,13 +68,12 @@ pub fn parse_gui_options(args []string) GuiOptions {
 		}
 		i++
 	}
-	// default: run if no explicit build/install
-	if !install && !build && !run && !dry_run {
+	// default: run if no explicit install
+	if !install && !run && !dry_run {
 		run = true
 	}
 	return GuiOptions{
 		install: install
-		build: build
 		run: run
 		headless: headless
 		prefix: prefix

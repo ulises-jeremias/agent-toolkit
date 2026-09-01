@@ -1282,22 +1282,16 @@ fn gui_command() cli.Command {
 		examples:    [
 			'$ agent-toolkit gui',
 			'$ agent-toolkit gui --install',
-			'$ agent-toolkit gui --build --dry-run',
 			'$ agent-toolkit gui --headless --dry-run',
 			'$ agent-toolkit gui --run --headless',
 			'$ agent-toolkit desktop --install --prefix ~/.local',
 		]
-		learn_more:   'Desktop runs as separate binary agent-toolkit-desktop over same Engine. CLI never shells Desktop for business ops; gui subcommand only builds/launches. See docs/ARCHITECTURE.md and make.vsh build-desktop.'
+		learn_more:   'Desktop runs as separate binary agent-toolkit-desktop over same Engine, distributed via GitHub Release. CLI only downloads/launches. See docs/ARCHITECTURE.md.'
 		flags:       [
 			cli.Flag{
 				flag:        .bool
 				name:        'install'
-				description: 'Build and install desktop binary to <prefix>/bin/agent-toolkit-desktop'
-			},
-			cli.Flag{
-				flag:        .bool
-				name:        'build'
-				description: 'Build desktop binary to build/agent-toolkit-desktop (no install)'
+				description: 'Download and install desktop binary from GitHub Release to <prefix>/bin/agent-toolkit-desktop'
 			},
 			cli.Flag{
 				flag:        .bool
