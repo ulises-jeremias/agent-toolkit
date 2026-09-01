@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-toolkit-core",
-  "version": "1.28.0",
+  "version": "1.29.1",
   "description": "Core orchestration skills, dev companion, output handshake, PR fallback, and code-reviewer agent. The baseline install for any project.",
   "author": {
     "name": "ulises-jeremias",

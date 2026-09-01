@@ -1,0 +1,11 @@
+{
+  "confluence": {
+    "api": {
+      "version": "2",
+      "timeout": 30,
+      "max_retries": 3,
+      "retry_backoff": 2.0,
+      "verify_ssl": true
+    }
+  }
+}

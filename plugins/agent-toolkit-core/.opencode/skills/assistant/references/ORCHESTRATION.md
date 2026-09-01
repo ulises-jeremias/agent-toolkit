@@ -114,9 +114,11 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Slack | **slack-cli**, **slack-assistant** | App CLI vs workspace chat |
 | Linear | **linear** | Linear MCP |
 | ClickUp | **clickup-cli** | ClickUp tasks and docs |
+| Jira | **jira-assistant** → 13 granular (`jira-issue-management`, `jira-agile-management`, `jira-search-jql`, `jira-lifecycle-management`, …) | Router hub; granular skills per the "NOT FOR" routing in each skill |
+| Confluence | **confluence-assistant** → 16 granular (`confluence-page`, `confluence-space`, `confluence-search`, `confluence-permission`, …) | Router hub; granular skills per operation |
 | MCP setup | **mcp** | MCP server configuration patterns |
 
-Jira and Confluence skills ship via external packs when installed.
+Jira/Confluence skills are vendored first-party upstream (grandcamel) and require the `jira-as` / `confluence-as` CLIs (provisioned by the workstation, not the toolkit).
 
 ---
 

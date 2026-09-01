@@ -449,6 +449,285 @@ Follow the `slack-cli` skill instructions for {{args}}.
 """
 
 [[commands]]
+name = "confluence_admin"
+description = "integrations/confluence-admin"
+prompt = """
+Follow the `confluence-admin` skill instructions for {{args}}.
+
+@{skills/confluence-admin/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_analytics"
+description = "integrations/confluence-analytics"
+prompt = """
+Follow the `confluence-analytics` skill instructions for {{args}}.
+
+@{skills/confluence-analytics/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_assistant"
+description = "integrations/confluence-assistant"
+prompt = """
+Follow the `confluence-assistant` skill instructions for {{args}}.
+
+@{skills/confluence-assistant/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_attachment"
+description = "integrations/confluence-attachment"
+prompt = """
+Follow the `confluence-attachment` skill instructions for {{args}}.
+
+@{skills/confluence-attachment/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_bulk"
+description = "integrations/confluence-bulk"
+prompt = """
+Follow the `confluence-bulk` skill instructions for {{args}}.
+
+@{skills/confluence-bulk/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_comment"
+description = "integrations/confluence-comment"
+prompt = """
+Follow the `confluence-comment` skill instructions for {{args}}.
+
+@{skills/confluence-comment/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_hierarchy"
+description = "integrations/confluence-hierarchy"
+prompt = """
+Follow the `confluence-hierarchy` skill instructions for {{args}}.
+
+@{skills/confluence-hierarchy/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_jira"
+description = "integrations/confluence-jira"
+prompt = """
+Follow the `confluence-jira` skill instructions for {{args}}.
+
+@{skills/confluence-jira/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_label"
+description = "integrations/confluence-label"
+prompt = """
+Follow the `confluence-label` skill instructions for {{args}}.
+
+@{skills/confluence-label/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_ops"
+description = "integrations/confluence-ops"
+prompt = """
+Follow the `confluence-ops` skill instructions for {{args}}.
+
+@{skills/confluence-ops/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_page"
+description = "integrations/confluence-page"
+prompt = """
+Follow the `confluence-page` skill instructions for {{args}}.
+
+@{skills/confluence-page/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_permission"
+description = "integrations/confluence-permission"
+prompt = """
+Follow the `confluence-permission` skill instructions for {{args}}.
+
+@{skills/confluence-permission/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_property"
+description = "integrations/confluence-property"
+prompt = """
+Follow the `confluence-property` skill instructions for {{args}}.
+
+@{skills/confluence-property/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_search"
+description = "integrations/confluence-search"
+prompt = """
+Follow the `confluence-search` skill instructions for {{args}}.
+
+@{skills/confluence-search/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_space"
+description = "integrations/confluence-space"
+prompt = """
+Follow the `confluence-space` skill instructions for {{args}}.
+
+@{skills/confluence-space/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_template"
+description = "integrations/confluence-template"
+prompt = """
+Follow the `confluence-template` skill instructions for {{args}}.
+
+@{skills/confluence-template/SKILL.md}
+"""
+
+[[commands]]
+name = "confluence_watch"
+description = "integrations/confluence-watch"
+prompt = """
+Follow the `confluence-watch` skill instructions for {{args}}.
+
+@{skills/confluence-watch/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_administration"
+description = "integrations/jira-administration"
+prompt = """
+Follow the `jira-administration` skill instructions for {{args}}.
+
+@{skills/jira-administration/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_agile_management"
+description = "integrations/jira-agile-management"
+prompt = """
+Follow the `jira-agile-management` skill instructions for {{args}}.
+
+@{skills/jira-agile-management/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_assistant"
+description = "integrations/jira-assistant"
+prompt = """
+Follow the `jira-assistant` skill instructions for {{args}}.
+
+@{skills/jira-assistant/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_bulk_operations"
+description = "integrations/jira-bulk-operations"
+prompt = """
+Follow the `jira-bulk-operations` skill instructions for {{args}}.
+
+@{skills/jira-bulk-operations/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_collaboration"
+description = "integrations/jira-collaboration"
+prompt = """
+Follow the `jira-collaboration` skill instructions for {{args}}.
+
+@{skills/jira-collaboration/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_custom_fields"
+description = "integrations/jira-custom-fields"
+prompt = """
+Follow the `jira-custom-fields` skill instructions for {{args}}.
+
+@{skills/jira-custom-fields/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_developer_integration"
+description = "integrations/jira-developer-integration"
+prompt = """
+Follow the `jira-developer-integration` skill instructions for {{args}}.
+
+@{skills/jira-developer-integration/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_issue_management"
+description = "integrations/jira-issue-management"
+prompt = """
+Follow the `jira-issue-management` skill instructions for {{args}}.
+
+@{skills/jira-issue-management/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_issue_relationships"
+description = "integrations/jira-issue-relationships"
+prompt = """
+Follow the `jira-issue-relationships` skill instructions for {{args}}.
+
+@{skills/jira-issue-relationships/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_lifecycle_management"
+description = "integrations/jira-lifecycle-management"
+prompt = """
+Follow the `jira-lifecycle-management` skill instructions for {{args}}.
+
+@{skills/jira-lifecycle-management/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_operations"
+description = "integrations/jira-operations"
+prompt = """
+Follow the `jira-operations` skill instructions for {{args}}.
+
+@{skills/jira-operations/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_search_jql"
+description = "integrations/jira-search-jql"
+prompt = """
+Follow the `jira-search-jql` skill instructions for {{args}}.
+
+@{skills/jira-search-jql/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_service_management"
+description = "integrations/jira-service-management"
+prompt = """
+Follow the `jira-service-management` skill instructions for {{args}}.
+
+@{skills/jira-service-management/SKILL.md}
+"""
+
+[[commands]]
+name = "jira_time_tracking"
+description = "integrations/jira-time-tracking"
+prompt = """
+Follow the `jira-time-tracking` skill instructions for {{args}}.
+
+@{skills/jira-time-tracking/SKILL.md}
+"""
+
+[[commands]]
 name = "loop_runner"
 description = "loops/loop-runner"
 prompt = """

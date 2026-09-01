@@ -15,7 +15,7 @@ metadata:
 ---
 # Onboarding
 
-Welcome to . This skill guides new users through initial setup and daily usage.
+Welcome to agent-toolkit. This skill guides new users through initial setup and daily usage.
 
 ## When to use
 
@@ -27,7 +27,7 @@ Welcome to . This skill guides new users through initial setup and daily usage.
 ## Step 1 — Validate setup
 
 ```bash
-doctor
+agent-toolkit doctor
 ```
 
 Expected: `result: COMPLIANT`. If any check fails, `doctor` shows the fix command.
@@ -35,9 +35,9 @@ Expected: `result: COMPLIANT`. If any check fails, `doctor` shows the fix comman
 For persistent issues:
 
 ```bash
-update-check            # check for available updates
-skills list             # verify skills are installed
-skills sync             # re-sync symlinks to AI tools
+agent-toolkit --version   # check for available updates (or: agent-toolkit update-check)
+agent-toolkit inventory     # verify skills are installed (or: agent-toolkit skills list)
+agent-toolkit install --force  # re-sync profiles to AI tools (replaces legacy `skills sync`)
 ```
 
 ## Step 2 — Understand the hierarchy
@@ -89,7 +89,7 @@ Tool skill (HOW — executes CLI commands)
 
 ```bash
 # Check workstation health
-doctor
+agent-toolkit doctor
 
 # Find which skill to use
 # → ask the orchestrator: "what skill should I use for X?"
@@ -106,12 +106,12 @@ agent-toolkit workspace load packs/<client>.yaml   # canonical; harness alias: .
 | **Skill** | Reusable AI prompt for a specific task (WHAT or HOW) |
 | **Agent** | Specialized AI persona with restricted tool access (invoked via @mention) |
 | **Loop** | Recurring autonomous process with state, tiers, and cost budgets |
-| **L1 / L2 / L3** | Loop autonomy tiers: L1=observe-only, L2=PR-gated, L3=unattended |
+| **L1 / L2 / L3** | Loop autonomy tiers: L1=observe-only (read-only), L2=PR-gated (draft PR), L3=allowlisted (scoped writes) — see AGENTS.md loop.yaml tier/allowlist/deny |
 | **knowledge/** | Persistent memory across sessions |
 
 ## Anti-patterns
 
-- Do not skip `doctor` — it catches 90% of setup issues
+- Do not skip `agent-toolkit doctor` — it catches 90% of setup issues
 - Do not invoke agents via the skill tool — use `@mention`
 - Do not run L3 loops without 3+ clean L1 runs first
 
