@@ -174,6 +174,45 @@ jobs:
             bin: agent-toolkit.exe
             expect_arch: x86_64
             build_desktop: false
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+        with:
+          v_zip: ${{ matrix.v_zip }}
+
+      - name: Build native V CLI
+        shell: bash
+        env:
+          OUT_BIN: ${{ matrix.bin }}
+          ASSET: ${{ matrix.artifact }}
+          VMODULES: ${{ github.workspace }}/modules
+          EXPECT_ARCH: ${{ matrix.expect_arch }}
+        run: |
+          set -euo pipefail
+          got="$(uname -m | tr 'A-Z' 'a-z')"
+          case "${got}" in
+            aarch64|arm64) got=arm64 ;;
+            x86_64|amd64) got=x86_64 ;;
+          esac
+          if [ "${got}" != "${EXPECT_ARCH}" ]; then
+            echo "architecture mismatch: ${got} != ${EXPECT_ARCH}" >&2
+            exit 1
+          fi
+          mkdir -p build
+          COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+          "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
+          cp -f "build/${OUT_BIN}" "build/${ASSET}"
+          "build/${OUT_BIN}" --version
+          "build/${OUT_BIN}" --help | head -n 20
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: build/${{ matrix.artifact }}
+          if-no-files-found: error
+          retention-days: 7
 
   build-desktop:
     name: Build ${{ matrix.artifact }}
