@@ -63,6 +63,43 @@ pub fn (mut vm LoopsViewModel) history(loop_name string) []desktop_engine.LoopHi
 	return vm.engine.loops_history(loop_name)
 }
 
+// create — easy one-click via Engine.create_loop()
+pub fn (mut vm LoopsViewModel) create(name string, tier string, cadence string, goal string) !u64 {
+	rev := vm.engine.create_loop(name, tier, cadence, goal)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm LoopsViewModel) delete(name string) !u64 {
+	rev := vm.engine.delete_loop(name)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm LoopsViewModel) detail(name string) ?desktop_engine.LoopEntry {
+	return vm.engine.loop_detail(name)
+}
+
+pub fn (mut vm LoopsViewModel) update(name string, goal string, cadence string, budget desktop_engine.LoopBudget) !u64 {
+	rev := vm.engine.update_loop(name, goal, cadence, budget)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm LoopsViewModel) budget_ledger(name string) (int, int, int) {
+	return vm.engine.loop_budget_ledger(name)
+}
+
+pub fn (mut vm LoopsViewModel) set_budget(name string, budget desktop_engine.LoopBudget) !u64 {
+	rev := vm.engine.loop_set_budget(name, budget)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm LoopsViewModel) all_tiers() []string {
+	return ['L1', 'L2', 'L3']
+}
+
 pub fn (mut vm LoopsViewModel) mission_board() map[string]int {
 	mut board := map[string]int{}
 	for l in vm.loops {

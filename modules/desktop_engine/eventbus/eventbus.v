@@ -5,6 +5,7 @@ import time
 import context
 
 // ToolkitEventKind enumerates typed event kinds (shared across State/Watcher/Process seams).
+// Super-potent: covers jobs/loops/swarms/inner-outer/GOD/handoffs/approvals/workspace — easy to manage via one bus.
 pub enum ToolkitEventKind {
 	state_changed
 	watcher_invalidated
@@ -12,8 +13,26 @@ pub enum ToolkitEventKind {
 	process_log
 	job_queued
 	job_completed
+	job_failed
+	job_retry
 	engine_started
 	engine_stopped
+	// swarm-specific for super-potent swarms
+	swarm_created
+	swarm_handoff
+	swarm_status
+	swarm_approval
+	swarm_worktree
+	handoff_artifact
+	loop_inner_tick
+	loop_outer_tick
+	loop_created
+	loop_deleted
+	loop_run
+	approval_requested
+	approval_resolved
+	workspace_changed
+	memory_updated
 }
 
 // ToolkitEvent is the typed bus payload. payload is json-encoded variant data.
@@ -157,4 +176,40 @@ pub fn (mut b ToolkitEventBus) subscribe_ctx(mut ctx context.Context, kind Toolk
 		_ = <-done
 		b.unsubscribe(kind, ch)
 	}()
+}
+
+// ---- Easy management helpers — super-potent one-liners ----
+
+// publish_state is helper for state_changed with json payload.
+pub fn (mut b ToolkitEventBus) publish_state(revision u64, path string, payload string) {
+	b.publish(ToolkitEvent{kind: .state_changed, revision: revision, path: path, payload: payload})
+}
+
+// publish_job publishes job_queued/completed.
+pub fn (mut b ToolkitEventBus) publish_job(kind ToolkitEventKind, revision u64, job_id string, payload string) {
+	b.publish(ToolkitEvent{kind: kind, revision: revision, path: 'jobs:${job_id}', payload: payload})
+}
+
+// publish_loop publishes loop_* events — easy loop management.
+pub fn (mut b ToolkitEventBus) publish_loop(kind ToolkitEventKind, revision u64, loop_name string, payload string) {
+	b.publish(ToolkitEvent{kind: kind, revision: revision, path: 'loops:${loop_name}', payload: payload})
+}
+
+// publish_swarm publishes swarm_* — GOD routing, approvals, handoffs.
+pub fn (mut b ToolkitEventBus) publish_swarm(kind ToolkitEventKind, revision u64, run_id string, payload string) {
+	b.publish(ToolkitEvent{kind: kind, revision: revision, path: 'swarm:${run_id}', payload: payload})
+}
+
+// has_subscribers checks if kind has listeners — backpressure-aware.
+pub fn (mut b ToolkitEventBus) has_subscribers(kind ToolkitEventKind) bool {
+	return b.subscriber_count(kind) > 0
+}
+
+// clear_replay clears replay for kind — easy reset for tests.
+pub fn (mut b ToolkitEventBus) clear_replay(kind ToolkitEventKind) {
+	key := kind_key(kind)
+	b.mu.lock()
+	defer { b.mu.unlock() }
+	b.replay_valid.delete(key)
+	b.replay.delete(key)
 }

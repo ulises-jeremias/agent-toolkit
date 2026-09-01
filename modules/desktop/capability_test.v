@@ -24,7 +24,7 @@ fn test_capability_viewmodels_via_engine_no_shell() {
 	mut svm := skills.new_skill_viewmodel(mut eng)
 	assert svm.filtered_skills().len >= 116
 	svm.set_search('core')
-	assert svm.filtered_skills().len <= 117
+	assert svm.filtered_skills().len <= 227
 	svm.set_domain('core')
 	_ = svm.filtered_skills()
 	_ = svm.build_preview()

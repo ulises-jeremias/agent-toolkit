@@ -79,6 +79,49 @@ pub fn (mut vm AgentsViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
+
+// ── super-potent: search, stats, provenance, receipts, delegation ──
+pub fn (mut vm AgentsViewModel) search(query string, tier string) []desktop_engine.AgentEntry {
+	return vm.engine.agents_search(query, tier)
+}
+
+pub fn (vm AgentsViewModel) stats() desktop_engine.AgentStats {
+	return vm.engine.agents_stats()
+}
+
+pub fn (vm AgentsViewModel) by_tier() map[string][]desktop_engine.AgentEntry {
+	return vm.engine.agents_by_tier()
+}
+
+pub fn (vm AgentsViewModel) receipt(id string) ?desktop_engine.AgentReceiptInfo {
+	return vm.engine.agent_receipt(id)
+}
+
+pub fn (mut vm AgentsViewModel) install(id string) !u64 {
+	rev := vm.engine.install_agent(id)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm AgentsViewModel) remove_agent(id string) !u64 {
+	rev := vm.engine.remove_agent(id)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (vm AgentsViewModel) provenance_detail(id string) string {
+	return vm.engine.agent_provenance_detail(id)
+}
+
+pub fn (vm AgentsViewModel) delegation_graph() map[string][]string {
+	return vm.engine.agents_delegation_graph()
+}
+
+pub fn (vm AgentsViewModel) verify() []desktop_engine.BuildDiagnostic {
+	return vm.engine.verify_skill_receipts()
+}
+
+
 pub fn (vm AgentsViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t
 }

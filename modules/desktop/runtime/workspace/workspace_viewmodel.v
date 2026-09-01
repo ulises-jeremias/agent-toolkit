@@ -44,6 +44,14 @@ pub fn (mut vm WorkspaceViewModel) on_bus_event(revision u64) bool {
 	return true
 }
 
+pub fn (mut vm WorkspaceViewModel) search(project_id string, query string) []desktop_engine.MemoryEntry {
+	return vm.engine.memory_search(query, project_id)
+}
+
+pub fn (vm WorkspaceViewModel) stats() desktop_engine.WorkspaceStats {
+	return vm.engine.workspace_stats()
+}
+
 pub fn (mut vm WorkspaceViewModel) app_state_projection() app_state.AppState {
 	snap := vm.engine.snapshot()
 	return app_state.derive_app_state(snap)

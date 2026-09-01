@@ -22,7 +22,7 @@ pub enum HandoffStatus {
 
 // SwarmHandoff is durable directed DAG edge with payload + from→to + ts + budget_spent.
 pub struct SwarmHandoff {
-pub:
+pub mut:
 	id           string
 	from         string
 	to           string
@@ -35,7 +35,7 @@ pub:
 
 // SwarmBudget tracks per-swarm spend.
 pub struct SwarmBudget {
-pub:
+pub mut:
 	swarm_id  string
 	total     int
 	spent     int
@@ -221,7 +221,7 @@ pub fn (mut r SwarmRoom) spend(swarm_id string, amount int) SwarmBudget {
 	// serialized: check race
 	if b.spent + amount > b.total {
 		// cap at total, remaining not negative
-		amount_capped := b.total - b.spent
+		mut amount_capped := b.total - b.spent
 		if amount_capped < 0 {
 			amount_capped = 0
 		}

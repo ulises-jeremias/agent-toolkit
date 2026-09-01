@@ -81,6 +81,43 @@ pub fn (mut vm McpViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
+
+// ── super-potent: stats, toggle, provenance, receipts, preview, search ──
+pub fn (vm McpViewModel) stats() desktop_engine.McpStats {
+	return vm.engine.mcp_stats()
+}
+
+pub fn (mut vm McpViewModel) toggle(provider_id string) !u64 {
+	rev := vm.engine.mcp_toggle(provider_id)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (vm McpViewModel) install_preview(provider_id string) desktop_engine.McpInstallPreview {
+	return vm.engine.mcp_install_preview(provider_id)
+}
+
+pub fn (vm McpViewModel) receipt(provider_id string) ?desktop_engine.McpInstallPreview {
+	return vm.engine.mcp_receipt(provider_id)
+}
+
+pub fn (vm McpViewModel) provenance_json(provider_id string) string {
+	return vm.engine.mcp_provenance_json(provider_id)
+}
+
+pub fn (vm McpViewModel) verify_receipts() []desktop_engine.BuildDiagnostic {
+	return vm.engine.verify_mcp_receipts()
+}
+
+pub fn (mut vm McpViewModel) search(q string) {
+	vm.set_search(q)
+}
+
+pub fn (vm McpViewModel) filtered_search(q string) []desktop_engine.McpProvider {
+	return vm.engine.mcp_catalog_search(q)
+}
+
+
 pub fn (vm McpViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t
 }

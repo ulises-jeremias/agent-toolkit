@@ -149,25 +149,67 @@ jobs:
             v_zip: v_linux.zip
             bin: agent-toolkit
             expect_arch: x86_64
+            build_desktop: false
           - os: ubuntu-24.04-arm
             artifact: agent-toolkit-linux-arm64
             v_zip: v_linux_arm64.zip
             bin: agent-toolkit
             expect_arch: arm64
+            build_desktop: false
           - os: macos-latest
             artifact: agent-toolkit-macos-arm64
             v_zip: v_macos_arm64.zip
             bin: agent-toolkit
             expect_arch: arm64
+            build_desktop: false
           - os: macos-15-intel
             artifact: agent-toolkit-macos-x86_64
             v_zip: v_macos_x86_64.zip
             bin: agent-toolkit
             expect_arch: x86_64
+            build_desktop: false
           - os: windows-latest
             artifact: agent-toolkit-windows-x86_64.exe
             v_zip: v_windows.zip
             bin: agent-toolkit.exe
+            expect_arch: x86_64
+            build_desktop: false
+
+  build-desktop:
+    name: Build ${{ matrix.artifact }}
+    if: github.event_name == 'push'
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    environment: release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: agent-toolkit-desktop-linux-x86_64
+            v_zip: v_linux.zip
+            bin: agent-toolkit-desktop
+            expect_arch: x86_64
+          - os: ubuntu-24.04-arm
+            artifact: agent-toolkit-desktop-linux-arm64
+            v_zip: v_linux_arm64.zip
+            bin: agent-toolkit-desktop
+            expect_arch: arm64
+          - os: macos-latest
+            artifact: agent-toolkit-desktop-macos-arm64
+            v_zip: v_macos_arm64.zip
+            bin: agent-toolkit-desktop
+            expect_arch: arm64
+          - os: macos-15-intel
+            artifact: agent-toolkit-desktop-macos-x86_64
+            v_zip: v_macos_x86_64.zip
+            bin: agent-toolkit-desktop
+            expect_arch: x86_64
+          - os: windows-latest
+            artifact: agent-toolkit-desktop-windows-x86_64.exe
+            v_zip: v_windows.zip
+            bin: agent-toolkit-desktop.exe
             expect_arch: x86_64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -197,7 +239,11 @@ jobs:
           fi
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
+          if [[ "${ASSET}" == *desktop* ]]; then
+            "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit-desktop
+          else
+            "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
+          fi
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
@@ -212,7 +258,7 @@ jobs:
   upload-assets:
     name: Attach V binaries, archives, SHA256SUMS, manifest
     if: github.event_name == 'push'
-    needs: [create-release, build-binaries]
+    needs: [create-release, build-binaries, build-desktop]
     runs-on: ubuntu-latest
     environment: release
     permissions:

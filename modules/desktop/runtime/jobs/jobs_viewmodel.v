@@ -59,6 +59,42 @@ pub fn (mut vm JobsViewModel) logs(job_id string) []string {
 	return vm.engine.job_logs(job_id)
 }
 
+pub fn (mut vm JobsViewModel) stats() desktop_engine.JobStats {
+	return vm.engine.job_stats()
+}
+
+pub fn (mut vm JobsViewModel) by_status(status desktop_engine.JobStatus) []desktop_engine.JobRecord {
+	return vm.engine.jobs_by_status(status)
+}
+
+pub fn (mut vm JobsViewModel) retry(job_id string) !string {
+	id := vm.engine.retry_job(job_id)!
+	vm.refresh()
+	return id
+}
+
+pub fn (mut vm JobsViewModel) cancel_all() int {
+	n := vm.engine.cancel_all_jobs()
+	vm.refresh()
+	return n
+}
+
+pub fn (mut vm JobsViewModel) append_log(job_id string, line string) !u64 {
+	rev := vm.engine.job_append_log(job_id, line)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm JobsViewModel) complete(job_id string, exit_code int) !u64 {
+	rev := vm.engine.job_complete(job_id, exit_code)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm JobsViewModel) search(query string) []desktop_engine.JobRecord {
+	return vm.engine.jobs_filtered(desktop_engine.JobFilter{ query: query })
+}
+
 pub fn (mut vm JobsViewModel) on_process_log(job_id string, line string, stream string) {
 	_ = job_id
 	_ = line

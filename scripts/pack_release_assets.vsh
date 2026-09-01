@@ -76,6 +76,11 @@ fn main() {
 		FloatingSpec{'agent-toolkit-macos-arm64', 'macos', 'arm64', '', 'tar'},
 		FloatingSpec{'agent-toolkit-macos-x86_64', 'macos', 'x86_64', '', 'tar'},
 		FloatingSpec{'agent-toolkit-windows-x86_64.exe', 'windows', 'x86_64', '', 'zip'},
+		FloatingSpec{'agent-toolkit-desktop-linux-x86_64', 'linux', 'x86_64', 'gnu', 'tar'},
+		FloatingSpec{'agent-toolkit-desktop-linux-arm64', 'linux', 'arm64', 'gnu', 'tar'},
+		FloatingSpec{'agent-toolkit-desktop-macos-arm64', 'macos', 'arm64', '', 'tar'},
+		FloatingSpec{'agent-toolkit-desktop-macos-x86_64', 'macos', 'x86_64', '', 'tar'},
+		FloatingSpec{'agent-toolkit-desktop-windows-x86_64.exe', 'windows', 'x86_64', '', 'zip'},
 	]
 
 	mut assets := []AssetEntry{}
@@ -98,7 +103,11 @@ fn main() {
 		chmod(dest_float, 0o755) or {}
 		packed_names << spec.floating
 
-		inner := if spec.os_name == 'windows' { 'agent-toolkit.exe' } else { 'agent-toolkit' }
+		inner := if spec.floating.contains('desktop') {
+			if spec.os_name == 'windows' { 'agent-toolkit-desktop.exe' } else { 'agent-toolkit-desktop' }
+		} else {
+			if spec.os_name == 'windows' { 'agent-toolkit.exe' } else { 'agent-toolkit' }
+		}
 		mut archive_name := ''
 		mut archive_path := ''
 		if spec.archive_kind == 'zip' {
