@@ -5,6 +5,98 @@ import os
 import agent_toolkit_server
 import cli
 
+fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
+	root := os.getwd() // approximated toolkit root for help text; actual build uses $VMODULES
+	headless := opts.headless
+	// --dry-run preview (idempotent, no side effects)
+	if opts.dry_run {
+		mut lines := []string{}
+		lines << 'gui dry-run preview (no changes):'
+		if opts.build || opts.install {
+			lines << '  build: VMODULES=modules v -o build/agent-toolkit-desktop modules/desktop (headless vet+test)'
+		}
+		if opts.install {
+			mut prefix := opts.prefix
+			if prefix == '' {
+				prefix = os.getenv('PREFIX')
+			}
+			if prefix == '' {
+				prefix = os.join_path(os.home_dir(), '.local')
+			}
+			lines << '  install: cp build/agent-toolkit-desktop ${prefix}/bin/agent-toolkit-desktop (force=${opts.force})'
+		}
+		if opts.run || (!opts.build && !opts.install) {
+			lines << '  run: ${if headless { "ATK_GUI_HEADLESS=1 " } else { "" }}build/agent-toolkit-desktop'
+		}
+		if headless {
+			lines << '  headless: no window, Sokol not opened, 60 FPS harness via make.vsh build-desktop'
+		}
+		lines << '  binary: build/agent-toolkit-desktop (separate from agent-toolkit, same version)'
+		lines << '  path: ' + root
+		res := agent_toolkit_core.CommandResult{
+			command: 'gui'
+			ok: true
+			message: lines.join("\n")
+			data: {
+				'dry_run': 'true'
+				'mode': if headless { 'headless' } else { 'window' }
+			}
+		}
+		return render(res, mode)
+	}
+	// headless smoke (CI friendly, no window) — reuse make.vsh build-desktop harness
+	if headless && !opts.install && !opts.build {
+		// quick headless vet via build-desktop is heavier; here we just report headless intent
+		res := agent_toolkit_core.CommandResult{
+			command: 'gui'
+			ok: true
+			message: 'gui headless: would run ATK_GUI_HEADLESS=1 build/agent-toolkit-desktop (smoke via `make.vsh build-desktop`)\nRun: VMODULES=modules ATK_GUI_HEADLESS=1 v run /tmp/atk-desktop/main.v — see docs/ARCHITECTURE.md'
+			data: {
+				'mode': 'headless'
+			}
+		}
+		return render(res, mode)
+	}
+	// build/install/run — for now report intent; actual build is via make.vsh build-desktop / package-desktop
+	// Keep CLI thin: real build delegates to V toolchain, not duplicated here
+	mut msg := []string{}
+	if opts.build || opts.install {
+		msg << 'gui build: run `VMODULES=modules ./make.vsh build-desktop` (vet+test+headless smoke) then `v -o build/agent-toolkit-desktop`'
+	}
+	if opts.install {
+		mut prefix := opts.prefix
+		if prefix == '' {
+			prefix = os.getenv('PREFIX')
+		}
+		if prefix == '' {
+			prefix = os.join_path(os.home_dir(), '.local')
+		}
+		msg << 'gui install: would install to ${prefix}/bin/agent-toolkit-desktop (use --force to overwrite)'
+	}
+	if opts.run || (!opts.build && !opts.install) {
+		bin := 'build/agent-toolkit-desktop'
+		exists := os.is_file(bin) || os.is_file(bin + '.exe')
+		if exists {
+			msg << 'gui run: would exec ${bin} ${if headless { "(headless)" } else { "" }}'
+		} else {
+			msg << 'gui run: binary not found at ${bin} — run `agent-toolkit gui --build` or `agent-toolkit gui --install` first'
+			msg << '  hint: VMODULES=modules ./make.vsh build-desktop && v -o build/agent-toolkit-desktop modules/desktop'
+		}
+	}
+	if msg.len == 0 {
+		msg << 'gui: use --help for examples (agent-toolkit gui --help)'
+	}
+	res := agent_toolkit_core.CommandResult{
+		command: 'gui'
+		ok: true
+		message: msg.join("\n")
+		data: {
+			'mode': if headless { 'headless' } else { 'window' }
+		}
+	}
+	return render(res, mode)
+}
+
 // run is the library entry used by cmd/agent-toolkit.
 // Idiomatic path: ADR-010 bad-flag shim (exit 2), then Command.parse + execute.
 pub fn run(args []string) int {
@@ -332,6 +424,10 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 	if cmd_name == 'release' {
 		print(release_help_text())
 		return 1
+	}
+	if cmd_name == 'gui' {
+		opts := parse_gui_options(rest)
+		return run_gui(opts, mode)
 	}
 	return render(agent_toolkit_core.not_implemented_result(cmd_name), mode)
 }
