@@ -107,18 +107,15 @@ pub fn (mut c DIContainer) has(name string) bool {
 	return name in c.services
 }
 
-// list returns registered names filtered by plane (empty plane = all).
+// list returns registered names filtered by plane — potency: capability vs runtime isolation.
 pub fn (mut c DIContainer) list(plane Plane) []string {
 	c.mu.rlock()
 	defer { c.mu.runlock() }
 	mut out := []string{}
 	for k, v in c.services {
-		// If caller wants all, they pass capability then runtime separately;
-		// We expose simple filter: if plane matches or list all when called with capability+runtimes
-		// For now return all; callers filter by plane if needed.
-		_ = plane
-		_ = v
-		out << k
+		if v.plane == plane {
+			out << k
+		}
 	}
 	out.sort()
 	return out

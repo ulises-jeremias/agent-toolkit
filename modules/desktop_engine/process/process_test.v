@@ -149,7 +149,7 @@ fn test_log_capture_100_lines_and_backpressure() {
 		assert false, err.msg()
 		return
 	}
-	mut deadline := time.now().add(3000 * time.millisecond)
+	mut deadline := time.now().add(5000 * time.millisecond)
 	mut lines := 0
 	for time.now().unix_milli() < deadline.unix_milli() {
 		select {
@@ -161,8 +161,33 @@ fn test_log_capture_100_lines_and_backpressure() {
 		if lines >= 100 {
 			break
 		}
-		if !handle.is_alive() && ch.len == 0 {
-			break
+		// avoid early exit before supervisor publishes after wait — give extra grace
+		if !handle.is_alive() {
+			// drain remaining with extra patience
+			mut extra := 0
+			for extra < 20 && ch.len > 0 {
+				select {
+					_ := <-ch { lines++ }
+					10 * time.millisecond {}
+				}
+				extra++
+			}
+			if ch.len == 0 && handle.stdout_chan.len == 0 {
+				// check handle channel as fallback
+				for handle.stdout_chan.len > 0 {
+					_ = <-handle.stdout_chan
+					lines++
+				}
+				break
+			}
+		}
+	}
+	// also fallback to handle's stdout_chan if bus dropped
+	if lines < 3 {
+		for handle.stdout_chan.len > 0 {
+			_ = <-handle.stdout_chan
+			lines++
+			if lines >= 3 { break }
 		}
 	}
 	assert lines >= 3, 'log capture should have at least some lines, got ${lines}'

@@ -36,7 +36,10 @@ struct Manifest {
 }
 
 fn sha256_file(path string) string {
-	data := read_bytes(path) or { return '' }
+	data := read_bytes(path) or {
+		eprintln('sha256 read failed ${path}: ${err}')
+		return ''
+	}
 	sum := sha256.sum(data)
 	return sum.hex()
 }
@@ -68,7 +71,29 @@ fn main() {
 	if license_path.len == 0 {
 		license_path = 'LICENSE'
 	}
-	mkdir_all(out) or {}
+	mkdir_all(out) or {
+		eprintln('failed to create out dir ${out}: ${err}')
+		exit(1)
+	}
+
+	// Reproducibility: honor SOURCE_DATE_EPOCH for manifest + archives (https://reproducible-builds.org/specs/source-date-epoch/)
+	mut sde_raw := getenv('SOURCE_DATE_EPOCH').trim_space()
+	mut sde_epoch := ''
+	if sde_raw.len > 0 {
+		// validate integer
+		mut ok := true
+		for c in sde_raw {
+			if c < `0` || c > `9` {
+				ok = false
+				break
+			}
+		}
+		if ok {
+			sde_epoch = sde_raw
+		} else {
+			eprintln('warning: invalid SOURCE_DATE_EPOCH=${sde_raw}, ignoring')
+		}
+	}
 
 	specs := [
 		FloatingSpec{'agent-toolkit-linux-x86_64', 'linux', 'x86_64', 'gnu', 'tar'},
@@ -99,8 +124,14 @@ fn main() {
 			}
 		}
 		dest_float := join_path(out, spec.floating)
-		cp(src_bin, dest_float) or {}
-		chmod(dest_float, 0o755) or {}
+		cp(src_bin, dest_float) or {
+			eprintln('cp failed ${src_bin} -> ${dest_float}: ${err}')
+			exit(1)
+		}
+		chmod(dest_float, 0o755) or {
+			eprintln('chmod failed ${dest_float}: ${err}')
+			exit(1)
+		}
 		packed_names << spec.floating
 
 		inner := if spec.floating.contains('desktop') {
@@ -121,19 +152,41 @@ fn main() {
 			rm(archive_path) or {}
 			mut zip_cmd := 'zip -j -q "${archive_path}" "${dest_float}"'
 			if is_file(license_path) {
-				// zip with renamed entries via temp dir
+				// zip with renamed entries via temp dir (reproducible: -X strip extra fields, SOURCE_DATE_EPOCH for mtime)
 				tmpdir := join_path(temp_dir(), 'atk-pack-${spec.arch}')
 				rmdir_all(tmpdir) or {}
-				mkdir_all(tmpdir) or {}
-				cp(dest_float, join_path(tmpdir, inner)) or {}
-				cp(license_path, join_path(tmpdir, 'LICENSE')) or {}
-				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -q "${archive_path}" "${inner}" LICENSE\''
+				mkdir_all(tmpdir) or {
+					eprintln('mkdir failed ${tmpdir}: ${err}')
+					exit(1)
+				}
+				cp(dest_float, join_path(tmpdir, inner)) or {
+					eprintln('cp failed to tmpdir: ${err}')
+					exit(1)
+				}
+				cp(license_path, join_path(tmpdir, 'LICENSE')) or {
+					eprintln('cp LICENSE failed: ${err}')
+					exit(1)
+				}
+				// -X: strip extra file attributes for reproducibility; honor SOURCE_DATE_EPOCH via touch if set
+				if sde_epoch.len > 0 {
+					system('touch -h -d @${sde_epoch} "${tmpdir}/${inner}" "${tmpdir}/LICENSE" 2>/dev/null || true')
+				}
+				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -X -q "${archive_path}" "${inner}" LICENSE\''
 			} else {
 				tmpdir := join_path(temp_dir(), 'atk-pack-${spec.arch}')
 				rmdir_all(tmpdir) or {}
-				mkdir_all(tmpdir) or {}
-				cp(dest_float, join_path(tmpdir, inner)) or {}
-				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -q "${archive_path}" "${inner}"\''
+				mkdir_all(tmpdir) or {
+					eprintln('mkdir failed ${tmpdir}: ${err}')
+					exit(1)
+				}
+				cp(dest_float, join_path(tmpdir, inner)) or {
+					eprintln('cp failed to tmpdir: ${err}')
+					exit(1)
+				}
+				if sde_epoch.len > 0 {
+					system('touch -h -d @${sde_epoch} "${tmpdir}/${inner}" 2>/dev/null || true')
+				}
+				zip_cmd = 'sh -c \'cd "${tmpdir}" && zip -X -q "${archive_path}" "${inner}"\''
 			}
 			rc := system(zip_cmd)
 			if rc != 0 {
@@ -149,12 +202,25 @@ fn main() {
 			archive_path = join_path(out, archive_name)
 			tmpdir := join_path(temp_dir(), 'atk-pack-${spec.os_name}-${spec.arch}')
 			rmdir_all(tmpdir) or {}
-			mkdir_all(tmpdir) or {}
-			cp(dest_float, join_path(tmpdir, inner)) or {}
-			mut tar_cmd := 'tar -C "${tmpdir}" -czf "${archive_path}" "${inner}"'
+			mkdir_all(tmpdir) or {
+				eprintln('mkdir failed ${tmpdir}: ${err}')
+				exit(1)
+			}
+			cp(dest_float, join_path(tmpdir, inner)) or {
+				eprintln('cp failed to tmpdir: ${err}')
+				exit(1)
+			}
+			mut tar_extra := ''
+			if sde_epoch.len > 0 {
+				tar_extra = '--sort=name --owner=0 --group=0 --mtime=@${sde_epoch} '
+			}
+			mut tar_cmd := 'tar ${tar_extra}-C "${tmpdir}" -czf "${archive_path}" "${inner}"'
 			if is_file(license_path) {
-				cp(license_path, join_path(tmpdir, 'LICENSE')) or {}
-				tar_cmd = 'tar -C "${tmpdir}" -czf "${archive_path}" "${inner}" LICENSE'
+				cp(license_path, join_path(tmpdir, 'LICENSE')) or {
+					eprintln('cp LICENSE failed: ${err}')
+					exit(1)
+				}
+				tar_cmd = 'tar ${tar_extra}-C "${tmpdir}" -czf "${archive_path}" "${inner}" LICENSE'
 			}
 			rc := system(tar_cmd)
 			if rc != 0 {
@@ -193,7 +259,10 @@ fn main() {
 	for name in packed_names {
 		sum_lines << '${sha256_file(join_path(out, name))}  ${name}'
 	}
-	write_file(join_path(out, 'SHA256SUMS'), sum_lines.join('\n') + '\n') or {}
+	write_file(join_path(out, 'SHA256SUMS'), sum_lines.join('\n') + '\n') or {
+		eprintln('write SHA256SUMS failed: ${err}')
+		exit(1)
+	}
 
 	// Omit empty libc fields by encoding via hand-built JSON for cleanliness.
 	mut asset_jsons := []string{}
@@ -212,7 +281,12 @@ fn main() {
     "url": ${json.encode(a.url)}${libc_field}
   }'
 	}
-	released := time.utc().custom_format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+	mut released := ''
+	if sde_epoch != '' {
+		released = time.unix(sde_epoch.i64()).custom_format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+	} else {
+		released = time.utc().custom_format('YYYY-MM-DDTHH:mm:ss') + 'Z'
+	}
 	manifest := '{
   "schemaVersion": 1,
   "name": "agent-toolkit",
@@ -225,7 +299,10 @@ ${asset_jsons.join(',\n')}
   ]
 }
 '
-	write_file(join_path(out, 'manifest.json'), manifest) or {}
+	write_file(join_path(out, 'manifest.json'), manifest) or {
+		eprintln('write manifest.json failed: ${err}')
+		exit(1)
+	}
 	entries := ls(out) or { []string{} }
 	println('packed ${entries.len} files in ${out}')
 }

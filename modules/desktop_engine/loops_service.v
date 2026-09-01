@@ -136,27 +136,35 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 			mut fs_cadence := snap.data['loops/${n}/cadence'] or { '1d' }
 			mut fs_verifier := snap.data['loops/${n}/verifier'] or { '' }
 			mut fs_description := snap.data['loops/${n}/description'] or { '' }
+			mut fs_tier_str := snap.data['loops/${n}/tier'] or { '' }
 			env2 := resolve_env()
 			yaml_path := os.join_path(env2.toolkit_root, 'loops', n, 'loop.yaml')
 			if os.is_file(yaml_path) {
 				content := os.read_file(yaml_path) or { '' }
 				if content.len > 0 {
-					// lightweight parse for cadence/budget if State empty
-					if fs_cadence == '1d' && content.contains('cadence:') {
-						lines := content.split_into_lines()
-						for line in lines {
-							t := line.trim_space()
-							if t.starts_with('cadence:') {
-								fs_cadence = t.all_after('cadence:').trim_space().trim('"').trim("'")
-							}
-							if t.starts_with('max_tokens:') {
-								fs_budget.max_tokens = t.all_after('max_tokens:').trim_space().int()
-							}
-							if t.starts_with('max_runs_per_day:') {
-								fs_budget.max_runs_per_day = t.all_after('max_runs_per_day:').trim_space().int()
-							}
-							if t.starts_with('max_wall_seconds:') {
-								fs_budget.max_wall_seconds = t.all_after('max_wall_seconds:').trim_space().int()
+					// lightweight parse for cadence/budget/tier if State empty — distinct L1/L2/L3
+					lines := content.split_into_lines()
+					for line in lines {
+						t := line.trim_space()
+						if t.starts_with('cadence:') && fs_cadence == '1d' {
+							fs_cadence = t.all_after('cadence:').trim_space().trim('"').trim("'")
+						}
+						if t.starts_with('max_tokens:') {
+							fs_budget.max_tokens = t.all_after('max_tokens:').trim_space().int()
+						}
+						if t.starts_with('max_runs_per_day:') {
+							fs_budget.max_runs_per_day = t.all_after('max_runs_per_day:').trim_space().int()
+						}
+						if t.starts_with('max_wall_seconds:') {
+							fs_budget.max_wall_seconds = t.all_after('max_wall_seconds:').trim_space().int()
+						}
+						if t.starts_with('tier:') && fs_tier_str == '' {
+							fs_tier_str = t.all_after('tier:').trim_space().trim('"').trim("'")
+						}
+						if t.starts_with('verifier:') && fs_verifier == '' {
+							raw := t.all_after('verifier:').trim_space()
+							if raw != 'null' && raw != '' {
+								fs_verifier = raw.trim('"').trim("'")
 							}
 						}
 					}
@@ -166,7 +174,7 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 			budget := if fs_budget.max_tokens != 0 { fs_budget.max_tokens } else { budget_str.int() }
 			spent_str := snap.data['loops/${n}/spent'] or { '0' }
 			spent := spent_str.int()
-			tier_str := snap.data['loops/${n}/tier'] or { 'l1' }
+			tier_str := if fs_tier_str != '' { fs_tier_str } else { snap.data['loops/${n}/tier'] or { 'l1' } }
 			tier := loop_tier_from_string(tier_str)
 			cadence := fs_cadence
 			schedule := cadence_to_cron(cadence)

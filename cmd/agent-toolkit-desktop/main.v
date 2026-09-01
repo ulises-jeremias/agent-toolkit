@@ -2833,8 +2833,12 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			.l2 { 'L2' }
 			else { 'L1' }
 		}
-		tier_col := if tier_str == 'L3' { col_coral } else if tier_str == 'L2' { col_lemon } else { col_mint }
-		tier_bg := if tier_str == 'L3' { gg.rgba(217, 106, 98, 22) } else if tier_str == 'L2' { gg.rgba(220, 171, 60, 18) } else { gg.rgba(92, 169, 122, 14) }
+		tier_col := if tier_str == 'L3' {
+			col_coral
+		} else if tier_str == 'L2' { col_lemon } else { col_mint }
+		tier_bg := if tier_str == 'L3' {
+			gg.rgba(217, 106, 98, 22)
+		} else if tier_str == 'L2' { gg.rgba(220, 171, 60, 18) } else { gg.rgba(92, 169, 122, 14) }
 		app.gg.draw_rect_filled(fx + 22, y + 6, 28, 14, tier_bg)
 		app.gg.draw_rect_empty(fx + 22, y + 6, 28, 14, tier_col)
 		app.gg.draw_text(fx + 26, y + 8, tier_str, gg.TextCfg{ color: tier_col, size: 9, bold: true })
@@ -2844,7 +2848,11 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		if entry.verifier.trim_space().len > 0 {
 			app.gg.draw_rect_filled(bx, y + 6, 92, 14, gg.rgba(148, 130, 211, 18))
 			app.gg.draw_rect_empty(bx, y + 6, 92, 14, col_lilac)
-			lbl := if entry.verifier.contains(':') { entry.verifier.split(':')[1] } else { entry.verifier }
+			lbl := if entry.verifier.contains(':') {
+				entry.verifier.split(':')[1]
+			} else {
+				entry.verifier
+			}
 			short := lbl[..if lbl.len > 10 { 10 } else { lbl.len }]
 			app.gg.draw_text(bx + 6, y + 8, 'verifier:' + short, gg.TextCfg{ color: col_lilac, size: 8 })
 			bx -= 100
@@ -2894,29 +2902,47 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		bar_y := y + 34
 		tok_pct := if max_tok > 0 { spent * 100 / max_tok } else { 0 }
 		mut t_pct := tok_pct
-		if t_pct < 0 { t_pct = 0 }
-		if t_pct > 100 { t_pct = 100 }
+		if t_pct < 0 {
+			t_pct = 0
+		}
+		if t_pct > 100 {
+			t_pct = 100
+		}
 		app.gg.draw_rect_filled(fx + 22, bar_y, bar_w, 4, col_cream200)
-		tok_col := if t_pct > 85 { col_coral } else if t_pct > 60 { col_lemon } else { col_mint }
+		tok_col := if t_pct > 85 {
+			col_coral
+		} else if t_pct > 60 { col_lemon } else { col_mint }
 		app.gg.draw_rect_filled(fx + 22, bar_y, bar_w * t_pct / 100, 4, tok_col)
 		app.gg.draw_text(fx + 22, bar_y + 6, 'tokens ${t_pct}%', gg.TextCfg{ color: col_ink500, size: 7, mono: true })
 		app.gg.draw_text(fx + 22 + bar_w - 28, bar_y + 6, '${spent}/${max_tok}', gg.TextCfg{ color: col_slate_dim, size: 7, mono: true })
 		runs_cap_pct := if max_runs > 0 { max_runs * 100 / 96 } else { 0 }
 		mut r_pct := runs_cap_pct
-		if r_pct > 100 { r_pct = 100 }
-		if r_pct < 4 { r_pct = 4 }
+		if r_pct > 100 {
+			r_pct = 100
+		}
+		if r_pct < 4 {
+			r_pct = 4
+		}
 		rx := fx + 22 + bar_w + 8
 		app.gg.draw_rect_filled(rx, bar_y, bar_w, 4, col_cream200)
-		runs_col := if max_runs >= 48 { col_lemon } else if max_runs >= 6 { col_sky } else { col_mint }
+		runs_col := if max_runs >= 48 {
+			col_lemon
+		} else if max_runs >= 6 { col_sky } else { col_mint }
 		app.gg.draw_rect_filled(rx, bar_y, bar_w * r_pct / 100, 4, runs_col)
 		app.gg.draw_text(rx, bar_y + 6, 'runs ${max_runs}/d', gg.TextCfg{ color: col_ink500, size: 7, mono: true })
 		wall_cap_pct := if max_wall > 0 { max_wall * 100 / 1800 } else { 0 }
 		mut w_pct := wall_cap_pct
-		if w_pct < 4 { w_pct = 4 }
-		if w_pct > 100 { w_pct = 100 }
+		if w_pct < 4 {
+			w_pct = 4
+		}
+		if w_pct > 100 {
+			w_pct = 100
+		}
 		wx := rx + bar_w + 8
 		app.gg.draw_rect_filled(wx, bar_y, bar_w, 4, col_cream200)
-		wall_col := if max_wall >= 1200 { col_coral } else if max_wall >= 600 { col_lemon } else { col_mint }
+		wall_col := if max_wall >= 1200 {
+			col_coral
+		} else if max_wall >= 600 { col_lemon } else { col_mint }
 		app.gg.draw_rect_filled(wx, bar_y, bar_w * w_pct / 100, 4, wall_col)
 		app.gg.draw_text(wx, bar_y + 6, 'wall ${max_wall}s', gg.TextCfg{ color: col_ink500, size: 7, mono: true })
 		mut exits := entry.exit_conditions.join(',')
@@ -2935,7 +2961,9 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		bar_x := fx + 22
 		bar_y2 := y + 64
 		app.gg.draw_rect_filled(bar_x, bar_y2, bar_w2, 3, col_cream200)
-		fill_col := if spent_pct2 > 85 { col_coral } else if spent_pct2 > 60 { col_lemon } else { col_mint }
+		fill_col := if spent_pct2 > 85 {
+			col_coral
+		} else if spent_pct2 > 60 { col_lemon } else { col_mint }
 		app.gg.draw_rect_filled(bar_x, bar_y2, bar_w2 * spent_pct2 / 100, 3, fill_col)
 		app.gg.draw_text(bar_x + bar_w2 + 6, bar_y2 - 5, '${spent_pct2}%', gg.TextCfg{ color: col_ink500, size: 8, mono: true })
 		btn_y := y + 44
@@ -2983,7 +3011,6 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(mx + 136, my + 82, 'Cancel', gg.TextCfg{ color: col_cream100, size: 10 })
 	}
 }
-
 
 fn draw_swarm(mut app GuiApp, w int, h int) {
 	// Super-potent swarms — GOD mailbox routing, handoff artifact files, inner/outer loops,
@@ -4699,6 +4726,11 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 		bd := if is_sel { col_brass } else { col_line }
 		app.gg.draw_rect_filled(cx + 12, y, pw - 24, 32, bg)
 		app.gg.draw_rect_empty(cx + 12, y, pw - 24, 32, bd)
+		if is_sel {
+			// a11y focus: high-contrast brass left bar + inner highlight for keyboard users
+			app.gg.draw_rect_filled(cx + 12, y, 3, 32, col_lemon)
+			app.gg.draw_rect_filled(cx + 15, y + 1, pw - 27, 1, gg.rgba(255, 253, 245, 18))
+		}
 		app.gg.draw_text(cx + 20, y + 7, it.label, gg.TextCfg{
 			color: if is_sel {
 				col_paper} else {
@@ -4823,21 +4855,35 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .up {
-				if app.palette_selected > 0 {
-					app.palette_selected--
+				filtered := filtered_palette(app.palette_query)
+				if filtered.len > 0 {
+					if app.palette_selected > 0 {
+						app.palette_selected--
+					} else {
+						app.palette_selected = filtered.len - 1
+					}
 				}
 				return
 			}
 			if e.key_code == .down {
 				filtered := filtered_palette(app.palette_query)
-				if app.palette_selected + 1 < filtered.len {
-					app.palette_selected++
+				if filtered.len > 0 {
+					if app.palette_selected + 1 < filtered.len {
+						app.palette_selected++
+					} else {
+						app.palette_selected = 0
+					}
 				}
 				return
 			}
-			if e.char_code > 32 && e.char_code < 127 {
+			if e.char_code >= 32 && e.char_code < 127 {
 				app.palette_query += rune(e.char_code).str()
+				// keep selection clamped after filter narrows; reset to top for new query
 				app.palette_selected = 0
+				filtered2 := filtered_palette(app.palette_query)
+				if app.palette_selected >= filtered2.len && filtered2.len > 0 {
+					app.palette_selected = filtered2.len - 1
+				}
 				return
 			}
 			return
