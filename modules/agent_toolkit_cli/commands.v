@@ -72,6 +72,7 @@ pub fn build_root_command() cli.Command {
 		swarm_command(),
 		tui_command(),
 		serve_command(),
+		gui_command(),
 	])
 	promote_family_flags(mut app)
 	app.setup()
@@ -1268,5 +1269,66 @@ fn tui_command() cli.Command {
 		description: 'REMOVED in 1.23.0 (ADR-030) — use CLI commands or agent-toolkit serve API'
 		execute:     atk_exec
 		group:       'Advanced commands'
+	}
+}
+
+fn gui_command() cli.Command {
+	return cli.Command{
+		name:        'gui'
+		alias:       'desktop'
+		description: 'Launch or install the native desktop GUI (V + vlang/gui)'
+		execute:     atk_exec
+		group:       'Consumer commands'
+		examples:    [
+			'$ agent-toolkit gui',
+			'$ agent-toolkit gui --install',
+			'$ agent-toolkit gui --build --dry-run',
+			'$ agent-toolkit gui --headless --dry-run',
+			'$ agent-toolkit gui --run --headless',
+			'$ agent-toolkit desktop --install --prefix ~/.local',
+		]
+		learn_more:   'Desktop runs as separate binary agent-toolkit-desktop over same Engine. CLI never shells Desktop for business ops; gui subcommand only builds/launches. See docs/ARCHITECTURE.md and make.vsh build-desktop.'
+		flags:       [
+			cli.Flag{
+				flag:        .bool
+				name:        'install'
+				description: 'Build and install desktop binary to <prefix>/bin/agent-toolkit-desktop'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'build'
+				description: 'Build desktop binary to build/agent-toolkit-desktop (no install)'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'run'
+				description: 'Launch desktop (default if built)'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'headless'
+				description: 'Run headless smoke (ATK_GUI_HEADLESS=1, no window) — CI friendly'
+			},
+			cli.Flag{
+				flag:        .string
+				name:        'prefix'
+				description: 'Install prefix for --install (default ~/.local, or env PREFIX)'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'force'
+				description: 'Overwrite existing binary without prompting'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'dry-run'
+				description: 'Preview what would happen without building/launching'
+			},
+			cli.Flag{
+				flag:        .bool
+				name:        'yes'
+				description: 'Skip confirmation (alias for --force in gui)'
+			},
+		]
 	}
 }

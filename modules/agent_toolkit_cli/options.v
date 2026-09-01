@@ -4,6 +4,93 @@ import agent_toolkit_core
 import agent_toolkit_server
 import os
 
+pub struct GuiOptions {
+pub:
+	install  bool
+	build    bool
+	run      bool
+	headless bool
+	prefix   string
+	force    bool
+	dry_run  bool
+	yes      bool
+}
+
+pub fn parse_gui_options(args []string) GuiOptions {
+	mut install := false
+	mut build := false
+	mut run := false
+	mut headless := false
+	mut prefix := ''
+	mut force := false
+	mut dry_run := false
+	mut yes := false
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a == '--install' {
+			install = true
+			i++
+			continue
+		}
+		if a == '--build' {
+			build = true
+			i++
+			continue
+		}
+		if a == '--run' {
+			run = true
+			i++
+			continue
+		}
+		if a == '--headless' {
+			headless = true
+			i++
+			continue
+		}
+		if a == '--force' || a == '--yes' {
+			force = true
+			yes = true
+			i++
+			continue
+		}
+		if a == '--dry-run' {
+			dry_run = true
+			i++
+			continue
+		}
+		if a == '--prefix' && i + 1 < args.len {
+			prefix = args[i + 1]
+			i += 2
+			continue
+		}
+		if a.starts_with('--prefix=') {
+			prefix = a.all_after('=')
+			i++
+			continue
+		}
+		if a in ['--json', '--quiet'] {
+			i++
+			continue
+		}
+		i++
+	}
+	// default: run if no explicit build/install
+	if !install && !build && !run && !dry_run {
+		run = true
+	}
+	return GuiOptions{
+		install: install
+		build: build
+		run: run
+		headless: headless
+		prefix: prefix
+		force: force
+		dry_run: dry_run
+		yes: yes
+	}
+}
+
 fn parse_doctor_options(args []string) agent_toolkit_core.DoctorOptions {
 	mut fix := false
 	mut provenance := false
