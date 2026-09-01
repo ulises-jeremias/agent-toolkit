@@ -16,7 +16,10 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 			lines << '  build: VMODULES=modules v -o build/agent-toolkit-desktop modules/desktop (headless vet+test)'
 		}
 		if opts.install {
-			mut prefix := if opts.prefix.len > 0 { opts.prefix } else { os.getenv('PREFIX') }
+			mut prefix := opts.prefix
+			if prefix == '' {
+				prefix = os.getenv('PREFIX')
+			}
 			if prefix == '' {
 				prefix = os.join_path(os.home_dir(), '.local')
 			}
@@ -33,7 +36,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 		res := agent_toolkit_core.CommandResult{
 			command: 'gui'
 			ok: true
-			message: lines.join('\n')
+			message: lines.join("\n")
 			data: {
 				'dry_run': 'true'
 				'mode': if headless { 'headless' } else { 'window' }
@@ -61,7 +64,10 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 		msg << 'gui build: run `VMODULES=modules ./make.vsh build-desktop` (vet+test+headless smoke) then `v -o build/agent-toolkit-desktop`'
 	}
 	if opts.install {
-		mut prefix := if opts.prefix.len > 0 { opts.prefix } else { os.getenv('PREFIX') }
+		mut prefix := opts.prefix
+		if prefix == '' {
+			prefix = os.getenv('PREFIX')
+		}
 		if prefix == '' {
 			prefix = os.join_path(os.home_dir(), '.local')
 		}
@@ -83,7 +89,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	res := agent_toolkit_core.CommandResult{
 		command: 'gui'
 		ok: true
-		message: msg.join('\n')
+		message: msg.join("\n")
 		data: {
 			'mode': if headless { 'headless' } else { 'window' }
 		}
