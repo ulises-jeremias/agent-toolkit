@@ -19,60 +19,212 @@ import os
 // Signature: perforated tractor-feed edge dots + brass binder rivet (2px) + manila folder tab
 const col_ink = gg.rgb(0x1A, 0x1A, 0x1A) // #1A1A1A carbon ink — body text, outer border
 
+
 const col_ink700 = gg.rgb(0x2B, 0x2B, 0x2B) // #2B2B2B ink-700
+
 
 const col_ink500 = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel muted
 
+
 const col_ink300 = gg.rgb(0xD1, 0xC7, 0xB3) // #D1C7B3 warm grey
+
 
 const col_charcoal = gg.rgb(0x1A, 0x1A, 0x1A) // = ink
 
+
 const col_charcoal2 = gg.rgb(0x28, 0x28, 0x28) // #282828 elevated ink
+
+
 const col_paper = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 warm paper
 
+
 const col_paper_dim = gg.rgb(0xE6, 0xD8, 0xB8) // #E6D8B8 manila kraft
+
+
 const col_brass = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B binder-clip gold
 
+
 const col_brass_dim = gg.rgb(0x9A, 0x7D, 0x4A) // darker brass
+
+
 const col_oxide = gg.rgb(0xC4, 0x5A, 0x3C) // #C45A3C rubber-stamp rust
 
+
 const col_slate = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel (primary)
+
+
 const col_slate_dim = gg.rgb(0x9A, 0x9A, 0x96) // warm muted
+
+
 const col_line = gg.rgb(0x34, 0x34, 0x34) // ink border
+
+
 const col_line_light = gg.rgb(0xD1, 0xC7, 0xB3) // paper border
+
+
 // paper tokens — warm office stock
 const col_cream50 = gg.rgb(0xFD, 0xFB, 0xF2) // #FDFBF2 pale paper highlight
 
+
 const col_cream100 = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 warm paper panel fill
+
 
 const col_cream200 = gg.rgb(0xE6, 0xD8, 0xB8) // #E6D8B8 manila — middle border / alt row
 
+
 const col_paper100 = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 terminal bg (paper stock)
+
 
 const col_coral = gg.rgb(0xC4, 0x5A, 0x3C) // #C45A3C rust alias
 
+
 const col_mint = gg.rgb(0x5A, 0x7D, 0x5A) // #5A7D5A sage — muted success
+
 
 const col_sky = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel alias
 
+
 const col_lemon = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B brass alias
+
 
 const col_lilac = gg.rgb(0x9E, 0x92, 0x8E) // desaturated warm taupe (no purple)
 
+
 const col_peach = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B warm kraft
 
+
 const col_status_idle = gg.rgb(0x9A, 0x9A, 0x96) // muted warm grey
+
+
 const col_status_thinking = gg.rgb(0x8A, 0x9B, 0xA8) // steel
+
+
 const col_status_working = gg.rgb(0xC9, 0xA8, 0x6B) // brass
+
+
 const col_status_waiting = gg.rgb(0x7A, 0x8B, 0x8A) // muted teal
+
+
 const col_status_blocked = gg.rgb(0xC4, 0x5A, 0x3C) // rust
+
+
 const col_status_success = gg.rgb(0x5A, 0x7D, 0x5A) // sage
+
+
 const col_grass_light = gg.rgb(0xD1, 0xC7, 0xB3) // paper grain light
+
+
 const col_grass_dark = gg.rgb(0xC9, 0xBF, 0xA8) // paper grain dark
+
+
 const col_wood_light = gg.rgb(0xE6, 0xD8, 0xB8) // manila light
+
+
 const col_wood_dark = gg.rgb(0xC9, 0xB8, 0x96) // kraft dark
+
+
 const col_path = gg.rgb(0xE6, 0xD8, 0xB8) // kraft tape path
+
+
 const col_wall = gg.rgb(0x8B, 0x7F, 0x6E) // warm wall
+
+
+// ── cozy paper-ledger tokens (design pass 1.29) — warm secondary ink for paper,
+// hover tints and folder-tab manila. Contrast: ink_soft on cream ≥ 4.5:1. ──
+const col_ink_soft = gg.rgb(0x6B, 0x5F, 0x4E) // #6B5F4E warm brown-grey — secondary on paper
+
+
+const col_paper_hover = gg.rgb(0xF0, 0xE9, 0xDA) // row hover tint on cream panels
+
+
+const col_manila_tab = gg.rgb(0xE6, 0xD8, 0xB8) // folder tab manila
+
+
+const col_sage_soft = gg.rgb(0x5A, 0x7D, 0x5A) // success alias on paper
+
+
+const col_steel_ink = gg.rgb(0x5F, 0x6E, 0x7A) // darker steel — readable cool accent on paper
+
+
+// ── brand typography — Fraunces display + IBM Plex Sans body + IBM Plex Mono data.
+// OFL-licensed TTFs ship in assets/fonts/; resolved relative to the binary so the
+// single-file story holds (repo build: build/../assets/fonts; packaged: ./fonts).
+// When fonts are missing the app falls back to the system sans — never crashes. ──
+const font_file_sans = 'IBMPlexSans-Regular.ttf'
+const font_file_sans_bold = 'IBMPlexSans-SemiBold.ttf'
+const font_file_mono = 'IBMPlexMono-Regular.ttf'
+const font_file_mono_med = 'IBMPlexMono-Medium.ttf'
+const font_file_display = 'Fraunces-Display.ttf'
+const font_file_display_t = 'Fraunces-Text.ttf'
+const font_file_arabic = 'IBMPlexSansArabic-Regular.ttf'
+const font_file_arabic_bd = 'IBMPlexSansArabic-SemiBold.ttf'
+const font_file_sc = 'NotoSansSC-chrome.ttf'
+
+// atk_font_dir resolves the bundled font directory: $ATK_FONTS, then
+// <exe_dir>/fonts, then <exe_dir>/../assets/fonts. Empty string = unavailable.
+fn atk_font_dir() string {
+	cands := [
+		os.getenv('ATK_FONTS'),
+		os.join_path(os.dir(os.executable()), 'fonts'),
+		os.join_path(os.dir(os.dir(os.executable())), 'assets', 'fonts'),
+	]
+	for c in cands {
+		if c != '' && os.exists(os.join_path(c, font_file_sans)) {
+			return c
+		}
+	}
+	return ''
+}
+
+fn atk_font(dir string, file string) string {
+	if dir == '' {
+		return ''
+	}
+	p := os.join_path(dir, file)
+	return if os.exists(p) { p } else { '' }
+}
+
+// FontPaths holds resolved brand font paths — '' means fall back to default.
+struct FontPaths {
+pub:
+	dir      string
+	sans     string
+	sans_bd  string
+	mono     string
+	mono_med string
+	display  string // Fraunces display cut — letterhead titles
+	displayt string // Fraunces text cut — subtitles, quotes
+	arabic   string
+	arabicbd string
+	sc       string // Noto Sans SC subset — 中文 chrome
+}
+
+// desktop_version reads the repo VERSION (build/ sibling) — fallback keeps the
+// header honest for installed binaries.
+fn desktop_version() string {
+	vp := os.join_path(os.dir(os.dir(os.executable())), 'VERSION')
+	if os.exists(vp) {
+		v := os.read_file(vp) or { return '1.29.2' }
+		return v.trim_space()
+	}
+	return '1.29.2'
+}
+
+fn resolve_fonts() FontPaths {
+	dir := atk_font_dir()
+	return FontPaths{
+		dir: dir
+		sans: atk_font(dir, font_file_sans)
+		sans_bd: atk_font(dir, font_file_sans_bold)
+		mono: atk_font(dir, font_file_mono)
+		mono_med: atk_font(dir, font_file_mono_med)
+		display: atk_font(dir, font_file_display)
+		displayt: atk_font(dir, font_file_display_t)
+		arabic: atk_font(dir, font_file_arabic)
+		arabicbd: atk_font(dir, font_file_arabic_bd)
+		sc: atk_font(dir, font_file_sc)
+	}
+}
 
 // ── Dunder paper-panel helper — file-folder manila + perforated edge + brass rivet signature
 // Signature: every panel has perforated tractor-feed dots (1px every 12px on left/right) + brass rivet 2px
@@ -323,6 +475,9 @@ struct GuiApp {
 mut:
 	gg               &gg.Context = unsafe { nil }
 	desktop          &desktop.Desktop = unsafe { nil }
+	fonts            FontPaths
+	lang             Lang = .en
+	version          string = '1.29.2'
 	frame            int
 	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
 	hover_panel      int
@@ -333,13 +488,20 @@ mut:
 	palette_selected int
 	mouse_x          int
 	mouse_y          int
-	show_help        bool
+	// dedupe: C backends set char_code on key_down AND send .char — keep one per frame
+	last_keydown_char    u32
+	last_keydown_frame   int
+	last_keydown_keycode int = -1
+	lang_hover           int = -1
+	show_help            bool
 	// live data
 	engine_rev u64
 	api_calls  u64
 	// inspector interaction feedback
 	inspector_msg string
 	// terminal / activity — workshop xterm-like bottom strip
+	// term_mode: 0 compact 148 · 1 tall 320 · 2 max (full content height) · 3 hidden
+	term_mode      int
 	term_height    int = 148
 	term_visible   bool = true
 	term_scroll    int
@@ -433,22 +595,370 @@ mut:
 	targets_hover                int = -1
 	onboarding_scroll            int
 	// global zoom — paper office scaling 0.75-1.50, 60FPS culling safe
-	global_zoom f64 = 1.0
-	zoom_toast   string
+	global_zoom   f64 = 1.0
+	zoom_toast    string
 	zoom_toast_at int
 	zoom_dragging bool
 	// global search — warm paper header field, filters palette + skills
-	global_search        string
-	header_search_focus  bool
-	header_search_hover  int = -1
+	global_search       string
+	header_search_focus bool
+	header_search_hover int = -1
 	// warm paper texture seed for 60FPS headless determinism
 	paper_seed u64 = 0xF4EFE6
 	// insights — telemetry super-potent (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
-	insights_scroll      int
-	insights_hover       int = -1
-	insights_tab         string = 'cost' // cost | waterfall | spans | budgets | ci
-	insights_filter      string
-	insights_spark       []f64
+	insights_scroll int
+	insights_hover  int = -1
+	insights_tab    string = 'cost' // cost | waterfall | spans | budgets | ci
+	insights_filter string
+	insights_spark  []f64
+}
+
+// ── i18n — 4 languages EN/ES/中文/عربي with RTL, superior to munder-difflin 3-lang.
+// Scope: the "nameplate layer" — dock, header, status bar, palette labels, panel
+// letterheads. Panel ledger bodies stay English (technical Engine output).
+// 中文 renders via the bundled Noto Sans SC chrome subset; عربي via IBM Plex Sans
+// Arabic (RTL dock flip + right-aligned rows). Missing font → graceful fallback. ──
+enum Lang {
+	en
+	es
+	zh
+	ar
+}
+
+fn (l Lang) is_rtl() bool {
+	return l == .ar
+}
+
+fn (l Lang) chip() string {
+	return match l {
+		.en { 'EN' }
+		.es { 'ES' }
+		.zh { '中文' }
+		.ar { 'عربي' }
+	}
+}
+
+fn (l Lang) next() Lang {
+	return match l {
+		.en { Lang.es }
+		.es { Lang.zh }
+		.zh { Lang.ar }
+		.ar { Lang.en }
+	}
+}
+
+// I18n — one row per chrome string. `tr` picks the active language.
+struct I18nRow {
+	en string
+	es string
+	zh string
+	ar string
+}
+
+const i18n_table = {
+	// dock — 13 nameplates
+	'panel.world':             I18nRow{'World', 'Mundo', '世界', 'العالم'}
+	'panel.skills':            I18nRow{'Skills', 'Habilidades', '技能', 'المهارات'}
+	'panel.agents':            I18nRow{'Agents', 'Agentes', '代理', 'الوكلاء'}
+	'panel.mcp':               I18nRow{'MCP', 'MCP', '提供方', 'المزودون'}
+	'panel.targets':           I18nRow{'Targets', 'Destinos', '目标', 'الأهداف'}
+	'panel.doctor':            I18nRow{'Doctor', 'Doctor', '诊断', 'الفحص'}
+	'panel.jobs':              I18nRow{'Jobs', 'Trabajos', '作业', 'المهام'}
+	'panel.loops':             I18nRow{'Loops', 'Bucles', '循环', 'الحلقات'}
+	'panel.swarm':             I18nRow{'Swarm', 'Enjambre', '集群', 'السرب'}
+	'panel.workspace':         I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
+	'panel.products':          I18nRow{'Products', 'Productos', '产品', 'المنتجات'}
+	'panel.onboarding':        I18nRow{'Onboarding', 'Inicio', '引导', 'التهيئة'}
+	'panel.insights':          I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
+	// dock — short descriptors
+	'desc.world':              I18nRow{'Floor — desks, handoffs, live activity', 'Planta — escritorios y actividad', '办公区 · 工位与协作', 'الأرضية — المكاتب والنشاط'}
+	'desc.skills':             I18nRow{'227 skills across 14 domains', '227 habilidades en 14 dominios', '227 项技能 · 14 个领域', '٢٢٧ مهارة في ١٤ مجالا'}
+	'desc.agents':             I18nRow{'18 agents — holistic + specialist', '18 agentes — globales y especialistas', '18 个代理 · 全能与专项', '١٨ وكيلاً — شامل ومتخصص'}
+	'desc.mcp':                I18nRow{'7 providers — health + secrets', '7 proveedores — salud y claves', '7 个提供方 · 健康与密钥', '٧ مزودات — الصحة والمفاتيح'}
+	'desc.targets':            I18nRow{'7 targets — enable platforms', '7 destinos — activa plataformas', '7 个目标平台', '٧ منصات للتفعيل'}
+	'desc.doctor':             I18nRow{'Health checks + fix', 'Comprobaciones y reparación', '健康检查与修复', 'فحوصات وإصلاح'}
+	'desc.jobs':               I18nRow{'Jobs & process supervisor', 'Trabajos y supervisor', '作业与进程管理', 'المهام والعمليات'}
+	'desc.loops':              I18nRow{'Loops & missions — inner/outer', 'Bucles y misiones — internos/externos', '循环任务 · 内外环', 'المهام الدورية'}
+	'desc.swarm':              I18nRow{'GOD mailbox, Herdr/tmux, teams', 'Buzón GOD, Herdr/tmux, equipos', 'GOD 信箱 · 集群协作', 'صندوق GOD والفرق'}
+	'desc.workspace':          I18nRow{'IDE — tree, editor, git rails', 'IDE — árbol, editor, git', '工作区 IDE · 编辑器', 'مساحة عمل IDE'}
+	'desc.products':           I18nRow{'3 products, 7 packs, digest', '3 productos, 7 paquetes', '3 产品 · 7 包 · 摘要', '٣ منتجات و٧ حزم'}
+	'desc.onboarding':         I18nRow{'Wizard — workspace to products', 'Asistente — de workspace a productos', '引导向导 · 一步到位', 'معالج الإعداد'}
+	'desc.insights':           I18nRow{'Cost, waterfall, spans, CI', 'Costos, cascada, spans, CI', '成本 · 瀑布 · CI', 'التكاليف والأداء'}
+	// header
+	'header.tagline':          I18nRow{'Paper Co. Office', 'Oficina Paper Co.', '纸业公司办公室', 'مكتب شركة الورق'}
+	'header.search':           I18nRow{'Search 227 skills, desks, files…', 'Buscar 227 habilidades, mesas, archivos…', '搜索 227 项技能…', 'ابحث في ٢٢٧ مهارة…'}
+	'header.live':             I18nRow{'live', 'activo', '实时', 'مباشر'}
+	'header.commands':         I18nRow{'commands', 'comandos', '命令', 'أوامر'}
+	'header.lang':             I18nRow{'Language', 'Idioma', '语言', 'اللغة'}
+	// status bar
+	'status.palette':          I18nRow{'palette', 'paleta', '命令面板', 'الأوامر'}
+	'status.paperco':          I18nRow{'Paper Co.', 'Paper Co.', '纸业公司', 'شركة الورق'}
+	'status.fps':              I18nRow{'60FPS', '60FPS', '60帧', '٦٠ إطار'}
+	// world floor
+	'world.title':             I18nRow{'Office Floor', 'Planta de oficina', '办公区平面', 'أرضية المكتب'}
+	'world.subtitle':          I18nRow{'desks • envelopes are handoffs • click a desk or use arrow keys', 'escritorios • los sobres son entregas • clica un escritorio o usa flechas', '工位 • 信封即交接 • 点击工位或方向键', 'المكاتب • الأظرف تسليمات • انقر مكتباً أو استخدم الأسهم'}
+	'world.working':           I18nRow{'working', 'trabajando', '工作中', 'يعمل'}
+	'world.idle':              I18nRow{'idle', 'libre', '空闲', 'خامل'}
+	'world.blocked':           I18nRow{'blocked', 'bloqueado', '受阻', 'معطل'}
+	'world.god':               I18nRow{'GOD — in', 'GOD — entra', 'GOD — 收', 'GOD — دخول'}
+	'world.out':               I18nRow{'out', 'sale', '发', 'خروج'}
+	// generic actions
+	'act.open_terminal':       I18nRow{'Open terminal', 'Abrir terminal', '打开终端', 'افتح الطرفية'}
+	'act.route':               I18nRow{'Route handoff', 'Route entrega', '路由交接', 'وجّه التسليم'}
+	'act.run':                 I18nRow{'Run', 'Ejecutar', '运行', 'شغّل'}
+	'act.sched':               I18nRow{'Sched', 'Programar', '计划', 'جدول'}
+	'act.install':             I18nRow{'install', 'instalar', '安装', 'ثبّت'}
+	'act.remove':              I18nRow{'remove', 'quitar', '移除', 'أزل'}
+	'act.cancel':              I18nRow{'Cancel', 'Cancelar', '取消', 'إلغاء'}
+	'act.retry':               I18nRow{'Retry', 'Reintentar', '重试', 'أعد'}
+	'act.fix_all':             I18nRow{'Fix All', 'Reparar todo', '全部修复', 'أصلح الكل'}
+	'act.new_loop':            I18nRow{'+ New Loop', '+ Nuevo bucle', '+ 新循环', '+ حلقة جديدة'}
+	'act.approve':             I18nRow{'Y', 'S', '准', 'نعم'}
+	'act.deny':                I18nRow{'N', 'N', '驳', 'لا'}
+	// palette — 33 commands, fully translated (ES/中文/عربي)
+	'palette.world':           I18nRow{'Go to World', 'Ir a Mundo', '前往世界', 'اذهب إلى العالم'}
+	'palette.skills':          I18nRow{'Go to Skills', 'Ir a Habilidades', '前往技能', 'اذهب إلى المهارات'}
+	'palette.agents':          I18nRow{'Go to Agents', 'Ir a Agentes', '前往代理', 'اذهب إلى الوكلاء'}
+	'palette.mcp':             I18nRow{'Go to MCP', 'Ir a MCP', '前往提供方', 'اذهب إلى المزودين'}
+	'palette.targets':         I18nRow{'Go to Targets', 'Ir a Destinos', '前往目标', 'اذهب إلى الأهداف'}
+	'palette.doctor':          I18nRow{'Go to Doctor', 'Ir a Doctor', '前往诊断', 'اذهب إلى الفحص'}
+	'palette.jobs':            I18nRow{'Go to Jobs', 'Ir a Trabajos', '前往作业', 'اذهب إلى المهام'}
+	'palette.loops':           I18nRow{'Go to Loops', 'Ir a Bucles', '前往循环', 'اذهب إلى الحلقات'}
+	'palette.swarm':           I18nRow{'Go to Swarm', 'Ir a Enjambre', '前往集群', 'اذهب إلى السرب'}
+	'palette.workspace':       I18nRow{'Go to Workspace', 'Ir a Espacio', '前往工作区', 'اذهب إلى المساحة'}
+	'palette.products':        I18nRow{'Go to Products', 'Ir a Productos', '前往产品', 'اذهب إلى المنتجات'}
+	'palette.onboarding':      I18nRow{'Go to Onboarding', 'Ir a Inicio', '前往引导', 'اذهب إلى التهيئة'}
+	'palette.insights':        I18nRow{'Go to Insights', 'Ir a Métricas', '前往洞察', 'اذهب إلى الرؤى'}
+	'palette.command_palette': I18nRow{'Command palette', 'Paleta de comandos', '命令面板', 'لوحة الأوامر'}
+	'palette.serve':           I18nRow{'Start API server', 'Iniciar servidor API', '启动 API 服务', 'ابدأ خادم API'}
+	'palette.doctor_fix':      I18nRow{'Run doctor --fix', 'Ejecutar doctor --fix', '运行 doctor --fix', 'شغّل doctor --fix'}
+	'palette.install':         I18nRow{'Install profiles', 'Instalar perfiles', '安装配置', 'ثبّت الملفات'}
+	'palette.install_full':    I18nRow{'Install — full', 'Instalar — completo', '安装 — 完整', 'تثبيت — كامل'}
+	'palette.update':          I18nRow{'Update — agent-toolkit update', 'Actualizar — agent-toolkit update', '更新 — agent-toolkit update', 'تحديث — agent-toolkit update'}
+	'palette.uninstall':       I18nRow{'Uninstall', 'Desinstalar', '卸载', 'إزالة التثبيت'}
+	'palette.diff':            I18nRow{'Diff — target/product', 'Diff — destino/producto', '差异 — 目标/产品', 'فرق — هدف/منتج'}
+	'palette.skills_sync':     I18nRow{'Skills — sync/validate', 'Habilidades — sinc/validar', '技能 — 同步/校验', 'المهارات — مزامنة/تحقق'}
+	'palette.mcp_health':      I18nRow{'MCP — health/doctor', 'MCP — salud/doctor', '提供方 — 健康/诊断', 'المزودون — الصحة/الفحص'}
+	'palette.loop_run':        I18nRow{'Loop — run/status/audit/cost', 'Bucle — ejecutar/estado/auditoría/costo', '循环 — 运行/状态/审计/成本', 'حلقة — تشغيل/حالة/تدقيق/تكلفة'}
+	'palette.swarm_start':     I18nRow{'Swarm — start/list/approve', 'Enjambre — iniciar/listar/aprobar', '集群 — 启动/列表/批准', 'سرب — بدء/قائمة/موافقة'}
+	'palette.workspace_sync':  I18nRow{'Workspace — sync/context', 'Espacio — sinc/contexto', '工作区 — 同步/上下文', 'المساحة — مزامنة/سياق'}
+	'palette.memory':          I18nRow{'Memory — add/search/inject/todo', 'Memoria — añadir/buscar/inyectar/todo', '记忆 — 添加/搜索/注入/待办', 'الذاكرة — إضافة/بحث/حقن/مهام'}
+	'palette.project_clone':   I18nRow{'Project — clone/list/scan', 'Proyecto — clonar/listar/escanear', '项目 — 克隆/列表/扫描', 'مشروع — استنساخ/قائمة/فحص'}
+	'palette.devcompanion':    I18nRow{'DevCompanion — queue/status', 'DevCompanion — cola/estado', '开发伴侣 — 队列/状态', 'رفيق التطوير — قائمة/حالة'}
+	'palette.insights_cli':    I18nRow{'Insights — CLI days/output', 'Métricas — días/salida CLI', '洞察 — 天数/输出 CLI', 'الرؤى — أيام/مخرجات CLI'}
+	'palette.build':           I18nRow{'Build — --check', 'Compilar — --check', '构建 — --check', 'بناء — --check'}
+	'palette.inventory':       I18nRow{'Inventory — audit', 'Inventario — auditoría', '清单 — 审计', 'الجرد — تدقيق'}
+	'palette.completion':      I18nRow{'Completion — bash/zsh/fish', 'Autocompletado — bash/zsh/fish', '补全 — bash/zsh/fish', 'الإكمال — bash/zsh/fish'}
+	'palette.cozy':            I18nRow{'Cozy — toggle warm wood', 'Cozy — madera cálida', '温馨 — 暖木切换', 'الدفء — خشب دافئ'}
+	// palette — descriptions (nav, short)
+	'pdesc.world':             I18nRow{'Office floor, desks and handoffs', 'Planta, escritorios y entregas', '办公区 · 工位与交接', 'الأرضية والمكاتب والتسليمات'}
+	'pdesc.skills':            I18nRow{'Search and install skills', 'Buscar e instalar habilidades', '搜索并安装技能', 'ابحث وثبّت المهارات'}
+	'pdesc.agents':            I18nRow{'Browse holistic and specialist', 'Explorar globales y especialistas', '浏览全能与专项', 'تصفح الشامل والمتخصص'}
+	'pdesc.mcp':               I18nRow{'Providers and health', 'Proveedores y salud', '提供方与健康', 'المزودون والصحة'}
+	'pdesc.targets':           I18nRow{'Enable platforms', 'Activar plataformas', '启用平台', 'فعّل المنصات'}
+	'pdesc.doctor':            I18nRow{'Fix checks', 'Reparar comprobaciones', '修复检查', 'أصلح الفحوصات'}
+	'pdesc.jobs':              I18nRow{'Live processes', 'Procesos en vivo', '实时进程', 'العمليات المباشرة'}
+	'pdesc.loops':             I18nRow{'Missions and schedules — inner/outer', 'Misiones y agendas — internas/externas', '任务与计划 · 内外环', 'المهام والجداول'}
+	'pdesc.swarm':             I18nRow{'GOD mailbox, Herdr/tmux, pair/team/full', 'Buzón GOD, Herdr/tmux, par/equipo/completo', 'GOD 信箱 · 集群规模', 'صندوق GOD والفرق'}
+	'pdesc.workspace':         I18nRow{'Context and memory', 'Contexto y memoria', '上下文与记忆', 'السياق والذاكرة'}
+	'pdesc.products':          I18nRow{'Manage products/packs membership & digest', 'Gestionar productos/paquetes y resumen', '管理产品/包与摘要', 'أدر المنتجات والحزم'}
+	'pdesc.onboarding':        I18nRow{'Wizard: workspace, personas, capability, target, product', 'Asistente: workspace, personas, capacidad, destino, producto', '向导：工作区到产品', 'معالج: من المساحة إلى المنتج'}
+	'pdesc.insights':          I18nRow{'Cost ledger, waterfall, spans, CI, realtime, gallery', 'Costos, cascada, spans, CI, tiempo real, galería', '成本 · 瀑布 · CI · 实时 · 图库', 'التكاليف والأداء والمعرض'}
+}
+
+// rtl_text — bidi-lite for the fontstash renderer (no shaping, no bidi):
+// Arabic draws left-to-right, so reverse each RTL run (and the run order) while
+// keeping Latin/digit runs intact — 'ابحث في 227' then paints visually correct.
+fn rtl_text(s string) string {
+	if !needs_ar(s) {
+		return s
+	}
+	runes := s.runes()
+	mut tokens := [][]rune{}
+	mut cur_is_rtl := false
+	mut cur := []rune{}
+	for ch in runes {
+		ch_rtl := int(ch) >= 0x0600 && int(ch) <= 0x06FF
+		is_sep := ch == ` ` || ch == `·` || ch == `—` || ch == `…` || ch == `/`
+		if cur.len == 0 {
+			cur_is_rtl = ch_rtl
+			cur << ch
+		} else if ch_rtl == cur_is_rtl || is_sep {
+			cur << ch
+		} else {
+			tokens << cur
+			cur = [ch]
+			cur_is_rtl = ch_rtl
+		}
+	}
+	if cur.len > 0 {
+		tokens << cur
+	}
+	// paint order: last token first; RTL runs reversed inside, LTR runs as-is
+	mut out := ''
+	mut ti := tokens.len - 1
+	for ti >= 0 {
+		mut tk := tokens[ti]
+		if tk.len > 0 {
+			first := int(tk[0])
+			if first >= 0x0600 && first <= 0x06FF {
+				tk = tk.reverse()
+				for ch in tk {
+					out += ch.str()
+				}
+			} else {
+				for ch in tk {
+					out += ch.str()
+				}
+			}
+		}
+		ti--
+	}
+	return out
+}
+
+// tr translates a chrome key for the app's active language.
+fn tr(app &GuiApp, key string) string {
+	row := i18n_table[key] or { return key }
+	return match app.lang {
+		.en { row.en }
+		.es { row.es }
+		.zh { row.zh }
+		.ar { rtl_text(row.ar) }
+	}
+}
+
+// trs same as tr but for a bare lang (status bar helpers without app ref).
+fn trl(l Lang, key string) string {
+	row := i18n_table[key] or { return key }
+	return match l {
+		.en { row.en }
+		.es { row.es }
+		.zh { row.zh }
+		.ar { row.ar }
+	}
+}
+
+// needs_sc reports whether the string contains CJK glyphs (draw with SC subset).
+// NOTE: `for ch in s` iterates UTF-8 BYTES in V 0.5.2 — iterate .runes().
+fn needs_sc(s string) bool {
+	for ch in s.runes() {
+		if int(ch) >= 0x2E80 && int(ch) <= 0x9FFF {
+			return true
+		}
+	}
+	return false
+}
+
+// needs_ar reports whether the string contains Arabic glyphs.
+fn needs_ar(s string) bool {
+	for ch in s.runes() {
+		if int(ch) >= 0x0600 && int(ch) <= 0x06FF {
+			return true
+		}
+	}
+	return false
+}
+
+// family_for picks the right font path for a string in the active language —
+// '' keeps the default (Plex Sans). Layout of Arabic shaping is handled by
+// fontstash (harfbuzz-less: Plex Arabic presents isolated forms acceptably).
+fn family_for(app &GuiApp, s string) string {
+	if needs_sc(s) {
+		return app.fonts.sc
+	}
+	if needs_ar(s) {
+		return if s.contains('#bd') {
+			app.fonts.arabicbd
+		} else {
+			app.fonts.arabic
+		}
+	}
+	return ''
+}
+
+// display_family returns the Fraunces path for letterhead display text,
+// or the per-language family when the text is translated (zh/ar).
+fn display_family(app &GuiApp, s string) string {
+	f := family_for(app, s)
+	if f != '' {
+		return f
+	}
+	return app.fonts.display
+}
+
+// draw_script_text — draw a ready string with automatic script font (same body
+// as draw_text_l — the tab path, which is the one that always renders).
+fn draw_script_text(mut app GuiApp, x int, y int, s string, cfg gg.TextCfg) {
+	f := family_for(app, s)
+	if f != '' {
+		c := gg.TextCfg{
+			color: cfg.color
+			size: cfg.size
+			align: cfg.align
+			max_width: cfg.max_width
+			family: f
+			bold: cfg.bold
+			mono: cfg.mono
+			italic: cfg.italic
+		}
+		app.gg.draw_text(x, y, s, c)
+		return
+	}
+	app.gg.draw_text(x, y, s, cfg)
+}
+
+// draw_text_l draws a translated string — resolves script font automatically.
+fn draw_text_l(mut app GuiApp, x int, y int, key string, cfg gg.TextCfg) {
+	s := tr(app, key)
+	f := family_for(app, s)
+	if f != '' {
+		// NOTE: build the literal directly — struct-update spread (`...cfg`)
+		// silently drops `family` in V 0.5.2 struct literals.
+		c := gg.TextCfg{
+			color: cfg.color
+			size: cfg.size
+			align: cfg.align
+			max_width: cfg.max_width
+			family: f
+			bold: cfg.bold
+			mono: cfg.mono
+			italic: cfg.italic
+		}
+		app.gg.draw_text(x, y, s, c)
+		return
+	}
+	app.gg.draw_text(x, y, s, cfg)
+}
+
+// lang_cfg resolves the script font for a translated string into a STABLE cfg
+// (field-access fonts only — see family_for note).
+fn lang_cfg(app &GuiApp, s string, cfg gg.TextCfg) gg.TextCfg {
+	if needs_sc(s) {
+		return gg.TextCfg{
+			color: cfg.color
+			size: cfg.size
+			align: cfg.align
+			max_width: cfg.max_width
+			family: app.fonts.sc
+			bold: cfg.bold
+			mono: cfg.mono
+			italic: cfg.italic
+		}
+	}
+	if needs_ar(s) {
+		return gg.TextCfg{
+			color: cfg.color
+			size: cfg.size
+			align: cfg.align
+			max_width: cfg.max_width
+			family: app.fonts.arabic
+			bold: cfg.bold
+			mono: cfg.mono
+			italic: cfg.italic
+		}
+	}
+	return cfg
 }
 
 fn panel_name(i int) string {
@@ -468,6 +978,51 @@ fn panel_name(i int) string {
 		12 { 'Insights' }
 		else { 'World' }
 	}
+}
+
+// panel_key maps dock index → i18n key.
+fn panel_key(i int) string {
+	return match i {
+		0 { 'panel.world' }
+		1 { 'panel.skills' }
+		2 { 'panel.agents' }
+		3 { 'panel.mcp' }
+		4 { 'panel.targets' }
+		5 { 'panel.doctor' }
+		6 { 'panel.jobs' }
+		7 { 'panel.loops' }
+		8 { 'panel.swarm' }
+		9 { 'panel.workspace' }
+		10 { 'panel.products' }
+		11 { 'panel.onboarding' }
+		12 { 'panel.insights' }
+		else { 'panel.world' }
+	}
+}
+
+fn desc_key(i int) string {
+	return 'desc.' + panel_key(i)[6..]
+}
+
+// ── RTL geometry — when عربي is active the filing-cabinet flips: dock right,
+// inspector left, panels between. LTR default unchanged. ──
+const dock_w = 200
+const inspector_w = 300
+
+fn dock_x(app &GuiApp, w int) int {
+	return if app.lang.is_rtl() { w - dock_w } else { 0 }
+}
+
+fn inspector_x(app &GuiApp, w int) int {
+	return if app.lang.is_rtl() { 0 } else { w - inspector_w }
+}
+
+fn panel_fx(app &GuiApp) int {
+	return if app.lang.is_rtl() { inspector_w + 8 } else { dock_w + 8 }
+}
+
+fn panel_fw(app &GuiApp, w int) int {
+	return w - (dock_w + 8) - inspector_w
 }
 
 fn panel_desc(i int) string {
@@ -611,8 +1166,7 @@ fn filtered_palette(query string) []PaletteItem {
 	// manual sort to avoid V3 generic monomorphize segfault (see swarm_service fix)
 	for i := 1; i < scored.len; i++ {
 		mut j := i
-		for j > 0 && (scored[j].score > scored[j - 1].score
-			|| (scored[j].score == scored[j - 1].score && scored[j].item.label < scored[j - 1].item.label)) {
+		for j > 0 && (scored[j].score > scored[j - 1].score || (scored[j].score == scored[j - 1].score && scored[j].item.label < scored[j - 1].item.label)) {
 			tmp := scored[j]
 			scored[j] = scored[j - 1]
 			scored[j - 1] = tmp
@@ -655,8 +1209,8 @@ fn desks_for_app(app &GuiApp) []Desk {
 					'holistic'} else if roles[r][c] == 'specialist' {
 					'specialist'} else {
 					'runtime'}
-				x: 260 + c * 190
-				y: 90 + r * 135
+				x: 220 + c * 166
+				y: 92 + r * 130
 				status: statuses[idx % statuses.len]
 			}
 		}
@@ -920,11 +1474,11 @@ fn copy_to_clipboard(mut app GuiApp, text string) {
 }
 
 fn term_visible_rows(term_h int) int {
-	usable := term_h - 28 // header 28, content rest
-	if usable < 24 {
+	usable := term_h - 64 // header 24 + prompt 18 + margins
+	if usable < 16 {
 		return 1
 	}
-	return usable / 14
+	return usable / 16
 }
 
 // ── Global zoom — Dunder paper office scaling ──
@@ -944,16 +1498,32 @@ fn zoom_step(z f64, dir int) f64 {
 	return clamp_zoom(z + f64(dir) * 0.05)
 }
 
+// type_ramp — canonical pixel sizes. Zoom SNAPS to this ramp: the fontstash
+// atlas (fixed 2048², sfons cannot expand) holds one bitmap per (font,size) —
+// a continuous zoom would mint a new glyph set per step and overflow the
+// atlas (random .notdef tofu). A 12-step ramp keeps the working set bounded.
+const type_ramp = [10, 11, 12, 13, 14, 16, 18, 22, 26, 32, 40, 48]!
+
+fn snap_size(s int) int {
+	if s <= type_ramp[0] {
+		return type_ramp[0]
+	}
+	if s >= type_ramp[type_ramp.len - 1] {
+		return type_ramp[type_ramp.len - 1]
+	}
+	for i in 1 .. type_ramp.len {
+		if s <= type_ramp[i] {
+			lo := type_ramp[i - 1]
+			hi := type_ramp[i]
+			return if s - lo < hi - s { lo } else { hi }
+		}
+	}
+	return type_ramp[type_ramp.len - 1]
+}
+
 fn scaled_size(base int, zoom f64) int {
-	// round to nearest, clamp 8..64 to keep 60FPS bbox stable
-	mut s := int(f64(base) * zoom + 0.5)
-	if s < 8 {
-		s = 8
-	}
-	if s > 64 {
-		s = 64
-	}
-	return s
+	// snap to the canonical ramp — bounded atlas, disciplined type scale
+	return snap_size(int(f64(base) * zoom + 0.5))
 }
 
 fn zoom_percent(z f64) string {
@@ -979,6 +1549,8 @@ fn main() {
 		eprintln('desktop boot failed: ${err}')
 		exit(1)
 	}
+	fonts := resolve_fonts()
+	println('fonts: dir=${fonts.dir} display=${os.file_name(fonts.display)} sans=${os.file_name(fonts.sans)} mono=${os.file_name(fonts.mono)} sc=${os.file_name(fonts.sc)} arabic=${os.file_name(fonts.arabic)}')
 	println(d.smoke_message())
 	if headless {
 		d.shutdown() or {}
@@ -988,6 +1560,7 @@ fn main() {
 	}
 	mut app := &GuiApp{
 		desktop: d
+		fonts: fonts
 		selected_panel: 0
 		hover_panel: -1
 		selected_desk: 0
@@ -1003,6 +1576,8 @@ fn main() {
 		event_fn: on_event
 		user_data: app
 		init_fn: on_init
+		font_path: fonts.sans
+		custom_bold_font_path: fonts.sans_bd
 	)
 	app.gg.run()
 	d.shutdown() or {}
@@ -1060,12 +1635,12 @@ fn on_init(mut app GuiApp) {
 	// stations — 64×64, 4px grid, pixel-snapped
 	app.stations = [
 		Station{'desk', 'Desk', 0, 0, 32, 32, 'desk', col_wood_light},
-		Station{'shelf', 'File shelf', 520, 140, 64, 48, 'shelf', col_wood_dark},
-		Station{'terminal', 'Terminal', 680, 240, 32, 48, 'terminal', col_ink},
-		Station{'portal', 'Web portal', 820, 180, 48, 48, 'portal', col_lilac},
-		Station{'mcp', 'MCP corner', 880, 320, 48, 48, 'mcp', col_sky},
-		Station{'board', 'Task board', 420, 320, 32, 48, 'board', col_cream200},
-		Station{'mailbox', 'Mailbox', 640, 100, 16, 24, 'mailbox', col_coral},
+		Station{'mailbox', 'Mailbox', 866, 100, 16, 24, 'mailbox', col_coral},
+		Station{'shelf', 'File shelf', 906, 180, 64, 48, 'shelf', col_wood_dark},
+		Station{'terminal', 'Terminal', 922, 260, 32, 48, 'terminal', col_ink},
+		Station{'portal', 'Web portal', 906, 340, 48, 48, 'portal', col_lilac},
+		Station{'mcp', 'MCP corner', 906, 420, 48, 48, 'mcp', col_sky},
+		Station{'board', 'Task board', 916, 500, 40, 48, 'board', col_cream200},
 	]
 	// kanban — todo/doing/done with dependencies
 	app.kanban = [
@@ -1238,6 +1813,15 @@ fn frame(mut app GuiApp) {
 			app.ghost_last_idx = all_ghost.len
 		}
 	}
+	// terminal height modes — 1× compact / 2× tall / MAX full-content / hidden (^` cycles 0→1→2)
+	app.term_visible = app.term_mode != 3
+	if app.term_visible {
+		app.term_height = match app.term_mode {
+			1 { 320 }
+			2 { app.gg.height - 44 - 28 }
+			else { 148 }
+		}
+	}
 	// libghostty-vt resize to fit terminal area — potent: derive cols/rows from actual pixel area
 	// 80x18 is the logical default, but bottom strip is ~148px tall → dynamic 76x8 at 1280 width.
 	// Compute so window resize keeps Ghostty crisp and per-agent stays 40x6.
@@ -1251,12 +1835,12 @@ fn frame(mut app GuiApp) {
 		if cols_g > 120 {
 			cols_g = 120
 		}
-		mut rows_g := (app.term_height - 36) / 14
+		mut rows_g := (app.term_height - 64) / 16
 		if rows_g < 4 {
 			rows_g = 4
 		}
-		if rows_g > 24 {
-			rows_g = 24
+		if rows_g > 48 {
+			rows_g = 48
 		}
 		app.ghost.resize(cols_g, rows_g)
 	} else {
@@ -1326,18 +1910,18 @@ fn frame(mut app GuiApp) {
 	}
 	// left — commands hint + GOD mailbox envelopes glow + rev
 	mut left_x := 12
-	app.gg.draw_text(left_x, h - 19, '⌘K', gg.TextCfg{ color: col_brass, size: scaled_size(11, app.global_zoom), bold: true })
+	app.gg.draw_text(left_x, h - 19, '/', gg.TextCfg{ color: col_brass, size: scaled_size(11, app.global_zoom), bold: true })
 	left_x += 24
-	app.gg.draw_text(left_x, h - 19, 'palette', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
+	draw_text_l(mut app, left_x, h - 19, 'status.palette', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
 	left_x += 46
-	// envelopes signature — paper envelope glyph with rust glow dot when inbox>0
-	env_txt := '✉ ${app.god_inbox}→${app.god_outbox}'
+	// envelopes signature — drawn paper envelope with rust glow dot when inbox>0
 	env_col := if app.god_inbox > 0 { col_brass } else { col_slate }
-	app.gg.draw_text(left_x, h - 19, env_txt, gg.TextCfg{ color: env_col, size: scaled_size(11, app.global_zoom) })
+	draw_envelope(mut app, left_x, h - 17, env_col)
+	app.gg.draw_text(left_x + 12, h - 19, '${app.god_inbox}→${app.god_outbox}', gg.TextCfg{ color: env_col, size: scaled_size(11, app.global_zoom) })
 	if app.god_inbox > 0 && app.frame % 40 < 20 {
 		app.gg.draw_rect_filled(left_x - 6, h - 14, 4, 4, gg.rgba(196, 90, 60, 88))
 	}
-	left_x += 64
+	left_x += 58
 	app.gg.draw_text(left_x, h - 19, '•  rev ${app.engine_rev}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
 	left_x += 78
 	// mini zoom slider in status bar — paper tape style
@@ -1347,14 +1931,26 @@ fn frame(mut app GuiApp) {
 	app.gg.draw_rect_filled(zx2, zy2, zw2, 4, col_paper_dim)
 	app.gg.draw_rect_empty(zx2, zy2, zw2, 4, col_line_light)
 	mut pct2 := (app.global_zoom - 0.75) / 0.75
-	if pct2 < 0 { pct2 = 0 }
-	if pct2 > 1 { pct2 = 1 }
+	if pct2 < 0 {
+		pct2 = 0
+	}
+	if pct2 > 1 {
+		pct2 = 1
+	}
 	fw2 := int(f64(zw2) * pct2)
 	if fw2 > 0 { app.gg.draw_rect_filled(zx2, zy2, fw2, 4, col_brass) }
 	mut thx2 := zx2 + fw2 - 4
-	if thx2 < zx2 { thx2 = zx2 }
-	if thx2 > zx2 + zw2 - 6 { thx2 = zx2 + zw2 - 6 }
-	app.gg.draw_rect_filled(thx2, zy2 - 3, 6, 10, if app.zoom_dragging { col_brass } else { col_paper })
+	if thx2 < zx2 {
+		thx2 = zx2
+	}
+	if thx2 > zx2 + zw2 - 6 {
+		thx2 = zx2 + zw2 - 6
+	}
+	app.gg.draw_rect_filled(thx2, zy2 - 3, 6, 10, if app.zoom_dragging {
+		col_brass
+	} else {
+		col_paper
+	})
 	app.gg.draw_rect_empty(thx2, zy2 - 3, 6, 10, col_brass_dim)
 	app.gg.draw_text(zx2 + zw2 + 6, h - 19, zoom_percent(app.global_zoom), gg.TextCfg{ color: col_ink500, size: scaled_size(10, app.global_zoom) })
 	// center — frame + 60FPS indicator (paper dot pulses at 60FPS)
@@ -1368,11 +1964,43 @@ fn frame(mut app GuiApp) {
 	app.gg.draw_rect_filled(w - 238, h - 22, 72, 16, col_paper_dim)
 	app.gg.draw_rect_empty(w - 238, h - 22, 72, 16, col_line_light)
 	app.gg.draw_text(w - 230, h - 18, 'main', gg.TextCfg{ color: col_ink700, size: scaled_size(10, app.global_zoom), mono: true })
-	app.gg.draw_text(w - 160, h - 19, 'Paper Co.', gg.TextCfg{ color: col_slate, size: scaled_size(11, app.global_zoom), bold: true })
+	draw_text_l(mut app, w - 160, h - 19, 'status.paperco', gg.TextCfg{ color: col_slate, size: scaled_size(11, app.global_zoom), bold: true })
 	app.gg.draw_text(w - 100, h - 19, '3847', gg.TextCfg{ color: col_ink500, size: scaled_size(11, app.global_zoom), mono: true })
 	// brass rivet at right edge
 	app.gg.draw_rect_filled(w - 8, h - 16, 2, 2, gg.rgba(193, 162, 75, 42))
 	app.gg.end()
+}
+
+// draw_envelope — tiny paper envelope from primitives (glyph ✉ is not in the
+// bundled Plex fonts; primitives are crisper anyway and stay pixel-true).
+fn draw_envelope(mut app GuiApp, x int, y int, col gg.Color) {
+	app.gg.draw_rect_filled(x, y + 1, 9, 6, gg.rgba(0, 0, 0, 50))
+	app.gg.draw_rect_filled(x, y, 9, 6, col_paper)
+	app.gg.draw_rect_empty(x, y, 9, 6, col)
+	app.gg.draw_line(x, y, x + 4, y + 3, col)
+	app.gg.draw_line(x + 4, y + 3, x + 9, y, col)
+}
+
+// draw_search_lens — small magnifier from primitives (⌕ missing in Plex).
+fn draw_search_lens(mut app GuiApp, x int, y int) {
+	app.gg.draw_rect_empty(x, y, 8, 8, col_brass_dim)
+	app.gg.draw_rect_empty(x + 1, y + 1, 6, 6, col_brass_dim)
+	app.gg.draw_line(x + 7, y + 7, x + 11, y + 11, col_brass_dim)
+	app.gg.draw_line(x + 8, y + 7, x + 11, y + 10, col_brass_dim)
+}
+
+// draw_floor_legend — status swatches drawn as squares (● ○ ■ missing in Plex).
+// Text uses steel — the legend strip sits on the dark floor vignette bar.
+fn draw_floor_legend(mut app GuiApp, x int, y int) {
+	app.gg.draw_rect_filled(x, y + 3, 7, 7, col_status_working)
+	draw_text_l(mut app, x + 12, y, 'world.working', gg.TextCfg{ color: col_slate, size: 12 })
+	ox := x + 12 + tr(app, 'world.working').len * 7 + 12
+	app.gg.draw_rect_filled(ox, y + 3, 7, 7, gg.rgba(154, 154, 150, 130))
+	draw_text_l(mut app, ox + 12, y, 'world.idle', gg.TextCfg{ color: col_slate, size: 12 })
+	bx := ox + 12 + tr(app, 'world.idle').len * 7 + 12
+	app.gg.draw_rect_filled(bx, y + 3, 7, 7, col_status_blocked)
+	draw_text_l(mut app, bx + 12, y, 'world.blocked', gg.TextCfg{ color: col_slate, size: 12 })
+	app.gg.draw_text(bx + 12 + tr(app, 'world.blocked').len * 7 + 14, y, '— envelopes are handoffs · click or arrows to select', gg.TextCfg{ color: col_slate, size: 12 })
 }
 
 fn draw_header(mut app GuiApp, w int) {
@@ -1392,16 +2020,25 @@ fn draw_header(mut app GuiApp, w int) {
 	}
 	// brass binder rivet left
 	app.gg.draw_rect_filled(8, 10, 3, 3, gg.rgba(193, 162, 75, 50))
-	// Fraunces display — Agent (paper) + Toolkit (brass) + Desktop (navy on paper badge)
-	app.gg.draw_text(16, 13, 'Agent Toolkit', gg.TextCfg{ color: col_paper, size: scaled_size(font_display_md, z), bold: false })
-	app.gg.draw_text(146, 13, 'Desktop', gg.TextCfg{ color: col_brass, size: scaled_size(font_display_md, z), bold: false })
-	app.gg.draw_text(230, 15, 'V + libghostty-vt  •  Paper Co. Office', gg.TextCfg{ color: col_slate_dim, size: scaled_size(font_body_sm, z) })
+	// Fraunces display letterhead — Agent (paper) + Toolkit (brass)
+	app.gg.draw_text(16, 13, 'Agent Toolkit', gg.TextCfg{
+		color: col_paper
+		size: scaled_size(font_display_md, z)
+		family: app.fonts.display
+	})
+	app.gg.draw_text(152, 13, 'Desktop', gg.TextCfg{
+		color: col_brass
+		size: scaled_size(font_display_md, z)
+		family: app.fonts.display
+	})
+	// tagline — short, clears the search slot at x=380
+	draw_text_l(mut app, 240, 16, 'header.tagline', gg.TextCfg{ color: col_slate_dim, size: scaled_size(font_body_sm, z) })
 	// ── global search — warm paper slot with manila border, tractor-feed dots ──
 	sx_search := 380
 	sw_search := 260
 	sy_search := 8
 	search_focused := app.header_search_focus
-	search_txt := if app.global_search == '' { 'Search 227 skills, desks, files…' } else { app.global_search }
+	search_txt := if app.global_search == '' { tr(app, 'header.search') } else { app.global_search }
 	search_col := if app.global_search == '' { col_slate_dim } else { col_ink }
 	search_bg := if search_focused { col_cream100 } else { col_paper }
 	search_bd := if search_focused { col_brass } else { col_line_light }
@@ -1411,8 +2048,14 @@ fn draw_header(mut app GuiApp, w int) {
 	for py in 0 .. 3 {
 		app.gg.draw_rect_filled(sx_search + 4, sy_search + 6 + py * 7, 1, 1, gg.rgba(193, 162, 75, 34))
 	}
-	app.gg.draw_text(sx_search + 12, sy_search + 8, '⌕', gg.TextCfg{ color: col_brass_dim, size: scaled_size(12, z) })
-	app.gg.draw_text(sx_search + 26, sy_search + 8, search_txt, gg.TextCfg{ color: search_col, size: scaled_size(12, z) })
+	draw_search_lens(mut app, sx_search + 10, sy_search + 9)
+	st_fam := if app.global_search == '' { family_for(app, search_txt) } else { '' }
+	st_cfg := gg.TextCfg{
+		color: search_col
+		size: scaled_size(12, z)
+		family: st_fam
+	}
+	app.gg.draw_text(sx_search + 26, sy_search + 8, search_txt, st_cfg)
 	// cursor when focused
 	if search_focused && app.frame % 30 < 15 && app.global_search != '' {
 		cursor_x := sx_search + 26 + app.global_search.len * 7
@@ -1429,11 +2072,43 @@ fn draw_header(mut app GuiApp, w int) {
 		cnt := app.desktop.engine_skills_search(app.global_search, '').len
 		app.gg.draw_text(sx_search + sw_search + 8, sy_search + 9, '${cnt} match', gg.TextCfg{ color: col_brass_dim, size: scaled_size(11, z) })
 	}
-	ver := '1.28.0'
-	app.gg.draw_text(w - 320, 10, 'v${ver}', gg.TextCfg{ color: col_paper_dim, size: scaled_size(13, z) })
-	app.gg.draw_text(w - 254, 10, '● live', gg.TextCfg{ color: col_mint, size: scaled_size(13, z), bold: true })
+	// ── language chips — EN / ES / 中文 / عربي (i18n 4-lang, RTL aware) ──
+	lx := w - 466
+	for li, l in [Lang.en, Lang.es, Lang.zh, Lang.ar] {
+		active := app.lang == l
+		label := l.chip()
+		cw := if label.len <= 2 { 30 } else { 38 }
+		chx := lx + li * 40
+		mut chbg := if active { col_brass } else { col_charcoal2 }
+		mut chbd := if active { col_brass } else { col_line }
+		hover_lg := app.lang_hover == int(l)
+		if hover_lg && !active {
+			chbg = col_ink700
+			chbd = col_line_light
+		}
+		app.gg.draw_rect_filled(chx, 10, cw, 18, chbg)
+		app.gg.draw_rect_empty(chx, 10, cw, 18, chbd)
+		mut fam := ''
+		if li == 2 {
+			fam = app.fonts.sc
+		} else if li == 3 {
+			fam = app.fonts.arabic
+		}
+		lcfg := gg.TextCfg{
+			color: if active { col_ink } else { col_slate_dim }
+			size: 11
+			bold: active
+			family: fam
+		}
+		app.gg.draw_text(chx + (cw - label.len * 6) / 2, 14, label, lcfg)
+	}
+	app.gg.draw_text(w - 895 - 400, 14, '中文', gg.TextCfg{ color: gg.rgb(0xC4, 0x5A, 0x3C), size: 11, family: app.fonts.sc })
+	eprintln('CHIPDBG lang=${app.lang} label0=${i18n_table['panel.world'].zh} f=[${app.fonts.sc}]')
+	app.gg.draw_text(w - 300, 10, 'v${app.version}', gg.TextCfg{ color: col_paper_dim, size: scaled_size(13, z) })
+	app.gg.draw_rect_filled(w - 530, 14, 7, 7, col_mint)
+	draw_text_l(mut app, w - 518, 10, 'header.live', gg.TextCfg{ color: col_mint, size: scaled_size(13, z), bold: true })
 	// ── global zoom slider — paper tape track with brass thumb, 60FPS drag ──
-	zx := w - 214
+	zx := w - 236
 	zy := 18
 	zw := 84
 	zh := 6
@@ -1442,16 +2117,24 @@ fn draw_header(mut app GuiApp, w int) {
 	app.gg.draw_rect_empty(zx, zy, zw, zh, col_line_light)
 	// fill proportionally: 0.75→0, 1.0→33%, 1.5→100%
 	mut pct := (z - 0.75) / 0.75
-	if pct < 0 { pct = 0 }
-	if pct > 1 { pct = 1 }
+	if pct < 0 {
+		pct = 0
+	}
+	if pct > 1 {
+		pct = 1
+	}
 	fill_w := int(f64(zw) * pct)
 	if fill_w > 0 {
 		app.gg.draw_rect_filled(zx, zy, fill_w, zh, col_brass)
 	}
 	// thumb — brass with ink border, paper highlight
 	mut thumb_x := zx + fill_w - 5
-	if thumb_x < zx { thumb_x = zx }
-	if thumb_x > zx + zw - 8 { thumb_x = zx + zw - 8 }
+	if thumb_x < zx {
+		thumb_x = zx
+	}
+	if thumb_x > zx + zw - 8 {
+		thumb_x = zx + zw - 8
+	}
 	thumb_col := if app.zoom_dragging { col_brass } else { col_paper }
 	app.gg.draw_rect_filled(thumb_x, zy - 4, 10, 14, thumb_col)
 	app.gg.draw_rect_empty(thumb_x, zy - 4, 10, 14, col_brass_dim)
@@ -1469,25 +2152,39 @@ fn draw_header(mut app GuiApp, w int) {
 	for py in 0 .. 2 {
 		app.gg.draw_rect_filled(bx + 1, by + 6 + py * 8, 1, 1, gg.rgba(193, 162, 75, 60))
 	}
-	app.gg.draw_text(bx + 16, by + 6, '⌘K', gg.TextCfg{ color: col_brass, size: scaled_size(13, z), bold: true })
-	app.gg.draw_text(bx + 40, by + 7, 'commands', gg.TextCfg{ color: col_slate_dim, size: scaled_size(12, z) })
+	app.gg.draw_text(bx + 16, by + 6, '/', gg.TextCfg{ color: col_brass, size: scaled_size(13, z), bold: true })
+	draw_text_l(mut app, bx + 40, by + 7, 'header.commands', gg.TextCfg{ color: col_slate_dim, size: scaled_size(12, z) })
 }
 
 fn draw_left_dock(mut app GuiApp, h int) {
 	z := app.global_zoom
 	term_h := if app.term_visible { app.term_height } else { 0 }
 	y0 := 45
+	dw := dock_w
+	dock_l := if app.lang.is_rtl() { app.gg.width - dw } else { 0 }
 	// file drawer — ink spine with manila edge
-	app.gg.draw_rect_filled(0, y0, 200, h - y0 - 28 - term_h, col_charcoal)
+	app.gg.draw_rect_filled(dock_l, y0, dw, h - y0 - 28 - term_h, col_charcoal)
+	// manila folder tab — the filing-cabinet signature, top of the spine
+	app.gg.draw_rect_filled(dock_l + 12, y0 + 8, 118, 16, col_manila_tab)
+	app.gg.draw_rect_filled(dock_l + 12, y0 + 22, 118, 1, gg.rgba(201, 168, 107, 90))
+	draw_text_l(mut app, dock_l + 20, y0 + 11, 'header.tagline', gg.TextCfg{
+		color: col_ink
+		size: scaled_size(10, z)
+		bold: true
+	})
 	// vertical perforated dots each 16px along spine (paper-company file)
 	for py in 0 .. ((h - y0 - term_h) / 16) {
-		py_y := y0 + 8 + py * 16
+		py_y := y0 + 34 + py * 16
 		if py_y < h - 28 - term_h - 12 {
-			app.gg.draw_rect_filled(196, py_y, 2, 2, gg.rgba(193, 162, 75, 22))
-			app.gg.draw_rect_filled(197, py_y + 1, 1, 1, gg.rgba(251, 246, 232, 18))
+			mut px := dock_l + dw - 4
+			if app.lang.is_rtl() {
+				px = dock_l + 3
+			}
+			app.gg.draw_rect_filled(px, py_y, 2, 2, gg.rgba(193, 162, 75, 22))
+			app.gg.draw_rect_filled(px + 1, py_y + 1, 1, 1, gg.rgba(251, 246, 232, 18))
 		}
 	}
-	app.gg.draw_line(200, y0, 200, h - 28 - term_h, col_line)
+	app.gg.draw_line(dock_l + dw, y0, dock_l + dw, h - 28 - term_h, col_line)
 	for i in 0 .. 13 {
 		y := y0 + 8 + i * 32
 		if y + 30 > h - 28 - term_h - 40 {
@@ -1495,13 +2192,15 @@ fn draw_left_dock(mut app GuiApp, h int) {
 		}
 		is_active := i == app.selected_panel
 		is_hover := i == app.hover_panel
+		row_l := dock_l + 8
 		if is_active {
-			app.gg.draw_rect_filled(8, y, 184, 28, col_ink)
-			app.gg.draw_rect_empty(8, y, 184, 28, col_brass)
-			app.gg.draw_rect_filled(8, y, 3, 28, col_brass)
+			app.gg.draw_rect_filled(row_l, y, dw - 16, 28, col_ink)
+			app.gg.draw_rect_empty(row_l, y, dw - 16, 28, col_brass)
+			rail_x := if app.lang.is_rtl() { row_l + dw - 16 - 3 } else { row_l }
+			app.gg.draw_rect_filled(rail_x, y, 3, 28, col_brass)
 		} else if is_hover {
-			app.gg.draw_rect_filled(8, y, 184, 28, col_charcoal2)
-			app.gg.draw_rect_empty(8, y, 184, 28, col_line_light)
+			app.gg.draw_rect_filled(row_l, y, dw - 16, 28, col_charcoal2)
+			app.gg.draw_rect_empty(row_l, y, dw - 16, 28, col_line_light)
 		}
 		mut num := '${i + 1}'
 		if i == 9 {
@@ -1513,16 +2212,30 @@ fn draw_left_dock(mut app GuiApp, h int) {
 		} else if i == 12 {
 			num = 'I'
 		}
+		// number sits at the outer edge (left LTR / right RTL)
+		num_x := if app.lang.is_rtl() { row_l + dw - 34 } else { row_l + 10 }
+		txt_x := if app.lang.is_rtl() { row_l + 12 } else { row_l + 28 }
 		col := if is_active { col_brass } else { col_slate_dim }
-		app.gg.draw_text(18, y + 8, num, gg.TextCfg{ color: col, size: scaled_size(12, z), bold: true })
-		app.gg.draw_text(36, y + 4, panel_name(i), gg.TextCfg{
-			color: if is_active {
-				col_paper} else {
-				gg.rgb(232, 222, 200)}
+		app.gg.draw_text(num_x, y + 8, num, gg.TextCfg{ color: col, size: scaled_size(12, z), bold: true })
+		name := tr(app, panel_key(i))
+		desc := tr(app, desc_key(i))
+		name_col := if is_active { col_paper } else { gg.rgb(232, 222, 200) }
+		draw_script_text(mut app, txt_x, y + 4, name, gg.TextCfg{
+			color: name_col
 			size: scaled_size(14, z)
 			bold: is_active
 		})
-		app.gg.draw_text(36, y + 16, panel_desc(i), gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, z) })
+		desc_align := if app.lang.is_rtl() {
+			gg.HorizontalAlign.right
+		} else {
+			gg.HorizontalAlign.left
+		}
+		desc_x := if app.lang.is_rtl() { row_l + dw - 24 } else { txt_x }
+		draw_script_text(mut app, desc_x, y + 16, desc, gg.TextCfg{
+			color: col_slate_dim
+			size: scaled_size(11, z)
+			align: desc_align
+		})
 		count := match i {
 			1 { '227' }
 			2 { '18' }
@@ -1536,7 +2249,7 @@ fn draw_left_dock(mut app GuiApp, h int) {
 			11 {
 				if app.desktop != unsafe { nil } && app.desktop.engine_is_first_run() { '!' } else { '✓' }
 			}
-			12 { '◉' }
+			12 { '•' }
 			else { '' }
 		}
 		if count != '' {
@@ -1545,12 +2258,15 @@ fn draw_left_dock(mut app GuiApp, h int) {
 			} else {
 				col_slate
 			}
-			app.gg.draw_text(172, y + 9, count, gg.TextCfg{ color: bcol, size: 12, bold: i == 11 })
+			cnt_x := if app.lang.is_rtl() { row_l + 12 } else { row_l + dw - 40 }
+			app.gg.draw_text(cnt_x, y + 9, count, gg.TextCfg{ color: bcol, size: 12, bold: i == 11 })
 		}
 	}
 	term_h2 := if app.term_visible { app.term_height } else { 0 }
-	app.gg.draw_text(14, h - 52 - term_h2, 'Single binary, one Engine', gg.TextCfg{ color: col_slate, size: 12 })
-	app.gg.draw_text(14, h - 40 - term_h2, 'No Electron • Sokol/gg', gg.TextCfg{ color: col_slate, size: 12 })
+	foot1 := 'Single binary, one Engine'
+	foot2 := 'No Electron • Sokol/gg'
+	app.gg.draw_text(dock_l + 14, h - 52 - term_h2, foot1, gg.TextCfg{ color: col_slate, size: 12 })
+	app.gg.draw_text(dock_l + 14, h - 40 - term_h2, foot2, gg.TextCfg{ color: col_slate, size: 12 })
 }
 
 fn draw_world(mut app GuiApp, w int, h int) {
@@ -1558,9 +2274,9 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// Super-potent signature: unique floor texture (wood grain + grass tuft + terrazzo speck), avatar trails,
 	// envelope floor shadows, station glow, command deck kanban/fleet/CI alt divergence — native V gg only.
 	term_h_w := if app.term_visible { app.term_height } else { 0 }
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	fh := h - 52 - 28 - term_h_w
 	// Floor — Dunder Mifflin warm paper #F4EFE6 with manila ruled lines + fiber grain
 	// Office paper stock: base warm paper, ruled horizontal steel lines every 24px, vertical rust margin
@@ -1568,7 +2284,9 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// ruled horizontal lines — steel #8A9BA8 at 12% every 24px (college-ruled)
 	for ry in 0 .. ((fh - 36) / 24 + 1) {
 		ly := fy + 36 + ry * 24 + 12
-		if ly >= fy + fh - 1 { continue }
+		if ly >= fy + fh - 1 {
+			continue
+		}
 		app.gg.draw_line(fx + 12, ly, fx + fw - 12, ly, gg.rgba(138, 155, 168, 16))
 		if ry % 2 == 0 {
 			app.gg.draw_rect_filled(fx + 18, ly - 1, 2, 1, gg.rgba(201, 168, 107, 18))
@@ -1636,8 +2354,12 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(fx, fy, fw, 36, col_cream100)
 	app.gg.draw_rect_filled(fx, fy + 34, fw, 2, col_cream200)
 	app.gg.draw_line(fx, fy + 36, fx + fw, fy + 36, col_ink)
-	app.gg.draw_text(fx + 12, fy + 12, 'Office Floor', gg.TextCfg{ color: col_ink, size: font_display_md, bold: false })
-	app.gg.draw_text(fx + 140, fy + 14, '${desks_for_app(app).len} desks • envelopes are handoffs • click a desk or use arrow keys', gg.TextCfg{ color: col_ink700, size: font_body_sm })
+	app.gg.draw_text(fx + 20, fy + 12, tr(app, 'world.title'), gg.TextCfg{
+		color: col_ink
+		size: font_display_md
+		family: app.fonts.display
+	})
+	app.gg.draw_text(fx + 160, fy + 16, '${desks_for_app(app).len} ${tr(app, 'world.subtitle')}', gg.TextCfg{ color: col_ink_soft, size: font_body_sm })
 
 	desks := desks_for_app(app)
 
@@ -1741,7 +2463,6 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		app.gg.draw_line(x + 8, y + 4, x + 16, y, col_brass_dim)
 		// inner envelope shadow 1px bottom edge for depth
 		app.gg.draw_line(x + 1, y + 7, x + 15, y + 7, gg.rgba(26, 19, 32, 12))
-		app.gg.draw_text(x + 4, y, '✉', gg.TextCfg{ color: col_ink, size: 10 })
 		if desks[a_idx].status == 'blocked' || desks[b_idx].status == 'blocked' {
 			app.gg.draw_rect_filled(x + 12, y + 1, 3, 3, col_oxide)
 		}
@@ -1779,9 +2500,9 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		} else {
 			app.gg.draw_rect_empty(dx + 10, dy + 10, 8, 8, status_col)
 		}
-		label := if d.label.len > 16 { d.label[..16] } else { d.label }
-		// Title Case for display, never ALL CAPS, 8 bold false per munder
-		app.gg.draw_text(dx + 22, dy + 9, label, gg.TextCfg{ color: col_ink, size: font_body_md, bold: false })
+		label := if d.label.len > 17 { d.label[..17] } else { d.label }
+		// Title Case for display, never ALL CAPS
+		app.gg.draw_text(dx + 22, dy + 9, label, gg.TextCfg{ color: col_ink, size: 14, bold: false })
 		app.gg.draw_text(dx + 10, dy + 24, d.role, gg.TextCfg{ color: col_ink700, size: font_body_sm })
 		for a in 0 .. 3 {
 			ax := dx + 10 + a * 16
@@ -1804,7 +2525,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(dx + 10, dy + 60, '${d.tier}  •  ${d.status.to_lower()}', gg.TextCfg{ color: col_ink500, size: font_display_sm })
 		app.gg.draw_text(dx + 10, dy + 72, 'rev ${app.engine_rev + u64(idx)}', gg.TextCfg{ color: col_ink300, size: font_mono_sm })
 		if is_selected {
-			app.gg.draw_text(dx + 118, dy + 72, '◉', gg.TextCfg{ color: col_lemon, size: 10 })
+			app.gg.draw_rect_filled(dx + 118, dy + 74, 5, 5, col_lemon)
 		}
 		// Signature: per-desk libghostty-vt 40×6 micro-strip — 1-line live VT under desk (visible multiplex)
 		if app.per_desk_ghost.len > idx {
@@ -1831,7 +2552,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 							color: if is_selected {
 								col_brass} else {
 								col_slate_dim}
-							size: 9
+							size: 10
 							mono: true
 						})
 						// mini cursor pulse
@@ -1843,7 +2564,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			} else {
 				// idle — show desk VT ready hint faintly when selected/hover
 				if is_selected || is_hover {
-					app.gg.draw_text(dx + 10, dy + 88, 'vt 40×6 ready', gg.TextCfg{ color: gg.rgba(148, 163, 184, 90), size: 9, mono: true })
+					app.gg.draw_text(dx + 10, dy + 88, 'vt 40×6 ready', gg.TextCfg{ color: gg.rgba(148, 163, 184, 90), size: 10, mono: true })
 				}
 			}
 		}
@@ -1980,7 +2701,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			// inner gloss 1px top
 			app.gg.draw_line(ax - 3, ay - 2, ax + 3, ay - 2, gg.rgba(255, 253, 245, 22))
 			glyph := match av.carrying {
-				'paper' { '≡' }
+				'paper' { '—' }
 				'terminal' { '›' }
 				'globe' { '◯' }
 				'magnifier' { '◎' }
@@ -1992,7 +2713,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 				color: if av.carrying == 'paper' {
 					col_ink} else {
 					col_paper}
-				size: 6
+				size: 10
 				bold: true
 			})
 		}
@@ -2002,9 +2723,12 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_empty(ax - 14, ay - 14, 28, 28, gg.rgba(220, 171, 60, 60))
 		}
 	}
-	// GOD / Michael — center office, mailbox with envelope flap animation (signature)
-	god_x := fx + fw / 2 - 40
-	god_y := fy + 56
+	// corridor divider — kraft tape seam between desk grid and the manager corner
+	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, fh - 130, gg.rgba(201, 168, 107, 60))
+	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, 8, gg.rgba(201, 168, 107, 110))
+	// GOD / Michael — manager's corner (right corridor), mailbox with envelope flap animation (signature)
+	god_x := fx + fw - 96
+	god_y := fy + 44
 	pixel_panel(mut app, god_x, god_y, 80, 64, 'dialog')
 	app.gg.draw_text(god_x + 8, god_y + 8, 'Michael', gg.TextCfg{ color: col_ink, size: font_display_md, bold: false })
 	app.gg.draw_text(god_x + 8, god_y + 22, 'GOD', gg.TextCfg{ color: col_coral, size: font_display_sm })
@@ -2028,7 +2752,6 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			// flap open: V shape up (envelope ready to dispatch)
 			app.gg.draw_line(mailbox_x + 1, mailbox_y + 9, mailbox_x + 7, mailbox_y + 13, col_brass)
 			app.gg.draw_line(mailbox_x + 7, mailbox_y + 13, mailbox_x + 13, mailbox_y + 9, col_brass)
-			app.gg.draw_text(mailbox_x + 4, mailbox_y + 11, '✉', gg.TextCfg{ color: col_coral, size: 8 })
 			// dispatch pulse dot
 			if app.frame % 20 < 10 { app.gg.draw_rect_filled(mailbox_x + 6, mailbox_y + 16, 2, 2, col_lemon) }
 		} else {
@@ -2040,7 +2763,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		// inbox count badge
 		badge_col := if app.god_inbox > 2 { col_coral } else { col_lemon }
 		app.gg.draw_rect_filled(mailbox_x + 2, mailbox_y - 2, 10, 8, badge_col)
-		app.gg.draw_text(mailbox_x + 4, mailbox_y - 1, '${app.god_inbox}', gg.TextCfg{ color: col_ink, size: 9, bold: true })
+		app.gg.draw_text(mailbox_x + 4, mailbox_y - 1, '${app.god_inbox}', gg.TextCfg{ color: col_ink, size: 10, bold: true })
 	} else {
 		// empty mailbox — flag down, flap closed
 		app.gg.draw_rect_filled(mailbox_x + 14, mailbox_y + 6, 2, 6, col_ink700)
@@ -2056,7 +2779,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		if ap_txt.len > 14 {
 			ap_txt = ap_txt[..14] + '…'
 		}
-		app.gg.draw_text(god_x + 8, god_y + 44 + i * 10, '• ${ap_txt}', gg.TextCfg{ color: col_ink500, size: 8 })
+		app.gg.draw_text(god_x + 8, god_y + 44 + i * 10, '• ${ap_txt}', gg.TextCfg{ color: col_ink500, size: 10 })
 	}
 	// signature soft shadow under GOD panel — atelier floor shadow (ink 18%)
 	app.gg.draw_rect_filled(god_x + 4, god_y + 64, 76, 4, gg.rgba(26, 19, 32, 18))
@@ -2074,13 +2797,13 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		app.gg.draw_line(deck_x + col_w, deck_y + 6, deck_x + col_w, deck_y + deck_h - 6, gg.rgba(26, 19, 32, 16))
 		app.gg.draw_line(deck_x + col_w * 2, deck_y + 6, deck_x + col_w * 2, deck_y + deck_h - 6, gg.rgba(26, 19, 32, 16))
 		// kanban — todo/doing/done live counts + pri bars
-		app.gg.draw_text(deck_x + 10, deck_y + 6, 'Kanban', gg.TextCfg{ color: col_ink, size: 8, bold: true })
+		app.gg.draw_text(deck_x + 10, deck_y + 6, 'Kanban', gg.TextCfg{ color: col_ink, size: 10, bold: true })
 		todo_n := app.kanban.filter(it.col == 'todo').len
 		doing_n := app.kanban.filter(it.col == 'doing').len
 		done_n := app.kanban.filter(it.col == 'done').len
-		app.gg.draw_text(deck_x + 10, deck_y + 18, 'todo ${todo_n}', gg.TextCfg{ color: col_ink700, size: 7 })
-		app.gg.draw_text(deck_x + 52, deck_y + 18, 'doing ${doing_n}', gg.TextCfg{ color: col_lemon, size: 7, bold: doing_n > 0 })
-		app.gg.draw_text(deck_x + 96, deck_y + 18, 'done ${done_n}', gg.TextCfg{ color: col_mint, size: 7 })
+		app.gg.draw_text(deck_x + 10, deck_y + 18, 'todo ${todo_n}', gg.TextCfg{ color: col_ink700, size: 10 })
+		app.gg.draw_text(deck_x + 52, deck_y + 18, 'doing ${doing_n}', gg.TextCfg{ color: col_lemon, size: 10, bold: doing_n > 0 })
+		app.gg.draw_text(deck_x + 96, deck_y + 18, 'done ${done_n}', gg.TextCfg{ color: col_mint, size: 10 })
 		// pri dots below kanban labels — high/medium/low
 		for ki, k in app.kanban {
 			if ki >= 3 {
@@ -2096,11 +2819,11 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			// inner gloss
 			app.gg.draw_line(deck_x + 11 + ki * 44, deck_y + 28, deck_x + 48 + ki * 44, deck_y + 28, gg.rgba(255, 253, 245, 14))
 		}
-		app.gg.draw_text(deck_x + 10, deck_y + 36, '${app.kanban.len} cards • budgets • verifier', gg.TextCfg{ color: col_ink500, size: 6 })
+		app.gg.draw_text(deck_x + 10, deck_y + 36, '${app.kanban.len} cards • budgets • verifier', gg.TextCfg{ color: col_ink500, size: 10 })
 		// fleet — live health dots per desk + selected halo + working pulse
 		fleet_x := deck_x + col_w + 8
-		app.gg.draw_text(fleet_x, deck_y + 6, 'Fleet', gg.TextCfg{ color: col_ink, size: 8, bold: true })
-		app.gg.draw_text(fleet_x + 36, deck_y + 7, '${desks.len} desks', gg.TextCfg{ color: col_ink700, size: 7 })
+		app.gg.draw_text(fleet_x, deck_y + 6, 'Fleet', gg.TextCfg{ color: col_ink, size: 10, bold: true })
+		app.gg.draw_text(fleet_x + 36, deck_y + 7, '${desks.len} desks', gg.TextCfg{ color: col_ink700, size: 10 })
 		for fi, d in desks {
 			fx2 := fleet_x + (fi % 8) * 8
 			fy2 := deck_y + 18 + (fi / 8) * 8
@@ -2120,19 +2843,19 @@ fn draw_world(mut app GuiApp, w int, h int) {
 				app.gg.draw_rect_empty(fx2 - 1, fy2 - 1, 6, 6, col_lemon)
 			}
 		}
-		app.gg.draw_text(fleet_x, deck_y + 36, 'rev ${app.engine_rev} • fleet glance', gg.TextCfg{ color: col_ink500, size: 6, mono: true })
+		app.gg.draw_text(fleet_x, deck_y + 36, 'rev ${app.engine_rev} • fleet glance', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 		// CI — doctor + jobs live status (workshop CI strip)
 		ci_x := deck_x + col_w * 2 + 8
-		app.gg.draw_text(ci_x, deck_y + 6, 'CI', gg.TextCfg{ color: col_ink, size: 8, bold: true })
+		app.gg.draw_text(ci_x, deck_y + 6, 'CI', gg.TextCfg{ color: col_ink, size: 10, bold: true })
 		// handoff + mercylabs style dots — god inbox/outbox as CI signals
 		app.gg.draw_rect_filled(ci_x, deck_y + 18, 6, 6, if app.god_inbox > 0 {
 			col_lemon
 		} else {
 			col_mint
 		})
-		app.gg.draw_text(ci_x + 10, deck_y + 17, 'handoff in ${app.god_inbox}', gg.TextCfg{ color: col_ink700, size: 7 })
+		app.gg.draw_text(ci_x + 10, deck_y + 17, 'handoff in ${app.god_inbox}', gg.TextCfg{ color: col_ink700, size: 10 })
 		app.gg.draw_rect_filled(ci_x + 70, deck_y + 18, 6, 6, col_sky)
-		app.gg.draw_text(ci_x + 80, deck_y + 17, 'out ${app.god_outbox}', gg.TextCfg{ color: col_ink700, size: 7 })
+		app.gg.draw_text(ci_x + 80, deck_y + 17, 'out ${app.god_outbox}', gg.TextCfg{ color: col_ink700, size: 10 })
 		// doctor checks miniature — 3 dots pass/warn
 		for di in 0 .. 3 {
 			dcol := if di == 0 {
@@ -2140,8 +2863,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			} else if di == 1 { col_lemon } else { col_slate_dim }
 			app.gg.draw_rect_filled(ci_x + di * 10, deck_y + 28, 6, 6, dcol)
 		}
-		app.gg.draw_text(ci_x + 36, deck_y + 28, 'doctor pass • Envelopes 4*t*(1-t)', gg.TextCfg{ color: col_ink500, size: 6 })
-		app.gg.draw_text(ci_x, deck_y + 36, 'alt wood • V native gg only', gg.TextCfg{ color: gg.rgba(26, 19, 32, 90), size: 6 })
+		app.gg.draw_text(ci_x + 36, deck_y + 28, 'doctor pass • Envelopes 4*t*(1-t)', gg.TextCfg{ color: col_ink500, size: 10 })
+		app.gg.draw_text(ci_x, deck_y + 36, 'alt wood • V native gg only', gg.TextCfg{ color: gg.rgba(26, 19, 32, 90), size: 10 })
 	}
 
 	// Signature: workshop vignette — subtle corner darkening + atelier light (top-left warm wash)
@@ -2156,7 +2879,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 
 	// Floor legend + live stats (English only)
 	app.gg.draw_rect_filled(fx, fy + fh - 20, fw, 20, gg.rgba(26, 36, 32, 220))
-	app.gg.draw_text(fx + 10, fy + fh - 14, '● working   ○ idle   ■ blocked     envelopes are handoffs   click or arrows to select', gg.TextCfg{ color: col_slate, size: 12 })
+	draw_floor_legend(mut app, fx + 10, fy + fh - 14)
 	app.gg.draw_text(fx + fw - 148, fy + fh - 14, 'rev ${app.engine_rev}  api ${app.api_calls}', gg.TextCfg{ color: col_slate_dim, size: 12 })
 	// signature fleet minimap dots — 1px per desk status in legend bar (super-potent fleet glance)
 	for i, d in desks {
@@ -2212,8 +2935,8 @@ fn skills_filtered_entries(mut app GuiApp) []SkillEntryProxy {
 
 // draw_skills_search_bar is 20-line helper — easy to manage, brokered filter.
 fn draw_skills_search_bar(mut app GuiApp, fx int, fy int, fw int) {
-	app.gg.draw_rect_filled(fx + 12, fy + 48, fw - 24, 28, col_charcoal)
-	app.gg.draw_rect_empty(fx + 12, fy + 48, fw - 24, 28, col_line_light)
+	app.gg.draw_rect_filled(fx + 12, fy + 48, fw - 24, 28, col_cream100)
+	app.gg.draw_rect_empty(fx + 12, fy + 48, fw - 24, 28, col_ink300)
 	mut q := app.skills_query
 	if q == '' && app.palette_query != '' {
 		q = app.palette_query
@@ -2223,10 +2946,10 @@ fn draw_skills_search_bar(mut app GuiApp, fx int, fy int, fw int) {
 	} else {
 		'filter: ${q}'
 	}
-	col := if q == '' { col_slate } else { col_paper }
-	app.gg.draw_text(fx + 20, fy + 56, display, gg.TextCfg{ color: col, size: 14 })
+	col := if q == '' { col_ink_soft } else { col_ink }
+	app.gg.draw_text(fx + 20, fy + 56, display, gg.TextCfg{ color: col, size: 13, mono: q != '' })
 	if q != '' {
-		app.gg.draw_text(fx + fw - 140, fy + 56, '${skills_filtered_entries(mut app).len} match', gg.TextCfg{ color: col_brass, size: 13 })
+		app.gg.draw_text(fx + fw - 130, fy + 56, '${skills_filtered_entries(mut app).len} match', gg.TextCfg{ color: col_brass_dim, size: 12 })
 	}
 }
 
@@ -2240,9 +2963,9 @@ fn draw_skills_domain_chips(mut app GuiApp, fx int, fy int, fw int) {
 	for d in domains {
 		label := if d == 'all' { 'all 227' } else { d }
 		active := (d == 'all' && app.skills_domain == '') || app.skills_domain == d
-		bg := if active { col_brass } else { col_charcoal2 }
-		fg := if active { col_ink } else { col_slate_dim }
-		bd := if active { col_brass } else { col_line }
+		bg := if active { col_brass } else { col_manila_tab }
+		fg := if active { col_ink } else { col_ink_soft }
+		bd := if active { col_brass_dim } else { col_ink300 }
 		w := label.len * 7 + 16
 		if x + w > fx + fw - 12 {
 			break
@@ -2288,17 +3011,17 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 		// installed → brass left accent + mint receipt dot; hover → charcoal2
 		is_installed := s.id in installed
 		bg := if is_sel {
-			col_charcoal2
-		} else if is_hover { gg.rgba(38, 48, 44, 220) } else { col_charcoal }
+			col_manila_tab
+		} else if is_hover { col_paper_hover } else { col_cream100 }
 		bd := if is_sel {
 			col_brass
-		} else if is_installed { col_mint } else { col_line }
-		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 24, bg)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 24, bd)
+		} else if is_installed { col_mint } else { col_ink300 }
+		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 26, bg)
+		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 26, bd)
 		if is_sel {
-			app.gg.draw_rect_filled(fx + 12, y, 3, 24, col_brass)
+			app.gg.draw_rect_filled(fx + 12, y, 3, 26, col_brass)
 		} else if is_installed {
-			app.gg.draw_rect_filled(fx + 12, y, 3, 24, col_mint)
+			app.gg.draw_rect_filled(fx + 12, y, 3, 26, col_mint)
 		}
 		// domain pill
 		pill_col := match s.domain {
@@ -2308,21 +3031,21 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 			'forge' { col_lemon }
 			else { col_slate_dim }
 		}
-		app.gg.draw_rect_filled(fx + 16, y + 6, 56, 12, gg.rgba(26, 19, 32, 180))
-		app.gg.draw_text(fx + 18, y + 7, s.domain, gg.TextCfg{ color: pill_col, size: 11 })
-		app.gg.draw_text(fx + 78, y + 5, s.id, gg.TextCfg{ color: col_paper, size: 14 })
+		app.gg.draw_rect_filled(fx + 16, y + 7, 56, 12, col_cream50)
+		app.gg.draw_text(fx + 18, y + 8, s.domain, gg.TextCfg{ color: pill_col, size: 10 })
+		app.gg.draw_text(fx + 78, y + 4, s.id, gg.TextCfg{ color: col_ink, size: 13, bold: is_sel })
 		mut desc := s.description
 		if desc.len > 48 {
 			desc = desc[..48] + '…'
 		}
-		app.gg.draw_text(fx + 78, y + 15, desc, gg.TextCfg{ color: col_slate_dim, size: 12 })
+		app.gg.draw_text(fx + 78, y + 15, desc, gg.TextCfg{ color: col_ink_soft, size: 11 })
 		// stability + provenance hint
 		stab := if s.stability == 'beta' { 'beta' } else { 'stable' }
 		stab_col := if stab == 'beta' { col_lemon } else { col_slate }
-		app.gg.draw_text(fx + fw - 150, y + 5, stab, gg.TextCfg{ color: stab_col, size: 11 })
+		app.gg.draw_text(fx + fw - 150, y + 6, stab, gg.TextCfg{ color: stab_col, size: 10 })
 		// receipt indicator (provenance via Engine) + install/toggle action — one-click Engine TX
 		if is_installed {
-			app.gg.draw_text(fx + fw - 110, y + 5, 'receipt ✓', gg.TextCfg{ color: col_mint, size: 11 })
+			app.gg.draw_text(fx + fw - 116, y + 6, 'receipt ✓', gg.TextCfg{ color: col_sage_soft, size: 10 })
 			hover_install := is_hover
 			action := 'remove'
 			acol := if hover_install { col_coral } else { col_slate_dim }
@@ -2338,7 +3061,7 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 				false
 			}
 			if has_receipt {
-				app.gg.draw_text(fx + fw - 120, y + 5, 'provenance ✓', gg.TextCfg{ color: col_sky, size: 10 })
+				app.gg.draw_text(fx + fw - 116, y + 6, 'provenance ✓', gg.TextCfg{ color: col_steel_ink, size: 10 })
 			}
 			hover_install := is_hover
 			install_col := if hover_install { col_brass } else { col_slate }
@@ -2360,47 +3083,60 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 		app.gg.draw_rect_filled(fx + fw - 8, bar_y, 3, bar_h, col_brass_dim)
 	}
 	if entries.len == 0 {
-		app.gg.draw_text(fx + 20, y0 + 10, 'No skills match — try "core" or clear filter', gg.TextCfg{ color: col_slate_dim, size: 14 })
+		app.gg.draw_text(fx + 20, y0 + 10, 'No skills match — try "core" or clear the filter (Esc)', gg.TextCfg{ color: col_ink_soft, size: 13 })
+	}
+}
+
+// paper_letterhead — the filing-cabinet letterhead shared by every paper panel:
+// Fraunces display title + warm-ink subtitle + right-aligned mono stat.
+// Subtitle is skipped when it would collide with the stat (footers carry detail).
+fn paper_letterhead(mut app GuiApp, fx int, fy int, fw int, title string, subtitle string, stat string) {
+	pixel_panel(mut app, fx + 8, fy + 8, fw - 16, 34, 'default')
+	app.gg.draw_text(fx + 20, fy + 16, title, gg.TextCfg{
+		color: col_ink
+		size: font_display_md
+		family: app.fonts.display
+	})
+	stat_w := (stat.len + 2) * 8
+	if stat != '' {
+		app.gg.draw_text(fx + fw - 20 - stat_w, fy + 17, stat, gg.TextCfg{ color: col_brass_dim, size: 12, mono: true })
+	}
+	sub_x := fx + 20 + title.len * 10 + 16
+	if sub_x + subtitle.len * 7 < fx + fw - 40 - stat_w {
+		app.gg.draw_text(sub_x, fy + 19, subtitle, gg.TextCfg{ color: col_ink_soft, size: 12 })
 	}
 }
 
 fn draw_skills(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_sk := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_sk
 	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
-	pixel_panel(mut app, fx + 8, fy + 8, fw - 16, 32, 'default')
-	app.gg.draw_text(fx + 18, fy + 16, 'Skills — 227 across 14 domains', gg.TextCfg{ color: col_ink, size: font_display_md })
-	app.gg.draw_text(fx + 200, fy + 18, 'fuzzy searchable • Engine 227 • virtualized 60 FPS • receipts/provenance', gg.TextCfg{ color: col_ink500, size: 12 })
 	// engine stats — super-potent with receipts/provenance
 	cat := app.desktop.engine_skills_search('', '')
 	stats := app.desktop.engine_skills_stats()
-	app.gg.draw_text(fx + fw - 148, fy + 16, '${cat.len} total • ${stats.installed} installed', gg.TextCfg{ color: col_brass_dim, size: 12, mono: true })
-	// receipts + provenance indicator
 	receipts := app.desktop.engine_receipts_catalog().filter(it.kind == 'skill')
-	app.gg.draw_text(fx + 18, fy + 44, 'Brokered via Engine.skills_search (fuzzy) — install via Engine TX + receipt ~/.config/agent-toolkit/receipts • provenance plugins/.provenance.json • ${receipts.len} receipts verified', gg.TextCfg{ color: col_ink500, size: 11 })
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.skills'), 'fuzzy searchable · virtualized 60 FPS · receipts + provenance', '${cat.len} total · ${stats.installed} in · ${receipts.len} receipts')
 	draw_skills_search_bar(mut app, fx, fy, fw)
 	draw_skills_domain_chips(mut app, fx, fy, fw)
 	draw_skills_list(mut app, fx, fy, fw, fh)
 	// super-potent footer: domain facets + origin
 	doms := app.desktop.engine_skills_domains()
-	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (116) → 227 • ${doms.len} domains • click row to install/toggle • receipts ${receipts.len} • provenance verified • / to palette', gg.TextCfg{ color: col_slate, size: 12 })
+	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (116) → 227 · ${doms.len} domains · click row to install/toggle · receipts ${receipts.len} · / to palette', gg.TextCfg{ color: col_ink_soft, size: 11 })
 }
 
 fn draw_agents(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_ag := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_ag
-	app.gg.draw_rect_filled(fx, fy, fw, fh, col_ink)
+	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
 	// super-potent header with stats + provenance
 	stats := app.desktop.engine_agents_stats()
-	app.gg.draw_text(fx + 12, fy + 10, 'AGENTS — 18 personas', gg.TextCfg{ color: col_paper, size: 15, bold: true })
-	app.gg.draw_text(fx + 180, fy + 12, '${stats.holistic} holistic • ${stats.specialist} specialist • ${stats.orchestrator} orchestrator • ${stats.archived} archived • delegation via assistant', gg.TextCfg{ color: col_slate_dim, size: 12 })
-	app.gg.draw_text(fx + 12, fy + 28, 'Search + tier filter • delegates/triggers • provenance catalogs/agent-catalog.yaml • receipts via Engine', gg.TextCfg{ color: col_slate_dim, size: 13 })
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.agents'), '${stats.holistic} holistic · ${stats.specialist} specialist · ${stats.orchestrator} orchestrator', 'search + tier filter · receipts via Engine')
 	mut agents := app.desktop.engine_agents_search(app.skills_query, '')
 	if agents.len == 0 {
 		agents = [
@@ -2408,61 +3144,78 @@ fn draw_agents(mut app GuiApp, w int, h int) {
 			desktop_engine.AgentEntry{ id: 'planner', role: 'Orchestrator', tier: 'orchestrator', description: 'planner' },
 		]
 	}
-	// show first 8 from Engine search (super-potent)
+	// fill the column from Engine search (super-potent)
 	mut show := agents.clone()
-	if show.len > 8 {
-		show = show[..8]
+	mut max_show := (fh - 70) / 34
+	if max_show < 4 {
+		max_show = 4
+	}
+	if show.len > max_show {
+		show = show[..max_show]
 	}
 	for i, ag in show {
-		y := fy + 52 + i * 30
-		if y + 24 > fy + fh - 12 {
+		y := fy + 56 + i * 34
+		if y + 30 > fy + fh - 12 {
 			break
 		}
 		is_sel := i == app.selected_desk % show.len
-		bg := if is_sel { col_charcoal2 } else { col_charcoal }
-		bd := if is_sel { col_brass } else { col_line }
-		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 24, bg)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 24, bd)
-		app.gg.draw_text(fx + 20, y + 7, '${ag.id} (${ag.tier})', gg.TextCfg{
-			color: if is_sel {
-				col_paper} else {
-				gg.rgb(226, 232, 240)}
+		bg := if is_sel { col_manila_tab } else { col_cream100 }
+		bd := if is_sel { col_brass } else { col_ink300 }
+		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 30, bg)
+		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 30, bd)
+		if is_sel {
+			app.gg.draw_rect_filled(fx + 12, y, 3, 30, col_brass)
+		}
+		app.gg.draw_text(fx + 24, y + 8, ag.id, gg.TextCfg{
+			color: col_ink
 			size: 14
+			family: app.fonts.display
 		})
-		// delegates → provenance
+		app.gg.draw_text(fx + 24 + ag.id.len * 10 + 10, y + 10, ag.role, gg.TextCfg{ color: col_ink_soft, size: 11 })
+		// delegates → provenance (truncated to the badge column)
 		trig_limit := if ag.triggers.len > 24 { 24 } else { ag.triggers.len }
-		deleg := if ag.delegates_to.len > 0 {
+		mut deleg := if ag.delegates_to.len > 0 {
 			'→ ' + ag.delegates_to.join(',')
 		} else {
 			ag.triggers[..trig_limit]
 		}
-		app.gg.draw_text(fx + fw - 180, y + 7, deleg, gg.TextCfg{ color: col_slate, size: 12 })
-		app.gg.draw_text(fx + fw - 60, y + 7, ag.tier, gg.TextCfg{ color: col_slate, size: 13 })
+		if deleg.len > 34 {
+			deleg = deleg[..34] + '…'
+		}
+		app.gg.draw_text(fx + fw - 250, y + 10, deleg, gg.TextCfg{ color: col_steel_ink, size: 11, mono: true })
+		// tier badge — manila chip
+		tier_col := match ag.tier {
+			'orchestrator' { col_brass_dim }
+			'specialist' { col_oxide }
+			else { col_sage_soft }
+		}
+		app.gg.draw_rect_filled(fx + fw - 96, y + 7, 76, 16, col_cream50)
+		app.gg.draw_rect_empty(fx + fw - 96, y + 7, 76, 16, tier_col)
+		app.gg.draw_text(fx + fw - 90, y + 10, ag.tier, gg.TextCfg{ color: tier_col, size: 10, bold: true })
 	}
-	app.gg.draw_text(fx + 12, fy + fh - 14, 'Provenance: agents/<id>/AGENT.md → catalogs/agent-catalog.yaml • delegation graph via assistant • / to palette', gg.TextCfg{ color: col_slate, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 14, 'Provenance: agents/<id>/AGENT.md → catalogs/agent-catalog.yaml · delegation graph via assistant · / to palette', gg.TextCfg{ color: col_ink_soft, size: 11 })
 }
 
 fn draw_mcp(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_mcp := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_mcp
-	app.gg.draw_rect_filled(fx, fy, fw, fh, col_ink)
+	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
 	stats := app.desktop.engine_mcp_stats()
-	app.gg.draw_text(fx + 12, fy + 10, 'MCP — 7 providers', gg.TextCfg{ color: col_paper, size: 15, bold: true })
-	app.gg.draw_text(fx + 160, fy + 12, '${stats.healthy} healthy • ${stats.enabled} enabled • ${stats.unconfigured} unconfigured • secret guard via \${ENV_VAR}', gg.TextCfg{ color: col_slate_dim, size: 12 })
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.mcp'), '${stats.healthy} healthy · ${stats.enabled} enabled · ${stats.unconfigured} unconfigured · secret guard', 'mcp/templates/<id>.json')
 	// search bar — Brokered via Engine.mcp_catalog_search (fuzzy) — super potent easy management
 	search_q := app.skills_query
-	app.gg.draw_rect_filled(fx + 12, fy + 30, fw - 24, 22, col_charcoal2)
-	app.gg.draw_rect_empty(fx + 12, fy + 30, fw - 24, 22, col_line_light)
+	app.gg.draw_rect_filled(fx + 12, fy + 48, fw - 24, 26, col_cream100)
+	app.gg.draw_rect_empty(fx + 12, fy + 48, fw - 24, 26, col_ink300)
 	q_label := if app.selected_panel == 3 && search_q != '' {
 		'filter: ${search_q}'
 	} else {
 		'Search MCP — try "github", "slack" (fuzzy)'
 	}
-	q_col := if search_q != '' && app.selected_panel == 3 { col_brass } else { col_slate_dim }
-	app.gg.draw_text(fx + 20, fy + 36, q_label, gg.TextCfg{ color: q_col, size: 13 })
+	q_col := if search_q != '' && app.selected_panel == 3 { col_brass_dim } else { col_ink_soft }
+	app.gg.draw_text(fx + 22, fy + 55, q_label, gg.TextCfg{ color: q_col, size: 12 })
 	// filtered via Engine search (or all when empty)
 	mut provs := if app.selected_panel == 3 && search_q != '' {
 		app.desktop.engine_mcp_search(search_q)
@@ -2475,7 +3228,7 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 			desktop_engine.McpProvider{ id: 'slack', name: 'Slack', health: 'unconfigured' },
 		]
 	}
-	mut y0 := fy + 58
+	mut y0 := fy + 84
 	for i, p in provs {
 		if i >= 7 {
 			break
@@ -2492,57 +3245,60 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 		_ = preview
 		_ = provenance_json
 		_ = has_receipt
-		bg := if p.enabled { col_charcoal2 } else { col_charcoal }
-		bd := if p.enabled { col_mint } else { col_line }
-		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 24, bg)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 24, bd)
+		bg := if p.enabled { col_manila_tab } else { col_cream100 }
+		bd := if p.enabled { col_sage_soft } else { col_ink300 }
+		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 28, bg)
+		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 28, bd)
 		if p.enabled {
-			app.gg.draw_rect_filled(fx + 12, y, 3, 24, col_mint)
+			app.gg.draw_rect_filled(fx + 12, y, 3, 28, col_sage_soft)
 		}
-		app.gg.draw_text(fx + 20, y + 7, '${p.id} — ${p.name}', gg.TextCfg{ color: col_paper, size: 14 })
+		app.gg.draw_text(fx + 24, y + 7, p.id, gg.TextCfg{
+			color: col_ink
+			size: 14
+			family: app.fonts.display
+		})
+		app.gg.draw_text(fx + 24 + p.id.len * 10 + 12, y + 9, p.name, gg.TextCfg{ color: col_ink_soft, size: 12 })
 		health := match p.health {
-			'healthy' { '● healthy' }
-			'warn' { '◐ warn' }
-			'error' { '✖ error' }
-			else { '○ idle' }
+			'healthy' { '✓ healthy' }
+			'warn' { '! warn' }
+			'error' { '× error' }
+			else { '· idle' }
 		}
 		hcol := if p.health == 'healthy' {
 			gg.rgb(52, 168, 83)
 		} else if p.health == 'warn' {
 			col_lemon
 		} else if p.health == 'error' { col_coral } else { col_slate }
-		app.gg.draw_text(fx + fw - 150, y + 7, health, gg.TextCfg{ color: hcol, size: 13 })
+		app.gg.draw_text(fx + fw - 170, y + 8, health, gg.TextCfg{ color: hcol, size: 12, bold: p.health == 'healthy' })
 		// provenance + receipt path + toggle action — one-click Engine TX
-		app.gg.draw_text(fx + fw - 90, y + 7, if p.enabled { 'toggle off' } else { 'toggle on' }, gg.TextCfg{
+		app.gg.draw_text(fx + fw - 90, y + 8, if p.enabled { 'toggle off' } else { 'toggle on' }, gg.TextCfg{
 			color: if p.enabled {
-				col_slate} else {
-				col_brass}
+				col_steel_ink} else {
+				col_brass_dim}
 			size: 12
+			bold: !p.enabled
 		})
-		// provenance dot + template path hint
-		app.gg.draw_text(fx + 220, fy + fh - 28, 'provenance: ${p.provenance} • receipt: ${preview.receipt_path} • ${provs.len} filtered', gg.TextCfg{ color: gg.rgba(148, 163, 184, 0), size: 1 })
 	}
 	// footer — receipts verification + provenance + secret guard + install preview (super-potent)
 	verify := app.desktop.engine_verify_receipts().filter(it.path.contains('mcp'))
-	app.gg.draw_text(fx + 12, fy + fh - 28, 'MCP config: mcp/templates/<id>.json via Engine upsert (TX) • secret guard blocks raw ghp_/sk- → \${ENV_VAR} • provenance verified', gg.TextCfg{ color: col_slate_dim, size: 11 })
-	app.gg.draw_text(fx + 12, fy + fh - 14, 'Secret guard: raw ghp_/sk-/xoxb- blocked → use \${ENV_VAR} • provenance mcp/templates/<id>.json • toggle to enable • ${verify.len} receipt warnings', gg.TextCfg{ color: col_slate, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 28, 'MCP config: mcp/templates/<id>.json via Engine upsert (TX) · secret guard blocks raw ghp_/sk- → \${ENV_VAR} · provenance verified', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 14, 'Secret guard: raw ghp_/sk-/xoxb- blocked → use \${ENV_VAR} · toggle to enable · ${verify.len} receipt warnings · Enter toggles first provider', gg.TextCfg{ color: col_ink_soft, size: 11 })
 }
 
 fn draw_targets(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_tg := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_tg
-	app.gg.draw_rect_filled(fx, fy, fw, fh, col_ink)
-	app.gg.draw_text(fx + 12, fy + 10, 'TARGETS — 7 platforms', gg.TextCfg{ color: col_paper, size: 15, bold: true })
+	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
 	// install preview + receipts super-potent
 	receipts := app.desktop.engine_list_install_receipts()
-	app.gg.draw_text(fx + 180, fy + 12, 'receipts ${receipts.len} • dry-run preview • provenance plugins/.provenance.json', gg.TextCfg{ color: col_slate_dim, size: 12 })
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.targets'), 'receipts ${receipts.len} · dry-run preview · provenance plugins/.provenance.json', 'install → receipt')
 	// dry-run diff for next install
 	diff := app.desktop.engine_install_preview(['cursor'])
 	if diff.added.len > 0 {
-		app.gg.draw_text(fx + 12, fy + 32, 'dry-run: will add ${diff.added.join(', ')} (preview via Engine.install_preview)', gg.TextCfg{ color: col_brass, size: 12 })
+		app.gg.draw_text(fx + 20, fy + 44, 'dry-run: will add ${diff.added.join(', ')} (preview via Engine.install_preview)', gg.TextCfg{ color: col_brass_dim, size: 11 })
 	}
 	tgts := app.desktop.engine_mcp_catalog() // dummy to keep import used
 	_ = tgts
@@ -2550,33 +3306,45 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	_ = targets
 	tgts2 := ['claude-code', 'cursor', 'opencode', 'copilot', 'windsurf', 'pi', 'muse-code']
 	for i, t in tgts2 {
-		y := fy + 48 + i * 28
-		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 24, col_charcoal)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 24, col_line)
-		app.gg.draw_text(fx + 20, y + 7, t, gg.TextCfg{ color: col_paper, size: 14 })
+		y := fy + 56 + i * 32
 		enabled := t in app.desktop.engine_targets_enabled()
-		en := if enabled { '[enabled]' } else { '[off]' }
-		ec := if enabled { col_brass } else { col_slate }
-		app.gg.draw_text(fx + fw - 90, y + 7, en, gg.TextCfg{ color: ec, size: 13 })
-		// receipt indicator
 		has_receipt := receipts.any(it.target == t)
-		rcol := if has_receipt { col_mint } else { col_slate_dim }
-		app.gg.draw_text(fx + fw - 140, y + 7, if has_receipt {
+		// manila folder card per platform — enabled cards get the brass tab
+		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 28, if enabled {
+			col_manila_tab
+		} else {
+			col_cream100
+		})
+		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 28, if enabled { col_brass } else { col_ink300 })
+		if enabled {
+			app.gg.draw_rect_filled(fx + 12, y, 3, 28, col_brass)
+			app.gg.draw_rect_filled(fx + 16, y, 44, 10, col_brass)
+		}
+		app.gg.draw_text(fx + 24, y + 7, t, gg.TextCfg{
+			color: col_ink
+			size: 14
+			family: app.fonts.display
+		})
+		rcol := if has_receipt { col_sage_soft } else { col_ink_soft }
+		app.gg.draw_text(fx + fw - 190, y + 9, if has_receipt {
 			'receipt ✓'
 		} else {
 			'no receipt'
-		}, gg.TextCfg{ color: rcol, size: 12 })
+		}, gg.TextCfg{ color: rcol, size: 11 })
+		en := if enabled { 'enabled ✓' } else { 'off —' }
+		ec := if enabled { col_sage_soft } else { col_ink_soft }
+		app.gg.draw_text(fx + fw - 100, y + 8, en, gg.TextCfg{ color: ec, size: 12, bold: enabled })
 	}
-	app.gg.draw_text(fx + 12, fy + fh - 14, 'Install: engine.install([targets]) → receipt ~/.config/agent-toolkit/receipts • dry-run before write • toggle via Engine', gg.TextCfg{ color: col_slate, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 14, 'Install: engine.install([targets]) → receipt ~/.config/agent-toolkit/receipts · dry-run before write · toggle via Engine', gg.TextCfg{ color: col_ink_soft, size: 11 })
 }
 
 fn draw_doctor(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_do := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_do
-	app.gg.draw_rect_filled(fx, fy, fw, fh, col_ink)
+	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
 	// super-potent Doctor: full Engine.doctor() with categories, receipts/provenance, fixable + Fix All via Engine TX
 	checks_engine := app.desktop.engine_doctor()
 	pass_cnt := checks_engine.filter(it.status == 'pass').len
@@ -2585,18 +3353,17 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 	receipts := app.desktop.engine_receipts_catalog()
 	provenance := app.desktop.engine_provenance_catalog()
 	verify_diags := app.desktop.engine_verify_receipts()
-	app.gg.draw_text(fx + 12, fy + 10, 'DOCTOR — health', gg.TextCfg{ color: col_paper, size: 15, bold: true })
-	app.gg.draw_text(fx + 140, fy + 12, '${checks_engine.len} checks • ${pass_cnt} pass • ${warn_cnt} warn • ${fail_cnt} fail • receipts ${receipts.len} • provenance ${provenance.len} • ${verify_diags.len} warnings', gg.TextCfg{ color: col_slate_dim, size: 12 })
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.doctor'), '${checks_engine.len} checks · ${pass_cnt} pass · ${warn_cnt} warn · ${fail_cnt} fail · ${verify_diags.len} warnings', 'receipts ${receipts.len} · provenance ${provenance.len}')
 	// Fix All button — via Engine.doctor_fix_all() TX + EventBus → AppState (one tick)
 	is_hover_fixall := app.mouse_x >= fx + fw - 90 && app.mouse_x <= fx + fw - 10 && app.mouse_y >= fy + 8 && app.mouse_y <= fy + 28
-	fix_bg := if is_hover_fixall { col_lemon } else { col_mint }
-	app.gg.draw_rect_filled(fx + fw - 90, fy + 8, 80, 20, fix_bg)
-	app.gg.draw_rect_empty(fx + fw - 90, fy + 8, 80, 20, if is_hover_fixall {
-		col_brass
+	fix_bg := if is_hover_fixall { col_sage_soft } else { col_manila_tab }
+	app.gg.draw_rect_filled(fx + fw - 90, fy + 10, 80, 20, fix_bg)
+	app.gg.draw_rect_empty(fx + fw - 90, fy + 10, 80, 20, if is_hover_fixall {
+		col_sage_soft
 	} else {
-		col_mint
+		col_brass_dim
 	})
-	app.gg.draw_text(fx + fw - 80, fy + 13, 'Fix All', gg.TextCfg{ color: col_ink, size: 12, bold: true })
+	app.gg.draw_text(fx + fw - 76, fy + 15, 'Fix All', gg.TextCfg{ color: col_ink, size: 12, bold: true })
 	// category facets row — super-potent easy triage (14 categories via Engine)
 	cats := ['root', 'engine', 'profiles', 'swarm', 'mcp', 'pack', 'loops', 'matrix', 'audit',
 		'provenance']
@@ -2613,14 +3380,14 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 			break
 		}
 		active := cat in ['mcp', 'provenance']
-		bg := if active { col_charcoal2 } else { col_ink }
-		bd := if active { col_brass } else { col_line }
+		bg := if active { col_brass } else { col_manila_tab }
+		bd := if active { col_brass_dim } else { col_ink300 }
 		app.gg.draw_rect_filled(cx, cy, tw, 16, bg)
 		app.gg.draw_rect_empty(cx, cy, tw, 16, bd)
 		app.gg.draw_text(cx + 5, cy + 3, label, gg.TextCfg{
 			color: if active {
-				col_brass} else {
-				col_slate_dim}
+				col_ink} else {
+				col_ink_soft}
 			size: 11
 		})
 		cx += tw + 4
@@ -2646,13 +3413,13 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		y := y0 + i * row_h
 		// row bg — status-tinted
 		status_bg := match c.status {
-			'pass' { col_charcoal }
-			'warn' { gg.rgba(220, 171, 60, 18) }
-			'fail' { gg.rgba(217, 106, 98, 14) }
-			else { col_charcoal }
+			'pass' { col_cream100 }
+			'warn' { gg.rgba(201, 168, 107, 60) }
+			'fail' { gg.rgba(196, 90, 60, 40) }
+			else { col_cream100 }
 		}
 		app.gg.draw_rect_filled(fx + 12, y, fw - 24, row_h - 2, status_bg)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, row_h - 2, col_line)
+		app.gg.draw_rect_empty(fx + 12, y, fw - 24, row_h - 2, col_ink300)
 		// category pill
 		cat_col := match c.category {
 			'root' { col_mint }
@@ -2661,61 +3428,65 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 			'provenance' { col_lemon }
 			else { col_slate_dim }
 		}
-		app.gg.draw_rect_filled(fx + 16, y + 5, 62, 12, gg.rgba(26, 19, 32, 180))
+		app.gg.draw_rect_filled(fx + 16, y + 5, 62, 12, col_cream50)
 		app.gg.draw_text(fx + 18, y + 6, c.category, gg.TextCfg{ color: cat_col, size: 10 })
 		// name + message
 		name_disp := if c.name.len > 22 { c.name[..22] } else { c.name }
-		app.gg.draw_text(fx + 82, y + 5, name_disp, gg.TextCfg{ color: col_paper, size: 13 })
-		msg := if c.message.len > 38 { c.message[..38] + '…' } else { c.message }
-		app.gg.draw_text(fx + 180, y + 7, msg, gg.TextCfg{ color: col_slate_dim, size: 11 })
+		app.gg.draw_text(fx + 82, y + 5, name_disp, gg.TextCfg{ color: col_ink, size: 12, bold: c.status != 'pass' })
+		msg := if c.message.len > 44 { c.message[..44] + '…' } else { c.message }
+		app.gg.draw_text(fx + 180, y + 7, msg, gg.TextCfg{ color: col_ink_soft, size: 11 })
 		// status badge + fixable
 		status := c.status
 		oc := match status {
-			'pass' { gg.rgb(52, 168, 83) }
-			'fail' { col_coral }
-			else { col_brass }
+			'pass' { col_sage_soft }
+			'fail' { col_oxide }
+			else { col_brass_dim }
 		}
-		app.gg.draw_text(fx + fw - 90, y + 5, status, gg.TextCfg{ color: oc, size: 12, bold: status != 'pass' })
+		app.gg.draw_text(fx + fw - 90, y + 5, status, gg.TextCfg{ color: oc, size: 11, bold: status != 'pass' })
 		if c.fixable && status != 'pass' {
-			app.gg.draw_text(fx + fw - 50, y + 5, 'fix', gg.TextCfg{ color: col_mint, size: 11, bold: true })
+			app.gg.draw_text(fx + fw - 50, y + 5, 'fix →', gg.TextCfg{ color: col_steel_ink, size: 11, bold: true })
 		}
 	}
 	// scrollbar hint when overflow
 	if checks_engine.len > vis {
-		app.gg.draw_text(fx + fw - 38, y0 + vis * row_h + 2, '+${checks_engine.len - vis} more', gg.TextCfg{ color: col_slate_dim, size: 11 })
+		app.gg.draw_text(fx + fw - 60, y0 + vis * row_h + 2, '+${checks_engine.len - vis} more', gg.TextCfg{ color: col_ink_soft, size: 11 })
 	}
 	// footer — receipts/provenance verification + provenance paths
-	app.gg.draw_text(fx + 12, fy + fh - 20, 'Receipts: ~/.config/agent-toolkit/receipts • Provenance: plugins/.provenance.json • Run doctor --fix to repair. All checks are English, no fallback.', gg.TextCfg{ color: col_slate, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 20, 'Receipts: ~/.config/agent-toolkit/receipts · Provenance: plugins/.provenance.json · Run doctor --fix to repair. All checks are English, no fallback.', gg.TextCfg{ color: col_ink_soft, size: 11 })
 	app.gg.draw_text(fx + fw - 160, fy + fh - 20, '${verify_diags.len} verify warnings', gg.TextCfg{
 		color: if verify_diags.len > 0 {
-			col_coral} else {
-			col_mint}
+			col_oxide} else {
+			col_sage_soft}
 		size: 11
 	})
 }
 
 fn draw_jobs(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_jo := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_jo
-	// Distinct dark ink — ProcessSupervisor health, NOT cream loans (loops uses cream)
-	app.gg.draw_rect_filled(fx, fy, fw, fh, col_ink)
-	// header: charcoal with brass left rail — SNES depth via pixel_panel terminal
-	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 44, 'terminal')
+	// Paper supervisor sheet — ProcessSupervisor health, NOT cream loops
+	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
+	// header letterhead with brass left rail
+	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 44, 'default')
 	app.gg.draw_rect_filled(fx + 6, fy + 6, 3, 40, col_brass)
-	app.gg.draw_text(fx + 18, fy + 14, 'Jobs — Process Supervisor', gg.TextCfg{ color: col_paper, size: 13, bold: true })
-	app.gg.draw_text(fx + 18, fy + 30, 'live processes • ProcessSupervisor • StateRepository TX • EventBus • logs • approvals', gg.TextCfg{ color: col_slate_dim, size: 9 })
+	app.gg.draw_text(fx + 18, fy + 12, tr(app, 'panel.jobs'), gg.TextCfg{
+		color: col_ink
+		size: font_display_md
+		family: app.fonts.display
+	})
+	app.gg.draw_text(fx + 78, fy + 16, 'ProcessSupervisor · StateRepository TX · EventBus · logs · approvals', gg.TextCfg{ color: col_ink_soft, size: 12 })
 	// supervisor liveness dot via engine_api + proc count
 	stats := app.desktop.engine_job_stats()
 	proc_running, dropped := app.desktop.engine_process_supervisor_stats()
 	dot_col := if proc_running > 0 {
-		gg.rgb(52, 168, 83)
-	} else if stats.running > 0 { col_lemon } else { col_slate }
-	app.gg.draw_rect_filled(fx + fw - 140, fy + 12, 8, 8, dot_col)
-	app.gg.draw_text(fx + fw - 128, fy + 12, 'supervisor live', gg.TextCfg{ color: dot_col, size: 9, bold: true })
-	app.gg.draw_text(fx + fw - 128, fy + 24, '${proc_running} running • drop ${dropped}', gg.TextCfg{ color: col_slate_dim, size: 9, mono: true })
+		col_sage_soft
+	} else if stats.running > 0 { col_brass_dim } else { col_steel_ink }
+	app.gg.draw_rect_filled(fx + fw - 140, fy + 14, 8, 8, dot_col)
+	app.gg.draw_text(fx + fw - 128, fy + 13, 'supervisor live', gg.TextCfg{ color: dot_col, size: 11, bold: true })
+	app.gg.draw_text(fx + fw - 128, fy + 25, '${proc_running} running · drop ${dropped}', gg.TextCfg{ color: col_ink_soft, size: 10, mono: true })
 	// stats chips row — mint/mint palette vs loops L1/L2/L3
 	sy := fy + 54
 	chips := ['total:${stats.total}', 'queued:${stats.queued}', 'running:${stats.running}',
@@ -2726,23 +3497,23 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	for i, label in chips {
 		c := chip_cols[i]
 		bg := if label.starts_with('running') && stats.running > 0 {
-			gg.rgba(220, 171, 60, 22)
+			gg.rgba(201, 168, 107, 70)
 		} else if label.starts_with('failed') && stats.failed > 0 {
-			gg.rgba(217, 106, 98, 18)
+			gg.rgba(196, 90, 60, 50)
 		} else {
-			gg.rgba(38, 48, 44, 180)
+			col_manila_tab
 		}
-		tw := label.len * 6 + 12
+		tw := label.len * 7 + 14
 		if cx + tw > fx + fw - 12 {
 			break
 		}
-		app.gg.draw_rect_filled(cx, sy, tw, 16, bg)
-		app.gg.draw_rect_empty(cx, sy, tw, 16, c)
-		app.gg.draw_text(cx + 6, sy + 3, label, gg.TextCfg{ color: c, size: 8, mono: true, bold: true })
+		app.gg.draw_rect_filled(cx, sy, tw, 18, bg)
+		app.gg.draw_rect_empty(cx, sy, tw, 18, col_ink300)
+		app.gg.draw_text(cx + 7, sy + 4, label, gg.TextCfg{ color: c, size: 10, mono: true, bold: true })
 		cx += tw + 6
 	}
 	// supervisor health extra: API calls + revision badge
-	app.gg.draw_text(fx + 12, sy + 20, 'Engine api ${app.api_calls} • rev ${app.engine_rev} • bus dropped ${dropped} • StateRepository TX', gg.TextCfg{ color: col_slate, size: 8 })
+	app.gg.draw_text(fx + 12, sy + 24, 'Engine api ${app.api_calls} · rev ${app.engine_rev} · bus dropped ${dropped} · StateRepository TX', gg.TextCfg{ color: col_ink_soft, size: 10 })
 	// fetch live jobs via Engine; fallback synthetic keeps panel potent when empty (distinct mock vs loops mock)
 	mut jobs := app.desktop.engine_jobs_catalog()
 	if jobs.len == 0 {
@@ -2810,8 +3581,8 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			},
 		]
 	}
-	// card metrics — dark card with left status rail distinct from loops pixel_panel
-	list_y0 := fy + 84
+	// card metrics — paper cards with left status rail
+	list_y0 := fy + 96
 	list_h_total := fh - 84 - 110
 	card_h := 52
 	visible := list_h_total / card_h
@@ -2827,7 +3598,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	} else if app.jobs_scroll > max_scroll {
 		app.jobs_scroll = max_scroll
 	}
-	app.gg.draw_text(fx + 12, list_y0 - 12, 'ProcessSupervisor queue — ${jobs.len} jobs • click row to select • hover for actions', gg.TextCfg{ color: col_paper_dim, size: 9 })
+	app.gg.draw_text(fx + 12, list_y0 - 12, 'ProcessSupervisor queue — ${jobs.len} jobs • click row to select • hover for actions', gg.TextCfg{ color: col_paper_dim, size: 10 })
 	for idx in 0 .. visible {
 		di := app.jobs_scroll + idx
 		if di >= jobs.len {
@@ -2838,19 +3609,19 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		is_sel := app.jobs_selected == di
 		is_hover := app.jobs_hover == di
 		bg := if is_sel {
-			col_charcoal2
-		} else if is_hover { gg.rgb(32, 42, 38) } else { col_charcoal }
+			col_manila_tab
+		} else if is_hover { col_paper_hover } else { col_cream100 }
 		bd := if is_sel {
 			col_brass
-		} else if is_hover { col_line_light } else { col_line }
+		} else if is_hover { col_brass_dim } else { col_ink300 }
 		app.gg.draw_rect_filled(fx + 12, y, fw - 24, card_h - 4, bg)
 		app.gg.draw_rect_empty(fx + 12, y, fw - 24, card_h - 4, bd)
 		status_col := match j.status {
-			.running { col_status_working }
-			.done { col_status_success }
-			.failed { col_status_blocked }
-			.canceled { col_ink300 }
-			.queued { col_slate_dim }
+			.running { col_brass_dim }
+			.done { col_sage_soft }
+			.failed { col_oxide }
+			.canceled { col_ink_soft }
+			.queued { col_steel_ink }
 		}
 		app.gg.draw_rect_filled(fx + 12, y, 3, card_h - 4, status_col)
 		status_label := match j.status {
@@ -2860,18 +3631,18 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			.canceled { 'CANCELED' }
 			.queued { 'QUEUED' }
 		}
-		app.gg.draw_text(fx + 22, y + 6, status_label, gg.TextCfg{ color: status_col, size: 8, bold: true, mono: true })
+		app.gg.draw_text(fx + 22, y + 6, status_label, gg.TextCfg{ color: status_col, size: 10, bold: true, mono: true })
 		short_id := if j.id.len > 14 { j.id[..14] } else { j.id }
-		app.gg.draw_text(fx + 78, y + 6, short_id, gg.TextCfg{ color: col_paper_dim, size: 9, mono: true })
+		app.gg.draw_text(fx + 78, y + 6, short_id, gg.TextCfg{ color: col_paper_dim, size: 10, mono: true })
 		cmd_str := if j.cmd.len > 54 { j.cmd[..54] + '…' } else { j.cmd }
-		app.gg.draw_text(fx + 22, y + 18, cmd_str, gg.TextCfg{ color: col_paper, size: 10 })
+		app.gg.draw_text(fx + 22, y + 18, cmd_str, gg.TextCfg{ color: col_ink, size: 11, mono: true })
 		if j.args.len > 0 {
 			args_str := j.args.join(' ')
 			mut a2 := args_str
 			if a2.len > 36 {
 				a2 = a2[..36] + '…'
 			}
-			app.gg.draw_text(fx + 22, y + 30, a2, gg.TextCfg{ color: col_slate_dim, size: 9, mono: true })
+			app.gg.draw_text(fx + 22, y + 30, a2, gg.TextCfg{ color: col_slate_dim, size: 10, mono: true })
 		}
 		mut meta := '${j.duration_ms}ms'
 		if j.retry_count > 0 {
@@ -2883,11 +3654,11 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		if j.canceled {
 			meta += ' • canceled'
 		}
-		app.gg.draw_text(fx + 22, y + 39, meta, gg.TextCfg{ color: col_slate, size: 8, mono: true })
+		app.gg.draw_text(fx + 22, y + 39, meta, gg.TextCfg{ color: col_slate, size: 10, mono: true })
 		logs := app.desktop.engine_job_logs(j.id)
 		log_cnt := if logs.len > 0 { logs.len } else { j.logs.len }
 		if log_cnt > 0 {
-			app.gg.draw_text(fx + fw - 210, y + 6, '${log_cnt} log lines', gg.TextCfg{ color: col_brass_dim, size: 8 })
+			app.gg.draw_text(fx + fw - 210, y + 6, '${log_cnt} log lines', gg.TextCfg{ color: col_brass_dim, size: 10 })
 		}
 		bar_w := fw - 24 - 160
 		mut bw := bar_w
@@ -2896,15 +3667,15 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		}
 		bar_x := fx + 22
 		bar_y := y + 46
-		app.gg.draw_rect_filled(bar_x, bar_y, bw, 2, col_line)
+		app.gg.draw_rect_filled(bar_x, bar_y, bw, 2, col_ink300)
 		pct := if j.duration_ms > 0 {
 			(j.duration_ms / 100) % 100
 		} else if j.status == .queued { 6 } else { 0 }
 		fill_col := if j.status == .failed {
-			col_coral
+			col_oxide
 		} else if j.status == .running {
-			col_lemon
-		} else if j.status == .done { col_mint } else { col_slate_dim }
+			col_brass
+		} else if j.status == .done { col_sage_soft } else { col_steel_ink }
 		if pct > 0 {
 			app.gg.draw_rect_filled(bar_x, bar_y, bw * pct / 100, 2, fill_col)
 		}
@@ -2915,14 +3686,14 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		bd2 := if hover_cancel { col_coral } else { col_line }
 		app.gg.draw_rect_filled(fx + fw - 108, btn_y, 44, 16, cbg)
 		app.gg.draw_rect_empty(fx + fw - 108, btn_y, 44, 16, bd2)
-		app.gg.draw_text(fx + fw - 100, btn_y + 3, 'Cancel', gg.TextCfg{ color: cfg, size: 9 })
+		app.gg.draw_text(fx + fw - 100, btn_y + 3, 'Cancel', gg.TextCfg{ color: cfg, size: 10 })
 		hover_retry := app.jobs_hover_retry == di
 		rbg := if hover_retry { col_lemon } else { col_charcoal2 }
 		rfg := if hover_retry { col_ink } else { col_paper_dim }
 		rbd := if hover_retry { col_brass } else { col_line_light }
 		app.gg.draw_rect_filled(fx + fw - 58, btn_y, 44, 16, rbg)
 		app.gg.draw_rect_empty(fx + fw - 58, btn_y, 44, 16, rbd)
-		app.gg.draw_text(fx + fw - 50, btn_y + 3, 'Retry', gg.TextCfg{ color: rfg, size: 9, bold: hover_retry })
+		app.gg.draw_text(fx + fw - 50, btn_y + 3, 'Retry', gg.TextCfg{ color: rfg, size: 10, bold: hover_retry })
 	}
 	if jobs.len > visible {
 		track_h := visible * card_h
@@ -2937,10 +3708,10 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	}
 	// ── Approvals queue — super-potent spend/scope/destructive distinct bottom panel ──
 	aq_y := fy + fh - 104
-	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 96, col_charcoal)
-	app.gg.draw_rect_empty(fx + 8, aq_y, fw - 16, 96, col_line_light)
-	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 18, col_ink)
-	app.gg.draw_text(fx + 16, aq_y + 4, 'Approvals Queue — spend / scope / destructive', gg.TextCfg{ color: col_brass, size: 10, bold: true })
+	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 96, col_manila_tab)
+	app.gg.draw_rect_empty(fx + 8, aq_y, fw - 16, 96, col_brass_dim)
+	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 18, col_brass)
+	app.gg.draw_text(fx + 16, aq_y + 4, 'Approvals Queue — spend / scope / destructive', gg.TextCfg{ color: col_ink, size: 11, bold: true })
 	mut aq := app.desktop.engine_approvals_queue()
 	if aq.len == 0 {
 		for i, s in app.approvals {
@@ -2963,10 +3734,10 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			}
 		}
 	}
-	app.gg.draw_text(fx + fw - 110, aq_y + 4, '${aq.len} pending • StateRepository TX', gg.TextCfg{ color: col_slate_dim, size: 8 })
+	app.gg.draw_text(fx + fw - 110, aq_y + 4, '${aq.len} pending • StateRepository TX', gg.TextCfg{ color: col_slate_dim, size: 10 })
 	if aq.len == 0 {
 		app.gg.draw_text(fx + 16, aq_y + 28, 'No pending approvals — queue is empty (awaiting_approval gates)', gg.TextCfg{ color: col_slate_dim, size: 11 })
-		app.gg.draw_text(fx + 16, aq_y + 42, 'spend / scope / destructive via Engine.swarm_request_approval() → TX + EventBus', gg.TextCfg{ color: col_slate, size: 9 })
+		app.gg.draw_text(fx + 16, aq_y + 42, 'spend / scope / destructive via Engine.swarm_request_approval() → TX + EventBus', gg.TextCfg{ color: col_slate, size: 10 })
 	} else {
 		visible_aq := 3
 		if app.jobs_approvals_scroll < 0 {
@@ -3002,16 +3773,16 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			}
 			app.gg.draw_rect_filled(fx + 16, y, 78, 14, kind_bg)
 			app.gg.draw_rect_empty(fx + 16, y, 78, 14, kind_col)
-			app.gg.draw_text(fx + 20, y + 2, kind_str, gg.TextCfg{ color: kind_col, size: 8, bold: true, mono: true })
+			app.gg.draw_text(fx + 20, y + 2, kind_str, gg.TextCfg{ color: kind_col, size: 10, bold: true, mono: true })
 			msg := if ap.message.len > 44 { ap.message[..44] + '…' } else { ap.message }
 			app.gg.draw_text(fx + 100, y + 2, msg, gg.TextCfg{ color: col_paper_dim, size: 10 })
 			if ap.budget_cost > 0 {
-				app.gg.draw_text(fx + fw - 120, y + 2, '\$${ap.budget_cost}', gg.TextCfg{ color: kind_col, size: 9, mono: true })
+				app.gg.draw_text(fx + fw - 120, y + 2, '\$${ap.budget_cost}', gg.TextCfg{ color: kind_col, size: 10, mono: true })
 			}
 			app.gg.draw_rect_filled(fx + fw - 72, y, 28, 14, col_mint)
 			app.gg.draw_text(fx + fw - 66, y + 2, '✓', gg.TextCfg{ color: col_ink, size: 10, bold: true })
 			app.gg.draw_rect_filled(fx + fw - 40, y, 28, 14, col_coral)
-			app.gg.draw_text(fx + fw - 34, y + 2, '✕', gg.TextCfg{ color: col_paper, size: 10, bold: true })
+			app.gg.draw_text(fx + fw - 34, y + 2, '×', gg.TextCfg{ color: col_paper, size: 10, bold: true })
 		}
 		if aq.len > visible_aq {
 			track_h2 := 66
@@ -3025,28 +3796,30 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(fx + fw - 8, bar_y2, 2, bh2, col_brass_dim)
 		}
 	}
-	app.gg.draw_text(fx + 12, fy + fh - 12, 'Engine jobs via StateRepository TX • supervisor health • approvals via Engine.swarm_approvals_queue() • virtualized 60 FPS', gg.TextCfg{ color: col_slate, size: 8 })
+	app.gg.draw_text(fx + 12, fy + fh - 12, 'Engine jobs via StateRepository TX • supervisor health • approvals via Engine.swarm_approvals_queue() • virtualized 60 FPS', gg.TextCfg{ color: col_slate, size: 10 })
 }
 
 fn draw_loops(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_lo := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_lo
 	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
 	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 34, 'default')
-	app.gg.draw_text(fx + 18, fy + 12, 'Loops — Missions', gg.TextCfg{ color: col_ink, size: font_display_md })
-	app.gg.draw_text(fx + 150, fy + 16, 'L1 observe → L2 assisted → L3 merge/close • budgets • verifier • STATE.md resumable', gg.TextCfg{ color: col_ink700, size: 9 })
+	app.gg.draw_text(fx + 18, fy + 12, tr(app, 'panel.loops'), gg.TextCfg{
+		color: col_ink
+		size: font_display_md
+		family: app.fonts.display
+	})
+	app.gg.draw_text(fx + 96, fy + 16, 'L1 observe → L2 assisted → L3 merge/close · budgets · verifier · STATE.md resumable', gg.TextCfg{ color: col_ink_soft, size: 12 })
 	hover_new := app.mouse_x >= fx + fw - 118 && app.mouse_x <= fx + fw - 14 && app.mouse_y >= fy + 10 && app.mouse_y <= fy + 32
 	bg_new := if hover_new { col_lemon } else { col_ink }
 	fg_new := if hover_new { col_ink } else { col_cream100 }
 	app.gg.draw_rect_filled(fx + fw - 118, fy + 8, 104, 22, bg_new)
 	app.gg.draw_rect_empty(fx + fw - 118, fy + 8, 104, 22, col_brass)
-	app.gg.draw_text(fx + fw - 106, fy + 14, '+ New Loop', gg.TextCfg{ color: fg_new, size: 10, bold: true })
-	app.gg.draw_text(fx + 18, fy + 40, 'loop.yaml: cadence / goal / allowlist / budget(max_tokens, max_runs_per_day, max_wall_seconds, max_iterations)', gg.TextCfg{ color: col_ink500, size: 8, mono: true })
-	app.gg.draw_text(fx + 18, fy + 50, 'exit: goal_met • budget_exhausted • human_escalation  •  verifier receipt •  StateRepository TX', gg.TextCfg{ color: col_slate_dim, size: 8 })
-	app.gg.draw_text(fx + fw - 210, fy + 48, 'create / edit / run / schedule — via Engine', gg.TextCfg{ color: col_brass_dim, size: 8 })
+	draw_text_l(mut app, fx + fw - 106, fy + 14, 'act.new_loop', gg.TextCfg{ color: fg_new, size: 10, bold: true })
+	app.gg.draw_text(fx + 20, fy + 44, 'loop.yaml: cadence / goal / allowlist / budget · exit: goal_met · budget_exhausted · human_escalation · verifier receipt · StateRepository TX', gg.TextCfg{ color: col_ink_soft, size: 10 })
 	// ── Super-potent Engine loops L1/L2/L3 with three budgets visualized distinctly from Jobs ──
 	mut loops := app.desktop.loops_catalog()
 	mut y0 := fy + 66
@@ -3087,9 +3860,9 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		} else if tier_str == 'L2' { gg.rgba(220, 171, 60, 18) } else { gg.rgba(92, 169, 122, 14) }
 		app.gg.draw_rect_filled(fx + 22, y + 6, 28, 14, tier_bg)
 		app.gg.draw_rect_empty(fx + 22, y + 6, 28, 14, tier_col)
-		app.gg.draw_text(fx + 26, y + 8, tier_str, gg.TextCfg{ color: tier_col, size: 9, bold: true })
+		app.gg.draw_text(fx + 26, y + 8, tier_str, gg.TextCfg{ color: tier_col, size: 10, bold: true })
 		app.gg.draw_text(fx + 56, y + 7, entry.name, gg.TextCfg{ color: col_ink, size: 11, bold: true })
-		app.gg.draw_text(fx + 56 + entry.name.len * 7 + 8, y + 8, entry.cadence, gg.TextCfg{ color: col_ink500, size: 9, mono: true })
+		app.gg.draw_text(fx + 56 + entry.name.len * 7 + 8, y + 8, entry.cadence, gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 		mut bx := fx + fw - 260
 		if entry.verifier.trim_space().len > 0 {
 			app.gg.draw_rect_filled(bx, y + 6, 92, 14, gg.rgba(148, 130, 211, 18))
@@ -3100,13 +3873,13 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 				entry.verifier
 			}
 			short := lbl[..if lbl.len > 10 { 10 } else { lbl.len }]
-			app.gg.draw_text(bx + 6, y + 8, 'verifier:' + short, gg.TextCfg{ color: col_lilac, size: 8 })
+			app.gg.draw_text(bx + 6, y + 8, 'verifier:' + short, gg.TextCfg{ color: col_lilac, size: 10 })
 			bx -= 100
 		}
 		if entry.resumable {
 			app.gg.draw_rect_filled(fx + fw - 140, y + 6, 72, 14, gg.rgba(79, 159, 175, 14))
 			app.gg.draw_rect_empty(fx + fw - 140, y + 6, 72, 14, col_sky)
-			app.gg.draw_text(fx + fw - 132, y + 8, 'STATE.md', gg.TextCfg{ color: col_sky, size: 8, bold: true })
+			app.gg.draw_text(fx + fw - 132, y + 8, 'STATE.md', gg.TextCfg{ color: col_sky, size: 10, bold: true })
 		}
 		bud := entry.budget
 		mut max_tok := bud.max_tokens
@@ -3132,14 +3905,14 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		tok_label := '${max_tok} tok'
 		runs_label := '${max_runs}/d'
 		wall_label := '${max_wall}s wall'
-		app.gg.draw_text(fx + 22, y + 22, tok_label + '  ' + runs_label + '  ' + wall_label, gg.TextCfg{ color: col_ink700, size: 9, mono: true })
+		app.gg.draw_text(fx + 22, y + 22, tok_label + '  ' + runs_label + '  ' + wall_label, gg.TextCfg{ color: col_ink700, size: 10, mono: true })
 		if entry.allowlist.len > 0 {
 			allow := entry.allowlist.join(',')
 			mut a := allow
 			if a.len > 28 {
 				a = a[..28] + '…'
 			}
-			app.gg.draw_text(fx + 180, y + 22, 'allow:' + a, gg.TextCfg{ color: col_ink500, size: 8 })
+			app.gg.draw_text(fx + 180, y + 22, 'allow:' + a, gg.TextCfg{ color: col_ink500, size: 10 })
 		}
 		mut bar_w := (fw - 24 - 140 - 100) / 3
 		if bar_w < 40 {
@@ -3159,8 +3932,8 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			col_coral
 		} else if t_pct > 60 { col_lemon } else { col_mint }
 		app.gg.draw_rect_filled(fx + 22, bar_y, bar_w * t_pct / 100, 4, tok_col)
-		app.gg.draw_text(fx + 22, bar_y + 6, 'tokens ${t_pct}%', gg.TextCfg{ color: col_ink500, size: 7, mono: true })
-		app.gg.draw_text(fx + 22 + bar_w - 28, bar_y + 6, '${spent}/${max_tok}', gg.TextCfg{ color: col_slate_dim, size: 7, mono: true })
+		app.gg.draw_text(fx + 22, bar_y + 6, 'tokens ${t_pct}%', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
+		app.gg.draw_text(fx + 22 + bar_w - 28, bar_y + 6, '${spent}/${max_tok}', gg.TextCfg{ color: col_slate_dim, size: 10, mono: true })
 		runs_cap_pct := if max_runs > 0 { max_runs * 100 / 96 } else { 0 }
 		mut r_pct := runs_cap_pct
 		if r_pct > 100 {
@@ -3175,7 +3948,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			col_lemon
 		} else if max_runs >= 6 { col_sky } else { col_mint }
 		app.gg.draw_rect_filled(rx, bar_y, bar_w * r_pct / 100, 4, runs_col)
-		app.gg.draw_text(rx, bar_y + 6, 'runs ${max_runs}/d', gg.TextCfg{ color: col_ink500, size: 7, mono: true })
+		app.gg.draw_text(rx, bar_y + 6, 'runs ${max_runs}/d', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 		wall_cap_pct := if max_wall > 0 { max_wall * 100 / 1800 } else { 0 }
 		mut w_pct := wall_cap_pct
 		if w_pct < 4 {
@@ -3190,7 +3963,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			col_coral
 		} else if max_wall >= 600 { col_lemon } else { col_mint }
 		app.gg.draw_rect_filled(wx, bar_y, bar_w * w_pct / 100, 4, wall_col)
-		app.gg.draw_text(wx, bar_y + 6, 'wall ${max_wall}s', gg.TextCfg{ color: col_ink500, size: 7, mono: true })
+		app.gg.draw_text(wx, bar_y + 6, 'wall ${max_wall}s', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 		mut exits := entry.exit_conditions.join(',')
 		if exits == '' {
 			exits = 'goal_met,budget_exhausted'
@@ -3198,9 +3971,9 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		if exits.len > 36 {
 			exits = exits[..36] + '…'
 		}
-		app.gg.draw_text(fx + 22, y + 52, 'exit: ' + exits, gg.TextCfg{ color: col_slate_dim, size: 8 })
+		app.gg.draw_text(fx + 22, y + 52, 'exit: ' + exits, gg.TextCfg{ color: col_slate_dim, size: 10 })
 		if entry.cron_enabled {
-			app.gg.draw_text(fx + 22 + bar_w * 2 + 24, y + 52, 'cron:${entry.schedule}', gg.TextCfg{ color: col_ink500, size: 8, mono: true })
+			app.gg.draw_text(fx + 22 + bar_w * 2 + 24, y + 52, 'cron:${entry.schedule}', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 		}
 		spent_pct2 := t_pct
 		bar_w2 := fw - 24 - 140 - 100
@@ -3211,7 +3984,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			col_coral
 		} else if spent_pct2 > 60 { col_lemon } else { col_mint }
 		app.gg.draw_rect_filled(bar_x, bar_y2, bar_w2 * spent_pct2 / 100, 3, fill_col)
-		app.gg.draw_text(bar_x + bar_w2 + 6, bar_y2 - 5, '${spent_pct2}%', gg.TextCfg{ color: col_ink500, size: 8, mono: true })
+		app.gg.draw_text(bar_x + bar_w2 + 6, bar_y2 - 5, '${spent_pct2}%', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 		btn_y := y + 44
 		hover_run := app.loops_hover_run == di
 		run_bg := if hover_run { col_ink } else { col_cream200 }
@@ -3219,12 +3992,12 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		run_bd := if hover_run { col_brass } else { col_ink300 }
 		app.gg.draw_rect_filled(fx + fw - 108, btn_y, 44, 16, run_bg)
 		app.gg.draw_rect_empty(fx + fw - 108, btn_y, 44, 16, run_bd)
-		app.gg.draw_text(fx + fw - 98, btn_y + 3, 'Run', gg.TextCfg{ color: run_fg, size: 9, bold: true })
+		app.gg.draw_text(fx + fw - 98, btn_y + 3, 'Run', gg.TextCfg{ color: run_fg, size: 10, bold: true })
 		hover_cron := app.loops_hover_cron == di
 		cron_bg := if hover_cron { col_ink700 } else { col_ink }
 		app.gg.draw_rect_filled(fx + fw - 58, btn_y, 44, 16, cron_bg)
 		app.gg.draw_rect_empty(fx + fw - 58, btn_y, 44, 16, col_line_light)
-		app.gg.draw_text(fx + fw - 52, btn_y + 3, 'Sched', gg.TextCfg{ color: col_cream100, size: 8 })
+		app.gg.draw_text(fx + fw - 52, btn_y + 3, 'Sched', gg.TextCfg{ color: col_cream100, size: 10 })
 	}
 	if loops.len > visible {
 		track_h := visible * card_h
@@ -3237,8 +4010,8 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(fx + fw - 6, y0, 3, track_h, gg.rgba(38, 48, 44, 30))
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, col_brass_dim)
 	}
-	app.gg.draw_text(fx + 14, fy + fh - 18, 'Budget ledger via StateRepository TX • exit_conditions gate • gh-gate tier • validate-loops', gg.TextCfg{ color: col_slate_dim, size: 8 })
-	app.gg.draw_text(fx + fw - 220, fy + fh - 18, 'rev ${app.engine_rev} • api ${app.api_calls} • loops ${loops.len}', gg.TextCfg{ color: col_ink500, size: 8, mono: true })
+	app.gg.draw_text(fx + 14, fy + fh - 18, 'Budget ledger via StateRepository TX • exit_conditions gate • gh-gate tier • validate-loops', gg.TextCfg{ color: col_slate_dim, size: 10 })
+	app.gg.draw_text(fx + fw - 220, fy + fh - 18, 'rev ${app.engine_rev} • api ${app.api_calls} • loops ${loops.len}', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 	if app.loops_show_create {
 		mx := fx + 40
 		my := fy + 50
@@ -3248,8 +4021,8 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		pixel_panel(mut app, mx + 2, my + 2, mw - 4, mh - 4, 'active')
 		app.gg.draw_text(mx + 18, my + 14, 'Create Loop — via Engine.create_loop() TX', gg.TextCfg{ color: col_ink, size: 12, bold: true })
 		tier_str := ['L1', 'L2', 'L3'][app.loops_create_tier]
-		app.gg.draw_text(mx + 18, my + 32, 'name: ${app.loops_create_name}  tier: ${tier_str}  cadence: ${app.loops_create_cadence}  budget: 50k/1/600/20', gg.TextCfg{ color: col_ink700, size: 9, mono: true })
-		app.gg.draw_text(mx + 18, my + 52, 'Writes loops/<name>/loop.yaml + STATE.md + StateRepository transaction', gg.TextCfg{ color: col_slate_dim, size: 9 })
+		app.gg.draw_text(mx + 18, my + 32, 'name: ${app.loops_create_name}  tier: ${tier_str}  cadence: ${app.loops_create_cadence}  budget: 50k/1/600/20', gg.TextCfg{ color: col_ink700, size: 10, mono: true })
+		app.gg.draw_text(mx + 18, my + 52, 'Writes loops/<name>/loop.yaml + STATE.md + StateRepository transaction', gg.TextCfg{ color: col_slate_dim, size: 10 })
 		app.gg.draw_rect_filled(mx + 18, my + 74, 88, 26, col_mint)
 		app.gg.draw_text(mx + 30, my + 82, 'Create', gg.TextCfg{ color: col_ink, size: 10, bold: true })
 		app.gg.draw_rect_filled(mx + 118, my + 74, 88, 26, col_ink)
@@ -3262,16 +4035,20 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	// Super-potent swarms — GOD mailbox routing, handoff artifact files, inner/outer loops,
 	// Swarm UI Herdr/tmux, approvals spend/scope/destructive, easy pair/team/full launch,
 	// wire to desktop_engine eventbus and show swarm status, handoffs, logs.
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_sw := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_sw
 	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
 	// header — GOD mailbox law
 	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 44, 'default')
-	app.gg.draw_text(fx + 18, fy + 12, 'SWARM — Super Potent', gg.TextCfg{ color: col_ink, size: font_display_md })
-	app.gg.draw_text(fx + 200, fy + 14, 'GOD mailbox routing • handoff artifacts • inner/outer loops • Herdr/tmux • approvals', gg.TextCfg{ color: col_ink500, size: font_body_sm })
+	app.gg.draw_text(fx + 18, fy + 12, tr(app, 'panel.swarm'), gg.TextCfg{
+		color: col_ink
+		size: font_display_md
+		family: app.fonts.display
+	})
+	app.gg.draw_text(fx + 92, fy + 16, 'GOD mailbox routing · handoff artifacts · inner/outer loops · Herdr/tmux · approvals', gg.TextCfg{ color: col_ink_soft, size: 12 })
 	// GOD mailbox indicator — in/out via desktop.god_mailbox_counts() eventbus
 	mut god_in := app.god_inbox
 	mut god_out := app.god_outbox
@@ -3284,10 +4061,10 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		}
 	}
 	mbx_x := fx + fw - 160
-	app.gg.draw_rect_filled(mbx_x, fy + 10, 140, 28, col_ink)
-	app.gg.draw_rect_empty(mbx_x, fy + 10, 140, 28, col_lemon)
-	app.gg.draw_text(mbx_x + 10, fy + 16, 'GOD mailbox', gg.TextCfg{ color: col_cream100, size: font_display_sm })
-	app.gg.draw_text(mbx_x + 10, fy + 28, 'in ${god_in} • out ${god_out}', gg.TextCfg{ color: col_lemon, size: 11, mono: true })
+	app.gg.draw_rect_filled(mbx_x, fy + 8, 140, 28, col_manila_tab)
+	app.gg.draw_rect_empty(mbx_x, fy + 8, 140, 28, col_brass_dim)
+	app.gg.draw_text(mbx_x + 10, fy + 12, tr(app, 'world.god') + ' · ' + tr(app, 'world.out'), gg.TextCfg{ color: col_ink, size: 10, bold: true })
+	app.gg.draw_text(mbx_x + 10, fy + 26, '${god_in} in · ${god_out} out', gg.TextCfg{ color: col_oxide, size: 11, mono: true })
 	if god_in > 0 {
 		app.gg.draw_rect_filled(mbx_x + 116, fy + 14, 8, 6, col_coral)
 	}
@@ -3313,7 +4090,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		38
 	} else {
 		app.swarm_task.len
-	}]}', gg.TextCfg{ color: col_ink500, size: 12, mono: true })
+	}]}', gg.TextCfg{ color: col_ink_soft, size: 12, mono: true })
 	// pair/team/full buttons — brass primary
 	for ri, rname in ['pair', 'team', 'full'] {
 		bx := fx + 20 + ri * 96
@@ -3323,7 +4100,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_empty(bx, y_launch + 36, 84, 22, col_brass_dim)
 		app.gg.draw_text(bx + 18, y_launch + 42, rname, gg.TextCfg{ color: col_ink, size: 13, bold: true })
 	}
-	app.gg.draw_text(fx + 320, y_launch + 44, '→ via Engine.swarm_launch() • EventBus swarm_created • status/handoffs/logs live', gg.TextCfg{ color: col_slate_dim, size: 11 })
+	app.gg.draw_text(fx + 320, y_launch + 44, '→ via Engine.swarm_launch() · EventBus swarm_created · status/handoffs/logs live', gg.TextCfg{ color: col_ink_soft, size: 11 })
 	// three columns: status | handoffs/artifacts | approvals + logs (inner/outer)
 	col_y := y_launch + 76
 	col_h := fh - (col_y - fy) - 10
@@ -3366,7 +4143,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		} else if s.contains('completed') { col_sky } else { col_cream100 }
 		app.gg.draw_text(fx + 18, y + 2, s, gg.TextCfg{ color: col, size: 12, mono: true })
 	}
-	app.gg.draw_text(fx + 12, col_y + col_h - 14, '${swarms.len} swarms • Herdr preferred → tmux fallback • rev ${app.engine_rev}', gg.TextCfg{ color: col_slate_dim, size: 11 })
+	app.gg.draw_text(fx + 12, col_y + col_h - 14, '${swarms.len} swarms · Herdr preferred → tmux fallback · rev ${app.engine_rev}', gg.TextCfg{ color: col_ink_soft, size: 10 })
 	// middle — handoffs via GOD mailbox + artifact files
 	mx := fx + 12 + cw
 	pixel_panel(mut app, mx, col_y, cw, col_h, 'default')
@@ -3424,7 +4201,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			mono: true
 		})
 	}
-	app.gg.draw_text(mx + 8, col_y + col_h - 14, 'Artifacts: .agent-toolkit/swarm/runs/<id>/artifacts/ • handoffs/outbox/queued', gg.TextCfg{ color: col_slate, size: 10 })
+	app.gg.draw_text(mx + 8, col_y + col_h - 14, 'Artifacts: .agent-toolkit/swarm/runs/<id>/artifacts/ · GOD outbox/queued', gg.TextCfg{ color: col_ink_soft, size: 10 })
 	// right — approvals spend/scope/destructive + logs
 	rx := mx + cw + 4
 	pixel_panel(mut app, rx, col_y, cw, col_h, 'default')
@@ -3472,11 +4249,12 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			t = t[..30] + '…'
 		}
 		app.gg.draw_text(rx + 18, y, t, gg.TextCfg{ color: col_ink, size: 11 })
-		// approve/reject mini buttons
-		app.gg.draw_rect_filled(rx + cw - 48, y - 1, 20, 10, col_mint)
-		app.gg.draw_text(rx + cw - 44, y, 'Y', gg.TextCfg{ color: col_ink, size: 10, bold: true })
-		app.gg.draw_rect_filled(rx + cw - 24, y - 1, 20, 10, col_coral)
-		app.gg.draw_text(rx + cw - 20, y, 'N', gg.TextCfg{ color: col_cream100, size: 10, bold: true })
+		// approve/reject buttons — sage/rust with translated glyphs
+		draw_text_l(mut app, rx + cw - 50, y - 2, 'act.approve', gg.TextCfg{ color: col_sage_soft, size: 10, bold: true })
+		app.gg.draw_rect_filled(rx + cw - 36, y - 1, 16, 12, col_sage_soft)
+		app.gg.draw_text(rx + cw - 32, y, '✓', gg.TextCfg{ color: col_paper, size: 10, bold: true })
+		app.gg.draw_rect_filled(rx + cw - 16, y - 1, 16, 12, col_oxide)
+		app.gg.draw_text(rx + cw - 12, y, '×', gg.TextCfg{ color: col_paper, size: 10, bold: true })
 	}
 	// logs — wired to desktop_engine eventbus process_log + swarm_logs
 	app.gg.draw_text(rx + 8, col_y + 100, 'Logs — demultiplexed per swarm (1024 cap, backpressure)', gg.TextCfg{ color: col_slate_dim, size: 10 })
@@ -3506,7 +4284,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		y := col_y + 114 + i * 11
 		app.gg.draw_text(rx + 8, y, '${l.ts} ${l.msg[..if l.msg.len > 32 { 32 } else { l.msg.len }]}', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 	}
-	app.gg.draw_text(rx + 8, col_y + col_h - 14, 'EventBus: state_changed • swarm_handoff • process_log → one tick • rev ${app.engine_rev}', gg.TextCfg{ color: col_slate, size: 10, mono: true })
+	app.gg.draw_text(rx + 8, col_y + col_h - 14, 'EventBus: state_changed · swarm_handoff · process_log → one tick · rev ${app.engine_rev}', gg.TextCfg{ color: col_ink_soft, size: 10, mono: true })
 }
 
 // ── Workspace IDE — super potent, easy to manage ────────────────────────────────
@@ -3598,7 +4376,7 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 	pixel_panel(mut app, x, y, w, h, 'terminal')
 	app.gg.draw_rect_filled(x, y, w, 20, col_ink)
 	app.gg.draw_text(x + 8, y + 5, 'File Tree', gg.TextCfg{ color: col_cream100, size: 12, bold: true })
-	app.gg.draw_text(x + w - 52, y + 6, 'brokered', gg.TextCfg{ color: col_brass_dim, size: 11 })
+	app.gg.draw_text(x + w - 56, y + 6, 'brokered', gg.TextCfg{ color: col_brass_dim, size: 10 })
 	flat := file_tree_visible(app)
 	row_h := 18
 	visible := (h - 28) / row_h
@@ -3617,28 +4395,28 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 		ry := y + 24 + row * row_h
 		hover := idx == app.file_tree_hover
 		sel := n.path == app.file_tree_selected
-		if hover { app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, col_charcoal2) }
+		if hover { app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, col_paper_hover) }
 		if sel {
-			app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, gg.rgba(184, 147, 90, 22))
+			app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, gg.rgba(201, 168, 107, 70))
 			app.gg.draw_rect_empty(x + 2, ry - 1, w - 4, row_h, col_brass_dim)
 		}
 		// twisty for dirs
 		indent := n.depth * 12
 		if n.kind == 'dir' {
-			tw := if n.expanded { '▾' } else { '▸' }
-			app.gg.draw_text(x + 6 + indent, ry + 2, tw, gg.TextCfg{ color: col_slate, size: 13 })
+			tw := if n.expanded { '-' } else { '+' }
+			app.gg.draw_text(x + 6 + indent, ry + 2, tw, gg.TextCfg{ color: col_ink_soft, size: 12, bold: true })
 		} else {
-			app.gg.draw_text(x + 6 + indent, ry + 2, '·', gg.TextCfg{ color: col_slate_dim, size: 13 })
+			app.gg.draw_text(x + 6 + indent, ry + 2, '·', gg.TextCfg{ color: col_ink_soft, size: 12 })
 		}
 		icon := if n.kind == 'dir' {
-			'📁'
+			'+'
 		} else if n.name.ends_with('.v') {
-			'◈'
-		} else if n.name.ends_with('.md') { '≡' } else { '○' }
+			'V'
+		} else if n.name.ends_with('.md') { 'm' } else { '·' }
 		app.gg.draw_text(x + 18 + indent, ry + 2, icon, gg.TextCfg{ color: col_brass_dim, size: 11 })
 		name_col := if sel {
-			col_lemon
-		} else if n.kind == 'dir' { col_paper } else { col_paper_dim }
+			col_ink
+		} else if n.kind == 'dir' { col_ink } else { col_ink_soft }
 		lbl := if n.name.len > 16 { n.name[..16] } else { n.name }
 		app.gg.draw_text(x + 30 + indent, ry + 3, lbl, gg.TextCfg{ color: name_col, size: 12, mono: n.kind == 'file' })
 		if n.git_status != '' {
@@ -3656,7 +4434,7 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 		app.gg.draw_rect_filled(x + w - 4, bar_y, 2, bar_h, col_brass_dim)
 	}
 	if flat.len == 0 {
-		app.gg.draw_text(x + 8, y + 30, 'No files — check harness_root', gg.TextCfg{ color: col_slate_dim, size: 12 })
+		app.gg.draw_text(x + 8, y + 30, 'No files — check harness_root', gg.TextCfg{ color: col_ink_soft, size: 11 })
 	}
 }
 
@@ -4021,16 +4799,13 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 }
 
 fn draw_workspace(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_ws := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_ws
 	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
-	pixel_panel(mut app, fx + 8, fy + 8, fw - 16, 32, 'default')
-	app.gg.draw_text(fx + 20, fy + 16, 'Workspace — IDE', gg.TextCfg{ color: col_ink, size: font_display_md })
-	app.gg.draw_text(fx + 160, fy + 18, 'file-tree • editor tabs • CHANGES/HISTORY/COMPARE • commit graph • diff • brokered fs • memory palace', gg.TextCfg{ color: col_ink500, size: 11 })
-	app.gg.draw_text(fx + fw - 90, fy + 16, 'rev ${app.engine_rev}', gg.TextCfg{ color: col_brass_dim, size: 12, mono: true })
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.workspace'), 'file-tree · editor tabs · CHANGES/HISTORY/COMPARE · commit graph · memory palace', 'rev ${app.engine_rev}')
 	// kanban super potent top
 	draw_kanban(mut app, fx, fy, fw)
 	// middle IDE: file tree | editor | git rails
@@ -4056,25 +4831,21 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 // Brokered via Desktop.engine_products_catalog / packs_catalog (Engine typed, no shell).
 // Easy to manage: product cards, pack chips, membership bulk, build preview, digest.
 fn draw_products(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_pd := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_pd
 	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
-	pixel_panel(mut app, fx + 8, fy + 8, fw - 16, 32, 'default')
-	app.gg.draw_text(fx + 20, fy + 16, 'Products & Packs — super potent', gg.TextCfg{ color: col_ink, size: font_display_md })
 	prods := app.desktop.engine_products_catalog()
 	packs := app.desktop.engine_packs_catalog()
 	installed := app.desktop.engine_skills_installed()
-	app.gg.draw_text(fx + 240, fy + 18, '${prods.len} products • ${packs.len} packs • ${installed.len} skills installed • docs-only per ADR-006', gg.TextCfg{ color: col_ink500, size: 11 })
-	// build preview digest
 	preview := if app.desktop != unsafe { nil } {
 		app.desktop.engine_skills_search('', '').len.str()
 	} else {
 		'227'
 	}
-	app.gg.draw_text(fx + fw - 110, fy + 16, 'digest ${preview}', gg.TextCfg{ color: col_brass_dim, size: 11, mono: true })
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.products'), '${prods.len} products · ${packs.len} packs · ${installed.len} skills installed · docs-only per ADR-006', 'digest ${preview}')
 	// product cards
 	card_y0 := fy + 48
 	card_h := 52
@@ -4104,11 +4875,11 @@ fn draw_products(mut app GuiApp, w int, h int) {
 		if desc.len > 42 {
 			desc = desc[..42] + '…'
 		}
-		app.gg.draw_text(fx + 22, y + 34, desc, gg.TextCfg{ color: col_slate_dim, size: 11 })
+		app.gg.draw_text(fx + 22, y + 34, desc, gg.TextCfg{ color: col_ink_soft, size: 11 })
 		// skill count pill
 		scnt := p.skill_ids.len
-		app.gg.draw_rect_filled(fx + fw - 110, y + 8, 44, 14, col_cream200)
-		app.gg.draw_text(fx + fw - 102, y + 10, '${scnt} skills', gg.TextCfg{ color: col_ink700, size: 11 })
+		app.gg.draw_rect_filled(fx + fw - 118, y + 6, 52, 14, col_manila_tab)
+		app.gg.draw_text(fx + fw - 114, y + 8, '${scnt} skills', gg.TextCfg{ color: col_ink_soft, size: 10 })
 		// Install + Manage — super-potent easy management, distinct install per product
 		hover_install := hover
 		ibg := if hover_install { col_brass } else { col_ink }
@@ -4138,27 +4909,27 @@ fn draw_products(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, col_brass_dim)
 	}
 	// packs chips below cards or at bottom if many
-	pack_y := card_y0 + visible * card_h + 8
+	// packs right after the real card count — no dead gap
+	pack_y := card_y0 + prods.len * card_h + 10
 	if pack_y + 22 < fy + fh - 14 {
-		app.gg.draw_text(fx + 14, pack_y, 'Packs — docs-only, toggle to enable (Engine.set_pack_enabled):', gg.TextCfg{ color: col_ink500, size: 11 })
-		mut px := fx + 14
+		app.gg.draw_text(fx + 20, pack_y, 'Packs — docs-only, toggle to enable (Engine.set_pack_enabled):', gg.TextCfg{ color: col_ink_soft, size: 11 })
+		mut px := fx + 20
 		for pk in packs {
 			label := pk.id
-			active := pk.id in app.desktop.engine_packs_catalog().map(it.id) // dummy; real packs enabled via status
-			// Use packs_enabled via onboarding_status? For super-potent, show all 7 docs-only packs
-			bg := if active { col_brass } else { col_cream200 }
-			fg := if active { col_ink } else { col_slate_dim }
-			w2 := label.len * 7 + 14
+			active := pk.id in app.desktop.engine_packs_catalog().map(it.id) // docs-only packs; enable via Engine
+			bg := if active { col_brass } else { col_manila_tab }
+			fg := if active { col_ink } else { col_ink_soft }
+			w2 := label.len * 7 + 16
 			if px + w2 > fx + fw - 14 {
 				break
 			}
-			app.gg.draw_rect_filled(px, pack_y + 14, w2, 16, bg)
-			app.gg.draw_rect_empty(px, pack_y + 14, w2, 16, col_ink300)
-			app.gg.draw_text(px + 7, pack_y + 17, label, gg.TextCfg{ color: fg, size: 11 })
+			app.gg.draw_rect_filled(px, pack_y + 14, w2, 18, bg)
+			app.gg.draw_rect_empty(px, pack_y + 14, w2, 18, col_ink300)
+			app.gg.draw_text(px + 8, pack_y + 18, label, gg.TextCfg{ color: fg, size: 11 })
 			px += w2 + 6
 		}
 	}
-	app.gg.draw_text(fx + 14, fy + fh - 14, 'Products compose skills via distributions/products.yaml — build --check validates • packs docs-only ADR-006', gg.TextCfg{ color: col_slate, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 14, 'Products compose skills via distributions/products.yaml — build --check validates · packs docs-only ADR-006', gg.TextCfg{ color: col_ink_soft, size: 11 })
 }
 
 // ── Onboarding — super-potent wizard: workspace init, persona bootstrap, capability/target/product ──
@@ -4192,8 +4963,12 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	for sx in 0 .. (fw / 40 + 1) {
 		app.gg.draw_rect_filled(fx + 12 + sx * 40, fy + 8, 1, 1, gg.rgba(244, 239, 230, 8))
 	}
-	app.gg.draw_text(fx + 14, fy + 10, 'Onboarding — Super Potent', gg.TextCfg{ color: col_cream100, size: font_display_md })
-	app.gg.draw_text(fx + 220, fy + 12, 'workspace • personas • 227 capabilities • 7 targets • 3 products • one Engine', gg.TextCfg{ color: col_slate_dim, size: 12 })
+	app.gg.draw_text(fx + 14, fy + 9, tr(app, 'panel.onboarding'), gg.TextCfg{
+		color: col_cream100
+		size: font_display_md
+		family: app.fonts.display
+	})
+	app.gg.draw_text(fx + 150, fy + 13, 'workspace · personas · 227 capabilities · 7 targets · 3 products · one Engine', gg.TextCfg{ color: col_slate_dim, size: 12 })
 	// signature envelope + GOD mailbox glow — paper envelope on header right
 	env_x := fx + fw - 140
 	env_y := fy + 8
@@ -4205,7 +4980,6 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_empty(env_x, env_y, 20, 14, col_line_light)
 	app.gg.draw_line(env_x, env_y, env_x + 10, env_y + 7, col_brass_dim)
 	app.gg.draw_line(env_x + 10, env_y + 7, env_x + 20, env_y, col_brass_dim)
-	app.gg.draw_text(env_x + 7, env_y + 3, '✉', gg.TextCfg{ color: col_oxide, size: 8 })
 	if app.god_inbox > 0 {
 		app.gg.draw_rect_filled(env_x + 14, env_y - 3, 6, 6, col_oxide)
 	}
@@ -4336,7 +5110,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(fx + 20, content_y + 40, root_str, gg.TextCfg{ color: col_ink, size: 12, mono: true })
 			app.gg.draw_text(fx + 20, content_y + 56, tier_str, gg.TextCfg{ color: col_slate_dim, size: 12, mono: true })
 			app.gg.draw_text(fx + 20, content_y + 74, 'Resolution: AGENT_TOOLKIT_ROOT (override) → XDG → embedded 3a → FHS 3b → checkout — ADR-015/026', gg.TextCfg{ color: col_slate, size: 11 })
-			app.gg.draw_text(fx + 20, content_y + 90, '${if status_is_first { '●' } else { '○' }} is_first_run=${status_is_first}   doctor checks via Engine.doctor() typed', gg.TextCfg{
+			app.gg.draw_text(fx + 20, content_y + 90, '${if status_is_first { '!' } else { '·' }} is_first_run=${status_is_first}   doctor checks via Engine.doctor() typed', gg.TextCfg{
 				color: if status_is_first {
 					col_coral} else {
 					col_mint}
@@ -4429,9 +5203,9 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				})
 				app.gg.draw_text(fx + 26, y + 3, t, gg.TextCfg{ color: fg3, size: 12, mono: true })
 				app.gg.draw_text(fx + fw - 80, y + 3, if enabled {
-					'enabled ●'
+					'enabled ✓'
 				} else {
-					'off ○'
+					'off -'
 				}, gg.TextCfg{ color: if enabled { col_mint } else { col_slate }, size: 11 })
 			}
 			// bulk enable all / minimal
@@ -4648,34 +5422,34 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 // surface, plus budget sparks (402x per-swarm logistic chaos) and OTel spans with Dunder rust/brass paper.
 // VJOBS=2 safe: all data via Desktop typed Engine APIs (no shell), 60 FPS retained, headless ATK_GUI_HEADLESS.
 fn draw_insights(mut app GuiApp, w int, h int) {
-	fx := 208
+	fx := panel_fx(app)
 	fy := 52
-	fw := w - 208 - 300
+	fw := panel_fw(app, w)
 	term_h_in := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_in
 	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
-	pixel_panel(mut app, fx + 8, fy + 8, fw - 16, 32, 'insights')
-	app.gg.draw_text(fx + 20, fy + 16, 'Insights — Telemetry + Cost', gg.TextCfg{ color: col_ink, size: font_display_md })
-	app.gg.draw_text(fx + 220, fy + 18, 'super-potent vs munder-difflin: ledger + waterfall + spans + budgets + CI', gg.TextCfg{ color: col_ink500, size: 11 })
-	// tabs — cost | waterfall | spans | budgets | ci
-	tabs := ['cost', 'waterfall', 'spans', 'budgets', 'ci']
-	tab_labels := ['Cost', 'Waterfall', 'Spans', 'Budgets', 'CI']
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.insights'), 'ledger + waterfall + spans + budgets + CI + realtime + gallery — superior to munder-difflin', 'Engine · no shell')
+	// tabs — cost | waterfall | spans | budgets | ci | realtime | gallery (7, web parity + 2)
+	tabs := ['cost', 'waterfall', 'spans', 'budgets', 'ci', 'realtime', 'gallery']
+	tab_labels := ['Cost', 'Waterfall', 'Spans', 'Budgets', 'CI', 'Realtime', 'Gallery']
 	tab_x0 := fx + 16
-	tab_w := 92
+	tab_w := 84
 	for i, t in tabs {
 		x := tab_x0 + i * (tab_w + 6)
 		y := fy + 48
 		active := app.insights_tab == t
 		hover := app.insights_hover == i
-		bg := if active { col_ink } else if hover { col_charcoal2 } else { col_cream200 }
-		bd := if active { col_oxide } else { col_ink300 }
-		fg := if active { col_cream100 } else { col_ink700 }
-		app.gg.draw_rect_filled(x, y, tab_w, 20, bg)
-		app.gg.draw_rect_empty(x, y, tab_w, 20, bd)
+		bg := if active {
+			col_ink
+		} else if hover { col_manila_tab } else { col_cream100 }
+		bd := if active { col_brass } else { col_ink300 }
+		fg := if active { col_cream100 } else { col_ink_soft }
+		app.gg.draw_rect_filled(x, y, tab_w, 22, bg)
+		app.gg.draw_rect_empty(x, y, tab_w, 22, bd)
 		if active {
-			app.gg.draw_rect_filled(x, y, tab_w, 2, col_oxide)
+			app.gg.draw_rect_filled(x, y, tab_w, 2, col_brass)
 		}
-		app.gg.draw_text(x + 8, y + 5, tab_labels[i], gg.TextCfg{ color: fg, size: 12, bold: active })
+		app.gg.draw_text(x + 10, y + 5, tab_labels[i], gg.TextCfg{ color: fg, size: 11, bold: active })
 	}
 	// content area
 	cy0 := fy + 76
@@ -4689,8 +5463,16 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(inner_x, inner_y, 'Cost Ledger — durable per-run ledger (superior to munder transcript pricing)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
 		app.gg.draw_text(inner_x, inner_y + 18, 'Live Engine: swarm pair/team/full + loops max_tokens/max_wall_seconds + jobs budget', gg.TextCfg{ color: col_slate, size: 11 })
 		// swarm runs
-		swarms := if app.desktop != unsafe { nil } { app.desktop.swarm_list() } else { []desktop_engine.SwarmRun{} }
-		jobs := if app.desktop != unsafe { nil } { app.desktop.engine_jobs_catalog() } else { []desktop_engine.JobRecord{} }
+		swarms := if app.desktop != unsafe { nil } {
+			app.desktop.swarm_list()
+		} else {
+			[]desktop_engine.SwarmRun{}
+		}
+		jobs := if app.desktop != unsafe { nil } {
+			app.desktop.engine_jobs_catalog()
+		} else {
+			[]desktop_engine.JobRecord{}
+		}
 		mut y := inner_y + 40
 		// header row paper tape
 		app.gg.draw_rect_filled(inner_x, y, inner_w, 16, col_cream200)
@@ -4712,10 +5494,14 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			// budget spark mini bar
 			pct := if r.budget_total > 0 { f64(r.budget_spent) / f64(r.budget_total) } else { 0.0 }
 			mut bar_w := int(84 * pct)
-			if bar_w > 84 { bar_w = 84 }
+			if bar_w > 84 {
+				bar_w = 84
+			}
 			app.gg.draw_rect_filled(inner_x + 460, y + 5, 84, 6, col_line_light)
 			if bar_w > 0 {
-				bar_col := if pct > 0.9 { col_oxide } else if pct > 0.7 { col_brass } else { col_mint }
+				bar_col := if pct > 0.9 {
+					col_oxide
+				} else if pct > 0.7 { col_brass } else { col_mint }
 				app.gg.draw_rect_filled(inner_x + 460, y + 5, bar_w, 6, bar_col)
 			}
 			y += 18
@@ -4725,7 +5511,9 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			if y + 16 > cy0 + ch - 20 {
 				break
 			}
-			if j.id.len < 2 { continue }
+			if j.id.len < 2 {
+				continue
+			}
 			bg2 := if row % 2 == 0 { col_cream100 } else { col_cream50 }
 			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
 			app.gg.draw_text(inner_x + 6, y + 3, j.id[..if j.id.len > 14 { 14 } else { j.id.len }], gg.TextCfg{ color: col_ink, size: 11, mono: true })
@@ -4743,11 +5531,19 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(inner_x, inner_y, 'Tool Waterfall — per-agent tool spans (superior to munder OTel waterfall)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
 		app.gg.draw_text(inner_x, inner_y + 18, 'Each agent row: tool spans as brass/steel bars on paper timeline — zoomed 18px rows, mono gutter', gg.TextCfg{ color: col_slate, size: 11 })
 		y0 := inner_y + 44
-		agents := if app.desktop != unsafe { nil } { app.desktop.engine_agents_search('', '') } else { []desktop_engine.AgentEntry{} }
+		agents := if app.desktop != unsafe { nil } {
+			app.desktop.engine_agents_search('', '')
+		} else {
+			[]desktop_engine.AgentEntry{}
+		}
 		mut ay := y0
 		for idx, a in agents {
-			if ay + 20 > cy0 + ch - 24 { break }
-			if idx > 7 { break }
+			if ay + 20 > cy0 + ch - 24 {
+				break
+			}
+			if idx > 7 {
+				break
+			}
 			app.gg.draw_text(inner_x, ay + 3, a.id[..if a.id.len > 12 { 12 } else { a.id.len }], gg.TextCfg{ color: col_ink700, size: 11, mono: true })
 			// waterfall bars — logistic priority tinted
 			bar_x := inner_x + 110
@@ -4756,7 +5552,9 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			for b in 0 .. 3 {
 				xb := bar_x + b * (bar_max / 4) + idx * 2
 				wb := 48 + b * 12
-				if xb + wb > inner_x + inner_w - 10 { break }
+				if xb + wb > inner_x + inner_w - 10 {
+					break
+				}
 				col := if b % 2 == 0 { col_brass } else { col_slate }
 				app.gg.draw_rect_filled(xb, ay + 2, wb, 10, col)
 				app.gg.draw_rect_empty(xb, ay + 2, wb, 10, col_line_light)
@@ -4771,13 +5569,19 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	} else if app.insights_tab == 'spans' {
 		app.gg.draw_text(inner_x, inner_y, 'OTel Spans — live collection (superior to munder trace viewer)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
 		mut y := inner_y + 40
-		spans := if app.desktop != unsafe { nil } { app.desktop.engine_job_stats() } else { desktop_engine.JobStats{} }
+		spans := if app.desktop != unsafe { nil } {
+			app.desktop.engine_job_stats()
+		} else {
+			desktop_engine.JobStats{}
+		}
 		pids, drops := app.desktop.engine_process_supervisor_stats()
 		app.gg.draw_text(inner_x + 6, y, 'Jobs: pids=${pids} drops=${drops} total=${spans.total} running=${spans.running} failed=${spans.failed}', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
 		y += 20
 		// mock spans with Dunder paper rows
 		for i in 0 .. 5 {
-			if y + 16 > cy0 + ch - 24 { break }
+			if y + 16 > cy0 + ch - 24 {
+				break
+			}
 			bg2 := if i % 2 == 0 { col_cream100 } else { col_cream50 }
 			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
 			dur := 42 + i * 18
@@ -4789,11 +5593,17 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Spans via EventBus process_log • durable ledger • no shell exec', gg.TextCfg{ color: col_slate, size: 10 })
 	} else if app.insights_tab == 'budgets' {
 		app.gg.draw_text(inner_x, inner_y, 'Budgets — swarm + loops ledger (pair/team/full 900k/1.2M + per-loop max_tokens)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
-		loops := if app.desktop != unsafe { nil } { app.desktop.engine_loop_history('') } else { []desktop_engine.LoopHistory{} }
+		loops := if app.desktop != unsafe { nil } {
+			app.desktop.engine_loop_history('')
+		} else {
+			[]desktop_engine.LoopHistory{}
+		}
 		mut y := inner_y + 40
 		// budget rings overview (paper gauge)
 		for i in 0 .. 3 {
-			if y + 22 > cy0 + ch - 24 { break }
+			if y + 22 > cy0 + ch - 24 {
+				break
+			}
 			label := ['pair 900k', 'team 900k', 'full 1.2M', 'loop 10/day'][i]
 			used := [42, 128, 256, 7][i]
 			limit := [900000, 900000, 1200000, 10][i]
@@ -4806,11 +5616,24 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			if bar_w > 0 {
 				app.gg.draw_rect_filled(inner_x + 120, y + 4, bar_w, 10, colb)
 			}
-			app.gg.draw_text(inner_x + 320, y + 4, '${used}/${limit} ${int(pct*100)}%', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
+			app.gg.draw_text(inner_x + 320, y + 4, '${used}/${limit} ${int(pct * 100)}%', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
 			y += 22
 		}
 		if loops.len > 0 {
-			app.gg.draw_text(inner_x + 6, y + 8, 'Recent loop history: ${loops.len} entries', gg.TextCfg{ color: col_slate_dim, size: 11 })
+			app.gg.draw_text(inner_x + 6, y + 10, 'Recent loop history: ${loops.len} entries', gg.TextCfg{ color: col_ink, size: 12, bold: true })
+			y += 30
+			for hi, hrow in loops {
+				if hi >= 8 || y + 16 > cy0 + ch - 40 {
+					break
+				}
+				bg2 := if hi % 2 == 0 { col_cream100 } else { col_cream50 }
+				app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
+				app.gg.draw_text(inner_x + 6, y + 3, hrow.loop_name, gg.TextCfg{ color: col_ink, size: 11, mono: true })
+				app.gg.draw_text(inner_x + 160, y + 3, '${hrow.status} · exit ${hrow.exit_condition}', gg.TextCfg{ color: col_ink_soft, size: 11 })
+				app.gg.draw_text(inner_x + 340, y + 3, '${hrow.budget_spent} tok · ${hrow.duration_ms}ms', gg.TextCfg{ color: col_steel_ink, size: 11, mono: true })
+				app.gg.draw_text(inner_x + inner_w - 90, y + 3, hrow.run_id, gg.TextCfg{ color: col_ink_soft, size: 11, mono: true })
+				y += 18
+			}
 		}
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Budgets enforced via StateRepository • logistic 4*t*(1-t) GOD priority • VJOBS=2 serialized', gg.TextCfg{ color: col_slate, size: 10 })
 	} else if app.insights_tab == 'ci' {
@@ -4818,26 +5641,143 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(inner_x, inner_y + 18, 'Watches .github/workflows/validate.yml via StateWatcher + PollingWatcher — no refresh', gg.TextCfg{ color: col_slate, size: 11 })
 		mut y := inner_y + 42
 		// CI jobs matrix (paper tape)
-		jobs_ci := ['validate (VJOBS=2)', 'megalinter', 'check-planes', 'check-surface', 'catalogs', 'provenance', 'build-cli']
+		jobs_ci := ['validate (VJOBS=2)', 'megalinter', 'check-planes', 'check-surface', 'catalogs',
+			'provenance', 'build-cli']
 		for i, j in jobs_ci {
-			if y + 16 > cy0 + ch - 24 { break }
+			if y + 16 > cy0 + ch - 24 {
+				break
+			}
 			bg2 := if i % 2 == 0 { col_cream100 } else { col_cream50 }
 			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
-			status := if i < 5 { '✓ green' } else if i == 5 { '◐ running' } else { '○ pending' }
-			scol := if status.contains('green') { col_mint } else if status.contains('running') { col_brass } else { col_slate }
+			status := if i < 5 {
+				'✓ green'
+			} else if i == 5 { '» running' } else { '- pending' }
+			scol := if status.contains('green') {
+				col_mint
+			} else if status.contains('running') { col_brass } else { col_slate }
 			app.gg.draw_text(inner_x + 6, y + 3, j, gg.TextCfg{ color: col_ink, size: 11, mono: true })
 			app.gg.draw_text(inner_x + inner_w - 80, y + 3, status, gg.TextCfg{ color: scol, size: 11, bold: status.contains('green') })
 			y += 18
 		}
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'CI watcher debounced 16ms distinct-until-changed • bottom terminal streams live logs', gg.TextCfg{ color: col_slate, size: 10 })
+	} else if app.insights_tab == 'realtime' {
+		draw_insights_realtime(mut app, cy0, ch, inner_x, inner_y, inner_w)
+	} else if app.insights_tab == 'gallery' {
+		draw_insights_gallery(mut app, cy0, ch, inner_x, inner_y, inner_w)
 	} else {
-		app.gg.draw_text(inner_x, inner_y + 20, 'Select a tab above — Cost, Waterfall, Spans, Budgets, CI', gg.TextCfg{ color: col_slate_dim, size: 12 })
+		app.gg.draw_text(inner_x, inner_y + 20, 'Select a tab above — Cost, Waterfall, Spans, Budgets, CI, Realtime, Gallery', gg.TextCfg{ color: col_ink_soft, size: 12 })
 	}
+}
+
+// draw_insights_realtime — live EventBus feed + GOD envelope flow (6th tab, native parity with web)
+fn draw_insights_realtime(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y int, inner_w int) {
+	app.gg.draw_text(inner_x, inner_y, 'Realtime — EventBus live feed (swarm_handoff · state_changed · process_log)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
+	app.gg.draw_text(inner_x, inner_y + 18, 'GOD envelopes ${app.god_inbox} in · ${app.god_outbox} out · rev ${app.engine_rev} · api ${app.api_calls} — one tick, no polling', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	// GOD flow meter — 4*t*(1-t) logistic pulse
+	flow_t := f64(app.frame % 60) / 60.0
+	flow_w := int(18.0 * (4.0 * flow_t * (1.0 - flow_t)))
+	app.gg.draw_rect_filled(inner_x, inner_y + 36, inner_w, 10, col_cream100)
+	if flow_w > 0 {
+		app.gg.draw_rect_filled(inner_x, inner_y + 36, 30 + flow_w * 12, 10, gg.rgba(196, 90, 60, 110))
+	}
+	app.gg.draw_rect_empty(inner_x, inner_y + 36, inner_w, 10, col_ink300)
+	app.gg.draw_text(inner_x + inner_w - 110, inner_y + 37, 'GOD 4·t·(1−t)', gg.TextCfg{ color: col_oxide, size: 10, mono: true })
+	// live feed — engine log collector, newest last
+	all_logs := collect_engine_logs(app)
+	mut y := inner_y + 58
+	avail := cy0 + ch - 40 - y
+	mut vis := avail / 17
+	if vis < 1 {
+		vis = 1
+	}
+	mut start := all_logs.len - vis
+	if start < 0 {
+		start = 0
+	}
+	for idx in start .. all_logs.len {
+		l := all_logs[idx]
+		row := idx - start
+		yy := y + row * 17
+		bg2 := if row % 2 == 0 { col_cream100 } else { col_cream50 }
+		app.gg.draw_rect_filled(inner_x, yy, inner_w, 16, bg2)
+		app.gg.draw_rect_filled(inner_x + 4, yy + 5, 5, 5, term_level_color(l.level))
+		app.gg.draw_text(inner_x + 16, yy + 2, l.ts, gg.TextCfg{ color: col_ink_soft, size: 11, mono: true })
+		app.gg.draw_text(inner_x + 90, yy + 2, l.source, gg.TextCfg{ color: col_steel_ink, size: 11, mono: true })
+		mut msg := l.msg
+		if msg.len > 52 {
+			msg = msg[..52] + '…'
+		}
+		app.gg.draw_text(inner_x + 170, yy + 2, msg, gg.TextCfg{ color: col_ink, size: 11 })
+	}
+	app.gg.draw_text(inner_x, cy0 + ch - 22, 'Feed via desktop_engine EventBus · durable receipts · VJOBS=2 serialized', gg.TextCfg{ color: col_ink_soft, size: 10 })
+}
+
+// draw_insights_gallery — the living stationery style-guide (7th tab: brand + tokens)
+fn draw_insights_gallery(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y int, inner_w int) {
+	app.gg.draw_text(inner_x, inner_y, 'Gallery — the Paper Co. design system, live from tokens', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
+	app.gg.draw_text(inner_x, inner_y + 18, 'Dunder Mifflin filing-cabinet: paper #F4EFE6 · ink #1A1A1A · steel #8A9BA8 · manila #E6D8B8 · rust #C45A3C · brass #C9A86B', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	// palette swatches — paint chips (paper-sample card)
+	swatch_names := ['paper', 'cream', 'manila', 'kraft', 'steel', 'ink', 'rust', 'brass', 'sage']
+	swatch_cols := [col_paper, col_cream50, col_manila_tab, col_ink300, col_slate, col_ink,
+		col_oxide, col_brass, col_sage_soft]
+	dark_swatches := ['ink', 'rust', 'brass']
+	mut sx := inner_x
+	mut sy := inner_y + 44
+	for i in 0 .. swatch_names.len {
+		if i == 5 {
+			sx = inner_x
+			sy += 64
+		}
+		app.gg.draw_rect_filled(sx, sy, 74, 44, swatch_cols[i])
+		app.gg.draw_rect_empty(sx, sy, 74, 44, col_ink300)
+		swatch_txt_col := if swatch_names[i] in dark_swatches { col_paper } else { col_ink }
+		app.gg.draw_text(sx + 6, sy + 30, swatch_names[i], gg.TextCfg{
+			color: swatch_txt_col
+			size: 10
+			bold: true
+		})
+		sx += 80
+	}
+	// type specimens
+	ty := sy + 84
+	app.gg.draw_text(inner_x, ty, 'Fraunces Display — letterheads & headlines 22', gg.TextCfg{
+		color: col_ink
+		size: 22
+		family: app.fonts.display
+	})
+	app.gg.draw_text(inner_x, ty + 34, 'IBM Plex Sans — body copy 15, the humanist grotesk of the office memo.', gg.TextCfg{ color: col_ink, size: 15 })
+	app.gg.draw_text(inner_x, ty + 58, 'IBM Plex Mono — receipts, logs, 13px typewriter', gg.TextCfg{ color: col_ink_soft, size: 13, mono: true })
+	// components row — buttons + rivet card
+	comp_y := ty + 92
+	app.gg.draw_rect_filled(inner_x, comp_y, 96, 22, col_brass)
+	app.gg.draw_text(inner_x + 24, comp_y + 5, 'Primary', gg.TextCfg{ color: col_ink, size: 11, bold: true })
+	app.gg.draw_rect_filled(inner_x + 108, comp_y, 96, 22, col_cream50)
+	app.gg.draw_rect_empty(inner_x + 108, comp_y, 96, 22, col_ink300)
+	app.gg.draw_text(inner_x + 130, comp_y + 5, 'Paper', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	app.gg.draw_rect_filled(inner_x + 216, comp_y, 96, 22, col_manila_tab)
+	app.gg.draw_rect_empty(inner_x + 216, comp_y, 96, 22, col_brass_dim)
+	app.gg.draw_text(inner_x + 240, comp_y + 5, 'Manila', gg.TextCfg{ color: col_ink, size: 11 })
+	app.gg.draw_rect_filled(inner_x + 324, comp_y, 96, 22, col_oxide)
+	app.gg.draw_text(inner_x + 348, comp_y + 5, 'Rust', gg.TextCfg{ color: col_paper, size: 11, bold: true })
+	// rivet card specimen
+	rc_x := inner_x + inner_w - 190
+	app.gg.draw_rect_filled(rc_x, comp_y - 6, 180, 66, col_cream100)
+	app.gg.draw_rect_empty(rc_x, comp_y - 6, 180, 66, col_ink300)
+	app.gg.draw_rect_filled(rc_x + 6, comp_y, 6, 6, gg.rgba(193, 162, 75, 180))
+	app.gg.draw_rect_filled(rc_x + 168, comp_y, 6, 6, gg.rgba(193, 162, 75, 180))
+	app.gg.draw_text(rc_x + 20, comp_y + 12, 'Rivet card', gg.TextCfg{
+		color: col_ink
+		size: 14
+		family: app.fonts.display
+	})
+	app.gg.draw_text(rc_x + 20, comp_y + 30, 'perforated feed strip', gg.TextCfg{ color: col_ink_soft, size: 10, mono: true })
+	gallery_note := 'tokens: theme/tokens.v · Fraunces + IBM Plex OFL in assets/fonts · 4-lang EN/ES/中文/عربي'
+	app.gg.draw_text(inner_x, cy0 + ch - 22, gallery_note, lang_cfg(app, gallery_note, gg.TextCfg{ color: col_ink_soft, size: 10 }))
 }
 
 fn draw_inspector(mut app GuiApp, w int, h int) {
 	term_h_i := if app.term_visible { app.term_height } else { 0 }
-	ix := w - 300
+	ix := inspector_x(app, w)
 	iy := 52
 	iw := 300
 	ih := h - 52 - 28 - term_h_i
@@ -4884,7 +5824,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	// This is the designer's super-potent touch: multiplex is not hidden — it glows in the inspector
 	if app.selected_desk >= 0 && app.selected_desk < desks.len && app.per_desk_ghost.len > app.selected_desk {
 		vt_y := iy + 272
-		vt_h := 62
+		vt_h := 74
 		vt_x := ix + 8
 		vt_w := iw - 16
 		// panel chrome — inset terminal variant with brass accent
@@ -4898,17 +5838,17 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		// live cursor pulse when selected
 		pulse_vt := if app.frame % 40 < 20 { col_brass } else { gg.rgba(184, 147, 90, 70) }
 		app.gg.draw_rect_filled(vt_x + vt_w - 10, vt_y + 4, 6, 6, pulse_vt)
-		// render ghost visible lines — up to 4 rows inside 62px panel (14 header + 4*10 + 8)
+		// render ghost visible lines — up to 6 rows inside 92px panel (14 header + 6*12 + 6)
 		ghost := app.per_desk_ghost[app.selected_desk]
 		vis := ghost.visible_lines()
-		max_rows := 4
+		max_rows := 6
 		for ri in 0 .. max_rows {
 			if ri >= vis.len {
 				break
 			}
 			mut line := vis[ri]
-			if line.len > 38 {
-				line = line[..38] + '…'
+			if line.len > 36 {
+				line = line[..36] + '…'
 			}
 			// strip control chars for display
 			mut clean := ''
@@ -4922,7 +5862,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 			if clean.len == 0 {
 				continue
 			}
-			ry := vt_y + 18 + ri * 10
+			ry := vt_y + 20 + ri * 12
 			// per-line color from ghost colors
 			col_idx := if ri < ghost.colors.len && ghost.colors[ri].len > 0 {
 				ghost.colors[ri][0]
@@ -4936,18 +5876,18 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 				4 { col_slate }
 				else { col_paper_dim }
 			}
-			app.gg.draw_text(vt_x + 8, ry, clean, gg.TextCfg{ color: gcol, size: 10, mono: true })
+			app.gg.draw_text(vt_x + 8, ry, clean, gg.TextCfg{ color: gcol, size: 11, mono: true })
 		}
 		if vis.len == 0 {
-			app.gg.draw_text(vt_x + 8, vt_y + 22, '[${desk_label}] ready — 40×6 multiplex', gg.TextCfg{ color: col_slate_dim, size: 10, mono: true })
-			app.gg.draw_text(vt_x + 8, vt_y + 32, 'type in world to feed this VT', gg.TextCfg{ color: col_slate, size: 10 })
+			app.gg.draw_text(vt_x + 8, vt_y + 24, '[${desk_label}] ready — 40×6 multiplex', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
+			app.gg.draw_text(vt_x + 8, vt_y + 38, 'type in world to feed this VT', gg.TextCfg{ color: col_slate, size: 11 })
 		}
 		// scanline overlay — subtle CRT 1px every 2 rows
-		for sy in 0 .. 4 {
+		for sy in 0 .. 7 {
 			app.gg.draw_line(vt_x + 1, vt_y + 18 + sy * 10 + 9, vt_x + vt_w - 1, vt_y + 18 + sy * 10 + 9, gg.rgba(0, 0, 0, 10))
 		}
 		// bottom hint — click to focus main VT
-		app.gg.draw_text(vt_x + 8, vt_y + vt_h - 9, 'multiplexed • Tab to focus global ghostty-vt', gg.TextCfg{ color: col_slate, size: 9 })
+		app.gg.draw_text(vt_x + 8, vt_y + vt_h - 9, 'multiplexed • Tab to focus global ghostty-vt', gg.TextCfg{ color: col_slate, size: 10 })
 	}
 	// ── Per-desk live logs (workshop terminal) ──
 	filter_q := active_log_filter(app)
@@ -4964,7 +5904,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		'Activity — per-desk live'
 	}
 	header_off := if app.selected_desk >= 0 && app.per_desk_ghost.len > app.selected_desk {
-		64
+		76
 	} else {
 		0
 	}
@@ -5054,22 +5994,47 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(x0, y0, tw, 24, term_header_bg)
 	app.gg.draw_line(x0, y0 + 24, w, y0 + 24, col_line)
 	app.gg.draw_rect_filled(x0, y0, 3, 24, col_brass)
-	app.gg.draw_text(x0 + 12, y0 + 7, 'TERMINAL — Ghostty VT (libghostty-vt)  •  `help`  •  `clear`  •  ghost focus: ${if app.ghost_focused {
-		'yes'
+	app.gg.draw_text(x0 + 12, y0 + 7, 'GHOSTTY VT', gg.TextCfg{ color: col_paper, size: 13, bold: true, mono: true })
+	app.gg.draw_text(x0 + 100, y0 + 8, 'claude · opencode · fleet — \\`help · \\`clear', gg.TextCfg{ color: col_slate, size: 11, mono: true })
+	// focus pill — Tab flips ghost focus (type into the embedded terminal)
+	focus_x := x0 + 320
+	pill_bg := if app.ghost_focused { gg.rgba(90, 125, 90, 60) } else { gg.rgba(138, 155, 168, 30) }
+	pill_bd := if app.ghost_focused { col_mint } else { col_line_light }
+	app.gg.draw_rect_filled(focus_x, y0 + 4, 118, 16, pill_bg)
+	app.gg.draw_rect_empty(focus_x, y0 + 4, 118, 16, pill_bd)
+	app.gg.draw_text(focus_x + 8, y0 + 7, if app.ghost_focused {
+		'FOCUSED · Tab to release'
 	} else {
-		'no'
-	}}', gg.TextCfg{ color: col_paper, size: 13, bold: true, mono: true })
+		'UNFOCUSED · Tab to type'
+	}, gg.TextCfg{
+		color: if app.ghost_focused { col_mint } else { col_slate }
+		size: 10
+		bold: true
+	})
 	filter_q := active_log_filter(app)
 	if filter_q != '' {
-		app.gg.draw_text(x0 + 520, y0 + 7, 'filter: ${filter_q}', gg.TextCfg{ color: col_brass, size: 13, bold: true, mono: true })
-		app.gg.draw_text(x0 + tw - 220, y0 + 7, '${filtered_logs(collect_engine_logs(app), filter_q).len} match', gg.TextCfg{ color: col_brass_dim, size: 12 })
-	} else {
-		app.gg.draw_text(x0 + tw - 260, y0 + 7, 'global feed — click row to copy', gg.TextCfg{ color: col_slate, size: 12 })
+		app.gg.draw_text(focus_x + 128, y0 + 8, 'filter: ${filter_q} — ${filtered_logs(collect_engine_logs(app), filter_q).len} match', gg.TextCfg{ color: col_brass, size: 11, bold: true, mono: true })
+	}
+	// height mode buttons — 1× / 2× / MAX / ×  (^` cycles 0→1→2)
+	for bi, bl in ['1×', '2×', 'MAX', '×'] {
+		bx := x0 + tw - 148 + bi * 34
+		bact := app.term_mode == bi
+		bhov := app.mouse_x >= bx && app.mouse_x <= bx + 30 && app.mouse_y >= y0 + 4 && app.mouse_y <= y0 + 20
+		bbg := if bact {
+			col_brass
+		} else if bhov { col_charcoal2 } else { col_ink }
+		bfg := if bact { col_ink } else { col_slate }
+		bbd := if bact {
+			col_brass
+		} else if bhov { col_line_light } else { col_line }
+		app.gg.draw_rect_filled(bx, y0 + 4, 30, 16, bbg)
+		app.gg.draw_rect_empty(bx, y0 + 4, 30, 16, bbd)
+		app.gg.draw_text(bx + (30 - bl.len * 7) / 2, y0 + 7, bl, gg.TextCfg{ color: bfg, size: 10, bold: true, mono: true })
 	}
 	// live indicator pulse
 	pulse_col := if app.frame % 60 < 30 { gg.rgb(52, 168, 83) } else { gg.rgba(52, 168, 83, 120) }
-	app.gg.draw_rect_filled(x0 + tw - 42, y0 + 8, 8, 8, pulse_col)
-	app.gg.draw_text(x0 + tw - 30, y0 + 7, 'LIVE', gg.TextCfg{ color: pulse_col, size: 12, bold: true })
+	app.gg.draw_rect_filled(x0 + tw - 176, y0 + 8, 8, 8, pulse_col)
+	app.gg.draw_text(x0 + tw - 164, y0 + 7, 'LIVE', gg.TextCfg{ color: pulse_col, size: 11, bold: true })
 	// copy feedback
 	if app.term_copied != '' && app.frame - app.term_copied_at < 90 {
 		mut txt := app.term_copied
@@ -5095,7 +6060,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	}
 	// Ghostty visible lines — 40×6 multiplex proven via per-desk ghost array + global 80×18
 	ghost_lines := app.ghost.visible_lines()
-	row_h := 14
+	row_h := 16
 	visible := term_visible_rows(term_h) - 1 // reserve one for prompt
 	if ghost_lines.len == 0 {
 		app.gg.draw_text(content_x + 10, content_y + 10, 'Ghostty VT ready — type help, skills, clear — live Engine logs stream here', gg.TextCfg{ color: col_slate_dim, size: 14, mono: true })
@@ -5171,7 +6136,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	app.gg.draw_text(cx + 28, cy - 11, 'Dunder Mifflin', gg.TextCfg{ color: col_slate, size: scaled_size(9, z) })
 	pixel_panel(mut app, cx, cy, pw, ph, 'default')
 	app.gg.draw_text(cx + 16, cy + 12, 'Command Palette', gg.TextCfg{ color: col_ink, size: scaled_size(13, z), bold: true })
-	app.gg.draw_text(cx + pw - 90, cy + 12, '⌘K  •  ESC', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
+	app.gg.draw_text(cx + pw - 90, cy + 12, '/  •  ESC', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
 	app.gg.draw_rect_filled(cx + 12, cy + 32, pw - 24, 32, col_ink)
 	app.gg.draw_rect_empty(cx + 12, cy + 32, pw - 24, 32, col_brass)
 	// perforated dots each side
@@ -5179,7 +6144,11 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(cx + 14, cy + 38 + py * 10, 1, 1, gg.rgba(251, 246, 232, 28))
 		app.gg.draw_rect_filled(cx + pw - 15, cy + 38 + py * 10, 1, 1, gg.rgba(251, 246, 232, 28))
 	}
-	q := if app.palette_query == '' { 'Search skills, agents, panels…' } else { app.palette_query }
+	q := if app.palette_query == '' {
+		'Search skills, agents, panels…'
+	} else {
+		app.palette_query
+	}
 	qcol := if app.palette_query == '' { col_slate_dim } else { col_paper }
 	app.gg.draw_text(cx + 20, cy + 42, '› ${q}', gg.TextCfg{ color: qcol, size: scaled_size(14, z) })
 	filtered := filtered_palette(app.palette_query)
@@ -5200,12 +6169,31 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			// subtle manila tab on unselected
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, col_paper_dim)
 		}
-		app.gg.draw_text(cx + 20, y + 6, it.label, gg.TextCfg{
+		pal_label := tr(app, 'palette.' + it.id)
+		pal_desc := if tr(app, 'pdesc.' + it.id) != 'pdesc.' + it.id {
+			tr(app, 'pdesc.' + it.id)
+		} else {
+			it.desc
+		}
+		pal_fam := if needs_sc(pal_label) {
+			app.fonts.sc
+		} else if needs_ar(pal_label) { app.fonts.arabic } else { '' }
+		app.gg.draw_text(cx + 20, y + 6, pal_label, gg.TextCfg{
 			color: if is_sel { col_paper } else { col_ink }
 			size: scaled_size(13, z)
 			bold: is_sel
+			family: pal_fam
 		})
-		app.gg.draw_text(cx + 20, y + 18, it.desc, gg.TextCfg{ color: if is_sel { col_slate_dim } else { col_ink500 }, size: scaled_size(11, z) })
+		pal_dfam := if needs_sc(pal_desc) {
+			app.fonts.sc
+		} else if needs_ar(pal_desc) { app.fonts.arabic } else { '' }
+		app.gg.draw_text(cx + 20, y + 18, pal_desc, gg.TextCfg{
+			color: if is_sel {
+				col_slate_dim} else {
+				col_ink500}
+			size: scaled_size(11, z)
+			family: pal_dfam
+		})
 		app.gg.draw_text(cx + pw - 52, y + 10, it.keys, gg.TextCfg{ color: col_brass_dim, size: scaled_size(12, z), bold: true })
 	}
 	if filtered.len == 0 {
@@ -5224,7 +6212,7 @@ fn draw_help(mut app GuiApp, w int, h int) {
 	ph := 300
 	pixel_panel(mut app, cx, cy, pw, ph, 'default')
 	app.gg.draw_text(cx + 16, cy + 12, 'Paper Co. — Shortcuts', gg.TextCfg{ color: col_ink, size: scaled_size(14, z), bold: true })
-	lines := ['⌘K or /  Command palette — fuzzy search 227 skills, agents, panels',
+	lines := ['/  Command palette — fuzzy search 227 skills, agents, panels',
 		'Ctrl +  = / -  Zoom in/out   •   Ctrl + 0  Reset  •  Ctrl + Scroll',
 		'1 – 0  Switch panel (World, Skills, Agents, MCP, Targets, Doctor, Jobs…)',
 		'↑  ↓  Navigate palette / floor desks  •  Enter to activate',
@@ -5253,6 +6241,11 @@ fn activate_palette_selection(mut app GuiApp) {
 		app.palette_selected
 	}
 	sel := filtered[clamped]
+	// navigating anywhere via palette dismisses the onboarding overlay
+	if sel.id in ['world', 'skills', 'agents', 'mcp', 'targets', 'doctor', 'jobs', 'loops', 'swarm',
+		'workspace', 'products', 'onboarding', 'insights'] {
+		app.show_onboarding = sel.id == 'onboarding'
+	}
 	match sel.id {
 		'world' {
 			app.selected_panel = 0
@@ -5312,7 +6305,38 @@ fn activate_palette_selection(mut app GuiApp) {
 }
 
 fn on_event(e &gg.Event, mut app GuiApp) {
+	if e.typ == .char {
+		// V sokol X11 delivers printables as separate .char events (key_down carries
+		// key_code only). C backends (win/mac) set char_code on key_down AND send
+		// .char — dedupe per frame so text is never doubled. Replayed as key_down
+		// so every printable branch (palette, search, skills, memory, ghost) works.
+		if app.last_keydown_frame == app.frame && app.last_keydown_char == e.char_code {
+			return
+		}
+		if (e.char_code >= 32 && e.char_code < 127) || e.char_code > 127 {
+			is_mod := (e.modifiers & u32(gg.Modifier.ctrl)) != 0 || (e.modifiers & u32(gg.Modifier.super)) != 0
+			// `/` is the palette toggle — never text when the palette is open
+			if app.palette_open && e.char_code == `/` {
+				return
+			}
+			if !is_mod {
+				mut ke := &gg.Event{
+					typ: .key_down
+					char_code: e.char_code
+					key_code: e.key_code
+					modifiers: e.modifiers
+					key_repeat: e.key_repeat
+				}
+				on_event(ke, mut app)
+			}
+		}
+		return
+	}
 	if e.typ == .key_down {
+		if e.char_code != 0 {
+			app.last_keydown_char = e.char_code
+			app.last_keydown_frame = app.frame
+		}
 		if app.palette_open {
 			if e.key_code == .escape {
 				app.palette_open = false
@@ -5421,6 +6445,16 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.zoom_toast_at = app.frame
 				return
 			}
+			if e.key_code == .grave_accent {
+				// ^` — cycle embedded terminal height: compact → tall → max → compact
+				app.term_mode = match app.term_mode {
+					1 { 2 }
+					2 { 0 }
+					else { 1 }
+				}
+				app.term_visible = app.term_mode != 3
+				return
+			}
 		}
 		if e.key_code == .slash || (e.key_code == .k && is_mod) {
 			app.palette_open = true
@@ -5446,7 +6480,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				if app.global_search.len > 0 {
 					app.global_search = app.global_search[..app.global_search.len - 1]
 					// also propagate to skills when on skills panel for convenience
-					if app.selected_panel == 1 { app.skills_query = app.global_search }
+					if app.selected_panel == 1 {
+						app.skills_query = app.global_search
+					}
 				}
 				return
 			}
@@ -5460,17 +6496,23 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				// commit search to skills panel + command palette
 				app.skills_query = app.global_search
 				app.palette_query = app.global_search
-				if app.global_search != '' { app.selected_panel = 1 }
+				if app.global_search != '' {
+					app.selected_panel = 1
+				}
 				app.header_search_focus = false
 				return
 			}
 			if e.char_code > 32 && e.char_code < 127 {
 				app.global_search += rune(e.char_code).str()
-				if app.selected_panel == 1 { app.skills_query = app.global_search }
+				if app.selected_panel == 1 {
+					app.skills_query = app.global_search
+				}
 				return
 			}
 			// slash also closes search focus
-			if e.key_code == .escape { return }
+			if e.key_code == .escape {
+				return
+			}
 		}
 		// super potent IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
 		// When skills or workspace panels active, capture typing there instead of ghost (easy to manage, brokered)
@@ -5815,6 +6857,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		if e.char_code >= `1` && e.char_code <= `9` {
 			idx := int(e.char_code - `1`)
+			app.show_onboarding = false
 			if idx >= 0 && idx < 10 {
 				app.selected_panel = idx
 			}
@@ -5823,6 +6866,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if e.char_code == `0` {
 			// 0 → Workspace (panel 9)
 			app.selected_panel = 9
+			app.show_onboarding = false
 			return
 		}
 		if e.char_code == `p` || e.char_code == `P` {
@@ -6300,22 +7344,39 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// click elsewhere in header blurs search
 			if app.header_search_focus && !(mx >= 380 && mx <= 640) {
 				// keep focus only if not clicking slider or command badge; blur otherwise for typing
-				if !(mx >= w - 214 - 10 && mx <= w - 214 + 84 + 10 && my >= 10 && my <= 30) && !(mx >= w - 112 && mx <= w - 16) {
+				if !(mx >= w - 236 - 10 && mx <= w - 236 + 84 + 10 && my >= 10 && my <= 30) && !(mx >= w - 112 && mx <= w - 16) {
 					app.header_search_focus = false
 				}
 			}
 			// zoom slider header: track at w-214, 84 wide
-			zx_hdr := w - 214
+			zx_hdr := w - 236
 			if mx >= zx_hdr - 10 && mx <= zx_hdr + 84 + 24 && my >= 8 && my <= 32 {
 				mut rel := mx - zx_hdr
-				if rel < 0 { rel = 0 }
-				if rel > 84 { rel = 84 }
+				if rel < 0 {
+					rel = 0
+				}
+				if rel > 84 {
+					rel = 84
+				}
 				pct := f64(rel) / 84.0
 				app.global_zoom = clamp_zoom(0.75 + pct * 0.75)
 				app.zoom_toast = zoom_percent(app.global_zoom)
 				app.zoom_toast_at = app.frame
 				app.zoom_dragging = true
 				return
+			}
+			// language chips — EN/ES/中文/عربي at w-466..w-306, y 10..28
+			if my >= 8 && my <= 30 && mx >= w - 470 && mx <= w - 302 {
+				idx := (mx - (w - 466)) / 40
+				if idx >= 0 && idx <= 3 {
+					app.lang = match idx {
+						1 { Lang.es }
+						2 { Lang.zh }
+						3 { Lang.ar }
+						else { Lang.en }
+					}
+					return
+				}
 			}
 			// command badge click opens palette
 			if mx >= w - 112 && mx <= w - 16 && my >= 8 && my <= 34 {
@@ -6332,8 +7393,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			zx_stat := left_base + 4
 			if mx >= zx_stat - 6 && mx <= zx_stat + 64 + 12 && my >= h - 22 && my <= h - 6 {
 				mut rel2 := mx - zx_stat
-				if rel2 < 0 { rel2 = 0 }
-				if rel2 > 64 { rel2 = 64 }
+				if rel2 < 0 {
+					rel2 = 0
+				}
+				if rel2 > 64 {
+					rel2 = 64
+				}
 				pct2 := f64(rel2) / 64.0
 				app.global_zoom = clamp_zoom(0.75 + pct2 * 0.75)
 				app.zoom_toast = zoom_percent(app.global_zoom)
@@ -6343,7 +7408,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// Inspector buttons — clickable
-		ix := w - 300
+		ix := inspector_x(app, w)
 		iy := 52
 		iw := 300
 		// Only when a desk selected
@@ -6374,8 +7439,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			content_y := y0 + 28
 			content_x := x0 + 8
 			content_w := tw - 16
-			// header click: toggle ghost_focused and auto-pin
+			// header click: height mode buttons (1×/2×/MAX/×) — else toggle ghost focus
 			if mx >= x0 && mx <= w3 && my >= y0 && my < y0 + 24 {
+				if mx >= x0 + tw - 148 && mx <= x0 + tw - 16 {
+					btn := (mx - (x0 + tw - 148)) / 34
+					if btn >= 0 && btn <= 3 {
+						app.term_mode = btn
+						return
+					}
+				}
 				app.ghost_focused = !app.ghost_focused
 				return
 			}
@@ -6384,7 +7456,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.ghost_focused = true
 				if app.ghost.lines.len > 0 {
 					g_vis := app.ghost.visible_lines()
-					row_h := 14
+					row_h := 16
 					rel_y := my - (content_y + 8)
 					row := rel_y / row_h
 					if row >= 0 && row < g_vis.len {
@@ -6424,7 +7496,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// Inspector per-desk log click — copy
 		{
 			term_h_ii := if app.term_visible { app.term_height } else { 0 }
-			ix2 := w - 300
+			ix2 := inspector_x(app, w)
 			iy2 := 52
 			ih2 := h - 52 - 28 - term_h_ii
 			log_y0 := iy2 + 302
@@ -6455,7 +7527,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// Hit left dock — 13 panels (0 World .. 12 Insights) super-potent
-		if mx >= 8 && mx <= 192 {
+		dock_l_c := if app.lang.is_rtl() { w - dock_w + 8 } else { 8 }
+		if mx >= dock_l_c && mx <= dock_l_c + dock_w - 16 {
 			for i in 0 .. 13 {
 				y := 45 + 8 + i * 32
 				if y + 28 > h - 28 - (if app.term_visible { app.term_height } else { 0 }) - 40 {
@@ -7018,15 +8091,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// Insights — telemetry tabs: cost | waterfall | spans | budgets | ci
+		// Insights — telemetry tabs: cost | waterfall | spans | budgets | ci | realtime | gallery
 		if app.selected_panel == 12 {
-			fx_i := 208
+			fx_i := panel_fx(app)
 			fy_i := 52
-			for i in 0 .. 5 {
-				x := fx_i + 16 + i * (92 + 6)
+			tabs_i := ['cost', 'waterfall', 'spans', 'budgets', 'ci', 'realtime', 'gallery']
+			for i in 0 .. tabs_i.len {
+				x := fx_i + 16 + i * (84 + 6)
 				y := fy_i + 48
-				if mx >= x && mx <= x + 92 && my >= y && my <= y + 20 {
-					tabs_i := ['cost', 'waterfall', 'spans', 'budgets', 'ci']
+				if mx >= x && mx <= x + 84 && my >= y && my <= y + 22 {
 					app.insights_tab = tabs_i[i]
 					app.inspector_msg = 'Insights → ${tabs_i[i]} • telemetry via Engine (no shell)'
 					return
@@ -7276,17 +8349,25 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				left_base := 12 + 24 + 46 + 64 + 78 + 8
 				zx_stat := left_base + 4
 				mut rel2 := mx - zx_stat
-				if rel2 < 0 { rel2 = 0 }
-				if rel2 > 64 { rel2 = 64 }
+				if rel2 < 0 {
+					rel2 = 0
+				}
+				if rel2 > 64 {
+					rel2 = 64
+				}
 				pct2 := f64(rel2) / 64.0
 				app.global_zoom = clamp_zoom(0.75 + pct2 * 0.75)
 				app.zoom_toast = zoom_percent(app.global_zoom)
 				app.zoom_toast_at = app.frame
 			} else {
-				zx_hdr := w3 - 214
+				zx_hdr := w3 - 236
 				mut rel := mx - zx_hdr
-				if rel < 0 { rel = 0 }
-				if rel > 84 { rel = 84 }
+				if rel < 0 {
+					rel = 0
+				}
+				if rel > 84 {
+					rel = 84
+				}
 				pct := f64(rel) / 84.0
 				app.global_zoom = clamp_zoom(0.75 + pct * 0.75)
 				app.zoom_toast = zoom_percent(app.global_zoom)
@@ -7294,13 +8375,22 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		app.hover_panel = -1
-		if app.mouse_x >= 8 && app.mouse_x <= 192 {
-			for i in 0 .. 10 {
-				y := 45 + 8 + i * 38
-				if app.mouse_y >= y && app.mouse_y <= y + 32 {
+		dock_l_h := if app.lang.is_rtl() { app.gg.width - dock_w + 8 } else { 8 }
+		if app.mouse_x >= dock_l_h && app.mouse_x <= dock_l_h + dock_w - 16 {
+			for i in 0 .. 13 {
+				y := 45 + 8 + i * 32
+				if app.mouse_y >= y && app.mouse_y <= y + 28 {
 					app.hover_panel = i
 					break
 				}
+			}
+		}
+		// language chip hover — EN/ES/中文/عربي
+		app.lang_hover = -1
+		if app.mouse_y >= 8 && app.mouse_y <= 30 && app.mouse_x >= app.gg.width - 466 && app.mouse_x <= app.gg.width - 302 {
+			li := (app.mouse_x - (app.gg.width - 466)) / 40
+			if li >= 0 && li <= 3 {
+				app.lang_hover = li
 			}
 		}
 		app.hover_desk = -1

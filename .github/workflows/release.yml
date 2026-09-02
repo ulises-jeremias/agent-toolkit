@@ -279,7 +279,8 @@ jobs:
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
           if [[ "${ASSET}" == *desktop* ]]; then
-            "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit-desktop
+            # gg_text_buff_size=4096 — 4096² fontstash atlas: room for Fraunces + Plex + Plex Mono + CJK/Arabic i18n at every type-ramp size (sfons cannot expand the atlas at runtime)
+            "${VBIN}" -d "commit=${COMMIT}" -d gg_text_buff_size=4096 -o "build/${OUT_BIN}" cmd/agent-toolkit-desktop
           else
             "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
           fi

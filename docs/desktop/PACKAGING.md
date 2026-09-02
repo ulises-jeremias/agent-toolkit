@@ -2,6 +2,24 @@
 
 > `VERSION 1.27.0` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
 
+## GUI (native desktop) build
+
+```sh
+# canonical local build — the 4096² fontstash atlas matters: the GUI renders
+# Fraunces + IBM Plex Sans/Mono + the CJK/Arabic i18n fonts, and sfons cannot
+# expand the atlas at runtime (overflow ⇒ random .notdef tofu).
+VJOBS=2 VMODULES=modules v -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
+
+# run
+./build/agent-toolkit-desktop-native                # window (needs DISPLAY)
+ATK_GUI_HEADLESS=1 ./build/agent-toolkit-desktop-native   # CI smoke, prints PASS
+```
+
+Fonts ship OFL-licensed in `assets/fonts/` (resolved next to the binary: `<exe>/fonts`,
+`<exe>/../assets/fonts`, or `$ATK_FONTS`; missing ⇒ system-font fallback).
+Regenerate the CJK chrome subset with `scripts/subset-sc-font.sh` after adding
+translated strings — it harvests every CJK codepoint from `main.v`.
+
 ## Linux (baseline)
 
 `build/agent-toolkit` ELF + `SHA256SUMS` + `manifest.json` via `distribution/github-release` (existing). Size baseline `+4.8M` ELF (embedded_data). `agent-toolkit --version` + `doctor` green (FHS/embedded tiers, receipts).

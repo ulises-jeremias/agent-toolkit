@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 <!-- markdownlint-disable MD024 -->
+## [1.29.3] — 2026-09-02
+
+- **Feat (desktop)** — Paper Co. design pass on the native GUI: every panel on the warm paper ledger (cream/manila/kraft cards, brass rails, Fraunces letterheads) with the ink filing-cabinet chrome; unified paper letterhead `paper_letterhead` for all 13 panels
+- **Feat (desktop)** — Brand typography shipped in-binary-adjacent: Fraunces Display (letterheads), IBM Plex Sans (+SemiBold), IBM Plex Mono (real mono slot via `IBMPlexSansMono` naming), IBM Plex Sans Arabic, Noto Sans SC chrome subset (34 KB) — all OFL in `assets/fonts/`, resolved next to the binary, graceful system-font fallback
+- **Fix (desktop)** — Text input was dead on Linux/X11: V sokol delivers printables as separate `.char` events; `on_event` now replays them as `key_down` (per-frame dedupe for C backends). Palette, search, skills filter, memory recall and the Ghostty prompt all accept typing now
+- **Fix (desktop)** — Glyph coverage: replaced symbols missing from Plex (`⌘ ⌕ ● ◐ ○ ◉ ▾ ▸ ◈ ≡ ✉ ■`) with drawn primitives (`draw_envelope`, `draw_search_lens`, `draw_floor_legend`) and safe glyphs; minimum type size raised to 10 px
+- **Fix (desktop)** — Type ramp quantization (`type_ramp`): zoom snaps to 12 canonical sizes so the fixed fontstash atlas (sfons cannot expand) cannot overflow into tofu; release builds use `-d gg_text_buff_size=4096`
+- **Fix (desktop)** — `needs_sc/needs_ar` iterated UTF-8 bytes (`for ch in s` semantics in V 0.5.2) — now iterate `.runes()`; Arabic + CJK font routing works everywhere
+- **Feat (desktop)** — i18n 4-lang EN/ES/中文/عربي with RTL: dock/inspector flip for Arabic (bidi-lite run reversal), translated dock, header, status bar, palette labels/descriptions and panel letterheads; language chips in the header (click or palette)
+- **Feat (desktop)** — Insights grows to 7 tabs: new **Realtime** (EventBus live feed + GOD 4·t·(1−t) flow meter) and **Gallery** (living style guide: palette chips, type specimens, components); Budgets now renders recent loop history rows; tab hit-tests match the new layout
+- **Feat (desktop)** — Embedded terminal UX: GHOSTTY VT header with focus pill, height modes **1× / 2× / MAX / hidden** (buttons + Ctrl+`), 16 px rows, per-desk VT preview enlarged (6 rows) in the inspector
+- **Feat (desktop)** — Office floor re-layout: 15 desks on a clean grid, GOD manager corner + station wall in a kraft-divided right corridor (no more card overlaps), legend swatches, fleet minimap
+- **Chore (desktop)** — VERSION-aligned header, folder tab + manila stationery signatures, `scripts/subset-sc-font.sh` tooling
+
 ## [1.26.0] — 2026-08-31
 
 
