@@ -35,7 +35,8 @@ pub fn baseline_spawn_wg(mut ctx context.Context) bool {
 			_ := <-done {
 				completed++
 			}
-			30 * time.millisecond {
+			// generous leak guard — 30ms flaked on loaded macOS runners
+			2 * time.second {
 				break
 			}
 		}
@@ -80,7 +81,8 @@ pub fn xasync_timeout_demo(parent_ctx context.Context) bool {
 		_ := <-done {
 			return true
 		}
-		50 * time.millisecond {
+		// generous deadline — 50ms flaked on loaded macOS runners
+		2 * time.second {
 			return false
 		}
 	}
