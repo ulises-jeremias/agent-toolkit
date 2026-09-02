@@ -255,6 +255,79 @@ pub:
 	sc       string // Noto Sans SC subset — 中文 chrome
 }
 
+// ui_state_path — ~/.cache/agent-toolkit/desktop/ui_state.env
+fn ui_state_path() string {
+	base := if os.getenv('XDG_CACHE_HOME') != '' {
+		os.getenv('XDG_CACHE_HOME')
+	} else {
+		os.join_path(os.home_dir(), '.cache')
+	}
+	return os.join_path(base, 'agent-toolkit', 'desktop', 'ui_state.env')
+}
+
+// save_ui_state — best-effort persist of the shell layout (k=v, no json deps).
+fn save_ui_state(app &GuiApp) {
+	lines := [
+		'selected_panel=${app.selected_panel}',
+		'term_mode=${app.term_mode}',
+		'zoom=${app.global_zoom}',
+		'lang=${int(app.lang)}',
+		'insights_tab=${app.insights_tab}',
+		'swarm_backend=${app.swarm_backend}',
+		'selected_desk=${app.selected_desk}',
+	]
+	os.mkdir_all(os.dir(ui_state_path())) or {}
+	os.write_file(ui_state_path(), lines.join('\n')) or {}
+}
+
+// load_ui_state — restore the last shell layout (values clamped by callers).
+fn load_ui_state(mut app GuiApp) {
+	txt := os.read_file(ui_state_path()) or { return }
+	for line in txt.split('\n') {
+		kv := line.split('=')
+		if kv.len != 2 {
+			continue
+		}
+		k, v := kv[0], kv[1]
+		match k {
+			'selected_panel' {
+				app.selected_panel = v.int()
+			}
+			'term_mode' {
+				app.term_mode = v.int()
+			}
+			'zoom' {
+				app.global_zoom = clamp_zoom(v.f64())
+			}
+			'lang' {
+				li := v.int()
+				match li {
+					1 {
+						app.lang = Lang.es
+					}
+					2 {
+						app.lang = Lang.zh
+					}
+					3 {
+						app.lang = Lang.ar
+					}
+					else {}
+				}
+			}
+			'insights_tab' {
+				app.insights_tab = v
+			}
+			'swarm_backend' {
+				app.swarm_backend = v
+			}
+			'selected_desk' {
+				app.selected_desk = v.int()
+			}
+			else {}
+		}
+	}
+}
+
 // desktop_version reads the repo VERSION (build/ sibling) — fallback keeps the
 // header honest for installed binaries.
 fn desktop_version() string {
@@ -527,14 +600,29 @@ struct TermLine {
 	raw    string
 }
 
+// Toast — a paper stamp of feedback (info/ok/warn/err), auto-expires.
+struct Toast {
+	title string
+	msg   string
+	kind  string // info | ok | warn | err
+	at    int
+}
+
 struct GuiApp {
 mut:
-	gg               &gg.Context = unsafe { nil }
-	desktop          &desktop.Desktop = unsafe { nil }
-	fonts            FontPaths
-	lang             Lang = .en
-	version          string = '1.29.2'
-	frame            int
+	gg      &gg.Context = unsafe { nil }
+	desktop &desktop.Desktop = unsafe { nil }
+	fonts   FontPaths
+	lang    Lang = .en
+	version string = '1.29.2'
+	frame   int
+	// toast tray — every inspector_msg change becomes a paper toast
+	toasts []Toast
+	// terminal scrollback search (Ctrl+F while the terminal is visible)
+	term_search_open bool
+	term_search      string
+	last_msg         string
+	last_msg_frame   int = -99
 	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
 	hover_panel      int
 	selected_desk    int
@@ -1654,6 +1742,7 @@ fn on_init(mut app GuiApp) {
 	app.ghost_focused = true
 	app.god_inbox = 3
 	app.god_outbox = 2
+	load_ui_state(mut app)
 	app.approvals = ['spend \$0.42 — @architect', 'scope write to swarm_recipes.v — @implementer',
 		'destructive git checkout — @reviewer']
 	// seed auto-pin to bottom after first collect
@@ -1763,6 +1852,37 @@ fn on_init(mut app GuiApp) {
 
 fn frame(mut app GuiApp) {
 	app.frame++
+	// toast feed — inspector_msg changes become paper stamps (deduped per text)
+	if app.inspector_msg != '' && app.inspector_msg != app.last_msg && app.frame - app.last_msg_frame > 30 {
+		app.last_msg = app.inspector_msg
+		app.last_msg_frame = app.frame
+		kind := if app.inspector_msg.contains('error') || app.inspector_msg.contains('fail') {
+			'err'
+		} else if app.inspector_msg.contains('warn') {
+			'warn'
+		} else if app.inspector_msg.contains('✓') || app.inspector_msg.contains('receipt') || app.inspector_msg.contains('approved') {
+			'ok'
+		} else {
+			'info'
+		}
+		app.toasts << Toast{
+			title: 'Engine'
+			msg: app.inspector_msg
+			kind: kind
+			at: app.frame
+		}
+		if app.toasts.len > 4 {
+			app.toasts = app.toasts[1..]
+		}
+	}
+	// expire toasts after ~6s (360 frames)
+	for app.toasts.len > 0 && app.frame - app.toasts[0].at > 360 {
+		app.toasts = app.toasts[1..]
+	}
+	// persist the shell layout every ~10s and at frame 60 (first settle)
+	if app.frame == 60 || app.frame % 600 == 0 {
+		save_ui_state(app)
+	}
 	// walk cycle 4 frames 8fps, 80px/s, bob ±1 (munder spec)
 	if app.frame % 4 == 0 {
 		for mut av in app.avatars {
@@ -2024,7 +2144,56 @@ fn frame(mut app GuiApp) {
 	app.gg.draw_text(w - 100, h - 19, '3847', gg.TextCfg{ color: col_ink500, size: scaled_size(11, app.global_zoom), mono: true })
 	// brass rivet at right edge
 	app.gg.draw_rect_filled(w - 8, h - 16, 2, 2, gg.rgba(193, 162, 75, 42))
+	draw_toasts(mut app, w, h)
 	app.gg.end()
+}
+
+// draw_toasts — paper stamp tray, bottom-right, auto-expiring (info/ok/warn/err).
+fn draw_toasts(mut app GuiApp, w int, h int) {
+	mut n := 0
+	for ti in 0 .. app.toasts.len {
+		t := app.toasts[ti]
+		age := app.frame - t.at
+		if age > 360 {
+			continue
+		}
+		alpha := if age > 300 { u8(255 - (age - 300) * 4) } else { u8(255) }
+		tw := 320
+		th := 34
+		x := w - tw - 14
+		y := h - 40 - (app.toasts.len - ti) * (th + 8)
+		rail := match t.kind {
+			'ok' { col_sage_soft }
+			'warn' { col_brass_dim }
+			'err' { col_oxide }
+			else { col_steel_ink }
+		}
+		app.gg.draw_rect_filled(x + 2, y + 2, tw, th, gg.rgba(26, 26, 26, u8(180 * alpha / 255)))
+		app.gg.draw_rect_filled(x, y, tw, th, gg.rgba(253, 251, 242, alpha))
+		app.gg.draw_rect_empty(x, y, tw, th, gg.rgba(209, 199, 179, alpha))
+		app.gg.draw_rect_filled(x, y, 3, th, gg.rgba(rail.r, rail.g, rail.b, alpha))
+		// perforated tractor dots on the left edge
+		app.gg.draw_rect_filled(x + 6, y + 6, 1, 1, gg.rgba(26, 26, 26, u8(40 * alpha / 255)))
+		app.gg.draw_rect_filled(x + 6, y + th - 8, 1, 1, gg.rgba(26, 26, 26, u8(40 * alpha / 255)))
+		mut title := t.title
+		mut msg := t.msg
+		if msg.len > 44 {
+			msg = msg[..44] + '…'
+		}
+		app.gg.draw_text(x + 12, y + 5, title, gg.TextCfg{
+			color: gg.rgba(107, 95, 78, alpha)
+			size: 10
+			bold: true
+		})
+		app.gg.draw_text(x + 12, y + 17, msg, gg.TextCfg{
+			color: gg.rgba(26, 26, 26, alpha)
+			size: 11
+		})
+		n++
+		if n >= 4 {
+			break
+		}
+	}
 }
 
 // draw_envelope — tiny paper envelope from primitives (glyph ✉ is not in the
@@ -6110,6 +6279,38 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	// inner panel
 	app.gg.draw_rect_filled(content_x, content_y, content_w, term_h - 32, gg.rgb(10, 14, 18))
 	app.gg.draw_rect_empty(content_x, content_y, content_w, term_h - 32, col_line)
+	// scrollback search — paper field overlay + match highlighting (Ctrl+F)
+	if app.term_search_open || app.term_search != '' {
+		sf_y := content_y - 2
+		app.gg.draw_rect_filled(content_x, sf_y, content_w, 22, col_cream50)
+		app.gg.draw_rect_empty(content_x, sf_y, content_w, 22, col_brass)
+		draw_search_lens(mut app, content_x + 6, sf_y + 5)
+		mut matches := 0
+		if app.term_search.len > 1 {
+			for gl in app.ghost.lines {
+				if gl.to_lower().contains(app.term_search.to_lower()) {
+					matches++
+				}
+			}
+		}
+		app.gg.draw_text(content_x + 24, sf_y + 4, if app.term_search == '' {
+			'search scrollback…  (Esc close)'
+		} else {
+			app.term_search
+		}, gg.TextCfg{
+			color: if app.term_search == '' { col_ink_soft } else { col_ink }
+			size: 11
+			mono: true
+		})
+		if app.term_search.len > 1 {
+			app.gg.draw_text(content_x + content_w - 90, sf_y + 4, '${matches} lines', gg.TextCfg{
+				color: col_brass_dim
+				size: 10
+				bold: true
+				mono: true
+			})
+		}
+	}
 	// Signature: CRT scanline overlay — faint horizontal lines at 50% rows (atelier workshop vibe)
 	for sy in 1 .. ((term_h - 32) / 2) {
 		sy_y := content_y + sy * 2
@@ -6148,6 +6349,10 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			}
 			// truncate
 			disp := if line.len > 96 { line[..96] + '…' } else { line }
+			is_match := app.term_search.len > 1 && line.to_lower().contains(app.term_search.to_lower())
+			if is_match {
+				app.gg.draw_rect_filled(content_x + 1, y - 1, content_w - 8, row_h + 1, gg.rgba(201, 168, 107, 90))
+			}
 			app.gg.draw_text(content_x + 8, y, disp, gg.TextCfg{ color: gcol, size: 13, mono: true })
 		}
 	}
@@ -6400,6 +6605,24 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.last_keydown_char = e.char_code
 			app.last_keydown_frame = app.frame
 		}
+		// terminal scrollback search — captures typing while open (Ctrl+F toggles)
+		if app.term_search_open {
+			if e.key_code == .escape || e.key_code == .enter {
+				app.term_search_open = false
+				return
+			}
+			if e.key_code == .backspace {
+				if app.term_search.len > 0 {
+					app.term_search = app.term_search[..app.term_search.len - 1]
+				}
+				return
+			}
+			if (e.char_code >= 32 && e.char_code < 127) || e.char_code > 127 {
+				app.term_search += rune(e.char_code).str()
+				return
+			}
+			return
+		}
 		if app.palette_open {
 			if e.key_code == .escape {
 				app.palette_open = false
@@ -6518,8 +6741,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.zoom_toast_at = app.frame
 				return
 			}
+			if e.key_code == .f {
+				if app.term_visible {
+					app.term_search_open = !app.term_search_open
+					if !app.term_search_open {
+						app.term_search = ''
+					}
+				}
+				return
+			}
 			if e.key_code == .q {
 				// Ctrl+Q — explicit quit (Esc never kills the app; it cancels layers)
+				save_ui_state(app)
 				app.gg.quit()
 				return
 			}

@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 <!-- markdownlint-disable MD024 -->
+## [1.30.1] — unreleased
+
+- **Feat (desktop)** — Toast tray: every Engine action feedback becomes an auto-expiring paper stamp (info/ok/warn/err rail, bottom-right stack) instead of a hidden inspector one-liner
+- **Feat (desktop)** — Shell layout persistence: panel, terminal mode, zoom, language, insights tab and swarm backend restore on relaunch (`ui_state.env` in the desktop cache dir, saved on settle/interval/Ctrl+Q)
+- **Feat (desktop)** — Terminal scrollback search: `Ctrl+F` opens a paper search field over the Ghostty feed with live match count and row highlighting
+- **Feat (desktop)** — `scripts/gui-coverage.py`: CLI ↔ GUI coverage audit — every `agent-toolkit` command maps to a palette/panel affordance (22/22, 100%), CI-checkable via `--check`
+- **Feat (desktop)** — `scripts/ui-smoke.sh`: headless Xvfb UI smoke (panel tour, palette navigation, insights tabs, i18n cycle, terminal modes, Esc-safety) with per-state screenshots
+
 ## [1.30.0] — 2026-09-02
 
 - **Feat (desktop)** — Paper Co. design pass on the native GUI: every panel on the warm paper ledger (cream/manila/kraft cards, brass rails, Fraunces letterheads) with the ink filing-cabinet chrome; unified paper letterhead `paper_letterhead` for all 13 panels
