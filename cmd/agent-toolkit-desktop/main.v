@@ -621,6 +621,9 @@ mut:
 	// terminal scrollback search (Ctrl+F while the terminal is visible)
 	term_search_open bool
 	term_search      string
+	// per-desk fullscreen view: -1 = fleet feed, 0..14 = that desk's VT
+	term_view        int = -1
+	term_view_hover  int = -1
 	last_msg         string
 	last_msg_frame   int = -99
 	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
@@ -2001,6 +2004,8 @@ fn frame(mut app GuiApp) {
 	// libghostty-vt resize to fit terminal area — potent: derive cols/rows from actual pixel area
 	// 80x18 is the logical default, but bottom strip is ~148px tall → dynamic 76x8 at 1280 width.
 	// Compute so window resize keeps Ghostty crisp and per-agent stays 40x6.
+	mut cols_full := 80
+	mut rows_full := 18
 	if app.term_visible {
 		tw_g := app.gg.width - 200
 		content_w_g := tw_g - 16
@@ -2018,12 +2023,18 @@ fn frame(mut app GuiApp) {
 		if rows_g > 48 {
 			rows_g = 48
 		}
+		cols_full = cols_g
+		rows_full = rows_g
 		app.ghost.resize(cols_g, rows_g)
 	} else {
 		app.ghost.resize(80, 18)
 	}
-	for mut g in app.per_desk_ghost {
-		g.resize(40, 6)
+	for di, mut g in app.per_desk_ghost {
+		if app.term_mode == 2 && app.term_view == di {
+			g.resize(cols_full, rows_full)
+		} else {
+			g.resize(40, 6)
+		}
 	}
 	w := app.gg.width
 	h := app.gg.height
@@ -2031,6 +2042,13 @@ fn frame(mut app GuiApp) {
 	app.gg.draw_rect_filled(0, 0, w, h, col_ink)
 	draw_header(mut app, w)
 	draw_left_dock(mut app, h)
+	// MAX terminal owns the content area — skip panel + inspector rendering
+	// (negative-height panels would smear texts over the chrome)
+	if app.term_mode == 2 {
+		draw_terminal(mut app, w, h)
+		app.gg.end()
+		return
+	}
 	match app.selected_panel {
 		0 { draw_world(mut app, w, h) }
 		1 { draw_skills(mut app, w, h) }
@@ -2487,10 +2505,17 @@ fn draw_left_dock(mut app GuiApp, h int) {
 		}
 	}
 	term_h2 := if app.term_visible { app.term_height } else { 0 }
-	foot1 := 'Single binary, one Engine'
-	foot2 := 'No Electron • Sokol/gg'
-	app.gg.draw_text(dock_l + 14, h - 52 - term_h2, foot1, gg.TextCfg{ color: col_slate, size: 12 })
-	app.gg.draw_text(dock_l + 14, h - 40 - term_h2, foot2, gg.TextCfg{ color: col_slate, size: 12 })
+	// MAX terminal frees the whole content area — skip the spine footer texts
+	if term_h2 < 400 {
+		app.gg.draw_text(dock_l + 14, h - 52 - term_h2, 'Single binary, one Engine', gg.TextCfg{
+			color: col_slate
+			size: 12
+		})
+		app.gg.draw_text(dock_l + 14, h - 40 - term_h2, 'No Electron • Sokol/gg', gg.TextCfg{
+			color: col_slate
+			size: 12
+		})
+	}
 }
 
 fn draw_world(mut app GuiApp, w int, h int) {
@@ -6318,25 +6343,74 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			app.gg.draw_line(content_x + 1, sy_y, content_x + content_w - 1, sy_y, gg.rgba(0, 0, 0, 8))
 		}
 	}
-	// Ghostty visible lines — 40×6 multiplex proven via per-desk ghost array + global 80×18
-	ghost_lines := app.ghost.visible_lines()
+	// session picker — in MAX mode a chip strip picks whose VT fills the screen
+	chip_h := if app.term_mode == 2 { 30 } else { 0 }
+	if app.term_mode == 2 {
+		mut chx := content_x + 6
+		app.gg.draw_rect_filled(content_x, content_y - 2, content_w, 26, col_cream50)
+		fleet_sel := app.term_view < 0
+		app.gg.draw_rect_filled(chx, content_y + 2, 46, 18, if fleet_sel {
+			col_brass
+		} else {
+			col_manila_tab
+		})
+		app.gg.draw_text(chx + 8, content_y + 6, 'Fleet', gg.TextCfg{
+			color: if fleet_sel { col_ink } else { col_ink_soft }
+			size: 10
+			bold: fleet_sel
+		})
+		chx += 52
+		desks_all := desks_for_app(app)
+		for di, d in desks_all {
+			if chx + 66 > content_x + content_w - 6 {
+				break
+			}
+			dsel := app.term_view == di
+			app.gg.draw_rect_filled(chx, content_y + 2, 62, 18, if dsel {
+				col_brass
+			} else {
+				col_manila_tab
+			})
+			chip_lbl := if d.label.len > 9 { d.label[..9] } else { d.label }
+			app.gg.draw_text(chx + 6, content_y + 6, chip_lbl, gg.TextCfg{
+				color: if dsel { col_ink } else { col_ink_soft }
+				size: 9
+				bold: dsel
+			})
+			chx += 66
+		}
+		app.gg.draw_text(content_x + content_w - 150, content_y + 6, 'session picker — click a desk', gg.TextCfg{ color: col_ink_soft, size: 9 })
+	}
+	// Ghostty visible lines — fleet feed (global 80×N) or a per-desk VT fullscreen
+	desk_view := app.term_mode == 2 && app.term_view >= 0 && app.term_view < app.per_desk_ghost.len
+	mut shown := &app.ghost
+	if desk_view {
+		shown = &app.per_desk_ghost[app.term_view]
+	}
+	ghost_lines := shown.visible_lines()
 	row_h := 16
-	visible := term_visible_rows(term_h) - 1 // reserve one for prompt
+	mut cy2 := content_y + chip_h
+	visible := term_visible_rows(term_h) - 1 - (chip_h / 16) // chips + prompt reserve
 	if ghost_lines.len == 0 {
-		app.gg.draw_text(content_x + 10, content_y + 10, 'Ghostty VT ready — type help, skills, clear — live Engine logs stream here', gg.TextCfg{ color: col_slate_dim, size: 14, mono: true })
+		empty := if desk_view {
+			'[${desks_for_app(app)[app.term_view].label}] VT ready — live handoffs stream here'
+		} else {
+			'Ghostty VT ready — type help, skills, clear — live Engine logs stream here'
+		}
+		app.gg.draw_text(content_x + 10, content_y + 10, empty, gg.TextCfg{ color: col_slate_dim, size: 14, mono: true })
 	} else {
 		for idx, line in ghost_lines {
 			if idx >= visible {
 				break
 			}
-			y := content_y + 8 + idx * row_h
-			is_hover := idx == app.term_hover
+			y := cy2 + 8 + idx * row_h
+			is_hover := !desk_view && idx == app.term_hover
 			if is_hover {
 				app.gg.draw_rect_filled(content_x + 1, y - 1, content_w - 2, row_h, col_charcoal2)
 			}
 			// color from ghost
-			col_idx := if idx < app.ghost.colors.len && app.ghost.colors[idx].len > 0 {
-				app.ghost.colors[idx][0]
+			col_idx := if idx < shown.colors.len && shown.colors[idx].len > 0 {
+				shown.colors[idx][0]
 			} else {
 				0
 			}
@@ -6356,12 +6430,17 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(content_x + 8, y, disp, gg.TextCfg{ color: gcol, size: 13, mono: true })
 		}
 	}
-	// prompt line at bottom of terminal content
+	// prompt line at bottom of terminal content (fleet view only — desk VTs are read-only feeds)
 	prompt_y := content_y + term_h - 32 - 18
-	// prompt bg
-	app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(184, 147, 90, 12))
-	prompt_col := if app.ghost_focused { col_brass } else { col_slate }
-	app.gg.draw_text(content_x + 8, prompt_y, app.ghost.prompt_line(), gg.TextCfg{ color: prompt_col, size: 13, mono: true, bold: app.ghost_focused })
+	if desk_view {
+		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(148, 163, 184, 20))
+		app.gg.draw_text(content_x + 8, prompt_y, '[${desks_for_app(app)[app.term_view].label}] read-only desk feed · Fleet chip returns to the prompt', gg.TextCfg{ color: col_slate, size: 12, mono: true })
+	} else {
+		// prompt bg
+		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(184, 147, 90, 12))
+		prompt_col := if app.ghost_focused { col_brass } else { col_slate }
+		app.gg.draw_text(content_x + 8, prompt_y, app.ghost.prompt_line(), gg.TextCfg{ color: prompt_col, size: 13, mono: true, bold: app.ghost_focused })
+	}
 	// focus hint
 	if !app.ghost_focused {
 		app.gg.draw_text(content_x + content_w - 110, prompt_y, 'click to focus', gg.TextCfg{ color: col_slate, size: 12 })
@@ -6698,6 +6777,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if app.ghost_focused && app.term_visible {
 				// super potent: Esc first unfocuses Ghostty — preserves terminal data
 				app.ghost_focused = false
+				return
+			}
+			// desk fullscreen: Esc returns to the fleet feed
+			if app.term_view >= 0 {
+				app.term_view = -1
 				return
 			}
 			// panel-scoped Esc clears search fields — Esc must never hard-quit
@@ -7762,6 +7846,20 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.ghost_focused = !app.ghost_focused
 				return
 			}
+			// session picker chips (MAX mode): Fleet + one chip per desk
+			if app.term_mode == 2 && mx >= content_x && mx <= content_x + content_w && my >= content_y - 2 && my < content_y + 26 {
+				if mx < content_x + 52 {
+					app.term_view = -1
+				} else {
+					idx := (mx - content_x - 52) / 66
+					desks_all := desks_for_app(app)
+					if idx >= 0 && idx < desks_all.len {
+						app.term_view = idx
+					}
+				}
+				return
+			}
+			_ = content_y
 			if mx >= content_x && mx <= content_x + content_w && my >= content_y + 16 && my < y0 + term_h - 18 {
 				// click inside terminal focuses Ghostty and copies — potent multiplexed
 				app.ghost_focused = true
