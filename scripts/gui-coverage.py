@@ -14,6 +14,7 @@ skills install/toggle, MCP toggle, targets install, doctor fix, loop run/sched,
 swarm launch/approve, workspace IDE, onboarding wizard, insights tabs), so a
 missing palette row is a hint, not always a gap — the report marks those.
 """
+
 import re
 import subprocess
 import sys
@@ -54,9 +55,7 @@ INTENTIONAL_NA = {"tui", "release"}
 
 
 def cli_commands() -> dict[str, str]:
-    out = subprocess.run(
-        [str(BIN), "--help"], capture_output=True, text=True, timeout=30
-    ).stdout
+    out = subprocess.run([str(BIN), "--help"], capture_output=True, text=True, timeout=30).stdout
     cmds: dict[str, str] = {}
     for line in out.splitlines():
         m = re.match(r"^  ([a-z][a-z ()a-z-]*?)\s{2,}(.*)$", line)
@@ -97,7 +96,9 @@ def main() -> int:
     missing = [m for m in missing if m not in INTENTIONAL_NA]
     total = len(rows)
     covered = total - len(missing)
-    print(f"# CLI ↔ GUI coverage — {covered}/{total} commands ({100 * covered // max(total, 1)}%)\n")
+    print(
+        f"# CLI ↔ GUI coverage — {covered}/{total} commands ({100 * covered // max(total, 1)}%)\n"
+    )
     print("| CLI command | GUI affordance | via |")
     print("|---|---|---|")
     for cmd, desc, how, via in rows:
