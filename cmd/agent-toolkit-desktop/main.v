@@ -5371,6 +5371,42 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				mono: true
 			})
 			app.gg.draw_text(fx + 20, content_y + 110, 'Next: pick capabilities (227) and targets (7) — bulk, one transaction, EventBus → AppState in one tick.', gg.TextCfg{ color: col_ink500, size: 11 })
+			// environment stamp grid — the office at a glance
+			stamps := [
+				['Capabilities', '${installed_cnt} / 227 installed'],
+				['Targets', '${enabled_targets.len} / 7 enabled'],
+				['Personas', '${persona_cnt} bootstrapped'],
+				['Workspace', if workspace_exists { 'initialized ✓' } else { 'not initialized' }],
+			]
+			stamp_y := content_y + 134
+			for si, st in stamps {
+				sx := fx + 20 + si * ((fw - 60) / 4)
+				sw := (fw - 60) / 4 - 10
+				app.gg.draw_rect_filled(sx, stamp_y, sw, 54, col_cream100)
+				app.gg.draw_rect_empty(sx, stamp_y, sw, 54, col_ink300)
+				app.gg.draw_rect_filled(sx, stamp_y, sw, 10, col_manila_tab)
+				app.gg.draw_text(sx + 8, stamp_y + 16, st[0], gg.TextCfg{
+					color: col_ink
+					size: 12
+					bold: true
+					family: app.fonts.display
+				})
+				app.gg.draw_text(sx + 8, stamp_y + 34, st[1], gg.TextCfg{ color: col_ink_soft, size: 11 })
+			}
+			// pending checklist — what the wizard still has to do
+			pend_y := stamp_y + 66
+			app.gg.draw_text(fx + 20, pend_y, 'Pending — ${pending.len} items', gg.TextCfg{ color: col_ink, size: 12, bold: true })
+			for pi, pitem in pending {
+				if pi >= 5 {
+					app.gg.draw_text(fx + 34, pend_y + 18 + 5 * 16, '+${pending.len - 5} more — continue the steps above', gg.TextCfg{ color: col_ink_soft, size: 10 })
+					break
+				}
+				app.gg.draw_rect_filled(fx + 24, pend_y + 20 + pi * 16, 8, 8, col_oxide)
+				app.gg.draw_text(fx + 38, pend_y + 16 + pi * 16, pitem, gg.TextCfg{ color: col_ink_soft, size: 11 })
+			}
+			if pending.len == 0 {
+				app.gg.draw_text(fx + 24, pend_y + 18, 'All set — workspace, personas, capabilities and targets are ready. Press Done.', gg.TextCfg{ color: col_sage_soft, size: 11 })
+			}
 		}
 		1 { // Capabilities — searchable 227 via Engine, bulk install
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')

@@ -46,8 +46,12 @@ fi
 # never inherit the caller's display — the smoke owns its virtual screen
 export DISPLAY="${SMOKE_DISPLAY:-:99}"
 
-# 2. boot the app
-("$BIN" >"$OUT/app.log" 2>&1 &)
+# 2. boot the app — kill stale instances first (their periodic saves would
+#    resurrect layout state into the fresh instance), reset first-run state
+pkill -f 'agent-toolkit-desktop-native' 2>/dev/null || true
+sleep 0.5
+rm -f "$HOME/.cache/agent-toolkit/desktop/ui_state.env"
+(env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET DISPLAY="$DISPLAY" "$BIN" >"$OUT/app.log" 2>&1 &)
 sleep 3
 WID="$(xdt search --name 'Agent Toolkit' | head -1)"
 [ -n "$WID" ] || fail "window not found"
