@@ -2159,7 +2159,6 @@ fn draw_header(mut app GuiApp, w int) {
 		app.gg.draw_text(chx + (cw - label.len * 6) / 2, 14, label, lcfg)
 	}
 	app.gg.draw_text(w - 895 - 400, 14, '中文', gg.TextCfg{ color: gg.rgb(0xC4, 0x5A, 0x3C), size: 11, family: app.fonts.sc })
-	eprintln('CHIPDBG lang=${app.lang} label0=${i18n_table['panel.world'].zh} f=[${app.fonts.sc}]')
 	app.gg.draw_text(w - 300, 10, 'v${app.version}', gg.TextCfg{ color: col_paper_dim, size: scaled_size(13, z) })
 	app.gg.draw_rect_filled(w - 530, 14, 7, 7, col_mint)
 	draw_text_l(mut app, w - 518, 10, 'header.live', gg.TextCfg{ color: col_mint, size: scaled_size(13, z), bold: true })
@@ -2557,8 +2556,9 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_empty(dx + 10, dy + 10, 8, 8, status_col)
 		}
 		label := if d.label.len > 17 { d.label[..17] } else { d.label }
-		// Title Case for display, never ALL CAPS
-		app.gg.draw_text(dx + 22, dy + 9, label, gg.TextCfg{ color: col_ink, size: 14, bold: false })
+		// long agent names shrink to stay inside the 140px card
+		name_size := if d.label.len > 14 { 11 } else { 14 }
+		app.gg.draw_text(dx + 22, dy + 9, label, gg.TextCfg{ color: col_ink, size: name_size, bold: false })
 		app.gg.draw_text(dx + 10, dy + 24, d.role, gg.TextCfg{ color: col_ink700, size: font_body_sm })
 		for a in 0 .. 3 {
 			ax := dx + 10 + a * 16
@@ -3013,7 +3013,7 @@ fn draw_skills_search_bar(mut app GuiApp, fx int, fy int, fw int) {
 fn draw_skills_domain_chips(mut app GuiApp, fx int, fy int, fw int) {
 	domains := ['all', 'core', 'delivery', 'design', 'forge', 'integrations', 'data', 'tooling',
 		'ops', 'loops', 'quality', 'architecture', 'cloud', 'agentic-security']
-	y := fy + 80
+	mut y := fy + 80
 	x0 := fx + 12
 	mut x := x0
 	for d in domains {
@@ -3024,7 +3024,9 @@ fn draw_skills_domain_chips(mut app GuiApp, fx int, fy int, fw int) {
 		bd := if active { col_brass_dim } else { col_ink300 }
 		w := label.len * 7 + 16
 		if x + w > fx + fw - 12 {
-			break
+			// wrap to the next chip row — every domain stays reachable
+			x = x0
+			y += 22
 		}
 		app.gg.draw_rect_filled(x, y, w, 18, bg)
 		app.gg.draw_rect_empty(x, y, w, 18, bd)
@@ -3035,8 +3037,8 @@ fn draw_skills_domain_chips(mut app GuiApp, fx int, fy int, fw int) {
 
 // draw_skills_list — virtualized, 24px rows, 60 FPS, hover + install action + receipts/provenance.
 fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
-	y0 := fy + 102
-	list_h := fh - 126
+	y0 := fy + 128
+	list_h := fh - 142
 	if list_h < 40 {
 		return
 	}
@@ -3088,7 +3090,8 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 			else { col_slate_dim }
 		}
 		app.gg.draw_rect_filled(fx + 16, y + 7, 56, 12, col_cream50)
-		app.gg.draw_text(fx + 18, y + 8, s.domain, gg.TextCfg{ color: pill_col, size: 10 })
+		pill_dom := if s.domain.len > 9 { s.domain[..8] + '…' } else { s.domain }
+		app.gg.draw_text(fx + 18, y + 8, pill_dom, gg.TextCfg{ color: pill_col, size: 10 })
 		app.gg.draw_text(fx + 78, y + 4, s.id, gg.TextCfg{ color: col_ink, size: 13, bold: is_sel })
 		mut desc := s.description
 		if desc.len > 48 {
@@ -4119,8 +4122,8 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	mbx_x := fx + fw - 160
 	app.gg.draw_rect_filled(mbx_x, fy + 8, 140, 28, col_manila_tab)
 	app.gg.draw_rect_empty(mbx_x, fy + 8, 140, 28, col_brass_dim)
-	app.gg.draw_text(mbx_x + 10, fy + 12, tr(app, 'world.god') + ' · ' + tr(app, 'world.out'), gg.TextCfg{ color: col_ink, size: 10, bold: true })
-	app.gg.draw_text(mbx_x + 10, fy + 26, '${god_in} in · ${god_out} out', gg.TextCfg{ color: col_oxide, size: 11, mono: true })
+	app.gg.draw_text(mbx_x + 10, fy + 12, 'GOD mailbox', gg.TextCfg{ color: col_ink, size: 11, bold: true })
+	app.gg.draw_text(mbx_x + 10, fy + 26, 'in ${god_in} · out ${god_out}', gg.TextCfg{ color: col_oxide, size: 11, mono: true })
 	if god_in > 0 {
 		app.gg.draw_rect_filled(mbx_x + 116, fy + 14, 8, 6, col_coral)
 	}
@@ -6250,7 +6253,11 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			size: scaled_size(11, z)
 			family: pal_dfam
 		})
-		app.gg.draw_text(cx + pw - 52, y + 10, it.keys, gg.TextCfg{ color: col_brass_dim, size: scaled_size(12, z), bold: true })
+		mut keys_x := cx + pw - 20 - it.keys.len * 7
+		if keys_x < cx + pw / 2 {
+			keys_x = cx + pw / 2
+		}
+		app.gg.draw_text(keys_x, y + 10, it.keys, gg.TextCfg{ color: col_brass_dim, size: scaled_size(12, z), bold: true })
 	}
 	if filtered.len == 0 {
 		app.gg.draw_text(cx + 20, cy + 86, 'No matches — try another query', gg.TextCfg{ color: col_ink500, size: scaled_size(13, z) })
@@ -6466,11 +6473,21 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if app.ghost_focused && app.term_visible {
-				// super potent: Esc first unfocuses Ghostty, second quits — preserves terminal data
+				// super potent: Esc first unfocuses Ghostty — preserves terminal data
 				app.ghost_focused = false
 				return
 			}
-			app.gg.quit()
+			// panel-scoped Esc clears search fields — Esc must never hard-quit
+			// the app (that was a data-loss footgun; Ctrl+Q quits explicitly)
+			if app.selected_panel in [1, 3] {
+				app.skills_query = ''
+				app.skills_domain = ''
+				return
+			}
+			if app.selected_panel == 9 {
+				app.memory_query = ''
+				return
+			}
 			return
 		}
 		// libghostty-vt toggle — Tab flips ghost_focused, the super potent multiplexed terminal
@@ -6499,6 +6516,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.global_zoom = 1.0
 				app.zoom_toast = '100%'
 				app.zoom_toast_at = app.frame
+				return
+			}
+			if e.key_code == .q {
+				// Ctrl+Q — explicit quit (Esc never kills the app; it cancels layers)
+				app.gg.quit()
 				return
 			}
 			if e.key_code == .grave_accent {
