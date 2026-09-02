@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 import time
-import json2
+import x.json2
 
 // SkillEntry mirrors catalogs/skill-catalog.yaml shape — super-potent: triggers, origin, products, kind.
 pub struct SkillEntry {

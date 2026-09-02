@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 import time
-import json2
+import x.json2
 
 // AgentEntry mirrors personas + AGENT.md + registry — super-potent: delegates, collaborates, triggers, provenance.
 pub struct AgentEntry {

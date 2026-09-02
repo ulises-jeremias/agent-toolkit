@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 import time
-import json2
+import x.json2
 
 // ProductEntry mirrors distributions/products.yaml — super-potent with provenance/receipts.
 pub struct ProductEntry {

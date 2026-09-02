@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 import time
-import json2
+import x.json2
 
 // ReceiptEntry is unified receipt for any install (skill/agent/mcp/target/product/update).
 pub struct ReceiptEntry {

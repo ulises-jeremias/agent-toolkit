@@ -2,7 +2,7 @@ module agent_toolkit_server
 
 // Shared HTTP mapping helpers for serve routes (ADR-027 thin adapter).
 import agent_toolkit_core
-import json2
+import x.json2
 import strings
 
 pub fn result_to_http(res agent_toolkit_core.CommandResult) (int, string) {

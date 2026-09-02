@@ -3,7 +3,7 @@ module desktop_engine
 import time
 import sync
 import os
-import json2
+import x.json2
 import desktop_engine.eventbus
 
 pub enum LoopTier {

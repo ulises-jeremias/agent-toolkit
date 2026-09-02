@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 import time
-import json2
+import x.json2
 import sync
 import desktop_engine.state
 import desktop_engine.eventbus
@@ -216,21 +216,17 @@ pub fn (mut m GodMailbox) prioritized_drain(seed f64) []string {
 			idx: i
 		}
 	}
-	scored.sort_with_compare(fn (a &ScoredEntry, b &ScoredEntry) int {
-		if a.prio > b.prio {
-			return -1
+	// manual insert sort to avoid V3 generic monomorphize segfault on CI
+	for i := 1; i < scored.len; i++ {
+		mut j := i
+		for j > 0 && (scored[j].prio > scored[j - 1].prio
+			|| (scored[j].prio == scored[j - 1].prio && scored[j].idx < scored[j - 1].idx)) {
+			tmp := scored[j]
+			scored[j] = scored[j - 1]
+			scored[j - 1] = tmp
+			j--
 		}
-		if a.prio < b.prio {
-			return 1
-		}
-		if a.idx < b.idx {
-			return -1
-		}
-		if a.idx > b.idx {
-			return 1
-		}
-		return 0
-	})
+	}
 	mut out := []string{}
 	for s in scored {
 		out << s.entry

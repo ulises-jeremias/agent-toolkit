@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 import time
-import json2
+import x.json2
 
 // TargetEntry mirrors install.v profiles — super-potent with receipt/provenance.
 pub struct TargetEntry {

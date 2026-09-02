@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json2
+import x.json2
 import os
 
 // CacheMeta is the metadata stored in cached_version.json.

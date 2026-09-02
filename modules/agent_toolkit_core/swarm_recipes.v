@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json2
+import x.json2
 import os
 
 // BUILTIN_RECIPES persona/policy/gates — V uses plain role list (P2-05 fix).

@@ -2,7 +2,7 @@ module state
 
 import sync
 import time
-import json2
+import x.json2
 import os
 
 // Revision is monotonic u64 + timestamp + actor (who triggered).

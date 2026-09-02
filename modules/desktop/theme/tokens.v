@@ -67,9 +67,20 @@ pub fn default_typography() TypographyScale {
 	return TypographyScale{}
 }
 
-// default_colors returns dark semantic palette (default).
+// default_colors returns dark semantic palette (default) — ink paper inversion.
 pub fn default_colors() ColorTokens {
-	return ColorTokens{}
+	return ColorTokens{
+		bg: '#1A1A1A'
+		bg_elevated: '#252525'
+		fg: '#F4EFE6'
+		fg_muted: '#8A9BA8'
+		border: '#3A3630'
+		primary: '#C45A3C'
+		accent: '#C9A86B'
+		success: '#5A7D5A'
+		warning: '#C9A86B'
+		danger: '#C45A3C'
+	}
 }
 
 // light_colors returns light semantic palette — paper world variant.

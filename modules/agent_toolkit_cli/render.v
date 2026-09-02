@@ -1,7 +1,7 @@
 module agent_toolkit_cli
 
 import agent_toolkit_core
-import json2
+import x.json2
 
 // render writes a CommandResult to stdout according to mode; returns exit code.
 pub fn render(result agent_toolkit_core.CommandResult, mode agent_toolkit_core.RenderMode) int {

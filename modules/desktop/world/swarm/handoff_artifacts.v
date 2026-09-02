@@ -2,7 +2,7 @@ module swarm
 
 import os
 import time
-import json2
+import x.json2
 import sync
 import desktop_engine.state as engine_state
 import desktop_engine.eventbus

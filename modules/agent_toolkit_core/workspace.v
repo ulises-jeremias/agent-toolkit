@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json2
+import x.json2
 import os
 import time
 

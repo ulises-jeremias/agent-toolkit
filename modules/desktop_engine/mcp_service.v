@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 import time
-import json2
+import x.json2
 
 // McpProvider mirrors mcp/templates — super-potent: provenance, receipts, health detail.
 pub struct McpProvider {

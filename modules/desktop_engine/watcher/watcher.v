@@ -3,7 +3,7 @@ module watcher
 import sync
 import time
 import os
-import json2
+import x.json2
 import desktop_engine.state
 import desktop_engine.eventbus
 

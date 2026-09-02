@@ -7,7 +7,7 @@ module swarm
 // perforated dots. Super potent via Engine approvals queue + EventBus handoff UI.
 import sync
 import time
-import json2
+import x.json2
 import desktop_engine.state as engine_state
 import desktop_engine.eventbus
 

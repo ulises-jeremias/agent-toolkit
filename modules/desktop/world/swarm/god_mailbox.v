@@ -8,7 +8,7 @@ module swarm
 // at a glance, yet remains Super Potente via Engine seams and EventBus.
 import sync
 import time
-import json2
+import x.json2
 import desktop_engine.state as engine_state
 import desktop_engine.eventbus
 

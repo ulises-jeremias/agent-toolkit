@@ -1,7 +1,7 @@
 module agent_toolkit_core
 
 import crypto.sha256
-import json2
+import x.json2
 import os
 import time
 

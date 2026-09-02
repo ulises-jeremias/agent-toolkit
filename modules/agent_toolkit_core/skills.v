@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json2
+import x.json2
 import os
 
 // skills_sync_tools are destinations supported by `skills sync`.

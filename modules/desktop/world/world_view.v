@@ -9,7 +9,7 @@ module world
 // geometry, culling, virtualized text and EventBus→frame tick keep the floor at
 // 60 FPS, headless-safe via ATK_GUI_HEADLESS, paper-ink office charm throughout.
 import time
-import json2
+import x.json2
 import desktop.theme
 import desktop_engine.state as engine_state
 import desktop_engine.eventbus

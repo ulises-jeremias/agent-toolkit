@@ -590,21 +590,17 @@ fn filtered_palette(query string) []PaletteItem {
 			}
 		}
 	}
-	scored.sort_with_compare(fn (a &Scored, b &Scored) int {
-		if a.score > b.score {
-			return -1
+	// manual sort to avoid V3 generic monomorphize segfault (see swarm_service fix)
+	for i := 1; i < scored.len; i++ {
+		mut j := i
+		for j > 0 && (scored[j].score > scored[j - 1].score
+			|| (scored[j].score == scored[j - 1].score && scored[j].item.label < scored[j - 1].item.label)) {
+			tmp := scored[j]
+			scored[j] = scored[j - 1]
+			scored[j - 1] = tmp
+			j--
 		}
-		if a.score < b.score {
-			return 1
-		}
-		if a.item.label < b.item.label {
-			return -1
-		}
-		if a.item.label > b.item.label {
-			return 1
-		}
-		return 0
-	})
+	}
 	mut out := []PaletteItem{}
 	for e in scored {
 		out << e.item

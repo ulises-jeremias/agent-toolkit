@@ -2,7 +2,7 @@ module update
 
 import desktop_engine.state as engine_state
 import desktop_engine.eventbus
-import json2
+import x.json2
 
 // ChannelKind enumerates VERSION channel selection.
 pub enum ChannelKind {

@@ -2,7 +2,7 @@ module agent_toolkit_server
 
 // Phase 4 (#835): long-running job registry + process-per-run supervisor.
 // Mirrors ADR-020: spawn CLI subprocess, capture output lines, persist registry.
-import json2
+import x.json2
 import os
 import rand
 import sync

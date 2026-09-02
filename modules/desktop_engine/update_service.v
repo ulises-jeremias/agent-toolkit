@@ -2,7 +2,7 @@ module desktop_engine
 
 import desktop_engine.state
 import desktop_engine.eventbus
-import json2
+import x.json2
 import os
 import time
 
