@@ -9,7 +9,7 @@ pub:
 	argv    []string // argv[0] = executable name or path; rest = args
 	cwd     string
 	env     map[string]string // if empty, inherit parent env
-	timeout time.Duration     // 0 = no timeout
+	timeout time.Duration // 0 = no timeout
 }
 
 // RunResult is the captured outcome of a process run.
@@ -64,8 +64,8 @@ pub fn (p ProcessService) run(opts RunOptions) !RunResult {
 				proc.close()
 				return RunResult{
 					exit_code: -1
-					stdout:    out
-					stderr:    err
+					stdout: out
+					stderr: err
 					timed_out: true
 				}
 			}
@@ -79,8 +79,8 @@ pub fn (p ProcessService) run(opts RunOptions) !RunResult {
 	proc.close()
 	return RunResult{
 		exit_code: code
-		stdout:    out
-		stderr:    err
+		stdout: out
+		stderr: err
 		timed_out: false
 	}
 }
@@ -91,12 +91,11 @@ pub fn (r RunResult) to_domain_error(context string) DomainError {
 		return err_external('process.timeout', '${context}: process timed out')
 	}
 	if r.exit_code != 0 {
-		return err_external('process.exit',
-			'${context}: exit ${r.exit_code}: ${r.stderr.trim_space()}')
+		return err_external('process.exit', '${context}: exit ${r.exit_code}: ${r.stderr.trim_space()}')
 	}
 	return DomainError{
-		class:   .ok
-		code:    'ok'
+		class: .ok
+		code: 'ok'
 		message: ''
 	}
 }

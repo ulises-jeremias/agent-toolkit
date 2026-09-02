@@ -8,7 +8,7 @@ import desktop_engine.eventbus
 fn test_spawn_echo_capture_stdout() {
 	mut bus := eventbus.new_event_bus()
 	mut sup := new_process_supervisor(bus)
-	ch := chan eventbus.ToolkitEvent{cap: 128}
+	ch := chan eventbus.ToolkitEvent{ cap: 128 }
 	bus.subscribe(.process_log, ch)
 	bus.subscribe(.process_exited, ch)
 	// spawn echo
@@ -16,7 +16,7 @@ fn test_spawn_echo_capture_stdout() {
 		capture_logs: true
 	}) or {
 		// fallback if echo not found, try /bin/echo
-		sup.spawn('/bin/echo', ['hello'], SpawnOpts{capture_logs: true}) or {
+		sup.spawn('/bin/echo', ['hello'], SpawnOpts{ capture_logs: true }) or {
 			assert false, err.msg()
 			return
 		}
@@ -34,7 +34,8 @@ fn test_spawn_echo_capture_stdout() {
 					break
 				}
 			}
-			50 * time.millisecond {}
+			50 * time.millisecond {
+			}
 		}
 		if received {
 			break
@@ -64,10 +65,10 @@ fn test_spawn_echo_capture_stdout() {
 fn test_spawn_sleep_kill_and_no_zombie() {
 	mut bus := eventbus.new_event_bus()
 	mut sup := new_process_supervisor(bus)
-	ch := chan eventbus.ToolkitEvent{cap: 64}
+	ch := chan eventbus.ToolkitEvent{ cap: 64 }
 	bus.subscribe(.process_exited, ch)
-	mut handle := sup.spawn('sleep', ['2'], SpawnOpts{capture_logs: false}) or {
-		sup.spawn('/bin/sleep', ['2'], SpawnOpts{capture_logs: false}) or {
+	mut handle := sup.spawn('sleep', ['2'], SpawnOpts{ capture_logs: false }) or {
+		sup.spawn('/bin/sleep', ['2'], SpawnOpts{ capture_logs: false }) or {
 			assert false, err.msg()
 			return
 		}
@@ -90,13 +91,13 @@ fn test_restart_policy_matrix() {
 	mut bus := eventbus.new_event_bus()
 	mut sup := new_process_supervisor(bus)
 	// no should never restart even on failure
-	ch_no := chan eventbus.ToolkitEvent{cap: 64}
+	ch_no := chan eventbus.ToolkitEvent{ cap: 64 }
 	bus.subscribe(.process_exited, ch_no)
 	// Use false command that exits 1
 	cmd_false := if os.exists('/bin/false') { '/bin/false' } else { 'false' }
-	mut h_no := sup.spawn(cmd_false, [], SpawnOpts{restart: .no, max_restarts: 3}) or {
+	mut h_no := sup.spawn(cmd_false, [], SpawnOpts{ restart: .no, max_restarts: 3 }) or {
 		// fallback to sh -c exit 1
-		sup.spawn('sh', ['-c', 'exit 1'], SpawnOpts{restart: .no}) or {
+		sup.spawn('sh', ['-c', 'exit 1'], SpawnOpts{ restart: .no }) or {
 			assert false, err.msg()
 			return
 		}
@@ -115,10 +116,10 @@ fn test_restart_policy_matrix() {
 	cmd_true := if os.exists('/bin/true') { '/bin/true' } else { 'true' }
 	mut bus2 := eventbus.new_event_bus()
 	mut sup2 := new_process_supervisor(bus2)
-	ch_always := chan eventbus.ToolkitEvent{cap: 64}
+	ch_always := chan eventbus.ToolkitEvent{ cap: 64 }
 	bus2.subscribe(.process_exited, ch_always)
-	mut h_always := sup2.spawn(cmd_true, [], SpawnOpts{restart: .always, max_restarts: 1, backoff_ms: 100}) or {
-		sup2.spawn('sh', ['-c', 'exit 0'], SpawnOpts{restart: .always, max_restarts: 1, backoff_ms: 100}) or {
+	mut h_always := sup2.spawn(cmd_true, [], SpawnOpts{ restart: .always, max_restarts: 1, backoff_ms: 100 }) or {
+		sup2.spawn('sh', ['-c', 'exit 0'], SpawnOpts{ restart: .always, max_restarts: 1, backoff_ms: 100 }) or {
 			assert false, err.msg()
 			return
 		}
@@ -142,10 +143,10 @@ fn test_restart_policy_matrix() {
 fn test_log_capture_100_lines_and_backpressure() {
 	mut bus := eventbus.new_event_bus()
 	mut sup := new_process_supervisor(bus)
-	ch := chan eventbus.ToolkitEvent{cap: 2048}
+	ch := chan eventbus.ToolkitEvent{ cap: 2048 }
 	bus.subscribe(.process_log, ch)
 	// spawn sh that prints 100 lines
-	mut handle := sup.spawn('sh', ['-c', 'for i in $(seq 1 100); do echo line-$i; done'], SpawnOpts{capture_logs: true}) or {
+	mut handle := sup.spawn('sh', ['-c', 'for i in \$(seq 1 100); do echo line-\$i; done'], SpawnOpts{ capture_logs: true }) or {
 		assert false, err.msg()
 		return
 	}
@@ -156,7 +157,8 @@ fn test_log_capture_100_lines_and_backpressure() {
 			_ := <-ch {
 				lines++
 			}
-			50 * time.millisecond {}
+			50 * time.millisecond {
+			}
 		}
 		if lines >= 100 {
 			break
@@ -167,8 +169,11 @@ fn test_log_capture_100_lines_and_backpressure() {
 			mut extra := 0
 			for extra < 20 && ch.len > 0 {
 				select {
-					_ := <-ch { lines++ }
-					10 * time.millisecond {}
+					_ := <-ch {
+						lines++
+					}
+					10 * time.millisecond {
+					}
 				}
 				extra++
 			}
@@ -187,7 +192,9 @@ fn test_log_capture_100_lines_and_backpressure() {
 		for handle.stdout_chan.len > 0 {
 			_ = <-handle.stdout_chan
 			lines++
-			if lines >= 3 { break }
+			if lines >= 3 {
+				break
+			}
 		}
 	}
 	assert lines >= 3, 'log capture should have at least some lines, got ${lines}'
@@ -201,8 +208,8 @@ fn test_context_cancel_timeout_propagates() {
 	mut bg := context.background()
 	mut ctx, cancel := context.with_timeout(mut bg, 200 * time.millisecond)
 	defer { cancel() }
-	mut handle := sup.spawn('sleep', ['10'], SpawnOpts{capture_logs: false}) or {
-		sup.spawn('/bin/sleep', ['10'], SpawnOpts{capture_logs: false}) or {
+	mut handle := sup.spawn('sleep', ['10'], SpawnOpts{ capture_logs: false }) or {
+		sup.spawn('/bin/sleep', ['10'], SpawnOpts{ capture_logs: false }) or {
 			assert false, err.msg()
 			return
 		}
@@ -227,8 +234,8 @@ fn test_concurrent_spawn_5_children_no_race() {
 	mut sup := new_process_supervisor(bus)
 	mut handles := []&ProcessHandle{}
 	for i in 0 .. 5 {
-		h := sup.spawn('echo', ['child-${i}'], SpawnOpts{capture_logs: true}) or {
-			sup.spawn('/bin/echo', ['child-${i}'], SpawnOpts{capture_logs: true}) or { continue }
+		h := sup.spawn('echo', ['child-${i}'], SpawnOpts{ capture_logs: true }) or {
+			sup.spawn('/bin/echo', ['child-${i}'], SpawnOpts{ capture_logs: true }) or { continue }
 		}
 		handles << h
 	}

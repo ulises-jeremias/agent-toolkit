@@ -31,8 +31,7 @@ fn test_load_graph_selects_product() {
 	os.write_file(os.join_path(root, 'agents', 'code-reviewer', 'AGENT.md'), '# a\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: agent-toolkit-core\n    includes:\n      skills:\n        - core/assistant\n        - missing/skill\n      agents:\n        - code-reviewer\n') or {
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: agent-toolkit-core\n    includes:\n      skills:\n        - core/assistant\n        - missing/skill\n      agents:\n        - code-reviewer\n') or {
 		assert false, err.msg()
 	}
 	defer {

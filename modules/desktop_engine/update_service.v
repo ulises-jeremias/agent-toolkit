@@ -9,20 +9,20 @@ import time
 // UpdateInfo mirrors desktop/update UpdateInfo for Engine-owned feed logic — super-potent with provenance/receipt.
 pub struct UpdateInfoEngine {
 pub:
-	latest     string
-	url        string
-	sha256     string
-	provenance string
-	channel    string // stable|next|pinned
-	receipt_path string
+	latest        string
+	url           string
+	sha256        string
+	provenance    string
+	channel       string // stable|next|pinned
+	receipt_path  string
 	manifest_path string
 }
 
 // UpdateServiceEngine is the Engine-owned feed logic (Desktop owns UI).
 pub struct UpdateServiceEngine {
 mut:
-	repo &state.StateRepository
-	bus  &eventbus.ToolkitEventBus
+	repo            &state.StateRepository
+	bus             &eventbus.ToolkitEventBus
 	current_version string = '1.27.0'
 	feed_version    string = '1.27.1'
 	feed_sha256     string = 'abc123sha256'
@@ -40,11 +40,19 @@ pub fn new_update_service_engine(repo &state.StateRepository, bus &eventbus.Tool
 // check_update respects channel and opt-in (headless stub reuses manifest.json pattern) — super-potent with artifact receipts.
 pub fn (mut s UpdateServiceEngine) check_update(current string, channel string) ?UpdateInfoEngine {
 	ch := if channel == '' { 'stable' } else { channel }
-	if current == s.feed_version { return none }
-	if ch == 'stable' && s.feed_version.contains('-next') { return none }
-	if ch == 'pinned' && s.feed_version != current { return none }
+	if current == s.feed_version {
+		return none
+	}
+	if ch == 'stable' && s.feed_version.contains('-next') {
+		return none
+	}
+	if ch == 'pinned' && s.feed_version != current {
+		return none
+	}
 	// feed respects receipts: if current is pinned via receipt, don't offer
-	if s.repo.snapshot().data['update:pinned'] == 'true' { return none }
+	if s.repo.snapshot().data['update:pinned'] == 'true' {
+		return none
+	}
 	return UpdateInfoEngine{
 		latest: s.feed_version
 		url: 'https://github.com/ulises-jeremias/agent-toolkit/releases/download/v${s.feed_version}/agent-toolkit'
@@ -58,16 +66,24 @@ pub fn (mut s UpdateServiceEngine) check_update(current string, channel string) 
 
 // verify checks SHA256 + provenance vs manifest.json (ADR-022) — super-potent: full provenance chain.
 pub fn (s UpdateServiceEngine) verify(content string, expected_sha256 string) bool {
-	if expected_sha256 != s.feed_sha256 { return false }
+	if expected_sha256 != s.feed_sha256 {
+		return false
+	}
 	// also verify provenance manifest exists
-	if !s.verify_provenance() { return false }
+	if !s.verify_provenance() {
+		return false
+	}
 	return true
 }
 
 // verify_provenance checks manifest.json provenance (ADR-022) exists and digest matches.
 pub fn (s UpdateServiceEngine) verify_provenance() bool {
-	if s.feed_provenance == '' { return false }
-	if !s.feed_provenance.contains('sha256:') { return false }
+	if s.feed_provenance == '' {
+		return false
+	}
+	if !s.feed_provenance.contains('sha256:') {
+		return false
+	}
 	return true
 }
 
@@ -96,7 +112,9 @@ pub fn (mut s UpdateServiceEngine) apply(version string) bool {
 // rollback reverts to prior version via receipt (easy management).
 pub fn (mut s UpdateServiceEngine) rollback(version string) bool {
 	prev := s.repo.snapshot().data['update:applied_version'] or { '' }
-	if prev == '' || prev == version { return false }
+	if prev == '' || prev == version {
+		return false
+	}
 	mut tx := s.repo.begin('update-rollback')
 	tx.set('VERSION', prev)
 	tx.set('update:rollback_to', prev)
@@ -148,19 +166,25 @@ pub fn (mut s UpdateServiceEngine) history() []UpdateInfoEngine {
 // manifest_json returns ADR-022 manifest stub — super-potent with receipts.
 pub fn (s UpdateServiceEngine) manifest_json() string {
 	return json2.encode({
-		'version': s.feed_version
-		'sha256': s.feed_sha256
+		'version':    s.feed_version
+		'sha256':     s.feed_sha256
 		'provenance': s.feed_provenance
-		'receipt': '~/.config/agent-toolkit/receipts/update-${s.feed_version}.json'
-		'channel': 'stable'
+		'receipt':    '~/.config/agent-toolkit/receipts/update-${s.feed_version}.json'
+		'channel':    'stable'
 	})
 }
 
 // manifest_verify validates manifest provenance (core parity).
 pub fn (s UpdateServiceEngine) manifest_verify(text string) bool {
-	if !text.contains('version') { return false }
-	if !text.contains('sha256') { return false }
-	if !text.contains('provenance') { return false }
+	if !text.contains('version') {
+		return false
+	}
+	if !text.contains('sha256') {
+		return false
+	}
+	if !text.contains('provenance') {
+		return false
+	}
 	return true
 }
 

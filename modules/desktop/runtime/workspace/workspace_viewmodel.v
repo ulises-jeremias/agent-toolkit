@@ -6,8 +6,8 @@ import desktop.state as app_state
 
 pub struct WorkspaceViewModel {
 mut:
-	engine &desktop_engine.Engine
-	nodes  []desktop_engine.WorkspaceNode
+	engine   &desktop_engine.Engine
+	nodes    []desktop_engine.WorkspaceNode
 	revision u64
 }
 

@@ -12,7 +12,7 @@ fn test_mcp_list_setup_uninstall_offline() {
 	defer {
 		os.rmdir_all(base) or {}
 	}
-	os.write_file(os.join_path(tdir, 'config.template.json'), '{"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"$' + '{GITHUB_PERSONAL_ACCESS_TOKEN}"}}') or {
+	os.write_file(os.join_path(tdir, 'config.template.json'), '{"env":{"GITHUB_PERSONAL_ACCESS_TOKEN":"\$' + '{GITHUB_PERSONAL_ACCESS_TOKEN}"}}') or {
 		assert false, err.msg()
 		return
 	}
@@ -22,20 +22,21 @@ fn test_mcp_list_setup_uninstall_offline() {
 	}
 
 	listed := run_mcp(McpOptions{
-		subcommand:   'list'
+		subcommand: 'list'
 		toolkit_root: base
-		config_path:  cfg
+		config_path: cfg
 	})
 	assert listed.ok
 	assert listed.message.contains('github')
 	assert !listed.message.to_lower().contains('ghp_') // no token leak
+	
 
 	setup := run_mcp(McpOptions{
-		subcommand:   'setup'
-		provider:     'github'
-		offline:      true
+		subcommand: 'setup'
+		provider: 'github'
+		offline: true
 		toolkit_root: base
-		config_path:  cfg
+		config_path: cfg
 	})
 	assert setup.ok
 	saved := os.read_file(cfg) or { '' }
@@ -45,10 +46,10 @@ fn test_mcp_list_setup_uninstall_offline() {
 	assert !saved.to_lower().contains('token_value')
 
 	health := run_mcp(McpOptions{
-		subcommand:   'health'
-		provider:     'github'
+		subcommand: 'health'
+		provider: 'github'
 		toolkit_root: base
-		config_path:  cfg
+		config_path: cfg
 	})
 	// health.ok is flaky on V master (and macOS sandbox) — offline health depends on docker/binary presence
 	// Keep assertion on stable message, not strict ok, to avoid V master breakage (see PR #1033)
@@ -62,8 +63,8 @@ fn test_mcp_list_setup_uninstall_offline() {
 	assert health.message.contains('GitHub')
 
 	un := run_mcp(McpOptions{
-		subcommand:  'uninstall'
-		provider:    'github'
+		subcommand: 'uninstall'
+		provider: 'github'
 		config_path: cfg
 	})
 	assert un.ok
@@ -79,7 +80,7 @@ fn test_mcp_unknown_subcommand() {
 }
 
 fn test_extract_template_env_names() {
-	names := extract_template_env_names('{"env":{"A":"$' + '{FOO}","B":"$' + '{BAR}"}}')
+	names := extract_template_env_names('{"env":{"A":"\$' + '{FOO}","B":"\$' + '{BAR}"}}')
 	assert 'FOO' in names
 	assert 'BAR' in names
 }

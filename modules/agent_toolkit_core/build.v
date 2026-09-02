@@ -21,13 +21,13 @@ pub:
 	target      string // empty = all Tier-1
 	product     string // empty = all products
 	output_dir  string // empty = <repo>/plugins
-	write_files bool   // false for --check (temp only)
+	write_files bool // false for --check (temp only)
 }
 
 // run_build executes Tier-1 compile (write) or dry-run + drift check.
 pub fn run_build(opts BuildOptions) BuildReport {
 	mut report := BuildReport{
-		ok:   true
+		ok: true
 		mode: if opts.check { 'check' } else { 'build' }
 	}
 	repo := find_repo_root() or {
@@ -168,10 +168,8 @@ fn drift_path_pairs(target_id string, work_product string, plugin_product string
 	match target_id {
 		'cursor', 'claude-code' {
 			// Shared plugin surface (core/agents/forge) for digest parity with plugin check.
-			pairs << skill_agent_pairs(os.join_path(work_product, 'skills'), os.join_path(plugin_product,
-				'skills'), 'SKILL.md')
-			pairs << skill_agent_pairs(os.join_path(work_product, 'agents'), os.join_path(plugin_product,
-				'agents'), 'AGENT.md')
+			pairs << skill_agent_pairs(os.join_path(work_product, 'skills'), os.join_path(plugin_product, 'skills'), 'SKILL.md')
+			pairs << skill_agent_pairs(os.join_path(work_product, 'agents'), os.join_path(plugin_product, 'agents'), 'AGENT.md')
 		}
 		'opencode' {
 			// Compile-validate only: committed `.opencode/` trees are often stale vs skills/
@@ -217,8 +215,8 @@ pub fn build_result(report BuildReport) CommandResult {
 	data['emitted_summary'] = emitted.join(',')
 	return CommandResult{
 		command: 'build'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    data
+		data: data
 	}
 }

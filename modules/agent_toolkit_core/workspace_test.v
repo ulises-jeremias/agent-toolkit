@@ -9,7 +9,7 @@ fn test_workspace_init_in_temp_dir() {
 	}
 	report := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert report.ok, report.message
 	assert os.is_file(os.join_path(base, 'AGENTS.md'))
@@ -19,7 +19,7 @@ fn test_workspace_init_in_temp_dir() {
 	assert report.message.contains('Workspace initialized')
 	again := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert again.ok
 	assert again.message.contains('skip')
@@ -32,13 +32,13 @@ fn test_workspace_context_json_schema() {
 	}
 	init := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert init.ok, init.message
 	report := run_workspace(WorkspaceOptions{
-		subcommand:     'context'
+		subcommand: 'context'
 		workspace_path: base
-		json_out:       true
+		json_out: true
 	})
 	assert report.ok, report.message
 	assert report.data['workspace'] == base
@@ -55,11 +55,11 @@ fn test_workspace_sync_noop_without_loops() {
 	}
 	init := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert init.ok, init.message
 	report := run_workspace(WorkspaceOptions{
-		subcommand:     'sync'
+		subcommand: 'sync'
 		workspace_path: base
 	})
 	assert report.ok, report.message
@@ -74,7 +74,7 @@ fn test_workspace_sync_idempotent_escalation() {
 	}
 	init := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert init.ok, init.message
 	loop_dir := os.join_path(base, 'loops', 'daily')
@@ -84,13 +84,13 @@ fn test_workspace_sync_idempotent_escalation() {
 		return
 	}
 	first := run_workspace(WorkspaceOptions{
-		subcommand:     'sync'
+		subcommand: 'sync'
 		workspace_path: base
 	})
 	assert first.ok, first.message
 	assert first.data['added'] == '1'
 	second := run_workspace(WorkspaceOptions{
-		subcommand:     'sync'
+		subcommand: 'sync'
 		workspace_path: base
 	})
 	assert second.ok, second.message
@@ -104,26 +104,26 @@ fn test_workspace_use_persona_and_handoff() {
 	}
 	init := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert init.ok, init.message
 	use := run_workspace(WorkspaceOptions{
-		subcommand:     'use-persona'
+		subcommand: 'use-persona'
 		workspace_path: base
-		arg:            'implementer'
+		arg: 'implementer'
 	})
 	assert use.ok, use.message
 	assert read_strip(os.join_path(base, '.active-persona')) == 'implementer'
 	bad := run_workspace(WorkspaceOptions{
-		subcommand:     'handoff'
+		subcommand: 'handoff'
 		workspace_path: base
-		arg:            'architect'
+		arg: 'architect'
 	})
 	assert !bad.ok
 	ok := run_workspace(WorkspaceOptions{
-		subcommand:     'handoff'
+		subcommand: 'handoff'
 		workspace_path: base
-		arg:            'reviewer'
+		arg: 'reviewer'
 	})
 	assert ok.ok, ok.message
 	assert read_strip(os.join_path(base, '.active-persona')) == 'reviewer'
@@ -150,7 +150,7 @@ fn test_find_workspace_root_override_and_walk() {
 
 fn test_workspace_missing_root_fails() {
 	report := run_workspace(WorkspaceOptions{
-		subcommand:     'context'
+		subcommand: 'context'
 		workspace_path: os.join_path(os.temp_dir(), 'at-ws-missing-${os.getpid()}')
 	})
 	assert !report.ok

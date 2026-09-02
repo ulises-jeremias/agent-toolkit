@@ -26,41 +26,41 @@ pub enum LoopExitCondition {
 // Bounded by max_role_round_trips (default 2) per SWARM_RECIPES.md.
 pub struct InnerLoop {
 pub mut:
-	loop_id      string
-	run_id       string
-	role         string
-	iteration    int
+	loop_id        string
+	run_id         string
+	role           string
+	iteration      int
 	max_iterations int
-	goal         string
-	status       string // running | completed | awaiting_approval | failed
-	budget_spent int
-	budget_total int
-	trace        []string // process_log trace lines
-	exit         LoopExitCondition
+	goal           string
+	status         string // running | completed | awaiting_approval | failed
+	budget_spent   int
+	budget_total   int
+	trace          []string // process_log trace lines
+	exit           LoopExitCondition
 }
 
 // OuterLoop is the scheduled mission (e.g., daily-triage L1 1d, ci-sweeper L2 15m).
 // Runs via Engine.loops_catalog with cadence cron.
 pub struct OuterLoop {
 pub:
-	name        string
-	goal        string
-	cadence     string
-	tier        desktop_engine.LoopTier
-	enabled     bool
-	next_run    string
-	last_run    string
-	last_exit   string
+	name         string
+	goal         string
+	cadence      string
+	tier         desktop_engine.LoopTier
+	enabled      bool
+	next_run     string
+	last_run     string
+	last_exit    string
 	budget_total int
 	budget_spent int
-	schedule    string // cron expr derived from cadence
+	schedule     string // cron expr derived from cadence
 }
 
 // LoopsViewModel projects inner+outer loops for Swarm Room Mission Board.
 pub struct LoopsViewModel {
 pub:
-	inner []InnerLoop
-	outer []OuterLoop
+	inner    []InnerLoop
+	outer    []OuterLoop
 	revision u64
 }
 
@@ -152,8 +152,12 @@ fn cadence_to_cron(cadence string) string {
 // start_inner creates an inner loop for a swarm run role iteration.
 pub fn (mut mb LoopMissionBoard) start_inner(run_id string, role string, goal string, max_iter int) InnerLoop {
 	mut max_i := max_iter
-	if max_i <= 0 { max_i = 2 }
-	if max_i > 10 { max_i = 10 }
+	if max_i <= 0 {
+		max_i = 2
+	}
+	if max_i > 10 {
+		max_i = 10
+	}
 	loop_id := 'inner-${run_id}-${role}-${time.now().unix_nano() % 1000000:06d}'
 	inner := InnerLoop{
 		loop_id: loop_id
@@ -185,7 +189,14 @@ pub fn (mut mb LoopMissionBoard) start_inner(run_id string, role string, goal st
 		kind: .loop_inner_tick
 		revision: rev.revision
 		path: 'swarm:${run_id}:inner:${loop_id}'
-		payload: json2.encode({'loop_id': loop_id, 'run_id': run_id, 'role': role, 'iteration': '0', 'max': max_i.str(), 'status': 'running'})
+		payload: json2.encode({
+			'loop_id':   loop_id
+			'run_id':    run_id
+			'role':      role
+			'iteration': '0'
+			'max':       max_i.str()
+			'status':    'running'
+		})
 	})
 	return inner
 }
@@ -239,7 +250,13 @@ pub fn (mut mb LoopMissionBoard) tick_inner(loop_id string, trace_line string, b
 		kind: .loop_inner_tick
 		revision: rev.revision
 		path: 'swarm:${inner.run_id}:inner:${loop_id}:tick:${inner.iteration}'
-		payload: json2.encode({'loop_id': loop_id, 'iteration': inner.iteration.str(), 'trace': trace_line, 'budget_spent': inner.budget_spent.str(), 'status': inner.status})
+		payload: json2.encode({
+			'loop_id':      loop_id
+			'iteration':    inner.iteration.str()
+			'trace':        trace_line
+			'budget_spent': inner.budget_spent.str()
+			'status':       inner.status
+		})
 	})
 	mb.bus.publish(eventbus.ToolkitEvent{
 		kind: .process_log
@@ -273,7 +290,10 @@ pub fn (mut mb LoopMissionBoard) complete_inner(loop_id string, exit LoopExitCon
 		kind: .loop_inner_tick
 		revision: rev.revision
 		path: 'swarm:${inner.run_id}:inner:${loop_id}:completed'
-		payload: json2.encode({'loop_id': loop_id, 'exit': exit.str()})
+		payload: json2.encode({
+			'loop_id': loop_id
+			'exit':    exit.str()
+		})
 	})
 	return true
 }
@@ -287,8 +307,12 @@ pub fn (mb LoopMissionBoard) mission_board() LoopsViewModel {
 		inner << v
 	}
 	inner.sort_with_compare(fn (a &InnerLoop, b &InnerLoop) int {
-		if a.loop_id < b.loop_id { return -1 }
-		if a.loop_id > b.loop_id { return 1 }
+		if a.loop_id < b.loop_id {
+			return -1
+		}
+		if a.loop_id > b.loop_id {
+			return 1
+		}
 		return 0
 	})
 	// outer derived from repo snapshot if available, else cached

@@ -19,7 +19,7 @@ fn test_skills_list_and_validate() {
 		return
 	}
 	listed := run_skills(SkillsOptions{
-		subcommand:   'list'
+		subcommand: 'list'
 		toolkit_root: base
 	})
 	assert listed.ok
@@ -27,14 +27,14 @@ fn test_skills_list_and_validate() {
 	assert listed.count == 1
 
 	bad_domain := run_skills(SkillsOptions{
-		subcommand:   'list'
-		domain:       'nope'
+		subcommand: 'list'
+		domain: 'nope'
 		toolkit_root: base
 	})
 	assert !bad_domain.ok
 
 	valid := run_skills(SkillsOptions{
-		subcommand:   'validate'
+		subcommand: 'validate'
 		toolkit_root: base
 	})
 	assert valid.ok
@@ -60,9 +60,9 @@ fn test_skills_sync_copy_and_cursor_index() {
 		return
 	}
 	sync := run_skills(SkillsOptions{
-		subcommand:   'sync'
-		tools:        ['claude-code', 'cursor']
-		home_dir:     home
+		subcommand: 'sync'
+		tools: ['claude-code', 'cursor']
+		home_dir: home
 		toolkit_root: base
 	})
 	assert sync.ok

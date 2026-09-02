@@ -21,11 +21,11 @@ pub mut:
 // SkillStats is domain/stability aggregation for potent management.
 pub struct SkillStats {
 pub:
-	total         int
-	by_domain     map[string]int
-	by_stability  map[string]int
-	by_origin     map[string]int
-	installed     int
+	total        int
+	by_domain    map[string]int
+	by_stability map[string]int
+	by_origin    map[string]int
+	installed    int
 }
 
 // SkillReceiptInfo is provenance-aware receipt for a skill (mirrors core InstallReceipt).
@@ -44,12 +44,12 @@ pub:
 // SkillProvenanceInfo mirrors .provenance.json per skill.
 pub struct SkillProvenanceInfo {
 pub:
-	skill_id        string
-	source_file     string
-	source_digest   string
+	skill_id         string
+	source_file      string
+	source_digest    string
 	generated_digest string
-	verified        bool
-	detail          string
+	verified         bool
+	detail           string
 }
 
 // BuildDiagnostic mirrors schemas validation error.
@@ -81,8 +81,12 @@ pub fn (mut e Engine) skills_catalog() []SkillEntry {
 				t := line.trim_space()
 				if t.starts_with('- id:') {
 					if cur.id != '' {
-						if cur.origin_type == '' { cur.origin_type = 'first-party' }
-						if cur.kind == '' { cur.kind = 'skill' }
+						if cur.origin_type == '' {
+							cur.origin_type = 'first-party'
+						}
+						if cur.kind == '' {
+							cur.kind = 'skill'
+						}
 						entries << cur
 					}
 					cur = SkillEntry{
@@ -110,8 +114,12 @@ pub fn (mut e Engine) skills_catalog() []SkillEntry {
 				}
 			}
 			if cur.id != '' {
-				if cur.origin_type == '' { cur.origin_type = 'first-party' }
-				if cur.kind == '' { cur.kind = 'skill' }
+				if cur.origin_type == '' {
+					cur.origin_type = 'first-party'
+				}
+				if cur.kind == '' {
+					cur.kind = 'skill'
+				}
 				entries << cur
 			}
 		}
@@ -620,8 +628,10 @@ pub fn (mut e Engine) build_preview_detailed() string {
 	snap := e.repo.snapshot()
 	receipts := snap.data.keys().filter(it.starts_with('receipt:skill:')).len
 	return json2.encode({
-		'digest': 'plugins-digest:${h}:${cat.len}'
-		'receipts': receipts.str()
+		'digest':     'plugins-digest:${h}:${cat.len}'
+		'receipts':   receipts.str()
 		'provenance': 'catalogs/skill-catalog.yaml'
-	}, escape_unicode: true)
+	},
+		escape_unicode: true
+	)
 }

@@ -17,7 +17,7 @@ pub:
 pub fn new_data_sync() DataSync {
 	return DataSync{
 		net: new_network_client(true)
-		fs:  new_fs()
+		fs: new_fs()
 	}
 }
 

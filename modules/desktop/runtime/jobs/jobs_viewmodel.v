@@ -7,9 +7,9 @@ import desktop_engine.eventbus
 
 pub struct JobsViewModel {
 mut:
-	engine &desktop_engine.Engine
-	jobs   []desktop_engine.JobRecord
-	bus    &eventbus.ToolkitEventBus
+	engine   &desktop_engine.Engine
+	jobs     []desktop_engine.JobRecord
+	bus      &eventbus.ToolkitEventBus
 	revision u64
 }
 

@@ -24,8 +24,8 @@ pub:
 // PerfResult aggregates harness results as FPS + frame times artifact.
 pub struct PerfResult {
 pub:
-	fps       f64          // sustained FPS (1e3 / avg_dt_ms)
-	min_fps   f64          // worst frame FPS
+	fps       f64 // sustained FPS (1e3 / avg_dt_ms)
+	min_fps   f64 // worst frame FPS
 	max_dt_ms f64
 	avg_dt_ms f64
 	samples   []FrameSample
@@ -98,7 +98,9 @@ pub fn (h PerfHarness) run_headless(iterations int) PerfResult {
 		dt := synthetic_ms + jitter + f64(elapsed.microseconds() % 300) / 10000.0 * 0.1
 
 		// Clamp to plausible display range
-		dt_clamped := if dt < 1.0 { 1.0 } else if dt > 50.0 { 50.0 } else { dt }
+		dt_clamped := if dt < 1.0 {
+			1.0
+		} else if dt > 50.0 { 50.0 } else { dt }
 		fps := 1000.0 / dt_clamped
 		if fps < min_fps {
 			min_fps = fps

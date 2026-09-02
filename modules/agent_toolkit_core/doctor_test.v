@@ -36,17 +36,17 @@ fn test_doctor_fix_refreshes_missing_cursor_profile() {
 	}
 	// Missing rules/ → warn; --fix should create it
 	readonly := run_doctor(DoctorOptions{
-		home_dir:          home
-		data_root:         data
+		home_dir: home
+		data_root: data
 		skip_data_refresh: true
 	})
 	assert !readonly.fix_applied
 	assert readonly.checks.any(it.category == 'profiles' && it.status == 'warn')
 
 	fixed := run_doctor(DoctorOptions{
-		fix:               true
-		home_dir:          home
-		data_root:         data
+		fix: true
+		home_dir: home
+		data_root: data
 		skip_data_refresh: true
 	})
 	assert fixed.fix_applied
@@ -67,9 +67,9 @@ fn test_doctor_fix_noop_when_profiles_ok() {
 		return
 	}
 	snap := run_doctor(DoctorOptions{
-		fix:               true
-		home_dir:          home
-		data_root:         base
+		fix: true
+		home_dir: home
+		data_root: base
 		skip_data_refresh: true
 	})
 	assert !snap.fix_applied

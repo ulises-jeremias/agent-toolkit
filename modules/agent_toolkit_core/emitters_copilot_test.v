@@ -21,8 +21,7 @@ fn test_compile_copilot_cli_and_repo() {
 	os.write_file(os.join_path(root, 'agents', 'code-reviewer', 'AGENT.md'), 'agent\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: demo\n    name: Demo\n    description: Demo product\n    includes:\n      skills:\n        - core/assistant\n      agents:\n        - code-reviewer\n') or {
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: demo\n    name: Demo\n    description: Demo product\n    includes:\n      skills:\n        - core/assistant\n      agents:\n        - code-reviewer\n') or {
 		assert false, err.msg()
 	}
 	defer {

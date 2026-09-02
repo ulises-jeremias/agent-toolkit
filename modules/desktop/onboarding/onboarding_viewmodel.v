@@ -15,11 +15,11 @@ pub enum OnboardingStep {
 
 pub struct OnboardingViewModel {
 mut:
-	engine &desktop_engine.Engine
-	step   OnboardingStep
-	targets []desktop_engine.TargetEntry
+	engine       &desktop_engine.Engine
+	step         OnboardingStep
+	targets      []desktop_engine.TargetEntry
 	harness_root string
-	revision u64
+	revision     u64
 }
 
 pub fn new_onboarding_viewmodel(mut engine &desktop_engine.Engine) OnboardingViewModel {
@@ -76,7 +76,6 @@ pub fn (mut vm OnboardingViewModel) complete() !u64 {
 
 // ── Super-potent onboarding: capability/target/product/workspace/persona in one wizard ──
 // All via Engine typed APIs (no shell, every mutation is a Transaction → EventBus → AppState).
-
 pub fn (mut vm OnboardingViewModel) set_harness_root(path string) {
 	vm.harness_root = path
 }
@@ -104,7 +103,11 @@ pub fn (mut vm OnboardingViewModel) init_workspace_with_templates(target string,
 }
 
 pub fn (mut vm OnboardingViewModel) ensure_personas() !u64 {
-	root := if vm.harness_root != '' { vm.harness_root } else { vm.engine.onboarding_status('').harness_root }
+	root := if vm.harness_root != '' {
+		vm.harness_root
+	} else {
+		vm.engine.onboarding_status('').harness_root
+	}
 	rev := vm.engine.onboarding_ensure_personas(root)!
 	vm.revision = rev
 	return rev

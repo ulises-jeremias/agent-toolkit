@@ -11,7 +11,7 @@ fn test_persist_boot_mutate_restart_restored_and_wipe_rebuilds() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	db_path := os.join_path(tmp, 'desktop.db')
-	mut p := new_persist(PersistConfig{db_path: db_path}) or { panic(err.msg()) }
+	mut p := new_persist(PersistConfig{ db_path: db_path }) or { panic(err.msg()) }
 	defer { p.close() }
 	// boot → mutate layout → persist
 	p.save_layout('dock.snapshot', '{"panels":["skills","agents"],"splitters":[0.3,0.7]}') or {
@@ -23,7 +23,7 @@ fn test_persist_boot_mutate_restart_restored_and_wipe_rebuilds() {
 	assert p.load_view_state('palette.query') or { '' } == 'core'
 	// reboot emulated: close + reopen
 	p.close()
-	mut p2 := new_persist(PersistConfig{db_path: db_path}) or { panic(err.msg()) }
+	mut p2 := new_persist(PersistConfig{ db_path: db_path }) or { panic(err.msg()) }
 	defer { p2.close() }
 	assert p2.load_layout('dock.snapshot') or { '' } == '{"panels":["skills","agents"],"splitters":[0.3,0.7]}'
 	assert p2.load_view_state('palette.query') or { '' } == 'core'
@@ -42,7 +42,7 @@ fn test_persist_canonical_mutation_wins_over_derived() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	db_path := os.join_path(tmp, 'desktop.db')
-	mut p := new_persist(PersistConfig{db_path: db_path}) or { panic(err.msg()) }
+	mut p := new_persist(PersistConfig{ db_path: db_path }) or { panic(err.msg()) }
 	defer { p.close() }
 	// derived layout
 	p.save_layout('dock.snapshot', '{"panels":["skills"]}') or { panic(err.msg()) }
@@ -80,7 +80,7 @@ fn test_persist_schema_versioned_and_plane_guard() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	db_path := os.join_path(tmp, 'desktop.db')
-	mut p := new_persist(PersistConfig{db_path: db_path}) or { panic(err.msg()) }
+	mut p := new_persist(PersistConfig{ db_path: db_path }) or { panic(err.msg()) }
 	defer { p.close() }
 	assert p.schema_version_nr() == 1
 	assert p.db_path_of() == db_path

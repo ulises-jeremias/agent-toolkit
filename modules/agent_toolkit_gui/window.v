@@ -8,8 +8,8 @@ import os
 pub struct GuiConfig {
 pub:
 	title    string = 'Agent Toolkit — GUI Feasibility Spike #1018'
-	width    int    = 1280
-	height   int    = 800
+	width    int = 1280
+	height   int = 800
 	headless bool
 }
 

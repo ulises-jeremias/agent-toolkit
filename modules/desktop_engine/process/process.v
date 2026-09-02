@@ -16,12 +16,12 @@ pub enum RestartPolicy {
 @[params]
 pub struct SpawnOpts {
 pub:
-	restart       RestartPolicy = .no
-	max_restarts  u8            = 3
-	backoff_ms    int           = 100
-	env           []string
-	work_dir      string
-	capture_logs  bool = true
+	restart      RestartPolicy = .no
+	max_restarts u8 = 3
+	backoff_ms   int = 100
+	env          []string
+	work_dir     string
+	capture_logs bool = true
 }
 
 pub struct ProcessHandle {
@@ -72,7 +72,13 @@ pub fn (mut h ProcessHandle) cancel() {
 			kind: .process_exited
 			revision: 0
 			path: h.id
-			payload: json2.encode({'id': h.id, 'code': (if h.exit_code != none { h.exit_code or { -1 } } else { p.code }).str(), 'will_restart': 'false'}, escape_unicode: true)
+			payload: json2.encode({
+				'id':           h.id
+				'code':         (if h.exit_code != none { h.exit_code or { -1 } } else { p.code }).str()
+				'will_restart': 'false'
+			},
+				escape_unicode: true
+			)
 		})
 	}
 	h.mu.lock()
@@ -154,8 +160,8 @@ pub fn (mut s ProcessSupervisor) spawn(cmd string, args []string, opts SpawnOpts
 		proc.set_environment(env_map)
 	}
 	proc.set_redirect_stdio()
-	mut out_ch := chan string{cap: 1024}
-	mut err_ch := chan string{cap: 1024}
+	mut out_ch := chan string{ cap: 1024 }
+	mut err_ch := chan string{ cap: 1024 }
 	mut handle := &ProcessHandle{
 		id: id
 		proc: proc
@@ -174,6 +180,8 @@ pub fn (mut s ProcessSupervisor) spawn(cmd string, args []string, opts SpawnOpts
 	s.mu.lock()
 	s.procs[id] = handle
 	s.mu.unlock()
+
+	// resilience: exponential backoff retry loop (supports up to max_restarts, not single)
 	spawn fn [mut handle, mut s, cmd, args] () {
 		mut p := handle.proc
 		for {
@@ -201,7 +209,13 @@ pub fn (mut s ProcessSupervisor) spawn(cmd string, args []string, opts SpawnOpts
 								kind: .process_log
 								revision: 0
 								path: handle.id
-								payload: json2.encode({'id': handle.id, 'stream': 'stdout', 'line': line}, escape_unicode: true)
+								payload: json2.encode({
+									'id':     handle.id
+									'stream': 'stdout'
+									'line':   line
+								},
+									escape_unicode: true
+								)
 							})
 						}
 					}
@@ -227,7 +241,13 @@ pub fn (mut s ProcessSupervisor) spawn(cmd string, args []string, opts SpawnOpts
 								kind: .process_log
 								revision: 0
 								path: handle.id
-								payload: json2.encode({'id': handle.id, 'stream': 'stderr', 'line': line2}, escape_unicode: true)
+								payload: json2.encode({
+									'id':     handle.id
+									'stream': 'stderr'
+									'line':   line2
+								},
+									escape_unicode: true
+								)
 							})
 						}
 					}
@@ -253,11 +273,16 @@ pub fn (mut s ProcessSupervisor) spawn(cmd string, args []string, opts SpawnOpts
 					kind: .process_exited
 					revision: 0
 					path: handle.id
-					payload: json2.encode({'id': handle.id, 'code': code.str(), 'will_restart': will_restart.str()}, escape_unicode: true)
+					payload: json2.encode({
+						'id':           handle.id
+						'code':         code.str()
+						'will_restart': will_restart.str()
+					},
+						escape_unicode: true
+					)
 				})
 			}
 			if will_restart {
-				// resilience: exponential backoff retry loop (supports up to max_restarts, not single)
 				backoff_ms := handle.opts.backoff_ms
 				mut delay := backoff_ms * (1 << restarts)
 				if delay > 5000 {

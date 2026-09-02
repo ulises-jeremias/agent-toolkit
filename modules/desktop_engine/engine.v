@@ -200,6 +200,7 @@ pub fn (mut e Engine) start() ! {
 		paths := e.watcher_paths.clone()
 		poll_ms := e.watcher_poll_ms
 		deb_ms := e.watcher_debounce_ms
+
 		// For now, we provide a minimal inline watcher using polling on file mtimes
 		// Spawn background poller that invalidates -> reload -> revision bump -> watcher_invalidated
 		// This keeps watcher as signal, not source of truth: reload canonical via Transaction
@@ -446,7 +447,9 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		category: 'root'
 		name: 'root'
 		status: if ok_root { 'pass' } else { 'fail' }
-		message: if ok_root { 'toolkit root tier=${env.tier} path=${env.toolkit_root}' } else { 'toolkit root missing — set AGENT_TOOLKIT_ROOT' }
+		message: if ok_root {
+			'toolkit root tier=${env.tier} path=${env.toolkit_root}'} else {
+			'toolkit root missing — set AGENT_TOOLKIT_ROOT'}
 		fixable: !ok_root
 	}
 	checks << DoctorCheck{
@@ -508,7 +511,9 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 			category: 'swarm'
 			name: name
 			status: if is_ok { 'pass' } else { 'warn' }
-			message: if is_ok { '${name} at ${available}' } else { '${name} not found — install for swarm backend' }
+			message: if is_ok {
+				'${name} at ${available}'} else {
+				'${name} not found — install for swarm backend'}
 			fixable: false
 		}
 	}
@@ -526,7 +531,9 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 			id: 'mcp:${m.id}'
 			category: 'mcp'
 			name: m.id
-			status: if m.health == 'healthy' { 'pass' } else if m.health == 'warn' { 'warn' } else if m.health == 'error' { 'fail' } else { 'warn' }
+			status: if m.health == 'healthy' {
+				'pass'} else if m.health == 'warn' {
+				'warn'} else if m.health == 'error' { 'fail' } else { 'warn' }
 			message: '${m.id} health=${m.health} enabled=${m.enabled} template=${m.template_path}'
 			fixable: m.health == 'error' || m.health == 'unconfigured'
 		}
@@ -538,7 +545,9 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		category: 'mcp'
 		name: 'docker'
 		status: if docker_path != '' { 'pass' } else { 'warn' }
-		message: if docker_path != '' { 'docker at ${docker_path} (for mcp:github)' } else { 'docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/' }
+		message: if docker_path != '' {
+			'docker at ${docker_path} (for mcp:github)'} else {
+			'docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/'}
 		fixable: false
 	}
 	// ── packs / products ──
@@ -631,7 +640,9 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 				category: 'provenance'
 				name: 'expiry'
 				status: if age_days > 90 { 'warn' } else { 'pass' }
-				message: if age_days > 90 { 'stale: ${age_days}d since last update (>90d)' } else { '${age_days}d since update' }
+				message: if age_days > 90 {
+					'stale: ${age_days}d since last update (>90d)'} else {
+					'${age_days}d since update'}
 				fixable: false
 			}
 		}
@@ -652,7 +663,9 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		category: 'provenance'
 		name: 'cli-contract'
 		status: if os.is_file(contract_path) { 'pass' } else { 'warn' }
-		message: if os.is_file(contract_path) { contract_path } else { 'not found: ${contract_path}' }
+		message: if os.is_file(contract_path) {
+			contract_path} else {
+			'not found: ${contract_path}'}
 		fixable: false
 	}
 	// ── receipts verification ──
@@ -682,12 +695,12 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 // DoctorCheck is the typed diagnostic row (mirrors doctor.v shape) — super-potent with category/name.
 pub struct DoctorCheck {
 pub:
-	id      string
+	id       string
 	category string
-	name    string
-	status  string // pass|fail|warn|ok
-	message string
-	fixable bool
+	name     string
+	status   string // pass|fail|warn|ok
+	message  string
+	fixable  bool
 }
 
 // run_group_demo demonstrates x.async Group valuable usage: fan-out 5 jobs with cancellation.

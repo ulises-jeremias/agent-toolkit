@@ -13,7 +13,7 @@ fn test_debounce_coalesces_rapid_saves() {
 		poll_interval_ms: 100
 		debounce_ms: 50
 	})
-	ch := chan eventbus.ToolkitEvent{cap: 64}
+	ch := chan eventbus.ToolkitEvent{ cap: 64 }
 	bus.subscribe(.watcher_invalidated, ch)
 	mut handle := watcher.watch([tmp], fn [ch, mut bus] (ev eventbus.ToolkitEvent) {
 		bus.publish(ev)
@@ -39,7 +39,8 @@ fn test_debounce_coalesces_rapid_saves() {
 			_ := <-ch {
 				count++
 			}
-			50 * time.millisecond {}
+			50 * time.millisecond {
+			}
 		}
 		if count > 0 {
 			// wait a bit more to ensure no second event due to debounce
@@ -79,7 +80,7 @@ fn test_dependency_graph_reloads_only_dependents() {
 	assert w.dependency_for('/some/skills/foo/SKILL.md') == 'skill-catalog'
 	// Watching both roots, change in skills should emit skill-catalog only
 	mut bus := eventbus.new_event_bus()
-	ch := chan eventbus.ToolkitEvent{cap: 64}
+	ch := chan eventbus.ToolkitEvent{ cap: 64 }
 	bus.subscribe(.watcher_invalidated, ch)
 	mut handle := w.watch([tmp], fn [ch, mut bus] (ev eventbus.ToolkitEvent) {
 		bus.publish(ev)
@@ -98,7 +99,8 @@ fn test_dependency_graph_reloads_only_dependents() {
 				received = true
 				break
 			}
-			150 * time.millisecond {}
+			150 * time.millisecond {
+			}
 		}
 		if received {
 			break
@@ -118,7 +120,7 @@ fn test_thread_safe_concurrent_watch_close() {
 		poll_interval_ms: 200
 		debounce_ms: 50
 	})
-	ch := chan eventbus.ToolkitEvent{cap: 64}
+	ch := chan eventbus.ToolkitEvent{ cap: 64 }
 	// concurrent watch + close + on_change should not race
 	mut handles := []WatcherHandle{}
 	for i in 0 .. 3 {

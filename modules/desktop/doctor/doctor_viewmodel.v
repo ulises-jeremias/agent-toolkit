@@ -6,8 +6,8 @@ import desktop.state as app_state
 
 pub struct DoctorViewModel {
 mut:
-	engine &desktop_engine.Engine
-	checks []desktop_engine.DoctorCheck
+	engine   &desktop_engine.Engine
+	checks   []desktop_engine.DoctorCheck
 	revision u64
 }
 
@@ -48,7 +48,6 @@ pub fn (mut vm DoctorViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-
 // ── super-potent: categories, fix_all, verify, receipts, provenance ──
 pub fn (vm DoctorViewModel) by_category(cat string) []desktop_engine.DoctorCheck {
 	mut out := []desktop_engine.DoctorCheck{}
@@ -64,7 +63,9 @@ pub fn (vm DoctorViewModel) categories() []string {
 		set[c.category] = true
 	}
 	mut out := []string{}
-	for k,_ in set { out << k }
+	for k, _ in set {
+		out << k
+	}
 	out.sort()
 	return out
 }
@@ -99,7 +100,6 @@ pub fn (vm DoctorViewModel) stats() map[string]int {
 	}
 	return m
 }
-
 
 pub fn (vm DoctorViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t

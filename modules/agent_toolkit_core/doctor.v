@@ -184,9 +184,9 @@ pub fn run_doctor(opts DoctorOptions) DoctorSnapshot {
 			lines << '── Auto-fix: refreshing profiles (allowlisted) ──'
 			tools := tools_needing_profile_fix(home, profile_checks)
 			upd := run_update(UpdateOptions{
-				tools:             tools
-				home_dir:          home
-				data_root:         opts.data_root
+				tools: tools
+				home_dir: home
+				data_root: opts.data_root
 				skip_data_refresh: opts.skip_data_refresh || offline
 			})
 			fix_applied = true
@@ -219,18 +219,18 @@ pub fn run_doctor(opts DoctorOptions) DoctorSnapshot {
 	lines << ''
 
 	return DoctorSnapshot{
-		engine:      'v'
-		version:     ver
-		commit:      resolve_commit()
-		platform:    platform
-		root:        root
-		root_ok:     root_ok
-		offline:     offline
-		ok:          ok
-		message:     lines.join('\n')
+		engine: 'v'
+		version: ver
+		commit: resolve_commit()
+		platform: platform
+		root: root
+		root_ok: root_ok
+		offline: offline
+		ok: ok
+		message: lines.join('\n')
 		fix_applied: fix_applied
-		fix_action:  fix_action
-		checks:      checks
+		fix_action: fix_action
+		checks: checks
 	}
 }
 
@@ -248,9 +248,9 @@ pub fn doctor_result(snap DoctorSnapshot) CommandResult {
 	}
 	return CommandResult{
 		command: 'doctor'
-		ok:      snap.ok
+		ok: snap.ok
 		message: snap.message
-		data:    {
+		data: {
 			'engine':      snap.engine
 			'version':     snap.version
 			'commit':      snap.commit
@@ -263,7 +263,7 @@ pub fn doctor_result(snap DoctorSnapshot) CommandResult {
 			'warnings':    '${warn_n}'
 			'errors':      '${err_n}'
 		}
-		checks:  snap.checks
+		checks: snap.checks
 	}
 }
 
@@ -523,10 +523,8 @@ fn collect_profile_checks(home string) []DoctorCheck {
 		}
 	}
 	if os.is_dir(os.join_path(home, '.config', 'opencode')) {
-		out << profile_check('opencode agents/',
-			os.join_path(home, '.config', 'opencode', 'agents'))
-		out << profile_check('opencode opencode.json', os.join_path(home, '.config', 'opencode',
-			'opencode.json'))
+		out << profile_check('opencode agents/', os.join_path(home, '.config', 'opencode', 'agents'))
+		out << profile_check('opencode opencode.json', os.join_path(home, '.config', 'opencode', 'opencode.json'))
 		for msg in detect_stale_install_check('opencode', home) {
 			out << DoctorCheck{'profiles', 'opencode stale agents', 'warn', msg}
 		}
@@ -594,10 +592,7 @@ fn detect_stale_install_check(tool string, home string) []string {
 			continue
 		}
 		// Heuristic: agent-like stale names (archived #865)
-		if a.path.contains('database-reviewer') || a.path.contains('typescript-reviewer')
-			|| a.path.contains('performance-optimizer') || a.path.contains('refactor-cleaner')
-			|| a.path.contains('docs-lookup') || a.path.contains('reference-lookup')
-			|| a.path.contains('tech-assistant') {
+		if a.path.contains('database-reviewer') || a.path.contains('typescript-reviewer') || a.path.contains('performance-optimizer') || a.path.contains('refactor-cleaner') || a.path.contains('docs-lookup') || a.path.contains('reference-lookup') || a.path.contains('tech-assistant') {
 			stale << os.file_name(a.path)
 		}
 	}

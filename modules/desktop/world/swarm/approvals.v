@@ -1,5 +1,10 @@
 module swarm
 
+// Approvals Board — Dunder Mifflin HR handoff wall, Scranton Branch.
+// Spend ($ brass), scope (◧ slate), and destructive (⚠ oxide) gates glow with
+// paper-clip brass rivets. Each card is an envelope awaiting Michael's sign-off;
+// the command deck streams jobs/loops live beneath, 60 FPS corkboard with
+// perforated dots. Super potent via Engine approvals queue + EventBus handoff UI.
 import sync
 import time
 import json2
@@ -23,18 +28,18 @@ pub enum ApprovalDecision {
 // ApprovalGate is a human gate for spend/scope/destructive.
 pub struct ApprovalGate {
 pub mut:
-	id        string
-	run_id    string
-	kind      ApprovalGateKind
-	title     string
-	message   string
-	cost_usd  f64
-	tokens    int
-	scope_path string // for scope/destructive: affected file/branch
-	decision  ApprovalDecision
-	created_at i64
+	id          string
+	run_id      string
+	kind        ApprovalGateKind
+	title       string
+	message     string
+	cost_usd    f64
+	tokens      int
+	scope_path  string // for scope/destructive: affected file/branch
+	decision    ApprovalDecision
+	created_at  i64
 	resolved_at i64
-	actor     string // who approved
+	actor       string // who approved
 }
 
 // ApprovalsBoard manages gates per swarm run, wire to EventBus + StateRepository.
@@ -58,19 +63,19 @@ pub fn new_approvals_board(repo &engine_state.StateRepository, bus &eventbus.Too
 	}
 }
 
-// gate_color returns color per kind via tokens (#dc2626 spend, #eab308 scope, #991b1b destructive).
+// gate_color returns color per kind via tokens (#C45A3C spend, #C9A86B scope, #9B3A2B destructive).
 pub fn gate_color(kind ApprovalGateKind) string {
 	return match kind {
-		.spend { '#eab308' }
+		.spend { '#C9A86B' }
 		.scope { '#4F9FAF' }
-		.destructive { '#dc2626' }
+		.destructive { '#C45A3C' }
 	}
 }
 
 // gate_icon returns icon per kind.
 pub fn gate_icon(kind ApprovalGateKind) string {
 	return match kind {
-		.spend { '$' }
+		.spend { '\$' }
 		.scope { '◧' }
 		.destructive { '⚠' }
 	}
@@ -131,7 +136,17 @@ pub fn (mut b ApprovalsBoard) request(run_id string, kind ApprovalGateKind, titl
 		kind: .approval_requested
 		revision: rev.revision
 		path: 'swarm:${run_id}:approval:${id}'
-		payload: json2.encode({'run_id': run_id, 'gate_id': id, 'kind': kind.str(), 'title': title, 'message': message, 'cost': cost_usd.str(), 'tokens': tokens.str(), 'scope': scope_path, 'status': 'pending'})
+		payload: json2.encode({
+			'run_id':  run_id
+			'gate_id': id
+			'kind':    kind.str()
+			'title':   title
+			'message': message
+			'cost':    cost_usd.str()
+			'tokens':  tokens.str()
+			'scope':   scope_path
+			'status':  'pending'
+		})
 	})
 	b.bus.publish(eventbus.ToolkitEvent{
 		kind: .swarm_approval
@@ -184,7 +199,12 @@ pub fn (mut b ApprovalsBoard) approve(gate_id string, actor string) bool {
 		kind: .swarm_approval
 		revision: rev.revision
 		path: 'swarm:${gate.run_id}:approval:${gate_id}:approved'
-		payload: json2.encode({'gate_id': gate_id, 'actor': actor, 'decision': 'approved', 'kind': gate.kind.str()})
+		payload: json2.encode({
+			'gate_id':  gate_id
+			'actor':    actor
+			'decision': 'approved'
+			'kind':     gate.kind.str()
+		})
 	})
 	b.bus.publish(eventbus.ToolkitEvent{
 		kind: .state_changed
@@ -222,7 +242,12 @@ pub fn (mut b ApprovalsBoard) reject(gate_id string, actor string, reason string
 		kind: .swarm_approval
 		revision: rev.revision
 		path: 'swarm:${gate.run_id}:approval:${gate_id}:rejected'
-		payload: json2.encode({'gate_id': gate_id, 'actor': actor, 'decision': 'rejected', 'reason': reason})
+		payload: json2.encode({
+			'gate_id':  gate_id
+			'actor':    actor
+			'decision': 'rejected'
+			'reason':   reason
+		})
 	})
 	return true
 }
@@ -255,8 +280,12 @@ pub fn (b ApprovalsBoard) all_for(run_id string) []ApprovalGate {
 		}
 	}
 	out.sort_with_compare(fn (a &ApprovalGate, b &ApprovalGate) int {
-		if a.created_at < b.created_at { return -1 }
-		if a.created_at > b.created_at { return 1 }
+		if a.created_at < b.created_at {
+			return -1
+		}
+		if a.created_at > b.created_at {
+			return 1
+		}
 		return 0
 	})
 	return out
@@ -277,4 +306,47 @@ pub fn (mut b ApprovalsBoard) on_bus_event(ev eventbus.ToolkitEvent, snap engine
 	b.emitted++
 	b.mu.unlock()
 	return true
+}
+
+// ── Dunder office charm — approvals handoff UI helpers ──────────────────
+
+// approval_card_title returns the HR-wall card title with office prefix.
+// Office charm: "HR Approval — Budget \(brass paper-clips\) — $0.42 Jim → Pam"
+pub fn approval_card_title(g ApprovalGate) string {
+	icon := gate_icon(g.kind)
+	kind_label := match g.kind {
+		.spend { 'Budget' }
+		.scope { 'Scope' }
+		.destructive { 'Destructive' }
+	}
+	return '${icon} ${kind_label} — ${g.title} — Scranton HR'
+}
+
+// approval_card_glow returns brass/oxide glow alpha for pending approvals.
+// Pending → pulsing 28→18 brass, approved→mint 14, rejected→oxide 20.
+pub fn approval_card_glow(g ApprovalGate) int {
+	return match g.decision {
+		.pending { 24 }
+		.approved { 12 }
+		.rejected { 20 }
+	}
+}
+
+// approval_handoff_line renders the envelope line that created this gate.
+// Used in command deck streaming: "₮ spend \$0.42 @architect — swarm-1 — HR holds envelope #8"
+pub fn approval_handoff_line(g ApprovalGate) string {
+	return '${gate_icon(g.kind)} ${g.kind} ${g.title} — ${g.run_id} — ${g.message}'
+}
+
+// is_spend_scope_destructive helpers for UI chips — office corkboard filters.
+pub fn is_spend_gate(g ApprovalGate) bool {
+	return g.kind == .spend
+}
+
+pub fn is_scope_gate(g ApprovalGate) bool {
+	return g.kind == .scope
+}
+
+pub fn is_destructive_gate(g ApprovalGate) bool {
+	return g.kind == .destructive
 }

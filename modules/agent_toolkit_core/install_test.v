@@ -18,10 +18,10 @@ fn test_install_cursor_dry_run_writes_nothing() {
 		return
 	}
 	report := run_install(InstallOptions{
-		tools:       ['cursor']
-		dry_run:     true
-		home_dir:    home
-		data_root:   data
+		tools: ['cursor']
+		dry_run: true
+		home_dir: home
+		data_root: data
 		receipt_dir: receipt_dir
 	})
 	assert report.ok
@@ -48,9 +48,9 @@ fn test_install_cursor_writes_file_and_receipt() {
 		return
 	}
 	report := run_install(InstallOptions{
-		tools:       ['cursor']
-		home_dir:    home
-		data_root:   data
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
 		receipt_dir: receipt_dir
 	})
 	assert report.ok, report.message
@@ -84,9 +84,9 @@ fn test_install_preserves_without_force() {
 		return
 	}
 	report := run_install(InstallOptions{
-		tools:       ['cursor']
-		home_dir:    home
-		data_root:   data
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
 		receipt_dir: receipt_dir
 	})
 	assert report.ok, report.message
@@ -114,10 +114,10 @@ fn test_install_force_overwrites() {
 		return
 	}
 	report := run_install(InstallOptions{
-		tools:       ['cursor']
-		force:       true
-		home_dir:    home
-		data_root:   data
+		tools: ['cursor']
+		force: true
+		home_dir: home
+		data_root: data
 		receipt_dir: receipt_dir
 	})
 	assert report.ok, report.message
@@ -131,9 +131,9 @@ fn test_install_unknown_tool_skipped() {
 		os.rmdir_all(base) or {}
 	}
 	report := run_install(InstallOptions{
-		tools:       ['not-a-tool']
-		home_dir:    base
-		data_root:   base
+		tools: ['not-a-tool']
+		home_dir: base
+		data_root: base
 		receipt_dir: os.join_path(base, 'receipts')
 	})
 	assert report.ok
@@ -151,8 +151,8 @@ fn test_install_no_tools_detected() {
 		os.rmdir_all(base) or {}
 	}
 	report := run_install(InstallOptions{
-		home_dir:    home
-		data_root:   data
+		home_dir: home
+		data_root: data
 		receipt_dir: os.join_path(base, 'receipts')
 	})
 	assert !report.ok
@@ -170,8 +170,7 @@ fn test_install_opencode_json_merge() {
 	defer {
 		os.rmdir_all(base) or {}
 	}
-	os.write_file(os.join_path(data, 'profiles', 'opencode', 'opencode.json'),
-		'{"schema":"https://opencode.ai/config.json"}\n') or {
+	os.write_file(os.join_path(data, 'profiles', 'opencode', 'opencode.json'), '{"schema":"https://opencode.ai/config.json"}\n') or {
 		assert false, err.msg()
 		return
 	}
@@ -180,9 +179,9 @@ fn test_install_opencode_json_merge() {
 		return
 	}
 	report := run_install(InstallOptions{
-		tools:       ['opencode']
-		home_dir:    home
-		data_root:   data
+		tools: ['opencode']
+		home_dir: home
+		data_root: data
 		receipt_dir: receipt_dir
 	})
 	assert report.ok, report.message
@@ -204,9 +203,9 @@ fn test_install_copilot_skipped_noninteractive() {
 		os.rmdir_all(base) or {}
 	}
 	report := run_install(InstallOptions{
-		tools:       ['copilot']
-		home_dir:    base
-		data_root:   base
+		tools: ['copilot']
+		home_dir: base
+		data_root: base
 		receipt_dir: os.join_path(base, 'receipts')
 	})
 	assert report.ok
@@ -229,8 +228,8 @@ fn test_install_autodetect_cursor_home() {
 		return
 	}
 	report := run_install(InstallOptions{
-		home_dir:    home
-		data_root:   data
+		home_dir: home
+		data_root: data
 		receipt_dir: receipt_dir
 	})
 	assert report.ok, report.message
@@ -257,9 +256,9 @@ fn test_install_skips_claude_settings_json() {
 		return
 	}
 	report := run_install(InstallOptions{
-		tools:       ['claude-code']
-		home_dir:    home
-		data_root:   data
+		tools: ['claude-code']
+		home_dir: home
+		data_root: data
 		receipt_dir: receipt_dir
 	})
 	assert report.ok, report.message

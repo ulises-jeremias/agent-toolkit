@@ -61,8 +61,7 @@ fn completion_loop_names() string {
 	mut names := []string{}
 	for e in entries {
 		dir := os.join_path(loops_dir, e)
-		if os.is_dir(dir) && (os.is_file(os.join_path(dir, 'loop.yaml'))
-			|| os.is_file(os.join_path(dir, 'LOOP.md'))) {
+		if os.is_dir(dir) && (os.is_file(os.join_path(dir, 'loop.yaml')) || os.is_file(os.join_path(dir, 'LOOP.md'))) {
 			names << e
 		}
 	}
@@ -72,19 +71,14 @@ fn completion_loop_names() string {
 
 fn completion_bash() string {
 	loops := completion_loop_names()
-	return
-		'# agent-toolkit bash completion
+	return '# agent-toolkit bash completion
 _agent_toolkit_completions() {
     local cur prev words cword
     _init_completion || return
-    local commands="' +
-		completion_commands + '"
-    local loop_cmds="' + completion_loop_cmds +
-		'"
+    local commands="' + completion_commands + '"
+    local loop_cmds="' + completion_loop_cmds + '"
     local loop_names="' + loops + '"
-    local install_tools="' +
-		completion_install_tools +
-		'"
+    local install_tools="' + completion_install_tools + '"
     if [[ \$cword -eq 1 ]]; then
         COMPREPLY=( \$(compgen -W "\$commands" -- "\$cur") )
         return
@@ -115,17 +109,13 @@ complete -F _agent_toolkit_completions agent-toolkit-cli
 
 fn completion_zsh() string {
 	loops := completion_loop_names()
-	return
-		'#compdef agent-toolkit agent-toolkit-cli
+	return '#compdef agent-toolkit agent-toolkit-cli
 _agent_toolkit() {
     local -a commands loop_cmds loop_names install_tools
-    commands=(' +
-		completion_commands + ')
+    commands=(' + completion_commands + ')
     loop_cmds=(' + completion_loop_cmds + ')
-    loop_names=(' +
-		loops + ')
-    install_tools=(' + completion_install_tools +
-		')
+    loop_names=(' + loops + ')
+    install_tools=(' + completion_install_tools + ')
     _arguments -C "1:command:->command" "*::arg:->args"
     case \$state in
         command)

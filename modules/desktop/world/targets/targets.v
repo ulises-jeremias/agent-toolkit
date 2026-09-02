@@ -40,10 +40,10 @@ pub enum LayerKind {
 pub fn layer_color(l LayerKind) string {
 	return match l {
 		.project { '#f59e0b' } // amber
-		.workspace { '#0891b2' } // teal
+		.workspace { '#8A9BA8' } // teal
 		.toolkit { '#64748b' } // muted
-		.embedded { '#7c3aed' }
-		.fhs { '#6b7280' }
+		.embedded { '#C45A3C' }
+		.fhs { '#8A9BA8' }
 	}
 }
 

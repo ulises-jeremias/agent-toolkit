@@ -23,7 +23,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 			lines << '  install: download agent-toolkit-desktop ${ver} from GitHub Release to ${prefix}/bin/agent-toolkit-desktop (force=${opts.force})'
 		}
 		if opts.run || !opts.install {
-			lines << '  run: ${if headless { "ATK_GUI_HEADLESS=1 " } else { "" }}${os.join_path(os.home_dir(), ".local", "bin", "agent-toolkit-desktop")} (or \$AGENT_TOOLKIT_DESKTOP_BIN)'
+			lines << '  run: ${if headless { 'ATK_GUI_HEADLESS=1 ' } else { '' }}${os.join_path(os.home_dir(), '.local', 'bin', 'agent-toolkit-desktop')} (or \$AGENT_TOOLKIT_DESKTOP_BIN)'
 		}
 		if headless {
 			lines << '  headless: no window, Sokol not opened (CI friendly)'
@@ -33,10 +33,10 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 		res := agent_toolkit_core.CommandResult{
 			command: 'gui'
 			ok: true
-			message: lines.join("\n")
+			message: lines.join('\n')
 			data: {
 				'dry_run': 'true'
-				'mode': if headless { 'headless' } else { 'window' }
+				'mode':    if headless { 'headless' } else { 'window' }
 			}
 		}
 		return render(res, mode)
@@ -76,7 +76,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 		}
 		exists := os.is_file(bin)
 		if exists {
-			msg << 'gui run: would exec ${bin} ${if headless { "(headless)" } else { "" }}'
+			msg << 'gui run: would exec ${bin} ${if headless { '(headless)' } else { '' }}'
 		} else {
 			msg << 'gui run: binary not found at ${bin} — run `agent-toolkit gui --install` first'
 			msg << '  download: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v${ver}'
@@ -88,7 +88,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 	res := agent_toolkit_core.CommandResult{
 		command: 'gui'
 		ok: true
-		message: msg.join("\n")
+		message: msg.join('\n')
 		data: {
 			'mode': if headless { 'headless' } else { 'window' }
 		}
@@ -400,9 +400,9 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		report := agent_toolkit_server.run_serve(opts)
 		res := agent_toolkit_core.CommandResult{
 			command: 'serve'
-			ok:      report.ok
+			ok: report.ok
 			message: report.message
-			data:    report.data
+			data: report.data
 		}
 		return render(res, mode)
 	}
@@ -675,7 +675,7 @@ See: docs/v/advanced-command-disposition.md
 		return completion_help_text()
 	}
 	mut c := cli.Command{
-		name:        name
+		name: name
 		description: '${name} — not implemented in the product V CLI (see docs/v/advanced-command-disposition.md)'
 	}
 	c.setup()

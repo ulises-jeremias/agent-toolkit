@@ -95,9 +95,14 @@ pub fn (s InspectorSection) label() string {
 // sections_for_kind returns relevant sections per kind (no speculative bloat).
 pub fn sections_for_kind(k InspectorEntityKind) []InspectorSection {
 	return match k {
-		.skill { [.summary, .status, .configuration, .dependencies, .compatibility, .provenance, .activity, .actions, .raw] }
+		.skill {
+			[.summary, .status, .configuration, .dependencies, .compatibility, .provenance, .activity,
+				.actions, .raw]
+		}
 		.agent { [.summary, .status, .configuration, .provenance, .activity, .raw] }
-		.product { [.summary, .status, .configuration, .compatibility, .provenance, .activity, .raw] }
+		.product {
+			[.summary, .status, .configuration, .compatibility, .provenance, .activity, .raw]
+		}
 		.pack { [.summary, .configuration, .provenance, .raw] }
 		.target { [.summary, .status, .configuration, .compatibility, .activity, .raw] }
 		.mcp_provider { [.summary, .status, .configuration, .activity, .raw] }
@@ -123,17 +128,17 @@ pub enum InspectorState {
 // Never mutates canonical state; dispatch via palette/router.
 pub struct InspectorContent {
 pub:
-	kind     InspectorEntityKind
+	kind      InspectorEntityKind
 	entity_id string
-	title    string
-	subtitle string
-	body     string // markdown + code blocks (rendered via vlang/gui gap per ADR)
-	meta     map[string]string
-	sections []InspectorSection
-	state    InspectorState
-	fixable  bool
+	title     string
+	subtitle  string
+	body      string // markdown + code blocks (rendered via vlang/gui gap per ADR)
+	meta      map[string]string
+	sections  []InspectorSection
+	state     InspectorState
+	fixable   bool
 	error_msg string
-	revision u64
+	revision  u64
 }
 
 // is_valid checks required fields.
@@ -207,20 +212,20 @@ pub fn (mut v InspectorVirtualList) draw_calls() int {
 // - Forms read-only (no canonical mutation; actions dispatch via palette/router)
 pub struct InspectorViewModel {
 mut:
-	engine      &desktop_engine.Engine
-	router      &nav.Router
-	theme       theme.Theme
-	app_state   app_state.AppState
+	engine        &desktop_engine.Engine
+	router        &nav.Router
+	theme         theme.Theme
+	app_state     app_state.AppState
 	selected_kind InspectorEntityKind
 	selected_id   string
-	content     ?InspectorContent
-	virtualized InspectorVirtualList
-	revision    u64
+	content       ?InspectorContent
+	virtualized   InspectorVirtualList
+	revision      u64
 	// metrics
 	emitted u64
 	dropped u64
 	// empty/error/loading via widget kit
-	state InspectorState
+	state     InspectorState
 	error_msg string
 }
 

@@ -24,20 +24,21 @@ fn test_plan_and_apply_cursor_update_check_and_write() {
 	}
 
 	check_report := run_update(UpdateOptions{
-		tools:             ['cursor']
-		check_only:        true
-		home_dir:          home
-		data_root:         data
+		tools: ['cursor']
+		check_only: true
+		home_dir: home
+		data_root: data
 		skip_data_refresh: true
 	})
 	assert check_report.files_updated == 1
 	assert os.read_file(dst) or { '' } == 'v1\n'
 	assert !check_report.ok // pending changes → non-zero like Python --check
+	
 
 	write_report := run_update(UpdateOptions{
-		tools:             ['cursor']
-		home_dir:          home
-		data_root:         data
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
 		skip_data_refresh: true
 	})
 	assert write_report.files_updated == 1
@@ -45,9 +46,9 @@ fn test_plan_and_apply_cursor_update_check_and_write() {
 	assert write_report.ok
 
 	again := run_update(UpdateOptions{
-		tools:             ['cursor']
-		home_dir:          home
-		data_root:         data
+		tools: ['cursor']
+		home_dir: home
+		data_root: data
 		skip_data_refresh: true
 	})
 	assert again.files_updated == 0
@@ -61,9 +62,9 @@ fn test_update_unknown_tool() {
 		os.rmdir_all(base) or {}
 	}
 	report := run_update(UpdateOptions{
-		tools:             ['not-a-tool']
-		home_dir:          base
-		data_root:         base
+		tools: ['not-a-tool']
+		home_dir: base
+		data_root: base
 		skip_data_refresh: true
 	})
 	assert !report.ok

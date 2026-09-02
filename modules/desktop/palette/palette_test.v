@@ -31,6 +31,8 @@ fn test_palette_opens_via_hotkey_and_closes() {
 	pal.toggle()
 	assert pal.is_open()
 	assert pal.count() >= 100 // 116 skills + agents + nav etc
+	
+
 	pal.toggle()
 	assert !pal.is_open()
 }
@@ -54,9 +56,15 @@ fn test_palette_fuzzy_search_ranking_and_substring() {
 	// fuzzy score basics
 	assert fuzzy_score('core', 'core/assistant') >= 0
 	assert fuzzy_score('cora', 'core/assistant') >= 0 // subsequence c-o-r-a matches core/assistant
+	
+
 	assert fuzzy_score('zzzz', 'core/assistant') == -1 // truly missing chars
+	
+
 	assert fuzzy_score('', 'anything') == 1000
 	assert fuzzy_score('SKILL', 'skill:core/assistant') >= 0 // case-insensitive
+	
+
 	all := pal.total_count()
 	assert all >= 150
 	// empty query returns all
@@ -119,6 +127,7 @@ fn test_palette_filtered_reflects_live_appstate_within_one_tick() {
 	snap := eng.snapshot()
 	app_s := app_state.derive_app_state(snap)
 	assert !pal.on_app_state_event(app_s) // same revision
+	
 }
 
 fn test_palette_virtualized_5k_perf_and_resize() {
@@ -144,6 +153,8 @@ fn test_palette_virtualized_5k_perf_and_resize() {
 	assert end > start
 	assert pal.draw_calls() == (end - start) * 2
 	assert pal.draw_calls() < 100 // not total
+	
+
 	// 5k perf harness
 	harness := pal.perf_harness_5k()
 	assert harness.contains('5000')
@@ -158,6 +169,7 @@ fn test_palette_virtualized_5k_perf_and_resize() {
 	start3, end3 := pal.virtualized_visible()
 	assert end3 >= start3
 	assert !pal.handle_resize(0) // invalid
+	
 }
 
 fn test_palette_reduced_motion_and_theme() {
@@ -271,6 +283,7 @@ fn test_palette_keyboard_navigation_and_execute_within_one_tick() {
 	pal.close()
 	assert !pal.is_open()
 	assert pal.count() == pal.total_count() // cleared query
+	
 }
 
 fn test_palette_import_guard_and_no_shell() {
@@ -309,7 +322,7 @@ fn test_palette_appstate_projector_integration() {
 	mut bus := eventbus.new_event_bus()
 	mut repo := engine_state.new_state_repository(os.join_path(tmp, 'state2.json'))
 	mut proj := app_state.new_app_state_projector(bus, repo.snapshot())
-	ch := chan app_state.AppState{cap: 64}
+	ch := chan app_state.AppState{ cap: 64 }
 	proj.subscribe(ch)
 	mut tx := repo.begin('palette-proj')
 	tx.set('recent_workspace', '/tmp/ws-palette')

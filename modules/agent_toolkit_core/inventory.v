@@ -88,12 +88,12 @@ pub fn load_inventory_at(root string) !InventorySnapshot {
 	lines << ''
 
 	return InventorySnapshot{
-		root:          root
-		skill_count:   skill_files.len
-		agent_count:   agent_dirs.len
+		root: root
+		skill_count: skill_files.len
+		agent_count: agent_dirs.len
 		product_count: products.len
-		domain_count:  domains.len
-		message:       lines.join('\n')
+		domain_count: domains.len
+		message: lines.join('\n')
 	}
 }
 
@@ -156,12 +156,12 @@ fn load_inventory_embedded() InventorySnapshot {
 	}
 	lines << ''
 	return InventorySnapshot{
-		root:          'embedded'
-		skill_count:   skill_files.len
-		agent_count:   agent_dirs.len
+		root: 'embedded'
+		skill_count: skill_files.len
+		agent_count: agent_dirs.len
 		product_count: products.len
-		domain_count:  domains.len
-		message:       lines.join('\n')
+		domain_count: domains.len
+		message: lines.join('\n')
 	}
 }
 
@@ -175,9 +175,9 @@ fn load_products_embedded() []ProductEntry {
 pub fn inventory_result(snap InventorySnapshot) CommandResult {
 	return CommandResult{
 		command: 'inventory'
-		ok:      true
+		ok: true
 		message: snap.message
-		data:    {
+		data: {
 			'root':           snap.root
 			'skills_count':   '${snap.skill_count}'
 			'agents_count':   '${snap.agent_count}'

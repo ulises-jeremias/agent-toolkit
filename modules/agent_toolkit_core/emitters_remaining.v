@@ -14,8 +14,7 @@ pub fn normalize_emit_target(target_id string) string {
 
 fn emit_windsurf(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
 	emit_windsurf_agents_md(mut result, mut records, graph, product, out_dir, output_root)
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
 	for agent_id in product.included_agents {
 		agent := graph.agents[agent_id] or {
 			result.warnings << "Agent '${agent_id}' not found — skipping"
@@ -71,17 +70,14 @@ fn emit_windsurf_agents_md(mut result CompilationResult, mut records []ArtifactR
 	lines << ''
 	lines << 'These instructions are project-scoped. Rules in `rules/` provide always-on behavioral constraints. Skills in `skills/` are on-demand procedures invoked explicitly.'
 	lines << ''
-	write_text_artifact(os.join_path(out_dir, 'AGENTS.md'), lines.join('\n'), 'generated',
-		output_root, mut result, mut records)
+	write_text_artifact(os.join_path(out_dir, 'AGENTS.md'), lines.join('\n'), 'generated', output_root, mut result, mut records)
 	result.emitted << 'AGENTS.md'
 }
 
 fn emit_pi(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
 	emit_pi_package_json(mut result, mut records, graph, product, out_dir, output_root)
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
-	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
+	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'), output_root)
 	result.unsupported << 'lifecycle hooks — requires TypeScript ExtensionAPI (packages/pi-package/)'
 	result.unsupported << 'custom tools — requires TypeScript ExtensionAPI with tool registration'
 	result.unsupported << 'MCP server config — no static format; requires TypeScript runtime'
@@ -102,31 +98,15 @@ fn emit_pi_package_json(mut result CompilationResult, mut records []ArtifactReco
 		agent_paths << '"agents/${agent.name}/AGENT.md"'
 	}
 	kw := product.id.replace('agent-toolkit-', '')
-	body := '{\n' + '  "name": "@agent-toolkit/${json_escape(product.id)}",\n' +
-		'  "version": "${json_escape(ver)}",\n' +
-		'  "description": "${json_escape(product.description)}",\n' +
-		'  "license": "MIT",\n' + '  "repository": {\n' + '    "type": "git",\n' +
-		'    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' +
-		'  "keywords": [\n' + '    "agent-toolkit",\n' + '    "pi",\n' + '    "skills",\n' +
-		'    "agents",\n' + '    "${json_escape(kw)}"\n' + '  ],\n' + '  "pi": {\n' +
-		'    "skills": [\n      ${skill_paths.join(',\n      ')}\n    ],\n' +
-		'    "agents": [\n      ${agent_paths.join(',\n      ')}\n    ]\n' + '  }\n}\n'
-	write_text_artifact(os.join_path(out_dir, 'pi-package.json'), body, 'generated', output_root, mut
-		result, mut records)
+	body := '{\n' + '  "name": "@agent-toolkit/${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' + '  "description": "${json_escape(product.description)}",\n' + '  "license": "MIT",\n' + '  "repository": {\n' + '    "type": "git",\n' + '    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' + '  "keywords": [\n' + '    "agent-toolkit",\n' + '    "pi",\n' + '    "skills",\n' + '    "agents",\n' + '    "${json_escape(kw)}"\n' + '  ],\n' + '  "pi": {\n' + '    "skills": [\n      ${skill_paths.join(',\n      ')}\n    ],\n' + '    "agents": [\n      ${agent_paths.join(',\n      ')}\n    ]\n' + '  }\n}\n'
+	write_text_artifact(os.join_path(out_dir, 'pi-package.json'), body, 'generated', output_root, mut result, mut records)
 	result.emitted << 'pi-package-json'
 }
 
 fn emit_gemini_cli(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
 	ver := resolve_toolkit_version()
-	manifest := '{\n' + '  "name": "${json_escape(product.id)}",\n' +
-		'  "version": "${json_escape(ver)}",\n' +
-		'  "description": "${json_escape(product.description)}",\n' +
-		'  "author": "ulises-jeremias",\n' +
-		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "license": "MIT",\n' + '  "geminiCliVersion": ">=0.1.0",\n' +
-		'  "contextFiles": [],\n' + '  "commands": "\${extensionPath}/commands.toml"\n}\n'
-	write_text_artifact(os.join_path(out_dir, 'gemini-extension.json'), manifest, 'generated',
-		output_root, mut result, mut records)
+	manifest := '{\n' + '  "name": "${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' + '  "description": "${json_escape(product.description)}",\n' + '  "author": "ulises-jeremias",\n' + '  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "license": "MIT",\n' + '  "geminiCliVersion": ">=0.1.0",\n' + '  "contextFiles": [],\n' + '  "commands": "\${extensionPath}/commands.toml"\n}\n'
+	write_text_artifact(os.join_path(out_dir, 'gemini-extension.json'), manifest, 'generated', output_root, mut result, mut records)
 	result.emitted << 'extension-manifest'
 
 	mut toml_lines := []string{}
@@ -150,8 +130,7 @@ fn emit_gemini_cli(mut result CompilationResult, mut records []ArtifactRecord, g
 			result.errors << 'read skill failed: ${err}'
 			return
 		}
-		write_text_artifact(os.join_path(dst_dir, 'SKILL.md'), content, skill.source_path, output_root, mut
-			result, mut records)
+		write_text_artifact(os.join_path(dst_dir, 'SKILL.md'), content, skill.source_path, output_root, mut result, mut records)
 		copy_skill_references(skill, dst_dir, output_root, mut result, mut records)
 		rel := 'skills/${skill.name}/SKILL.md'
 		safe_name := skill.name.replace('-', '_').replace(' ', '_')
@@ -168,8 +147,7 @@ fn emit_gemini_cli(mut result CompilationResult, mut records []ArtifactRecord, g
 		result.emitted << 'skill:${skill_id}'
 	}
 	if toml_lines.len > 0 {
-		write_text_artifact(os.join_path(out_dir, 'commands.toml'), toml_lines.join('\n') + '\n',
-			'generated', output_root, mut result, mut records)
+		write_text_artifact(os.join_path(out_dir, 'commands.toml'), toml_lines.join('\n') + '\n', 'generated', output_root, mut result, mut records)
 		result.emitted << 'commands.toml'
 	}
 	for agent_id in product.included_agents {
@@ -197,33 +175,19 @@ fn emit_gemini_cli(mut result CompilationResult, mut records []ArtifactRecord, g
 }
 
 fn emit_muse_code(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
-	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
+	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'), output_root)
 	result.unsupported << 'plugin-marketplace — Muse Code has no marketplace; install via muse skills install / .agents/skills'
 }
 
 fn emit_codex(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
 	ver := resolve_toolkit_version()
 	kw := product.id.replace('agent-toolkit-', '')
-	body := '{\n' + '  "name": "${json_escape(product.id)}",\n' +
-		'  "version": "${json_escape(ver)}",\n' +
-		'  "description": "${json_escape(product.description)}",\n' +
-		'  "maturity": "experimental",\n' + '  "author": {\n' +
-		'    "name": "ulises-jeremias",\n' + '    "email": "ulisescf.24@gmail.com"\n' +
-		'  },\n' + '  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "license": "MIT",\n' + '  "keywords": [\n' + '    "agent-toolkit",\n' +
-		'    "${json_escape(kw)}",\n' + '    "codex",\n' + '    "skills",\n' +
-		'    "agents"\n' + '  ]\n}\n'
-	write_text_artifact(os.join_path(out_dir, '.codex-plugin', 'plugin.json'), body, 'generated',
-		output_root, mut result, mut records)
+	body := '{\n' + '  "name": "${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' + '  "description": "${json_escape(product.description)}",\n' + '  "maturity": "experimental",\n' + '  "author": {\n' + '    "name": "ulises-jeremias",\n' + '    "email": "ulisescf.24@gmail.com"\n' + '  },\n' + '  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "license": "MIT",\n' + '  "keywords": [\n' + '    "agent-toolkit",\n' + '    "${json_escape(kw)}",\n' + '    "codex",\n' + '    "skills",\n' + '    "agents"\n' + '  ]\n}\n'
+	write_text_artifact(os.join_path(out_dir, '.codex-plugin', 'plugin.json'), body, 'generated', output_root, mut result, mut records)
 	result.emitted << 'plugin-manifest'
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
-	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
+	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'), output_root)
 	result.unsupported << 'hooks — unknown-blocked: lifecycle hooks not confirmed in official Codex plugin docs'
 	result.unsupported << 'mcp — unknown-blocked: MCP integration not confirmed in official Codex plugin docs'
 	result.warnings << "Codex plugin API is experimental (maturity='experimental'). Do NOT submit to Codex marketplace without explicit OpenAI authorization."
@@ -256,20 +220,10 @@ fn emit_agent_plugins(mut result CompilationResult, mut records []ArtifactRecord
 	}
 	ext_entries << '"com.agent-toolkit.cli": { "product": "${json_escape(product.id)}", "stability": "${json_escape(product.stability)}" }'
 	extensions_block := ',\n  "extensions": {\n    ${ext_entries.join(',\n    ')}\n  }'
-	body := '{\n' +
-		'  "\$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",\n' +
-		'  "name": "${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' +
-		'  "description": "${json_escape(product.description)}",\n' + '  "author": {\n' +
-		'    "name": "ulises-jeremias",\n' +
-		'    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' +
-		'  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]' + extensions_block + '\n}\n'
-	write_text_artifact(os.join_path(out_dir, 'plugin.json'), body, 'generated', output_root, mut
-		result, mut records)
+	body := '{\n' + '  "\$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",\n' + '  "name": "${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' + '  "description": "${json_escape(product.description)}",\n' + '  "author": {\n' + '    "name": "ulises-jeremias",\n' + '    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' + '  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]' + extensions_block + '\n}\n'
+	write_text_artifact(os.join_path(out_dir, 'plugin.json'), body, 'generated', output_root, mut result, mut records)
 	result.emitted << 'plugin-manifest'
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
 	// Portable core must NOT contain agents/hooks/rules at top-level per spec §7 (skills + mcp only).
 	// Emit them into extension namespace com.anthropic.claude-code/ where harness supports them.
 	if has_agents {
@@ -294,14 +248,11 @@ fn emit_agent_plugins(mut result CompilationResult, mut records []ArtifactRecord
 		ext_hooks_root := os.join_path(out_dir, 'com.anthropic.claude-code', 'hooks')
 		os.mkdir_all(ext_hooks_root) or {}
 		// Emit a marker README explaining extension content; hooks themselves emitted via dedicated hook emitter if product includes.
-		write_text_artifact(os.join_path(ext_hooks_root, 'README.md'),
-			'# Claude Code Extension (non-portable)\n\nClaude-specific hooks/agents live here per Agent Plugins §8. Portable clients ignore this namespace.\n',
-			'generated', output_root, mut result, mut records)
+		write_text_artifact(os.join_path(ext_hooks_root, 'README.md'), '# Claude Code Extension (non-portable)\n\nClaude-specific hooks/agents live here per Agent Plugins §8. Portable clients ignore this namespace.\n', 'generated', output_root, mut result, mut records)
 		result.emitted << 'extension-hooks'
 	}
 	// Portable MCP: emit mcp.json from canonical mcp/templates via registry_emit logic.
-	wrote_mcp := emit_portable_mcp(mut result, mut records, graph, product, out_dir, output_root,
-		repo_root)
+	wrote_mcp := emit_portable_mcp(mut result, mut records, graph, product, out_dir, output_root, repo_root)
 	if !wrote_mcp && product.included_mcp.len > 0 {
 		result.warnings << 'MCP requested (${product.included_mcp.join(', ')}) but no servers emitted — check mcp/templates'
 	}

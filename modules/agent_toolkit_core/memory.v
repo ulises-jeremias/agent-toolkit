@@ -30,18 +30,18 @@ pub fn run_memory(opts MemoryOptions) MemoryReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
 		return MemoryReport{
-			ok:      true
+			ok: true
 			message: memory_help_text()
-			data:    {
+			data: {
 				'subcommand': 'help'
 			}
 		}
 	}
 	ws := find_workspace_root(opts.workspace_path) or {
 		return MemoryReport{
-			ok:      false
+			ok: false
 			message: workspace_missing
-			data:    {
+			data: {
 				'subcommand': sub
 			}
 		}
@@ -55,9 +55,9 @@ pub fn run_memory(opts MemoryOptions) MemoryReport {
 		'todo' { memory_todo(knowledge, opts) }
 		else {
 			MemoryReport{
-				ok:      false
+				ok: false
 				message: "Unknown memory subcommand: ${sub}\nRun 'agent-toolkit memory --help' for usage."
-				data:    {
+				data: {
 					'subcommand': sub
 				}
 			}
@@ -73,9 +73,9 @@ pub fn memory_result(report MemoryReport) CommandResult {
 	}
 	return CommandResult{
 		command: 'memory'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    data
+		data: data
 	}
 }
 
@@ -112,7 +112,7 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 	content := opts.content
 	if typ.len == 0 || content.len == 0 {
 		return MemoryReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit memory add --type <type> "content"\nTypes: learning, process, todo'
 		}
 	}
@@ -132,9 +132,9 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 			}
 			rel := pack_rel_path(ws, path)
 			return MemoryReport{
-				ok:      true
+				ok: true
 				message: 'Added learning to ${rel}'
-				data:    {
+				data: {
 					'subcommand': 'add'
 					'type':       'learning'
 				}
@@ -156,9 +156,9 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 			}
 			rel := pack_rel_path(ws, path)
 			return MemoryReport{
-				ok:      true
+				ok: true
 				message: 'Added process to ${rel}'
-				data:    {
+				data: {
 					'subcommand': 'add'
 					'type':       'process'
 				}
@@ -177,9 +177,9 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 			prepend_after_marker(path, marker, entry) or { return memory_write_err(err) }
 			rel := pack_rel_path(ws, path)
 			return MemoryReport{
-				ok:      true
+				ok: true
 				message: 'Added todo to ${rel}'
-				data:    {
+				data: {
 					'subcommand': 'add'
 					'type':       'todo'
 				}
@@ -187,7 +187,7 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 		}
 		else {
 			return MemoryReport{
-				ok:      false
+				ok: false
 				message: 'Unknown type: ${typ}\nValid types: learning, process, todo'
 			}
 		}
@@ -196,7 +196,7 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 
 fn memory_write_err(err IError) MemoryReport {
 	return MemoryReport{
-		ok:      false
+		ok: false
 		message: 'write failed: ${err}'
 	}
 }
@@ -205,7 +205,7 @@ fn memory_search(knowledge string, opts MemoryOptions) MemoryReport {
 	query := if opts.query.len > 0 { opts.query } else { opts.content }
 	if query.len == 0 {
 		return MemoryReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit memory search "query"'
 		}
 	}
@@ -217,9 +217,9 @@ fn memory_search(knowledge string, opts MemoryOptions) MemoryReport {
 		lines << '  (knowledge/ directory not found)'
 		lines << ''
 		return MemoryReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'search'
 				'hits':       '0'
 			}
@@ -263,9 +263,9 @@ fn memory_search(knowledge string, opts MemoryOptions) MemoryReport {
 	}
 	lines << ''
 	return MemoryReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'search'
 			'hits':       '${hits}'
 		}
@@ -349,9 +349,9 @@ fn memory_inject(knowledge string) MemoryReport {
 	// context_budget clip 2000 parity (Python clip budget=2000 tokens ~ 8000 chars; V devcompanion clips 2000 chars)
 	clipped := if msg.len > 2000 { msg[..2000] } else { msg }
 	return MemoryReport{
-		ok:      true
+		ok: true
 		message: clipped
-		data:    {
+		data: {
 			'subcommand': 'inject'
 		}
 	}
@@ -456,9 +456,9 @@ fn memory_review(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 	if issue_count == 0 {
 		lines << 'Knowledge base looks clean — no issues found.'
 		return MemoryReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'review'
 				'issues':     '0'
 			}
@@ -469,9 +469,9 @@ fn memory_review(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 		lines << 'Re-run with --fix for merge/update suggestions.'
 	}
 	return MemoryReport{
-		ok:      false
+		ok: false
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'review'
 			'issues':     '${issue_count}'
 		}
@@ -482,9 +482,9 @@ fn memory_todo(knowledge string, opts MemoryOptions) MemoryReport {
 	path := os.join_path(knowledge, 'todos', 'pending.md')
 	if !os.is_file(path) {
 		return MemoryReport{
-			ok:      true
+			ok: true
 			message: '(no todos file found)'
-			data:    {
+			data: {
 				'subcommand': 'todo'
 			}
 		}
@@ -501,9 +501,9 @@ fn memory_todo(knowledge string, opts MemoryOptions) MemoryReport {
 	}
 	if unchecked.len == 0 && done.len == 0 {
 		return MemoryReport{
-			ok:      true
+			ok: true
 			message: '(no todos found)'
-			data:    {
+			data: {
 				'subcommand': 'todo'
 			}
 		}
@@ -530,9 +530,9 @@ fn memory_todo(knowledge string, opts MemoryOptions) MemoryReport {
 		lines << '(no pending todos)'
 	}
 	return MemoryReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'todo'
 			'pending':    '${unchecked.len}'
 		}
@@ -644,10 +644,10 @@ fn collect_mem_entries(knowledge string) []MemEntry {
 					text = cells.join(' — ')
 				}
 				entries << MemEntry{
-					path:    md
+					path: md
 					line_no: i + 1
-					text:    text
-					dated:   first_iso_date(stripped)
+					text: text
+					dated: first_iso_date(stripped)
 				}
 			}
 		}
@@ -732,8 +732,7 @@ fn extract_use_keys(low string, entry MemEntry, mut use_map map[string][]MemEntr
 			idx := low.index(pos) or { continue }
 			start := if idx >= 12 { idx - 12 } else { 0 }
 			window := low[start..idx]
-			if window.contains("don't") || window.contains('dont') || window.contains('do not')
-				|| window.contains('never') || window.contains('avoid') {
+			if window.contains("don't") || window.contains('dont') || window.contains('do not') || window.contains('never') || window.contains('avoid') {
 				continue
 			}
 			key := token_after(low, pos)
@@ -782,8 +781,7 @@ fn find_stale_orphans(entries []MemEntry, ws string, stale_after int) ([]ReviewN
 			orphans << ReviewNote{entry, 'missing path `${ref}`'}
 		}
 		if missing.len > 0 && dated.len > 0 && dated < cutoff {
-			stale << ReviewNote{entry, 'last seen ${dated} (>${stale_after}d) and refs missing: ' +
-				missing.map('`${it}`').join(', ')}
+			stale << ReviewNote{entry, 'last seen ${dated} (>${stale_after}d) and refs missing: ' + missing.map('`${it}`').join(', ')}
 		}
 	}
 	return stale, orphans

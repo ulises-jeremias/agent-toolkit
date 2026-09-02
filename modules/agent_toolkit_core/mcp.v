@@ -1,7 +1,7 @@
 module agent_toolkit_core
 
 import crypto.sha256
-import json
+import json2
 import os
 import time
 
@@ -51,7 +51,7 @@ pub fn run_mcp(opts McpOptions) McpReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
 		return McpReport{
-			ok:      true
+			ok: true
 			message: mcp_help_text()
 		}
 	}
@@ -71,7 +71,7 @@ pub fn run_mcp(opts McpOptions) McpReport {
 		'uninstall' { mcp_uninstall(cfg_path, opts.provider) }
 		else {
 			McpReport{
-				ok:      false
+				ok: false
 				message: 'Unknown subcommand: ${sub}\n  Valid subcommands: list, setup, health, doctor, uninstall'
 			}
 		}
@@ -81,9 +81,9 @@ pub fn run_mcp(opts McpOptions) McpReport {
 pub fn mcp_result(report McpReport) CommandResult {
 	return CommandResult{
 		command: 'mcp'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    {
+		data: {
 			'count': '${report.count}'
 		}
 	}
@@ -213,21 +213,21 @@ fn emit_mcp_provider_hooks(provider string, root string) string {
 fn mcp_list(root string, cfg_path string) McpReport {
 	if root.len == 0 {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'Cannot locate toolkit directory'
 		}
 	}
 	tdir := mcp_templates_dir(root)
 	if !os.is_dir(tdir) {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'MCP templates directory not found: ${tdir}'
 		}
 	}
 	providers := list_template_providers(tdir)
 	if providers.len == 0 {
 		return McpReport{
-			ok:      true
+			ok: true
 			message: '  ⚠  No MCP provider templates found'
 		}
 	}
@@ -248,22 +248,22 @@ fn mcp_list(root string, cfg_path string) McpReport {
 	lines << 'Run: agent-toolkit mcp setup <provider>'
 	lines << ''
 	return McpReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		count:   providers.len
+		count: providers.len
 	}
 }
 
 fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpReport {
 	if provider.len == 0 {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit mcp setup <provider>'
 		}
 	}
 	if root.len == 0 {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'Cannot locate toolkit directory'
 		}
 	}
@@ -272,7 +272,7 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 	if effective_offline {
 		if !is_mcp_cached(provider, root) {
 			return McpReport{
-				ok:      false
+				ok: false
 				message: 'offline and not cached: ${provider}'
 			}
 		}
@@ -280,7 +280,7 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 	known := list_known_mcp_providers(root)
 	if provider !in known {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: "Provider '${provider}' not found.\n  Available: ${known.join(', ')}"
 		}
 	}
@@ -318,13 +318,13 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 	}
 	mut cfg := load_mcp_config(cfg_path)
 	cfg.providers[provider] = McpProviderCfg{
-		enabled:      true
+		enabled: true
 		required_env: required
 		validated_at: time.utc().format_rfc3339()
 	}
 	save_mcp_config(cfg_path, cfg) or {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'Failed to save config: ${err}'
 		}
 	}
@@ -343,16 +343,16 @@ fn mcp_setup(root string, cfg_path string, provider string, offline bool) McpRep
 	}
 	lines << ''
 	return McpReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		count:   1
+		count: 1
 	}
 }
 
 fn mcp_health(root string, provider string) McpReport {
 	if root.len == 0 {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'Cannot locate toolkit directory'
 		}
 	}
@@ -364,7 +364,7 @@ fn mcp_health(root string, provider string) McpReport {
 	}
 	if targets.len == 0 {
 		return McpReport{
-			ok:      true
+			ok: true
 			message: '  ⚠  No MCP providers found in registry or templates'
 		}
 	}
@@ -421,7 +421,7 @@ fn mcp_health(root string, provider string) McpReport {
 				probe_arg := if bin == 'npx' { '--help' } else { '--help' }
 				ps := new_process_service()
 				res := ps.run(RunOptions{
-					argv:    [bin, probe_arg]
+					argv: [bin, probe_arg]
 					timeout: 5 * time.second
 				}) or {
 					lines << '  ✗  health probe failed for ${bin}: ${err}'
@@ -448,9 +448,9 @@ fn mcp_health(root string, provider string) McpReport {
 	}
 	lines << ''
 	return McpReport{
-		ok:      errors == 0
+		ok: errors == 0
 		message: lines.join('\n')
-		count:   targets.len
+		count: targets.len
 	}
 }
 
@@ -477,14 +477,14 @@ fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
 				docker_path := os.find_abs_path_of_executable('docker') or { '' }
 				if docker_path.len == 0 {
 					return McpReport{
-						ok:      true
+						ok: true
 						message: '  ⚠  No MCP providers configured. Run: agent-toolkit mcp list\n  ⚠  docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/'
 					}
 				}
 			}
 		}
 		return McpReport{
-			ok:      true
+			ok: true
 			message: '  ⚠  No MCP providers configured. Run: agent-toolkit mcp list'
 		}
 	}
@@ -578,37 +578,37 @@ fn mcp_doctor(root string, cfg_path string, provider string) McpReport {
 	lines << '── Summary: ${total_ok} ok, ${total_warn} warnings, ${total_err} errors ──'
 	lines << ''
 	return McpReport{
-		ok:      total_err == 0
+		ok: total_err == 0
 		message: lines.join('\n')
-		count:   targets.len
+		count: targets.len
 	}
 }
 
 fn mcp_uninstall(cfg_path string, provider string) McpReport {
 	if provider.len == 0 {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit mcp uninstall <provider>'
 		}
 	}
 	mut cfg := load_mcp_config(cfg_path)
 	if provider !in cfg.providers {
 		return McpReport{
-			ok:      true
+			ok: true
 			message: "Provider '${provider}' is not configured"
 		}
 	}
 	cfg.providers.delete(provider)
 	save_mcp_config(cfg_path, cfg) or {
 		return McpReport{
-			ok:      false
+			ok: false
 			message: 'Failed to save config: ${err}'
 		}
 	}
 	return McpReport{
-		ok:      true
+		ok: true
 		message: "Removed '${provider}' from ${cfg_path}"
-		count:   1
+		count: 1
 	}
 }
 
@@ -698,7 +698,7 @@ fn load_registry_meta(root string, provider string) ?RegistryMeta {
 		tdir := os.join_path(mcp_templates_dir(root), provider)
 		if os.is_dir(tdir) {
 			return RegistryMeta{
-				id:           provider
+				id: provider
 				display_name: provider
 			}
 		}
@@ -713,10 +713,10 @@ fn load_registry_meta(root string, provider string) ?RegistryMeta {
 	pkg := yaml_scalar(text, 'package')
 	env := yaml_bracket_list(text, 'env')
 	return RegistryMeta{
-		id:           id
+		id: id
 		display_name: if display.len > 0 { display } else { provider }
-		package:      pkg
-		env_vars:     env
+		package: pkg
+		env_vars: env
 	}
 }
 
@@ -760,7 +760,7 @@ fn load_mcp_config(path string) McpConfigFile {
 			providers: map[string]McpProviderCfg{}
 		}
 	}
-	return json.decode(McpConfigFile, text) or {
+	return json2.decode[McpConfigFile](text) or {
 		McpConfigFile{
 			providers: map[string]McpProviderCfg{}
 		}
@@ -778,8 +778,10 @@ fn encode_mcp_config(cfg McpConfigFile) string {
 	keys.sort()
 	for k in keys {
 		p := cfg.providers[k]
-		env_json := json.encode(p.required_env)
-		parts << '"${k}":{"enabled":${p.enabled},"required_env":${env_json},"validated_at":${json.encode(p.validated_at)}}'
+		env_json := json2.encode(p.required_env, escape_unicode: true)
+		parts << '"${k}":{"enabled":${p.enabled},"required_env":${env_json},"validated_at":${json2.encode(p.validated_at,
+			escape_unicode: true
+		)}}'
 	}
 	return '{"providers":{${parts.join(',')}}}\n'
 }

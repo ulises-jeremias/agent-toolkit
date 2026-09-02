@@ -41,14 +41,20 @@ pub fn (mut e Engine) receipts_catalog() []ReceiptEntry {
 	for k, v in snap.data {
 		if k.starts_with('receipt:') && k.ends_with(':installed_at') {
 			parts := k.split(':')
-			if parts.len < 3 { continue }
+			if parts.len < 3 {
+				continue
+			}
 			kind := parts[1]
 			id := parts[2]
 			provenance := snap.data['provenance:${kind}:${id}:source'] or { snap.data['receipt:${kind}:${id}:digest'] or { '' } }
 			digest := snap.data['receipt:${kind}:${id}:digest'] or { snap.data['receipt:${kind}:${id}:version'] or { '' } }
 			version := snap.data['receipt:${kind}:${id}:version'] or { '1.0.0' }
 			artifacts_raw := snap.data['receipt:${kind}:${id}:artifacts'] or { '' }
-			artifacts := if artifacts_raw == '' { []string{} } else { artifacts_raw.split(',').map(it.trim_space()) }
+			artifacts := if artifacts_raw == '' {
+				[]string{}
+			} else {
+				artifacts_raw.split(',').map(it.trim_space())
+			}
 			receipt_path := match kind {
 				'skill' { 'receipts/skill-${id}.json' }
 				'target' { '~/.config/agent-toolkit/receipts/${id}-agent-toolkit-profiles.json' }
@@ -129,7 +135,9 @@ pub fn (mut e Engine) receipts_catalog() []ReceiptEntry {
 pub fn (mut e Engine) receipts_search(query string) []ReceiptEntry {
 	cat := e.receipts_catalog()
 	q := query.trim_space().to_lower()
-	if q == '' { return cat.clone() }
+	if q == '' {
+		return cat.clone()
+	}
 	mut out := []ReceiptEntry{}
 	for r in cat {
 		if r.id.to_lower().contains(q) || r.kind.contains(q) || r.product.to_lower().contains(q) || r.provenance.to_lower().contains(q) {
@@ -142,7 +150,9 @@ pub fn (mut e Engine) receipts_search(query string) []ReceiptEntry {
 // receipt_for returns single receipt by kind+id.
 pub fn (mut e Engine) receipt_for(kind string, id string) ?ReceiptEntry {
 	for r in e.receipts_catalog() {
-		if r.kind == kind && r.id == id { return r }
+		if r.kind == kind && r.id == id {
+			return r
+		}
 	}
 	return none
 }
@@ -159,7 +169,9 @@ pub fn (mut e Engine) provenance_catalog() []ProvenanceEntry {
 	for k, v in snap.data {
 		if k.starts_with('provenance:') && k.ends_with(':source') {
 			parts := k.split(':')
-			if parts.len < 3 { continue }
+			if parts.len < 3 {
+				continue
+			}
 			kind := parts[1]
 			id := parts[2]
 			out << ProvenanceEntry{
@@ -296,17 +308,23 @@ pub fn (mut e Engine) install_receipt_json_for(kind string, id string) string {
 	if r := e.receipt_for(kind, id) {
 		return json2.encode({
 			'schemaVersion': '1'
-			'product': r.product
-			'target': r.id
-			'kind': r.kind
-			'version': r.version
-			'installedAt': r.installed_at
-			'sourceDigest': r.digest
-			'provenance': r.provenance
-			'verified': if r.verified { 'true' } else { 'false' }
-		}, escape_unicode: true)
+			'product':       r.product
+			'target':        r.id
+			'kind':          r.kind
+			'version':       r.version
+			'installedAt':   r.installed_at
+			'sourceDigest':  r.digest
+			'provenance':    r.provenance
+			'verified':      if r.verified { 'true' } else { 'false' }
+		},
+			escape_unicode: true
+		)
 	}
-	return json2.encode({'error': 'receipt not found for ${kind}/${id}'}, escape_unicode: true)
+	return json2.encode({
+		'error': 'receipt not found for ${kind}/${id}'
+	},
+		escape_unicode: true
+	)
 }
 
 // provenance_json_for returns structured provenance for kind/id.
@@ -317,13 +335,19 @@ pub fn (mut e Engine) provenance_json_for(kind string, id string) string {
 	for p in e.provenance_catalog() {
 		if p.artifact_path.contains(id) {
 			return json2.encode({
-				'artifact': p.artifact_path
-				'sourceFile': p.source_file
-				'sourceDigest': p.source_digest
+				'artifact':        p.artifact_path
+				'sourceFile':      p.source_file
+				'sourceDigest':    p.source_digest
 				'generatedDigest': p.generated_digest
-				'verified': if p.verified { 'true' } else { 'false' }
-			}, escape_unicode: true)
+				'verified':        if p.verified { 'true' } else { 'false' }
+			},
+				escape_unicode: true
+			)
 		}
 	}
-	return json2.encode({'error': 'provenance not found for ${id}'}, escape_unicode: true)
+	return json2.encode({
+		'error': 'provenance not found for ${id}'
+	},
+		escape_unicode: true
+	)
 }

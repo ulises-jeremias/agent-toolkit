@@ -16,13 +16,11 @@ fn test_compile_cursor_temp_product() {
 	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant')) or { assert false, err.msg() }
 	os.mkdir_all(os.join_path(root, 'agents', 'code-reviewer')) or { assert false, err.msg() }
 	os.mkdir_all(os.join_path(root, 'distributions')) or { assert false, err.msg() }
-	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'),
-		'---\nname: assistant\n---\nbody\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'), '---\nname: assistant\n---\nbody\n') or { assert false, err.msg() }
 	os.write_file(os.join_path(root, 'agents', 'code-reviewer', 'AGENT.md'), '# agent\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: agent-toolkit-core\n    description: Core\n    includes:\n      skills:\n        - core/assistant\n      agents:\n        - code-reviewer\n') or {
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: agent-toolkit-core\n    description: Core\n    includes:\n      skills:\n        - core/assistant\n      agents:\n        - code-reviewer\n') or {
 		assert false, err.msg()
 	}
 	defer {
@@ -42,8 +40,7 @@ fn test_compile_cursor_temp_product() {
 	assert 'agent:code-reviewer' in r.emitted
 	assert 'provenance' in r.emitted
 	assert os.is_file(os.join_path(out, 'agent-toolkit-core', '.cursor-plugin', 'plugin.json'))
-	manifest_raw := os.read_file(os.join_path(out, 'agent-toolkit-core', '.cursor-plugin',
-		'plugin.json')) or {
+	manifest_raw := os.read_file(os.join_path(out, 'agent-toolkit-core', '.cursor-plugin', 'plugin.json')) or {
 		assert false, err.msg()
 		return
 	}
@@ -62,8 +59,7 @@ fn test_compile_opencode_and_claude() {
 	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'), 'x\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n') or {
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n') or {
 		assert false, err.msg()
 	}
 	defer {
@@ -98,16 +94,12 @@ fn test_compile_cursor_hooks_emission() {
 	os.mkdir_all(os.join_path(root, 'skills', 'core', 'assistant')) or { assert false, err.msg() }
 	os.mkdir_all(os.join_path(root, 'distributions')) or { assert false, err.msg() }
 	os.mkdir_all(os.join_path(root, 'capabilities', 'hooks', 'scripts')) or { assert false, err.msg() }
-	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'),
-		'---\nname: assistant\n---\nbody\n') or { assert false, err.msg() }
-	os.write_file(os.join_path(root, 'capabilities', 'hooks', 'session-start-context.yaml'),
-		'id: session-start-context\nevent: session.start\nhandler:\n  command:\n    - bash\n    - capabilities/hooks/scripts/session-start-context.sh\n  timeout_ms: 5000\n') or {
+	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'), '---\nname: assistant\n---\nbody\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'capabilities', 'hooks', 'session-start-context.yaml'), 'id: session-start-context\nevent: session.start\nhandler:\n  command:\n    - bash\n    - capabilities/hooks/scripts/session-start-context.sh\n  timeout_ms: 5000\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'capabilities', 'hooks', 'scripts', 'session-start-context.sh'),
-		'#!/usr/bin/env bash\necho hi\n') or { assert false, err.msg() }
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n      hooks:\n        - session-start-context\n') or {
+	os.write_file(os.join_path(root, 'capabilities', 'hooks', 'scripts', 'session-start-context.sh'), '#!/usr/bin/env bash\necho hi\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: demo\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n      hooks:\n        - session-start-context\n') or {
 		assert false, err.msg()
 	}
 	defer {

@@ -29,8 +29,8 @@ mut:
 // All native surfaces return stubs without blocking; headless probe compatible.
 pub struct HeadlessBackend {
 mut:
-	clipboard string
-	toasts    []string
+	clipboard   string
+	toasts      []string
 	dnd_enabled bool
 }
 
@@ -44,8 +44,8 @@ pub type MockBackend = HeadlessBackend
 // Windows limitations enumerated via native_probe per docs/WINDOWS.md.
 pub struct VGuiBackend {
 mut:
-	clipboard string
-	toasts    []string
+	clipboard  string
+	toasts     []string
 	use_native bool
 }
 

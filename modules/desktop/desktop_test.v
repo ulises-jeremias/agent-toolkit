@@ -83,11 +83,11 @@ fn test_tokens_defined_spacing_type_colors_motion() {
 	assert sp.xs == 4
 	assert sp.xl == 32
 	ty := theme.default_typography()
-	assert ty.md_size == 16
+	assert ty.md_size == 15
 	assert ty.weight_bold == 700
 	cols := theme.default_colors()
 	assert cols.bg.len > 0
-	assert cols.primary == '#7c3aed'
+	assert cols.primary == '#C45A3C'
 	m := theme.default_motion()
 	assert m.base == 200
 	assert m.fast < m.base

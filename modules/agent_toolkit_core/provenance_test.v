@@ -23,9 +23,9 @@ fn test_write_load_verify_provenance() {
 	art := os.join_path(dir, 'plugin.json')
 	os.write_file(art, '{"ok":true}') or { assert false, err.msg() }
 	rec := ArtifactRecord{
-		path:             'plugin.json'
-		source_file:      'skills/core/assistant/SKILL.md'
-		source_digest:    file_digest(art)
+		path: 'plugin.json'
+		source_file: 'skills/core/assistant/SKILL.md'
+		source_digest: file_digest(art)
 		generated_digest: file_digest(art)
 	}
 	p := write_provenance(dir, 'agent-toolkit-core', 'cursor', [rec]) or {

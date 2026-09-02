@@ -33,8 +33,7 @@ fn swarm_sanitize_run_id(run_id string) string {
 	mut res := ''
 	for i in 0 .. run_id.len {
 		b := run_id[i]
-		is_ok := (b >= `a` && b <= `z`) || (b >= `A` && b <= `Z`) || (b >= `0` && b <= `9`)
-			|| b == `.` || b == `_` || b == `-`
+		is_ok := (b >= `a` && b <= `z`) || (b >= `A` && b <= `Z`) || (b >= `0` && b <= `9`) || b == `.` || b == `_` || b == `-`
 		if is_ok {
 			res += run_id[i..i + 1]
 		} else {
@@ -85,13 +84,13 @@ fn swarm_git_run(args []string, cwd string) RunResult {
 	argv << args
 	ps := new_process_service()
 	res := ps.run(RunOptions{
-		argv:    argv
-		cwd:     cwd
+		argv: argv
+		cwd: cwd
 		timeout: 15 * time.second
 	}) or {
 		return RunResult{
 			exit_code: -1
-			stderr:    err.msg()
+			stderr: err.msg()
 		}
 	}
 	return res
@@ -102,9 +101,9 @@ pub fn swarm_create_worktree(repo_root string, run_dir string, role string, run_
 	wt_path := swarm_worktree_path_for(run_dir, role)!
 	if os.exists(wt_path) {
 		return SwarmWorktree{
-			role:   role
+			role: role
 			branch: branch
-			path:   wt_path
+			path: wt_path
 			exists: true
 		}
 	}
@@ -128,9 +127,9 @@ pub fn swarm_create_worktree(repo_root string, run_dir string, role string, run_
 		return error('Failed to create worktree ${wt_path}: ${extra}')
 	}
 	return SwarmWorktree{
-		role:   role
+		role: role
 		branch: branch
-		path:   wt_path
+		path: wt_path
 		exists: false
 	}
 }

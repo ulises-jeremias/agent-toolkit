@@ -4,8 +4,9 @@ import os
 
 // FsService centralizes filesystem helpers for install/receipts/workspace.
 pub struct FsService {
-pub:
+
 	// home_dir override for tests; empty uses os.home_dir().
+pub:
 	home_dir string
 }
 

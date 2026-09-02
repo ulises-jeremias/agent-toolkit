@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 import time
 
@@ -52,9 +52,9 @@ pub fn run_loop(opts LoopOptions) LoopReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
 		return LoopReport{
-			ok:      true
+			ok: true
 			message: loop_help_text()
-			data:    {
+			data: {
 				'subcommand': 'help'
 			}
 		}
@@ -90,9 +90,9 @@ pub fn run_loop(opts LoopOptions) LoopReport {
 		}
 		else {
 			LoopReport{
-				ok:      false
+				ok: false
 				message: "Unknown command: ${sub}\nRun 'agent-toolkit loop help' for usage."
-				data:    {
+				data: {
 					'subcommand': sub
 					'workspace':  ws
 				}
@@ -108,9 +108,9 @@ pub fn loop_result(report LoopReport) CommandResult {
 	}
 	return CommandResult{
 		command: 'loop'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    data
+		data: data
 	}
 }
 
@@ -169,9 +169,9 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 			lines << '  ${t}'
 		}
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'init'
 				'workspace':  ws
 			}
@@ -181,9 +181,9 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 	dest := os.join_path(loops_dir(ws), loop_name)
 	if os.exists(dest) {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: "Loop '${loop_name}' already exists at ${dest}"
-			data:    {
+			data: {
 				'subcommand': 'init'
 				'workspace':  ws
 			}
@@ -198,9 +198,9 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 			lines << '  ${t}'
 		}
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'init'
 				'workspace':  ws
 			}
@@ -208,14 +208,14 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 	}
 	os.mkdir_all(os.join_path(dest, 'runs')) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'mkdir failed: ${err}'
 		}
 	}
 	rewritten := rewrite_loop_name(text, loop_name)
 	os.write_file(os.join_path(dest, 'loop.yaml'), rewritten) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'write loop.yaml failed: ${err}'
 		}
 	}
@@ -243,9 +243,9 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 	}
 	write_state_md(dest, 'never', 'not_run', '', 0, []string{})
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: "[loop] Initialized loop '${loop_name}' at loops/${loop_name}\n\n  Edit loops/${loop_name}/loop.yaml to customize.\n  Then run: agent-toolkit loop run ${loop_name}"
-		data:    {
+		data: {
 			'subcommand': 'init'
 			'workspace':  ws
 			'name':       loop_name
@@ -257,9 +257,9 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	loop_name := opts.name
 	if loop_name.len == 0 {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit loop run <loop-name> [--force] [--runner skeleton] [--no-llm]'
-			data:    {
+			data: {
 				'subcommand': 'run'
 				'workspace':  ws
 			}
@@ -267,9 +267,9 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	}
 	loop_dir := resolve_loop_dir(ws, loop_name) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: "Loop '${loop_name}' not found. Run: agent-toolkit loop init ${loop_name}"
-			data:    {
+			data: {
 				'subcommand': 'run'
 				'workspace':  ws
 			}
@@ -325,7 +325,8 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 		}
 	}
 	max_runs := if meta.max_runs_per_day > 0 { meta.max_runs_per_day } else { 10 }
-	mut last_run, _, _, mut runs_today, escalations := read_state_md(loop_dir)
+	mut last_run, _, _, runs_today_val, escalations := read_state_md(loop_dir)
+	mut runs_today := runs_today_val
 	if last_run.len > 0 && last_run != 'never' {
 		today := time.utc().format_rfc3339()[..10]
 		if last_run.len >= 10 && last_run[..10] != today {
@@ -334,9 +335,9 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	}
 	if runs_today >= max_runs && !opts.force {
 		return LoopReport{
-			ok:      true
+			ok: true
 			message: '[loop] Budget: max_runs_per_day (${max_runs}) reached for today. Skipping.\n  Re-run with: agent-toolkit loop run <loop> --force'
-			data:    {
+			data: {
 				'subcommand': 'run'
 				'workspace':  ws
 				'name':       loop_name
@@ -353,13 +354,14 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 				rid_ex := loop_run_id()
 				os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
 				trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
-				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_tokens","tokens_used":${used},"max_tokens":${meta.max_tokens},"run_id":${json.encode(rid_ex)}}\n') or {}
-				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted',
-					rid_ex, runs_today, escalations)
+				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_tokens","tokens_used":${used},"max_tokens":${meta.max_tokens},"run_id":${json2.encode(rid_ex,
+					escape_unicode: true
+				)}}\n') or {}
+				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid_ex, runs_today, escalations)
 				return LoopReport{
-					ok:      true
+					ok: true
 					message: '[loop] Budget exhausted: max_tokens ${meta.max_tokens} reached (used ${used}). Re-run after increasing budget.max_tokens.'
-					data:    {
+					data: {
 						'subcommand': 'run'
 						'workspace':  ws
 						'name':       loop_name
@@ -375,13 +377,14 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 				rid_ex := loop_run_id()
 				os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
 				trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
-				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_wall_seconds","wall_used":${wall_used},"max_wall_seconds":${meta.max_wall_seconds},"run_id":${json.encode(rid_ex)}}\n') or {}
-				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted',
-					rid_ex, runs_today, escalations)
+				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_wall_seconds","wall_used":${wall_used},"max_wall_seconds":${meta.max_wall_seconds},"run_id":${json2.encode(rid_ex,
+					escape_unicode: true
+				)}}\n') or {}
+				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid_ex, runs_today, escalations)
 				return LoopReport{
-					ok:      true
+					ok: true
 					message: '[loop] Budget exhausted: max_wall_seconds ${meta.max_wall_seconds}s exceeded (wall ${wall_used}s).'
-					data:    {
+					data: {
 						'subcommand': 'run'
 						'workspace':  ws
 						'name':       loop_name
@@ -409,7 +412,7 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	run_dir := os.join_path(loop_dir, 'runs', rid)
 	os.mkdir_all(run_dir) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'mkdir run dir failed: ${err}'
 		}
 	}
@@ -429,19 +432,21 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 		plan := skeleton_loop_plan(loop_name, meta, rid)
 		os.write_file(plan_path, plan) or {
 			return LoopReport{
-				ok:      false
+				ok: false
 				message: 'write plan failed: ${err}'
 			}
 		}
-		trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json.encode(rid)},"dry_run":true,"gate":"${gate_info}"}\n'
+		trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json2.encode(rid,
+			escape_unicode: true
+		)},"dry_run":true,"gate":"${gate_info}"}\n'
 		os.write_file(os.join_path(run_dir, 'trace.jsonl'), trace) or {}
 		lines << '[loop] dry-run Skeleton plan written → ${plan_path}'
 		lines << '[loop] wall budget ${wall}s (not consumed by skeleton)'
 		_ = use_skeleton
 		return LoopReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'run'
 				'workspace':  ws
 				'name':       loop_name
@@ -456,26 +461,27 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	plan := skeleton_loop_plan(loop_name, meta, rid)
 	os.write_file(plan_path, plan) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'write plan failed: ${err}'
 		}
 	}
-	trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json.encode(rid)}}\n'
+	trace := '{"kind":"run_end","status":"completed","runner":"skeleton","run_id":${json2.encode(rid,
+		escape_unicode: true
+	)}}\n'
 	os.write_file(os.join_path(run_dir, 'trace.jsonl'), trace) or {}
 	// post-run wall/token check: if tokens now exceed limit, mark exhausted (Python tailer parity)
 	if meta.max_tokens > 0 {
 		used_after := total_tokens_for_loop(loop_dir)
 		if used_after >= meta.max_tokens {
-			write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid,
-				runs_today + 1, escalations)
+			write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid, runs_today + 1, escalations)
 			lines << '[loop] Skeleton plan written → ${plan_path}'
 			lines << '[loop] wall budget ${wall}s (not consumed by skeleton)'
 			lines << '[loop] budget_exhausted: max_tokens ${meta.max_tokens} reached after run (used ${used_after})'
 			_ = use_skeleton
 			return LoopReport{
-				ok:      true
+				ok: true
 				message: lines.join('\n')
-				data:    {
+				data: {
 					'subcommand': 'run'
 					'workspace':  ws
 					'name':       loop_name
@@ -486,15 +492,14 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 			}
 		}
 	}
-	write_state_md(loop_dir, time.utc().format_rfc3339(), 'completed', rid, runs_today + 1,
-		escalations)
+	write_state_md(loop_dir, time.utc().format_rfc3339(), 'completed', rid, runs_today + 1, escalations)
 	lines << '[loop] Skeleton plan written → ${plan_path}'
 	lines << '[loop] wall budget ${wall}s (not consumed by skeleton)'
 	_ = use_skeleton
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'run'
 			'workspace':  ws
 			'name':       loop_name
@@ -512,9 +517,9 @@ fn loop_status(ws string, opts LoopOptions) LoopReport {
 			dirs << d
 		} else {
 			return LoopReport{
-				ok:      false
+				ok: false
 				message: "Loop '${opts.name}' not found."
-				data:    {
+				data: {
 					'subcommand': 'status'
 					'workspace':  ws
 				}
@@ -528,9 +533,9 @@ fn loop_status(ws string, opts LoopOptions) LoopReport {
 	}
 	if dirs.len == 0 {
 		return LoopReport{
-			ok:      true
+			ok: true
 			message: 'No loops found. Run: agent-toolkit loop init <pattern>'
-			data:    {
+			data: {
 				'subcommand': 'status'
 				'workspace':  ws
 				'count':      '0'
@@ -548,9 +553,9 @@ fn loop_status(ws string, opts LoopOptions) LoopReport {
 	}
 	lines << ''
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'status'
 			'workspace':  ws
 			'count':      '${dirs.len}'
@@ -580,9 +585,9 @@ fn loop_audit(ws string, opts LoopOptions) LoopReport {
 	}
 	lines << ''
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'audit'
 			'workspace':  ws
 			'count':      '${dirs.len}'
@@ -593,16 +598,16 @@ fn loop_audit(ws string, opts LoopOptions) LoopReport {
 fn loop_cost(ws string, opts LoopOptions) LoopReport {
 	if opts.name.len == 0 {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit loop cost <loop-name>'
-			data:    {
+			data: {
 				'subcommand': 'cost'
 			}
 		}
 	}
 	loop_dir := resolve_loop_dir(ws, opts.name) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: "Loop '${opts.name}' not found. Run: agent-toolkit loop init ${opts.name}"
 		}
 	}
@@ -617,9 +622,9 @@ fn loop_cost(ws string, opts LoopOptions) LoopReport {
 	lines << '  Estimated per run: —'
 	lines << ''
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'cost'
 			'workspace':  ws
 			'name':       opts.name
@@ -636,9 +641,9 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 	if platform == 'github-actions' {
 		if opts.name.len == 0 {
 			return LoopReport{
-				ok:      false
+				ok: false
 				message: 'Usage: agent-toolkit loop schedule <loop-name> --platform github-actions [--dry-run] [--force]'
-				data:    {
+				data: {
 					'subcommand': 'schedule'
 					'platform':   platform
 				}
@@ -646,9 +651,9 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 		}
 		loop_dir := resolve_loop_dir(ws, opts.name) or {
 			return LoopReport{
-				ok:      false
+				ok: false
 				message: "Loop '${opts.name}' not found. Run: agent-toolkit loop init ${opts.name}"
-				data:    {
+				data: {
 					'subcommand': 'schedule'
 					'platform':   platform
 					'workspace':  ws
@@ -660,9 +665,9 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 		if cron.len == 0 {
 			cron = cadence_to_cron(meta.cadence) or {
 				return LoopReport{
-					ok:      false
+					ok: false
 					message: 'invalid cadence "${meta.cadence}" for loop "${opts.name}": ${err.msg()}\n  Use --cron to override or fix loops/${opts.name}/loop.yaml'
-					data:    {
+					data: {
 						'subcommand': 'schedule'
 						'platform':   platform
 					}
@@ -673,9 +678,9 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 		workflow := emit_github_workflow(opts.name, meta.tier, meta.cadence, cron, version)
 		if opts.dry_run {
 			return LoopReport{
-				ok:      true
+				ok: true
 				message: '[loop] schedule dry-run (github-actions workflow):\n${workflow}'
-				data:    {
+				data: {
 					'subcommand': 'schedule'
 					'workspace':  ws
 					'name':       opts.name
@@ -693,9 +698,9 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 		path := os.join_path(dir, 'agent-toolkit-${opts.name}.yml')
 		if os.is_file(path) && !opts.force {
 			return LoopReport{
-				ok:      false
+				ok: false
 				message: '[loop] Workflow already exists at ${path}\n  Use --force to overwrite or --dry-run to preview.\n  To check drift: agent-toolkit loop sync --platform github-actions'
-				data:    {
+				data: {
 					'subcommand': 'schedule'
 					'platform':   platform
 					'path':       path
@@ -704,13 +709,13 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 		}
 		os.mkdir_all(dir) or {
 			return LoopReport{
-				ok:      false
+				ok: false
 				message: 'mkdir failed: ${err}'
 			}
 		}
 		os.write_file(path, workflow) or {
 			return LoopReport{
-				ok:      false
+				ok: false
 				message: 'write workflow failed: ${err}'
 			}
 		}
@@ -720,9 +725,9 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 		msg += '  Next: commit and push, then enable Actions. Secrets: GITHUB_TOKEN is auto-provided; add ANTHROPIC_API_KEY/OPENAI_API_KEY as repo secrets if loop uses LLM.\n'
 		msg += '  Sync check: agent-toolkit loop sync --platform github-actions'
 		return LoopReport{
-			ok:      true
+			ok: true
 			message: msg
-			data:    {
+			data: {
 				'subcommand': 'schedule'
 				'workspace':  ws
 				'name':       opts.name
@@ -734,9 +739,9 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 	}
 	if platform != 'local' {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: "unsupported platform '${platform}' — supported: local, github-actions (see #729)\n  Use: agent-toolkit loop schedule <loop> --platform github-actions"
-			data:    {
+			data: {
 				'subcommand': 'schedule'
 				'platform':   platform
 			}
@@ -744,25 +749,25 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 	}
 	$if windows {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'loop schedule is Unix-only (systemd/launchd). Not supported on Windows.'
-			data:    {
+			data: {
 				'subcommand': 'schedule'
 			}
 		}
 	}
 	if opts.name.len == 0 {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit loop schedule <loop-name> [--dry-run]'
 		}
 	}
 	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nExecStart=agent-toolkit loop run ${opts.name}\n\n[Install]\nWantedBy=default.target\n'
 	if opts.dry_run || opts.list_mode {
 		return LoopReport{
-			ok:      true
+			ok: true
 			message: '[loop] schedule dry-run (systemd user unit):\n${unit}'
-			data:    {
+			data: {
 				'subcommand': 'schedule'
 				'workspace':  ws
 				'name':       opts.name
@@ -775,14 +780,14 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 	path := os.join_path(dir, 'agent-toolkit-loop-${opts.name}.service')
 	os.write_file(path, unit) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'write unit failed: ${err}'
 		}
 	}
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: '[loop] Wrote ${path}\nEnable with: systemctl --user enable --now agent-toolkit-loop-${opts.name}.service'
-		data:    {
+		data: {
 			'subcommand': 'schedule'
 			'workspace':  ws
 			'name':       opts.name
@@ -813,9 +818,9 @@ fn loop_sync(ws string, opts LoopOptions) LoopReport {
 		}
 		if drifts.len == 0 && missing.len == 0 {
 			return LoopReport{
-				ok:      true
+				ok: true
 				message: '[loop] sync --platform github-actions: all workflows in sync.'
-				data:    {
+				data: {
 					'subcommand': 'sync'
 					'platform':   platform
 					'workspace':  ws
@@ -825,16 +830,16 @@ fn loop_sync(ws string, opts LoopOptions) LoopReport {
 		}
 		mut msg := '[loop] sync --platform github-actions: drift detected\n'
 		if missing.len > 0 {
-			msg += '  Missing workflows: ${missing.join(", ")}\n'
+			msg += '  Missing workflows: ${missing.join(', ')}\n'
 		}
 		if drifts.len > 0 {
-			msg += '  Out-of-sync: ${drifts.join(", ")}\n'
+			msg += '  Out-of-sync: ${drifts.join(', ')}\n'
 		}
 		msg += '  Fix: agent-toolkit loop schedule <name> --platform github-actions --force'
 		return LoopReport{
-			ok:      opts.dry_run == false
+			ok: opts.dry_run == false
 			message: msg
-			data:    {
+			data: {
 				'subcommand': 'sync'
 				'platform':   platform
 				'workspace':  ws
@@ -846,9 +851,9 @@ fn loop_sync(ws string, opts LoopOptions) LoopReport {
 	}
 	if platform.len > 0 && platform != 'local' {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: "unsupported platform '${platform}' for sync — supported: local, github-actions"
-			data:    {
+			data: {
 				'subcommand': 'sync'
 				'platform':   platform
 			}
@@ -863,9 +868,9 @@ fn loop_sync(ws string, opts LoopOptions) LoopReport {
 	}
 	if entries.len == 0 {
 		return LoopReport{
-			ok:      true
+			ok: true
 			message: '[loop] No loop escalations to sync.'
-			data:    {
+			data: {
 				'subcommand': 'sync'
 				'workspace':  ws
 				'count':      '0'
@@ -894,14 +899,14 @@ fn loop_sync(ws string, opts LoopOptions) LoopReport {
 	}
 	os.write_file(knowledge, text) or {
 		return LoopReport{
-			ok:      false
+			ok: false
 			message: 'write todos failed: ${err}'
 		}
 	}
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: '[loop] Synced ${entries.len} escalation(s) to knowledge/todos/pending.md'
-		data:    {
+		data: {
 			'subcommand': 'sync'
 			'workspace':  ws
 			'count':      '${entries.len}'
@@ -921,9 +926,9 @@ fn loop_list(ws string) LoopReport {
 		}
 	}
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'list'
 			'workspace':  ws
 			'count':      '${dirs.len}'
@@ -938,9 +943,9 @@ fn loop_templates(ws string) LoopReport {
 		lines << '  ${n}'
 	}
 	return LoopReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'templates'
 			'workspace':  ws
 			'count':      '${names.len}'
@@ -1102,8 +1107,7 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 
 fn resolve_loop_dir(ws string, name string) ?string {
 	p := os.join_path(loops_dir(ws), name)
-	if os.is_dir(p) && (os.is_file(os.join_path(p, 'loop.yaml'))
-		|| os.is_file(os.join_path(p, 'LOOP.md'))) {
+	if os.is_dir(p) && (os.is_file(os.join_path(p, 'loop.yaml')) || os.is_file(os.join_path(p, 'LOOP.md'))) {
 		return p
 	}
 	return none
@@ -1119,8 +1123,7 @@ fn list_loop_dirs(ws string) []string {
 	names.sort()
 	for n in names {
 		p := os.join_path(dir, n)
-		if os.is_dir(p) && (os.is_file(os.join_path(p, 'loop.yaml'))
-			|| os.is_file(os.join_path(p, 'LOOP.md'))) {
+		if os.is_dir(p) && (os.is_file(os.join_path(p, 'loop.yaml')) || os.is_file(os.join_path(p, 'LOOP.md'))) {
 			out << p
 		}
 	}
@@ -1159,12 +1162,12 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 
 pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 	mut m := LoopMeta{
-		name:                 default_name
-		tier:                 'L1'
-		cadence:              '?'
-		max_runs_per_day:     10
-		max_wall_seconds:     600
-		attribution_enabled:  true
+		name: default_name
+		tier: 'L1'
+		cadence: '?'
+		max_runs_per_day: 10
+		max_wall_seconds: 600
+		attribution_enabled: true
 		attribution_template: ''
 	}
 	mut in_allow := false
@@ -1610,26 +1613,5 @@ fn loop_run_id() string {
 }
 
 fn skeleton_loop_plan(name string, meta LoopMeta, rid string) string {
-	return '# Plan — ${name} (${rid})
-
-**Generated**: ${time.utc().format_rfc3339()}
-**Mode**: skeleton (no LLM) — ADR-020 fail-closed
-**Tier**: ${meta.tier}
-**Cadence**: ${meta.cadence}
-
-## Goal
-
-${meta.goal}
-
-## Request
-
-${meta.request}
-
-## Steps
-
-- [ ] Read loop.yaml and STATE.md
-- [ ] Honour allowlist/deny and tier gates
-- [ ] Produce report.md
-- [ ] Update STATE.md
-'
+	return '# Plan — ${name} (${rid})\n\n**Generated**: ${time.utc().format_rfc3339()}\n**Mode**: skeleton (no LLM) — ADR-020 fail-closed\n**Tier**: ${meta.tier}\n**Cadence**: ${meta.cadence}\n\n## Goal\n\n${meta.goal}\n\n## Request\n\n${meta.request}\n\n## Steps\n\n- [ ] Read loop.yaml and STATE.md\n- [ ] Honour allowlist/deny and tier gates\n- [ ] Produce report.md\n- [ ] Update STATE.md\n'
 }

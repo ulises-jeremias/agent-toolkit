@@ -6,8 +6,8 @@ import os
 // DiffOptions configures `agent-toolkit diff` (Python cli/diff.py parity).
 pub struct DiffOptions {
 pub:
-	target     string // empty = Tier-1 defaults
-	product    string // empty = all products
+	target      string // empty = Tier-1 defaults
+	product     string // empty = all products
 	plugins_dir string // empty = <repo>/plugins
 }
 
@@ -102,7 +102,7 @@ pub fn run_diff(opts DiffOptions) DiffReport {
 	for t in targets {
 		for p in products {
 			mut entry := DiffEntry{
-				target:  t
+				target: t
 				product: p.id
 			}
 			r := compile_target(t, graph, p, work_root, repo)
@@ -113,10 +113,8 @@ pub fn run_diff(opts DiffOptions) DiffReport {
 				lines << '  ✗  ${p.id} → ${t}: compile failed (${entry.error})'
 				continue
 			}
-			entry.changes = diff_product_trees(os.join_path(work_root, p.id), os.join_path(plugins_root,
-				p.id))
-			entry.no_changes = entry.changes.added.len == 0 && entry.changes.changed.len == 0
-				&& entry.changes.removed.len == 0
+			entry.changes = diff_product_trees(os.join_path(work_root, p.id), os.join_path(plugins_root, p.id))
+			entry.no_changes = entry.changes.added.len == 0 && entry.changes.changed.len == 0 && entry.changes.removed.len == 0
 			report.entries << entry
 			header := '~ ${p.id} → ${t}'
 			if entry.no_changes {
@@ -152,12 +150,12 @@ pub fn diff_result(report DiffReport) CommandResult {
 	}
 	return CommandResult{
 		command: 'diff'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    {
-			'entries':  '${report.entries.len}'
-			'changed':  '${changed}'
-			'ok':       if report.ok { 'true' } else { 'false' }
+		data: {
+			'entries': '${report.entries.len}'
+			'changed': '${changed}'
+			'ok':      if report.ok { 'true' } else { 'false' }
 		}
 	}
 }

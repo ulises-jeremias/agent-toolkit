@@ -1,5 +1,8 @@
 module world
 
+// World entities — Scranton desks and handoffs as Dunder Mifflin paper slips.
+// Each WorldNode is a sales desk or paper station; edges are envelope handoffs
+// routed via GOD mailbox. Tokens map to brass/oxide/slate office palette.
 import time
 
 // WorldNodeKind enumerates entity types derived from Engine State.
@@ -100,7 +103,7 @@ pub fn world_projection_from_state(data map[string]string, revision u64) WorldPr
 				domain: 'core'
 				status: 'active'
 				pos: Point{ x: 120 + f64(i % 10) * 36, y: 120 + f64(i / 10) * 32 }
-				color: '#7c3aed'
+				color: '#1B2F4A'
 			}
 		}
 	}
@@ -127,7 +130,7 @@ pub fn world_projection_from_state(data map[string]string, revision u64) WorldPr
 			domain: 'agents'
 			status: 'holistic'
 			pos: Point{ x: 560 + f64(i % 6) * 44, y: 180 + f64(i / 6) * 28 }
-			color: '#0891b2'
+			color: '#C45A3C'
 			tier: if i < 11 {
 				'holistic'} else if i < 13 { 'orchestrator' } else { 'specialist' }
 		}
@@ -146,7 +149,7 @@ pub fn world_projection_from_state(data map[string]string, revision u64) WorldPr
 				domain: 'loops'
 				status: 'idle'
 				pos: Point{ x: 120 + f64(i % 5) * 48, y: 460 + f64(i / 5) * 28 }
-				color: '#eab308'
+				color: '#C45A3C'
 			}
 		}
 	}
@@ -164,7 +167,7 @@ pub fn world_projection_from_state(data map[string]string, revision u64) WorldPr
 				domain: 'runtime'
 				status: 'running'
 				pos: Point{ x: 380 + f64(i % 5) * 48, y: 480 + f64(i / 5) * 28 }
-				color: '#16a34a'
+				color: '#6B8F71'
 			}
 		}
 	}
@@ -185,7 +188,7 @@ pub fn world_projection_from_state(data map[string]string, revision u64) WorldPr
 				domain: 'swarm'
 				status: 'pending'
 				pos: Point{ x: 700 + f64(i % 4) * 52, y: 400 + f64(i / 4) * 30 }
-				color: '#dc2626'
+				color: '#B23C1F'
 			}
 			edges << WorldEdge{
 				id: 'edge:handoff:${h.trim_space()}'
@@ -230,19 +233,19 @@ pub fn skill_domain_for_index(i int) string {
 	return domains[i % domains.len]
 }
 
-// domain_color returns token color per domain.
+// domain_color returns token color per domain — Dunder paper palette (no purple).
 pub fn domain_color(domain string) string {
 	return match domain {
-		'core' { '#7c3aed' }
-		'delivery' { '#0891b2' }
-		'design' { '#e11d48' }
-		'forge' { '#ea580c' }
-		'integrations' { '#16a34a' }
-		'data' { '#0e7490' }
-		'tooling' { '#6b7280' }
-		'ops' { '#854d0e' }
-		'loops' { '#7c2d12' }
-		else { '#64748b' }
+		'core' { '#1B2F4A' }
+		'delivery' { '#C45A3C' }
+		'design' { '#B23C1F' }
+		'forge' { '#8A7530' }
+		'integrations' { '#6B8F71' }
+		'data' { '#5A7A8A' }
+		'tooling' { '#6B6560' }
+		'ops' { '#7A6B5A' }
+		'loops' { '#8B7F6E' }
+		else { '#9E9A95' }
 	}
 }
 

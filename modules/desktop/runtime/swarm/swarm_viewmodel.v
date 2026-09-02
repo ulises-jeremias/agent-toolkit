@@ -1,5 +1,11 @@
 module swarm
 
+// Swarm ViewModel — Dunder Mifflin Paper Company bullpen, Scranton Branch.
+// Pair/team/full launches are regional sales squads dispatched via Engine; GOD
+// routes every envelope through the mailbox (mailbox glow), avatars walk the
+// floor at 80 px/s with 4-frame bob, command deck streams jobs/loops with
+// 1024-cap backpressure, approvals handoff UI glows brass. 60 FPS, headless-safe,
+// Engine-typed (no shell), distinctive office charm in every label.
 import desktop_engine
 import desktop_engine.eventbus
 import desktop.state as app_state
@@ -120,9 +126,31 @@ pub fn (mut vm SwarmViewModel) launch_with_backend(recipe string, backend SwarmB
 	return vm.launch_with(SwarmLaunchChoice{ recipe: recipe, backend: backend, task: task })
 }
 
+// ── Ergonomic list / status / handoffs / start / stop / budget / worktree hygiene ──
+
 // all_runs returns swarm runs via Engine (for Swarm UI status list).
 pub fn (mut vm SwarmViewModel) all_runs() []desktop_engine.SwarmRun {
 	return vm.engine.swarm_list()
+}
+
+// list is alias for all_runs — `swarm list` via Engine.
+pub fn (mut vm SwarmViewModel) list() []desktop_engine.SwarmRun {
+	return vm.engine.swarm_list_all()
+}
+
+// start ergonomic wrapper — `swarm start` via Engine pair/team/full.
+pub fn (mut vm SwarmViewModel) start(task string, recipe string, backend string) !string {
+	return vm.engine.swarm_start(task, recipe, backend)
+}
+
+// stop ergonomic wrapper — `swarm stop` with worktree hygiene.
+pub fn (mut vm SwarmViewModel) stop(run_id string) !u64 {
+	return vm.engine.swarm_stop(run_id)
+}
+
+// cancel alias
+pub fn (mut vm SwarmViewModel) cancel(run_id string) !u64 {
+	return vm.engine.swarm_cancel(run_id)
 }
 
 // status_for returns status for a run.
@@ -130,8 +158,18 @@ pub fn (mut vm SwarmViewModel) status_for(run_id string) ?desktop_engine.SwarmRu
 	return vm.engine.swarm_status(run_id)
 }
 
+// status is alias for status_for — `swarm status` via Engine.
+pub fn (mut vm SwarmViewModel) status(run_id string) ?desktop_engine.SwarmRun {
+	return vm.engine.swarm_status(run_id)
+}
+
 // handoffs_for returns handoffs for a run (for handoffs panel).
 pub fn (mut vm SwarmViewModel) handoffs_for(run_id string) []string {
+	return vm.engine.swarm_handoffs(run_id)
+}
+
+// handoffs is alias — `swarm handoffs` via Engine.
+pub fn (mut vm SwarmViewModel) handoffs(run_id string) []string {
 	return vm.engine.swarm_handoffs(run_id)
 }
 
@@ -187,7 +225,9 @@ pub fn (mut vm SwarmViewModel) herdr_available() bool {
 pub fn (mut vm SwarmViewModel) tmux_available() bool {
 	checks := vm.engine.doctor()
 	for c in checks {
-		if c.id.contains('tmux') { return c.status == 'pass' }
+		if c.id.contains('tmux') {
+			return c.status == 'pass'
+		}
 	}
 	return true
 }
@@ -247,6 +287,33 @@ pub fn (mut vm SwarmViewModel) approvals_queue() []desktop_engine.SwarmApproval 
 	return vm.engine.swarm_approvals_queue()
 }
 
+// budget display via Engine — easy cost visibility.
+pub fn (mut vm SwarmViewModel) budget(run_id string) ?desktop_engine.SwarmBudgetView {
+	return vm.engine.swarm_budget(run_id)
+}
+
+pub fn (mut vm SwarmViewModel) budget_display(run_id string) string {
+	return vm.engine.swarm_budget_display(run_id)
+}
+
+// worktree-per-writer hygiene via Engine.
+pub fn (mut vm SwarmViewModel) worktree_path(run_id string, role string) !string {
+	return vm.engine.swarm_worktree_path(run_id, role)
+}
+
+pub fn (mut vm SwarmViewModel) hygiene(run_id string) []desktop_engine.BuildDiagnostic {
+	return vm.engine.swarm_ensure_worktree_hygiene(run_id)
+}
+
+pub fn (mut vm SwarmViewModel) artifacts_display(run_id string) map[string][]string {
+	return vm.engine.swarm_artifacts_display(run_id)
+}
+
+// approvals + artifacts + receipts/provenance kept
+pub fn (mut vm SwarmViewModel) receipts(run_id string) []desktop_engine.ProvenanceEntry {
+	return vm.engine.provenance_catalog().filter(it.artifact_path.contains(run_id))
+}
+
 // ProcessSupervisor stats via Engine
 pub fn (mut vm SwarmViewModel) supervisor_stats() (int, u64) {
 	return vm.engine.process_supervisor_stats()
@@ -271,4 +338,43 @@ pub fn (vm SwarmViewModel) last_run() string {
 // last_error returns last launch error for toast.
 pub fn (vm SwarmViewModel) last_error_msg() string {
 	return vm.last_error
+}
+
+// ── Dunder office charm — command deck streaming deck ─────────────────
+
+// command_deck_title returns the bullpen command deck header with paper charm.
+// "Command Deck — regional manager's bullpen: streaming ${jobs} jobs • ${loops} loops • ${approvals} HR holds"
+pub fn (vm SwarmViewModel) command_deck_title() string {
+	jobs := vm.engine.jobs_catalog().len
+	loops := vm.engine.loops_catalog().len
+	approvals := vm.engine.swarm_approvals_queue().len
+	return 'Command Deck — Scranton bullpen: streaming ${jobs} jobs • ${loops} loops • ${approvals} HR holds'
+}
+
+// streaming_jobs returns jobs for command deck ticker (capped at 5, 60 FPS virtualized).
+pub fn (mut vm SwarmViewModel) streaming_jobs(limit int) []desktop_engine.JobRecord {
+	mut all := vm.engine.jobs_catalog()
+	if limit > 0 && all.len > limit {
+		all = all[..limit]
+	}
+	return all
+}
+
+// streaming_loops returns loops for command deck ticker (outer mission board).
+pub fn (mut vm SwarmViewModel) streaming_loops(limit int) []desktop_engine.LoopEntry {
+	mut all := vm.engine.loops_catalog()
+	if limit > 0 && all.len > limit {
+		all = all[..limit]
+	}
+	return all
+}
+
+// handoff_stream returns recent handoffs for the floor envelope ticker.
+// Each handoff is an envelope; GOD mailbox glow drives the ticker pulse.
+pub fn (mut vm SwarmViewModel) handoff_stream(run_id string, limit int) []string {
+	mut hs := vm.engine.swarm_handoffs(run_id)
+	if limit > 0 && hs.len > limit {
+		hs = hs[hs.len - limit..]
+	}
+	return hs
 }

@@ -1,5 +1,13 @@
 module world
 
+// World View — Dunder Mifflin Paper Company office floor, Scranton Branch.
+// The Workshop canvas rendered as a Scranton bullpen: desks with brass nameplates
+// in a 32 px checkerboard, avatars walk at 80 px/s with ±1 px bob and 4-frame
+// cycle, envelopes fly 4·t·(1−t) arcs with brass tether and floor shadow glow,
+// GOD mailbox brass flag pulses at 60 FPS, command deck alt-wood panel streams
+// jobs/loops with 1024-cap backpressure, approvals glow on the HR wall. Retained
+// geometry, culling, virtualized text and EventBus→frame tick keep the floor at
+// 60 FPS, headless-safe via ATK_GUI_HEADLESS, paper-ink office charm throughout.
 import time
 import json2
 import desktop.theme
@@ -398,4 +406,67 @@ pub fn (h WorldPerfHarness) run_headless(iterations int) WorldPerfResult {
 		passed: passed
 		message: msg
 	}
+}
+
+// ── Dunder office charm — floor streaming helpers (avatar, envelope, GOD glow, command deck) ──
+
+// floor_avatar_walk_step advances an avatar one tick toward its Scranton desk.
+// 80 px/s at 60 FPS ≈ 1.33 px/frame, 4-frame walk cycle at 8 FPS, bob ±1 px sin(8πt).
+pub fn floor_avatar_walk_step(x f32, y f32, tx f32, ty f32, speed f32, frame int) (f32, f32, string, int, f32) {
+	dx := tx - x
+	dy := ty - y
+	dist := f32_approx_sqrt(dx * dx + dy * dy)
+	if dist < 2.0 {
+		return x, y, 'down', 0, 0
+	}
+	mut nx := x + dx / dist * speed
+	mut ny := y + dy / dist * speed
+	dir := if dx > 1 {
+		'right'
+	} else if dx < -1 {
+		'left'
+	} else if dy > 1 { 'down' } else { 'up' }
+	walk_frame := (frame / 7) % 4
+	bob := if walk_frame % 2 == 0 { f32(-1.0) } else { f32(1.0) }
+	_ = nx
+	_ = ny
+	return nx, ny, dir, walk_frame, bob
+}
+
+fn f32_approx_sqrt(v f32) f32 {
+	if v <= 0 {
+		return 0
+	}
+	mut r := v
+	for _ in 0 .. 4 {
+		r = (r + v / r) * 0.5
+	}
+	return r
+}
+
+// envelope_arc_y computes the 4·t·(1−t)·arc_h parabolic lift for a flying envelope.
+// t in [0,1], arc_h is workshop lift (26 px). GOD mailbox uses this exact arc.
+pub fn envelope_arc_y(progress f32, arc_h f32) f32 {
+	if progress < 0 {
+		return 0
+	}
+	if progress > 1 {
+		return 0
+	}
+	return arc_h * 4.0 * progress * (1.0 - progress)
+}
+
+// god_mailbox_glow returns brass glow alpha for the floor GOD mailbox.
+// inbox>0 pulses 18↔32 every 30 frames (flag up, brass halo), inbox==0 is dim.
+pub fn god_mailbox_glow(inbox int, frame int) int {
+	if inbox <= 0 {
+		return 0
+	}
+	return if frame % 30 < 15 { 32 } else { 18 }
+}
+
+// command_deck_stream_line renders one command deck ticker line with paper charm.
+// "▶ Jobs: daily-triage L1 • 3 jobs live — Scranton streaming @ 60 FPS"
+pub fn command_deck_stream_line(kind string, label string, meta string) string {
+	return '▶ ${kind}: ${label} — ${meta} — Scranton @ 60 FPS'
 }

@@ -76,35 +76,35 @@ fn swarm_role_def(recipe string, role string) ?SwarmRoleDef {
 			match role {
 				'implementer' {
 					return SwarmRoleDef{
-						persona:       'implementer'
-						policy:        'writer'
+						persona: 'implementer'
+						policy: 'writer'
 						model_profile: 'coding'
-						consumes:      ['task-contract']
-						produces:      ['commit', 'implementation-report']
-						skills:        ['tdd']
-						worktree:      'implementer'
+						consumes: ['task-contract']
+						produces: ['commit', 'implementation-report']
+						skills: ['tdd']
+						worktree: 'implementer'
 					}
 				}
 				'reviewer' {
 					return SwarmRoleDef{
-						persona:       'code-reviewer'
-						policy:        'reviewer-writer'
+						persona: 'code-reviewer'
+						policy: 'reviewer-writer'
 						model_profile: 'review'
-						consumes:      ['commit']
-						produces:      ['feedback', 'reviewed-commit']
-						skills:        ['code-review']
-						worktree:      'reviewer'
+						consumes: ['commit']
+						produces: ['feedback', 'reviewed-commit']
+						skills: ['code-review']
+						worktree: 'reviewer'
 					}
 				}
 				'integrator' {
 					return SwarmRoleDef{
-						persona:       'architect'
-						policy:        'integrator'
+						persona: 'architect'
+						policy: 'integrator'
 						model_profile: 'architecture'
-						consumes:      ['reviewed-commit']
-						produces:      ['final-candidate', 'final-report']
-						skills:        []
-						worktree:      'integration'
+						consumes: ['reviewed-commit']
+						produces: ['final-candidate', 'final-report']
+						skills: []
+						worktree: 'integration'
 					}
 				}
 				else {
@@ -116,46 +116,46 @@ fn swarm_role_def(recipe string, role string) ?SwarmRoleDef {
 			match role {
 				'planner' {
 					return SwarmRoleDef{
-						persona:       'planner'
-						policy:        'read-only'
+						persona: 'planner'
+						policy: 'read-only'
 						model_profile: 'planning'
-						consumes:      []
-						produces:      ['task-contract', 'acceptance-criteria', 'risk-assessment']
-						skills:        ['planning']
-						worktree:      ''
+						consumes: []
+						produces: ['task-contract', 'acceptance-criteria', 'risk-assessment']
+						skills: ['planning']
+						worktree: ''
 					}
 				}
 				'implementer' {
 					return SwarmRoleDef{
-						persona:       'implementer'
-						policy:        'writer'
+						persona: 'implementer'
+						policy: 'writer'
 						model_profile: 'coding'
-						consumes:      ['task-contract']
-						produces:      ['commit', 'implementation-report']
-						skills:        ['tdd']
-						worktree:      'implementer'
+						consumes: ['task-contract']
+						produces: ['commit', 'implementation-report']
+						skills: ['tdd']
+						worktree: 'implementer'
 					}
 				}
 				'reviewer' {
 					return SwarmRoleDef{
-						persona:       'code-reviewer'
-						policy:        'reviewer-writer'
+						persona: 'code-reviewer'
+						policy: 'reviewer-writer'
 						model_profile: 'review'
-						consumes:      ['commit']
-						produces:      ['feedback', 'reviewed-commit']
-						skills:        ['code-review']
-						worktree:      'reviewer'
+						consumes: ['commit']
+						produces: ['feedback', 'reviewed-commit']
+						skills: ['code-review']
+						worktree: 'reviewer'
 					}
 				}
 				'architect' {
 					return SwarmRoleDef{
-						persona:       'architect'
-						policy:        'integrator'
+						persona: 'architect'
+						policy: 'integrator'
 						model_profile: 'architecture'
-						consumes:      ['reviewed-commit']
-						produces:      ['final-candidate', 'final-report']
-						skills:        ['architecture']
-						worktree:      'integration'
+						consumes: ['reviewed-commit']
+						produces: ['final-candidate', 'final-report']
+						skills: ['architecture']
+						worktree: 'integration'
 					}
 				}
 				else {
@@ -167,68 +167,68 @@ fn swarm_role_def(recipe string, role string) ?SwarmRoleDef {
 			match role {
 				'planner' {
 					return SwarmRoleDef{
-						persona:       'planner'
-						policy:        'read-only'
+						persona: 'planner'
+						policy: 'read-only'
 						model_profile: 'planning'
-						consumes:      []
-						produces:      ['task-contract']
-						skills:        ['planning']
-						worktree:      ''
+						consumes: []
+						produces: ['task-contract']
+						skills: ['planning']
+						worktree: ''
 					}
 				}
 				'implementer' {
 					return SwarmRoleDef{
-						persona:       'implementer'
-						policy:        'writer'
+						persona: 'implementer'
+						policy: 'writer'
 						model_profile: 'coding'
-						consumes:      ['task-contract']
-						produces:      ['commit']
-						skills:        []
-						worktree:      'implementer'
+						consumes: ['task-contract']
+						produces: ['commit']
+						skills: []
+						worktree: 'implementer'
 					}
 				}
 				'refactorer' {
 					return SwarmRoleDef{
-						persona:       'refactor-cleaner'
-						policy:        'writer'
+						persona: 'refactor-cleaner'
+						policy: 'writer'
 						model_profile: 'review'
-						consumes:      ['commit']
-						produces:      ['refactored-commit']
-						skills:        []
-						worktree:      'reviewer'
+						consumes: ['commit']
+						produces: ['refactored-commit']
+						skills: []
+						worktree: 'reviewer'
 					}
 				}
 				'architect' {
 					return SwarmRoleDef{
-						persona:       'architect'
-						policy:        'integrator'
+						persona: 'architect'
+						policy: 'integrator'
 						model_profile: 'architecture'
-						consumes:      ['refactored-commit']
-						produces:      ['integrated-commit']
-						skills:        []
-						worktree:      'integration'
+						consumes: ['refactored-commit']
+						produces: ['integrated-commit']
+						skills: []
+						worktree: 'integration'
 					}
 				}
 				'hardener' {
 					return SwarmRoleDef{
-						persona:       'security-reviewer'
-						policy:        'reviewer-writer'
+						persona: 'security-reviewer'
+						policy: 'reviewer-writer'
 						model_profile: 'hardening'
-						consumes:      ['integrated-commit']
-						produces:      ['hardened-commit']
-						skills:        []
-						worktree:      'hardener'
+						consumes: ['integrated-commit']
+						produces: ['hardened-commit']
+						skills: []
+						worktree: 'hardener'
 					}
 				}
 				'qa' {
 					return SwarmRoleDef{
-						persona:       'e2e-runner'
-						policy:        'reviewer-writer'
+						persona: 'e2e-runner'
+						policy: 'reviewer-writer'
 						model_profile: 'qa'
-						consumes:      ['hardened-commit']
-						produces:      ['qa-report', 'final-report']
-						skills:        []
-						worktree:      'qa'
+						consumes: ['hardened-commit']
+						produces: ['qa-report', 'final-report']
+						skills: []
+						worktree: 'qa'
 					}
 				}
 				else {
@@ -251,14 +251,18 @@ fn swarm_role_skills(recipe string, role string) []string {
 
 fn swarm_recipe_execution_text(recipe string) string {
 	return match recipe {
-		'pair', 'team', 'full' { "{'max_concurrency': 2, 'lazy_start': True, 'resumable': True, 'max_role_round_trips': 2}" }
+		'pair', 'team', 'full' {
+			"{'max_concurrency': 2, 'lazy_start': True, 'resumable': True, 'max_role_round_trips': 2}"
+		}
 		else { '{}' }
 	}
 }
 
 fn swarm_recipe_workspace_text(recipe string) string {
 	return match recipe {
-		'pair', 'team', 'full' { "{'strategy': 'worktree-per-writer', 'base_ref': 'HEAD', 'integration_branch': True, 'keep_on_failure': True}" }
+		'pair', 'team', 'full' {
+			"{'strategy': 'worktree-per-writer', 'base_ref': 'HEAD', 'integration_branch': True, 'keep_on_failure': True}"
+		}
 		else { '{}' }
 	}
 }
@@ -290,27 +294,53 @@ fn swarm_next_roles(recipe string, role string) []string {
 	match recipe {
 		'pair' {
 			match role {
-				'implementer' { return ['reviewer'] }
-				'reviewer' { return ['integrator'] }
-				else { return [] }
+				'implementer' {
+					return ['reviewer']
+				}
+				'reviewer' {
+					return ['integrator']
+				}
+				else {
+					return []
+				}
 			}
 		}
 		'team' {
 			match role {
-				'planner' { return ['implementer'] }
-				'implementer' { return ['reviewer'] }
-				'reviewer' { return ['architect'] }
-				else { return [] }
+				'planner' {
+					return ['implementer']
+				}
+				'implementer' {
+					return ['reviewer']
+				}
+				'reviewer' {
+					return ['architect']
+				}
+				else {
+					return []
+				}
 			}
 		}
 		'full' {
 			match role {
-				'planner' { return ['implementer'] }
-				'implementer' { return ['refactorer'] }
-				'refactorer' { return ['architect'] }
-				'architect' { return ['hardener'] }
-				'hardener' { return ['qa'] }
-				else { return [] }
+				'planner' {
+					return ['implementer']
+				}
+				'implementer' {
+					return ['refactorer']
+				}
+				'refactorer' {
+					return ['architect']
+				}
+				'architect' {
+					return ['hardener']
+				}
+				'hardener' {
+					return ['qa']
+				}
+				else {
+					return []
+				}
 			}
 		}
 		else {
@@ -325,13 +355,13 @@ fn swarm_next_roles(recipe string, role string) []string {
 pub fn swarm_compose_role_prompt(recipe string, role string, task_contract string, handoff string, included_skills []string, run_id string) (string, SwarmPromptManifest) {
 	def := swarm_role_def(recipe, role) or {
 		SwarmRoleDef{
-			persona:       role
-			policy:        'read-only'
+			persona: role
+			policy: 'read-only'
 			model_profile: ''
-			consumes:      []
-			produces:      []
-			skills:        included_skills.clone()
-			worktree:      ''
+			consumes: []
+			produces: []
+			skills: included_skills.clone()
+			worktree: ''
 		}
 	}
 	persona := def.persona
@@ -400,10 +430,10 @@ pub fn swarm_compose_role_prompt(recipe string, role string, task_contract strin
 			'   `agent-toolkit swarm handoff create --type commit --from ${role} --to ${first_next} --commit <40-hex-sha> --branch <your-branch>`',
 			'2. If you created an artifact (e.g., `artifacts/review.md`), then:',
 			'   `agent-toolkit swarm handoff create --type artifact --from ${role} --to ${first_next} --artifact artifacts/<file>.md`',
-			'The next role will run `agent-toolkit swarm task next --role <next> --run-id <run_id>` to pick it up. Do not wait — the handoff is durable and the daemon will notify. The next role\'s tmux window will be auto-created by the handoff.',
-			'IMPORTANT: After you finish writing the artifact or committing code, immediately run the `handoff create` command above — do NOT ask the user for confirmation, do NOT wait for \'do the handoff\'.',
+			"The next role will run `agent-toolkit swarm task next --role <next> --run-id <run_id>` to pick it up. Do not wait — the handoff is durable and the daemon will notify. The next role's tmux window will be auto-created by the handoff.",
+			"IMPORTANT: After you finish writing the artifact or committing code, immediately run the `handoff create` command above — do NOT ask the user for confirmation, do NOT wait for 'do the handoff'.",
 			'FORBIDDEN: Do not run a local code review via subagent/Task tool. Do not self-correct and re-commit as "reviewer findings" — commit once, then handoff. The swarm\'s reviewer runs in an isolated worktree and is reached ONLY via `handoff create`; you will be woken for feedback if needed.',
-			'Run ID for this swarm: `${rid_display}` — if the command says \'No run found\', add `--run-id <run_id>` or ensure `AGENT_TOOLKIT_SWARM_RUN_ID` is exported (it is in your tmux env).',
+			"Run ID for this swarm: `${rid_display}` — if the command says 'No run found', add `--run-id <run_id>` or ensure `AGENT_TOOLKIT_SWARM_RUN_ID` is exported (it is in your tmux env).",
 			'## Feedback — loop work back when needed',
 			'You are a node in a directed graph, not a pipeline: if the next iteration belongs to an earlier role (re-work, failing checks, missing context, spec drift), send it back instead of forcing it forward:',
 			'   `agent-toolkit swarm handoff create --type feedback --from ${role} --to <predecessor> --blocking --run-id ${rid_display}`',
@@ -439,14 +469,14 @@ pub fn swarm_compose_role_prompt(recipe string, role string, task_contract strin
 		includes << 'skills'
 	}
 	manifest := SwarmPromptManifest{
-		role:               role
-		persona:            persona
-		policy:             policy
-		recipe:             recipe_name
-		includes:           includes
-		size_chars:         text.runes().len
+		role: role
+		persona: persona
+		policy: policy
+		recipe: recipe_name
+		includes: includes
+		size_chars: text.runes().len
 		model_profile_task: def.model_profile
-		is_interactive:     is_interactive
+		is_interactive: is_interactive
 	}
 	return text, manifest
 }

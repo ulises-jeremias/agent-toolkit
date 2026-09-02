@@ -202,7 +202,6 @@ pub fn (vm SkillViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t
 }
 
-
 // ── super-potent extensions: stats, receipts, provenance, bulk, toggle, preview ──
 pub fn (vm SkillViewModel) stats() desktop_engine.SkillStats {
 	return vm.engine.skills_stats()
@@ -243,7 +242,6 @@ pub fn (vm SkillViewModel) verify_receipts() []desktop_engine.BuildDiagnostic {
 pub fn (vm SkillViewModel) detailed_preview() string {
 	return vm.engine.build_preview_detailed()
 }
-
 
 pub fn (vm SkillViewModel) perf_harness() string {
 	count := vm.all.len + 5000

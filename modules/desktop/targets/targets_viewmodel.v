@@ -6,8 +6,8 @@ import desktop.state as app_state
 
 pub struct TargetsViewModel {
 mut:
-	engine &desktop_engine.Engine
-	matrix []desktop_engine.TargetEntry
+	engine   &desktop_engine.Engine
+	matrix   []desktop_engine.TargetEntry
 	revision u64
 }
 
@@ -47,7 +47,6 @@ pub fn (mut vm TargetsViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-
 // ── super-potent: preview, dry_run, receipts, provenance, toggle, stats ──
 pub fn (vm TargetsViewModel) preview(targets []string) desktop_engine.TargetDiff {
 	return vm.engine.install_preview(targets)
@@ -84,7 +83,6 @@ pub fn (vm TargetsViewModel) verify() []desktop_engine.BuildDiagnostic {
 pub fn (vm TargetsViewModel) detailed_paths() string {
 	return vm.engine.resolve_paths_detailed()
 }
-
 
 pub fn (vm TargetsViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t

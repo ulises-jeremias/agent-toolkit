@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 
 // CacheMeta is the metadata stored in cached_version.json.
@@ -41,7 +41,7 @@ pub fn (c ContentCache) read_meta() ?CacheMeta {
 		return none
 	}
 	text := os.read_file(path) or { return none }
-	meta := json.decode(CacheMeta, text) or { return none }
+	meta := json2.decode[CacheMeta](text) or { return none }
 	if meta.version.len == 0 {
 		return none
 	}
@@ -51,7 +51,7 @@ pub fn (c ContentCache) read_meta() ?CacheMeta {
 // write_meta stores cache metadata atomically.
 pub fn (c ContentCache) write_meta(meta CacheMeta) ! {
 	c.fs.ensure_dir(c.dir())!
-	payload := json.encode(meta)
+	payload := json2.encode(meta, escape_unicode: true)
 	c.fs.write_atomic(c.version_file(), payload + '\n')!
 }
 

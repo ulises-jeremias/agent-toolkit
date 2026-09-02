@@ -28,9 +28,9 @@ exit_conditions:
   - human_escalation
 
 budget:
-  max_tokens: 20000
-  max_runs_per_day: 4
-  max_wall_seconds: 300
+  max_tokens: 150000
+  max_runs_per_day: 1
+  max_wall_seconds: 1200
 
 verifier: null
 

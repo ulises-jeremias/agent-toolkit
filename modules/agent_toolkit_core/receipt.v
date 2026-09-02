@@ -1,7 +1,7 @@
 module agent_toolkit_core
 
 import crypto.sha256
-import json
+import json2
 import os
 import time
 
@@ -22,7 +22,7 @@ pub:
 // InstallReceipt matches Python installer/receipt.py JSON (camelCase keys).
 pub struct InstallReceipt {
 pub mut:
-	schema_version      int    @[json: 'schemaVersion']
+	schema_version      int @[json: 'schemaVersion']
 	product             string
 	target              string
 	scope               string
@@ -37,16 +37,16 @@ pub mut:
 // new_install_receipt creates a schemaVersion=1 receipt (secrets always empty).
 pub fn new_install_receipt(product string, target string, scope string, version string, source_digest string) InstallReceipt {
 	return InstallReceipt{
-		schema_version:      receipt_schema_version
-		product:             product
-		target:              target
-		scope:               scope
-		version:             version
-		installed_at:        ''
-		source_digest:       source_digest
-		artifacts:           []ArtifactEntry{}
+		schema_version: receipt_schema_version
+		product: product
+		target: target
+		scope: scope
+		version: version
+		installed_at: ''
+		source_digest: source_digest
+		artifacts: []ArtifactEntry{}
 		config_patches_json: '[]'
-		secrets:             []string{}
+		secrets: []string{}
 	}
 }
 
@@ -67,7 +67,7 @@ pub fn parse_install_receipt(text string) !InstallReceipt {
 	if trimmed.len == 0 {
 		return error('empty receipt JSON')
 	}
-	mut r := json.decode(InstallReceipt, trimmed) or { return error('receipt decode failed: ${err}') }
+	mut r := json2.decode[InstallReceipt](trimmed) or { return error('receipt decode failed: ${err}') }
 	if r.schema_version < 1 {
 		r.schema_version = receipt_schema_version
 	}
@@ -103,16 +103,16 @@ pub fn parse_install_receipt(text string) !InstallReceipt {
 pub fn encode_install_receipt(r InstallReceipt) string {
 	wire := InstallReceiptWire{
 		schema_version: r.schema_version
-		product:        r.product
-		target:         r.target
-		scope:          r.scope
-		version:        r.version
-		installed_at:   r.installed_at
-		source_digest:  r.source_digest
-		artifacts:      r.artifacts
-		secrets:        []string{}
+		product: r.product
+		target: r.target
+		scope: r.scope
+		version: r.version
+		installed_at: r.installed_at
+		source_digest: r.source_digest
+		artifacts: r.artifacts
+		secrets: []string{}
 	}
-	mut body := json.encode(wire)
+	mut body := json2.encode(wire, escape_unicode: true)
 	patches := if r.config_patches_json.len > 0 { r.config_patches_json } else { '[]' }
 	// Inject configPatches before secrets (wire struct omits raw patches field).
 	needle := '"secrets"'
@@ -162,13 +162,13 @@ pub fn profiles_source_digest(toolkit_root string) string {
 
 // InstallReceiptWire is encode-only (no config_patches_json field).
 struct InstallReceiptWire {
-	schema_version int            @[json: 'schemaVersion']
+	schema_version int @[json: 'schemaVersion']
 	product        string
 	target         string
 	scope          string
 	version        string
-	installed_at   string         @[json: 'installedAt']
-	source_digest  string         @[json: 'sourceDigest']
+	installed_at   string @[json: 'installedAt']
+	source_digest  string @[json: 'sourceDigest']
 	artifacts      []ArtifactEntry
 	secrets        []string
 }
@@ -224,7 +224,7 @@ pub fn receipt_artifact_digest(path string) string {
 // Blocks NUL, and Windows/Unix relative escapes (`..` segments). Absolute paths are allowed
 // (receipts store resolved home paths) but must not contain `..` after normalization.
 pub fn receipt_path_escapes(path string) bool {
-	if path.contains('\x00') {
+	if path.contains('\0') {
 		return true
 	}
 	normalized := path.replace('\\', '/')

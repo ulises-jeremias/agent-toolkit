@@ -20,7 +20,7 @@ fn test_swarm_recipes() {
 	assert r.data['recipes'].contains('pair')
 	one := run_swarm(SwarmOptions{
 		subcommand: 'recipes'
-		run_id:     'pair'
+		run_id: 'pair'
 	})
 	assert one.ok
 	assert one.data['roles'].contains('implementer')
@@ -44,23 +44,23 @@ fn test_swarm_start_status_approve_cancel() {
 	}
 
 	dry := run_swarm(SwarmOptions{
-		subcommand:     'start'
+		subcommand: 'start'
 		workspace_path: base
-		recipe:         'team'
-		backend:        'headless'
-		dry_run:        true
-		task:           'demo'
+		recipe: 'team'
+		backend: 'headless'
+		dry_run: true
+		task: 'demo'
 	})
 	assert dry.ok, dry.message
 	assert dry.data['mode'] == 'dry-run'
 	assert !os.is_dir(os.join_path(base, '.agent-toolkit', 'swarm', 'runs'))
 
 	start := run_swarm(SwarmOptions{
-		subcommand:     'start'
+		subcommand: 'start'
 		workspace_path: base
-		recipe:         'team'
-		backend:        'headless'
-		task:           'demo'
+		recipe: 'team'
+		backend: 'headless'
+		task: 'demo'
 	})
 	assert start.ok, start.message
 	assert start.data['run_state'] == 'awaiting_plan_approval'
@@ -69,41 +69,41 @@ fn test_swarm_start_status_approve_cancel() {
 	assert os.is_file(os.join_path(base, '.agent-toolkit', 'swarm', 'runs', rid, 'state.json'))
 
 	st := run_swarm(SwarmOptions{
-		subcommand:     'status'
+		subcommand: 'status'
 		workspace_path: base
-		run_id:         rid
+		run_id: rid
 	})
 	assert st.ok, st.message
 	assert st.data['gates'].contains('plan:pending')
 
 	ap := run_swarm(SwarmOptions{
-		subcommand:     'approve'
+		subcommand: 'approve'
 		workspace_path: base
-		run_id:         rid
-		gate_id:        'plan'
+		run_id: rid
+		gate_id: 'plan'
 	})
 	assert ap.ok, ap.message
 	assert ap.data['run_state'] == 'running'
 
 	rej := run_swarm(SwarmOptions{
-		subcommand:     'reject'
+		subcommand: 'reject'
 		workspace_path: base
-		run_id:         rid
-		gate_id:        'final'
-		reason:         'not yet'
+		run_id: rid
+		gate_id: 'final'
+		reason: 'not yet'
 	})
 	assert rej.ok, rej.message
 
 	can := run_swarm(SwarmOptions{
-		subcommand:     'cancel'
+		subcommand: 'cancel'
 		workspace_path: base
-		run_id:         rid
+		run_id: rid
 	})
 	assert can.ok, can.message
 	assert can.data['run_state'] == 'cancelled'
 
 	doc := run_swarm(SwarmOptions{
-		subcommand:     'doctor'
+		subcommand: 'doctor'
 		workspace_path: base
 	})
 	assert doc.ok, doc.message

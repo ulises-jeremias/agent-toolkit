@@ -6,26 +6,26 @@ import os
 // Everything is possible and easy to manage: one call returns all gaps.
 pub struct OnboardingStatus {
 pub:
-	is_first_run         bool
-	workspace_exists     bool
+	is_first_run          bool
+	workspace_exists      bool
 	personas_bootstrapped bool
-	installed_skills     []string
-	installed_count      int
-	enabled_targets      []string
+	installed_skills      []string
+	installed_count       int
+	enabled_targets       []string
 	enabled_targets_count int
-	products_count       int
-	packs_enabled        []string
-	pending_checks       []string
-	pending_items        []string
-	completed            bool
-	harness_root         string
-	revision             u64
-	persona_count        int
-	capability_ready     bool
-	target_ready         bool
-	product_ready        bool
-	workspace_ready      bool
-	persona_ready        bool
+	products_count        int
+	packs_enabled         []string
+	pending_checks        []string
+	pending_items         []string
+	completed             bool
+	harness_root          string
+	revision              u64
+	persona_count         int
+	capability_ready      bool
+	target_ready          bool
+	product_ready         bool
+	workspace_ready       bool
+	persona_ready         bool
 }
 
 // onboarding_status returns aggregated wizard state via Engine (typed, no shell).
@@ -154,17 +154,18 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 	}
 	os.mkdir_all(actual) or { return error('mkdir failed: ${err}') }
 	// scaffold harness structure mirroring agent_toolkit_core workspace_init
-	subdirs := ['knowledge', 'knowledge/learnings', 'knowledge/todos', 'packs', 'personas', 'repos', 'projects', '.agent-toolkit/swarm/runs']
+	subdirs := ['knowledge', 'knowledge/learnings', 'knowledge/todos', 'packs', 'personas', 'repos',
+		'projects', '.agent-toolkit/swarm/runs']
 	for sub in subdirs {
 		os.mkdir_all(os.join_path(actual, sub)) or {}
 	}
 	// scaffold minimal files if missing
 	files := {
-		'knowledge/README.md':        '# Knowledge — harness workspace\n\nRun `agent-toolkit memory search <topic>` before asking.\n'
+		'knowledge/README.md':            '# Knowledge — harness workspace\n\nRun `agent-toolkit memory search <topic>` before asking.\n'
 		'knowledge/learnings/general.md': '| Date | Learning | Context |\n|------|----------|---------|\n'
-		'knowledge/todos/pending.md': '# Pending\n\n<!-- add via memory add -->\n'
-		'packs/README.md':            '# Packs — context bundles\n\nCreate packs/*.yaml and load via workspace load.\n'
-		'.gitignore':                  'repos/\nprojects/\n.active-*\n.persona-history\n'
+		'knowledge/todos/pending.md':     '# Pending\n\n<!-- add via memory add -->\n'
+		'packs/README.md':                '# Packs — context bundles\n\nCreate packs/*.yaml and load via workspace load.\n'
+		'.gitignore':                     'repos/\nprojects/\n.active-*\n.persona-history\n'
 	}
 	for rel, content in files {
 		p := os.join_path(actual, rel)
@@ -203,9 +204,9 @@ pub fn (mut e Engine) onboarding_ensure_personas(harness_root string) !u64 {
 	os.mkdir_all(os.join_path(clean, 'personas')) or { return error('mkdir personas failed: ${err}') }
 	persona_templates := {
 		'implementer.md': '---\nallow: [write_files, run_tests]\ndeny: [merge_prs]\n---\n\n# Implementer\n\nBias toward action.\n'
-		'reviewer.md': '---\nallow: [read_files, post_comments]\ndeny: [write_files]\n---\n\n# Reviewer\n\nCritique only.\n'
-		'researcher.md': '---\nallow: [read_files, search_web]\ndeny: [write_files]\n---\n\n# Researcher\n\nExplore and summarize.\n'
-		'architect.md': '---\nallow: [read_files, write_docs]\ndeny: [write_application_code]\n---\n\n# Architect\n\nSystem design.\n'
+		'reviewer.md':    '---\nallow: [read_files, post_comments]\ndeny: [write_files]\n---\n\n# Reviewer\n\nCritique only.\n'
+		'researcher.md':  '---\nallow: [read_files, search_web]\ndeny: [write_files]\n---\n\n# Researcher\n\nExplore and summarize.\n'
+		'architect.md':   '---\nallow: [read_files, write_docs]\ndeny: [write_application_code]\n---\n\n# Architect\n\nSystem design.\n'
 	}
 	mut created := 0
 	for fname, content in persona_templates {

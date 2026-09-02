@@ -7,13 +7,13 @@ import json2
 // TargetEntry mirrors install.v profiles — super-potent with receipt/provenance.
 pub struct TargetEntry {
 pub:
-	id       string
-	name     string
-	enabled  bool
-	layer    string
-	path     string
-	status   string
-	receipt  string // receipt path if installed
+	id         string
+	name       string
+	enabled    bool
+	layer      string
+	path       string
+	status     string
+	receipt    string // receipt path if installed
 	provenance string // provenance path
 }
 
@@ -28,22 +28,22 @@ pub:
 // InstallOptions mirrors core InstallOptions for Engine-owned install flow (headless, no shell).
 pub struct InstallOptionsEngine {
 pub:
-	targets   []string
-	dry_run   bool
-	force     bool
+	targets     []string
+	dry_run     bool
+	force       bool
 	receipt_dir string
 }
 
 // InstallReceiptInfo mirrors core InstallReceipt for desktop management.
 pub struct InstallReceiptInfo {
 pub:
-	target       string
-	product      string
-	version      string
-	installed_at string
-	source_digest string
-	artifacts    []string
-	receipt_path string
+	target          string
+	product         string
+	version         string
+	installed_at    string
+	source_digest   string
+	artifacts       []string
+	receipt_path    string
 	provenance_path string
 }
 
@@ -57,7 +57,11 @@ pub fn (mut e Engine) targets() []TargetEntry {
 	profiles := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
 	for p in profiles {
 		enabled_str := e.repo.snapshot().data['target:${p}:enabled'] or { '' }
-		enabled := if enabled_str == '' { p == 'claude-code' || p == 'cli' } else { enabled_str == 'true' }
+		enabled := if enabled_str == '' {
+			p == 'claude-code' || p == 'cli'
+		} else {
+			enabled_str == 'true'
+		}
 		layer := if env.tier == 'override' { 'Project' } else { 'Toolkit' }
 		snap := e.repo.snapshot()
 		receipt := snap.data['receipt:target:${p}:path'] or { '' }
@@ -276,14 +280,16 @@ pub fn (mut e Engine) install_receipt_json(target_id string) string {
 	digest := snap.data['receipt:target:${target_id}:digest'] or { 'sha256:abc' }
 	return json2.encode({
 		'schemaVersion': '1'
-		'product': 'agent-toolkit-profiles'
-		'target': target_id
-		'scope': 'project'
-		'version': version
-		'installedAt': installed_at
-		'sourceDigest': digest
-		'provenance': snap.data['provenance:target:${target_id}:source'] or { 'profiles/${target_id}' }
-	}, escape_unicode: true)
+		'product':       'agent-toolkit-profiles'
+		'target':        target_id
+		'scope':         'project'
+		'version':       version
+		'installedAt':   installed_at
+		'sourceDigest':  digest
+		'provenance':    snap.data['provenance:target:${target_id}:source'] or { 'profiles/${target_id}' }
+	},
+		escape_unicode: true
+	)
 }
 
 pub fn (mut e Engine) is_first_run() bool {
@@ -364,9 +370,11 @@ pub fn (mut e Engine) resolve_paths_detailed() string {
 	env := resolve_env()
 	return json2.encode({
 		'toolkit_root': env.toolkit_root
-		'tier': env.tier
-		'receipt_dir': '~/.config/agent-toolkit/receipts'
-		'provenance': 'plugins/*/.provenance.json'
-		'cache': cache_path('1.27.0')
-	}, escape_unicode: true)
+		'tier':         env.tier
+		'receipt_dir':  '~/.config/agent-toolkit/receipts'
+		'provenance':   'plugins/*/.provenance.json'
+		'cache':        cache_path('1.27.0')
+	},
+		escape_unicode: true
+	)
 }

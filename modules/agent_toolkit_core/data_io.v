@@ -3,7 +3,6 @@ module agent_toolkit_core
 import os
 
 // data root abstraction — "embedded" is the in-memory full-embed tier (issue #766).
-
 pub fn is_embedded_root(data_root string) bool {
 	return data_root == 'embedded'
 }

@@ -7,17 +7,17 @@ import json2
 // AgentEntry mirrors personas + AGENT.md + registry — super-potent: delegates, collaborates, triggers, provenance.
 pub struct AgentEntry {
 pub mut:
-	id             string
-	role           string
-	tier           string // orchestrator | holistic | specialist | archived
-	description    string
-	holistic_owner string
-	archived       bool
-	delegates_to []string
+	id                string
+	role              string
+	tier              string // orchestrator | holistic | specialist | archived
+	description       string
+	holistic_owner    string
+	archived          bool
+	delegates_to      []string
 	collaborates_with []string
-	triggers       string
-	source_file    string
-	provenance     string // sha or catalog path
+	triggers          string
+	source_file       string
+	provenance        string // sha or catalog path
 }
 
 // AgentStats for potent management dashboard.
@@ -107,9 +107,10 @@ pub fn (mut e Engine) agents_catalog() []AgentEntry {
 			}
 			if entries.len >= 18 {
 				// append archived synthetic
-				archived := ['old-agent-a', 'old-agent-b', 'old-agent-c', 'old-agent-d', 'old-agent-e', 'old-agent-f', 'old-agent-g']
+				archived := ['old-agent-a', 'old-agent-b', 'old-agent-c', 'old-agent-d', 'old-agent-e',
+					'old-agent-f', 'old-agent-g']
 				for a in archived {
-					entries << AgentEntry{id: a, role: 'Archived', tier: 'archived', description: 'Archived ${a}', holistic_owner: '', archived: true, source_file: 'agents/${a}/AGENT.md'}
+					entries << AgentEntry{ id: a, role: 'Archived', tier: 'archived', description: 'Archived ${a}', holistic_owner: '', archived: true, source_file: 'agents/${a}/AGENT.md' }
 				}
 				// enrich triggers from skill mapping
 				for i in 0 .. entries.len {
@@ -124,33 +125,72 @@ pub fn (mut e Engine) agents_catalog() []AgentEntry {
 	}
 	// fallback synthetic (original)
 	mut out := []AgentEntry{}
-	out << AgentEntry{id: 'planner', role: 'Orchestrator', tier: 'orchestrator', description: 'Plans work — delegates to architect, researcher, designer', holistic_owner: 'planner', delegates_to: ['architect', 'researcher'], triggers: 'planning, estimation, breakdown', source_file: 'agents/planner/AGENT.md', provenance: 'synthetic'}
-	out << AgentEntry{id: 'implementer', role: 'Orchestrator', tier: 'orchestrator', description: 'Implements — delegates to tdd-guide, collaborates with reviewer', holistic_owner: 'implementer', delegates_to: ['tdd-guide'], collaborates_with: ['reviewer', 'architect'], triggers: 'feature, bug, refactor', source_file: 'agents/implementer/AGENT.md', provenance: 'synthetic'}
-	holistics := ['assistant', 'architect', 'designer', 'platform-engineer', 'qa-engineer', 'researcher', 'security-engineer', 'data-engineer', 'reviewer', 'code-reviewer', 'e2e-runner']
-	for h in holistics {
-		out << AgentEntry{id: h, role: 'Holistic', tier: 'holistic', description: 'Holistic ${h} — owns delivery lane', holistic_owner: h, triggers: triggers_for_agent(h), source_file: 'agents/${h}/AGENT.md', provenance: 'synthetic'}
+	out << AgentEntry{
+		id: 'planner'
+		role: 'Orchestrator'
+		tier: 'orchestrator'
+		description: 'Plans work — delegates to architect, researcher, designer'
+		holistic_owner: 'planner'
+		delegates_to: [
+			'architect',
+			'researcher',
+		]
+		triggers: 'planning, estimation, breakdown'
+		source_file: 'agents/planner/AGENT.md'
+		provenance: 'synthetic'
 	}
-	specialists := ['tdd-guide', 'security-reviewer', 'agentic-security-reviewer', 'build-error-resolver', 'client-workflow-bootstrap', 'tool-insights']
+	out << AgentEntry{
+		id: 'implementer'
+		role: 'Orchestrator'
+		tier: 'orchestrator'
+		description: 'Implements — delegates to tdd-guide, collaborates with reviewer'
+		holistic_owner: 'implementer'
+		delegates_to: [
+			'tdd-guide',
+		]
+		collaborates_with: ['reviewer', 'architect']
+		triggers: 'feature, bug, refactor'
+		source_file: 'agents/implementer/AGENT.md'
+		provenance: 'synthetic'
+	}
+	holistics := ['assistant', 'architect', 'designer', 'platform-engineer', 'qa-engineer',
+		'researcher', 'security-engineer', 'data-engineer', 'reviewer', 'code-reviewer', 'e2e-runner']
+	for h in holistics {
+		out << AgentEntry{ id: h, role: 'Holistic', tier: 'holistic', description: 'Holistic ${h} — owns delivery lane', holistic_owner: h, triggers: triggers_for_agent(h), source_file: 'agents/${h}/AGENT.md', provenance: 'synthetic' }
+	}
+	specialists := ['tdd-guide', 'security-reviewer', 'agentic-security-reviewer',
+		'build-error-resolver', 'client-workflow-bootstrap', 'tool-insights']
 	for s in specialists {
-		out << AgentEntry{id: s, role: 'Specialist', tier: 'specialist', description: 'Specialist ${s}', holistic_owner: 'architect', triggers: triggers_for_agent(s), source_file: 'agents/${s}/AGENT.md', provenance: 'synthetic'}
+		out << AgentEntry{ id: s, role: 'Specialist', tier: 'specialist', description: 'Specialist ${s}', holistic_owner: 'architect', triggers: triggers_for_agent(s), source_file: 'agents/${s}/AGENT.md', provenance: 'synthetic' }
 	}
 	if out.len > 18 {
 		out = out[..18].clone()
 	}
-	archived := ['old-agent-a', 'old-agent-b', 'old-agent-c', 'old-agent-d', 'old-agent-e', 'old-agent-f', 'old-agent-g']
+	archived := ['old-agent-a', 'old-agent-b', 'old-agent-c', 'old-agent-d', 'old-agent-e',
+		'old-agent-f', 'old-agent-g']
 	for a in archived {
-		out << AgentEntry{id: a, role: 'Archived', tier: 'archived', description: 'Archived ${a}', holistic_owner: '', archived: true, source_file: 'agents/${a}/AGENT.md', provenance: 'synthetic'}
+		out << AgentEntry{ id: a, role: 'Archived', tier: 'archived', description: 'Archived ${a}', holistic_owner: '', archived: true, source_file: 'agents/${a}/AGENT.md', provenance: 'synthetic' }
 	}
 	return out
 }
 
 fn tier_for_agent(id string) string {
-	if id in ['assistant', 'planner', 'implementer', 'client-workflow-bootstrap'] { return 'orchestrator' }
-	if id in ['tdd-guide', 'security-reviewer', 'agentic-security-reviewer', 'build-error-resolver', 'client-workflow-bootstrap', 'tool-insights', 'code-reviewer', 'e2e-runner'] { return 'specialist' }
+	if id in ['assistant', 'planner', 'implementer', 'client-workflow-bootstrap'] {
+		return 'orchestrator'
+	}
+	if id in ['tdd-guide', 'security-reviewer', 'agentic-security-reviewer', 'build-error-resolver',
+		'client-workflow-bootstrap', 'tool-insights', 'code-reviewer', 'e2e-runner'] {
+		return 'specialist'
+	}
 	// fallback: holistic for known holistic list
-	holistics := ['assistant', 'architect', 'designer', 'platform-engineer', 'qa-engineer', 'researcher', 'security-engineer', 'data-engineer', 'reviewer', 'code-reviewer', 'e2e-runner']
-	if id in holistics { return 'holistic' }
-	if id.starts_with('old-') { return 'archived' }
+	holistics := ['assistant', 'architect', 'designer', 'platform-engineer', 'qa-engineer',
+		'researcher', 'security-engineer', 'data-engineer', 'reviewer', 'code-reviewer', 'e2e-runner']
+	if id in holistics {
+		return 'holistic'
+	}
+	if id.starts_with('old-') {
+		return 'archived'
+	}
 	return 'holistic'
 }
 
@@ -184,10 +224,18 @@ fn triggers_for_agent(id string) string {
 }
 
 fn infer_owner(id string) string {
-	if id == 'tdd-guide' { return 'implementer' }
-	if id in ['security-reviewer', 'agentic-security-reviewer'] { return 'security-engineer' }
-	if id == 'build-error-resolver' { return 'platform-engineer' }
-	if id in ['code-reviewer', 'e2e-runner'] { return 'reviewer' }
+	if id == 'tdd-guide' {
+		return 'implementer'
+	}
+	if id in ['security-reviewer', 'agentic-security-reviewer'] {
+		return 'security-engineer'
+	}
+	if id == 'build-error-resolver' {
+		return 'platform-engineer'
+	}
+	if id in ['code-reviewer', 'e2e-runner'] {
+		return 'reviewer'
+	}
 	return 'architect'
 }
 
@@ -219,23 +267,39 @@ pub fn (mut e Engine) agents_search(query string, tier_filter string) []AgentEnt
 		}
 	}
 	scored.sort_with_compare(fn (a &AgentScored, b &AgentScored) int {
-		if a.score > b.score { return -1 }
-		if a.score < b.score { return 1 }
-		if a.entry.id < b.entry.id { return -1 }
-		if a.entry.id > b.entry.id { return 1 }
+		if a.score > b.score {
+			return -1
+		}
+		if a.score < b.score {
+			return 1
+		}
+		if a.entry.id < b.entry.id {
+			return -1
+		}
+		if a.entry.id > b.entry.id {
+			return 1
+		}
 		return 0
 	})
 	mut out := []AgentEntry{}
-	for s in scored { out << s.entry }
+	for s in scored {
+		out << s.entry
+	}
 	return out
 }
 
 fn agent_fuzzy_score(query string, target string) int {
-	if query.len == 0 { return 1000 }
+	if query.len == 0 {
+		return 1000
+	}
 	q := query.to_lower()
 	t := target.to_lower()
-	if t == q { return 10000 }
-	if t.contains(q) { return 9000 - t.len }
+	if t == q {
+		return 10000
+	}
+	if t.contains(q) {
+		return 9000 - t.len
+	}
 	mut qi := 0
 	mut score := 0
 	mut consecutive := 0
@@ -243,14 +307,23 @@ fn agent_fuzzy_score(query string, target string) int {
 	for ti, ch in t {
 		if qi < q.len && ch == q[qi] {
 			score += 10
-			if last == ti - 1 { score += 5; consecutive++ }
-			if ti == 0 || t[ti-1] == `/` || t[ti-1] == ` ` || t[ti-1] == `-` || t[ti-1] == `_` { score += 8 }
+			if last == ti - 1 {
+				score += 5
+				consecutive++
+			}
+			if ti == 0 || t[ti - 1] == `/` || t[ti - 1] == ` ` || t[ti - 1] == `-` || t[ti - 1] == `_` {
+				score += 8
+			}
 			last = ti
 			qi++
-			if qi == q.len { break }
+			if qi == q.len {
+				break
+			}
 		}
 	}
-	if qi != q.len { return -1 }
+	if qi != q.len {
+		return -1
+	}
 	score -= t.len / 10
 	score += consecutive * 3
 	return score
@@ -260,7 +333,9 @@ fn agent_best_score(q string, a AgentEntry) int {
 	mut best := -1
 	for field in [a.id, a.role, a.tier, a.description, a.triggers, a.holistic_owner] {
 		sc := agent_fuzzy_score(q, field)
-		if sc > best { best = sc }
+		if sc > best {
+			best = sc
+		}
 	}
 	return best
 }
@@ -382,7 +457,9 @@ pub fn (mut e Engine) install_agent(id string) !u64 {
 
 // remove_agent removes receipt.
 pub fn (mut e Engine) remove_agent(id string) !u64 {
-	if id == '' { return error('agent id empty') }
+	if id == '' {
+		return error('agent id empty')
+	}
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
@@ -410,11 +487,19 @@ pub fn (mut e Engine) agents_delegation_graph() map[string][]string {
 
 // agent_provenance_detail returns structured provenance for one agent.
 pub fn (mut e Engine) agent_provenance_detail(id string) string {
-	_ := e.agent_detail(id) or { return json2.encode({'error': 'not found'}, escape_unicode: true) }
+	_ := e.agent_detail(id) or {
+		return json2.encode({
+			'error': 'not found'
+		},
+			escape_unicode: true
+		)
+	}
 	return json2.encode({
-		'id': id
-		'source': 'agents/${id}/AGENT.md'
+		'id':         id
+		'source':     'agents/${id}/AGENT.md'
 		'provenance': 'catalogs/agent-catalog.yaml'
-		'verified': 'true'
-	}, escape_unicode: true)
+		'verified':   'true'
+	},
+		escape_unicode: true
+	)
 }

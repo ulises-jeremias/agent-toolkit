@@ -32,9 +32,9 @@ exit_conditions:
   - max_iterations
 
 budget:
-  max_tokens: 100000
-  max_runs_per_day: 48
-  max_wall_seconds: 900
+  max_tokens: 150000
+  max_runs_per_day: 1
+  max_wall_seconds: 1200
   max_iterations: 3
 
 verifier: agent-toolkit-code-reviewer

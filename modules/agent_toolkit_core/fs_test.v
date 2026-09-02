@@ -9,6 +9,7 @@ fn test_join_uses_os_join_path() {
 	p := fs.join(fs.home(), '.cache', 'agent-toolkit')
 	assert p.contains('agent-toolkit')
 	assert p.starts_with('/home/test') || p.starts_with('C:') // allow Windows CI later
+	
 }
 
 fn test_xdg_cache_default() {

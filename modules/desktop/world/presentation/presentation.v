@@ -26,7 +26,7 @@ pub:
 
 // sprites_json_stub returns embedded vector defs (assets/world/sprites.json headless stub).
 pub fn sprites_json_stub() string {
-	return '{"sprites":[{"kind":"workbench","id":"workbench-1","color":"#1a1f2e","size":64},{"kind":"shelf","id":"shelf-1","color":"#7c3aed","size":48},{"kind":"rig","id":"rig-1","color":"#0891b2","size":56},{"kind":"instrument","id":"instrument-1","color":"#16a34a","size":40},{"kind":"doorway","id":"doorway-swarm","color":"#dc2626","size":72},{"kind":"wall","id":"wall-activity","color":"#eab308","size":80}],"generated":"vglyph-vector","size_bytes":4120}'
+	return '{"sprites":[{"kind":"workbench","id":"workbench-1","color":"#1a1f2e","size":64},{"kind":"shelf","id":"shelf-1","color":"#C45A3C","size":48},{"kind":"rig","id":"rig-1","color":"#8A9BA8","size":56},{"kind":"instrument","id":"instrument-1","color":"#5A7D5A","size":40},{"kind":"doorway","id":"doorway-swarm","color":"#C45A3C","size":72},{"kind":"wall","id":"wall-activity","color":"#C9A86B","size":80}],"generated":"vglyph-vector","size_bytes":4120}'
 }
 
 // default_sprites returns vector sprites for Workshop entities.
@@ -39,11 +39,11 @@ pub fn default_sprites() []SpriteDef {
 			color: '#1a1f2e'
 			size: 64
 		},
-		SpriteDef{ kind: .shelf, id: 'library-shelf', primitives: ['polygon', 'text'], color: '#7c3aed', size: 48 },
-		SpriteDef{ kind: .rig, id: 'target-rig', primitives: ['polyline', 'arc', 'text'], color: '#0891b2', size: 56 },
-		SpriteDef{ kind: .instrument, id: 'diagnostics-instrument', primitives: ['arc', 'polygon'], color: '#16a34a', size: 40 },
-		SpriteDef{ kind: .doorway, id: 'swarm-doorway', primitives: ['polyline', 'polygon'], color: '#dc2626', size: 72 },
-		SpriteDef{ kind: .wall, id: 'activity-wall', primitives: ['polygon', 'text'], color: '#eab308', size: 80 },
+		SpriteDef{ kind: .shelf, id: 'library-shelf', primitives: ['polygon', 'text'], color: '#C45A3C', size: 48 },
+		SpriteDef{ kind: .rig, id: 'target-rig', primitives: ['polyline', 'arc', 'text'], color: '#8A9BA8', size: 56 },
+		SpriteDef{ kind: .instrument, id: 'diagnostics-instrument', primitives: ['arc', 'polygon'], color: '#5A7D5A', size: 40 },
+		SpriteDef{ kind: .doorway, id: 'swarm-doorway', primitives: ['polyline', 'polygon'], color: '#C45A3C', size: 72 },
+		SpriteDef{ kind: .wall, id: 'activity-wall', primitives: ['polygon', 'text'], color: '#C9A86B', size: 80 },
 	]
 }
 

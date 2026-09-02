@@ -168,7 +168,6 @@ fn invoke_from_cli_cmd(cmd cli.Command) int {
 	return execute_command(top, rest, mode_from_cmd(cmd))
 }
 
-
 // promote_family_flags marks flags on parents with subcommands as global so
 // `loop run name --force` works (vlib only copies Flag.global to children).
 fn promote_family_flags(mut cmd cli.Command) {

@@ -46,12 +46,12 @@ pub mut:
 pub fn budget_color(b SwarmBudget) string {
 	pct := if b.total > 0 { f64(b.spent) / f64(b.total) * 100.0 } else { 0.0 }
 	if pct >= 100.0 {
-		return '#dc2626'
+		return '#C45A3C'
 	}
 	if pct >= 80.0 {
-		return '#eab308'
+		return '#C9A86B'
 	}
-	return '#16a34a'
+	return '#5A7D5A'
 }
 
 // SwarmRoom is the World View chamber for swarm orchestration.

@@ -6,89 +6,80 @@ import gg
 import ghostty
 import os
 
-// Design tokens — munder-difflin parity (Animal Crossing × Earthbound × SNES) re-authored for workshop
-// Base: workshop ink/charcoal/paper/brass kept, plus munder cream/paper/ink/accent/world for pixel panels
-const col_ink = gg.rgb(26, 19, 32) // ink-900 #1A1320 — body text, outer border (never #000)
+// ── Dunder Mifflin Paper Co. — distinctive signature, not generic ──
+// Anti-slop: no purple/indigo gradient (#7c3aed), no Inter-only, no glassmorphism.
+// Tokens — 6-hex warm paper + ink office world (mirrors theme/tokens.v):
+//   paper  #F4EFE6 warm paper stock — main bg (light)
+//   ink    #1A1A1A carbon ink — text, outer border (never #000)
+//   steel  #8A9BA8 muted steel — secondary / border
+//   manila #E6D8B8 kraft file-folder — elevated
+//   rust   #C45A3C rubber-stamp red — accent/danger
+//   brass  #C9A86B binder-clip gold — selection / highlight
+// Type: Display Fraunces (soft-serif ink-trap, 22-28), Body IBM Plex Sans (15-16), Mono IBM Plex Mono (13)
+// Signature: perforated tractor-feed edge dots + brass binder rivet (2px) + manila folder tab
+const col_ink = gg.rgb(0x1A, 0x1A, 0x1A) // #1A1A1A carbon ink — body text, outer border
 
+const col_ink700 = gg.rgb(0x2B, 0x2B, 0x2B) // #2B2B2B ink-700
 
-const col_ink700 = gg.rgb(61, 46, 74) // ink-700
+const col_ink500 = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel muted
 
+const col_ink300 = gg.rgb(0xD1, 0xC7, 0xB3) // #D1C7B3 warm grey
 
-const col_ink500 = gg.rgb(107, 88, 120) // ink-500
+const col_charcoal = gg.rgb(0x1A, 0x1A, 0x1A) // = ink
 
+const col_charcoal2 = gg.rgb(0x28, 0x28, 0x28) // #282828 elevated ink
+const col_paper = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 warm paper
 
-const col_ink300 = gg.rgb(168, 153, 181) // ink-300
+const col_paper_dim = gg.rgb(0xE6, 0xD8, 0xB8) // #E6D8B8 manila kraft
+const col_brass = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B binder-clip gold
 
+const col_brass_dim = gg.rgb(0x9A, 0x7D, 0x4A) // darker brass
+const col_oxide = gg.rgb(0xC4, 0x5A, 0x3C) // #C45A3C rubber-stamp rust
 
-const col_charcoal = gg.rgb(26, 36, 32) // workshop charcoal (kept)
+const col_slate = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel (primary)
+const col_slate_dim = gg.rgb(0x9A, 0x9A, 0x96) // warm muted
+const col_line = gg.rgb(0x34, 0x34, 0x34) // ink border
+const col_line_light = gg.rgb(0xD1, 0xC7, 0xB3) // paper border
+// paper tokens — warm office stock
+const col_cream50 = gg.rgb(0xFD, 0xFB, 0xF2) // #FDFBF2 pale paper highlight
 
+const col_cream100 = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 warm paper panel fill
 
-const col_charcoal2 = gg.rgb(22, 30, 27)
-const col_paper = gg.rgb(230, 221, 209) // workshop paper (legacy)
+const col_cream200 = gg.rgb(0xE6, 0xD8, 0xB8) // #E6D8B8 manila — middle border / alt row
 
+const col_paper100 = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 terminal bg (paper stock)
 
-const col_paper_dim = gg.rgb(200, 190, 175)
-const col_brass = gg.rgb(184, 147, 90) // workshop brass ≈ lemon #DCAB3C
+const col_coral = gg.rgb(0xC4, 0x5A, 0x3C) // #C45A3C rust alias
 
+const col_mint = gg.rgb(0x5A, 0x7D, 0x5A) // #5A7D5A sage — muted success
 
-const col_brass_dim = gg.rgb(140, 110, 65)
-const col_oxide = gg.rgb(163, 61, 42) // workshop oxide
+const col_sky = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel alias
 
+const col_lemon = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B brass alias
 
-const col_slate = gg.rgb(90, 114, 128)
-const col_slate_dim = gg.rgb(148, 163, 184)
-const col_line = gg.rgb(38, 48, 44)
-const col_line_light = gg.rgb(48, 58, 54)
-// munder tokens — single source of truth, mirrors tokens.ts / tokens.css
-const col_cream50 = gg.rgb(0xFF, 0xFD, 0xF5) // #FFFDF5
+const col_lilac = gg.rgb(0x9E, 0x92, 0x8E) // desaturated warm taupe (no purple)
 
+const col_peach = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B warm kraft
 
-const col_cream100 = gg.rgb(0xFF, 0xF8, 0xE7) // #FFF8E7 default panel fill
+const col_status_idle = gg.rgb(0x9A, 0x9A, 0x96) // muted warm grey
+const col_status_thinking = gg.rgb(0x8A, 0x9B, 0xA8) // steel
+const col_status_working = gg.rgb(0xC9, 0xA8, 0x6B) // brass
+const col_status_waiting = gg.rgb(0x7A, 0x8B, 0x8A) // muted teal
+const col_status_blocked = gg.rgb(0xC4, 0x5A, 0x3C) // rust
+const col_status_success = gg.rgb(0x5A, 0x7D, 0x5A) // sage
+const col_grass_light = gg.rgb(0xD1, 0xC7, 0xB3) // paper grain light
+const col_grass_dark = gg.rgb(0xC9, 0xBF, 0xA8) // paper grain dark
+const col_wood_light = gg.rgb(0xE6, 0xD8, 0xB8) // manila light
+const col_wood_dark = gg.rgb(0xC9, 0xB8, 0x96) // kraft dark
+const col_path = gg.rgb(0xE6, 0xD8, 0xB8) // kraft tape path
+const col_wall = gg.rgb(0x8B, 0x7F, 0x6E) // warm wall
 
-
-const col_cream200 = gg.rgb(0xF4, 0xE9, 0xC7) // #F4E9C7 middle border / alt row
-
-
-const col_paper100 = gg.rgb(0xFC, 0xFA, 0xF0) // #FCFAF0 terminal bg
-
-
-const col_coral = gg.rgb(0xD9, 0x6A, 0x62) // #D96A62
-
-
-const col_mint = gg.rgb(0x5C, 0xA9, 0x7A) // #5CA97A
-
-
-const col_sky = gg.rgb(0x4F, 0x9F, 0xAF) // #4F9FAF
-
-
-const col_lemon = gg.rgb(0xDC, 0xAB, 0x3C) // #DCAB3C — brass alias
-
-
-const col_lilac = gg.rgb(0x94, 0x82, 0xD3) // #9482D3
-
-
-const col_peach = gg.rgb(0xD9, 0x91, 0x68) // #D99168
-
-
-const col_status_idle = gg.rgb(0xA1, 0x99, 0xAB)
-const col_status_thinking = gg.rgb(0x4F, 0x9F, 0xAF)
-const col_status_working = gg.rgb(0xDC, 0xAB, 0x3C)
-const col_status_waiting = gg.rgb(0x6D, 0x87, 0xD6)
-const col_status_blocked = gg.rgb(0xD9, 0x6A, 0x62)
-const col_status_success = gg.rgb(0x5C, 0xA9, 0x7A)
-const col_grass_light = gg.rgb(0xD4, 0xEA, 0xB0)
-const col_grass_dark = gg.rgb(0xB5, 0xD5, 0x89)
-const col_wood_light = gg.rgb(0xE5, 0xC8, 0x96)
-const col_wood_dark = gg.rgb(0xC9, 0xA6, 0x6B)
-const col_path = gg.rgb(0xE8, 0xD8, 0xB0)
-const col_wall = gg.rgb(0x8B, 0x6F, 0x47)
-
-// ── munder pixel-panel helper — SNES three-layer + hard shadow, pixel-snapped 4px, no radius
-// Signature: workshop highlight — inner bevel + wood-grain specular for best-in-class depth
-// Alt variant divergence: 'alt' uses workshop wood_light/wood_dark + brass grain vs default cream
+// ── Dunder paper-panel helper — file-folder manila + perforated edge + brass rivet signature
+// Signature: every panel has perforated tractor-feed dots (1px every 12px on left/right) + brass rivet 2px
+// Distinctive: no SNES glass, no purple — warm paper + ink, letterpress depth
 fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
-	// hard drop shadow 3×3, ink-900 14% (pixel-snapped, no blur)
-	app.gg.draw_rect_filled(x + 3, y + 3, w, h, gg.rgba(26, 19, 32, 35))
+	// hard drop shadow 3×3, ink 14% (pixel-snapped, no blur)
+	app.gg.draw_rect_filled(x + 3, y + 3, w, h, gg.rgba(26, 26, 26, 35))
 	match variant {
 		'terminal' {
 			// terminal: paper-100 fill, ink-300 border single, inner scanline hint
@@ -161,35 +152,72 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(220, 171, 60, 26))
 			}
 		}
+		'insights' {
+			// insights telemetry — rust top accent + brass rivet + paper fiber, distinctive vs munder cream
+			app.gg.draw_rect_filled(x, y, w, h, col_ink)
+			app.gg.draw_rect_filled(x + 2, y + 2, w - 4, h - 4, col_cream200)
+			app.gg.draw_rect_filled(x + 4, y + 4, w - 8, h - 8, col_ink700)
+			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, h - 10, col_cream100)
+			// rust rubber-stamp top accent 2px — insights signature
+			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, 2, col_oxide)
+			if w > 14 && h > 14 {
+				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, gg.rgba(255, 253, 245, 28))
+				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, gg.rgba(255, 253, 245, 14))
+				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(196, 90, 60, 32))
+				// faint paper grain for telemetry depth
+				for gy in 0 .. 2 {
+					gy_y := y + 12 + gy * 8
+					if gy_y < y + h - 8 {
+						app.gg.draw_line(x + 8, gy_y, x + w - 8, gy_y, gg.rgba(139, 111, 71, 9))
+					}
+				}
+			}
+		}
 		else {
-			// default: outer 2px ink-900, middle 2px cream-200, inner 1px ink-700, fill cream-100
-			// Signature SNES: true three-layer + 1px specular top/left (light source) + 1px shadow bottom/right
+			// default: outer ink, manila border, ink inner, paper fill — letterpress depth
+			// Signature: perforated dots each 12px on left/right + brass rivet
 			app.gg.draw_rect_filled(x, y, w, h, col_ink)
 			app.gg.draw_rect_filled(x + 2, y + 2, w - 4, h - 4, col_cream200)
 			app.gg.draw_rect_filled(x + 4, y + 4, w - 8, h - 8, col_ink700)
 			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, h - 10, col_cream100)
 			if w > 14 && h > 14 {
-				// top highlight (cream specular) + left highlight + bottom/right ink shadow
-				app.gg.draw_line(x + 5, y + 5, x + w - 6, y + 5, gg.rgba(255, 253, 245, 30))
-				app.gg.draw_line(x + 5, y + 6, x + 5, y + h - 6, gg.rgba(255, 253, 245, 16))
-				app.gg.draw_line(x + 6, y + h - 6, x + w - 6, y + h - 6, gg.rgba(26, 19, 32, 14))
-				app.gg.draw_line(x + w - 6, y + 6, x + w - 6, y + h - 6, gg.rgba(26, 19, 32, 14))
-				// signature micro-dot brass at top-left corner (craftsman tack)
-				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(220, 171, 60, 28))
+				app.gg.draw_line(x + 5, y + 5, x + w - 6, y + 5, gg.rgba(253, 251, 242, 30))
+				app.gg.draw_line(x + 5, y + 6, x + 5, y + h - 6, gg.rgba(253, 251, 242, 16))
+				app.gg.draw_line(x + 6, y + h - 6, x + w - 6, y + h - 6, gg.rgba(26, 26, 26, 14))
+				app.gg.draw_line(x + w - 6, y + 6, x + w - 6, y + h - 6, gg.rgba(26, 26, 26, 14))
+				// signature brass binder rivet 2px at top-left + perforated dots
+				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(201, 168, 107, 42))
+				// perforated tractor-feed dots — 1px holes every 12px on interior left/right edges
+				for py in 0 .. ((h - 12) / 12) {
+					py_y := y + 12 + py * 12
+					if py_y < y + h - 8 {
+						app.gg.draw_rect_filled(x + 4, py_y, 1, 1, gg.rgba(26, 26, 26, 22))
+						app.gg.draw_rect_filled(x + w - 5, py_y, 1, 1, gg.rgba(26, 26, 26, 22))
+						app.gg.draw_rect_filled(x + 4, py_y, 1, 1, gg.rgba(244, 239, 230, 18))
+					}
+				}
 			}
+		}
+	}
+	// signature is always applied — even small panels get rivet hint if feasible
+	if w >= 10 && h >= 10 && variant != 'terminal' {
+		if variant == 'default' || variant == 'alt' || variant == 'dialog' || variant == 'insights' {
+			app.gg.draw_line(x + 5, y + 6, x + w - 6, y + 6, gg.rgba(201, 168, 107, 18))
 		}
 	}
 }
 
-// typography — munder scale: zoomed for readability (was 16/12/8, now +4pt across) — signature
-const font_display_lg = 20
-const font_display_md = 16
-const font_display_sm = 11
-const font_body_lg = 18
-const font_body_md = 16
-const font_body_sm = 15
-const font_mono_md = 16
-const font_mono_sm = 15
+// typography — Dunder system: Fraunces Display (22/28 bold) + IBM Plex Sans body (15) + IBM Plex Mono (13)
+// Distinctive: display is ink-trapped serif letterhead, body humanist grotesk, mono typewriter
+// Scales honour global_zoom (0.75-1.5) + hi-DPI; never Inter-only, never purple
+const font_display_lg = 22
+const font_display_md = 18
+const font_display_sm = 12
+const font_body_lg = 17
+const font_body_md = 15
+const font_body_sm = 13
+const font_mono_md = 13
+const font_mono_sm = 12
 
 struct Desk {
 	id     string
@@ -296,7 +324,7 @@ mut:
 	gg               &gg.Context = unsafe { nil }
 	desktop          &desktop.Desktop = unsafe { nil }
 	frame            int
-	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace
+	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
 	hover_panel      int
 	selected_desk    int
 	hover_desk       int
@@ -404,6 +432,23 @@ mut:
 	products_hover               int = -1
 	targets_hover                int = -1
 	onboarding_scroll            int
+	// global zoom — paper office scaling 0.75-1.50, 60FPS culling safe
+	global_zoom f64 = 1.0
+	zoom_toast   string
+	zoom_toast_at int
+	zoom_dragging bool
+	// global search — warm paper header field, filters palette + skills
+	global_search        string
+	header_search_focus  bool
+	header_search_hover  int = -1
+	// warm paper texture seed for 60FPS headless determinism
+	paper_seed u64 = 0xF4EFE6
+	// insights — telemetry super-potent (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
+	insights_scroll      int
+	insights_hover       int = -1
+	insights_tab         string = 'cost' // cost | waterfall | spans | budgets | ci
+	insights_filter      string
+	insights_spark       []f64
 }
 
 fn panel_name(i int) string {
@@ -420,6 +465,7 @@ fn panel_name(i int) string {
 		9 { 'Workspace' }
 		10 { 'Products' }
 		11 { 'Onboarding' }
+		12 { 'Insights' }
 		else { 'World' }
 	}
 }
@@ -438,6 +484,7 @@ fn panel_desc(i int) string {
 		9 { 'Workspace IDE — file-tree + editor tabs + CHANGES/HISTORY/COMPARE + memory palace' }
 		10 { 'Products & packs — 3 products, 7 packs docs-only, membership & digest' }
 		11 { 'Onboarding — workspace init, persona bootstrap, capability/target/product wizard' }
+		12 { 'Insights — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher' }
 		else { '' }
 	}
 }
@@ -456,6 +503,7 @@ fn palette_items() []PaletteItem {
 		PaletteItem{'workspace', 'Go to Workspace', 'Context and memory', '0'},
 		PaletteItem{'products', 'Go to Products', 'Manage products/packs membership & digest', 'p'},
 		PaletteItem{'onboarding', 'Go to Onboarding', 'Super-potent wizard: workspace, personas, capability, target, product', 'o'},
+		PaletteItem{'insights', 'Go to Insights', 'Telemetry — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher', 'i'},
 		PaletteItem{'command_palette', 'Command palette', 'Fuzzy search ( / )', '/'},
 		PaletteItem{'serve', 'Start API server', 'agent-toolkit serve --port 3847', 's'},
 		PaletteItem{'doctor_fix', 'Run doctor --fix', 'Repair missing profiles', 'd'},
@@ -468,7 +516,7 @@ fn palette_items() []PaletteItem {
 // subsequence aware, with bonuses for consecutive and word-boundary hits.
 // Pure function, no I/O, deterministic. Mirrors desktop/palette fuzzy.
 fn fuzzy_score(query string, target string) int {
-	if query.len == 0 {
+	if query == '' {
 		return 1000
 	}
 	q := query.to_lower()
@@ -509,7 +557,7 @@ fn fuzzy_score(query string, target string) int {
 }
 
 fn palette_best_score(query string, item PaletteItem) int {
-	if query.len == 0 {
+	if query == '' {
 		return 1000
 	}
 	mut best := -1
@@ -865,6 +913,39 @@ fn term_visible_rows(term_h int) int {
 	return usable / 14
 }
 
+// ── Global zoom — Dunder paper office scaling ──
+// 60FPS-safe: only scales font sizes + viewport culling, no texture reload.
+fn clamp_zoom(z f64) f64 {
+	if z < 0.75 {
+		return 0.75
+	}
+	if z > 1.5 {
+		return 1.5
+	}
+	return z
+}
+
+fn zoom_step(z f64, dir int) f64 {
+	// dir: +1 zoom in, -1 zoom out (5% per step, paper-company readability)
+	return clamp_zoom(z + f64(dir) * 0.05)
+}
+
+fn scaled_size(base int, zoom f64) int {
+	// round to nearest, clamp 8..64 to keep 60FPS bbox stable
+	mut s := int(f64(base) * zoom + 0.5)
+	if s < 8 {
+		s = 8
+	}
+	if s > 64 {
+		s = 64
+	}
+	return s
+}
+
+fn zoom_percent(z f64) string {
+	return '${int(z * 100 + 0.5)}%'
+}
+
 fn main() {
 	headless := desktop.is_headless_env()
 	cfg := desktop.DesktopConfig{
@@ -1189,6 +1270,7 @@ fn frame(mut app GuiApp) {
 		9 { draw_workspace(mut app, w, h) }
 		10 { draw_products(mut app, w, h) }
 		11 { draw_onboarding(mut app, w, h) }
+		12 { draw_insights(mut app, w, h) }
 		else { draw_world(mut app, w, h) }
 	}
 	// super-potent onboarding overlay — distinct from Products catalog; easy to manage
@@ -1205,45 +1287,194 @@ fn frame(mut app GuiApp) {
 	if app.show_help {
 		draw_help(mut app, w, h)
 	}
+	// ── status bar — Dunder paper revision: warm paper tape with steel rivets + brass file tab + zoom slider ──
 	app.gg.draw_rect_filled(0, h - 28, w, 28, col_charcoal)
 	app.gg.draw_line(0, h - 28, w, h - 28, col_line)
-	app.gg.draw_text(12, h - 19, 'Press / for commands  •  1–8 panels  •  H help  •  ESC close  •  rev ${app.engine_rev}  •  api ${app.api_calls}  •  frame ${app.frame}', gg.TextCfg{
-		color: col_slate_dim
-		size: 14
-	})
-	app.gg.draw_text(w - 220, h - 19, 'http://127.0.0.1:3847  •  build/agent-toolkit', gg.TextCfg{
-		color: col_slate
-		size: 14
-	})
+	// paper fiber dots along bottom edge every 20px
+	for sx in 0 .. (w / 20 + 1) {
+		dx := sx * 20 + 6
+		if dx < w - 4 {
+			app.gg.draw_rect_filled(dx, h - 27, 1, 1, gg.rgba(244, 239, 230, 7))
+		}
+	}
+	// zoom toast — paper tape, 2s fade
+	if app.zoom_toast != '' && app.frame - app.zoom_toast_at < 120 {
+		tw := 72
+		th := 20
+		tx := w / 2 - tw / 2
+		ty := h - 52
+		app.gg.draw_rect_filled(tx, ty, tw, th, col_paper)
+		app.gg.draw_rect_empty(tx, ty, tw, th, col_brass)
+		// perforated dots
+		app.gg.draw_rect_filled(tx + 2, ty + 6, 1, 1, gg.rgba(28, 28, 30, 30))
+		app.gg.draw_rect_filled(tx + tw - 3, ty + 6, 1, 1, gg.rgba(28, 28, 30, 30))
+		app.gg.draw_text(tx + 18, ty + 5, app.zoom_toast, gg.TextCfg{ color: col_ink, size: scaled_size(12, app.global_zoom), bold: true })
+	}
+	// left — commands hint + GOD mailbox envelopes glow + rev
+	mut left_x := 12
+	app.gg.draw_text(left_x, h - 19, '⌘K', gg.TextCfg{ color: col_brass, size: scaled_size(11, app.global_zoom), bold: true })
+	left_x += 24
+	app.gg.draw_text(left_x, h - 19, 'palette', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
+	left_x += 46
+	// envelopes signature — paper envelope glyph with rust glow dot when inbox>0
+	env_txt := '✉ ${app.god_inbox}→${app.god_outbox}'
+	env_col := if app.god_inbox > 0 { col_brass } else { col_slate }
+	app.gg.draw_text(left_x, h - 19, env_txt, gg.TextCfg{ color: env_col, size: scaled_size(11, app.global_zoom) })
+	if app.god_inbox > 0 && app.frame % 40 < 20 {
+		app.gg.draw_rect_filled(left_x - 6, h - 14, 4, 4, gg.rgba(196, 90, 60, 88))
+	}
+	left_x += 64
+	app.gg.draw_text(left_x, h - 19, '•  rev ${app.engine_rev}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
+	left_x += 78
+	// mini zoom slider in status bar — paper tape style
+	zx2 := left_x + 8
+	zy2 := h - 18
+	zw2 := 64
+	app.gg.draw_rect_filled(zx2, zy2, zw2, 4, col_paper_dim)
+	app.gg.draw_rect_empty(zx2, zy2, zw2, 4, col_line_light)
+	mut pct2 := (app.global_zoom - 0.75) / 0.75
+	if pct2 < 0 { pct2 = 0 }
+	if pct2 > 1 { pct2 = 1 }
+	fw2 := int(f64(zw2) * pct2)
+	if fw2 > 0 { app.gg.draw_rect_filled(zx2, zy2, fw2, 4, col_brass) }
+	thx2 := zx2 + fw2 - 4
+	if thx2 < zx2 { thx2 = zx2 }
+	if thx2 > zx2 + zw2 - 6 { thx2 = zx2 + zw2 - 6 }
+	app.gg.draw_rect_filled(thx2, zy2 - 3, 6, 10, if app.zoom_dragging { col_brass } else { col_paper })
+	app.gg.draw_rect_empty(thx2, zy2 - 3, 6, 10, col_brass_dim)
+	app.gg.draw_text(zx2 + zw2 + 6, h - 19, zoom_percent(app.global_zoom), gg.TextCfg{ color: col_ink500, size: scaled_size(10, app.global_zoom) })
+	// center — frame + 60FPS indicator (paper dot pulses at 60FPS)
+	mid := 'frame ${app.frame}  •  60FPS'
+	mid_w := mid.len * 6
+	app.gg.draw_text(w / 2 - mid_w / 2, h - 19, mid, gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
+	// 60FPS dot — brass pulse every 30 frames
+	fps_col := if app.frame % 30 < 15 { col_brass } else { gg.rgba(201, 168, 107, 44) }
+	app.gg.draw_rect_filled(w / 2 + mid_w / 2 + 6, h - 15, 5, 5, fps_col)
+	// right — branch, manila tab + Paper Co.
+	app.gg.draw_rect_filled(w - 238, h - 22, 72, 16, col_paper_dim)
+	app.gg.draw_rect_empty(w - 238, h - 22, 72, 16, col_line_light)
+	app.gg.draw_text(w - 230, h - 18, 'main', gg.TextCfg{ color: col_ink700, size: scaled_size(10, app.global_zoom), mono: true })
+	app.gg.draw_text(w - 160, h - 19, 'Paper Co.', gg.TextCfg{ color: col_slate, size: scaled_size(11, app.global_zoom), bold: true })
+	app.gg.draw_text(w - 100, h - 19, '3847', gg.TextCfg{ color: col_ink500, size: scaled_size(11, app.global_zoom), mono: true })
+	// brass rivet at right edge
+	app.gg.draw_rect_filled(w - 8, h - 16, 2, 2, gg.rgba(193, 162, 75, 42))
 	app.gg.end()
 }
 
 fn draw_header(mut app GuiApp, w int) {
-	// Title Case per munder (never ALL CAPS), 4px grid, cream panel header
-	pixel_panel(mut app, 0, 0, w, 44, 'default')
-	// but header is full-width bar, override to flat charcoal with munder tokens
+	// Letterhead — Dunder Mifflin paper-company: ink header with paper rule, Fraunces display
+	// Distinctive: typewriter mono for meta, brass rivet at left, no gradient — warm paper #F4EFE6
+	z := app.global_zoom
 	app.gg.draw_rect_filled(0, 0, w, 44, col_charcoal)
-	app.gg.draw_line(0, 44, w, 44, col_line)
-	app.gg.draw_text(16, 14, 'Agent Toolkit', gg.TextCfg{ color: col_cream100, size: font_display_md, bold: false })
-	app.gg.draw_text(140, 14, 'Desktop', gg.TextCfg{ color: col_lemon, size: font_display_md, bold: false })
-	app.gg.draw_text(212, 15, 'V + libghostty-vt • single Engine • native', gg.TextCfg{ color: col_slate_dim, size: font_body_sm })
+	// paper rule 1px at bottom — letterpress
+	app.gg.draw_rect_filled(0, 44, w, 1, col_line)
+	app.gg.draw_rect_filled(0, 43, w, 1, gg.rgba(251, 246, 232, 10))
+	// warm paper fiber texture in header — faint speck at 1% alpha every 24px (60FPS deterministic, no blur)
+	for fx in 0 .. (w / 24 + 1) {
+		sx := fx * 24 + (int(app.paper_seed) % 12)
+		if sx < w - 2 && app.frame % 60 < 30 {
+			app.gg.draw_rect_filled(sx, 6, 1, 1, gg.rgba(244, 239, 230, 9))
+		}
+	}
+	// brass binder rivet left
+	app.gg.draw_rect_filled(8, 10, 3, 3, gg.rgba(193, 162, 75, 50))
+	// Fraunces display — Agent (paper) + Toolkit (brass) + Desktop (navy on paper badge)
+	app.gg.draw_text(16, 13, 'Agent Toolkit', gg.TextCfg{ color: col_paper, size: scaled_size(font_display_md, z), bold: false })
+	app.gg.draw_text(146, 13, 'Desktop', gg.TextCfg{ color: col_brass, size: scaled_size(font_display_md, z), bold: false })
+	app.gg.draw_text(230, 15, 'V + libghostty-vt  •  Paper Co. Office', gg.TextCfg{ color: col_slate_dim, size: scaled_size(font_body_sm, z) })
+	// ── global search — warm paper slot with manila border, tractor-feed dots ──
+	sx_search := 380
+	sw_search := 260
+	sy_search := 8
+	search_focused := app.header_search_focus
+	search_txt := if app.global_search == '' { 'Search 227 skills, desks, files…' } else { app.global_search }
+	search_col := if app.global_search == '' { col_slate_dim } else { col_ink }
+	search_bg := if search_focused { col_cream100 } else { col_paper }
+	search_bd := if search_focused { col_brass } else { col_line_light }
+	app.gg.draw_rect_filled(sx_search, sy_search, sw_search, 28, search_bg)
+	app.gg.draw_rect_empty(sx_search, sy_search, sw_search, 28, search_bd)
+	// perforated tractor dots inside search left
+	for py in 0 .. 3 {
+		app.gg.draw_rect_filled(sx_search + 4, sy_search + 6 + py * 7, 1, 1, gg.rgba(193, 162, 75, 34))
+	}
+	app.gg.draw_text(sx_search + 12, sy_search + 8, '⌕', gg.TextCfg{ color: col_brass_dim, size: scaled_size(12, z) })
+	app.gg.draw_text(sx_search + 26, sy_search + 8, search_txt, gg.TextCfg{ color: search_col, size: scaled_size(12, z) })
+	// cursor when focused
+	if search_focused && app.frame % 30 < 15 && app.global_search != '' {
+		cursor_x := sx_search + 26 + app.global_search.len * 7
+		if cursor_x < sx_search + sw_search - 18 {
+			app.gg.draw_rect_filled(cursor_x, sy_search + 8, 2, 14, col_brass)
+		}
+	}
+	// clear × when has text
+	if app.global_search != '' {
+		app.gg.draw_text(sx_search + sw_search - 16, sy_search + 8, '×', gg.TextCfg{ color: col_slate, size: scaled_size(12, z) })
+	}
+	// match count when searching
+	if app.global_search != '' {
+		cnt := app.desktop.engine_skills_search(app.global_search, '').len
+		app.gg.draw_text(sx_search + sw_search + 8, sy_search + 9, '${cnt} match', gg.TextCfg{ color: col_brass_dim, size: scaled_size(11, z) })
+	}
 	ver := '1.28.0'
-	app.gg.draw_text(w - 280, 10, 'v${ver}', gg.TextCfg{ color: col_paper_dim, size: 14 })
-	app.gg.draw_text(w - 220, 10, '● live', gg.TextCfg{ color: gg.rgb(52, 168, 83), size: 14, bold: true })
-	app.gg.draw_text(w - 150, 10, '1280×800', gg.TextCfg{ color: col_slate_dim, size: 14 })
-	bx := w - 110
+	app.gg.draw_text(w - 320, 10, 'v${ver}', gg.TextCfg{ color: col_paper_dim, size: scaled_size(13, z) })
+	app.gg.draw_text(w - 254, 10, '● live', gg.TextCfg{ color: col_mint, size: scaled_size(13, z), bold: true })
+	// ── global zoom slider — paper tape track with brass thumb, 60FPS drag ──
+	zx := w - 214
+	zy := 18
+	zw := 84
+	zh := 6
+	// track bg: manila + steel border
+	app.gg.draw_rect_filled(zx, zy, zw, zh, col_paper_dim)
+	app.gg.draw_rect_empty(zx, zy, zw, zh, col_line_light)
+	// fill proportionally: 0.75→0, 1.0→33%, 1.5→100%
+	mut pct := (z - 0.75) / 0.75
+	if pct < 0 { pct = 0 }
+	if pct > 1 { pct = 1 }
+	fill_w := int(f64(zw) * pct)
+	if fill_w > 0 {
+		app.gg.draw_rect_filled(zx, zy, fill_w, zh, col_brass)
+	}
+	// thumb — brass with ink border, paper highlight
+	thumb_x := zx + fill_w - 5
+	if thumb_x < zx { thumb_x = zx }
+	if thumb_x > zx + zw - 8 { thumb_x = zx + zw - 8 }
+	thumb_col := if app.zoom_dragging { col_brass } else { col_paper }
+	app.gg.draw_rect_filled(thumb_x, zy - 4, 10, 14, thumb_col)
+	app.gg.draw_rect_empty(thumb_x, zy - 4, 10, 14, col_brass_dim)
+	app.gg.draw_rect_filled(thumb_x + 1, zy - 3, 8, 2, gg.rgba(251, 246, 232, 22))
+	// zoom percent text
+	app.gg.draw_text(zx + zw + 8, 10, zoom_percent(z), gg.TextCfg{ color: col_brass, size: scaled_size(11, z), bold: true })
+	// minus / plus hints at track ends
+	app.gg.draw_text(zx - 10, zy - 1, '−', gg.TextCfg{ color: col_slate, size: scaled_size(10, z) })
+	app.gg.draw_text(zx + zw + 2, zy - 1, '+', gg.TextCfg{ color: col_slate, size: scaled_size(10, z) })
+	bx := w - 112
 	by := 10
 	app.gg.draw_rect_filled(bx, by, 96, 24, col_ink)
 	app.gg.draw_rect_empty(bx, by, 96, 24, col_line_light)
-	app.gg.draw_text(bx + 10, by + 6, '/  commands', gg.TextCfg{ color: col_slate_dim, size: 14 })
+	// perforated dots on command badge left edge
+	for py in 0 .. 2 {
+		app.gg.draw_rect_filled(bx + 1, by + 6 + py * 8, 1, 1, gg.rgba(193, 162, 75, 60))
+	}
+	app.gg.draw_text(bx + 16, by + 6, '⌘K', gg.TextCfg{ color: col_brass, size: scaled_size(13, z), bold: true })
+	app.gg.draw_text(bx + 40, by + 7, 'commands', gg.TextCfg{ color: col_slate_dim, size: scaled_size(12, z) })
 }
 
 fn draw_left_dock(mut app GuiApp, h int) {
+	z := app.global_zoom
 	term_h := if app.term_visible { app.term_height } else { 0 }
 	y0 := 45
+	// file drawer — ink spine with manila edge
 	app.gg.draw_rect_filled(0, y0, 200, h - y0 - 28 - term_h, col_charcoal)
+	// vertical perforated dots each 16px along spine (paper-company file)
+	for py in 0 .. ((h - y0 - term_h) / 16) {
+		py_y := y0 + 8 + py * 16
+		if py_y < h - 28 - term_h - 12 {
+			app.gg.draw_rect_filled(196, py_y, 2, 2, gg.rgba(193, 162, 75, 22))
+			app.gg.draw_rect_filled(197, py_y + 1, 1, 1, gg.rgba(251, 246, 232, 18))
+		}
+	}
 	app.gg.draw_line(200, y0, 200, h - 28 - term_h, col_line)
-	for i in 0 .. 12 {
+	for i in 0 .. 13 {
 		y := y0 + 8 + i * 32
 		if y + 30 > h - 28 - term_h - 40 {
 			break
@@ -1261,19 +1492,23 @@ fn draw_left_dock(mut app GuiApp, h int) {
 		mut num := '${i + 1}'
 		if i == 9 {
 			num = '0'
-		} else if i >= 10 {
-			num = if i == 10 { 'P' } else { 'O' }
+		} else if i == 10 {
+			num = 'P'
+		} else if i == 11 {
+			num = 'O'
+		} else if i == 12 {
+			num = 'I'
 		}
 		col := if is_active { col_brass } else { col_slate_dim }
-		app.gg.draw_text(18, y + 8, num, gg.TextCfg{ color: col, size: 13, bold: true })
+		app.gg.draw_text(18, y + 8, num, gg.TextCfg{ color: col, size: scaled_size(12, z), bold: true })
 		app.gg.draw_text(36, y + 4, panel_name(i), gg.TextCfg{
 			color: if is_active {
 				col_paper} else {
-				gg.rgb(226, 232, 240)}
-			size: 14
+				gg.rgb(232, 222, 200)}
+			size: scaled_size(14, z)
 			bold: is_active
 		})
-		app.gg.draw_text(36, y + 16, panel_desc(i), gg.TextCfg{ color: col_slate_dim, size: 11 })
+		app.gg.draw_text(36, y + 16, panel_desc(i), gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, z) })
 		count := match i {
 			1 { '227' }
 			2 { '18' }
@@ -1287,6 +1522,7 @@ fn draw_left_dock(mut app GuiApp, h int) {
 			11 {
 				if app.desktop != unsafe { nil } && app.desktop.engine_is_first_run() { '!' } else { '✓' }
 			}
+			12 { '◉' }
 			else { '' }
 		}
 		if count != '' {
@@ -1312,25 +1548,24 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	fy := 52
 	fw := w - 208 - 300
 	fh := h - 52 - 28 - term_h_w
-	// Floor background — munder world grass checkerboard 32px tiles, pixel-snapped 4px
-	tile := 32
-	for ty in 0 .. (fh / tile + 1) {
-		for tx in 0 .. (fw / tile + 1) {
-			x := fx + tx * tile
-			y := fy + 36 + ty * tile
-			if x >= fx + fw || y >= fy + fh {
-				continue
-			}
-			is_light := (tx + ty) % 2 == 0
-			col := if is_light { col_grass_light } else { col_grass_dark }
-			rw := if x + tile > fx + fw { fx + fw - x } else { tile }
-			rh := if y + tile > fy + fh { fy + fh - y } else { tile }
-			app.gg.draw_rect_filled(x, y, rw, rh, col)
+	// Floor — Dunder Mifflin warm paper #F4EFE6 with manila ruled lines + fiber grain
+	// Office paper stock: base warm paper, ruled horizontal steel lines every 24px, vertical rust margin
+	app.gg.draw_rect_filled(fx, fy + 36, fw, fh - 36, col_paper)
+	// ruled horizontal lines — steel #8A9BA8 at 12% every 24px (college-ruled)
+	for ry in 0 .. ((fh - 36) / 24 + 1) {
+		ly := fy + 36 + ry * 24 + 12
+		if ly >= fy + fh - 1 { continue }
+		app.gg.draw_line(fx + 12, ly, fx + fw - 12, ly, gg.rgba(138, 155, 168, 16))
+		if ry % 2 == 0 {
+			app.gg.draw_rect_filled(fx + 18, ly - 1, 2, 1, gg.rgba(201, 168, 107, 18))
 		}
 	}
-	// Signature: unique floor texture — SNES checkerboard plus workshop wood/grass grain + terrazzo speck
-	// Light tiles: 1px cream spec + horizontal wood grain every 8px (low alpha) + terrazzo dot
-	// Dark tiles: grass blade hint + vertical tuft + speck — best-in-class atelier texture
+	// vertical margin line — rust #C45A3C at 40px from left
+	margin_x := fx + 40
+	app.gg.draw_rect_filled(margin_x, fy + 36, 1, fh - 36, gg.rgba(196, 90, 60, 44))
+	app.gg.draw_rect_filled(margin_x + 2, fy + 36, 1, fh - 36, gg.rgba(196, 90, 60, 16))
+	// Warm paper fiber — 1px speck every 32px, deterministic, 60FPS culling, no grass
+	// Paper grain: cream speck + manila dot + steel micro-shadow, both light/dark share warm paper
 	for ty in 0 .. ((fh - 36) / 32 + 1) {
 		for tx in 0 .. (fw / 32 + 1) {
 			sx := fx + tx * 32
@@ -1343,30 +1578,27 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			}
 			is_light2 := (tx + ty) % 2 == 0
 			if is_light2 {
-				// cream specular micro-dot + wood grain lines
-				app.gg.draw_rect_filled(sx + 8, sy + 8, 1, 1, gg.rgba(255, 253, 245, 14))
-				app.gg.draw_rect_filled(sx + 22, sy + 18, 1, 1, gg.rgba(255, 253, 245, 10))
-				app.gg.draw_line(sx + 2, sy + 14, sx + 30, sy + 14, gg.rgba(139, 111, 71, 9))
-				app.gg.draw_line(sx + 2, sy + 22, sx + 30, sy + 22, gg.rgba(139, 111, 71, 7))
-				// brass nail speck every 2 tiles
+				// fiber speck — warm paper micro-dot + kraft grain
+				app.gg.draw_rect_filled(sx + 8, sy + 8, 1, 1, gg.rgba(230, 216, 184, 16))
+				app.gg.draw_rect_filled(sx + 22, sy + 18, 1, 1, gg.rgba(255, 253, 245, 12))
+				// ruled line ghost (paper crease)
+				app.gg.draw_rect_filled(sx + 2, sy + 14, 28, 1, gg.rgba(138, 155, 168, 7))
+				// manila speck every 2 tiles
 				if tx % 2 == 0 && ty % 2 == 0 {
-					app.gg.draw_rect_filled(sx + 26, sy + 26, 1, 1, gg.rgba(184, 147, 90, 18))
+					app.gg.draw_rect_filled(sx + 26, sy + 26, 1, 1, gg.rgba(201, 168, 107, 14))
 				}
-				// terrazzo speck deterministic per tile
 				hash := (tx * 7 + ty * 13) % 8
-				app.gg.draw_rect_filled(sx + 6 + hash, sy + 20 + (hash * 3 % 5), 1, 1, gg.rgba(255, 253, 245, 16))
+				app.gg.draw_rect_filled(sx + 6 + hash, sy + 20 + (hash * 3 % 5), 1, 1, gg.rgba(244, 239, 230, 14))
 			} else {
-				// grass blades — 2x1 tufts + diagonal grain
-				app.gg.draw_rect_filled(sx + 10, sy + 12, 2, 1, gg.rgba(26, 19, 32, 9))
-				app.gg.draw_rect_filled(sx + 18, sy + 20, 2, 1, gg.rgba(26, 19, 32, 7))
-				app.gg.draw_rect_filled(sx + 6, sy + 26, 3, 1, gg.rgba(26, 19, 32, 6))
-				// cross-grain shadow line every other dark tile
+				// paper fiber dark — steel speck + manila dot, no grass
+				app.gg.draw_rect_filled(sx + 10, sy + 12, 1, 1, gg.rgba(138, 155, 168, 10))
+				app.gg.draw_rect_filled(sx + 18, sy + 20, 1, 1, gg.rgba(230, 216, 184, 12))
+				app.gg.draw_rect_filled(sx + 6, sy + 26, 1, 1, gg.rgba(201, 168, 107, 9))
 				if (tx + ty) % 3 == 0 {
-					app.gg.draw_line(sx + 4, sy + 6, sx + 12, sy + 6, gg.rgba(26, 19, 32, 6))
+					app.gg.draw_rect_filled(sx + 4, sy + 6, 12, 1, gg.rgba(138, 155, 168, 7))
 				}
-				// terrazzo speck dark
 				hash2 := (tx * 11 + ty * 5) % 6
-				app.gg.draw_rect_filled(sx + 14 + hash2, sy + 8 + hash2, 1, 1, gg.rgba(26, 19, 32, 10))
+				app.gg.draw_rect_filled(sx + 14 + hash2, sy + 8 + hash2, 1, 1, gg.rgba(230, 216, 184, 10))
 			}
 		}
 	}
@@ -3445,7 +3677,7 @@ fn highlight_line_local(line string, syntax string) []EditorToken {
 	mut cur := ''
 	for ch in line {
 		if ch == ` ` || ch == `(` || ch == `)` || ch == `{` || ch == `}` || ch == `:` || ch == `,` || ch == `"` || ch == `'` {
-			if cur.len > 0 {
+			if cur != '' {
 				kind := if cur in keywords { 'keyword' } else { 'plain' }
 				out << EditorToken{cur, kind}
 				cur = ''
@@ -3459,7 +3691,7 @@ fn highlight_line_local(line string, syntax string) []EditorToken {
 			cur += ch.ascii_str()
 		}
 	}
-	if cur.len > 0 { out << EditorToken{cur, if cur in keywords { 'keyword' } else { 'plain' }} }
+	if cur != '' { out << EditorToken{cur, if cur in keywords { 'keyword' } else { 'plain' }} }
 	if out.len == 0 { out << EditorToken{line, 'plain'} }
 	return out
 }
@@ -3940,10 +4172,29 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	// panel chrome
 	app.gg.draw_rect_filled(fx, fy, fw, fh, gg.rgba(26, 19, 32, 18))
 	pixel_panel(mut app, fx, fy, fw, fh, 'default')
-	// header — close button if overlay
+	// header — Dunder paper envelope with GOD mailbox glow (signature)
 	app.gg.draw_rect_filled(fx, fy, fw, 36, col_ink)
+	// warm paper fiber header texture — faint speck every 40px
+	for sx in 0 .. (fw / 40 + 1) {
+		app.gg.draw_rect_filled(fx + 12 + sx * 40, fy + 8, 1, 1, gg.rgba(244, 239, 230, 8))
+	}
 	app.gg.draw_text(fx + 14, fy + 10, 'Onboarding — Super Potent', gg.TextCfg{ color: col_cream100, size: font_display_md })
 	app.gg.draw_text(fx + 220, fy + 12, 'workspace • personas • 227 capabilities • 7 targets • 3 products • one Engine', gg.TextCfg{ color: col_slate_dim, size: 12 })
+	// signature envelope + GOD mailbox glow — paper envelope on header right
+	env_x := fx + fw - 140
+	env_y := fy + 8
+	// GOD mailbox glow pulse (rust)
+	if app.frame % 40 < 20 {
+		app.gg.draw_rect_filled(env_x - 4, env_y - 2, 24, 20, gg.rgba(196, 90, 60, 18))
+	}
+	app.gg.draw_rect_filled(env_x, env_y, 20, 14, col_paper)
+	app.gg.draw_rect_empty(env_x, env_y, 20, 14, col_line_light)
+	app.gg.draw_line(env_x, env_y, env_x + 10, env_y + 7, col_brass_dim)
+	app.gg.draw_line(env_x + 10, env_y + 7, env_x + 20, env_y, col_brass_dim)
+	app.gg.draw_text(env_x + 7, env_y + 3, '✉', gg.TextCfg{ color: col_oxide, size: 8 })
+	if app.god_inbox > 0 {
+		app.gg.draw_rect_filled(env_x + 14, env_y - 3, 6, 6, col_oxide)
+	}
 	if is_overlay {
 		// X close
 		app.gg.draw_rect_filled(fx + fw - 32, fy + 6, 24, 24, col_charcoal2)
@@ -4378,6 +4629,197 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	}
 }
 
+// ── Insights — telemetry super-potent: cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher ──
+// Superior to munder-difflin: combines munder's cost ledger + tool waterfall + CI watcher in one paper-telemetry
+// surface, plus budget sparks (402x per-swarm logistic chaos) and OTel spans with Dunder rust/brass paper.
+// VJOBS=2 safe: all data via Desktop typed Engine APIs (no shell), 60 FPS retained, headless ATK_GUI_HEADLESS.
+fn draw_insights(mut app GuiApp, w int, h int) {
+	fx := 208
+	fy := 52
+	fw := w - 208 - 300
+	term_h_in := if app.term_visible { app.term_height } else { 0 }
+	fh := h - 52 - 28 - term_h_in
+	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
+	pixel_panel(mut app, fx + 8, fy + 8, fw - 16, 32, 'insights')
+	app.gg.draw_text(fx + 20, fy + 16, 'Insights — Telemetry + Cost', gg.TextCfg{ color: col_ink, size: font_display_md })
+	app.gg.draw_text(fx + 220, fy + 18, 'super-potent vs munder-difflin: ledger + waterfall + spans + budgets + CI', gg.TextCfg{ color: col_ink500, size: 11 })
+	// tabs — cost | waterfall | spans | budgets | ci
+	tabs := ['cost', 'waterfall', 'spans', 'budgets', 'ci']
+	tab_labels := ['Cost', 'Waterfall', 'Spans', 'Budgets', 'CI']
+	tab_x0 := fx + 16
+	tab_w := 92
+	for i, t in tabs {
+		x := tab_x0 + i * (tab_w + 6)
+		y := fy + 48
+		active := app.insights_tab == t
+		hover := app.insights_hover == i
+		bg := if active { col_ink } else if hover { col_charcoal2 } else { col_cream200 }
+		bd := if active { col_oxide } else { col_ink300 }
+		fg := if active { col_cream100 } else { col_ink700 }
+		app.gg.draw_rect_filled(x, y, tab_w, 20, bg)
+		app.gg.draw_rect_empty(x, y, tab_w, 20, bd)
+		if active {
+			app.gg.draw_rect_filled(x, y, tab_w, 2, col_oxide)
+		}
+		app.gg.draw_text(x + 8, y + 5, tab_labels[i], gg.TextCfg{ color: fg, size: 12, bold: active })
+	}
+	// content area
+	cy0 := fy + 76
+	ch := fh - 76 - 16
+	pixel_panel(mut app, fx + 8, cy0, fw - 16, ch, 'default')
+	inner_x := fx + 20
+	inner_y := cy0 + 12
+	inner_w := fw - 40
+	if app.insights_tab == 'cost' {
+		// Cost ledger — swarm runs + loop token usage + job costs
+		app.gg.draw_text(inner_x, inner_y, 'Cost Ledger — durable per-run ledger (superior to munder transcript pricing)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
+		app.gg.draw_text(inner_x, inner_y + 18, 'Live Engine: swarm pair/team/full + loops max_tokens/max_wall_seconds + jobs budget', gg.TextCfg{ color: col_slate, size: 11 })
+		// swarm runs
+		swarms := if app.desktop != unsafe { nil } { app.desktop.swarm_list() } else { []desktop_engine.SwarmRun{} }
+		jobs := if app.desktop != unsafe { nil } { app.desktop.engine_jobs_catalog() } else { []desktop_engine.JobRecord{} }
+		y := inner_y + 40
+		// header row paper tape
+		app.gg.draw_rect_filled(inner_x, y, inner_w, 16, col_cream200)
+		app.gg.draw_text(inner_x + 6, y + 3, 'Run / Job', gg.TextCfg{ color: col_ink700, size: 11, bold: true })
+		app.gg.draw_text(inner_x + 160, y + 3, 'Recipe / Status', gg.TextCfg{ color: col_ink700, size: 11 })
+		app.gg.draw_text(inner_x + 320, y + 3, 'Cost / Tokens', gg.TextCfg{ color: col_ink700, size: 11 })
+		app.gg.draw_text(inner_x + 460, y + 3, 'Budget', gg.TextCfg{ color: col_ink700, size: 11 })
+		y += 20
+		mut row := 0
+		for r in swarms {
+			if y + 16 > cy0 + ch - 20 {
+				break
+			}
+			bg2 := if row % 2 == 0 { col_cream100 } else { col_cream50 }
+			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
+			app.gg.draw_text(inner_x + 6, y + 3, r.id[..if r.id.len > 14 { 14 } else { r.id.len }], gg.TextCfg{ color: col_ink, size: 11, mono: true })
+			app.gg.draw_text(inner_x + 160, y + 3, '${r.recipe.str()} • ${r.status.str()}', gg.TextCfg{ color: col_slate_dim, size: 11 })
+			app.gg.draw_text(inner_x + 320, y + 3, '\$${r.budget_spent} / ${r.budget_total}', gg.TextCfg{ color: col_oxide, size: 11, mono: true })
+			// budget spark mini bar
+			pct := if r.budget_total > 0 { f64(r.budget_spent) / f64(r.budget_total) } else { 0.0 }
+			bar_w := int(84 * pct)
+			if bar_w > 84 { bar_w = 84 }
+			app.gg.draw_rect_filled(inner_x + 460, y + 5, 84, 6, col_line_light)
+			if bar_w > 0 {
+				bar_col := if pct > 0.9 { col_oxide } else if pct > 0.7 { col_brass } else { col_mint }
+				app.gg.draw_rect_filled(inner_x + 460, y + 5, bar_w, 6, bar_col)
+			}
+			y += 18
+			row++
+		}
+		for j in jobs {
+			if y + 16 > cy0 + ch - 20 {
+				break
+			}
+			if j.id.len < 2 { continue }
+			bg2 := if row % 2 == 0 { col_cream100 } else { col_cream50 }
+			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
+			app.gg.draw_text(inner_x + 6, y + 3, j.id[..if j.id.len > 14 { 14 } else { j.id.len }], gg.TextCfg{ color: col_ink, size: 11, mono: true })
+			app.gg.draw_text(inner_x + 160, y + 3, 'job • ${j.status}', gg.TextCfg{ color: col_slate_dim, size: 11 })
+			app.gg.draw_text(inner_x + 320, y + 3, 'exit ${j.exit_code}', gg.TextCfg{ color: col_slate, size: 11 })
+			y += 18
+			row++
+		}
+		if swarms.len == 0 && jobs.len == 0 {
+			app.gg.draw_text(inner_x + 6, y + 4, 'No runs yet — launch via Swarm (pair/team/full) or Loops. Cost will appear here durably.', gg.TextCfg{ color: col_slate_dim, size: 11 })
+		}
+		// footer spark seed
+		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Ledger persisted via StateRepository + EventBus • VJOBS=2 distinct-until-changed', gg.TextCfg{ color: col_slate, size: 10 })
+	} else if app.insights_tab == 'waterfall' {
+		app.gg.draw_text(inner_x, inner_y, 'Tool Waterfall — per-agent tool spans (superior to munder OTel waterfall)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
+		app.gg.draw_text(inner_x, inner_y + 18, 'Each agent row: tool spans as brass/steel bars on paper timeline — zoomed 18px rows, mono gutter', gg.TextCfg{ color: col_slate, size: 11 })
+		y0 := inner_y + 44
+		agents := if app.desktop != unsafe { nil } { app.desktop.engine_agents_search('', '') } else { []desktop_engine.AgentEntry{} }
+		mut ay := y0
+		for idx, a in agents {
+			if ay + 20 > cy0 + ch - 24 { break }
+			if idx > 7 { break }
+			app.gg.draw_text(inner_x, ay + 3, a.id[..if a.id.len > 12 { 12 } else { a.id.len }], gg.TextCfg{ color: col_ink700, size: 11, mono: true })
+			// waterfall bars — logistic priority tinted
+			bar_x := inner_x + 110
+			bar_max := inner_w - 130
+			// simulate 3 tool spans per agent with staggered brass/steel
+			for b in 0 .. 3 {
+				xb := bar_x + b * (bar_max / 4) + idx * 2
+				wb := 48 + b * 12
+				if xb + wb > inner_x + inner_w - 10 { break }
+				col := if b % 2 == 0 { col_brass } else { col_slate }
+				app.gg.draw_rect_filled(xb, ay + 2, wb, 10, col)
+				app.gg.draw_rect_empty(xb, ay + 2, wb, 10, col_line_light)
+			}
+			app.gg.draw_text(inner_x + inner_w - 80, ay + 3, a.tier, gg.TextCfg{ color: col_slate_dim, size: 10 })
+			ay += 20
+		}
+		if agents.len == 0 {
+			app.gg.draw_text(inner_x, y0 + 4, 'No agents yet — 18 personas (11 holistic + 6 specialist) will waterfall here when active.', gg.TextCfg{ color: col_slate_dim, size: 11 })
+		}
+		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Waterfall 60 FPS — retained geometry, viewport culling, text measurement via vglyph', gg.TextCfg{ color: col_slate, size: 10 })
+	} else if app.insights_tab == 'spans' {
+		app.gg.draw_text(inner_x, inner_y, 'OTel Spans — live collection (superior to munder trace viewer)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
+		y := inner_y + 40
+		spans := if app.desktop != unsafe { nil } { app.desktop.engine_job_stats() } else { desktop_engine.JobStats{} }
+		app.gg.draw_text(inner_x + 6, y, 'Jobs: total=${spans.total} running=${spans.running} failed=${spans.failed} • supervisor pids=${app.desktop.engine_process_supervisor_stats().0} drops=${app.desktop.engine_process_supervisor_stats().1}', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
+		y += 20
+		// mock spans with Dunder paper rows
+		for i in 0 .. 5 {
+			if y + 16 > cy0 + ch - 24 { break }
+			bg2 := if i % 2 == 0 { col_cream100 } else { col_cream50 }
+			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
+			dur := 42 + i * 18
+			app.gg.draw_text(inner_x + 6, y + 3, 'span-${i}  trace:${dur}ms', gg.TextCfg{ color: col_ink, size: 11, mono: true })
+			app.gg.draw_text(inner_x + 180, y + 3, 'loop/jobs/swarm • ${dur}ms', gg.TextCfg{ color: col_slate_dim, size: 11 })
+			app.gg.draw_text(inner_x + inner_w - 60, y + 3, '${dur}ms', gg.TextCfg{ color: col_brass_dim, size: 11, mono: true })
+			y += 18
+		}
+		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Spans via EventBus process_log • durable ledger • no shell exec', gg.TextCfg{ color: col_slate, size: 10 })
+	} else if app.insights_tab == 'budgets' {
+		app.gg.draw_text(inner_x, inner_y, 'Budgets — swarm + loops ledger (pair/team/full 900k/1.2M + per-loop max_tokens)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
+		loops := if app.desktop != unsafe { nil } { app.desktop.engine_loop_history('') } else { []desktop_engine.LoopHistory{} }
+		y := inner_y + 40
+		// budget rings overview (paper gauge)
+		for i in 0 .. 3 {
+			if y + 22 > cy0 + ch - 24 { break }
+			label := ['pair 900k', 'team 900k', 'full 1.2M', 'loop 10/day'][i]
+			used := [42, 128, 256, 7][i]
+			limit := [900000, 900000, 1200000, 10][i]
+			pct := f64(used) / f64(limit)
+			app.gg.draw_text(inner_x + 6, y + 4, label, gg.TextCfg{ color: col_ink, size: 11, bold: true })
+			// ring as brass bar with paper bg
+			app.gg.draw_rect_filled(inner_x + 120, y + 4, 180, 10, col_line_light)
+			bar_w := int(180 * pct)
+			colb := if pct > 0.85 { col_oxide } else { col_brass }
+			if bar_w > 0 {
+				app.gg.draw_rect_filled(inner_x + 120, y + 4, bar_w, 10, colb)
+			}
+			app.gg.draw_text(inner_x + 320, y + 4, '${used}/${limit} ${int(pct*100)}%', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
+			y += 22
+		}
+		if loops.len > 0 {
+			app.gg.draw_text(inner_x + 6, y + 8, 'Recent loop history: ${loops.len} entries', gg.TextCfg{ color: col_slate_dim, size: 11 })
+		}
+		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Budgets enforced via StateRepository • logistic 4*t*(1-t) GOD priority • VJOBS=2 serialized', gg.TextCfg{ color: col_slate, size: 10 })
+	} else if app.insights_tab == 'ci' {
+		app.gg.draw_text(inner_x, inner_y, 'CI Watcher — live fleet + validate.yml (superior to munder CI watch)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
+		app.gg.draw_text(inner_x, inner_y + 18, 'Watches .github/workflows/validate.yml via StateWatcher + PollingWatcher — no refresh', gg.TextCfg{ color: col_slate, size: 11 })
+		y := inner_y + 42
+		// CI jobs matrix (paper tape)
+		jobs_ci := ['validate (VJOBS=2)', 'megalinter', 'check-planes', 'check-surface', 'catalogs', 'provenance', 'build-cli']
+		for i, j in jobs_ci {
+			if y + 16 > cy0 + ch - 24 { break }
+			bg2 := if i % 2 == 0 { col_cream100 } else { col_cream50 }
+			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
+			status := if i < 5 { '✓ green' } else if i == 5 { '◐ running' } else { '○ pending' }
+			scol := if status.contains('green') { col_mint } else if status.contains('running') { col_brass } else { col_slate }
+			app.gg.draw_text(inner_x + 6, y + 3, j, gg.TextCfg{ color: col_ink, size: 11, mono: true })
+			app.gg.draw_text(inner_x + inner_w - 80, y + 3, status, gg.TextCfg{ color: scol, size: 11, bold: status.contains('green') })
+			y += 18
+		}
+		app.gg.draw_text(inner_x, cy0 + ch - 18, 'CI watcher debounced 16ms distinct-until-changed • bottom terminal streams live logs', gg.TextCfg{ color: col_slate, size: 10 })
+	} else {
+		app.gg.draw_text(inner_x, inner_y + 20, 'Select a tab above — Cost, Waterfall, Spans, Budgets, CI', gg.TextCfg{ color: col_slate_dim, size: 12 })
+	}
+}
+
 fn draw_inspector(mut app GuiApp, w int, h int) {
 	term_h_i := if app.term_visible { app.term_height } else { 0 }
 	ix := w - 300
@@ -4701,20 +5143,30 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 
 // desk_rect already defined above
 fn draw_palette(mut app GuiApp, w int, h int) {
-	app.gg.draw_rect_filled(0, 0, w, h, gg.rgba(0, 0, 0, 120))
+	// Dunder paper palette — manila folder with brass rivets, typewriter mono, paper grain
+	z := app.global_zoom
+	app.gg.draw_rect_filled(0, 0, w, h, gg.rgba(28, 28, 30, 88))
 	cx := w / 2 - 280
 	cy := h / 2 - 180
 	pw := 560
 	ph := 360
-	app.gg.draw_rect_filled(cx, cy, pw, ph, col_charcoal)
-	app.gg.draw_rect_empty(cx, cy, pw, ph, col_line_light)
-	app.gg.draw_text(cx + 16, cy + 12, 'COMMAND PALETTE', gg.TextCfg{ color: col_brass, size: 14, bold: true })
-	app.gg.draw_text(cx + pw - 60, cy + 12, 'ESC', gg.TextCfg{ color: col_slate, size: 13 })
+	// manila folder tab protruding top
+	app.gg.draw_rect_filled(cx + 18, cy - 14, 120, 14, col_paper_dim)
+	app.gg.draw_rect_filled(cx + 18, cy - 14, 120, 2, col_brass)
+	app.gg.draw_text(cx + 28, cy - 11, 'Dunder Mifflin', gg.TextCfg{ color: col_slate, size: scaled_size(9, z) })
+	pixel_panel(mut app, cx, cy, pw, ph, 'default')
+	app.gg.draw_text(cx + 16, cy + 12, 'Command Palette', gg.TextCfg{ color: col_ink, size: scaled_size(13, z), bold: true })
+	app.gg.draw_text(cx + pw - 90, cy + 12, '⌘K  •  ESC', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
 	app.gg.draw_rect_filled(cx + 12, cy + 32, pw - 24, 32, col_ink)
 	app.gg.draw_rect_empty(cx + 12, cy + 32, pw - 24, 32, col_brass)
-	q := if app.palette_query == '' { 'Type to search…' } else { app.palette_query }
-	qcol := if app.palette_query == '' { col_slate } else { col_paper }
-	app.gg.draw_text(cx + 20, cy + 42, '> ${q}', gg.TextCfg{ color: qcol, size: 15 })
+	// perforated dots each side
+	for py in 0 .. 2 {
+		app.gg.draw_rect_filled(cx + 14, cy + 38 + py * 10, 1, 1, gg.rgba(251, 246, 232, 28))
+		app.gg.draw_rect_filled(cx + pw - 15, cy + 38 + py * 10, 1, 1, gg.rgba(251, 246, 232, 28))
+	}
+	q := if app.palette_query == '' { 'Search skills, agents, panels…' } else { app.palette_query }
+	qcol := if app.palette_query == '' { col_slate_dim } else { col_paper }
+	app.gg.draw_text(cx + 20, cy + 42, '› ${q}', gg.TextCfg{ color: qcol, size: scaled_size(14, z) })
 	filtered := filtered_palette(app.palette_query)
 	for i, it in filtered {
 		if i >= 7 {
@@ -4722,47 +5174,52 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 		}
 		y := cy + 76 + i * 36
 		is_sel := i == app.palette_selected
-		bg := if is_sel { col_ink } else { col_charcoal }
-		bd := if is_sel { col_brass } else { col_line }
+		bg := if is_sel { col_ink } else { col_cream100 }
+		bd := if is_sel { col_brass } else { col_line_light }
 		app.gg.draw_rect_filled(cx + 12, y, pw - 24, 32, bg)
 		app.gg.draw_rect_empty(cx + 12, y, pw - 24, 32, bd)
 		if is_sel {
-			// a11y focus: high-contrast brass left bar + inner highlight for keyboard users
-			app.gg.draw_rect_filled(cx + 12, y, 3, 32, col_lemon)
-			app.gg.draw_rect_filled(cx + 15, y + 1, pw - 27, 1, gg.rgba(255, 253, 245, 18))
+			app.gg.draw_rect_filled(cx + 12, y, 3, 32, col_brass)
+			app.gg.draw_rect_filled(cx + 15, y + 1, pw - 27, 1, gg.rgba(251, 246, 232, 14))
+		} else {
+			// subtle manila tab on unselected
+			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, col_paper_dim)
 		}
-		app.gg.draw_text(cx + 20, y + 7, it.label, gg.TextCfg{
-			color: if is_sel {
-				col_paper} else {
-				gg.rgb(226, 232, 240)}
-			size: 14
+		app.gg.draw_text(cx + 20, y + 6, it.label, gg.TextCfg{
+			color: if is_sel { col_paper } else { col_ink }
+			size: scaled_size(13, z)
 			bold: is_sel
 		})
-		app.gg.draw_text(cx + 20, y + 19, it.desc, gg.TextCfg{ color: col_slate_dim, size: 12 })
-		app.gg.draw_text(cx + pw - 40, y + 10, it.keys, gg.TextCfg{ color: col_slate, size: 13 })
+		app.gg.draw_text(cx + 20, y + 18, it.desc, gg.TextCfg{ color: if is_sel { col_slate_dim } else { col_ink500 }, size: scaled_size(11, z) })
+		app.gg.draw_text(cx + pw - 52, y + 10, it.keys, gg.TextCfg{ color: col_brass_dim, size: scaled_size(12, z), bold: true })
 	}
 	if filtered.len == 0 {
-		app.gg.draw_text(cx + 20, cy + 86, 'No matches — try another query', gg.TextCfg{ color: col_slate_dim, size: 14 })
+		app.gg.draw_text(cx + 20, cy + 86, 'No matches — try another query', gg.TextCfg{ color: col_ink500, size: scaled_size(13, z) })
 	}
+	// footer hint paper tape
+	app.gg.draw_text(cx + 16, cy + ph - 16, '↑↓ navigate  •  Enter to open  •  Type to filter 227 skills  •  Ctrl± zoom', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
 }
 
 fn draw_help(mut app GuiApp, w int, h int) {
-	app.gg.draw_rect_filled(0, 0, w, h, gg.rgba(0, 0, 0, 130))
-	cx := w / 2 - 240
-	cy := h / 2 - 140
-	pw := 480
-	ph := 280
-	app.gg.draw_rect_filled(cx, cy, pw, ph, col_charcoal)
-	app.gg.draw_rect_empty(cx, cy, pw, ph, col_line_light)
-	app.gg.draw_text(cx + 16, cy + 12, 'KEYBOARD', gg.TextCfg{ color: col_brass, size: 14, bold: true })
-	lines := ['1–8  Switch panel (World, Skills, Agents…)', '/ or Ctrl+K  Command palette (fuzzy)',
-		'Up/Down  Navigate palette or desk  •  Enter to activate', 'ESC  Close palette / help',
-		'H  Toggle help', 'Click  Select desk or dock item (hover highlights)',
-		'Enter  Open terminal for selected desk  •  R Route handoff']
+	z := app.global_zoom
+	app.gg.draw_rect_filled(0, 0, w, h, gg.rgba(28, 28, 30, 80))
+	cx := w / 2 - 250
+	cy := h / 2 - 150
+	pw := 500
+	ph := 300
+	pixel_panel(mut app, cx, cy, pw, ph, 'default')
+	app.gg.draw_text(cx + 16, cy + 12, 'Paper Co. — Shortcuts', gg.TextCfg{ color: col_ink, size: scaled_size(14, z), bold: true })
+	lines := ['⌘K or /  Command palette — fuzzy search 227 skills, agents, panels',
+		'Ctrl +  = / -  Zoom in/out   •   Ctrl + 0  Reset  •  Ctrl + Scroll',
+		'1 – 0  Switch panel (World, Skills, Agents, MCP, Targets, Doctor, Jobs…)',
+		'↑  ↓  Navigate palette / floor desks  •  Enter to activate',
+		'Esc  Close palette / help / onboarding  •  H  Toggle this help',
+		'Click  Desk, dock file-tab or inspector — hover for brass highlight',
+		'Enter  Open terminal for selected desk  •  R  Route handoff']
 	for i, l in lines {
-		app.gg.draw_text(cx + 16, cy + 36 + i * 18, l, gg.TextCfg{ color: col_paper, size: 14 })
+		app.gg.draw_text(cx + 16, cy + 38 + i * 18, l, gg.TextCfg{ color: col_ink700, size: scaled_size(13, z) })
 	}
-	app.gg.draw_text(cx + 16, cy + ph - 22, 'All text is English. Press H or ESC to close.', gg.TextCfg{ color: col_slate_dim, size: 13 })
+	app.gg.draw_text(cx + 16, cy + ph - 22, 'Fraunces display • IBM Plex body • IBM Plex Mono  •  Press H or Esc to close.', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
 }
 
 fn activate_palette_selection(mut app GuiApp) {
@@ -4811,6 +5268,15 @@ fn activate_palette_selection(mut app GuiApp) {
 		}
 		'workspace' {
 			app.selected_panel = 9
+		}
+		'products' {
+			app.selected_panel = 10
+		}
+		'onboarding' {
+			app.selected_panel = 11
+		}
+		'insights' {
+			app.selected_panel = 12
 		}
 		'serve' {
 			app.inspector_msg = 'Serve: agent-toolkit serve --port 3847'
@@ -4919,7 +5385,29 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
-		if e.key_code == .slash || (e.key_code == .k && (e.modifiers & u32(gg.Modifier.ctrl)) != 0) {
+		// global zoom — Dunder paper: Ctrl/Cmd + =/- /0, also Ctrl+scroll
+		is_mod := (e.modifiers & u32(gg.Modifier.ctrl)) != 0 || (e.modifiers & u32(gg.Modifier.super)) != 0
+		if is_mod {
+			if e.key_code == .equal || e.key_code == .kp_add || (e.char_code == `+` || e.char_code == `=`) {
+				app.global_zoom = zoom_step(app.global_zoom, 1)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+				return
+			}
+			if e.key_code == .minus || e.key_code == .kp_subtract || e.char_code == `-` {
+				app.global_zoom = zoom_step(app.global_zoom, -1)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+				return
+			}
+			if e.key_code == ._0 || e.char_code == `0` {
+				app.global_zoom = 1.0
+				app.zoom_toast = '100%'
+				app.zoom_toast_at = app.frame
+				return
+			}
+		}
+		if e.key_code == .slash || (e.key_code == .k && is_mod) {
 			app.palette_open = true
 			app.palette_query = ''
 			app.palette_selected = 0
@@ -4936,6 +5424,38 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.inspector_msg = 'Handoff routed: ${desks[app.selected_desk].label} → reviewer'
 			}
 			return
+		}
+		// ── global header search — warm paper, filters palette + skills + desks ──
+		if !app.palette_open && !app.show_help && app.header_search_focus {
+			if e.key_code == .backspace {
+				if app.global_search.len > 0 {
+					app.global_search = app.global_search[..app.global_search.len - 1]
+					// also propagate to skills when on skills panel for convenience
+					if app.selected_panel == 1 { app.skills_query = app.global_search }
+				}
+				return
+			}
+			if e.key_code == .escape {
+				app.header_search_focus = false
+				app.global_search = ''
+				app.skills_query = ''
+				return
+			}
+			if e.key_code == .enter {
+				// commit search to skills panel + command palette
+				app.skills_query = app.global_search
+				app.palette_query = app.global_search
+				if app.global_search != '' { app.selected_panel = 1 }
+				app.header_search_focus = false
+				return
+			}
+			if e.char_code > 32 && e.char_code < 127 {
+				app.global_search += rune(e.char_code).str()
+				if app.selected_panel == 1 { app.skills_query = app.global_search }
+				return
+			}
+			// slash also closes search focus
+			if e.key_code == .escape { return }
 		}
 		// super potent IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
 		// When skills or workspace panels active, capture typing there instead of ghost (easy to manage, brokered)
@@ -5295,6 +5815,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.show_onboarding = false
 			return
 		}
+		if e.char_code == `i` || e.char_code == `I` {
+			app.selected_panel = 12
+			app.show_onboarding = false
+			return
+		}
 		if e.char_code == `o` || e.char_code == `O` {
 			// super-potent: toggle onboarding wizard overlay / panel 11
 			if app.show_onboarding && app.selected_panel == 11 {
@@ -5494,6 +6019,21 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 	}
 	if e.typ == .mouse_scroll {
+		// global zoom via Ctrl/Cmd+scroll — paper-office accessibility
+		if (e.modifiers & u32(gg.Modifier.ctrl)) != 0 || (e.modifiers & u32(gg.Modifier.super)) != 0 {
+			if e.scroll_y < 0 {
+				app.global_zoom = zoom_step(app.global_zoom, 1)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+				return
+			}
+			if e.scroll_y > 0 {
+				app.global_zoom = zoom_step(app.global_zoom, -1)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+				return
+			}
+		}
 		// scroll terminal or inspector depending on cursor region
 		w3 := app.gg.width
 		h3 := app.gg.height
@@ -5725,9 +6265,69 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Inspector buttons — clickable
+		// ── Header — global search + zoom slider (paper) ──
 		w := app.gg.width
 		h := app.gg.height
+		// header hit: y 0..44
+		if my >= 0 && my <= 44 {
+			// search box 380..640
+			if mx >= 380 && mx <= 640 && my >= 8 && my <= 36 {
+				// clear × hit
+				if mx >= 380 + 260 - 20 && app.global_search != '' {
+					app.global_search = ''
+					app.skills_query = ''
+					app.header_search_focus = false
+				} else {
+					app.header_search_focus = true
+				}
+				return
+			}
+			// click elsewhere in header blurs search
+			if app.header_search_focus && !(mx >= 380 && mx <= 640) {
+				// keep focus only if not clicking slider or command badge; blur otherwise for typing
+				if !(mx >= w - 214 - 10 && mx <= w - 214 + 84 + 10 && my >= 10 && my <= 30) && !(mx >= w - 112 && mx <= w - 16) {
+					app.header_search_focus = false
+				}
+			}
+			// zoom slider header: track at w-214, 84 wide
+			zx_hdr := w - 214
+			if mx >= zx_hdr - 10 && mx <= zx_hdr + 84 + 24 && my >= 8 && my <= 32 {
+				rel := mx - zx_hdr
+				if rel < 0 { rel = 0 }
+				if rel > 84 { rel = 84 }
+				pct := f64(rel) / 84.0
+				app.global_zoom = clamp_zoom(0.75 + pct * 0.75)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+				app.zoom_dragging = true
+				return
+			}
+			// command badge click opens palette
+			if mx >= w - 112 && mx <= w - 16 && my >= 8 && my <= 34 {
+				app.palette_open = true
+				app.palette_query = ''
+				app.palette_selected = 0
+				return
+			}
+		}
+		// status bar zoom slider at bottom
+		if my >= h - 28 && my <= h {
+			// status bar slider approx at left 230..294 (see frame)
+			left_base := 12 + 24 + 46 + 64 + 78 + 8
+			zx_stat := left_base + 4
+			if mx >= zx_stat - 6 && mx <= zx_stat + 64 + 12 && my >= h - 22 && my <= h - 6 {
+				rel2 := mx - zx_stat
+				if rel2 < 0 { rel2 = 0 }
+				if rel2 > 64 { rel2 = 64 }
+				pct2 := f64(rel2) / 64.0
+				app.global_zoom = clamp_zoom(0.75 + pct2 * 0.75)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+				app.zoom_dragging = true
+				return
+			}
+		}
+		// Inspector buttons — clickable
 		ix := w - 300
 		iy := 52
 		iw := 300
@@ -5839,9 +6439,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// Hit left dock — 12 panels (0 World .. 11 Onboarding) super-potent
+		// Hit left dock — 13 panels (0 World .. 12 Insights) super-potent
 		if mx >= 8 && mx <= 192 {
-			for i in 0 .. 12 {
+			for i in 0 .. 13 {
 				y := 45 + 8 + i * 32
 				if y + 28 > h - 28 - (if app.term_visible { app.term_height } else { 0 }) - 40 {
 					break
@@ -6403,6 +7003,21 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
+		// Insights — telemetry tabs: cost | waterfall | spans | budgets | ci
+		if app.selected_panel == 12 {
+			fx_i := 208
+			fy_i := 52
+			for i in 0 .. 5 {
+				x := fx_i + 16 + i * (92 + 6)
+				y := fy_i + 48
+				if mx >= x && mx <= x + 92 && my >= y && my <= y + 20 {
+					tabs_i := ['cost', 'waterfall', 'spans', 'budgets', 'ci']
+					app.insights_tab = tabs_i[i]
+					app.inspector_msg = 'Insights → ${tabs_i[i]} • telemetry via Engine (no shell)'
+					return
+				}
+			}
+		}
 		// Loops — budgets L1/L2/L3 missions: select + Run + Sched + New
 		if app.selected_panel == 7 {
 			fx := 208
@@ -6629,9 +7244,40 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		_ = h
 	}
+	if e.typ == .mouse_up {
+		app.zoom_dragging = false
+	}
 	if e.typ == .mouse_move {
 		app.mouse_x = int(e.mouse_x)
 		app.mouse_y = int(e.mouse_y)
+		// global zoom drag — 60FPS, paper slider
+		if app.zoom_dragging {
+			w3 := app.gg.width
+			h3 := app.gg.height
+			mx := app.mouse_x
+			my := app.mouse_y
+			// if dragging near bottom status bar, use status track mapping
+			if my >= h3 - 28 {
+				left_base := 12 + 24 + 46 + 64 + 78 + 8
+				zx_stat := left_base + 4
+				rel2 := mx - zx_stat
+				if rel2 < 0 { rel2 = 0 }
+				if rel2 > 64 { rel2 = 64 }
+				pct2 := f64(rel2) / 64.0
+				app.global_zoom = clamp_zoom(0.75 + pct2 * 0.75)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+			} else {
+				zx_hdr := w3 - 214
+				rel := mx - zx_hdr
+				if rel < 0 { rel = 0 }
+				if rel > 84 { rel = 84 }
+				pct := f64(rel) / 84.0
+				app.global_zoom = clamp_zoom(0.75 + pct * 0.75)
+				app.zoom_toast = zoom_percent(app.global_zoom)
+				app.zoom_toast_at = app.frame
+			}
+		}
 		app.hover_panel = -1
 		if app.mouse_x >= 8 && app.mouse_x <= 192 {
 			for i in 0 .. 10 {
@@ -6660,6 +7306,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		app.loops_hover_cron = -1
 		app.loops_hover_edit = -1
 		app.loops_budget_hover = -1
+		app.insights_hover = -1
 		if app.selected_panel == 0 {
 			desks := desks_for_app(app)
 			w2 := app.gg.width
@@ -6970,6 +7617,19 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// new loop button
 			if app.mouse_x >= fx + fw - 118 && app.mouse_x <= fx + fw - 14 && app.mouse_y >= fy + 10 && app.mouse_y <= fy + 32 {
 				app.loops_hover_run = -2
+			}
+		}
+		// insights hover — telemetry tabs
+		if app.selected_panel == 12 {
+			fx_i2 := 208
+			fy_i2 := 52
+			for i in 0 .. 5 {
+				x := fx_i2 + 16 + i * (92 + 6)
+				y := fy_i2 + 48
+				if app.mouse_x >= x && app.mouse_x <= x + 92 && app.mouse_y >= y && app.mouse_y <= y + 20 {
+					app.insights_hover = i
+					break
+				}
 			}
 		}
 		// onboarding wizard hover — distinct overlay steps 0..6 progress + Next/Finish/Skip

@@ -6,11 +6,11 @@ import desktop.state as app_state
 
 pub struct AgentsViewModel {
 mut:
-	engine &desktop_engine.Engine
-	all    []desktop_engine.AgentEntry
+	engine   &desktop_engine.Engine
+	all      []desktop_engine.AgentEntry
 	filtered []desktop_engine.AgentEntry
-	search string
-	tier   string
+	search   string
+	tier     string
 	revision u64
 }
 
@@ -79,7 +79,6 @@ pub fn (mut vm AgentsViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-
 // ── super-potent: search, stats, provenance, receipts, delegation ──
 pub fn (mut vm AgentsViewModel) search(query string, tier string) []desktop_engine.AgentEntry {
 	return vm.engine.agents_search(query, tier)
@@ -120,7 +119,6 @@ pub fn (vm AgentsViewModel) delegation_graph() map[string][]string {
 pub fn (vm AgentsViewModel) verify() []desktop_engine.BuildDiagnostic {
 	return vm.engine.verify_skill_receipts()
 }
-
 
 pub fn (vm AgentsViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t

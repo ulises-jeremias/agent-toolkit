@@ -14,7 +14,7 @@ pub:
 	pin               string // empty → ensure current toolkit version when refreshing
 	home_dir          string // empty → os.home_dir()
 	data_root         string // empty → find_toolkit_root()
-	skip_data_refresh bool   // tests / offline callers that already resolved data
+	skip_data_refresh bool // tests / offline callers that already resolved data
 }
 
 // UpdateReport summarizes profile refresh outcomes.
@@ -72,8 +72,7 @@ pub fn run_update(opts UpdateOptions) UpdateReport {
 		tools = detect_update_tools(home)
 		if tools.len == 0 {
 			report.ok = false
-			report.message = lines.join('\n') +
-				'\n  ⚠  No installed tools detected. Use --tools to specify targets.'
+			report.message = lines.join('\n') + '\n  ⚠  No installed tools detected. Use --tools to specify targets.'
 			return report
 		}
 		lines << '  Tools: ${tools.join(', ')}'
@@ -126,9 +125,9 @@ pub fn run_update(opts UpdateOptions) UpdateReport {
 pub fn update_result(report UpdateReport) CommandResult {
 	return CommandResult{
 		command: 'update'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    {
+		data: {
 			'data_root':     report.data_root
 			'files_updated': '${report.files_updated}'
 			'tools_planned': '${report.tools_planned}'
@@ -162,8 +161,7 @@ fn detect_update_tools(home string) []string {
 	if os.exists(os.join_path(home, '.config', 'opencode')) {
 		out << 'opencode'
 	}
-	if os.exists(os.join_path(home, '.codeium', 'windsurf'))
-		|| os.exists(os.join_path(home, '.windsurf')) {
+	if os.exists(os.join_path(home, '.codeium', 'windsurf')) || os.exists(os.join_path(home, '.windsurf')) {
 		out << 'windsurf'
 	}
 	if os.exists(os.join_path(home, '.pi')) {
@@ -194,8 +192,7 @@ fn mappings_for_tool(tool string, data_root string, home string) []FileMapping {
 				mappings << FileMapping{claude_md, os.join_path(home, '.claude', 'CLAUDE.md')}
 			}
 			agents := os.join_path(src, 'agents')
-			mappings << data_map_tree_files(data_root, agents, os.join_path(home, '.claude',
-				'agents'))
+			mappings << data_map_tree_files(data_root, agents, os.join_path(home, '.claude', 'agents'))
 		}
 		'cursor' {
 			src := os.join_path(data_root, 'profiles', 'cursor', 'rules')
@@ -205,25 +202,21 @@ fn mappings_for_tool(tool string, data_root string, home string) []FileMapping {
 			src := os.join_path(data_root, 'profiles', 'opencode')
 			cfg := os.join_path(src, 'opencode.json')
 			if data_is_file(data_root, cfg) {
-				mappings << FileMapping{cfg, os.join_path(home, '.config', 'opencode',
-					'opencode.json')}
+				mappings << FileMapping{cfg, os.join_path(home, '.config', 'opencode', 'opencode.json')}
 			}
 			agents := os.join_path(src, 'agents')
-			mappings << data_map_tree_files(data_root, agents, os.join_path(home, '.config',
-				'opencode', 'agents'))
+			mappings << data_map_tree_files(data_root, agents, os.join_path(home, '.config', 'opencode', 'agents'))
 		}
 		'windsurf' {
 			src := os.join_path(data_root, 'profiles', 'windsurf')
 			cfg := windsurf_config_dir(home)
 			for sub in ['rules', 'memories'] {
-				mappings << data_map_tree_files(data_root, os.join_path(src, sub),
-					os.join_path(cfg, sub))
+				mappings << data_map_tree_files(data_root, os.join_path(src, sub), os.join_path(cfg, sub))
 			}
 		}
 		'pi' {
 			src := os.join_path(data_root, 'profiles', 'pi', 'skills')
-			mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent',
-				'skills'))
+			mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent', 'skills'))
 		}
 		else {}
 	}
@@ -250,7 +243,7 @@ fn plan_tool_update(tool string, data_root string, home string) ?ToolUpdatePlan 
 		return none
 	}
 	mut plan := ToolUpdatePlan{
-		tool:     tool
+		tool: tool
 		mappings: mappings
 	}
 	for m in mappings {

@@ -142,14 +142,14 @@ pub fn load_products_file(path string) ([]LoadedProduct, []string) {
 		stab := p.stability
 		stability := if stab in ['stable', 'experimental', 'deprecated'] { stab } else { 'stable' }
 		out << LoadedProduct{
-			id:              p.id
-			name:            if p.name.len > 0 { p.name } else { p.id }
-			description:     p.description
-			stability:       stability
+			id: p.id
+			name: if p.name.len > 0 { p.name } else { p.id }
+			description: p.description
+			stability: stability
 			included_skills: p.includes.skills
 			included_agents: p.includes.agents
-			included_hooks:  p.includes.hooks
-			included_mcp:    p.includes.mcp
+			included_hooks: p.includes.hooks
+			included_mcp: p.includes.mcp
 		}
 	}
 	return out, errors
@@ -166,9 +166,9 @@ fn load_skill_ids(skills_root string) map[string]LoadedSkill {
 		}
 		id := '${domain}/${name}'
 		out[id] = LoadedSkill{
-			id:          id
-			name:        name
-			domain:      domain
+			id: id
+			name: name
+			domain: domain
 			source_path: p
 		}
 	}
@@ -184,8 +184,8 @@ fn load_agent_ids(agents_root string) map[string]LoadedAgent {
 			continue
 		}
 		out[name] = LoadedAgent{
-			id:          name
-			name:        name
+			id: name
+			name: name
 			source_path: p
 		}
 	}
@@ -240,10 +240,10 @@ fn load_hooks(hooks_root string) map[string]LoadedHook {
 			continue
 		}
 		out[h.id] = LoadedHook{
-			id:           h.id
-			event:        h.event
-			command:      h.handler.command
-			timeout_ms:   h.handler.timeout_ms
+			id: h.id
+			event: h.event
+			command: h.handler.command
+			timeout_ms: h.handler.timeout_ms
 			cursor_event: cursor_hook_event(h.event)
 		}
 	}

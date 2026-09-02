@@ -18,7 +18,7 @@ fn test_plugin_check_drift_then_sync() {
 		return
 	}
 	check := run_plugin(PluginOptions{
-		subcommand:   'check'
+		subcommand: 'check'
 		toolkit_root: base
 	})
 	assert !check.ok
@@ -26,14 +26,14 @@ fn test_plugin_check_drift_then_sync() {
 	assert check.message.contains('DRIFT')
 
 	sync := run_plugin(PluginOptions{
-		subcommand:   'sync'
+		subcommand: 'sync'
 		toolkit_root: base
 	})
 	assert sync.ok
 	assert os.is_file(os.join_path(dst_skill, 'SKILL.md'))
 
 	again := run_plugin(PluginOptions{
-		subcommand:   'check'
+		subcommand: 'check'
 		toolkit_root: base
 	})
 	assert again.ok

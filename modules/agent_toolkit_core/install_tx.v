@@ -5,13 +5,13 @@ import os
 // InstallTxOptions configures an install transaction (Python install dry-run/force parity).
 pub struct InstallTxOptions {
 pub:
-	dry_run      bool
-	force        bool
-	receipt_dir  string // empty → default_receipt_dir()
-	toolkit_root string
-	product      string // empty → profiles_product
-	scope        string // empty → user-home (profile installs)
-	version      string // empty → resolve_toolkit_version()
+	dry_run       bool
+	force         bool
+	receipt_dir   string // empty → default_receipt_dir()
+	toolkit_root  string
+	product       string // empty → profiles_product
+	scope         string // empty → user-home (profile installs)
+	version       string // empty → resolve_toolkit_version()
 	source_digest string
 }
 
@@ -30,8 +30,8 @@ pub mut:
 	dry_run bool
 	force   bool
 mut:
-	fs            FsService
-	receipt_dir   string
+	fs           FsService
+	receipt_dir  string
 	staged       []StagedOp
 	committed    []CommittedArtifact
 	finished     bool
@@ -60,12 +60,12 @@ pub fn new_install_transaction(target string, opts InstallTxOptions) InstallTran
 	}
 	dir := if opts.receipt_dir.len > 0 { opts.receipt_dir } else { default_receipt_dir() }
 	return InstallTransaction{
-		receipt:     new_install_receipt(product, target, scope, version, src)
-		dry_run:     opts.dry_run
-		force:       opts.force
-		fs:          new_fs()
+		receipt: new_install_receipt(product, target, scope, version, src)
+		dry_run: opts.dry_run
+		force: opts.force
+		fs: new_fs()
 		receipt_dir: dir
-		staged:    []StagedOp{}
+		staged: []StagedOp{}
 		committed: []CommittedArtifact{}
 	}
 }
@@ -87,8 +87,8 @@ pub fn (mut tx InstallTransaction) stage_write_owned(dest string, content string
 		return error("artifact ownership must be 'created' or 'merged'")
 	}
 	tx.staged << StagedOp{
-		dest:      dest
-		content:   content
+		dest: dest
+		content: content
 		ownership: ownership
 	}
 }
@@ -106,9 +106,9 @@ pub fn (mut tx InstallTransaction) stage_copy(src string, dest string) ! {
 	}
 	content := os.read_file(src) or { return error('read source failed: ${src}: ${err}') }
 	tx.staged << StagedOp{
-		src:       src
-		dest:      dest
-		content:   content
+		src: src
+		dest: dest
+		content: content
 		ownership: 'created'
 	}
 }
@@ -173,19 +173,19 @@ fn (mut tx InstallTransaction) apply_one(op StagedOp) ! {
 		}
 		tx.fs.write_atomic(dest, op.content)!
 		tx.committed << CommittedArtifact{
-			path:           dest
-			ownership:      op.ownership
-			created_by_tx:  false
+			path: dest
+			ownership: op.ownership
+			created_by_tx: false
 			backup_content: existing
-			had_backup:     true
+			had_backup: true
 		}
 		tx.record_artifact(dest, op.ownership)
 		return
 	}
 	tx.fs.write_atomic(dest, op.content)!
 	tx.committed << CommittedArtifact{
-		path:          dest
-		ownership:     op.ownership
+		path: dest
+		ownership: op.ownership
 		created_by_tx: true
 	}
 	tx.record_artifact(dest, op.ownership)
@@ -193,8 +193,8 @@ fn (mut tx InstallTransaction) apply_one(op StagedOp) ! {
 
 fn (mut tx InstallTransaction) record_artifact(path string, ownership string) {
 	tx.receipt.artifacts << ArtifactEntry{
-		path:      path
-		digest:    receipt_artifact_digest(path)
+		path: path
+		digest: receipt_artifact_digest(path)
 		ownership: ownership
 	}
 }

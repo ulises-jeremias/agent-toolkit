@@ -23,20 +23,20 @@ pub fn run_plugin(opts PluginOptions) PluginReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
 		return PluginReport{
-			ok:      true
+			ok: true
 			message: plugin_help_text()
 		}
 	}
 	root := if opts.toolkit_root.len > 0 { opts.toolkit_root } else { lookup_checkout_root() }
 	if root.len == 0 {
 		return PluginReport{
-			ok:      false
+			ok: false
 			message: 'Cannot locate toolkit directory'
 		}
 	}
 	if sub !in ['sync', 'check'] {
 		return PluginReport{
-			ok:      false
+			ok: false
 			message: 'Unknown subcommand: ${sub}\n  Valid subcommands: sync, check'
 		}
 	}
@@ -46,9 +46,9 @@ pub fn run_plugin(opts PluginOptions) PluginReport {
 pub fn plugin_result(report PluginReport) CommandResult {
 	return CommandResult{
 		command: 'plugin'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    {
+		data: {
 			'drift': '${report.drift}'
 			'mode':  if report.message.contains('checking') { 'check' } else { 'sync' }
 		}
@@ -122,9 +122,9 @@ fn run_plugin_surfaces(root string, check bool) PluginReport {
 		lines << '  ✓  All plugin surfaces are in sync!'
 	}
 	return PluginReport{
-		ok:      drift == 0
+		ok: drift == 0
 		message: lines.join('\n')
-		drift:   drift
+		drift: drift
 	}
 }
 

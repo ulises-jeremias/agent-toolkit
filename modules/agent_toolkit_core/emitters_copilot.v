@@ -36,7 +36,7 @@ pub fn compile_target(target_id string, graph CanonicalGraph, product LoadedProd
 		return compile_tier1(id, graph, product, output_root, repo_root)
 	}
 	mut result := CompilationResult{
-		target:  id
+		target: id
 		product: product.id
 	}
 	if output_root.len == 0 {
@@ -72,8 +72,7 @@ pub fn compile_target(target_id string, graph CanonicalGraph, product LoadedProd
 			emit_codex(mut result, mut records, graph, product, out_dir, output_root)
 		}
 		'agent-plugins' {
-			emit_agent_plugins(mut result, mut records, graph, product, out_dir, output_root,
-				repo_root)
+			emit_agent_plugins(mut result, mut records, graph, product, out_dir, output_root, repo_root)
 		}
 		else {
 			result.errors << "unknown emit target '${target_id}'"
@@ -94,32 +93,22 @@ pub fn compile_target(target_id string, graph CanonicalGraph, product LoadedProd
 fn emit_copilot_cli(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
 	manifest_path := os.join_path(out_dir, 'plugin.json')
 	ver := resolve_toolkit_version()
-	body := '{\n' + '  "name": "${json_escape(product.id)}",\n' +
-		'  "version": "${json_escape(ver)}",\n' +
-		'  "description": "${json_escape(product.description)}",\n' +
-		'  "author": {\n' + '    "name": "ulises-jeremias",\n' +
-		'    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' +
-		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "license": "MIT",\n' + '  "skills": "skills/",\n' + '  "agents": "agents/"\n}\n'
+	body := '{\n' + '  "name": "${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' + '  "description": "${json_escape(product.description)}",\n' + '  "author": {\n' + '    "name": "ulises-jeremias",\n' + '    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' + '  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "license": "MIT",\n' + '  "skills": "skills/",\n' + '  "agents": "agents/"\n}\n'
 	write_text_artifact(manifest_path, body, 'generated', output_root, mut result, mut records)
 	if result.errors.len > 0 {
 		return
 	}
 	result.emitted << 'plugin-manifest'
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
-	emit_copilot_agents_flat(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
+	emit_copilot_agents_flat(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'), output_root)
 	result.unsupported << 'hooks (cross-platform Bash+PowerShell handlers required — pending #16)'
 	result.unsupported << 'mcp (unknown-blocked: not confirmed in official Copilot CLI docs)'
 }
 
 fn emit_copilot_repository(mut result CompilationResult, mut records []ArtifactRecord, graph CanonicalGraph, product LoadedProduct, out_dir string, output_root string) {
 	emit_copilot_instructions(mut result, mut records, graph, product, out_dir, output_root)
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, '.github',
-		'skills'), output_root)
-	emit_copilot_agents_flat(mut result, mut records, graph, product, os.join_path(out_dir, '.github',
-		'agents'), output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, '.github', 'skills'), output_root)
+	emit_copilot_agents_flat(mut result, mut records, graph, product, os.join_path(out_dir, '.github', 'agents'), output_root)
 	result.unsupported << 'hooks (unknown-blocked for repository surface)'
 	result.unsupported << 'mcp (unknown-blocked for repository surface)'
 }

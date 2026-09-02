@@ -16,8 +16,7 @@ fn test_load_inventory_at_temp_tree() {
 	os.write_file(os.join_path(root, 'skills', 'forge', 'github-cli-workflow', 'SKILL.md'), '# x\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: agent-toolkit-core\n    name: Core\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: agent-toolkit-core\n    name: Core\n') or { assert false, err.msg() }
 	defer {
 		os.rmdir_all(root) or {}
 	}

@@ -6,13 +6,9 @@ import time
 fn test_run_echo_captures_stdout() {
 	p := new_process_service()
 	exe := $if windows { 'cmd' } $else { 'echo' }
-	argv := $if windows {
-		[exe, '/c', 'echo', 'hello-at']
-	} $else {
-		[exe, 'hello-at']
-	}
+	argv := $if windows { [exe, '/c', 'echo', 'hello-at'] } $else { [exe, 'hello-at'] }
 	res := p.run(
-		argv:    argv
+		argv: argv
 		timeout: 5 * time.second
 	) or {
 		assert false, err.msg()
@@ -49,8 +45,8 @@ fn test_run_with_cwd() {
 		return
 	}
 	res := p.run(
-		argv:    ['pwd']
-		cwd:     cwd
+		argv: ['pwd']
+		cwd: cwd
 		timeout: 5 * time.second
 	) or {
 		assert false, err.msg()

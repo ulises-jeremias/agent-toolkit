@@ -21,10 +21,10 @@ pub fn doctor_backend(name string) BackendDoctor {
 	return match n {
 		'headless' {
 			BackendDoctor{
-				name:      'headless'
+				name: 'headless'
 				available: true
-				version:   'filesystem'
-				reason:    'always available (ADR-008 filesystem SoT)'
+				version: 'filesystem'
+				reason: 'always available (ADR-008 filesystem SoT)'
 			}
 		}
 		'tmux' {
@@ -35,9 +35,9 @@ pub fn doctor_backend(name string) BackendDoctor {
 		}
 		else {
 			BackendDoctor{
-				name:      n
+				name: n
 				available: false
-				reason:    'unknown backend'
+				reason: 'unknown backend'
 			}
 		}
 	}
@@ -109,8 +109,12 @@ pub fn runner_available(name string) bool {
 		'cursor' { 'cursor-agent' }
 		'copilot' { 'copilot' }
 		'muse' { 'muse' }
-		'skeleton' { return true }
-		else { return false }
+		'skeleton' {
+			return true
+		}
+		else {
+			return false
+		}
 	}
 	os.find_abs_path_of_executable(bin) or { return false }
 	return true
@@ -124,7 +128,7 @@ pub fn swarm_model_profiles() map[string]map[string]string {
 			'codex':    'o3-mini'
 			'cursor':   'composer-1'
 			'copilot':  'gpt-4o-mini'
-			'muse': 'auto'
+			'muse':     'auto'
 		}
 		'balanced': {
 			'opencode': 'sonnet'
@@ -132,7 +136,7 @@ pub fn swarm_model_profiles() map[string]map[string]string {
 			'codex':    'o3'
 			'cursor':   'composer-2'
 			'copilot':  'gpt-4o'
-			'muse': 'auto'
+			'muse':     'auto'
 		}
 		'quality':  {
 			'opencode': 'opus'
@@ -140,7 +144,7 @@ pub fn swarm_model_profiles() map[string]map[string]string {
 			'codex':    'o4-mini'
 			'cursor':   'composer-2'
 			'copilot':  'gpt-4o'
-			'muse': 'auto'
+			'muse':     'auto'
 		}
 		'private':  {
 			'opencode': 'local'
@@ -148,7 +152,7 @@ pub fn swarm_model_profiles() map[string]map[string]string {
 			'codex':    'local'
 			'cursor':   'local'
 			'copilot':  'local'
-			'muse': 'auto'
+			'muse':     'auto'
 		}
 	}
 }
@@ -159,7 +163,7 @@ pub fn herdr_runner_cmd(runner string, role string, task string, worktree string
 	q_wt := shell_quote(if worktree.len > 0 { worktree } else { '.' })
 	q_prompt_file := if prompt_file.len > 0 { shell_quote(prompt_file) } else { '' }
 	q_task := shell_quote(task)
-	cat_expr := if prompt_file.len > 0 { '"$(cat ' + q_prompt_file + ')"' } else { '' }
+	cat_expr := if prompt_file.len > 0 { '"\$(cat ' + q_prompt_file + ')"' } else { '' }
 	match runner {
 		'opencode' {
 			if has_task {
@@ -233,25 +237,27 @@ pub fn herdr_runner_cmd(runner string, role string, task string, worktree string
 fn probe_unix_bin(name string, argv []string) BackendDoctor {
 	$if windows {
 		return BackendDoctor{
-			name:      name
+			name: name
 			available: false
-			reason:    '${name} is Unix-only; not supported on Windows'
+			reason: '${name} is Unix-only; not supported on Windows'
 		}
 	}
 	ps := new_process_service()
 	res := ps.run(RunOptions{
-		argv:    argv
+		argv: argv
 		timeout: 5 * time.second
-	}) or { return BackendDoctor{
-		name:      name
-		available: false
-		reason:    err.msg()
-	} }
+	}) or {
+		return BackendDoctor{
+			name: name
+			available: false
+			reason: err.msg()
+		}
+	}
 	if res.timed_out {
 		return BackendDoctor{
-			name:      name
+			name: name
 			available: false
-			reason:    '${name} probe timed out'
+			reason: '${name} probe timed out'
 		}
 	}
 	if res.exit_code != 0 {
@@ -263,9 +269,9 @@ fn probe_unix_bin(name string, argv []string) BackendDoctor {
 			msg = 'exit ${res.exit_code}'
 		}
 		return BackendDoctor{
-			name:      name
+			name: name
 			available: false
-			reason:    msg
+			reason: msg
 		}
 	}
 	mut ver := res.stdout.trim_space()
@@ -273,9 +279,9 @@ fn probe_unix_bin(name string, argv []string) BackendDoctor {
 		ver = res.stderr.trim_space()
 	}
 	return BackendDoctor{
-		name:      name
+		name: name
 		available: true
-		version:   ver
+		version: ver
 	}
 }
 

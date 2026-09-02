@@ -120,9 +120,9 @@ pub fn (lab DiagnosticsLab) current() DiagnosticsViewModel {
 // lamp_color maps status → lamp color per tokens #1017.
 pub fn lamp_color(status DoctorStatus) string {
 	return match status {
-		.pass { '#16a34a' }
-		.fail { '#dc2626' }
-		.warn { '#eab308' }
+		.pass { '#5A7D5A' }
+		.fail { '#C45A3C' }
+		.warn { '#C9A86B' }
 	}
 }
 

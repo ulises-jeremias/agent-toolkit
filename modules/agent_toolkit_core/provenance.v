@@ -1,7 +1,7 @@
 module agent_toolkit_core
 
 import crypto.sha256
-import json
+import json2
 import os
 import time
 
@@ -41,12 +41,12 @@ pub fn write_provenance(out_dir string, product_id string, target_id string, art
 	os.mkdir_all(out_dir) or { return error('mkdir provenance dir failed: ${err}') }
 	manifest := ProvenanceManifest{
 		generator_version: resolve_toolkit_version()
-		product:           product_id
-		target:            target_id
-		artifacts:         artifacts
+		product: product_id
+		target: target_id
+		artifacts: artifacts
 	}
 	path := os.join_path(out_dir, '.provenance.json')
-	payload := json.encode(manifest)
+	payload := json2.encode(manifest, escape_unicode: true)
 	os.write_file(path, payload + '\n') or { return error('write provenance failed: ${err}') }
 	return path
 }
@@ -57,7 +57,7 @@ pub fn load_provenance(path string) ?ProvenanceManifest {
 		return none
 	}
 	text := os.read_file(path) or { return none }
-	m := json.decode(ProvenanceManifest, text) or { return none }
+	m := json2.decode[ProvenanceManifest](text) or { return none }
 	if m.product.len == 0 && m.target.len == 0 && m.artifacts.len == 0 {
 		return none
 	}

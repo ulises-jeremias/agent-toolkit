@@ -1,5 +1,8 @@
 module world
 
+// Geometry — Dunder Mifflin office floor geometry, Scranton Branch.
+// Retained primitives with 32 px paper checkerboard, brass rivet specs,
+// and 60 FPS culling (desk 140×86, avatar 24×24, envelope 16×8).
 import desktop.theme
 
 // PrimitiveKind enumerates retained geometry primitives — polyline / polygon / arc + text.

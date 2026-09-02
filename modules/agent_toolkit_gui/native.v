@@ -35,13 +35,17 @@ pub fn probe_native() NativeProbeResult {
 			surface: 'native open/save/folder dialogs'
 			available: !headless
 			stub: headless
-			detail: if headless { 'headless stub: no DISPLAY — sokol dialog not invoked (tinyfiledialogs/zenity fallback documented)' } else { 'available via sokol/ComDlg32 fallback' }
+			detail: if headless {
+				'headless stub: no DISPLAY — sokol dialog not invoked (tinyfiledialogs/zenity fallback documented)'} else {
+				'available via sokol/ComDlg32 fallback'}
 		},
 		NativeProbeEntry{
 			surface: 'clipboard (text)'
 			available: true
 			stub: headless
-			detail: if headless { 'headless stub: sokol clipboard not invoked; text-only path documented' } else { 'sokol clipboard available (text-only)' }
+			detail: if headless {
+				'headless stub: sokol clipboard not invoked; text-only path documented'} else {
+				'sokol clipboard available (text-only)'}
 		},
 		NativeProbeEntry{
 			surface: 'drag-and-drop (OS files)'
@@ -59,7 +63,9 @@ pub fn probe_native() NativeProbeResult {
 			surface: 'IME / CJK composition'
 			available: true
 			stub: headless
-			detail: if headless { 'headless stub: sokol IME events not exercised; PATH validated' } else { 'sokol IME composition available (manual smoke required)' }
+			detail: if headless {
+				'headless stub: sokol IME events not exercised; PATH validated'} else {
+				'sokol IME composition available (manual smoke required)'}
 		},
 		NativeProbeEntry{
 			surface: 'BiDi / ligatures / emoji / Unicode / OpenType'
@@ -100,11 +106,17 @@ pub fn (r NativeProbeResult) summary() string {
 // markdown renders the native probe as markdown for ADR appendix.
 pub fn (r NativeProbeResult) markdown() string {
 	mut out := ''
-	out += 'Native probe (${if r.headless { 'headless' } else { 'DISPLAY=${r.display} WAYLAND=${r.wayland}' }}):\n\n'
+	out += 'Native probe (${if r.headless {
+		'headless'
+	} else {
+		'DISPLAY=\${r.display} WAYLAND=\${r.wayland}'
+	}}):\n\n'
 	out += '| Surface | Available | Detail |\n'
 	out += '|---|---|---|\n'
 	for p in r.probes {
-		avail := if p.available { 'yes' } else if p.stub { 'stub' } else { 'no' }
+		avail := if p.available {
+			'yes'
+		} else if p.stub { 'stub' } else { 'no' }
 		out += '| ${p.surface} | ${avail} | ${p.detail} |\n'
 	}
 	out += '\n'

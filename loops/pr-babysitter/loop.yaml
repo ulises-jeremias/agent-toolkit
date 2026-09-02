@@ -29,9 +29,9 @@ exit_conditions:
   - human_escalation
 
 budget:
-  max_tokens: 80000
-  max_runs_per_day: 96
-  max_wall_seconds: 600
+  max_tokens: 150000
+  max_runs_per_day: 1
+  max_wall_seconds: 1200
 
 verifier: agent-toolkit-code-reviewer
 

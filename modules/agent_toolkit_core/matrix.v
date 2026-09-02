@@ -11,9 +11,9 @@ pub fn matrix_result() CommandResult {
 		msg := 'Matrix not found. Run the research pipeline first.\nExpected at: ${matrix_rel}'
 		return CommandResult{
 			command: 'matrix'
-			ok:      true
+			ok: true
 			message: msg
-			data:    {
+			data: {
 				'found': 'false'
 				'path':  matrix_rel
 			}
@@ -29,9 +29,9 @@ pub fn matrix_result_at(root string) CommandResult {
 		text := os.read_file(path) or {
 			return CommandResult{
 				command: 'matrix'
-				ok:      true
+				ok: true
 				message: 'Matrix not found. Run the research pipeline first.\nExpected at: ${path}'
-				data:    {
+				data: {
 					'found': 'false'
 					'path':  path
 				}
@@ -39,9 +39,9 @@ pub fn matrix_result_at(root string) CommandResult {
 		}
 		return CommandResult{
 			command: 'matrix'
-			ok:      true
+			ok: true
 			message: text
-			data:    {
+			data: {
 				'found': 'true'
 				'path':  path
 			}
@@ -49,9 +49,9 @@ pub fn matrix_result_at(root string) CommandResult {
 	}
 	return CommandResult{
 		command: 'matrix'
-		ok:      true
+		ok: true
 		message: 'Matrix not found. Run the research pipeline first.\nExpected at: ${path}'
-		data:    {
+		data: {
 			'found': 'false'
 			'path':  path
 		}

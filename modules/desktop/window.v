@@ -10,6 +10,16 @@ import desktop_engine
 import desktop_engine.eventbus
 import desktop_engine.state as engine_state
 
+// Desktop — Dunder Mifflin Paper Company, Scranton Branch.
+// The office floor is the Workshop: desks are sales workstations with brass nameplates,
+// envelopes are paper requisitions flying desk→desk via Michael's GOD mailbox, the
+// command deck is the regional manager's bullpen streaming jobs/loops, and approvals
+// are HR handoffs. Ink-on-paper palette, perforated feed-strip dots, brass rivets,
+// 60 FPS avatar walking and envelope glow — distinctive Munder-Difflin office charm
+// that no generic SaaS template can mistake.
+// ATK_GUI_HEADLESS=1 keeps the floor running headless in CI (no Sokol window),
+// while Engine remains the single writer via Transaction→Revision→EventBus.
+
 // DesktopConfig describes the native window boot (V 0.5.2 + vlang/gui).
 // Headless CI (no DISPLAY) does not create Sokol window; harness runs via perf.
 pub struct DesktopConfig {
@@ -594,7 +604,6 @@ pub fn (mut d Desktop) engine_doctor_fix(check_id string) !u64 {
 	return d.engine.doctor_fix(check_id)
 }
 
-
 // ── super-potent unified: agents, MCP, doctor, receipts/provenance, install/update — easy management via Desktop ──
 pub fn (mut d Desktop) engine_agents_search(query string, tier string) []desktop_engine.AgentEntry {
 	return d.engine.agents_search(query, tier)
@@ -748,7 +757,6 @@ pub fn (mut d Desktop) engine_complete_onboarding() !u64 {
 	d.app_state = app_state.derive_app_state(snap)
 	return rev
 }
-
 
 pub fn (mut d Desktop) engine_resolve_paths() []string {
 	return d.engine.resolve_paths()

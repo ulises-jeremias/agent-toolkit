@@ -6,7 +6,7 @@ import desktop.state as app_state
 
 pub struct ProductsViewModel {
 mut:
-	engine &desktop_engine.Engine
+	engine   &desktop_engine.Engine
 	products []desktop_engine.ProductEntry
 	packs    []desktop_engine.PackEntry
 	revision u64

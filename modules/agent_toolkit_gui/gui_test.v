@@ -70,9 +70,15 @@ fn test_gap_matrix_status_coverage() {
 	mut has_missing := false
 	for e in all {
 		match e.status {
-			.supported { has_supported = true }
-			.partial { has_partial = true }
-			.missing { has_missing = true }
+			.supported {
+				has_supported = true
+			}
+			.partial {
+				has_partial = true
+			}
+			.missing {
+				has_missing = true
+			}
 		}
 		assert e.widget.len > 0
 		assert e.mitigation.len > 0

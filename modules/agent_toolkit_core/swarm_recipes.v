@@ -1,20 +1,19 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 
 // BUILTIN_RECIPES persona/policy/gates — V uses plain role list (P2-05 fix).
 // Python fbb2280:config.py:12 BUILTIN_RECIPES persona/policy etc.
-
 pub const swarm_api_version = 'agent-toolkit.dev/v1alpha1'
 pub const swarm_kind = 'SwarmRecipe'
 
 pub struct Budget {
 pub mut:
-	max_total_tokens int     @[json: 'max_total_tokens']
-	max_cost_usd     f64     @[json: 'max_cost_usd']
-	max_wall_seconds int     @[json: 'max_wall_seconds']
-	max_concurrency  int     @[json: 'max_concurrency']
+	max_total_tokens int @[json: 'max_total_tokens']
+	max_cost_usd     f64 @[json: 'max_cost_usd']
+	max_wall_seconds int @[json: 'max_wall_seconds']
+	max_concurrency  int @[json: 'max_concurrency']
 }
 
 pub struct BudgetConsumed {
@@ -25,39 +24,39 @@ pub mut:
 
 pub struct ExecutionSpec {
 pub mut:
-	max_concurrency      int  @[json: 'max_concurrency']
+	max_concurrency      int @[json: 'max_concurrency']
 	lazy_start           bool @[json: 'lazy_start']
 	resumable            bool @[json: 'resumable']
-	max_role_round_trips int  @[json: 'max_role_round_trips']
+	max_role_round_trips int @[json: 'max_role_round_trips']
 }
 
 pub struct GatesSpec {
 pub mut:
-	require_plan_approval    bool @[json: 'require_plan_approval']
-	require_final_approval   bool @[json: 'require_final_approval']
-	allow_direct_base_merge  bool @[json: 'allow_direct_base_merge']
-	allow_push               bool @[json: 'allow_push']
+	require_plan_approval   bool @[json: 'require_plan_approval']
+	require_final_approval  bool @[json: 'require_final_approval']
+	allow_direct_base_merge bool @[json: 'allow_direct_base_merge']
+	allow_push              bool @[json: 'allow_push']
 }
 
 pub struct WorkspaceSpec {
 pub mut:
 	strategy           string @[json: 'strategy']
 	base_ref           string @[json: 'base_ref']
-	integration_branch bool   @[json: 'integration_branch']
-	keep_on_failure    bool   @[json: 'keep_on_failure']
+	integration_branch bool @[json: 'integration_branch']
+	keep_on_failure    bool @[json: 'keep_on_failure']
 }
 
 pub struct RoleSpec {
 pub mut:
-	persona       string   @[json: 'persona']
-	policy        string   @[json: 'policy']
-	model_profile string   @[json: 'model_profile']
-	worktree      string   @[json: 'worktree']
+	persona       string @[json: 'persona']
+	policy        string @[json: 'policy']
+	model_profile string @[json: 'model_profile']
+	worktree      string @[json: 'worktree']
 	consumes      []string @[json: 'consumes']
 	produces      []string @[json: 'produces']
-	receive_mode  string   @[json: 'receive_mode']
+	receive_mode  string @[json: 'receive_mode']
 	skills        []string @[json: 'skills']
-	ui_backend    string   @[json: 'ui_backend']
+	ui_backend    string @[json: 'ui_backend']
 }
 
 pub struct RecipeMeta {
@@ -68,26 +67,26 @@ pub mut:
 
 pub struct SpecDetail {
 pub mut:
-	ui        string                @[json: 'ui']
-	transport string                @[json: 'transport']
-	workspace WorkspaceSpec          @[json: 'workspace']
-	execution ExecutionSpec         @[json: 'execution']
-	budget    Budget               @[json: 'budget']
-	gates     GatesSpec            @[json: 'gates']
-	roles     map[string]RoleSpec  @[json: 'roles']
+	ui        string @[json: 'ui']
+	transport string @[json: 'transport']
+	workspace WorkspaceSpec @[json: 'workspace']
+	execution ExecutionSpec @[json: 'execution']
+	budget    Budget @[json: 'budget']
+	gates     GatesSpec @[json: 'gates']
+	roles     map[string]RoleSpec @[json: 'roles']
 }
 
 pub struct RecipeFull {
 pub mut:
-	api_version string     @[json: 'apiVersion']
-	kind        string     @[json: 'kind']
+	api_version string @[json: 'apiVersion']
+	kind        string @[json: 'kind']
 	metadata    RecipeMeta @[json: 'metadata']
 	spec        SpecDetail @[json: 'spec']
 	// duplicate top-level for jq convenience (P2-05 expected .pair.execution etc)
-	description string       @[json: 'description']
+	description string @[json: 'description']
 	execution   ExecutionSpec @[json: 'execution']
-	budget      Budget       @[json: 'budget']
-	gates       []string     @[json: 'gates']
+	budget      Budget @[json: 'budget']
+	gates       []string @[json: 'gates']
 }
 
 // RolePolicy mirrors Python models.RolePolicy enum values.
@@ -99,7 +98,6 @@ pub enum RolePolicy {
 }
 
 // ExecutionSpec helpers etc already.
-
 pub const builtin_recipes = {
 	'pair': RecipeFull{
 		api_version: swarm_api_version
@@ -146,7 +144,7 @@ pub const builtin_recipes = {
 					receive_mode: 'task'
 					skills: ['tdd']
 				}
-				'reviewer': RoleSpec{
+				'reviewer':    RoleSpec{
 					persona: 'code-reviewer'
 					policy: 'reviewer-writer'
 					model_profile: 'review'
@@ -156,7 +154,7 @@ pub const builtin_recipes = {
 					receive_mode: 'task'
 					skills: ['code-review']
 				}
-				'integrator': RoleSpec{
+				'integrator':  RoleSpec{
 					persona: 'architect'
 					policy: 'integrator'
 					model_profile: 'architecture'
@@ -218,7 +216,7 @@ pub const builtin_recipes = {
 				allow_push: false
 			}
 			roles: {
-				'planner': RoleSpec{
+				'planner':     RoleSpec{
 					persona: 'planner'
 					policy: 'read-only'
 					model_profile: 'planning'
@@ -238,7 +236,7 @@ pub const builtin_recipes = {
 					receive_mode: 'task'
 					skills: ['tdd']
 				}
-				'reviewer': RoleSpec{
+				'reviewer':    RoleSpec{
 					persona: 'code-reviewer'
 					policy: 'reviewer-writer'
 					model_profile: 'review'
@@ -248,7 +246,7 @@ pub const builtin_recipes = {
 					receive_mode: 'task'
 					skills: ['code-review']
 				}
-				'architect': RoleSpec{
+				'architect':   RoleSpec{
 					persona: 'architect'
 					policy: 'integrator'
 					model_profile: 'architecture'
@@ -310,7 +308,7 @@ pub const builtin_recipes = {
 				allow_push: false
 			}
 			roles: {
-				'planner': RoleSpec{
+				'planner':     RoleSpec{
 					persona: 'planner'
 					policy: 'read-only'
 					model_profile: 'planning'
@@ -330,7 +328,7 @@ pub const builtin_recipes = {
 					receive_mode: 'task'
 					skills: []
 				}
-				'refactorer': RoleSpec{
+				'refactorer':  RoleSpec{
 					persona: 'refactor-cleaner'
 					policy: 'writer'
 					model_profile: 'review'
@@ -340,7 +338,7 @@ pub const builtin_recipes = {
 					receive_mode: 'task'
 					skills: []
 				}
-				'architect': RoleSpec{
+				'architect':   RoleSpec{
 					persona: 'architect'
 					policy: 'integrator'
 					model_profile: 'architecture'
@@ -350,7 +348,7 @@ pub const builtin_recipes = {
 					receive_mode: 'batch'
 					skills: []
 				}
-				'hardener': RoleSpec{
+				'hardener':    RoleSpec{
 					persona: 'security-reviewer'
 					policy: 'reviewer-writer'
 					model_profile: 'hardening'
@@ -360,7 +358,7 @@ pub const builtin_recipes = {
 					receive_mode: 'task'
 					skills: []
 				}
-				'qa': RoleSpec{
+				'qa':          RoleSpec{
 					persona: 'e2e-runner'
 					policy: 'reviewer-writer'
 					model_profile: 'qa'
@@ -485,15 +483,14 @@ pub fn resolve_swarm_config(ws string, recipe string, ui string, runner string, 
 }
 
 // Helpers for JSON output (for swarm recipes --json)
-
 pub fn recipe_to_json(r RecipeFull) string {
-	return json.encode(r)
+	return json2.encode(r, escape_unicode: true)
 }
 
 pub fn recipes_map_to_json() string {
 	mut pieces := []string{}
 	for k, v in builtin_recipes {
-		pieces << '"${k}":${json.encode(v)}'
+		pieces << '"${k}":${json2.encode(v, escape_unicode: true)}'
 	}
 	return '{' + pieces.join(',') + '}'
 }

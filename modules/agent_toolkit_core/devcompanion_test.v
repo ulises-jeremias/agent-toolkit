@@ -32,27 +32,27 @@ fn test_dc_queue_run_once_no_llm_status_done() {
 	os.mkdir_all(os.join_path(base, 'projects')) or { assert false, err.msg() }
 	os.symlink(repo, os.join_path(base, 'projects', 'demo')) or { assert false, err.msg() }
 	q := run_devcompanion(DevcompanionOptions{
-		subcommand:     'queue'
+		subcommand: 'queue'
 		workspace_path: base
-		arg:            'demo'
-		request:        'review the README'
-		job_id:         'demo-test-1'
+		arg: 'demo'
+		request: 'review the README'
+		job_id: 'demo-test-1'
 	})
 	assert q.ok, q.message
 	assert q.data['job_id'] == 'demo-test-1'
 	jf := os.join_path(base, '.devcompanion', 'queue', 'demo-test-1.json')
 	assert os.is_file(jf)
 	st := run_devcompanion(DevcompanionOptions{
-		subcommand:     'status'
+		subcommand: 'status'
 		workspace_path: base
 	})
 	assert st.ok, st.message
 	assert st.data['count'] == '1'
 	assert st.message.contains('demo-test-1')
 	run := run_devcompanion(DevcompanionOptions{
-		subcommand:     'run-once'
+		subcommand: 'run-once'
 		workspace_path: base
-		no_llm:         true
+		no_llm: true
 	})
 	assert run.ok, run.message
 	plan := os.join_path(base, '.devcompanion', 'runs', 'demo-test-1', 'plan.md')
@@ -63,7 +63,7 @@ fn test_dc_queue_run_once_no_llm_status_done() {
 	job := os.read_file(jf) or { '' }
 	assert job.contains('"status":"done"') || job.contains('"status": "done"')
 	sync := run_devcompanion(DevcompanionOptions{
-		subcommand:     'sync-todos'
+		subcommand: 'sync-todos'
 		workspace_path: base
 	})
 	assert sync.ok, sync.message
@@ -82,9 +82,9 @@ fn test_dc_queue_requires_request() {
 	$if !windows {
 		os.symlink(os.join_path(base, 'repos', 'demo'), os.join_path(base, 'projects', 'demo')) or {}
 		r := run_devcompanion(DevcompanionOptions{
-			subcommand:     'queue'
+			subcommand: 'queue'
 			workspace_path: base
-			arg:            'demo'
+			arg: 'demo'
 		})
 		assert !r.ok
 		assert r.message.contains('--request') || r.message.contains('--template')
@@ -97,9 +97,9 @@ fn test_dc_done_missing_job() {
 		os.rmdir_all(base) or {}
 	}
 	r := run_devcompanion(DevcompanionOptions{
-		subcommand:     'done'
+		subcommand: 'done'
 		workspace_path: base
-		arg:            'nope'
+		arg: 'nope'
 	})
 	assert !r.ok
 }

@@ -64,35 +64,35 @@ pub:
 // SwarmApproval is a human gate for spend/scope/destructive.
 pub struct SwarmApproval {
 pub:
-	id       string
-	run_id   string
-	kind     ApprovalKind
-	message  string
-	status   ApprovalStatus
-	created_at i64
+	id          string
+	run_id      string
+	kind        ApprovalKind
+	message     string
+	status      ApprovalStatus
+	created_at  i64
 	budget_cost int
 }
 
 // InnerLoop is the per-role iteration loop (inner loop).
 pub struct InnerLoop {
 pub:
-	loop_name    string
-	iteration    int
+	loop_name      string
+	iteration      int
 	max_iterations int
-	status       string // running | completed | awaiting_approval
-	budget_spent int
-	trace        []string
+	status         string // running | completed | awaiting_approval
+	budget_spent   int
+	trace          []string
 }
 
 // OuterLoop is the scheduled mission loop (outer loop).
 pub struct OuterLoop {
 pub:
-	name        string
-	cadence     string // 15m, 1h, 1d, 1w
-	enabled     bool
-	next_run    string
-	last_run    string
-	tier        LoopTier
+	name     string
+	cadence  string // 15m, 1h, 1d, 1w
+	enabled  bool
+	next_run string
+	last_run string
+	tier     LoopTier
 }
 
 // GodMailbox is the central routing hub — GOD routes via mailbox, not direct.
@@ -147,12 +147,12 @@ pub fn (mut m GodMailbox) route(from string, to string, payload string, artifact
 		revision: rev.revision
 		path: 'swarm/handoff/${id}'
 		payload: json2.encode({
-			'id': id
-			'from': from
-			'to': to
-			'payload': payload
+			'id':       id
+			'from':     from
+			'to':       to
+			'payload':  payload
 			'artifact': artifact
-			'via': 'GOD-mailbox'
+			'via':      'GOD-mailbox'
 		})
 	})
 	// also publish dedicated swarm_handoff if available, fallback to state_changed
@@ -173,6 +173,73 @@ pub fn (m GodMailbox) outbox_count() int {
 	return m.outbox
 }
 
+// ScoredEntry orders GOD mailbox handoffs via logistic priority.
+struct ScoredEntry {
+	entry string
+	prio  f64
+	idx   int
+}
+
+// mailbox_logistic computes GOD 4*t*(1-t) mailbox queue priority (logistic map).
+// Super-potent scheduling: queue priority oscillates chaotically via logistic map
+// while pair/team/full routing stays deterministic via recipe.
+pub fn mailbox_logistic_priority(t f64) f64 {
+	return 4 * t * (1 - t)
+}
+
+// mailbox_queue_priority orders handoffs via GOD logistic map — deterministic chaos.
+pub fn (mut m GodMailbox) queue_priority(t f64) f64 {
+	return mailbox_logistic_priority(t)
+}
+
+// prioritized_drain returns queue ordered by GOD 4*t*(1-t) priority then FIFO.
+pub fn (mut m GodMailbox) prioritized_drain(seed f64) []string {
+	m.mu.lock()
+	defer { m.mu.unlock() }
+	if m.queue.len <= 1 {
+		out := m.queue.clone()
+		m.queue.clear()
+		m.inbox = 0
+		return out
+	}
+	// compute priorities via logistic map iteration
+	mut t := seed
+	if t <= 0 || t >= 1 {
+		t = 0.37
+	}
+	mut scored := []ScoredEntry{}
+	for i, entry in m.queue {
+		t = mailbox_logistic_priority(t)
+		scored << ScoredEntry{
+			entry: entry
+			prio: t
+			idx: i
+		}
+	}
+	scored.sort_with_compare(fn (a &ScoredEntry, b &ScoredEntry) int {
+		if a.prio > b.prio {
+			return -1
+		}
+		if a.prio < b.prio {
+			return 1
+		}
+		if a.idx < b.idx {
+			return -1
+		}
+		if a.idx > b.idx {
+			return 1
+		}
+		return 0
+	})
+	mut out := []string{}
+	for s in scored {
+		out << s.entry
+	}
+	m.queue.clear()
+	m.inbox = 0
+	return out
+}
+
 // drain returns and clears queue (for processing).
 pub fn (mut m GodMailbox) drain() []string {
 	m.mu.lock()
@@ -186,10 +253,10 @@ pub fn (mut m GodMailbox) drain() []string {
 // HandoffArtifact handles durable artifact files under .agent-toolkit/swarm/runs/<run-id>/artifacts/.
 pub struct HandoffArtifact {
 pub:
-	run_id  string
-	rel_path string // relative under artifacts/
-	abs_path string
-	size     int
+	run_id     string
+	rel_path   string // relative under artifacts/
+	abs_path   string
+	size       int
 	created_at i64
 }
 
@@ -243,7 +310,11 @@ pub fn (mut e Engine) write_handoff_artifact(run_id string, rel_path string, con
 		kind: .process_log
 		revision: rev.revision
 		path: 'swarm:${run_id}:artifact:${rel}'
-		payload: json2.encode({'run_id': run_id, 'artifact': rel, 'size': content.len.str()})
+		payload: json2.encode({
+			'run_id':   run_id
+			'artifact': rel
+			'size':     content.len.str()
+		})
 	})
 	return abs
 }
@@ -312,7 +383,6 @@ fn swarm_run_dir(run_id string) string {
 }
 
 // ---- Swarm launch via Engine (easy pair/team/full) ----
-
 pub struct SwarmLaunchArgs {
 pub:
 	recipe  SwarmRecipeKind
@@ -368,14 +438,22 @@ pub fn (mut e Engine) swarm_launch(args SwarmLaunchArgs) !string {
 		kind: .state_changed
 		revision: rev.revision
 		path: 'swarm:launch:${run_id}'
-		payload: json2.encode({'run_id': run_id, 'recipe': args.recipe.str(), 'backend': args.backend.str(), 'task': args.task})
+		payload: json2.encode({
+			'run_id':  run_id
+			'recipe':  args.recipe.str()
+			'backend': args.backend.str()
+			'task':    args.task
+		})
 	})
 	// also publish process_log for logs stream
 	e.bus.publish(eventbus.ToolkitEvent{
 		kind: .process_log
 		revision: rev.revision
 		path: 'swarm:${run_id}'
-		payload: json2.encode({'run_id': run_id, 'msg': 'swarm launched ${args.recipe.str()} via ${args.backend.str()}'})
+		payload: json2.encode({
+			'run_id': run_id
+			'msg':    'swarm launched ${args.recipe.str()} via ${args.backend.str()}'
+		})
 	})
 	return run_id
 }
@@ -475,7 +553,6 @@ pub fn (mut e Engine) swarm_logs(run_id string) []string {
 }
 
 // ---- Approvals: spend/scope/destructive ----
-
 pub fn (mut e Engine) swarm_request_approval(run_id string, kind ApprovalKind, message string, cost int) !string {
 	if run_id.len == 0 {
 		return error('run_id empty')
@@ -502,7 +579,14 @@ pub fn (mut e Engine) swarm_request_approval(run_id string, kind ApprovalKind, m
 		kind: .state_changed
 		revision: rev.revision
 		path: 'swarm:${run_id}:approval:${approval_id}'
-		payload: json2.encode({'run_id': run_id, 'approval_id': approval_id, 'kind': kind.str(), 'message': message, 'cost': cost.str(), 'status': 'pending'})
+		payload: json2.encode({
+			'run_id':      run_id
+			'approval_id': approval_id
+			'kind':        kind.str()
+			'message':     message
+			'cost':        cost.str()
+			'status':      'pending'
+		})
 	})
 	return approval_id
 }
@@ -547,7 +631,11 @@ pub fn (mut e Engine) swarm_approve(run_id string, approval_id string, approved 
 		kind: .state_changed
 		revision: rev.revision
 		path: 'swarm:${run_id}:approval:${approval_id}'
-		payload: json2.encode({'run_id': run_id, 'approval_id': approval_id, 'status': status})
+		payload: json2.encode({
+			'run_id':      run_id
+			'approval_id': approval_id
+			'status':      status
+		})
 	})
 	return rev.revision
 }
@@ -607,8 +695,12 @@ pub fn (mut e Engine) swarm_inner_start(run_id string, role string, goal string,
 		return error('run_id/role empty')
 	}
 	mut max_i := max_iter
-	if max_i <= 0 { max_i = 2 }
-	if max_i > 10 { max_i = 10 }
+	if max_i <= 0 {
+		max_i = 2
+	}
+	if max_i > 10 {
+		max_i = 10
+	}
 	loop_id := 'inner-${run_id}-${role}-${time.now().unix_nano() % 1000000:06d}'
 	mut repo := e.repo
 	mut tx := repo.begin('inner-start')
@@ -622,7 +714,12 @@ pub fn (mut e Engine) swarm_inner_start(run_id string, role string, goal string,
 		kind: .loop_inner_tick
 		revision: rev.revision
 		path: 'swarm:${run_id}:inner:${loop_id}'
-		payload: json2.encode({'loop_id': loop_id, 'run_id': run_id, 'role': role, 'status': 'running'})
+		payload: json2.encode({
+			'loop_id': loop_id
+			'run_id':  run_id
+			'role':    role
+			'status':  'running'
+		})
 	})
 	return loop_id
 }
@@ -661,7 +758,11 @@ pub fn (mut e Engine) swarm_inner_tick(run_id string, loop_id string, trace_line
 		kind: .loop_inner_tick
 		revision: rev.revision
 		path: 'swarm:${run_id}:inner:${loop_id}:tick:${iter}'
-		payload: json2.encode({'loop_id': loop_id, 'iteration': iter.str(), 'trace': trace_line})
+		payload: json2.encode({
+			'loop_id':   loop_id
+			'iteration': iter.str()
+			'trace':     trace_line
+		})
 	})
 	e.bus.publish(eventbus.ToolkitEvent{
 		kind: .process_log
@@ -686,7 +787,10 @@ pub fn (mut e Engine) swarm_inner_complete(run_id string, loop_id string, exit s
 		kind: .loop_inner_tick
 		revision: rev.revision
 		path: 'swarm:${run_id}:inner:${loop_id}:completed'
-		payload: json2.encode({'loop_id': loop_id, 'exit': exit})
+		payload: json2.encode({
+			'loop_id': loop_id
+			'exit':    exit
+		})
 	})
 	return rev.revision
 }
@@ -774,7 +878,14 @@ pub fn (mut e Engine) god_route(from string, to string, payload string, artifact
 		kind: .swarm_handoff
 		revision: rev.revision
 		path: 'swarm/handoff/${id}'
-		payload: json2.encode({'id': id, 'from': from, 'to': to, 'payload': payload, 'artifact': artifact, 'via': 'GOD-mailbox'})
+		payload: json2.encode({
+			'id':       id
+			'from':     from
+			'to':       to
+			'payload':  payload
+			'artifact': artifact
+			'via':      'GOD-mailbox'
+		})
 	})
 	return id
 }
@@ -791,11 +902,15 @@ pub fn (mut e Engine) swarm_approvals_queue() []SwarmApproval {
 				run_id := parts[1]
 				appr_id := parts[3]
 				key := '${run_id}:${appr_id}'
-				if seen[key] { continue }
+				if seen[key] {
+					continue
+				}
 				seen[key] = true
 				// only pending
 				status := snap.data[k] or { '' }
-				if status != 'pending' { continue }
+				if status != 'pending' {
+					continue
+				}
 				kind_str := snap.data['swarm/${run_id}/approvals/${appr_id}/kind'] or { 'spend' }
 				msg := snap.data['swarm/${run_id}/approvals/${appr_id}/message'] or { '' }
 				cost_str := snap.data['swarm/${run_id}/approvals/${appr_id}/cost'] or { '0' }
@@ -818,8 +933,190 @@ pub fn (mut e Engine) swarm_approvals_queue() []SwarmApproval {
 	return out
 }
 
-// ProcessSupervisor easy management via Engine.
+// ── Ergonomic swarm helpers: list / start / stop / budget display / worktree-per-writer ──
+// Mirrors `agent-toolkit swarm list/status/handoffs` via Engine (no shell).
 
+// swarm_list_all is alias for swarm_list — `swarm list` via Engine.
+pub fn (mut e Engine) swarm_list_all() []SwarmRun {
+	return e.swarm_list()
+}
+
+// swarm_start launches via recipe/backend/task — `swarm start` ergonomic (pair/team/full).
+pub fn (mut e Engine) swarm_start(task string, recipe_str string, backend_str string) !string {
+	if task.len == 0 {
+		return error('swarm task empty')
+	}
+	recipe := swarm_recipe_from_string(if recipe_str == '' { 'pair' } else { recipe_str })
+	backend := swarm_backend_from_string(if backend_str == '' { 'auto' } else { backend_str })
+	args := SwarmLaunchArgs{ recipe: recipe, backend: backend, task: task }
+	return e.swarm_launch(args)!
+}
+
+// swarm_stop cancels a run — `swarm stop` / `swarm cancel` via Engine (worktree hygiene kept).
+pub fn (mut e Engine) swarm_stop(run_id string) !u64 {
+	if run_id.len == 0 {
+		return error('run_id empty')
+	}
+	if e.swarm_status(run_id) == none {
+		return error('swarm run not found: ${run_id}')
+	}
+	mut repo := e.repo
+	mut tx := repo.begin('swarm-stop')
+	tx.set('swarm/runs/${run_id}/status', 'canceled')
+	tx.set('swarm/runs/${run_id}/stopped_at', time.now().unix().str())
+	rev := e.put_transaction(mut tx)!
+	e.bus.publish(eventbus.ToolkitEvent{
+		kind: .state_changed
+		revision: rev.revision
+		path: 'swarm:stop:${run_id}'
+		payload: json2.encode({
+			'run_id': run_id
+			'status': 'canceled'
+		})
+	})
+	// hygiene: do not delete worktrees on stop, only on explicit prune/cleanup
+	return rev.revision
+}
+
+// swarm_cancel is alias for swarm_stop (approval hygiene).
+pub fn (mut e Engine) swarm_cancel(run_id string) !u64 {
+	return e.swarm_stop(run_id)!
+}
+
+// SwarmBudgetView mirrors budget display for swarm runs — easy cost visibility.
+pub struct SwarmBudgetView {
+pub:
+	run_id       string
+	budget_total int
+	budget_spent int
+	remaining    int
+	status       SwarmRunStatus
+}
+
+// swarm_budget returns budget ledger for a run — `swarm status --json` cost via Engine.
+pub fn (mut e Engine) swarm_budget(run_id string) ?SwarmBudgetView {
+	r := e.swarm_status(run_id) or { return none }
+	return SwarmBudgetView{
+		run_id: r.id
+		budget_total: r.budget_total
+		budget_spent: r.budget_spent
+		remaining: r.budget_total - r.budget_spent
+		status: r.status
+	}
+}
+
+// swarm_budget_display returns human budget string for UI.
+pub fn (mut e Engine) swarm_budget_display(run_id string) string {
+	if b := e.swarm_budget(run_id) {
+		return '${b.run_id} ${b.budget_spent}/${b.budget_total} tok (remaining ${b.remaining}) status=${b.status.str()}'
+	}
+	return 'run not found: ${run_id}'
+}
+
+// swarm_worktree_path validates worktree-per-writer path — hygiene (no traversal, distinct per writer).
+pub fn (mut e Engine) swarm_worktree_path(run_id string, role string) !string {
+	if run_id.len == 0 || role.len == 0 {
+		return error('run_id/role empty')
+	}
+	if run_id.contains('..') || role.contains('..') || role.contains('/') {
+		return error('worktree traversal')
+	}
+	if !is_valid_swarm_role(role) {
+		return error('invalid role: ${role}')
+	}
+	// prefer engine repo dir + worktree isolation per writer (distinct branch per role)
+	base := swarm_run_dir(run_id)
+	return os.join_path(base, 'worktrees', role)
+}
+
+// is_valid_swarm_role validates role name per swarm_handoff rules.
+fn is_valid_swarm_role(s string) bool {
+	if s.len < 2 || s.len > 32 {
+		return false
+	}
+	first := s[0]
+	if !(first >= `a` && first <= `z`) {
+		return false
+	}
+	for i in 1 .. s.len {
+		c := s[i]
+		if !((c >= `a` && c <= `z`) || (c >= `0` && c <= `9`) || c == `_` || c == `-`) {
+			return false
+		}
+	}
+	return true
+}
+
+// swarm_ensure_worktree_hygiene checks every writer has isolated worktree — returns diagnostics.
+pub fn (mut e Engine) swarm_ensure_worktree_hygiene(run_id string) []BuildDiagnostic {
+	mut diags := []BuildDiagnostic{}
+	if run_id.len == 0 {
+		diags << BuildDiagnostic{ path: 'swarm/${run_id}', message: 'run_id empty', code: 'worktree_missing' }
+		return diags
+	}
+	r := e.swarm_status(run_id) or {
+		diags << BuildDiagnostic{ path: 'swarm/${run_id}', message: 'run not found', code: 'run_missing' }
+		return diags
+	}
+	_ = r
+	snap := e.repo.snapshot()
+	// check that worktree keys are not shared and no traversal
+	mut seen := map[string]bool{}
+	prefix := 'swarm/${run_id}/worktrees/'
+	for k, _ in snap.data {
+		if k.starts_with(prefix) {
+			wt := snap.data[k]
+			if wt.contains('..') {
+				diags << BuildDiagnostic{ path: wt, message: 'worktree traversal', code: 'worktree_traversal' }
+			}
+			if wt in seen {
+				diags << BuildDiagnostic{ path: wt, message: 'duplicate worktree', code: 'worktree_duplicate' }
+			}
+			seen[wt] = true
+		}
+	}
+	// filesystem check: each role dir should exist distinctly
+	base := swarm_run_dir(run_id)
+	wt_dir := os.join_path(base, 'worktrees')
+	if os.is_dir(wt_dir) {
+		entries := os.ls(wt_dir) or { []string{} }
+		mut fs_seen := map[string]bool{}
+		for entry in entries {
+			if entry in fs_seen {
+				diags << BuildDiagnostic{ path: os.join_path(wt_dir, entry), message: 'duplicate worktree dir', code: 'worktree_duplicate' }
+			}
+			fs_seen[entry] = true
+			if entry.contains('..') {
+				diags << BuildDiagnostic{ path: entry, message: 'worktree traversal', code: 'worktree_traversal' }
+			}
+		}
+	}
+	return diags
+}
+
+// swarm_artifacts_display lists artifacts+handoffs+approvals for a run — keeps receipts/provenance.
+pub fn (mut e Engine) swarm_artifacts_display(run_id string) map[string][]string {
+	mut out := map[string][]string{}
+	out['artifacts'] = e.list_handoff_artifacts(run_id)
+	out['handoffs'] = e.swarm_handoffs(run_id)
+	approvals := e.swarm_pending_approvals(run_id)
+	mut appr_ids := []string{}
+	for a in approvals {
+		appr_ids << '${a.id}:${a.kind.str()}:${a.status.str()}'
+	}
+	out['approvals'] = appr_ids
+	// receipts/provenance kept via provenance_catalog
+	mut prov := []string{}
+	for p in e.provenance_catalog() {
+		if p.artifact_path.contains(run_id) {
+			prov << p.artifact_path
+		}
+	}
+	out['provenance'] = prov
+	return out
+}
+
+// ProcessSupervisor easy management via Engine.
 pub fn (mut e Engine) process_supervisor_stats() (int, u64) {
 	if mut sup := e.supervisor {
 		// if supervisor is ProcessSupervisor type, get counts

@@ -1,18 +1,17 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 
 // Pure V implementation of insights — no Python dependency.
 // For real use, handles all runners with local stores directly in V.
-
 pub struct InsightsOptions {
 pub:
-	tool       string
-	days       int
-	output     string
-	json_mode  bool
-	no_llm     bool
+	tool      string
+	days      int
+	output    string
+	json_mode bool
+	no_llm    bool
 }
 
 pub struct InsightsReport {
@@ -22,7 +21,8 @@ pub mut:
 	data    map[string]string
 }
 
-const known_insights_tools = ['opencode', 'cursor', 'claude', 'windsurf', 'all', 'copilot', 'codex', 'pi', 'muse']
+const known_insights_tools = ['opencode', 'cursor', 'claude', 'windsurf', 'all', 'copilot', 'codex',
+	'pi', 'muse']
 
 pub fn insights_help_text() string {
 	return 'insights — AI tool usage analytics (pure V, all runners).
@@ -87,7 +87,8 @@ fn insights_claude_dir() string {
 
 fn insights_windsurf_dir() string {
 	home := os.home_dir()
-	cands := [os.join_path(home, '.codeium', 'windsurf'), os.join_path(home, '.windsurf'), os.join_path(home, '.config', 'windsurf'), os.join_path(home, '.local', 'share', 'windsurf')]
+	cands := [os.join_path(home, '.codeium', 'windsurf'), os.join_path(home, '.windsurf'),
+		os.join_path(home, '.config', 'windsurf'), os.join_path(home, '.local', 'share', 'windsurf')]
 	for c in cands {
 		if os.is_dir(c) {
 			return c
@@ -123,14 +124,18 @@ fn extract_opencode_stats_v(days int) map[string]string {
 	mut total_cost := '0'
 	// Try sqlite3 CLI
 	if os.exists('/usr/bin/sqlite3') || os.find_abs_path_of_executable('sqlite3') or { '' }.len > 0 {
-		where_days := if days > 0 { " AND time_created >= (strftime('%s','now','-${days} days')*1000)" } else { '' }
-		cmd := "sqlite3 '${db_path}' \"SELECT COUNT(*) FROM session WHERE time_archived IS NULL${where_days};\""
+		where_days := if days > 0 {
+			" AND time_created >= (strftime('%s','now','-${days} days')*1000)"
+		} else {
+			''
+		}
+		cmd := 'sqlite3 \'${db_path}\' "SELECT COUNT(*) FROM session WHERE time_archived IS NULL${where_days};"'
 		res := os.execute(cmd)
 		if res.exit_code == 0 {
 			total_sessions = res.output.trim_space()
 		}
 		// Try cost as well
-		cmd2 := "sqlite3 '${db_path}' \"SELECT COALESCE(SUM(cost),0) FROM session WHERE time_archived IS NULL${where_days};\""
+		cmd2 := 'sqlite3 \'${db_path}\' "SELECT COALESCE(SUM(cost),0) FROM session WHERE time_archived IS NULL${where_days};"'
 		res2 := os.execute(cmd2)
 		if res2.exit_code == 0 {
 			total_cost = res2.output.trim_space()
@@ -345,9 +350,9 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 	tool := if opts.tool.len > 0 { opts.tool.to_lower() } else { 'all' }
 	if tool !in known_insights_tools {
 		return InsightsReport{
-			ok:      false
-			message: 'Unknown insights tool `${tool}`. Valid: ${known_insights_tools.join(", ")}'
-			data:    {
+			ok: false
+			message: 'Unknown insights tool `${tool}`. Valid: ${known_insights_tools.join(', ')}'
+			data: {
 				'subcommand': 'insights'
 				'tool':       tool
 			}
@@ -384,31 +389,37 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 	if opts.output.len > 0 && tools_to_run.len == 1 {
 		out_path := opts.output
 		tool_key := tools_to_run[0]
-		raw := if tool_key in stats_by_tool { stats_by_tool[tool_key].clone() } else { map[string]string{} }
+		raw := if tool_key in stats_by_tool {
+			stats_by_tool[tool_key].clone()
+		} else {
+			map[string]string{}
+		}
 		// Write raw JSON to the requested path
-		json_str := json.encode(raw)
+		json_str := json2.encode(raw, escape_unicode: true)
 		os.write_file(out_path, json_str) or {
 			return InsightsReport{
-				ok:      false
+				ok: false
 				message: 'Failed to write output to ${out_path}: ${err.msg()}'
-				data:    {
+				data: {
 					'subcommand': 'insights'
 					'tool':       tool
 				}
 			}
 		}
-		msg := 'Raw stats for ${tool_key} written to ${out_path} (${raw["total_sessions"]} sessions)'
+		msg := 'Raw stats for ${tool_key} written to ${out_path} (${raw['total_sessions']} sessions)'
 		if opts.json_mode {
-			wrapped := json.encode({
+			wrapped := json2.encode({
 				'tool':   tool_key
 				'days':   opts.days.str()
 				'output': out_path
 				'report': msg
-			})
+			},
+				escape_unicode: true
+			)
 			return InsightsReport{
-				ok:      true
+				ok: true
 				message: wrapped
-				data:    {
+				data: {
 					'subcommand': 'insights'
 					'tool':       tool_key
 					'json':       wrapped
@@ -417,9 +428,9 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 			}
 		}
 		return InsightsReport{
-			ok:      true
+			ok: true
 			message: msg
-			data:    {
+			data: {
 				'subcommand': 'insights'
 				'tool':       tool_key
 			}
@@ -445,7 +456,7 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 	lines << 'Total: ${total_sessions} sessions across ${tools_to_run.len} tools'
 	if tool == 'all' && opts.output.len > 0 {
 		// For "all" with --output, write aggregate JSON to the requested path
-		agg_json := json.encode(stats_by_tool)
+		agg_json := json2.encode(stats_by_tool, escape_unicode: true)
 		os.write_file(opts.output, agg_json) or {}
 		lines << 'Aggregate JSON written to ${opts.output}'
 	}
@@ -456,16 +467,18 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 	if opts.json_mode {
 		// For pure V, stats_by_tool is map[string]map[string]string which json.encode doesn't handle directly in this context
 		// Encode without nested map for now; raw stats are available via separate --output file
-		wrapped := json.encode({
+		wrapped := json2.encode({
 			'tool':   tool
 			'days':   opts.days.str()
 			'output': opts.output
 			'report': msg
-		})
+		},
+			escape_unicode: true
+		)
 		return InsightsReport{
-			ok:      true
+			ok: true
 			message: wrapped
-			data:    {
+			data: {
 				'subcommand': 'insights'
 				'tool':       tool
 				'json':       wrapped
@@ -474,9 +487,9 @@ pub fn run_insights(opts InsightsOptions) InsightsReport {
 		}
 	}
 	return InsightsReport{
-		ok:      true
+		ok: true
 		message: msg
-		data:    {
+		data: {
 			'subcommand': 'insights'
 			'tool':       tool
 		}
@@ -490,8 +503,8 @@ pub fn insights_result(report InsightsReport) CommandResult {
 	}
 	return CommandResult{
 		command: 'insights'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    data
+		data: data
 	}
 }

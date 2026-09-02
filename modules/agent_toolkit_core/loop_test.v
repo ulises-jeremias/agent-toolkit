@@ -32,62 +32,61 @@ fn test_loop_init_run_status_audit_sync() {
 	os.write_file(os.join_path(base, 'AGENTS.md'), '# ws\n') or { assert false, err.msg() }
 	tpl := os.join_path(base, 'templates', 'loops')
 	os.mkdir_all(tpl) or { assert false, err.msg() }
-	os.write_file(os.join_path(tpl, 'daily.yaml'),
-		'name: daily\ntier: L1\ncadence: 1d\nmax_runs_per_day: 1\nmax_wall_seconds: 60\ngoal: |\n  observe\nrequest: |\n  report status\n') or {
+	os.write_file(os.join_path(tpl, 'daily.yaml'), 'name: daily\ntier: L1\ncadence: 1d\nmax_runs_per_day: 1\nmax_wall_seconds: 60\ngoal: |\n  observe\nrequest: |\n  report status\n') or {
 		assert false, err.msg()
 	}
 
 	init := run_loop(LoopOptions{
-		subcommand:     'init'
+		subcommand: 'init'
 		workspace_path: base
-		name:           'daily'
+		name: 'daily'
 	})
 	assert init.ok, init.message
 	assert os.is_file(os.join_path(base, 'loops', 'daily', 'loop.yaml'))
 
 	run := run_loop(LoopOptions{
-		subcommand:     'run'
+		subcommand: 'run'
 		workspace_path: base
-		name:           'daily'
-		no_llm:         true
+		name: 'daily'
+		no_llm: true
 	})
 	assert run.ok, run.message
 	assert run.data['status'] == 'completed'
 	assert os.is_file(os.join_path(base, 'loops', 'daily', 'STATE.md'))
 
 	skip := run_loop(LoopOptions{
-		subcommand:     'run'
+		subcommand: 'run'
 		workspace_path: base
-		name:           'daily'
-		no_llm:         true
+		name: 'daily'
+		no_llm: true
 	})
 	assert skip.ok, skip.message
 	assert skip.data['status'] == 'budget_skip'
 
 	st := run_loop(LoopOptions{
-		subcommand:     'status'
+		subcommand: 'status'
 		workspace_path: base
 	})
 	assert st.ok, st.message
 	assert st.message.contains('daily')
 
 	aud := run_loop(LoopOptions{
-		subcommand:     'audit'
+		subcommand: 'audit'
 		workspace_path: base
-		name:           'daily'
+		name: 'daily'
 	})
 	assert aud.ok, aud.message
 
 	cost := run_loop(LoopOptions{
-		subcommand:     'cost'
+		subcommand: 'cost'
 		workspace_path: base
-		name:           'daily'
+		name: 'daily'
 	})
 	assert cost.ok, cost.message
 	assert cost.data['tier'] == 'L1'
 
 	lst := run_loop(LoopOptions{
-		subcommand:     'list'
+		subcommand: 'list'
 		workspace_path: base
 	})
 	assert lst.ok
@@ -98,7 +97,7 @@ fn test_loop_init_run_status_audit_sync() {
 		'needs human',
 	])
 	sync := run_loop(LoopOptions{
-		subcommand:     'sync'
+		subcommand: 'sync'
 		workspace_path: base
 	})
 	assert sync.ok, sync.message
@@ -110,7 +109,7 @@ fn test_loop_schedule_dry_run() {
 	$if windows {
 		r := run_loop(LoopOptions{
 			subcommand: 'schedule'
-			name:       'daily'
+			name: 'daily'
 		})
 		assert !r.ok
 		assert r.message.contains('Windows')
@@ -118,8 +117,8 @@ fn test_loop_schedule_dry_run() {
 	}
 	r := run_loop(LoopOptions{
 		subcommand: 'schedule'
-		name:       'daily'
-		dry_run:    true
+		name: 'daily'
+		dry_run: true
 	})
 	assert r.ok, r.message
 	assert r.message.contains('systemd')

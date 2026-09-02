@@ -53,7 +53,7 @@ fn validate_artifact_rel(p string) !string {
 	if p.len > 512 {
 		return error('artifact path too long')
 	}
-	if p.contains('\x00') {
+	if p.contains('\0') {
 		return error('artifact null byte')
 	}
 	return p
@@ -98,13 +98,13 @@ pub fn (mut s HandoffArtifactStore) write(run_id string, rel_path string, conten
 	handoff_id := 'h-art-${time.now().unix_nano() % 1000000:06d}'
 	handoff_json := os.join_path(handoff_outbox, '${handoff_id}.json')
 	handoff_payload := json2.encode({
-		'version': '1'
-		'type': 'artifact'
-		'from': 'desktop'
-		'to': 'swarm'
-		'artifact': rel
+		'version':    '1'
+		'type':       'artifact'
+		'from':       'desktop'
+		'to':         'swarm'
+		'artifact':   rel
 		'handoff_id': handoff_id
-		'run_id': run_id
+		'run_id':     run_id
 	})
 	os.write_file(handoff_json, handoff_payload) or { return error('handoff json failed: ${err}') }
 
@@ -136,13 +136,24 @@ pub fn (mut s HandoffArtifactStore) write(run_id string, rel_path string, conten
 		kind: .handoff_artifact
 		revision: rev.revision
 		path: 'swarm:${run_id}:artifact:${rel}'
-		payload: json2.encode({'run_id': run_id, 'artifact': rel, 'size': content.len.str(), 'handoff_id': handoff_id, 'path': art_path})
+		payload: json2.encode({
+			'run_id':     run_id
+			'artifact':   rel
+			'size':       content.len.str()
+			'handoff_id': handoff_id
+			'path':       art_path
+		})
 	})
 	s.bus.publish(eventbus.ToolkitEvent{
 		kind: .swarm_handoff
 		revision: rev.revision
 		path: 'swarm/handoff/${handoff_id}'
-		payload: json2.encode({'handoff_id': handoff_id, 'artifact': rel, 'status': 'outbox', 'via': 'artifact-file'})
+		payload: json2.encode({
+			'handoff_id': handoff_id
+			'artifact':   rel
+			'status':     'outbox'
+			'via':        'artifact-file'
+		})
 	})
 	return f
 }
@@ -239,8 +250,12 @@ pub fn (s HandoffArtifactStore) list(run_id string) []HandoffArtifactFile {
 		}
 	}
 	out.sort_with_compare(fn (a &HandoffArtifactFile, b &HandoffArtifactFile) int {
-		if a.rel_path < b.rel_path { return -1 }
-		if a.rel_path > b.rel_path { return 1 }
+		if a.rel_path < b.rel_path {
+			return -1
+		}
+		if a.rel_path > b.rel_path {
+			return 1
+		}
 		return 0
 	})
 	return out
@@ -271,7 +286,12 @@ pub fn (mut s HandoffArtifactStore) move_state(run_id string, rel_path string, f
 		kind: .swarm_status
 		revision: rev.revision
 		path: 'swarm:${run_id}:artifact:${rel_path}:${to_state}'
-		payload: json2.encode({'run_id': run_id, 'artifact': rel_path, 'from': from_state, 'to': to_state})
+		payload: json2.encode({
+			'run_id':   run_id
+			'artifact': rel_path
+			'from':     from_state
+			'to':       to_state
+		})
 	})
 	return true
 }

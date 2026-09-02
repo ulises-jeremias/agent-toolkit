@@ -13,7 +13,7 @@ fn test_inspector_empty_when_nothing_selected() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	persist := os.join_path(tmp, 'state.json')
-	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{persist_path: persist})
+	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{ persist_path: persist })
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
@@ -31,7 +31,7 @@ fn test_inspector_selecting_entity_updates_within_one_tick() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	persist := os.join_path(tmp, 'state.json')
-	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{persist_path: persist})
+	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{ persist_path: persist })
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
@@ -62,7 +62,7 @@ fn test_inspector_renders_markdown_and_code_blocks_badges() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	persist := os.join_path(tmp, 'state.json')
-	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{persist_path: persist})
+	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{ persist_path: persist })
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
@@ -92,17 +92,19 @@ fn test_inspector_virtualized_when_long_and_resize_stable() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	persist := os.join_path(tmp, 'state.json')
-	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{persist_path: persist})
+	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{ persist_path: persist })
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
 	mut router := nav.new_router()
 	th := theme.default_theme()
-	mut vm := new_inspector_viewmodel(mut eng, mut router, th, InspectorConfig{viewport_h: 600, row_height: 24})
+	mut vm := new_inspector_viewmodel(mut eng, mut router, th, InspectorConfig{ viewport_h: 600, row_height: 24 })
 	vm.select(.skill, 'core/assistant')
 	start, end := vm.virtualized_visible()
 	assert end >= start
 	assert vm.draw_calls() < 100 // bounded, not total
+	
+
 	harness := vm.perf_harness_long()
 	assert harness.contains('1000')
 	assert harness.contains('60 FPS')
@@ -122,7 +124,7 @@ fn test_inspector_reduced_motion_and_theme() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	persist := os.join_path(tmp, 'state.json')
-	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{persist_path: persist})
+	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{ persist_path: persist })
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
@@ -151,7 +153,7 @@ fn test_inspector_error_and_empty_states() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	persist := os.join_path(tmp, 'state.json')
-	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{persist_path: persist})
+	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{ persist_path: persist })
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
@@ -181,7 +183,7 @@ fn test_inspector_appstate_event_within_one_tick_and_projector() {
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
 	persist := os.join_path(tmp, 'state.json')
-	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{persist_path: persist})
+	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{ persist_path: persist })
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
@@ -205,15 +207,17 @@ fn test_inspector_appstate_event_within_one_tick_and_projector() {
 	snap := eng.snapshot()
 	app_s := app_state.derive_app_state(snap)
 	assert !vm.on_app_state_event(app_s) // same revision
+	
+
 	// projector integration
 	mut bus := eventbus.new_event_bus()
 	mut repo2 := engine_state.new_state_repository(os.join_path(tmp, 'state2.json'))
 	mut proj := app_state.new_app_state_projector(bus, repo2.snapshot())
-	ch := chan app_state.AppState{cap: 64}
+	ch := chan app_state.AppState{ cap: 64 }
 	proj.subscribe(ch)
 	mut tx2 := repo2.begin('inspector-proj')
 	tx2.set('recent_workspace', '/tmp/ws-inspector')
 	tx2.commit() or { panic(err.msg()) }
-	ev := eventbus.ToolkitEvent{kind: .state_changed, revision: repo2.revision_nr(), path: 'state', payload: '{}'}
+	ev := eventbus.ToolkitEvent{ kind: .state_changed, revision: repo2.revision_nr(), path: 'state', payload: '{}' }
 	assert proj.on_bus_event(ev, repo2.snapshot())
 }

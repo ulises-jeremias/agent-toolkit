@@ -37,16 +37,16 @@ pub fn swarm_kind_from_event(kind eventbus.ToolkitEventKind) SwarmEventKind {
 // SwarmStatus aggregates status per run for Swarm UI.
 pub struct SwarmStatus {
 pub:
-	run_id   string
-	recipe   string
-	backend  string // herdr|tmux|auto|headless
-	status   string // pending|running|awaiting_approval|completed|failed
-	task     string
-	budget_total int
-	budget_spent int
+	run_id            string
+	recipe            string
+	backend           string // herdr|tmux|auto|headless
+	status            string // pending|running|awaiting_approval|completed|failed
+	task              string
+	budget_total      int
+	budget_spent      int
 	approvals_pending int
-	handoffs_pending int
-	worktree_lanes []string
+	handoffs_pending  int
+	worktree_lanes    []string
 }
 
 // SwarmLogEntry is a demultiplexed log line per swarm run.
@@ -112,8 +112,12 @@ pub fn (h SwarmEventHub) all_statuses() []SwarmStatus {
 		out << s
 	}
 	out.sort_with_compare(fn (a &SwarmStatus, b &SwarmStatus) int {
-		if a.run_id < b.run_id { return -1 }
-		if a.run_id > b.run_id { return 1 }
+		if a.run_id < b.run_id {
+			return -1
+		}
+		if a.run_id > b.run_id {
+			return 1
+		}
 		return 0
 	})
 	return out
@@ -164,7 +168,10 @@ fn derive_statuses_from_state(s engine_state.State) map[string]SwarmStatus {
 		lanes := match recipe {
 			'pair' { ['implementer lane', 'reviewer lane'] }
 			'team' { ['planner lane', 'implementer lane', 'reviewer lane', 'architect lane'] }
-			'full' { ['planner lane', 'implementer lane', 'refactorer lane', 'architect lane', 'hardener lane', 'qa lane'] }
+			'full' {
+				['planner lane', 'implementer lane', 'refactorer lane', 'architect lane',
+					'hardener lane', 'qa lane']
+			}
 			else { ['lane'] }
 		}
 		out[id] = SwarmStatus{
@@ -301,25 +308,35 @@ fn extract_run_id(payload string, path string) string {
 // current_view returns aggregated view model for Swarm UI panel.
 pub struct SwarmHubViewModel {
 pub:
-	revision  u64
-	statuses  []SwarmStatus
-	total     int
+	revision       u64
+	statuses       []SwarmStatus
+	total          int
 	handoffs_total int
-	logs_total int
+	logs_total     int
 }
 
 pub fn (h SwarmEventHub) current_view() SwarmHubViewModel {
 	h.mu.rlock()
 	defer { h.mu.runlock() }
 	mut tot_h := 0
-	for _, lst in h.handoffs { tot_h += lst.len }
+	for _, lst in h.handoffs {
+		tot_h += lst.len
+	}
 	mut tot_l := 0
-	for _, lst in h.logs { tot_l += lst.len }
+	for _, lst in h.logs {
+		tot_l += lst.len
+	}
 	mut sts := []SwarmStatus{}
-	for _, s in h.statuses { sts << s }
+	for _, s in h.statuses {
+		sts << s
+	}
 	sts.sort_with_compare(fn (a &SwarmStatus, b &SwarmStatus) int {
-		if a.run_id < b.run_id { return -1 }
-		if a.run_id > b.run_id { return 1 }
+		if a.run_id < b.run_id {
+			return -1
+		}
+		if a.run_id > b.run_id {
+			return 1
+		}
 		return 0
 	})
 	return SwarmHubViewModel{

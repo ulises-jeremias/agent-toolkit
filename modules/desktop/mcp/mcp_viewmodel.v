@@ -6,10 +6,10 @@ import desktop.state as app_state
 
 pub struct McpViewModel {
 mut:
-	engine &desktop_engine.Engine
-	all    []desktop_engine.McpProvider
+	engine   &desktop_engine.Engine
+	all      []desktop_engine.McpProvider
 	filtered []desktop_engine.McpProvider
-	search string
+	search   string
 	revision u64
 }
 
@@ -81,7 +81,6 @@ pub fn (mut vm McpViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-
 // ── super-potent: stats, toggle, provenance, receipts, preview, search ──
 pub fn (vm McpViewModel) stats() desktop_engine.McpStats {
 	return vm.engine.mcp_stats()
@@ -116,7 +115,6 @@ pub fn (mut vm McpViewModel) search(q string) {
 pub fn (vm McpViewModel) filtered_search(q string) []desktop_engine.McpProvider {
 	return vm.engine.mcp_catalog_search(q)
 }
-
 
 pub fn (vm McpViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t

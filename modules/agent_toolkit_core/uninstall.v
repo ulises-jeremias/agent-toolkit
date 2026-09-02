@@ -152,9 +152,9 @@ fn uninstall_one_tool(tool string, target string, receipt_dir string, dry_run bo
 pub fn uninstall_result(report UninstallReport) CommandResult {
 	return CommandResult{
 		command: 'uninstall'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    {
+		data: {
 			'tools_processed': '${report.tools_processed}'
 			'files_removed':   '${report.files_removed}'
 			'skipped':         '${report.skipped}'

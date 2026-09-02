@@ -14,8 +14,7 @@ fn test_run_build_check_temp_repo() {
 	os.write_file(os.join_path(root, 'agents', 'code-reviewer', 'AGENT.md'), 'agent\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: agent-toolkit-core\n    includes:\n      skills:\n        - core/assistant\n      agents:\n        - code-reviewer\n') or {
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: agent-toolkit-core\n    includes:\n      skills:\n        - core/assistant\n      agents:\n        - code-reviewer\n') or {
 		assert false, err.msg()
 	}
 	// Seed matching plugins/ so drift check is clean for cursor surface.
@@ -25,10 +24,8 @@ fn test_run_build_check_temp_repo() {
 	os.mkdir_all(os.join_path(root, 'plugins', 'agent-toolkit-core', 'agents', 'code-reviewer')) or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'plugins', 'agent-toolkit-core', 'skills', 'assistant', 'SKILL.md'),
-		'skill\n') or { assert false, err.msg() }
-	os.write_file(os.join_path(root, 'plugins', 'agent-toolkit-core', 'agents', 'code-reviewer',
-		'AGENT.md'), 'agent\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'plugins', 'agent-toolkit-core', 'skills', 'assistant', 'SKILL.md'), 'skill\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'plugins', 'agent-toolkit-core', 'agents', 'code-reviewer', 'AGENT.md'), 'agent\n') or { assert false, err.msg() }
 	defer {
 		os.rmdir_all(root) or {}
 	}
@@ -37,9 +34,9 @@ fn test_run_build_check_temp_repo() {
 		os.unsetenv('AGENT_TOOLKIT_ROOT')
 	}
 	report := run_build(BuildOptions{
-		check:       true
-		target:      'cursor'
-		product:     'agent-toolkit-core'
+		check: true
+		target: 'cursor'
+		product: 'agent-toolkit-core'
 		write_files: false
 	})
 	assert report.ok, report.message
@@ -60,15 +57,13 @@ fn test_run_build_check_detects_drift() {
 	os.write_file(os.join_path(root, 'skills', 'core', 'assistant', 'SKILL.md'), 'canonical\n') or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'distributions', 'products.yaml'),
-		'products:\n  - id: agent-toolkit-core\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n') or {
+	os.write_file(os.join_path(root, 'distributions', 'products.yaml'), 'products:\n  - id: agent-toolkit-core\n    includes:\n      skills:\n        - core/assistant\n      agents: []\n') or {
 		assert false, err.msg()
 	}
 	os.mkdir_all(os.join_path(root, 'plugins', 'agent-toolkit-core', 'skills', 'assistant')) or {
 		assert false, err.msg()
 	}
-	os.write_file(os.join_path(root, 'plugins', 'agent-toolkit-core', 'skills', 'assistant', 'SKILL.md'),
-		'stale\n') or { assert false, err.msg() }
+	os.write_file(os.join_path(root, 'plugins', 'agent-toolkit-core', 'skills', 'assistant', 'SKILL.md'), 'stale\n') or { assert false, err.msg() }
 	defer {
 		os.rmdir_all(root) or {}
 	}
@@ -77,8 +72,8 @@ fn test_run_build_check_detects_drift() {
 		os.unsetenv('AGENT_TOOLKIT_ROOT')
 	}
 	report := run_build(BuildOptions{
-		check:   true
-		target:  'cursor'
+		check: true
+		target: 'cursor'
 		product: 'agent-toolkit-core'
 	})
 	assert !report.ok
@@ -101,7 +96,7 @@ fn test_run_build_unknown_target() {
 		os.unsetenv('AGENT_TOOLKIT_ROOT')
 	}
 	report := run_build(BuildOptions{
-		check:  true
+		check: true
 		target: 'not-a-target'
 	})
 	assert !report.ok

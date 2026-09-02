@@ -9,8 +9,8 @@ import db.sqlite
 // wipe-and-rebuild safe per #1031 and docs/ARCHITECTURE.md Project>Workspace>Toolkit.
 pub struct Persist {
 mut:
-	db sqlite.DB
-	db_path string
+	db             sqlite.DB
+	db_path        string
 	schema_version int = 1
 }
 
@@ -88,8 +88,11 @@ pub fn (mut p Persist) save_layout(key string, value string) ! {
 		return error('derived guard: cannot persist canonical key ${key}')
 	}
 	now := 0 // deterministic for headless; real window would use time.now().unix()
-	p.db.exec_param_many('INSERT OR REPLACE INTO layout (key, value, updated_at) VALUES (?, ?, ?)',
-		[key, value, now.str()]) or { return error('save_layout: ${err.msg()}') }
+	p.db.exec_param_many('INSERT OR REPLACE INTO layout (key, value, updated_at) VALUES (?, ?, ?)', [
+		key,
+		value,
+		now.str(),
+	]) or { return error('save_layout: ${err.msg()}') }
 }
 
 // load_layout restores derived layout JSON, or none if wiped/missing.
@@ -115,8 +118,11 @@ pub fn (mut p Persist) save_view_state(key string, value string) ! {
 		return error('derived guard: cannot persist canonical key ${key}')
 	}
 	now := 0
-	p.db.exec_param_many('INSERT OR REPLACE INTO view_state (key, value, updated_at) VALUES (?, ?, ?)',
-		[key, value, now.str()]) or { return error('save_view_state: ${err.msg()}') }
+	p.db.exec_param_many('INSERT OR REPLACE INTO view_state (key, value, updated_at) VALUES (?, ?, ?)', [
+		key,
+		value,
+		now.str(),
+	]) or { return error('save_view_state: ${err.msg()}') }
 }
 
 // load_view_state restores transient cursor.

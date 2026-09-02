@@ -23,9 +23,9 @@ exit_conditions:
   - budget_exhausted
 
 budget:
-  max_tokens: 25000
-  max_runs_per_day: 6
-  max_wall_seconds: 240
+  max_tokens: 80000
+  max_runs_per_day: 1
+  max_wall_seconds: 900
 
 verifier: null
 

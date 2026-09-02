@@ -25,7 +25,7 @@ fn test_ensure_data_offline_never_hits_network() {
 		net: NetworkClient{
 			offline: true
 		}
-		fs:  new_fs()
+		fs: new_fs()
 	}
 	s.ensure_data('1.10.0', true, false) or {
 		assert err.msg().contains('offline')
@@ -76,7 +76,7 @@ fn test_promote_staging_activates_valid_tree() {
 		net: NetworkClient{
 			offline: true
 		}
-		fs:  new_fs()
+		fs: new_fs()
 	}
 	dest := s.promote_staging(src, 'v1.10.0') or {
 		assert false, err.msg()
@@ -97,7 +97,7 @@ fn test_download_data_offline_does_not_activate() {
 		net: NetworkClient{
 			offline: true
 		}
-		fs:  new_fs()
+		fs: new_fs()
 	}
 	s.download_data('1.10.0') or {
 		assert err.msg().contains('offline')

@@ -35,8 +35,7 @@ pub fn resolve_toolkit_version() string {
 	for {
 		ver_path := os.join_path(cur, 'VERSION')
 		if v := read_version_file(ver_path) {
-			if os.is_dir(os.join_path(cur, 'skills')) || os.is_dir(os.join_path(cur, 'loops'))
-				|| os.is_dir(os.join_path(cur, 'profiles')) {
+			if os.is_dir(os.join_path(cur, 'skills')) || os.is_dir(os.join_path(cur, 'loops')) || os.is_dir(os.join_path(cur, 'profiles')) {
 				return v
 			}
 		}

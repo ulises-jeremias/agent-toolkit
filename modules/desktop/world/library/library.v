@@ -96,7 +96,7 @@ pub fn default_library_model() LibraryViewModel {
 			id: 'agent-${i}'
 			label: 'agent-${i}'
 			tier: tier
-			color: '#0891b2'
+			color: '#8A9BA8'
 			muted: muted
 		}
 	}
@@ -143,13 +143,13 @@ pub fn default_library_model() LibraryViewModel {
 
 fn domain_color(d string) string {
 	return match d {
-		'core' { '#7c3aed' }
-		'delivery' { '#0891b2' }
-		'design' { '#e11d48' }
-		'forge' { '#ea580c' }
-		'integrations' { '#16a34a' }
-		'data' { '#0e7490' }
-		'tooling' { '#6b7280' }
+		'core' { '#C45A3C' }
+		'delivery' { '#8A9BA8' }
+		'design' { '#C45A3C' }
+		'forge' { '#C9A86B' }
+		'integrations' { '#5A7D5A' }
+		'data' { '#6B8A9B' }
+		'tooling' { '#8A9BA8' }
 		'ops' { '#854d0e' }
 		'loops' { '#7c2d12' }
 		else { '#64748b' }

@@ -60,7 +60,7 @@ pub fn is_tier1_target(target_id string) bool {
 // Callers use a temp output_root for dry-run / --check.
 pub fn compile_tier1(target_id string, graph CanonicalGraph, product LoadedProduct, output_root string, repo_root string) CompilationResult {
 	mut result := CompilationResult{
-		target:  target_id
+		target: target_id
 		product: product.id
 	}
 	if !is_tier1_target(target_id) {
@@ -111,10 +111,8 @@ fn emit_cursor(mut result CompilationResult, mut records []ArtifactRecord, graph
 		return
 	}
 	result.emitted << 'plugin-manifest'
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
-	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
+	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'), output_root)
 	emit_cursor_hooks(mut result, mut records, graph, product, out_dir, output_root, repo_root)
 	result.unsupported << 'mcp (.cursor/mcp.json — user configures manually; not bundled in plugin)'
 	result.unsupported << 'cursor-rules (.mdc) — generated as a separate profile surface, not in plugin bundle'
@@ -158,8 +156,7 @@ fn emit_cursor_hooks(mut result CompilationResult, mut records []ArtifactRecord,
 		body += '    "${ev}": [\n${grouped[ev].join(',\n')}\n    ]'
 	}
 	body += '\n  }\n}\n'
-	write_text_artifact(os.join_path(out_dir, 'hooks', 'hooks.json'), body, 'generated',
-		output_root, mut result, mut records)
+	write_text_artifact(os.join_path(out_dir, 'hooks', 'hooks.json'), body, 'generated', output_root, mut result, mut records)
 	result.emitted << 'hooks'
 }
 
@@ -202,10 +199,8 @@ fn emit_claude_code(mut result CompilationResult, mut records []ArtifactRecord, 
 		return
 	}
 	result.emitted << 'plugin-manifest'
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'),
-		output_root)
-	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'),
-		output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, 'skills'), output_root)
+	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, 'agents'), output_root)
 	if product.included_hooks.len == 0 {
 		result.unsupported << 'hooks (hooks/hooks.json — none included for this product)'
 	} else {
@@ -226,10 +221,8 @@ fn emit_opencode(mut result CompilationResult, mut records []ArtifactRecord, gra
 		return
 	}
 	result.emitted << 'opencode-config'
-	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, '.opencode',
-		'skills'), output_root)
-	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, '.opencode',
-		'agents'), output_root)
+	emit_skills_under(mut result, mut records, graph, product, os.join_path(out_dir, '.opencode', 'skills'), output_root)
+	emit_agents_under(mut result, mut records, graph, product, os.join_path(out_dir, '.opencode', 'agents'), output_root)
 	result.unsupported << 'lifecycle hooks — requires packages/opencode-plugin/ TypeScript runtime (issue #10)'
 	result.unsupported << 'custom tools — requires TypeScript plugin with tool registration API'
 	result.unsupported << 'MCP server config — requires TypeScript plugin (no static opencode.json format)'
@@ -323,15 +316,7 @@ fn write_plugin_manifest(path string, product LoadedProduct, keywords []string, 
 	for k in keywords {
 		kw_json << '"${json_escape(k)}"'
 	}
-	body := '{\n' + '  "\$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",\n' +
-		'  "name": "${json_escape(product.id)}",\n' +
-		'  "version": "${json_escape(ver)}",\n' +
-		'  "description": "${json_escape(product.description)}",\n' + '  "author": {\n' +
-		'    "name": "ulises-jeremias",\n' + '    "email": "ulisescf.24@gmail.com",\n' +
-		'    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' +
-		'  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' +
-		'  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]\n}\n'
+	body := '{\n' + '  "\$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",\n' + '  "name": "${json_escape(product.id)}",\n' + '  "version": "${json_escape(ver)}",\n' + '  "description": "${json_escape(product.description)}",\n' + '  "author": {\n' + '    "name": "ulises-jeremias",\n' + '    "email": "ulisescf.24@gmail.com",\n' + '    "url": "https://github.com/ulises-jeremias/agent-toolkit"\n' + '  },\n' + '  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "repository": "https://github.com/ulises-jeremias/agent-toolkit",\n' + '  "license": "MIT",\n' + '  "keywords": [\n    ${kw_json.join(',\n    ')}\n  ]\n}\n'
 	write_text_artifact(path, body, 'generated', output_root, mut result, mut records)
 }
 
@@ -352,16 +337,15 @@ fn write_text_artifact(path string, content string, source_file string, output_r
 		'n/a'
 	}
 	records << ArtifactRecord{
-		path:             rel.replace('\\', '/')
-		source_file:      source_file
-		source_digest:    src_digest
+		path: rel.replace('\\', '/')
+		source_file: source_file
+		source_digest: src_digest
 		generated_digest: file_digest(path)
 	}
 }
 
 fn json_escape(s string) string {
-	return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t',
-		'\\t')
+	return s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
 }
 
 fn collect_all_files(dir string) []string {

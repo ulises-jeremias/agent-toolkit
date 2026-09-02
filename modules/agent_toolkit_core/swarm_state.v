@@ -1,4 +1,5 @@
 module agent_toolkit_core
+
 import os
 
 pub const swarm_state_version = 2
@@ -27,7 +28,8 @@ pub fn swarm_run_transitions(from_state string) []string {
 			['running', 'cancelled', 'failed']
 		}
 		'running' {
-			['awaiting_human', 'paused', 'completed', 'failed', 'cancelled', 'budget_exhausted', 'cleanup_pending']
+			['awaiting_human', 'paused', 'completed', 'failed', 'cancelled', 'budget_exhausted',
+				'cleanup_pending']
 		}
 		'awaiting_human' {
 			['running', 'paused', 'completed', 'failed', 'cancelled', 'cleanup_pending']
@@ -150,15 +152,15 @@ pub fn swarm_default_gates(recipe string) []SwarmGate {
 	mut gates := []SwarmGate{}
 	if swarm_require_plan_approval(recipe) {
 		gates << SwarmGate{
-			id:          'plan'
+			id: 'plan'
 			description: 'Plan approval: review task contract before implementation.'
-			required:    true
+			required: true
 		}
 	}
 	gates << SwarmGate{
-		id:          'final'
+		id: 'final'
 		description: 'Final integration approval: required before base-branch merge.'
-		required:    true
+		required: true
 	}
 	return gates
 }
@@ -172,8 +174,7 @@ pub fn swarm_valid_run_id(id string) bool {
 		return false
 	}
 	for c in id {
-		ok := (c >= `a` && c <= `z`) || (c >= `A` && c <= `Z`)
-			|| (c >= `0` && c <= `9`) || c == `.` || c == `_` || c == `-`
+		ok := (c >= `a` && c <= `z`) || (c >= `A` && c <= `Z`) || (c >= `0` && c <= `9`) || c == `.` || c == `_` || c == `-`
 		if !ok {
 			return false
 		}
@@ -189,6 +190,3 @@ pub fn migrate_swarm_state(mut st SwarmStateFile) {
 		st.version = swarm_state_version
 	}
 }
-
-
-

@@ -56,14 +56,14 @@ pub fn badge_for_kind(k ActivityEventKind) string {
 // dot_color per domain via tokens #1017.
 pub fn dot_color(k ActivityEventKind) string {
 	return match k {
-		.commit { '#16a34a' }
-		.loop_tick { '#7c3aed' }
-		.job_log { '#0891b2' }
-		.handoff { '#dc2626' }
-		.approval { '#eab308' }
-		.budget { '#ea580c' }
-		.doctor_fix { '#e11d48' }
-		.install { '#0e7490' }
+		.commit { '#5A7D5A' }
+		.loop_tick { '#C45A3C' }
+		.job_log { '#8A9BA8' }
+		.handoff { '#C45A3C' }
+		.approval { '#C9A86B' }
+		.budget { '#C9A86B' }
+		.doctor_fix { '#C45A3C' }
+		.install { '#6B8A9B' }
 		else { '#64748b' }
 	}
 }

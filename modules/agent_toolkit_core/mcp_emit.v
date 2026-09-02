@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 
 struct McpTemplateJson {
@@ -61,7 +61,7 @@ fn emit_portable_mcp(mut result CompilationResult, mut records []ArtifactRecord,
 			continue
 		}
 		// Decode template JSON; tolerate extra fields via struct with only needed keys
-		tmpl := json.decode(McpTemplateJson, raw) or {
+		tmpl := json2.decode[McpTemplateJson](raw) or {
 			result.warnings << "MCP template '${mcp_id}' invalid JSON: ${err}"
 			continue
 		}
@@ -89,10 +89,8 @@ fn emit_portable_mcp(mut result CompilationResult, mut records []ArtifactRecord,
 	for id in server_order {
 		entries << '    "${json_escape(id)}": ${servers[id]}'
 	}
-	body := '{\n' + '  "\$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",\n' +
-		'  "mcpServers": {\n' + entries.join(',\n') + '\n  }\n}\n'
-	write_text_artifact(os.join_path(out_dir, 'mcp.json'), body, 'generated', output_root, mut result,
-		mut records)
+	body := '{\n' + '  "\$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",\n' + '  "mcpServers": {\n' + entries.join(',\n') + '\n  }\n}\n'
+	write_text_artifact(os.join_path(out_dir, 'mcp.json'), body, 'generated', output_root, mut result, mut records)
 	result.emitted << 'mcp.json'
 	return true
 }

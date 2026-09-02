@@ -149,8 +149,8 @@ pub fn action_best_score(query string, a PaletteAction) int {
 pub struct PaletteConfig {
 pub:
 	debounce_ms int = 16 // one frame at 60 FPS, 0 for headless immediate
-	viewport_h    int = 400
-	row_height    int = 32
+	viewport_h  int = 400
+	row_height  int = 32
 }
 
 // PaletteViewModel is the fuzzy, virtualized, debounced command palette.
@@ -159,23 +159,23 @@ pub:
 // - Render: virtualized list (5k rows @ 60 FPS), retained geometry, theme tokens
 pub struct PaletteViewModel {
 mut:
-	engine       &desktop_engine.Engine
-	router       &nav.Router
-	theme        theme.Theme
-	actions      []PaletteAction
-	filtered     []PaletteAction
-	query        string
-	revision     u64
-	debounce_ms int
+	engine        &desktop_engine.Engine
+	router        &nav.Router
+	theme         theme.Theme
+	actions       []PaletteAction
+	filtered      []PaletteAction
+	query         string
+	revision      u64
+	debounce_ms   int
 	last_input_ms i64
-	virtualized  VirtualPaletteList
+	virtualized   VirtualPaletteList
 	// state
-	is_open    bool
-	selected   int
+	is_open  bool
+	selected int
 	// metrics
-	emitted  u64
-	dropped  u64
-	filters  u64
+	emitted u64
+	dropped u64
+	filters u64
 }
 
 // new_palette_viewmodel builds a palette bound to Engine + Router + Theme.

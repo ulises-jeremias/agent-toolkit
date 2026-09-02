@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 import time
 
@@ -58,9 +58,9 @@ pub fn run_devcompanion(opts DevcompanionOptions) DevcompanionReport {
 		ws := find_devcompanion_workspace(opts.workspace_path)
 		cfg := get_dc_config(ws)
 		return DevcompanionReport{
-			ok:      true
+			ok: true
 			message: devcompanion_help_text(cfg)
-			data:    {
+			data: {
 				'subcommand': 'help'
 				'workspace':  ws
 			}
@@ -77,9 +77,9 @@ pub fn run_devcompanion(opts DevcompanionOptions) DevcompanionReport {
 		'llm-status' { dc_llm_status() }
 		else {
 			DevcompanionReport{
-				ok:      false
+				ok: false
 				message: "Unknown subcommand: ${sub}\nRun 'agent-toolkit devcompanion help' for usage."
-				data:    {
+				data: {
 					'subcommand': sub
 					'workspace':  ws
 				}
@@ -96,9 +96,9 @@ pub fn devcompanion_result(report DevcompanionReport) CommandResult {
 	}
 	return CommandResult{
 		command: 'devcompanion'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    data
+		data: data
 	}
 }
 
@@ -110,47 +110,7 @@ pub fn devcompanion_help_text(cfg DcConfig) string {
 	} else {
 		cfg.queue_dir
 	}
-	return 'agent-toolkit devcompanion — background job queue for AI Workspace
-
-Usage:
-  agent-toolkit devcompanion queue <project> [options]   Queue a job
-  agent-toolkit devcompanion run-once [--no-llm]         Run oldest pending job
-  agent-toolkit devcompanion status                      Show all jobs
-  agent-toolkit devcompanion done <job-id>               Mark a job as done
-  agent-toolkit devcompanion sync-todos                  Sync todos from plan.md files
-  agent-toolkit devcompanion llm-status                  Report LLM allowlist/provider
-
-Queue options:
-  --template NAME    Job template from templates/jobs/ directory
-  --request "..."    Custom request string (required if no --template)
-  --id ID            Custom job ID (default: <project>-<timestamp>)
-
-Workspace detection:
-  AGENT_TOOLKIT_WORKSPACE env var, or walk up from CWD looking for .devcompanion/
-
-Queue mode:
-  ${mode}
-  HARNESS_RUNNER_DIR or HARNESS_DC_HOME or HARNESS_DIR → harness queue under ~/.local/share/agentic-harness/dev-companion
-
-Queue location:
-  ${queue_loc}
-
-Runs location:
-  ${cfg.runs_dir}
-
-Examples:
-  agent-toolkit devcompanion queue my-api --template code-review
-  agent-toolkit devcompanion queue my-api --request "add pagination to GET /users"
-  agent-toolkit devcompanion run-once
-  agent-toolkit devcompanion run-once --no-llm
-  agent-toolkit devcompanion status
-  agent-toolkit devcompanion done my-api-20260804-120000
-  agent-toolkit devcompanion sync-todos
-  agent-toolkit devcompanion llm-status
-
-Alias:
-  agent-toolkit dc <subcommand>
-'
+	return 'agent-toolkit devcompanion — background job queue for AI Workspace\n\nUsage:\n  agent-toolkit devcompanion queue <project> [options]   Queue a job\n  agent-toolkit devcompanion run-once [--no-llm]         Run oldest pending job\n  agent-toolkit devcompanion status                      Show all jobs\n  agent-toolkit devcompanion done <job-id>               Mark a job as done\n  agent-toolkit devcompanion sync-todos                  Sync todos from plan.md files\n  agent-toolkit devcompanion llm-status                  Report LLM allowlist/provider\n\nQueue options:\n  --template NAME    Job template from templates/jobs/ directory\n  --request "..."    Custom request string (required if no --template)\n  --id ID            Custom job ID (default: <project>-<timestamp>)\n\nWorkspace detection:\n  AGENT_TOOLKIT_WORKSPACE env var, or walk up from CWD looking for .devcompanion/\n\nQueue mode:\n  ${mode}\n  HARNESS_RUNNER_DIR or HARNESS_DC_HOME or HARNESS_DIR → harness queue under ~/.local/share/agentic-harness/dev-companion\n\nQueue location:\n  ${queue_loc}\n\nRuns location:\n  ${cfg.runs_dir}\n\nExamples:\n  agent-toolkit devcompanion queue my-api --template code-review\n  agent-toolkit devcompanion queue my-api --request "add pagination to GET /users"\n  agent-toolkit devcompanion run-once\n  agent-toolkit devcompanion run-once --no-llm\n  agent-toolkit devcompanion status\n  agent-toolkit devcompanion done my-api-20260804-120000\n  agent-toolkit devcompanion sync-todos\n  agent-toolkit devcompanion llm-status\n\nAlias:\n  agent-toolkit dc <subcommand>\n'
 }
 
 pub fn dc_help_text() string {
@@ -206,27 +166,27 @@ fn get_dc_config(workspace_root string) DcConfig {
 	if home := resolve_harness_dc_home() {
 		queue_root := os.join_path(home, 'queue')
 		return DcConfig{
-			harness_mode:     true
-			dc_home:          home
-			queue_dir:        queue_root
-			runs_dir:         os.join_path(queue_root, 'artifacts')
-			queue_pending:    os.join_path(queue_root, 'pending')
+			harness_mode: true
+			dc_home: home
+			queue_dir: queue_root
+			runs_dir: os.join_path(queue_root, 'artifacts')
+			queue_pending: os.join_path(queue_root, 'pending')
 			queue_processing: os.join_path(queue_root, 'processing')
-			queue_done:       os.join_path(queue_root, 'done')
-			queue_failed:     os.join_path(queue_root, 'failed')
+			queue_done: os.join_path(queue_root, 'done')
+			queue_failed: os.join_path(queue_root, 'failed')
 		}
 	}
 	dc_home := os.join_path(workspace_root, '.devcompanion')
 	queue_dir := os.join_path(dc_home, 'queue')
 	return DcConfig{
-		harness_mode:     false
-		dc_home:          dc_home
-		queue_dir:        queue_dir
-		runs_dir:         os.join_path(dc_home, 'runs')
-		queue_pending:    queue_dir
+		harness_mode: false
+		dc_home: dc_home
+		queue_dir: queue_dir
+		runs_dir: os.join_path(dc_home, 'runs')
+		queue_pending: queue_dir
 		queue_processing: queue_dir
-		queue_done:       queue_dir
-		queue_failed:     queue_dir
+		queue_done: queue_dir
+		queue_failed: queue_dir
 	}
 }
 
@@ -252,9 +212,9 @@ fn dc_queue(ws string, cfg DcConfig, opts DevcompanionOptions) DevcompanionRepor
 	project := opts.arg
 	if project.len == 0 {
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit devcompanion queue <project> [--template NAME] [--request "..."]'
-			data:    {
+			data: {
 				'subcommand': 'queue'
 				'workspace':  ws
 			}
@@ -278,9 +238,9 @@ fn dc_queue(ws string, cfg DcConfig, opts DevcompanionOptions) DevcompanionRepor
 			lines << '  (no projects indexed)'
 		}
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'queue'
 				'workspace':  ws
 			}
@@ -290,9 +250,9 @@ fn dc_queue(ws string, cfg DcConfig, opts DevcompanionOptions) DevcompanionRepor
 	if opts.template.len > 0 {
 		tpl := load_dc_template(ws, opts.template) or {
 			return DevcompanionReport{
-				ok:      false
+				ok: false
 				message: err.msg()
-				data:    {
+				data: {
 					'subcommand': 'queue'
 					'workspace':  ws
 				}
@@ -306,9 +266,9 @@ fn dc_queue(ws string, cfg DcConfig, opts DevcompanionOptions) DevcompanionRepor
 		request = opts.request
 	} else {
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: 'Provide --request or --template'
-			data:    {
+			data: {
 				'subcommand': 'queue'
 				'workspace':  ws
 			}
@@ -318,36 +278,31 @@ fn dc_queue(ws string, cfg DcConfig, opts DevcompanionOptions) DevcompanionRepor
 	job_file := queue_job_path(cfg, job_id)
 	if cfg.harness_mode {
 		os.mkdir_all(cfg.queue_pending) or {}
-		body := '{
-  "id": ${json.encode(job_id)},
-  "created_at": ${json.encode(utc_now())},
-  "request": ${json.encode(request)},
-  "repo_path": ${json.encode(project_path)},
-  "llm": true,
-  "limits": {"timeout_sec": 1800, "max_steps": 25},
-  "actions_allowed": ["plan_only"]
-}
-'
+		body := '{\n  "id": ${json2.encode(job_id, escape_unicode: true)},\n  "created_at": ${json2.encode(utc_now(),
+			escape_unicode: true
+		)},\n  "request": ${json2.encode(request, escape_unicode: true)},\n  "repo_path": ${json2.encode(project_path,
+			escape_unicode: true
+		)},\n  "llm": true,\n  "limits": {"timeout_sec": 1800, "max_steps": 25},\n  "actions_allowed": ["plan_only"]\n}\n'
 		os.write_file(job_file, body) or {
 			return DevcompanionReport{
-				ok:      false
+				ok: false
 				message: 'write job failed: ${err}'
 			}
 		}
 	} else {
 		os.mkdir_all(cfg.queue_dir) or {}
 		job := DcJob{
-			id:           job_id
-			created_at:   utc_now()
-			project:      project
+			id: job_id
+			created_at: utc_now()
+			project: project
 			project_path: project_path
-			request:      request
-			template:     opts.template
-			status:       'pending'
+			request: request
+			template: opts.template
+			status: 'pending'
 		}
 		write_dc_job(job_file, job) or {
 			return DevcompanionReport{
-				ok:      false
+				ok: false
 				message: 'write job failed: ${err}'
 			}
 		}
@@ -362,9 +317,9 @@ fn dc_queue(ws string, cfg DcConfig, opts DevcompanionOptions) DevcompanionRepor
 	lines << "  Run 'agent-toolkit devcompanion run-once' to execute"
 	lines << "  Run 'agent-toolkit devcompanion status' to check progress"
 	return DevcompanionReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'queue'
 			'workspace':  ws
 			'job_id':     job_id
@@ -377,9 +332,9 @@ fn dc_run_once(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 	pending := pending_dc_jobs(cfg)
 	if pending.len == 0 {
 		return DevcompanionReport{
-			ok:      true
+			ok: true
 			message: '[devcompanion] No pending jobs.'
-			data:    {
+			data: {
 				'subcommand': 'run-once'
 				'count':      '0'
 			}
@@ -426,9 +381,9 @@ fn dc_run_once(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 			lines << clip
 		}
 		return DevcompanionReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'run-once'
 				'job_id':     job_id
 				'status':     'done'
@@ -437,9 +392,9 @@ fn dc_run_once(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 	}
 	lines << '[devcompanion] Job failed: ${job_id}'
 	return DevcompanionReport{
-		ok:      false
+		ok: false
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'run-once'
 			'job_id':     job_id
 			'status':     'failed'
@@ -457,9 +412,9 @@ fn dc_status(cfg DcConfig, ws string) DevcompanionReport {
 		lines << '  (queue is empty)'
 		lines << ''
 		return DevcompanionReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'status'
 				'workspace':  ws
 				'count':      '0'
@@ -512,9 +467,9 @@ fn dc_status(cfg DcConfig, ws string) DevcompanionReport {
 		lines << ''
 	}
 	return DevcompanionReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'status'
 			'workspace':  ws
 			'count':      '${jobs.len}'
@@ -526,9 +481,9 @@ fn dc_done(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 	job_id := opts.arg
 	if job_id.len == 0 {
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit devcompanion done <job-id>'
-			data:    {
+			data: {
 				'subcommand': 'done'
 			}
 		}
@@ -536,9 +491,9 @@ fn dc_done(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 	if cfg.harness_mode {
 		if mark_job_done(cfg, job_id, utc_now()) {
 			return DevcompanionReport{
-				ok:      true
+				ok: true
 				message: '[devcompanion] Marked as done: ${job_id}'
-				data:    {
+				data: {
 					'subcommand': 'done'
 					'job_id':     job_id
 					'status':     'done'
@@ -546,9 +501,9 @@ fn dc_done(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 			}
 		}
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: '[devcompanion] Job file not found: ${job_id}.job'
-			data:    {
+			data: {
 				'subcommand': 'done'
 				'job_id':     job_id
 			}
@@ -556,9 +511,9 @@ fn dc_done(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 	}
 	job_file := find_job_path(cfg, job_id) or {
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: '[devcompanion] Job file not found: ${job_id}.json'
-			data:    {
+			data: {
 				'subcommand': 'done'
 				'job_id':     job_id
 			}
@@ -566,7 +521,7 @@ fn dc_done(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 	}
 	mut job := read_dc_job(job_file) or {
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: 'unreadable job: ${err}'
 		}
 	}
@@ -574,14 +529,14 @@ fn dc_done(cfg DcConfig, opts DevcompanionOptions) DevcompanionReport {
 	job.completed_at = utc_now()
 	write_dc_job(job_file, job) or {
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: 'write job failed: ${err}'
 		}
 	}
 	return DevcompanionReport{
-		ok:      true
+		ok: true
 		message: '[devcompanion] Marked as done: ${job_id}'
-		data:    {
+		data: {
 			'subcommand': 'done'
 			'job_id':     job_id
 			'status':     'done'
@@ -595,9 +550,9 @@ fn dc_sync_todos(ws string, cfg DcConfig) DevcompanionReport {
 	knowledge := os.join_path(ws, 'knowledge', 'todos', 'pending.md')
 	if todos.len == 0 {
 		return DevcompanionReport{
-			ok:      true
+			ok: true
 			message: "[devcompanion] No '- [ ]' items found in run plans."
-			data:    {
+			data: {
 				'subcommand': 'sync-todos'
 				'workspace':  ws
 				'count':      '0'
@@ -619,14 +574,14 @@ fn dc_sync_todos(ws string, cfg DcConfig) DevcompanionReport {
 	}
 	os.write_file(knowledge, text) or {
 		return DevcompanionReport{
-			ok:      false
+			ok: false
 			message: 'write todos failed: ${err}'
 		}
 	}
 	return DevcompanionReport{
-		ok:      true
+		ok: true
 		message: '[devcompanion] Synced ${todos.len} todo(s) → ${knowledge}'
-		data:    {
+		data: {
 			'subcommand': 'sync-todos'
 			'workspace':  ws
 			'count':      '${todos.len}'
@@ -647,11 +602,13 @@ fn dc_llm_status() DevcompanionReport {
 	provider := if have_key { 'anthropic' } else { 'none' }
 	offline := !have_key
 	// Build JSON payload matching Python: {"allowlist":..., "strict":..., "have_key":..., "provider":..., "offline":...}
-	payload := '{"allowlist":${json.encode(allowlist)},"strict":${strict},"have_key":${have_key},"provider":${json.encode(provider)},"offline":${offline}}'
+	payload := '{"allowlist":${json2.encode(allowlist, escape_unicode: true)},"strict":${strict},"have_key":${have_key},"provider":${json2.encode(provider,
+		escape_unicode: true
+	)},"offline":${offline}}'
 	return DevcompanionReport{
-		ok:      true
+		ok: true
 		message: payload
-		data:    {
+		data: {
 			'subcommand': 'llm-status'
 			'allowlist':  allowlist
 			'strict':     '${strict}'
@@ -684,32 +641,11 @@ fn skeleton_run(job DcJob, out_dir string) (int, string) {
 	project := dc_job_project_name(job)
 	request := if job.request.len > 0 { job.request } else { '(no request)' }
 	path := dc_job_project_path(job)
-	plan := '# Plan — ${job_id}
-
-**Generated**: ${utc_now()}
-**Mode**: skeleton (no LLM)
-**Project**: ${project}
-
-## Request
-
-${request}
-
-## Steps
-
-> This is a skeleton plan. Run without --no-llm for AI-generated steps.
-
-- [ ] Read project README and AGENTS.md
-- [ ] Understand existing conventions and patterns
-- [ ] Analyse the request in context
-- [ ] Implement changes following project conventions
-- [ ] Run tests and verify
-- [ ] Create PR
-
-## Notes
-
-- Job ID: ${job_id}
-- Project path: ${if path.len > 0 { path } else { 'not set' }}
-'
+	plan := '# Plan — ${job_id}\n\n**Generated**: ${utc_now()}\n**Mode**: skeleton (no LLM)\n**Project**: ${project}\n\n## Request\n\n${request}\n\n## Steps\n\n> This is a skeleton plan. Run without --no-llm for AI-generated steps.\n\n- [ ] Read project README and AGENTS.md\n- [ ] Understand existing conventions and patterns\n- [ ] Analyse the request in context\n- [ ] Implement changes following project conventions\n- [ ] Run tests and verify\n- [ ] Create PR\n\n## Notes\n\n- Job ID: ${job_id}\n- Project path: ${if path.len > 0 {
+		path
+	} else {
+		'not set'
+	}}\n'
 	plan_path := os.join_path(out_dir, 'plan.md')
 	os.write_file(plan_path, plan) or {
 		return 1, '[devcompanion] Skeleton runner failed: ${err}'
@@ -852,14 +788,14 @@ fn pending_dc_jobs(cfg DcConfig) []DcJobItem {
 		if cfg.harness_mode {
 			items << DcJobItem{
 				status: 'pending'
-				path:   p
-				job:    job
+				path: p
+				job: job
 			}
 		} else if job.status == 'pending' {
 			items << DcJobItem{
 				status: 'pending'
-				path:   p
-				job:    job
+				path: p
+				job: job
 			}
 		}
 	}
@@ -888,8 +824,8 @@ fn iter_dc_jobs(cfg DcConfig) []DcJobItem {
 				job := read_dc_job(p) or { continue }
 				items << DcJobItem{
 					status: state
-					path:   p
-					job:    job
+					path: p
+					job: job
 				}
 			}
 		}
@@ -904,8 +840,8 @@ fn iter_dc_jobs(cfg DcConfig) []DcJobItem {
 			st := if job.status.len > 0 { job.status } else { '?' }
 			items << DcJobItem{
 				status: st
-				path:   p
-				job:    job
+				path: p
+				job: job
 			}
 		}
 	}
@@ -972,13 +908,13 @@ fn mark_job_done(cfg DcConfig, job_id string, completed_at string) bool {
 
 fn read_dc_job(path string) !DcJob {
 	text := os.read_file(path) or { return error('read failed: ${err}') }
-	job := json.decode(DcJob, text) or { return error('decode failed: ${err}') }
+	job := json2.decode[DcJob](text) or { return error('decode failed: ${err}') }
 	return job
 }
 
 fn write_dc_job(path string, job DcJob) ! {
 	os.mkdir_all(os.dir(path)) or { return err }
-	payload := json.encode(job)
+	payload := json2.encode(job, escape_unicode: true)
 	os.write_file(path, payload + '\n') or { return err }
 }
 

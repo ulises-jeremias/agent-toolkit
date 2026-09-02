@@ -42,8 +42,8 @@ pub fn (e DomainError) exit_code() int {
 // err_user constructs a USER-class domain error.
 pub fn err_user(code string, message string) DomainError {
 	return DomainError{
-		class:   .user
-		code:    code
+		class: .user
+		code: code
 		message: message
 	}
 }
@@ -51,8 +51,8 @@ pub fn err_user(code string, message string) DomainError {
 // err_config constructs a CONFIG-class domain error.
 pub fn err_config(code string, message string) DomainError {
 	return DomainError{
-		class:   .config
-		code:    code
+		class: .config
+		code: code
 		message: message
 	}
 }
@@ -60,8 +60,8 @@ pub fn err_config(code string, message string) DomainError {
 // err_env constructs an ENV-class domain error.
 pub fn err_env(code string, message string) DomainError {
 	return DomainError{
-		class:   .env
-		code:    code
+		class: .env
+		code: code
 		message: message
 	}
 }
@@ -69,8 +69,8 @@ pub fn err_env(code string, message string) DomainError {
 // err_external constructs an EXTERNAL-class domain error.
 pub fn err_external(code string, message string) DomainError {
 	return DomainError{
-		class:   .external
-		code:    code
+		class: .external
+		code: code
 		message: message
 	}
 }
@@ -78,8 +78,8 @@ pub fn err_external(code string, message string) DomainError {
 // err_network constructs a NETWORK-class domain error.
 pub fn err_network(code string, message string) DomainError {
 	return DomainError{
-		class:   .network
-		code:    code
+		class: .network
+		code: code
 		message: message
 	}
 }
@@ -87,8 +87,8 @@ pub fn err_network(code string, message string) DomainError {
 // err_internal constructs an INTERNAL-class domain error.
 pub fn err_internal(code string, message string) DomainError {
 	return DomainError{
-		class:   .internal
-		code:    code
+		class: .internal
+		code: code
 		message: message
 	}
 }
@@ -96,8 +96,8 @@ pub fn err_internal(code string, message string) DomainError {
 // err_usage_flags constructs a USAGE_FLAGS-class domain error (CLI parse).
 pub fn err_usage_flags(code string, message string) DomainError {
 	return DomainError{
-		class:   .usage_flags
-		code:    code
+		class: .usage_flags
+		code: code
 		message: message
 	}
 }

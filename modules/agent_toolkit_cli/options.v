@@ -95,7 +95,7 @@ fn parse_doctor_options(args []string) agent_toolkit_core.DoctorOptions {
 		}
 	}
 	return agent_toolkit_core.DoctorOptions{
-		fix:        fix
+		fix: fix
 		provenance: provenance
 	}
 }
@@ -148,10 +148,10 @@ fn parse_build_options(args []string) agent_toolkit_core.BuildOptions {
 		i++
 	}
 	return agent_toolkit_core.BuildOptions{
-		check:       check
-		target:      target
-		product:     product
-		output_dir:  output_dir
+		check: check
+		target: target
+		product: product
+		output_dir: output_dir
 		write_files: write_files
 	}
 }
@@ -208,9 +208,9 @@ fn parse_install_options(args []string) !agent_toolkit_core.InstallOptions {
 		}
 	}
 	return agent_toolkit_core.InstallOptions{
-		tools:   tools
+		tools: tools
 		dry_run: dry_run
-		force:   force
+		force: force
 		offline: offline
 	}
 }
@@ -261,7 +261,7 @@ fn parse_uninstall_options(args []string) !agent_toolkit_core.UninstallOptions {
 		}
 	}
 	return agent_toolkit_core.UninstallOptions{
-		tools:   tools
+		tools: tools
 		dry_run: dry_run
 	}
 }
@@ -299,7 +299,7 @@ fn parse_diff_options(args []string) agent_toolkit_core.DiffOptions {
 		i++
 	}
 	return agent_toolkit_core.DiffOptions{
-		target:  target
+		target: target
 		product: product
 	}
 }
@@ -358,9 +358,9 @@ fn parse_update_options(args []string) !agent_toolkit_core.UpdateOptions {
 		}
 	}
 	return agent_toolkit_core.UpdateOptions{
-		tools:      tools
+		tools: tools
 		check_only: check_only
-		pin:        pin
+		pin: pin
 	}
 }
 
@@ -419,8 +419,8 @@ fn parse_skills_options(args []string) !agent_toolkit_core.SkillsOptions {
 	}
 	return agent_toolkit_core.SkillsOptions{
 		subcommand: sub
-		domain:     domain
-		tools:      tools
+		domain: domain
+		tools: tools
 	}
 }
 
@@ -449,8 +449,8 @@ fn parse_mcp_options(args []string) agent_toolkit_core.McpOptions {
 	}
 	return agent_toolkit_core.McpOptions{
 		subcommand: sub
-		provider:   provider
-		offline:    offline
+		provider: provider
+		offline: offline
 	}
 }
 
@@ -485,11 +485,21 @@ fn parse_workspace_options(args []string) !agent_toolkit_core.WorkspaceOptions {
 			}
 			val := args[i + 1]
 			match a {
-				'--dir' { dir = val }
-				'--name' { name = val }
-				'--workspace' { workspace_path = val }
-				'--profile' { profile = val }
-				'--pack' { pack = val }
+				'--dir' {
+					dir = val
+				}
+				'--name' {
+					name = val
+				}
+				'--workspace' {
+					workspace_path = val
+				}
+				'--profile' {
+					profile = val
+				}
+				'--pack' {
+					pack = val
+				}
 				else {}
 			}
 			i += 2
@@ -535,15 +545,15 @@ fn parse_workspace_options(args []string) !agent_toolkit_core.WorkspaceOptions {
 		i++
 	}
 	return agent_toolkit_core.WorkspaceOptions{
-		subcommand:     sub
-		dir:            dir
-		name:           name
+		subcommand: sub
+		dir: dir
+		name: name
 		workspace_path: workspace_path
-		explain:        explain
-		json_out:       json_out
-		arg:            arg
-		profile:        profile
-		pack:           pack
+		explain: explain
+		json_out: json_out
+		arg: arg
+		profile: profile
+		pack: pack
 	}
 }
 
@@ -610,10 +620,10 @@ fn parse_project_options(args []string) !agent_toolkit_core.ProjectOptions {
 		i++
 	}
 	return agent_toolkit_core.ProjectOptions{
-		subcommand:     sub
+		subcommand: sub
 		workspace_path: workspace_path
-		arg:            arg
-		ssh:            ssh
+		arg: arg
+		ssh: ssh
 	}
 }
 
@@ -643,10 +653,18 @@ fn parse_dc_options(args []string) !agent_toolkit_core.DevcompanionOptions {
 			}
 			val := args[i + 1]
 			match a {
-				'--template', '-t' { template = val }
-				'--request', '-r' { request = val }
-				'--id' { job_id = val }
-				'--workspace' { workspace_path = val }
+				'--template', '-t' {
+					template = val
+				}
+				'--request', '-r' {
+					request = val
+				}
+				'--id' {
+					job_id = val
+				}
+				'--workspace' {
+					workspace_path = val
+				}
 				else {}
 			}
 			i += 2
@@ -693,13 +711,13 @@ fn parse_dc_options(args []string) !agent_toolkit_core.DevcompanionOptions {
 		arg = job_id
 	}
 	return agent_toolkit_core.DevcompanionOptions{
-		subcommand:     sub
+		subcommand: sub
 		workspace_path: workspace_path
-		arg:            arg
-		template:       template
-		request:        request
-		job_id:         job_id
-		no_llm:         no_llm
+		arg: arg
+		template: template
+		request: request
+		job_id: job_id
+		no_llm: no_llm
 	}
 }
 
@@ -761,12 +779,24 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 			}
 			val := args[i + 1]
 			match a {
-				'--name' { custom_name = val }
-				'--runner' { runner = val }
-				'--pack' { pack = val }
-				'--workspace' { workspace_path = val }
-				'--cron' { cron = val }
-				'--platform' { platform = val }
+				'--name' {
+					custom_name = val
+				}
+				'--runner' {
+					runner = val
+				}
+				'--pack' {
+					pack = val
+				}
+				'--workspace' {
+					workspace_path = val
+				}
+				'--cron' {
+					cron = val
+				}
+				'--platform' {
+					platform = val
+				}
 				else {}
 			}
 			i += 2
@@ -820,20 +850,20 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 		runner = 'skeleton'
 	}
 	return agent_toolkit_core.LoopOptions{
-		subcommand:     sub
+		subcommand: sub
 		workspace_path: workspace_path
-		name:           name
-		custom_name:    custom_name
-		force:          force
-		quiet:          quiet
-		runner:         runner
-		pack:           pack
-		no_llm:         no_llm
-		dry_run:        dry_run
-		cron:           cron
-		list_mode:      list_mode
-		remove_mode:    remove_mode
-		platform:       platform
+		name: name
+		custom_name: custom_name
+		force: force
+		quiet: quiet
+		runner: runner
+		pack: pack
+		no_llm: no_llm
+		dry_run: dry_run
+		cron: cron
+		list_mode: list_mode
+		remove_mode: remove_mode
+		platform: platform
 	}
 }
 
@@ -993,14 +1023,30 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			}
 			val := args[i + 1]
 			match a {
-				'--type' { htype = val }
-				'--from' { from_role = val }
-				'--to' { to_role = val }
-				'--artifact' { artifact = val }
-				'--commit' { commit = val }
-				'--branch' { branch = val }
-				'--role' { role = val }
-				'--handoff' { handoff_id = val }
+				'--type' {
+					htype = val
+				}
+				'--from' {
+					from_role = val
+				}
+				'--to' {
+					to_role = val
+				}
+				'--artifact' {
+					artifact = val
+				}
+				'--commit' {
+					commit = val
+				}
+				'--branch' {
+					branch = val
+				}
+				'--role' {
+					role = val
+				}
+				'--handoff' {
+					handoff_id = val
+				}
 				else {}
 			}
 			i += 2
@@ -1084,15 +1130,33 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 			}
 			val := args[i + 1]
 			match a {
-				'--recipe' { recipe = val }
-				'--backend' { backend = val }
-				'--ui' { backend = val }
-				'--workspace' { workspace_path = val }
-				'--repo' { workspace_alias = val }
-				'--reason' { reason = val }
-				'--runner' { runner = val }
-				'--model-profile' { model_profile = val }
-				'--profile' { model_profile = val }
+				'--recipe' {
+					recipe = val
+				}
+				'--backend' {
+					backend = val
+				}
+				'--ui' {
+					backend = val
+				}
+				'--workspace' {
+					workspace_path = val
+				}
+				'--repo' {
+					workspace_alias = val
+				}
+				'--reason' {
+					reason = val
+				}
+				'--runner' {
+					runner = val
+				}
+				'--model-profile' {
+					model_profile = val
+				}
+				'--profile' {
+					model_profile = val
+				}
 				else {}
 			}
 			i += 2
@@ -1246,37 +1310,37 @@ fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 		attach = true
 	}
 	return agent_toolkit_core.SwarmOptions{
-		subcommand:     sub
+		subcommand: sub
 		workspace_path: workspace_path
-		run_id:         run_id
-		gate_id:        gate_id
-		recipe:         recipe
-		backend:        backend
-		runner:         runner
-		model_profile:  model_profile
-		task:           task
-		reason:         reason
-		dry_run:        dry_run
-		force:          force
-		attach:         attach
-		no_attach:      no_attach
-		request_file:   request_file
-		issue_ref:      issue_ref
-		base_ref:       base_ref
-		json_output:    json_output
-		handoff_sub:    handoff_sub
-		htype:          htype
-		from_role:      from_role
-		to_role:        to_role
-		priority:       priority
-		artifact:       artifact
-		commit:         commit
-		branch:         branch
-		blocking:       blocking
-		role:           role
-		handoff_id:     handoff_id
-		to_recipe:      to_recipe
-		older_than:     older_than
+		run_id: run_id
+		gate_id: gate_id
+		recipe: recipe
+		backend: backend
+		runner: runner
+		model_profile: model_profile
+		task: task
+		reason: reason
+		dry_run: dry_run
+		force: force
+		attach: attach
+		no_attach: no_attach
+		request_file: request_file
+		issue_ref: issue_ref
+		base_ref: base_ref
+		json_output: json_output
+		handoff_sub: handoff_sub
+		htype: htype
+		from_role: from_role
+		to_role: to_role
+		priority: priority
+		artifact: artifact
+		commit: commit
+		branch: branch
+		blocking: blocking
+		role: role
+		handoff_id: handoff_id
+		to_recipe: to_recipe
+		older_than: older_than
 	}
 }
 
@@ -1330,10 +1394,18 @@ fn parse_memory_options(args []string) !agent_toolkit_core.MemoryOptions {
 			}
 			val := args[i + 1]
 			match a {
-				'--type' { entry_type = val }
-				'--title' { title = val }
-				'--workspace' { workspace_path = val }
-				'--stale-after' { stale_after = val.int() }
+				'--type' {
+					entry_type = val
+				}
+				'--title' {
+					title = val
+				}
+				'--workspace' {
+					workspace_path = val
+				}
+				'--stale-after' {
+					stale_after = val.int()
+				}
 				else {}
 			}
 			i += 2
@@ -1372,15 +1444,15 @@ fn parse_memory_options(args []string) !agent_toolkit_core.MemoryOptions {
 		i++
 	}
 	return agent_toolkit_core.MemoryOptions{
-		subcommand:     sub
-		entry_type:     entry_type
-		title:          title
-		content:        rest.join(' ')
-		query:          rest.join(' ')
+		subcommand: sub
+		entry_type: entry_type
+		title: title
+		content: rest.join(' ')
+		query: rest.join(' ')
 		workspace_path: workspace_path
-		fix:            fix
-		stale_after:    stale_after
-		show_done:      done
+		fix: fix
+		stale_after: stale_after
+		show_done: done
 	}
 }
 
@@ -1413,9 +1485,15 @@ fn parse_serve_options(args []string) !agent_toolkit_server.ServeOptions {
 			}
 			val := args[i + 1]
 			match a {
-				'--host' { host = val }
-				'--port' { port = val.int() }
-				'--auth-token' { auth_token = val }
+				'--host' {
+					host = val
+				}
+				'--port' {
+					port = val.int()
+				}
+				'--auth-token' {
+					auth_token = val
+				}
 				else {}
 			}
 			i += 2
@@ -1439,10 +1517,10 @@ fn parse_serve_options(args []string) !agent_toolkit_server.ServeOptions {
 		i++
 	}
 	return agent_toolkit_server.ServeOptions{
-		host:         host
-		port:         port
+		host: host
+		port: port
 		allow_remote: allow_remote
-		auth_token:   auth_token
+		auth_token: auth_token
 		open_browser: !no_browser
 	}
 }
@@ -1511,10 +1589,10 @@ fn parse_insights_options(args []string) agent_toolkit_core.InsightsOptions {
 		tool = 'all'
 	}
 	return agent_toolkit_core.InsightsOptions{
-		tool:      tool
-		days:      days
-		output:    output
+		tool: tool
+		days: days
+		output: output
 		json_mode: json_mode
-		no_llm:    no_llm
+		no_llm: no_llm
 	}
 }

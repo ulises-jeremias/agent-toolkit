@@ -26,9 +26,9 @@ pub fn run_project(opts ProjectOptions) ProjectReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
 		return ProjectReport{
-			ok:      true
+			ok: true
 			message: project_help_text()
-			data:    {
+			data: {
 				'subcommand': 'help'
 			}
 		}
@@ -46,17 +46,17 @@ pub fn run_project(opts ProjectOptions) ProjectReport {
 		// OWNER/REPO shorthand hint parity with Python _resolve_owner_repo_from_prompt
 		if owner_repo := resolve_owner_repo(opts.workspace_path) {
 			return ProjectReport{
-				ok:      false
+				ok: false
 				message: 'Not a git repository: ${opts.workspace_path}\nHint: Run: agent-toolkit project clone ${owner_repo} or specify --workspace <path|OWNER/REPO>'
-				data:    {
+				data: {
 					'subcommand': sub
 				}
 			}
 		}
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: workspace_missing
-			data:    {
+			data: {
 				'subcommand': sub
 			}
 		}
@@ -82,7 +82,7 @@ pub fn run_project(opts ProjectOptions) ProjectReport {
 		}
 		else {
 			ProjectReport{
-				ok:      false
+				ok: false
 				message: "Unknown project subcommand: ${sub}\nRun 'agent-toolkit project --help' for usage."
 			}
 		}
@@ -97,9 +97,9 @@ pub fn project_result(report ProjectReport) CommandResult {
 	}
 	return CommandResult{
 		command: 'project'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    data
+		data: data
 	}
 }
 
@@ -150,13 +150,13 @@ fn project_init(ws string) ProjectReport {
 	projects := os.join_path(ws, 'projects')
 	os.mkdir_all(repos) or {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'mkdir failed: ${err}'
 		}
 	}
 	os.mkdir_all(projects) or {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'mkdir failed: ${err}'
 		}
 	}
@@ -166,9 +166,9 @@ fn project_init(ws string) ProjectReport {
 	lines << '  ${repos}'
 	lines << '  ${projects}'
 	return ProjectReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'init'
 			'workspace':  ws
 		}
@@ -179,13 +179,13 @@ fn project_clone(ws string, opts ProjectOptions) ProjectReport {
 	slug := opts.arg
 	if slug.len == 0 {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit project clone owner/repo [--ssh] [--workspace PATH]'
 		}
 	}
 	if !slug.contains('/') {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'Error: expected owner/repo, got: ${slug}'
 		}
 	}
@@ -201,7 +201,7 @@ fn project_clone(ws string, opts ProjectOptions) ProjectReport {
 	} else {
 		os.mkdir_all(repos_dir) or {
 			return ProjectReport{
-				ok:      false
+				ok: false
 				message: 'mkdir failed: ${err}'
 			}
 		}
@@ -215,17 +215,17 @@ fn project_clone(ws string, opts ProjectOptions) ProjectReport {
 		lines << 'Cloning ${owner}/${repo_name} via ${verb} ...'
 		ps := new_process_service()
 		res := ps.run(
-			argv:    argv
+			argv: argv
 			timeout: 10 * time.minute
 		) or {
 			return ProjectReport{
-				ok:      false
+				ok: false
 				message: 'Error: clone failed: ${err}'
 			}
 		}
 		if res.exit_code != 0 {
 			return ProjectReport{
-				ok:      false
+				ok: false
 				message: 'Error: clone failed (exit ${res.exit_code})\n${res.stderr}'
 			}
 		}
@@ -237,7 +237,7 @@ fn project_clone(ws string, opts ProjectOptions) ProjectReport {
 	}
 	os.symlink(target_dir, link_path) or {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'symlink failed: ${err}'
 		}
 	}
@@ -245,9 +245,9 @@ fn project_clone(ws string, opts ProjectOptions) ProjectReport {
 	upsert_project(ws, repo_name, target_dir, 'github.com/${owner}/${repo_name}')
 	lines << 'Updated projects.yaml'
 	return ProjectReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'clone'
 			'workspace':  ws
 			'name':       repo_name
@@ -265,9 +265,9 @@ fn project_list(ws string) ProjectReport {
 		lines << '  (projects/ directory not found)'
 		lines << ''
 		return ProjectReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'list'
 				'workspace':  ws
 				'count':      '0'
@@ -293,9 +293,9 @@ fn project_list(ws string) ProjectReport {
 	}
 	lines << ''
 	return ProjectReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'list'
 			'workspace':  ws
 			'count':      '${n}'
@@ -306,14 +306,14 @@ fn project_list(ws string) ProjectReport {
 fn project_add(ws string, opts ProjectOptions) ProjectReport {
 	if opts.arg.len == 0 {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit project add <path> [--workspace PATH]'
 		}
 	}
 	repo_path := os.real_path(os.expand_tilde_to_home(opts.arg))
 	if !os.is_dir(repo_path) {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'Error: not a directory: ${repo_path}'
 		}
 	}
@@ -329,7 +329,7 @@ fn project_add(ws string, opts ProjectOptions) ProjectReport {
 	}
 	os.symlink(repo_path, link_path) or {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'symlink failed: ${err}'
 		}
 	}
@@ -337,9 +337,9 @@ fn project_add(ws string, opts ProjectOptions) ProjectReport {
 	upsert_project(ws, repo_name, repo_path, '')
 	lines << 'Updated projects.yaml'
 	return ProjectReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'add'
 			'workspace':  ws
 			'name':       repo_name
@@ -350,7 +350,7 @@ fn project_add(ws string, opts ProjectOptions) ProjectReport {
 fn project_remove(ws string, opts ProjectOptions) ProjectReport {
 	if opts.arg.len == 0 {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit project remove <name> [--workspace PATH]'
 		}
 	}
@@ -358,20 +358,20 @@ fn project_remove(ws string, opts ProjectOptions) ProjectReport {
 	link_path := os.join_path(ws, 'projects', name)
 	if !os.is_link(link_path) {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: "Error: no symlink found for '${name}' in projects/"
 		}
 	}
 	os.rm(link_path) or {
 		return ProjectReport{
-			ok:      false
+			ok: false
 			message: 'remove failed: ${err}'
 		}
 	}
 	return ProjectReport{
-		ok:      true
+		ok: true
 		message: 'Removed: projects/${name}\n(actual repo was not deleted)'
-		data:    {
+		data: {
 			'subcommand': 'remove'
 			'workspace':  ws
 			'name':       name
@@ -460,9 +460,9 @@ fn project_scan(ws string) ProjectReport {
 	}
 	lines << ''
 	return ProjectReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'scan'
 			'workspace':  ws
 			'linked':     '${ok_links.len}'
@@ -548,7 +548,7 @@ fn upsert_project(ws string, name string, path string, source string) {
 		if e.name == name {
 			projects[i] = ProjectYamlEntry{
 				...e
-				path:   path
+				path: path
 				source: if source.len > 0 { source } else { e.source }
 			}
 			found = true
@@ -557,9 +557,9 @@ fn upsert_project(ws string, name string, path string, source string) {
 	}
 	if !found {
 		projects << ProjectYamlEntry{
-			name:      name
-			path:      path
-			source:    source
+			name: name
+			path: path
+			source: source
 			cloned_at: time.utc().format_rfc3339()[..10]
 		}
 	}

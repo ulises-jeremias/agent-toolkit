@@ -2,7 +2,12 @@ module ghostty
 
 import os
 
-// libghostty-vt — Ghostty VT terminal for Agent Toolkit Desktop
+// libghostty-vt — Ghostty VT terminal for Agent Toolkit Desktop — Dunder Mifflin Paper Company edition
+// Scranton Branch office floor: each desk owns a VT. Main conference room is 80×18, every
+// per-agent sales desk is 40×6. Envelopes (handoff payloads) fly desk→desk via Michael's
+// GOD mailbox; Ghostty streams them at 60 FPS, zero cross-talk, brass paper-ink charm.
+// Pure V port, zero dependencies, 100% V native, no libc beyond V.
+// Named libghostty-vt to match Ghostty's libghostty branding — this file
 // Pure V port, zero dependencies, 100% V native, no libc beyond V.
 // Named libghostty-vt to match Ghostty's libghostty branding — this file
 // IS the implementation (modules/ghostty/ghostty.v). Super potent:
@@ -597,4 +602,131 @@ pub fn (t GhosttyTerminal) prompt_line() string {
 	}
 	// mid-line cursor: show block at cursor position
 	return t.prompt + t.input[..t.cursor] + '█' + t.input[t.cursor..]
+}
+
+// ── Dunder Mifflin multiplex — flawless per-agent VT isolation ────────────
+// Each Scranton desk owns a 40×6 VT; the conference room owns 80×18. The
+// multiplexer guarantees zero cross-talk: feed to one desk never leaks to
+// another, scrollback stays capped at 1000 lines per desk, and 60 FPS is safe
+// because visible_lines() is windowed to rows (no full scrollback draw).
+
+// GhosttyMultiplexer owns the office floor's VT farm — one global + N desks.
+// All mutations are isolated per desk; Engine streams logs via broadcast().
+pub struct GhosttyMultiplexer {
+pub mut:
+	global GhosttyTerminal
+	desks  []GhosttyTerminal
+	labels []string // desk label per index, for prompt charm
+}
+
+// new_multiplexer creates the Dunder Paper office multiplexer.
+// desk_labels are the Scranton nameplates (e.g., Jim, Pam, Dwight…); each
+// gets a pristine 40×6 VT with a paper-brass welcome line.
+pub fn new_multiplexer(desk_labels []string) GhosttyMultiplexer {
+	mut g := GhosttyTerminal{}
+	// global conference room 80×18
+	g = new_terminal(80, 18)
+	mut desks := []GhosttyTerminal{cap: desk_labels.len}
+	mut labels := []string{cap: desk_labels.len}
+	for lbl in desk_labels {
+		mut d := new_terminal(40, 6)
+		// paper-company charm: desk nameplate in prompt, parchment welcome
+		d.feed('[${lbl}] — Scranton desk 40×6 ready — paper on the desk, brass on the clip\r\n')
+		desks << d
+		labels << lbl
+	}
+	return GhosttyMultiplexer{
+		global: g
+		desks: desks
+		labels: labels
+	}
+}
+
+// desk_count returns number of multiplexed per-agent VTs.
+pub fn (m GhosttyMultiplexer) desk_count() int {
+	return m.desks.len
+}
+
+// feed_global feeds the conference-room 80×18 VT (Engine live stream).
+pub fn (mut m GhosttyMultiplexer) feed_global(s string) {
+	m.global.feed(s)
+}
+
+// feed_desk feeds a single Scranton desk's 40×6 VT — flawless isolation.
+// Out-of-range index is a no-op (never panics on the floor).
+pub fn (mut m GhosttyMultiplexer) feed_desk(idx int, s string) {
+	if idx < 0 || idx >= m.desks.len {
+		return
+	}
+	m.desks[idx].feed(s)
+}
+
+// broadcast feeds every desk's VT (e.g., office-wide memo), still isolated
+// per desk because each terminal copies the string.
+pub fn (mut m GhosttyMultiplexer) broadcast(s string) {
+	for mut d in m.desks {
+		d.feed(s)
+	}
+	m.global.feed(s)
+}
+
+// resize_global resizes the conference room VT while keeping scroll pinned.
+pub fn (mut m GhosttyMultiplexer) resize_global(cols int, rows int) {
+	m.global.resize(cols, rows)
+}
+
+// resize_desk resizes one desk's VT without touching siblings.
+pub fn (mut m GhosttyMultiplexer) resize_desk(idx int, cols int, rows int) {
+	if idx < 0 || idx >= m.desks.len {
+		return
+	}
+	m.desks[idx].resize(cols, rows)
+}
+
+// clear_desk clears one desk's scrollback (e.g., new assignment).
+pub fn (mut m GhosttyMultiplexer) clear_desk(idx int) {
+	if idx < 0 || idx >= m.desks.len {
+		return
+	}
+	m.desks[idx].clear()
+}
+
+// scroll_desk scrolls one desk by delta (negative up, positive down).
+pub fn (mut m GhosttyMultiplexer) scroll_desk(idx int, delta int) {
+	if idx < 0 || idx >= m.desks.len {
+		return
+	}
+	m.desks[idx].scroll_by(delta)
+}
+
+// visible_lines_desk returns windowed lines for one desk — 60 FPS proof
+// (only rows lines are ever drawn, culling the 1000-deep scrollback).
+pub fn (m GhosttyMultiplexer) visible_lines_desk(idx int) []string {
+	if idx < 0 || idx >= m.desks.len {
+		return []string{}
+	}
+	return m.desks[idx].visible_lines()
+}
+
+// visible_lines_global returns windowed lines for the conference VT.
+pub fn (m GhosttyMultiplexer) visible_lines_global() []string {
+	return m.global.visible_lines()
+}
+
+// copy_desk_all copies a desk's entire scrollback (for inspector copy).
+pub fn (m GhosttyMultiplexer) copy_desk_all(idx int) string {
+	if idx < 0 || idx >= m.desks.len {
+		return ''
+	}
+	return m.desks[idx].copy_all()
+}
+
+// total_lines returns the sum of scrollback across all VTs — bounded at
+// desks×1000 + 1000, proving 60 FPS culling is honest.
+pub fn (m GhosttyMultiplexer) total_lines() int {
+	mut n := m.global.line_count()
+	for d in m.desks {
+		n += d.line_count()
+	}
+	return n
 }

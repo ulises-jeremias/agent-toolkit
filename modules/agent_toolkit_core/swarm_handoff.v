@@ -1,7 +1,7 @@
 module agent_toolkit_core
 
 import crypto.sha256
-import json
+import json2
 import os
 import time
 
@@ -64,7 +64,7 @@ fn handoff_sha_valid(s string) bool {
 // handoff_id_for returns the first 16 hex chars of the SHA256 of the canonical
 // struct encoding — mirrors Python handoff_id_for (sha256(sorted JSON)[:16]).
 fn handoff_id_for(rec HandoffRecord) string {
-	sum := sha256.hexhash(json.encode(rec))
+	sum := sha256.hexhash(json2.encode(rec, escape_unicode: true))
 	if sum.len <= 16 {
 		return sum
 	}
@@ -181,7 +181,7 @@ fn write_handoff_outbox(run_dir string, mut rec HandoffRecord) !string {
 		}
 	}
 	rec.handoff_id = hid
-	payload := json.encode(rec) + '\n'
+	payload := json2.encode(rec, escape_unicode: true) + '\n'
 	tmp := os.join_path(outbox, '.tmp-${hid}')
 	os.write_file(tmp, payload) or { return err }
 	dest := os.join_path(outbox, '${hid}.json')
@@ -215,7 +215,7 @@ fn list_handoffs(run_dir string, state string) []HandoffRecord {
 			continue
 		}
 		text := os.read_file(os.join_path(d, p)) or { continue }
-		rec := json.decode(HandoffRecord, text) or { continue }
+		rec := json2.decode[HandoffRecord](text) or { continue }
 		items << rec
 	}
 	return items
@@ -225,8 +225,8 @@ fn list_handoffs(run_dir string, state string) []HandoffRecord {
 fn validate_commit_exists(repo_root string, sha string) bool {
 	ps := new_process_service()
 	res := ps.run(RunOptions{
-		argv:    ['git', 'cat-file', '-t', sha]
-		cwd:     repo_root
+		argv: ['git', 'cat-file', '-t', sha]
+		cwd: repo_root
 		timeout: 5 * time.second
 	}) or { return false }
 	return res.exit_code == 0 && res.stdout.trim_space() == 'commit'
@@ -236,8 +236,8 @@ fn validate_commit_exists(repo_root string, sha string) bool {
 fn resolve_sha(repo_root string, abbrev string) ?string {
 	ps := new_process_service()
 	res := ps.run(RunOptions{
-		argv:    ['git', 'rev-parse', '--verify', '${abbrev}^{commit}']
-		cwd:     repo_root
+		argv: ['git', 'rev-parse', '--verify', '${abbrev}^{commit}']
+		cwd: repo_root
 		timeout: 5 * time.second
 	}) or { return none }
 	if res.exit_code != 0 {

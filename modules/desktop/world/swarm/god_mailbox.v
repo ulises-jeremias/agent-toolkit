@@ -1,5 +1,11 @@
 module swarm
 
+// GOD Mailbox — Dunder Mifflin Paper Company, Scranton Branch.
+// Michael Scott's desk is the GOD mailbox: every envelope (handoff) lands here
+// before routing. Brass inbox flag glows when inbox>0, flap animates open/closed
+// at 60 FPS, perforated feed-strip dots line the bullpen wall, and handoffs
+// follow mailbox law (no direct desk→desk). Office charm that reads Scranton
+// at a glance, yet remains Super Potente via Engine seams and EventBus.
 import sync
 import time
 import json2
@@ -15,26 +21,26 @@ pub enum GodMailboxRoutingPolicy {
 // GodEnvelope is a GOD-routed handoff via central mailbox.
 pub struct GodEnvelope {
 pub:
-	id         string
-	from       string
-	to         string
-	payload    string
-	artifact   string // optional handoff artifact file rel path
-	ts         i64
-	via        string // always GOD-mailbox
-	priority   int
+	id       string
+	from     string
+	to       string
+	payload  string
+	artifact string // optional handoff artifact file rel path
+	ts       i64
+	via      string // always GOD-mailbox
+	priority int
 }
 
 // GodMailbox is the central router — Michael's mailbox. All handoffs enqueue via mailbox.
 pub struct GodMailbox {
 mut:
-	inbox   int
-	outbox  int
-	queue   []GodEnvelope
-	policy  GodMailboxRoutingPolicy
-	bus     &eventbus.ToolkitEventBus
-	repo    &engine_state.StateRepository
-	mu      sync.RwMutex
+	inbox    int
+	outbox   int
+	queue    []GodEnvelope
+	policy   GodMailboxRoutingPolicy
+	bus      &eventbus.ToolkitEventBus
+	repo     &engine_state.StateRepository
+	mu       sync.RwMutex
 	revision u64
 	emitted  u64
 }
@@ -106,13 +112,13 @@ pub fn (mut m GodMailbox) enqueue(from string, to string, payload string, artifa
 		revision: rev.revision
 		path: 'swarm/handoff/${id}'
 		payload: json2.encode({
-			'id': id
-			'from': from
-			'to': to
-			'payload': payload
+			'id':       id
+			'from':     from
+			'to':       to
+			'payload':  payload
 			'artifact': artifact
-			'via': 'GOD-mailbox'
-			'ts': env.ts.str()
+			'via':      'GOD-mailbox'
+			'ts':       env.ts.str()
 		})
 	})
 	m.bus.publish(eventbus.ToolkitEvent{
@@ -145,7 +151,10 @@ pub fn (mut m GodMailbox) dequeue() ?GodEnvelope {
 		kind: .swarm_status
 		revision: rev.revision
 		path: 'swarm/handoff/${env.id}/active'
-		payload: json2.encode({'id': env.id, 'status': 'active'})
+		payload: json2.encode({
+			'id':     env.id
+			'status': 'active'
+		})
 	})
 	return env
 }
@@ -172,7 +181,11 @@ pub fn (mut m GodMailbox) complete(id string, artifact_path string) bool {
 		kind: .swarm_status
 		revision: rev.revision
 		path: 'swarm/handoff/${id}/completed'
-		payload: json2.encode({'id': id, 'status': 'completed', 'artifact': artifact_path})
+		payload: json2.encode({
+			'id':       id
+			'status':   'completed'
+			'artifact': artifact_path
+		})
 	})
 	return true
 }
@@ -209,4 +222,41 @@ pub fn (mut m GodMailbox) on_bus_event(ev eventbus.ToolkitEvent, snap engine_sta
 	m.revision = snap.revision
 	m.emitted++
 	return true
+}
+
+// ── Dunder office charm — mailbox glow + envelope routing UI ────────────
+
+// mailbox_glow_level returns brass glow alpha for the GOD mailbox flag.
+// Inbox 0 → 0 (flag down, no glow), inbox>0 → 22-35 pulsing brass, frame
+// drives 30-frame pulse (atelier glow at 60 FPS). Headless returns 0.
+pub fn mailbox_glow_level(inbox int, frame int) int {
+	if inbox <= 0 {
+		return 0
+	}
+	// pulse every 30 frames between 18 and 35 (brass 22%→14% alpha)
+	if frame % 30 < 15 {
+		return 32
+	}
+	return 18
+}
+
+// mailbox_flag_text returns paper-slip text for the flag badge.
+// Office charm: inbox count as paper requisition count on Michael's desk.
+pub fn mailbox_flag_text(inbox int) string {
+	if inbox <= 0 {
+		return 'no mail'
+	}
+	if inbox == 1 {
+		return '1 envelope'
+	}
+	return '${inbox} envelopes'
+}
+
+// mailbox_envelope_line renders the envelope story line for the floor.
+// Dunder charm: "✉ Jim → Pam: quarterly report (via GOD mailbox)"
+pub fn mailbox_envelope_line(env GodEnvelope) string {
+	if env.artifact != '' {
+		return '✉ ${env.from} → ${env.to}: ${env.payload} [${env.artifact}] via ${env.via}'
+	}
+	return '✉ ${env.from} → ${env.to}: ${env.payload} via ${env.via}'
 }

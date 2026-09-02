@@ -197,9 +197,7 @@ pub fn find_workspace_root(override string) ?string {
 	}
 	mut cur := os.getwd()
 	for {
-		if os.is_file(os.join_path(cur, 'AGENTS.md')) || os.is_dir(os.join_path(cur, 'knowledge'))
-			|| os.is_file(os.join_path(cur, '.active-pack'))
-			|| os.is_file(os.join_path(cur, '.active-persona')) {
+		if os.is_file(os.join_path(cur, 'AGENTS.md')) || os.is_dir(os.join_path(cur, 'knowledge')) || os.is_file(os.join_path(cur, '.active-pack')) || os.is_file(os.join_path(cur, '.active-persona')) {
 			return cur
 		}
 		parent := os.dir(cur)

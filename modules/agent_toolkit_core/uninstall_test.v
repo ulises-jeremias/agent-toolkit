@@ -15,13 +15,13 @@ fn test_uninstall_removes_created_keeps_merged() {
 	os.write_file(merged, 'm\n') or { assert false, err.msg() }
 	mut r := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'x')
 	r.artifacts << ArtifactEntry{
-		path:      created
-		digest:    'aa'
+		path: created
+		digest: 'aa'
 		ownership: 'created'
 	}
 	r.artifacts << ArtifactEntry{
-		path:      merged
-		digest:    'bb'
+		path: merged
+		digest: 'bb'
 		ownership: 'merged'
 	}
 	save_install_receipt(mut r, receipt_dir) or {
@@ -29,7 +29,7 @@ fn test_uninstall_removes_created_keeps_merged() {
 		return
 	}
 	report := run_uninstall(UninstallOptions{
-		tools:       ['cursor']
+		tools: ['cursor']
 		receipt_dir: receipt_dir
 	})
 	assert report.ok
@@ -49,8 +49,8 @@ fn test_uninstall_dry_run_preserves_files() {
 	os.write_file(created, 'c\n') or { assert false, err.msg() }
 	mut r := new_install_receipt(profiles_product, 'cursor', 'user-home', '1.0.0', 'x')
 	r.artifacts << ArtifactEntry{
-		path:      created
-		digest:    'aa'
+		path: created
+		digest: 'aa'
 		ownership: 'created'
 	}
 	save_install_receipt(mut r, receipt_dir) or {
@@ -58,8 +58,8 @@ fn test_uninstall_dry_run_preserves_files() {
 		return
 	}
 	report := run_uninstall(UninstallOptions{
-		tools:       ['cursor']
-		dry_run:     true
+		tools: ['cursor']
+		dry_run: true
 		receipt_dir: receipt_dir
 	})
 	assert report.ok
@@ -89,8 +89,8 @@ fn test_discover_uninstall_tools() {
 	}
 	mut r := new_install_receipt(profiles_product, 'opencode', 'user-home', '1.0.0', 'x')
 	r.artifacts << ArtifactEntry{
-		path:      '/tmp/at-ok/x'
-		digest:    'aa'
+		path: '/tmp/at-ok/x'
+		digest: 'aa'
 		ownership: 'created'
 	}
 	save_install_receipt(mut r, base) or {

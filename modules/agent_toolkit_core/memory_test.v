@@ -17,39 +17,39 @@ fn test_memory_add_search_inject_todo_roundtrip() {
 	}
 	init := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert init.ok, init.message
 	add := run_memory(MemoryOptions{
-		subcommand:     'add'
-		entry_type:     'learning'
-		content:        'Always run v test before committing'
+		subcommand: 'add'
+		entry_type: 'learning'
+		content: 'Always run v test before committing'
 		workspace_path: base
 	})
 	assert add.ok, add.message
 	todo := run_memory(MemoryOptions{
-		subcommand:     'add'
-		entry_type:     'todo'
-		content:        'Follow up on memory port'
+		subcommand: 'add'
+		entry_type: 'todo'
+		content: 'Follow up on memory port'
 		workspace_path: base
 	})
 	assert todo.ok, todo.message
 	search := run_memory(MemoryOptions{
-		subcommand:     'search'
-		content:        'v test'
+		subcommand: 'search'
+		content: 'v test'
 		workspace_path: base
 	})
 	assert search.ok, search.message
 	assert search.message.contains('Always run v test')
 	inj := run_memory(MemoryOptions{
-		subcommand:     'inject'
+		subcommand: 'inject'
 		workspace_path: base
 	})
 	assert inj.ok, inj.message
 	assert inj.message.contains('Pending Todos')
 	assert inj.message.contains('Recent Learnings')
 	list := run_memory(MemoryOptions{
-		subcommand:     'todo'
+		subcommand: 'todo'
 		workspace_path: base
 	})
 	assert list.ok, list.message
@@ -63,23 +63,23 @@ fn test_memory_review_duplicate_and_orphan() {
 	}
 	init := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert init.ok
 	run_memory(MemoryOptions{
-		subcommand:     'add'
-		entry_type:     'learning'
-		content:        'Never commit secrets to the repository ever'
+		subcommand: 'add'
+		entry_type: 'learning'
+		content: 'Never commit secrets to the repository ever'
 		workspace_path: base
 	})
 	run_memory(MemoryOptions{
-		subcommand:     'add'
-		entry_type:     'learning'
-		content:        'Never commit secrets to the repository ever'
+		subcommand: 'add'
+		entry_type: 'learning'
+		content: 'Never commit secrets to the repository ever'
 		workspace_path: base
 	})
 	dup := run_memory(MemoryOptions{
-		subcommand:     'review'
+		subcommand: 'review'
 		workspace_path: base
 	})
 	assert !dup.ok
@@ -88,7 +88,7 @@ fn test_memory_review_duplicate_and_orphan() {
 		assert false, err.msg()
 	}
 	orph := run_memory(MemoryOptions{
-		subcommand:     'review'
+		subcommand: 'review'
 		workspace_path: base
 	})
 	assert !orph.ok
@@ -102,12 +102,12 @@ fn test_memory_unknown_type() {
 	}
 	run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	r := run_memory(MemoryOptions{
-		subcommand:     'add'
-		entry_type:     'note'
-		content:        'x'
+		subcommand: 'add'
+		entry_type: 'note'
+		content: 'x'
 		workspace_path: base
 	})
 	assert !r.ok

@@ -15,7 +15,7 @@ fn test_polling_watcher_file_touch_triggers_invalidated() {
 		poll_interval_ms: 200
 		debounce_ms: 50
 	})
-	ch := chan eventbus.ToolkitEvent{cap: 64}
+	ch := chan eventbus.ToolkitEvent{ cap: 64 }
 	bus.subscribe(.watcher_invalidated, ch)
 	mut handle := watcher.watch([tmp], fn [ch, mut bus] (ev eventbus.ToolkitEvent) {
 		bus.publish(ev)
@@ -91,6 +91,8 @@ fn test_polling_watcher_no_tight_loop_default_500() {
 	})
 	assert w2.poll_interval_ms == 500
 	assert w2.debounce_ms == 50 // debounce clamped to 50-150
+	
+
 	assert w2.debounce_ms >= 50 && w2.debounce_ms <= 150
 }
 
@@ -129,7 +131,7 @@ fn test_state_watcher_signal_not_source_of_truth() {
 	mut sw := new_state_watcher(repo, bus, [tmp], 200, 50)
 	sw.start() or { assert false, err.msg() }
 	defer { sw.stop() or {} }
-	ch := chan eventbus.ToolkitEvent{cap: 64}
+	ch := chan eventbus.ToolkitEvent{ cap: 64 }
 	bus.subscribe(.watcher_invalidated, ch)
 	time.sleep(100 * time.millisecond)
 	f := os.join_path(tmp, 'canonical.json')
@@ -142,7 +144,8 @@ fn test_state_watcher_signal_not_source_of_truth() {
 				received = true
 				break
 			}
-			150 * time.millisecond {}
+			150 * time.millisecond {
+			}
 		}
 		if received {
 			break

@@ -182,22 +182,22 @@ pub fn (mut b ToolkitEventBus) subscribe_ctx(mut ctx context.Context, kind Toolk
 
 // publish_state is helper for state_changed with json payload.
 pub fn (mut b ToolkitEventBus) publish_state(revision u64, path string, payload string) {
-	b.publish(ToolkitEvent{kind: .state_changed, revision: revision, path: path, payload: payload})
+	b.publish(ToolkitEvent{ kind: .state_changed, revision: revision, path: path, payload: payload })
 }
 
 // publish_job publishes job_queued/completed.
 pub fn (mut b ToolkitEventBus) publish_job(kind ToolkitEventKind, revision u64, job_id string, payload string) {
-	b.publish(ToolkitEvent{kind: kind, revision: revision, path: 'jobs:${job_id}', payload: payload})
+	b.publish(ToolkitEvent{ kind: kind, revision: revision, path: 'jobs:${job_id}', payload: payload })
 }
 
 // publish_loop publishes loop_* events — easy loop management.
 pub fn (mut b ToolkitEventBus) publish_loop(kind ToolkitEventKind, revision u64, loop_name string, payload string) {
-	b.publish(ToolkitEvent{kind: kind, revision: revision, path: 'loops:${loop_name}', payload: payload})
+	b.publish(ToolkitEvent{ kind: kind, revision: revision, path: 'loops:${loop_name}', payload: payload })
 }
 
 // publish_swarm publishes swarm_* — GOD routing, approvals, handoffs.
 pub fn (mut b ToolkitEventBus) publish_swarm(kind ToolkitEventKind, revision u64, run_id string, payload string) {
-	b.publish(ToolkitEvent{kind: kind, revision: revision, path: 'swarm:${run_id}', payload: payload})
+	b.publish(ToolkitEvent{ kind: kind, revision: revision, path: 'swarm:${run_id}', payload: payload })
 }
 
 // has_subscribers checks if kind has listeners — backpressure-aware.

@@ -1,6 +1,9 @@
 module desktop_engine
 
 import os
+import time
+import json2
+import desktop_engine.eventbus
 
 pub enum WorkspaceNodeKind {
 	dir
@@ -397,7 +400,6 @@ fn highlight_yaml_line(line string) []SyntaxToken {
 }
 
 // ── Super-potent workspace easy management ───────────────────────────────
-
 pub struct WorkspaceStats {
 pub:
 	knowledge_files int
@@ -475,17 +477,25 @@ pub fn (mut e Engine) workspace_recent(harness_root string, limit int) []FileNod
 		}
 	}
 	with_mtime.sort_with_compare(fn (a &[]string, b &[]string) int {
-		if a[0] > b[0] { return -1 }
-		if a[0] < b[0] { return 1 }
+		if a[0] > b[0] {
+			return -1
+		}
+		if a[0] < b[0] {
+			return 1
+		}
 		return 0
 	})
-	lim := if limit <= 0 { 10 } else if limit > 20 { 20 } else { limit }
+	lim := if limit <= 0 {
+		10
+	} else if limit > 20 { 20 } else { limit }
 	mut out := []FileNode{}
 	for i in 0 .. lim {
-		if i >= with_mtime.len { break }
+		if i >= with_mtime.len {
+			break
+		}
 		p := with_mtime[i][1]
 		nm := with_mtime[i][2]
-		out << FileNode{name: nm, path: p, kind: .file, depth: 0, git_status: git_status_for(p, mut e)}
+		out << FileNode{ name: nm, path: p, kind: .file, depth: 0, git_status: git_status_for(p, mut e) }
 	}
 	return out
 }
@@ -509,10 +519,10 @@ pub fn (mut e Engine) memory_search(query string, project_id string) []MemoryEnt
 // workspace_git_status returns git status summary via Engine — easy.
 pub struct GitStatusSummary {
 pub:
-	modified []string
-	added    []string
+	modified  []string
+	added     []string
 	untracked []string
-	total    int
+	total     int
 }
 
 pub fn (mut e Engine) workspace_git_status(harness_root string) GitStatusSummary {
@@ -531,6 +541,99 @@ pub fn (mut e Engine) workspace_git_status(harness_root string) GitStatusSummary
 		untracked: []string{}
 		total: mod.len
 	}
+}
+
+// ── Easy project switch — one Engine, one state, native V only ─────────────
+pub struct ProjectSwitchResult {
+pub:
+	project_id string
+	previous   string
+	revision   u64
+}
+
+pub fn (mut e Engine) current_project() string {
+	snap := e.repo.snapshot()
+	return snap.data['workspace/current_project'] or { snap.data['workspace/recent_project'] or { '' } }
+}
+
+pub fn (mut e Engine) recent_projects() []string {
+	snap := e.repo.snapshot()
+	raw := snap.data['workspace/recent_projects'] or { '' }
+	if raw == '' {
+		cur := e.current_project()
+		if cur != '' {
+			return [cur]
+		}
+		return []string{}
+	}
+	mut out := raw.split(',').map(it.trim_space()).filter(it != '')
+	return out
+}
+
+pub fn (mut e Engine) switch_project(project_id string) !ProjectSwitchResult {
+	if project_id == '' {
+		return error('project_id empty')
+	}
+	if project_id.contains('..') || project_id.contains('/') || project_id.contains('\\') {
+		return error('project_id traversal')
+	}
+	if project_id.len > 128 {
+		return error('project_id too long')
+	}
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	snap := e.repo.snapshot()
+	prev := snap.data['workspace/current_project'] or { '' }
+	// update recent list via Transaction atomicity
+	recent_raw := snap.data['workspace/recent_projects'] or { '' }
+	mut recent := []string{}
+	if recent_raw != '' {
+		recent = recent_raw.split(',').map(it.trim_space()).filter(it != '' && it != project_id)
+	}
+	recent.insert(0, project_id)
+	if recent.len > 10 {
+		recent = recent[..10]
+	}
+	mut repo := e.repo
+	mut tx := repo.begin('switch-project')
+	tx.set('workspace/current_project', project_id)
+	tx.set('workspace/recent_project', project_id)
+	tx.set('workspace/recent_projects', recent.join(','))
+	tx.set('workspace/current_project/switched_at', time.now().unix().str())
+	if prev != '' {
+		tx.set('workspace/previous_project', prev)
+	}
+	rev := e.put_transaction(mut tx)!
+	e.bus.publish(eventbus.ToolkitEvent{
+		kind: .workspace_changed
+		revision: rev.revision
+		path: 'workspace:switch:${project_id}'
+		payload: json2.encode({
+			'project_id': project_id
+			'previous':   prev
+			'revision':   rev.revision.str()
+		})
+	})
+	return ProjectSwitchResult{
+		project_id: project_id
+		previous: prev
+		revision: rev.revision
+	}
+}
+
+pub fn (mut e Engine) switch_workspace(harness_root string) !string {
+	if harness_root == '' {
+		return error('harness_root empty')
+	}
+	if harness_root.contains('..') {
+		return error('harness_root traversal')
+	}
+	clean := os.real_path(harness_root)
+	// no need to validate existence here — Engine records switch, filesystem remains truth
+	res := e.switch_project(clean)!
+	_ = res
+	return clean
 }
 
 // EditorTab helpers — easy tab management.

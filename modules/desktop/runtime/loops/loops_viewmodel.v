@@ -7,9 +7,9 @@ import desktop_engine.eventbus
 
 pub struct LoopsViewModel {
 mut:
-	engine &desktop_engine.Engine
-	loops  []desktop_engine.LoopEntry
-	bus    &eventbus.ToolkitEventBus
+	engine   &desktop_engine.Engine
+	loops    []desktop_engine.LoopEntry
+	bus      &eventbus.ToolkitEventBus
 	revision u64
 }
 
@@ -94,6 +94,57 @@ pub fn (mut vm LoopsViewModel) set_budget(name string, budget desktop_engine.Loo
 	rev := vm.engine.loop_set_budget(name, budget)!
 	vm.refresh()
 	return rev
+}
+
+// ── Ergonomic list / status / audit / cost / start / stop / budget display ──
+pub fn (mut vm LoopsViewModel) list() []desktop_engine.LoopEntry {
+	return vm.engine.loops_list()
+}
+
+pub fn (mut vm LoopsViewModel) status(name string) []desktop_engine.LoopEntry {
+	return vm.engine.loops_status(name)
+}
+
+pub fn (mut vm LoopsViewModel) audit(name string) []desktop_engine.LoopAudit {
+	return vm.engine.loops_audit(name)
+}
+
+pub fn (mut vm LoopsViewModel) cost(name string) ?desktop_engine.LoopCost {
+	return vm.engine.loops_cost(name)
+}
+
+pub fn (mut vm LoopsViewModel) start(name string) !string {
+	id := vm.engine.loops_start(name)!
+	vm.bus.publish(eventbus.ToolkitEvent{
+		kind: .loop_outer_tick
+		revision: vm.revision
+		path: 'loops:${name}:start'
+		payload: '{"loop":"${name}","job_id":"${id}"}'
+	})
+	vm.refresh()
+	return id
+}
+
+pub fn (mut vm LoopsViewModel) stop(name string) !u64 {
+	rev := vm.engine.loops_stop(name)!
+	vm.refresh()
+	return rev
+}
+
+pub fn (mut vm LoopsViewModel) budget_display(name string) string {
+	return vm.engine.loops_budget_display(name)
+}
+
+pub fn (mut vm LoopsViewModel) worktree_path(loop_name string, run_id string) !string {
+	return vm.engine.loop_worktree_path(loop_name, run_id)
+}
+
+pub fn (mut vm LoopsViewModel) hygiene(loop_name string) []desktop_engine.BuildDiagnostic {
+	return vm.engine.ensure_loop_worktree_hygiene(loop_name)
+}
+
+pub fn (mut vm LoopsViewModel) receipts(loop_name string) []desktop_engine.ProvenanceEntry {
+	return vm.engine.loop_receipts(loop_name)
 }
 
 pub fn (mut vm LoopsViewModel) all_tiers() []string {

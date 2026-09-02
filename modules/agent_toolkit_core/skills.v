@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 
 // skills_sync_tools are destinations supported by `skills sync`.
@@ -19,10 +19,10 @@ pub:
 // SkillsReport is the domain result for skills list/sync/validate.
 pub struct SkillsReport {
 pub mut:
-	ok      bool
-	message string
-	count   int
-	errors  int
+	ok       bool
+	message  string
+	count    int
+	errors   int
 	warnings int
 }
 
@@ -41,7 +41,7 @@ pub fn run_skills(opts SkillsOptions) SkillsReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
 		return SkillsReport{
-			ok:      true
+			ok: true
 			message: skills_help_text()
 		}
 	}
@@ -54,7 +54,7 @@ pub fn run_skills(opts SkillsOptions) SkillsReport {
 	}
 	if root.len == 0 {
 		return SkillsReport{
-			ok:      false
+			ok: false
 			message: 'Cannot locate toolkit directory (set AGENT_TOOLKIT_ROOT)'
 		}
 	}
@@ -65,7 +65,7 @@ pub fn run_skills(opts SkillsOptions) SkillsReport {
 		'validate' { skills_validate(root) }
 		else {
 			SkillsReport{
-				ok:      false
+				ok: false
 				message: 'Unknown subcommand: ${sub}\n  Valid subcommands: list, sync, validate'
 			}
 		}
@@ -76,9 +76,9 @@ pub fn run_skills(opts SkillsOptions) SkillsReport {
 pub fn skills_result(report SkillsReport) CommandResult {
 	return CommandResult{
 		command: 'skills'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    {
+		data: {
 			'count':    '${report.count}'
 			'errors':   '${report.errors}'
 			'warnings': '${report.warnings}'
@@ -107,7 +107,7 @@ Options:
 fn skills_list(root string, domain_filter string) SkillsReport {
 	layout := load_skills_layout(root) or {
 		return SkillsReport{
-			ok:      false
+			ok: false
 			message: err.msg()
 		}
 	}
@@ -127,7 +127,7 @@ fn skills_list(root string, domain_filter string) SkillsReport {
 		mut available := groups.keys()
 		available.sort()
 		return SkillsReport{
-			ok:      false
+			ok: false
 			message: 'Unknown domain: ${domain_filter}  (available: ${available.join(', ')})'
 		}
 	}
@@ -166,9 +166,9 @@ fn skills_list(root string, domain_filter string) SkillsReport {
 	lines << 'Total: ${total} skill(s) across ${groups.len} domain(s)'
 	lines << ''
 	return SkillsReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		count:   total
+		count: total
 	}
 }
 
@@ -192,8 +192,12 @@ fn skills_sync(root string, home string, requested []string) SkillsReport {
 		lines << '── ${tool} ──'
 		tool_ok, tool_lines, n := match tool {
 			'claude-code' { sync_skills_copy(root, os.join_path(home, '.claude', 'skills')) }
-			'opencode' { sync_skills_copy(root, os.join_path(home, '.config', 'opencode', 'skills')) }
-			'cursor' { sync_skills_cursor_index(root, os.join_path(home, '.cursor', 'skills-index.json')) }
+			'opencode' {
+				sync_skills_copy(root, os.join_path(home, '.config', 'opencode', 'skills'))
+			}
+			'cursor' {
+				sync_skills_cursor_index(root, os.join_path(home, '.cursor', 'skills-index.json'))
+			}
 			else { false, ['  ⚠  Unknown tool: ${tool}'], 0 }
 		}
 		lines << tool_lines
@@ -204,9 +208,9 @@ fn skills_sync(root string, home string, requested []string) SkillsReport {
 		lines << ''
 	}
 	return SkillsReport{
-		ok:      ok
+		ok: ok
 		message: lines.join('\n')
-		count:   count
+		count: count
 	}
 }
 
@@ -217,7 +221,7 @@ fn skills_validate(root string) SkillsReport {
 	skills_dir := os.join_path(root, 'skills')
 	if !os.is_dir(skills_dir) {
 		return SkillsReport{
-			ok:      false
+			ok: false
 			message: 'Skills directory not found: ${skills_dir}'
 		}
 	}
@@ -293,10 +297,10 @@ fn skills_validate(root string) SkillsReport {
 		lines << '  ✓  All SKILL.md files are valid!'
 	}
 	return SkillsReport{
-		ok:       total_errors == 0
-		message:  lines.join('\n')
-		count:    skill_count
-		errors:   total_errors
+		ok: total_errors == 0
+		message: lines.join('\n')
+		count: skill_count
+		errors: total_errors
 		warnings: total_warnings
 	}
 }
@@ -306,7 +310,7 @@ fn load_skills_layout(root string) !SkillsLayoutFile {
 		text := embedded_read_file('catalogs/skills-layout.json') or {
 			return error('Cannot parse skills-layout.json: ${err}')
 		}
-		return json.decode(SkillsLayoutFile, text) or {
+		return json2.decode[SkillsLayoutFile](text) or {
 			return error('Cannot parse skills-layout.json: ${err}')
 		}
 	}
@@ -315,7 +319,7 @@ fn load_skills_layout(root string) !SkillsLayoutFile {
 		return error('skills-layout.json not found: ${path}')
 	}
 	text := os.read_file(path) or { return error('Cannot parse skills-layout.json: ${err}') }
-	return json.decode(SkillsLayoutFile, text) or {
+	return json2.decode[SkillsLayoutFile](text) or {
 		return error('Cannot parse skills-layout.json: ${err}')
 	}
 }
@@ -450,16 +454,20 @@ fn sync_skills_cursor_index(root string, dst string) (bool, []string, int) {
 		dom := if s.domain.len > 0 { s.domain } else { first_path_component(s.id) }
 		path := os.join_path(root, 'skills', dom, s.name)
 		desc := skill_description(os.join_path(path, 'SKILL.md'))
-		escaped_desc := json.encode(desc)
-		escaped_path := json.encode(path)
-		items << '{"name":${json.encode(s.name)},"group":${json.encode(dom)},"description":${escaped_desc},"path":${escaped_path}}'
+		escaped_desc := json2.encode(desc, escape_unicode: true)
+		escaped_path := json2.encode(path, escape_unicode: true)
+		items << '{"name":${json2.encode(s.name, escape_unicode: true)},"group":${json2.encode(dom,
+			escape_unicode: true
+		)},"description":${escaped_desc},"path":${escaped_path}}'
 	}
 	payload := '{"skills":[${items.join(',')}]}\n'
 	fs := new_fs()
 	fs.write_atomic(dst, payload) or {
 		return false, ['  ✗  cursor: ${err}'], 0
 	}
-	return true, ['  ✓  cursor: skills-index written → ${dst} (${layout.skills.len} skills)'], layout.skills.len
+	return true, [
+		'  ✓  cursor: skills-index written → ${dst} (${layout.skills.len} skills)',
+	], layout.skills.len
 }
 
 fn validate_skill_dir(skill_dir string, toolkit_dir string) (int, int, string) {
@@ -572,10 +580,10 @@ fn skills_validate_embedded() SkillsReport {
 		lines << '  ✓  All SKILL.md files are valid!'
 	}
 	return SkillsReport{
-		ok:       total_errors == 0
-		message:  lines.join('\n')
-		count:    skill_count
-		errors:   total_errors
+		ok: total_errors == 0
+		message: lines.join('\n')
+		count: skill_count
+		errors: total_errors
 		warnings: total_warnings
 	}
 }

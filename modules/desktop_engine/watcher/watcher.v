@@ -11,7 +11,7 @@ import desktop_engine.eventbus
 pub struct WatcherConfig {
 pub:
 	poll_interval_ms int = 500
-	debounce_ms    int = 100
+	debounce_ms      int = 100
 }
 
 pub struct WatcherHandle {
@@ -43,13 +43,13 @@ pub fn (mut h WatcherHandle) is_closed() bool {
 
 pub interface Watcher {
 mut:
-	watch(paths []string, on_change fn (eventbus.ToolkitEvent)) !WatcherHandle
+	watch(paths []string, on_change fn(eventbus.ToolkitEvent)) !WatcherHandle
 }
 
 pub struct NativeWatcher {
 pub:
 	poll_interval_ms int = 500
-	debounce_ms    int = 100
+	debounce_ms      int = 100
 }
 
 pub fn (w NativeWatcher) available() bool {
@@ -66,7 +66,7 @@ pub fn (w NativeWatcher) available() bool {
 	}
 }
 
-pub fn (mut w NativeWatcher) watch(paths []string, on_change fn (eventbus.ToolkitEvent)) !WatcherHandle {
+pub fn (mut w NativeWatcher) watch(paths []string, on_change fn(eventbus.ToolkitEvent)) !WatcherHandle {
 	mut fallback := PollingWatcher{
 		poll_interval_ms: w.poll_interval_ms
 		debounce_ms: w.debounce_ms
@@ -77,7 +77,7 @@ pub fn (mut w NativeWatcher) watch(paths []string, on_change fn (eventbus.Toolki
 pub struct PollingWatcher {
 pub mut:
 	poll_interval_ms int = 500
-	debounce_ms    int = 100
+	debounce_ms      int = 100
 	dependencies     map[string]string
 }
 
@@ -202,7 +202,7 @@ fn diff_detected(old map[string]i64, new_snap map[string]i64) string {
 	return ''
 }
 
-pub fn (mut w PollingWatcher) watch(paths []string, on_change fn (eventbus.ToolkitEvent)) !WatcherHandle {
+pub fn (mut w PollingWatcher) watch(paths []string, on_change fn(eventbus.ToolkitEvent)) !WatcherHandle {
 	if paths.len == 0 {
 		return error('watch: no paths')
 	}
@@ -212,7 +212,7 @@ pub fn (mut w PollingWatcher) watch(paths []string, on_change fn (eventbus.Toolk
 	if w.debounce_ms < 50 || w.debounce_ms > 150 {
 		w.debounce_ms = 100
 	}
-	mut stop_ch := chan bool{cap: 1}
+	mut stop_ch := chan bool{ cap: 1 }
 	mut handle := WatcherHandle{
 		stop_chan: stop_ch
 	}
@@ -275,7 +275,12 @@ pub fn (mut w PollingWatcher) watch(paths []string, on_change fn (eventbus.Toolk
 							kind: .watcher_invalidated
 							revision: 0
 							path: dep
-							payload: json2.encode({'path': pending_path, 'dependent': dep}, escape_unicode: true)
+							payload: json2.encode({
+								'path':      pending_path
+								'dependent': dep
+							},
+								escape_unicode: true
+							)
 						}
 						on_change(ev)
 						last_emit = time.now()
@@ -330,7 +335,12 @@ pub fn (mut w PollingWatcher) watch(paths []string, on_change fn (eventbus.Toolk
 					kind: .watcher_invalidated
 					revision: 0
 					path: dep
-					payload: json2.encode({'path': pending_path, 'dependent': dep}, escape_unicode: true)
+					payload: json2.encode({
+						'path':      pending_path
+						'dependent': dep
+					},
+						escape_unicode: true
+					)
 				}
 				on_change(ev)
 				last_emit = time.now()
@@ -342,7 +352,11 @@ pub fn (mut w PollingWatcher) watch(paths []string, on_change fn (eventbus.Toolk
 				if remaining > 0 {
 					mut rem_slept := 0
 					for rem_slept < remaining {
-						chunk2 := if remaining - rem_slept > 10 { 10 } else { remaining - rem_slept }
+						chunk2 := if remaining - rem_slept > 10 {
+							10
+						} else {
+							remaining - rem_slept
+						}
 						time.sleep(chunk2 * time.millisecond)
 						if stop_ch.len > 0 {
 							_ = <-stop_ch
@@ -387,7 +401,12 @@ pub fn (mut w PollingWatcher) watch(paths []string, on_change fn (eventbus.Toolk
 						kind: .watcher_invalidated
 						revision: 0
 						path: dep2
-						payload: json2.encode({'path': pending_path, 'dependent': dep2}, escape_unicode: true)
+						payload: json2.encode({
+							'path':      pending_path
+							'dependent': dep2
+						},
+							escape_unicode: true
+						)
 					}
 					on_change(ev2)
 					last_emit = time.now()
@@ -403,14 +422,14 @@ pub fn (mut w PollingWatcher) watch(paths []string, on_change fn (eventbus.Toolk
 
 pub struct StateWatcher {
 mut:
-	repo          &state.StateRepository = unsafe { nil }
-	bus           &eventbus.ToolkitEventBus = unsafe { nil }
-	watcher       Watcher
-	paths         []string
-	poll_ms       int = 500
+	repo        &state.StateRepository = unsafe { nil }
+	bus         &eventbus.ToolkitEventBus = unsafe { nil }
+	watcher     Watcher
+	paths       []string
+	poll_ms     int = 500
 	debounce_ms int = 100
-	handle        ?WatcherHandle
-	mu            sync.Mutex
+	handle      ?WatcherHandle
+	mu          sync.Mutex
 }
 
 pub fn new_state_watcher(repo &state.StateRepository, bus &eventbus.ToolkitEventBus, paths []string, poll_ms int, debounce_ms int) &StateWatcher {
@@ -467,7 +486,12 @@ pub fn (mut sw StateWatcher) start() ! {
 					kind: .watcher_invalidated
 					revision: rev.revision
 					path: changed_path
-					payload: json2.encode({'path': changed_path, 'revision': rev.revision.str()}, escape_unicode: true)
+					payload: json2.encode({
+						'path':     changed_path
+						'revision': rev.revision.str()
+					},
+						escape_unicode: true
+					)
 				})
 				return
 			}
@@ -480,7 +504,12 @@ pub fn (mut sw StateWatcher) start() ! {
 			kind: .watcher_invalidated
 			revision: rev2.revision
 			path: changed_path
-			payload: json2.encode({'path': changed_path, 'revision': rev2.revision.str()}, escape_unicode: true)
+			payload: json2.encode({
+				'path':     changed_path
+				'revision': rev2.revision.str()
+			},
+				escape_unicode: true
+			)
 		})
 	})!
 	sw.handle = handle

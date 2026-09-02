@@ -26,8 +26,8 @@ fn test_content_cache_hit_miss_offline() {
 	os.mkdir_all(c.fs.join(c.dir(), 'profiles')) or { assert false, err.msg() }
 	c.write_meta(CacheMeta{
 		version: '1.10.0'
-		source:  'test'
-		url:     ''
+		source: 'test'
+		url: ''
 	}) or { assert false, err.msg() }
 	hit := c.resolve_local('1.10.0', false) or {
 		assert false, 'expected cache hit'

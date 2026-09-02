@@ -12,9 +12,9 @@ fn test_install_tx_commit_and_receipt() {
 	}
 	dest := os.join_path(dest_root, 'rules', 'a.mdc')
 	mut tx := new_install_transaction('cursor', InstallTxOptions{
-		receipt_dir:   receipt_dir
-		toolkit_root:  base
-		version:       '1.0.0'
+		receipt_dir: receipt_dir
+		toolkit_root: base
+		version: '1.0.0'
 		source_digest: 'srcdig'
 	})
 	tx.stage_write(dest, '# hello\n') or {
@@ -48,8 +48,8 @@ fn test_install_tx_rejects_path_escape_at_stage() {
 	ok_path := os.join_path(dest_root, 'ok.md')
 	bad_path := os.join_path(dest_root, '..', '..', 'etc', 'passwd')
 	mut tx := new_install_transaction('cursor', InstallTxOptions{
-		receipt_dir:   receipt_dir
-		version:       '1.0.0'
+		receipt_dir: receipt_dir
+		version: '1.0.0'
 		source_digest: 'x'
 	})
 	tx.stage_write(ok_path, 'one\n') or {
@@ -80,10 +80,10 @@ fn test_install_tx_commit_failure_rolls_back_created() {
 	a := os.join_path(dest_root, 'a.md')
 	b := os.join_path(dest_root, 'b.md')
 	mut tx := new_install_transaction('cursor', InstallTxOptions{
-		receipt_dir:   receipt_dir
-		version:       '1.0.0'
+		receipt_dir: receipt_dir
+		version: '1.0.0'
 		source_digest: 'x'
-		force:         true
+		force: true
 	})
 	tx.stage_write(a, 'A\n') or {
 		assert false, err.msg()
@@ -114,9 +114,9 @@ fn test_install_tx_dry_run_no_writes() {
 		os.rmdir_all(base) or {}
 	}
 	mut tx := new_install_transaction('cursor', InstallTxOptions{
-		dry_run:       true
-		receipt_dir:   receipt_dir
-		version:       '1.0.0'
+		dry_run: true
+		receipt_dir: receipt_dir
+		version: '1.0.0'
 		source_digest: 'x'
 	})
 	tx.stage_write(dest, 'x\n') or {
@@ -145,10 +145,10 @@ fn test_install_tx_preserve_without_force_and_restore_on_rollback() {
 		return
 	}
 	mut tx := new_install_transaction('cursor', InstallTxOptions{
-		receipt_dir:   receipt_dir
-		version:       '1.0.0'
+		receipt_dir: receipt_dir
+		version: '1.0.0'
 		source_digest: 'x'
-		force:         false
+		force: false
 	})
 	tx.stage_write(dest, 'toolkit\n') or {
 		assert false, err.msg()
@@ -162,10 +162,10 @@ fn test_install_tx_preserve_without_force_and_restore_on_rollback() {
 	assert os.read_file(dest) or { '' } == 'user\n'
 
 	mut tx2 := new_install_transaction('cursor', InstallTxOptions{
-		receipt_dir:   receipt_dir
-		version:       '1.0.0'
+		receipt_dir: receipt_dir
+		version: '1.0.0'
 		source_digest: 'x'
-		force:         true
+		force: true
 	})
 	tx2.stage_write(dest, 'toolkit\n') or {
 		assert false, err.msg()
@@ -194,8 +194,8 @@ fn test_save_install_receipt_roundtrip() {
 	mut r := new_install_receipt('agent-toolkit-core', 'cursor', 'project', '1.1.0', 'abc')
 	r.config_patches_json = '[{"op":"add","path":"/toolkit","value":true}]'
 	r.artifacts << ArtifactEntry{
-		path:      '/tmp/at-ok/file.mdc'
-		digest:    'def456'
+		path: '/tmp/at-ok/file.mdc'
+		digest: 'def456'
 		ownership: 'created'
 	}
 	path := save_install_receipt(mut r, dir) or {
@@ -229,8 +229,8 @@ fn test_install_tx_merged_ownership_writes_without_force() {
 		return
 	}
 	mut tx := new_install_transaction('opencode', InstallTxOptions{
-		receipt_dir:   receipt_dir
-		version:       '1.0.0'
+		receipt_dir: receipt_dir
+		version: '1.0.0'
 		source_digest: 'x'
 	})
 	tx.stage_write_owned(dest, '{"schema":"x","theme":"dark"}\n', 'merged') or {

@@ -1,6 +1,6 @@
 module agent_toolkit_core
 
-import json
+import json2
 import os
 import time
 
@@ -37,9 +37,9 @@ pub fn run_workspace(opts WorkspaceOptions) WorkspaceReport {
 	sub := opts.subcommand
 	if sub.len == 0 || sub in ['help', '-h', '--help'] {
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: workspace_help_text()
-			data:    {
+			data: {
 				'subcommand': 'help'
 			}
 		}
@@ -58,9 +58,9 @@ pub fn run_workspace(opts WorkspaceOptions) WorkspaceReport {
 		'budget' { workspace_budget(opts) }
 		else {
 			WorkspaceReport{
-				ok:      false
+				ok: false
 				message: "Unknown workspace subcommand: ${sub}\nRun 'agent-toolkit workspace --help' for usage."
-				data:    {
+				data: {
 					'subcommand': sub
 				}
 			}
@@ -76,9 +76,9 @@ pub fn workspace_result(report WorkspaceReport) CommandResult {
 	}
 	return CommandResult{
 		command: 'workspace'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    data
+		data: data
 	}
 }
 
@@ -116,23 +116,23 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 	}
 	os.mkdir_all(target) or {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'failed to create workspace: ${err}'
 		}
 	}
 	mut created := []string{}
 	mut skipped := []string{}
 	files := {
-		'AGENTS.md':                        workspace_agents_md
-		'.gitignore':                       workspace_gitignore
-		'knowledge/README.md':              workspace_knowledge_readme
-		'knowledge/learnings/general.md':   workspace_learnings_general
-		'knowledge/todos/pending.md':       workspace_todos_pending
-		'packs/README.md':                  workspace_packs_readme
-		'personas/implementer.md':          workspace_persona_implementer
-		'personas/reviewer.md':             workspace_persona_reviewer
-		'personas/researcher.md':           workspace_persona_researcher
-		'personas/architect.md':            workspace_persona_architect
+		'AGENTS.md':                      workspace_agents_md
+		'.gitignore':                     workspace_gitignore
+		'knowledge/README.md':            workspace_knowledge_readme
+		'knowledge/learnings/general.md': workspace_learnings_general
+		'knowledge/todos/pending.md':     workspace_todos_pending
+		'packs/README.md':                workspace_packs_readme
+		'personas/implementer.md':        workspace_persona_implementer
+		'personas/reviewer.md':           workspace_persona_reviewer
+		'personas/researcher.md':         workspace_persona_researcher
+		'personas/architect.md':          workspace_persona_architect
 	}
 	mut keys := files.keys()
 	keys.sort()
@@ -144,13 +144,13 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 		}
 		os.mkdir_all(os.dir(path)) or {
 			return WorkspaceReport{
-				ok:      false
+				ok: false
 				message: 'mkdir failed: ${err}'
 			}
 		}
 		os.write_file(path, files[rel]) or {
 			return WorkspaceReport{
-				ok:      false
+				ok: false
 				message: 'write failed: ${err}'
 			}
 		}
@@ -181,9 +181,9 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 	lines << '  agent-toolkit project clone owner/my-repo'
 	lines << ''
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'init'
 			'path':       target
 			'created':    '${created.len}'
@@ -193,9 +193,9 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 
 fn missing_workspace(sub string) WorkspaceReport {
 	return WorkspaceReport{
-		ok:      false
+		ok: false
 		message: workspace_missing
-		data:    {
+		data: {
 			'subcommand': sub
 		}
 	}
@@ -215,21 +215,21 @@ fn workspace_context(opts WorkspaceOptions) WorkspaceReport {
 	pack_ref := read_strip(active_pack_file)
 	persona_name := read_strip(active_persona_file)
 	mut data := {
-		'subcommand':  'context'
-		'workspace':   ws
-		'timestamp':   now.format_rfc3339()
-		'learnings':   '${ks.learnings}'
-		'todos':       '${ks.todos}'
-		'processes':   '${ks.processes}'
-		'pack':        pack_ref
-		'persona':     persona_name
-		'spec':        if spec.len > 0 { 'AGENTS.md@${spec}' } else { '' }
+		'subcommand': 'context'
+		'workspace':  ws
+		'timestamp':  now.format_rfc3339()
+		'learnings':  '${ks.learnings}'
+		'todos':      '${ks.todos}'
+		'processes':  '${ks.processes}'
+		'pack':       pack_ref
+		'persona':    persona_name
+		'spec':       if spec.len > 0 { 'AGENTS.md@${spec}' } else { '' }
 	}
 	if opts.json_out {
 		mut lines := []string{}
 		lines << '{'
-			lines << '  "workspace": "${workspace_json_escape(ws)}",'
-			lines << '  "timestamp": "${workspace_json_escape(now.format_rfc3339())}",'
+		lines << '  "workspace": "${workspace_json_escape(ws)}",'
+		lines << '  "timestamp": "${workspace_json_escape(now.format_rfc3339())}",'
 		lines << '  "sources": {'
 		if pack_ref.len > 0 {
 			psz := approx_size(resolve_pack_abs(ws, pack_ref))
@@ -250,9 +250,9 @@ fn workspace_context(opts WorkspaceOptions) WorkspaceReport {
 		}
 		lines << '}'
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    data
+			data: data
 		}
 	}
 	mut lines := []string{}
@@ -423,9 +423,9 @@ fn workspace_context(opts WorkspaceOptions) WorkspaceReport {
 	lines << '──────────────────────────────────────────────────────────'
 	lines << ''
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    data
+		data: data
 	}
 }
 
@@ -435,9 +435,9 @@ fn workspace_sync(opts WorkspaceOptions) WorkspaceReport {
 	todos_path := os.join_path(ws, 'knowledge', 'todos', 'pending.md')
 	if !os.is_dir(loops_dir) {
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: 'No loops/ directory found — nothing to sync.'
-			data:    {
+			data: {
 				'subcommand': 'sync'
 				'added':      '0'
 			}
@@ -462,8 +462,7 @@ fn workspace_sync(opts WorkspaceOptions) WorkspaceReport {
 			content := os.read_file(report) or { continue }
 			for line in content.split_into_lines() {
 				low := line.to_lower()
-				if !low.contains('escalat') && !low.contains('action required') && !low.contains('todo:')
-					&& !low.contains('follow-up:') {
+				if !low.contains('escalat') && !low.contains('action required') && !low.contains('todo:') && !low.contains('follow-up:') {
 					continue
 				}
 				mut clean := line.trim_space().trim_left('#')
@@ -481,9 +480,9 @@ fn workspace_sync(opts WorkspaceOptions) WorkspaceReport {
 	}
 	if new_todos.len == 0 {
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: 'No escalations found in loop reports.'
-			data:    {
+			data: {
 				'subcommand': 'sync'
 				'added':      '0'
 			}
@@ -504,7 +503,7 @@ fn workspace_sync(opts WorkspaceOptions) WorkspaceReport {
 	}
 	os.write_file(todos_path, new_content) or {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'failed to write todos: ${err}'
 		}
 	}
@@ -514,9 +513,9 @@ fn workspace_sync(opts WorkspaceOptions) WorkspaceReport {
 		lines << '  ${t}'
 	}
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'sync'
 			'added':      '${new_todos.len}'
 		}
@@ -526,7 +525,7 @@ fn workspace_sync(opts WorkspaceOptions) WorkspaceReport {
 fn workspace_use_persona(opts WorkspaceOptions) WorkspaceReport {
 	if opts.arg.len == 0 {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit workspace use-persona <name>'
 		}
 	}
@@ -536,7 +535,7 @@ fn workspace_use_persona(opts WorkspaceOptions) WorkspaceReport {
 	if !os.is_file(path) {
 		list := workspace_personas(opts)
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'Persona not found: ${persona}\n${list.message}'
 		}
 	}
@@ -550,14 +549,14 @@ fn workspace_use_persona(opts WorkspaceOptions) WorkspaceReport {
 	}
 	os.write_file(active, persona + '\n') or {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'failed to write persona: ${err}'
 		}
 	}
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: 'Activated persona: ${persona}'
-		data:    {
+		data: {
 			'subcommand': 'use-persona'
 			'persona':    persona
 		}
@@ -567,7 +566,7 @@ fn workspace_use_persona(opts WorkspaceOptions) WorkspaceReport {
 fn workspace_handoff(opts WorkspaceOptions) WorkspaceReport {
 	if opts.arg.len == 0 {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit workspace handoff <name>'
 		}
 	}
@@ -576,7 +575,7 @@ fn workspace_handoff(opts WorkspaceOptions) WorkspaceReport {
 	active := os.join_path(ws, '.active-persona')
 	if !os.is_file(active) {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: "No active persona to handoff from. Use 'workspace use-persona <name>' first."
 		}
 	}
@@ -584,7 +583,7 @@ fn workspace_handoff(opts WorkspaceOptions) WorkspaceReport {
 	if !os.is_file(persona_path(ws, to_persona)) {
 		list := workspace_personas(opts)
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'Target persona not found: ${to_persona}\n${list.message}'
 		}
 	}
@@ -593,7 +592,7 @@ fn workspace_handoff(opts WorkspaceOptions) WorkspaceReport {
 		mut allowed := meta.handoff_to.clone()
 		allowed.sort()
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: "Invalid handoff from '${from_persona}' to '${to_persona}'. Allowed targets: ${allowed.join(', ')}"
 		}
 	}
@@ -601,14 +600,14 @@ fn workspace_handoff(opts WorkspaceOptions) WorkspaceReport {
 	append_persona_history(ws, '${ts} handoff: ${from_persona} → ${to_persona}')
 	os.write_file(active, to_persona + '\n') or {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'failed to write persona: ${err}'
 		}
 	}
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: 'Handoff: ${from_persona} → ${to_persona}'
-		data:    {
+		data: {
 			'subcommand': 'handoff'
 			'persona':    to_persona
 		}
@@ -628,18 +627,18 @@ fn workspace_history(opts WorkspaceOptions) WorkspaceReport {
 	if !os.is_file(history_file) {
 		if opts.json_out {
 			return WorkspaceReport{
-				ok:      true
-				message: json.encode([]string{})
-				data:    {
+				ok: true
+				message: json2.encode([]string{}, escape_unicode: true)
+				data: {
 					'subcommand': 'history'
 					'count':      '0'
 				}
 			}
 		}
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: 'No persona transitions recorded yet.'
-			data:    {
+			data: {
 				'subcommand': 'history'
 			}
 		}
@@ -650,9 +649,9 @@ fn workspace_history(opts WorkspaceOptions) WorkspaceReport {
 	recent := all[start..]
 	if opts.json_out {
 		return WorkspaceReport{
-			ok:      true
-			message: json.encode(recent)
-			data:    {
+			ok: true
+			message: json2.encode(recent, escape_unicode: true)
+			data: {
 				'subcommand': 'history'
 				'count':      '${recent.len}'
 			}
@@ -665,9 +664,9 @@ fn workspace_history(opts WorkspaceOptions) WorkspaceReport {
 		out << '  ${line}'
 	}
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: out.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'history'
 			'count':      '${recent.len}'
 		}
@@ -680,9 +679,9 @@ fn workspace_personas(opts WorkspaceOptions) WorkspaceReport {
 	if opts.json_out {
 		if !os.is_dir(dir) {
 			return WorkspaceReport{
-				ok:      true
-				message: json.encode([]string{})
-				data:    {
+				ok: true
+				message: json2.encode([]string{}, escape_unicode: true)
+				data: {
 					'subcommand': 'personas'
 					'count':      '0'
 				}
@@ -698,9 +697,9 @@ fn workspace_personas(opts WorkspaceOptions) WorkspaceReport {
 		names.sort()
 		if names.len == 0 {
 			return WorkspaceReport{
-				ok:      true
-				message: json.encode([]string{})
-				data:    {
+				ok: true
+				message: json2.encode([]string{}, escape_unicode: true)
+				data: {
 					'subcommand': 'personas'
 					'count':      '0'
 				}
@@ -739,9 +738,9 @@ fn workspace_personas(opts WorkspaceOptions) WorkspaceReport {
 		}
 		json_msg := '[' + items.join(',') + ']'
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: json_msg
-			data:    {
+			data: {
 				'subcommand': 'personas'
 				'count':      '${names.len}'
 			}
@@ -753,9 +752,9 @@ fn workspace_personas(opts WorkspaceOptions) WorkspaceReport {
 		lines << '  (no personas directory)'
 		lines << ''
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'personas'
 			}
 		}
@@ -782,9 +781,9 @@ fn workspace_personas(opts WorkspaceOptions) WorkspaceReport {
 	lines << ''
 	lines << 'Usage: agent-toolkit workspace use-persona <name>'
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'personas'
 			'count':      '${names.len}'
 		}
@@ -798,7 +797,7 @@ fn workspace_load(opts WorkspaceOptions) WorkspaceReport {
 	}
 	if opts.arg.len == 0 {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'Usage: agent-toolkit workspace load <pack-path> | --profile <name>'
 		}
 	}
@@ -819,14 +818,14 @@ fn workspace_load_pack(ws string, pack_arg string) WorkspaceReport {
 			}
 		}
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: msg
 		}
 	}
 	rel := pack_rel_path(ws, pack_path)
 	os.write_file(os.join_path(ws, '.active-pack'), rel + '\n') or {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'failed to write pack: ${err}'
 		}
 	}
@@ -838,9 +837,9 @@ fn workspace_load_pack(ws string, pack_arg string) WorkspaceReport {
 		lines << '  ${desc}'
 	}
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'load'
 			'pack':       rel
 		}
@@ -851,7 +850,7 @@ fn workspace_load_profile(ws string, profile_name string) WorkspaceReport {
 	profile_path := os.join_path(ws, 'profiles', '${profile_name}.yaml')
 	if !os.is_file(profile_path) {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'Profile not found: ${profile_name}\nLooked in: ${profile_path}'
 		}
 	}
@@ -868,9 +867,9 @@ fn workspace_load_profile(ws string, profile_name string) WorkspaceReport {
 		pack_path := resolve_pack_file(ws, pack_ref) or {
 			lines << "  (pack '${pack_ref}' not found — skipped)"
 			return WorkspaceReport{
-				ok:      true
+				ok: true
 				message: lines.join('\n')
-				data:    {
+				data: {
 					'subcommand': 'load'
 					'profile':    profile_name
 				}
@@ -908,9 +907,9 @@ fn workspace_load_profile(ws string, profile_name string) WorkspaceReport {
 		lines << '  Loops: ${loops.join(', ')}'
 	}
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'load'
 			'profile':    profile_name
 		}
@@ -926,9 +925,9 @@ fn workspace_profiles(opts WorkspaceOptions) WorkspaceReport {
 		lines << '  (no profiles/ directory)'
 		lines << ''
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'profiles'
 			}
 		}
@@ -963,9 +962,9 @@ fn workspace_profiles(opts WorkspaceOptions) WorkspaceReport {
 	lines << ''
 	lines << 'Usage: agent-toolkit workspace load --profile <name>'
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'profiles'
 			'count':      '${names.len}'
 		}
@@ -978,7 +977,7 @@ fn workspace_validate(opts WorkspaceOptions) WorkspaceReport {
 	valid := ['all', 'packs', 'loops', 'personas', 'profiles', 'knowledge', 'jobs']
 	if surface !in valid {
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: 'Unknown surface: ${surface}\nValid surfaces: all, packs, loops, personas, profiles, knowledge, jobs'
 		}
 	}
@@ -1016,9 +1015,9 @@ fn workspace_validate(opts WorkspaceOptions) WorkspaceReport {
 	if all_errors.len > 0 {
 		lines << '  ${all_errors.len} violation(s) found.'
 		return WorkspaceReport{
-			ok:      false
+			ok: false
 			message: lines.join('\n')
-			data:    {
+			data: {
 				'subcommand': 'validate'
 				'errors':     '${all_errors.len}'
 			}
@@ -1027,9 +1026,9 @@ fn workspace_validate(opts WorkspaceOptions) WorkspaceReport {
 	lines << '  All context files valid.'
 	lines << ''
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    {
+		data: {
 			'subcommand': 'validate'
 			'errors':     '0'
 		}
@@ -1047,7 +1046,11 @@ fn workspace_budget(opts WorkspaceOptions) WorkspaceReport {
 	if os.is_dir(knowledge) {
 		sections << budget_section('knowledge', 'knowledge/', knowledge)
 	}
-	pack_ref := if opts.pack.len > 0 { opts.pack } else { read_strip(os.join_path(ws, '.active-pack')) }
+	pack_ref := if opts.pack.len > 0 {
+		opts.pack
+	} else {
+		read_strip(os.join_path(ws, '.active-pack'))
+	}
 	if pack_ref.len > 0 {
 		p := resolve_pack_abs(ws, pack_ref)
 		if os.exists(p) {
@@ -1055,8 +1058,7 @@ fn workspace_budget(opts WorkspaceOptions) WorkspaceReport {
 		}
 	}
 	persona := if opts.profile.len > 0 {
-		yaml_string_field(os.read_file(os.join_path(ws, 'profiles', '${opts.profile}.yaml')) or { '' },
-			'persona')
+		yaml_string_field(os.read_file(os.join_path(ws, 'profiles', '${opts.profile}.yaml')) or { '' }, 'persona')
 	} else {
 		read_strip(os.join_path(ws, '.active-persona'))
 	}
@@ -1086,12 +1088,12 @@ fn workspace_budget(opts WorkspaceOptions) WorkspaceReport {
 		'workspace'
 	}
 	mut data := {
-		'subcommand': 'budget'
-		'workspace':  ws
-		'target':     target
-		'total_chars': '${total}'
+		'subcommand':       'budget'
+		'workspace':        ws
+		'target':           target
+		'total_chars':      '${total}'
 		'estimated_tokens': '${tokens}'
-		'risk':       risk
+		'risk':             risk
 	}
 	if opts.json_out {
 		mut lines := []string{}
@@ -1111,9 +1113,9 @@ fn workspace_budget(opts WorkspaceOptions) WorkspaceReport {
 		lines << '  "suggestions": []'
 		lines << '}'
 		return WorkspaceReport{
-			ok:      true
+			ok: true
 			message: lines.join('\n')
-			data:    data
+			data: data
 		}
 	}
 	mut lines := []string{}
@@ -1135,9 +1137,9 @@ fn workspace_budget(opts WorkspaceOptions) WorkspaceReport {
 		lines << ''
 	}
 	return WorkspaceReport{
-		ok:      true
+		ok: true
 		message: lines.join('\n')
-		data:    data
+		data: data
 	}
 }
 
@@ -1166,7 +1168,7 @@ struct BudgetSection {
 fn knowledge_summary(knowledge string) KnowledgeCounts {
 	return KnowledgeCounts{
 		learnings: count_files(os.join_path(knowledge, 'learnings'))
-		todos:     count_files(os.join_path(knowledge, 'todos'))
+		todos: count_files(os.join_path(knowledge, 'todos'))
 		processes: count_files(os.join_path(knowledge, 'processes'))
 	}
 }
@@ -1206,11 +1208,11 @@ fn approx_size(path string) int {
 fn budget_section(kind string, label string, path string) BudgetSection {
 	chars := approx_size(path)
 	return BudgetSection{
-		kind:   kind
-		label:  label
-		chars:  chars
+		kind: kind
+		label: label
+		chars: chars
 		tokens: chars / 4
-		path:   path
+		path: path
 	}
 }
 
@@ -1255,11 +1257,11 @@ fn load_persona_meta(ws string, name string) PersonaMeta {
 		return PersonaMeta{}
 	}
 	return PersonaMeta{
-		ok:            true
-		allow:         yaml_string_list(fm, 'allow')
-		deny:          yaml_string_list(fm, 'deny')
+		ok: true
+		allow: yaml_string_list(fm, 'allow')
+		deny: yaml_string_list(fm, 'deny')
 		output_format: yaml_string_field(fm, 'output_format')
-		handoff_to:    yaml_to_fields(fm)
+		handoff_to: yaml_to_fields(fm)
 	}
 }
 
@@ -1591,7 +1593,7 @@ fn context_explain(ws string, pack_ref string, persona_name string, knowledge st
 fn git_branch(ws string) string {
 	ps := new_process_service()
 	res := ps.run(RunOptions{
-		argv:    ['git', '-C', ws, 'rev-parse', '--abbrev-ref', 'HEAD']
+		argv: ['git', '-C', ws, 'rev-parse', '--abbrev-ref', 'HEAD']
 		timeout: 5 * time.second
 	}) or { return '' }
 	if res.exit_code != 0 {
@@ -1605,8 +1607,7 @@ fn first_iso_date(line string) string {
 	for i := 0; i + 10 <= line.len; i++ {
 		if line[i].is_digit() && line[i + 4] == `-` && line[i + 7] == `-` {
 			cand := line[i..i + 10]
-			if cand[0].is_digit() && cand[1].is_digit() && cand[2].is_digit() && cand[3].is_digit()
-				&& cand[5].is_digit() && cand[6].is_digit() && cand[8].is_digit() && cand[9].is_digit() {
+			if cand[0].is_digit() && cand[1].is_digit() && cand[2].is_digit() && cand[3].is_digit() && cand[5].is_digit() && cand[6].is_digit() && cand[8].is_digit() && cand[9].is_digit() {
 				return cand
 			}
 		}

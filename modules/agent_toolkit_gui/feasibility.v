@@ -3,8 +3,8 @@ module agent_toolkit_gui
 // GuiStatus classifies vlang/gui readiness for a required widget/surface.
 pub enum GuiStatus {
 	supported // ✅ native in vlang/gui
-	partial   // ⚠️ partial / experimental / OS-limited
-	missing   // ❌ not present, needs wrapper/fallback
+	partial // ⚠️ partial / experimental / OS-limited
+	missing // ❌ not present, needs wrapper/fallback
 }
 
 // label returns the human-readable status string.

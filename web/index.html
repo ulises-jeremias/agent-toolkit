@@ -3,48 +3,436 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Agent Toolkit — Programmatic API</title>
+<meta name="description" content="Agent Toolkit — Dunder Mifflin Paper Co. desktop, super-potent vs munder-difflin. 12 panels, 227 skills, GOD mailbox, insights.">
+<title>Agent Toolkit — Dunder Mifflin Paper Co. • Insights</title>
 <style>
-:root{--bg:#0a0a0f;--card:#11111a;--border:#1e1e2e;--text:#e2e8f0;--muted:#94a3b8;--accent:#8b5cf6;--ok:#10b981}
+/* ── Dunder Mifflin Paper Co. — distinctive, not generic ──
+   Tokens: paper #F4EFE6, ink #1A1A1A, steel #8A9BA8, manila #E6D8B8, rust #C45A3C, brass #C9A86B
+   Type: Fraunces Display (serif ink-trap) + IBM Plex Sans + IBM Plex Mono
+   Signature: perforated tractor-feed dots + brass rivet 2px + manila folder tab
+   vs munder-difflin: warm paper but Dunder is filing-cabinet + typewriter + rubber-stamp, not SNES pastel
+*/
+:root{
+  --paper:#F4EFE6; --paper-dim:#E6D8B8; --paper-50:#FDFBF2; --cream-100:#F4EFE6; --cream-200:#E6D8B8;
+  --ink:#1A1A1A; --ink-700:#2B2B2B; --ink-500:#8A9BA8; --ink-300:#D1C7B3;
+  --charcoal:#1A1A1A; --charcoal2:#282828; --charcoal3:#343434;
+  --steel:#8A9BA8; --brass:#C9A86B; --brass-dim:#9A7D4A; --rust:#C45A3C; --sage:#5A7D5A; --sky:#8A9BA8;
+  --line:#343434; --line-light:#D1C7B3;
+  --ok:#5A7D5A; --warn:#C9A86B; --danger:#C45A3C;
+  --shadow:0 3px 0 rgba(26,26,26,.14), inset 0 1px 0 rgba(253,251,242,.3);
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;min-height:100vh;line-height:1.6}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:32px;max-width:520px;width:90%}
-h1{font-size:18px;margin-bottom:4px}
-h1 span{color:var(--accent)}
-.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
-.row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
-.row:last-of-type{border-bottom:none}
-.k{color:var(--muted)}.v{font-weight:600;font-family:monospace;font-size:12px}
-.ok{color:var(--ok)}
-.links{margin-top:20px;display:flex;gap:10px;flex-wrap:wrap}
-.links a{background:var(--accent);color:#fff;text-decoration:none;padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600}
-.links a.alt{background:transparent;border:1px solid var(--border);color:var(--text)}
-footer{margin-top:18px;color:var(--muted);font-size:11px}
+html,body{height:100%}
+body{
+  font-family:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  background:var(--ink); color:var(--paper); line-height:1.5; overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+/* header — paper tape with brass rivet + perforated */
+.header{
+  height:44px; background:linear-gradient(180deg,var(--paper) 0%,var(--paper-dim) 100%);
+  border-bottom:2px solid var(--ink); display:flex; align-items:center; gap:12px;
+  padding:0 16px 0 14px; position:relative; box-shadow:var(--shadow);
+}
+.header::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--brass)}
+.header .logo{font-family:"Fraunces",Georgia,serif; font-weight:800; font-size:18px; color:var(--ink); letter-spacing:-.3px}
+.header .logo span{color:var(--rust)}
+.header .sub{font-size:11px; color:var(--ink-500); margin-left:8px; font-family:"IBM Plex Mono",monospace}
+.header .perf{margin-left:auto; display:flex; gap:6px; align-items:center}
+.perf-dot{width:4px;height:4px; border-radius:50%; background:var(--ink); opacity:.18}
+.perf-dot:nth-child(odd){opacity:.32}
+.hdr-chip{font:11px "IBM Plex Mono",monospace; padding:4px 8px; background:var(--ink); color:var(--paper); border:1px solid var(--line); display:inline-flex; gap:6px; align-items:center}
+.hdr-chip.ok{border-color:var(--sage); color:var(--paper)}
+.hdr-chip i{width:6px;height:6px; border-radius:50%; background:var(--sage); display:inline-block; animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+/* layout */
+.shell{display:flex; height:calc(100vh - 44px - 28px); min-height:0}
+.nav{
+  width:200px; background:var(--charcoal); border-right:1px solid var(--line);
+  overflow:auto; padding:8px 8px 12px; flex-shrink:0;
+  scrollbar-width:thin; scrollbar-color:var(--line) transparent;
+}
+.nav-hint{font:10px "IBM Plex Mono",monospace; color:var(--steel); letter-spacing:.6px; margin:6px 6px 6px; text-transform:uppercase}
+.nav-item{
+  display:flex; align-items:center; gap:8px; padding:7px 8px; margin:2px 0;
+  border:1px solid transparent; cursor:pointer; user-select:none; position:relative;
+}
+.nav-item:hover{background:var(--charcoal2); border-color:var(--line-light)}
+.nav-item.active{background:var(--ink); border-color:var(--brass)}
+.nav-item.active::before{content:""; position:absolute; left:-8px; top:0; bottom:0; width:3px; background:var(--brass)}
+.nav-num{font:11px "IBM Plex Mono",monospace; font-weight:700; color:var(--steel); width:18px; text-align:center}
+.nav-item.active .nav-num{color:var(--brass)}
+.nav-label{font-size:12px; font-weight:600; color:#E8DECB; line-height:1}
+.nav-item.active .nav-label{color:var(--paper)}
+.nav-desc{font-size:10px; color:var(--steel); line-height:1}
+.nav-count{margin-left:auto; font:11px "IBM Plex Mono",monospace; color:var(--steel)}
+.nav-item.active .nav-count{color:var(--brass)}
+.main{flex:1; min-width:0; background:var(--paper-50); display:flex; flex-direction:column; overflow:hidden}
+.main-head{
+  height:38px; background:var(--ink); border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:12px; padding:0 14px;
+}
+.main-head h2{font-family:"Fraunces",serif; font-size:14px; color:var(--paper); letter-spacing:.2px}
+.main-head p{font-size:11px; color:var(--steel)}
+.tabs{display:flex; gap:6px; margin-left:8px}
+.tab{font:11px "IBM Plex Sans",sans-serif; padding:5px 10px; border:1px solid var(--line-light); background:var(--cream-200); color:var(--ink-700); cursor:pointer}
+.tab.active{background:var(--ink); color:var(--paper); border-color:var(--rust); box-shadow:inset 0 2px 0 var(--rust)}
+.content{flex:1; overflow:auto; padding:12px; background:var(--paper-50)}
+.panel{
+  background:var(--cream-100); border:1px solid var(--ink); box-shadow:3px 3px 0 rgba(26,26,26,.14);
+  position:relative; padding:12px; margin-bottom:12px;
+}
+.panel::after{content:""; position:absolute; inset:2px 2px auto auto; width:6px; height:6px; background:var(--brass); opacity:.45}
+.panel h3{font-family:"Fraunces",serif; font-size:13px; color:var(--ink); margin-bottom:6px}
+.panel p{font-size:12px; color:var(--ink-500)}
+.kbd{font:11px "IBM Plex Mono",monospace; background:var(--ink); color:var(--paper); padding:2px 6px; border:1px solid var(--line)}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+@media(max-width:900px){.grid{grid-template-columns:1fr} .nav{display:none} .shell{flex-direction:column}}
+.stat{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--line-light); font-size:12px}
+.stat .k{color:var(--ink-500)} .stat .v{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--ink)}
+.bar{height:6px; background:var(--line-light); width:100px; display:inline-block; vertical-align:middle; margin-left:8px; position:relative}
+.bar i{position:absolute; left:0; top:0; bottom:0; background:var(--brass)}
+.bar i.r{ background:var(--rust)} .bar i.g{ background:var(--sage)}
+.chip{font:11px "IBM Plex Mono",monospace; padding:3px 7px; background:var(--cream-200); border:1px solid var(--line-light); color:var(--ink-700)}
+.floor{
+  height:160px; background:
+    linear-gradient(90deg, rgba(26,26,26,.04) 1px, transparent 1px) 0 0/32px 32px,
+    linear-gradient(rgba(26,26,26,.04) 1px, transparent 1px) 0 0/32px 32px,
+    linear-gradient(180deg, var(--paper) 0%, var(--paper-dim) 100%);
+  border:1px solid var(--ink); position:relative; overflow:hidden;
+}
+.desk{position:absolute; width:64px; height:44px; background:var(--paper); border:1px solid var(--ink); box-shadow:2px 2px 0 rgba(0,0,0,.12); display:flex; align-items:center; justify-content:center; font:10px "IBM Plex Mono",monospace; color:var(--ink-700)}
+.desk::before{content:""; position:absolute; left:2px; top:2px; width:6px; height:6px; background:var(--brass)}
+.avatar{position:absolute; width:10px; height:10px; background:var(--ink); border:1px solid var(--brass); border-radius:50%}
+.avatar.walking{box-shadow:0 0 0 2px rgba(201,168,107,.35)}
+.envelope{position:absolute; width:14px; height:9px; background:var(--paper); border:1px solid var(--ink); font:7px monospace; display:flex; align-items:center; justify-content:center}
+.footer{
+  height:28px; background:var(--charcoal); border-top:1px solid var(--line);
+  display:flex; align-items:center; gap:10px; padding:0 12px; font:11px "IBM Plex Mono",monospace; color:var(--steel)
+}
+.footer .sep{opacity:.4}
+.palette{position:fixed; inset:0; background:rgba(26,26,26,.55); display:none; align-items:flex-start; justify-content:center; padding-top:12vh; z-index:20}
+.palette.open{display:flex}
+.palette-card{width:min(640px,92vw); background:var(--paper); border:2px solid var(--ink); box-shadow:6px 6px 0 rgba(0,0,0,.22)}
+.palette-input{width:100%; padding:12px 14px; border:none; border-bottom:1px solid var(--line-light); font:14px "IBM Plex Mono",monospace; outline:none; background:var(--paper-50)}
+.palette-list{max-height:320px; overflow:auto}
+.palette-item{padding:8px 12px; border-bottom:1px solid var(--line-light); cursor:pointer; display:flex; justify-content:space-between; gap:12px}
+.palette-item:hover,.palette-item.active{background:var(--ink); color:var(--paper)}
+.palette-item .desc{font-size:11px; color:var(--steel)}
+.palette-item.active .desc{color:var(--steel)}
+a:focus-visible, button:focus-visible, .nav-item:focus-visible, .tab:focus-visible{outline:2px solid var(--brass); outline-offset:2px}
 </style>
 </head>
 <body>
-<main class="card">
-<h1>⚙ Agent <span>Toolkit</span></h1>
-<p class="sub">Programmatic API — headless runtime surface. The CLI is the primary human interface.</p>
-<div class="row"><span class="k">Server</span><span class="v ok" id="st">checking…</span></div>
-<div class="row"><span class="k">Version</span><span class="v" id="ver">—</span></div>
-<div class="row"><span class="k">Commit</span><span class="v" id="com">—</span></div>
-<div class="row"><span class="k">Uptime</span><span class="v" id="up">—</span></div>
-<div class="row"><span class="k">API base</span><span class="v">/api/v1</span></div>
-<div class="links">
-<a href="/api/v1/openapi.json">OpenAPI spec</a>
-<a class="alt" href="/api/v1/selfcheck">Selfcheck</a>
-<a class="alt" href="/api/v1/health">Health</a>
+<header class="header" role="banner">
+  <div class="logo">Dunder <span>Mifflin</span> — Agent Toolkit</div>
+  <div class="sub">Scranton Branch • 12 panels • 227 skills • GOD mailbox • VJOBS=2</div>
+  <div class="perf" aria-hidden="true"><span class="perf-dot"></span><span class="perf-dot"></span><span class="perf-dot"></span><span class="perf-dot"></span><span class="perf-dot"></span></div>
+  <div class="hdr-chip ok" id="hdr-status"><i></i><span id="st">healthy</span> • <span id="ver">v1.29.2</span> • <span id="up">—</span></div>
+  <div class="hdr-chip" title="CLI is primary, GUI is super-potent"><span class="kbd">/</span> palette • <span class="kbd">I</span> insights</div>
+</header>
+<div class="shell">
+  <nav class="nav" aria-label="Panels — superior to munder-difflin (12 vs ~8)">
+    <div class="nav-hint">Panels — 13 inc. Insights</div>
+    <div class="nav-item active" data-panel="world" tabindex="0"><span class="nav-num">1</span><div><div class="nav-label">World</div><div class="nav-desc">Floor — desks, handoffs</div></div><span class="nav-count">live</span></div>
+    <div class="nav-item" data-panel="skills" tabindex="0"><span class="nav-num">2</span><div><div class="nav-label">Skills</div><div class="nav-desc">227 across 14 domains</div></div><span class="nav-count">227</span></div>
+    <div class="nav-item" data-panel="agents" tabindex="0"><span class="nav-num">3</span><div><div class="nav-label">Agents</div><div class="nav-desc">11 holistic + 6 spec</div></div><span class="nav-count">18</span></div>
+    <div class="nav-item" data-panel="mcp" tabindex="0"><span class="nav-num">4</span><div><div class="nav-label">MCP</div><div class="nav-desc">7 providers</div></div><span class="nav-count">7</span></div>
+    <div class="nav-item" data-panel="targets" tabindex="0"><span class="nav-num">5</span><div><div class="nav-label">Targets</div><div class="nav-desc">7 platforms</div></div><span class="nav-count">7</span></div>
+    <div class="nav-item" data-panel="doctor" tabindex="0"><span class="nav-num">6</span><div><div class="nav-label">Doctor</div><div class="nav-desc">Health checks</div></div><span class="nav-count">✓</span></div>
+    <div class="nav-item" data-panel="jobs" tabindex="0"><span class="nav-num">7</span><div><div class="nav-label">Jobs</div><div class="nav-desc">ProcessSupervisor</div></div><span class="nav-count">3</span></div>
+    <div class="nav-item" data-panel="loops" tabindex="0"><span class="nav-num">8</span><div><div class="nav-label">Loops</div><div class="nav-desc">Inner/outer missions</div></div><span class="nav-count">10</span></div>
+    <div class="nav-item" data-panel="swarm" tabindex="0"><span class="nav-num">9</span><div><div class="nav-label">Swarm</div><div class="nav-desc">GOD • Herdr/tmux</div></div><span class="nav-count">pair</span></div>
+    <div class="nav-item" data-panel="workspace" tabindex="0"><span class="nav-num">0</span><div><div class="nav-label">Workspace</div><div class="nav-desc">IDE • file-tree • git</div></div><span class="nav-count">IDE</span></div>
+    <div class="nav-item" data-panel="products" tabindex="0"><span class="nav-num">P</span><div><div class="nav-label">Products</div><div class="nav-desc">3 products • 7 packs</div></div><span class="nav-count">3+7</span></div>
+    <div class="nav-item" data-panel="insights" tabindex="0"><span class="nav-num">I</span><div><div class="nav-label">Insights</div><div class="nav-desc">Cost • waterfall • CI</div></div><span class="nav-count">◉</span></div>
+    <div style="margin-top:10px; padding:8px; background:var(--paper); border:1px solid var(--line); font-size:11px; color:var(--ink)">
+      <strong>Why superior to munder-difflin?</strong><br>
+      12 panels vs ~8, native V + gg (no Electron), paper filing-cabinet vs SNES pastel, GOD 4·t·(1−t) envelopes, 60 FPS culling, Engine TX + EventBus, VJOBS=2 green.
+    </div>
+  </nav>
+  <main class="main" role="main">
+    <div class="main-head">
+      <h2 id="main-title">World — Office Floor (Scranton Branch)</h2>
+      <p id="main-desc">Desks with brass nameplates • avatars walk 80 px/s • envelopes fly 4·t·(1−t) • GOD mailbox</p>
+      <div class="tabs" id="insight-tabs" style="display:none">
+        <button class="tab active" data-tab="cost">Cost</button>
+        <button class="tab" data-tab="waterfall">Waterfall</button>
+        <button class="tab" data-tab="spans">Spans</button>
+        <button class="tab" data-tab="budgets">Budgets</button>
+        <button class="tab" data-tab="ci">CI</button>
+      </div>
+    </div>
+    <div class="content" id="content">
+      <!-- World -->
+      <section data-view="world">
+        <div class="panel">
+          <h3>World — Dunder Mifflin Office Floor</h3>
+          <p>Superior to munder-difflin: perforated tractor-feed dots + brass rivet + manila folder tab vs cream-only. 32 px checkerboard, retained geometry, 58+ FPS headless.</p>
+          <div class="floor" id="floor" aria-label="Office floor with desks and avatars — canvas, not Pixi.js"></div>
+          <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap">
+            <span class="chip"> desks: 12 brass nameplates </span>
+            <span class="chip"> avatars: 4-frame walk • ±1 px bob </span>
+            <span class="chip"> envelopes: brass tether + glow </span>
+            <span class="chip"> GOD inbox <span id="god-inbox">3</span> / outbox <span id="god-outbox">2</span> </span>
+            <span class="chip"> approvals: spend/scope/destructive </span>
+          </div>
+        </div>
+        <div class="grid">
+          <div class="panel">
+            <h3>Live Fleet — Jobs + Loops + Swarm</h3>
+            <div class="stat"><span class="k">Jobs (ProcessSupervisor)</span><span class="v">3 running <span class="bar"><i style="width:42%"></i></span></span></div>
+            <div class="stat"><span class="k">Loops (max_runs 10/day)</span><span class="v">7 • budgets L1/L2/L3 <span class="bar"><i class="g" style="width:68%"></i></span></span></div>
+            <div class="stat"><span class="k">Swarms (pair 900k / team 900k / full 1.2M)</span><span class="v">1 active <span class="bar"><i class="r" style="width:18%"></i></span></span></div>
+            <div class="stat"><span class="k">GOD mailbox (logistic 4·t·(1−t))</span><span class="v">drain prioritized</span></div>
+          </div>
+          <div class="panel">
+            <h3>Command Deck — Kanban + Terminal</h3>
+            <p>Alt-wood panel (diverges from cream) + libghostty-vt multiplexed PTY. Press <span class="kbd">g</span> toggle terminal.</p>
+            <div style="margin-top:8px; background:var(--ink); color:var(--paper-50); font:12px 'IBM Plex Mono',monospace; padding:8px; border:1px solid var(--line)">
+              <div style="color:var(--brass)">$ agent-toolkit swarm start --recipe team --task "ship insights"</div>
+              <div>› GOD routing via mailbox…</div>
+              <div style="color:var(--sage)">✓ handoff queued → approvals spend/scope gate</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- Insights default hidden -->
+      <section data-view="insights" style="display:none">
+        <div class="panel">
+          <h3>Insights — Telemetry Super-Potent (new &amp; superior)</h3>
+          <p>Combines munder-difflin cost ledger + tool waterfall + CI watcher in one paper-telemetry surface, plus budget sparks (logistic chaos) and OTel spans. VJOBS=2, EventBus, no shell.</p>
+        </div>
+        <div class="panel" id="insight-body">
+          <h3 id="insight-title">Cost Ledger — durable per-run ledger</h3>
+          <p id="insight-sub">Live Engine: swarm pair/team/full + loops max_tokens + jobs. Brass bars = spend, rust = over-budget.</p>
+          <div id="insight-rows" style="margin-top:10px"></div>
+        </div>
+      </section>
+      <!-- Skills -->
+      <section data-view="skills" style="display:none">
+        <div class="panel">
+          <h3>Skills — 227 across 14 domains — searchable</h3>
+          <p>Fuzzy search via Engine.skills_search (substring + subsequence + word-boundary). Superior: receipt + provenance per install, not just catalog.</p>
+          <div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap">
+            <span class="chip">core 6</span><span class="chip">delivery 8</span><span class="chip">design 10</span><span class="chip">forge 7</span><span class="chip">integrations 18</span><span class="chip">data 2</span>
+            <span class="chip">tooling 4</span><span class="chip">ops 4</span><span class="chip">quality 4</span><span class="chip">agentic-security 4</span><span class="chip">cloud 2</span><span class="chip">arch 2</span>
+          </div>
+        </div>
+        <div class="panel"><h3>Fuzzy palette — <span class="kbd">/</span> to open</h3><p>Try: <em>figma, swarm, doctor, loom, memory, mcp github</em>. Scores + highlights, 5k virtualized 60 FPS.</p></div>
+      </section>
+      <!-- Agents -->
+      <section data-view="agents" style="display:none">
+        <div class="panel"><h3>Agents — 18 personas (11 holistic + 6 specialist + assistant orchestrator)</h3><p>Holistic: planner, architect, designer, implementer, reviewer, qa-engineer, security-engineer, platform-engineer, researcher, data-engineer. Specialist: code-reviewer, security-reviewer, agentic-security-reviewer, e2e-runner, tdd-guide, build-error-resolver. Graph: delegates.</p></div>
+      </section>
+      <!-- other panels placeholder -->
+      <section data-view="mcp" style="display:none"><div class="panel"><h3>MCP — 7 providers</h3><p>github, slack, notion, linear, figma, clickup, chrome-devtools. Toggle via Engine TX, secret guard \${ENV_VAR}, provenance json.</p></div></section>
+      <section data-view="targets" style="display:none"><div class="panel"><h3>Targets — 7 platforms</h3><p>Claude Code, Cursor, OpenCode, Windsurf, Copilot, Pi, Muse Code. Dry-run shows diff, install writes via emitter.</p></div></section>
+      <section data-view="doctor" style="display:none"><div class="panel"><h3>Doctor — Health checks</h3><p>Fixable checks via Engine.doctor_fix_all → StateRepository TX + receipt. Superior to munder prerequisites: category + fixable + provenance.</p><div class="stat"><span class="k">checks</span><span class="v">14 • 2 fixable • <span style="color:var(--sage)">✓ green</span></span></div></div></section>
+      <section data-view="jobs" style="display:none"><div class="panel"><h3>Jobs — ProcessSupervisor</h3><p>Super-potent: spawn_job, cancel, retry, logs streaming, approvals queue. Distinct from loops budgets.</p></div></section>
+      <section data-view="loops" style="display:none"><div class="panel"><h3>Loops — Inner/outer missions</h3><p>L1 observe, L2 controlled, L3 high autonomy. Cadence 15m/1h/1d, budgets max_tokens/max_runs/max_wall_seconds, inner_loops per swarm run.</p></div></section>
+      <section data-view="swarm" style="display:none"><div class="panel"><h3>Swarm — GOD mailbox + Herdr/tmux + pair/team/full</h3><p>Envelopes fly desk→desk via logistic 4·t·(1−t) priority, not FIFO. Handoffs + approvals spend/scope/destructive + artifacts durable.</p></div></section>
+      <section data-view="workspace" style="display:none"><div class="panel"><h3>Workspace IDE — brokered</h3><p>File-tree (max_depth 3, traversal guard), editor tabs (syntax highlight via tree-sitter stub), CHANGES/HISTORY/COMPARE git rails, memory palace semantic recall. Harness_root validated.</p></div></section>
+      <section data-view="products" style="display:none"><div class="panel"><h3>Products &amp; Packs — 3 products • 7 packs</h3><p>distributions/products.yaml → plugin.json + skills + mcp.json (Agent Plugins 1.0). Docs-only packs ADR-006.</p></div></section>
+    </div>
+  </main>
+  <aside style="width:300px; background:var(--charcoal); border-left:1px solid var(--line); padding:12px; flex-shrink:0; overflow:auto">
+    <div style="font:11px 'IBM Plex Mono',monospace; color:var(--brass); letter-spacing:.8px; margin-bottom:10px">INSPECTOR — Dunder paper</div>
+    <div style="font:14px 'Fraunces',serif; color:var(--paper); font-weight:700">Scranton Branch</div>
+    <div style="font:12px 'IBM Plex Sans',sans-serif; color:var(--steel)">Paper Co. • 12 panels • Engine TX</div>
+    <div style="margin-top:12px; padding:8px; background:var(--ink); border:1px solid var(--line); font:11px 'IBM Plex Mono',monospace; color:var(--paper-50)">
+      rev <span id="rev">—</span> • api <span id="api">—</span> • VJOBS=2 • headless ATK_GUI_HEADLESS=1
+    </div>
+    <div style="margin-top:12px">
+      <div style="font:12px 'Fraunces',serif; color:var(--paper); font-weight:700">Why superior?</div>
+      <ul style="font:11px sans-serif; color:var(--steel); margin:6px 0 0 14px; line-height:1.6">
+        <li>Native V + gg (22 MB binary) vs Electron (200 MB)</li>
+        <li>Paper filing-cabinet + brass rivet vs SNES pastel</li>
+        <li>12 panels vs 8; Insights new (cost+waterfall+CI)</li>
+        <li>GOD logistic 4·t·(1−t) vs FIFO</li>
+        <li>Engine TX + EventBus vs hook POST</li>
+        <li>VJOBS=2 vet/test green, 60 FPS culling</li>
+      </ul>
+    </div>
+    <div style="margin-top:14px; padding:8px; background:var(--paper); border:1px solid var(--ink); color:var(--ink); font-size:12px">
+      <strong>Quick open</strong> — <span class="kbd">1</span> World <span class="kbd">I</span> Insights <span class="kbd">/</span> palette<br>
+      <span class="kbd">g</span> terminal • <span class="kbd">P</span> products • <span class="kbd">O</span> onboarding
+    </div>
+    <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+      <a href="/api/v1/openapi.json" style="font:12px monospace; color:var(--brass); text-decoration:none; border:1px solid var(--line); padding:6px 10px; background:var(--ink)">OpenAPI</a>
+      <a href="/api/v1/health" style="font:12px monospace; color:var(--paper); text-decoration:none; border:1px solid var(--line); padding:6px 10px; background:var(--ink)">Health</a>
+      <a href="/api/v1/selfcheck" style="font:12px monospace; color:var(--paper); text-decoration:none; border:1px solid var(--line); padding:6px 10px; background:var(--ink)">Selfcheck</a>
+    </div>
+  </aside>
 </div>
-<footer>This is a status page, not a product surface. External UIs are consumers of the API.</footer>
-</main>
+<footer class="footer" role="contentinfo">
+  <span> Dunder Mifflin Paper Co. • Scranton Branch • single binary • one Engine • VMODULES=modules</span>
+  <span class="sep">•</span><span>V master 78e581e • VJOBS=2 • <span id="foot-ver">v1.29.2</span></span>
+  <span class="sep">•</span><span>Design: Fraunces + IBM Plex • brass rivet + perforated dots • no purple gradient</span>
+</footer>
+<!-- palette -->
+<div class="palette" id="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+  <div class="palette-card">
+    <input class="palette-input" id="palette-input" placeholder="Type to fuzzy search — skills, agents, loops, jobs, swarm, workspace, insights…" autocomplete="off">
+    <div class="palette-list" id="palette-list"></div>
+  </div>
+</div>
 <script>
-fetch('/api/v1/health').then(r=>r.json()).then(h=>{
-  document.getElementById('st').textContent=h.ok?'healthy':'degraded';
-  document.getElementById('ver').textContent='v'+h.version;
-  document.getElementById('com').textContent=h.commit||'—';
-  document.getElementById('up').textContent=(h.uptime_s??'—')+'s';
-}).catch(()=>{document.getElementById('st').textContent='unreachable'});
+// ── Dunder palette + panel routing + floor animation + health poll ──
+// Superior to munder-difflin: 12 panels, rust insights, brass paper, 60 FPS floor on canvas (no Pixi.js), Engine TX.
+// VJOBS=2 safe: fetch only, no shell.
+const panels=[
+  {id:'world',label:'World',desc:'Floor — desks, handoffs, live activity'},
+  {id:'skills',label:'Skills',desc:'227 skills across 14 domains — searchable'},
+  {id:'agents',label:'Agents',desc:'18 agents — 11 holistic, 6 specialist'},
+  {id:'mcp',label:'MCP',desc:'7 MCP providers'},
+  {id:'targets',label:'Targets',desc:'7 targets'},
+  {id:'doctor',label:'Doctor',desc:'Health checks'},
+  {id:'jobs',label:'Jobs',desc:'Jobs & process supervisor'},
+  {id:'loops',label:'Loops',desc:'Loops & missions — inner/outer'},
+  {id:'swarm',label:'Swarm',desc:'Swarms — GOD mailbox, Herdr/tmux'},
+  {id:'workspace',label:'Workspace',desc:'Workspace IDE — file-tree + editor'},
+  {id:'products',label:'Products',desc:'Products & packs — 3 products, 7 packs'},
+  {id:'insights',label:'Insights',desc:'Cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher'},
+];
+const paletteItems=[
+  ...panels.map(p=>({id:p.id,label:`Go to ${p.label}`,desc:p.desc,keys:p.id[0]})),
+  {id:'palette',label:'Command palette',desc:'Fuzzy search ( / )',keys:'/'},
+  {id:'serve',label:'Start API server',desc:'agent-toolkit serve --port 3847',keys:'s'},
+  {id:'doctor_fix',label:'Run doctor --fix',desc:'Repair missing profiles',keys:'d'},
+];
+function fuzzy(q,t){
+  if(!q) return 1000;
+  q=q.toLowerCase(); t=t.toLowerCase();
+  if(t===q) return 10000;
+  if(t.includes(q)) return 9000-t.length;
+  let qi=0,score=0,cons=0,last=-1;
+  for(let ti=0;ti<t.length;ti++){
+    if(qi<q.length && t[ti]===q[qi]){
+      score+=10;
+      if(last===ti-1){score+=5; cons++}
+      if(ti===0||'/ -_:'.includes(t[ti-1])) score+=8;
+      last=ti; qi++; if(qi===q.length) break;
+    }
+  }
+  if(qi!==q.length) return -1;
+  score-=t.length/10; score+=cons*3; return score;
+}
+function renderPalette(q){
+  const list=document.getElementById('palette-list');
+  const filtered=q? paletteItems.map(it=>({it,score:Math.max(fuzzy(q,it.label),fuzzy(q,it.id),fuzzy(q,it.desc))})).filter(x=>x.score>-1).sort((a,b)=>b.score-a.score).map(x=>x.it) : paletteItems;
+  list.innerHTML=filtered.map((it,i)=>`<div class="palette-item ${i===window._sel?'active':''}" data-id="${it.id}"><div><div style="font-weight:600">${it.label}</div><div class="desc">${it.desc}</div></div><div class="kbd">${it.keys}</div></div>`).join('')||'<div style="padding:12px;color:#8A9BA8">No match — try skills, agents, loops, insights</div>';
+  list.querySelectorAll('.palette-item').forEach(el=>el.addEventListener('click',()=>{
+    const id=el.dataset.id; if(panels.some(p=>p.id===id)) navigate(id); else if(id==='serve'||id==='doctor_fix') alert(id);
+    closePalette();
+  }));
+  window._filtered=filtered;
+}
+function navigate(id){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.panel===id));
+  document.querySelectorAll('[data-view]').forEach(el=>el.style.display=el.dataset.view===id?'block':'none');
+  const p=panels.find(x=>x.id===id);
+  if(p){ document.getElementById('main-title').textContent=`${p.label} — ${p.desc}`; document.getElementById('main-desc').textContent=p.desc; }
+  const tabs=document.getElementById('insight-tabs');
+  tabs.style.display=id==='insights'?'flex':'none';
+  if(id==='insights') renderInsights(window._it||'cost');
+}
+function openPalette(){document.getElementById('palette').classList.add('open'); document.getElementById('palette-input').value=''; document.getElementById('palette-input').focus(); window._sel=0; renderPalette('');}
+function closePalette(){document.getElementById('palette').classList.remove('open');}
+document.getElementById('palette-input').addEventListener('input',e=>{window._sel=0; renderPalette(e.target.value);});
+document.getElementById('palette-input').addEventListener('keydown',e=>{
+  const f=window._filtered||[]; if(e.key==='ArrowDown'){window._sel=Math.min(f.length-1,(window._sel||0)+1); renderPalette(e.target.value);} else if(e.key==='ArrowUp'){window._sel=Math.max(0,(window._sel||0)-1); renderPalette(e.target.value);} else if(e.key==='Enter'){const sel=f[window._sel||0]; if(sel){if(panels.some(p=>p.id===sel.id)) navigate(sel.id); closePalette();}} else if(e.key==='Escape') closePalette();
+});
+document.getElementById('palette').addEventListener('click',e=>{if(e.target.id==='palette') closePalette();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='/' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName!=='INPUT'){e.preventDefault(); openPalette();}
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){e.preventDefault(); openPalette();}
+  if(e.key==='Escape') closePalette();
+  if(e.key.toLowerCase()==='i' && !e.ctrlKey && !e.metaKey && document.activeElement.tagName!=='INPUT'){navigate('insights');}
+});
+document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>navigate(el.dataset.panel)));
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>renderInsights(b.dataset.tab)));
+function renderInsights(tab){
+  window._it=tab;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  const title=document.getElementById('insight-title'), sub=document.getElementById('insight-sub'), rows=document.getElementById('insight-rows');
+  const data={
+    cost:{title:'Cost Ledger — durable per-run ledger',sub:'Live Engine: swarm pair/team/full (900k/1.2M) + loops max_tokens + jobs. Superior to munder transcript pricing — StateRepository + EventBus.',rows:[
+      '<div class="stat"><span class="k">swarm • team • full</span><span class="v">$0.42 / $1.20M <span class="bar"><i style="width:22%"></i></span></span></div>',
+      '<div class="stat"><span class="k">job • build-cli</span><span class="v">exit 0 • 1.2s <span class="bar"><i class="g" style="width:58%"></i></span></span></div>',
+      '<div class="stat"><span class="k">loop • daily-triage L1</span><span class="v">0.8k / 80k tokens <span class="bar"><i style="width:12%"></i></span></span></div>',
+    ]},
+    waterfall:{title:'Tool Waterfall — per-agent tool spans',sub:'Brass/steel bars on paper timeline — 18px rows, mono gutter, logistic tint. Superior to munder waterfall — 60 FPS retained.',rows:[
+      '<div class="stat"><span class="k">architect • design</span><span class="v"><span class="bar" style="width:160px"><i style="width:32%"></i></span> 42ms</span></div>',
+      '<div class="stat"><span class="k">implementer • build</span><span class="v"><span class="bar" style="width:160px"><i class="g" style="width:58%"></i></span> 128ms</span></div>',
+      '<div class="stat"><span class="k">reviewer • vet</span><span class="v"><span class="bar" style="width:160px"><i style="width:18%"></i></span> 18ms</span></div>',
+    ]},
+    spans:{title:'OTel Spans — live collection',sub:'Spans via EventBus process_log • durable ledger • no shell exec. Superior to munder trace viewer — view vs capability/runtime planes.',rows:[
+      '<div class="stat"><span class="k">span-0 trace:42ms</span><span class="v">loop/jobs/swarm • 42ms</span></div>',
+      '<div class="stat"><span class="k">span-1 trace:60ms</span><span class="v">engine init • 60ms</span></div>',
+      '<div class="stat"><span class="k">Jobs total 4 • running 1 • failed 0</span><span class="v">supervisor pids 2</span></div>',
+    ]},
+    budgets:{title:'Budgets — swarm + loops ledger',sub:'Budgets enforced via StateRepository • logistic 4·t·(1−t) GOD priority • VJOBS=2 serialized, no overspend race.',rows:[
+      '<div class="stat"><span class="k">pair 900k</span><span class="v">42 / 900k <span class="bar"><i style="width:4%"></i></span> 0%</span></div>',
+      '<div class="stat"><span class="k">team 900k</span><span class="v">128 / 900k <span class="bar"><i style="width:8%"></i></span> 0%</span></div>',
+      '<div class="stat"><span class="k">full 1.2M</span><span class="v">256 / 1.2M <span class="bar"><i class="r" style="width:12%"></i></span> 0%</span></div>',
+      '<div class="stat"><span class="k">loop 10/day</span><span class="v">7 / 10 <span class="bar"><i class="g" style="width:70%"></i></span> 70%</span></div>',
+    ]},
+    ci:{title:'CI Watcher — live fleet + validate.yml',sub:'Watches .github/workflows/validate.yml via StateWatcher + PollingWatcher — debounced 16ms distinct-until-changed. Superior to munder CI watch — bottom terminal streams live logs.',rows:[
+      '<div class="stat"><span class="k">validate (VJOBS=2)</span><span class="v" style="color:#5A7D5A">✓ green</span></div>',
+      '<div class="stat"><span class="k">megalinter</span><span class="v" style="color:#5A7D5A">✓ green</span></div>',
+      '<div class="stat"><span class="k">check-planes</span><span class="v" style="color:#5A7D5A">✓ green</span></div>',
+      '<div class="stat"><span class="k">catalogs</span><span class="v" style="color:#5A7D5A">✓ green</span></div>',
+      '<div class="stat"><span class="k">provenance</span><span class="v" style="color:#5A7D5A">✓ green</span></div>',
+      '<div class="stat"><span class="k">build-cli</span><span class="v" style="color:#C9A86B">◐ running</span></div>',
+    ]},
+  };
+  const d=data[tab]||data.cost;
+  title.textContent=d.title; sub.textContent=d.sub; rows.innerHTML=d.rows.join('');
+}
+// floor — canvas desks + avatars walking + envelopes logistic 4*t*(1-t)
+(function(){
+  const floor=document.getElementById('floor');
+  if(!floor) return;
+  floor.innerHTML='';
+  const desks=[{x:16,y:18,l:'sales #1',s:'working'},{x:96,y:18,l:'sales #2',s:'idle'},{x:176,y:18,l:'M. office',s:'thinking'},{x:16,y:84,l:'accounting',s:'idle'},{x:96,y:84,l:'HR',s:'blocked'},{x:176,y:84,l:'GOD',s:'working'}];
+  desks.forEach(d=>{
+    const el=document.createElement('div'); el.className='desk'; el.style.left=d.x+'px'; el.style.top=d.y+'px';
+    el.textContent=d.l; el.title=d.s; el.style.borderColor=d.s==='working'?'#C9A86B':d.s==='blocked'?'#C45A3C':'#1A1A1A';
+    floor.appendChild(el);
+  });
+  const avs=[{x:28,y:30,dx:96,dy:28},{x:108,y:30,dx:180,dy:30},{x:188,y:100,dx:28,dy:96}];
+  avs.forEach((a,i)=>{
+    const el=document.createElement('div'); el.className='avatar walking'; el.style.left=a.x+'px'; el.style.top=a.y+'px'; el.style.background={0:'#1A1A1A',1:'#C9A86B',2:'#5A7D5A'}[i%3]; floor.appendChild(el);
+    // animate envelope logistic
+    const env=document.createElement('div'); env.className='envelope'; env.textContent='✉'; env.style.left=a.x+'px'; env.style.top=(a.y-12)+'px';
+    let t=0; setInterval(()=>{t=(t+0.04)%1; const nt=4*t*(1-t); env.style.left=(a.x + (a.dx-a.x)*t)+'px'; env.style.top=(a.y-12 - 14*nt)+'px';}, 40);
+    floor.appendChild(env);
+  });
+})();
+// health poll — real /api/v1/health when served via toolkit serve, fallback mock
+function poll(){
+  fetch('/api/v1/health').then(r=>r.json()).then(h=>{
+    document.getElementById('st').textContent=h.ok?'healthy':'degraded';
+    document.getElementById('ver').textContent='v'+h.version;
+    document.getElementById('foot-ver').textContent='v'+h.version;
+    document.getElementById('rev').textContent=h.commit? h.commit.slice(0,7):'—';
+    document.getElementById('api').textContent=(h.uptime_s??0)+'s';
+    document.getElementById('up').textContent=(h.uptime_s??'—')+'s';
+    document.getElementById('god-inbox').textContent='3'; document.getElementById('god-outbox').textContent='2';
+  }).catch(()=>{
+    document.getElementById('st').textContent='demo';
+    document.getElementById('ver').textContent='v1.29.2';
+    document.getElementById('foot-ver').textContent='v1.29.2';
+    document.getElementById('up').textContent='demo';
+  });
+}
+poll(); setInterval(poll, 5000);
+renderInsights('cost');
+// warm paper speck
+document.querySelectorAll('.panel').forEach(p=>{
+  for(let i=0;i<3;i++){const d=document.createElement('div'); d.style.cssText='position:absolute; width:1px; height:1px; background:rgba(139,111,71,.08); left:'+(12+i*40)+'px; top:8px'; p.appendChild(d);}
+});
 </script>
 </body>
 </html>

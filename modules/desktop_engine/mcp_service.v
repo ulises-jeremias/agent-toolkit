@@ -7,35 +7,35 @@ import json2
 // McpProvider mirrors mcp/templates — super-potent: provenance, receipts, health detail.
 pub struct McpProvider {
 pub:
-	id          string
-	name        string
-	description string
-	enabled     bool
-	health      string
+	id              string
+	name            string
+	description     string
+	enabled         bool
+	health          string
 	requires_docker bool
-	template_path string
-	registry_path string
-	version     string
-	provenance  string
+	template_path   string
+	registry_path   string
+	version         string
+	provenance      string
 }
 
 // McpStats aggregates provider health.
 pub struct McpStats {
 pub mut:
-	total       int
-	healthy     int
+	total        int
+	healthy      int
 	unconfigured int
-	error       int
-	enabled     int
+	error        int
+	enabled      int
 }
 
 // McpInstallPreview is dry-run diff for MCP.
 pub struct McpInstallPreview {
 pub:
-	provider_id string
-	will_write  []string
-	will_update []string
-	receipt_path string
+	provider_id     string
+	will_write      []string
+	will_update     []string
+	receipt_path    string
 	provenance_path string
 }
 
@@ -86,7 +86,8 @@ pub fn (mut e Engine) mcp_catalog() []McpProvider {
 		['notion', 'Notion', 'Notion MCP — pages + db', 'true', 'healthy', 'false'],
 		['linear', 'Linear', 'Linear MCP — issues', 'false', 'unconfigured', 'false'],
 		['figma', 'Figma', 'Figma MCP — design tokens', 'false', 'error', 'false'],
-		['chrome-devtools', 'Chrome DevTools', 'CDP — browser automation', 'true', 'healthy', 'false'],
+		['chrome-devtools', 'Chrome DevTools', 'CDP — browser automation', 'true', 'healthy',
+			'false'],
 		['clickup', 'ClickUp', 'ClickUp MCP — tasks', 'false', 'unconfigured', 'false'],
 	]
 	for d in defs {
@@ -183,11 +184,15 @@ pub fn (mut e Engine) mcp_validate(provider_id string) []BuildDiagnostic {
 	e.api_calls++
 	e.mu.unlock()
 	if provider_id == '' {
-		return [BuildDiagnostic{path: 'mcp.json', message: 'provider id empty', code: 'missing_id'}]
+		return [
+			BuildDiagnostic{ path: 'mcp.json', message: 'provider id empty', code: 'missing_id' },
+		]
 	}
 	snap := e.repo.snapshot()
 	if 'broken_mcp' in snap.data {
-		return [BuildDiagnostic{path: 'mcp/${provider_id}.json', message: 'schema invalid', code: 'schema_invalid'}]
+		return [
+			BuildDiagnostic{ path: 'mcp/${provider_id}.json', message: 'schema invalid', code: 'schema_invalid' },
+		]
 	}
 	// secret guard is validated via upsert, but also surface here
 	return []BuildDiagnostic{}
@@ -209,7 +214,9 @@ pub fn (mut e Engine) mcp_install_preview(provider_id string) McpInstallPreview 
 	env := resolve_env()
 	return McpInstallPreview{
 		provider_id: provider_id
-		will_write: [os.join_path(env.toolkit_root, 'mcp', 'templates', '${provider_id}.json')]
+		will_write: [
+			os.join_path(env.toolkit_root, 'mcp', 'templates', '${provider_id}.json'),
+		]
 		will_update: [os.join_path(os.home_dir(), '.config', 'mcp.json')]
 		receipt_path: os.join_path(os.home_dir(), '.config', 'agent-toolkit', 'receipts', '${provider_id}-mcp.json')
 		provenance_path: os.join_path(env.toolkit_root, 'mcp', 'templates', '${provider_id}.json')
@@ -233,7 +240,7 @@ pub fn has_raw_secret(text string) bool {
 		if text.contains('\${') {
 			for pat in ['ghp_', 'sk-', 'xoxb-'] {
 				idx := text.index(pat) or { continue }
-				before := if idx > 2 { text[idx - 2 .. idx] } else { '' }
+				before := if idx > 2 { text[idx - 2..idx] } else { '' }
 				if before != '\${' {
 					return true
 				}
@@ -332,5 +339,7 @@ pub fn (mut e Engine) mcp_provenance_json(provider_id string) string {
 		'template': 'mcp/templates/${provider_id}.json'
 		'registry': 'mcp/registry/${provider_id}.yaml'
 		'verified': 'true'
-	}, escape_unicode: true)
+	},
+		escape_unicode: true
+	)
 }

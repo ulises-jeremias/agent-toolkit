@@ -4,7 +4,6 @@ module agent_toolkit_core
 // Python: def clip(text: str, budget: int = 2000) -> str: " ".join(tokens[:2000])
 // V parity: char-slice clip to budget (devcompanion.v clips plan[..2000], memory inject clips 2000 chars)
 // Budget is ~2000 tokens ≈ 8000 chars (chars/4), but V retains 2000-char clip for wire parity.
-
 pub const context_budget_default = 2000
 
 // context_clip clips text to budget chars (parity with Python clip 2000 tokens).

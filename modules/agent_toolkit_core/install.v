@@ -38,7 +38,7 @@ pub mut:
 // run_install copies toolkit profiles into AI-tool config dirs via InstallTransaction (#607).
 pub fn run_install(opts InstallOptions) InstallReport {
 	mut report := InstallReport{
-		ok:      true
+		ok: true
 		dry_run: opts.dry_run
 	}
 	if opts.offline {
@@ -111,8 +111,7 @@ pub fn run_install(opts InstallOptions) InstallReport {
 			report.skipped++
 			continue
 		}
-		ok, tool_files, tool_lines := install_one_tool(canonical, data_root, home, receipt_dir,
-			opts.dry_run, opts.force)
+		ok, tool_files, tool_lines := install_one_tool(canonical, data_root, home, receipt_dir, opts.dry_run, opts.force)
 		lines << tool_lines
 		files += tool_files
 		if ok {
@@ -153,9 +152,9 @@ pub fn run_install(opts InstallOptions) InstallReport {
 pub fn install_result(report InstallReport) CommandResult {
 	return CommandResult{
 		command: 'install'
-		ok:      report.ok
+		ok: report.ok
 		message: report.message
-		data:    {
+		data: {
 			'data_root':     report.data_root
 			'files_written': '${report.files_written}'
 			'tools_ok':      '${report.tools_ok}'
@@ -184,21 +183,16 @@ fn detect_install_tools(home string, check_path bool) []string {
 	if (check_path && install_tool_on_path('cursor')) || os.exists(os.join_path(home, '.cursor')) {
 		out << 'cursor'
 	}
-	if (check_path && install_tool_on_path('opencode'))
-		|| os.exists(os.join_path(home, '.config', 'opencode')) {
+	if (check_path && install_tool_on_path('opencode')) || os.exists(os.join_path(home, '.config', 'opencode')) {
 		out << 'opencode'
 	}
-	if (check_path && install_tool_on_path('windsurf'))
-		|| os.exists(os.join_path(home, '.codeium', 'windsurf'))
-		|| os.exists(os.join_path(home, '.windsurf')) {
+	if (check_path && install_tool_on_path('windsurf')) || os.exists(os.join_path(home, '.codeium', 'windsurf')) || os.exists(os.join_path(home, '.windsurf')) {
 		out << 'windsurf'
 	}
 	if (check_path && install_tool_on_path('pi')) || os.exists(os.join_path(home, '.pi')) {
 		out << 'pi'
 	}
-	if (check_path && install_tool_on_path('muse'))
-		|| os.exists(os.join_path(home, '.config', 'muse'))
-		|| os.exists(os.join_path(home, '.agents')) {
+	if (check_path && install_tool_on_path('muse')) || os.exists(os.join_path(home, '.config', 'muse')) || os.exists(os.join_path(home, '.agents')) {
 		out << 'muse-code'
 	}
 	return out
@@ -229,9 +223,9 @@ fn install_one_tool(tool string, data_root string, home string, receipt_dir stri
 		return true, mappings.len, lines.join('\n')
 	}
 	mut tx := new_install_transaction(tool, InstallTxOptions{
-		dry_run:      false
-		force:        force
-		receipt_dir:  receipt_dir
+		dry_run: false
+		force: force
+		receipt_dir: receipt_dir
 		toolkit_root: data_root
 	})
 	mut planned := 0
@@ -426,8 +420,7 @@ fn install_source_present(tool string, data_root string) bool {
 			return data_is_dir(data_root, os.join_path(data_root, 'profiles', 'windsurf'))
 		}
 		'pi' {
-			return data_is_dir(data_root, os.join_path(data_root, 'profiles', 'pi', 'skills'))
-				|| compiled_agent_files(data_root).len > 0
+			return data_is_dir(data_root, os.join_path(data_root, 'profiles', 'pi', 'skills')) || compiled_agent_files(data_root).len > 0
 		}
 		'muse-code' {
 			if data_is_dir(data_root, os.join_path(data_root, 'skills')) {
@@ -458,8 +451,7 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 			if data_is_file(data_root, claude_md) {
 				mappings << FileMapping{claude_md, os.join_path(home, '.claude', 'CLAUDE.md')}
 			}
-			mappings << agent_dest_mappings(tool, data_root, compiled, os.join_path(home,
-				'.claude', 'agents'))
+			mappings << agent_dest_mappings(tool, data_root, compiled, os.join_path(home, '.claude', 'agents'))
 		}
 		'cursor' {
 			src := os.join_path(data_root, 'profiles', 'cursor', 'rules')
@@ -468,29 +460,24 @@ fn install_file_mappings(tool string, data_root string, home string) []FileMappi
 		'opencode' {
 			cfg := os.join_path(data_root, 'profiles', 'opencode', 'opencode.json')
 			if data_is_file(data_root, cfg) {
-				mappings << FileMapping{cfg, os.join_path(home, '.config', 'opencode',
-					'opencode.json')}
+				mappings << FileMapping{cfg, os.join_path(home, '.config', 'opencode', 'opencode.json')}
 			}
-			mappings << agent_dest_mappings(tool, data_root, compiled, os.join_path(home,
-				'.config', 'opencode', 'agents'))
+			mappings << agent_dest_mappings(tool, data_root, compiled, os.join_path(home, '.config', 'opencode', 'agents'))
 		}
 		'windsurf' {
 			src := os.join_path(data_root, 'profiles', 'windsurf')
 			cfg := windsurf_config_dir(home)
 			for sub in ['rules', 'memories'] {
-				mappings << data_map_tree_files(data_root, os.join_path(src, sub),
-					os.join_path(cfg, sub))
+				mappings << data_map_tree_files(data_root, os.join_path(src, sub), os.join_path(cfg, sub))
 			}
 		}
 		'pi' {
 			// fallback to compiled_agent_files when profiles/pi/skills missing (like claude-code/opencode) — #899
 			if data_is_dir(data_root, os.join_path(data_root, 'profiles', 'pi', 'skills')) {
 				src := os.join_path(data_root, 'profiles', 'pi', 'skills')
-				mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent',
-					'skills'))
+				mappings << data_map_tree_files(data_root, src, os.join_path(home, '.pi', 'agent', 'skills'))
 			} else {
-				mappings << agent_dest_mappings('pi', data_root, compiled, os.join_path(home,
-					'.pi', 'agent', 'skills'))
+				mappings << agent_dest_mappings('pi', data_root, compiled, os.join_path(home, '.pi', 'agent', 'skills'))
 			}
 		}
 		'muse-code' {
@@ -514,8 +501,7 @@ fn agent_dest_mappings(tool string, data_root string, compiled map[string]string
 		}
 		return out
 	}
-	return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', tool, 'agents'),
-		dst_dir)
+	return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', tool, 'agents'), dst_dir)
 }
 
 fn compiled_agent_files(data_root string) map[string]string {
@@ -587,12 +573,10 @@ fn muse_skill_mappings(data_root string, home string) []FileMapping {
 			}
 		}
 		if src_emb.len == 0 {
-			return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', 'muse-code'), os.join_path(home,
-				'.config', 'muse'))
+			return data_map_tree_files(data_root, os.join_path(data_root, 'profiles', 'muse-code'), os.join_path(home, '.config', 'muse'))
 		}
 		mut out_emb := []FileMapping{}
-		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.config', 'muse',
-			'skills'))
+		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.config', 'muse', 'skills'))
 		out_emb << data_map_tree_files(data_root, src_emb, os.join_path(home, '.agents', 'skills'))
 		return out_emb
 	}
@@ -617,8 +601,7 @@ fn muse_skill_mappings(data_root string, home string) []FileMapping {
 		}
 	}
 	if src.len == 0 {
-		return map_tree_files(os.join_path(data_root, 'profiles', 'muse-code'), os.join_path(home,
-			'.config', 'muse'))
+		return map_tree_files(os.join_path(data_root, 'profiles', 'muse-code'), os.join_path(home, '.config', 'muse'))
 	}
 	mut out := []FileMapping{}
 	out << map_tree_files(src, os.join_path(home, '.config', 'muse', 'skills'))

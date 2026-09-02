@@ -2,7 +2,7 @@ module agent_toolkit_server
 
 // Phase 4 (#835): long-running job registry + process-per-run supervisor.
 // Mirrors ADR-020: spawn CLI subprocess, capture output lines, persist registry.
-import json
+import json2
 import os
 import rand
 import sync
@@ -35,7 +35,7 @@ pub fn new_job_runner(dir string) &JobRunner {
 	mut running := 0
 	data := os.read_file(os.join_path(dir, 'jobs.json')) or { '' }
 	if data.len > 0 {
-		decoded := json.decode(map[string]Job, data) or {
+		decoded := json2.decode[map[string]Job](data) or {
 			eprintln('[jobs] warning: malformed jobs.json, starting empty: ${err.msg()}')
 			map[string]Job{}
 		}
@@ -69,7 +69,7 @@ fn (r &JobRunner) jobs_file() string {
 }
 
 fn (mut r JobRunner) persist_locked() {
-	data := json.encode(r.jobs)
+	data := json2.encode(r.jobs, escape_unicode: true)
 	tmp := r.jobs_file() + '.tmp'
 	os.write_file(tmp, data) or { return }
 	os.mv(tmp, r.jobs_file()) or { os.write_file(r.jobs_file(), data) or {} }
@@ -184,8 +184,7 @@ pub fn is_valid_job_id(id string) bool {
 	}
 	// Reject any path separator, traversal, null byte, or URL-encoded traversal.
 	// URL-encoded `%` is never valid in a job ID (alphanumeric + _ - only).
-	if id.contains('/') || id.contains('\\') || id.contains('..') || id.contains('\0')
-		|| id.contains('%') {
+	if id.contains('/') || id.contains('\\') || id.contains('..') || id.contains('\0') || id.contains('%') {
 		return false
 	}
 	// Absolute path check

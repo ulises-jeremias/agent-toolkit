@@ -8,9 +8,9 @@ import crypto.sha256
 // NetworkClient is the shared HTTP/download abstraction for V core.
 pub struct NetworkClient {
 pub:
-	user_agent     string        = 'agent-toolkit'
+	user_agent     string = 'agent-toolkit'
 	timeout        time.Duration = 30 * time.second
-	allow_redirect bool          = true
+	allow_redirect bool = true
 	offline        bool
 }
 
@@ -39,17 +39,17 @@ pub fn (c NetworkClient) get(url string) !HttpResponse {
 		return error('network offline: AGENT_TOOLKIT_OFFLINE prevents HTTP')
 	}
 	resp := http.fetch(
-		method:         .get
-		url:            url
-		user_agent:     c.user_agent
-		read_timeout:   i64(c.timeout)
-		write_timeout:  i64(c.timeout)
+		method: .get
+		url: url
+		user_agent: c.user_agent
+		read_timeout: i64(c.timeout)
+		write_timeout: i64(c.timeout)
 		allow_redirect: c.allow_redirect
-		validate:       true
+		validate: true
 	) or { return error('http get failed: ${err}') }
 	return HttpResponse{
 		status_code: resp.status_code
-		body:        resp.body
+		body: resp.body
 	}
 }
 
