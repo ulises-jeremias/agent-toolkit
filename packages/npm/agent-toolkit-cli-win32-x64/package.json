@@ -1,6 +1,6 @@
 {
   "name": "agent-toolkit-cli-win32-x64",
-  "version": "1.29.2",
+  "version": "1.30.0",
   "description": "Native V binary for agent-toolkit-cli-win32-x64 (optionalDependency of agent-toolkit-cli)",
   "license": "MIT",
   "os": ["win32"],

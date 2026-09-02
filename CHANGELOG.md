@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 <!-- markdownlint-disable MD024 -->
-## [1.29.3] — 2026-09-02
+## [1.30.0] — 2026-09-02
 
 - **Feat (desktop)** — Paper Co. design pass on the native GUI: every panel on the warm paper ledger (cream/manila/kraft cards, brass rails, Fraunces letterheads) with the ink filing-cabinet chrome; unified paper letterhead `paper_letterhead` for all 13 panels
 - **Feat (desktop)** — Brand typography shipped in-binary-adjacent: Fraunces Display (letterheads), IBM Plex Sans (+SemiBold), IBM Plex Mono (real mono slot via `IBMPlexSansMono` naming), IBM Plex Sans Arabic, Noto Sans SC chrome subset (34 KB) — all OFL in `assets/fonts/`, resolved next to the binary, graceful system-font fallback
@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Feat (desktop)** — Insights grows to 7 tabs: new **Realtime** (EventBus live feed + GOD 4·t·(1−t) flow meter) and **Gallery** (living style guide: palette chips, type specimens, components); Budgets now renders recent loop history rows; tab hit-tests match the new layout
 - **Feat (desktop)** — Embedded terminal UX: GHOSTTY VT header with focus pill, height modes **1× / 2× / MAX / hidden** (buttons + Ctrl+`), 16 px rows, per-desk VT preview enlarged (6 rows) in the inspector
 - **Feat (desktop)** — Office floor re-layout: 15 desks on a clean grid, GOD manager corner + station wall in a kraft-divided right corridor (no more card overlaps), legend swatches, fleet minimap
+- **Feat (desktop)** — Self-contained fonts: the 8 brand fonts are embedded in the binary (`$embed_file`) and auto-extracted to `~/.cache/agent-toolkit/desktop/fonts/` on first boot — released single binaries render the full stationery with no packaging steps (binary 10.0 → 11.3 MB)
 - **Chore (desktop)** — VERSION-aligned header, folder tab + manila stationery signatures, `scripts/subset-sc-font.sh` tooling
 
 ## [1.26.0] — 2026-08-31

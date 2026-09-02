@@ -160,8 +160,64 @@ const font_file_arabic = 'IBMPlexSansArabic-Regular.ttf'
 const font_file_arabic_bd = 'IBMPlexSansArabic-SemiBold.ttf'
 const font_file_sc = 'NotoSansSC-chrome.ttf'
 
+// Embedded fonts — the binary carries its own stationery so released single
+// binaries render Fraunces/Plex + the i18n scripts with zero packaging steps.
+// gg's fontstash needs file PATHS, so on first boot the bytes are extracted to
+// the desktop cache dir; repo runs keep using assets/fonts directly.
+const font_embed_sans = $embed_file('../../assets/fonts/IBMPlexSans-Regular.ttf')
+const font_embed_sans_bd = $embed_file('../../assets/fonts/IBMPlexSans-SemiBold.ttf')
+const font_embed_mono = $embed_file('../../assets/fonts/IBMPlexSansMono-Regular.ttf')
+const font_embed_display = $embed_file('../../assets/fonts/Fraunces-Display.ttf')
+const font_embed_displayt = $embed_file('../../assets/fonts/Fraunces-Text.ttf')
+const font_embed_arabic = $embed_file('../../assets/fonts/IBMPlexSansArabic-Regular.ttf')
+const font_embed_arabicbd = $embed_file('../../assets/fonts/IBMPlexSansArabic-SemiBold.ttf')
+const font_embed_sc = $embed_file('../../assets/fonts/NotoSansSC-chrome.ttf')
+
+// font_embed_pairs maps cache filenames to embedded bytes.
+fn font_embed_pairs() []FontEmbed {
+	return [
+		FontEmbed{font_file_sans, font_embed_sans.to_bytes()},
+		FontEmbed{font_file_sans_bold, font_embed_sans_bd.to_bytes()},
+		FontEmbed{font_file_mono, font_embed_mono.to_bytes()},
+		FontEmbed{font_file_display, font_embed_display.to_bytes()},
+		FontEmbed{font_file_display_t, font_embed_displayt.to_bytes()},
+		FontEmbed{font_file_arabic, font_embed_arabic.to_bytes()},
+		FontEmbed{font_file_arabic_bd, font_embed_arabicbd.to_bytes()},
+		FontEmbed{font_file_sc, font_embed_sc.to_bytes()},
+	]
+}
+
+struct FontEmbed {
+	name string
+	data []u8
+}
+
+// extract_fonts_to_cache writes the embedded fonts to the desktop cache dir.
+// Best effort: any failure just leaves the dir unusable (system-font fallback).
+fn extract_fonts_to_cache() string {
+	base := if os.getenv('XDG_CACHE_HOME') != '' {
+		os.getenv('XDG_CACHE_HOME')
+	} else {
+		os.join_path(os.home_dir(), '.cache')
+	}
+	dir := os.join_path(base, 'agent-toolkit', 'desktop', 'fonts')
+	os.mkdir_all(dir) or { return '' }
+	if !os.exists(dir) {
+		return ''
+	}
+	for pair in font_embed_pairs() {
+		dest := os.join_path(dir, pair.name)
+		if os.exists(dest) && int(os.file_size(dest)) == pair.data.len {
+			continue
+		}
+		os.write_file(dest, pair.data.bytestr()) or { return '' }
+	}
+	return dir
+}
+
 // atk_font_dir resolves the bundled font directory: $ATK_FONTS, then
-// <exe_dir>/fonts, then <exe_dir>/../assets/fonts. Empty string = unavailable.
+// <exe_dir>/fonts, then <exe_dir>/../assets/fonts, then the embedded cache.
+// Empty string = unavailable (system-font fallback).
 fn atk_font_dir() string {
 	cands := [
 		os.getenv('ATK_FONTS'),
@@ -173,7 +229,7 @@ fn atk_font_dir() string {
 			return c
 		}
 	}
-	return ''
+	return extract_fonts_to_cache()
 }
 
 fn atk_font(dir string, file string) string {

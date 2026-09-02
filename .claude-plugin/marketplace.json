@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Composable AI agent capabilities for Claude Code \u2014 skills, agents, and automation for every major workflow.",
-    "version": "1.29.2",
+    "version": "1.30.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -14,7 +14,7 @@
       "name": "agent-toolkit-core",
       "source": "./plugins/agent-toolkit-core",
       "description": "Core orchestrator, dev companion, output handshake, PR fallback, knowledge sync, and code-reviewer agent",
-      "version": "1.29.2",
+      "version": "1.30.0",
       "category": "productivity",
       "tags": [
         "core",
@@ -27,7 +27,7 @@
       "name": "agent-toolkit-agents",
       "source": "./plugins/agent-toolkit-agents",
       "description": "Full set of AI agent personas: architect, code-reviewer, security-reviewer, planner, and 12 more",
-      "version": "1.29.2",
+      "version": "1.30.0",
       "category": "productivity",
       "tags": [
         "agents",
@@ -41,7 +41,7 @@
       "name": "agent-toolkit-forge",
       "source": "./plugins/agent-toolkit-forge",
       "description": "GitHub and GitLab automation: PR workflows, CI fixes, comment resolution, contribution planning",
-      "version": "1.29.2",
+      "version": "1.30.0",
       "category": "developer-tools",
       "tags": [
         "github",
@@ -56,7 +56,7 @@
       "name": "agent-toolkit-craft",
       "source": "./plugins/agent-toolkit-craft",
       "description": "Writing quality and change-safety toolkit: cut AI tells (unslop), remove code slop (deslop), and prove blast radius before shipping.",
-      "version": "1.29.2",
+      "version": "1.30.0",
       "category": "quality",
       "tags": [
         "writing",
