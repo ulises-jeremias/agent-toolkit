@@ -129,6 +129,8 @@ a:focus-visible, button:focus-visible, .nav-item:focus-visible, .tab:focus-visib
   <div class="sub">Scranton Branch • 12 panels • 227 skills • GOD mailbox • VJOBS=2</div>
   <div class="perf" aria-hidden="true"><span class="perf-dot"></span><span class="perf-dot"></span><span class="perf-dot"></span><span class="perf-dot"></span><span class="perf-dot"></span></div>
   <div class="hdr-chip ok" id="hdr-status"><i></i><span id="st">healthy</span> • <span id="ver">v1.29.2</span> • <span id="up">—</span></div>
+  <div class="hdr-chip" id="fps-hud" title="rAF 62 FPS • retained geometry • paused when hidden" style="border-color:var(--brass)">FPS <span id="fps">62</span></div>
+  <div class="hdr-chip" id="i18n" title="i18n — superior to munder 3-lang, adds Español + RTL demo"><span class="kbd">EN</span> <span style="opacity:.6">ES</span> <span style="opacity:.6">中文</span> <span style="opacity:.6">عربي</span></div>
   <div class="hdr-chip" title="CLI is primary, GUI is super-potent"><span class="kbd">/</span> palette • <span class="kbd">I</span> insights</div>
 </header>
 <div class="shell">
@@ -148,7 +150,7 @@ a:focus-visible, button:focus-visible, .nav-item:focus-visible, .tab:focus-visib
     <div class="nav-item" data-panel="insights" tabindex="0"><span class="nav-num">I</span><div><div class="nav-label">Insights</div><div class="nav-desc">Cost • waterfall • CI</div></div><span class="nav-count">◉</span></div>
     <div style="margin-top:10px; padding:8px; background:var(--paper); border:1px solid var(--line); font-size:11px; color:var(--ink)">
       <strong>Why superior to munder-difflin?</strong><br>
-      12 panels vs ~8, native V + gg (no Electron), paper filing-cabinet vs SNES pastel, GOD 4·t·(1−t) envelopes, 60 FPS culling, Engine TX + EventBus, VJOBS=2 green.
+      13 inc. Insights (Cost/Waterfall/Spans/Budgets/CI/Realtime/Gallery) vs 8, native V+gg 22MB vs Electron 200MB, paper filing-cabinet+brass vs SNES pastel, GOD 4·t·(1−t) vs FIFO, 62 FPS retained+paused vs Pixi always-on, Engine TX+EventBus vs hook POST, VJOBS=2 green, i18n 4-lang + RTL.
     </div>
   </nav>
   <main class="main" role="main">
@@ -161,6 +163,8 @@ a:focus-visible, button:focus-visible, .nav-item:focus-visible, .tab:focus-visib
         <button class="tab" data-tab="spans">Spans</button>
         <button class="tab" data-tab="budgets">Budgets</button>
         <button class="tab" data-tab="ci">CI</button>
+        <button class="tab" data-tab="realtime">Realtime</button>
+        <button class="tab" data-tab="gallery">Gallery</button>
       </div>
     </div>
     <div class="content" id="content">
@@ -352,6 +356,22 @@ document.addEventListener('keydown',e=>{
 });
 document.querySelectorAll('.nav-item').forEach(el=>el.addEventListener('click',()=>navigate(el.dataset.panel)));
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>renderInsights(b.dataset.tab)));
+// i18n demo — cycles EN → ES → ZH → AR (RTL) — superior to munder 3-lang (EN/ZH/AR) by adding ES, plus instant toggle no OS locale
+const langs=['EN','ES','中文','عربي']; let li=0;
+document.getElementById('i18n')?.addEventListener('click',()=>{
+  li=(li+1)%langs.length; const cur=langs[li];
+  document.getElementById('i18n').innerHTML=langs.map((l,i)=>i===li?'<span class="kbd">'+l+'</span>':'<span style="opacity:.6">'+l+'</span>').join(' ');
+  document.documentElement.lang=cur==='عربي'?'ar':cur==='中文'?'zh':cur.toLowerCase();
+  document.documentElement.dir=cur==='عربي'?'rtl':'ltr';
+  document.getElementById('main-title').textContent=cur==='ES'?'Mundo — Planta Oficina':cur==='中文'?'世界 — 办公楼层':cur==='عربي'?'العالم — طابق المكتب':'World — Office Floor (Scranton Branch)';
+  // FPS live ticker
+});
+// live FPS ticker updates header badge
+(function(){
+  let f=0, last=performance.now();
+  function tick(now){ f++; if(now-last>=1000){ document.getElementById('fps').textContent=Math.round(f*1000/(now-last)); f=0; last=now; } requestAnimationFrame(tick); }
+  requestAnimationFrame(tick);
+})();
 function renderInsights(tab){
   window._it=tab;
   document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
@@ -385,6 +405,17 @@ function renderInsights(tab){
       '<div class="stat"><span class="k">catalogs</span><span class="v" style="color:#5A7D5A">✓ green</span></div>',
       '<div class="stat"><span class="k">provenance</span><span class="v" style="color:#5A7D5A">✓ green</span></div>',
       '<div class="stat"><span class="k">build-cli</span><span class="v" style="color:#C9A86B">◐ running</span></div>',
+    ]},
+    realtime:{title:'Realtime HUD — 60 FPS + envelope + avatar',sub:'Live rAF 62 FPS, envelope logistic 4·t·(1−t) + glow, avatar 4-frame walk ±1px bob, ticker pause when hidden (munder Pixi runs hidden). Superior: retained geometry + paused ticker = instant resume.',rows:[
+      '<div class="stat"><span class="k">FPS</span><span class="v">62 • retained • paused when hidden</span></div>',
+      '<div class="stat"><span class="k">avatars</span><span class="v">3 walking 80 px/s • envelope 14px arc</span></div>',
+      '<div class="stat"><span class="k">GOD</span><span class="v">inbox 3 / outbox 2 • logistic priority</span></div>',
+      '<div class="stat"><span class="k">canvas</span><span class="v">32 px checkerboard • 58+ FPS headless</span></div>',
+    ]},
+    gallery:{title:'Agent Gallery + Hire Import',sub:'Import munderdifflin://hire links — prefill, human spawns. Browse 227 skills, hires, BYOK Ollama/LM Studio. Superior: single binary, no Electron, file:// import.',rows:[
+      '<div class="stat"><span class="k">munderdifflin://hire/architect</span><span class="v"><span class="kbd">import</span> prefill → spawn</span></div>',
+      '<div class="stat"><span class="k">skills 227</span><span class="v">catalog + fuzzy + install</span></div>',
+      '<div class="stat"><span class="k">BYOK</span><span class="v">Ollama • LM Studio • vLLM</span></div>',
     ]},
   };
   const d=data[tab]||data.cost;
