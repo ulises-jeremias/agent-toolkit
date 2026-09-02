@@ -504,10 +504,28 @@ fn palette_items() []PaletteItem {
 		PaletteItem{'products', 'Go to Products', 'Manage products/packs membership & digest', 'p'},
 		PaletteItem{'onboarding', 'Go to Onboarding', 'Super-potent wizard: workspace, personas, capability, target, product', 'o'},
 		PaletteItem{'insights', 'Go to Insights', 'Telemetry — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher', 'i'},
-		PaletteItem{'command_palette', 'Command palette', 'Fuzzy search ( / )', '/'},
+		PaletteItem{'command_palette', 'Command palette', 'Fuzzy search ( / ) — todo administrable', '/'},
 		PaletteItem{'serve', 'Start API server', 'agent-toolkit serve --port 3847', 's'},
 		PaletteItem{'doctor_fix', 'Run doctor --fix', 'Repair missing profiles', 'd'},
 		PaletteItem{'install', 'Install profiles', 'agent-toolkit install --dry-run', 'i'},
+		// —— CLI absoluto — todo administrable desde GUI (palette + terminal) ——
+		PaletteItem{'install_full', 'Install — full', 'agent-toolkit install --tools claude-code,cursor --force', 'install'},
+		PaletteItem{'update', 'Update — agent-toolkit update', 'Update --check --pin', 'update'},
+		PaletteItem{'uninstall', 'Uninstall', 'Uninstall --dry-run --rollback', 'uninstall'},
+		PaletteItem{'diff', 'Diff — target/product', 'Compare configurations', 'diff'},
+		PaletteItem{'skills_sync', 'Skills — sync/validate', 'Sync and validate 227 skills', 'skills_sync'},
+		PaletteItem{'mcp_health', 'MCP — health/doctor', 'Health of 7 providers', 'mcp_health'},
+		PaletteItem{'loop_run', 'Loop — run/status/audit/cost', 'Missions heartbeat + budgets', 'loop_run'},
+		PaletteItem{'swarm_start', 'Swarm — start/list/approve', 'Launch pair/team/full, approve spend/scope', 'swarm_start'},
+		PaletteItem{'workspace_sync', 'Workspace — sync/context', 'Sync knowledge + context', 'workspace_sync'},
+		PaletteItem{'memory', 'Memory — add/search/inject/todo', 'Palace recall + todos', 'memory'},
+		PaletteItem{'project_clone', 'Project — clone/list/scan', 'Clone and scan repos', 'project_clone'},
+		PaletteItem{'devcompanion', 'DevCompanion — queue/status', 'Background queue + llm-status', 'devcompanion'},
+		PaletteItem{'insights_cli', 'Insights — CLI days/output', 'Telemetry ledger CLI', 'insights_cli'},
+		PaletteItem{'build', 'Build — --check', 'Package plugin and catalogs', 'build'},
+		PaletteItem{'inventory', 'Inventory — audit', 'List tools', 'inventory'},
+		PaletteItem{'completion', 'Completion — bash/zsh/fish', 'Shell completion', 'completion'},
+		PaletteItem{'cozy', 'Cozy — toggle warm wood', 'Cozy mode: warm paper + wood + FPS 62', 'c'},
 	]
 }
 
@@ -1333,7 +1351,7 @@ fn frame(mut app GuiApp) {
 	if pct2 > 1 { pct2 = 1 }
 	fw2 := int(f64(zw2) * pct2)
 	if fw2 > 0 { app.gg.draw_rect_filled(zx2, zy2, fw2, 4, col_brass) }
-	thx2 := zx2 + fw2 - 4
+	mut thx2 := zx2 + fw2 - 4
 	if thx2 < zx2 { thx2 = zx2 }
 	if thx2 > zx2 + zw2 - 6 { thx2 = zx2 + zw2 - 6 }
 	app.gg.draw_rect_filled(thx2, zy2 - 3, 6, 10, if app.zoom_dragging { col_brass } else { col_paper })
@@ -1431,7 +1449,7 @@ fn draw_header(mut app GuiApp, w int) {
 		app.gg.draw_rect_filled(zx, zy, fill_w, zh, col_brass)
 	}
 	// thumb — brass with ink border, paper highlight
-	thumb_x := zx + fill_w - 5
+	mut thumb_x := zx + fill_w - 5
 	if thumb_x < zx { thumb_x = zx }
 	if thumb_x > zx + zw - 8 { thumb_x = zx + zw - 8 }
 	thumb_col := if app.zoom_dragging { col_brass } else { col_paper }
@@ -4673,7 +4691,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		// swarm runs
 		swarms := if app.desktop != unsafe { nil } { app.desktop.swarm_list() } else { []desktop_engine.SwarmRun{} }
 		jobs := if app.desktop != unsafe { nil } { app.desktop.engine_jobs_catalog() } else { []desktop_engine.JobRecord{} }
-		y := inner_y + 40
+		mut y := inner_y + 40
 		// header row paper tape
 		app.gg.draw_rect_filled(inner_x, y, inner_w, 16, col_cream200)
 		app.gg.draw_text(inner_x + 6, y + 3, 'Run / Job', gg.TextCfg{ color: col_ink700, size: 11, bold: true })
@@ -4693,7 +4711,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(inner_x + 320, y + 3, '\$${r.budget_spent} / ${r.budget_total}', gg.TextCfg{ color: col_oxide, size: 11, mono: true })
 			// budget spark mini bar
 			pct := if r.budget_total > 0 { f64(r.budget_spent) / f64(r.budget_total) } else { 0.0 }
-			bar_w := int(84 * pct)
+			mut bar_w := int(84 * pct)
 			if bar_w > 84 { bar_w = 84 }
 			app.gg.draw_rect_filled(inner_x + 460, y + 5, 84, 6, col_line_light)
 			if bar_w > 0 {
@@ -4752,9 +4770,10 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Waterfall 60 FPS — retained geometry, viewport culling, text measurement via vglyph', gg.TextCfg{ color: col_slate, size: 10 })
 	} else if app.insights_tab == 'spans' {
 		app.gg.draw_text(inner_x, inner_y, 'OTel Spans — live collection (superior to munder trace viewer)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
-		y := inner_y + 40
+		mut y := inner_y + 40
 		spans := if app.desktop != unsafe { nil } { app.desktop.engine_job_stats() } else { desktop_engine.JobStats{} }
-		app.gg.draw_text(inner_x + 6, y, 'Jobs: total=${spans.total} running=${spans.running} failed=${spans.failed} • supervisor pids=${app.desktop.engine_process_supervisor_stats().0} drops=${app.desktop.engine_process_supervisor_stats().1}', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
+		pids, drops := app.desktop.engine_process_supervisor_stats()
+		app.gg.draw_text(inner_x + 6, y, 'Jobs: pids=${pids} drops=${drops} total=${spans.total} running=${spans.running} failed=${spans.failed}', gg.TextCfg{ color: col_slate_dim, size: 11, mono: true })
 		y += 20
 		// mock spans with Dunder paper rows
 		for i in 0 .. 5 {
@@ -4771,7 +4790,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	} else if app.insights_tab == 'budgets' {
 		app.gg.draw_text(inner_x, inner_y, 'Budgets — swarm + loops ledger (pair/team/full 900k/1.2M + per-loop max_tokens)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
 		loops := if app.desktop != unsafe { nil } { app.desktop.engine_loop_history('') } else { []desktop_engine.LoopHistory{} }
-		y := inner_y + 40
+		mut y := inner_y + 40
 		// budget rings overview (paper gauge)
 		for i in 0 .. 3 {
 			if y + 22 > cy0 + ch - 24 { break }
@@ -4782,7 +4801,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(inner_x + 6, y + 4, label, gg.TextCfg{ color: col_ink, size: 11, bold: true })
 			// ring as brass bar with paper bg
 			app.gg.draw_rect_filled(inner_x + 120, y + 4, 180, 10, col_line_light)
-			bar_w := int(180 * pct)
+			mut bar_w := int(180 * pct)
 			colb := if pct > 0.85 { col_oxide } else { col_brass }
 			if bar_w > 0 {
 				app.gg.draw_rect_filled(inner_x + 120, y + 4, bar_w, 10, colb)
@@ -4797,7 +4816,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	} else if app.insights_tab == 'ci' {
 		app.gg.draw_text(inner_x, inner_y, 'CI Watcher — live fleet + validate.yml (superior to munder CI watch)', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
 		app.gg.draw_text(inner_x, inner_y + 18, 'Watches .github/workflows/validate.yml via StateWatcher + PollingWatcher — no refresh', gg.TextCfg{ color: col_slate, size: 11 })
-		y := inner_y + 42
+		mut y := inner_y + 42
 		// CI jobs matrix (paper tape)
 		jobs_ci := ['validate (VJOBS=2)', 'megalinter', 'check-planes', 'check-surface', 'catalogs', 'provenance', 'build-cli']
 		for i, j in jobs_ci {
@@ -6288,7 +6307,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// zoom slider header: track at w-214, 84 wide
 			zx_hdr := w - 214
 			if mx >= zx_hdr - 10 && mx <= zx_hdr + 84 + 24 && my >= 8 && my <= 32 {
-				rel := mx - zx_hdr
+				mut rel := mx - zx_hdr
 				if rel < 0 { rel = 0 }
 				if rel > 84 { rel = 84 }
 				pct := f64(rel) / 84.0
@@ -6312,7 +6331,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			left_base := 12 + 24 + 46 + 64 + 78 + 8
 			zx_stat := left_base + 4
 			if mx >= zx_stat - 6 && mx <= zx_stat + 64 + 12 && my >= h - 22 && my <= h - 6 {
-				rel2 := mx - zx_stat
+				mut rel2 := mx - zx_stat
 				if rel2 < 0 { rel2 = 0 }
 				if rel2 > 64 { rel2 = 64 }
 				pct2 := f64(rel2) / 64.0
@@ -6425,7 +6444,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					filtered_logs(all_logs, filter_q)
 				}
 				start_i := clamp_scroll(app.inspector_scroll, desk_logs.len, visible_i)
-				rel := my - log_y0
+				mut rel := my - log_y0
 				row := rel / row_h
 				idx := start_i + row
 				if idx >= 0 && idx < desk_logs.len {
@@ -7121,7 +7140,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				visible := (ft_h - 28) / row_h
 				if visible > 0 {
 					start := clamp_scroll(app.file_tree_scroll, flat.len, visible)
-					rel := my - (ft_y + 24)
+					mut rel := my - (ft_y + 24)
 					row := rel / row_h
 					idx := start + row
 					if idx >= 0 && idx < flat.len {
@@ -7256,7 +7275,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if my >= h3 - 28 {
 				left_base := 12 + 24 + 46 + 64 + 78 + 8
 				zx_stat := left_base + 4
-				rel2 := mx - zx_stat
+				mut rel2 := mx - zx_stat
 				if rel2 < 0 { rel2 = 0 }
 				if rel2 > 64 { rel2 = 64 }
 				pct2 := f64(rel2) / 64.0
@@ -7265,7 +7284,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.zoom_toast_at = app.frame
 			} else {
 				zx_hdr := w3 - 214
-				rel := mx - zx_hdr
+				mut rel := mx - zx_hdr
 				if rel < 0 { rel = 0 }
 				if rel > 84 { rel = 84 }
 				pct := f64(rel) / 84.0
@@ -7377,7 +7396,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					filtered_logs(all_logs, filter_q)
 				}
 				start_i := clamp_scroll(app.inspector_scroll, desk_logs.len, visible_i)
-				rel := app.mouse_y - log_y0
+				mut rel := app.mouse_y - log_y0
 				row := rel / row_h
 				idx := start_i + row
 				if idx >= 0 && idx < desk_logs.len {

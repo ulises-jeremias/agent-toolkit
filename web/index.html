@@ -301,9 +301,27 @@ const panels=[
 ];
 const paletteItems=[
   ...panels.map(p=>({id:p.id,label:`Go to ${p.label}`,desc:p.desc,keys:p.id[0]})),
-  {id:'palette',label:'Command palette',desc:'Fuzzy search ( / )',keys:'/'},
-  {id:'serve',label:'Start API server',desc:'agent-toolkit serve --port 3847',keys:'s'},
+  // —— CLI absoluto — todo administrable desde GUI (palette + terminal) ——
+  {id:'install',label:'Install — agent-toolkit install',desc:'Install profiles/tools --dry-run --force',keys:'install'},
+  {id:'update',label:'Update — agent-toolkit update',desc:'Update --check --pin',keys:'update'},
+  {id:'uninstall',label:'Uninstall',desc:'Uninstall --dry-run --rollback',keys:'uninstall'},
+  {id:'doctor',label:'Doctor — health checks',desc:'agent-toolkit doctor + --fix',keys:'doctor'},
   {id:'doctor_fix',label:'Run doctor --fix',desc:'Repair missing profiles',keys:'d'},
+  {id:'skills_list',label:'Skills — list/sync/validate',desc:'227 skills across 14 domains',keys:'skills'},
+  {id:'mcp',label:'MCP — list/setup/health/doctor',desc:'7 providers github/slack/notion',keys:'mcp'},
+  {id:'loop_run',label:'Loop — run/status/audit/cost',desc:'Missions inner/outer + heartbeat',keys:'loop'},
+  {id:'swarm_start',label:'Swarm — start/list/approve',desc:'GOD mailbox Herdr/tmux pair/team/full',keys:'swarm'},
+  {id:'workspace',label:'Workspace — init/sync/context',desc:'IDE file-tree + memory + git',keys:'workspace'},
+  {id:'memory',label:'Memory — add/search/inject/todo',desc:'Palace semantic recall + knowledge sync',keys:'memory'},
+  {id:'project',label:'Project — clone/list/scan',desc:'Manage repos and workspace',keys:'project'},
+  {id:'devcompanion',label:'DevCompanion — queue/status',desc:'Background queue + llm-status',keys:'devcompanion'},
+  {id:'insights_cli',label:'Insights — CLI days/output',desc:'Telemetry ledger + waterfall',keys:'insights'},
+  {id:'build',label:'Build — --check',desc:'Package plugin and catalogs',keys:'build'},
+  {id:'inventory',label:'Inventory — audit',desc:'List tools and status',keys:'inventory'},
+  {id:'completion',label:'Completion — bash/zsh/fish',desc:'Shell completion',keys:'completion'},
+  {id:'serve',label:'Start API server',desc:'agent-toolkit serve --port 3847',keys:'s'},
+  {id:'palette',label:'Command palette',desc:'Fuzzy search ( / ) — todo administrable',keys:'/'},
+  {id:'cozy',label:'Cozy — toggle warm wood',desc:'Cozy mode: warm paper + wood + FPS 62',keys:'c'},
 ];
 function fuzzy(q,t){
   if(!q) return 1000;
