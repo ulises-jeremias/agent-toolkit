@@ -253,6 +253,17 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # Linux desktop needs X11/GL headers for sokol.sapp + sokol.gfx (X11/Xlib.h,
+      # XInput2, XCursor, GL/EGL) — runner images ship without them.
+      - name: Install X11/GL dev headers (linux desktop only)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            xorg-dev libgl1-mesa-dev libegl1-mesa-dev
+
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
         with:
