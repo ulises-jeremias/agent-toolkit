@@ -1,0 +1,5 @@
+fonts: dir=/home/ulisesjcf/.ai-workspace/repos/agent-toolkit/assets/fonts display=Fraunces-Display.ttf sans=IBMPlexSans-Regular.ttf mono=IBMPlexMono-Regular.ttf sc=NotoSansSC-chrome.ttf arabic=IBMPlexSansArabic-Regular.ttf
+RUNNING: desktop "Agent Toolkit — Desktop" | mode=window 1280x800 | engine_api_calls=1 | app_state_rev=9
+sokol.memory.slog | user_data: (nil), const_tag: sapp, level: 2, item_id: 50, fname: /home/ulisesjcf/Projects/github.com/vlang/v/thirdparty/sokol/sokol_app.h, line: 13516, message: LINUX_X11_QUERY_SYSTEM_DPI_FAILED: failed to query system dpi value, assuming default 96.0
+MESA-EGL: warning: DRI3 error: Could not get DRI3 device
+MESA-EGL: warning: Ensure your X server supports DRI3 to get accelerated rendering

@@ -1854,7 +1854,14 @@ fn on_init(mut app GuiApp) {
 }
 
 fn frame(mut app GuiApp) {
-	app.frame++
+	// ATK_GUI_FREEZE=1 — deterministic rendering for golden-image tests:
+	// every frame-driven animation (avatars, envelopes, pulses, timestamps)
+	// pins to the same frame, so captures are pixel-comparable.
+	if os.getenv('ATK_GUI_FREEZE') != '' {
+		app.frame = 300
+	} else {
+		app.frame++
+	}
 	// toast feed — inspector_msg changes become paper stamps (deduped per text)
 	if app.inspector_msg != '' && app.inspector_msg != app.last_msg && app.frame - app.last_msg_frame > 30 {
 		app.last_msg = app.inspector_msg
@@ -1964,6 +1971,10 @@ fn frame(mut app GuiApp) {
 	if app.frame % 30 == 0 {
 		app.engine_rev = app.desktop.app_state_snapshot().revision
 		app.api_calls = app.desktop.engine_api_calls()
+		// golden-test determinism: pin the api counter when frozen
+		if os.getenv('ATK_GUI_FREEZE') != '' {
+			app.api_calls = 900
+		}
 		// wire GOD mailbox counts via desktop_engine eventbus (status/handoffs/logs)
 		gi, go_ := app.desktop.god_mailbox_counts()
 		if gi != 0 || go_ != 0 || app.frame == 30 {
@@ -4217,6 +4228,36 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		} else if max_wall >= 600 { col_lemon } else { col_mint }
 		app.gg.draw_rect_filled(wx, bar_y, bar_w * w_pct / 100, 4, wall_col)
 		app.gg.draw_text(wx, bar_y + 6, 'wall ${max_wall}s', gg.TextCfg{ color: col_ink500, size: 10, mono: true })
+		// burn-down sparkline — last budget_spent values from the loop ledger
+		history := app.desktop.engine_loop_history('')
+		mut runs := []int{}
+		for hist_row in history {
+			if hist_row.loop_name == entry.name {
+				runs << hist_row.budget_spent
+			}
+		}
+		if runs.len >= 2 {
+			sp_x := fx + fw - 260
+			sp_w := 130
+			sp_y := y + 54
+			mut peak := 1
+			for v in runs {
+				if v > peak {
+					peak = v
+				}
+			}
+			app.gg.draw_rect_filled(sp_x, sp_y, sp_w, 14, col_cream50)
+			ticks := if runs.len > 20 { 20 } else { runs.len }
+			start := runs.len - ticks
+			for k in 0 .. ticks {
+				v := runs[start + k]
+				bh := v * 14 / peak
+				bc := if t_pct > 85 { col_oxide } else { col_brass }
+				app.gg.draw_rect_filled(sp_x + k * (sp_w / ticks), sp_y + 14 - bh, sp_w / ticks - 1, bh, bc)
+			}
+			app.gg.draw_rect_empty(sp_x, sp_y, sp_w, 14, col_ink300)
+			app.gg.draw_text(sp_x + sp_w + 6, sp_y + 2, 'burn-down', gg.TextCfg{ color: col_ink_soft, size: 8 })
+		}
 		mut exits := entry.exit_conditions.join(',')
 		if exits == '' {
 			exits = 'goal_met,budget_exhausted'

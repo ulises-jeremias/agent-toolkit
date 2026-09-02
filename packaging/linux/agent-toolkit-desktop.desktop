@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Agent Toolkit Desktop
+GenericName=AI Agent Toolkit
+Comment=Manage skills, agents, MCP providers, loops, swarms and telemetry from the Paper Co. office
+Exec=agent-toolkit-desktop
+Icon=agent-toolkit-desktop
+Terminal=false
+Categories=Development;Utility;
+Keywords=ai;agents;skills;mcp;loops;swarm;agent-toolkit;
+StartupWMClass=Agent Toolkit — Desktop
