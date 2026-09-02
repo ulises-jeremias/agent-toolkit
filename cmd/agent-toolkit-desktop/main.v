@@ -4354,8 +4354,100 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(bx + 18, y_launch + 42, rname, gg.TextCfg{ color: col_ink, size: 13, bold: true })
 	}
 	app.gg.draw_text(fx + 320, y_launch + 44, '→ via Engine.swarm_launch() · EventBus swarm_created · status/handoffs/logs live', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	// ── topology strip — roles as paper nodes, handoff edges with GOD envelopes ──
+	// parse ordered roles + edges from the handoff feed ("X → Y …")
+	topo_y := y_launch + 78
+	topo_h := 112
+	pixel_panel(mut app, fx + 8, topo_y, fw - 16, topo_h, 'default')
+	app.gg.draw_text(fx + 20, topo_y + 8, 'Topology — handoff graph (live)', gg.TextCfg{ color: col_ink, size: 12, bold: true })
+	app.gg.draw_text(fx + fw - 240, topo_y + 10, 'nodes = roles · edges = GOD handoffs · dot = 4·t·(1−t)', gg.TextCfg{ color: col_ink_soft, size: 9 })
+	mut topo_handoffs := []string{}
+	if app.desktop != unsafe { nil } && app.desktop.swarm_list().len > 0 {
+		first_id_t := if app.desktop.swarm_list().len > 0 {
+			app.desktop.swarm_list()[0].id
+		} else {
+			'swarm-a4f'
+		}
+		for hh in app.desktop.swarm_handoffs(first_id_t) {
+			topo_handoffs << hh
+		}
+	}
+	if topo_handoffs.len == 0 {
+		topo_handoffs = [
+			'planner → implementer via GOD mailbox (artifact task-contract.md)',
+			'implementer → reviewer commit a3f9… (GOD queued)',
+			'reviewer → architect feedback blocked max_round_trips',
+		]
+	}
+	mut roles := []string{}
+	mut role_idx := map[string]int{}
+	mut edges := [][]int{}
+	for th in topo_handoffs {
+		arrow := th.index(' → ') or { -1 }
+		if arrow < 0 {
+			continue
+		}
+		lrole := th[..arrow].trim_space()
+		rrest := th[arrow + 3..].trim_space()
+		rrole := rrest.split(' ')[0]
+		if rrole.len == 0 {
+			continue
+		}
+		mut li := role_idx[lrole] or { -1 }
+		if li < 0 {
+			li = roles.len
+			roles << lrole
+			role_idx[lrole] = li
+		}
+		mut ri := role_idx[rrole] or { -1 }
+		if ri < 0 {
+			ri = roles.len
+			roles << rrole
+			role_idx[rrole] = ri
+		}
+		edges << [li, ri]
+	}
+	if roles.len > 0 {
+		node_y := topo_y + 34
+		node_w := 108
+		mut gap := (fw - 48 - roles.len * node_w) / (roles.len + 1)
+		if gap < 8 {
+			gap = 8
+		}
+		mut centers := []int{}
+		for ri, role in roles {
+			nx := fx + 24 + gap + ri * (node_w + gap)
+			centers << nx + node_w / 2
+			status_running := role == 'implementer' || role == 'planner'
+			app.gg.draw_rect_filled(nx, node_y, node_w, 34, if status_running {
+				col_manila_tab
+			} else {
+				col_cream100
+			})
+			app.gg.draw_rect_empty(nx, node_y, node_w, 34, if status_running {
+				col_brass
+			} else {
+				col_ink300
+			})
+			app.gg.draw_text(nx + 8, node_y + 6, role, gg.TextCfg{ color: col_ink, size: 10, bold: true })
+			app.gg.draw_text(nx + 8, node_y + 19, if status_running { 'working' } else { 'queued' }, gg.TextCfg{ color: col_ink_soft, size: 9, mono: true })
+		}
+		// edges with travelling envelopes — GOD 4·t·(1−t) speed pulse
+		for ei, e in edges {
+			x1 := centers[e[0]]
+			x2 := centers[e[1]]
+			ey := node_y + 17
+			app.gg.draw_line(x1, ey, x2, ey, gg.rgba(138, 155, 168, 110))
+			t := f64((app.frame * 2 + ei * 90) % 120) / 120.0
+			env_x := x1 + int((x2 - x1) * t)
+			env_h := int(5.0 * (4.0 * t * (1.0 - t)))
+			app.gg.draw_rect_filled(env_x - 3, ey - 3 - env_h / 2, 6, 6, col_oxide)
+		}
+	} else {
+		app.gg.draw_text(fx + 24, topo_y + 40, 'No handoffs yet — launch pair/team/full to see the live topology.', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	}
 	// three columns: status | handoffs/artifacts | approvals + logs (inner/outer)
-	col_y := y_launch + 76
+	col_y := y_launch + 76 + topo_h + 10
 	col_h := fh - (col_y - fy) - 10
 	if col_h < 100 {
 		return
