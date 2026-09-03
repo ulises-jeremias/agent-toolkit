@@ -572,6 +572,12 @@ pub fn (mut d Desktop) engine_toggle_skill(id string) !u64 {
 }
 
 // target/product super-potent
+// engine_targets exposes the full Engine target catalog (R2 product-truth:
+// the GUI renders this list instead of a hardcoded platform roster).
+pub fn (mut d Desktop) engine_targets() []desktop_engine.TargetEntry {
+	return d.engine.targets()
+}
+
 pub fn (mut d Desktop) engine_targets_enabled() []string {
 	mut out := []string{}
 	for t in d.engine.targets() {

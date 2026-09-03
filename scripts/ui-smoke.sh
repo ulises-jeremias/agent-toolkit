@@ -16,7 +16,9 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BIN="${SMOKE_BIN:-$ROOT/build/agent-toolkit-desktop-native}"
 OUT="${SMOKE_OUT:-/tmp/atk-ui-smoke}"
 XD="${XDOTOOL:-xdotool}"
-XLIB=""
+# preserve a caller-provided LD_LIBRARY_PATH (user-space Xvfb/xdotool installs
+# whose libs are not on the system loader path); default empty as before
+XLIB="${LD_LIBRARY_PATH:-}"
 if ! command -v "$XD" >/dev/null && [ -x /tmp/opencode/xtools/usr/bin/xdotool ]; then
 	XD=/tmp/opencode/xtools/usr/bin/xdotool
 	XLIB=/tmp/opencode/xtools/usr/lib
@@ -47,9 +49,15 @@ done
 
 # boot the app — Wayland forced off (sokol prefers it when present)
 (env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET DISPLAY="$DISPLAY" "$BIN" >"$OUT/app.log" 2>&1 &)
-sleep 3
-WID="$(xdt search --name 'Agent Toolkit' | head -1 || true)"
+# software GL (llvmpipe) needs longer than 3s for the first frame — poll
+WID=""
+for _ in $(seq 1 45); do
+	WID="$(xdt search --name 'Agent Toolkit' | head -1 || true)"
+	[ -n "$WID" ] && break
+	sleep 2
+done
 [ -n "$WID" ] || { echo "SMOKE FAIL: window not found"; exit 1; }
+sleep 8
 xdt windowfocus "$WID"
 clk 400 70 # letterhead click = keyboard focus without pressing a row
 sleep 0.6
