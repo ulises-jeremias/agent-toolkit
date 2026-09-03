@@ -24,8 +24,8 @@ runs:
             *)
               echo "Installing V from vlang/v — checkout the pinned known-good HEAD 78e581e (master drifts: v3/fastc WIP broke the build on 2026-09-03)"
               rm -rf "${HOME}/vlang-master"
-              git clone --depth 1 https://github.com/vlang/v "${HOME}/vlang-master"
-              git -C "${HOME}/vlang-master" fetch --depth 1 origin 78e581e && git -C "${HOME}/vlang-master" checkout --detach 78e581e || echo "pin fetch failed — using master HEAD" >&2
+              git clone --filter=blob:none --no-checkout https://github.com/vlang/v "${HOME}/vlang-master"
+              git -C "${HOME}/vlang-master" checkout --detach 78e581e
               make -C "${HOME}/vlang-master" -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
               VBIN="${HOME}/vlang-master/v"
               echo "VBIN=${VBIN}" >> "${GITHUB_ENV}"
