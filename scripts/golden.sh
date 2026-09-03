@@ -11,6 +11,11 @@
 #   ./scripts/golden.sh compare [fuzz%]    # default fuzz 8%
 #   ATK_GOLDEN_THEME=ink ./scripts/golden.sh capture|compare  # Ink fixtures
 # Requires: Xvfb/xdotool (see scripts/ui-smoke.sh), ImageMagick, built binary.
+#
+# Fixture update policy (#1111): intentional visual changes re-capture with
+# capture (both themes) and include the RMSE summary in the PR description.
+# Never hand-edit a fixture; compare passing on the old set is the no-drift
+# proof — capture only after that proof is recorded.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -33,8 +38,10 @@ XVFB="${XVFB:-Xvfb}"
 if ! command -v "$XVFB" >/dev/null 2>&1 && [ -x /tmp/opencode/xtools/usr/bin/Xvfb ]; then
 	XVFB=/tmp/opencode/xtools/usr/bin/Xvfb
 fi
-xdt() { DISPLAY="${GOLDEN_DISPLAY:-:77}" LD_LIBRARY_PATH="$XLIB" "$XD" "$@"; }
-shot() { sleep 1.2; DISPLAY="${GOLDEN_DISPLAY:-:77}" import -window "$WID" "$1"; }
+# timeout guards: a degraded Xvfb hangs xdotool/import forever — fail fast
+# instead (#1111; observed on a long-lived :77 server)
+xdt() { DISPLAY="${GOLDEN_DISPLAY:-:77}" LD_LIBRARY_PATH="$XLIB" timeout 30 "$XD" "$@"; }
+shot() { sleep 1.2; DISPLAY="${GOLDEN_DISPLAY:-:77}" timeout 60 import -window "$WID" "$1"; }
 
 [ -x "$BIN" ] || { echo "error: build the desktop binary first" >&2; exit 2; }
 mkdir -p "$GOLD"
@@ -100,17 +107,19 @@ for k in 1 2 3 4 5 6 7 8 9 0 p i o; do
 			continue
 		fi
 		rmse=$(compare -metric RMSE -fuzz "$FUZZ%" "$GOLD/$name.png" "$tmp" "$tmp.diff.png" 2>&1 || true)
-		rm -f "$tmp.diff.png" "$tmp"
 		# Live Engine data (log timestamps, activity pulses) moves between capture
 		# and compare even under ATK_GUI_FREEZE — that is ~0.2% normalized RMSE.
 		# Fail only on layout-scale drift (tofu, missing panels, moved chrome).
+		# Passing shots are deleted; failures keep $tmp.new.png + .diff for forensics (#1111).
 		norm=$(echo "$rmse" | grep -oE '\(0?\.[0-9]+\)' | tr -d '()' || true)
 		if [ -z "$rmse" ] || [ "${rmse%% *}" = "0" ] || [ "$(echo "$rmse" | cut -d' ' -f1)" = "0" ]; then
+			rm -f "$tmp.diff.png" "$tmp"
 			echo "OK   $name ($rmse)"
 		elif [ -n "$norm" ] && awk -v n="$norm" 'BEGIN { exit (n < 0.01) ? 0 : 1 }'; then
+			rm -f "$tmp.diff.png" "$tmp"
 			echo "OK   $name ($rmse — live-data noise under 2%)"
 		else
-			echo "FAIL $name: RMSE $rmse exceeds tolerance"
+			echo "FAIL $name: RMSE $rmse exceeds tolerance (kept $tmp + $tmp.diff.png)"
 			fail=1
 		fi
 	fi
