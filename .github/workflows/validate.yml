@@ -827,11 +827,18 @@ jobs:
   check-v-modules:
     name: Check V Modules (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    # macOS runners compile the full V module suite materially slower than
+    # ubuntu (V toolchain build + every module test binary); 20 min timed out
+    # deterministically on main (#1123, main Validate) and PRs.
+    timeout-minutes: ${{ matrix.timeout }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            timeout: 20
+          - os: macos-latest
+            timeout: 45
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
