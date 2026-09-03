@@ -9,12 +9,16 @@
 # Usage:
 #   ./scripts/golden.sh capture            # (re)create fixtures
 #   ./scripts/golden.sh compare [fuzz%]    # default fuzz 8%
+#   ATK_GOLDEN_THEME=ink ./scripts/golden.sh capture|compare  # Ink fixtures
 # Requires: Xvfb/xdotool (see scripts/ui-smoke.sh), ImageMagick, built binary.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BIN="${SMOKE_BIN:-$ROOT/build/agent-toolkit-desktop-native}"
 GOLD="$ROOT/tests/golden"
+if [ "${ATK_GOLDEN_THEME:-paper}" = "ink" ]; then
+	GOLD="$ROOT/tests/golden/ink"
+fi
 MODE="${1:-capture}"
 FUZZ="${2:-8}"
 XD="${XDOTOOL:-xdotool}"
@@ -56,7 +60,12 @@ done
 	exit 2
 }
 rm -f "$HOME/.cache/agent-toolkit/desktop/ui_state.env"
-(env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET ATK_GUI_FREEZE=1 DISPLAY=:77 "$BIN" >"$GOLD/../golden-app.log" 2>&1 &)
+if [ "${ATK_GOLDEN_THEME:-paper}" = "ink" ]; then
+	# seed Ink appearance (deleted above for Paper determinism)
+	mkdir -p "$HOME/.cache/agent-toolkit/desktop"
+	printf 'appearance=ink\n' >"$HOME/.cache/agent-toolkit/desktop/ui_state.env"
+fi
+(env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET ATK_GUI_FREEZE=1 DISPLAY=:77 "$BIN" >"$ROOT/tests/golden-app.log" 2>&1 &)
 # software GL (llvmpipe) needs longer than 3s for the first frame — poll
 WID=""
 for _ in $(seq 1 45); do

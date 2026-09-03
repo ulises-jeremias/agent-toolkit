@@ -38,6 +38,22 @@ pub fn default_theme() Theme {
 	}
 }
 
+// ink_theme returns the warm-dark Ink variant (#1097).
+// Additive: existing light/dark constructors and toggle() are untouched.
+pub fn ink_theme() Theme {
+	return Theme{
+		kind: ThemeKind.dark
+		spacing: default_spacing()
+		typography: default_typography()
+		colors: ink_colors()
+		shadow: ShadowTokens{}
+		gradient: GradientTokens{}
+		blur: BlurTokens{}
+		motion: default_motion()
+		reduced: reduced_motion_disabled()
+	}
+}
+
 // light_theme returns light variant.
 pub fn light_theme() Theme {
 	return Theme{

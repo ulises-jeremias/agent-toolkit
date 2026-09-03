@@ -108,6 +108,33 @@ pub fn default_colors() ColorTokens {
 	}
 }
 
+// ink_colors returns warm-dark semantic palette — Ink (#1097).
+// Warm Ink surfaces (#201D18 family) per the approved spec; signal hues reuse
+// the proven dark lightened values so text keeps passing contrast on dark.
+pub fn ink_colors() ColorTokens {
+	return ColorTokens{
+		bg: '#201D18'
+		bg_elevated: '#26231E'
+		fg: '#F4EFE6'
+		fg_muted: '#B3A995'
+		border: '#3E3830'
+		primary: '#C45A3C'
+		accent: '#C9A86B'
+		success: '#7FB08D'
+		warning: '#C9A86B'
+		danger: '#D9785F'
+		surface_canvas: '#201D18'
+		surface_paper: '#26231E'
+		surface_cabinet: '#171C1F'
+		text_primary: '#F4EFE6'
+		text_secondary: '#B3A995'
+		signal_selection: '#D9A648'
+		signal_success: '#7FB08D'
+		signal_danger: '#D9785F'
+		text_on_cabinet: '#FFF9ED'
+	}
+}
+
 // light_colors returns light semantic palette — Paper (plan section 8).
 // Legacy roles stay frozen; the F1 roles carry the approved values.
 pub fn light_colors() ColorTokens {
