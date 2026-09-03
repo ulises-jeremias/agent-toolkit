@@ -18,13 +18,25 @@ fn ui_theme() theme.Theme {
 }
 
 // hex_to_gg parses '#RRGGBB' into an opaque gg.Color.
-// Malformed input falls back to opaque magenta so token typos scream.
+// Malformed input (wrong shape OR non-hex digits — V's string.u32()
+// returns 0 on bad digits) falls back to opaque magenta so token typos
+// scream instead of rendering as a subtle near-black.
 fn hex_to_gg(hex string) gg.Color {
 	if hex.len == 7 && hex[0] == `#` {
-		r := u8(('0x' + hex[1..3]).u32())
-		g := u8(('0x' + hex[3..5]).u32())
-		b := u8(('0x' + hex[5..7]).u32())
-		return gg.rgb(r, g, b)
+		valid := true
+		for i in 1 .. 7 {
+			c := hex[i]
+			if !(c >= `0` && c <= `9`) && !(c >= `a` && c <= `f`) && !(c >= `A` && c <= `F`) {
+				valid = false
+				break
+			}
+		}
+		if valid {
+			r := u8(('0x' + hex[1..3]).u32())
+			g := u8(('0x' + hex[3..5]).u32())
+			b := u8(('0x' + hex[5..7]).u32())
+			return gg.rgb(r, g, b)
+		}
 	}
 	return gg.rgb(u8(255), u8(0), u8(255))
 }
