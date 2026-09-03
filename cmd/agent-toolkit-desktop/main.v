@@ -893,6 +893,17 @@ mut:
 	doctor_preview       string
 	doctor_preview_lines []string
 	doctor_chips         []DoctorChip
+	// mcp provider drawer (#1106): open provider + cached template/provenance/
+	// receipt + 60s probe cache (frame-stamped, 3600 frames @60fps).
+	mcp_drawer            string
+	mcp_drawer_template   string
+	mcp_drawer_from_file  bool
+	mcp_drawer_provenance string
+	mcp_drawer_receipt    string
+	mcp_probe_id          string
+	mcp_probe_ok          bool
+	mcp_probe_detail      string
+	mcp_probe_at          int
 	frame            int
 	// toast tray — every inspector_msg change becomes a paper toast
 	toasts []Toast
@@ -3855,6 +3866,96 @@ fn draw_agents(mut app GuiApp, w int, h int) {
 	app.gg.draw_text(fx + 20, fy + fh - 14, 'Provenance: agents/<id>/AGENT.md → catalogs/agent-catalog.yaml · delegation graph via assistant · / to palette', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 }
 
+// mcp_drawer_geom is the single source for the provider drawer geometry —
+// render and hit-testing must stay identical (#1106).
+fn mcp_drawer_geom(fx int, fy int, fw int) (int, int, int, int) {
+	pw := if fw - 120 > 360 { fw - 120 } else { 360 }
+	return fx + 60, fy + 96, pw, 296
+}
+
+// mcp_probe_fresh reports whether the cached probe result still counts (60s).
+fn mcp_probe_fresh(app &GuiApp, id string) bool {
+	return app.mcp_probe_id == id && app.frame - app.mcp_probe_at < 3600
+}
+
+// mcp_run_probe executes the typed Engine probe and caches the display (#1106).
+fn mcp_run_probe(mut app GuiApp, id string) {
+	res := app.desktop.engine_mcp_probe(id) or {
+		app.mcp_probe_id = id
+		app.mcp_probe_ok = false
+		app.mcp_probe_detail = err.msg()
+		app.mcp_probe_at = app.frame
+		app.inspector_msg = 'MCP ${id} probe failed: ${err}'
+		return
+	}
+	app.mcp_probe_id = id
+	app.mcp_probe_ok = res.healthy
+	app.mcp_probe_detail = res.detail
+	app.mcp_probe_at = app.frame
+	app.api_calls = app.desktop.engine_api_calls()
+	app.inspector_msg = 'MCP ${id} probe: ${res.detail}'
+}
+
+// mcp_drawer_open caches template/provenance/receipt once (render must not
+// do file IO every frame) and runs the probe unless a fresh result exists.
+fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance string) {
+	content, from_file := app.desktop.engine_mcp_template_json(id)
+	prev := app.desktop.engine_mcp_install_preview(id)
+	receipt := app.desktop.engine_mcp_receipt(id) or {
+		desktop_engine.McpInstallPreview{
+			provider_id: id
+			receipt_path: '(no receipt — toggle to enable)'
+		}
+	}
+	will := if prev.will_write.len > 0 { prev.will_write[0] } else { '(no writes planned)' }
+	app.mcp_drawer = id
+	app.mcp_drawer_template = desktop_engine.mask_mcp_secrets(content)
+	app.mcp_drawer_from_file = from_file
+	app.mcp_drawer_provenance = provenance
+	app.mcp_drawer_receipt = '${receipt.receipt_path} · writes ${will}'
+	if !mcp_probe_fresh(app, id) {
+		mcp_run_probe(mut app, id)
+	}
+	app.inspector_msg = 'MCP ${id} drawer — masked preview · probe cached 60s'
+}
+
+// mcp_open_template routes to the Workspace panel with the template loaded
+// (brokered open; synthetic tab fallback when the harness guard blocks the
+// absolute toolkit path, #1106).
+fn mcp_open_template(mut app GuiApp, id string, template_path string) {
+	title := '${id}.json'
+	if _ := app.desktop.engine_open_path_validated(app.harness_root, template_path) {
+		tab := app.desktop.engine_open_file_brokered(app.harness_root, template_path) or {
+			desktop_engine.EditorTab{
+				path: template_path
+				title: title
+				content: app.mcp_drawer_template
+				syntax: 'json'
+				dirty: false
+			}
+		}
+		mut found := -1
+		for ti, t in app.editor_tabs {
+			if t.path == tab.path {
+				found = ti
+				break
+			}
+		}
+		if found >= 0 {
+			app.active_tab = found
+		} else {
+			app.editor_tabs << EditorTab{tab.path, tab.title, tab.content, tab.syntax, tab.dirty, 0}
+			app.active_tab = app.editor_tabs.len - 1
+		}
+		app.inspector_msg = 'Opened ${title} via brokered fs — json syntax'
+	} else {
+		app.editor_tabs << EditorTab{template_path, title, app.mcp_drawer_template, 'json', false, 0}
+		app.active_tab = app.editor_tabs.len - 1
+		app.inspector_msg = 'Opened ${title} (harness guard: synthetic tab, content from masked preview)'
+	}
+	select_panel(mut app, 9)
+}
+
 fn draw_mcp(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
 	fy := 52
@@ -3897,17 +3998,6 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 			break
 		}
 		y := y0 + i * 28
-		// receipt indicator via Engine (provenance + receipt verified)
-		preview := app.desktop.engine_mcp_install_preview(p.id)
-		provenance_json := app.desktop.engine_mcp_provenance_json(p.id)
-		has_receipt := if app.desktop != unsafe { nil } {
-			app.desktop.engine_mcp_search(p.id).len > 0
-		} else {
-			false
-		}
-		_ = preview
-		_ = provenance_json
-		_ = has_receipt
 		bg := if p.enabled { app.pnl_card_sel } else { app.pnl_card }
 		bd := if p.enabled { app.pnl_success } else { app.pnl_border }
 		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 28, bg)
@@ -3920,7 +4010,23 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 			size: 14
 			family: app.fonts.display
 		})
-		app.gg.draw_text(fx + 24 + p.id.len * 10 + 12, y + 9, p.name, gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		// failed fresh probe replaces the name slot with the error detail (#1106)
+		if mcp_probe_fresh(app, p.id) && !app.mcp_probe_ok {
+			det := if app.mcp_probe_detail.len > 52 {
+				app.mcp_probe_detail[..52] + '…'
+			} else {
+				app.mcp_probe_detail
+			}
+			app.gg.draw_text(fx + 24 + p.id.len * 10 + 12, y + 9, det, gg.TextCfg{
+				color: app.pnl_danger
+				size: 11
+			})
+		} else {
+			app.gg.draw_text(fx + 24 + p.id.len * 10 + 12, y + 9, p.name, gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 12
+			})
+		}
 		health := match p.health {
 			'healthy' { '✓ healthy' }
 			'warn' { '! warn' }
@@ -3945,7 +4051,69 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 	// footer — receipts verification + provenance + secret guard + install preview (super-potent)
 	verify := app.desktop.engine_verify_receipts().filter(it.path.contains('mcp'))
 	app.gg.draw_text(fx + 20, fy + fh - 28, 'MCP config: mcp/templates/<id>.json via Engine upsert (TX) · secret guard blocks raw ghp_/sk- → \${ENV_VAR} · provenance verified', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	app.gg.draw_text(fx + 20, fy + fh - 14, 'Secret guard: raw ghp_/sk-/xoxb- blocked → use \${ENV_VAR} · toggle to enable · ${verify.len} receipt warnings · Enter toggles first provider', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 14, 'Click a row for masked drawer · toggle on the right · ${verify.len} receipt warnings · Enter toggles first provider', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	// provider drawer — modal card, masked template + probe + open-template (#1106)
+	if app.mcp_drawer != '' {
+		dx, dy, dw, dh := mcp_drawer_geom(fx, fy, fw)
+		pixel_panel(mut app, dx, dy, dw, dh, 'dialog')
+		app.gg.draw_text(dx + 14, dy + 10, 'MCP — ${app.mcp_drawer}', gg.TextCfg{
+			color: app.pnl_text
+			size: 14
+			bold: true
+		})
+		src := if app.mcp_drawer_from_file { 'template file' } else { 'defaults (no template file)' }
+		app.gg.draw_text(dx + 14, dy + 30, '${src} · secrets masked · provenance ${app.mcp_drawer_provenance}', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+		})
+		mut ln2 := 0
+		for raw_line in app.mcp_drawer_template.split('\n') {
+			if ln2 >= 7 {
+				break
+			}
+			line := if raw_line.len > 86 { raw_line[..86] + '…' } else { raw_line }
+			app.gg.draw_text(dx + 18, dy + 48 + ln2 * 14, line, gg.TextCfg{
+				color: app.pnl_text
+				size: 11
+				mono: true
+			})
+			ln2++
+		}
+		app.gg.draw_text(dx + 14, dy + 152, 'receipt: ${app.mcp_drawer_receipt}', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+		})
+		prow_col := if mcp_probe_fresh(app, app.mcp_drawer) && !app.mcp_probe_ok {
+			app.pnl_danger
+		} else if mcp_probe_fresh(app, app.mcp_drawer) {
+			app.pnl_success
+		} else {
+			app.pnl_text_mut
+		}
+		prow := if mcp_probe_fresh(app, app.mcp_drawer) {
+			'probe: ${app.mcp_probe_detail}'
+		} else {
+			'probe: press Probe (cached 60s)'
+		}
+		app.gg.draw_text(dx + 14, dy + 168, prow, gg.TextCfg{ color: prow_col, size: 11 })
+		btn_fg := if app.appearance_dark { app.pnl_bg } else { app.pnl_text }
+		app.gg.draw_rect_filled(dx + 14, dy + dh - 32, 110, 22, app.pnl_select)
+		app.gg.draw_rect_empty(dx + 14, dy + dh - 32, 110, 22, app.pnl_select)
+		app.gg.draw_text(dx + 40, dy + dh - 26, 'Probe', gg.TextCfg{
+			color: btn_fg
+			size: 12
+			bold: true
+		})
+		app.gg.draw_rect_filled(dx + 134, dy + dh - 32, 150, 22, app.pnl_card_sel)
+		app.gg.draw_rect_empty(dx + 134, dy + dh - 32, 150, 22, app.pnl_border)
+		app.gg.draw_text(dx + 148, dy + dh - 26, 'Open template', gg.TextCfg{
+			color: app.pnl_text
+			size: 12
+		})
+		app.gg.draw_rect_filled(dx + 294, dy + dh - 32, 80, 22, app.pnl_card_sel)
+		app.gg.draw_rect_empty(dx + 294, dy + dh - 32, 80, 22, app.pnl_border)
+		app.gg.draw_text(dx + 314, dy + dh - 26, 'Close', gg.TextCfg{ color: app.pnl_text, size: 12 })
+	}
 }
 
 fn draw_targets(mut app GuiApp, w int, h int) {
@@ -7908,6 +8076,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.inspector_msg = 'Doctor dry-run cancelled — nothing was written'
 				return
 			}
+			// mcp provider drawer is modal too (#1106)
+			if app.mcp_drawer != '' {
+				app.mcp_drawer = ''
+				app.inspector_msg = 'MCP drawer closed'
+				return
+			}
 			return
 		}
 		// libghostty-vt toggle — Tab flips ghost_focused, the super potent multiplexed terminal
@@ -9442,13 +9616,40 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			fx_m := 208
 			fy_m := 52
 			fw_m := w - 208 - 300
-			// search bar hit
-			if mx >= fx_m + 12 && mx <= fx_m + fw_m - 12 && my >= fy_m + 30 && my <= fy_m + 52 {
+			// provider drawer is modal: Probe / Open template / Close first (#1106)
+			if app.mcp_drawer != '' {
+				dx, dy, _, dh := mcp_drawer_geom(panel_fx(app), fy_m, panel_fw(app, w))
+				if mx >= dx + 14 && mx <= dx + 124 && my >= dy + dh - 32 && my <= dy + dh - 10 {
+					mcp_run_probe(mut app, app.mcp_drawer)
+					return
+				}
+				if mx >= dx + 134 && mx <= dx + 284 && my >= dy + dh - 32 && my <= dy + dh - 10 {
+					mut tpath := ''
+					for p in app.desktop.engine_mcp_catalog() {
+						if p.id == app.mcp_drawer {
+							tpath = p.template_path
+							break
+						}
+					}
+					did := app.mcp_drawer
+					mcp_open_template(mut app, did, tpath)
+					return
+				}
+				if mx >= dx + 294 && mx <= dx + 374 && my >= dy + dh - 32 && my <= dy + dh - 10 {
+					app.mcp_drawer = ''
+					app.inspector_msg = 'MCP drawer closed'
+					return
+				}
+				return
+			}
+			// search bar hit — mirrors draw_mcp (fx+12, fy+48, fw-24, 26)
+			if mx >= fx_m + 12 && mx <= fx_m + fw_m - 12 && my >= fy_m + 48 && my <= fy_m + 74 {
 				app.inspector_msg = 'MCP search focused — fuzzy via Engine.mcp_catalog_search (try github, slack)'
 				return
 			}
-			// provider rows at fy+58, 28px each, 7 rows, toggle on right
-			y0_m := fy_m + 58
+			// provider rows mirror draw_mcp (y0 = fy+84, 28px, 7 rows); the old
+			// fy+58 origin misaligned clicks by a full row (#1106)
+			y0_m := fy_m + 84
 			search_q := if app.selected_panel == 3 { app.skills_query } else { '' }
 			provs_m := if search_q != '' {
 				app.desktop.engine_mcp_search(search_q)
@@ -9477,8 +9678,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 							app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • ${prov_json} • Engine TX provenance verified'
 						}
 					} else {
-						preview := app.desktop.engine_mcp_install_preview(p.id)
-						app.inspector_msg = 'MCP ${p.id} — health ${p.health} • preview ${preview.will_write} • provenance ${p.provenance} • receipt ${preview.receipt_path}'
+						// row body → masked drawer (#1106)
+						mcp_drawer_open(mut app, p.id, p.template_path, p.provenance)
 					}
 					return
 				}

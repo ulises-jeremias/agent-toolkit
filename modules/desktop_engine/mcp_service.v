@@ -223,6 +223,71 @@ pub fn (mut e Engine) mcp_install_preview(provider_id string) McpInstallPreview 
 	}
 }
 
+// McpProbeResult is the typed health-probe outcome (#1106). Read-only:
+// the probe never writes state, the GUI caches the display for 60s.
+pub struct McpProbeResult {
+pub:
+	healthy bool
+	detail  string
+}
+
+// mcp_template_json returns the real template content when the file exists,
+// else the default npx stanza. The bool reports which (#1106). Never errors
+// so the drawer always has something masked to show.
+pub fn (mut e Engine) mcp_template_json(provider_id string) (string, bool) {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	for p in e.mcp_catalog() {
+		if p.id == provider_id {
+			content := os.read_file(p.template_path) or { '' }
+			if content != '' {
+				return content, true
+			}
+			break
+		}
+	}
+	return '{"mcpServers": {"${provider_id}": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-${provider_id}"]}}}',
+		false
+}
+
+// mcp_probe runs the typed health probe: schema validation + secret-guard
+// scan of the template + live health (#1106).
+pub fn (mut e Engine) mcp_probe(provider_id string) !McpProbeResult {
+	if provider_id == '' {
+		return error('provider id empty')
+	}
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	mut known := false
+	for p in e.mcp_catalog() {
+		if p.id == provider_id {
+			known = true
+			break
+		}
+	}
+	if !known {
+		return error('mcp provider not found: ${provider_id}')
+	}
+	mut problems := []string{}
+	for d in e.mcp_validate(provider_id) {
+		problems << '${d.path}: ${d.message}'
+	}
+	content, _ := e.mcp_template_json(provider_id)
+	if has_raw_secret(content) {
+		problems << 'raw secret in template — replace with \${ENV_VAR}'
+	}
+	health_now := e.mcp_health_detailed(provider_id)
+	if health_now == 'error' || health_now == 'fail' {
+		problems << 'provider reports ${health_now}'
+	}
+	if problems.len == 0 {
+		return McpProbeResult{ healthy: true, detail: 'probe clean — ${health_now}' }
+	}
+	return McpProbeResult{ healthy: false, detail: problems.join('; ') }
+}
+
 // mcp_receipt returns receipt info for MCP provider.
 pub fn (mut e Engine) mcp_receipt(provider_id string) ?McpInstallPreview {
 	e.mu.lock()
@@ -233,6 +298,42 @@ pub fn (mut e Engine) mcp_receipt(provider_id string) ?McpInstallPreview {
 		return none
 	}
 	return e.mcp_install_preview(provider_id)
+}
+
+// mask_mcp_secrets replaces raw token values with ${ENV_VAR} so config
+// previews never render secrets (#1106). Pure — unit-tested. Existing
+// ${...} placeholders pass through untouched.
+pub fn mask_mcp_secrets(text string) string {
+	mut out := text
+	for pat in ['ghp_', 'gho_', 'sk-', 'xoxb-'] {
+		mut from := 0
+		for {
+			rel := out[from..].index(pat) or { break }
+			idx := from + rel
+			before := if idx >= 2 { out[idx - 2..idx] } else { '' }
+			if before == '\${' {
+				from = idx + pat.len
+				continue
+			}
+			mut end := idx + pat.len
+			for end < out.len {
+				c := out[end]
+				if (c >= `a` && c <= `z`) || (c >= `A` && c <= `Z`) || (c >= `0` && c <= `9`) || c == `_` || c == `-` {
+					end++
+				} else {
+					break
+				}
+			}
+			// bare prefix with no token material — not a secret, skip it
+			if end == idx + pat.len {
+				from = end
+				continue
+			}
+			out = out[..idx] + '\${ENV_VAR}' + out[end..]
+			from = idx + '\${ENV_VAR}'.len
+		}
+	}
+	return out
 }
 
 pub fn has_raw_secret(text string) bool {
