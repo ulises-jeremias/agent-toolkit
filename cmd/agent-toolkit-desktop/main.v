@@ -268,13 +268,13 @@ fn ui_state_path() string {
 
 // save_ui_state — best-effort persist of the shell layout (k=v, no json deps).
 fn save_ui_state(app &GuiApp) {
+	term_mode := if app.term_mode == 0 { 0 } else { 3 }
 	lines := [
-		'term_mode=${app.term_mode}',
+		'term_mode=${term_mode}',
 		'zoom=${app.global_zoom}',
 		'lang=${int(app.lang)}',
 		'insights_tab=${app.insights_tab}',
 		'swarm_backend=${app.swarm_backend}',
-		'selected_desk=${app.selected_desk}',
 	]
 	os.mkdir_all(os.dir(ui_state_path())) or {}
 	os.write_file(ui_state_path(), lines.join('\n')) or {}
@@ -290,11 +290,9 @@ fn load_ui_state(mut app GuiApp) {
 		}
 		k, v := kv[0], kv[1]
 		match k {
-			'selected_panel' {
-				app.selected_panel = v.int()
-			}
 			'term_mode' {
-				app.term_mode = v.int()
+				// MAX, split, modal, and terminal focus are session-only state.
+				app.term_mode = if v.int() == 0 { 0 } else { 3 }
 			}
 			'zoom' {
 				app.global_zoom = clamp_zoom(v.f64())
@@ -319,9 +317,6 @@ fn load_ui_state(mut app GuiApp) {
 			}
 			'swarm_backend' {
 				app.swarm_backend = v
-			}
-			'selected_desk' {
-				app.selected_desk = v.int()
 			}
 			else {}
 		}
@@ -750,9 +745,9 @@ mut:
 	inspector_msg string
 	// terminal / activity — workshop xterm-like bottom strip
 	// term_mode: 0 compact 148 · 1 tall 320 · 2 max (full content height) · 3 hidden
-	term_mode      int
+	term_mode      int = 3
 	term_height    int = 148
-	term_visible   bool = true
+	term_visible   bool
 	term_scroll    int
 	term_hover     int = -1
 	term_copied    string
@@ -765,7 +760,7 @@ mut:
 	cached_rev u64
 	// libghostty-vt — real PTY-backed terminal (Ghostty-inspired) — single + per-agent multiplexed
 	ghost          ghostty.GhosttyTerminal
-	ghost_focused  bool = true
+	ghost_focused  bool
 	ghost_last_idx int
 	per_desk_ghost []ghostty.GhosttyTerminal
 	avatars        []Avatar
@@ -829,7 +824,12 @@ mut:
 	memory_hover       int = -1
 	memory_semantic    bool = true
 	// brokered fs root (harness_root validated)
-	harness_root string
+	harness_root          string
+	workspace_draft       string
+	workspace_focus       bool
+	workspace_notice      string
+	workspace_source      string
+	workspace_initialized bool
 	// super-potent onboarding / capability / target / product / workspace / persona — easy management
 	show_onboarding              bool
 	onboarding_step              int // 0 detect,1 capabilities,2 targets,3 products,4 workspace,5 personas,6 done
@@ -936,9 +936,22 @@ const i18n_table = {
 	// header
 	'header.tagline':          I18nRow{'Paper Co. Office', 'Oficina Paper Co.', '纸业公司办公室', 'مكتب شركة الورق'}
 	'header.search':           I18nRow{'Search 227 skills, desks, files…', 'Buscar 227 habilidades, mesas, archivos…', '搜索 227 项技能…', 'ابحث في ٢٢٧ مهارة…'}
+	'header.workspace':        I18nRow{'WORKSPACE', 'ESPACIO', '工作区', 'المساحة'}
+	'header.navigate':         I18nRow{'NAVIGATE', 'NAVEGAR', '导航', 'تنقل'}
 	'header.live':             I18nRow{'live', 'activo', '实时', 'مباشر'}
 	'header.commands':         I18nRow{'commands', 'comandos', '命令', 'أوامر'}
 	'header.lang':             I18nRow{'Language', 'Idioma', '语言', 'اللغة'}
+	// grouped task navigation — six permanent destinations
+	'nav.group.office':        I18nRow{'Office', 'Oficina', '办公', 'المكتب'}
+	'nav.group.library':       I18nRow{'Library', 'Biblioteca', '资源库', 'المكتبة'}
+	'nav.group.operations':    I18nRow{'Operations', 'Operaciones', '运维', 'العمليات'}
+	'nav.group.workspace':     I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
+	'nav.group.insights':      I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
+	'nav.group.settings':      I18nRow{'Settings', 'Ajustes', '设置', 'الإعدادات'}
+	'nav.health':              I18nRow{'Health', 'Salud', '健康', 'الصحة'}
+	'nav.setup':               I18nRow{'Setup', 'Configurar', '设置', 'الإعداد'}
+	'ws.ready':                I18nRow{'ready', 'listo', '就绪', 'جاهز'}
+	'ws.setup_needed':         I18nRow{'setup needed', 'falta configurar', '需要设置', 'يحتاج إعداد'}
 	// status bar
 	'status.palette':          I18nRow{'palette', 'paleta', '命令面板', 'الأوامر'}
 	'status.paperco':          I18nRow{'Paper Co.', 'Paper Co.', '纸业公司', 'شركة الورق'}
@@ -1253,6 +1266,73 @@ fn desc_key(i int) string {
 	return 'desc.' + panel_key(i)[6..]
 }
 
+struct NavRow {
+	panel  int
+	y      int
+	h      int
+	parent bool
+}
+
+fn nav_group_for_panel(panel int) int {
+	return match panel {
+		1, 2, 3, 4, 10 { 1 }
+		5, 6, 7, 8 { 6 }
+		9 { 9 }
+		12 { 12 }
+		11 { 11 }
+		else { 0 }
+	}
+}
+
+fn nav_group_label(app &GuiApp, panel int) string {
+	return match panel {
+		0 { tr(app, 'nav.group.office') }
+		1 { tr(app, 'nav.group.library') }
+		6 { tr(app, 'nav.group.operations') }
+		9 { tr(app, 'nav.group.workspace') }
+		12 { tr(app, 'nav.group.insights') }
+		11 { tr(app, 'nav.group.settings') }
+		else { tr(app, 'nav.group.office') }
+	}
+}
+
+fn nav_children(panel int) []int {
+	return match panel {
+		1 { [1, 2, 3, 4, 10] }
+		6 { [6, 7, 8, 5] }
+		11 { [11] }
+		else { []int{} }
+	}
+}
+
+// nav_rows keeps the six task-oriented destinations permanent while exposing
+// implementation panels only in the relevant local group.
+fn nav_rows(app &GuiApp, h int) []NavRow {
+	term_h := if app.term_visible { app.term_height } else { 0 }
+	bottom := h - 28 - term_h - 12
+	active_group := nav_group_for_panel(app.selected_panel)
+	mut rows := []NavRow{}
+	mut y := 58
+	for group in [0, 1, 6, 9, 12, 11] {
+		if y + 36 > bottom {
+			break
+		}
+		rows << NavRow{ panel: group, y: y, h: 36, parent: true }
+		y += 40
+		if group != active_group {
+			continue
+		}
+		for child in nav_children(group) {
+			if y + 28 > bottom {
+				break
+			}
+			rows << NavRow{ panel: child, y: y, h: 28, parent: false }
+			y += 30
+		}
+	}
+	return rows
+}
+
 // ── RTL geometry — when عربي is active the filing-cabinet flips: dock right,
 // inspector left, panels between. LTR default unchanged. ──
 const dock_w = 200
@@ -1470,7 +1550,9 @@ fn desks_for_app(app &GuiApp) []Desk {
 fn desk_rect(d Desk, idx int, fx int, fy int, fw int, fh int) (int, int, int, int) {
 	mut x := d.x
 	mut y := d.y
-	// Clamp to stay inside floor interior (fx+12 margin, fy+36 top bar)
+	// Clamp to stay inside floor interior (fx+12 margin, fy+36 top bar) and
+	// above the command deck strip. Draw and hit-test both call this, so the
+	// visible card is always the clickable card.
 	if x < fx + 12 {
 		x = fx + 12
 	}
@@ -1480,8 +1562,12 @@ fn desk_rect(d Desk, idx int, fx int, fy int, fw int, fh int) (int, int, int, in
 	if y < fy + 44 {
 		y = fy + 44
 	}
-	if y + 86 > fy + fh - 12 {
-		y = fy + fh - 98
+	deck_top := fy + fh - 68
+	if y + 86 > deck_top - 4 {
+		y = deck_top - 90
+		if y < fy + 44 {
+			y = fy + 44
+		}
 	}
 	return x, y, 140, 86
 }
@@ -1812,7 +1898,7 @@ fn main() {
 		fonts: fonts
 		selected_panel: 0
 		hover_panel: -1
-		selected_desk: 0
+		selected_desk: -1
 		hover_desk: -1
 	}
 	app.gg = gg.new_context(
@@ -1832,22 +1918,127 @@ fn main() {
 	d.shutdown() or {}
 }
 
+fn gui_file_node_from_proxy(node desktop.FileNodeProxy) FileNode {
+	mut children := []FileNode{}
+	for child in node.children {
+		children << gui_file_node_from_proxy(child)
+	}
+	return FileNode{
+		name: node.name
+		kind: node.kind
+		children: children
+		expanded: node.expanded
+		path: node.path
+		depth: node.depth
+		git_status: node.git_status
+	}
+}
+
+fn reload_workspace_tree(mut app GuiApp) {
+	if app.desktop == unsafe { nil } || app.harness_root == '' {
+		app.file_tree = []FileNode{}
+		return
+	}
+	proxies := app.desktop.engine_build_file_tree(app.harness_root, 3)
+	mut nodes := []FileNode{}
+	for node in proxies {
+		nodes << gui_file_node_from_proxy(node)
+	}
+	app.file_tree = nodes
+	app.file_tree_selected = ''
+	app.file_tree_scroll = 0
+	app.editor_tabs = []EditorTab{}
+	app.active_tab = 0
+}
+
+fn apply_workspace(mut app GuiApp, candidate string, source string) bool {
+	return apply_workspace_persist(mut app, candidate, source, true)
+}
+
+// apply_workspace_persist validates and activates a workspace. Auto-detected
+// fallbacks (cwd) activate locally without persisting, so a launch from a
+// random directory never wins over ~/.ai-workspace on the next start.
+fn apply_workspace_persist(mut app GuiApp, candidate string, source string, persist bool) bool {
+	clean := app.desktop.engine_validate_workspace(candidate) or {
+		app.workspace_notice = 'Workspace error: ${err}'
+		return false
+	}
+	if persist {
+		switched := app.desktop.engine_switch_workspace(clean) or {
+			app.workspace_notice = 'Could not switch workspace: ${err}'
+			return false
+		}
+		app.harness_root = switched
+	} else {
+		app.harness_root = clean
+	}
+	app.onboarding_harness = app.harness_root
+	app.workspace_draft = app.harness_root
+	app.workspace_source = source
+	app.workspace_initialized = app.desktop.engine_workspace_initialized(app.harness_root)
+	app.workspace_notice = if app.workspace_initialized {
+		'Workspace ready'
+	} else {
+		'Folder selected - initialize it to add workspace structure'
+	}
+	app.workspace_focus = false
+	app.engine_rev = app.desktop.app_state_snapshot().revision
+	app.api_calls = app.desktop.engine_api_calls()
+	reload_workspace_tree(mut app)
+	return true
+}
+
+fn resolve_workspace_on_start(mut app GuiApp) {
+	persisted := app.desktop.app_state_snapshot().select_recent_workspace()
+	home := os.home_dir()
+	home_real := os.real_path(home)
+	candidates := [
+		os.getenv('AGENT_TOOLKIT_WORKSPACE'),
+		os.getenv('HARNESS_DIR'),
+		persisted,
+		os.join_path(home, '.ai-workspace'),
+		os.getwd(),
+	]
+	sources := ['Environment', 'Environment', 'Recent', 'Default', 'Detected']
+	for i, candidate in candidates {
+		// The home directory itself is never a workspace — old binaries persisted
+		// it and every panel would read the whole home tree as context. Compare
+		// canonical paths so `~`, symlinks, and trailing slashes cannot sneak in.
+		if candidate.trim_space() == '' {
+			continue
+		}
+		if os.real_path(os.expand_tilde_to_home(candidate.trim_space())) == home_real {
+			continue
+		}
+		if apply_workspace_persist(mut app, candidate, sources[i], sources[i] != 'Detected') {
+			return
+		}
+	}
+	app.harness_root = ''
+	app.workspace_draft = os.join_path(home, '.ai-workspace')
+	app.workspace_source = 'Unavailable'
+	app.workspace_notice = 'Choose a workspace folder to get started'
+	app.workspace_initialized = false
+}
+
 fn on_init(mut app GuiApp) {
 	app.frame = 0
 	app.engine_rev = app.desktop.app_state_snapshot().revision
 	app.api_calls = app.desktop.engine_api_calls()
 	app.term_height = 148
-	app.term_visible = true
+	app.term_visible = false
 	app.term_scroll = 0
 	app.term_hover = -1
 	app.term_auto_pin = true
 	app.inspector_hover = -1
 	app.cached_rev = app.engine_rev
 	app.ghost = ghostty.new_terminal(80, 18)
-	app.ghost_focused = true
+	app.ghost_focused = false
 	app.god_inbox = 3
 	app.god_outbox = 2
 	load_ui_state(mut app)
+	app.term_visible = app.term_mode == 0
+	app.ghost_focused = false
 	app.approvals = ['spend \$0.42 — @architect', 'scope write to swarm_recipes.v — @implementer',
 		'destructive git checkout — @reviewer']
 	// seed auto-pin to bottom after first collect
@@ -1900,42 +2091,9 @@ fn on_init(mut app GuiApp) {
 		KanbanTask{'t4', 'Skills 227 catalog', 'todo', 'designer', 'medium'},
 		KanbanTask{'t5', 'Fix V master pin 78e581e', 'done', 'qa-engineer', 'low'},
 	]
-	// harness root for brokered fs (validated via Engine.open_path_validated on every open)
-	app.harness_root = os.getenv('AGENT_TOOLKIT_WORKSPACE')
-	if app.harness_root == '' {
-		app.harness_root = os.getwd()
-	}
-	// brokered validation proves harness_root_escape guard — will be used on file open
-	if _ := app.desktop.engine_open_path_validated(app.harness_root, app.harness_root) {
-	}
-	// file tree — left IDE pane (brokered fs for open, CHANGES/HISTORY/COMPARE rails on right)
-	// Synthetic fallback for headless without workspace; real tree via Engine.build_file_tree also available via Desktop proxy
-	app.file_tree = [
-		FileNode{'agent-toolkit', 'dir', [
-			FileNode{'modules', 'dir', [
-				FileNode{'desktop', 'dir', [
-					FileNode{'window.v', 'file', [], false, 'modules/desktop/window.v', 2, 'modified'},
-					FileNode{'state.v', 'file', [], false, 'modules/desktop/state/app_state.v', 2, ''},
-				], true, 'modules/desktop', 1, ''},
-				FileNode{'ghostty', 'dir', [
-					FileNode{'ghostty.v', 'file', [], false, 'modules/ghostty/ghostty.v', 2, ''},
-				], true, 'modules/ghostty', 1, ''},
-			], true, 'modules', 0, ''},
-			FileNode{'cmd', 'dir', [
-				FileNode{'agent-toolkit-desktop', 'dir', [
-					FileNode{'main.v', 'file', [], false, 'cmd/agent-toolkit-desktop/main.v', 2, 'modified'},
-				], true, 'cmd/agent-toolkit-desktop', 1, ''},
-			], true, 'cmd', 0, ''},
-			FileNode{'skills', 'dir', [
-				FileNode{'core', 'dir', [
-					FileNode{'assistant', 'dir', [
-						FileNode{'SKILL.md', 'file', [], false, 'skills/core/assistant/SKILL.md', 3, ''},
-					], false, 'skills/core/assistant', 2, ''},
-				], false, 'skills/core', 1, ''},
-			], false, 'skills', 0, ''},
-			FileNode{'README.md', 'file', [], false, 'README.md', 0, ''},
-		], true, app.harness_root, 0, ''},
-	]
+	// Resolve once through the Engine so every workspace-bound view starts on
+	// the same canonical root with a real brokered file tree.
+	resolve_workspace_on_start(mut app)
 	// skills 227 — init harness root search state from Engine (super potent)
 	app.skills_query = ''
 	app.skills_domain = ''
@@ -2374,276 +2532,177 @@ fn draw_floor_legend(mut app GuiApp, x int, y int) {
 	app.gg.draw_text(bx + 12 + tr(app, 'world.blocked').len * 7 + 14, y, '— envelopes are handoffs · click or arrows to select', gg.TextCfg{ color: col_slate, size: 12 })
 }
 
+fn workspace_path_label(path string, max_len int) string {
+	if path == '' {
+		return 'Choose workspace'
+	}
+	home := os.home_dir()
+	mut label := path
+	if home != '' && path.starts_with(home) {
+		label = '~' + path[home.len..]
+	}
+	if label.len > max_len {
+		return '...' + label[label.len - max_len + 3..]
+	}
+	return label
+}
+
+fn header_workspace_x() int {
+	return 168
+}
+
+fn header_workspace_w(w int) int {
+	return if w < 1100 { 180 } else { 210 }
+}
+
+fn header_search_x(w int) int {
+	return header_workspace_x() + header_workspace_w(w) + 12
+}
+
+fn header_search_w(w int) int {
+	mut width := w - header_search_x(w) - 206
+	if width < 160 {
+		width = 160
+	}
+	return width
+}
+
+fn nav_child_label(app &GuiApp, panel int) string {
+	return match panel {
+		5 { tr(app, 'nav.health') }
+		11 { tr(app, 'nav.setup') }
+		else { tr(app, panel_key(panel)) }
+	}
+}
+
 fn draw_header(mut app GuiApp, w int) {
-	// Letterhead — Dunder Mifflin paper-company: ink header with paper rule, Fraunces display
-	// Distinctive: typewriter mono for meta, brass rivet at left, no gradient — warm paper #F4EFE6
 	z := app.global_zoom
 	app.gg.draw_rect_filled(0, 0, w, 44, col_charcoal)
-	// paper rule 1px at bottom — letterpress
-	app.gg.draw_rect_filled(0, 44, w, 1, col_line)
-	app.gg.draw_rect_filled(0, 43, w, 1, gg.rgba(251, 246, 232, 10))
-	// warm paper fiber texture in header — faint speck at 1% alpha every 24px (60FPS deterministic, no blur)
-	for fx in 0 .. (w / 24 + 1) {
-		sx := fx * 24 + (int(app.paper_seed) % 12)
-		if sx < w - 2 && app.frame % 60 < 30 {
-			app.gg.draw_rect_filled(sx, 6, 1, 1, gg.rgba(244, 239, 230, 9))
-		}
-	}
-	// brass binder rivet left
-	app.gg.draw_rect_filled(8, 10, 3, 3, gg.rgba(193, 162, 75, 50))
-	// Fraunces display letterhead — Agent (paper) + Toolkit (brass)
-	app.gg.draw_text(16, 13, 'Agent Toolkit', gg.TextCfg{
+	app.gg.draw_rect_filled(0, 43, w, 1, col_line)
+	app.gg.draw_text(16, 12, 'Agent Toolkit', gg.TextCfg{
 		color: col_paper
 		size: scaled_size(font_display_md, z)
 		family: app.fonts.display
 	})
-	app.gg.draw_text(152, 13, 'Desktop', gg.TextCfg{
-		color: col_brass
-		size: scaled_size(font_display_md, z)
-		family: app.fonts.display
-	})
-	// tagline — short, clears the search slot at x=380
-	draw_text_l(mut app, 240, 16, 'header.tagline', gg.TextCfg{ color: col_slate_dim, size: scaled_size(font_body_sm, z) })
-	// ── global search — warm paper slot with manila border, tractor-feed dots ──
-	sx_search := 380
-	sw_search := 260
-	sy_search := 8
-	search_focused := app.header_search_focus
-	search_txt := if app.global_search == '' { tr(app, 'header.search') } else { app.global_search }
-	search_col := if app.global_search == '' { col_slate_dim } else { col_ink }
-	search_bg := if search_focused { col_cream100 } else { col_paper }
-	search_bd := if search_focused { col_brass } else { col_line_light }
-	app.gg.draw_rect_filled(sx_search, sy_search, sw_search, 28, search_bg)
-	app.gg.draw_rect_empty(sx_search, sy_search, sw_search, 28, search_bd)
-	// perforated tractor dots inside search left
-	for py in 0 .. 3 {
-		app.gg.draw_rect_filled(sx_search + 4, sy_search + 6 + py * 7, 1, 1, gg.rgba(193, 162, 75, 34))
-	}
-	draw_search_lens(mut app, sx_search + 10, sy_search + 9)
-	st_fam := if app.global_search == '' { family_for(app, search_txt) } else { '' }
-	st_cfg := gg.TextCfg{
-		color: search_col
+	app.gg.draw_rect_filled(8, 10, 3, 3, col_brass)
+
+	wx := header_workspace_x()
+	ww := header_workspace_w(w)
+	workspace_bg := if app.workspace_focus { col_ink700 } else { col_charcoal2 }
+	workspace_border := if app.workspace_focus { col_brass } else { col_line }
+	app.gg.draw_rect_filled(wx, 6, ww, 32, workspace_bg)
+	app.gg.draw_rect_empty(wx, 6, ww, 32, workspace_border)
+	app.gg.draw_text(wx, 9, tr(app, 'header.workspace'), gg.TextCfg{ color: col_brass, size: scaled_size(10, z), bold: true })
+	app.gg.draw_text(wx + 8, 22, workspace_path_label(app.harness_root, 24), gg.TextCfg{
+		color: col_paper
 		size: scaled_size(12, z)
-		family: st_fam
+		mono: true
+	})
+	app.gg.draw_text(wx + ww - 16, 16, 'v', gg.TextCfg{ color: col_slate_dim, size: scaled_size(12, z), bold: true })
+
+	sx_search := header_search_x(w)
+	sw_search := header_search_w(w)
+	search_txt := if app.global_search == '' {
+		tr(app, 'header.search')
+	} else {
+		app.global_search
 	}
-	app.gg.draw_text(sx_search + 26, sy_search + 8, search_txt, st_cfg)
-	// cursor when focused
-	if search_focused && app.frame % 30 < 15 && app.global_search != '' {
+	search_bg := if app.header_search_focus { col_cream100 } else { col_paper }
+	search_bd := if app.header_search_focus { col_brass } else { col_line_light }
+	app.gg.draw_rect_filled(sx_search, 8, sw_search, 28, search_bg)
+	app.gg.draw_rect_empty(sx_search, 8, sw_search, 28, search_bd)
+	draw_search_lens(mut app, sx_search + 10, 17)
+	app.gg.draw_text(sx_search + 26, 16, search_txt, gg.TextCfg{
+		color: if app.global_search == '' { col_ink_soft } else { col_ink }
+		size: scaled_size(12, z)
+		family: if app.global_search == '' { family_for(app, search_txt) } else { '' }
+	})
+	if app.header_search_focus && app.global_search != '' && app.frame % 30 < 15 {
 		cursor_x := sx_search + 26 + app.global_search.len * 7
 		if cursor_x < sx_search + sw_search - 18 {
-			app.gg.draw_rect_filled(cursor_x, sy_search + 8, 2, 14, col_brass)
+			app.gg.draw_rect_filled(cursor_x, 16, 2, 14, col_brass)
 		}
 	}
-	// clear × when has text
 	if app.global_search != '' {
-		app.gg.draw_text(sx_search + sw_search - 16, sy_search + 8, '×', gg.TextCfg{ color: col_slate, size: scaled_size(12, z) })
+		app.gg.draw_text(sx_search + sw_search - 16, 16, 'x', gg.TextCfg{ color: col_ink_soft, size: scaled_size(12, z), bold: true })
 	}
-	// match count when searching
-	if app.global_search != '' {
-		cnt := app.desktop.engine_skills_search(app.global_search, '').len
-		app.gg.draw_text(sx_search + sw_search + 8, sy_search + 9, '${cnt} match', gg.TextCfg{ color: col_brass_dim, size: scaled_size(11, z) })
-	}
-	// ── language chips — EN / ES / 中文 / عربي (i18n 4-lang, RTL aware) ──
-	lx := w - 466
+
+	lx := w - 180
 	for li, l in [Lang.en, Lang.es, Lang.zh, Lang.ar] {
 		active := app.lang == l
 		label := l.chip()
-		cw := if label.len <= 2 { 30 } else { 38 }
-		chx := lx + li * 40
-		mut chbg := if active { col_brass } else { col_charcoal2 }
-		mut chbd := if active { col_brass } else { col_line }
-		hover_lg := app.lang_hover == int(l)
-		if hover_lg && !active {
-			chbg = col_ink700
-			chbd = col_line_light
-		}
-		app.gg.draw_rect_filled(chx, 10, cw, 18, chbg)
-		app.gg.draw_rect_empty(chx, 10, cw, 18, chbd)
-		mut fam := ''
-		if li == 2 {
-			fam = app.fonts.sc
-		} else if li == 3 {
-			fam = app.fonts.arabic
-		}
-		lcfg := gg.TextCfg{
+		chx := lx + li * 34
+		app.gg.draw_rect_filled(chx, 10, 30, 22, if active { col_brass } else { col_charcoal2 })
+		app.gg.draw_rect_empty(chx, 10, 30, 22, if active { col_brass } else { col_line })
+		fam := if li == 2 {
+			app.fonts.sc
+		} else if li == 3 { app.fonts.arabic } else { '' }
+		app.gg.draw_text(chx + 6, 15, label, gg.TextCfg{
 			color: if active { col_ink } else { col_slate_dim }
 			size: 11
 			bold: active
 			family: fam
-		}
-		app.gg.draw_text(chx + (cw - label.len * 6) / 2, 14, label, lcfg)
+		})
 	}
-	app.gg.draw_text(w - 895 - 400, 14, '中文', gg.TextCfg{ color: gg.rgb(0xC4, 0x5A, 0x3C), size: 11, family: app.fonts.sc })
-	app.gg.draw_text(w - 300, 10, 'v${app.version}', gg.TextCfg{ color: col_paper_dim, size: scaled_size(13, z) })
-	app.gg.draw_rect_filled(w - 530, 14, 7, 7, col_mint)
-	draw_text_l(mut app, w - 518, 10, 'header.live', gg.TextCfg{ color: col_mint, size: scaled_size(13, z), bold: true })
-	// ── global zoom slider — paper tape track with brass thumb, 60FPS drag ──
-	zx := w - 236
-	zy := 18
-	zw := 84
-	zh := 6
-	// track bg: manila + steel border
-	app.gg.draw_rect_filled(zx, zy, zw, zh, col_paper_dim)
-	app.gg.draw_rect_empty(zx, zy, zw, zh, col_line_light)
-	// fill proportionally: 0.75→0, 1.0→33%, 1.5→100%
-	mut pct := (z - 0.75) / 0.75
-	if pct < 0 {
-		pct = 0
-	}
-	if pct > 1 {
-		pct = 1
-	}
-	fill_w := int(f64(zw) * pct)
-	if fill_w > 0 {
-		app.gg.draw_rect_filled(zx, zy, fill_w, zh, col_brass)
-	}
-	// thumb — brass with ink border, paper highlight
-	mut thumb_x := zx + fill_w - 5
-	if thumb_x < zx {
-		thumb_x = zx
-	}
-	if thumb_x > zx + zw - 8 {
-		thumb_x = zx + zw - 8
-	}
-	thumb_col := if app.zoom_dragging { col_brass } else { col_paper }
-	app.gg.draw_rect_filled(thumb_x, zy - 4, 10, 14, thumb_col)
-	app.gg.draw_rect_empty(thumb_x, zy - 4, 10, 14, col_brass_dim)
-	app.gg.draw_rect_filled(thumb_x + 1, zy - 3, 8, 2, gg.rgba(251, 246, 232, 22))
-	// zoom percent text
-	app.gg.draw_text(zx + zw + 8, 10, zoom_percent(z), gg.TextCfg{ color: col_brass, size: scaled_size(11, z), bold: true })
-	// minus / plus hints at track ends
-	app.gg.draw_text(zx - 10, zy - 1, '−', gg.TextCfg{ color: col_slate, size: scaled_size(10, z) })
-	app.gg.draw_text(zx + zw + 2, zy - 1, '+', gg.TextCfg{ color: col_slate, size: scaled_size(10, z) })
-	bx := w - 112
-	by := 10
-	app.gg.draw_rect_filled(bx, by, 96, 24, col_ink)
-	app.gg.draw_rect_empty(bx, by, 96, 24, col_line_light)
-	// perforated dots on command badge left edge
-	for py in 0 .. 2 {
-		app.gg.draw_rect_filled(bx + 1, by + 6 + py * 8, 1, 1, gg.rgba(193, 162, 75, 60))
-	}
-	app.gg.draw_text(bx + 16, by + 6, '/', gg.TextCfg{ color: col_brass, size: scaled_size(13, z), bold: true })
-	draw_text_l(mut app, bx + 40, by + 7, 'header.commands', gg.TextCfg{ color: col_slate_dim, size: scaled_size(12, z) })
+	cmd_x := w - 42
+	app.gg.draw_rect_filled(cmd_x, 8, 30, 28, col_ink700)
+	app.gg.draw_rect_empty(cmd_x, 8, 30, 28, col_line_light)
+	app.gg.draw_text(cmd_x + 10, 15, '/', gg.TextCfg{ color: col_brass, size: scaled_size(14, z), bold: true })
 }
 
 fn draw_left_dock(mut app GuiApp, h int) {
-	z := app.global_zoom
 	term_h := if app.term_visible { app.term_height } else { 0 }
 	y0 := 45
-	dw := dock_w
-	dock_l := if app.lang.is_rtl() { app.gg.width - dw } else { 0 }
-	// file drawer — ink spine with manila edge
-	app.gg.draw_rect_filled(dock_l, y0, dw, h - y0 - 28 - term_h, col_charcoal)
-	// manila folder tab — the filing-cabinet signature, top of the spine
-	app.gg.draw_rect_filled(dock_l + 12, y0 + 8, 118, 16, col_manila_tab)
-	app.gg.draw_rect_filled(dock_l + 12, y0 + 22, 118, 1, gg.rgba(201, 168, 107, 90))
-	draw_text_l(mut app, dock_l + 20, y0 + 11, 'header.tagline', gg.TextCfg{
-		color: col_ink
-		size: scaled_size(10, z)
-		bold: true
-	})
-	// vertical perforated dots each 16px along spine (paper-company file)
-	for py in 0 .. ((h - y0 - term_h) / 16) {
-		py_y := y0 + 34 + py * 16
-		if py_y < h - 28 - term_h - 12 {
-			mut px := dock_l + dw - 4
-			if app.lang.is_rtl() {
-				px = dock_l + 3
-			}
-			app.gg.draw_rect_filled(px, py_y, 2, 2, gg.rgba(193, 162, 75, 22))
-			app.gg.draw_rect_filled(px + 1, py_y + 1, 1, 1, gg.rgba(251, 246, 232, 18))
+	dock_l := dock_x(app, app.gg.width)
+	app.gg.draw_rect_filled(dock_l, y0, dock_w, h - y0 - 28 - term_h, col_charcoal)
+	app.gg.draw_line(dock_l + dock_w, y0, dock_l + dock_w, h - 28 - term_h, col_line)
+	app.gg.draw_text(dock_l + 16, y0 + 10, tr(app, 'header.navigate'), gg.TextCfg{ color: col_brass, size: 11, bold: true })
+	for row in nav_rows(app, h) {
+		row_x := dock_l + 8
+		group_active := nav_group_for_panel(app.selected_panel) == row.panel
+		active := if row.parent { group_active } else { app.selected_panel == row.panel }
+		hover := app.hover_panel == row.panel
+		if active {
+			app.gg.draw_rect_filled(row_x, row.y, dock_w - 16, row.h, col_ink700)
+			app.gg.draw_rect_empty(row_x, row.y, dock_w - 16, row.h, col_brass)
+			rail_x := if app.lang.is_rtl() { row_x + dock_w - 19 } else { row_x }
+			app.gg.draw_rect_filled(rail_x, row.y, 3, row.h, col_brass)
+		} else if hover {
+			app.gg.draw_rect_filled(row_x, row.y, dock_w - 16, row.h, col_charcoal2)
 		}
-	}
-	app.gg.draw_line(dock_l + dw, y0, dock_l + dw, h - 28 - term_h, col_line)
-	for i in 0 .. 13 {
-		y := y0 + 8 + i * 32
-		if y + 30 > h - 28 - term_h - 40 {
-			break
-		}
-		is_active := i == app.selected_panel
-		is_hover := i == app.hover_panel
-		row_l := dock_l + 8
-		if is_active {
-			app.gg.draw_rect_filled(row_l, y, dw - 16, 28, col_ink)
-			app.gg.draw_rect_empty(row_l, y, dw - 16, 28, col_brass)
-			rail_x := if app.lang.is_rtl() { row_l + dw - 16 - 3 } else { row_l }
-			app.gg.draw_rect_filled(rail_x, y, 3, 28, col_brass)
-		} else if is_hover {
-			app.gg.draw_rect_filled(row_l, y, dw - 16, 28, col_charcoal2)
-			app.gg.draw_rect_empty(row_l, y, dw - 16, 28, col_line_light)
-		}
-		mut num := '${i + 1}'
-		if i == 9 {
-			num = '0'
-		} else if i == 10 {
-			num = 'P'
-		} else if i == 11 {
-			num = 'O'
-		} else if i == 12 {
-			num = 'I'
-		}
-		// number sits at the outer edge (left LTR / right RTL)
-		num_x := if app.lang.is_rtl() { row_l + dw - 34 } else { row_l + 10 }
-		txt_x := if app.lang.is_rtl() { row_l + 12 } else { row_l + 28 }
-		col := if is_active { col_brass } else { col_slate_dim }
-		app.gg.draw_text(num_x, y + 8, num, gg.TextCfg{ color: col, size: scaled_size(12, z), bold: true })
-		name := tr(app, panel_key(i))
-		desc := tr(app, desc_key(i))
-		name_col := if is_active { col_paper } else { gg.rgb(232, 222, 200) }
-		draw_script_text(mut app, txt_x, y + 4, name, gg.TextCfg{
-			color: name_col
-			size: scaled_size(14, z)
-			bold: is_active
-		})
-		desc_align := if app.lang.is_rtl() {
-			gg.HorizontalAlign.right
+		label := if row.parent {
+			nav_group_label(app, row.panel)
 		} else {
-			gg.HorizontalAlign.left
+			nav_child_label(app, row.panel)
 		}
-		desc_x := if app.lang.is_rtl() { row_l + dw - 24 } else { txt_x }
-		draw_script_text(mut app, desc_x, y + 16, desc, gg.TextCfg{
-			color: col_slate_dim
-			size: scaled_size(11, z)
-			align: desc_align
-		})
-		count := match i {
-			1 { '227' }
-			2 { '18' }
-			3 { '7' }
-			4 { '7' }
-			6 { '3' }
-			7 { '5' }
-			8 { '3' }
-			9 { 'IDE' }
-			10 { '3+7' }
-			11 {
-				if app.desktop != unsafe { nil } && app.desktop.engine_is_first_run() { '!' } else { '✓' }
-			}
-			12 { '•' }
-			else { '' }
-		}
-		if count != '' {
-			bcol := if i == 11 && app.desktop != unsafe { nil } && app.desktop.engine_is_first_run() {
-				col_coral
+		label_x := if row.parent { row_x + 38 } else { row_x + 48 }
+		if row.parent {
+			app.gg.draw_rect_filled(row_x + 14, row.y + 14, 8, 8, if active {
+				col_brass
 			} else {
 				col_slate
-			}
-			cnt_x := if app.lang.is_rtl() { row_l + 12 } else { row_l + dw - 40 }
-			app.gg.draw_text(cnt_x, y + 9, count, gg.TextCfg{ color: bcol, size: 12, bold: i == 11 })
+			})
 		}
-	}
-	term_h2 := if app.term_visible { app.term_height } else { 0 }
-	// MAX terminal frees the whole content area — skip the spine footer texts
-	if term_h2 < 400 {
-		app.gg.draw_text(dock_l + 14, h - 52 - term_h2, 'Single binary, one Engine', gg.TextCfg{
-			color: col_slate
-			size: 12
-		})
-		app.gg.draw_text(dock_l + 14, h - 40 - term_h2, 'No Electron • Sokol/gg', gg.TextCfg{
-			color: col_slate
-			size: 12
+		app.gg.draw_text(label_x, row.y + if row.parent { 10 } else { 7 }, label, gg.TextCfg{
+			color: if active { col_paper } else { col_paper_dim }
+			size: if row.parent { 14 } else { 13 }
+			bold: active || row.parent
 		})
 	}
+	ready := if app.workspace_initialized {
+		tr(app, 'ws.ready')
+	} else {
+		tr(app, 'ws.setup_needed')
+	}
+	app.gg.draw_text(dock_l + 16, h - 56 - term_h, workspace_path_label(app.harness_root, 22), gg.TextCfg{
+		color: col_slate_dim
+		size: 11
+		mono: true
+	})
+	app.gg.draw_text(dock_l + 16, h - 42 - term_h, ready, gg.TextCfg{
+		color: if app.workspace_initialized { col_mint } else { col_brass }
+		size: 11
+	})
 }
 
 fn draw_world(mut app GuiApp, w int, h int) {
@@ -2741,22 +2800,13 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	desks := desks_for_app(app)
 
 	// Precompute clamped rects so draw, envelopes, and hit-test share the same geometry.
+	// desk_rect owns the command-deck clamp — no draw-only adjustment here.
 	mut rects_x := []int{cap: desks.len}
 	mut rects_y := []int{cap: desks.len}
 	for idx, d in desks {
 		dx, dy, _, _ := desk_rect(d, idx, fx, fy, fw, fh)
 		rects_x << dx
 		rects_y << dy
-	}
-	// Reserve command deck strip at bottom so desks don't overlap deck — shift any overlapping rect up
-	deck_top := fy + fh - 68
-	for i in 0 .. rects_y.len {
-		if rects_y[i] + 86 > deck_top - 4 {
-			rects_y[i] = deck_top - 86 - 6
-			if rects_y[i] < fy + 44 {
-				rects_y[i] = fy + 44
-			}
-		}
 	}
 
 	// Handoff envelopes — fly desk-to-desk with GOD mailbox 4*t*(1-t) parabolic arc and fading trail.
@@ -2848,6 +2898,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// Desks — AgentCard 200×80 → 140×86 compact, munder pixel-panel + status chip, lowercase badges
 	// Alt variant divergence: specialist/runtime desks use 'alt' wood panel vs holistic 'default' cream — workshop divergence
 	for idx, d in desks {
+		// use the clamped rects — desk_rect's own clamp was lost (deck overlap)
 		dx := rects_x[idx]
 		dy := rects_y[idx]
 		is_selected := idx == app.selected_desk
@@ -2877,31 +2928,25 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		} else {
 			app.gg.draw_rect_empty(dx + 10, dy + 10, 8, 8, status_col)
 		}
-		label := if d.label.len > 17 { d.label[..17] } else { d.label }
-		// long agent names shrink to stay inside the 140px card
-		name_size := if d.label.len > 14 { 11 } else { 14 }
-		app.gg.draw_text(dx + 22, dy + 9, label, gg.TextCfg{ color: col_ink, size: name_size, bold: false })
-		app.gg.draw_text(dx + 10, dy + 24, d.role, gg.TextCfg{ color: col_ink700, size: font_body_sm })
-		for a in 0 .. 3 {
-			ax := dx + 10 + a * 16
-			ay := dy + 40
-			mut acol := if a == 0 { col_brass } else { col_slate_dim }
-			if d.status == 'working' && a == 1 {
-				acol = gg.rgb(90, 200, 120)
-			}
-			if is_selected && a == 0 {
-				acol = col_brass
-			}
-			app.gg.draw_rect_filled(ax, ay, 12, 12, acol)
-			initial := d.label[0].ascii_str().to_upper()
-			app.gg.draw_text(ax + 3, ay + 1, initial, gg.TextCfg{ color: col_ink, size: 11, bold: true })
-			if is_hover && a == 3 {
-				app.gg.draw_rect_filled(ax + 9, ay + 9, 3, 3, col_brass_dim)
-			}
+		label := if d.label.len > 15 { d.label[..15] } else { d.label }
+		// name row: status dot + label (Fraunces display, legible at a glance)
+		app.gg.draw_rect_filled(dx + 10, dy + 12, 6, 6, status_col)
+		app.gg.draw_text(dx + 22, dy + 8, label, gg.TextCfg{
+			color: col_ink
+			size: 13
+			family: app.fonts.display
+			bold: true
+		})
+		// role chip — manila stamp; tier sits right-aligned, never overflows the card
+		app.gg.draw_rect_filled(dx + 10, dy + 30, d.role.len * 6 + 12, 14, col_manila_tab)
+		app.gg.draw_text(dx + 14, dy + 32, d.role, gg.TextCfg{ color: col_ink_soft, size: 9 })
+		mut tier_x := dx + 128 - d.tier.len * 6
+		if tier_x < dx + 10 {
+			tier_x = dx + 10
 		}
-		// lowercase status badge per munder, 8 display
-		app.gg.draw_text(dx + 10, dy + 60, '${d.tier}  •  ${d.status.to_lower()}', gg.TextCfg{ color: col_ink500, size: font_display_sm })
-		app.gg.draw_text(dx + 10, dy + 72, 'rev ${app.engine_rev + u64(idx)}', gg.TextCfg{ color: col_ink300, size: font_mono_sm })
+		app.gg.draw_text(tier_x, dy + 32, d.tier, gg.TextCfg{ color: col_steel_ink, size: 9 })
+		// status text — readable, single line
+		app.gg.draw_text(dx + 10, dy + 52, d.status, gg.TextCfg{ color: status_col, size: 10, bold: true })
 		if is_selected {
 			app.gg.draw_rect_filled(dx + 118, dy + 74, 5, 5, col_lemon)
 		}
@@ -2910,8 +2955,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			glines := app.per_desk_ghost[idx].visible_lines()
 			if glines.len > 0 {
 				// compact strip below desk card — proves 40×6 per-desk VT is live
-				strip_y := dy + 88
-				if strip_y + 10 <= fy + fh - 2 {
+				strip_y := dy + 62
+				if strip_y + 10 <= fy + fh - 2 && strip_y + 10 <= dy + 84 {
 					mut t := glines[glines.len - 1]
 					// strip control chars
 					mut clean2 := ''
@@ -3096,7 +3141,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			})
 		}
 		// selected halo — brass double border when selected desk matches avatar
-		if av.id == desks[app.selected_desk].id {
+		if app.selected_desk >= 0 && app.selected_desk < desks.len && av.id == desks[app.selected_desk].id {
 			app.gg.draw_rect_empty(ax - 13, ay - 13, 26, 26, col_lemon)
 			app.gg.draw_rect_empty(ax - 14, ay - 14, 28, 28, gg.rgba(220, 171, 60, 60))
 		}
@@ -4834,9 +4879,8 @@ fn toggle_expand_recursive(mut children []FileNode, target_path string) bool {
 	return false
 }
 
-// draw_kanban is 25-line helper — easy to manage trio columns.
-fn draw_kanban(mut app GuiApp, fx int, fy int, fw int) {
-	y0 := fy + 52
+// draw_kanban is a compact project snapshot inside Workspace.
+fn draw_kanban(mut app GuiApp, fx int, y0 int, fw int) {
 	h := 108
 	pixel_panel(mut app, fx + 12, y0, fw - 24, h, 'default')
 	app.gg.draw_text(fx + 24, y0 + 8, 'Kanban', gg.TextCfg{ color: col_ink, size: font_display_sm })
@@ -5301,33 +5345,184 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 	}
 }
 
-fn draw_workspace(mut app GuiApp, w int, h int) {
+struct WorkspaceLayout {
+	fx         int
+	fy         int
+	fw         int
+	fh         int
+	control_y  int
+	field_x    int
+	field_y    int
+	field_w    int
+	validate_x int
+	switch_x   int
+	init_x     int
+	kanban_y   int
+	mid_y      int
+	mid_h      int
+	mem_y      int
+	mem_h      int
+}
+
+// workspace_layout is shared by drawing and pointer handling. Keeping the
+// geometry in one place prevents a visual reflow from moving the hit targets.
+fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 	fx := panel_fx(app)
 	fy := 52
 	fw := panel_fw(app, w)
-	term_h_ws := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_ws
-	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.workspace'), 'file-tree · editor tabs · CHANGES/HISTORY/COMPARE · commit graph · memory palace', 'rev ${app.engine_rev}')
-	// kanban super potent top
-	draw_kanban(mut app, fx, fy, fw)
-	// middle IDE: file tree | editor | git rails
-	mid_y := fy + 52 + 108 + 12
+	term_h := if app.term_visible { app.term_height } else { 0 }
+	fh := h - fy - 28 - term_h
+	control_y := fy + 48
+	init_x := fx + fw - 82
+	switch_x := init_x - 66
+	validate_x := switch_x - 72
+	field_x := fx + 24
+	field_y := control_y + 26
+	mut field_w := validate_x - field_x - 8
+	if field_w < 120 {
+		field_w = 120
+	}
+	kanban_y := fy + 124
+	mid_y := kanban_y + 108 + 12
 	mem_h := 92
-	mut mid_h := fh - (108 + 12 + mem_h + 20)
+	mut mid_h := fy + fh - mid_y - mem_h - 12
 	if mid_h < 120 {
 		mid_h = 120
 	}
+	return WorkspaceLayout{
+		fx: fx
+		fy: fy
+		fw: fw
+		fh: fh
+		control_y: control_y
+		field_x: field_x
+		field_y: field_y
+		field_w: field_w
+		validate_x: validate_x
+		switch_x: switch_x
+		init_x: init_x
+		kanban_y: kanban_y
+		mid_y: mid_y
+		mid_h: mid_h
+		mem_y: mid_y + mid_h + 6
+		mem_h: mem_h
+	}
+}
+
+fn validate_workspace_draft(mut app GuiApp) bool {
+	clean := app.desktop.engine_validate_workspace(app.workspace_draft) or {
+		app.workspace_notice = 'Workspace error: ${err}'
+		return false
+	}
+	app.workspace_draft = clean
+	app.workspace_initialized = app.desktop.engine_workspace_initialized(clean)
+	app.workspace_notice = if app.workspace_initialized {
+		'Workspace is ready to use'
+	} else {
+		'Folder is valid. Initialize it to add workspace structure'
+	}
+	return true
+}
+
+fn initialize_workspace(mut app GuiApp) bool {
+	if !apply_workspace(mut app, app.workspace_draft, 'Manual') {
+		// A path that does not exist yet is still init-able: onboarding_ensure_workspace
+		// creates the folder and scaffolds the workspace structure in one revision.
+		if !os.is_dir(os.expand_tilde_to_home(app.workspace_draft.trim_space())) {
+			rev := app.desktop.onboarding_ensure_workspace(app.workspace_draft) or {
+				app.workspace_notice = 'Workspace initialization failed: ${err}'
+				return false
+			}
+			app.workspace_notice = 'Workspace created (revision ${rev})'
+			return apply_workspace(mut app, app.workspace_draft, 'Manual')
+		}
+		return false
+	}
+	rev := app.desktop.onboarding_ensure_workspace(app.harness_root) or {
+		app.workspace_notice = 'Workspace initialization failed: ${err}'
+		return false
+	}
+	app.workspace_initialized = app.desktop.engine_workspace_initialized(app.harness_root)
+	app.workspace_notice = 'Workspace initialized (revision ${rev})'
+	app.engine_rev = app.desktop.app_state_snapshot().revision
+	app.api_calls = app.desktop.engine_api_calls()
+	reload_workspace_tree(mut app)
+	return true
+}
+
+fn select_panel(mut app GuiApp, panel int) {
+	app.selected_panel = panel
+	app.show_onboarding = panel == 11
+	app.header_search_focus = false
+	app.workspace_focus = false
+	app.ghost_focused = false
+	if panel != 0 {
+		app.selected_desk = -1
+	}
+}
+
+fn focus_workspace(mut app GuiApp) {
+	select_panel(mut app, 9)
+	app.workspace_focus = true
+}
+
+fn draw_workspace(mut app GuiApp, w int, h int) {
+	l := workspace_layout(app, w, h)
+	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, col_cream50)
+	paper_letterhead(mut app, l.fx, l.fy, l.fw, tr(app, 'panel.workspace'), 'Files, project context, and memory for the active workspace', app.workspace_source)
+	control_y := l.control_y
+	control_h := 68
+	pixel_panel(mut app, l.fx + 12, control_y, l.fw - 24, control_h, 'default')
+	app.gg.draw_text(l.fx + 24, control_y + 8, 'ACTIVE WORKSPACE', gg.TextCfg{ color: col_ink, size: 13, bold: true })
+	state_label := if app.workspace_initialized { 'Ready' } else { 'Needs setup' }
+	state_col := if app.workspace_initialized { col_mint } else { col_brass_dim }
+	app.gg.draw_text(l.fx + l.fw - 104, control_y + 8, state_label, gg.TextCfg{ color: state_col, size: 12, bold: true })
+	field_bg := if app.workspace_focus { col_paper } else { col_cream100 }
+	field_bd := if app.workspace_focus { col_brass } else { col_ink300 }
+	app.gg.draw_rect_filled(l.field_x, l.field_y, l.field_w, 28, field_bg)
+	app.gg.draw_rect_empty(l.field_x, l.field_y, l.field_w, 28, field_bd)
+	path_label := workspace_path_label(app.workspace_draft, 64)
+	app.gg.draw_text(l.field_x + 8, l.field_y + 7, path_label, gg.TextCfg{ color: col_ink, size: 12, mono: true })
+	if app.workspace_focus && app.frame % 30 < 15 {
+		cursor_x := l.field_x + 8 + path_label.len * 7
+		if cursor_x < l.field_x + l.field_w - 4 {
+			app.gg.draw_rect_filled(cursor_x, l.field_y + 6, 2, 16, col_brass)
+		}
+	}
+	for action in [
+		['Validate', '${l.validate_x}', 'validate'],
+		['Switch', '${l.switch_x}', 'switch'],
+		['Initialize', '${l.init_x}', 'init'],
+	] {
+		x := action[1].int()
+		is_init := action[2] == 'init'
+		bg := if is_init && !app.workspace_initialized { col_brass } else { col_ink }
+		fg := if is_init && !app.workspace_initialized { col_ink } else { col_paper }
+		app.gg.draw_rect_filled(x, l.field_y, if is_init { 58 } else { 64 }, 28, bg)
+		app.gg.draw_rect_empty(x, l.field_y, if is_init { 58 } else { 64 }, 28, col_brass_dim)
+		app.gg.draw_text(x + 7, l.field_y + 8, action[0], gg.TextCfg{ color: fg, size: 11, bold: true })
+	}
+	if app.workspace_notice != '' {
+		app.gg.draw_text(l.fx + 24, control_y + 56, app.workspace_notice, gg.TextCfg{
+			color: if app.workspace_notice.contains('error') || app.workspace_notice.contains('Could not') {
+				col_oxide} else {
+				col_ink_soft}
+			size: 11
+		})
+	}
+	// The project snapshot stays below the workspace control so the selected
+	// path is visible before any file or memory data is interpreted.
+	draw_kanban(mut app, l.fx, l.kanban_y, l.fw)
+	// middle IDE: file tree | editor | git rails
 	// left file tree 180
-	draw_file_tree_panel(mut app, fx + 12, mid_y, 180, mid_h)
+	draw_file_tree_panel(mut app, l.fx + 12, l.mid_y, 180, l.mid_h)
 	// center editor
-	editor_w := fw - 24 - 180 - 4 - 240
-	draw_editor_panel(mut app, fx + 12 + 180 + 4, mid_y, editor_w, mid_h)
+	editor_w := l.fw - 24 - 180 - 4 - 240
+	draw_editor_panel(mut app, l.fx + 12 + 180 + 4, l.mid_y, editor_w, l.mid_h)
 	// right git rails 240
-	draw_git_rails_panel(mut app, fx + fw - 240 - 12, mid_y, 240, mid_h)
+	draw_git_rails_panel(mut app, l.fx + l.fw - 240 - 12, l.mid_y, 240, l.mid_h)
 	// bottom memory palace semantic recall
-	mem_y := mid_y + mid_h + 6
-	draw_memory_palace_panel(mut app, fx + 12, mem_y, fw - 24, mem_h)
+	draw_memory_palace_panel(mut app, l.fx + 12, l.mem_y, l.fw - 24, l.mem_h)
 }
 
 // ── Products & Packs — super potent easy management ─────────────────────────────────
@@ -6991,6 +7186,9 @@ fn draw_help(mut app GuiApp, w int, h int) {
 }
 
 fn activate_palette_selection(mut app GuiApp) {
+	app.workspace_focus = false
+	app.header_search_focus = false
+	app.ghost_focused = false
 	filtered := filtered_palette(app.palette_query)
 	if filtered.len == 0 {
 		app.palette_open = false
@@ -7041,6 +7239,10 @@ fn activate_palette_selection(mut app GuiApp) {
 		}
 		'workspace' {
 			app.selected_panel = 9
+		}
+		'workspace_sync' {
+			app.selected_panel = 9
+			app.inspector_msg = 'Workspace — pick or edit the path here; Validate checks it, Switch activates it'
 		}
 		'products' {
 			app.selected_panel = 10
@@ -7203,6 +7405,68 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
+		// Text fields capture keys before global shortcuts. In particular, a
+		// workspace path needs '/', digits, and '~' without opening commands or
+		// navigating to a different panel.
+		if app.workspace_focus {
+			if e.key_code == .escape || e.key_code == .tab {
+				app.workspace_focus = false
+				return
+			}
+			if e.key_code == .enter {
+				apply_workspace(mut app, app.workspace_draft, 'Manual')
+				return
+			}
+			if e.key_code == .backspace {
+				if app.workspace_draft.len > 0 {
+					// strip a whole rune — byte slicing corrupts multibyte paths
+					runes := app.workspace_draft.runes()
+					app.workspace_draft = runes[..runes.len - 1].string()
+				}
+				return
+			}
+			is_workspace_mod := (e.modifiers & u32(gg.Modifier.ctrl)) != 0 || (e.modifiers & u32(gg.Modifier.super)) != 0
+			if !is_workspace_mod && ((e.char_code >= 32 && e.char_code < 127) || e.char_code > 127) {
+				app.workspace_draft += rune(e.char_code).str()
+				return
+			}
+			return
+		}
+		if app.header_search_focus {
+			if e.key_code == .escape {
+				app.header_search_focus = false
+				app.global_search = ''
+				app.skills_query = ''
+				return
+			}
+			if e.key_code == .enter {
+				app.skills_query = app.global_search
+				app.palette_query = app.global_search
+				if app.global_search != '' {
+					select_panel(mut app, 1)
+				}
+				app.header_search_focus = false
+				return
+			}
+			if e.key_code == .backspace {
+				if app.global_search.len > 0 {
+					app.global_search = app.global_search[..app.global_search.len - 1]
+					if app.selected_panel == 1 {
+						app.skills_query = app.global_search
+					}
+				}
+				return
+			}
+			is_search_mod := (e.modifiers & u32(gg.Modifier.ctrl)) != 0 || (e.modifiers & u32(gg.Modifier.super)) != 0
+			if !is_search_mod && ((e.char_code >= 32 && e.char_code < 127) || e.char_code > 127) {
+				app.global_search += rune(e.char_code).str()
+				if app.selected_panel == 1 {
+					app.skills_query = app.global_search
+				}
+				return
+			}
+			return
+		}
 		if e.key_code == .escape {
 			if app.palette_open {
 				app.palette_open = false
@@ -7313,46 +7577,6 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.inspector_msg = 'Handoff routed: ${desks[app.selected_desk].label} → reviewer'
 			}
 			return
-		}
-		// ── global header search — warm paper, filters palette + skills + desks ──
-		if !app.palette_open && !app.show_help && app.header_search_focus {
-			if e.key_code == .backspace {
-				if app.global_search.len > 0 {
-					app.global_search = app.global_search[..app.global_search.len - 1]
-					// also propagate to skills when on skills panel for convenience
-					if app.selected_panel == 1 {
-						app.skills_query = app.global_search
-					}
-				}
-				return
-			}
-			if e.key_code == .escape {
-				app.header_search_focus = false
-				app.global_search = ''
-				app.skills_query = ''
-				return
-			}
-			if e.key_code == .enter {
-				// commit search to skills panel + command palette
-				app.skills_query = app.global_search
-				app.palette_query = app.global_search
-				if app.global_search != '' {
-					app.selected_panel = 1
-				}
-				app.header_search_focus = false
-				return
-			}
-			if e.char_code > 32 && e.char_code < 127 {
-				app.global_search += rune(e.char_code).str()
-				if app.selected_panel == 1 {
-					app.skills_query = app.global_search
-				}
-				return
-			}
-			// slash also closes search focus
-			if e.key_code == .escape {
-				return
-			}
 		}
 		// super potent IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
 		// When skills or workspace panels active, capture typing there instead of ghost (easy to manage, brokered)
@@ -7697,26 +7921,22 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		if e.char_code >= `1` && e.char_code <= `9` {
 			idx := int(e.char_code - `1`)
-			app.show_onboarding = false
 			if idx >= 0 && idx < 10 {
-				app.selected_panel = idx
+				select_panel(mut app, idx)
 			}
 			return
 		}
 		if e.char_code == `0` {
 			// 0 → Workspace (panel 9)
-			app.selected_panel = 9
-			app.show_onboarding = false
+			select_panel(mut app, 9)
 			return
 		}
 		if e.char_code == `p` || e.char_code == `P` {
-			app.selected_panel = 10
-			app.show_onboarding = false
+			select_panel(mut app, 10)
 			return
 		}
 		if e.char_code == `i` || e.char_code == `I` {
-			app.selected_panel = 12
-			app.show_onboarding = false
+			select_panel(mut app, 12)
 			return
 		}
 		if e.char_code == `o` || e.char_code == `O` {
@@ -7724,8 +7944,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if app.show_onboarding && app.selected_panel == 11 {
 				app.show_onboarding = false
 			} else {
-				app.show_onboarding = true
-				app.selected_panel = 11
+				select_panel(mut app, 11)
 				app.onboarding_msg = 'Onboarding wizard toggled via o — 7 steps ready'
 			}
 			return
@@ -8062,46 +8281,36 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// workspace IDE scroll — file tree, editor, git, memory palace (super potent)
 		if app.selected_panel == 9 {
-			fx := 208
-			fy := 52
-			fw := w3 - 208 - 300
-			term_h_ws := if app.term_visible { app.term_height } else { 0 }
-			fh := h3 - 52 - 28 - term_h_ws
-			mid_y := fy + 52 + 108 + 12
-			mem_h := 92
-			mut mid_h := fh - (108 + 12 + mem_h + 20)
-			if mid_h < 120 {
-				mid_h = 120
-			}
+			l := workspace_layout(app, w3, h3)
 			// file tree left
-			ft_x := fx + 12
-			ft_y := mid_y
+			ft_x := l.fx + 12
+			ft_y := l.mid_y
 			ft_w := 180
-			if app.mouse_x >= ft_x && app.mouse_x <= ft_x + ft_w && app.mouse_y >= ft_y && app.mouse_y < ft_y + mid_h {
+			if app.mouse_x >= ft_x && app.mouse_x <= ft_x + ft_w && app.mouse_y >= ft_y && app.mouse_y < ft_y + l.mid_h {
 				flat := file_tree_visible(app)
-				visible := (mid_h - 28) / 18
+				visible := (l.mid_h - 28) / 18
 				app.file_tree_scroll += delta
 				app.file_tree_scroll = clamp_scroll(app.file_tree_scroll, flat.len, visible)
 				return
 			}
 			// editor center
-			ed_x := fx + 12 + 180 + 4
-			ed_w := fw - 24 - 180 - 4 - 240
-			if app.mouse_x >= ed_x && app.mouse_x <= ed_x + ed_w && app.mouse_y >= mid_y && app.mouse_y < mid_y + mid_h {
+			ed_x := l.fx + 12 + 180 + 4
+			ed_w := l.fw - 24 - 180 - 4 - 240
+			if app.mouse_x >= ed_x && app.mouse_x <= ed_x + ed_w && app.mouse_y >= l.mid_y && app.mouse_y < l.mid_y + l.mid_h {
 				app.editor_scroll += delta
 				return
 			}
 			// git right
-			gx := fx + fw - 240 - 12
-			if app.mouse_x >= gx && app.mouse_x <= gx + 240 && app.mouse_y >= mid_y && app.mouse_y < mid_y + mid_h {
+			gx := l.fx + l.fw - 240 - 12
+			if app.mouse_x >= gx && app.mouse_x <= gx + 240 && app.mouse_y >= l.mid_y && app.mouse_y < l.mid_y + l.mid_h {
 				if app.git_rail == 'CHANGES' {
 					changes := app.desktop.engine_git_changes()
-					visible := (mid_h - 20) / 20
+					visible := (l.mid_h - 20) / 20
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, changes.len, visible)
 				} else if app.git_rail == 'HISTORY' {
 					graph := app.desktop.engine_git_graph(20)
-					visible := (mid_h - 40) / 22
+					visible := (l.mid_h - 40) / 22
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, graph.commits.len, visible)
 				} else {
@@ -8110,10 +8319,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			// memory bottom
-			mem_y := mid_y + mid_h + 6
-			if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= mem_y && app.mouse_y < mem_y + mem_h {
+			if app.mouse_x >= l.fx + 12 && app.mouse_x <= l.fx + l.fw - 12 && app.mouse_y >= l.mem_y && app.mouse_y < l.mem_y + l.mem_h {
 				results := app.desktop.engine_memory_recall(app.memory_query, 5)
-				visible := (mem_h - 48) / 18
+				visible := (l.mem_h - 48) / 18
 				app.memory_scroll += delta
 				app.memory_scroll = clamp_scroll(app.memory_scroll, results.len, visible)
 				return
@@ -8164,67 +8372,51 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// ── Header — global search + zoom slider (paper) ──
+		// Header controls share the same geometry as draw_header.
 		w := app.gg.width
 		h := app.gg.height
-		// header hit: y 0..44
 		if my >= 0 && my <= 44 {
-			// search box 380..640
-			if mx >= 380 && mx <= 640 && my >= 8 && my <= 36 {
-				// clear × hit
-				if mx >= 380 + 260 - 20 && app.global_search != '' {
+			wx := header_workspace_x()
+			ww := header_workspace_w(w)
+			if mx >= wx && mx <= wx + ww && my >= 6 && my <= 38 {
+				focus_workspace(mut app)
+				return
+			}
+			sx := header_search_x(w)
+			sw := header_search_w(w)
+			if mx >= sx && mx <= sx + sw && my >= 8 && my <= 36 {
+				if mx >= sx + sw - 20 && app.global_search != '' {
 					app.global_search = ''
 					app.skills_query = ''
 					app.header_search_focus = false
 				} else {
 					app.header_search_focus = true
+					app.workspace_focus = false
+					app.ghost_focused = false
 				}
 				return
 			}
-			// click elsewhere in header blurs search
-			if app.header_search_focus && !(mx >= 380 && mx <= 640) {
-				// keep focus only if not clicking slider or command badge; blur otherwise for typing
-				if !(mx >= w - 236 - 10 && mx <= w - 236 + 84 + 10 && my >= 10 && my <= 30) && !(mx >= w - 112 && mx <= w - 16) {
+			for idx, lang in [Lang.en, Lang.es, Lang.zh, Lang.ar] {
+				chip_x := w - 180 + idx * 34
+				if mx >= chip_x && mx <= chip_x + 30 && my >= 10 && my <= 32 {
+					app.lang = lang
 					app.header_search_focus = false
-				}
-			}
-			// zoom slider header: track at w-214, 84 wide
-			zx_hdr := w - 236
-			if mx >= zx_hdr - 10 && mx <= zx_hdr + 84 + 24 && my >= 8 && my <= 32 {
-				mut rel := mx - zx_hdr
-				if rel < 0 {
-					rel = 0
-				}
-				if rel > 84 {
-					rel = 84
-				}
-				pct := f64(rel) / 84.0
-				app.global_zoom = clamp_zoom(0.75 + pct * 0.75)
-				app.zoom_toast = zoom_percent(app.global_zoom)
-				app.zoom_toast_at = app.frame
-				app.zoom_dragging = true
-				return
-			}
-			// language chips — EN/ES/中文/عربي at w-466..w-306, y 10..28
-			if my >= 8 && my <= 30 && mx >= w - 470 && mx <= w - 302 {
-				idx := (mx - (w - 466)) / 40
-				if idx >= 0 && idx <= 3 {
-					app.lang = match idx {
-						1 { Lang.es }
-						2 { Lang.zh }
-						3 { Lang.ar }
-						else { Lang.en }
-					}
+					app.workspace_focus = false
 					return
 				}
 			}
-			// command badge click opens palette
-			if mx >= w - 112 && mx <= w - 16 && my >= 8 && my <= 34 {
+			if mx >= w - 42 && mx <= w - 12 && my >= 8 && my <= 36 {
 				app.palette_open = true
 				app.palette_query = ''
 				app.palette_selected = 0
+				app.header_search_focus = false
+				app.workspace_focus = false
+				app.ghost_focused = false
 				return
 			}
+			app.header_search_focus = false
+			app.workspace_focus = false
+			return
 		}
 		// status bar zoom slider at bottom
 		if my >= h - 28 && my <= h {
@@ -8447,21 +8639,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// Hit left dock — 13 panels (0 World .. 12 Insights) super-potent
-		dock_l_c := if app.lang.is_rtl() { w - dock_w + 8 } else { 8 }
+		// The grouped task navigation and its hit targets use one shared row model.
+		dock_l_c := dock_x(app, w) + 8
 		if mx >= dock_l_c && mx <= dock_l_c + dock_w - 16 {
-			for i in 0 .. 13 {
-				y := 45 + 8 + i * 32
-				if y + 28 > h - 28 - (if app.term_visible { app.term_height } else { 0 }) - 40 {
-					break
-				}
-				if my >= y && my <= y + 28 {
-					app.selected_panel = i
-					if i == 11 {
-						app.show_onboarding = true
-					} else {
-						app.show_onboarding = false
-					}
+			for row in nav_rows(app, h) {
+				if my >= row.y && my <= row.y + row.h {
+					select_panel(mut app, row.panel)
 					return
 				}
 			}
@@ -9102,21 +9285,32 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// Workspace IDE — file-tree, editor tabs, git rails CHANGES/HISTORY/COMPARE, commit graph, diff, memory palace
 		// Super potent: brokered fs via Engine.open_path_validated (harness_root_escape), syntax, graph lanes, semantic recall
 		if app.selected_panel == 9 {
-			fx := 208
-			fy := 52
-			fw := w - 208 - 300
-			term_h_ws := if app.term_visible { app.term_height } else { 0 }
-			fh := h - 52 - 28 - term_h_ws
-			mid_y := fy + 52 + 108 + 12
-			mem_h := 92
-			mut mid_h := fh - (108 + 12 + mem_h + 20)
-			if mid_h < 120 {
-				mid_h = 120
+			l := workspace_layout(app, w, h)
+			// workspace control row: field + Validate / Switch / Initialize
+			if my >= l.field_y && my <= l.field_y + 28 {
+				if mx >= l.field_x && mx <= l.field_x + l.field_w {
+					app.workspace_focus = true
+					app.header_search_focus = false
+					app.ghost_focused = false
+					return
+				}
+				if mx >= l.validate_x && mx <= l.validate_x + 64 {
+					validate_workspace_draft(mut app)
+					return
+				}
+				if mx >= l.switch_x && mx <= l.switch_x + 64 {
+					apply_workspace(mut app, app.workspace_draft, 'Manual')
+					return
+				}
+				if mx >= l.init_x && mx <= l.init_x + 58 {
+					initialize_workspace(mut app)
+					return
+				}
 			}
 			// git rail tabs hit
-			rail_y := mid_y
+			rail_y := l.mid_y
 			for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
-				rx := fx + fw - 240 - 12 + 6 + ri * 78
+				rx := l.fx + l.fw - 240 - 12 + 6 + ri * 78
 				if mx >= rx && mx <= rx + 74 && my >= rail_y && my <= rail_y + 22 {
 					app.git_rail = rn
 					app.git_scroll = 0
@@ -9124,10 +9318,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// file tree hit — left 180
-			ft_x := fx + 12
-			ft_y := mid_y
+			ft_x := l.fx + 12
+			ft_y := l.mid_y
 			ft_w := 180
-			ft_h := mid_h
+			ft_h := l.mid_h
 			if mx >= ft_x && mx <= ft_x + ft_w && my >= ft_y + 24 && my < ft_y + ft_h - 4 {
 				flat := file_tree_visible(app)
 				row_h := 18
@@ -9186,9 +9380,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// editor tabs hit — center
-			ed_x := fx + 12 + 180 + 4
-			ed_w := fw - 24 - 180 - 4 - 240
-			ed_y := mid_y
+			ed_x := l.fx + 12 + 180 + 4
+			ed_w := l.fw - 24 - 180 - 4 - 240
+			ed_y := l.mid_y
 			if app.editor_tabs.len > 0 && mx >= ed_x && mx <= ed_x + ed_w && my >= ed_y + 6 && my <= ed_y + 24 {
 				mut tx := ed_x + 6
 				for i, tab in app.editor_tabs {
@@ -9205,12 +9399,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// HISTORY commit selection hit — inside git rails
 			if app.git_rail == 'HISTORY' {
-				rail_x := fx + fw - 240 - 12
-				rail_y2 := mid_y + 26
+				rail_x := l.fx + l.fw - 240 - 12
+				rail_y2 := l.mid_y + 26
 				graph := app.desktop.engine_git_graph(20)
 				row_h := 22
 				y0 := rail_y2 + 14
-				visible := (mid_h - 40) / row_h
+				visible := (l.mid_h - 40) / row_h
 				if visible > 0 {
 					start := clamp_scroll(app.git_scroll, graph.commits.len, visible)
 					for idx in start .. graph.commits.len {
@@ -9228,8 +9422,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// memory palace search bar hit — bottom
-			mem_y := mid_y + mid_h + 6
-			if mx >= fx + 12 + 8 && mx <= fx + fw - 12 && my >= mem_y + 20 && my <= mem_y + 40 {
+			if mx >= l.fx + 12 + 8 && mx <= l.fx + l.fw - 12 && my >= l.mem_y + 20 && my <= l.mem_y + 40 {
 				app.inspector_msg = 'Memory palace focused — type to recall semantic (hybrid cosine)'
 				return
 			}
@@ -9238,11 +9431,13 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if app.selected_panel == 0 {
 			w2 := app.gg.width
 			h2 := app.gg.height
-			fx := 208
+			fx := panel_fx(app)
 			fy := 52
-			fw := w2 - 208 - 300
-			fh := h2 - 52 - 28
-			for idx, d in desks {
+			fw := panel_fw(app, w2)
+			term_h_d := if app.term_visible { app.term_height } else { 0 }
+			fh := h2 - 52 - 28 - term_h_d
+			desks_hit := desks_for_app(app)
+			for idx, d in desks_hit {
 				dx, dy, dw, dh := desk_rect(d, idx, fx, fy, fw, fh)
 				if mx >= dx && mx <= dx + dw && my >= dy && my <= dy + dh {
 					app.selected_desk = idx
@@ -9259,57 +9454,44 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 	if e.typ == .mouse_move {
 		app.mouse_x = int(e.mouse_x)
 		app.mouse_y = int(e.mouse_y)
-		// global zoom drag — 60FPS, paper slider
+		// global zoom drag — the only slider lives in the status bar; keep that
+		// mapping for the whole drag so values do not jump when leaving the track
 		if app.zoom_dragging {
 			w3 := app.gg.width
 			h3 := app.gg.height
 			mx := app.mouse_x
 			my := app.mouse_y
-			// if dragging near bottom status bar, use status track mapping
-			if my >= h3 - 28 {
-				left_base := 12 + 24 + 46 + 64 + 78 + 8
-				zx_stat := left_base + 4
-				mut rel2 := mx - zx_stat
-				if rel2 < 0 {
-					rel2 = 0
-				}
-				if rel2 > 64 {
-					rel2 = 64
-				}
-				pct2 := f64(rel2) / 64.0
-				app.global_zoom = clamp_zoom(0.75 + pct2 * 0.75)
-				app.zoom_toast = zoom_percent(app.global_zoom)
-				app.zoom_toast_at = app.frame
-			} else {
-				zx_hdr := w3 - 236
-				mut rel := mx - zx_hdr
-				if rel < 0 {
-					rel = 0
-				}
-				if rel > 84 {
-					rel = 84
-				}
-				pct := f64(rel) / 84.0
-				app.global_zoom = clamp_zoom(0.75 + pct * 0.75)
-				app.zoom_toast = zoom_percent(app.global_zoom)
-				app.zoom_toast_at = app.frame
+			left_base := 12 + 24 + 46 + 64 + 78 + 8
+			zx_stat := left_base + 4
+			mut rel2 := mx - zx_stat
+			if rel2 < 0 {
+				rel2 = 0
 			}
+			if rel2 > 64 {
+				rel2 = 64
+			}
+			pct2 := f64(rel2) / 64.0
+			app.global_zoom = clamp_zoom(0.75 + pct2 * 0.75)
+			app.zoom_toast = zoom_percent(app.global_zoom)
+			app.zoom_toast_at = app.frame
+			_ = my
+			_ = h3
+			_ = w3
 		}
 		app.hover_panel = -1
-		dock_l_h := if app.lang.is_rtl() { app.gg.width - dock_w + 8 } else { 8 }
+		dock_l_h := dock_x(app, app.gg.width) + 8
 		if app.mouse_x >= dock_l_h && app.mouse_x <= dock_l_h + dock_w - 16 {
-			for i in 0 .. 13 {
-				y := 45 + 8 + i * 32
-				if app.mouse_y >= y && app.mouse_y <= y + 28 {
-					app.hover_panel = i
+			for row in nav_rows(app, app.gg.height) {
+				if app.mouse_y >= row.y && app.mouse_y <= row.y + row.h {
+					app.hover_panel = row.panel
 					break
 				}
 			}
 		}
 		// language chip hover — EN/ES/中文/عربي
 		app.lang_hover = -1
-		if app.mouse_y >= 8 && app.mouse_y <= 30 && app.mouse_x >= app.gg.width - 466 && app.mouse_x <= app.gg.width - 302 {
-			li := (app.mouse_x - (app.gg.width - 466)) / 40
+		if app.mouse_y >= 10 && app.mouse_y <= 32 && app.mouse_x >= app.gg.width - 180 {
+			li := (app.mouse_x - (app.gg.width - 180)) / 34
 			if li >= 0 && li <= 3 {
 				app.lang_hover = li
 			}
@@ -9390,7 +9572,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			w3 := app.gg.width
 			h3 := app.gg.height
 			term_h_ii := if app.term_visible { app.term_height } else { 0 }
-			ix := w3 - 300
+			ix := inspector_x(app, w3)
 			iy := 52
 			ih := h3 - 52 - 28 - term_h_ii
 			log_y0 := iy + 302
@@ -9443,21 +9625,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// workspace file-tree hover — left 180
 		if app.selected_panel == 9 {
-			fx := 208
-			fy := 52
-			fw := app.gg.width - 208 - 300
-			term_h_ws := if app.term_visible { app.term_height } else { 0 }
-			fh := app.gg.height - 52 - 28 - term_h_ws
-			mid_y := fy + 52 + 108 + 12
-			mem_h := 92
-			mut mid_h := fh - (108 + 12 + mem_h + 20)
-			if mid_h < 120 {
-				mid_h = 120
-			}
-			ft_x := fx + 12
-			ft_y := mid_y
+			l := workspace_layout(app, app.gg.width, app.gg.height)
+			ft_x := l.fx + 12
+			ft_y := l.mid_y
 			ft_w := 180
-			ft_h := mid_h
+			ft_h := l.mid_h
 			flat := file_tree_visible(app)
 			row_h := 18
 			visible := (ft_h - 28) / row_h
@@ -9475,12 +9647,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// git hover — right rails
-			rail_x := fx + fw - 240 - 12
-			y0 := mid_y + 26 + 14
+			rail_x := l.fx + l.fw - 240 - 12
+			y0 := l.mid_y + 26 + 14
 			if app.git_rail == 'CHANGES' {
 				changes := app.desktop.engine_git_changes()
 				row_h2 := 20
-				vis2 := (mid_h - 20) / row_h2
+				vis2 := (l.mid_h - 20) / row_h2
 				start2 := clamp_scroll(app.git_scroll, changes.len, vis2)
 				mut end2_ch := start2 + vis2
 				if end2_ch > changes.len {
@@ -9497,7 +9669,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			} else if app.git_rail == 'HISTORY' {
 				graph := app.desktop.engine_git_graph(20)
 				row_h2 := 22
-				vis2 := (mid_h - 40) / row_h2
+				vis2 := (l.mid_h - 40) / row_h2
 				start2 := clamp_scroll(app.git_scroll, graph.commits.len, vis2)
 				mut end2_hi := start2 + vis2
 				if end2_hi > graph.commits.len {
@@ -9513,11 +9685,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// memory hover — bottom
-			mem_y := mid_y + mid_h + 6
 			if app.memory_query != '' {
 				results := app.desktop.engine_memory_recall(app.memory_query, 5)
 				row_h2 := 18
-				vis2 := (mem_h - 48) / row_h2
+				vis2 := (l.mem_h - 48) / row_h2
 				start2 := clamp_scroll(app.memory_scroll, results.len, vis2)
 				mut end2 := start2 + vis2
 				if end2 > results.len {
@@ -9525,8 +9696,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				for idx in start2 .. end2 {
 					row := idx - start2
-					ry := mem_y + 44 + row * row_h2
-					if app.mouse_x >= fx && app.mouse_x <= fx + fw && app.mouse_y >= ry && app.mouse_y <= ry + 12 {
+					ry := l.mem_y + 44 + row * row_h2
+					if app.mouse_x >= l.fx && app.mouse_x <= l.fx + l.fw && app.mouse_y >= ry && app.mouse_y <= ry + 12 {
 						app.memory_hover = idx
 						break
 					}

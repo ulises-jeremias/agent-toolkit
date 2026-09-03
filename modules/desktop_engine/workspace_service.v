@@ -29,12 +29,60 @@ pub:
 	project_id string
 }
 
+// workspace_is_initialized reports whether a directory has enough workspace
+// markers to be treated as an Agent Toolkit workspace rather than a plain folder.
+pub fn workspace_is_initialized(path string) bool {
+	if path.trim_space() == '' {
+		return false
+	}
+	clean := os.real_path(os.expand_tilde_to_home(path.trim_space()))
+	if clean == '' || !os.is_dir(clean) {
+		return false
+	}
+	return os.is_file(os.join_path(clean, 'AGENTS.md')) || os.is_dir(os.join_path(clean, 'knowledge')) || os.is_dir(os.join_path(clean, 'repos')) || os.is_dir(os.join_path(clean, 'projects')) || os.is_file(os.join_path(clean, '.active-pack')) || os.is_file(os.join_path(clean, '.active-persona'))
+}
+
+// validate_workspace_root canonicalizes an existing directory. A plain folder
+// is valid but is reported as uninitialized by workspace_is_initialized so the
+// UI can offer initialization without forcing it during selection.
+pub fn (mut e Engine) validate_workspace_root(path string) !string {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	raw := os.expand_tilde_to_home(path.trim_space())
+	if raw == '' {
+		return error('workspace path empty')
+	}
+	if !os.is_dir(raw) {
+		return error('workspace directory does not exist: ${raw}')
+	}
+	clean := os.real_path(raw)
+	if clean == '' || !os.is_dir(clean) {
+		return error('workspace path is not a directory: ${raw}')
+	}
+	if clean == os.path_separator {
+		return error('workspace root cannot be filesystem root')
+	}
+	return clean
+}
+
+fn (mut e Engine) active_workspace_root() string {
+	snap := e.repo.snapshot()
+	stored := snap.data['recent_workspace'] or { snap.data['workspace_path'] or { '' } }
+	if stored != '' {
+		clean := os.real_path(os.expand_tilde_to_home(stored))
+		if clean != '' && os.is_dir(clean) {
+			return clean
+		}
+	}
+	return resolve_env().toolkit_root
+}
+
 pub fn (mut e Engine) workspace_tree() []WorkspaceNode {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	env := resolve_env()
-	base := env.toolkit_root
+	base := e.active_workspace_root()
 	harness_candidates := [
 		os.join_path(base, 'knowledge'),
 		os.join_path(base, 'repos'),
@@ -123,7 +171,15 @@ pub fn (mut e Engine) open_path_validated(harness_root string, path string) !str
 	}
 	clean := os.real_path(path)
 	root_clean := os.real_path(harness_root)
-	if !clean.starts_with(root_clean) {
+	if clean == '' || root_clean == '' || !os.is_dir(root_clean) {
+		return error('harness_root invalid')
+	}
+	root_prefix := if root_clean == os.path_separator {
+		root_clean
+	} else {
+		root_clean.trim_right('/\\') + os.path_separator
+	}
+	if clean != root_clean && !clean.starts_with(root_prefix) {
 		return error('harness_root_escape')
 	}
 	return clean
@@ -414,21 +470,26 @@ pub fn (mut e Engine) workspace_stats() WorkspaceStats {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	env := resolve_env()
+	base := e.active_workspace_root()
 	mut ks := 0
-	kp := os.join_path(env.toolkit_root, 'knowledge')
+	kp := os.join_path(base, 'knowledge')
 	if os.is_dir(kp) {
 		ks = (os.ls(kp) or { []string{} }).len
 	}
 	mut rc := 0
-	rp := os.join_path(env.toolkit_root, 'repos')
+	rp := os.join_path(base, 'repos')
 	if os.is_dir(rp) {
 		rc = (os.ls(rp) or { []string{} }).len
 	}
 	mut pc := 0
-	pp := os.join_path(env.toolkit_root, 'projects')
+	pp := os.join_path(base, 'projects')
 	if os.is_dir(pp) {
 		pc = (os.ls(pp) or { []string{} }).len
+	}
+	mut packs := 0
+	pack_dir := os.join_path(base, 'packs')
+	if os.is_dir(pack_dir) {
+		packs = (os.ls(pack_dir) or { []string{} }).len
 	}
 	snap := e.repo.snapshot()
 	mut mem := 0
@@ -439,7 +500,7 @@ pub fn (mut e Engine) workspace_stats() WorkspaceStats {
 		knowledge_files: ks
 		repos_count: rc
 		projects_count: pc
-		packs_count: 7
+		packs_count: packs
 		memory_entries: mem
 		revision: snap.revision
 	}
@@ -623,16 +684,29 @@ pub fn (mut e Engine) switch_project(project_id string) !ProjectSwitchResult {
 }
 
 pub fn (mut e Engine) switch_workspace(harness_root string) !string {
-	if harness_root == '' {
-		return error('harness_root empty')
+	clean := e.validate_workspace_root(harness_root)!
+	snap := e.repo.snapshot()
+	previous := snap.data['recent_workspace'] or { '' }
+	mut repo := e.repo
+	mut tx := repo.begin('switch-workspace')
+	tx.set('recent_workspace', clean)
+	tx.set('workspace_path', clean)
+	tx.set('workspace_exists', 'true')
+	tx.set('workspace_initialized', if workspace_is_initialized(clean) { 'true' } else { 'false' })
+	if previous != '' && previous != clean {
+		tx.set('workspace/previous_path', previous)
 	}
-	if harness_root.contains('..') {
-		return error('harness_root traversal')
-	}
-	clean := os.real_path(harness_root)
-	// no need to validate existence here — Engine records switch, filesystem remains truth
-	res := e.switch_project(clean)!
-	_ = res
+	rev := e.put_transaction(mut tx)!
+	e.bus.publish(eventbus.ToolkitEvent{
+		kind: .workspace_changed
+		revision: rev.revision
+		path: 'workspace:switch:${clean}'
+		payload: json2.encode({
+			'workspace': clean
+			'previous':  previous
+			'revision':  rev.revision.str()
+		})
+	})
 	return clean
 }
 
