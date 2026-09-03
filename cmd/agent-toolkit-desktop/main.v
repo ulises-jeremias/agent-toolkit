@@ -329,6 +329,38 @@ fn load_ui_state(mut app GuiApp) {
 	}
 }
 
+// vt_for — resolve a view id to its VT: -1 fleet, 0..14 desks, 15+ sessions.
+fn vt_for(app &GuiApp, id int) &ghostty.GhosttyTerminal {
+	if id < 0 {
+		return &app.ghost
+	}
+	if id < 15 && id < app.per_desk_ghost.len {
+		return &app.per_desk_ghost[id]
+	}
+	if id >= 15 && id - 15 < app.sessions.len {
+		return &app.sessions[id - 15].vt
+	}
+	return &app.ghost
+}
+
+// vt_label — display name for a view id.
+fn vt_label(app &GuiApp, id int) string {
+	if id < 0 {
+		return 'Fleet'
+	}
+	if id < 15 {
+		desks := desks_for_app(app)
+		if id < desks.len {
+			return desks[id].label
+		}
+		return 'Desk ${id}'
+	}
+	if id >= 15 && id - 15 < app.sessions.len {
+		return app.sessions[id - 15].agent
+	}
+	return 'Fleet'
+}
+
 // spawn_session — spawn an agent CLI on a real PTY and focus it fullscreen.
 fn bc2(msg string) {
 	mut f := os.open_file('/tmp/opencode/bc2.log', 'ab', 0o644) or { return }
@@ -692,17 +724,20 @@ mut:
 	sessions          []TermSession
 	sessions_dialog   bool
 	sessions_detected []pty_mod.Detected
-	last_msg          string
-	last_msg_frame    int = -99
-	selected_panel    int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
-	hover_panel       int
-	selected_desk     int
-	hover_desk        int
-	palette_open      bool
-	palette_query     string
-	palette_selected  int
-	mouse_x           int
-	mouse_y           int
+	// split view (MAX): two VT panes side-by-side
+	term_split       bool
+	term_view_b      int = -1
+	last_msg         string
+	last_msg_frame   int = -99
+	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
+	hover_panel      int
+	selected_desk    int
+	hover_desk       int
+	palette_open     bool
+	palette_query    string
+	palette_selected int
+	mouse_x          int
+	mouse_y          int
 	// dedupe: C backends set char_code on key_down AND send .char — keep one per frame
 	last_keydown_char    u32
 	last_keydown_frame   int
@@ -6624,6 +6659,20 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			bold: true
 		})
 		chx += 64
+		// Split toggle — two VT panes side-by-side (right-click a chip sets pane B)
+		split_sel := app.term_split
+		app.gg.draw_rect_filled(chx, content_y + 2, 52, 18, if split_sel {
+			col_brass
+		} else {
+			col_cream100
+		})
+		app.gg.draw_rect_empty(chx, content_y + 2, 52, 18, col_ink300)
+		app.gg.draw_text(chx + 10, content_y + 6, 'Split', gg.TextCfg{
+			color: if split_sel { col_ink } else { col_steel_ink }
+			size: 9
+			bold: split_sel
+		})
+		chx += 58
 		desks_all := desks_for_app(app)
 		for di, d in desks_all {
 			if chx + 66 > content_x + content_w - 6 {
@@ -6689,39 +6738,52 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			}
 		}
 	}
-	// Ghostty visible lines — fleet feed (global 80×N) or a per-desk VT fullscreen
+	// Ghostty visible lines — fleet feed, per-desk VT, per-session VT — 1 or 2 panes
 	desk_view := app.term_mode == 2 && app.term_view >= 0 && app.term_view < app.per_desk_ghost.len
 	sess_view := app.term_mode == 2 && app.term_view >= 15 && app.term_view - 15 < app.sessions.len
-	mut shown := &app.ghost
-	if desk_view {
-		shown = &app.per_desk_ghost[app.term_view]
-	} else if sess_view {
-		shown = &app.sessions[app.term_view - 15].vt
-	}
-	ghost_lines := shown.visible_lines()
+	split_on := app.term_mode == 2 && app.term_split
 	row_h := 16
 	mut cy2 := content_y + chip_h
+	// pane geometry: 1 or 2 panes
+	mut pane_x := [content_x]
+	mut pane_w := [content_w]
+	mut pane_ids := [app.term_view]
+	if split_on {
+		half := (content_w - 6) / 2
+		pane_x = [content_x, content_x + half + 6]
+		pane_w = [half, half]
+		pane_ids = [app.term_view, app.term_view_b]
+	}
 	visible := term_visible_rows(term_h) - 1 - (chip_h / 16) // chips + prompt reserve
-	if ghost_lines.len == 0 {
-		empty := if desk_view {
-			'[${desks_for_app(app)[app.term_view].label}] VT ready — live handoffs stream here'
-		} else {
-			'Ghostty VT ready — type help, skills, clear — live Engine logs stream here'
+	for pi in 0 .. pane_x.len {
+		vt := vt_for(app, pane_ids[pi])
+		ghost_lines := vt.visible_lines()
+		vx := pane_x[pi]
+		vw := pane_w[pi]
+		if ghost_lines.len == 0 {
+			empty := if pane_ids[pi] >= 0 && pane_ids[pi] < 15 {
+				'[${vt_label(app, pane_ids[pi])}] VT ready — live handoffs stream here'
+			} else {
+				'Ghostty VT ready — type help, skills, clear — live Engine logs stream here'
+			}
+			app.gg.draw_text(vx + 10, cy2 + 10, empty, gg.TextCfg{ color: col_slate_dim, size: 14, mono: true })
+			continue
 		}
-		app.gg.draw_text(content_x + 10, content_y + 10, empty, gg.TextCfg{ color: col_slate_dim, size: 14, mono: true })
-	} else {
+		// pane header rail
+		app.gg.draw_rect_filled(vx, cy2 - 2, vw, 2, if pi == 0 { col_brass } else { col_steel_ink })
+		app.gg.draw_text(vx + 2, cy2 + 2, vt_label(app, pane_ids[pi]), gg.TextCfg{ color: col_ink_soft, size: 9, mono: true })
 		for idx, line in ghost_lines {
 			if idx >= visible {
 				break
 			}
-			y := cy2 + 8 + idx * row_h
-			is_hover := !desk_view && idx == app.term_hover
+			y := cy2 + 18 + idx * row_h
+			is_hover := !split_on && pi == 0 && idx == app.term_hover
 			if is_hover {
-				app.gg.draw_rect_filled(content_x + 1, y - 1, content_w - 2, row_h, col_charcoal2)
+				app.gg.draw_rect_filled(vx + 1, y - 1, vw - 2, row_h, col_charcoal2)
 			}
 			// color from ghost
-			col_idx := if idx < shown.colors.len && shown.colors[idx].len > 0 {
-				shown.colors[idx][0]
+			col_idx := if idx < vt.colors.len && vt.colors[idx].len > 0 {
+				vt.colors[idx][0]
 			} else {
 				0
 			}
@@ -6733,17 +6795,20 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 				else { col_paper_dim }
 			}
 			// truncate
-			disp := if line.len > 96 { line[..96] + '…' } else { line }
+			disp := if line.len > 44 { line[..44] + '…' } else { line }
 			is_match := app.term_search.len > 1 && line.to_lower().contains(app.term_search.to_lower())
 			if is_match {
-				app.gg.draw_rect_filled(content_x + 1, y - 1, content_w - 8, row_h + 1, gg.rgba(201, 168, 107, 90))
+				app.gg.draw_rect_filled(vx + 1, y - 1, vw - 8, row_h + 1, gg.rgba(201, 168, 107, 90))
 			}
-			app.gg.draw_text(content_x + 8, y, disp, gg.TextCfg{ color: gcol, size: 13, mono: true })
+			app.gg.draw_text(vx + 8, y, disp, gg.TextCfg{ color: gcol, size: 13, mono: true })
 		}
 	}
 	// prompt line at bottom of terminal content (fleet view only — desk VTs are read-only feeds)
 	prompt_y := content_y + term_h - 32 - 18
-	if desk_view {
+	if split_on {
+		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(138, 155, 168, 24))
+		app.gg.draw_text(content_x + 8, prompt_y, 'split — type into the pane under the cursor', gg.TextCfg{ color: col_ink_soft, size: 12, mono: true })
+	} else if desk_view {
 		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(148, 163, 184, 20))
 		app.gg.draw_text(content_x + 8, prompt_y, '[${desks_for_app(app)[app.term_view].label}] read-only desk feed · Fleet chip returns to the prompt', gg.TextCfg{ color: col_slate, size: 12, mono: true })
 	} else if sess_view {
@@ -7036,15 +7101,30 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.last_keydown_char = e.char_code
 			app.last_keydown_frame = app.frame
 		}
-		// PTY session focus — keys go to the agent TUI (Esc returns to Fleet)
-		if app.term_mode == 2 && app.term_view >= 15 && app.term_view - 15 < app.sessions.len {
+		// PTY session focus — keys go to the agent TUI pane under the cursor
+		// (single session view or split pane under the mouse). Esc returns to Fleet.
+		if app.term_mode == 2 && (app.term_view >= 15 || (app.term_split && app.term_view_b >= 15)) {
 			if e.key_code == .escape {
 				app.term_view = -1
+				app.term_split = false
 				return
 			}
-			b := session_key_bytes(e)
-			if b != '' {
-				app.sessions[app.term_view - 15].sess.write(b)
+			// target pane: the one under the mouse (split) or the viewed session
+			mut target := app.term_view
+			if app.term_split {
+				// split boundary ≈ mid content (pane A 208.., pane B ..1280)
+				target = if app.mouse_x < app.gg.width / 2 + 100 {
+					app.term_view
+				} else {
+					app.term_view_b
+				}
+			}
+			si := target - 15
+			if target >= 15 && si < app.sessions.len {
+				b := session_key_bytes(e)
+				if b != '' {
+					app.sessions[si].sess.write(b)
+				}
 			}
 			return
 		}
@@ -8212,13 +8292,35 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// session picker chips (MAX mode): Fleet + desks + sessions + '+ Sess'
 			if app.term_mode == 2 && mx >= content_x && mx <= content_x + content_w && my >= content_y - 2 && my < content_y + 26 {
+				// right-click any chip → set pane B (split turns on automatically)
+				if e.mouse_button == .right {
+					app.term_split = true
+					if mx < content_x + 122 {
+						app.term_view_b = -1
+					} else {
+						idx := (mx - content_x - 180) / 66
+						desks_all := desks_for_app(app)
+						if idx < desks_all.len {
+							app.term_view_b = idx
+						} else if idx < desks_all.len + app.sessions.len {
+							app.term_view_b = 15 + idx - desks_all.len
+						}
+					}
+					return
+				}
 				if mx < content_x + 58 {
 					app.term_view = -1
+				} else if mx >= content_x + 116 && mx < content_x + 174 {
+					// Split toggle chip (between '+ Sess' and the desks)
+					app.term_split = !app.term_split
+					if app.term_split && app.term_view_b < 0 {
+						app.term_view_b = -1
+					}
 				} else if mx < content_x + 122 {
 					app.sessions_dialog = true
 					app.sessions_detected = pty_mod.detect()
 				} else {
-					idx := (mx - content_x - 122) / 66
+					idx := (mx - content_x - 180) / 66
 					desks_all := desks_for_app(app)
 					if idx >= 0 && idx < desks_all.len {
 						app.term_view = idx
