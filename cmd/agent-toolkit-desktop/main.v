@@ -657,9 +657,11 @@ struct TermLine {
 // TermSession — a live agent CLI on a real PTY with its own VT.
 struct TermSession {
 pub mut:
-	agent string
-	sess  pty_mod.Session
-	vt    ghostty.GhosttyTerminal
+	agent     string
+	sess      pty_mod.Session
+	vt        ghostty.GhosttyTerminal
+	exited    bool
+	dismissed bool
 }
 
 // Toast — a paper stamp of feedback (info/ok/warn/err), auto-expires.
@@ -1957,6 +1959,9 @@ fn frame(mut app GuiApp) {
 	}
 	// drain PTY sessions — non-blocking, per frame, single-threaded
 	for mut s in app.sessions {
+		if !s.exited && !s.sess.alive() {
+			s.exited = true
+		}
 		out := s.sess.drain()
 		if out != '' {
 			s.vt.feed(out)
@@ -6743,9 +6748,45 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(content_x + 8, prompt_y, '[${desks_for_app(app)[app.term_view].label}] read-only desk feed · Fleet chip returns to the prompt', gg.TextCfg{ color: col_slate, size: 12, mono: true })
 	} else if sess_view {
 		ses := app.sessions[app.term_view - 15]
-		state := if ses.sess.alive() { 'live · type below' } else { 'exited' }
-		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(90, 125, 90, 30))
-		app.gg.draw_text(content_x + 8, prompt_y, '[${ses.agent}] ${state} · Esc returns to Fleet', gg.TextCfg{ color: col_sage_soft, size: 12, mono: true })
+		if ses.exited && !ses.dismissed {
+			// restart stamp card — dead session, scrollback preserved
+			cw, chh := 420, 92
+			cx, cy := content_x + content_w / 2 - cw / 2, content_y + 60
+			app.gg.draw_rect_filled(cx + 3, cy + 3, cw, chh, gg.rgba(0, 0, 0, 120))
+			app.gg.draw_rect_filled(cx, cy, cw, chh, col_cream50)
+			app.gg.draw_rect_empty(cx, cy, cw, chh, col_oxide)
+			app.gg.draw_text(cx + 16, cy + 10, '[${ses.agent}] session exited', gg.TextCfg{
+				color: col_ink
+				size: 13
+				bold: true
+				family: app.fonts.display
+			})
+			app.gg.draw_text(cx + 16, cy + 28, 'The agent CLI process is gone — scrollback preserved.', gg.TextCfg{ color: col_ink_soft, size: 10 })
+			// buttons: Restart (sage) / Dismiss (paper)
+			sess_restart_hover := app.mouse_x >= cx + 16 && app.mouse_x <= cx + 96 && app.mouse_y >= cy + 46 && app.mouse_y <= cy + 70
+			app.gg.draw_rect_filled(cx + 16, cy + 46, 80, 24, if sess_restart_hover {
+				col_sage_soft
+			} else {
+				col_cream100
+			})
+			app.gg.draw_rect_empty(cx + 16, cy + 46, 80, 24, col_sage_soft)
+			app.gg.draw_text(cx + 32, cy + 52, 'Restart', gg.TextCfg{ color: col_sage_soft, size: 11, bold: true })
+			sess_dismiss_hover := app.mouse_x >= cx + 108 && app.mouse_x <= cx + 188 && app.mouse_y >= cy + 46 && app.mouse_y <= cy + 70
+			app.gg.draw_rect_filled(cx + 108, cy + 46, 80, 24, if sess_dismiss_hover {
+				col_manila_tab
+			} else {
+				col_cream50
+			})
+			app.gg.draw_rect_empty(cx + 108, cy + 46, 80, 24, col_ink300)
+			app.gg.draw_text(cx + 124, cy + 52, 'Dismiss', gg.TextCfg{ color: col_ink_soft, size: 11 })
+		} else if ses.exited {
+			app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(196, 90, 60, 40))
+			app.gg.draw_text(content_x + 8, prompt_y, '[${ses.agent}] session exited', gg.TextCfg{ color: col_oxide, size: 12, mono: true })
+		} else {
+			state := 'live · type below'
+			app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(90, 125, 90, 30))
+			app.gg.draw_text(content_x + 8, prompt_y, '[${ses.agent}] ${state} · Esc returns to Fleet', gg.TextCfg{ color: col_sage_soft, size: 12, mono: true })
+		}
 	} else {
 		// prompt bg
 		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(184, 147, 90, 12))
@@ -8205,6 +8246,29 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			_ = content_y
+			// dead-session stamp card buttons (Restart / Dismiss)
+			if app.term_mode == 2 && app.term_view >= 15 && app.term_view - 15 < app.sessions.len {
+				ses := app.sessions[app.term_view - 15]
+				if ses.exited && !ses.dismissed {
+					cx, cy := content_x + content_w / 2 - 210, content_y + 60
+					if mx >= cx + 16 && mx <= cx + 96 && my >= cy + 46 && my <= cy + 70 {
+						mut s := &app.sessions[app.term_view - 15]
+						ns := pty_mod.spawn(s.agent, s.sess.cmd, [], 120, 32) or {
+							app.inspector_msg = 'Restart ${s.agent} error: ${err}'
+							return
+						}
+						s.sess = ns
+						s.exited = false
+						s.dismissed = false
+						app.inspector_msg = 'Session ${s.agent} restarted (pid ${ns.pid})'
+						return
+					}
+					if mx >= cx + 108 && mx <= cx + 188 && my >= cy + 46 && my <= cy + 70 {
+						app.sessions[app.term_view - 15].dismissed = true
+						return
+					}
+				}
+			}
 			if mx >= content_x && mx <= content_x + content_w && my >= content_y + 16 && my < y0 + term_h - 18 {
 				// click inside terminal focuses Ghostty and copies — potent multiplexed
 				app.ghost_focused = true
