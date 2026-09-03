@@ -66,11 +66,18 @@ alive() {
 	pgrep -f 'agent-toolkit-desktop-native' >/dev/null 2>&1
 }
 
-# panel tour — all 10 dock shortcuts render without killing the app
-for i in 0 1 2 3 4 5 6 7 8 9; do
-	clk 100 $((53 + i * 32 + 14))
-	sleep 0.8
-	alive || { echo "SMOKE FAIL: app died on panel $i"; exit 1; }
+# panel tour — numeric shortcuts cover every panel; onboarding via o
+for key in 1 2 3 4 5 6 7 8 9 0 p i o; do
+	key "$key"
+	sleep 0.5
+	alive || { echo "SMOKE FAIL: app died on panel key $key"; exit 1; }
+done
+# dock group clicks — bottom-up so expanding a group never shifts a row
+# that is still to be clicked (rows start y=58, groups step 40px)
+for gy in 258 218 178 138 98 58; do
+	clk 100 "$((gy + 18))"
+	sleep 0.6
+	alive || { echo "SMOKE FAIL: app died on dock group y=$gy"; exit 1; }
 done
 shot panels-tour
 
@@ -92,9 +99,9 @@ for gx in 716 806; do
 done
 shot insights-gallery
 
-# language cycle EN→ES→中文→عربي→EN (header chips)
-for cx in 873 913 953 833; do
-	clk "$cx" 19
+# language cycle EN→ES→中文→عربي→EN (header chips at w-180 + i*34, y 10..32)
+for cx in 1100 1134 1168 1202; do
+	clk "$cx" 21
 	sleep 0.6
 	alive || { echo "SMOKE FAIL: app died on language chip $cx"; exit 1; }
 done

@@ -148,6 +148,13 @@ pub fn (mut d Desktop) app_state_snapshot() app_state.AppState {
 	return d.app_state.clone()
 }
 
+fn (mut d Desktop) refresh_app_state() {
+	snap := d.engine.snapshot()
+	d.app_state = app_state.derive_app_state(snap)
+	if _ := d.router.project_app_state(d.app_state) {
+	}
+}
+
 // mutate_via_engine proves Desktop never shells out to CLI for state reads.
 // Mutates Engine via Transaction → EventBus → AppState within one tick.
 pub fn (mut d Desktop) mutate_via_engine(key string, value string) !u64 {
@@ -156,11 +163,7 @@ pub fn (mut d Desktop) mutate_via_engine(key string, value string) !u64 {
 	tx.set(key, value)
 	rev := d.engine.put_transaction(mut tx)!
 	// also update local derived snapshot (real Desktop would receive via bus projection)
-	snap := d.engine.snapshot()
-	d.app_state = app_state.derive_app_state(snap)
-	// router projection (State→View) within one EventBus tick
-	if _ := d.router.project_app_state(d.app_state) {
-	}
+	d.refresh_app_state()
 	return rev.revision
 }
 
@@ -395,14 +398,7 @@ pub fn (mut d Desktop) engine_build_file_tree(harness_root string, max_depth int
 	nodes := d.engine.build_file_tree(harness_root, max_depth) or { return []FileNodeProxy{} }
 	mut out := []FileNodeProxy{}
 	for n in nodes {
-		out << FileNodeProxy{
-			name: n.name
-			path: n.path
-			kind: if n.kind == .dir { 'dir' } else { 'file' }
-			expanded: n.expanded
-			depth: n.depth
-			git_status: n.git_status
-		}
+		out << file_node_proxy(n)
 	}
 	return out
 }
@@ -413,8 +409,25 @@ pub:
 	path       string
 	kind       string
 	expanded   bool
+	children   []FileNodeProxy
 	depth      int
 	git_status string
+}
+
+fn file_node_proxy(node desktop_engine.FileNode) FileNodeProxy {
+	mut children := []FileNodeProxy{}
+	for child in node.children {
+		children << file_node_proxy(child)
+	}
+	return FileNodeProxy{
+		name: node.name
+		path: node.path
+		kind: if node.kind == .dir { 'dir' } else { 'file' }
+		expanded: node.expanded
+		children: children
+		depth: node.depth
+		git_status: node.git_status
+	}
 }
 
 pub fn (mut d Desktop) engine_open_file_brokered(harness_root string, path string) !desktop_engine.EditorTab {
@@ -457,6 +470,24 @@ pub fn (mut d Desktop) engine_open_path_validated(harness_root string, path stri
 	return d.engine.open_path_validated(harness_root, path)
 }
 
+// engine_validate_workspace canonicalizes a selectable workspace directory.
+// It intentionally accepts uninitialized folders so the UI can offer setup.
+pub fn (mut d Desktop) engine_validate_workspace(path string) !string {
+	return d.engine.validate_workspace_root(path)
+}
+
+pub fn (mut d Desktop) engine_workspace_initialized(path string) bool {
+	return desktop_engine.workspace_is_initialized(path)
+}
+
+// engine_switch_workspace updates the canonical Engine preference and refreshes
+// the Desktop projection before the next frame reads workspace-bound data.
+pub fn (mut d Desktop) engine_switch_workspace(path string) !string {
+	clean := d.engine.switch_workspace(path)!
+	d.refresh_app_state()
+	return clean
+}
+
 // ── Super-potent onboarding / capability / target / product / workspace / persona — Engine wiring ──
 // Everything is possible and easy to manage: Desktop proxies every Engine mutation (no shell).
 pub fn (mut d Desktop) onboarding_status(harness_root string) desktop_engine.OnboardingStatus {
@@ -464,7 +495,9 @@ pub fn (mut d Desktop) onboarding_status(harness_root string) desktop_engine.Onb
 }
 
 pub fn (mut d Desktop) onboarding_ensure_workspace(target string) !u64 {
-	return d.engine.onboarding_ensure_workspace(target)
+	rev := d.engine.onboarding_ensure_workspace(target)!
+	d.refresh_app_state()
+	return rev
 }
 
 pub fn (mut d Desktop) onboarding_ensure_personas(harness_root string) !u64 {
@@ -575,7 +608,9 @@ pub fn (mut d Desktop) engine_set_pack_enabled(pack_id string, enabled bool) !u6
 // workspace + persona super-potent
 pub fn (mut d Desktop) engine_ensure_workspace_structure(harness_root string) !u64 {
 	// wire via onboarding ensure (same scaffold)
-	return d.engine.onboarding_ensure_workspace(harness_root)
+	rev := d.engine.onboarding_ensure_workspace(harness_root)!
+	d.refresh_app_state()
+	return rev
 }
 
 pub fn (mut d Desktop) engine_bootstrap_personas(harness_root string) !u64 {
