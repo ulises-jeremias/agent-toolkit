@@ -269,7 +269,6 @@ fn ui_state_path() string {
 // save_ui_state — best-effort persist of the shell layout (k=v, no json deps).
 fn save_ui_state(app &GuiApp) {
 	lines := [
-		'selected_panel=${app.selected_panel}',
 		'term_mode=${app.term_mode}',
 		'zoom=${app.global_zoom}',
 		'lang=${int(app.lang)}',
@@ -1949,7 +1948,9 @@ fn on_init(mut app GuiApp) {
 	app.onboarding_step = 0
 	app.show_onboarding = app.desktop.engine_is_first_run()
 	if app.show_onboarding {
-		app.selected_panel = 11
+		// first run: the OFFICE is the hero — the wizard renders as an overlay
+		// on the floor (munder-style boot straight into the office)
+		app.selected_panel = 0
 		app.onboarding_msg = 'Welcome — 7-step wizard: detect → capabilities → targets → products → workspace → personas → done (press o to toggle)'
 	} else {
 		app.onboarding_msg = ''
