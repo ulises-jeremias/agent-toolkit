@@ -18,7 +18,9 @@ GOLD="$ROOT/tests/golden"
 MODE="${1:-capture}"
 FUZZ="${2:-8}"
 XD="${XDOTOOL:-xdotool}"
-XLIB=""
+# preserve a caller-provided LD_LIBRARY_PATH (user-space Xvfb/xdotool installs
+# whose libs are not on the system loader path); default empty as before
+XLIB="${LD_LIBRARY_PATH:-}"
 if ! command -v "$XD" >/dev/null && [ -x /tmp/opencode/xtools/usr/bin/xdotool ]; then
 	XD=/tmp/opencode/xtools/usr/bin/xdotool
 	XLIB=/tmp/opencode/xtools/usr/lib
@@ -55,9 +57,15 @@ done
 }
 rm -f "$HOME/.cache/agent-toolkit/desktop/ui_state.env"
 (env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET ATK_GUI_FREEZE=1 DISPLAY=:77 "$BIN" >"$GOLD/../golden-app.log" 2>&1 &)
-sleep 3
-WID="$(xdt search --name 'Agent Toolkit' | head -1)"
+# software GL (llvmpipe) needs longer than 3s for the first frame — poll
+WID=""
+for _ in $(seq 1 45); do
+	WID="$(xdt search --name 'Agent Toolkit' | head -1 || true)"
+	[ -n "$WID" ] && break
+	sleep 2
+done
 [ -n "$WID" ] || { echo "error: window not found" >&2; exit 2; }
+sleep 8
 
 fail=0
 # panel tour via numeric shortcuts (1..9,0,P,I) — deterministic across nav layouts

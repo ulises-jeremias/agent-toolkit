@@ -8,7 +8,10 @@
 # canonical local build — the 4096² fontstash atlas matters: the GUI renders
 # Fraunces + IBM Plex Sans/Mono + the CJK/Arabic i18n fonts, and sfons cannot
 # expand the atlas at runtime (overflow ⇒ random .notdef tofu).
-VJOBS=2 VMODULES=modules v -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
+VJOBS=2 VMODULES="$PWD/modules" v -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
+# NOTE: VMODULES must be absolute — with a relative path the C backend runs
+# from V's own source dir and cannot write modules/.cache (tcc "No such file
+# or directory" on stbi.o).
 
 # run
 ./build/agent-toolkit-desktop-native                # window (needs DISPLAY)
