@@ -415,144 +415,15 @@ fn session_key_bytes(e &gg.Event) string {
 	return ''
 }
 
-// embedded_desktop_version is the compile-time single source of truth for the
-// user-visible desktop version — keep in sync with the repo root VERSION via
-// scripts/bump-version.vsh (mirrors agent_toolkit_core.embedded_version).
-const embedded_desktop_version = '1.30.0'
-
-// embedded_commit is set at build via `v -d commit=<sha>` (make.vsh build-cli).
-const embedded_commit = $d('commit', 'unknown')
-
-// desktop_commit returns the build commit for observability (not human version).
-fn desktop_commit() string {
-	env := os.getenv('AGENT_TOOLKIT_COMMIT').trim_space()
-	if env.len > 0 {
-		return env
-	}
-	return embedded_commit
-}
-
-// desktop_version is the single source of truth for the user-visible version.
-// Order: installed VERSION sibling (next to the binary install root) → repo
-// VERSION via env roots / CWD checkout walk → embedded build version.
-// The -d commit fallback surfaces via desktop_version_full for dev builds.
+// desktop_version reads the repo VERSION (build/ sibling) — fallback keeps the
+// header honest for installed binaries.
 fn desktop_version() string {
 	vp := os.join_path(os.dir(os.dir(os.executable())), 'VERSION')
-	if os.is_file(vp) {
-		if v := read_version_file(vp) {
-			return v
-		}
+	if os.exists(vp) {
+		v := os.read_file(vp) or { return '1.29.2' }
+		return v.trim_space()
 	}
-	for env in ['AGENT_TOOLKIT_ROOT', 'AI_WORKSPACE'] {
-		val := os.getenv(env).trim_space()
-		if val.len == 0 {
-			continue
-		}
-		if v := read_version_file(os.join_path(val, 'VERSION')) {
-			return v
-		}
-	}
-	mut cur := os.getwd()
-	for {
-		ver_path := os.join_path(cur, 'VERSION')
-		if v := read_version_file(ver_path) {
-			if os.is_dir(os.join_path(cur, 'skills')) || os.is_dir(os.join_path(cur, 'loops')) || os.is_dir(os.join_path(cur, 'profiles')) {
-				return v
-			}
-		}
-		parent := os.dir(cur)
-		if parent == cur || parent.len == 0 {
-			break
-		}
-		cur = parent
-	}
-	return embedded_desktop_version
-}
-
-// desktop_version_full appends the build commit when known (dev observability).
-fn desktop_version_full() string {
-	v := desktop_version()
-	c := desktop_commit()
-	if c == '' || c == 'unknown' {
-		return v
-	}
-	return '${v}+${c}'
-}
-
-fn read_version_file(path string) ?string {
-	if !os.is_file(path) {
-		return none
-	}
-	text := os.read_file(path) or { return none }
-	v := text.trim_space()
-	if v.len == 0 {
-		return none
-	}
-	return v
-}
-
-// ── Product-truth counters — Engine/catalog-derived, never hardcoded ──
-// Every user-visible skill/agent/provider/target/product count renders through
-// these helpers so the GUI cannot drift from the Engine catalog again.
-// Fallbacks match the current catalog truth (verified via Engine):
-// skills 227 · domains 14 · agents 18 active (10 holistic + 2 orchestrator +
-// 6 specialist, 7 archived) · MCP 7 · targets 7 · products 5 · packs 7.
-fn skills_total(mut app GuiApp) int {
-	if app.desktop != unsafe { nil } {
-		return app.desktop.engine_skills_stats().total
-	}
-	return 227
-}
-
-fn skills_domains_count(mut app GuiApp) int {
-	if app.desktop != unsafe { nil } {
-		return app.desktop.engine_skills_domains().len
-	}
-	return 14
-}
-
-fn agents_active_total(mut app GuiApp) int {
-	if app.desktop != unsafe { nil } {
-		s := app.desktop.engine_agents_stats()
-		return s.total - s.archived
-	}
-	return 18
-}
-
-fn agents_tier_summary(mut app GuiApp) string {
-	if app.desktop != unsafe { nil } {
-		s := app.desktop.engine_agents_stats()
-		return '${s.holistic} holistic · ${s.orchestrator} orchestrator · ${s.specialist} specialist'
-	}
-	return '10 holistic · 2 orchestrator · 6 specialist'
-}
-
-fn mcp_total(mut app GuiApp) int {
-	if app.desktop != unsafe { nil } {
-		return app.desktop.engine_mcp_stats().total
-	}
-	return 7
-}
-
-fn targets_total(mut app GuiApp) int {
-	if app.desktop != unsafe { nil } {
-		return app.desktop.engine_targets().len
-	}
-	return 7
-}
-
-fn products_total(mut app GuiApp) int {
-	if app.desktop != unsafe { nil } {
-		return app.desktop.engine_products_catalog().len
-	}
-	return 5
-}
-
-fn packs_total(mut app GuiApp) int {
-	if app.desktop != unsafe { nil } {
-		return app.desktop.engine_packs_catalog().len
-	}
-	return 7
+	return '1.29.2'
 }
 
 fn resolve_fonts() FontPaths {
@@ -840,7 +711,7 @@ mut:
 	desktop &desktop.Desktop = unsafe { nil }
 	fonts   FontPaths
 	lang    Lang = .en
-	version string = embedded_desktop_version
+	version string = '1.29.2'
 	frame   int
 	// toast tray — every inspector_msg change becomes a paper toast
 	toasts []Toast
@@ -1056,7 +927,7 @@ const i18n_table = {
 	// dock — short descriptors
 	'desc.world':              I18nRow{'Floor — desks, handoffs, live activity', 'Planta — escritorios y actividad', '办公区 · 工位与协作', 'الأرضية — المكاتب والنشاط'}
 	'desc.skills':             I18nRow{'227 skills across 14 domains', '227 habilidades en 14 dominios', '227 项技能 · 14 个领域', '٢٢٧ مهارة في ١٤ مجالا'}
-	'desc.agents':             I18nRow{'18 agents — holistic + orchestrator + specialist', '18 agentes — globales, orquestadores y especialistas', '18 个代理 · 全能/编排/专项', '١٨ وكيلاً — شامل ومنسق ومتخصص'}
+	'desc.agents':             I18nRow{'18 agents — holistic + specialist', '18 agentes — globales y especialistas', '18 个代理 · 全能与专项', '١٨ وكيلاً — شامل ومتخصص'}
 	'desc.mcp':                I18nRow{'7 providers — health + secrets', '7 proveedores — salud y claves', '7 个提供方 · 健康与密钥', '٧ مزودات — الصحة والمفاتيح'}
 	'desc.targets':            I18nRow{'7 targets — enable platforms', '7 destinos — activa plataformas', '7 个目标平台', '٧ منصات للتفعيل'}
 	'desc.doctor':             I18nRow{'Health checks + fix', 'Comprobaciones y reparación', '健康检查与修复', 'فحوصات وإصلاح'}
@@ -1064,7 +935,7 @@ const i18n_table = {
 	'desc.loops':              I18nRow{'Loops & missions — inner/outer', 'Bucles y misiones — internos/externos', '循环任务 · 内外环', 'المهام الدورية'}
 	'desc.swarm':              I18nRow{'GOD mailbox, Herdr/tmux, teams', 'Buzón GOD, Herdr/tmux, equipos', 'GOD 信箱 · 集群协作', 'صندوق GOD والفرق'}
 	'desc.workspace':          I18nRow{'IDE — tree, editor, git rails', 'IDE — árbol, editor, git', '工作区 IDE · 编辑器', 'مساحة عمل IDE'}
-	'desc.products':           I18nRow{'5 products, 7 packs, digest', '5 productos, 7 paquetes', '5 产品 · 7 包 · 摘要', '٥ منتجات و٧ حزم'}
+	'desc.products':           I18nRow{'3 products, 7 packs, digest', '3 productos, 7 paquetes', '3 产品 · 7 包 · 摘要', '٣ منتجات و٧ حزم'}
 	'desc.onboarding':         I18nRow{'Wizard — workspace to products', 'Asistente — de workspace a productos', '引导向导 · 一步到位', 'معالج الإعداد'}
 	'desc.insights':           I18nRow{'Cost, waterfall, spans, CI', 'Costos, cascada, spans, CI', '成本 · 瀑布 · CI', 'التكاليف والأداء'}
 	// header
@@ -1222,25 +1093,6 @@ fn tr(app &GuiApp, key string) string {
 		.zh { row.zh }
 		.ar { rtl_text(row.ar) }
 	}
-}
-
-// tr_count renders an i18n template with a hardcoded historical count swapped
-// for the live Engine-derived value (R2 product-truth). Substitution happens
-// on the raw template pre-RTL-shaping so the Arabic digit run stays intact;
-// ar keeps Western digits (numerical truth over glyph purity).
-fn tr_count(mut app GuiApp, key string, n int) string {
-	row := i18n_table[key] or { return key }
-	raw := match app.lang {
-		.en { row.en }
-		.es { row.es }
-		.zh { row.zh }
-		.ar { row.ar }
-	}
-	s := raw.replace('227', n.str()).replace('٢٢٧', n.str())
-	if app.lang == .ar {
-		return rtl_text(s)
-	}
-	return s
 }
 
 // trs same as tr but for a bare lang (status bar helpers without app ref).
@@ -1511,7 +1363,7 @@ fn panel_desc(i int) string {
 	return match i {
 		0 { 'Floor — desks, handoffs, live activity' }
 		1 { '227 skills across 14 domains — searchable' }
-		2 { '18 agents — 10 holistic, 2 orchestrator, 6 specialist' }
+		2 { '18 agents — 11 holistic, 6 specialist' }
 		3 { '7 MCP providers' }
 		4 { '7 targets' }
 		5 { 'Health checks' }
@@ -1519,7 +1371,7 @@ fn panel_desc(i int) string {
 		7 { 'Loops & missions — inner/outer' }
 		8 { 'Swarms — GOD mailbox, Herdr/tmux, pair/team/full' }
 		9 { 'Workspace IDE — file-tree + editor tabs + CHANGES/HISTORY/COMPARE + memory palace' }
-		10 { 'Products & packs — 5 products, 7 packs docs-only, membership & digest' }
+		10 { 'Products & packs — 3 products, 7 packs docs-only, membership & digest' }
 		11 { 'Onboarding — workspace init, persona bootstrap, capability/target/product wizard' }
 		12 { 'Insights — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher' }
 		else { '' }
@@ -2056,7 +1908,6 @@ fn main() {
 	mut app := &GuiApp{
 		desktop: d
 		fonts: fonts
-		version: desktop_version()
 		selected_panel: 0
 		hover_panel: -1
 		selected_desk: -1
@@ -2249,7 +2100,7 @@ fn on_init(mut app GuiApp) {
 		KanbanTask{'t1', 'Implement desk walk cycle', 'doing', 'implementer', 'high'},
 		KanbanTask{'t2', 'Wire libghostty-vt per desk', 'doing', 'assistant', 'high'},
 		KanbanTask{'t3', 'GOD mailbox routing', 'todo', 'planner', 'medium'},
-		KanbanTask{'t4', 'Skills ${skills_total(mut app)} catalog', 'todo', 'designer', 'medium'},
+		KanbanTask{'t4', 'Skills 227 catalog', 'todo', 'designer', 'medium'},
 		KanbanTask{'t5', 'Fix V master pin 78e581e', 'done', 'qa-engineer', 'low'},
 	]
 	// Resolve once through the Engine so every workspace-bound view starts on
@@ -2564,10 +2415,7 @@ fn frame(mut app GuiApp) {
 	}
 	left_x += 58
 	app.gg.draw_text(left_x, h - 19, '•  rev ${app.engine_rev}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
-	left_x += 92
-	// version stamp — same single source of truth as the header (desktop_version).
-	app.gg.draw_text(left_x, h - 19, '•  v${app.version}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
-	left_x += 84
+	left_x += 78
 	// mini zoom slider in status bar — paper tape style
 	zx2 := left_x + 8
 	zy2 := h - 18
@@ -2712,8 +2560,7 @@ fn workspace_path_label(path string, max_len int) string {
 }
 
 fn header_workspace_x() int {
-	// 216 leaves room for the title + version stamp (v1.30.0 via desktop_version).
-	return 216
+	return 168
 }
 
 fn header_workspace_w(w int) int {
@@ -2749,13 +2596,6 @@ fn draw_header(mut app GuiApp, w int) {
 		size: scaled_size(font_display_md, z)
 		family: app.fonts.display
 	})
-	// version stamp — single source of truth via desktop_version() (repo VERSION
-	// at build, installed VERSION sibling, -d commit fallback for dev builds).
-	app.gg.draw_text(148, 15, 'v${app.version}', gg.TextCfg{
-		color: col_slate_dim
-		size: scaled_size(12, z)
-		bold: true
-	})
 	app.gg.draw_rect_filled(8, 10, 3, 3, col_brass)
 
 	wx := header_workspace_x()
@@ -2775,7 +2615,7 @@ fn draw_header(mut app GuiApp, w int) {
 	sx_search := header_search_x(w)
 	sw_search := header_search_w(w)
 	search_txt := if app.global_search == '' {
-		tr_count(mut app, 'header.search', skills_total(mut app))
+		tr(app, 'header.search')
 	} else {
 		app.global_search
 	}
@@ -3536,7 +3376,7 @@ fn draw_skills_search_bar(mut app GuiApp, fx int, fy int, fw int) {
 		q = app.palette_query
 	}
 	display := if q == '' {
-		'Search ${skills_total(mut app)} skills — try "core", "figma", "github" (fuzzy)'
+		'Search 227 skills — try "core", "figma", "github" (fuzzy)'
 	} else {
 		'filter: ${q}'
 	}
@@ -3555,7 +3395,7 @@ fn draw_skills_domain_chips(mut app GuiApp, fx int, fy int, fw int) {
 	x0 := fx + 12
 	mut x := x0
 	for d in domains {
-		label := if d == 'all' { 'all ${skills_total(mut app)}' } else { d }
+		label := if d == 'all' { 'all 227' } else { d }
 		active := (d == 'all' && app.skills_domain == '') || app.skills_domain == d
 		bg := if active { col_brass } else { col_manila_tab }
 		fg := if active { col_ink } else { col_ink_soft }
@@ -3721,7 +3561,7 @@ fn draw_skills(mut app GuiApp, w int, h int) {
 	draw_skills_list(mut app, fx, fy, fw, fh)
 	// super-potent footer: domain facets + origin
 	doms := app.desktop.engine_skills_domains()
-	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (116) → ${skills_total(mut app)} · ${doms.len} domains · click row to install/toggle · receipts ${receipts.len} · / to palette', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (116) → 227 · ${doms.len} domains · click row to install/toggle · receipts ${receipts.len} · / to palette', gg.TextCfg{ color: col_ink_soft, size: 11 })
 }
 
 fn draw_agents(mut app GuiApp, w int, h int) {
@@ -3731,9 +3571,9 @@ fn draw_agents(mut app GuiApp, w int, h int) {
 	term_h_ag := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_ag
 	app.gg.draw_rect_filled(fx, fy, fw, fh, col_cream50)
-	// super-potent header with stats + provenance (R2 product-truth: tier
-	// breakdown via helper so the header can never drift from the catalog).
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.agents'), agents_tier_summary(mut app), 'search + tier filter · receipts via Engine')
+	// super-potent header with stats + provenance
+	stats := app.desktop.engine_agents_stats()
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.agents'), '${stats.holistic} holistic · ${stats.specialist} specialist · ${stats.orchestrator} orchestrator', 'search + tier filter · receipts via Engine')
 	mut agents := app.desktop.engine_agents_search(app.skills_query, '')
 	if agents.len == 0 {
 		agents = [
@@ -3897,11 +3737,11 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	if diff.added.len > 0 {
 		app.gg.draw_text(fx + 20, fy + 44, 'dry-run: will add ${diff.added.join(', ')} (preview via Engine.install_preview)', gg.TextCfg{ color: col_brass_dim, size: 11 })
 	}
-	// R2 product-truth: roster comes from the Engine target catalog — the old
-	// hardcoded list drifted (copilot/muse-code vs cursor-plugins/cli).
-	tgts2 := app.desktop.engine_targets().map(it.id)
+	tgts := app.desktop.engine_mcp_catalog() // dummy to keep import used
+	_ = tgts
 	targets := app.desktop.engine_targets_enabled()
 	_ = targets
+	tgts2 := ['claude-code', 'cursor', 'opencode', 'copilot', 'windsurf', 'pi', 'muse-code']
 	for i, t in tgts2 {
 		y := fy + 56 + i * 32
 		enabled := t in app.desktop.engine_targets_enabled()
@@ -5709,7 +5549,11 @@ fn draw_products(mut app GuiApp, w int, h int) {
 	prods := app.desktop.engine_products_catalog()
 	packs := app.desktop.engine_packs_catalog()
 	installed := app.desktop.engine_skills_installed()
-	preview := skills_total(mut app).str()
+	preview := if app.desktop != unsafe { nil } {
+		app.desktop.engine_skills_search('', '').len.str()
+	} else {
+		'227'
+	}
 	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.products'), '${prods.len} products · ${packs.len} packs · ${installed.len} skills installed · docs-only per ADR-006', 'digest ${preview}')
 	// product cards
 	card_y0 := fy + 48
@@ -5799,7 +5643,7 @@ fn draw_products(mut app GuiApp, w int, h int) {
 
 // ── Onboarding — super-potent wizard: workspace init, persona bootstrap, capability/target/product ──
 // Single modal wizard where everything is possible and easy to manage. One view, seven steps:
-// Detect → Capabilities (227) → Targets (7) → Products/Packs (5+7) → Workspace Init → Personas → Tour → Done.
+// Detect → Capabilities (227) → Targets (7) → Products/Packs (3+7) → Workspace Init → Personas → Tour → Done.
 // All actions wire via Desktop.onboarding_* proxies → Engine transactions → EventBus → AppState (no shell).
 fn draw_onboarding(mut app GuiApp, w int, h int) {
 	term_h_on := if app.term_visible { app.term_height } else { 0 }
@@ -5833,7 +5677,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 150, fy + 13, 'workspace · personas · ${skills_total(mut app)} capabilities · ${targets_total(mut app)} targets · ${products_total(mut app)} products · one Engine', gg.TextCfg{ color: col_slate_dim, size: 12 })
+	app.gg.draw_text(fx + 150, fy + 13, 'workspace · personas · 227 capabilities · 7 targets · 3 products · one Engine', gg.TextCfg{ color: col_slate_dim, size: 12 })
 	// signature envelope + GOD mailbox glow — paper envelope on header right
 	env_x := fx + fw - 140
 	env_y := fy + 8
@@ -5982,11 +5826,11 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				size: 12
 				mono: true
 			})
-			app.gg.draw_text(fx + 20, content_y + 110, 'Next: pick capabilities (${skills_total(mut app)}) and targets (${targets_total(mut app)}) — bulk, one transaction, EventBus → AppState in one tick.', gg.TextCfg{ color: col_ink500, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + 110, 'Next: pick capabilities (227) and targets (7) — bulk, one transaction, EventBus → AppState in one tick.', gg.TextCfg{ color: col_ink500, size: 11 })
 			// environment stamp grid — the office at a glance
 			stamps := [
-				['Capabilities', '${installed_cnt} / ${skills_total(mut app)} installed'],
-				['Targets', '${enabled_targets.len} / ${targets_total(mut app)} enabled'],
+				['Capabilities', '${installed_cnt} / 227 installed'],
+				['Targets', '${enabled_targets.len} / 7 enabled'],
 				['Personas', '${persona_cnt} bootstrapped'],
 				['Workspace', if workspace_exists { 'initialized ✓' } else { 'not initialized' }],
 			]
@@ -6022,7 +5866,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		}
 		1 { // Capabilities — searchable 227 via Engine, bulk install
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Capabilities — ${skills_total(mut app)} skills, ${skills_domains_count(mut app)} domains', gg.TextCfg{ color: col_ink, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Capabilities — 227 skills, 14 domains', gg.TextCfg{ color: col_ink, size: 14, bold: true })
 			q := app.skills_query
 			disp_q := if q == '' {
 				'Search — try "core", "delivery", "forge" (fuzzy substring + subsequence + word-boundary)'
@@ -6086,14 +5930,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			})
 			app.gg.draw_text(fx + 20, content_y + content_h - 54, 'Installed: ${installed_cnt} skills', gg.TextCfg{ color: col_ink700, size: 11, mono: true })
 		}
-		2 { // Targets — toggles via Engine over the live catalog roster
+		2 { // Targets — 7 toggles via Engine
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Targets — ${targets_total(mut app)} platforms', gg.TextCfg{ color: col_ink, size: 14, bold: true })
-			tgts := if app.desktop != unsafe { nil } {
-				app.desktop.engine_targets().map(it.id)
-			} else {
-				['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
-			}
+			app.gg.draw_text(fx + 20, content_y + 10, 'Targets — 7 platforms', gg.TextCfg{ color: col_ink, size: 14, bold: true })
+			tgts := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
 			for i, t in tgts {
 				y := content_y + 30 + i * 20
 				enabled := t in enabled_targets
@@ -6128,7 +5968,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		}
 		3 { // Products / Packs — membership & digest
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Products & Packs — ${products_total(mut app)} products · ${packs_total(mut app)} packs', gg.TextCfg{ color: col_ink, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Products & Packs', gg.TextCfg{ color: col_ink, size: 14, bold: true })
 			prods := if app.desktop != unsafe { nil } {
 				app.desktop.engine_products_catalog()
 			} else {
@@ -6139,15 +5979,17 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			} else {
 				[]desktop_engine.PackEntry{}
 			}
-			// R2 product-truth: render the full Engine products catalog (5), no cap.
 			for i, p in prods {
+				if i >= 3 {
+					break
+				}
 				y := content_y + 30 + i * 20
 				app.gg.draw_rect_filled(fx + 20, y, fw - 40, 16, col_cream100)
 				app.gg.draw_text(fx + 26, y + 3, p.id, gg.TextCfg{ color: col_ink, size: 12, mono: true })
 				app.gg.draw_text(fx + fw - 80, y + 3, '${p.skill_ids.len} skills', gg.TextCfg{ color: col_slate_dim, size: 11 })
 			}
 			mut px := fx + 20
-			py := content_y + 30 + prods.len * 20 + 6
+			py := content_y + 96
 			app.gg.draw_text(fx + 20, py, 'Packs docs-only (ADR-006):', gg.TextCfg{ color: col_ink700, size: 11 })
 			for pk in packs {
 				label := pk.id
@@ -6159,7 +6001,11 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				app.gg.draw_text(px + 6, py + 14, label, gg.TextCfg{ color: col_slate_dim, size: 11 })
 				px += tw3 + 4
 			}
-			preview := skills_total(mut app).str()
+			preview := if app.desktop != unsafe { nil } {
+				app.desktop.engine_skills_search('', '').len.str()
+			} else {
+				'227'
+			}
 			_ = preview
 			app.gg.draw_text(fx + 20, content_y + content_h - 36, 'Preview: build_preview() → plugins-digest • membership via update_product_membership in one TX', gg.TextCfg{ color: col_slate, size: 11 })
 		}
@@ -6233,7 +6079,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		6 { // Done — tour + complete
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
 			app.gg.draw_text(fx + 20, content_y + 10, 'Done — Tour', gg.TextCfg{ color: col_ink, size: 14, bold: true })
-			app.gg.draw_text(fx + 20, content_y + 30, '1 → World (floor, GOD mailbox)   2 → Skills (${skills_total(mut app)} fuzzy)   3 → Agents (${agents_active_total(mut app)})   4 → Targets (${targets_total(mut app)})', gg.TextCfg{ color: col_ink700, size: 12 })
+			app.gg.draw_text(fx + 20, content_y + 30, '1 → World (floor, GOD mailbox)   2 → Skills (227 fuzzy)   3 → Agents (18)   4 → Targets (7)', gg.TextCfg{ color: col_ink700, size: 12 })
 			app.gg.draw_text(fx + 20, content_y + 46, '5 → Doctor (receipts)  6 → Jobs  7 → Loops (inner/outer)  8 → Swarm (pair/team/full)  9 → Workspace IDE  P → Products', gg.TextCfg{ color: col_ink700, size: 12 })
 			app.gg.draw_text(fx + 20, content_y + 64, 'All panels via single Engine — no shell, every mutation is a StateRepository Transaction → EventBus → AppState.', gg.TextCfg{ color: col_slate_dim, size: 11 })
 			hov_done := app.onboarding_hover == 6
@@ -7291,13 +7137,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, col_paper_dim)
 		}
 		pal_label := tr(app, 'palette.' + it.id)
-		// R2 product-truth: CLI-action rows render live Engine counts, never
-		// the hardcoded historical numbers in palette_items().
-		pal_desc := if it.id == 'skills_sync' {
-			'Sync and validate ${skills_total(mut app)} skills'
-		} else if it.id == 'mcp_health' {
-			'Health of ${mcp_total(mut app)} providers'
-		} else if tr(app, 'pdesc.' + it.id) != 'pdesc.' + it.id {
+		pal_desc := if tr(app, 'pdesc.' + it.id) != 'pdesc.' + it.id {
 			tr(app, 'pdesc.' + it.id)
 		} else {
 			it.desc
@@ -7331,7 +7171,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(cx + 20, cy + 86, 'No matches — try another query', gg.TextCfg{ color: col_ink500, size: scaled_size(13, z) })
 	}
 	// footer hint paper tape
-	app.gg.draw_text(cx + 16, cy + ph - 16, '↑↓ navigate  •  Enter to open  •  Type to filter ${skills_total(mut app)} skills  •  Ctrl± zoom', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
+	app.gg.draw_text(cx + 16, cy + ph - 16, '↑↓ navigate  •  Enter to open  •  Type to filter 227 skills  •  Ctrl± zoom', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
 }
 
 fn draw_help(mut app GuiApp, w int, h int) {
@@ -7343,20 +7183,16 @@ fn draw_help(mut app GuiApp, w int, h int) {
 	ph := 300
 	pixel_panel(mut app, cx, cy, pw, ph, 'default')
 	app.gg.draw_text(cx + 16, cy + 12, 'Paper Co. — Shortcuts', gg.TextCfg{ color: col_ink, size: scaled_size(14, z), bold: true })
-	lines := [
-		'/  Command palette — fuzzy search ${skills_total(mut app)} skills, agents, panels (v${app.version})',
+	lines := ['/  Command palette — fuzzy search 227 skills, agents, panels',
 		'Ctrl +  = / -  Zoom in/out   •   Ctrl + 0  Reset  •  Ctrl + Scroll',
 		'1 – 0  Switch panel (World, Skills, Agents, MCP, Targets, Doctor, Jobs…)',
 		'↑  ↓  Navigate palette / floor desks  •  Enter to activate',
 		'Esc  Close palette / help / onboarding  •  H  Toggle this help',
 		'Click  Desk, dock file-tab or inspector — hover for brass highlight',
-		'Enter  Open terminal for selected desk  •  R  Route handoff',
-	]
+		'Enter  Open terminal for selected desk  •  R  Route handoff']
 	for i, l in lines {
 		app.gg.draw_text(cx + 16, cy + 38 + i * 18, l, gg.TextCfg{ color: col_ink700, size: scaled_size(13, z) })
 	}
-	// about stamp — version + live catalog counts, single source of truth.
-	app.gg.draw_text(cx + 16, cy + ph - 42, 'v${desktop_version_full()} • ${skills_total(mut app)} skills · ${agents_active_total(mut app)} agents · ${mcp_total(mut app)} providers · ${targets_total(mut app)} targets · ${products_total(mut app)} products', gg.TextCfg{ color: col_brass_dim, size: scaled_size(11, z), bold: true })
 	app.gg.draw_text(cx + 16, cy + ph - 22, 'Fraunces display • IBM Plex body • IBM Plex Mono  •  Press H or Esc to close.', gg.TextCfg{ color: col_ink500, size: scaled_size(11, z) })
 }
 
@@ -9001,14 +8837,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					return
 				}
 				if mx >= fx + 118 && mx <= fx + 208 && my >= content_y + content_h - 40 && my <= content_y + content_h - 22 {
-					// R2 product-truth: enable-all covers the Engine catalog roster.
-					ids := app.desktop.engine_targets().map(it.id)
+					ids := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins',
+						'cli']
 					rev := app.desktop.onboarding_set_targets_bulk(ids) or {
 						app.onboarding_msg = 'targets all failed: ${err}'
 						0
 					}
 					if rev > 0 {
-						app.onboarding_msg = 'All ${ids.len} targets rev=${rev}'
+						app.onboarding_msg = 'All 7 targets rev=${rev}'
 						app.engine_rev = app.desktop.app_state_snapshot().revision
 						app.api_calls = app.desktop.engine_api_calls()
 					}
@@ -9107,7 +8943,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			y_chip := fy + 80
 			mut chip_x := fx + 12
 			for d in domains {
-				label := if d == 'all' { 'all ${skills_total(mut app)}' } else { d }
+				label := if d == 'all' { 'all 227' } else { d }
 				wc := label.len * 7 + 16
 				if chip_x + wc > fx + fw - 12 {
 					break
@@ -9117,7 +8953,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.skills_scroll = 0
 					app.skills_selected = 0
 					app.inspector_msg = if d == 'all' {
-						'Filter: all ${skills_total(mut app)} skills'
+						'Filter: all 227 skills'
 					} else {
 						'Filter: ${d} domain via Engine.skills_search'
 					}
@@ -9186,7 +9022,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// search bar click focuses — brokered 227 fuzzy searchable
 			if mx >= fx + 12 && mx <= fx + fw - 12 && my >= fy + 48 && my <= fy + 76 {
 				app.palette_open = false
-				app.inspector_msg = 'Skills search focused — type to filter ${skills_total(mut app)} (fuzzy substring+subsequence+word-boundary via Engine)'
+				app.inspector_msg = 'Skills search focused — type to filter 227 (fuzzy substring+subsequence+word-boundary via Engine)'
 				return
 			}
 		}
