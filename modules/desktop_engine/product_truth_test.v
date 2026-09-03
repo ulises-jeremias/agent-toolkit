@@ -9,6 +9,17 @@ import os
 // contract — when a catalog legitimately grows, update the GUI fallbacks and
 // this test together.
 fn test_product_truth_catalog_counts() {
+	// Hermetic catalog root: the Engine resolves catalogs from ambient state
+	// (XDG → embedded → checkout), so without a pin CI/clean machines fall
+	// back to the synthetic catalog (11 holistic) while dev machines with XDG
+	// data read the real catalog (10 holistic). Pin to this checkout, whose
+	// catalogs/agent-catalog.yaml is the contract under test.
+	repo_root := os.dir(os.dir(os.dir(@FILE)))
+	prev_override := os.getenv('AGENT_TOOLKIT_ROOT')
+	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
+	defer {
+		os.setenv('AGENT_TOOLKIT_ROOT', prev_override, true)
+	}
 	tmp := os.join_path(os.temp_dir(), 'product-truth-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
