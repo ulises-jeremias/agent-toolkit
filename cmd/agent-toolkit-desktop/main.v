@@ -849,6 +849,15 @@ struct Toast {
 	at    int
 }
 
+// DoctorChip — a stored category-facet hit rect (#1108: click chip → fix category).
+struct DoctorChip {
+	cat string
+	x   int
+	y   int
+	w   int
+	h   int
+}
+
 struct GuiApp {
 mut:
 	gg      &gg.Context = unsafe { nil }
@@ -879,6 +888,11 @@ mut:
 	pnl_success      gg.Color
 	pnl_danger       gg.Color
 	pnl_select_hover gg.Color
+	// doctor dry-run preview (#1108): open check id + cached preview lines +
+	// stored facet-chip hit rects (rebuilt every frame by draw_doctor).
+	doctor_preview       string
+	doctor_preview_lines []string
+	doctor_chips         []DoctorChip
 	frame            int
 	// toast tray — every inspector_msg change becomes a paper toast
 	toasts []Toast
@@ -3991,6 +4005,49 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	app.gg.draw_text(fx + 20, fy + fh - 14, 'Install: engine.install([targets]) → receipt ~/.config/agent-toolkit/receipts · dry-run before write · toggle via Engine', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 }
 
+// doctor_preview_geom is the single source for the dry-run card geometry —
+// render and hit-testing must stay identical (#1108).
+fn doctor_preview_geom(fx int, fy int, fw int) (int, int, int, int) {
+	pw := if fw - 120 > 320 { fw - 120 } else { 320 }
+	return fx + 60, fy + 110, pw, 158
+}
+
+// doctor_preview_open resolves the dry-run lines once (cached — render must
+// not bump engine_api_calls every frame) and opens the confirm card.
+fn doctor_preview_open(mut app GuiApp, check_id string) {
+	lines := app.desktop.engine_doctor_fix_preview(check_id) or {
+		app.inspector_msg = 'Doctor preview failed: ${err}'
+		return
+	}
+	app.doctor_preview = check_id
+	app.doctor_preview_lines = lines.clone()
+	app.inspector_msg = 'Doctor ${check_id}: dry-run preview — Confirm to apply via Engine TX'
+}
+
+// doctor_preview_confirm applies the previewed fix, closes the card, and
+// announces the re-check (rows re-query every frame, so the flip is visible
+// without leaving the panel).
+fn doctor_preview_confirm(mut app GuiApp) {
+	id := app.doctor_preview
+	if id == '' {
+		return
+	}
+	rev := app.desktop.engine_doctor_fix(id) or {
+		app.inspector_msg = 'Doctor fix ${id} failed: ${err}'
+		app.doctor_preview = ''
+		app.doctor_preview_lines = []
+		return
+	}
+	app.engine_rev = app.desktop.app_state_snapshot().revision
+	if app.engine_rev == 0 {
+		app.engine_rev = rev
+	}
+	app.api_calls = app.desktop.engine_api_calls()
+	app.doctor_preview = ''
+	app.doctor_preview_lines = []
+	app.inspector_msg = 'Doctor ${id} fixed rev=${rev} • re-check flips the row to pass'
+}
+
 fn draw_doctor(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
 	fy := 52
@@ -4017,7 +4074,10 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		app.pnl_border_hi
 	})
 	app.gg.draw_text(fx + fw - 76, fy + 15, 'Fix All', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	// category facets row — super-potent easy triage (14 categories via Engine)
+	// category facets row — super-potent easy triage (14 categories via Engine).
+	// Click a chip to fix that category via Engine TX (#1108); hit rects are
+	// stored for the mouse handler (rebuilt every frame, same geometry).
+	app.doctor_chips = []
 	cats := ['root', 'engine', 'profiles', 'swarm', 'mcp', 'pack', 'loops', 'matrix', 'audit',
 		'provenance']
 	mut cx := fx + 12
@@ -4043,6 +4103,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 				app.pnl_text_mut}
 			size: 11
 		})
+		app.doctor_chips << DoctorChip{cat, cx, cy, tw, 16}
 		cx += tw + 4
 	}
 	// virtualized check list — 24px rows, 60 FPS, category + status + fixable + message + receipt/provenance hint
@@ -4105,13 +4166,50 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(fx + fw - 60, y0 + vis * row_h + 2, '+${checks_engine.len - vis} more', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	}
 	// footer — receipts/provenance verification + provenance paths
-	app.gg.draw_text(fx + 20, fy + fh - 20, 'Receipts: ~/.config/agent-toolkit/receipts · Provenance: plugins/.provenance.json · Run doctor --fix to repair. All checks are English, no fallback.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 20, 'Click fix → for dry-run · chip fixes its category · receipts/provenance verified. All checks are English, no fallback.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	app.gg.draw_text(fx + fw - 160, fy + fh - 20, '${verify_diags.len} verify warnings', gg.TextCfg{
 		color: if verify_diags.len > 0 {
 			app.pnl_danger} else {
 			app.pnl_success}
 		size: 11
 	})
+	// dry-run preview card — modal overlay, Confirm applies via Engine TX (#1108)
+	if app.doctor_preview != '' {
+		px, py, pw, ph := doctor_preview_geom(fx, fy, fw)
+		pixel_panel(mut app, px, py, pw, ph, 'dialog')
+		app.gg.draw_text(px + 14, py + 10, 'Dry-run preview — ${app.doctor_preview}', gg.TextCfg{
+			color: app.pnl_text
+			size: 13
+			bold: true
+		})
+		app.gg.draw_text(px + 14, py + 28, 'These state writes apply on Confirm — nothing is written yet:', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+		})
+		mut ln := 0
+		for line in app.doctor_preview_lines {
+			if ln >= 5 {
+				break
+			}
+			app.gg.draw_text(px + 18, py + 46 + ln * 16, line, gg.TextCfg{
+				color: app.pnl_text
+				size: 11
+				mono: true
+			})
+			ln++
+		}
+		confirm_fg := if app.appearance_dark { app.pnl_bg } else { app.pnl_text }
+		app.gg.draw_rect_filled(px + 14, py + ph - 32, 120, 22, app.pnl_select)
+		app.gg.draw_rect_empty(px + 14, py + ph - 32, 120, 22, app.pnl_select)
+		app.gg.draw_text(px + 28, py + ph - 26, 'Confirm fix', gg.TextCfg{
+			color: confirm_fg
+			size: 12
+			bold: true
+		})
+		app.gg.draw_rect_filled(px + 144, py + ph - 32, 90, 22, app.pnl_card_sel)
+		app.gg.draw_rect_empty(px + 144, py + ph - 32, 90, 22, app.pnl_border)
+		app.gg.draw_text(px + 164, py + ph - 26, 'Cancel', gg.TextCfg{ color: app.pnl_text, size: 12 })
+	}
 }
 
 fn draw_jobs(mut app GuiApp, w int, h int) {
@@ -7803,6 +7901,13 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.memory_query = ''
 				return
 			}
+			// doctor dry-run preview is modal — Esc cancels it from anywhere (#1108)
+			if app.doctor_preview != '' {
+				app.doctor_preview = ''
+				app.doctor_preview_lines = []
+				app.inspector_msg = 'Doctor dry-run cancelled — nothing was written'
+				return
+			}
 			return
 		}
 		// libghostty-vt toggle — Tab flips ghost_focused, the super potent multiplexed terminal
@@ -8011,8 +8116,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					return
 				}
 			}
-			// Doctor panel — f fixes all via Engine TX, Enter fixes selected, receipts/provenance verified
+			// Doctor panel — f fixes all via Engine TX, Enter opens dry-run preview
+			// (Enter again confirms, Esc cancels), receipts/provenance verified
 			if app.selected_panel == 5 {
+				// (Esc-cancel lives in the global Esc block above — it runs first.)
 				if e.char_code == `f` || e.char_code == `F` {
 					rev := app.desktop.engine_doctor_fix_all() or {
 						app.inspector_msg = 'Doctor fix all failed: ${err}'
@@ -8020,6 +8127,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					}
 					app.engine_rev = rev
 					app.api_calls = app.desktop.engine_api_calls()
+					app.doctor_preview = ''
+					app.doctor_preview_lines = []
 					app.inspector_msg = if rev == 0 {
 						'Doctor: all fixable already pass ✓'
 					} else {
@@ -8028,14 +8137,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					return
 				}
 				if e.key_code == .enter {
-					// fix first fixable for super-potent easy management
+					if app.doctor_preview != '' {
+						doctor_preview_confirm(mut app)
+						return
+					}
+					// open dry-run for first fixable — super-potent easy management
 					checks := app.desktop.engine_doctor()
 					for c in checks {
 						if c.fixable && c.status != 'pass' {
-							rev := app.desktop.engine_doctor_fix(c.id) or { continue }
-							app.engine_rev = rev
-							app.api_calls = app.desktop.engine_api_calls()
-							app.inspector_msg = 'Doctor ${c.id} fixed rev=${rev} • Engine TX'
+							doctor_preview_open(mut app, c.id)
 							return
 						}
 					}
@@ -9379,6 +9489,21 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			fx_d := 208
 			fy_d := 52
 			fw_d := w - 208 - 300
+			// dry-run preview is modal: Confirm/Cancel first (#1108)
+			if app.doctor_preview != '' {
+				px, py, _, ph := doctor_preview_geom(panel_fx(app), fy_d, panel_fw(app, w))
+				if mx >= px + 14 && mx <= px + 134 && my >= py + ph - 32 && my <= py + ph - 10 {
+					doctor_preview_confirm(mut app)
+					return
+				}
+				if mx >= px + 144 && mx <= px + 234 && my >= py + ph - 32 && my <= py + ph - 10 {
+					app.doctor_preview = ''
+					app.doctor_preview_lines = []
+					app.inspector_msg = 'Doctor dry-run cancelled — nothing was written'
+					return
+				}
+				return
+			}
 			// Fix All hit
 			if mx >= fx_d + fw_d - 90 && mx <= fx_d + fw_d - 10 && my >= fy_d + 8 && my <= fy_d + 28 {
 				if app.desktop != unsafe { nil } {
@@ -9391,6 +9516,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						app.engine_rev = rev
 					}
 					app.api_calls = app.desktop.engine_api_calls()
+					app.doctor_preview = ''
+					app.doctor_preview_lines = []
 					app.inspector_msg = if rev == 0 {
 						'Doctor: all fixable already pass ✓'
 					} else {
@@ -9399,28 +9526,46 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				return
 			}
-			// per-check fix hit — rows at fy+50, 24px
+			// facet-chip hit — fix that category via Engine TX (#1108)
+			for chip in app.doctor_chips {
+				if mx >= chip.x && mx <= chip.x + chip.w && my >= chip.y && my <= chip.y + chip.h {
+					rev := app.desktop.engine_doctor_fix_category(chip.cat) or {
+						app.inspector_msg = 'Doctor category fix ${chip.cat} failed: ${err}'
+						return
+					}
+					app.engine_rev = app.desktop.app_state_snapshot().revision
+					if app.engine_rev == 0 {
+						app.engine_rev = rev
+					}
+					app.api_calls = app.desktop.engine_api_calls()
+					app.inspector_msg = if rev == 0 {
+						'Doctor ${chip.cat}: nothing fixable — all pass ✓'
+					} else {
+						'Doctor ${chip.cat} fixed rev=${rev} via Engine TX'
+					}
+					return
+				}
+			}
+			// per-check fix hit — rows at fy+50, 24px. The visible-row cap must
+			// mirror draw_doctor exactly (list_h = fh-78, 24px rows); a fixed
+			// cap leaves deep rows unclickable and risks matching unrendered
+			// rows against footer pixels (#1108).
+			term_h_d := if app.term_visible { app.term_height } else { 0 }
+			fh_d := h - 52 - 28 - term_h_d
+			list_h_d := fh_d - 78
+			max_vis_d := if list_h_d < 40 { 0 } else { list_h_d / 24 }
 			y0_d := fy_d + 50
 			checks_d := app.desktop.engine_doctor()
 			for i, c in checks_d {
-				if i >= 14 {
+				if i >= max_vis_d {
 					break
 				}
 				y := y0_d + i * 24
 				if mx >= fx_d + 12 && mx <= fx_d + fw_d - 12 && my >= y && my <= y + 22 {
 					if c.fixable && c.status != 'pass' {
-						// click on fix badge
+						// click on fix badge → dry-run preview, Confirm applies (#1108)
 						if mx >= fx_d + fw_d - 60 {
-							rev := app.desktop.engine_doctor_fix(c.id) or {
-								app.inspector_msg = 'Doctor fix ${c.id} failed: ${err}'
-								return
-							}
-							app.engine_rev = app.desktop.app_state_snapshot().revision
-							if app.engine_rev == 0 {
-								app.engine_rev = rev
-							}
-							app.api_calls = app.desktop.engine_api_calls()
-							app.inspector_msg = 'Doctor ${c.id} fixed rev=${rev} • ${c.category} → pass via Engine TX'
+							doctor_preview_open(mut app, c.id)
 							return
 						}
 					}
