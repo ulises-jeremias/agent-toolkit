@@ -23,7 +23,7 @@ fn ui_theme() theme.Theme {
 // scream instead of rendering as a subtle near-black.
 fn hex_to_gg(hex string) gg.Color {
 	if hex.len == 7 && hex[0] == `#` {
-		valid := true
+		mut valid := true
 		for i in 1 .. 7 {
 			c := hex[i]
 			if !(c >= `0` && c <= `9`) && !(c >= `a` && c <= `f`) && !(c >= `A` && c <= `F`) {
