@@ -5,6 +5,7 @@ import desktop_engine
 import gg
 import ghostty
 import os
+import pty as pty_mod
 
 // ── Dunder Mifflin Paper Co. — distinctive signature, not generic ──
 // Anti-slop: no purple/indigo gradient (#7c3aed), no Inter-only, no glassmorphism.
@@ -328,6 +329,59 @@ fn load_ui_state(mut app GuiApp) {
 	}
 }
 
+// spawn_session — spawn an agent CLI on a real PTY and focus it fullscreen.
+fn bc2(msg string) {
+	mut f := os.open_file('/tmp/opencode/bc2.log', 'ab', 0o644) or { return }
+	f.writeln(msg) or {}
+	f.close()
+}
+
+fn spawn_session(mut app &GuiApp, ab pty_mod.AgentBin) {
+	bc2('spawn:enter ${ab.agent}')
+	s := pty_mod.spawn(ab.agent, ab.binary, [], 120, 32) or {
+		app.inspector_msg = 'Session ${ab.agent} error: ${err}'
+		return
+	}
+	app.sessions << TermSession{
+		agent: ab.agent
+		sess: s
+		vt: ghostty.new_terminal(120, 32)
+	}
+	app.term_view = 15 + app.sessions.len - 1
+	app.sessions_dialog = false
+	bc2('spawn:done total=${app.sessions.len}')
+	app.inspector_msg = 'Session ${ab.agent} spawned (pid ${s.pid}) — Fleet chip returns'
+}
+
+// session key router — TUI byte encoding (pty echoes; no local echo)
+fn session_key_bytes(e &gg.Event) string {
+	if e.key_code == .enter {
+		return '\r'
+	}
+	if e.key_code == .backspace {
+		return '\x7f'
+	}
+	if e.key_code == .tab {
+		return '\t'
+	}
+	if e.key_code == .up {
+		return '\x1b[A'
+	}
+	if e.key_code == .down {
+		return '\x1b[B'
+	}
+	if e.key_code == .right {
+		return '\x1b[C'
+	}
+	if e.key_code == .left {
+		return '\x1b[D'
+	}
+	if e.char_code >= 32 {
+		return rune(e.char_code).str()
+	}
+	return ''
+}
+
 // desktop_version reads the repo VERSION (build/ sibling) — fallback keeps the
 // header honest for installed binaries.
 fn desktop_version() string {
@@ -600,6 +654,14 @@ struct TermLine {
 	raw    string
 }
 
+// TermSession — a live agent CLI on a real PTY with its own VT.
+struct TermSession {
+pub mut:
+	agent string
+	sess  pty_mod.Session
+	vt    ghostty.GhosttyTerminal
+}
+
 // Toast — a paper stamp of feedback (info/ok/warn/err), auto-expires.
 struct Toast {
 	title string
@@ -622,19 +684,23 @@ mut:
 	term_search_open bool
 	term_search      string
 	// per-desk fullscreen view: -1 = fleet feed, 0..14 = that desk's VT
-	term_view        int = -1
-	term_view_hover  int = -1
-	last_msg         string
-	last_msg_frame   int = -99
-	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
-	hover_panel      int
-	selected_desk    int
-	hover_desk       int
-	palette_open     bool
-	palette_query    string
-	palette_selected int
-	mouse_x          int
-	mouse_y          int
+	term_view       int = -1
+	term_view_hover int = -1
+	// real PTY sessions (agent CLIs) — see pty module
+	sessions          []TermSession
+	sessions_dialog   bool
+	sessions_detected []pty_mod.Detected
+	last_msg          string
+	last_msg_frame    int = -99
+	selected_panel    int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
+	hover_panel       int
+	selected_desk     int
+	hover_desk        int
+	palette_open      bool
+	palette_query     string
+	palette_selected  int
+	mouse_x           int
+	mouse_y           int
 	// dedupe: C backends set char_code on key_down AND send .char — keep one per frame
 	last_keydown_char    u32
 	last_keydown_frame   int
@@ -1889,6 +1955,13 @@ fn frame(mut app GuiApp) {
 	for app.toasts.len > 0 && app.frame - app.toasts[0].at > 360 {
 		app.toasts = app.toasts[1..]
 	}
+	// drain PTY sessions — non-blocking, per frame, single-threaded
+	for mut s in app.sessions {
+		out := s.sess.drain()
+		if out != '' {
+			s.vt.feed(out)
+		}
+	}
 	// persist the shell layout every ~10s and at frame 60 (first settle)
 	if app.frame == 60 || app.frame % 600 == 0 {
 		save_ui_state(app)
@@ -2039,6 +2112,9 @@ fn frame(mut app GuiApp) {
 		app.ghost.resize(cols_g, rows_g)
 	} else {
 		app.ghost.resize(80, 18)
+	}
+	for mut ses in app.sessions {
+		ses.vt.resize(cols_full, rows_full)
 	}
 	for di, mut g in app.per_desk_ghost {
 		if app.term_mode == 2 && app.term_view == di {
@@ -6529,6 +6605,20 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			bold: fleet_sel
 		})
 		chx += 52
+		// + Sess chip — opens the agent picker dialog (up front: always reachable)
+		nchip_sel := app.sessions_dialog
+		app.gg.draw_rect_filled(chx, content_y + 2, 58, 18, if nchip_sel {
+			col_oxide
+		} else {
+			col_cream100
+		})
+		app.gg.draw_rect_empty(chx, content_y + 2, 58, 18, col_ink300)
+		app.gg.draw_text(chx + 8, content_y + 6, '+ Sess', gg.TextCfg{
+			color: if nchip_sel { col_oxide } else { col_steel_ink }
+			size: 9
+			bold: true
+		})
+		chx += 64
 		desks_all := desks_for_app(app)
 		for di, d in desks_all {
 			if chx + 66 > content_x + content_w - 6 {
@@ -6548,13 +6638,60 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			})
 			chx += 66
 		}
+		// live PTY sessions
+		for si, ses in app.sessions {
+			ssel := app.term_view == 15 + si
+			app.gg.draw_rect_filled(chx, content_y + 2, 62, 18, if ssel {
+				col_brass
+			} else {
+				col_sage_soft
+			})
+			app.gg.draw_text(chx + 6, content_y + 6, ses.agent, gg.TextCfg{
+				color: if ssel { col_ink } else { col_paper }
+				size: 9
+				bold: ssel
+			})
+			chx += 66
+		}
 		app.gg.draw_text(content_x + content_w - 150, content_y + 6, 'session picker — click a desk', gg.TextCfg{ color: col_ink_soft, size: 9 })
+		// agent picker dialog — detect ALL supported agent CLIs
+		if app.sessions_dialog {
+			det := pty_mod.detect()
+			dlg_x, dlg_y, dlg_w := content_x + 120, content_y + 60, 480
+			dlg_h := 40 + det.len * 26 + 20
+			app.gg.draw_rect_filled(dlg_x + 3, dlg_y + 3, dlg_w, dlg_h, gg.rgba(0, 0, 0, 120))
+			app.gg.draw_rect_filled(dlg_x, dlg_y, dlg_w, dlg_h, col_cream50)
+			app.gg.draw_rect_empty(dlg_x, dlg_y, dlg_w, dlg_h, col_brass)
+			app.gg.draw_text(dlg_x + 14, dlg_y + 10, 'New session — pick an agent CLI', gg.TextCfg{
+				color: col_ink
+				size: 13
+				bold: true
+				family: app.fonts.display
+			})
+			for ri, row in det {
+				ry := dlg_y + 34 + ri * 26
+				hov := app.mouse_x >= dlg_x + 10 && app.mouse_x <= dlg_x + dlg_w - 10 && app.mouse_y >= ry && app.mouse_y <= ry + 22
+				app.gg.draw_rect_filled(dlg_x + 10, ry, dlg_w - 20, 22, if hov {
+					col_manila_tab
+				} else {
+					col_cream100
+				})
+				app.gg.draw_rect_empty(dlg_x + 10, ry, dlg_w - 20, 22, col_ink300)
+				state_col := if row.found { col_sage_soft } else { col_ink_soft }
+				state_txt := if row.found { 'found' } else { 'not installed' }
+				app.gg.draw_text(dlg_x + 18, ry + 4, row.agent.binary, gg.TextCfg{ color: col_ink, size: 12, bold: true, mono: true })
+				app.gg.draw_text(dlg_x + dlg_w - 130, ry + 4, '${row.agent.agent} · ${state_txt}', gg.TextCfg{ color: state_col, size: 10 })
+			}
+		}
 	}
 	// Ghostty visible lines — fleet feed (global 80×N) or a per-desk VT fullscreen
 	desk_view := app.term_mode == 2 && app.term_view >= 0 && app.term_view < app.per_desk_ghost.len
+	sess_view := app.term_mode == 2 && app.term_view >= 15 && app.term_view - 15 < app.sessions.len
 	mut shown := &app.ghost
 	if desk_view {
 		shown = &app.per_desk_ghost[app.term_view]
+	} else if sess_view {
+		shown = &app.sessions[app.term_view - 15].vt
 	}
 	ghost_lines := shown.visible_lines()
 	row_h := 16
@@ -6604,6 +6741,11 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	if desk_view {
 		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(148, 163, 184, 20))
 		app.gg.draw_text(content_x + 8, prompt_y, '[${desks_for_app(app)[app.term_view].label}] read-only desk feed · Fleet chip returns to the prompt', gg.TextCfg{ color: col_slate, size: 12, mono: true })
+	} else if sess_view {
+		ses := app.sessions[app.term_view - 15]
+		state := if ses.sess.alive() { 'live · type below' } else { 'exited' }
+		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(90, 125, 90, 30))
+		app.gg.draw_text(content_x + 8, prompt_y, '[${ses.agent}] ${state} · Esc returns to Fleet', gg.TextCfg{ color: col_sage_soft, size: 12, mono: true })
 	} else {
 		// prompt bg
 		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(184, 147, 90, 12))
@@ -6852,6 +6994,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if e.char_code != 0 {
 			app.last_keydown_char = e.char_code
 			app.last_keydown_frame = app.frame
+		}
+		// PTY session focus — keys go to the agent TUI (Esc returns to Fleet)
+		if app.term_mode == 2 && app.term_view >= 15 && app.term_view - 15 < app.sessions.len {
+			if e.key_code == .escape {
+				app.term_view = -1
+				return
+			}
+			b := session_key_bytes(e)
+			if b != '' {
+				app.sessions[app.term_view - 15].sess.write(b)
+			}
+			return
 		}
 		// terminal scrollback search — captures typing while open (Ctrl+F toggles)
 		if app.term_search_open {
@@ -8015,17 +8169,39 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.ghost_focused = !app.ghost_focused
 				return
 			}
-			// session picker chips (MAX mode): Fleet + one chip per desk
+			// session picker chips (MAX mode): Fleet + desks + sessions + '+ Sess'
 			if app.term_mode == 2 && mx >= content_x && mx <= content_x + content_w && my >= content_y - 2 && my < content_y + 26 {
-				if mx < content_x + 52 {
+				if mx < content_x + 58 {
 					app.term_view = -1
+				} else if mx < content_x + 122 {
+					app.sessions_dialog = true
+					app.sessions_detected = pty_mod.detect()
 				} else {
-					idx := (mx - content_x - 52) / 66
+					idx := (mx - content_x - 122) / 66
 					desks_all := desks_for_app(app)
 					if idx >= 0 && idx < desks_all.len {
 						app.term_view = idx
+					} else if idx < desks_all.len + app.sessions.len {
+						app.term_view = 15 + idx - desks_all.len
 					}
 				}
+				return
+			}
+			// agent picker dialog rows
+			if app.sessions_dialog {
+				det := app.sessions_detected
+				dlg_x, dlg_y, dlg_w, dlg_h := content_x + 120, content_y + 60, 480, 40 + det.len * 26 + 20
+				if mx >= dlg_x && mx <= dlg_x + dlg_w && my >= dlg_y && my <= dlg_y + dlg_h {
+					if my >= dlg_y + 34 {
+						ri := (my - dlg_y - 34) / 26
+						if ri >= 0 && ri < det.len && det[ri].found {
+							spawn_session(mut app, det[ri].agent)
+						}
+						return
+					}
+					return
+				}
+				app.sessions_dialog = false
 				return
 			}
 			_ = content_y
