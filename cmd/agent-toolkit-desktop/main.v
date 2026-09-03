@@ -8,143 +8,139 @@ import os
 import pty as pty_mod
 
 // ── Dunder Mifflin Paper Co. — distinctive signature, not generic ──
-// Anti-slop: no purple/indigo gradient (#7c3aed), no Inter-only, no glassmorphism.
-// Tokens — 6-hex warm paper + ink office world (mirrors theme/tokens.v):
-//   paper  #F4EFE6 warm paper stock — main bg (light)
-//   ink    #1A1A1A carbon ink — text, outer border (never #000)
-//   steel  #8A9BA8 muted steel — secondary / border
-//   manila #E6D8B8 kraft file-folder — elevated
-//   rust   #C45A3C rubber-stamp red — accent/danger
-//   brass  #C9A86B binder-clip gold — selection / highlight
+// Anti-slop: no purple/indigo gradients, no Inter-only, no glassmorphism.
+// Colors resolve from desktop.theme via ui_tokens.v (F1 theme tokens):
+//   surface.canvas #F3EBDD — main office/map background
+//   surface.paper  #FFF9ED — cards and reading surfaces
+//   surface.cabinet #171C1F — navigation and console
+//   text.primary   #252A2D — primary paper text
+//   text.secondary #596A73 — secondary paper text
+//   signal.selection #9A6416 — selection/focus amber
+//   signal.success   #3F704D — healthy/complete
+//   signal.danger    #A84631 — failed/blocked/destructive
+//   text.on_cabinet  #FFF9ED — primary dark-surface text
+// main.v holds only thin `const col_*` aliases over ui_*() resolvers —
+// no raw hex and no duplicate color constants outside the theme module.
 // Type: Display Fraunces (soft-serif ink-trap, 22-28), Body IBM Plex Sans (15-16), Mono IBM Plex Mono (13)
 // Signature: perforated tractor-feed edge dots + brass binder rivet (2px) + manila folder tab
-const col_ink = gg.rgb(0x1A, 0x1A, 0x1A) // #1A1A1A carbon ink — body text, outer border
+const col_ink = ui_text(ui_theme()) // theme: text.primary
 
 
-const col_ink700 = gg.rgb(0x2B, 0x2B, 0x2B) // #2B2B2B ink-700
+const col_ink700 = ui_text(ui_theme()) // theme: text.primary
 
 
-const col_ink500 = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel muted
+const col_ink500 = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_ink300 = gg.rgb(0xD1, 0xC7, 0xB3) // #D1C7B3 warm grey
+const col_ink300 = ui_line_paper() // theme: quiet paper rule
 
 
-const col_charcoal = gg.rgb(0x1A, 0x1A, 0x1A) // = ink
+const col_charcoal = ui_cabinet(ui_theme()) // theme: surface.cabinet
 
 
-const col_charcoal2 = gg.rgb(0x28, 0x28, 0x28) // #282828 elevated ink
+const col_charcoal2 = ui_text(ui_theme()) // theme: text.primary
 
 
-const col_paper = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 warm paper
+const col_paper = ui_paper(ui_theme()) // theme: surface.paper
 
 
-const col_paper_dim = gg.rgb(0xE6, 0xD8, 0xB8) // #E6D8B8 manila kraft
+const col_paper_dim = ui_canvas(ui_theme()) // theme: surface.canvas
 
 
-const col_brass = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B binder-clip gold
+const col_brass = ui_selection(ui_theme()) // theme: signal.selection
 
 
-const col_brass_dim = gg.rgb(0x9A, 0x7D, 0x4A) // darker brass
+const col_brass_dim = ui_selection(ui_theme()) // theme: signal.selection
 
 
-const col_oxide = gg.rgb(0xC4, 0x5A, 0x3C) // #C45A3C rubber-stamp rust
+const col_oxide = ui_danger(ui_theme()) // theme: signal.danger
 
 
-const col_slate = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel (primary)
+const col_slate = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_slate_dim = gg.rgb(0x9A, 0x9A, 0x96) // warm muted
+const col_slate_dim = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_line = gg.rgb(0x34, 0x34, 0x34) // ink border
+const col_line = ui_line_cabinet() // theme: quiet cabinet rule
 
 
-const col_line_light = gg.rgb(0xD1, 0xC7, 0xB3) // paper border
+const col_line_light = ui_line_paper() // theme: quiet paper rule
 
 
 // paper tokens — warm office stock
-const col_cream50 = gg.rgb(0xFD, 0xFB, 0xF2) // #FDFBF2 pale paper highlight
+const col_cream50 = ui_paper(ui_theme()) // theme: surface.paper
 
 
-const col_cream100 = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 warm paper panel fill
+const col_cream100 = ui_paper(ui_theme()) // theme: surface.paper
 
 
-const col_cream200 = gg.rgb(0xE6, 0xD8, 0xB8) // #E6D8B8 manila — middle border / alt row
+const col_cream200 = ui_canvas(ui_theme()) // theme: surface.canvas
 
 
-const col_paper100 = gg.rgb(0xF4, 0xEF, 0xE6) // #F4EFE6 terminal bg (paper stock)
+const col_paper100 = ui_paper(ui_theme()) // theme: surface.paper
 
 
-const col_coral = gg.rgb(0xC4, 0x5A, 0x3C) // #C45A3C rust alias
+const col_coral = ui_danger(ui_theme()) // theme: signal.danger
 
 
-const col_mint = gg.rgb(0x5A, 0x7D, 0x5A) // #5A7D5A sage — muted success
+const col_mint = ui_success(ui_theme()) // theme: signal.success
 
 
-const col_sky = gg.rgb(0x8A, 0x9B, 0xA8) // #8A9BA8 steel alias
+const col_sky = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_lemon = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B brass alias
+const col_lemon = ui_selection(ui_theme()) // theme: signal.selection
 
 
-const col_lilac = gg.rgb(0x9E, 0x92, 0x8E) // desaturated warm taupe (no purple)
+const col_lilac = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_peach = gg.rgb(0xC9, 0xA8, 0x6B) // #C9A86B warm kraft
+const col_peach = ui_selection(ui_theme()) // theme: signal.selection
 
 
-const col_status_idle = gg.rgb(0x9A, 0x9A, 0x96) // muted warm grey
+const col_status_idle = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_status_thinking = gg.rgb(0x8A, 0x9B, 0xA8) // steel
+const col_status_thinking = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_status_working = gg.rgb(0xC9, 0xA8, 0x6B) // brass
+const col_status_working = ui_selection(ui_theme()) // theme: signal.selection
 
 
-const col_status_waiting = gg.rgb(0x7A, 0x8B, 0x8A) // muted teal
+const col_status_waiting = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_status_blocked = gg.rgb(0xC4, 0x5A, 0x3C) // rust
+const col_status_blocked = ui_danger(ui_theme()) // theme: signal.danger
 
 
-const col_status_success = gg.rgb(0x5A, 0x7D, 0x5A) // sage
+const col_status_success = ui_success(ui_theme()) // theme: signal.success
 
 
-const col_grass_light = gg.rgb(0xD1, 0xC7, 0xB3) // paper grain light
+const col_wood_light = ui_canvas(ui_theme()) // theme: surface.canvas
 
 
-const col_grass_dark = gg.rgb(0xC9, 0xBF, 0xA8) // paper grain dark
+const col_wood_dark = ui_line_paper() // theme: quiet paper rule
 
 
-const col_wood_light = gg.rgb(0xE6, 0xD8, 0xB8) // manila light
-
-
-const col_wood_dark = gg.rgb(0xC9, 0xB8, 0x96) // kraft dark
-
-
-const col_path = gg.rgb(0xE6, 0xD8, 0xB8) // kraft tape path
-
-
-const col_wall = gg.rgb(0x8B, 0x7F, 0x6E) // warm wall
+const col_path = ui_canvas(ui_theme()) // theme: surface.canvas
 
 
 // ── cozy paper-ledger tokens (design pass 1.29) — warm secondary ink for paper,
 // hover tints and folder-tab manila. Contrast: ink_soft on cream ≥ 4.5:1. ──
-const col_ink_soft = gg.rgb(0x6B, 0x5F, 0x4E) // #6B5F4E warm brown-grey — secondary on paper
+const col_ink_soft = ui_muted(ui_theme()) // theme: text.secondary
 
 
-const col_paper_hover = gg.rgb(0xF0, 0xE9, 0xDA) // row hover tint on cream panels
+const col_paper_hover = ui_hover_tint() // theme: selection hover wash
 
 
-const col_manila_tab = gg.rgb(0xE6, 0xD8, 0xB8) // folder tab manila
+const col_manila_tab = ui_canvas(ui_theme()) // theme: surface.canvas
 
 
-const col_sage_soft = gg.rgb(0x5A, 0x7D, 0x5A) // success alias on paper
+const col_sage_soft = ui_success(ui_theme()) // theme: signal.success
 
 
-const col_steel_ink = gg.rgb(0x5F, 0x6E, 0x7A) // darker steel — readable cool accent on paper
+const col_steel_ink = ui_muted(ui_theme()) // theme: text.secondary
 
 
 // ── brand typography — Fraunces display + IBM Plex Sans body + IBM Plex Mono data.
@@ -337,6 +333,17 @@ fn vt_for(app &GuiApp, id int) &ghostty.GhosttyTerminal {
 	return &app.ghost
 }
 
+// desk_feed_label safely names the desk behind term_view for the read-only
+// feed banner. vt_label already bounds-checks, so this never panics even if
+// the desk roster and per_desk_ghost drift apart.
+fn desk_feed_label(app &GuiApp) string {
+	desks := desks_for_app(app)
+	if app.term_view >= 0 && app.term_view < desks.len {
+		return desks[app.term_view].label
+	}
+	return vt_label(app, app.term_view)
+}
+
 // vt_label — display name for a view id.
 fn vt_label(app &GuiApp, id int) string {
 	if id < 0 {
@@ -440,7 +447,7 @@ fn resolve_fonts() FontPaths {
 // Distinctive: no SNES glass, no purple — warm paper + ink, letterpress depth
 fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 	// hard drop shadow 3×3, ink 14% (pixel-snapped, no blur)
-	app.gg.draw_rect_filled(x + 3, y + 3, w, h, gg.rgba(26, 26, 26, 35))
+	app.gg.draw_rect_filled(x + 3, y + 3, w, h, tint(col_ink, 35))
 	match variant {
 		'terminal' {
 			// terminal: paper-100 fill, ink-300 border single, inner scanline hint
@@ -448,7 +455,7 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			app.gg.draw_rect_empty(x, y, w, h, col_ink300)
 			// signature: top bevel highlight 1px — SNES light source top-left
 			if w > 6 && h > 4 {
-				app.gg.draw_line(x + 1, y + 1, x + w - 2, y + 1, gg.rgba(255, 253, 245, 26))
+				app.gg.draw_line(x + 1, y + 1, x + w - 2, y + 1, tint(col_paper, 26))
 			}
 		}
 		'inset' {
@@ -457,7 +464,7 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			// inner 1px
 			app.gg.draw_rect_empty(x + 1, y + 1, w - 2, h - 2, col_ink500)
 			if w > 6 && h > 4 {
-				app.gg.draw_line(x + 2, y + 2, x + w - 3, y + 2, gg.rgba(255, 253, 245, 18))
+				app.gg.draw_line(x + 2, y + 2, x + w - 3, y + 2, tint(col_paper, 18))
 			}
 		}
 		'active' {
@@ -470,9 +477,9 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, 2, col_lemon)
 			// signature: bevel highlight under accent + right inner shadow for depth
 			if w > 14 && h > 14 {
-				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, gg.rgba(255, 253, 245, 34))
-				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, gg.rgba(255, 253, 245, 16))
-				app.gg.draw_line(x + w - 6, y + 7, x + w - 6, y + h - 6, gg.rgba(26, 19, 32, 18))
+				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, tint(col_paper, 34))
+				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, tint(col_paper, 16))
+				app.gg.draw_line(x + w - 6, y + 7, x + w - 6, y + h - 6, tint(col_ink, 18))
 			}
 		}
 		'alt' {
@@ -485,18 +492,18 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			// brass top accent 2px — workshop brass
 			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, 2, col_brass)
 			if w > 14 && h > 14 {
-				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, gg.rgba(255, 253, 245, 26))
-				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, gg.rgba(255, 253, 245, 14))
-				app.gg.draw_line(x + 6, y + h - 6, x + w - 6, y + h - 6, gg.rgba(26, 19, 32, 12))
-				app.gg.draw_line(x + w - 6, y + 6, x + w - 6, y + h - 6, gg.rgba(26, 19, 32, 12))
+				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, tint(col_paper, 26))
+				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, tint(col_paper, 14))
+				app.gg.draw_line(x + 6, y + h - 6, x + w - 6, y + h - 6, tint(col_ink, 12))
+				app.gg.draw_line(x + w - 6, y + 6, x + w - 6, y + h - 6, tint(col_ink, 12))
 				// signature wood grain — 1px horizontal grain every 6px + brass tack
 				for gy in 0 .. 3 {
 					gy_y := y + 10 + gy * 6
 					if gy_y < y + h - 6 {
-						app.gg.draw_line(x + 8, gy_y, x + w - 8, gy_y, gg.rgba(139, 111, 71, 13))
+						app.gg.draw_line(x + 8, gy_y, x + w - 8, gy_y, tint(col_brass, 13))
 					}
 				}
-				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(220, 171, 60, 32))
+				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, tint(col_brass, 32))
 			}
 		}
 		'dialog' {
@@ -508,9 +515,9 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			// brass header accent
 			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, 2, col_brass)
 			if w > 14 && h > 14 {
-				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, gg.rgba(255, 253, 245, 28))
-				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, gg.rgba(255, 253, 245, 14))
-				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(220, 171, 60, 26))
+				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, tint(col_paper, 28))
+				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, tint(col_paper, 14))
+				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, tint(col_brass, 26))
 			}
 		}
 		'insights' {
@@ -522,14 +529,14 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			// rust rubber-stamp top accent 2px — insights signature
 			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, 2, col_oxide)
 			if w > 14 && h > 14 {
-				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, gg.rgba(255, 253, 245, 28))
-				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, gg.rgba(255, 253, 245, 14))
-				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(196, 90, 60, 32))
+				app.gg.draw_line(x + 6, y + 7, x + w - 7, y + 7, tint(col_paper, 28))
+				app.gg.draw_line(x + 5, y + 7, x + 5, y + h - 6, tint(col_paper, 14))
+				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, tint(col_oxide, 32))
 				// faint paper grain for telemetry depth
 				for gy in 0 .. 2 {
 					gy_y := y + 12 + gy * 8
 					if gy_y < y + h - 8 {
-						app.gg.draw_line(x + 8, gy_y, x + w - 8, gy_y, gg.rgba(139, 111, 71, 9))
+						app.gg.draw_line(x + 8, gy_y, x + w - 8, gy_y, tint(col_brass, 9))
 					}
 				}
 			}
@@ -542,19 +549,19 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			app.gg.draw_rect_filled(x + 4, y + 4, w - 8, h - 8, col_ink700)
 			app.gg.draw_rect_filled(x + 5, y + 5, w - 10, h - 10, col_cream100)
 			if w > 14 && h > 14 {
-				app.gg.draw_line(x + 5, y + 5, x + w - 6, y + 5, gg.rgba(253, 251, 242, 30))
-				app.gg.draw_line(x + 5, y + 6, x + 5, y + h - 6, gg.rgba(253, 251, 242, 16))
-				app.gg.draw_line(x + 6, y + h - 6, x + w - 6, y + h - 6, gg.rgba(26, 26, 26, 14))
-				app.gg.draw_line(x + w - 6, y + 6, x + w - 6, y + h - 6, gg.rgba(26, 26, 26, 14))
+				app.gg.draw_line(x + 5, y + 5, x + w - 6, y + 5, tint(col_paper, 30))
+				app.gg.draw_line(x + 5, y + 6, x + 5, y + h - 6, tint(col_paper, 16))
+				app.gg.draw_line(x + 6, y + h - 6, x + w - 6, y + h - 6, tint(col_ink, 14))
+				app.gg.draw_line(x + w - 6, y + 6, x + w - 6, y + h - 6, tint(col_ink, 14))
 				// signature brass binder rivet 2px at top-left + perforated dots
-				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, gg.rgba(201, 168, 107, 42))
+				app.gg.draw_rect_filled(x + 5, y + 5, 2, 2, tint(col_brass, 42))
 				// perforated tractor-feed dots — 1px holes every 12px on interior left/right edges
 				for py in 0 .. ((h - 12) / 12) {
 					py_y := y + 12 + py * 12
 					if py_y < y + h - 8 {
-						app.gg.draw_rect_filled(x + 4, py_y, 1, 1, gg.rgba(26, 26, 26, 22))
-						app.gg.draw_rect_filled(x + w - 5, py_y, 1, 1, gg.rgba(26, 26, 26, 22))
-						app.gg.draw_rect_filled(x + 4, py_y, 1, 1, gg.rgba(244, 239, 230, 18))
+						app.gg.draw_rect_filled(x + 4, py_y, 1, 1, tint(col_ink, 22))
+						app.gg.draw_rect_filled(x + w - 5, py_y, 1, 1, tint(col_ink, 22))
+						app.gg.draw_rect_filled(x + 4, py_y, 1, 1, tint(col_paper, 18))
 					}
 				}
 			}
@@ -563,7 +570,7 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 	// signature is always applied — even small panels get rivet hint if feasible
 	if w >= 10 && h >= 10 && variant != 'terminal' {
 		if variant == 'default' || variant == 'alt' || variant == 'dialog' || variant == 'insights' {
-			app.gg.draw_line(x + 5, y + 6, x + w - 6, y + 6, gg.rgba(201, 168, 107, 18))
+			app.gg.draw_line(x + 5, y + 6, x + w - 6, y + 6, tint(col_brass, 18))
 		}
 	}
 }
@@ -852,8 +859,6 @@ mut:
 	global_search       string
 	header_search_focus bool
 	header_search_hover int = -1
-	// warm paper texture seed for 60FPS headless determinism
-	paper_seed u64 = 0xF4EFE6
 	// insights — telemetry super-potent (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
 	insights_scroll int
 	insights_hover  int = -1
@@ -1573,19 +1578,26 @@ fn desk_rect(d Desk, idx int, fx int, fy int, fw int, fh int) (int, int, int, in
 }
 
 // ── Terminal / Activity helpers — workshop palette, English only, gg monospace ──
-const term_bg = col_ink
-const term_header_bg = col_charcoal
-const term_border = col_line
-const term_cursor = col_brass
+const term_bg = ui_cabinet(ui_theme()) // theme: console = surface.cabinet
+
+
+const term_header_bg = ui_cabinet(ui_theme()) // theme: console = surface.cabinet
+
+
+const term_border = ui_line_cabinet() // theme: quiet cabinet rule
+
+
+const term_cursor = ui_selection(ui_theme()) // theme: signal.selection
+
 
 fn term_level_color(level string) gg.Color {
 	return match level {
-		'proc' { gg.rgb(52, 168, 83) }
+		'proc' { col_mint }
 		'handoff' { col_brass }
-		'watch' { gg.rgb(124, 58, 237) }
-		'doctor' { gg.rgb(90, 200, 120) }
+		'watch' { col_slate }
+		'doctor' { col_mint }
 		'error' { col_oxide }
-		'warn' { gg.rgb(234, 179, 8) }
+		'warn' { col_brass }
 		'info' { col_slate_dim }
 		else { col_slate }
 	}
@@ -2372,7 +2384,7 @@ fn frame(mut app GuiApp) {
 	for sx in 0 .. (w / 20 + 1) {
 		dx := sx * 20 + 6
 		if dx < w - 4 {
-			app.gg.draw_rect_filled(dx, h - 27, 1, 1, gg.rgba(244, 239, 230, 7))
+			app.gg.draw_rect_filled(dx, h - 27, 1, 1, tint(col_paper, 7))
 		}
 	}
 	// zoom toast — paper tape, 2s fade
@@ -2384,8 +2396,8 @@ fn frame(mut app GuiApp) {
 		app.gg.draw_rect_filled(tx, ty, tw, th, col_paper)
 		app.gg.draw_rect_empty(tx, ty, tw, th, col_brass)
 		// perforated dots
-		app.gg.draw_rect_filled(tx + 2, ty + 6, 1, 1, gg.rgba(28, 28, 30, 30))
-		app.gg.draw_rect_filled(tx + tw - 3, ty + 6, 1, 1, gg.rgba(28, 28, 30, 30))
+		app.gg.draw_rect_filled(tx + 2, ty + 6, 1, 1, tint(col_ink, 30))
+		app.gg.draw_rect_filled(tx + tw - 3, ty + 6, 1, 1, tint(col_ink, 30))
 		app.gg.draw_text(tx + 18, ty + 5, app.zoom_toast, gg.TextCfg{ color: col_ink, size: scaled_size(12, app.global_zoom), bold: true })
 	}
 	// left — commands hint + GOD mailbox envelopes glow + rev
@@ -2399,7 +2411,7 @@ fn frame(mut app GuiApp) {
 	draw_envelope(mut app, left_x, h - 17, env_col)
 	app.gg.draw_text(left_x + 12, h - 19, '${app.god_inbox}→${app.god_outbox}', gg.TextCfg{ color: env_col, size: scaled_size(11, app.global_zoom) })
 	if app.god_inbox > 0 && app.frame % 40 < 20 {
-		app.gg.draw_rect_filled(left_x - 6, h - 14, 4, 4, gg.rgba(196, 90, 60, 88))
+		app.gg.draw_rect_filled(left_x - 6, h - 14, 4, 4, tint(col_oxide, 88))
 	}
 	left_x += 58
 	app.gg.draw_text(left_x, h - 19, '•  rev ${app.engine_rev}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
@@ -2438,7 +2450,7 @@ fn frame(mut app GuiApp) {
 	mid_w := mid.len * 6
 	app.gg.draw_text(w / 2 - mid_w / 2, h - 19, mid, gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
 	// 60FPS dot — brass pulse every 30 frames
-	fps_col := if app.frame % 30 < 15 { col_brass } else { gg.rgba(201, 168, 107, 44) }
+	fps_col := if app.frame % 30 < 15 { col_brass } else { tint(col_brass, 44) }
 	app.gg.draw_rect_filled(w / 2 + mid_w / 2 + 6, h - 15, 5, 5, fps_col)
 	// right — branch, manila tab + Paper Co.
 	app.gg.draw_rect_filled(w - 238, h - 22, 72, 16, col_paper_dim)
@@ -2447,7 +2459,7 @@ fn frame(mut app GuiApp) {
 	draw_text_l(mut app, w - 160, h - 19, 'status.paperco', gg.TextCfg{ color: col_slate, size: scaled_size(11, app.global_zoom), bold: true })
 	app.gg.draw_text(w - 100, h - 19, '3847', gg.TextCfg{ color: col_ink500, size: scaled_size(11, app.global_zoom), mono: true })
 	// brass rivet at right edge
-	app.gg.draw_rect_filled(w - 8, h - 16, 2, 2, gg.rgba(193, 162, 75, 42))
+	app.gg.draw_rect_filled(w - 8, h - 16, 2, 2, tint(col_brass, 42))
 	draw_toasts(mut app, w, h)
 	app.gg.end()
 }
@@ -2472,25 +2484,25 @@ fn draw_toasts(mut app GuiApp, w int, h int) {
 			'err' { col_oxide }
 			else { col_steel_ink }
 		}
-		app.gg.draw_rect_filled(x + 2, y + 2, tw, th, gg.rgba(26, 26, 26, u8(180 * alpha / 255)))
-		app.gg.draw_rect_filled(x, y, tw, th, gg.rgba(253, 251, 242, alpha))
-		app.gg.draw_rect_empty(x, y, tw, th, gg.rgba(209, 199, 179, alpha))
+		app.gg.draw_rect_filled(x + 2, y + 2, tw, th, tint(col_ink, u8(180 * alpha / 255)))
+		app.gg.draw_rect_filled(x, y, tw, th, tint(col_paper, alpha))
+		app.gg.draw_rect_empty(x, y, tw, th, tint(col_paper, alpha))
 		app.gg.draw_rect_filled(x, y, 3, th, gg.rgba(rail.r, rail.g, rail.b, alpha))
 		// perforated tractor dots on the left edge
-		app.gg.draw_rect_filled(x + 6, y + 6, 1, 1, gg.rgba(26, 26, 26, u8(40 * alpha / 255)))
-		app.gg.draw_rect_filled(x + 6, y + th - 8, 1, 1, gg.rgba(26, 26, 26, u8(40 * alpha / 255)))
+		app.gg.draw_rect_filled(x + 6, y + 6, 1, 1, tint(col_ink, u8(40 * alpha / 255)))
+		app.gg.draw_rect_filled(x + 6, y + th - 8, 1, 1, tint(col_ink, u8(40 * alpha / 255)))
 		mut title := t.title
 		mut msg := t.msg
 		if msg.len > 44 {
 			msg = msg[..44] + '…'
 		}
 		app.gg.draw_text(x + 12, y + 5, title, gg.TextCfg{
-			color: gg.rgba(107, 95, 78, alpha)
+			color: tint(col_slate, alpha)
 			size: 10
 			bold: true
 		})
 		app.gg.draw_text(x + 12, y + 17, msg, gg.TextCfg{
-			color: gg.rgba(26, 26, 26, alpha)
+			color: tint(col_ink, alpha)
 			size: 11
 		})
 		n++
@@ -2503,7 +2515,7 @@ fn draw_toasts(mut app GuiApp, w int, h int) {
 // draw_envelope — tiny paper envelope from primitives (glyph ✉ is not in the
 // bundled Plex fonts; primitives are crisper anyway and stay pixel-true).
 fn draw_envelope(mut app GuiApp, x int, y int, col gg.Color) {
-	app.gg.draw_rect_filled(x, y + 1, 9, 6, gg.rgba(0, 0, 0, 50))
+	app.gg.draw_rect_filled(x, y + 1, 9, 6, tint(col_ink, 50))
 	app.gg.draw_rect_filled(x, y, 9, 6, col_paper)
 	app.gg.draw_rect_empty(x, y, 9, 6, col)
 	app.gg.draw_line(x, y, x + 4, y + 3, col)
@@ -2524,7 +2536,7 @@ fn draw_floor_legend(mut app GuiApp, x int, y int) {
 	app.gg.draw_rect_filled(x, y + 3, 7, 7, col_status_working)
 	draw_text_l(mut app, x + 12, y, 'world.working', gg.TextCfg{ color: col_slate, size: 12 })
 	ox := x + 12 + tr(app, 'world.working').len * 7 + 12
-	app.gg.draw_rect_filled(ox, y + 3, 7, 7, gg.rgba(154, 154, 150, 130))
+	app.gg.draw_rect_filled(ox, y + 3, 7, 7, tint(col_slate, 130))
 	draw_text_l(mut app, ox + 12, y, 'world.idle', gg.TextCfg{ color: col_slate, size: 12 })
 	bx := ox + 12 + tr(app, 'world.idle').len * 7 + 12
 	app.gg.draw_rect_filled(bx, y + 3, 7, 7, col_status_blocked)
@@ -2714,24 +2726,24 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	fy := 52
 	fw := panel_fw(app, w)
 	fh := h - 52 - 28 - term_h_w
-	// Floor — Dunder Mifflin warm paper #F4EFE6 with manila ruled lines + fiber grain
-	// Office paper stock: base warm paper, ruled horizontal steel lines every 24px, vertical rust margin
+	// Floor — surface.paper card on the canvas with muted ruled lines + fiber grain
+	// Office paper stock: base surface.paper, ruled horizontal secondary lines every 24px, danger margin
 	app.gg.draw_rect_filled(fx, fy + 36, fw, fh - 36, col_paper)
-	// ruled horizontal lines — steel #8A9BA8 at 12% every 24px (college-ruled)
+	// ruled horizontal lines — text.secondary wash every 24px (college-ruled)
 	for ry in 0 .. ((fh - 36) / 24 + 1) {
 		ly := fy + 36 + ry * 24 + 12
 		if ly >= fy + fh - 1 {
 			continue
 		}
-		app.gg.draw_line(fx + 12, ly, fx + fw - 12, ly, gg.rgba(138, 155, 168, 16))
+		app.gg.draw_line(fx + 12, ly, fx + fw - 12, ly, tint(col_slate, 16))
 		if ry % 2 == 0 {
-			app.gg.draw_rect_filled(fx + 18, ly - 1, 2, 1, gg.rgba(201, 168, 107, 18))
+			app.gg.draw_rect_filled(fx + 18, ly - 1, 2, 1, tint(col_brass, 18))
 		}
 	}
-	// vertical margin line — rust #C45A3C at 40px from left
+	// vertical margin line — signal.danger wash at 40px from left
 	margin_x := fx + 40
-	app.gg.draw_rect_filled(margin_x, fy + 36, 1, fh - 36, gg.rgba(196, 90, 60, 44))
-	app.gg.draw_rect_filled(margin_x + 2, fy + 36, 1, fh - 36, gg.rgba(196, 90, 60, 16))
+	app.gg.draw_rect_filled(margin_x, fy + 36, 1, fh - 36, tint(col_oxide, 44))
+	app.gg.draw_rect_filled(margin_x + 2, fy + 36, 1, fh - 36, tint(col_oxide, 16))
 	// Warm paper fiber — 1px speck every 32px, deterministic, 60FPS culling, no grass
 	// Paper grain: cream speck + manila dot + steel micro-shadow, both light/dark share warm paper
 	for ty in 0 .. ((fh - 36) / 32 + 1) {
@@ -2747,26 +2759,26 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			is_light2 := (tx + ty) % 2 == 0
 			if is_light2 {
 				// fiber speck — warm paper micro-dot + kraft grain
-				app.gg.draw_rect_filled(sx + 8, sy + 8, 1, 1, gg.rgba(230, 216, 184, 16))
-				app.gg.draw_rect_filled(sx + 22, sy + 18, 1, 1, gg.rgba(255, 253, 245, 12))
+				app.gg.draw_rect_filled(sx + 8, sy + 8, 1, 1, tint(col_paper, 16))
+				app.gg.draw_rect_filled(sx + 22, sy + 18, 1, 1, tint(col_paper, 12))
 				// ruled line ghost (paper crease)
-				app.gg.draw_rect_filled(sx + 2, sy + 14, 28, 1, gg.rgba(138, 155, 168, 7))
+				app.gg.draw_rect_filled(sx + 2, sy + 14, 28, 1, tint(col_slate, 7))
 				// manila speck every 2 tiles
 				if tx % 2 == 0 && ty % 2 == 0 {
-					app.gg.draw_rect_filled(sx + 26, sy + 26, 1, 1, gg.rgba(201, 168, 107, 14))
+					app.gg.draw_rect_filled(sx + 26, sy + 26, 1, 1, tint(col_brass, 14))
 				}
 				hash := (tx * 7 + ty * 13) % 8
-				app.gg.draw_rect_filled(sx + 6 + hash, sy + 20 + (hash * 3 % 5), 1, 1, gg.rgba(244, 239, 230, 14))
+				app.gg.draw_rect_filled(sx + 6 + hash, sy + 20 + (hash * 3 % 5), 1, 1, tint(col_paper, 14))
 			} else {
 				// paper fiber dark — steel speck + manila dot, no grass
-				app.gg.draw_rect_filled(sx + 10, sy + 12, 1, 1, gg.rgba(138, 155, 168, 10))
-				app.gg.draw_rect_filled(sx + 18, sy + 20, 1, 1, gg.rgba(230, 216, 184, 12))
-				app.gg.draw_rect_filled(sx + 6, sy + 26, 1, 1, gg.rgba(201, 168, 107, 9))
+				app.gg.draw_rect_filled(sx + 10, sy + 12, 1, 1, tint(col_slate, 10))
+				app.gg.draw_rect_filled(sx + 18, sy + 20, 1, 1, tint(col_paper, 12))
+				app.gg.draw_rect_filled(sx + 6, sy + 26, 1, 1, tint(col_brass, 9))
 				if (tx + ty) % 3 == 0 {
-					app.gg.draw_rect_filled(sx + 4, sy + 6, 12, 1, gg.rgba(138, 155, 168, 7))
+					app.gg.draw_rect_filled(sx + 4, sy + 6, 12, 1, tint(col_slate, 7))
 				}
 				hash2 := (tx * 11 + ty * 5) % 6
-				app.gg.draw_rect_filled(sx + 14 + hash2, sy + 8 + hash2, 1, 1, gg.rgba(230, 216, 184, 10))
+				app.gg.draw_rect_filled(sx + 14 + hash2, sy + 8 + hash2, 1, 1, tint(col_paper, 10))
 			}
 		}
 	}
@@ -2783,7 +2795,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		// signature brass nail every 64px + wood grain specular
 		if ty % 2 == 0 {
 			app.gg.draw_rect_filled(px + 15, gy - 1, 2, 2, col_brass_dim)
-			app.gg.draw_rect_filled(px + 4, gy + 8, 24, 1, gg.rgba(139, 111, 71, 11))
+			app.gg.draw_rect_filled(px + 4, gy + 8, 24, 1, tint(col_brass, 11))
 		}
 	}
 	// Top bar inside floor — cream panel with display Title Case (never ALL CAPS)
@@ -2851,7 +2863,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			if alpha < 12 {
 				continue
 			}
-			app.gg.draw_line(x0, y0, x1, y1, gg.rgba(184, 147, 90, alpha))
+			app.gg.draw_line(x0, y0, x1, y1, tint(col_brass, alpha))
 		}
 		// trail ghosts behind envelope — 4 fading paper rectangles with brass shadow
 		for t in 1 .. 5 {
@@ -2866,8 +2878,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			if alpha < 12 {
 				continue
 			}
-			app.gg.draw_rect_filled(int(txf) + 2, int(tyf) + 2, 12, 6, gg.rgba(184, 147, 90, alpha / 2))
-			app.gg.draw_rect_filled(int(txf), int(tyf), 12, 6, gg.rgba(230, 221, 209, alpha))
+			app.gg.draw_rect_filled(int(txf) + 2, int(tyf) + 2, 12, 6, tint(col_brass, alpha / 2))
+			app.gg.draw_rect_filled(int(txf), int(tyf), 12, 6, tint(col_paper, alpha))
 		}
 		// signature floor shadow ellipse under envelope — shrinks as arc rises (parabolic soft shadow)
 		shadow_w := int(14 - arc / 3.2)
@@ -2877,19 +2889,19 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		ground_x := int(xf)
 		shadow_y := int(ground_y) + 6
 		if shadow_y > fy + 36 && shadow_y < fy + fh - 4 && ground_x > fx && ground_x < fx + fw {
-			app.gg.draw_rect_filled(ground_x - sw / 2 + 4, shadow_y, sw, 3, gg.rgba(26, 19, 32, sa))
-			app.gg.draw_rect_filled(ground_x - sw / 2 + 6, shadow_y + 1, sw - 4, 1, gg.rgba(26, 19, 32, sa / 2))
+			app.gg.draw_rect_filled(ground_x - sw / 2 + 4, shadow_y, sw, 3, tint(col_ink, sa))
+			app.gg.draw_rect_filled(ground_x - sw / 2 + 6, shadow_y + 1, sw - 4, 1, tint(col_ink, sa / 2))
 		}
 		// main envelope — paper with brass shadow + mail glyph + envelope shadows (native gg)
-		app.gg.draw_rect_filled(x + 1, y + 1, 18, 10, gg.rgba(0, 0, 0, 40))
-		app.gg.draw_rect_filled(x + 2, y + 2, 16, 6, gg.rgba(26, 19, 32, 22))
-		app.gg.draw_rect_filled(x - 1, y - 1, 18, 10, gg.rgba(184, 147, 90, 110))
+		app.gg.draw_rect_filled(x + 1, y + 1, 18, 10, tint(col_ink, 40))
+		app.gg.draw_rect_filled(x + 2, y + 2, 16, 6, tint(col_ink, 22))
+		app.gg.draw_rect_filled(x - 1, y - 1, 18, 10, tint(col_brass, 110))
 		app.gg.draw_rect_filled(x, y, 16, 8, col_paper)
 		// flap line — workshop envelope fold
 		app.gg.draw_line(x, y, x + 8, y + 4, col_brass_dim)
 		app.gg.draw_line(x + 8, y + 4, x + 16, y, col_brass_dim)
 		// inner envelope shadow 1px bottom edge for depth
-		app.gg.draw_line(x + 1, y + 7, x + 15, y + 7, gg.rgba(26, 19, 32, 12))
+		app.gg.draw_line(x + 1, y + 7, x + 15, y + 7, tint(col_ink, 12))
 		if desks[a_idx].status == 'blocked' || desks[b_idx].status == 'blocked' {
 			app.gg.draw_rect_filled(x + 12, y + 1, 3, 3, col_oxide)
 		}
@@ -2913,15 +2925,14 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		pixel_panel(mut app, dx, dy, 140, 86, variant)
 		// status dot 8px + lowercase badge per munder
 		status_col := match d.status {
-			'working' { col_status_working } // #DCAB3C
-			'thinking' { col_status_thinking } // #4F9FAF
-			'blocked' { col_status_blocked } // #D96A62
-			'waiting' { col_status_waiting } // #6D87D6
+			'working' { col_status_working } // signal.selection
+			'thinking' { col_status_thinking } // text.secondary
+			'blocked' { col_status_blocked } // signal.danger
+			'waiting' { col_status_waiting } // text.secondary
 			else { col_status_idle }
 		}
-		// #A199AB
 		if d.status == 'working' {
-			app.gg.draw_rect_filled(dx + 9, dy + 9, 10, 10, gg.rgba(52, 168, 83, 45))
+			app.gg.draw_rect_filled(dx + 9, dy + 9, 10, 10, tint(col_mint, 45))
 			app.gg.draw_rect_filled(dx + 10, dy + 10, 8, 8, status_col)
 		} else if d.status == 'blocked' {
 			app.gg.draw_rect_filled(dx + 10, dy + 10, 8, 8, status_col)
@@ -2969,8 +2980,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 						clean2 = clean2[..20] + '…'
 					}
 					if clean2.len > 0 {
-						app.gg.draw_rect_filled(dx + 2, strip_y, 136, 10, gg.rgba(10, 14, 18, 190))
-						app.gg.draw_rect_empty(dx + 2, strip_y, 136, 10, gg.rgba(38, 48, 44, 120))
+						app.gg.draw_rect_filled(dx + 2, strip_y, 136, 10, tint(col_ink, 190))
+						app.gg.draw_rect_empty(dx + 2, strip_y, 136, 10, tint(col_ink, 120))
 						app.gg.draw_text(dx + 4, strip_y + 1, clean2, gg.TextCfg{
 							color: if is_selected {
 								col_brass} else {
@@ -2987,7 +2998,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			} else {
 				// idle — show desk VT ready hint faintly when selected/hover
 				if is_selected || is_hover {
-					app.gg.draw_text(dx + 10, dy + 88, 'vt 40×6 ready', gg.TextCfg{ color: gg.rgba(148, 163, 184, 90), size: 10, mono: true })
+					app.gg.draw_text(dx + 10, dy + 88, 'vt 40×6 ready', gg.TextCfg{ color: tint(col_slate, 90), size: 10, mono: true })
 				}
 			}
 		}
@@ -3019,11 +3030,11 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		if is_target {
 			// outer 2px halo brass 22% + pulse every 30 frames
 			pulse := if app.frame % 30 < 15 { 28 } else { 18 }
-			app.gg.draw_rect_filled(s.x - 2, s.y - 2, s.w + 4, s.h + 4, gg.rgba(220, 171, 60, u8(pulse)))
-			app.gg.draw_rect_filled(s.x - 1, s.y - 1, s.w + 2, s.h + 2, gg.rgba(255, 248, 231, 14))
+			app.gg.draw_rect_filled(s.x - 2, s.y - 2, s.w + 4, s.h + 4, tint(col_brass, u8(pulse)))
+			app.gg.draw_rect_filled(s.x - 1, s.y - 1, s.w + 2, s.h + 2, tint(col_paper, 14))
 		} else {
 			// subtle idle glow 8%
-			app.gg.draw_rect_filled(s.x - 1, s.y - 1, s.w + 2, s.h + 2, gg.rgba(26, 19, 32, 10))
+			app.gg.draw_rect_filled(s.x - 1, s.y - 1, s.w + 2, s.h + 2, tint(col_ink, 10))
 		}
 		// alt divergence: board/mcp use alt wood vs default cream for workshop palette divergence
 		variant := if s.kind == 'board' || s.kind == 'mcp' { 'alt' } else { 'default' }
@@ -3031,16 +3042,16 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		// station icon — color block with station glow specular top
 		app.gg.draw_rect_filled(s.x + 5, s.y + 5, s.w - 10, s.h - 20, s.color)
 		if is_target {
-			app.gg.draw_line(s.x + 6, s.y + 5, s.x + s.w - 6, s.y + 5, gg.rgba(255, 253, 245, 22))
+			app.gg.draw_line(s.x + 6, s.y + 5, s.x + s.w - 6, s.y + 5, tint(col_paper, 22))
 		} else {
-			app.gg.draw_line(s.x + 6, s.y + 5, s.x + s.w - 6, s.y + 5, gg.rgba(255, 253, 245, 10))
+			app.gg.draw_line(s.x + 6, s.y + 5, s.x + s.w - 6, s.y + 5, tint(col_paper, 10))
 		}
 		app.gg.draw_text(s.x + 6, s.y + s.h - 12, s.label, gg.TextCfg{ color: col_ink, size: font_display_sm, bold: false })
 		// highlight when avatar approaching — brass border pulse
 		if is_target {
 			app.gg.draw_rect_empty(s.x, s.y, s.w, s.h, col_lemon)
 			if app.frame % 20 < 10 {
-				app.gg.draw_rect_empty(s.x + 1, s.y + 1, s.w - 2, s.h - 2, gg.rgba(220, 171, 60, 90))
+				app.gg.draw_rect_empty(s.x + 1, s.y + 1, s.w - 2, s.h - 2, tint(col_brass, 90))
 			}
 		}
 	}
@@ -3072,7 +3083,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 				// trail ghost — faded accent with ink border ghost
 				app.gg.draw_rect_filled(ax - 12 + tx_off, ay - 12 + ty_off, 24, 24, gg.rgba(av.accent.r, av.accent.g, av.accent.b, alpha))
 				if t == 1 {
-					app.gg.draw_rect_filled(ax - 7 + tx_off, ay + 12 + ty_off, 14, 4, gg.rgba(26, 19, 32, 10))
+					app.gg.draw_rect_filled(ax - 7 + tx_off, ay + 12 + ty_off, 14, 4, tint(col_ink, 10))
 				}
 			}
 		}
@@ -3081,16 +3092,16 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			10
 		} else if av.bob > 0 { 14 } else { 12 }
 		shadow_a2 := if av.bob < 0 { u8(14) } else { u8(22) }
-		app.gg.draw_rect_filled(ax - shadow_w2 / 2, ay + 13, shadow_w2, 3, gg.rgba(26, 19, 32, shadow_a2))
-		app.gg.draw_rect_filled(ax - shadow_w2 / 2 + 2, ay + 14, shadow_w2 - 4, 1, gg.rgba(26, 19, 32, shadow_a2 / 2))
+		app.gg.draw_rect_filled(ax - shadow_w2 / 2, ay + 13, shadow_w2, 3, tint(col_ink, shadow_a2))
+		app.gg.draw_rect_filled(ax - shadow_w2 / 2 + 2, ay + 14, shadow_w2 - 4, 1, tint(col_ink, shadow_a2 / 2))
 		// 24×24 sprite — pixel-snapped
 		app.gg.draw_rect_filled(ax - 12, ay - 12, 24, 24, av.accent)
 		app.gg.draw_rect_empty(ax - 12, ay - 12, 24, 24, col_ink)
 		// signature: highlight edge top — SNES light source (1px cream at top of sprite) + side bevel
-		app.gg.draw_line(ax - 11, ay - 11, ax + 11, ay - 11, gg.rgba(255, 253, 245, 18))
-		app.gg.draw_line(ax - 11, ay - 11, ax - 11, ay + 11, gg.rgba(255, 253, 245, 10))
+		app.gg.draw_line(ax - 11, ay - 11, ax + 11, ay - 11, tint(col_paper, 18))
+		app.gg.draw_line(ax - 11, ay - 11, ax - 11, ay + 11, tint(col_paper, 10))
 		// face
-		app.gg.draw_rect_filled(ax - 8, ay - 8, 16, 10, gg.rgb(255, 228, 196)) // skin
+		app.gg.draw_rect_filled(ax - 8, ay - 8, 16, 10, col_cream50) // skin
 		app.gg.draw_rect_filled(ax - 6, ay - 4, 4, 2, col_ink) // eye left
 		app.gg.draw_rect_filled(ax + 2, ay - 4, 4, 2, col_ink) // eye right
 		// walk feet offset — with signature dust puff when pushing off
@@ -3100,8 +3111,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(ax - 8, ay + 8 + foot_off, 6, 4, col_ink)
 		app.gg.draw_rect_filled(ax + 2, ay + 8 - foot_off, 6, 4, col_ink)
 		if av.walking && av.frame == 2 {
-			app.gg.draw_rect_filled(ax - 10, ay + 13, 3, 2, gg.rgba(184, 147, 90, 22))
-			app.gg.draw_rect_filled(ax + 8, ay + 13, 2, 1, gg.rgba(184, 147, 90, 16))
+			app.gg.draw_rect_filled(ax - 10, ay + 13, 3, 2, tint(col_brass, 22))
+			app.gg.draw_rect_filled(ax + 8, ay + 13, 2, 1, tint(col_brass, 16))
 		}
 		// status overlay 8×8 above head — bob-synced
 		if av.walking {
@@ -3122,7 +3133,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(ax - 4, ay - 3, 8, 7, token_col)
 			app.gg.draw_rect_empty(ax - 4, ay - 3, 8, 7, col_ink)
 			// inner gloss 1px top
-			app.gg.draw_line(ax - 3, ay - 2, ax + 3, ay - 2, gg.rgba(255, 253, 245, 22))
+			app.gg.draw_line(ax - 3, ay - 2, ax + 3, ay - 2, tint(col_paper, 22))
 			glyph := match av.carrying {
 				'paper' { '—' }
 				'terminal' { '›' }
@@ -3143,12 +3154,12 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		// selected halo — brass double border when selected desk matches avatar
 		if app.selected_desk >= 0 && app.selected_desk < desks.len && av.id == desks[app.selected_desk].id {
 			app.gg.draw_rect_empty(ax - 13, ay - 13, 26, 26, col_lemon)
-			app.gg.draw_rect_empty(ax - 14, ay - 14, 28, 28, gg.rgba(220, 171, 60, 60))
+			app.gg.draw_rect_empty(ax - 14, ay - 14, 28, 28, tint(col_brass, 60))
 		}
 	}
 	// corridor divider — kraft tape seam between desk grid and the manager corner
-	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, fh - 130, gg.rgba(201, 168, 107, 60))
-	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, 8, gg.rgba(201, 168, 107, 110))
+	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, fh - 130, tint(col_brass, 60))
+	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, 8, tint(col_brass, 110))
 	// GOD / Michael — manager's corner (right corridor), mailbox with envelope flap animation (signature)
 	god_x := fx + fw - 96
 	god_y := fy + 44
@@ -3190,7 +3201,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	} else {
 		// empty mailbox — flag down, flap closed
 		app.gg.draw_rect_filled(mailbox_x + 14, mailbox_y + 6, 2, 6, col_ink700)
-		app.gg.draw_rect_filled(mailbox_x + 16, mailbox_y + 6, 6, 3, gg.rgba(107, 88, 120, 120))
+		app.gg.draw_rect_filled(mailbox_x + 16, mailbox_y + 6, 6, 3, tint(col_slate, 120))
 		app.gg.draw_line(mailbox_x + 1, mailbox_y + 15, mailbox_x + 7, mailbox_y + 11, col_ink500)
 		app.gg.draw_line(mailbox_x + 7, mailbox_y + 11, mailbox_x + 13, mailbox_y + 15, col_ink500)
 	}
@@ -3205,8 +3216,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(god_x + 8, god_y + 44 + i * 10, '• ${ap_txt}', gg.TextCfg{ color: col_ink500, size: 10 })
 	}
 	// signature soft shadow under GOD panel — atelier floor shadow (ink 18%)
-	app.gg.draw_rect_filled(god_x + 4, god_y + 64, 76, 4, gg.rgba(26, 19, 32, 18))
-	app.gg.draw_rect_filled(god_x + 8, god_y + 66, 68, 2, gg.rgba(26, 19, 32, 12))
+	app.gg.draw_rect_filled(god_x + 4, god_y + 64, 76, 4, tint(col_ink, 18))
+	app.gg.draw_rect_filled(god_x + 8, god_y + 66, 68, 2, tint(col_ink, 12))
 	// ── Command deck — kanban / fleet / CI — super-potent workshop command (alt wood divergence, native gg)
 	// Signature atelier command deck: wood alt panel with brass grain, three columns for live kanban/fleet/CI
 	deck_x := fx + 8
@@ -3217,8 +3228,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		pixel_panel(mut app, deck_x, deck_y, deck_w, deck_h, 'alt')
 		col_w := deck_w / 3
 		// brass vertical dividers
-		app.gg.draw_line(deck_x + col_w, deck_y + 6, deck_x + col_w, deck_y + deck_h - 6, gg.rgba(26, 19, 32, 16))
-		app.gg.draw_line(deck_x + col_w * 2, deck_y + 6, deck_x + col_w * 2, deck_y + deck_h - 6, gg.rgba(26, 19, 32, 16))
+		app.gg.draw_line(deck_x + col_w, deck_y + 6, deck_x + col_w, deck_y + deck_h - 6, tint(col_ink, 16))
+		app.gg.draw_line(deck_x + col_w * 2, deck_y + 6, deck_x + col_w * 2, deck_y + deck_h - 6, tint(col_ink, 16))
 		// kanban — todo/doing/done live counts + pri bars
 		app.gg.draw_text(deck_x + 10, deck_y + 6, 'Kanban', gg.TextCfg{ color: col_ink, size: 10, bold: true })
 		todo_n := app.kanban.filter(it.col == 'todo').len
@@ -3240,7 +3251,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(deck_x + 10 + ki * 44, deck_y + 28, 40, 6, pri_col)
 			app.gg.draw_rect_empty(deck_x + 10 + ki * 44, deck_y + 28, 40, 6, col_ink)
 			// inner gloss
-			app.gg.draw_line(deck_x + 11 + ki * 44, deck_y + 28, deck_x + 48 + ki * 44, deck_y + 28, gg.rgba(255, 253, 245, 14))
+			app.gg.draw_line(deck_x + 11 + ki * 44, deck_y + 28, deck_x + 48 + ki * 44, deck_y + 28, tint(col_paper, 14))
 		}
 		app.gg.draw_text(deck_x + 10, deck_y + 36, '${app.kanban.len} cards • budgets • verifier', gg.TextCfg{ color: col_ink500, size: 10 })
 		// fleet — live health dots per desk + selected halo + working pulse
@@ -3259,7 +3270,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			}
 			// working pulse glow
 			if d.status == 'working' && app.frame % 30 < 15 {
-				app.gg.draw_rect_filled(fx2 - 1, fy2 - 1, 6, 6, gg.rgba(52, 168, 83, 28))
+				app.gg.draw_rect_filled(fx2 - 1, fy2 - 1, 6, 6, tint(col_mint, 28))
 			}
 			app.gg.draw_rect_filled(fx2, fy2, 4, 4, fcol)
 			if fi == app.selected_desk {
@@ -3287,21 +3298,21 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(ci_x + di * 10, deck_y + 28, 6, 6, dcol)
 		}
 		app.gg.draw_text(ci_x + 36, deck_y + 28, 'doctor pass • Envelopes 4*t*(1-t)', gg.TextCfg{ color: col_ink500, size: 10 })
-		app.gg.draw_text(ci_x, deck_y + 36, 'alt wood • V native gg only', gg.TextCfg{ color: gg.rgba(26, 19, 32, 90), size: 10 })
+		app.gg.draw_text(ci_x, deck_y + 36, 'alt wood • V native gg only', gg.TextCfg{ color: tint(col_ink, 90), size: 10 })
 	}
 
 	// Signature: workshop vignette — subtle corner darkening + atelier light (top-left warm wash)
 	// Vignette edges 10px — ink 6%
-	app.gg.draw_rect_filled(fx, fy + 36, fw, 10, gg.rgba(26, 19, 32, 12))
-	app.gg.draw_rect_filled(fx, fy + fh - 30, fw, 10, gg.rgba(26, 19, 32, 14))
-	app.gg.draw_rect_filled(fx, fy + 36, 10, fh - 36, gg.rgba(26, 19, 32, 8))
-	app.gg.draw_rect_filled(fx + fw - 10, fy + 36, 10, fh - 36, gg.rgba(26, 19, 32, 8))
+	app.gg.draw_rect_filled(fx, fy + 36, fw, 10, tint(col_ink, 12))
+	app.gg.draw_rect_filled(fx, fy + fh - 30, fw, 10, tint(col_ink, 14))
+	app.gg.draw_rect_filled(fx, fy + 36, 10, fh - 36, tint(col_ink, 8))
+	app.gg.draw_rect_filled(fx + fw - 10, fy + 36, 10, fh - 36, tint(col_ink, 8))
 	// atelier warm light from top-left window — cream wash 18%
-	app.gg.draw_rect_filled(fx + 8, fy + 44, 120, 40, gg.rgba(255, 248, 231, 10))
-	app.gg.draw_rect_filled(fx + 8, fy + 44, 80, 24, gg.rgba(255, 253, 245, 12))
+	app.gg.draw_rect_filled(fx + 8, fy + 44, 120, 40, tint(col_paper, 10))
+	app.gg.draw_rect_filled(fx + 8, fy + 44, 80, 24, tint(col_paper, 12))
 
 	// Floor legend + live stats (English only)
-	app.gg.draw_rect_filled(fx, fy + fh - 20, fw, 20, gg.rgba(26, 36, 32, 220))
+	app.gg.draw_rect_filled(fx, fy + fh - 20, fw, 20, tint(col_ink, 220))
 	draw_floor_legend(mut app, fx + 10, fy + fh - 14)
 	app.gg.draw_text(fx + fw - 148, fy + fh - 14, 'rev ${app.engine_rev}  api ${app.api_calls}', gg.TextCfg{ color: col_slate_dim, size: 12 })
 	// signature fleet minimap dots — 1px per desk status in legend bar (super-potent fleet glance)
@@ -3477,7 +3488,7 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 			acol := if hover_install { col_coral } else { col_slate_dim }
 			app.gg.draw_text(fx + fw - 70, y + 7, action, gg.TextCfg{ color: acol, size: 13, bold: hover_install })
 			if is_hover {
-				app.gg.draw_rect_filled(fx + fw - 72, y + 18, 40, 2, gg.rgba(217, 106, 98, 45))
+				app.gg.draw_rect_filled(fx + fw - 72, y + 18, 40, 2, tint(col_oxide, 45))
 			}
 		} else {
 			// provenance preview — source file via receipt (hover shows toggle → install)
@@ -3505,7 +3516,7 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 			bar_h = 14
 		}
 		bar_y := y0 + (list_h - bar_h) * start / (entries.len - visible)
-		app.gg.draw_rect_filled(fx + fw - 8, y0, 3, list_h, gg.rgba(38, 48, 44, 180))
+		app.gg.draw_rect_filled(fx + fw - 8, y0, 3, list_h, tint(col_ink, 180))
 		app.gg.draw_rect_filled(fx + fw - 8, bar_y, 3, bar_h, col_brass_dim)
 	}
 	if entries.len == 0 {
@@ -3584,7 +3595,7 @@ fn draw_agents(mut app GuiApp, w int, h int) {
 		if y + 30 > fy + fh - 12 {
 			break
 		}
-		is_sel := i == app.selected_desk % show.len
+		is_sel := show.len > 0 && app.selected_desk >= 0 && i == app.selected_desk % show.len
 		bg := if is_sel { col_manila_tab } else { col_cream100 }
 		bd := if is_sel { col_brass } else { col_ink300 }
 		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 30, bg)
@@ -3691,7 +3702,7 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 			else { '· idle' }
 		}
 		hcol := if p.health == 'healthy' {
-			gg.rgb(52, 168, 83)
+			col_mint
 		} else if p.health == 'warn' {
 			col_lemon
 		} else if p.health == 'error' { col_coral } else { col_slate }
@@ -3840,8 +3851,8 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		// row bg — status-tinted
 		status_bg := match c.status {
 			'pass' { col_cream100 }
-			'warn' { gg.rgba(201, 168, 107, 60) }
-			'fail' { gg.rgba(196, 90, 60, 40) }
+			'warn' { tint(col_brass, 60) }
+			'fail' { tint(col_oxide, 40) }
 			else { col_cream100 }
 		}
 		app.gg.draw_rect_filled(fx + 12, y, fw - 24, row_h - 2, status_bg)
@@ -3923,9 +3934,9 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	for i, label in chips {
 		c := chip_cols[i]
 		bg := if label.starts_with('running') && stats.running > 0 {
-			gg.rgba(201, 168, 107, 70)
+			tint(col_brass, 70)
 		} else if label.starts_with('failed') && stats.failed > 0 {
-			gg.rgba(196, 90, 60, 50)
+			tint(col_oxide, 50)
 		} else {
 			col_manila_tab
 		}
@@ -4129,7 +4140,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			bh = 12
 		}
 		bar_y := list_y0 + (track_h - bh) * app.jobs_scroll / (jobs.len - visible)
-		app.gg.draw_rect_filled(fx + fw - 6, list_y0, 3, track_h, gg.rgba(38, 48, 44, 30))
+		app.gg.draw_rect_filled(fx + fw - 6, list_y0, 3, track_h, tint(col_ink, 30))
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, col_brass_dim)
 	}
 	// ── Approvals queue — super-potent spend/scope/destructive distinct bottom panel ──
@@ -4193,9 +4204,9 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 				.destructive { col_coral }
 			}
 			kind_bg := match ap.kind {
-				.spend { gg.rgba(92, 169, 122, 18) }
-				.scope { gg.rgba(220, 171, 60, 18) }
-				.destructive { gg.rgba(217, 106, 98, 18) }
+				.spend { tint(col_mint, 18) }
+				.scope { tint(col_brass, 18) }
+				.destructive { tint(col_oxide, 18) }
 			}
 			app.gg.draw_rect_filled(fx + 16, y, 78, 14, kind_bg)
 			app.gg.draw_rect_empty(fx + 16, y, 78, 14, kind_col)
@@ -4218,7 +4229,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 				bh2 = 8
 			}
 			bar_y2 := aq_y + 22 + (track_h2 - bh2) * app.jobs_approvals_scroll / (aq.len - visible_aq)
-			app.gg.draw_rect_filled(fx + fw - 8, aq_y + 22, 2, track_h2, gg.rgba(38, 48, 44, 60))
+			app.gg.draw_rect_filled(fx + fw - 8, aq_y + 22, 2, track_h2, tint(col_ink, 60))
 			app.gg.draw_rect_filled(fx + fw - 8, bar_y2, 2, bh2, col_brass_dim)
 		}
 	}
@@ -4282,8 +4293,8 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			col_coral
 		} else if tier_str == 'L2' { col_lemon } else { col_mint }
 		tier_bg := if tier_str == 'L3' {
-			gg.rgba(217, 106, 98, 22)
-		} else if tier_str == 'L2' { gg.rgba(220, 171, 60, 18) } else { gg.rgba(92, 169, 122, 14) }
+			tint(col_oxide, 22)
+		} else if tier_str == 'L2' { tint(col_brass, 18) } else { tint(col_mint, 14) }
 		app.gg.draw_rect_filled(fx + 22, y + 6, 28, 14, tier_bg)
 		app.gg.draw_rect_empty(fx + 22, y + 6, 28, 14, tier_col)
 		app.gg.draw_text(fx + 26, y + 8, tier_str, gg.TextCfg{ color: tier_col, size: 10, bold: true })
@@ -4291,7 +4302,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(fx + 56 + entry.name.len * 7 + 8, y + 8, entry.cadence, gg.TextCfg{ color: col_ink500, size: 10, mono: true })
 		mut bx := fx + fw - 260
 		if entry.verifier.trim_space().len > 0 {
-			app.gg.draw_rect_filled(bx, y + 6, 92, 14, gg.rgba(148, 130, 211, 18))
+			app.gg.draw_rect_filled(bx, y + 6, 92, 14, tint(col_slate, 18))
 			app.gg.draw_rect_empty(bx, y + 6, 92, 14, col_lilac)
 			lbl := if entry.verifier.contains(':') {
 				entry.verifier.split(':')[1]
@@ -4303,7 +4314,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			bx -= 100
 		}
 		if entry.resumable {
-			app.gg.draw_rect_filled(fx + fw - 140, y + 6, 72, 14, gg.rgba(79, 159, 175, 14))
+			app.gg.draw_rect_filled(fx + fw - 140, y + 6, 72, 14, tint(col_slate, 14))
 			app.gg.draw_rect_empty(fx + fw - 140, y + 6, 72, 14, col_sky)
 			app.gg.draw_text(fx + fw - 132, y + 8, 'STATE.md', gg.TextCfg{ color: col_sky, size: 10, bold: true })
 		}
@@ -4463,7 +4474,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			bh = 12
 		}
 		bar_y := y0 + (track_h - bh) * app.loops_scroll / (loops.len - visible)
-		app.gg.draw_rect_filled(fx + fw - 6, y0, 3, track_h, gg.rgba(38, 48, 44, 30))
+		app.gg.draw_rect_filled(fx + fw - 6, y0, 3, track_h, tint(col_ink, 30))
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, col_brass_dim)
 	}
 	app.gg.draw_text(fx + 14, fy + fh - 18, 'Budget ledger via StateRepository TX • exit_conditions gate • gh-gate tier • validate-loops', gg.TextCfg{ color: col_slate_dim, size: 10 })
@@ -4473,7 +4484,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		my := fy + 50
 		mw := fw - 80
 		mh := 160
-		app.gg.draw_rect_filled(mx, my, mw, mh, gg.rgba(26, 19, 32, 45))
+		app.gg.draw_rect_filled(mx, my, mw, mh, tint(col_ink, 45))
 		pixel_panel(mut app, mx + 2, my + 2, mw - 4, mh - 4, 'active')
 		app.gg.draw_text(mx + 18, my + 14, 'Create Loop — via Engine.create_loop() TX', gg.TextCfg{ color: col_ink, size: 12, bold: true })
 		tier_str := ['L1', 'L2', 'L3'][app.loops_create_tier]
@@ -4551,7 +4562,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	for ri, rname in ['pair', 'team', 'full'] {
 		bx := fx + 20 + ri * 96
 		hover := app.mouse_x >= bx && app.mouse_x <= bx + 84 && app.mouse_y >= y_launch + 38 && app.mouse_y <= y_launch + 60
-		bg := if hover { gg.rgb(200, 165, 110) } else { col_brass }
+		bg := if hover { ui_selection_hover() } else { col_brass }
 		app.gg.draw_rect_filled(bx, y_launch + 36, 84, 22, bg)
 		app.gg.draw_rect_empty(bx, y_launch + 36, 84, 22, col_brass_dim)
 		app.gg.draw_text(bx + 18, y_launch + 42, rname, gg.TextCfg{ color: col_ink, size: 13, bold: true })
@@ -4640,7 +4651,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			x1 := centers[e[0]]
 			x2 := centers[e[1]]
 			ey := node_y + 17
-			app.gg.draw_line(x1, ey, x2, ey, gg.rgba(138, 155, 168, 110))
+			app.gg.draw_line(x1, ey, x2, ey, tint(col_slate, 110))
 			t := f64((app.frame * 2 + ei * 90) % 120) / 120.0
 			env_x := x1 + int((x2 - x1) * t)
 			env_h := int(5.0 * (4.0 * t * (1.0 - t)))
@@ -4944,7 +4955,7 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 		sel := n.path == app.file_tree_selected
 		if hover { app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, col_paper_hover) }
 		if sel {
-			app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, gg.rgba(201, 168, 107, 70))
+			app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, tint(col_brass, 70))
 			app.gg.draw_rect_empty(x + 2, ry - 1, w - 4, row_h, col_brass_dim)
 		}
 		// twisty for dirs
@@ -4977,7 +4988,7 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 			bar_h = 10
 		}
 		bar_y := y + 24 + (h - 28 - bar_h) * start / (flat.len - visible)
-		app.gg.draw_rect_filled(x + w - 4, y + 24, 2, h - 28, gg.rgba(38, 48, 44, 120))
+		app.gg.draw_rect_filled(x + w - 4, y + 24, 2, h - 28, tint(col_ink, 120))
 		app.gg.draw_rect_filled(x + w - 4, bar_y, 2, bar_h, col_brass_dim)
 	}
 	if flat.len == 0 {
@@ -5119,7 +5130,7 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 			bar_h = 12
 		}
 		bar_y := content_y + (content_h - bar_h) * start / (lines.len - visible)
-		app.gg.draw_rect_filled(x + w - 6, content_y, 2, content_h, gg.rgba(38, 48, 44, 80))
+		app.gg.draw_rect_filled(x + w - 6, content_y, 2, content_h, tint(col_ink, 80))
 		app.gg.draw_rect_filled(x + w - 6, bar_y, 2, bar_h, col_brass_dim)
 	}
 	app.gg.draw_text(x + 8, y + h - 14, '${active.syntax} • ${lines.len} lines • brokered fs • ${if active.dirty {
@@ -5191,7 +5202,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int) {
 				bar_h = 10
 			}
 			bar_y := y0 + 14 + (inner_h - 20 - bar_h) * app.git_scroll / (changes.len - visible)
-			app.gg.draw_rect_filled(x + w - 4, y0 + 14, 2, inner_h - 20, gg.rgba(38, 48, 44, 80))
+			app.gg.draw_rect_filled(x + w - 4, y0 + 14, 2, inner_h - 20, tint(col_ink, 80))
 			app.gg.draw_rect_filled(x + w - 4, bar_y, 2, bar_h, col_brass_dim)
 		}
 	} else if app.git_rail == 'HISTORY' {
@@ -5603,7 +5614,7 @@ fn draw_products(mut app GuiApp, w int, h int) {
 			bh = 12
 		}
 		bar_y := card_y0 + (track_h - bh) * start / (prods.len - visible)
-		app.gg.draw_rect_filled(fx + fw - 6, card_y0, 3, track_h, gg.rgba(38, 48, 44, 30))
+		app.gg.draw_rect_filled(fx + fw - 6, card_y0, 3, track_h, tint(col_ink, 30))
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, col_brass_dim)
 	}
 	// packs chips below cards or at bottom if many
@@ -5639,7 +5650,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	// overlay dim if showing as modal over world, otherwise full panel when selected_panel==11
 	is_overlay := app.show_onboarding && app.selected_panel != 11
 	if is_overlay {
-		app.gg.draw_rect_filled(0, 44, w, h - 44 - 28 - term_h_on, gg.rgba(26, 19, 32, 55))
+		app.gg.draw_rect_filled(0, 44, w, h - 44 - 28 - term_h_on, tint(col_ink, 55))
 	}
 	mut fx := if is_overlay { 240 } else { 208 }
 	fy := 52
@@ -5653,13 +5664,13 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		fh = 400
 	}
 	// panel chrome
-	app.gg.draw_rect_filled(fx, fy, fw, fh, gg.rgba(26, 19, 32, 18))
+	app.gg.draw_rect_filled(fx, fy, fw, fh, tint(col_ink, 18))
 	pixel_panel(mut app, fx, fy, fw, fh, 'default')
 	// header — Dunder paper envelope with GOD mailbox glow (signature)
 	app.gg.draw_rect_filled(fx, fy, fw, 36, col_ink)
 	// warm paper fiber header texture — faint speck every 40px
 	for sx in 0 .. (fw / 40 + 1) {
-		app.gg.draw_rect_filled(fx + 12 + sx * 40, fy + 8, 1, 1, gg.rgba(244, 239, 230, 8))
+		app.gg.draw_rect_filled(fx + 12 + sx * 40, fy + 8, 1, 1, tint(col_paper, 8))
 	}
 	app.gg.draw_text(fx + 14, fy + 9, tr(app, 'panel.onboarding'), gg.TextCfg{
 		color: col_cream100
@@ -5672,7 +5683,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	env_y := fy + 8
 	// GOD mailbox glow pulse (rust)
 	if app.frame % 40 < 20 {
-		app.gg.draw_rect_filled(env_x - 4, env_y - 2, 24, 20, gg.rgba(196, 90, 60, 18))
+		app.gg.draw_rect_filled(env_x - 4, env_y - 2, 24, 20, tint(col_oxide, 18))
 	}
 	app.gg.draw_rect_filled(env_x, env_y, 20, 14, col_paper)
 	app.gg.draw_rect_empty(env_x, env_y, 20, 14, col_line_light)
@@ -5738,7 +5749,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	// status bar below tabs
 	y_status := y_tabs + 24
 	pill_col := if status_is_first { col_coral } else { col_mint }
-	pill_bg := if status_is_first { gg.rgba(217, 106, 98, 18) } else { gg.rgba(92, 169, 122, 14) }
+	pill_bg := if status_is_first { tint(col_oxide, 18) } else { tint(col_mint, 14) }
 	app.gg.draw_rect_filled(fx + 10, y_status, 110, 16, pill_bg)
 	app.gg.draw_rect_empty(fx + 10, y_status, 110, 16, pill_col)
 	app.gg.draw_text(fx + 14, y_status + 3, if status_is_first {
@@ -6412,7 +6423,7 @@ fn draw_insights_realtime(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y 
 	flow_w := int(18.0 * (4.0 * flow_t * (1.0 - flow_t)))
 	app.gg.draw_rect_filled(inner_x, inner_y + 36, inner_w, 10, col_cream100)
 	if flow_w > 0 {
-		app.gg.draw_rect_filled(inner_x, inner_y + 36, 30 + flow_w * 12, 10, gg.rgba(196, 90, 60, 110))
+		app.gg.draw_rect_filled(inner_x, inner_y + 36, 30 + flow_w * 12, 10, tint(col_oxide, 110))
 	}
 	app.gg.draw_rect_empty(inner_x, inner_y + 36, inner_w, 10, col_ink300)
 	app.gg.draw_text(inner_x + inner_w - 110, inner_y + 37, 'GOD 4·t·(1−t)', gg.TextCfg{ color: col_oxide, size: 10, mono: true })
@@ -6449,7 +6460,7 @@ fn draw_insights_realtime(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y 
 // draw_insights_gallery — the living stationery style-guide (7th tab: brand + tokens)
 fn draw_insights_gallery(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y int, inner_w int) {
 	app.gg.draw_text(inner_x, inner_y, 'Gallery — the Paper Co. design system, live from tokens', gg.TextCfg{ color: col_ink700, size: 13, bold: true })
-	app.gg.draw_text(inner_x, inner_y + 18, 'Dunder Mifflin filing-cabinet: paper #F4EFE6 · ink #1A1A1A · steel #8A9BA8 · manila #E6D8B8 · rust #C45A3C · brass #C9A86B', gg.TextCfg{ color: col_ink_soft, size: 11 })
+	app.gg.draw_text(inner_x, inner_y + 18, 'filing-cabinet: canvas #F3EBDD · paper #FFF9ED · cabinet #171C1F · selection #9A6416', gg.TextCfg{ color: col_ink_soft, size: 11 })
 	// palette swatches — paint chips (paper-sample card)
 	swatch_names := ['paper', 'cream', 'manila', 'kraft', 'steel', 'ink', 'rust', 'brass', 'sage']
 	swatch_cols := [col_paper, col_cream50, col_manila_tab, col_ink300, col_slate, col_ink,
@@ -6497,8 +6508,8 @@ fn draw_insights_gallery(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y i
 	rc_x := inner_x + inner_w - 190
 	app.gg.draw_rect_filled(rc_x, comp_y - 6, 180, 66, col_cream100)
 	app.gg.draw_rect_empty(rc_x, comp_y - 6, 180, 66, col_ink300)
-	app.gg.draw_rect_filled(rc_x + 6, comp_y, 6, 6, gg.rgba(193, 162, 75, 180))
-	app.gg.draw_rect_filled(rc_x + 168, comp_y, 6, 6, gg.rgba(193, 162, 75, 180))
+	app.gg.draw_rect_filled(rc_x + 6, comp_y, 6, 6, tint(col_brass, 180))
+	app.gg.draw_rect_filled(rc_x + 168, comp_y, 6, 6, tint(col_brass, 180))
 	app.gg.draw_text(rc_x + 20, comp_y + 12, 'Rivet card', gg.TextCfg{
 		color: col_ink
 		size: 14
@@ -6524,7 +6535,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(ix + 12, iy + 32, d.label, gg.TextCfg{ color: col_paper, size: 14, bold: true })
 		app.gg.draw_text(ix + 12, iy + 50, d.tier + ' • ' + d.role, gg.TextCfg{ color: col_slate_dim, size: 14 })
 		status_col := if d.status == 'working' {
-			gg.rgb(52, 168, 83)
+			col_mint
 		} else if d.status == 'blocked' { col_oxide } else { col_slate }
 		app.gg.draw_text(ix + 12, iy + 70, 'Status: ' + d.status, gg.TextCfg{ color: status_col, size: 14 })
 		app.gg.draw_rect_filled(ix + 12, iy + 90, iw - 24, 1, col_line)
@@ -6541,7 +6552,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(ix + 24, iy + 188, 'Open terminal  (enter)', gg.TextCfg{ color: col_paper, size: 14 })
 		// Route handoff — brass primary, hover brightens
 		hover_route := app.mouse_x >= ix + 12 && app.mouse_x <= ix + iw - 12 && app.mouse_y >= iy + 214 && app.mouse_y <= iy + 242
-		bg_route := if hover_route { gg.rgb(200, 165, 110) } else { col_brass }
+		bg_route := if hover_route { ui_selection_hover() } else { col_brass }
 		app.gg.draw_rect_filled(ix + 12, iy + 214, iw - 24, 28, bg_route)
 		app.gg.draw_text(ix + 24, iy + 222, 'Route handoff  (h)', gg.TextCfg{ color: col_ink, size: 14, bold: true })
 		if app.inspector_msg != '' {
@@ -6562,7 +6573,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		vt_x := ix + 8
 		vt_w := iw - 16
 		// panel chrome — inset terminal variant with brass accent
-		app.gg.draw_rect_filled(vt_x, vt_y, vt_w, vt_h, gg.rgb(10, 14, 18))
+		app.gg.draw_rect_filled(vt_x, vt_y, vt_w, vt_h, col_charcoal)
 		app.gg.draw_rect_empty(vt_x, vt_y, vt_w, vt_h, col_line)
 		app.gg.draw_rect_filled(vt_x, vt_y, vt_w, 14, col_ink)
 		app.gg.draw_rect_filled(vt_x, vt_y + 13, vt_w, 1, col_brass_dim)
@@ -6570,7 +6581,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(vt_x + 8, vt_y + 3, 'VT 40×6 — ${desk_label} — libghostty-vt', gg.TextCfg{ color: col_brass, size: 10, mono: true, bold: true })
 		app.gg.draw_text(vt_x + vt_w - 34, vt_y + 3, '40×6', gg.TextCfg{ color: col_slate, size: 10, mono: true })
 		// live cursor pulse when selected
-		pulse_vt := if app.frame % 40 < 20 { col_brass } else { gg.rgba(184, 147, 90, 70) }
+		pulse_vt := if app.frame % 40 < 20 { col_brass } else { tint(col_brass, 70) }
 		app.gg.draw_rect_filled(vt_x + vt_w - 10, vt_y + 4, 6, 6, pulse_vt)
 		// render ghost visible lines — up to 6 rows inside 92px panel (14 header + 6*12 + 6)
 		ghost := app.per_desk_ghost[app.selected_desk]
@@ -6606,7 +6617,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 			gcol := match col_idx {
 				1 { col_brass }
 				2 { col_coral }
-				3 { gg.rgb(52, 168, 83) }
+				3 { col_mint }
 				4 { col_slate }
 				else { col_paper_dim }
 			}
@@ -6618,7 +6629,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		}
 		// scanline overlay — subtle CRT 1px every 2 rows
 		for sy in 0 .. 7 {
-			app.gg.draw_line(vt_x + 1, vt_y + 18 + sy * 10 + 9, vt_x + vt_w - 1, vt_y + 18 + sy * 10 + 9, gg.rgba(0, 0, 0, 10))
+			app.gg.draw_line(vt_x + 1, vt_y + 18 + sy * 10 + 9, vt_x + vt_w - 1, vt_y + 18 + sy * 10 + 9, tint(col_ink, 10))
 		}
 		// bottom hint — click to focus main VT
 		app.gg.draw_text(vt_x + 8, vt_y + vt_h - 9, 'multiplexed • Tab to focus global ghostty-vt', gg.TextCfg{ color: col_slate, size: 10 })
@@ -6683,7 +6694,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 			is_hover_i := idx == app.inspector_hover
 			if is_hover_i {
 				app.gg.draw_rect_filled(ix + 9, y - 1, iw - 18, row_h, col_charcoal2)
-				app.gg.draw_rect_empty(ix + 9, y - 1, iw - 18, row_h, gg.rgba(184, 147, 90, 45))
+				app.gg.draw_rect_empty(ix + 9, y - 1, iw - 18, row_h, tint(col_brass, 45))
 			}
 			// tiny level dot
 			app.gg.draw_rect_filled(ix + 14, y + 4, 4, 4, term_level_color(l.level))
@@ -6707,7 +6718,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 				bar_h = 12
 			}
 			bar_y := log_y0 + (inspector_log_h - bar_h) * start_i / (desk_logs.len - visible_i)
-			app.gg.draw_rect_filled(ix + iw - 10, log_y0, 3, inspector_log_h, gg.rgba(38, 48, 44, 180))
+			app.gg.draw_rect_filled(ix + iw - 10, log_y0, 3, inspector_log_h, tint(col_ink, 180))
 			app.gg.draw_rect_filled(ix + iw - 10, bar_y, 3, bar_h, col_brass_dim)
 		}
 	}
@@ -6732,7 +6743,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	app.gg.draw_text(x0 + 100, y0 + 8, 'claude · opencode · fleet — \\`help · \\`clear', gg.TextCfg{ color: col_slate, size: 11, mono: true })
 	// focus pill — Tab flips ghost focus (type into the embedded terminal)
 	focus_x := x0 + 320
-	pill_bg := if app.ghost_focused { gg.rgba(90, 125, 90, 60) } else { gg.rgba(138, 155, 168, 30) }
+	pill_bg := if app.ghost_focused { tint(col_mint, 60) } else { tint(col_slate, 30) }
 	pill_bd := if app.ghost_focused { col_mint } else { col_line_light }
 	app.gg.draw_rect_filled(focus_x, y0 + 4, 118, 16, pill_bg)
 	app.gg.draw_rect_empty(focus_x, y0 + 4, 118, 16, pill_bd)
@@ -6766,7 +6777,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(bx + (30 - bl.len * 7) / 2, y0 + 7, bl, gg.TextCfg{ color: bfg, size: 10, bold: true, mono: true })
 	}
 	// live indicator pulse
-	pulse_col := if app.frame % 60 < 30 { gg.rgb(52, 168, 83) } else { gg.rgba(52, 168, 83, 120) }
+	pulse_col := if app.frame % 60 < 30 { col_mint } else { tint(col_mint, 120) }
 	app.gg.draw_rect_filled(x0 + tw - 176, y0 + 8, 8, 8, pulse_col)
 	app.gg.draw_text(x0 + tw - 164, y0 + 7, 'LIVE', gg.TextCfg{ color: pulse_col, size: 11, bold: true })
 	// copy feedback
@@ -6783,7 +6794,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	content_x := x0 + 8
 	content_w := tw - 16
 	// inner panel
-	app.gg.draw_rect_filled(content_x, content_y, content_w, term_h - 32, gg.rgb(10, 14, 18))
+	app.gg.draw_rect_filled(content_x, content_y, content_w, term_h - 32, col_charcoal)
 	app.gg.draw_rect_empty(content_x, content_y, content_w, term_h - 32, col_line)
 	// scrollback search — paper field overlay + match highlighting (Ctrl+F)
 	if app.term_search_open || app.term_search != '' {
@@ -6821,7 +6832,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	for sy in 1 .. ((term_h - 32) / 2) {
 		sy_y := content_y + sy * 2
 		if sy_y < content_y + term_h - 32 {
-			app.gg.draw_line(content_x + 1, sy_y, content_x + content_w - 1, sy_y, gg.rgba(0, 0, 0, 8))
+			app.gg.draw_line(content_x + 1, sy_y, content_x + content_w - 1, sy_y, tint(col_ink, 8))
 		}
 	}
 	// session picker — in MAX mode a chip strip picks whose VT fills the screen
@@ -6909,7 +6920,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			det := pty_mod.detect()
 			dlg_x, dlg_y, dlg_w := content_x + 120, content_y + 60, 480
 			dlg_h := 40 + det.len * 26 + 20
-			app.gg.draw_rect_filled(dlg_x + 3, dlg_y + 3, dlg_w, dlg_h, gg.rgba(0, 0, 0, 120))
+			app.gg.draw_rect_filled(dlg_x + 3, dlg_y + 3, dlg_w, dlg_h, tint(col_ink, 120))
 			app.gg.draw_rect_filled(dlg_x, dlg_y, dlg_w, dlg_h, col_cream50)
 			app.gg.draw_rect_empty(dlg_x, dlg_y, dlg_w, dlg_h, col_brass)
 			app.gg.draw_text(dlg_x + 14, dlg_y + 10, 'New session — pick an agent CLI', gg.TextCfg{
@@ -6986,7 +6997,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			gcol := match col_idx {
 				1 { col_brass }
 				2 { col_oxide }
-				3 { gg.rgb(52, 168, 83) }
+				3 { col_mint }
 				4 { col_slate }
 				else { col_paper_dim }
 			}
@@ -6994,7 +7005,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			disp := if line.len > 44 { line[..44] + '…' } else { line }
 			is_match := app.term_search.len > 1 && line.to_lower().contains(app.term_search.to_lower())
 			if is_match {
-				app.gg.draw_rect_filled(vx + 1, y - 1, vw - 8, row_h + 1, gg.rgba(201, 168, 107, 90))
+				app.gg.draw_rect_filled(vx + 1, y - 1, vw - 8, row_h + 1, tint(col_brass, 90))
 			}
 			app.gg.draw_text(vx + 8, y, disp, gg.TextCfg{ color: gcol, size: 13, mono: true })
 		}
@@ -7002,18 +7013,18 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	// prompt line at bottom of terminal content (fleet view only — desk VTs are read-only feeds)
 	prompt_y := content_y + term_h - 32 - 18
 	if split_on {
-		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(138, 155, 168, 24))
+		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, tint(col_slate, 24))
 		app.gg.draw_text(content_x + 8, prompt_y, 'split — type into the pane under the cursor', gg.TextCfg{ color: col_ink_soft, size: 12, mono: true })
 	} else if desk_view {
-		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(148, 163, 184, 20))
-		app.gg.draw_text(content_x + 8, prompt_y, '[${desks_for_app(app)[app.term_view].label}] read-only desk feed · Fleet chip returns to the prompt', gg.TextCfg{ color: col_slate, size: 12, mono: true })
+		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, tint(col_slate, 20))
+		app.gg.draw_text(content_x + 8, prompt_y, '[${desk_feed_label(app)}] read-only desk feed · Fleet chip returns to the prompt', gg.TextCfg{ color: col_slate, size: 12, mono: true })
 	} else if sess_view {
 		ses := app.sessions[app.term_view - 15]
 		if ses.exited && !ses.dismissed {
 			// restart stamp card — dead session, scrollback preserved
 			cw, chh := 420, 92
 			cx, cy := content_x + content_w / 2 - cw / 2, content_y + 60
-			app.gg.draw_rect_filled(cx + 3, cy + 3, cw, chh, gg.rgba(0, 0, 0, 120))
+			app.gg.draw_rect_filled(cx + 3, cy + 3, cw, chh, tint(col_ink, 120))
 			app.gg.draw_rect_filled(cx, cy, cw, chh, col_cream50)
 			app.gg.draw_rect_empty(cx, cy, cw, chh, col_oxide)
 			app.gg.draw_text(cx + 16, cy + 10, '[${ses.agent}] session exited', gg.TextCfg{
@@ -7041,16 +7052,16 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_empty(cx + 108, cy + 46, 80, 24, col_ink300)
 			app.gg.draw_text(cx + 124, cy + 52, 'Dismiss', gg.TextCfg{ color: col_ink_soft, size: 11 })
 		} else if ses.exited {
-			app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(196, 90, 60, 40))
+			app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, tint(col_oxide, 40))
 			app.gg.draw_text(content_x + 8, prompt_y, '[${ses.agent}] session exited', gg.TextCfg{ color: col_oxide, size: 12, mono: true })
 		} else {
 			state := 'live · type below'
-			app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(90, 125, 90, 30))
+			app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, tint(col_mint, 30))
 			app.gg.draw_text(content_x + 8, prompt_y, '[${ses.agent}] ${state} · Esc returns to Fleet', gg.TextCfg{ color: col_sage_soft, size: 12, mono: true })
 		}
 	} else {
 		// prompt bg
-		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, gg.rgba(184, 147, 90, 12))
+		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, tint(col_brass, 12))
 		prompt_col := if app.ghost_focused { col_brass } else { col_slate }
 		app.gg.draw_text(content_x + 8, prompt_y, app.ghost.prompt_line(), gg.TextCfg{ color: prompt_col, size: 13, mono: true, bold: app.ghost_focused })
 	}
@@ -7070,7 +7081,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 			bar_h = 14
 		}
 		bar_y := track_y + (track_h - bar_h) * start / (all_ghost_len - visible)
-		app.gg.draw_rect_filled(track_x, track_y, 4, track_h, gg.rgba(38, 48, 44, 200))
+		app.gg.draw_rect_filled(track_x, track_y, 4, track_h, tint(col_ink, 200))
 		app.gg.draw_rect_filled(track_x, bar_y, 4, bar_h, col_brass_dim)
 	}
 	// footer stats
@@ -7081,7 +7092,7 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 fn draw_palette(mut app GuiApp, w int, h int) {
 	// Dunder paper palette — manila folder with brass rivets, typewriter mono, paper grain
 	z := app.global_zoom
-	app.gg.draw_rect_filled(0, 0, w, h, gg.rgba(28, 28, 30, 88))
+	app.gg.draw_rect_filled(0, 0, w, h, tint(col_ink, 88))
 	cx := w / 2 - 280
 	cy := h / 2 - 180
 	pw := 560
@@ -7097,8 +7108,8 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_empty(cx + 12, cy + 32, pw - 24, 32, col_brass)
 	// perforated dots each side
 	for py in 0 .. 2 {
-		app.gg.draw_rect_filled(cx + 14, cy + 38 + py * 10, 1, 1, gg.rgba(251, 246, 232, 28))
-		app.gg.draw_rect_filled(cx + pw - 15, cy + 38 + py * 10, 1, 1, gg.rgba(251, 246, 232, 28))
+		app.gg.draw_rect_filled(cx + 14, cy + 38 + py * 10, 1, 1, tint(col_paper, 28))
+		app.gg.draw_rect_filled(cx + pw - 15, cy + 38 + py * 10, 1, 1, tint(col_paper, 28))
 	}
 	q := if app.palette_query == '' {
 		'Search skills, agents, panels…'
@@ -7120,7 +7131,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_empty(cx + 12, y, pw - 24, 32, bd)
 		if is_sel {
 			app.gg.draw_rect_filled(cx + 12, y, 3, 32, col_brass)
-			app.gg.draw_rect_filled(cx + 15, y + 1, pw - 27, 1, gg.rgba(251, 246, 232, 14))
+			app.gg.draw_rect_filled(cx + 15, y + 1, pw - 27, 1, tint(col_paper, 14))
 		} else {
 			// subtle manila tab on unselected
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, col_paper_dim)
@@ -7165,7 +7176,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 
 fn draw_help(mut app GuiApp, w int, h int) {
 	z := app.global_zoom
-	app.gg.draw_rect_filled(0, 0, w, h, gg.rgba(28, 28, 30, 80))
+	app.gg.draw_rect_filled(0, 0, w, h, tint(col_ink, 80))
 	cx := w / 2 - 250
 	cy := h / 2 - 150
 	pw := 500
@@ -8493,9 +8504,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					} else {
 						idx := (mx - content_x - 180) / 66
 						desks_all := desks_for_app(app)
-						if idx < desks_all.len {
+						if idx >= 0 && idx < desks_all.len {
 							app.term_view_b = idx
-						} else if idx < desks_all.len + app.sessions.len {
+						} else if idx >= 0 && idx < desks_all.len + app.sessions.len {
 							app.term_view_b = 15 + idx - desks_all.len
 						}
 					}
@@ -8517,7 +8528,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					desks_all := desks_for_app(app)
 					if idx >= 0 && idx < desks_all.len {
 						app.term_view = idx
-					} else if idx < desks_all.len + app.sessions.len {
+					} else if idx >= 0 && idx < desks_all.len + app.sessions.len {
 						app.term_view = 15 + idx - desks_all.len
 					}
 				}

@@ -40,8 +40,10 @@ pub:
 }
 
 // ColorTokens are semantic color tokens — not raw hex per view.
-// Paper Co. Office — Dunder Mifflin warm paper world (taste anti-slop: no purple).
-// Single source of truth: warm paper #F4EFE6, ink #1A1A1A, steel #8A9BA8, manila #E6D8B8, rust #C45A3C.
+// F1 approved palette (gui-redesign-legibility plan, section 8) lives in the
+// surface_*/text_*/signal_* fields below. The legacy bg/fg/primary/* fields are
+// frozen for backward compatibility (existing struct literals keep compiling);
+// new renderer code must use the surface_*/text_*/signal_* roles.
 // Light/dark themes swap these via Theme (instant reload <1 frame).
 pub struct ColorTokens {
 pub:
@@ -55,6 +57,17 @@ pub:
 	success     string = '#5A7D5A'
 	warning     string = '#C9A86B'
 	danger      string = '#C45A3C'
+	// F1 semantic roles — Paper defaults (plan section 8). Field defaults keep
+	// every existing struct literal compiling (additive only).
+	surface_canvas   string = '#F3EBDD'
+	surface_paper    string = '#FFF9ED'
+	surface_cabinet  string = '#171C1F'
+	text_primary     string = '#252A2D'
+	text_secondary   string = '#596A73'
+	signal_selection string = '#9A6416'
+	signal_success   string = '#3F704D'
+	signal_danger    string = '#A84631'
+	text_on_cabinet  string = '#FFF9ED'
 }
 
 // default_spacing returns canonical spacing scale.
@@ -67,7 +80,10 @@ pub fn default_typography() TypographyScale {
 	return TypographyScale{}
 }
 
-// default_colors returns dark semantic palette (default) — ink paper inversion.
+// default_colors returns dark semantic palette (default) — Ink/Night Shift.
+// Legacy roles keep the frozen values; the F1 roles below carry the same
+// semantic jobs on dark surfaces. Signal hues are lightened versus Paper so
+// text in those hues keeps passing contrast on surface_cabinet.
 pub fn default_colors() ColorTokens {
 	return ColorTokens{
 		bg: '#1A1A1A'
@@ -80,11 +96,20 @@ pub fn default_colors() ColorTokens {
 		success: '#5A7D5A'
 		warning: '#C9A86B'
 		danger: '#C45A3C'
+		surface_canvas: '#171C1F'
+		surface_paper: '#232A2E'
+		surface_cabinet: '#101415'
+		text_primary: '#FFF9ED'
+		text_secondary: '#C9C0A8'
+		signal_selection: '#D9A648'
+		signal_success: '#7FB08D'
+		signal_danger: '#D9785F'
+		text_on_cabinet: '#FFF9ED'
 	}
 }
 
-// light_colors returns light semantic palette — paper world variant.
-// Warm paper stays dominant; elevated is slightly lighter manila.
+// light_colors returns light semantic palette — Paper (plan section 8).
+// Legacy roles stay frozen; the F1 roles carry the approved values.
 pub fn light_colors() ColorTokens {
 	return ColorTokens{
 		bg: '#F4EFE6'
@@ -97,6 +122,15 @@ pub fn light_colors() ColorTokens {
 		success: '#5A7D5A'
 		warning: '#C9A86B'
 		danger: '#C45A3C'
+		surface_canvas: '#F3EBDD'
+		surface_paper: '#FFF9ED'
+		surface_cabinet: '#171C1F'
+		text_primary: '#252A2D'
+		text_secondary: '#596A73'
+		signal_selection: '#9A6416'
+		signal_success: '#3F704D'
+		signal_danger: '#A84631'
+		text_on_cabinet: '#FFF9ED'
 	}
 }
 
