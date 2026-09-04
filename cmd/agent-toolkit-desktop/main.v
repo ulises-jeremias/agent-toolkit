@@ -858,6 +858,22 @@ struct DoctorChip {
 	h   int
 }
 
+// SwarmNode — a stored topology node hit rect (#1101: click → desk VT fullscreen).
+struct SwarmNode {
+	role string
+	x    int
+	y    int
+	w    int
+}
+
+// SwarmEdge — a stored topology edge segment (#1101: click → artifact).
+struct SwarmEdge {
+	x1       int
+	x2       int
+	y        int
+	artifact string
+}
+
 struct GuiApp {
 mut:
 	gg      &gg.Context = unsafe { nil }
@@ -904,6 +920,11 @@ mut:
 	mcp_probe_ok          bool
 	mcp_probe_detail      string
 	mcp_probe_at          int
+	// swarm topology (#1101): stored node/edge hit rects (rebuilt every frame
+	// by draw_swarm) + manual zoom level -1..1 around the 108px default.
+	swarm_nodes []SwarmNode
+	swarm_edges []SwarmEdge
+	swarm_zoom  int
 	frame            int
 	// toast tray — every inspector_msg change becomes a paper toast
 	toasts []Toast
@@ -945,6 +966,10 @@ mut:
 	// terminal / activity — workshop xterm-like bottom strip
 	// term_mode: 0 compact 148 · 1 tall 320 · 2 max (full content height) · 3 hidden
 	term_mode      int = 3
+	// swarm attach exit (#1101): pre-attach terminal mode, -1 = no attach in
+	// progress — Esc restores it so the panel renders again (term_mode 2
+	// owns the content area and would trap the user in fullscreen)
+	term_mode_saved int = -1
 	term_height    int = 148
 	term_visible   bool
 	term_scroll    int
@@ -4980,6 +5005,65 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 	}
 }
 
+// swarm_zoom_geom returns the − / + button rects in the topology header (#1101).
+fn swarm_zoom_geom(fx int, fy int, fw int, topo_y int) (int, int, int, int, int, int) {
+	return fx + fw - 150, topo_y + 8, fx + fw - 122, topo_y + 8, 24, 18
+}
+
+// swarm_edge_artifact extracts '(artifact PATH)' from a handoff line (#1101).
+fn swarm_edge_artifact(line string) string {
+	marker := '(artifact '
+	start := line.index(marker) or { return '' }
+	rest := line[start + marker.len..]
+	fin := rest.index(')') or { return '' }
+	return rest[..fin].trim_space()
+}
+
+// swarm_working_roles derives the active roles from handoff recency: the
+// participants of the most recent handoff are working, the rest queued.
+// No role-name hardcoding; deterministic on live and mock feeds (#1101).
+fn swarm_working_roles(handoffs []string) []string {
+	if handoffs.len == 0 {
+		return []
+	}
+	last := handoffs[handoffs.len - 1]
+	arrow := last.index(' → ') or { return [] }
+	src_role := last[..arrow].trim_space()
+	rest := last[arrow + 5..].trim_space().split(' ')  // 5-byte arrow (#1101)
+	dst_role := if rest.len > 0 { rest[0] } else { '' }
+	mut out := []string{}
+	if src_role != '' {
+		out << src_role
+	}
+	if dst_role != '' && dst_role != src_role {
+		out << dst_role
+	}
+	return out
+}
+
+// swarm_role_desk maps a topology role to its office desk index (#1101).
+fn swarm_role_desk(app &GuiApp, role string) int {
+	for i, d in desks_for_app(app) {
+		if d.id == role {
+			return i
+		}
+	}
+	return -1
+}
+
+// esc_desk_fullscreen exits a desk fullscreen view (#1101): a swarm attach
+// restores the pre-attach terminal mode so the panel renders again, while a
+// plain MAX + desk-tab fullscreen without attach drops to the fleet feed.
+fn esc_desk_fullscreen(mut app GuiApp) {
+	app.term_view = -1
+	app.term_split = false
+	if app.term_mode_saved >= 0 {
+		app.term_mode = app.term_mode_saved
+		app.term_mode_saved = -1
+		app.inspector_msg = 'Swarm attach closed — back to panel (Esc)'
+	}
+}
+
 fn draw_swarm(mut app GuiApp, w int, h int) {
 	// Super-potent swarms — GOD mailbox routing, handoff artifact files, inner/outer loops,
 	// Swarm UI Herdr/tmux, approvals spend/scope/destructive, easy pair/team/full launch,
@@ -5078,13 +5162,14 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	mut roles := []string{}
 	mut role_idx := map[string]int{}
 	mut edges := [][]int{}
+	mut edge_art := []string{}
 	for th in topo_handoffs {
 		arrow := th.index(' → ') or { -1 }
 		if arrow < 0 {
 			continue
 		}
 		lrole := th[..arrow].trim_space()
-		rrest := th[arrow + 3..].trim_space()
+		rrest := th[arrow + 5..].trim_space()  // ' → ' is 5 bytes; +3 left a stray continuation byte (#1101)
 		rrole := rrest.split(' ')[0]
 		if rrole.len == 0 {
 			continue
@@ -5102,42 +5187,103 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			role_idx[rrole] = ri
 		}
 		edges << [li, ri]
+		edge_art << swarm_edge_artifact(th)
 	}
 	if roles.len > 0 {
+		// zoom scales node width; overflow wraps to a second lane (#1101)
+		node_w := 108 + app.swarm_zoom * 24
 		node_y := topo_y + 34
-		node_w := 108
-		mut gap := (fw - 48 - roles.len * node_w) / (roles.len + 1)
-		if gap < 8 {
-			gap = 8
+		zx, zy, pxz, pyz, zw, zh := swarm_zoom_geom(fx, fy, fw, topo_y)
+		app.gg.draw_rect_filled(zx, zy, zw, zh, app.pnl_card_sel)
+		app.gg.draw_rect_empty(zx, zy, zw, zh, app.pnl_border)
+		app.gg.draw_text(zx + 8, zy + 3, '−', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
+		app.gg.draw_rect_filled(pxz, pyz, zw, zh, app.pnl_card_sel)
+		app.gg.draw_rect_empty(pxz, pyz, zw, zh, app.pnl_border)
+		app.gg.draw_text(pxz + 8, pyz + 3, '+', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
+		working := swarm_working_roles(topo_handoffs)
+		app.swarm_nodes = []
+		app.swarm_edges = []
+		// lane split: spread single lane when it fits (original geometry),
+		// else pack up to two lanes
+		fit_gap := (fw - 48 - roles.len * node_w) / (roles.len + 1)
+		mut lane_of := map[int]int{}
+		mut lane_pos := map[int]int{}
+		if fit_gap >= 8 {
+			for ri in 0 .. roles.len {
+				lane_of[ri] = 0
+				lane_pos[ri] = ri
+			}
+		} else {
+			lane_cap := (fw - 48) / (node_w + 8)
+			safe_cap := if lane_cap < 1 { 1 } else { lane_cap }
+			for ri in 0 .. roles.len {
+				lane_of[ri] = ri / safe_cap
+				lane_pos[ri] = ri % safe_cap
+			}
 		}
-		mut centers := []int{}
+		mut lane_origin := map[int]int{}
+		mut lane_step := map[int]int{}
+		mut lane_count := map[int]int{}
+		for ri in 0 .. roles.len {
+			lane_count[lane_of[ri]] = lane_count[lane_of[ri]] + 1
+		}
+		for lane, n in lane_count {
+			if lane == 0 && n == roles.len {
+				g := (fw - 48 - n * node_w) / (n + 1)
+				lane_origin[lane] = fx + 24 + g
+				lane_step[lane] = node_w + g
+			} else {
+				lane_origin[lane] = fx + 24 + 8
+				lane_step[lane] = node_w + 8
+			}
+		}
+		max_label := (node_w - 16) / 7
+		mut centers_x := map[int]int{}
+		mut centers_y := map[int]int{}
 		for ri, role in roles {
-			nx := fx + 24 + gap + ri * (node_w + gap)
-			centers << nx + node_w / 2
-			status_running := role == 'implementer' || role == 'planner'
-			app.gg.draw_rect_filled(nx, node_y, node_w, 34, if status_running {
+			lane := lane_of[ri]
+			if lane > 1 {
+				break
+			}
+			ny := node_y + lane * 40
+			if ny + 34 > topo_y + topo_h - 4 {
+				break
+			}
+			nx := lane_origin[lane] + lane_pos[ri] * lane_step[lane]
+			centers_x[ri] = nx + node_w / 2
+			centers_y[ri] = ny + 17
+			app.swarm_nodes << SwarmNode{role, nx, ny, node_w}
+			status_running := role in working
+			app.gg.draw_rect_filled(nx, ny, node_w, 34, if status_running {
 				app.pnl_card_sel
 			} else {
 				app.pnl_card
 			})
-			app.gg.draw_rect_empty(nx, node_y, node_w, 34, if status_running {
+			app.gg.draw_rect_empty(nx, ny, node_w, 34, if status_running {
 				app.pnl_select
 			} else {
 				app.pnl_border
 			})
-			app.gg.draw_text(nx + 8, node_y + 6, role, gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
-			app.gg.draw_text(nx + 8, node_y + 19, if status_running { 'working' } else { 'queued' }, gg.TextCfg{ color: app.pnl_text_mut, size: 9, mono: true })
+			label := if role.len > max_label && max_label > 3 { role[..max_label] + '…' } else { role }
+			app.gg.draw_text(nx + 8, ny + 6, label, gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
+			app.gg.draw_text(nx + 8, ny + 19, if status_running { 'working' } else { 'queued' }, gg.TextCfg{ color: app.pnl_text_mut, size: 9, mono: true })
 		}
 		// edges with travelling envelopes — GOD 4·t·(1−t) speed pulse
 		for ei, e in edges {
-			x1 := centers[e[0]]
-			x2 := centers[e[1]]
-			ey := node_y + 17
-			app.gg.draw_line(x1, ey, x2, ey, tint(app.pnl_text_mut, 110))
+			if e[0] !in centers_x || e[1] !in centers_x {
+				continue
+			}
+			x1 := centers_x[e[0]]
+			y1 := centers_y[e[0]]
+			x2 := centers_x[e[1]]
+			y2 := centers_y[e[1]]
+			app.swarm_edges << SwarmEdge{x1, x2, (y1 + y2) / 2, edge_art[ei]}
+			app.gg.draw_line(x1, y1, x2, y2, tint(app.pnl_text_mut, 110))
 			t := f64((app.frame * 2 + ei * 90) % 120) / 120.0
 			env_x := x1 + int((x2 - x1) * t)
+			env_y := y1 + int((y2 - y1) * t)
 			env_h := int(5.0 * (4.0 * t * (1.0 - t)))
-			app.gg.draw_rect_filled(env_x - 3, ey - 3 - env_h / 2, 6, 6, app.pnl_danger)
+			app.gg.draw_rect_filled(env_x - 3, env_y - 3 - env_h / 2, 6, 6, app.pnl_danger)
 		}
 	} else {
 		app.gg.draw_text(fx + 24, topo_y + 40, 'No handoffs yet — launch pair/team/full to see the live topology.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
@@ -8053,9 +8199,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.ghost_focused = false
 				return
 			}
-			// desk fullscreen: Esc returns to the fleet feed
+			// desk fullscreen: Esc exits the attach (panel state preserved) or
+			// drops a plain MAX + desk-tab fullscreen to the fleet feed (#1101)
 			if app.term_view >= 0 {
-				app.term_view = -1
+				esc_desk_fullscreen(mut app)
 				return
 			}
 			// panel-scoped Esc clears search fields — Esc must never hard-quit
@@ -9771,6 +9918,59 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						}
 					}
 					app.inspector_msg = 'Doctor ${c.id} [${c.category}] ${c.status}: ${c.message} • fixable=${c.fixable} • receipts/provenance'
+					return
+				}
+			}
+		}
+		// Swarm topology — node click attaches the desk VT fullscreen, edge click
+		// shows the handoff artifact (copied), −/+ zoom node size (#1101)
+		if app.selected_panel == 8 {
+			fx_s := panel_fx(app)
+			fy_s := 52
+			fw_s := panel_fw(app, w)
+			topo_y_s := fy_s + 56 + 78
+			zx, zy, pxz, pyz, zw, zh := swarm_zoom_geom(fx_s, fy_s, fw_s, topo_y_s)
+			if mx >= zx && mx <= zx + zw && my >= zy && my <= zy + zh {
+				if app.swarm_zoom > -1 {
+					app.swarm_zoom--
+				}
+				app.inspector_msg = 'Swarm topology zoom ${app.swarm_zoom}'
+				return
+			}
+			if mx >= pxz && mx <= pxz + zw && my >= pyz && my <= pyz + zh {
+				if app.swarm_zoom < 1 {
+					app.swarm_zoom++
+				}
+				app.inspector_msg = 'Swarm topology zoom ${app.swarm_zoom}'
+				return
+			}
+			for n in app.swarm_nodes {
+				if mx >= n.x && mx <= n.x + n.w && my >= n.y && my <= n.y + 34 {
+					di := swarm_role_desk(app, n.role)
+					if di < 0 {
+						app.inspector_msg = 'Swarm ${n.role}: no office desk to attach'
+						return
+					}
+					if app.term_mode_saved < 0 {
+						app.term_mode_saved = app.term_mode
+					}
+					app.term_view = di
+					app.term_mode = 2
+					app.term_visible = true
+					app.inspector_msg = 'Swarm ${n.role} attached — desk ${di} VT fullscreen (Esc exits)'
+					return
+				}
+			}
+			for ed in app.swarm_edges {
+				lo := if ed.x1 < ed.x2 { ed.x1 } else { ed.x2 }
+				hi := if ed.x1 > ed.x2 { ed.x1 } else { ed.x2 }
+				if mx >= lo - 4 && mx <= hi + 4 && my >= ed.y - 6 && my <= ed.y + 6 {
+					if ed.artifact == '' {
+						app.inspector_msg = 'Swarm edge: no artifact recorded on this handoff'
+					} else {
+						copy_to_clipboard(mut app, ed.artifact)
+						app.inspector_msg = 'Swarm edge artifact: ${ed.artifact} (copied)'
+					}
 					return
 				}
 			}
