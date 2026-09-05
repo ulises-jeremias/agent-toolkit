@@ -4147,7 +4147,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// install preview + receipts super-potent
 	receipts := app.desktop.engine_list_install_receipts()
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.targets'), 'receipts ${receipts.len} · dry-run preview · provenance plugins/.provenance.json', 'install → receipt')
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.targets'), 'Where Agent Toolkit capabilities will be available', '${receipts.len} change records')
 	// R2 product-truth: roster comes from the Engine target catalog — the old
 	// hardcoded list drifted (copilot/muse-code vs cursor-plugins/cli).
 	target_entries := app.desktop.engine_targets()
@@ -4194,11 +4194,11 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 		})
 		rcol := if has_receipt { app.pnl_success } else { app.pnl_text_mut }
 		app.gg.draw_text(fx + fw - 190, y + 9, if has_receipt {
-			'receipt ✓'
+			'change recorded'
 		} else {
-			'no receipt'
+			'no changes yet'
 		}, gg.TextCfg{ color: rcol, size: 11 })
-		en := if enabled { 'enabled ✓' } else { 'off —' }
+		en := if enabled { 'enabled ✓' } else { 'not enabled' }
 		ec := if enabled { app.pnl_success } else { app.pnl_text_mut }
 		app.gg.draw_text(fx + fw - 100, y + 8, en, gg.TextCfg{ color: ec, size: 12, bold: enabled })
 	}
