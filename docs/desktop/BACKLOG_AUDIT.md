@@ -95,3 +95,5 @@ Loop run-count and wall-clock tracks now render as configured limits rather than
 Doctor now disables the Fix All control when no non-passing check is fixable and reports an explicit all-clear message on attempted activation (`main.v`, follow-up after `2020819`).
 
 Jobs hover/selection now uses the same live Engine catalog as rendering; the former four-record fallback is gone (`main.v`, follow-up after `de4e826`).
+
+Swarm topology now labels nodes as recorded participants and draws static handoff edges; historical handoffs no longer appear as currently working roles or animated delivery (`main.v`, follow-up after `080af52`).
