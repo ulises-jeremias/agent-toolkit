@@ -121,3 +121,5 @@ MCP UI headers and footer now reference the actual packaged template path (`mcp/
 Products/Packs now has functional pack chips: clicking a chip toggles the persisted Engine state and reports the revision. The prior UI implied toggles while only rendering an always-active membership check (`main.v`, follow-up after `39a888c`).
 
 The Skills footer no longer embeds the historical `116` catalog count; it now renders the live Engine-derived total alongside the source path (`main.v`, follow-up after `92d1811`).
+
+The optional Floor Map now projects discovered Engine agents through a Desktop catalog API. It no longer creates a fixed roster of historical personas when the catalog is empty; an empty catalog renders no desks (`window.v`, `main.v`, follow-up after `e184148`).

@@ -1733,37 +1733,26 @@ fn filtered_palette(query string) []PaletteItem {
 
 fn desks_for_app(app &GuiApp) []Desk {
 	mut desks := []Desk{}
-	labels := [
-		['assistant', 'planner', 'architect', 'designer'],
-		['implementer', 'reviewer', 'qa-engineer', 'security-engineer'],
-		['platform-engineer', 'researcher', 'data-engineer', 'code-reviewer'],
-		['loops', 'swarm', 'memory', 'workspace'],
-	]
-	roles := [
-		['holistic', 'holistic', 'holistic', 'holistic'],
-		['holistic', 'holistic', 'holistic', 'holistic'],
-		['holistic', 'holistic', 'holistic', 'specialist'],
-		['runtime', 'runtime', 'runtime', 'runtime'],
-	]
-	for r in 0 .. 4 {
-		for c in 0 .. 4 {
-			if r == 3 && c == 3 {
-				continue
-			}
-			desks << Desk{
-				id: labels[r][c]
-				label: labels[r][c]
-				role: roles[r][c]
-				tier: if roles[r][c] == 'holistic' {
-					'holistic'} else if roles[r][c] == 'specialist' {
-					'specialist'} else {
-					'runtime'}
-				x: 220 + c * 166
-				y: 92 + r * 130
-				// A catalog desk is not a running process. Runtime status is
-				// projected separately from Engine jobs/PTY state.
-				status: 'idle'
-			}
+	if app.desktop == unsafe { nil } {
+		return desks
+	}
+	agents := app.desktop.engine_agents_catalog()
+	for i, agent in agents {
+		if i >= 15 {
+			break
+		}
+		c := i % 4
+		r := i / 4
+		desks << Desk{
+			id: agent.id
+			label: agent.id
+			role: agent.role
+			tier: agent.tier
+			x: 220 + c * 166
+			y: 92 + r * 130
+			// A catalog desk is not a running process. Runtime status is
+			// projected separately from Engine jobs/PTY state.
+			status: 'idle'
 		}
 	}
 	return desks

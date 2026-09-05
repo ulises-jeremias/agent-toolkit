@@ -682,6 +682,10 @@ pub fn (mut d Desktop) engine_doctor_fix_category(cat string) !u64 {
 }
 
 // ── super-potent unified: agents, MCP, doctor, receipts/provenance, install/update — easy management via Desktop ──
+pub fn (mut d Desktop) engine_agents_catalog() []desktop_engine.AgentEntry {
+	return d.engine.agents_catalog()
+}
+
 pub fn (mut d Desktop) engine_agents_search(query string, tier string) []desktop_engine.AgentEntry {
 	return d.engine.agents_search(query, tier)
 }
