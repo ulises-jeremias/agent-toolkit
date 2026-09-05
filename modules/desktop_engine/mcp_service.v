@@ -147,6 +147,10 @@ pub fn (mut e Engine) mcp_health_detailed(provider_id string) string {
 	if 'mcp:${provider_id}:health' in snap.data {
 		return snap.data['mcp:${provider_id}:health'] or { 'unconfigured' }
 	}
+	enabled := (snap.data['mcp:${provider_id}:enabled'] or { 'false' }) == 'true'
+	if !enabled {
+		return 'unconfigured'
+	}
 	if provider_id == 'github' {
 		docker := os.find_abs_path_of_executable('docker') or { '' }
 		if docker == '' {
@@ -155,8 +159,7 @@ pub fn (mut e Engine) mcp_health_detailed(provider_id string) string {
 		return 'healthy'
 	}
 	// enabled providers healthy, disabled unconfigured
-	enabled := (snap.data['mcp:${provider_id}:enabled'] or { 'false' }) == 'true'
-	return if enabled { 'healthy' } else { 'unconfigured' }
+	return 'healthy'
 }
 
 // mcp_stats returns super-potent aggregation.
