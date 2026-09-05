@@ -6719,7 +6719,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	term_h_in := if app.term_visible { app.term_height } else { 0 }
 	fh := h - 52 - 28 - term_h_in
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.insights'), 'ledger + waterfall + spans + budgets + CI + realtime + gallery — superior to munder-difflin', 'Engine · no shell')
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.insights'), 'Usage, budgets, operations, and observed activity', 'Engine · no shell')
 	// tabs — cost | waterfall | spans | budgets | ci | realtime | gallery (7, web parity + 2)
 	tabs := ['cost', 'waterfall', 'spans', 'budgets', 'ci', 'realtime', 'gallery']
 	tab_labels := ['Cost', 'Waterfall', 'Spans', 'Budgets', 'CI', 'Realtime', 'Gallery']
@@ -6751,7 +6751,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	inner_w := fw - 40
 	if app.insights_tab == 'cost' {
 		// Cost ledger — swarm runs + loop token usage + job costs
-		app.gg.draw_text(inner_x, inner_y, 'Cost Ledger — durable per-run ledger (superior to munder transcript pricing)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+		app.gg.draw_text(inner_x, inner_y, 'Cost Ledger — recorded usage by run and job', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 		app.gg.draw_text(inner_x, inner_y + 18, 'Live Engine: swarm pair/team/full + loops max_tokens/max_wall_seconds + jobs budget', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		// swarm runs
 		swarms := if app.desktop != unsafe { nil } {
@@ -6819,7 +6819,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		// footer spark seed
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Ledger persisted via StateRepository + EventBus • VJOBS=2 distinct-until-changed', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	} else if app.insights_tab == 'waterfall' {
-		app.gg.draw_text(inner_x, inner_y, 'Tool Waterfall — per-agent tool spans (superior to munder OTel waterfall)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+		app.gg.draw_text(inner_x, inner_y, 'Tool Waterfall — measured spans by agent', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 		app.gg.draw_text(inner_x, inner_y + 18, 'Each agent row: tool spans as brass/steel bars on paper timeline — zoomed 18px rows, mono gutter', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		y0 := inner_y + 44
 		agents := if app.desktop != unsafe { nil } {
@@ -6848,7 +6848,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		}
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Waterfall 60 FPS — retained geometry, viewport culling, text measurement via vglyph', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	} else if app.insights_tab == 'spans' {
-		app.gg.draw_text(inner_x, inner_y, 'OTel Spans — live collection (superior to munder trace viewer)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+		app.gg.draw_text(inner_x, inner_y, 'OTel Spans — live collection when telemetry is available', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 		mut y := inner_y + 40
 		spans := if app.desktop != unsafe { nil } {
 			app.desktop.engine_job_stats()
@@ -6888,7 +6888,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		}
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Budgets enforced via StateRepository • logistic 4*t*(1-t) GOD priority • VJOBS=2 serialized', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	} else if app.insights_tab == 'ci' {
-		app.gg.draw_text(inner_x, inner_y, 'CI Watcher — live fleet + validate.yml (superior to munder CI watch)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+		app.gg.draw_text(inner_x, inner_y, 'CI Watcher — observed workflow status', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 		app.gg.draw_text(inner_x, inner_y + 18, 'Watches .github/workflows/validate.yml via StateWatcher + PollingWatcher — no refresh', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		mut y := inner_y + 42
 		// CI jobs matrix (paper tape). A workflow name is not a result; show
