@@ -6361,13 +6361,11 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(fx + 20, content_y + 40, root_str, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
 			app.gg.draw_text(fx + 20, content_y + 56, tier_str, gg.TextCfg{ color: app.pnl_text_mut, size: 12, mono: true })
 			app.gg.draw_text(fx + 20, content_y + 74, 'Agent Toolkit found its resources and can work offline from this location.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			app.gg.draw_text(fx + 20, content_y + 90, '${if status_is_first { '!' } else { '·' }} is_first_run=${status_is_first}   doctor checks via Engine.doctor() typed', gg.TextCfg{
-				color: if status_is_first {
-					app.pnl_danger} else {
-					app.pnl_success}
-				size: 12
-				mono: true
-			})
+			app.gg.draw_text(fx + 20, content_y + 90, if status_is_first {
+				'This is a fresh setup.'
+			} else {
+				'Your setup is already known.'
+			}, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			app.gg.draw_text(fx + 20, content_y + 110, 'Next: choose useful capabilities and where your coding tools should use them.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			// environment stamp grid — the office at a glance
 			stamps := [
@@ -6562,24 +6560,24 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			}, gg.TextCfg{ color: status_col2, size: 12, bold: true })
 			// init button
 			hov_init := app.onboarding_hover == 4
-			app.gg.draw_rect_filled(fx + 20, content_y + 82, 130, 24, if hov_init {
+			app.gg.draw_rect_filled(fx + 20, content_y + 130, 130, 24, if hov_init {
 				app.pnl_text
 			} else {
 				app.pnl_select
 			})
-			app.gg.draw_text(fx + 36, content_y + 89, 'Init Workspace', gg.TextCfg{
+			app.gg.draw_text(fx + 36, content_y + 137, 'Create workspace', gg.TextCfg{
 				color: if hov_init {
 					app.pnl_card} else {
 					app.pnl_text}
 				size: 13
 				bold: true
 			})
-			app.gg.draw_rect_filled(fx + 158, content_y + 82, 140, 24, app.pnl_card_sel)
-			app.gg.draw_text(fx + 168, content_y + 89, 'Init + Personas', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
+			app.gg.draw_rect_filled(fx + 158, content_y + 130, 140, 24, app.pnl_card_sel)
+			app.gg.draw_text(fx + 168, content_y + 137, 'Create + team roles', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
 			if app.onboarding_msg != '' {
-				app.gg.draw_text(fx + 20, content_y + 114, app.onboarding_msg, gg.TextCfg{ color: app.pnl_border_hi, size: 11, mono: true })
+				app.gg.draw_text(fx + 20, content_y + 166, app.onboarding_msg, gg.TextCfg{ color: app.pnl_border_hi, size: 11 })
 			}
-			app.gg.draw_text(fx + 20, content_y + content_h - 30, 'Via Engine.onboarding_ensure_workspace(path) + StateRepository TX → EventBus → AppState (no shell, brokered fs)', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+			app.gg.draw_text(fx + 20, content_y + content_h - 30, 'Your files stay in the workspace you choose.', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 		}
 		5 { // Personas — bootstrap 4 persona markdowns
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
@@ -6614,7 +6612,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				size: 12
 				bold: true
 			})
-			app.gg.draw_text(fx + 20, content_y + content_h - 30, 'Via Engine.onboarding_ensure_personas(harness) → personas/*.md scaffold + TX revision bump', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+			app.gg.draw_text(fx + 20, content_y + content_h - 30, 'Team roles are optional and can be changed later.', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 		}
 		6 { // Done — tour + complete
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
@@ -9309,7 +9307,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			content_y := y_harness + 24
 			// Workspace step 4 init buttons
 			if app.onboarding_step == 4 {
-				if mx >= fx + 20 && mx <= fx + 150 && my >= content_y + 82 && my <= content_y + 106 {
+				if mx >= fx + 20 && mx <= fx + 150 && my >= content_y + 130 && my <= content_y + 154 {
 					harness := if app.onboarding_harness != '' {
 						app.onboarding_harness
 					} else {
@@ -9326,7 +9324,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					}
 					return
 				}
-				if mx >= fx + 158 && mx <= fx + 298 && my >= content_y + 82 && my <= content_y + 106 {
+				if mx >= fx + 158 && mx <= fx + 298 && my >= content_y + 130 && my <= content_y + 154 {
 					harness := if app.onboarding_harness != '' {
 						app.onboarding_harness
 					} else {
