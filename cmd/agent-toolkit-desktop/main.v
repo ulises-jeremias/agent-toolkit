@@ -4431,7 +4431,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 78, fy + 16, 'ProcessSupervisor · StateRepository TX · EventBus · logs · approvals', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + 78, fy + 16, 'Live work, progress, logs, and approvals', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	// supervisor liveness dot via engine_api + proc count
 	stats := app.desktop.engine_job_stats()
 	proc_running, dropped := app.desktop.engine_process_supervisor_stats()
@@ -4467,7 +4467,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		cx += tw + 6
 	}
 	// supervisor health extra: API calls + revision badge
-	app.gg.draw_text(fx + 12, sy + 24, 'Engine api ${app.api_calls} · rev ${app.engine_rev} · bus dropped ${dropped} · StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + 12, sy + 24, 'Process supervisor: ${proc_running} running · ${dropped} dropped events', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// Jobs come from the supervisor. Empty means no jobs are running.
 	jobs := app.desktop.engine_jobs_catalog()
 	// card metrics — paper cards with left status rail
@@ -4620,7 +4620,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 18, app.pnl_select)
 	app.gg.draw_text(fx + 16, aq_y + 4, 'Approvals Queue — spend / scope / destructive', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
 	mut aq := app.desktop.engine_approvals_queue()
-	app.gg.draw_text(fx + fw - 110, aq_y + 4, '${aq.len} pending • StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + fw - 110, aq_y + 4, '${aq.len} pending', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	if aq.len == 0 {
 		app.gg.draw_text(fx + 16, aq_y + 28, 'No pending approvals — queue is empty (awaiting_approval gates)', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		app.gg.draw_text(fx + 16, aq_y + 42, 'spend / scope / destructive via Engine.swarm_request_approval() → TX + EventBus', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
@@ -4682,7 +4682,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(fx + fw - 8, bar_y2, 2, bh2, app.pnl_border_hi)
 		}
 	}
-	app.gg.draw_text(fx + 12, fy + fh - 12, 'Engine jobs via StateRepository TX • supervisor health • approvals via Engine.swarm_approvals_queue() • virtualized 60 FPS', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + 12, fy + fh - 12, 'Jobs update live · review approvals before they run', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 }
 
 fn draw_loops(mut app GuiApp, w int, h int) {
@@ -4913,8 +4913,8 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(fx + fw - 6, y0, 3, track_h, tint(app.pnl_text, 30))
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, app.pnl_border_hi)
 	}
-	app.gg.draw_text(fx + 14, fy + fh - 18, 'Budget ledger via StateRepository TX • exit_conditions gate • gh-gate tier • validate-loops', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	app.gg.draw_text(fx + fw - 220, fy + fh - 18, 'rev ${app.engine_rev} • api ${app.api_calls} • loops ${loops.len}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+	app.gg.draw_text(fx + 14, fy + fh - 18, 'Budgets, schedules, and stop conditions', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + fw - 120, fy + fh - 18, '${loops.len} loops', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 	if app.loops_show_create {
 		mx := fx + 40
 		my := fy + 50
@@ -5010,7 +5010,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 92, fy + 16, 'GOD mailbox routing · handoff artifacts · inner/outer loops · Herdr/tmux · approvals', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + 92, fy + 16, 'Coordinate agents, handoffs, approvals, and artifacts', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	// GOD mailbox indicator — in/out via desktop.god_mailbox_counts() eventbus
 	mut god_in := app.god_inbox
 	mut god_out := app.god_outbox
@@ -5062,7 +5062,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_empty(bx, y_launch + 36, 84, 22, app.pnl_border_hi)
 		app.gg.draw_text(bx + 18, y_launch + 42, rname, gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 	}
-	app.gg.draw_text(fx + 320, y_launch + 44, '→ via Engine.swarm_launch() · EventBus swarm_created · status/handoffs/logs live', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 320, y_launch + 44, 'Launches a real swarm; status and handoffs update live', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	// ── topology strip — roles as paper nodes, handoff edges with GOD envelopes ──
 	// parse ordered roles + edges from the handoff feed ("X → Y …")
 	topo_y := y_launch + 78
@@ -5241,7 +5241,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		} else if s.contains('completed') { app.pnl_text_mut } else { app.pnl_card }
 		app.gg.draw_text(fx + 18, y + 2, s, gg.TextCfg{ color: col, size: 12, mono: true })
 	}
-	app.gg.draw_text(fx + 12, col_y + col_h - 14, '${swarms.len} swarms · Herdr preferred → tmux fallback · rev ${app.engine_rev}', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + 12, col_y + col_h - 14, '${swarms.len} swarms · backend ${app.swarm_backend}', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// middle — handoffs via GOD mailbox + artifact files
 	mx := fx + 12 + cw
 	pixel_panel(mut app, mx, col_y, cw, col_h, 'default')
@@ -5290,7 +5290,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			mono: true
 		})
 	}
-	app.gg.draw_text(mx + 8, col_y + col_h - 14, 'Artifacts: .agent-toolkit/swarm/runs/<id>/artifacts/ · GOD outbox/queued', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(mx + 8, col_y + col_h - 14, 'Handoffs and artifacts are recorded with each run', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// right — approvals spend/scope/destructive + logs
 	rx := mx + cw + 4
 	pixel_panel(mut app, rx, col_y, cw, col_h, 'default')
@@ -5368,7 +5368,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		y := col_y + 114 + i * 11
 		app.gg.draw_text(rx + 8, y, '${l.ts} ${l.msg[..if l.msg.len > 32 { 32 } else { l.msg.len }]}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 	}
-	app.gg.draw_text(rx + 8, col_y + col_h - 14, 'EventBus: state_changed · swarm_handoff · process_log → one tick · rev ${app.engine_rev}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+	app.gg.draw_text(rx + 8, col_y + col_h - 14, 'Approvals and logs update as the swarm runs', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 }
 
 // ── Workspace IDE — super potent, easy to manage ────────────────────────────────

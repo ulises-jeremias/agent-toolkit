@@ -199,3 +199,5 @@ Targets now leads with the user question “Where will capabilities be available
 MCP now leads with “Connect context and tools safely” rather than exposing the internal template path in its primary header. The path remains available in the detailed configuration footer and drawer (`cmd/agent-toolkit-desktop/main.v`, follow-up after `ba9df5a`).
 
 Doctor's constrained-window and footer messages now give actionable review guidance and avoid claiming that all checks are English or that fallback data is absent. Copy reflects the actual localized, evidence-backed diagnostic surface (`cmd/agent-toolkit-desktop/main.v`, follow-up after `541928b`).
+
+Jobs, Loops, and Swarms now use task-oriented headers and footers. Primary surfaces describe live work, budgets, handoffs, approvals, and recorded artifacts without requiring users to understand StateRepository, EventBus, or backend implementation names (`cmd/agent-toolkit-desktop/main.v`, follow-up after `b6155f1`).
