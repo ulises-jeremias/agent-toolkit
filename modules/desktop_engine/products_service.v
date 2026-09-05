@@ -187,6 +187,16 @@ pub fn (mut e Engine) set_pack_enabled(pack_id string, enabled bool) !u64 {
 	if pack_id == '' {
 		return error('pack id empty')
 	}
+	mut known := false
+	for pack in e.packs_catalog() {
+		if pack.id == pack_id {
+			known = true
+			break
+		}
+	}
+	if !known {
+		return error('pack not found: ${pack_id}')
+	}
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()

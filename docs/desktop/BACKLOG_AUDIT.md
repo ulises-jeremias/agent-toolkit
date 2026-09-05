@@ -125,3 +125,5 @@ The Skills footer no longer embeds the historical `116` catalog count; it now re
 The optional Floor Map now projects discovered Engine agents through a Desktop catalog API. It no longer creates a fixed roster of historical personas when the catalog is empty; an empty catalog renders no desks (`window.v`, `main.v`, follow-up after `e184148`).
 
 Floor Map rendering now resolves the discovered agent desks once per frame and reuses the result for the title and geometry, avoiding duplicate catalog scans and API-count increments (`main.v`, follow-up after `91dcf9f`).
+
+`set_pack_enabled` now validates the pack against the discovered catalog before writing state, preventing stale or arbitrary IDs from creating phantom pack configuration (`products_service.v`, follow-up after `ffc7904`).

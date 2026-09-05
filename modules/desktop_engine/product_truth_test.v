@@ -61,6 +61,11 @@ fn test_product_truth_catalog_counts() {
 	assert products[0].skill_ids.len > 0, 'product membership must come from products.yaml'
 	assert products[0].skill_ids.len < skills.len, 'product membership must not claim the whole catalog'
 	assert eng.packs_catalog().len == 7, 'packs must be 7'
+	if _ := eng.set_pack_enabled('missing-pack', true) {
+		assert false, 'unknown packs must not create persisted state'
+	} else {
+		assert err.msg().contains('pack not found')
+	}
 	assert eng.receipts_catalog().len == 0, 'a fresh engine must not invent receipts'
 	assert eng.api_call_count() > 0
 }
