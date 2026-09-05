@@ -171,12 +171,14 @@ pub fn (mut e Engine) product_provenance(product_id string) string {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
+	env := resolve_env()
+	source_exists := data_file_exists(env, 'distributions/products.yaml')
 	return json2.encode({
 		'product':    product_id
 		'source':     'distributions/products.yaml'
 		'provenance': 'plugins/${product_id}/.provenance.json'
 		'receipt':    'receipts/product-${product_id}.json'
-		'verified':   'true'
+		'verified':   if source_exists { 'true' } else { 'false' }
 	},
 		escape_unicode: true
 	)
@@ -193,6 +195,7 @@ pub fn (mut e Engine) product_receipt(product_id string) string {
 		'schemaVersion': '1'
 		'product':       product_id
 		'target':        'desktop'
+		'installed':     if installed_at != '' { 'true' } else { 'false' }
 		'installedAt':   installed_at
 		'provenance':    'distributions/products.yaml'
 	},
