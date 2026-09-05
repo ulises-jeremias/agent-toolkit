@@ -2997,8 +2997,10 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		rects_y << dy
 	}
 
-	// Handoff envelopes — fly desk-to-desk with GOD mailbox 4*t*(1-t) parabolic arc and fading trail.
-	// Signature envelope shadows: soft floor shadow ellipse under ground projection + envelope drop shadow
+	// Handoff visuals are derived from observed Engine events. Until that event
+	// stream is connected, render no envelopes or trails; ambient motion must not
+	// imply that agents are working.
+	if false {
 	for e in 0 .. 5 {
 		a_idx := e % desks.len
 		mut b_idx := (e * 7 + 3) % desks.len
@@ -3081,6 +3083,11 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		if desks[a_idx].status == 'blocked' || desks[b_idx].status == 'blocked' {
 			app.gg.draw_rect_filled(x + 12, y + 1, 3, 3, app.pnl_danger)
 		}
+	}
+	}
+
+	if app.desktop != unsafe { nil } && app.desktop.engine_jobs_catalog().len == 0 {
+		app.gg.draw_text(fx + 56, fy + 54, 'No agents are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	}
 
 	// Desks — AgentCard 200×80 → 140×86 compact, munder pixel-panel + status chip, lowercase badges
