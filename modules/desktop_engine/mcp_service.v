@@ -435,11 +435,13 @@ pub fn (mut e Engine) mcp_provenance_json(provider_id string) string {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
+	env := resolve_env()
+	verified := data_file_exists(env, 'mcp/templates/${provider_id}.json')
 	return json2.encode({
 		'provider': provider_id
 		'template': 'mcp/templates/${provider_id}.json'
 		'registry': 'mcp/registry/${provider_id}.yaml'
-		'verified': 'true'
+		'verified': if verified { 'true' } else { 'false' }
 	},
 		escape_unicode: true
 	)

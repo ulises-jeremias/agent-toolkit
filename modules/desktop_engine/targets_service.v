@@ -233,7 +233,7 @@ pub fn (mut e Engine) list_install_receipts() []InstallReceiptInfo {
 			out << InstallReceiptInfo{
 				target: 'skill:${id}'
 				product: snap.data['receipt:skill:${id}:product'] or { 'agent-toolkit-core' }
-				version: snap.data['receipt:skill:${id}:version'] or { '1.0.0' }
+				version: snap.data['receipt:skill:${id}:version'] or { '' }
 				installed_at: v
 				source_digest: snap.data['receipt:skill:${id}:digest'] or { '' }
 				receipt_path: 'receipts/skill-${id}.json'

@@ -366,7 +366,7 @@ pub fn (mut e Engine) agent_receipt(id string) ?AgentReceiptInfo {
 		agent_id: id
 		installed: true
 		installed_at: snap.data[key] or { '' }
-		version: snap.data['receipt:agent:${id}:version'] or { '1.0.0' }
+		version: snap.data['receipt:agent:${id}:version'] or { '' }
 		receipt_path: 'receipts/agent-${id}.json'
 	}
 }
@@ -439,11 +439,13 @@ pub fn (mut e Engine) agent_provenance_detail(id string) string {
 			escape_unicode: true
 		)
 	}
+	env := resolve_env()
+	verified := data_file_exists(env, 'catalogs/agent-catalog.yaml') && data_file_exists(env, 'agents/${id}/AGENT.md')
 	return json2.encode({
 		'id':         id
 		'source':     'agents/${id}/AGENT.md'
 		'provenance': 'catalogs/agent-catalog.yaml'
-		'verified':   'true'
+		'verified':   if verified { 'true' } else { 'false' }
 	},
 		escape_unicode: true
 	)

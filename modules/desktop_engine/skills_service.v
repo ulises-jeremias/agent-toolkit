@@ -468,7 +468,7 @@ pub fn (mut e Engine) skill_receipt(id string) ?SkillReceiptInfo {
 		skill_id: id
 		installed: id in e.skills_installed()
 		installed_at: snap.data[key_at] or { '' }
-		version: snap.data['receipt:skill:${id}:version'] or { '1.0.0' }
+		version: snap.data['receipt:skill:${id}:version'] or { '' }
 		product: snap.data['receipt:skill:${id}:product'] or { 'agent-toolkit-core' }
 		digest: snap.data['receipt:skill:${id}:digest'] or { '' }
 		receipt_path: 'receipts/skill-${id}.json'
