@@ -166,3 +166,20 @@ pub fn resolve_env() EnvResolver {
 		tier: core_root.tier
 	}
 }
+
+// data_path/data_file_read keep Desktop Engine catalog consumers compatible with
+// the same filesystem and in-memory embedded roots used by the CLI.
+pub fn data_path(env EnvResolver, rel string) string {
+	if env.tier == 'embedded' {
+		return 'embedded/${rel}'
+	}
+	return os.join_path(env.toolkit_root, rel)
+}
+
+pub fn data_file_exists(env EnvResolver, rel string) bool {
+	return agent_toolkit_core.data_is_file(env.toolkit_root, data_path(env, rel))
+}
+
+pub fn data_file_read(env EnvResolver, rel string) !string {
+	return agent_toolkit_core.data_read_file(env.toolkit_root, data_path(env, rel))
+}

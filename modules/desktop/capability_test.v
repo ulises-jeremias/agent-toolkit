@@ -12,6 +12,10 @@ import desktop.theme
 import desktop_engine
 
 fn test_capability_viewmodels_via_engine_no_shell() {
+	repo_root := os.dir(os.dir(os.dir(@FILE)))
+	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
+	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
+	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'desk-cap-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }

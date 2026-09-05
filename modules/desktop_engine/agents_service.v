@@ -1,6 +1,5 @@
 module desktop_engine
 
-import os
 import time
 import x.json2
 
@@ -42,16 +41,16 @@ pub:
 	receipt_path string
 }
 
-// agents_catalog returns 18 personas (11 holistic + 2 orchestrators + 6 specialists) + 7 archived.
-// Now super-potent: reads catalogs/agent-catalog.yaml if present, else synthetic, headless via Engine API.
+// agents_catalog returns personas from the resolved catalog. Missing data is empty;
+// archived or demo personas must not be fabricated for production views.
 pub fn (mut e Engine) agents_catalog() []AgentEntry {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	env := resolve_env()
-	catalog_path := os.join_path(env.toolkit_root, 'catalogs', 'agent-catalog.yaml')
-	if os.is_file(catalog_path) {
-		text := os.read_file(catalog_path) or { '' }
+	catalog_path := data_path(env, 'catalogs/agent-catalog.yaml')
+	if data_file_exists(env, 'catalogs/agent-catalog.yaml') {
+		text := data_file_read(env, 'catalogs/agent-catalog.yaml') or { '' }
 		if text.contains('agents:') && text.len > 100 {
 			mut entries := []AgentEntry{}
 			lines := text.split_into_lines()
@@ -105,14 +104,8 @@ pub fn (mut e Engine) agents_catalog() []AgentEntry {
 			if cur.id != '' {
 				entries << cur
 			}
-			if entries.len >= 18 {
-				// append archived synthetic
-				archived := ['old-agent-a', 'old-agent-b', 'old-agent-c', 'old-agent-d', 'old-agent-e',
-					'old-agent-f', 'old-agent-g']
-				for a in archived {
-					entries << AgentEntry{ id: a, role: 'Archived', tier: 'archived', description: 'Archived ${a}', holistic_owner: '', archived: true, source_file: 'agents/${a}/AGENT.md' }
-				}
-				// enrich triggers from skill mapping
+			if entries.len > 0 {
+				// Enrich only real catalog entries with derived routing metadata.
 				for i in 0 .. entries.len {
 					entries[i].triggers = triggers_for_agent(entries[i].id)
 					if entries[i].holistic_owner == '' {
@@ -123,55 +116,7 @@ pub fn (mut e Engine) agents_catalog() []AgentEntry {
 			}
 		}
 	}
-	// fallback synthetic (original)
-	mut out := []AgentEntry{}
-	out << AgentEntry{
-		id: 'planner'
-		role: 'Orchestrator'
-		tier: 'orchestrator'
-		description: 'Plans work — delegates to architect, researcher, designer'
-		holistic_owner: 'planner'
-		delegates_to: [
-			'architect',
-			'researcher',
-		]
-		triggers: 'planning, estimation, breakdown'
-		source_file: 'agents/planner/AGENT.md'
-		provenance: 'synthetic'
-	}
-	out << AgentEntry{
-		id: 'implementer'
-		role: 'Orchestrator'
-		tier: 'orchestrator'
-		description: 'Implements — delegates to tdd-guide, collaborates with reviewer'
-		holistic_owner: 'implementer'
-		delegates_to: [
-			'tdd-guide',
-		]
-		collaborates_with: ['reviewer', 'architect']
-		triggers: 'feature, bug, refactor'
-		source_file: 'agents/implementer/AGENT.md'
-		provenance: 'synthetic'
-	}
-	holistics := ['assistant', 'architect', 'designer', 'platform-engineer', 'qa-engineer',
-		'researcher', 'security-engineer', 'data-engineer', 'reviewer', 'code-reviewer', 'e2e-runner']
-	for h in holistics {
-		out << AgentEntry{ id: h, role: 'Holistic', tier: 'holistic', description: 'Holistic ${h} — owns delivery lane', holistic_owner: h, triggers: triggers_for_agent(h), source_file: 'agents/${h}/AGENT.md', provenance: 'synthetic' }
-	}
-	specialists := ['tdd-guide', 'security-reviewer', 'agentic-security-reviewer',
-		'build-error-resolver', 'client-workflow-bootstrap', 'tool-insights']
-	for s in specialists {
-		out << AgentEntry{ id: s, role: 'Specialist', tier: 'specialist', description: 'Specialist ${s}', holistic_owner: 'architect', triggers: triggers_for_agent(s), source_file: 'agents/${s}/AGENT.md', provenance: 'synthetic' }
-	}
-	if out.len > 18 {
-		out = out[..18].clone()
-	}
-	archived := ['old-agent-a', 'old-agent-b', 'old-agent-c', 'old-agent-d', 'old-agent-e',
-		'old-agent-f', 'old-agent-g']
-	for a in archived {
-		out << AgentEntry{ id: a, role: 'Archived', tier: 'archived', description: 'Archived ${a}', holistic_owner: '', archived: true, source_file: 'agents/${a}/AGENT.md', provenance: 'synthetic' }
-	}
-	return out
+	return []AgentEntry{}
 }
 
 fn tier_for_agent(id string) string {

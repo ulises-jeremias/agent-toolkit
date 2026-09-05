@@ -2,18 +2,11 @@ module desktop_engine
 
 import os
 
-// R2 product-truth: the desktop GUI renders every user-visible count through
-// Engine-derived helpers (cmd/agent-toolkit-desktop/main.v: skills_total,
-// agents_active_total, agents_tier_summary, mcp_total, targets_total,
-// products_total, packs_total). This test locks the catalog side of that
-// contract — when a catalog legitimately grows, update the GUI fallbacks and
-// this test together.
+// Product truth: the desktop GUI renders every user-visible count through
+// Engine-derived helpers. This test locks the catalog side of that contract.
 fn test_product_truth_catalog_counts() {
-	// Hermetic catalog root: the Engine resolves catalogs from ambient state
-	// (XDG → embedded → checkout), so without a pin CI/clean machines fall
-	// back to the synthetic catalog (11 holistic) while dev machines with XDG
-	// data read the real catalog (10 holistic). Pin to this checkout, whose
-	// catalogs/agent-catalog.yaml is the contract under test.
+	// Pin the resolver to this checkout so the test exercises packaged source data,
+	// not a developer's ambient XDG installation.
 	repo_root := os.dir(os.dir(os.dir(@FILE)))
 	prev_override := os.getenv('AGENT_TOOLKIT_ROOT')
 	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
@@ -31,7 +24,11 @@ fn test_product_truth_catalog_counts() {
 	defer { eng.stop() or {} }
 
 	skills := eng.skills_catalog()
-	assert skills.len == 227, 'skills catalog must be 227 (116 real + synthetic pad): got ${skills.len}'
+	assert skills.len == 116, 'skills catalog must contain the source entries: got ${skills.len}'
+	for skill in skills {
+		assert !skill.description.to_lower().contains('synthetic')
+		assert skill.id.contains('/')
+	}
 	assert eng.skills_domains().len == 14, 'skills domains must be 14'
 
 	stats := eng.agents_stats()
@@ -39,7 +36,11 @@ fn test_product_truth_catalog_counts() {
 	assert stats.holistic == 10, 'holistic agents must be 10: got ${stats.holistic}'
 	assert stats.orchestrator == 2, 'orchestrator agents must be 2: got ${stats.orchestrator}'
 	assert stats.specialist == 6, 'specialist agents must be 6: got ${stats.specialist}'
-	assert stats.archived == 7, 'archived agents must be 7: got ${stats.archived}'
+	assert stats.archived == 0, 'archived agents must come from a real catalog: got ${stats.archived}'
+	for agent in eng.agents_catalog() {
+		assert !agent.id.starts_with('old-agent-')
+		assert agent.provenance != 'synthetic'
+	}
 
 	assert eng.mcp_catalog().len == 7, 'MCP providers must be 7'
 
@@ -52,5 +53,6 @@ fn test_product_truth_catalog_counts() {
 
 	assert eng.products_catalog().len == 5, 'products must be 5'
 	assert eng.packs_catalog().len == 7, 'packs must be 7'
+	assert eng.receipts_catalog().len == 0, 'a fresh engine must not invent receipts'
 	assert eng.api_call_count() > 0
 }

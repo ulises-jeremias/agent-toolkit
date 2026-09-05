@@ -1,6 +1,5 @@
 module desktop_engine
 
-import os
 import time
 import x.json2
 
@@ -28,15 +27,15 @@ pub:
 	receipt_path string
 }
 
-// products_catalog returns products from distributions/products.yaml or synthetic — now provenance-aware.
+// products_catalog returns products from distributions/products.yaml. A missing
+// product catalog is unavailable, not a reason to invent products.
 pub fn (mut e Engine) products_catalog() []ProductEntry {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	env := resolve_env()
-	prod_path := os.join_path(env.toolkit_root, 'distributions', 'products.yaml')
-	if os.is_file(prod_path) {
-		txt := os.read_file(prod_path) or { '' }
+	if data_file_exists(env, 'distributions/products.yaml') {
+		txt := data_file_read(env, 'distributions/products.yaml') or { '' }
 		if txt.contains('agent-toolkit-core') {
 			mut out := []ProductEntry{}
 			lines := txt.split_into_lines()
@@ -75,49 +74,7 @@ pub fn (mut e Engine) products_catalog() []ProductEntry {
 			}
 		}
 	}
-	return [
-		ProductEntry{
-			id: 'agent-toolkit-core'
-			name: 'Agent Toolkit Core'
-			description: 'Core — 116 skills + synthetic 227'
-			skill_ids: [
-				'core/assistant',
-				'core/dev-companion',
-			]
-			pack_ids: [
-				'docs-only',
-			]
-			provenance: 'distributions/products.yaml'
-			receipt_path: 'receipts/product-agent-toolkit-core.json'
-			version: '1.27.0'
-		},
-		ProductEntry{
-			id: 'agent-toolkit-work'
-			name: 'Work Pack'
-			description: 'Delivery + core'
-			skill_ids: [
-				'delivery/scrum',
-			]
-			pack_ids: [
-				'work',
-			]
-			provenance: 'distributions/products.yaml'
-			receipt_path: 'receipts/product-agent-toolkit-work.json'
-			version: '1.27.0'
-		},
-		ProductEntry{
-			id: 'agent-toolkit-full'
-			name: 'Full'
-			description: 'All 227 skills'
-			skill_ids: e.skills_catalog().map(it.id)[..10]
-			pack_ids: [
-				'full',
-			]
-			provenance: 'distributions/products.yaml'
-			receipt_path: 'receipts/product-agent-toolkit-full.json'
-			version: '1.27.0'
-		},
-	]
+	return []ProductEntry{}
 }
 
 // products_search fuzzy filters products — easy potent management.

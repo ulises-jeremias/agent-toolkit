@@ -504,21 +504,19 @@ fn read_version_file(path string) ?string {
 // ── Product-truth counters — Engine/catalog-derived, never hardcoded ──
 // Every user-visible skill/agent/provider/target/product count renders through
 // these helpers so the GUI cannot drift from the Engine catalog again.
-// Fallbacks match the current catalog truth (verified via Engine):
-// skills 227 · domains 14 · agents 18 active (10 holistic + 2 orchestrator +
-// 6 specialist, 7 archived) · MCP 7 · targets 7 · products 5 · packs 7.
+// If the Engine is unavailable, show zero rather than claiming a catalog exists.
 fn skills_total(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_skills_stats().total
 	}
-	return 227
+	return 0
 }
 
 fn skills_domains_count(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_skills_domains().len
 	}
-	return 14
+	return 0
 }
 
 fn agents_active_total(mut app GuiApp) int {
@@ -526,7 +524,7 @@ fn agents_active_total(mut app GuiApp) int {
 		s := app.desktop.engine_agents_stats()
 		return s.total - s.archived
 	}
-	return 18
+	return 0
 }
 
 fn agents_tier_summary(mut app GuiApp) string {
@@ -534,35 +532,35 @@ fn agents_tier_summary(mut app GuiApp) string {
 		s := app.desktop.engine_agents_stats()
 		return '${s.holistic} holistic · ${s.orchestrator} orchestrator · ${s.specialist} specialist'
 	}
-	return '10 holistic · 2 orchestrator · 6 specialist'
+	return 'catalog unavailable'
 }
 
 fn mcp_total(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_mcp_stats().total
 	}
-	return 7
+	return 0
 }
 
 fn targets_total(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_targets().len
 	}
-	return 7
+	return 0
 }
 
 fn products_total(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_products_catalog().len
 	}
-	return 5
+	return 0
 }
 
 fn packs_total(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_packs_catalog().len
 	}
-	return 7
+	return 0
 }
 
 fn resolve_fonts() FontPaths {
@@ -887,10 +885,10 @@ mut:
 	// product appearance (Paper/Ink/System, #1097) + resolved panel palette.
 	// Chrome (header/dock/status/terminal) keeps the startup consts; panel
 	// draw code reads app.pnl_*. apply_appearance() refreshes every field.
-	appearance       Appearance = .paper
+	appearance Appearance = .paper
 	// resolved darkness of the last apply_appearance (System included) —
 	// cached so per-frame panel code never re-probes the OS.
-	appearance_dark bool
+	appearance_dark  bool
 	pnl_bg           gg.Color
 	pnl_card         gg.Color
 	pnl_card_sel     gg.Color
@@ -925,7 +923,7 @@ mut:
 	swarm_nodes []SwarmNode
 	swarm_edges []SwarmEdge
 	swarm_zoom  int
-	frame            int
+	frame       int
 	// toast tray — every inspector_msg change becomes a paper toast
 	toasts []Toast
 	// terminal scrollback search (Ctrl+F while the terminal is visible)
@@ -965,18 +963,18 @@ mut:
 	inspector_msg string
 	// terminal / activity — workshop xterm-like bottom strip
 	// term_mode: 0 compact 148 · 1 tall 320 · 2 max (full content height) · 3 hidden
-	term_mode      int = 3
+	term_mode int = 3
 	// swarm attach exit (#1101): pre-attach terminal mode, -1 = no attach in
 	// progress — Esc restores it so the panel renders again (term_mode 2
 	// owns the content area and would trap the user in fullscreen)
 	term_mode_saved int = -1
-	term_height    int = 148
-	term_visible   bool
-	term_scroll    int
-	term_hover     int = -1
-	term_copied    string
-	term_copied_at int
-	term_auto_pin  bool = true
+	term_height     int = 148
+	term_visible    bool
+	term_scroll     int
+	term_hover      int = -1
+	term_copied     string
+	term_copied_at  int
+	term_auto_pin   bool = true
 	// inspector per-desk log state
 	inspector_scroll int
 	inspector_hover  int = -1
@@ -1143,21 +1141,21 @@ const i18n_table = {
 	'panel.insights':          I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
 	// dock — short descriptors
 	'desc.world':              I18nRow{'Floor — desks, handoffs, live activity', 'Planta — escritorios y actividad', '办公区 · 工位与协作', 'الأرضية — المكاتب والنشاط'}
-	'desc.skills':             I18nRow{'227 skills across 14 domains', '227 habilidades en 14 dominios', '227 项技能 · 14 个领域', '٢٢٧ مهارة في ١٤ مجالا'}
-	'desc.agents':             I18nRow{'18 agents — holistic + orchestrator + specialist', '18 agentes — globales, orquestadores y especialistas', '18 个代理 · 全能/编排/专项', '١٨ وكيلاً — شامل ومنسق ومتخصص'}
-	'desc.mcp':                I18nRow{'7 providers — health + secrets', '7 proveedores — salud y claves', '7 个提供方 · 健康与密钥', '٧ مزودات — الصحة والمفاتيح'}
-	'desc.targets':            I18nRow{'7 targets — enable platforms', '7 destinos — activa plataformas', '7 个目标平台', '٧ منصات للتفعيل'}
+	'desc.skills':             I18nRow{'Skills and capabilities', 'Habilidades y capacidades', '技能与能力', 'المهارات والقدرات'}
+	'desc.agents':             I18nRow{'Agents and roles', 'Agentes y roles', '代理与角色', 'الوكلاء والأدوار'}
+	'desc.mcp':                I18nRow{'Providers, health and secrets', 'Proveedores, salud y claves', '提供方、健康与密钥', 'المزودون والصحة والأسرار'}
+	'desc.targets':            I18nRow{'Coding tools and destinations', 'Herramientas y destinos', '编码工具与目标', 'أدوات البرمجة والوجهات'}
 	'desc.doctor':             I18nRow{'Health checks + fix', 'Comprobaciones y reparación', '健康检查与修复', 'فحوصات وإصلاح'}
 	'desc.jobs':               I18nRow{'Jobs & process supervisor', 'Trabajos y supervisor', '作业与进程管理', 'المهام والعمليات'}
 	'desc.loops':              I18nRow{'Loops & missions — inner/outer', 'Bucles y misiones — internos/externos', '循环任务 · 内外环', 'المهام الدورية'}
 	'desc.swarm':              I18nRow{'GOD mailbox, Herdr/tmux, teams', 'Buzón GOD, Herdr/tmux, equipos', 'GOD 信箱 · 集群协作', 'صندوق GOD والفرق'}
 	'desc.workspace':          I18nRow{'IDE — tree, editor, git rails', 'IDE — árbol, editor, git', '工作区 IDE · 编辑器', 'مساحة عمل IDE'}
-	'desc.products':           I18nRow{'5 products, 7 packs, digest', '5 productos, 7 paquetes', '5 产品 · 7 包 · 摘要', '٥ منتجات و٧ حزم'}
+	'desc.products':           I18nRow{'Products and packs', 'Productos y paquetes', '产品与包', 'المنتجات والحزم'}
 	'desc.onboarding':         I18nRow{'Wizard — workspace to products', 'Asistente — de workspace a productos', '引导向导 · 一步到位', 'معالج الإعداد'}
 	'desc.insights':           I18nRow{'Cost, waterfall, spans, CI', 'Costos, cascada, spans, CI', '成本 · 瀑布 · CI', 'التكاليف والأداء'}
 	// header
 	'header.tagline':          I18nRow{'Paper Co. Office', 'Oficina Paper Co.', '纸业公司办公室', 'مكتب شركة الورق'}
-	'header.search':           I18nRow{'Search 227 skills, desks, files…', 'Buscar 227 habilidades, mesas, archivos…', '搜索 227 项技能…', 'ابحث في ٢٢٧ مهارة…'}
+	'header.search':           I18nRow{'Search skills, agents, files…', 'Buscar habilidades, agentes, archivos…', '搜索技能、代理和文件…', 'ابحث في المهارات والوكلاء والملفات…'}
 	'header.workspace':        I18nRow{'WORKSPACE', 'ESPACIO', '工作区', 'المساحة'}
 	'header.navigate':         I18nRow{'NAVIGATE', 'NAVEGAR', '导航', 'تنقل'}
 	'header.live':             I18nRow{'live', 'activo', '实时', 'مباشر'}
@@ -1598,16 +1596,16 @@ fn panel_fw(app &GuiApp, w int) int {
 fn panel_desc(i int) string {
 	return match i {
 		0 { 'Floor — desks, handoffs, live activity' }
-		1 { '227 skills across 14 domains — searchable' }
-		2 { '18 agents — 10 holistic, 2 orchestrator, 6 specialist' }
-		3 { '7 MCP providers' }
-		4 { '7 targets' }
+		1 { 'Skills and capabilities — searchable' }
+		2 { 'Agents and roles' }
+		3 { 'MCP providers' }
+		4 { 'Coding tools and destinations' }
 		5 { 'Health checks' }
 		6 { 'Jobs & process supervisor' }
 		7 { 'Loops & missions — inner/outer' }
 		8 { 'Swarms — GOD mailbox, Herdr/tmux, pair/team/full' }
 		9 { 'Workspace IDE — file-tree + editor tabs + CHANGES/HISTORY/COMPARE + memory palace' }
-		10 { 'Products & packs — 5 products, 7 packs docs-only, membership & digest' }
+		10 { 'Products and packs — membership & digest' }
 		11 { 'Onboarding — workspace init, persona bootstrap, capability/target/product wizard' }
 		12 { 'Insights — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher' }
 		else { '' }
@@ -1638,8 +1636,8 @@ fn palette_items() []PaletteItem {
 		PaletteItem{'update', 'Update — agent-toolkit update', 'Update --check --pin', 'update'},
 		PaletteItem{'uninstall', 'Uninstall', 'Uninstall --dry-run --rollback', 'uninstall'},
 		PaletteItem{'diff', 'Diff — target/product', 'Compare configurations', 'diff'},
-		PaletteItem{'skills_sync', 'Skills — sync/validate', 'Sync and validate 227 skills', 'skills_sync'},
-		PaletteItem{'mcp_health', 'MCP — health/doctor', 'Health of 7 providers', 'mcp_health'},
+		PaletteItem{'skills_sync', 'Skills — sync/validate', 'Sync and validate the catalog', 'skills_sync'},
+		PaletteItem{'mcp_health', 'MCP — health/doctor', 'Health of configured providers', 'mcp_health'},
 		PaletteItem{'loop_run', 'Loop — run/status/audit/cost', 'Missions heartbeat + budgets', 'loop_run'},
 		PaletteItem{'swarm_start', 'Swarm — start/list/approve', 'Launch pair/team/full, approve spend/scope', 'swarm_start'},
 		PaletteItem{'workspace_sync', 'Workspace — sync/context', 'Sync knowledge + context', 'workspace_sync'},
@@ -1765,13 +1763,11 @@ fn desks_for_app(app &GuiApp) []Desk {
 		['holistic', 'holistic', 'holistic', 'specialist'],
 		['runtime', 'runtime', 'runtime', 'runtime'],
 	]
-	statuses := ['working', 'idle', 'working', 'blocked', 'working', 'idle']
 	for r in 0 .. 4 {
 		for c in 0 .. 4 {
 			if r == 3 && c == 3 {
 				continue
 			}
-			idx := r * 4 + c
 			desks << Desk{
 				id: labels[r][c]
 				label: labels[r][c]
@@ -1782,7 +1778,9 @@ fn desks_for_app(app &GuiApp) []Desk {
 					'runtime'}
 				x: 220 + c * 166
 				y: 92 + r * 130
-				status: statuses[idx % statuses.len]
+				// A catalog desk is not a running process. Runtime status is
+				// projected separately from Engine jobs/PTY state.
+				status: 'idle'
 			}
 		}
 	}
@@ -1853,53 +1851,12 @@ fn term_level_label(level string) string {
 	}
 }
 
-// mock_term_logs generates deterministic workshop-feel logs.
-// Wired as fallback when desktop_engine has no process_log yet.
-// Keeps English, workshop palette, live frame tick for activity.
-fn mock_term_logs(app &GuiApp) []TermLine {
-	mut out := []TermLine{}
-	// base timeline — process logs, handoffs, watcher, doctor
-	out << TermLine{'12:55:11', 'watch', 'engine', 'engine_started rev=${app.engine_rev} state=running', '[engine] engine_started rev=${app.engine_rev}'}
-	out << TermLine{'12:55:18', 'proc', 'build-cli', 'process_log stdout: v -o build/agent-toolkit cmd/agent-toolkit', 'build-cli | stdout | v -o build/agent-toolkit'}
-	out << TermLine{'12:55:22', 'proc', 'test-desktop', 'process_log stderr: warning: unused import desktop_engine (headless)', 'test-desktop | stderr | unused import'}
-	out << TermLine{'12:55:34', 'handoff', 'assistant->planner', 'envelope #41 queued: assistant → planner (budget 12k)', 'handoff #41 assistant->planner'}
-	out << TermLine{'12:55:41', 'proc', 'serve :3847', 'process_log stdout: listening http://127.0.0.1:3847', 'serve | listening 3847'}
-	out << TermLine{'12:55:47', 'handoff', 'planner->architect', 'envelope #42 routing: planner → architect via GOD mailbox', 'handoff #42 planner->architect'}
-	out << TermLine{'12:55:52', 'proc', 'loop daily', 'process_log tick: daily-digest L1 1d — next in 842s', 'loop daily | tick'}
-	out << TermLine{'12:56:02', 'watch', 'engine', 'watcher_invalidated path=skills/core/assistant dependent=skill-catalog rev=${app.engine_rev + 1}', 'watcher skills/core/assistant'}
-	out << TermLine{'12:56:07', 'handoff', 'architect->implementer', 'envelope #43 handoff architect → implementer (swarm trace a4f)', 'handoff #43 architect->implementer'}
-	out << TermLine{'12:56:14', 'proc', 'implementer', 'process_log stdout: implementer working — file=main.v line=312', 'implementer | working main.v:312'}
-	out << TermLine{'12:56:18', 'doctor', 'doctor', 'doctor pass: V toolchain, embedded data, profiles', 'doctor pass'}
-	out << TermLine{'12:56:22', 'handoff', 'implementer->reviewer', 'envelope #44 queued: implementer → reviewer (diff 184 lines)', 'handoff #44 implementer->reviewer'}
-	out << TermLine{'12:56:31', 'proc', 'qa-engineer', 'process_log stdout: qa-engineer: 3 checks pending', 'qa-engineer | 3 checks'}
-	out << TermLine{'12:56:37', 'warn', 'security-engineer', 'warn: blocked desk security-engineer awaiting review', 'blocked security-engineer'}
-	out << TermLine{'12:56:44', 'handoff', 'reviewer->qa-engineer', 'envelope #45 handoff reviewer → qa-engineer (approved)', 'handoff #45 reviewer->qa-engineer'}
-	out << TermLine{'12:56:51', 'proc', 'memory', 'process_log stdout: memory pack knowledge sync 12 files', 'memory | sync 12 files'}
-	out << TermLine{'12:57:03', 'info', 'workspace', 'workspace .active-pack set → workshop v1', 'workspace active-pack'}
-	out << TermLine{'12:57:09', 'proc', 'platform-engineer', 'process_log stderr: mkdir -p ~/.cache/agent-toolkit/desktop', 'platform-engineer | mkdir'}
-	out << TermLine{'12:57:14', 'handoff', 'researcher->planner', 'envelope swarm: researcher → planner (research 5 sources)', 'handoff researcher->planner'}
-	out << TermLine{'12:57:22', 'doctor', 'doctor', 'doctor warn: MCP config missing browser — fixable', 'doctor warn MCP'}
-	// live tick — rotates with frame so strip feels live without rebuilding Engine
-	live_kinds := ['proc', 'handoff', 'watch', 'info']
-	live_level := live_kinds[app.frame % live_kinds.len]
-	live_sources := ['engine', 'assistant', 'implementer', 'loops', 'swarm']
-	live_src := live_sources[(app.frame / 3) % live_sources.len]
-	ts := '12:57:' + pad2((19 + (app.frame / 12) % 40))
-	live_msg := match live_level {
-		'proc' { 'process_log stdout: ${live_src} tick frame=${app.frame} rev=${app.engine_rev}' }
-		'handoff' { 'envelope live #${40 + app.frame % 20} ${live_src} → reviewer (live)' }
-		'watch' { 'watcher poll ${live_src} mtime check rev=${app.engine_rev}' }
-		else { 'activity pulse ${live_src} heartbeat ${app.frame}' }
-	}
-	out << TermLine{ts, live_level, live_src, live_msg, '${live_level} ${live_src} ${live_msg}'}
-	// frame-modulated handoff jitter to avoid static feel
-	if app.frame % 40 == 0 {
-		out << TermLine{'12:57:' + pad2((58 + app.frame % 2)), 'handoff', 'GOD->mailbox', 'GOD router mailbox dispatch queued', 'GOD mailbox dispatch'}
-	}
-	return out
+// Production activity is sourced only from Engine state. Empty is a valid state.
+fn mock_term_logs(_ &GuiApp) []TermLine {
+	return []TermLine{}
 }
 
-// collect_engine_logs tries real Engine logs via snapshot data, then falls back to mock.
+// collect_engine_logs reads real Engine logs via snapshot data.
 // Wires to desktop_engine logs if available (jobs/*/logs, watcher_* keys) — per spec.
 fn collect_engine_logs(app &GuiApp) []TermLine {
 	mut out := []TermLine{}
@@ -1923,22 +1880,6 @@ fn collect_engine_logs(app &GuiApp) []TermLine {
 			jid := k.all_after('jobs/').all_before('/status')
 			out << TermLine{'${pad4(int(state.revision))}', 'info', jid, 'job ${jid} status=${v}', '${jid} ${v}'}
 		}
-	}
-	// If we got real logs, keep them; still merge mock handoffs so floor activity is visible
-	mock := mock_term_logs(app)
-	if out.len > 0 {
-		// merge: real first, then mock filtered to avoid duplicates for same source
-		for m in mock {
-			if m.level == 'handoff' || m.level == 'doctor' {
-				out << m
-			}
-		}
-		// also keep mock live tick last
-		if mock.len > 0 {
-			out << mock[mock.len - 1]
-		}
-	} else {
-		out = mock.clone()
 	}
 	return out
 }
@@ -1978,19 +1919,6 @@ fn per_desk_logs(logs []TermLine, desk Desk, query string) []TermLine {
 			continue
 		}
 		out << l
-	}
-	// ensure desk always has something: inject contextual mock if empty
-	if out.len == 0 {
-		out << TermLine{'12:56:00', desk.status, desk.label, '${desk.label} ${desk.status} — rev next', desk.label}
-		if desk.status == 'working' {
-			out << TermLine{'12:56:14', 'proc', desk.label, 'process_log ${desk.label} working — task active', desk.label}
-		}
-		if desk.role == 'holistic' {
-			out << TermLine{'12:56:22', 'handoff', desk.label, 'handoff ${desk.label} → reviewer queued', 'handoff'}
-		}
-		if q != '' {
-			// filter again — if contextual does not match, return original contextual but show filter hint empty handling elsewhere
-		}
 	}
 	return out
 }
@@ -2285,16 +2213,15 @@ fn on_init(mut app GuiApp) {
 	app.cached_rev = app.engine_rev
 	app.ghost = ghostty.new_terminal(80, 18)
 	app.ghost_focused = false
-	app.god_inbox = 3
-	app.god_outbox = 2
+	app.god_inbox = 0
+	app.god_outbox = 0
 	load_ui_state(mut app)
 	// resolve persisted (or default Paper) appearance into the panel palette
 	// before the first frame — panel draw code reads app.pnl_* throughout
 	app.apply_appearance(app.appearance)
 	app.term_visible = app.term_mode == 0
 	app.ghost_focused = false
-	app.approvals = ['spend \$0.42 — @architect', 'scope write to swarm_recipes.v — @implementer',
-		'destructive git checkout — @reviewer']
+	app.approvals = []
 	// seed auto-pin to bottom after first collect
 	all := collect_engine_logs(app)
 	vis := term_visible_rows(app.term_height)
@@ -2305,9 +2232,7 @@ fn on_init(mut app GuiApp) {
 	desks_init := desks_for_app(app)
 	app.per_desk_ghost = []ghostty.GhosttyTerminal{len: desks_init.len}
 	for i in 0 .. desks_init.len {
-		mut g := ghostty.new_terminal(40, 6)
-		g.feed('[' + desks_init[i].label + '] ready\n')
-		app.per_desk_ghost[i] = g
+		app.per_desk_ghost[i] = ghostty.new_terminal(40, 6)
 	}
 	// avatars — one per desk, 24×24, accent from palette
 	accents := [col_coral, col_mint, col_sky, col_lemon, col_lilac, col_peach]
@@ -2337,14 +2262,9 @@ fn on_init(mut app GuiApp) {
 		Station{'mcp', 'MCP corner', 906, 420, 48, 48, 'mcp', col_sky},
 		Station{'board', 'Task board', 916, 500, 40, 48, 'board', col_cream200},
 	]
-	// kanban — todo/doing/done with dependencies
-	app.kanban = [
-		KanbanTask{'t1', 'Implement desk walk cycle', 'doing', 'implementer', 'high'},
-		KanbanTask{'t2', 'Wire libghostty-vt per desk', 'doing', 'assistant', 'high'},
-		KanbanTask{'t3', 'GOD mailbox routing', 'todo', 'planner', 'medium'},
-		KanbanTask{'t4', 'Skills ${skills_total(mut app)} catalog', 'todo', 'designer', 'medium'},
-		KanbanTask{'t5', 'Fix V master pin 78e581e', 'done', 'qa-engineer', 'low'},
-	]
+	// Kanban is populated from real workspace operations. A clean launch has no
+	// tasks to show; never seed the Office with fictional work.
+	app.kanban = []KanbanTask{}
 	// Resolve once through the Engine so every workspace-bound view starts on
 	// the same canonical root with a real brokered file tree.
 	resolve_workspace_on_start(mut app)
@@ -3602,13 +3522,9 @@ struct SkillEntryProxy {
 
 fn skills_filtered_for_app(mut app GuiApp) []string {
 	// Delegates to Engine (227) via Desktop proxy — no direct os/catalog read.
-	// Use engine_skills_search for ranked fuzzy; fallback to hardcoded if engine empty.
+	// Use engine_skills_search for ranked fuzzy. An unavailable catalog is an
+	// honest empty state; it must never be replaced with invented entries.
 	cat := app.desktop.engine_skills_search(app.skills_query, app.skills_domain)
-	if cat.len == 0 && app.skills_query == '' && app.skills_domain == '' {
-		// fallback when engine not yet wired (headless synthetic)
-		return ['core/assistant', 'core/project', 'delivery/adr', 'delivery/prd', 'forge/github-cli',
-			'loops/loop-runner', 'quality/megalinter', 'design/frontend-design']
-	}
 	mut out := []string{}
 	for s in cat {
 		out << s.id
@@ -4086,7 +4002,11 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 			size: 14
 			bold: true
 		})
-		src := if app.mcp_drawer_from_file { 'template file' } else { 'defaults (no template file)' }
+		src := if app.mcp_drawer_from_file {
+			'template file'
+		} else {
+			'defaults (no template file)'
+		}
 		app.gg.draw_text(dx + 14, dy + 30, '${src} · secrets masked · provenance ${app.mcp_drawer_provenance}', gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
@@ -4458,73 +4378,8 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	}
 	// supervisor health extra: API calls + revision badge
 	app.gg.draw_text(fx + 12, sy + 24, 'Engine api ${app.api_calls} · rev ${app.engine_rev} · bus dropped ${dropped} · StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	// fetch live jobs via Engine; fallback synthetic keeps panel potent when empty (distinct mock vs loops mock)
+	// Jobs come from the supervisor. Empty means no jobs are running.
 	mut jobs := app.desktop.engine_jobs_catalog()
-	if jobs.len == 0 {
-		jobs = [
-			desktop_engine.JobRecord{
-				id: 'job-7f3a-build-cli'
-				cmd: 'v -o build/agent-toolkit cmd/agent-toolkit'
-				args: []
-				status: .done
-				exit_code: 0
-				duration_ms: 1840
-				started_at: 0
-				logs: [
-					'stdout: build ok',
-				]
-				canceled: false
-				retry_count: 0
-			},
-			desktop_engine.JobRecord{
-				id: 'job-9c1e-test-desktop'
-				cmd: 'v test modules/desktop'
-				args: []
-				status: .running
-				exit_code: 0
-				duration_ms: 4200
-				started_at: 0
-				logs: [
-					'stdout: running 12 tests',
-				]
-				canceled: false
-				retry_count: 0
-			},
-			desktop_engine.JobRecord{
-				id: 'job-a2ff-serve'
-				cmd: 'agent-toolkit serve --port 3847'
-				args: [
-					'--port',
-					'3847',
-				]
-				status: .running
-				exit_code: 0
-				duration_ms: 89300
-				started_at: 0
-				logs: [
-					'listening 3847',
-				]
-				canceled: false
-				retry_count: 0
-			},
-			desktop_engine.JobRecord{
-				id: 'job-4d2a-loop-daily'
-				cmd: 'agent-toolkit loop run daily-triage'
-				args: [
-					'loop',
-					'run',
-					'daily-triage',
-				]
-				status: .queued
-				exit_code: 0
-				duration_ms: 0
-				started_at: 0
-				logs: []
-				canceled: false
-				retry_count: 1
-			},
-		]
-	}
 	// card metrics — paper cards with left status rail
 	list_y0 := fy + 96
 	list_h_total := fh - 84 - 110
@@ -4657,27 +4512,6 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 18, app.pnl_select)
 	app.gg.draw_text(fx + 16, aq_y + 4, 'Approvals Queue — spend / scope / destructive', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
 	mut aq := app.desktop.engine_approvals_queue()
-	if aq.len == 0 {
-		for i, s in app.approvals {
-			kind := if s.contains('spend') {
-				desktop_engine.ApprovalKind.spend
-			} else if s.contains('scope') {
-				desktop_engine.ApprovalKind.scope
-			} else {
-				desktop_engine.ApprovalKind.destructive
-			}
-			aq << desktop_engine.SwarmApproval{
-				id: 'appr-${i}'
-				run_id: 'demo-${i}'
-				kind: kind
-				message: s
-				status: .pending
-				budget_cost: if kind == .spend {
-					42} else {
-					0}
-			}
-		}
-	}
 	app.gg.draw_text(fx + fw - 110, aq_y + 4, '${aq.len} pending • StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	if aq.len == 0 {
 		app.gg.draw_text(fx + 16, aq_y + 28, 'No pending approvals — queue is empty (awaiting_approval gates)', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
@@ -5029,7 +4863,7 @@ fn swarm_working_roles(handoffs []string) []string {
 	last := handoffs[handoffs.len - 1]
 	arrow := last.index(' → ') or { return [] }
 	src_role := last[..arrow].trim_space()
-	rest := last[arrow + 5..].trim_space().split(' ')  // 5-byte arrow (#1101)
+	rest := last[arrow + 5..].trim_space().split(' ') // 5-byte arrow (#1101)
 	dst_role := if rest.len > 0 { rest[0] } else { '' }
 	mut out := []string{}
 	if src_role != '' {
@@ -5152,13 +4986,6 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			topo_handoffs << hh
 		}
 	}
-	if topo_handoffs.len == 0 {
-		topo_handoffs = [
-			'planner → implementer via GOD mailbox (artifact task-contract.md)',
-			'implementer → reviewer commit a3f9… (GOD queued)',
-			'reviewer → architect feedback blocked max_round_trips',
-		]
-	}
 	mut roles := []string{}
 	mut role_idx := map[string]int{}
 	mut edges := [][]int{}
@@ -5169,7 +4996,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			continue
 		}
 		lrole := th[..arrow].trim_space()
-		rrest := th[arrow + 5..].trim_space()  // ' → ' is 5 bytes; +3 left a stray continuation byte (#1101)
+		rrest := th[arrow + 5..].trim_space() // ' → ' is 5 bytes; +3 left a stray continuation byte (#1101)
 		rrole := rrest.split(' ')[0]
 		if rrole.len == 0 {
 			continue
@@ -5264,7 +5091,11 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			} else {
 				app.pnl_border
 			})
-			label := if role.len > max_label && max_label > 3 { role[..max_label] + '…' } else { role }
+			label := if role.len > max_label && max_label > 3 {
+				role[..max_label] + '…'
+			} else {
+				role
+			}
 			app.gg.draw_text(nx + 8, ny + 6, label, gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
 			app.gg.draw_text(nx + 8, ny + 19, if status_running { 'working' } else { 'queued' }, gg.TextCfg{ color: app.pnl_text_mut, size: 9, mono: true })
 		}
@@ -5299,17 +5130,13 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	pixel_panel(mut app, fx + 8, col_y, cw, col_h, 'terminal')
 	app.gg.draw_rect_filled(fx + 8, col_y, cw, 20, app.pnl_text)
 	app.gg.draw_text(fx + 16, col_y + 5, 'Status — Engine.swarm_list()', gg.TextCfg{ color: app.pnl_card, size: 11, mono: true })
-	// derive status from Engine if available, else mock
+	// Derive status from Engine. An empty list means no swarms are running.
 	mut swarms := []string{}
 	if app.desktop != unsafe { nil } {
 		list := app.desktop.swarm_list()
 		for s in list {
 			swarms << '${s.id} ${s.recipe.str()} ${s.backend.str()} ${s.status.str()}'
 		}
-	}
-	if swarms.len == 0 {
-		swarms = ['swarm-a4f pair herdr running', 'swarm-b2e team tmux awaiting_approval',
-			'swarm-c91 full auto completed']
 	}
 	app.swarm_scroll = clamp_scroll(app.swarm_scroll, swarms.len, col_h / 16 - 2)
 	for i in 0 .. (col_h / 16 - 2) {
@@ -5339,11 +5166,11 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	// handoff artifacts list + inner/outer loop hint
 	mut handoffs := []string{}
 	if app.desktop != unsafe { nil } && swarms.len > 0 {
-		// use first swarm id if real, else mock
+		// Use the first real swarm id.
 		first_id := if app.desktop.swarm_list().len > 0 {
 			app.desktop.swarm_list()[0].id
 		} else {
-			'swarm-a4f'
+			''
 		}
 		hs := app.desktop.swarm_handoffs(first_id)
 		if hs.len > 0 {
@@ -5355,15 +5182,6 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		for a in arts {
 			handoffs << 'artifact: ${a}'
 		}
-	}
-	if handoffs.len == 0 {
-		handoffs = [
-			'planner → implementer via GOD mailbox (artifact task-contract.md)',
-			'implementer → reviewer commit a3f9… (GOD queued)',
-			'reviewer → architect feedback blocked max_round_trips',
-			'inner loop tick 1/2 (budget 12k)',
-			'outer loop daily-triage next 1d',
-		]
 	}
 	for i in 0 .. (col_h / 16 - 2) {
 		if i >= handoffs.len {
@@ -5412,11 +5230,6 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 				}]} — pending'
 			}
 		}
-	}
-	if apprs.len == 0 {
-		apprs = ['spend \$0.42 — architect (threshold 80%)',
-			'scope write swarm_recipes.v — implementer',
-			'destructive git push — reviewer (deny by default)']
 	}
 	app.gg.draw_text(rx + 8, col_y + 26, 'Gates:', gg.TextCfg{ color: app.pnl_select, size: 11, bold: true })
 	for i, ap in apprs {
@@ -6964,25 +6777,15 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 				break
 			}
 			app.gg.draw_text(inner_x, ay + 3, a.id[..if a.id.len > 12 { 12 } else { a.id.len }], gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			// waterfall bars — logistic priority tinted
-			bar_x := inner_x + 110
-			bar_max := inner_w - 130
-			// simulate 3 tool spans per agent with staggered brass/steel
-			for b in 0 .. 3 {
-				xb := bar_x + b * (bar_max / 4) + idx * 2
-				wb := 48 + b * 12
-				if xb + wb > inner_x + inner_w - 10 {
-					break
-				}
-				col := if b % 2 == 0 { app.pnl_select } else { app.pnl_text_mut }
-				app.gg.draw_rect_filled(xb, ay + 2, wb, 10, col)
-				app.gg.draw_rect_empty(xb, ay + 2, wb, 10, app.pnl_border)
-			}
+			// Tool spans are drawn only when the Engine exposes measured spans.
+			// Agent identity alone is not evidence that a tool call occurred.
 			app.gg.draw_text(inner_x + inner_w - 80, ay + 3, a.tier, gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 			ay += 20
 		}
 		if agents.len == 0 {
-			app.gg.draw_text(inner_x, y0 + 4, 'No agents yet — 18 personas (11 holistic + 6 specialist) will waterfall here when active.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(inner_x, y0 + 4, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		} else {
+			app.gg.draw_text(inner_x + 110, y0 + 4, 'No measured tool spans yet.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		}
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Waterfall 60 FPS — retained geometry, viewport culling, text measurement via vglyph', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	} else if app.insights_tab == 'spans' {
@@ -6996,19 +6799,7 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		pids, drops := app.desktop.engine_process_supervisor_stats()
 		app.gg.draw_text(inner_x + 6, y, 'Jobs: pids=${pids} drops=${drops} total=${spans.total} running=${spans.running} failed=${spans.failed}', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
 		y += 20
-		// mock spans with Dunder paper rows
-		for i in 0 .. 5 {
-			if y + 16 > cy0 + ch - 24 {
-				break
-			}
-			bg2 := if i % 2 == 0 { app.pnl_card } else { app.pnl_bg }
-			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
-			dur := 42 + i * 18
-			app.gg.draw_text(inner_x + 6, y + 3, 'span-${i}  trace:${dur}ms', gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			app.gg.draw_text(inner_x + 180, y + 3, 'loop/jobs/swarm • ${dur}ms', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			app.gg.draw_text(inner_x + inner_w - 60, y + 3, '${dur}ms', gg.TextCfg{ color: app.pnl_border_hi, size: 11, mono: true })
-			y += 18
-		}
+		app.gg.draw_text(inner_x + 6, y + 4, 'Measured spans will appear after a real job, loop, or swarm emits telemetry.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Spans via EventBus process_log • durable ledger • no shell exec', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	} else if app.insights_tab == 'budgets' {
 		app.gg.draw_text(inner_x, inner_y, 'Budgets — swarm + loops ledger (pair/team/full 900k/1.2M + per-loop max_tokens)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
@@ -7018,26 +6809,8 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			[]desktop_engine.LoopHistory{}
 		}
 		mut y := inner_y + 40
-		// budget rings overview (paper gauge)
-		for i in 0 .. 3 {
-			if y + 22 > cy0 + ch - 24 {
-				break
-			}
-			label := ['pair 900k', 'team 900k', 'full 1.2M', 'loop 10/day'][i]
-			used := [42, 128, 256, 7][i]
-			limit := [900000, 900000, 1200000, 10][i]
-			pct := f64(used) / f64(limit)
-			app.gg.draw_text(inner_x + 6, y + 4, label, gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
-			// ring as brass bar with paper bg
-			app.gg.draw_rect_filled(inner_x + 120, y + 4, 180, 10, app.pnl_border)
-			mut bar_w := int(180 * pct)
-			colb := if pct > 0.85 { app.pnl_danger } else { app.pnl_select }
-			if bar_w > 0 {
-				app.gg.draw_rect_filled(inner_x + 120, y + 4, bar_w, 10, colb)
-			}
-			app.gg.draw_text(inner_x + 320, y + 4, '${used}/${limit} ${int(pct * 100)}%', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-			y += 22
-		}
+		app.gg.draw_text(inner_x + 6, y + 4, 'No budget measurements yet.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		y += 22
 		if loops.len > 0 {
 			app.gg.draw_text(inner_x + 6, y + 10, 'Recent loop history: ${loops.len} entries', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
 			y += 30
@@ -7059,7 +6832,8 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(inner_x, inner_y, 'CI Watcher — live fleet + validate.yml (superior to munder CI watch)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 		app.gg.draw_text(inner_x, inner_y + 18, 'Watches .github/workflows/validate.yml via StateWatcher + PollingWatcher — no refresh', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		mut y := inner_y + 42
-		// CI jobs matrix (paper tape)
+		// CI jobs matrix (paper tape). A workflow name is not a result; show
+		// neutral state until a connected provider reports an observation.
 		jobs_ci := ['validate (VJOBS=2)', 'megalinter', 'check-planes', 'check-surface', 'catalogs',
 			'provenance', 'build-cli']
 		for i, j in jobs_ci {
@@ -7068,14 +6842,10 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 			}
 			bg2 := if i % 2 == 0 { app.pnl_card } else { app.pnl_bg }
 			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
-			status := if i < 5 {
-				'✓ green'
-			} else if i == 5 { '» running' } else { '- pending' }
-			scol := if status.contains('green') {
-				app.pnl_success
-			} else if status.contains('running') { app.pnl_select } else { app.pnl_text_mut }
+			status := 'Not observed'
+			scol := app.pnl_text_mut
 			app.gg.draw_text(inner_x + 6, y + 3, j, gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			app.gg.draw_text(inner_x + inner_w - 80, y + 3, status, gg.TextCfg{ color: scol, size: 11, bold: status.contains('green') })
+			app.gg.draw_text(inner_x + inner_w - 80, y + 3, status, gg.TextCfg{ color: scol, size: 11 })
 			y += 18
 		}
 		app.gg.draw_text(inner_x, cy0 + ch - 18, 'CI watcher debounced 16ms distinct-until-changed • bottom terminal streams live logs', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
@@ -7092,15 +6862,13 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 fn draw_insights_realtime(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y int, inner_w int) {
 	app.gg.draw_text(inner_x, inner_y, 'Realtime — EventBus live feed (swarm_handoff · state_changed · process_log)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 	app.gg.draw_text(inner_x, inner_y + 18, 'GOD envelopes ${app.god_inbox} in · ${app.god_outbox} out · rev ${app.engine_rev} · api ${app.api_calls} — one tick, no polling', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	// GOD flow meter — 4*t*(1-t) logistic pulse
-	flow_t := f64(app.frame % 60) / 60.0
-	flow_w := int(18.0 * (4.0 * flow_t * (1.0 - flow_t)))
+	// GOD flow meter reflects observed envelopes only; zero is a valid idle state.
 	app.gg.draw_rect_filled(inner_x, inner_y + 36, inner_w, 10, app.pnl_card)
-	if flow_w > 0 {
-		app.gg.draw_rect_filled(inner_x, inner_y + 36, 30 + flow_w * 12, 10, tint(app.pnl_danger, 110))
+	if app.god_inbox > 0 || app.god_outbox > 0 {
+		app.gg.draw_rect_filled(inner_x, inner_y + 36, inner_w / 3, 10, tint(app.pnl_select, 110))
 	}
 	app.gg.draw_rect_empty(inner_x, inner_y + 36, inner_w, 10, app.pnl_border)
-	app.gg.draw_text(inner_x + inner_w - 110, inner_y + 37, 'GOD 4·t·(1−t)', gg.TextCfg{ color: app.pnl_danger, size: 10, mono: true })
+	app.gg.draw_text(inner_x + inner_w - 110, inner_y + 37, 'Observed flow', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 	// live feed — engine log collector, newest last
 	all_logs := collect_engine_logs(app)
 	mut y := inner_y + 58

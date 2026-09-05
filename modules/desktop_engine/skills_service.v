@@ -1,6 +1,5 @@
 module desktop_engine
 
-import os
 import time
 import x.json2
 
@@ -60,19 +59,17 @@ pub:
 	code    string
 }
 
-// skills_catalog returns typed catalog via Engine API (engine_api_call>0, no shell).
-// Now 227 searchable entries (14 domains, synthetic pad to 227 when file has 116).
-// Real catalog read still honored; when file has 116 we pad to 227 deterministically.
-// Enhanced: now parses triggers/origin/products if present, fills kind.
+// skills_catalog returns the catalog supplied by the resolved toolkit root.
+// A missing or unreadable catalog is an empty catalog. The UI must explain that
+// the catalog is unavailable instead of inventing capability entries.
 pub fn (mut e Engine) skills_catalog() []SkillEntry {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	env := resolve_env()
-	catalog_path := os.join_path(env.toolkit_root, 'catalogs', 'skill-catalog.yaml')
 	mut entries := []SkillEntry{}
-	if os.is_file(catalog_path) {
-		text := os.read_file(catalog_path) or { '' }
+	if data_file_exists(env, 'catalogs/skill-catalog.yaml') {
+		text := data_file_read(env, 'catalogs/skill-catalog.yaml') or { '' }
 		if text.len > 0 {
 			lines := text.split_into_lines()
 			mut cur := SkillEntry{}
@@ -124,37 +121,6 @@ pub fn (mut e Engine) skills_catalog() []SkillEntry {
 			}
 		}
 	}
-	if entries.len >= 227 {
-		return entries[..227]
-	}
-	domains := ['core', 'delivery', 'design', 'forge', 'integrations', 'data', 'tooling', 'ops',
-		'loops', 'quality', 'architecture', 'cloud', 'agentic-security', 'accessibility']
-	mut existing_ids := map[string]bool{}
-	for en in entries {
-		existing_ids[en.id] = true
-	}
-	mut i := 0
-	for entries.len < 227 {
-		domain := domains[i % domains.len]
-		candidate_id := '${domain}/skill-${entries.len:03d}'
-		if candidate_id !in existing_ids {
-			entries << SkillEntry{
-				id: candidate_id
-				name: 'skill-${entries.len:03d}'
-				domain: domain
-				description: 'Synthetic skill ${entries.len} in ${domain} for searchable 227 catalog — ${domain} headless'
-				stability: if entries.len % 7 == 0 { 'beta' } else { 'stable' }
-				triggers: '${domain}, ${candidate_id}'
-				origin_type: if entries.len % 13 == 0 { 'upstream' } else { 'first-party' }
-				kind: 'skill'
-			}
-			existing_ids[candidate_id] = true
-		}
-		i++
-		if i > 1000 {
-			break
-		}
-	}
 	return entries
 }
 
@@ -163,7 +129,7 @@ struct SkillsScored {
 	score int
 }
 
-// skills_search performs fuzzy searchable filtering over 227 catalog — super-potent: multi-field + domain + stability + origin.
+// skills_search performs fuzzy searchable filtering over the real catalog.
 pub fn (mut e Engine) skills_search(query string, domain_filter string) []SkillEntry {
 	cat := e.skills_catalog()
 	q := query.trim_space().to_lower()

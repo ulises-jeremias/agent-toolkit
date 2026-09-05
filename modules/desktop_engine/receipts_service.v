@@ -1,7 +1,6 @@
 module desktop_engine
 
 import os
-import time
 import x.json2
 
 // ReceiptEntry is unified receipt for any install (skill/agent/mcp/target/product/update).
@@ -74,20 +73,6 @@ pub fn (mut e Engine) receipts_catalog() []ReceiptEntry {
 			}
 		}
 	}
-	// also surface low-level receipt:generated markers
-	if out.len == 0 && 'receipt:generated' in snap.data {
-		out << ReceiptEntry{
-			kind: 'target'
-			id: 'agent-toolkit-profiles'
-			product: 'agent-toolkit-profiles'
-			version: '1.27.0'
-			installed_at: snap.data['receipt:generated'] or { time.now().str() }
-			digest: 'sha256:abc'
-			provenance: 'profiles/'
-			receipt_path: '~/.config/agent-toolkit/receipts/profiles.json'
-			verified: true
-		}
-	}
 	// supplement from filesystem receipts dir if present (checkout parity)
 	env := resolve_env()
 	receipt_dir := os.join_path(env.toolkit_root, '.config', 'agent-toolkit', 'receipts')
@@ -102,29 +87,15 @@ pub fn (mut e Engine) receipts_catalog() []ReceiptEntry {
 						id: f.all_before('.json')
 						product: 'agent-toolkit-profiles'
 						version: '1.27.0'
-						installed_at: time.now().str()
-						digest: 'sha256:fs-${f.len}'
+						// A receipt file is evidence of a record, not proof that its
+						// artifact is present. Verify its contents before marking it.
+						installed_at: ''
+						digest: ''
 						provenance: 'fs:${receipt_dir}/${f}'
 						receipt_path: os.join_path(receipt_dir, f)
-						verified: true
+						verified: false
 					}
 				}
-			}
-		}
-	}
-	// default synthetic if still empty
-	if out.len == 0 {
-		for i in 0 .. 3 {
-			out << ReceiptEntry{
-				kind: if i % 2 == 0 { 'skill' } else { 'target' }
-				id: if i % 2 == 0 { 'core/assistant' } else { 'claude-code' }
-				product: 'agent-toolkit-core'
-				version: '1.27.0'
-				installed_at: time.now().str()
-				digest: 'sha256:synthetic-${i}'
-				provenance: 'catalogs/skill-catalog.yaml'
-				receipt_path: 'receipts/synthetic-${i}.json'
-				verified: true
 			}
 		}
 	}
