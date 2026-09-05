@@ -75,3 +75,7 @@ Classifications are recommendations requiring relevant runtime proof before clos
 4. Close superseded spatial issues only with concrete mapping to continuing tasks (#1104/#1107/#1108/#1115/#1131), avoiding implied deletion of product capabilities.
 5. Reconcile implemented Doctor/MCP/Swarm/golden items after running and viewing affected states; do not close based on commit summaries.
 6. Rewrite terminal/native/packaging issues completely rather than appending another triage preface above obsolete implementation instructions.
+
+## Implementation evidence — PR #1139 follow-up
+
+The active desktop branch (`r2-office-shell`) has since removed fabricated production state and wired several controls to typed Engine operations. Evidence includes commits `c8908fd` (operational Office overview), `00bdf5f`/`0e66f47` (no synthetic git/provenance data), `030bc0d`/`b034242` (loop/job actions through Engine), `155a04c` (truthful empty Jobs), and `fbf62ff`/`cd4494e` (MCP health/probe semantics). Focused Engine tests and native builds pass; PR #1139 remains open/draft pending full CI and visual review.
