@@ -2596,7 +2596,7 @@ fn frame(mut app GuiApp) {
 		app.gg.draw_rect_filled(left_x - 6, h - 14, 4, 4, tint(col_oxide, 88))
 	}
 	left_x += 58
-	app.gg.draw_text(left_x, h - 19, '•  rev ${app.engine_rev}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
+	app.gg.draw_text(left_x, h - 19, '•  live state', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
 	left_x += 92
 	// version stamp — same single source of truth as the header (desktop_version).
 	app.gg.draw_text(left_x, h - 19, '•  v${app.version}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
@@ -3543,7 +3543,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 				app.gg.draw_rect_empty(fx2 - 1, fy2 - 1, 6, 6, app.pnl_select)
 			}
 		}
-		app.gg.draw_text(fleet_x, deck_y + 36, 'rev ${app.engine_rev} • fleet glance', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+		app.gg.draw_text(fleet_x, deck_y + 36, 'live fleet status', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		// CI — doctor + jobs live status (workshop CI strip)
 		ci_x := deck_x + col_w * 2 + 8
 		app.gg.draw_text(ci_x, deck_y + 6, 'CI', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
@@ -3580,7 +3580,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// Floor legend + live stats (English only)
 	app.gg.draw_rect_filled(fx, fy + fh - 20, fw, 20, tint(app.pnl_text, 220))
 	draw_floor_legend(mut app, fx + 10, fy + fh - 14)
-	app.gg.draw_text(fx + fw - 148, fy + fh - 14, 'rev ${app.engine_rev}  api ${app.api_calls}', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + fw - 148, fy + fh - 14, 'status from Engine', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	// signature fleet minimap dots — 1px per desk status in legend bar (super-potent fleet glance)
 	for i, d in desks {
 		mx2 := fx + fw - 148 - 22 - i * 6
@@ -6325,7 +6325,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	} else {
 		'Onboarded ✓'
 	}, gg.TextCfg{ color: pill_col, size: 11, bold: true })
-	app.gg.draw_text(fx + 130, y_status + 3, 'rev ${revision} • api ${app.api_calls} • ${installed_cnt} skills • ${enabled_targets.len} targets • ${persona_cnt} personas • ${if workspace_exists {
+	app.gg.draw_text(fx + 130, y_status + 3, '${installed_cnt} skills • ${enabled_targets.len} targets • ${persona_cnt} personas • ${if workspace_exists {
 		'workspace ✓'
 	} else {
 		'workspace …'
