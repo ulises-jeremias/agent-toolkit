@@ -998,7 +998,9 @@ pub fn (mut e Engine) swarm_budget(run_id string) ?SwarmBudgetView {
 		run_id: r.id
 		budget_total: r.budget_total
 		budget_spent: r.budget_spent
-		remaining: r.budget_total - r.budget_spent
+		remaining: if r.budget_total > r.budget_spent {
+			r.budget_total - r.budget_spent} else {
+			0}
 		status: r.status
 	}
 }
@@ -1006,6 +1008,9 @@ pub fn (mut e Engine) swarm_budget(run_id string) ?SwarmBudgetView {
 // swarm_budget_display returns human budget string for UI.
 pub fn (mut e Engine) swarm_budget_display(run_id string) string {
 	if b := e.swarm_budget(run_id) {
+		if b.budget_total <= 0 {
+			return '${b.run_id} ${b.budget_spent} tok (budget not configured) status=${b.status.str()}'
+		}
 		return '${b.run_id} ${b.budget_spent}/${b.budget_total} tok (remaining ${b.remaining}) status=${b.status.str()}'
 	}
 	return 'run not found: ${run_id}'

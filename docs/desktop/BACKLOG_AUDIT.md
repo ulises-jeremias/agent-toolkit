@@ -143,3 +143,5 @@ Onboarding bulk target/product mutations now validate IDs against the live Engin
 Swarm launches no longer claim a fabricated 100-token allowance. Budget totals remain zero until supplied by authoritative recipe/config state, and missing persisted totals default to zero (`swarm_service.v`, follow-up after `6dff5a3`).
 
 Partial Swarm inner-loop records now default to `pending`, with an unknown iteration limit of zero, rather than claiming an active running loop with two iterations. Active state is shown only when persisted by the runtime (`swarm_service.v`, follow-up after `b83ef4f`).
+
+Swarm budget views now clamp remaining tokens at zero and explicitly say “budget not configured” when no authoritative limit exists, instead of showing a negative or fabricated allowance (`swarm_service.v`, follow-up after `bb3e15e`).
