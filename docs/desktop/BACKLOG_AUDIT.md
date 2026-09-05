@@ -93,3 +93,5 @@ Jobs Cancel and Retry controls now reflect lifecycle legality: Cancel is active 
 Loop run-count and wall-clock tracks now render as configured limits rather than fabricated utilization; only token usage is filled from the Engine ledger (`main.v`, follow-up after `7aa3d5e`).
 
 Doctor now disables the Fix All control when no non-passing check is fixable and reports an explicit all-clear message on attempted activation (`main.v`, follow-up after `2020819`).
+
+Jobs hover/selection now uses the same live Engine catalog as rendering; the former four-record fallback is gone (`main.v`, follow-up after `de4e826`).
