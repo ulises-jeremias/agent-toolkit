@@ -109,3 +109,5 @@ The inspector's compact per-desk Ghostty view is now explicitly an Engine log pr
 Discovered loops without execution history now keep `last_exit` empty instead of claiming `success`; completion is shown only after a recorded run (`loops_service.v`, follow-up after `d2f5f25`).
 
 MCP catalog now discovers only packaged provider directories containing real config templates, using their actual paths for previews, provenance, probes, and toggle installation. Unknown providers return empty content instead of fabricated npx configuration (`mcp_service.v`, follow-up after `6da89e7`).
+
+Doctor MCP repair previews now identify the packaged template that will be used, instead of promising an invented npx configuration. The actual repair calls the same Engine MCP toggle path (`targets_service.v`, follow-up after `01718e7`).

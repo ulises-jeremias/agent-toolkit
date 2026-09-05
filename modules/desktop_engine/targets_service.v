@@ -410,7 +410,7 @@ pub fn (mut e Engine) doctor_fix_preview(check_id string) ![]string {
 						'note: provider reports ${p.health} — toggle would REMOVE it, so no config change is made']
 				}
 				return [
-					'upsert default MCP config for ${mid} (npx @modelcontextprotocol/server-${mid})',
+					'use packaged MCP template ${p.provenance}',
 					'set doctor:fix:mcp:${mid} = fixed',
 				]
 			}
