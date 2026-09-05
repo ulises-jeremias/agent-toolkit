@@ -2284,7 +2284,7 @@ fn on_init(mut app GuiApp) {
 		// first run: the OFFICE is the hero — the wizard renders as an overlay
 		// on the floor (munder-style boot straight into the office)
 		app.selected_panel = 0
-		app.onboarding_msg = 'Welcome — 7-step wizard: detect → capabilities → targets → products → workspace → personas → done (press o to toggle)'
+		app.onboarding_msg = 'Welcome — let’s set up your workspace, coding tools, and useful capabilities (press o to toggle)'
 	} else {
 		app.onboarding_msg = ''
 	}
@@ -6224,7 +6224,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 150, fy + 13, 'workspace · personas · ${skills_total(mut app)} capabilities · ${targets_total(mut app)} targets · ${products_total(mut app)} products · one Engine', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + 150, fy + 13, 'workspace · coding tools · ${skills_total(mut app)} capabilities · ${products_total(mut app)} products', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	// signature envelope + GOD mailbox glow — paper envelope on header right
 	env_x := fx + fw - 140
 	env_y := fy + 8
@@ -6272,7 +6272,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		_ = st
 	}
 	// step tabs — 7 steps, pixel-snapped
-	steps := ['Detect', 'Capabilities', 'Targets', 'Products', 'Workspace', 'Personas', 'Done']
+	steps := ['Welcome', 'Capabilities', 'Coding tools', 'Products', 'Workspace', 'Team roles', 'Ready']
 	y_tabs := fy + 40
 	mut tab_x := fx + 10
 	for si, sname in steps {
@@ -6322,7 +6322,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	}
 	// harness path row — brokered fs validated
 	y_harness := y_status + 38
-	app.gg.draw_text(fx + 10, y_harness, 'Harness:', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
+	app.gg.draw_text(fx + 10, y_harness, 'Workspace location:', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
 	mut harness_display := if harness_root == '' { app.harness_root } else { harness_root }
 	if harness_display == '' {
 		harness_display = (if app.desktop != unsafe { nil } {
@@ -6356,7 +6356,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	match app.onboarding_step {
 		0 { // Detect — toolkit root, tier, resolve_paths, env precedence
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Detect — Environment', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Welcome — check your environment', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
 			paths := if app.desktop != unsafe { nil } {
 				app.desktop.engine_resolve_paths()
 			} else {
@@ -6371,7 +6371,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(fx + 20, content_y + 28, 'Toolkit Root:', gg.TextCfg{ color: app.pnl_text, size: 12 })
 			app.gg.draw_text(fx + 20, content_y + 40, root_str, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
 			app.gg.draw_text(fx + 20, content_y + 56, tier_str, gg.TextCfg{ color: app.pnl_text_mut, size: 12, mono: true })
-			app.gg.draw_text(fx + 20, content_y + 74, 'Resolution: AGENT_TOOLKIT_ROOT (override) → XDG → embedded 3a → FHS 3b → checkout — ADR-015/026', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + 74, 'Agent Toolkit found its resources and can work offline from this location.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			app.gg.draw_text(fx + 20, content_y + 90, '${if status_is_first { '!' } else { '·' }} is_first_run=${status_is_first}   doctor checks via Engine.doctor() typed', gg.TextCfg{
 				color: if status_is_first {
 					app.pnl_danger} else {
@@ -6379,7 +6379,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				size: 12
 				mono: true
 			})
-			app.gg.draw_text(fx + 20, content_y + 110, 'Next: pick capabilities (${skills_total(mut app)}) and targets (${targets_total(mut app)}) — bulk, one transaction, EventBus → AppState in one tick.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + 110, 'Next: choose useful capabilities and where your coding tools should use them.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			// environment stamp grid — the office at a glance
 			stamps := [
 				['Capabilities', '${installed_cnt} / ${skills_total(mut app)} installed'],
@@ -6414,15 +6414,15 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				app.gg.draw_text(fx + 38, pend_y + 16 + pi * 16, pitem, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			}
 			if pending.len == 0 {
-				app.gg.draw_text(fx + 24, pend_y + 18, 'All set — workspace, personas, capabilities and targets are ready. Press Done.', gg.TextCfg{ color: app.pnl_success, size: 11 })
+				app.gg.draw_text(fx + 24, pend_y + 18, 'All set — your workspace and selected tools are ready. Press Ready.', gg.TextCfg{ color: app.pnl_success, size: 11 })
 			}
 		}
 		1 { // Capabilities — searchable 227 via Engine, bulk install
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Capabilities — ${skills_total(mut app)} skills, ${skills_domains_count(mut app)} domains', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Choose capabilities — ${skills_total(mut app)} available', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
 			q := app.skills_query
 			disp_q := if q == '' {
-				'Search — try "core", "delivery", "forge" (fuzzy substring + subsequence + word-boundary)'
+				'Search capabilities by name or topic'
 			} else {
 				'filter: ${q} • ${app.desktop.engine_skills_search(q, '').len} match'
 			}
@@ -6466,7 +6466,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				app.gg.draw_text(fx + 24, y + 2, s.id, gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
 				app.gg.draw_text(fx + fw - 90, y + 2, s.domain, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			}
-			app.gg.draw_text(fx + 20, content_y + content_h - 36, 'Bulk: select via search → "Install 5" writes installed_skills + receipts + provenance in one TX (engine_api_call>0)', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + content_h - 36, 'Select useful capabilities, review the changes, then install them together.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			// install 5 button
 			hov := app.onboarding_hover == 1
 			app.gg.draw_rect_filled(fx + fw - 120, content_y + content_h - 54, 96, 20, if hov {
@@ -6485,11 +6485,11 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		}
 		2 { // Targets — toggles via Engine over the live catalog roster
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Targets — ${targets_total(mut app)} platforms', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Choose coding tools — ${targets_total(mut app)} detected', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
 			tgts := if app.desktop != unsafe { nil } {
 				app.desktop.engine_targets().map(it.id)
 			} else {
-				['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
+				[]string{}
 			}
 			for i, t in tgts {
 				y := content_y + 30 + i * 20
@@ -6521,11 +6521,11 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				enabled_targets.len
 			}
 			_ = diff
-			app.gg.draw_text(fx + 20, content_y + content_h - 56, 'Bulk: onboarding_set_targets_bulk([ids]) → one TX, diff preview before write', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + content_h - 56, 'Enable where Agent Toolkit should make capabilities available. Review before saving.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		}
 		3 { // Products / Packs — membership & digest
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Products & Packs — ${products_total(mut app)} products · ${packs_total(mut app)} packs', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Ready-made bundles — ${products_total(mut app)} products · ${packs_total(mut app)} packs', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
 			prods := if app.desktop != unsafe { nil } {
 				app.desktop.engine_products_catalog()
 			} else {
@@ -6562,9 +6562,9 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		}
 		4 { // Workspace init — harness scaffold
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Workspace Init — Harness Scaffold', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Create your Agent Toolkit workspace', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
 			app.gg.draw_text(fx + 20, content_y + 30, 'Target: ${harness_display}', gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
-			app.gg.draw_text(fx + 20, content_y + 46, 'Creates: knowledge/ repos/ projects/ packs/ personas/ .agent-toolkit/ knowledge/learnings/ todos/ + .gitignore + packs/README', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + 46, 'Creates a safe managed home for capabilities, projects, context, and settings.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			status_col2 := if workspace_exists { app.pnl_success } else { app.pnl_select }
 			app.gg.draw_text(fx + 20, content_y + 62, if workspace_exists {
 				'✓ Workspace exists — ready'
@@ -6594,7 +6594,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		}
 		5 { // Personas — bootstrap 4 persona markdowns
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Persona Bootstrap — 4 work modes', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'Optional team roles', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
 			personas := ['implementer', 'reviewer', 'researcher', 'architect']
 			for i, pers in personas {
 				y := content_y + 32 + i * 22
@@ -6611,7 +6611,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 					size: 11
 				})
 			}
-			app.gg.draw_text(fx + 20, content_y + 128, 'Each persona is a markdown with allow/deny + handoffs (implementer→reviewer, etc).', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + 128, 'Add reusable roles for how you plan, build, review, and research.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			hov_boot := app.onboarding_hover == 5
 			app.gg.draw_rect_filled(fx + 20, content_y + 148, 130, 22, if hov_boot {
 				app.pnl_text
@@ -6629,7 +6629,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		}
 		6 { // Done — tour + complete
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
-			app.gg.draw_text(fx + 20, content_y + 10, 'Done — Tour', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
+			app.gg.draw_text(fx + 20, content_y + 10, 'You are ready to work', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
 			app.gg.draw_text(fx + 20, content_y + 30, '1 → World (floor, GOD mailbox)   2 → Skills (${skills_total(mut app)} fuzzy)   3 → Agents (${agents_active_total(mut app)})   4 → Targets (${targets_total(mut app)})', gg.TextCfg{ color: app.pnl_text, size: 12 })
 			app.gg.draw_text(fx + 20, content_y + 46, '5 → Doctor (receipts)  6 → Jobs  7 → Loops (inner/outer)  8 → Swarm (pair/team/full)  9 → Workspace IDE  P → Products', gg.TextCfg{ color: app.pnl_text, size: 12 })
 			app.gg.draw_text(fx + 20, content_y + 64, 'All panels via single Engine — no shell, every mutation is a StateRepository Transaction → EventBus → AppState.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
