@@ -2576,13 +2576,7 @@ fn frame(mut app GuiApp) {
 	})
 	app.gg.draw_rect_empty(thx2, zy2 - 3, 6, 10, col_brass_dim)
 	app.gg.draw_text(zx2 + zw2 + 6, h - 19, zoom_percent(app.global_zoom), gg.TextCfg{ color: col_ink500, size: scaled_size(10, app.global_zoom) })
-	// center — frame + 60FPS indicator (paper dot pulses at 60FPS)
-	mid := 'frame ${app.frame}  •  60FPS'
-	mid_w := mid.len * 6
-	app.gg.draw_text(w / 2 - mid_w / 2, h - 19, mid, gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
-	// 60FPS dot — brass pulse every 30 frames
-	fps_col := if app.frame % 30 < 15 { col_brass } else { tint(col_brass, 44) }
-	app.gg.draw_rect_filled(w / 2 + mid_w / 2 + 6, h - 15, 5, 5, fps_col)
+	// center — keep the footer quiet; runtime instrumentation belongs in diagnostics.
 	// right — appearance chip, branch, manila tab + Paper Co.
 	app.gg.draw_rect_filled(w - 330, h - 22, 84, 16, col_paper_dim)
 	app.gg.draw_rect_empty(w - 330, h - 22, 84, 16, col_line_light)

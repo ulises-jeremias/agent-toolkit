@@ -171,3 +171,5 @@ Doctor receipt checks and receipt JSON now iterate over the same Engine target c
 Doctor's skill audit now validates that the resolved catalog is non-empty instead of freezing health on the historical count of 116. Legacy skill receipts with no recorded product keep that field empty rather than claiming `agent-toolkit-core` (`engine.v`, `skills_service.v`, `targets_service.v`, follow-up after `6762579`).
 
 Removed the unconnected `3847` footer number from the production shell. The footer no longer displays a synthetic metric with no Engine source (`cmd/agent-toolkit-desktop/main.v`, follow-up after `47b3b49`).
+
+Removed the footer's hardcoded `60FPS` claim and frame counter. Performance instrumentation is no longer presented as user-facing product state (`cmd/agent-toolkit-desktop/main.v`, follow-up after `cff4c39`).
