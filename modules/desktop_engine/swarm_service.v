@@ -219,8 +219,7 @@ pub fn (mut m GodMailbox) prioritized_drain(seed f64) []string {
 	// manual insert sort to avoid V3 generic monomorphize segfault on CI
 	for i := 1; i < scored.len; i++ {
 		mut j := i
-		for j > 0 && (scored[j].prio > scored[j - 1].prio
-			|| (scored[j].prio == scored[j - 1].prio && scored[j].idx < scored[j - 1].idx)) {
+		for j > 0 && (scored[j].prio > scored[j - 1].prio || (scored[j].prio == scored[j - 1].prio && scored[j].idx < scored[j - 1].idx)) {
 			tmp := scored[j]
 			scored[j] = scored[j - 1]
 			scored[j - 1] = tmp
@@ -542,8 +541,9 @@ pub fn (mut e Engine) swarm_logs(run_id string) []string {
 	snap := e.repo.snapshot()
 	raw := snap.data['swarm/${run_id}/logs'] or { snap.data['jobs/${run_id}/logs'] or { '' } }
 	if raw == '' {
-		// synthesize from runs if no logs yet
-		return ['swarm ${run_id} launched', 'awaiting handoff via GOD mailbox']
+		// No log is a valid initial state. The desktop must not turn a run
+		// record into fabricated activity or a handoff claim.
+		return []
 	}
 	return raw.split('\n')
 }
