@@ -169,6 +169,16 @@ pub fn (mut e Engine) update_product_membership(product_id string, skill_ids []s
 	if product_id == '' {
 		return error('product id empty')
 	}
+	mut known := false
+	for product in e.products_catalog() {
+		if product.id == product_id {
+			known = true
+			break
+		}
+	}
+	if !known {
+		return error('product not found: ${product_id}')
+	}
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()

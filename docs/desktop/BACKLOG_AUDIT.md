@@ -127,3 +127,5 @@ The optional Floor Map now projects discovered Engine agents through a Desktop c
 Floor Map rendering now resolves the discovered agent desks once per frame and reuses the result for the title and geometry, avoiding duplicate catalog scans and API-count increments (`main.v`, follow-up after `91dcf9f`).
 
 `set_pack_enabled` now validates the pack against the discovered catalog before writing state, preventing stale or arbitrary IDs from creating phantom pack configuration (`products_service.v`, follow-up after `ffc7904`).
+
+`update_product_membership` now validates product IDs against `distributions/products.yaml` before writing membership state, preventing phantom products in the Engine store (`products_service.v`, follow-up after `0ff1cd9`).

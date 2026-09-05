@@ -60,6 +60,11 @@ fn test_product_truth_catalog_counts() {
 	assert products.len == 5, 'products must be 5'
 	assert products[0].skill_ids.len > 0, 'product membership must come from products.yaml'
 	assert products[0].skill_ids.len < skills.len, 'product membership must not claim the whole catalog'
+	if _ := eng.update_product_membership('missing-product', []) {
+		assert false, 'unknown products must not create persisted state'
+	} else {
+		assert err.msg().contains('product not found')
+	}
 	assert eng.packs_catalog().len == 7, 'packs must be 7'
 	if _ := eng.set_pack_enabled('missing-pack', true) {
 		assert false, 'unknown packs must not create persisted state'
