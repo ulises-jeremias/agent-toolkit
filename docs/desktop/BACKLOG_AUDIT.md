@@ -97,3 +97,5 @@ Doctor now disables the Fix All control when no non-passing check is fixable and
 Jobs hover/selection now uses the same live Engine catalog as rendering; the former four-record fallback is gone (`main.v`, follow-up after `de4e826`).
 
 Swarm topology now labels nodes as recorded participants and draws static handoff edges; historical handoffs no longer appear as currently working roles or animated delivery (`main.v`, follow-up after `080af52`).
+
+Office Running now reflects the Engine job catalog: it reports active operations when jobs are running and a truthful empty state otherwise (`main.v`, follow-up after `d61ee61`).
