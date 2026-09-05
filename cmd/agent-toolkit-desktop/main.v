@@ -4775,36 +4775,23 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(fx + 22, bar_y, bar_w * t_pct / 100, 4, tok_col)
 		app.gg.draw_text(fx + 22, bar_y + 6, 'tokens ${t_pct}%', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		app.gg.draw_text(fx + 22 + bar_w - 28, bar_y + 6, '${spent}/${max_tok}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
-		runs_cap_pct := if max_runs > 0 { max_runs * 100 / 96 } else { 0 }
-		mut r_pct := runs_cap_pct
-		if r_pct > 100 {
-			r_pct = 100
-		}
-		if r_pct < 4 {
-			r_pct = 4
-		}
 		rx := fx + 22 + bar_w + 8
 		app.gg.draw_rect_filled(rx, bar_y, bar_w, 4, app.pnl_card_sel)
 		runs_col := if max_runs >= 48 {
 			app.pnl_select
 		} else if max_runs >= 6 { app.pnl_text_mut } else { app.pnl_success }
-		app.gg.draw_rect_filled(rx, bar_y, bar_w * r_pct / 100, 4, runs_col)
-		app.gg.draw_text(rx, bar_y + 6, 'runs ${max_runs}/d', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
-		wall_cap_pct := if max_wall > 0 { max_wall * 100 / 1800 } else { 0 }
-		mut w_pct := wall_cap_pct
-		if w_pct < 4 {
-			w_pct = 4
-		}
-		if w_pct > 100 {
-			w_pct = 100
-		}
+		// Run and wall-clock values are limits, not usage. Keep the tracks
+		// empty until the Engine exposes consumed values; a filled fraction
+		// based on the configured maximum would falsely imply activity.
+		app.gg.draw_rect_empty(rx, bar_y - 1, bar_w, 6, runs_col)
+		app.gg.draw_text(rx, bar_y + 6, 'limit ${max_runs}/d', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		wx := rx + bar_w + 8
 		app.gg.draw_rect_filled(wx, bar_y, bar_w, 4, app.pnl_card_sel)
 		wall_col := if max_wall >= 1200 {
 			app.pnl_danger
 		} else if max_wall >= 600 { app.pnl_select } else { app.pnl_success }
-		app.gg.draw_rect_filled(wx, bar_y, bar_w * w_pct / 100, 4, wall_col)
-		app.gg.draw_text(wx, bar_y + 6, 'wall ${max_wall}s', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+		app.gg.draw_rect_empty(wx, bar_y - 1, bar_w, 6, wall_col)
+		app.gg.draw_text(wx, bar_y + 6, 'limit ${max_wall}s wall', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		// burn-down sparkline — last budget_spent values from the loop ledger
 		history := app.desktop.engine_loop_history('')
 		mut runs := []int{}
