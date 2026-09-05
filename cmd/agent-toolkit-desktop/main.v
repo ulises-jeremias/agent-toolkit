@@ -4068,7 +4068,7 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 	}
 	// footer — receipts verification + provenance + secret guard + install preview (super-potent)
 	verify := app.desktop.engine_verify_receipts().filter(it.path.contains('mcp'))
-	app.gg.draw_text(fx + 20, fy + fh - 28, 'MCP config: mcp/templates/<id>/config.template.json via Engine upsert (TX) · secret guard blocks raw ghp_/sk- → \${ENV_VAR} · provenance verified', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 28, 'MCP config: mcp/templates/<id>/config.template.json via Engine upsert (TX) · secret guard blocks raw ghp_/sk- → \${ENV_VAR} · provenance shown when recorded', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	app.gg.draw_text(fx + 20, fy + fh - 14, 'Click a row for masked drawer · toggle on the right · ${verify.len} receipt warnings · Enter toggles first provider', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	// provider drawer — modal card, masked template + probe + open-template (#1106)
 	if app.mcp_drawer != '' {
@@ -4368,7 +4368,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(fx + fw - 60, y0 + vis * row_h + 2, '+${checks_engine.len - vis} more', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	}
 	// footer — receipts/provenance verification + provenance paths
-	app.gg.draw_text(fx + 20, fy + fh - 20, 'Click fix → for dry-run · chip fixes its category · receipts/provenance verified. All checks are English, no fallback.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 20, 'Click fix → for dry-run · chip fixes its category · receipts/provenance shown when recorded. All checks are English, no fallback.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	app.gg.draw_text(fx + fw - 160, fy + fh - 20, '${verify_diags.len} verify warnings', gg.TextCfg{
 		color: if verify_diags.len > 0 {
 			app.pnl_danger} else {
@@ -8263,7 +8263,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						}
 						app.engine_rev = rev
 						app.api_calls = app.desktop.engine_api_calls()
-						app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • secret guard + provenance verified'
+						app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • secret guard; provenance shown when recorded'
 						return
 					}
 				}
@@ -8302,7 +8302,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						}
 						app.engine_rev = rev
 						app.api_calls = app.desktop.engine_api_calls()
-						app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • secret guard + provenance verified • Engine TX'
+						app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • secret guard; provenance shown when recorded • Engine TX'
 						return
 					}
 				}
@@ -9707,7 +9707,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 							// show receipt/provenance for selected even without toggle
 							if app.desktop != unsafe { nil } {
 								if r := app.desktop.engine_skill_receipt(sel.id) {
-									app.inspector_msg = 'Receipt: ${r.skill_id} ${r.installed_at} digest=${r.digest} • provenance verified'
+									app.inspector_msg = 'Receipt: ${r.skill_id} ${r.installed_at} digest=${r.digest} • provenance shown when recorded'
 								} else {
 									app.inspector_msg = 'Selected ${sel.id} — click install → Engine TX + receipt ~/.config/agent-toolkit/receipts'
 								}
@@ -9788,7 +9788,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 								app.engine_rev = rev
 							}
 							app.api_calls = app.desktop.engine_api_calls()
-							app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • ${prov_json} • Engine TX provenance verified'
+							app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • ${prov_json} • Engine TX; provenance shown when recorded'
 						}
 					} else {
 						// row body → masked drawer (#1106)
@@ -9841,7 +9841,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.inspector_msg = if rev == 0 {
 						'Doctor: all fixable already pass ✓'
 					} else {
-						'Doctor Fix All rev=${rev} — receipts/provenance verified via Engine TX'
+						'Doctor Fix All rev=${rev} — receipts/provenance recorded via Engine TX'
 					}
 				}
 				return

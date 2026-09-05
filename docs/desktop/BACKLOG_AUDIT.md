@@ -181,3 +181,5 @@ Palette entries that previously claimed to run `serve`, `doctor --fix`, or `inst
 The Skills header no longer claims a hardcoded `60 FPS` rate; it describes virtualization without asserting an unmeasured performance figure (`cmd/agent-toolkit-desktop/main.v`, follow-up after `e146ebf`).
 
 Palette search now adds matching skills and agents from Engine catalogs (bounded to eight of each), with direct navigation to their panels and clear entity labels. Empty palette state remains lightweight; entity results appear only after a query (`cmd/agent-toolkit-desktop/main.v`, follow-up after `37ebee5`).
+
+MCP, Doctor, receipt and toggle feedback no longer claims provenance was verified merely because a transaction completed. The UI now says provenance is shown when recorded, while verification remains tied to actual Engine diagnostics (`cmd/agent-toolkit-desktop/main.v`, follow-up after `b2043f3`).
