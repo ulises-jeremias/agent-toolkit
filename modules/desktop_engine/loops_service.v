@@ -667,16 +667,9 @@ pub fn (mut e Engine) loops_audit(name string) []LoopAudit {
 				completed++
 			} else if h.status == 'failed' {
 				failed++
-			} else {
-				// treat synthetic history as completed
-				completed++
 			}
 		}
 		mut total := completed + failed
-		if hist.len > 0 && completed == 0 && failed == 0 {
-			completed = hist.len
-			total = hist.len
-		}
 		rate := if total > 0 { '${completed * 100 / total}%' } else { '—' }
 		detail := e.loop_detail(n) or { LoopEntry{ name: n, budget: loop_budget_defaults(.l1) } }
 		mut bud := detail.budget

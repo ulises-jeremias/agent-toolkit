@@ -258,7 +258,14 @@ pub fn (mut e Engine) spawn_job(cmd string, args []string) !string {
 		})
 	})
 	if mut sup := e.supervisor {
-		spawned := sup.spawn_job(cmd, args) or { id }
+		spawned := sup.spawn_job(cmd, args) or {
+			mut failed_tx := repo.begin('job-failed')
+			failed_tx.set('jobs/${id}/status', 'failed')
+			failed_tx.set('jobs/${id}/finished_at', time.now().unix().str())
+			failed_tx.set('jobs/${id}/error', err.msg())
+			e.put_transaction(mut failed_tx) or {}
+			return error('job spawn failed: ${err}')
+		}
 		// update status to running via supervisor spawn
 		mut tx2 := repo.begin('job-running')
 		tx2.set('jobs/${spawned}/status', 'running')
