@@ -3,6 +3,7 @@ module desktop_engine
 import os
 import time
 import x.json2
+import crypto.sha256 as crypto_sha256
 
 // McpProvider mirrors mcp/templates — super-potent: provenance, receipts, health detail.
 pub struct McpProvider {
@@ -60,7 +61,7 @@ pub fn (mut e Engine) mcp_catalog() []McpProvider {
 		mut out := []McpProvider{}
 		for id in ids[..7] {
 			snap := e.repo.snapshot()
-			enabled_str := snap.data['mcp:${id}:enabled'] or { 'true' }
+			enabled_str := snap.data['mcp:${id}:enabled'] or { 'false' }
 			enabled := enabled_str == 'true'
 			health := e.mcp_health_detailed(id)
 			out << McpProvider{
@@ -72,7 +73,7 @@ pub fn (mut e Engine) mcp_catalog() []McpProvider {
 				requires_docker: id == 'github'
 				template_path: os.join_path(reg_dir, '${id}.json')
 				registry_path: os.join_path(env.toolkit_root, 'mcp', 'registry', '${id}.yaml')
-				version: '1.0.0'
+				version: ''
 				provenance: 'mcp/templates/${id}.json'
 			}
 		}
@@ -92,17 +93,17 @@ pub fn (mut e Engine) mcp_catalog() []McpProvider {
 	]
 	for d in defs {
 		id := d[0]
-		enabled_str := snap.data['mcp:${id}:enabled'] or { d[3] }
+		enabled_str := snap.data['mcp:${id}:enabled'] or { 'false' }
 		out << McpProvider{
 			id: id
 			name: d[1]
 			description: d[2]
 			enabled: enabled_str == 'true'
-			health: d[4]
+			health: e.mcp_health_detailed(id)
 			requires_docker: d[5] == 'true'
 			template_path: os.join_path(env.toolkit_root, 'mcp', 'templates', '${id}.json')
 			registry_path: os.join_path(env.toolkit_root, 'mcp', 'registry', '${id}.yaml')
-			version: '1.0.0'
+			version: ''
 			provenance: 'mcp/templates/${id}.json'
 		}
 	}
@@ -247,8 +248,7 @@ pub fn (mut e Engine) mcp_template_json(provider_id string) (string, bool) {
 			break
 		}
 	}
-	return '{"mcpServers": {"${provider_id}": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-${provider_id}"]}}}',
-		false
+	return '{"mcpServers": {"${provider_id}": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-${provider_id}"]}}}', false
 }
 
 // mcp_probe runs the typed health probe: schema validation + secret-guard
@@ -373,7 +373,7 @@ pub fn (mut e Engine) upsert_mcp_provider(provider_id string, config_json string
 	tx.set('mcp:${provider_id}:enabled', 'true')
 	tx.set('mcp:${provider_id}:health', 'healthy')
 	tx.set('receipt:mcp:${provider_id}:installed_at', time.now().str())
-	tx.set('receipt:mcp:${provider_id}:digest', 'sha256:${config_json.len + provider_id.len}')
+	tx.set('receipt:mcp:${provider_id}:digest', crypto_sha256.hexhash(config_json))
 	tx.set('provenance:mcp:${provider_id}:source', 'mcp/templates/${provider_id}.json')
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
