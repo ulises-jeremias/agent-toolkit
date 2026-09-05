@@ -9024,11 +9024,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		desks := desks_for_app(app)
 		if app.selected_desk >= 0 && app.selected_desk < desks.len {
 			if mx >= ix + 12 && mx <= ix + iw - 12 && my >= iy + 180 && my <= iy + 208 {
+				app.term_visible = true
+				app.term_mode = 1
+				app.ghost_focused = true
 				app.inspector_msg = 'Terminal opened: ${desks[app.selected_desk].label}'
 				return
 			}
 			if mx >= ix + 12 && mx <= ix + iw - 12 && my >= iy + 214 && my <= iy + 242 {
-				app.inspector_msg = 'Handoff routed: ${desks[app.selected_desk].label} → reviewer'
+				app.inspector_msg = 'Handoff unavailable: no active Engine operation for ${desks[app.selected_desk].label}'
 				return
 			}
 		}
