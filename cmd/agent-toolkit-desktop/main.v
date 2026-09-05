@@ -1852,11 +1852,6 @@ fn term_level_label(level string) string {
 	}
 }
 
-// Production activity is sourced only from Engine state. Empty is a valid state.
-fn mock_term_logs(_ &GuiApp) []TermLine {
-	return []TermLine{}
-}
-
 // collect_engine_logs reads real Engine logs via snapshot data.
 // Wires to desktop_engine logs if available (jobs/*/logs, watcher_* keys) — per spec.
 fn collect_engine_logs(app &GuiApp) []TermLine {
@@ -4917,7 +4912,7 @@ fn swarm_edge_artifact(line string) string {
 
 // swarm_working_roles derives the active roles from handoff recency: the
 // participants of the most recent handoff are working, the rest queued.
-// No role-name hardcoding; deterministic on live and mock feeds (#1101).
+// No role-name hardcoding; derives participants from recorded handoffs (#1101).
 fn swarm_working_roles(handoffs []string) []string {
 	if handoffs.len == 0 {
 		return []
