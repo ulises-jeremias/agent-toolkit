@@ -1,5 +1,6 @@
 module desktop
 
+import agent_toolkit_core
 import os
 
 // R2 product-truth: the GUI target roster and counts render from this proxy
@@ -22,9 +23,9 @@ fn test_desktop_engine_targets_proxy_matches_engine_catalog() {
 	d.boot() or { panic(err.msg()) }
 	defer { d.shutdown() or {} }
 	tgts := d.engine_targets()
-	assert tgts.len == 7, 'engine_targets proxy must expose 7: got ${tgts.len}'
+	assert tgts.len == agent_toolkit_core.all_emit_targets().len, 'engine_targets proxy must match Engine catalog: got ${tgts.len}'
 	ids := tgts.map(it.id)
-	for want in ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli'] {
+	for want in agent_toolkit_core.all_emit_targets() {
 		assert want in ids, 'target ${want} missing from proxy: ${ids}'
 	}
 	assert d.engine_api_calls() > 0

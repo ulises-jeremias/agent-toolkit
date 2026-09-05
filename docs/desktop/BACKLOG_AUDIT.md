@@ -163,3 +163,5 @@ Onboarding now considers a workspace valid only when the minimum managed scaffol
 Workspace scaffolding now persists `workspace_initialized` from the filesystem verification result instead of unconditionally asserting completion. This keeps onboarding state aligned with the actual scaffold (`onboarding_service.v`, follow-up after `1f5200a`).
 
 `onboarding_complete` now verifies the selected or recent workspace scaffold before persisting completion. A wizard cannot report “ready” against a missing or partial workspace (`onboarding_service.v`, follow-up after `5553b64`).
+
+Engine target entries now derive from the core emitter catalog, with human-readable names and evidence-based profile paths/provenance. The Desktop no longer relies on a stale seven-item target roster or invents paths for unsupported integrations (`targets_service.v`, follow-up after `f1d7eff`).

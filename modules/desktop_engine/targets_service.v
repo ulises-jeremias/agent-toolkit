@@ -2,6 +2,8 @@ module desktop_engine
 
 import time
 import x.json2
+import agent_toolkit_core
+import os
 
 // TargetEntry mirrors install.v profiles — super-potent with receipt/provenance.
 pub struct TargetEntry {
@@ -53,26 +55,47 @@ pub fn (mut e Engine) targets() []TargetEntry {
 	env := resolve_env()
 	base := env.toolkit_root
 	mut out := []TargetEntry{}
-	profiles := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
+	profiles := agent_toolkit_core.all_emit_targets()
 	for p in profiles {
 		enabled_str := e.repo.snapshot().data['target:${p}:enabled'] or { '' }
 		enabled := enabled_str == 'true'
 		layer := if env.tier == 'override' { 'Project' } else { 'Toolkit' }
 		snap := e.repo.snapshot()
 		receipt := snap.data['receipt:target:${p}:path'] or { '' }
-		prov := snap.data['provenance:target:${p}:source'] or { 'profiles/${p}/config.yaml' }
+		prov := snap.data['provenance:target:${p}:source'] or { target_source_provenance(base, p) }
+		profile_path := os.join_path(base, 'profiles', p)
+		resolved_path := if os.exists(profile_path) { profile_path } else { '' }
 		out << TargetEntry{
 			id: p
-			name: p
+			name: target_display_name(p)
 			enabled: enabled
 			layer: layer
-			path: '${base}/profiles/${p}'
+			path: resolved_path
 			status: if enabled { 'enabled' } else { 'disabled' }
 			receipt: receipt
 			provenance: prov
 		}
 	}
 	return out
+}
+
+fn target_display_name(id string) string {
+	mut words := id.replace('-', ' ').split(' ')
+	for i, word in words {
+		if word.len > 0 {
+			words[i] = word[..1].to_upper() + word[1..]
+		}
+	}
+	return words.join(' ')
+}
+
+fn target_source_provenance(base string, id string) string {
+	for rel in ['distributions/targets/${id}.yaml', 'profiles/${id}'] {
+		if os.exists(os.join_path(base, rel)) {
+			return rel
+		}
+	}
+	return ''
 }
 
 pub fn (mut e Engine) set_target_enabled(target_id string, enabled bool) !u64 {

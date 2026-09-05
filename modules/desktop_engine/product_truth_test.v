@@ -1,6 +1,7 @@
 module desktop_engine
 
 import os
+import agent_toolkit_core
 
 // Product truth: the desktop GUI renders every user-visible count through
 // Engine-derived helpers. This test locks the catalog side of that contract.
@@ -65,9 +66,9 @@ fn test_product_truth_catalog_counts() {
 	}
 
 	tgts := eng.targets()
-	assert tgts.len == 7, 'targets must be 7: got ${tgts.len}'
+	assert tgts.len == agent_toolkit_core.all_emit_targets().len, 'targets must match emitter catalog: got ${tgts.len}'
 	ids := tgts.map(it.id)
-	for want in ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli'] {
+	for want in agent_toolkit_core.all_emit_targets() {
 		assert want in ids, 'target ${want} missing from Engine catalog: ${ids}'
 	}
 	if _ := eng.set_target_enabled('missing-target', true) {
