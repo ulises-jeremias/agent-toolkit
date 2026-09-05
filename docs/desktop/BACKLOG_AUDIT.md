@@ -137,3 +137,5 @@ Agent removal now checks persisted installation state before writing a removal r
 MCP removal now requires the provider to be enabled in persisted Engine state before writing removal metadata; unconfigured providers cannot produce phantom receipts (`mcp_service.v`, follow-up after `e2a58d4`).
 
 Target enablement now validates IDs against the discovered Engine target catalog rather than a duplicated hardcoded list. Unknown targets cannot create persisted enablement state (`targets_service.v`, follow-up after `8ff0869`).
+
+Onboarding bulk target/product mutations now validate IDs against the live Engine catalogs, removing the last duplicated target roster and preventing invalid product membership state (`onboarding_service.v`, follow-up after `4a69b52`).

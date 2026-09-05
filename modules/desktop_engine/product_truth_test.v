@@ -75,6 +75,11 @@ fn test_product_truth_catalog_counts() {
 	} else {
 		assert err.msg().contains('unsupported target')
 	}
+	if _ := eng.onboarding_set_targets_bulk(['missing-target']) {
+		assert false, 'bulk onboarding must validate target IDs'
+	} else {
+		assert err.msg().contains('unsupported target')
+	}
 
 	products := eng.products_catalog()
 	assert products.len == 5, 'products must be 5'
@@ -82,6 +87,11 @@ fn test_product_truth_catalog_counts() {
 	assert products[0].skill_ids.len < skills.len, 'product membership must not claim the whole catalog'
 	if _ := eng.update_product_membership('missing-product', []) {
 		assert false, 'unknown products must not create persisted state'
+	} else {
+		assert err.msg().contains('product not found')
+	}
+	if _ := eng.onboarding_set_products_bulk(['missing-product']) {
+		assert false, 'bulk onboarding must validate product IDs'
 	} else {
 		assert err.msg().contains('product not found')
 	}

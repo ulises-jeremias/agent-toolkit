@@ -286,7 +286,7 @@ pub fn (mut e Engine) onboarding_set_targets_bulk(enabled_ids []string) !u64 {
 	if enabled_ids.len == 0 {
 		return error('no targets selected — at least one required')
 	}
-	valid := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
+	valid := e.targets().map(it.id)
 	for tid in enabled_ids {
 		if tid !in valid {
 			return error('unsupported target: ${tid}')
@@ -309,6 +309,12 @@ pub fn (mut e Engine) onboarding_set_targets_bulk(enabled_ids []string) !u64 {
 pub fn (mut e Engine) onboarding_set_products_bulk(product_ids []string) !u64 {
 	if product_ids.len == 0 {
 		return error('no product ids')
+	}
+	valid := e.products_catalog().map(it.id)
+	for pid in product_ids {
+		if pid !in valid {
+			return error('product not found: ${pid}')
+		}
 	}
 	e.mu.lock()
 	e.api_calls++
