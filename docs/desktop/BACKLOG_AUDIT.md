@@ -103,3 +103,5 @@ Office Running now reflects the Engine job catalog: it reports active operations
 The inspector's compact per-desk Ghostty view is now explicitly an Engine log preview, with a truthful empty state and a clear path to open the real PTY terminal (`main.v`, follow-up after `d61ee61`).
 
 `Engine.swarm_logs` now returns an empty list when no persisted log exists instead of synthesizing launch/handoff messages; Swarm activity remains event-backed (`swarm_service.v`, follow-up after `a6eb450`).
+
+`Engine.loops_catalog` no longer injects ten template loops when no state/files exist; runtime coverage now creates a loop explicitly before exercising it, while discovered filesystem loops remain supported (`loops_service.v`, `runtime_plane_test.v`).
