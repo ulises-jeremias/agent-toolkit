@@ -292,18 +292,6 @@ fn (mut vm PaletteViewModel) build_actions() []PaletteAction {
 			panel: .loops
 		}
 	}
-	// If still small (edge CI), ensure at least params for virtualization stress
-	if out.len < 20 {
-		for i in out.len .. 20 {
-			out << PaletteAction{
-				id: 'fallback:${i:04d}'
-				label: 'Fallback Action ${i:04d}'
-				category: 'System'
-				keywords: 'fallback'
-				panel: .skills
-			}
-		}
-	}
 	return out
 }
 
