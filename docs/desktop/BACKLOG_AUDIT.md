@@ -89,3 +89,5 @@ The desktop command palette no longer lists legacy rows without an execution pat
 Jobs no longer derives progress from elapsed duration or a synthetic queue percentage; only completed jobs render a completion bar until the Engine exposes a real progress value (`62e1379`).
 
 Jobs Cancel and Retry controls now reflect lifecycle legality: Cancel is active only for queued/running jobs, while Retry is active only for failed/canceled/done jobs; click handling enforces the same guards (`main.v`, follow-up after `260b77f`).
+
+Loop run-count and wall-clock tracks now render as configured limits rather than fabricated utilization; only token usage is filled from the Engine ledger (`main.v`, follow-up after `7aa3d5e`).
