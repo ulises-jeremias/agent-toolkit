@@ -451,6 +451,7 @@ pub fn (mut e Engine) run_loop(name string) !string {
 		return error('loop name empty')
 	}
 	mut found := false
+	mut runs_today := 0
 	for l in e.loops_catalog() {
 		if l.name == name {
 			// check deleted tombstone
@@ -465,7 +466,7 @@ pub fn (mut e Engine) run_loop(name string) !string {
 			}
 			// check runs_today vs max_runs_per_day
 			runs_today_str := snap.data['loops/${name}/runs_today'] or { '0' }
-			runs_today := runs_today_str.int()
+			runs_today = runs_today_str.int()
 			if runs_today >= budget.max_runs_per_day && budget.max_runs_per_day > 0 {
 				return error('budget_exhausted: max_runs_per_day ${budget.max_runs_per_day} reached')
 			}
@@ -483,7 +484,7 @@ pub fn (mut e Engine) run_loop(name string) !string {
 	run_id := 'run-${time.now().unix_nano() % 1000000:06d}'
 	tx.set('history/${name}/${run_id}', time.now().unix().str())
 	tx.set('loops/${name}/last_run', time.now().unix().str())
-	tx.set('loops/${name}/runs_today', (1).str())
+	tx.set('loops/${name}/runs_today', (runs_today + 1).str())
 	rev := e.put_transaction(mut tx) or { return job_id }
 	e.bus.publish(eventbus.ToolkitEvent{
 		kind: .loop_outer_tick
@@ -501,6 +502,9 @@ pub fn (mut e Engine) run_loop(name string) !string {
 pub fn (mut e Engine) toggle_loop_cron(name string, enabled bool) !u64 {
 	if name == '' {
 		return error('loop name empty')
+	}
+	if e.loop_detail(name) == none {
+		return error('loop not found: ${name}')
 	}
 	e.mu.lock()
 	e.api_calls++
