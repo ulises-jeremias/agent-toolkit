@@ -197,3 +197,5 @@ Office's empty activity message now checks only jobs in the `running` lifecycle 
 Targets now leads with the user question “Where will capabilities be available?” and uses “change recorded”, “no changes yet”, and “not enabled” in rows. This keeps receipts as an understandable change history while hiding implementation vocabulary from the primary workflow (`cmd/agent-toolkit-desktop/main.v`, follow-up after `e48aa58`).
 
 MCP now leads with “Connect context and tools safely” rather than exposing the internal template path in its primary header. The path remains available in the detailed configuration footer and drawer (`cmd/agent-toolkit-desktop/main.v`, follow-up after `ba9df5a`).
+
+Doctor's constrained-window and footer messages now give actionable review guidance and avoid claiming that all checks are English or that fallback data is absent. Copy reflects the actual localized, evidence-backed diagnostic surface (`cmd/agent-toolkit-desktop/main.v`, follow-up after `541928b`).

@@ -4313,7 +4313,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 	y0 := fy + 50
 	list_h := fh - 78
 	if list_h < 40 {
-		app.gg.draw_text(fx + 12, fy + fh - 20, 'Run doctor --fix to repair. All checks are English, no fallback.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(fx + 12, fy + fh - 20, 'No checks fit this window. Resize the panel to review the full list.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 		return
 	}
 	row_h := 24
@@ -4369,7 +4369,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(fx + fw - 60, y0 + vis * row_h + 2, '+${checks_engine.len - vis} more', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	}
 	// footer — receipts/provenance verification + provenance paths
-	app.gg.draw_text(fx + 20, fy + fh - 20, 'Click fix → for dry-run · chip fixes its category · receipts/provenance shown when recorded. All checks are English, no fallback.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 20, 'Select Fix to preview the change. Category chips narrow the list; recorded provenance appears when available.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	app.gg.draw_text(fx + fw - 160, fy + fh - 20, '${verify_diags.len} verify warnings', gg.TextCfg{
 		color: if verify_diags.len > 0 {
 			app.pnl_danger} else {
