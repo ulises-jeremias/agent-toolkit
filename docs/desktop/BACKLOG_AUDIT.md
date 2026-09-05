@@ -191,3 +191,5 @@ Targets and Skills footers now use task language (“enable”, “review”, �
 Skill toggle feedback now distinguishes the committed receipt from optional provenance evidence; it no longer marks provenance as verified when the transaction only recorded installation state (`cmd/agent-toolkit-desktop/main.v`, follow-up after `f55d58d`).
 
 Removed revision and API-call counters from Office and onboarding chrome. User-facing status now emphasizes live state and task counts; engine diagnostics remain available through the diagnostic surfaces (`cmd/agent-toolkit-desktop/main.v`, follow-up after `8656d21`).
+
+Office's empty activity message now checks only jobs in the `running` lifecycle state. Completed or queued history cannot suppress the truthful “No agents are currently running” state (`cmd/agent-toolkit-desktop/main.v`, follow-up after `d2038a9`).

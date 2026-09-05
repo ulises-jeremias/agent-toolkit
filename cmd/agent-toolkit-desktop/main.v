@@ -3167,7 +3167,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		}
 	}
 
-	if app.desktop != unsafe { nil } && app.desktop.engine_jobs_catalog().len == 0 {
+	if app.desktop != unsafe { nil } && app.desktop.engine_jobs_catalog().filter(it.status == .running).len == 0 {
 		app.gg.draw_text(fx + 56, fy + 54, 'No agents are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	}
 
