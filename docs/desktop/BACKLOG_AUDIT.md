@@ -155,3 +155,5 @@ Persisted loops missing a goal now expose an empty goal rather than synthesizing
 Loop catalog entries with missing budget metadata now expose zero/unknown limits instead of the historical 80,000-token, one-run, 900-second defaults. Explicit Engine-created or YAML-provided budgets remain intact (`loops_service.v`, follow-up after `d2754a8`).
 
 Loop catalog entries missing cadence metadata now keep cadence/schedule empty; the catalog no longer implies a daily schedule. Explicit create-loop defaults and YAML cadence remain supported (`loops_service.v`, follow-up after `206922f`).
+
+Persona bootstrap now verifies that at least two persona files actually exist before persisting `personas_bootstrapped=true`; persisted `persona_count` reflects the files present, and failed writes return an explicit incomplete error (`onboarding_service.v`, follow-up after `7ab8418`).

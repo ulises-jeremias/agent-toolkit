@@ -216,10 +216,19 @@ pub fn (mut e Engine) onboarding_ensure_personas(harness_root string) !u64 {
 			created++
 		}
 	}
+	mut persona_count := 0
+	for fname, _ in persona_templates {
+		if os.is_file(os.join_path(clean, 'personas', fname)) {
+			persona_count++
+		}
+	}
+	if persona_count < 2 {
+		return error('persona bootstrap incomplete: ${persona_count}/${persona_templates.len} available')
+	}
 	mut repo := e.repo
 	mut tx := repo.begin('onboarding-ensure-personas')
 	tx.set('personas_bootstrapped', 'true')
-	tx.set('persona_count', '${persona_templates.len}')
+	tx.set('persona_count', persona_count.str())
 	tx.set('recent_workspace', clean)
 	if created > 0 {
 		tx.set('personas_created', '${created}')
