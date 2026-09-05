@@ -317,6 +317,54 @@ pub fn (mut e Engine) doctor_fix(check_id string) !u64 {
 	if check_id == '' {
 		return error('check_id empty')
 	}
+	// Real repairs first — the fixed row must flip to pass on re-check (#1108).
+	// Anything without an automated repair falls through to the audit stamp
+	// (idempotent success; the dry-run preview says exactly that).
+	if check_id.starts_with('profile:') {
+		tid := check_id.all_after('profile:')
+		for t in e.targets() {
+			if t.id == tid {
+				if t.enabled {
+					break
+				}
+				return e.doctor_fix_enable_target(tid)!
+			}
+		}
+	}
+	if check_id.starts_with('mcp:') && check_id != 'mcp:docker' {
+		mid := check_id.all_after('mcp:')
+		for p in e.mcp_catalog() {
+			// toggle on an enabled provider would REMOVE it — only the
+			// disabled→upsert direction is a repair; enabled errors fall
+			// through to the audit stamp (preview says so honestly).
+			if p.id == mid && !p.enabled {
+				rev := e.mcp_toggle(mid)!
+				e.doctor_fix_stamp(check_id)!
+				return rev
+			}
+		}
+	}
+	return e.doctor_fix_stamp(check_id)!
+}
+
+// doctor_fix_enable_target enables a disabled profile target and records the
+// audit stamp in the same transaction (mirror set_target_enabled + receipt).
+fn (mut e Engine) doctor_fix_enable_target(target_id string) !u64 {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	mut repo := e.repo
+	mut tx := repo.begin('doctor-fix')
+	tx.set('target:${target_id}:enabled', 'true')
+	tx.set('receipt:target:${target_id}:enabled_at', time.now().str())
+	tx.set('doctor:fix:profile:${target_id}', 'fixed')
+	rev := e.put_transaction(mut tx)!
+	return rev.revision
+}
+
+// doctor_fix_stamp records the audit trail for checks without an automated
+// repair (or already passing) — idempotent success, never an error.
+fn (mut e Engine) doctor_fix_stamp(check_id string) !u64 {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
@@ -330,6 +378,90 @@ pub fn (mut e Engine) doctor_fix(check_id string) !u64 {
 	}
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
+}
+
+// doctor_fix_preview describes the state mutations a fix would perform
+// WITHOUT writing anything — the GUI dry-run card renders these lines (#1108).
+pub fn (mut e Engine) doctor_fix_preview(check_id string) ![]string {
+	if check_id == '' {
+		return error('check_id empty')
+	}
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	mut known := false
+	for c in e.doctor() {
+		if c.id == check_id {
+			known = true
+			if c.status == 'pass' {
+				return ['note: check already passes — fix records an audit stamp only',
+					'set doctor:fix:${check_id} = fixed']
+			}
+			break
+		}
+	}
+	if !known {
+		return error('unknown doctor check: ${check_id}')
+	}
+	if check_id.starts_with('profile:') {
+		tid := check_id.all_after('profile:')
+		return ['set target:${tid}:enabled = true',
+			'set receipt:target:${tid}:enabled_at = <now>',
+			'set doctor:fix:profile:${tid} = fixed']
+	}
+	if check_id.starts_with('mcp:') && check_id != 'mcp:docker' {
+		mid := check_id.all_after('mcp:')
+		for p in e.mcp_catalog() {
+			if p.id == mid {
+				if p.enabled {
+					return ['set doctor:fix:mcp:${mid} = fixed (audit trail)',
+						'note: provider reports ${p.health} — toggle would REMOVE it, so no config change is made']
+				}
+				return ['upsert default MCP config for ${mid} (npx @modelcontextprotocol/server-${mid})',
+					'set doctor:fix:mcp:${mid} = fixed']
+			}
+		}
+	}
+	return ['set doctor:fix:${check_id} = fixed (audit trail)',
+		'note: no automated repair — ${doctor_manual_hint(check_id)}']
+}
+
+// doctor_manual_hint points at the manual step for checks without a repair.
+fn doctor_manual_hint(check_id string) string {
+	if check_id == 'toolkit_root' {
+		return 'set AGENT_TOOLKIT_ROOT to the checkout'
+	}
+	if check_id.starts_with('loops:') {
+		return 'edit the loop budget (cron editor lands in #1102)'
+	}
+	if check_id == 'audit:skills' {
+		return 'run ./scripts/generate-catalogs.vsh, then re-check'
+	}
+	if check_id == 'mcp:docker' {
+		return 'install docker: https://docs.docker.com/get-docker/'
+	}
+	return 'see the check message, then re-check'
+}
+
+// doctor_fix_category fixes every fixable non-passing check in one category
+// (facet-chip action, #1108). Returns the last revision, or 0 when nothing
+// was fixable.
+pub fn (mut e Engine) doctor_fix_category(cat string) !u64 {
+	if cat == '' {
+		return error('category empty')
+	}
+	mut rev := u64(0)
+	mut fixed := 0
+	for c in e.doctor() {
+		if c.category == cat && c.fixable && c.status != 'pass' {
+			rev = e.doctor_fix(c.id)!
+			fixed++
+		}
+	}
+	if fixed == 0 {
+		return 0
+	}
+	return rev
 }
 
 // doctor_fix_all fixes all fixable Doctor checks in one transaction — super-potent.

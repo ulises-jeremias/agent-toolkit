@@ -856,6 +856,63 @@ jobs:
           ./make.vsh vet
           ./make.vsh test
 
+  # ── Job: golden-image regression for the desktop GUI (#1111) ──
+  # Compares both theme fixture sets against a fresh build. Starts as
+  # non-blocking (continue-on-error) until 20 green runs prove stability.
+  golden-ui:
+    name: Golden UI (paper + ink)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install X11/GL + capture deps
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            xorg-dev libgl1-mesa-dev libegl1-mesa-dev \
+            xdotool imagemagick xvfb
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Build desktop binary
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          # gg_text_buff_size=4096 — 4096² fontstash atlas (see release.yml)
+          "${VBIN:-v}" -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
+
+      - name: Compare paper fixtures
+        run: |
+          set -euo pipefail
+          ./scripts/golden.sh compare
+
+      - name: Compare ink fixtures
+        run: |
+          set -euo pipefail
+          ATK_GOLDEN_THEME=ink ./scripts/golden.sh compare
+
+      - name: Tofu detector
+        run: |
+          set -euo pipefail
+          python3 scripts/check-tofu.py
+
+      - name: Upload mismatch artifacts
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: golden-mismatch
+          path: |
+            tests/golden-app.log
+            tests/golden/**/*.new.png
+            tests/golden/**/*.diff.png
+          if-no-files-found: ignore
+
   swarm-e2e:
     name: Swarm e2e (skeleton, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}

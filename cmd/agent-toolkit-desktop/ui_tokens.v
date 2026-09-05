@@ -2,6 +2,85 @@ module main
 
 import desktop.theme
 import gg
+import os
+
+// ── Appearance — product-level GUI theme (Paper/Ink/System, #1097) ──
+// The theme MODULE stays generic (light/dark kinds, additive Ink values);
+// this product layer maps user choice → concrete snapshot. Paper and Ink
+// resolve to fixed snapshots; System probes the OS at startup (best-effort,
+// read-only, fixed argv) and falls back to Paper when unknown.
+pub enum Appearance {
+	paper
+	ink
+	system
+}
+
+pub fn appearance_from_string(s string) Appearance {
+	match s.trim_space().to_lower() {
+		'ink' {
+			return .ink
+		}
+		'system' {
+			return .system
+		}
+		else {
+			return .paper
+		}
+	}
+}
+
+// appearance_theme resolves a choice to a concrete snapshot (no IO except
+// the System probe, which reads only files/env and never spawns a process).
+pub fn appearance_theme(a Appearance) theme.Theme {
+	match a {
+		.paper {
+			return theme.light_theme()
+		}
+		.ink {
+			return theme.ink_theme()
+		}
+		.system {
+			if detect_system_dark() {
+				return theme.ink_theme()
+			}
+			return theme.light_theme()
+		}
+	}
+}
+
+// detect_system_dark probes the OS dark-mode preference without spawning
+// child processes (Engine-authority rule: no CLI shell-outs — file/env reads
+// only). Unknown, unreadable, or any failure → false (honest Paper fallback).
+fn detect_system_dark() bool {
+	// explicit override always wins (headless CI, user force)
+	if os.getenv('ATK_APPEARANCE').trim_space().to_lower() == 'dark' {
+		return true
+	}
+	if os.getenv('ATK_APPEARANCE').trim_space().to_lower() == 'light' {
+		return false
+	}
+	$if linux {
+		// GTK theme name convention: '*-dark' / '*:dark' (files + env, no exec)
+		gtk_theme := os.getenv('GTK_THEME').trim_space().to_lower()
+		if gtk_theme.ends_with('-dark') || gtk_theme.ends_with(':dark') {
+			return true
+		}
+		settings := os.read_file(os.home_dir() + '/.config/gtk-3.0/settings.ini') or { '' }
+		for line in settings.split('\n') {
+			l := line.trim_space().to_lower()
+			if l.starts_with('gtk-application-prefer-dark-theme') && l.contains('true') {
+				return true
+			}
+			if l.starts_with('gtk-theme-name') && (l.contains('-dark') || l.contains(':dark')) {
+				return true
+			}
+		}
+		return false
+	}
+	// macOS leaves no exec-free readable signal (binary plist); fall back to
+	// Paper rather than shell out to `defaults`. Documented, honest default.
+	return false
+}
 
 // ── F1 theme bridge — the ONLY path from theme tokens to renderer color ──
 // The renderer (main.v) must not contain raw hex or duplicate color constants:
@@ -104,23 +183,53 @@ pub fn ui_on_cabinet(t theme.Theme) gg.Color {
 }
 
 // ── Derived structural tones (theme-resolved mixes, no new hues) ──
+// These take the theme as a parameter (instead of reading the ambient
+// ui_theme()) so the appearance layer can resolve them per theme at switch
+// time; the startup consts keep passing ui_theme() explicitly (same values).
 // ui_line_paper is the quiet 1px rule on paper surfaces (replaces #D1C7B3).
-pub fn ui_line_paper() gg.Color {
-	return mix(ui_muted(ui_theme()), ui_paper(ui_theme()), 0.65)
+pub fn ui_line_paper(t theme.Theme) gg.Color {
+	return mix(ui_muted(t), ui_paper(t), 0.65)
 }
 
 // ui_line_cabinet is the 1px rule on dark cabinet surfaces (replaces #343434).
-pub fn ui_line_cabinet() gg.Color {
-	return mix(ui_muted(ui_theme()), ui_cabinet(ui_theme()), 0.40)
+pub fn ui_line_cabinet(t theme.Theme) gg.Color {
+	return mix(ui_muted(t), ui_cabinet(t), 0.40)
 }
 
 // ui_selection_hover lightens selection toward paper for hover fills so the
 // hover state stays distinguishable without a second amber constant.
-pub fn ui_selection_hover() gg.Color {
-	return mix(ui_selection(ui_theme()), ui_paper(ui_theme()), 0.35)
+pub fn ui_selection_hover(t theme.Theme) gg.Color {
+	return mix(ui_selection(t), ui_paper(t), 0.35)
 }
 
 // ui_hover_tint is the faint row-hover wash on paper (replaces #F0E9DA).
-pub fn ui_hover_tint() gg.Color {
-	return tint(ui_selection(ui_theme()), 26)
+pub fn ui_hover_tint(t theme.Theme) gg.Color {
+	return tint(ui_selection(t), 26)
+}
+
+// apply_appearance resolves a product Appearance into the app-owned panel
+// palette (<1 frame, no IO) and records the choice. Panel draw code reads
+// app.pnl_*; chrome (header/dock/status/terminal) keeps the startup consts.
+pub fn (mut app GuiApp) apply_appearance(a Appearance) {
+	app.appearance = a
+	t := appearance_theme(a)
+	// cache the resolved kind — per-frame panel code (pixel_panel, …) branches
+	// on this instead of re-probing the OS, so System costs one probe total.
+	app.appearance_dark = t.kind == .dark
+	// bg and card share the sheet role today (panel background fills were
+	// cream50/paper by construction); separate fields so Ink can diverge
+	// them later without touching call sites.
+	app.pnl_bg = ui_paper(t)
+	app.pnl_card = ui_paper(t)
+	app.pnl_card_sel = ui_canvas(t)
+	app.pnl_hover = ui_hover_tint(t)
+	app.pnl_border = ui_line_paper(t)
+	app.pnl_border_hi = ui_selection(t)
+	app.pnl_text = ui_text(t)
+	app.pnl_text_mut = ui_muted(t)
+	app.pnl_text_fnt = ui_muted(t)
+	app.pnl_select = ui_selection(t)
+	app.pnl_success = ui_success(t)
+	app.pnl_danger = ui_danger(t)
+	app.pnl_select_hover = ui_selection_hover(t)
 }

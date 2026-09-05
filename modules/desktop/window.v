@@ -642,7 +642,23 @@ pub fn (mut d Desktop) engine_is_first_run() bool {
 }
 
 pub fn (mut d Desktop) engine_doctor_fix(check_id string) !u64 {
-	return d.engine.doctor_fix(check_id)
+	rev := d.engine.doctor_fix(check_id)!
+	snap := d.engine.snapshot()
+	d.app_state = app_state.derive_app_state(snap)
+	return rev
+}
+
+// engine_doctor_fix_preview describes a fix without writing (dry-run card).
+pub fn (mut d Desktop) engine_doctor_fix_preview(check_id string) ![]string {
+	return d.engine.doctor_fix_preview(check_id)
+}
+
+// engine_doctor_fix_category fixes every fixable row in one facet category.
+pub fn (mut d Desktop) engine_doctor_fix_category(cat string) !u64 {
+	rev := d.engine.doctor_fix_category(cat)!
+	snap := d.engine.snapshot()
+	d.app_state = app_state.derive_app_state(snap)
+	return rev
 }
 
 // ── super-potent unified: agents, MCP, doctor, receipts/provenance, install/update — easy management via Desktop ──
@@ -702,6 +718,21 @@ pub fn (mut d Desktop) engine_mcp_install_preview(provider_id string) desktop_en
 
 pub fn (mut d Desktop) engine_mcp_provenance_json(provider_id string) string {
 	return d.engine.mcp_provenance_json(provider_id)
+}
+
+// engine_mcp_template_json returns the template content + from-file flag.
+pub fn (mut d Desktop) engine_mcp_template_json(provider_id string) (string, bool) {
+	return d.engine.mcp_template_json(provider_id)
+}
+
+// engine_mcp_probe runs the typed health probe (read-only, GUI caches 60s).
+pub fn (mut d Desktop) engine_mcp_probe(provider_id string) !desktop_engine.McpProbeResult {
+	return d.engine.mcp_probe(provider_id)
+}
+
+// engine_mcp_receipt returns receipt info, or none when never enabled.
+pub fn (mut d Desktop) engine_mcp_receipt(provider_id string) ?desktop_engine.McpInstallPreview {
+	return d.engine.mcp_receipt(provider_id)
 }
 
 pub fn (mut d Desktop) engine_doctor() []desktop_engine.DoctorCheck {
