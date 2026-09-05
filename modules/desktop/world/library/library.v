@@ -70,74 +70,15 @@ pub:
 	digest_preview string // build_preview digest
 }
 
-// default_library_model creates model from 587-line catalog fixture (116 skills, 18 agents, 7 packs).
+// default_library_model starts empty until a real Engine snapshot is projected.
+// The desktop must never present fixture entities as installed capabilities.
 pub fn default_library_model() LibraryViewModel {
-	mut skills := []LibrarySkillNode{cap: 116}
-	domains := ['core', 'delivery', 'design', 'forge', 'integrations', 'data', 'tooling', 'ops',
-		'loops', 'agentic-security', 'architecture', 'cloud', 'accessibility', 'quality']
-	for i in 0 .. 116 {
-		d := domains[i % domains.len]
-		skills << LibrarySkillNode{
-			id: 'skill-${i}'
-			label: 'skill-${i} — ${d}'
-			domain: d
-			color: domain_color(d)
-			product: if i % 3 == 0 { 'product-a' } else { 'product-b' }
-			owner: 'agent-${i % 18}'
-		}
-	}
-	mut agents := []LibraryAgentNode{cap: 18}
-	for i in 0 .. 18 {
-		tier := if i < 11 {
-			'holistic'
-		} else if i < 13 { 'orchestrator' } else { 'specialist' }
-		muted := false
-		agents << LibraryAgentNode{
-			id: 'agent-${i}'
-			label: 'agent-${i}'
-			tier: tier
-			color: '#8A9BA8'
-			muted: muted
-		}
-	}
-	// 7 archived collapsed (references/) muted
-	mut archived := []LibraryAgentNode{cap: 7}
-	for i in 0 .. 7 {
-		archived << LibraryAgentNode{
-			id: 'archived-${i}'
-			label: 'archived-${i}'
-			tier: 'archived'
-			color: '#64748b'
-			muted: true
-		}
-	}
-	agents << archived
-
-	mut packs := []LibraryPackNode{cap: 7}
-	for i in 0 .. 7 {
-		packs << LibraryPackNode{
-			id: 'pack-${i}'
-			label: 'pack-${i}'
-			skills: ['skill-${i * 10}', 'skill-${i * 10 + 1}']
-			docs_only: true
-		}
-	}
-	mut edges := []LibraryEdge{}
-	for s in skills {
-		edges << LibraryEdge{ from: s.id, to: s.product, kind: 'membership' }
-		edges << LibraryEdge{ from: s.id, to: s.owner, kind: 'ownership' }
-	}
-	for p in packs {
-		for sid in p.skills {
-			edges << LibraryEdge{ from: p.id, to: sid, kind: 'pack' }
-		}
-	}
 	return LibraryViewModel{
-		revision: 1
-		skills: skills
-		agents: agents
-		packs: packs
-		edges: edges
+		revision: 0
+		skills: []
+		agents: []
+		packs: []
+		edges: []
 	}
 }
 
@@ -201,17 +142,9 @@ pub fn new_library_station(repo &engine_state.StateRepository, bus &eventbus.Too
 
 // derive_from_state projects State snapshot (skills_count, agents_count).
 pub fn derive_library_from_state(s engine_state.State) LibraryViewModel {
-	// honor State data counts if present, else default 116/18
-	skill_cnt := if 'skills_count' in s.data { s.data['skills_count'].int() } else { 116 }
-	agent_cnt := if 'agents_count' in s.data { s.data['agents_count'].int() } else { 18 }
+	// Counts alone cannot identify entities. Keep the projection empty until a
+	// catalog-backed Engine projection supplies real IDs and metadata.
 	mut vm := default_library_model()
-	if skill_cnt != 116 {
-		vm.skills = vm.skills[..if skill_cnt < vm.skills.len { skill_cnt } else { vm.skills.len }]
-	}
-	if agent_cnt != 18 {
-		// keep first agent_cnt from non-archived
-		vm.agents = vm.agents[..if agent_cnt < 18 { agent_cnt } else { 18 }]
-	}
 	vm.revision = s.revision
 	vm.orphan_warning = !vm.orphan_check()
 	return vm
@@ -235,12 +168,13 @@ pub fn (s LibraryStation) current() LibraryViewModel {
 	return s.view_model
 }
 
-// skill_detail_via_engine stubs Engine.skill_detail(id) — no direct file read.
+// skill_detail_via_engine reports unavailable until wired to Engine.skill_detail.
 pub fn skill_detail_via_engine(skill_id string) string {
-	return '---\nname: ${skill_id}\ndescription: synthetic SKILL.md for ${skill_id}\n---\n# ${skill_id}\nBody preview via Engine.skill_detail — no direct file read.'
+	_ = skill_id
+	return ''
 }
 
-// build_preview_digest stubs Engine.build_preview digest.
+// build_preview_digest reports unavailable until wired to Engine.build_preview.
 pub fn build_preview_digest() string {
-	return 'sha256:abc123-engine-build-preview'
+	return ''
 }

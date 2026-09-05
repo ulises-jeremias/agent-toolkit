@@ -41,7 +41,8 @@ pub fn default_update_config() UpdateConfig {
 	}
 }
 
-// MockFeed simulates release.yml + manifest.json + SHA256SUMS reuse (no second server).
+// UpdateFeed is an injectable feed shape used by tests and future adapters.
+// Production starts without a feed until a verified source is configured.
 pub struct MockFeed {
 pub:
 	version  string
@@ -58,16 +59,10 @@ pub:
 	provenance string
 }
 
-// default_mock_feed returns 1.27.1 feed over 1.27.0 channel.
+// default_mock_feed returns an unavailable feed. A fabricated release must
+// never appear as a real update in the desktop.
 pub fn default_mock_feed() MockFeed {
-	return MockFeed{
-		version: '1.27.1'
-		assets: [
-			MockAsset{ name: 'agent-toolkit-linux-x64', url: 'https://github.com/ulises-jeremias/agent-toolkit/releases/download/v1.27.1/agent-toolkit', sha256: 'abc123sha256', provenance: 'manifest:sha256:abc123' },
-		]
-		sha256s: 'abc123sha256  agent-toolkit-linux-x64\n'
-		manifest: '{"version":"1.27.1","assets":[{"name":"agent-toolkit-linux-x64","sha256":"abc123sha256","provenance":"manifest:sha256:abc123"}]}'
-	}
+	return MockFeed{}
 }
 
 // UpdateService owns feed logic (Engine owns verification, Desktop owns UI).
@@ -139,9 +134,8 @@ pub fn (mut s UpdateService) check_update() ?UpdateInfo {
 
 // verify_download verifies SHA256 vs SHA256SUMS + manifest provenance; mismatch → discard.
 pub fn (mut s UpdateService) verify_download(content string, expected_sha256 string) bool {
-	// headless stub: hash is len-based for test
-	// real would compute sha256
-	if expected_sha256 != s.feed.assets[0].sha256 {
+	asset := s.feed.assets[0] or { return false }
+	if expected_sha256 == '' || expected_sha256 != asset.sha256 {
 		s.bus.publish(eventbus.ToolkitEvent{
 			kind: .state_changed
 			revision: s.repo.revision_nr()
