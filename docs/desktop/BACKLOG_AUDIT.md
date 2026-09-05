@@ -161,3 +161,5 @@ Persona bootstrap now verifies that at least two persona files actually exist be
 Onboarding now considers a workspace valid only when the minimum managed scaffold (`knowledge`, `repos`, `projects`, and `packs`) exists. A partial directory can no longer be reported as ready (`onboarding_service.v`, follow-up after `b8cfff9`).
 
 Workspace scaffolding now persists `workspace_initialized` from the filesystem verification result instead of unconditionally asserting completion. This keeps onboarding state aligned with the actual scaffold (`onboarding_service.v`, follow-up after `1f5200a`).
+
+`onboarding_complete` now verifies the selected or recent workspace scaffold before persisting completion. A wizard cannot report “ready” against a missing or partial workspace (`onboarding_service.v`, follow-up after `5553b64`).

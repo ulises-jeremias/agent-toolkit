@@ -342,6 +342,13 @@ pub fn (mut e Engine) onboarding_complete(harness_root string) !u64 {
 	e.api_calls++
 	e.mu.unlock()
 	mut repo := e.repo
+	mut completion_root := harness_root.trim_space()
+	if completion_root == '' {
+		completion_root = repo.snapshot().data['recent_workspace'] or { '' }
+	}
+	if completion_root == '' || !workspace_is_initialized(completion_root) {
+		return error('cannot complete onboarding: workspace scaffold is not initialized')
+	}
 	mut tx := repo.begin('onboarding-complete')
 	tx.set('onboarding_completed', 'true')
 	if harness_root.trim_space() != '' {
