@@ -3985,7 +3985,7 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 	fh := h - 52 - 28 - term_h_mcp
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	stats := app.desktop.engine_mcp_stats()
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.mcp'), '${stats.healthy} healthy · ${stats.enabled} enabled · ${stats.unconfigured} unconfigured · secret guard', 'mcp/templates/<id>/config.template.json')
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.mcp'), 'Connect context and tools safely', '${stats.healthy} healthy · ${stats.enabled} enabled · ${stats.unconfigured} unconfigured')
 	// search bar — Brokered via Engine.mcp_catalog_search (fuzzy) — super potent easy management
 	search_q := app.skills_query
 	app.gg.draw_rect_filled(fx + 12, fy + 48, fw - 24, 26, app.pnl_card)

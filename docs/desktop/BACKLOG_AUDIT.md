@@ -195,3 +195,5 @@ Removed revision and API-call counters from Office and onboarding chrome. User-f
 Office's empty activity message now checks only jobs in the `running` lifecycle state. Completed or queued history cannot suppress the truthful “No agents are currently running” state (`cmd/agent-toolkit-desktop/main.v`, follow-up after `d2038a9`).
 
 Targets now leads with the user question “Where will capabilities be available?” and uses “change recorded”, “no changes yet”, and “not enabled” in rows. This keeps receipts as an understandable change history while hiding implementation vocabulary from the primary workflow (`cmd/agent-toolkit-desktop/main.v`, follow-up after `e48aa58`).
+
+MCP now leads with “Connect context and tools safely” rather than exposing the internal template path in its primary header. The path remains available in the detailed configuration footer and drawer (`cmd/agent-toolkit-desktop/main.v`, follow-up after `ba9df5a`).
