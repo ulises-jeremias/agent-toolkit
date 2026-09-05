@@ -127,7 +127,7 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 	if names.len > 0 {
 		mut out := []LoopEntry{}
 		for n in names {
-			goal := snap.data['loops/${n}/goal'] or { 'Goal ${n}' }
+			goal := snap.data['loops/${n}/goal'] or { '' }
 			// budgets — read new keys first, fallback to old single budget (audit-aligned 80k/1/900)
 			max_tokens := (snap.data['loops/${n}/budget/max_tokens'] or { snap.data['loops/${n}/budget'] or { '80000' } }).int()
 			max_runs := (snap.data['loops/${n}/budget/max_runs_per_day'] or { '1' }).int()
