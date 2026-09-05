@@ -159,3 +159,5 @@ Loop catalog entries missing cadence metadata now keep cadence/schedule empty; t
 Persona bootstrap now verifies that at least two persona files actually exist before persisting `personas_bootstrapped=true`; persisted `persona_count` reflects the files present, and failed writes return an explicit incomplete error (`onboarding_service.v`, follow-up after `7ab8418`).
 
 Onboarding now considers a workspace valid only when the minimum managed scaffold (`knowledge`, `repos`, `projects`, and `packs`) exists. A partial directory can no longer be reported as ready (`onboarding_service.v`, follow-up after `b8cfff9`).
+
+Workspace scaffolding now persists `workspace_initialized` from the filesystem verification result instead of unconditionally asserting completion. This keeps onboarding state aligned with the actual scaffold (`onboarding_service.v`, follow-up after `1f5200a`).

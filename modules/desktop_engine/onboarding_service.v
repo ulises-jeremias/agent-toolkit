@@ -186,7 +186,7 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 	tx.set('recent_workspace', actual)
 	tx.set('workspace_exists', 'true')
 	tx.set('workspace_path', actual)
-	tx.set('workspace_initialized', 'true')
+	tx.set('workspace_initialized', if workspace_is_initialized(actual) { 'true' } else { 'false' })
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
