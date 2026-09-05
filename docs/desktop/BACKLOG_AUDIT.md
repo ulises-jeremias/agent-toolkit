@@ -87,3 +87,5 @@ A legacy spatial Library projection and standalone update helper were also made 
 The desktop command palette no longer lists legacy rows without an execution path (`59de011`). Remaining rows either navigate to a real surface, invoke an implemented Engine-backed action, or report an explicit unavailable state.
 
 Jobs no longer derives progress from elapsed duration or a synthetic queue percentage; only completed jobs render a completion bar until the Engine exposes a real progress value (`62e1379`).
+
+Jobs Cancel and Retry controls now reflect lifecycle legality: Cancel is active only for queued/running jobs, while Retry is active only for failed/canceled/done jobs; click handling enforces the same guards (`main.v`, follow-up after `260b77f`).
