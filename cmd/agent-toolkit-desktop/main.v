@@ -1607,7 +1607,7 @@ fn panel_desc(i int) string {
 		8 { 'Swarms — GOD mailbox, Herdr/tmux, pair/team/full' }
 		9 { 'Workspace IDE — file-tree + editor tabs + CHANGES/HISTORY/COMPARE + memory palace' }
 		10 { 'Products and packs — membership & digest' }
-		11 { 'Onboarding — workspace init, persona bootstrap, capability/target/product wizard' }
+		11 { 'Set up your workspace and coding tools' }
 		12 { 'Insights — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher' }
 		else { '' }
 	}
@@ -1626,7 +1626,7 @@ fn palette_items() []PaletteItem {
 		PaletteItem{'swarm', 'Go to Swarm', 'GOD mailbox, Herdr/tmux, pair/team/full, approvals spend/scope/destructive', '9'},
 		PaletteItem{'workspace', 'Go to Workspace', 'Context and memory', '0'},
 		PaletteItem{'products', 'Go to Products', 'Manage products/packs membership & digest', 'p'},
-		PaletteItem{'onboarding', 'Go to Onboarding', 'Super-potent wizard: workspace, personas, capability, target, product', 'o'},
+		PaletteItem{'onboarding', 'Go to Onboarding', 'Set up workspace, coding tools, and capabilities', 'o'},
 		PaletteItem{'insights', 'Go to Insights', 'Telemetry — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher', 'i'},
 		PaletteItem{'command_palette', 'Command palette', 'Fuzzy search ( / ) — todo administrable', '/'},
 		PaletteItem{'serve', 'Start API server', 'agent-toolkit serve --port 3847', 's'},
