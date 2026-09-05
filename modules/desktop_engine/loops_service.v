@@ -219,36 +219,10 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 		})
 		return out
 	}
-	templates := ['goal-observe', 'goal-plan', 'goal-implement', 'goal-review', 'goal-security',
-		'goal-docs', 'goal-release', 'goal-triage', 'goal-onboard', 'goal-harness']
-	mut out := []LoopEntry{}
-	for i, name in templates {
-		tier := match i % 3 {
-			0 { LoopTier.l1 }
-			1 { LoopTier.l2 }
-			else { LoopTier.l3 }
-		}
-		bud := loop_budget_defaults(tier)
-		out << LoopEntry{
-			name: name
-			goal: 'Template goal for ${name}'
-			description: 'Template loop for ${name} — easy to manage via Engine.create_loop()'
-			tier: tier
-			stage: tier.str()
-			cadence: if tier == .l1 {
-				'1d'} else if tier == .l2 { '15m' } else { '1d' }
-			schedule: cadence_to_cron(if tier == .l2 { '15m' } else { '1d' })
-			budget: bud
-			budget_total: bud.max_tokens
-			budget_spent: (i * 7) % bud.max_tokens
-			allowlist: ['skill-${i}']
-			deny: []string{}
-			cron_enabled: i % 2 == 0
-			next_run: if i % 2 == 0 { '2026-09-01T00:00:00Z' } else { '' }
-			last_exit: 'success'
-		}
-	}
-	return out
+	// An empty workspace has no loops. Do not turn examples or historical
+	// templates into operational state; the user can create one through the
+	// Engine-backed loop form.
+	return []LoopEntry{}
 }
 
 pub fn (mut e Engine) loop_validate(name string, content string) []BuildDiagnostic {

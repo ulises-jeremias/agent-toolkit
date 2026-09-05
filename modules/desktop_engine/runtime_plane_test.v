@@ -42,20 +42,34 @@ fn test_runtime_plane_loops_via_engine_no_shell() {
 	eng.start()!
 	defer { eng.stop() or {} }
 	loops := eng.loops_catalog()
-	assert loops.len == 10
+	for loop in loops {
+		assert !loop.name.starts_with('goal-'), 'runtime must not invent template loops'
+	}
 	diags := eng.loop_validate('test', 'budget: -1')
 	assert diags.len > 0
 	diags2 := eng.loop_validate('test', 'name: x')
 	assert diags2.len > 0
-	rev := eng.upsert_loop(loops[0]) or { panic(err.msg()) }
+	entry := LoopEntry{
+		name: 'test-loop'
+		goal: 'Exercise the runtime loop lifecycle'
+		tier: .l1
+		stage: 'l1'
+		cadence: '1d'
+		schedule: cadence_to_cron('1d')
+		budget: loop_budget_defaults(.l1)
+		budget_total: loop_budget_defaults(.l1).max_tokens
+	}
+	rev := eng.upsert_loop(entry) or { panic(err.msg()) }
 	assert rev >= 1
-	rev2 := eng.toggle_loop_cron(loops[0].name, true) or { panic(err.msg()) }
+	rev2 := eng.toggle_loop_cron(entry.name, true) or { panic(err.msg()) }
 	assert rev2 > rev
-	id := eng.run_loop(loops[0].name) or { panic(err.msg()) }
+	id := eng.run_loop(entry.name) or { panic(err.msg()) }
 	assert id.len > 0
-	hist := eng.loops_history(loops[0].name)
+	loops_after := eng.loops_catalog()
+	assert loops_after.len == 1
+	hist := eng.loops_history(entry.name)
 	assert hist.len >= 1
-	assert loops[0].budget_remaining() == loops[0].budget_total - loops[0].budget_spent
+	assert loops_after[0].budget_remaining() == loops_after[0].budget_total - loops_after[0].budget_spent
 	assert eng.api_call_count() > 0
 }
 
