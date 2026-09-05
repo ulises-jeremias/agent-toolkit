@@ -148,10 +148,10 @@ pub fn (mut e Engine) provenance_catalog() []ProvenanceEntry {
 			out << ProvenanceEntry{
 				artifact_path: '${kind}/${id}'
 				source_file: v
-				source_digest: snap.data['provenance:${kind}:${id}:digest'] or { 'sha256:abc' }
-				generated_digest: snap.data['provenance:${kind}:${id}:generated'] or { 'sha256:def' }
+				source_digest: snap.data['provenance:${kind}:${id}:digest'] or { '' }
+				generated_digest: snap.data['provenance:${kind}:${id}:generated'] or { '' }
 				generator: 'agent-toolkit-core'
-				verified: true
+				verified: snap.data['provenance:${kind}:${id}:digest'] or { '' } != '' && snap.data['provenance:${kind}:${id}:generated'] or { '' } != ''
 				detail: 'via StateRepository receipt:provenance'
 			}
 		}
@@ -168,26 +168,14 @@ pub fn (mut e Engine) provenance_catalog() []ProvenanceEntry {
 					out << ProvenanceEntry{
 						artifact_path: 'plugins/${prod}/.provenance.json'
 						source_file: prov_path
-						source_digest: 'sha256:${txt.len}'
-						generated_digest: 'sha256:${txt.len * 2}'
-						generator: 'compiler'
-						verified: true
+					source_digest: ''
+					generated_digest: ''
+					generator: 'compiler'
+					verified: false
 						detail: txt[..if txt.len > 80 { 80 } else { txt.len }]
 					}
 				}
 			}
-		}
-	}
-	// embedded fallback
-	if out.len == 0 {
-		out << ProvenanceEntry{
-			artifact_path: 'plugins/agent-toolkit-core/.provenance.json'
-			source_file: 'capabilities/upstream.lock'
-			source_digest: 'sha256:123'
-			generated_digest: 'sha256:456'
-			generator: 'embedded'
-			verified: true
-			detail: 'checkout only — wheel omits upstream.lock'
 		}
 	}
 	return out

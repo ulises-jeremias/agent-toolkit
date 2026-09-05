@@ -483,22 +483,14 @@ pub fn (mut e Engine) skill_provenance(id string) ?SkillProvenanceInfo {
 	snap := e.repo.snapshot()
 	src := snap.data['provenance:skill:${id}:source'] or { '' }
 	if src == '' {
-		// fallback: derive from catalog
-		return SkillProvenanceInfo{
-			skill_id: id
-			source_file: 'skills/${id}/SKILL.md'
-			source_digest: 'sha256:${id.len * 11}'
-			generated_digest: 'sha256:${id.len * 13}'
-			verified: true
-			detail: 'derived from catalogs/skill-catalog.yaml'
-		}
+		return none
 	}
 	return SkillProvenanceInfo{
 		skill_id: id
 		source_file: src
 		source_digest: snap.data['provenance:skill:${id}:digest'] or { '' }
-		generated_digest: snap.data['provenance:skill:${id}:generated'] or { 'sha256:abc' }
-		verified: true
+		generated_digest: snap.data['provenance:skill:${id}:generated'] or { '' }
+		verified: snap.data['provenance:skill:${id}:generated'] or { '' } != ''
 		detail: 'receipt verified via StateRepository'
 	}
 }
