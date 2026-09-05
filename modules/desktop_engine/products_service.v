@@ -3,6 +3,7 @@ module desktop_engine
 import time
 import x.json2
 import crypto.sha256 as crypto_sha256
+import os
 
 // ProductEntry mirrors distributions/products.yaml — super-potent with provenance/receipts.
 pub struct ProductEntry {
@@ -24,6 +25,7 @@ pub:
 	name         string
 	skill_count  int
 	docs_only    bool
+	enabled      bool
 	provenance   string
 	receipt_path string
 }
@@ -108,15 +110,45 @@ pub fn (mut e Engine) packs_catalog() []PackEntry {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	return [
-		PackEntry{ id: 'docs-only', name: 'Docs Only', skill_count: 5, docs_only: true, provenance: 'packs/docs-only/config.yaml', receipt_path: 'receipts/pack-docs-only.json' },
-		PackEntry{ id: 'core', name: 'Core', skill_count: 6, docs_only: true, provenance: 'packs/core/config.yaml', receipt_path: 'receipts/pack-core.json' },
-		PackEntry{ id: 'design', name: 'Design', skill_count: 12, docs_only: true, provenance: 'packs/design/config.yaml', receipt_path: 'receipts/pack-design.json' },
-		PackEntry{ id: 'delivery', name: 'Delivery', skill_count: 10, docs_only: true, provenance: 'packs/delivery/config.yaml', receipt_path: 'receipts/pack-delivery.json' },
-		PackEntry{ id: 'forge', name: 'Forge', skill_count: 8, docs_only: true, provenance: 'packs/forge/config.yaml', receipt_path: 'receipts/pack-forge.json' },
-		PackEntry{ id: 'security', name: 'Security', skill_count: 7, docs_only: true, provenance: 'packs/security/config.yaml', receipt_path: 'receipts/pack-security.json' },
-		PackEntry{ id: 'full', name: 'Full', skill_count: 116, docs_only: true, provenance: 'packs/full/config.yaml', receipt_path: 'receipts/pack-full.json' },
-	]
+	env := resolve_env()
+	root := os.join_path(env.toolkit_root, 'packs')
+	mut ids := os.ls(root) or { []string{} }
+	ids.sort()
+	mut out := []PackEntry{}
+	snap := e.repo.snapshot()
+	for id in ids {
+		config := os.join_path(root, id, 'config.yaml')
+		if !os.is_file(config) {
+			continue
+		}
+		text := os.read_file(config) or { '' }
+		mut skill_count := 0
+		mut in_skills := false
+		for line in text.split_into_lines() {
+			t := line.trim_space()
+			if t == 'skills:' {
+				in_skills = true
+				continue
+			}
+			if in_skills && (t == 'agents:' || t == 'loops:' || t == 'mcp:') {
+				in_skills = false
+			}
+			if in_skills && t.starts_with('enabled:') && t.all_after(':').trim_space() == 'true' {
+				skill_count++
+			}
+		}
+		enabled := (snap.data['pack:${id}:enabled'] or { 'false' }) == 'true'
+		out << PackEntry{
+			id: id
+			name: id.replace('-', ' ').title()
+			skill_count: skill_count
+			docs_only: true
+			enabled: enabled
+			provenance: 'packs/${id}/config.yaml'
+			receipt_path: 'receipts/pack-${id}.json'
+		}
+	}
+	return out
 }
 
 // packs_search fuzzy.
