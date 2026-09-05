@@ -257,7 +257,7 @@ pub fn (mut e Engine) list_install_receipts() []InstallReceiptInfo {
 			id := k.all_after('receipt:skill:').all_before(':installed_at')
 			out << InstallReceiptInfo{
 				target: 'skill:${id}'
-				product: snap.data['receipt:skill:${id}:product'] or { 'agent-toolkit-core' }
+				product: snap.data['receipt:skill:${id}:product'] or { '' }
 				version: snap.data['receipt:skill:${id}:version'] or { '' }
 				installed_at: v
 				source_digest: snap.data['receipt:skill:${id}:digest'] or { '' }

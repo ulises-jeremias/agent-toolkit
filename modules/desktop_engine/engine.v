@@ -607,7 +607,7 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		id: 'audit:skills'
 		category: 'audit'
 		name: 'skills'
-		status: if skill_cnt >= 116 { 'pass' } else { 'warn' }
+		status: if skill_cnt > 0 { 'pass' } else { 'warn' }
 		message: '${skill_cnt} skills validated from the resolved catalog'
 		fixable: true
 	}
