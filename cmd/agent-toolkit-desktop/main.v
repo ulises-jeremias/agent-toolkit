@@ -1214,8 +1214,8 @@ const i18n_table = {
 	'palette.insights':        I18nRow{'Go to Insights', 'Ir a Métricas', '前往洞察', 'اذهب إلى الرؤى'}
 	'palette.command_palette': I18nRow{'Command palette', 'Paleta de comandos', '命令面板', 'لوحة الأوامر'}
 	'palette.serve':           I18nRow{'Start API server', 'Iniciar servidor API', '启动 API 服务', 'ابدأ خادم API'}
-	'palette.doctor_fix':      I18nRow{'Run doctor --fix', 'Ejecutar doctor --fix', '运行 doctor --fix', 'شغّل doctor --fix'}
-	'palette.install':         I18nRow{'Install profiles', 'Instalar perfiles', '安装配置', 'ثبّت الملفات'}
+	'palette.doctor_fix':      I18nRow{'Open Doctor repairs', 'Abrir reparaciones de Doctor', '打开 Doctor 修复', 'افتح إصلاحات Doctor'}
+	'palette.install':         I18nRow{'Open skill installation', 'Abrir instalación de habilidades', '打开技能安装', 'افتح تثبيت المهارات'}
 	'palette.install_full':    I18nRow{'Install — full', 'Instalar — completo', '安装 — 完整', 'تثبيت — كامل'}
 	'palette.update':          I18nRow{'Update — agent-toolkit update', 'Actualizar — agent-toolkit update', '更新 — agent-toolkit update', 'تحديث — agent-toolkit update'}
 	'palette.uninstall':       I18nRow{'Uninstall', 'Desinstalar', '卸载', 'إزالة التثبيت'}
@@ -1628,9 +1628,8 @@ fn palette_items() []PaletteItem {
 		PaletteItem{'products', 'Go to Products', 'Manage products/packs membership & digest', 'p'},
 		PaletteItem{'onboarding', 'Go to Onboarding', 'Set up workspace, coding tools, and capabilities', 'o'},
 		PaletteItem{'insights', 'Go to Insights', 'Telemetry — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher', 'i'},
-		PaletteItem{'serve', 'Start API server', 'agent-toolkit serve --port 3847', 's'},
-		PaletteItem{'doctor_fix', 'Run doctor --fix', 'Repair missing profiles', 'd'},
-		PaletteItem{'install', 'Install profiles', 'agent-toolkit install --dry-run', 'i'},
+		PaletteItem{'doctor_fix', 'Open Doctor repairs', 'Review checks and available fixes', 'd'},
+		PaletteItem{'install', 'Open skill installation', 'Review capabilities and install from the catalog', 'i'},
 		PaletteItem{'theme', 'Theme — cycle Paper/Ink/System', 'Panel appearance, persists', 't'},
 	]
 }
@@ -7780,9 +7779,6 @@ fn activate_palette_selection(mut app GuiApp) {
 		}
 		'insights' {
 			app.selected_panel = 12
-		}
-		'serve' {
-			app.inspector_msg = 'Server control is not available in this desktop session'
 		}
 		'theme' {
 			cycle_appearance(mut app)
