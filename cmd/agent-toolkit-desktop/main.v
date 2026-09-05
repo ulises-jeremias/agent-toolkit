@@ -4530,16 +4530,28 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(bar_x, bar_y, bw * pct / 100, 2, fill_col)
 		}
 		btn_y := y + 22
-		hover_cancel := app.jobs_hover_cancel == di
-		cbg := if hover_cancel { app.pnl_danger } else { app.pnl_text }
-		cfg := if hover_cancel { app.pnl_bg } else { app.pnl_text_mut }
-		bd2 := if hover_cancel { app.pnl_danger } else { col_line }
+		can_cancel := j.status in [.queued, .running]
+		can_retry := j.status in [.failed, .canceled, .done]
+		hover_cancel := can_cancel && app.jobs_hover_cancel == di
+		cbg := if hover_cancel {
+			app.pnl_danger
+		} else if can_cancel { app.pnl_text } else { app.pnl_card_sel }
+		cfg := if hover_cancel {
+			app.pnl_bg
+		} else if can_cancel { app.pnl_text_mut } else { app.pnl_text_mut }
+		bd2 := if hover_cancel {
+			app.pnl_danger
+		} else if can_cancel { col_line } else { app.pnl_border }
 		app.gg.draw_rect_filled(fx + fw - 108, btn_y, 44, 16, cbg)
 		app.gg.draw_rect_empty(fx + fw - 108, btn_y, 44, 16, bd2)
 		app.gg.draw_text(fx + fw - 100, btn_y + 3, 'Cancel', gg.TextCfg{ color: cfg, size: 10 })
-		hover_retry := app.jobs_hover_retry == di
-		rbg := if hover_retry { app.pnl_select } else { app.pnl_text }
-		rfg := if hover_retry { app.pnl_text } else { app.pnl_card_sel }
+		hover_retry := can_retry && app.jobs_hover_retry == di
+		rbg := if hover_retry {
+			app.pnl_select
+		} else if can_retry { app.pnl_text } else { app.pnl_card_sel }
+		rfg := if hover_retry {
+			app.pnl_text
+		} else if can_retry { app.pnl_card_sel } else { app.pnl_text_mut }
 		rbd := if hover_retry { app.pnl_select } else { app.pnl_border }
 		app.gg.draw_rect_filled(fx + fw - 58, btn_y, 44, 16, rbg)
 		app.gg.draw_rect_empty(fx + fw - 58, btn_y, 44, 16, rbd)
@@ -9878,9 +9890,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					if mx >= fx + 12 && mx <= fx + fw - 12 && my >= y && my <= y + card_h - 4 {
 						app.jobs_selected = idx
 						// button hits
-						if mx >= fx + fw - 108 && mx <= fx + fw - 64 && my >= y + 22 && my <= y + 38 {
+						j := jobs[idx]
+						if j.status in [.queued, .running] && mx >= fx + fw - 108 && mx <= fx + fw - 64 && my >= y + 22 && my <= y + 38 {
 							// Cancel via Engine
-							j := jobs[idx]
 							_ := app.desktop.engine_cancel_job(j.id) or {
 								app.inspector_msg = 'Job cancel failed: ${err.msg()}'
 								return
@@ -9888,8 +9900,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 							app.inspector_msg = 'Job canceled: ${j.id}'
 							return
 						}
-						if mx >= fx + fw - 58 && mx <= fx + fw - 14 && my >= y + 22 && my <= y + 38 {
-							j := jobs[idx]
+						if j.status in [.failed, .canceled, .done] && mx >= fx + fw - 58 && mx <= fx + fw - 14 && my >= y + 22 && my <= y + 38 {
 							new_id := app.desktop.engine_retry_job(j.id) or {
 								app.inspector_msg = 'Job retry failed: ${err.msg()}'
 								return
