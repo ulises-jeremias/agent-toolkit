@@ -6146,7 +6146,7 @@ fn draw_products(mut app GuiApp, w int, h int) {
 		mut px := fx + 20
 		for pk in packs {
 			label := pk.id
-			active := pk.id in app.desktop.engine_packs_catalog().map(it.id) // docs-only packs; enable via Engine
+			active := pk.enabled // persisted Engine state; discovery alone is not activation
 			bg := if active { app.pnl_select } else { app.pnl_card_sel }
 			fg := if active { app.pnl_text } else { app.pnl_text_mut }
 			w2 := label.len * 7 + 16
@@ -9534,6 +9534,35 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					// card body click selects hover for keyboard/drag feedback
 					if mx >= fx_p + 14 && mx <= fx_p + fw_p - 14 && my >= y + 2 && my <= y + 46 {
 						app.products_hover = idx
+					}
+				}
+				// Pack chips are real toggles backed by the Engine, not decorative labels.
+				packs_p := app.desktop.engine_packs_catalog()
+				pack_y_p := card_y0 + prods_p.len * card_h + 10
+				if pack_y_p + 22 < fy_p + fh_p - 14 && my >= pack_y_p + 14 && my <= pack_y_p + 32 {
+					mut chip_x_p := fx_p + 20
+					for pk in packs_p {
+						chip_w := pk.id.len * 7 + 16
+						if chip_x_p + chip_w > fx_p + fw_p - 14 {
+							break
+						}
+						if mx >= chip_x_p && mx <= chip_x_p + chip_w {
+							rev := app.desktop.engine_set_pack_enabled(pk.id, !pk.enabled) or {
+								app.onboarding_msg = 'pack toggle failed: ${err}'
+								0
+							}
+							if rev > 0 {
+								app.onboarding_msg = 'Pack ${pk.id} ${if pk.enabled {
+									'disabled'
+								} else {
+									'enabled'
+								}} rev=${rev} ✓'
+								app.engine_rev = app.desktop.app_state_snapshot().revision
+								app.api_calls = app.desktop.engine_api_calls()
+							}
+							return
+						}
+						chip_x_p += chip_w + 6
 					}
 				}
 			}
