@@ -47,7 +47,7 @@ pub fn (mut e Engine) receipts_catalog() []ReceiptEntry {
 			id := parts[2]
 			provenance := snap.data['provenance:${kind}:${id}:source'] or { snap.data['receipt:${kind}:${id}:digest'] or { '' } }
 			digest := snap.data['receipt:${kind}:${id}:digest'] or { snap.data['receipt:${kind}:${id}:version'] or { '' } }
-			version := snap.data['receipt:${kind}:${id}:version'] or { '1.0.0' }
+			version := snap.data['receipt:${kind}:${id}:version'] or { '' }
 			artifacts_raw := snap.data['receipt:${kind}:${id}:artifacts'] or { '' }
 			artifacts := if artifacts_raw == '' {
 				[]string{}
@@ -86,7 +86,7 @@ pub fn (mut e Engine) receipts_catalog() []ReceiptEntry {
 						kind: 'target'
 						id: f.all_before('.json')
 						product: 'agent-toolkit-profiles'
-						version: '1.27.0'
+						version: ''
 						// A receipt file is evidence of a record, not proof that its
 						// artifact is present. Verify its contents before marking it.
 						installed_at: ''
@@ -168,10 +168,10 @@ pub fn (mut e Engine) provenance_catalog() []ProvenanceEntry {
 					out << ProvenanceEntry{
 						artifact_path: 'plugins/${prod}/.provenance.json'
 						source_file: prov_path
-					source_digest: ''
-					generated_digest: ''
-					generator: 'compiler'
-					verified: false
+						source_digest: ''
+						generated_digest: ''
+						generator: 'compiler'
+						verified: false
 						detail: txt[..if txt.len > 80 { 80 } else { txt.len }]
 					}
 				}

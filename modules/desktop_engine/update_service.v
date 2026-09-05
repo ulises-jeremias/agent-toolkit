@@ -64,7 +64,7 @@ pub fn (mut s UpdateServiceEngine) check_update(current string, channel string) 
 		provenance: s.feed_provenance
 		channel: ch
 		receipt_path: '~/.config/agent-toolkit/receipts/update-${s.feed_version}.json'
-		manifest_path: 'manifest:sha256:abc123'
+		manifest_path: s.feed_provenance
 	}
 }
 
@@ -104,7 +104,7 @@ pub fn (mut s UpdateServiceEngine) apply(version string) bool {
 	tx.set('update:provenance', s.feed_provenance)
 	tx.set('receipt:update:${version}:installed_at', time.now().str())
 	tx.set('receipt:update:${version}:digest', s.feed_sha256)
-	tx.set('provenance:update:${version}:source', 'manifest:sha256:abc123')
+	tx.set('provenance:update:${version}:source', s.feed_provenance)
 	tx.commit() or { return false }
 	s.current_version = version
 	s.bus.publish(eventbus.ToolkitEvent{
@@ -162,7 +162,9 @@ pub fn (mut s UpdateServiceEngine) history() []UpdateInfoEngine {
 // manifest_json returns ADR-022 manifest stub — super-potent with receipts.
 pub fn (s UpdateServiceEngine) manifest_json() string {
 	if s.feed_version == '' || s.feed_sha256 == '' || s.feed_provenance == '' {
-		return json2.encode({ 'error': 'update feed unavailable' })
+		return json2.encode({
+			'error': 'update feed unavailable'
+		})
 	}
 	return json2.encode({
 		'version':    s.feed_version

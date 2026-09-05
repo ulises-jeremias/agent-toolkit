@@ -1,6 +1,5 @@
 module desktop_engine
 
-import os
 import time
 import x.json2
 
@@ -179,7 +178,6 @@ pub fn (mut e Engine) install(targets []string) !u64 {
 	mut tx := repo.begin('install')
 	tx.set('install:targets', targets.join(','))
 	tx.set('install:timestamp', '${repo.snapshot().timestamp}')
-	tx.set('receipt:generated', 'true')
 	// per-target receipts + provenance (ADR-022 parity)
 	for t in targets {
 		tx.set('receipt:target:${t}:installed_at', time.now().str())
@@ -391,8 +389,10 @@ pub fn (mut e Engine) doctor_fix_preview(check_id string) ![]string {
 		if c.id == check_id {
 			known = true
 			if c.status == 'pass' {
-				return ['note: check already passes — fix records an audit stamp only',
-					'set doctor:fix:${check_id} = fixed']
+				return [
+					'note: check already passes — fix records an audit stamp only',
+					'set doctor:fix:${check_id} = fixed',
+				]
 			}
 			break
 		}
@@ -402,8 +402,7 @@ pub fn (mut e Engine) doctor_fix_preview(check_id string) ![]string {
 	}
 	if check_id.starts_with('profile:') {
 		tid := check_id.all_after('profile:')
-		return ['set target:${tid}:enabled = true',
-			'set receipt:target:${tid}:enabled_at = <now>',
+		return ['set target:${tid}:enabled = true', 'set receipt:target:${tid}:enabled_at = <now>',
 			'set doctor:fix:profile:${tid} = fixed']
 	}
 	if check_id.starts_with('mcp:') && check_id != 'mcp:docker' {
@@ -414,8 +413,10 @@ pub fn (mut e Engine) doctor_fix_preview(check_id string) ![]string {
 					return ['set doctor:fix:mcp:${mid} = fixed (audit trail)',
 						'note: provider reports ${p.health} — toggle would REMOVE it, so no config change is made']
 				}
-				return ['upsert default MCP config for ${mid} (npx @modelcontextprotocol/server-${mid})',
-					'set doctor:fix:mcp:${mid} = fixed']
+				return [
+					'upsert default MCP config for ${mid} (npx @modelcontextprotocol/server-${mid})',
+					'set doctor:fix:mcp:${mid} = fixed',
+				]
 			}
 		}
 	}

@@ -51,7 +51,7 @@ pub fn (mut e Engine) products_catalog() []ProductEntry {
 					if cur.id != '' {
 						out << cur
 					}
-					cur = ProductEntry{ id: t.all_after(':').trim_space(), provenance: 'distributions/products.yaml', version: '1.27.0' }
+					cur = ProductEntry{ id: t.all_after(':').trim_space(), provenance: 'distributions/products.yaml' }
 				} else if in_products && t.starts_with('name:') && cur.id != '' && cur.name == '' {
 					cur.name = t.all_after(':').trim_space().trim('"')
 				} else if in_products && t.starts_with('description:') && cur.id != '' && cur.description == '' {
