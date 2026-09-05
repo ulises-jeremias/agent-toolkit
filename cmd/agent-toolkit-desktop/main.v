@@ -3064,89 +3064,89 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// stream is connected, render no envelopes or trails; ambient motion must not
 	// imply that agents are working.
 	if false {
-	for e in 0 .. 5 {
-		a_idx := e % desks.len
-		mut b_idx := (e * 7 + 3) % desks.len
-		if a_idx == b_idx {
-			b_idx = (b_idx + 5) % desks.len
-		}
-		ax := rects_x[a_idx] + 70
-		ay := rects_y[a_idx] + 43
-		bx := rects_x[b_idx] + 70
-		by := rects_y[b_idx] + 43
-		phase := (app.frame * 2 + e * 67) % 240
-		progress := f32(phase) / 240.0
-		if progress > 0.94 {
-			continue
-		}
-		arc_h := f32(26)
-		// GOD mailbox arc: 4*t*(1-t) * arc_h — workshop handoff law, native V only
-		arc := arc_h * 4.0 * progress * (1.0 - progress)
-		fx_ := f32(ax)
-		fy_ := f32(ay)
-		tx_ := f32(bx)
-		ty_ := f32(by)
-		xf := fx_ + (tx_ - fx_) * progress
-		ground_y := fy_ + (ty_ - fy_) * progress
-		yf := ground_y - arc
-		x := int(xf)
-		y := int(yf)
-		// segmented arc line from source to envelope (brass, translucent)
-		segments := 10
-		for s in 0 .. segments {
-			t0 := f32(s) / f32(segments) * progress
-			t1 := f32(s + 1) / f32(segments) * progress
-			x0 := int(fx_ + (tx_ - fx_) * t0)
-			y0 := int(fy_ + (ty_ - fy_) * t0 - arc_h * 4.0 * t0 * (1.0 - t0))
-			x1 := int(fx_ + (tx_ - fx_) * t1)
-			y1 := int(fy_ + (ty_ - fy_) * t1 - arc_h * 4.0 * t1 * (1.0 - t1))
-			alpha := u8(55 - s * 3)
-			if alpha < 12 {
+		for e in 0 .. 5 {
+			a_idx := e % desks.len
+			mut b_idx := (e * 7 + 3) % desks.len
+			if a_idx == b_idx {
+				b_idx = (b_idx + 5) % desks.len
+			}
+			ax := rects_x[a_idx] + 70
+			ay := rects_y[a_idx] + 43
+			bx := rects_x[b_idx] + 70
+			by := rects_y[b_idx] + 43
+			phase := (app.frame * 2 + e * 67) % 240
+			progress := f32(phase) / 240.0
+			if progress > 0.94 {
 				continue
 			}
-			app.gg.draw_line(x0, y0, x1, y1, tint(app.pnl_select, alpha))
-		}
-		// trail ghosts behind envelope — 4 fading paper rectangles with brass shadow
-		for t in 1 .. 5 {
-			tp := progress - f32(t) * 0.045
-			if tp < 0 {
-				continue
+			arc_h := f32(26)
+			// GOD mailbox arc: 4*t*(1-t) * arc_h — workshop handoff law, native V only
+			arc := arc_h * 4.0 * progress * (1.0 - progress)
+			fx_ := f32(ax)
+			fy_ := f32(ay)
+			tx_ := f32(bx)
+			ty_ := f32(by)
+			xf := fx_ + (tx_ - fx_) * progress
+			ground_y := fy_ + (ty_ - fy_) * progress
+			yf := ground_y - arc
+			x := int(xf)
+			y := int(yf)
+			// segmented arc line from source to envelope (brass, translucent)
+			segments := 10
+			for s in 0 .. segments {
+				t0 := f32(s) / f32(segments) * progress
+				t1 := f32(s + 1) / f32(segments) * progress
+				x0 := int(fx_ + (tx_ - fx_) * t0)
+				y0 := int(fy_ + (ty_ - fy_) * t0 - arc_h * 4.0 * t0 * (1.0 - t0))
+				x1 := int(fx_ + (tx_ - fx_) * t1)
+				y1 := int(fy_ + (ty_ - fy_) * t1 - arc_h * 4.0 * t1 * (1.0 - t1))
+				alpha := u8(55 - s * 3)
+				if alpha < 12 {
+					continue
+				}
+				app.gg.draw_line(x0, y0, x1, y1, tint(app.pnl_select, alpha))
 			}
-			tp_arc := arc_h * 4.0 * tp * (1.0 - tp)
-			txf := fx_ + (tx_ - fx_) * tp
-			tyf := fy_ + (ty_ - fy_) * tp - tp_arc
-			alpha := u8(90 - t * 18)
-			if alpha < 12 {
-				continue
+			// trail ghosts behind envelope — 4 fading paper rectangles with brass shadow
+			for t in 1 .. 5 {
+				tp := progress - f32(t) * 0.045
+				if tp < 0 {
+					continue
+				}
+				tp_arc := arc_h * 4.0 * tp * (1.0 - tp)
+				txf := fx_ + (tx_ - fx_) * tp
+				tyf := fy_ + (ty_ - fy_) * tp - tp_arc
+				alpha := u8(90 - t * 18)
+				if alpha < 12 {
+					continue
+				}
+				app.gg.draw_rect_filled(int(txf) + 2, int(tyf) + 2, 12, 6, tint(app.pnl_select, alpha / 2))
+				app.gg.draw_rect_filled(int(txf), int(tyf), 12, 6, tint(app.pnl_bg, alpha))
 			}
-			app.gg.draw_rect_filled(int(txf) + 2, int(tyf) + 2, 12, 6, tint(app.pnl_select, alpha / 2))
-			app.gg.draw_rect_filled(int(txf), int(tyf), 12, 6, tint(app.pnl_bg, alpha))
+			// signature floor shadow ellipse under envelope — shrinks as arc rises (parabolic soft shadow)
+			shadow_w := int(14 - arc / 3.2)
+			sw := if shadow_w < 6 { 6 } else { shadow_w }
+			shadow_alpha := u8(28 - int(arc * 0.7))
+			sa := if shadow_alpha < 8 { u8(8) } else { shadow_alpha }
+			ground_x := int(xf)
+			shadow_y := int(ground_y) + 6
+			if shadow_y > fy + 36 && shadow_y < fy + fh - 4 && ground_x > fx && ground_x < fx + fw {
+				app.gg.draw_rect_filled(ground_x - sw / 2 + 4, shadow_y, sw, 3, tint(app.pnl_text, sa))
+				app.gg.draw_rect_filled(ground_x - sw / 2 + 6, shadow_y + 1, sw - 4, 1, tint(app.pnl_text, sa / 2))
+			}
+			// main envelope — paper with brass shadow + mail glyph + envelope shadows (native gg)
+			app.gg.draw_rect_filled(x + 1, y + 1, 18, 10, tint(app.pnl_text, 40))
+			app.gg.draw_rect_filled(x + 2, y + 2, 16, 6, tint(app.pnl_text, 22))
+			app.gg.draw_rect_filled(x - 1, y - 1, 18, 10, tint(app.pnl_select, 110))
+			app.gg.draw_rect_filled(x, y, 16, 8, app.pnl_bg)
+			// flap line — workshop envelope fold
+			app.gg.draw_line(x, y, x + 8, y + 4, app.pnl_border_hi)
+			app.gg.draw_line(x + 8, y + 4, x + 16, y, app.pnl_border_hi)
+			// inner envelope shadow 1px bottom edge for depth
+			app.gg.draw_line(x + 1, y + 7, x + 15, y + 7, tint(app.pnl_text, 12))
+			if desks[a_idx].status == 'blocked' || desks[b_idx].status == 'blocked' {
+				app.gg.draw_rect_filled(x + 12, y + 1, 3, 3, app.pnl_danger)
+			}
 		}
-		// signature floor shadow ellipse under envelope — shrinks as arc rises (parabolic soft shadow)
-		shadow_w := int(14 - arc / 3.2)
-		sw := if shadow_w < 6 { 6 } else { shadow_w }
-		shadow_alpha := u8(28 - int(arc * 0.7))
-		sa := if shadow_alpha < 8 { u8(8) } else { shadow_alpha }
-		ground_x := int(xf)
-		shadow_y := int(ground_y) + 6
-		if shadow_y > fy + 36 && shadow_y < fy + fh - 4 && ground_x > fx && ground_x < fx + fw {
-			app.gg.draw_rect_filled(ground_x - sw / 2 + 4, shadow_y, sw, 3, tint(app.pnl_text, sa))
-			app.gg.draw_rect_filled(ground_x - sw / 2 + 6, shadow_y + 1, sw - 4, 1, tint(app.pnl_text, sa / 2))
-		}
-		// main envelope — paper with brass shadow + mail glyph + envelope shadows (native gg)
-		app.gg.draw_rect_filled(x + 1, y + 1, 18, 10, tint(app.pnl_text, 40))
-		app.gg.draw_rect_filled(x + 2, y + 2, 16, 6, tint(app.pnl_text, 22))
-		app.gg.draw_rect_filled(x - 1, y - 1, 18, 10, tint(app.pnl_select, 110))
-		app.gg.draw_rect_filled(x, y, 16, 8, app.pnl_bg)
-		// flap line — workshop envelope fold
-		app.gg.draw_line(x, y, x + 8, y + 4, app.pnl_border_hi)
-		app.gg.draw_line(x + 8, y + 4, x + 16, y, app.pnl_border_hi)
-		// inner envelope shadow 1px bottom edge for depth
-		app.gg.draw_line(x + 1, y + 7, x + 15, y + 7, tint(app.pnl_text, 12))
-		if desks[a_idx].status == 'blocked' || desks[b_idx].status == 'blocked' {
-			app.gg.draw_rect_filled(x + 12, y + 1, 3, 3, app.pnl_danger)
-		}
-	}
 	}
 
 	if app.desktop != unsafe { nil } && app.desktop.engine_jobs_catalog().len == 0 {
@@ -3931,19 +3931,13 @@ fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance s
 }
 
 // mcp_open_template routes to the Workspace panel with the template loaded
-// (brokered open; synthetic tab fallback when the harness guard blocks the
-// absolute toolkit path, #1106).
+// through the Engine's brokered filesystem boundary.
 fn mcp_open_template(mut app GuiApp, id string, template_path string) {
 	title := '${id}.json'
 	if _ := app.desktop.engine_open_path_validated(app.harness_root, template_path) {
 		tab := app.desktop.engine_open_file_brokered(app.harness_root, template_path) or {
-			desktop_engine.EditorTab{
-				path: template_path
-				title: title
-				content: app.mcp_drawer_template
-				syntax: 'json'
-				dirty: false
-			}
+			app.inspector_msg = 'Unable to open ${title}: ${err.msg()}'
+			return
 		}
 		mut found := -1
 		for ti, t in app.editor_tabs {
@@ -3960,9 +3954,7 @@ fn mcp_open_template(mut app GuiApp, id string, template_path string) {
 		}
 		app.inspector_msg = 'Opened ${title} via brokered fs — json syntax'
 	} else {
-		app.editor_tabs << EditorTab{template_path, title, app.mcp_drawer_template, 'json', false, 0}
-		app.active_tab = app.editor_tabs.len - 1
-		app.inspector_msg = 'Opened ${title} (harness guard: synthetic tab, content from masked preview)'
+		app.inspector_msg = 'Cannot open ${title}: brokered path validation blocked it'
 	}
 	select_panel(mut app, 9)
 }
@@ -6272,7 +6264,8 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		_ = st
 	}
 	// step tabs — 7 steps, pixel-snapped
-	steps := ['Welcome', 'Capabilities', 'Coding tools', 'Products', 'Workspace', 'Team roles', 'Ready']
+	steps := ['Welcome', 'Capabilities', 'Coding tools', 'Products', 'Workspace', 'Team roles',
+		'Ready']
 	y_tabs := fy + 40
 	mut tab_x := fx + 10
 	for si, sname in steps {
@@ -8511,14 +8504,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			select_panel(mut app, 10)
 			return
 		}
-	if e.char_code == `i` || e.char_code == `I` {
+		if e.char_code == `i` || e.char_code == `I` {
 			select_panel(mut app, 12)
 			return
 		}
 		if e.char_code == `m` || e.char_code == `M` {
 			if app.selected_panel == 0 {
 				app.office_map_view = !app.office_map_view
-				app.inspector_msg = if app.office_map_view { 'Floor map view enabled' } else { 'Office overview enabled' }
+				app.inspector_msg = if app.office_map_view {
+					'Floor map view enabled'
+				} else {
+					'Office overview enabled'
+				}
 			}
 			return
 		}
@@ -9937,10 +9934,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				_ := fw - 80
 				// Create
 				if mx >= mx2 + 18 && mx <= mx2 + 106 && my >= my2 + 74 && my <= my2 + 100 {
-					name := if app.loops_create_name != '' {
-						app.loops_create_name
-					} else {
-						'demo-loop'
+					name := app.loops_create_name.trim_space()
+					if name == '' {
+						app.inspector_msg = 'Enter a loop name before creating it'
+						return
 					}
 					tier_s := ['L1', 'L2', 'L3'][app.loops_create_tier]
 					_ = app.desktop.loops_catalog()
@@ -10055,10 +10052,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						} else {
 							// brokered open — validates harness_root_escape via Desktop proxy
 							if _ := app.desktop.engine_open_path_validated(app.harness_root, n.path) {
-								// try Engine open, fallback to local read for headless
 								tab := app.desktop.engine_open_file_brokered(app.harness_root, n.path) or {
-									// fallback synthetic tab for headless/gui without real file
-									desktop_engine.EditorTab{ path: n.path, title: n.name, content: '// ${n.name}\nmodule main\nfn main() { println("brokered open: ${n.path}") }', syntax: 'v', dirty: false }
+									app.inspector_msg = 'Unable to open ${n.name}: ${err.msg()}'
+									return
 								}
 								mut found := -1
 								for ti, t in app.editor_tabs {
