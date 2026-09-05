@@ -3789,7 +3789,7 @@ fn draw_skills(mut app GuiApp, w int, h int) {
 	cat := app.desktop.engine_skills_search('', '')
 	stats := app.desktop.engine_skills_stats()
 	receipts := app.desktop.engine_receipts_catalog().filter(it.kind == 'skill')
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.skills'), 'fuzzy searchable · virtualized 60 FPS · receipts + provenance', '${cat.len} total · ${stats.installed} in · ${receipts.len} receipts')
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.skills'), 'fuzzy searchable · virtualized · receipts + provenance', '${cat.len} total · ${stats.installed} in · ${receipts.len} receipts')
 	draw_skills_search_bar(mut app, fx, fy, fw)
 	draw_skills_domain_chips(mut app, fx, fy, fw)
 	draw_skills_list(mut app, fx, fy, fw, fh)

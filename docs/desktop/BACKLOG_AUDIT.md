@@ -177,3 +177,5 @@ Removed the footer's hardcoded `60FPS` claim and frame counter. Performance inst
 The command palette now augments navigation with target entities discovered from `Engine.targets()`. Searching a target opens the Targets panel with a truthful enabled/disabled status, so users can discover real integrations without another static roster (`cmd/agent-toolkit-desktop/main.v`, follow-up after `444d6dc`).
 
 Palette entries that previously claimed to run `serve`, `doctor --fix`, or `install` now expose the actual behavior: Doctor and skill installation open their review surfaces, while the unavailable server control was removed. Localized labels match these actions (`cmd/agent-toolkit-desktop/main.v`, follow-up after `82908a1`).
+
+The Skills header no longer claims a hardcoded `60 FPS` rate; it describes virtualization without asserting an unmeasured performance figure (`cmd/agent-toolkit-desktop/main.v`, follow-up after `e146ebf`).
