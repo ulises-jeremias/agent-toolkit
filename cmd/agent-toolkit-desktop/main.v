@@ -2906,15 +2906,16 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 		jobs = app.desktop.engine_jobs_catalog()
 		agents = app.desktop.engine_agents_search('', '')
 	}
+	attention_jobs := jobs.filter(it.status == .failed || it.status == .queued)
 	content_y := fy + 58
 	col_w := (fw - 52) / 2
 	// Attention is derived from real state. Empty means there is nothing to fix.
 	pixel_panel(mut app, fx + 16, content_y, col_w, 92, 'default')
 	app.gg.draw_text(fx + 30, content_y + 14, 'Needs your attention', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-	if jobs.len == 0 {
+	if attention_jobs.len == 0 {
 		app.gg.draw_text(fx + 30, content_y + 42, 'Nothing requires attention.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	} else {
-		app.gg.draw_text(fx + 30, content_y + 42, '${jobs.len} recorded operation(s)', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
+		app.gg.draw_text(fx + 30, content_y + 42, '${attention_jobs.len} operation(s) need attention', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
 		app.gg.draw_text(fx + 30, content_y + 62, 'Open Operations to inspect status and recovery.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	}
 	pixel_panel(mut app, fx + 28 + col_w, content_y, col_w, 92, 'default')
