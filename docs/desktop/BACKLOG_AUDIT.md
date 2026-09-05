@@ -81,3 +81,5 @@ Classifications are recommendations requiring relevant runtime proof before clos
 The active desktop branch (`r2-office-shell`) has since removed fabricated production state and wired several controls to typed Engine operations. Evidence includes commits `c8908fd` (operational Office overview), `00bdf5f`/`0e66f47` (no synthetic git/provenance data), `030bc0d`/`b034242` (loop/job actions through Engine), `155a04c` (truthful empty Jobs), and `fbf62ff`/`cd4494e` (MCP health/probe semantics). Focused Engine tests and native builds pass; PR #1139 remains open/draft pending full CI and visual review.
 
 The Targets panel now handles row toggles through `Desktop.engine_set_targets_bulk`, using the live Engine target catalog and reporting the resulting revision (`a1037bc`, `main.v` Targets click handling). This closes a dead-control gap while the broader install-progress/receipt workflow in #1107 remains partial.
+
+A legacy spatial Library projection and standalone update helper were also made truthful: empty models now wait for Engine/catalog projection, detail previews report unavailable, and the default update feed has no fabricated release metadata (`14491c2`).
