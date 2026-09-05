@@ -3985,10 +3985,7 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 		app.desktop.engine_mcp_catalog()
 	}
 	if provs.len == 0 {
-		provs = [
-			desktop_engine.McpProvider{ id: 'github', name: 'GitHub', health: 'healthy' },
-			desktop_engine.McpProvider{ id: 'slack', name: 'Slack', health: 'unconfigured' },
-		]
+		app.gg.draw_text(fx + 20, fy + 96, 'No MCP providers are available.', gg.TextCfg{ color: app.pnl_text_mut, size: 13 })
 	}
 	mut y0 := fy + 84
 	for i, p in provs {

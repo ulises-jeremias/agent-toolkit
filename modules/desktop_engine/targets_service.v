@@ -56,11 +56,7 @@ pub fn (mut e Engine) targets() []TargetEntry {
 	profiles := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
 	for p in profiles {
 		enabled_str := e.repo.snapshot().data['target:${p}:enabled'] or { '' }
-		enabled := if enabled_str == '' {
-			p == 'claude-code' || p == 'cli'
-		} else {
-			enabled_str == 'true'
-		}
+		enabled := enabled_str == 'true'
 		layer := if env.tier == 'override' { 'Project' } else { 'Toolkit' }
 		snap := e.repo.snapshot()
 		receipt := snap.data['receipt:target:${p}:path'] or { '' }
