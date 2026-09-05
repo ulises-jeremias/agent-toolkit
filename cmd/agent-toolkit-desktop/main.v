@@ -3950,7 +3950,7 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 	fh := h - 52 - 28 - term_h_mcp
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	stats := app.desktop.engine_mcp_stats()
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.mcp'), '${stats.healthy} healthy · ${stats.enabled} enabled · ${stats.unconfigured} unconfigured · secret guard', 'mcp/templates/<id>.json')
+	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.mcp'), '${stats.healthy} healthy · ${stats.enabled} enabled · ${stats.unconfigured} unconfigured · secret guard', 'mcp/templates/<id>/config.template.json')
 	// search bar — Brokered via Engine.mcp_catalog_search (fuzzy) — super potent easy management
 	search_q := app.skills_query
 	app.gg.draw_rect_filled(fx + 12, fy + 48, fw - 24, 26, app.pnl_card)
@@ -4033,7 +4033,7 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 	}
 	// footer — receipts verification + provenance + secret guard + install preview (super-potent)
 	verify := app.desktop.engine_verify_receipts().filter(it.path.contains('mcp'))
-	app.gg.draw_text(fx + 20, fy + fh - 28, 'MCP config: mcp/templates/<id>.json via Engine upsert (TX) · secret guard blocks raw ghp_/sk- → \${ENV_VAR} · provenance verified', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 28, 'MCP config: mcp/templates/<id>/config.template.json via Engine upsert (TX) · secret guard blocks raw ghp_/sk- → \${ENV_VAR} · provenance verified', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	app.gg.draw_text(fx + 20, fy + fh - 14, 'Click a row for masked drawer · toggle on the right · ${verify.len} receipt warnings · Enter toggles first provider', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	// provider drawer — modal card, masked template + probe + open-template (#1106)
 	if app.mcp_drawer != '' {

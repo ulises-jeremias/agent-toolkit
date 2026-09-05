@@ -115,3 +115,5 @@ Doctor MCP repair previews now identify the packaged template that will be used,
 Pack catalog now enumerates `packs/*/config.yaml`, derives enabled skill counts from each config, and exposes persisted enabled state. It no longer advertises historical pack IDs or fixed counts that are absent from the current checkout (`products_service.v`, follow-up after `ec38149`).
 
 Unknown MCP providers now produce an empty install preview, with no fabricated write, receipt, or provenance paths. This keeps dry-run UI truthful when an entity is stale or unavailable (`mcp_service.v`, follow-up after `b5ae380`).
+
+MCP UI headers and footer now reference the actual packaged template path (`mcp/templates/<id>/config.template.json`) instead of the removed flat-file path (`main.v`, follow-up after `1b5fd68`).
