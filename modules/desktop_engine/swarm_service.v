@@ -737,7 +737,7 @@ pub fn (mut e Engine) swarm_inner_tick(run_id string, loop_id string, trace_line
 	}
 	iter_str := snap.data['swarm/${run_id}/inner_loops/${loop_id}/iteration'] or { '0' }
 	iter := iter_str.int() + 1
-	max_str := snap.data['swarm/${run_id}/inner_loops/${loop_id}/max'] or { '2' }
+	max_str := snap.data['swarm/${run_id}/inner_loops/${loop_id}/max'] or { '0' }
 	max_iter := max_str.int()
 	if iter > max_iter {
 		return error('max_iterations reached — requires approval')
@@ -809,8 +809,8 @@ pub fn (mut e Engine) swarm_list_inner(run_id string) []InnerLoop {
 		role := snap.data['${prefix}${id}/role'] or { '' }
 		goal := snap.data['${prefix}${id}/goal'] or { '' }
 		iter := (snap.data['${prefix}${id}/iteration'] or { '0' }).int()
-		max_iter := (snap.data['${prefix}${id}/max'] or { '2' }).int()
-		status := snap.data['${prefix}${id}/status'] or { 'running' }
+		max_iter := (snap.data['${prefix}${id}/max'] or { '0' }).int()
+		status := snap.data['${prefix}${id}/status'] or { 'pending' }
 		spent := (snap.data['${prefix}${id}/budget_spent'] or { '0' }).int()
 		trace_raw := snap.data['${prefix}${id}/trace'] or { '' }
 		trace := if trace_raw != '' { trace_raw.split('\n') } else { []string{} }

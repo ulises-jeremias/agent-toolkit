@@ -141,3 +141,5 @@ Target enablement now validates IDs against the discovered Engine target catalog
 Onboarding bulk target/product mutations now validate IDs against the live Engine catalogs, removing the last duplicated target roster and preventing invalid product membership state (`onboarding_service.v`, follow-up after `4a69b52`).
 
 Swarm launches no longer claim a fabricated 100-token allowance. Budget totals remain zero until supplied by authoritative recipe/config state, and missing persisted totals default to zero (`swarm_service.v`, follow-up after `6dff5a3`).
+
+Partial Swarm inner-loop records now default to `pending`, with an unknown iteration limit of zero, rather than claiming an active running loop with two iterations. Active state is shown only when persisted by the runtime (`swarm_service.v`, follow-up after `b83ef4f`).
