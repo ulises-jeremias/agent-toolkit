@@ -45,8 +45,8 @@ pub fn (mut e Engine) onboarding_status(harness_root string) OnboardingStatus {
 		// prefer recent_workspace from state, else toolkit_root
 		root = snap.data['recent_workspace'] or { env.toolkit_root }
 	}
-	// workspace_exists: knowledge/ repos/ projects/ packs/
-	workspace_exists := os.is_dir(os.join_path(root, 'knowledge')) || os.is_dir(os.join_path(root, 'repos'))
+	// A workspace is valid only when the minimum managed scaffold is present.
+	workspace_exists := os.is_dir(os.join_path(root, 'knowledge')) && os.is_dir(os.join_path(root, 'repos')) && os.is_dir(os.join_path(root, 'projects')) && os.is_dir(os.join_path(root, 'packs'))
 	personas_dir := os.join_path(root, 'personas')
 	mut persona_count := 0
 	mut personas_bootstrapped := false

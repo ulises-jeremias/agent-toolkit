@@ -157,3 +157,5 @@ Loop catalog entries with missing budget metadata now expose zero/unknown limits
 Loop catalog entries missing cadence metadata now keep cadence/schedule empty; the catalog no longer implies a daily schedule. Explicit create-loop defaults and YAML cadence remain supported (`loops_service.v`, follow-up after `206922f`).
 
 Persona bootstrap now verifies that at least two persona files actually exist before persisting `personas_bootstrapped=true`; persisted `persona_count` reflects the files present, and failed writes return an explicit incomplete error (`onboarding_service.v`, follow-up after `7ab8418`).
+
+Onboarding now considers a workspace valid only when the minimum managed scaffold (`knowledge`, `repos`, `projects`, and `packs`) exists. A partial directory can no longer be reported as ready (`onboarding_service.v`, follow-up after `b8cfff9`).
