@@ -59,9 +59,6 @@ pub fn (mut e Engine) git_changes() []GitChange {
 	e.mu.unlock()
 	snap := e.repo.snapshot()
 	mut out := []GitChange{}
-	out << GitChange{ path: 'modules/desktop_engine/skills_service.v', status: 'modified', staged: false, hunks: 2 }
-	out << GitChange{ path: 'cmd/agent-toolkit-desktop/main.v', status: 'modified', staged: true, hunks: 4 }
-	out << GitChange{ path: 'modules/desktop/skills/skills_viewmodel.v', status: 'modified', staged: false, hunks: 1 }
 	if 'dirty_files' in snap.data {
 		extra := snap.data['dirty_files'].split(',').map(it.trim_space()).filter(it != '')
 		for p in extra {
@@ -91,37 +88,15 @@ pub fn (mut e Engine) git_history(limit int) []GitCommit {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	n := if limit <= 0 || limit > 50 { 20 } else { limit }
-	mut out := []GitCommit{cap: n}
+	mut out := []GitCommit{cap: if limit > 0 && limit <= 50 { limit } else { 0 }}
 	env := resolve_env()
 	git_dir := os.join_path(env.toolkit_root, '.git')
-	if os.is_dir(git_dir) {}
-	authors := ['alice', 'bob', 'carol', 'dave']
-	branches := ['main', 'feat/ide', 'feat/git-rails', 'fix/brokered-fs']
-	for i in 0 .. n {
-		hex := 'abcdef0123456789'
-		mut h := ''
-		for j in 0 .. 7 {
-			h += hex[(i * 7 + j) % hex.len].ascii_str()
-		}
-		parents := if i == n - 1 {
-			[]string{}
-		} else if i % 5 == 0 && i + 2 < n {
-			[h_next(i + 1), h_next(i + 2)]
-		} else {
-			[h_next(i + 1)]
-		}
-		out << GitCommit{
-			hash: h
-			message: git_message_for(i)
-			author: authors[i % authors.len]
-			timestamp: 1700000000 + i * 3600
-			parents: parents
-			branch: branches[i % branches.len]
-			refs: if i == 0 {
-				['HEAD', 'main']} else if i % 8 == 0 { ['tag v1.${i / 8}.0'] } else { []string{} }
-		}
+	if !os.is_dir(git_dir) {
+		return out
 	}
+	// Git history is populated by the workspace adapter when a repository is
+	// explicitly selected. Do not invent commits for a project without a
+	// connected adapter.
 	return out
 }
 
@@ -171,54 +146,10 @@ pub fn (mut e Engine) git_diff(target string) []DiffHunk {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	if target == '' || target == 'CHANGES' {
-		return [
-			DiffHunk{
-				file: 'modules/desktop_engine/skills_service.v'
-				old_start: 57
-				old_count: 4
-				new_start: 57
-				new_count: 6
-				lines: [
-					DiffLine{.header, '@@ -57,4 +57,6 @@', 0, 0},
-					DiffLine{.context, ' if entries.len >= 116 {', 57, 57},
-					DiffLine{.deletion, '-                return entries', 58, 0},
-					DiffLine{.addition, '+                if entries.len >= 227 {', 0, 58},
-					DiffLine{.addition, '+                    return entries[..227]', 0, 59},
-					DiffLine{.context, ' }', 59, 60},
-				]
-			},
-			DiffHunk{
-				file: 'cmd/agent-toolkit-desktop/main.v'
-				old_start: 1219
-				old_count: 8
-				new_start: 1219
-				new_count: 12
-				lines: [
-					DiffLine{.header, '@@ -1219,8 +1219,12 @@ fn draw_skills', 0, 0},
-					DiffLine{.context, ' fx := 208', 1219, 1219},
-					DiffLine{.deletion, '-    app.gg.draw_text(fx+12, "SKILLS 116")', 1220, 0},
-					DiffLine{.addition, '+    // 227 searchable via skills_search fuzzy', 0, 1220},
-					DiffLine{.addition, '+    cat := app.engine.skills_search(query, domain)', 0, 1221},
-					DiffLine{.context, ' }', 1221, 1223},
-				]
-			},
-		]
-	}
-	return [
-		DiffHunk{
-			file: 'modules/desktop_engine/git_service.v'
-			old_start: 1
-			old_count: 3
-			new_start: 1
-			new_count: 5
-			lines: [
-				DiffLine{.header, '@@ -1,3 +1,5 @@', 0, 0},
-				DiffLine{.addition, '+// brokered via Engine', 0, 1},
-				DiffLine{.context, ' module desktop_engine', 1, 2},
-			]
-		},
-	]
+	// Diff data is supplied by the selected workspace adapter. Returning an
+	// empty result is safer than presenting a diff for files that were never
+	// changed.
+	return []DiffHunk{}
 }
 
 pub fn (mut e Engine) git_compare(base string, target string) []DiffHunk {
