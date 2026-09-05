@@ -5026,8 +5026,8 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	topo_y := y_launch + 78
 	topo_h := 112
 	pixel_panel(mut app, fx + 8, topo_y, fw - 16, topo_h, 'default')
-	app.gg.draw_text(fx + 20, topo_y + 8, 'Topology — handoff graph (live)', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	app.gg.draw_text(fx + fw - 240, topo_y + 10, 'nodes = roles · edges = GOD handoffs · dot = 4·t·(1−t)', gg.TextCfg{ color: app.pnl_text_mut, size: 9 })
+	app.gg.draw_text(fx + 20, topo_y + 8, 'Topology — recorded handoffs', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
+	app.gg.draw_text(fx + fw - 240, topo_y + 10, 'nodes = roles · edges = GOD handoffs', gg.TextCfg{ color: app.pnl_text_mut, size: 9 })
 	mut topo_handoffs := []string{}
 	if app.desktop != unsafe { nil } && app.desktop.swarm_list().len > 0 {
 		first_id_t := if app.desktop.swarm_list().len > 0 {
@@ -5080,7 +5080,6 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(pxz, pyz, zw, zh, app.pnl_card_sel)
 		app.gg.draw_rect_empty(pxz, pyz, zw, zh, app.pnl_border)
 		app.gg.draw_text(pxz + 8, pyz + 3, '+', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-		working := swarm_working_roles(topo_handoffs)
 		app.swarm_nodes = []
 		app.swarm_edges = []
 		// lane split: spread single lane when it fits (original geometry),
@@ -5133,26 +5132,18 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			centers_x[ri] = nx + node_w / 2
 			centers_y[ri] = ny + 17
 			app.swarm_nodes << SwarmNode{role, nx, ny, node_w}
-			status_running := role in working
-			app.gg.draw_rect_filled(nx, ny, node_w, 34, if status_running {
-				app.pnl_card_sel
-			} else {
-				app.pnl_card
-			})
-			app.gg.draw_rect_empty(nx, ny, node_w, 34, if status_running {
-				app.pnl_select
-			} else {
-				app.pnl_border
-			})
+			app.gg.draw_rect_filled(nx, ny, node_w, 34, app.pnl_card)
+			app.gg.draw_rect_empty(nx, ny, node_w, 34, app.pnl_border)
 			label := if role.len > max_label && max_label > 3 {
 				role[..max_label] + '…'
 			} else {
 				role
 			}
 			app.gg.draw_text(nx + 8, ny + 6, label, gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
-			app.gg.draw_text(nx + 8, ny + 19, if status_running { 'working' } else { 'queued' }, gg.TextCfg{ color: app.pnl_text_mut, size: 9, mono: true })
+			app.gg.draw_text(nx + 8, ny + 19, 'participant', gg.TextCfg{ color: app.pnl_text_mut, size: 9, mono: true })
 		}
-		// edges with travelling envelopes — GOD 4·t·(1−t) speed pulse
+		// Edges represent recorded handoffs. Keep them static until the Engine
+		// exposes delivery progress; animation would imply current activity.
 		for ei, e in edges {
 			if e[0] !in centers_x || e[1] !in centers_x {
 				continue
@@ -5163,11 +5154,9 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			y2 := centers_y[e[1]]
 			app.swarm_edges << SwarmEdge{x1, x2, (y1 + y2) / 2, edge_art[ei]}
 			app.gg.draw_line(x1, y1, x2, y2, tint(app.pnl_text_mut, 110))
-			t := f64((app.frame * 2 + ei * 90) % 120) / 120.0
-			env_x := x1 + int((x2 - x1) * t)
-			env_y := y1 + int((y2 - y1) * t)
-			env_h := int(5.0 * (4.0 * t * (1.0 - t)))
-			app.gg.draw_rect_filled(env_x - 3, env_y - 3 - env_h / 2, 6, 6, app.pnl_danger)
+			mid_x := (x1 + x2) / 2
+			mid_y := (y1 + y2) / 2
+			app.gg.draw_rect_filled(mid_x - 3, mid_y - 3, 6, 6, app.pnl_text_mut)
 		}
 	} else {
 		app.gg.draw_text(fx + 24, topo_y + 40, 'No handoffs yet — launch pair/team/full to see the live topology.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
