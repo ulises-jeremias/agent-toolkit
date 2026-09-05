@@ -4436,13 +4436,17 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	// supervisor health extra: API calls + revision badge
 	app.gg.draw_text(fx + 12, sy + 24, 'Engine api ${app.api_calls} · rev ${app.engine_rev} · bus dropped ${dropped} · StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// Jobs come from the supervisor. Empty means no jobs are running.
-	mut jobs := app.desktop.engine_jobs_catalog()
+	jobs := app.desktop.engine_jobs_catalog()
 	// card metrics — paper cards with left status rail
 	list_y0 := fy + 96
 	list_h_total := fh - 84 - 110
 	card_h := 52
 	visible := list_h_total / card_h
 	if visible < 1 {
+		return
+	}
+	if jobs.len == 0 {
+		app.gg.draw_text(fx + 18, list_y0 + 22, 'No jobs are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 13 })
 		return
 	}
 	if app.jobs_scroll < 0 {
@@ -8813,11 +8817,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			list_y0 := fy + 84
 			list_h_total := fh - 84 - 110
 			card_h := 52
-			mut jobs := app.desktop.engine_jobs_catalog()
-			if jobs.len == 0 {
-				jobs = [desktop_engine.JobRecord{ id: 'a' }, desktop_engine.JobRecord{ id: 'b' },
-					desktop_engine.JobRecord{ id: 'c' }, desktop_engine.JobRecord{ id: 'd' }]
-			}
+			jobs := app.desktop.engine_jobs_catalog()
 			visible := list_h_total / card_h
 			aq_y := fy + fh - 104
 			// if over approvals queue bottom, scroll that instead
@@ -9822,15 +9822,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			list_y0 := fy + 84
 			list_h_total := fh - 84 - 110
 			card_h := 52
-			mut jobs := app.desktop.engine_jobs_catalog()
-			if jobs.len == 0 {
-				jobs = [
-					desktop_engine.JobRecord{ id: 'job-7f3a-build-cli', cmd: 'v -o build/agent-toolkit cmd/agent-toolkit' },
-					desktop_engine.JobRecord{ id: 'job-9c1e-test-desktop', cmd: 'v test modules/desktop' },
-					desktop_engine.JobRecord{ id: 'job-a2ff-serve', cmd: 'agent-toolkit serve --port 3847' },
-					desktop_engine.JobRecord{ id: 'job-4d2a-loop-daily', cmd: 'agent-toolkit loop run daily-triage' },
-				]
-			}
+			jobs := app.desktop.engine_jobs_catalog()
 			visible := list_h_total / card_h
 			if visible > 0 {
 				start := clamp_scroll(app.jobs_scroll, jobs.len, visible)
