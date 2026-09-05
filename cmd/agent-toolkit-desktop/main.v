@@ -4126,16 +4126,25 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	// install preview + receipts super-potent
 	receipts := app.desktop.engine_list_install_receipts()
 	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.targets'), 'receipts ${receipts.len} · dry-run preview · provenance plugins/.provenance.json', 'install → receipt')
-	// dry-run diff for next install
-	diff := app.desktop.engine_install_preview(['cursor'])
-	if diff.added.len > 0 {
-		app.gg.draw_text(fx + 20, fy + 44, 'dry-run: will add ${diff.added.join(', ')} (preview via Engine.install_preview)', gg.TextCfg{ color: app.pnl_border_hi, size: 11 })
-	}
 	// R2 product-truth: roster comes from the Engine target catalog — the old
 	// hardcoded list drifted (copilot/muse-code vs cursor-plugins/cli).
 	tgts2 := app.desktop.engine_targets().map(it.id)
 	targets := app.desktop.engine_targets_enabled()
-	_ = targets
+	// Preview only the user's enabled targets. A fixed cursor preview was
+	// misleading on a clean machine and could imply an install that would not
+	// be executed.
+	if targets.len > 0 {
+		diff := app.desktop.engine_install_preview(targets)
+		if diff.added.len > 0 {
+			app.gg.draw_text(fx + 20, fy + 44, 'dry-run: will add ${diff.added.join(', ')} (preview via Engine.install_preview)', gg.TextCfg{ color: app.pnl_border_hi, size: 11 })
+		} else if diff.removed.len > 0 || diff.modified.len > 0 {
+			app.gg.draw_text(fx + 20, fy + 44, 'dry-run: ${diff.modified.len} modified · ${diff.removed.len} removed (preview via Engine.install_preview)', gg.TextCfg{ color: app.pnl_border_hi, size: 11 })
+		} else {
+			app.gg.draw_text(fx + 20, fy + 44, 'dry-run: no changes for enabled targets', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		}
+	} else {
+		app.gg.draw_text(fx + 20, fy + 44, 'Select a coding tool to preview its capability changes.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	}
 	for i, t in tgts2 {
 		y := fy + 56 + i * 32
 		enabled := t in app.desktop.engine_targets_enabled()
