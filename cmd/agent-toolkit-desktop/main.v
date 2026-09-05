@@ -10503,15 +10503,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			fh := app.gg.height - 52 - 28 - term_h_j
 			list_y0 := fy + 84
 			card_h := 52
-			mut jobs := app.desktop.engine_jobs_catalog()
-			if jobs.len == 0 {
-				jobs = [
-					desktop_engine.JobRecord{ id: 'job-7f3a-build-cli', cmd: '', args: [], status: .done },
-					desktop_engine.JobRecord{ id: 'job-9c1e-test-desktop', cmd: '', args: [], status: .running },
-					desktop_engine.JobRecord{ id: 'job-a2ff-serve', cmd: '', args: [], status: .running },
-					desktop_engine.JobRecord{ id: 'job-4d2a-loop-daily', cmd: '', args: [], status: .queued },
-				]
-			}
+			jobs := app.desktop.engine_jobs_catalog()
 			list_h_total := fh - 84 - 110
 			visible := list_h_total / card_h
 			if visible > 0 {
