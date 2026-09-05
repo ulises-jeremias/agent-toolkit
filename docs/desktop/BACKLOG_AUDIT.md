@@ -83,3 +83,5 @@ The active desktop branch (`r2-office-shell`) has since removed fabricated produ
 The Targets panel now handles row toggles through `Desktop.engine_set_targets_bulk`, using the live Engine target catalog and reporting the resulting revision (`a1037bc`, `main.v` Targets click handling). This closes a dead-control gap while the broader install-progress/receipt workflow in #1107 remains partial.
 
 A legacy spatial Library projection and standalone update helper were also made truthful: empty models now wait for Engine/catalog projection, detail previews report unavailable, and the default update feed has no fabricated release metadata (`14491c2`).
+
+The desktop command palette no longer lists legacy rows without an execution path (`59de011`). Remaining rows either navigate to a real surface, invoke an implemented Engine-backed action, or report an explicit unavailable state.
