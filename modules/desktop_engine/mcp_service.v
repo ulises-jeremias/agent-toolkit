@@ -203,6 +203,9 @@ pub fn (mut e Engine) mcp_install_preview(provider_id string) McpInstallPreview 
 	if template_path != '' {
 		writes << template_path
 	}
+	if template_path == '' {
+		return McpInstallPreview{ provider_id: provider_id, will_write: [], will_update: [], receipt_path: '', provenance_path: '' }
+	}
 	return McpInstallPreview{
 		provider_id: provider_id
 		will_write: writes

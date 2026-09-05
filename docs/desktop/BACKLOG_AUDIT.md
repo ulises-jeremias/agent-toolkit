@@ -113,3 +113,5 @@ MCP catalog now discovers only packaged provider directories containing real con
 Doctor MCP repair previews now identify the packaged template that will be used, instead of promising an invented npx configuration. The actual repair calls the same Engine MCP toggle path (`targets_service.v`, follow-up after `01718e7`).
 
 Pack catalog now enumerates `packs/*/config.yaml`, derives enabled skill counts from each config, and exposes persisted enabled state. It no longer advertises historical pack IDs or fixed counts that are absent from the current checkout (`products_service.v`, follow-up after `ec38149`).
+
+Unknown MCP providers now produce an empty install preview, with no fabricated write, receipt, or provenance paths. This keeps dry-run UI truthful when an entity is stale or unavailable (`mcp_service.v`, follow-up after `b5ae380`).
