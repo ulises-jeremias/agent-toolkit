@@ -12,6 +12,20 @@ The goal is a single source of truth: author a skill once, deploy it to any tool
 
 **Operate accordingly: be precise, cite sources, and validate before finalizing.**
 
+## Desktop product work
+
+Before Desktop changes, read [the product vision](docs/desktop/PRODUCT_VISION.md),
+[UX architecture](docs/desktop/UX_ARCHITECTURE.md),
+[user journeys](docs/desktop/USER_JOURNEYS.md),
+[workflow coverage](docs/desktop/WORKFLOW_COVERAGE.md) and
+[visual QA](docs/desktop/VISUAL_QA.md). These distinguish the product contract from
+verified implementation. Preserve native V/gg/sokol, shared typed domain authority,
+workspace containment and real operational truth. Never invent production data or
+claim installation from state-only bookkeeping. Major UX changes require running
+the production application and opening captured screenshots before approval.
+Historical World View and ADR-032 requirements need reconciliation with this
+contract; do not implement old issue text without checking current code and tasks.
+
 ---
 
 ## Repository Structure
