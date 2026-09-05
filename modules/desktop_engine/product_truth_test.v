@@ -70,6 +70,11 @@ fn test_product_truth_catalog_counts() {
 	for want in ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli'] {
 		assert want in ids, 'target ${want} missing from Engine catalog: ${ids}'
 	}
+	if _ := eng.set_target_enabled('missing-target', true) {
+		assert false, 'unknown targets must not create persisted state'
+	} else {
+		assert err.msg().contains('unsupported target')
+	}
 
 	products := eng.products_catalog()
 	assert products.len == 5, 'products must be 5'

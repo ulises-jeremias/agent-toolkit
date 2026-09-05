@@ -79,8 +79,14 @@ pub fn (mut e Engine) set_target_enabled(target_id string, enabled bool) !u64 {
 	if target_id == '' {
 		return error('target id empty')
 	}
-	valid := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
-	if target_id !in valid {
+	mut known := false
+	for target in e.targets() {
+		if target.id == target_id {
+			known = true
+			break
+		}
+	}
+	if !known {
 		return error('unsupported target: ${target_id}')
 	}
 	e.mu.lock()

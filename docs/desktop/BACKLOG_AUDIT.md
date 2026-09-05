@@ -135,3 +135,5 @@ Skill removal now requires the ID to be currently installed; stale or unknown ro
 Agent removal now checks persisted installation state before writing a removal receipt, preventing unknown or already-absent agents from creating phantom state (`agents_service.v`, follow-up after `beb0387`).
 
 MCP removal now requires the provider to be enabled in persisted Engine state before writing removal metadata; unconfigured providers cannot produce phantom receipts (`mcp_service.v`, follow-up after `e2a58d4`).
+
+Target enablement now validates IDs against the discovered Engine target catalog rather than a duplicated hardcoded list. Unknown targets cannot create persisted enablement state (`targets_service.v`, follow-up after `8ff0869`).
