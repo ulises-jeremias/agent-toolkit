@@ -8221,7 +8221,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 							}
 							app.api_calls = app.desktop.engine_api_calls()
 							action := if installed_now { 'installed' } else { 'removed' }
-							app.inspector_msg = 'Skill ${sel.id} ${action} rev=${rev} • receipt + provenance via Engine TX ✓'
+							app.inspector_msg = 'Skill ${sel.id} ${action} rev=${rev} • receipt recorded; provenance shown when recorded'
 						} else {
 							app.inspector_msg = 'Skill ${sel.id} selected — install via Engine'
 						}
