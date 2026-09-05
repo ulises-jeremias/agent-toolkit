@@ -74,3 +74,21 @@ Only this resolution and initial English/default appearance were inspected. No
 other matrix cell, terminal lifecycle, assistive technology, soak or packaged
 clean-machine pass is claimed. Capture reviewed evidence in PR artifacts and link
 it from the workflow ledger; temporary files are not durable release evidence.
+
+## Current evidence (2026-09-05)
+
+The historical bullets above describe the pre-trust baseline and are retained as
+design evidence; they are not claims about the current runtime. Since that
+capture, production catalogs, receipts, jobs, loops, swarms, MCP providers and
+targets were changed to use Engine-backed state with neutral empty/unknown
+values when source evidence is absent. A native headless launch with fresh
+`HOME`, `XDG_CONFIG_HOME`, `XDG_DATA_HOME` and `XDG_CACHE_HOME` completed
+successfully at commit `b2043f3`, reporting `app_state_rev=0` and resolving
+packaged fonts from the executable's asset root. This proves clean-machine
+startup, but not visual quality or packaged distribution independence.
+
+The next visual pass must recapture the first-run, Office, Skills, Targets and
+palette states from the current head, open each PNG for human review, and cover
+the resolution/theme/language matrix below. Xvfb smoke remains unavailable in
+the current environment because the repository's expected Xvfb/xdotool tools are
+not installed.

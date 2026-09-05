@@ -30,6 +30,12 @@ linked evidence. No workflow currently earns end-to-end completion from this aud
 
 ## Evidence and release blockers
 
+The synthetic-state blocker is resolved for the current production paths. The
+historical source locations below remain useful audit references, but the
+required proof is now represented by Engine catalog/receipt tests and neutral
+empty-state implementations. Visual and end-to-end workflow evidence is still
+incomplete, so this ledger must not be treated as release-complete.
+
 Source paths below refer to the baseline SHA; line numbers will move as fixes land.
 
 | Blocker | Evidence | Required proof |
