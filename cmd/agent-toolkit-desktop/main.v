@@ -7708,7 +7708,7 @@ fn draw_help(mut app GuiApp, w int, h int) {
 		'↑  ↓  Navigate palette / floor desks  •  Enter to activate',
 		'Esc  Close palette / help / onboarding  •  H  Toggle this help',
 		'Click  Desk, dock file-tab or inspector — hover for brass highlight',
-		'Enter  Open terminal for selected desk  •  R  Route handoff',
+		'Enter  Open terminal for selected desk  •  R  Check handoff availability',
 	]
 	for i, l in lines {
 		app.gg.draw_text(cx + 16, cy + 38 + i * 18, l, gg.TextCfg{ color: app.pnl_text, size: scaled_size(13, z) })
@@ -7787,18 +7787,18 @@ fn activate_palette_selection(mut app GuiApp) {
 			app.selected_panel = 12
 		}
 		'serve' {
-			app.inspector_msg = 'Serve: agent-toolkit serve --port 3847'
+			app.inspector_msg = 'Server control is not available in this desktop session'
 		}
 		'theme' {
 			cycle_appearance(mut app)
 		}
 		'doctor_fix' {
 			app.selected_panel = 5
-			app.inspector_msg = 'Doctor fix: running checks…'
+			app.inspector_msg = 'Doctor opened — select a check to preview its repair'
 		}
 		'install' {
 			app.selected_panel = 1
-			app.inspector_msg = 'Install: agent-toolkit install --dry-run'
+			app.inspector_msg = 'Skills opened — select a capability to review and install'
 		}
 		else {}
 	}
