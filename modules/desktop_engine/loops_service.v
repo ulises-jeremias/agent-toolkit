@@ -128,10 +128,10 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 		mut out := []LoopEntry{}
 		for n in names {
 			goal := snap.data['loops/${n}/goal'] or { '' }
-			// budgets — read new keys first, fallback to old single budget (audit-aligned 80k/1/900)
-			max_tokens := (snap.data['loops/${n}/budget/max_tokens'] or { snap.data['loops/${n}/budget'] or { '80000' } }).int()
-			max_runs := (snap.data['loops/${n}/budget/max_runs_per_day'] or { '1' }).int()
-			max_wall := (snap.data['loops/${n}/budget/max_wall_seconds'] or { '900' }).int()
+			// Missing budget data is unknown; do not claim the historical 80k/1/900 defaults.
+			max_tokens := (snap.data['loops/${n}/budget/max_tokens'] or { snap.data['loops/${n}/budget'] or { '0' } }).int()
+			max_runs := (snap.data['loops/${n}/budget/max_runs_per_day'] or { '0' }).int()
+			max_wall := (snap.data['loops/${n}/budget/max_wall_seconds'] or { '0' }).int()
 			// also try filesystem yaml if State missing
 			mut fs_budget := LoopBudget{ max_tokens: max_tokens, max_runs_per_day: max_runs, max_wall_seconds: max_wall }
 			mut fs_cadence := snap.data['loops/${n}/cadence'] or { '1d' }

@@ -151,3 +151,5 @@ Loop history now contains only persisted run records. The former three synthetic
 Persisted loops missing a goal now expose an empty goal rather than synthesizing `Goal <name>` text; the UI can distinguish incomplete configuration from authored content (`loops_service.v`, follow-up after `d92ff90`).
 
 `create_loop` now preserves an empty user goal instead of generating `Goal for <name>`. New loops therefore distinguish authored objectives from incomplete setup (`loops_service.v`, follow-up after `3a2f550`).
+
+Loop catalog entries with missing budget metadata now expose zero/unknown limits instead of the historical 80,000-token, one-run, 900-second defaults. Explicit Engine-created or YAML-provided budgets remain intact (`loops_service.v`, follow-up after `d2754a8`).
