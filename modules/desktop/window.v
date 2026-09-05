@@ -365,6 +365,10 @@ pub fn (mut d Desktop) engine_loop_history(loop_name string) []desktop_engine.Lo
 	return d.engine.loops_history(loop_name)
 }
 
+pub fn (mut d Desktop) engine_create_loop(name string, tier string, cadence string, goal string) !u64 {
+	return d.engine.create_loop(name, tier, cadence, goal)!
+}
+
 pub fn (mut d Desktop) engine_loop_budget_ledger(name string) (int, int, int) {
 	return d.engine.loop_budget_ledger(name)
 }

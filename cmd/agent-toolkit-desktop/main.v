@@ -9935,8 +9935,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						return
 					}
 					tier_s := ['L1', 'L2', 'L3'][app.loops_create_tier]
-					_ = app.desktop.loops_catalog()
-					app.inspector_msg = 'Loop create queued: ${name} ${tier_s} ${app.loops_create_cadence} via Engine.create_loop() TX'
+					_ := app.desktop.engine_create_loop(name, tier_s, app.loops_create_cadence, '') or {
+						app.inspector_msg = 'Loop could not be created: ${err.msg()}'
+						return
+					}
+					app.inspector_msg = 'Loop created: ${name} ${tier_s} ${app.loops_create_cadence}'
 					app.loops_show_create = false
 					return
 				}
