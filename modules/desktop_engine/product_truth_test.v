@@ -56,7 +56,10 @@ fn test_product_truth_catalog_counts() {
 		assert want in ids, 'target ${want} missing from Engine catalog: ${ids}'
 	}
 
-	assert eng.products_catalog().len == 5, 'products must be 5'
+	products := eng.products_catalog()
+	assert products.len == 5, 'products must be 5'
+	assert products[0].skill_ids.len > 0, 'product membership must come from products.yaml'
+	assert products[0].skill_ids.len < skills.len, 'product membership must not claim the whole catalog'
 	assert eng.packs_catalog().len == 7, 'packs must be 7'
 	assert eng.receipts_catalog().len == 0, 'a fresh engine must not invent receipts'
 	assert eng.api_call_count() > 0

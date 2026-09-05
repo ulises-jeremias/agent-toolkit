@@ -2,6 +2,7 @@ module desktop_engine
 
 import time
 import x.json2
+import crypto.sha256 as crypto_sha256
 
 // ProductEntry mirrors distributions/products.yaml — super-potent with provenance/receipts.
 pub struct ProductEntry {
@@ -40,6 +41,8 @@ pub fn (mut e Engine) products_catalog() []ProductEntry {
 			mut out := []ProductEntry{}
 			lines := txt.split_into_lines()
 			mut cur := ProductEntry{}
+			mut cur_skills := []string{}
+			mut in_skill_list := false
 			mut in_products := false
 			for line in lines {
 				t := line.trim_space()
@@ -49,21 +52,32 @@ pub fn (mut e Engine) products_catalog() []ProductEntry {
 				}
 				if in_products && t.starts_with('- id:') {
 					if cur.id != '' {
+						cur.skill_ids = cur_skills.clone()
 						out << cur
 					}
 					cur = ProductEntry{ id: t.all_after(':').trim_space(), provenance: 'distributions/products.yaml' }
+					cur_skills = []string{}
+					in_skill_list = false
 				} else if in_products && t.starts_with('name:') && cur.id != '' && cur.name == '' {
 					cur.name = t.all_after(':').trim_space().trim('"')
 				} else if in_products && t.starts_with('description:') && cur.id != '' && cur.description == '' {
 					cur.description = t.all_after(':').trim_space().trim('"')
+				} else if in_products && t == 'skills:' && cur.id != '' {
+					in_skill_list = true
+				} else if in_products && (t == 'agents:' || t == 'hooks:' || t == 'mcp:') {
+					in_skill_list = false
+				} else if in_products && in_skill_list && t.starts_with('- ') && cur.id != '' {
+					cur_skills << t.all_after('-').trim_space()
 				}
 			}
 			if cur.id != '' {
+				cur.skill_ids = cur_skills.clone()
 				out << cur
 			}
 			if out.len > 0 {
+				version := data_file_read(env, 'VERSION') or { '' }
 				for i in 0 .. out.len {
-					out[i].skill_ids = e.skills_installed()
+					out[i].version = version.trim_space()
 					out[i].receipt_path = 'receipts/product-${out[i].id}.json'
 					out[i].provenance = 'distributions/products.yaml'
 				}
@@ -131,7 +145,7 @@ pub fn (mut e Engine) update_product_membership(product_id string, skill_ids []s
 	tx.set('product:${product_id}:skills', skill_ids.join(','))
 	tx.set('products_count', e.products_catalog().len.str())
 	tx.set('receipt:product:${product_id}:updated_at', time.now().str())
-	tx.set('receipt:product:${product_id}:digest', 'sha256:${skill_ids.len * 7}')
+	tx.set('receipt:product:${product_id}:digest', crypto_sha256.hexhash(skill_ids.join(',')))
 	tx.set('provenance:product:${product_id}:source', 'distributions/products.yaml')
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
@@ -174,7 +188,7 @@ pub fn (mut e Engine) product_receipt(product_id string) string {
 	e.api_calls++
 	e.mu.unlock()
 	snap := e.repo.snapshot()
-	installed_at := snap.data['receipt:product:${product_id}:updated_at'] or { time.now().str() }
+	installed_at := snap.data['receipt:product:${product_id}:updated_at'] or { '' }
 	return json2.encode({
 		'schemaVersion': '1'
 		'product':       product_id
