@@ -9459,6 +9459,46 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
+		// Targets panel — row toggles are backed by the Engine catalog and
+		// persisted as one typed transaction. Keep the hit geometry aligned with
+		// draw_targets so the visible control is never dead.
+		if app.selected_panel == 4 && !app.show_onboarding {
+			w2t := app.gg.width
+			h2t := app.gg.height
+			term_h_t := if app.term_visible { app.term_height } else { 0 }
+			fx_t := panel_fx(app)
+			fy_t := 52
+			fw_t := panel_fw(app, w2t)
+			fh_t := h2t - 52 - 28 - term_h_t
+			if fh_t > 100 && mx >= fx_t + 12 && mx <= fx_t + fw_t - 12 {
+				catalog_t := app.desktop.engine_targets()
+				for i, target_t in catalog_t {
+					y_t := fy_t + 56 + i * 32
+					if my < y_t || my > y_t + 28 {
+						continue
+					}
+					mut enabled_t := app.desktop.engine_targets_enabled()
+					is_enabled_t := target_t.id in enabled_t
+					if is_enabled_t {
+						enabled_t = enabled_t.filter(it != target_t.id)
+					} else {
+						enabled_t << target_t.id
+					}
+					rev_t := app.desktop.engine_set_targets_bulk(enabled_t) or {
+						app.inspector_msg = 'Target ${target_t.id} update failed: ${err}'
+						return
+					}
+					app.inspector_msg = '${target_t.id} ${if is_enabled_t {
+						'disabled'
+					} else {
+						'enabled'
+					}} · Engine rev ${rev_t}'
+					app.engine_rev = app.desktop.app_state_snapshot().revision
+					app.api_calls = app.desktop.engine_api_calls()
+					return
+				}
+			}
+		}
 		// Products catalog — distinct overlay with install buttons, super-potent easy management via Engine
 		if app.selected_panel == 10 {
 			// products cards: Install at fw-160, Manage at fw-90 — distinct from onboarding
