@@ -9839,13 +9839,20 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						if mx >= fx + fw - 108 && mx <= fx + fw - 64 && my >= y + 22 && my <= y + 38 {
 							// Cancel via Engine
 							j := jobs[idx]
-							_ = app.desktop.engine_job_logs(j.id)
-							app.inspector_msg = 'Job cancel queued: ${j.id} → canceled (via Engine TX)'
+							_ := app.desktop.engine_cancel_job(j.id) or {
+								app.inspector_msg = 'Job cancel failed: ${err.msg()}'
+								return
+							}
+							app.inspector_msg = 'Job canceled: ${j.id}'
 							return
 						}
 						if mx >= fx + fw - 58 && mx <= fx + fw - 14 && my >= y + 22 && my <= y + 38 {
 							j := jobs[idx]
-							app.inspector_msg = 'Job retry queued: ${j.id} via Engine.spawn_job()'
+							new_id := app.desktop.engine_retry_job(j.id) or {
+								app.inspector_msg = 'Job retry failed: ${err.msg()}'
+								return
+							}
+							app.inspector_msg = 'Job retried: ${j.id} → ${new_id}'
 							return
 						}
 						app.inspector_msg = 'Job selected: ${jobs[idx].id} • ${jobs[idx].cmd}'
@@ -9958,12 +9965,25 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						// Run button
 						if mx >= fx + fw - 108 && mx <= fx + fw - 64 && my >= y + 44 && my <= y + 60 {
 							entry := loops[idx]
-							app.inspector_msg = 'Loop run queued: ${entry.name} via Engine.run_loop() → job (legacy budgets tok=${entry.budget.max_tokens} runs=${entry.budget.max_runs_per_day} wall=${entry.budget.max_wall_seconds})'
+							job_id := app.desktop.engine_run_loop(entry.name) or {
+								app.inspector_msg = 'Loop run failed: ${err.msg()}'
+								return
+							}
+							app.inspector_msg = 'Loop started: ${entry.name} → ${job_id}'
 							return
 						}
 						if mx >= fx + fw - 58 && mx <= fx + fw - 14 && my >= y + 44 && my <= y + 60 {
 							entry := loops[idx]
-							app.inspector_msg = 'Loop schedule toggled: ${entry.name} cron ${entry.schedule} via Engine.toggle_loop_cron()'
+							new_enabled := !entry.cron_enabled
+							_ := app.desktop.engine_toggle_loop_cron(entry.name, new_enabled) or {
+								app.inspector_msg = 'Loop schedule failed: ${err.msg()}'
+								return
+							}
+							app.inspector_msg = 'Loop schedule ${if new_enabled {
+								'enabled'
+							} else {
+								'paused'
+							}}: ${entry.name}'
 							return
 						}
 						app.inspector_msg = 'Loop selected: ${loops[idx].name} • L${loops[idx].tier.str().to_upper()} • ${loops[idx].budget.max_tokens} tok • ${loops[idx].budget.max_runs_per_day}/d • ${loops[idx].budget.max_wall_seconds}s'

@@ -353,6 +353,14 @@ pub fn (mut d Desktop) engine_job_logs(job_id string) []string {
 	return d.engine.job_logs(job_id)
 }
 
+pub fn (mut d Desktop) engine_cancel_job(job_id string) !u64 {
+	return d.engine.cancel_job(job_id)!
+}
+
+pub fn (mut d Desktop) engine_retry_job(job_id string) !string {
+	return d.engine.retry_job(job_id)!
+}
+
 pub fn (mut d Desktop) engine_process_supervisor_stats() (int, u64) {
 	return d.engine.process_supervisor_stats()
 }
@@ -363,6 +371,14 @@ pub fn (mut d Desktop) engine_approvals_queue() []desktop_engine.SwarmApproval {
 
 pub fn (mut d Desktop) engine_loop_history(loop_name string) []desktop_engine.LoopHistory {
 	return d.engine.loops_history(loop_name)
+}
+
+pub fn (mut d Desktop) engine_run_loop(name string) !string {
+	return d.engine.run_loop(name)!
+}
+
+pub fn (mut d Desktop) engine_toggle_loop_cron(name string, enabled bool) !u64 {
+	return d.engine.toggle_loop_cron(name, enabled)!
 }
 
 pub fn (mut d Desktop) engine_create_loop(name string, tier string, cadence string, goal string) !u64 {
