@@ -1622,12 +1622,12 @@ fn palette_items() []PaletteItem {
 		PaletteItem{'targets', 'Go to Targets', 'Enable platforms', '5'},
 		PaletteItem{'doctor', 'Go to Doctor', 'Fix checks', '6'},
 		PaletteItem{'jobs', 'Go to Jobs', 'Live processes', '7'},
-		PaletteItem{'loops', 'Go to Loops', 'Missions and schedules — inner/outer', '8'},
-		PaletteItem{'swarm', 'Go to Swarm', 'GOD mailbox, Herdr/tmux, pair/team/full, approvals spend/scope/destructive', '9'},
+		PaletteItem{'loops', 'Go to Loops', 'Schedule recurring agent work and review runs', '8'},
+		PaletteItem{'swarm', 'Go to Swarm', 'Coordinate agents, handoffs, approvals, and artifacts', '9'},
 		PaletteItem{'workspace', 'Go to Workspace', 'Context and memory', '0'},
 		PaletteItem{'products', 'Go to Products', 'Manage products/packs membership & digest', 'p'},
 		PaletteItem{'onboarding', 'Go to Onboarding', 'Set up workspace, coding tools, and capabilities', 'o'},
-		PaletteItem{'insights', 'Go to Insights', 'Telemetry — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher', 'i'},
+		PaletteItem{'insights', 'Go to Insights', 'Review usage, costs, budgets, and execution history', 'i'},
 		PaletteItem{'doctor_fix', 'Open Doctor repairs', 'Review checks and available fixes', 'd'},
 		PaletteItem{'install', 'Open skill installation', 'Review capabilities and install from the catalog', 'i'},
 		PaletteItem{'theme', 'Theme — cycle Paper/Ink/System', 'Panel appearance, persists', 't'},
@@ -7632,9 +7632,9 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	// manila folder tab protruding top
 	app.gg.draw_rect_filled(cx + 18, cy - 14, 120, 14, app.pnl_card_sel)
 	app.gg.draw_rect_filled(cx + 18, cy - 14, 120, 2, app.pnl_select)
-	app.gg.draw_text(cx + 28, cy - 11, 'Dunder Mifflin', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(9, z) })
+	app.gg.draw_text(cx + 28, cy - 11, 'Agent Toolkit', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(9, z) })
 	pixel_panel(mut app, cx, cy, pw, ph, 'default')
-	app.gg.draw_text(cx + 16, cy + 12, 'Command Palette', gg.TextCfg{ color: app.pnl_text, size: scaled_size(13, z), bold: true })
+	app.gg.draw_text(cx + 16, cy + 12, 'Search / Run', gg.TextCfg{ color: app.pnl_text, size: scaled_size(13, z), bold: true })
 	app.gg.draw_text(cx + pw - 90, cy + 12, '/  •  ESC', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(11, z) })
 	app.gg.draw_rect_filled(cx + 12, cy + 32, pw - 24, 32, app.pnl_text)
 	app.gg.draw_rect_empty(cx + 12, cy + 32, pw - 24, 32, app.pnl_select)
