@@ -2888,6 +2888,7 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 		agents = app.desktop.engine_agents_search('', '')
 	}
 	attention_jobs := jobs.filter(it.status == .failed || it.status == .queued)
+	running_jobs := jobs.filter(it.status == .running)
 	content_y := fy + 58
 	col_w := (fw - 52) / 2
 	// Attention is derived from real state. Empty means there is nothing to fix.
@@ -2901,8 +2902,13 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 	}
 	pixel_panel(mut app, fx + 28 + col_w, content_y, col_w, 92, 'default')
 	app.gg.draw_text(fx + 42 + col_w, content_y + 14, 'Running now', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-	app.gg.draw_text(fx + 42 + col_w, content_y + 42, 'No agents are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-	app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Live sessions appear here when started.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	if running_jobs.len == 0 {
+		app.gg.draw_text(fx + 42 + col_w, content_y + 42, 'No operations are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Live sessions appear here when started.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	} else {
+		app.gg.draw_text(fx + 42 + col_w, content_y + 42, '${running_jobs.len} operation(s) running.', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
+		app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Open Operations to follow logs and recovery.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	}
 	// Agent roster is useful even while idle, but status is never inferred from identity.
 	list_y := content_y + 114
 	pixel_panel(mut app, fx + 16, list_y, fw - 32, fh - (list_y - fy) - 18, 'default')
