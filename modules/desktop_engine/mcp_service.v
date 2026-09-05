@@ -40,7 +40,8 @@ pub:
 	provenance_path string
 }
 
-// mcp_catalog lists 7 providers — super-potent: reads mcp/templates + registry, provenance.
+// mcp_catalog discovers providers from packaged mcp/templates/<id>/ files.
+// A missing catalog is empty rather than a reason to invent a provider roster.
 pub fn (mut e Engine) mcp_catalog() []McpProvider {
 	e.mu.lock()
 	e.api_calls++
@@ -49,62 +50,36 @@ pub fn (mut e Engine) mcp_catalog() []McpProvider {
 	reg_dir := os.join_path(env.toolkit_root, 'mcp', 'templates')
 	mut ids := []string{}
 	if os.is_dir(reg_dir) {
-		files := os.ls(reg_dir) or { []string{} }
-		for f in files {
-			if f.ends_with('.json') {
-				ids << f.all_before('.json')
+		entries := os.ls(reg_dir) or { []string{} }
+		for id in entries {
+			provider_dir := os.join_path(reg_dir, id)
+			if os.is_dir(provider_dir) && (os.is_file(os.join_path(provider_dir, 'config.template.json')) || os.is_file(os.join_path(provider_dir, 'config.local.template.json'))) {
+				ids << id
 			}
 		}
 	}
-	// prefer real files if >=7
-	if ids.len >= 7 {
-		mut out := []McpProvider{}
-		for id in ids[..7] {
-			snap := e.repo.snapshot()
-			enabled_str := snap.data['mcp:${id}:enabled'] or { 'false' }
-			enabled := enabled_str == 'true'
-			health := e.mcp_health_detailed(id)
-			out << McpProvider{
-				id: id
-				name: id
-				description: 'MCP ${id} — template ${id}.json'
-				enabled: enabled
-				health: health
-				requires_docker: id == 'github'
-				template_path: os.join_path(reg_dir, '${id}.json')
-				registry_path: os.join_path(env.toolkit_root, 'mcp', 'registry', '${id}.yaml')
-				version: ''
-				provenance: 'mcp/templates/${id}.json'
-			}
-		}
-		return out
-	}
-	snap := e.repo.snapshot()
+	ids.sort()
 	mut out := []McpProvider{}
-	defs := [
-		['github', 'GitHub', 'GitHub MCP (requires docker)', 'true', 'healthy', 'true'],
-		['slack', 'Slack', 'Slack MCP — chat + workflow', 'false', 'unconfigured', 'false'],
-		['notion', 'Notion', 'Notion MCP — pages + db', 'true', 'healthy', 'false'],
-		['linear', 'Linear', 'Linear MCP — issues', 'false', 'unconfigured', 'false'],
-		['figma', 'Figma', 'Figma MCP — design tokens', 'false', 'error', 'false'],
-		['chrome-devtools', 'Chrome DevTools', 'CDP — browser automation', 'true', 'healthy',
-			'false'],
-		['clickup', 'ClickUp', 'ClickUp MCP — tasks', 'false', 'unconfigured', 'false'],
-	]
-	for d in defs {
-		id := d[0]
+	for id in ids {
+		provider_dir := os.join_path(reg_dir, id)
+		template_name := if os.is_file(os.join_path(provider_dir, 'config.template.json')) {
+			'config.template.json'
+		} else {
+			'config.local.template.json'
+		}
+		snap := e.repo.snapshot()
 		enabled_str := snap.data['mcp:${id}:enabled'] or { 'false' }
 		out << McpProvider{
 			id: id
-			name: d[1]
-			description: d[2]
+			name: id
+			description: 'MCP ${id} — packaged template'
 			enabled: enabled_str == 'true'
 			health: e.mcp_health_detailed(id)
-			requires_docker: d[5] == 'true'
-			template_path: os.join_path(env.toolkit_root, 'mcp', 'templates', '${id}.json')
+			requires_docker: id == 'github'
+			template_path: os.join_path(provider_dir, template_name)
 			registry_path: os.join_path(env.toolkit_root, 'mcp', 'registry', '${id}.yaml')
 			version: ''
-			provenance: 'mcp/templates/${id}.json'
+			provenance: 'mcp/templates/${id}/${template_name}'
 		}
 	}
 	return out
@@ -203,8 +178,13 @@ pub fn (mut e Engine) mcp_preview(provider_id string) (string, string) {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	_ = provider_id
-	return '{"mcpServers": {"${provider_id}": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-${provider_id}"]}}}', '{"mcpServers": {"${provider_id}": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-${provider_id}"]}}}'
+	for p in e.mcp_catalog() {
+		if p.id == provider_id {
+			content := os.read_file(p.template_path) or { '' }
+			return content, content
+		}
+	}
+	return '', ''
 }
 
 // mcp_install_preview returns dry-run diff (easy management).
@@ -212,15 +192,23 @@ pub fn (mut e Engine) mcp_install_preview(provider_id string) McpInstallPreview 
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	env := resolve_env()
+	mut template_path := ''
+	for p in e.mcp_catalog() {
+		if p.id == provider_id {
+			template_path = p.template_path
+			break
+		}
+	}
+	mut writes := []string{}
+	if template_path != '' {
+		writes << template_path
+	}
 	return McpInstallPreview{
 		provider_id: provider_id
-		will_write: [
-			os.join_path(env.toolkit_root, 'mcp', 'templates', '${provider_id}.json'),
-		]
+		will_write: writes
 		will_update: [os.join_path(os.home_dir(), '.config', 'mcp.json')]
 		receipt_path: os.join_path(os.home_dir(), '.config', 'agent-toolkit', 'receipts', '${provider_id}-mcp.json')
-		provenance_path: os.join_path(env.toolkit_root, 'mcp', 'templates', '${provider_id}.json')
+		provenance_path: template_path
 	}
 }
 
@@ -232,9 +220,8 @@ pub:
 	detail  string
 }
 
-// mcp_template_json returns the real template content when the file exists,
-// else the default npx stanza. The bool reports which (#1106). Never errors
-// so the drawer always has something masked to show.
+// mcp_template_json returns only real packaged template content. The bool
+// reports whether the provider was discovered from a file (#1106).
 pub fn (mut e Engine) mcp_template_json(provider_id string) (string, bool) {
 	e.mu.lock()
 	e.api_calls++
@@ -248,7 +235,7 @@ pub fn (mut e Engine) mcp_template_json(provider_id string) (string, bool) {
 			break
 		}
 	}
-	return '{"mcpServers": {"${provider_id}": {"command": "npx", "args": ["-y", "@modelcontextprotocol/server-${provider_id}"]}}}', false
+	return '', false
 }
 
 // mcp_probe runs the typed health probe: schema validation + secret-guard
@@ -368,13 +355,20 @@ pub fn (mut e Engine) upsert_mcp_provider(provider_id string, config_json string
 	e.api_calls++
 	e.mu.unlock()
 	mut repo := e.repo
+	mut source := ''
+	for p in e.mcp_catalog() {
+		if p.id == provider_id {
+			source = p.provenance
+			break
+		}
+	}
 	mut tx := repo.begin('upsert-mcp')
 	tx.set('mcp:${provider_id}:config', config_json)
 	tx.set('mcp:${provider_id}:enabled', 'true')
 	tx.set('mcp:${provider_id}:health', 'healthy')
 	tx.set('receipt:mcp:${provider_id}:installed_at', time.now().str())
 	tx.set('receipt:mcp:${provider_id}:digest', crypto_sha256.hexhash(config_json))
-	tx.set('provenance:mcp:${provider_id}:source', 'mcp/templates/${provider_id}.json')
+	tx.set('provenance:mcp:${provider_id}:source', source)
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
@@ -402,7 +396,11 @@ pub fn (mut e Engine) mcp_toggle(provider_id string) !u64 {
 			if p.enabled {
 				return e.remove_mcp_provider(provider_id)!
 			} else {
-				return e.upsert_mcp_provider(provider_id, '{"command":"npx","args":["-y","@modelcontextprotocol/server-${provider_id}"]}')!
+				content := os.read_file(p.template_path) or { '' }
+				if content == '' {
+					return error('mcp provider template unavailable: ${provider_id}')
+				}
+				return e.upsert_mcp_provider(provider_id, content)!
 			}
 		}
 	}
@@ -435,11 +433,18 @@ pub fn (mut e Engine) mcp_provenance_json(provider_id string) string {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	env := resolve_env()
-	verified := data_file_exists(env, 'mcp/templates/${provider_id}.json')
+	mut template := ''
+	mut verified := false
+	for p in e.mcp_catalog() {
+		if p.id == provider_id {
+			template = p.provenance
+			verified = os.exists(p.template_path)
+			break
+		}
+	}
 	return json2.encode({
 		'provider': provider_id
-		'template': 'mcp/templates/${provider_id}.json'
+		'template': template
 		'registry': 'mcp/registry/${provider_id}.yaml'
 		'verified': if verified { 'true' } else { 'false' }
 	},

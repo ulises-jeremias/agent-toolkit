@@ -30,10 +30,10 @@ fn test_mcp_drawer_template_and_probe() {
 
 	cat := eng.mcp_catalog()
 	assert cat.len >= 7
-	// unknown provider → default stanza, not an error (drawer always renders)
+	// unknown provider → unavailable, never a fabricated stanza
 	content, from_file := eng.mcp_template_json('no-such-provider')
 	assert from_file == false
-	assert content.contains('no-such-provider')
+	assert content == ''
 	// probe is typed and honest: an unconfigured provider is not healthy
 	fig := eng.mcp_probe('figma') or { panic(err.msg()) }
 	assert fig.healthy == false

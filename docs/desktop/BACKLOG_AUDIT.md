@@ -107,3 +107,5 @@ The inspector's compact per-desk Ghostty view is now explicitly an Engine log pr
 `Engine.loops_catalog` no longer injects ten template loops when no state/files exist; runtime coverage now creates a loop explicitly before exercising it, while discovered filesystem loops remain supported (`loops_service.v`, `runtime_plane_test.v`).
 
 Discovered loops without execution history now keep `last_exit` empty instead of claiming `success`; completion is shown only after a recorded run (`loops_service.v`, follow-up after `d2f5f25`).
+
+MCP catalog now discovers only packaged provider directories containing real config templates, using their actual paths for previews, provenance, probes, and toggle installation. Unknown providers return empty content instead of fabricated npx configuration (`mcp_service.v`, follow-up after `6da89e7`).
