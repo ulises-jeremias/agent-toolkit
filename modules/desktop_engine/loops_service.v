@@ -201,7 +201,7 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 				cron_enabled: (snap.data['loops/${n}/cron'] or { 'false' }) == 'true'
 				next_run: snap.data['loops/${n}/next_run'] or { '' }
 				last_run: snap.data['loops/${n}/last_run'] or { '' }
-				last_exit: snap.data['loops/${n}/last_exit'] or { 'success' }
+				last_exit: snap.data['loops/${n}/last_exit'] or { '' }
 				verifier: fs_verifier
 				allowlist: (snap.data['loops/${n}/allowlist'] or { '' }).split(',').filter(it.trim_space().len > 0)
 				deny: (snap.data['loops/${n}/deny'] or { '' }).split(',').filter(it.trim_space().len > 0)
