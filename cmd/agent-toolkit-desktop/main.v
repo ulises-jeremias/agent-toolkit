@@ -942,6 +942,7 @@ mut:
 	last_msg         string
 	last_msg_frame   int = -99
 	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
+	office_map_view  bool // optional spatial view; operational overview is the default
 	hover_panel      int
 	selected_desk    int
 	hover_desk       int
@@ -2893,7 +2894,69 @@ fn draw_left_dock(mut app GuiApp, h int) {
 	})
 }
 
+fn draw_office_overview(mut app GuiApp, w int, h int) {
+	term_h := if app.term_visible { app.term_height } else { 0 }
+	fx := panel_fx(app)
+	fy := 52
+	fw := panel_fw(app, w)
+	fh := h - 52 - 28 - term_h
+	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
+	app.gg.draw_rect_filled(fx, fy, fw, 42, app.pnl_card)
+	app.gg.draw_text(fx + 20, fy + 11, 'Office', gg.TextCfg{ color: app.pnl_text, size: font_display_md, family: app.fonts.display })
+	app.gg.draw_text(fx + 106, fy + 15, 'What needs your attention?', gg.TextCfg{ color: app.pnl_text_mut, size: font_body_sm })
+	app.gg.draw_text(fx + fw - 150, fy + 15, 'Press M for floor map', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+	mut jobs := []desktop_engine.JobRecord{}
+	mut agents := []desktop_engine.AgentEntry{}
+	if app.desktop != unsafe { nil } {
+		jobs = app.desktop.engine_jobs_catalog()
+		agents = app.desktop.engine_agents_search('', '')
+	}
+	content_y := fy + 58
+	col_w := (fw - 52) / 2
+	// Attention is derived from real state. Empty means there is nothing to fix.
+	pixel_panel(mut app, fx + 16, content_y, col_w, 92, 'default')
+	app.gg.draw_text(fx + 30, content_y + 14, 'Needs your attention', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	if jobs.len == 0 {
+		app.gg.draw_text(fx + 30, content_y + 42, 'Nothing requires attention.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	} else {
+		app.gg.draw_text(fx + 30, content_y + 42, '${jobs.len} recorded operation(s)', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
+		app.gg.draw_text(fx + 30, content_y + 62, 'Open Operations to inspect status and recovery.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	}
+	pixel_panel(mut app, fx + 28 + col_w, content_y, col_w, 92, 'default')
+	app.gg.draw_text(fx + 42 + col_w, content_y + 14, 'Running now', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	app.gg.draw_text(fx + 42 + col_w, content_y + 42, 'No agents are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Live sessions appear here when started.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	// Agent roster is useful even while idle, but status is never inferred from identity.
+	list_y := content_y + 114
+	pixel_panel(mut app, fx + 16, list_y, fw - 32, fh - (list_y - fy) - 18, 'default')
+	app.gg.draw_text(fx + 30, list_y + 14, 'Agents', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	app.gg.draw_text(fx + fw - 190, list_y + 15, '${agents.len} available in catalog', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
+	if agents.len == 0 {
+		app.gg.draw_text(fx + 30, list_y + 48, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	} else {
+		mut x := fx + 30
+		mut y := list_y + 42
+		for i, agent in agents {
+			if i >= 12 || y + 26 > fy + fh - 20 {
+				break
+			}
+			app.gg.draw_rect_filled(x, y, 8, 8, app.pnl_text_mut)
+			app.gg.draw_text(x + 16, y - 3, agent.id, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
+			app.gg.draw_text(x + 180, y - 3, agent.role, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			x += 250
+			if x + 220 > fx + fw - 20 {
+				x = fx + 30
+				y += 26
+			}
+		}
+	}
+}
+
 fn draw_world(mut app GuiApp, w int, h int) {
+	if !app.office_map_view {
+		draw_office_overview(mut app, w, h)
+		return
+	}
 	// Hero — office floor: munder checkerboard 32×32 tiles, desks as AgentCards, envelopes with GOD 4*t*(1-t) arc
 	// Super-potent signature: unique floor texture (wood grain + grass tuft + terrazzo speck), avatar trails,
 	// envelope floor shadows, station glow, command deck kanban/fleet/CI alt divergence — native V gg only.
@@ -8448,8 +8511,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			select_panel(mut app, 10)
 			return
 		}
-		if e.char_code == `i` || e.char_code == `I` {
+	if e.char_code == `i` || e.char_code == `I` {
 			select_panel(mut app, 12)
+			return
+		}
+		if e.char_code == `m` || e.char_code == `M` {
+			if app.selected_panel == 0 {
+				app.office_map_view = !app.office_map_view
+				app.inspector_msg = if app.office_map_view { 'Floor map view enabled' } else { 'Office overview enabled' }
+			}
 			return
 		}
 		if e.char_code == `o` || e.char_code == `O` {
