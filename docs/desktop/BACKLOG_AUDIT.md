@@ -129,3 +129,5 @@ Floor Map rendering now resolves the discovered agent desks once per frame and r
 `set_pack_enabled` now validates the pack against the discovered catalog before writing state, preventing stale or arbitrary IDs from creating phantom pack configuration (`products_service.v`, follow-up after `ffc7904`).
 
 `update_product_membership` now validates product IDs against `distributions/products.yaml` before writing membership state, preventing phantom products in the Engine store (`products_service.v`, follow-up after `0ff1cd9`).
+
+Skill removal now requires the ID to be currently installed; stale or unknown rows cannot create removal receipts or mutate counts (`skills_service.v`, follow-up after `a619c2e`).

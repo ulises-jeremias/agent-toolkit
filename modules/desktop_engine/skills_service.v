@@ -442,9 +442,10 @@ pub fn (mut e Engine) remove_skill(id string) !u64 {
 	cur := repo.snapshot().data['installed_skills'] or { '' }
 	mut set := cur.split(',').map(it.trim_space()).filter(it != '')
 	idx := set.index(id)
-	if idx >= 0 {
-		set.delete(idx)
+	if idx < 0 {
+		return error('skill not installed: ${id}')
 	}
+	set.delete(idx)
 	mut tx := repo.begin('remove-skill')
 	tx.set('installed_skills', set.join(','))
 	tx.set('skills_count', set.len.str())

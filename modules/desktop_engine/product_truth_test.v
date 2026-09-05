@@ -29,6 +29,11 @@ fn test_product_truth_catalog_counts() {
 		assert !skill.description.to_lower().contains('synthetic')
 		assert skill.id.contains('/')
 	}
+	if _ := eng.remove_skill('missing-skill') {
+		assert false, 'removing an unknown skill must not create receipt state'
+	} else {
+		assert err.msg().contains('skill not installed')
+	}
 	assert eng.skills_domains().len == 14, 'skills domains must be 14'
 
 	stats := eng.agents_stats()
