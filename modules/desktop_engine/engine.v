@@ -489,7 +489,7 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 	}
 	// stale receipt check (core parity #872)
 	snap := e.repo.snapshot()
-	for t in ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf'] {
+	for t in e.targets() {
 		key := 'receipt:target:${t}:installed_at'
 		if key in snap.data {
 			checks << DoctorCheck{

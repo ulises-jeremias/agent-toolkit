@@ -311,7 +311,7 @@ pub fn (mut e Engine) install_receipt_json(target_id string) string {
 		'version':       version
 		'installedAt':   installed_at
 		'sourceDigest':  digest
-		'provenance':    snap.data['provenance:target:${target_id}:source'] or { 'profiles/${target_id}' }
+		'provenance':    snap.data['provenance:target:${target_id}:source'] or { '' }
 	},
 		escape_unicode: true
 	)

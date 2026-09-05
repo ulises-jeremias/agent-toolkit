@@ -165,3 +165,5 @@ Workspace scaffolding now persists `workspace_initialized` from the filesystem v
 `onboarding_complete` now verifies the selected or recent workspace scaffold before persisting completion. A wizard cannot report “ready” against a missing or partial workspace (`onboarding_service.v`, follow-up after `5553b64`).
 
 Engine target entries now derive from the core emitter catalog, with human-readable names and evidence-based profile paths/provenance. The Desktop no longer relies on a stale seven-item target roster or invents paths for unsupported integrations (`targets_service.v`, follow-up after `f1d7eff`).
+
+Doctor receipt checks and receipt JSON now iterate over the same Engine target catalog and leave provenance blank when no persisted source exists. Onboarding's starter target selection also takes the first real catalog entries instead of naming an obsolete `cli` target (`engine.v`, `targets_service.v`, `main.v`, follow-up after `af892ef`).
