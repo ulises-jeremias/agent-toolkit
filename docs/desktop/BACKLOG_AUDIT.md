@@ -99,3 +99,5 @@ Jobs hover/selection now uses the same live Engine catalog as rendering; the for
 Swarm topology now labels nodes as recorded participants and draws static handoff edges; historical handoffs no longer appear as currently working roles or animated delivery (`main.v`, follow-up after `080af52`).
 
 Office Running now reflects the Engine job catalog: it reports active operations when jobs are running and a truthful empty state otherwise (`main.v`, follow-up after `d61ee61`).
+
+The inspector's compact per-desk Ghostty view is now explicitly an Engine log preview, with a truthful empty state and a clear path to open the real PTY terminal (`main.v`, follow-up after `d61ee61`).
