@@ -8123,10 +8123,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			return
 		}
 		if e.char_code == `r` || e.char_code == `R` {
-			// Route handoff from inspector via keyboard
+			// Handoff requires a real Engine operation; do not claim routing here.
 			desks := desks_for_app(app)
 			if app.selected_desk >= 0 && app.selected_desk < desks.len {
-				app.inspector_msg = 'Handoff routed: ${desks[app.selected_desk].label} → reviewer'
+				app.inspector_msg = 'Handoff unavailable: no active Engine operation for ${desks[app.selected_desk].label}'
 			}
 			return
 		}
@@ -10124,7 +10124,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						ry := y0 + row * row_h
 						if mx >= rail_x && mx <= rail_x + 240 && my >= ry && my <= ry + row_h {
 							app.git_selected = graph.commits[idx].hash
-							app.inspector_msg = 'Commit ${graph.commits[idx].hash[..7]} selected — diff preview via Engine.git_diff'
+							hunks := app.desktop.engine_git_diff(app.git_selected)
+							app.inspector_msg = if hunks.len > 0 {
+								'Commit ${graph.commits[idx].hash[..7]} selected — ${hunks.len} diff hunks'
+							} else {
+								'Commit ${graph.commits[idx].hash[..7]} selected — diff unavailable from the workspace adapter'
+							}
 							return
 						}
 					}
