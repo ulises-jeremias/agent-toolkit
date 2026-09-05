@@ -2,6 +2,7 @@ module desktop_engine
 
 import time
 import sync
+import crypto.sha256
 import x.json2
 import desktop_engine.eventbus
 
@@ -476,11 +477,11 @@ pub fn (mut e Engine) job_complete(job_id string, exit_code int) !u64 {
 	tx.set('receipt:job:${job_id}:installed_at', time.now().str())
 	tx.set('receipt:job:${job_id}:cmd', cmd)
 	tx.set('receipt:job:${job_id}:exit_code', exit_code.str())
-	tx.set('receipt:job:${job_id}:digest', 'sha256:${job_id.len + exit_code + 7}')
+	tx.set('receipt:job:${job_id}:digest', 'sha256:${sha256.hexhash(cmd)}')
 	tx.set('receipt:job:${job_id}:provenance', 'job:${job_id}:${cmd}')
 	tx.set('provenance:job:${job_id}:source', 'jobs/${job_id}')
-	tx.set('provenance:job:${job_id}:digest', 'sha256:${job_id.len * 13}')
-	tx.set('provenance:job:${job_id}:generated', 'sha256:${dur + 19}')
+	tx.set('provenance:job:${job_id}:digest', sha256.hexhash(cmd))
+	tx.set('provenance:job:${job_id}:generated', '')
 	rev := e.put_transaction(mut tx)!
 	kind := if exit_code == 0 {
 		eventbus.ToolkitEventKind.job_completed

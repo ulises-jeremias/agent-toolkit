@@ -184,7 +184,9 @@ pub fn (mut e Engine) install(targets []string) !u64 {
 	for t in targets {
 		tx.set('receipt:target:${t}:installed_at', time.now().str())
 		tx.set('receipt:target:${t}:version', '1.27.0')
-		tx.set('receipt:target:${t}:digest', 'sha256:${t.len * 13}')
+		// The target adapter may add a digest after writing its real artifact.
+		// Do not claim verification before that adapter reports one.
+		tx.set('receipt:target:${t}:digest', '')
 		tx.set('receipt:target:${t}:path', '~/.config/agent-toolkit/receipts/${t}-agent-toolkit-profiles.json')
 		tx.set('provenance:target:${t}:source', 'profiles/${t}')
 		tx.set('receipt:target:${t}:artifacts', 'profiles/${t}/config.yaml')
@@ -275,9 +277,9 @@ pub fn (mut e Engine) install_receipt_json(target_id string) string {
 	e.api_calls++
 	e.mu.unlock()
 	snap := e.repo.snapshot()
-	installed_at := snap.data['receipt:target:${target_id}:installed_at'] or { time.now().str() }
-	version := snap.data['receipt:target:${target_id}:version'] or { '1.27.0' }
-	digest := snap.data['receipt:target:${target_id}:digest'] or { 'sha256:abc' }
+	installed_at := snap.data['receipt:target:${target_id}:installed_at'] or { '' }
+	version := snap.data['receipt:target:${target_id}:version'] or { '' }
+	digest := snap.data['receipt:target:${target_id}:digest'] or { '' }
 	return json2.encode({
 		'schemaVersion': '1'
 		'product':       'agent-toolkit-profiles'
@@ -371,11 +373,6 @@ fn (mut e Engine) doctor_fix_stamp(check_id string) !u64 {
 	mut repo := e.repo
 	mut tx := repo.begin('doctor-fix')
 	tx.set('doctor:fix:${check_id}', 'fixed')
-	// auto-fix receipts: if check is receipt missing, create it
-	if check_id.starts_with('receipt:') || check_id.contains('receipt') {
-		tx.set('receipt:generated', 'true')
-		tx.set('receipt:auto_fixed_at', time.now().str())
-	}
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
