@@ -105,3 +105,5 @@ The inspector's compact per-desk Ghostty view is now explicitly an Engine log pr
 `Engine.swarm_logs` now returns an empty list when no persisted log exists instead of synthesizing launch/handoff messages; Swarm activity remains event-backed (`swarm_service.v`, follow-up after `a6eb450`).
 
 `Engine.loops_catalog` no longer injects ten template loops when no state/files exist; runtime coverage now creates a loop explicitly before exercising it, while discovered filesystem loops remain supported (`loops_service.v`, `runtime_plane_test.v`).
+
+Discovered loops without execution history now keep `last_exit` empty instead of claiming `success`; completion is shown only after a recorded run (`loops_service.v`, follow-up after `d2f5f25`).
