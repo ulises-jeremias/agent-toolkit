@@ -2591,7 +2591,6 @@ fn frame(mut app GuiApp) {
 	app.gg.draw_rect_empty(w - 238, h - 22, 72, 16, col_line_light)
 	app.gg.draw_text(w - 230, h - 18, 'main', gg.TextCfg{ color: col_ink700, size: scaled_size(10, app.global_zoom), mono: true })
 	draw_text_l(mut app, w - 160, h - 19, 'status.paperco', gg.TextCfg{ color: col_slate, size: scaled_size(11, app.global_zoom), bold: true })
-	app.gg.draw_text(w - 100, h - 19, '3847', gg.TextCfg{ color: col_ink500, size: scaled_size(11, app.global_zoom), mono: true })
 	// brass rivet at right edge
 	app.gg.draw_rect_filled(w - 8, h - 16, 2, 2, tint(col_brass, 42))
 	draw_toasts(mut app, w, h)

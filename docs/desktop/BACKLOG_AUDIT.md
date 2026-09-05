@@ -169,3 +169,5 @@ Engine target entries now derive from the core emitter catalog, with human-reada
 Doctor receipt checks and receipt JSON now iterate over the same Engine target catalog and leave provenance blank when no persisted source exists. Onboarding's starter target selection also takes the first real catalog entries instead of naming an obsolete `cli` target (`engine.v`, `targets_service.v`, `main.v`, follow-up after `af892ef`).
 
 Doctor's skill audit now validates that the resolved catalog is non-empty instead of freezing health on the historical count of 116. Legacy skill receipts with no recorded product keep that field empty rather than claiming `agent-toolkit-core` (`engine.v`, `skills_service.v`, `targets_service.v`, follow-up after `6762579`).
+
+Removed the unconnected `3847` footer number from the production shell. The footer no longer displays a synthetic metric with no Engine source (`cmd/agent-toolkit-desktop/main.v`, follow-up after `47b3b49`).
