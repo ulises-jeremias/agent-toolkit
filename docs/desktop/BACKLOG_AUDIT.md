@@ -101,3 +101,5 @@ Swarm topology now labels nodes as recorded participants and draws static handof
 Office Running now reflects the Engine job catalog: it reports active operations when jobs are running and a truthful empty state otherwise (`main.v`, follow-up after `d61ee61`).
 
 The inspector's compact per-desk Ghostty view is now explicitly an Engine log preview, with a truthful empty state and a clear path to open the real PTY terminal (`main.v`, follow-up after `d61ee61`).
+
+`Engine.swarm_logs` now returns an empty list when no persisted log exists instead of synthesizing launch/handoff messages; Swarm activity remains event-backed (`swarm_service.v`, follow-up after `a6eb450`).
