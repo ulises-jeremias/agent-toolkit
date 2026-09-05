@@ -145,3 +145,5 @@ Swarm launches no longer claim a fabricated 100-token allowance. Budget totals r
 Partial Swarm inner-loop records now default to `pending`, with an unknown iteration limit of zero, rather than claiming an active running loop with two iterations. Active state is shown only when persisted by the runtime (`swarm_service.v`, follow-up after `b83ef4f`).
 
 Swarm budget views now clamp remaining tokens at zero and explicitly say “budget not configured” when no authoritative limit exists, instead of showing a negative or fabricated allowance (`swarm_service.v`, follow-up after `bb3e15e`).
+
+Loop history now contains only persisted run records. The former three synthetic runs were removed; records without a completion event are marked `started`, and auxiliary `/status` keys are not double-counted (`loops_service.v`, follow-up after `8c0e32a`).

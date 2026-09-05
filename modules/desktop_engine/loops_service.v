@@ -516,23 +516,14 @@ pub fn (mut e Engine) loops_history(loop_name string) []LoopHistory {
 	for k, v in snap.data {
 		if k.starts_with('history/${loop_name}/') {
 			run_id := k.all_after('history/${loop_name}/')
+			if run_id.contains('/') {
+				continue
+			}
 			out << LoopHistory{
 				run_id: run_id
 				loop_name: loop_name
 				started_at: v.i64()
-				status: 'done'
-			}
-		}
-	}
-	if out.len == 0 {
-		for i in 0 .. 3 {
-			out << LoopHistory{
-				run_id: 'run-${i}'
-				loop_name: loop_name
-				started_at: time.now().unix() - i * 3600
-				duration_ms: 1000 + i * 200
-				budget_spent: 10 + i * 5
-				status: 'done'
+				status: snap.data['history/${loop_name}/${run_id}/status'] or { 'started' }
 			}
 		}
 	}
