@@ -5460,8 +5460,6 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 	app.gg.draw_rect_filled(x, y, w, 20, app.pnl_text)
 	app.gg.draw_text(x + 8, y + 5, 'File Tree', gg.TextCfg{ color: app.pnl_card, size: 12, bold: true })
 	// brass micro-label on the dark band in Paper; ink text on the light band in Ink (#1097)
-	brokered_col := if app.appearance_dark { app.pnl_bg } else { app.pnl_border_hi }
-	app.gg.draw_text(x + w - 56, y + 6, 'brokered', gg.TextCfg{ color: brokered_col, size: 10 })
 	flat := file_tree_visible(app)
 	row_h := 18
 	visible := (h - 28) / row_h
@@ -5580,8 +5578,8 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 	tab_h := 28
 	app.gg.draw_rect_filled(x + 1, y + 1, w - 2, tab_h, app.pnl_card_sel)
 	if app.editor_tabs.len == 0 {
-		app.gg.draw_text(x + 12, y + 10, 'Editor — open a file from tree (brokered fs)', gg.TextCfg{ color: app.pnl_text_mut, size: 13 })
-		app.gg.draw_text(x + 12, y + tab_h + 12, 'No tabs • brokered via Engine.open_path_validated → harness_root_escape guard', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(x + 12, y + 10, 'Editor — open a file from the workspace', gg.TextCfg{ color: app.pnl_text_mut, size: 13 })
+		app.gg.draw_text(x + 12, y + tab_h + 12, 'No files open. Choose a file from the tree to inspect it.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 		return
 	}
 	mut tx := x + 6
@@ -5660,7 +5658,7 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 		app.gg.draw_rect_filled(x + w - 6, content_y, 2, content_h, tint(app.pnl_text, 80))
 		app.gg.draw_rect_filled(x + w - 6, bar_y, 2, bar_h, app.pnl_border_hi)
 	}
-	app.gg.draw_text(x + 8, y + h - 14, '${active.syntax} • ${lines.len} lines • brokered fs • ${if active.dirty {
+	app.gg.draw_text(x + 8, y + h - 14, '${active.syntax} • ${lines.len} lines • workspace file • ${if active.dirty {
 		'dirty'
 	} else {
 		'clean'
@@ -5693,7 +5691,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int) {
 	}
 	if app.git_rail == 'CHANGES' {
 		changes := app.desktop.engine_git_changes()
-		app.gg.draw_text(x + 8, y0, '${changes.len} changed • staged flag • brokered', gg.TextCfg{ color: app.pnl_text, size: 11 })
+		app.gg.draw_text(x + 8, y0, '${changes.len} changed • staged flag', gg.TextCfg{ color: app.pnl_text, size: 11 })
 		row_h := 20
 		visible := (inner_h - 20) / row_h
 		if visible < 1 {

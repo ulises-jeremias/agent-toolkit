@@ -201,3 +201,5 @@ MCP now leads with “Connect context and tools safely” rather than exposing t
 Doctor's constrained-window and footer messages now give actionable review guidance and avoid claiming that all checks are English or that fallback data is absent. Copy reflects the actual localized, evidence-backed diagnostic surface (`cmd/agent-toolkit-desktop/main.v`, follow-up after `541928b`).
 
 Jobs, Loops, and Swarms now use task-oriented headers and footers. Primary surfaces describe live work, budgets, handoffs, approvals, and recorded artifacts without requiring users to understand StateRepository, EventBus, or backend implementation names (`cmd/agent-toolkit-desktop/main.v`, follow-up after `b6155f1`).
+
+Workspace file browsing and editing now use user-facing language (“workspace files”, “open a file from the tree”, and “staged flag”). Brokered filesystem implementation terms remain confined to code and diagnostics rather than the primary editor workflow (`cmd/agent-toolkit-desktop/main.v`, follow-up after `8738c01`).
