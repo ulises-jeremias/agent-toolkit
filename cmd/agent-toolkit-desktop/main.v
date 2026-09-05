@@ -7031,12 +7031,23 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	desks := desks_for_app(app)
 	if app.selected_desk >= 0 && app.selected_desk < desks.len {
 		d := desks[app.selected_desk]
+		mut desk_status := 'idle'
+		if app.desktop != unsafe { nil } {
+			for job in app.desktop.engine_jobs_catalog() {
+				if job.status == .running && job.cmd.to_lower().contains(d.id.to_lower()) {
+					desk_status = 'working'
+					break
+				}
+			}
+		}
 		app.gg.draw_text(ix + 12, iy + 32, d.label, gg.TextCfg{ color: app.pnl_bg, size: 14, bold: true })
 		app.gg.draw_text(ix + 12, iy + 50, d.tier + ' • ' + d.role, gg.TextCfg{ color: app.pnl_text_mut, size: 14 })
-		status_col := if d.status == 'working' {
+		status_col := if desk_status == 'working' {
 			app.pnl_success
-		} else if d.status == 'blocked' { app.pnl_danger } else { app.pnl_text_mut }
-		app.gg.draw_text(ix + 12, iy + 70, 'Status: ' + d.status, gg.TextCfg{ color: status_col, size: 14 })
+		} else {
+			app.pnl_text_mut
+		}
+		app.gg.draw_text(ix + 12, iy + 70, 'Status: ' + desk_status, gg.TextCfg{ color: status_col, size: 14 })
 		app.gg.draw_rect_filled(ix + 12, iy + 90, iw - 24, 1, col_line)
 		app.gg.draw_text(ix + 12, iy + 100, 'Engine', gg.TextCfg{ color: app.pnl_bg, size: 14, bold: true })
 		app.gg.draw_text(ix + 12, iy + 118, 'rev ${app.engine_rev}  •  api ${app.api_calls}', gg.TextCfg{ color: app.pnl_text_mut, size: 13 })
