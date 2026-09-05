@@ -4516,9 +4516,11 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		bar_x := fx + 22
 		bar_y := y + 46
 		app.gg.draw_rect_filled(bar_x, bar_y, bw, 2, app.pnl_border)
-		pct := if j.duration_ms > 0 {
-			(j.duration_ms / 100) % 100
-		} else if j.status == .queued { 6 } else { 0 }
+		// The Engine currently exposes duration and lifecycle, not a percentage.
+		// Never turn elapsed time or queue state into fake progress. A completed
+		// job gets a full bar as a completion marker; active jobs remain
+		// indeterminate until a real progress value exists.
+		pct := if j.status == .done { 100 } else { 0 }
 		fill_col := if j.status == .failed {
 			app.pnl_danger
 		} else if j.status == .running {
