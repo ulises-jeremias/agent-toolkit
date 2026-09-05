@@ -149,3 +149,5 @@ Swarm budget views now clamp remaining tokens at zero and explicitly say “budg
 Loop history now contains only persisted run records. The former three synthetic runs were removed; records without a completion event are marked `started`, and auxiliary `/status` keys are not double-counted (`loops_service.v`, follow-up after `8c0e32a`).
 
 Persisted loops missing a goal now expose an empty goal rather than synthesizing `Goal <name>` text; the UI can distinguish incomplete configuration from authored content (`loops_service.v`, follow-up after `d92ff90`).
+
+`create_loop` now preserves an empty user goal instead of generating `Goal for <name>`. New loops therefore distinguish authored objectives from incomplete setup (`loops_service.v`, follow-up after `3a2f550`).

@@ -336,7 +336,7 @@ pub fn (mut e Engine) create_loop(name string, tier_str string, cadence string, 
 	cad := if cadence == '' { '1d' } else { cadence }
 	entry := LoopEntry{
 		name: name
-		goal: if goal != '' { goal } else { 'Goal for ${name}' }
+		goal: goal.trim_space()
 		tier: tier
 		stage: tier.str()
 		cadence: cad
