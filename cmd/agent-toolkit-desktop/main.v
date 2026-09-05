@@ -3018,9 +3018,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 160, fy + 16, '${desks_for_app(app).len} ${tr(app, 'world.subtitle')}', gg.TextCfg{ color: app.pnl_text_mut, size: font_body_sm })
-
 	desks := desks_for_app(app)
+	app.gg.draw_text(fx + 160, fy + 16, '${desks.len} ${tr(app, 'world.subtitle')}', gg.TextCfg{ color: app.pnl_text_mut, size: font_body_sm })
 
 	// Precompute clamped rects so draw, envelopes, and hit-test share the same geometry.
 	// desk_rect owns the command-deck clamp — no draw-only adjustment here.

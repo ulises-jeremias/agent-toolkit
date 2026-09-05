@@ -123,3 +123,5 @@ Products/Packs now has functional pack chips: clicking a chip toggles the persis
 The Skills footer no longer embeds the historical `116` catalog count; it now renders the live Engine-derived total alongside the source path (`main.v`, follow-up after `92d1811`).
 
 The optional Floor Map now projects discovered Engine agents through a Desktop catalog API. It no longer creates a fixed roster of historical personas when the catalog is empty; an empty catalog renders no desks (`window.v`, `main.v`, follow-up after `e184148`).
+
+Floor Map rendering now resolves the discovered agent desks once per frame and reuses the result for the title and geometry, avoiding duplicate catalog scans and API-count increments (`main.v`, follow-up after `91dcf9f`).
