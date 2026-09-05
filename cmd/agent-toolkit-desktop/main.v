@@ -4150,8 +4150,8 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.targets'), 'receipts ${receipts.len} · dry-run preview · provenance plugins/.provenance.json', 'install → receipt')
 	// R2 product-truth: roster comes from the Engine target catalog — the old
 	// hardcoded list drifted (copilot/muse-code vs cursor-plugins/cli).
-	tgts2 := app.desktop.engine_targets().map(it.id)
-	targets := app.desktop.engine_targets_enabled()
+	target_entries := app.desktop.engine_targets()
+	targets := target_entries.filter(it.enabled).map(it.id)
 	// Preview only the user's enabled targets. A fixed cursor preview was
 	// misleading on a clean machine and could imply an install that would not
 	// be executed.
@@ -4167,9 +4167,10 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	} else {
 		app.gg.draw_text(fx + 20, fy + 44, 'Select a coding tool to preview its capability changes.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	}
-	for i, t in tgts2 {
+	for i, target_entry in target_entries {
+		t := target_entry.id
 		y := fy + 56 + i * 32
-		enabled := t in app.desktop.engine_targets_enabled()
+		enabled := target_entry.enabled
 		has_receipt := receipts.any(it.target == t)
 		// manila folder card per platform — enabled cards get the brass tab
 		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 28, if enabled {
@@ -4186,7 +4187,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(fx + 12, y, 3, 28, app.pnl_select)
 			app.gg.draw_rect_filled(fx + 16, y, 44, 10, app.pnl_select)
 		}
-		app.gg.draw_text(fx + 24, y + 7, t, gg.TextCfg{
+		app.gg.draw_text(fx + 24, y + 7, target_entry.name, gg.TextCfg{
 			color: app.pnl_text
 			size: 14
 			family: app.fonts.display
