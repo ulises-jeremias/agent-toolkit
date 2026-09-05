@@ -4218,20 +4218,23 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 	pass_cnt := checks_engine.filter(it.status == 'pass').len
 	warn_cnt := checks_engine.filter(it.status == 'warn').len
 	fail_cnt := checks_engine.filter(it.status == 'fail').len
+	fixable_cnt := checks_engine.filter(it.fixable && it.status != 'pass').len
 	receipts := app.desktop.engine_receipts_catalog()
 	provenance := app.desktop.engine_provenance_catalog()
 	verify_diags := app.desktop.engine_verify_receipts()
 	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.doctor'), '${checks_engine.len} checks · ${pass_cnt} pass · ${warn_cnt} warn · ${fail_cnt} fail · ${verify_diags.len} warnings', 'receipts ${receipts.len} · provenance ${provenance.len}')
 	// Fix All button — via Engine.doctor_fix_all() TX + EventBus → AppState (one tick)
-	is_hover_fixall := app.mouse_x >= fx + fw - 90 && app.mouse_x <= fx + fw - 10 && app.mouse_y >= fy + 8 && app.mouse_y <= fy + 28
-	fix_bg := if is_hover_fixall { app.pnl_success } else { app.pnl_card_sel }
+	is_hover_fixall := fixable_cnt > 0 && app.mouse_x >= fx + fw - 90 && app.mouse_x <= fx + fw - 10 && app.mouse_y >= fy + 8 && app.mouse_y <= fy + 28
+	fix_bg := if is_hover_fixall {
+		app.pnl_success
+	} else if fixable_cnt > 0 { app.pnl_card_sel } else { app.pnl_card }
 	app.gg.draw_rect_filled(fx + fw - 90, fy + 10, 80, 20, fix_bg)
 	app.gg.draw_rect_empty(fx + fw - 90, fy + 10, 80, 20, if is_hover_fixall {
 		app.pnl_success
 	} else {
-		app.pnl_border_hi
+		if fixable_cnt > 0 { app.pnl_border_hi } else { app.pnl_border }
 	})
-	app.gg.draw_text(fx + fw - 76, fy + 15, 'Fix All', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
+	app.gg.draw_text(fx + fw - 76, fy + 15, if fixable_cnt > 0 { 'Fix All' } else { 'All clear' }, gg.TextCfg{ color: app.pnl_text_mut, size: 12, bold: fixable_cnt > 0 })
 	// category facets row — super-potent easy triage (14 categories via Engine).
 	// Click a chip to fix that category via Engine TX (#1108); hit rects are
 	// stored for the mouse handler (rebuilt every frame, same geometry).
@@ -9732,6 +9735,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// Fix All hit
 			if mx >= fx_d + fw_d - 90 && mx <= fx_d + fw_d - 10 && my >= fy_d + 8 && my <= fy_d + 28 {
+				checks_fixall := app.desktop.engine_doctor()
+				can_fix_all := checks_fixall.any(it.fixable && it.status != 'pass')
+				if !can_fix_all {
+					app.inspector_msg = 'Doctor: all checks already pass — nothing to change'
+					return
+				}
 				if app.desktop != unsafe { nil } {
 					rev := app.desktop.engine_doctor_fix_all() or {
 						app.inspector_msg = 'Doctor fix all failed: ${err}'
