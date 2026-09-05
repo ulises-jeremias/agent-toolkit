@@ -173,3 +173,5 @@ Doctor's skill audit now validates that the resolved catalog is non-empty instea
 Removed the unconnected `3847` footer number from the production shell. The footer no longer displays a synthetic metric with no Engine source (`cmd/agent-toolkit-desktop/main.v`, follow-up after `47b3b49`).
 
 Removed the footer's hardcoded `60FPS` claim and frame counter. Performance instrumentation is no longer presented as user-facing product state (`cmd/agent-toolkit-desktop/main.v`, follow-up after `cff4c39`).
+
+The command palette now augments navigation with target entities discovered from `Engine.targets()`. Searching a target opens the Targets panel with a truthful enabled/disabled status, so users can discover real integrations without another static roster (`cmd/agent-toolkit-desktop/main.v`, follow-up after `444d6dc`).

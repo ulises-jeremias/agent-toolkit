@@ -1696,6 +1696,33 @@ fn palette_best_score(query string, item PaletteItem) int {
 
 fn filtered_palette(query string) []PaletteItem {
 	items := palette_items()
+	return filter_palette_items(query, items)
+}
+
+// palette_items_for_app extends navigation with entities discovered by Engine.
+// This keeps search useful for real targets without maintaining a second roster.
+fn palette_items_for_app(app &GuiApp) []PaletteItem {
+	mut items := palette_items()
+	if app.desktop != unsafe { nil } {
+		for target in app.desktop.engine_targets() {
+			items << PaletteItem{
+				id: 'target:${target.id}'
+				label: 'Open ${target.name}'
+				desc: if target.enabled {
+					'Target enabled · ${target.status}'} else {
+					'Target disabled · enable in Targets'}
+				keys: ''
+			}
+		}
+	}
+	return items
+}
+
+fn filtered_palette_for_app(query string, app &GuiApp) []PaletteItem {
+	return filter_palette_items(query, palette_items_for_app(app))
+}
+
+fn filter_palette_items(query string, items []PaletteItem) []PaletteItem {
 	q := query.trim_space()
 	if q == '' {
 		return items.clone()
@@ -7597,7 +7624,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	}
 	qcol := if app.palette_query == '' { app.pnl_text_mut } else { app.pnl_bg }
 	app.gg.draw_text(cx + 20, cy + 42, '› ${q}', gg.TextCfg{ color: qcol, size: scaled_size(14, z) })
-	filtered := filtered_palette(app.palette_query)
+	filtered := filtered_palette_for_app(app.palette_query, &app)
 	for i, it in filtered {
 		if i >= 7 {
 			break
@@ -7690,7 +7717,7 @@ fn activate_palette_selection(mut app GuiApp) {
 	app.workspace_focus = false
 	app.header_search_focus = false
 	app.ghost_focused = false
-	filtered := filtered_palette(app.palette_query)
+	filtered := filtered_palette_for_app(app.palette_query, &app)
 	if filtered.len == 0 {
 		app.palette_open = false
 		app.palette_query = ''
@@ -7768,7 +7795,13 @@ fn activate_palette_selection(mut app GuiApp) {
 			app.selected_panel = 1
 			app.inspector_msg = 'Skills opened — select a capability to review and install'
 		}
-		else {}
+		else {
+			if sel.id.starts_with('target:') {
+				app.selected_panel = 4
+				target_id := sel.id.all_after('target:')
+				app.inspector_msg = 'Target ${target_id} opened — review status and enablement in Targets'
+			}
+		}
 	}
 	app.palette_open = false
 	app.palette_query = ''
@@ -7880,7 +7913,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				if app.palette_query.len > 0 {
 					app.palette_query = app.palette_query[..app.palette_query.len - 1]
 					// clamp selection after filtering narrows
-					filtered := filtered_palette(app.palette_query)
+					filtered := filtered_palette_for_app(app.palette_query, &app)
 					if app.palette_selected >= filtered.len {
 						app.palette_selected = if filtered.len > 0 { filtered.len - 1 } else { 0 }
 					}
@@ -7888,7 +7921,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .up {
-				filtered := filtered_palette(app.palette_query)
+				filtered := filtered_palette_for_app(app.palette_query, &app)
 				if filtered.len > 0 {
 					if app.palette_selected > 0 {
 						app.palette_selected--
@@ -7899,7 +7932,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .down {
-				filtered := filtered_palette(app.palette_query)
+				filtered := filtered_palette_for_app(app.palette_query, &app)
 				if filtered.len > 0 {
 					if app.palette_selected + 1 < filtered.len {
 						app.palette_selected++
@@ -7913,7 +7946,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.palette_query += rune(e.char_code).str()
 				// keep selection clamped after filter narrows; reset to top for new query
 				app.palette_selected = 0
-				filtered2 := filtered_palette(app.palette_query)
+				filtered2 := filtered_palette_for_app(app.palette_query, &app)
 				if app.palette_selected >= filtered2.len && filtered2.len > 0 {
 					app.palette_selected = filtered2.len - 1
 				}
@@ -8906,7 +8939,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			inside_palette := mx >= cx && mx <= cx + pw && my >= cy && my <= cy + ph
 			if inside_palette {
 				// Hit a row? row hit area cy+76 + i*36 size 32
-				filtered := filtered_palette(app.palette_query)
+				filtered := filtered_palette_for_app(app.palette_query, &app)
 				for i, _ in filtered {
 					if i >= 7 {
 						break
