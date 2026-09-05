@@ -1,5 +1,16 @@
 # Desktop backlog audit
 
+## Implementation update (2026-09-05)
+
+Commit `18ac8e4` removes fabricated catalog padding, synthetic agent and
+receipt rows, seeded Office tasks, mock terminal logs, mock job/swarm/approval
+rows, and invented Insights spans, budgets, and CI results. Empty states now
+render as unavailable or idle until the Engine reports real data. The full
+desktop suite passes 26/26 tests; the native binary builds and was launched in
+an isolated Xvfb session for screenshot review. The classifications below are
+unchanged and still require shell, onboarding, workspace mutation, and
+packaging work.
+
 Read-only GitHub/repository audit, 2026-09-05, origin/main `85853decda84b9af70cee48889d00c22c543f79d`. No GitHub mutations. Static verification is distinguished from runtime acceptance: this audit did not run the app and no item is classified DONE solely from presence of code.
 
 ## Inventory and policy
