@@ -40,7 +40,7 @@ Source paths below refer to the baseline SHA; line numbers will move as fixes la
 
 | Blocker | Evidence | Required proof |
 |---|---|---|
-| Synthetic catalog and receipts | `modules/desktop_engine/skills_service.v:122`, `agents_service.v:109`, `receipts_service.v:115`; `product_truth_test.v:35` enforces padding | Real resources only, empty/error cases and no synthetic production fallback |
+| Synthetic catalog and receipts (resolved) | Current `product_truth_test.v` asserts source-backed catalogs and empty fresh receipts; historical paths above are retained for audit context | Keep real resources only, preserve empty/error cases, and prevent synthetic production fallback |
 | Install reports success without deploying | `skills_service.v:383`, `agents_service.v:444`, `targets_service.v:171`, `onboarding_service.v:232` | Preview/apply real files, verify receipt, partial failure and rollback |
 | Fabricated running state and telemetry | `cmd/agent-toolkit-desktop/main.v:1754`, `:1859`, `:4463`, `:5155`, `:5311`, `:5359`, `:5420`, `:6970` | Clean setup remains empty; real events and processes produce matching UI |
 | False process success | `modules/desktop_engine/jobs_service.v:263` | Failed spawn reports failure, no running record |
