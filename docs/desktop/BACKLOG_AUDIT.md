@@ -131,3 +131,5 @@ Floor Map rendering now resolves the discovered agent desks once per frame and r
 `update_product_membership` now validates product IDs against `distributions/products.yaml` before writing membership state, preventing phantom products in the Engine store (`products_service.v`, follow-up after `0ff1cd9`).
 
 Skill removal now requires the ID to be currently installed; stale or unknown rows cannot create removal receipts or mutate counts (`skills_service.v`, follow-up after `a619c2e`).
+
+Agent removal now checks persisted installation state before writing a removal receipt, preventing unknown or already-absent agents from creating phantom state (`agents_service.v`, follow-up after `beb0387`).

@@ -46,6 +46,11 @@ fn test_product_truth_catalog_counts() {
 		assert !agent.id.starts_with('old-agent-')
 		assert agent.provenance != 'synthetic'
 	}
+	if _ := eng.remove_agent('missing-agent') {
+		assert false, 'removing an unknown agent must not create receipt state'
+	} else {
+		assert err.msg().contains('agent not installed')
+	}
 
 	mcp := eng.mcp_catalog()
 	assert mcp.len == 7, 'MCP providers must be 7'

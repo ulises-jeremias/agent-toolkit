@@ -409,6 +409,9 @@ pub fn (mut e Engine) remove_agent(id string) !u64 {
 	e.api_calls++
 	e.mu.unlock()
 	mut repo := e.repo
+	if (repo.snapshot().data['agents:installed:${id}'] or { 'false' }) != 'true' {
+		return error('agent not installed: ${id}')
+	}
 	mut tx := repo.begin('remove-agent')
 	tx.set('agents:installed:${id}', 'false')
 	tx.set('receipt:agent:${id}:removed_at', time.now().str())
