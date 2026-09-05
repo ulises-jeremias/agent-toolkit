@@ -1713,6 +1713,34 @@ fn palette_items_for_app(app &GuiApp) []PaletteItem {
 				keys: ''
 			}
 		}
+		query := app.palette_query.trim_space()
+		if query.len >= 2 {
+			for skill in app.desktop.engine_skills_search(query, '') {
+				if items.any(it.id == 'skill:${skill.id}') {
+					continue
+				}
+				items << PaletteItem{
+					id: 'skill:${skill.id}'
+					label: skill.name
+					desc: 'Skill · ${skill.domain} · ${skill.stability}'
+					keys: ''
+				}
+				if items.filter(it.id.starts_with('skill:')).len >= 8 {
+					break
+				}
+			}
+			for agent in app.desktop.engine_agents_search(query, '') {
+				items << PaletteItem{
+					id: 'agent:${agent.id}'
+					label: agent.id
+					desc: 'Agent · ${agent.tier} · ${agent.role}'
+					keys: ''
+				}
+				if items.filter(it.id.starts_with('agent:')).len >= 8 {
+					break
+				}
+			}
+		}
 	}
 	return items
 }
@@ -7641,7 +7669,10 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			// subtle manila tab on unselected
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, app.pnl_card_sel)
 		}
-		pal_label := tr(app, 'palette.' + it.id)
+		mut pal_label := tr(app, 'palette.' + it.id)
+		if pal_label == 'palette.' + it.id {
+			pal_label = it.label
+		}
 		// R2 product-truth: CLI-action rows render live Engine counts, never
 		// the hardcoded historical numbers in palette_items().
 		pal_desc := if it.id == 'skills_sync' {
@@ -7796,6 +7827,16 @@ fn activate_palette_selection(mut app GuiApp) {
 				app.selected_panel = 4
 				target_id := sel.id.all_after('target:')
 				app.inspector_msg = 'Target ${target_id} opened — review status and enablement in Targets'
+			}
+			if sel.id.starts_with('skill:') {
+				app.selected_panel = 1
+				app.skills_query = sel.id.all_after('skill:')
+				app.inspector_msg = 'Skill opened — review its catalog entry and install state'
+			}
+			if sel.id.starts_with('agent:') {
+				app.selected_panel = 2
+				agent_id := sel.id.all_after('agent:')
+				app.inspector_msg = 'Agent ${agent_id} opened — review identity and activity'
 			}
 		}
 	}
