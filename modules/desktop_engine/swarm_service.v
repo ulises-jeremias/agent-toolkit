@@ -426,7 +426,9 @@ pub fn (mut e Engine) swarm_launch(args SwarmLaunchArgs) !string {
 	tx.set('swarm/runs/${run_id}/task', args.task)
 	tx.set('swarm/runs/${run_id}/status', 'running')
 	tx.set('swarm/runs/${run_id}/created_at', time.now().unix().str())
-	tx.set('swarm/runs/${run_id}/budget_total', '100')
+	// No budget is authoritative until the launched recipe/config provides one.
+	// Persist zero rather than presenting an invented allowance in the UI.
+	tx.set('swarm/runs/${run_id}/budget_total', '0')
 	tx.set('swarm/runs/${run_id}/budget_spent', '0')
 	rev := e.put_transaction(mut tx)!
 	e.bus.publish(eventbus.ToolkitEvent{
@@ -476,7 +478,7 @@ pub fn (mut e Engine) swarm_list() []SwarmRun {
 		status_str := snap.data['swarm/runs/${id}/status'] or { 'pending' }
 		task := snap.data['swarm/runs/${id}/task'] or { '' }
 		created_str := snap.data['swarm/runs/${id}/created_at'] or { '0' }
-		btotal_str := snap.data['swarm/runs/${id}/budget_total'] or { '100' }
+		btotal_str := snap.data['swarm/runs/${id}/budget_total'] or { '0' }
 		bspent_str := snap.data['swarm/runs/${id}/budget_spent'] or { '0' }
 		out << SwarmRun{
 			id: id

@@ -139,3 +139,5 @@ MCP removal now requires the provider to be enabled in persisted Engine state be
 Target enablement now validates IDs against the discovered Engine target catalog rather than a duplicated hardcoded list. Unknown targets cannot create persisted enablement state (`targets_service.v`, follow-up after `8ff0869`).
 
 Onboarding bulk target/product mutations now validate IDs against the live Engine catalogs, removing the last duplicated target roster and preventing invalid product membership state (`onboarding_service.v`, follow-up after `4a69b52`).
+
+Swarm launches no longer claim a fabricated 100-token allowance. Budget totals remain zero until supplied by authoritative recipe/config state, and missing persisted totals default to zero (`swarm_service.v`, follow-up after `6dff5a3`).
