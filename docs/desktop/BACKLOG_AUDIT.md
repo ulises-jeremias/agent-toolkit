@@ -185,3 +185,5 @@ Palette search now adds matching skills and agents from Engine catalogs (bounded
 MCP, Doctor, receipt and toggle feedback no longer claims provenance was verified merely because a transaction completed. The UI now says provenance is shown when recorded, while verification remains tied to actual Engine diagnostics (`cmd/agent-toolkit-desktop/main.v`, follow-up after `b2043f3`).
 
 Targets now render the Engine-provided display name and enabled state directly, while the preview uses the same snapshot. Technical IDs remain available to the action layer without being the primary user-facing label (`cmd/agent-toolkit-desktop/main.v`, follow-up after `b0f1650`).
+
+Targets and Skills footers now use task language (“enable”, “review”, “apply”, “install/remove”) instead of exposing Engine method names, receipt filesystem paths, or catalog filenames. Technical detail remains available in diagnostics and inspector context (`cmd/agent-toolkit-desktop/main.v`, follow-up after `a71954b`).

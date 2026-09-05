@@ -3823,7 +3823,7 @@ fn draw_skills(mut app GuiApp, w int, h int) {
 	draw_skills_list(mut app, fx, fy, fw, fh)
 	// super-potent footer: domain facets + origin
 	doms := app.desktop.engine_skills_domains()
-	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (${skills_total(mut app)}) · ${doms.len} domains · click row to install/toggle · receipts ${receipts.len} · / to palette', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 14, fy + fh - 16, '${skills_total(mut app)} skills · ${doms.len} domains · select a row to install or remove · ${receipts.len} receipts · / to search', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 }
 
 fn draw_agents(mut app GuiApp, w int, h int) {
@@ -4202,7 +4202,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 		ec := if enabled { app.pnl_success } else { app.pnl_text_mut }
 		app.gg.draw_text(fx + fw - 100, y + 8, en, gg.TextCfg{ color: ec, size: 12, bold: enabled })
 	}
-	app.gg.draw_text(fx + 20, fy + fh - 14, 'Install: engine.install([targets]) → receipt ~/.config/agent-toolkit/receipts · dry-run before write · toggle via Engine', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 14, 'Enable a coding tool, review the preview, then apply changes. Receipts keep a record of what changed.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 }
 
 // doctor_preview_geom is the single source for the dry-run card geometry —
