@@ -3788,7 +3788,7 @@ fn draw_skills(mut app GuiApp, w int, h int) {
 	draw_skills_list(mut app, fx, fy, fw, fh)
 	// super-potent footer: domain facets + origin
 	doms := app.desktop.engine_skills_domains()
-	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (116) → ${skills_total(mut app)} · ${doms.len} domains · click row to install/toggle · receipts ${receipts.len} · / to palette', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (${skills_total(mut app)}) · ${doms.len} domains · click row to install/toggle · receipts ${receipts.len} · / to palette', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 }
 
 fn draw_agents(mut app GuiApp, w int, h int) {
