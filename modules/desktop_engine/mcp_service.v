@@ -154,9 +154,6 @@ pub fn (mut e Engine) mcp_health_detailed(provider_id string) string {
 		}
 		return 'healthy'
 	}
-	if provider_id == 'figma' {
-		return 'error'
-	}
 	// enabled providers healthy, disabled unconfigured
 	enabled := (snap.data['mcp:${provider_id}:enabled'] or { 'false' }) == 'true'
 	return if enabled { 'healthy' } else { 'unconfigured' }
@@ -279,7 +276,7 @@ pub fn (mut e Engine) mcp_probe(provider_id string) !McpProbeResult {
 		problems << 'raw secret in template — replace with \${ENV_VAR}'
 	}
 	health_now := e.mcp_health_detailed(provider_id)
-	if health_now == 'error' || health_now == 'fail' {
+	if health_now != 'healthy' {
 		problems << 'provider reports ${health_now}'
 	}
 	if problems.len == 0 {

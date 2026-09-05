@@ -34,10 +34,10 @@ fn test_mcp_drawer_template_and_probe() {
 	content, from_file := eng.mcp_template_json('no-such-provider')
 	assert from_file == false
 	assert content.contains('no-such-provider')
-	// probe is typed and honest: figma reports error
+	// probe is typed and honest: an unconfigured provider is not healthy
 	fig := eng.mcp_probe('figma') or { panic(err.msg()) }
 	assert fig.healthy == false
-	assert fig.detail.contains('error')
+	assert fig.detail.contains('unconfigured')
 	// github probes against live health without writing state
 	gh := eng.mcp_probe('github') or { panic(err.msg()) }
 	assert gh.detail != ''
