@@ -64,9 +64,6 @@ pub fn (mut e Engine) products_catalog() []ProductEntry {
 			if out.len > 0 {
 				for i in 0 .. out.len {
 					out[i].skill_ids = e.skills_installed()
-					if out[i].skill_ids.len == 0 {
-						out[i].skill_ids = ['core/assistant', 'core/dev-companion']
-					}
 					out[i].receipt_path = 'receipts/product-${out[i].id}.json'
 					out[i].provenance = 'distributions/products.yaml'
 				}

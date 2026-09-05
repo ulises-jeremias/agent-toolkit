@@ -183,7 +183,7 @@ pub fn (mut e Engine) install(targets []string) !u64 {
 	// per-target receipts + provenance (ADR-022 parity)
 	for t in targets {
 		tx.set('receipt:target:${t}:installed_at', time.now().str())
-		tx.set('receipt:target:${t}:version', '1.27.0')
+		tx.set('receipt:target:${t}:version', '')
 		// The target adapter may add a digest after writing its real artifact.
 		// Do not claim verification before that adapter reports one.
 		tx.set('receipt:target:${t}:digest', '')
@@ -218,8 +218,8 @@ pub fn (mut e Engine) list_install_receipts() []InstallReceiptInfo {
 			tgt := k.all_after('receipt:target:').all_before(':installed_at')
 			out << InstallReceiptInfo{
 				target: tgt
-				product: snap.data['receipt:target:${tgt}:version'] or { 'agent-toolkit-profiles' }
-				version: snap.data['receipt:target:${tgt}:version'] or { '1.27.0' }
+				product: snap.data['receipt:target:${tgt}:product'] or { '' }
+				version: snap.data['receipt:target:${tgt}:version'] or { '' }
 				installed_at: v
 				source_digest: snap.data['receipt:target:${tgt}:digest'] or { '' }
 				artifacts: (snap.data['receipt:target:${tgt}:artifacts'] or { '' }).split(',').filter(it != '')
