@@ -5,6 +5,7 @@ import desktop_engine.eventbus
 import x.json2
 import os
 import time
+import crypto.sha256 as crypto_sha256
 
 // UpdateInfo mirrors desktop/update UpdateInfo for Engine-owned feed logic — super-potent with provenance/receipt.
 pub struct UpdateInfoEngine {
@@ -23,10 +24,10 @@ pub struct UpdateServiceEngine {
 mut:
 	repo            &state.StateRepository
 	bus             &eventbus.ToolkitEventBus
-	current_version string = '1.27.0'
-	feed_version    string = '1.27.1'
-	feed_sha256     string = 'abc123sha256'
-	feed_provenance string = 'manifest:sha256:abc123'
+	current_version string
+	feed_version    string
+	feed_sha256     string
+	feed_provenance string
 }
 
 // new_update_service_engine creates service.
@@ -39,6 +40,9 @@ pub fn new_update_service_engine(repo &state.StateRepository, bus &eventbus.Tool
 
 // check_update respects channel and opt-in (headless stub reuses manifest.json pattern) — super-potent with artifact receipts.
 pub fn (mut s UpdateServiceEngine) check_update(current string, channel string) ?UpdateInfoEngine {
+	if s.feed_version == '' || s.feed_sha256 == '' || s.feed_provenance == '' {
+		return none
+	}
 	ch := if channel == '' { 'stable' } else { channel }
 	if current == s.feed_version {
 		return none
@@ -66,7 +70,7 @@ pub fn (mut s UpdateServiceEngine) check_update(current string, channel string) 
 
 // verify checks SHA256 + provenance vs manifest.json (ADR-022) — super-potent: full provenance chain.
 pub fn (s UpdateServiceEngine) verify(content string, expected_sha256 string) bool {
-	if expected_sha256 != s.feed_sha256 {
+	if expected_sha256 == '' || expected_sha256 != s.feed_sha256 || crypto_sha256.hexhash(content) != expected_sha256 {
 		return false
 	}
 	// also verify provenance manifest exists
@@ -89,6 +93,9 @@ pub fn (s UpdateServiceEngine) verify_provenance() bool {
 
 // apply simulates atomic replace (XDG_CACHE_HOME/agent-toolkit/updates) — now writes receipt + provenance.
 pub fn (mut s UpdateServiceEngine) apply(version string) bool {
+	if version == '' || s.feed_version == '' || s.feed_sha256 == '' || s.feed_provenance == '' {
+		return false
+	}
 	mut tx := s.repo.begin('update-engine')
 	tx.set('VERSION', version)
 	tx.set('update:applied_version', version)
@@ -149,22 +156,14 @@ pub fn (mut s UpdateServiceEngine) history() []UpdateInfoEngine {
 			_ = v
 		}
 	}
-	if out.len == 0 {
-		out << UpdateInfoEngine{
-			latest: s.feed_version
-			url: 'https://github.com/ulises-jeremias/agent-toolkit/releases/download/v${s.feed_version}/agent-toolkit'
-			sha256: s.feed_sha256
-			provenance: s.feed_provenance
-			channel: 'stable'
-			receipt_path: '~/.config/agent-toolkit/receipts/update-${s.feed_version}.json'
-			manifest_path: s.feed_provenance
-		}
-	}
 	return out
 }
 
 // manifest_json returns ADR-022 manifest stub — super-potent with receipts.
 pub fn (s UpdateServiceEngine) manifest_json() string {
+	if s.feed_version == '' || s.feed_sha256 == '' || s.feed_provenance == '' {
+		return json2.encode({ 'error': 'update feed unavailable' })
+	}
 	return json2.encode({
 		'version':    s.feed_version
 		'sha256':     s.feed_sha256
