@@ -58,6 +58,11 @@ fn test_product_truth_catalog_counts() {
 		assert !provider.enabled, 'fresh MCP catalog must not claim ${provider.id} is enabled'
 		assert provider.version == '', 'MCP version requires source evidence'
 	}
+	if _ := eng.remove_mcp_provider('github') {
+		assert false, 'removing an unconfigured MCP must not create receipt state'
+	} else {
+		assert err.msg().contains('not enabled')
+	}
 
 	tgts := eng.targets()
 	assert tgts.len == 7, 'targets must be 7: got ${tgts.len}'

@@ -384,6 +384,9 @@ pub fn (mut e Engine) remove_mcp_provider(provider_id string) !u64 {
 	e.api_calls++
 	e.mu.unlock()
 	mut repo := e.repo
+	if (repo.snapshot().data['mcp:${provider_id}:enabled'] or { 'false' }) != 'true' {
+		return error('mcp provider not enabled: ${provider_id}')
+	}
 	mut tx := repo.begin('remove-mcp')
 	tx.set('mcp:${provider_id}:enabled', 'false')
 	tx.set('mcp:${provider_id}:health', 'unconfigured')

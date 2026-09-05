@@ -133,3 +133,5 @@ Floor Map rendering now resolves the discovered agent desks once per frame and r
 Skill removal now requires the ID to be currently installed; stale or unknown rows cannot create removal receipts or mutate counts (`skills_service.v`, follow-up after `a619c2e`).
 
 Agent removal now checks persisted installation state before writing a removal receipt, preventing unknown or already-absent agents from creating phantom state (`agents_service.v`, follow-up after `beb0387`).
+
+MCP removal now requires the provider to be enabled in persisted Engine state before writing removal metadata; unconfigured providers cannot produce phantom receipts (`mcp_service.v`, follow-up after `e2a58d4`).
