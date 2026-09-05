@@ -134,7 +134,7 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 			max_wall := (snap.data['loops/${n}/budget/max_wall_seconds'] or { '0' }).int()
 			// also try filesystem yaml if State missing
 			mut fs_budget := LoopBudget{ max_tokens: max_tokens, max_runs_per_day: max_runs, max_wall_seconds: max_wall }
-			mut fs_cadence := snap.data['loops/${n}/cadence'] or { '1d' }
+			mut fs_cadence := snap.data['loops/${n}/cadence'] or { '' }
 			mut fs_verifier := snap.data['loops/${n}/verifier'] or { '' }
 			mut fs_description := snap.data['loops/${n}/description'] or { '' }
 			mut fs_tier_str := snap.data['loops/${n}/tier'] or { '' }
@@ -147,7 +147,7 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 					lines := content.split_into_lines()
 					for line in lines {
 						t := line.trim_space()
-						if t.starts_with('cadence:') && fs_cadence == '1d' {
+						if t.starts_with('cadence:') && fs_cadence == '' {
 							fs_cadence = t.all_after('cadence:').trim_space().trim('"').trim("'")
 						}
 						if t.starts_with('max_tokens:') {
