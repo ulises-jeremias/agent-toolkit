@@ -7064,9 +7064,9 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	} else {
 		app.gg.draw_text(ix + 12, iy + 36, 'Select a desk on the floor', gg.TextCfg{ color: app.pnl_text_mut, size: 14 })
 	}
-	// ── Signature: per-desk libghostty-vt 40×6 multiplex — live VT preview (visible proof) ──
-	// Each desk owns a 40×6 GhosttyTerminal; selected desk's VT renders inline in inspector
-	// This is the designer's super-potent touch: multiplex is not hidden — it glows in the inspector
+	// ── Per-desk libghostty-vt 40×6 log preview ──
+	// Each desk can show Engine log lines in a compact inspector preview. This
+	// is not a process or PTY session; the real terminal is opened explicitly.
 	if app.selected_desk >= 0 && app.selected_desk < desks.len && app.per_desk_ghost.len > app.selected_desk {
 		vt_y := iy + 272
 		vt_h := 74
@@ -7080,9 +7080,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		desk_label := desks[app.selected_desk].label
 		app.gg.draw_text(vt_x + 8, vt_y + 3, 'VT 40×6 — ${desk_label} — libghostty-vt', gg.TextCfg{ color: app.pnl_select, size: 10, mono: true, bold: true })
 		app.gg.draw_text(vt_x + vt_w - 34, vt_y + 3, '40×6', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
-		// live cursor pulse when selected
-		pulse_vt := if app.frame % 40 < 20 { app.pnl_select } else { tint(app.pnl_select, 70) }
-		app.gg.draw_rect_filled(vt_x + vt_w - 10, vt_y + 4, 6, 6, pulse_vt)
+		app.gg.draw_rect_filled(vt_x + vt_w - 10, vt_y + 4, 6, 6, app.pnl_text_mut)
 		// render ghost visible lines — up to 6 rows inside 92px panel (14 header + 6*12 + 6)
 		ghost := app.per_desk_ghost[app.selected_desk]
 		vis := ghost.visible_lines()
@@ -7124,8 +7122,8 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(vt_x + 8, ry, clean, gg.TextCfg{ color: gcol, size: 11, mono: true })
 		}
 		if vis.len == 0 {
-			app.gg.draw_text(vt_x + 8, vt_y + 24, '[${desk_label}] ready — 40×6 multiplex', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-			app.gg.draw_text(vt_x + 8, vt_y + 38, 'type in world to feed this VT', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(vt_x + 8, vt_y + 24, 'No Engine log output for ${desk_label}.', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
+			app.gg.draw_text(vt_x + 8, vt_y + 38, 'Open terminal for a live PTY session.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		}
 		// scanline overlay — subtle CRT 1px every 2 rows
 		for sy in 0 .. 7 {
