@@ -42,7 +42,12 @@ fn test_product_truth_catalog_counts() {
 		assert agent.provenance != 'synthetic'
 	}
 
-	assert eng.mcp_catalog().len == 7, 'MCP providers must be 7'
+	mcp := eng.mcp_catalog()
+	assert mcp.len == 7, 'MCP providers must be 7'
+	for provider in mcp {
+		assert !provider.enabled, 'fresh MCP catalog must not claim ${provider.id} is enabled'
+		assert provider.version == '', 'MCP version requires source evidence'
+	}
 
 	tgts := eng.targets()
 	assert tgts.len == 7, 'targets must be 7: got ${tgts.len}'
