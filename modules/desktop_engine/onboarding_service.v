@@ -157,7 +157,7 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 	subdirs := ['knowledge', 'knowledge/learnings', 'knowledge/todos', 'packs', 'personas', 'repos',
 		'projects', '.agent-toolkit/swarm/runs']
 	for sub in subdirs {
-		os.mkdir_all(os.join_path(actual, sub)) or {}
+		os.mkdir_all(os.join_path(actual, sub)) or { return error('mkdir ${sub} failed: ${err}') }
 	}
 	// scaffold minimal files if missing
 	files := {
@@ -170,15 +170,15 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 	for rel, content in files {
 		p := os.join_path(actual, rel)
 		if !os.exists(p) {
-			os.mkdir_all(os.dir(p)) or {}
-			os.write_file(p, content) or {}
+			os.mkdir_all(os.dir(p)) or { return error('mkdir parent for ${rel} failed: ${err}') }
+			os.write_file(p, content) or { return error('write ${rel} failed: ${err}') }
 		}
 	}
 	// also ensure .gitkeep for repos/projects
 	for d in ['repos', 'projects'] {
 		gk := os.join_path(actual, d, '.gitkeep')
 		if !os.exists(gk) {
-			os.write_file(gk, '') or {}
+			os.write_file(gk, '') or { return error('write ${d}/.gitkeep failed: ${err}') }
 		}
 	}
 	mut repo := e.repo
