@@ -38,19 +38,19 @@ pub fn (mut e Engine) onboarding_status(harness_root string) OnboardingStatus {
 	rev := snap.revision
 	is_first := snap.data['onboarding_completed'] or { '' } != 'true'
 	completed := !is_first
-	// resolve harness root for existence checks
-	env := resolve_env()
+	// resolve harness root for existence checks. Runtime workspace state is
+	// distinct from bundled toolkit data; never fall back to toolkit_root for
+	// workspace existence because embedded toolkits have no filesystem root.
 	mut root := harness_root.trim_space()
 	if root == '' {
-		// prefer recent_workspace from state, else toolkit_root
-		root = snap.data['recent_workspace'] or { env.toolkit_root }
+		root = snap.data['recent_workspace'] or { '' }
 	}
 	// workspace_exists: knowledge/ repos/ projects/ packs/
-	workspace_exists := os.is_dir(os.join_path(root, 'knowledge')) || os.is_dir(os.join_path(root, 'repos'))
-	personas_dir := os.join_path(root, 'personas')
+	workspace_exists := root.len > 0 && (os.is_dir(os.join_path(root, 'knowledge')) || os.is_dir(os.join_path(root, 'repos')))
+	personas_dir := if root.len > 0 { os.join_path(root, 'personas') } else { '' }
 	mut persona_count := 0
 	mut personas_bootstrapped := false
-	if os.is_dir(personas_dir) {
+	if personas_dir.len > 0 && os.is_dir(personas_dir) {
 		ents := os.ls(personas_dir) or { []string{} }
 		for en in ents {
 			if en.ends_with('.md') {
