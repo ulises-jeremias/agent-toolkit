@@ -425,9 +425,12 @@ pub fn (mut e Engine) swarm_launch(args SwarmLaunchArgs) !string {
 	tx.set('swarm/runs/${run_id}/recipe', args.recipe.str())
 	tx.set('swarm/runs/${run_id}/backend', args.backend.str())
 	tx.set('swarm/runs/${run_id}/task', args.task)
-	tx.set('swarm/runs/${run_id}/status', 'running')
+	// The launch records the request; the backend (herdr/tmux) is only
+	// probed by Doctor — no backend is contacted here, so the honest status
+	// is 'requested', never 'running'. Budget is not invented: it is unknown
+	// until a real runner reports it.
+	tx.set('swarm/runs/${run_id}/status', 'requested')
 	tx.set('swarm/runs/${run_id}/created_at', time.now().unix().str())
-	tx.set('swarm/runs/${run_id}/budget_total', '100')
 	tx.set('swarm/runs/${run_id}/budget_spent', '0')
 	rev := e.put_transaction(mut tx)!
 	e.bus.publish(eventbus.ToolkitEvent{
@@ -542,8 +545,8 @@ pub fn (mut e Engine) swarm_logs(run_id string) []string {
 	snap := e.repo.snapshot()
 	raw := snap.data['swarm/${run_id}/logs'] or { snap.data['jobs/${run_id}/logs'] or { '' } }
 	if raw == '' {
-		// synthesize from runs if no logs yet
-		return ['swarm ${run_id} launched', 'awaiting handoff via GOD mailbox']
+		// no logs means no logs — never synthesized activity lines
+		return []string{}
 	}
 	return raw.split('\n')
 }

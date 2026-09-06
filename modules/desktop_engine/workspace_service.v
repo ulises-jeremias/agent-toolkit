@@ -738,7 +738,7 @@ pub fn (mut e Engine) save_editor_tab(tab EditorTab) !u64 {
 	os.write_file(clean, tab.content) or { return error('write failed: ${err}') }
 	mut repo := e.repo
 	mut tx := repo.begin('save-tab')
-	tx.set('workspace/tabs/${tab.path}/saved_at', '0')
+	tx.set('workspace/tabs/${tab.path}/saved_at', time.now().unix().str())
 	tx.set('workspace/tabs/${tab.path}/dirty', 'false')
 	rev := e.put_transaction(mut tx)!
 	return rev.revision

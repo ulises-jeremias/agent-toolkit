@@ -127,7 +127,9 @@ pub fn (mut e Engine) jobs_catalog() []JobRecord {
 			'canceled' { JobStatus.canceled }
 			else { JobStatus.queued }
 		}
-		exit_str := snap.data['jobs/${id}/exit_code'] or { '0' }
+		// exit code is unknown until job_complete records the real outcome —
+		// -1 is the unknown sentinel, never a fabricated success (0)
+		exit_str := snap.data['jobs/${id}/exit_code'] or { '-1' }
 		exit_code := exit_str.int()
 		start_str := snap.data['jobs/${id}/started_at'] or { '0' }
 		started := start_str.i64()
@@ -234,7 +236,7 @@ pub fn (mut e Engine) spawn_job(cmd string, args []string) !string {
 	tx.set('jobs/${id}/args', args.join(' '))
 	tx.set('jobs/${id}/status', 'queued')
 	tx.set('jobs/${id}/started_at', time.now().unix().str())
-	tx.set('jobs/${id}/exit_code', '0')
+	// exit code stays unset until a real completion records it
 	tx.set('jobs/${id}/retry', '0')
 	rev := e.put_transaction(mut tx)!
 	e.bus.publish(eventbus.ToolkitEvent{
@@ -258,7 +260,29 @@ pub fn (mut e Engine) spawn_job(cmd string, args []string) !string {
 		})
 	})
 	if mut sup := e.supervisor {
-		spawned := sup.spawn_job(cmd, args) or { id }
+		// a supervisor spawn failure is a real failure — record it honestly
+		// instead of returning the queued id as if the job launched
+		mut failed_msg := ''
+		spawned := sup.spawn_job(cmd, args) or {
+			failed_msg = err.msg()
+			''
+		}
+		if failed_msg != '' {
+			mut txf := repo.begin('job-spawn-failed')
+			txf.set('jobs/${id}/status', 'failed')
+			txf.set('jobs/${id}/error', failed_msg)
+			e.put_transaction(mut txf) or {}
+			e.bus.publish(eventbus.ToolkitEvent{
+				kind: .process_log
+				revision: 0
+				path: 'jobs:${id}'
+				payload: json2.encode({
+					'id':  id
+					'msg': 'spawn failed: ${failed_msg}'
+				})
+			})
+			return error('spawn failed: ${failed_msg}')
+		}
 		// update status to running via supervisor spawn
 		mut tx2 := repo.begin('job-running')
 		tx2.set('jobs/${spawned}/status', 'running')
