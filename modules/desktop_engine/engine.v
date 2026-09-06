@@ -52,6 +52,11 @@ mut:
 	watcher_poll_ms     int = 500
 	watcher_debounce_ms int = 100
 	use_polling         bool
+	// runtime_path is the filesystem root for mutable runtime artifacts
+	// (loop worktrees, job scratch, receipts cache). Distinct from the
+	// toolkit_root catalog path so embedded binaries never write into the
+	// bundled data namespace.
+	runtime_path string
 	// revision tracking
 	revision u64
 	// engine_api call counter for parity tests (engine_api_call>0)
@@ -63,6 +68,9 @@ mut:
 pub struct EngineConfig {
 pub:
 	persist_path        string
+	// runtime_path overrides the derived runtime directory. When empty,
+	// it defaults to a directory next to persist_path.
+	runtime_path        string
 	di                  &DIContainer = unsafe { nil }
 	repo                &state.StateRepository = unsafe { nil }
 	bus                 &eventbus.ToolkitEventBus = unsafe { nil }
@@ -90,16 +98,35 @@ pub fn new_engine(cfg EngineConfig) &Engine {
 	if deb < 50 || deb > 150 {
 		deb = 100
 	}
+	rtp := runtime_path_for(cfg.persist_path, cfg.runtime_path)
 	return &Engine{
 		state: .created
 		di: di
 		repo: rep
 		bus: bus
+		runtime_path: rtp
 		watcher_paths: cfg.watcher_paths.clone()
 		watcher_poll_ms: poll
 		watcher_debounce_ms: deb
 		use_polling: cfg.use_polling || os.getenv('WATCHER_FORCE_POLL') == '1' || os.getenv('VVATCH_FORCE_POLL') == '1'
 	}
+}
+
+// runtime_path_for derives a mutable runtime directory from the persistence path.
+// If persist_path is empty, it falls back to a temp directory so in-memory engines
+// still have a contained runtime namespace.
+fn runtime_path_for(persist_path string, explicit string) string {
+	if explicit.len > 0 {
+		return explicit
+	}
+	if persist_path.len > 0 {
+		base := persist_path.all_before_last('.')
+		if base.len > 0 {
+			return '${base}.runtime'
+		}
+		return '${persist_path}.runtime'
+	}
+	return os.join_path(os.temp_dir(), 'atk-runtime-${os.getpid()}')
 }
 
 // init boots headless; reads env tiers AGENT_TOOLKIT_ROOT → XDG → embedded → FHS.
@@ -113,6 +140,10 @@ pub fn (mut e Engine) init() ! {
 	// load derived state persistence (XDG_CACHE_HOME/agent-toolkit/desktop/state.json)
 	e.repo.load() or {
 		// load failure is not fatal for headless boot; log via bus payload
+	}
+	// ensure runtime namespace exists and is distinct from bundled catalog data
+	os.mkdir_all(e.runtime_path) or {
+		return error('runtime path ${e.runtime_path}: ${err}')
 	}
 	// register default Capability + Runtime plane services (mirrors agent_toolkit_core planes)
 	e.register_default_services() or {}
