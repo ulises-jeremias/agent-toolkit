@@ -1,7 +1,8 @@
 module desktop_engine
 
-import time
+import os
 import x.json2
+import agent_toolkit_core
 
 // AgentEntry mirrors personas + AGENT.md + registry — super-potent: delegates, collaborates, triggers, provenance.
 pub struct AgentEntry {
@@ -352,23 +353,29 @@ pub fn (mut e Engine) agents_by_tier() map[string][]AgentEntry {
 	return m
 }
 
-// agent_receipt returns install receipt for agent (mirrors skill receipt).
+// agent_receipt returns real receipt evidence for an agent: the artifact
+// records of core install receipts whose deployed artifacts include the
+// agent's AGENT.md. Selection state alone is never receipt evidence.
 pub fn (mut e Engine) agent_receipt(id string) ?AgentReceiptInfo {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	snap := e.repo.snapshot()
-	key := 'receipt:agent:${id}:installed_at'
-	if key !in snap.data {
-		return none
+	needle := 'agents/${id}/AGENT.md'
+	for r in agent_toolkit_core.list_install_receipts('') {
+		for a in r.artifacts {
+			if a.path.contains(needle) {
+				return AgentReceiptInfo{
+					agent_id: id
+					installed: true
+					installed_at: r.installed_at
+					version: r.version
+					receipt_path: os.join_path(agent_toolkit_core.default_receipt_dir(),
+						agent_toolkit_core.receipt_filename(r.target, r.product))
+				}
+			}
+		}
 	}
-	return AgentReceiptInfo{
-		agent_id: id
-		installed: true
-		installed_at: snap.data[key] or { '' }
-		version: snap.data['receipt:agent:${id}:version'] or { '1.0.0' }
-		receipt_path: 'receipts/agent-${id}.json'
-	}
+	return none
 }
 
 // agents_provenance returns provenance manifests for all agents.
@@ -385,7 +392,9 @@ pub fn (mut e Engine) agents_provenance() []AgentReceiptInfo {
 	return out
 }
 
-// install_agent writes receipt via Engine transaction (easy one-click).
+// install_agent records the agent as selected in configuration state.
+// Selection is configuration truth only — no receipt is written; receipt
+// evidence exists only when the core installer deploys real artifacts.
 pub fn (mut e Engine) install_agent(id string) !u64 {
 	_ := e.agent_detail(id)!
 	e.mu.lock()
@@ -393,14 +402,12 @@ pub fn (mut e Engine) install_agent(id string) !u64 {
 	e.mu.unlock()
 	mut repo := e.repo
 	mut tx := repo.begin('install-agent')
-	tx.set('receipt:agent:${id}:installed_at', time.now().str())
-	tx.set('receipt:agent:${id}:version', '1.0.0')
 	tx.set('agents:installed:${id}', 'true')
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
 
-// remove_agent removes receipt.
+// remove_agent clears the selection.
 pub fn (mut e Engine) remove_agent(id string) !u64 {
 	if id == '' {
 		return error('agent id empty')
@@ -411,7 +418,6 @@ pub fn (mut e Engine) remove_agent(id string) !u64 {
 	mut repo := e.repo
 	mut tx := repo.begin('remove-agent')
 	tx.set('agents:installed:${id}', 'false')
-	tx.set('receipt:agent:${id}:removed_at', time.now().str())
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
@@ -430,7 +436,9 @@ pub fn (mut e Engine) agents_delegation_graph() map[string][]string {
 	return m
 }
 
-// agent_provenance_detail returns structured provenance for one agent.
+// agent_provenance_detail returns structured provenance for one agent. The
+// source fields are real catalog facts; verified reflects actual provenance
+// evidence from the bundled manifests, never an unconditional claim.
 pub fn (mut e Engine) agent_provenance_detail(id string) string {
 	_ := e.agent_detail(id) or {
 		return json2.encode({
@@ -439,11 +447,25 @@ pub fn (mut e Engine) agent_provenance_detail(id string) string {
 			escape_unicode: true
 		)
 	}
+	mut verified := false
+	mut source_digest := ''
+	mut generated_digest := ''
+	needle := 'agents/${id}/AGENT.md'
+	for p in e.provenance_catalog() {
+		if p.artifact_path.contains(needle) {
+			verified = p.verified
+			source_digest = p.source_digest
+			generated_digest = p.generated_digest
+			break
+		}
+	}
 	return json2.encode({
-		'id':         id
-		'source':     'agents/${id}/AGENT.md'
-		'provenance': 'catalogs/agent-catalog.yaml'
-		'verified':   'true'
+		'id':              id
+		'source':          'agents/${id}/AGENT.md'
+		'provenance':      'catalogs/agent-catalog.yaml'
+		'sourceDigest':    source_digest
+		'generatedDigest': generated_digest
+		'verified':        if verified { 'true' } else { 'false' }
 	},
 		escape_unicode: true
 	)

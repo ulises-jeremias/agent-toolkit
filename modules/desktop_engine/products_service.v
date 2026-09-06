@@ -1,6 +1,5 @@
 module desktop_engine
 
-import time
 import x.json2
 
 // ProductEntry mirrors distributions/products.yaml — super-potent with provenance/receipts.
@@ -170,9 +169,6 @@ pub fn (mut e Engine) update_product_membership(product_id string, skill_ids []s
 	mut tx := repo.begin('update-product')
 	tx.set('product:${product_id}:skills', skill_ids.join(','))
 	tx.set('products_count', e.products_catalog().len.str())
-	tx.set('receipt:product:${product_id}:updated_at', time.now().str())
-	tx.set('receipt:product:${product_id}:digest', 'sha256:${skill_ids.len * 7}')
-	tx.set('provenance:product:${product_id}:source', 'distributions/products.yaml')
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
@@ -187,40 +183,64 @@ pub fn (mut e Engine) set_pack_enabled(pack_id string, enabled bool) !u64 {
 	mut repo := e.repo
 	mut tx := repo.begin('set-pack')
 	tx.set('pack:${pack_id}:enabled', if enabled { 'true' } else { 'false' })
-	tx.set('receipt:pack:${pack_id}:toggled_at', time.now().str())
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
 
-// product_provenance returns ADR-022 provenance JSON for product.
+// product_provenance returns provenance facts for a product. The declared
+// source is real catalog truth; verified reflects actual digest verification
+// of the bundled manifest artifacts, never an unconditional claim.
 pub fn (mut e Engine) product_provenance(product_id string) string {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
+	prefix := 'plugins/${product_id}/'
+	mut artifact_count := 0
+	mut unverified := 0
+	for p in e.provenance_catalog() {
+		if p.artifact_path.starts_with(prefix) {
+			artifact_count++
+			if !p.verified {
+				unverified++
+			}
+		}
+	}
+	verified := artifact_count > 0 && unverified == 0
+	sidecar := if artifact_count > 0 { 'plugins/${product_id}/.provenance.json' } else { '' }
 	return json2.encode({
 		'product':    product_id
 		'source':     'distributions/products.yaml'
-		'provenance': 'plugins/${product_id}/.provenance.json'
-		'receipt':    'receipts/product-${product_id}.json'
-		'verified':   'true'
+		'provenance': sidecar
+		'verified':   if verified { 'true' } else { 'false' }
 	},
 		escape_unicode: true
 	)
 }
 
-// product_receipt returns install receipt JSON for product.
+// product_receipt reports real install receipt evidence for a product.
+// When no receipt exists the payload says so; no timestamp is invented.
 pub fn (mut e Engine) product_receipt(product_id string) string {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	snap := e.repo.snapshot()
-	installed_at := snap.data['receipt:product:${product_id}:updated_at'] or { time.now().str() }
+	for r in e.receipts_catalog() {
+		if r.product == product_id {
+			return json2.encode({
+				'schemaVersion': '1'
+				'product':       r.product
+				'target':        r.id
+				'installedAt':   r.installed_at
+				'sourceDigest':  r.digest
+				'receiptPath':   r.receipt_path
+			},
+				escape_unicode: true
+			)
+		}
+	}
 	return json2.encode({
-		'schemaVersion': '1'
-		'product':       product_id
-		'target':        'desktop'
-		'installedAt':   installed_at
-		'provenance':    'distributions/products.yaml'
+		'product':   product_id
+		'installed': 'false'
+		'note':      'no install receipt recorded for this product'
 	},
 		escape_unicode: true
 	)
