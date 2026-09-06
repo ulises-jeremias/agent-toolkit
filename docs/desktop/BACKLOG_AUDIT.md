@@ -211,3 +211,5 @@ Onboarding’s product review and ready steps now describe bundle contents, navi
 The primary navigation now calls the operational home “Office” consistently across labels, descriptions, palette, help, and onboarding return actions. “Floor Map” remains an explicit optional spatial view rather than the product’s navigation model (`cmd/agent-toolkit-desktop/main.v`, follow-up after `bb5ff8e`).
 
 Skill rows now distinguish a recorded receipt from optional provenance evidence; they no longer show a provenance checkmark solely because a receipt exists. Onboarding action labels use “Install picks” and “Enable picks” rather than unsupported fixed counts, and Memory describes local saved-entry search without implementation metrics (`cmd/agent-toolkit-desktop/main.v`, follow-up after `8b9f05d`).
+
+The same trust pass removed another fixed-count/status mismatch: skill receipts are labeled according to the evidence available, and onboarding buttons no longer imply unverified quantities. This keeps the first-run action surface honest when catalogs or recommendations change (`cmd/agent-toolkit-desktop/main.v`, follow-up after `eac0743`).
