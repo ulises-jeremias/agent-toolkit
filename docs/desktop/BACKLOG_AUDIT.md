@@ -217,3 +217,5 @@ The same trust pass removed another fixed-count/status mismatch: skill receipts 
 Loop rendering no longer restores tier-based token, run, or wall-clock defaults when the Engine has no configured limits, and it no longer invents exit conditions. Unknown limits now remain visibly unset so users can configure them before running recurring work (`cmd/agent-toolkit-desktop/main.v`, follow-up after `cc1fb80`).
 
 Loop creation and selection feedback now preserve unknown budgets as “not configured” instead of displaying fixed starter limits or zero-valued pseudo-configuration. This keeps setup and operation consistent with the authoritative Engine catalog (`cmd/agent-toolkit-desktop/main.v`, follow-up after `2bc653c`).
+
+Swarm’s empty state now explains that no runs, handoffs, artifacts, or approvals have been recorded and points users to the launch controls. The panel no longer presents a blank operational surface or an internal Engine method name when the runtime is idle (`cmd/agent-toolkit-desktop/main.v`, follow-up after `7cb0172`).

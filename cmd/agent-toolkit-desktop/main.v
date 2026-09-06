@@ -5206,7 +5206,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	cw := (fw - 32) / 3
 	pixel_panel(mut app, fx + 8, col_y, cw, col_h, 'terminal')
 	app.gg.draw_rect_filled(fx + 8, col_y, cw, 20, app.pnl_text)
-	app.gg.draw_text(fx + 16, col_y + 5, 'Status — Engine.swarm_list()', gg.TextCfg{ color: app.pnl_card, size: 11, mono: true })
+	app.gg.draw_text(fx + 16, col_y + 5, 'Swarm status', gg.TextCfg{ color: app.pnl_card, size: 11, bold: true })
 	// Derive status from Engine. An empty list means no swarms are running.
 	mut swarms := []string{}
 	if app.desktop != unsafe { nil } {
@@ -5234,12 +5234,16 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		} else if s.contains('completed') { app.pnl_text_mut } else { app.pnl_card }
 		app.gg.draw_text(fx + 18, y + 2, s, gg.TextCfg{ color: col, size: 12, mono: true })
 	}
+	if swarms.len == 0 {
+		app.gg.draw_text(fx + 18, col_y + 42, 'No swarms recorded yet.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(fx + 18, col_y + 60, 'Launch a pair, team, or full run above.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	}
 	app.gg.draw_text(fx + 12, col_y + col_h - 14, '${swarms.len} swarms · backend ${app.swarm_backend}', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// middle — handoffs via GOD mailbox + artifact files
 	mx := fx + 12 + cw
 	pixel_panel(mut app, mx, col_y, cw, col_h, 'default')
 	app.gg.draw_rect_filled(mx, col_y, cw, 20, app.pnl_card_sel)
-	app.gg.draw_text(mx + 8, col_y + 5, 'Handoffs — GOD → mailbox → queued', gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
+	app.gg.draw_text(mx + 8, col_y + 5, 'Handoffs and artifacts', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
 	// handoff artifacts list + inner/outer loop hint
 	mut handoffs := []string{}
 	if app.desktop != unsafe { nil } && swarms.len > 0 {
@@ -5282,6 +5286,10 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			size: 11
 			mono: true
 		})
+	}
+	if handoffs.len == 0 {
+		app.gg.draw_text(mx + 10, col_y + 42, 'No handoffs recorded yet.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(mx + 10, col_y + 60, 'Artifacts appear after a swarm run.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	}
 	app.gg.draw_text(mx + 8, col_y + col_h - 14, 'Handoffs and artifacts are recorded with each run', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// right — approvals spend/scope/destructive + logs
@@ -5332,6 +5340,9 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_text(rx + cw - 32, y, '✓', gg.TextCfg{ color: app.pnl_bg, size: 10, bold: true })
 		app.gg.draw_rect_filled(rx + cw - 16, y - 1, 16, 12, app.pnl_danger)
 		app.gg.draw_text(rx + cw - 12, y, '×', gg.TextCfg{ color: app.pnl_bg, size: 10, bold: true })
+	}
+	if apprs.len == 0 {
+		app.gg.draw_text(rx + 8, col_y + 42, 'No approvals are waiting.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	}
 	// logs — wired to desktop_engine eventbus process_log + swarm_logs
 	app.gg.draw_text(rx + 8, col_y + 100, 'Logs — demultiplexed per swarm (1024 cap, backpressure)', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
