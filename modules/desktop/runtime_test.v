@@ -37,7 +37,15 @@ fn test_runtime_viewmodels_via_engine_no_shell() {
 	board := lvm.mission_board()
 	assert board.len > 0
 	mut wvm := workspace.new_workspace_viewmodel(mut eng)
-	assert wvm.all_nodes().len >= 4
+	// no workspace configured → honest empty tree (never toolkit-root-derived)
+	assert wvm.all_nodes().len == 0, 'no configured workspace yields an empty tree'
+	// configure a real workspace → nodes reflect real directories
+	ws := os.join_path(tmp, 'ws')
+	os.mkdir_all(os.join_path(ws, 'knowledge')) or { panic(err.msg()) }
+	os.write_file(os.join_path(ws, 'knowledge', 'note.md'), '# real\n') or { panic(err.msg()) }
+	eng.switch_workspace(ws) or { panic(err.msg()) }
+	wvm.refresh()
+	assert wvm.all_nodes().len >= 1, 'real workspace yields real nodes'
 	_ = wvm.memory('')
 	harness := tmp
 	os.mkdir_all(os.join_path(tmp, 'knowledge')) or {}

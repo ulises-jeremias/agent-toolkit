@@ -5625,6 +5625,19 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int) {
 	}
 	if app.git_rail == 'CHANGES' {
 		changes := app.desktop.engine_git_changes()
+		st := app.desktop.engine_git_workspace_status()
+		if !st.is_repo || !st.backend_available {
+			// honest availability before fabricated-looking empty counts
+			note := if st.root == '' {
+				'no active workspace — open one to inspect git'
+			} else if !st.is_repo {
+				'no git repository in the active workspace'
+			} else {
+				'repository detected — git read backend not available yet'
+			}
+			app.gg.draw_text(x + 8, y0, note, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			return
+		}
 		app.gg.draw_text(x + 8, y0, '${changes.len} changed • staged flag • brokered', gg.TextCfg{ color: app.pnl_text, size: 11 })
 		row_h := 20
 		visible := (inner_h - 20) / row_h
@@ -5671,6 +5684,18 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int) {
 		}
 	} else if app.git_rail == 'HISTORY' {
 		graph := app.desktop.engine_git_graph(20)
+		st := app.desktop.engine_git_workspace_status()
+		if !st.is_repo || !st.backend_available {
+			note := if st.root == '' {
+				'no active workspace — open one to inspect git'
+			} else if !st.is_repo {
+				'no git repository in the active workspace'
+			} else {
+				'repository detected — git read backend not available yet'
+			}
+			app.gg.draw_text(x + 8, y0, note, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			return
+		}
 		app.gg.draw_text(x + 8, y0, 'commit graph • ${graph.commits.len} commits • lanes ${graph.max_lane + 1}', gg.TextCfg{ color: app.pnl_text, size: 11 })
 		row_h := 22
 		visible := (inner_h - 40) / row_h

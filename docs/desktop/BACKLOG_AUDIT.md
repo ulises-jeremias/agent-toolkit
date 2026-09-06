@@ -236,6 +236,37 @@ CI-validated) instead of a private seven-item list, and installation is real.
   install evidence, honest dry-run); `product_truth_test.v` (desktop_engine and
   desktop) lock the registry contract; `capability_plane_test.v` performs a
   real isolated install; `doctor_fix_test.v` locks the honest preview.
+### S7C — Git truth (`fix/s7c-git-truth`)
+
+Status: in progress. All fabricated Git data is removed; the Git surface is
+honest about availability until a real read backend exists.
+
+- `git_service.v` (rewrite):
+  - Removed every fabricated value: fake authors (`alice`…`dave`), synthetic
+    hashes/timestamps/commit messages, fabricated branch rosters, synthetic
+    graph lanes, hardcoded diff hunks and relabeled compare diffs.
+  - `git_workspace_root()` / `git_workspace_status()` provide a typed
+    availability marker: active workspace root, real `.git` probe, and
+    backend availability. A real repository is honestly detected, but no
+    data is invented for it while no read backend is wired.
+  - All data APIs (`git_changes`, `git_history`, `git_commit_graph`,
+    `git_diff`, `git_compare`) return empty until real data exists.
+- `workspace_service.v`:
+  - `active_workspace_root()` never falls back to `toolkit_root` — no
+    workspace means unavailable.
+  - `workspace_tree()`/`workspace_stats()` are empty without a configured
+    workspace (never cwd-derived); the placeholder `README.md` node and the
+    invented "init memory" ledger entry are removed.
+  - `git_status_for` no longer guesses "modified" from filename patterns —
+    unknown stays unknown until a git backend exists.
+- GUI: the Git rails panel renders the honest availability note (no active
+  workspace / no repository / backend not available) instead of empty
+  counts that could read as "no changes".
+- Tests: `git_truth_test.v` gates (no fabrication across no-workspace,
+  non-repo and real-repo-without-backend states; workspace surfaces honest
+  without a workspace). `runtime_plane_test.v` and `modules/desktop/runtime_test.v`
+  now exercise a real configured workspace instead of pinning fabricated
+  conveniences.
 
 Evidence:
 - `./make.vsh test` green (78 module tests).

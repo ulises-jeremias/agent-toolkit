@@ -442,6 +442,10 @@ pub fn (mut d Desktop) engine_git_changes() []desktop_engine.GitChange {
 	return d.engine.git_changes()
 }
 
+pub fn (mut d Desktop) engine_git_workspace_status() desktop_engine.GitWorkspaceStatus {
+	return d.engine.git_workspace_status()
+}
+
 pub fn (mut d Desktop) engine_git_history(limit int) []desktop_engine.GitCommit {
 	return d.engine.git_history(limit)
 }
