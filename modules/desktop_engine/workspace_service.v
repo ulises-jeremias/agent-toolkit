@@ -75,7 +75,9 @@ fn (mut e Engine) active_workspace_root() string {
 			return clean
 		}
 	}
-	return resolve_env().toolkit_root
+	// No configured workspace: the active workspace is unavailable, never the
+	// bundled toolkit root (an embedded toolkit has no filesystem workspace).
+	return ''
 }
 
 pub fn (mut e Engine) workspace_tree() []WorkspaceNode {
@@ -83,6 +85,10 @@ pub fn (mut e Engine) workspace_tree() []WorkspaceNode {
 	e.api_calls++
 	e.mu.unlock()
 	base := e.active_workspace_root()
+	if base == '' {
+		// no active workspace: the tree is empty, never rooted at cwd
+		return []WorkspaceNode{}
+	}
 	harness_candidates := [
 		os.join_path(base, 'knowledge'),
 		os.join_path(base, 'repos'),
@@ -130,9 +136,7 @@ pub fn (mut e Engine) workspace_tree() []WorkspaceNode {
 			}
 		}
 	}
-	if out.len == 0 {
-		out << WorkspaceNode{ path: 'knowledge/README.md', label: 'README.md', kind: .file, revision: rev }
-	}
+	// an empty workspace renders as an empty tree — no placeholder nodes
 	return out
 }
 
@@ -156,9 +160,7 @@ pub fn (mut e Engine) memory_ledger(project_id string) []MemoryEntry {
 			}
 		}
 	}
-	if out.len == 0 {
-		out << MemoryEntry{ ts: snap.timestamp, actor: 'system', entry: 'init memory', project_id: project_id }
-	}
+	// an empty ledger is empty — no invented "init memory" entry
 	return out
 }
 
@@ -268,16 +270,13 @@ fn build_tree_recursive(root string, cur string, depth int, max_depth int, mut e
 	return out
 }
 
+// git_status_for returns the git status badge for a workspace file. Git
+// status comes only from a real Git read backend over the active workspace
+// repository; until that backend exists the status is unknown ('') — never
+// a filename-pattern guess that renders as "modified".
 fn git_status_for(path string, mut e Engine) string {
-	snap := e.repo.snapshot()
-	if 'dirty_files' in snap.data {
-		if snap.data['dirty_files'].contains(path.all_after_last('/')) {
-			return 'modified'
-		}
-	}
-	if path.ends_with('main.v') || path.contains('skills_service') {
-		return 'modified'
-	}
+	_ = path
+	_ = e
 	return ''
 }
 
@@ -471,6 +470,10 @@ pub fn (mut e Engine) workspace_stats() WorkspaceStats {
 	e.api_calls++
 	e.mu.unlock()
 	base := e.active_workspace_root()
+	if base == '' {
+		// no active workspace: all counts are unknown/zero, never cwd-derived
+		return WorkspaceStats{}
+	}
 	mut ks := 0
 	kp := os.join_path(base, 'knowledge')
 	if os.is_dir(kp) {

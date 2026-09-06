@@ -53,184 +53,95 @@ pub:
 	max_lane int
 }
 
-pub fn (mut e Engine) git_changes() []GitChange {
+// GitWorkspaceStatus is the honest availability marker for the Git surface.
+// Git data comes only from a real read backend over the active workspace
+// repository; until that backend exists, is_repo may be true while
+// backend_available is false and all Git data APIs return empty results.
+pub struct GitWorkspaceStatus {
+pub:
+	root              string // active workspace root ('' when none configured)
+	is_repo            bool // a real .git directory exists under root
+	backend_available  bool // a real Git read backend is wired
+}
+
+// git_workspace_root returns the active workspace root from configuration
+// truth (recent_workspace). The bundled toolkit root is never used as a
+// workspace: an embedded toolkit has no filesystem workspace.
+pub fn (mut e Engine) git_workspace_root() string {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	snap := e.repo.snapshot()
-	mut out := []GitChange{}
-	out << GitChange{ path: 'modules/desktop_engine/skills_service.v', status: 'modified', staged: false, hunks: 2 }
-	out << GitChange{ path: 'cmd/agent-toolkit-desktop/main.v', status: 'modified', staged: true, hunks: 4 }
-	out << GitChange{ path: 'modules/desktop/skills/skills_viewmodel.v', status: 'modified', staged: false, hunks: 1 }
-	if 'dirty_files' in snap.data {
-		extra := snap.data['dirty_files'].split(',').map(it.trim_space()).filter(it != '')
-		for p in extra {
-			if p == '' {
-				continue
-			}
-			mut found := false
-			for c in out {
-				if c.path == p {
-					found = true
-					break
-				}
-			}
-			if !found { out << GitChange{ path: p, status: 'modified', staged: false, hunks: 1 } }
-		}
-	}
-	if 'watcher_last_path' in snap.data {
-		wp := snap.data['watcher_last_path']
-		if wp != '' && wp.contains('.v') {
-			out << GitChange{ path: wp.all_after(snap.data['toolkit_root'] or { '' }), status: 'untracked', staged: false, hunks: 0 }
-		}
-	}
-	return out
+	return snap.data['recent_workspace'] or { '' }
 }
 
+// git_workspace_status reports the real availability of Git data for the
+// active workspace: whether a repository exists and whether a read backend
+// is wired. It never fabricates repository state.
+pub fn (mut e Engine) git_workspace_status() GitWorkspaceStatus {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.repo.snapshot().data['recent_workspace'] or { '' }
+	if root == '' {
+		return GitWorkspaceStatus{ root: '', is_repo: false, backend_available: false }
+	}
+	is_repo := os.is_dir(os.join_path(root, '.git'))
+	return GitWorkspaceStatus{ root: root, is_repo: is_repo, backend_available: false }
+}
+
+// git_changes returns the working-tree changes of the active workspace
+// repository. With no workspace repository or until a real Git read backend
+// is wired, the result is empty — real absence, never seeded fixtures.
+// Use git_workspace_status() to distinguish "no changes" from "unavailable".
+pub fn (mut e Engine) git_changes() []GitChange {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	return []GitChange{}
+}
+
+// git_history returns the commit history of the active workspace repository.
+// Empty until a real backend exists — no synthetic hashes, authors or dates.
 pub fn (mut e Engine) git_history(limit int) []GitCommit {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	n := if limit <= 0 || limit > 50 { 20 } else { limit }
-	mut out := []GitCommit{cap: n}
-	env := resolve_env()
-	git_dir := os.join_path(env.toolkit_root, '.git')
-	if os.is_dir(git_dir) {}
-	authors := ['alice', 'bob', 'carol', 'dave']
-	branches := ['main', 'feat/ide', 'feat/git-rails', 'fix/brokered-fs']
-	for i in 0 .. n {
-		hex := 'abcdef0123456789'
-		mut h := ''
-		for j in 0 .. 7 {
-			h += hex[(i * 7 + j) % hex.len].ascii_str()
-		}
-		parents := if i == n - 1 {
-			[]string{}
-		} else if i % 5 == 0 && i + 2 < n {
-			[h_next(i + 1), h_next(i + 2)]
-		} else {
-			[h_next(i + 1)]
-		}
-		out << GitCommit{
-			hash: h
-			message: git_message_for(i)
-			author: authors[i % authors.len]
-			timestamp: 1700000000 + i * 3600
-			parents: parents
-			branch: branches[i % branches.len]
-			refs: if i == 0 {
-				['HEAD', 'main']} else if i % 8 == 0 { ['tag v1.${i / 8}.0'] } else { []string{} }
-		}
-	}
-	return out
+	_ = limit
+	return []GitCommit{}
 }
 
-fn h_next(i int) string {
-	hex := 'abcdef0123456789'
-	mut h := ''
-	for j in 0 .. 7 {
-		h += hex[(i * 7 + j) % hex.len].ascii_str()
-	}
-	return h
-}
-
-fn git_message_for(i int) string {
-	msgs := [
-		'feat(desktop): file-tree IDE + git rails',
-		'feat(skills): 227 catalog searchable',
-		'feat(memory): palace semantic recall',
-		'fix(fs): brokered harness_root escape guard',
-		'feat(editor): syntax tabs V/md/yaml',
-		'feat(git): CHANGES/HISTORY/COMPARE + commit graph',
-		'feat(diff): hunk view with lanes',
-		'docs: update IDE rails',
-		'refactor: draw_skills/draw_workspace potent',
-		'chore: bump to 227',
-	]
-	return msgs[i % msgs.len] + ' (#${1000 + i})'
-}
-
+// git_commit_graph returns the commit graph of the active workspace
+// repository. Empty until a real backend exists — no synthetic lanes.
 pub fn (mut e Engine) git_commit_graph(limit int) CommitGraph {
-	commits := e.git_history(limit)
-	mut lanes := []int{len: commits.len}
-	mut max_lane := 0
-	for i, c in commits {
-		mut lane := i % 3
-		if c.parents.len > 1 {
-			lane = 1
-		}
-		lanes[i] = lane
-		if lane > max_lane {
-			max_lane = lane
-		}
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	_ = limit
+	return CommitGraph{
+		commits: []GitCommit{}
+		lanes: []int{}
+		max_lane: 0
 	}
-	return CommitGraph{ commits: commits, lanes: lanes, max_lane: max_lane }
 }
 
+// git_diff returns the diff hunks for a target in the active workspace
+// repository. Empty until a real backend exists — no hand-authored hunks.
 pub fn (mut e Engine) git_diff(target string) []DiffHunk {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	if target == '' || target == 'CHANGES' {
-		return [
-			DiffHunk{
-				file: 'modules/desktop_engine/skills_service.v'
-				old_start: 57
-				old_count: 4
-				new_start: 57
-				new_count: 6
-				lines: [
-					DiffLine{.header, '@@ -57,4 +57,6 @@', 0, 0},
-					DiffLine{.context, ' if entries.len >= 116 {', 57, 57},
-					DiffLine{.deletion, '-                return entries', 58, 0},
-					DiffLine{.addition, '+                if entries.len >= 227 {', 0, 58},
-					DiffLine{.addition, '+                    return entries[..227]', 0, 59},
-					DiffLine{.context, ' }', 59, 60},
-				]
-			},
-			DiffHunk{
-				file: 'cmd/agent-toolkit-desktop/main.v'
-				old_start: 1219
-				old_count: 8
-				new_start: 1219
-				new_count: 12
-				lines: [
-					DiffLine{.header, '@@ -1219,8 +1219,12 @@ fn draw_skills', 0, 0},
-					DiffLine{.context, ' fx := 208', 1219, 1219},
-					DiffLine{.deletion, '-    app.gg.draw_text(fx+12, "SKILLS 116")', 1220, 0},
-					DiffLine{.addition, '+    // 227 searchable via skills_search fuzzy', 0, 1220},
-					DiffLine{.addition, '+    cat := app.engine.skills_search(query, domain)', 0, 1221},
-					DiffLine{.context, ' }', 1221, 1223},
-				]
-			},
-		]
-	}
-	return [
-		DiffHunk{
-			file: 'modules/desktop_engine/git_service.v'
-			old_start: 1
-			old_count: 3
-			new_start: 1
-			new_count: 5
-			lines: [
-				DiffLine{.header, '@@ -1,3 +1,5 @@', 0, 0},
-				DiffLine{.addition, '+// brokered via Engine', 0, 1},
-				DiffLine{.context, ' module desktop_engine', 1, 2},
-			]
-		},
-	]
+	_ = target
+	return []DiffHunk{}
 }
 
+// git_compare returns the diff between two refs. Empty until a real
+// backend exists — no relabeled fixture diffs.
 pub fn (mut e Engine) git_compare(base string, target string) []DiffHunk {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	if base == '' || target == '' {
-		return e.git_diff('')
-	}
-	mut hunks := e.git_diff('')
-	for mut h in hunks {
-		h.file = h.file + ' (${base}..${target})'
-	}
-	return hunks
+	_ = base
+	_ = target
+	return []DiffHunk{}
 }

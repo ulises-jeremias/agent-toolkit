@@ -93,10 +93,26 @@ fn test_runtime_plane_workspace_via_engine_no_shell() {
 	eng.init()!
 	eng.start()!
 	defer { eng.stop() or {} }
+	// honest workspace: with no workspace configured the tree and ledger are
+	// empty — never toolkit-root-derived nodes or invented memory entries
 	tree := eng.workspace_tree()
-	assert tree.len >= 4
+	assert tree.len == 0, 'no configured workspace yields an empty tree'
 	ledger := eng.memory_ledger('')
-	assert ledger.len >= 1
+	assert ledger.len == 0, 'no fabricated memory entries'
+	// configure a real workspace → the tree reflects real directories
+	ws := os.join_path(tmp, 'ws')
+	os.mkdir_all(os.join_path(ws, 'knowledge')) or { panic(err.msg()) }
+	os.write_file(os.join_path(ws, 'knowledge', 'note.md'), '# real\n') or { panic(err.msg()) }
+	eng.switch_workspace(ws) or { panic(err.msg()) }
+	tree2 := eng.workspace_tree()
+	assert tree2.len >= 1, 'a real workspace yields real nodes'
+	mut found_note := false
+	for n in tree2 {
+		if n.path.contains('note.md') {
+			found_note = true
+		}
+	}
+	assert found_note, 'real workspace file must appear in the tree'
 	harness := tmp
 	bad := os.join_path(os.temp_dir(), 'escape')
 	if _ := eng.open_path_validated(harness, bad) {
