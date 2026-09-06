@@ -108,15 +108,15 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 			}
 		}
 	}
-	// also discover from filesystem loops/* loop.yaml for easy management when State empty
+	// also discover from bundled loops/* loop.yaml for easy management when State empty
 	if names.len == 0 {
 		env := resolve_env()
-		loops_dir := os.join_path(env.toolkit_root, 'loops')
-		if os.is_dir(loops_dir) {
-			entries := os.ls(loops_dir) or { []string{} }
+		loops_dir_rel := 'loops'
+		if data_dir_exists(env, loops_dir_rel) {
+			entries := data_list_dir(env, loops_dir_rel)
 			for en in entries {
-				loop_yaml := os.join_path(loops_dir, en, 'loop.yaml')
-				if os.is_file(loop_yaml) {
+				loop_yaml_rel := '${loops_dir_rel}/${en}/loop.yaml'
+				if data_file_exists(env, loop_yaml_rel) {
 					if en !in names {
 						names << en
 					}
@@ -127,21 +127,21 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 	if names.len > 0 {
 		mut out := []LoopEntry{}
 		for n in names {
-			goal := snap.data['loops/${n}/goal'] or { 'Goal ${n}' }
-			// budgets — read new keys first, fallback to old single budget (audit-aligned 80k/1/900)
-			max_tokens := (snap.data['loops/${n}/budget/max_tokens'] or { snap.data['loops/${n}/budget'] or { '80000' } }).int()
-			max_runs := (snap.data['loops/${n}/budget/max_runs_per_day'] or { '1' }).int()
-			max_wall := (snap.data['loops/${n}/budget/max_wall_seconds'] or { '900' }).int()
-			// also try filesystem yaml if State missing
+			goal := snap.data['loops/${n}/goal'] or { '' }
+			// Budgets and cadence are unknown unless explicitly configured or authored.
+			max_tokens := (snap.data['loops/${n}/budget/max_tokens'] or { '0' }).int()
+			max_runs := (snap.data['loops/${n}/budget/max_runs_per_day'] or { '0' }).int()
+			max_wall := (snap.data['loops/${n}/budget/max_wall_seconds'] or { '0' }).int()
+			// also try bundled yaml if State missing
 			mut fs_budget := LoopBudget{ max_tokens: max_tokens, max_runs_per_day: max_runs, max_wall_seconds: max_wall }
-			mut fs_cadence := snap.data['loops/${n}/cadence'] or { '1d' }
+			mut fs_cadence := snap.data['loops/${n}/cadence'] or { '' }
 			mut fs_verifier := snap.data['loops/${n}/verifier'] or { '' }
 			mut fs_description := snap.data['loops/${n}/description'] or { '' }
 			mut fs_tier_str := snap.data['loops/${n}/tier'] or { '' }
 			env2 := resolve_env()
-			yaml_path := os.join_path(env2.toolkit_root, 'loops', n, 'loop.yaml')
-			if os.is_file(yaml_path) {
-				content := os.read_file(yaml_path) or { '' }
+			yaml_rel := 'loops/${n}/loop.yaml'
+			if data_file_exists(env2, yaml_rel) {
+				content := data_file_read(env2, yaml_rel) or { '' }
 				if content.len > 0 {
 					// lightweight parse for cadence/budget/tier if State empty — distinct L1/L2/L3
 					lines := content.split_into_lines()
