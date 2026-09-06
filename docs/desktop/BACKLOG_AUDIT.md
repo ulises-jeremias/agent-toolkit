@@ -141,6 +141,30 @@ Evidence:
 - Native desktop binary builds.
 - Golden UI fixtures regenerated and committed.
 
+### S4 — Shared action/entity registry
+
+Status: identified, deferred. The palette currently mixes a static production
+palette (`main.v:1617`) with `modules/desktop/palette/palette.v`. Building a
+single typed Engine-backed action/entity registry is an architecture refactor
+that exceeds the immediate recovery scope and deserves its own design pass.
+Tracked in #1119.
+
+### S5/S6 — Onboarding/workspace truth and per-domain catalog truth
+
+Status: in progress. Fixes workspace/catalog conflations that survived S1-S3:
+
+- `modules/desktop_engine/onboarding_service.v`: stop using `toolkit_root` as a
+  fallback workspace root; workspace existence/personas are now scoped to the
+  real harness root or recent workspace.
+- `modules/desktop_engine/engine.v`: doctor matrix/provenance/cli-contract
+  checks now use `data_file_exists` so embedded binaries can resolve bundled
+  `docs/research/platform-capability-matrix.md`, `capabilities/upstream.lock`,
+  and `docs/compatibility/cli-contract.yaml`.
+
+Evidence:
+- `./make.vsh test` green.
+- Native desktop binary builds.
+
 ### Recommended next steps
 
 1. Replace master tracker with product outcomes and explicit evidence gaps; link durable mission/journey/coverage/QA documents. Retain all valid capability work even when presentation issues are superseded.

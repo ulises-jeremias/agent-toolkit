@@ -614,13 +614,14 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		}
 	}
 	// ── matrix / compiler ──
-	matrix_path := os.join_path(env.toolkit_root, 'docs', 'research', 'platform-capability-matrix.md')
+	matrix_rel := 'docs/research/platform-capability-matrix.md'
+	matrix_found := data_file_exists(env, matrix_rel)
 	checks << DoctorCheck{
 		id: 'matrix:platform-capability-matrix'
 		category: 'matrix'
 		name: 'platform-capability-matrix'
-		status: if os.is_file(matrix_path) { 'pass' } else { 'warn' }
-		message: if os.is_file(matrix_path) { matrix_path } else { 'not found: ${matrix_path}' }
+		status: if matrix_found { 'pass' } else { 'warn' }
+		message: if matrix_found { matrix_rel } else { 'not found: ${matrix_rel}' }
 		fixable: false
 	}
 	// ── context-cost ──
@@ -643,14 +644,15 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		fixable: true
 	}
 	// ── provenance ──
-	lock_path := os.join_path(env.toolkit_root, 'capabilities', 'upstream.lock')
-	if os.is_file(lock_path) {
+	lock_rel := 'capabilities/upstream.lock'
+	lock_found := data_file_exists(env, lock_rel)
+	if lock_found {
 		checks << DoctorCheck{
 			id: 'provenance:upstream.lock'
 			category: 'provenance'
 			name: 'upstream.lock'
 			status: 'pass'
-			message: lock_path
+			message: lock_rel
 			fixable: false
 		}
 		// sha
@@ -662,19 +664,22 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 			message: 'sha verified via upstream.lock'
 			fixable: false
 		}
-		// expiry via mtime
-		mtime := os.file_last_mod_unix(lock_path)
-		if mtime > 0 {
-			age_days := (time.now().unix() - mtime) / 86400
-			checks << DoctorCheck{
-				id: 'provenance:expiry'
-				category: 'provenance'
-				name: 'expiry'
-				status: if age_days > 90 { 'warn' } else { 'pass' }
-				message: if age_days > 90 {
-					'stale: ${age_days}d since last update (>90d)'} else {
-					'${age_days}d since update'}
-				fixable: false
+		// expiry via mtime only for filesystem tiers; embedded has no stable mtime
+		if env.tier != 'embedded' {
+			lock_path := data_path(env, lock_rel)
+			mtime := os.file_last_mod_unix(lock_path)
+			if mtime > 0 {
+				age_days := (time.now().unix() - mtime) / 86400
+				checks << DoctorCheck{
+					id: 'provenance:expiry'
+					category: 'provenance'
+					name: 'expiry'
+					status: if age_days > 90 { 'warn' } else { 'pass' }
+					message: if age_days > 90 {
+						'stale: ${age_days}d since last update (>90d)'} else {
+						'${age_days}d since update'}
+					fixable: false
+				}
 			}
 		}
 	} else {
@@ -683,20 +688,19 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 			category: 'provenance'
 			name: 'upstream.lock'
 			status: 'warn'
-			message: 'not found under toolkit root (checkout only)'
+			message: 'not found in resolved toolkit data'
 			fixable: false
 		}
 	}
 	// cli-contract
-	contract_path := os.join_path(env.toolkit_root, 'docs', 'compatibility', 'cli-contract.yaml')
+	contract_rel := 'docs/compatibility/cli-contract.yaml'
+	contract_found := data_file_exists(env, contract_rel)
 	checks << DoctorCheck{
 		id: 'provenance:cli-contract'
 		category: 'provenance'
 		name: 'cli-contract'
-		status: if os.is_file(contract_path) { 'pass' } else { 'warn' }
-		message: if os.is_file(contract_path) {
-			contract_path} else {
-			'not found: ${contract_path}'}
+		status: if contract_found { 'pass' } else { 'warn' }
+		message: if contract_found { contract_rel } else { 'not found: ${contract_rel}' }
 		fixable: false
 	}
 	// ── receipts verification ──
