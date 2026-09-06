@@ -183,14 +183,3 @@ pub fn data_file_exists(env EnvResolver, rel string) bool {
 pub fn data_file_read(env EnvResolver, rel string) !string {
 	return agent_toolkit_core.data_read_file(env.toolkit_root, data_path(env, rel))
 }
-
-// data_dir_exists reports directory existence through the same tier-aware
-// abstraction used for files, so catalog discovery works for embedded binaries.
-pub fn data_dir_exists(env EnvResolver, rel string) bool {
-	return agent_toolkit_core.data_is_dir(env.toolkit_root, data_path(env, rel))
-}
-
-// data_list_dir returns immediate children of a tier-aware directory path.
-pub fn data_list_dir(env EnvResolver, rel string) []string {
-	return agent_toolkit_core.data_ls(env.toolkit_root, data_path(env, rel))
-}
