@@ -1,412 +1,265 @@
 # AGENTS.md — AI Agent Contract
 
-**Purpose**: This file is the primary contract for any AI agent contributing to or working inside this repository. Read it before touching any file.
+**Purpose:** the repository-wide operating contract for AI agents and automated contributors. Read this before modifying any file. More specific scoped instructions, when present, refine this contract for their subtree.
 
----
+## What this repository is
 
-## What This Toolkit Does
+`agent-toolkit` is the capability distribution layer for reusable AI-agent skills, personas, loops, MCP templates, products/packs, target profiles, the native V CLI, and Agent Toolkit Desktop. Changes can affect multiple downstream coding assistants and packaging channels.
 
-`agent-toolkit` is a modular library of AI capabilities — skills, agent personas, loop templates, MCP configs, and per-tool profiles — designed to work across every major AI coding assistant (Claude Code, Cursor, OpenCode, GitHub Copilot, Windsurf, Pi Coding Agent, Muse Code).
+Operate precisely: use canonical sources, preserve public/vendor-neutral boundaries, cite evidence, and validate before finalizing.
 
-The goal is a single source of truth: author a skill once, deploy it to any tool via its profile. When you add, modify, or remove anything here, you are affecting every downstream consumer who installs this toolkit.
+## Canonical document map
 
-**Operate accordingly: be precise, cite sources, and validate before finalizing.**
+Use the narrowest current source of truth instead of old issue prose or historical comments.
 
-## Desktop product work
+| Concern | Canonical source |
+|---|---|
+| Public concept model / boundaries | [`docs/CONCEPTS.md`](docs/CONCEPTS.md) |
+| Architecture decisions | [`docs/adrs/`](docs/adrs/) |
+| Skill authoring/integration | [`docs/SKILL_INTEGRATION_CHECKLIST.md`](docs/SKILL_INTEGRATION_CHECKLIST.md), [`docs/UPSTREAM_VS_FIRST_PARTY.md`](docs/UPSTREAM_VS_FIRST_PARTY.md) |
+| Agent personas | [`docs/HOW_TO_ADD_AGENT.md`](docs/HOW_TO_ADD_AGENT.md) |
+| Loop templates | [`docs/HOW_TO_CREATE_LOOP.md`](docs/HOW_TO_CREATE_LOOP.md), [`schemas/loop.schema.json`](schemas/loop.schema.json) |
+| V development | [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md) |
+| Desktop product | [`docs/desktop/PRODUCT_VISION.md`](docs/desktop/PRODUCT_VISION.md) |
+| Desktop interaction model | [`docs/desktop/UX_ARCHITECTURE.md`](docs/desktop/UX_ARCHITECTURE.md) |
+| Desktop visual design | [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md) |
+| Desktop journeys / coverage | [`docs/desktop/USER_JOURNEYS.md`](docs/desktop/USER_JOURNEYS.md), [`docs/desktop/WORKFLOW_COVERAGE.md`](docs/desktop/WORKFLOW_COVERAGE.md) |
+| Desktop visual acceptance | [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md) |
+| Desktop backlog evidence | [`docs/desktop/BACKLOG_AUDIT.md`](docs/desktop/BACKLOG_AUDIT.md) |
 
-Before Desktop changes, read [the product vision](docs/desktop/PRODUCT_VISION.md),
-[UX architecture](docs/desktop/UX_ARCHITECTURE.md),
-[user journeys](docs/desktop/USER_JOURNEYS.md),
-[workflow coverage](docs/desktop/WORKFLOW_COVERAGE.md) and
-[visual QA](docs/desktop/VISUAL_QA.md). These distinguish the product contract from
-verified implementation. Preserve native V/gg/sokol, shared typed domain authority,
-workspace containment and real operational truth. Never invent production data or
-claim installation from state-only bookkeeping. Major UX changes require running
-the production application and opening captured screenshots before approval.
-Historical World View and ADR-032 requirements need reconciliation with this
-contract; do not implement old issue text without checking current code and tasks.
+Historical ADRs and GitHub issues are evidence, not automatic implementation authority. Reconcile them with current code and governing contracts before acting.
 
----
+## Instruction precedence inside this project
 
-## Repository Structure
+Repository work should follow, in order:
 
-```
-agent-toolkit/
-├── skills/
-│   ├── core/           # Session bootstrap, handshake, workspace, project
-│   ├── delivery/       # PRD, ADR, work items, delivery workflows
-│   ├── design/         # UI/UX, Figma, frontend
-│   ├── forge/          # GitHub/GitLab CLI, CI, PRs, worktrees
-│   ├── integrations/   # Slack, Linear, ClickUp, MCP
-│   ├── data/           # dbt, Snowflake
-│   ├── tooling/        # Playwright, Jupyter, Herdr, inventory
-│   ├── ops/            # Triage, swarm, docs, cost
-│   ├── loops/          # loop-runner
-│   ├── agentic-security/
-│   ├── architecture/
-│   ├── cloud/
-│   ├── accessibility/
-│   └── quality/
-├── agents/             # Tool-agnostic agent persona definitions
-├── profiles/
-│   ├── claude-code/    # .claude/settings.json overlay + CLAUDE.md
-│   ├── cursor/         # .mdc rule files for Cursor
-│   ├── opencode/       # System prompt overlays for OpenCode
-│   ├── copilot/        # copilot-instructions.md for GitHub Copilot
-│   ├── windsurf/       # rules.md + memory files for Windsurf
-│   ├── pi/             # Skill files for Pi Coding Agent
-│   └── muse-code/      # Muse Code Agent Skills
-├── mcp/
-│   └── templates/      # MCP server config templates (JSON)
-├── loops/              # Loop engineering templates (loop.yaml per docs/HOW_TO_CREATE_LOOP.md)
-│   └── <name>/
-│       ├── loop.yaml   # Required: loop definition (tier, cadence, goal, request, budget, allow/deny)
-│       ├── STATE.md    # Runtime: checkpoint state (written by runner, not committed)
-│       └── report.md   # Runtime: output report (written by agent, not committed)
-├── packs/              # Docs-only solution packs (ADR-006) — workflow templates, not loaded by compiler
-├── plugins/            # Compiler-generated target manifests (do not hand-edit; ADR-003/004)
-├── distributions/      # Product specification for compiler input (products.yaml)
-├── integrations/       # Swarm UI integrations (e.g., Herdr plugin; ADR-008)
-├── catalogs/
-│   ├── skill-catalog.yaml
-│   └── agent-catalog.yaml
-├── schemas/            # JSON schemas for validation
-│   ├── skill-md-frontmatter.schema.json
-│   └── loop.schema.json
-├── docs/               # Human-facing documentation
-│   ├── CONCEPTS.md     # Public concept model — see "Three kinds of packs"
-│   └── adrs/           # Architecture Decision Records
-└── scripts/            # validate-skills.vsh, validate-agents.vsh, validate-loops.vsh, generate-catalogs.vsh (provenance.py kept)
-```
+1. explicit current task requirements;
+2. this `AGENTS.md` and any scoped descendant instructions;
+3. current ADRs and canonical domain contracts;
+4. current product/UX/design contracts;
+5. current verified code/tests/runtime behavior;
+6. GitHub issue implementation details;
+7. historical plans/comments.
 
----
+This project ordering does not override system/developer/runtime instructions from the agent platform itself.
 
-## Operating Rules
+## Global invariants
 
-**Always:**
+### Always
 
-- Check `catalogs/skill-catalog.yaml` before adding a new skill — avoid duplicates
-- Validate with `./scripts/validate-skills.vsh` before marking any skill work complete
-- Cite which file a convention comes from when referencing repo standards
-- Use English for all file content, commit messages, and PR descriptions
-- Check `SKILL.md` frontmatter (`tools`, `requires`) before claiming a skill works with a tool
-- Keep secrets out of the repository — MCP templates use placeholder values only
-- When adding or modifying skills, follow [docs/SKILL_INTEGRATION_CHECKLIST.md](docs/SKILL_INTEGRATION_CHECKLIST.md) — orchestration, agents, products, and build verification are mandatory
-- When evaluating third-party skills, follow [docs/UPSTREAM_VS_FIRST_PARTY.md](docs/UPSTREAM_VS_FIRST_PARTY.md) — prefer first-party enhancement over duplicate upstream vendors
+- Use English for repository content, commits, issues, and PR descriptions.
+- Keep secrets, credentials, tokens, private-company content, and private customer data out of this public repository.
+- Prefer canonical catalogs/manifests/core operations over duplicated hardcoded rosters.
+- Cite the file/contract behind repository conventions when making architectural claims.
+- Inspect current code and generated sources before claiming compatibility or completion.
+- Work in focused branches/PRs for implementation unless the maintainer explicitly requests another workflow.
+- Preserve user-owned files and report partial failure honestly.
 
-**Never:**
+### Never
 
-- Commit credentials, API keys, or tokens to any file
-- Claim a skill is compatible with a tool without testing or explicit authorship confirmation
-- Skip required `SKILL.md` frontmatter when adding a skill
-- Hand-edit generated catalogs (`skill-catalog.yaml`, `agent-catalog.yaml`, `loop-catalog.yaml`, `skills-layout.json`) — regenerate with `./scripts/generate-catalogs.vsh` only (see Catalog Generation)
-- Add content specific to any private organization — this is a public, vendor-neutral toolkit
-- Add third-party npm / github / url packs to `distributions/products.yaml` or `plugins/` — they belong in `agentic-workstation` via `chezmoiexternal` + `skills-external/` (see `docs/CONCEPTS.md` “Third-party boundary”)
+- Manufacture plausible production state, progress, health, receipts, provenance, compatibility, costs, activity, or Git history.
+- Hand-edit generated catalogs/manifests when a generator owns them.
+- Commit credentials or real secret values to MCP templates/examples.
+- Claim tool compatibility without evidence from metadata, tests, or explicit supported behavior.
+- Add private-organization-specific content to first-party public capabilities.
+- Add third-party npm/GitHub/URL packs to `distributions/products.yaml` or generated plugin surfaces; follow the third-party boundary in `docs/CONCEPTS.md`.
+- Bypass branch protection or weaken validation merely to land a change.
 
----
+Unknown, unavailable, empty, and unverified are valid states. Fabricated-but-plausible is not.
 
-## How to Add a Skill
+## Repository ownership model
 
-Each skill lives in its own directory under the appropriate domain:
+Key source areas:
 
-```
-skills/<domain>/<skill-name>/
-└── SKILL.md       # Human-readable description and usage guide (YAML frontmatter)
+- `skills/` — first-party reusable capability sources (`SKILL.md`)
+- `agents/` — tool-agnostic personas (`AGENT.md`)
+- `loops/` — loop templates (`loop.yaml`)
+- `mcp/` — provider registry/templates
+- `profiles/` — target-specific adapters/overlays
+- `packs/` — solution/workflow packs
+- `distributions/` — product compiler input
+- `plugins/` — generated distribution surfaces; do not hand-edit unless the owning contract explicitly says otherwise
+- `catalogs/` — generated discovery catalogs
+- `modules/agent_toolkit_core/` — shared core/domain implementation
+- `modules/desktop_engine/` — Desktop-facing typed domain layer
+- `modules/desktop/` — Desktop view/presentation support
+- `cmd/agent-toolkit/` — native V CLI entrypoint
+- `cmd/agent-toolkit-desktop/` — production native Desktop entrypoint
+- `docs/` — human-facing contracts, guides, ADRs
+- `scripts/` — validation/generation automation
+
+## Generated files
+
+These are generated and must not be manually edited:
+
+- `catalogs/skill-catalog.yaml`
+- `catalogs/agent-catalog.yaml`
+- `catalogs/loop-catalog.yaml`
+- `catalogs/skills-layout.json`
+
+Regenerate/check with:
+
+```bash
+./scripts/generate-catalogs.vsh
+./scripts/generate-catalogs.vsh --check
 ```
 
-Skills use `SKILL.md` frontmatter only — no `skill.json` required. See `docs/MIGRATION.md` for
-historical notes on the v1.0.4 removal of `skill.json`.
+If another file is generated, follow its owning ADR/script rather than editing around the generator.
 
-### SKILL.md Frontmatter Spec
+## Skills
 
-Every `SKILL.md` must begin with a YAML frontmatter block:
+Before adding a skill:
 
-```markdown
----
-name: my-skill-name
-description: One-sentence description of what this skill does.
-metadata:
-  author: github-username
-  version: "1.0.0"
-  tags:
-    - tag1
-    - tag2
-  domain: delivery        # one of: accessibility, agentic-security, architecture, cloud, core, data, delivery, design, forge, integrations, loops, ops, quality, tooling
----
+1. search `catalogs/skill-catalog.yaml` and existing first-party skills;
+2. read [`docs/UPSTREAM_VS_FIRST_PARTY.md`](docs/UPSTREAM_VS_FIRST_PARTY.md);
+3. prefer enhancing an existing first-party capability over vendoring a duplicate;
+4. follow [`docs/SKILL_INTEGRATION_CHECKLIST.md`](docs/SKILL_INTEGRATION_CHECKLIST.md).
 
-# My Skill Name
+A skill lives at `skills/<domain>/<skill>/SKILL.md` and uses the schema/conventions documented by the repository. Do not introduce legacy `skill.json` files.
 
-[Human-readable usage guide follows]
+Validate skill changes with at least:
+
+```bash
+./scripts/validate-skills.vsh
+./scripts/generate-catalogs.vsh --check
+AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
 ```
 
-Required frontmatter fields:
+Use additional checks required by the integration checklist.
 
-| Field | Type | Description |
-|---|---|---|
-| `name` | string | Kebab-case skill identifier, unique within the domain |
-| `description` | string | One sentence, present tense ("Reviews pull requests for…") |
-| `metadata.author` | string | GitHub username of the primary author |
-| `metadata.version` | string | Semver string, start at `"1.0.0"` |
-| `metadata.tags` | list | Searchable tags, lowercase kebab-case |
-| `metadata.domain` | string | Parent domain directory name |
+## Agent personas
 
-Optional frontmatter fields for tool compatibility and discovery:
+Personas live under `agents/<name>/AGENT.md`. Keep directory/name/frontmatter aligned and follow [`docs/HOW_TO_ADD_AGENT.md`](docs/HOW_TO_ADD_AGENT.md).
 
-| Field | Type | Description |
-|---|---|---|
-| `tools` | list | AI tools this skill is verified to work with |
-| `requires` | list | CLI tools or env vars the skill needs |
-| `triggers` | list | Natural-language phrases that should invoke this skill |
+Validate with:
 
-Run `./scripts/validate-skills.vsh` to validate
-frontmatter against `schemas/skill-md-frontmatter.schema.json`.
-
-### Upstream vs first-party
-
-Before vendoring a third-party skill, read [docs/UPSTREAM_VS_FIRST_PARTY.md](docs/UPSTREAM_VS_FIRST_PARTY.md).
-If a first-party skill already covers the domain, **enhance it** and record `metadata.inspired_by[]`
-instead of adding a duplicate upstream copy. After any skill change, complete
-[docs/SKILL_INTEGRATION_CHECKLIST.md](docs/SKILL_INTEGRATION_CHECKLIST.md) (orchestration in
-`skills/core/assistant/references/ORCHESTRATION.md`, agent delegates, products, `build --check`).
-
----
-
-## How to Add a Loop Template
-
-Loop templates are defined by `loops/<loop-name>/loop.yaml` per `docs/HOW_TO_CREATE_LOOP.md` and `schemas/loop.schema.json`. The legacy `request.md`/`report.md`/`runbook.md` triple is historical — all loop definition now lives in `loop.yaml`; `STATE.md` and `report.md` are runtime artifacts, not committed.
-
-### loop.yaml — Loop Definition
-
-```yaml
-name: my-loop-name
-description: "Daily L1 read-only report (no mutations)"
-tier: L1                        # L1 read-only, L2 PR-gated writes, L3 allowlisted merge/close
-cadence: 1d                     # \d+[mhd] e.g. 15m, 1d — see schemas/loop.schema.json
-goal: |
-  One sentence describing the loop objective. The loop stops when this is achieved.
-allowlist: []                   # permitted mutation actions (empty = read-only)
-deny:
-  - merge
-  - close
-  - push
-  - approve
-  - force-push
-exit_conditions:
-  - goal_met
-  - budget_exhausted
-  - human_escalation
-budget:
-  max_tokens: 50000              # max tokens per run
-  max_runs_per_day: 1            # max runs per 24h
-  max_wall_seconds: 600          # hard timeout in seconds
-verifier: null                  # post-run quality gate agent, or null
-resumable: true                 # whether STATE.md checkpoints are written
-request: |
-  [Full prompt body — self-contained, step-by-step instructions. Use {{variables}} for substitution.]
+```bash
+./scripts/validate-agents.vsh
+./scripts/generate-catalogs.vsh --check
 ```
 
-Required field: `name`, `goal`, `request` (per `schemas/loop.schema.json`). Common optional fields: `tier` (`L1`|`L2`|`L3`), `cadence` (`^\d+[mhd]$`), `allowlist`/`deny`, `exit_conditions` (`goal_met`, `budget_exhausted`, `human_escalation`, `max_iterations`, `no_work_found`, `error`), `budget` (`max_tokens`, `max_runs_per_day`, `max_wall_seconds`, `max_iterations`), `verifier`, `resumable`. See `docs/HOW_TO_CREATE_LOOP.md` for tier/budget guidance and resumability pattern.
+Do not confuse persona `AGENT.md` files with this repository-wide `AGENTS.md` contract.
 
-Validate before committing (same as CI `validate-loops` job):
+## Loops
+
+Loop definitions live in `loops/<name>/loop.yaml`. `STATE.md` and `report.md` are runtime artifacts and must not become committed template state unless a current contract explicitly says otherwise.
+
+Follow [`docs/HOW_TO_CREATE_LOOP.md`](docs/HOW_TO_CREATE_LOOP.md) and validate with:
 
 ```bash
 ./scripts/validate-loops.vsh
+./scripts/generate-catalogs.vsh --check
 ```
 
----
+Never weaken L1/L2/L3 mutation boundaries, allow/deny semantics, budgets, or exit conditions casually.
 
-## How to Add a Profile
+## Profiles, MCP, products, and packs
 
-Profiles adapt toolkit skills for a specific tool. Each profile lives in `profiles/<tool-name>/`.
+Profiles adapt canonical Agent Toolkit capabilities to supported coding tools. Keep target-specific behavior in the appropriate profile/emitter layer rather than duplicating source capabilities.
 
-### Claude Code (`profiles/claude-code/`)
+MCP templates use placeholders only. Never commit real credentials. Separate provider/catalog support from user configuration and runtime health.
 
-- `CLAUDE.md` — system prompt overlay referencing skills by path
-- `settings.json` — skill loading configuration
+Products/packs must follow current compiler and concept contracts. Treat generated plugin manifests as outputs, not primary authoring surfaces.
 
-### Cursor (`profiles/cursor/`)
+## Desktop product work
 
-- `rules/<domain>.mdc` — one rule file per domain, using Cursor's MDC format
-- Keep each rule file focused on one domain; avoid catch-all files
+Before changing Desktop behavior, read at least:
 
-### OpenCode (`profiles/opencode/`)
+- [`docs/desktop/PRODUCT_VISION.md`](docs/desktop/PRODUCT_VISION.md)
+- [`docs/desktop/UX_ARCHITECTURE.md`](docs/desktop/UX_ARCHITECTURE.md)
+- [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md)
 
-- `opencode.json` — system prompt that opencode loads on startup
-- `skills.yaml` — list of skill paths to inject
+Also read:
 
-### GitHub Copilot (`profiles/copilot/`)
+- `USER_JOURNEYS.md` when changing a workflow;
+- `WORKFLOW_COVERAGE.md` when exposing/removing capabilities;
+- `VISUAL_QA.md` for any visual change;
+- `BACKLOG_AUDIT.md` before implementing old Desktop issue text.
 
-- `copilot-instructions.md` — the file that gets copied to `.github/copilot-instructions.md` in projects
-- Must be self-contained (Copilot cannot reference external files at runtime)
+### Desktop invariants
 
-### Windsurf (`profiles/windsurf/`)
+- Keep the production application native V with `gg`/sokol unless a new approved ADR changes that direction.
+- Engine/shared typed domain APIs remain authoritative. Do not implement Agent Toolkit business logic by shelling out to the Agent Toolkit CLI and parsing output.
+- Keep catalog truth, user configuration, runtime state, and evidence/provenance distinct.
+- Never invent operational activity to make the Office look alive.
+- A catalog agent may exist and have a desk while idle; runtime absence does not imply catalog absence.
+- Keep workspace, runtime, bundled-data, cache/config, and project path authorities distinct.
+- Preserve workspace containment and secret masking before values reach rendering/logging/export.
+- Drawing and hit-testing must share geometry; revalidate integer selections after filtering, refresh, and workspace switch before indexing.
+- Event precedence is modal → active text field → terminal → focused widget → panel-local shortcuts → global shortcuts.
+- Do not require sibling repositories, source-checkout cwd, V toolchain, or interactive-shell PATH for normal packaged first run.
+- Do not treat concept images as runtime truth or literal feature requirements.
 
-- `rules.md` — rules file that Windsurf loads from `~/.codeium/windsurf/`
-- `memories/` — optional pre-seeded memory files
+### Desktop visual changes
 
-### Pi Coding Agent (`profiles/pi/`)
+The visual identity is defined in [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md). Major visual work must follow the evidence loop in [`VISUAL_QA.md`](docs/desktop/VISUAL_QA.md):
 
-- `skills/<skill-name>.md` — individual skill files in Pi's expected format
-- Pi skills are standalone; each file must be self-contained
+> build → run → navigate → capture → **open the screenshot** → critique → fix → recapture
 
----
+Golden comparison proves regression stability, not visual quality. Do not update a golden solely to make CI pass.
 
-## Agent Persona Format
+## Validation by change type
 
-Agent personas in `agents/` are a single `AGENT.md` with YAML frontmatter (no `persona.json` / `README.md` pair):
+Use the smallest matrix that honestly covers the changed surface, plus any checks required by the touched contract/CI.
 
-```
-agents/<persona-name>/
-└── AGENT.md       # Frontmatter + persona body (optional references/)
-```
+| Change | Minimum focused validation |
+|---|---|
+| Skill | `validate-skills`, catalog check, relevant build/integration |
+| Agent persona | `validate-agents`, catalog check |
+| Loop | `validate-loops`, catalog check |
+| Catalog/compiler/profile | generator check, `build --check`, relevant target tests |
+| V core/CLI | relevant V tests, `./make.vsh build-cli`, integration where affected |
+| Desktop Engine | relevant `modules/desktop_engine` tests + production Desktop build |
+| Desktop visual | Desktop build + focused tests + smoke/capture + **opened screenshot** + relevant goldens |
+| Packaging | platform/package-specific checks plus clean-launch evidence |
+| Docs-only | formatting/link/repository validation affected by the docs; no unrelated expensive suite merely for ceremony |
 
-`AGENT.md` frontmatter (match real `agents/*/AGENT.md`; validated by `scripts/validate-agents.vsh`):
-
-```markdown
----
-name: persona-name
-description: >-
-  What this persona does and when to use it.
-  Use when: trigger keywords for agent selection.
-tools: Read, Grep, Glob, Bash
----
-
-# Persona title
-
-[Role description, operating rules, output format…]
-```
-
-| Field | Type | Description |
-|---|---|---|
-| `name` | string | Kebab-case; must match the directory name |
-| `description` | string | Selection text for the AI tool's agent picker |
-| `tools` | string | Comma-separated allowlist of tools the persona may use |
-
-Optional: `references/` beside `AGENT.md` for domain checklists. See [`docs/HOW_TO_ADD_AGENT.md`](docs/HOW_TO_ADD_AGENT.md).
-
----
-
-## Catalog Generation
-
-`catalogs/skill-catalog.yaml`, `catalogs/agent-catalog.yaml`, `catalogs/loop-catalog.yaml`, and `catalogs/skills-layout.json` are **generated files**. Do not edit them by hand — regenerate with `generate-catalogs.vsh` only.
-
-`catalogs/skills-layout.json` is the domain → skill grouping derived from `skills/<domain>/<skill>/SKILL.md` and used by `agent-toolkit skills list` (`modules/agent_toolkit_core/skills.v`).
-
-To regenerate YAML catalogs after adding or modifying skills or agents:
+Repository-wide primary validation currently includes:
 
 ```bash
-./scripts/generate-catalogs.vsh          # regenerate catalogs/*-catalog.yaml
-./scripts/generate-catalogs.vsh --check  # fail if committed catalogs drifted
+./scripts/validate-skills.vsh
+./scripts/validate-agents.vsh
+./scripts/validate-loops.vsh
+./scripts/generate-catalogs.vsh --check
+./make.vsh test
+./make.vsh build-cli
+AGENT_TOOLKIT_ROOT="$PWD" ./build/agent-toolkit build --check
 ```
 
-The CI pipeline runs this automatically and will fail if the YAML catalogs are out of sync with the source files.
+Check `.github/workflows/` before assuming this list exactly matches current CI.
 
----
-
-## Validation
-
-Before marking any contribution complete (see `.github/workflows/validate.yml` for CI parity):
+Adapter-only validation when those launchers change:
 
 ```bash
-./scripts/validate-skills.vsh     # Validates SKILL.md frontmatter (no skill.json)
-./scripts/validate-agents.vsh     # Validates AGENT.md frontmatter
-./scripts/validate-loops.vsh      # Validates loops/**/loop.yaml against loop.schema.json
-./scripts/generate-catalogs.vsh   # Regenerates YAML catalogs (never hand-edit)
-./make.vsh test && ./make.vsh build-cli
-AGENT_TOOLKIT_ROOT=$PWD ./build/agent-toolkit build --check
-# Adapter-only (optional unless changing PyPI/npm trampolines):
-AGENT_TOOLKIT_ROOT=$PWD uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
+AGENT_TOOLKIT_ROOT="$PWD" uv run --project packages/pypi/agent-toolkit-cli --directory . pytest -c tests/pytest.ini tests/ -v
 npm test --prefix packages/npm/agent-toolkit-cli
 ```
 
-All primary checks must exit 0. There is no `gen-surfaces` script — plugin digests are enforced by `build --check` only. V is the product CLI (pin `.v-version` / 0.5.2, `import json` not json2 — [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md)). Run `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` first for pytest only (the repo is not a uv workspace).
----
+Follow `.v-version` and [`docs/HOW_TO_DEVELOP_V.md`](docs/HOW_TO_DEVELOP_V.md) for V-specific constraints.
 
-## Ecosystem — Where This Fits
+## Git and PR discipline
 
-`agent-toolkit` is the **capability distribution layer (L1.5)** in a three-tier personal DX stack:
+- Start focused implementation from fresh canonical `main` unless intentionally targeting another base.
+- Keep PRs coherent and reviewable; do not recreate monolithic salvage branches.
+- Do not push implementation directly to protected `main` unless the maintainer explicitly requests/directs that exception.
+- Wait for actual required CI before declaring a PR complete.
+- Investigate reproducible failures instead of labeling them infrastructure casually.
+- Merge only when required CI and review obligations are satisfied.
+- Do not publish releases/packages without explicit authorization.
 
-```
-L1  │ agentic-workstation  │ Machine provisioning (chezmoi, shell, packages, LLM policy)
-    │                      │ https://github.com/ulises-jeremias/agentic-workstation
-────┼──────────────────────┼─────────────────────────────────────────────────────────────
-L1.5│ agent-toolkit        │ THIS REPO — Capability distribution (skills, loops, profiles)
-    │ (this repo)          │ V binary: brew / AUR agent-toolkit-bin / GitHub / uv launcher / npm
-────┼──────────────────────┼─────────────────────────────────────────────────────────────
-L3  │ agentic-harness      │ AI workspace scaffold for multi-repo orchestration
-    │                      │ https://github.com/ulises-jeremias/agentic-harness
-```
+For major Desktop PRs, include user impact, architecture/truth implications, validation, screenshot evidence, and known limitations.
 
-**Integration flow:**
-1. `agentic-workstation` installs the V CLI during `chezmoi apply` (brew / AUR `agent-toolkit-bin` / GitHub / `uv tool install 'agent-toolkit-cli>=1.11.0'`)
-2. `agent-toolkit install` deploys profiles to detected AI tools (Claude Code, Cursor, etc.)
-3. `agentic-harness` workspaces call `agent-toolkit loop`, `agent-toolkit memory`, etc.
+## Ecosystem boundary
 
----
+Agent Toolkit must remain usable on its own. `agentic-workstation`, `agentic-harness`, My AI Workspace, and related repositories may integrate through explicit contracts, but they are not mandatory runtime dependencies for Agent Toolkit Desktop or the core CLI.
 
-## CLI Reference for Agents
+Cross-repo references:
 
-When working in a workspace that has `agent-toolkit` installed, use these commands:
+- [agentic-workstation AGENTS.md](https://github.com/ulises-jeremias/agentic-workstation/blob/main/AGENTS.md)
+- [agentic-harness AGENTS.md](https://github.com/ulises-jeremias/agentic-harness/blob/main/AGENTS.md)
 
-```bash
-# Installation (V binary — pick one channel; see docs/INSTALLATION.md)
-# brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
-# yay -S agent-toolkit-bin
-# GitHub Release: agent-toolkit-<os>-<arch> from /releases/latest
-uv tool install 'agent-toolkit-cli>=1.11.0'    # PyPI launcher over bundled V
-agent-toolkit install [--force]                # deploy profiles to detected AI tools
-agent-toolkit doctor                           # verify installation health
+## Completion rule
 
-# Skills and inventory
-agent-toolkit inventory                        # list all 116+ skills
-agent-toolkit skills list                      # list with domain breakdown
-agent-toolkit skills validate                  # check SKILL.md compliance
+Do not equate issue closure, generated output, passing tests, or green goldens with product completion.
 
-# Knowledge base (from any workspace with knowledge/)
-agent-toolkit memory search "topic"            # find existing knowledge
-agent-toolkit memory add --type learning "..." # save a pattern or discovery
-agent-toolkit memory add --type todo "..."     # track a follow-up
-agent-toolkit memory inject                    # output knowledge for context
-agent-toolkit memory todo                      # review pending items
-
-# Loop engineering (from workspace with loops/ or templates/loops/)
-agent-toolkit loop init <pattern>              # scaffold from template
-agent-toolkit loop run <name>                  # execute one iteration
-agent-toolkit loop status                      # show all loop instances
-agent-toolkit loop audit <name>                # review past runs
-agent-toolkit loop schedule <name>             # install systemd/launchd timer
-agent-toolkit loop templates                   # list available templates
-
-# Workspace management
-agent-toolkit workspace context                # session state snapshot
-agent-toolkit workspace use-persona <name>     # activate a work mode
-agent-toolkit workspace load packs/<n>.yaml    # load client context bundle
-agent-toolkit workspace validate               # validate workspace schemas
-
-# Project / repo management
-agent-toolkit project init                     # create repos/ + projects/ dirs
-agent-toolkit project clone owner/repo [--ssh] # clone + symlink
-agent-toolkit project list                     # list indexed projects
-
-# Background jobs
-agent-toolkit devcompanion queue <project> --request "..." # queue async job
-agent-toolkit devcompanion run-once            # process next job
-agent-toolkit devcompanion status              # show queue state
-
-# MCP providers
-agent-toolkit mcp list                         # available providers
-agent-toolkit mcp setup <provider>             # interactive MCP setup
-agent-toolkit mcp doctor                       # check provider health
-
-# Build and deploy
-agent-toolkit build --check                    # dry-run compilation
-agent-toolkit build --target claude-code       # compile one target
-agent-toolkit diff                             # show changes vs installed bundles
-```
-
----
-
-## Cross-Repo Links
-
-- **agentic-workstation** → [`AGENTS.md`](https://github.com/ulises-jeremias/agentic-workstation/blob/main/AGENTS.md) | [`docs/AGENT_TOOLKIT.md`](https://github.com/ulises-jeremias/agentic-workstation/blob/main/docs/AGENT_TOOLKIT.md)
-- **agentic-harness** → [`AGENTS.md`](https://github.com/ulises-jeremias/agentic-harness/blob/main/AGENTS.md) | [`docs/ARCHITECTURE.md`](https://github.com/ulises-jeremias/agentic-harness/blob/main/docs/ARCHITECTURE.md)
+Before reporting a change complete, verify the actual affected behavior, run the relevant validation, state what was not verified, and leave the repository's canonical documents/backlog consistent with reality.
