@@ -69,9 +69,8 @@ pub fn (mut e Engine) agents_catalog() []AgentEntry {
 						source_file: 'agents/${t.all_after(':').trim_space()}/AGENT.md'
 						provenance: catalog_path
 					}
-					// infer tier from known lists
+					// tier starts unknown; the catalog's real `kind:` overrides
 					cur.tier = tier_for_agent(cur.id)
-					cur.role = role_for_agent(cur.id)
 					in_delegates = false
 					in_collab = false
 				} else if t.starts_with('name:') && cur.id != '' && cur.description == '' {
@@ -106,12 +105,12 @@ pub fn (mut e Engine) agents_catalog() []AgentEntry {
 				entries << cur
 			}
 			if entries.len > 0 {
-				// Enrich only real catalog entries with derived routing metadata.
+				// Enrich only with real derivations: the display role maps from
+				// the catalog's real `kind:` tier. Triggers and holistic owner
+				// come only from real catalog data — never invented routing
+				// metadata attached to real entries.
 				for i in 0 .. entries.len {
-					entries[i].triggers = triggers_for_agent(entries[i].id)
-					if entries[i].holistic_owner == '' {
-						entries[i].holistic_owner = infer_owner(entries[i].id)
-					}
+					entries[i].role = role_for_tier(entries[i].tier)
 				}
 				return entries
 			}
@@ -120,69 +119,26 @@ pub fn (mut e Engine) agents_catalog() []AgentEntry {
 	return []AgentEntry{}
 }
 
+// tier_for_agent only applies the archived naming convention; the canonical
+// tier comes from the catalog's real `kind:` field. A missing kind stays
+// unknown rather than guessed from hardcoded id lists.
 fn tier_for_agent(id string) string {
-	if id in ['assistant', 'planner', 'implementer', 'client-workflow-bootstrap'] {
-		return 'orchestrator'
-	}
-	if id in ['tdd-guide', 'security-reviewer', 'agentic-security-reviewer', 'build-error-resolver',
-		'client-workflow-bootstrap', 'tool-insights', 'code-reviewer', 'e2e-runner'] {
-		return 'specialist'
-	}
-	// fallback: holistic for known holistic list
-	holistics := ['assistant', 'architect', 'designer', 'platform-engineer', 'qa-engineer',
-		'researcher', 'security-engineer', 'data-engineer', 'reviewer', 'code-reviewer', 'e2e-runner']
-	if id in holistics {
-		return 'holistic'
-	}
 	if id.starts_with('old-') {
 		return 'archived'
 	}
-	return 'holistic'
+	return ''
 }
 
-fn role_for_agent(id string) string {
-	t := tier_for_agent(id)
-	return match t {
+// role_for_tier maps a real catalog tier to its display label. An unknown
+// tier has no label — never a guessed one.
+fn role_for_tier(tier string) string {
+	return match tier {
 		'orchestrator' { 'Orchestrator' }
 		'specialist' { 'Specialist' }
 		'archived' { 'Archived' }
-		else { 'Holistic' }
+		'holistic' { 'Holistic' }
+		else { '' }
 	}
-}
-
-fn triggers_for_agent(id string) string {
-	return match id {
-		'assistant' { 'scan README, docs, AGENTS, dev-companion, workflow-generic-project' }
-		'architect' { 'system design, patterns, blast-radius, C4, architecture-diagram' }
-		'designer' { 'frontend-design, Figma, web-design-guidelines, design-improvement' }
-		'platform-engineer' { 'CI/CD, forge, gh-fix-ci, herdr, cli-for-agents, loops' }
-		'qa-engineer' { 'verification, E2E, Playwright, lint gates' }
-		'researcher' { 'spike, inventory, evidence-intake, framework exploration' }
-		'security-engineer' { 'threat-modeling, mcp-audit, supply-chain, OWASP' }
-		'data-engineer' { 'dbt-validation, snowflake-validation, notebooks' }
-		'reviewer' { 'deep-review, deslop, unslop, blast-radius' }
-		'code-reviewer' { 'code quality, severity-ranked findings' }
-		'e2e-runner' { 'Playwright, POM, flake avoidance' }
-		'planner' { 'planning, estimation, task breakdown' }
-		'implementer' { 'feature, bug, refactor, TDD' }
-		else { 'general delegation via assistant' }
-	}
-}
-
-fn infer_owner(id string) string {
-	if id == 'tdd-guide' {
-		return 'implementer'
-	}
-	if id in ['security-reviewer', 'agentic-security-reviewer'] {
-		return 'security-engineer'
-	}
-	if id == 'build-error-resolver' {
-		return 'platform-engineer'
-	}
-	if id in ['code-reviewer', 'e2e-runner'] {
-		return 'reviewer'
-	}
-	return 'architect'
 }
 
 // agent fuzzy search — super-potent management: query + tier filter.

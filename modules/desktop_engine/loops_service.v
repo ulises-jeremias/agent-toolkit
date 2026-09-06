@@ -201,7 +201,7 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 				cron_enabled: (snap.data['loops/${n}/cron'] or { 'false' }) == 'true'
 				next_run: snap.data['loops/${n}/next_run'] or { '' }
 				last_run: snap.data['loops/${n}/last_run'] or { '' }
-				last_exit: snap.data['loops/${n}/last_exit'] or { 'success' }
+				last_exit: snap.data['loops/${n}/last_exit'] or { '' }
 				verifier: fs_verifier
 				allowlist: (snap.data['loops/${n}/allowlist'] or { '' }).split(',').filter(it.trim_space().len > 0)
 				deny: (snap.data['loops/${n}/deny'] or { '' }).split(',').filter(it.trim_space().len > 0)
@@ -219,36 +219,9 @@ pub fn (mut e Engine) loops_catalog() []LoopEntry {
 		})
 		return out
 	}
-	templates := ['goal-observe', 'goal-plan', 'goal-implement', 'goal-review', 'goal-security',
-		'goal-docs', 'goal-release', 'goal-triage', 'goal-onboard', 'goal-harness']
-	mut out := []LoopEntry{}
-	for i, name in templates {
-		tier := match i % 3 {
-			0 { LoopTier.l1 }
-			1 { LoopTier.l2 }
-			else { LoopTier.l3 }
-		}
-		bud := loop_budget_defaults(tier)
-		out << LoopEntry{
-			name: name
-			goal: 'Template goal for ${name}'
-			description: 'Template loop for ${name} — easy to manage via Engine.create_loop()'
-			tier: tier
-			stage: tier.str()
-			cadence: if tier == .l1 {
-				'1d'} else if tier == .l2 { '15m' } else { '1d' }
-			schedule: cadence_to_cron(if tier == .l2 { '15m' } else { '1d' })
-			budget: bud
-			budget_total: bud.max_tokens
-			budget_spent: (i * 7) % bud.max_tokens
-			allowlist: ['skill-${i}']
-			deny: []string{}
-			cron_enabled: i % 2 == 0
-			next_run: if i % 2 == 0 { '2026-09-01T00:00:00Z' } else { '' }
-			last_exit: 'success'
-		}
-	}
-	return out
+	// No state loops and no bundled loops: the catalog is empty — never a
+	// fabricated template roster with fake spend, cron or exit status.
+	return []LoopEntry{}
 }
 
 pub fn (mut e Engine) loop_validate(name string, content string) []BuildDiagnostic {
@@ -477,13 +450,19 @@ pub fn (mut e Engine) run_loop(name string) !string {
 		return error('loop not found: ${name}')
 	}
 	job_id := e.spawn_job('agent-toolkit', ['loop', 'run', name])!
-	// record run history start
+	// record run history start; runs_today counts real runs per calendar day
+	rec_snap := e.repo.snapshot()
 	mut repo := e.repo
 	mut tx := repo.begin('loop-run')
 	run_id := 'run-${time.now().unix_nano() % 1000000:06d}'
 	tx.set('history/${name}/${run_id}', time.now().unix().str())
 	tx.set('loops/${name}/last_run', time.now().unix().str())
-	tx.set('loops/${name}/runs_today', (1).str())
+	today := time.now().ymmdd()
+	prev_day := rec_snap.data['loops/${name}/runs_today_date'] or { '' }
+	prev := (rec_snap.data['loops/${name}/runs_today'] or { '0' }).int()
+	runs_today := if prev_day == today { prev + 1 } else { 1 }
+	tx.set('loops/${name}/runs_today', runs_today.str())
+	tx.set('loops/${name}/runs_today_date', today)
 	rev := e.put_transaction(mut tx) or { return job_id }
 	e.bus.publish(eventbus.ToolkitEvent{
 		kind: .loop_outer_tick
@@ -511,8 +490,10 @@ pub fn (mut e Engine) toggle_loop_cron(name string, enabled bool) !u64 {
 	if enabled {
 		detail := e.loop_detail(name) or { LoopEntry{ cadence: '1d' } }
 		cad := detail.cadence
-		tx.set('loops/${name}/next_run', time.now().add(60 * time.minute).str())
+		// The schedule is derived from the real cadence. No next_run time is
+		// invented: an actual scheduler must compute it when one is installed.
 		tx.set('loops/${name}/schedule', cadence_to_cron(cad))
+		tx.set('loops/${name}/next_run', '')
 	} else {
 		tx.set('loops/${name}/next_run', '')
 	}
@@ -538,26 +519,17 @@ pub fn (mut e Engine) loops_history(loop_name string) []LoopHistory {
 	for k, v in snap.data {
 		if k.starts_with('history/${loop_name}/') {
 			run_id := k.all_after('history/${loop_name}/')
+			// A recorded history row marks a real run start; completion status
+			// comes from recorded state when present, otherwise 'started'.
 			out << LoopHistory{
 				run_id: run_id
 				loop_name: loop_name
 				started_at: v.i64()
-				status: 'done'
+				status: snap.data['history_status/${loop_name}/${run_id}'] or { 'started' }
 			}
 		}
 	}
-	if out.len == 0 {
-		for i in 0 .. 3 {
-			out << LoopHistory{
-				run_id: 'run-${i}'
-				loop_name: loop_name
-				started_at: time.now().unix() - i * 3600
-				duration_ms: 1000 + i * 200
-				budget_spent: 10 + i * 5
-				status: 'done'
-			}
-		}
-	}
+	// no history means no runs — never synthetic rows with fake durations
 	// sort newest first
 	out.sort_with_compare(fn (a &LoopHistory, b &LoopHistory) int {
 		if a.started_at > b.started_at {
@@ -667,17 +639,11 @@ pub fn (mut e Engine) loops_audit(name string) []LoopAudit {
 				completed++
 			} else if h.status == 'failed' {
 				failed++
-			} else {
-				// treat synthetic history as completed
-				completed++
 			}
+			// other statuses (e.g. 'started') count as runs, not as successes
 		}
-		mut total := completed + failed
-		if hist.len > 0 && completed == 0 && failed == 0 {
-			completed = hist.len
-			total = hist.len
-		}
-		rate := if total > 0 { '${completed * 100 / total}%' } else { '—' }
+		total := hist.len
+		rate := if total > 0 && completed + failed > 0 { '${completed * 100 / (completed + failed)}%' } else { '—' }
 		detail := e.loop_detail(n) or { LoopEntry{ name: n, budget: loop_budget_defaults(.l1) } }
 		mut bud := detail.budget
 		if bud.max_tokens == 0 {
@@ -715,10 +681,12 @@ pub fn (mut e Engine) loops_cost(name string) ?LoopCost {
 		.l2 { 'medium' }
 		.l3 { 'high' }
 	}
+	// Tier guidance estimate, explicitly labeled — never presented as a
+	// measured value. Measured spend comes from run history when recorded.
 	est := match detail.tier {
-		.l1 { '~20k tok/run' }
-		.l2 { '~80k tok/run' }
-		.l3 { '~300k tok/run' }
+		.l1 { '~20k tok/run (tier guidance estimate, not measured)' }
+		.l2 { '~80k tok/run (tier guidance estimate, not measured)' }
+		.l3 { '~300k tok/run (tier guidance estimate, not measured)' }
 	}
 	return LoopCost{
 		name: detail.name
