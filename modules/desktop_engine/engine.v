@@ -5,6 +5,7 @@ import context
 import x.async
 import time
 import x.json2
+import crypto.sha256
 import os
 import agent_toolkit_core
 import desktop_engine.state
@@ -489,15 +490,17 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		category: 'engine'
 		name: 'persist'
 		status: 'pass'
-		message: 'persist_path=${e.repo.snapshot().revision} revision=${e.repo.revision_nr()}'
+		message: 'state repository active, revision=${e.repo.revision_nr()}'
 		fixable: false
 	}
 	checks << DoctorCheck{
 		id: 'capability_plane'
 		category: 'engine'
 		name: 'capability_plane'
-		status: 'pass'
-		message: 'capability plane DI has skills_catalog=${e.di.has('skills_catalog')} agents_catalog=${e.di.has('agents_catalog')}'
+		// honest: the DI factories are placeholders that resolve to nil —
+		// registering them is bookkeeping, not a wired capability plane
+		status: 'warn'
+		message: 'capability plane DI services are placeholder registrations (skills_catalog=${e.di.has('skills_catalog')} agents_catalog=${e.di.has('agents_catalog')})'
 		fixable: false
 	}
 	checks << DoctorCheck{
@@ -505,7 +508,7 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		category: 'engine'
 		name: 'api_calls'
 		status: if e.api_calls > 0 { 'pass' } else { 'warn' }
-		message: 'engine_api_call=${e.api_calls} shell_exec=0'
+		message: 'engine_api_call=${e.api_calls}'
 		fixable: false
 	}
 	// ── profiles / targets ──
@@ -566,14 +569,6 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 				'${name} not found — install for swarm backend'}
 			fixable: false
 		}
-	}
-	checks << DoctorCheck{
-		id: 'swarm:apiVersion'
-		category: 'swarm'
-		name: 'apiVersion'
-		status: 'pass'
-		message: 'agent-toolkit.dev/v1alpha1'
-		fixable: false
 	}
 	// ── MCP ──
 	for m in e.mcp_catalog() {
@@ -649,7 +644,7 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		category: 'context-cost'
 		name: 'clip'
 		status: 'pass'
-		message: '2000 (memory inject budget)'
+		message: '${agent_toolkit_core.context_budget_default} (memory inject budget, core constant)'
 		fixable: false
 	}
 	// ── audit / skills ──
@@ -658,8 +653,8 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		id: 'audit:skills'
 		category: 'audit'
 		name: 'skills'
-		status: if skill_cnt >= 116 { 'pass' } else { 'warn' }
-		message: '${skill_cnt} skills validated from the resolved catalog'
+		status: if skill_cnt > 0 { 'pass' } else { 'warn' }
+		message: '${skill_cnt} skills resolved from the catalog'
 		fixable: true
 	}
 	// ── provenance ──
@@ -674,14 +669,20 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 			message: lock_rel
 			fixable: false
 		}
-		// sha
-		checks << DoctorCheck{
-			id: 'provenance:sha'
-			category: 'provenance'
-			name: 'sha'
-			status: 'pass'
-			message: 'sha verified via upstream.lock'
-			fixable: false
+		// real digest of the actual lock file bytes (core parity): the check
+		// computes and reports the SHA-256 — it never claims a verification
+		// against a reference that was not consulted
+		lock_txt := data_file_read(env, lock_rel) or { '' }
+		if lock_txt != '' {
+			full := sha256.hexhash(lock_txt)
+			checks << DoctorCheck{
+				id: 'provenance:sha'
+				category: 'provenance'
+				name: 'sha'
+				status: 'pass'
+				message: 'sha256:${full}'
+				fixable: false
+			}
 		}
 		// expiry via mtime only for filesystem tiers; embedded has no stable mtime
 		if env.tier != 'embedded' {

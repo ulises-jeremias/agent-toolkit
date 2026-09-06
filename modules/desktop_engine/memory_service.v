@@ -25,41 +25,46 @@ pub fn (mut e Engine) memory_palace_entries() []MemoryPalaceEntry {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	env := resolve_env()
-	base := os.join_path(env.toolkit_root, 'knowledge')
+	// Knowledge is workspace data: entries come from the active workspace's
+	// knowledge/ directory (real filesystem workspace authority), never from
+	// the bundled toolkit root (an embedded toolkit has no filesystem tree).
+	base := e.active_workspace_root()
 	mut out := []MemoryPalaceEntry{}
-	if os.is_dir(base) {
-		files := os.walk_ext(base, '.md', hidden: false)
-		for f in files {
-			content := os.read_file(f) or { continue }
-			rel := if f.starts_with(env.toolkit_root) {
-				f[env.toolkit_root.len..].trim_string_left('/')
-			} else {
-				f
-			}
-			kind := if rel.contains('learnings') {
-				'learning'
-			} else if rel.contains('processes') {
-				'process'
-			} else if rel.contains('todos') { 'todo' } else { 'general' }
-			lines := content.split_into_lines()
-			mut title := rel
-			for line in lines {
-				if line.trim_space().starts_with('# ') {
-					title = line.trim_space()[2..].trim_space()
-					break
+	if base != '' {
+		knowledge := os.join_path(base, 'knowledge')
+		if os.is_dir(knowledge) {
+			files := os.walk_ext(knowledge, '.md', hidden: false)
+			for f in files {
+				content := os.read_file(f) or { continue }
+				rel := if f.starts_with(base) {
+					f[base.len..].trim_string_left('/')
+				} else {
+					f
 				}
-			}
-			tags := extract_tags(content)
-			vector := embed_text(title + ' ' + content)
-			out << MemoryPalaceEntry{
-				path: rel
-				title: title
-				body: content
-				kind: kind
-				tags: tags
-				vector: vector
-				hash: vector_hash(vector)
+				kind := if rel.contains('learnings') {
+					'learning'
+				} else if rel.contains('processes') {
+					'process'
+				} else if rel.contains('todos') { 'todo' } else { 'general' }
+				lines := content.split_into_lines()
+				mut title := rel
+				for line in lines {
+					if line.trim_space().starts_with('# ') {
+						title = line.trim_space()[2..].trim_space()
+						break
+					}
+				}
+				tags := extract_tags(content)
+				vector := embed_text(title + ' ' + content)
+				out << MemoryPalaceEntry{
+					path: rel
+					title: title
+					body: content
+					kind: kind
+					tags: tags
+					vector: vector
+					hash: vector_hash(vector)
+				}
 			}
 		}
 	}
@@ -78,21 +83,7 @@ pub fn (mut e Engine) memory_palace_entries() []MemoryPalaceEntry {
 			}
 		}
 	}
-	if out.len == 0 {
-		for i in 0 .. 8 {
-			body := 'Palace node ${i} — semantic recall via hashed embedding, brokered fs, git rails, file-tree IDE'
-			vec := embed_text(body)
-			out << MemoryPalaceEntry{
-				path: 'knowledge/learnings/node-${i}.md'
-				title: 'Palace Node ${i}'
-				body: body
-				kind: 'learning'
-				tags: ['palace', 'semantic', 'recall']
-				vector: vec
-				hash: vector_hash(vec)
-			}
-		}
-	}
+	// an empty palace is empty — no demo nodes with invented bodies
 	return out
 }
 

@@ -3,10 +3,12 @@ module desktop_engine
 import desktop_engine.state
 import desktop_engine.eventbus
 import x.json2
+import crypto.sha256
 import os
-import time
+import agent_toolkit_core
 
-// UpdateInfo mirrors desktop/update UpdateInfo for Engine-owned feed logic — super-potent with provenance/receipt.
+// UpdateInfoEngine describes a real, verified update offer. It exists only
+// when a real release feed provided it — never from hardcoded defaults.
 pub struct UpdateInfoEngine {
 pub:
 	latest        string
@@ -18,177 +20,126 @@ pub:
 	manifest_path string
 }
 
-// UpdateServiceEngine is the Engine-owned feed logic (Desktop owns UI).
+// UpdateServiceEngine is the Engine-owned update seam. There is no real
+// release-feed reader yet: check_update reports no offer, apply/rollback are
+// unavailable, and history reports only genuinely recorded updates. A
+// state-only version change is not an update (WORKFLOW_COVERAGE).
 pub struct UpdateServiceEngine {
 mut:
 	repo            &state.StateRepository
 	bus             &eventbus.ToolkitEventBus
-	current_version string = '1.27.0'
-	feed_version    string = '1.27.1'
-	feed_sha256     string = 'abc123sha256'
-	feed_provenance string = 'manifest:sha256:abc123'
+	current_version string
 }
 
-// new_update_service_engine creates service.
+// new_update_service_engine creates the service with the real resolved
+// toolkit version — never a hardcoded one.
 pub fn new_update_service_engine(repo &state.StateRepository, bus &eventbus.ToolkitEventBus) &UpdateServiceEngine {
 	return &UpdateServiceEngine{
 		repo: repo
 		bus: bus
+		current_version: agent_toolkit_core.resolve_toolkit_version()
 	}
 }
 
-// check_update respects channel and opt-in (headless stub reuses manifest.json pattern) — super-potent with artifact receipts.
+// check_update consults the configured channel and pin state. Without a real
+// release-feed reader there is no offer to make: it returns none rather than
+// inventing a feed version, URL or digest. Wiring a real feed is a feature
+// follow-up; the channel/pin configuration semantics are preserved.
 pub fn (mut s UpdateServiceEngine) check_update(current string, channel string) ?UpdateInfoEngine {
 	ch := if channel == '' { 'stable' } else { channel }
-	if current == s.feed_version {
-		return none
-	}
-	if ch == 'stable' && s.feed_version.contains('-next') {
-		return none
-	}
-	if ch == 'pinned' && s.feed_version != current {
-		return none
-	}
-	// feed respects receipts: if current is pinned via receipt, don't offer
+	_ = ch
+	_ = current
+	// pinned installs never receive offers
 	if s.repo.snapshot().data['update:pinned'] == 'true' {
 		return none
 	}
-	return UpdateInfoEngine{
-		latest: s.feed_version
-		url: 'https://github.com/ulises-jeremias/agent-toolkit/releases/download/v${s.feed_version}/agent-toolkit'
-		sha256: s.feed_sha256
-		provenance: s.feed_provenance
-		channel: ch
-		receipt_path: '~/.config/agent-toolkit/receipts/update-${s.feed_version}.json'
-		manifest_path: 'manifest:sha256:abc123'
-	}
+	// No real feed reader is wired: an update offer requires verified feed
+	// data (version + artifact URL + digest + provenance). None is honest.
+	return none
 }
 
-// verify checks SHA256 + provenance vs manifest.json (ADR-022) — super-potent: full provenance chain.
+// verify performs a REAL digest verification: SHA-256 of the actual content
+// bytes must equal the expected digest. The former implementation ignored
+// the content entirely and compared against a hardcoded string.
 pub fn (s UpdateServiceEngine) verify(content string, expected_sha256 string) bool {
-	if expected_sha256 != s.feed_sha256 {
+	if content.len == 0 || expected_sha256.len == 0 {
 		return false
 	}
-	// also verify provenance manifest exists
-	if !s.verify_provenance() {
-		return false
-	}
-	return true
+	sum := sha256.hexhash(content)
+	return sum == expected_sha256
 }
 
-// verify_provenance checks manifest.json provenance (ADR-022) exists and digest matches.
-pub fn (s UpdateServiceEngine) verify_provenance() bool {
-	if s.feed_provenance == '' {
+// verify_provenance reports whether real provenance evidence exists for an
+// update artifact. Without a real manifest there is none — a substring
+// check is not verification.
+pub fn (s UpdateServiceEngine) verify_provenance(manifest_path string) bool {
+	if manifest_path == '' {
 		return false
 	}
-	if !s.feed_provenance.contains('sha256:') {
-		return false
-	}
-	return true
+	return os.is_file(manifest_path)
 }
 
-// apply simulates atomic replace (XDG_CACHE_HOME/agent-toolkit/updates) — now writes receipt + provenance.
+// apply is unavailable until a real updater exists. An update requires
+// downloading and verifying a real artifact and replacing the installed
+// binary; writing a version into state is not an update, so apply performs
+// no mutation and reports false.
 pub fn (mut s UpdateServiceEngine) apply(version string) bool {
-	mut tx := s.repo.begin('update-engine')
-	tx.set('VERSION', version)
-	tx.set('update:applied_version', version)
-	tx.set('update:applied_at', time.now().str())
-	tx.set('update:sha256', s.feed_sha256)
-	tx.set('update:provenance', s.feed_provenance)
-	tx.set('receipt:update:${version}:installed_at', time.now().str())
-	tx.set('receipt:update:${version}:digest', s.feed_sha256)
-	tx.set('provenance:update:${version}:source', 'manifest:sha256:abc123')
-	tx.commit() or { return false }
-	s.current_version = version
-	s.bus.publish(eventbus.ToolkitEvent{
-		kind: .state_changed
-		revision: s.repo.revision_nr()
-		path: 'update:engine:applied'
-		payload: version
-	})
-	return true
+	_ = version
+	return false
 }
 
-// rollback reverts to prior version via receipt (easy management).
+// rollback is unavailable until a real updater with real artifacts exists.
 pub fn (mut s UpdateServiceEngine) rollback(version string) bool {
-	prev := s.repo.snapshot().data['update:applied_version'] or { '' }
-	if prev == '' || prev == version {
-		return false
-	}
-	mut tx := s.repo.begin('update-rollback')
-	tx.set('VERSION', prev)
-	tx.set('update:rollback_to', prev)
-	tx.set('update:rollback_at', time.now().str())
-	tx.commit() or { return false }
-	s.current_version = prev
-	s.bus.publish(eventbus.ToolkitEvent{
-		kind: .state_changed
-		revision: s.repo.revision_nr()
-		path: 'update:engine:rollback'
-		payload: prev
-	})
-	return true
+	_ = version
+	return false
 }
 
-// history returns update receipts (provenance-aware).
+// history returns only genuinely recorded updates. With no recorded update
+// history the result is empty — never a fabricated feed entry.
 pub fn (mut s UpdateServiceEngine) history() []UpdateInfoEngine {
 	snap := s.repo.snapshot()
 	mut out := []UpdateInfoEngine{}
-	for k, v in snap.data {
-		if k.starts_with('receipt:update:') && k.ends_with(':installed_at') {
-			ver := k.all_after('receipt:update:').all_before(':installed_at')
+	for k, _ in snap.data {
+		if k.starts_with('update:applied:') && k.ends_with(':recorded') {
+			ver := k.all_after('update:applied:').all_before(':recorded')
 			out << UpdateInfoEngine{
 				latest: ver
-				url: 'https://github.com/ulises-jeremias/agent-toolkit/releases/download/v${ver}/agent-toolkit'
-				sha256: snap.data['receipt:update:${ver}:digest'] or { s.feed_sha256 }
-				provenance: snap.data['provenance:update:${ver}:source'] or { s.feed_provenance }
-				channel: 'stable'
-				receipt_path: '~/.config/agent-toolkit/receipts/update-${ver}.json'
-				manifest_path: s.feed_provenance
+				channel: snap.data['update:applied:${ver}:channel'] or { 'unknown' }
 			}
-			_ = v
-		}
-	}
-	if out.len == 0 {
-		out << UpdateInfoEngine{
-			latest: s.feed_version
-			url: 'https://github.com/ulises-jeremias/agent-toolkit/releases/download/v${s.feed_version}/agent-toolkit'
-			sha256: s.feed_sha256
-			provenance: s.feed_provenance
-			channel: 'stable'
-			receipt_path: '~/.config/agent-toolkit/receipts/update-${s.feed_version}.json'
-			manifest_path: s.feed_provenance
 		}
 	}
 	return out
 }
 
-// manifest_json returns ADR-022 manifest stub — super-potent with receipts.
+// manifest_json reports the honest availability state of the update
+// service. No manifest is fabricated.
 pub fn (s UpdateServiceEngine) manifest_json() string {
 	return json2.encode({
-		'version':    s.feed_version
-		'sha256':     s.feed_sha256
-		'provenance': s.feed_provenance
-		'receipt':    '~/.config/agent-toolkit/receipts/update-${s.feed_version}.json'
-		'channel':    'stable'
-	})
+		'available': 'false'
+		'note':      'no release-feed reader wired — no update manifest exists'
+		'current':   s.current_version
+	},
+		escape_unicode: true
+	)
 }
 
-// manifest_verify validates manifest provenance (core parity).
+// UpdateManifest is the required shape of an update manifest: a real
+// version, artifact digest and provenance reference.
+struct UpdateManifest {
+	version    string
+	sha256     string
+	provenance string
+}
+
+// manifest_verify structurally validates an offered manifest: it must parse
+// as JSON and carry version, sha256 and provenance fields. Substring
+// presence on arbitrary text is not validation.
 pub fn (s UpdateServiceEngine) manifest_verify(text string) bool {
-	if !text.contains('version') {
-		return false
-	}
-	if !text.contains('sha256') {
-		return false
-	}
-	if !text.contains('provenance') {
-		return false
-	}
-	return true
+	r := json2.decode[UpdateManifest](text) or { return false }
+	return r.version != '' && r.sha256 != '' && r.provenance != ''
 }
 
-// cache_path returns XDG cache path for staged updates.
+// cache_path returns the XDG cache path for staged update artifacts.
 pub fn cache_path(version string) string {
 	base := os.getenv('XDG_CACHE_HOME')
 	home := os.home_dir()
@@ -196,9 +147,9 @@ pub fn cache_path(version string) string {
 	return os.join_path(cache, 'agent-toolkit', 'updates', version, 'agent-toolkit')
 }
 
-// Engine wrappers for super-potent desktop management via Engine API (no shell).
+// Engine wrappers for desktop management via the Engine API (no shell).
 
-// check_for_update via Engine (headless, provenance-aware).
+// check_for_update via Engine. None means no verified offer exists.
 pub fn (mut e Engine) check_for_update(current string, channel string) ?UpdateInfoEngine {
 	e.mu.lock()
 	e.api_calls++
@@ -207,23 +158,17 @@ pub fn (mut e Engine) check_for_update(current string, channel string) ?UpdateIn
 	return svc.check_update(current, channel)
 }
 
-// apply_update via Engine with receipt/provenance (super-potent).
+// apply_update via Engine — unavailable until a real updater exists; a
+// state-only version change is not an update.
 pub fn (mut e Engine) apply_update(version string) bool {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	mut svc := new_update_service_engine(e.repo, e.bus)
-	ok := svc.apply(version)
-	if ok {
-		// also persist via Engine transaction for parity
-		mut tx := e.repo.begin('apply-update-engine')
-		tx.set('update:engine:applied', version)
-		tx.commit() or {}
-	}
-	return ok
+	return svc.apply(version)
 }
 
-// update_history via Engine.
+// update_history via Engine — only genuinely recorded updates.
 pub fn (mut e Engine) update_history() []UpdateInfoEngine {
 	e.mu.lock()
 	e.api_calls++
@@ -232,11 +177,13 @@ pub fn (mut e Engine) update_history() []UpdateInfoEngine {
 	return svc.history()
 }
 
-// update_verify provenance + sha via Engine.
-pub fn (mut e Engine) update_verify(version string, sha256 string) bool {
+// update_verify performs a real SHA-256 verification of the provided
+// artifact content against the expected digest via Engine. Without the real
+// artifact bytes the verification is false — never a hardcoded pass.
+pub fn (mut e Engine) update_verify(content string, expected_sha256 string) bool {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	mut svc := new_update_service_engine(e.repo, e.bus)
-	return svc.verify(version, sha256)
+	return svc.verify(content, expected_sha256)
 }
