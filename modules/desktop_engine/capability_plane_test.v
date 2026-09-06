@@ -126,8 +126,22 @@ fn test_capability_plane_agents_doctor_targets_via_engine() {
 	assert rev2 >= 1
 	d := eng.diff(['claude-code'], ['claude-code', 'cursor'])
 	assert d.added.len == 1 && d.added[0] == 'cursor'
-	rev3 := eng.install(['claude-code']) or { panic(err.msg()) }
+	// real install into an isolated home + receipt dir: deployed files and a
+	// real receipt are the evidence — never state-only bookkeeping
+	prev_cfg := os.getenv('XDG_CONFIG_HOME')
+	home := os.join_path(tmp, 'home')
+	os.mkdir_all(home) or { panic(err.msg()) }
+	os.setenv('XDG_CONFIG_HOME', os.join_path(tmp, 'xdg-config'), true)
+	defer { os.setenv('XDG_CONFIG_HOME', prev_cfg, true) }
+	rev3 := eng.install_with_options(InstallOptionsEngine{
+		targets: ['claude-code']
+		home_dir: home
+	}) or { panic(err.msg()) }
 	assert rev3 >= 1
+	assert os.exists(os.join_path(home, '.claude')), 'real install deploys profile files'
+	recs := eng.list_install_receipts()
+	assert recs.any(it.target == 'claude-code' && it.installed_at != ''), 'real receipt must surface'
+	assert eng.install_receipt_json('claude-code').contains('installedAt'), 'receipt json reports real evidence'
 	assert eng.is_first_run() == true || eng.is_first_run() == false
 	assert eng.resolve_paths().len == 2
 	assert eng.api_call_count() > 0

@@ -6,6 +6,7 @@ import x.async
 import time
 import x.json2
 import os
+import agent_toolkit_core
 import desktop_engine.state
 import desktop_engine.eventbus
 
@@ -508,27 +509,45 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		fixable: false
 	}
 	// ── profiles / targets ──
+	// Doctor only checks targets Agent Toolkit can actually configure (those
+	// with a bundled profile). Detection is real; "not enabled" is a valid
+	// configuration state that the fix action can change.
 	for t in e.targets() {
+		if t.path == '' {
+			continue
+		}
 		checks << DoctorCheck{
 			id: 'profile:${t.id}'
 			category: 'profiles'
 			name: t.id
 			status: if t.enabled { 'pass' } else { 'warn' }
-			message: '${t.id} ${t.status} at ${t.path} layer=${t.layer}'
+			message: '${t.id} ${t.status}${if t.detected { ' [detected on system]' } else { '' }} — profile at ${t.path} (${t.layer})'
 			fixable: true
 		}
 	}
-	// stale receipt check (core parity #872)
-	snap := e.repo.snapshot()
-	for t in ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf'] {
-		key := 'receipt:target:${t}:installed_at'
-		if key in snap.data {
+	// real install-receipt evidence per profile target: a receipt exists only
+	// when the core installer actually recorded one; enabled-without-receipt is
+	// a genuine actionable signal.
+	for t in e.targets() {
+		if t.path == '' {
+			continue
+		}
+		if r := agent_toolkit_core.load_install_receipt(install_tool_name(t.id), agent_toolkit_core.profiles_product, '') {
 			checks << DoctorCheck{
-				id: 'receipt:${t}'
+				id: 'receipt:${t.id}'
 				category: 'profiles'
-				name: 'receipt:${t}'
+				name: 'receipt:${t.id}'
 				status: 'pass'
-				message: 'receipt for ${t} at ${snap.data[key]}'
+				message: 'install receipt v${r.version} at ${r.installed_at}'
+				fixable: false
+			}
+		} else if t.enabled {
+			checks << DoctorCheck{
+				id: 'receipt:${t.id}'
+				category: 'profiles'
+				name: 'receipt:${t.id}'
+				status: 'warn'
+				message: 'enabled without an install receipt — run install to deploy real profiles'
 				fixable: false
 			}
 		}

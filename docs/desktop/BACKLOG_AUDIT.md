@@ -208,6 +208,38 @@ Evidence:
   catalogs.
 - Real-user verification: 6 genuine profile-install receipts surface, all
   digest-verified; 223 real provenance entries with honest drift reporting.
+### S7B — Targets and installation truth (`fix/s7b-targets-install-truth`)
+
+Status: in progress. The supported-target roster is now derived from the
+canonical registry (`capabilities/targets/registry.yaml`, embedded and
+CI-validated) instead of a private seven-item list, and installation is real.
+
+- `targets_service.v`:
+  - `targets_registry()` parses the canonical registry tier-aware.
+  - `targets()` separates supported (registry), detected (real config-dir/PATH
+    detection), and enabled (explicit configuration only — a fresh environment
+    enables nothing by default).
+  - `install()` / `install_with_options()` run the canonical core installer
+    (`agent_toolkit_core.run_install`): real profile files deployed to the
+    selected tools, real receipts written under the user config authority,
+    honest partial-failure reporting. Dry-run is the core's real dry-run.
+  - `list_install_receipts()` / `install_receipt_json()` report only real
+    receipts; `verify_install_receipts()` checks real artifact drift.
+  - `doctor_fix_stamp` no longer fabricates receipt evidence; `doctor_fix_all`
+    performs real per-check repairs instead of blanket-stamping.
+- `engine.v` doctor: profile checks only for targets with bundled profiles,
+  with real detection surfaced; receipt checks come from real receipts, and
+  enabled-without-receipt is an honest actionable warn.
+- `onboarding_service.v`: valid target list comes from the registry.
+- GUI: quick-action rosters use real registry ids (no `cli`/`cursor-plugins`).
+- Tests: `targets_truth_test.v` (registry roster, no default-enabled, real
+  install evidence, honest dry-run); `product_truth_test.v` (desktop_engine and
+  desktop) lock the registry contract; `capability_plane_test.v` performs a
+  real isolated install; `doctor_fix_test.v` locks the honest preview.
+
+Evidence:
+- `./make.vsh test` green (78 module tests).
+- Native desktop binary builds.
 
 ### Recommended next steps
 
