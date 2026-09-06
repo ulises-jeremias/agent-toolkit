@@ -272,6 +272,37 @@ Evidence:
 - `./make.vsh test` green (78 module tests).
 - Native desktop binary builds.
 
+### S7D — Loops and agents catalog truth (`fix/s7d-loops-agents-truth`)
+
+Status: in progress. Loop runtime data is real or unknown, and agent catalog
+metadata comes only from the real catalog.
+
+- `loops_service.v`:
+  - The fabricated 10-template fallback catalog (fake spend, fake cron, a
+    hardcoded future `next_run`, `'success'` exits) is removed — an empty
+    catalog stays empty.
+  - `last_exit` defaults to unknown, never `'success'`.
+  - `run_loop` counts real runs per calendar day (`runs_today` + date stamp)
+    so the `max_runs_per_day` budget gate is real; history rows record honest
+    `started` status until completion tracking exists.
+  - `loops_history` never synthesizes rows with fake durations/spend;
+    `loops_audit` counts only real statuses ("started" is not "completed").
+  - `toggle_loop_cron` records scheduling intent without inventing a
+    `next_run` time; `loops_cost` labels tier estimates explicitly as
+    guidance, not measurement.
+- `agents_service.v`:
+  - Hardcoded tier lists, invented trigger strings and default-`architect`
+    ownership routing are removed. Tiers come from the catalog's real
+    `kind:` field (unknown stays unknown); roles are display mappings of the
+    real tier; triggers/owner stay empty without real catalog data.
+- Tests: `loops_agents_truth_test.v` gates (empty catalog without fabricated
+  roster; real run counting and budget enforcement; honest history/audit;
+  no invented cron times; agent metadata from the catalog only).
+
+Evidence:
+- `./make.vsh test` green (79 module tests).
+- Native desktop binary builds.
+
 ### Recommended next steps
 
 1. Replace master tracker with product outcomes and explicit evidence gaps; link durable mission/journey/coverage/QA documents. Retain all valid capability work even when presentation issues are superseded.
