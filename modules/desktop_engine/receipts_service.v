@@ -2,12 +2,16 @@ module desktop_engine
 
 import os
 import x.json2
+import crypto.sha256
+import agent_toolkit_core
 
-// ReceiptEntry is unified receipt for any install (skill/agent/mcp/target/product/update).
+// ReceiptEntry is the Engine projection of a real install receipt (S7 evidence
+// truth). A receipt exists only if the core installer wrote it under the user
+// config authority; this Engine never invents receipt rows.
 pub struct ReceiptEntry {
 pub:
-	kind         string // skill | agent | mcp | target | product | update
-	id           string
+	kind         string // install
+	id           string // install target
 	product      string
 	version      string
 	installed_at string
@@ -18,7 +22,9 @@ pub:
 	verified     bool
 }
 
-// ProvenanceEntry mirrors .provenance.json per artifact (ADR-022).
+// ProvenanceEntry mirrors .provenance.json artifact records (ADR-022).
+// source/generated digests come from the real manifest; verified means the
+// recomputed SHA-256 of the artifact bytes matches the recorded digest.
 pub struct ProvenanceEntry {
 pub:
 	artifact_path    string
@@ -30,73 +36,38 @@ pub:
 	detail           string
 }
 
-// receipts_catalog returns all receipts via StateRepository headless (no shell, super-potent unified).
+// receipts_catalog returns only real install receipts recorded by the core
+// installer under the user config authority
+// ($XDG_CONFIG_HOME/agent-toolkit/receipts). A receipt is verified by
+// recomputing each artifact digest from the artifact file on disk and comparing
+// it to the digest recorded in the receipt. An empty directory yields an
+// empty catalog; nothing is fabricated.
 pub fn (mut e Engine) receipts_catalog() []ReceiptEntry {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	snap := e.repo.snapshot()
 	mut out := []ReceiptEntry{}
-	for k, v in snap.data {
-		if k.starts_with('receipt:') && k.ends_with(':installed_at') {
-			parts := k.split(':')
-			if parts.len < 3 {
-				continue
-			}
-			kind := parts[1]
-			id := parts[2]
-			provenance := snap.data['provenance:${kind}:${id}:source'] or { snap.data['receipt:${kind}:${id}:digest'] or { '' } }
-			digest := snap.data['receipt:${kind}:${id}:digest'] or { snap.data['receipt:${kind}:${id}:version'] or { '' } }
-			version := snap.data['receipt:${kind}:${id}:version'] or { '1.0.0' }
-			artifacts_raw := snap.data['receipt:${kind}:${id}:artifacts'] or { '' }
-			artifacts := if artifacts_raw == '' {
-				[]string{}
-			} else {
-				artifacts_raw.split(',').map(it.trim_space())
-			}
-			receipt_path := match kind {
-				'skill' { 'receipts/skill-${id}.json' }
-				'target' { '~/.config/agent-toolkit/receipts/${id}-agent-toolkit-profiles.json' }
-				else { 'receipts/${kind}-${id}.json' }
-			}
-			out << ReceiptEntry{
-				kind: kind
-				id: id
-				product: snap.data['receipt:${kind}:${id}:product'] or { kind }
-				version: version
-				installed_at: v
-				digest: digest
-				provenance: provenance
-				receipt_path: receipt_path
-				artifacts: artifacts
-				verified: digest != ''
+	receipt_dir := agent_toolkit_core.default_receipt_dir()
+	for r in agent_toolkit_core.list_install_receipts('') {
+		mut verified := r.artifacts.len > 0
+		mut artifacts := []string{}
+		for a in r.artifacts {
+			artifacts << a.path
+			if agent_toolkit_core.receipt_artifact_digest(a.path) != a.digest {
+				verified = false
 			}
 		}
-	}
-	// supplement from filesystem receipts dir if present (checkout parity)
-	env := resolve_env()
-	receipt_dir := os.join_path(env.toolkit_root, '.config', 'agent-toolkit', 'receipts')
-	if os.is_dir(receipt_dir) {
-		files := os.ls(receipt_dir) or { []string{} }
-		for f in files {
-			if f.ends_with('.json') && out.len < 50 {
-				already := out.any(it.receipt_path.contains(f))
-				if !already {
-					out << ReceiptEntry{
-						kind: 'target'
-						id: f.all_before('.json')
-						product: 'agent-toolkit-profiles'
-						version: '1.27.0'
-						// A receipt file is evidence of a record, not proof that its
-						// artifact is present. Verify its contents before marking it.
-						installed_at: ''
-						digest: ''
-						provenance: 'fs:${receipt_dir}/${f}'
-						receipt_path: os.join_path(receipt_dir, f)
-						verified: false
-					}
-				}
-			}
+		out << ReceiptEntry{
+			kind: 'install'
+			id: r.target
+			product: r.product
+			version: r.version
+			installed_at: r.installed_at
+			digest: r.source_digest
+			provenance: ''
+			receipt_path: os.join_path(receipt_dir, agent_toolkit_core.receipt_filename(r.target, r.product))
+			artifacts: artifacts
+			verified: verified
 		}
 	}
 	return out
@@ -118,7 +89,7 @@ pub fn (mut e Engine) receipts_search(query string) []ReceiptEntry {
 	return out
 }
 
-// receipt_for returns single receipt by kind+id.
+// receipt_for returns a single real receipt by kind+id.
 pub fn (mut e Engine) receipt_for(kind string, id string) ?ReceiptEntry {
 	for r in e.receipts_catalog() {
 		if r.kind == kind && r.id == id {
@@ -128,97 +99,80 @@ pub fn (mut e Engine) receipt_for(kind string, id string) ?ReceiptEntry {
 	return none
 }
 
-// provenance_catalog returns all provenance entries (ADR-022) via filesystem + StateRepository.
+// provenance_catalog returns real provenance records from the bundled
+// plugins/<product>/.provenance.json manifests (ADR-022), read through the
+// tier-aware data_* helpers. Each artifact record is verified by recomputing
+// the SHA-256 of the artifact bytes and comparing it to the recorded
+// generatedDigest. No manifest yields no entries; no fallback is fabricated.
 pub fn (mut e Engine) provenance_catalog() []ProvenanceEntry {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	env := resolve_env()
 	mut out := []ProvenanceEntry{}
-	// from StateRepository provenance keys
-	snap := e.repo.snapshot()
-	for k, v in snap.data {
-		if k.starts_with('provenance:') && k.ends_with(':source') {
-			parts := k.split(':')
-			if parts.len < 3 {
-				continue
-			}
-			kind := parts[1]
-			id := parts[2]
-			out << ProvenanceEntry{
-				artifact_path: '${kind}/${id}'
-				source_file: v
-				source_digest: snap.data['provenance:${kind}:${id}:digest'] or { 'sha256:abc' }
-				generated_digest: snap.data['provenance:${kind}:${id}:generated'] or { 'sha256:def' }
-				generator: 'agent-toolkit-core'
-				verified: true
-				detail: 'via StateRepository receipt:provenance'
-			}
-		}
+	if !data_dir_exists(env, 'plugins') {
+		return out
 	}
-	// filesystem scan of plugins/.provenance.json sidecars
-	plugins_dir := os.join_path(env.toolkit_root, 'plugins')
-	if os.is_dir(plugins_dir) {
-		entries := os.ls(plugins_dir) or { []string{} }
-		for prod in entries {
-			prov_path := os.join_path(plugins_dir, prod, '.provenance.json')
-			if os.is_file(prov_path) {
-				txt := os.read_file(prov_path) or { '' }
-				if txt.contains('artifacts') {
-					out << ProvenanceEntry{
-						artifact_path: 'plugins/${prod}/.provenance.json'
-						source_file: prov_path
-						source_digest: 'sha256:${txt.len}'
-						generated_digest: 'sha256:${txt.len * 2}'
-						generator: 'compiler'
-						verified: true
-						detail: txt[..if txt.len > 80 { 80 } else { txt.len }]
+	prods := data_list_dir(env, 'plugins')
+	for prod in prods {
+		manifest_rel := 'plugins/${prod}/.provenance.json'
+		if !data_file_exists(env, manifest_rel) {
+			continue
+		}
+		txt := data_file_read(env, manifest_rel) or { continue }
+		m := json2.decode[agent_toolkit_core.ProvenanceManifest](txt) or { continue }
+		for rec in m.artifacts {
+			artifact_rel := 'plugins/${rec.path}'
+			mut verified := false
+			mut detail := 'artifact missing from bundled data'
+			if data_file_exists(env, artifact_rel) {
+				content := data_file_read(env, artifact_rel) or { '' }
+				if content != '' {
+					sum := sha256.hexhash(content)
+					short := if sum.len < 12 { sum } else { sum[..12] }
+					verified = short == rec.generated_digest
+					detail = if verified {
+						'digest verified against artifact bytes'
+					} else {
+						'digest drift: expected ${rec.generated_digest}, got ${short}'
 					}
 				}
 			}
-		}
-	}
-	// embedded fallback
-	if out.len == 0 {
-		out << ProvenanceEntry{
-			artifact_path: 'plugins/agent-toolkit-core/.provenance.json'
-			source_file: 'capabilities/upstream.lock'
-			source_digest: 'sha256:123'
-			generated_digest: 'sha256:456'
-			generator: 'embedded'
-			verified: true
-			detail: 'checkout only — wheel omits upstream.lock'
+			out << ProvenanceEntry{
+				artifact_path: artifact_rel
+				source_file: rec.source_file
+				source_digest: rec.source_digest
+				generated_digest: rec.generated_digest
+				generator: m.generator_version
+				verified: verified
+				detail: detail
+			}
 		}
 	}
 	return out
 }
 
-// verify_receipts returns diagnostics for all receipts drift (Doctor parity).
+// verify_receipts returns diagnostics for receipts whose artifact evidence does
+// not check out (Doctor parity). Verified flags come from real digest
+// recomputation; an unverified receipt is reported, never silently accepted.
 pub fn (mut e Engine) verify_receipts() []BuildDiagnostic {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	mut diags := []BuildDiagnostic{}
 	for r in e.receipts_catalog() {
-		if !r.verified || r.digest == '' {
+		if !r.verified {
 			diags << BuildDiagnostic{
 				path: r.receipt_path
-				message: 'receipt unverified for ${r.kind}/${r.id}'
+				message: 'receipt unverified for ${r.product}/${r.id} (artifact missing or digest drift)'
 				code: 'receipt_unverified'
-			}
-		}
-		if r.provenance == '' {
-			diags << BuildDiagnostic{
-				path: r.provenance
-				message: 'provenance missing for ${r.kind}/${r.id}'
-				code: 'provenance_missing'
 			}
 		}
 	}
 	return diags
 }
 
-// verify_provenance_full checks provenance digests vs filesystem (ADR-022).
+// verify_provenance_full checks provenance digests vs bundled bytes (ADR-022).
 pub fn (mut e Engine) verify_provenance_full() []BuildDiagnostic {
 	e.mu.lock()
 	e.api_calls++
@@ -230,13 +184,6 @@ pub fn (mut e Engine) verify_provenance_full() []BuildDiagnostic {
 				path: p.artifact_path
 				message: 'provenance unverified: ${p.detail}'
 				code: 'provenance_unverified'
-			}
-		}
-		if p.source_digest == 'missing' {
-			diags << BuildDiagnostic{
-				path: p.source_file
-				message: 'source file missing for ${p.artifact_path}'
-				code: 'source_missing'
 			}
 		}
 	}
@@ -271,7 +218,8 @@ pub fn (mut e Engine) receipts_stats() ReceiptStats {
 	}
 }
 
-// install_receipt_json_for returns ADR-022 style JSON for any receipt kind/id.
+// install_receipt_json_for returns the real recorded receipt fields for
+// kind/id, or an honest not-found payload. No receipt is synthesized.
 pub fn (mut e Engine) install_receipt_json_for(kind string, id string) string {
 	e.mu.lock()
 	e.api_calls++
@@ -298,7 +246,8 @@ pub fn (mut e Engine) install_receipt_json_for(kind string, id string) string {
 	)
 }
 
-// provenance_json_for returns structured provenance for kind/id.
+// provenance_json_for returns structured provenance for an artifact path
+// fragment, or an honest not-found payload.
 pub fn (mut e Engine) provenance_json_for(kind string, id string) string {
 	e.mu.lock()
 	e.api_calls++
