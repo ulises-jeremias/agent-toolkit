@@ -215,3 +215,5 @@ Skill rows now distinguish a recorded receipt from optional provenance evidence;
 The same trust pass removed another fixed-count/status mismatch: skill receipts are labeled according to the evidence available, and onboarding buttons no longer imply unverified quantities. This keeps the first-run action surface honest when catalogs or recommendations change (`cmd/agent-toolkit-desktop/main.v`, follow-up after `eac0743`).
 
 Loop rendering no longer restores tier-based token, run, or wall-clock defaults when the Engine has no configured limits, and it no longer invents exit conditions. Unknown limits now remain visibly unset so users can configure them before running recurring work (`cmd/agent-toolkit-desktop/main.v`, follow-up after `cc1fb80`).
+
+Loop creation and selection feedback now preserve unknown budgets as “not configured” instead of displaying fixed starter limits or zero-valued pseudo-configuration. This keeps setup and operation consistent with the authoritative Engine catalog (`cmd/agent-toolkit-desktop/main.v`, follow-up after `2bc653c`).

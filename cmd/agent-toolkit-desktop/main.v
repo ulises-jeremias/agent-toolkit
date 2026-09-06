@@ -4917,7 +4917,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		pixel_panel(mut app, mx + 2, my + 2, mw - 4, mh - 4, 'active')
 		app.gg.draw_text(mx + 18, my + 14, 'Create Loop — via Engine.create_loop() TX', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
 		tier_str := ['L1', 'L2', 'L3'][app.loops_create_tier]
-		app.gg.draw_text(mx + 18, my + 32, 'name: ${app.loops_create_name}  tier: ${tier_str}  cadence: ${app.loops_create_cadence}  budget: 50k/1/600/20', gg.TextCfg{ color: app.pnl_text, size: 10, mono: true })
+		app.gg.draw_text(mx + 18, my + 32, 'name: ${app.loops_create_name}  tier: ${tier_str}  cadence: ${app.loops_create_cadence}  budget: configure after creation', gg.TextCfg{ color: app.pnl_text, size: 10, mono: true })
 		app.gg.draw_text(mx + 18, my + 52, 'Writes loops/<name>/loop.yaml + STATE.md + StateRepository transaction', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 		app.gg.draw_rect_filled(mx + 18, my + 74, 88, 26, app.pnl_success)
 		app.gg.draw_text(mx + 30, my + 82, 'Create', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
@@ -10110,7 +10110,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 							}}: ${entry.name}'
 							return
 						}
-						app.inspector_msg = 'Loop selected: ${loops[idx].name} • L${loops[idx].tier.str().to_upper()} • ${loops[idx].budget.max_tokens} tok • ${loops[idx].budget.max_runs_per_day}/d • ${loops[idx].budget.max_wall_seconds}s'
+					entry := loops[idx]
+					tok := if entry.budget.max_tokens > 0 { '${entry.budget.max_tokens} tok' } else { 'token budget not configured' }
+					runs := if entry.budget.max_runs_per_day > 0 { '${entry.budget.max_runs_per_day}/d' } else { 'daily limit not configured' }
+					wall := if entry.budget.max_wall_seconds > 0 { '${entry.budget.max_wall_seconds}s' } else { 'time limit not configured' }
+					app.inspector_msg = 'Loop selected: ${entry.name} • L${entry.tier.str().to_upper()} • ${tok} • ${runs} • ${wall}'
 						return
 					}
 				}
