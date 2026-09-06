@@ -67,7 +67,38 @@ Classifications are recommendations requiring relevant runtime proof before clos
 | [#1055](https://github.com/ulises-jeremias/agent-toolkit/issues/1055) feat(desktop): native platform — menus/tray/file dialogs/clipboard/drag-drop/notifications (7.1) | NEEDS_REWRITE | P1 | Replace vlang/gui VGuiBackend framing with native gg backend seam. Clipboard present main.v:2038; modules/desktop/backend/backend.v exists. File/folder pickers high value to standalone lifecycle. |
 | [#1030](https://github.com/ulises-jeremias/agent-toolkit/issues/1030) feat(desktop): activity — status, progress, background tasks surface | PARTIALLY_DONE | P1 | Per-panel status/toasts exist, global actual activity needs shared typed projection. main.v:4408/:4746/:5067 supply per-domain rendering; do not invent percentage/activity. |
 
-## Recommended next steps
+## Salvage ledger
+
+### S1 — Catalog truth and embedded resolution (`fix/catalog-embedded-truth`)
+
+Status: in progress. Replaces raw filesystem catalog discovery in `desktop_engine`
+with the tier-aware `data_*` abstraction so embedded binaries, checkouts, XDG
+installs, and FHS installs all resolve the same bundled product truth.
+
+Changes:
+- `modules/desktop_engine/di.v`: add `data_dir_exists` and `data_list_dir` helpers.
+- `modules/desktop_engine/mcp_service.v`: discover providers from
+  `mcp/templates/<id>/config.template.json` via `data_*`; remove fabricated
+  7-provider fallback; make `mcp_preview`, `mcp_install_preview`,
+  `mcp_template_json`, and `mcp_probe` truthful across tiers.
+- `modules/desktop_engine/products_service.v`: discover `packs/*/config.yaml`
+  via `data_*`; remove hardcoded pack roster; add `enabled` field to `PackEntry`.
+- `modules/desktop_engine/loops_service.v`: discover bundled `loops/*/loop.yaml`
+  via `data_*`; read yaml budgets through `data_file_read`.
+- `cmd/agent-toolkit-desktop/main.v`: remove `bc2` debug logger
+  (`/tmp/opencode/bc2.log`), dead `if false` ambient animation branch, and
+  unused `skills_filtered_for_app` / `pad2` helpers.
+- Tests: pin `AGENT_TOOLKIT_ROOT` to repo root for hermetic execution;
+  update `mcp_drawer_test.v`, `capability_plane_test.v`, and
+  `runtime_plane_test.v` to match truthful semantics; add
+  `embedded_catalog_test.v` proving clean-machine resolution.
+
+Evidence:
+- `./make.vsh test` green (75 module tests).
+- Native binary builds and headless-boots from a fresh HOME/XDG environment,
+  resolving `agents:18 skills:116 mcp:7 packs:7 targets:7` from the embedded tier.
+
+### Recommended next steps
 
 1. Replace master tracker with product outcomes and explicit evidence gaps; link durable mission/journey/coverage/QA documents. Retain all valid capability work even when presentation issues are superseded.
 2. Resolve production truth before increasing panel depth; independently inspect synthetic activity and handoff-derived statuses.

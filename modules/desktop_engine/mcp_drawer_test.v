@@ -18,6 +18,10 @@ fn test_mask_mcp_secrets_masks_all_prefixes() {
 
 // Drawer data: template fallback + typed probe (#1106).
 fn test_mcp_drawer_template_and_probe() {
+	repo_root := os.dir(os.dir(os.dir(@FILE)))
+	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
+	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
+	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'mcp-drawer-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
@@ -30,14 +34,14 @@ fn test_mcp_drawer_template_and_probe() {
 
 	cat := eng.mcp_catalog()
 	assert cat.len >= 7
-	// unknown provider → default stanza, not an error (drawer always renders)
+	// unknown provider → unavailable, never a fabricated stanza
 	content, from_file := eng.mcp_template_json('no-such-provider')
 	assert from_file == false
-	assert content.contains('no-such-provider')
-	// probe is typed and honest: figma reports error
+	assert content == ''
+	// probe is typed and honest: an unconfigured provider is not healthy
 	fig := eng.mcp_probe('figma') or { panic(err.msg()) }
 	assert fig.healthy == false
-	assert fig.detail.contains('error')
+	assert fig.detail.contains('unconfigured')
 	// github probes against live health without writing state
 	gh := eng.mcp_probe('github') or { panic(err.msg()) }
 	assert gh.detail != ''

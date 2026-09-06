@@ -373,14 +373,7 @@ fn vt_label(app &GuiApp, id int) string {
 }
 
 // spawn_session — spawn an agent CLI on a real PTY and focus it fullscreen.
-fn bc2(msg string) {
-	mut f := os.open_file('/tmp/opencode/bc2.log', 'ab', 0o644) or { return }
-	f.writeln(msg) or {}
-	f.close()
-}
-
 fn spawn_session(mut app &GuiApp, ab pty_mod.AgentBin) {
-	bc2('spawn:enter ${ab.agent}')
 	s := pty_mod.spawn(ab.agent, ab.binary, [], 120, 32) or {
 		app.inspector_msg = 'Session ${ab.agent} error: ${err}'
 		return
@@ -392,7 +385,6 @@ fn spawn_session(mut app &GuiApp, ab pty_mod.AgentBin) {
 	}
 	app.term_view = 15 + app.sessions.len - 1
 	app.sessions_dialog = false
-	bc2('spawn:done total=${app.sessions.len}')
 	app.inspector_msg = 'Session ${ab.agent} spawned (pid ${s.pid}) — Fleet chip returns'
 }
 
@@ -1937,13 +1929,6 @@ fn clamp_scroll(scroll int, total int, visible int) int {
 	return scroll
 }
 
-fn pad2(n int) string {
-	if n < 10 {
-		return '0' + n.str()
-	}
-	return n.str()
-}
-
 fn pad4(n int) string {
 	mut s := n.str()
 	for s.len < 4 {
@@ -3000,91 +2985,6 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// Handoff visuals are derived from observed Engine events. Until that event
 	// stream is connected, render no envelopes or trails; ambient motion must not
 	// imply that agents are working.
-	if false {
-	for e in 0 .. 5 {
-		a_idx := e % desks.len
-		mut b_idx := (e * 7 + 3) % desks.len
-		if a_idx == b_idx {
-			b_idx = (b_idx + 5) % desks.len
-		}
-		ax := rects_x[a_idx] + 70
-		ay := rects_y[a_idx] + 43
-		bx := rects_x[b_idx] + 70
-		by := rects_y[b_idx] + 43
-		phase := (app.frame * 2 + e * 67) % 240
-		progress := f32(phase) / 240.0
-		if progress > 0.94 {
-			continue
-		}
-		arc_h := f32(26)
-		// GOD mailbox arc: 4*t*(1-t) * arc_h — workshop handoff law, native V only
-		arc := arc_h * 4.0 * progress * (1.0 - progress)
-		fx_ := f32(ax)
-		fy_ := f32(ay)
-		tx_ := f32(bx)
-		ty_ := f32(by)
-		xf := fx_ + (tx_ - fx_) * progress
-		ground_y := fy_ + (ty_ - fy_) * progress
-		yf := ground_y - arc
-		x := int(xf)
-		y := int(yf)
-		// segmented arc line from source to envelope (brass, translucent)
-		segments := 10
-		for s in 0 .. segments {
-			t0 := f32(s) / f32(segments) * progress
-			t1 := f32(s + 1) / f32(segments) * progress
-			x0 := int(fx_ + (tx_ - fx_) * t0)
-			y0 := int(fy_ + (ty_ - fy_) * t0 - arc_h * 4.0 * t0 * (1.0 - t0))
-			x1 := int(fx_ + (tx_ - fx_) * t1)
-			y1 := int(fy_ + (ty_ - fy_) * t1 - arc_h * 4.0 * t1 * (1.0 - t1))
-			alpha := u8(55 - s * 3)
-			if alpha < 12 {
-				continue
-			}
-			app.gg.draw_line(x0, y0, x1, y1, tint(app.pnl_select, alpha))
-		}
-		// trail ghosts behind envelope — 4 fading paper rectangles with brass shadow
-		for t in 1 .. 5 {
-			tp := progress - f32(t) * 0.045
-			if tp < 0 {
-				continue
-			}
-			tp_arc := arc_h * 4.0 * tp * (1.0 - tp)
-			txf := fx_ + (tx_ - fx_) * tp
-			tyf := fy_ + (ty_ - fy_) * tp - tp_arc
-			alpha := u8(90 - t * 18)
-			if alpha < 12 {
-				continue
-			}
-			app.gg.draw_rect_filled(int(txf) + 2, int(tyf) + 2, 12, 6, tint(app.pnl_select, alpha / 2))
-			app.gg.draw_rect_filled(int(txf), int(tyf), 12, 6, tint(app.pnl_bg, alpha))
-		}
-		// signature floor shadow ellipse under envelope — shrinks as arc rises (parabolic soft shadow)
-		shadow_w := int(14 - arc / 3.2)
-		sw := if shadow_w < 6 { 6 } else { shadow_w }
-		shadow_alpha := u8(28 - int(arc * 0.7))
-		sa := if shadow_alpha < 8 { u8(8) } else { shadow_alpha }
-		ground_x := int(xf)
-		shadow_y := int(ground_y) + 6
-		if shadow_y > fy + 36 && shadow_y < fy + fh - 4 && ground_x > fx && ground_x < fx + fw {
-			app.gg.draw_rect_filled(ground_x - sw / 2 + 4, shadow_y, sw, 3, tint(app.pnl_text, sa))
-			app.gg.draw_rect_filled(ground_x - sw / 2 + 6, shadow_y + 1, sw - 4, 1, tint(app.pnl_text, sa / 2))
-		}
-		// main envelope — paper with brass shadow + mail glyph + envelope shadows (native gg)
-		app.gg.draw_rect_filled(x + 1, y + 1, 18, 10, tint(app.pnl_text, 40))
-		app.gg.draw_rect_filled(x + 2, y + 2, 16, 6, tint(app.pnl_text, 22))
-		app.gg.draw_rect_filled(x - 1, y - 1, 18, 10, tint(app.pnl_select, 110))
-		app.gg.draw_rect_filled(x, y, 16, 8, app.pnl_bg)
-		// flap line — workshop envelope fold
-		app.gg.draw_line(x, y, x + 8, y + 4, app.pnl_border_hi)
-		app.gg.draw_line(x + 8, y + 4, x + 16, y, app.pnl_border_hi)
-		// inner envelope shadow 1px bottom edge for depth
-		app.gg.draw_line(x + 1, y + 7, x + 15, y + 7, tint(app.pnl_text, 12))
-		if desks[a_idx].status == 'blocked' || desks[b_idx].status == 'blocked' {
-			app.gg.draw_rect_filled(x + 12, y + 1, 3, 3, app.pnl_danger)
-		}
-	}
-	}
 
 	if app.desktop != unsafe { nil } && app.desktop.engine_jobs_catalog().len == 0 {
 		app.gg.draw_text(fx + 56, fy + 54, 'No agents are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
@@ -3525,18 +3425,6 @@ struct SkillEntryProxy {
 	domain      string
 	description string
 	stability   string
-}
-
-fn skills_filtered_for_app(mut app GuiApp) []string {
-	// Delegates to Engine (227) via Desktop proxy — no direct os/catalog read.
-	// Use engine_skills_search for ranked fuzzy. An unavailable catalog is an
-	// honest empty state; it must never be replaced with invented entries.
-	cat := app.desktop.engine_skills_search(app.skills_query, app.skills_domain)
-	mut out := []string{}
-	for s in cat {
-		out << s.id
-	}
-	return out
 }
 
 fn skills_filtered_entries(mut app GuiApp) []SkillEntryProxy {
