@@ -119,28 +119,6 @@ Evidence:
 - Loop worktree paths resolve under the derived runtime directory for both
   persistent and in-memory engines.
 
-### S3 — Office visual recovery (`fix/office-visual-recovery`)
-
-Status: in progress. Restore the Office operational overview as the default per
-`UX_ARCHITECTURE.md`, make the floor map a visible tab-switch alternative, and
-stop implying idle agents are working.
-
-Changes:
-- `cmd/agent-toolkit-desktop/main.v`:
-  - Add `office_map_view` toggle (default `false` → operational overview).
-  - Add `draw_office_overview()` surfacing real Engine jobs/agents state.
-  - Add visible `Overview` / `Floor Map` tab switch rendered in both views.
-  - Add `handle_office_view_click()` and `m` keyboard shortcut for toggling.
-  - Make desk hit-test active only in floor-map view.
-  - Update Office panel title and i18n keys.
-- Golden UI fixtures: update `tests/golden/panel-00.png` and
-  `tests/golden/ink/panel-00.png` to match the restored overview default.
-
-Evidence:
-- `./make.vsh test` green.
-- Native desktop binary builds.
-- Golden UI fixtures regenerated and committed.
-
 ### Recommended next steps
 
 1. Replace master tracker with product outcomes and explicit evidence gaps; link durable mission/journey/coverage/QA documents. Retain all valid capability work even when presentation issues are superseded.
