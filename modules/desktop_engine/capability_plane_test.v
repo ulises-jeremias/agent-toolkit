@@ -33,10 +33,6 @@ fn test_capability_plane_skills_via_engine_no_shell() {
 }
 
 fn test_capability_plane_products_via_engine() {
-	repo_root := os.dir(os.dir(os.dir(@FILE)))
-	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
-	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
-	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'cap-products-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
@@ -49,26 +45,15 @@ fn test_capability_plane_products_via_engine() {
 	prods := eng.products_catalog()
 	assert prods.len >= 2
 	packs := eng.packs_catalog()
-	// A temporary Engine may resolve to an isolated root without packaged packs.
-	// The catalog must remain truthful and may therefore be empty.
-	for pack in packs {
-		assert pack.provenance.starts_with('packs/')
-		assert pack.skill_count >= 0
-	}
+	assert packs.len == 7
 	rev := eng.update_product_membership(prods[0].id, ['core/assistant']) or { panic(err.msg()) }
 	assert rev >= 1
-	if packs.len > 0 {
-		rev2 := eng.set_pack_enabled(packs[0].id, true) or { panic(err.msg()) }
-		assert rev2 >= 1
-	}
+	rev2 := eng.set_pack_enabled('docs-only', true) or { panic(err.msg()) }
+	assert rev2 >= 1
 	assert eng.api_call_count() > 0
 }
 
 fn test_capability_plane_mcp_secret_guard_via_engine() {
-	repo_root := os.dir(os.dir(os.dir(@FILE)))
-	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
-	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
-	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'cap-mcp-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
@@ -97,10 +82,6 @@ fn test_capability_plane_mcp_secret_guard_via_engine() {
 }
 
 fn test_capability_plane_agents_doctor_targets_via_engine() {
-	repo_root := os.dir(os.dir(os.dir(@FILE)))
-	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
-	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
-	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'cap-agents-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }

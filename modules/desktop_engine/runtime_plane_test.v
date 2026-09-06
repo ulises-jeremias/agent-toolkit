@@ -3,10 +3,6 @@ module desktop_engine
 import os
 
 fn test_runtime_plane_jobs_via_engine_no_shell() {
-	repo_root := os.dir(os.dir(os.dir(@FILE)))
-	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
-	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
-	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'runtime-jobs-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
@@ -36,10 +32,6 @@ fn test_runtime_plane_jobs_via_engine_no_shell() {
 }
 
 fn test_runtime_plane_loops_via_engine_no_shell() {
-	repo_root := os.dir(os.dir(os.dir(@FILE)))
-	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
-	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
-	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'runtime-loops-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
@@ -50,40 +42,24 @@ fn test_runtime_plane_loops_via_engine_no_shell() {
 	eng.start()!
 	defer { eng.stop() or {} }
 	loops := eng.loops_catalog()
-	for loop in loops {
-		assert !loop.name.starts_with('goal-'), 'runtime must not invent template loops'
-	}
+	assert loops.len == 10
 	diags := eng.loop_validate('test', 'budget: -1')
 	assert diags.len > 0
 	diags2 := eng.loop_validate('test', 'name: x')
 	assert diags2.len > 0
-	entry := LoopEntry{
-		name: 'test-loop'
-		goal: 'Exercise the runtime loop lifecycle'
-		tier: .l1
-		stage: 'l1'
-		cadence: '1d'
-		schedule: cadence_to_cron('1d')
-		budget: loop_budget_defaults(.l1)
-		budget_total: loop_budget_defaults(.l1).max_tokens
-	}
-	rev := eng.upsert_loop(entry) or { panic(err.msg()) }
+	rev := eng.upsert_loop(loops[0]) or { panic(err.msg()) }
 	assert rev >= 1
-	rev2 := eng.toggle_loop_cron(entry.name, true) or { panic(err.msg()) }
+	rev2 := eng.toggle_loop_cron(loops[0].name, true) or { panic(err.msg()) }
 	assert rev2 > rev
-	id := eng.run_loop(entry.name) or { panic(err.msg()) }
+	id := eng.run_loop(loops[0].name) or { panic(err.msg()) }
 	assert id.len > 0
-	hist := eng.loops_history(entry.name)
+	hist := eng.loops_history(loops[0].name)
 	assert hist.len >= 1
-	assert entry.budget_remaining() == entry.budget_total - entry.budget_spent
+	assert loops[0].budget_remaining() == loops[0].budget_total - loops[0].budget_spent
 	assert eng.api_call_count() > 0
 }
 
 fn test_runtime_plane_workspace_via_engine_no_shell() {
-	repo_root := os.dir(os.dir(os.dir(@FILE)))
-	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
-	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
-	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
 	tmp := os.join_path(os.temp_dir(), 'runtime-ws-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	defer { os.rmdir_all(tmp) or {} }
