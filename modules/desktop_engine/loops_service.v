@@ -800,8 +800,9 @@ pub fn (mut e Engine) loop_worktree_path(loop_name string, run_id string) !strin
 	if loop_name.contains('..') || run_id.contains('..') || run_id.contains('/') {
 		return error('path traversal')
 	}
-	env := resolve_env()
-	base := os.join_path(env.toolkit_root, 'loops', loop_name, 'runs', run_id)
+	// Runtime artifacts live under the Engine runtime_path, never under
+	// toolkit_root, so embedded binaries do not write into bundled catalog data.
+	base := os.join_path(e.runtime_path, 'loops', loop_name, 'runs', run_id)
 	// worktree-per-writer hygiene: each run gets isolated dir, no shared writes
 	return os.join_path(base, 'worktree')
 }
@@ -815,8 +816,8 @@ pub fn (mut e Engine) ensure_loop_worktree_hygiene(loop_name string) []BuildDiag
 		return diags
 	}
 	// verify loop dir not sharing worktree across writers: check runs/* uniqueness
-	env := resolve_env()
-	loop_dir := os.join_path(env.toolkit_root, 'loops', loop_name)
+	// Runtime state is scoped to runtime_path, distinct from bundled catalog data.
+	loop_dir := os.join_path(e.runtime_path, 'loops', loop_name)
 	if !os.is_dir(loop_dir) {
 		return diags
 	}

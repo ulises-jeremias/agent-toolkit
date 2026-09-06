@@ -98,6 +98,27 @@ Evidence:
 - Native binary builds and headless-boots from a fresh HOME/XDG environment,
   resolving `agents:18 skills:116 mcp:7 packs:7 targets:7` from the embedded tier.
 
+### S2 — Runtime projection boundary (`fix/runtime-projection-truth`)
+
+Status: in progress. Separates mutable runtime artifacts from immutable bundled
+catalog data so loop worktrees, job scratch, and future runtime state never write
+into the embedded/toolkit namespace.
+
+Changes:
+- `modules/desktop_engine/engine.v`: add `runtime_path` to `EngineConfig` and
+  `Engine`; derive it from `persist_path` or an explicit override; create it in
+  `init()`.
+- `modules/desktop_engine/loops_service.v`: route `loop_worktree_path()` and
+  `ensure_loop_worktree_hygiene()` through `e.runtime_path` instead of
+  `env.toolkit_root`.
+- `modules/desktop_engine/runtime_projection_test.v`: verify worktree paths are
+  under runtime_path, reject traversal, and detect duplicate worktrees.
+
+Evidence:
+- `./make.vsh test` green (77 module tests).
+- Loop worktree paths resolve under the derived runtime directory for both
+  persistent and in-memory engines.
+
 ### Recommended next steps
 
 1. Replace master tracker with product outcomes and explicit evidence gaps; link durable mission/journey/coverage/QA documents. Retain all valid capability work even when presentation issues are superseded.
