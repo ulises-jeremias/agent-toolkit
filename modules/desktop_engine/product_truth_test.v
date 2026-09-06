@@ -13,16 +13,9 @@ fn test_product_truth_catalog_counts() {
 	defer {
 		os.setenv('AGENT_TOOLKIT_ROOT', prev_override, true)
 	}
-	// Receipts are read from the real user config authority; isolate
-	// XDG_CONFIG_HOME so the developer's genuine installs do not leak in.
-	prev_cfg := os.getenv('XDG_CONFIG_HOME')
 	tmp := os.join_path(os.temp_dir(), 'product-truth-${os.getpid()}')
-	os.mkdir_all(os.join_path(tmp, 'xdg-config')) or { panic(err.msg()) }
-	os.setenv('XDG_CONFIG_HOME', os.join_path(tmp, 'xdg-config'), true)
-	defer {
-		os.setenv('XDG_CONFIG_HOME', prev_cfg, true)
-		os.rmdir_all(tmp) or {}
-	}
+	os.mkdir_all(tmp) or { panic(err.msg()) }
+	defer { os.rmdir_all(tmp) or {} }
 	mut eng := new_engine(EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
