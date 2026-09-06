@@ -384,8 +384,11 @@ The following generated concept images are **directional references only**. They
 
 - [Concept board](assets/design/concept-board.jpg)
 - [Office flagship](assets/design/office.jpg)
+- [Library](assets/design/library.jpg)
+- [Operations](assets/design/operations.jpg)
+- [Onboarding](assets/design/onboarding.jpg)
 
-These two references are the canonical visual anchors committed with this contract. Other exploratory screen concepts may be added later through focused design PRs. Concept imagery is directional only and must not override current navigation, truth, accessibility, or workflow contracts.
+The concept board and Office are the canonical visual anchors committed with this contract. The Library, Operations, and Onboarding references are exploratory screen concepts. Additional screen concepts may be added later through focused design PRs. Concept imagery is directional only and must not override current navigation, truth, accessibility, or workflow contracts.
 
 ## 20. Validation
 
