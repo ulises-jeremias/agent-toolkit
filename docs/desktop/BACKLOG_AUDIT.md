@@ -303,6 +303,44 @@ Evidence:
 - `./make.vsh test` green (79 module tests).
 - Native desktop binary builds.
 
+### S7E — Remaining Engine truth sweep (`fix/s7e-engine-truth`)
+
+Status: in progress. The remaining fabricated surfaces — updates, memory,
+swarms, job outcomes and Doctor claims — are honest.
+
+- `update_service.v` (rewrite): no real release-feed reader exists, so
+  `check_update` makes no offer (never invents a version/URL/digest),
+  `apply`/`rollback` are unavailable (a state-only version change is not an
+  update), `verify` computes a real SHA-256 of the actual content,
+  `manifest_verify` is a real JSON structural parse, history reports only
+  genuinely recorded updates, and the current version comes from the core
+  resolver instead of `1.27.0`.
+- `memory_service.v`: palace entries come only from the active workspace
+  knowledge directory (workspace authority — never `toolkit_root`/cwd); the
+  8 demo palace nodes are removed.
+- `swarm_service.v`: launch records `requested` (no backend is contacted);
+  budgets are unknown until a real runner reports them; logs are empty
+  without real logs.
+- `jobs_service.v`: exit codes are unknown (-1) until a real completion;
+  supervisor spawn failures are recorded as failed jobs instead of being
+  swallowed as success.
+- `engine.v` doctor: `provenance:sha` reports the real computed SHA-256 of
+  the lock file bytes; the fabricated `swarm:apiVersion` health check is
+  removed; the DI capability-plane check warns honestly about placeholder
+  factories; the context-cost check cites the real core constant; the
+  unmeasured `shell_exec=0` claim is gone; the skills audit reports the real
+  resolved count without a magic threshold.
+- `workspace_service.v`: save timestamps are real.
+- GUI: static "provenance verified" chrome claims replaced with factual copy.
+- Tests: `engine_truth_test.v` gates (no invented update offer/state, real
+  digest verification, real manifest parsing, workspace-rooted memory,
+  requested-not-running swarms, unknown exit codes, computed doctor
+  digests).
+
+Evidence:
+- `./make.vsh test` green (80 module tests).
+- Native desktop binary builds.
+
 ### Recommended next steps
 
 1. Replace master tracker with product outcomes and explicit evidence gaps; link durable mission/journey/coverage/QA documents. Retain all valid capability work even when presentation issues are superseded.
