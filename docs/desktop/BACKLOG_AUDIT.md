@@ -213,3 +213,5 @@ The primary navigation now calls the operational home “Office” consistently 
 Skill rows now distinguish a recorded receipt from optional provenance evidence; they no longer show a provenance checkmark solely because a receipt exists. Onboarding action labels use “Install picks” and “Enable picks” rather than unsupported fixed counts, and Memory describes local saved-entry search without implementation metrics (`cmd/agent-toolkit-desktop/main.v`, follow-up after `8b9f05d`).
 
 The same trust pass removed another fixed-count/status mismatch: skill receipts are labeled according to the evidence available, and onboarding buttons no longer imply unverified quantities. This keeps the first-run action surface honest when catalogs or recommendations change (`cmd/agent-toolkit-desktop/main.v`, follow-up after `eac0743`).
+
+Loop rendering no longer restores tier-based token, run, or wall-clock defaults when the Engine has no configured limits, and it no longer invents exit conditions. Unknown limits now remain visibly unset so users can configure them before running recurring work (`cmd/agent-toolkit-desktop/main.v`, follow-up after `cc1fb80`).

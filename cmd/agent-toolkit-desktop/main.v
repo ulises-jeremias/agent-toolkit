@@ -4698,14 +4698,14 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 96, fy + 16, 'L1 observe → L2 assisted → L3 merge/close · budgets · verifier · STATE.md resumable', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + 96, fy + 16, 'Recurring agent work with budgets, schedules, and stop conditions', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	hover_new := app.mouse_x >= fx + fw - 118 && app.mouse_x <= fx + fw - 14 && app.mouse_y >= fy + 10 && app.mouse_y <= fy + 32
 	bg_new := if hover_new { app.pnl_select } else { app.pnl_text }
 	fg_new := if hover_new { app.pnl_text } else { app.pnl_card }
 	app.gg.draw_rect_filled(fx + fw - 118, fy + 8, 104, 22, bg_new)
 	app.gg.draw_rect_empty(fx + fw - 118, fy + 8, 104, 22, app.pnl_select)
 	draw_text_l(mut app, fx + fw - 106, fy + 14, 'act.new_loop', gg.TextCfg{ color: fg_new, size: 10, bold: true })
-	app.gg.draw_text(fx + 20, fy + 44, 'loop.yaml: cadence / goal / allowlist / budget · exit: goal_met · budget_exhausted · human_escalation · verifier receipt · StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + 20, fy + 44, 'Review each loop’s goal, limits, schedule, and stop conditions before running it.', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// ── Super-potent Engine loops L1/L2/L3 with three budgets visualized distinctly from Jobs ──
 	mut loops := app.desktop.loops_catalog()
 	mut y0 := fy + 66
@@ -4772,15 +4772,8 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		if max_tok == 0 {
 			max_tok = entry.budget_total
 		}
-		if max_tok == 0 {
-			max_tok = match entry.tier {
-				.l3 { 300000 }
-				.l2 { 100000 }
-				else { 50000 }
-			}
-		}
-		max_runs := if bud.max_runs_per_day != 0 { bud.max_runs_per_day } else { 1 }
-		max_wall := if bud.max_wall_seconds != 0 { bud.max_wall_seconds } else { 600 }
+		max_runs := bud.max_runs_per_day
+		max_wall := bud.max_wall_seconds
 		mut spent := entry.budget_spent
 		total, ledger_spent, remaining := app.desktop.engine_loop_budget_ledger(entry.name)
 		if total > 0 {
@@ -4788,9 +4781,9 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 			spent = ledger_spent
 			_ = remaining
 		}
-		tok_label := '${max_tok} tok'
-		runs_label := '${max_runs}/d'
-		wall_label := '${max_wall}s wall'
+		tok_label := if max_tok > 0 { '${max_tok} tok' } else { 'tokens ?' }
+		runs_label := if max_runs > 0 { '${max_runs}/d' } else { 'runs ?' }
+		wall_label := if max_wall > 0 { '${max_wall}s wall' } else { 'wall ?' }
 		app.gg.draw_text(fx + 22, y + 22, tok_label + '  ' + runs_label + '  ' + wall_label, gg.TextCfg{ color: app.pnl_text, size: 10, mono: true })
 		if entry.allowlist.len > 0 {
 			allow := entry.allowlist.join(',')
@@ -4819,7 +4812,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		} else if t_pct > 60 { app.pnl_select } else { app.pnl_success }
 		app.gg.draw_rect_filled(fx + 22, bar_y, bar_w * t_pct / 100, 4, tok_col)
 		app.gg.draw_text(fx + 22, bar_y + 6, 'tokens ${t_pct}%', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
-		app.gg.draw_text(fx + 22 + bar_w - 28, bar_y + 6, '${spent}/${max_tok}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+		app.gg.draw_text(fx + 22 + bar_w - 28, bar_y + 6, if max_tok > 0 { '${spent}/${max_tok}' } else { 'not set' }, gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		rx := fx + 22 + bar_w + 8
 		app.gg.draw_rect_filled(rx, bar_y, bar_w, 4, app.pnl_card_sel)
 		runs_col := if max_runs >= 48 {
@@ -4829,14 +4822,14 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		// empty until the Engine exposes consumed values; a filled fraction
 		// based on the configured maximum would falsely imply activity.
 		app.gg.draw_rect_empty(rx, bar_y - 1, bar_w, 6, runs_col)
-		app.gg.draw_text(rx, bar_y + 6, 'limit ${max_runs}/d', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+		app.gg.draw_text(rx, bar_y + 6, if max_runs > 0 { 'limit ${max_runs}/d' } else { 'daily limit not set' }, gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		wx := rx + bar_w + 8
 		app.gg.draw_rect_filled(wx, bar_y, bar_w, 4, app.pnl_card_sel)
 		wall_col := if max_wall >= 1200 {
 			app.pnl_danger
 		} else if max_wall >= 600 { app.pnl_select } else { app.pnl_success }
 		app.gg.draw_rect_empty(wx, bar_y - 1, bar_w, 6, wall_col)
-		app.gg.draw_text(wx, bar_y + 6, 'limit ${max_wall}s wall', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+		app.gg.draw_text(wx, bar_y + 6, if max_wall > 0 { 'limit ${max_wall}s wall' } else { 'time limit not set' }, gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		// burn-down sparkline — last budget_spent values from the loop ledger
 		history := app.desktop.engine_loop_history('')
 		mut runs := []int{}
@@ -4869,7 +4862,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		}
 		mut exits := entry.exit_conditions.join(',')
 		if exits == '' {
-			exits = 'goal_met,budget_exhausted'
+			exits = 'stop conditions not configured'
 		}
 		if exits.len > 36 {
 			exits = exits[..36] + '…'
