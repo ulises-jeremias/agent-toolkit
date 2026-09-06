@@ -209,3 +209,5 @@ The global action palette is now branded as Agent Toolkit’s “Search / Run”
 Onboarding’s product review and ready steps now describe bundle contents, navigation, saved setup, and Search / Run. Internal transaction, mailbox, EventBus, and revision/API counters were removed from the first-run workflow (`cmd/agent-toolkit-desktop/main.v`, follow-up after `a9018e3`).
 
 The primary navigation now calls the operational home “Office” consistently across labels, descriptions, palette, help, and onboarding return actions. “Floor Map” remains an explicit optional spatial view rather than the product’s navigation model (`cmd/agent-toolkit-desktop/main.v`, follow-up after `bb5ff8e`).
+
+Skill rows now distinguish a recorded receipt from optional provenance evidence; they no longer show a provenance checkmark solely because a receipt exists. Onboarding action labels use “Install picks” and “Enable picks” rather than unsupported fixed counts, and Memory describes local saved-entry search without implementation metrics (`cmd/agent-toolkit-desktop/main.v`, follow-up after `8b9f05d`).

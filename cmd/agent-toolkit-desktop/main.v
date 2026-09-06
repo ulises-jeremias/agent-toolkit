@@ -3760,7 +3760,7 @@ fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
 				false
 			}
 			if has_receipt {
-				app.gg.draw_text(fx + fw - 116, y + 6, 'provenance ✓', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+				app.gg.draw_text(fx + fw - 116, y + 6, 'receipt on file', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 			}
 			hover_install := is_hover
 			install_col := if hover_install { app.pnl_select } else { app.pnl_text_mut }
@@ -5881,8 +5881,8 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 		}
 	} else {
 		entries := app.desktop.engine_memory_entries()
-		app.gg.draw_text(x + 14, y + 44, '${entries.len} palace nodes • hybrid cosine 16-dim hashed embedding', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		app.gg.draw_text(x + 14, y + 56, 'Brokered via Engine.memory_semantic_recall • token overlap • 60 FPS virtualized', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		app.gg.draw_text(x + 14, y + 44, '${entries.len} saved entries', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		app.gg.draw_text(x + 14, y + 56, 'Search uses workspace memory and keeps results local.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	}
 }
 
@@ -6476,14 +6476,14 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				app.gg.draw_text(fx + fw - 90, y + 2, s.domain, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			}
 			app.gg.draw_text(fx + 20, content_y + content_h - 36, 'Select useful capabilities, review the changes, then install them together.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			// install 5 button
+			// install recommended picks button
 			hov := app.onboarding_hover == 1
 			app.gg.draw_rect_filled(fx + fw - 120, content_y + content_h - 54, 96, 20, if hov {
 				app.pnl_text
 			} else {
 				app.pnl_select
 			})
-			app.gg.draw_text(fx + fw - 108, content_y + content_h - 49, 'Install 5', gg.TextCfg{
+			app.gg.draw_text(fx + fw - 108, content_y + content_h - 49, 'Install picks', gg.TextCfg{
 				color: if hov {
 					app.pnl_card} else {
 					app.pnl_text}
@@ -6521,7 +6521,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			}
 			// bulk enable all / minimal
 			app.gg.draw_rect_filled(fx + 20, content_y + content_h - 40, 90, 18, app.pnl_card_sel)
-			app.gg.draw_text(fx + 28, content_y + content_h - 36, 'Enable 3', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
+			app.gg.draw_text(fx + 28, content_y + content_h - 36, 'Enable picks', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
 			app.gg.draw_rect_filled(fx + 118, content_y + content_h - 40, 90, 18, app.pnl_text)
 			app.gg.draw_text(fx + 126, content_y + content_h - 36, 'Enable All', gg.TextCfg{ color: app.pnl_card, size: 11 })
 			diff := if app.desktop != unsafe { nil } {
@@ -9415,7 +9415,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			if app.onboarding_step == 1 {
-				// Install 5 button at content_y+content_h-54 96x20 fw-120
+				// Install picks button at content_y+content_h-54 96x20 fw-120
 				content_h := fh - (content_y - fy) - 52
 				if mx >= fx + fw - 120 && mx <= fx + fw - 24 && my >= content_y + content_h - 54 && my <= content_y + content_h - 34 {
 					cand := app.desktop.engine_skills_search(app.skills_query, app.skills_domain)
@@ -10694,7 +10694,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			} else if app.onboarding_step == 6 && app.mouse_x >= fx_o + 20 && app.mouse_x <= fx_o + 130 && app.mouse_y >= fy_o + 40 + 24 + 38 + 24 + 84 && app.mouse_y <= fy_o + 40 + 24 + 38 + 24 + 106 {
 				app.onboarding_hover = 6
 			} else if app.onboarding_step == 1 {
-				// Install 5 hover inside onboarding capabilities step
+				// Install picks hover inside onboarding capabilities step
 				fy_tabs := fy_o + 40
 				y_harness := fy_tabs + 24 + 38
 				content_y := y_harness + 24
