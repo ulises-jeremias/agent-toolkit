@@ -414,37 +414,10 @@ pub fn (mut e Engine) job_append_log(job_id string, line string) !u64 {
 	return rev.revision
 }
 
-// job_receipt captures provenance + receipt for a job (ADR-022).
-pub struct JobReceipt {
-pub:
-	job_id     string
-	receipt    string
-	provenance string
-	verified   bool
-}
 
-// job_receipt_for returns receipt/provenance for a job — receipts/provenance hardened.
-pub fn (mut e Engine) job_receipt_for(job_id string) ?JobReceipt {
-	e.mu.lock()
-	e.api_calls++
-	e.mu.unlock()
-	snap := e.repo.snapshot()
-	key := 'receipt:job:${job_id}:installed_at'
-	if key !in snap.data {
-		return none
-	}
-	mut installed := snap.data[key] or { '' }
-	digest := snap.data['receipt:job:${job_id}:digest'] or { '' }
-	prov := snap.data['provenance:job:${job_id}:source'] or { 'job:${job_id}' }
-	return JobReceipt{
-		job_id: job_id
-		receipt: installed
-		provenance: prov
-		verified: digest != ''
-	}
-}
-
-// job_complete — mark done/failed and publish with receipt/provenance.
+// job_complete records the real runtime outcome of a job. A job run is
+// runtime truth: status, exit code and duration come from the actual run.
+// No receipt or provenance evidence is written for job completions.
 pub fn (mut e Engine) job_complete(job_id string, exit_code int) !u64 {
 	if job_id == '' {
 		return error('job_id empty')
@@ -464,16 +437,6 @@ pub fn (mut e Engine) job_complete(job_id string, exit_code int) !u64 {
 	start := start_str.i64()
 	dur := if start != 0 { int((time.now().unix() - start) * 1000) } else { 0 }
 	tx.set('jobs/${job_id}/duration_ms', dur.str())
-	// receipts/provenance hardened: write receipt + provenance atomically via Transaction
-	cmd := snap.data['jobs/${job_id}/cmd'] or { snap.data['jobs/${job_id}/args'] or { job_id } }
-	tx.set('receipt:job:${job_id}:installed_at', time.now().str())
-	tx.set('receipt:job:${job_id}:cmd', cmd)
-	tx.set('receipt:job:${job_id}:exit_code', exit_code.str())
-	tx.set('receipt:job:${job_id}:digest', 'sha256:${job_id.len + exit_code + 7}')
-	tx.set('receipt:job:${job_id}:provenance', 'job:${job_id}:${cmd}')
-	tx.set('provenance:job:${job_id}:source', 'jobs/${job_id}')
-	tx.set('provenance:job:${job_id}:digest', 'sha256:${job_id.len * 13}')
-	tx.set('provenance:job:${job_id}:generated', 'sha256:${dur + 19}')
 	rev := e.put_transaction(mut tx)!
 	kind := if exit_code == 0 {
 		eventbus.ToolkitEventKind.job_completed

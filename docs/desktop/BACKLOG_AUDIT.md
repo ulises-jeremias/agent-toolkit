@@ -151,7 +151,7 @@ Tracked in #1119.
 
 ### S5/S6 — Onboarding/workspace truth and per-domain catalog truth
 
-Status: in progress. Fixes workspace/catalog conflations that survived S1-S3:
+Status: merged (PR #1143). Fixes workspace/catalog conflations that survived S1-S3:
 
 - `modules/desktop_engine/onboarding_service.v`: stop using `toolkit_root` as a
   fallback workspace root; workspace existence/personas are now scoped to the
@@ -164,6 +164,50 @@ Status: in progress. Fixes workspace/catalog conflations that survived S1-S3:
 Evidence:
 - `./make.vsh test` green.
 - Native desktop binary builds.
+
+### S7A — Evidence & receipt truth (`fix/s7a-evidence-truth`)
+
+Status: in progress. Full audit inventory and authority classification live in
+[TRUTH_LEDGER.md](TRUTH_LEDGER.md). S7A replaces every fabricated digest,
+receipt and provenance claim with real evidence:
+
+- `receipts_service.v`: receipts now come only from real core installer
+  receipts (`agent_toolkit_core.list_install_receipts`) under the user config
+  authority, verified by recomputing each artifact digest from the artifact
+  bytes. Provenance now comes only from real `plugins/<product>/.provenance.json`
+  manifests read through the tier-aware `data_*` helpers, verified by
+  recomputing SHA-256 of artifact bytes against the recorded digests. The
+  `sha256:abc`-style placeholders, unconditional `verified: true`, wrong
+  receipt directory, raw-os scans and fabricated embedded fallback are gone.
+- `skills_service.v`: selection is configuration truth — `install_skill` /
+  `install_skills` write no receipt or provenance keys. `skill_receipt` /
+  `skill_provenance` return real receipt/manifest evidence or none.
+  `build_check` performs a real catalog-drift check instead of magic
+  `broken_skill` fixture keys. `build_preview` computes a real SHA-256 over
+  canonical catalog material instead of a string-length sum.
+- `agents_service.v`: `install_agent` is selection only; `agent_receipt`
+  returns real receipt artifact evidence or none; `agent_provenance_detail`
+  reports `verified` from actual manifest evidence.
+- `products_service.v`: membership updates write no fake digests; product
+  provenance/receipt report real evidence or honest absence.
+- `jobs_service.v`: job completion records runtime truth only; the fabricated
+  job-receipt machinery (`JobReceipt`, length-derived digests) is removed.
+- `mcp_service.v`: enabling uses the packaged template content (never an
+  invented npx stanza), health is `configured` until a probe succeeds, upsert
+  validates real JSON, `mcp_validate` checks the packaged catalog and recorded
+  config, provenance reports the real template path.
+- Tests: new `evidence_truth_test.v` gates (fresh engine has no receipts;
+  selection writes no receipt keys; real receipts verify and tampering fails
+  honestly; provenance is real manifest evidence; digest is a real SHA-256;
+  MCP toggle uses packaged templates). `product_truth_test.v` isolates
+  `XDG_CONFIG_HOME` so genuine user installs do not leak into assertions.
+
+Evidence:
+- `./make.vsh test` green (78 module tests).
+- Native desktop binary builds; clean-machine headless boot resolves all
+  catalogs.
+- Real-user verification: 6 genuine profile-install receipts surface, all
+  digest-verified; 223 real provenance entries with honest drift reporting.
 
 ### Recommended next steps
 

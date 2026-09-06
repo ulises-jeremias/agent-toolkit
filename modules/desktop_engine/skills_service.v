@@ -1,7 +1,9 @@
 module desktop_engine
 
-import time
+import os
 import x.json2
+import crypto.sha256
+import agent_toolkit_core
 
 // SkillEntry mirrors catalogs/skill-catalog.yaml shape — super-potent: triggers, origin, products, kind.
 pub struct SkillEntry {
@@ -345,7 +347,10 @@ pub fn (mut e Engine) skills_by_domain() map[string][]SkillEntry {
 	return m
 }
 
-// install_skill installs one skill via Engine transaction — now writes receipt + provenance.
+// install_skill records the skill as selected in configuration state.
+// Selection is configuration truth only: it is NOT an installation and writes
+// no receipt or provenance evidence (S7 evidence truth). Receipts exist only
+// when the core installer deploys real artifacts.
 pub fn (mut e Engine) install_skill(id string) !u64 {
 	if id == '' {
 		return error('skill id empty')
@@ -363,18 +368,11 @@ pub fn (mut e Engine) install_skill(id string) !u64 {
 	}
 	tx.set('installed_skills', set.join(','))
 	tx.set('skills_count', set.len.str())
-	// receipt: per-skill provenance + install receipt (ADR-022 parity)
-	tx.set('receipt:skill:${id}:installed_at', time.now().str())
-	tx.set('receipt:skill:${id}:version', '1.0.0')
-	tx.set('receipt:skill:${id}:digest', 'sha256:${id.len + set.len}')
-	tx.set('receipt:skill:${id}:product', 'agent-toolkit-core')
-	tx.set('provenance:skill:${id}:source', 'catalogs/skill-catalog.yaml')
-	tx.set('provenance:skill:${id}:digest', 'sha256:${id.len * 7}')
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
 
-// install_skills bulk installs — super-potent easy management.
+// install_skills bulk-selects skills — configuration truth only, no receipts.
 pub fn (mut e Engine) install_skills(ids []string) !u64 {
 	if ids.len == 0 {
 		return error('no skills selected')
@@ -393,9 +391,6 @@ pub fn (mut e Engine) install_skills(ids []string) !u64 {
 		if id !in set {
 			set << id
 		}
-		tx.set('receipt:skill:${id}:installed_at', time.now().str())
-		tx.set('receipt:skill:${id}:version', '1.0.0')
-		tx.set('receipt:skill:${id}:digest', 'sha256:${id.len + set.len}')
 	}
 	tx.set('installed_skills', set.join(','))
 	tx.set('skills_count', set.len.str())
@@ -448,75 +443,85 @@ pub fn (mut e Engine) remove_skill(id string) !u64 {
 	mut tx := repo.begin('remove-skill')
 	tx.set('installed_skills', set.join(','))
 	tx.set('skills_count', set.len.str())
-	// keep receipt for audit but mark removed
-	tx.set('receipt:skill:${id}:removed_at', time.now().str())
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
 
-// skill_receipt returns typed receipt for a skill via StateRepository (headless, no shell).
+// skill_receipt returns real receipt evidence for a skill: the artifact
+// records of core install receipts whose deployed artifacts include the
+// skill's SKILL.md. Returns none when no real receipt covers the skill —
+// selection alone is never receipt evidence.
 pub fn (mut e Engine) skill_receipt(id string) ?SkillReceiptInfo {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	snap := e.repo.snapshot()
-	key_at := 'receipt:skill:${id}:installed_at'
-	if key_at !in snap.data {
+	name := id.all_after('/')
+	if name == '' {
 		return none
 	}
-	return SkillReceiptInfo{
-		skill_id: id
-		installed: id in e.skills_installed()
-		installed_at: snap.data[key_at] or { '' }
-		version: snap.data['receipt:skill:${id}:version'] or { '1.0.0' }
-		product: snap.data['receipt:skill:${id}:product'] or { 'agent-toolkit-core' }
-		digest: snap.data['receipt:skill:${id}:digest'] or { '' }
-		receipt_path: 'receipts/skill-${id}.json'
+	needle := '/skills/${name}/SKILL.md'
+	for r in agent_toolkit_core.list_install_receipts('') {
+		for a in r.artifacts {
+			if a.path.contains(needle) {
+				return SkillReceiptInfo{
+					skill_id: id
+					installed: id in e.skills_installed()
+					installed_at: r.installed_at
+					version: r.version
+					product: r.product
+					digest: a.digest
+					receipt_path: os.join_path(agent_toolkit_core.default_receipt_dir(),
+						agent_toolkit_core.receipt_filename(r.target, r.product))
+				}
+			}
+		}
 	}
+	return none
 }
 
-// skill_provenance returns provenance manifest for a skill.
+// skill_provenance returns real provenance evidence for a skill from the
+// bundled plugins manifests (ADR-022). Returns none when no manifest records
+// the skill — never a fabricated fallback.
 pub fn (mut e Engine) skill_provenance(id string) ?SkillProvenanceInfo {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	snap := e.repo.snapshot()
-	src := snap.data['provenance:skill:${id}:source'] or { '' }
-	if src == '' {
-		// fallback: derive from catalog
-		return SkillProvenanceInfo{
-			skill_id: id
-			source_file: 'skills/${id}/SKILL.md'
-			source_digest: 'sha256:${id.len * 11}'
-			generated_digest: 'sha256:${id.len * 13}'
-			verified: true
-			detail: 'derived from catalogs/skill-catalog.yaml'
+	name := id.all_after('/')
+	if name == '' {
+		return none
+	}
+	needle := '/skills/${name}/'
+	for p in e.provenance_catalog() {
+		if p.artifact_path.contains(needle) && p.artifact_path.ends_with('/SKILL.md') {
+			return SkillProvenanceInfo{
+				skill_id: id
+				source_file: p.source_file
+				source_digest: p.source_digest
+				generated_digest: p.generated_digest
+				verified: p.verified
+				detail: p.detail
+			}
 		}
 	}
-	return SkillProvenanceInfo{
-		skill_id: id
-		source_file: src
-		source_digest: snap.data['provenance:skill:${id}:digest'] or { '' }
-		generated_digest: snap.data['provenance:skill:${id}:generated'] or { 'sha256:abc' }
-		verified: true
-		detail: 'receipt verified via StateRepository'
-	}
+	return none
 }
 
-// verify_skill_receipts checks all installed skills have receipts (Doctor parity).
+// verify_skill_receipts checks that every selected skill still resolves in the
+// catalog (real drift check). Selection without catalog backing is a genuine
+// defect worth reporting; receipts are no longer fabricated to satisfy this.
 pub fn (mut e Engine) verify_skill_receipts() []BuildDiagnostic {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	mut diags := []BuildDiagnostic{}
 	for id in e.skills_installed() {
-		if _ := e.skill_receipt(id) {
+		if _ := e.skill_detail(id) {
 			continue
 		} else {
 			diags << BuildDiagnostic{
-				path: 'receipts/skill-${id}.json'
-				message: 'missing receipt for installed skill ${id}'
-				code: 'receipt_missing'
+				path: 'skills/${id}/SKILL.md'
+				message: 'selected skill missing from resolved catalog'
+				code: 'catalog_missing'
 			}
 		}
 	}
@@ -527,30 +532,13 @@ pub fn (mut e Engine) build_check() []BuildDiagnostic {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	snap := e.repo.snapshot()
 	mut diags := []BuildDiagnostic{}
-	if 'broken_skill' in snap.data {
-		diags << BuildDiagnostic{
-			path: 'skills/broken/SKILL.md'
-			message: 'frontmatter name/description missing'
-			code: 'frontmatter_missing'
-		}
-	}
-	installed := e.skills_installed()
-	for sid in installed {
-		if sid.contains('broken') {
-			diags << BuildDiagnostic{
-				path: 'skills/${sid}/SKILL.md'
-				message: 'invalid YAML'
-				code: 'yaml_invalid'
-			}
-		}
-	}
-	// receipts/provenance checks — super potent Doctor parity
+	// real drift check: every selected skill must still resolve in the catalog
 	for d in e.verify_skill_receipts() {
 		diags << d
 	}
-	// stability warning for beta installs
+	// stability warning for beta selections — real catalog metadata
+	installed := e.skills_installed()
 	for sid in installed {
 		if detail := e.skill_detail(sid) {
 			if detail.stability == 'beta' {
@@ -567,18 +555,27 @@ pub fn (mut e Engine) build_check() []BuildDiagnostic {
 	return diags
 }
 
+// skills_catalog_digest computes a real SHA-256 over canonical catalog
+// material (sorted domain/id pairs). It replaces the former string-length
+// sum that was labeled a digest. No engine lock is taken here:
+// skills_catalog() locks internally (sync.Mutex is not reentrant).
+fn (mut e Engine) skills_catalog_digest() string {
+	mut ids := []string{}
+	for s in e.skills_catalog() {
+		ids << '${s.domain}/${s.id}'
+	}
+	ids.sort()
+	return sha256.hexhash(ids.join('\n'))
+}
+
 pub fn (mut e Engine) build_preview() string {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
 	cat := e.skills_catalog()
-	mut h := 0
-	for s in cat {
-		h += s.id.len + s.domain.len
-	}
+	digest := e.skills_catalog_digest()
 	stats := e.skills_stats()
-	// include installed + receipt provenance in digest for parity
-	return 'plugins-digest:${h}:${cat.len}:installed=${stats.installed}'
+	return 'plugins-digest:${digest}:${cat.len}:installed=${stats.installed}'
 }
 
 // build_preview_detailed returns structured digest with provenance (ADR-022).
@@ -587,14 +584,11 @@ pub fn (mut e Engine) build_preview_detailed() string {
 	e.api_calls++
 	e.mu.unlock()
 	cat := e.skills_catalog()
-	mut h := 0
-	for s in cat {
-		h += s.id.len + s.domain.len
-	}
+	digest := e.skills_catalog_digest()
 	snap := e.repo.snapshot()
 	receipts := snap.data.keys().filter(it.starts_with('receipt:skill:')).len
 	return json2.encode({
-		'digest':     'plugins-digest:${h}:${cat.len}'
+		'digest':     'plugins-digest:${digest}:${cat.len}'
 		'receipts':   receipts.str()
 		'provenance': 'catalogs/skill-catalog.yaml'
 	},
