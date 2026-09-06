@@ -205,3 +205,5 @@ Jobs, Loops, and Swarms now use task-oriented headers and footers. Primary surfa
 Workspace file browsing and editing now use user-facing language (“workspace files”, “open a file from the tree”, and “staged flag”). Brokered filesystem implementation terms remain confined to code and diagnostics rather than the primary editor workflow (`cmd/agent-toolkit-desktop/main.v`, follow-up after `8738c01`).
 
 The global action palette is now branded as Agent Toolkit’s “Search / Run” surface. Its navigation descriptions explain user outcomes for loops, swarms, and insights instead of exposing internal mailbox, backend, or telemetry terminology (`cmd/agent-toolkit-desktop/main.v`, follow-up after `ed39e3f`).
+
+Onboarding’s product review and ready steps now describe bundle contents, navigation, saved setup, and Search / Run. Internal transaction, mailbox, EventBus, and revision/API counters were removed from the first-run workflow (`cmd/agent-toolkit-desktop/main.v`, follow-up after `a9018e3`).

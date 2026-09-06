@@ -6266,7 +6266,6 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	mut enabled_targets := []string{}
 	mut persona_cnt := 0
 	mut workspace_exists := false
-	mut revision := u64(0)
 	if app.desktop != unsafe { nil } {
 		st := app.desktop.onboarding_status(app.harness_root)
 		status_is_first = st.is_first_run
@@ -6280,7 +6279,6 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		enabled_targets = st.enabled_targets.clone()
 		persona_cnt = st.persona_count
 		workspace_exists = st.workspace_exists
-		revision = st.revision
 		_ = st
 	}
 	// step tabs — 7 steps, pixel-snapped
@@ -6569,7 +6567,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			}
 			preview := skills_total(mut app).str()
 			_ = preview
-			app.gg.draw_text(fx + 20, content_y + content_h - 36, 'Preview: build_preview() → plugins-digest • membership via update_product_membership in one TX', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + content_h - 36, 'Review the bundle contents before applying them to your workspace.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		}
 		4 { // Workspace init — harness scaffold
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
@@ -6641,9 +6639,9 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		6 { // Done — tour + complete
 			pixel_panel(mut app, fx + 10, content_y, fw - 20, content_h - 20, 'inset')
 			app.gg.draw_text(fx + 20, content_y + 10, 'You are ready to work', gg.TextCfg{ color: app.pnl_text, size: 14, bold: true })
-			app.gg.draw_text(fx + 20, content_y + 30, '1 → World (floor, GOD mailbox)   2 → Skills (${skills_total(mut app)} fuzzy)   3 → Agents (${agents_active_total(mut app)})   4 → Targets (${targets_total(mut app)})', gg.TextCfg{ color: app.pnl_text, size: 12 })
-			app.gg.draw_text(fx + 20, content_y + 46, '5 → Doctor (receipts)  6 → Jobs  7 → Loops (inner/outer)  8 → Swarm (pair/team/full)  9 → Workspace IDE  P → Products', gg.TextCfg{ color: app.pnl_text, size: 12 })
-			app.gg.draw_text(fx + 20, content_y + 64, 'All panels via single Engine — no shell, every mutation is a StateRepository Transaction → EventBus → AppState.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + 30, '1 → Office   2 → Skills   3 → Agents   4 → Coding tools', gg.TextCfg{ color: app.pnl_text, size: 12 })
+			app.gg.draw_text(fx + 20, content_y + 46, '5 → Doctor   6 → Jobs   7 → Loops   8 → Swarms   9 → Workspace   P → Products', gg.TextCfg{ color: app.pnl_text, size: 12 })
+			app.gg.draw_text(fx + 20, content_y + 64, 'Use Search / Run (/) whenever you need to find a capability, workspace, or action.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			hov_done := app.onboarding_hover == 6
 			app.gg.draw_rect_filled(fx + 20, content_y + 84, 110, 22, if hov_done {
 				app.pnl_text
@@ -6653,7 +6651,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(fx + 34, content_y + 90, 'Complete ✓', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 			app.gg.draw_rect_filled(fx + 138, content_y + 84, 110, 22, app.pnl_card_sel)
 			app.gg.draw_text(fx + 150, content_y + 90, 'Back to World', gg.TextCfg{ color: app.pnl_text, size: 12 })
-			app.gg.draw_text(fx + 20, content_y + 112, 'On close, onboarding_completed=true persisted — next boot skips wizard (reset via onboarding_reset).', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			app.gg.draw_text(fx + 20, content_y + 112, 'Your setup is saved. You can revisit these steps from Setup at any time.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		}
 		else {}
 	}
@@ -6668,7 +6666,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 		} else if di < app.onboarding_step { app.pnl_success } else { col_line }
 		app.gg.draw_rect_filled(dots_x + di * 14, fy + fh - 26, 8, 8, dcol)
 	}
-	app.gg.draw_text(dots_x + 7 * 14 + 8, fy + fh - 26, 'step ${app.onboarding_step + 1}/7 • rev ${revision} • api ${app.api_calls}', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
+	app.gg.draw_text(dots_x + 7 * 14 + 8, fy + fh - 26, 'step ${app.onboarding_step + 1}/7', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
 	// Skip — super-potent easy management, distinct overlay skips wizard without persisting complete
 	hov_skip := app.onboarding_hover == 12
 	app.gg.draw_rect_filled(fx + fw - 294, fy + fh - 32, 56, 20, if hov_skip {
