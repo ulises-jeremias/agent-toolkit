@@ -934,6 +934,7 @@ mut:
 	last_msg         string
 	last_msg_frame   int = -99
 	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
+	office_map_view  bool // false = operational overview (default), true = floor map
 	hover_panel      int
 	selected_desk    int
 	hover_desk       int
@@ -1169,6 +1170,9 @@ const i18n_table = {
 	'status.paperco':          I18nRow{'Paper Co.', 'Paper Co.', '纸业公司', 'شركة الورق'}
 	'status.fps':              I18nRow{'60FPS', '60FPS', '60帧', '٦٠ إطار'}
 	// world floor
+	'office.view.overview':    I18nRow{'Overview', 'Resumen', '概览', 'ملخص'}
+	'office.view.floor':       I18nRow{'Floor Map', 'Planta', '平面图', 'خريطة الطابق'}
+	'office.catalog':          I18nRow{'Catalog agents', 'Agentes del catálogo', '目录代理', 'وكلاء الدليل'}
 	'world.title':             I18nRow{'Office Floor', 'Planta de oficina', '办公区平面', 'أرضية المكتب'}
 	'world.subtitle':          I18nRow{'desks • envelopes are handoffs • click a desk or use arrow keys', 'escritorios • los sobres son entregas • clica un escritorio o usa flechas', '工位 • 信封即交接 • 点击工位或方向键', 'المكاتب • الأظرف تسليمات • انقر مكتباً أو استخدم الأسهم'}
 	'world.working':           I18nRow{'working', 'trabajando', '工作中', 'يعمل'}
@@ -2878,7 +2882,123 @@ fn draw_left_dock(mut app GuiApp, h int) {
 	})
 }
 
+// draw_office_view_switch renders the Overview / Floor Map tabs in the Office panel.
+fn draw_office_view_switch(mut app GuiApp, w int) {
+	fx := panel_fx(app)
+	fy := 52
+	fw := panel_fw(app, w)
+	tab_h := 22
+	tab_w := 78
+	gap := 6
+	x := fx + fw - (tab_w * 2 + gap) - 20
+	y := fy + 10
+	for i, label_key in ['office.view.overview', 'office.view.floor'] {
+		is_active := (i == 0 && !app.office_map_view) || (i == 1 && app.office_map_view)
+		tx := x + i * (tab_w + gap)
+		app.gg.draw_rect_filled(tx, y, tab_w, tab_h, if is_active { app.pnl_select } else { app.pnl_card })
+		app.gg.draw_rect_empty(tx, y, tab_w, tab_h, if is_active { app.pnl_border_hi } else { app.pnl_border })
+		app.gg.draw_text(tx + 8, y + 5, tr(app, label_key), gg.TextCfg{
+			color: if is_active { app.pnl_bg } else { app.pnl_text }
+			size: 10
+			bold: true
+		})
+	}
+}
+
+// handle_office_view_click returns true if a click hit an Office view tab.
+fn handle_office_view_click(mut app GuiApp, w int, mx int, my int) bool {
+	fx := panel_fx(app)
+	fy := 52
+	fw := panel_fw(app, w)
+	tab_h := 22
+	tab_w := 78
+	gap := 6
+	x := fx + fw - (tab_w * 2 + gap) - 20
+	y := fy + 10
+	for i in 0 .. 2 {
+		tx := x + i * (tab_w + gap)
+		if mx >= tx && mx < tx + tab_w && my >= y && my < y + tab_h {
+			app.office_map_view = (i == 1)
+			return true
+		}
+	}
+	return false
+}
+
+// draw_office_overview renders the default Office operational dashboard.
+// It surfaces real Engine state (jobs, agents) without idle-animation theatrics.
+fn draw_office_overview(mut app GuiApp, w int, h int) {
+	term_h := if app.term_visible { app.term_height } else { 0 }
+	fx := panel_fx(app)
+	fy := 52
+	fw := panel_fw(app, w)
+	fh := h - 52 - 28 - term_h
+	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
+	app.gg.draw_rect_filled(fx, fy, fw, 42, app.pnl_card)
+	app.gg.draw_text(fx + 20, fy + 11, 'Office', gg.TextCfg{ color: app.pnl_text, size: font_display_md, family: app.fonts.display })
+	app.gg.draw_text(fx + 106, fy + 15, 'What needs your attention?', gg.TextCfg{ color: app.pnl_text_mut, size: font_body_sm })
+	draw_office_view_switch(mut app, w)
+	mut jobs := []desktop_engine.JobRecord{}
+	mut agents := []desktop_engine.AgentEntry{}
+	if app.desktop != unsafe { nil } {
+		jobs = app.desktop.engine_jobs_catalog()
+		agents = app.desktop.engine_agents_search('', '')
+	}
+	attention_jobs := jobs.filter(it.status == .failed || it.status == .queued)
+	running_jobs := jobs.filter(it.status == .running)
+	content_y := fy + 58
+	col_w := (fw - 52) / 2
+	// Attention is derived from real state. Empty means there is nothing to fix.
+	pixel_panel(mut app, fx + 16, content_y, col_w, 92, 'default')
+	app.gg.draw_text(fx + 30, content_y + 14, 'Needs your attention', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	if attention_jobs.len == 0 {
+		app.gg.draw_text(fx + 30, content_y + 42, 'Nothing requires attention.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	} else {
+		app.gg.draw_text(fx + 30, content_y + 42, '${attention_jobs.len} operation(s) need attention', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
+		app.gg.draw_text(fx + 30, content_y + 62, 'Open Operations to inspect status and recovery.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	}
+	pixel_panel(mut app, fx + 28 + col_w, content_y, col_w, 92, 'default')
+	app.gg.draw_text(fx + 42 + col_w, content_y + 14, 'Running now', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	if running_jobs.len == 0 {
+		app.gg.draw_text(fx + 42 + col_w, content_y + 42, 'No operations are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Live sessions appear here when started.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	} else {
+		app.gg.draw_text(fx + 42 + col_w, content_y + 42, '${running_jobs.len} operation(s) running.', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
+		app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Open Operations to follow logs and recovery.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	}
+	// Agent roster is useful even while idle, but status is never inferred from identity.
+	list_y := content_y + 114
+	pixel_panel(mut app, fx + 16, list_y, fw - 32, fh - (list_y - fy) - 18, 'default')
+	app.gg.draw_text(fx + 30, list_y + 14, 'Agents', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	app.gg.draw_text(fx + fw - 190, list_y + 15, '${agents.len} available in catalog', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
+	if agents.len == 0 {
+		app.gg.draw_text(fx + 30, list_y + 48, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	} else {
+		mut x := fx + 30
+		mut y := list_y + 42
+		for i, agent in agents {
+			if i >= 12 || y + 26 > fy + fh - 20 {
+				break
+			}
+			app.gg.draw_rect_filled(x, y, 8, 8, app.pnl_text_mut)
+			app.gg.draw_text(x + 16, y - 3, agent.id, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
+			app.gg.draw_text(x + 180, y - 3, agent.role, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+			x += 250
+			if x + 220 > fx + fw - 20 {
+				x = fx + 30
+				y += 26
+			}
+		}
+	}
+}
+
 fn draw_world(mut app GuiApp, w int, h int) {
+	// Operational overview is the default per UX_ARCHITECTURE.md; floor map is a
+	// visible alternative reachable via the view switch, not the landing state.
+	if !app.office_map_view {
+		draw_office_overview(mut app, w, h)
+		return
+	}
 	// Hero — office floor: munder checkerboard 32×32 tiles, desks as AgentCards, envelopes with GOD 4*t*(1-t) arc
 	// Super-potent signature: unique floor texture (wood grain + grass tuft + terrazzo speck), avatar trails,
 	// envelope floor shadows, station glow, command deck kanban/fleet/CI alt divergence — native V gg only.
@@ -2968,7 +3088,8 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 160, fy + 16, '${desks_for_app(app).len} ${tr(app, 'world.subtitle')}', gg.TextCfg{ color: app.pnl_text_mut, size: font_body_sm })
+	app.gg.draw_text(fx + 160, fy + 16, '${tr(app, 'office.catalog')}: ${desks_for_app(app).len}', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	draw_office_view_switch(mut app, w)
 
 	desks := desks_for_app(app)
 
@@ -7931,6 +8052,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				return
 			}
+			if e.key_code == .m && app.selected_panel == 0 {
+				// M toggles Office floor map; visible tab switch is the primary control.
+				app.office_map_view = !app.office_map_view
+				return
+			}
 			if e.key_code == .q {
 				// Ctrl+Q — explicit quit (Esc never kills the app; it cancels layers)
 				save_ui_state(app)
@@ -9948,8 +10074,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Hit floor desks only in world panel — uses desk_rect so draw and hit-test agree
+		// Office view switch has priority inside the Office panel.
 		if app.selected_panel == 0 {
+			if handle_office_view_click(mut app, app.gg.width, mx, my) {
+				return
+			}
+		}
+		// Hit floor desks only when the floor map is visible.
+		if app.selected_panel == 0 && app.office_map_view {
 			w2 := app.gg.width
 			h2 := app.gg.height
 			fx := panel_fx(app)
