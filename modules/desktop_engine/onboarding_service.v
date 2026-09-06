@@ -286,7 +286,8 @@ pub fn (mut e Engine) onboarding_set_targets_bulk(enabled_ids []string) !u64 {
 	if enabled_ids.len == 0 {
 		return error('no targets selected — at least one required')
 	}
-	valid := ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
+	// valid targets come from the canonical registry — no private roster
+	valid := e.targets_registry().map(it.id)
 	for tid in enabled_ids {
 		if tid !in valid {
 			return error('unsupported target: ${tid}')

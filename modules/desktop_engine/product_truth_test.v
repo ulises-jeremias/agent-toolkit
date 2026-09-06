@@ -52,10 +52,13 @@ fn test_product_truth_catalog_counts() {
 	assert eng.mcp_catalog().len == 7, 'MCP providers must be 7'
 
 	tgts := eng.targets()
-	assert tgts.len == 7, 'targets must be 7: got ${tgts.len}'
+	assert tgts.len == 11, 'registry targets must be 11: got ${tgts.len}'
 	ids := tgts.map(it.id)
-	for want in ['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli'] {
-		assert want in ids, 'target ${want} missing from Engine catalog: ${ids}'
+	for want in ['claude-code', 'cursor', 'opencode', 'gemini-cli', 'copilot-cli', 'copilot-repository', 'pi', 'windsurf', 'codex', 'muse-code', 'agent-plugins'] {
+		assert want in ids, 'registry target ${want} missing from Engine catalog: ${ids}'
+	}
+	for t in tgts {
+		assert !t.enabled, 'fresh config must not enable targets by default: ${t.id}'
 	}
 
 	assert eng.products_catalog().len == 5, 'products must be 5'

@@ -6435,7 +6435,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			tgts := if app.desktop != unsafe { nil } {
 				app.desktop.engine_targets().map(it.id)
 			} else {
-				['claude-code', 'cursor', 'opencode', 'pi', 'windsurf', 'cursor-plugins', 'cli']
+				['claude-code', 'cursor', 'opencode', 'copilot-cli', 'pi', 'windsurf', 'codex', 'muse-code']
 			}
 			for i, t in tgts {
 				y := content_y + 30 + i * 20
@@ -8567,7 +8567,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					}
 					2 {
 						// targets bulk enable minimal 3
-						ids := ['claude-code', 'opencode', 'cli']
+						ids := ['claude-code', 'opencode', 'cursor']
 						rev := app.desktop.onboarding_set_targets_bulk(ids) or {
 							app.onboarding_msg = 'targets failed: ${err}'
 							0
@@ -9345,7 +9345,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				mut fh2b := fh
 				content_h := fh2b - (content_y - fy) - 52
 				if mx >= fx + 20 && mx <= fx + 110 && my >= content_y + content_h - 40 && my <= content_y + content_h - 22 {
-					ids := ['claude-code', 'opencode', 'cli']
+					ids := ['claude-code', 'opencode', 'cursor']
 					rev := app.desktop.onboarding_set_targets_bulk(ids) or {
 						app.onboarding_msg = 'targets failed: ${err}'
 						0

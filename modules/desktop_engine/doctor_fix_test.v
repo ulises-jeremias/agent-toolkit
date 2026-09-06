@@ -28,7 +28,7 @@ fn test_doctor_fix_preview_and_repair_flip() {
 
 	// preview describes the repair and writes nothing
 	prev := eng.doctor_fix_preview('profile:cursor') or { panic(err.msg()) }
-	assert prev.len == 3
+	assert prev.len == 2
 	assert prev[0] == 'set target:cursor:enabled = true'
 	still_disabled := eng.targets().filter(it.id == 'cursor')[0]
 	assert still_disabled.enabled == false
