@@ -207,3 +207,5 @@ Workspace file browsing and editing now use user-facing language (“workspace f
 The global action palette is now branded as Agent Toolkit’s “Search / Run” surface. Its navigation descriptions explain user outcomes for loops, swarms, and insights instead of exposing internal mailbox, backend, or telemetry terminology (`cmd/agent-toolkit-desktop/main.v`, follow-up after `ed39e3f`).
 
 Onboarding’s product review and ready steps now describe bundle contents, navigation, saved setup, and Search / Run. Internal transaction, mailbox, EventBus, and revision/API counters were removed from the first-run workflow (`cmd/agent-toolkit-desktop/main.v`, follow-up after `a9018e3`).
+
+The primary navigation now calls the operational home “Office” consistently across labels, descriptions, palette, help, and onboarding return actions. “Floor Map” remains an explicit optional spatial view rather than the product’s navigation model (`cmd/agent-toolkit-desktop/main.v`, follow-up after `bb5ff8e`).

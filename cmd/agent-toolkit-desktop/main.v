@@ -1127,7 +1127,7 @@ struct I18nRow {
 
 const i18n_table = {
 	// dock — 13 nameplates
-	'panel.world':             I18nRow{'World', 'Mundo', '世界', 'العالم'}
+	'panel.world':             I18nRow{'Office', 'Oficina', '办公', 'المكتب'}
 	'panel.skills':            I18nRow{'Skills', 'Habilidades', '技能', 'المهارات'}
 	'panel.agents':            I18nRow{'Agents', 'Agentes', '代理', 'الوكلاء'}
 	'panel.mcp':               I18nRow{'MCP', 'MCP', '提供方', 'المزودون'}
@@ -1141,7 +1141,7 @@ const i18n_table = {
 	'panel.onboarding':        I18nRow{'Onboarding', 'Inicio', '引导', 'التهيئة'}
 	'panel.insights':          I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
 	// dock — short descriptors
-	'desc.world':              I18nRow{'Floor — desks, handoffs, live activity', 'Planta — escritorios y actividad', '办公区 · 工位与协作', 'الأرضية — المكاتب والنشاط'}
+	'desc.world':              I18nRow{'What needs your attention right now', 'Lo que requiere tu atención ahora', '当前需要关注的事项', 'ما يحتاج إلى انتباهك الآن'}
 	'desc.skills':             I18nRow{'Skills and capabilities', 'Habilidades y capacidades', '技能与能力', 'المهارات والقدرات'}
 	'desc.agents':             I18nRow{'Agents and roles', 'Agentes y roles', '代理与角色', 'الوكلاء والأدوار'}
 	'desc.mcp':                I18nRow{'Providers, health and secrets', 'Proveedores, salud y claves', '提供方、健康与密钥', 'المزودون والصحة والأسرار'}
@@ -1199,7 +1199,7 @@ const i18n_table = {
 	'act.approve':             I18nRow{'Y', 'S', '准', 'نعم'}
 	'act.deny':                I18nRow{'N', 'N', '驳', 'لا'}
 	// palette — 33 commands, fully translated (ES/中文/عربي)
-	'palette.world':           I18nRow{'Go to World', 'Ir a Mundo', '前往世界', 'اذهب إلى العالم'}
+	'palette.world':           I18nRow{'Go to Office', 'Ir a Oficina', '前往办公室', 'اذهب إلى المكتب'}
 	'palette.skills':          I18nRow{'Go to Skills', 'Ir a Habilidades', '前往技能', 'اذهب إلى المهارات'}
 	'palette.agents':          I18nRow{'Go to Agents', 'Ir a Agentes', '前往代理', 'اذهب إلى الوكلاء'}
 	'palette.mcp':             I18nRow{'Go to MCP', 'Ir a MCP', '前往提供方', 'اذهب إلى المزودين'}
@@ -1234,7 +1234,7 @@ const i18n_table = {
 	'palette.completion':      I18nRow{'Completion — bash/zsh/fish', 'Autocompletado — bash/zsh/fish', '补全 — bash/zsh/fish', 'الإكمال — bash/zsh/fish'}
 	'palette.cozy':            I18nRow{'Cozy — toggle warm wood', 'Cozy — madera cálida', '温馨 — 暖木切换', 'الدفء — خشب دافئ'}
 	// palette — descriptions (nav, short)
-	'pdesc.world':             I18nRow{'Office floor, desks and handoffs', 'Planta, escritorios y entregas', '办公区 · 工位与交接', 'الأرضية والمكاتب والتسليمات'}
+	'pdesc.world':             I18nRow{'Attention, active agents, and recent work', 'Atención, agentes activos y trabajo reciente', '关注事项、活动中的代理和近期工作', 'الانتباه والوكلاء النشطون والعمل الأخير'}
 	'pdesc.skills':            I18nRow{'Search and install skills', 'Buscar e instalar habilidades', '搜索并安装技能', 'ابحث وثبّت المهارات'}
 	'pdesc.agents':            I18nRow{'Browse holistic and specialist', 'Explorar globales y especialistas', '浏览全能与专项', 'تصفح الشامل والمتخصص'}
 	'pdesc.mcp':               I18nRow{'Providers and health', 'Proveedores y salud', '提供方与健康', 'المزودون والصحة'}
@@ -1465,7 +1465,7 @@ fn lang_cfg(app &GuiApp, s string, cfg gg.TextCfg) gg.TextCfg {
 
 fn panel_name(i int) string {
 	return match i {
-		0 { 'World' }
+		0 { 'Office' }
 		1 { 'Skills' }
 		2 { 'Agents' }
 		3 { 'MCP' }
@@ -1478,7 +1478,7 @@ fn panel_name(i int) string {
 		10 { 'Products' }
 		11 { 'Onboarding' }
 		12 { 'Insights' }
-		else { 'World' }
+		else { 'Office' }
 	}
 }
 
@@ -1596,7 +1596,7 @@ fn panel_fw(app &GuiApp, w int) int {
 
 fn panel_desc(i int) string {
 	return match i {
-		0 { 'Floor — desks, handoffs, live activity' }
+		0 { 'What needs your attention right now' }
 		1 { 'Skills and capabilities — searchable' }
 		2 { 'Agents and roles' }
 		3 { 'MCP providers' }
@@ -1615,7 +1615,7 @@ fn panel_desc(i int) string {
 
 fn palette_items() []PaletteItem {
 	return [
-		PaletteItem{'world', 'Go to World', 'Office floor, desks and handoffs', '1'},
+		PaletteItem{'world', 'Go to Office', 'Attention, active agents, and recent work', '1'},
 		PaletteItem{'skills', 'Go to Skills', 'Search and install skills', '2'},
 		PaletteItem{'agents', 'Go to Agents', 'Browse holistic and specialist', '3'},
 		PaletteItem{'mcp', 'Go to MCP', 'Providers and health', '4'},
@@ -6650,7 +6650,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			})
 			app.gg.draw_text(fx + 34, content_y + 90, 'Complete ✓', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 			app.gg.draw_rect_filled(fx + 138, content_y + 84, 110, 22, app.pnl_card_sel)
-			app.gg.draw_text(fx + 150, content_y + 90, 'Back to World', gg.TextCfg{ color: app.pnl_text, size: 12 })
+			app.gg.draw_text(fx + 150, content_y + 90, 'Back to Office', gg.TextCfg{ color: app.pnl_text, size: 12 })
 			app.gg.draw_text(fx + 20, content_y + 112, 'Your setup is saved. You can revisit these steps from Setup at any time.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 		}
 		else {}
@@ -7725,7 +7725,7 @@ fn draw_help(mut app GuiApp, w int, h int) {
 	lines := [
 		'/  Command palette — fuzzy search ${skills_total(mut app)} skills, agents, panels (v${app.version})',
 		'Ctrl +  = / -  Zoom in/out   •   Ctrl + 0  Reset  •  Ctrl + Scroll',
-		'1 – 0 / p / i / o  Switch panel (World…Jobs, Products, Insights, Onboarding)',
+		'1 – 0 / p / i / o  Switch panel (Office…Jobs, Products, Insights, Onboarding)',
 		'T  Cycle panel appearance (Paper → Ink → System, persists)',
 		'↑  ↓  Navigate palette / floor desks  •  Enter to activate',
 		'Esc  Close palette / help / onboarding  •  H  Toggle this help',
@@ -9501,7 +9501,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				if mx >= fx + 138 && mx <= fx + 248 && my >= content_y + 84 && my <= content_y + 106 {
 					app.show_onboarding = false
 					app.selected_panel = 0
-					app.onboarding_msg = 'Back to World'
+					app.onboarding_msg = 'Back to Office'
 					return
 				}
 			}
