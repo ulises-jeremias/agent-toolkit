@@ -71,7 +71,7 @@ Classifications are recommendations requiring relevant runtime proof before clos
 
 ### S1 — Catalog truth and embedded resolution (`fix/catalog-embedded-truth`)
 
-Status: in progress. Replaces raw filesystem catalog discovery in `desktop_engine`
+Status: landed (PR #1140). Replaces raw filesystem catalog discovery in `desktop_engine`
 with the tier-aware `data_*` abstraction so embedded binaries, checkouts, XDG
 installs, and FHS installs all resolve the same bundled product truth.
 
@@ -100,7 +100,7 @@ Evidence:
 
 ### S2 — Runtime projection boundary (`fix/runtime-projection-truth`)
 
-Status: in progress. Separates mutable runtime artifacts from immutable bundled
+Status: landed (PR #1141). Separates mutable runtime artifacts from immutable bundled
 catalog data so loop worktrees, job scratch, and future runtime state never write
 into the embedded/toolkit namespace.
 
@@ -121,7 +121,7 @@ Evidence:
 
 ### S3 — Office visual recovery (`fix/office-visual-recovery`)
 
-Status: in progress. Restore the Office operational overview as the default per
+Status: landed (PR #1142). Restore the Office operational overview as the default per
 `UX_ARCHITECTURE.md`, make the floor map a visible tab-switch alternative, and
 stop implying idle agents are working.
 
@@ -151,7 +151,7 @@ Tracked in #1119.
 
 ### S5/S6 — Onboarding/workspace truth and per-domain catalog truth
 
-Status: merged (PR #1143). Fixes workspace/catalog conflations that survived S1-S3:
+Status: landed (PR #1143). Fixes workspace/catalog conflations that survived S1-S3:
 
 - `modules/desktop_engine/onboarding_service.v`: stop using `toolkit_root` as a
   fallback workspace root; workspace existence/personas are now scoped to the
@@ -167,7 +167,7 @@ Evidence:
 
 ### S7A — Evidence & receipt truth (`fix/s7a-evidence-truth`)
 
-Status: in progress. Full audit inventory and authority classification live in
+Status: landed (PR #1144). Full audit inventory and authority classification live in
 [TRUTH_LEDGER.md](TRUTH_LEDGER.md). S7A replaces every fabricated digest,
 receipt and provenance claim with real evidence:
 
@@ -210,7 +210,7 @@ Evidence:
   digest-verified; 223 real provenance entries with honest drift reporting.
 ### S7B — Targets and installation truth (`fix/s7b-targets-install-truth`)
 
-Status: in progress. The supported-target roster is now derived from the
+Status: landed (PR #1146). The supported-target roster is now derived from the
 canonical registry (`capabilities/targets/registry.yaml`, embedded and
 CI-validated) instead of a private seven-item list, and installation is real.
 
@@ -238,7 +238,7 @@ CI-validated) instead of a private seven-item list, and installation is real.
   real isolated install; `doctor_fix_test.v` locks the honest preview.
 ### S7C — Git truth (`fix/s7c-git-truth`)
 
-Status: in progress. All fabricated Git data is removed; the Git surface is
+Status: landed (PR #1147). All fabricated Git data is removed; the Git surface is
 honest about availability until a real read backend exists.
 
 - `git_service.v` (rewrite):
@@ -274,7 +274,7 @@ Evidence:
 
 ### S7D — Loops and agents catalog truth (`fix/s7d-loops-agents-truth`)
 
-Status: in progress. Loop runtime data is real or unknown, and agent catalog
+Status: landed (PR #1148). Loop runtime data is real or unknown, and agent catalog
 metadata comes only from the real catalog.
 
 - `loops_service.v`:
@@ -305,7 +305,7 @@ Evidence:
 
 ### S7E — Remaining Engine truth sweep (`fix/s7e-engine-truth`)
 
-Status: in progress. The remaining fabricated surfaces — updates, memory,
+Status: landed (PR #1149). The remaining fabricated surfaces — updates, memory,
 swarms, job outcomes and Doctor claims — are honest.
 
 - `update_service.v` (rewrite): no real release-feed reader exists, so
@@ -340,6 +340,28 @@ swarms, job outcomes and Doctor claims — are honest.
 Evidence:
 - `./make.vsh test` green (80 module tests).
 - Native desktop binary builds.
+
+### S7F — Tracker reconciliation (`fix/s7f-tracker-reconciliation`)
+
+Status: complete. GitHub backlog truth now agrees with code reality:
+
+- #1139 (`r2-office-shell`) closed as superseded — every useful change had
+  landed through the S3 and S7 slices; the branch conflicted with main and
+  failed Required CI. Preserved as historical salvage evidence.
+- #1132 (ImgBot) closed — created from a stale baseline and modified golden
+  fixtures; lossless optimization should be regenerated from fresh main with
+  pixel-equivalence proof.
+- #1097 (theme engine) verified closed — shipped via #1126/#1134.
+- #1108 (Doctor per-check fix) closed with evidence — real repairs, honest
+  dry-run previews, facet-chip category fixes; hardened by S7B.
+- #1106 (MCP drawer) closed with evidence — masking/probe/error paths
+  verified and hardened by S7A.
+- #1101 (Swarm topology) rewritten to its only remaining gap: working-status
+  must require a real runtime record, not handoff recency.
+- #1111 (golden regression) rewritten to its only remaining gap: promotion
+  to a blocking gate after 20 consecutive green runs post-recapture.
+- #1118 (master tracker) rewritten to reflect current truth; the body is the
+  canonical backlog, not the comment log.
 
 ### Recommended next steps
 
