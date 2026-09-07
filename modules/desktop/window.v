@@ -4,6 +4,7 @@ import os
 import desktop.theme
 import desktop.shell
 import desktop.nav
+import desktop.palette
 import desktop.state as app_state
 import desktop.backend
 import desktop_engine
@@ -77,6 +78,9 @@ mut:
 	dock      shell.DockLayout
 	router    &nav.Router
 	bus       &eventbus.ToolkitEventBus
+	// S4A (#1119): shared typed action & entity registry, lazily built on the
+	// boot Engine (see palette_registry()).
+	palette_reg &palette.Registry = unsafe { nil }
 }
 
 // DesktopBootArgs allows injecting seams for headless tests.
@@ -141,6 +145,16 @@ pub fn (mut d Desktop) shutdown() ! {
 // is_running reports engine running (window would be open in non-headless).
 pub fn (mut d Desktop) is_running() bool {
 	return d.engine.is_running()
+}
+
+// palette_registry returns the shared typed action & entity registry (S4A,
+// #1119), lazily built on the boot Engine. One registry drives the palette,
+// search and future entity actions; it never shells out to the CLI.
+pub fn (mut d Desktop) palette_registry() &palette.Registry {
+	if d.palette_reg == unsafe { nil } {
+		d.palette_reg = palette.new_registry(mut d.engine)
+	}
+	return d.palette_reg
 }
 
 // app_state_snapshot returns current AppState (derived within one EventBus→frame tick).

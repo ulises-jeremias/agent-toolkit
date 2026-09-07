@@ -70,8 +70,39 @@ def cli_commands() -> dict[str, str]:
 
 
 def palette_ids() -> set[str]:
+    """Palette affordance ids from both sources (S4 #1119).
+
+    S4A moved navigation rows out of the static `palette_items()` list into the
+    typed registry (`modules/desktop/palette/registry.v`); the static list keeps
+    only not-yet-migrated CLI-command rows. Coverage therefore reads both:
+    static rows from main.v and registry navigation panels from the registry
+    module. S4C (#1119) replaces this CLI-row parity with task/workflow
+    coverage of the registry's critical workflows.
+    """
     src = MAIN.read_text()
-    return set(re.findall(r"PaletteItem\{'([a-z_]+)'", src))
+    ids = set(re.findall(r"PaletteItem\{'([a-z_]+)'", src))
+    reg = (ROOT / "modules" / "desktop" / "palette" / "registry.v").read_text()
+    block = re.search(r"production_nav_panels\s*=\s*\[(.*?)\]", reg, re.DOTALL)
+    if block:
+        panels = set(re.findall(r"nav\.PanelId\.([a-z_]+)", block.group(1)))
+        # registry navigation panels map to their CLI-command affordance keys
+        panel_to_cmd = {
+            "world_view": "world",
+            "skills": "skills",
+            "agents": "agents",
+            "mcp": "mcp",
+            "targets": "targets",
+            "doctor": "doctor",
+            "jobs": "jobs",
+            "loops": "loops",
+            "swarm": "swarm",
+            "workspace": "workspace",
+            "products": "products",
+            "onboarding": "onboarding",
+            "insights": "insights",
+        }
+        ids |= {panel_to_cmd[p] for p in panels if p in panel_to_cmd}
+    return ids
 
 
 def main() -> int:

@@ -17,6 +17,10 @@ pub enum PanelId {
 	doctor
 	world_view
 	activity
+	targets
+	jobs
+	onboarding
+	insights
 	unknown
 }
 
@@ -35,6 +39,10 @@ pub fn (p PanelId) label() string {
 		.doctor { 'Doctor' }
 		.world_view { 'World View' }
 		.activity { 'Activity' }
+		.targets { 'Targets' }
+		.jobs { 'Jobs' }
+		.onboarding { 'Onboarding' }
+		.insights { 'Insights' }
 		.unknown { 'Unknown' }
 	}
 }
@@ -55,6 +63,10 @@ pub fn panel_id_from_string(s string) PanelId {
 		'doctor' { .doctor }
 		'world_view', 'worldview', 'world-view' { .world_view }
 		'activity' { .activity }
+		'targets' { .targets }
+		'jobs' { .jobs }
+		'onboarding' { .onboarding }
+		'insights' { .insights }
 		else { .unknown }
 	}
 }
@@ -82,6 +94,10 @@ pub fn default_routes() []Route {
 		Route{ panel: .doctor, plane: 'runtime', path: '/doctor' },
 		Route{ panel: .world_view, plane: 'view', path: '/world' },
 		Route{ panel: .activity, plane: 'view', path: '/activity' },
+		Route{ panel: .targets, plane: 'capability', path: '/targets' },
+		Route{ panel: .jobs, plane: 'runtime', path: '/jobs' },
+		Route{ panel: .onboarding, plane: 'capability', path: '/onboarding' },
+		Route{ panel: .insights, plane: 'view', path: '/insights' },
 	]
 }
 
