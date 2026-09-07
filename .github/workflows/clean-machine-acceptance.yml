@@ -1,0 +1,73 @@
+# #1130 — Clean-machine Desktop Acceptance (advisory until stable; never
+# weakens Required CI or Golden UI). Validates the REAL packaged artifact:
+# structural → clean-user install (receipt-backed) → xvfb GUI launch →
+# tool discovery under launcher-like PATH → uninstall with foreign-file
+# preservation. Layer D (actual desktop-menu click) stays MANUAL.
+name: Clean-machine Desktop Acceptance
+on:
+  pull_request:
+    paths:
+      - 'packaging/linux/**'
+      - 'distribution/**'
+      - 'scripts/pack_release_assets.vsh'
+      - 'scripts/clean-machine-acceptance.sh'
+      - '.github/workflows/clean-machine-acceptance.yml'
+      - 'VERSION'
+  push:
+    branches: [main]
+    paths:
+      - 'packaging/linux/**'
+      - 'distribution/**'
+      - 'scripts/pack_release_assets.vsh'
+      - 'scripts/clean-machine-acceptance.sh'
+      - '.github/workflows/clean-machine-acceptance.yml'
+      - 'VERSION'
+jobs:
+  linux-clean-machine:
+    name: Linux artifact → clean install → launch
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:24.04
+      options: --user root
+    timeout-minutes: 25
+    steps:
+      - name: Install validation deps (no toolchain in the validation env)
+        run: |
+          set -euo pipefail
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends \
+            git curl xz-utils unzip ca-certificates \
+            xvfb x11-utils xdotool imagemagick \
+            desktop-file-utils file python3
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup pinned V (build side only)
+        uses: ./.github/actions/setup-v
+      - name: Build desktop binary (build side)
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          v -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-linux-x86_64 cmd/agent-toolkit-desktop
+      - name: Pack the release-shaped artifact
+        env:
+          RELEASE_VERSION: 1.30.0
+          RELEASE_BIN_DIR: build
+          RELEASE_OUT_DIR: release-assets
+        run: ./scripts/pack_release_assets.vsh
+      - name: Run clean-machine acceptance against the packed artifact
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          # the harness copies the artifact to a neutral prefix and runs with
+          # a clean HOME/XDG and no repo in PATH; provenance is asserted
+          ./scripts/clean-machine-acceptance.sh \
+            release-assets/agent-toolkit-desktop-1.30.0-linux-x86_64.tar.gz
+      - name: Upload GUI capture + evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: clean-machine-evidence
+          path: |
+            /tmp/atk-clean-*/capture.png
+          if-no-files-found: ignore
