@@ -845,6 +845,18 @@ jobs:
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
 
+      # S4C (#1119): the Desktop shell test suite (incl. the registry
+      # reachability gate) compiles gg/sokol, which needs X11/GL dev headers
+      # on Linux. Mirrors the Golden UI job's dependency list (headers only —
+      # no xdotool/xvfb needed: tests run headless).
+      - name: Install X11/GL dev headers (Desktop shell tests)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            xorg-dev libgl1-mesa-dev libegl1-mesa-dev
+
       - name: vet and test
         env:
           VMODULES: ${{ github.workspace }}/modules

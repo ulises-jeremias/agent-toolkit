@@ -94,18 +94,61 @@ def strip_v_comments(src: str) -> str:
     return "\n".join(line.split("//")[0] for line in src.splitlines())
 
 
+def v_declarations(src: str) -> set[str]:
+    """Collect actual V function declarations, enum members and consts.
+
+    Works on comment-stripped source and matches declarations — not arbitrary
+    substrings — so a commented-out function can never satisfy the report.
+    """
+    out: set[str] = set()
+    for line in strip_v_comments(src).splitlines():
+        s = line.strip()
+        m = re.match(r"(?:pub\s+)?fn\s+(?:\([^)]*\)\s*)?([A-Za-z0-9_]+)\s*\(", s)
+        if m:
+            out.add(m.group(1))
+            continue
+        m2 = re.fullmatch(r"([a-z_0-9]+),?", s)
+        if m2:
+            out.add(m2.group(1))
+            continue
+        m3 = re.match(r"const\s+([a-z_0-9]+)\s*=", s)
+        if m3:
+            out.add(m3.group(1))
+    return out
+
+
+def engine_seam_sources() -> list[Path]:
+    """The typed Engine seams the registry actions invoke (S4B/S4C)."""
+    return sorted((ROOT / "modules" / "desktop_engine").glob("*.v"))
+
+
 def main() -> int:
-    reg, act, gate = read(REG), read(ACT), read(GATE)
+    reg_raw, act_raw, gate_raw = read(REG), read(ACT), read(GATE)
     main_src = strip_v_comments(read(MAIN))
-    if not reg or not act:
+    if not reg_raw or not act_raw:
         print("error: registry/action definitions not found", file=sys.stderr)
         return 2
+    # declarations/members only — commented-out code never counts. The
+    # backing universe includes the typed Engine seams the actions invoke.
+    backing: set[str] = set()
+    calls = ""
+    for p in [REG, ACT, MAIN, *engine_seam_sources()]:
+        src = read(p)
+        backing |= v_declarations(src)
+        calls += strip_v_comments(src) + "\n"
 
     rows: list[tuple[str, str, str]] = []
     missing: list[str] = []
+    gate_fns = v_declarations(gate_raw)
     for wf, (needs, gate_fn) in sorted(WORKFLOWS.items()):
-        unbacked = [n for n in needs if n not in reg and n not in act and n not in main_src]
-        gated = gate_fn in gate
+        unbacked = []
+        for n in needs:
+            if n.endswith("("):
+                if n not in calls:
+                    unbacked.append(n)
+            elif n not in backing:
+                unbacked.append(n)
+        gated = gate_fn in gate_fns
         if unbacked:
             status, via = "MISSING", ",".join(unbacked)
             missing.append(wf)
