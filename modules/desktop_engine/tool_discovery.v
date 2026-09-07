@@ -217,6 +217,32 @@ pub fn (mut e Engine) tool_discovery_catalog() []ToolDiscovery {
 	return out
 }
 
+// discovery TTL: the session environment is process-scoped and effectively
+// static; rendering calls the catalog every frame, so results are cached —
+// a version probe must NEVER spawn processes at frame rate (#1163 review).
+const discovery_cache_ttl_ms = 60_000
+
+// tool_discovery_catalog_cached returns the catalog through a TTL cache.
+// Rendering surfaces use this; tests and explicit refresh use the uncached
+// tool_discovery_catalog().
+pub fn (mut e Engine) tool_discovery_catalog_cached() []ToolDiscovery {
+	e.mu.lock()
+	now := time.now().unix_milli()
+	fresh := e.discovery_cache.len > 0 && now - e.discovery_cache_at < discovery_cache_ttl_ms
+	if fresh {
+		out := e.discovery_cache.clone()
+		e.mu.unlock()
+		return out
+	}
+	e.mu.unlock()
+	out := e.tool_discovery_catalog()
+	e.mu.lock()
+	e.discovery_cache = out.clone()
+	e.discovery_cache_at = now
+	e.mu.unlock()
+	return out
+}
+
 // path_entries returns the count of PATH entries in this Desktop session
 // (evidence only; the individual entries are local diagnostic detail and are
 // not rendered wholesale).

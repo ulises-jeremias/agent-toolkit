@@ -4226,7 +4226,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	// S4D… er, #1129: typed tool discovery — one authoritative detector
 	mut disco_map := map[string]desktop_engine.ToolDiscovery{}
 	if app.desktop != unsafe { nil } {
-		for d in app.desktop.engine_tool_discovery_catalog() {
+		for d in app.desktop.engine_tool_discovery_catalog_cached() {
 			disco_map[d.id] = d
 		}
 	}

@@ -377,7 +377,14 @@ pub fn (mut d Desktop) engine_target_enabled(target_id string) bool {
 }
 
 // engine_tool_discovery_catalog exposes typed tool discovery for Desktop
-// surfaces (#1129): one authoritative detector, catalog-driven roster.
+// surfaces (#1129) through the TTL cache — rendering calls this every frame
+// and version probes must never spawn at frame rate.
+pub fn (mut d Desktop) engine_tool_discovery_catalog_cached() []desktop_engine.ToolDiscovery {
+	return d.engine.tool_discovery_catalog_cached()
+}
+
+// engine_tool_discovery_catalog_uncached forces a fresh discovery pass
+// (tests and explicit refresh).
 pub fn (mut d Desktop) engine_tool_discovery_catalog() []desktop_engine.ToolDiscovery {
 	return d.engine.tool_discovery_catalog()
 }

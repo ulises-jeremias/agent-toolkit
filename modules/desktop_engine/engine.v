@@ -50,6 +50,10 @@ mut:
 	ctx    context.Context
 	cancel context.CancelFn
 	// watcher config cached from EngineConfig
+	// #1129: tool-discovery cache (TTL) — rendering calls the catalog every
+	// frame; version probes must never spawn at frame rate
+	discovery_cache     []ToolDiscovery
+	discovery_cache_at  i64
 	watcher_paths       []string
 	watcher_poll_ms     int = 500
 	watcher_debounce_ms int = 100
