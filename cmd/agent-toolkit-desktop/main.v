@@ -7770,8 +7770,9 @@ fn activate_palette_selection(mut app GuiApp) {
 	if sel.is_entity {
 		idx := panel_index_for(sel.panel)
 		if idx >= 0 {
-			app.selected_panel = idx
-			app.show_onboarding = sel.panel == .onboarding
+			// shared panel-selection transition (clears desk selection, focus
+			// and onboarding state exactly like dock navigation)
+			select_panel(mut app, idx)
 		}
 		app.palette_open = false
 		app.palette_query = ''
