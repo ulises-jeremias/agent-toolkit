@@ -24,6 +24,7 @@ pub enum SwarmRecipeKind {
 
 // SwarmRunStatus is runtime status for swarm runs.
 pub enum SwarmRunStatus {
+	requested
 	pending
 	running
 	awaiting_approval
@@ -488,6 +489,9 @@ pub fn (mut e Engine) swarm_list() []SwarmRun {
 			backend: swarm_backend_from_string(backend_str)
 			task: task
 			status: match status_str {
+				// 'requested' is the honest launch state: the engine recorded
+				// the request but no backend worker is proven running yet
+				'requested' { SwarmRunStatus.requested }
 				'running' { SwarmRunStatus.running }
 				'awaiting_approval' { SwarmRunStatus.awaiting_approval }
 				'completed' { SwarmRunStatus.completed }

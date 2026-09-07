@@ -173,6 +173,10 @@ mut:
 	actions  []PaletteAction
 	revision u64
 	builds   u64
+	// Install injection seams for tests ('' = real user home / config
+	// authority), mirroring InstallOptionsEngine's own injection design.
+	install_home_dir    string
+	install_receipt_dir string
 }
 
 // new_registry binds a registry to an Engine.
