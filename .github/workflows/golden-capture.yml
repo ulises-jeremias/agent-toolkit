@@ -1,0 +1,32 @@
+name: Golden capture (temporary — #1163 fixture recapture)
+on:
+  workflow_dispatch:
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install X11/GL + capture deps
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            xorg-dev libgl1-mesa-dev libegl1-mesa-dev \
+            xdotool imagemagick xvfb
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+      - name: Build desktop binary
+        run: |
+          set -euo pipefail
+          v -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
+      - name: Capture paper fixtures
+        run: ./scripts/golden.sh capture
+      - name: Capture ink fixtures
+        run: ATK_GOLDEN_THEME=ink ./scripts/golden.sh capture
+      - name: Upload captured fixtures
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: golden-captured
+          path: tests/golden/
+          if-no-files-found: error
