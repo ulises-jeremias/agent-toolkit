@@ -18,7 +18,7 @@ runs:
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/vlang-master
-        key: setup-v-master-78e581e70-${{ runner.os }}-${{ runner.arch }}
+        key: setup-v-master-c0e47bf25-${{ runner.os }}-${{ runner.arch }}
     - name: Install pinned V from GitHub Release
       shell: bash
       env:
@@ -48,10 +48,10 @@ runs:
                 "${VBIN}" version
                 exit 0
               fi
-              echo "Installing V from vlang/v — checkout the pinned known-good HEAD 78e581e (master drifts: v3/fastc WIP broke the build on 2026-09-03)"
+              echo "Installing V from vlang/v — checkout the pinned known-good HEAD c0e47bf (bumped 2026-09-07: 78e581e predates the v1_fallback bootstrap change and no longer builds against current vc)"
               rm -rf "${VDIR}"
               git clone --filter=blob:none --no-checkout https://github.com/vlang/v "${VDIR}"
-              git -C "${VDIR}" checkout --detach 78e581e
+              git -C "${VDIR}" checkout --detach c0e47bf255954df8b5453274b73d1a89a343f408
               # vlang's makefile re-pulls vc/tcc from moving upstream HEADs; one
               # retry rides out transient breakage. A persistent failure is
               # surfaced loudly so the pin can be bumped instead of silently
