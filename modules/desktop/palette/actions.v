@@ -688,7 +688,16 @@ fn (mut r Registry) execute_seam(kind EntityKind, entity_id string, action Actio
 			}
 		}
 		.loop_schedule_toggle {
-			rev := r.engine.toggle_loop_cron(entity_id, args.enabled) or {
+			// one-click schedule toggle: read the real cron state and flip it
+			// (configuration truth), like the other Engine toggles
+			mut target_enabled := true
+			for l in r.engine.loops_catalog() {
+				if l.name == entity_id {
+					target_enabled = !l.cron_enabled
+					break
+				}
+			}
+			rev := r.engine.toggle_loop_cron(entity_id, target_enabled) or {
 				return ActionOutcome{
 					status: .failed
 					summary: err.msg()
@@ -696,7 +705,7 @@ fn (mut r Registry) execute_seam(kind EntityKind, entity_id string, action Actio
 			}
 			return ActionOutcome{
 				status: .succeeded
-				summary: 'schedule ${if args.enabled { 'enabled' } else { 'disabled' }} for ${entity_id}'
+				summary: 'schedule ${if target_enabled { 'enabled' } else { 'disabled' }} for ${entity_id}'
 				evidence: ActionEvidence{
 					revision: rev
 				}

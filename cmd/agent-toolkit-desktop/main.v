@@ -906,8 +906,13 @@ mut:
 	// S4A (#1119): shared typed action & entity registry — the palette's data
 	// source. Static rows remain only for entries not yet migrated.
 	palette_reg &palette.Registry = unsafe { nil }
-	mouse_x     int
-	mouse_y     int
+	// S4B contextual action flow state
+	palette_expanded    string // entity row id with expanded actions ('' = collapsed)
+	palette_preview     []string // preview mode lines (len 0 = list mode)
+	palette_preview_for string // action id the open preview belongs to
+	palette_armed       string // action id armed for confirmation ('' = none)
+	mouse_x             int
+	mouse_y             int
 	// dedupe: C backends set char_code on key_down AND send .char — keep one per frame
 	last_keydown_char    u32
 	last_keydown_frame   int
@@ -1623,6 +1628,11 @@ struct PaletteRow {
 	panel              nav.PanelId
 	available          bool
 	unavailable_reason string
+	// S4B contextual action row (derived from a registry action)
+	is_action     bool
+	action_kind   palette.ActionKind
+	needs_preview bool
+	needs_confirm bool
 }
 
 // panel_index_for maps a registry panel destination to the production panel
@@ -1717,7 +1727,7 @@ fn filtered_palette(mut app GuiApp) []PaletteRow {
 		}
 	}
 	if q == '' {
-		return scored
+		return expand_palette_actions(mut app, scored)
 	}
 	// manual sort to avoid V3 generic monomorphize segfault (see swarm_service fix)
 	for i := 1; i < scored.len; i++ {
@@ -1729,7 +1739,55 @@ fn filtered_palette(mut app GuiApp) []PaletteRow {
 			j--
 		}
 	}
-	return scored
+	return expand_palette_actions(mut app, scored)
+}
+
+// expand_palette_actions inserts the contextual actions of the expanded
+// entity row directly beneath it (S4B). Expansion follows the row: when the
+// query filters the entity out, the actions go with it.
+fn expand_palette_actions(mut app GuiApp, rows []PaletteRow) []PaletteRow {
+	if app.palette_expanded == '' || app.palette_reg == unsafe { nil } {
+		return rows
+	}
+	mut out := []PaletteRow{}
+	for row in rows {
+		out << row
+		if row.is_entity && !row.is_action && row.id == app.palette_expanded {
+			for a in app.palette_reg.actions_for(row.kind, row.entity_id) {
+				desc := if a.available {
+					a.desc
+				} else {
+					'unavailable — ${a.unavailable_reason}'
+				}
+				hint := if !a.available {
+					desc
+				} else if a.needs_preview {
+					'${desc} — Enter to preview'
+				} else if a.needs_confirm {
+					'${desc} — Enter twice to confirm'
+				} else {
+					desc
+				}
+				out << PaletteRow{
+					id: a.action_id()
+					label: '  ↳ ${a.label}'
+					desc: hint
+					score: row.score
+					is_entity: true
+					kind: a.entity_kind
+					entity_id: a.entity_id
+					panel: a.panel
+					available: a.available
+					unavailable_reason: a.unavailable_reason
+					is_action: true
+					action_kind: a.kind
+					needs_preview: a.needs_preview
+					needs_confirm: a.needs_confirm
+				}
+			}
+		}
+	}
+	return out
 }
 
 fn desks_for_app(app &GuiApp) []Desk {
@@ -7638,6 +7696,21 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	}
 	qcol := if app.palette_query == '' { app.pnl_text_mut } else { app.pnl_bg }
 	app.gg.draw_text(cx + 20, cy + 42, '› ${q}', gg.TextCfg{ color: qcol, size: scaled_size(14, z) })
+	// S4B preview mode: show the real dry-run/diff lines instead of rows.
+	if app.palette_preview.len > 0 {
+		app.gg.draw_text(cx + 20, cy + 62, 'Preview — nothing applied yet', gg.TextCfg{ color: app.pnl_select, size: scaled_size(12, z), bold: true })
+		for pi, line in app.palette_preview {
+			if pi >= 7 {
+				break
+			}
+			app.gg.draw_text(cx + 20, cy + 84 + pi * 18, line, gg.TextCfg{ color: app.pnl_text, size: scaled_size(11, z), mono: true })
+		}
+		if app.palette_preview.len > 7 {
+			app.gg.draw_text(cx + 20, cy + 84 + 7 * 18, '… ${app.palette_preview.len - 7} more lines', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(10, z) })
+		}
+		app.gg.draw_text(cx + 16, cy + ph - 16, 'Enter to execute  •  Esc back — the preview is a real dry-run, nothing was written', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(11, z) })
+		return
+	}
 	filtered := filtered_palette(mut app)
 	for i, it in filtered {
 		if i >= 7 {
@@ -7715,8 +7788,15 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	if filtered.len == 0 {
 		app.gg.draw_text(cx + 20, cy + 86, 'No matches — try another query', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(13, z) })
 	}
-	// footer hint paper tape
-	app.gg.draw_text(cx + 16, cy + ph - 16, '↑↓ navigate  •  Enter to open  •  Type to filter ${skills_total(mut app)} skills  •  Ctrl± zoom', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(11, z) })
+	// footer hint paper tape — reflects the S4B action state honestly
+	footer := if app.palette_armed != '' {
+		'Enter again to confirm  •  Esc to cancel'
+	} else if filtered.any(it.is_entity && !it.is_action) {
+		'↑↓ navigate  •  Enter to open  •  Tab expand actions  •  Type to filter ${skills_total(mut app)} skills  •  Ctrl± zoom'
+	} else {
+		'↑↓ navigate  •  Enter to open  •  Type to filter ${skills_total(mut app)} skills  •  Ctrl± zoom'
+	}
+	app.gg.draw_text(cx + 16, cy + ph - 16, footer, gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(11, z) })
 }
 
 fn draw_help(mut app GuiApp, w int, h int) {
@@ -7765,18 +7845,28 @@ fn activate_palette_selection(mut app GuiApp) {
 		app.palette_selected
 	}
 	sel := filtered[clamped]
+	// S4B: contextual action rows run through preview → confirm → execute.
+	if sel.is_action {
+		run_palette_action(mut app, sel)
+		return
+	}
 	// S4A: registry rows navigate to their typed panel destination. Entity
-	// rows open the owning panel; deep-linked contextual actions land in S4B.
+	// rows open the owning panel and deep-link the canonical entity (S4B).
 	if sel.is_entity {
 		idx := panel_index_for(sel.panel)
 		if idx >= 0 {
 			// shared panel-selection transition (clears desk selection, focus
 			// and onboarding state exactly like dock navigation)
 			select_panel(mut app, idx)
+			deep_link_select(mut app, sel.kind, sel.entity_id)
 		}
 		app.palette_open = false
 		app.palette_query = ''
 		app.palette_selected = 0
+		app.palette_expanded = ''
+		app.palette_preview = []
+		app.palette_preview_for = ''
+		app.palette_armed = ''
 		return
 	}
 	match sel.id {
@@ -7803,6 +7893,130 @@ fn activate_palette_selection(mut app GuiApp) {
 	app.palette_open = false
 	app.palette_query = ''
 	app.palette_selected = 0
+}
+
+// run_palette_action drives the S4B contextual action flow:
+// preview (real dry-run) → confirmation for mutating actions → execution.
+// Confirmation never comes silently: either the preview was shown or the
+// user pressed Enter twice.
+fn run_palette_action(mut app GuiApp, sel PaletteRow) {
+	if app.palette_reg == unsafe { nil } {
+		return
+	}
+	// unavailable actions never arm and never execute — say why, once
+	if !sel.available {
+		app.inspector_msg = 'Unavailable — ${sel.unavailable_reason}'
+		return
+	}
+	// swarm launch needs a real task-text input (plus recipe/backend choices)
+	// — the palette cannot provide that honestly, so route to the swarm
+	// panel launch form, which executes through the same Engine seam and
+	// records the launch as requested
+	if sel.action_kind == .swarm_launch {
+		select_panel(mut app, 8)
+		reset_palette_action_state(mut app)
+		app.inspector_msg = 'Swarm launch — set task, recipe and backend here; the Engine records the request as requested'
+		return
+	}
+	// an open preview means the user has seen the real effects — Enter now
+	// executes as informed confirmation
+	if app.palette_preview.len > 0 && app.palette_preview_for == sel.id {
+		execute_palette_action(mut app, sel)
+		return
+	}
+	if sel.needs_preview && sel.available {
+		lines := app.palette_reg.preview(sel.action_kind, sel.entity_id) or {
+			app.inspector_msg = 'Preview unavailable: ${err.msg()}'
+			return
+		}
+		app.palette_preview = lines
+		app.palette_preview_for = sel.id
+		return
+	}
+	if sel.needs_confirm {
+		if app.palette_armed == sel.id {
+			execute_palette_action(mut app, sel)
+			return
+		}
+		app.palette_armed = sel.id
+		return
+	}
+	execute_palette_action(mut app, sel)
+}
+
+// execute_palette_action executes through the typed registry (Engine seams)
+// and surfaces the truthful outcome. Failures never render as success.
+fn execute_palette_action(mut app GuiApp, sel PaletteRow) {
+	if app.palette_reg == unsafe { nil } {
+		return
+	}
+	args := palette.ActionArgs{
+		confirm: true
+		task: app.palette_query.trim_space()
+	}
+	out := app.palette_reg.execute(sel.kind, sel.entity_id, sel.action_kind, args) or {
+		app.inspector_msg = 'Failed: ${err.msg()}'
+		reset_palette_action_state(mut app)
+		return
+	}
+	prefix := match out.status {
+		.succeeded { '' }
+		.partial { 'Partial — ' }
+		.failed { 'Failed — ' }
+		.unavailable { 'Unavailable — ' }
+		.not_confirmed { 'Not confirmed — ' }
+	}
+	ev := out.evidence
+	detail := if ev.receipt_path != '' {
+		' · receipt ${ev.receipt_path}'
+	} else if ev.run_id != '' {
+		' · run ${ev.run_id}'
+	} else if ev.job_id != '' {
+		' · job ${ev.job_id}'
+	} else {
+		''
+	}
+	app.inspector_msg = '${prefix}${out.summary}${detail}'
+	reset_palette_action_state(mut app)
+}
+
+// reset_palette_action_state closes the palette and clears the action flow.
+fn reset_palette_action_state(mut app GuiApp) {
+	app.palette_open = false
+	app.palette_query = ''
+	app.palette_selected = 0
+	app.palette_expanded = ''
+	app.palette_preview = []
+	app.palette_preview_for = ''
+	app.palette_armed = ''
+}
+
+// deep_link_select resolves the canonical entity identity in its owning
+// panel: selection is set by identity lookup, never by display strings.
+fn deep_link_select(mut app GuiApp, kind palette.EntityKind, id string) {
+	match kind {
+		.skill {
+			entries := skills_filtered_entries(mut app)
+			for idx, e in entries {
+				if e.id == id {
+					app.skills_selected = idx
+					return
+				}
+			}
+			// narrow the panel to the canonical id so the entity is findable
+			app.skills_query = id
+			app.skills_selected = 0
+		}
+		.agent {
+			// the agents panel shares the search field; filter to the
+			// canonical agent id (Engine search by identity)
+			app.skills_query = id
+		}
+		.target {
+			app.skills_query = id
+		}
+		else {}
+	}
 }
 
 // is_panel_nav_key reports whether c is a documented global panel shortcut
@@ -7897,6 +8111,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		if app.palette_open {
 			if e.key_code == .escape {
+				// S4B: Esc unwinds the innermost palette context first —
+				// preview mode, then expansion, then the palette itself
+				if app.palette_preview.len > 0 {
+					app.palette_preview = []
+					app.palette_preview_for = ''
+					app.palette_armed = ''
+					return
+				}
+				if app.palette_expanded != '' {
+					app.palette_expanded = ''
+					return
+				}
 				app.palette_open = false
 				app.palette_query = ''
 				app.palette_selected = 0
@@ -7904,6 +8130,25 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			if e.key_code == .enter {
 				activate_palette_selection(mut app)
+				return
+			}
+			if e.key_code == .tab {
+				// S4B: expand/collapse contextual actions of the selected
+				// registry entity row
+				filtered_tab := filtered_palette(mut app)
+				if app.palette_selected >= 0 && app.palette_selected < filtered_tab.len {
+					sel_tab := filtered_tab[app.palette_selected]
+					if sel_tab.is_entity && !sel_tab.is_action {
+						app.palette_expanded = if app.palette_expanded == sel_tab.id {
+							''
+						} else {
+							sel_tab.id
+						}
+						app.palette_preview = []
+						app.palette_preview_for = ''
+						app.palette_armed = ''
+					}
+				}
 				return
 			}
 			if e.key_code == .backspace {
@@ -9966,12 +10211,30 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						// Run button
 						if mx >= fx + fw - 108 && mx <= fx + fw - 64 && my >= y + 44 && my <= y + 60 {
 							entry := loops[idx]
-							app.inspector_msg = 'Loop run queued: ${entry.name} via Engine.run_loop() → job (legacy budgets tok=${entry.budget.max_tokens} runs=${entry.budget.max_runs_per_day} wall=${entry.budget.max_wall_seconds})'
+							// S4B truth fix: Run executes the real Engine
+							// operation; feedback comes from its actual result
+							// and failures are never rendered as success
+							job_id := app.desktop.loop_run(entry.name) or {
+								app.inspector_msg = 'Loop ${entry.name} failed to start: ${err.msg()}'
+								return
+							}
+							app.inspector_msg = 'Loop run started: ${entry.name} — job ${job_id}'
 							return
 						}
 						if mx >= fx + fw - 58 && mx <= fx + fw - 14 && my >= y + 44 && my <= y + 60 {
 							entry := loops[idx]
-							app.inspector_msg = 'Loop schedule toggled: ${entry.name} cron ${entry.schedule} via Engine.toggle_loop_cron()'
+							// S4B truth fix: the schedule toggle writes real
+							// cron configuration via the Engine
+							next_enabled := !entry.cron_enabled
+							app.desktop.toggle_loop_cron(entry.name, next_enabled) or {
+								app.inspector_msg = 'Loop ${entry.name} schedule failed: ${err.msg()}'
+								return
+							}
+							app.inspector_msg = 'Loop schedule ${if next_enabled {
+								'enabled'
+							} else {
+								'disabled'
+							}}: ${entry.name}'
 							return
 						}
 						app.inspector_msg = 'Loop selected: ${loops[idx].name} • L${loops[idx].tier.str().to_upper()} • ${loops[idx].budget.max_tokens} tok • ${loops[idx].budget.max_runs_per_day}/d • ${loops[idx].budget.max_wall_seconds}s'
