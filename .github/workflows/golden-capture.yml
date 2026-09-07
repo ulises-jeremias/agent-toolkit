@@ -19,6 +19,8 @@ jobs:
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
       - name: Build desktop binary
+        env:
+          VMODULES: ${{ github.workspace }}/modules
         run: |
           set -euo pipefail
           v -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
