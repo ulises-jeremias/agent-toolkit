@@ -43,7 +43,11 @@ runs:
               }
               if vcache_ok; then
                 echo "Using cached pinned V build at ${VDIR}"
-                echo "VBIN=${VDIR}/v" >> "${GITHUB_ENV}"
+                # GITHUB_ENV changes only apply to later steps; keep VBIN a
+                # shell variable so the same-step version check works with
+                # `set -u` (see #1154 CI failure: "VBIN: unbound variable").
+                VBIN="${VDIR}/v"
+                echo "VBIN=${VBIN}" >> "${GITHUB_ENV}"
                 echo "${VDIR}" >> "${GITHUB_PATH}"
                 "${VBIN}" version
                 exit 0
