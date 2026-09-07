@@ -428,6 +428,47 @@ fn test_fresh_engine_no_fabricated_runtime_actions() {
 	assert entries.filter(it.kind == .swarm_run).len == 0
 }
 
+// 12. application-level actions are honest (S4C).
+fn test_app_actions_honest() {
+	mut fe := new_s4b_engine('app')
+	defer {
+		fe.cleanup()
+	}
+	mut reg := new_registry(mut fe.eng)
+	// update: honestly unavailable — no fake check result, no mutation
+	out := reg.execute(.app, 'agent-toolkit', .app_update_check, ActionArgs{}) or {
+		panic(err.msg())
+	}
+	assert out.status == .unavailable
+	assert out.summary.contains('No update feed/updater')
+	// theme: the shell executes appearance changes; the module never fakes a
+	// domain result for it
+	if _ := reg.execute(.app, 'agent-toolkit', .app_theme_cycle, ActionArgs{}) {
+		assert false, 'theme cycle must not execute as a fake domain action'
+	} else {
+		assert err.msg().contains('shell')
+	}
+	// uninstall: preview is a real dry-run (nothing deleted); execution is
+	// only ever attempted with confirm — and tests never run a real uninstall
+	acts := reg.actions_for(.app, 'agent-toolkit')
+	un := find_action(acts, .app_uninstall) or { panic('app_uninstall missing') }
+	assert un.needs_preview && un.needs_confirm
+	if un.available {
+		before := reg.engine.uninstall_candidates().len
+		pv := reg.preview(.app_uninstall, 'agent-toolkit') or { panic(err.msg()) }
+		assert pv.len > 0
+		// dry-run execution (explicitly confirmed) reports success without
+		// deleting anything
+		dr := reg.execute(.app, 'agent-toolkit', .app_uninstall, ActionArgs{
+			confirm: true
+			dry_run: true
+		}) or { panic(err.msg()) }
+		assert dr.status == .succeeded
+		assert dr.summary.contains('nothing was deleted')
+		assert reg.engine.uninstall_candidates().len == before
+	}
+}
+
 // 11. unknown entity → no actions, honest empty (not fabricated defaults).
 fn test_unknown_entity_has_no_actions() {
 	mut fe := new_s4b_engine('unknown')

@@ -348,6 +348,17 @@ pub fn (mut d Desktop) toggle_loop_cron(name string, enabled bool) !u64 {
 	return d.engine.toggle_loop_cron(name, enabled)
 }
 
+// engine_upsert_loop creates or updates a loop template via the Engine.
+pub fn (mut d Desktop) engine_upsert_loop(entry desktop_engine.LoopEntry) !u64 {
+	return d.engine.upsert_loop(entry)
+}
+
+// engine_target_install_supported reports whether a target can be installed
+// through the Engine install flow (registry availability truth, S4B).
+pub fn (mut d Desktop) engine_target_install_supported(target_id string) bool {
+	return d.engine.target_install_supported(target_id)
+}
+
 // inner_loops_for returns inner loops map snapshot for a swarm run (via State keys).
 pub fn (mut d Desktop) inner_loops_for(run_id string) map[string]string {
 	snap := d.engine.snapshot()

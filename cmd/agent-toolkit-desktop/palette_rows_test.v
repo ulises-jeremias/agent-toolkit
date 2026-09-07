@@ -42,19 +42,20 @@ fn test_palette_merged_rows_registry_authority() {
 	assert rows[1].id == 'nav:/skills'
 	assert rows[0].is_entity
 	assert rows[0].panel == nav.PanelId.world_view
-	// legacy static rows still present (not yet migrated)
-	mut legacy_found := false
+	// S4C: the static command authority is retired — every row is
+	// registry-shaped (known action-id prefixes), no bare legacy ids
+	known_prefixes := ['nav:', 'app:', 'skill:', 'agent:', 'target:', 'mcp:', 'product:', 'pack:',
+		'loop:', 'doctor:', 'job:', 'swarm_run:', 'action:']
 	for r in rows {
-		if !r.is_entity && r.id == 'install_full' {
-			legacy_found = true
-		}
-		// no fabricated rows: every row comes from registry or legacy list
+		prefixed := known_prefixes.any(r.id.starts_with(it))
+		assert prefixed, 'non-registry row id leaked into the palette: ${r.id}'
+		// no fabricated rows: every row comes from the registry
 		assert r.label != ''
+		assert r.is_entity
 	}
-	assert legacy_found
 	// fresh engine: no fabricated runtime rows
 	for r in rows {
-		assert !(r.is_entity && (r.kind == .job || r.kind == .swarm_run))
+		assert !(r.kind == .job || r.kind == .swarm_run)
 	}
 
 	// query: registry entity identity survives fuzzy matching

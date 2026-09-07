@@ -1,144 +1,185 @@
 #!/usr/bin/env python3
-"""gui-coverage.py — CLI ↔ GUI coverage audit.
+"""gui-coverage.py — critical product workflow coverage report for the Desktop.
 
-Extracts the agent-toolkit CLI command surface from `build/agent-toolkit --help`
-and checks every command has a GUI affordance in the desktop palette
-(cmd/agent-toolkit-desktop/main.v `palette_items()`).
+Since S4 (#1119), the typed registry (modules/desktop/palette/registry.v +
+actions.v) is the sole palette/search authority: the static palette_items()
+command list was deleted. This report therefore no longer asserts CLI→palette
+row parity. It reports how each **critical product workflow** is reachable
+through the registry, by consuming the registry/action definitions themselves.
+
+The authority is the V reachability gate:
+    cmd/agent-toolkit-desktop/registry_reachability_test.v
+run by `./make.vsh test` inside Required CI (Check V Modules). This script is
+an advisory, human-readable view of the same contract — it never gates.
 
 Usage:
   python3 scripts/gui-coverage.py            # print report
-  python3 scripts/gui-coverage.py --check    # exit 1 if coverage < 100%
-
-The desktop GUI also manages commands beyond the palette (panel-scoped forms:
-skills install/toggle, MCP toggle, targets install, doctor fix, loop run/sched,
-swarm launch/approve, workspace IDE, onboarding wizard, insights tabs), so a
-missing palette row is a hint, not always a gap — the report marks those.
+  python3 scripts/gui-coverage.py --check    # exit 1 if a workflow is unbacked
 """
 
 import re
-import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+REG = ROOT / "modules" / "desktop" / "palette" / "registry.v"
+ACT = ROOT / "modules" / "desktop" / "palette" / "actions.v"
 MAIN = ROOT / "cmd" / "agent-toolkit-desktop" / "main.v"
-BIN = ROOT / "build" / "agent-toolkit"
+GATE = ROOT / "cmd" / "agent-toolkit-desktop" / "registry_reachability_test.v"
 
-# CLI command → palette id(s) / panel affordance that manages it
-COVERAGE = {
-    "install": ["install", "install_full"],
-    "update": ["update"],
-    "uninstall": ["uninstall"],
-    "doctor": ["doctor", "doctor_fix", "panel.doctor"],
-    "diff": ["diff"],
-    "skills": ["skills_sync", "panel.skills"],
-    "mcp": ["mcp_health", "panel.mcp"],
-    "plugin": ["build"],
-    "completion": ["completion"],
-    "gui": ["command_palette"],  # `agent-toolkit gui` IS this app
-    "loop": ["loop_run", "panel.loops"],
-    "workspace": ["workspace_sync", "panel.workspace"],
-    "memory": ["memory"],
-    "project": ["project_clone"],
-    "devcompanion": ["devcompanion"],
-    "insights": ["insights_cli", "panel.insights"],
-    "build": ["build"],
-    "inventory": ["inventory"],
-    "swarm": ["swarm_start", "panel.swarm"],
-    "serve": ["serve"],
-    "help": ["command_palette"],  # palette + `h` help overlay
-    "matrix": ["doctor"],  # capability matrix runs as a doctor check
+# Critical product workflow → (registry constructs that must exist, the
+# reachability-gate function that proves it). Tokens are V identifiers as
+# they literally appear in the registry/action definitions.
+WORKFLOWS: dict[str, tuple[set[str], str]] = {
+    "discover skill": (
+        {"build_skill_entries", "skills_catalog"},
+        "test_workflow_skill_discovery_install",
+    ),
+    "inspect skill (deep link)": ({"deep_link_select"}, "test_workflow_skill_discovery_install"),
+    "install skill where supported": ({"skill_install"}, "test_workflow_skill_discovery_install"),
+    "remove skill (config truth)": ({"skill_remove"}, "test_workflow_skill_discovery_install"),
+    "discover agent": ({"build_agent_entries", "agents_catalog"}, "test_workflow_agent_discovery"),
+    "inspect agent": ({"build_agent_entries"}, "test_workflow_agent_discovery"),
+    "discover target": ({"build_target_entries"}, "test_workflow_target_discovery_install_toggle"),
+    "install target where supported": (
+        {"target_install", "target_install_supported"},
+        "test_workflow_target_discovery_install_toggle",
+    ),
+    "enable/disable target": (
+        {"target_enable", "target_disable", "set_target_enabled"},
+        "test_workflow_target_discovery_install_toggle",
+    ),
+    "discover MCP provider": ({"build_mcp_entries"}, "test_workflow_mcp_discovery_toggle_probe"),
+    "enable/disable provider": (
+        {"mcp_enable", "mcp_disable"},
+        "test_workflow_mcp_discovery_toggle_probe",
+    ),
+    "probe provider": ({"mcp_probe"}, "test_workflow_mcp_discovery_toggle_probe"),
+    "Doctor preview repair": ({"doctor_fix_preview"}, "test_workflow_doctor_preview_repair"),
+    "Doctor execute repair": (
+        {"doctor_repair", "doctor_fix("},
+        "test_workflow_doctor_preview_repair",
+    ),
+    "run loop": ({"loop_run", "run_loop("}, "test_workflow_loop_run"),
+    "toggle loop schedule": (
+        {"loop_schedule_toggle", "toggle_loop_cron("},
+        "test_workflow_loop_run",
+    ),
+    "launch/request swarm": ({"swarm_launch("}, "test_workflow_swarm_launch"),
+    "navigate primary surfaces": (
+        {"production_nav_panels", "build_nav_entries"},
+        "test_workflow_skill_discovery_install",
+    ),
+    "application: theme": ({"app_theme_cycle"}, "test_workflow_app_level_actions"),
+    "application: update (honest unavailability)": (
+        {"app_update_check"},
+        "test_workflow_app_level_actions",
+    ),
+    "application: uninstall (preview+confirm)": (
+        {"app_uninstall", "uninstall_targets"},
+        "test_workflow_app_level_actions",
+    ),
 }
 
-# Commands intentionally NOT in the GUI (removed or CI-only per the CLI itself)
-INTENTIONAL_NA = {"tui", "release"}
+# The production shell must consume the registry — no static command authority.
+REMAINING_LEGACY = re.compile(r"palette_items|struct PaletteItem|palette_best_score")
 
 
-def cli_commands() -> dict[str, str]:
-    out = subprocess.run([str(BIN), "--help"], capture_output=True, text=True, timeout=30).stdout
-    cmds: dict[str, str] = {}
-    for line in out.splitlines():
-        m = re.match(r"^  ([a-z][a-z ()a-z-]*?)\s{2,}(.*)$", line)
-        if not m:
-            continue
-        names, desc = m.group(1).strip(), m.group(2).strip()
-        primary = names.split(" ")[0]
-        if primary in ("version",):
-            continue
-        cmds[primary] = desc
-    return cmds
+def read(path: Path) -> str:
+    return path.read_text() if path.exists() else ""
 
 
-def palette_ids() -> set[str]:
-    """Palette affordance ids from both sources (S4 #1119).
+def strip_v_comments(src: str) -> str:
+    """Remove // line comments so removed-name mentions don't count as code."""
+    return "\n".join(line.split("//")[0] for line in src.splitlines())
 
-    S4A moved navigation rows out of the static `palette_items()` list into the
-    typed registry (`modules/desktop/palette/registry.v`); the static list keeps
-    only not-yet-migrated CLI-command rows. Coverage therefore reads both:
-    static rows from main.v and registry navigation panels from the registry
-    module. S4C (#1119) replaces this CLI-row parity with task/workflow
-    coverage of the registry's critical workflows.
+
+def v_declarations(src: str) -> set[str]:
+    """Collect actual V function declarations, enum members and consts.
+
+    Works on comment-stripped source and matches declarations — not arbitrary
+    substrings — so a commented-out function can never satisfy the report.
     """
-    src = MAIN.read_text()
-    ids = set(re.findall(r"PaletteItem\{'([a-z_]+)'", src))
-    reg = (ROOT / "modules" / "desktop" / "palette" / "registry.v").read_text()
-    block = re.search(r"production_nav_panels\s*=\s*\[(.*?)\]", reg, re.DOTALL)
-    if block:
-        panels = set(re.findall(r"nav\.PanelId\.([a-z_]+)", block.group(1)))
-        # registry navigation panels map to their CLI-command affordance keys
-        panel_to_cmd = {
-            "world_view": "world",
-            "skills": "skills",
-            "agents": "agents",
-            "mcp": "mcp",
-            "targets": "targets",
-            "doctor": "doctor",
-            "jobs": "jobs",
-            "loops": "loops",
-            "swarm": "swarm",
-            "workspace": "workspace",
-            "products": "products",
-            "onboarding": "onboarding",
-            "insights": "insights",
-        }
-        ids |= {panel_to_cmd[p] for p in panels if p in panel_to_cmd}
-    return ids
+    out: set[str] = set()
+    for line in strip_v_comments(src).splitlines():
+        s = line.strip()
+        m = re.match(r"(?:pub\s+)?fn\s+(?:\([^)]*\)\s*)?([A-Za-z0-9_]+)\s*\(", s)
+        if m:
+            out.add(m.group(1))
+            continue
+        m2 = re.fullmatch(r"([a-z_0-9]+),?", s)
+        if m2:
+            out.add(m2.group(1))
+            continue
+        m3 = re.match(r"const\s+([a-z_0-9]+)\s*=", s)
+        if m3:
+            out.add(m3.group(1))
+    return out
+
+
+def engine_seam_sources() -> list[Path]:
+    """The typed Engine seams the registry actions invoke (S4B/S4C)."""
+    return sorted((ROOT / "modules" / "desktop_engine").glob("*.v"))
 
 
 def main() -> int:
-    if not BIN.exists():
-        print(f"error: {BIN} not found — run make.vsh build-cli first", file=sys.stderr)
+    reg_raw, act_raw, gate_raw = read(REG), read(ACT), read(GATE)
+    main_src = strip_v_comments(read(MAIN))
+    if not reg_raw or not act_raw:
+        print("error: registry/action definitions not found", file=sys.stderr)
         return 2
-    cmds = cli_commands()
-    pal = palette_ids()
-    rows, missing = [], []
-    for cmd, desc in sorted(cmds.items()):
-        want = COVERAGE.get(cmd, [])
-        hit = [p for p in want if p in pal]
-        panel = cmd in pal  # 'Go to <cmd>' palette row ⇒ dedicated panel
-        if hit:
-            rows.append((cmd, desc, "palette", ",".join(hit)))
-        elif panel:
-            rows.append((cmd, desc, "panel", f"panel.{cmd}"))
+    # declarations/members only — commented-out code never counts. The
+    # backing universe includes the typed Engine seams the actions invoke.
+    backing: set[str] = set()
+    calls = ""
+    for p in [REG, ACT, MAIN, *engine_seam_sources()]:
+        src = read(p)
+        backing |= v_declarations(src)
+        calls += strip_v_comments(src) + "\n"
+
+    rows: list[tuple[str, str, str]] = []
+    missing: list[str] = []
+    gate_fns = v_declarations(gate_raw)
+    for wf, (needs, gate_fn) in sorted(WORKFLOWS.items()):
+        unbacked = []
+        for n in needs:
+            if n.endswith("("):
+                if n not in calls:
+                    unbacked.append(n)
+            elif n not in backing:
+                unbacked.append(n)
+        gated = gate_fn in gate_fns
+        if unbacked:
+            status, via = "MISSING", ",".join(unbacked)
+            missing.append(wf)
+        elif gated:
+            status, via = "covered", "reachability gate"
         else:
-            rows.append((cmd, desc, "MISSING", ""))
-            missing.append(cmd)
-    rows = [r for r in rows if r[0] not in INTENTIONAL_NA]
-    missing = [m for m in missing if m not in INTENTIONAL_NA]
+            status, via = "backed", "registry definitions (gate function missing)"
+            missing.append(wf)
+        rows.append((wf, status, via))
+
     total = len(rows)
     covered = total - len(missing)
-    print(
-        f"# CLI ↔ GUI coverage — {covered}/{total} commands ({100 * covered // max(total, 1)}%)\n"
-    )
-    print("| CLI command | GUI affordance | via |")
+    print(f"# Critical workflow coverage — {covered}/{total} workflows backed\n")
+    print("| Workflow | Status | Via |")
     print("|---|---|---|")
-    for cmd, desc, how, via in rows:
-        mark = "✅" if how != "MISSING" else "⚠️"
-        print(f"| {mark} `{cmd}` | {desc[:60]} | {how} |")
-    if missing:
-        print("\nGaps: " + ", ".join(f"`{m}`" for m in missing))
+    for wf, status, via in rows:
+        mark = "✅" if status != "MISSING" else "⚠️"
+        print(f"| {mark} {wf} | {status} | {via} |")
+
+    legacy = REMAINING_LEGACY.findall(main_src)
+    if legacy:
+        print(
+            "\n⚠️ legacy palette authority still present in production: "
+            + ", ".join(sorted(set(legacy)))
+        )
+        missing.append("legacy authority retirement")
+    else:
+        print("\n✅ static palette authority fully retired from the production shell")
+
     if "--check" in sys.argv and missing:
-        print(f"\nFAIL: {len(missing)} CLI commands without GUI affordance", file=sys.stderr)
+        print(f"\nFAIL: {len(missing)} workflow coverage gap(s)", file=sys.stderr)
         return 1
     return 0
 
