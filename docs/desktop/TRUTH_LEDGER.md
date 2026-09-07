@@ -25,17 +25,22 @@ and unverified are valid states.
 | Runtime artifacts | `Engine.runtime_path` (derived from persist_path) | `os` (mutable scratch) |
 | Active workspace | harness root / `recent_workspace` — never `toolkit_root` | `os` with validated paths |
 
-## Status (updated 2026-09-06)
+## Status (final, 2026-09-06)
 
-| Slice | Scope | Status |
+S7 is complete. Every finding in the inventory below is resolved; the
+regression gates live in `modules/desktop_engine/*_truth_test.v` and
+`evidence_truth_test.v`.
+
+| Slice | Scope | Landed |
 |---|---|---|
-| S7A | Evidence & receipt truth | Landed (PR #1144) |
-| S7B | Targets & installation truth | Landed (PR #1146) |
-| S7C | Git truth | PR #1147 |
-| S7D | Loops & agents catalog truth | PR #1148 |
-| S7E | Remaining sweep + gates | In review |
-| S7F | Tracker reconciliation | In progress (#1097 closed, #1106/#1108 closed with evidence, #1101/#1111 rewritten to remaining gaps) |
-| S4 | Shared action/entity registry | Deferred to #1119 — begin only after S7 lands so actions expose trustworthy semantics |
+| S7A | Evidence & receipt truth | #1144 |
+| S7B | Targets & installation truth | #1146 |
+| S7C | Git truth | #1147 |
+| S7D | Loops & agents catalog truth | #1148 |
+| S7E | Remaining sweep + gates | #1149 |
+| Fixtures | Golden recapture for intentional drift | #1150 |
+| S7F | Tracker reconciliation | #1097 closed (shipped via #1126/#1134); #1106/#1108 closed with evidence; #1101/#1111 rewritten to remaining gaps; #1139/#1132 closed as superseded; #1118 rewritten |
+| S4 | Shared action/entity registry | Deferred to #1119 — the Engine now exposes trustworthy semantics, so S4 may begin |
 
 ## Contamination inventory and replacements
 
