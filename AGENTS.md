@@ -120,7 +120,7 @@ Before adding a skill:
 3. prefer enhancing an existing first-party capability over vendoring a duplicate;
 4. follow [`docs/SKILL_INTEGRATION_CHECKLIST.md`](docs/SKILL_INTEGRATION_CHECKLIST.md).
 
-A skill lives at `skills/<domain>/<skill>/SKILL.md`. Required and optional frontmatter (name, description, metadata, domain, tools, requires, triggers) is validated against [`schemas/skill-md-frontmatter.schema.json`](schemas/skill-md-frontmatter.schema.json); no legacy `skill.json` files.
+A skill lives at `skills/<domain>/<skill>/SKILL.md`. Required and optional frontmatter (name, description, metadata, domain, tools, requires, triggers) is validated against [`schemas/skill-md-frontmatter.schema.json`](schemas/skill-md-frontmatter.schema.json). Every distributable `SKILL.md` must declare `origin: {type: first-party|upstream}`: `scripts/validate-upstream.py` enforces this for every `SKILL.md` (gate 2, see [`docs/TRUST.md`](docs/TRUST.md)), although the schema keeps `origin` optional for backwards compatibility.
 
 Validate skill changes with at least:
 
