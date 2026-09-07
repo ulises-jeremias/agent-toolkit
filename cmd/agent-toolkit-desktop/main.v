@@ -768,13 +768,6 @@ struct DiffHunkRow {
 	kinds []string // context, addition, deletion, header
 }
 
-struct PaletteItem {
-	id    string
-	label string
-	desc  string
-	keys  string
-}
-
 struct TermLine {
 	ts     string
 	level  string
@@ -1089,129 +1082,108 @@ struct I18nRow {
 
 const i18n_table = {
 	// dock — 13 nameplates
-	'panel.world':             I18nRow{'World', 'Mundo', '世界', 'العالم'}
-	'panel.skills':            I18nRow{'Skills', 'Habilidades', '技能', 'المهارات'}
-	'panel.agents':            I18nRow{'Agents', 'Agentes', '代理', 'الوكلاء'}
-	'panel.mcp':               I18nRow{'MCP', 'MCP', '提供方', 'المزودون'}
-	'panel.targets':           I18nRow{'Targets', 'Destinos', '目标', 'الأهداف'}
-	'panel.doctor':            I18nRow{'Doctor', 'Doctor', '诊断', 'الفحص'}
-	'panel.jobs':              I18nRow{'Jobs', 'Trabajos', '作业', 'المهام'}
-	'panel.loops':             I18nRow{'Loops', 'Bucles', '循环', 'الحلقات'}
-	'panel.swarm':             I18nRow{'Swarm', 'Enjambre', '集群', 'السرب'}
-	'panel.workspace':         I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
-	'panel.products':          I18nRow{'Products', 'Productos', '产品', 'المنتجات'}
-	'panel.onboarding':        I18nRow{'Onboarding', 'Inicio', '引导', 'التهيئة'}
-	'panel.insights':          I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
+	'panel.world':          I18nRow{'World', 'Mundo', '世界', 'العالم'}
+	'panel.skills':         I18nRow{'Skills', 'Habilidades', '技能', 'المهارات'}
+	'panel.agents':         I18nRow{'Agents', 'Agentes', '代理', 'الوكلاء'}
+	'panel.mcp':            I18nRow{'MCP', 'MCP', '提供方', 'المزودون'}
+	'panel.targets':        I18nRow{'Targets', 'Destinos', '目标', 'الأهداف'}
+	'panel.doctor':         I18nRow{'Doctor', 'Doctor', '诊断', 'الفحص'}
+	'panel.jobs':           I18nRow{'Jobs', 'Trabajos', '作业', 'المهام'}
+	'panel.loops':          I18nRow{'Loops', 'Bucles', '循环', 'الحلقات'}
+	'panel.swarm':          I18nRow{'Swarm', 'Enjambre', '集群', 'السرب'}
+	'panel.workspace':      I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
+	'panel.products':       I18nRow{'Products', 'Productos', '产品', 'المنتجات'}
+	'panel.onboarding':     I18nRow{'Onboarding', 'Inicio', '引导', 'التهيئة'}
+	'panel.insights':       I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
 	// dock — short descriptors
-	'desc.world':              I18nRow{'Floor — desks, handoffs, live activity', 'Planta — escritorios y actividad', '办公区 · 工位与协作', 'الأرضية — المكاتب والنشاط'}
-	'desc.skills':             I18nRow{'Skills and capabilities', 'Habilidades y capacidades', '技能与能力', 'المهارات والقدرات'}
-	'desc.agents':             I18nRow{'Agents and roles', 'Agentes y roles', '代理与角色', 'الوكلاء والأدوار'}
-	'desc.mcp':                I18nRow{'Providers, health and secrets', 'Proveedores, salud y claves', '提供方、健康与密钥', 'المزودون والصحة والأسرار'}
-	'desc.targets':            I18nRow{'Coding tools and destinations', 'Herramientas y destinos', '编码工具与目标', 'أدوات البرمجة والوجهات'}
-	'desc.doctor':             I18nRow{'Health checks + fix', 'Comprobaciones y reparación', '健康检查与修复', 'فحوصات وإصلاح'}
-	'desc.jobs':               I18nRow{'Jobs & process supervisor', 'Trabajos y supervisor', '作业与进程管理', 'المهام والعمليات'}
-	'desc.loops':              I18nRow{'Loops & missions — inner/outer', 'Bucles y misiones — internos/externos', '循环任务 · 内外环', 'المهام الدورية'}
-	'desc.swarm':              I18nRow{'GOD mailbox, Herdr/tmux, teams', 'Buzón GOD, Herdr/tmux, equipos', 'GOD 信箱 · 集群协作', 'صندوق GOD والفرق'}
-	'desc.workspace':          I18nRow{'IDE — tree, editor, git rails', 'IDE — árbol, editor, git', '工作区 IDE · 编辑器', 'مساحة عمل IDE'}
-	'desc.products':           I18nRow{'Products and packs', 'Productos y paquetes', '产品与包', 'المنتجات والحزم'}
-	'desc.onboarding':         I18nRow{'Wizard — workspace to products', 'Asistente — de workspace a productos', '引导向导 · 一步到位', 'معالج الإعداد'}
-	'desc.insights':           I18nRow{'Cost, waterfall, spans, CI', 'Costos, cascada, spans, CI', '成本 · 瀑布 · CI', 'التكاليف والأداء'}
+	'desc.world':           I18nRow{'Floor — desks, handoffs, live activity', 'Planta — escritorios y actividad', '办公区 · 工位与协作', 'الأرضية — المكاتب والنشاط'}
+	'desc.skills':          I18nRow{'Skills and capabilities', 'Habilidades y capacidades', '技能与能力', 'المهارات والقدرات'}
+	'desc.agents':          I18nRow{'Agents and roles', 'Agentes y roles', '代理与角色', 'الوكلاء والأدوار'}
+	'desc.mcp':             I18nRow{'Providers, health and secrets', 'Proveedores, salud y claves', '提供方、健康与密钥', 'المزودون والصحة والأسرار'}
+	'desc.targets':         I18nRow{'Coding tools and destinations', 'Herramientas y destinos', '编码工具与目标', 'أدوات البرمجة والوجهات'}
+	'desc.doctor':          I18nRow{'Health checks + fix', 'Comprobaciones y reparación', '健康检查与修复', 'فحوصات وإصلاح'}
+	'desc.jobs':            I18nRow{'Jobs & process supervisor', 'Trabajos y supervisor', '作业与进程管理', 'المهام والعمليات'}
+	'desc.loops':           I18nRow{'Loops & missions — inner/outer', 'Bucles y misiones — internos/externos', '循环任务 · 内外环', 'المهام الدورية'}
+	'desc.swarm':           I18nRow{'GOD mailbox, Herdr/tmux, teams', 'Buzón GOD, Herdr/tmux, equipos', 'GOD 信箱 · 集群协作', 'صندوق GOD والفرق'}
+	'desc.workspace':       I18nRow{'IDE — tree, editor, git rails', 'IDE — árbol, editor, git', '工作区 IDE · 编辑器', 'مساحة عمل IDE'}
+	'desc.products':        I18nRow{'Products and packs', 'Productos y paquetes', '产品与包', 'المنتجات والحزم'}
+	'desc.onboarding':      I18nRow{'Wizard — workspace to products', 'Asistente — de workspace a productos', '引导向导 · 一步到位', 'معالج الإعداد'}
+	'desc.insights':        I18nRow{'Cost, waterfall, spans, CI', 'Costos, cascada, spans, CI', '成本 · 瀑布 · CI', 'التكاليف والأداء'}
 	// header
-	'header.tagline':          I18nRow{'Paper Co. Office', 'Oficina Paper Co.', '纸业公司办公室', 'مكتب شركة الورق'}
-	'header.search':           I18nRow{'Search skills, agents, files…', 'Buscar habilidades, agentes, archivos…', '搜索技能、代理和文件…', 'ابحث في المهارات والوكلاء والملفات…'}
-	'header.workspace':        I18nRow{'WORKSPACE', 'ESPACIO', '工作区', 'المساحة'}
-	'header.navigate':         I18nRow{'NAVIGATE', 'NAVEGAR', '导航', 'تنقل'}
-	'header.live':             I18nRow{'live', 'activo', '实时', 'مباشر'}
-	'header.commands':         I18nRow{'commands', 'comandos', '命令', 'أوامر'}
-	'header.lang':             I18nRow{'Language', 'Idioma', '语言', 'اللغة'}
+	'header.tagline':       I18nRow{'Paper Co. Office', 'Oficina Paper Co.', '纸业公司办公室', 'مكتب شركة الورق'}
+	'header.search':        I18nRow{'Search skills, agents, files…', 'Buscar habilidades, agentes, archivos…', '搜索技能、代理和文件…', 'ابحث في المهارات والوكلاء والملفات…'}
+	'header.workspace':     I18nRow{'WORKSPACE', 'ESPACIO', '工作区', 'المساحة'}
+	'header.navigate':      I18nRow{'NAVIGATE', 'NAVEGAR', '导航', 'تنقل'}
+	'header.live':          I18nRow{'live', 'activo', '实时', 'مباشر'}
+	'header.commands':      I18nRow{'commands', 'comandos', '命令', 'أوامر'}
+	'header.lang':          I18nRow{'Language', 'Idioma', '语言', 'اللغة'}
 	// grouped task navigation — six permanent destinations
-	'nav.group.office':        I18nRow{'Office', 'Oficina', '办公', 'المكتب'}
-	'nav.group.library':       I18nRow{'Library', 'Biblioteca', '资源库', 'المكتبة'}
-	'nav.group.operations':    I18nRow{'Operations', 'Operaciones', '运维', 'العمليات'}
-	'nav.group.workspace':     I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
-	'nav.group.insights':      I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
-	'nav.group.settings':      I18nRow{'Settings', 'Ajustes', '设置', 'الإعدادات'}
-	'nav.health':              I18nRow{'Health', 'Salud', '健康', 'الصحة'}
-	'nav.setup':               I18nRow{'Setup', 'Configurar', '设置', 'الإعداد'}
-	'ws.ready':                I18nRow{'ready', 'listo', '就绪', 'جاهز'}
-	'ws.setup_needed':         I18nRow{'setup needed', 'falta configurar', '需要设置', 'يحتاج إعداد'}
+	'nav.group.office':     I18nRow{'Office', 'Oficina', '办公', 'المكتب'}
+	'nav.group.library':    I18nRow{'Library', 'Biblioteca', '资源库', 'المكتبة'}
+	'nav.group.operations': I18nRow{'Operations', 'Operaciones', '运维', 'العمليات'}
+	'nav.group.workspace':  I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
+	'nav.group.insights':   I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
+	'nav.group.settings':   I18nRow{'Settings', 'Ajustes', '设置', 'الإعدادات'}
+	'nav.health':           I18nRow{'Health', 'Salud', '健康', 'الصحة'}
+	'nav.setup':            I18nRow{'Setup', 'Configurar', '设置', 'الإعداد'}
+	'ws.ready':             I18nRow{'ready', 'listo', '就绪', 'جاهز'}
+	'ws.setup_needed':      I18nRow{'setup needed', 'falta configurar', '需要设置', 'يحتاج إعداد'}
 	// status bar
-	'status.palette':          I18nRow{'palette', 'paleta', '命令面板', 'الأوامر'}
-	'status.paperco':          I18nRow{'Paper Co.', 'Paper Co.', '纸业公司', 'شركة الورق'}
-	'status.fps':              I18nRow{'60FPS', '60FPS', '60帧', '٦٠ إطار'}
+	'status.palette':       I18nRow{'palette', 'paleta', '命令面板', 'الأوامر'}
+	'status.paperco':       I18nRow{'Paper Co.', 'Paper Co.', '纸业公司', 'شركة الورق'}
+	'status.fps':           I18nRow{'60FPS', '60FPS', '60帧', '٦٠ إطار'}
 	// world floor
-	'office.view.overview':    I18nRow{'Overview', 'Resumen', '概览', 'ملخص'}
-	'office.view.floor':       I18nRow{'Floor Map', 'Planta', '平面图', 'خريطة الطابق'}
-	'office.catalog':          I18nRow{'Catalog agents', 'Agentes del catálogo', '目录代理', 'وكلاء الدليل'}
-	'world.title':             I18nRow{'Office Floor', 'Planta de oficina', '办公区平面', 'أرضية المكتب'}
-	'world.subtitle':          I18nRow{'desks • envelopes are handoffs • click a desk or use arrow keys', 'escritorios • los sobres son entregas • clica un escritorio o usa flechas', '工位 • 信封即交接 • 点击工位或方向键', 'المكاتب • الأظرف تسليمات • انقر مكتباً أو استخدم الأسهم'}
-	'world.working':           I18nRow{'working', 'trabajando', '工作中', 'يعمل'}
-	'world.idle':              I18nRow{'idle', 'libre', '空闲', 'خامل'}
-	'world.blocked':           I18nRow{'blocked', 'bloqueado', '受阻', 'معطل'}
-	'world.god':               I18nRow{'GOD — in', 'GOD — entra', 'GOD — 收', 'GOD — دخول'}
-	'world.out':               I18nRow{'out', 'sale', '发', 'خروج'}
+	'office.view.overview': I18nRow{'Overview', 'Resumen', '概览', 'ملخص'}
+	'office.view.floor':    I18nRow{'Floor Map', 'Planta', '平面图', 'خريطة الطابق'}
+	'office.catalog':       I18nRow{'Catalog agents', 'Agentes del catálogo', '目录代理', 'وكلاء الدليل'}
+	'world.title':          I18nRow{'Office Floor', 'Planta de oficina', '办公区平面', 'أرضية المكتب'}
+	'world.subtitle':       I18nRow{'desks • envelopes are handoffs • click a desk or use arrow keys', 'escritorios • los sobres son entregas • clica un escritorio o usa flechas', '工位 • 信封即交接 • 点击工位或方向键', 'المكاتب • الأظرف تسليمات • انقر مكتباً أو استخدم الأسهم'}
+	'world.working':        I18nRow{'working', 'trabajando', '工作中', 'يعمل'}
+	'world.idle':           I18nRow{'idle', 'libre', '空闲', 'خامل'}
+	'world.blocked':        I18nRow{'blocked', 'bloqueado', '受阻', 'معطل'}
+	'world.god':            I18nRow{'GOD — in', 'GOD — entra', 'GOD — 收', 'GOD — دخول'}
+	'world.out':            I18nRow{'out', 'sale', '发', 'خروج'}
 	// generic actions
-	'act.open_terminal':       I18nRow{'Open terminal', 'Abrir terminal', '打开终端', 'افتح الطرفية'}
-	'act.route':               I18nRow{'Route handoff', 'Route entrega', '路由交接', 'وجّه التسليم'}
-	'act.run':                 I18nRow{'Run', 'Ejecutar', '运行', 'شغّل'}
-	'act.sched':               I18nRow{'Sched', 'Programar', '计划', 'جدول'}
-	'act.install':             I18nRow{'install', 'instalar', '安装', 'ثبّت'}
-	'act.remove':              I18nRow{'remove', 'quitar', '移除', 'أزل'}
-	'act.cancel':              I18nRow{'Cancel', 'Cancelar', '取消', 'إلغاء'}
-	'act.retry':               I18nRow{'Retry', 'Reintentar', '重试', 'أعد'}
-	'act.fix_all':             I18nRow{'Fix All', 'Reparar todo', '全部修复', 'أصلح الكل'}
-	'act.new_loop':            I18nRow{'+ New Loop', '+ Nuevo bucle', '+ 新循环', '+ حلقة جديدة'}
-	'act.approve':             I18nRow{'Y', 'S', '准', 'نعم'}
-	'act.deny':                I18nRow{'N', 'N', '驳', 'لا'}
+	'act.open_terminal':    I18nRow{'Open terminal', 'Abrir terminal', '打开终端', 'افتح الطرفية'}
+	'act.route':            I18nRow{'Route handoff', 'Route entrega', '路由交接', 'وجّه التسليم'}
+	'act.run':              I18nRow{'Run', 'Ejecutar', '运行', 'شغّل'}
+	'act.sched':            I18nRow{'Sched', 'Programar', '计划', 'جدول'}
+	'act.install':          I18nRow{'install', 'instalar', '安装', 'ثبّت'}
+	'act.remove':           I18nRow{'remove', 'quitar', '移除', 'أزل'}
+	'act.cancel':           I18nRow{'Cancel', 'Cancelar', '取消', 'إلغاء'}
+	'act.retry':            I18nRow{'Retry', 'Reintentar', '重试', 'أعد'}
+	'act.fix_all':          I18nRow{'Fix All', 'Reparar todo', '全部修复', 'أصلح الكل'}
+	'act.new_loop':         I18nRow{'+ New Loop', '+ Nuevo bucle', '+ 新循环', '+ حلقة جديدة'}
+	'act.approve':          I18nRow{'Y', 'S', '准', 'نعم'}
+	'act.deny':             I18nRow{'N', 'N', '驳', 'لا'}
 	// palette — 33 commands, fully translated (ES/中文/عربي)
-	'palette.world':           I18nRow{'Go to World', 'Ir a Mundo', '前往世界', 'اذهب إلى العالم'}
-	'palette.skills':          I18nRow{'Go to Skills', 'Ir a Habilidades', '前往技能', 'اذهب إلى المهارات'}
-	'palette.agents':          I18nRow{'Go to Agents', 'Ir a Agentes', '前往代理', 'اذهب إلى الوكلاء'}
-	'palette.mcp':             I18nRow{'Go to MCP', 'Ir a MCP', '前往提供方', 'اذهب إلى المزودين'}
-	'palette.targets':         I18nRow{'Go to Targets', 'Ir a Destinos', '前往目标', 'اذهب إلى الأهداف'}
-	'palette.doctor':          I18nRow{'Go to Doctor', 'Ir a Doctor', '前往诊断', 'اذهب إلى الفحص'}
-	'palette.jobs':            I18nRow{'Go to Jobs', 'Ir a Trabajos', '前往作业', 'اذهب إلى المهام'}
-	'palette.loops':           I18nRow{'Go to Loops', 'Ir a Bucles', '前往循环', 'اذهب إلى الحلقات'}
-	'palette.swarm':           I18nRow{'Go to Swarm', 'Ir a Enjambre', '前往集群', 'اذهب إلى السرب'}
-	'palette.workspace':       I18nRow{'Go to Workspace', 'Ir a Espacio', '前往工作区', 'اذهب إلى المساحة'}
-	'palette.products':        I18nRow{'Go to Products', 'Ir a Productos', '前往产品', 'اذهب إلى المنتجات'}
-	'palette.onboarding':      I18nRow{'Go to Onboarding', 'Ir a Inicio', '前往引导', 'اذهب إلى التهيئة'}
-	'palette.insights':        I18nRow{'Go to Insights', 'Ir a Métricas', '前往洞察', 'اذهب إلى الرؤى'}
-	'palette.command_palette': I18nRow{'Command palette', 'Paleta de comandos', '命令面板', 'لوحة الأوامر'}
-	'palette.serve':           I18nRow{'Start API server', 'Iniciar servidor API', '启动 API 服务', 'ابدأ خادم API'}
-	'palette.doctor_fix':      I18nRow{'Run doctor --fix', 'Ejecutar doctor --fix', '运行 doctor --fix', 'شغّل doctor --fix'}
-	'palette.install':         I18nRow{'Install profiles', 'Instalar perfiles', '安装配置', 'ثبّت الملفات'}
-	'palette.install_full':    I18nRow{'Install — full', 'Instalar — completo', '安装 — 完整', 'تثبيت — كامل'}
-	'palette.update':          I18nRow{'Update — agent-toolkit update', 'Actualizar — agent-toolkit update', '更新 — agent-toolkit update', 'تحديث — agent-toolkit update'}
-	'palette.uninstall':       I18nRow{'Uninstall', 'Desinstalar', '卸载', 'إزالة التثبيت'}
-	'palette.diff':            I18nRow{'Diff — target/product', 'Diff — destino/producto', '差异 — 目标/产品', 'فرق — هدف/منتج'}
-	'palette.skills_sync':     I18nRow{'Skills — sync/validate', 'Habilidades — sinc/validar', '技能 — 同步/校验', 'المهارات — مزامنة/تحقق'}
-	'palette.mcp_health':      I18nRow{'MCP — health/doctor', 'MCP — salud/doctor', '提供方 — 健康/诊断', 'المزودون — الصحة/الفحص'}
-	'palette.loop_run':        I18nRow{'Loop — run/status/audit/cost', 'Bucle — ejecutar/estado/auditoría/costo', '循环 — 运行/状态/审计/成本', 'حلقة — تشغيل/حالة/تدقيق/تكلفة'}
-	'palette.swarm_start':     I18nRow{'Swarm — start/list/approve', 'Enjambre — iniciar/listar/aprobar', '集群 — 启动/列表/批准', 'سرب — بدء/قائمة/موافقة'}
-	'palette.workspace_sync':  I18nRow{'Workspace — sync/context', 'Espacio — sinc/contexto', '工作区 — 同步/上下文', 'المساحة — مزامنة/سياق'}
-	'palette.memory':          I18nRow{'Memory — add/search/inject/todo', 'Memoria — añadir/buscar/inyectar/todo', '记忆 — 添加/搜索/注入/待办', 'الذاكرة — إضافة/بحث/حقن/مهام'}
-	'palette.project_clone':   I18nRow{'Project — clone/list/scan', 'Proyecto — clonar/listar/escanear', '项目 — 克隆/列表/扫描', 'مشروع — استنساخ/قائمة/فحص'}
-	'palette.devcompanion':    I18nRow{'DevCompanion — queue/status', 'DevCompanion — cola/estado', '开发伴侣 — 队列/状态', 'رفيق التطوير — قائمة/حالة'}
-	'palette.insights_cli':    I18nRow{'Insights — CLI days/output', 'Métricas — días/salida CLI', '洞察 — 天数/输出 CLI', 'الرؤى — أيام/مخرجات CLI'}
-	'palette.build':           I18nRow{'Build — --check', 'Compilar — --check', '构建 — --check', 'بناء — --check'}
-	'palette.inventory':       I18nRow{'Inventory — audit', 'Inventario — auditoría', '清单 — 审计', 'الجرد — تدقيق'}
-	'palette.completion':      I18nRow{'Completion — bash/zsh/fish', 'Autocompletado — bash/zsh/fish', '补全 — bash/zsh/fish', 'الإكمال — bash/zsh/fish'}
-	'palette.cozy':            I18nRow{'Cozy — toggle warm wood', 'Cozy — madera cálida', '温馨 — 暖木切换', 'الدفء — خشب دافئ'}
+	'palette.world':        I18nRow{'Go to World', 'Ir a Mundo', '前往世界', 'اذهب إلى العالم'}
+	'palette.skills':       I18nRow{'Go to Skills', 'Ir a Habilidades', '前往技能', 'اذهب إلى المهارات'}
+	'palette.agents':       I18nRow{'Go to Agents', 'Ir a Agentes', '前往代理', 'اذهب إلى الوكلاء'}
+	'palette.mcp':          I18nRow{'Go to MCP', 'Ir a MCP', '前往提供方', 'اذهب إلى المزودين'}
+	'palette.targets':      I18nRow{'Go to Targets', 'Ir a Destinos', '前往目标', 'اذهب إلى الأهداف'}
+	'palette.doctor':       I18nRow{'Go to Doctor', 'Ir a Doctor', '前往诊断', 'اذهب إلى الفحص'}
+	'palette.jobs':         I18nRow{'Go to Jobs', 'Ir a Trabajos', '前往作业', 'اذهب إلى المهام'}
+	'palette.loops':        I18nRow{'Go to Loops', 'Ir a Bucles', '前往循环', 'اذهب إلى الحلقات'}
+	'palette.swarm':        I18nRow{'Go to Swarm', 'Ir a Enjambre', '前往集群', 'اذهب إلى السرب'}
+	'palette.workspace':    I18nRow{'Go to Workspace', 'Ir a Espacio', '前往工作区', 'اذهب إلى المساحة'}
+	'palette.products':     I18nRow{'Go to Products', 'Ir a Productos', '前往产品', 'اذهب إلى المنتجات'}
+	'palette.onboarding':   I18nRow{'Go to Onboarding', 'Ir a Inicio', '前往引导', 'اذهب إلى التهيئة'}
+	'palette.insights':     I18nRow{'Go to Insights', 'Ir a Métricas', '前往洞察', 'اذهب إلى الرؤى'}
 	// palette — descriptions (nav, short)
-	'pdesc.world':             I18nRow{'Office floor, desks and handoffs', 'Planta, escritorios y entregas', '办公区 · 工位与交接', 'الأرضية والمكاتب والتسليمات'}
-	'pdesc.skills':            I18nRow{'Search and install skills', 'Buscar e instalar habilidades', '搜索并安装技能', 'ابحث وثبّت المهارات'}
-	'pdesc.agents':            I18nRow{'Browse holistic and specialist', 'Explorar globales y especialistas', '浏览全能与专项', 'تصفح الشامل والمتخصص'}
-	'pdesc.mcp':               I18nRow{'Providers and health', 'Proveedores y salud', '提供方与健康', 'المزودون والصحة'}
-	'pdesc.targets':           I18nRow{'Enable platforms', 'Activar plataformas', '启用平台', 'فعّل المنصات'}
-	'pdesc.doctor':            I18nRow{'Fix checks', 'Reparar comprobaciones', '修复检查', 'أصلح الفحوصات'}
-	'pdesc.jobs':              I18nRow{'Live processes', 'Procesos en vivo', '实时进程', 'العمليات المباشرة'}
-	'pdesc.loops':             I18nRow{'Missions and schedules — inner/outer', 'Misiones y agendas — internas/externas', '任务与计划 · 内外环', 'المهام والجداول'}
-	'pdesc.swarm':             I18nRow{'GOD mailbox, Herdr/tmux, pair/team/full', 'Buzón GOD, Herdr/tmux, par/equipo/completo', 'GOD 信箱 · 集群规模', 'صندوق GOD والفرق'}
-	'pdesc.workspace':         I18nRow{'Context and memory', 'Contexto y memoria', '上下文与记忆', 'السياق والذاكرة'}
-	'pdesc.products':          I18nRow{'Manage products/packs membership & digest', 'Gestionar productos/paquetes y resumen', '管理产品/包与摘要', 'أدر المنتجات والحزم'}
-	'pdesc.onboarding':        I18nRow{'Wizard: workspace, personas, capability, target, product', 'Asistente: workspace, personas, capacidad, destino, producto', '向导：工作区到产品', 'معالج: من المساحة إلى المنتج'}
-	'pdesc.insights':          I18nRow{'Cost ledger, waterfall, spans, CI, realtime, gallery', 'Costos, cascada, spans, CI, tiempo real, galería', '成本 · 瀑布 · CI · 实时 · 图库', 'التكاليف والأداء والمعرض'}
+	'pdesc.world':          I18nRow{'Office floor, desks and handoffs', 'Planta, escritorios y entregas', '办公区 · 工位与交接', 'الأرضية والمكاتب والتسليمات'}
+	'pdesc.skills':         I18nRow{'Search and install skills', 'Buscar e instalar habilidades', '搜索并安装技能', 'ابحث وثبّت المهارات'}
+	'pdesc.agents':         I18nRow{'Browse holistic and specialist', 'Explorar globales y especialistas', '浏览全能与专项', 'تصفح الشامل والمتخصص'}
+	'pdesc.mcp':            I18nRow{'Providers and health', 'Proveedores y salud', '提供方与健康', 'المزودون والصحة'}
+	'pdesc.targets':        I18nRow{'Enable platforms', 'Activar plataformas', '启用平台', 'فعّل المنصات'}
+	'pdesc.doctor':         I18nRow{'Fix checks', 'Reparar comprobaciones', '修复检查', 'أصلح الفحوصات'}
+	'pdesc.jobs':           I18nRow{'Live processes', 'Procesos en vivo', '实时进程', 'العمليات المباشرة'}
+	'pdesc.loops':          I18nRow{'Missions and schedules — inner/outer', 'Misiones y agendas — internas/externas', '任务与计划 · 内外环', 'المهام والجداول'}
+	'pdesc.swarm':          I18nRow{'GOD mailbox, Herdr/tmux, pair/team/full', 'Buzón GOD, Herdr/tmux, par/equipo/completo', 'GOD 信箱 · 集群规模', 'صندوق GOD والفرق'}
+	'pdesc.workspace':      I18nRow{'Context and memory', 'Contexto y memoria', '上下文与记忆', 'السياق والذاكرة'}
+	'pdesc.products':       I18nRow{'Manage products/packs membership & digest', 'Gestionar productos/paquetes y resumen', '管理产品/包与摘要', 'أدر المنتجات والحزم'}
+	'pdesc.onboarding':     I18nRow{'Wizard: workspace, personas, capability, target, product', 'Asistente: workspace, personas, capacidad, destino, producto', '向导：工作区到产品', 'معالج: من المساحة إلى المنتج'}
+	'pdesc.insights':       I18nRow{'Cost ledger, waterfall, spans, CI, realtime, gallery', 'Costos, cascada, spans, CI, tiempo real, galería', '成本 · 瀑布 · CI · 实时 · 图库', 'التكاليف والأداء والمعرض'}
 }
 
 // rtl_text — bidi-lite for the fontstash renderer (no shaping, no bidi):
@@ -1578,37 +1550,6 @@ fn panel_desc(i int) string {
 	}
 }
 
-fn palette_items() []PaletteItem {
-	// S4A (#1119): navigation rows migrated to the shared typed registry
-	// (modules/desktop/palette/registry.v). Only entries not yet migrated to
-	// typed registry actions remain here; each is retired in S4B/S4C.
-	return [
-		PaletteItem{'command_palette', 'Command palette', 'Fuzzy search ( / ) — todo administrable', '/'},
-		PaletteItem{'serve', 'Start API server', 'agent-toolkit serve --port 3847', 's'},
-		PaletteItem{'doctor_fix', 'Run doctor --fix', 'Repair missing profiles', 'd'},
-		PaletteItem{'install', 'Install profiles', 'agent-toolkit install --dry-run', 'i'},
-		// —— CLI absoluto — todo administrable desde GUI (palette + terminal) ——
-		PaletteItem{'install_full', 'Install — full', 'agent-toolkit install --tools claude-code,cursor --force', 'install'},
-		PaletteItem{'update', 'Update — agent-toolkit update', 'Update --check --pin', 'update'},
-		PaletteItem{'uninstall', 'Uninstall', 'Uninstall --dry-run --rollback', 'uninstall'},
-		PaletteItem{'diff', 'Diff — target/product', 'Compare configurations', 'diff'},
-		PaletteItem{'skills_sync', 'Skills — sync/validate', 'Sync and validate the catalog', 'skills_sync'},
-		PaletteItem{'mcp_health', 'MCP — health/doctor', 'Health of configured providers', 'mcp_health'},
-		PaletteItem{'loop_run', 'Loop — run/status/audit/cost', 'Missions heartbeat + budgets', 'loop_run'},
-		PaletteItem{'swarm_start', 'Swarm — start/list/approve', 'Launch pair/team/full, approve spend/scope', 'swarm_start'},
-		PaletteItem{'workspace_sync', 'Workspace — sync/context', 'Sync knowledge + context', 'workspace_sync'},
-		PaletteItem{'memory', 'Memory — add/search/inject/todo', 'Palace recall + todos', 'memory'},
-		PaletteItem{'project_clone', 'Project — clone/list/scan', 'Clone and scan repos', 'project_clone'},
-		PaletteItem{'devcompanion', 'DevCompanion — queue/status', 'Background queue + llm-status', 'devcompanion'},
-		PaletteItem{'insights_cli', 'Insights — CLI days/output', 'Telemetry ledger CLI', 'insights_cli'},
-		PaletteItem{'build', 'Build — --check', 'Package plugin and catalogs', 'build'},
-		PaletteItem{'inventory', 'Inventory — audit', 'List tools', 'inventory'},
-		PaletteItem{'completion', 'Completion — bash/zsh/fish', 'Shell completion', 'completion'},
-		PaletteItem{'cozy', 'Cozy — toggle warm wood', 'Cozy mode: warm paper + wood + FPS 62', 'c'},
-		PaletteItem{'theme', 'Theme — cycle Paper/Ink/System', 'Panel appearance, persists', 't'},
-	]
-}
-
 // fuzzy_score and palette_best_score were removed in S4A (#1119): the palette
 // module's scorer (desktop.palette.fuzzy_score / action_best_score) is the
 // single scoring authority shared by registry actions and legacy rows.
@@ -1681,10 +1622,12 @@ fn nav_tr_key(p nav.PanelId) string {
 // S4A) with the legacy static rows for not-yet-migrated entries. All rows are
 // scored by the palette module's fuzzy scorer — one scoring authority.
 // Empty query keeps the stable build order: navigation, entities, legacy.
+// filtered_palette derives every row from the shared typed registry (S4A) —
+// navigation, entities and contextual actions. The static command list and
+// its duplicate scorer were deleted in S4C (#1119); the registry's
+// scored_filter is the single ranking authority.
 fn filtered_palette(mut app GuiApp) []PaletteRow {
-	q := app.palette_query.trim_space()
 	mut scored := []PaletteRow{}
-	// registry-derived navigation + catalog/config/runtime entities
 	if app.palette_reg != unsafe { nil } {
 		for sa in app.palette_reg.scored_filter(app.palette_query) {
 			a := sa.action
@@ -1701,42 +1644,6 @@ fn filtered_palette(mut app GuiApp) []PaletteRow {
 				available: a.available
 				unavailable_reason: a.unavailable_reason
 			}
-		}
-	}
-	// legacy static rows (entries not yet migrated to the registry)
-	for it in palette_items() {
-		mut best := -1
-		if q == '' {
-			best = 1000
-		} else {
-			for field in [it.label, it.id, it.desc, it.keys] {
-				s := palette.fuzzy_score(q, field)
-				if s > best {
-					best = s
-				}
-			}
-		}
-		if best >= 0 {
-			scored << PaletteRow{
-				id: it.id
-				label: it.label
-				desc: it.desc
-				keys: it.keys
-				score: best
-			}
-		}
-	}
-	if q == '' {
-		return expand_palette_actions(mut app, scored)
-	}
-	// manual sort to avoid V3 generic monomorphize segfault (see swarm_service fix)
-	for i := 1; i < scored.len; i++ {
-		mut j := i
-		for j > 0 && (scored[j].score > scored[j - 1].score || (scored[j].score == scored[j - 1].score && scored[j].label < scored[j - 1].label)) {
-			tmp := scored[j]
-			scored[j] = scored[j - 1]
-			scored[j - 1] = tmp
-			j--
 		}
 	}
 	return expand_palette_actions(mut app, scored)
@@ -7729,36 +7636,30 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			// subtle manila tab on unselected
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, app.pnl_card_sel)
 		}
-		// S4A: registry rows keep their registry labels; navigation rows keep
-		// localized labels via their i18n key. S4B action rows always render
-		// their own action label (an action on a navigation entity must not
-		// fall into the navigation translation branch).
+		// S4C: every row is registry-derived. Navigation rows keep localized
+		// labels via their i18n key; entities and actions render their own
+		// registry labels.
 		pal_label := if it.is_action {
 			it.label
-		} else if it.is_entity {
-			if it.kind == .navigation {
-				tr(app, 'palette.' + nav_tr_key(it.panel))
-			} else {
-				it.label
-			}
+		} else if it.kind == .navigation {
+			tr(app, 'palette.' + nav_tr_key(it.panel))
 		} else {
-			tr(app, 'palette.' + it.id)
+			it.label
 		}
-		// S4A entity rows describe truthful state; unavailable rows say why.
-		// R2 product-truth: CLI-action rows render live Engine counts, never
-		// the hardcoded historical numbers in palette_items().
-		pal_desc := if it.is_entity {
-			if !it.available {
-				'unavailable — ${it.unavailable_reason}'
+		// S4C: every row is registry-derived. Navigation rows keep localized
+		// labels and descriptions via their i18n keys; entities and actions
+		// render their own registry content; unavailable rows say why.
+		pal_desc := if it.is_action {
+			it.desc
+		} else if !it.available {
+			'unavailable — ${it.unavailable_reason}'
+		} else if it.kind == .navigation {
+			tr_desc := tr(app, 'pdesc.' + nav_tr_key(it.panel))
+			if tr_desc != 'pdesc.' + nav_tr_key(it.panel) {
+				tr_desc
 			} else {
 				it.desc
 			}
-		} else if it.id == 'skills_sync' {
-			'Sync and validate ${skills_total(mut app)} skills'
-		} else if it.id == 'mcp_health' {
-			'Health of ${mcp_total(mut app)} providers'
-		} else if tr(app, 'pdesc.' + it.id) != 'pdesc.' + it.id {
-			tr(app, 'pdesc.' + it.id)
 		} else {
 			it.desc
 		}
@@ -7873,27 +7774,8 @@ fn activate_palette_selection(mut app GuiApp) {
 		app.palette_armed = ''
 		return
 	}
-	match sel.id {
-		'workspace_sync' {
-			app.selected_panel = 9
-			app.inspector_msg = 'Workspace — pick or edit the path here; Validate checks it, Switch activates it'
-		}
-		'serve' {
-			app.inspector_msg = 'Serve: agent-toolkit serve --port 3847'
-		}
-		'theme' {
-			cycle_appearance(mut app)
-		}
-		'doctor_fix' {
-			app.selected_panel = 5
-			app.inspector_msg = 'Doctor fix: running checks…'
-		}
-		'install' {
-			app.selected_panel = 1
-			app.inspector_msg = 'Install: agent-toolkit install --dry-run'
-		}
-		else {}
-	}
+	// S4C: no legacy activation arms remain — every row is a registry entity
+	// or action.
 	app.palette_open = false
 	app.palette_query = ''
 	app.palette_selected = 0
@@ -7910,6 +7792,12 @@ fn run_palette_action(mut app GuiApp, sel PaletteRow) {
 	// unavailable actions never arm and never execute — say why, once
 	if !sel.available {
 		app.inspector_msg = 'Unavailable — ${sel.unavailable_reason}'
+		return
+	}
+	// appearance is a real shell preference: executed directly, no fake
+	// evidence, palette stays open so the user can keep cycling
+	if sel.action_kind == .app_theme_cycle {
+		cycle_appearance(mut app)
 		return
 	}
 	// swarm launch needs a real task-text input (plus recipe/backend choices)

@@ -28,6 +28,17 @@ state before acting; do not trust it blindly.
 
 ## 2. Current palette architecture (what exists today)
 
+> **Updated 2026-09-07 (S4A–S4C):** the two-authority state below is resolved.
+> The typed registry (`modules/desktop/palette/registry.v` + `actions.v`) is
+> the **sole** palette/search authority; `palette_items()`, the duplicate
+> scorer and the legacy activation arms were deleted. Contextual typed
+> actions with preview/confirmation landed in S4B. Application-level actions
+> (appearance, honest-unavailable Update, receipt-based Uninstall) live under
+> one app entity. Critical-workflow reachability is gated by
+> `cmd/agent-toolkit-desktop/registry_reachability_test.v` inside Required
+> CI (`./make.vsh test`). Remaining slices: S4D (truthful undo + recent
+> actions only). The original snapshot is preserved below for history.
+
 Two authorities coexist:
 
 1. **Static production list** — `palette_items()` in

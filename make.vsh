@@ -125,6 +125,14 @@ context.task(name: 'vet', help: 'Vet modules', run: fn [r] (_ build.Task) ! {
 
 context.task(name: 'test', help: 'Run unit tests', run: fn [r] (_ build.Task) ! {
 	each_mod(r, 'test', 'test')
+	// S4C (#1119): the production Desktop shell's tests — including the
+	// registry reachability gate for critical workflows — live under
+	// cmd/agent-toolkit-desktop and are part of the Required CI test path.
+	println('==> test cmd/agent-toolkit-desktop')
+	rc := vcmd('test ${join_path(r, 'cmd', 'agent-toolkit-desktop')}')
+	if rc != 0 {
+		exit(rc)
+	}
 })
 
 context.task(name: 'build', help: 'Compile-smoke each module', run: fn (_ build.Task) ! {

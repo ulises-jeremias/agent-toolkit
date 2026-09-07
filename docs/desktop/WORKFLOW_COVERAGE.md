@@ -39,7 +39,7 @@ Source paths below refer to the baseline SHA; line numbers will move as fixes la
 | Fabricated running state and telemetry | `cmd/agent-toolkit-desktop/main.v:1754`, `:1859`, `:4463`, `:5155`, `:5311`, `:5359`, `:5420`, `:6970` | Clean setup remains empty; real events and processes produce matching UI |
 | False process success | `modules/desktop_engine/jobs_service.v:263` | Failed spawn reports failure, no running record |
 | Workspace safety and invented state | `onboarding_service.v:138`, `workspace_service.v:160`, `:271`, `:727` | Containment, no-overwrite, partial failure, actual Git and memory state |
-| Dead/split action discovery | `main.v:7908`; `modules/desktop/palette/palette.v:468` | Typed registry, retained entity identity, functional dispatch/forms/results |
+| Dead/split action discovery | Resolved 2026-09-07 (S4A–S4C, #1159 #1160; static `palette_items()` deleted) | Typed registry is the sole palette/search authority; entity identity + availability reasons + typed actions retained (`modules/desktop/palette/registry.v`, `actions.v`); critical-workflow reachability gated by `cmd/agent-toolkit-desktop/registry_reachability_test.v` in Required CI |
 | Domain duplication | CLI `dispatch.v` imports core; Desktop install services duplicate logic; `loops_service.v:480` invokes own CLI | Shared typed domain execution with GUI/CLI parity tests |
 | Native capability misreporting | `modules/desktop/backend/backend.v:139`, `:164`, `:193` | Actual clipboard/dialog operation or explicit unsupported result |
 | Terminal exit and identity | `modules/pty/pty.v:197`; `modules/ghostty/ghostty.v:5` | Reaped child/closed fd, no unexpected restart, honest VT compatibility |
@@ -65,3 +65,7 @@ Update acceptance must verify the downloaded artifact, checksum/provenance, actu
 installed version and failure recovery. Respect package-manager ownership and
 rollback limits; a state-only version change is not an update. Audit
 `modules/desktop_engine/update_service.v` and channel policy before enabling apply.
+Status 2026-09-07 (S4C): no release-feed reader or updater exists, so Update is an
+honestly unavailable application action (`No update feed/updater is available yet`)
+in the registry — it cannot execute, and it must not be wired until a real feed
+with verified artifacts exists.

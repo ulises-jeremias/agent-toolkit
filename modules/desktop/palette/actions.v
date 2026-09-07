@@ -31,6 +31,9 @@ pub enum ActionKind {
 	loop_run
 	loop_schedule_toggle
 	swarm_launch
+	app_theme_cycle
+	app_update_check
+	app_uninstall
 }
 
 // kind_label returns the human action label used in the palette.
@@ -48,6 +51,9 @@ pub fn kind_label(k ActionKind) string {
 		.loop_run { 'Run now' }
 		.loop_schedule_toggle { 'Toggle schedule' }
 		.swarm_launch { 'Launch' }
+		.app_theme_cycle { 'Change appearance' }
+		.app_update_check { 'Check for updates' }
+		.app_uninstall { 'Uninstall integrations' }
 	}
 }
 
@@ -350,6 +356,54 @@ pub fn (mut r Registry) actions_for(kind EntityKind, entity_id string) []Registr
 				}
 			}
 		}
+		.app {
+			// application-level actions (S4C): one coherent app entity, no
+			// legacy command rows
+			out << RegistryAction{
+				kind: .app_theme_cycle
+				entity_kind: kind
+				entity_id: entity_id
+				label: kind_label(.app_theme_cycle)
+				category: entry.category
+				keywords: 'theme appearance cycle paper ink system light dark'
+				desc: 'cycle Paper → Ink → System'
+				needs_confirm: false
+				available: true
+				panel: .onboarding
+			}
+			out << RegistryAction{
+				kind: .app_update_check
+				entity_kind: kind
+				entity_id: entity_id
+				label: kind_label(.app_update_check)
+				category: entry.category
+				keywords: 'update upgrade check version feed'
+				desc: 'self-update'
+				needs_confirm: false
+				available: false
+				unavailable_reason: 'No update feed/updater is available yet'
+				panel: .onboarding
+			}
+			candidates := r.engine.uninstall_candidates()
+			out << RegistryAction{
+				kind: .app_uninstall
+				entity_kind: kind
+				entity_id: entity_id
+				label: kind_label(.app_uninstall)
+				category: entry.category
+				keywords: 'uninstall remove integrations profiles receipts'
+				desc: 'remove toolkit-owned files from install receipts (dry-run first)'
+				needs_preview: true
+				needs_confirm: true
+				available: candidates.len > 0
+				unavailable_reason: if candidates.len > 0 {
+					''
+				} else {
+					'no install receipts found — nothing to uninstall'
+				}
+				panel: .onboarding
+			}
+		}
 		else {}
 	}
 	return out
@@ -411,6 +465,21 @@ pub fn (mut r Registry) preview(action ActionKind, entity_id string) ![]string {
 		}
 		.doctor_repair {
 			return r.engine.doctor_fix_preview(entity_id)!
+		}
+		.app_uninstall {
+			// real dry-run preview: the exact files the uninstall would
+			// remove, computed by the core domain operation — nothing written
+			rep := r.engine.uninstall_targets([], true)
+			mut lines := []string{}
+			for line in rep.message.split_into_lines() {
+				if line.trim_space() != '' {
+					lines << line.trim_space()
+				}
+			}
+			if lines.len == 0 {
+				return error('uninstall preview unavailable — no receipts')
+			}
+			return lines
 		}
 		else {
 			return error('preview unavailable for this action')
@@ -742,6 +811,51 @@ fn (mut r Registry) execute_seam(kind EntityKind, entity_id string, action Actio
 				evidence: ActionEvidence{
 					run_id: run_id
 				}
+			}
+		}
+		.app_theme_cycle {
+			// appearance is a real shell preference action; the shell executes
+			// it directly — the registry exposes it but never fakes a domain
+			// result for it
+			return error('appearance is executed by the shell')
+		}
+		.app_update_check {
+			// there is no updater: this stays unreachable (availability is
+			// false) and never fakes a check result
+			return ActionOutcome{
+				status: .unavailable
+				summary: 'No update feed/updater is available yet'
+			}
+		}
+		.app_uninstall {
+			rep := r.engine.uninstall_targets(args.targets, args.dry_run)
+			if args.dry_run {
+				return ActionOutcome{
+					status: .succeeded
+					summary: 'dry-run complete — nothing was deleted'
+				}
+			}
+			summary := 'uninstalled ${rep.files_removed} owned file(s) across ${rep.tools_processed} target(s)${if rep.skipped > 0 {
+				' · ${rep.skipped} skipped (user-owned/merged or absent)'
+			} else {
+				''
+			}}'
+			if rep.ok {
+				return ActionOutcome{
+					status: .succeeded
+					summary: summary
+				}
+			}
+			if rep.files_removed > 0 {
+				// partial: some owned files were removed, some targets failed
+				return ActionOutcome{
+					status: .partial
+					summary: '${summary} — failed: ${rep.failures.join(', ')}'
+				}
+			}
+			return ActionOutcome{
+				status: .failed
+				summary: rep.message
 			}
 		}
 	}

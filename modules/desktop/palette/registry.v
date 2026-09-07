@@ -21,6 +21,7 @@ import desktop.nav
 // EntityKind classifies what a registry entry points at.
 pub enum EntityKind {
 	navigation
+	app
 	skill
 	agent
 	target
@@ -55,6 +56,7 @@ pub:
 pub fn (e RegistryEntry) action_id() string {
 	return match e.kind {
 		.navigation { 'nav:${e.id}' }
+		.app { 'app:${e.id}' }
 		.skill { 'skill:${e.id}' }
 		.agent { 'agent:${e.id}' }
 		.target { 'target:${e.id}' }
@@ -274,6 +276,7 @@ fn (mut r Registry) build_entries() []RegistryEntry {
 	mut out := []RegistryEntry{}
 	mut engine := r.engine
 	out << build_nav_entries()
+	out << build_app_entries()
 	out << build_skill_entries(mut engine)
 	out << build_agent_entries(mut engine)
 	out << build_target_entries(mut engine)
@@ -285,6 +288,22 @@ fn (mut r Registry) build_entries() []RegistryEntry {
 	out << build_job_entries(mut engine)
 	out << build_swarm_entries(mut engine)
 	return out
+}
+
+// build_app_entries derives the application-level entity (S4C): the app
+// itself — appearance, updates, uninstall. This replaces the legacy static
+// command rows with one coherent, discoverable Setup entity.
+fn build_app_entries() []RegistryEntry {
+	return [RegistryEntry{
+		kind: .app
+		id: 'agent-toolkit'
+		label: 'Agent Toolkit — Setup'
+		category: 'Application'
+		keywords: 'agent toolkit setup application appearance theme update uninstall settings preferences'
+		desc: 'Appearance · updates · integrations — Tab for actions'
+		available: true
+		panel: .onboarding
+	}]
 }
 
 // build_nav_entries derives navigation destinations in shell order.
