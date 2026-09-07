@@ -4,7 +4,7 @@ description: Fix the errors reported by MegaLinter. Use after megalinter-check f
   user pastes MegaLinter/CI lint errors and wants them fixed. Applies safe fixes automatically (auto-fix
   linters first, then guided manual fixes using per-linter fix guides), asks the user when fixing is ambiguous,
   and can disable rules or linters with user confirmation. Never pushes to the default branch.
-licence: MegaLinter by OX Security, Copyright 2026 - https://megalinter.io/
+license: MegaLinter by OX Security, Copyright 2026 - https://megalinter.io/
 argument-hint: '[linter keys or pasted MegaLinter error list]'
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write, Agent, Skill, AskUserQuestion, WebSearch, WebFetch
 user-invocable: true
@@ -13,20 +13,19 @@ origin:
 upstream:
   repository: oxsecurity/megalinter
   path: skills/megalinter-fix
-  ref: v10.0.0
-  commit: 15e5b45552097e318c93de385779ce3b1084052c
+  ref: v10.1.0
+  commit: 9949bad031045f366be2467e00e8371a7328a2e2
   license: AGPL-3.0
-  version: v10.0.0
+  version: v10.1.0
   role: fix
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-14'
+  tier: experimental
+  reviewed_at: '2026-09-07'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:94613e9a4254b92a8f8fe16ca0cec93c8df1be7051c89c58713c6012aa89aa65
 maintenance:
   status: active
   last_activity: '2026-08-08'
-  last_checked: '2026-08-14'
+  last_checked: '2026-09-07'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -82,9 +81,12 @@ When fixing is not relevant (false positives, rule conflicts with project style,
 1. Re-check with the `megalinter-check` skill (targeted re-check mode: only the fixed linters/files). Iterate at most 3 times in total.
 2. Show the user a summary: fixed / disabled (with justification) / remaining.
 3. Commit on the working branch with a clear message. **Ask before pushing**; never push to the default branch.
+4. If the push triggers a CI run and the repository auto-applies fixes (`APPLY_FIXES_MODE: commit`), MegaLinter may push a `[MegaLinter] Apply linters fixes` commit on top of yours: watch the run with `megalinter-check`, which handles that commit (see its "MegaLinter auto-fix commits" section) — always pull before making further edits.
 
 ## Optimization: sub-agents (Claude Code and compatible agents)
 
 If sub-agents are available and `megalinter-fixer` is installed (see `megalinter-setup`), fan out **one `megalinter-fixer` per failing linter in parallel**, giving each: the linter key, its error list, and the content of its fix guide. Each fixer returns its fixed count, modified files, and an `unresolved` list (possibly containing `proposed_disable` suppressions — fixers never apply disables themselves). Consolidate, ask the user about every unresolved item and proposed disable, apply the confirmed ones yourself, then run the targeted re-check (via `megalinter-runner` agents when available).
+
+When MegaLinter is installed as an agent plugin the definitions are namespaced (`megalinter:megalinter-watcher`, `megalinter:megalinter-runner`, `megalinter:megalinter-fixer`); installed as skills they keep their bare names. Use whichever form your platform lists.
 
 Without sub-agents, fix linters sequentially inline.

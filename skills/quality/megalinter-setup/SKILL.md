@@ -2,10 +2,12 @@
 name: megalinter-setup
 description: Install or upgrade MegaLinter on a repository. Use when the user wants to add MegaLinter
   to a project, set up linting CI, update MegaLinter configuration or version, or says "install megalinter",
-  "setup linting", "add code quality checks". Always goes through npx mega-linter-runner (--install or
-  --upgrade), then refines .mega-linter.yml.
-licence: MegaLinter by OX Security, Copyright 2026 - https://megalinter.io/
-argument-hint: '[install|upgrade] [flavor, e.g. python|javascript|all]'
+  "setup linting", "add code quality checks", "update megalinter skills". Always goes through npx mega-linter-runner
+  (--install or --upgrade), then refines .mega-linter.yml. In upgrade mode it also refreshes the installed
+  MegaLinter skills and sub-agents. Also sets up a MegaLinter custom flavor repository when the user explicitly
+  asks for one.
+license: MegaLinter by OX Security, Copyright 2026 - https://megalinter.io/
+argument-hint: '[install|upgrade|custom-flavor] [flavor, e.g. python|javascript|all]'
 allowed-tools: Bash, Read, Grep, Glob, Edit, Write, WebFetch, Skill, AskUserQuestion
 user-invocable: true
 origin:
@@ -13,20 +15,19 @@ origin:
 upstream:
   repository: oxsecurity/megalinter
   path: skills/megalinter-setup
-  ref: v10.0.0
-  commit: 15e5b45552097e318c93de385779ce3b1084052c
+  ref: v10.1.0
+  commit: 9949bad031045f366be2467e00e8371a7328a2e2
   license: AGPL-3.0
-  version: v10.0.0
+  version: v10.1.0
   role: setup
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-14'
+  tier: experimental
+  reviewed_at: '2026-09-07'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:e0a6d7e0fe28b92c342cd15cdf80e316c92e08cbb858685171b93a4ba4f09e71
 maintenance:
   status: active
   last_activity: '2026-08-08'
-  last_checked: '2026-08-14'
+  last_checked: '2026-09-07'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -48,6 +49,8 @@ updates:
 # MegaLinter setup
 
 Install or upgrade MegaLinter on the current repository. **Always use `npx mega-linter-runner` to scaffold or upgrade the configuration — never write `.mega-linter.yml` or CI workflow files from scratch.** Only refine the generated files afterwards.
+
+**Custom flavor repositories**: if — and only if — the user explicitly asks to create or maintain a **custom MegaLinter flavor** (their own image with just the linters they need, published from a dedicated `megalinter-custom-flavor-*` repository), this is a different job from the install flow below: load `custom-flavor.md` from this skill's directory and follow it instead. Everything else on this page targets a project that *consumes* MegaLinter.
 
 ## 1. Analyze the repository
 
@@ -100,6 +103,67 @@ npx mega-linter-runner --upgrade --no-prompt
 2. Rewrite every occurrence used as a **Docker image** (after `image:`, `container:`, `services:`, `docker run`, `docker pull`, or any `oxsecurity/megalinter[-<flavor>]:<tag>` form, including `megalinter-only-*` standalone images and `docker.io/`-prefixed references) to the same reference prefixed with `ghcr.io/` — keep flavor and tag unchanged: `oxsecurity/megalinter-python:v10` becomes `ghcr.io/oxsecurity/megalinter-python:v10`.
 3. Leave untouched: references already prefixed with `ghcr.io/`, GitHub Action references (`uses: oxsecurity/megalinter@...` — actions are not Docker images), and documentation URLs.
 
+### Also upgrade the MegaLinter skills and sub-agents
+
+The repository configuration is only half of the setup. The MegaLinter skills you are running, and the sub-agent
+definitions they installed, were copied into the project (or the user profile) when they were added and **do not
+update themselves** — so an upgraded repository can still be driven by guidance written for an older MegaLinter.
+Refresh them whenever you run an upgrade, and whenever the user asks to update the MegaLinter skills.
+
+**First determine how MegaLinter was installed**, because the two install modes update differently. Namespacing is
+not a reliable signal: only some platforms prefix plugin skills with the plugin name (`megalinter:megalinter-setup`),
+and no platform lets you query where a skill came from. Determine it from the filesystem, and ask the user when it
+stays ambiguous:
+
+| Evidence in the repository or user profile                                                                                  | Install mode |
+|:----------------------------------------------------------------------------------------------------------------------------|:-------------|
+| A MegaLinter plugin folder (`megalinter` under a `plugins/` directory of your platform)                                     | plugin       |
+| `.claude/skills/megalinter*`, `.github/skills/megalinter*`, `.agents/skills/megalinter*` or the same under the user profile | skills       |
+| Neither, or both                                                                                                            | ask the user |
+
+**If it was installed as an agent plugin**, the skills CLI does not manage it: update the plugin instead, and skip the
+rest of this section — the sub-agents are refreshed with it.
+
+| Platform                 | Update command                                      |
+|:-------------------------|:----------------------------------------------------|
+| Claude Code              | `/plugin update megalinter@megalinter`              |
+| Cursor                   | **Customize → Plugins**, then update **MegaLinter** |
+| GitHub Copilot           | `copilot plugin install megalinter@megalinter`      |
+| Codex                    | `codex plugin marketplace upgrade megalinter`       |
+| Gemini CLI / Antigravity | `gemini extensions update megalinter`               |
+
+Otherwise, check how they are installed:
+
+```bash
+npx skills list
+```
+
+MegaLinter entries show their install path and `Source`. A `local` source means the files are not managed by the
+skills CLI (the MegaLinter repository's own `skills/` folder, or a manual copy): leave those alone and tell the user.
+
+Otherwise update them, naming the skills explicitly — a bare `npx skills update` would also update every unrelated
+skill installed in the project:
+
+```bash
+npx skills update megalinter megalinter-setup megalinter-check megalinter-fix -y
+```
+
+Add `-p` to restrict to project-level skills, or `-g` for the user-level ones, when both exist and only one should move.
+
+If the update reports nothing to do (skills added with `--copy` are not always tracked), re-run the install command
+instead — it overwrites the installed copies with the current version:
+
+```bash
+npx skills add oxsecurity/megalinter/skills -s '*' -a <agent> -y
+```
+
+Then **refresh the sub-agents**: `skills update` rewrites the skill folders only, never the copies made into your
+platform's agents folder (`.claude/agents/`, `.opencode/agent/`, `.github/agents/`). Re-apply step 4 below for the
+three definitions so they match the refreshed skills, asking the user before overwriting any they customized.
+
+Finally, note that **the skill you are currently executing may have just been rewritten**. After the refresh, re-read
+`SKILL.md` in this skill's directory and continue from the updated instructions if they differ from what you loaded.
+
 ## 3. Refine `.mega-linter.yml` (only AFTER install/upgrade)
 
 Once the runner has generated/upgraded the files, you may adjust `.mega-linter.yml`:
@@ -110,13 +174,24 @@ Once the runner has generated/upgraded the files, you may adjust `.mega-linter.y
 
 Validate the file against its JSON schema: <https://raw.githubusercontent.com/oxsecurity/megalinter/main/megalinter/descriptors/schemas/megalinter-configuration.jsonschema.json>
 
-## 4. Install the MegaLinter sub-agents (if your platform supports them)
+## 4. Install or refresh the MegaLinter sub-agents (if your platform supports them)
 
 This skill ships three sub-agent definitions in its `agents/` folder (`megalinter-watcher`, `megalinter-runner`, `megalinter-fixer`) that make the other MegaLinter skills faster and cheaper by keeping CI logs and linter output out of the main context.
 
-If the coding agent you are running on supports custom sub-agent definitions (Claude Code, OpenCode, GitHub Copilot, Codex... — you know whether you do), read `agents/INSTALL.md` in this skill's directory and follow the instructions for your platform: copy the three `agents/*.md` files to your platform's agents folder, adapting the frontmatter when needed.
+**Skip this whole step if MegaLinter was installed as an agent plugin**: the plugin already ships the three
+definitions (declared for Claude Code and Cursor, and carried as `com.github.copilot/agents/*.agent.md` for the
+Copilot clients). Copying them again would install a second set that drifts on the next plugin update.
 
-If a target file already exists, ask the user before overwriting it. If your platform has no sub-agent support, skip this step — the skills degrade gracefully to inline execution.
+Confirm before skipping: check that the three agents are actually listed among the agents available to you, under
+either their namespaced (`megalinter:megalinter-watcher`) or bare (`megalinter-watcher`) name. If they are not — the
+platform may not load the plugin's agents — tell the user, and install them from `agents/` as described below.
+
+If the coding agent you are running on supports custom sub-agent definitions (Claude Code, OpenCode, GitHub Copilot, Codex... — you know whether you do), read `agents/INSTALL.md` in this skill's directory and follow the instructions for your platform: copy the three `agents/*.md` files to your platform's agents folder, adapting the file name and the frontmatter when needed. Copilot in particular requires a `.agent.md` suffix in `.github/agents/`, and rejects the `model: haiku` override.
+
+If a target file already exists, ask the user before overwriting it. In upgrade mode the existing files are precisely
+what needs replacing: show the user what changed, and preserve any customization they made (a model override, an
+adapted `tools` list) when re-applying the new version. If your platform has no sub-agent support, skip this step —
+the skills degrade gracefully to inline execution.
 
 ## 5. Observability dashboards (optional)
 

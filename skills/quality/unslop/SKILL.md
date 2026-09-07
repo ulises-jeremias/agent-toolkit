@@ -6,16 +6,16 @@ origin:
 upstream:
   repository: cursor/plugins
   path: pstack/skills/unslop
-  ref: 60c641e4fad674784b30abcf9f8915dea39df38d
+  ref: 73f8be4873ea4ba2b7378243a036d3360c69e04d
   license: MIT
+  version: 73f8be4
 trust:
-  tier: reviewed
-  reviewed_at: '2026-08-19'
+  tier: experimental
+  reviewed_at: '2026-09-07'
   reviewed_by: ulises-jeremias
-  reviewed_provenance: sha256:81344bee0dcaeef8acb4f8f19e5e781c27020c0dd18d4e27cba092768cc47bc8
 maintenance:
   status: active
-  last_checked: '2026-08-19'
+  last_checked: '2026-09-07'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -31,6 +31,7 @@ security:
 updates:
   strategy: pull-request
   cadence: weekly
+disable-model-invocation: true
 ---
 
 # Unslop

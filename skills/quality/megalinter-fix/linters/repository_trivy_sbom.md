@@ -3,7 +3,7 @@
 <!-- generated-descriptor-info-start -->
 - Linter: **trivy-sbom** (MegaLinter key: `REPOSITORY_TRIVY_SBOM`)
 - Descriptor: **REPOSITORY** (other)
-- MegaLinter documentation: <https://megalinter.io/10.0.0/descriptors/repository_trivy_sbom/>
+- MegaLinter documentation: <https://megalinter.io/10.1.0/descriptors/repository_trivy_sbom/>
 - Official documentation: <https://aquasecurity.github.io/trivy/>
 - Auto-fix support: no (errors must be fixed manually)
 - Configuration file: `trivy-sbom.yaml` (custom path can be defined with `REPOSITORY_TRIVY_SBOM_CONFIG_FILE`)
@@ -28,7 +28,7 @@ disables security scanning, so failures are generation problems, not vulnerabili
 it fails:
 
 - Read the Trivy error message in the log first; it names the file or subsystem that broke.
-- Fix or regenerate any corrupt/unparseable lockfile or manifest it points at (for example
+- Fix or regenerate any corrupt/unparsable lockfile or manifest it points at (for example
   re-run the package manager to rebuild `package-lock.json`, `poetry.lock`, `go.sum`...).
 - Exclude vendored or third-party trees Trivy cannot parse with `scan.skip-dirs` /
   `scan.skip-files` (see below) instead of deleting them.
