@@ -389,11 +389,6 @@ pub fn (mut d Desktop) engine_tool_discovery_catalog() []desktop_engine.ToolDisc
 	return d.engine.tool_discovery_catalog()
 }
 
-// engine_tool_discovery returns the typed discovery result for one target.
-pub fn (mut d Desktop) engine_tool_discovery(id string) desktop_engine.ToolDiscovery {
-	return d.engine.tool_discovery(id)
-}
-
 // inner_loops_for returns inner loops map snapshot for a swarm run (via State keys).
 pub fn (mut d Desktop) inner_loops_for(run_id string) map[string]string {
 	snap := d.engine.snapshot()

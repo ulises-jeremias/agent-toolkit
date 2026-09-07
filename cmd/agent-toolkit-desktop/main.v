@@ -6625,6 +6625,15 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				['claude-code', 'cursor', 'opencode', 'copilot-cli', 'pi', 'windsurf', 'codex',
 					'muse-code']
 			}
+			// #1163 review: the wizard consumes the SAME cached discovery
+			// snapshot as the Targets panel — render frames never trigger
+			// uncached version subprocesses
+			mut onb_disco := map[string]desktop_engine.ToolDiscovery{}
+			if app.desktop != unsafe { nil } {
+				for d in app.desktop.engine_tool_discovery_catalog_cached() {
+					onb_disco[d.id] = d
+				}
+			}
 			for i, t in tgts {
 				y := content_y + 30 + i * 20
 				enabled := t in enabled_targets
@@ -6638,12 +6647,8 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 					app.pnl_border
 				})
 				app.gg.draw_text(fx + 26, y + 3, t, gg.TextCfg{ color: fg3, size: 12, mono: true })
-				// #1129: discovery status in the wizard's targets step
-				mut found_txt := ''
-				if app.desktop != unsafe { nil } {
-					d := app.desktop.engine_tool_discovery(t)
-					found_txt = if d.found { 'found' } else { 'missing' }
-				}
+				// #1129: discovery status from the cached snapshot
+				found_txt := if t in onb_disco && onb_disco[t].found { 'found' } else { 'missing' }
 				fcol := if found_txt == 'found' { app.pnl_success } else { app.pnl_text_mut }
 				app.gg.draw_text(fx + fw - 170, y + 3, found_txt, gg.TextCfg{ color: fcol, size: 11 })
 				app.gg.draw_text(fx + fw - 80, y + 3, if enabled {

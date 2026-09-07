@@ -52,12 +52,13 @@ mut:
 	// watcher config cached from EngineConfig
 	// #1129: tool-discovery cache (TTL) — rendering calls the catalog every
 	// frame; version probes must never spawn at frame rate
-	discovery_cache     []ToolDiscovery
-	discovery_cache_at  i64
-	watcher_paths       []string
-	watcher_poll_ms     int = 500
-	watcher_debounce_ms int = 100
-	use_polling         bool
+	discovery_cache       []ToolDiscovery
+	discovery_cache_at    i64
+	discovery_probe_calls int // subprocess version probes actually run (#1163)
+	watcher_paths         []string
+	watcher_poll_ms       int = 500
+	watcher_debounce_ms   int = 100
+	use_polling           bool
 	// runtime_path is the filesystem root for mutable runtime artifacts
 	// (loop worktrees, job scratch, receipts cache). Distinct from the
 	// toolkit_root catalog path so embedded binaries never write into the
@@ -73,7 +74,7 @@ mut:
 @[params]
 pub struct EngineConfig {
 pub:
-	persist_path        string
+	persist_path string
 	// runtime_path overrides the derived runtime directory. When empty,
 	// it defaults to a directory next to persist_path.
 	runtime_path        string
@@ -485,8 +486,10 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		name: 'root'
 		status: if ok_root { 'pass' } else { 'fail' }
 		message: if ok_root {
-			'toolkit root tier=${env.tier} path=${env.toolkit_root}'} else {
-			'toolkit root missing — set AGENT_TOOLKIT_ROOT'}
+			'toolkit root tier=${env.tier} path=${env.toolkit_root}'
+		} else {
+			'toolkit root missing — set AGENT_TOOLKIT_ROOT'
+		}
 		fixable: !ok_root
 	}
 	checks << DoctorCheck{
@@ -569,8 +572,10 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 			name: name
 			status: if is_ok { 'pass' } else { 'warn' }
 			message: if is_ok {
-				'${name} at ${available}'} else {
-				'${name} not found — install for swarm backend'}
+				'${name} at ${available}'
+			} else {
+				'${name} not found — install for swarm backend'
+			}
 			fixable: false
 		}
 	}
@@ -581,8 +586,10 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 			category: 'mcp'
 			name: m.id
 			status: if m.health == 'healthy' {
-				'pass'} else if m.health == 'warn' {
-				'warn'} else if m.health == 'error' { 'fail' } else { 'warn' }
+				'pass'
+			} else if m.health == 'warn' {
+				'warn'
+			} else if m.health == 'error' { 'fail' } else { 'warn' }
 			message: '${m.id} health=${m.health} enabled=${m.enabled} template=${m.template_path}'
 			fixable: m.health == 'error' || m.health == 'unconfigured'
 		}
@@ -595,8 +602,10 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 		name: 'docker'
 		status: if docker_path != '' { 'pass' } else { 'warn' }
 		message: if docker_path != '' {
-			'docker at ${docker_path} (for mcp:github)'} else {
-			'docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/'}
+			'docker at ${docker_path} (for mcp:github)'
+		} else {
+			'docker not found (required for mcp:github) — install https://docs.docker.com/get-docker/'
+		}
 		fixable: false
 	}
 	// ── packs / products ──
@@ -700,8 +709,10 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 					name: 'expiry'
 					status: if age_days > 90 { 'warn' } else { 'pass' }
 					message: if age_days > 90 {
-						'stale: ${age_days}d since last update (>90d)'} else {
-						'${age_days}d since update'}
+						'stale: ${age_days}d since last update (>90d)'
+					} else {
+						'${age_days}d since update'
+					}
 					fixable: false
 				}
 			}

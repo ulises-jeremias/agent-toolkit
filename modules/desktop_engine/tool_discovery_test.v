@@ -13,6 +13,7 @@ mut:
 	tmp      string
 	old_path string
 	old_home string
+	eng      &Engine = unsafe { nil }
 }
 
 fn td_fixture(with_tool string, with_config_for string) &TdFixture {
@@ -39,20 +40,29 @@ fn td_fixture(with_tool string, with_config_for string) &TdFixture {
 }
 
 fn (mut f TdFixture) cleanup() {
+	// teardown order: engine stop → restore env → remove the exact dir
+	if f.eng != unsafe { nil } {
+		f.eng.stop() or {}
+		f.eng = unsafe { nil }
+	}
 	os.setenv('PATH', f.old_path, true)
 	os.setenv('HOME', f.old_home, true)
 	os.rmdir_all(f.tmp) or {}
 	f.tmp = ''
 }
 
-fn td_engine() &Engine {
-	tmp := os.join_path(os.temp_dir(), 'atk-td-eng-${os.getpid()}-${time.now().unix_nano()}')
-	os.mkdir_all(tmp) or { panic(err.msg()) }
+// td_engine boots a fixture-owned Engine: the persist file lives INSIDE the
+// fixture temp dir, so teardown (stop → remove exact dir) owns everything.
+// No prefix sweeps, no leaking the last fixture (#1163 review).
+fn td_engine(mut f &TdFixture) &Engine {
+	eng_dir := os.join_path(f.tmp, 'engine-state')
+	os.mkdir_all(eng_dir) or { panic(err.msg()) }
 	mut eng := new_engine(EngineConfig{
-		persist_path: os.join_path(tmp, 'state.json')
+		persist_path: os.join_path(eng_dir, 'state.json')
 	})
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
+	f.eng = eng
 	return eng
 }
 
@@ -63,10 +73,7 @@ fn test_discovery_found_with_version() {
 	defer {
 		f.cleanup()
 	}
-	mut eng := td_engine()
-	defer {
-		eng.stop() or {}
-	}
+	mut eng := td_engine(mut f)
 	d := eng.tool_discovery('claude-code')
 	assert d.found
 	assert d.resolved_path != ''
@@ -85,10 +92,7 @@ fn test_discovery_missing_honest() {
 	defer {
 		f.cleanup()
 	}
-	mut eng := td_engine()
-	defer {
-		eng.stop() or {}
-	}
+	mut eng := td_engine(mut f)
 	d := eng.tool_discovery('opencode')
 	assert !d.found
 	assert d.resolved_path == ''
@@ -106,10 +110,7 @@ fn test_discovery_configured_but_binary_missing() {
 	defer {
 		f.cleanup()
 	}
-	mut eng := td_engine()
-	defer {
-		eng.stop() or {}
-	}
+	mut eng := td_engine(mut f)
 	d := eng.tool_discovery('claude-code')
 	assert !d.found
 	assert d.config_paths.len == 1
@@ -129,10 +130,7 @@ fn test_discovery_version_probe_failure_is_unknown() {
 	bin := os.join_path(f.tmp, 'bin', 'codex')
 	os.write_file(bin, '#!/bin/sh\necho ""\n') or { panic(err.msg()) }
 	os.chmod(bin, 0o755) or { panic(err.msg()) }
-	mut eng := td_engine()
-	defer {
-		eng.stop() or {}
-	}
+	mut eng := td_engine(mut f)
 	d := eng.tool_discovery('codex')
 	assert d.found
 	assert !d.version_known
@@ -145,10 +143,7 @@ fn test_discovery_gui_launcher_not_probed() {
 	defer {
 		f.cleanup()
 	}
-	mut eng := td_engine()
-	defer {
-		eng.stop() or {}
-	}
+	mut eng := td_engine(mut f)
 	d := eng.tool_discovery('cursor')
 	assert d.found
 	assert !d.version_known
@@ -162,10 +157,7 @@ fn test_discovery_catalog_covers_registry_roster() {
 	defer {
 		f.cleanup()
 	}
-	mut eng := td_engine()
-	defer {
-		eng.stop() or {}
-	}
+	mut eng := td_engine(mut f)
 	registry := eng.targets_registry()
 	disco := eng.tool_discovery_catalog()
 	assert disco.len == registry.len
@@ -212,4 +204,51 @@ fn test_session_path_entry_count() {
 		f.cleanup()
 	}
 	assert session_path_entry_count() == 1
+}
+
+// NONZERO EXIT: a binary that prints a plausible version but exits nonzero
+// is found, yet its version stays unknown — success is never inferred from
+// printable stdout (#1163 review).
+fn test_discovery_version_probe_rejects_nonzero_exit() {
+	mut f := td_fixture('claude', '')
+	defer {
+		f.cleanup()
+	}
+	// plausible version text on stdout, explicit nonzero exit
+	bin := os.join_path(f.tmp, 'bin', 'claude')
+	os.write_file(bin, '#!/bin/sh\necho "FakeTool 1.2.3 (claude)"\nexit 3\n') or {
+		panic(err.msg())
+	}
+	os.chmod(bin, 0o755) or { panic(err.msg()) }
+	mut eng := td_engine(mut f)
+	d := eng.tool_discovery('claude-code')
+	assert d.found
+	assert !d.version_known
+	assert d.version == ''
+}
+
+// CACHE: the first cached catalog call runs the probes; repeated calls
+// within the TTL run none; the explicit uncached refresh re-probes.
+fn test_discovery_cache_probe_counts() {
+	mut f := td_fixture('claude', '')
+	defer {
+		f.cleanup()
+	}
+	mut eng := td_engine(mut f)
+	// first cached call: probes run exactly once for the allowlisted found tool
+	first := eng.tool_discovery_catalog_cached()
+	assert first.len > 0
+	one := eng.discovery_probe_calls
+	assert one == 1
+	// repeated cached calls within TTL: zero additional probes
+	_ = eng.tool_discovery_catalog_cached()
+	_ = eng.tool_discovery_catalog_cached()
+	assert eng.discovery_probe_calls == one
+	// explicit uncached refresh re-probes truthfully
+	refreshed := eng.tool_discovery_catalog()
+	assert refreshed.len == first.len
+	assert eng.discovery_probe_calls == one + 1
+	// the cache serves the same content (same environment snapshot)
+	cached_again := eng.tool_discovery_catalog_cached()
+	assert cached_again.len == refreshed.len
 }

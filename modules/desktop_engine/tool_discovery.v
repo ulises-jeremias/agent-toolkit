@@ -136,6 +136,12 @@ fn probe_version(tool_name string, resolved_path string) (string, bool) {
 		p.signal_kill()
 	}
 	p.wait()
+	// exit status is part of the truth: a nonzero/killed/aborted exit means
+	// the version is unknown even if stdout looked plausible (#1163 review)
+	if p.status != .exited || p.code != 0 {
+		p.close()
+		return '', false
+	}
 	out := p.stdout_slurp()
 	p.close()
 	mut first := if out.contains('\n') { out.all_before('\n') } else { out }
@@ -181,6 +187,11 @@ pub fn (mut e Engine) tool_discovery(id string) ToolDiscovery {
 		}
 	}
 	probe := tool_probe(id)
+	if probe.found && probe.tool_name in version_probe_tools {
+		// a real subprocess probe runs on this pass — counted so cache
+		// behavior is testable (cached calls within TTL never increment)
+		e.discovery_probe_calls++
+	}
 	mut d := ToolDiscovery{
 		id: id
 		display_name: display
