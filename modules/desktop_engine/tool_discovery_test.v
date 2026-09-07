@@ -173,14 +173,14 @@ fn test_discovery_catalog_covers_registry_roster() {
 	for r in registry {
 		assert r.id in ids
 	}
-	// a supported-but-missing tool remains present with honest reason
+	// a supported-but-missing tool remains present with an honest reason;
+	// targets without a user-level runtime say exactly that
 	for d in disco {
-		if !d.found && d.reason == '' {
-			// copilot-repository/agent-plugins have no user-level runtime —
-			// they still say so truthfully rather than silently
+		if !d.found && d.reason.contains('no user-level runtime to detect') {
 			assert d.id == 'copilot-repository' || d.id == 'agent-plugins'
 		}
 	}
+	assert disco.any(it.id == 'copilot-repository' && it.reason.contains('no user-level runtime'))
 }
 
 // target_detected preserves its combined semantics: configured sentinel OR

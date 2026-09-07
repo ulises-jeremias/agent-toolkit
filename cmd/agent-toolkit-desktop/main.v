@@ -4263,11 +4263,12 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 		en := if enabled { 'enabled ✓' } else { 'off —' }
 		ec := if enabled { app.pnl_success } else { app.pnl_text_mut }
 		app.gg.draw_text(fx + fw - 100, y + 8, en, gg.TextCfg{ color: ec, size: 12, bold: enabled })
-		// #1129: truthful discovery line — where found + version, or why missing
+		// #1129: truthful discovery line — where found + version, or why missing.
+		// Calm muted text: a missing tool on a fresh machine is a normal,
+		// actionable state, not an error (#1163 visual review).
 		if d := disco_map[t] {
 			text := discovery_row_text(d)
-			col := if d.found { app.pnl_text_mut } else { app.pnl_danger }
-			app.gg.draw_text(fx + 170, y + 10, text, gg.TextCfg{ color: col, size: 11, mono: d.found })
+			app.gg.draw_text(fx + 170, y + 10, text, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: d.found })
 		}
 	}
 	app.gg.draw_text(fx + 20, fy + fh - 14, 'Install: engine.install([targets]) → receipt ~/.config/agent-toolkit/receipts · dry-run before write · toggle via Engine', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
@@ -6643,7 +6644,7 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 					d := app.desktop.engine_tool_discovery(t)
 					found_txt = if d.found { 'found' } else { 'missing' }
 				}
-				fcol := if found_txt == 'found' { app.pnl_success } else { app.pnl_danger }
+				fcol := if found_txt == 'found' { app.pnl_success } else { app.pnl_text_mut }
 				app.gg.draw_text(fx + fw - 170, y + 3, found_txt, gg.TextCfg{ color: fcol, size: 11 })
 				app.gg.draw_text(fx + fw - 80, y + 3, if enabled {
 					'enabled ✓'

@@ -200,7 +200,7 @@ pub fn (mut e Engine) tool_discovery(id string) ToolDiscovery {
 		} else if probe.tool_name != '' {
 			d.reason = "${probe.tool_name} not found on this session's PATH"
 		} else {
-			d.reason = 'no user-level runtime to detect for this target'
+			d.reason = 'no user-level runtime to detect'
 		}
 	}
 	return d
