@@ -13,9 +13,17 @@ mut:
 	d   &desktop.Desktop = unsafe { nil }
 }
 
-// s4b_app boots a headless Desktop + GuiApp with the registry bound.
+// s4b_app boots a headless Desktop + GuiApp with the registry bound. Stale
+// fixture dirs from previous runs are swept first (engine state persists).
 fn s4b_app(label string) &S4bFixture {
-	tmp := os.join_path(os.temp_dir(), 'atk-s4b-flow-${label}-${os.getpid()}')
+	base := os.temp_dir()
+	entries := os.ls(base) or { []string{} }
+	for e in entries {
+		if e.starts_with('atk-s4b-flow-') {
+			os.rmdir_all(os.join_path(base, e)) or {}
+		}
+	}
+	tmp := os.join_path(base, 'atk-s4b-flow-${label}-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
 		config: desktop.DesktopConfig{

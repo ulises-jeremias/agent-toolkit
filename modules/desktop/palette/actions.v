@@ -76,6 +76,9 @@ pub:
 }
 
 // validate checks typed argument constraints; returns a reason on failure.
+// Note: single-subject actions fall back to the contextual entity, so an
+// empty selection is only invalid when no subject exists at all (enforced
+// by execute(), which knows the entity).
 pub fn (args ActionArgs) validate(kind ActionKind) ?string {
 	return match kind {
 		.swarm_launch {
@@ -87,13 +90,6 @@ pub fn (args ActionArgs) validate(kind ActionKind) ?string {
 				'unknown swarm recipe: ${args.recipe}'
 			} else if args.backend != '' && args.backend !in ['auto', 'herdr', 'tmux'] {
 				'unknown swarm backend: ${args.backend}'
-			} else {
-				none
-			}
-		}
-		.target_install {
-			if args.targets.len == 0 {
-				'no targets selected'
 			} else {
 				none
 			}
@@ -479,10 +475,24 @@ pub fn (mut r Registry) execute(kind EntityKind, entity_id string, action Action
 			summary: act.unavailable_reason
 		}
 	}
-	if act.needs_confirm && !args.confirm && !args.dry_run {
+	if act.needs_confirm && !args.confirm {
+		// dry_run may bypass confirmation ONLY where a real dry-run seam
+		// exists (target install). Preview methods elsewhere are separate
+		// read-only calls — args.dry_run must never turn a mutating action
+		// into an unconfirmed mutation.
+		dry_ok := action == .target_install && args.dry_run
+		if !dry_ok {
+			return ActionOutcome{
+				status: .not_confirmed
+				summary: 'confirmation required — review the preview, then confirm'
+			}
+		}
+	}
+	// multi-subject install needs at least the contextual entity as subject
+	if action == .target_install && args.targets.len == 0 && entity_id == '' {
 		return ActionOutcome{
-			status: .not_confirmed
-			summary: 'confirmation required — review the preview, then confirm'
+			status: .failed
+			summary: 'no targets selected'
 		}
 	}
 	return r.execute_seam(kind, entity_id, action, args)

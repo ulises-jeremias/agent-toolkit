@@ -5,8 +5,18 @@ import desktop_engine
 import desktop.nav
 
 // fresh_engine builds an Engine over an isolated temp persist path.
+// Before creating a fixture, stale fixture dirs from previous runs with the
+// same prefix are removed (state.json persists; a same-PID rerun could
+// otherwise load stale state).
 fn fresh_engine(label string) &desktop_engine.Engine {
-	tmp := os.join_path(os.temp_dir(), 'palette-registry-${label}-${os.getpid()}')
+	base := os.temp_dir()
+	entries := os.ls(base) or { []string{} }
+	for e in entries {
+		if e.starts_with('palette-registry-') {
+			os.rmdir_all(os.join_path(base, e)) or {}
+		}
+	}
+	tmp := os.join_path(base, 'palette-registry-${label}-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	persist := os.join_path(tmp, 'state.json')
 	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{

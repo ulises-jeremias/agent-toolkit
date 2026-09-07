@@ -7730,8 +7730,12 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, app.pnl_card_sel)
 		}
 		// S4A: registry rows keep their registry labels; navigation rows keep
-		// localized labels via their i18n key.
-		pal_label := if it.is_entity {
+		// localized labels via their i18n key. S4B action rows always render
+		// their own action label (an action on a navigation entity must not
+		// fall into the navigation translation branch).
+		pal_label := if it.is_action {
+			it.label
+		} else if it.is_entity {
 			if it.kind == .navigation {
 				tr(app, 'palette.' + nav_tr_key(it.panel))
 			} else {
@@ -8012,10 +8016,11 @@ fn deep_link_select(mut app GuiApp, kind palette.EntityKind, id string) {
 			// canonical agent id (Engine search by identity)
 			app.skills_query = id
 		}
-		.target {
-			app.skills_query = id
+		else {
+			// panels without a selection seam (e.g. targets, whose roster is
+			// rendered directly from the Engine) get navigation only — no
+			// field is written that the panel would ignore
 		}
-		else {}
 	}
 }
 
@@ -8121,6 +8126,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				if app.palette_expanded != '' {
 					app.palette_expanded = ''
+					app.palette_armed = ''
 					return
 				}
 				app.palette_open = false
@@ -8163,6 +8169,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .up {
+				app.palette_armed = ''
 				filtered := filtered_palette(mut app)
 				if filtered.len > 0 {
 					if app.palette_selected > 0 {
@@ -8174,6 +8181,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .down {
+				app.palette_armed = ''
 				filtered := filtered_palette(mut app)
 				if filtered.len > 0 {
 					if app.palette_selected + 1 < filtered.len {

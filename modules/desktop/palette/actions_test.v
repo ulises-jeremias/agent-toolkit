@@ -3,9 +3,19 @@ module palette
 import os
 import desktop_engine
 
-// s4b_engine builds an Engine over an isolated temp persist path.
+// s4b_engine builds an Engine over an isolated temp persist path. Before
+// creating a fixture, stale fixture dirs from previous runs with the same
+// prefix are removed (state.json persists; a same-PID rerun could otherwise
+// load stale state).
 fn s4b_engine(label string) &desktop_engine.Engine {
-	tmp := os.join_path(os.temp_dir(), 'palette-actions-${label}-${os.getpid()}')
+	base := os.temp_dir()
+	entries := os.ls(base) or { []string{} }
+	for e in entries {
+		if e.starts_with('palette-actions-') {
+			os.rmdir_all(os.join_path(base, e)) or {}
+		}
+	}
+	tmp := os.join_path(base, 'palette-actions-${label}-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	persist := os.join_path(tmp, 'state.json')
 	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{
@@ -96,12 +106,36 @@ fn test_typed_args_are_validated() {
 	}) or { panic(err.msg()) }
 	assert out2.status == .failed
 	assert out2.summary.contains('unknown swarm recipe')
-	// empty target selection → failed validation
-	out3 := reg.execute(.target, 'claude-code', .target_install, ActionArgs{}) or {
+	// single-subject target install defaults to the contextual entity: an
+	// empty selection with no entity is the only invalid case
+	out3 := reg.execute(.target, '', .target_install, ActionArgs{}) or {
 		panic(err.msg())
 	}
-	assert out3.status == .failed
-	assert out3.summary.contains('no targets selected')
+	assert out3.status == .unavailable
+	// no default subject is invented when the entity is unknown
+}
+
+// dry_run must never bypass confirmation for actions without a real
+// dry-run seam (skill_remove and doctor repair mutate for real).
+fn test_dry_run_does_not_bypass_confirmation() {
+	mut eng := s4b_engine('dryrun')
+	defer {
+		eng.stop() or {}
+	}
+	mut reg := new_registry(mut eng)
+	skill_id := first_skill_id(mut eng)
+	// install the skill so remove is available
+	_ = reg.execute(.skill, skill_id, .skill_install, ActionArgs{}) or {
+		panic(err.msg())
+	}
+	assert eng.skills_installed().contains(skill_id)
+	before := eng.revision()
+	out := reg.execute(.skill, skill_id, .skill_remove, ActionArgs{
+		dry_run: true
+	}) or { panic(err.msg()) }
+	assert out.status == .not_confirmed
+	assert eng.skills_installed().contains(skill_id)
+	assert eng.revision() == before
 }
 
 // 3. preview calculates real effects without mutating state.
