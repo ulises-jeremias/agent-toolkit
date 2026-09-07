@@ -182,7 +182,9 @@ pub fn (mut e Engine) targets() []TargetEntry {
 		if rr := agent_toolkit_core.load_install_receipt(install_tool_name(r.id), agent_toolkit_core.profiles_product, '') {
 			receipt = os.join_path(agent_toolkit_core.default_receipt_dir(), agent_toolkit_core.receipt_filename(rr.target, rr.product))
 		}
-		status := if enabled { 'enabled' } else if detected { 'detected' } else { 'available' }
+		status := if enabled {
+			'enabled'
+		} else if detected { 'detected' } else { 'available' }
 		out << TargetEntry{
 			id: r.id
 			name: if r.display_name != '' { r.display_name } else { r.id }
@@ -224,6 +226,29 @@ pub fn (mut e Engine) toggle_target(target_id string) !u64 {
 		}
 	}
 	return error('target not found: ${target_id}')
+}
+
+// target_enabled reads the target's real enabled state (configuration truth).
+pub fn (mut e Engine) target_enabled(target_id string) bool {
+	for t in e.targets() {
+		if t.id == target_id {
+			return t.enabled
+		}
+	}
+	return false
+}
+
+// target_install_supported reports whether a target can be installed through
+// the Engine install flow: a bundled profile must exist and the tool must be
+// supported by the core installer. This mirrors the install_with_options
+// guard so registry availability truth matches execution truth (S4B #1119).
+pub fn (mut e Engine) target_install_supported(target_id string) bool {
+	for t in e.targets() {
+		if t.id == target_id {
+			return t.path != '' && install_tool_name(t.id) in agent_toolkit_core.install_valid_tools
+		}
+	}
+	return false
 }
 
 pub fn (mut e Engine) diff(before []string, after []string) TargetDiff {
@@ -522,8 +547,10 @@ pub fn (mut e Engine) doctor_fix_preview(check_id string) ![]string {
 		if c.id == check_id {
 			known = true
 			if c.status == 'pass' {
-				return ['note: check already passes — fix records an audit stamp only',
-					'set doctor:fix:${check_id} = fixed']
+				return [
+					'note: check already passes — fix records an audit stamp only',
+					'set doctor:fix:${check_id} = fixed',
+				]
 			}
 			break
 		}
@@ -533,8 +560,7 @@ pub fn (mut e Engine) doctor_fix_preview(check_id string) ![]string {
 	}
 	if check_id.starts_with('profile:') {
 		tid := check_id.all_after('profile:')
-		return ['set target:${tid}:enabled = true',
-			'set doctor:fix:profile:${tid} = fixed']
+		return ['set target:${tid}:enabled = true', 'set doctor:fix:profile:${tid} = fixed']
 	}
 	if check_id.starts_with('mcp:') && check_id != 'mcp:docker' {
 		mid := check_id.all_after('mcp:')

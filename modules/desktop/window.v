@@ -337,6 +337,17 @@ pub fn (mut d Desktop) loops_catalog() []desktop_engine.LoopEntry {
 	return d.engine.loops_catalog()
 }
 
+// loop_run starts a real supervised loop run via Engine (job + history +
+// budget gates). The returned job id is the run's runtime handle.
+pub fn (mut d Desktop) loop_run(name string) !string {
+	return d.engine.run_loop(name)
+}
+
+// toggle_loop_cron enables/disables the loop schedule in configuration.
+pub fn (mut d Desktop) toggle_loop_cron(name string, enabled bool) !u64 {
+	return d.engine.toggle_loop_cron(name, enabled)
+}
+
 // inner_loops_for returns inner loops map snapshot for a swarm run (via State keys).
 pub fn (mut d Desktop) inner_loops_for(run_id string) map[string]string {
 	snap := d.engine.snapshot()
