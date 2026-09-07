@@ -212,6 +212,11 @@ pub fn ui_hover_tint(t theme.Theme) gg.Color {
 // app.pnl_*; chrome (header/dock/status/terminal) keeps the startup consts.
 pub fn (mut app GuiApp) apply_appearance(a Appearance) {
 	app.appearance = a
+	// S4D: appearance-undo prechecks compare the real observed value;
+	// apply_appearance is the single appearance mutation point
+	if app.palette_reg != unsafe { nil } {
+		app.palette_reg.observe_appearance(app.appearance.str())
+	}
 	t := appearance_theme(a)
 	// cache the resolved kind — per-frame panel code (pixel_panel, …) branches
 	// on this instead of re-probing the OS, so System costs one probe total.

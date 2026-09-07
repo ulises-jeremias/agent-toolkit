@@ -353,7 +353,9 @@ pub fn mask_mcp_secrets(text string) string {
 pub fn has_raw_secret(text string) bool {
 	if text.contains('ghp_') || text.contains('gho_') || text.contains('sk-') || text.contains('xoxb-') {
 		if text.contains('\${') {
-			for pat in ['ghp_', 'sk-', 'xoxb-'] {
+			// scan EVERY known prefix: a raw token is one whose occurrence is
+			// not a \${ENV_VAR} placeholder — gho_ was missing (#1162 review)
+			for pat in ['ghp_', 'gho_', 'sk-', 'xoxb-'] {
 				idx := text.index(pat) or { continue }
 				before := if idx > 2 { text[idx - 2..idx] } else { '' }
 				if before != '\${' {
@@ -494,16 +496,13 @@ pub fn (mut e Engine) restore_mcp_state(s McpStateSnapshot) !u64 {
 	e.mu.unlock()
 	mut repo := e.repo
 	mut tx := repo.begin('restore-mcp-state')
-	if s.config != '' {
-		tx.set('mcp:${s.provider_id}:config', s.config)
-	}
+	// write ALL four keys unconditionally: an empty captured field means the
+	// previous state had no value — restore must clear it, never retain a
+	// newer value (#1162 review)
+	tx.set('mcp:${s.provider_id}:config', s.config)
 	tx.set('mcp:${s.provider_id}:enabled', if s.enabled { 'true' } else { 'false' })
-	if s.health != '' {
-		tx.set('mcp:${s.provider_id}:health', s.health)
-	}
-	if s.provenance != '' {
-		tx.set('provenance:mcp:${s.provider_id}:source', s.provenance)
-	}
+	tx.set('mcp:${s.provider_id}:health', s.health)
+	tx.set('provenance:mcp:${s.provider_id}:source', s.provenance)
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }

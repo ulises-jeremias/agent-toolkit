@@ -141,6 +141,12 @@ pub:
 // Desktop session never accumulates an unbounded execution log.
 pub const recents_limit = 25
 
+// observe_appearance records the shell's current appearance (called from
+// apply_appearance, the single appearance mutation point).
+pub fn (mut r Registry) observe_appearance(name string) {
+	r.observed_appearance = name
+}
+
 // record_execution appends a truthful execution record to the journal.
 // The caller must provide registry-real action/entity identity, and only
 // after the actual execution seam ran. Shell-native actions (appearance)
@@ -383,8 +389,10 @@ fn (mut r Registry) undo_state_matches(ue UndoEntry) bool {
 			return r.engine_loop_cron(ue.entity_id) == ue.spec.expected_cron
 		}
 		AppearanceUndo {
-			// the shell verifies appearance equality at execution time
-			return true
+			// the shell observes every real appearance change; an undo is
+			// only safe when the observed value still equals the recorded
+			// post-action appearance
+			return r.observed_appearance != '' && r.observed_appearance == ue.spec.expected_appearance
 		}
 	}
 }
@@ -495,6 +503,7 @@ fn (mut r Registry) undo_restored(ue UndoEntry) bool {
 			}
 			return cur.config == ue.spec.snapshot.config && cur.enabled == ue.spec.snapshot.enabled
 				&& cur.health == ue.spec.snapshot.health
+				&& cur.provenance == ue.spec.snapshot.provenance
 		}
 		LoopScheduleUndo {
 			return r.engine_loop_cron(ue.entity_id) == ue.spec.previous_cron

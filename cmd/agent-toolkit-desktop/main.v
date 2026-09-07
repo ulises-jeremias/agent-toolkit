@@ -1635,8 +1635,10 @@ fn filtered_palette(mut app GuiApp) []PaletteRow {
 		// S4D: recent executions first on an empty query — visibly distinct
 		// (↻ prefix, outcome + evidence in the description), bounded display
 		if app.palette_query.trim_space() == '' {
+			// at most 3 recent rows — the palette stays an action/entity
+			// surface, recents must not crowd out navigation (#1162 review)
 			for rec in app.palette_reg.journal_records() {
-				if scored.len >= 5 {
+				if scored.len >= 3 {
 					break
 				}
 				scored << palette_recent_row(mut app, rec)
@@ -8186,15 +8188,22 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			if e.key_code == .u {
 				// S4D: undo the selected recent execution (optimistic exact
-				// check runs again right before restoring)
+				// check runs again right before restoring). Only a recent
+				// row with undo consumes the key — otherwise 'u' falls
+				// through to normal query typing (#1162 review).
 				filtered_u := filtered_palette(mut app)
 				if app.palette_selected >= 0 && app.palette_selected < filtered_u.len {
 					sel_u := filtered_u[app.palette_selected]
 					if sel_u.is_recent {
-						handle_palette_undo(mut app, sel_u)
+						rec_u := app.palette_reg.find_recent(sel_u.execution_id) or {
+							return
+						}
+						if rec_u.is_undoable() {
+							handle_palette_undo(mut app, sel_u)
+							return
+						}
 					}
 				}
-				return
 			}
 			if e.key_code == .tab {
 				// S4B: expand/collapse contextual actions of the selected

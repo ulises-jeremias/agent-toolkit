@@ -18,6 +18,9 @@ mut:
 fn s4d_app(label string) &S4dFixture {
 	tmp := os.join_path(os.temp_dir(), 'atk-s4d-flow-${label}-${os.getpid()}-${time.now().unix_nano()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
+	// appearance persistence (save_ui_state) must never touch the real user
+	// cache from tests — point XDG_CACHE_HOME at the fixture dir
+	os.setenv('XDG_CACHE_HOME', tmp, true)
 	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
 		config: desktop.DesktopConfig{
 			headless: true

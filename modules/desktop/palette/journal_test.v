@@ -352,6 +352,28 @@ fn test_journal_mcp_enable_snapshot() {
 	}
 }
 
+// SECURITY: a snapshot whose config carries a raw secret (predating the
+// guard) is refused on restore — undo unavailable, secret policy never
+// weakened. gho_ tokens are detected even alongside placeholders.
+fn test_journal_mcp_restore_refuses_raw_secret() {
+	mut fe := new_journal_engine('mcp-secret')
+	defer {
+		fe.cleanup()
+	}
+	bad := '{"token":"gho_rawsecretvalue123","command":"' + '\${GUARDED_CMD}' + '"}'
+	snap := desktop_engine.McpStateSnapshot{
+		provider_id: 'github'
+		config: bad
+		enabled: true
+		health: 'configured'
+	}
+	if _ := fe.eng.restore_mcp_state(snap) {
+		assert false, 'raw gho_ token must be refused'
+	} else {
+		assert err.msg().contains('secret guard')
+	}
+}
+
 // LOOP schedule: exact previous configuration restored; loop RUN is never
 // undoable.
 fn test_journal_loop_schedule_undo() {
