@@ -8,6 +8,17 @@ inputs:
 runs:
   using: composite
   steps:
+    # The master source build is expensive and its cold rebuild is
+    # non-deterministic: vlang's makefile re-pulls vc/tcc from moving upstream
+    # HEADs, and the pinned fastc-WIP commit built successfully at ~05:15 UTC
+    # and failed identically at ~05:40 UTC on 2026-09-07. Cache the proven
+    # build per OS/arch; later jobs and runs restore it instead of rebuilding.
+    - name: Restore pinned V build
+      if: ${{ runner.os != 'Windows' }}
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/vlang-master
+        key: setup-v-master-78e581e70-${{ runner.os }}-${{ runner.arch }}
     - name: Install pinned V from GitHub Release
       shell: bash
       env:
@@ -22,14 +33,36 @@ runs:
               PIN="0.5.2"
               ;;
             *)
+              VDIR="${HOME}/vlang-master"
+              vcache_ok() {
+                [ -x "${VDIR}/v" ] || return 1
+                "${VDIR}/v" version >/dev/null 2>&1 || return 1
+                printf 'fn main() { println("vcache-ok") }\n' > /tmp/vcachecheck.v
+                "${VDIR}/v" -o /tmp/vcachecheck-bin /tmp/vcachecheck.v >/dev/null 2>&1 || return 1
+                [ "$(/tmp/vcachecheck-bin)" = "vcache-ok" ]
+              }
+              if vcache_ok; then
+                echo "Using cached pinned V build at ${VDIR}"
+                echo "VBIN=${VDIR}/v" >> "${GITHUB_ENV}"
+                echo "${VDIR}" >> "${GITHUB_PATH}"
+                "${VBIN}" version
+                exit 0
+              fi
               echo "Installing V from vlang/v — checkout the pinned known-good HEAD 78e581e (master drifts: v3/fastc WIP broke the build on 2026-09-03)"
-              rm -rf "${HOME}/vlang-master"
-              git clone --filter=blob:none --no-checkout https://github.com/vlang/v "${HOME}/vlang-master"
-              git -C "${HOME}/vlang-master" checkout --detach 78e581e
-              make -C "${HOME}/vlang-master" -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
-              VBIN="${HOME}/vlang-master/v"
+              rm -rf "${VDIR}"
+              git clone --filter=blob:none --no-checkout https://github.com/vlang/v "${VDIR}"
+              git -C "${VDIR}" checkout --detach 78e581e
+              # vlang's makefile re-pulls vc/tcc from moving upstream HEADs; one
+              # retry rides out transient breakage. A persistent failure is
+              # surfaced loudly so the pin can be bumped instead of silently
+              # degrading.
+              if ! make -C "${VDIR}" -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"; then
+                echo "pinned V cold build failed — retrying once with a fresh vc/tcc state" >&2
+                make -C "${VDIR}" -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
+              fi
+              VBIN="${VDIR}/v"
               echo "VBIN=${VBIN}" >> "${GITHUB_ENV}"
-              echo "${HOME}/vlang-master" >> "${GITHUB_PATH}"
+              echo "${VDIR}" >> "${GITHUB_PATH}"
               "${VBIN}" version
               exit 0
               ;;
