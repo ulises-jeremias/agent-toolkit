@@ -1574,6 +1574,9 @@ struct PaletteRow {
 	action_kind   palette.ActionKind
 	needs_preview bool
 	needs_confirm bool
+	// S4D recent execution row (journal-sourced)
+	is_recent    bool
+	execution_id u64
 }
 
 // panel_index_for maps a registry panel destination to the production panel
@@ -1629,6 +1632,16 @@ fn nav_tr_key(p nav.PanelId) string {
 fn filtered_palette(mut app GuiApp) []PaletteRow {
 	mut scored := []PaletteRow{}
 	if app.palette_reg != unsafe { nil } {
+		// S4D: recent executions first on an empty query — visibly distinct
+		// (↻ prefix, outcome + evidence in the description), bounded display
+		if app.palette_query.trim_space() == '' {
+			for rec in app.palette_reg.journal_records() {
+				if scored.len >= 5 {
+					break
+				}
+				scored << palette_recent_row(mut app, rec)
+			}
+		}
 		for sa in app.palette_reg.scored_filter(app.palette_query) {
 			a := sa.action
 			scored << PaletteRow{
@@ -1647,6 +1660,129 @@ fn filtered_palette(mut app GuiApp) []PaletteRow {
 		}
 	}
 	return expand_palette_actions(mut app, scored)
+}
+
+// palette_recent_row renders one journal record as a distinct recent row.
+// The description carries the truthful outcome and real evidence refs only.
+// Undo availability is recomputed live (optimistic exact-state check) so a
+// stale undo is visible without executing anything.
+fn palette_recent_row(mut app GuiApp, rec palette.RecentAction) PaletteRow {
+	outcome := match rec.outcome {
+		.succeeded { 'succeeded' }
+		.partial { 'partial' }
+		else { 'failed' }
+	}
+	mut desc := outcome
+	if rec.evidence.receipt_path != '' {
+		desc += ' · receipt ${rec.evidence.receipt_path}'
+	} else if rec.evidence.run_id != '' {
+		desc += ' · run ${rec.evidence.run_id}'
+	} else if rec.evidence.job_id != '' {
+		desc += ' · job ${rec.evidence.job_id}'
+	} else if rec.evidence.revision > 0 {
+		desc += ' · rev ${rec.evidence.revision}'
+	}
+	if rec.has_undo {
+		match app.palette_reg.undo_precheck(rec.execution_id) {
+			.available {
+				desc += ' · U undo ready'
+			}
+			.consumed {
+				desc += ' · undone'
+			}
+			.stale {
+				desc += ' · undo unavailable — state changed'
+			}
+			else {}
+		}
+	}
+	return PaletteRow{
+		id: 'recent:${rec.execution_id}'
+		label: '↻ ${rec.label}'
+		desc: desc
+		is_entity: true
+		kind: rec.entity_kind
+		entity_id: rec.entity_id
+		panel: nav.PanelId.unknown
+		is_recent: true
+		execution_id: rec.execution_id
+	}
+}
+
+// handle_palette_undo executes the undo for the selected recent row.
+// Appearance undo is restored through the real shell setter; everything
+// else goes through the registry's typed restore seams.
+fn handle_palette_undo(mut app GuiApp, sel PaletteRow) {
+	if app.palette_reg == unsafe { nil } {
+		return
+	}
+	rec := app.palette_reg.find_recent(sel.execution_id) or { return }
+	if !rec.has_undo {
+		app.inspector_msg = 'No undo for this action'
+		return
+	}
+	// live optimistic check before committing
+	status := app.palette_reg.undo_precheck(sel.execution_id)
+	if status != .available {
+		app.inspector_msg = match status {
+			.consumed { 'Already undone' }
+			.stale { 'Undo unavailable — state changed since this action; cannot safely undo.' }
+			else { 'No undo for this action' }
+		}
+		return
+	}
+	if rec.undo.kind == .appearance {
+		spec := rec.undo.spec
+		if spec is palette.AppearanceUndo {
+			// guard: current appearance must equal the expected post-state
+			if app.appearance.str() != spec.expected_appearance {
+				app.inspector_msg = 'Undo unavailable — state changed since this action; cannot safely undo.'
+				return
+			}
+			app.apply_appearance(appearance_from_string(spec.previous_appearance))
+			save_ui_state(app)
+			out := app.palette_reg.mark_undo_consumed(sel.execution_id, 0)
+			app.inspector_msg = out.summary
+		}
+		return
+	}
+	out := app.palette_reg.execute_undo(sel.execution_id) or {
+		app.inspector_msg = 'Undo failed: ${err.msg()}'
+		return
+	}
+	app.inspector_msg = out.summary
+}
+
+// rerun_recent re-executes a recent action through the CURRENT registry:
+// it resolves the current RegistryAction, current availability and the
+// normal preview/confirmation rules — never replays stored arguments.
+fn rerun_recent(mut app GuiApp, sel PaletteRow) {
+	if app.palette_reg == unsafe { nil } {
+		return
+	}
+	rec := app.palette_reg.find_recent(sel.execution_id) or { return }
+	acts := app.palette_reg.actions_for(rec.entity_kind, rec.entity_id)
+	for a in acts {
+		if a.kind == rec.action_kind {
+			run_palette_action(mut app, PaletteRow{
+				id: a.action_id()
+				label: a.label
+				desc: a.desc
+				is_entity: true
+				kind: a.entity_kind
+				entity_id: a.entity_id
+				panel: a.panel
+				available: a.available
+				unavailable_reason: a.unavailable_reason
+				is_action: true
+				action_kind: a.kind
+				needs_preview: a.needs_preview
+				needs_confirm: a.needs_confirm
+			})
+			return
+		}
+	}
+	app.inspector_msg = 'This action is no longer available for ${rec.entity_id}'
 }
 
 // expand_palette_actions inserts the contextual actions of the expanded
@@ -7696,6 +7832,8 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	// footer hint paper tape — reflects the S4B action state honestly
 	footer := if app.palette_armed != '' {
 		'Enter again to confirm  •  Esc to cancel'
+	} else if filtered.any(it.is_recent) {
+		'↑↓ navigate  •  Enter run again (re-validated)  •  U undo  •  Type to filter ${skills_total(mut app)} skills'
 	} else if filtered.any(it.is_entity && !it.is_action) {
 		'↑↓ navigate  •  Enter to open  •  Tab expand actions  •  Type to filter ${skills_total(mut app)} skills  •  Ctrl± zoom'
 	} else {
@@ -7750,6 +7888,11 @@ fn activate_palette_selection(mut app GuiApp) {
 		app.palette_selected
 	}
 	sel := filtered[clamped]
+	// S4D: recent rows re-run through the current registry (never replay)
+	if sel.is_recent {
+		rerun_recent(mut app, sel)
+		return
+	}
 	// S4B: contextual action rows run through preview → confirm → execute.
 	if sel.is_action {
 		run_palette_action(mut app, sel)
@@ -7794,10 +7937,25 @@ fn run_palette_action(mut app GuiApp, sel PaletteRow) {
 		app.inspector_msg = 'Unavailable — ${sel.unavailable_reason}'
 		return
 	}
-	// appearance is a real shell preference: executed directly, no fake
-	// evidence, palette stays open so the user can keep cycling
+	// appearance is a real shell preference: executed directly via the real
+	// setter, recorded truthfully in the journal with an exact undo
+	// (previous appearance + real setter), no fake evidence
 	if sel.action_kind == .app_theme_cycle {
+		previous := app.appearance.str()
 		cycle_appearance(mut app)
+		if app.palette_reg != unsafe { nil } {
+			app.palette_reg.record_execution(.app_theme_cycle, .app, 'agent-toolkit', 'Change appearance', .succeeded, palette.ActionEvidence{}, palette.UndoEntry{
+				kind: .appearance
+				action_kind: .app_theme_cycle
+				entity_kind: .app
+				entity_id: 'agent-toolkit'
+				label: 'Change appearance'
+				spec: palette.AppearanceUndo{
+					previous_appearance: previous
+					expected_appearance: app.appearance.str()
+				}
+			})
+		}
 		return
 	}
 	// swarm launch needs a real task-text input (plus recipe/backend choices)
@@ -8024,6 +8182,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			if e.key_code == .enter {
 				activate_palette_selection(mut app)
+				return
+			}
+			if e.key_code == .u {
+				// S4D: undo the selected recent execution (optimistic exact
+				// check runs again right before restoring)
+				filtered_u := filtered_palette(mut app)
+				if app.palette_selected >= 0 && app.palette_selected < filtered_u.len {
+					sel_u := filtered_u[app.palette_selected]
+					if sel_u.is_recent {
+						handle_palette_undo(mut app, sel_u)
+					}
+				}
 				return
 			}
 			if e.key_code == .tab {

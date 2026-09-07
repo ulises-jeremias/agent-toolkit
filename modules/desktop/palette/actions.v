@@ -564,7 +564,32 @@ pub fn (mut r Registry) execute(kind EntityKind, entity_id string, action Action
 			summary: 'no targets selected'
 		}
 	}
-	return r.execute_seam(kind, entity_id, action, args)
+	// ── ACTUAL EXECUTION SEAM STARTS HERE ──────────────────────────────────
+	// S4D recording boundary: the journal records only what crosses this
+	// line (succeeded / partial / failed). Validation failures,
+	// unavailable, not-confirmed and preview paths above never record.
+	// The undo's PREVIOUS state is captured here — strictly before the
+	// seam mutates anything; the expected post-state is finalized from the
+	// real Engine after the seam ran.
+	label := '${kind_label(action)} — ${entity_id}'
+	prev := r.capture_undo(action, entity_id)
+	// read-only probes and dry-run executions are not state-changing
+	// executions — they are previews by proxy and never enter the journal
+	record := action != .mcp_probe && action != .app_theme_cycle && !args.dry_run
+	out := r.execute_seam(kind, entity_id, action, args) or {
+		failed := ActionOutcome{
+			status: .failed
+			summary: err.msg()
+		}
+		if record {
+			r.journal_execution(action, kind, entity_id, label, failed, prev)
+		}
+		return failed
+	}
+	if record {
+		r.journal_execution(action, kind, entity_id, label, out, prev)
+	}
+	return out
 }
 
 // execute_seam performs the Engine operation for a validated, available,

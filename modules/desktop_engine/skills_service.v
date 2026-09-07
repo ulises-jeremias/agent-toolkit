@@ -418,6 +418,26 @@ pub fn (mut e Engine) install_skill_preview(id string) TargetDiff {
 	}
 }
 
+// restore_skill_selection restores an exact previously captured installed
+// selection (S4D undo). Every id must still resolve in the catalog — the
+// restore never invents membership for deleted skills.
+pub fn (mut e Engine) restore_skill_selection(ids []string) !u64 {
+	for id in ids {
+		_ := e.skill_detail(id) or {
+			return error('cannot restore selection: skill not in catalog: ${id}')
+		}
+	}
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	mut repo := e.repo
+	mut tx := repo.begin('restore-skill-selection')
+	tx.set('installed_skills', ids.join(','))
+	tx.set('skills_count', ids.len.str())
+	rev := e.put_transaction(mut tx)!
+	return rev.revision
+}
+
 // toggle_skill installs if not installed else removes — one-click management.
 pub fn (mut e Engine) toggle_skill(id string) !u64 {
 	if id in e.skills_installed() {
@@ -470,8 +490,7 @@ pub fn (mut e Engine) skill_receipt(id string) ?SkillReceiptInfo {
 					version: r.version
 					product: r.product
 					digest: a.digest
-					receipt_path: os.join_path(agent_toolkit_core.default_receipt_dir(),
-						agent_toolkit_core.receipt_filename(r.target, r.product))
+					receipt_path: os.join_path(agent_toolkit_core.default_receipt_dir(), agent_toolkit_core.receipt_filename(r.target, r.product))
 				}
 			}
 		}

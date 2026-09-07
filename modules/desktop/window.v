@@ -359,6 +359,11 @@ pub fn (mut d Desktop) engine_target_install_supported(target_id string) bool {
 	return d.engine.target_install_supported(target_id)
 }
 
+// engine_target_enabled reads the target's real enabled state (S4D tests).
+pub fn (mut d Desktop) engine_target_enabled(target_id string) bool {
+	return d.engine.target_enabled(target_id)
+}
+
 // inner_loops_for returns inner loops map snapshot for a swarm run (via State keys).
 pub fn (mut d Desktop) inner_loops_for(run_id string) map[string]string {
 	snap := d.engine.snapshot()

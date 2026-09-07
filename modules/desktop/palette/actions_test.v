@@ -441,13 +441,14 @@ fn test_app_actions_honest() {
 	}
 	assert out.status == .unavailable
 	assert out.summary.contains('No update feed/updater')
-	// theme: the shell executes appearance changes; the module never fakes a
-	// domain result for it
-	if _ := reg.execute(.app, 'agent-toolkit', .app_theme_cycle, ActionArgs{}) {
-		assert false, 'theme cycle must not execute as a fake domain action'
-	} else {
-		assert err.msg().contains('shell')
+	// theme: the shell executes appearance changes; the registry refuses to
+	// run or fake it (failed outcome, never journaled)
+	tout := reg.execute(.app, 'agent-toolkit', .app_theme_cycle, ActionArgs{}) or {
+		panic(err.msg())
 	}
+	assert tout.status == .failed
+	assert tout.summary.contains('shell')
+	assert reg.journal_records().len == 0
 	// uninstall: preview is a real dry-run (nothing deleted); execution is
 	// only ever attempted with confirm — and tests never run a real uninstall
 	acts := reg.actions_for(.app, 'agent-toolkit')
