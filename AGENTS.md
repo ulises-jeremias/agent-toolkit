@@ -24,6 +24,7 @@ Use the narrowest current source of truth instead of old issue prose or historic
 | Desktop interaction model | [`docs/desktop/UX_ARCHITECTURE.md`](docs/desktop/UX_ARCHITECTURE.md) |
 | Desktop visual design | [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md) |
 | Desktop journeys / coverage | [`docs/desktop/USER_JOURNEYS.md`](docs/desktop/USER_JOURNEYS.md), [`docs/desktop/WORKFLOW_COVERAGE.md`](docs/desktop/WORKFLOW_COVERAGE.md) |
+| Desktop truth ledger | [`docs/desktop/TRUTH_LEDGER.md`](docs/desktop/TRUTH_LEDGER.md) |
 | Desktop visual acceptance | [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md) |
 | Desktop backlog evidence | [`docs/desktop/BACKLOG_AUDIT.md`](docs/desktop/BACKLOG_AUDIT.md) |
 
@@ -77,14 +78,18 @@ Key source areas:
 - `mcp/` — provider registry/templates
 - `profiles/` — target-specific adapters/overlays
 - `packs/` — solution/workflow packs
+- `capabilities/` — declarative capability registries (targets, skills, hooks); canonical source for supported-target and capability truth
 - `distributions/` — product compiler input
 - `plugins/` — generated distribution surfaces; do not hand-edit unless the owning contract explicitly says otherwise
 - `catalogs/` — generated discovery catalogs
+- `schemas/` — validation schemas (skills, agents, loops, targets, products)
 - `modules/agent_toolkit_core/` — shared core/domain implementation
 - `modules/desktop_engine/` — Desktop-facing typed domain layer
 - `modules/desktop/` — Desktop view/presentation support
 - `cmd/agent-toolkit/` — native V CLI entrypoint
 - `cmd/agent-toolkit-desktop/` — production native Desktop entrypoint
+- `packages/` — PyPI/npm launcher trampolines
+- `tests/` — golden fixtures and adapter test suites
 - `docs/` — human-facing contracts, guides, ADRs
 - `scripts/` — validation/generation automation
 
@@ -115,7 +120,7 @@ Before adding a skill:
 3. prefer enhancing an existing first-party capability over vendoring a duplicate;
 4. follow [`docs/SKILL_INTEGRATION_CHECKLIST.md`](docs/SKILL_INTEGRATION_CHECKLIST.md).
 
-A skill lives at `skills/<domain>/<skill>/SKILL.md` and uses the schema/conventions documented by the repository. Do not introduce legacy `skill.json` files.
+A skill lives at `skills/<domain>/<skill>/SKILL.md`. Required and optional frontmatter (name, description, metadata, domain, tools, requires, triggers) is validated against [`schemas/skill-md-frontmatter.schema.json`](schemas/skill-md-frontmatter.schema.json); no legacy `skill.json` files.
 
 Validate skill changes with at least:
 
@@ -155,7 +160,7 @@ Never weaken L1/L2/L3 mutation boundaries, allow/deny semantics, budgets, or exi
 
 ## Profiles, MCP, products, and packs
 
-Profiles adapt canonical Agent Toolkit capabilities to supported coding tools. Keep target-specific behavior in the appropriate profile/emitter layer rather than duplicating source capabilities.
+Profiles adapt canonical Agent Toolkit capabilities to supported coding tools. Keep target-specific behavior in the appropriate profile/emitter layer rather than duplicating source capabilities. Profile layout and authoring follow [`docs/PROFILES.md`](docs/PROFILES.md).
 
 MCP templates use placeholders only. Never commit real credentials. Separate provider/catalog support from user configuration and runtime health.
 

@@ -232,11 +232,11 @@ Most expressive visual surface. Operational overview and Floor Map coexist witho
 
 ### Library
 
-Feels like an organized capability library rather than a generic app marketplace. Search, filtering, compatibility, provenance, and actions remain conventional. Shelves/catalog imagery may frame the experience.
+Feels like an organized capability library rather than a generic app marketplace. Search, filtering, compatibility, provenance, and actions remain conventional. Shelves/catalog imagery may frame the experience. Install counts, ratings, "verified" badges, publisher metrics, or third-party marketplace metadata require a truthful source; the bundled catalog is not a marketplace, and absence of such data renders as honest absence rather than invented numbers.
 
 ### Operations
 
-More serious command-center tone. Jobs, loops, swarms, and Doctor use dense conventional controls. A pixel-art operations room may reinforce context without stealing space from status and actions.
+More serious command-center tone. Jobs, loops, swarms, and Doctor use dense conventional controls. A pixel-art operations room may reinforce context without stealing space from status and actions. Job progress is shown only when it is measured from real runtime sources; otherwise it is indeterminate or omitted — never estimated to fill a bar.
 
 ### Workspace
 
