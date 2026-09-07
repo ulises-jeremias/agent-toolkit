@@ -1,21 +1,21 @@
 module palette
 
 import os
+import time
 import desktop_engine
 
-// s4b_engine builds an Engine over an isolated temp persist path. Before
-// creating a fixture, stale fixture dirs from previous runs with the same
-// prefix are removed (state.json persists; a same-PID rerun could otherwise
-// load stale state).
-fn s4b_engine(label string) &desktop_engine.Engine {
-	base := os.temp_dir()
-	entries := os.ls(base) or { []string{} }
-	for e in entries {
-		if e.starts_with('palette-actions-') {
-			os.rmdir_all(os.join_path(base, e)) or {}
-		}
-	}
-	tmp := os.join_path(base, 'palette-actions-${label}-${os.getpid()}')
+// TestEngine is a test fixture owning its exact temp directory: create the
+// exact path → use the fixture → stop the Engine → remove that exact path.
+// No fixture ever touches another fixture's directory.
+struct TestEngine {
+mut:
+	eng &desktop_engine.Engine = unsafe { nil }
+	tmp string
+}
+
+// new_s4b_engine boots an Engine over a unique isolated temp persist path.
+fn new_s4b_engine(label string) &TestEngine {
+	tmp := os.join_path(os.temp_dir(), 'palette-actions-${label}-${os.getpid()}-${time.now().unix_nano()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	persist := os.join_path(tmp, 'state.json')
 	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{
@@ -23,7 +23,19 @@ fn s4b_engine(label string) &desktop_engine.Engine {
 	})
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
-	return eng
+	return &TestEngine{
+		eng: eng
+		tmp: tmp
+	}
+}
+
+// cleanup stops the Engine and removes this fixture's exact temp path.
+fn (mut fe TestEngine) cleanup() {
+	fe.eng.stop() or {}
+	if fe.tmp != '' {
+		os.rmdir_all(fe.tmp) or {}
+		fe.tmp = ''
+	}
 }
 
 fn first_skill_id(mut eng &desktop_engine.Engine) string {
@@ -46,12 +58,12 @@ fn find_action(acts []RegistryAction, kind ActionKind) ?RegistryAction {
 
 // 1. unavailable actions carry a truthful reason.
 fn test_unavailable_action_has_reason() {
-	mut eng := s4b_engine('unavail')
+	mut fe := new_s4b_engine('unavail')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
-	skill_id := first_skill_id(mut eng)
+	mut reg := new_registry(mut fe.eng)
+	skill_id := first_skill_id(mut fe.eng)
 
 	// remove on a not-installed skill is unavailable with a reason
 	acts := reg.actions_for(.skill, skill_id)
@@ -61,11 +73,11 @@ fn test_unavailable_action_has_reason() {
 
 	// disable on a not-enabled target is unavailable with a reason
 	mut target_id := ''
-	for t in eng.targets() {
+	for t in fe.eng.targets() {
 		target_id = t.id
 		break
 	}
-	if target_id != '' && !eng.target_enabled(target_id) {
+	if target_id != '' && !fe.eng.target_enabled(target_id) {
 		dacts := reg.actions_for(.target, target_id)
 		dis := find_action(dacts, .target_disable) or { panic('target_disable action missing') }
 		assert !dis.available
@@ -73,7 +85,7 @@ fn test_unavailable_action_has_reason() {
 	}
 
 	// doctor repair on a non-fixable check is unavailable with a reason
-	for c in eng.doctor() {
+	for c in fe.eng.doctor() {
 		if !c.fixable {
 			cacts := reg.actions_for(.doctor_check, c.id)
 			assert cacts.len == 1
@@ -86,19 +98,19 @@ fn test_unavailable_action_has_reason() {
 
 // 2. typed args are validated before any Engine call.
 fn test_typed_args_are_validated() {
-	mut eng := s4b_engine('args')
+	mut fe := new_s4b_engine('args')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	// empty swarm task → failed validation, nothing recorded
-	before := eng.revision()
+	before := fe.eng.revision()
 	out := reg.execute(.navigation, '/swarm', .swarm_launch, ActionArgs{
 		task: '   '
 	}) or { panic(err.msg()) }
 	assert out.status == .failed
 	assert out.summary.contains('task text is required')
-	assert eng.revision() == before
+	assert fe.eng.revision() == before
 	// bad recipe → failed validation
 	out2 := reg.execute(.navigation, '/swarm', .swarm_launch, ActionArgs{
 		task: 'x'
@@ -118,48 +130,48 @@ fn test_typed_args_are_validated() {
 // dry_run must never bypass confirmation for actions without a real
 // dry-run seam (skill_remove and doctor repair mutate for real).
 fn test_dry_run_does_not_bypass_confirmation() {
-	mut eng := s4b_engine('dryrun')
+	mut fe := new_s4b_engine('dryrun')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
-	skill_id := first_skill_id(mut eng)
+	mut reg := new_registry(mut fe.eng)
+	skill_id := first_skill_id(mut fe.eng)
 	// install the skill so remove is available
 	_ = reg.execute(.skill, skill_id, .skill_install, ActionArgs{}) or {
 		panic(err.msg())
 	}
-	assert eng.skills_installed().contains(skill_id)
-	before := eng.revision()
+	assert fe.eng.skills_installed().contains(skill_id)
+	before := fe.eng.revision()
 	out := reg.execute(.skill, skill_id, .skill_remove, ActionArgs{
 		dry_run: true
 	}) or { panic(err.msg()) }
 	assert out.status == .not_confirmed
-	assert eng.skills_installed().contains(skill_id)
-	assert eng.revision() == before
+	assert fe.eng.skills_installed().contains(skill_id)
+	assert fe.eng.revision() == before
 }
 
 // 3. preview calculates real effects without mutating state.
 fn test_preview_does_not_mutate_state() {
-	mut eng := s4b_engine('preview')
+	mut fe := new_s4b_engine('preview')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
-	skill_id := first_skill_id(mut eng)
-	before_rev := eng.revision()
-	before_installed := eng.skills_installed().clone()
+	mut reg := new_registry(mut fe.eng)
+	skill_id := first_skill_id(mut fe.eng)
+	before_rev := fe.eng.revision()
+	before_installed := fe.eng.skills_installed().clone()
 
 	lines := reg.preview(.skill_install, skill_id) or { panic(err.msg()) }
 	assert lines.len > 0
 	assert lines[0].contains('add')
 	assert lines[0].contains(skill_id)
 	// nothing mutated: revision and installed selection unchanged
-	assert eng.revision() == before_rev
-	assert eng.skills_installed() == before_installed
+	assert fe.eng.revision() == before_rev
+	assert fe.eng.skills_installed() == before_installed
 
 	// doctor preview: real dry-run lines, no mutation
 	mut check_id := ''
-	for c in eng.doctor() {
+	for c in fe.eng.doctor() {
 		if c.fixable {
 			check_id = c.id
 			break
@@ -168,24 +180,24 @@ fn test_preview_does_not_mutate_state() {
 	if check_id != '' {
 		prev := reg.preview(.doctor_repair, check_id) or { panic(err.msg()) }
 		assert prev.len > 0
-		assert eng.revision() == before_rev
+		assert fe.eng.revision() == before_rev
 	}
 }
 
 // 4. real execution mutates the expected authoritative state.
 fn test_skill_execution_mutates_config_truth() {
-	mut eng := s4b_engine('exec-skill')
+	mut fe := new_s4b_engine('exec-skill')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
-	skill_id := first_skill_id(mut eng)
+	mut reg := new_registry(mut fe.eng)
+	skill_id := first_skill_id(mut fe.eng)
 	out := reg.execute(.skill, skill_id, .skill_install, ActionArgs{}) or {
 		panic(err.msg())
 	}
 	assert out.status == .succeeded
 	assert out.evidence.revision > 0
-	assert eng.skills_installed().contains(skill_id)
+	assert fe.eng.skills_installed().contains(skill_id)
 	// install of an installed skill is unavailable (not a fake no-op success)
 	out2 := reg.execute(.skill, skill_id, .skill_install, ActionArgs{}) or {
 		panic(err.msg())
@@ -196,65 +208,65 @@ fn test_skill_execution_mutates_config_truth() {
 		panic(err.msg())
 	}
 	assert nc.status == .not_confirmed
-	assert eng.skills_installed().contains(skill_id)
+	assert fe.eng.skills_installed().contains(skill_id)
 	// confirmed remove really removes
 	rm := reg.execute(.skill, skill_id, .skill_remove, ActionArgs{
 		confirm: true
 	}) or { panic(err.msg()) }
 	assert rm.status == .succeeded
-	assert !eng.skills_installed().contains(skill_id)
+	assert !fe.eng.skills_installed().contains(skill_id)
 }
 
 // 5. target enable/disable uses actual configuration state.
 fn test_target_enable_disable_uses_config_truth() {
-	mut eng := s4b_engine('exec-target')
+	mut fe := new_s4b_engine('exec-target')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	mut target_id := ''
-	for t in eng.targets() {
+	for t in fe.eng.targets() {
 		target_id = t.id
 		break
 	}
 	if target_id == '' {
 		panic('no targets in catalog — test env misconfigured')
 	}
-	was_enabled := eng.target_enabled(target_id)
+	was_enabled := fe.eng.target_enabled(target_id)
 	if was_enabled {
 		out := reg.execute(.target, target_id, .target_disable, ActionArgs{}) or {
 			panic(err.msg())
 		}
 		assert out.status == .succeeded
-		assert !eng.target_enabled(target_id)
+		assert !fe.eng.target_enabled(target_id)
 	} else {
 		out := reg.execute(.target, target_id, .target_enable, ActionArgs{}) or {
 			panic(err.msg())
 		}
 		assert out.status == .succeeded
-		assert eng.target_enabled(target_id)
+		assert fe.eng.target_enabled(target_id)
 	}
 	// the flipped direction now reports unavailability correctly
 	acts := reg.actions_for(.target, target_id)
 	for a in acts {
 		if a.kind == .target_enable {
-			assert a.available == !eng.target_enabled(target_id)
+			assert a.available == !fe.eng.target_enabled(target_id)
 		}
 		if a.kind == .target_disable {
-			assert a.available == eng.target_enabled(target_id)
+			assert a.available == fe.eng.target_enabled(target_id)
 		}
 	}
 }
 
 // 6. MCP actions use the real provider configuration.
 fn test_mcp_actions_use_real_provider_config() {
-	mut eng := s4b_engine('exec-mcp')
+	mut fe := new_s4b_engine('exec-mcp')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	mut provider_id := ''
-	for p in eng.mcp_catalog() {
+	for p in fe.eng.mcp_catalog() {
 		provider_id = p.id
 		break
 	}
@@ -275,14 +287,14 @@ fn test_mcp_actions_use_real_provider_config() {
 		assert !reg.engine_mcp_enabled(provider_id)
 	} else {
 		// preview shows real write targets, mutates nothing
-		before := eng.revision()
+		before := fe.eng.revision()
 		pv := reg.preview(.mcp_enable, provider_id) or {
 			// providers without a packaged template honestly have no preview
 			assert err.msg().contains('no packaged template')
 			return
 		}
 		assert pv.len > 0
-		assert eng.revision() == before
+		assert fe.eng.revision() == before
 		out := reg.execute(.mcp_provider, provider_id, .mcp_enable, ActionArgs{}) or {
 			panic(err.msg())
 		}
@@ -293,13 +305,13 @@ fn test_mcp_actions_use_real_provider_config() {
 
 // 7. doctor preview → repair is truthful end to end.
 fn test_doctor_preview_repair_truthful() {
-	mut eng := s4b_engine('exec-doctor')
+	mut fe := new_s4b_engine('exec-doctor')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	mut check_id := ''
-	for c in eng.doctor() {
+	for c in fe.eng.doctor() {
 		if c.fixable {
 			check_id = c.id
 			break
@@ -332,11 +344,11 @@ fn test_doctor_preview_repair_truthful() {
 
 // 8. loop run actually invokes the Engine operation (real history + budget).
 fn test_loop_run_invokes_engine() {
-	mut eng := s4b_engine('exec-loop')
+	mut fe := new_s4b_engine('exec-loop')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	entry := desktop_engine.LoopEntry{
 		name: 's4b-loop'
 		goal: 's4b action test'
@@ -351,13 +363,13 @@ fn test_loop_run_invokes_engine() {
 		}
 		budget_total: 80000
 	}
-	eng.upsert_loop(entry) or { panic(err.msg()) }
+	fe.eng.upsert_loop(entry) or { panic(err.msg()) }
 	out := reg.execute(.loop_template, 's4b-loop', .loop_run, ActionArgs{}) or {
 		panic(err.msg())
 	}
 	assert out.status == .succeeded
 	assert out.evidence.job_id.len > 0
-	hist := eng.loops_history('s4b-loop')
+	hist := fe.eng.loops_history('s4b-loop')
 	assert hist.len == 1
 	assert hist[0].status == 'started'
 	// budget gate → real failure, no false success
@@ -370,20 +382,20 @@ fn test_loop_run_invokes_engine() {
 
 // 9. swarm launch preserves requested-vs-running semantics.
 fn test_swarm_launch_preserves_requested_semantics() {
-	mut eng := s4b_engine('exec-swarm')
+	mut fe := new_s4b_engine('exec-swarm')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	// unconfirmed launch must not record anything
-	before := eng.revision()
+	before := fe.eng.revision()
 	nc := reg.execute(.navigation, '/swarm', .swarm_launch, ActionArgs{
 		task: 's4b requested-vs-running check'
 		recipe: 'pair'
 		backend: 'auto'
 	}) or { panic(err.msg()) }
 	assert nc.status == .not_confirmed
-	assert eng.revision() == before
+	assert fe.eng.revision() == before
 	out := reg.execute(.navigation, '/swarm', .swarm_launch, ActionArgs{
 		task: 's4b requested-vs-running check'
 		recipe: 'pair'
@@ -396,7 +408,7 @@ fn test_swarm_launch_preserves_requested_semantics() {
 	assert !out.summary.to_lower().contains('running workers')
 	// the recorded run is 'requested', never 'running'
 	mut status := ''
-	for s in eng.swarm_list() {
+	for s in fe.eng.swarm_list() {
 		if s.id == out.evidence.run_id {
 			status = s.status.str()
 		}
@@ -406,11 +418,11 @@ fn test_swarm_launch_preserves_requested_semantics() {
 
 // 10. fresh engine exposes no fabricated runtime actions.
 fn test_fresh_engine_no_fabricated_runtime_actions() {
-	mut eng := s4b_engine('fresh')
+	mut fe := new_s4b_engine('fresh')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	entries := reg.all_entries()
 	assert entries.filter(it.kind == .job).len == 0
 	assert entries.filter(it.kind == .swarm_run).len == 0
@@ -418,11 +430,11 @@ fn test_fresh_engine_no_fabricated_runtime_actions() {
 
 // 11. unknown entity → no actions, honest empty (not fabricated defaults).
 fn test_unknown_entity_has_no_actions() {
-	mut eng := s4b_engine('unknown')
+	mut fe := new_s4b_engine('unknown')
 	defer {
-		eng.stop() or {}
+		fe.cleanup()
 	}
-	mut reg := new_registry(mut eng)
+	mut reg := new_registry(mut fe.eng)
 	assert reg.actions_for(.skill, 'does/not-exist').len == 0
 	out := reg.execute(.skill, 'does/not-exist', .skill_install, ActionArgs{}) or {
 		panic('must not error')

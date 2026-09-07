@@ -3,6 +3,7 @@ module main
 import desktop
 import desktop.palette
 import os
+import time
 
 // S4B production-flow tests: preview → confirm → execute through the real
 // registry, honest unavailability, requested-vs-running, canonical deep-link.
@@ -11,19 +12,13 @@ struct S4bFixture {
 mut:
 	app &GuiApp = unsafe { nil }
 	d   &desktop.Desktop = unsafe { nil }
+	tmp string
 }
 
-// s4b_app boots a headless Desktop + GuiApp with the registry bound. Stale
-// fixture dirs from previous runs are swept first (engine state persists).
+// s4b_app boots a headless Desktop + GuiApp with the registry bound. The
+// fixture owns its exact temp directory and removes it in cleanup().
 fn s4b_app(label string) &S4bFixture {
-	base := os.temp_dir()
-	entries := os.ls(base) or { []string{} }
-	for e in entries {
-		if e.starts_with('atk-s4b-flow-') {
-			os.rmdir_all(os.join_path(base, e)) or {}
-		}
-	}
-	tmp := os.join_path(base, 'atk-s4b-flow-${label}-${os.getpid()}')
+	tmp := os.join_path(os.temp_dir(), 'atk-s4b-flow-${label}-${os.getpid()}-${time.now().unix_nano()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
 	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
 		config: desktop.DesktopConfig{
@@ -44,6 +39,16 @@ fn s4b_app(label string) &S4bFixture {
 	return &S4bFixture{
 		app: app
 		d: d
+		tmp: tmp
+	}
+}
+
+// cleanup stops the Desktop and removes this fixture's exact temp path.
+fn (mut f S4bFixture) cleanup() {
+	f.d.shutdown() or {}
+	if f.tmp != '' {
+		os.rmdir_all(f.tmp) or {}
+		f.tmp = ''
 	}
 }
 
@@ -61,7 +66,7 @@ fn find_row(rows []PaletteRow, pred fn (PaletteRow) bool) ?PaletteRow {
 fn test_palette_action_flow_preview_then_execute() {
 	mut f := s4b_app('flow')
 	defer {
-		f.d.shutdown() or {}
+		f.cleanup()
 	}
 	rows := filtered_palette(mut f.app)
 	skill := find_row(rows, fn (r PaletteRow) bool {
@@ -93,7 +98,7 @@ fn test_palette_action_flow_preview_then_execute() {
 fn test_palette_action_unavailable_honest() {
 	mut f := s4b_app('unavail')
 	defer {
-		f.d.shutdown() or {}
+		f.cleanup()
 	}
 	rows := filtered_palette(mut f.app)
 	skill := find_row(rows, fn (r PaletteRow) bool {
@@ -118,7 +123,7 @@ fn test_palette_action_unavailable_honest() {
 fn test_palette_swarm_launch_routes_to_panel_form() {
 	mut f := s4b_app('swarm')
 	defer {
-		f.d.shutdown() or {}
+		f.cleanup()
 	}
 	rows := filtered_palette(mut f.app)
 	swarm := find_row(rows, fn (r PaletteRow) bool {
@@ -140,7 +145,7 @@ fn test_palette_swarm_launch_routes_to_panel_form() {
 fn test_deep_link_selects_canonical_skill() {
 	mut f := s4b_app('deeplink')
 	defer {
-		f.d.shutdown() or {}
+		f.cleanup()
 	}
 	rows := filtered_palette(mut f.app)
 	skill := find_row(rows, fn (r PaletteRow) bool {
