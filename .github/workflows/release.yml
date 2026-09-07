@@ -206,6 +206,12 @@ jobs:
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
+          # #1057/#1116/#1130: validate the launcher entry shipped in the
+          # desktop archives (ubuntu legs have desktop-file-utils)
+          if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
+            desktop-file-validate packaging/linux/agent-toolkit-desktop.desktop
+            echo "desktop entry: valid"
+          fi
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -262,6 +268,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends \
+            desktop-file-utils \
             xorg-dev libgl1-mesa-dev libegl1-mesa-dev
 
       - name: Setup pinned V
@@ -298,6 +305,12 @@ jobs:
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
+          # #1057/#1116/#1130: validate the launcher entry shipped in the
+          # desktop archives (ubuntu legs have desktop-file-utils)
+          if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
+            desktop-file-validate packaging/linux/agent-toolkit-desktop.desktop
+            echo "desktop entry: valid"
+          fi
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:

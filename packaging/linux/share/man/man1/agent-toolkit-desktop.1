@@ -1,0 +1,61 @@
+.\" Agent Toolkit Desktop man page (#1116/#1057, #1130 vertical)
+.TH AGENT-TOOLKIT-DESKTOP 1 "2026-09-07" "Agent Toolkit 1.30.0" "User Commands"
+.SH NAME
+agent-toolkit-desktop \- Agent Toolkit Desktop — the Paper Co. coding-agent workstation
+.SH SYNOPSIS
+.B agent-toolkit-desktop
+.RI [ options ]
+.SH DESCRIPTION
+.B Agent Toolkit Desktop
+is the native desktop application for managing skills, agents, MCP providers,
+targets, loops, swarms and telemetry from a warm pixel-art office. It boots to
+onboarding on first run and renders catalog truth even when no coding-agent
+CLI is installed.
+.SH OPTIONS
+.TP
+.B \-\-version
+Print the version and exit.
+.TP
+.B \-\-help
+Print the help overview and exit.
+.SH KEYBOARD
+.TP
+.B /
+Open the command palette (typed registry search).
+.TP
+.B 1\-0, p, i, o
+Switch primary panels (Office, Skills, Agents, MCP, Targets, Doctor, Jobs,
+Loops, Swarm, Workspace, Products, Insights, Onboarding).
+.TP
+.B T
+Cycle appearance (Paper → Ink → System; persists).
+.TP
+.B Ctrl+= / Ctrl+\- / Ctrl+0
+Zoom in / out / reset.
+.TP
+.B H
+Help overlay. .B Esc closes the innermost context.
+.SH ENVIRONMENT
+.TP
+.B ATK_GUI_HEADLESS=1
+Run headless (no window) — CI smoke and clean-machine validation.
+.TP
+.B ATK_GUI_FREEZE=1
+Freeze visual nondeterminism for captures.
+.TP
+.B AGENT_TOOLKIT_ROOT
+Toolkit data-root override (Project > Workspace > Toolkit precedence).
+.SH FILES
+.TP
+.I ~/.cache/agent-toolkit/desktop/
+Extracted fonts, engine state, UI state (created at runtime).
+.TP
+.I ~/.config/agent-toolkit/
+Configuration and install receipts.
+.TP
+.I ~/.local/share/agent-toolkit/bin/
+Installed binary (default per-user install location).
+.SH SEE ALSO
+.B agent-toolkit(1)
+.SH BUGS
+Report issues at https://github.com/ulises-jeremias/agent-toolkit/issues
