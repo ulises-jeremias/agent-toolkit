@@ -179,6 +179,14 @@ mut:
 	// authority), mirroring InstallOptionsEngine's own injection design.
 	install_home_dir    string
 	install_receipt_dir string
+	// S4D: the shell reports the current appearance through
+	// observe_appearance (apply_appearance is the only mutation point), so
+	// appearance-undo prechecks compare real values instead of assuming.
+	observed_appearance string
+	// S4D (#1119): session-local execution journal (newest first, bounded)
+	// + undo sequence. Fresh session ⇒ empty journal. Never persisted.
+	journal  []RecentAction
+	undo_seq u64
 }
 
 // new_registry binds a registry to an Engine.

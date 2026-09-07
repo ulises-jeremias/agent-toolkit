@@ -353,7 +353,9 @@ pub fn mask_mcp_secrets(text string) string {
 pub fn has_raw_secret(text string) bool {
 	if text.contains('ghp_') || text.contains('gho_') || text.contains('sk-') || text.contains('xoxb-') {
 		if text.contains('\${') {
-			for pat in ['ghp_', 'sk-', 'xoxb-'] {
+			// scan EVERY known prefix: a raw token is one whose occurrence is
+			// not a \${ENV_VAR} placeholder — gho_ was missing (#1162 review)
+			for pat in ['ghp_', 'gho_', 'sk-', 'xoxb-'] {
 				idx := text.index(pat) or { continue }
 				before := if idx > 2 { text[idx - 2..idx] } else { '' }
 				if before != '\${' {
@@ -437,6 +439,72 @@ pub fn (mut e Engine) mcp_toggle(provider_id string) !u64 {
 		}
 	}
 	return error('mcp provider not found: ${provider_id}')
+}
+
+// McpStateSnapshot captures the complete authoritative state of one MCP
+// provider (S4D undo): exactly the state keys the Engine writes for it.
+// Snapshots are session-local, opaque and never rendered — stored configs
+// cannot contain raw secrets (the secret guard rejects them at write time),
+// but old migrated state is not assumed safe, so snapshots stay private.
+pub struct McpStateSnapshot {
+pub:
+	provider_id string
+	config      string
+	enabled     bool
+	health      string
+	provenance  string
+}
+
+// mcp_state_snapshot reads the provider's current authoritative state.
+// Returns none when the provider has no recorded state at all.
+pub fn (mut e Engine) mcp_state_snapshot(provider_id string) ?McpStateSnapshot {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	snap := e.repo.snapshot()
+	config := snap.data['mcp:${provider_id}:config'] or { '' }
+	enabled := (snap.data['mcp:${provider_id}:enabled'] or { 'false' }) == 'true'
+	health := snap.data['mcp:${provider_id}:health'] or { '' }
+	provenance := snap.data['provenance:mcp:${provider_id}:source'] or { '' }
+	if config == '' && !enabled && health == '' && provenance == '' {
+		return none
+	}
+	return McpStateSnapshot{
+		provider_id: provider_id
+		config: config
+		enabled: enabled
+		health: health
+		provenance: provenance
+	}
+}
+
+// restore_mcp_state restores an exact previously captured provider state in
+// one transaction (S4D undo, Option B). It writes only the four keys the
+// Engine itself owns for a provider — no generic state-map restoration. The
+// secret guard still applies to the restored config; a snapshot that
+// predates the guard and carries a raw secret is refused, and the caller
+// treats that undo as unavailable.
+pub fn (mut e Engine) restore_mcp_state(s McpStateSnapshot) !u64 {
+	if s.provider_id == '' {
+		return error('provider id empty')
+	}
+	if has_raw_secret(s.config) {
+		return error('secret guard: snapshot config carries a raw token — undo unavailable')
+	}
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	mut repo := e.repo
+	mut tx := repo.begin('restore-mcp-state')
+	// write ALL four keys unconditionally: an empty captured field means the
+	// previous state had no value — restore must clear it, never retain a
+	// newer value (#1162 review)
+	tx.set('mcp:${s.provider_id}:config', s.config)
+	tx.set('mcp:${s.provider_id}:enabled', if s.enabled { 'true' } else { 'false' })
+	tx.set('mcp:${s.provider_id}:health', s.health)
+	tx.set('provenance:mcp:${s.provider_id}:source', s.provenance)
+	rev := e.put_transaction(mut tx)!
+	return rev.revision
 }
 
 // verify_mcp_receipts checks that every enabled MCP provider has a recorded
