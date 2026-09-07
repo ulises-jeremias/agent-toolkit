@@ -4183,6 +4183,26 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 	}
 }
 
+// discovery_row_text renders the truthful discovery line for a target row
+// (#1129): where the tool was found + real version, or the honest reason.
+fn discovery_row_text(d desktop_engine.ToolDiscovery) string {
+	if d.found {
+		mut s := 'found: ${d.resolved_path}'
+		if d.version_known {
+			s += ' · ${d.version}'
+		}
+		if s.len > 46 {
+			s = s[..46] + '…'
+		}
+		return s
+	}
+	mut r := d.reason
+	if r.len > 46 {
+		r = r[..46] + '…'
+	}
+	return r
+}
+
 fn draw_targets(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
 	fy := 52
@@ -4203,6 +4223,13 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	tgts2 := app.desktop.engine_targets().map(it.id)
 	targets := app.desktop.engine_targets_enabled()
 	_ = targets
+	// S4D… er, #1129: typed tool discovery — one authoritative detector
+	mut disco_map := map[string]desktop_engine.ToolDiscovery{}
+	if app.desktop != unsafe { nil } {
+		for d in app.desktop.engine_tool_discovery_catalog_cached() {
+			disco_map[d.id] = d
+		}
+	}
 	for i, t in tgts2 {
 		y := fy + 56 + i * 32
 		enabled := t in app.desktop.engine_targets_enabled()
@@ -4236,6 +4263,13 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 		en := if enabled { 'enabled ✓' } else { 'off —' }
 		ec := if enabled { app.pnl_success } else { app.pnl_text_mut }
 		app.gg.draw_text(fx + fw - 100, y + 8, en, gg.TextCfg{ color: ec, size: 12, bold: enabled })
+		// #1129: truthful discovery line — where found + version, or why missing.
+		// Calm muted text: a missing tool on a fresh machine is a normal,
+		// actionable state, not an error (#1163 visual review).
+		if d := disco_map[t] {
+			text := discovery_row_text(d)
+			app.gg.draw_text(fx + 170, y + 10, text, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: d.found })
+		}
 	}
 	app.gg.draw_text(fx + 20, fy + fh - 14, 'Install: engine.install([targets]) → receipt ~/.config/agent-toolkit/receipts · dry-run before write · toggle via Engine', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 }
@@ -6591,6 +6625,15 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				['claude-code', 'cursor', 'opencode', 'copilot-cli', 'pi', 'windsurf', 'codex',
 					'muse-code']
 			}
+			// #1163 review: the wizard consumes the SAME cached discovery
+			// snapshot as the Targets panel — render frames never trigger
+			// uncached version subprocesses
+			mut onb_disco := map[string]desktop_engine.ToolDiscovery{}
+			if app.desktop != unsafe { nil } {
+				for d in app.desktop.engine_tool_discovery_catalog_cached() {
+					onb_disco[d.id] = d
+				}
+			}
 			for i, t in tgts {
 				y := content_y + 30 + i * 20
 				enabled := t in enabled_targets
@@ -6604,6 +6647,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 					app.pnl_border
 				})
 				app.gg.draw_text(fx + 26, y + 3, t, gg.TextCfg{ color: fg3, size: 12, mono: true })
+				// #1129: discovery status from the cached snapshot
+				found_txt := if t in onb_disco && onb_disco[t].found { 'found' } else { 'missing' }
+				fcol := if found_txt == 'found' { app.pnl_success } else { app.pnl_text_mut }
+				app.gg.draw_text(fx + fw - 170, y + 3, found_txt, gg.TextCfg{ color: fcol, size: 11 })
 				app.gg.draw_text(fx + fw - 80, y + 3, if enabled {
 					'enabled ✓'
 				} else {

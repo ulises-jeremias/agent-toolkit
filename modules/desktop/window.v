@@ -239,7 +239,19 @@ pub fn (mut d Desktop) smoke_message() string {
 		'window ${d.config.width}x${d.config.height}'
 	}
 	status := if d.is_running() { 'RUNNING' } else { 'STOPPED' }
-	return '${status}: desktop "${d.config.title}" | mode=${mode} | engine_api_calls=${d.engine_api_calls()} | app_state_rev=${d.app_state.revision}'
+	// #1129: truthful tool-discovery evidence in the smoke line — found/missing
+	// counts under this process's actual environment (no paths, no secrets)
+	mut found_n := 0
+	mut missing_n := 0
+	discovery := d.engine.tool_discovery_catalog()
+	for t in discovery {
+		if t.found {
+			found_n++
+		} else if t.reason.contains('not found on this session') {
+			missing_n++
+		}
+	}
+	return '${status}: desktop "${d.config.title}" | mode=${mode} | engine_api_calls=${d.engine_api_calls()} | app_state_rev=${d.app_state.revision} | tools found=${found_n} missing=${missing_n} (path entries=${desktop_engine.session_path_entry_count()})'
 }
 
 // hello_world_available reports whether desktop window path is available.
@@ -362,6 +374,19 @@ pub fn (mut d Desktop) engine_target_install_supported(target_id string) bool {
 // engine_target_enabled reads the target's real enabled state (S4D tests).
 pub fn (mut d Desktop) engine_target_enabled(target_id string) bool {
 	return d.engine.target_enabled(target_id)
+}
+
+// engine_tool_discovery_catalog exposes typed tool discovery for Desktop
+// surfaces (#1129) through the TTL cache — rendering calls this every frame
+// and version probes must never spawn at frame rate.
+pub fn (mut d Desktop) engine_tool_discovery_catalog_cached() []desktop_engine.ToolDiscovery {
+	return d.engine.tool_discovery_catalog_cached()
+}
+
+// engine_tool_discovery_catalog_uncached forces a fresh discovery pass
+// (tests and explicit refresh).
+pub fn (mut d Desktop) engine_tool_discovery_catalog() []desktop_engine.ToolDiscovery {
+	return d.engine.tool_discovery_catalog()
 }
 
 // inner_loops_for returns inner loops map snapshot for a swarm run (via State keys).
