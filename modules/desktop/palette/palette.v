@@ -15,6 +15,14 @@ pub:
 	category string // Skills|Agents|Products|Navigation|Doctor|MCP|Workspace|Loops|Jobs
 	keywords string // extra searchable tokens
 	panel    nav.PanelId
+	// S4A entity identity (#1119) — present on registry-derived actions.
+	desc               string // one-line truthful description (empty = unset)
+	keys               string // shortcut hint (navigation rows)
+	kind               EntityKind
+	entity_id          string // canonical entity id (e.g. core/assistant, claude-code)
+	workspace          string // workspace context when entity is workspace-scoped
+	available          bool // whether the entity's contextual action is currently possible
+	unavailable_reason string // populated when !available
 mut:
 	score int // last fuzzy score (internal)
 }
@@ -162,6 +170,7 @@ mut:
 	engine        &desktop_engine.Engine
 	router        &nav.Router
 	theme         theme.Theme
+	registry      &Registry // S4A: single typed registry source
 	actions       []PaletteAction
 	filtered      []PaletteAction
 	query         string
@@ -199,6 +208,7 @@ pub fn new_palette_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.
 		engine: engine
 		router: router
 		theme: th
+		registry: new_registry(mut engine)
 		debounce_ms: debounce
 		virtualized: new_virtual_palette_list(0, vh)
 		revision: engine.revision()
@@ -208,103 +218,11 @@ pub fn new_palette_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.
 	return vm
 }
 
-// build_actions collects all searchable actions from Engine + nav.
-// Pure derivation, no shell, mirrors skills_viewmodel refresh pattern.
+// build_actions collects all searchable actions through the shared typed
+// registry (S4A #1119) — Engine catalogs, configuration and runtime state.
+// Pure derivation, no shell, no fabricated filler rows.
 fn (mut vm PaletteViewModel) build_actions() []PaletteAction {
-	mut out := []PaletteAction{}
-	// Navigation routes (12)
-	for r in nav.default_routes() {
-		out << PaletteAction{
-			id: 'nav:${r.path}'
-			label: r.panel.label()
-			category: 'Navigation'
-			keywords: '${r.path} ${r.plane} go to open'
-			panel: r.panel
-		}
-	}
-	// Skills (116+)
-	for s in vm.engine.skills_catalog() {
-		out << PaletteAction{
-			id: 'skill:${s.id}'
-			label: s.name
-			category: 'Skills'
-			keywords: '${s.id} ${s.domain} ${s.description}'
-			panel: .skills
-		}
-	}
-	// Agents (18+)
-	for a in vm.engine.agents_catalog() {
-		out << PaletteAction{
-			id: 'agent:${a.id}'
-			label: a.id
-			category: 'Agents'
-			keywords: '${a.id} ${a.role} ${a.tier} ${a.description}'
-			panel: .agents
-		}
-	}
-	// Products/packs (via Engine products)
-	for p in vm.engine.products_catalog() {
-		out << PaletteAction{
-			id: 'product:${p.id}'
-			label: p.name
-			category: 'Products'
-			keywords: '${p.id} ${p.description}'
-			panel: .products
-		}
-	}
-	// Targets
-	for t in vm.engine.targets() {
-		out << PaletteAction{
-			id: 'target:${t.id}'
-			label: t.id
-			category: 'Targets'
-			keywords: '${t.id} ${t.name} ${t.status} ${t.layer}'
-			panel: .world_view
-		}
-	}
-	// Doctor checks
-	for c in vm.engine.doctor() {
-		out << PaletteAction{
-			id: 'doctor:${c.id}'
-			label: c.id
-			category: 'Doctor'
-			keywords: '${c.id} ${c.status} ${c.message} doctor check'
-			panel: .doctor
-		}
-	}
-	// MCP providers
-	for m in vm.engine.mcp_catalog() {
-		out << PaletteAction{
-			id: 'mcp:${m.id}'
-			label: m.id
-			category: 'MCP'
-			keywords: '${m.id} ${m.name} mcp provider ${m.health}'
-			panel: .mcp
-		}
-	}
-	// Loops
-	for l in vm.engine.loops_catalog() {
-		out << PaletteAction{
-			id: 'loop:${l.name}'
-			label: l.name
-			category: 'Loops'
-			keywords: '${l.name} ${l.goal}'
-			panel: .loops
-		}
-	}
-	// If still small (edge CI), ensure at least params for virtualization stress
-	if out.len < 20 {
-		for i in out.len .. 20 {
-			out << PaletteAction{
-				id: 'fallback:${i:04d}'
-				label: 'Fallback Action ${i:04d}'
-				category: 'System'
-				keywords: 'fallback'
-				panel: .skills
-			}
-		}
-	}
-	return out
+	return vm.registry.all_actions()
 }
 
 // refresh rebuilds action list from Engine and reapplies current query.

@@ -142,6 +142,7 @@ pub fn (mut e Engine) jobs_catalog() []JobRecord {
 		retry_str := snap.data['jobs/${id}/retry'] or { '0' }
 		retry := retry_str.int()
 		canceled := (snap.data['jobs/${id}/canceled'] or { 'false' }) == 'true'
+		work_dir := snap.data['jobs/${id}/work_dir'] or { '' }
 		out << JobRecord{
 			id: id
 			cmd: cmd
@@ -153,6 +154,7 @@ pub fn (mut e Engine) jobs_catalog() []JobRecord {
 			duration_ms: dur
 			canceled: canceled
 			retry_count: retry
+			work_dir: work_dir
 		}
 	}
 	// sort by started_at newest first for easy management
@@ -437,7 +439,6 @@ pub fn (mut e Engine) job_append_log(job_id string, line string) !u64 {
 	})
 	return rev.revision
 }
-
 
 // job_complete records the real runtime outcome of a job. A job run is
 // runtime truth: status, exit code and duration come from the actual run.

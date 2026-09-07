@@ -126,11 +126,12 @@ Keep every slice independently shippable with its own green Required CI.
 - **The static list contains entries with no truthful backing** (e.g.
   "Update — agent-toolkit update"): migrate them to honest-unavailable or
   omit them; do not carry them into the registry as fake actions.
-- **CI infrastructure note**: pinned V (master @ 78e581e) cold rebuilds are
+- **CI infrastructure note**: pinned V (master @ c0e47bf) cold rebuilds are
   non-deterministic upstream (vc/tcc moving HEADs); #1154 added a build cache
   + retry to `.github/actions/setup-v`. If a cold rebuild fails persistently,
   bump the pinned commit AND the cache key together (both literals live in
-  the action).
+  the action). Hermetic bootstrap reproducibility is tracked separately in
+  #1158.
 - **Golden fixtures** reflect the current UI; intentional visual changes to
   the palette must include a drift map and recapture (policy in
   `VISUAL_QA.md`), never a silent fixture update.

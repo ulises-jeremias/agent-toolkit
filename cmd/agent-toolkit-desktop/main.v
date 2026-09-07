@@ -1,6 +1,8 @@
 module main
 
 import desktop
+import desktop.nav
+import desktop.palette
 import desktop_engine
 import gg
 import ghostty
@@ -25,129 +27,89 @@ import pty as pty_mod
 // Signature: perforated tractor-feed edge dots + brass binder rivet (2px) + manila folder tab
 const col_ink = ui_text(ui_theme()) // theme: text.primary
 
-
 const col_ink700 = ui_text(ui_theme()) // theme: text.primary
-
 
 const col_ink500 = ui_muted(ui_theme()) // theme: text.secondary
 
-
 const col_ink300 = ui_line_paper(ui_theme()) // theme: quiet paper rule
-
 
 const col_charcoal = ui_cabinet(ui_theme()) // theme: surface.cabinet
 
-
 const col_charcoal2 = ui_text(ui_theme()) // theme: text.primary
-
 
 const col_paper = ui_paper(ui_theme()) // theme: surface.paper
 
-
 const col_paper_dim = ui_canvas(ui_theme()) // theme: surface.canvas
-
 
 const col_brass = ui_selection(ui_theme()) // theme: signal.selection
 
-
 const col_brass_dim = ui_selection(ui_theme()) // theme: signal.selection
-
 
 const col_oxide = ui_danger(ui_theme()) // theme: signal.danger
 
-
 const col_slate = ui_muted(ui_theme()) // theme: text.secondary
-
 
 const col_slate_dim = ui_muted(ui_theme()) // theme: text.secondary
 
-
 const col_line = ui_line_cabinet(ui_theme()) // theme: quiet cabinet rule
 
-
 const col_line_light = ui_line_paper(ui_theme()) // theme: quiet paper rule
-
 
 // paper tokens — warm office stock
 const col_cream50 = ui_paper(ui_theme()) // theme: surface.paper
 
-
 const col_cream100 = ui_paper(ui_theme()) // theme: surface.paper
-
 
 const col_cream200 = ui_canvas(ui_theme()) // theme: surface.canvas
 
-
 const col_paper100 = ui_paper(ui_theme()) // theme: surface.paper
-
 
 const col_coral = ui_danger(ui_theme()) // theme: signal.danger
 
-
 const col_mint = ui_success(ui_theme()) // theme: signal.success
-
 
 const col_sky = ui_muted(ui_theme()) // theme: text.secondary
 
-
 const col_lemon = ui_selection(ui_theme()) // theme: signal.selection
-
 
 const col_lilac = ui_muted(ui_theme()) // theme: text.secondary
 
-
 const col_peach = ui_selection(ui_theme()) // theme: signal.selection
-
 
 const col_status_idle = ui_muted(ui_theme()) // theme: text.secondary
 
-
 const col_status_thinking = ui_muted(ui_theme()) // theme: text.secondary
-
 
 const col_status_working = ui_selection(ui_theme()) // theme: signal.selection
 
-
 const col_status_waiting = ui_muted(ui_theme()) // theme: text.secondary
-
 
 const col_status_blocked = ui_danger(ui_theme()) // theme: signal.danger
 
-
 const col_status_success = ui_success(ui_theme()) // theme: signal.success
-
 
 const col_wood_light = ui_canvas(ui_theme()) // theme: surface.canvas
 
-
 const col_wood_dark = ui_line_paper(ui_theme()) // theme: quiet paper rule
 
-
 const col_path = ui_canvas(ui_theme()) // theme: surface.canvas
-
 
 // ── cozy paper-ledger tokens (design pass 1.29) — warm secondary ink for paper,
 // hover tints and folder-tab manila. Contrast: ink_soft on cream ≥ 4.5:1. ──
 const col_ink_soft = ui_muted(ui_theme()) // theme: text.secondary
 
-
 const col_paper_hover = ui_hover_tint(ui_theme()) // theme: selection hover wash
-
 
 const col_manila_tab = ui_canvas(ui_theme()) // theme: surface.canvas
 
-
 const col_sage_soft = ui_success(ui_theme()) // theme: signal.success
 
-
 const col_steel_ink = ui_muted(ui_theme()) // theme: text.secondary
-
 
 // text on constant-dark surfaces (cabinet, terminal wells) — identical cream
 // in both themes because the surface never themes; use instead of app.pnl_*
 // wherever the background is a dark const, or Ink goes blind.
 const col_text_on_cabinet = ui_on_cabinet(ui_theme()) // theme: text.on_cabinet
-
 
 // ── brand typography — Fraunces display + IBM Plex Sans body + IBM Plex Mono data.
 // OFL-licensed TTFs ship in assets/fonts/; resolved relative to the binary so the
@@ -941,8 +903,11 @@ mut:
 	palette_open     bool
 	palette_query    string
 	palette_selected int
-	mouse_x          int
-	mouse_y          int
+	// S4A (#1119): shared typed action & entity registry — the palette's data
+	// source. Static rows remain only for entries not yet migrated.
+	palette_reg &palette.Registry = unsafe { nil }
+	mouse_x     int
+	mouse_y     int
 	// dedupe: C backends set char_code on key_down AND send .char — keep one per frame
 	last_keydown_char    u32
 	last_keydown_frame   int
@@ -1609,20 +1574,10 @@ fn panel_desc(i int) string {
 }
 
 fn palette_items() []PaletteItem {
+	// S4A (#1119): navigation rows migrated to the shared typed registry
+	// (modules/desktop/palette/registry.v). Only entries not yet migrated to
+	// typed registry actions remain here; each is retired in S4B/S4C.
 	return [
-		PaletteItem{'world', 'Go to World', 'Office floor, desks and handoffs', '1'},
-		PaletteItem{'skills', 'Go to Skills', 'Search and install skills', '2'},
-		PaletteItem{'agents', 'Go to Agents', 'Browse holistic and specialist', '3'},
-		PaletteItem{'mcp', 'Go to MCP', 'Providers and health', '4'},
-		PaletteItem{'targets', 'Go to Targets', 'Enable platforms', '5'},
-		PaletteItem{'doctor', 'Go to Doctor', 'Fix checks', '6'},
-		PaletteItem{'jobs', 'Go to Jobs', 'Live processes', '7'},
-		PaletteItem{'loops', 'Go to Loops', 'Missions and schedules — inner/outer', '8'},
-		PaletteItem{'swarm', 'Go to Swarm', 'GOD mailbox, Herdr/tmux, pair/team/full, approvals spend/scope/destructive', '9'},
-		PaletteItem{'workspace', 'Go to Workspace', 'Context and memory', '0'},
-		PaletteItem{'products', 'Go to Products', 'Manage products/packs membership & digest', 'p'},
-		PaletteItem{'onboarding', 'Go to Onboarding', 'Super-potent wizard: workspace, personas, capability, target, product', 'o'},
-		PaletteItem{'insights', 'Go to Insights', 'Telemetry — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher', 'i'},
 		PaletteItem{'command_palette', 'Command palette', 'Fuzzy search ( / ) — todo administrable', '/'},
 		PaletteItem{'serve', 'Start API server', 'agent-toolkit serve --port 3847', 's'},
 		PaletteItem{'doctor_fix', 'Run doctor --fix', 'Repair missing profiles', 'd'},
@@ -1649,100 +1604,132 @@ fn palette_items() []PaletteItem {
 	]
 }
 
-// fuzzy_score computes match score for query against candidate string.
-// Returns -1 if no match, higher is better. Case-insensitive, substring and
-// subsequence aware, with bonuses for consecutive and word-boundary hits.
-// Pure function, no I/O, deterministic. Mirrors desktop/palette fuzzy.
-fn fuzzy_score(query string, target string) int {
-	if query == '' {
-		return 1000
+// fuzzy_score and palette_best_score were removed in S4A (#1119): the palette
+// module's scorer (desktop.palette.fuzzy_score / action_best_score) is the
+// single scoring authority shared by registry actions and legacy rows.
+
+// PaletteRow is the merged palette row model: registry-sourced actions (S4A)
+// plus legacy static rows for entries not yet migrated to the registry.
+struct PaletteRow {
+	id    string
+	label string
+	desc  string
+	keys  string
+	score int
+	// registry entity fields (zero values for legacy rows)
+	is_entity          bool
+	kind               palette.EntityKind
+	entity_id          string
+	panel              nav.PanelId
+	available          bool
+	unavailable_reason string
+}
+
+// panel_index_for maps a registry panel destination to the production panel
+// index used by GuiApp.selected_panel (0 world … 12 insights).
+fn panel_index_for(p nav.PanelId) int {
+	return match p {
+		.world_view { 0 }
+		.skills { 1 }
+		.agents { 2 }
+		.mcp { 3 }
+		.targets { 4 }
+		.doctor { 5 }
+		.jobs { 6 }
+		.loops { 7 }
+		.swarm { 8 }
+		.workspace { 9 }
+		.products { 10 }
+		.onboarding { 11 }
+		.insights { 12 }
+		else { -1 }
 	}
-	q := query.to_lower()
-	t := target.to_lower()
-	if t == q {
-		return 10000
+}
+
+// nav_tr_key returns the i18n key suffix ('palette.<key>') for a registry
+// navigation row so localized labels keep working after the migration.
+fn nav_tr_key(p nav.PanelId) string {
+	return match p {
+		.world_view { 'world' }
+		.skills { 'skills' }
+		.agents { 'agents' }
+		.mcp { 'mcp' }
+		.targets { 'targets' }
+		.doctor { 'doctor' }
+		.jobs { 'jobs' }
+		.loops { 'loops' }
+		.swarm { 'swarm' }
+		.workspace { 'workspace' }
+		.products { 'products' }
+		.onboarding { 'onboarding' }
+		.insights { 'insights' }
+		else { '' }
 	}
-	if t.contains(q) {
-		return 9000 - t.len
-	}
-	mut qi := 0
-	mut score := 0
-	mut consecutive := 0
-	mut last_match := -1
-	for ti, ch in t {
-		if qi < q.len && ch == q[qi] {
-			score += 10
-			if last_match == ti - 1 {
-				score += 5
-				consecutive++
-			}
-			if ti == 0 || t[ti - 1] == `/` || t[ti - 1] == ` ` || t[ti - 1] == `-` || t[ti - 1] == `_` || t[ti - 1] == `:` {
-				score += 8
-			}
-			last_match = ti
-			qi++
-			if qi == q.len {
-				break
+}
+
+// filtered_palette merges the shared typed registry (navigation + entities,
+// S4A) with the legacy static rows for not-yet-migrated entries. All rows are
+// scored by the palette module's fuzzy scorer — one scoring authority.
+// Empty query keeps the stable build order: navigation, entities, legacy.
+fn filtered_palette(mut app GuiApp) []PaletteRow {
+	q := app.palette_query.trim_space()
+	mut scored := []PaletteRow{}
+	// registry-derived navigation + catalog/config/runtime entities
+	if app.palette_reg != unsafe { nil } {
+		for sa in app.palette_reg.scored_filter(app.palette_query) {
+			a := sa.action
+			scored << PaletteRow{
+				id: a.id
+				label: a.label
+				desc: a.desc
+				keys: a.keys
+				score: sa.score
+				is_entity: true
+				kind: a.kind
+				entity_id: a.entity_id
+				panel: a.panel
+				available: a.available
+				unavailable_reason: a.unavailable_reason
 			}
 		}
 	}
-	if qi != q.len {
-		return -1
-	}
-	score -= t.len / 10
-	score += consecutive * 3
-	return score
-}
-
-fn palette_best_score(query string, item PaletteItem) int {
-	if query == '' {
-		return 1000
-	}
-	mut best := -1
-	for field in [item.label, item.id, item.desc, item.keys] {
-		s := fuzzy_score(query, field)
-		if s > best {
-			best = s
+	// legacy static rows (entries not yet migrated to the registry)
+	for it in palette_items() {
+		mut best := -1
+		if q == '' {
+			best = 1000
+		} else {
+			for field in [it.label, it.id, it.desc, it.keys] {
+				s := palette.fuzzy_score(q, field)
+				if s > best {
+					best = s
+				}
+			}
+		}
+		if best >= 0 {
+			scored << PaletteRow{
+				id: it.id
+				label: it.label
+				desc: it.desc
+				keys: it.keys
+				score: best
+			}
 		}
 	}
-	return best
-}
-
-fn filtered_palette(query string) []PaletteItem {
-	items := palette_items()
-	q := query.trim_space()
 	if q == '' {
-		return items.clone()
-	}
-	struct Scored {
-		item  PaletteItem
-		score int
-	}
-	mut scored := []Scored{}
-	for it in items {
-		s := palette_best_score(q, it)
-		if s >= 0 {
-			scored << Scored{
-				item: it
-				score: s
-			}
-		}
+		return scored
 	}
 	// manual sort to avoid V3 generic monomorphize segfault (see swarm_service fix)
 	for i := 1; i < scored.len; i++ {
 		mut j := i
-		for j > 0 && (scored[j].score > scored[j - 1].score || (scored[j].score == scored[j - 1].score && scored[j].item.label < scored[j - 1].item.label)) {
+		for j > 0 && (scored[j].score > scored[j - 1].score || (scored[j].score == scored[j - 1].score && scored[j].label < scored[j - 1].label)) {
 			tmp := scored[j]
 			scored[j] = scored[j - 1]
 			scored[j - 1] = tmp
 			j--
 		}
 	}
-	mut out := []PaletteItem{}
-	for e in scored {
-		out << e.item
-	}
-	return out
+	return scored
 }
 
 fn desks_for_app(app &GuiApp) []Desk {
@@ -1769,9 +1756,12 @@ fn desks_for_app(app &GuiApp) []Desk {
 				label: labels[r][c]
 				role: roles[r][c]
 				tier: if roles[r][c] == 'holistic' {
-					'holistic'} else if roles[r][c] == 'specialist' {
-					'specialist'} else {
-					'runtime'}
+					'holistic'
+				} else if roles[r][c] == 'specialist' {
+					'specialist'
+				} else {
+					'runtime'
+				}
 				x: 220 + c * 166
 				y: 92 + r * 130
 				// A catalog desk is not a running process. Runtime status is
@@ -1811,15 +1801,11 @@ fn desk_rect(d Desk, idx int, fx int, fy int, fw int, fh int) (int, int, int, in
 // ── Terminal / Activity helpers — workshop palette, English only, gg monospace ──
 const term_bg = ui_cabinet(ui_theme()) // theme: console = surface.cabinet
 
-
 const term_header_bg = ui_cabinet(ui_theme()) // theme: console = surface.cabinet
-
 
 const term_border = ui_line_cabinet(ui_theme()) // theme: quiet cabinet rule
 
-
 const term_cursor = ui_selection(ui_theme()) // theme: signal.selection
-
 
 fn term_level_color(level string) gg.Color {
 	return match level {
@@ -2069,6 +2055,9 @@ fn main() {
 		selected_desk: -1
 		hover_desk: -1
 	}
+	// S4A (#1119): bind the shared typed registry to the boot Engine so the
+	// palette derives navigation + entities from authoritative state.
+	app.palette_reg = d.palette_registry()
 	app.gg = gg.new_context(
 		bg_color: col_ink
 		width: cfg.width
@@ -2895,8 +2884,16 @@ fn draw_office_view_switch(mut app GuiApp, w int) {
 	for i, label_key in ['office.view.overview', 'office.view.floor'] {
 		is_active := (i == 0 && !app.office_map_view) || (i == 1 && app.office_map_view)
 		tx := x + i * (tab_w + gap)
-		app.gg.draw_rect_filled(tx, y, tab_w, tab_h, if is_active { app.pnl_select } else { app.pnl_card })
-		app.gg.draw_rect_empty(tx, y, tab_w, tab_h, if is_active { app.pnl_border_hi } else { app.pnl_border })
+		app.gg.draw_rect_filled(tx, y, tab_w, tab_h, if is_active {
+			app.pnl_select
+		} else {
+			app.pnl_card
+		})
+		app.gg.draw_rect_empty(tx, y, tab_w, tab_h, if is_active {
+			app.pnl_border_hi
+		} else {
+			app.pnl_border
+		})
 		app.gg.draw_text(tx + 8, y + 5, tr(app, label_key), gg.TextCfg{
 			color: if is_active { app.pnl_bg } else { app.pnl_text }
 			size: 10
@@ -3188,8 +3185,10 @@ fn draw_world(mut app GuiApp, w int, h int) {
 						app.gg.draw_rect_empty(dx + 2, strip_y, 136, 10, tint(app.pnl_text, 120))
 						app.gg.draw_text(dx + 4, strip_y + 1, clean2, gg.TextCfg{
 							color: if is_selected {
-								app.pnl_select} else {
-								app.pnl_text_mut}
+								app.pnl_select
+							} else {
+								app.pnl_text_mut
+							}
 							size: 10
 							mono: true
 						})
@@ -3349,8 +3348,10 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			}
 			app.gg.draw_text(ax - 2, ay - 2, glyph, gg.TextCfg{
 				color: if av.carrying == 'paper' {
-					app.pnl_text} else {
-					app.pnl_bg}
+					app.pnl_text
+				} else {
+					app.pnl_bg
+				}
 				size: 10
 				bold: true
 			})
@@ -3999,8 +4000,10 @@ fn draw_mcp(mut app GuiApp, w int, h int) {
 		// provenance + receipt path + toggle action — one-click Engine TX
 		app.gg.draw_text(fx + fw - 90, y + 8, if p.enabled { 'toggle off' } else { 'toggle on' }, gg.TextCfg{
 			color: if p.enabled {
-				app.pnl_text_mut} else {
-				app.pnl_border_hi}
+				app.pnl_text_mut
+			} else {
+				app.pnl_border_hi
+			}
 			size: 12
 			bold: !p.enabled
 		})
@@ -4228,8 +4231,10 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_empty(cx, cy, tw, 16, bd)
 		app.gg.draw_text(cx + 5, cy + 3, label, gg.TextCfg{
 			color: if active {
-				app.pnl_text} else {
-				app.pnl_text_mut}
+				app.pnl_text
+			} else {
+				app.pnl_text_mut
+			}
 			size: 11
 		})
 		app.doctor_chips << DoctorChip{cat, cx, cy, tw, 16}
@@ -4298,8 +4303,10 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 	app.gg.draw_text(fx + 20, fy + fh - 20, 'Click fix → for dry-run · chip fixes its category · repairs are real where a repair exists; the rest record audit stamps. All checks are English.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	app.gg.draw_text(fx + fw - 160, fy + fh - 20, '${verify_diags.len} verify warnings', gg.TextCfg{
 		color: if verify_diags.len > 0 {
-			app.pnl_danger} else {
-			app.pnl_success}
+			app.pnl_danger
+		} else {
+			app.pnl_success
+		}
 		size: 11
 	})
 	// dry-run preview card — modal overlay, Confirm applies via Engine TX (#1108)
@@ -5216,8 +5223,10 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		}
 		app.gg.draw_text(mx + 10, y + 2, txt, gg.TextCfg{
 			color: if hover_h {
-				app.pnl_text} else {
-				app.pnl_text}
+				app.pnl_text
+			} else {
+				app.pnl_text
+			}
 			size: 11
 			mono: true
 		})
@@ -5530,8 +5539,10 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 		if active { app.gg.draw_rect_filled(tx, y + 6, tw, 2, app.pnl_select) }
 		app.gg.draw_text(tx + 8, y + 10, tab.title, gg.TextCfg{
 			color: if active {
-				app.pnl_text} else {
-				app.pnl_text}
+				app.pnl_text
+			} else {
+				app.pnl_text
+			}
 			size: 12
 			bold: active
 		})
@@ -5668,8 +5679,10 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int) {
 			staged := if c.staged { 'staged' } else { 'unstaged' }
 			app.gg.draw_text(x + w - 50, ry + 5, staged, gg.TextCfg{
 				color: if c.staged {
-					app.pnl_success} else {
-					app.pnl_text_mut}
+					app.pnl_success
+				} else {
+					app.pnl_text_mut
+				}
 				size: 11
 			})
 		}
@@ -5821,8 +5834,10 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 			pct := int(r.score * 100)
 			app.gg.draw_text(x + 14, ry + 2, '${pct}%', gg.TextCfg{
 				color: if pct > 70 {
-					app.pnl_success} else {
-					app.pnl_text_mut}
+					app.pnl_success
+				} else {
+					app.pnl_text_mut
+				}
 				size: 11
 				bold: pct > 70
 			})
@@ -6034,8 +6049,10 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 	if app.workspace_notice != '' {
 		app.gg.draw_text(l.fx + 24, control_y + 56, app.workspace_notice, gg.TextCfg{
 			color: if app.workspace_notice.contains('error') || app.workspace_notice.contains('Could not') {
-				app.pnl_danger} else {
-				app.pnl_text_mut}
+				app.pnl_danger
+			} else {
+				app.pnl_text_mut
+			}
 			size: 11
 		})
 	}
@@ -6110,8 +6127,10 @@ fn draw_products(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_empty(fx + fw - 160, y + 26, 56, 16, app.pnl_select)
 		app.gg.draw_text(fx + fw - 152, y + 29, 'Install', gg.TextCfg{
 			color: if hover_install {
-				app.pnl_text} else {
-				app.pnl_card}
+				app.pnl_text
+			} else {
+				app.pnl_card
+			}
 			size: 11
 			bold: hover_install
 		})
@@ -6345,8 +6364,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(fx + 20, content_y + 74, 'Resolution: AGENT_TOOLKIT_ROOT (override) → XDG → embedded 3a → FHS 3b → checkout — ADR-015/026', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 			app.gg.draw_text(fx + 20, content_y + 90, '${if status_is_first { '!' } else { '·' }} is_first_run=${status_is_first}   doctor checks via Engine.doctor() typed', gg.TextCfg{
 				color: if status_is_first {
-					app.pnl_danger} else {
-					app.pnl_success}
+					app.pnl_danger
+				} else {
+					app.pnl_success
+				}
 				size: 12
 				mono: true
 			})
@@ -6401,8 +6422,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_empty(fx + 20, content_y + 28, fw - 40, 20, app.pnl_text)
 			app.gg.draw_text(fx + 26, content_y + 33, disp_q, gg.TextCfg{
 				color: if q == '' {
-					app.pnl_text_mut} else {
-					app.pnl_text}
+					app.pnl_text_mut
+				} else {
+					app.pnl_text
+				}
 				size: 12
 			})
 			// chips
@@ -6447,8 +6470,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			})
 			app.gg.draw_text(fx + fw - 108, content_y + content_h - 49, 'Install 5', gg.TextCfg{
 				color: if hov {
-					app.pnl_card} else {
-					app.pnl_text}
+					app.pnl_card
+				} else {
+					app.pnl_text
+				}
 				size: 12
 				bold: true
 			})
@@ -6460,7 +6485,8 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			tgts := if app.desktop != unsafe { nil } {
 				app.desktop.engine_targets().map(it.id)
 			} else {
-				['claude-code', 'cursor', 'opencode', 'copilot-cli', 'pi', 'windsurf', 'codex', 'muse-code']
+				['claude-code', 'cursor', 'opencode', 'copilot-cli', 'pi', 'windsurf', 'codex',
+					'muse-code']
 			}
 			for i, t in tgts {
 				y := content_y + 30 + i * 20
@@ -6551,8 +6577,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			})
 			app.gg.draw_text(fx + 36, content_y + 89, 'Init Workspace', gg.TextCfg{
 				color: if hov_init {
-					app.pnl_card} else {
-					app.pnl_text}
+					app.pnl_card
+				} else {
+					app.pnl_text
+				}
 				size: 13
 				bold: true
 			})
@@ -6577,8 +6605,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 				app.gg.draw_text(fx + 26, y + 3, pers, gg.TextCfg{ color: fg4, size: 12, mono: true })
 				app.gg.draw_text(fx + fw - 80, y + 3, if done { 'ready ✓' } else { 'pending' }, gg.TextCfg{
 					color: if done {
-						app.pnl_text} else {
-						app.pnl_text_mut}
+						app.pnl_text
+					} else {
+						app.pnl_text_mut
+					}
 					size: 11
 				})
 			}
@@ -6591,8 +6621,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			})
 			app.gg.draw_text(fx + 32, content_y + 154, 'Bootstrap Personas', gg.TextCfg{
 				color: if hov_boot {
-					app.pnl_card} else {
-					app.pnl_text}
+					app.pnl_card
+				} else {
+					app.pnl_text
+				}
 				size: 12
 				bold: true
 			})
@@ -6643,10 +6675,13 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	})
 	app.gg.draw_text(fx + fw - 284, fy + fh - 27, 'Skip', gg.TextCfg{
 		color: if hov_skip {
-			app.pnl_card} else if app.appearance_dark {
+			app.pnl_card
+		} else if app.appearance_dark {
 			// light button needs ink text in Ink (#1097)
-			app.pnl_bg} else {
-			app.pnl_text_mut}
+			app.pnl_bg
+		} else {
+			app.pnl_text_mut
+		}
 		size: 12
 	})
 	// Back
@@ -7188,8 +7223,10 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 			}
 			app.gg.draw_text(ix + 22, y, txt, gg.TextCfg{
 				color: if is_hover_i {
-					app.pnl_bg} else {
-					col_text_on_cabinet}
+					app.pnl_bg
+				} else {
+					col_text_on_cabinet
+				}
 				size: 12
 				mono: true
 			})
@@ -7601,7 +7638,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	}
 	qcol := if app.palette_query == '' { app.pnl_text_mut } else { app.pnl_bg }
 	app.gg.draw_text(cx + 20, cy + 42, '› ${q}', gg.TextCfg{ color: qcol, size: scaled_size(14, z) })
-	filtered := filtered_palette(app.palette_query)
+	filtered := filtered_palette(mut app)
 	for i, it in filtered {
 		if i >= 7 {
 			break
@@ -7619,10 +7656,27 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			// subtle manila tab on unselected
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, app.pnl_card_sel)
 		}
-		pal_label := tr(app, 'palette.' + it.id)
+		// S4A: registry rows keep their registry labels; navigation rows keep
+		// localized labels via their i18n key.
+		pal_label := if it.is_entity {
+			if it.kind == .navigation {
+				tr(app, 'palette.' + nav_tr_key(it.panel))
+			} else {
+				it.label
+			}
+		} else {
+			tr(app, 'palette.' + it.id)
+		}
+		// S4A entity rows describe truthful state; unavailable rows say why.
 		// R2 product-truth: CLI-action rows render live Engine counts, never
 		// the hardcoded historical numbers in palette_items().
-		pal_desc := if it.id == 'skills_sync' {
+		pal_desc := if it.is_entity {
+			if !it.available {
+				'unavailable — ${it.unavailable_reason}'
+			} else {
+				it.desc
+			}
+		} else if it.id == 'skills_sync' {
 			'Sync and validate ${skills_total(mut app)} skills'
 		} else if it.id == 'mcp_health' {
 			'Health of ${mcp_total(mut app)} providers'
@@ -7645,8 +7699,10 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 		} else if needs_ar(pal_desc) { app.fonts.arabic } else { '' }
 		app.gg.draw_text(cx + 20, y + 18, pal_desc, gg.TextCfg{
 			color: if is_sel {
-				app.pnl_text_mut} else {
-				app.pnl_text_mut}
+				app.pnl_text_mut
+			} else {
+				app.pnl_text_mut
+			}
 			size: scaled_size(11, z)
 			family: pal_dfam
 		})
@@ -7694,7 +7750,7 @@ fn activate_palette_selection(mut app GuiApp) {
 	app.workspace_focus = false
 	app.header_search_focus = false
 	app.ghost_focused = false
-	filtered := filtered_palette(app.palette_query)
+	filtered := filtered_palette(mut app)
 	if filtered.len == 0 {
 		app.palette_open = false
 		app.palette_query = ''
@@ -7709,54 +7765,24 @@ fn activate_palette_selection(mut app GuiApp) {
 		app.palette_selected
 	}
 	sel := filtered[clamped]
-	// navigating anywhere via palette dismisses the onboarding overlay
-	if sel.id in ['world', 'skills', 'agents', 'mcp', 'targets', 'doctor', 'jobs', 'loops', 'swarm',
-		'workspace', 'products', 'onboarding', 'insights'] {
-		app.show_onboarding = sel.id == 'onboarding'
+	// S4A: registry rows navigate to their typed panel destination. Entity
+	// rows open the owning panel; deep-linked contextual actions land in S4B.
+	if sel.is_entity {
+		idx := panel_index_for(sel.panel)
+		if idx >= 0 {
+			// shared panel-selection transition (clears desk selection, focus
+			// and onboarding state exactly like dock navigation)
+			select_panel(mut app, idx)
+		}
+		app.palette_open = false
+		app.palette_query = ''
+		app.palette_selected = 0
+		return
 	}
 	match sel.id {
-		'world' {
-			app.selected_panel = 0
-		}
-		'skills' {
-			app.selected_panel = 1
-		}
-		'agents' {
-			app.selected_panel = 2
-		}
-		'mcp' {
-			app.selected_panel = 3
-		}
-		'targets' {
-			app.selected_panel = 4
-		}
-		'doctor' {
-			app.selected_panel = 5
-		}
-		'jobs' {
-			app.selected_panel = 6
-		}
-		'loops' {
-			app.selected_panel = 7
-		}
-		'swarm' {
-			app.selected_panel = 8
-		}
-		'workspace' {
-			app.selected_panel = 9
-		}
 		'workspace_sync' {
 			app.selected_panel = 9
 			app.inspector_msg = 'Workspace — pick or edit the path here; Validate checks it, Switch activates it'
-		}
-		'products' {
-			app.selected_panel = 10
-		}
-		'onboarding' {
-			app.selected_panel = 11
-		}
-		'insights' {
-			app.selected_panel = 12
 		}
 		'serve' {
 			app.inspector_msg = 'Serve: agent-toolkit serve --port 3847'
@@ -7884,7 +7910,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				if app.palette_query.len > 0 {
 					app.palette_query = app.palette_query[..app.palette_query.len - 1]
 					// clamp selection after filtering narrows
-					filtered := filtered_palette(app.palette_query)
+					filtered := filtered_palette(mut app)
 					if app.palette_selected >= filtered.len {
 						app.palette_selected = if filtered.len > 0 { filtered.len - 1 } else { 0 }
 					}
@@ -7892,7 +7918,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .up {
-				filtered := filtered_palette(app.palette_query)
+				filtered := filtered_palette(mut app)
 				if filtered.len > 0 {
 					if app.palette_selected > 0 {
 						app.palette_selected--
@@ -7903,7 +7929,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .down {
-				filtered := filtered_palette(app.palette_query)
+				filtered := filtered_palette(mut app)
 				if filtered.len > 0 {
 					if app.palette_selected + 1 < filtered.len {
 						app.palette_selected++
@@ -7917,7 +7943,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.palette_query += rune(e.char_code).str()
 				// keep selection clamped after filter narrows; reset to top for new query
 				app.palette_selected = 0
-				filtered2 := filtered_palette(app.palette_query)
+				filtered2 := filtered_palette(mut app)
 				if app.palette_selected >= filtered2.len && filtered2.len > 0 {
 					app.palette_selected = filtered2.len - 1
 				}
@@ -8902,7 +8928,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			inside_palette := mx >= cx && mx <= cx + pw && my >= cy && my <= cy + ph
 			if inside_palette {
 				// Hit a row? row hit area cy+76 + i*36 size 32
-				filtered := filtered_palette(app.palette_query)
+				filtered := filtered_palette(mut app)
 				for i, _ in filtered {
 					if i >= 7 {
 						break
