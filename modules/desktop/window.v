@@ -239,7 +239,19 @@ pub fn (mut d Desktop) smoke_message() string {
 		'window ${d.config.width}x${d.config.height}'
 	}
 	status := if d.is_running() { 'RUNNING' } else { 'STOPPED' }
-	return '${status}: desktop "${d.config.title}" | mode=${mode} | engine_api_calls=${d.engine_api_calls()} | app_state_rev=${d.app_state.revision}'
+	// #1129: truthful tool-discovery evidence in the smoke line — found/missing
+	// counts under this process's actual environment (no paths, no secrets)
+	mut found_n := 0
+	mut missing_n := 0
+	discovery := d.engine.tool_discovery_catalog()
+	for t in discovery {
+		if t.found {
+			found_n++
+		} else if t.reason.contains('not found on this session') {
+			missing_n++
+		}
+	}
+	return '${status}: desktop "${d.config.title}" | mode=${mode} | engine_api_calls=${d.engine_api_calls()} | app_state_rev=${d.app_state.revision} | tools found=${found_n} missing=${missing_n} (path entries=${desktop_engine.session_path_entry_count()})'
 }
 
 // hello_world_available reports whether desktop window path is available.
@@ -362,6 +374,17 @@ pub fn (mut d Desktop) engine_target_install_supported(target_id string) bool {
 // engine_target_enabled reads the target's real enabled state (S4D tests).
 pub fn (mut d Desktop) engine_target_enabled(target_id string) bool {
 	return d.engine.target_enabled(target_id)
+}
+
+// engine_tool_discovery_catalog exposes typed tool discovery for Desktop
+// surfaces (#1129): one authoritative detector, catalog-driven roster.
+pub fn (mut d Desktop) engine_tool_discovery_catalog() []desktop_engine.ToolDiscovery {
+	return d.engine.tool_discovery_catalog()
+}
+
+// engine_tool_discovery returns the typed discovery result for one target.
+pub fn (mut d Desktop) engine_tool_discovery(id string) desktop_engine.ToolDiscovery {
+	return d.engine.tool_discovery(id)
 }
 
 // inner_loops_for returns inner loops map snapshot for a swarm run (via State keys).

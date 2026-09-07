@@ -114,52 +114,14 @@ pub fn (mut e Engine) targets_registry() []TargetRegistryEntry {
 // the core installer: the tool's config directory under the user home or the
 // tool executable on PATH. No detection is fabricated — unknown targets are
 // simply not detected.
+// target_detected preserves the long-standing status semantics:
+// "detected" = configured (known settings location exists) OR the executable
+// is on this session's PATH. The decomposition lives in tool_probe
+// (modules/desktop_engine/tool_discovery.v) — the single authoritative
+// detector (#1129); this wrapper only combines the two truths.
 pub fn target_detected(id string) bool {
-	home := os.home_dir()
-	mut on_path := ''
-	match id {
-		'claude-code' {
-			on_path = os.find_abs_path_of_executable('claude') or { '' }
-			return os.exists(os.join_path(home, '.claude')) || on_path != ''
-		}
-		'cursor' {
-			on_path = os.find_abs_path_of_executable('cursor') or { '' }
-			return os.exists(os.join_path(home, '.cursor')) || on_path != ''
-		}
-		'opencode' {
-			on_path = os.find_abs_path_of_executable('opencode') or { '' }
-			return os.exists(os.join_path(home, '.config', 'opencode')) || on_path != ''
-		}
-		'gemini-cli' {
-			on_path = os.find_abs_path_of_executable('gemini') or { '' }
-			return os.exists(os.join_path(home, '.gemini')) || on_path != ''
-		}
-		'copilot-cli' {
-			on_path = os.find_abs_path_of_executable('copilot') or { '' }
-			return os.exists(os.join_path(home, '.config', 'github-copilot')) || on_path != ''
-		}
-		'pi' {
-			on_path = os.find_abs_path_of_executable('pi') or { '' }
-			return on_path != ''
-		}
-		'windsurf' {
-			on_path = os.find_abs_path_of_executable('windsurf') or { '' }
-			return os.exists(os.join_path(home, '.codeium')) || on_path != ''
-		}
-		'codex' {
-			on_path = os.find_abs_path_of_executable('codex') or { '' }
-			return os.exists(os.join_path(home, '.codex')) || on_path != ''
-		}
-		'muse-code' {
-			on_path = os.find_abs_path_of_executable('muse') or { '' }
-			return os.exists(os.join_path(home, '.config', 'muse')) || on_path != ''
-		}
-		else {
-			// copilot-repository is per-project; agent-plugins is a portable
-			// format — neither has a user-level runtime to detect.
-			return false
-		}
-	}
+	p := tool_probe(id)
+	return p.found || p.config_paths.len > 0
 }
 
 // targets returns the supported-target catalog derived from the canonical
