@@ -8,6 +8,54 @@ The goal is simple:
 
 > A serious native workstation for coding agents, expressed through a warm pixel-art office world.
 
+## 0. Visual convergence goal (product direction, 2026-09-07)
+
+The user has explicitly confirmed the visual direction in
+[`assets/design/`](assets/design/) — anchored by
+[`concept-board.jpg`](assets/design/concept-board.jpg) and
+[`office.jpg`](assets/design/office.jpg), and guiding
+[`library.jpg`](assets/design/library.jpg),
+[`operations.jpg`](assets/design/operations.jpg),
+[`onboarding.jpg`](assets/design/onboarding.jpg) — as a **first-class product
+goal**: the production Desktop converges as closely as reasonably possible
+toward that aesthetic.
+
+The end state is not "a native GUI using warm colors". It is a serious
+coding-agent workstation that *feels* like the rich Paper Co. pixel-art world
+of those references: original pixel-art agents; desks that unmistakably look
+like desks; coherent office rooms/zones with furniture, shelves, cabinets,
+plants, lamps, rugs, meeting tables; operational props; document/paper/receipt
+objects; warm Paper Co. materials; rich but calm environmental detail;
+editorial typography; the integrated dark terminal treatment; a crafted, cozy,
+premium native-workstation feeling. Pixel art is a coherent **material
+system**, not stickers on generic panels.
+
+For every visible GUI change, actively ask:
+
+- Does this move the production app closer to the design references?
+- Does this screen feel like part of the same world?
+- Does it have enough craft and environmental richness?
+- Does it still look generic, empty, or dashboard-like?
+- Can we make it materially closer to the concept while preserving clarity and truth?
+
+Boundaries:
+
+- Product truth remains authoritative. The references' fictional features,
+  metrics, statuses, layouts and mock data are **not** requirements — the
+  aesthetic qualities are.
+- "Functionally correct" is not acceptance when the task includes meaningful
+  visible UI; iterate toward visually delightful within the hierarchy in §1.
+- During #1130/#1127/#1128: preserve the direction in whatever UI is
+  necessarily touched, capture discrepancies, record follow-ups — but do not
+  convert those slices into visual-redesign PRs.
+- After the standalone-product sequence (#1129 → #1130 → #1127 → #1128), run
+  an explicit **visual-convergence phase**: compare real production
+  screenshots against the references destination-by-destination and
+  deliberately close the remaining gap.
+
+Quality bar from here on: **truthful + usable + native + visually convergent
+with docs/desktop/assets/design/.**
+
 The product should feel unmistakably like Agent Toolkit: capable, local, crafted, calm, technical, and delightful without becoming a game or a generic SaaS dashboard.
 
 ## 1. Design hierarchy
