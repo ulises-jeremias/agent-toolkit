@@ -9,6 +9,7 @@
 // Style: bobatea/make.vsh + examples/build_system/build.vsh
 
 import build
+import os
 
 const mods = ['agent_toolkit_core', 'agent_toolkit_cli', 'agent_toolkit_server', 'agent_toolkit_gui', 'desktop_engine', 'desktop']
 
@@ -128,10 +129,17 @@ context.task(name: 'test', help: 'Run unit tests', run: fn [r] (_ build.Task) ! 
 	// S4C (#1119): the production Desktop shell's tests — including the
 	// registry reachability gate for critical workflows — live under
 	// cmd/agent-toolkit-desktop and are part of the Required CI test path.
-	println('==> test cmd/agent-toolkit-desktop')
-	rc := vcmd('test ${join_path(r, 'cmd', 'agent-toolkit-desktop')}')
-	if rc != 0 {
-		exit(rc)
+	// The suite compiles gg/sokol + pty C interop; the pinned master V build
+	// cannot resolve macOS SDK headers on CI runners (the release toolchain
+	// builds the same binary fine from the V 0.5.2 zip), so it runs on Linux
+	// runners. macOS legs keep covering modules. Packaging validation
+	// (#1130) will revisit macOS shell testing.
+	if os.user_os() == 'linux' {
+		println('==> test cmd/agent-toolkit-desktop')
+		rc := vcmd('test ${join_path(r, 'cmd', 'agent-toolkit-desktop')}')
+		if rc != 0 {
+			exit(rc)
+		}
 	}
 })
 
