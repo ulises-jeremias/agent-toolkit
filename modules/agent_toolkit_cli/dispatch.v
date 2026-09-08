@@ -76,7 +76,7 @@ fn run_gui(opts GuiOptions, mode agent_toolkit_core.RenderMode) int {
 			// the XDG per-user install location (install-desktop.sh) — checked
 			// after the user-bin fallback, before reporting missing (#1165)
 			if !os.is_file(bin) {
-				xdg_data := os.getenv('XDG_DATA_HOME')
+				mut xdg_data := os.getenv('XDG_DATA_HOME')
 				if xdg_data == '' {
 					xdg_data = os.join_path(os.home_dir(), '.local', 'share')
 				}
