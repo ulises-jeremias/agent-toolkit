@@ -4206,14 +4206,11 @@ fn discovery_row_text(d desktop_engine.ToolDiscovery) string {
 		if d.version_known {
 			s += ' · ${d.version}'
 		}
-		if s.len > 46 {
-			s = s[..46] + '…'
-		}
-		return s
+		return utf8_truncate(s, 46) + if s.runes().len > 46 { '…' } else { '' }
 	}
 	mut r := d.reason
-	if r.len > 46 {
-		r = r[..46] + '…'
+	if r.runes().len > 46 {
+		r = utf8_truncate(r, 46) + '…'
 	}
 	return r
 }
@@ -6330,6 +6327,16 @@ fn draw_products(mut app GuiApp, w int, h int) {
 // Single modal wizard where everything is possible and easy to manage. One view, seven steps:
 // Detect → Capabilities (227) → Targets (7) → Products/Packs (5+7) → Workspace Init → Personas → Tour → Done.
 // All actions wire via Desktop.onboarding_* proxies → Engine transactions → EventBus → AppState (no shell).
+// utf8_truncate returns at most max_runes runes — never splitting a
+// multi-byte UTF-8 character (#1168 review; byte offsets corrupt text).
+fn utf8_truncate(s string, max_runes int) string {
+	r := s.runes()
+	if r.len <= max_runes {
+		return s
+	}
+	return r[..max_runes].string()
+}
+
 fn draw_onboarding(mut app GuiApp, w int, h int) {
 	term_h_on := if app.term_visible { app.term_height } else { 0 }
 	// overlay dim if showing as modal over world, otherwise full panel when selected_panel==11
@@ -6890,18 +6897,10 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 			// overlay mode: the footer row owns the bottom edge — render the
 			// status message just above it so the two never collide (#1127)
 			msg_y := fy + fh - 54
-			msg := app.onboarding_msg[..if app.onboarding_msg.len > 72 {
-				72
-			} else {
-				app.onboarding_msg.len
-			}]
+			msg := utf8_truncate(app.onboarding_msg, 72)
 			app.gg.draw_text(fx + 16, msg_y, msg, gg.TextCfg{ color: app.pnl_select, size: 11 })
 		} else {
-			app.gg.draw_text(fx + 110, fy + fh - 26, app.onboarding_msg[..if app.onboarding_msg.len > 48 {
-				48
-			} else {
-				app.onboarding_msg.len
-			}], gg.TextCfg{ color: app.pnl_select, size: 11 })
+			app.gg.draw_text(fx + 110, fy + fh - 26, utf8_truncate(app.onboarding_msg, 48), gg.TextCfg{ color: app.pnl_select, size: 11 })
 		}
 	}
 }
