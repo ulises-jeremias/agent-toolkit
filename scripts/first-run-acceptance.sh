@@ -145,16 +145,9 @@ kill_session
   find "$HOME_FRESH" -type d -name 'agent-toolkit' >&2 || true
   fail "engine state file missing after first run"
 }
-python3 -c "
-import json, sys
-r = json.load(open('$STATE_FILE'))
-print('DBG state keys:', sorted(r.keys())[:20])
-print('DBG onboarding_completed:', repr(r.get('onboarding_completed')))
-print('DBG installed_skills:', repr(r.get('installed_skills'))[:120])
-" || true
-assert_state "r.get('onboarding_completed') == 'true'" "first-run-completion-persisted"
-assert_state "len([s for s in (r.get('installed_skills') or '').split(',') if s]) >= 1" "capabilities-installed"
-assert_state "any(r.get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))" "targets-enabled"
+assert_state "r.get('data', {}).get('onboarding_completed') == 'true'" "first-run-completion-persisted"
+assert_state "len([s for s in (r.get('data', {}).get('installed_skills') or '').split(',') if s]) >= 1" "capabilities-installed"
+assert_state "any(r.get('data', {}).get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))" "targets-enabled"
 [ -d "$HOME_FRESH/knowledge" ] && record "workspace-scaffold" "PASS" "knowledge/ scaffold created under clean HOME"
 [ -f "$HOME_FRESH/personas/assistant.md" ] || [ -d "$HOME_FRESH/personas" ] && record "personas" "PASS" "personas bootstrapped"
 
@@ -167,7 +160,7 @@ import json, sys
 r = json.load(open('$STATE_FILE'))
 sys.exit(0 if r.get('onboarding_completed') == 'true' else 1)
 " || fail "restart: completion lost"
-assert_state "r.get('workspace_path', '').endswith('home-a') or r.get('recent_workspace','').endswith('home-a')" "restart-workspace-restored"
+assert_state "r.get('data', {}).get('workspace_path', '').endswith('home-a') or r.get('data', {}).get('recent_workspace', '').endswith('home-a')" "restart-workspace-restored"
 record "restart-persistence" "PASS" "same installed app relaunched: no onboarding restart, state preserved (capture after-restart.png)"
 
 # ── Scenario B: minimal working integration (fixture, labeled) ────────────
@@ -195,7 +188,7 @@ kill_session
 STATE_B="$HOME_B/.cache/agent-toolkit/desktop/engine_state.json"
 python3 -c "
 import json, sys
-r = json.load(open('$STATE_B'))
+r = json.load(open('$STATE_B')).get('data', {})
 sys.exit(0 if r.get('target:claude-code:enabled') == 'true' else 1)
 " || fail "fixture target not enabled"
 record "fixture-integration" "PASS" "found fixture → target enabled → integration path real (fixture-labeled)"
@@ -230,7 +223,7 @@ kill_session
 STATE_I="$HOME_I/.cache/agent-toolkit/desktop/engine_state.json"
 python3 -c "
 import json, sys
-r = json.load(open('$STATE_I'))
+r = json.load(open('$STATE_I')).get('data', {})
 skills = len([s for s in (r.get('installed_skills') or '').split(',') if s])
 sys.exit(0 if (skills >= 1 and r.get('onboarding_completed') != 'true') else 1)
 " || fail "interrupted state wrong"
