@@ -62,6 +62,7 @@ jobs:
       - name: Run clean-machine acceptance against the packed artifact
         env:
           VMODULES: ${{ github.workspace }}/modules
+          EVIDENCE_DIR: ${{ github.workspace }}/clean-machine-evidence
         run: |
           set -euo pipefail
           # the harness copies the artifact to a neutral prefix and runs with
@@ -73,7 +74,6 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p clean-machine-evidence
-          cp /tmp/atk-clean-*/capture.png clean-machine-evidence/ 2>/dev/null || true
           ls -la clean-machine-evidence || true
       - name: Upload GUI capture + evidence
         if: always()

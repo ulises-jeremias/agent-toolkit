@@ -43,7 +43,9 @@ echo "provenance: artifact=$ART_NAME sha256=$ART_SHA size=$ART_SIZE version=$VER
 
 # ── neutral prefix: the ONLY place the artifact lives for validation ──────
 PREFIX="$(mktemp -d /tmp/atk-clean-XXXXXX)"
-trap 'rm -rf "$PREFIX"' EXIT
+# EVIDENCE_DIR: when set (CI), durable copies of captures/evidence land here
+# BEFORE the prefix trap cleans up (#1130 harness contract).
+EVIDENCE_DIR="${EVIDENCE_DIR:-}"
 STAGE="$PREFIX/stage"
 mkdir -p "$STAGE"
 tar xzf "$ARTIFACT" -C "$STAGE"
@@ -151,6 +153,10 @@ if command -v Xvfb >/dev/null 2>&1 && command -v import >/dev/null 2>&1; then
     MEAN="$(convert "$CAP" -colorspace Gray -format '%[fx:mean]' info: 2>/dev/null || echo 0)"
     ok="$(python3 -c "print('PASS' if float('${MEAN:-0}') > 0.03 else 'FAIL')")"
     record C "first-render" "$ok" "xvfb capture mean-brightness=$MEAN → $CAP"
+    if [ -n "$EVIDENCE_DIR" ] && [ -f "$CAP" ]; then
+      mkdir -p "$EVIDENCE_DIR"
+      cp "$CAP" "$EVIDENCE_DIR/first-render.png"
+    fi
   else
     record C "first-render" "NOT_PROVEN" "no capture produced (xdotool/window missing)"
   fi
@@ -178,5 +184,18 @@ for r in "${RESULTS[@]}"; do
   echo "$layer $key $state $detail"
   if [ "$state" = "FAIL" ]; then FAILED=1; fi
 done
+if [ -n "$EVIDENCE_DIR" ]; then
+  {
+    echo "artifact=$ART_NAME"
+    echo "sha256=$ART_SHA"
+    echo "version=$VERSION"
+    echo "commit=$COMMIT"
+    for r in "${RESULTS[@]}"; do
+      IFS='|' read -r layer key state detail <<<"$r"
+      echo "result: $layer $key $state $detail"
+    done
+    echo "overall: $([ "$FAILED" -ne 0 ] && echo FAIL || echo PASS)"
+  } > "$EVIDENCE_DIR/evidence.txt"
+fi
 if [ "$FAILED" -ne 0 ]; then exit 5; fi
 echo "OVERALL: PASS (layer D remains MANUAL by design)"
