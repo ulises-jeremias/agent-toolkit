@@ -119,7 +119,8 @@ journey_key Right; journey_key Return
 shot onboarding-workspace.png
 # step5 Personas → bootstrap
 journey_key Right; journey_key Return
-# step6 → Right completes
+# step6: pressing Right AT the Done step triggers onboarding_complete —
+# this is the 7th Right (the previous six arrived at each step)
 journey_key Right
 sleep 2
 shot journey-final.png
