@@ -97,7 +97,13 @@ shot onboarding-workspace.png
 journey_key Right; journey_key Return
 # step6 → Right completes
 journey_key Right
-shot onboarding-complete.png
+sleep 2
+shot journey-final.png
+# diagnostics: where is the wizard? did keys land?
+echo "journey diagnostics:" >&2
+find "$HOME_FRESH" -name '*.json' | head -5 >&2 || true
+find "$HOME_FRESH/knowledge" 2>/dev/null | head -3 >&2 || true
+DISPLAY=:99 xdotool getactivewindowname 2>/dev/null >&2 || true
 
 STATE_FILE="$HOME_FRESH/.cache/agent-toolkit/desktop/engine_state.json"
 sleep 1
@@ -105,7 +111,12 @@ kill $APP_PID 2>/dev/null || true
 wait $APP_PID 2>/dev/null || true
 kill $XVFB_PID 2>/dev/null || true
 
-[ -f "$STATE_FILE" ] || fail "engine state file missing after first run"
+[ -f "$STATE_FILE" ] || {
+  echo "state file locations probed:" >&2
+  find "$HOME_FRESH" -name 'engine_state*' >&2 || true
+  find "$HOME_FRESH" -type d -name 'agent-toolkit' >&2 || true
+  fail "engine state file missing after first run"
+}
 assert_state "r.get('onboarding_completed') == 'true'" "first-run-completion-persisted"
 assert_state "len([s for s in (r.get('installed_skills') or '').split(',') if s]) >= 1" "capabilities-installed"
 assert_state "any(r.get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))" "targets-enabled"
