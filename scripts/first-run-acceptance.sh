@@ -145,6 +145,12 @@ kill_session
   find "$HOME_FRESH" -type d -name 'agent-toolkit' >&2 || true
   fail "engine state file missing after first run"
 }
+python3 -c "
+import json, sys
+r = json.load(open('$STATE_FILE')).get('data', {})
+print('DBG onboarding_completed:', repr(r.get('onboarding_completed')))
+print('DBG keys sample:', sorted(r.keys())[:24])
+" || true
 assert_state "r.get('data', {}).get('onboarding_completed') == 'true'" "first-run-completion-persisted"
 assert_state "len([s for s in (r.get('data', {}).get('installed_skills') or '').split(',') if s]) >= 1" "capabilities-installed"
 assert_state "any(r.get('data', {}).get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))" "targets-enabled"
