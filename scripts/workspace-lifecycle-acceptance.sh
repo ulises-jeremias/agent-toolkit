@@ -92,14 +92,18 @@ shot() { DISPLAY=:99 import -window root "$EVIDENCE/$1" 2>/dev/null || true; }
 # click uses WINDOW-RELATIVE coords: openbox frames/places the window, so
 # screen-absolute mousemove would miss. Geometry is probed per click.
 click() { # $1 window-x  $2 window-y
-  eval "$(DISPLAY=:99 xdotool getwindowgeometry --shell "$WIN_ID")"
-  DISPLAY=:99 xdotool mousemove $((X + $1)) $((Y + $2)) click 1
+  # --window: xdotool resolves the position against the app window itself,
+  # immune to WM frame/placement offsets
+  DISPLAY=:99 xdotool mousemove --window "$WIN_ID" --sync "$1" "$2"
+  DISPLAY=:99 xdotool click 1
   sleep 0.6
 }
 
 click() { # $1 window-x  $2 window-y
-  eval "$(DISPLAY=:99 xdotool getwindowgeometry --shell "$WIN_ID")"
-  DISPLAY=:99 xdotool mousemove $((X + $1)) $((Y + $2)) click 1
+  # --window: xdotool resolves the position against the app window itself,
+  # immune to WM frame/placement offsets
+  DISPLAY=:99 xdotool mousemove --window "$WIN_ID" --sync "$1" "$2"
+  DISPLAY=:99 xdotool click 1
   sleep 0.6
 }
 
