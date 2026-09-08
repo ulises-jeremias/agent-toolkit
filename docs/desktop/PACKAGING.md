@@ -27,6 +27,40 @@ translated strings — it harvests every CJK codepoint from `main.v`.
 
 `build/agent-toolkit` ELF + `SHA256SUMS` + `manifest.json` via `distribution/github-release` (existing). Size baseline `+4.8M` ELF (embedded_data). `agent-toolkit --version` + `doctor` green (FHS/embedded tiers, receipts).
 
+### Desktop bundle (#1057/#1116, validated by #1130)
+
+`agent-toolkit-desktop-<v>-linux-<arch>.tar.gz` ships, since 2026-09-07:
+
+| Path in archive | Purpose |
+|---|---|
+| `agent-toolkit-desktop` | native binary (fonts/resources embedded; resolves runtime state under XDG cache at first run) |
+| `agent-toolkit-desktop.desktop` | Desktop Entry spec launcher (`StartupWMClass` matches the window title) |
+| `icons/agent-toolkit-desktop-{16,24,32,48,64,128,256,512}.png` + `-scalable.svg` | hicolor icon set — Paper Co. envelope mark (deterministic generator: `packaging/linux/gen-icon.py`) |
+| `share/man/man1/agent-toolkit-desktop.1` | man page (synopsis, keymap, env, files) |
+| `install-desktop.sh` | receipt-backed per-user install/uninstall |
+| `LICENSE` | license |
+
+**Install** (no sudo, XDG user scope):
+
+```
+tar xzf agent-toolkit-desktop-<v>-linux-<arch>.tar.gz
+./install-desktop.sh install
+```
+
+lands: binary → `~/.local/share/agent-toolkit/bin/`, `.desktop` →
+`~/.local/share/applications/` (Exec rewritten to the installed binary so
+launcher sessions work without `~/.local/bin` on PATH — the #1129 concern),
+icons → `~/.local/share/icons/hicolor/<size>/apps/`, man →
+`~/.local/share/man/man1/`, and a schemaVersion-1 install receipt →
+`~/.config/agent-toolkit/receipts/agent-toolkit-desktop-linux.json`.
+
+**Uninstall**: `./install-desktop.sh uninstall` — removes only receipt-owned
+(`created`) artifacts; pre-existing (`merged`) files are preserved. The
+receipt follows the core `InstallReceipt` schema, so provenance tooling can
+read it.
+
+`desktop-file-validate` runs in the release workflow on the shipped entry.
+
 ## macOS (7.3)
 
 `distribution/desktop/macos/` — packaging adapter.
