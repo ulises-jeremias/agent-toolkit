@@ -66,7 +66,7 @@ launch() { # $1 home  $2 extra PATH prefix (fixture)  → sets APP_PID, WIN_ID
     HOME="$home" LANG=C.UTF-8 \
     XDG_DATA_HOME="$home/.local/share" XDG_CONFIG_HOME="$home/.config" \
     XDG_CACHE_HOME="$home/.cache" \
-    "$INSTALLED_BIN" &
+    "$INSTALLED_BIN" > "$home/app.log" 2>&1 &
   APP_PID=$!
   for _ in $(seq 1 30); do
     sleep 1
@@ -125,7 +125,12 @@ shot onboarding-workspace.png
 # step5 Personas → bootstrap
 journey_key Right; journey_key Return
 # step6: pressing Right AT the Done step triggers onboarding_complete —
-# this is the 7th Right (the previous six arrived at each step)
+# this is the 7th Right (the previous six arrived at each step). A retry
+# guards against a swallowed keystroke while the personas transaction
+# was still committing (completion is idempotent-safe: onboarding already
+# done → Right is a no-op on the closed wizard).
+journey_key Right
+sleep 2
 journey_key Right
 sleep 2
 shot journey-final.png
