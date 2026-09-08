@@ -166,7 +166,7 @@ assert_state "len([s for s in (r.get('data', {}).get('installed_skills') or '').
 assert_state "any(r.get('data', {}).get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))" "targets-enabled"
 [ -d "$HOME_FRESH/.ai-workspace/knowledge" ] || fail "workspace scaffold missing: $HOME_FRESH/.ai-workspace/knowledge"
 record "workspace-scaffold" "PASS" "knowledge/ scaffold created under ~/.ai-workspace (designed default)"
-PERSONA_FILE="$HOME_FRESH/.ai-workspace/personas/assistant.md"
+PERSONA_FILE="$HOME_FRESH/.ai-workspace/personas/implementer.md"
 if [ ! -f "$PERSONA_FILE" ]; then
   echo "DBG personas dir probe (full):" >&2
   find "$HOME_FRESH" -name '*.md' >&2 | head -20 || true
