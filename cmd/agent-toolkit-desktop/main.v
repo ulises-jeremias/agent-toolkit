@@ -8431,6 +8431,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
+		// #1128: Tab focuses the workspace path field when the Workspace
+		// panel is active — keyboard users can reach the path without a
+		// mouse (standard focus semantics; Tab/Enter are the field's own
+		// unfocus/apply keys once focused).
+		if app.selected_panel == 9 && !app.workspace_focus && !app.show_onboarding
+			&& e.key_code == .tab {
+			app.workspace_focus = true
+			return
+		}
 		// Text fields capture keys before global shortcuts. In particular, a
 		// workspace path needs '/', digits, and '~' without opening commands or
 		// navigating to a different panel.

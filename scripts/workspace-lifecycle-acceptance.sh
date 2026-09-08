@@ -194,8 +194,12 @@ shot ws-b-initialized.png
 # foreign file planted BEFORE switching
 echo "user foreign notes" > "$WS_B/MY-NOTES.txt"
 
-# Switch to ws-b
-click $((SWITCH_X + 32)) $((FIELD_Y + 14))     # Switch
+# Switch to ws-b: re-focus the field (Tab), retype, Enter applies through
+# the real switch seam
+key Tab
+clear_field
+type_text "$WS_B"
+key Return
 sleep 1
 STATE_B="$HOME_B/.cache/agent-toolkit/desktop/engine_state.json"
 assert_state "$STATE_B" "r.get('workspace_path', '') == '$WS_B'" "switch-to-b"
