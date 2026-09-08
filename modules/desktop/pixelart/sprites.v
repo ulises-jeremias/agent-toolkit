@@ -94,7 +94,7 @@ pub fn (s Sprite) expand(p Palette, scale int) []u8 {
 	return out
 }
 
-// ── agent avatar (12×16 logical) — shared anatomy: hair/head/torso/desk edge.
+// ── agent avatar (12×12 logical) — shared anatomy: hair/head/torso/desk edge.
 // Variants adjust the posture/head/screen pixels. State semantics come from
 // Engine truth; idle agents sit facing the terminal, running agents face the
 // screen with an active glow, waiting agents turn toward the inbox.
