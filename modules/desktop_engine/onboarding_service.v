@@ -153,11 +153,17 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 		return error('invalid workspace path')
 	}
 	os.mkdir_all(actual) or { return error('mkdir failed: ${err}') }
-	// scaffold harness structure mirroring agent_toolkit_core workspace_init
+	// scaffold harness structure mirroring agent_toolkit_core workspace_init.
+	// #1128: blocked creates/writes are collected as truthful seed warnings
+	// (persisted with the tx) instead of being silently swallowed — a best-
+	// effort skip must still be visible to the user.
+	mut seed_warnings := []string{}
 	subdirs := ['knowledge', 'knowledge/learnings', 'knowledge/todos', 'packs', 'personas', 'repos',
 		'projects', '.agent-toolkit/swarm/runs']
 	for sub in subdirs {
-		os.mkdir_all(os.join_path(actual, sub)) or {}
+		os.mkdir_all(os.join_path(actual, sub)) or {
+			seed_warnings << 'mkdir failed: ${sub}: ${err}'
+		}
 	}
 	// scaffold minimal files if missing
 	files := {
@@ -170,8 +176,13 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 	for rel, content in files {
 		p := os.join_path(actual, rel)
 		if !os.exists(p) {
-			os.mkdir_all(os.dir(p)) or {}
-			os.write_file(p, content) or {}
+			os.mkdir_all(os.dir(p)) or {
+				seed_warnings << 'mkdir failed: ${rel}: ${err}'
+				continue
+			}
+			os.write_file(p, content) or {
+				seed_warnings << 'write failed: ${rel}: ${err}'
+			}
 		}
 	}
 	// also ensure .gitkeep for repos/projects
@@ -187,6 +198,10 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 	tx.set('workspace_exists', 'true')
 	tx.set('workspace_path', actual)
 	tx.set('workspace_initialized', 'true')
+	if seed_warnings.len > 0 {
+		// truthful partial state: blocked writes are visible, never hidden
+		tx.set('workspace/seed_warnings', seed_warnings.join('|'))
+	}
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }
