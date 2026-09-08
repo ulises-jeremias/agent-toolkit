@@ -2252,11 +2252,23 @@ fn resolve_workspace_on_start(mut app GuiApp) {
 	persisted := app.desktop.app_state_snapshot().select_recent_workspace()
 	home := os.home_dir()
 	home_real := os.real_path(home)
+	// #1127: a fresh user gets the designed default workspace (~/.ai-workspace)
+	// instead of silently claiming the directory the app happened to be
+	// launched from. The default dir is created EMPTY (plain folder — valid
+	// but uninitialized; the wizard offers initialization) — never a scaffold
+	// written behind the user's back. cwd stays the last-resort 'Detected'
+	// fallback but can no longer outrank the user's persisted workspace,
+	// which previously vanished whenever validation of an earlier candidate
+	// failed (restart-workspace-restored regression in the #1130 harness).
+	default_ws := os.join_path(home, '.ai-workspace')
+	if !os.is_dir(default_ws) {
+		os.mkdir(default_ws) or {}
+	}
 	candidates := [
 		os.getenv('AGENT_TOOLKIT_WORKSPACE'),
 		os.getenv('HARNESS_DIR'),
 		persisted,
-		os.join_path(home, '.ai-workspace'),
+		default_ws,
 		os.getwd(),
 	]
 	sources := ['Environment', 'Environment', 'Recent', 'Default', 'Detected']
@@ -2270,6 +2282,9 @@ fn resolve_workspace_on_start(mut app GuiApp) {
 		if os.real_path(os.expand_tilde_to_home(candidate.trim_space())) == home_real {
 			continue
 		}
+		// 'Detected' (cwd) stays a local fallback: activate without persisting
+		// so a launch from a random directory never wins over the user's
+		// workspace on the next start.
 		if apply_workspace_persist(mut app, candidate, sources[i], sources[i] != 'Detected') {
 			return
 		}
@@ -4191,14 +4206,11 @@ fn discovery_row_text(d desktop_engine.ToolDiscovery) string {
 		if d.version_known {
 			s += ' · ${d.version}'
 		}
-		if s.len > 46 {
-			s = s[..46] + '…'
-		}
-		return s
+		return utf8_truncate(s, 46) + if s.runes().len > 46 { '…' } else { '' }
 	}
 	mut r := d.reason
-	if r.len > 46 {
-		r = r[..46] + '…'
+	if r.runes().len > 46 {
+		r = utf8_truncate(r, 46) + '…'
 	}
 	return r
 }
@@ -6315,12 +6327,26 @@ fn draw_products(mut app GuiApp, w int, h int) {
 // Single modal wizard where everything is possible and easy to manage. One view, seven steps:
 // Detect → Capabilities (227) → Targets (7) → Products/Packs (5+7) → Workspace Init → Personas → Tour → Done.
 // All actions wire via Desktop.onboarding_* proxies → Engine transactions → EventBus → AppState (no shell).
+// utf8_truncate returns at most max_runes runes — never splitting a
+// multi-byte UTF-8 character (#1168 review; byte offsets corrupt text).
+fn utf8_truncate(s string, max_runes int) string {
+	r := s.runes()
+	if r.len <= max_runes {
+		return s
+	}
+	return r[..max_runes].string()
+}
+
 fn draw_onboarding(mut app GuiApp, w int, h int) {
 	term_h_on := if app.term_visible { app.term_height } else { 0 }
 	// overlay dim if showing as modal over world, otherwise full panel when selected_panel==11
 	is_overlay := app.show_onboarding && app.selected_panel != 11
 	if is_overlay {
-		app.gg.draw_rect_filled(0, 44, w, h - 44 - 28 - term_h_on, tint(app.pnl_text, 55))
+		// dim ALL the way down to the status bar (#1127): the previous dim
+		// stopped above the band where draw_world paints the workspace
+		// status lines, leaving them undimmed to collide with the wizard
+		// footer (seen in the #1130 clean-machine capture)
+		app.gg.draw_rect_filled(0, 44, w, h - 44 - term_h_on, tint(app.pnl_text, 88))
 	}
 	mut fx := if is_overlay { 240 } else { 208 }
 	fy := 52
@@ -6867,11 +6893,15 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_empty(fx + fw - 148, fy + fh - 32, 72, 20, app.pnl_select)
 	app.gg.draw_text(fx + fw - 132, fy + fh - 27, next_label, gg.TextCfg{ color: next_fg, size: 12, bold: true })
 	if app.onboarding_msg != '' {
-		app.gg.draw_text(fx + 110, fy + fh - 26, app.onboarding_msg[..if app.onboarding_msg.len > 48 {
-			48
+		if is_overlay {
+			// overlay mode: the footer row owns the bottom edge — render the
+			// status message just above it so the two never collide (#1127)
+			msg_y := fy + fh - 54
+			msg := utf8_truncate(app.onboarding_msg, 72)
+			app.gg.draw_text(fx + 16, msg_y, msg, gg.TextCfg{ color: app.pnl_select, size: 11 })
 		} else {
-			app.onboarding_msg.len
-		}], gg.TextCfg{ color: app.pnl_select, size: 11 })
+			app.gg.draw_text(fx + 110, fy + fh - 26, utf8_truncate(app.onboarding_msg, 48), gg.TextCfg{ color: app.pnl_select, size: 11 })
+		}
 	}
 }
 

@@ -159,8 +159,9 @@ fn nav_route_path(panel nav.PanelId) string {
 // trim_desc clamps a description to one palette line.
 fn trim_desc(s string) string {
 	mut out := s.trim_space()
-	if out.len > 120 {
-		out = out[..120] + '…'
+	// rune-safe: byte slicing can split a multi-byte UTF-8 character
+	if out.runes().len > 120 {
+		out = out.runes()[..120].string() + '…'
 	}
 	return out
 }

@@ -124,3 +124,22 @@ fn test_desktop_palette_registry_is_stable_binding() {
 	assert r1 == r2 // same binding, not a new registry per call
 	_ = desktop_engine.EngineConfig{}
 }
+
+// utf8_truncate never splits a multi-byte rune (#1168 review).
+fn test_utf8_truncate_is_rune_safe() {
+	// CJK: 3 bytes per rune
+	cjk := '工作区设置向导'
+	t := utf8_truncate(cjk, 3)
+	assert t == '工作区'
+	assert t.len == 9 // 3 runes × 3 bytes, valid UTF-8
+	// Arabic: combining/multi-byte
+	ar := 'مرحبا بالعالم'
+	t2 := utf8_truncate(ar, 4)
+	assert t2.runes().len == 4
+	// short strings pass through untouched
+	assert utf8_truncate(cjk, 50) == cjk
+	assert utf8_truncate('', 5) == ''
+	// emoji (4-byte rune) never split
+	emoji := 'a👍b'
+	assert utf8_truncate(emoji, 2) == 'a👍'
+}
