@@ -2252,11 +2252,23 @@ fn resolve_workspace_on_start(mut app GuiApp) {
 	persisted := app.desktop.app_state_snapshot().select_recent_workspace()
 	home := os.home_dir()
 	home_real := os.real_path(home)
+	// #1127: a fresh user gets the designed default workspace (~/.ai-workspace)
+	// instead of silently claiming the directory the app happened to be
+	// launched from. The default dir is created EMPTY (plain folder — valid
+	// but uninitialized; the wizard offers initialization) — never a scaffold
+	// written behind the user's back. cwd stays the last-resort 'Detected'
+	// fallback but can no longer outrank the user's persisted workspace,
+	// which previously vanished whenever validation of an earlier candidate
+	// failed (restart-workspace-restored regression in the #1130 harness).
+	default_ws := os.join_path(home, '.ai-workspace')
+	if !os.is_dir(default_ws) {
+		os.mkdir(default_ws) or {}
+	}
 	candidates := [
 		os.getenv('AGENT_TOOLKIT_WORKSPACE'),
 		os.getenv('HARNESS_DIR'),
 		persisted,
-		os.join_path(home, '.ai-workspace'),
+		default_ws,
 		os.getwd(),
 	]
 	sources := ['Environment', 'Environment', 'Recent', 'Default', 'Detected']
@@ -2270,6 +2282,9 @@ fn resolve_workspace_on_start(mut app GuiApp) {
 		if os.real_path(os.expand_tilde_to_home(candidate.trim_space())) == home_real {
 			continue
 		}
+		// 'Detected' (cwd) stays a local fallback: activate without persisting
+		// so a launch from a random directory never wins over the user's
+		// workspace on the next start.
 		if apply_workspace_persist(mut app, candidate, sources[i], sources[i] != 'Detected') {
 			return
 		}

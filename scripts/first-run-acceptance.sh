@@ -159,8 +159,10 @@ print('DBG keys sample:', sorted(r.keys())[:24])
 assert_state "r.get('data', {}).get('onboarding_completed') == 'true'" "first-run-completion-persisted"
 assert_state "len([s for s in (r.get('data', {}).get('installed_skills') or '').split(',') if s]) >= 1" "capabilities-installed"
 assert_state "any(r.get('data', {}).get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))" "targets-enabled"
-[ -d "$HOME_FRESH/knowledge" ] && record "workspace-scaffold" "PASS" "knowledge/ scaffold created under clean HOME"
-[ -f "$HOME_FRESH/personas/assistant.md" ] || [ -d "$HOME_FRESH/personas" ] && record "personas" "PASS" "personas bootstrapped"
+[ -d "$HOME_FRESH/.ai-workspace/knowledge" ] || fail "workspace scaffold missing: $HOME_FRESH/.ai-workspace/knowledge"
+record "workspace-scaffold" "PASS" "knowledge/ scaffold created under ~/.ai-workspace (designed default)"
+[ -f "$HOME_FRESH/.ai-workspace/personas/assistant.md" ] || fail "personas not bootstrapped under ~/.ai-workspace"
+record "personas" "PASS" "personas bootstrapped under ~/.ai-workspace"
 
 # restart — hard gate: wizard must NOT reappear, state preserved
 cp "$STATE_FILE" "$PREFIX/state-before-restart.json"
@@ -186,7 +188,12 @@ r = json.load(open('$STATE_FILE')).get('data', {})
 print('DBG restart workspace_path:', repr(r.get('workspace_path')))
 print('DBG restart recent_workspace:', repr(r.get('recent_workspace')))
 " || true
-assert_state "r.get('data', {}).get('workspace_path', '').endswith('home-a') or r.get('data', {}).get('recent_workspace', '').endswith('home-a')" "restart-workspace-restored"
+python3 -c "
+import json, sys
+r = json.load(open('$STATE_FILE')).get('data', {})
+print('DBG restart workspace_path:', repr(r.get('workspace_path')))
+" || true
+assert_state "r.get('data', {}).get('workspace_path', '').endswith('.ai-workspace') or r.get('data', {}).get('recent_workspace', '').endswith('.ai-workspace')" "restart-workspace-restored"
 record "restart-persistence" "PASS" "same installed app relaunched: no onboarding restart, state preserved (capture after-restart.png)"
 
 # ── Scenario B: minimal working integration (fixture, labeled) ────────────
