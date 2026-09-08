@@ -180,6 +180,12 @@ import json, sys
 r = json.load(open('$STATE_FILE')).get('data', {})
 sys.exit(0 if r.get('onboarding_completed') == 'true' else 1)
 " || fail "restart: completion lost"
+python3 -c "
+import json, sys
+r = json.load(open('$STATE_FILE')).get('data', {})
+print('DBG restart workspace_path:', repr(r.get('workspace_path')))
+print('DBG restart recent_workspace:', repr(r.get('recent_workspace')))
+" || true
 assert_state "r.get('data', {}).get('workspace_path', '').endswith('home-a') or r.get('data', {}).get('recent_workspace', '').endswith('home-a')" "restart-workspace-restored"
 record "restart-persistence" "PASS" "same installed app relaunched: no onboarding restart, state preserved (capture after-restart.png)"
 
