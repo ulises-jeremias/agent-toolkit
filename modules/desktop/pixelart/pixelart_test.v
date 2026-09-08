@@ -140,3 +140,36 @@ fn test_cache_key_identity() {
 	}
 	assert seen.len == all_sprites().len * 2 * 3
 }
+
+// Identity variants: same anatomy, deterministic material swaps, distinct
+// names (cache-key safe), variant 0 unchanged.
+fn test_with_identity() {
+	base := agent_for_state(.idle)
+	v0 := with_identity(base, 0)
+	assert v0.name == base.name
+	assert v0.rows == base.rows
+	v1 := with_identity(base, 1)
+	v2 := with_identity(base, 2)
+	assert v1.name == '${base.name}-id1'
+	assert v2.name == '${base.name}-id2'
+	assert v1.rows.len == base.rows.len
+	assert v2.rows.len == base.rows.len
+	// shirt material actually changed in the torso row
+	assert base.rows[6] != v1.rows[6]
+	assert base.rows[6] != v2.rows[6]
+	// unknown variants fall back to the authored sprite
+	assert with_identity(base, 7).name == base.name
+	// variants still validate against the palette
+	known := [
+		u8(`k`), u8(`p`), u8(`P`), u8(`m`), u8(`M`), u8(`b`), u8(`B`),
+		u8(`w`), u8(`W`), u8(`f`), u8(`F`), u8(`s`), u8(`S`), u8(`t`),
+		u8(`a`), u8(`n`), u8(`N`), u8(`h`), u8(`c`), u8(`C`), u8(`e`),
+		u8(`l`), u8(`r`),
+	]
+	for st in all_agent_states() {
+		for v in 0 .. 3 {
+			errs := with_identity(agent_for_state(st), v).validate(known)
+			assert errs.len == 0, 'identity variant invalid: ${errs.join("; ")}'
+		}
+	}
+}
