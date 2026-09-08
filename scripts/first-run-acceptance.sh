@@ -248,18 +248,24 @@ record "fixture-integration" "PASS" "found fixture → target enabled → integr
 # ── failure/recovery: workspace init against a blocked scaffold ───────────
 echo "== failure/recovery =="
 HOME_F="$PREFIX/home-f"
-mkdir -p "$HOME_F" "$HOME_F/knowledge"
-echo "user data" > "$HOME_F/knowledge/blocker" 2>/dev/null || true
-rm -rf "$HOME_F/knowledge"; touch "$HOME_F/knowledge"  # FILE where a dir is required
+mkdir -p "$HOME_F"
 launch "$HOME_F"
+sleep 3   # boot creates the default ~/.ai-workspace (empty, uninitialized)
+# blocker: a FILE where ensure_workspace needs a DIRECTORY — deterministic
+# scaffold failure inside the designed default workspace
+touch "$HOME_F/.ai-workspace/knowledge"
 journey_key Right; journey_key Right; journey_key Right; journey_key Right
 journey_key Return   # workspace init → must fail (knowledge is a file)
-sleep 1
+sleep 2
 shot onboarding-failure.png
 kill_session
+[ -f "$HOME_F/app.log" ] && grep -q "workspace init failed" "$HOME_F/app.log" && \
+  record "failure-logged" "PASS" "wizard surfaced 'workspace init failed' (app.log + capture)"
+[ -f "$HOME_F/.cache/agent-toolkit/desktop/engine_state.json" ] || fail "failure-path state file missing"
 python3 -c "
 import json, sys
-r = json.load(open('$HOME_F/.config/agent-toolkit/desktop/engine_state.json'))
+r = json.load(open('$HOME_F/.cache/agent-toolkit/desktop/engine_state.json')).get('data', {})
+print('DBG failure onboarding_completed:', repr(r.get('onboarding_completed')))
 sys.exit(0 if r.get('onboarding_completed') != 'true' else 1)
 " || fail "failure path wrongly persisted completion"
 record "failure-surfaced" "PASS" "workspace init failed honestly (file where dir required); completion NOT persisted (capture onboarding-failure.png)"
