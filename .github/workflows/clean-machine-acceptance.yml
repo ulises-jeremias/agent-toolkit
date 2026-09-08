@@ -40,7 +40,8 @@ jobs:
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends \
             git curl xz-utils unzip ca-certificates \
-            xvfb x11-utils xdotool imagemagick \
+            xvfb x11-utils xdotool imagemagick xorg-dev \
+            libgl1-mesa-dev libegl1-mesa-dev \
             desktop-file-utils file python3 \
             build-essential make
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
