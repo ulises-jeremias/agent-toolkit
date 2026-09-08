@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges" width="32" height="32">
 <rect x="4" y="1" width="24" height="1" fill="rgb(246,239,227)"/>
-<rect x="4" y="2" width="24" height="1" fill="rgb(246,239,227)"/>
-<rect x="4" y="3" width="24" height="1" fill="rgb(246,239,227)"/>
+<rect x="2" y="2" width="28" height="1" fill="rgb(246,239,227)"/>
+<rect x="2" y="3" width="28" height="1" fill="rgb(246,239,227)"/>
 <rect x="1" y="4" width="30" height="1" fill="rgb(246,239,227)"/>
 <rect x="1" y="5" width="30" height="1" fill="rgb(246,239,227)"/>
 <rect x="1" y="6" width="30" height="1" fill="rgb(246,239,227)"/>
@@ -154,7 +154,7 @@
 <rect x="1" y="25" width="30" height="1" fill="rgb(246,239,227)"/>
 <rect x="1" y="26" width="30" height="1" fill="rgb(246,239,227)"/>
 <rect x="1" y="27" width="30" height="1" fill="rgb(246,239,227)"/>
-<rect x="4" y="28" width="24" height="1" fill="rgb(246,239,227)"/>
-<rect x="4" y="29" width="24" height="1" fill="rgb(246,239,227)"/>
+<rect x="2" y="28" width="28" height="1" fill="rgb(246,239,227)"/>
+<rect x="2" y="29" width="28" height="1" fill="rgb(246,239,227)"/>
 <rect x="4" y="30" width="24" height="1" fill="rgb(246,239,227)"/>
 </svg>

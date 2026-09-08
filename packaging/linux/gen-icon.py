@@ -29,12 +29,12 @@ SIZES = [16, 24, 32, 48, 64, 128, 256, 512]
 def in_rounded(x, y, x0, y0, x1, y1, r):
     if x < x0 or x > x1 or y < y0 or y > y1:
         return False
-    # corner circle centers
-    for cx, cy in ((x0 + r, y0 + r), (x1 - r, y0 + r), (x0 + r, y1 - r), (x1 - r, y1 - r)):
-        in_corner_zone = (x < x0 + r or x > x1 - r) and (y < y0 + r or y > y1 - r)
-        if in_corner_zone:
-            if (x - cx) ** 2 + (y - cy) ** 2 > r * r:
-                return False
+    # test ONLY the relevant corner's circle — testing all four rejects
+    # valid corner pixels against the opposite corners (#1165 review)
+    cx = x0 + r if x < x0 + r else (x1 - r if x > x1 - r else x)
+    cy = y0 + r if y < y0 + r else (y1 - r if y > y1 - r else y)
+    if (x < x0 + r or x > x1 - r) and (y < y0 + r or y > y1 - r):
+        return (x - cx) ** 2 + (y - cy) ** 2 <= r * r
     return True
 
 

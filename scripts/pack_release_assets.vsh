@@ -246,6 +246,12 @@ fn main() {
 				}
 				mkdir_all('${tmpdir}/icons') or {}
 				mkdir_all('${tmpdir}/share/man/man1') or {}
+				if !is_file('VERSION') {
+					eprintln('VERSION file missing at repo root')
+					exit(1)
+				}
+				cp('VERSION', join_path(tmpdir, 'VERSION')) or {}
+				chmod(join_path(tmpdir, 'VERSION'), 0o644) or {}
 				for item in items {
 					// man page lands at its FHS-relative path; the rest at root
 					dst := if item.ends_with('.1') {
@@ -275,7 +281,7 @@ fn main() {
 			// LICENSE + packaging bundle); single-name form otherwise
 			mut tar_list := '"${inner}" LICENSE'
 			if spec.floating.contains('desktop') && spec.os_name == 'linux' {
-				tar_list = '${inner} LICENSE agent-toolkit-desktop.desktop install-desktop.sh icons share'
+				tar_list = '${inner} LICENSE VERSION agent-toolkit-desktop.desktop install-desktop.sh icons share'
 			}
 			mut tar_cmd := 'tar ${tar_extra}-C "${tmpdir}" -czf "${archive_path}" ${tar_list}'
 			rc := system(tar_cmd)
