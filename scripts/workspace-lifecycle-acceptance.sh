@@ -109,7 +109,7 @@ click() { # $1 window-x  $2 window-y
 
 key() { DISPLAY=:99 xdotool key "$1"; sleep 0.3; }
 type_text() { DISPLAY=:99 xdotool type --delay 40 "$1"; sleep 0.4; }
-clear_field() { for _ in $(seq 1 40); do key Backspace; done; }
+clear_field() { for _ in $(seq 1 40); do key BackSpace; done; }
 
 state_data() {
   python3 -c "
