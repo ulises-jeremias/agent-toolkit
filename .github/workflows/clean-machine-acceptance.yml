@@ -41,7 +41,8 @@ jobs:
           apt-get install -y -qq --no-install-recommends \
             git curl xz-utils unzip ca-certificates \
             xvfb x11-utils xdotool imagemagick \
-            desktop-file-utils file python3
+            desktop-file-utils file python3 \
+            build-essential make
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup pinned V (build side only)
         uses: ./.github/actions/setup-v
