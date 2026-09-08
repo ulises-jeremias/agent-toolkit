@@ -154,6 +154,7 @@ shot ws-panel-initial.png
 click $((FIELD_X + 40)) $((FIELD_Y + 14))
 clear_field
 type_text "$WS_B"
+shot ws-typed.png                              # debug: field content after typing
 click $((VALIDATE_X + 32)) $((FIELD_Y + 14))   # Validate
 # seed ws-b via Initialize (scaffold + personas)
 click $((INIT_X + 29)) $((FIELD_Y + 14))       # Initialize
