@@ -95,6 +95,11 @@ kill_session() {
 }
 
 journey_key() { DISPLAY=:99 xdotool key --window "$WIN_ID" "$1" 2>/dev/null || DISPLAY=:99 xdotool key "$1"; sleep 1; }
+# Enter actions are retried once: every step action is idempotent (bulk
+# installs are set-semantics, personas skip existing, workspace mkdir_all,
+# targets set-true), and a Return swallowed while a transaction commits
+# would otherwise leave the journey silently incomplete.
+journey_enter() { journey_key Return; sleep 0.8; journey_key Return; sleep 1; }
 shot() { DISPLAY=:99 import -window root "$EVIDENCE/$1" 2>/dev/null || true; }
 
 assert_state() { # $1 python-expr over the engine state json  $2 label
@@ -114,11 +119,11 @@ record "onboarding-visible" "PASS" "wizard overlay visible on first launch (capt
 
 # truthful discovery on the Detect/Targets step is captured later; drive the journey:
 # step1 Capabilities → install first 5 catalog skills
-journey_key Right; journey_key Return
+journey_key Right; journey_enter
 # step2 Targets → enable minimal
-journey_key Right; journey_key Return
+journey_key Right; journey_enter
 # step3 Products → enable core product
-journey_key Right; journey_key Return
+journey_key Right; journey_enter
 # step4 Workspace → init scaffold under HOME
 journey_key Right; journey_key Return
 shot onboarding-workspace.png
