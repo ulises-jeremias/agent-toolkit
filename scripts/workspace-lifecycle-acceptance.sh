@@ -180,11 +180,11 @@ key 0
 sleep 1
 shot ws-panel-initial.png
 
-# open ws-b: click field, clear, type path, Validate, Switch
-focus_field || fail "could not focus the workspace draft field"
+# open ws-b: Tab-focus the field, clear, type path, Validate
+key Tab
 clear_field
 type_text "$WS_B"
-shot ws-typed.png                              # debug: field content after typing
+shot ws-typed.png                              # field content after typing
 click $((VALIDATE_X + 32)) $((FIELD_Y + 14))   # Validate
 # seed ws-b via Initialize (scaffold + personas)
 click $((INIT_X + 29)) $((FIELD_Y + 14))       # Initialize
@@ -217,7 +217,7 @@ assert_state "$STATE_B" "r.get('workspace_path', '') == '$WS_B'" "restart-restor
 launch "$HOME_B"
 key 0
 sleep 1
-focus_field || fail "could not focus the workspace draft field"
+key Tab
 clear_field
 type_text "$HOME_A/.ai-workspace"
 click $((VALIDATE_X + 32)) $((FIELD_Y + 14))
@@ -240,7 +240,7 @@ echo "# user custom knowledge" > "$HOME_C/work-c/knowledge/README.md"  # collisi
 launch "$HOME_C"
 key 0
 sleep 1
-focus_field || fail "could not focus the workspace draft field"
+key Tab
 clear_field
 type_text "$HOME_C/work-c"
 click $((INIT_X + 29)) $((FIELD_Y + 14))   # Initialize (seed)
