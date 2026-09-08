@@ -8605,7 +8605,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		if e.key_code == .slash || (e.key_code == .k && is_mod) {
+		// #1128: the workspace draft path needs '/' — the palette hotkey must
+		// not fire while the workspace field has focus (an absolute path was
+		// impossible to type before this guard)
+		if (e.key_code == .slash || (e.key_code == .k && is_mod)) && !app.workspace_focus {
 			app.palette_open = true
 			app.palette_query = ''
 			app.palette_selected = 0
