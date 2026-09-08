@@ -20,6 +20,9 @@ ARCHIVE="${1:?usage: first-run-acceptance.sh <desktop-archive.tar.gz>}"
 [ -f "$ARCHIVE" ] || { echo "error: archive not found: $ARCHIVE" >&2; exit 2; }
 
 RESULTS=()
+APP_PID=0
+OB_PID=0
+XVFB_PID=0
 record() { printf '%-34s %-8s %s\n' "$1" "$2" "$3"; RESULTS+=("$1|$2|$3"); }
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
@@ -51,6 +54,11 @@ launch() { # $1 home  $2 extra PATH prefix (fixture)  → sets APP_PID, WIN_ID
   Xvfb :99 -screen 0 1280x800x24 &
   XVFB_PID=$!
   sleep 1
+  # a bare Xvfb has no WM → no window ever has input focus → XTEST keys
+  # would go nowhere. openbox gives the journey real focus semantics.
+  DISPLAY=:99 openbox &
+  OB_PID=$!
+  sleep 1
   env DISPLAY=:99 PATH="${pathfix:+$pathfix:}/usr/bin:/bin" \
     XDG_DATA_HOME="$home/.local/share" XDG_CONFIG_HOME="$home/.config" \
     "$INSTALLED_BIN" &
@@ -61,8 +69,24 @@ launch() { # $1 home  $2 extra PATH prefix (fixture)  → sets APP_PID, WIN_ID
     [ -n "$WIN_ID" ] && break
   done
   [ -n "$WIN_ID" ] || fail "app window never appeared"
+  DISPLAY=:99 xdotool windowactivate --sync "$WIN_ID" 2>/dev/null || true
   DISPLAY=:99 xdotool windowfocus "$WIN_ID" 2>/dev/null || true
   sleep 1
+  local focused
+  focused="$(DISPLAY=:99 xdotool getwindowfocus 2>/dev/null || true)"
+  if [ "$focused" != "$WIN_ID" ]; then
+    echo "focus probe: focused=$focused want=$WIN_ID — retrying windowfocus" >&2
+    DISPLAY=:99 xdotool windowfocus "$WIN_ID" || true
+    sleep 1
+  fi
+}
+kill_session() {
+  kill $APP_PID 2>/dev/null || true
+  kill $OB_PID 2>/dev/null || true
+  kill $XVFB_PID 2>/dev/null || true
+  wait $APP_PID 2>/dev/null || true
+  wait $OB_PID 2>/dev/null || true
+  wait $XVFB_PID 2>/dev/null || true
 }
 
 journey_key() { DISPLAY=:99 xdotool key --window "$WIN_ID" "$1" 2>/dev/null || DISPLAY=:99 xdotool key "$1"; sleep 1; }
@@ -107,9 +131,7 @@ DISPLAY=:99 xdotool getactivewindowname 2>/dev/null >&2 || true
 
 STATE_FILE="$HOME_FRESH/.cache/agent-toolkit/desktop/engine_state.json"
 sleep 1
-kill $APP_PID 2>/dev/null || true
-wait $APP_PID 2>/dev/null || true
-kill $XVFB_PID 2>/dev/null || true
+kill_session
 
 [ -f "$STATE_FILE" ] || {
   echo "state file locations probed:" >&2
@@ -126,9 +148,7 @@ assert_state "any(r.get(f'target:{t}:enabled') == 'true' for t in ('claude-code'
 # restart — hard gate: wizard must NOT reappear, state preserved
 launch "$HOME_FRESH"
 shot after-restart.png
-kill $APP_PID 2>/dev/null || true
-wait $APP_PID 2>/dev/null || true
-kill $XVFB_PID 2>/dev/null || true
+kill_session
 python3 -c "
 import json, sys
 r = json.load(open('$STATE_FILE'))
@@ -158,9 +178,7 @@ record "fixture-discovery" "PASS" "$DISCO — integration-fixture evidence (clau
 launch "$HOME_B" "$PREFIX/fixture-bin"
 journey_key Right; journey_key Return   # step2 targets → enable minimal (incl. claude-code)
 journey_key Right                        # step3
-kill $APP_PID 2>/dev/null || true
-wait $APP_PID 2>/dev/null || true
-kill $XVFB_PID 2>/dev/null || true
+kill_session
 STATE_B="$HOME_B/.cache/agent-toolkit/desktop/engine_state.json"
 python3 -c "
 import json, sys
@@ -180,9 +198,7 @@ journey_key Right; journey_key Right; journey_key Right; journey_key Right
 journey_key Return   # workspace init → must fail (knowledge is a file)
 sleep 1
 shot onboarding-failure.png
-kill $APP_PID 2>/dev/null || true
-wait $APP_PID 2>/dev/null || true
-kill $XVFB_PID 2>/dev/null || true
+kill_session
 python3 -c "
 import json, sys
 r = json.load(open('$HOME_F/.config/agent-toolkit/desktop/engine_state.json'))
@@ -197,9 +213,7 @@ mkdir -p "$HOME_I"
 launch "$HOME_I"
 journey_key Right; journey_key Return   # step1: install skills, then STOP
 sleep 1
-kill $APP_PID 2>/dev/null || true
-wait $APP_PID 2>/dev/null || true
-kill $XVFB_PID 2>/dev/null || true
+kill_session
 STATE_I="$HOME_I/.cache/agent-toolkit/desktop/engine_state.json"
 python3 -c "
 import json, sys
@@ -220,9 +234,7 @@ journey_key Right; journey_key Right; journey_key Right; journey_key Right
 journey_key Return                      # ensure workspace over EXISTING dirs
 sleep 1
 shot existing-setup.png
-kill $APP_PID 2>/dev/null || true
-wait $APP_PID 2>/dev/null || true
-kill $XVFB_PID 2>/dev/null || true
+kill_session
 [ "$(cat "$HOME_E/knowledge/notes.md")" = "# my existing knowledge" ] || fail "existing knowledge overwritten"
 [ "$(cat "$HOME_E/personas/custom-persona.md")" = "# my persona" ] || fail "existing persona overwritten"
 record "existing-state-preserved" "PASS" "existing knowledge/personas untouched by ensure (capture existing-setup.png)"

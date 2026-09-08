@@ -40,7 +40,7 @@ jobs:
           apt-get update -qq
           apt-get install -y -qq --no-install-recommends \
             git curl xz-utils unzip ca-certificates \
-            xvfb x11-utils xdotool imagemagick xorg-dev \
+            xvfb x11-utils xdotool imagemagick xorg-dev openbox \
             libgl1-mesa-dev libegl1-mesa-dev \
             desktop-file-utils file python3 \
             build-essential make
