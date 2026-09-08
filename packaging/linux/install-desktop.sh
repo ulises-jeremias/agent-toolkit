@@ -126,19 +126,17 @@ for step in plan:
         shutil.copyfile(src, dst)
         os.chmod(dst, mode)
         created += 1
+        # .desktop Exec → installed binary (launcher sessions lack
+        # ~/.local/bin PATH) — the digest below must capture the REWRITTEN
+        # file, or the next install misclassifies it as user-modified
+        if dst.endswith(".desktop"):
+            lines = []
+            for line in open(dst):
+                lines.append(f"Exec={bin_dir}/{product}\n" if line.startswith("Exec=") else line)
+            open(dst, "w").writelines(lines)
     artifacts.append({"path": dst,
                       "digest": dst_digest(dst),
                       "ownership": own})
-
-# .desktop Exec → installed binary (launcher sessions lack ~/.local/bin PATH).
-# Only our own (created) entry is rewritten — a merged user entry is kept.
-desktop_ownership = next(a["ownership"] for a in artifacts if a["path"].endswith(".desktop"))
-if desktop_ownership == "created":
-    desktop_dst = os.path.join(xdg_data, "applications", f"{product}.desktop")
-    lines = []
-    for line in open(desktop_dst):
-        lines.append(f"Exec={bin_dir}/{product}\n" if line.startswith("Exec=") else line)
-    open(desktop_dst, "w").writelines(lines)
 
 receipt = {
     "schemaVersion": int(os.environ["SCHEMA_VERSION"]),
