@@ -166,7 +166,17 @@ assert_state "len([s for s in (r.get('data', {}).get('installed_skills') or '').
 assert_state "any(r.get('data', {}).get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))" "targets-enabled"
 [ -d "$HOME_FRESH/.ai-workspace/knowledge" ] || fail "workspace scaffold missing: $HOME_FRESH/.ai-workspace/knowledge"
 record "workspace-scaffold" "PASS" "knowledge/ scaffold created under ~/.ai-workspace (designed default)"
-[ -f "$HOME_FRESH/.ai-workspace/personas/assistant.md" ] || fail "personas not bootstrapped under ~/.ai-workspace"
+if [ ! -f "$HOME_FRESH/.ai-workspace/personas/assistant.md" ]; then
+  echo "DBG personas dir probe:" >&2
+  find "$HOME_FRESH/.ai-workspace" >&2 | head -12 || true
+  echo "DBG personas state:" >&2
+  python3 -c "
+import json
+r = json.load(open('$STATE_FILE')).get('data', {})
+print('personas_bootstrapped:', repr(r.get('personas_bootstrapped')), 'persona_count:', repr(r.get('persona_count')))
+" >&2 || true
+  fail "personas not bootstrapped under ~/.ai-workspace"
+fi
 record "personas" "PASS" "personas bootstrapped under ~/.ai-workspace"
 
 # restart — hard gate: wizard must NOT reappear, state preserved
