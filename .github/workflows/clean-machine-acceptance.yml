@@ -81,13 +81,28 @@ jobs:
           # integration) + failure/interrupt/existing-state/restart gates.
           ./scripts/first-run-acceptance.sh \
             release-assets/agent-toolkit-desktop-1.30.0-linux-x86_64.tar.gz
+      - name: Run #1128 workspace lifecycle acceptance (same packed artifact)
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+          EVIDENCE_DIR: ${{ github.workspace }}/workspace-lifecycle-evidence
+        run: |
+          set -euo pipefail
+          # drives the REAL Workspace panel controls (draft field + Validate /
+          # Switch / Initialize) via keyboard+mouse (xdotool/XTEST under
+          # Xvfb) on the INSTALLED binary: multi-workspace switch A→B→A,
+          # restart restore, seed safety (collision/foreign/idempotent),
+          # invalid-path truthful error.
+          ./scripts/workspace-lifecycle-acceptance.sh \
+            release-assets/agent-toolkit-desktop-1.30.0-linux-x86_64.tar.gz
       - name: Stage GUI capture + evidence
         if: always()
         run: |
           set -euo pipefail
-          mkdir -p clean-machine-evidence first-run-evidence
+          mkdir -p clean-machine-evidence first-run-evidence workspace-lifecycle-evidence
           cp /tmp/atk-clean-*/capture.png clean-machine-evidence/ 2>/dev/null || true
-          ls -la clean-machine-evidence first-run-evidence || true
+          cp /tmp/atk-firstrun-*/../*.png first-run-evidence/ 2>/dev/null || true
+          cp /tmp/atk-wslc-*/*.png workspace-lifecycle-evidence/ 2>/dev/null || true
+          ls -la clean-machine-evidence first-run-evidence workspace-lifecycle-evidence || true
       - name: Upload GUI capture + evidence
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -96,4 +111,5 @@ jobs:
           path: |
             clean-machine-evidence
             first-run-evidence
+            workspace-lifecycle-evidence
           if-no-files-found: ignore
