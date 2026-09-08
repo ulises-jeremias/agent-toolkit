@@ -233,7 +233,8 @@ record "fixture-discovery" "PASS" "$DISCO — integration-fixture evidence (clau
 
 # the fixture makes target-enable meaningful: enable claude-code target
 launch "$HOME_B" "$PREFIX/fixture-bin"
-journey_key Right; journey_key Return   # step2 targets → enable minimal (incl. claude-code)
+journey_key Right                        # step1 Capabilities
+journey_key Right; journey_key Return   # step2 Targets → enable minimal (incl. claude-code)
 journey_key Right                        # step3
 kill_session
 STATE_B="$HOME_B/.cache/agent-toolkit/desktop/engine_state.json"
