@@ -24,7 +24,7 @@ record() { printf '%-34s %-8s %s\n' "$1" "$2" "$3"; RESULTS+=("$1|$2|$3"); }
 fail() { printf 'FAIL: %s\n' "$*" >&2; exit 1; }
 
 ART_NAME="$(basename "$ARCHIVE")"
-ART_SHA="$(sha256sum "$ARTIFACT" | cut -d' ' -f1)"
+ART_SHA="$(sha256sum "$ARCHIVE" | cut -d' ' -f1)"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "provenance: artifact=$ART_NAME sha256=$ART_SHA"
 
