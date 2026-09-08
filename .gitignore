@@ -44,3 +44,4 @@ capabilities/upstream-apply-summary.json
 .agent-toolkit/
 scripts/swarm-visual/.venv/
 knowledge/learnings/
+scripts/.pack_release_assets.v3cc.*
