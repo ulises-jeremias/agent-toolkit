@@ -124,11 +124,11 @@ journey_key Right; journey_enter
 journey_key Right; journey_enter
 # step3 Products → enable core product
 journey_key Right; journey_enter
-# step4 Workspace → init scaffold under HOME
-journey_key Right; journey_key Return
+# step4 Workspace → init scaffold under ~/.ai-workspace
+journey_key Right; journey_enter
 shot onboarding-workspace.png
 # step5 Personas → bootstrap
-journey_key Right; journey_key Return
+journey_key Right; journey_enter
 # step6: pressing Right AT the Done step triggers onboarding_complete —
 # this is the 7th Right (the previous six arrived at each step). A retry
 # guards against a swallowed keystroke while the personas transaction
