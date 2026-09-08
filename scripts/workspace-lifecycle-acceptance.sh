@@ -109,7 +109,7 @@ click() { # $1 window-x  $2 window-y
 
 key() { DISPLAY=:99 xdotool key "$1"; sleep 0.3; }
 type_text() { DISPLAY=:99 xdotool type --delay 40 "$1"; sleep 0.4; }
-clear_field() { for _ in $(seq 1 40); do key BackSpace; done; }
+clear_field() { for _ in $(seq 1 80); do key BackSpace; done; }
 
 state_data() {
   python3 -c "
@@ -257,9 +257,10 @@ click $((VALIDATE_X + 32)) $((FIELD_Y + 14))
 sleep 1
 shot ws-invalid.png
 kill_session
-grep -q "does not exist" "$HOME_B/app.log" || true
-record "scenario-D" "PASS" "invalid path: truthful error visible (capture ws-invalid.png); workspace unchanged"
+# the truthful error is GUI state (workspace_notice) — verified via capture;
+# the AUTOMATED proof is that the active workspace is unchanged
 assert_state "$STATE_B" "r.get('workspace_path', '') == '$HOME_A/.ai-workspace'" "invalid-path-no-overwrite"
+record "scenario-D" "PASS" "invalid path: truthful error visible (capture ws-invalid.png); workspace unchanged"
 
 # ── summary ────────────────────────────────────────────────────────────────
 echo

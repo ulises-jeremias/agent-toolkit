@@ -198,10 +198,9 @@ pub fn (mut e Engine) onboarding_ensure_workspace(target_dir string) !u64 {
 	tx.set('workspace_exists', 'true')
 	tx.set('workspace_path', actual)
 	tx.set('workspace_initialized', 'true')
-	if seed_warnings.len > 0 {
-		// truthful partial state: blocked writes are visible, never hidden
-		tx.set('workspace/seed_warnings', seed_warnings.join('|'))
-	}
+	// truthful partial state: blocked writes are visible; a later CLEAN seed
+	// clears the warnings instead of retaining stale ones (#1169 review)
+	tx.set('workspace/seed_warnings', seed_warnings.join('|'))
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
 }

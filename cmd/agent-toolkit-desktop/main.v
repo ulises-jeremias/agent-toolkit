@@ -5522,6 +5522,7 @@ fn draw_kanban(mut app GuiApp, fx int, y0 int, fw int) {
 	// #1128: the strip shows KNOWN WORKSPACES (bounded discovery) when there
 	// is kanban content; otherwise the workspace list IS the strip content —
 	// manila folder tabs with truthful state (Active / Valid / Missing).
+	app.known_ws_rects.clear() // stale rects must never intercept clicks
 	if app.kanban.len > 0 {
 		pixel_panel(mut app, fx + 12, y0, fw - 24, h, 'default')
 		app.gg.draw_text(fx + 24, y0 + 8, 'Kanban', gg.TextCfg{ color: app.pnl_text, size: font_display_sm })

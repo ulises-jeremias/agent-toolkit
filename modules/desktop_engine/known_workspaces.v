@@ -64,22 +64,31 @@ pub fn (mut e Engine) known_workspaces() []KnownWorkspace {
 	}
 
 	mut out := []KnownWorkspace{}
+	mut seen := map[string]bool{}
 	for i, raw in paths {
 		clean := os.real_path(os.expand_tilde_to_home(raw.trim_space()))
-		if clean == '' || clean == os.path_separator || clean == os.home_dir() {
+		// dedupe on CANONICAL paths: '~/ws' and '/home/u/ws' are one workspace
+		if clean == '' || seen[clean] {
+			continue
+		}
+		if clean == os.path_separator || clean == os.home_dir() {
 			// the home directory itself is never a workspace (#1127 rule)
 			continue
 		}
+		seen[clean] = true
 		exists := os.is_dir(clean)
 		initialized := exists && workspace_is_initialized(clean)
 		has_projects := exists && os.is_dir(os.join_path(clean, 'repos'))
-			&& os.ls(os.join_path(clean, 'repos')) or { []string{} }.len > 0
+			&& (os.ls(os.join_path(clean, 'repos')) or { []string{} })
+				.filter(it != '.gitkeep').len > 0
 		out << KnownWorkspace{
 			path:         clean
 			why:          whys[i]
 			exists:       exists
 			initialized:  initialized
-			is_active:    exists && clean == os.real_path(active)
+			// active state comes from the PERSISTED preference — it survives
+			// the directory being deleted (truthful: active but missing)
+			is_active:    clean == os.real_path(active)
 			has_projects: has_projects
 		}
 	}
