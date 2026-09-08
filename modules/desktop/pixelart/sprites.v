@@ -28,6 +28,7 @@ pub enum EnvironmentAsset {
 	meeting_table
 	board
 	tray
+	window
 }
 
 // Sprite is an authored pixel grid with its palette keys.
@@ -94,7 +95,7 @@ pub fn (s Sprite) expand(p Palette, scale int) []u8 {
 	return out
 }
 
-// ── agent avatar (12×16 logical) — shared anatomy: hair/head/torso/desk edge.
+// ── agent avatar (12×12 logical) — shared anatomy: hair/head/torso/desk edge.
 // Variants adjust the posture/head/screen pixels. State semantics come from
 // Engine truth; idle agents sit facing the terminal, running agents face the
 // screen with an active glow, waiting agents turn toward the inbox.
@@ -196,6 +197,43 @@ pub fn agent_for_state(state AgentVisualState) Sprite {
 		.waiting { agent_waiting }
 		.attention { agent_attention }
 		.error { agent_error }
+	}
+}
+
+// with_identity returns a catalog-identity variant of an avatar sprite:
+// the shared 12×12 anatomy with deterministic hair/shirt material swaps
+// (existing palette keys only, no new colors, no runtime meaning). Variant 0
+// is the authored sprite unchanged. The name suffix keeps sprite-cache keys
+// distinct per identity.
+pub fn with_identity(s Sprite, variant int) Sprite {
+	mut mapping := map[u8]u8{}
+	mut name_suffix := ''
+	if variant == 1 {
+		// light-brown hair, sage shirt
+		mapping[u8(`h`)] = u8(`m`)
+		mapping[u8(`c`)] = u8(`f`)
+		mapping[u8(`C`)] = u8(`F`)
+		name_suffix = '-id1'
+	} else if variant == 2 {
+		// dark hair, brass shirt
+		mapping[u8(`c`)] = u8(`b`)
+		mapping[u8(`C`)] = u8(`B`)
+		name_suffix = '-id2'
+	} else {
+		return s
+	}
+	mut rows := []string{cap: s.rows.len}
+	for row in s.rows {
+		mut b := []u8{cap: row.len}
+		for ch in row {
+			k := u8(ch)
+			b << if k in mapping { mapping[k] } else { k }
+		}
+		rows << b.bytestr()
+	}
+	return Sprite{
+		name: s.name + name_suffix
+		rows: rows
 	}
 }
 
@@ -407,6 +445,26 @@ const env_tray = Sprite{
 	]
 }
 
+// window (14×12): dark wood frame, sky panes, sill. Wall asset for the
+// office room's environmental depth.
+const env_window = Sprite{
+	name: 'env-window'
+	rows: [
+		'WWWWWWWWWWWWWW',
+		'WssssssssssssW',
+		'WssssssssssssW',
+		'WssssssssssssW',
+		'WWWWWWWWWWWWWW',
+		'WssssssssssssW',
+		'WssssssssssssW',
+		'WssssssssssssW',
+		'WWWWWWWWWWWWWW',
+		'.WWWWWWWWWWWW.',
+		'..............',
+		'..............',
+	]
+}
+
 // environment_for returns the sprite for an environment asset.
 pub fn environment_for(a EnvironmentAsset) Sprite {
 	return match a {
@@ -421,6 +479,7 @@ pub fn environment_for(a EnvironmentAsset) Sprite {
 		.meeting_table { env_meeting }
 		.board { env_board }
 		.tray { env_tray }
+		.window { env_window }
 	}
 }
 
@@ -429,14 +488,14 @@ pub fn all_sprites() []Sprite {
 	return [
 		agent_idle, agent_running, agent_waiting, agent_attention, agent_error,
 		env_desk, env_chair, env_terminal, env_shelf, env_plant, env_lamp,
-		env_cabinet, env_rug, env_meeting, env_board, env_tray,
+		env_cabinet, env_rug, env_meeting, env_board, env_tray, env_window,
 	]
 }
 
 // all_environment_assets returns every EnvironmentAsset (mapping coverage).
 pub fn all_environment_assets() []EnvironmentAsset {
 	return [.desk, .chair, .terminal, .shelf, .plant, .lamp, .cabinet, .rug,
-		.meeting_table, .board, .tray]
+		.meeting_table, .board, .tray, .window]
 }
 
 // all_agent_states returns every AgentVisualState (mapping coverage).

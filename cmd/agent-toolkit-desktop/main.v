@@ -3,6 +3,7 @@ module main
 import desktop
 import desktop.nav
 import desktop.palette
+import desktop.pixelart
 import desktop_engine
 import gg
 import ghostty
@@ -899,6 +900,10 @@ mut:
 	// S4A (#1119): shared typed action & entity registry — the palette's data
 	// source. Static rows remain only for entries not yet migrated.
 	palette_reg &palette.Registry = unsafe { nil }
+	// VC3 (#1172): pixel-art sprite cache for the Office room. Created lazily
+	// on first Office draw (frame time, sokol ready); both palettes stay
+	// cached since the key space is bounded. See office_room.v.
+	pixel_cache &pixelart.SpriteCache = unsafe { nil }
 	// #1128: known-workspace folder-tab hit rects (rebuilt every frame)
 	known_ws_rects []KnownWsRect
 	// S4B contextual action flow state
@@ -3072,49 +3077,38 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 	}
 	attention_jobs := jobs.filter(it.status == .failed || it.status == .queued)
 	running_jobs := jobs.filter(it.status == .running)
-	content_y := fy + 58
+	// Compact truth cards — one line each — so the pixel-art room is the hero
+	// of the overview (office.jpg reference: room-first composition).
+	content_y := fy + 50
 	col_w := (fw - 52) / 2
 	// Attention is derived from real state. Empty means there is nothing to fix.
-	pixel_panel(mut app, fx + 16, content_y, col_w, 92, 'default')
-	app.gg.draw_text(fx + 30, content_y + 14, 'Needs your attention', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	pixel_panel(mut app, fx + 16, content_y, col_w, 52, 'default')
+	app.gg.draw_text(fx + 30, content_y + 10, 'Needs attention', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
 	if attention_jobs.len == 0 {
-		app.gg.draw_text(fx + 30, content_y + 42, 'Nothing requires attention.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(fx + 30, content_y + 30, 'Nothing requires attention.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	} else {
-		app.gg.draw_text(fx + 30, content_y + 42, '${attention_jobs.len} operation(s) need attention', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
-		app.gg.draw_text(fx + 30, content_y + 62, 'Open Operations to inspect status and recovery.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		app.gg.draw_text(fx + 30, content_y + 30, '${attention_jobs.len} operation(s) need attention — see Operations.', gg.TextCfg{ color: app.pnl_select, size: 11, bold: true })
 	}
-	pixel_panel(mut app, fx + 28 + col_w, content_y, col_w, 92, 'default')
-	app.gg.draw_text(fx + 42 + col_w, content_y + 14, 'Running now', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
+	pixel_panel(mut app, fx + 28 + col_w, content_y, col_w, 52, 'default')
+	app.gg.draw_text(fx + 42 + col_w, content_y + 10, 'Running now', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
 	if running_jobs.len == 0 {
-		app.gg.draw_text(fx + 42 + col_w, content_y + 42, 'No operations are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-		app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Live sessions appear here when started.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		app.gg.draw_text(fx + 42 + col_w, content_y + 30, 'No operations are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 	} else {
-		app.gg.draw_text(fx + 42 + col_w, content_y + 42, '${running_jobs.len} operation(s) running.', gg.TextCfg{ color: app.pnl_select, size: 12, bold: true })
-		app.gg.draw_text(fx + 42 + col_w, content_y + 62, 'Open Operations to follow logs and recovery.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		app.gg.draw_text(fx + 42 + col_w, content_y + 30, '${running_jobs.len} operation(s) running — see Operations.', gg.TextCfg{ color: app.pnl_select, size: 11, bold: true })
 	}
-	// Agent roster is useful even while idle, but status is never inferred from identity.
-	list_y := content_y + 114
-	pixel_panel(mut app, fx + 16, list_y, fw - 32, fh - (list_y - fy) - 18, 'default')
-	app.gg.draw_text(fx + 30, list_y + 14, 'Agents', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-	app.gg.draw_text(fx + fw - 190, list_y + 15, '${agents.len} available in catalog', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-	if agents.len == 0 {
-		app.gg.draw_text(fx + 30, list_y + 48, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	// VC3 (#1172): the roster renders as the pixel-art office room — the
+	// whole remaining surface. Catalog desks with idle agents plus
+	// environment zones; status is never inferred from identity.
+	room_y := content_y + 64
+	room_h := fh - (room_y - fy) - 12
+	if room_h < 80 {
+		// Too short to compose the room (tall terminal on a short window);
+		// the status cards above still carry the operational truth.
+	} else if agents.len == 0 {
+		pixel_panel(mut app, fx + 16, room_y, fw - 32, room_h, 'default')
+		app.gg.draw_text(fx + 30, room_y + 34, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	} else {
-		mut x := fx + 30
-		mut y := list_y + 42
-		for i, agent in agents {
-			if i >= 12 || y + 26 > fy + fh - 20 {
-				break
-			}
-			app.gg.draw_rect_filled(x, y, 8, 8, app.pnl_text_mut)
-			app.gg.draw_text(x + 16, y - 3, agent.id, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
-			app.gg.draw_text(x + 180, y - 3, agent.role, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			x += 250
-			if x + 220 > fx + fw - 20 {
-				x = fx + 30
-				y += 26
-			}
-		}
+		draw_office_room(mut app, fx + 16, room_y, fw - 32, room_h, desks_for_app(app), attention_jobs.len, running_jobs.len)
 	}
 }
 
