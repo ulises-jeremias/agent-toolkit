@@ -11,6 +11,9 @@ on:
       - 'distribution/**'
       - 'scripts/pack_release_assets.vsh'
       - 'scripts/clean-machine-acceptance.sh'
+      - 'scripts/first-run-acceptance.sh'
+      - 'scripts/workspace-lifecycle-acceptance.sh'
+      - 'cmd/agent-toolkit-desktop/**'
       - '.github/workflows/clean-machine-acceptance.yml'
       - 'VERSION'
   push:
@@ -20,6 +23,9 @@ on:
       - 'distribution/**'
       - 'scripts/pack_release_assets.vsh'
       - 'scripts/clean-machine-acceptance.sh'
+      - 'scripts/first-run-acceptance.sh'
+      - 'scripts/workspace-lifecycle-acceptance.sh'
+      - 'cmd/agent-toolkit-desktop/**'
       - '.github/workflows/clean-machine-acceptance.yml'
       - 'VERSION'
 jobs:
