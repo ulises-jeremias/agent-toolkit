@@ -6320,7 +6320,11 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	// overlay dim if showing as modal over world, otherwise full panel when selected_panel==11
 	is_overlay := app.show_onboarding && app.selected_panel != 11
 	if is_overlay {
-		app.gg.draw_rect_filled(0, 44, w, h - 44 - 28 - term_h_on, tint(app.pnl_text, 55))
+		// dim ALL the way down to the status bar (#1127): the previous dim
+		// stopped above the band where draw_world paints the workspace
+		// status lines, leaving them undimmed to collide with the wizard
+		// footer (seen in the #1130 clean-machine capture)
+		app.gg.draw_rect_filled(0, 44, w, h - 44 - term_h_on, tint(app.pnl_text, 88))
 	}
 	mut fx := if is_overlay { 240 } else { 208 }
 	fy := 52
@@ -6867,11 +6871,23 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_empty(fx + fw - 148, fy + fh - 32, 72, 20, app.pnl_select)
 	app.gg.draw_text(fx + fw - 132, fy + fh - 27, next_label, gg.TextCfg{ color: next_fg, size: 12, bold: true })
 	if app.onboarding_msg != '' {
-		app.gg.draw_text(fx + 110, fy + fh - 26, app.onboarding_msg[..if app.onboarding_msg.len > 48 {
-			48
+		if is_overlay {
+			// overlay mode: the footer row owns the bottom edge — render the
+			// status message just above it so the two never collide (#1127)
+			msg_y := fy + fh - 54
+			msg := app.onboarding_msg[..if app.onboarding_msg.len > 72 {
+				72
+			} else {
+				app.onboarding_msg.len
+			}]
+			app.gg.draw_text(fx + 16, msg_y, msg, gg.TextCfg{ color: app.pnl_select, size: 11 })
 		} else {
-			app.onboarding_msg.len
-		}], gg.TextCfg{ color: app.pnl_select, size: 11 })
+			app.gg.draw_text(fx + 110, fy + fh - 26, app.onboarding_msg[..if app.onboarding_msg.len > 48 {
+				48
+			} else {
+				app.onboarding_msg.len
+			}], gg.TextCfg{ color: app.pnl_select, size: 11 })
+		}
 	}
 }
 
