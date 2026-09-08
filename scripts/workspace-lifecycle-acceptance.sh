@@ -89,7 +89,13 @@ kill_session() {
 }
 
 shot() { DISPLAY=:99 import -window root "$EVIDENCE/$1" 2>/dev/null || true; }
-click() { DISPLAY=:99 xdotool mousemove "$1" "$2" click 1; sleep 0.6; }
+# click uses WINDOW-RELATIVE coords: openbox frames/places the window, so
+# screen-absolute mousemove would miss. Geometry is probed per click.
+click() { # $1 window-x  $2 window-y
+  eval "$(DISPLAY=:99 xdotool getwindowgeometry --shell "$WIN_ID")"
+  DISPLAY=:99 xdotool mousemove $((X + $1)) $((Y + $2)) click 1
+  sleep 0.6
+}
 key() { DISPLAY=:99 xdotool key "$1"; sleep 0.3; }
 type_text() { DISPLAY=:99 xdotool type --delay 40 "$1"; sleep 0.4; }
 clear_field() { for _ in $(seq 1 40); do key Backspace; done; }
