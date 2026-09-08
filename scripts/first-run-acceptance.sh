@@ -99,7 +99,7 @@ journey_key Right; journey_key Return
 journey_key Right
 shot onboarding-complete.png
 
-STATE_FILE="$XDG_CONFIG_HOME/agent-toolkit/desktop/engine_state.json"
+STATE_FILE="$HOME_FRESH/.cache/agent-toolkit/desktop/engine_state.json"
 sleep 1
 kill $APP_PID 2>/dev/null || true
 wait $APP_PID 2>/dev/null || true
@@ -150,7 +150,7 @@ journey_key Right                        # step3
 kill $APP_PID 2>/dev/null || true
 wait $APP_PID 2>/dev/null || true
 kill $XVFB_PID 2>/dev/null || true
-STATE_B="$HOME_B/.config/agent-toolkit/desktop/engine_state.json"
+STATE_B="$HOME_B/.cache/agent-toolkit/desktop/engine_state.json"
 python3 -c "
 import json, sys
 r = json.load(open('$STATE_B'))
@@ -189,7 +189,7 @@ sleep 1
 kill $APP_PID 2>/dev/null || true
 wait $APP_PID 2>/dev/null || true
 kill $XVFB_PID 2>/dev/null || true
-STATE_I="$HOME_I/.config/agent-toolkit/desktop/engine_state.json"
+STATE_I="$HOME_I/.cache/agent-toolkit/desktop/engine_state.json"
 python3 -c "
 import json, sys
 r = json.load(open('$STATE_I'))
