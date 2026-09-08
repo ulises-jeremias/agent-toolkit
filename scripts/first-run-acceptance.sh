@@ -59,8 +59,13 @@ launch() { # $1 home  $2 extra PATH prefix (fixture)  → sets APP_PID, WIN_ID
   DISPLAY=:99 openbox &
   OB_PID=$!
   sleep 1
-  env DISPLAY=:99 PATH="${pathfix:+$pathfix:}/usr/bin:/bin" \
+  # env -i: NO CI environment leakage — the app sees exactly the clean
+  # launcher-like environment (a leaked XDG_CACHE_HOME would send engine
+  # state outside the clean HOME and silently break the acceptance)
+  env -i DISPLAY=:99 PATH="${pathfix:+$pathfix:}/usr/bin:/bin" \
+    HOME="$home" LANG=C.UTF-8 \
     XDG_DATA_HOME="$home/.local/share" XDG_CONFIG_HOME="$home/.config" \
+    XDG_CACHE_HOME="$home/.cache" \
     "$INSTALLED_BIN" &
   APP_PID=$!
   for _ in $(seq 1 30); do
