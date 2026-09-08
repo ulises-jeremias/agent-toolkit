@@ -96,6 +96,32 @@ click() { # $1 window-x  $2 window-y
   DISPLAY=:99 xdotool mousemove $((X + $1)) $((Y + $2)) click 1
   sleep 0.6
 }
+
+click() { # $1 window-x  $2 window-y
+  eval "$(DISPLAY=:99 xdotool getwindowgeometry --shell "$WIN_ID")"
+  DISPLAY=:99 xdotool mousemove $((X + $1)) $((Y + $2)) click 1
+  sleep 0.6
+}
+
+# focus_field clicks the draft field at candidate offsets and verifies the
+# focus VISUALLY: a Backspace must change the rendered draft (capture diff).
+# Self-calibrating — no assumed pixel-exact WM placement.
+focus_field() {
+  local before after
+  for offset in 60 140 220 300; do
+    shot "$PREFIX/probe-before.png"
+    click $((FIELD_X + offset)) $((FIELD_Y + 14))
+    key Backspace
+    sleep 0.6
+    shot "$PREFIX/probe-after.png"
+    before="$(md5sum "$PREFIX/probe-before.png" | cut -d' ' -f1)"
+    after="$(md5sum "$PREFIX/probe-after.png" | cut -d' ' -f1)"
+    if [ "$before" != "$after" ]; then
+      return 0  # focus landed: the draft changed visibly
+    fi
+  done
+  return 1
+}
 key() { DISPLAY=:99 xdotool key "$1"; sleep 0.3; }
 type_text() { DISPLAY=:99 xdotool type --delay 40 "$1"; sleep 0.4; }
 clear_field() { for _ in $(seq 1 40); do key Backspace; done; }
@@ -151,7 +177,7 @@ sleep 1
 shot ws-panel-initial.png
 
 # open ws-b: click field, clear, type path, Validate, Switch
-click $((FIELD_X + 40)) $((FIELD_Y + 14))
+focus_field || fail "could not focus the workspace draft field"
 clear_field
 type_text "$WS_B"
 shot ws-typed.png                              # debug: field content after typing
@@ -183,7 +209,7 @@ assert_state "$STATE_B" "r.get('workspace_path', '') == '$WS_B'" "restart-restor
 launch "$HOME_B"
 key 0
 sleep 1
-click $((FIELD_X + 40)) $((FIELD_Y + 14))
+focus_field || fail "could not focus the workspace draft field"
 clear_field
 type_text "$HOME_A/.ai-workspace"
 click $((VALIDATE_X + 32)) $((FIELD_Y + 14))
@@ -206,7 +232,7 @@ echo "# user custom knowledge" > "$HOME_C/work-c/knowledge/README.md"  # collisi
 launch "$HOME_C"
 key 0
 sleep 1
-click $((FIELD_X + 40)) $((FIELD_Y + 14))
+focus_field || fail "could not focus the workspace draft field"
 clear_field
 type_text "$HOME_C/work-c"
 click $((INIT_X + 29)) $((FIELD_Y + 14))   # Initialize (seed)
@@ -222,7 +248,7 @@ HOME_C_CONTENT1="$(cat "$HOME_C/work-c/knowledge/README.md")"
 launch "$HOME_C"
 key 0
 sleep 1
-click $((FIELD_X + 40)) $((FIELD_Y + 14))
+focus_field || fail "could not focus the workspace draft field"
 clear_field
 type_text "$HOME_C/work-c"
 click $((INIT_X + 29)) $((FIELD_Y + 14))
