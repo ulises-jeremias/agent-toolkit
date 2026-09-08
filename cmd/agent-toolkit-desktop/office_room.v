@@ -199,9 +199,12 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 		cols = 2
 	}
 	cell_w = ws_w / cols
-	shown := if desks.len < cols * rows { desks.len } else { cols * rows }
+	capacity := if desks.len < cols * rows { desks.len } else { cols * rows }
 	grid_x := ws_x + (ws_w - cols * cell_w) / 2
-	for i in 0 .. shown {
+	// shown counts desks actually drawn — the loop can stop early when a
+	// row would not fit, and the footer must never overstate (honest totals).
+	mut shown := 0
+	for i in 0 .. capacity {
 		col := i % cols
 		row := i / cols
 		cx := grid_x + col * cell_w + (cell_w - dw) / 2
@@ -224,6 +227,7 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 			size:  10
 			mono:  true
 		})
+		shown++
 	}
 	// ── honest totals: bottom corners ────────────────────────────────────
 	if running > 0 {

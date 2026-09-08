@@ -3101,7 +3101,10 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 	// environment zones; status is never inferred from identity.
 	room_y := content_y + 64
 	room_h := fh - (room_y - fy) - 12
-	if agents.len == 0 {
+	if room_h < 80 {
+		// Too short to compose the room (tall terminal on a short window);
+		// the status cards above still carry the operational truth.
+	} else if agents.len == 0 {
 		pixel_panel(mut app, fx + 16, room_y, fw - 32, room_h, 'default')
 		app.gg.draw_text(fx + 30, room_y + 34, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	} else {
