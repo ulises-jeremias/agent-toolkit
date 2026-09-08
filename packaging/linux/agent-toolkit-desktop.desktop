@@ -7,6 +7,6 @@ Comment=Manage skills, agents, MCP providers, loops, swarms and telemetry from t
 Exec=agent-toolkit-desktop
 Icon=agent-toolkit-desktop
 Terminal=false
-Categories=Development;Utility;
+Categories=Development;
 Keywords=ai;agents;skills;mcp;loops;swarm;agent-toolkit;
 StartupWMClass=Agent Toolkit — Desktop
