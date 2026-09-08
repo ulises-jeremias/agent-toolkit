@@ -29,6 +29,9 @@ jobs:
     container:
       image: ubuntu:24.04
       options: --user root
+    defaults:
+      run:
+        shell: bash
     timeout-minutes: 25
     steps:
       - name: Install validation deps (no toolchain in the validation env)
