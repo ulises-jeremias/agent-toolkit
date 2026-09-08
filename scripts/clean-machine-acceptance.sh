@@ -38,7 +38,7 @@ ART_NAME="$(basename "$ARTIFACT")"
 ART_SHA="$(sha256sum "$ARTIFACT" | cut -d' ' -f1)"
 ART_SIZE="$(stat -c%s "$ARTIFACT")"
 VERSION="$(cat "$(dirname "$0")/../VERSION" 2>/dev/null | tr -d ' \n' || echo unknown)"
-COMMIT="$(git -C "$(dirname "$0")/.." rev-parse --short HEAD 2>/dev/null || echo unknown)"
+COMMIT="$(git -c safe.directory='*' -C "$(dirname "$0")/.." rev-parse --short HEAD 2>/dev/null || echo unknown)"
 echo "provenance: artifact=$ART_NAME sha256=$ART_SHA size=$ART_SIZE version=$VERSION commit=$COMMIT"
 
 # ── neutral prefix: the ONLY place the artifact lives for validation ──────
@@ -132,21 +132,20 @@ fi
 # ── Layer C: GUI launch/render (xvfb) ──────────────────────────────────────
 if command -v Xvfb >/dev/null 2>&1 && command -v import >/dev/null 2>&1; then
   CAP="$PREFIX/capture.png"
-  ( xvfb-run -a -s "-screen 0 1280x800x24" env PATH=/usr/bin:/bin HOME="$CLEAN_HOME" \
-      XDG_DATA_HOME="$CLEAN_DATA" XDG_CONFIG_HOME="$CLEAN_CONFIG" \
-      "$INSTALLED_BIN" &
-    APP_PID=$!
-    sleep 12
-    DISPLAY="$(pgrep -f 'Xvfb :[0-9]+' >/dev/null && echo :0)"
-    WIN="$(DISPLAY=:0 xdotool search --name 'Agent Toolkit' | head -1 2>/dev/null || true)"
-    if [ -n "$WIN" ]; then
-      DISPLAY=:0 import -window "$WIN" "$CAP"
-    else
-      DISPLAY=:0 import -window root "$CAP"
-    fi
-    kill $APP_PID 2>/dev/null || true
-    wait $APP_PID 2>/dev/null || true
-  ) || true
+  # fixed display: xvfb-run -a would pick one our capture cannot know
+  Xvfb :98 -screen 0 1280x800x24 &
+  XVFB_PID=$!
+  sleep 2
+  env DISPLAY=:98 PATH=/usr/bin:/bin HOME="$CLEAN_HOME" \
+    XDG_DATA_HOME="$CLEAN_DATA" XDG_CONFIG_HOME="$CLEAN_CONFIG" \
+    "$INSTALLED_BIN" &
+  APP_PID=$!
+  sleep 14
+  DISPLAY=:98 import -window root "$CAP" || true
+  kill $APP_PID 2>/dev/null || true
+  kill $XVFB_PID 2>/dev/null || true
+  wait $APP_PID 2>/dev/null || true
+  wait $XVFB_PID 2>/dev/null || true
   if [ -f "$CAP" ]; then
     # non-blankness: mean brightness must exceed a dead-screen threshold
     MEAN="$(convert "$CAP" -colorspace Gray -format '%[fx:mean]' info: 2>/dev/null || echo 0)"
