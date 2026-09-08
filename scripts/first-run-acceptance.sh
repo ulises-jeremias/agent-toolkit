@@ -163,12 +163,21 @@ assert_state "any(r.get('data', {}).get(f'target:{t}:enabled') == 'true' for t i
 [ -f "$HOME_FRESH/personas/assistant.md" ] || [ -d "$HOME_FRESH/personas" ] && record "personas" "PASS" "personas bootstrapped"
 
 # restart — hard gate: wizard must NOT reappear, state preserved
+cp "$STATE_FILE" "$PREFIX/state-before-restart.json"
 launch "$HOME_FRESH"
 shot after-restart.png
 kill_session
+echo "DBG restart app.log tail:" >&2
+tail -5 "$HOME_FRESH/app.log" >&2 || true
 python3 -c "
 import json, sys
-r = json.load(open('$STATE_FILE'))
+r = json.load(open('$STATE_FILE')).get('data', {})
+print('DBG restart keys:', sorted(r.keys())[:20])
+print('DBG restart onboarding_completed:', repr(r.get('onboarding_completed')))
+" || true
+python3 -c "
+import json, sys
+r = json.load(open('$STATE_FILE')).get('data', {})
 sys.exit(0 if r.get('onboarding_completed') == 'true' else 1)
 " || fail "restart: completion lost"
 assert_state "r.get('data', {}).get('workspace_path', '').endswith('home-a') or r.get('data', {}).get('recent_workspace', '').endswith('home-a')" "restart-workspace-restored"
