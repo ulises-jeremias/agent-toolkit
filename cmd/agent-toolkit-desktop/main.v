@@ -899,6 +899,8 @@ mut:
 	// S4A (#1119): shared typed action & entity registry — the palette's data
 	// source. Static rows remain only for entries not yet migrated.
 	palette_reg &palette.Registry = unsafe { nil }
+	// #1128: known-workspace folder-tab hit rects (rebuilt every frame)
+	known_ws_rects []KnownWsRect
 	// S4B contextual action flow state
 	palette_expanded    string // entity row id with expanded actions ('' = collapsed)
 	palette_preview     []string // preview mode lines (len 0 = list mode)
@@ -1577,6 +1579,15 @@ struct PaletteRow {
 	// S4D recent execution row (journal-sourced)
 	is_recent    bool
 	execution_id u64
+}
+
+// KnownWsRect — stored hit rect for known-workspace folder tabs (#1128).
+struct KnownWsRect {
+	x    int
+	y    int
+	w    int
+	h2   int
+	path string
 }
 
 // panel_index_for maps a registry panel destination to the production panel
@@ -5508,39 +5519,112 @@ fn toggle_expand_recursive(mut children []FileNode, target_path string) bool {
 // draw_kanban is a compact project snapshot inside Workspace.
 fn draw_kanban(mut app GuiApp, fx int, y0 int, fw int) {
 	h := 108
-	pixel_panel(mut app, fx + 12, y0, fw - 24, h, 'default')
-	app.gg.draw_text(fx + 24, y0 + 8, 'Kanban', gg.TextCfg{ color: app.pnl_text, size: font_display_sm })
-	app.gg.draw_text(fx + 80, y0 + 9, 'todo • doing • done — budgets • verifier', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	colw := (fw - 48) / 3
-	for ci, cname in ['todo', 'doing', 'done'] {
-		cx := fx + 20 + ci * (colw + 4)
-		app.gg.draw_rect_filled(cx, y0 + 24, colw, 14, app.pnl_card_sel)
-		app.gg.draw_text(cx + 4, y0 + 27, cname, gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
-		app.gg.draw_text(cx + colw - 14, y0 + 27, '${app.kanban.filter(it.col == cname).len}', gg.TextCfg{ color: app.pnl_text, size: 11 })
+	// #1128: the strip shows KNOWN WORKSPACES (bounded discovery) when there
+	// is kanban content; otherwise the workspace list IS the strip content —
+	// manila folder tabs with truthful state (Active / Valid / Missing).
+	app.known_ws_rects.clear() // stale rects must never intercept clicks
+	if app.kanban.len > 0 {
+		pixel_panel(mut app, fx + 12, y0, fw - 24, h, 'default')
+		app.gg.draw_text(fx + 24, y0 + 8, 'Kanban', gg.TextCfg{ color: app.pnl_text, size: font_display_sm })
+		app.gg.draw_text(fx + 80, y0 + 9, 'todo • doing • done — budgets • verifier', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		colw := (fw - 48) / 3
+		for ci, cname in ['todo', 'doing', 'done'] {
+			cx := fx + 20 + ci * (colw + 4)
+			app.gg.draw_rect_filled(cx, y0 + 24, colw, 14, app.pnl_card_sel)
+			app.gg.draw_text(cx + 4, y0 + 27, cname, gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
+			app.gg.draw_text(cx + colw - 14, y0 + 27, '${app.kanban.filter(it.col == cname).len}', gg.TextCfg{ color: app.pnl_text, size: 11 })
+		}
+		for t in app.kanban {
+			ci := if t.col == 'todo' {
+				0
+			} else if t.col == 'doing' { 1 } else { 2 }
+			cx := fx + 20 + ci * (colw + 4)
+			mut idx_in_col := 0
+			for o in app.kanban {
+				if o.col == t.col && o.id < t.id { idx_in_col++ }
+			}
+			y := y0 + 40 + idx_in_col * 28
+			if y + 24 > y0 + h - 6 {
+				continue
+			}
+			pri_col := match t.pri {
+				'high' { app.pnl_danger }
+				'medium' { app.pnl_select }
+				else { app.pnl_success }
+			}
+			app.gg.draw_rect_filled(cx, y, colw, 24, app.pnl_card)
+			app.gg.draw_rect_empty(cx, y, colw, 24, app.pnl_text)
+			app.gg.draw_rect_filled(cx, y, 4, 24, pri_col)
+			app.gg.draw_text(cx + 8, y + 4, t.title, gg.TextCfg{ color: app.pnl_text, size: 11 })
+			app.gg.draw_text(cx + 8, y + 14, t.owner, gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+		}
+		return
 	}
-	for t in app.kanban {
-		ci := if t.col == 'todo' {
-			0
-		} else if t.col == 'doing' { 1 } else { 2 }
-		cx := fx + 20 + ci * (colw + 4)
-		mut idx_in_col := 0
-		for o in app.kanban {
-			if o.col == t.col && o.id < t.id { idx_in_col++ }
+	draw_known_workspaces(mut app, fx, y0, fw, h)
+}
+
+// draw_known_workspaces renders the bounded known-workspace list as manila
+// folder tabs (#1128): leaf name + truthful state chip (Active / Valid /
+// Missing) + why. Click fills the draft for the existing Validate/Switch
+// controls — discovery never switches by itself.
+fn draw_known_workspaces(mut app GuiApp, fx int, y0 int, fw int, h int) {
+	pixel_panel(mut app, fx + 12, y0, fw - 24, h, 'default')
+	app.gg.draw_text(fx + 24, y0 + 8, 'Known workspaces', gg.TextCfg{ color: app.pnl_text, size: font_display_sm })
+	app.gg.draw_text(fx + 168, y0 + 9, 'discovered: active · previous · default · recent — click to open', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	known := if app.desktop != unsafe { nil } {
+		app.desktop.engine_known_workspaces()
+	} else {
+		[]desktop_engine.KnownWorkspace{}
+	}
+	if known.len == 0 {
+		app.gg.draw_text(fx + 24, y0 + 40, 'No known workspaces yet — set a path above and Initialize.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		return
+	}
+	card_w := 168
+	gap := 8
+	mut per_row := (fw - 24) / (card_w + gap)
+	if per_row < 1 {
+		per_row = 1
+	}
+	// store hit rects for the mouse handler (rebuilt every frame, same geometry)
+	app.known_ws_rects.clear()
+	for i, k in known {
+		row := i / per_row
+		col := i % per_row
+		x := fx + 20 + col * (card_w + gap)
+		y := y0 + 26 + row * 36
+		if y + 30 > y0 + h - 4 {
+			app.gg.draw_text(x, y + 2, '+${known.len - i} more — switch via path above', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+			break
 		}
-		y := y0 + 40 + idx_in_col * 28
-		if y + 24 > y0 + h - 6 {
-			continue
+		leaf := k.path.all_after_last('/')
+		active := k.is_active
+		bg := if active { app.pnl_select_hover } else { app.pnl_card_sel }
+		bd := if active { app.pnl_select } else { app.pnl_border }
+		app.gg.draw_rect_filled(x, y, card_w, 30, bg)
+		app.gg.draw_rect_empty(x, y, card_w, 30, bd)
+		// manila folder tab
+		app.gg.draw_rect_filled(x + 4, y - 4, 40, 5, app.pnl_card_sel)
+		label := if leaf.len > 18 { leaf[..18] + '…' } else { leaf }
+		app.gg.draw_text(x + 8, y + 4, label, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true, bold: active })
+		state := if !k.exists {
+			'missing'
+		} else if active {
+			'active ✓'
+		} else if k.initialized {
+			'valid'
+		} else {
+			'folder'
 		}
-		pri_col := match t.pri {
-			'high' { app.pnl_danger }
-			'medium' { app.pnl_select }
-			else { app.pnl_success }
+		scol := if !k.exists {
+			app.pnl_danger
+		} else if active {
+			app.pnl_success
+		} else {
+			app.pnl_text_mut
 		}
-		app.gg.draw_rect_filled(cx, y, colw, 24, app.pnl_card)
-		app.gg.draw_rect_empty(cx, y, colw, 24, app.pnl_text)
-		app.gg.draw_rect_filled(cx, y, 4, 24, pri_col)
-		app.gg.draw_text(cx + 8, y + 4, t.title, gg.TextCfg{ color: app.pnl_text, size: 11 })
-		app.gg.draw_text(cx + 8, y + 14, t.owner, gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+		app.gg.draw_text(x + 8, y + 17, state, gg.TextCfg{ color: scol, size: 10 })
+		app.known_ws_rects << KnownWsRect{ x: x, y: y, w: card_w, h2: 30, path: k.path }
 	}
 }
 
@@ -8348,6 +8432,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
+		// #1128: Tab focuses the workspace path field when the Workspace
+		// panel is active — keyboard users can reach the path without a
+		// mouse (standard focus semantics; Tab/Enter are the field's own
+		// unfocus/apply keys once focused).
+		if app.selected_panel == 9 && !app.workspace_focus && !app.show_onboarding
+			&& e.key_code == .tab {
+			app.workspace_focus = true
+			return
+		}
 		// Text fields capture keys before global shortcuts. In particular, a
 		// workspace path needs '/', digits, and '~' without opening commands or
 		// navigating to a different panel.
@@ -8522,7 +8615,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		if e.key_code == .slash || (e.key_code == .k && is_mod) {
+		// #1128: the workspace draft path needs '/' — the palette hotkey must
+		// not fire while the workspace field has focus (an absolute path was
+		// impossible to type before this guard)
+		if (e.key_code == .slash || (e.key_code == .k && is_mod)) && !app.workspace_focus {
 			app.palette_open = true
 			app.palette_query = ''
 			app.palette_selected = 0
@@ -10399,6 +10495,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// Super potent: brokered fs via Engine.open_path_validated (harness_root_escape), syntax, graph lanes, semantic recall
 		if app.selected_panel == 9 {
 			l := workspace_layout(app, w, h)
+			// #1128: known-workspace folder tabs — click fills the draft for
+			// the Validate/Switch controls (discovery never switches itself)
+			for kr in app.known_ws_rects {
+				if mx >= kr.x && mx <= kr.x + kr.w && my >= kr.y && my <= kr.y + kr.h2 {
+					app.workspace_draft = kr.path
+					validate_workspace_draft(mut app)
+					return
+				}
+			}
 			// workspace control row: field + Validate / Switch / Initialize
 			if my >= l.field_y && my <= l.field_y + 28 {
 				if mx >= l.field_x && mx <= l.field_x + l.field_w {

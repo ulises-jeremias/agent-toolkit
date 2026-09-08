@@ -376,6 +376,11 @@ pub fn (mut d Desktop) engine_target_enabled(target_id string) bool {
 	return d.engine.target_enabled(target_id)
 }
 
+// engine_known_workspaces exposes bounded workspace discovery (#1128).
+pub fn (mut d Desktop) engine_known_workspaces() []desktop_engine.KnownWorkspace {
+	return d.engine.known_workspaces()
+}
+
 // engine_tool_discovery_catalog exposes typed tool discovery for Desktop
 // surfaces (#1129) through the TTL cache — rendering calls this every frame
 // and version probes must never spawn at frame rate.
