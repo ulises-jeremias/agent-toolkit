@@ -7303,6 +7303,17 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	iw := 300
 	ih := h - 52 - 28 - term_h_i
 	app.gg.draw_rect_filled(ix, iy, iw, ih, col_charcoal)
+	// VC3.5 (#1176): cabinet-drawer material. The dark column reads as one
+	// drawer of a technical filing cabinet: folder tab with the title,
+	// brass top edge, inner drawer inset, brass pull at the bottom. All
+	// content drawing below is unchanged.
+	app.gg.draw_rect_filled(ix, iy, iw, 2, app.pnl_select) // brass top edge
+	app.gg.draw_rect_empty(ix + 6, iy + 8, iw - 12, ih - 16, col_line) // drawer inset
+	app.gg.draw_rect_filled(ix + 12, iy - 6, 118, 8, app.pnl_select_hover) // folder tab
+	app.gg.draw_rect_filled(ix + 12, iy + 2, 118, 2, col_charcoal)
+	app.gg.draw_text(ix + iw / 2 - 22, iy + ih - 16, '▭', gg.TextCfg{ color: app.pnl_select, size: 12 })
+	app.gg.draw_rect_filled(ix + iw / 2 - 26, iy + ih - 12, 44, 4, app.pnl_select_hover)
+	app.gg.draw_rect_filled(ix + iw / 2 - 26, iy + ih - 12, 44, 1, app.pnl_select)
 	app.gg.draw_line(ix, iy, ix, iy + ih, col_line)
 	app.gg.draw_text(ix + 12, iy + 10, 'INSPECTOR', gg.TextCfg{ color: app.pnl_select, size: 14, bold: true })
 	desks := desks_for_app(app)
@@ -7334,8 +7345,8 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		if app.inspector_msg != '' {
 			app.gg.draw_text(ix + 12, iy + 250, app.inspector_msg, gg.TextCfg{ color: app.pnl_select, size: 12 })
 		} else {
-			app.gg.draw_text(ix + 12, iy + 250, 'This is the live Engine inspector. No mock —', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-			app.gg.draw_text(ix + 12, iy + 262, 'reads from desktop_engine snapshot.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+			// single line — the VT preview panel starts at iy + 272
+			app.gg.draw_text(ix + 12, iy + 250, 'Live Engine inspector — no mock data.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 		}
 	} else {
 		app.gg.draw_text(ix + 12, iy + 36, 'Select a desk on the floor', gg.TextCfg{ color: app.pnl_text_mut, size: 14 })
