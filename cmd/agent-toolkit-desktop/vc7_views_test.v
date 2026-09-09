@@ -37,6 +37,15 @@ fn test_workspace_layout_controls_never_overlap() {
 			assert l.hero_y + l.hero_h <= l.known_y, 'hero above known workspaces at ${dims}'
 			assert l.known_y + l.known_h <= l.mid_y, 'known workspaces above the IDE at ${dims}'
 			assert l.mid_h >= 100, 'IDE block keeps a usable minimum height at ${dims}'
+			assert l.tree_w >= 140, 'the file tree column is always present at ${dims}'
+			if l.fw >= 500 {
+				assert l.git_w >= 180 && l.git_tab_w > 0, 'git rails present at ${dims}'
+			}
+			editor_w := l.fw - 24 - l.tree_w - 4 - l.git_w
+			assert editor_w >= 150, 'editor keeps a readable width at ${dims}: ${editor_w}'
+			if l.git_w > 0 {
+				assert 6 + 3 * l.git_tab_w <= l.git_w, 'three git tabs fit their rail at ${dims}'
+			}
 			assert l.mem_y + l.mem_h <= l.fy + l.fh, 'memory strip inside the panel at ${dims}'
 		}
 	}

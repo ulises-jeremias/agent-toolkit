@@ -5162,75 +5162,6 @@ fn toggle_expand_recursive(mut children []FileNode, target_path string) bool {
 	return false
 }
 
-// draw_file_tree_panel — left 180px, twisty, git dot, virtualized, hover, brokered.
-fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
-	pixel_panel(mut app, x, y, w, h, 'terminal')
-	app.gg.draw_rect_filled(x, y, w, 20, app.pnl_text)
-	app.gg.draw_text(x + 8, y + 5, 'File Tree', gg.TextCfg{ color: app.pnl_card, size: 12, bold: true })
-	// brass micro-label on the dark band in Paper; ink text on the light band in Ink (#1097)
-	brokered_col := if app.appearance_dark { app.pnl_bg } else { app.pnl_border_hi }
-	app.gg.draw_text(x + w - 56, y + 6, 'brokered', gg.TextCfg{ color: brokered_col, size: 10 })
-	flat := file_tree_visible(app)
-	row_h := 18
-	visible := (h - 28) / row_h
-	if visible < 1 {
-		return
-	}
-	app.file_tree_scroll = clamp_scroll(app.file_tree_scroll, flat.len, visible)
-	start := app.file_tree_scroll
-	mut end := start + visible
-	if end > flat.len {
-		end = flat.len
-	}
-	for idx in start .. end {
-		n := flat[idx]
-		row := idx - start
-		ry := y + 24 + row * row_h
-		hover := idx == app.file_tree_hover
-		sel := n.path == app.file_tree_selected
-		if hover { app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, app.pnl_hover) }
-		if sel {
-			app.gg.draw_rect_filled(x + 2, ry - 1, w - 4, row_h, tint(app.pnl_select, 70))
-			app.gg.draw_rect_empty(x + 2, ry - 1, w - 4, row_h, app.pnl_border_hi)
-		}
-		// twisty for dirs
-		indent := n.depth * 12
-		if n.kind == 'dir' {
-			tw := if n.expanded { '-' } else { '+' }
-			app.gg.draw_text(x + 6 + indent, ry + 2, tw, gg.TextCfg{ color: app.pnl_text_mut, size: 12, bold: true })
-		} else {
-			app.gg.draw_text(x + 6 + indent, ry + 2, '·', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-		}
-		icon := if n.kind == 'dir' {
-			'+'
-		} else if n.name.ends_with('.v') {
-			'V'
-		} else if n.name.ends_with('.md') { 'm' } else { '·' }
-		app.gg.draw_text(x + 18 + indent, ry + 2, icon, gg.TextCfg{ color: app.pnl_border_hi, size: 11 })
-		name_col := if sel {
-			app.pnl_text
-		} else if n.kind == 'dir' { app.pnl_text } else { app.pnl_text_mut }
-		lbl := if n.name.len > 16 { n.name[..16] } else { n.name }
-		app.gg.draw_text(x + 30 + indent, ry + 3, lbl, gg.TextCfg{ color: name_col, size: 12, mono: n.kind == 'file' })
-		if n.git_status != '' {
-			dot_col := if n.git_status == 'modified' { app.pnl_select } else { app.pnl_success }
-			app.gg.draw_rect_filled(x + w - 14, ry + 6, 6, 6, dot_col)
-		}
-	}
-	if flat.len > visible {
-		mut bar_h := (h - 28) * visible / flat.len
-		if bar_h < 10 {
-			bar_h = 10
-		}
-		bar_y := y + 24 + (h - 28 - bar_h) * start / (flat.len - visible)
-		app.gg.draw_rect_filled(x + w - 4, y + 24, 2, h - 28, tint(app.pnl_text, 120))
-		app.gg.draw_rect_filled(x + w - 4, bar_y, 2, bar_h, app.pnl_border_hi)
-	}
-	if flat.len == 0 {
-		app.gg.draw_text(x + 8, y + 30, 'No files — check harness_root', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	}
-}
-
 // syntax helpers for editor — 15-line pure, easy to manage
 fn syntax_color(kind string) gg.Color {
 	return match kind {
@@ -5279,352 +5210,6 @@ fn highlight_line_local(line string, syntax string) []EditorToken {
 	if cur != '' { out << EditorToken{cur, if cur in keywords { 'keyword' } else { 'plain' }} }
 	if out.len == 0 { out << EditorToken{line, 'plain'} }
 	return out
-}
-
-// draw_editor_panel — center tabs + syntax highlighted content + line numbers
-fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
-	pixel_panel(mut app, x, y, w, h, 'default')
-	// tab bar
-	tab_h := 28
-	app.gg.draw_rect_filled(x + 1, y + 1, w - 2, tab_h, app.pnl_card_sel)
-	if app.editor_tabs.len == 0 {
-		app.gg.draw_text(x + 12, y + 10, 'Editor — open a file from tree (brokered fs)', gg.TextCfg{ color: app.pnl_text_mut, size: 13 })
-		app.gg.draw_text(x + 12, y + tab_h + 12, 'No tabs • brokered via Engine.open_path_validated → harness_root_escape guard', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-		return
-	}
-	mut tx := x + 6
-	for i, tab in app.editor_tabs {
-		active := i == app.active_tab
-		bg := if active { app.pnl_card } else { app.pnl_card_sel }
-		bd := if active { app.pnl_select } else { app.pnl_border }
-		tw := tab.title.len * 7 + 28
-		if tx + tw > x + w - 6 {
-			break
-		}
-		app.gg.draw_rect_filled(tx, y + 6, tw, 18, bg)
-		app.gg.draw_rect_empty(tx, y + 6, tw, 18, bd)
-		if active { app.gg.draw_rect_filled(tx, y + 6, tw, 2, app.pnl_select) }
-		app.gg.draw_text(tx + 8, y + 10, tab.title, gg.TextCfg{
-			color: if active {
-				app.pnl_text
-			} else {
-				app.pnl_text
-			}
-			size: 12
-			bold: active
-		})
-		if tab.dirty {
-			app.gg.draw_text(tx + tw - 14, y + 8, '•', gg.TextCfg{ color: app.pnl_danger, size: 13 })
-		}
-		tx += tw + 4
-	}
-	// content area with line numbers + syntax
-	content_y := y + tab_h + 4
-	content_h := h - tab_h - 8
-	if content_h < 20 {
-		return
-	}
-	active := if app.active_tab >= 0 && app.active_tab < app.editor_tabs.len {
-		app.editor_tabs[app.active_tab]
-	} else {
-		EditorTab{}
-	}
-	lines := active.content.split_into_lines()
-	row_h := 14
-	visible := content_h / row_h
-	if visible < 1 {
-		return
-	}
-	app.editor_scroll = clamp_scroll(app.editor_scroll, lines.len, visible)
-	start := app.editor_scroll
-	mut end := start + visible
-	if end > lines.len {
-		end = lines.len
-	}
-	app.gg.draw_rect_filled(x + 4, content_y, w - 8, content_h, app.pnl_bg)
-	app.gg.draw_rect_empty(x + 4, content_y, w - 8, content_h, app.pnl_border)
-	for idx in start .. end {
-		line := lines[idx]
-		row := idx - start
-		ly := content_y + 4 + row * row_h
-		// line number gutter 32px
-		app.gg.draw_rect_filled(x + 4, ly - 1, 32, row_h, app.pnl_card_sel)
-		app.gg.draw_text(x + 10, ly, '${idx + 1:3d}', gg.TextCfg{ color: app.pnl_text_mut, size: 12, mono: true })
-		tokens := highlight_line_local(line, active.syntax)
-		mut cx := x + 40
-		for tok in tokens {
-			col := syntax_color(tok.kind)
-			app.gg.draw_text(cx, ly, tok.text, gg.TextCfg{ color: col, size: 13, mono: true })
-			cx += tok.text.len * 6
-			if cx > x + w - 8 {
-				break
-			}
-		}
-	}
-	if lines.len > visible {
-		mut bar_h := content_h * visible / lines.len
-		if bar_h < 12 {
-			bar_h = 12
-		}
-		bar_y := content_y + (content_h - bar_h) * start / (lines.len - visible)
-		app.gg.draw_rect_filled(x + w - 6, content_y, 2, content_h, tint(app.pnl_text, 80))
-		app.gg.draw_rect_filled(x + w - 6, bar_y, 2, bar_h, app.pnl_border_hi)
-	}
-	app.gg.draw_text(x + 8, y + h - 14, '${active.syntax} • ${lines.len} lines • brokered fs • ${if active.dirty {
-		'dirty'
-	} else {
-		'clean'
-	}}', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-}
-
-// draw_git_rails_panel — right 240px CHANGES/HISTORY/COMPARE + commit graph + diff
-fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int) {
-	pixel_panel(mut app, x, y, w, h, 'terminal')
-	// rail tabs
-	app.gg.draw_rect_filled(x, y, w, 22, app.pnl_text)
-	for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
-		active := app.git_rail == rn
-		rx := x + 6 + ri * 78
-		bg := if active { app.pnl_select } else { col_charcoal }
-		// gold tab needs ink text in Ink; charcoal chips keep muted in both (#1097)
-		fg := if active {
-			if app.appearance_dark { app.pnl_bg } else { app.pnl_text }
-		} else {
-			app.pnl_text_mut
-		}
-		app.gg.draw_rect_filled(rx, y + 4, 74, 14, bg)
-		app.gg.draw_rect_empty(rx, y + 4, 74, 14, if active { app.pnl_select } else { col_line })
-		app.gg.draw_text(rx + 10, y + 7, rn, gg.TextCfg{ color: fg, size: 11, bold: active })
-	}
-	y0 := y + 26
-	inner_h := h - 30
-	if inner_h < 30 {
-		return
-	}
-	if app.git_rail == 'CHANGES' {
-		changes := app.desktop.engine_git_changes()
-		st := app.desktop.engine_git_workspace_status()
-		if !st.is_repo || !st.backend_available {
-			// honest availability before fabricated-looking empty counts
-			note := if st.root == '' {
-				'no active workspace — open one to inspect git'
-			} else if !st.is_repo {
-				'no git repository in the active workspace'
-			} else {
-				'repository detected — git read backend not available yet'
-			}
-			app.gg.draw_text(x + 8, y0, note, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			return
-		}
-		app.gg.draw_text(x + 8, y0, '${changes.len} changed • staged flag • brokered', gg.TextCfg{ color: app.pnl_text, size: 11 })
-		row_h := 20
-		visible := (inner_h - 20) / row_h
-		if visible < 1 {
-			return
-		}
-		app.git_scroll = clamp_scroll(app.git_scroll, changes.len, visible)
-		start := app.git_scroll
-		mut end := start + visible
-		if end > changes.len {
-			end = changes.len
-		}
-		for idx in start .. end {
-			c := changes[idx]
-			row := idx - start
-			ry := y0 + 14 + row * row_h
-			hover := idx == app.git_hover
-			if hover { app.gg.draw_rect_filled(x + 4, ry - 1, w - 8, row_h, app.pnl_card_sel) }
-			status_col := match c.status {
-				'modified' { app.pnl_select }
-				'added' { app.pnl_success }
-				'deleted' { app.pnl_danger }
-				else { app.pnl_text_mut }
-			}
-			app.gg.draw_rect_filled(x + 8, ry + 6, 8, 8, status_col)
-			app.gg.draw_text(x + 20, ry + 3, c.path.all_after_last('/'), gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
-			app.gg.draw_text(x + 20, ry + 12, c.path, gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
-			staged := if c.staged { 'staged' } else { 'unstaged' }
-			app.gg.draw_text(x + w - 50, ry + 5, staged, gg.TextCfg{
-				color: if c.staged {
-					app.pnl_success
-				} else {
-					app.pnl_text_mut
-				}
-				size: 11
-			})
-		}
-		if changes.len > visible {
-			mut bar_h := (inner_h - 20) * visible / changes.len
-			if bar_h < 10 {
-				bar_h = 10
-			}
-			bar_y := y0 + 14 + (inner_h - 20 - bar_h) * app.git_scroll / (changes.len - visible)
-			app.gg.draw_rect_filled(x + w - 4, y0 + 14, 2, inner_h - 20, tint(app.pnl_text, 80))
-			app.gg.draw_rect_filled(x + w - 4, bar_y, 2, bar_h, app.pnl_border_hi)
-		}
-	} else if app.git_rail == 'HISTORY' {
-		graph := app.desktop.engine_git_graph(20)
-		st := app.desktop.engine_git_workspace_status()
-		if !st.is_repo || !st.backend_available {
-			note := if st.root == '' {
-				'no active workspace — open one to inspect git'
-			} else if !st.is_repo {
-				'no git repository in the active workspace'
-			} else {
-				'repository detected — git read backend not available yet'
-			}
-			app.gg.draw_text(x + 8, y0, note, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			return
-		}
-		app.gg.draw_text(x + 8, y0, 'commit graph • ${graph.commits.len} commits • lanes ${graph.max_lane + 1}', gg.TextCfg{ color: app.pnl_text, size: 11 })
-		row_h := 22
-		visible := (inner_h - 40) / row_h
-		if visible < 1 {
-			return
-		}
-		app.git_scroll = clamp_scroll(app.git_scroll, graph.commits.len, visible)
-		start := app.git_scroll
-		mut end := start + visible
-		if end > graph.commits.len {
-			end = graph.commits.len
-		}
-		for idx in start .. end {
-			c := graph.commits[idx]
-			lane := graph.lanes[idx]
-			row := idx - start
-			ry := y0 + 14 + row * row_h
-			hover := idx == app.git_hover
-			sel := c.hash == app.git_selected
-			if hover { app.gg.draw_rect_filled(x + 4, ry - 1, w - 8, row_h, app.pnl_card_sel) }
-			if sel { app.gg.draw_rect_empty(x + 4, ry - 1, w - 8, row_h, app.pnl_select) }
-			// lane dot
-			dot_x := x + 12 + lane * 10
-			app.gg.draw_rect_filled(dot_x, ry + 7, 8, 8, app.pnl_text_mut)
-			app.gg.draw_rect_empty(dot_x, ry + 7, 8, 8, app.pnl_text)
-			if c.parents.len > 1 { app.gg.draw_rect_filled(dot_x + 4, ry + 3, 2, 4, app.pnl_select) }
-			app.gg.draw_text(x + 44, ry + 2, c.hash[..7], gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			msg := if c.message.len > 28 { c.message[..28] + '…' } else { c.message }
-			app.gg.draw_text(x + 44, ry + 12, msg, gg.TextCfg{ color: app.pnl_text, size: 11 })
-			app.gg.draw_text(x + w - 46, ry + 2, c.author, gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-			if c.refs.len > 0 {
-				app.gg.draw_text(x + w - 46, ry + 12, c.refs[0], gg.TextCfg{ color: app.pnl_success, size: 10 })
-			}
-		}
-		// diff preview below graph
-		diff_y := y0 + 14 + visible * row_h + 6
-		if diff_y + 40 < y + h - 4 {
-			app.gg.draw_rect_filled(x + 4, diff_y, w - 8, 1, app.pnl_card_sel)
-			app.gg.draw_text(x + 8, diff_y + 4, 'Diff preview — select commit for hunks', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			if app.git_selected != '' {
-				hunks := app.desktop.engine_git_diff(app.git_selected)
-				if hunks.len > 0 {
-					app.gg.draw_text(x + 8, diff_y + 16, '${hunks[0].file}  +${hunks[0].new_count} -${hunks[0].old_count}', gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-				}
-			}
-		}
-	} else { // COMPARE
-		app.gg.draw_text(x + 8, y0, 'COMPARE • HEAD~1..HEAD • diff hunks', gg.TextCfg{ color: app.pnl_text, size: 11 })
-		hunks := app.desktop.engine_git_compare('HEAD~1', 'HEAD')
-		row_h := 14
-		visible := (inner_h - 20) / row_h
-		if visible < 1 {
-			return
-		}
-		app.diff_scroll = clamp_scroll(app.diff_scroll, 20, visible)
-		mut line_no := 0
-		for hunk in hunks {
-			if line_no >= visible {
-				break
-			}
-			app.gg.draw_text(x + 8, y0 + 14 + line_no * row_h, '— ${hunk.file}', gg.TextCfg{ color: app.pnl_border_hi, size: 11, mono: true })
-			line_no++
-			for line in hunk.lines {
-				if line_no >= visible {
-					break
-				}
-				kind := line.kind
-				col := match kind {
-					.addition { app.pnl_success }
-					.deletion { app.pnl_danger }
-					.header { app.pnl_text_mut }
-					else { app.pnl_text_mut }
-				}
-				prefix := match kind {
-					.addition { '+' }
-					.deletion { '-' }
-					else { ' ' }
-				}
-				txt := prefix + line.text
-				disp := if txt.len > 36 { txt[..36] + '…' } else { txt }
-				app.gg.draw_text(x + 12, y0 + 14 + line_no * row_h, disp, gg.TextCfg{ color: col, size: 11, mono: true })
-				line_no++
-			}
-		}
-	}
-}
-
-// draw_memory_palace_panel — bottom semantic recall, hybrid cosine + token overlap
-fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
-	pixel_panel(mut app, x, y, w, h, 'inset')
-	app.gg.draw_text(x + 8, y + 6, 'Memory Palace — semantic recall', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	mode := if app.memory_semantic { 'semantic' } else { 'keyword' }
-	app.gg.draw_text(x + w - 80, y + 6, mode, gg.TextCfg{ color: app.pnl_select, size: 11 })
-	// search bar
-	app.gg.draw_rect_filled(x + 8, y + 20, w - 16, 20, app.pnl_card)
-	app.gg.draw_rect_empty(x + 8, y + 20, w - 16, 20, app.pnl_text)
-	q := if app.memory_query == '' {
-		'Search palace — try "brokered fs" or "git rails" (semantic)'
-	} else {
-		app.memory_query
-	}
-	col := if app.memory_query == '' { app.pnl_text_mut } else { app.pnl_text }
-	app.gg.draw_text(x + 14, y + 26, q, gg.TextCfg{ color: col, size: 12 })
-	if app.memory_query != '' {
-		results := app.desktop.engine_memory_recall(app.memory_query, 5)
-		row_h := 18
-		visible := (h - 48) / row_h
-		if visible < 1 {
-			return
-		}
-		app.memory_scroll = clamp_scroll(app.memory_scroll, results.len, visible)
-		start := app.memory_scroll
-		mut end := start + visible
-		if end > results.len {
-			end = results.len
-		}
-		for idx in start .. end {
-			r := results[idx]
-			row := idx - start
-			ry := y + 44 + row * row_h
-			hover := idx == app.memory_hover
-			if hover { app.gg.draw_rect_filled(x + 10, ry - 1, w - 20, row_h, app.pnl_card_sel) }
-			pct := int(r.score * 100)
-			app.gg.draw_text(x + 14, ry + 2, '${pct}%', gg.TextCfg{
-				color: if pct > 70 {
-					app.pnl_success
-				} else {
-					app.pnl_text_mut
-				}
-				size: 11
-				bold: pct > 70
-			})
-			title := if r.entry.title.len > 28 {
-				r.entry.title[..28] + '…'
-			} else {
-				r.entry.title
-			}
-			app.gg.draw_text(x + 46, ry + 2, title, gg.TextCfg{ color: app.pnl_text, size: 11 })
-			snip := if r.snippet.len > 32 { r.snippet[..32] + '…' } else { r.snippet }
-			app.gg.draw_text(x + 46, ry + 10, snip, gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-		}
-		if results.len == 0 {
-			app.gg.draw_text(x + 14, y + 44, 'No semantic hits — try "skills" or "file tree"', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-		}
-	} else {
-		entries := app.desktop.engine_memory_entries()
-		app.gg.draw_text(x + 14, y + 44, '${entries.len} palace nodes • hybrid cosine 16-dim hashed embedding', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		app.gg.draw_text(x + 14, y + 56, 'Brokered via Engine.memory_semantic_recall • token overlap • 60 FPS virtualized', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	}
 }
 
 fn validate_workspace_draft(mut app GuiApp) bool {
@@ -7571,7 +7156,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// file tree left
 			ft_x := l.fx + 12
 			ft_y := l.mid_y
-			ft_w := 180
+			ft_w := l.tree_w
 			if app.mouse_x >= ft_x && app.mouse_x <= ft_x + ft_w && app.mouse_y >= ft_y && app.mouse_y < ft_y + l.mid_h {
 				flat := file_tree_visible(app)
 				visible := (l.mid_h - 28) / 18
@@ -7580,15 +7165,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			// editor center
-			ed_x := l.fx + 12 + 180 + 4
-			ed_w := l.fw - 24 - 180 - 4 - 240
+			ed_x := l.fx + 12 + l.tree_w + 4
+			ed_w := l.fw - 24 - l.tree_w - 4 - l.git_w
 			if app.mouse_x >= ed_x && app.mouse_x <= ed_x + ed_w && app.mouse_y >= l.mid_y && app.mouse_y < l.mid_y + l.mid_h {
 				app.editor_scroll += delta
 				return
 			}
 			// git right
-			gx := l.fx + l.fw - 240 - 12
-			if app.mouse_x >= gx && app.mouse_x <= gx + 240 && app.mouse_y >= l.mid_y && app.mouse_y < l.mid_y + l.mid_h {
+			gx := l.fx + l.fw - l.git_w - 12
+			if app.mouse_x >= gx && app.mouse_x <= gx + l.git_w && app.mouse_y >= l.mid_y && app.mouse_y < l.mid_y + l.mid_h {
 				if app.git_rail == 'CHANGES' {
 					changes := app.desktop.engine_git_changes()
 					visible := (l.mid_h - 20) / 20
@@ -8020,8 +7605,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// git rail tabs hit
 			rail_y := l.mid_y
 			for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
-				rx := l.fx + l.fw - 240 - 12 + 6 + ri * 78
-				if mx >= rx && mx <= rx + 74 && my >= rail_y && my <= rail_y + 22 {
+				rx := l.fx + l.fw - l.git_w - 12 + 6 + ri * l.git_tab_w
+				if mx >= rx && mx <= rx + l.git_tab_w - 4 && my >= rail_y && my <= rail_y + 22 {
 					app.git_rail = rn
 					app.git_scroll = 0
 					return
@@ -8030,7 +7615,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// file tree hit — left 180
 			ft_x := l.fx + 12
 			ft_y := l.mid_y
-			ft_w := 180
+			ft_w := l.tree_w
 			ft_h := l.mid_h
 			if mx >= ft_x && mx <= ft_x + ft_w && my >= ft_y + 24 && my < ft_y + ft_h - 4 {
 				flat := file_tree_visible(app)
@@ -8090,8 +7675,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// editor tabs hit — center
-			ed_x := l.fx + 12 + 180 + 4
-			ed_w := l.fw - 24 - 180 - 4 - 240
+			ed_x := l.fx + 12 + l.tree_w + 4
+			ed_w := l.fw - 24 - l.tree_w - 4 - l.git_w
 			ed_y := l.mid_y
 			if app.editor_tabs.len > 0 && mx >= ed_x && mx <= ed_x + ed_w && my >= ed_y + 6 && my <= ed_y + 24 {
 				mut tx := ed_x + 6
@@ -8109,7 +7694,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// HISTORY commit selection hit — inside git rails
 			if app.git_rail == 'HISTORY' {
-				rail_x := l.fx + l.fw - 240 - 12
+				rail_x := l.fx + l.fw - l.git_w - 12
 				rail_y2 := l.mid_y + 26
 				graph := app.desktop.engine_git_graph(20)
 				row_h := 22
@@ -8123,7 +7708,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						}
 						row := idx - start
 						ry := y0 + row * row_h
-						if mx >= rail_x && mx <= rail_x + 240 && my >= ry && my <= ry + row_h {
+						if mx >= rail_x && mx <= rail_x + l.git_w && my >= ry && my <= ry + row_h {
 							app.git_selected = graph.commits[idx].hash
 							app.inspector_msg = 'Commit ${graph.commits[idx].hash[..7]} selected — diff preview via Engine.git_diff'
 							return
@@ -8324,7 +7909,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			l := workspace_layout(app, app.gg.width, app.gg.height)
 			ft_x := l.fx + 12
 			ft_y := l.mid_y
-			ft_w := 180
+			ft_w := l.tree_w
 			ft_h := l.mid_h
 			flat := file_tree_visible(app)
 			row_h := 18
@@ -8343,7 +7928,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// git hover — right rails
-			rail_x := l.fx + l.fw - 240 - 12
+			rail_x := l.fx + l.fw - l.git_w - 12
 			y0 := l.mid_y + 26 + 14
 			if app.git_rail == 'CHANGES' {
 				changes := app.desktop.engine_git_changes()
@@ -8357,7 +7942,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				for idx in start2 .. end2_ch {
 					row := idx - start2
 					ry := y0 + row * row_h2
-					if app.mouse_x >= rail_x && app.mouse_x <= rail_x + 240 && app.mouse_y >= ry && app.mouse_y <= ry + row_h2 {
+					if app.mouse_x >= rail_x && app.mouse_x <= rail_x + l.git_w && app.mouse_y >= ry && app.mouse_y <= ry + row_h2 {
 						app.git_hover = idx
 						break
 					}
@@ -8374,7 +7959,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				for idx in start2 .. end2_hi {
 					row := idx - start2
 					ry := y0 + row * row_h2
-					if app.mouse_x >= rail_x && app.mouse_x <= rail_x + 240 && app.mouse_y >= ry && app.mouse_y <= ry + row_h2 {
+					if app.mouse_x >= rail_x && app.mouse_x <= rail_x + l.git_w && app.mouse_y >= ry && app.mouse_y <= ry + row_h2 {
 						app.git_hover = idx
 						break
 					}

@@ -57,7 +57,7 @@ fn insights_layout(app &GuiApp, w int, h int) InsightsLayout {
 	fh := h - fy - 28 - term_h
 	compact := fh < 480 || fw < 640
 	head_h := if compact { 44 } else { 60 }
-	metric_h := if compact { 0 } else { 66 }
+	metric_h := if compact { 0 } else { 78 }
 	metric_y := fy + head_h + 4
 	tab_y := metric_y + metric_h + if metric_h > 0 { 10 } else { 0 }
 	tab_h := 28
@@ -123,6 +123,7 @@ struct InsTable {
 	rows  []InsRow
 	empty string // one honest sentence when rows.len == 0
 	scene int // empty-state scene variant
+	hint  string // second muted line: where the real affordance lives
 	note  string // truthful caveat rendered under the rows (may be '')
 }
 
@@ -207,8 +208,9 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 				cols: ['Run / job', 'Kind · status', 'Budget spent / total', 'Started']
 				col_x: [0, inner_w * 30 / 100, inner_w * 58 / 100, inner_w * 80 / 100]
 				rows: rows
-				empty: 'No runs recorded yet. Launch a swarm or run a loop — costs appear here from the ledger.'
+				empty: 'No runs recorded yet. Costs appear here from the ledger as work runs.'
 				scene: 0
+				hint: 'Launch via Operations → Swarms or Loops'
 			}
 		}
 		'waterfall' {
@@ -236,6 +238,7 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 				rows: rows
 				empty: 'No agents are available in the resolved catalog.'
 				scene: 1
+				hint: 'Agents come from the bundled catalog — see Library → Agents'
 				note: if rows.len > 0 { 'No measured tool spans yet.' } else { '' }
 			}
 		}
@@ -249,8 +252,9 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 			return InsTable{
 				title: 'OTel spans'
 				sub: sub
-				empty: 'No measured spans yet. They appear after a real job, loop or swarm emits telemetry.'
+				empty: 'No measured spans yet. They appear once a job, loop or swarm emits telemetry.'
 				scene: 1
+				hint: 'Run a job, loop or swarm via Operations'
 			}
 		}
 		'budgets' {
@@ -290,6 +294,7 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 				rows: rows
 				empty: 'No loop runs in the history yet. Budgets are enforced per run; the ledger fills as loops run.'
 				scene: 2
+				hint: 'Run a loop via Operations → Loops'
 			}
 		}
 		'ci' {
@@ -298,6 +303,7 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 				sub: 'No CI provider is connected in this build.'
 				empty: 'Nothing observed. Workflow names are not results — checks appear here only when a provider reports them.'
 				scene: 3
+				hint: 'No CI provider can be connected in this build'
 			}
 		}
 		'realtime' {
@@ -324,6 +330,7 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 				rows: rows
 				empty: 'No Engine events observed yet.'
 				scene: 1
+				hint: 'Events appear here as the Engine works — start something in Operations'
 			}
 		}
 		else {
@@ -374,24 +381,24 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 	runs := swarms.len + jobs.len
 	cards := [
 		['${runs}', 'Runs recorded', if runs == 0 {
-			'no swarm runs or jobs yet'
+			'no runs yet'
 		} else {
 			'${swarms.len} swarm · ${jobs.len} jobs'
 		}],
 		['${spent}', 'Budget spent', if swarms.len == 0 {
 			'no ledger rows'
 		} else {
-			'across ${swarms.len} swarm runs · as reported'
+			'across ${swarms.len} runs, as reported'
 		}],
-		['${with_budget}', 'Loops with budgets', if loops.len == 0 {
-			'no loop templates in catalog'
+		['${with_budget}', 'Budgeted loops', if loops.len == 0 {
+			'no loop templates'
 		} else {
 			'of ${loops.len} loop templates'
 		}],
 		['${events}', 'Events observed', if events == 0 {
-			'nothing observed this session'
+			'nothing observed'
 		} else {
-			'Engine log lines this session'
+			'log lines this session'
 		}],
 	]
 	marks := [pixelart.environment_for(.chart_mark), pixelart.environment_for(.ledger),
@@ -405,22 +412,25 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 		y := l.metric_y
 		paper_sheet(mut app, x, y, cw, l.metric_h)
 		m := marks[i]
-		ms := if cw >= 200 { 3 } else { 2 }
+		ms := if cw >= 230 { 3 } else { 2 }
 		sc.draw(m, pid, x + 12, y + (l.metric_h - m.height() * ms) / 2, ms)
-		tx := x + 12 + m.width() * ms + 12
-		app.gg.draw_text(tx, y + 8, c[0], gg.TextCfg{
+		tx := x + 10 + m.width() * ms + 10
+		// operations.jpg stack: number / label / fact — the label is never
+		// truncated; facts are authored short enough for the narrowest card
+		app.gg.draw_text(tx, y + 6, c[0], gg.TextCfg{
 			color: app.pnl_text
 			size: 22
 			family: app.fonts.display
 		})
-		app.gg.draw_text(tx + c[0].len * 14 + 8, y + 16, c[1], gg.TextCfg{
+		app.gg.draw_text(tx, y + 36, c[1], gg.TextCfg{
 			color: app.pnl_text
-			size: 12
+			size: 13
 			bold: true
 		})
-		app.gg.draw_text(tx, y + 40, utf8_truncate(c[2], onb_fit(cw - (tx - x) - 8, 10)), gg.TextCfg{
+		// 11px Plex averages ~5.6px/char; onb_fit's 7px would clip real fits
+		app.gg.draw_text(tx, y + 56, utf8_truncate(c[2], (cw - (tx - x) - 8) / 6), gg.TextCfg{
 			color: app.pnl_text_mut
-			size: 10
+			size: 11
 		})
 	}
 }
@@ -486,7 +496,7 @@ fn draw_ins_table(mut app GuiApp, l InsightsLayout, t InsTable) {
 	})
 	bottom := l.content_y + l.content_h
 	if t.rows.len == 0 {
-		draw_ins_empty(mut app, l.inner_x, l.inner_y + 44, l.inner_w, bottom - (l.inner_y + 44) - 12, t.scene, t.empty)
+		draw_ins_empty(mut app, l.inner_x, l.inner_y + 44, l.inner_w, bottom - (l.inner_y + 44) - 12, t.scene, t.empty, t.hint)
 		return
 	}
 	// column header
@@ -560,18 +570,49 @@ fn draw_ins_table(mut app GuiApp, l InsightsLayout, t InsTable) {
 	})
 }
 
-// draw_ins_empty is the empty state: a small composed scene + one sentence.
-fn draw_ins_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentence string) {
-	if h < 60 {
-		app.gg.draw_text(x, y, utf8_truncate(sentence, onb_fit(w, 12)), gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 12
+// ins_center_lines draws text centered on cx, wrapping to at most max_lines
+// of ~per characters; returns the y after the last line.
+fn ins_center_lines(mut app GuiApp, cx int, y int, per int, text string, size int, col gg.Color, max_lines int) int {
+	mut lines := []string{}
+	mut line := ''
+	for word in text.split(' ') {
+		cand := if line == '' { word } else { line + ' ' + word }
+		if cand.len > per && line != '' {
+			lines << line
+			line = word
+		} else {
+			line = cand
+		}
+	}
+	if line != '' {
+		lines << line
+	}
+	adv := if size <= 11 { 6 } else { 7 }
+	mut yy := y
+	for i, ln in lines {
+		if i >= max_lines {
+			break
+		}
+		app.gg.draw_text(cx - ln.len * adv / 2, yy, ln, gg.TextCfg{
+			color: col
+			size: size
 		})
+		yy += size + 4
+	}
+	return yy
+}
+
+// draw_ins_empty is the empty state: scene + sentence + affordance hint as
+// ONE centered group anchored in the upper-middle of the sheet (scene centre
+// at ~30% height), never a lone sprite floating mid-void.
+fn draw_ins_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentence string, hint string) {
+	cx := x + w / 2
+	if h < 90 {
+		ins_center_lines(mut app, cx, y + 8, onb_fit(w, 12), sentence, 12, app.pnl_text_mut, 2)
 		return
 	}
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
-	band := h - 40
 	sprites := match scene {
 		0 {
 			[pixelart.environment_for(.ledger), pixelart.environment_for(.desk),
@@ -591,26 +632,30 @@ fn draw_ins_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentenc
 	}
 	mut total_w := 0
 	mut max_h := 0
-	for s in sprites {
-		total_w += s.width() + 4
-		if s.height() > max_h {
-			max_h = s.height()
+	for sp in sprites {
+		total_w += sp.width() + 4
+		if sp.height() > max_h {
+			max_h = sp.height()
 		}
 	}
-	mut s := onb_art_scale(total_w, max_h, w - 40, band - 8)
-	if s > 3 {
-		s = 3
+	// tall sheets afford one more scale step; never past 4 (sprite grain)
+	max_s := if h >= 400 { 4 } else { 3 }
+	mut s := onb_art_scale(total_w, max_h, w - 40, h * 40 / 100)
+	if s > max_s {
+		s = max_s
 	}
-	base := y + band / 2 + max_h * s / 2
-	mut gx := x + (w - total_w * s) / 2
+	// the scene sits on a short floor line; its centre at ~30% of the sheet
+	base := y + h * 30 / 100 + max_h * s / 2
+	mut gx := cx - total_w * s / 2
 	for sp in sprites {
 		sc.draw(sp, pid, gx, base - sp.height() * s, s)
 		gx += (sp.width() + 4) * s
 	}
-	app.gg.draw_rect_filled(x + w / 2 - total_w * s / 2 - 8, base + 1, total_w * s + 16, 2, tint(pc(app, `W`), 110))
-	tw := sentence.len * 7
-	tx := if tw < w { x + (w - tw) / 2 } else { x }
-	draw_onb_wrapped(mut app, tx, y + band + 8, w, sentence, 2)
+	app.gg.draw_rect_filled(cx - total_w * s / 2 - 10, base + 1, total_w * s + 20, 2, tint(pc(app, `W`), 110))
+	ty := ins_center_lines(mut app, cx, base + 18, onb_fit(w - 40, 12), sentence, 12, app.pnl_text, 2)
+	if hint != '' {
+		ins_center_lines(mut app, cx, ty + 4, onb_fit(w - 40, 11), hint, 11, app.pnl_text_mut, 1)
+	}
 }
 
 // draw_insights_gallery — the living stationery style guide (real tokens
@@ -704,11 +749,10 @@ fn draw_insights_gallery(mut app GuiApp, l InsightsLayout) {
 			mono: true
 		})
 	}
-	gallery_note := 'tokens: theme/tokens.v · Fraunces + IBM Plex OFL in assets/fonts · 4-lang EN/ES/中文/عربي'
-	app.gg.draw_text(inner_x, bottom - 22, gallery_note, lang_cfg(app, gallery_note, gg.TextCfg{
+	app.gg.draw_text(inner_x, bottom - 22, 'tokens: theme/tokens.v · Fraunces + IBM Plex (OFL) in assets/fonts · EN, ES, ZH and AR chrome', gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
-	}))
+	})
 }
 
 // ── right column: "Report details" (replaces the inspector on panel 12) ────
