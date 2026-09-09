@@ -3141,38 +3141,30 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 	}
 	attention_jobs := jobs.filter(it.status == .failed || it.status == .queued)
 	running_jobs := jobs.filter(it.status == .running)
-	// Compact truth cards — one line each — so the pixel-art room is the hero
-	// of the overview (office.jpg reference: room-first composition).
-	content_y := fy + 50
-	col_w := (fw - 52) / 2
-	// Attention is derived from real state. Empty means there is nothing to fix.
-	pixel_panel(mut app, fx + 16, content_y, col_w, 52, 'default')
-	app.gg.draw_text(fx + 30, content_y + 10, 'Needs attention', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	if attention_jobs.len == 0 {
-		app.gg.draw_text(fx + 30, content_y + 30, 'Nothing requires attention.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	} else {
-		app.gg.draw_text(fx + 30, content_y + 30, '${attention_jobs.len} operation(s) need attention — see Operations.', gg.TextCfg{ color: app.pnl_select, size: 11, bold: true })
-	}
-	pixel_panel(mut app, fx + 28 + col_w, content_y, col_w, 52, 'default')
-	app.gg.draw_text(fx + 42 + col_w, content_y + 10, 'Running now', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	if running_jobs.len == 0 {
-		app.gg.draw_text(fx + 42 + col_w, content_y + 30, 'No operations are currently running.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	} else {
-		app.gg.draw_text(fx + 42 + col_w, content_y + 30, '${running_jobs.len} operation(s) running — see Operations.', gg.TextCfg{ color: app.pnl_select, size: 11, bold: true })
-	}
-	// VC3 (#1172): the roster renders as the pixel-art office room — the
-	// whole remaining surface. Catalog desks with idle agents plus
-	// environment zones; status is never inferred from identity.
-	room_y := content_y + 64
-	room_h := fh - (room_y - fy) - 12
-	if room_h < 80 {
+	// VC8 (#1173): office.jpg composition — four truthful metric cards across
+	// the top, the VC3.5 room as the hero, and (when the panel is wide
+	// enough) an Agent Roster + Today column to its right. All values are
+	// real Engine state; idle machines read 0 with honest sub-lines.
+	ensure_pixel_cache(mut app)
+	l := office_layout(app, w, h)
+	draw_office_cards(mut app, l, office_metrics(mut app, attention_jobs.len, agents.len,
+		running_jobs.len))
+	if l.room_h < 80 {
 		// Too short to compose the room (tall terminal on a short window);
-		// the status cards above still carry the operational truth.
+		// the metric cards above still carry the operational truth.
 	} else if agents.len == 0 {
-		pixel_panel(mut app, fx + 16, room_y, fw - 32, room_h, 'default')
-		app.gg.draw_text(fx + 30, room_y + 34, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		pixel_panel(mut app, l.room_x, l.room_y, l.room_w, l.room_h, 'default')
+		app.gg.draw_text(l.room_x + 14, l.room_y + 34, 'No agents are available in the resolved catalog.',
+			gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	} else {
-		draw_office_room(mut app, fx + 16, room_y, fw - 32, room_h, desks_for_app(app), attention_jobs.len, running_jobs.len)
+		desks := desks_for_app(app)
+		draw_office_room(mut app, l.room_x, l.room_y, l.room_w, l.room_h, desks, attention_jobs.len,
+			running_jobs.len)
+		if l.side_w > 0 {
+			roster_h := l.room_h * 55 / 100
+			draw_office_roster(mut app, l, desks, running_jobs.len, l.room_y, roster_h)
+			draw_office_today(mut app, l, attention_jobs, l.room_y + roster_h + 12, l.room_h - roster_h - 12)
+		}
 	}
 }
 
@@ -8294,6 +8286,13 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// and hit-testing (operations_view.v)
 		if operations_click(mut app, mx, my, w, h) {
 			return
+		}
+		// VC8 (#1173): Office overview roster rows select a desk (same geometry
+		// as draw_office_roster)
+		if app.selected_panel == 0 && !app.office_map_view && !app.show_onboarding {
+			if office_roster_click(mut app, mx, my, w, h) {
+				return
+			}
 		}
 		// Inspector buttons — clickable
 		ix := inspector_x(app, w)
