@@ -3786,7 +3786,9 @@ fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance s
 	if !mcp_probe_fresh(app, id) {
 		mcp_run_probe(mut app, id)
 	}
-	app.inspector_msg = 'MCP ${id} drawer — masked preview · probe cached 60s'
+	// no inspector_msg here: this runs on card *selection* and every
+	// inspector_msg becomes a toast — selection must stay silent, only
+	// actions announce themselves (the drawer state is visible in the pane)
 }
 
 // mcp_open_template routes to the Workspace panel with the template loaded
