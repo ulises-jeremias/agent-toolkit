@@ -35,6 +35,7 @@ pub enum EnvironmentAsset {
 	welcome_desk
 	sign
 	books
+	picture
 }
 
 // Sprite is an authored pixel grid with its palette keys.
@@ -575,6 +576,21 @@ const env_books = Sprite{
 	]
 }
 
+// a small framed landscape — wall decor for the onboarding welcome scene,
+// filling the bare stretch the capture matrix flagged as too empty
+const env_picture = Sprite{
+	name: 'env-picture'
+	rows: [
+		'WWWWWWWWWWWW',
+		'WeeeeeeeeeeW',
+		'WeeFFeeeFFeW',
+		'WeeeFFeFFeeW',
+		'WeMMMMMMMMeW',
+		'WeMMMMMMMMeW',
+		'WWWWWWWWWWWW',
+	]
+}
+
 // environment_for returns the sprite for an environment asset.
 pub fn environment_for(a EnvironmentAsset) Sprite {
 	return match a {
@@ -596,6 +612,7 @@ pub fn environment_for(a EnvironmentAsset) Sprite {
 		.welcome_desk { env_welcome_desk }
 		.sign { env_sign }
 		.books { env_books }
+		.picture { env_picture }
 	}
 }
 
@@ -605,7 +622,7 @@ pub fn all_sprites() []Sprite {
 		agent_idle, agent_running, agent_waiting, agent_attention, agent_error,
 		env_desk, env_chair, env_terminal, env_shelf, env_plant, env_lamp,
 		env_cabinet, env_rug, env_meeting, env_board, env_tray, env_window, env_door, env_couch,
-		env_nest, env_welcome_desk, env_sign, env_books,
+		env_nest, env_welcome_desk, env_sign, env_books, env_picture,
 	]
 }
 
@@ -613,7 +630,7 @@ pub fn all_sprites() []Sprite {
 pub fn all_environment_assets() []EnvironmentAsset {
 	return [.desk, .chair, .terminal, .shelf, .plant, .lamp, .cabinet, .rug,
 		.meeting_table, .board, .tray, .window, .door, .couch, .nest, .welcome_desk,
-		.sign, .books]
+		.sign, .books, .picture]
 }
 
 // all_agent_states returns every AgentVisualState (mapping coverage).

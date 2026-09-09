@@ -28,19 +28,15 @@ const onb_stage_hints = ['How would you like to begin?', "We'll find what you ha
 const onb_last_stage = 4
 
 // setup-choice cards (stage 0) — each maps to real product behaviour
-const onb_choices = ['Set up Agent Toolkit for me', 'Use an existing setup', 'Find my setup']
+const onb_choices = ['Set up for me', 'Existing setup', 'Find my setup']
 
-const onb_choice_copy = [
-	'Detect tools, create a workspace, enable recommended capabilities.',
-	'Connect to an Agent Toolkit setup you already configured.',
-	'Search this computer for existing workspaces.',
-]
+const onb_choice_copy = ['Detect tools, set up a workspace, enable capabilities.',
+	'Connect to a setup you already configured.', 'Search this computer for existing workspaces.']
 
 // workspace cards (stage 2)
-const onb_ws_choices = ['Create new workspace', 'Reuse existing workspace']
+const onb_ws_choices = ['Create workspace', 'Reuse a workspace']
 
-const onb_ws_copy = ['A fresh workspace with the recommended structure.',
-	'Use a folder you already have.']
+const onb_ws_copy = ['Fresh workspace, recommended structure.', 'Use a folder you already have.']
 
 // recommended capabilities (stage 3) — labels are user-facing, the sub-line is
 // the real catalog fact behind each one
@@ -50,20 +46,24 @@ const onb_caps = ['Multi-agent collaboration (MCP)', 'Task planning and executio
 // OnbLayout is computed once per frame and reused by drawing, clicking and
 // hovering, so the interactive geometry can never drift from the drawn one.
 struct OnbLayout {
-	fx      int
-	fy      int
-	fw      int
-	fh      int
-	head_h  int // masthead band
-	welc_y  int // welcome header
-	step_y  int // progress strip
-	body_y  int
-	body_h  int
-	foot_y  int
-	side_x  int // preview column (own surface, replaces the inspector)
-	side_w  int
-	side_h  int
-	compact bool
+	fx        int
+	fy        int
+	fw        int
+	fh        int
+	mast_x    int // masthead spans the full board width (body + preview)
+	mast_w    int
+	head_h    int // masthead band
+	board_top int // fy + head_h — where both body and preview sheets start
+	welc_y    int // welcome header
+	step_y    int // progress strip
+	body_y    int
+	body_h    int
+	foot_y    int
+	side_x    int // preview column (own surface, replaces the inspector)
+	side_w    int
+	side_h    int
+	compact   bool
+	active    int // current stage — the only one shown full-width when compact
 }
 
 fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
@@ -74,18 +74,27 @@ fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
 	fx := panel_fx(app)
 	fw := w - (dock_w + 8) - side_w
 	compact := fw < 660 || fh < 560
-	head_h := if compact { 0 } else { 46 }
-	welc_y := fy + head_h + 4
-	welc_h := if compact { 36 } else { 56 }
+	// the masthead is one banner spanning body + preview, like the reference's
+	// hero strip above the whole app screenshot — not squeezed into the body
+	// column alone
+	head_h := if compact {
+		0
+	} else if fw + side_w >= 900 { 56 } else { 48 }
+	board_top := fy + head_h
+	welc_y := board_top + 3
+	welc_h := if compact { 30 } else { 36 }
 	step_y := welc_y + welc_h
-	body_y := step_y + 40
-	foot_y := fy + fh - 34
+	body_y := step_y + 26
+	foot_y := fy + fh - 28
 	return OnbLayout{
 		fx: fx
 		fy: fy
 		fw: fw
 		fh: fh
+		mast_x: fx
+		mast_w: fw + side_w - 12
 		head_h: head_h
+		board_top: board_top
 		welc_y: welc_y
 		step_y: step_y
 		body_y: body_y
@@ -93,8 +102,9 @@ fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
 		foot_y: foot_y
 		side_x: if app.lang.is_rtl() { 0 } else { w - side_w }
 		side_w: side_w
-		side_h: fh
+		side_h: fh - head_h
 		compact: compact
+		active: app.onboarding_step
 	}
 }
 
@@ -104,6 +114,15 @@ fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
 // reference's board layout: sections 1/2 on the top row, 3/4 below, and the
 // review strip spanning the full width underneath.
 fn onb_sec_rect(l OnbLayout, i int) (int, int, int, int) {
+	// compact: recompose rather than shrink — only the active stage renders,
+	// full-width, like a focused single-stage view. Inactive stages return a
+	// degenerate rect so their cards/hit-tests are inert, not overlapping.
+	if l.compact {
+		if i == l.active {
+			return l.fx + 16, l.body_y, l.fw - 32, l.body_h
+		}
+		return l.fx, l.body_y, 0, 0
+	}
 	gap := 10
 	cols := if l.fw >= 700 { 2 } else { 1 }
 	total := l.fw - 32 - (cols - 1) * gap
@@ -111,7 +130,10 @@ fn onb_sec_rect(l OnbLayout, i int) (int, int, int, int) {
 	cw0 := if cols == 2 { total * 55 / 100 } else { total }
 	cw1 := total - cw0
 	avail := l.foot_y - l.body_y - 6
-	rev_h := if avail > 420 { 100 } else { 86 }
+	// review always reserves enough for its header + all five facts stacked
+	// above the CTA button (22 + 5*14 rows + 12 clearance + 40 button) so the
+	// Personas row can never clip, regardless of overall window height
+	rev_h := 138
 	rows_h := avail - rev_h - gap
 	// the decision row is taller: illustration + title + copy needs the room
 	rh0 := if cols == 2 { (rows_h - gap) * 54 / 100 } else { (rows_h - 3 * gap) / 4 }
@@ -128,26 +150,38 @@ fn onb_sec_rect(l OnbLayout, i int) (int, int, int, int) {
 
 fn onb_step_rect(l OnbLayout, i int) (int, int, int, int) {
 	cw := (l.fw - 32) / onb_stages.len
-	return l.fx + 16 + i * cw, l.step_y, cw, 44
+	return l.fx + 16 + i * cw, l.step_y, cw, 34
 }
 
 // decision cards inside a section sheet (setup choice, workspace)
 fn onb_card_rect(l OnbLayout, sec int, i int, total int) (int, int, int, int) {
 	sx, sy, sw, sh := onb_sec_rect(l, sec)
+	if sh < 40 {
+		return 0, 0, 0, 0
+	}
 	gap := 8
 	cw := (sw - 24 - (total - 1) * gap) / total
-	ch := sh - 46
+	mut ch := sh - 46
+	if ch < 68 {
+		ch = 68 // floor: art + title + one copy line never overlap each other
+	}
 	return sx + 12 + i * (cw + gap), sy + 34, cw, ch
 }
 
 // tool discovery cards inside section 1, two columns
 fn onb_tool_rect(l OnbLayout, i int) (int, int, int, int) {
 	sx, sy, sw, sh := onb_sec_rect(l, 1)
+	if sh < 40 {
+		return 0, 0, 0, 0
+	}
 	gap := 8
 	cols := 2
 	cw := (sw - 24 - gap) / cols
 	rows := 2
-	ch := (sh - 44 - (rows - 1) * gap) / rows
+	mut ch := (sh - 44 - (rows - 1) * gap) / rows
+	if ch < 54 {
+		ch = 54 // floor: name + path + pill never compress into overlap
+	}
 	col := i % cols
 	row := i / cols
 	return sx + 12 + col * (cw + gap), sy + 34 + row * (ch + gap), cw, ch
@@ -155,12 +189,21 @@ fn onb_tool_rect(l OnbLayout, i int) (int, int, int, int) {
 
 fn onb_cap_rect(l OnbLayout, i int) (int, int, int, int) {
 	sx, sy, sw, sh := onb_sec_rect(l, 3)
-	rh := (sh - 44) / onb_caps.len
+	if sh < 40 {
+		return 0, 0, 0, 0
+	}
+	mut rh := (sh - 44) / onb_caps.len
+	if rh < 26 {
+		rh = 26 // floor: checkbox + label never overlap the row beneath it
+	}
 	return sx + 12, sy + 32 + i * rh, sw - 24, rh - 4
 }
 
 fn onb_cta_rect(l OnbLayout) (int, int, int, int) {
 	sx, sy, sw, sh := onb_sec_rect(l, 4)
+	if sh < 40 {
+		return 0, 0, 0, 0
+	}
 	cw := if sw > 460 { 320 } else { sw - 24 }
 	return sx + sw - 12 - cw, sy + sh - 40, cw, 32
 }
@@ -182,7 +225,10 @@ fn onb_diag_rect(l OnbLayout) (int, int, int, int) {
 }
 
 fn onb_rescan_rect(l OnbLayout) (int, int, int, int) {
-	sx, sy, sw, _ := onb_sec_rect(l, 1)
+	sx, sy, sw, sh := onb_sec_rect(l, 1)
+	if sh < 40 {
+		return 0, 0, 0, 0
+	}
 	return sx + sw - 90, sy + 6, 78, 22
 }
 
@@ -287,38 +333,85 @@ fn draw_onboarding(mut app GuiApp, w int, h int) {
 	_ = sc
 }
 
-// masthead: the editorial product frame from concept-board.jpg
+// masthead: one editorial banner spanning body + preview, like the hero strip
+// above the whole app screenshot in concept-board.jpg / onboarding.jpg — not
+// squeezed into the body column alone.
 fn draw_onb_masthead(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
-	y := l.fy + 4
-	app.gg.draw_text(l.fx + 70, y + 2, 'Agent Toolkit Desktop', gg.TextCfg{
+	x := l.mast_x
+	mw := l.mast_w
+	y := l.fy + 3
+	// the banner spans body + preview: paint its full background first, or
+	// the strip above the preview column stays the app's dark base color
+	app.gg.draw_rect_filled(x, l.fy, mw, l.head_h, app.pnl_bg)
+	app.gg.draw_text(x + 46, y, 'Agent Toolkit Desktop', gg.TextCfg{
 		color: app.pnl_text
-		size: 24
+		size: 22
 		family: app.fonts.display
 	})
-	app.gg.draw_text(l.fx + 72, y + 28, 'A  H O M E   F O R   Y O U R   A I   A G E N T S', gg.TextCfg{
+	app.gg.draw_text(x + 48, y + 24, 'A  H O M E   F O R   Y O U R   A I   A G E N T S', gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 	})
-	app.gg.draw_line(l.fx + 70, y + 25, l.fx + 402, y + 25, app.pnl_border)
-	// botanical accent on the left, hornero nest on the right
+	app.gg.draw_line(x + 46, y + 21, x + 380, y + 21, app.pnl_border)
+	app.gg.draw_text(x + 46, y + 30, 'PLAN · BUILD · DELEGATE · OBSERVE · TOGETHER', gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 9
+		bold: true
+	})
+	// small botanical accent left of the title
 	plant := pixelart.environment_for(.plant)
-	sc.draw(plant, pid, l.fx + 20, y + 1, 2)
-	if l.fw > 640 {
+	sc.draw(plant, pid, x, y - 2, 2)
+
+	// right-side editorial rhythm — gated by the width actually available so
+	// it never crowds; each column is its own short, honest tagline
+	if mw >= 620 {
 		nest := pixelart.environment_for(.nest)
-		sc.draw(nest, pid, l.fx + l.fw - 210, y + 8, 3)
-		app.gg.draw_text(l.fx + l.fw - 150, y + 6, 'Small Agents', gg.TextCfg{
+		nx := x + mw - 150
+		sc.draw(nest, pid, nx, y - 1, 2)
+		app.gg.draw_text(nx + 44, y, 'Small Agents', gg.TextCfg{
 			color: app.pnl_text
-			size: 13
+			size: 12
 			family: app.fonts.display
 		})
-		app.gg.draw_text(l.fx + l.fw - 150, y + 24, 'Brighter Worlds.', gg.TextCfg{
+		app.gg.draw_text(nx + 44, y + 15, 'Brighter Worlds.', gg.TextCfg{
 			color: app.pnl_text
-			size: 13
+			size: 12
 			family: app.fonts.display
+		})
+		app.gg.draw_text(nx + 44, y + 32, 'INSPIRED BY NATURE.', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 8
+		})
+		app.gg.draw_text(nx + 44, y + 42, 'BUILT FOR BUILDERS.', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 8
 		})
 	}
-	app.gg.draw_line(l.fx + 12, l.fy + l.head_h - 2, l.fx + l.fw - 12, l.fy + l.head_h - 2, app.pnl_border)
+	if mw >= 860 {
+		cx := x + mw - 460
+		app.gg.draw_text(cx, y, 'SAME', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+			bold: true
+		})
+		app.gg.draw_text(cx, y + 12, 'CURIOSITY.', gg.TextCfg{
+			color: app.pnl_text
+			size: 10
+			bold: true
+		})
+		app.gg.draw_text(cx, y + 26, 'MORE', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+			bold: true
+		})
+		app.gg.draw_text(cx, y + 38, 'CAPABILITY.', gg.TextCfg{
+			color: app.pnl_text
+			size: 10
+			bold: true
+		})
+	}
+	app.gg.draw_line(l.fx + 12, l.fy + l.head_h - 2, x + mw, l.fy + l.head_h - 2, app.pnl_border)
 }
 
 fn draw_onb_welcome(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
@@ -326,20 +419,20 @@ fn draw_onb_welcome(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 	y := l.welc_y
 	if !l.compact {
 		pot := pixelart.environment_for(.plant)
-		sc.draw(pot, pid, l.fx + 18, y - 2, 3)
+		sc.draw(pot, pid, l.fx + 16, y - 1, 2)
 	}
-	tx := if l.compact { l.fx + 16 } else { l.fx + 76 }
-	app.gg.draw_text(tx, y + 2, 'Welcome to', gg.TextCfg{
+	tx := if l.compact { l.fx + 16 } else { l.fx + 60 }
+	app.gg.draw_text(tx, y, 'Welcome to', gg.TextCfg{
 		color: app.pnl_text_mut
-		size: 13
+		size: 12
 	})
-	app.gg.draw_text(tx, y + 18, 'Agent Toolkit Desktop', gg.TextCfg{
+	app.gg.draw_text(tx, y + 14, 'Agent Toolkit Desktop', gg.TextCfg{
 		color: app.pnl_text
-		size: font_display_lg
+		size: 19
 		family: app.fonts.display
 	})
-	if !l.compact {
-		app.gg.draw_text(tx, y + 40, "Let's get you set up — a few quick steps and you'll be building with agents.", gg.TextCfg{
+	if !l.compact && l.fw > 720 {
+		app.gg.draw_text(tx + 220, y + 18, "Let's get you set up — a few quick steps and you'll be building with agents.", gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 		})
@@ -351,13 +444,13 @@ fn draw_onb_welcome(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 	stamp := '${mname} ${now.day}, ${now.year}'
 	clock := '${now.hour:02d}:${now.minute:02d}'
 	if l.fw > 560 {
-		app.gg.draw_text(l.fx + l.fw - 100, y + 4, stamp, gg.TextCfg{
+		app.gg.draw_text(l.fx + l.fw - 92, y - 1, stamp, gg.TextCfg{
 			color: app.pnl_text_mut
-			size: 12
+			size: 11
 		})
-		app.gg.draw_text(l.fx + l.fw - 100, y + 20, clock, gg.TextCfg{
+		app.gg.draw_text(l.fx + l.fw - 92, y + 13, clock, gg.TextCfg{
 			color: app.pnl_text
-			size: 20
+			size: 18
 			family: app.fonts.display
 		})
 	}
@@ -403,8 +496,9 @@ fn draw_onb_steps(mut app GuiApp, l OnbLayout) {
 			size: 13
 			bold: here
 		})
-		if sw > 150 {
-			app.gg.draw_text(sx + 6 + md + 8, sy + 20, onb_stage_hints[i], gg.TextCfg{
+		hint_px := sw - (md + 14)
+		if hint_px > 40 {
+			app.gg.draw_text(sx + 6 + md + 8, sy + 20, utf8_truncate(onb_stage_hints[i], onb_fit(hint_px, 11)), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -429,6 +523,9 @@ fn draw_onb_sheet_title(mut app GuiApp, l OnbLayout, sec int, title string, sub 
 
 // stage 0 — three illustrated choices
 fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
+	if l.compact && l.active != 0 {
+		return
+	}
 	mut sc := app.pixel_cache
 	draw_onb_sheet_title(mut app, l, 0, 'How would you like to get started?', '')
 	arts := [pixelart.EnvironmentAsset.welcome_desk, .cabinet, .board]
@@ -458,8 +555,8 @@ fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 		ty := cy + band + 8
 		cy2 := onb_wrapped_title(mut app, cx + 10, ty, cw - 18, title)
 		mut lines := (cy + ch - 6 - cy2) / 12
-		if lines > 3 {
-			lines = 3
+		if lines > 2 {
+			lines = 2
 		}
 		draw_onb_wrapped(mut app, cx + 10, cy2, cw - 18, onb_choice_copy[i], lines)
 	}
@@ -467,6 +564,9 @@ fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 
 // stage 1 — tool discovery as product UI, not a diagnostic dump
 fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
+	if l.compact && l.active != 1 {
+		return
+	}
 	cat := app.desktop.engine_tool_discovery_catalog_cached()
 	found := cat.filter(it.found).len
 	draw_onb_sheet_title(mut app, l, 1, 'Detected developer tools', '${found} of ${cat.len} found on this computer')
@@ -505,7 +605,7 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 		})
 		label := if t.found { 'Ready' } else { 'Missing' }
 		pill_c := if t.found { app.pnl_success } else { app.pnl_text_mut }
-		name_px := cw - 36 - (label.len * 6 + 12) - 10
+		name_px := cw - 34 - (label.len * 6 + 8) - 4
 		app.gg.draw_text(cx + 36, cy + 8, utf8_truncate(t.display_name, onb_fit(name_px, 12)), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
@@ -546,6 +646,9 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 
 // stage 2 — where the agents live
 fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st desktop_engine.OnboardingStatus) {
+	if l.compact && l.active != 2 {
+		return
+	}
 	mut sc := app.pixel_cache
 	draw_onb_sheet_title(mut app, l, 2, 'Workspace setup', 'Where your agents, tasks and data live')
 	arts := [pixelart.EnvironmentAsset.welcome_desk, .cabinet]
@@ -574,8 +677,8 @@ fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st de
 		ty := cy + band + 4
 		wy := onb_wrapped_title(mut app, cx + 10, ty, cw - 18, title)
 		mut wlines := (cy + ch - 6 - wy) / 12
-		if wlines > 3 {
-			wlines = 3
+		if wlines > 2 {
+			wlines = 2
 		}
 		draw_onb_wrapped(mut app, cx + 10, wy, cw - 18, onb_ws_copy[i], wlines)
 	}
@@ -595,6 +698,9 @@ fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st de
 
 // stage 3 — recommended capabilities in user language, real catalog facts
 fn draw_onb_capabilities(mut app GuiApp, l OnbLayout) {
+	if l.compact && l.active != 3 {
+		return
+	}
 	draw_onb_sheet_title(mut app, l, 3, 'Recommended capabilities', 'A great starting point — change these later')
 	_, s3y, _, s3h := onb_sec_rect(l, 3)
 	for i, name in onb_caps {
@@ -634,12 +740,10 @@ fn draw_onb_capabilities(mut app GuiApp, l OnbLayout) {
 
 // stage 4 — truthful summary + finish
 fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStatus) {
-	_, r4y, _, r4h := onb_sec_rect(l, 4)
-	draw_onb_sheet_title(mut app, l, 4, 'Review and finish', if r4h >= 112 {
-		"Here's everything set up so far"
-	} else {
-		''
-	})
+	if l.compact && l.active != 4 {
+		return
+	}
+	draw_onb_sheet_title(mut app, l, 4, 'Review and finish', '')
 	cat := app.desktop.engine_tool_discovery_catalog_cached()
 	found := cat.filter(it.found)
 	tools := if found.len == 0 {
@@ -665,10 +769,10 @@ fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 	]
 	sx, sy, sw, sh := onb_sec_rect(l, 4)
 	// two summary columns keep the strip compact like the reference
-	col_w := sw - 24 - 340
-	step := if sh >= 112 { 14 } else { 13 }
+	col_w := sw - 24 - 360
+	step := 14
 	for i, r in rows {
-		ry := sy + 26 + i * step
+		ry := sy + 22 + i * step
 		if ry + 10 > sy + sh - 4 {
 			break
 		}
@@ -850,7 +954,7 @@ fn draw_onboarding_preview(mut app GuiApp, w int, h int) {
 	mut sc := app.pixel_cache
 	st := app.desktop.onboarding_status(app.harness_root)
 	x := l.side_x
-	y := l.fy
+	y := l.board_top
 	iw := l.side_w
 	ih := l.side_h
 	app.gg.draw_rect_filled(x, y, iw, ih, app.pnl_bg)
@@ -863,7 +967,7 @@ fn draw_onboarding_preview(mut app GuiApp, w int, h int) {
 
 	// illustrated welcome scene — environment only, never runtime state
 	sy := y + 34
-	sh := if ih > 560 { 232 } else { 186 }
+	sh := if ih > 500 { 236 } else { 190 }
 	pixel_panel(mut app, x + 12, sy, iw - 24, sh, 'default')
 	draw_onb_scene(mut app, x + 12, sy, iw - 24, sh, pid)
 	app.gg.draw_text(x + 18, sy + sh + 6, 'A friendly setup for brighter builders.', gg.TextCfg{
@@ -961,21 +1065,30 @@ fn draw_onb_scene(mut app GuiApp, x int, y int, w int, h int, pid pixelart.Palet
 		bold: true
 	})
 
-	// left wall: shelf with books; right wall: window light
+	// left wall: shelf with books; right wall: window light + a framed picture
 	shelf := pixelart.environment_for(.shelf)
 	sc.draw(shelf, pid, x + 8, base - shelf.height() * 2 - 2, 2)
 	books := pixelart.environment_for(.books)
 	sc.draw(books, pid, x + 10, base - books.height() * 2 - shelf.height() * 2 - 4, 2)
 	win := pixelart.environment_for(.window)
-	sc.draw(win, pid, x + w - win.width() * 2 - 10, y + 10, 2)
+	sc.draw(win, pid, x + w - win.width() * 2 - 12, y + 8, 2)
+	if w >= 250 {
+		picture := pixelart.environment_for(.picture)
+		sc.draw(picture, pid, x + w - picture.width() * 2 - 14, y + 32, 2)
+	}
 
-	// reception: builder behind the welcome desk, on a rug
+	// reception: builder behind the welcome desk, on a rug, a visitor chair
+	// opposite — the middle band reads as a room, not a floating prop
 	desk := pixelart.environment_for(.welcome_desk)
+	chair := pixelart.environment_for(.chair)
 	rug := pixelart.environment_for(.rug)
 	dx := x + (w - desk.width() * s) / 2
 	dy := y + h - desk.height() * s - 14
 	rgs := if rug.width() * 2 <= w - 24 { 2 } else { 1 }
 	sc.draw(rug, pid, x + (w - rug.width() * rgs) / 2, y + h - rug.height() * rgs - 5, rgs)
+	if w >= 220 {
+		sc.draw(chair, pid, dx - chair.width() * s - 6, dy + desk.height() * s / 2, s)
+	}
 	agent := pixelart.with_identity(pixelart.agent_for_state(.idle), 1)
 	sc.draw(agent, pid, dx + (desk.width() * s - agent.width() * s) / 2, dy - agent.height() * s + 8, s)
 	sc.draw(desk, pid, dx, dy, s)
