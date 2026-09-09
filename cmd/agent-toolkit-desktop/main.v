@@ -2019,6 +2019,30 @@ fn collect_engine_logs(app &GuiApp) []TermLine {
 	return out
 }
 
+// count_engine_logs mirrors collect_engine_logs without allocating TermLine,
+// cells, or detail fields. Insights uses it for the headline count; the full
+// model is built only when the realtime table is visible.
+fn count_engine_logs(app &GuiApp) int {
+	state := app.desktop.current_engine_state()
+	mut count := 0
+	for k, v in state.data {
+		if k.starts_with('jobs/') && k.ends_with('/logs') && v.len > 0 {
+			for line in v.split('\n') {
+				if line.len > 0 {
+					count++
+				}
+			}
+		}
+		if k.starts_with('watcher_') && v.len > 0 {
+			count++
+		}
+		if k.starts_with('jobs/') && k.ends_with('/status') {
+			count++
+		}
+	}
+	return count
+}
+
 fn active_log_filter(app &GuiApp) string {
 	if app.palette_open && app.palette_query.trim_space().len > 0 {
 		return app.palette_query.trim_space().to_lower()
@@ -7714,7 +7738,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				graph := app.desktop.engine_git_graph(20)
 				row_h := 22
 				y0 := rail_y2 + 14
-				visible := (l.mid_h - 40) / row_h
+				visible := ws_git_history_visible(l.mid_h)
 				if visible > 0 {
 					start := clamp_scroll(app.git_scroll, graph.commits.len, visible)
 					for idx in start .. graph.commits.len {
@@ -7948,7 +7972,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if app.git_rail == 'CHANGES' {
 				changes := app.desktop.engine_git_changes()
 				row_h2 := 20
-				vis2 := (l.mid_h - 20) / row_h2
+				vis2 := ws_git_changes_visible(l.mid_h)
 				start2 := clamp_scroll(app.git_scroll, changes.len, vis2)
 				mut end2_ch := start2 + vis2
 				if end2_ch > changes.len {
@@ -7965,7 +7989,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			} else if app.git_rail == 'HISTORY' {
 				graph := app.desktop.engine_git_graph(20)
 				row_h2 := 22
-				vis2 := (l.mid_h - 40) / row_h2
+				vis2 := ws_git_history_visible(l.mid_h)
 				start2 := clamp_scroll(app.git_scroll, graph.commits.len, vis2)
 				mut end2_hi := start2 + vis2
 				if end2_hi > graph.commits.len {

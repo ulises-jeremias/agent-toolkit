@@ -385,7 +385,7 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 		[]desktop_engine.JobRecord{}
 	}
 	loops := if has_engine { app.desktop.loops_catalog() } else { []desktop_engine.LoopEntry{} }
-	events := if has_engine { insights_table(mut app, 'realtime', 0).rows.len } else { 0 }
+	events := if has_engine { count_engine_logs(app) } else { 0 }
 	mut spent := 0
 	for r in swarms {
 		spent += r.budget_spent
