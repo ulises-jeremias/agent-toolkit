@@ -38,7 +38,13 @@ fn test_workspace_layout_controls_never_overlap() {
 			}
 			assert l.hero_y + l.hero_h <= l.known_y, 'hero above known workspaces at ${dims}'
 			assert l.known_y + l.known_h <= l.mid_y, 'known workspaces above the IDE at ${dims}'
-			assert l.mid_h >= 100, 'IDE block keeps a usable minimum height at ${dims}'
+			// the IDE block never overflows the memory strip or the panel — on a
+			// short board the memory strip drops out instead (mem_h == 0)
+			if l.mem_h > 0 {
+				assert l.mid_y + l.mid_h <= l.mem_y, 'IDE block above the memory strip at ${dims}/${term_h}'
+			}
+			assert l.mid_y + l.mid_h <= l.fy + l.fh, 'IDE block inside the panel at ${dims}/${term_h}'
+			assert l.mem_y + l.mem_h <= l.fy + l.fh, 'memory strip inside the panel at ${dims}/${term_h}'
 			assert l.tree_w >= 140, 'the file tree column is always present at ${dims}'
 			if l.fw >= 500 {
 				assert l.git_w >= 180 && l.git_tab_w > 0, 'git rails present at ${dims}'

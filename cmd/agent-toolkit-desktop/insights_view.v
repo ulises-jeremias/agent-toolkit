@@ -321,7 +321,8 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 		'realtime' {
 			logs := if has_engine { collect_engine_logs(app) } else { []TermLine{} }
 			mut rows := []InsRow{cap: logs.len}
-			// newest first, so scroll position 0 is always the live edge
+			// reversed snapshot order; the Engine records no per-event timestamps,
+			// so this is NOT chronological — the column is the ledger revision
 			for i := logs.len - 1; i >= 0; i-- {
 				l := logs[i]
 				rows << InsRow{
@@ -337,7 +338,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 			return InsTable{
 				title: 'Realtime feed'
 				sub: 'GOD envelopes ${app.god_inbox} in · ${app.god_outbox} out · rev ${app.engine_rev} · api ${app.api_calls} — EventBus, one tick, no polling'
-				cols: ['Time', 'Level', 'Source', 'Message']
+				cols: ['Revision', 'Level', 'Source', 'Message']
 				col_x: [0, inner_w * 14 / 100, inner_w * 26 / 100, inner_w * 44 / 100]
 				rows: rows
 				empty: 'No Engine events observed yet.'

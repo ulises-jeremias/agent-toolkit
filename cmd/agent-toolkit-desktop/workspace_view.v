@@ -81,12 +81,21 @@ fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 	}
 	known_y := hero_y + hero_h + 8
 	known_h := if compact { 46 } else { 78 }
-	mem_h := if compact { 44 } else { 92 }
-	mem_y := fy + fh - mem_h - 8
+	mut mem_h := if compact { 44 } else { 92 }
+	mut mem_y := fy + fh - mem_h - 8
 	mid_y := known_y + known_h + 8
 	mut mid_h := mem_y - 8 - mid_y
 	if mid_h < 100 {
-		mid_h = 100
+		// short board (e.g. 1024x640 with the 2x terminal): drop the memory
+		// strip first — its fact stays visible in the details column — and
+		// give the IDE block whatever remains, clamped to the panel. Never a
+		// forced minimum that runs past mem_y / fy+fh.
+		mem_h = 0
+		mem_y = fy + fh - 8
+		mid_h = mem_y - 8 - mid_y
+		if mid_h < 0 {
+			mid_h = 0
+		}
 	}
 	// narrow panels shrink the side columns so the editor keeps ≥150px; below
 	// 500px the git rails drop out entirely (git availability stays visible in
@@ -307,7 +316,9 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 	if l.git_w > 0 {
 		draw_git_rails_panel(mut app, l.fx + l.fw - l.git_w - 12, l.mid_y, l.git_w, l.mid_h, l.git_tab_w)
 	}
-	draw_memory_palace_panel(mut app, l.fx + 12, l.mem_y, l.fw - 24, l.mem_h)
+	if l.mem_h > 0 {
+		draw_memory_palace_panel(mut app, l.fx + 12, l.mem_y, l.fw - 24, l.mem_h)
+	}
 }
 
 // draw_ws_hero is the "Active workspace" paper sheet: state pill, path
