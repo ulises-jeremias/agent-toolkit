@@ -132,13 +132,12 @@ sys.exit(0 if ($2) else 1)
 HOME_A="$PREFIX/home-a"
 mkdir -p "$HOME_A"
 launch "$HOME_A"
-# onboarding overlay visible → drive: caps, targets, products, workspace, personas, finish
-key Right; key Return
-key Right; key Return
-key Right; key Return
-key Right; key Return
-key Right; key Return
+# VC4 setup journey (#1173): Right commits each stage and advances —
+# Setup Choice → Tools → Workspace → Capabilities → Review (finish)
+key Right; sleep 1
+key Right; sleep 1
 key Right; sleep 2
+key Right; sleep 1
 key Right; sleep 2
 key Right; sleep 2
 sleep 1

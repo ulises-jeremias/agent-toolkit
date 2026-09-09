@@ -31,6 +31,11 @@ pub enum EnvironmentAsset {
 	window
 	door
 	couch
+	nest
+	welcome_desk
+	sign
+	books
+	picture
 }
 
 // Sprite is an authored pixel grid with its palette keys.
@@ -503,6 +508,89 @@ const env_couch = Sprite{
 	]
 }
 
+// VC4 (#1173) — setup-journey props. The hornero nest is the brand motif, the
+// welcome desk is the builder station in the onboarding scene, the sign is the
+// framed office plate, and the book stack dresses the shelf line.
+const env_nest = Sprite{
+	name: 'env-nest'
+	rows: [
+		'.....kk.......',
+		'....kNNk......',
+		'...kNNNNk.....',
+		'..kNNNNNNk....',
+		'..kNNNNNNkk...',
+		'...kkNNNNNk...',
+		'.WWWkkkkkkWWW.',
+		'WmmWmmWmmWmmmW',
+		'WmmmmmmmmmmmmW',
+		'.WWmmmmmmmmWW.',
+		'..WWWWWWWWWW..',
+	]
+}
+
+const env_welcome_desk = Sprite{
+	name: 'env-welcome-desk'
+	rows: [
+		'....WWWWWWWWWW....',
+		'...WttttttttttW...',
+		'...WtSSSSSSSStW...',
+		'...WtSeeeeeeStW...',
+		'...WtSSSSSSSStW...',
+		'...WttttttttttW...',
+		'....WWWWWWWWW.....',
+		'WWWWWWWWWWWWWWWWWW',
+		'WmmmmmmmmmmmmmmmmW',
+		'WWWWWWWWWWWWWWWWWW',
+		'W.WW..........WW.W',
+		'W.WW..........WW.W',
+	]
+}
+
+const env_sign = Sprite{
+	name: 'env-sign'
+	rows: [
+		'WWWWWWWWWWWWWWWW',
+		'WppppppppppppppW',
+		'WpkkkkkkkkkkkkpW',
+		'WppppppppppppppW',
+		'WpkkkkkkkkkkpppW',
+		'WppppppppppppppW',
+		'WpkkkkkkkkkkkkpW',
+		'WppppppppppppppW',
+		'WWWWWWWWWWWWWWWW',
+		'..W..........W..',
+	]
+}
+
+const env_books = Sprite{
+	name: 'env-books'
+	rows: [
+		'..........',
+		'.rrr..ffff',
+		'.rrr..ffff',
+		'.rrr..ffff',
+		'bbbbbbbbbb',
+		'bbbbbbbbbb',
+		'mmmmmmmmmm',
+		'WWWWWWWWWW',
+	]
+}
+
+// a small framed landscape — wall decor for the onboarding welcome scene,
+// filling the bare stretch the capture matrix flagged as too empty
+const env_picture = Sprite{
+	name: 'env-picture'
+	rows: [
+		'WWWWWWWWWWWW',
+		'WeeeeeeeeeeW',
+		'WeeFFeeeFFeW',
+		'WeeeFFeFFeeW',
+		'WeMMMMMMMMeW',
+		'WeMMMMMMMMeW',
+		'WWWWWWWWWWWW',
+	]
+}
+
 // environment_for returns the sprite for an environment asset.
 pub fn environment_for(a EnvironmentAsset) Sprite {
 	return match a {
@@ -520,6 +608,11 @@ pub fn environment_for(a EnvironmentAsset) Sprite {
 		.window { env_window }
 		.door { env_door }
 		.couch { env_couch }
+		.nest { env_nest }
+		.welcome_desk { env_welcome_desk }
+		.sign { env_sign }
+		.books { env_books }
+		.picture { env_picture }
 	}
 }
 
@@ -529,13 +622,15 @@ pub fn all_sprites() []Sprite {
 		agent_idle, agent_running, agent_waiting, agent_attention, agent_error,
 		env_desk, env_chair, env_terminal, env_shelf, env_plant, env_lamp,
 		env_cabinet, env_rug, env_meeting, env_board, env_tray, env_window, env_door, env_couch,
+		env_nest, env_welcome_desk, env_sign, env_books, env_picture,
 	]
 }
 
 // all_environment_assets returns every EnvironmentAsset (mapping coverage).
 pub fn all_environment_assets() []EnvironmentAsset {
 	return [.desk, .chair, .terminal, .shelf, .plant, .lamp, .cabinet, .rug,
-		.meeting_table, .board, .tray, .window, .door, .couch]
+		.meeting_table, .board, .tray, .window, .door, .couch, .nest, .welcome_desk,
+		.sign, .books, .picture]
 }
 
 // all_agent_states returns every AgentVisualState (mapping coverage).

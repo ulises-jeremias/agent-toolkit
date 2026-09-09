@@ -117,20 +117,21 @@ launch "$HOME_FRESH"
 shot onboarding-step0.png
 record "onboarding-visible" "PASS" "wizard overlay visible on first launch (capture onboarding-step0.png)"
 
-# truthful discovery on the Detect/Targets step is captured later; drive the journey:
-# step1 Capabilities → install first 5 catalog skills
-journey_key Right; journey_enter
-# step2 Targets → enable minimal
-journey_key Right; journey_enter
-# step3 Products → enable core product
-journey_key Right; journey_enter
-# step4 Workspace → init scaffold under ~/.ai-workspace
-journey_key Right; journey_enter
+# VC4 setup journey (#1173): five user-facing stages — Setup Choice, Tools,
+# Workspace, Capabilities, Review. Right commits the current stage's Engine
+# work and advances, so the journey is driven by Right alone; Enter re-applies
+# the current stage and stays put (kept idempotent for recovery scenarios).
+# stage 0 Setup Choice → nothing to commit
+journey_key Right
+# stage 1 Tools → enable the detected targets
+journey_key Right
+# stage 2 Workspace → scaffold under ~/.ai-workspace
+journey_key Right
 shot onboarding-workspace.png
-# step5 Personas → bootstrap
-journey_key Right; journey_enter
-# step6: pressing Right AT the Done step triggers onboarding_complete —
-# the 7th Right. Retry is CONDITIONAL: poll the persisted state and resend
+# stage 3 Capabilities → install the first catalog skills + core product
+journey_key Right
+# stage 4 Review: pressing Right AT the last stage bootstraps personas and
+# triggers onboarding_complete. Retry is CONDITIONAL: poll the persisted state and resend
 # only while completion has not landed — a swallowed XTEST event must not
 # leave onboarding incomplete, and a completed wizard must NOT receive a
 # second Right (it would leak into normal workspace navigation) (#1168).
@@ -244,9 +245,9 @@ record "fixture-discovery" "PASS" "$DISCO — integration-fixture evidence (clau
 
 # the fixture makes target-enable meaningful: enable claude-code target
 launch "$HOME_B" "$PREFIX/fixture-bin"
-journey_key Right                        # step1 Capabilities
-journey_key Right; journey_key Return   # step2 Targets → enable minimal (incl. claude-code)
-journey_key Right                        # step3
+journey_key Right                        # stage 0 Setup Choice → stage 1 Tools
+journey_key Right                        # stage 1 Tools → enables detected targets (incl. claude-code)
+sleep 1
 kill_session
 STATE_B="$HOME_B/.cache/agent-toolkit/desktop/engine_state.json"
 python3 -c "
@@ -265,7 +266,8 @@ sleep 3   # boot creates the default ~/.ai-workspace (empty, uninitialized)
 # blocker: a FILE where ensure_workspace needs a DIRECTORY — deterministic
 # scaffold failure inside the designed default workspace
 touch "$HOME_F/.ai-workspace/knowledge"
-journey_key Right; journey_key Right; journey_key Right; journey_key Right
+journey_key Right    # stage 0 → 1
+journey_key Right    # stage 1 → 2 (Workspace)
 journey_key Return   # workspace init → must fail (knowledge is a file)
 sleep 2
 shot onboarding-failure.png
@@ -290,7 +292,8 @@ echo "== interrupted onboarding =="
 HOME_I="$PREFIX/home-i"
 mkdir -p "$HOME_I"
 launch "$HOME_I"
-journey_key Right; journey_key Return   # step1: install skills, then STOP
+journey_key Right; journey_key Right; journey_key Right   # reach stage 3 Capabilities
+journey_key Return                                        # install skills, then STOP
 sleep 1
 kill_session
 STATE_I="$HOME_I/.cache/agent-toolkit/desktop/engine_state.json"
@@ -309,7 +312,7 @@ mkdir -p "$HOME_E/knowledge" "$HOME_E/personas"
 echo "# my existing knowledge" > "$HOME_E/knowledge/notes.md"
 echo "# my persona" > "$HOME_E/personas/custom-persona.md"
 launch "$HOME_E"
-journey_key Right; journey_key Right; journey_key Right; journey_key Right
+journey_key Right; journey_key Right    # reach stage 2 Workspace
 journey_key Return                      # ensure workspace over EXISTING dirs
 sleep 1
 shot existing-setup.png
