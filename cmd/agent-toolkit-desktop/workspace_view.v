@@ -2,7 +2,6 @@ module main
 
 import gg
 import os
-import time
 import desktop.pixelart
 import desktop_engine
 
@@ -183,7 +182,7 @@ fn paper_button(mut app GuiApp, x int, y int, w int, h int, label string, primar
 // local_stamp returns the real local date and clock — never a fictional
 // reference date.
 fn local_stamp() (string, string) {
-	now := time.now()
+	now := ui_now()
 	months := ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 	mname := if now.month >= 1 && now.month <= 12 { months[now.month - 1] } else { '' }
 	return '${mname} ${now.day}, ${now.year}', '${now.hour:02d}:${now.minute:02d}'
