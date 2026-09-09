@@ -210,7 +210,8 @@ fn ops_filter_rect(l OpsLayout) (int, int, int, int) {
 
 // ops_visible_rows is the number of table rows that fit under the header.
 fn ops_visible_rows(l OpsLayout) int {
-	n := (l.table_h - l.hdr_h - 4) / l.row_h
+	// 18px reserved under the last row for the 'a–b of N' footer note
+	n := (l.table_h - l.hdr_h - 22) / l.row_h
 	return if n < 0 { 0 } else { n }
 }
 
@@ -291,7 +292,7 @@ struct OpsColumns {
 fn ops_columns(tab int) OpsColumns {
 	return match tab {
 		0 {
-			OpsColumns{['Name', 'ID', 'Status', 'Started', 'Duration'], [34, 18, 16, 16, 16], 2}
+			OpsColumns{['Name', 'ID', 'Status', 'Started', 'Elapsed'], [34, 18, 16, 16, 16], 2}
 		}
 		1 {
 			OpsColumns{['Name', 'Tier', 'Cadence', 'Schedule', 'Last run'], [34, 10, 14, 20, 22], 3}
@@ -870,18 +871,20 @@ fn draw_ops_cards(mut app GuiApp, l OpsLayout) {
 		sc.draw(mark, pid, cx + 14, cy + (ch - mark.height() * ms) / 2, ms)
 		tx := cx + 14 + mark.width() * ms + 12
 		num := '${m.value}'
-		app.gg.draw_text(tx, cy + 8, num, gg.TextCfg{
+		// number / label / sub-fact stacked (operations.jpg) — the label is
+		// never truncated: it owns its own line instead of fighting the number
+		app.gg.draw_text(tx, cy + 4, num, gg.TextCfg{
 			color: if m.alert { pc(app, `a`) } else { app.pnl_text }
 			size: 22
 			family: app.fonts.display
 		})
-		lx := tx + num.len * 14 + 10
-		app.gg.draw_text(lx, cy + 14, utf8_truncate(m.label, ops_fit(cx + cw - lx - 8, 13)), gg.TextCfg{
+		app.gg.draw_text(tx, cy + 30, m.label, gg.TextCfg{
 			color: app.pnl_text
 			size: 13
+			bold: true
 		})
-		if ch >= 60 {
-			app.gg.draw_text(tx, cy + ch - 20, utf8_truncate(m.sub, ops_fit(cx + cw - tx - 8, 11)), gg.TextCfg{
+		if ch >= 66 {
+			app.gg.draw_text(tx, cy + ch - 18, utf8_truncate(m.sub, ops_fit(cx + cw - tx - 8, 11)), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -1455,29 +1458,29 @@ fn draw_operations_floor(mut app GuiApp, x int, y int, w int, h int, running int
 	rack_x := ix + iw - 10 - rack.width() * s
 	rack_y := floor_y + 6
 	sc.draw(rack, pid, rack_x, rack_y, s)
-	zone_plate(mut app, rack_x - 8, rack_y + rack.height() * s + 4, 'racks', app.pnl_text_mut)
 	if rack_y + rack.height() * s + tower.height() * s + 40 < iy + ih {
 		sc.draw(tower, pid, rack_x, rack_y + rack.height() * s + 24, s)
 	}
 	sc.draw(lamp, pid, ix + 10, floor_y + 6, s)
 	sc.draw(plant, pid, ix + 10, iy + ih - 10 - plant.height() * s, s)
-	// framed sign on the south wall, right corner
+	// framed sign plate on the wall band's right end (a wall object, so it
+	// never shares y with the desk rows or the footer note)
 	sign_l1 := 'STEADY HANDS'
 	sign_l2 := 'CLEAR LOGS'
 	sw_ := sign_l1.len * 7 + 20
-	sh_ := 34
-	sgx := rack_x - 6 - sw_
-	sgy := iy + ih - 10 - sh_
-	if sgx > ix + 60 && sgy > floor_y + 60 {
+	sh_ := 30
+	sgx := ix + iw - 10 - sw_
+	sgy := iy + 6
+	if sgx > wx + 8 {
 		app.gg.draw_rect_filled(sgx + 2, sgy + 2, sw_, sh_, pc(app, `W`))
 		app.gg.draw_rect_filled(sgx, sgy, sw_, sh_, pc(app, `p`))
 		app.gg.draw_rect_empty(sgx, sgy, sw_, sh_, pc(app, `W`))
-		app.gg.draw_text(sgx + 10, sgy + 5, sign_l1, gg.TextCfg{
+		app.gg.draw_text(sgx + 10, sgy + 4, sign_l1, gg.TextCfg{
 			color: pc(app, `k`)
 			size: 10
 			bold: true
 		})
-		app.gg.draw_text(sgx + 10, sgy + 18, sign_l2, gg.TextCfg{
+		app.gg.draw_text(sgx + 10, sgy + 16, sign_l2, gg.TextCfg{
 			color: pc(app, `k`)
 			size: 10
 			bold: true
@@ -1492,7 +1495,9 @@ fn draw_operations_floor(mut app GuiApp, x int, y int, w int, h int, running int
 	aw := pixelart.agent_for_state(.idle).width() * s
 	ah := pixelart.agent_for_state(.idle).height() * s
 	cell_h := ah - 4 + desk.height() * s + chair.height() * s + 8
-	avail_h := (sgy - 6) - (floor_y + 8)
+	// the wall plates ('board · clear') hang 18px into the floor: reserve it
+	grid_top := floor_y + 8 + 18
+	avail_h := (iy + ih - 26) - grid_top
 	if ws_w < dw + 8 || avail_h < cell_h || desks.len == 0 {
 		return
 	}
@@ -1510,14 +1515,14 @@ fn draw_operations_floor(mut app GuiApp, x int, y int, w int, h int, running int
 	grid_x := ws_x + (ws_w - total_w) / 2
 	// rug under the first row anchors the cluster
 	rug_s := if rug.width() * s <= ws_w { s } else { 2 }
-	sc.draw(rug, pid, ws_x + (ws_w - rug.width() * rug_s) / 2, floor_y + 8 + (used_rows - 1) * step + ah - 8, rug_s)
+	sc.draw(rug, pid, ws_x + (ws_w - rug.width() * rug_s) / 2, grid_top + (used_rows - 1) * step + ah - 8, rug_s)
 	mut shown := 0
 	for i in 0 .. shown_n {
 		r := i / per_row
 		c := i % per_row
 		cx := grid_x + c * (dw + 6 * s)
-		cy := floor_y + 8 + r * step
-		if cy + cell_h > sgy {
+		cy := grid_top + r * step
+		if cy + cell_h > iy + ih - 26 {
 			break
 		}
 		// running agents come from the real running-job count, nothing else
@@ -1917,36 +1922,39 @@ fn draw_ops_detail_empty(mut app GuiApp, l OpsLayout, total int) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	x, y, iw := l.side_x, l.side_y, l.side_w
+	// one soft paper card: scene on top, copy inside it — no empty frame
 	cy := y + 44
-	ch := if l.side_h > 360 { 150 } else { 96 }
+	scene_h := if l.side_h > 360 { 118 } else { 84 }
+	ch := scene_h + 92
 	ops_sheet(mut app, x + 12, cy, iw - 24, ch)
-	// scene: tray + lamp + plant on a rug — an inbox waiting
-	s := if ch >= 150 { 3 } else { 2 }
+	s := if scene_h >= 110 { 3 } else { 2 }
 	tray := pixelart.environment_for(.tray)
 	lamp := pixelart.environment_for(.lamp)
 	plant := pixelart.environment_for(.plant)
 	rug := pixelart.environment_for(.rug)
+	clock := pixelart.environment_for(.wall_clock)
 	gw := lamp.width() * s + tray.width() * s + plant.width() * s + 16
 	gx := x + 12 + (iw - 24 - gw) / 2
-	base := cy + ch - 16
+	base := cy + scene_h - 6
 	rs := if rug.width() * s <= iw - 40 { s } else { 2 }
 	sc.draw(rug, pid, x + 12 + (iw - 24 - rug.width() * rs) / 2, base - rug.height() * rs + 6, rs)
 	sc.draw(lamp, pid, gx, base - lamp.height() * s, s)
 	sc.draw(tray, pid, gx + lamp.width() * s + 8, base - tray.height() * s, s)
 	sc.draw(plant, pid, gx + lamp.width() * s + tray.width() * s + 16, base - plant.height() * s, s)
-	ty := cy + ch + 14
-	app.gg.draw_text(x + 16, ty, 'Nothing selected', gg.TextCfg{
+	sc.draw(clock, pid, x + iw - 24 - clock.width() * 2 - 8, cy + 8, 2)
+	ty := cy + scene_h + 8
+	app.gg.draw_text(x + 24, ty, 'Nothing selected', gg.TextCfg{
 		color: app.pnl_text
 		size: 15
 		family: app.fonts.display
 	})
-	app.gg.draw_text(x + 16, ty + 22, 'Select a row to see its details.', gg.TextCfg{
+	app.gg.draw_text(x + 24, ty + 22, 'Select a row to see its details.', gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 12
 	})
 	noun := ['jobs in the supervisor', 'loop templates in the catalog', 'swarm runs recorded',
 		'doctor checks reported'][l.tab]
-	app.gg.draw_text(x + 16, ty + 40, '${total} ${noun}.', gg.TextCfg{
+	app.gg.draw_text(x + 24, ty + 42, '${total} ${noun}.', gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 12
 	})
