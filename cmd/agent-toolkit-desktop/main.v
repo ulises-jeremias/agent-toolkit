@@ -3749,13 +3749,18 @@ fn mcp_probe_fresh(app &GuiApp, id string) bool {
 }
 
 // mcp_run_probe executes the typed Engine probe and caches the display (#1106).
-fn mcp_run_probe(mut app GuiApp, id string) {
+// mcp_run_probe refreshes the cached probe. announce=true only for the
+// explicit Probe action — selection-driven refreshes stay silent because
+// every inspector_msg becomes a toast.
+fn mcp_run_probe(mut app GuiApp, id string, announce bool) {
 	res := app.desktop.engine_mcp_probe(id) or {
 		app.mcp_probe_id = id
 		app.mcp_probe_ok = false
 		app.mcp_probe_detail = err.msg()
 		app.mcp_probe_at = app.frame
-		app.inspector_msg = 'MCP ${id} probe failed: ${err}'
+		if announce {
+			app.inspector_msg = 'MCP ${id} probe failed: ${err}'
+		}
 		return
 	}
 	app.mcp_probe_id = id
@@ -3763,7 +3768,9 @@ fn mcp_run_probe(mut app GuiApp, id string) {
 	app.mcp_probe_detail = res.detail
 	app.mcp_probe_at = app.frame
 	app.api_calls = app.desktop.engine_api_calls()
-	app.inspector_msg = 'MCP ${id} probe: ${res.detail}'
+	if announce {
+		app.inspector_msg = 'MCP ${id} probe: ${res.detail}'
+	}
 }
 
 // mcp_drawer_open caches template/provenance/receipt once (render must not
@@ -3784,7 +3791,7 @@ fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance s
 	app.mcp_drawer_provenance = provenance
 	app.mcp_drawer_receipt = '${receipt.receipt_path} · writes ${will}'
 	if !mcp_probe_fresh(app, id) {
-		mcp_run_probe(mut app, id)
+		mcp_run_probe(mut app, id, false)
 	}
 	// no inspector_msg here: this runs on card *selection* and every
 	// inspector_msg becomes a toast — selection must stay silent, only

@@ -1635,7 +1635,7 @@ fn lib_secondary(mut app GuiApp, which int) {
 	match lib_tab_for_panel(app.selected_panel) {
 		3 {
 			if which == 0 {
-				mcp_run_probe(mut app, item.id)
+				mcp_run_probe(mut app, item.id, true)
 			} else {
 				mut tpath := ''
 				for p in app.desktop.engine_mcp_catalog() {
