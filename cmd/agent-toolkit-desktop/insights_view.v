@@ -51,10 +51,9 @@ struct InsightsLayout {
 
 fn insights_layout(app &GuiApp, w int, h int) InsightsLayout {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h := if app.term_visible { app.term_height } else { 0 }
-	fh := h - fy - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fh < 480 || fw < 640
 	head_h := if compact { 44 } else { 60 }
 	metric_h := if compact { 0 } else { 78 }
@@ -774,11 +773,10 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	iy := 52
+	iy := panel_top(app)
 	iw := inspector_w
-	ih := h - iy - 28 - term_h
+	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, iw, ih, app.pnl_bg)
 	app.gg.draw_line(ix, iy, ix, iy + ih, app.pnl_border)
 	app.gg.draw_text(ix + 16, iy + 10, 'Report details', gg.TextCfg{
@@ -899,9 +897,9 @@ fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	}
 	// the right column is this destination's own surface: consume so the
 	// generic inspector geometry never reacts underneath it
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	if onb_hit(mx, my, ix, 52, inspector_w, h - 52 - 28 - term_h) {
+	iy := panel_top(app)
+	if onb_hit(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
 		return true
 	}
 	return false

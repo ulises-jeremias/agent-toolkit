@@ -1556,6 +1556,18 @@ fn nav_rows(app &GuiApp, h int) []NavRow {
 const dock_w = 200
 const inspector_w = 300
 
+// Shell geometry is authoritative for every destination and its hit regions.
+// VC8-B begins with the legacy values so this refactor has no visual effect;
+// the editorial-shell commit can change them in one place.
+fn panel_top(_ &GuiApp) int {
+	return 52
+}
+
+fn content_bottom(app &GuiApp, h int) int {
+	term_h := if app.term_visible { app.term_height } else { 0 }
+	return h - 28 - term_h
+}
+
 fn dock_x(app &GuiApp, w int) int {
 	return if app.lang.is_rtl() { w - dock_w } else { 0 }
 }
@@ -3111,7 +3123,7 @@ fn draw_left_dock(mut app GuiApp, h int) {
 // draw_office_view_switch renders the Overview / Floor Map tabs in the Office panel.
 fn draw_office_view_switch(mut app GuiApp, w int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
 	tab_h := 22
 	tab_w := 78
@@ -3142,7 +3154,7 @@ fn draw_office_view_switch(mut app GuiApp, w int) {
 // handle_office_view_click returns true if a click hit an Office view tab.
 fn handle_office_view_click(mut app GuiApp, w int, mx int, my int) bool {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
 	tab_h := 22
 	tab_w := 78
@@ -3162,11 +3174,10 @@ fn handle_office_view_click(mut app GuiApp, w int, mx int, my int) bool {
 // draw_office_overview renders the default Office operational dashboard.
 // It surfaces real Engine state (jobs, agents) without idle-animation theatrics.
 fn draw_office_overview(mut app GuiApp, w int, h int) {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	app.gg.draw_rect_filled(fx, fy, fw, 42, app.pnl_card)
 	app.gg.draw_text(fx + 20, fy + 11, 'Office', gg.TextCfg{ color: app.pnl_text, size: font_display_md, family: app.fonts.display })
@@ -3217,11 +3228,10 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// Hero — office floor: munder checkerboard 32×32 tiles, desks as AgentCards, envelopes with GOD 4*t*(1-t) arc
 	// Super-potent signature: unique floor texture (wood grain + grass tuft + terrazzo speck), avatar trails,
 	// envelope floor shadows, station glow, command deck kanban/fleet/CI alt divergence — native V gg only.
-	term_h_w := if app.term_visible { app.term_height } else { 0 }
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h_w
+	fh := content_bottom(app, h) - fy
 	// Floor — surface.paper card on the canvas with muted ruled lines + fiber grain
 	// Office paper stock: base surface.paper, ruled horizontal secondary lines every 24px, danger margin
 	app.gg.draw_rect_filled(fx, fy + 36, fw, fh - 36, app.pnl_bg)
@@ -3906,10 +3916,9 @@ fn discovery_row_text(d desktop_engine.ToolDiscovery) string {
 
 fn draw_targets(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_tg := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_tg
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// install preview + receipts super-potent
 	receipts := app.desktop.engine_list_install_receipts()
@@ -4020,10 +4029,9 @@ fn doctor_preview_confirm(mut app GuiApp) {
 
 fn draw_doctor(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_do := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_do
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// super-potent Doctor: full Engine.doctor() with categories, receipts/provenance, fixable + Fix All via Engine TX
 	checks_engine := app.desktop.engine_doctor()
@@ -4188,10 +4196,9 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 
 fn draw_jobs(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_jo := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_jo
+	fh := content_bottom(app, h) - fy
 	// Paper supervisor sheet — ProcessSupervisor health, NOT cream loops
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// header letterhead with brass left rail
@@ -4440,10 +4447,9 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 
 fn draw_loops(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_lo := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_lo
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 34, 'default')
 	app.gg.draw_text(fx + 18, fy + 12, tr(app, 'panel.loops'), gg.TextCfg{
@@ -4764,10 +4770,9 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	// Swarm UI Herdr/tmux, approvals spend/scope/destructive, easy pair/team/full launch,
 	// wire to desktop_engine eventbus and show swarm status, handoffs, logs.
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_sw := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_sw
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// header — GOD mailbox law
 	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 44, 'default')
@@ -5371,11 +5376,10 @@ fn inspector_log_rect(app &GuiApp, ix int, iy int, ih int) (int, int, int, int) 
 }
 
 fn draw_inspector(mut app GuiApp, w int, h int) {
-	term_h_i := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	iy := 52
+	iy := panel_top(app)
 	iw := 300
-	ih := h - 52 - 28 - term_h_i
+	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, iw, ih, col_charcoal)
 	// VC3.5 (#1176): cabinet-drawer material. The dark column reads as one
 	// drawer of a technical filing cabinet: folder tab with the title,
@@ -7141,10 +7145,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// inspector scroll when over inspector
 		{
-			term_h_ii := if app.term_visible { app.term_height } else { 0 }
 			ix := w3 - 300
-			iy := 52
-			ih := h3 - 52 - 28 - term_h_ii
+			iy := panel_top(app)
+			ih := content_bottom(app, h3) - iy
 			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
 			if app.mouse_x >= log_x0 && app.mouse_x <= log_x1 && app.mouse_y >= log_y0
 				&& app.mouse_y < log_y0 + inspector_log_h {
@@ -7165,10 +7168,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// skills virtualized scroll — 227 list
 		if app.selected_panel == 1 {
 			fx := 208
-			fy := 52
+			fy := panel_top(app)
 			fw := w3 - 208 - 300
-			term_h_sk := if app.term_visible { app.term_height } else { 0 }
-			fh := h3 - 52 - 28 - term_h_sk
+			fh := content_bottom(app, h3) - fy
 			y0_sk := fy + 102
 			list_h := fh - 126
 			if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= y0_sk && app.mouse_y < y0_sk + list_h {
@@ -7388,7 +7390,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// Inspector buttons — clickable
 		ix := inspector_x(app, w)
-		iy := 52
+		iy := panel_top(app)
 		iw := 300
 		// Only when a desk selected
 		desks := desks_for_app(app)
@@ -7555,10 +7557,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// Inspector per-desk log click — copy
 		{
-			term_h_ii := if app.term_visible { app.term_height } else { 0 }
 			ix2 := inspector_x(app, w)
-			iy2 := 52
-			ih2 := h - 52 - 28 - term_h_ii
+			iy2 := panel_top(app)
+			ih2 := content_bottom(app, h) - iy2
 			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix2, iy2, ih2)
 			if mx >= log_x0 && mx <= log_x1 && my >= log_y0 && my < log_y0 + inspector_log_h {
 				row_h := 13
@@ -7772,10 +7773,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			w2 := app.gg.width
 			h2 := app.gg.height
 			fx := panel_fx(app)
-			fy := 52
+			fy := panel_top(app)
 			fw := panel_fw(app, w2)
-			term_h_d := if app.term_visible { app.term_height } else { 0 }
-			fh := h2 - 52 - 28 - term_h_d
+			fh := content_bottom(app, h2) - fy
 			desks_hit := desks_for_app(app)
 			for idx, d in desks_hit {
 				dx, dy, dw, dh := desk_rect(d, idx, fx, fy, fw, fh)
@@ -7859,11 +7859,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			desks := desks_for_app(app)
 			w2 := app.gg.width
 			h2 := app.gg.height
-			term_h_mm := if app.term_visible { app.term_height } else { 0 }
 			fx := 208
-			fy := 52
+			fy := panel_top(app)
 			fw := w2 - 208 - 300
-			fh := h2 - 52 - 28 - term_h_mm
+			fh := content_bottom(app, h2) - fy
 			for idx, d in desks {
 				dx, dy, dw, dh := desk_rect(d, idx, fx, fy, fw, fh)
 				if app.mouse_x >= dx && app.mouse_x <= dx + dw && app.mouse_y >= dy && app.mouse_y <= dy + dh {
@@ -7911,10 +7910,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		{
 			w3 := app.gg.width
 			h3 := app.gg.height
-			term_h_ii := if app.term_visible { app.term_height } else { 0 }
 			ix := inspector_x(app, w3)
-			iy := 52
-			ih := h3 - 52 - 28 - term_h_ii
+			iy := panel_top(app)
+			ih := content_bottom(app, h3) - iy
 			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
 			if app.mouse_x >= log_x0 && app.mouse_x <= log_x1 && app.mouse_y >= log_y0
 				&& app.mouse_y < log_y0 + inspector_log_h {

@@ -32,11 +32,10 @@ struct OfficeLayout {
 }
 
 fn office_layout(app &GuiApp, w int, h int) OfficeLayout {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fw < 700 || fh < 420
 	cards_y := fy + 50
 	card_h := if compact { 56 } else { 70 }

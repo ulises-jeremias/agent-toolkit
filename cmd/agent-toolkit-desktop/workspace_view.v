@@ -56,10 +56,9 @@ struct WorkspaceLayout {
 
 fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h := if app.term_visible { app.term_height } else { 0 }
-	fh := h - fy - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fh < 520 || fw < 640
 	head_h := if compact { 44 } else { 60 }
 	hero_y := fy + head_h + 4
@@ -614,11 +613,10 @@ struct WsDetailLayout {
 }
 
 fn ws_detail_layout(app &GuiApp, w int, h int) WsDetailLayout {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	iy := 52
+	iy := panel_top(app)
 	iw := inspector_w
-	ih := h - iy - 28 - term_h
+	ih := content_bottom(app, h) - iy
 	limit := iy + ih - 8
 	scaffold_y := iy + 40
 	mut y := scaffold_y + 22 + ws_scaffold_names.len * 17 + 10

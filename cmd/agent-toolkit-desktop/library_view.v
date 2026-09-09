@@ -89,13 +89,12 @@ fn lib_side_w(w int) int {
 }
 
 fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	side_w := lib_side_w(w)
 	rtl := app.lang.is_rtl()
 	fx := if rtl { side_w + 8 } else { dock_w + 8 }
 	fw := w - dock_w - 8 - side_w
-	fy := 52
-	fh := h - fy - 28 - term_h
+	fy := panel_top(app)
+	fh := content_bottom(app, h) - fy
 	compact := fw < 560 || fh < 400
 	head_y := fy + 6
 	head_h := if compact { 52 } else { 84 }

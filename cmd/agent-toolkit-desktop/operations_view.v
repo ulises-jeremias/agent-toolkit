@@ -99,12 +99,11 @@ struct OpsLayout {
 }
 
 fn ops_layout(app &GuiApp, w int, h int) OpsLayout {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	tab := ops_tab_for_panel(app.selected_panel)
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fh < 420 || fw < 640
 	head_y := fy + 8
 	head_h := if compact { 54 } else { 72 }
