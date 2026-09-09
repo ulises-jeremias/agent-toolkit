@@ -51,6 +51,11 @@ pub enum EnvironmentAsset {
 	calendar_mark
 	swarm_mark
 	alert_mark
+	cabinet_tall
+	folder_stack
+	ledger
+	chart_mark
+	gear
 }
 
 // Sprite is an authored pixel grid with its palette keys.
@@ -782,6 +787,11 @@ pub fn environment_for(a EnvironmentAsset) Sprite {
 		.calendar_mark { env_calendar_mark }
 		.swarm_mark { env_swarm_mark }
 		.alert_mark { env_alert_mark }
+		.cabinet_tall { env_cabinet_tall }
+		.folder_stack { env_folder_stack }
+		.ledger { env_ledger }
+		.chart_mark { env_chart_mark }
+		.gear { env_gear }
 	}
 }
 
@@ -793,6 +803,7 @@ pub fn all_sprites() []Sprite {
 		env_cabinet, env_rug, env_meeting, env_board, env_tray, env_window, env_door, env_couch,
 		env_nest, env_welcome_desk, env_sign, env_books, env_picture,
 		env_bookshelf_wide, env_globe, env_scroll, env_chalkboard, env_ladder,
+		env_cabinet_tall, env_folder_stack, env_ledger, env_chart_mark, env_gear,
 	]
 	out << library_mark_sprites()
 	out << operations_sprites()
@@ -805,7 +816,8 @@ pub fn all_environment_assets() []EnvironmentAsset {
 		.meeting_table, .board, .tray, .window, .door, .couch, .nest, .welcome_desk,
 		.sign, .books, .picture, .bookshelf_wide, .globe, .scroll, .chalkboard, .ladder,
 		.server_rack, .wall_clock, .gear_mark, .monitor_tower, .checklist_board,
-		.play_mark, .calendar_mark, .swarm_mark, .alert_mark]
+		.play_mark, .calendar_mark, .swarm_mark, .alert_mark,
+		.cabinet_tall, .folder_stack, .ledger, .chart_mark, .gear]
 }
 
 // all_agent_states returns every AgentVisualState (mapping coverage).

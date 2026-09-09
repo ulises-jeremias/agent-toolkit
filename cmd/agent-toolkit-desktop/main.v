@@ -1063,6 +1063,7 @@ mut:
 	header_search_hover int = -1
 	// insights — telemetry super-potent (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
 	insights_scroll int
+	insights_sel    int = -1 // selected row of the current tab (VC7 report details)
 	insights_hover  int = -1
 	insights_tab    string = 'cost' // cost | waterfall | spans | budgets | ci
 	insights_filter string
@@ -2703,6 +2704,12 @@ fn frame(mut app GuiApp) {
 	} else if ops_is_panel(app.selected_panel) {
 		// VC6 (#1173): the Details column replaces the Office inspector
 		draw_operations_detail(mut app, w, h)
+	} else if app.selected_panel == 9 {
+		// VC7 (#1173): Workspace and Insights own the right column with their
+		// own detail sheets instead of the generic Office inspector.
+		draw_workspace_detail(mut app, w, h)
+	} else if app.selected_panel == 12 {
+		draw_insights_detail(mut app, w, h)
 	} else {
 		draw_inspector(mut app, w, h)
 	}
@@ -5155,118 +5162,6 @@ fn toggle_expand_recursive(mut children []FileNode, target_path string) bool {
 	return false
 }
 
-// draw_kanban is a compact project snapshot inside Workspace.
-fn draw_kanban(mut app GuiApp, fx int, y0 int, fw int) {
-	h := 108
-	// #1128: the strip shows KNOWN WORKSPACES (bounded discovery) when there
-	// is kanban content; otherwise the workspace list IS the strip content —
-	// manila folder tabs with truthful state (Active / Valid / Missing).
-	app.known_ws_rects.clear() // stale rects must never intercept clicks
-	if app.kanban.len > 0 {
-		pixel_panel(mut app, fx + 12, y0, fw - 24, h, 'default')
-		app.gg.draw_text(fx + 24, y0 + 8, 'Kanban', gg.TextCfg{ color: app.pnl_text, size: font_display_sm })
-		app.gg.draw_text(fx + 80, y0 + 9, 'todo • doing • done — budgets • verifier', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		colw := (fw - 48) / 3
-		for ci, cname in ['todo', 'doing', 'done'] {
-			cx := fx + 20 + ci * (colw + 4)
-			app.gg.draw_rect_filled(cx, y0 + 24, colw, 14, app.pnl_card_sel)
-			app.gg.draw_text(cx + 4, y0 + 27, cname, gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
-			app.gg.draw_text(cx + colw - 14, y0 + 27, '${app.kanban.filter(it.col == cname).len}', gg.TextCfg{ color: app.pnl_text, size: 11 })
-		}
-		for t in app.kanban {
-			ci := if t.col == 'todo' {
-				0
-			} else if t.col == 'doing' { 1 } else { 2 }
-			cx := fx + 20 + ci * (colw + 4)
-			mut idx_in_col := 0
-			for o in app.kanban {
-				if o.col == t.col && o.id < t.id { idx_in_col++ }
-			}
-			y := y0 + 40 + idx_in_col * 28
-			if y + 24 > y0 + h - 6 {
-				continue
-			}
-			pri_col := match t.pri {
-				'high' { app.pnl_danger }
-				'medium' { app.pnl_select }
-				else { app.pnl_success }
-			}
-			app.gg.draw_rect_filled(cx, y, colw, 24, app.pnl_card)
-			app.gg.draw_rect_empty(cx, y, colw, 24, app.pnl_text)
-			app.gg.draw_rect_filled(cx, y, 4, 24, pri_col)
-			app.gg.draw_text(cx + 8, y + 4, t.title, gg.TextCfg{ color: app.pnl_text, size: 11 })
-			app.gg.draw_text(cx + 8, y + 14, t.owner, gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-		}
-		return
-	}
-	draw_known_workspaces(mut app, fx, y0, fw, h)
-}
-
-// draw_known_workspaces renders the bounded known-workspace list as manila
-// folder tabs (#1128): leaf name + truthful state chip (Active / Valid /
-// Missing) + why. Click fills the draft for the existing Validate/Switch
-// controls — discovery never switches by itself.
-fn draw_known_workspaces(mut app GuiApp, fx int, y0 int, fw int, h int) {
-	pixel_panel(mut app, fx + 12, y0, fw - 24, h, 'default')
-	app.gg.draw_text(fx + 24, y0 + 8, 'Known workspaces', gg.TextCfg{ color: app.pnl_text, size: font_display_sm })
-	app.gg.draw_text(fx + 168, y0 + 9, 'discovered: active · previous · default · recent — click to open', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	known := if app.desktop != unsafe { nil } {
-		app.desktop.engine_known_workspaces()
-	} else {
-		[]desktop_engine.KnownWorkspace{}
-	}
-	if known.len == 0 {
-		app.gg.draw_text(fx + 24, y0 + 40, 'No known workspaces yet — set a path above and Initialize.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		return
-	}
-	card_w := 168
-	gap := 8
-	mut per_row := (fw - 24) / (card_w + gap)
-	if per_row < 1 {
-		per_row = 1
-	}
-	// store hit rects for the mouse handler (rebuilt every frame, same geometry)
-	app.known_ws_rects.clear()
-	for i, k in known {
-		row := i / per_row
-		col := i % per_row
-		x := fx + 20 + col * (card_w + gap)
-		y := y0 + 26 + row * 36
-		if y + 30 > y0 + h - 4 {
-			app.gg.draw_text(x, y + 2, '+${known.len - i} more — switch via path above', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-			break
-		}
-		leaf := k.path.all_after_last('/')
-		active := k.is_active
-		bg := if active { app.pnl_select_hover } else { app.pnl_card_sel }
-		bd := if active { app.pnl_select } else { app.pnl_border }
-		app.gg.draw_rect_filled(x, y, card_w, 30, bg)
-		app.gg.draw_rect_empty(x, y, card_w, 30, bd)
-		// manila folder tab
-		app.gg.draw_rect_filled(x + 4, y - 4, 40, 5, app.pnl_card_sel)
-		label := if leaf.len > 18 { leaf[..18] + '…' } else { leaf }
-		app.gg.draw_text(x + 8, y + 4, label, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true, bold: active })
-		state := if !k.exists {
-			'missing'
-		} else if active {
-			'active ✓'
-		} else if k.initialized {
-			'valid'
-		} else {
-			'folder'
-		}
-		scol := if !k.exists {
-			app.pnl_danger
-		} else if active {
-			app.pnl_success
-		} else {
-			app.pnl_text_mut
-		}
-		app.gg.draw_text(x + 8, y + 17, state, gg.TextCfg{ color: scol, size: 10 })
-		app.known_ws_rects << KnownWsRect{ x: x, y: y, w: card_w, h2: 30, path: k.path }
-	}
-}
-
 // draw_file_tree_panel — left 180px, twisty, git dot, virtualized, hover, brokered.
 fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 	pixel_panel(mut app, x, y, w, h, 'terminal')
@@ -5732,70 +5627,6 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 	}
 }
 
-struct WorkspaceLayout {
-	fx         int
-	fy         int
-	fw         int
-	fh         int
-	control_y  int
-	field_x    int
-	field_y    int
-	field_w    int
-	validate_x int
-	switch_x   int
-	init_x     int
-	kanban_y   int
-	mid_y      int
-	mid_h      int
-	mem_y      int
-	mem_h      int
-}
-
-// workspace_layout is shared by drawing and pointer handling. Keeping the
-// geometry in one place prevents a visual reflow from moving the hit targets.
-fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
-	fx := panel_fx(app)
-	fy := 52
-	fw := panel_fw(app, w)
-	term_h := if app.term_visible { app.term_height } else { 0 }
-	fh := h - fy - 28 - term_h
-	control_y := fy + 48
-	init_x := fx + fw - 82
-	switch_x := init_x - 66
-	validate_x := switch_x - 72
-	field_x := fx + 24
-	field_y := control_y + 26
-	mut field_w := validate_x - field_x - 8
-	if field_w < 120 {
-		field_w = 120
-	}
-	kanban_y := fy + 124
-	mid_y := kanban_y + 108 + 12
-	mem_h := 92
-	mut mid_h := fy + fh - mid_y - mem_h - 12
-	if mid_h < 120 {
-		mid_h = 120
-	}
-	return WorkspaceLayout{
-		fx: fx
-		fy: fy
-		fw: fw
-		fh: fh
-		control_y: control_y
-		field_x: field_x
-		field_y: field_y
-		field_w: field_w
-		validate_x: validate_x
-		switch_x: switch_x
-		init_x: init_x
-		kanban_y: kanban_y
-		mid_y: mid_y
-		mid_h: mid_h
-		mem_y: mid_y + mid_h + 6
-		mem_h: mem_h
-	}
-}
-
 fn validate_workspace_draft(mut app GuiApp) bool {
 	clean := app.desktop.engine_validate_workspace(app.workspace_draft) or {
 		app.workspace_notice = 'Workspace error: ${err}'
@@ -5882,67 +5713,6 @@ fn focus_workspace(mut app GuiApp) {
 	app.workspace_focus = true
 }
 
-fn draw_workspace(mut app GuiApp, w int, h int) {
-	l := workspace_layout(app, w, h)
-	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, app.pnl_bg)
-	paper_letterhead(mut app, l.fx, l.fy, l.fw, tr(app, 'panel.workspace'), 'Files, project context, and memory for the active workspace', app.workspace_source)
-	control_y := l.control_y
-	control_h := 68
-	pixel_panel(mut app, l.fx + 12, control_y, l.fw - 24, control_h, 'default')
-	app.gg.draw_text(l.fx + 24, control_y + 8, 'ACTIVE WORKSPACE', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-	state_label := if app.workspace_initialized { 'Ready' } else { 'Needs setup' }
-	state_col := if app.workspace_initialized { app.pnl_success } else { app.pnl_border_hi }
-	app.gg.draw_text(l.fx + l.fw - 104, control_y + 8, state_label, gg.TextCfg{ color: state_col, size: 12, bold: true })
-	field_bg := if app.workspace_focus { app.pnl_bg } else { app.pnl_card }
-	field_bd := if app.workspace_focus { app.pnl_select } else { app.pnl_border }
-	app.gg.draw_rect_filled(l.field_x, l.field_y, l.field_w, 28, field_bg)
-	app.gg.draw_rect_empty(l.field_x, l.field_y, l.field_w, 28, field_bd)
-	path_label := workspace_path_label(app.workspace_draft, 64)
-	app.gg.draw_text(l.field_x + 8, l.field_y + 7, path_label, gg.TextCfg{ color: app.pnl_text, size: 12, mono: true })
-	if app.workspace_focus && app.frame % 30 < 15 {
-		cursor_x := l.field_x + 8 + path_label.len * 7
-		if cursor_x < l.field_x + l.field_w - 4 {
-			app.gg.draw_rect_filled(cursor_x, l.field_y + 6, 2, 16, app.pnl_select)
-		}
-	}
-	for action in [
-		['Validate', '${l.validate_x}', 'validate'],
-		['Switch', '${l.switch_x}', 'switch'],
-		['Initialize', '${l.init_x}', 'init'],
-	] {
-		x := action[1].int()
-		is_init := action[2] == 'init'
-		bg := if is_init && !app.workspace_initialized { app.pnl_select } else { app.pnl_text }
-		fg := if is_init && !app.workspace_initialized { app.pnl_text } else { app.pnl_bg }
-		app.gg.draw_rect_filled(x, l.field_y, if is_init { 58 } else { 64 }, 28, bg)
-		app.gg.draw_rect_empty(x, l.field_y, if is_init { 58 } else { 64 }, 28, app.pnl_border_hi)
-		app.gg.draw_text(x + 7, l.field_y + 8, action[0], gg.TextCfg{ color: fg, size: 11, bold: true })
-	}
-	if app.workspace_notice != '' {
-		app.gg.draw_text(l.fx + 24, control_y + 56, app.workspace_notice, gg.TextCfg{
-			color: if app.workspace_notice.contains('error') || app.workspace_notice.contains('Could not') {
-				app.pnl_danger
-			} else {
-				app.pnl_text_mut
-			}
-			size: 11
-		})
-	}
-	// The project snapshot stays below the workspace control so the selected
-	// path is visible before any file or memory data is interpreted.
-	draw_kanban(mut app, l.fx, l.kanban_y, l.fw)
-	// middle IDE: file tree | editor | git rails
-	// left file tree 180
-	draw_file_tree_panel(mut app, l.fx + 12, l.mid_y, 180, l.mid_h)
-	// center editor
-	editor_w := l.fw - 24 - 180 - 4 - 240
-	draw_editor_panel(mut app, l.fx + 12 + 180 + 4, l.mid_y, editor_w, l.mid_h)
-	// right git rails 240
-	draw_git_rails_panel(mut app, l.fx + l.fw - 240 - 12, l.mid_y, 240, l.mid_h)
-	// bottom memory palace semantic recall
-	draw_memory_palace_panel(mut app, l.fx + 12, l.mem_y, l.fw - 24, l.mem_h)
-}
-
 // ── Products & Packs — super potent easy management ─────────────────────────────────
 // Brokered via Desktop.engine_products_catalog / packs_catalog (Engine typed, no shell).
 // Easy to manage: product cards, pack chips, membership bulk, build preview, digest.
@@ -5958,319 +5728,6 @@ fn utf8_truncate(s string, max_runes int) string {
 		return s
 	}
 	return r[..max_runes].string()
-}
-
-// ── Insights — telemetry super-potent: cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher ──
-// Superior to munder-difflin: combines munder's cost ledger + tool waterfall + CI watcher in one paper-telemetry
-// surface, plus budget sparks (402x per-swarm logistic chaos) and OTel spans with Dunder rust/brass paper.
-// VJOBS=2 safe: all data via Desktop typed Engine APIs (no shell), 60 FPS retained, headless ATK_GUI_HEADLESS.
-fn draw_insights(mut app GuiApp, w int, h int) {
-	fx := panel_fx(app)
-	fy := 52
-	fw := panel_fw(app, w)
-	term_h_in := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_in
-	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.insights'), 'ledger + waterfall + spans + budgets + CI + realtime + gallery — superior to munder-difflin', 'Engine · no shell')
-	// tabs — cost | waterfall | spans | budgets | ci | realtime | gallery (7, web parity + 2)
-	tabs := ['cost', 'waterfall', 'spans', 'budgets', 'ci', 'realtime', 'gallery']
-	tab_labels := ['Cost', 'Waterfall', 'Spans', 'Budgets', 'CI', 'Realtime', 'Gallery']
-	tab_x0 := fx + 16
-	tab_w := 84
-	for i, t in tabs {
-		x := tab_x0 + i * (tab_w + 6)
-		y := fy + 48
-		active := app.insights_tab == t
-		hover := app.insights_hover == i
-		bg := if active {
-			app.pnl_text
-		} else if hover { app.pnl_card_sel } else { app.pnl_card }
-		bd := if active { app.pnl_select } else { app.pnl_border }
-		fg := if active { app.pnl_card } else { app.pnl_text_mut }
-		app.gg.draw_rect_filled(x, y, tab_w, 22, bg)
-		app.gg.draw_rect_empty(x, y, tab_w, 22, bd)
-		if active {
-			app.gg.draw_rect_filled(x, y, tab_w, 2, app.pnl_select)
-		}
-		app.gg.draw_text(x + 10, y + 5, tab_labels[i], gg.TextCfg{ color: fg, size: 11, bold: active })
-	}
-	// content area
-	cy0 := fy + 76
-	ch := fh - 76 - 16
-	pixel_panel(mut app, fx + 8, cy0, fw - 16, ch, 'default')
-	inner_x := fx + 20
-	inner_y := cy0 + 12
-	inner_w := fw - 40
-	if app.insights_tab == 'cost' {
-		// Cost ledger — swarm runs + loop token usage + job costs
-		app.gg.draw_text(inner_x, inner_y, 'Cost Ledger — durable per-run ledger (superior to munder transcript pricing)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-		app.gg.draw_text(inner_x, inner_y + 18, 'Live Engine: swarm pair/team/full + loops max_tokens/max_wall_seconds + jobs budget', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		// swarm runs
-		swarms := if app.desktop != unsafe { nil } {
-			app.desktop.swarm_list()
-		} else {
-			[]desktop_engine.SwarmRun{}
-		}
-		jobs := if app.desktop != unsafe { nil } {
-			app.desktop.engine_jobs_catalog()
-		} else {
-			[]desktop_engine.JobRecord{}
-		}
-		mut y := inner_y + 40
-		// header row paper tape
-		app.gg.draw_rect_filled(inner_x, y, inner_w, 16, app.pnl_card_sel)
-		app.gg.draw_text(inner_x + 6, y + 3, 'Run / Job', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
-		app.gg.draw_text(inner_x + 160, y + 3, 'Recipe / Status', gg.TextCfg{ color: app.pnl_text, size: 11 })
-		app.gg.draw_text(inner_x + 320, y + 3, 'Cost / Tokens', gg.TextCfg{ color: app.pnl_text, size: 11 })
-		app.gg.draw_text(inner_x + 460, y + 3, 'Budget', gg.TextCfg{ color: app.pnl_text, size: 11 })
-		y += 20
-		mut row := 0
-		for r in swarms {
-			if y + 16 > cy0 + ch - 20 {
-				break
-			}
-			bg2 := if row % 2 == 0 { app.pnl_card } else { app.pnl_bg }
-			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
-			app.gg.draw_text(inner_x + 6, y + 3, r.id[..if r.id.len > 14 { 14 } else { r.id.len }], gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			app.gg.draw_text(inner_x + 160, y + 3, '${r.recipe.str()} • ${r.status.str()}', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			app.gg.draw_text(inner_x + 320, y + 3, '\$${r.budget_spent} / ${r.budget_total}', gg.TextCfg{ color: app.pnl_danger, size: 11, mono: true })
-			// budget spark mini bar
-			pct := if r.budget_total > 0 { f64(r.budget_spent) / f64(r.budget_total) } else { 0.0 }
-			mut bar_w := int(84 * pct)
-			if bar_w > 84 {
-				bar_w = 84
-			}
-			app.gg.draw_rect_filled(inner_x + 460, y + 5, 84, 6, app.pnl_border)
-			if bar_w > 0 {
-				bar_col := if pct > 0.9 {
-					app.pnl_danger
-				} else if pct > 0.7 { app.pnl_select } else { app.pnl_success }
-				app.gg.draw_rect_filled(inner_x + 460, y + 5, bar_w, 6, bar_col)
-			}
-			y += 18
-			row++
-		}
-		for j in jobs {
-			if y + 16 > cy0 + ch - 20 {
-				break
-			}
-			if j.id.len < 2 {
-				continue
-			}
-			bg2 := if row % 2 == 0 { app.pnl_card } else { app.pnl_bg }
-			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
-			app.gg.draw_text(inner_x + 6, y + 3, j.id[..if j.id.len > 14 { 14 } else { j.id.len }], gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			app.gg.draw_text(inner_x + 160, y + 3, 'job • ${j.status}', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			app.gg.draw_text(inner_x + 320, y + 3, 'exit ${j.exit_code}', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-			y += 18
-			row++
-		}
-		if swarms.len == 0 && jobs.len == 0 {
-			app.gg.draw_text(inner_x + 6, y + 4, 'No runs yet — launch via Swarm (pair/team/full) or Loops. Cost will appear here durably.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		}
-		// footer spark seed
-		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Ledger persisted via StateRepository + EventBus • VJOBS=2 distinct-until-changed', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	} else if app.insights_tab == 'waterfall' {
-		app.gg.draw_text(inner_x, inner_y, 'Tool Waterfall — per-agent tool spans (superior to munder OTel waterfall)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-		app.gg.draw_text(inner_x, inner_y + 18, 'Each agent row: tool spans as brass/steel bars on paper timeline — zoomed 18px rows, mono gutter', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		y0 := inner_y + 44
-		agents := if app.desktop != unsafe { nil } {
-			app.desktop.engine_agents_search('', '')
-		} else {
-			[]desktop_engine.AgentEntry{}
-		}
-		mut ay := y0
-		for idx, a in agents {
-			if ay + 20 > cy0 + ch - 24 {
-				break
-			}
-			if idx > 7 {
-				break
-			}
-			app.gg.draw_text(inner_x, ay + 3, a.id[..if a.id.len > 12 { 12 } else { a.id.len }], gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			// Tool spans are drawn only when the Engine exposes measured spans.
-			// Agent identity alone is not evidence that a tool call occurred.
-			app.gg.draw_text(inner_x + inner_w - 80, ay + 3, a.tier, gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-			ay += 20
-		}
-		if agents.len == 0 {
-			app.gg.draw_text(inner_x, y0 + 4, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		} else {
-			app.gg.draw_text(inner_x + 110, y0 + 4, 'No measured tool spans yet.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		}
-		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Waterfall 60 FPS — retained geometry, viewport culling, text measurement via vglyph', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	} else if app.insights_tab == 'spans' {
-		app.gg.draw_text(inner_x, inner_y, 'OTel Spans — live collection (superior to munder trace viewer)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-		mut y := inner_y + 40
-		spans := if app.desktop != unsafe { nil } {
-			app.desktop.engine_job_stats()
-		} else {
-			desktop_engine.JobStats{}
-		}
-		pids, drops := app.desktop.engine_process_supervisor_stats()
-		app.gg.draw_text(inner_x + 6, y, 'Jobs: pids=${pids} drops=${drops} total=${spans.total} running=${spans.running} failed=${spans.failed}', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-		y += 20
-		app.gg.draw_text(inner_x + 6, y + 4, 'Measured spans will appear after a real job, loop, or swarm emits telemetry.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Spans via EventBus process_log • durable ledger • no shell exec', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	} else if app.insights_tab == 'budgets' {
-		app.gg.draw_text(inner_x, inner_y, 'Budgets — swarm + loops ledger (pair/team/full 900k/1.2M + per-loop max_tokens)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-		loops := if app.desktop != unsafe { nil } {
-			app.desktop.engine_loop_history('')
-		} else {
-			[]desktop_engine.LoopHistory{}
-		}
-		mut y := inner_y + 40
-		app.gg.draw_text(inner_x + 6, y + 4, 'No budget measurements yet.', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		y += 22
-		if loops.len > 0 {
-			app.gg.draw_text(inner_x + 6, y + 10, 'Recent loop history: ${loops.len} entries', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-			y += 30
-			for hi, hrow in loops {
-				if hi >= 8 || y + 16 > cy0 + ch - 40 {
-					break
-				}
-				bg2 := if hi % 2 == 0 { app.pnl_card } else { app.pnl_bg }
-				app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
-				app.gg.draw_text(inner_x + 6, y + 3, hrow.loop_name, gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-				app.gg.draw_text(inner_x + 160, y + 3, '${hrow.status} · exit ${hrow.exit_condition}', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-				app.gg.draw_text(inner_x + 340, y + 3, '${hrow.budget_spent} tok · ${hrow.duration_ms}ms', gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-				app.gg.draw_text(inner_x + inner_w - 90, y + 3, hrow.run_id, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-				y += 18
-			}
-		}
-		app.gg.draw_text(inner_x, cy0 + ch - 18, 'Budgets enforced via StateRepository • logistic 4*t*(1-t) GOD priority • VJOBS=2 serialized', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	} else if app.insights_tab == 'ci' {
-		app.gg.draw_text(inner_x, inner_y, 'CI Watcher — live fleet + validate.yml (superior to munder CI watch)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-		app.gg.draw_text(inner_x, inner_y + 18, 'Watches .github/workflows/validate.yml via StateWatcher + PollingWatcher — no refresh', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		mut y := inner_y + 42
-		// CI jobs matrix (paper tape). A workflow name is not a result; show
-		// neutral state until a connected provider reports an observation.
-		jobs_ci := ['validate (VJOBS=2)', 'megalinter', 'check-planes', 'check-surface', 'catalogs',
-			'provenance', 'build-cli']
-		for i, j in jobs_ci {
-			if y + 16 > cy0 + ch - 24 {
-				break
-			}
-			bg2 := if i % 2 == 0 { app.pnl_card } else { app.pnl_bg }
-			app.gg.draw_rect_filled(inner_x, y, inner_w, 16, bg2)
-			status := 'Not observed'
-			scol := app.pnl_text_mut
-			app.gg.draw_text(inner_x + 6, y + 3, j, gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
-			app.gg.draw_text(inner_x + inner_w - 80, y + 3, status, gg.TextCfg{ color: scol, size: 11 })
-			y += 18
-		}
-		app.gg.draw_text(inner_x, cy0 + ch - 18, 'CI watcher debounced 16ms distinct-until-changed • bottom terminal streams live logs', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	} else if app.insights_tab == 'realtime' {
-		draw_insights_realtime(mut app, cy0, ch, inner_x, inner_y, inner_w)
-	} else if app.insights_tab == 'gallery' {
-		draw_insights_gallery(mut app, cy0, ch, inner_x, inner_y, inner_w)
-	} else {
-		app.gg.draw_text(inner_x, inner_y + 20, 'Select a tab above — Cost, Waterfall, Spans, Budgets, CI, Realtime, Gallery', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-	}
-}
-
-// draw_insights_realtime — live EventBus feed + GOD envelope flow (6th tab, native parity with web)
-fn draw_insights_realtime(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y int, inner_w int) {
-	app.gg.draw_text(inner_x, inner_y, 'Realtime — EventBus live feed (swarm_handoff · state_changed · process_log)', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-	app.gg.draw_text(inner_x, inner_y + 18, 'GOD envelopes ${app.god_inbox} in · ${app.god_outbox} out · rev ${app.engine_rev} · api ${app.api_calls} — one tick, no polling', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	// GOD flow meter reflects observed envelopes only; zero is a valid idle state.
-	app.gg.draw_rect_filled(inner_x, inner_y + 36, inner_w, 10, app.pnl_card)
-	if app.god_inbox > 0 || app.god_outbox > 0 {
-		app.gg.draw_rect_filled(inner_x, inner_y + 36, inner_w / 3, 10, tint(app.pnl_select, 110))
-	}
-	app.gg.draw_rect_empty(inner_x, inner_y + 36, inner_w, 10, app.pnl_border)
-	app.gg.draw_text(inner_x + inner_w - 110, inner_y + 37, 'Observed flow', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
-	// live feed — engine log collector, newest last
-	all_logs := collect_engine_logs(app)
-	mut y := inner_y + 58
-	avail := cy0 + ch - 40 - y
-	mut vis := avail / 17
-	if vis < 1 {
-		vis = 1
-	}
-	mut start := all_logs.len - vis
-	if start < 0 {
-		start = 0
-	}
-	for idx in start .. all_logs.len {
-		l := all_logs[idx]
-		row := idx - start
-		yy := y + row * 17
-		bg2 := if row % 2 == 0 { app.pnl_card } else { app.pnl_bg }
-		app.gg.draw_rect_filled(inner_x, yy, inner_w, 16, bg2)
-		app.gg.draw_rect_filled(inner_x + 4, yy + 5, 5, 5, term_level_color(l.level))
-		app.gg.draw_text(inner_x + 16, yy + 2, l.ts, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-		app.gg.draw_text(inner_x + 90, yy + 2, l.source, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-		mut msg := l.msg
-		if msg.len > 52 {
-			msg = msg[..52] + '…'
-		}
-		app.gg.draw_text(inner_x + 170, yy + 2, msg, gg.TextCfg{ color: app.pnl_text, size: 11 })
-	}
-	app.gg.draw_text(inner_x, cy0 + ch - 22, 'Feed via desktop_engine EventBus · durable receipts · VJOBS=2 serialized', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-}
-
-// draw_insights_gallery — the living stationery style-guide (7th tab: brand + tokens)
-fn draw_insights_gallery(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y int, inner_w int) {
-	app.gg.draw_text(inner_x, inner_y, 'Gallery — the Paper Co. design system, live from tokens', gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
-	app.gg.draw_text(inner_x, inner_y + 18, 'filing-cabinet: canvas #F3EBDD · paper #FFF9ED · cabinet #171C1F · selection #9A6416', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	// palette swatches — paint chips (paper-sample card)
-	swatch_names := ['paper', 'cream', 'manila', 'kraft', 'steel', 'ink', 'rust', 'brass', 'sage']
-	swatch_cols := [app.pnl_bg, app.pnl_bg, app.pnl_card_sel, app.pnl_border, app.pnl_text_mut,
-		app.pnl_text, app.pnl_danger, app.pnl_select, app.pnl_success]
-	dark_swatches := ['ink', 'rust', 'brass']
-	mut sx := inner_x
-	mut sy := inner_y + 44
-	for i in 0 .. swatch_names.len {
-		if i == 5 {
-			sx = inner_x
-			sy += 64
-		}
-		app.gg.draw_rect_filled(sx, sy, 74, 44, swatch_cols[i])
-		app.gg.draw_rect_empty(sx, sy, 74, 44, app.pnl_border)
-		swatch_txt_col := if swatch_names[i] in dark_swatches { app.pnl_bg } else { app.pnl_text }
-		app.gg.draw_text(sx + 6, sy + 30, swatch_names[i], gg.TextCfg{
-			color: swatch_txt_col
-			size: 10
-			bold: true
-		})
-		sx += 80
-	}
-	// type specimens
-	ty := sy + 84
-	app.gg.draw_text(inner_x, ty, 'Fraunces Display — letterheads & headlines 22', gg.TextCfg{
-		color: app.pnl_text
-		size: 22
-		family: app.fonts.display
-	})
-	app.gg.draw_text(inner_x, ty + 34, 'IBM Plex Sans — body copy 15, the humanist grotesk of the office memo.', gg.TextCfg{ color: app.pnl_text, size: 15 })
-	app.gg.draw_text(inner_x, ty + 58, 'IBM Plex Mono — receipts, logs, 13px typewriter', gg.TextCfg{ color: app.pnl_text_mut, size: 13, mono: true })
-	// components row — buttons + rivet card
-	comp_y := ty + 92
-	app.gg.draw_rect_filled(inner_x, comp_y, 96, 22, app.pnl_select)
-	app.gg.draw_text(inner_x + 24, comp_y + 5, 'Primary', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
-	app.gg.draw_rect_filled(inner_x + 108, comp_y, 96, 22, app.pnl_bg)
-	app.gg.draw_rect_empty(inner_x + 108, comp_y, 96, 22, app.pnl_border)
-	app.gg.draw_text(inner_x + 130, comp_y + 5, 'Paper', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	app.gg.draw_rect_filled(inner_x + 216, comp_y, 96, 22, app.pnl_card_sel)
-	app.gg.draw_rect_empty(inner_x + 216, comp_y, 96, 22, app.pnl_border_hi)
-	app.gg.draw_text(inner_x + 240, comp_y + 5, 'Manila', gg.TextCfg{ color: app.pnl_text, size: 11 })
-	app.gg.draw_rect_filled(inner_x + 324, comp_y, 96, 22, app.pnl_danger)
-	app.gg.draw_text(inner_x + 348, comp_y + 5, 'Rust', gg.TextCfg{ color: app.pnl_bg, size: 11, bold: true })
-	// rivet card specimen
-	rc_x := inner_x + inner_w - 190
-	app.gg.draw_rect_filled(rc_x, comp_y - 6, 180, 66, app.pnl_card)
-	app.gg.draw_rect_empty(rc_x, comp_y - 6, 180, 66, app.pnl_border)
-	app.gg.draw_rect_filled(rc_x + 6, comp_y, 6, 6, tint(app.pnl_select, 180))
-	app.gg.draw_rect_filled(rc_x + 168, comp_y, 6, 6, tint(app.pnl_select, 180))
-	app.gg.draw_text(rc_x + 20, comp_y + 12, 'Rivet card', gg.TextCfg{
-		color: app.pnl_text
-		size: 14
-		family: app.fonts.display
-	})
-	app.gg.draw_text(rc_x + 20, comp_y + 30, 'perforated feed strip', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
-	gallery_note := 'tokens: theme/tokens.v · Fraunces + IBM Plex OFL in assets/fonts · 4-lang EN/ES/中文/عربي'
-	app.gg.draw_text(inner_x, cy0 + ch - 22, gallery_note, lang_cfg(app, gallery_note, gg.TextCfg{ color: app.pnl_text_mut, size: 10 }))
 }
 
 // inspector_log_rect returns the log window rectangle draw_inspector really
@@ -8104,6 +7561,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if operations_scroll(mut app, delta, w3, h3) {
 			return
 		}
+		// insights tables scroll (VC7) — same geometry as draw_ins_table
+		if app.selected_panel == 12 && insights_scroll_by(mut app, delta, w3, h3) {
+			return
+		}
 		// workspace IDE scroll — file tree, editor, git, memory palace (super potent)
 		if app.selected_panel == 9 {
 			l := workspace_layout(app, w3, h3)
@@ -8293,6 +7754,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if office_roster_click(mut app, mx, my, w, h) {
 				return
 			}
+		}
+		// VC7 (#1173): Workspace / Insights own the right column — their tabs,
+		// rows and detail sheets take the click before the inspector geometry.
+		if !onb_shell_active && app.selected_panel == 9
+			&& workspace_detail_click(mut app, mx, my, w, h) {
+			return
+		}
+		if !onb_shell_active && app.selected_panel == 12 && insights_click(mut app, mx, my, w, h) {
+			return
 		}
 		// Inspector buttons — clickable
 		ix := inspector_x(app, w)
@@ -8512,21 +7982,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Insights — telemetry tabs: cost | waterfall | spans | budgets | ci | realtime | gallery
-		if app.selected_panel == 12 {
-			fx_i := panel_fx(app)
-			fy_i := 52
-			tabs_i := ['cost', 'waterfall', 'spans', 'budgets', 'ci', 'realtime', 'gallery']
-			for i in 0 .. tabs_i.len {
-				x := fx_i + 16 + i * (84 + 6)
-				y := fy_i + 48
-				if mx >= x && mx <= x + 84 && my >= y && my <= y + 22 {
-					app.insights_tab = tabs_i[i]
-					app.inspector_msg = 'Insights → ${tabs_i[i]} • telemetry via Engine (no shell)'
-					return
-				}
-			}
-		}
+		// Insights tabs / rows / details: handled by insights_click above (VC7).
 		// Workspace IDE — file-tree, editor tabs, git rails CHANGES/HISTORY/COMPARE, commit graph, diff, memory palace
 		// Super potent: brokered fs via Engine.open_path_validated (harness_root_escape), syntax, graph lanes, semantic recall
 		if app.selected_panel == 9 {
@@ -8548,15 +8004,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.ghost_focused = false
 					return
 				}
-				if mx >= l.validate_x && mx <= l.validate_x + 64 {
+				if mx >= l.validate_x && mx <= l.validate_x + l.validate_w {
 					validate_workspace_draft(mut app)
 					return
 				}
-				if mx >= l.switch_x && mx <= l.switch_x + 64 {
+				if mx >= l.switch_x && mx <= l.switch_x + l.switch_w {
 					apply_workspace(mut app, app.workspace_draft, 'Manual')
 					return
 				}
-				if mx >= l.init_x && mx <= l.init_x + 58 {
+				if mx >= l.init_x && mx <= l.init_x + l.init_w {
 					initialize_workspace(mut app)
 					return
 				}
@@ -8946,18 +8402,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// VC6 (#1173): Operations hover (tabs, controls, rows, detail actions)
 		operations_hover(mut app, app.gg.width, app.gg.height)
-		// insights hover — telemetry tabs
+		// insights hover — tabs share insights_layout with drawing (VC7)
 		if app.selected_panel == 12 {
-			fx_i2 := 208
-			fy_i2 := 52
-			for i in 0 .. 5 {
-				x := fx_i2 + 16 + i * (92 + 6)
-				y := fy_i2 + 48
-				if app.mouse_x >= x && app.mouse_x <= x + 92 && app.mouse_y >= y && app.mouse_y <= y + 20 {
-					app.insights_hover = i
-					break
-				}
-			}
+			insights_hover_at(mut app, app.mouse_x, app.mouse_y, app.gg.width, app.gg.height)
 		}
 		// onboarding wizard hover — distinct overlay steps 0..6 progress + Next/Finish/Skip
 		if app.show_onboarding || app.selected_panel == 11 {
