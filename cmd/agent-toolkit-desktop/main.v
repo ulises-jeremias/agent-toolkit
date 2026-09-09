@@ -7619,7 +7619,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			rail_y := l.mid_y
 			for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
 				rx := l.fx + l.fw - l.git_w - 12 + 6 + ri * l.git_tab_w
-				if mx >= rx && mx <= rx + l.git_tab_w - 4 && my >= rail_y && my <= rail_y + 22 {
+				if l.mid_h > 0 && mx >= rx && mx <= rx + l.git_tab_w - 4 && my >= rail_y
+					&& my <= rail_y + 22 {
 					app.git_rail = rn
 					app.git_scroll = 0
 					return
@@ -7691,7 +7692,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			ed_x := l.fx + 12 + l.tree_w + 4
 			ed_w := l.fw - 24 - l.tree_w - 4 - l.git_w
 			ed_y := l.mid_y
-			if app.editor_tabs.len > 0 && mx >= ed_x && mx <= ed_x + ed_w && my >= ed_y + 6 && my <= ed_y + 24 {
+			if l.mid_h > 0 && app.editor_tabs.len > 0 && mx >= ed_x && mx <= ed_x + ed_w
+				&& my >= ed_y + 6 && my <= ed_y + 24 {
 				mut tx := ed_x + 6
 				for i, tab in app.editor_tabs {
 					tw := tab.title.len * 7 + 28
