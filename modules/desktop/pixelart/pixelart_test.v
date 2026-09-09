@@ -95,6 +95,59 @@ fn test_mapping_coverage() {
 	}
 }
 
+// Material swaps: same grid, remapped keys, distinct name; malformed maps
+// return the sprite unchanged.
+fn test_with_materials() {
+	base := environment_for(.bookshelf_wide)
+	light := with_materials(base, 'Ww', 'wW', '-light')
+	assert light.name == base.name + '-light'
+	assert light.rows.len == base.rows.len
+	assert light.rows[0] != base.rows[0]
+	assert light.rows[0].contains('w') && !light.rows[0].contains('W')
+	assert with_materials(base, 'W', 'wx', '-bad').name == base.name
+	known := [
+		u8(`k`), u8(`p`), u8(`P`), u8(`m`), u8(`M`), u8(`b`), u8(`B`),
+		u8(`w`), u8(`W`), u8(`f`), u8(`F`), u8(`s`), u8(`S`), u8(`t`),
+		u8(`a`), u8(`n`), u8(`N`), u8(`h`), u8(`c`), u8(`C`), u8(`e`),
+		u8(`l`), u8(`r`),
+	]
+	assert light.validate(known).len == 0
+}
+
+// LRU bookkeeping: the victim is always the least-recently-touched key, and
+// the bound leaves headroom under sokol's 64-sampler default pool.
+fn test_lru_victim() {
+	assert lru_victim({}) == ''
+	mut lu := map[string]u64{}
+	lu['a'] = 5
+	lu['b'] = 2
+	lu['c'] = 9
+	assert lru_victim(lu) == 'b'
+	lu['b'] = 10
+	assert lru_victim(lu) == 'a'
+	assert max_gpu_images < 64
+}
+
+// VC5 library marks: every enum value resolves, every mark sprite is in the
+// manifest, every mark is a 16×16 grid, and the domain mapper never drops a
+// catalog domain (unknown → generic doc mark).
+fn test_library_marks() {
+	mut in_manifest := map[string]bool{}
+	for s in all_sprites() {
+		in_manifest[s.name] = true
+	}
+	for m in all_library_marks() {
+		s := mark_for(m)
+		assert s.width() == 16 && s.height() == 16, '${s.name} must be 16×16'
+		assert in_manifest[s.name], '${s.name} missing from all_sprites()'
+	}
+	assert mark_for_domain('design').name == 'mark-design'
+	assert mark_for_domain('agentic-security').name == 'mark-security'
+	assert mark_for_domain('Delivery').name == 'mark-delivery'
+	assert mark_for_domain('no-such-domain').name == 'mark-doc'
+	assert mark_for_domain('').name == 'mark-doc'
+}
+
 // Package/clean-machine: the module is pure V (no file I/O at sprite build
 // time). This test pins that: expansion works in an empty CWD.
 fn test_expansion_works_from_any_cwd() {
