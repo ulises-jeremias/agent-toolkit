@@ -1029,10 +1029,10 @@ mut:
 	targets_hover                int = -1
 	onboarding_scroll            int
 	// VC4 setup journey (#1173): user-facing choices; Engine keeps the truth
-	onb_choice                   int  // 0 set up for me, 1 existing setup, 2 find my setup
-	onb_ws_choice                int  // 0 create new workspace, 1 reuse existing
-	onb_cap_on                   []bool = [true, true, true, true]
-	onb_diag                     bool // internals live behind Details, not in the journey
+	onb_choice    int // 0 set up for me, 1 existing setup, 2 find my setup
+	onb_ws_choice int // 0 create new workspace, 1 reuse existing
+	onb_cap_on    []bool = [true, true, true, true]
+	onb_diag      bool // internals live behind Details, not in the journey
 	// global zoom — paper office scaling 0.75-1.50, 60FPS culling safe
 	global_zoom   f64 = 1.0
 	zoom_toast    string
@@ -2574,6 +2574,12 @@ fn frame(mut app GuiApp) {
 			2 { app.gg.height - 44 - 28 }
 			else { 148 }
 		}
+		// the onboarding shell owns the screen: cap the terminal at the
+		// source so the VT row budget, draw_terminal and onb_layout all agree
+		// (a MAX terminal would otherwise hide the board entirely)
+		if (app.show_onboarding || app.selected_panel == 11) && app.term_height > 120 {
+			app.term_height = 120
+		}
 	}
 	// libghostty-vt resize to fit terminal area — potent: derive cols/rows from actual pixel area
 	// 80x18 is the logical default, but bottom strip is ~148px tall → dynamic 76x8 at 1280 width.
@@ -2630,8 +2636,9 @@ fn frame(mut app GuiApp) {
 		draw_left_dock(mut app, h)
 	}
 	// MAX terminal owns the content area — skip panel + inspector rendering
-	// (negative-height panels would smear texts over the chrome)
-	if app.term_mode == 2 {
+	// (negative-height panels would smear texts over the chrome). Not while
+	// onboarding owns the screen: its terminal is capped, the board must draw.
+	if app.term_mode == 2 && !onb_shell_active {
 		draw_terminal(mut app, w, h)
 		app.gg.end()
 		return
@@ -6438,7 +6445,6 @@ fn utf8_truncate(s string, max_runes int) string {
 	return r[..max_runes].string()
 }
 
-
 // ── Insights — telemetry super-potent: cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher ──
 // Superior to munder-difflin: combines munder's cost ledger + tool waterfall + CI watcher in one paper-telemetry
 // surface, plus budget sparks (402x per-swarm logistic chaos) and OTel spans with Dunder rust/brass paper.
@@ -6994,10 +7000,8 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 // ~12-15% of the window, well under the production 1x/2x heights, which
 // otherwise starve the board of the room its five sheets need.
 pub fn onb_effective_term_h(app &GuiApp) int {
-	onb_active := app.show_onboarding || app.selected_panel == 11
-	if onb_active && app.term_height > 120 {
-		return 120
-	}
+	// the cap is applied where term_height is computed (frame()); this stays
+	// as the single accessor onb_layout and draw_terminal share
 	return app.term_height
 }
 

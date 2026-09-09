@@ -158,7 +158,6 @@ pub fn draw_onboarding_masthead_shell(mut app GuiApp, w int) {
 // illustration with an editorial quote filling the rest of the column.
 pub fn draw_onboarding_sidebar(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
-	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	mh := onb_mast_h(h)
 	x0 := dock_x(app, w)
@@ -266,7 +265,9 @@ fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
 	fy := mh
 	fh := h - mh - 28 - term_h
 	side_w := if w >= 1180 { 340 } else { 0 }
-	fx := dock_x(app, w) + dock_w + 16
+	rtl := app.lang.is_rtl()
+	// LTR: dock | board | preview.  RTL: preview | board | dock.
+	fx := if rtl { side_w + 16 } else { dock_x(app, w) + dock_w + 16 }
 	fw := w - dock_w - 16 - side_w - 16
 	compact := fw < 700 || fh < 480
 	welc_y := fy + 6
@@ -321,11 +322,20 @@ fn onb_sec_rect(l OnbLayout, i int) (int, int, int, int) {
 	// own sheet into the row beneath it. Review — the most gracefully
 	// degrading sheet, it already truncates rows honestly — gets whatever
 	// height remains instead of forcing the rows to compress.
-	row0 := 158
-	row1 := 126
+	mut row0 := 158
+	mut row1 := 126
+	rev_min := 92
+	need := row0 + row1 + rev_min + 2 * gap
+	if avail < need {
+		// short board (e.g. 1024x640 with the terminal hidden is not compact
+		// yet): shrink the two rows proportionally so review + footer still fit
+		shrink := avail - rev_min - 2 * gap
+		row0 = shrink * 158 / (158 + 126)
+		row1 = shrink - row0
+	}
 	mut rev_h := avail - row0 - row1 - 2 * gap
-	if rev_h < 92 {
-		rev_h = 92
+	if rev_h < rev_min {
+		rev_h = rev_min
 	}
 	if i == 4 {
 		return l.fx, l.body_y + row0 + gap + row1 + gap, l.fw, rev_h
@@ -388,7 +398,10 @@ fn onb_cap_rect(l OnbLayout, i int) (int, int, int, int) {
 	if sh < 40 {
 		return 0, 0, 0, 0
 	}
-	rh := (sh - 40) / onb_caps.len
+	mut rh := (sh - 40) / onb_caps.len
+	if rh < 22 {
+		rh = 22 // floor: an 18px box + 13px label fit; rows past the sheet are dropped
+	}
 	return sx, sy + 40 + i * rh, sw, rh - 4
 }
 
@@ -642,7 +655,6 @@ fn draw_onb_sheet_title(mut app GuiApp, l OnbLayout, sec int, title string, sub 
 
 // stage 0 — three illustrated choices, each a small composed scene
 fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
-	mut sc := app.pixel_cache
 	draw_onb_sheet_title(mut app, l, 0, 'How would you like to get started?', '')
 	for i, title in onb_choices {
 		cx, cy, cw, ch := onb_card_rect(l, 0, i, onb_choices.len)
@@ -859,7 +871,7 @@ fn draw_onb_capabilities(mut app GuiApp, l OnbLayout) {
 			break
 		}
 		on := app.onb_cap_on[i]
-		box := if ch > 34 { 22 } else { 18 }
+		box := if ch > 34 { 22 } else { 16 }
 		app.gg.draw_rect_filled(cx + 14, cy + (ch - box) / 2, box, box, if on {
 			app.pnl_success
 		} else {
