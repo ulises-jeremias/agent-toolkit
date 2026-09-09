@@ -47,6 +47,28 @@ fn test_panel_nav_from_skills() {
 	assert app.selected_panel == 10, 'p must jump to Products, got panel ${app.selected_panel}'
 }
 
+// The Library search field owns the letters the global shortcuts use (h =
+// help, r = handoff) while a Library panel is active — otherwise "github" or
+// "review" cannot be typed. Outside the Library, h still toggles help.
+fn test_library_search_owns_h_and_r() {
+	mut app := &GuiApp{
+		selected_panel: 3
+	}
+	for c in 'hr' {
+		on_event(nav_key_event(u32(c)), mut app)
+	}
+	assert app.skills_query == 'hr', 'h and r must reach the Library search, got: ${app.skills_query}'
+	assert !app.show_help, 'h must not toggle help while the Library search has focus'
+	on_event(nav_key_event(u32(` `)), mut app)
+	assert app.skills_query == 'hr ', 'space must be typed into the search, got: ${app.skills_query}'
+
+	mut office := &GuiApp{
+		selected_panel: 0
+	}
+	on_event(nav_key_event(u32(`h`)), mut office)
+	assert office.show_help, 'h still toggles help outside the Library'
+}
+
 fn test_panel_nav_from_mcp_and_workspace() {
 	mut app := &GuiApp{
 		selected_panel: 3

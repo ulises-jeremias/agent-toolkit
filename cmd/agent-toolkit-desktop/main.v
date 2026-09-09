@@ -3790,12 +3790,11 @@ fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance s
 	app.mcp_drawer_from_file = from_file
 	app.mcp_drawer_provenance = provenance
 	app.mcp_drawer_receipt = '${receipt.receipt_path} · writes ${will}'
-	if !mcp_probe_fresh(app, id) {
-		mcp_run_probe(mut app, id, false)
-	}
-	// no inspector_msg here: this runs on card *selection* and every
-	// inspector_msg becomes a toast — selection must stay silent, only
-	// actions announce themselves (the drawer state is visible in the pane)
+	// no probe and no inspector_msg here: this runs on card *selection* (and
+	// lazily from the detail pane draw), so it must stay cheap and silent —
+	// template + receipt loading only. The probe (synchronous validation +
+	// health check) runs only from the explicit Probe action (lib_secondary),
+	// which also owns the toast. The pane shows "not run — press Probe" until then.
 }
 
 // mcp_open_template routes to the Workspace panel with the template loaded
@@ -7622,6 +7621,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.palette_selected = 0
 			return
 		}
+		// VC5 (#1173): the Library tabs (Skills/Agents/Products/MCP) share one
+		// search field and one key handler — typing filters (spaces included),
+		// ←/→ select, ↑/↓ scroll rows, Enter runs the primary Engine action
+		// (library_view.v). Like header_search_focus above, the field owns
+		// printable letters *before* the global letter shortcuts (h help,
+		// r handoff) so "github" / "review" can actually be typed; the
+		// documented nav keys (digits, p/i/o) still fall through.
+		if !app.palette_open && !app.show_help && lib_is_panel(app.selected_panel) {
+			if library_key(mut app, e) {
+				return
+			}
+		}
 		if e.char_code == `h` || e.char_code == `H` {
 			app.show_help = !app.show_help
 			return
@@ -7637,15 +7648,6 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// super potent IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
 		// When skills or workspace panels active, capture typing there instead of ghost (easy to manage, brokered)
 		if !app.palette_open && !app.show_help {
-			// VC5 (#1173): the Library tabs (Skills/Agents/Products/MCP) share one
-			// search field and one key handler — typing filters, ←/→ select,
-			// ↑/↓ scroll rows, Enter/space runs the primary Engine action
-			// (library_view.v). Documented nav keys still fall through.
-			if lib_is_panel(app.selected_panel) {
-				if library_key(mut app, e) {
-					return
-				}
-			}
 			// Doctor panel — f fixes all via Engine TX, Enter opens dry-run preview
 			// (Enter again confirms, Esc cancels), real repair + audit stamp
 			if app.selected_panel == 5 {

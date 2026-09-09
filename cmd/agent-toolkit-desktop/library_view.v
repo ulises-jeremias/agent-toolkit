@@ -145,15 +145,27 @@ fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
 	// the rest. Hidden when that rest is too narrow to read as a scene.
 	sub_px := tr(app, 'lib.subtitle').runes().len * 7 + 20
 	shelf_px := 14 + 14 * 3 + 14
-	title_px := fx + shelf_px + sub_px
-	mut banner_x := if title_px > fx + fw / 2 { title_px } else { fx + fw / 2 }
-	mut banner_w := (w - 8) - banner_x
+	title_need := shelf_px + sub_px // room the header text block needs
+	mut banner_x := 0
+	mut banner_w := 0
+	if rtl {
+		// mirrored: the header text sits at the right end of the panel and
+		// the banner takes the left half of the content row (window edge →
+		// wherever the text block begins), so it never covers the title
+		mut banner_end := fx + fw - title_need
+		if banner_end > fx + fw / 2 {
+			banner_end = fx + fw / 2
+		}
+		banner_x = 8
+		banner_w = banner_end - 8
+	} else {
+		title_px := fx + title_need
+		banner_x = if title_px > fx + fw / 2 { title_px } else { fx + fw / 2 }
+		banner_w = (w - 8) - banner_x
+	}
 	if compact || banner_w < 300 {
 		banner_w = 0
-		banner_x = fx + fw
-	}
-	if rtl {
-		banner_x = 8
+		banner_x = if rtl { fx } else { fx + fw }
 	}
 	return LibLayout{
 		fx: fx
@@ -201,10 +213,16 @@ fn lib_chip_w(label string) int {
 	return label.len * 6 + 20
 }
 
-// lib_chip_rows measures how many chip rows the current tab's labels need
-// (capped at 2 — every chip stays reachable, the grid keeps its room).
+// lib_chip_rows measures how many chip rows the current tab's labels need.
+// Rows grow with the catalog (no cap): every chip is drawn and hit-testable,
+// and the grid below recomputes from chips_h. The chip list is catalog-
+// driven (Skills domains), so a silently dropped chip would be a filter the
+// user can never reach.
 fn lib_chip_rows(mut app GuiApp, fx int, fw int) int {
-	labels := lib_chips(mut app)
+	return lib_chip_rows_for(lib_chips(mut app), fx, fw)
+}
+
+fn lib_chip_rows_for(labels []string, fx int, fw int) int {
 	mut x := fx + 12
 	mut rows := 1
 	for lb in labels {
@@ -215,11 +233,12 @@ fn lib_chip_rows(mut app GuiApp, fx int, fw int) int {
 		}
 		x += cw + 6
 	}
-	return if rows > 2 { 2 } else { rows }
+	return rows
 }
 
-// lib_chip_rect returns the rect for chip i of labels (w == 0 when the chip
-// does not fit in the two allowed rows).
+// lib_chip_rect returns the rect for chip i of labels — the same wrapping
+// walk as lib_chip_rows, so drawing and hit-testing never disagree. w == 0
+// only for an out-of-range index.
 fn lib_chip_rect(l LibLayout, labels []string, i int) (int, int, int, int) {
 	mut x := l.fx + 12
 	mut row := 0
@@ -228,9 +247,6 @@ fn lib_chip_rect(l LibLayout, labels []string, i int) (int, int, int, int) {
 		if x + cw > l.fx + l.fw - 12 && x > l.fx + 12 {
 			row++
 			x = l.fx + 12
-		}
-		if row > 1 {
-			return 0, 0, 0, 0
 		}
 		if j == i {
 			return x, l.chips_y + row * 28, cw, 24
@@ -692,13 +708,20 @@ fn draw_library(mut app GuiApp, w int, h int) {
 
 fn draw_lib_header(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
-	x := l.fx + 14
+	rtl := app.lang.is_rtl()
 	y := l.head_y
-	// bookshelf mark at the left of the title, like the reference
+	// bookshelf mark beside the title, like the reference; in RTL the mark
+	// hugs the panel's right edge and the text block starts where the
+	// (left-side) banner ends
 	shelf := pixelart.environment_for(.shelf)
 	s := if l.compact { 2 } else { 3 }
+	x := if rtl { l.fx + l.fw - 14 - shelf.width() * s } else { l.fx + 14 }
 	sc.draw(shelf, pid, x, y + (l.head_h - shelf.height() * s) / 2 - 2, s)
-	tx := x + shelf.width() * s + 14
+	tx := if rtl {
+		if l.banner_w > 0 { l.banner_x + l.banner_w + 12 } else { l.fx + 14 }
+	} else {
+		x + shelf.width() * s + 14
+	}
 	title := tr(app, 'nav.group.library')
 	app.gg.draw_text(tx, y + (if l.compact { 2 } else { 10 }), title, gg.TextCfg{
 		color: app.pnl_text
@@ -706,7 +729,13 @@ fn draw_lib_header(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 		family: app.fonts.display
 	})
 	sub := tr(app, 'lib.subtitle')
-	max_px := if l.banner_w > 0 { l.banner_x - tx - 12 } else { l.fw - (tx - l.fx) - 20 }
+	max_px := if rtl {
+		x - tx - 12
+	} else if l.banner_w > 0 {
+		l.banner_x - tx - 12
+	} else {
+		l.fw - (tx - l.fx) - 20
+	}
 	app.gg.draw_text(tx, y + (if l.compact { 30 } else { 46 }), utf8_truncate(sub, onb_fit(max_px, 13)), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 13
@@ -1871,11 +1900,14 @@ fn library_key(mut app GuiApp, e &gg.Event) bool {
 		}
 		return true
 	}
-	if e.key_code == .enter || e.char_code == ` ` {
+	if e.key_code == .enter {
 		lib_primary(mut app)
 		return true
 	}
-	if e.char_code > 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
+	// the shared search field owns printable text while a Library panel is
+	// active — including spaces, so multi-word queries ("code review") work;
+	// documented nav keys (digits, p/i/o) still fall through
+	if e.char_code >= 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
 		app.skills_query += rune(e.char_code).str()
 		lib_set_scroll_row(mut app, 0)
 		return true

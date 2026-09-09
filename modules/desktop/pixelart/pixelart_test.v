@@ -169,6 +169,12 @@ fn test_authored_dimensions() {
 	assert env_desk.width() == 18 && env_desk.height() == 12
 	assert env_rug.width() == 24 && env_rug.height() == 10
 	assert env_meeting.width() == 20 && env_meeting.height() == 10
+	// VC5 library props — layout code reads these widths, so they are pinned
+	assert env_bookshelf_wide.width() == 24 && env_bookshelf_wide.height() == 22
+	assert env_globe.width() == 10 && env_globe.height() == 12
+	assert env_scroll.width() == 12 && env_scroll.height() == 8
+	assert env_chalkboard.width() == 20 && env_chalkboard.height() == 12
+	assert env_ladder.width() == 6 && env_ladder.height() == 16
 }
 
 // Cache identity: every (sprite, palette, scale) triple maps to a distinct

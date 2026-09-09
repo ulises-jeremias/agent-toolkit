@@ -627,7 +627,11 @@ const env_picture = Sprite{
 // Library header banner (four shelves of mixed spines), the globe and scroll
 // dress the shelves, the chalkboard carries the banner's decorative sign and
 // the ladder leans against the tall shelf. Illustration only: shelf contents
-// never encode catalog counts.
+// never encode catalog counts. Authored grids (pinned by
+// test_authored_dimensions): bookshelf_wide 24×22, globe 10×12, scroll 12×8,
+// chalkboard 20×12, ladder 6×16.
+
+// wide bookshelf (24×22): light-frame variant is derived with with_materials.
 const env_bookshelf_wide = Sprite{
 	name: 'env-bookshelf-wide'
 	rows: [
@@ -656,6 +660,7 @@ const env_bookshelf_wide = Sprite{
 	]
 }
 
+// globe on a brass stand (10×12).
 const env_globe = Sprite{
 	name: 'env-globe'
 	rows: [
@@ -674,6 +679,7 @@ const env_globe = Sprite{
 	]
 }
 
+// rolled document (12×8).
 const env_scroll = Sprite{
 	name: 'env-scroll'
 	rows: [
@@ -688,6 +694,7 @@ const env_scroll = Sprite{
 	]
 }
 
+// chalkboard sign (20×12): the banner overlays its two words as text.
 const env_chalkboard = Sprite{
 	name: 'env-chalkboard'
 	rows: [
@@ -706,6 +713,7 @@ const env_chalkboard = Sprite{
 	]
 }
 
+// library ladder (6×16), leans against the tall shelf.
 const env_ladder = Sprite{
 	name: 'env-ladder'
 	rows: [

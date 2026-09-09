@@ -29,7 +29,12 @@ mut:
 	pixels    map[string][]u8 // keeps RGBA buffers alive behind Image.data
 	last_used map[string]u64 // monotonic tick of the last image_for() hit
 	tick      u64
-	palettes  map[PaletteId]Palette
+	// gg.Context.cache_image only ever appends; remove_cached_image_by_idx
+	// destroys the GPU resources but leaves the slot in place. Evicted slot
+	// indexes are recycled here so gg's image_cache stays bounded too, not
+	// just SpriteCache.images.
+	free_slots []int
+	palettes   map[PaletteId]Palette
 }
 
 // lru_victim returns the key with the smallest tick ('' when empty).
@@ -51,6 +56,7 @@ fn lru_victim(last_used map[string]u64) string {
 fn (mut sc SpriteCache) evict(ck string) {
 	if idx := sc.indices[ck] {
 		sc.ctx.remove_cached_image_by_idx(idx)
+		sc.free_slots << idx
 	}
 	sc.images.delete(ck)
 	sc.indices.delete(ck)
@@ -128,7 +134,19 @@ pub fn (mut sc SpriteCache) image_for(s Sprite, pid PaletteId, scale int) gg.Ima
 	if gfx.is_valid() {
 		img.init_sokol_image()
 	}
-	idx := sc.ctx.cache_image(img)
+	mut idx := -1
+	if sc.free_slots.len > 0 {
+		// reuse an evicted slot: the destroyed entry is overwritten in place
+		// (same id the slot always had), so gg's image_cache does not grow
+		idx = sc.free_slots.pop()
+		mut slot := sc.ctx.get_cached_image_by_idx(idx)
+		unsafe {
+			*slot = img
+		}
+		slot.id = idx
+	} else {
+		idx = sc.ctx.cache_image(img)
+	}
 	// The authoritative cached copy carries the gg-assigned id that
 	// draw_image uses for lookup; keep our snapshot in sync with it.
 	live := sc.ctx.get_cached_image_by_idx(idx)
@@ -171,4 +189,5 @@ pub fn (mut sc SpriteCache) clear_cache() {
 	sc.indices = {}
 	sc.pixels = {}
 	sc.last_used = {}
+	sc.free_slots = []
 }

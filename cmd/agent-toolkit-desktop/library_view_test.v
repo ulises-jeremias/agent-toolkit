@@ -66,8 +66,24 @@ fn test_lib_layout_geometry() {
 	}
 }
 
+// RTL mirrors the header: the detail column is flush left, the banner takes
+// the left half of the content row and never reaches into the panel's right
+// half where the title/subtitle block is drawn.
+fn test_lib_layout_rtl_banner() {
+	mut app := lib_test_app(1)
+	app.lang = .ar
+	l := lib_layout(mut app, 1280, 800)
+	assert l.side_x == 0
+	assert l.fx == l.side_w + 8
+	assert l.banner_w > 0, 'banner shows at 1280 in RTL'
+	assert l.banner_x == 8
+	assert l.banner_x + l.banner_w <= l.fx + l.fw / 2, 'RTL banner must stop before the title half'
+	assert l.side_y == l.tabs_y
+}
+
 // Chips: the same label list drives measurement, drawing and hit-testing;
-// every chip that has a rect sits inside the frame within the two rows.
+// every chip has a rect inside the frame and inside the measured chip band —
+// rows grow with the catalog, nothing is silently dropped.
 fn test_lib_chip_rects() {
 	mut app := lib_test_app(2)
 	l := lib_layout(mut app, 1280, 800)
@@ -78,6 +94,23 @@ fn test_lib_chip_rects() {
 		assert cw > 0, 'agent chip ${i} must fit on one row'
 		assert cx >= l.fx + 12 && cx + cw <= l.fx + l.fw - 12
 		assert cy >= l.chips_y && cy + ch <= l.chips_y + l.chips_h
+	}
+	// a long catalog-style label list on a narrow frame wraps to several
+	// rows; every label still gets a rect and the band height covers them
+	many := ['All', 'accessibility', 'agentic-security', 'architecture', 'cloud', 'core', 'data',
+		'delivery', 'design', 'forge', 'integrations', 'loops', 'ops', 'quality', 'tooling']
+	rows := lib_chip_rows_for(many, l.fx, 400)
+	assert rows >= 3, 'fifteen domain chips need more than two rows at 400px, got ${rows}'
+	narrow := LibLayout{
+		...l
+		fw: 400
+		chips_h: rows * 24 + (rows - 1) * 4
+	}
+	for i in 0 .. many.len {
+		cx, cy, cw, ch := lib_chip_rect(narrow, many, i)
+		assert cw > 0, 'chip ${many[i]} must be reachable'
+		assert cx >= narrow.fx + 12 && cx + cw <= narrow.fx + narrow.fw - 12
+		assert cy + ch <= narrow.chips_y + narrow.chips_h
 	}
 	_, _, none_w, _ := lib_chip_rect(l, labels, labels.len)
 	assert none_w == 0, 'out-of-range chip has no rect'
@@ -116,6 +149,10 @@ fn test_library_key_contract() {
 		assert app.skills_query == 'q', 'panel ${p} filters typed text'
 		assert !library_key(mut app, lib_key(.invalid, u32(`3`))), 'nav digit falls through on panel ${p}'
 		assert app.skills_query == 'q'
+		// spaces are typed, not bound to the primary action (multi-word search)
+		assert library_key(mut app, lib_key(.invalid, u32(` `)))
+		assert app.skills_query == 'q ', 'space must append to the query on panel ${p}'
+		assert library_key(mut app, lib_key(.backspace, 0))
 		assert library_key(mut app, lib_key(.backspace, 0))
 		assert app.skills_query == ''
 		app.skills_domain = 'design'
