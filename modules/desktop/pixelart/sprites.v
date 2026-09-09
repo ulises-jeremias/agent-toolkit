@@ -41,6 +41,16 @@ pub enum EnvironmentAsset {
 	scroll
 	chalkboard
 	ladder
+	// VC6 (#1173) Operations props and marks — see operations_sprites.v
+	server_rack
+	wall_clock
+	gear_mark
+	monitor_tower
+	checklist_board
+	play_mark
+	calendar_mark
+	swarm_mark
+	alert_mark
 }
 
 // Sprite is an authored pixel grid with its palette keys.
@@ -763,6 +773,15 @@ pub fn environment_for(a EnvironmentAsset) Sprite {
 		.scroll { env_scroll }
 		.chalkboard { env_chalkboard }
 		.ladder { env_ladder }
+		.server_rack { env_server_rack }
+		.wall_clock { env_wall_clock }
+		.gear_mark { env_gear_mark }
+		.monitor_tower { env_monitor_tower }
+		.checklist_board { env_checklist_board }
+		.play_mark { env_play_mark }
+		.calendar_mark { env_calendar_mark }
+		.swarm_mark { env_swarm_mark }
+		.alert_mark { env_alert_mark }
 	}
 }
 
@@ -776,6 +795,7 @@ pub fn all_sprites() []Sprite {
 		env_bookshelf_wide, env_globe, env_scroll, env_chalkboard, env_ladder,
 	]
 	out << library_mark_sprites()
+	out << operations_sprites()
 	return out
 }
 
@@ -783,7 +803,9 @@ pub fn all_sprites() []Sprite {
 pub fn all_environment_assets() []EnvironmentAsset {
 	return [.desk, .chair, .terminal, .shelf, .plant, .lamp, .cabinet, .rug,
 		.meeting_table, .board, .tray, .window, .door, .couch, .nest, .welcome_desk,
-		.sign, .books, .picture, .bookshelf_wide, .globe, .scroll, .chalkboard, .ladder]
+		.sign, .books, .picture, .bookshelf_wide, .globe, .scroll, .chalkboard, .ladder,
+		.server_rack, .wall_clock, .gear_mark, .monitor_tower, .checklist_board,
+		.play_mark, .calendar_mark, .swarm_mark, .alert_mark]
 }
 
 // all_agent_states returns every AgentVisualState (mapping coverage).
