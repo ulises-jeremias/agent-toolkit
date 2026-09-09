@@ -295,7 +295,7 @@ fn ops_columns(tab int) OpsColumns {
 			OpsColumns{['Name', 'ID', 'Status', 'Started', 'Elapsed'], [34, 18, 16, 16, 16], 2}
 		}
 		1 {
-			OpsColumns{['Name', 'Tier', 'Cadence', 'Schedule', 'Last run'], [34, 10, 14, 20, 22], 3}
+			OpsColumns{['Name', 'Tier', 'Cadence', 'Schedule', 'Last run'], [30, 9, 13, 26, 22], 3}
 		}
 		2 {
 			OpsColumns{['Name', 'Recipe', 'Backend', 'Status', 'Started'], [34, 14, 16, 20, 16], 3}
