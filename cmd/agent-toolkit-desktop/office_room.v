@@ -273,8 +273,12 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 			app.gg.draw_rect_filled(cx + 4, desk_y + 3, 3 * s, 2 * s, pc(app, `m`))
 			app.gg.draw_rect_filled(cx + 4, desk_y + 3, 3 * s, 1, pc(app, `M`))
 		}
-		sc.draw(chair, pid, cx + (dw - chw) / 2, desk_y + desk.height() * s + 2, s)
-		app.gg.draw_text(cx, cy + step - 12, desks[i].label, gg.TextCfg{
+		chair_y := desk_y + desk.height() * s + 2
+		sc.draw(chair, pid, cx + (dw - chw) / 2, chair_y, s)
+		// the label belongs to its own pod: anchor it under the chair, not
+		// at the row pitch (which drifts against the next row when the
+		// rows breathe apart on tall floors)
+		app.gg.draw_text(cx, chair_y + chh + 4, desks[i].label, gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 			mono: true
@@ -304,6 +308,8 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 		sc.draw(couch, pid, rug_x + (rug.width() * s - couch.width() * s) / 2, lounge_y, s)
 		plant_lx := rug_x + rug.width() * s + 4
 		sc.draw(plant, pid, plant_lx, lounge_y - plant.height() * s + 6, s)
-		zone_plate(mut app, rug_x, lounge_y + couch.height() * s + 10, 'lounge', app.pnl_text_mut)
+		// the sign hangs above the couch: below it would fall outside the
+		// room, behind the south baseboard
+		zone_plate(mut app, rug_x, lounge_y - 15, 'lounge', app.pnl_text_mut)
 	}
 }

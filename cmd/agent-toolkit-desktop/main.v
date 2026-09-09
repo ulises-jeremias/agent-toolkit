@@ -7311,9 +7311,8 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_empty(ix + 6, iy + 8, iw - 12, ih - 16, col_line) // drawer inset
 	app.gg.draw_rect_filled(ix + 12, iy - 6, 118, 8, app.pnl_select_hover) // folder tab
 	app.gg.draw_rect_filled(ix + 12, iy + 2, 118, 2, col_charcoal)
-	app.gg.draw_text(ix + iw / 2 - 22, iy + ih - 16, '▭', gg.TextCfg{ color: app.pnl_select, size: 12 })
-	app.gg.draw_rect_filled(ix + iw / 2 - 26, iy + ih - 12, 44, 4, app.pnl_select_hover)
-	app.gg.draw_rect_filled(ix + iw / 2 - 26, iy + ih - 12, 44, 1, app.pnl_select)
+	// the brass pull is drawn at the end of this function, inside the
+	// reserved footer strip, so the log window never overdraws it
 	app.gg.draw_line(ix, iy, ix, iy + ih, col_line)
 	app.gg.draw_text(ix + 12, iy + 10, 'INSPECTOR', gg.TextCfg{ color: app.pnl_select, size: 14, bold: true })
 	desks := desks_for_app(app)
@@ -7450,7 +7449,9 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	// divider
 	app.gg.draw_rect_filled(ix + 12, header_y + 22, iw - 24, 1, col_line)
 	// scrollable log window inside inspector
-	mut inspector_log_h := ih - 310 - header_off
+	// 328 (not 310): 18px is reserved at the bottom for the hint line and
+	// the brass drawer pull. Hit-testing below uses the same reserve.
+	mut inspector_log_h := ih - 328 - header_off
 	if inspector_log_h < 40 {
 		inspector_log_h = 40
 	}
@@ -7513,6 +7514,10 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	}
 	// bottom hint for inspector scroll
 	app.gg.draw_text(ix + 12, iy + ih - 14, '↑↓ scroll  •  click row to copy  •  / filters', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	// VC3.5 (#1176): brass drawer pull, last so nothing overdraws it. It
+	// lives in the strip reserved by inspector_log_h above the hint text.
+	app.gg.draw_rect_filled(ix + iw / 2 - 22, iy + ih - 22, 44, 4, app.pnl_select_hover)
+	app.gg.draw_rect_filled(ix + iw / 2 - 22, iy + ih - 22, 44, 1, app.pnl_select)
 }
 
 fn draw_terminal(mut app GuiApp, w int, h int) {
@@ -9271,7 +9276,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			iy := 52
 			ih := h3 - 52 - 28 - term_h_ii
 			log_y0 := iy + 302
-			inspector_log_h := ih - 310
+			inspector_log_h := ih - 328
 			if app.mouse_x >= ix && app.mouse_x <= w3 && app.mouse_y >= log_y0 && app.mouse_y < log_y0 + inspector_log_h {
 				desks := desks_for_app(app)
 				all_logs := collect_engine_logs(app)
@@ -9694,7 +9699,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			iy2 := 52
 			ih2 := h - 52 - 28 - term_h_ii
 			log_y0 := iy2 + 302
-			inspector_log_h := ih2 - 310
+			inspector_log_h := ih2 - 328
 			if mx >= ix2 + 8 && mx <= ix2 + 300 - 8 && my >= log_y0 && my < log_y0 + inspector_log_h {
 				row_h := 13
 				mut visible_i := inspector_log_h / row_h
@@ -10805,7 +10810,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			iy := 52
 			ih := h3 - 52 - 28 - term_h_ii
 			log_y0 := iy + 302
-			inspector_log_h := ih - 310
+			inspector_log_h := ih - 328
 			if inspector_log_h >= 40 && app.mouse_x >= ix + 8 && app.mouse_x <= ix + 300 - 8 && app.mouse_y >= log_y0 && app.mouse_y < log_y0 + inspector_log_h {
 				row_h := 13
 				mut visible_i := inspector_log_h / row_h
