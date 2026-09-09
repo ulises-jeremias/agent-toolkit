@@ -2177,6 +2177,9 @@ fn ops_click_swarm_strip(mut app GuiApp, l OpsLayout, mx int, my int) bool {
 	}
 	for i, bname in ['auto', 'herdr', 'tmux'] {
 		bx, by, bw, bh := ops_backend_rect(l, i)
+		if bx + bw > l.right_x + l.right_w {
+			break // same overflow guard as draw_ops_launch_strip: undrawn = inert
+		}
 		if ops_hit(mx, my, bx, by, bw, bh) {
 			app.swarm_backend = bname
 			app.inspector_msg = 'Swarm backend: ${bname}'
@@ -2185,6 +2188,9 @@ fn ops_click_swarm_strip(mut app GuiApp, l OpsLayout, mx int, my int) bool {
 	}
 	for i, rname in ['pair', 'team', 'full'] {
 		rx, ry, rw, rh := ops_recipe_rect(l, i)
+		if rx + rw > l.right_x + l.right_w {
+			break // undrawn recipe buttons must not launch swarms
+		}
 		if ops_hit(mx, my, rx, ry, rw, rh) {
 			if app.desktop == unsafe { nil } {
 				return true
