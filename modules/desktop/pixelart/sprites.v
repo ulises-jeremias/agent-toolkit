@@ -29,6 +29,8 @@ pub enum EnvironmentAsset {
 	board
 	tray
 	window
+	door
+	couch
 }
 
 // Sprite is an authored pixel grid with its palette keys.
@@ -465,6 +467,42 @@ const env_window = Sprite{
 	]
 }
 
+// door (14×14): manila office door with inner panel and brass knob.
+const env_door = Sprite{
+	name: 'env-door'
+	rows: [
+		'WWWWWWWWWWWWWW',
+		'WmmmmmmmmmmmmW',
+		'WmWWWWWWWWWWmW',
+		'WmWmmmmmmmmWmW',
+		'WmWmmmmmmmBWmW',
+		'WmWmmmmmmmBWmW',
+		'WmWmmmmmmmmWmW',
+		'WmWmmmmmmmmWmW',
+		'WmWmmmmmmmmWmW',
+		'WmWmmmmmmmmWmW',
+		'WmWWWWWWWWWWmW',
+		'WmmmmmmmmmmmmW',
+		'WWWWWWWWWWWWWW',
+		'.WW........WW.',
+	]
+}
+
+// couch (20×8): lounge seat, wood frame with manila cushions.
+const env_couch = Sprite{
+	name: 'env-couch'
+	rows: [
+		'..WWWWWWWWWWWWWWWW..',
+		'.WmmmmmmmmmmmmmmmmW.',
+		'.WmmmmmmmmmmmmmmmmW.',
+		'WWWWWWWWWWWWWWWWWWWW',
+		'.WmmmmmmmWWmmmmmmmW.',
+		'.WmmmmmmmWWmmmmmmmW.',
+		'.WWWWWWWWWWWWWWWWWW.',
+		'..WW............WW..',
+	]
+}
+
 // environment_for returns the sprite for an environment asset.
 pub fn environment_for(a EnvironmentAsset) Sprite {
 	return match a {
@@ -480,6 +518,8 @@ pub fn environment_for(a EnvironmentAsset) Sprite {
 		.board { env_board }
 		.tray { env_tray }
 		.window { env_window }
+		.door { env_door }
+		.couch { env_couch }
 	}
 }
 
@@ -488,14 +528,14 @@ pub fn all_sprites() []Sprite {
 	return [
 		agent_idle, agent_running, agent_waiting, agent_attention, agent_error,
 		env_desk, env_chair, env_terminal, env_shelf, env_plant, env_lamp,
-		env_cabinet, env_rug, env_meeting, env_board, env_tray, env_window,
+		env_cabinet, env_rug, env_meeting, env_board, env_tray, env_window, env_door, env_couch,
 	]
 }
 
 // all_environment_assets returns every EnvironmentAsset (mapping coverage).
 pub fn all_environment_assets() []EnvironmentAsset {
 	return [.desk, .chair, .terminal, .shelf, .plant, .lamp, .cabinet, .rug,
-		.meeting_table, .board, .tray, .window]
+		.meeting_table, .board, .tray, .window, .door, .couch]
 }
 
 // all_agent_states returns every AgentVisualState (mapping coverage).

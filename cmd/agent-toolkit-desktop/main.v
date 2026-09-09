@@ -7296,6 +7296,24 @@ fn draw_insights_gallery(mut app GuiApp, cy0 int, ch int, inner_x int, inner_y i
 	app.gg.draw_text(inner_x, cy0 + ch - 22, gallery_note, lang_cfg(app, gallery_note, gg.TextCfg{ color: app.pnl_text_mut, size: 10 }))
 }
 
+// inspector_log_rect returns the log window rectangle draw_inspector really
+// renders: x0, x1, y0 and height, including the per-desk VT header offset,
+// the 18px footer reserve and the 40px minimum. Scroll, click and hover
+// hit-testing all read it, so the interactive area can never drift from the
+// drawn one (#1176 review).
+fn inspector_log_rect(app &GuiApp, ix int, iy int, ih int) (int, int, int, int) {
+	header_off := if app.selected_desk >= 0 && app.per_desk_ghost.len > app.selected_desk {
+		76
+	} else {
+		0
+	}
+	mut log_h := ih - 328 - header_off
+	if log_h < 40 {
+		log_h = 40
+	}
+	return ix + 8, ix + 292, iy + 302 + header_off, log_h
+}
+
 fn draw_inspector(mut app GuiApp, w int, h int) {
 	term_h_i := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
@@ -7303,6 +7321,16 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	iw := 300
 	ih := h - 52 - 28 - term_h_i
 	app.gg.draw_rect_filled(ix, iy, iw, ih, col_charcoal)
+	// VC3.5 (#1176): cabinet-drawer material. The dark column reads as one
+	// drawer of a technical filing cabinet: folder tab with the title,
+	// brass top edge, inner drawer inset, brass pull at the bottom. All
+	// content drawing below is unchanged.
+	app.gg.draw_rect_filled(ix, iy, iw, 2, app.pnl_select) // brass top edge
+	app.gg.draw_rect_empty(ix + 6, iy + 8, iw - 12, ih - 16, col_line) // drawer inset
+	app.gg.draw_rect_filled(ix + 12, iy - 6, 118, 8, app.pnl_select_hover) // folder tab
+	app.gg.draw_rect_filled(ix + 12, iy + 2, 118, 2, col_charcoal)
+	// the brass pull is drawn at the end of this function, inside the
+	// reserved footer strip, so the log window never overdraws it
 	app.gg.draw_line(ix, iy, ix, iy + ih, col_line)
 	app.gg.draw_text(ix + 12, iy + 10, 'INSPECTOR', gg.TextCfg{ color: app.pnl_select, size: 14, bold: true })
 	desks := desks_for_app(app)
@@ -7334,8 +7362,8 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 		if app.inspector_msg != '' {
 			app.gg.draw_text(ix + 12, iy + 250, app.inspector_msg, gg.TextCfg{ color: app.pnl_select, size: 12 })
 		} else {
-			app.gg.draw_text(ix + 12, iy + 250, 'This is the live Engine inspector. No mock —', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-			app.gg.draw_text(ix + 12, iy + 262, 'reads from desktop_engine snapshot.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+			// single line — the VT preview panel starts at iy + 272
+			app.gg.draw_text(ix + 12, iy + 250, 'Live Engine inspector — no mock data.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 		}
 	} else {
 		app.gg.draw_text(ix + 12, iy + 36, 'Select a desk on the floor', gg.TextCfg{ color: app.pnl_text_mut, size: 14 })
@@ -7438,11 +7466,9 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	}
 	// divider
 	app.gg.draw_rect_filled(ix + 12, header_y + 22, iw - 24, 1, col_line)
-	// scrollable log window inside inspector
-	mut inspector_log_h := ih - 310 - header_off
-	if inspector_log_h < 40 {
-		inspector_log_h = 40
-	}
+	// scrollable log window inside inspector — one rectangle, shared with
+	// every hit-test path so drawn and interactive areas cannot diverge
+	log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
 	row_h := 13
 	mut visible_i := inspector_log_h / row_h
 	if visible_i < 1 {
@@ -7455,10 +7481,9 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	if end_i > desk_logs.len {
 		end_i = desk_logs.len
 	}
-	log_y0 := iy + 302 + header_off
 	// background for log area — xterm-like ink
-	app.gg.draw_rect_filled(ix + 8, log_y0 - 2, iw - 16, inspector_log_h + 4, term_bg)
-	app.gg.draw_rect_empty(ix + 8, log_y0 - 2, iw - 16, inspector_log_h + 4, col_line)
+	app.gg.draw_rect_filled(log_x0, log_y0 - 2, log_x1 - log_x0, inspector_log_h + 4, term_bg)
+	app.gg.draw_rect_empty(log_x0, log_y0 - 2, log_x1 - log_x0, inspector_log_h + 4, col_line)
 	if desk_logs.len == 0 {
 		app.gg.draw_text(ix + 16, log_y0 + 6, 'No logs match filter', gg.TextCfg{ color: app.pnl_text_mut, size: 13, mono: true })
 		app.gg.draw_text(ix + 16, log_y0 + 20, 'Clear palette (ESC) to show all', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
@@ -7502,6 +7527,10 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	}
 	// bottom hint for inspector scroll
 	app.gg.draw_text(ix + 12, iy + ih - 14, '↑↓ scroll  •  click row to copy  •  / filters', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	// VC3.5 (#1176): brass drawer pull, last so nothing overdraws it. It
+	// lives in the strip reserved by inspector_log_h above the hint text.
+	app.gg.draw_rect_filled(ix + iw / 2 - 22, iy + ih - 22, 44, 4, app.pnl_select_hover)
+	app.gg.draw_rect_filled(ix + iw / 2 - 22, iy + ih - 22, 44, 1, app.pnl_select)
 }
 
 fn draw_terminal(mut app GuiApp, w int, h int) {
@@ -9259,9 +9288,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			ix := w3 - 300
 			iy := 52
 			ih := h3 - 52 - 28 - term_h_ii
-			log_y0 := iy + 302
-			inspector_log_h := ih - 310
-			if app.mouse_x >= ix && app.mouse_x <= w3 && app.mouse_y >= log_y0 && app.mouse_y < log_y0 + inspector_log_h {
+			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
+			if app.mouse_x >= log_x0 && app.mouse_x <= log_x1 && app.mouse_y >= log_y0
+				&& app.mouse_y < log_y0 + inspector_log_h {
 				desks := desks_for_app(app)
 				all_logs := collect_engine_logs(app)
 				filter_q := active_log_filter(app)
@@ -9682,9 +9711,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			ix2 := inspector_x(app, w)
 			iy2 := 52
 			ih2 := h - 52 - 28 - term_h_ii
-			log_y0 := iy2 + 302
-			inspector_log_h := ih2 - 310
-			if mx >= ix2 + 8 && mx <= ix2 + 300 - 8 && my >= log_y0 && my < log_y0 + inspector_log_h {
+			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix2, iy2, ih2)
+			if mx >= log_x0 && mx <= log_x1 && my >= log_y0 && my < log_y0 + inspector_log_h {
 				row_h := 13
 				mut visible_i := inspector_log_h / row_h
 				if visible_i < 1 {
@@ -10793,9 +10821,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			ix := inspector_x(app, w3)
 			iy := 52
 			ih := h3 - 52 - 28 - term_h_ii
-			log_y0 := iy + 302
-			inspector_log_h := ih - 310
-			if inspector_log_h >= 40 && app.mouse_x >= ix + 8 && app.mouse_x <= ix + 300 - 8 && app.mouse_y >= log_y0 && app.mouse_y < log_y0 + inspector_log_h {
+			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
+			if app.mouse_x >= log_x0 && app.mouse_x <= log_x1 && app.mouse_y >= log_y0
+				&& app.mouse_y < log_y0 + inspector_log_h {
 				row_h := 13
 				mut visible_i := inspector_log_h / row_h
 				desks := desks_for_app(app)

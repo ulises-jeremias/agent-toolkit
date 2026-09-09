@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [1.30.1] — unreleased
 
+- **Feat (desktop)** — VC3.5 Office visual lock (#1176): clustered desk pods with aisles and breathing rows, cream zone sign plates (library / board / archive / filing / meeting / inbox / lounge), framed standing poster on bare wall stretches, rug-anchored meeting zone and lounge corner (new `env_door` + `env_couch` sprites), plank-rhythm floor with baseboard, and recalibrated environment thresholds. Catalog desks stay idle-only — no runtime state is invented
+- **Fix (desktop)** — Inspector cabinet-drawer material (brass top edge, folder tab, drawer inset, brass pull) with a reserved footer strip so the log window no longer overdraws the pull; desk labels anchor under their own pod instead of drifting against the next row; `Live Engine inspector — no mock data.` fits on one line
 - **Feat (desktop)** — Toast tray: every Engine action feedback becomes an auto-expiring paper stamp (info/ok/warn/err rail, bottom-right stack) instead of a hidden inspector one-liner
 - **Feat (desktop)** — Shell layout persistence: panel, terminal mode, zoom, language, insights tab and swarm backend restore on relaunch (`ui_state.env` in the desktop cache dir, saved on settle/interval/Ctrl+Q)
 - **Feat (desktop)** — Terminal scrollback search: `Ctrl+F` opens a paper search field over the Ghostty feed with live match count and row highlighting
