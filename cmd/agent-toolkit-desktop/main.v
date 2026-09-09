@@ -8507,7 +8507,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.show_onboarding = false
 			} else {
 				select_panel(mut app, 11)
-				app.onboarding_msg = 'Onboarding wizard toggled via o — 7 steps ready'
+				app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
 			}
 			return
 		}
