@@ -855,6 +855,14 @@ mut:
 	doctor_preview       string
 	doctor_preview_lines []string
 	doctor_chips         []DoctorChip
+	// VC6 (#1173) Operations command center — see operations_view.v:
+	// focused text field (0 none, 1 search, 2 swarm task), status dropdown
+	// index, hovered element id, Doctor table selection/scroll.
+	ops_focus         int
+	ops_status_filter int
+	ops_hover         int = -1
+	doctor_selected   int = -1
+	doctor_scroll     int
 	// mcp provider drawer (#1106): open provider + cached template/provenance/
 	// receipt + 60s probe cache (frame-stamped, 3600 frames @60fps).
 	mcp_drawer            string
@@ -2667,10 +2675,9 @@ fn frame(mut app GuiApp) {
 			0 { draw_world(mut app, w, h) }
 			1, 2, 3, 10 { draw_library(mut app, w, h) }
 			4 { draw_targets(mut app, w, h) }
-			5 { draw_doctor(mut app, w, h) }
-			6 { draw_jobs(mut app, w, h) }
-			7 { draw_loops(mut app, w, h) }
-			8 { draw_swarm(mut app, w, h) }
+			// VC6 (#1173): Doctor/Jobs/Loops/Swarm share the Operations
+			// command center (operations_view.v)
+			5, 6, 7, 8 { draw_operations(mut app, w, h) }
 			9 { draw_workspace(mut app, w, h) }
 			11 { draw_onboarding(mut app, w, h) }
 			12 { draw_insights(mut app, w, h) }
@@ -2681,6 +2688,9 @@ fn frame(mut app GuiApp) {
 		draw_onboarding_preview(mut app, w, h)
 	} else if lib_is_panel(app.selected_panel) {
 		draw_library_detail(mut app, w, h)
+	} else if ops_is_panel(app.selected_panel) {
+		// VC6 (#1173): the Details column replaces the Office inspector
+		draw_operations_detail(mut app, w, h)
 	} else {
 		draw_inspector(mut app, w, h)
 	}
@@ -7499,6 +7509,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
+		// VC6 (#1173): Operations text fields (search / swarm task) — an
+		// active text field outranks the terminal and panel shortcuts
+		if operations_key(mut app, e) {
+			return
+		}
 		if e.key_code == .escape {
 			if app.palette_open {
 				app.palette_open = false
@@ -8081,56 +8096,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// jobs scroll — ProcessSupervisor queue distinct from loops budgets
-		if app.selected_panel == 6 {
-			fx := 208
-			fy := 52
-			fw := w3 - 208 - 300
-			term_h_j := if app.term_visible { app.term_height } else { 0 }
-			fh := h3 - 52 - 28 - term_h_j
-			list_y0 := fy + 84
-			list_h_total := fh - 84 - 110
-			card_h := 52
-			mut jobs := app.desktop.engine_jobs_catalog()
-			if jobs.len == 0 {
-				jobs = [desktop_engine.JobRecord{ id: 'a' }, desktop_engine.JobRecord{ id: 'b' },
-					desktop_engine.JobRecord{ id: 'c' }, desktop_engine.JobRecord{ id: 'd' }]
-			}
-			visible := list_h_total / card_h
-			aq_y := fy + fh - 104
-			// if over approvals queue bottom, scroll that instead
-			if app.mouse_x >= fx + 8 && app.mouse_x <= fx + fw - 8 && app.mouse_y >= aq_y && app.mouse_y < aq_y + 96 {
-				aq := app.desktop.engine_approvals_queue()
-				mut total := aq.len
-				if total == 0 {
-					total = app.approvals.len
-				}
-				app.jobs_approvals_scroll += delta
-				app.jobs_approvals_scroll = clamp_scroll(app.jobs_approvals_scroll, total, 3)
-				return
-			}
-			if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= list_y0 && app.mouse_y < list_y0 + list_h_total {
-				app.jobs_scroll += delta
-				app.jobs_scroll = clamp_scroll(app.jobs_scroll, jobs.len, visible)
-				return
-			}
-		}
-		// loops scroll — budgets L1/L2/L3 cream distinct from jobs dark
-		if app.selected_panel == 7 {
-			fx_l := 208
-			fy_l := 52
-			fw_l := w3 - 208 - 300
-			term_h_l := if app.term_visible { app.term_height } else { 0 }
-			fh_l := h3 - 52 - 28 - term_h_l
-			ly0 := fy_l + 66
-			card_h_l := 78
-			mut loops := app.desktop.loops_catalog()
-			visible_l := (fh_l - 90) / card_h_l
-			if app.mouse_x >= fx_l + 12 && app.mouse_x <= fx_l + fw_l - 12 && app.mouse_y >= ly0 && app.mouse_y < ly0 + visible_l * card_h_l {
-				app.loops_scroll += delta
-				app.loops_scroll = clamp_scroll(app.loops_scroll, loops.len, visible_l)
-				return
-			}
+		// VC6 (#1173): Operations table scroll (Doctor/Jobs/Loops/Swarm)
+		if operations_scroll(mut app, delta, w3, h3) {
+			return
 		}
 		// workspace IDE scroll — file tree, editor, git, memory palace (super potent)
 		if app.selected_panel == 9 {
@@ -8308,6 +8276,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if library_click(mut app, mx, my, w, h) {
 				return
 			}
+		}
+		// VC6 (#1173): Operations panels (Doctor/Jobs/Loops/Swarm) own their
+		// content area and the Details column — one shared layout for draw
+		// and hit-testing (operations_view.v)
+		if operations_click(mut app, mx, my, w, h) {
+			return
 		}
 		// Inspector buttons — clickable
 		ix := inspector_x(app, w)
@@ -8527,228 +8501,6 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// (Skills / Products / MCP clicks are handled by library_click above — VC5.)
-		// Doctor panel — Fix All + per-check fix via Engine TX, receipts/provenance verification display
-		if app.selected_panel == 5 {
-			fx_d := 208
-			fy_d := 52
-			fw_d := w - 208 - 300
-			// dry-run preview is modal: Confirm/Cancel first (#1108)
-			if app.doctor_preview != '' {
-				px, py, _, ph := doctor_preview_geom(panel_fx(app), fy_d, panel_fw(app, w))
-				if mx >= px + 14 && mx <= px + 134 && my >= py + ph - 32 && my <= py + ph - 10 {
-					doctor_preview_confirm(mut app)
-					return
-				}
-				if mx >= px + 144 && mx <= px + 234 && my >= py + ph - 32 && my <= py + ph - 10 {
-					app.doctor_preview = ''
-					app.doctor_preview_lines = []
-					app.inspector_msg = 'Doctor dry-run cancelled — nothing was written'
-					return
-				}
-				return
-			}
-			// Fix All hit
-			if mx >= fx_d + fw_d - 90 && mx <= fx_d + fw_d - 10 && my >= fy_d + 8 && my <= fy_d + 28 {
-				if app.desktop != unsafe { nil } {
-					rev := app.desktop.engine_doctor_fix_all() or {
-						app.inspector_msg = 'Doctor fix all failed: ${err}'
-						return
-					}
-					app.engine_rev = app.desktop.app_state_snapshot().revision
-					if app.engine_rev == 0 {
-						app.engine_rev = rev
-					}
-					app.api_calls = app.desktop.engine_api_calls()
-					app.doctor_preview = ''
-					app.doctor_preview_lines = []
-					app.inspector_msg = if rev == 0 {
-						'Doctor: all fixable already pass ✓'
-					} else {
-						'Doctor Fix All rev=${rev} — real repairs + audit stamps via Engine TX'
-					}
-				}
-				return
-			}
-			// facet-chip hit — fix that category via Engine TX (#1108)
-			for chip in app.doctor_chips {
-				if mx >= chip.x && mx <= chip.x + chip.w && my >= chip.y && my <= chip.y + chip.h {
-					rev := app.desktop.engine_doctor_fix_category(chip.cat) or {
-						app.inspector_msg = 'Doctor category fix ${chip.cat} failed: ${err}'
-						return
-					}
-					app.engine_rev = app.desktop.app_state_snapshot().revision
-					if app.engine_rev == 0 {
-						app.engine_rev = rev
-					}
-					app.api_calls = app.desktop.engine_api_calls()
-					app.inspector_msg = if rev == 0 {
-						'Doctor ${chip.cat}: nothing fixable — all pass ✓'
-					} else {
-						'Doctor ${chip.cat} fixed rev=${rev} via Engine TX'
-					}
-					return
-				}
-			}
-			// per-check fix hit — rows at fy+50, 24px. The visible-row cap must
-			// mirror draw_doctor exactly (list_h = fh-78, 24px rows); a fixed
-			// cap leaves deep rows unclickable and risks matching unrendered
-			// rows against footer pixels (#1108).
-			term_h_d := if app.term_visible { app.term_height } else { 0 }
-			fh_d := h - 52 - 28 - term_h_d
-			list_h_d := fh_d - 78
-			max_vis_d := if list_h_d < 40 { 0 } else { list_h_d / 24 }
-			y0_d := fy_d + 50
-			checks_d := app.desktop.engine_doctor()
-			for i, c in checks_d {
-				if i >= max_vis_d {
-					break
-				}
-				y := y0_d + i * 24
-				if mx >= fx_d + 12 && mx <= fx_d + fw_d - 12 && my >= y && my <= y + 22 {
-					if c.fixable && c.status != 'pass' {
-						// click on fix badge → dry-run preview, Confirm applies (#1108)
-						if mx >= fx_d + fw_d - 60 {
-							doctor_preview_open(mut app, c.id)
-							return
-						}
-					}
-					app.inspector_msg = 'Doctor ${c.id} [${c.category}] ${c.status}: ${c.message} • fixable=${c.fixable} • receipts/provenance'
-					return
-				}
-			}
-		}
-		// Swarm topology — node click attaches the desk VT fullscreen, edge click
-		// shows the handoff artifact (copied), −/+ zoom node size (#1101)
-		if app.selected_panel == 8 {
-			fx_s := panel_fx(app)
-			fy_s := 52
-			fw_s := panel_fw(app, w)
-			topo_y_s := fy_s + 56 + 78
-			zx, zy, pxz, pyz, zw, zh := swarm_zoom_geom(fx_s, fy_s, fw_s, topo_y_s)
-			if mx >= zx && mx <= zx + zw && my >= zy && my <= zy + zh {
-				if app.swarm_zoom > -1 {
-					app.swarm_zoom--
-				}
-				app.inspector_msg = 'Swarm topology zoom ${app.swarm_zoom}'
-				return
-			}
-			if mx >= pxz && mx <= pxz + zw && my >= pyz && my <= pyz + zh {
-				if app.swarm_zoom < 1 {
-					app.swarm_zoom++
-				}
-				app.inspector_msg = 'Swarm topology zoom ${app.swarm_zoom}'
-				return
-			}
-			for n in app.swarm_nodes {
-				if mx >= n.x && mx <= n.x + n.w && my >= n.y && my <= n.y + 34 {
-					di := swarm_role_desk(app, n.role)
-					if di < 0 {
-						app.inspector_msg = 'Swarm ${n.role}: no office desk to attach'
-						return
-					}
-					if app.term_mode_saved < 0 {
-						app.term_mode_saved = app.term_mode
-					}
-					app.term_view = di
-					app.term_mode = 2
-					app.term_visible = true
-					app.inspector_msg = 'Swarm ${n.role} attached — desk ${di} VT fullscreen (Esc exits)'
-					return
-				}
-			}
-			for ed in app.swarm_edges {
-				lo := if ed.x1 < ed.x2 { ed.x1 } else { ed.x2 }
-				hi := if ed.x1 > ed.x2 { ed.x1 } else { ed.x2 }
-				if mx >= lo - 4 && mx <= hi + 4 && my >= ed.y - 6 && my <= ed.y + 6 {
-					if ed.artifact == '' {
-						app.inspector_msg = 'Swarm edge: no artifact recorded on this handoff'
-					} else {
-						copy_to_clipboard(mut app, ed.artifact)
-						app.inspector_msg = 'Swarm edge artifact: ${ed.artifact} (copied)'
-					}
-					return
-				}
-			}
-		}
-		// Jobs — ProcessSupervisor queue click: select + Cancel/Retry + logs + approvals approve/reject
-		if app.selected_panel == 6 {
-			fx := 208
-			fy := 52
-			fw := w - 208 - 300
-			term_h_j := if app.term_visible { app.term_height } else { 0 }
-			fh := h - 52 - 28 - term_h_j
-			list_y0 := fy + 84
-			list_h_total := fh - 84 - 110
-			card_h := 52
-			mut jobs := app.desktop.engine_jobs_catalog()
-			if jobs.len == 0 {
-				jobs = [
-					desktop_engine.JobRecord{ id: 'job-7f3a-build-cli', cmd: 'v -o build/agent-toolkit cmd/agent-toolkit' },
-					desktop_engine.JobRecord{ id: 'job-9c1e-test-desktop', cmd: 'v test modules/desktop' },
-					desktop_engine.JobRecord{ id: 'job-a2ff-serve', cmd: 'agent-toolkit serve --port 3847' },
-					desktop_engine.JobRecord{ id: 'job-4d2a-loop-daily', cmd: 'agent-toolkit loop run daily-triage' },
-				]
-			}
-			visible := list_h_total / card_h
-			if visible > 0 {
-				start := clamp_scroll(app.jobs_scroll, jobs.len, visible)
-				mut end_j := start + visible
-				if end_j > jobs.len {
-					end_j = jobs.len
-				}
-				for idx in start .. end_j {
-					row := idx - start
-					y := list_y0 + row * card_h
-					if mx >= fx + 12 && mx <= fx + fw - 12 && my >= y && my <= y + card_h - 4 {
-						app.jobs_selected = idx
-						// button hits
-						if mx >= fx + fw - 108 && mx <= fx + fw - 64 && my >= y + 22 && my <= y + 38 {
-							// Cancel via Engine
-							j := jobs[idx]
-							_ = app.desktop.engine_job_logs(j.id)
-							app.inspector_msg = 'Job cancel queued: ${j.id} → canceled (via Engine TX)'
-							return
-						}
-						if mx >= fx + fw - 58 && mx <= fx + fw - 14 && my >= y + 22 && my <= y + 38 {
-							j := jobs[idx]
-							app.inspector_msg = 'Job retry queued: ${j.id} via Engine.spawn_job()'
-							return
-						}
-						app.inspector_msg = 'Job selected: ${jobs[idx].id} • ${jobs[idx].cmd}'
-						return
-					}
-				}
-			}
-			// approvals queue bottom approve/reject
-			aq_y := fy + fh - 104
-			if mx >= fx + 8 && mx <= fx + fw - 8 && my >= aq_y + 22 && my < aq_y + 22 + 66 {
-				aq := app.desktop.engine_approvals_queue()
-				mut total := aq.len
-				if total == 0 {
-					total = app.approvals.len
-				}
-				visible_aq := 3
-				start_a := clamp_scroll(app.jobs_approvals_scroll, total, visible_aq)
-				for a_idx in 0 .. visible_aq {
-					ai := start_a + a_idx
-					if ai >= total {
-						break
-					}
-					y := aq_y + 22 + a_idx * 22
-					if my >= y && my <= y + 14 {
-						if mx >= fx + fw - 72 && mx <= fx + fw - 44 && my >= y && my <= y + 14 {
-							app.inspector_msg = 'Approval approved: gate ${ai} (spend/scope/destructive) via Engine TX'
-							return
-						}
-						if mx >= fx + fw - 40 && mx <= fx + fw - 12 && my >= y && my <= y + 14 {
-							app.inspector_msg = 'Approval rejected: gate ${ai} via Engine TX'
-							return
-						}
-					}
-				}
-			}
-		}
 		// Insights — telemetry tabs: cost | waterfall | spans | budgets | ci | realtime | gallery
 		if app.selected_panel == 12 {
 			fx_i := panel_fx(app)
@@ -8761,96 +8513,6 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.insights_tab = tabs_i[i]
 					app.inspector_msg = 'Insights → ${tabs_i[i]} • telemetry via Engine (no shell)'
 					return
-				}
-			}
-		}
-		// Loops — budgets L1/L2/L3 missions: select + Run + Sched + New
-		if app.selected_panel == 7 {
-			fx := 208
-			fy := 52
-			fw := w - 208 - 300
-			term_h_l := if app.term_visible { app.term_height } else { 0 }
-			fh := h - 52 - 28 - term_h_l
-			// new loop button
-			if mx >= fx + fw - 118 && mx <= fx + fw - 14 && my >= fy + 10 && my <= fy + 32 {
-				app.loops_show_create = !app.loops_show_create
-				if app.loops_show_create {
-					app.loops_create_name = 'new-loop-${app.frame % 100}'
-					app.loops_create_tier = 0
-					app.loops_create_cadence = '1d'
-				}
-				return
-			}
-			// create modal buttons
-			if app.loops_show_create {
-				mx2 := fx + 40
-				my2 := fy + 50
-				_ := fw - 80
-				// Create
-				if mx >= mx2 + 18 && mx <= mx2 + 106 && my >= my2 + 74 && my <= my2 + 100 {
-					name := if app.loops_create_name != '' {
-						app.loops_create_name
-					} else {
-						'demo-loop'
-					}
-					tier_s := ['L1', 'L2', 'L3'][app.loops_create_tier]
-					_ = app.desktop.loops_catalog()
-					app.inspector_msg = 'Loop create queued: ${name} ${tier_s} ${app.loops_create_cadence} via Engine.create_loop() TX'
-					app.loops_show_create = false
-					return
-				}
-				if mx >= mx2 + 118 && mx <= mx2 + 206 && my >= my2 + 74 && my <= my2 + 100 {
-					app.loops_show_create = false
-					return
-				}
-			}
-			mut loops := app.desktop.loops_catalog()
-			y0 := fy + 66
-			card_h := 78
-			visible := (fh - 90) / card_h
-			if visible > 0 {
-				start := clamp_scroll(app.loops_scroll, loops.len, visible)
-				mut end_l := start + visible
-				if end_l > loops.len {
-					end_l = loops.len
-				}
-				for idx in start .. end_l {
-					row := idx - start
-					y := y0 + row * card_h
-					if mx >= fx + 12 && mx <= fx + fw - 12 && my >= y && my <= y + card_h - 4 {
-						app.selected_loop = idx
-						// Run button
-						if mx >= fx + fw - 108 && mx <= fx + fw - 64 && my >= y + 44 && my <= y + 60 {
-							entry := loops[idx]
-							// S4B truth fix: Run executes the real Engine
-							// operation; feedback comes from its actual result
-							// and failures are never rendered as success
-							job_id := app.desktop.loop_run(entry.name) or {
-								app.inspector_msg = 'Loop ${entry.name} failed to start: ${err.msg()}'
-								return
-							}
-							app.inspector_msg = 'Loop run started: ${entry.name} — job ${job_id}'
-							return
-						}
-						if mx >= fx + fw - 58 && mx <= fx + fw - 14 && my >= y + 44 && my <= y + 60 {
-							entry := loops[idx]
-							// S4B truth fix: the schedule toggle writes real
-							// cron configuration via the Engine
-							next_enabled := !entry.cron_enabled
-							app.desktop.toggle_loop_cron(entry.name, next_enabled) or {
-								app.inspector_msg = 'Loop ${entry.name} schedule failed: ${err.msg()}'
-								return
-							}
-							app.inspector_msg = 'Loop schedule ${if next_enabled {
-								'enabled'
-							} else {
-								'disabled'
-							}}: ${entry.name}'
-							return
-						}
-						app.inspector_msg = 'Loop selected: ${loops[idx].name} • L${loops[idx].tier.str().to_upper()} • ${loops[idx].budget.max_tokens} tok • ${loops[idx].budget.max_runs_per_day}/d • ${loops[idx].budget.max_wall_seconds}s'
-						return
-					}
 				}
 			}
 		}
@@ -9271,92 +8933,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// products catalog hover — Install/Manage distinct from onboarding
-		// jobs hover — ProcessSupervisor queue distinct dark cards
-		if app.selected_panel == 6 {
-			fx := 208
-			fy := 52
-			fw := app.gg.width - 208 - 300
-			term_h_j := if app.term_visible { app.term_height } else { 0 }
-			fh := app.gg.height - 52 - 28 - term_h_j
-			list_y0 := fy + 84
-			card_h := 52
-			mut jobs := app.desktop.engine_jobs_catalog()
-			if jobs.len == 0 {
-				jobs = [
-					desktop_engine.JobRecord{ id: 'job-7f3a-build-cli', cmd: '', args: [], status: .done },
-					desktop_engine.JobRecord{ id: 'job-9c1e-test-desktop', cmd: '', args: [], status: .running },
-					desktop_engine.JobRecord{ id: 'job-a2ff-serve', cmd: '', args: [], status: .running },
-					desktop_engine.JobRecord{ id: 'job-4d2a-loop-daily', cmd: '', args: [], status: .queued },
-				]
-			}
-			list_h_total := fh - 84 - 110
-			visible := list_h_total / card_h
-			if visible > 0 {
-				start := clamp_scroll(app.jobs_scroll, jobs.len, visible)
-				mut end_j := start + visible
-				if end_j > jobs.len {
-					end_j = jobs.len
-				}
-				for idx in start .. end_j {
-					row := idx - start
-					y := list_y0 + row * card_h
-					if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= y && app.mouse_y <= y + card_h - 4 {
-						app.jobs_hover = idx
-						// button hovers
-						if app.mouse_x >= fx + fw - 108 && app.mouse_x <= fx + fw - 64 && app.mouse_y >= y + 22 && app.mouse_y <= y + 38 {
-							app.jobs_hover_cancel = idx
-						}
-						if app.mouse_x >= fx + fw - 58 && app.mouse_x <= fx + fw - 14 && app.mouse_y >= y + 22 && app.mouse_y <= y + 38 {
-							app.jobs_hover_retry = idx
-						}
-						break
-					}
-				}
-			}
-		}
-		// loops hover — budgets L1/L2/L3 cream pixel distinct from jobs dark
-		if app.selected_panel == 7 {
-			fx := 208
-			fy := 52
-			fw := app.gg.width - 208 - 300
-			term_h_l := if app.term_visible { app.term_height } else { 0 }
-			fh := app.gg.height - 52 - 28 - term_h_l
-			y0 := fy + 66
-			card_h := 78
-			mut loops := app.desktop.loops_catalog()
-			visible := (fh - 90) / card_h
-			if visible > 0 {
-				start := clamp_scroll(app.loops_scroll, loops.len, visible)
-				mut end_l := start + visible
-				if end_l > loops.len {
-					end_l = loops.len
-				}
-				for idx in start .. end_l {
-					row := idx - start
-					y := y0 + row * card_h
-					if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= y && app.mouse_y <= y + card_h - 4 {
-						app.loops_hover_run = idx
-						// cron btn
-						if app.mouse_x >= fx + fw - 58 && app.mouse_x <= fx + fw - 14 && app.mouse_y >= y + 44 && app.mouse_y <= y + 60 {
-							app.loops_hover_cron = idx
-						} else if app.mouse_x >= fx + fw - 108 && app.mouse_x <= fx + fw - 64 && app.mouse_y >= y + 44 && app.mouse_y <= y + 60 {
-							// keep run hover already
-						} else {
-							app.loops_hover_cron = -1
-						}
-						if app.mouse_x >= fx + 22 && app.mouse_x <= fx + 22 + (fw - 24 - 140 - 100) / 3 && app.mouse_y >= y + 34 && app.mouse_y <= y + 44 {
-							app.loops_budget_hover = idx
-						}
-						break
-					}
-				}
-			}
-			// new loop button
-			if app.mouse_x >= fx + fw - 118 && app.mouse_x <= fx + fw - 14 && app.mouse_y >= fy + 10 && app.mouse_y <= fy + 32 {
-				app.loops_hover_run = -2
-			}
-		}
+		// VC6 (#1173): Operations hover (tabs, controls, rows, detail actions)
+		operations_hover(mut app, app.gg.width, app.gg.height)
 		// insights hover — telemetry tabs
 		if app.selected_panel == 12 {
 			fx_i2 := 208

@@ -175,6 +175,13 @@ fn test_authored_dimensions() {
 	assert env_scroll.width() == 12 && env_scroll.height() == 8
 	assert env_chalkboard.width() == 20 && env_chalkboard.height() == 12
 	assert env_ladder.width() == 6 && env_ladder.height() == 16
+	// VC6 Operations props: tall rack, square marks, wide board
+	assert env_server_rack.width() == 12 && env_server_rack.height() == 20
+	assert env_gear_mark.width() == 16 && env_gear_mark.height() == 16
+	assert env_checklist_board.width() == 18 && env_checklist_board.height() == 14
+	for m in [env_play_mark, env_calendar_mark, env_swarm_mark, env_alert_mark] {
+		assert m.width() == 12 && m.height() == 12, 'metric mark ${m.name} must be 12×12'
+	}
 }
 
 // Cache identity: every (sprite, palette, scale) triple maps to a distinct

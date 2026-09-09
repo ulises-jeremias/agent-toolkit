@@ -424,6 +424,18 @@ pub fn (mut d Desktop) engine_job_logs(job_id string) []string {
 	return d.engine.job_logs(job_id)
 }
 
+// engine_cancel_job cancels a queued/running job via the Engine transaction
+// (VC6 #1173: Operations actions execute for real, never message-only).
+pub fn (mut d Desktop) engine_cancel_job(job_id string) !u64 {
+	return d.engine.cancel_job(job_id)
+}
+
+// engine_retry_job re-spawns a finished job (failed/canceled/done only —
+// the Engine rejects anything else) and returns the new job id.
+pub fn (mut d Desktop) engine_retry_job(job_id string) !string {
+	return d.engine.retry_job(job_id)
+}
+
 pub fn (mut d Desktop) engine_process_supervisor_stats() (int, u64) {
 	return d.engine.process_supervisor_stats()
 }
