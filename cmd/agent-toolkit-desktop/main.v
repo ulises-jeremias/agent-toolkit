@@ -1029,10 +1029,10 @@ mut:
 	targets_hover                int = -1
 	onboarding_scroll            int
 	// VC4 setup journey (#1173): user-facing choices; Engine keeps the truth
-	onb_choice                   int  // 0 set up for me, 1 existing setup, 2 find my setup
-	onb_ws_choice                int  // 0 create new workspace, 1 reuse existing
-	onb_cap_on                   []bool = [true, true, true, true]
-	onb_diag                     bool // internals live behind Details, not in the journey
+	onb_choice    int // 0 set up for me, 1 existing setup, 2 find my setup
+	onb_ws_choice int // 0 create new workspace, 1 reuse existing
+	onb_cap_on    []bool = [true, true, true, true]
+	onb_diag      bool // internals live behind Details, not in the journey
 	// global zoom — paper office scaling 0.75-1.50, 60FPS culling safe
 	global_zoom   f64 = 1.0
 	zoom_toast    string
@@ -2400,7 +2400,7 @@ fn on_init(mut app GuiApp) {
 		// first run: the OFFICE is the hero — the wizard renders as an overlay
 		// on the floor (munder-style boot straight into the office)
 		app.selected_panel = 0
-		app.onboarding_msg = 'Welcome — 7-step wizard: detect → capabilities → targets → products → workspace → personas → done (press o to toggle)'
+		app.onboarding_msg = 'Welcome — Setup Choice → Tools → Workspace → Capabilities → Review (press o to toggle)'
 	} else {
 		app.onboarding_msg = ''
 	}
@@ -2574,6 +2574,12 @@ fn frame(mut app GuiApp) {
 			2 { app.gg.height - 44 - 28 }
 			else { 148 }
 		}
+		// the onboarding shell owns the screen: cap the terminal at the
+		// source so the VT row budget, draw_terminal and onb_layout all agree
+		// (a MAX terminal would otherwise hide the board entirely)
+		if (app.show_onboarding || app.selected_panel == 11) && app.term_height > 120 {
+			app.term_height = 120
+		}
 	}
 	// libghostty-vt resize to fit terminal area — potent: derive cols/rows from actual pixel area
 	// 80x18 is the logical default, but bottom strip is ~148px tall → dynamic 76x8 at 1280 width.
@@ -2617,34 +2623,49 @@ fn frame(mut app GuiApp) {
 	h := app.gg.height
 	app.gg.begin()
 	app.gg.draw_rect_filled(0, 0, w, h, col_ink)
-	draw_header(mut app, w)
-	draw_left_dock(mut app, h)
+	onb_shell_active := app.show_onboarding || app.selected_panel == 11
+	if onb_shell_active {
+		// VC4 (#1173): onboarding replaces the generic header + production
+		// nav with a dedicated editorial shell (masthead + simplified
+		// sidebar) — matching the reference's first-run identity instead of
+		// looking like a page inside the ordinary app chrome.
+		draw_onboarding_masthead_shell(mut app, w)
+		draw_onboarding_sidebar(mut app, w, h)
+	} else {
+		draw_header(mut app, w)
+		draw_left_dock(mut app, h)
+	}
 	// MAX terminal owns the content area — skip panel + inspector rendering
-	// (negative-height panels would smear texts over the chrome)
-	if app.term_mode == 2 {
+	// (negative-height panels would smear texts over the chrome). Not while
+	// onboarding owns the screen: its terminal is capped, the board must draw.
+	if app.term_mode == 2 && !onb_shell_active {
 		draw_terminal(mut app, w, h)
 		app.gg.end()
 		return
 	}
-	match app.selected_panel {
-		0 { draw_world(mut app, w, h) }
-		1 { draw_skills(mut app, w, h) }
-		2 { draw_agents(mut app, w, h) }
-		3 { draw_mcp(mut app, w, h) }
-		4 { draw_targets(mut app, w, h) }
-		5 { draw_doctor(mut app, w, h) }
-		6 { draw_jobs(mut app, w, h) }
-		7 { draw_loops(mut app, w, h) }
-		8 { draw_swarm(mut app, w, h) }
-		9 { draw_workspace(mut app, w, h) }
-		10 { draw_products(mut app, w, h) }
-		11 { draw_onboarding(mut app, w, h) }
-		12 { draw_insights(mut app, w, h) }
-		else { draw_world(mut app, w, h) }
-	}
-	// super-potent onboarding overlay — distinct from Products catalog; easy to manage
-	if app.show_onboarding && app.selected_panel != 11 {
+	// The onboarding shell fully replaces the header, dock and whichever
+	// panel is behind it — there is nothing to blend or dim underneath, so
+	// the normal panel dispatch is skipped entirely instead of drawing (and
+	// then papering over) the previous panel's geometry.
+	if onb_shell_active {
 		draw_onboarding(mut app, w, h)
+	} else {
+		match app.selected_panel {
+			0 { draw_world(mut app, w, h) }
+			1 { draw_skills(mut app, w, h) }
+			2 { draw_agents(mut app, w, h) }
+			3 { draw_mcp(mut app, w, h) }
+			4 { draw_targets(mut app, w, h) }
+			5 { draw_doctor(mut app, w, h) }
+			6 { draw_jobs(mut app, w, h) }
+			7 { draw_loops(mut app, w, h) }
+			8 { draw_swarm(mut app, w, h) }
+			9 { draw_workspace(mut app, w, h) }
+			10 { draw_products(mut app, w, h) }
+			11 { draw_onboarding(mut app, w, h) }
+			12 { draw_insights(mut app, w, h) }
+			else { draw_world(mut app, w, h) }
+		}
 	}
 	if app.show_onboarding || app.selected_panel == 11 {
 		draw_onboarding_preview(mut app, w, h)
@@ -6424,7 +6445,6 @@ fn utf8_truncate(s string, max_runes int) string {
 	return r[..max_runes].string()
 }
 
-
 // ── Insights — telemetry super-potent: cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher ──
 // Superior to munder-difflin: combines munder's cost ledger + tool waterfall + CI watcher in one paper-telemetry
 // surface, plus budget sparks (402x per-swarm logistic chaos) and OTel spans with Dunder rust/brass paper.
@@ -6975,8 +6995,18 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(ix + iw / 2 - 22, iy + ih - 22, 44, 1, app.pnl_select)
 }
 
+// onb_effective_term_h caps the terminal at a compact height while the
+// onboarding shell owns the screen — the reference's terminal well reads as
+// ~12-15% of the window, well under the production 1x/2x heights, which
+// otherwise starve the board of the room its five sheets need.
+pub fn onb_effective_term_h(app &GuiApp) int {
+	// the cap is applied where term_height is computed (frame()); this stays
+	// as the single accessor onb_layout and draw_terminal share
+	return app.term_height
+}
+
 fn draw_terminal(mut app GuiApp, w int, h int) {
-	term_h := app.term_height
+	term_h := onb_effective_term_h(app)
 	y0 := h - 28 - term_h
 	x0 := 200
 	tw := w - 200
@@ -8481,7 +8511,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.show_onboarding = false
 			} else {
 				select_panel(mut app, 11)
-				app.onboarding_msg = 'Onboarding wizard toggled via o — 7 steps ready'
+				app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
 			}
 			return
 		}
@@ -8812,10 +8842,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Header controls share the same geometry as draw_header.
+		// Header controls share the same geometry as draw_header. During
+		// onboarding the generic header is replaced by the editorial
+		// masthead shell (draw_onboarding_masthead_shell), which owns this
+		// band instead.
 		w := app.gg.width
 		h := app.gg.height
-		if my >= 0 && my <= 44 {
+		onb_shell_active := app.show_onboarding || app.selected_panel == 11
+		if !onb_shell_active && my >= 0 && my <= 44 {
 			wx := header_workspace_x()
 			ww := header_workspace_w(w)
 			if mx >= wx && mx <= wx + ww && my >= 6 && my <= 38 {
@@ -9084,8 +9118,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// The grouped task navigation and its hit targets use one shared row model.
+		// The onboarding sidebar has its own simplified rows, handled inside
+		// onboarding_click instead of the production nav model.
 		dock_l_c := dock_x(app, w) + 8
-		if mx >= dock_l_c && mx <= dock_l_c + dock_w - 16 {
+		if !(app.show_onboarding || app.selected_panel == 11) && mx >= dock_l_c
+			&& mx <= dock_l_c + dock_w - 16 {
 			for row in nav_rows(app, h) {
 				if my >= row.y && my <= row.y + row.h {
 					select_panel(mut app, row.panel)
