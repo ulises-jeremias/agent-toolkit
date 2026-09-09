@@ -853,6 +853,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           set -euo pipefail
+          # The runner image ships third-party apt sources (Chrome, etc.) we do
+          # not use; a stale mirror there (Hash Sum mismatch) must not block us.
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/microsoft-*.list
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends \
             xorg-dev libgl1-mesa-dev libegl1-mesa-dev
@@ -882,6 +885,8 @@ jobs:
       - name: Install X11/GL + capture deps
         run: |
           set -euo pipefail
+          # same third-party-source hardening as the shell-tests job
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/microsoft-*.list
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends \
             xorg-dev libgl1-mesa-dev libegl1-mesa-dev \
