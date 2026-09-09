@@ -1026,6 +1026,16 @@ mut:
 	selected_products_onboarding []string
 	products_scroll              int
 	products_hover               int = -1
+	// VC5 Library (#1173): shared collection state for Agents/Products/MCP
+	// tabs (Skills keeps skills_scroll/skills_selected/skills_domain)
+	lib_scroll        int
+	lib_sel           int
+	lib_hover         int = -1
+	lib_hover_ui      int = -1
+	lib_filter        string
+	lib_cache         []LibItem
+	lib_cache_key     string
+	lib_cache_frame   int = -1
 	targets_hover                int = -1
 	onboarding_scroll            int
 	// VC4 setup journey (#1173): user-facing choices; Engine keeps the truth
@@ -1132,6 +1142,7 @@ const i18n_table = {
 	// grouped task navigation — six permanent destinations
 	'nav.group.office':     I18nRow{'Office', 'Oficina', '办公', 'المكتب'}
 	'nav.group.library':    I18nRow{'Library', 'Biblioteca', '资源库', 'المكتبة'}
+	'lib.subtitle':         I18nRow{'Discover skills, agents, and tools to supercharge your team.', 'Descubre habilidades, agentes y herramientas para potenciar a tu equipo.', '发现技能、代理和工具，助力你的团队。', 'اكتشف المهارات والوكلاء والأدوات لتعزيز فريقك.'}
 	'nav.group.operations': I18nRow{'Operations', 'Operaciones', '运维', 'العمليات'}
 	'nav.group.workspace':  I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
 	'nav.group.insights':   I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
@@ -2650,18 +2661,17 @@ fn frame(mut app GuiApp) {
 	if onb_shell_active {
 		draw_onboarding(mut app, w, h)
 	} else {
+		// VC5 (#1173): Skills/Agents/Products/MCP share one Library
+		// composition (library_view.v) with its own detail column.
 		match app.selected_panel {
 			0 { draw_world(mut app, w, h) }
-			1 { draw_skills(mut app, w, h) }
-			2 { draw_agents(mut app, w, h) }
-			3 { draw_mcp(mut app, w, h) }
+			1, 2, 3, 10 { draw_library(mut app, w, h) }
 			4 { draw_targets(mut app, w, h) }
 			5 { draw_doctor(mut app, w, h) }
 			6 { draw_jobs(mut app, w, h) }
 			7 { draw_loops(mut app, w, h) }
 			8 { draw_swarm(mut app, w, h) }
 			9 { draw_workspace(mut app, w, h) }
-			10 { draw_products(mut app, w, h) }
 			11 { draw_onboarding(mut app, w, h) }
 			12 { draw_insights(mut app, w, h) }
 			else { draw_world(mut app, w, h) }
@@ -2669,6 +2679,8 @@ fn frame(mut app GuiApp) {
 	}
 	if app.show_onboarding || app.selected_panel == 11 {
 		draw_onboarding_preview(mut app, w, h)
+	} else if lib_is_panel(app.selected_panel) {
+		draw_library_detail(mut app, w, h)
 	} else {
 		draw_inspector(mut app, w, h)
 	}
@@ -3711,163 +3723,6 @@ fn skills_filtered_entries(mut app GuiApp) []SkillEntryProxy {
 	return out
 }
 
-// draw_skills_search_bar is 20-line helper — easy to manage, brokered filter.
-fn draw_skills_search_bar(mut app GuiApp, fx int, fy int, fw int) {
-	app.gg.draw_rect_filled(fx + 12, fy + 48, fw - 24, 28, app.pnl_card)
-	app.gg.draw_rect_empty(fx + 12, fy + 48, fw - 24, 28, app.pnl_border)
-	mut q := app.skills_query
-	if q == '' && app.palette_query != '' {
-		q = app.palette_query
-	}
-	display := if q == '' {
-		'Search ${skills_total(mut app)} skills — try "core", "figma", "github" (fuzzy)'
-	} else {
-		'filter: ${q}'
-	}
-	col := if q == '' { app.pnl_text_mut } else { app.pnl_text }
-	app.gg.draw_text(fx + 20, fy + 56, display, gg.TextCfg{ color: col, size: 13, mono: q != '' })
-	if q != '' {
-		app.gg.draw_text(fx + fw - 130, fy + 56, '${skills_filtered_entries(mut app).len} match', gg.TextCfg{ color: app.pnl_border_hi, size: 12 })
-	}
-}
-
-// draw_skills_domain_chips — 14 domains, easy to manage chips, one-liner per domain.
-fn draw_skills_domain_chips(mut app GuiApp, fx int, fy int, fw int) {
-	domains := ['all', 'core', 'delivery', 'design', 'forge', 'integrations', 'data', 'tooling',
-		'ops', 'loops', 'quality', 'architecture', 'cloud', 'agentic-security']
-	mut y := fy + 80
-	x0 := fx + 12
-	mut x := x0
-	for d in domains {
-		label := if d == 'all' { 'all ${skills_total(mut app)}' } else { d }
-		active := (d == 'all' && app.skills_domain == '') || app.skills_domain == d
-		bg := if active { app.pnl_select } else { app.pnl_card_sel }
-		fg := if active { app.pnl_text } else { app.pnl_text_mut }
-		bd := if active { app.pnl_border_hi } else { app.pnl_border }
-		w := label.len * 7 + 16
-		if x + w > fx + fw - 12 {
-			// wrap to the next chip row — every domain stays reachable
-			x = x0
-			y += 22
-		}
-		app.gg.draw_rect_filled(x, y, w, 18, bg)
-		app.gg.draw_rect_empty(x, y, w, 18, bd)
-		app.gg.draw_text(x + 8, y + 4, label, gg.TextCfg{ color: fg, size: 12, bold: active })
-		x += w + 6
-	}
-}
-
-// draw_skills_list — virtualized, 24px rows, 60 FPS, hover + install action + receipts/provenance.
-fn draw_skills_list(mut app GuiApp, fx int, fy int, fw int, fh int) {
-	y0 := fy + 128
-	list_h := fh - 142
-	if list_h < 40 {
-		return
-	}
-	entries := skills_filtered_entries(mut app)
-	row_h := 28
-	visible := list_h / row_h
-	if visible < 1 {
-		return
-	}
-	app.skills_scroll = clamp_scroll(app.skills_scroll, entries.len, visible)
-	start := app.skills_scroll
-	mut end := start + visible
-	if end > entries.len {
-		end = entries.len
-	}
-	// installed set for super-potent toggle + receipt/provenance indicators (Engine transaction state)
-	installed := if app.desktop != unsafe { nil } {
-		app.desktop.engine_skills_installed()
-	} else {
-		[]string{}
-	}
-	for idx in start .. end {
-		s := entries[idx]
-		row := idx - start
-		y := y0 + row * row_h
-		is_hover := idx == app.skills_hover
-		is_sel := idx == app.skills_selected
-		// installed → brass left accent + mint receipt dot; hover → charcoal2
-		is_installed := s.id in installed
-		bg := if is_sel {
-			app.pnl_card_sel
-		} else if is_hover { app.pnl_hover } else { app.pnl_card }
-		bd := if is_sel {
-			app.pnl_select
-		} else if is_installed { app.pnl_success } else { app.pnl_border }
-		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 26, bg)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 26, bd)
-		if is_sel {
-			app.gg.draw_rect_filled(fx + 12, y, 3, 26, app.pnl_select)
-		} else if is_installed {
-			app.gg.draw_rect_filled(fx + 12, y, 3, 26, app.pnl_success)
-		}
-		// domain pill
-		pill_col := match s.domain {
-			'core' { app.pnl_success }
-			'delivery' { app.pnl_text_mut }
-			'design' { app.pnl_text_mut }
-			'forge' { app.pnl_select }
-			else { app.pnl_text_mut }
-		}
-		app.gg.draw_rect_filled(fx + 16, y + 7, 56, 12, app.pnl_bg)
-		pill_dom := if s.domain.len > 9 { s.domain[..8] + '…' } else { s.domain }
-		app.gg.draw_text(fx + 18, y + 8, pill_dom, gg.TextCfg{ color: pill_col, size: 10 })
-		app.gg.draw_text(fx + 78, y + 4, s.id, gg.TextCfg{ color: app.pnl_text, size: 13, bold: is_sel })
-		mut desc := s.description
-		if desc.len > 48 {
-			desc = desc[..48] + '…'
-		}
-		app.gg.draw_text(fx + 78, y + 15, desc, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		// stability + provenance hint
-		stab := if s.stability == 'beta' { 'beta' } else { 'stable' }
-		stab_col := if stab == 'beta' { app.pnl_select } else { app.pnl_text_mut }
-		app.gg.draw_text(fx + fw - 150, y + 6, stab, gg.TextCfg{ color: stab_col, size: 10 })
-		// receipt indicator (provenance via Engine) + install/toggle action — one-click Engine TX
-		if is_installed {
-			app.gg.draw_text(fx + fw - 116, y + 6, 'receipt ✓', gg.TextCfg{ color: app.pnl_success, size: 10 })
-			hover_install := is_hover
-			action := 'remove'
-			acol := if hover_install { app.pnl_danger } else { app.pnl_text_mut }
-			app.gg.draw_text(fx + fw - 70, y + 7, action, gg.TextCfg{ color: acol, size: 13, bold: hover_install })
-			if is_hover {
-				app.gg.draw_rect_filled(fx + fw - 72, y + 18, 40, 2, tint(app.pnl_danger, 45))
-			}
-		} else {
-			// provenance preview — source file via receipt (hover shows toggle → install)
-			has_receipt := if app.desktop != unsafe { nil } {
-				if _ := app.desktop.engine_skill_receipt(s.id) { true } else { false }
-			} else {
-				false
-			}
-			if has_receipt {
-				app.gg.draw_text(fx + fw - 116, y + 6, 'provenance ✓', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-			}
-			hover_install := is_hover
-			install_col := if hover_install { app.pnl_select } else { app.pnl_text_mut }
-			lbl := if hover_install { 'install →' } else { 'install' }
-			app.gg.draw_text(fx + fw - 70, y + 7, lbl, gg.TextCfg{ color: install_col, size: 13, bold: hover_install })
-			if is_hover {
-				app.gg.draw_rect_filled(fx + fw - 72, y + 18, 40, 2, app.pnl_border_hi)
-			}
-		}
-	}
-	// scrollbar
-	if entries.len > visible {
-		mut bar_h := list_h * visible / entries.len
-		if bar_h < 14 {
-			bar_h = 14
-		}
-		bar_y := y0 + (list_h - bar_h) * start / (entries.len - visible)
-		app.gg.draw_rect_filled(fx + fw - 8, y0, 3, list_h, tint(app.pnl_text, 180))
-		app.gg.draw_rect_filled(fx + fw - 8, bar_y, 3, bar_h, app.pnl_border_hi)
-	}
-	if entries.len == 0 {
-		app.gg.draw_text(fx + 20, y0 + 10, 'No skills match — try "core" or clear the filter (Esc)', gg.TextCfg{ color: app.pnl_text_mut, size: 13 })
-	}
-}
-
 // paper_letterhead — the filing-cabinet letterhead shared by every paper panel:
 // Fraunces display title + warm-ink subtitle + right-aligned mono stat.
 // Subtitle is skipped when it would collide with the stat (footers carry detail).
@@ -3888,115 +3743,24 @@ fn paper_letterhead(mut app GuiApp, fx int, fy int, fw int, title string, subtit
 	}
 }
 
-fn draw_skills(mut app GuiApp, w int, h int) {
-	fx := panel_fx(app)
-	fy := 52
-	fw := panel_fw(app, w)
-	term_h_sk := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_sk
-	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	// engine stats — super-potent with receipts/provenance
-	cat := app.desktop.engine_skills_search('', '')
-	stats := app.desktop.engine_skills_stats()
-	receipts := app.desktop.engine_receipts_catalog().filter(it.kind == 'skill')
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.skills'), 'fuzzy searchable · virtualized 60 FPS · receipts + provenance', '${cat.len} total · ${stats.installed} in · ${receipts.len} receipts')
-	draw_skills_search_bar(mut app, fx, fy, fw)
-	draw_skills_domain_chips(mut app, fx, fy, fw)
-	draw_skills_list(mut app, fx, fy, fw, fh)
-	// super-potent footer: domain facets + origin
-	doms := app.desktop.engine_skills_domains()
-	app.gg.draw_text(fx + 14, fy + fh - 16, 'Source: catalogs/skill-catalog.yaml (116) → ${skills_total(mut app)} · ${doms.len} domains · click row to install/toggle · receipts ${receipts.len} · / to palette', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-}
-
-fn draw_agents(mut app GuiApp, w int, h int) {
-	fx := panel_fx(app)
-	fy := 52
-	fw := panel_fw(app, w)
-	term_h_ag := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_ag
-	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	// super-potent header with stats + provenance (R2 product-truth: tier
-	// breakdown via helper so the header can never drift from the catalog).
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.agents'), agents_tier_summary(mut app), 'search + tier filter · receipts via Engine')
-	mut agents := app.desktop.engine_agents_search(app.skills_query, '')
-	if agents.len == 0 {
-		agents = [
-			desktop_engine.AgentEntry{ id: 'assistant', role: 'Orchestrator', tier: 'orchestrator', description: 'assistant' },
-			desktop_engine.AgentEntry{ id: 'planner', role: 'Orchestrator', tier: 'orchestrator', description: 'planner' },
-		]
-	}
-	// fill the column from Engine search (super-potent)
-	mut show := agents.clone()
-	mut max_show := (fh - 70) / 34
-	if max_show < 4 {
-		max_show = 4
-	}
-	if show.len > max_show {
-		show = show[..max_show]
-	}
-	for i, ag in show {
-		y := fy + 56 + i * 34
-		if y + 30 > fy + fh - 12 {
-			break
-		}
-		is_sel := show.len > 0 && app.selected_desk >= 0 && i == app.selected_desk % show.len
-		bg := if is_sel { app.pnl_card_sel } else { app.pnl_card }
-		bd := if is_sel { app.pnl_select } else { app.pnl_border }
-		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 30, bg)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 30, bd)
-		if is_sel {
-			app.gg.draw_rect_filled(fx + 12, y, 3, 30, app.pnl_select)
-		}
-		app.gg.draw_text(fx + 24, y + 8, ag.id, gg.TextCfg{
-			color: app.pnl_text
-			size: 14
-			family: app.fonts.display
-		})
-		app.gg.draw_text(fx + 24 + ag.id.len * 10 + 10, y + 10, ag.role, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		// delegates → provenance (truncated to the badge column)
-		trig_limit := if ag.triggers.len > 24 { 24 } else { ag.triggers.len }
-		mut deleg := if ag.delegates_to.len > 0 {
-			'→ ' + ag.delegates_to.join(',')
-		} else {
-			ag.triggers[..trig_limit]
-		}
-		if deleg.len > 34 {
-			deleg = deleg[..34] + '…'
-		}
-		app.gg.draw_text(fx + fw - 250, y + 10, deleg, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: true })
-		// tier badge — manila chip
-		tier_col := match ag.tier {
-			'orchestrator' { app.pnl_border_hi }
-			'specialist' { app.pnl_danger }
-			else { app.pnl_success }
-		}
-		app.gg.draw_rect_filled(fx + fw - 96, y + 7, 76, 16, app.pnl_bg)
-		app.gg.draw_rect_empty(fx + fw - 96, y + 7, 76, 16, tier_col)
-		app.gg.draw_text(fx + fw - 90, y + 10, ag.tier, gg.TextCfg{ color: tier_col, size: 10, bold: true })
-	}
-	app.gg.draw_text(fx + 20, fy + fh - 14, 'Provenance: agents/<id>/AGENT.md → catalogs/agent-catalog.yaml · delegation graph via assistant · / to palette', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-}
-
-// mcp_drawer_geom is the single source for the provider drawer geometry —
-// render and hit-testing must stay identical (#1106).
-fn mcp_drawer_geom(fx int, fy int, fw int) (int, int, int, int) {
-	pw := if fw - 120 > 360 { fw - 120 } else { 360 }
-	return fx + 60, fy + 96, pw, 296
-}
-
 // mcp_probe_fresh reports whether the cached probe result still counts (60s).
 fn mcp_probe_fresh(app &GuiApp, id string) bool {
 	return app.mcp_probe_id == id && app.frame - app.mcp_probe_at < 3600
 }
 
 // mcp_run_probe executes the typed Engine probe and caches the display (#1106).
-fn mcp_run_probe(mut app GuiApp, id string) {
+// mcp_run_probe refreshes the cached probe. announce=true only for the
+// explicit Probe action — selection-driven refreshes stay silent because
+// every inspector_msg becomes a toast.
+fn mcp_run_probe(mut app GuiApp, id string, announce bool) {
 	res := app.desktop.engine_mcp_probe(id) or {
 		app.mcp_probe_id = id
 		app.mcp_probe_ok = false
 		app.mcp_probe_detail = err.msg()
 		app.mcp_probe_at = app.frame
-		app.inspector_msg = 'MCP ${id} probe failed: ${err}'
+		if announce {
+			app.inspector_msg = 'MCP ${id} probe failed: ${err}'
+		}
 		return
 	}
 	app.mcp_probe_id = id
@@ -4004,7 +3768,9 @@ fn mcp_run_probe(mut app GuiApp, id string) {
 	app.mcp_probe_detail = res.detail
 	app.mcp_probe_at = app.frame
 	app.api_calls = app.desktop.engine_api_calls()
-	app.inspector_msg = 'MCP ${id} probe: ${res.detail}'
+	if announce {
+		app.inspector_msg = 'MCP ${id} probe: ${res.detail}'
+	}
 }
 
 // mcp_drawer_open caches template/provenance/receipt once (render must not
@@ -4024,10 +3790,11 @@ fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance s
 	app.mcp_drawer_from_file = from_file
 	app.mcp_drawer_provenance = provenance
 	app.mcp_drawer_receipt = '${receipt.receipt_path} · writes ${will}'
-	if !mcp_probe_fresh(app, id) {
-		mcp_run_probe(mut app, id)
-	}
-	app.inspector_msg = 'MCP ${id} drawer — masked preview · probe cached 60s'
+	// no probe and no inspector_msg here: this runs on card *selection* (and
+	// lazily from the detail pane draw), so it must stay cheap and silent —
+	// template + receipt loading only. The probe (synchronous validation +
+	// health check) runs only from the explicit Probe action (lib_secondary),
+	// which also owns the toast. The pane shows "not run — press Probe" until then.
 }
 
 // mcp_open_template routes to the Workspace panel with the template loaded
@@ -4065,172 +3832,6 @@ fn mcp_open_template(mut app GuiApp, id string, template_path string) {
 		app.inspector_msg = 'Opened ${title} (harness guard: synthetic tab, content from masked preview)'
 	}
 	select_panel(mut app, 9)
-}
-
-fn draw_mcp(mut app GuiApp, w int, h int) {
-	fx := panel_fx(app)
-	fy := 52
-	fw := panel_fw(app, w)
-	term_h_mcp := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_mcp
-	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	stats := app.desktop.engine_mcp_stats()
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.mcp'), '${stats.healthy} healthy · ${stats.enabled} enabled · ${stats.unconfigured} unconfigured · secret guard', 'mcp/templates/<id>.json')
-	// search bar — Brokered via Engine.mcp_catalog_search (fuzzy) — super potent easy management
-	search_q := app.skills_query
-	app.gg.draw_rect_filled(fx + 12, fy + 48, fw - 24, 26, app.pnl_card)
-	app.gg.draw_rect_empty(fx + 12, fy + 48, fw - 24, 26, app.pnl_border)
-	q_label := if app.selected_panel == 3 && search_q != '' {
-		'filter: ${search_q}'
-	} else {
-		'Search MCP — try "github", "slack" (fuzzy)'
-	}
-	q_col := if search_q != '' && app.selected_panel == 3 {
-		app.pnl_border_hi
-	} else {
-		app.pnl_text_mut
-	}
-	app.gg.draw_text(fx + 22, fy + 55, q_label, gg.TextCfg{ color: q_col, size: 12 })
-	// filtered via Engine search (or all when empty)
-	mut provs := if app.selected_panel == 3 && search_q != '' {
-		app.desktop.engine_mcp_search(search_q)
-	} else {
-		app.desktop.engine_mcp_catalog()
-	}
-	if provs.len == 0 {
-		provs = [
-			desktop_engine.McpProvider{ id: 'github', name: 'GitHub', health: 'healthy' },
-			desktop_engine.McpProvider{ id: 'slack', name: 'Slack', health: 'unconfigured' },
-		]
-	}
-	mut y0 := fy + 84
-	for i, p in provs {
-		if i >= 7 {
-			break
-		}
-		y := y0 + i * 28
-		bg := if p.enabled { app.pnl_card_sel } else { app.pnl_card }
-		bd := if p.enabled { app.pnl_success } else { app.pnl_border }
-		app.gg.draw_rect_filled(fx + 12, y, fw - 24, 28, bg)
-		app.gg.draw_rect_empty(fx + 12, y, fw - 24, 28, bd)
-		if p.enabled {
-			app.gg.draw_rect_filled(fx + 12, y, 3, 28, app.pnl_success)
-		}
-		app.gg.draw_text(fx + 24, y + 7, p.id, gg.TextCfg{
-			color: app.pnl_text
-			size: 14
-			family: app.fonts.display
-		})
-		// failed fresh probe replaces the name slot with the error detail (#1106)
-		if mcp_probe_fresh(app, p.id) && !app.mcp_probe_ok {
-			det := if app.mcp_probe_detail.len > 52 {
-				app.mcp_probe_detail[..52] + '…'
-			} else {
-				app.mcp_probe_detail
-			}
-			app.gg.draw_text(fx + 24 + p.id.len * 10 + 12, y + 9, det, gg.TextCfg{
-				color: app.pnl_danger
-				size: 11
-			})
-		} else {
-			app.gg.draw_text(fx + 24 + p.id.len * 10 + 12, y + 9, p.name, gg.TextCfg{
-				color: app.pnl_text_mut
-				size: 12
-			})
-		}
-		health := match p.health {
-			'healthy' { '✓ healthy' }
-			'warn' { '! warn' }
-			'error' { '× error' }
-			else { '· idle' }
-		}
-		hcol := if p.health == 'healthy' {
-			app.pnl_success
-		} else if p.health == 'warn' {
-			app.pnl_select
-		} else if p.health == 'error' { app.pnl_danger } else { app.pnl_text_mut }
-		app.gg.draw_text(fx + fw - 170, y + 8, health, gg.TextCfg{ color: hcol, size: 12, bold: p.health == 'healthy' })
-		// provenance + receipt path + toggle action — one-click Engine TX
-		app.gg.draw_text(fx + fw - 90, y + 8, if p.enabled { 'toggle off' } else { 'toggle on' }, gg.TextCfg{
-			color: if p.enabled {
-				app.pnl_text_mut
-			} else {
-				app.pnl_border_hi
-			}
-			size: 12
-			bold: !p.enabled
-		})
-	}
-	// footer — receipts verification + provenance + secret guard + install preview (super-potent)
-	verify := app.desktop.engine_verify_receipts().filter(it.path.contains('mcp'))
-	app.gg.draw_text(fx + 20, fy + fh - 28, 'MCP config: packaged template via Engine upsert (TX) · secret guard blocks raw ghp_/sk- → \${ENV_VAR} · provenance: packaged template path', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	app.gg.draw_text(fx + 20, fy + fh - 14, 'Click a row for masked drawer · toggle on the right · ${verify.len} receipt warnings · Enter toggles first provider', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	// provider drawer — modal card, masked template + probe + open-template (#1106)
-	if app.mcp_drawer != '' {
-		dx, dy, dw, dh := mcp_drawer_geom(fx, fy, fw)
-		pixel_panel(mut app, dx, dy, dw, dh, 'dialog')
-		app.gg.draw_text(dx + 14, dy + 10, 'MCP — ${app.mcp_drawer}', gg.TextCfg{
-			color: app.pnl_text
-			size: 14
-			bold: true
-		})
-		src := if app.mcp_drawer_from_file {
-			'template file'
-		} else {
-			'defaults (no template file)'
-		}
-		app.gg.draw_text(dx + 14, dy + 30, '${src} · secrets masked · provenance ${app.mcp_drawer_provenance}', gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 11
-		})
-		mut ln2 := 0
-		for raw_line in app.mcp_drawer_template.split('\n') {
-			if ln2 >= 7 {
-				break
-			}
-			line := if raw_line.len > 86 { raw_line[..86] + '…' } else { raw_line }
-			app.gg.draw_text(dx + 18, dy + 48 + ln2 * 14, line, gg.TextCfg{
-				color: app.pnl_text
-				size: 11
-				mono: true
-			})
-			ln2++
-		}
-		app.gg.draw_text(dx + 14, dy + 152, 'receipt: ${app.mcp_drawer_receipt}', gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 11
-		})
-		prow_col := if mcp_probe_fresh(app, app.mcp_drawer) && !app.mcp_probe_ok {
-			app.pnl_danger
-		} else if mcp_probe_fresh(app, app.mcp_drawer) {
-			app.pnl_success
-		} else {
-			app.pnl_text_mut
-		}
-		prow := if mcp_probe_fresh(app, app.mcp_drawer) {
-			'probe: ${app.mcp_probe_detail}'
-		} else {
-			'probe: press Probe (cached 60s)'
-		}
-		app.gg.draw_text(dx + 14, dy + 168, prow, gg.TextCfg{ color: prow_col, size: 11 })
-		btn_fg := if app.appearance_dark { app.pnl_bg } else { app.pnl_text }
-		app.gg.draw_rect_filled(dx + 14, dy + dh - 32, 110, 22, app.pnl_select)
-		app.gg.draw_rect_empty(dx + 14, dy + dh - 32, 110, 22, app.pnl_select)
-		app.gg.draw_text(dx + 40, dy + dh - 26, 'Probe', gg.TextCfg{
-			color: btn_fg
-			size: 12
-			bold: true
-		})
-		app.gg.draw_rect_filled(dx + 134, dy + dh - 32, 150, 22, app.pnl_card_sel)
-		app.gg.draw_rect_empty(dx + 134, dy + dh - 32, 150, 22, app.pnl_border)
-		app.gg.draw_text(dx + 148, dy + dh - 26, 'Open template', gg.TextCfg{
-			color: app.pnl_text
-			size: 12
-		})
-		app.gg.draw_rect_filled(dx + 294, dy + dh - 32, 80, 22, app.pnl_card_sel)
-		app.gg.draw_rect_empty(dx + 294, dy + dh - 32, 80, 22, app.pnl_border)
-		app.gg.draw_text(dx + 314, dy + dh - 26, 'Close', gg.TextCfg{ color: app.pnl_text, size: 12 })
-	}
 }
 
 // discovery_row_text renders the truthful discovery line for a target row
@@ -6331,106 +5932,6 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 // ── Products & Packs — super potent easy management ─────────────────────────────────
 // Brokered via Desktop.engine_products_catalog / packs_catalog (Engine typed, no shell).
 // Easy to manage: product cards, pack chips, membership bulk, build preview, digest.
-fn draw_products(mut app GuiApp, w int, h int) {
-	fx := panel_fx(app)
-	fy := 52
-	fw := panel_fw(app, w)
-	term_h_pd := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_pd
-	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	prods := app.desktop.engine_products_catalog()
-	packs := app.desktop.engine_packs_catalog()
-	installed := app.desktop.engine_skills_installed()
-	preview := skills_total(mut app).str()
-	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.products'), '${prods.len} products · ${packs.len} packs · ${installed.len} skills installed · docs-only per ADR-006', 'digest ${preview}')
-	// product cards
-	card_y0 := fy + 48
-	card_h := 52
-	visible := (fh - 70) / card_h
-	if visible < 1 {
-		return
-	}
-	app.products_scroll = clamp_scroll(app.products_scroll, prods.len, visible)
-	start := app.products_scroll
-	mut end := start + visible
-	if end > prods.len {
-		end = prods.len
-	}
-	for idx in start .. end {
-		p := prods[idx]
-		row := idx - start
-		y := card_y0 + row * card_h
-		hover := idx == app.products_hover
-		bg := if hover { app.pnl_card } else { app.pnl_bg }
-		bd := if hover { app.pnl_select } else { app.pnl_border }
-		pixel_panel(mut app, fx + 12, y, fw - 24, card_h - 6, 'default')
-		app.gg.draw_rect_filled(fx + 14, y + 2, fw - 28, card_h - 10, bg)
-		app.gg.draw_rect_empty(fx + 14, y + 2, fw - 28, card_h - 10, bd)
-		app.gg.draw_text(fx + 22, y + 8, p.id, gg.TextCfg{ color: app.pnl_text, size: 14, bold: true, mono: true })
-		app.gg.draw_text(fx + 22, y + 22, p.name, gg.TextCfg{ color: app.pnl_text, size: 12 })
-		mut desc := p.description
-		if desc.len > 42 {
-			desc = desc[..42] + '…'
-		}
-		app.gg.draw_text(fx + 22, y + 34, desc, gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		// skill count pill
-		scnt := p.skill_ids.len
-		app.gg.draw_rect_filled(fx + fw - 118, y + 6, 52, 14, app.pnl_card_sel)
-		app.gg.draw_text(fx + fw - 114, y + 8, '${scnt} skills', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-		// Install + Manage — super-potent easy management, distinct install per product
-		hover_install := hover
-		ibg := if hover_install { app.pnl_select } else { app.pnl_text }
-		app.gg.draw_rect_filled(fx + fw - 160, y + 26, 56, 16, ibg)
-		app.gg.draw_rect_empty(fx + fw - 160, y + 26, 56, 16, app.pnl_select)
-		app.gg.draw_text(fx + fw - 152, y + 29, 'Install', gg.TextCfg{
-			color: if hover_install {
-				app.pnl_text
-			} else {
-				app.pnl_card
-			}
-			size: 11
-			bold: hover_install
-		})
-		hover_manage := hover
-		mbg := if hover_manage { app.pnl_text } else { app.pnl_text }
-		app.gg.draw_rect_filled(fx + fw - 90, y + 26, 56, 16, mbg)
-		app.gg.draw_text(fx + fw - 82, y + 29, 'Manage', gg.TextCfg{ color: app.pnl_card, size: 11, bold: hover_manage })
-	}
-	if prods.len > visible {
-		track_h := visible * card_h
-		bar_h := track_h * visible / prods.len
-		mut bh := bar_h
-		if bh < 12 {
-			bh = 12
-		}
-		bar_y := card_y0 + (track_h - bh) * start / (prods.len - visible)
-		app.gg.draw_rect_filled(fx + fw - 6, card_y0, 3, track_h, tint(app.pnl_text, 30))
-		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, app.pnl_border_hi)
-	}
-	// packs chips below cards or at bottom if many
-	// packs right after the real card count — no dead gap
-	pack_y := card_y0 + prods.len * card_h + 10
-	if pack_y + 22 < fy + fh - 14 {
-		app.gg.draw_text(fx + 20, pack_y, 'Packs — docs-only, toggle to enable (Engine.set_pack_enabled):', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		mut px := fx + 20
-		for pk in packs {
-			label := pk.id
-			active := pk.id in app.desktop.engine_packs_catalog().map(it.id) // docs-only packs; enable via Engine
-			bg := if active { app.pnl_select } else { app.pnl_card_sel }
-			fg := if active { app.pnl_text } else { app.pnl_text_mut }
-			w2 := label.len * 7 + 16
-			if px + w2 > fx + fw - 14 {
-				break
-			}
-			app.gg.draw_rect_filled(px, pack_y + 14, w2, 18, bg)
-			app.gg.draw_rect_empty(px, pack_y + 14, w2, 18, app.pnl_border)
-			app.gg.draw_text(px + 8, pack_y + 18, label, gg.TextCfg{ color: fg, size: 11 })
-			px += w2 + 6
-		}
-	}
-	app.gg.draw_text(fx + 20, fy + fh - 14, 'Products compose skills via distributions/products.yaml — build --check validates · packs docs-only ADR-006', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-}
-
 // ── Onboarding — super-potent wizard: workspace init, persona bootstrap, capability/target/product ──
 // Single modal wizard where everything is possible and easy to manage. One view, seven steps:
 // Detect → Capabilities (227) → Targets (7) → Products/Packs (5+7) → Workspace Init → Personas → Tour → Done.
@@ -8027,9 +7528,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// panel-scoped Esc clears search fields — Esc must never hard-quit
 			// the app (that was a data-loss footgun; Ctrl+Q quits explicitly)
-			if app.selected_panel in [1, 3] {
+			if lib_is_panel(app.selected_panel) {
 				app.skills_query = ''
 				app.skills_domain = ''
+				app.lib_filter = ''
 				return
 			}
 			if app.selected_panel == 9 {
@@ -8119,6 +7621,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.palette_selected = 0
 			return
 		}
+		// VC5 (#1173): the Library tabs (Skills/Agents/Products/MCP) share one
+		// search field and one key handler — typing filters (spaces included),
+		// ←/→ select, ↑/↓ scroll rows, Enter runs the primary Engine action
+		// (library_view.v). Like header_search_focus above, the field owns
+		// printable letters *before* the global letter shortcuts (h help,
+		// r handoff) so "github" / "review" can actually be typed; the
+		// documented nav keys (digits, p/i/o) still fall through.
+		if !app.palette_open && !app.show_help && lib_is_panel(app.selected_panel) {
+			if library_key(mut app, e) {
+				return
+			}
+		}
 		if e.char_code == `h` || e.char_code == `H` {
 			app.show_help = !app.show_help
 			return
@@ -8134,137 +7648,6 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// super potent IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
 		// When skills or workspace panels active, capture typing there instead of ghost (easy to manage, brokered)
 		if !app.palette_open && !app.show_help {
-			if app.selected_panel == 1 {
-				// skills 227 search — backspace, escape clears, arrows scroll, printable appends
-				if e.key_code == .backspace {
-					if app.skills_query.len > 0 {
-						app.skills_query = app.skills_query[..app.skills_query.len - 1]
-					}
-					app.skills_scroll = 0
-					return
-				}
-				if e.key_code == .escape {
-					app.skills_query = ''
-					app.skills_domain = ''
-					return
-				}
-				if e.key_code == .up {
-					app.skills_scroll -= 1
-					return
-				}
-				if e.key_code == .down {
-					app.skills_scroll += 1
-					return
-				}
-				if e.key_code == .enter {
-					entries := skills_filtered_entries(mut app)
-					if app.skills_selected >= 0 && app.skills_selected < entries.len {
-						sel := entries[app.skills_selected]
-						// super-potent: Enter toggles via Engine TX (install/remove) + receipt/provenance — one-click easy management
-						if app.desktop != unsafe { nil } {
-							rev := app.desktop.engine_toggle_skill(sel.id) or {
-								app.inspector_msg = 'Skill ${sel.id} error: ${err}'
-								return
-							}
-							installed_now := sel.id in app.desktop.engine_skills_installed()
-							app.engine_rev = app.desktop.app_state_snapshot().revision
-							if app.engine_rev == 0 {
-								app.engine_rev = rev
-							}
-							app.api_calls = app.desktop.engine_api_calls()
-							action := if installed_now { 'installed' } else { 'removed' }
-							app.inspector_msg = 'Skill ${sel.id} ${action} rev=${rev} • receipt + provenance via Engine TX ✓'
-						} else {
-							app.inspector_msg = 'Skill ${sel.id} selected — install via Engine'
-						}
-					}
-					return
-				}
-				// space also toggles when row selected — easy management
-				if e.char_code == ` ` {
-					entries := skills_filtered_entries(mut app)
-					if app.skills_selected >= 0 && app.skills_selected < entries.len {
-						sel := entries[app.skills_selected]
-						if app.desktop != unsafe { nil } {
-							rev := app.desktop.engine_toggle_skill(sel.id) or {
-								app.inspector_msg = 'Skill ${sel.id} error: ${err}'
-								return
-							}
-							installed_now := sel.id in app.desktop.engine_skills_installed()
-							app.engine_rev = rev
-							app.api_calls = app.desktop.engine_api_calls()
-							action := if installed_now { 'installed' } else { 'removed' }
-							app.inspector_msg = 'Skill ${sel.id} ${action} rev=${rev} • Engine TX'
-							return
-						}
-					}
-				}
-				// MCP panel shares skills_query — when in MCP panel, arrows scroll and Enter toggles provider
-				if app.selected_panel == 3 && e.key_code == .enter {
-					q := app.skills_query
-					provs := if q != '' {
-						app.desktop.engine_mcp_search(q)
-					} else {
-						app.desktop.engine_mcp_catalog()
-					}
-					if provs.len > 0 {
-						// toggle first filtered or selected? use 0 for super-potent easy management
-						p := provs[0]
-						rev := app.desktop.engine_mcp_toggle(p.id) or {
-							app.inspector_msg = 'MCP ${p.id} toggle failed: ${err}'
-							return
-						}
-						app.engine_rev = rev
-						app.api_calls = app.desktop.engine_api_calls()
-						app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • secret guard passed; config from packaged template'
-						return
-					}
-				}
-				// documented panel shortcuts fall through to the global handler —
-				// the Skills panel must not swallow digits/p/i/o into the filter
-				if e.char_code > 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
-					app.skills_query += rune(e.char_code).str()
-					app.skills_scroll = 0
-					return
-				}
-			}
-			// MCP panel — shares skills_query fuzzy search, Enter toggles via Engine TX (super-potent)
-			if app.selected_panel == 3 {
-				if e.key_code == .backspace {
-					if app.skills_query.len > 0 {
-						app.skills_query = app.skills_query[..app.skills_query.len - 1]
-					}
-					return
-				}
-				if e.key_code == .escape {
-					app.skills_query = ''
-					return
-				}
-				if e.key_code == .enter {
-					q := app.skills_query
-					provs := if q != '' {
-						app.desktop.engine_mcp_search(q)
-					} else {
-						app.desktop.engine_mcp_catalog()
-					}
-					if provs.len > 0 {
-						p := provs[0]
-						rev := app.desktop.engine_mcp_toggle(p.id) or {
-							app.inspector_msg = 'MCP ${p.id} toggle failed: ${err}'
-							return
-						}
-						app.engine_rev = rev
-						app.api_calls = app.desktop.engine_api_calls()
-						app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • secret guard passed; config from packaged template • Engine TX'
-						return
-					}
-				}
-				// same nav-key fall-through as the Skills panel (see is_panel_nav_key)
-				if e.char_code > 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
-					app.skills_query += rune(e.char_code).str()
-					return
-				}
-			}
 			// Doctor panel — f fixes all via Engine TX, Enter opens dry-run preview
 			// (Enter again confirms, Esc cancels), real repair + audit stamp
 			if app.selected_panel == 5 {
@@ -8918,6 +8301,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
+		// VC5 (#1173): Library panels own every click inside the panel and
+		// its detail column (tabs, search, chips, cards, actions) — same
+		// geometry as draw_library / draw_library_detail.
+		if lib_is_panel(app.selected_panel) && !app.show_onboarding {
+			if library_click(mut app, mx, my, w, h) {
+				return
+			}
+		}
 		// Inspector buttons — clickable
 		ix := inspector_x(app, w)
 		iy := 52
@@ -9136,226 +8527,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Products catalog — distinct overlay with install buttons, super-potent easy management via Engine
-		if app.selected_panel == 10 {
-			// products cards: Install at fw-160, Manage at fw-90 — distinct from onboarding
-			w2p := app.gg.width
-			h2p := app.gg.height
-			term_h_p := if app.term_visible { app.term_height } else { 0 }
-			fx_p := 208
-			fy_p := 52
-			fw_p := w2p - 208 - 300
-			fh_p := h2p - 52 - 28 - term_h_p
-			card_y0 := fy_p + 48
-			card_h := 52
-			visible_p := (fh_p - 70) / card_h
-			if visible_p > 0 {
-				prods_p := app.desktop.engine_products_catalog()
-				start_p := clamp_scroll(app.products_scroll, prods_p.len, visible_p)
-				mut end_p := start_p + visible_p
-				if end_p > prods_p.len {
-					end_p = prods_p.len
-				}
-				for idx in start_p .. end_p {
-					row := idx - start_p
-					y := card_y0 + row * card_h
-					// Install button hit — distinct install per product via Engine bulk
-					if mx >= fx_p + fw_p - 160 && mx <= fx_p + fw_p - 104 && my >= y + 26 && my <= y + 42 {
-						p := prods_p[idx]
-						rev := app.desktop.onboarding_set_products_bulk([p.id]) or {
-							app.onboarding_msg = 'products install failed: ${err}'
-							0
-						}
-						if rev > 0 {
-							app.onboarding_msg = 'Product ${p.id} installed rev=${rev} ✓'
-							app.engine_rev = app.desktop.app_state_snapshot().revision
-							app.api_calls = app.desktop.engine_api_calls()
-						}
-						app.products_hover = idx
-						return
-					}
-					// Manage button hit — shows provenance receipt (super-potent)
-					if mx >= fx_p + fw_p - 90 && mx <= fx_p + fw_p - 34 && my >= y + 26 && my <= y + 42 {
-						p := prods_p[idx]
-						app.inspector_msg = 'Manage ${p.id}: ${p.provenance} • receipt ${p.receipt_path}'
-						app.products_hover = idx
-						return
-					}
-					// card body click selects hover for keyboard/drag feedback
-					if mx >= fx_p + 14 && mx <= fx_p + fw_p - 14 && my >= y + 2 && my <= y + 46 {
-						app.products_hover = idx
-					}
-				}
-			}
-		}
-		// Skills panel — domain chips + virtualized list install (227 searchable, brokered via Engine TX, receipts/provenance)
-		if app.selected_panel == 1 {
-			fx := 208
-			fy := 52
-			fw := w - 208 - 300
-			// domain chips hit at fy+80 — 14 domains, one-click filter via Engine fuzzy
-			domains := ['all', 'core', 'delivery', 'design', 'forge', 'integrations', 'data',
-				'tooling', 'ops', 'loops', 'quality', 'architecture', 'cloud', 'agentic-security']
-			y_chip := fy + 80
-			mut chip_x := fx + 12
-			for d in domains {
-				label := if d == 'all' { 'all ${skills_total(mut app)}' } else { d }
-				wc := label.len * 7 + 16
-				if chip_x + wc > fx + fw - 12 {
-					break
-				}
-				if mx >= chip_x && mx <= chip_x + wc && my >= y_chip && my <= y_chip + 18 {
-					app.skills_domain = if d == 'all' { '' } else { d }
-					app.skills_scroll = 0
-					app.skills_selected = 0
-					app.inspector_msg = if d == 'all' {
-						'Filter: all ${skills_total(mut app)} skills'
-					} else {
-						'Filter: ${d} domain via Engine.skills_search'
-					}
-					return
-				}
-				chip_x += wc + 6
-			}
-			// list rows at fy+102 — virtualized 60 FPS, install/remove via Engine Transaction + receipt/provenance display
-			y0 := fy + 102
-			entries := skills_filtered_entries(mut app)
-			row_h := 28
-			visible := (h - 52 - 28 - (if app.term_visible { app.term_height } else { 0 }) - 126) / row_h
-			if visible > 0 {
-				start := clamp_scroll(app.skills_scroll, entries.len, visible)
-				mut end_sk := start + visible
-				if end_sk > entries.len {
-					end_sk = entries.len
-				}
-				for idx in start .. end_sk {
-					row := idx - start
-					y := y0 + row * row_h
-					if mx >= fx + 12 && mx <= fx + fw - 12 && my >= y && my <= y + 24 {
-						app.skills_selected = idx
-						// install/remove on right side — super-potent one-click Engine TX (no shell)
-						if mx >= fx + fw - 80 {
-							sel := entries[idx]
-							if app.desktop != unsafe { nil } {
-								// toggle via Engine: installs if missing, removes if present → StateRepository TX + receipt + provenance
-								rev := app.desktop.engine_toggle_skill(sel.id) or {
-									app.inspector_msg = 'Skill ${sel.id} error: ${err}'
-									return
-								}
-								// receipt + provenance after toggle for display parity (provenance via Engine receipt verified)
-								receipt_exists := if _ := app.desktop.engine_skill_receipt(sel.id) {
-									true
-								} else {
-									false
-								}
-								_ = receipt_exists
-								installed_now := sel.id in app.desktop.engine_skills_installed()
-								app.engine_rev = app.desktop.app_state_snapshot().revision
-								if app.engine_rev == 0 {
-									app.engine_rev = rev
-								}
-								app.api_calls = app.desktop.engine_api_calls()
-								action := if installed_now { 'installed' } else { 'removed' }
-								app.inspector_msg = 'Skill ${sel.id} ${action} rev=${rev} • receipt provenance ✓ • Engine TX'
-							} else {
-								app.inspector_msg = 'Skill install queued: ${sel.id} via Engine transaction'
-							}
-						} else {
-							sel := entries[idx]
-							// show receipt/provenance for selected even without toggle
-							if app.desktop != unsafe { nil } {
-								if r := app.desktop.engine_skill_receipt(sel.id) {
-									app.inspector_msg = 'Receipt: ${r.skill_id} ${r.installed_at} digest=${r.digest} • real install receipt evidence'
-								} else {
-									app.inspector_msg = 'Selected ${sel.id} — click install → Engine TX + receipt ~/.config/agent-toolkit/receipts'
-								}
-							}
-						}
-						return
-					}
-				}
-			}
-			// search bar click focuses — brokered 227 fuzzy searchable
-			if mx >= fx + 12 && mx <= fx + fw - 12 && my >= fy + 48 && my <= fy + 76 {
-				app.palette_open = false
-				app.inspector_msg = 'Skills search focused — type to filter ${skills_total(mut app)} (fuzzy substring+subsequence+word-boundary via Engine)'
-				return
-			}
-		}
-		// MCP panel — super-potent easy management: search fuzzy, toggle via Engine TX, secret guard, provenance + receipt display
-		if app.selected_panel == 3 {
-			fx_m := 208
-			fy_m := 52
-			fw_m := w - 208 - 300
-			// provider drawer is modal: Probe / Open template / Close first (#1106)
-			if app.mcp_drawer != '' {
-				dx, dy, _, dh := mcp_drawer_geom(panel_fx(app), fy_m, panel_fw(app, w))
-				if mx >= dx + 14 && mx <= dx + 124 && my >= dy + dh - 32 && my <= dy + dh - 10 {
-					mcp_run_probe(mut app, app.mcp_drawer)
-					return
-				}
-				if mx >= dx + 134 && mx <= dx + 284 && my >= dy + dh - 32 && my <= dy + dh - 10 {
-					mut tpath := ''
-					for p in app.desktop.engine_mcp_catalog() {
-						if p.id == app.mcp_drawer {
-							tpath = p.template_path
-							break
-						}
-					}
-					did := app.mcp_drawer
-					mcp_open_template(mut app, did, tpath)
-					return
-				}
-				if mx >= dx + 294 && mx <= dx + 374 && my >= dy + dh - 32 && my <= dy + dh - 10 {
-					app.mcp_drawer = ''
-					app.inspector_msg = 'MCP drawer closed'
-					return
-				}
-				return
-			}
-			// search bar hit — mirrors draw_mcp (fx+12, fy+48, fw-24, 26)
-			if mx >= fx_m + 12 && mx <= fx_m + fw_m - 12 && my >= fy_m + 48 && my <= fy_m + 74 {
-				app.inspector_msg = 'MCP search focused — fuzzy via Engine.mcp_catalog_search (try github, slack)'
-				return
-			}
-			// provider rows mirror draw_mcp (y0 = fy+84, 28px, 7 rows); the old
-			// fy+58 origin misaligned clicks by a full row (#1106)
-			y0_m := fy_m + 84
-			search_q := if app.selected_panel == 3 { app.skills_query } else { '' }
-			provs_m := if search_q != '' {
-				app.desktop.engine_mcp_search(search_q)
-			} else {
-				app.desktop.engine_mcp_catalog()
-			}
-			for i, p in provs_m {
-				if i >= 7 {
-					break
-				}
-				y := y0_m + i * 28
-				if mx >= fx_m + 12 && mx <= fx_m + fw_m - 12 && my >= y && my <= y + 24 {
-					// right toggle hit
-					if mx >= fx_m + fw_m - 100 {
-						if app.desktop != unsafe { nil } {
-							rev := app.desktop.engine_mcp_toggle(p.id) or {
-								app.inspector_msg = 'MCP ${p.id} toggle failed: ${err} (secret guard? use \${ENV_VAR})'
-								return
-							}
-							prov_json := app.desktop.engine_mcp_provenance_json(p.id)
-							app.engine_rev = app.desktop.app_state_snapshot().revision
-							if app.engine_rev == 0 {
-								app.engine_rev = rev
-							}
-							app.api_calls = app.desktop.engine_api_calls()
-							app.inspector_msg = 'MCP ${p.id} toggled rev=${rev} • ${prov_json} • Engine TX'
-						}
-					} else {
-						// row body → masked drawer (#1106)
-						mcp_drawer_open(mut app, p.id, p.template_path, p.provenance)
-					}
-					return
-				}
-			}
-		}
+		// (Skills / Products / MCP clicks are handled by library_click above — VC5.)
 		// Doctor panel — Fix All + per-check fix via Engine TX, receipts/provenance verification display
 		if app.selected_panel == 5 {
 			fx_d := 208
@@ -10012,31 +9184,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// skills hover — 227 list rows hover
-		if app.selected_panel == 1 {
-			fx := 208
-			fy := 52
-			fw := app.gg.width - 208 - 300
-			y0 := fy + 102
-			row_h := 28
-			term_h_sk := if app.term_visible { app.term_height } else { 0 }
-			fh := app.gg.height - 52 - 28 - term_h_sk
-			list_h := fh - 126
-			visible := list_h / row_h
-			entries := skills_filtered_entries(mut app)
-			start := clamp_scroll(app.skills_scroll, entries.len, visible)
-			mut end_en := start + visible
-			if end_en > entries.len {
-				end_en = entries.len
-			}
-			for idx in start .. end_en {
-				row := idx - start
-				y := y0 + row * row_h
-				if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= y && app.mouse_y <= y + 24 {
-					app.skills_hover = idx
-					break
-				}
-			}
+		// VC5 (#1173): Library card/chrome hover shares lib_layout geometry
+		app.lib_hover = -1
+		app.lib_hover_ui = -1
+		if lib_is_panel(app.selected_panel) && !app.show_onboarding {
+			library_hover_at(mut app, app.mouse_x, app.mouse_y, app.gg.width, app.gg.height)
 		}
 		// workspace file-tree hover — left 180
 		if app.selected_panel == 9 {
@@ -10120,32 +9272,6 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// products catalog hover — Install/Manage distinct from onboarding
-		if app.selected_panel == 10 {
-			fx := 208
-			fy := 52
-			fw := app.gg.width - 208 - 300
-			term_h_p := if app.term_visible { app.term_height } else { 0 }
-			fh := app.gg.height - 52 - 28 - term_h_p
-			card_y0 := fy + 48
-			card_h := 52
-			visible := (fh - 70) / card_h
-			if visible > 0 {
-				prods := app.desktop.engine_products_catalog()
-				start := clamp_scroll(app.products_scroll, prods.len, visible)
-				mut end_p := start + visible
-				if end_p > prods.len {
-					end_p = prods.len
-				}
-				for idx in start .. end_p {
-					row := idx - start
-					y := card_y0 + row * card_h
-					if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= y + 2 && app.mouse_y <= y + 46 {
-						app.products_hover = idx
-						break
-					}
-				}
-			}
-		}
 		// jobs hover — ProcessSupervisor queue distinct dark cards
 		if app.selected_panel == 6 {
 			fx := 208

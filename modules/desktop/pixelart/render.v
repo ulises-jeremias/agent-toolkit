@@ -12,16 +12,61 @@ module pixelart
 import gg
 import sokol.gfx
 
-// SpriteCache holds GPU images keyed by "sprite_name:palette_id:scale".
-// Bounded by the asset manifest × 2 palettes × scale count —
-// no LRU needed for the current asset set size.
+// max_gpu_images bounds the number of live sprite images. Every gg.Image owns
+// a sokol sampler and sokol's default sampler pool is 64, shared with the
+// font atlases — exhausting it makes text glyphs silently disappear
+// (SAMPLER_POOL_EXHAUSTED). VC5 grew the manifest past that budget, so the
+// cache evicts the least-recently-drawn image once the bound is reached.
+pub const max_gpu_images = 40
+
+// SpriteCache holds GPU images keyed by "sprite_name:palette_id:scale",
+// bounded by max_gpu_images with least-recently-used eviction.
 pub struct SpriteCache {
 mut:
-	ctx      &gg.Context = unsafe { nil }
-	images   map[string]gg.Image
-	indices  map[string]int
-	pixels   map[string][]u8 // keeps RGBA buffers alive behind Image.data
-	palettes map[PaletteId]Palette
+	ctx       &gg.Context = unsafe { nil }
+	images    map[string]gg.Image
+	indices   map[string]int
+	pixels    map[string][]u8 // keeps RGBA buffers alive behind Image.data
+	last_used map[string]u64 // monotonic tick of the last image_for() hit
+	tick      u64
+	// gg.Context.cache_image only ever appends; remove_cached_image_by_idx
+	// destroys the GPU resources but leaves the slot in place. Evicted slot
+	// indexes are recycled here so gg's image_cache stays bounded too, not
+	// just SpriteCache.images.
+	free_slots []int
+	palettes   map[PaletteId]Palette
+}
+
+// lru_victim returns the key with the smallest tick ('' when empty).
+fn lru_victim(last_used map[string]u64) string {
+	mut victim := ''
+	mut oldest := u64(0)
+	mut first := true
+	for k, t in last_used {
+		if first || t < oldest {
+			victim = k
+			oldest = t
+			first = false
+		}
+	}
+	return victim
+}
+
+// evict releases one cache entry (GPU image + sampler + RGBA buffer).
+fn (mut sc SpriteCache) evict(ck string) {
+	if idx := sc.indices[ck] {
+		sc.ctx.remove_cached_image_by_idx(idx)
+		sc.free_slots << idx
+	}
+	sc.images.delete(ck)
+	sc.indices.delete(ck)
+	sc.pixels.delete(ck)
+	sc.last_used.delete(ck)
+}
+
+// live_images reports how many GPU images the cache currently holds.
+pub fn (sc &SpriteCache) live_images() int {
+	return sc.images.len
 }
 
 // cache_key builds a string cache key from the sprite identity.
@@ -44,6 +89,8 @@ pub fn new_sprite_cache(ctx &gg.Context) &SpriteCache {
 // Pipeline: grid → RGBA expansion → raw-pixel gg Image → cached.
 pub fn (mut sc SpriteCache) image_for(s Sprite, pid PaletteId, scale int) gg.Image {
 	ck := cache_key(s, pid, scale)
+	sc.tick++
+	sc.last_used[ck] = sc.tick
 	if img := sc.images[ck] {
 		// Images cached before sokol was ready have no GPU handle yet;
 		// gg also retries these at startup, this just re-syncs our snapshot.
@@ -54,6 +101,21 @@ pub fn (mut sc SpriteCache) image_for(s Sprite, pid PaletteId, scale int) gg.Ima
 			return *live
 		}
 		return img
+	}
+	// bound the pool before creating a new image: drop the least-recently
+	// drawn entry (never the one being created — it was just touched)
+	for sc.images.len >= max_gpu_images {
+		mut oldest := lru_victim(sc.last_used)
+		if oldest == ck || oldest == '' {
+			// the fresh key is not in images yet; pick the oldest real image
+			mut lu := sc.last_used.clone()
+			lu.delete(ck)
+			oldest = lru_victim(lu)
+		}
+		if oldest == '' {
+			break
+		}
+		sc.evict(oldest)
 	}
 	pal := sc.palette(pid)
 	w := s.width() * scale
@@ -72,7 +134,19 @@ pub fn (mut sc SpriteCache) image_for(s Sprite, pid PaletteId, scale int) gg.Ima
 	if gfx.is_valid() {
 		img.init_sokol_image()
 	}
-	idx := sc.ctx.cache_image(img)
+	mut idx := -1
+	if sc.free_slots.len > 0 {
+		// reuse an evicted slot: the destroyed entry is overwritten in place
+		// (same id the slot always had), so gg's image_cache does not grow
+		idx = sc.free_slots.pop()
+		mut slot := sc.ctx.get_cached_image_by_idx(idx)
+		unsafe {
+			*slot = img
+		}
+		slot.id = idx
+	} else {
+		idx = sc.ctx.cache_image(img)
+	}
 	// The authoritative cached copy carries the gg-assigned id that
 	// draw_image uses for lookup; keep our snapshot in sync with it.
 	live := sc.ctx.get_cached_image_by_idx(idx)
@@ -114,4 +188,6 @@ pub fn (mut sc SpriteCache) clear_cache() {
 	sc.images = {}
 	sc.indices = {}
 	sc.pixels = {}
+	sc.last_used = {}
+	sc.free_slots = []
 }

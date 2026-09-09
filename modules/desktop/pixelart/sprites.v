@@ -36,6 +36,11 @@ pub enum EnvironmentAsset {
 	sign
 	books
 	picture
+	bookshelf_wide
+	globe
+	scroll
+	chalkboard
+	ladder
 }
 
 // Sprite is an authored pixel grid with its palette keys.
@@ -204,6 +209,33 @@ pub fn agent_for_state(state AgentVisualState) Sprite {
 		.waiting { agent_waiting }
 		.attention { agent_attention }
 		.error { agent_error }
+	}
+}
+
+// with_materials returns a variant of s with palette keys remapped
+// (from[i] → to[i]); the suffix keeps sprite-cache keys distinct. Used for
+// scene-specific material variants (e.g. light-framed shelves on a dark
+// wall) without authoring a second grid. Only existing palette keys.
+pub fn with_materials(s Sprite, from string, to string, suffix string) Sprite {
+	if from.len == 0 || from.len != to.len {
+		return s
+	}
+	mut mapping := map[u8]u8{}
+	for i in 0 .. from.len {
+		mapping[from[i]] = to[i]
+	}
+	mut rows := []string{cap: s.rows.len}
+	for row in s.rows {
+		mut b := []u8{cap: row.len}
+		for ch in row {
+			k := u8(ch)
+			b << if k in mapping { mapping[k] } else { k }
+		}
+		rows << b.bytestr()
+	}
+	return Sprite{
+		name: s.name + suffix
+		rows: rows
 	}
 }
 
@@ -591,6 +623,119 @@ const env_picture = Sprite{
 	]
 }
 
+// VC5 (#1173) — Library props. The wide bookshelf is the anchor of the
+// Library header banner (four shelves of mixed spines), the globe and scroll
+// dress the shelves, the chalkboard carries the banner's decorative sign and
+// the ladder leans against the tall shelf. Illustration only: shelf contents
+// never encode catalog counts. Authored grids (pinned by
+// test_authored_dimensions): bookshelf_wide 24×22, globe 10×12, scroll 12×8,
+// chalkboard 20×12, ladder 6×16.
+
+// wide bookshelf (24×22): light-frame variant is derived with with_materials.
+const env_bookshelf_wide = Sprite{
+	name: 'env-bookshelf-wide'
+	rows: [
+		'.WWWWWWWWWWWWWWWWWWWWWW.',
+		'.W....................W.',
+		'.WcrmfcaBcrfmcsarcfmBrW.',
+		'.WcrmfcaBcrfmcsarcfmBrW.',
+		'.WcrmfcaBcrfmcsarcfmBrW.',
+		'.WWWWWWWWWWWWWWWWWWWWWW.',
+		'.W....................W.',
+		'.WfBcrsm..cfrBcmfsrcaBW.',
+		'.WfBcrsm..cfrBcmfsrcaBW.',
+		'.WfBcrsm..cfrBcmfsrcaBW.',
+		'.WWWWWWWWWWWWWWWWWWWWWW.',
+		'.W....................W.',
+		'.WmcrfBsac...rfcBsmacrW.',
+		'.WmcrfBsac...rfcBsmacrW.',
+		'.WmcrfBsac...rfcBsmacrW.',
+		'.WWWWWWWWWWWWWWWWWWWWWW.',
+		'.W....................W.',
+		'.WrfmcaBcsrfmcaBcsrfmcW.',
+		'.WrfmcaBcsrfmcaBcsrfmcW.',
+		'.WrfmcaBcsrfmcaBcsrfmcW.',
+		'.WWWWWWWWWWWWWWWWWWWWWW.',
+		'.WW..................WW.',
+	]
+}
+
+// globe on a brass stand (10×12).
+const env_globe = Sprite{
+	name: 'env-globe'
+	rows: [
+		'....kk....',
+		'..kkssskk.',
+		'.ksssfsssk',
+		'.kssffssfk',
+		'.ksfffsssk',
+		'.kssfsssfk',
+		'..kssssk..',
+		'....BB....',
+		'....BB....',
+		'...BBBB...',
+		'..MMMMMM..',
+		'..........',
+	]
+}
+
+// rolled document (12×8).
+const env_scroll = Sprite{
+	name: 'env-scroll'
+	rows: [
+		'.kkkkkkkkk..',
+		'kPPPPPPPPPk.',
+		'kPkkkkkkkPk.',
+		'kPPPPPPPPPk.',
+		'kPkkkkkkPPk.',
+		'kPPPPPPPPPk.',
+		'.kkkkkkkkkk.',
+		'............',
+	]
+}
+
+// chalkboard sign (20×12): the banner overlays its two words as text.
+const env_chalkboard = Sprite{
+	name: 'env-chalkboard'
+	rows: [
+		'WWWWWWWWWWWWWWWWWWWW',
+		'WttttttttttttttttttW',
+		'WttttttttttttttttttW',
+		'WttttttttttttttttttW',
+		'WttttttttttttttttttW',
+		'WttttttttttttttttttW',
+		'WttttttttttttttttttW',
+		'WttttttttttttttttttW',
+		'WttttttttttttttttttW',
+		'WWWWWWWWWWWWWWWWWWWW',
+		'..WW............WW..',
+		'..WW............WW..',
+	]
+}
+
+// library ladder (6×16), leans against the tall shelf.
+const env_ladder = Sprite{
+	name: 'env-ladder'
+	rows: [
+		'w....w',
+		'wwwwww',
+		'w....w',
+		'w....w',
+		'wwwwww',
+		'w....w',
+		'w....w',
+		'wwwwww',
+		'w....w',
+		'w....w',
+		'wwwwww',
+		'w....w',
+		'w....w',
+		'wwwwww',
+		'w....w',
+		'w....w',
+	]
+}
+
 // environment_for returns the sprite for an environment asset.
 pub fn environment_for(a EnvironmentAsset) Sprite {
 	return match a {
@@ -613,24 +758,32 @@ pub fn environment_for(a EnvironmentAsset) Sprite {
 		.sign { env_sign }
 		.books { env_books }
 		.picture { env_picture }
+		.bookshelf_wide { env_bookshelf_wide }
+		.globe { env_globe }
+		.scroll { env_scroll }
+		.chalkboard { env_chalkboard }
+		.ladder { env_ladder }
 	}
 }
 
 // all_sprites returns every authored sprite (asset-manifest completeness).
 pub fn all_sprites() []Sprite {
-	return [
+	mut out := [
 		agent_idle, agent_running, agent_waiting, agent_attention, agent_error,
 		env_desk, env_chair, env_terminal, env_shelf, env_plant, env_lamp,
 		env_cabinet, env_rug, env_meeting, env_board, env_tray, env_window, env_door, env_couch,
 		env_nest, env_welcome_desk, env_sign, env_books, env_picture,
+		env_bookshelf_wide, env_globe, env_scroll, env_chalkboard, env_ladder,
 	]
+	out << library_mark_sprites()
+	return out
 }
 
 // all_environment_assets returns every EnvironmentAsset (mapping coverage).
 pub fn all_environment_assets() []EnvironmentAsset {
 	return [.desk, .chair, .terminal, .shelf, .plant, .lamp, .cabinet, .rug,
 		.meeting_table, .board, .tray, .window, .door, .couch, .nest, .welcome_desk,
-		.sign, .books, .picture]
+		.sign, .books, .picture, .bookshelf_wide, .globe, .scroll, .chalkboard, .ladder]
 }
 
 // all_agent_states returns every AgentVisualState (mapping coverage).

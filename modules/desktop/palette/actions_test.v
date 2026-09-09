@@ -62,7 +62,7 @@ fn test_unavailable_action_has_reason() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	skill_id := first_skill_id(mut fe.eng)
 
 	// remove on a not-installed skill is unavailable with a reason
@@ -102,7 +102,7 @@ fn test_typed_args_are_validated() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	// empty swarm task → failed validation, nothing recorded
 	before := fe.eng.revision()
 	out := reg.execute(.navigation, '/swarm', .swarm_launch, ActionArgs{
@@ -134,7 +134,7 @@ fn test_dry_run_does_not_bypass_confirmation() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	skill_id := first_skill_id(mut fe.eng)
 	// install the skill so remove is available
 	_ = reg.execute(.skill, skill_id, .skill_install, ActionArgs{}) or {
@@ -156,7 +156,7 @@ fn test_preview_does_not_mutate_state() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	skill_id := first_skill_id(mut fe.eng)
 	before_rev := fe.eng.revision()
 	before_installed := fe.eng.skills_installed().clone()
@@ -190,7 +190,7 @@ fn test_skill_execution_mutates_config_truth() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	skill_id := first_skill_id(mut fe.eng)
 	out := reg.execute(.skill, skill_id, .skill_install, ActionArgs{}) or {
 		panic(err.msg())
@@ -223,7 +223,7 @@ fn test_target_enable_disable_uses_config_truth() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut target_id := ''
 	for t in fe.eng.targets() {
 		target_id = t.id
@@ -264,7 +264,7 @@ fn test_mcp_actions_use_real_provider_config() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut provider_id := ''
 	for p in fe.eng.mcp_catalog() {
 		provider_id = p.id
@@ -309,7 +309,7 @@ fn test_doctor_preview_repair_truthful() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut check_id := ''
 	for c in fe.eng.doctor() {
 		if c.fixable {
@@ -348,7 +348,7 @@ fn test_loop_run_invokes_engine() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	entry := desktop_engine.LoopEntry{
 		name: 's4b-loop'
 		goal: 's4b action test'
@@ -386,7 +386,7 @@ fn test_swarm_launch_preserves_requested_semantics() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	// unconfirmed launch must not record anything
 	before := fe.eng.revision()
 	nc := reg.execute(.navigation, '/swarm', .swarm_launch, ActionArgs{
@@ -422,7 +422,7 @@ fn test_fresh_engine_no_fabricated_runtime_actions() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	entries := reg.all_entries()
 	assert entries.filter(it.kind == .job).len == 0
 	assert entries.filter(it.kind == .swarm_run).len == 0
@@ -434,7 +434,7 @@ fn test_app_actions_honest() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	// update: honestly unavailable — no fake check result, no mutation
 	out := reg.execute(.app, 'agent-toolkit', .app_update_check, ActionArgs{}) or {
 		panic(err.msg())
@@ -476,7 +476,7 @@ fn test_unknown_entity_has_no_actions() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	assert reg.actions_for(.skill, 'does/not-exist').len == 0
 	out := reg.execute(.skill, 'does/not-exist', .skill_install, ActionArgs{}) or {
 		panic('must not error')
