@@ -44,6 +44,7 @@ fn test_workspace_layout_controls_never_overlap() {
 				assert l.mid_y + l.mid_h <= l.mem_y, 'IDE block above the memory strip at ${dims}/${term_h}'
 			}
 			assert l.mid_y + l.mid_h <= l.fy + l.fh, 'IDE block inside the panel at ${dims}/${term_h}'
+			assert l.mid_h == 0 || l.mid_h >= 60, 'IDE block is either drawable or skipped, never a sliver at ${dims}/${term_h}'
 			assert l.mem_y + l.mem_h <= l.fy + l.fh, 'memory strip inside the panel at ${dims}/${term_h}'
 			assert l.tree_w >= 140, 'the file tree column is always present at ${dims}'
 			if l.fw >= 500 {

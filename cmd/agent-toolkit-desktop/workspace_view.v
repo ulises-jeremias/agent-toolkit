@@ -93,7 +93,10 @@ fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 		mem_h = 0
 		mem_y = fy + fh - 8
 		mid_h = mem_y - 8 - mid_y
-		if mid_h < 0 {
+		if mid_h < 60 {
+			// below a drawable minimum the IDE block is skipped entirely: a 30px
+			// sheet cannot hold its own title, and every IDE hit region tests
+			// mouse_y < mid_y + mid_h, so a zero height makes them inert too
 			mid_h = 0
 		}
 	}
@@ -310,12 +313,15 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 	draw_ws_hero(mut app, l)
 	draw_ws_known(mut app, l)
 	// IDE block — the existing brokered surfaces, unchanged renderers
-	draw_file_tree_panel(mut app, l.fx + 12, l.mid_y, l.tree_w, l.mid_h)
-	editor_w := l.fw - 24 - l.tree_w - 4 - l.git_w
-	draw_editor_panel(mut app, l.fx + 12 + l.tree_w + 4, l.mid_y, editor_w, l.mid_h)
-	if l.git_w > 0 {
-		draw_git_rails_panel(mut app, l.fx + l.fw - l.git_w - 12, l.mid_y, l.git_w, l.mid_h, l.git_tab_w)
+	if l.mid_h > 0 {
+		draw_file_tree_panel(mut app, l.fx + 12, l.mid_y, l.tree_w, l.mid_h)
+		editor_w := l.fw - 24 - l.tree_w - 4 - l.git_w
+		draw_editor_panel(mut app, l.fx + 12 + l.tree_w + 4, l.mid_y, editor_w, l.mid_h)
+		if l.git_w > 0 {
+			draw_git_rails_panel(mut app, l.fx + l.fw - l.git_w - 12, l.mid_y, l.git_w, l.mid_h, l.git_tab_w)
+		}
 	}
+
 	if l.mem_h > 0 {
 		draw_memory_palace_panel(mut app, l.fx + 12, l.mem_y, l.fw - 24, l.mem_h)
 	}
