@@ -716,38 +716,71 @@ fn draw_lib_header(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 	}
 }
 
-// draw_lib_banner composes the header illustration: a warm wood-panelled
-// library wall packed with tall shelves of books, a chalkboard sign, a
-// reading desk with an idle builder, a ladder, book piles and plants.
-// Deterministic, static, environmental only — shelf contents never encode
-// catalog counts.
+// draw_lib_banner composes the header illustration as a floor-to-ceiling
+// reading room, layered back to front: dark wood back wall with a crown band,
+// plank floor (same rhythm as the Office room), one continuous wall of tall
+// shelves (butted, alternating book materials) broken only by a reading nook
+// — chalkboard sign, pendant lamp with a warm pool, welcome desk with an idle
+// builder, a side table with a globe — then a ladder, plants of two sizes and
+// book piles on the floor. Deterministic and static; environmental only —
+// nothing here encodes catalog counts or runtime activity.
 fn draw_lib_banner(mut app GuiApp, x int, y int, w int, h int, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
 	ink := app.appearance_dark
-	// dark cozy wood wall (the reference's library is a warm, dim room);
-	// shelves swap to light frames so they stay legible against it
+	// ── surfaces: back wall, crown, floor planks ─────────────────────────
 	wall := if ink {
 		mix(pc(app, `S`), pc(app, `W`), 0.45)
 	} else {
 		mix(pc(app, `W`), pc(app, `k`), 0.22)
 	}
 	seam := mix(wall, pc(app, `k`), 0.30)
-	floor_h := 10
+	floor_h := 12
+	floor_y := y + h - floor_h
+	floor_col := if ink {
+		mix(pc(app, `S`), pc(app, `w`), 0.22)
+	} else {
+		mix(pc(app, `w`), pc(app, `p`), 0.62)
+	}
+	floor_seam := if ink {
+		mix(floor_col, pc(app, `k`), 0.40)
+	} else {
+		mix(pc(app, `W`), floor_col, 0.50)
+	}
+	floor_hi := if ink {
+		mix(floor_col, pc(app, `w`), 0.10)
+	} else {
+		mix(floor_col, pc(app, `p`), 0.22)
+	}
 	app.gg.draw_rounded_rect_filled(x, y, w, h, 4, wall)
-	// horizontal plank seams give the wall its wood grain
-	for py := y + 12; py < y + h - floor_h - 2; py += 12 {
+	for py := y + 14; py < floor_y - 2; py += 12 {
 		app.gg.draw_rect_filled(x + 2, py, w - 4, 1, seam)
 	}
-	// floor: dark wood band with a brass-lit edge
-	app.gg.draw_rect_filled(x, y + h - floor_h, w, floor_h, pc(app, `w`))
-	app.gg.draw_rect_filled(x, y + h - floor_h, w, 1, pc(app, `M`))
-	for px := x + 9; px < x + w; px += 26 {
-		app.gg.draw_rect_filled(px, y + h - floor_h + 1, 1, floor_h - 1, pc(app, `W`))
+	crown_h := 6
+	app.gg.draw_rect_filled(x + 1, y + 1, w - 2, crown_h, pc(app, `W`))
+	app.gg.draw_rect_filled(x + 1, y + crown_h, w - 2, 1, pc(app, `w`))
+	// wainscot rail just above the floor
+	app.gg.draw_rect_filled(x + 1, floor_y - 3, w - 2, 2, pc(app, `w`))
+	// floor: two plank rows with staggered joints (Office room rhythm)
+	app.gg.draw_rect_filled(x + 1, floor_y, w - 2, floor_h - 1, floor_col)
+	ph := floor_h / 2
+	for row_i in 0 .. 2 {
+		py := floor_y + row_i * ph
+		if row_i == 1 {
+			app.gg.draw_rect_filled(x + 1, py, w - 2, ph - 1, floor_hi)
+		}
+		app.gg.draw_rect_filled(x + 1, py, w - 2, 1, floor_seam)
+		mut jx := x + 4 + if row_i == 0 { 0 } else { 13 }
+		for jx < x + w - 2 {
+			app.gg.draw_rect_filled(jx, py + 1, 1, ph - 1, floor_seam)
+			jx += 26
+		}
 	}
-	app.gg.draw_rounded_rect_empty(x, y, w, h, 4, tint(pc(app, `k`), 120))
-	base := y + h - floor_h + 1
+	app.gg.draw_rounded_rect_empty(x, y, w, h, 4, tint(pc(app, `k`), 140))
+	base := floor_y + 1
 
-	shelf := pixelart.with_materials(pixelart.environment_for(.bookshelf_wide), 'Ww', 'wW', '-light')
+	// ── sprites and material variants ───────────────────────────────────
+	shelf_a := pixelart.with_materials(pixelart.environment_for(.bookshelf_wide), 'Ww', 'wW', '-light')
+	shelf_b := pixelart.with_materials(shelf_a, 'crfa', 'acrf', '-alt')
 	plant := pixelart.environment_for(.plant)
 	board := pixelart.with_materials(pixelart.environment_for(.chalkboard), 'W', 'w', '-light')
 	ladder := pixelart.with_materials(pixelart.environment_for(.ladder), 'w', 'B', '-brass')
@@ -755,62 +788,101 @@ fn draw_lib_banner(mut app GuiApp, x int, y int, w int, h int, pid pixelart.Pale
 	lamp := pixelart.environment_for(.lamp)
 	books := pixelart.environment_for(.books)
 	globe := pixelart.environment_for(.globe)
-	// shelf scale: the largest integer that keeps the shelf inside the band
-	s := onb_art_scale(shelf.width(), shelf.height(), w, h - floor_h - 4)
-	sw := shelf.width() * s
-	ps := if s >= 3 { 3 } else { 2 }
-	right := x + w - 6
-	mut cx := x + 8
-	// left plant
-	sc.draw(plant, pid, cx, base - plant.height() * ps, ps)
-	cx += plant.width() * ps + 4
-	// first pair of tall shelves, ladder leaning on the second
-	mut shelves := 0
-	for shelves < 2 && cx + sw <= right {
-		sc.draw(shelf, pid, cx, base - shelf.height() * s, s)
-		if shelves == 1 {
-			sc.draw(ladder, pid, cx + sw - ladder.width() * s - 3 * s, base - ladder.height() * s, s)
-		}
-		cx += sw + 4
-		shelves++
+	table := pixelart.environment_for(.meeting_table)
+	agent := pixelart.with_identity(pixelart.agent_for_state(.idle), 2)
+	// pendant: the lamp head only, hung from the crown on a cable
+	pendant := pixelart.Sprite{
+		name: 'env-lamp-pendant'
+		rows: lamp.rows[0..4]
 	}
-	// reading nook: chalkboard on the wall (left) and a desk with an idle
-	// builder under a lamp (right) — laid out side by side so nothing overlaps
-	mid_w := 150
-	if cx + mid_w + sw <= right {
-		bs := 3
-		bx := cx + 6
-		by := y + 6
+	s := onb_art_scale(shelf_a.width(), shelf_a.height(), w, h - floor_h - crown_h)
+	sw := shelf_a.width() * s
+	shelf_top := base - shelf_a.height() * s
+
+	// ── continuous shelving with one nook opening ────────────────────────
+	pad := 4
+	total := w - 2 * pad
+	nook_min := 130
+	mut n := (total - nook_min) / sw
+	if n < 0 {
+		n = 0
+	}
+	n_left := n / 2 + n % 2
+	n_right := n / 2
+	nook_x := x + pad + n_left * sw
+	nook_w := total - n * sw
+	mut cx := x + pad
+	for i in 0 .. n_left {
+		sc.draw(if i % 2 == 0 { shelf_a } else { shelf_b }, pid, cx, shelf_top, s)
+		cx += sw
+	}
+	cx = nook_x + nook_w
+	for i in 0 .. n_right {
+		sc.draw(if i % 2 == 1 { shelf_a } else { shelf_b }, pid, cx, shelf_top, s)
+		cx += sw
+	}
+
+	// ── reading nook: lamp pool first, then sign, desk, builder, table ───
+	nook_cx := nook_x + nook_w / 2
+	pool_w := if nook_w > 160 { 120 } else { nook_w - 20 }
+	app.gg.draw_rounded_rect_filled(nook_cx - pool_w / 2, floor_y - 30, pool_w, 30 + floor_h - 3, 14, tint(pc(app, `b`), 80))
+	app.gg.draw_rounded_rect_filled(nook_cx - pool_w / 3, floor_y - 16, pool_w * 2 / 3, 16 + floor_h - 3, 8, tint(pc(app, `B`), 50))
+	// pendant lamp on a cable from the crown
+	ps := 2
+	pend_x := nook_cx - pendant.width() * ps / 2
+	pend_y := y + crown_h + 10
+	app.gg.draw_rect_filled(nook_cx - 1, y + crown_h, 2, pend_y - y - crown_h, pc(app, `k`))
+	sc.draw(pendant, pid, pend_x, pend_y, ps)
+	// chalkboard sign on the wall, left of the lamp — two honest words
+	bs := 2
+	bx := nook_x + 6
+	by := y + crown_h + 6
+	if bx + board.width() * bs < pend_x - 2 {
 		sc.draw(board, pid, bx, by, bs)
-		app.gg.draw_text(bx + 8, by + 8, 'ideas', gg.TextCfg{
-			color: pc(app, `e`)
-			size: 10
-			bold: true
-		})
-		app.gg.draw_text(bx + 8, by + 20, 'grow here', gg.TextCfg{
+		app.gg.draw_text(bx + 6, by + 3, 'plan', gg.TextCfg{
 			color: pc(app, `e`)
 			size: 9
+			bold: true
 		})
-		// book pile on the floor under the board
-		sc.draw(books, pid, bx + 6, base - books.height() * 2, 2)
-		ds := 2
-		dx := cx + mid_w - desk.width() * ds - 6
-		dy := base - desk.height() * ds
-		agent := pixelart.with_identity(pixelart.agent_for_state(.idle), 2)
-		sc.draw(agent, pid, dx + (desk.width() * ds - agent.width() * ds) / 2, dy - agent.height() * ds + 10, ds)
-		sc.draw(desk, pid, dx, dy, ds)
-		sc.draw(lamp, pid, dx + desk.width() * ds - lamp.width() * ds, dy - lamp.height() * ds + 4, ds)
-		sc.draw(globe, pid, dx - globe.width() * 2 - 2, base - globe.height() * 2, 2)
-		cx += mid_w
+		app.gg.draw_text(bx + 6, by + 12, 'build', gg.TextCfg{
+			color: pc(app, `e`)
+			size: 9
+			bold: true
+		})
 	}
-	// more shelves fill whatever width remains
-	for cx + sw <= right - plant.width() * ps {
-		sc.draw(shelf, pid, cx, base - shelf.height() * s, s)
-		cx += sw + 4
+	// framed picture on the wall over the side table (right of the lamp)
+	picture := pixelart.environment_for(.picture)
+	pic_x := nook_x + nook_w - picture.width() * 2 - 8
+	if pic_x > pend_x + pendant.width() * ps + 6 {
+		sc.draw(picture, pid, pic_x, y + crown_h + 8, 2)
 	}
-	// trailing plant
-	if cx + plant.width() * ps <= right {
-		sc.draw(plant, pid, right - plant.width() * ps, base - plant.height() * ps, ps)
+	// welcome desk with the idle builder under the lamp
+	ds := 2
+	dx := nook_cx - desk.width() * ds / 2
+	dy := base - desk.height() * ds
+	sc.draw(agent, pid, dx + (desk.width() * ds - agent.width() * ds) / 2, dy - agent.height() * ds + 10, ds)
+	sc.draw(desk, pid, dx, dy, ds)
+	// side table with the globe, right side of the nook
+	ts := 2
+	tx := dx + desk.width() * ds + 6
+	if tx + table.width() * ts <= nook_x + nook_w - 2 {
+		sc.draw(table, pid, tx, base - table.height() * ts, ts)
+		sc.draw(globe, pid, tx + (table.width() * ts - globe.width() * 2) / 2, base - table.height() * ts - globe.height() * 2 + 4, 2)
+	}
+	// book pile on the floor, left of the desk
+	if dx - books.width() * 2 - 4 > nook_x {
+		sc.draw(books, pid, dx - books.width() * 2 - 4, base - books.height() * 2, 2)
+	}
+
+	// ── foreground: ladder, plants of two sizes, more book piles ─────────
+	if n_left > 0 {
+		lx := nook_x - ladder.width() * s - 4 * s
+		sc.draw(ladder, pid, lx, base - ladder.height() * s, s)
+	}
+	sc.draw(plant, pid, x + pad + 2, base - plant.height() * 3, 3)
+	if n_right > 0 {
+		sc.draw(plant, pid, x + w - pad - plant.width() * 2 - 2, base - plant.height() * 2, 2)
+		sc.draw(books, pid, x + w - pad - plant.width() * 2 - books.width() * 2 - 6, base - books.height() * 2, 2)
 	}
 }
 

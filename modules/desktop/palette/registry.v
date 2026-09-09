@@ -191,7 +191,14 @@ mut:
 }
 
 // new_registry binds a registry to an Engine.
-pub fn new_registry(mut engine &desktop_engine.Engine) &Registry {
+// The Engine is taken as a plain reference on purpose: with a `mut engine
+// &Engine` parameter V's C codegen can (depending on file check order) emit
+// `Engine**` and store the address of the caller's *field* in `engine` —
+// the palette then reads Desktop memory as if it were the Engine (#1181
+// found this as a segfault on the first palette keystroke). A `&Engine`
+// parameter is always `Engine*`; the registry mutates through its own
+// `mut:` field, never through this parameter.
+pub fn new_registry(engine &desktop_engine.Engine) &Registry {
 	return &Registry{
 		engine: engine
 	}

@@ -208,7 +208,7 @@ pub fn new_palette_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.
 		engine: engine
 		router: router
 		theme: th
-		registry: new_registry(mut engine)
+		registry: new_registry(engine)
 		debounce_ms: debounce
 		virtualized: new_virtual_palette_list(0, vh)
 		revision: engine.revision()

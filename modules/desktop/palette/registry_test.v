@@ -52,7 +52,7 @@ fn test_fresh_engine_yields_navigation_and_catalog_only() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	entries := reg.all_entries()
 	// navigation: the 13 production shell destinations, in shell order
 	navs := entries.filter(it.kind == .navigation)
@@ -90,7 +90,7 @@ fn test_unavailable_entries_carry_reason() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	entries := reg.all_entries()
 	// targets without a bundled profile are visible but unavailable, with the
 	// honest reason — never silently dropped, never fake-actionable
@@ -128,7 +128,7 @@ fn test_workspace_scoped_entity_preserves_identity() {
 		panic(err.msg())
 	}
 	fe.eng.job_complete(job_id, 0) or {}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	entries := reg.all_entries()
 	entry := find_entry(entries, .job, job_id) or { panic('job ${job_id} missing from registry') }
 	assert entry.workspace == '/tmp/atk-registry-ws'
@@ -141,7 +141,7 @@ fn test_filter_preserves_canonical_identity() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	// every query hit keeps its registry identity: category/keyword matches
 	// surface the same actions an empty query would
 	mut hits := reg.filter('skills')
@@ -172,7 +172,7 @@ fn test_registry_caches_per_revision() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	_ = reg.all_entries()
 	first_builds := reg.builds
 	assert first_builds == 1
@@ -194,7 +194,7 @@ fn test_scored_filter_ranks_exact_match_first() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	scored := reg.scored_filter('Go to Skills')
 	assert scored.len > 0
 	assert scored[0].action.id == 'nav:/skills'

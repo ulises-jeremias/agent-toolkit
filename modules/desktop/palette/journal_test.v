@@ -54,7 +54,7 @@ fn test_journal_fresh_session_is_empty() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	assert reg.journal_records().len == 0
 }
 
@@ -65,7 +65,7 @@ fn test_journal_target_undo_exact() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut target_id := ''
 	for t in fe.eng.targets() {
 		target_id = t.id
@@ -117,7 +117,7 @@ fn test_journal_target_undo_stale() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut target_id := ''
 	for t in fe.eng.targets() {
 		target_id = t.id
@@ -160,7 +160,7 @@ fn test_journal_skill_selection_guard() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	s1 := journal_skill_id(mut fe.eng)
 	catalog := fe.eng.skills_catalog()
 	if catalog.len < 2 {
@@ -191,7 +191,7 @@ fn test_journal_skill_undo_exact() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	s1 := journal_skill_id(mut fe.eng)
 	before := fe.eng.skills_installed().clone()
 	out := reg.execute(.skill, s1, .skill_install, ActionArgs{}) or {
@@ -213,7 +213,7 @@ fn test_journal_recording_boundary() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	s1 := journal_skill_id(mut fe.eng)
 	// validation failure (empty swarm task) → no recent
 	_ = reg.execute(.navigation, '/swarm', .swarm_launch, ActionArgs{
@@ -272,7 +272,7 @@ fn test_journal_mcp_disable_undo() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut pid := ''
 	for p in fe.eng.mcp_catalog() {
 		pid = p.id
@@ -320,7 +320,7 @@ fn test_journal_mcp_enable_snapshot() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut pid := ''
 	for p in fe.eng.mcp_catalog() {
 		pid = p.id
@@ -381,7 +381,7 @@ fn test_journal_loop_schedule_undo() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	entry := desktop_engine.LoopEntry{
 		name: 'journal-cron-loop'
 		goal: 'undo schedule'
@@ -422,7 +422,7 @@ fn test_journal_probe_and_dry_run_not_recorded() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	mut pid := ''
 	for p in fe.eng.mcp_catalog() {
 		pid = p.id
@@ -456,7 +456,7 @@ fn test_journal_bounded() {
 	defer {
 		fe.cleanup()
 	}
-	mut reg := new_registry(mut fe.eng)
+	mut reg := new_registry(fe.eng)
 	s1 := journal_skill_id(mut fe.eng)
 	for i in 0 .. 40 {
 		kind := if i % 2 == 0 { ActionKind.skill_install } else { ActionKind.skill_remove }

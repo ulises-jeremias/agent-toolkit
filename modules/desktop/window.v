@@ -152,7 +152,7 @@ pub fn (mut d Desktop) is_running() bool {
 // search and future entity actions; it never shells out to the CLI.
 pub fn (mut d Desktop) palette_registry() &palette.Registry {
 	if d.palette_reg == unsafe { nil } {
-		d.palette_reg = palette.new_registry(mut d.engine)
+		d.palette_reg = palette.new_registry(d.engine)
 	}
 	return d.palette_reg
 }
