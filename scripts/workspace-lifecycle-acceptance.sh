@@ -43,16 +43,22 @@ OB_PID=0
 XVFB_PID=0
 WIN_ID=""
 
-# geometry (1280x800, dock 200 + inspector 300): panel fx=208 fw=772
+# geometry (1280x800, dock 200 + inspector 300): panel fx=208 fw=772.
+# Mirrors workspace_layout() in cmd/agent-toolkit-desktop/workspace_view.v
+# (VC7): non-compact (fh=572 with the 148px terminal) → head_h=60,
+# hero_y=fy+64, field_y=hero_y+46; the filing scene (200px) sits at the
+# hero's right edge, the buttons end 12px before it:
+#   right = fx+fw-12-200-12 = 548+fx ; init_w=78 switch_w=62 validate_w=68, gap 6
 FX=208
 FY=52
 FW=772
-CONTROL_Y=$((FY + 48))
+HERO_Y=$((FY + 64))
 FIELD_X=$((FX + 24))
-FIELD_Y=$((CONTROL_Y + 26))
-INIT_X=$((FX + FW - 82))
-SWITCH_X=$((INIT_X - 66))
-VALIDATE_X=$((SWITCH_X - 72))
+FIELD_Y=$((HERO_Y + 46))
+RIGHT=$((FX + FW - 12 - 200 - 12))
+INIT_X=$((RIGHT - 78))
+SWITCH_X=$((INIT_X - 6 - 62))
+VALIDATE_X=$((SWITCH_X - 6 - 68))
 
 launch() { # $1 home  $2 extra PATH prefix
   local home="$1" pathfix="${2:-}"
@@ -165,9 +171,9 @@ key Tab
 clear_field
 type_text "$WS_B"
 shot ws-typed.png                              # field content after typing
-click $((VALIDATE_X + 32)) $((FIELD_Y + 14))   # Validate
+click $((VALIDATE_X + 34)) $((FIELD_Y + 14))   # Validate
 # seed ws-b via Initialize (scaffold + personas)
-click $((INIT_X + 29)) $((FIELD_Y + 14))       # Initialize
+click $((INIT_X + 39)) $((FIELD_Y + 14))       # Initialize
 sleep 1
 shot ws-b-initialized.png
 [ -d "$WS_B/knowledge" ] || fail "ws-b scaffold missing after Initialize"
@@ -200,8 +206,8 @@ sleep 1
 key Tab
 clear_field
 type_text "$HOME_A/.ai-workspace"
-click $((VALIDATE_X + 32)) $((FIELD_Y + 14))
-click $((SWITCH_X + 32)) $((FIELD_Y + 14))
+click $((VALIDATE_X + 34)) $((FIELD_Y + 14))
+click $((SWITCH_X + 31)) $((FIELD_Y + 14))
 sleep 1
 kill_session
 assert_state "$STATE_B" "r.get('workspace_path', '') == '$HOME_A/.ai-workspace'" "switch-back-to-a"
@@ -223,7 +229,7 @@ sleep 1
 key Tab
 clear_field
 type_text "$HOME_C/work-c"
-click $((INIT_X + 29)) $((FIELD_Y + 14))   # Initialize (seed)
+click $((INIT_X + 39)) $((FIELD_Y + 14))   # Initialize (seed)
 sleep 1
 shot ws-c-seeded.png
 kill_session
@@ -239,7 +245,7 @@ sleep 1
 key Tab
 clear_field
 type_text "$HOME_C/work-c"
-click $((INIT_X + 29)) $((FIELD_Y + 14))
+click $((INIT_X + 39)) $((FIELD_Y + 14))
 sleep 1
 kill_session
 [ "$(cat "$HOME_C/work-c/knowledge/README.md")" = "$HOME_C_CONTENT1" ] || fail "re-seed rewrote content"
@@ -252,7 +258,7 @@ sleep 1
 click $((FIELD_X + 40)) $((FIELD_Y + 14))
 clear_field
 type_text "/nonexistent-workspace-xyz"
-click $((VALIDATE_X + 32)) $((FIELD_Y + 14))
+click $((VALIDATE_X + 34)) $((FIELD_Y + 14))
 sleep 1
 shot ws-invalid.png
 kill_session
