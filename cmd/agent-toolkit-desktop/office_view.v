@@ -1,7 +1,6 @@
 module main
 
 import gg
-import time
 import desktop.pixelart
 import desktop_engine
 
@@ -225,7 +224,7 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 		size: 15
 		family: app.fonts.display
 	})
-	now := time.now()
+	now := ui_now()
 	months := ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 	mname := if now.month >= 1 && now.month <= 12 { months[now.month - 1] } else { '' }
 	stamp := '${mname} ${now.day}'
