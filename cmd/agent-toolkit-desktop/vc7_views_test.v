@@ -18,11 +18,13 @@ fn vc7_tmp(label string) string {
 
 fn test_workspace_layout_controls_never_overlap() {
 	for dims in [[1280, 800], [1024, 640], [1600, 900], [900, 600]] {
-		for term in [true, false] {
+		// the three real terminal heights: hidden, 1x (148) and 2x (320) —
+		// the 2x case is what squeezes the IDE block against the memory strip
+		for term_h in [0, 148, 320] {
 			app := &GuiApp{
 				selected_panel: 9
-				term_visible: term
-				term_height: 148
+				term_visible: term_h > 0
+				term_height: if term_h > 0 { term_h } else { 148 }
 			}
 			l := workspace_layout(app, dims[0], dims[1])
 			assert l.field_x + l.field_w <= l.validate_x, 'field must end before Validate at ${dims}'
@@ -174,12 +176,11 @@ fn test_insights_click_selects_tab_and_row() {
 	assert app.insights_sel == -1, 'switching tabs must drop the previous row selection'
 	// waterfall rows are the catalog agents — selecting the first row toggles
 	t := insights_table(mut app, 'waterfall', l.inner_w)
-	if t.rows.len > 0 {
-		assert insights_click(mut app, l.inner_x + 10, l.rows_y + 4, w, h)
-		assert app.insights_sel == 0, 'first visible row selected'
-		assert insights_click(mut app, l.inner_x + 10, l.rows_y + 4, w, h)
-		assert app.insights_sel == -1, 'clicking the selected row again deselects'
-	}
+	assert t.rows.len > 0, 'waterfall rows come from the resolved agent catalog — the fixture must resolve it'
+	assert insights_click(mut app, l.inner_x + 10, l.rows_y + 4, w, h)
+	assert app.insights_sel == 0, 'first visible row selected'
+	assert insights_click(mut app, l.inner_x + 10, l.rows_y + 4, w, h)
+	assert app.insights_sel == -1, 'clicking the selected row again deselects'
 	// the right column is consumed (never falls through to the inspector)
 	assert insights_click(mut app, inspector_x(app, w) + 20, 300, w, h)
 	// the dock is not ours

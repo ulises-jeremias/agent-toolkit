@@ -102,7 +102,7 @@ fn draw_preferences_sheet(mut app GuiApp, x int, y int, w int) {
 				size: 10
 				bold: on
 			})
-			tw := txt.len * 5
+			tw := txt.runes().len * 5 // glyphs, not bytes (中文 / عربي)
 			app.gg.draw_text(sx + (sw - tw) / 2, sy + 5, txt, cfg)
 		}
 	}

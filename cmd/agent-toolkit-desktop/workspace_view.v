@@ -253,6 +253,18 @@ fn ws_scaffold_present(root string) []bool {
 	return out
 }
 
+// ws_scaffold_cached memoizes ws_scaffold_present by root, refreshed every
+// ~2s (120 frames) so a network mount cannot stall the render thread.
+fn ws_scaffold_cached(mut app GuiApp, root string) []bool {
+	if app.ws_scaffold_root == root && app.frame - app.ws_scaffold_frame < 120 {
+		return app.ws_scaffold_vals
+	}
+	app.ws_scaffold_root = root
+	app.ws_scaffold_vals = ws_scaffold_present(root)
+	app.ws_scaffold_frame = app.frame
+	return app.ws_scaffold_vals
+}
+
 // ws_seed_warnings returns the persisted seed warnings of the last
 // initialization (workspace/seed_warnings), empty when none were recorded.
 fn ws_seed_warnings(mut app GuiApp) []string {
@@ -483,7 +495,8 @@ fn draw_ws_known(mut app GuiApp, l WorkspaceLayout) {
 	}
 	for i, k in known {
 		if i >= per_row {
-			app.gg.draw_text(x + i * (card_w + gap) + 6, cy + 20, '+${known.len - i} more — type a path above', gg.TextCfg{
+			// the notice sits under the last visible card, inside the sheet
+			app.gg.draw_text(x, cy + 62, '+${known.len - i} more — type a path above', gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -554,7 +567,7 @@ fn draw_ws_known_card(mut app GuiApp, x int, y int, w int, h int, k desktop_engi
 		mono: true
 	})
 	why := if k.has_projects { '${k.why} · has projects' } else { k.why }
-	app.gg.draw_text(x + 40, y + 39, why, gg.TextCfg{
+	app.gg.draw_text(x + 40, y + 39, utf8_truncate(why, (w - 48) / 6), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 	})
@@ -654,7 +667,7 @@ fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 
 	// scaffold checklist — real os.exists on the active root
 	ws_section_label(mut app, x + 16, d.scaffold_y, 'SCAFFOLD')
-	present := ws_scaffold_present(app.harness_root)
+	present := ws_scaffold_cached(mut app, app.harness_root)
 	for i, name in ws_scaffold_names {
 		ry := d.scaffold_y + 22 + i * 17
 		app.gg.draw_text(x + 36, ry, name, gg.TextCfg{
@@ -1069,6 +1082,19 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 
 // draw_git_rails_panel — right column: CHANGES / HISTORY / COMPARE tabs,
 // commit graph lanes and diff preview.
+// Git-rail visible-row budgets, shared by drawing (draw_git_rails_panel) and
+// the wheel/hover paths in main.v so scroll clamps match what is drawn.
+// mid_h is the rail's full height; the panel reserves 30px for its tab strip.
+fn ws_git_changes_visible(mid_h int) int {
+	v := (mid_h - 30 - 20) / 20
+	return if v < 0 { 0 } else { v }
+}
+
+fn ws_git_history_visible(mid_h int) int {
+	v := (mid_h - 30 - 40) / 22
+	return if v < 0 { 0 } else { v }
+}
+
 fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 	paper_sheet(mut app, x, y, w, h)
 	for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
@@ -1098,7 +1124,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 			size: 11
 		})
 		row_h := 20
-		visible := (inner_h - 20) / row_h
+		visible := ws_git_changes_visible(h)
 		if visible < 1 {
 			return
 		}
@@ -1159,7 +1185,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 			size: 11
 		})
 		row_h := 22
-		visible := (inner_h - 40) / row_h
+		visible := ws_git_history_visible(h)
 		if visible < 1 {
 			return
 		}
@@ -1251,26 +1277,18 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 		if visible < 1 {
 			return
 		}
-		app.diff_scroll = clamp_scroll(app.diff_scroll, 20, visible)
 		if hunks.len == 0 {
 			ws_empty_copy(mut app, x + 10, y0 + 20, w - 20, 'Nothing to compare', 'The last two commits do not differ, or there is only one commit.')
 			return
 		}
-		mut line_no := 0
+		// flatten hunks into one line list so the wheel scroll (diff_scroll)
+		// is clamped against the REAL total and actually applied
+		mut flat_text := []string{}
+		mut flat_col := []gg.Color{}
 		for hunk in hunks {
-			if line_no >= visible {
-				break
-			}
-			app.gg.draw_text(x + 10, y0 + 14 + line_no * row_h, '— ${hunk.file}', gg.TextCfg{
-				color: app.pnl_select
-				size: 11
-				mono: true
-			})
-			line_no++
+			flat_text << '— ${hunk.file}'
+			flat_col << app.pnl_select
 			for line in hunk.lines {
-				if line_no >= visible {
-					break
-				}
 				col := match line.kind {
 					.addition { app.pnl_success }
 					.deletion { app.pnl_danger }
@@ -1281,13 +1299,29 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 					.deletion { '-' }
 					else { ' ' }
 				}
-				app.gg.draw_text(x + 14, y0 + 14 + line_no * row_h, utf8_truncate(prefix + line.text, (w - 28) / 6), gg.TextCfg{
-					color: col
-					size: 11
-					mono: true
-				})
-				line_no++
+				flat_text << prefix + line.text
+				flat_col << col
 			}
+		}
+		app.diff_scroll = clamp_scroll(app.diff_scroll, flat_text.len, visible)
+		mut end_i := app.diff_scroll + visible
+		if end_i > flat_text.len {
+			end_i = flat_text.len
+		}
+		for idx in app.diff_scroll .. end_i {
+			row := idx - app.diff_scroll
+			is_file := flat_text[idx].starts_with('— ')
+			app.gg.draw_text(if is_file { x + 10 } else { x + 14 }, y0 + 14 + row * row_h, utf8_truncate(flat_text[idx], (w - 28) / 6), gg.TextCfg{
+				color: flat_col[idx]
+				size: 11
+				mono: true
+			})
+		}
+		if flat_text.len > visible {
+			app.gg.draw_text(x + w - 90, y0, '${app.diff_scroll + 1}–${end_i} of ${flat_text.len}', gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 10
+			})
 		}
 	}
 }

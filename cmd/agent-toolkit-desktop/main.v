@@ -1064,6 +1064,14 @@ mut:
 	// insights — telemetry super-potent (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
 	insights_scroll int
 	insights_sel    int = -1 // selected row of the current tab (VC7 report details)
+	// VC7: per-frame Insights table cache (draw/metrics/click/details share it)
+	ins_cache       InsTable
+	ins_cache_key   string
+	ins_cache_frame int = -1
+	// VC7: scaffold check cache — six stats per frame otherwise (#1186 review)
+	ws_scaffold_root  string
+	ws_scaffold_vals  []bool
+	ws_scaffold_frame int = -1000
 	insights_hover  int = -1
 	insights_tab    string = 'cost' // cost | waterfall | spans | budgets | ci
 	insights_filter string
@@ -5308,6 +5316,11 @@ fn focus_workspace(mut app GuiApp) {
 // utf8_truncate returns at most max_runes runes — never splitting a
 // multi-byte UTF-8 character (#1168 review; byte offsets corrupt text).
 fn utf8_truncate(s string, max_runes int) string {
+	// a non-positive budget (narrow/resized windows) yields '' instead of a
+	// negative slice — every caller derives budgets from live geometry
+	if max_runes <= 0 {
+		return ''
+	}
 	r := s.runes()
 	if r.len <= max_runes {
 		return s
@@ -7176,12 +7189,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if app.mouse_x >= gx && app.mouse_x <= gx + l.git_w && app.mouse_y >= l.mid_y && app.mouse_y < l.mid_y + l.mid_h {
 				if app.git_rail == 'CHANGES' {
 					changes := app.desktop.engine_git_changes()
-					visible := (l.mid_h - 20) / 20
+					visible := ws_git_changes_visible(l.mid_h)
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, changes.len, visible)
 				} else if app.git_rail == 'HISTORY' {
 					graph := app.desktop.engine_git_graph(20)
-					visible := (l.mid_h - 40) / 22
+					visible := ws_git_history_visible(l.mid_h)
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, graph.commits.len, visible)
 				} else {

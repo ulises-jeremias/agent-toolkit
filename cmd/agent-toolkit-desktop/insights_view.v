@@ -152,10 +152,24 @@ fn ins_status_tone(s string) string {
 	return ''
 }
 
-// insights_table assembles the current tab's rows from the Engine. Called
-// once per frame by drawing and again by the click/details paths — the same
-// data, so selection indices always point at the drawn rows.
+// insights_table returns the current tab's rows, memoized per frame / tab /
+// width: drawing, metrics, click and details all read the SAME table in a
+// frame (collect_engine_logs scans state.data — building it four times a
+// frame is wasteful) and the next frame rebuilds so Engine updates show.
 fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
+	key := '${tab}:${inner_w}'
+	if app.ins_cache_frame == app.frame && app.ins_cache_key == key {
+		return app.ins_cache
+	}
+	t := insights_table_build(mut app, tab, inner_w)
+	app.ins_cache = t
+	app.ins_cache_key = key
+	app.ins_cache_frame = app.frame
+	return t
+}
+
+// insights_table_build assembles the current tab's rows from the Engine.
+fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 	has_engine := app.desktop != unsafe { nil }
 	match tab {
 		'cost' {
@@ -186,9 +200,7 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 				}
 			}
 			for j in jobs {
-				if j.id.len < 2 {
-					continue
-				}
+				// every recorded job is a row — ids are Engine-issued, never filtered
 				rows << InsRow{
 					kind: 'Job'
 					id: j.id
@@ -317,7 +329,7 @@ fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
 					id: l.ts
 					tone: ins_status_tone(l.level)
 					cells: [l.ts, l.level, l.source, l.msg]
-					fields: [['Kind', 'Engine event'], ['Time', l.ts],
+					fields: [['Kind', 'Engine event'], ['Revision', l.ts],
 						['Level', ins_or_dash(l.level)], ['Source', ins_or_dash(l.source)],
 						['Message', ins_or_dash(l.msg)], ['Raw', ins_or_dash(l.raw)]]
 				}
@@ -372,7 +384,7 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 		[]desktop_engine.JobRecord{}
 	}
 	loops := if has_engine { app.desktop.loops_catalog() } else { []desktop_engine.LoopEntry{} }
-	events := if has_engine { collect_engine_logs(app).len } else { 0 }
+	events := if has_engine { insights_table(mut app, 'realtime', 0).rows.len } else { 0 }
 	mut spent := 0
 	for r in swarms {
 		spent += r.budget_spent
