@@ -8,6 +8,7 @@ import desktop_engine
 import gg
 import ghostty
 import os
+import time
 import pty as pty_mod
 
 // ── Dunder Mifflin Paper Co. — distinctive signature, not generic ──
@@ -2423,6 +2424,17 @@ fn on_init(mut app GuiApp) {
 	} else {
 		app.onboarding_msg = ''
 	}
+}
+
+// ui_now is the wall clock every header/date stamp reads. Under
+// ATK_GUI_FREEZE it pins to a fixed instant so golden captures never drift
+// on the minute digits (the Operations/Office/Insights/Onboarding headers
+// all show local time).
+fn ui_now() time.Time {
+	if os.getenv('ATK_GUI_FREEZE') != '' {
+		return time.new(time.Time{ year: 2026, month: 9, day: 9, hour: 10, minute: 24 })
+	}
+	return time.now()
 }
 
 fn frame(mut app GuiApp) {

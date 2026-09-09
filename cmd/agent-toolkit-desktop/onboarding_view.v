@@ -1,7 +1,6 @@
 module main
 
 import gg
-import time
 import desktop.pixelart
 import desktop_engine
 
@@ -567,7 +566,7 @@ fn draw_onb_welcome(mut app GuiApp, l OnbLayout) {
 		})
 	}
 	// real local date and time — never the reference's fictional date
-	now := time.now()
+	now := ui_now()
 	months := ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 	mname := if now.month >= 1 && now.month <= 12 { months[now.month - 1] } else { '' }
 	stamp := '${mname} ${now.day}, ${now.year}'
