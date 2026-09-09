@@ -278,7 +278,14 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 		// the label belongs to its own pod: anchor it under the chair, not
 		// at the row pitch (which drifts against the next row when the
 		// rows breathe apart on tall floors)
-		app.gg.draw_text(cx, chair_y + chh + 4, desks[i].label, gg.TextCfg{
+		// clipped to the desk footprint: long catalog ids used to run into
+		// the neighbouring pod's label
+		max_chars := (dw + 2) / 6
+		mut lbl := desks[i].label
+		if max_chars > 1 && lbl.len > max_chars {
+			lbl = lbl[..max_chars - 1] + '…'
+		}
+		app.gg.draw_text(cx, chair_y + chh + 4, lbl, gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 			mono: true
