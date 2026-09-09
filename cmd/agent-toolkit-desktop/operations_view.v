@@ -370,7 +370,7 @@ fn ops_fmt_started(unix i64) string {
 		return '—'
 	}
 	t := time.unix(unix).local()
-	now := time.now()
+	now := ui_now()
 	clock := '${t.hour:02d}:${t.minute:02d}'
 	if t.ymmdd() == now.ymmdd() {
 		return clock
@@ -826,7 +826,7 @@ fn draw_ops_header(mut app GuiApp, l OpsLayout) {
 	}
 	// real local date and time + a small house/tree vignette on the right
 	if l.fw > 700 {
-		now := time.now()
+		now := ui_now()
 		stamp := '${now.weekday_str()}, ${now.smonth()} ${now.day}, ${now.year}'
 		clock := '${now.hour:02d}:${now.minute:02d}'
 		vig_w := if big { 92 } else { 0 }
