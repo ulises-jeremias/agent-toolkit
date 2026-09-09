@@ -256,10 +256,15 @@ fn ws_scaffold_present(root string) []bool {
 // ws_scaffold_cached memoizes ws_scaffold_present by root, refreshed every
 // ~2s (120 frames) so a network mount cannot stall the render thread.
 fn ws_scaffold_cached(mut app GuiApp, root string) []bool {
-	if app.ws_scaffold_root == root && app.frame - app.ws_scaffold_frame < 120 {
+	// keyed by root AND engine revision: Initialize/Switch bump the revision,
+	// so the checklist flips from 'missing' to present on the very next frame
+	// instead of after the time window (a stale 'missing' was visible after
+	// Initialize while testing the lifecycle harness)
+	key := '${root}@${app.engine_rev}'
+	if app.ws_scaffold_root == key && app.frame - app.ws_scaffold_frame < 120 {
 		return app.ws_scaffold_vals
 	}
-	app.ws_scaffold_root = root
+	app.ws_scaffold_root = key
 	app.ws_scaffold_vals = ws_scaffold_present(root)
 	app.ws_scaffold_frame = app.frame
 	return app.ws_scaffold_vals
