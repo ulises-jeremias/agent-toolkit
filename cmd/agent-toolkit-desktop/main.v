@@ -2455,7 +2455,9 @@ fn on_init(mut app GuiApp) {
 	// from them (idle environments read catalog/template counts, never
 	// fabricated live activity). Prefixed: short viewports render the first
 	// rows, so the summary leads instead of sitting below the fold.
-	app.ghost.prefix_feed('Fleet: ${agents_active_total(mut app)} catalog agents · ${skills_total(mut app)} skills · ${loops_total(mut app)} loop templates · ${mcp_total(mut app)} MCP providers\r\n')
+	// Compact labels: content rows truncate at 44 columns, so every metric
+	// must fit (the pane rail already says Fleet).
+	app.ghost.prefix_feed('${agents_active_total(mut app)} agents · ${skills_total(mut app)} skills · ${loops_total(mut app)} loops · ${mcp_total(mut app)} MCP\r\n')
 	app.ghost_focused = false
 	app.god_inbox = 0
 	app.god_outbox = 0
