@@ -150,6 +150,17 @@ agent-toolkit doctor     # verify everything is set up
 
 → Full walkthrough: [docs/INSTALLATION.md](docs/INSTALLATION.md) · Full channel matrix: [docs/TRUST.md#Installation channels](docs/TRUST.md#installation-channels)
 
+### Desktop app (GUI)
+
+Prefer a graphical workspace? The native desktop GUI runs over the same Engine — Paper Co. office, skills/agents library, operations floor, terminal fleet, and guided onboarding:
+
+```bash
+agent-toolkit gui --install   # download the desktop binary from GitHub Releases
+agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
+```
+
+No CLI handy? Grab `agent-toolkit-desktop-<version>-linux-<arch>.tar.gz` from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest) and run `./install-desktop.sh install` (per-user, no sudo). Details: [docs/desktop/PRODUCT_VISION.md](docs/desktop/PRODUCT_VISION.md) · [docs/desktop/PACKAGING.md](docs/desktop/PACKAGING.md).
+
 ### Advanced install methods
 
 Use these only when the primary CLI flow above does not fit your setup.
