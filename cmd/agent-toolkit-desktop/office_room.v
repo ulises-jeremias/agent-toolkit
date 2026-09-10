@@ -3,7 +3,7 @@ module main
 import desktop.pixelart
 import gg
 
-// VC3 Office room (#1172) — the flagship visual composition for the Office
+// Office room — the flagship visual composition for the Office
 // overview. Truth comes from desks_for_app (catalog identity) and Engine job
 // counts (attention/running, passed in by the caller); this file owns only
 // visual composition. Static first: no walking, no bobbing, no ambient
@@ -36,7 +36,7 @@ fn pc(app &GuiApp, k u8) gg.Color {
 	}
 }
 
-// zone_plate draws a small mounted sign behind a zone label (VC3.5):
+// zone_plate draws a small mounted sign behind a zone label:
 // cream paper plate with a wood frame, deterministic, no per-frame variation.
 fn zone_plate(mut app GuiApp, gx int, gy int, txt string, txt_col gg.Color) {
 	pw := txt.len * 7 + 12
@@ -205,16 +205,16 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	}
 
 	// ── workstation clusters (right): paired desks with aisles ──────────
-	ws_x := x + 16 + mz_w + 20
+	workspace_x := x + 16 + mz_w + 20
 	couch := pixelart.environment_for(.couch)
 	// lounge geometry is computed first so the desk grid can keep clear of
-	// the couch corner both vertically (avail_h) and horizontally (ws_w)
+	// the couch corner both vertically (avail_h) and horizontally (workspace_w)
 	lounge_w := couch.width() * s + rug.width() * s + 20
 	lounge_x := x + w - 16 - lounge_w
 	lounge_y := y + h - couch.height() * s - 12
-	lounge_ok := w >= 620 && lounge_x > ws_x && lounge_y > table_y + table.height() * s
-	ws_w := x + w - 16 - ws_x - if lounge_ok { lounge_w - 8 } else { 0 }
-	if ws_w < 40 * s || desks.len == 0 {
+	lounge_ok := w >= 620 && lounge_x > workspace_x && lounge_y > table_y + table.height() * s
+	workspace_w := x + w - 16 - workspace_x - if lounge_ok { lounge_w - 8 } else { 0 }
+	if workspace_w < 40 * s || desks.len == 0 {
 		return
 	}
 	desk := pixelart.environment_for(.desk)
@@ -226,7 +226,7 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	chh := chair.height() * s
 	cell_h := 42 * s
 	// lounge reserve: the couch corner keeps the bottom band clear of desks
-	// The lounge is already excluded horizontally by ws_w. Reserving it a
+	// The lounge is already excluded horizontally by workspace_w. Reserving it a
 	// second time vertically reduced a tall room to one sparse desk row.
 	lounge_h := 0
 	avail_h := y + h - 12 - lounge_h - (floor_y + 8 * s)
@@ -240,7 +240,7 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	pod_w := 2 * dw + 4
 	// wide rooms breathe: wider aisles keep clusters from huddling left
 	aisle := if w >= 900 { 18 * s } else { 12 * s }
-	mut pods_per_row := (ws_w + aisle) / (pod_w + aisle)
+	mut pods_per_row := (workspace_w + aisle) / (pod_w + aisle)
 	pods_per_row = if pods_per_row < 1 {
 		1
 	} else if pods_per_row > 3 { 3 } else { pods_per_row }
@@ -250,7 +250,7 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	pods := pods_per_row * rows
 	capacity := if desks.len < pods * 2 { desks.len } else { pods * 2 }
 	total_w := pods_per_row * pod_w + (pods_per_row - 1) * aisle
-	grid_x := ws_x + (ws_w - total_w) / 2
+	grid_x := workspace_x + (workspace_w - total_w) / 2
 	// vertical breathing: spread the pod rows across the available floor
 	// and center the block, so large rooms read composed instead of like
 	// a small grid floating in empty space

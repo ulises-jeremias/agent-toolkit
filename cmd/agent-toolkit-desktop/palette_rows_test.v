@@ -6,10 +6,10 @@ import desktop.palette
 import desktop_engine
 import os
 
-// test_palette_merged_rows_registry_authority verifies the S4A production
-// palette data source: registry navigation rows lead in shell order, legacy
-// static rows remain appended, and queries surface registry entities with
-// preserved canonical identity.
+// test_palette_merged_rows_registry_authority verifies the production
+// palette data source: registry navigation rows lead in shell order, static
+// rows for entries without registry coverage remain appended, and queries
+// surface registry entities with preserved canonical identity.
 fn test_palette_merged_rows_registry_authority() {
 	tmp := os.join_path(os.temp_dir(), 'atk-palette-rows-${os.getpid()}')
 	os.mkdir_all(tmp) or { panic(err.msg()) }
@@ -42,7 +42,7 @@ fn test_palette_merged_rows_registry_authority() {
 	assert rows[1].id == 'nav:/skills'
 	assert rows[0].is_entity
 	assert rows[0].panel == nav.PanelId.world_view
-	// S4C: the static command authority is retired — every row is
+	// the static command authority is retired — every row is
 	// registry-shaped (known action-id prefixes), no bare legacy ids
 	known_prefixes := ['nav:', 'app:', 'skill:', 'agent:', 'target:', 'mcp:', 'product:', 'pack:',
 		'loop:', 'doctor:', 'job:', 'swarm_run:', 'action:']

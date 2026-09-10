@@ -4,7 +4,7 @@ import gg
 import desktop.pixelart
 import desktop_engine
 
-// VC5 (#1173) — the Library as an illustrated collection.
+// The Library as an illustrated collection.
 //
 // Canonical visual reference: docs/desktop/assets/design/library.jpg with
 // concept-board.jpg as the shell/material authority. One composition serves
@@ -22,28 +22,28 @@ import desktop_engine
 // Illustration (marks, banner) is catalog identity and environment only; it
 // never encodes runtime activity or popularity.
 //
-// Geometry: lib_layout() is computed once per frame and shared by drawing,
+// Geometry: library_layout() is computed once per frame and shared by drawing,
 // hover, click and wheel handling (single source of geometry).
 
 // tab order in the tab bar → panel id
-const lib_tab_panels = [1, 2, 10, 3]
+const library_tab_panels = [1, 2, 10, 3]
 
-// hovered chrome element codes (lib_hover_ui)
-const lib_ui_tab0 = 10 // 10..13 tabs
-const lib_ui_search = 20
-const lib_ui_chip0 = 30 // 30..59 chips
-const lib_ui_primary = 60
-const lib_ui_second = 61
-const lib_ui_third = 62
+// hovered chrome element codes (library_hover_ui)
+const library_ui_tab0 = 10 // 10..13 tabs
+const library_ui_search = 20
+const library_ui_chip0 = 30 // 30..59 chips
+const library_ui_primary = 60
+const library_ui_second = 61
+const library_ui_third = 62
 
-// lib_is_panel reports whether a panel id is served by the Library composition.
-fn lib_is_panel(p int) bool {
-	return p in lib_tab_panels
+// library_is_panel reports whether a panel id is served by the Library composition.
+fn library_is_panel(p int) bool {
+	return p in library_tab_panels
 }
 
-// lib_tab_for_panel maps a panel id to its tab index (-1 when not a Library panel).
-fn lib_tab_for_panel(p int) int {
-	for i, tp in lib_tab_panels {
+// library_tab_for_panel maps a panel id to its tab index (-1 when not a Library panel).
+fn library_tab_for_panel(p int) int {
+	for i, tp in library_tab_panels {
 		if tp == p {
 			return i
 		}
@@ -51,8 +51,8 @@ fn lib_tab_for_panel(p int) int {
 	return -1
 }
 
-// LibLayout is the per-frame geometry shared by draw and hit-testing.
-struct LibLayout {
+// LibraryLayout is the per-frame geometry shared by draw and hit-testing.
+struct LibraryLayout {
 	fx       int
 	fy       int
 	fw       int
@@ -81,15 +81,15 @@ struct LibLayout {
 	tab      int
 }
 
-// lib_side_w is the detail column width: wider than the Office inspector at
+// library_side_w is the detail column width: wider than the Office inspector at
 // desktop widths so the detail pane can carry actions + facts without
 // shrinking type.
-fn lib_side_w(w int) int {
+fn library_side_w(w int) int {
 	return if w >= 1180 { 340 } else { inspector_w }
 }
 
-fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
-	side_w := lib_side_w(w)
+fn library_layout(mut app GuiApp, w int, h int) LibraryLayout {
+	side_w := library_side_w(w)
 	rtl := app.lang.is_rtl()
 	fx := if rtl { side_w + 8 } else { dock_w + 8 }
 	fw := w - dock_w - 8 - side_w
@@ -103,7 +103,7 @@ fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
 	search_y := tabs_y + tabs_h + 6
 	search_h := 32
 	chips_y := search_y + search_h + 6
-	chip_rows := lib_chip_rows(mut app, fx, fw)
+	chip_rows := library_chip_rows(mut app, fx, fw)
 	chips_h := chip_rows * 24 + (chip_rows - 1) * 4
 	grid_y := chips_y + chips_h + 8
 	grid_bottom := fy + fh - 20
@@ -123,7 +123,7 @@ fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
 	mut rows := (grid_h + gap) / (card_h + gap)
 	if rows < 2 && (grid_h - gap) / 2 >= 86 {
 		// short windows: two slightly shorter rows beat one row over dead
-		// space (cards below 100px drop the footer line, see draw_lib_grid)
+		// space (cards below 100px drop the footer line, see draw_library_grid)
 		rows = 2
 		card_h = (grid_h - gap) / 2
 	}
@@ -142,7 +142,7 @@ fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
 	// detail column alike — exactly like the reference's header band; the
 	// title/subtitle keep the room their text needs and the banner takes
 	// the rest. Hidden when that rest is too narrow to read as a scene.
-	sub_px := tr(app, 'lib.subtitle').runes().len * 7 + 20
+	sub_px := tr(app, 'library.subtitle').runes().len * 7 + 20
 	shelf_px := 14 + 14 * 3 + 14
 	title_need := shelf_px + sub_px // room the header text block needs
 	mut banner_x := 0
@@ -166,7 +166,7 @@ fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
 		banner_w = 0
 		banner_x = if rtl { fx } else { fx + fw }
 	}
-	return LibLayout{
+	return LibraryLayout{
 		fx: fx
 		fy: fy
 		fw: fw
@@ -192,40 +192,40 @@ fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
 		card_h: card_h
 		gap: gap
 		compact: compact
-		tab: lib_tab_for_panel(app.selected_panel)
+		tab: library_tab_for_panel(app.selected_panel)
 	}
 }
 
 // ── shared rects ────────────────────────────────────────────────────────────
 
-fn lib_tab_rect(l LibLayout, i int) (int, int, int, int) {
+fn library_tab_rect(l LibraryLayout, i int) (int, int, int, int) {
 	tw := if l.fw >= 640 { 118 } else { (l.fw - 24 - 3 * 6) / 4 }
 	return l.fx + 12 + i * (tw + 6), l.tabs_y, tw, l.tabs_h
 }
 
-fn lib_search_rect(l LibLayout) (int, int, int, int) {
+fn library_search_rect(l LibraryLayout) (int, int, int, int) {
 	// the count badge on the right needs ~110px; the field takes the rest
 	return l.fx + 12, l.search_y, l.fw - 24 - 116, l.search_h
 }
 
-fn lib_chip_w(label string) int {
+fn library_chip_w(label string) int {
 	return label.len * 6 + 20
 }
 
-// lib_chip_rows measures how many chip rows the current tab's labels need.
+// library_chip_rows measures how many chip rows the current tab's labels need.
 // Rows grow with the catalog (no cap): every chip is drawn and hit-testable,
 // and the grid below recomputes from chips_h. The chip list is catalog-
 // driven (Skills domains), so a silently dropped chip would be a filter the
 // user can never reach.
-fn lib_chip_rows(mut app GuiApp, fx int, fw int) int {
-	return lib_chip_rows_for(lib_chips(mut app), fx, fw)
+fn library_chip_rows(mut app GuiApp, fx int, fw int) int {
+	return library_chip_rows_for(library_chips(mut app), fx, fw)
 }
 
-fn lib_chip_rows_for(labels []string, fx int, fw int) int {
+fn library_chip_rows_for(labels []string, fx int, fw int) int {
 	mut x := fx + 12
 	mut rows := 1
 	for lb in labels {
-		cw := lib_chip_w(lb)
+		cw := library_chip_w(lb)
 		if x + cw > fx + fw - 12 && x > fx + 12 {
 			rows++
 			x = fx + 12
@@ -235,14 +235,14 @@ fn lib_chip_rows_for(labels []string, fx int, fw int) int {
 	return rows
 }
 
-// lib_chip_rect returns the rect for chip i of labels — the same wrapping
-// walk as lib_chip_rows, so drawing and hit-testing never disagree. w == 0
+// library_chip_rect returns the rect for chip i of labels — the same wrapping
+// walk as library_chip_rows, so drawing and hit-testing never disagree. w == 0
 // only for an out-of-range index.
-fn lib_chip_rect(l LibLayout, labels []string, i int) (int, int, int, int) {
+fn library_chip_rect(l LibraryLayout, labels []string, i int) (int, int, int, int) {
 	mut x := l.fx + 12
 	mut row := 0
 	for j, lb in labels {
-		cw := lib_chip_w(lb)
+		cw := library_chip_w(lb)
 		if x + cw > l.fx + l.fw - 12 && x > l.fx + 12 {
 			row++
 			x = l.fx + 12
@@ -255,8 +255,8 @@ fn lib_chip_rect(l LibLayout, labels []string, i int) (int, int, int, int) {
 	return 0, 0, 0, 0
 }
 
-// lib_card_rect returns the rect of the visible card slot v (row-major).
-fn lib_card_rect(l LibLayout, v int) (int, int, int, int) {
+// library_card_rect returns the rect of the visible card slot v (row-major).
+fn library_card_rect(l LibraryLayout, v int) (int, int, int, int) {
 	if l.cols == 0 {
 		return 0, 0, 0, 0
 	}
@@ -266,10 +266,10 @@ fn lib_card_rect(l LibLayout, v int) (int, int, int, int) {
 }
 
 // detail-pane action buttons: primary + up to two secondary
-fn lib_btn_rect(l LibLayout, which int) (int, int, int, int) {
+fn library_btn_rect(l LibraryLayout, which int) (int, int, int, int) {
 	x := l.side_x + 16
 	inner := l.side_w - 32
-	y := lib_detail_actions_y(l)
+	y := library_detail_actions_y(l)
 	pw := if inner >= 300 { 132 } else { 112 }
 	sw := (inner - pw - 16) / 2
 	return match which {
@@ -279,13 +279,13 @@ fn lib_btn_rect(l LibLayout, which int) (int, int, int, int) {
 	}
 }
 
-fn lib_detail_actions_y(l LibLayout) int {
+fn library_detail_actions_y(l LibraryLayout) int {
 	return l.side_y + 176
 }
 
 // ── items (Engine truth → one card model) ───────────────────────────────────
 
-struct LibItem {
+struct LibraryItem {
 	id    string
 	name  string
 	desc  string
@@ -296,10 +296,10 @@ struct LibItem {
 	on    bool // installed / enabled — configuration truth only
 }
 
-// lib_chips returns the category chips for the active tab. Skills: catalog
+// library_chips returns the category chips for the active tab. Skills: catalog
 // domains. Agents: tiers. Products: kind. MCP: configuration facets.
-fn lib_chips(mut app GuiApp) []string {
-	match lib_tab_for_panel(app.selected_panel) {
+fn library_chips(mut app GuiApp) []string {
+	match library_tab_for_panel(app.selected_panel) {
 		0 {
 			mut out := ['All']
 			if app.desktop != unsafe { nil } {
@@ -322,54 +322,54 @@ fn lib_chips(mut app GuiApp) []string {
 	}
 }
 
-fn lib_chip_active(app &GuiApp, label string) bool {
-	if lib_tab_for_panel(app.selected_panel) == 0 {
+fn library_chip_active(app &GuiApp, label string) bool {
+	if library_tab_for_panel(app.selected_panel) == 0 {
 		return (label == 'All' && app.skills_domain == '') || app.skills_domain == label
 	}
-	return (label == 'All' && app.lib_filter == '') || app.lib_filter == label
+	return (label == 'All' && app.library_filter == '') || app.library_filter == label
 }
 
-fn lib_set_chip(mut app GuiApp, label string) {
+fn library_set_chip(mut app GuiApp, label string) {
 	v := if label == 'All' { '' } else { label }
-	if lib_tab_for_panel(app.selected_panel) == 0 {
+	if library_tab_for_panel(app.selected_panel) == 0 {
 		app.skills_domain = v
 		app.skills_scroll = 0
 		app.skills_selected = 0
 	} else {
-		app.lib_filter = v
-		app.lib_scroll = 0
-		app.lib_sel = 0
+		app.library_filter = v
+		app.library_scroll = 0
+		app.library_sel = 0
 	}
 	app.inspector_msg = if v == '' { 'Filter: all' } else { 'Filter: ${v}' }
 }
 
-// lib_items returns the card models for the active tab. The result is cached
+// library_items returns the card models for the active tab. The result is cached
 // per frame + filter key: draw, detail, hover and click all read the same
 // list, and the products/packs catalogs are parsed at most once per frame.
-// Actions bust the cache (lib_invalidate) so the next read sees Engine state.
-fn lib_items(mut app GuiApp) []LibItem {
-	key := '${app.selected_panel}|${app.skills_query}|${app.skills_domain}|${app.lib_filter}'
-	if app.lib_cache_frame == app.frame && app.lib_cache_key == key {
-		return app.lib_cache
+// Actions bust the cache (library_invalidate) so the next read sees Engine state.
+fn library_items(mut app GuiApp) []LibraryItem {
+	key := '${app.selected_panel}|${app.skills_query}|${app.skills_domain}|${app.library_filter}'
+	if app.library_cache_frame == app.frame && app.library_cache_key == key {
+		return app.library_cache
 	}
-	out := lib_items_uncached(mut app)
-	app.lib_cache = out
-	app.lib_cache_key = key
-	app.lib_cache_frame = app.frame
+	out := library_items_uncached(mut app)
+	app.library_cache = out
+	app.library_cache_key = key
+	app.library_cache_frame = app.frame
 	return out
 }
 
-fn lib_invalidate(mut app GuiApp) {
-	app.lib_cache_frame = -1
+fn library_invalidate(mut app GuiApp) {
+	app.library_cache_frame = -1
 }
 
-fn lib_items_uncached(mut app GuiApp) []LibItem {
-	mut out := []LibItem{}
+fn library_items_uncached(mut app GuiApp) []LibraryItem {
+	mut out := []LibraryItem{}
 	if app.desktop == unsafe { nil } {
 		return out
 	}
 	q := app.skills_query
-	match lib_tab_for_panel(app.selected_panel) {
+	match library_tab_for_panel(app.selected_panel) {
 		0 {
 			installed := app.desktop.engine_skills_installed()
 			for s in app.desktop.engine_skills_search(q, app.skills_domain) {
@@ -381,7 +381,7 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 				if s.kind != '' && s.kind != 'skill' {
 					tags << s.kind
 				}
-				out << LibItem{
+				out << LibraryItem{
 					id: s.id
 					name: if s.name != '' { s.name } else { s.id }
 					desc: s.description
@@ -393,12 +393,12 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 			}
 		}
 		1 {
-			tier := if app.lib_filter == 'archived' { '' } else { app.lib_filter }
+			tier := if app.library_filter == 'archived' { '' } else { app.library_filter }
 			for i, a in app.desktop.engine_agents_search(q, tier) {
-				if app.lib_filter == 'archived' && !a.archived {
+				if app.library_filter == 'archived' && !a.archived {
 					continue
 				}
-				if app.lib_filter != 'archived' && a.archived {
+				if app.library_filter != 'archived' && a.archived {
 					continue
 				}
 				mut tags := [a.tier]
@@ -418,7 +418,7 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 				} else {
 					''
 				}
-				out << LibItem{
+				out << LibraryItem{
 					id: a.id
 					name: a.id
 					desc: if a.description != '' { a.description } else { a.role }
@@ -430,7 +430,7 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 			}
 		}
 		2 {
-			if app.lib_filter != 'packs' {
+			if app.library_filter != 'packs' {
 				prods := if q != '' {
 					app.desktop.engine_products_search(q)
 				} else {
@@ -440,7 +440,7 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 					// products.yaml is the only truthful source here: the Engine's
 					// skill_ids/version/receipt_path fields are placeholders, not
 					// catalog facts, so they are deliberately not shown
-					out << LibItem{
+					out << LibraryItem{
 						id: p.id
 						name: if p.name != '' { p.name } else { p.id }
 						desc: p.description.trim("'")
@@ -450,7 +450,7 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 					}
 				}
 			}
-			if app.lib_filter != 'products' {
+			if app.library_filter != 'products' {
 				packs := if q != '' {
 					app.desktop.engine_packs_search(q)
 				} else {
@@ -462,7 +462,7 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 						tags << 'docs-only'
 					}
 					tags << '${pk.skill_count} skills'
-					out << LibItem{
+					out << LibraryItem{
 						id: pk.id
 						name: if pk.name != '' { pk.name } else { pk.id }
 						desc: if pk.docs_only {
@@ -485,10 +485,10 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 				app.desktop.engine_mcp_catalog()
 			}
 			for i, p in provs {
-				if app.lib_filter == 'enabled' && !p.enabled {
+				if app.library_filter == 'enabled' && !p.enabled {
 					continue
 				}
-				if app.lib_filter == 'docker' && !p.requires_docker {
+				if app.library_filter == 'docker' && !p.requires_docker {
 					continue
 				}
 				// deterministic node colour per provider — identity, not health
@@ -506,7 +506,7 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 				if p.requires_docker {
 					tags << 'docker'
 				}
-				out << LibItem{
+				out << LibraryItem{
 					id: p.id
 					name: if p.name != '' { p.name } else { p.id }
 					desc: if p.description != '' {
@@ -527,49 +527,49 @@ fn lib_items_uncached(mut app GuiApp) []LibItem {
 	return out
 }
 
-// lib_scroll_row / lib_selected read the per-tab state (Skills keeps its
+// library_scroll_row / library_selected read the per-tab state (Skills keeps its
 // pre-existing fields so shortcuts and tests stay valid).
-fn lib_scroll_row(app &GuiApp) int {
-	return if lib_tab_for_panel(app.selected_panel) == 0 {
+fn library_scroll_row(app &GuiApp) int {
+	return if library_tab_for_panel(app.selected_panel) == 0 {
 		app.skills_scroll
 	} else {
-		app.lib_scroll
+		app.library_scroll
 	}
 }
 
-fn lib_set_scroll_row(mut app GuiApp, v int) {
-	if lib_tab_for_panel(app.selected_panel) == 0 {
+fn library_set_scroll_row(mut app GuiApp, v int) {
+	if library_tab_for_panel(app.selected_panel) == 0 {
 		app.skills_scroll = v
 	} else {
-		app.lib_scroll = v
+		app.library_scroll = v
 	}
 }
 
-fn lib_selected(app &GuiApp) int {
-	return if lib_tab_for_panel(app.selected_panel) == 0 {
+fn library_selected(app &GuiApp) int {
+	return if library_tab_for_panel(app.selected_panel) == 0 {
 		app.skills_selected
 	} else {
-		app.lib_sel
+		app.library_sel
 	}
 }
 
-fn lib_set_selected(mut app GuiApp, v int) {
-	if lib_tab_for_panel(app.selected_panel) == 0 {
+fn library_set_selected(mut app GuiApp, v int) {
+	if library_tab_for_panel(app.selected_panel) == 0 {
 		app.skills_selected = v
 	} else {
-		app.lib_sel = v
+		app.library_sel = v
 	}
 }
 
-// lib_visible_range clamps the scroll row and returns [start, end) item
+// library_visible_range clamps the scroll row and returns [start, end) item
 // indexes for the visible grid (selection is revalidated by callers).
-fn lib_visible_range(mut app GuiApp, l LibLayout, total int) (int, int) {
+fn library_visible_range(mut app GuiApp, l LibraryLayout, total int) (int, int) {
 	if l.cols == 0 || l.rows == 0 {
 		return 0, 0
 	}
 	total_rows := (total + l.cols - 1) / l.cols
-	row := clamp_scroll(lib_scroll_row(app), total_rows, l.rows)
-	lib_set_scroll_row(mut app, row)
+	row := clamp_scroll(library_scroll_row(app), total_rows, l.rows)
+	library_set_scroll_row(mut app, row)
 	start := row * l.cols
 	mut end := start + l.rows * l.cols
 	if end > total {
@@ -580,9 +580,9 @@ fn lib_visible_range(mut app GuiApp, l LibLayout, total int) (int, int) {
 
 // ── text helpers ────────────────────────────────────────────────────────────
 
-// lib_wrap splits s into at most max_lines lines of about per characters,
+// wrap_text_lines splits s into at most max_lines lines of about per characters,
 // marking overflow with an ellipsis on the last line.
-fn lib_wrap(s string, per int, max_lines int) []string {
+fn wrap_text_lines(s string, per int, max_lines int) []string {
 	mut lines := []string{}
 	if max_lines <= 0 || per <= 0 {
 		return lines
@@ -623,15 +623,15 @@ fn lib_wrap(s string, per int, max_lines int) []string {
 	return lines
 }
 
-// lib_clip truncates to n runes and marks the cut with an ellipsis.
-fn lib_clip(s string, n int) string {
+// truncate_with_ellipsis truncates to n runes and marks the cut with an ellipsis.
+fn truncate_with_ellipsis(s string, n int) string {
 	if n <= 1 || s.runes().len <= n {
 		return s
 	}
 	return utf8_truncate(s, n - 1) + '…'
 }
 
-fn lib_text(mut app GuiApp, x int, y int, s string, size int, c gg.Color, bold bool) {
+fn library_text(mut app GuiApp, x int, y int, s string, size int, c gg.Color, bold bool) {
 	app.gg.draw_text(x, y, s, gg.TextCfg{
 		color: c
 		size: size
@@ -639,22 +639,8 @@ fn lib_text(mut app GuiApp, x int, y int, s string, size int, c gg.Color, bold b
 	})
 }
 
-// lib_check draws a check glyph from pixel runs (the bundled fonts have no
-// dependable ✓ glyph).
-fn lib_check(mut app GuiApp, x int, y int, c gg.Color) {
-	onb_check(mut app, x, y, c)
-}
-
-// lib_sheet is the soft paper surface every card and the detail column sit
-// on: a quiet edge, a faint drop, no wireframe double borders.
-fn lib_sheet(mut app GuiApp, x int, y int, w int, h int) {
-	app.gg.draw_rect_filled(x + 2, y + 2, w, h, tint(col_ink, 12))
-	app.gg.draw_rounded_rect_filled(x, y, w, h, 4, pc(app, `P`))
-	app.gg.draw_rounded_rect_empty(x, y, w, h, 4, tint(pc(app, `W`), 60))
-}
-
-// lib_pill draws a chip; filled sage when active.
-fn lib_pill(mut app GuiApp, x int, y int, w int, h int, label string, active bool, hover bool) {
+// library_pill draws a chip; filled sage when active.
+fn library_pill(mut app GuiApp, x int, y int, w int, h int, label string, active bool, hover bool) {
 	sage := app.pnl_success
 	if active {
 		app.gg.draw_rounded_rect_filled(x, y, w, h, h / 2, sage)
@@ -665,22 +651,33 @@ fn lib_pill(mut app GuiApp, x int, y int, w int, h int, label string, active boo
 			tint(pc(app, `m`), 90)
 		})
 	}
-	lib_text(mut app, x + 10, y + (h - 14) / 2, label, 11, if active {
+	library_text(mut app, x + 10, y + (h - 14) / 2, label, 11, if active {
 		app.pnl_bg
 	} else {
 		app.pnl_text
 	}, active)
 }
 
-// lib_tag is the small manila fact chip on cards and in the detail pane.
-fn lib_tag(mut app GuiApp, x int, y int, label string, accent bool) int {
+// draw_library_card is the soft paper surface every collection card and the
+// detail column sit on: a quiet edge, a faint drop, no wireframe double
+// borders. Cards are intentionally rounded (radius 4); workspace sheets drawn
+// by draw_paper_sheet are sharp — the two components differ by design, so
+// they keep separate painters sharing the same paper/ink tokens.
+fn draw_library_card(mut app GuiApp, x int, y int, w int, h int) {
+	app.gg.draw_rect_filled(x + 2, y + 2, w, h, tint(col_ink, 12))
+	app.gg.draw_rounded_rect_filled(x, y, w, h, 4, pc(app, `P`))
+	app.gg.draw_rounded_rect_empty(x, y, w, h, 4, tint(pc(app, `W`), 60))
+}
+
+// library_tag is the small manila fact chip on cards and in the detail pane.
+fn library_tag(mut app GuiApp, x int, y int, label string, accent bool) int {
 	w := label.len * 6 + 14
 	app.gg.draw_rounded_rect_filled(x, y, w, 18, 4, if accent {
 		tint(app.pnl_success, 70)
 	} else {
 		tint(pc(app, `m`), 110)
 	})
-	lib_text(mut app, x + 7, y + 2, label, 11, if accent { app.pnl_success } else { app.pnl_text }, false)
+	library_text(mut app, x + 7, y + 2, label, 11, if accent { app.pnl_success } else { app.pnl_text }, false)
 	return w
 }
 
@@ -689,7 +686,7 @@ fn lib_tag(mut app GuiApp, x int, y int, label string, accent bool) int {
 // draw_library is the panel body for panels 1/2/10/3.
 fn draw_library(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
-	l := lib_layout(mut app, w, h)
+	l := library_layout(mut app, w, h)
 	pid := office_palette_id(app)
 	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, app.pnl_bg)
 	if l.banner_w > 0 {
@@ -697,15 +694,15 @@ fn draw_library(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(l.side_x, l.fy, l.side_w, l.side_y - l.fy, app.pnl_bg)
 	}
 
-	draw_lib_header(mut app, l, pid)
-	draw_lib_tabs(mut app, l, pid)
-	items := lib_items(mut app)
-	draw_lib_search(mut app, l, items.len)
-	draw_lib_chips(mut app, l)
-	draw_lib_grid(mut app, l, pid, items)
+	draw_library_header(mut app, l, pid)
+	draw_library_tabs(mut app, l, pid)
+	items := library_items(mut app)
+	draw_library_search(mut app, l, items.len)
+	draw_library_chips(mut app, l)
+	draw_library_grid(mut app, l, pid, items)
 }
 
-fn draw_lib_header(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
+fn draw_library_header(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
 	rtl := app.lang.is_rtl()
 	y := l.head_y
@@ -727,7 +724,7 @@ fn draw_lib_header(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 		size: if l.compact { 22 } else { 28 }
 		family: app.fonts.display
 	})
-	sub := tr(app, 'lib.subtitle')
+	sub := tr(app, 'library.subtitle')
 	max_px := if rtl {
 		x - tx - 12
 	} else if l.banner_w > 0 {
@@ -735,16 +732,16 @@ fn draw_lib_header(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 	} else {
 		l.fw - (tx - l.fx) - 20
 	}
-	app.gg.draw_text(tx, y + (if l.compact { 30 } else { 46 }), utf8_truncate(sub, onb_fit(max_px, 13)), gg.TextCfg{
+	app.gg.draw_text(tx, y + (if l.compact { 30 } else { 46 }), utf8_truncate(sub, text_fit_chars(max_px, 13)), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 13
 	})
 	if l.banner_w > 0 {
-		draw_lib_banner(mut app, l.banner_x, y, l.banner_w, l.head_h, pid)
+		draw_library_banner(mut app, l.banner_x, y, l.banner_w, l.head_h, pid)
 	}
 }
 
-// draw_lib_banner composes the header illustration as a floor-to-ceiling
+// draw_library_banner composes the header illustration as a floor-to-ceiling
 // reading room, layered back to front: dark wood back wall with a crown band,
 // plank floor (same rhythm as the Office room), one continuous wall of tall
 // shelves (butted, alternating book materials) broken only by a reading nook
@@ -752,7 +749,7 @@ fn draw_lib_header(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 // builder, a side table with a globe — then a ladder, plants of two sizes and
 // book piles on the floor. Deterministic and static; environmental only —
 // nothing here encodes catalog counts or runtime activity.
-fn draw_lib_banner(mut app GuiApp, x int, y int, w int, h int, pid pixelart.PaletteId) {
+fn draw_library_banner(mut app GuiApp, x int, y int, w int, h int, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
 	ink := app.appearance_dark
 	// ── surfaces: back wall, crown, floor planks ─────────────────────────
@@ -823,7 +820,7 @@ fn draw_lib_banner(mut app GuiApp, x int, y int, w int, h int, pid pixelart.Pale
 		name: 'env-lamp-pendant'
 		rows: lamp.rows[0..4]
 	}
-	s := onb_art_scale(shelf_a.width(), shelf_a.height(), w, h - floor_h - crown_h)
+	s := onboarding_art_scale(shelf_a.width(), shelf_a.height(), w, h - floor_h - crown_h)
 	sw := shelf_a.width() * s
 	shelf_top := base - shelf_a.height() * s
 
@@ -914,7 +911,7 @@ fn draw_lib_banner(mut app GuiApp, x int, y int, w int, h int, pid pixelart.Pale
 	}
 }
 
-fn draw_lib_tabs(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
+fn draw_library_tabs(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
 	labels := [tr(app, 'panel.skills'), tr(app, 'panel.agents'), tr(app, 'panel.products'),
 		tr(app, 'panel.mcp')]
@@ -930,9 +927,9 @@ fn draw_lib_tabs(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 	// one hairline under the whole tab row; the active tab carries a sage bar
 	app.gg.draw_rect_filled(l.fx + 12, l.tabs_y + l.tabs_h - 1, l.fw - 24, 1, tint(pc(app, `W`), 70))
 	for i, lb in labels {
-		tx, ty, tw, th := lib_tab_rect(l, i)
+		tx, ty, tw, th := library_tab_rect(l, i)
 		active := i == l.tab
-		hover := app.lib_hover_ui == lib_ui_tab0 + i
+		hover := app.library_hover_ui == library_ui_tab0 + i
 		if hover && !active {
 			app.gg.draw_rect_filled(tx, ty, tw, th - 2, tint(pc(app, `m`), 60))
 		}
@@ -940,7 +937,7 @@ fn draw_lib_tabs(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 		ms := 1
 		my := ty + (th - m.height() * ms) / 2 - 1
 		sc.draw(m, pid, tx + 8, my, ms)
-		lib_text(mut app, tx + 8 + m.width() * ms + 8, ty + 7, utf8_truncate(lb, onb_fit(tw - 40, 14)), 14, if active {
+		library_text(mut app, tx + 8 + m.width() * ms + 8, ty + 7, utf8_truncate(lb, text_fit_chars(tw - 40, 14)), 14, if active {
 			app.pnl_text
 		} else {
 			app.pnl_text_mut
@@ -951,9 +948,9 @@ fn draw_lib_tabs(mut app GuiApp, l LibLayout, pid pixelart.PaletteId) {
 	}
 }
 
-fn draw_lib_search(mut app GuiApp, l LibLayout, count int) {
-	sx, sy, sw, sh := lib_search_rect(l)
-	focus := app.lib_hover_ui == lib_ui_search
+fn draw_library_search(mut app GuiApp, l LibraryLayout, count int) {
+	sx, sy, sw, sh := library_search_rect(l)
+	focus := app.library_hover_ui == library_ui_search
 	app.gg.draw_rounded_rect_filled(sx, sy, sw, sh, 6, pc(app, `P`))
 	app.gg.draw_rounded_rect_empty(sx, sy, sw, sh, 6, if focus {
 		app.pnl_success
@@ -974,7 +971,7 @@ fn draw_lib_search(mut app GuiApp, l LibLayout, count int) {
 		else { 'Search MCP providers, e.g. "github", "slack"…' }
 	}
 	shown := if q == '' { hint } else { q }
-	lib_text(mut app, sx + 30, sy + 8, utf8_truncate(shown, onb_fit(sw - 44, 13)), 13, if q == '' {
+	library_text(mut app, sx + 30, sy + 8, utf8_truncate(shown, text_fit_chars(sw - 44, 13)), 13, if q == '' {
 		app.pnl_text_mut
 	} else {
 		app.pnl_text
@@ -985,7 +982,7 @@ fn draw_lib_search(mut app GuiApp, l LibLayout, count int) {
 	}
 	// honest result count on the right instead of a Filters/Sort control we
 	// do not have
-	total := lib_total(mut app)
+	total := library_total(mut app)
 	label := if count == total { '${total}' } else { '${count} of ${total}' }
 	kind := match l.tab {
 		0 { 'skills' }
@@ -993,15 +990,15 @@ fn draw_lib_search(mut app GuiApp, l LibLayout, count int) {
 		2 { 'items' }
 		else { 'providers' }
 	}
-	lib_text(mut app, sx + sw + 12, sy + 9, '${label} ${kind}', 12, app.pnl_text_mut, false)
+	library_text(mut app, sx + sw + 12, sy + 9, '${label} ${kind}', 12, app.pnl_text_mut, false)
 }
 
-// lib_total is the unfiltered catalog size for the active tab.
-fn lib_total(mut app GuiApp) int {
+// library_total is the unfiltered catalog size for the active tab.
+fn library_total(mut app GuiApp) int {
 	if app.desktop == unsafe { nil } {
 		return 0
 	}
-	return match lib_tab_for_panel(app.selected_panel) {
+	return match library_tab_for_panel(app.selected_panel) {
 		0 { app.desktop.engine_skills_stats().total }
 		1 { agents_active_total(mut app) }
 		2 { app.desktop.engine_products_catalog().len + app.desktop.engine_packs_catalog().len }
@@ -1009,42 +1006,42 @@ fn lib_total(mut app GuiApp) int {
 	}
 }
 
-fn draw_lib_chips(mut app GuiApp, l LibLayout) {
-	labels := lib_chips(mut app)
+fn draw_library_chips(mut app GuiApp, l LibraryLayout) {
+	labels := library_chips(mut app)
 	for i, lb in labels {
-		cx, cy, cw, ch := lib_chip_rect(l, labels, i)
+		cx, cy, cw, ch := library_chip_rect(l, labels, i)
 		if cw == 0 {
 			continue
 		}
-		lib_pill(mut app, cx, cy, cw, ch, lb, lib_chip_active(app, lb), app.lib_hover_ui == lib_ui_chip0 + i)
+		library_pill(mut app, cx, cy, cw, ch, lb, library_chip_active(app, lb), app.library_hover_ui == library_ui_chip0 + i)
 	}
 }
 
-fn draw_lib_grid(mut app GuiApp, l LibLayout, pid pixelart.PaletteId, items []LibItem) {
+fn draw_library_grid(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId, items []LibraryItem) {
 	mut sc := app.pixel_cache
 	if items.len == 0 {
 		msg := if app.desktop == unsafe { nil } {
 			'Catalog unavailable — Engine not booted.'
-		} else if app.skills_query != '' || app.skills_domain != '' || app.lib_filter != '' {
+		} else if app.skills_query != '' || app.skills_domain != '' || app.library_filter != '' {
 			'Nothing matches — clear the search or filter (Esc).'
 		} else {
 			'This catalog is empty in the resolved toolkit root.'
 		}
-		lib_text(mut app, l.fx + 16, l.grid_y + 12, msg, 13, app.pnl_text_mut, false)
+		library_text(mut app, l.fx + 16, l.grid_y + 12, msg, 13, app.pnl_text_mut, false)
 		return
 	}
-	start, end := lib_visible_range(mut app, l, items.len)
-	mut sel := lib_selected(app)
+	start, end := library_visible_range(mut app, l, items.len)
+	mut sel := library_selected(app)
 	if sel >= items.len || sel < 0 {
 		sel = 0
-		lib_set_selected(mut app, 0)
+		library_set_selected(mut app, 0)
 	}
 	for idx in start .. end {
 		item := items[idx]
-		cx, cy, cw, ch := lib_card_rect(l, idx - start)
+		cx, cy, cw, ch := library_card_rect(l, idx - start)
 		is_sel := idx == sel
-		is_hover := idx == app.lib_hover
-		lib_sheet(mut app, cx, cy, cw, ch)
+		is_hover := idx == app.library_hover
+		draw_library_card(mut app, cx, cy, cw, ch)
 		if is_sel {
 			app.gg.draw_rounded_rect_filled(cx, cy, cw, ch, 4, tint(app.pnl_success, 28))
 			app.gg.draw_rounded_rect_empty(cx, cy, cw, ch, 4, app.pnl_success)
@@ -1060,48 +1057,48 @@ fn draw_lib_grid(mut app GuiApp, l LibLayout, pid pixelart.PaletteId, items []Li
 		sc.draw(item.mark, pid, mx + (48 - item.mark.width() * ms) / 2, my + (48 - item.mark.height() * ms) / 2, ms)
 		tx := cx + 70
 		tw := cw - 70 - 10
-		lib_text(mut app, tx, cy + 9, lib_clip(item.name, onb_fit(tw, 14)), 14, app.pnl_text, true)
+		library_text(mut app, tx, cy + 9, truncate_with_ellipsis(item.name, text_fit_chars(tw, 14)), 14, app.pnl_text, true)
 		desc_lines := if ch >= 120 { 3 } else { 2 }
-		for li, ln in lib_wrap(item.desc, onb_fit(tw, 12), desc_lines) {
-			lib_text(mut app, tx, cy + 28 + li * 14, ln, 12, app.pnl_text_mut, false)
+		for li, ln in wrap_text_lines(item.desc, text_fit_chars(tw, 12), desc_lines) {
+			library_text(mut app, tx, cy + 28 + li * 14, ln, 12, app.pnl_text_mut, false)
 		}
 		// tags row; short cards fold the configuration fact into an accent tag
 		short := ch < 100
 		mut tgx := cx + 10
 		tgy := if short { cy + ch - 26 } else { cy + ch - 40 }
 		if short && item.on {
-			tgx += lib_tag(mut app, tgx, tgy, item.foot, true) + 5
+			tgx += library_tag(mut app, tgx, tgy, item.foot, true) + 5
 		}
 		for t in item.tags {
 			tw2 := t.len * 6 + 14
 			if tgx + tw2 > cx + cw - 8 {
 				break
 			}
-			tgx += lib_tag(mut app, tgx, tgy, t, false) + 5
+			tgx += library_tag(mut app, tgx, tgy, t, false) + 5
 		}
 		if !short {
 			// footer facts: configuration truth left, catalog truth right
 			fy2 := cy + ch - 16
-			lib_text(mut app, cx + 10, fy2, item.foot, 11, if item.on {
+			library_text(mut app, cx + 10, fy2, item.foot, 11, if item.on {
 				app.pnl_success
 			} else {
 				app.pnl_text_mut
 			}, item.on)
 			if item.foot2 != '' && cw > 180 {
 				fw2 := item.foot2.len * 6
-				lib_text(mut app, cx + cw - 10 - fw2, fy2, item.foot2, 11, app.pnl_text_mut, false)
+				library_text(mut app, cx + cw - 10 - fw2, fy2, item.foot2, 11, app.pnl_text_mut, false)
 			}
 		}
 	}
 	// scroll indicator + honest count under the grid
 	total_rows := (items.len + l.cols - 1) / l.cols
-	row := lib_scroll_row(app)
+	row := library_scroll_row(app)
 	foot := if items.len > end - start {
 		'${start + 1}–${end} of ${items.len} · wheel or ↑↓ to scroll · Enter toggles the selected card'
 	} else {
 		'${items.len} shown · Enter toggles the selected card'
 	}
-	lib_text(mut app, l.fx + 14, l.fy + l.fh - 16, utf8_truncate(foot, onb_fit(l.fw - 40, 11)), 11, app.pnl_text_mut, false)
+	library_text(mut app, l.fx + 14, l.fy + l.fh - 16, utf8_truncate(foot, text_fit_chars(l.fw - 40, 11)), 11, app.pnl_text_mut, false)
 	if total_rows > l.rows && l.rows > 0 {
 		track_x := l.fx + l.fw - 8
 		bar_h := if l.grid_h * l.rows / total_rows < 16 {
@@ -1117,14 +1114,14 @@ fn draw_lib_grid(mut app GuiApp, l LibLayout, pid pixelart.PaletteId, items []Li
 
 // ── detail column (replaces the Office inspector for Library panels) ─────────
 
-struct LibFact {
+struct LibraryFact {
 	label string
 	value string
 	ok    bool // draws a check instead of a dash when true
 	mono  bool
 }
 
-struct LibDetail {
+struct LibraryDetail {
 	title     string
 	sub       string
 	desc      string
@@ -1135,8 +1132,8 @@ struct LibDetail {
 	quiet     bool // primary is a non-mutating helper (copy), drawn as a plain button
 	second    string
 	third     string
-	compat    []LibFact
-	prov      []LibFact
+	compatibility    []LibraryFact
+	prov      []LibraryFact
 	inc_title string
 	included  []string
 	inc_mono  bool // included lines are code (masked template), not a checklist
@@ -1144,9 +1141,9 @@ struct LibDetail {
 	quote_by  string
 }
 
-// lib_targets_fact summarizes the targets registry: enabled targets are the
+// library_targets_fact summarizes the targets registry: enabled targets are the
 // real destinations a capability deploys to.
-fn lib_targets_fact(mut app GuiApp) (string, bool) {
+fn library_targets_fact(mut app GuiApp) (string, bool) {
 	tg := app.desktop.engine_targets()
 	en := tg.filter(it.enabled).map(it.id)
 	if en.len == 0 {
@@ -1159,37 +1156,37 @@ fn lib_targets_fact(mut app GuiApp) (string, bool) {
 	return s, true
 }
 
-fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
+fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 	if app.desktop == unsafe { nil } || items.len == 0 {
 		return none
 	}
-	sel := lib_selected(app)
+	sel := library_selected(app)
 	if sel < 0 || sel >= items.len {
 		return none
 	}
 	item := items[sel]
-	tfact, tok := lib_targets_fact(mut app)
+	tfact, tok := library_targets_fact(mut app)
 	found := app.desktop.engine_tool_discovery_catalog_cached()
 	nfound := found.filter(it.found).len
-	match lib_tab_for_panel(app.selected_panel) {
+	match library_tab_for_panel(app.selected_panel) {
 		0 {
 			s := app.desktop.engine_skill_detail(item.id) or { return none }
 			installed := s.id in app.desktop.engine_skills_installed()
 			mut prov := [
-				LibFact{'Source', 'skills/${s.id}/SKILL.md', false, true},
-				LibFact{'Stability', if s.stability != '' { s.stability } else { 'unknown' }, s.stability == 'stable', false},
+				LibraryFact{'Source', 'skills/${s.id}/SKILL.md', false, true},
+				LibraryFact{'Stability', if s.stability != '' { s.stability } else { 'unknown' }, s.stability == 'stable', false},
 			]
 			if r := app.desktop.engine_skill_receipt(s.id) {
-				prov << LibFact{'Receipt', '${r.installed_at} · v${r.version}', true, true}
-				prov << LibFact{'Digest', utf8_truncate(r.digest, 16), false, true}
+				prov << LibraryFact{'Receipt', '${r.installed_at} · v${r.version}', true, true}
+				prov << LibraryFact{'Digest', utf8_truncate(r.digest, 16), false, true}
 			} else {
-				prov << LibFact{'Receipt', 'none — not deployed yet', false, false}
+				prov << LibraryFact{'Receipt', 'none — not deployed yet', false, false}
 			}
 			mut inc := ['SKILL.md — definition and instructions']
 			if s.triggers != '' {
 				inc << 'Triggers: ${utf8_truncate(s.triggers, 40)}'
 			}
-			return LibDetail{
+			return LibraryDetail{
 				title: item.name
 				sub: s.id
 				desc: s.description
@@ -1199,10 +1196,10 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 				on: installed
 				second: 'Copy id'
 				third: ''
-				compat: [
-					LibFact{'Targets', tfact, tok, false},
-					LibFact{'Tools found', '${nfound} of ${found.len} on this computer', nfound > 0, false},
-					LibFact{'Selected', if installed { 'yes — in this workspace' } else { 'no' }, installed, false},
+				compatibility: [
+					LibraryFact{'Targets', tfact, tok, false},
+					LibraryFact{'Tools found', '${nfound} of ${found.len} on this computer', nfound > 0, false},
+					LibraryFact{'Selected', if installed { 'yes — in this workspace' } else { 'no' }, installed, false},
 				]
 				prov: prov
 				inc_title: "What's included"
@@ -1220,19 +1217,19 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 				}
 			}
 			mut prov := [
-				LibFact{'Source', if ag.source_file != '' {
+				LibraryFact{'Source', if ag.source_file != '' {
 					ag.source_file
 				} else {
 					'agents/${ag.id}/AGENT.md'
 				}, false, true},
 			]
 			if ag.provenance != '' {
-				prov << LibFact{'Provenance', utf8_truncate(ag.provenance, 28), false, true}
+				prov << LibraryFact{'Provenance', utf8_truncate(ag.provenance, 28), false, true}
 			}
 			if r := app.desktop.engine_agent_receipt(ag.id) {
-				prov << LibFact{'Receipt', r.installed_at, true, true}
+				prov << LibraryFact{'Receipt', r.installed_at, true, true}
 			} else {
-				prov << LibFact{'Receipt', 'none — not deployed yet', false, false}
+				prov << LibraryFact{'Receipt', 'none — not deployed yet', false, false}
 			}
 			mut inc := ['AGENT.md — persona contract']
 			for d in ag.delegates_to {
@@ -1241,7 +1238,7 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 			for c in ag.collaborates_with {
 				inc << 'Collaborates with ${c}'
 			}
-			return LibDetail{
+			return LibraryDetail{
 				title: ag.id
 				sub: 'agents/${ag.id}'
 				desc: if ag.description != '' { ag.description } else { ag.role }
@@ -1250,14 +1247,14 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 				primary: 'Copy id'
 				quiet: true
 				second: ''
-				compat: [
-					LibFact{'Targets', tfact, tok, false},
-					LibFact{'Holistic owner', if ag.holistic_owner != '' {
+				compatibility: [
+					LibraryFact{'Targets', tfact, tok, false},
+					LibraryFact{'Holistic owner', if ag.holistic_owner != '' {
 						ag.holistic_owner
 					} else {
 						'—'
 					}, ag.holistic_owner != '', false},
-					LibFact{'Archived', if ag.archived { 'yes' } else { 'no' }, !ag.archived, false},
+					LibraryFact{'Archived', if ag.archived { 'yes' } else { 'no' }, !ag.archived, false},
 				]
 				prov: prov
 				inc_title: 'Relationships'
@@ -1275,7 +1272,7 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 						break
 					}
 				}
-				return LibDetail{
+				return LibraryDetail{
 					title: item.name
 					sub: 'packs/${pk.id}'
 					desc: item.desc
@@ -1284,13 +1281,13 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 					primary: if pk.enabled { 'Disable' } else { 'Enable' }
 					on: pk.enabled
 					second: 'Copy id'
-					compat: [
-						LibFact{'Targets', tfact, tok, false},
-						LibFact{'Docs-only', if pk.docs_only { 'yes (ADR-006)' } else { 'no' }, true, false},
-						LibFact{'Enabled', if pk.enabled { 'yes' } else { 'no' }, pk.enabled, false},
+					compatibility: [
+						LibraryFact{'Targets', tfact, tok, false},
+						LibraryFact{'Docs-only', if pk.docs_only { 'yes (ADR-006)' } else { 'no' }, true, false},
+						LibraryFact{'Enabled', if pk.enabled { 'yes' } else { 'no' }, pk.enabled, false},
 					]
 					prov: [
-						LibFact{'Source', if pk.provenance != '' {
+						LibraryFact{'Source', if pk.provenance != '' {
 							pk.provenance
 						} else {
 							'packs/${pk.id}/config.yaml'
@@ -1309,7 +1306,7 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 					break
 				}
 			}
-			return LibDetail{
+			return LibraryDetail{
 				title: item.name
 				sub: 'products/${pr.id}'
 				desc: pr.description.trim("'")
@@ -1317,13 +1314,13 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 				mark: item.mark
 				primary: 'Install'
 				second: 'Copy id'
-				compat: [
-					LibFact{'Targets', tfact, tok, false},
-					LibFact{'Tools found', '${nfound} of ${found.len} on this computer', nfound > 0, false},
+				compatibility: [
+					LibraryFact{'Targets', tfact, tok, false},
+					LibraryFact{'Tools found', '${nfound} of ${found.len} on this computer', nfound > 0, false},
 				]
 				prov: [
-					LibFact{'Source', 'distributions/products.yaml', false, true},
-					LibFact{'Composition', 'not exposed by Engine yet', false, false},
+					LibraryFact{'Source', 'distributions/products.yaml', false, true},
+					LibraryFact{'Composition', 'not exposed by Engine yet', false, false},
 				]
 				inc_title: ''
 				included: []
@@ -1342,12 +1339,12 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 			if app.mcp_drawer != mp.id {
 				// first selection (or a stale drawer): load the masked
 				// template, receipt and probe once, not per frame
-				lib_select_mcp(mut app, mp.id)
+				library_select_mcp(mut app, mp.id)
 			}
 			probe := if mcp_probe_fresh(app, mp.id) {
-				LibFact{'Probe', utf8_truncate(app.mcp_probe_detail, 30), app.mcp_probe_ok, false}
+				LibraryFact{'Probe', utf8_truncate(app.mcp_probe_detail, 30), app.mcp_probe_ok, false}
 			} else {
-				LibFact{'Probe', 'not run — press Probe', false, false}
+				LibraryFact{'Probe', 'not run — press Probe', false, false}
 			}
 			mut inc := []string{}
 			if app.mcp_drawer == mp.id {
@@ -1364,7 +1361,7 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 			} else {
 				'none — enable to create one'
 			}
-			return LibDetail{
+			return LibraryDetail{
 				title: item.name
 				sub: 'mcp/${mp.id}'
 				desc: item.desc
@@ -1374,25 +1371,25 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 				on: mp.enabled
 				second: 'Probe'
 				third: 'Template'
-				compat: [
-					LibFact{'Targets', tfact, tok, false},
-					LibFact{'Docker', if mp.requires_docker { 'required' } else { 'not required' }, !mp.requires_docker, false},
-					LibFact{'Health', if mp.health != '' { mp.health } else { 'unknown' }, mp.health == 'healthy', false},
+				compatibility: [
+					LibraryFact{'Targets', tfact, tok, false},
+					LibraryFact{'Docker', if mp.requires_docker { 'required' } else { 'not required' }, !mp.requires_docker, false},
+					LibraryFact{'Health', if mp.health != '' { mp.health } else { 'unknown' }, mp.health == 'healthy', false},
 					probe,
 				]
 				prov: [
-					LibFact{'Template', if mp.template_path != '' {
+					LibraryFact{'Template', if mp.template_path != '' {
 						mp.template_path
 					} else {
 						'defaults (no file)'
 					}, mp.template_path != '', true},
-					LibFact{'Registry', if mp.registry_path != '' {
+					LibraryFact{'Registry', if mp.registry_path != '' {
 						mp.registry_path
 					} else {
 						'mcp/registry'
 					}, false, true},
-					LibFact{'Version', if mp.version != '' { mp.version } else { 'unknown' }, mp.version != '', false},
-					LibFact{'Receipt', receipt, false, true},
+					LibraryFact{'Version', if mp.version != '' { mp.version } else { 'unknown' }, mp.version != '', false},
+					LibraryFact{'Receipt', receipt, false, true},
 				]
 				inc_title: 'Template (secrets masked)'
 				included: inc
@@ -1410,7 +1407,7 @@ fn lib_detail(mut app GuiApp, items []LibItem) ?LibDetail {
 // draw_library_detail is the right column while a Library panel is active.
 fn draw_library_detail(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
-	l := lib_layout(mut app, w, h)
+	l := library_layout(mut app, w, h)
 	pid := office_palette_id(app)
 	mut sc := app.pixel_cache
 	x := l.side_x
@@ -1420,9 +1417,9 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(x, y, iw, ih, app.pnl_bg)
 	app.gg.draw_rect_filled(x + 8, y + 6, iw - 16, ih - 12, pc(app, `P`))
 	app.gg.draw_rect_empty(x + 8, y + 6, iw - 16, ih - 12, tint(pc(app, `W`), 60))
-	items := lib_items(mut app)
-	d := lib_detail(mut app, items) or {
-		lib_text(mut app, x + 20, y + 22, 'Select a card to see details', 14, app.pnl_text_mut, false)
+	items := library_items(mut app)
+	d := library_detail(mut app, items) or {
+		library_text(mut app, x + 20, y + 22, 'Select a card to see details', 14, app.pnl_text_mut, false)
 		return
 	}
 	px := x + 16
@@ -1433,8 +1430,8 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 	sc.draw(d.mark, pid, px + 2 + (64 - d.mark.width() * ms) / 2, y + 18 + (64 - d.mark.height() * ms) / 2, ms)
 	tx := px + 80
 	tw := inner - 80
-	lib_text(mut app, tx, y + 18, lib_clip(d.title, onb_fit(tw, 17)), 17, app.pnl_text, true)
-	app.gg.draw_text(tx, y + 40, lib_clip(d.sub, tw / 6), gg.TextCfg{
+	library_text(mut app, tx, y + 18, truncate_with_ellipsis(d.title, text_fit_chars(tw, 17)), 17, app.pnl_text, true)
+	app.gg.draw_text(tx, y + 40, truncate_with_ellipsis(d.sub, tw / 6), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 11
 		mono: true
@@ -1446,22 +1443,22 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 		if tgx + tw2 > px + inner {
 			break
 		}
-		tgx += lib_tag(mut app, tgx, y + 58, t, false) + 5
+		tgx += library_tag(mut app, tgx, y + 58, t, false) + 5
 	}
 	// description
 	mut dy := y + 92
-	for ln in lib_wrap(d.desc, onb_fit(inner, 12), 5) {
-		lib_text(mut app, px, dy, ln, 12, app.pnl_text, false)
+	for ln in wrap_text_lines(d.desc, text_fit_chars(inner, 12), 5) {
+		library_text(mut app, px, dy, ln, 12, app.pnl_text, false)
 		dy += 14
 	}
 	// actions
-	ay := lib_detail_actions_y(l)
+	ay := library_detail_actions_y(l)
 	if ay < dy + 6 {
 		// long description: still keep buttons visible below it
 		dy = ay - 6
 	}
-	bx, by, bw, bh := lib_btn_rect(l, 0)
-	hov0 := app.lib_hover_ui == lib_ui_primary
+	bx, by, bw, bh := library_btn_rect(l, 0)
+	hov0 := app.library_hover_ui == library_ui_primary
 	if d.on {
 		app.gg.draw_rounded_rect_filled(bx, by, bw, bh, 6, if hov0 {
 			tint(app.pnl_danger, 40)
@@ -1469,7 +1466,7 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 			pc(app, `P`)
 		})
 		app.gg.draw_rounded_rect_empty(bx, by, bw, bh, 6, app.pnl_danger)
-		lib_text(mut app, bx + (bw - d.primary.len * 8) / 2, by + 9, d.primary, 14, app.pnl_danger, true)
+		library_text(mut app, bx + (bw - d.primary.len * 8) / 2, by + 9, d.primary, 14, app.pnl_danger, true)
 	} else if d.quiet {
 		app.gg.draw_rounded_rect_filled(bx, by, bw, bh, 6, if hov0 {
 			tint(pc(app, `m`), 140)
@@ -1477,7 +1474,7 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 			tint(pc(app, `m`), 80)
 		})
 		app.gg.draw_rounded_rect_empty(bx, by, bw, bh, 6, tint(pc(app, `W`), 90))
-		lib_text(mut app, bx + (bw - d.primary.len * 8) / 2, by + 9, d.primary, 14, app.pnl_text, true)
+		library_text(mut app, bx + (bw - d.primary.len * 8) / 2, by + 9, d.primary, 14, app.pnl_text, true)
 	} else {
 		app.gg.draw_rect_filled(bx + 2, by + 3, bw, bh, tint(col_ink, 30))
 		app.gg.draw_rounded_rect_filled(bx, by, bw, bh, 6, if hov0 {
@@ -1485,30 +1482,30 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 		} else {
 			tint(app.pnl_success, 225)
 		})
-		lib_text(mut app, bx + (bw - d.primary.len * 8) / 2, by + 9, d.primary, 14, app.pnl_bg, true)
+		library_text(mut app, bx + (bw - d.primary.len * 8) / 2, by + 9, d.primary, 14, app.pnl_bg, true)
 	}
 	for i, lb in [d.second, d.third] {
 		if lb == '' {
 			continue
 		}
-		sx, sy, sw, sh := lib_btn_rect(l, i + 1)
-		hov := app.lib_hover_ui == lib_ui_second + i
+		sx, sy, sw, sh := library_btn_rect(l, i + 1)
+		hov := app.library_hover_ui == library_ui_second + i
 		app.gg.draw_rounded_rect_filled(sx, sy, sw, sh, 6, if hov {
 			tint(pc(app, `m`), 140)
 		} else {
 			tint(pc(app, `m`), 80)
 		})
 		app.gg.draw_rounded_rect_empty(sx, sy, sw, sh, 6, tint(pc(app, `W`), 90))
-		lib_text(mut app, sx + (sw - lb.len * 7) / 2, sy + 10, utf8_truncate(lb, onb_fit(sw - 8, 12)), 12, app.pnl_text, false)
+		library_text(mut app, sx + (sw - lb.len * 7) / 2, sy + 10, utf8_truncate(lb, text_fit_chars(sw - 8, 12)), 12, app.pnl_text, false)
 	}
 	// fact sections
 	mut fy := ay + 34 + 14
 	bottom := y + ih - 12
-	fy = draw_lib_facts(mut app, px, fy, inner, 'Compatibility', d.compat, bottom)
-	fy = draw_lib_facts(mut app, px, fy, inner, 'Provenance', d.prov, bottom)
+	fy = draw_library_facts(mut app, px, fy, inner, 'Compatibility', d.compatibility, bottom)
+	fy = draw_library_facts(mut app, px, fy, inner, 'Provenance', d.prov, bottom)
 	// what's included checklist
 	if d.included.len > 0 && fy + 40 < bottom {
-		lib_text(mut app, px, fy, d.inc_title, 12, app.pnl_text, true)
+		library_text(mut app, px, fy, d.inc_title, 12, app.pnl_text, true)
 		fy += 18
 		for item in d.included {
 			if fy + 16 > bottom - 6 {
@@ -1522,8 +1519,8 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 				})
 			} else {
 				app.gg.draw_rect_filled(px, fy + 1, 12, 12, tint(app.pnl_success, 60))
-				lib_check(mut app, px + 2, fy + 1, app.pnl_success)
-				lib_text(mut app, px + 18, fy, utf8_truncate(item, onb_fit(inner - 18, 11)), 11, app.pnl_text, false)
+				draw_check_glyph(mut app, px + 2, fy + 1, app.pnl_success)
+				library_text(mut app, px + 18, fy, utf8_truncate(item, text_fit_chars(inner - 18, 11)), 11, app.pnl_text, false)
 			}
 			fy += 15
 		}
@@ -1534,37 +1531,37 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 	if fy + qh + 6 < bottom && d.quote != '' {
 		qy := fy + 4
 		app.gg.draw_rounded_rect_filled(px, qy, inner, qh, 6, tint(pc(app, `m`), 60))
-		app.gg.draw_text(px + 12, qy + 10, lib_clip(d.quote, onb_fit(inner - 52, 12)), gg.TextCfg{
+		app.gg.draw_text(px + 12, qy + 10, truncate_with_ellipsis(d.quote, text_fit_chars(inner - 52, 12)), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			family: app.fonts.display
 		})
-		lib_text(mut app, px + 12, qy + 30, d.quote_by, 10, app.pnl_text_mut, false)
+		library_text(mut app, px + 12, qy + 30, d.quote_by, 10, app.pnl_text_mut, false)
 		nest := pixelart.environment_for(.nest)
 		sc.draw(nest, pid, px + inner - nest.width() * 2 - 10, qy + qh - nest.height() * 2 - 6, 2)
 	}
 }
 
-// draw_lib_facts draws a titled label/value list and returns the next y.
-fn draw_lib_facts(mut app GuiApp, x int, y0 int, w int, title string, facts []LibFact, bottom int) int {
+// draw_library_facts draws a titled label/value list and returns the next y.
+fn draw_library_facts(mut app GuiApp, x int, y0 int, w int, title string, facts []LibraryFact, bottom int) int {
 	mut y := y0
 	if facts.len == 0 || y + 20 > bottom {
 		return y
 	}
-	lib_text(mut app, x, y, title, 12, app.pnl_text, true)
+	library_text(mut app, x, y, title, 12, app.pnl_text, true)
 	y += 17
 	lw := if w >= 300 { 92 } else { 84 }
 	for f in facts {
 		if y + 16 > bottom - 4 {
 			break
 		}
-		lib_text(mut app, x, y, f.label, 11, app.pnl_text_mut, false)
+		library_text(mut app, x, y, f.label, 11, app.pnl_text_mut, false)
 		if f.ok {
-			lib_check(mut app, x + lw - 16, y + 1, app.pnl_success)
+			draw_check_glyph(mut app, x + lw - 16, y + 1, app.pnl_success)
 		} else {
 			app.gg.draw_rect_filled(x + lw - 14, y + 7, 6, 1, app.pnl_text_mut)
 		}
-		per := if f.mono { (w - lw) / 6 } else { onb_fit(w - lw, 11) }
+		per := if f.mono { (w - lw) / 6 } else { text_fit_chars(w - lw, 11) }
 		app.gg.draw_text(x + lw, y, utf8_truncate(f.value, per), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
@@ -1577,18 +1574,18 @@ fn draw_lib_facts(mut app GuiApp, x int, y0 int, w int, title string, facts []Li
 
 // ── actions (real Engine calls only) ────────────────────────────────────────
 
-// lib_primary runs the primary action for the selected card of the active tab.
-fn lib_primary(mut app GuiApp) {
+// library_primary runs the primary action for the selected card of the active tab.
+fn library_primary(mut app GuiApp) {
 	if app.desktop == unsafe { nil } {
 		return
 	}
-	items := lib_items(mut app)
-	sel := lib_selected(app)
+	items := library_items(mut app)
+	sel := library_selected(app)
 	if sel < 0 || sel >= items.len {
 		return
 	}
 	item := items[sel]
-	match lib_tab_for_panel(app.selected_panel) {
+	match library_tab_for_panel(app.selected_panel) {
 		0 {
 			rev := app.desktop.engine_toggle_skill(item.id) or {
 				app.inspector_msg = 'Skill ${item.id} error: ${err}'
@@ -1602,7 +1599,7 @@ fn lib_primary(mut app GuiApp) {
 			app.api_calls = app.desktop.engine_api_calls()
 			action := if installed_now { 'installed' } else { 'removed' }
 			app.inspector_msg = 'Skill ${item.id} ${action} rev=${rev} • Engine TX ✓'
-			lib_invalidate(mut app)
+			library_invalidate(mut app)
 		}
 		1 {
 			copy_to_clipboard(mut app, item.id)
@@ -1617,7 +1614,7 @@ fn lib_primary(mut app GuiApp) {
 				app.api_calls = app.desktop.engine_api_calls()
 				verb := if item.on { 'disabled' } else { 'enabled' }
 				app.inspector_msg = 'Pack ${item.id} ${verb} rev=${rev} ✓'
-				lib_invalidate(mut app)
+				library_invalidate(mut app)
 				return
 			}
 			rev := app.desktop.onboarding_set_products_bulk([item.id]) or {
@@ -1642,25 +1639,25 @@ fn lib_primary(mut app GuiApp) {
 			}
 			app.api_calls = app.desktop.engine_api_calls()
 			app.inspector_msg = 'MCP ${item.id} toggled rev=${rev} • ${prov_json} • Engine TX'
-			lib_invalidate(mut app)
-			lib_select_mcp(mut app, item.id)
+			library_invalidate(mut app)
+			library_select_mcp(mut app, item.id)
 		}
 		else {}
 	}
 }
 
-// lib_secondary runs the second/third detail button (which = 0/1).
-fn lib_secondary(mut app GuiApp, which int) {
+// library_secondary runs the second/third detail button (which = 0/1).
+fn library_secondary(mut app GuiApp, which int) {
 	if app.desktop == unsafe { nil } {
 		return
 	}
-	items := lib_items(mut app)
-	sel := lib_selected(app)
+	items := library_items(mut app)
+	sel := library_selected(app)
 	if sel < 0 || sel >= items.len {
 		return
 	}
 	item := items[sel]
-	match lib_tab_for_panel(app.selected_panel) {
+	match library_tab_for_panel(app.selected_panel) {
 		3 {
 			if which == 0 {
 				mcp_run_probe(mut app, item.id, true)
@@ -1673,7 +1670,7 @@ fn lib_secondary(mut app GuiApp, which int) {
 					}
 				}
 				if app.mcp_drawer != item.id {
-					lib_select_mcp(mut app, item.id)
+					library_select_mcp(mut app, item.id)
 				}
 				mcp_open_template(mut app, item.id, tpath)
 			}
@@ -1686,9 +1683,9 @@ fn lib_secondary(mut app GuiApp, which int) {
 	}
 }
 
-// lib_select_mcp loads the masked template/receipt/probe cache for the
+// library_select_mcp loads the masked template/receipt/probe cache for the
 // selected provider so the detail pane can show them without per-frame IO.
-fn lib_select_mcp(mut app GuiApp, id string) {
+fn library_select_mcp(mut app GuiApp, id string) {
 	for p in app.desktop.engine_mcp_catalog() {
 		if p.id == id {
 			mcp_drawer_open(mut app, p.id, p.template_path, p.provenance)
@@ -1697,14 +1694,14 @@ fn lib_select_mcp(mut app GuiApp, id string) {
 	}
 }
 
-// lib_select selects card idx and loads tab-specific detail caches.
-fn lib_select(mut app GuiApp, idx int, items []LibItem) {
-	lib_set_selected(mut app, idx)
+// library_select selects card idx and loads tab-specific detail caches.
+fn library_select(mut app GuiApp, idx int, items []LibraryItem) {
+	library_set_selected(mut app, idx)
 	if idx < 0 || idx >= items.len || app.desktop == unsafe { nil } {
 		return
 	}
 	item := items[idx]
-	match lib_tab_for_panel(app.selected_panel) {
+	match library_tab_for_panel(app.selected_panel) {
 		0 {
 			if r := app.desktop.engine_skill_receipt(item.id) {
 				app.inspector_msg = 'Receipt: ${r.skill_id} ${r.installed_at} digest=${r.digest}'
@@ -1713,7 +1710,7 @@ fn lib_select(mut app GuiApp, idx int, items []LibItem) {
 			}
 		}
 		3 {
-			lib_select_mcp(mut app, item.id)
+			library_select_mcp(mut app, item.id)
 		}
 		else {
 			app.inspector_msg = 'Selected ${item.id}'
@@ -1721,16 +1718,16 @@ fn lib_select(mut app GuiApp, idx int, items []LibItem) {
 	}
 }
 
-// lib_switch_tab moves to another Library panel, resetting per-tab state.
-fn lib_switch_tab(mut app GuiApp, tab int) {
-	if tab < 0 || tab >= lib_tab_panels.len {
+// library_switch_tab moves to another Library panel, resetting per-tab state.
+fn library_switch_tab(mut app GuiApp, tab int) {
+	if tab < 0 || tab >= library_tab_panels.len {
 		return
 	}
-	app.lib_filter = ''
-	app.lib_scroll = 0
-	app.lib_sel = 0
-	app.lib_hover = -1
-	select_panel(mut app, lib_tab_panels[tab])
+	app.library_filter = ''
+	app.library_scroll = 0
+	app.library_sel = 0
+	app.library_hover = -1
+	select_panel(mut app, library_tab_panels[tab])
 }
 
 // ── interaction (same geometry as drawing) ──────────────────────────────────
@@ -1738,63 +1735,63 @@ fn lib_switch_tab(mut app GuiApp, tab int) {
 // library_click handles a click for panels 1/2/10/3. Returns true when the
 // click landed inside the Library surface (panel + detail column).
 fn library_click(mut app GuiApp, mx int, my int, w int, h int) bool {
-	l := lib_layout(mut app, w, h)
-	in_panel := onb_hit(mx, my, l.fx, l.fy, l.fw, l.fh)
-	in_side := onb_hit(mx, my, l.side_x, l.fy, l.side_w, l.fh)
+	l := library_layout(mut app, w, h)
+	in_panel := rect_contains(mx, my, l.fx, l.fy, l.fw, l.fh)
+	in_side := rect_contains(mx, my, l.side_x, l.fy, l.side_w, l.fh)
 	_ = l.side_y
 	if !in_panel && !in_side {
 		return false
 	}
-	for i in 0 .. lib_tab_panels.len {
-		tx, ty, tw, th := lib_tab_rect(l, i)
-		if onb_hit(mx, my, tx, ty, tw, th) {
+	for i in 0 .. library_tab_panels.len {
+		tx, ty, tw, th := library_tab_rect(l, i)
+		if rect_contains(mx, my, tx, ty, tw, th) {
 			if i != l.tab {
-				lib_switch_tab(mut app, i)
+				library_switch_tab(mut app, i)
 			}
 			return true
 		}
 	}
-	sx, sy, sw, sh := lib_search_rect(l)
-	if onb_hit(mx, my, sx, sy, sw, sh) {
+	sx, sy, sw, sh := library_search_rect(l)
+	if rect_contains(mx, my, sx, sy, sw, sh) {
 		app.palette_open = false
 		app.ghost_focused = false
 		app.inspector_msg = 'Type to search — Esc clears'
 		return true
 	}
-	labels := lib_chips(mut app)
+	labels := library_chips(mut app)
 	for i, lb in labels {
-		cx, cy, cw, ch := lib_chip_rect(l, labels, i)
-		if cw > 0 && onb_hit(mx, my, cx, cy, cw, ch) {
-			lib_set_chip(mut app, lb)
+		cx, cy, cw, ch := library_chip_rect(l, labels, i)
+		if cw > 0 && rect_contains(mx, my, cx, cy, cw, ch) {
+			library_set_chip(mut app, lb)
 			return true
 		}
 	}
-	items := lib_items(mut app)
+	items := library_items(mut app)
 	if in_panel {
-		start, end := lib_visible_range(mut app, l, items.len)
+		start, end := library_visible_range(mut app, l, items.len)
 		for idx in start .. end {
-			cx, cy, cw, ch := lib_card_rect(l, idx - start)
-			if onb_hit(mx, my, cx, cy, cw, ch) {
-				lib_select(mut app, idx, items)
+			cx, cy, cw, ch := library_card_rect(l, idx - start)
+			if rect_contains(mx, my, cx, cy, cw, ch) {
+				library_select(mut app, idx, items)
 				return true
 			}
 		}
 		return true
 	}
 	// detail column buttons
-	bx, by, bw, bh := lib_btn_rect(l, 0)
-	if onb_hit(mx, my, bx, by, bw, bh) {
-		lib_primary(mut app)
+	bx, by, bw, bh := library_btn_rect(l, 0)
+	if rect_contains(mx, my, bx, by, bw, bh) {
+		library_primary(mut app)
 		return true
 	}
-	d := lib_detail(mut app, items) or { return true }
+	d := library_detail(mut app, items) or { return true }
 	for i, lb in [d.second, d.third] {
 		if lb == '' {
 			continue
 		}
-		x2, y2, w2, h2 := lib_btn_rect(l, i + 1)
-		if onb_hit(mx, my, x2, y2, w2, h2) {
-			lib_secondary(mut app, i)
+		x2, y2, w2, h2 := library_btn_rect(l, i + 1)
+		if rect_contains(mx, my, x2, y2, w2, h2) {
+			library_secondary(mut app, i)
 			return true
 		}
 	}
@@ -1803,43 +1800,43 @@ fn library_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 
 // library_hover_at updates card/chrome hover state.
 fn library_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
-	l := lib_layout(mut app, w, h)
-	app.lib_hover = -1
-	app.lib_hover_ui = -1
-	for i in 0 .. lib_tab_panels.len {
-		tx, ty, tw, th := lib_tab_rect(l, i)
-		if onb_hit(mx, my, tx, ty, tw, th) {
-			app.lib_hover_ui = lib_ui_tab0 + i
+	l := library_layout(mut app, w, h)
+	app.library_hover = -1
+	app.library_hover_ui = -1
+	for i in 0 .. library_tab_panels.len {
+		tx, ty, tw, th := library_tab_rect(l, i)
+		if rect_contains(mx, my, tx, ty, tw, th) {
+			app.library_hover_ui = library_ui_tab0 + i
 			return
 		}
 	}
-	sx, sy, sw, sh := lib_search_rect(l)
-	if onb_hit(mx, my, sx, sy, sw, sh) {
-		app.lib_hover_ui = lib_ui_search
+	sx, sy, sw, sh := library_search_rect(l)
+	if rect_contains(mx, my, sx, sy, sw, sh) {
+		app.library_hover_ui = library_ui_search
 		return
 	}
-	labels := lib_chips(mut app)
+	labels := library_chips(mut app)
 	for i in 0 .. labels.len {
-		cx, cy, cw, ch := lib_chip_rect(l, labels, i)
-		if cw > 0 && onb_hit(mx, my, cx, cy, cw, ch) {
-			app.lib_hover_ui = lib_ui_chip0 + i
+		cx, cy, cw, ch := library_chip_rect(l, labels, i)
+		if cw > 0 && rect_contains(mx, my, cx, cy, cw, ch) {
+			app.library_hover_ui = library_ui_chip0 + i
 			return
 		}
 	}
 	for i in 0 .. 3 {
-		bx, by, bw, bh := lib_btn_rect(l, i)
-		if onb_hit(mx, my, bx, by, bw, bh) {
-			app.lib_hover_ui = lib_ui_primary + i
+		bx, by, bw, bh := library_btn_rect(l, i)
+		if rect_contains(mx, my, bx, by, bw, bh) {
+			app.library_hover_ui = library_ui_primary + i
 			return
 		}
 	}
-	if onb_hit(mx, my, l.fx, l.grid_y, l.fw, l.grid_h) {
-		total := lib_items(mut app).len
-		start, end := lib_visible_range(mut app, l, total)
+	if rect_contains(mx, my, l.fx, l.grid_y, l.fw, l.grid_h) {
+		total := library_items(mut app).len
+		start, end := library_visible_range(mut app, l, total)
 		for idx in start .. end {
-			cx, cy, cw, ch := lib_card_rect(l, idx - start)
-			if onb_hit(mx, my, cx, cy, cw, ch) {
-				app.lib_hover = idx
+			cx, cy, cw, ch := library_card_rect(l, idx - start)
+			if rect_contains(mx, my, cx, cy, cw, ch) {
+				app.library_hover = idx
 				return
 			}
 		}
@@ -1848,11 +1845,11 @@ fn library_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
 
 // library_scroll handles the wheel over the card grid (delta in rows).
 fn library_scroll(mut app GuiApp, mx int, my int, delta int, w int, h int) bool {
-	l := lib_layout(mut app, w, h)
-	if !onb_hit(mx, my, l.fx, l.grid_y, l.fw, l.grid_h) {
+	l := library_layout(mut app, w, h)
+	if !rect_contains(mx, my, l.fx, l.grid_y, l.fw, l.grid_h) {
 		return false
 	}
-	total := lib_items(mut app).len
+	total := library_items(mut app).len
 	if l.cols == 0 {
 		return true
 	}
@@ -1860,7 +1857,7 @@ fn library_scroll(mut app GuiApp, mx int, my int, delta int, w int, h int) bool 
 	step := if delta > 0 {
 		1
 	} else if delta < 0 { -1 } else { 0 }
-	lib_set_scroll_row(mut app, clamp_scroll(lib_scroll_row(app) + step, total_rows, l.rows))
+	library_set_scroll_row(mut app, clamp_scroll(library_scroll_row(app) + step, total_rows, l.rows))
 	return true
 }
 
@@ -1871,36 +1868,36 @@ fn library_key(mut app GuiApp, e &gg.Event) bool {
 		if app.skills_query.len > 0 {
 			app.skills_query = utf8_truncate(app.skills_query, app.skills_query.runes().len - 1)
 		}
-		lib_set_scroll_row(mut app, 0)
+		library_set_scroll_row(mut app, 0)
 		return true
 	}
 	if e.key_code == .escape {
 		app.skills_query = ''
 		app.skills_domain = ''
-		app.lib_filter = ''
+		app.library_filter = ''
 		return true
 	}
 	if e.key_code == .up {
-		lib_set_scroll_row(mut app, lib_scroll_row(app) - 1)
+		library_set_scroll_row(mut app, library_scroll_row(app) - 1)
 		return true
 	}
 	if e.key_code == .down {
-		lib_set_scroll_row(mut app, lib_scroll_row(app) + 1)
+		library_set_scroll_row(mut app, library_scroll_row(app) + 1)
 		return true
 	}
 	if e.key_code == .left || e.key_code == .right {
-		cur := lib_selected(app)
+		cur := library_selected(app)
 		next := if e.key_code == .left { cur - 1 } else { cur + 1 }
 		if next >= 0 {
-			items := lib_items(mut app)
+			items := library_items(mut app)
 			if next < items.len {
-				lib_select(mut app, next, items)
+				library_select(mut app, next, items)
 			}
 		}
 		return true
 	}
 	if e.key_code == .enter {
-		lib_primary(mut app)
+		library_primary(mut app)
 		return true
 	}
 	// the shared search field owns printable text while a Library panel is
@@ -1908,7 +1905,7 @@ fn library_key(mut app GuiApp, e &gg.Event) bool {
 	// documented nav keys (digits, p/i/o) still fall through
 	if e.char_code >= 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
 		app.skills_query += rune(e.char_code).str()
-		lib_set_scroll_row(mut app, 0)
+		library_set_scroll_row(mut app, 0)
 		return true
 	}
 	return false

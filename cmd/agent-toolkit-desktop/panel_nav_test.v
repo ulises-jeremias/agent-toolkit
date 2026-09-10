@@ -34,7 +34,7 @@ fn test_panel_nav_from_skills() {
 
 	on_event(nav_key_event(u32(`x`)), mut app)
 	assert app.selected_panel == 2, 'filter char must not navigate'
-	// VC5: the four Library tabs share one search field, so Agents filters too
+	// the four Library tabs share one search field, so Agents filters too
 	assert app.skills_query == 'x', 'Library tabs share the search field, got: ${app.skills_query}'
 	app.skills_query = ''
 

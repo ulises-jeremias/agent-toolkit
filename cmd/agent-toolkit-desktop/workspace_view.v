@@ -5,7 +5,7 @@ import os
 import desktop.pixelart
 import desktop_engine
 
-// VC7 (#1173) — Workspace destination, visual convergence pass.
+// Workspace destination: every workspace action re-composed as one Paper Co. page.
 //
 // No dedicated reference exists for Workspace: the composition is derived
 // from concept-board.jpg (materials), office.jpg (shell + card grammar) and
@@ -149,10 +149,10 @@ fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 
 // ── shared Paper Co. primitives (used by the Insights and Settings sheets too) ──
 
-// paper_sheet is the soft material surface: warm paper, a quiet wood-tinted
+// draw_paper_sheet is the soft material surface: warm paper, a quiet wood-tinted
 // edge and a hard 2px shadow — the same treatment onboarding settled on,
 // deliberately not the bordered pixel_panel.
-fn paper_sheet(mut app GuiApp, x int, y int, w int, h int) {
+fn draw_paper_sheet(mut app GuiApp, x int, y int, w int, h int) {
 	ensure_pixel_cache(mut app)
 	app.gg.draw_rect_filled(x + 2, y + 3, w, h, tint(col_ink, 14))
 	app.gg.draw_rect_filled(x, y, w, h, pc(app, `P`))
@@ -227,7 +227,7 @@ fn destination_header(mut app GuiApp, fx int, fy int, fw int, head_h int, mark p
 	stamp, clock := local_stamp()
 	clock_w := if fw > 560 { 96 } else { 0 }
 	if big {
-		app.gg.draw_text(tx + 2, fy + 38, utf8_truncate(subtitle, onb_fit(fw - (tx - fx) - clock_w - 24, 12)), gg.TextCfg{
+		app.gg.draw_text(tx + 2, fy + 38, utf8_truncate(subtitle, text_fit_chars(fw - (tx - fx) - clock_w - 24, 12)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 12
 		})
@@ -250,47 +250,47 @@ fn destination_header(mut app GuiApp, fx int, fy int, fw int, head_h int, mark p
 
 // ── truth helpers ───────────────────────────────────────────────────────────
 
-// ws_scaffold_names are the scaffold entries the Engine seeds
+// workspace_scaffold_names are the scaffold entries the Engine seeds
 // (onboarding_ensure_workspace) plus the AGENTS.md contract that marks a
 // workspace as initialized (workspace_is_initialized).
-const ws_scaffold_names = ['knowledge/', 'personas/', 'packs/', 'repos/', 'projects/', 'AGENTS.md']
+const workspace_scaffold_names = ['knowledge/', 'personas/', 'packs/', 'repos/', 'projects/', 'AGENTS.md']
 
-// ws_scaffold_present checks the REAL directory state of root for each
+// workspace_scaffold_present checks the REAL directory state of root for each
 // scaffold entry. A trailing '/' entry must be a directory; a plain entry a
 // file. Returns an empty list when there is no root — unknown, not missing.
-fn ws_scaffold_present(root string) []bool {
+fn workspace_scaffold_present(root string) []bool {
 	clean := os.expand_tilde_to_home(root.trim_space())
 	if clean == '' || !os.is_dir(clean) {
 		return []bool{}
 	}
-	mut out := []bool{cap: ws_scaffold_names.len}
-	for name in ws_scaffold_names {
+	mut out := []bool{cap: workspace_scaffold_names.len}
+	for name in workspace_scaffold_names {
 		p := os.join_path(clean, name.trim_right('/'))
 		out << if name.ends_with('/') { os.is_dir(p) } else { os.is_file(p) }
 	}
 	return out
 }
 
-// ws_scaffold_cached memoizes ws_scaffold_present by root, refreshed every
+// workspace_scaffold_cached memoizes workspace_scaffold_present by root, refreshed every
 // ~2s (120 frames) so a network mount cannot stall the render thread.
-fn ws_scaffold_cached(mut app GuiApp, root string) []bool {
+fn workspace_scaffold_cached(mut app GuiApp, root string) []bool {
 	// keyed by root AND engine revision: Initialize/Switch bump the revision,
 	// so the checklist flips from 'missing' to present on the very next frame
 	// instead of after the time window (a stale 'missing' was visible after
 	// Initialize while testing the lifecycle harness)
 	key := '${root}@${app.engine_rev}'
-	if app.ws_scaffold_root == key && app.frame - app.ws_scaffold_frame < 120 {
-		return app.ws_scaffold_vals
+	if app.workspace_scaffold_root == key && app.frame - app.workspace_scaffold_frame < 120 {
+		return app.workspace_scaffold_vals
 	}
-	app.ws_scaffold_root = key
-	app.ws_scaffold_vals = ws_scaffold_present(root)
-	app.ws_scaffold_frame = app.frame
-	return app.ws_scaffold_vals
+	app.workspace_scaffold_root = key
+	app.workspace_scaffold_vals = workspace_scaffold_present(root)
+	app.workspace_scaffold_frame = app.frame
+	return app.workspace_scaffold_vals
 }
 
-// ws_seed_warnings returns the persisted seed warnings of the last
+// workspace_seed_warnings returns the persisted seed warnings of the last
 // initialization (workspace/seed_warnings), empty when none were recorded.
-fn ws_seed_warnings(mut app GuiApp) []string {
+fn workspace_seed_warnings(mut app GuiApp) []string {
 	if app.desktop == unsafe { nil } {
 		return []string{}
 	}
@@ -298,8 +298,8 @@ fn ws_seed_warnings(mut app GuiApp) []string {
 	return raw.split('|').filter(it.trim_space() != '')
 }
 
-// ws_state_label maps the active-workspace truth to a label + tone.
-fn ws_state_label(app &GuiApp) (string, gg.Color) {
+// workspace_state_label maps the active-workspace truth to a label + tone.
+fn workspace_state_label(app &GuiApp) (string, gg.Color) {
 	if app.harness_root == '' {
 		return 'No workspace', app.pnl_text_mut
 	}
@@ -317,12 +317,12 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, app.pnl_bg)
 	destination_header(mut app, l.fx, l.fy, l.fw, l.head_h, pixelart.environment_for(.cabinet_tall), tr(app, 'panel.workspace'), 'Files, project context and memory for the active workspace')
 	if l.hero_h > 0 {
-		draw_ws_hero(mut app, l)
+		draw_workspace_hero(mut app, l)
 	}
 	if l.known_h > 0 {
-		draw_ws_known(mut app, l)
+		draw_workspace_known(mut app, l)
 	} else {
-		app.known_ws_rects.clear()
+		app.known_workspace_rects.clear()
 	}
 	// IDE block — the existing brokered surfaces, unchanged renderers
 	if l.mid_h > 0 {
@@ -339,19 +339,19 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 	}
 }
 
-// draw_ws_hero is the "Active workspace" paper sheet: state pill, path
+// draw_workspace_hero is the "Active workspace" paper sheet: state pill, path
 // field, the three real actions, the last notice, and a small filing scene.
-fn draw_ws_hero(mut app GuiApp, l WorkspaceLayout) {
+fn draw_workspace_hero(mut app GuiApp, l WorkspaceLayout) {
 	x := l.fx + 12
 	y := l.hero_y
 	w := l.fw - 24
-	paper_sheet(mut app, x, y, w, l.hero_h)
+	draw_paper_sheet(mut app, x, y, w, l.hero_h)
 	app.gg.draw_text(x + 12, y + 8, 'Active workspace', gg.TextCfg{
 		color: app.pnl_text
 		size: 17
 		family: app.fonts.display
 	})
-	label, tone := ws_state_label(app)
+	label, tone := workspace_state_label(app)
 	paper_pill(mut app, x + 12 + 'Active workspace'.len * 9 + 8, y + 11, label, tone)
 	if !l.compact {
 		src := if app.workspace_source == '' { '—' } else { app.workspace_source }
@@ -396,7 +396,7 @@ fn draw_ws_hero(mut app GuiApp, l WorkspaceLayout) {
 	if app.workspace_notice != '' {
 		bad := app.workspace_notice.contains('error') || app.workspace_notice.contains('Could not')
 			|| app.workspace_notice.contains('failed')
-		app.gg.draw_text(l.field_x, l.field_y + 34, utf8_truncate(app.workspace_notice, onb_fit(l.field_w + 180, 11)), gg.TextCfg{
+		app.gg.draw_text(l.field_x, l.field_y + 34, utf8_truncate(app.workspace_notice, text_fit_chars(l.field_w + 180, 11)), gg.TextCfg{
 			color: if bad { app.pnl_danger } else { app.pnl_text_mut }
 			size: 11
 		})
@@ -407,13 +407,13 @@ fn draw_ws_hero(mut app GuiApp, l WorkspaceLayout) {
 		})
 	}
 	if l.scene_w > 0 {
-		draw_ws_scene(mut app, l.scene_x, y + 8, l.scene_w - 8, l.hero_h - 16)
+		draw_workspace_scene(mut app, l.scene_x, y + 8, l.scene_w - 8, l.hero_h - 16)
 	}
 }
 
-// draw_ws_scene is a small filing corner: tall cabinet, a desk with a folder
+// draw_workspace_scene is a small filing corner: tall cabinet, a desk with a folder
 // stack, a plant — illustration only, static, no runtime meaning.
-fn draw_ws_scene(mut app GuiApp, x int, y int, w int, h int) {
+fn draw_workspace_scene(mut app GuiApp, x int, y int, w int, h int) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	wall_h := h * 45 / 100
@@ -431,7 +431,7 @@ fn draw_ws_scene(mut app GuiApp, x int, y int, w int, h int) {
 	desk := pixelart.environment_for(.desk)
 	folders := pixelart.environment_for(.folder_stack)
 	plant := pixelart.environment_for(.plant)
-	s := onb_art_scale(cabinet.width() + desk.width() + plant.width() + 10, cabinet.height(), w - 12, h - 10)
+	s := onboarding_art_scale(cabinet.width() + desk.width() + plant.width() + 10, cabinet.height(), w - 12, h - 10)
 	total := (cabinet.width() + desk.width() + plant.width()) * s + 10 * s
 	mut gx := x + (w - total) / 2
 	sc.draw(cabinet, pid, gx, base - cabinet.height() * s, s)
@@ -443,18 +443,18 @@ fn draw_ws_scene(mut app GuiApp, x int, y int, w int, h int) {
 	sc.draw(plant, pid, gx, base - plant.height() * s, s)
 }
 
-// draw_ws_known renders the bounded discovery list (Engine known_workspaces)
+// draw_workspace_known renders the bounded discovery list (Engine known_workspaces)
 // as folder cards: leaf name, truthful state, why it is listed, path. Click
 // fills the draft for Validate/Switch — discovery never switches by itself.
 // Hit rects are rebuilt every frame from this same geometry
-// (app.known_ws_rects; the click handler in main.v reads them).
-fn draw_ws_known(mut app GuiApp, l WorkspaceLayout) {
+// (app.known_workspace_rects; the click handler in main.v reads them).
+fn draw_workspace_known(mut app GuiApp, l WorkspaceLayout) {
 	x := l.fx + 12
 	y := l.known_y
 	w := l.fw - 24
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
-	app.known_ws_rects.clear()
+	app.known_workspace_rects.clear()
 	known := if app.desktop != unsafe { nil } {
 		app.desktop.engine_known_workspaces()
 	} else {
@@ -508,9 +508,9 @@ fn draw_ws_known(mut app GuiApp, l WorkspaceLayout) {
 				mono: true
 				bold: k.is_active
 			})
-			_, tone := ws_known_state(app, k)
+			_, tone := workspace_known_state(app, k)
 			app.gg.draw_rect_filled(cx + cw - 10, cy + 9, 5, 5, tone)
-			app.known_ws_rects << KnownWsRect{
+			app.known_workspace_rects << KnownWsRect{
 				x: cx
 				y: cy
 				w: cw
@@ -537,8 +537,8 @@ fn draw_ws_known(mut app GuiApp, l WorkspaceLayout) {
 			break
 		}
 		cx := x + i * (card_w + gap)
-		draw_ws_known_card(mut app, cx, cy, card_w, 56, k)
-		app.known_ws_rects << KnownWsRect{
+		draw_workspace_known_card(mut app, cx, cy, card_w, 56, k)
+		app.known_workspace_rects << KnownWsRect{
 			x: cx
 			y: cy
 			w: card_w
@@ -548,9 +548,9 @@ fn draw_ws_known(mut app GuiApp, l WorkspaceLayout) {
 	}
 }
 
-// ws_known_state is the truthful chip for a discovered workspace:
+// workspace_known_state is the truthful chip for a discovered workspace:
 // missing beats everything (the directory is gone), then active, ready, folder.
-fn ws_known_state(app &GuiApp, k desktop_engine.KnownWorkspace) (string, gg.Color) {
+fn workspace_known_state(app &GuiApp, k desktop_engine.KnownWorkspace) (string, gg.Color) {
 	if !k.exists {
 		return 'Missing', app.pnl_danger
 	}
@@ -563,7 +563,7 @@ fn ws_known_state(app &GuiApp, k desktop_engine.KnownWorkspace) (string, gg.Colo
 	return 'Folder', app.pnl_select
 }
 
-fn draw_ws_known_card(mut app GuiApp, x int, y int, w int, h int, k desktop_engine.KnownWorkspace) {
+fn draw_workspace_known_card(mut app GuiApp, x int, y int, w int, h int, k desktop_engine.KnownWorkspace) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	hover := app.mouse_x >= x && app.mouse_x < x + w && app.mouse_y >= y && app.mouse_y < y + h
@@ -586,7 +586,7 @@ fn draw_ws_known_card(mut app GuiApp, x int, y int, w int, h int, k desktop_engi
 	folders := pixelart.environment_for(.folder_stack)
 	sc.draw(folders, pid, x + 8, y + (h - folders.height() * 2) / 2, 2)
 	leaf := k.path.all_after_last('/')
-	label, tone := ws_known_state(app, k)
+	label, tone := workspace_known_state(app, k)
 	pill_w := label.len * 6 + 18
 	name_max := (w - 44 - pill_w - 16) / 7
 	app.gg.draw_text(x + 40, y + 7, utf8_truncate(leaf, if name_max < 6 { 6 } else { name_max }), gg.TextCfg{
@@ -595,7 +595,7 @@ fn draw_ws_known_card(mut app GuiApp, x int, y int, w int, h int, k desktop_engi
 		bold: true
 	})
 	paper_pill(mut app, x + w - pill_w - 8, y + 7, label, tone)
-	app.gg.draw_text(x + 40, y + 25, utf8_truncate(k.path, onb_fit(w - 48, 10)), gg.TextCfg{
+	app.gg.draw_text(x + 40, y + 25, utf8_truncate(k.path, text_fit_chars(w - 48, 10)), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 		mono: true
@@ -609,10 +609,10 @@ fn draw_ws_known_card(mut app GuiApp, x int, y int, w int, h int, k desktop_engi
 
 // ── right column: "Workspace details" (replaces the inspector on panel 9) ──
 
-// WsDetailLayout — fixed section rhythm so the click geometry (preferences
+// WorkspaceDetailLayout — fixed section rhythm so the click geometry (preferences
 // sheet) is shared with drawing. Sections that do not fit are dropped from
 // the bottom up: quote first, then preferences.
-struct WsDetailLayout {
+struct WorkspaceDetailLayout {
 	ix         int
 	iy         int
 	iw         int
@@ -625,14 +625,14 @@ struct WsDetailLayout {
 	quote_y    int // 0 when the editorial card does not fit
 }
 
-fn ws_detail_layout(app &GuiApp, w int, h int) WsDetailLayout {
+fn workspace_detail_layout(app &GuiApp, w int, h int) WorkspaceDetailLayout {
 	ix := inspector_x(app, w)
 	iy := panel_top(app)
 	iw := inspector_w
 	ih := content_bottom(app, h) - iy
 	limit := iy + ih - 8
 	scaffold_y := iy + 40
-	mut y := scaffold_y + 22 + ws_scaffold_names.len * 17 + 10
+	mut y := scaffold_y + 22 + workspace_scaffold_names.len * 17 + 10
 	// secondary truth sections drop out (0) when the column is too short —
 	// e.g. a tall terminal on a small window — rather than overlapping
 	mut seed_y := 0
@@ -659,7 +659,7 @@ fn ws_detail_layout(app &GuiApp, w int, h int) WsDetailLayout {
 	if y + 62 <= limit {
 		quote_y = limit - 62
 	}
-	return WsDetailLayout{
+	return WorkspaceDetailLayout{
 		ix: ix
 		iy: iy
 		iw: iw
@@ -673,7 +673,7 @@ fn ws_detail_layout(app &GuiApp, w int, h int) WsDetailLayout {
 	}
 }
 
-fn ws_section_label(mut app GuiApp, x int, y int, label string) {
+fn workspace_section_label(mut app GuiApp, x int, y int, label string) {
 	app.gg.draw_text(x, y, label, gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
@@ -684,7 +684,7 @@ fn ws_section_label(mut app GuiApp, x int, y int, label string) {
 
 fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
-	d := ws_detail_layout(app, w, h)
+	d := workspace_detail_layout(app, w, h)
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	x := d.ix
@@ -699,9 +699,9 @@ fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 	sc.draw(pixelart.environment_for(.folder_stack), pid, x + d.iw - 44, y + 10, 2)
 
 	// scaffold checklist — real os.exists on the active root
-	ws_section_label(mut app, x + 16, d.scaffold_y, 'SCAFFOLD')
-	present := ws_scaffold_cached(mut app, app.harness_root)
-	for i, name in ws_scaffold_names {
+	workspace_section_label(mut app, x + 16, d.scaffold_y, 'SCAFFOLD')
+	present := workspace_scaffold_cached(mut app, app.harness_root)
+	for i, name in workspace_scaffold_names {
 		ry := d.scaffold_y + 22 + i * 17
 		app.gg.draw_text(x + 36, ry, name, gg.TextCfg{
 			color: app.pnl_text
@@ -716,7 +716,7 @@ fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 			continue
 		}
 		if present[i] {
-			onb_check(mut app, x + 16, ry + 1, app.pnl_success)
+			draw_check_glyph(mut app, x + 16, ry + 1, app.pnl_success)
 			app.gg.draw_text(x + d.iw - 70, ry, 'present', gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
@@ -733,20 +733,20 @@ fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 		}
 	}
 	if present.len == 0 {
-		app.gg.draw_text(x + 16, d.scaffold_y + 22 + ws_scaffold_names.len * 17 - 4, 'No active workspace — nothing was checked.', gg.TextCfg{
+		app.gg.draw_text(x + 16, d.scaffold_y + 22 + workspace_scaffold_names.len * 17 - 4, 'No active workspace — nothing was checked.', gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
 	}
 
 	if d.seed_y > 0 {
-		draw_ws_detail_seed(mut app, x, d)
+		draw_workspace_detail_seed(mut app, x, d)
 	}
 	if d.editor_y > 0 {
-		draw_ws_detail_editor(mut app, x, d)
+		draw_workspace_detail_editor(mut app, x, d)
 	}
 	if d.git_y > 0 {
-		draw_ws_detail_git(mut app, x, d)
+		draw_workspace_detail_git(mut app, x, d)
 	}
 	if d.prefs_y > 0 {
 		draw_preferences_sheet(mut app, x + 8, d.prefs_y, d.iw - 16)
@@ -756,11 +756,11 @@ fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 	}
 }
 
-// draw_ws_detail_seed — seed warnings persisted by the last initialization (workspace/seed_warnings).
-fn draw_ws_detail_seed(mut app GuiApp, x int, d WsDetailLayout) {
+// draw_workspace_detail_seed — seed warnings persisted by the last initialization (workspace/seed_warnings).
+fn draw_workspace_detail_seed(mut app GuiApp, x int, d WorkspaceDetailLayout) {
 	// seed warnings — persisted by the last initialization
-	ws_section_label(mut app, x + 16, d.seed_y, 'SEED WARNINGS')
-	warns := ws_seed_warnings(mut app)
+	workspace_section_label(mut app, x + 16, d.seed_y, 'SEED WARNINGS')
+	warns := workspace_seed_warnings(mut app)
 	if warns.len == 0 {
 		app.gg.draw_text(x + 16, d.seed_y + 20, 'None recorded by the last initialization.', gg.TextCfg{
 			color: app.pnl_text_mut
@@ -772,7 +772,7 @@ fn draw_ws_detail_seed(mut app GuiApp, x int, d WsDetailLayout) {
 			size: 11
 			bold: true
 		})
-		app.gg.draw_text(x + 16, d.seed_y + 34, utf8_truncate(warns[0], onb_fit(d.iw - 32, 10)), gg.TextCfg{
+		app.gg.draw_text(x + 16, d.seed_y + 34, utf8_truncate(warns[0], text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 			mono: true
@@ -780,20 +780,20 @@ fn draw_ws_detail_seed(mut app GuiApp, x int, d WsDetailLayout) {
 	}
 }
 
-// draw_ws_detail_editor — the active editor tab — MCP templates opened from the MCP drawer land here.
-fn draw_ws_detail_editor(mut app GuiApp, x int, d WsDetailLayout) {
+// draw_workspace_detail_editor — the active editor tab — MCP templates opened from the MCP drawer land here.
+fn draw_workspace_detail_editor(mut app GuiApp, x int, d WorkspaceDetailLayout) {
 	// editor — what the IDE block currently holds (MCP templates route here)
-	ws_section_label(mut app, x + 16, d.editor_y, 'EDITOR')
+	workspace_section_label(mut app, x + 16, d.editor_y, 'EDITOR')
 	if app.editor_tabs.len > 0 && app.active_tab >= 0 && app.active_tab < app.editor_tabs.len {
 		t := app.editor_tabs[app.active_tab]
 		kind := if t.syntax == 'json' && t.path.contains('mcp') { 'MCP template' } else { t.syntax }
-		app.gg.draw_text(x + 16, d.editor_y + 20, utf8_truncate(t.title, onb_fit(d.iw - 120, 12)), gg.TextCfg{
+		app.gg.draw_text(x + 16, d.editor_y + 20, utf8_truncate(t.title, text_fit_chars(d.iw - 120, 12)), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			bold: true
 		})
 		paper_pill(mut app, x + d.iw - 16 - (kind.len * 6 + 18), d.editor_y + 18, kind, app.pnl_select)
-		app.gg.draw_text(x + 16, d.editor_y + 35, utf8_truncate(t.path, onb_fit(d.iw - 32, 10)), gg.TextCfg{
+		app.gg.draw_text(x + 16, d.editor_y + 35, utf8_truncate(t.path, text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 			mono: true
@@ -806,10 +806,10 @@ fn draw_ws_detail_editor(mut app GuiApp, x int, d WsDetailLayout) {
 	}
 }
 
-// draw_ws_detail_git — git availability before counts: no root / not a repo / backend unavailable.
-fn draw_ws_detail_git(mut app GuiApp, x int, d WsDetailLayout) {
+// draw_workspace_detail_git — git availability before counts: no root / not a repo / backend unavailable.
+fn draw_workspace_detail_git(mut app GuiApp, x int, d WorkspaceDetailLayout) {
 	// git — availability before counts
-	ws_section_label(mut app, x + 16, d.git_y, 'GIT')
+	workspace_section_label(mut app, x + 16, d.git_y, 'GIT')
 	if app.desktop == unsafe { nil } {
 		app.gg.draw_text(x + 16, d.git_y + 20, '—', gg.TextCfg{
 			color: app.pnl_text_mut
@@ -865,8 +865,8 @@ fn draw_paper_quote(mut app GuiApp, x int, y int, w int, l1 string, l2 string, b
 // workspace_detail_click routes clicks inside the right column. Only the
 // preferences sheet is interactive today; the truth sections are read-only.
 fn workspace_detail_click(mut app GuiApp, mx int, my int, w int, h int) bool {
-	d := ws_detail_layout(app, w, h)
-	if !onb_hit(mx, my, d.ix, d.iy, d.iw, d.ih) {
+	d := workspace_detail_layout(app, w, h)
+	if !rect_contains(mx, my, d.ix, d.iy, d.iw, d.ih) {
 		return false
 	}
 	if d.prefs_y > 0 && preferences_click(mut app, d.ix + 8, d.prefs_y, d.iw - 16, mx, my) {
@@ -885,8 +885,8 @@ fn workspace_detail_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 // x+6+i*git_tab_w, git_tab_w-4 wide, y..y+22; CHANGES rows at y+40 (20px), HISTORY rows at
 // y+40 (22px); memory field at y+20..y+40 and result rows at y+44 (18px).
 
-// ws_sheet_title is the 14px Fraunces title every IDE sheet opens with.
-fn ws_sheet_title(mut app GuiApp, x int, y int, title string) {
+// workspace_sheet_title is the 14px Fraunces title every IDE sheet opens with.
+fn workspace_sheet_title(mut app GuiApp, x int, y int, title string) {
 	app.gg.draw_text(x, y, title, gg.TextCfg{
 		color: app.pnl_text
 		size: 14
@@ -894,22 +894,22 @@ fn ws_sheet_title(mut app GuiApp, x int, y int, title string) {
 	})
 }
 
-// ws_empty_copy renders product copy (12px) with the technical detail as a
+// workspace_empty_copy renders product copy (12px) with the technical detail as a
 // second muted line (11px) — never implementation-speak as the headline.
-fn ws_empty_copy(mut app GuiApp, x int, y int, w int, head string, detail string) {
-	app.gg.draw_text(x, y, utf8_truncate(head, onb_fit(w, 12)), gg.TextCfg{
+fn workspace_empty_copy(mut app GuiApp, x int, y int, w int, head string, detail string) {
+	app.gg.draw_text(x, y, utf8_truncate(head, text_fit_chars(w, 12)), gg.TextCfg{
 		color: app.pnl_text
 		size: 12
 	})
 	if detail != '' {
-		draw_onb_wrapped(mut app, x, y + 16, w, detail, 3)
+		draw_wrapped_text(mut app, x, y + 16, w, detail, 3)
 	}
 }
 
-// ws_underline_tab draws a library-style tab label: bold + sage underline
+// workspace_underline_tab draws a library-style tab label: bold + sage underline
 // when active, muted otherwise. The rect is the hit target the handler uses.
-fn ws_underline_tab(mut app GuiApp, x int, y int, w int, h int, label string, active bool, size int) {
-	hover := onb_hit(app.mouse_x, app.mouse_y, x, y, w, h)
+fn workspace_underline_tab(mut app GuiApp, x int, y int, w int, h int, label string, active bool, size int) {
+	hover := rect_contains(app.mouse_x, app.mouse_y, x, y, w, h)
 	if hover && !active {
 		app.gg.draw_rect_filled(x, y, w, h, app.pnl_card_sel)
 	}
@@ -924,9 +924,9 @@ fn ws_underline_tab(mut app GuiApp, x int, y int, w int, h int, label string, ac
 	}
 }
 
-// ws_git_unavailable returns the product copy for a git rail that cannot
+// workspace_git_unavailable returns the product copy for a git rail that cannot
 // show data yet: headline + technical detail, or empty strings when it can.
-fn ws_git_unavailable(st desktop_engine.GitWorkspaceStatus) (string, string) {
+fn workspace_git_unavailable(st desktop_engine.GitWorkspaceStatus) (string, string) {
 	if st.root == '' {
 		return 'No workspace yet', 'Choose a workspace above to inspect its repository.'
 	}
@@ -941,8 +941,8 @@ fn ws_git_unavailable(st desktop_engine.GitWorkspaceStatus) (string, string) {
 
 // draw_file_tree_panel — left column: twisty, kind mark, git dot, virtualized.
 fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
-	paper_sheet(mut app, x, y, w, h)
-	ws_sheet_title(mut app, x + 10, y + 4, 'Files')
+	draw_paper_sheet(mut app, x, y, w, h)
+	workspace_sheet_title(mut app, x + 10, y + 4, 'Files')
 	flat := file_tree_visible(app)
 	row_h := 18
 	visible := (h - 28) / row_h
@@ -964,7 +964,7 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 		} else {
 			'No files yet', 'The workspace folder has nothing to list.'
 		}
-		ws_empty_copy(mut app, x + 10, y + 32, w - 20, head, detail)
+		workspace_empty_copy(mut app, x + 10, y + 32, w - 20, head, detail)
 		return
 	}
 	app.file_tree_scroll = clamp_scroll(app.file_tree_scroll, flat.len, visible)
@@ -1028,11 +1028,11 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 
 // draw_editor_panel — centre column: underlined tabs, gutter + syntax lines.
 fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
-	paper_sheet(mut app, x, y, w, h)
+	draw_paper_sheet(mut app, x, y, w, h)
 	tab_h := 28
 	if app.editor_tabs.len == 0 {
-		ws_sheet_title(mut app, x + 12, y + 6, 'Nothing open')
-		ws_empty_copy(mut app, x + 12, y + 30, w - 24, 'Click a file in the tree to open it here.', 'Files stay inside the active workspace.')
+		workspace_sheet_title(mut app, x + 12, y + 6, 'Nothing open')
+		workspace_empty_copy(mut app, x + 12, y + 30, w - 24, 'Click a file in the tree to open it here.', 'Files stay inside the active workspace.')
 		return
 	}
 	mut tx := x + 6
@@ -1042,7 +1042,7 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 		if tx + tw > x + w - 6 {
 			break
 		}
-		ws_underline_tab(mut app, tx, y + 6, tw, 18, tab.title, active, 12)
+		workspace_underline_tab(mut app, tx, y + 6, tw, 18, tab.title, active, 12)
 		if tab.dirty {
 			app.gg.draw_rect_filled(tx + tw - 12, y + 12, 5, 5, app.pnl_danger)
 		}
@@ -1118,20 +1118,20 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 // Git-rail visible-row budgets, shared by drawing (draw_git_rails_panel) and
 // the wheel/hover paths in main.v so scroll clamps match what is drawn.
 // mid_h is the rail's full height; the panel reserves 30px for its tab strip.
-fn ws_git_changes_visible(mid_h int) int {
+fn workspace_git_changes_visible(mid_h int) int {
 	v := (mid_h - 30 - 20) / 20
 	return if v < 0 { 0 } else { v }
 }
 
-fn ws_git_history_visible(mid_h int) int {
+fn workspace_git_history_visible(mid_h int) int {
 	v := (mid_h - 30 - 40) / 22
 	return if v < 0 { 0 } else { v }
 }
 
 fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
-	paper_sheet(mut app, x, y, w, h)
+	draw_paper_sheet(mut app, x, y, w, h)
 	for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
-		ws_underline_tab(mut app, x + 6 + ri * tab_w, y + 2, tab_w - 4, 20, rn.to_lower().capitalize(), app.git_rail == rn, 11)
+		workspace_underline_tab(mut app, x + 6 + ri * tab_w, y + 2, tab_w - 4, 20, rn.to_lower().capitalize(), app.git_rail == rn, 11)
 	}
 	app.gg.draw_rect_filled(x + 8, y + 24, w - 16, 1, tint(pc(app, `W`), 70))
 	y0 := y + 26
@@ -1141,9 +1141,9 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 	}
 	st := app.desktop.engine_git_workspace_status()
 	if app.git_rail == 'CHANGES' {
-		head, detail := ws_git_unavailable(st)
+		head, detail := workspace_git_unavailable(st)
 		if head != '' {
-			ws_empty_copy(mut app, x + 10, y0 + 6, w - 20, head, detail)
+			workspace_empty_copy(mut app, x + 10, y0 + 6, w - 20, head, detail)
 			return
 		}
 		changes := app.desktop.engine_git_changes()
@@ -1157,7 +1157,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 			size: 11
 		})
 		row_h := 20
-		visible := ws_git_changes_visible(h)
+		visible := workspace_git_changes_visible(h)
 		if visible < 1 {
 			return
 		}
@@ -1207,9 +1207,9 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 			app.gg.draw_rect_filled(x + w - 4, bar_y, 2, bar_h, app.pnl_select)
 		}
 	} else if app.git_rail == 'HISTORY' {
-		head, detail := ws_git_unavailable(st)
+		head, detail := workspace_git_unavailable(st)
 		if head != '' {
-			ws_empty_copy(mut app, x + 10, y0 + 6, w - 20, head, detail)
+			workspace_empty_copy(mut app, x + 10, y0 + 6, w - 20, head, detail)
 			return
 		}
 		graph := app.desktop.engine_git_graph(20)
@@ -1218,7 +1218,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 			size: 11
 		})
 		row_h := 22
-		visible := ws_git_history_visible(h)
+		visible := workspace_git_history_visible(h)
 		if visible < 1 {
 			return
 		}
@@ -1295,9 +1295,9 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 			}
 		}
 	} else { // COMPARE
-		head, detail := ws_git_unavailable(st)
+		head, detail := workspace_git_unavailable(st)
 		if head != '' {
-			ws_empty_copy(mut app, x + 10, y0 + 6, w - 20, head, detail)
+			workspace_empty_copy(mut app, x + 10, y0 + 6, w - 20, head, detail)
 			return
 		}
 		hunks := app.desktop.engine_git_compare('HEAD~1', 'HEAD')
@@ -1311,7 +1311,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 			return
 		}
 		if hunks.len == 0 {
-			ws_empty_copy(mut app, x + 10, y0 + 20, w - 20, 'Nothing to compare', 'The last two commits do not differ, or there is only one commit.')
+			workspace_empty_copy(mut app, x + 10, y0 + 20, w - 20, 'Nothing to compare', 'The last two commits do not differ, or there is only one commit.')
 			return
 		}
 		// flatten hunks into one line list so the wheel scroll (diff_scroll)
@@ -1362,8 +1362,8 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 // draw_memory_palace_panel — bottom strip: recall query field + results.
 // Diagnostics (embedding scheme, broker path) are not user-facing copy.
 fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
-	paper_sheet(mut app, x, y, w, h)
-	ws_sheet_title(mut app, x + 10, y + 2, 'Memory')
+	draw_paper_sheet(mut app, x, y, w, h)
+	workspace_sheet_title(mut app, x + 10, y + 2, 'Memory')
 	mode := if app.memory_semantic { 'semantic' } else { 'keyword' }
 	paper_pill(mut app, x + w - 10 - (mode.len * 6 + 18), y + 3, mode, app.pnl_select)
 	// query field — same hit rect as before (y+20..y+40)
@@ -1422,7 +1422,7 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 			})
 		}
 		if results.len == 0 {
-			ws_empty_copy(mut app, x + 14, y + 46, w - 28, 'No matches for "${app.memory_query}"', '')
+			workspace_empty_copy(mut app, x + 14, y + 46, w - 28, 'No matches for "${app.memory_query}"', '')
 		}
 		return
 	}
@@ -1432,7 +1432,7 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 	} else {
 		'${entries.len} memories recorded'
 	}
-	app.gg.draw_text(x + 14, y + 48, utf8_truncate(line, onb_fit(w - 28, 11)), gg.TextCfg{
+	app.gg.draw_text(x + 14, y + 48, utf8_truncate(line, text_fit_chars(w - 28, 11)), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 11
 	})

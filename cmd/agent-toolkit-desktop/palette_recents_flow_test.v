@@ -5,27 +5,27 @@ import desktop.palette
 import os
 import time
 
-// S4D shell-flow tests: recents render distinctly, rerun re-resolves current
+// Shell-flow tests: recents render distinctly, rerun re-resolves current
 // availability, undo is single-use and guarded by live exact-state checks.
 
-struct S4dFixture {
+struct PaletteRecentsFixture {
 mut:
 	app &GuiApp = unsafe { nil }
 	d   &desktop.Desktop = unsafe { nil }
-	tmp string
+	scratch_dir string
 }
 
-fn s4d_app(label string) &S4dFixture {
-	tmp := os.join_path(os.temp_dir(), 'atk-s4d-flow-${label}-${os.getpid()}-${time.now().unix_nano()}')
-	os.mkdir_all(tmp) or { panic(err.msg()) }
+fn boot_palette_recents_app(label string) &PaletteRecentsFixture {
+	scratch_dir := os.join_path(os.temp_dir(), 'atk-palette-recents-${label}-${os.getpid()}-${time.now().unix_nano()}')
+	os.mkdir_all(scratch_dir) or { panic(err.msg()) }
 	// appearance persistence (save_ui_state) must never touch the real user
 	// cache from tests — point XDG_CACHE_HOME at the fixture dir
-	os.setenv('XDG_CACHE_HOME', tmp, true)
+	os.setenv('XDG_CACHE_HOME', scratch_dir, true)
 	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
 		config: desktop.DesktopConfig{
 			headless: true
 		}
-		persist_path: os.join_path(tmp, 'state.json')
+		persist_path: os.join_path(scratch_dir, 'state.json')
 	})
 	d.boot() or { panic(err.msg()) }
 	mut app := &GuiApp{
@@ -37,17 +37,17 @@ fn s4d_app(label string) &S4dFixture {
 	}
 	app.palette_reg = d.palette_registry()
 	app.palette_open = true
-	return &S4dFixture{
+	return &PaletteRecentsFixture{
 		app: app
 		d: d
-		tmp: tmp
+		scratch_dir: scratch_dir
 	}
 }
 
-fn (mut f S4dFixture) cleanup() {
+fn (mut f PaletteRecentsFixture) cleanup() {
 	f.d.shutdown() or {}
-	os.rmdir_all(f.tmp) or {}
-	f.tmp = ''
+	os.rmdir_all(f.scratch_dir) or {}
+	f.scratch_dir = ''
 }
 
 fn find_recent_row(rows []PaletteRow) ?PaletteRow {
@@ -62,7 +62,7 @@ fn find_recent_row(rows []PaletteRow) ?PaletteRow {
 // a real executed action produces a recent row that is visibly distinct,
 // and the fresh session starts with none.
 fn test_recents_appear_after_execution() {
-	mut f := s4d_app('recents')
+	mut f := boot_palette_recents_app('recents')
 	defer {
 		f.cleanup()
 	}
@@ -96,7 +96,7 @@ fn test_recents_appear_after_execution() {
 // rerun of a recent action goes through the CURRENT registry (revalidation),
 // and the second toggle records another recent (not a blind replay).
 fn test_recents_rerun_revalidates() {
-	mut f := s4d_app('rerun')
+	mut f := boot_palette_recents_app('rerun')
 	defer {
 		f.cleanup()
 	}
@@ -143,7 +143,7 @@ fn test_recents_rerun_revalidates() {
 // undo through the shell path: exact restore, single use; a diverged state
 // refuses without overwriting.
 fn test_recents_undo_shell_path() {
-	mut f := s4d_app('undo')
+	mut f := boot_palette_recents_app('undo')
 	defer {
 		f.cleanup()
 	}
@@ -173,7 +173,7 @@ fn test_recents_undo_shell_path() {
 // theme is recorded by the shell through the real setter and its undo
 // restores the exact previous appearance via the same setter.
 fn test_theme_shell_undo() {
-	mut f := s4d_app('theme')
+	mut f := boot_palette_recents_app('theme')
 	defer {
 		f.cleanup()
 	}

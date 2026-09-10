@@ -2,7 +2,7 @@ module main
 
 import gg
 
-// VC8 (#1187): shared editorial-shell geometry, truthful Settings routing,
+// Shared editorial-shell geometry, truthful Settings routing,
 // and terminal tabs backed only by available views.
 
 fn test_shell_masthead_is_responsive_and_bounded() {
@@ -257,7 +257,7 @@ fn test_short_tall_terminal_suppresses_operations_controls() {
 		term_mode: 1
 		term_height: 320
 	}
-	l := ops_layout(app, 1024, 640)
+	l := operations_layout(app, 1024, 640)
 	assert l.body_h == 0
 	assert l.tab_h == 0
 	assert l.ctl_h == 0
@@ -280,11 +280,11 @@ fn test_destination_layouts_use_production_masthead_height() {
 	mut library_app := &GuiApp{
 		selected_panel: 1
 	}
-	assert lib_layout(mut library_app, 1024, 640).fy == shell_mast_h(640)
+	assert library_layout(mut library_app, 1024, 640).fy == shell_mast_h(640)
 	operations_app := &GuiApp{
 		selected_panel: 6
 	}
-	assert ops_layout(operations_app, 1024, 640).fy == shell_mast_h(640)
+	assert operations_layout(operations_app, 1024, 640).fy == shell_mast_h(640)
 	workspace_app := &GuiApp{
 		selected_panel: 9
 	}

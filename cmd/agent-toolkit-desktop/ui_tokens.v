@@ -82,7 +82,7 @@ fn detect_system_dark() bool {
 	return false
 }
 
-// ── F1 theme bridge — the ONLY path from theme tokens to renderer color ──
+// ── Theme bridge — the ONLY path from theme tokens to renderer color ──
 // The renderer (main.v) must not contain raw hex or duplicate color constants:
 // every color below resolves from theme.ColorTokens. main.v keeps thin
 // `const col_*` aliases (the compiler requires consts for the shared palette),
@@ -212,7 +212,7 @@ pub fn ui_hover_tint(t theme.Theme) gg.Color {
 // app.pnl_*; chrome (header/dock/status/terminal) keeps the startup consts.
 pub fn (mut app GuiApp) apply_appearance(a Appearance) {
 	app.appearance = a
-	// S4D: appearance-undo prechecks compare the real observed value;
+	// appearance-undo prechecks compare the real observed value;
 	// apply_appearance is the single appearance mutation point
 	if app.palette_reg != unsafe { nil } {
 		app.palette_reg.observe_appearance(app.appearance.str())
