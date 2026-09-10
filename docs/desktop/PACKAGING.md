@@ -153,7 +153,7 @@ All packaging respects `V 0.5.2`, single binary, `VMODULES`, `gen-embedded`; ali
 
 ## Auto-update (7.4)
 
-`modules/desktop/update/` + `modules/desktop_engine/update_service.v` reuse existing `release.yml` + `manifest.json` pattern (no second update server).
+`modules/desktop_engine/update_service.v` reuses the existing `release.yml` + `manifest.json` pattern (no second update server). The former `modules/desktop/update/` GUI-side mock feed was removed — update stays honestly unavailable until a real updater exists (see #1063).
 
 - Feed: `https://github.com/ulises-jeremias/agent-toolkit/releases` + `manifest.json` (ADR-022) as signed feed — `net.http` fetches `version`, `assets[] { name, sha256, url, provenance }`, `channel` (`stable` = `VERSION 1.30.0` line).
 - Check: `Engine.check_update(current: VERSION) -> ?UpdateInfo` compares semver, respects `channel: stable|next|pinned:$VERSION`, opt-in `update.auto_check` (default prompt, not silent).
