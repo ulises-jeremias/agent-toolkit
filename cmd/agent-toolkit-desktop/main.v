@@ -1179,7 +1179,6 @@ const i18n_table = {
 	'world.working':        I18nRow{'working', 'trabajando', '工作中', 'يعمل'}
 	'world.idle':           I18nRow{'idle', 'libre', '空闲', 'خامل'}
 	'world.blocked':        I18nRow{'blocked', 'bloqueado', '受阻', 'معطل'}
-	'world.god':            I18nRow{'GOD — in', 'GOD — entra', 'GOD — 收', 'GOD — دخول'}
 	'world.out':            I18nRow{'out', 'sale', '发', 'خروج'}
 	// generic actions
 	'act.open_terminal':    I18nRow{'Open terminal', 'Abrir terminal', '打开终端', 'افتح الطرفية'}
