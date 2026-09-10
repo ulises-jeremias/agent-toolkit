@@ -48,7 +48,7 @@ pub fn (mut vm DoctorViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-// ── super-potent: categories, fix_all, verify, receipts, provenance ──
+// ── engine-backed: categories, fix_all, verify, receipts, provenance ──
 pub fn (vm DoctorViewModel) by_category(cat string) []desktop_engine.DoctorCheck {
 	mut out := []desktop_engine.DoctorCheck{}
 	for c in vm.checks {

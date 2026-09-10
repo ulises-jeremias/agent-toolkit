@@ -202,7 +202,7 @@ pub fn (vm SkillViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t
 }
 
-// ── super-potent extensions: stats, receipts, provenance, bulk, toggle, preview ──
+// ── engine-backed extensions: stats, receipts, provenance, bulk, toggle, preview ──
 pub fn (vm SkillViewModel) stats() desktop_engine.SkillStats {
 	return vm.engine.skills_stats()
 }

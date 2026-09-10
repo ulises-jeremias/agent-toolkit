@@ -1,6 +1,6 @@
 module pixelart
 
-// VC2 sprite rendering pipeline (#1172 VC2): authored grid → RGBA expansion →
+// Sprite rendering pipeline: authored grid → RGBA expansion →
 // raw-pixel gg Image (nearest-neighbor) → bounded cache → draw.
 //
 // Zero per-frame image creation, zero per-frame RGBA expansion. Images are
@@ -15,7 +15,7 @@ import sokol.gfx
 // max_gpu_images bounds the number of live sprite images. Every gg.Image owns
 // a sokol sampler and sokol's default sampler pool is 64, shared with the
 // font atlases — exhausting it makes text glyphs silently disappear
-// (SAMPLER_POOL_EXHAUSTED). VC5 grew the manifest past that budget, so the
+// (SAMPLER_POOL_EXHAUSTED). The growing Library manifest passed that budget, so the
 // cache evicts the least-recently-drawn image once the bound is reached.
 pub const max_gpu_images = 40
 

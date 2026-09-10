@@ -165,7 +165,7 @@ fn test_workflow_loop_run() {
 		f.cleanup()
 	}
 	entry := desktop_engine.LoopEntry{
-		name: 's4c-reach-loop'
+		name: 'registry-reach-loop'
 		goal: 'reachability gate'
 		tier: .l1
 		stage: 'l1'
@@ -181,7 +181,7 @@ fn test_workflow_loop_run() {
 	f.d.loops_catalog() // warm engine
 	rev := f.d.engine_upsert_loop(entry) or { panic(err.msg()) }
 	assert rev > 0
-	acts := f.app.palette_reg.actions_for(palette.EntityKind.loop_template, 's4c-reach-loop')
+	acts := f.app.palette_reg.actions_for(palette.EntityKind.loop_template, 'registry-reach-loop')
 	assert has_action(acts, palette.ActionKind.loop_run)
 	assert has_action(acts, palette.ActionKind.loop_schedule_toggle)
 }

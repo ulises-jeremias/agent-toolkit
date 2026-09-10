@@ -1,6 +1,6 @@
 module pixelart
 
-// Paper Co. pixel-art palette (VC1, #1118 / DESIGN.md §0).
+// Paper Co. pixel-art palette (DESIGN.md §0).
 // Material colors from the established surface tokens, compressed for the
 // pixel-art density. Two variants: Paper (light flagship) and Ink (dark).
 

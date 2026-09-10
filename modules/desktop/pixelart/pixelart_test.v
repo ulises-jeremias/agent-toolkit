@@ -128,7 +128,7 @@ fn test_lru_victim() {
 	assert max_gpu_images < 64
 }
 
-// VC5 library marks: every enum value resolves, every mark sprite is in the
+// Library marks: every enum value resolves, every mark sprite is in the
 // manifest, every mark is a 16×16 grid, and the domain mapper never drops a
 // catalog domain (unknown → generic doc mark).
 fn test_library_marks() {
@@ -169,13 +169,13 @@ fn test_authored_dimensions() {
 	assert env_desk.width() == 18 && env_desk.height() == 12
 	assert env_rug.width() == 24 && env_rug.height() == 10
 	assert env_meeting.width() == 20 && env_meeting.height() == 10
-	// VC5 library props — layout code reads these widths, so they are pinned
+	// Library props — layout code reads these widths, so they are pinned
 	assert env_bookshelf_wide.width() == 24 && env_bookshelf_wide.height() == 22
 	assert env_globe.width() == 10 && env_globe.height() == 12
 	assert env_scroll.width() == 12 && env_scroll.height() == 8
 	assert env_chalkboard.width() == 20 && env_chalkboard.height() == 12
 	assert env_ladder.width() == 6 && env_ladder.height() == 16
-	// VC6 Operations props: tall rack, square marks, wide board
+	// Operations props: tall rack, square marks, wide board
 	assert env_server_rack.width() == 12 && env_server_rack.height() == 20
 	assert env_gear_mark.width() == 16 && env_gear_mark.height() == 16
 	assert env_checklist_board.width() == 18 && env_checklist_board.height() == 14

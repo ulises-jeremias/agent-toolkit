@@ -1,6 +1,6 @@
 module pixelart
 
-// VC7 (#1173) — Workspace / Insights / Settings props. Product/domain pixel
+// Workspace / Insights / Settings props. Product/domain pixel
 // marks (DESIGN.md §13 class 2) plus the tall filing cabinet that anchors the
 // Workspace hero scene. Same craft rules as sprites.v: readable palette-key
 // rows, one light direction (top-left), existing palette keys only.

@@ -1,6 +1,6 @@
 module pixelart
 
-// VC1 sprite grids (#1118 VC1) — authored as readable text rows of palette
+// Product/domain sprite grids — authored as readable text rows of palette
 // keys. A row of '.' is transparent. Every sprite documents its logical
 // pixel size; the renderer scales by integer factors with nearest-neighbor
 // semantics (via pre-expanded RGBA), keeping pixels crisp.
@@ -41,7 +41,7 @@ pub enum EnvironmentAsset {
 	scroll
 	chalkboard
 	ladder
-	// VC6 (#1173) Operations props and marks — see operations_sprites.v
+	// Operations props and marks — see operations_sprites.v
 	server_rack
 	wall_clock
 	gear_mark
@@ -555,7 +555,7 @@ const env_couch = Sprite{
 	]
 }
 
-// VC4 (#1173) — setup-journey props. The hornero nest is the brand motif, the
+// Setup-journey props. The hornero nest is the brand motif, the
 // welcome desk is the builder station in the onboarding scene, the sign is the
 // framed office plate, and the book stack dresses the shelf line.
 const env_nest = Sprite{
@@ -638,7 +638,7 @@ const env_picture = Sprite{
 	]
 }
 
-// VC5 (#1173) — Library props. The wide bookshelf is the anchor of the
+// Library props. The wide bookshelf is the anchor of the
 // Library header banner (four shelves of mixed spines), the globe and scroll
 // dress the shelves, the chalkboard carries the banner's decorative sign and
 // the ladder leans against the tall shelf. Illustration only: shelf contents

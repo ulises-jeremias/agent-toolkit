@@ -425,7 +425,7 @@ pub fn (mut d Desktop) engine_job_logs(job_id string) []string {
 }
 
 // engine_cancel_job cancels a queued/running job via the Engine transaction
-// (VC6 #1173: Operations actions execute for real, never message-only).
+// Operations actions execute for real, never message-only.
 pub fn (mut d Desktop) engine_cancel_job(job_id string) !u64 {
 	return d.engine.cancel_job(job_id)
 }
