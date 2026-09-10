@@ -5,9 +5,8 @@ import desktop.pixelart
 
 // VC7 (#1173) — Preferences sheet.
 //
-// The dock's "Settings" destination maps to the setup (onboarding) shell;
-// there is no separate preferences page and this pass does not invent one
-// (no Models, no fabricated options). This sheet exposes ONLY the settings
+// Settings is a real destination and setup is an explicit overlay journey.
+// This sheet exposes ONLY the settings
 // that already exist in GuiApp today — appearance, language, terminal
 // height mode, zoom — wired to the same state fields the header chips,
 // status bar and keyboard shortcuts mutate, and persisted through the
@@ -161,4 +160,176 @@ fn preferences_click(mut app GuiApp, x int, y int, w int, mx int, my int) bool {
 		}
 	}
 	return false
+}
+
+struct SettingsLayout {
+	fx       int
+	fy       int
+	fw       int
+	fh       int
+	prefs_x  int
+	prefs_y  int
+	prefs_w  int
+	setup_y  int
+	setup_h  int
+	button_x int
+	button_y int
+	button_w int
+	button_h int
+}
+
+fn settings_layout(app &GuiApp, w int, h int) SettingsLayout {
+	fx := panel_fx(app)
+	fy := panel_top(app)
+	fw := panel_fw(app, w)
+	fh := content_bottom(app, h) - fy
+	prefs_x := fx + 16
+	prefs_y := fy + 58
+	prefs_w := fw - 32
+	setup_y := prefs_y + prefs_sheet_height() + 12
+	setup_h := content_bottom(app, h) - setup_y - 12
+	button_w := 146
+	return SettingsLayout{
+		fx: fx
+		fy: fy
+		fw: fw
+		fh: fh
+		prefs_x: prefs_x
+		prefs_y: prefs_y
+		prefs_w: prefs_w
+		setup_y: setup_y
+		setup_h: setup_h
+		button_x: prefs_x + 14
+		button_y: setup_y + 76
+		button_w: button_w
+		button_h: 26
+	}
+}
+
+// draw_settings promotes the real VC7 preferences into their own product
+// destination. It exposes only state GuiApp can actually mutate and keeps the
+// setup journey as an explicit action rather than conflating Settings with it.
+fn draw_settings(mut app GuiApp, w int, h int) {
+	l := settings_layout(app, w, h)
+	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, app.pnl_bg)
+	app.gg.draw_text(l.fx + 18, l.fy + 8, 'Settings', gg.TextCfg{
+		color: app.pnl_text
+		size: 24
+		family: app.fonts.display
+	})
+	app.gg.draw_text(l.fx + 18, l.fy + 35, 'Appearance, language, terminal and workspace setup', gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 11
+	})
+	draw_preferences_sheet(mut app, l.prefs_x, l.prefs_y, l.prefs_w)
+	if l.setup_h < 58 {
+		return
+	}
+	paper_sheet(mut app, l.prefs_x, l.setup_y, l.prefs_w, l.setup_h)
+	st := app.desktop.onboarding_status(app.harness_root)
+	app.gg.draw_text(l.prefs_x + 14, l.setup_y + 12, 'Workspace setup', gg.TextCfg{
+		color: app.pnl_text
+		size: 15
+		family: app.fonts.display
+	})
+	state := if st.completed { 'Complete' } else { '${st.pending_items.len} steps pending' }
+	app.gg.draw_text(l.prefs_x + 14, l.setup_y + 34, state, gg.TextCfg{
+		color: if st.completed { app.pnl_success } else { app.pnl_select }
+		size: 11
+		bold: true
+	})
+	app.gg.draw_text(l.prefs_x + 14, l.setup_y + 52, utf8_truncate(if app.harness_root == '' {
+		'No active workspace selected'
+	} else {
+		app.harness_root
+	}, onb_fit(l.prefs_w - 32, 10)), gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 10
+		mono: true
+	})
+	if l.setup_h >= 150 {
+		// Static workshop scenery gives Preferences the same physical world as
+		// Office and Onboarding without claiming runtime activity.
+		scene_x := l.prefs_x + l.prefs_w * 42 / 100
+		draw_onb_scene(mut app, scene_x, l.setup_y + 12, l.prefs_x + l.prefs_w - 14 - scene_x, l.setup_h - 24, office_palette_id(app))
+	}
+	if l.setup_h >= 88 {
+		hover := onb_hit(app.mouse_x, app.mouse_y, l.button_x, l.button_y, l.button_w, l.button_h)
+		app.gg.draw_rect_filled(l.button_x, l.button_y, l.button_w, l.button_h, if hover {
+			app.pnl_select_hover
+		} else {
+			app.pnl_select
+		})
+		app.gg.draw_text(l.button_x + 16, l.button_y + 6, 'Open setup journey', gg.TextCfg{
+			color: app.pnl_bg
+			size: 11
+			bold: true
+		})
+	}
+}
+
+fn draw_settings_detail(mut app GuiApp, w int, h int) {
+	ensure_pixel_cache(mut app)
+	ix := inspector_x(app, w)
+	iy := panel_top(app)
+	ih := content_bottom(app, h) - iy
+	app.gg.draw_rect_filled(ix, iy, inspector_w, ih, app.pnl_card)
+	app.gg.draw_line(ix, iy, ix, iy + ih, app.pnl_border)
+	mut sc := app.pixel_cache
+	pid := office_palette_id(app)
+	gear := pixelart.environment_for(.gear)
+	sc.draw(gear, pid, ix + 18, iy + 18, 4)
+	app.gg.draw_text(ix + 82, iy + 20, 'Your desk, your way.', gg.TextCfg{
+		color: app.pnl_text
+		size: 17
+		family: app.fonts.display
+	})
+	app.gg.draw_text(ix + 18, iy + 78, 'Current preferences', gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 10
+		bold: true
+	})
+	rows := [
+		'Appearance  ${appearance_label(app.appearance)}',
+		'Language    ${app.lang.chip()}',
+		'Terminal    ${prefs_row_segments(2)[app.term_mode]}',
+		'Zoom        ${zoom_percent(app.global_zoom)}',
+	]
+	for i, row in rows {
+		app.gg.draw_text(ix + 18, iy + 100 + i * 22, row, gg.TextCfg{
+			color: app.pnl_text
+			size: 11
+			mono: true
+		})
+	}
+	if ih > 410 {
+		nook_y := iy + 220
+		nook_h := ih - 300
+		paper_sheet(mut app, ix + 12, nook_y, inspector_w - 24, nook_h)
+		shelf := pixelart.environment_for(.shelf)
+		couch := pixelart.environment_for(.couch)
+		lamp := pixelart.environment_for(.lamp)
+		plant := pixelart.environment_for(.plant)
+		sc.draw(shelf, pid, ix + 24, nook_y + 14, 3)
+		sc.draw(couch, pid, ix + 82, nook_y + nook_h - couch.height() * 3 - 14, 3)
+		sc.draw(lamp, pid, ix + inspector_w - 62, nook_y + 18, 3)
+		sc.draw(plant, pid, ix + inspector_w - 58, nook_y + nook_h - plant.height() * 3 - 10, 3)
+		draw_paper_quote(mut app, ix + 12, iy + ih - 70, inspector_w - 24, '"Good tools make', 'brighter builders."', '— Hornero')
+	} else if ih > 260 {
+		plant := pixelart.environment_for(.plant)
+		sc.draw(plant, pid, ix + inspector_w / 2 - plant.width() * 3 / 2, iy + ih - plant.height() * 3 - 24, 3)
+	}
+}
+
+fn settings_click(mut app GuiApp, mx int, my int, w int, h int) bool {
+	l := settings_layout(app, w, h)
+	if preferences_click(mut app, l.prefs_x, l.prefs_y, l.prefs_w, mx, my) {
+		return true
+	}
+	if l.setup_h >= 88 && onb_hit(mx, my, l.button_x, l.button_y, l.button_w, l.button_h) {
+		app.show_onboarding = true
+		app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
+		return true
+	}
+	return onb_hit(mx, my, inspector_x(app, w), panel_top(app), inspector_w, content_bottom(app, h) - panel_top(app))
 }
