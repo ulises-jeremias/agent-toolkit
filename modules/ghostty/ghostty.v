@@ -317,6 +317,29 @@ pub fn (mut t GhosttyTerminal) clear() {
 	t.scroll = 0
 }
 
+// prefix_feed ingests raw bytes exactly like feed but inserts the resulting
+// lines at the top of the scrollback instead of appending them, so boot
+// seeds (fleet summary) stay visible in short viewports that only render
+// the first rows. Colors stay aligned per line; the 1000-line cap still
+// trims from the bottom.
+pub fn (mut t GhosttyTerminal) prefix_feed(s string) {
+	mut tmp := GhosttyTerminal{
+		cols: t.cols
+		rows: t.rows
+	}
+	tmp.feed(s)
+	for i := tmp.lines.len - 1; i >= 0; i-- {
+		t.lines.prepend(tmp.lines[i])
+		t.colors.prepend(tmp.colors[i])
+	}
+	if t.lines.len > 1000 {
+		cut := t.lines.len - 1000
+		t.lines = t.lines[..t.lines.len - cut]
+		t.colors = t.colors[..t.colors.len - cut]
+	}
+	t.scroll = t.lines.len
+}
+
 // scroll_up scrolls up by n lines.
 pub fn (mut t GhosttyTerminal) scroll_up(n int) {
 	if n <= 0 {

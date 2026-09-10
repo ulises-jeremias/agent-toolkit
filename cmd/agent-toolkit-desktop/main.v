@@ -2453,8 +2453,9 @@ fn on_init(mut app GuiApp) {
 	// on a live fleet summary. Every count renders through the same
 	// Engine-backed helpers as the panels, so the terminal can never drift
 	// from them (idle environments read catalog/template counts, never
-	// fabricated live activity).
-	app.ghost.feed('Fleet: ${agents_active_total(mut app)} catalog agents · ${skills_total(mut app)} skills · ${loops_total(mut app)} loop templates · ${mcp_total(mut app)} MCP providers\r\n')
+	// fabricated live activity). Prefixed: short viewports render the first
+	// rows, so the summary leads instead of sitting below the fold.
+	app.ghost.prefix_feed('Fleet: ${agents_active_total(mut app)} catalog agents · ${skills_total(mut app)} skills · ${loops_total(mut app)} loop templates · ${mcp_total(mut app)} MCP providers\r\n')
 	app.ghost_focused = false
 	app.god_inbox = 0
 	app.god_outbox = 0
