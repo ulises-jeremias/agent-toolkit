@@ -43,15 +43,15 @@ OB_PID=0
 XVFB_PID=0
 WIN_ID=""
 
-# geometry (1280x800, dock 200 + inspector 300): panel fx=208 fw=772.
+# geometry (1280x800, dock 184 + inspector 280): panel fx=192 fw=808.
 # Mirrors workspace_layout() in cmd/agent-toolkit-desktop/workspace_view.v
-# (VC7): non-compact (fh=572 with the 148px terminal) → head_h=60,
+# (VC8): non-compact (fh=548 with the 120px terminal) → head_h=60,
 # hero_y=fy+64, field_y=hero_y+46; the filing scene (200px) sits at the
 # hero's right edge, the buttons end 12px before it:
-#   right = fx+fw-12-200-12 = 548+fx ; init_w=78 switch_w=62 validate_w=68, gap 6
-FX=208
-FY=52
-FW=772
+#   right = fx+fw-12-200-12 = 584+fx ; init_w=78 switch_w=62 validate_w=68, gap 6
+FX=192
+FY=104
+FW=808
 HERO_Y=$((FY + 64))
 FIELD_X=$((FX + 24))
 FIELD_Y=$((HERO_Y + 46))
@@ -161,6 +161,9 @@ HOME_B="$PREFIX/home-b"
 mkdir -p "$HOME_B"
 WS_B="$HOME_B/work-b"
 launch "$HOME_B"
+# A fresh second HOME owns the onboarding overlay. Dismiss it explicitly;
+# modal precedence correctly prevents destination shortcuts leaking through.
+key Escape
 # select Workspace panel ('0')
 key 0
 sleep 1

@@ -82,6 +82,10 @@ for _ in $(seq 1 45); do
 done
 [ -n "$WID" ] || { echo "error: window not found" >&2; exit 2; }
 sleep 8
+# First launch owns the screen. Dismiss setup explicitly before the panel tour;
+# destination shortcuts are intentionally blocked while onboarding is modal.
+xdt key Escape
+sleep 1
 
 fail=0
 # panel tour via numeric shortcuts (1..9,0,P,I) — deterministic across nav layouts
