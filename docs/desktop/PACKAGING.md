@@ -1,6 +1,6 @@
 # Desktop Packaging
 
-> `VERSION 1.27.0` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
+> `VERSION 1.30.0` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
 
 ## GUI (native desktop) build
 
@@ -78,7 +78,7 @@ build/AgentToolkit.app/
 `Info.plist` keys:
 
 - `CFBundleIdentifier=dev.agent-toolkit.desktop`
-- `CFBundleVersion=$VERSION` (`1.27.0` channel, from `VERSION` file)
+- `CFBundleVersion=$VERSION` (`1.30.0` channel, from `VERSION` file)
 - `CFBundleExecutable=agent-toolkit`
 - `LSMinimumSystemVersion=13.0`
 - `CFBundleURLSchemes=agent-toolkit` (`agent-toolkit://` deep-link)
@@ -122,9 +122,9 @@ See also `docs/desktop/WINDOWS.md` cross-ref for Gatekeeper/notarization gaps.
 
 ### Native deps bundling
 
-`FreeType`/`HarfBuzz`/`Pango`/`vglyph` (if used by `vlang/gui`) status documented per build:
+`FreeType`/`HarfBuzz`/`Pango`/`vglyph` (if used by the `gg`/`sokol` renderer) status documented per build (see `docs/desktop/WINDOWS.md` for the production rendering reality):
 
-- static link vs DLL side-by-side in `build/windows/`; `make.vsh package-desktop-windows` logs `ldd`/`objdump` + `sha256sum` of bundled DLLs; size impact vs `+4.8M` ELF baseline recorded; fallback to system `DirectWrite`/`GDI` where `vlang/gui` abstracts.
+- static link vs DLL side-by-side in `build/windows/`; `make.vsh package-desktop-windows` logs `ldd`/`objdump` + `sha256sum` of bundled DLLs; size impact vs `+4.8M` ELF baseline recorded; fallback to system `DirectWrite`/`GDI` where the `gg`/`sokol` renderer abstracts.
 
 ### Installer spike (EVALUATE, not premature pick)
 
@@ -136,10 +136,10 @@ See also `docs/desktop/WINDOWS.md` cross-ref for Gatekeeper/notarization gaps.
 | Per-user vs per-machine | ✅ | ✅ | ✅ |
 | Bundles native DLLs side-by-side | ✅ | ✅ | ✅ |
 | Code sign integration (`signtool`) | ✅ | ✅ | ✅ |
-| `vlang/gui` Windows window tested | probe pending (spike 0.3 #1018) | probe pending | probe pending |
+| `gg`/`sokol` Windows window tested | probe pending (spike 0.3 #1018) | probe pending | probe pending |
 | CI `windows-latest` support | `wix` action | `iscc` | `makensis` |
 
-**Spike verdict: choose Inno Setup** (recommendation — simplicity, Pascal `iss` authoring, `iscc` CI support, bundles DLLs, `signtool` integration). WiX is MSI enterprise alternative, NSIS is lightweight zlib but script ergonomics lower. Verdict justified by probing `vlang/gui` window on Windows, installer UX, CI cost — spike doc is acceptance gate, installer impl follows decision. No `vlang/gui` code change required.
+**Spike verdict: choose Inno Setup** (recommendation — simplicity, Pascal `iss` authoring, `iscc` CI support, bundles DLLs, `signtool` integration). WiX is MSI enterprise alternative, NSIS is lightweight zlib but script ergonomics lower. Verdict justified by probing the `gg`/`sokol` window on Windows, installer UX, CI cost — spike doc is acceptance gate, installer impl follows decision. No renderer code change required.
 
 ### Impl after spike
 
@@ -153,9 +153,9 @@ All packaging respects `V 0.5.2`, single binary, `VMODULES`, `gen-embedded`; ali
 
 ## Auto-update (7.4)
 
-`modules/desktop/update/` + `modules/desktop_engine/update_service.v` reuse existing `release.yml` + `manifest.json` pattern (no second update server).
+`modules/desktop_engine/update_service.v` reuses the existing `release.yml` + `manifest.json` pattern (no second update server). The former `modules/desktop/update/` GUI-side mock feed was removed — update stays honestly unavailable until a real updater exists (see #1063).
 
-- Feed: `https://github.com/ulises-jeremias/agent-toolkit/releases` + `manifest.json` (ADR-022) as signed feed — `net.http` fetches `version`, `assets[] { name, sha256, url, provenance }`, `channel` (`stable` = `VERSION 1.27.0` line).
+- Feed: `https://github.com/ulises-jeremias/agent-toolkit/releases` + `manifest.json` (ADR-022) as signed feed — `net.http` fetches `version`, `assets[] { name, sha256, url, provenance }`, `channel` (`stable` = `VERSION 1.30.0` line).
 - Check: `Engine.check_update(current: VERSION) -> ?UpdateInfo` compares semver, respects `channel: stable|next|pinned:$VERSION`, opt-in `update.auto_check` (default prompt, not silent).
 - Download + verify: stream to `XDG_CACHE_HOME/agent-toolkit/updates/$VERSION/`, verify `SHA256` vs `SHA256SUMS` + `manifest.json` provenance; mismatch → discard + rollback (keep current binary).
 - Apply + restart: atomic replace (Linux binary swap, macOS bundle swap + xattr, Windows MSI/exe staged). `ProcessSupervisor` handles restart. Kill during update → consistent state (partial discarded, `StateRepository` revision unchanged).

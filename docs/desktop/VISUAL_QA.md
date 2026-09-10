@@ -23,7 +23,15 @@ Include modal/text/terminal shortcut precedence, disabled explanations and Escap
 
 ## Build and capture
 
-The current production build, verified at `85853de`, is:
+The current production build reference is HEAD `711c9f32` (2026-09-10).
+
+> **Honest note (2026-09-10):** the full 7-viewport/theme/language matrix
+> below remains unmet as a whole — the only fully opened/inspected captures
+> are the 2026-09-05 audit pair plus per-PR screenshots landed since VC0–VC8,
+> which are the de-facto visual evidence. Do not read this section as
+> claiming matrix completion at HEAD.
+
+The last fully built + captured baseline was `85853de`; build with:
 
 ```sh
 VJOBS=2 VMODULES="$PWD/modules" v -d gg_text_buff_size=4096 \

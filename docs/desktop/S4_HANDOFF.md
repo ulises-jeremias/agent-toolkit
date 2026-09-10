@@ -1,5 +1,12 @@
 # S4 Implementation Handoff — Shared Action & Entity Registry
 
+> **ARCHIVED (2026-09-10).** Frozen 2026-09-07 snapshot; S4 is complete and
+> #1119 is closed (slices S4A–S4D merged as #1159–#1162). Superseded by the
+> merged S4 / standalone / Visual-Convergence work — current state lives in
+> #1118, [TRUTH_LEDGER.md](TRUTH_LEDGER.md) and
+> [WORKFLOW_COVERAGE.md](WORKFLOW_COVERAGE.md). Preserved for history only;
+> do not start new S4 work from this handoff.
+
 You are taking over Agent Toolkit Desktop to implement **S4 (#1119) — the
 shared typed action & entity registry**. This handoff was produced at the end
 of the S7 truth-audit + design-contract reconciliation phase. Verify all

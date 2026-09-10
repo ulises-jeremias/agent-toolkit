@@ -1,10 +1,15 @@
 # Desktop Engine truth ledger
 
-Status: S7 audit baseline, 2026-09-06, `origin/main cf4a4eb8`. This ledger classifies
+Status: re-baselined at HEAD `711c9f32`, 2026-09-10 (original S7 audit
+baseline 2026-09-06, `origin/main cf4a4eb8`). This ledger classifies
 every Desktop Engine value by authority and records the replacement source for
 each contaminated API. It is the contract for S7 slices: **if Agent Toolkit
 cannot prove a fact, it must not manufacture it.** Unknown, unavailable, empty
 and unverified are valid states.
+
+The S-tags in the inventory below are the historical audit index — production
+code comments no longer carry per-finding slice tags (only `*_truth_test.v`
+file headers retain `S7*` labels).
 
 ## Authority classes
 

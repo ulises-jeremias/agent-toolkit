@@ -1,5 +1,11 @@
 # Desktop backlog audit
 
+> **ARCHIVED (2026-09-10).** Frozen 2026-09-05 snapshot; superseded by the
+> merged S4 / standalone / Visual-Convergence work. Do not update the
+> classifications below — current state lives in #1118,
+> [TRUTH_LEDGER.md](TRUTH_LEDGER.md) and
+> [WORKFLOW_COVERAGE.md](WORKFLOW_COVERAGE.md). Preserved for history only.
+
 ## Implementation update (2026-09-05)
 
 Commit `18ac8e4` removes fabricated catalog padding, synthetic agent and
