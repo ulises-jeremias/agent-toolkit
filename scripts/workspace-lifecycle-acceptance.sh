@@ -204,6 +204,8 @@ assert_state "$STATE_B" "r.get('workspace_path', '') == '$WS_B'" "restart-restor
 
 # switch back to A (~/.ai-workspace)
 launch "$HOME_B"
+# HOME_B never finished onboarding, so the overlay owns the screen again.
+key Escape
 key 0
 sleep 1
 key Tab
@@ -227,6 +229,8 @@ echo "user seed file" > "$HOME_C/work-c/knowledge-README-COLLISION"  # unrelated
 mkdir -p "$HOME_C/work-c/knowledge"
 echo "# user custom knowledge" > "$HOME_C/work-c/knowledge/README.md"  # collision: user-modified
 launch "$HOME_C"
+# Fresh HOME_C also owns the onboarding overlay until dismissed.
+key Escape
 key 0
 sleep 1
 key Tab
@@ -243,6 +247,7 @@ grep -q "user custom knowledge" "$HOME_C/work-c/knowledge/README.md" || fail "se
 # idempotence: re-seed
 HOME_C_CONTENT1="$(cat "$HOME_C/work-c/knowledge/README.md")"
 launch "$HOME_C"
+key Escape
 key 0
 sleep 1
 key Tab
@@ -256,6 +261,7 @@ record "scenario-C" "PASS" "seed: scaffold beside user files, collision skipped,
 
 # ── Scenario D: invalid path → truthful error ──────────────────────────────
 launch "$HOME_B"
+key Escape
 key 0
 sleep 1
 click $((FIELD_X + 40)) $((FIELD_Y + 14))
