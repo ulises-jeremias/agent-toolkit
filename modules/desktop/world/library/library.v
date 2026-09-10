@@ -234,13 +234,3 @@ pub fn (mut s LibraryStation) on_bus_event(ev eventbus.ToolkitEvent, snap engine
 pub fn (s LibraryStation) current() LibraryViewModel {
 	return s.view_model
 }
-
-// skill_detail_via_engine stubs Engine.skill_detail(id) — no direct file read.
-pub fn skill_detail_via_engine(skill_id string) string {
-	return '---\nname: ${skill_id}\ndescription: synthetic SKILL.md for ${skill_id}\n---\n# ${skill_id}\nBody preview via Engine.skill_detail — no direct file read.'
-}
-
-// build_preview_digest stubs Engine.build_preview digest.
-pub fn build_preview_digest() string {
-	return 'sha256:abc123-engine-build-preview'
-}
