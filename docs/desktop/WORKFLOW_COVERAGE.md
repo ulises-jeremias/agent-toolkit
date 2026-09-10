@@ -1,6 +1,14 @@
 # Desktop workflow coverage
 
-Baseline: `85853decda84b9af70cee48889d00c22c543f79d`, fetched 2026-09-05.
+Baseline: `711c9f32a2cfd632f33f3a47b6ad8897caf806b2`, fetched 2026-09-10.
+
+> **Re-baseline banner (2026-09-10):** the matrix below is restated as
+> unevidenced-at-HEAD. Per-cell verdicts were carried over unchanged from the
+> 2026-09-05 baseline (`85853de`), which is now historical — per-cell
+> re-verification against the current build is pending and requires running
+> the app; no cell below counts as proven at HEAD. The resolved S4A–S4C
+> ("Dead/split action discovery") note is retained.
+
 This ledger is intentionally conservative. A control or method is not proof of a
 working journey. `scripts/gui-coverage.py` remains a command-affordance check only.
 

@@ -1,12 +1,22 @@
-# Windows — vlang/gui Limitations + Packaging Spike
+# Windows — gg/sokol Limitations + Packaging Spike
 
-> `V 0.5.2`, `VMODULES=modules`, `vlang/gui` only in `desktop/`, plane guard `! grep -r "import.*gui" modules/desktop_engine`, `docs/desktop/PACKAGING.md` Windows section.
+> `V 0.5.2`, `VMODULES=modules`, production renderer is `gg`/`sokol`
+> (`import gg` + `gg.new_context`/`run` in `cmd/agent-toolkit-desktop/main.v`;
+> there is no `vlang/gui` dependency in the production path), plane guard: no
+> `gui` import in `desktop_engine` (typed gate `test_import_guard_no_gui` in
+> `modules/desktop_engine/process/process_test.v`; manual check
+> `grep -rn "import gui" modules/desktop_engine` shows only that test's own
+> assertions), `docs/desktop/PACKAGING.md` Windows section.
 
-This doc honestly documents `vlang/gui` Windows limitations per upstream `vlang/gui/docs/WINDOWS.md` + spike 0.3 (#1018) and the WiX vs Inno Setup vs NSIS evaluation required by EPIC 7 (7.3 Windows) — spike table is acceptance gate, installer impl follows spike verdict.
+This doc honestly documents `gg`/`sokol` Windows limitations + spike 0.3
+(#1018) and the WiX vs Inno Setup vs NSIS evaluation required by EPIC 7 (7.3
+Windows) — spike table is acceptance gate, installer impl follows spike
+verdict. Windows is unproven: no `windows-latest` run evidence exists at HEAD,
+and nothing below claims otherwise.
 
-## Upstream Windows limitations (per `vlang/gui/docs/WINDOWS.md`)
+## gg/sokol Windows limitations
 
-| Windows limitation (per upstream) | Status | Mitigation |
+| Windows limitation | Status | Mitigation |
 |---|---|---|
 | Windows MSVC requirement (master needs MSVC, not mingw) | ⚠️ partial | ADR-031 fallback: `setup-v` on Windows falls back to `V 0.5.2` artifact when master requires MSVC; local dev installs Visual Studio Build Tools |
 | Windows D3D11 backend (sokol d3d11 vs OpenGL) | ⚠️ partial | `sokol` auto-selects `d3d11` on Windows; no custom GL pipeline; shader uses `sokol-shdc` cross-compile; AD R records shader stance (prefer SDF/shadow via `gui` primitives) |
@@ -19,7 +29,7 @@ This doc honestly documents `vlang/gui` Windows limitations per upstream `vlang/
 | IME / CJK composition | ⚠️ partial | Rely on `sokol` IME composition events + `vglyph` shaping; test CJK composition on Linux/macOS; Windows IME via `sokol_app` composes partially |
 | BiDi / ligatures / emoji / Unicode / OpenType | ⚠️ partial | `vglyph` + HarfBuzz-equivalent via `sokol` font path; emoji as color glyphs where available; BiDi via `fribidi`-style pass |
 | Text measurement / rotation / clipping | ✅ supported | `gg` text measurement + `vglyph` metrics; rotation via canvas transform; clipping via `sokol` scissor |
-| High-DPI / fractional scaling | ⚠️ partial | `sokol` `dpi_scale` + `gui` density; test fractional 125%/150% on Linux/Wayland; Windows high-DPI quirks per WINDOWS.md (DPI awareness manifest) |
+| High-DPI / fractional scaling | ⚠️ partial | `sokol` `dpi_scale` + renderer density; test fractional 125%/150% on Linux/Wayland; Windows high-DPI quirks per WINDOWS.md (DPI awareness manifest) |
 
 Each gap is `✅` / `⚠️` with mitigation — no hidden claim. Links to a11y (§7.2) gaps (IME/CJK, high-DPI, dialogs) per EPIC 7.
 
@@ -27,12 +37,11 @@ Each gap is `✅` / `⚠️` with mitigation — no hidden claim. Links to a11y 
 
 `modules/agent_toolkit_gui/native.v` — `probe_native()` headless-safe (never opens dialog/clipboard on CI). Manual `macos-latest` / `windows-latest` runner smoke documented in `distribution/desktop/*/package.sh` logs (`Native probe headless vs DISPLAY`).
 
-Windows probe on `windows-latest` (`setup-v@0.5.2`):
-
-```
-v run distribution/desktop/windows/probe.vsh
-# logs: native probe windows: 3/7 available (stubs expected headless: dialog/clipboard via Win32, DnD deferred)
-```
+Windows probe on `windows-latest` (`setup-v@0.5.2`) is pending — no
+`distribution/desktop/windows/probe.vsh` exists at HEAD and no Windows run
+evidence has been recorded. The planned probe renders the headless
+`windows_limitations()` summary for the CI artifact (stubs expected headless:
+dialog/clipboard via Win32, DnD deferred).
 
 CI on Linux shows bundle structure cross-build with ⚠️ doc when `windows-latest` runner unavailable.
 
@@ -46,7 +55,7 @@ CI on Linux shows bundle structure cross-build with ⚠️ doc when `windows-lat
 | Per-user vs per-machine | ✅ | ✅ | ✅ |
 | Bundles native DLLs side-by-side | ✅ | ✅ | ✅ |
 | Code sign integration (`signtool`) | ✅ | ✅ | ✅ |
-| `vlang/gui` Windows window tested | probe pending (needs `windows-latest` `vlang/gui` window smoke) | probe pending | probe pending |
+| `gg`/`sokol` Windows window tested | probe pending (needs `windows-latest` `gg`/`sokol` window smoke) | probe pending | probe pending |
 | CI `windows-latest` support | `wix` action | `iscc` | `makensis` |
 
 ### Verdict: Inno Setup
@@ -57,26 +66,26 @@ CI on Linux shows bundle structure cross-build with ⚠️ doc when `windows-lat
 - Enterprise vs portable: WiX MSI is enterprise-preferred, Inno `exe` is portable and still supports per-machine/per-user + silent `/S`.
 - Native DLL bundling: all three bundle side-by-side, Inno `iss` `[Files]` + `reg` clean.
 - `signtool` integration: `SignTool=signtool sign /fd SHA256 /tr http://timestamp.digicert.com` in `iss` works like WiX `sign`.
-- `vlang/gui` window: spike must probe `vlang/gui` window on Windows — Inno `wizard` UX + CI `iscc` is lowest friction; WiX `wix build` hello-world also works but heavier.
+- `gg`/`sokol` window: spike must probe the `gg`/`sokol` window on Windows — Inno `wizard` UX + CI `iscc` is lowest friction; WiX `wix build` hello-world also works but heavier.
 - CI cost: `iscc` on `windows-latest` is single binary, `wix` needs `dotnet`, `makensis` is similar but community smaller.
 
-No code change to `vlang/gui` required. Spike doc is acceptance gate — installer impl follows spike decision (PR cannot merge without spike section). `make.vsh package-desktop-windows` produces `build/agent-toolkit-windows-$VERSION.exe` (Inno) containing `agent-toolkit.exe` + bundled DLLs + `agent-toolkit://` registry key + Start Menu shortcut + uninstall entry.
+No renderer code change required. Spike doc is acceptance gate — installer impl follows spike decision (PR cannot merge without spike section). `make.vsh package-desktop-windows` (verified in `make.vsh`) produces `build/agent-toolkit-windows-$VERSION.exe` (Inno) containing `agent-toolkit.exe` + bundled DLLs + `agent-toolkit://` registry key + Start Menu shortcut + uninstall entry.
 
 ## Native deps bundling
 
-Document how `FreeType`/`HarfBuzz`/`Pango`/`vglyph` (if used by `vlang/gui`) are bundled:
+Document how `FreeType`/`HarfBuzz`/`Pango`/`vglyph` (if used by the `gg`/`sokol` renderer) are bundled:
 
-- Status: `vglyph` is V-native (no DLL); `FreeType`/`HarfBuzz`/`Pango` are abstracted via `vlang/gui` → `sokol`/`gg`/`vglyph` path. On Windows they map to `DirectWrite`/`GDI` where `vlang/gui` abstracts — no separate DLL required for `vglyph` rendering; if `Pango`/`HarfBuzz` were linked, they would be side-by-side DLLs in `build/windows/` with `ldd`/`objdump` + `sha256sum` logs and size delta vs `+4.8M` ELF baseline recorded.
+- Status: `vglyph` is V-native (no DLL); `FreeType`/`HarfBuzz`/`Pango` are abstracted via the `gg`/`sokol`/`vglyph` path. On Windows they map to `DirectWrite`/`GDI` where the renderer abstracts — no separate DLL required for `vglyph` rendering; if `Pango`/`HarfBuzz` were linked, they would be side-by-side DLLs in `build/windows/` with `ldd`/`objdump` + `sha256sum` logs and size delta vs `+4.8M` ELF baseline recorded.
 - `make.vsh package-desktop-windows` logs `ldd`/`sha256sum` of bundled DLLs (if any) and `ls -lh build/*windows*` size vs baseline.
-- Fallback to system `DirectWrite`/`GDI` where `vlang/gui` abstracts — not a separate `vcpkg`/`msys2` prereq (hurts single-binary portability).
+- Fallback to system `DirectWrite`/`GDI` where the renderer abstracts — not a separate `vcpkg`/`msys2` prereq (hurts single-binary portability).
 
 ## Packaging adapter
 
-`distribution/desktop/windows/`:
+`distribution/desktop/windows/` (only `package.sh` is checked in at HEAD —
+verified by directory listing):
 
-- `package.sh` — cross-build installer structure on Linux + real `.exe` on `windows-latest` (`setup-v@0.5.2`); `file`/`sha256sum`/`ls -lh`; launch smoke `agent-toolkit.exe --version` + `doctor` (FHS/embedded tiers, receipts); deep-link registry smoke `reg query HKCU\Software\Classes\agent-toolkit`.
-- `installer.iss` — Inno Setup script stub (after spike choice) for `agent-toolkit.exe` + DLLs + URL handler + shortcut + uninstall; `signtool verify` path with `${WINDOWS_CODESIGN_CERT}` env (ad-hoc unsigned in PR, real sign `release.yml` gated, no cert in repo).
-- `probe.vsh` — headless `windows_limitations()` markdown render for CI artifact.
+- `package.sh` — cross-build installer structure on Linux + real `.exe` on `windows-latest` (`setup-v@0.5.2`); `file`/`sha256sum`/`ls -lh`; launch smoke `agent-toolkit.exe --version` + `doctor` (FHS/embedded tiers, receipts); deep-link registry smoke `reg query HKCU\Software\Classes\agent-toolkit`. Also generates `build/windows/installer.iss` at build time (Inno Setup script for `agent-toolkit.exe` + DLLs + URL handler + shortcut + uninstall; `signtool verify` path with `${WINDOWS_CODESIGN_CERT}` env — ad-hoc unsigned in PR, real sign `release.yml` gated, no cert in repo). The `.iss` is a build artifact, not a checked-in source.
+- `probe.vsh` — planned headless `windows_limitations()` markdown render for the CI artifact; does not exist at HEAD.
 
 ## Verification
 
@@ -84,8 +93,15 @@ Document how `FreeType`/`HarfBuzz`/`Pango`/`vglyph` (if used by `vlang/gui`) are
 - Packaging: `windows-latest` job `make.vsh package-desktop-windows` with `setup-v@0.5.2`, `file` + `sha256sum` + `agent-toolkit.exe --version` + `doctor` logs; artifact uploaded; size `ls -lh build/*windows*`.
 - Deep-link/registry: `reg query HKCU\Software\Classes\agent-toolkit` shows URL protocol; `start agent-toolkit://open?repo=C:\tmp` smoke or doc ⚠️.
 - Secrets: `gitleaks`/`validate-secrets` on `build/` + `distribution/desktop/windows/`; `grep -R "WINDOWS_CODESIGN"` shows `${ENV_VAR}` only.
-- Vet: `v vet` + `make.vsh vet`, plane guard `! grep -r "import.*gui" modules/desktop_engine`.
+- Vet: `v vet` + `make.vsh vet`, plane guard `test_import_guard_no_gui` (`modules/desktop_engine/process/process_test.v`).
 
 ## A11y note
 
 Windows high-DPI + IME gaps link to EPIC 7 §7.2 accessibility (high-DPI token scaling, `reduced-motion`, typography `CJK/emoji/BiDi`). Doc cross-refs `docs/desktop/PACKAGING.md` macOS/Windows packaging and `docs/desktop/WORLD_VIEW.md` workshop metaphor.
+
+## Status (2026-09-10, HEAD `711c9f32`)
+
+Windows is unproven, not claimed: no `windows-latest` build, window smoke,
+or installer run has been recorded. The Inno Setup verdict and the spike
+table above are the evaluation gate; the installer implementation and the
+`windows-latest` evidence follow the verdict. Tracked by #1060.
