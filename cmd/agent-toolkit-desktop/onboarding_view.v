@@ -4,18 +4,15 @@ import gg
 import desktop.pixelart
 import desktop_engine
 
-// VC4 (#1173) — Paper Co. setup journey, second visual-lock pass.
+// Paper Co. setup journey: five user-facing stages in a dedicated editorial shell.
 //
 // Canonical visual reference: docs/desktop/assets/design/onboarding.jpg with
-// concept-board.jpg as the shell/material authority. The first VC4 pass
-// closed structural gaps (masthead content, card clipping, review rows,
-// responsive recomposition) but still read as a bordered utility screen. This
-// pass changes HOW onboarding occupies the whole window: it replaces the
-// generic header + production sidebar with a dedicated editorial shell
-// (draw_onboarding_masthead_shell + draw_onboarding_sidebar, wired from
-// frame() in main.v), enlarges type across the board, trades hard borders
-// for warm paper/manila fills, and composes each illustration as a small
-// scene instead of one centered icon.
+// concept-board.jpg as the shell/material authority. Onboarding occupies the
+// whole window: the generic header + production sidebar are replaced with a
+// dedicated editorial shell (draw_onboarding_masthead_shell +
+// draw_onboarding_sidebar, wired from frame() in main.v), type is enlarged
+// across the board, warm paper/manila fills replace hard borders, and each
+// illustration is composed as a small scene instead of one centered icon.
 //
 // Truth: every value shown here comes from Engine (onboarding_status, tool
 // discovery, targets, skills, products, personas). Illustration is
@@ -23,45 +20,31 @@ import desktop_engine
 // (revision, api counters, root-resolution chain, ADR ids) live behind the
 // Details affordance instead of dominating first run.
 
-// five user-facing stages; the Engine work each one commits is in onb_apply_stage
-const onb_stages = ['Setup Choice', 'Tools', 'Workspace', 'Capabilities', 'Review']
+// five user-facing stages; the Engine work each one commits is in onboarding_apply_stage
+const onboarding_stages = ['Setup Choice', 'Tools', 'Workspace', 'Capabilities', 'Review']
 
-const onb_stage_hints = ['How would you like to begin?', "We'll find what you have",
+const onboarding_stage_hints = ['How would you like to begin?', "We'll find what you have",
 	'Choose where agents live', 'Recommended for you', 'Confirm and finish']
 
-const onb_last_stage = 4
+const onboarding_last_stage = 4
 
 // setup-choice cards (stage 0) — each maps to real product behaviour
-const onb_choices = ['Set up for me', 'Existing setup', 'Find my setup']
+const onboarding_choices = ['Set up for me', 'Existing setup', 'Find my setup']
 
-const onb_choice_copy = ['Create a new workspace.', 'Use a configured setup.',
+const onboarding_choice_copy = ['Create a new workspace.', 'Use a configured setup.',
 	'Find existing workspaces.']
 
 // workspace cards (stage 2)
-const onb_ws_choices = ['Create workspace', 'Reuse a workspace']
+const onboarding_workspace_choices = ['Create workspace', 'Reuse a workspace']
 
-const onb_ws_copy = ['Create a fresh workspace.', 'Use an existing folder.']
+const onboarding_workspace_copy = ['Create a fresh workspace.', 'Use an existing folder.']
 
 // recommended capabilities (stage 3) — labels are user-facing, the sub-line is
 // the real catalog fact behind each one
-const onb_caps = ['Multi-agent collaboration (MCP)', 'Task planning and execution', 'Workspace memory',
+const onboarding_caps = ['Multi-agent collaboration (MCP)', 'Task planning and execution', 'Workspace memory',
 	'Observability and insights']
 
 // ── the editorial shell (replaces the generic header + production sidebar) ──
-
-// shell_mast_h is shared by onboarding and every regular destination.
-// It follows the reference's editorial band while leaving useful content at
-// compact heights.
-fn shell_mast_h(h int) int {
-	mut m := h * 13 / 100
-	if m < 78 {
-		m = 78
-	}
-	if m > 128 {
-		m = 128
-	}
-	return m
-}
 
 // draw_onboarding_sidebar replaces the production nav with the reference's
 // simplified onboarding rail: brand, three quiet rows, and a landscape
@@ -108,14 +91,14 @@ pub fn draw_onboarding_sidebar(mut app GuiApp, w int, h int) {
 	land_y := y0 + 74 + rows.len * 34 + 14
 	land_h := y1 - land_y
 	if land_h > 60 {
-		draw_onb_landscape(mut app, x0, land_y, dock_w, land_h, pid)
+		draw_onboarding_landscape(mut app, x0, land_y, dock_w, land_h, pid)
 	}
 }
 
-// draw_onb_landscape is a small original pixel-art panorama: two hill bands,
+// draw_onboarding_landscape is a small original pixel-art panorama: two hill bands,
 // a tree line and the hornero nest, closing the sidebar the way the
 // reference's village/hills illustration does.
-fn draw_onb_landscape(mut app GuiApp, x int, y int, w int, h int, pid pixelart.PaletteId) {
+fn draw_onboarding_landscape(mut app GuiApp, x int, y int, w int, h int, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
 	ground := y + h - 44
 	app.gg.draw_rect_filled(x, y, w, h, col_ink700)
@@ -174,9 +157,9 @@ fn draw_onb_landscape(mut app GuiApp, x int, y int, w int, h int, pid pixelart.P
 	})
 }
 
-// OnbLayout is computed once per frame and reused by drawing, clicking and
+// OnboardingLayout is computed once per frame and reused by drawing, clicking and
 // hovering, so the interactive geometry can never drift from the drawn one.
-struct OnbLayout {
+struct OnboardingLayout {
 	fx      int
 	fy      int
 	fw      int
@@ -195,8 +178,8 @@ struct OnbLayout {
 	active  int // current stage — the only one shown full-width when compact
 }
 
-fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
-	term_h := if app.term_visible { onb_effective_term_h(app) } else { 0 }
+fn onboarding_layout(app &GuiApp, w int, h int) OnboardingLayout {
+	term_h := if app.term_visible { onboarding_capped_terminal_height(app) } else { 0 }
 	mh := shell_mast_h(h)
 	fy := mh
 	fh := h - mh - 28 - term_h
@@ -212,7 +195,7 @@ fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
 	step_h := if compact { 38 } else { 56 }
 	body_y := step_y + step_h + 8
 	foot_y := fy + fh - 28
-	return OnbLayout{
+	return OnboardingLayout{
 		fx: fx
 		fy: fy
 		fw: fw
@@ -234,12 +217,12 @@ fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
 
 // ── shared rects ────────────────────────────────────────────────────────────
 
-// onb_sec_rect returns the sheet rectangle for section i (0..4) in the
+// onboarding_sec_rect returns the sheet rectangle for section i (0..4) in the
 // reference's board layout: sections 1/2 on the top row, 3/4 below, and the
 // review strip spanning the full width underneath. Compact: only the active
 // stage renders, full-width, like a focused single-stage view — a
 // recomposition, not a shrink.
-fn onb_sec_rect(l OnbLayout, i int) (int, int, int, int) {
+fn onboarding_sec_rect(l OnboardingLayout, i int) (int, int, int, int) {
 	if l.compact {
 		if i == l.active {
 			return l.fx, l.body_y, l.fw, l.body_h
@@ -293,14 +276,14 @@ fn onb_sec_rect(l OnbLayout, i int) (int, int, int, int) {
 	return l.fx, cy, l.fw, rn[i]
 }
 
-fn onb_step_rect(l OnbLayout, i int) (int, int, int, int) {
-	cw := l.fw / onb_stages.len
+fn onboarding_step_rect(l OnboardingLayout, i int) (int, int, int, int) {
+	cw := l.fw / onboarding_stages.len
 	return l.fx + i * cw, l.step_y, cw, l.step_h
 }
 
 // decision cards inside a section sheet (setup choice, workspace)
-fn onb_card_rect(l OnbLayout, sec int, i int, total int) (int, int, int, int) {
-	sx, sy, sw, sh := onb_sec_rect(l, sec)
+fn onboarding_card_rect(l OnboardingLayout, sec int, i int, total int) (int, int, int, int) {
+	sx, sy, sw, sh := onboarding_sec_rect(l, sec)
 	if sh < 40 {
 		return 0, 0, 0, 0
 	}
@@ -314,8 +297,8 @@ fn onb_card_rect(l OnbLayout, sec int, i int, total int) (int, int, int, int) {
 }
 
 // tool discovery cards inside section 1, two columns
-fn onb_tool_rect(l OnbLayout, i int) (int, int, int, int) {
-	sx, sy, sw, sh := onb_sec_rect(l, 1)
+fn onboarding_tool_rect(l OnboardingLayout, i int) (int, int, int, int) {
+	sx, sy, sw, sh := onboarding_sec_rect(l, 1)
 	if sh < 40 {
 		return 0, 0, 0, 0
 	}
@@ -329,20 +312,20 @@ fn onb_tool_rect(l OnbLayout, i int) (int, int, int, int) {
 	return sx + col * (cw + gap), sy + 40 + row * (ch + gap), cw, ch
 }
 
-fn onb_cap_rect(l OnbLayout, i int) (int, int, int, int) {
-	sx, sy, sw, sh := onb_sec_rect(l, 3)
+fn onboarding_cap_rect(l OnboardingLayout, i int) (int, int, int, int) {
+	sx, sy, sw, sh := onboarding_sec_rect(l, 3)
 	if sh < 40 {
 		return 0, 0, 0, 0
 	}
-	mut rh := (sh - 40) / onb_caps.len
+	mut rh := (sh - 40) / onboarding_caps.len
 	if rh < 22 {
 		rh = 22 // floor: an 18px box + 13px label fit; rows past the sheet are dropped
 	}
 	return sx, sy + 40 + i * rh, sw, rh - 4
 }
 
-fn onb_cta_rect(l OnbLayout) (int, int, int, int) {
-	sx, sy, sw, sh := onb_sec_rect(l, 4)
+fn onboarding_cta_rect(l OnboardingLayout) (int, int, int, int) {
+	sx, sy, sw, sh := onboarding_sec_rect(l, 4)
 	if sh < 40 {
 		return 0, 0, 0, 0
 	}
@@ -350,33 +333,33 @@ fn onb_cta_rect(l OnbLayout) (int, int, int, int) {
 	return sx + sw - cw, sy + sh - 46, cw, 38
 }
 
-fn onb_next_rect(l OnbLayout) (int, int, int, int) {
+fn onboarding_next_rect(l OnboardingLayout) (int, int, int, int) {
 	return l.fx + l.fw - 116, l.foot_y + 2, 100, 30
 }
 
-fn onb_back_rect(l OnbLayout) (int, int, int, int) {
+fn onboarding_back_rect(l OnboardingLayout) (int, int, int, int) {
 	return l.fx + l.fw - 220, l.foot_y + 2, 92, 30
 }
 
-fn onb_skip_rect(l OnbLayout) (int, int, int, int) {
+fn onboarding_skip_rect(l OnboardingLayout) (int, int, int, int) {
 	return l.fx, l.foot_y + 6, 50, 22
 }
 
-fn onb_diag_rect(l OnbLayout) (int, int, int, int) {
+fn onboarding_diag_rect(l OnboardingLayout) (int, int, int, int) {
 	return l.fx + 62, l.foot_y + 6, 66, 22
 }
 
-fn onb_rescan_rect(l OnbLayout) (int, int, int, int) {
-	sx, sy, sw, sh := onb_sec_rect(l, 1)
+fn onboarding_rescan_rect(l OnboardingLayout) (int, int, int, int) {
+	sx, sy, sw, sh := onboarding_sec_rect(l, 1)
 	if sh < 40 {
 		return 0, 0, 0, 0
 	}
 	return sx + sw - 96, sy + 8, 84, 24
 }
 
-// onb_art_scale keeps pixel art integral: the largest whole multiplier that
+// onboarding_art_scale keeps pixel art integral: the largest whole multiplier that
 // fits the available band, never a stretched sprite.
-fn onb_art_scale(sw int, sh int, aw int, ah int) int {
+fn onboarding_art_scale(sw int, sh int, aw int, ah int) int {
 	mut sc := 1
 	for m := 8; m >= 1; m-- {
 		if sw * m <= aw && sh * m <= ah {
@@ -387,18 +370,18 @@ fn onb_art_scale(sw int, sh int, aw int, ah int) int {
 	return sc
 }
 
-// onb_check draws a checkmark from pixel runs — the brand fonts do not carry a
+// draw_check_glyph draws a checkmark from pixel runs — the brand fonts do not carry a
 // dependable ✓ glyph and fell back to a stray letterform.
-fn onb_check(mut app GuiApp, x int, y int, c gg.Color) {
+fn draw_check_glyph(mut app GuiApp, x int, y int, c gg.Color) {
 	app.gg.draw_rect_filled(x + 1, y + 5, 2, 4, c)
 	app.gg.draw_rect_filled(x + 3, y + 7, 2, 3, c)
 	app.gg.draw_rect_filled(x + 5, y + 4, 2, 4, c)
 	app.gg.draw_rect_filled(x + 7, y + 1, 2, 4, c)
 }
 
-// onb_fit returns how many characters of the UI font fit in px at a size.
+// text_fit_chars returns how many characters of the UI font fit in px at a size.
 // Plex Sans averages ~0.56em, so this is deliberately slightly conservative.
-fn onb_fit(px int, size int) int {
+fn text_fit_chars(px int, size int) int {
 	adv := if size <= 10 {
 		5
 	} else if size <= 13 {
@@ -410,30 +393,15 @@ fn onb_fit(px int, size int) int {
 	return if n < 4 { 4 } else { n }
 }
 
-fn onb_hit(mx int, my int, x int, y int, w int, h int) bool {
-	return mx >= x && mx < x + w && my >= y && my < y + h
-}
-
-// onb_sheet_fill is the soft material surface every sheet/card sits on:
-// warm cream when active, a quieter manila tint otherwise, and a brass
-// accent bar instead of a hard outline. This is the deliberate replacement
-// for the bordered-panel treatment the first VC4 pass over-used.
-fn onb_sheet_fill(mut app GuiApp, x int, y int, w int, h int, active bool) {
-	// the reference's sheets are light paper on the warm canvas with a very
-	// quiet edge — hierarchy comes from tone and whitespace, not outlines
-	app.gg.draw_rect_filled(x + 2, y + 3, w, h, tint(col_ink, 14))
-	app.gg.draw_rect_filled(x, y, w, h, pc(app, `P`))
-	app.gg.draw_rect_empty(x, y, w, h, tint(pc(app, `W`), 70))
-	if active {
-		app.gg.draw_rect_filled(x, y, w, 3, app.pnl_select)
-	}
-}
+// text_fit_chars and draw_check_glyph live here as the single shared
+// definitions; rect_contains lives in operations_view.v and the paper surface
+// draw_paper_sheet lives in workspace_view.v.
 
 // ── truth helpers ───────────────────────────────────────────────────────────
 
-// onb_cap_fact returns the real catalog fact behind each recommended
+// onboarding_cap_fact returns the real catalog fact behind each recommended
 // capability. Nothing here claims runtime activity.
-fn onb_cap_fact(mut app GuiApp, i int) string {
+fn onboarding_cap_fact(mut app GuiApp, i int) string {
 	return match i {
 		0 { '${mcp_total(mut app)} MCP providers in catalog' }
 		1 { '${agents_active_total(mut app)} agent personas available' }
@@ -442,8 +410,8 @@ fn onb_cap_fact(mut app GuiApp, i int) string {
 	}
 }
 
-fn onb_choice_verb(app &GuiApp) string {
-	return match app.onb_choice {
+fn onboarding_choice_verb(app &GuiApp) string {
+	return match app.onboarding_choice {
 		1 { 'Connect to existing setup' }
 		2 { 'Search this computer' }
 		else { 'Set everything up for me' }
@@ -454,38 +422,41 @@ fn onb_choice_verb(app &GuiApp) string {
 
 fn draw_onboarding(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
-	l := onb_layout(app, w, h)
+	l := onboarding_layout(app, w, h)
 	pid := office_palette_id(app)
 	st := app.desktop.onboarding_status(app.harness_root)
 
 	// warm paper world behind the whole journey
 	app.gg.draw_rect_filled(l.fx - 16, l.fy, l.fw + 32, l.fh, app.pnl_bg)
 
-	draw_onb_welcome(mut app, l)
-	draw_onb_steps(mut app, l)
+	draw_onboarding_welcome(mut app, l)
+	draw_onboarding_steps(mut app, l)
 
 	// the reference is a board, not a one-screen-at-a-time wizard: every
 	// setup sheet gets a soft material surface, the active one accented
-	for i in 0 .. onb_stages.len {
-		sx, sy, sw, sh := onb_sec_rect(l, i)
+	for i in 0 .. onboarding_stages.len {
+		sx, sy, sw, sh := onboarding_sec_rect(l, i)
 		if sh < 40 {
 			continue
 		}
-		onb_sheet_fill(mut app, sx, sy, sw, sh, i == app.onboarding_step)
+		draw_paper_sheet(mut app, sx, sy, sw, sh)
+		if i == app.onboarding_step {
+			app.gg.draw_rect_filled(sx, sy, sw, 3, app.pnl_select)
+		}
 	}
-	draw_onb_choice(mut app, l, pid)
-	draw_onb_tools(mut app, l)
-	draw_onb_workspace(mut app, l, pid, st)
-	draw_onb_capabilities(mut app, l)
-	draw_onb_review(mut app, l, st)
+	draw_onboarding_choice(mut app, l, pid)
+	draw_onboarding_tools(mut app, l)
+	draw_onboarding_workspace(mut app, l, pid, st)
+	draw_onboarding_capabilities(mut app, l)
+	draw_onboarding_review(mut app, l, st)
 
-	if app.onb_diag {
-		draw_onb_diagnostics(mut app, l, st)
+	if app.onboarding_diag {
+		draw_onboarding_diagnostics(mut app, l, st)
 	}
-	draw_onb_footer(mut app, l, st)
+	draw_onboarding_footer(mut app, l, st)
 }
 
-fn draw_onb_welcome(mut app GuiApp, l OnbLayout) {
+fn draw_onboarding_welcome(mut app GuiApp, l OnboardingLayout) {
 	y := l.welc_y
 	app.gg.draw_text(l.fx, y, 'Welcome to', gg.TextCfg{
 		color: app.pnl_text_mut
@@ -521,13 +492,13 @@ fn draw_onb_welcome(mut app GuiApp, l OnbLayout) {
 	}
 }
 
-fn draw_onb_steps(mut app GuiApp, l OnbLayout) {
+fn draw_onboarding_steps(mut app GuiApp, l OnboardingLayout) {
 	md := if l.step_h >= 52 { 36 } else { 26 }
 	// one continuous journey rule behind every medallion, like the reference
 	rule_y := l.step_y + md / 2 + 2
 	app.gg.draw_rect_filled(l.fx + md / 2, rule_y, l.fw - md, 2, tint(pc(app, `W`), 90))
-	for i, name in onb_stages {
-		sx, sy, sw, sh := onb_step_rect(l, i)
+	for i, name in onboarding_stages {
+		sx, sy, sw, sh := onboarding_step_rect(l, i)
 		done := i < app.onboarding_step
 		here := i == app.onboarding_step
 		mx0 := sx
@@ -547,7 +518,7 @@ fn draw_onb_steps(mut app GuiApp, l OnbLayout) {
 			tint(pc(app, `W`), 120)
 		})
 		if done {
-			onb_check(mut app, mx0 + md / 2 - 4, my0 + md / 2 - 3, app.pnl_bg)
+			draw_check_glyph(mut app, mx0 + md / 2 - 4, my0 + md / 2 - 3, app.pnl_bg)
 		} else {
 			app.gg.draw_text(mx0 + md / 2 - 5, my0 + md / 2 - 8, '${i + 1}', gg.TextCfg{
 				color: if here { app.pnl_bg } else { app.pnl_text_mut }
@@ -563,7 +534,7 @@ fn draw_onb_steps(mut app GuiApp, l OnbLayout) {
 		})
 		hint_px := sx + sw - label_x - 8
 		if sh >= 52 && hint_px > 40 {
-			app.gg.draw_text(label_x, sy + 20, utf8_truncate(onb_stage_hints[i], onb_fit(hint_px, 11)), gg.TextCfg{
+			app.gg.draw_text(label_x, sy + 20, utf8_truncate(onboarding_stage_hints[i], text_fit_chars(hint_px, 11)), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -571,8 +542,8 @@ fn draw_onb_steps(mut app GuiApp, l OnbLayout) {
 	}
 }
 
-fn draw_onb_sheet_title(mut app GuiApp, l OnbLayout, sec int, title string, sub string) {
-	sx, sy, sw, sh := onb_sec_rect(l, sec)
+fn draw_onboarding_sheet_title(mut app GuiApp, l OnboardingLayout, sec int, title string, sub string) {
+	sx, sy, sw, sh := onboarding_sec_rect(l, sec)
 	if sh < 40 {
 		return // compact: this sheet is not the active one, its rect is inert
 	}
@@ -582,7 +553,7 @@ fn draw_onb_sheet_title(mut app GuiApp, l OnbLayout, sec int, title string, sub 
 		family: app.fonts.display
 	})
 	if sub != '' && sw > 300 {
-		app.gg.draw_text(sx + 14, sy + 28, utf8_truncate(sub, onb_fit(sw - 130, 11)), gg.TextCfg{
+		app.gg.draw_text(sx + 14, sy + 28, utf8_truncate(sub, text_fit_chars(sw - 130, 11)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 		})
@@ -590,14 +561,14 @@ fn draw_onb_sheet_title(mut app GuiApp, l OnbLayout, sec int, title string, sub 
 }
 
 // stage 0 — three illustrated choices, each a small composed scene
-fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
-	draw_onb_sheet_title(mut app, l, 0, 'How would you like to get started?', '')
-	for i, title in onb_choices {
-		cx, cy, cw, ch := onb_card_rect(l, 0, i, onb_choices.len)
+fn draw_onboarding_choice(mut app GuiApp, l OnboardingLayout, pid pixelart.PaletteId) {
+	draw_onboarding_sheet_title(mut app, l, 0, 'How would you like to get started?', '')
+	for i, title in onboarding_choices {
+		cx, cy, cw, ch := onboarding_card_rect(l, 0, i, onboarding_choices.len)
 		if ch == 0 {
 			continue
 		}
-		sel := app.onb_choice == i
+		sel := app.onboarding_choice == i
 		// unselected: warm manila card on the paper sheet; selected: a sage
 		// wash with a sage edge — the reference's green-highlighted choice
 		card_tone := if sel { tint(app.pnl_success, 170) } else { tint(pc(app, `m`), 90) }
@@ -613,7 +584,7 @@ fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 			app.gg.draw_rect_filled(cx + cw - 21, cy + 11, 8, 8, app.pnl_success)
 		}
 		band := if ch * 44 / 100 < 42 { 42 } else { ch * 44 / 100 }
-		draw_onb_choice_scene(mut app, i, cx + 8, cy + 4, cw - 16, band, pid)
+		draw_onboarding_choice_scene(mut app, i, cx + 8, cy + 4, cw - 16, band, pid)
 		ty := cy + band + 6
 		app.gg.draw_text(cx + 12, ty, title, gg.TextCfg{
 			color: app.pnl_text
@@ -624,13 +595,13 @@ fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 		if lines > 3 {
 			lines = 3
 		}
-		draw_onb_wrapped(mut app, cx + 12, ty + 19, cw - 24, onb_choice_copy[i], lines)
+		draw_wrapped_text(mut app, cx + 12, ty + 19, cw - 24, onboarding_choice_copy[i], lines)
 	}
 }
 
-// draw_onb_choice_scene composes 2-3 sprites into a small cluster per choice
+// draw_onboarding_choice_scene composes 2-3 sprites into a small cluster per choice
 // instead of one icon centered in empty space.
-fn draw_onb_choice_scene(mut app GuiApp, i int, x int, y int, w int, h int, pid pixelart.PaletteId) {
+fn draw_onboarding_choice_scene(mut app GuiApp, i int, x int, y int, w int, h int, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
 	base := y + h - 4
 	match i {
@@ -638,7 +609,7 @@ fn draw_onb_choice_scene(mut app GuiApp, i int, x int, y int, w int, h int, pid 
 			desk := pixelart.environment_for(.welcome_desk)
 			chair := pixelart.environment_for(.chair)
 			plant := pixelart.environment_for(.plant)
-			s := onb_art_scale(desk.width() + chair.width() + 4, desk.height(), w - 8, h - 8)
+			s := onboarding_art_scale(desk.width() + chair.width() + 4, desk.height(), w - 8, h - 8)
 			gx := x + (w - (desk.width() + chair.width() + 4) * s) / 2
 			sc.draw(chair, pid, gx, base - chair.height() * s, s)
 			sc.draw(desk, pid, gx + chair.width() * s + 4 * s, base - desk.height() * s, s)
@@ -649,7 +620,7 @@ fn draw_onb_choice_scene(mut app GuiApp, i int, x int, y int, w int, h int, pid 
 		1 {
 			cabinet := pixelart.environment_for(.cabinet)
 			books := pixelart.environment_for(.books)
-			s := onb_art_scale(cabinet.width() + books.width() + 4, cabinet.height(), w - 8, h - 8)
+			s := onboarding_art_scale(cabinet.width() + books.width() + 4, cabinet.height(), w - 8, h - 8)
 			gx := x + (w - (cabinet.width() + books.width() + 4) * s) / 2
 			sc.draw(cabinet, pid, gx, base - cabinet.height() * s, s)
 			sc.draw(books, pid, gx + cabinet.width() * s + 4 * s, base - books.height() * s, s)
@@ -657,7 +628,7 @@ fn draw_onb_choice_scene(mut app GuiApp, i int, x int, y int, w int, h int, pid 
 		else {
 			shelf := pixelart.environment_for(.shelf)
 			window := pixelart.environment_for(.window)
-			s := onb_art_scale(shelf.width() + window.width() + 4, shelf.height(), w - 8, h - 8)
+			s := onboarding_art_scale(shelf.width() + window.width() + 4, shelf.height(), w - 8, h - 8)
 			gx := x + (w - (shelf.width() + window.width() + 4) * s) / 2
 			sc.draw(shelf, pid, gx, base - shelf.height() * s, s)
 			sc.draw(window, pid, gx + shelf.width() * s + 4 * s, base - window.height() * s, s)
@@ -666,15 +637,15 @@ fn draw_onb_choice_scene(mut app GuiApp, i int, x int, y int, w int, h int, pid 
 }
 
 // stage 1 — tool discovery as product UI, not a diagnostic dump
-fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
+fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 	cat := app.desktop.engine_tool_discovery_catalog_cached()
 	found := cat.filter(it.found).len
-	_, _, _, sh_t := onb_sec_rect(l, 1)
+	_, _, _, sh_t := onboarding_sec_rect(l, 1)
 	if sh_t < 40 {
 		return
 	}
-	draw_onb_sheet_title(mut app, l, 1, 'Detected developer tools', '${found} of ${cat.len} found on this computer')
-	rx, ry, rw, rh := onb_rescan_rect(l)
+	draw_onboarding_sheet_title(mut app, l, 1, 'Detected developer tools', '${found} of ${cat.len} found on this computer')
+	rx, ry, rw, rh := onboarding_rescan_rect(l)
 	if rh > 0 {
 		app.gg.draw_rect_filled(rx, ry, rw, rh, if app.onboarding_hover == 20 {
 			app.pnl_card_sel
@@ -686,7 +657,7 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 			size: 12
 		})
 	}
-	_, ssy, _, ssh := onb_sec_rect(l, 1)
+	_, ssy, _, ssh := onboarding_sec_rect(l, 1)
 	mut roster := cat.filter(it.found)
 	roster << cat.filter(!it.found)
 	mut shown := 0
@@ -694,7 +665,7 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 		if shown >= 4 {
 			break
 		}
-		cx, cy, cw, ch := onb_tool_rect(l, shown)
+		cx, cy, cw, ch := onboarding_tool_rect(l, shown)
 		if ch == 0 || cy + ch > ssy + ssh - 6 {
 			break
 		}
@@ -713,7 +684,7 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 		pill_c := if t.found { app.pnl_success } else { app.pnl_text_mut }
 		name_x := cx + 16 + mk
 		pw := label.len * 7 + 16
-		app.gg.draw_text(name_x, cy + 12, utf8_truncate(t.display_name, onb_fit(cw - (mk + 26) - pw, 14)), gg.TextCfg{
+		app.gg.draw_text(name_x, cy + 12, utf8_truncate(t.display_name, text_fit_chars(cw - (mk + 26) - pw, 14)), gg.TextCfg{
 			color: app.pnl_text
 			size: 14
 			bold: true
@@ -729,14 +700,14 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 		} else {
 			'Install to enable seamless integration'
 		}
-		app.gg.draw_text(name_x, cy + 32, utf8_truncate(detail, onb_fit(cw - mk - 30, 11)), gg.TextCfg{
+		app.gg.draw_text(name_x, cy + 32, utf8_truncate(detail, text_fit_chars(cw - mk - 30, 11)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 			mono: t.found
 		})
 		shown++
 	}
-	sx1, sy1, sw1, sh1 := onb_sec_rect(l, 1)
+	sx1, sy1, sw1, sh1 := onboarding_sec_rect(l, 1)
 	if cat.len > shown && sh1 >= 40 {
 		app.gg.draw_text(sx1 + sw1 - 190, sy1 + sh1 - 15, '+${cat.len - shown} more in Settings → Targets', gg.TextCfg{
 			color: app.pnl_text_mut
@@ -746,14 +717,14 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 }
 
 // stage 2 — where the agents live
-fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st desktop_engine.OnboardingStatus) {
-	draw_onb_sheet_title(mut app, l, 2, 'Workspace setup', 'Where agents and data live')
-	for i, title in onb_ws_choices {
-		cx, cy, cw, ch := onb_card_rect(l, 2, i, onb_ws_choices.len)
+fn draw_onboarding_workspace(mut app GuiApp, l OnboardingLayout, pid pixelart.PaletteId, st desktop_engine.OnboardingStatus) {
+	draw_onboarding_sheet_title(mut app, l, 2, 'Workspace setup', 'Where agents and data live')
+	for i, title in onboarding_workspace_choices {
+		cx, cy, cw, ch := onboarding_card_rect(l, 2, i, onboarding_workspace_choices.len)
 		if ch == 0 {
 			continue
 		}
-		sel := app.onb_ws_choice == i
+		sel := app.onboarding_workspace_choice == i
 		// unselected: warm manila card on the paper sheet; selected: a sage
 		// wash with a sage edge — the reference's green-highlighted choice
 		card_tone := if sel { tint(app.pnl_success, 170) } else { tint(pc(app, `m`), 90) }
@@ -768,7 +739,7 @@ fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st de
 			app.gg.draw_rect_filled(cx + cw - 21, cy + 11, 8, 8, app.pnl_success)
 		}
 		band := if ch * 52 / 100 < 40 { 40 } else { ch * 52 / 100 }
-		draw_onb_choice_scene(mut app, i, cx + 8, cy + 4, cw - 16, band, pid)
+		draw_onboarding_choice_scene(mut app, i, cx + 8, cy + 4, cw - 16, band, pid)
 		ty := cy + band + 4
 		app.gg.draw_text(cx + 12, ty, title, gg.TextCfg{
 			color: app.pnl_text
@@ -779,13 +750,13 @@ fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st de
 		if wlines > 2 {
 			wlines = 2
 		}
-		draw_onb_wrapped(mut app, cx + 12, ty + 19, cw - 24, onb_ws_copy[i], wlines)
+		draw_wrapped_text(mut app, cx + 12, ty + 19, cw - 24, onboarding_workspace_copy[i], wlines)
 	}
-	sx, sy, sw, sh := onb_sec_rect(l, 2)
+	sx, sy, sw, sh := onboarding_sec_rect(l, 2)
 	if sh > 0 {
 		path := if app.onboarding_harness != '' { app.onboarding_harness } else { app.harness_root }
 		state := if st.workspace_exists { 'ready' } else { 'not created yet' }
-		app.gg.draw_text(sx + 14, sy + sh - 16, utf8_truncate(path, onb_fit(sw - 140, 11)), gg.TextCfg{
+		app.gg.draw_text(sx + 14, sy + sh - 16, utf8_truncate(path, text_fit_chars(sw - 140, 11)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 			mono: true
@@ -798,15 +769,15 @@ fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st de
 }
 
 // stage 3 — recommended capabilities in user language, real catalog facts
-fn draw_onb_capabilities(mut app GuiApp, l OnbLayout) {
-	draw_onb_sheet_title(mut app, l, 3, 'Recommended capabilities', 'A useful starting point')
-	_, s3y, _, s3h := onb_sec_rect(l, 3)
-	for i, name in onb_caps {
-		cx, cy, cw, ch := onb_cap_rect(l, i)
+fn draw_onboarding_capabilities(mut app GuiApp, l OnboardingLayout) {
+	draw_onboarding_sheet_title(mut app, l, 3, 'Recommended capabilities', 'A useful starting point')
+	_, s3y, _, s3h := onboarding_sec_rect(l, 3)
+	for i, name in onboarding_caps {
+		cx, cy, cw, ch := onboarding_cap_rect(l, i)
 		if ch == 0 || cy + ch > s3y + s3h - 4 {
 			break
 		}
-		on := app.onb_cap_on[i]
+		on := app.onboarding_cap_on[i]
 		box := if ch > 34 { 22 } else { 16 }
 		app.gg.draw_rect_filled(cx + 14, cy + (ch - box) / 2, box, box, if on {
 			app.pnl_success
@@ -819,15 +790,15 @@ fn draw_onb_capabilities(mut app GuiApp, l OnbLayout) {
 			app.pnl_border_hi
 		})
 		if on {
-			onb_check(mut app, cx + 14 + box / 2 - 4, cy + (ch - box) / 2 + box / 2 - 3, app.pnl_bg)
+			draw_check_glyph(mut app, cx + 14 + box / 2 - 4, cy + (ch - box) / 2 + box / 2 - 3, app.pnl_bg)
 		}
-		app.gg.draw_text(cx + 46, cy + ch / 2 - 15, utf8_truncate(name, onb_fit(cw - 60, 13)), gg.TextCfg{
+		app.gg.draw_text(cx + 46, cy + ch / 2 - 15, utf8_truncate(name, text_fit_chars(cw - 60, 13)), gg.TextCfg{
 			color: app.pnl_text
 			size: 13
 			bold: true
 		})
 		if ch >= 34 {
-			app.gg.draw_text(cx + 46, cy + ch / 2 + 1, utf8_truncate(onb_cap_fact(mut app, i), onb_fit(cw - 60, 11)), gg.TextCfg{
+			app.gg.draw_text(cx + 46, cy + ch / 2 + 1, utf8_truncate(onboarding_cap_fact(mut app, i), text_fit_chars(cw - 60, 11)), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -836,8 +807,8 @@ fn draw_onb_capabilities(mut app GuiApp, l OnbLayout) {
 }
 
 // stage 4 — truthful summary + finish
-fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStatus) {
-	draw_onb_sheet_title(mut app, l, 4, 'Review and finish', '')
+fn draw_onboarding_review(mut app GuiApp, l OnboardingLayout, st desktop_engine.OnboardingStatus) {
+	draw_onboarding_sheet_title(mut app, l, 4, 'Review and finish', '')
 	cat := app.desktop.engine_tool_discovery_catalog_cached()
 	found := cat.filter(it.found)
 	tools := if found.len == 0 {
@@ -845,20 +816,20 @@ fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 	} else {
 		'${found.len} found'
 	}
-	caps_on := app.onb_cap_on.filter(it).len
+	caps_on := app.onboarding_cap_on.filter(it).len
 	rows := [
-		['Setup method', onb_choice_verb(app)],
+		['Setup method', onboarding_choice_verb(app)],
 		['Tools detected', tools],
 		['Workspace',
-			if st.workspace_exists { app.harness_root } else { onb_ws_choices[app.onb_ws_choice] }],
-		['Capabilities', '${caps_on} of ${onb_caps.len} enabled'],
+			if st.workspace_exists { app.harness_root } else { onboarding_workspace_choices[app.onboarding_workspace_choice] }],
+		['Capabilities', '${caps_on} of ${onboarding_caps.len} enabled'],
 		['Personas', if st.persona_count > 0 {
 			'${st.persona_count} bootstrapped'
 		} else {
 			'created on finish'
 		}],
 	]
-	sx, sy, sw, sh := onb_sec_rect(l, 4)
+	sx, sy, sw, sh := onboarding_sec_rect(l, 4)
 	if sh == 0 {
 		return
 	}
@@ -877,14 +848,14 @@ fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 			color: app.pnl_text_mut
 			size: 12
 		})
-		app.gg.draw_text(rx + 96, ry, utf8_truncate(r[1], onb_fit(col_w - 96, 12)), gg.TextCfg{
+		app.gg.draw_text(rx + 96, ry, utf8_truncate(r[1], text_fit_chars(col_w - 96, 12)), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 		})
 	}
 	// primary call to action — the wording matches what really happens: every
 	// stage already committed its own transaction, this finalizes onboarding
-	cx, cy, cw, ch := onb_cta_rect(l)
+	cx, cy, cw, ch := onboarding_cta_rect(l)
 	if ch == 0 {
 		return
 	}
@@ -902,7 +873,7 @@ fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 	})
 }
 
-fn draw_onb_diagnostics(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStatus) {
+fn draw_onboarding_diagnostics(mut app GuiApp, l OnboardingLayout, st desktop_engine.OnboardingStatus) {
 	dh := 96
 	dy := l.foot_y - dh - 6
 	app.gg.draw_rect_filled(l.fx, dy, l.fw, dh, col_ink700)
@@ -926,15 +897,15 @@ fn draw_onb_diagnostics(mut app GuiApp, l OnbLayout, st desktop_engine.Onboardin
 	}
 }
 
-fn draw_onb_footer(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStatus) {
-	sx, sy, sw, sh := onb_skip_rect(l)
+fn draw_onboarding_footer(mut app GuiApp, l OnboardingLayout, st desktop_engine.OnboardingStatus) {
+	sx, sy, sw, sh := onboarding_skip_rect(l)
 	app.gg.draw_text(sx, sy, 'Skip', gg.TextCfg{
 		color: if app.onboarding_hover == 12 { app.pnl_text } else { app.pnl_text_mut }
 		size: 12
 	})
-	dx, dy, dw, dh := onb_diag_rect(l)
-	app.gg.draw_text(dx, dy, if app.onb_diag { 'Hide details' } else { 'Details' }, gg.TextCfg{
-		color: if app.onb_diag || app.onboarding_hover == 13 {
+	dx, dy, dw, dh := onboarding_diag_rect(l)
+	app.gg.draw_text(dx, dy, if app.onboarding_diag { 'Hide details' } else { 'Details' }, gg.TextCfg{
+		color: if app.onboarding_diag || app.onboarding_hover == 13 {
 			app.pnl_text
 		} else {
 			app.pnl_text_mut
@@ -946,7 +917,7 @@ fn draw_onb_footer(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 	_ = dw
 	_ = dh
 	if app.onboarding_step > 0 {
-		bx, by, bw, bh := onb_back_rect(l)
+		bx, by, bw, bh := onboarding_back_rect(l)
 		app.gg.draw_rect_filled(bx, by, bw, bh, if app.onboarding_hover == 10 {
 			app.pnl_card_sel
 		} else {
@@ -957,8 +928,8 @@ fn draw_onb_footer(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 			size: 13
 		})
 	}
-	nx, ny, nw, nh := onb_next_rect(l)
-	is_last := app.onboarding_step >= onb_last_stage
+	nx, ny, nw, nh := onboarding_next_rect(l)
+	is_last := app.onboarding_step >= onboarding_last_stage
 	app.gg.draw_rect_filled(nx, ny, nw, nh, if app.onboarding_hover == 11 {
 		tint(app.pnl_select, 200)
 	} else {
@@ -972,16 +943,16 @@ fn draw_onb_footer(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 	msg := if app.onboarding_msg != '' {
 		app.onboarding_msg
 	} else {
-		'step ${app.onboarding_step + 1} of ${onb_stages.len} · ${st.pending_items.len} pending'
+		'step ${app.onboarding_step + 1} of ${onboarding_stages.len} · ${st.pending_items.len} pending'
 	}
-	app.gg.draw_text(l.fx + 130, l.foot_y + 8, utf8_truncate(msg, onb_fit(l.fw - 380, 11)), gg.TextCfg{
+	app.gg.draw_text(l.fx + 130, l.foot_y + 8, utf8_truncate(msg, text_fit_chars(l.fw - 380, 11)), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 11
 	})
 }
 
-fn draw_onb_wrapped(mut app GuiApp, x int, y int, w int, s string, max_lines int) {
-	per := onb_fit(w, 12)
+fn draw_wrapped_text(mut app GuiApp, x int, y int, w int, s string, max_lines int) {
+	per := text_fit_chars(w, 12)
 	words := s.split(' ')
 	mut line := ''
 	mut ln := 0
@@ -1013,7 +984,7 @@ fn draw_onb_wrapped(mut app GuiApp, x int, y int, w int, s string, max_lines int
 
 fn draw_onboarding_preview(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
-	l := onb_layout(app, w, h)
+	l := onboarding_layout(app, w, h)
 	if l.side_w == 0 {
 		return
 	}
@@ -1036,12 +1007,12 @@ fn draw_onboarding_preview(mut app GuiApp, w int, h int) {
 	// office, not a narrow inspector strip
 	sy := y + 34
 	sh := ih * 50 / 100
-	draw_onb_scene(mut app, x + 8, sy, iw - 16, sh, pid)
+	draw_onboarding_scene(mut app, x + 8, sy, iw - 16, sh, pid)
 
 	// compact truthful facts strip — two columns so it never sprawls
 	fy0 := sy + sh + 12
 	mut rows := [][]string{}
-	rows << ['Setup', onb_choice_verb(app)]
+	rows << ['Setup', onboarding_choice_verb(app)]
 	cat := app.desktop.engine_tool_discovery_catalog_cached()
 	rows << ['Tools', '${cat.filter(it.found).len} of ${cat.len} found']
 	rows << ['Workspace', if st.workspace_exists { 'ready' } else { 'not created yet' }]
@@ -1089,12 +1060,12 @@ fn draw_onboarding_preview(mut app GuiApp, w int, h int) {
 	}
 }
 
-// draw_onb_scene composes a dense welcome office: wood wall with a framed
+// draw_onboarding_scene composes a dense welcome office: wood wall with a framed
 // sign and picture, a shelf of books, a window, a reception desk with an
 // idle builder and a visitor chair, a lounge corner with a couch, and
 // plants/lamp/nest — an original miniature scene, not isolated icons.
 // Static and deterministic; illustration only, never runtime state.
-fn draw_onb_scene(mut app GuiApp, x int, y int, w int, h int, pid pixelart.PaletteId) {
+fn draw_onboarding_scene(mut app GuiApp, x int, y int, w int, h int, pid pixelart.PaletteId) {
 	mut sc := app.pixel_cache
 	scale := if w >= 300 && h >= 220 {
 		4
@@ -1175,28 +1146,28 @@ fn draw_onb_scene(mut app GuiApp, x int, y int, w int, h int, pid pixelart.Palet
 // ── interaction (single source of geometry, shared with drawing) ────────────
 
 fn onboarding_click(mut app GuiApp, mx int, my int, w int, h int) bool {
-	l := onb_layout(app, w, h)
+	l := onboarding_layout(app, w, h)
 	// step medallions jump to a visited stage only — never skip work forward
-	for i in 0 .. onb_stages.len {
-		sx, sy, sw, sh := onb_step_rect(l, i)
-		if onb_hit(mx, my, sx, sy, sw, sh) && i <= app.onboarding_step {
+	for i in 0 .. onboarding_stages.len {
+		sx, sy, sw, sh := onboarding_step_rect(l, i)
+		if rect_contains(mx, my, sx, sy, sw, sh) && i <= app.onboarding_step {
 			app.onboarding_step = i
-			app.onboarding_msg = '${onb_stages[i]} — ${onb_stage_hints[i]}'
+			app.onboarding_msg = '${onboarding_stages[i]} — ${onboarding_stage_hints[i]}'
 			return true
 		}
 	}
-	bx, by, bw, bh := onb_back_rect(l)
-	if app.onboarding_step > 0 && onb_hit(mx, my, bx, by, bw, bh) {
+	bx, by, bw, bh := onboarding_back_rect(l)
+	if app.onboarding_step > 0 && rect_contains(mx, my, bx, by, bw, bh) {
 		app.onboarding_step--
 		return true
 	}
-	nx, ny, nw, nh := onb_next_rect(l)
-	if onb_hit(mx, my, nx, ny, nw, nh) {
+	nx, ny, nw, nh := onboarding_next_rect(l)
+	if rect_contains(mx, my, nx, ny, nw, nh) {
 		onboarding_advance(mut app)
 		return true
 	}
-	sx2, sy2, sw2, sh2 := onb_skip_rect(l)
-	if onb_hit(mx, my, sx2 - 4, sy2 - 4, sw2 + 8, sh2 + 8) {
+	sx2, sy2, sw2, sh2 := onboarding_skip_rect(l)
+	if rect_contains(mx, my, sx2 - 4, sy2 - 4, sw2 + 8, sh2 + 8) {
 		app.show_onboarding = false
 		if app.selected_panel == 11 {
 			app.selected_panel = 0
@@ -1204,92 +1175,92 @@ fn onboarding_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		app.onboarding_msg = 'Setup skipped — press o to resume'
 		return true
 	}
-	dx, dy, dw, dh := onb_diag_rect(l)
-	if onb_hit(mx, my, dx - 4, dy - 4, dw + 8, dh + 8) {
-		app.onb_diag = !app.onb_diag
+	dx, dy, dw, dh := onboarding_diag_rect(l)
+	if rect_contains(mx, my, dx - 4, dy - 4, dw + 8, dh + 8) {
+		app.onboarding_diag = !app.onboarding_diag
 		return true
 	}
 	// simplified onboarding sidebar rows — Get Started is the active row and
 	// stays put; Help/Settings are decorative during first run (no
 	// navigation surface exists to jump to yet without leaving the journey)
 	// every sheet on the board is live, not only the active one
-	for i in 0 .. onb_choices.len {
-		cx, cy, cw, ch := onb_card_rect(l, 0, i, onb_choices.len)
-		if onb_hit(mx, my, cx, cy, cw, ch) {
-			app.onb_choice = i
+	for i in 0 .. onboarding_choices.len {
+		cx, cy, cw, ch := onboarding_card_rect(l, 0, i, onboarding_choices.len)
+		if rect_contains(mx, my, cx, cy, cw, ch) {
+			app.onboarding_choice = i
 			app.onboarding_step = 0
-			app.onboarding_msg = onb_choices[i]
+			app.onboarding_msg = onboarding_choices[i]
 			return true
 		}
 	}
-	rx, ry, rw, rh := onb_rescan_rect(l)
-	if onb_hit(mx, my, rx, ry, rw, rh) {
+	rx, ry, rw, rh := onboarding_rescan_rect(l)
+	if rect_contains(mx, my, rx, ry, rw, rh) {
 		cat := app.desktop.engine_tool_discovery_catalog()
 		app.onboarding_step = 1
 		app.onboarding_msg = 'Rescanned — ${cat.filter(it.found).len} of ${cat.len} tools found'
 		return true
 	}
-	for i in 0 .. onb_ws_choices.len {
-		cx, cy, cw, ch := onb_card_rect(l, 2, i, onb_ws_choices.len)
-		if onb_hit(mx, my, cx, cy, cw, ch) {
-			app.onb_ws_choice = i
+	for i in 0 .. onboarding_workspace_choices.len {
+		cx, cy, cw, ch := onboarding_card_rect(l, 2, i, onboarding_workspace_choices.len)
+		if rect_contains(mx, my, cx, cy, cw, ch) {
+			app.onboarding_workspace_choice = i
 			app.onboarding_step = 2
-			app.onboarding_msg = onb_ws_choices[i]
+			app.onboarding_msg = onboarding_workspace_choices[i]
 			return true
 		}
 	}
-	for i in 0 .. onb_caps.len {
-		cx, cy, cw, ch := onb_cap_rect(l, i)
-		if onb_hit(mx, my, cx, cy, cw, ch) {
-			app.onb_cap_on[i] = !app.onb_cap_on[i]
+	for i in 0 .. onboarding_caps.len {
+		cx, cy, cw, ch := onboarding_cap_rect(l, i)
+		if rect_contains(mx, my, cx, cy, cw, ch) {
+			app.onboarding_cap_on[i] = !app.onboarding_cap_on[i]
 			app.onboarding_step = 3
 			return true
 		}
 	}
-	cx4, cy4, cw4, ch4 := onb_cta_rect(l)
-	if onb_hit(mx, my, cx4, cy4, cw4, ch4) {
-		app.onboarding_step = onb_last_stage
+	cx4, cy4, cw4, ch4 := onboarding_cta_rect(l)
+	if rect_contains(mx, my, cx4, cy4, cw4, ch4) {
+		app.onboarding_step = onboarding_last_stage
 		onboarding_advance(mut app)
 		return true
 	}
 	// clicking a sheet focuses its stage so Next commits the right work
-	for i in 0 .. onb_stages.len {
-		sx3, sy3, sw3, sh3 := onb_sec_rect(l, i)
-		if onb_hit(mx, my, sx3, sy3, sw3, sh3) {
+	for i in 0 .. onboarding_stages.len {
+		sx3, sy3, sw3, sh3 := onboarding_sec_rect(l, i)
+		if rect_contains(mx, my, sx3, sy3, sw3, sh3) {
 			app.onboarding_step = i
 			return true
 		}
 	}
 	// clicks inside the onboarding surface never fall through to the panel below
-	return onb_hit(mx, my, l.fx - 16, l.fy, l.fw + 32, l.fh)
-		|| onb_hit(mx, my, 0, 0, dock_w, app.gg.height)
+	return rect_contains(mx, my, l.fx - 16, l.fy, l.fw + 32, l.fh)
+		|| rect_contains(mx, my, 0, 0, dock_w, app.gg.height)
 }
 
 fn onboarding_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
-	l := onb_layout(app, w, h)
+	l := onboarding_layout(app, w, h)
 	app.onboarding_hover = -1
-	bx, by, bw, bh := onb_back_rect(l)
-	if onb_hit(mx, my, bx, by, bw, bh) {
+	bx, by, bw, bh := onboarding_back_rect(l)
+	if rect_contains(mx, my, bx, by, bw, bh) {
 		app.onboarding_hover = 10
 	}
-	nx, ny, nw, nh := onb_next_rect(l)
-	if onb_hit(mx, my, nx, ny, nw, nh) {
+	nx, ny, nw, nh := onboarding_next_rect(l)
+	if rect_contains(mx, my, nx, ny, nw, nh) {
 		app.onboarding_hover = 11
 	}
-	sx, sy, sw, sh := onb_skip_rect(l)
-	if onb_hit(mx, my, sx - 4, sy - 4, sw + 8, sh + 8) {
+	sx, sy, sw, sh := onboarding_skip_rect(l)
+	if rect_contains(mx, my, sx - 4, sy - 4, sw + 8, sh + 8) {
 		app.onboarding_hover = 12
 	}
-	dxr, dyr, dwr, dhr := onb_diag_rect(l)
-	if onb_hit(mx, my, dxr - 4, dyr - 4, dwr + 8, dhr + 8) {
+	dxr, dyr, dwr, dhr := onboarding_diag_rect(l)
+	if rect_contains(mx, my, dxr - 4, dyr - 4, dwr + 8, dhr + 8) {
 		app.onboarding_hover = 13
 	}
-	rx, ry, rw, rh := onb_rescan_rect(l)
-	if onb_hit(mx, my, rx, ry, rw, rh) {
+	rx, ry, rw, rh := onboarding_rescan_rect(l)
+	if rect_contains(mx, my, rx, ry, rw, rh) {
 		app.onboarding_hover = 20
 	}
-	cx, cy, cw, ch := onb_cta_rect(l)
-	if onb_hit(mx, my, cx, cy, cw, ch) {
+	cx, cy, cw, ch := onboarding_cta_rect(l)
+	if rect_contains(mx, my, cx, cy, cw, ch) {
 		app.onboarding_hover = 30
 	}
 }
@@ -1299,8 +1270,8 @@ fn onboarding_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
 // apply, so the CTA honestly finishes the journey instead of pretending to
 // perform everything at once.
 fn onboarding_advance(mut app GuiApp) {
-	onb_apply_stage(mut app)
-	if app.onboarding_step < onb_last_stage {
+	onboarding_apply_stage(mut app)
+	if app.onboarding_step < onboarding_last_stage {
 		app.onboarding_step++
 		return
 	}
@@ -1314,10 +1285,10 @@ fn onboarding_advance(mut app GuiApp) {
 	app.workspace_initialized = app.desktop.onboarding_status(app.harness_root).workspace_exists
 	app.show_onboarding = false
 	app.selected_panel = 0
-	app.onb_diag = false
+	app.onboarding_diag = false
 }
 
-fn onb_apply_stage(mut app GuiApp) {
+fn onboarding_apply_stage(mut app GuiApp) {
 	harness := if app.onboarding_harness != '' { app.onboarding_harness } else { app.harness_root }
 	match app.onboarding_step {
 		1 {
@@ -1333,7 +1304,7 @@ fn onb_apply_stage(mut app GuiApp) {
 			app.onboarding_msg = '${ids.len} tools enabled (rev ${rev})'
 		}
 		2 {
-			if app.onb_ws_choice == 0 {
+			if app.onboarding_workspace_choice == 0 {
 				rev := app.desktop.onboarding_init_with_templates(harness, false) or {
 					app.onboarding_msg = 'Workspace: ${err}'
 					return

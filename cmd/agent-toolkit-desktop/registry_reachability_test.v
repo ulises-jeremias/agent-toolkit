@@ -7,7 +7,7 @@ import desktop_engine
 import os
 import time
 
-// S4C reachability gate (#1119): the canonical set of critical user
+// Reachability gate: the canonical set of critical user
 // workflows must be reachable through the typed registry's semantics —
 // not through CLI command parity. This test is the coverage authority;
 // scripts/gui-coverage.py is only a human-readable report.
@@ -16,17 +16,17 @@ struct ReachFixture {
 mut:
 	app &GuiApp = unsafe { nil }
 	d   &desktop.Desktop = unsafe { nil }
-	tmp string
+	scratch_dir string
 }
 
 fn reach_app(label string) &ReachFixture {
-	tmp := os.join_path(os.temp_dir(), 'atk-s4c-reach-${label}-${os.getpid()}-${time.now().unix_nano()}')
-	os.mkdir_all(tmp) or { panic(err.msg()) }
+	scratch_dir := os.join_path(os.temp_dir(), 'atk-reach-${label}-${os.getpid()}-${time.now().unix_nano()}')
+	os.mkdir_all(scratch_dir) or { panic(err.msg()) }
 	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
 		config: desktop.DesktopConfig{
 			headless: true
 		}
-		persist_path: os.join_path(tmp, 'state.json')
+		persist_path: os.join_path(scratch_dir, 'state.json')
 	})
 	d.boot() or { panic(err.msg()) }
 	mut app := &GuiApp{
@@ -41,14 +41,14 @@ fn reach_app(label string) &ReachFixture {
 	return &ReachFixture{
 		app: app
 		d: d
-		tmp: tmp
+		scratch_dir: scratch_dir
 	}
 }
 
 fn (mut f ReachFixture) cleanup() {
 	f.d.shutdown() or {}
-	os.rmdir_all(f.tmp) or {}
-	f.tmp = ''
+	os.rmdir_all(f.scratch_dir) or {}
+	f.scratch_dir = ''
 }
 
 fn has_action(acts []palette.RegistryAction, kind palette.ActionKind) bool {

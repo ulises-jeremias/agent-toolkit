@@ -4,14 +4,14 @@ import desktop
 import os
 import time
 
-// VC7 (#1173) — Workspace / Insights / Settings convergence: geometry shared
+// Workspace / Insights / Settings: geometry shared
 // between drawing and hit-testing, truthful scaffold checks, and the
 // preferences sheet wired to the real state fields.
 
-fn vc7_tmp(label string) string {
-	tmp := os.join_path(os.temp_dir(), 'atk-vc7-${label}-${os.getpid()}-${time.now().unix_nano()}')
-	os.mkdir_all(tmp) or { panic(err.msg()) }
-	return tmp
+fn make_scratch_dir(label string) string {
+	scratch_dir := os.join_path(os.temp_dir(), 'atk-desktop-${label}-${os.getpid()}-${time.now().unix_nano()}')
+	os.mkdir_all(scratch_dir) or { panic(err.msg()) }
+	return scratch_dir
 }
 
 // ── Workspace layout ────────────────────────────────────────────────────────
@@ -79,17 +79,17 @@ fn test_workspace_layout_compact_drops_scene() {
 
 // ── scaffold truth ──────────────────────────────────────────────────────────
 
-fn test_ws_scaffold_present_reads_real_directories() {
-	tmp := vc7_tmp('scaffold')
+fn test_workspace_scaffold_present_reads_real_directories() {
+	scratch_dir := make_scratch_dir('scaffold')
 	defer {
-		os.rmdir_all(tmp) or {}
+		os.rmdir_all(scratch_dir) or {}
 	}
-	os.mkdir_all(os.join_path(tmp, 'knowledge')) or { panic(err.msg()) }
-	os.write_file(os.join_path(tmp, 'AGENTS.md'), '# contract\n') or { panic(err.msg()) }
+	os.mkdir_all(os.join_path(scratch_dir, 'knowledge')) or { panic(err.msg()) }
+	os.write_file(os.join_path(scratch_dir, 'AGENTS.md'), '# contract\n') or { panic(err.msg()) }
 	// a FILE named packs must not count as the packs/ directory
-	os.write_file(os.join_path(tmp, 'packs'), '') or { panic(err.msg()) }
-	present := ws_scaffold_present(tmp)
-	assert present.len == ws_scaffold_names.len
+	os.write_file(os.join_path(scratch_dir, 'packs'), '') or { panic(err.msg()) }
+	present := workspace_scaffold_present(scratch_dir)
+	assert present.len == workspace_scaffold_names.len
 	assert present[0], 'knowledge/ exists'
 	assert !present[1], 'personas/ missing'
 	assert !present[2], 'packs is a file, not the packs/ directory'
@@ -97,25 +97,25 @@ fn test_ws_scaffold_present_reads_real_directories() {
 	assert present[5], 'AGENTS.md exists'
 }
 
-fn test_ws_scaffold_present_unknown_root_is_empty_not_missing() {
-	assert ws_scaffold_present('').len == 0, 'no root → unknown, never "missing"'
-	assert ws_scaffold_present('/definitely/not/a/dir/${os.getpid()}').len == 0
+fn test_workspace_scaffold_present_unknown_root_is_empty_not_missing() {
+	assert workspace_scaffold_present('').len == 0, 'no root → unknown, never "missing"'
+	assert workspace_scaffold_present('/definitely/not/a/dir/${os.getpid()}').len == 0
 }
 
-fn test_ws_state_label_follows_engine_truth() {
+fn test_workspace_state_label_follows_engine_truth() {
 	none_app := &GuiApp{}
-	l0, _ := ws_state_label(none_app)
+	l0, _ := workspace_state_label(none_app)
 	assert l0 == 'No workspace'
 	ready := &GuiApp{
 		harness_root: '/tmp'
 		workspace_initialized: true
 	}
-	l1, _ := ws_state_label(ready)
+	l1, _ := workspace_state_label(ready)
 	assert l1 == 'Ready'
 	folder := &GuiApp{
 		harness_root: '/tmp'
 	}
-	l2, _ := ws_state_label(folder)
+	l2, _ := workspace_state_label(folder)
 	assert l2 == 'Needs setup'
 }
 
@@ -156,18 +156,18 @@ fn test_insights_table_without_engine_is_empty_and_honest() {
 }
 
 fn test_insights_click_selects_tab_and_row() {
-	tmp := vc7_tmp('insights')
-	os.setenv('XDG_CACHE_HOME', tmp, true)
+	scratch_dir := make_scratch_dir('insights')
+	os.setenv('XDG_CACHE_HOME', scratch_dir, true)
 	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
 		config: desktop.DesktopConfig{
 			headless: true
 		}
-		persist_path: os.join_path(tmp, 'state.json')
+		persist_path: os.join_path(scratch_dir, 'state.json')
 	})
 	d.boot() or { panic(err.msg()) }
 	defer {
 		d.shutdown() or {}
-		os.rmdir_all(tmp) or {}
+		os.rmdir_all(scratch_dir) or {}
 	}
 	mut app := &GuiApp{
 		desktop: d
@@ -197,10 +197,10 @@ fn test_insights_click_selects_tab_and_row() {
 // ── Preferences sheet ───────────────────────────────────────────────────────
 
 fn test_preferences_click_mutates_real_state_fields() {
-	tmp := vc7_tmp('prefs')
-	os.setenv('XDG_CACHE_HOME', tmp, true)
+	scratch_dir := make_scratch_dir('prefs')
+	os.setenv('XDG_CACHE_HOME', scratch_dir, true)
 	defer {
-		os.rmdir_all(tmp) or {}
+		os.rmdir_all(scratch_dir) or {}
 	}
 	mut app := &GuiApp{
 		selected_panel: 9
@@ -250,11 +250,11 @@ fn test_preferences_segments_stay_inside_sheet() {
 	}
 }
 
-fn test_ws_detail_layout_drops_sections_from_the_bottom() {
+fn test_workspace_detail_layout_drops_sections_from_the_bottom() {
 	tall := &GuiApp{
 		selected_panel: 9
 	}
-	d := ws_detail_layout(tall, 1280, 800)
+	d := workspace_detail_layout(tall, 1280, 800)
 	assert d.prefs_y > 0, 'preferences fit in a full-height column'
 	assert d.quote_y > d.prefs_y, 'quote sits under preferences'
 	short := &GuiApp{
@@ -262,13 +262,13 @@ fn test_ws_detail_layout_drops_sections_from_the_bottom() {
 		term_visible: true
 		term_height: 320
 	}
-	ds := ws_detail_layout(short, 1024, 640)
+	ds := workspace_detail_layout(short, 1024, 640)
 	assert ds.prefs_y == 0, 'a short column drops the preferences sheet instead of overlapping'
 	assert ds.quote_y == 0, 'and the editorial card'
 	// whatever still fits must end inside the column; the scaffold checklist
 	// (the primary truth) is always present
 	limit := ds.iy + ds.ih - 8
-	assert ds.scaffold_y + 22 + ws_scaffold_names.len * 17 <= limit
+	assert ds.scaffold_y + 22 + workspace_scaffold_names.len * 17 <= limit
 	if ds.seed_y > 0 {
 		assert ds.seed_y + 54 <= limit
 	}

@@ -1,5 +1,7 @@
 module main
 
+import os
+
 // Paper mode must resolve every panel field to the exact startup const
 // values — the scripted col_* → app.pnl_* sweep is value-preserving by
 // construction, and this test locks it. If it fails, Paper goldens would
@@ -63,4 +65,49 @@ fn test_system_appearance_resolves() {
 	app.apply_appearance(.system)
 	assert app.appearance == .system
 	assert app.appearance_dark == (appearance_theme(.system).kind == .dark)
+}
+
+// Every bundled font file must have embedded bytes so released single
+// binaries extract the full set to the cache dir. A font_file_* const
+// without a font_embed_pairs() entry would silently fall back to the
+// system sans at runtime — this test fails loudly instead.
+fn test_every_font_file_has_embedded_bytes() {
+	want := [font_file_sans, font_file_sans_bold, font_file_mono, font_file_mono_med,
+		font_file_display, font_file_display_t, font_file_arabic, font_file_arabic_bd,
+		font_file_sc]
+	pairs := font_embed_pairs()
+	mut names := []string{}
+	for pair in pairs {
+		assert pair.data.len > 0, 'embedded bytes for ${pair.name} must not be empty'
+		names << pair.name
+	}
+	assert names.len == want.len, 'font_embed_pairs must cover every font_file_* const: got ${names.len}, want ${want.len}'
+	for f in want {
+		assert f in names, 'font file ${f} has no entry in font_embed_pairs()'
+	}
+	// future fonts fail loudly too: every .ttf shipped in assets/fonts must
+	// be embedded somewhere — by cache name, or by bytes (font_file_mono
+	// intentionally maps to the SansMono bytes per CHANGELOG 1.30.0, so
+	// that source file is covered by content, not by name). Resolved from
+	// this file's path like repo_version_path.
+	fonts_dir := os.join_path(os.dir(os.dir(os.dir(@FILE))), 'assets', 'fonts')
+	if os.is_dir(fonts_dir) {
+		for name in os.ls(fonts_dir) or { []string{} } {
+			if !name.ends_with('.ttf') {
+				continue
+			}
+			if name in names {
+				continue
+			}
+			blob := os.read_bytes(os.join_path(fonts_dir, name)) or { []u8{} }
+			mut embedded := false
+			for pair in pairs {
+				if pair.data == blob {
+					embedded = true
+					break
+				}
+			}
+			assert embedded, 'shipped font ${name} has no entry in font_embed_pairs()'
+		}
+	}
 }

@@ -13,7 +13,7 @@ import pty as pty_mod
 
 // ── Dunder Mifflin Paper Co. — distinctive signature, not generic ──
 // Anti-slop: no purple/indigo gradients, no Inter-only, no glassmorphism.
-// Colors resolve from desktop.theme via ui_tokens.v (F1 theme tokens):
+// Colors resolve from desktop.theme via ui_tokens.v (theme tokens):
 //   surface.canvas #F3EBDD — main office/map background
 //   surface.paper  #FFF9ED — cards and reading surfaces
 //   surface.cabinet #171C1F — navigation and console
@@ -134,6 +134,7 @@ const font_file_sc = 'NotoSansSC-chrome.ttf'
 const font_embed_sans = $embed_file('../../assets/fonts/IBMPlexSans-Regular.ttf')
 const font_embed_sans_bd = $embed_file('../../assets/fonts/IBMPlexSans-SemiBold.ttf')
 const font_embed_mono = $embed_file('../../assets/fonts/IBMPlexSansMono-Regular.ttf')
+const font_embed_mono_med = $embed_file('../../assets/fonts/IBMPlexMono-Medium.ttf')
 const font_embed_display = $embed_file('../../assets/fonts/Fraunces-Display.ttf')
 const font_embed_displayt = $embed_file('../../assets/fonts/Fraunces-Text.ttf')
 const font_embed_arabic = $embed_file('../../assets/fonts/IBMPlexSansArabic-Regular.ttf')
@@ -146,6 +147,7 @@ fn font_embed_pairs() []FontEmbed {
 		FontEmbed{font_file_sans, font_embed_sans.to_bytes()},
 		FontEmbed{font_file_sans_bold, font_embed_sans_bd.to_bytes()},
 		FontEmbed{font_file_mono, font_embed_mono.to_bytes()},
+		FontEmbed{font_file_mono_med, font_embed_mono_med.to_bytes()},
 		FontEmbed{font_file_display, font_embed_display.to_bytes()},
 		FontEmbed{font_file_display_t, font_embed_displayt.to_bytes()},
 		FontEmbed{font_file_arabic, font_embed_arabic.to_bytes()},
@@ -872,12 +874,12 @@ mut:
 	doctor_preview       string
 	doctor_preview_lines []string
 	doctor_chips         []DoctorChip
-	// VC6 (#1173) Operations command center — see operations_view.v:
+	// Operations command center — see operations_view.v:
 	// focused text field (0 none, 1 search, 2 swarm task), status dropdown
 	// index, hovered element id, Doctor table selection/scroll.
-	ops_focus         int
-	ops_status_filter int
-	ops_hover         int = -1
+	operations_focus         int
+	operations_status_filter int
+	operations_hover         int = -1
 	doctor_selected   int = -1
 	doctor_scroll     int
 	// mcp provider drawer (#1106): open provider + cached template/provenance/
@@ -922,16 +924,16 @@ mut:
 	palette_open     bool
 	palette_query    string
 	palette_selected int
-	// S4A (#1119): shared typed action & entity registry — the palette's data
+	// shared typed action & entity registry — the palette's data
 	// source. Static rows remain only for entries not yet migrated.
 	palette_reg &palette.Registry = unsafe { nil }
-	// VC3 (#1172): pixel-art sprite cache for the Office room. Created lazily
+	// pixel-art sprite cache for the Office room. Created lazily
 	// on first Office draw (frame time, sokol ready); both palettes stay
 	// cached since the key space is bounded. See office_room.v.
 	pixel_cache &pixelart.SpriteCache = unsafe { nil }
 	// #1128: known-workspace folder-tab hit rects (rebuilt every frame)
-	known_ws_rects []KnownWsRect
-	// S4B contextual action flow state
+	known_workspace_rects []KnownWsRect
+	// contextual action flow state
 	palette_expanded    string // entity row id with expanded actions ('' = collapsed)
 	palette_preview     []string // preview mode lines (len 0 = list mode)
 	palette_preview_for string // action id the open preview belongs to
@@ -980,7 +982,7 @@ mut:
 	god_inbox      int
 	god_outbox     int
 	approvals      []string
-	// swarm super-potent — GOD mailbox, Herdr/tmux, pair/team/full launch, approvals spend/scope/destructive, eventbus status/handoffs/logs wired to desktop_engine
+	// swarm Engine-owned — GOD mailbox, Herdr/tmux, pair/team/full launch, approvals spend/scope/destructive, eventbus status/handoffs/logs wired to desktop_engine
 	swarm_backend          string = 'auto'
 	swarm_task             string = 'Implement feature via swarm'
 	swarm_selected         int = -1
@@ -988,7 +990,7 @@ mut:
 	swarm_approvals_scroll int
 	swarm_logs_scroll      int
 	swarm_handoff_hover    int = -1
-	// loops mission control — super potent management via Engine (create/edit/run/schedule)
+	// loops mission control — Engine-owned management (create/edit/run/schedule)
 	selected_loop        int = -1
 	loops_hover_run      int = -1
 	loops_hover_edit     int = -1
@@ -998,7 +1000,7 @@ mut:
 	loops_create_tier    int // 0 L1,1 L2,2 L3
 	loops_create_cadence string = '1d'
 	loops_scroll         int
-	// jobs — super-potent ProcessSupervisor status + approvals queue (distinct from loops budgets)
+	// jobs — Engine-owned ProcessSupervisor status + approvals queue (distinct from loops budgets)
 	jobs_selected         int = -1
 	jobs_hover            int = -1
 	jobs_hover_cancel     int = -1
@@ -1010,7 +1012,7 @@ mut:
 	jobs_show_logs        bool
 	jobs_logs_job         string
 	loops_budget_hover    int = -1
-	// IDE state — file-tree + editor tabs + git rails + skills 227 + memory palace (super potent)
+	// IDE state — file-tree + editor tabs + git rails + skills 227 + memory palace
 	skills_query       string
 	skills_domain      string
 	skills_scroll      int
@@ -1040,7 +1042,7 @@ mut:
 	workspace_notice      string
 	workspace_source      string
 	workspace_initialized bool
-	// super-potent onboarding / capability / target / product / workspace / persona — easy management
+	// onboarding / capability / target / product / workspace / persona — setup-journey state
 	show_onboarding              bool
 	onboarding_step              int // 0 detect,1 capabilities,2 targets,3 products,4 workspace,5 personas,6 done
 	onboarding_harness           string
@@ -1051,23 +1053,23 @@ mut:
 	selected_products_onboarding []string
 	products_scroll              int
 	products_hover               int = -1
-	// VC5 Library (#1173): shared collection state for Agents/Products/MCP
+	// Library: shared collection state for Agents/Products/MCP
 	// tabs (Skills keeps skills_scroll/skills_selected/skills_domain)
-	lib_scroll        int
-	lib_sel           int
-	lib_hover         int = -1
-	lib_hover_ui      int = -1
-	lib_filter        string
-	lib_cache         []LibItem
-	lib_cache_key     string
-	lib_cache_frame   int = -1
+	library_scroll        int
+	library_sel           int
+	library_hover         int = -1
+	library_hover_ui      int = -1
+	library_filter        string
+	library_cache         []LibraryItem
+	library_cache_key     string
+	library_cache_frame   int = -1
 	targets_hover     int = -1
 	onboarding_scroll int
-	// VC4 setup journey (#1173): user-facing choices; Engine keeps the truth
-	onb_choice    int // 0 set up for me, 1 existing setup, 2 find my setup
-	onb_ws_choice int // 0 create new workspace, 1 reuse existing
-	onb_cap_on    []bool = [true, true, true, true]
-	onb_diag      bool // internals live behind Details, not in the journey
+	// setup journey: user-facing choices; Engine keeps the truth
+	onboarding_choice    int // 0 set up for me, 1 existing setup, 2 find my setup
+	onboarding_workspace_choice int // 0 create new workspace, 1 reuse existing
+	onboarding_cap_on    []bool = [true, true, true, true]
+	onboarding_diag      bool // internals live behind Details, not in the journey
 	// global zoom — paper office scaling 0.75-1.50, 60FPS culling safe
 	global_zoom   f64 = 1.0
 	zoom_toast    string
@@ -1077,17 +1079,17 @@ mut:
 	global_search       string
 	header_search_focus bool
 	header_search_hover int = -1
-	// insights — telemetry super-potent (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
+	// insights — Engine-owned telemetry (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
 	insights_scroll int
-	insights_sel    int = -1 // selected row of the current tab (VC7 report details)
-	// VC7: per-frame Insights table cache (draw/metrics/click/details share it)
-	ins_cache       InsTable
-	ins_cache_key   string
-	ins_cache_frame int = -1
-	// VC7: scaffold check cache — six stats per frame otherwise (#1186 review)
-	ws_scaffold_root  string
-	ws_scaffold_vals  []bool
-	ws_scaffold_frame int = -1000
+	insights_sel    int = -1 // selected row of the current tab
+	// per-frame Insights table cache (draw/metrics/click/details share it)
+	insights_cache       InsightsTable
+	insights_cache_key   string
+	insights_cache_frame int = -1
+	// scaffold check cache — six stats per frame otherwise (#1186 review)
+	workspace_scaffold_root  string
+	workspace_scaffold_vals  []bool
+	workspace_scaffold_frame int = -1000
 	insights_hover    int = -1
 	insights_tab      string = 'cost' // cost | waterfall | spans | budgets | ci
 	insights_filter   string
@@ -1177,6 +1179,7 @@ const i18n_table = {
 	'nav.group.office':     I18nRow{'Office', 'Oficina', '办公', 'المكتب'}
 	'nav.group.library':    I18nRow{'Library', 'Biblioteca', '资源库', 'المكتبة'}
 	'lib.subtitle':         I18nRow{'Discover skills, agents, and tools to supercharge your team.', 'Descubre habilidades, agentes y herramientas para potenciar a tu equipo.', '发现技能、代理和工具，助力你的团队。', 'اكتشف المهارات والوكلاء والأدوات لتعزيز فريقك.'}
+	'library.subtitle':     I18nRow{'Discover skills, agents, and tools to supercharge your team.', 'Descubre habilidades, agentes y herramientas para potenciar a tu equipo.', '发现技能、代理和工具，助力你的团队。', 'اكتشف المهارات والوكلاء والأدوات لتعزيز فريقك.'} // alias of lib.subtitle; old key keeps working
 	'nav.group.operations': I18nRow{'Operations', 'Operaciones', '运维', 'العمليات'}
 	'nav.group.workspace':  I18nRow{'Workspace', 'Espacio', '工作区', 'المساحة'}
 	'nav.group.insights':   I18nRow{'Insights', 'Métricas', '洞察', 'الرؤى'}
@@ -1607,8 +1610,8 @@ const dock_w = 184
 const inspector_w = 280
 
 // Shell geometry is authoritative for every destination and its hit regions.
-// VC8-B begins with the legacy values so this refactor has no visual effect;
-// the editorial-shell commit can change them in one place.
+// It starts from the legacy values so there is no visual effect;
+// geometry changes land in one place.
 fn panel_top(app &GuiApp) int {
 	// Pure layout tests construct GuiApp without a renderer; keep their legacy
 	// baseline while production derives the shared masthead from live height.
@@ -1658,12 +1661,11 @@ fn panel_desc(i int) string {
 	}
 }
 
-// fuzzy_score and palette_best_score were removed in S4A (#1119): the palette
-// module's scorer (desktop.palette.fuzzy_score / action_best_score) is the
+// the palette module's scorer (desktop.palette.fuzzy_score / action_best_score) is the
 // single scoring authority shared by registry actions and legacy rows.
 
-// PaletteRow is the merged palette row model: registry-sourced actions (S4A)
-// plus legacy static rows for entries not yet migrated to the registry.
+// PaletteRow is the merged palette row model: registry-sourced actions
+// plus static rows for entries without registry coverage.
 struct PaletteRow {
 	id    string
 	label string
@@ -1677,12 +1679,12 @@ struct PaletteRow {
 	panel              nav.PanelId
 	available          bool
 	unavailable_reason string
-	// S4B contextual action row (derived from a registry action)
+	// contextual action row (derived from a registry action)
 	is_action     bool
 	action_kind   palette.ActionKind
 	needs_preview bool
 	needs_confirm bool
-	// S4D recent execution row (journal-sourced)
+	// recent execution row (journal-sourced)
 	is_recent    bool
 	execution_id u64
 }
@@ -1738,18 +1740,17 @@ fn nav_tr_key(p nav.PanelId) string {
 	}
 }
 
-// filtered_palette merges the shared typed registry (navigation + entities,
-// S4A) with the legacy static rows for not-yet-migrated entries. All rows are
+// filtered_palette merges the shared typed registry (navigation + entities)
+// with the static rows for entries without registry coverage. All rows are
 // scored by the palette module's fuzzy scorer — one scoring authority.
 // Empty query keeps the stable build order: navigation, entities, legacy.
-// filtered_palette derives every row from the shared typed registry (S4A) —
-// navigation, entities and contextual actions. The static command list and
-// its duplicate scorer were deleted in S4C (#1119); the registry's
+// filtered_palette derives every row from the shared typed registry —
+// navigation, entities and contextual actions. The registry's
 // scored_filter is the single ranking authority.
 fn filtered_palette(mut app GuiApp) []PaletteRow {
 	mut scored := []PaletteRow{}
 	if app.palette_reg != unsafe { nil } {
-		// S4D: recent executions first on an empty query — visibly distinct
+		// recent executions first on an empty query — visibly distinct
 		// (↻ prefix, outcome + evidence in the description), bounded display
 		if app.palette_query.trim_space() == '' {
 			// at most 3 recent rows — the palette stays an action/entity
@@ -1905,7 +1906,7 @@ fn rerun_recent(mut app GuiApp, sel PaletteRow) {
 }
 
 // expand_palette_actions inserts the contextual actions of the expanded
-// entity row directly beneath it (S4B). Expansion follows the row: when the
+// entity row directly beneath it. Expansion follows the row: when the
 // query filters the entity out, the actions go with it.
 fn expand_palette_actions(mut app GuiApp, rows []PaletteRow) []PaletteRow {
 	if app.palette_expanded == '' || app.palette_reg == unsafe { nil } {
@@ -2054,10 +2055,6 @@ fn term_level_label(level string) string {
 }
 
 // Production activity is sourced only from Engine state. Empty is a valid state.
-fn mock_term_logs(_ &GuiApp) []TermLine {
-	return []TermLine{}
-}
-
 // collect_engine_logs reads real Engine logs via snapshot data.
 // Wires to desktop_engine logs if available (jobs/*/logs, watcher_* keys) — per spec.
 fn collect_engine_logs(app &GuiApp) []TermLine {
@@ -2299,7 +2296,7 @@ fn main() {
 		selected_desk: -1
 		hover_desk: -1
 	}
-	// S4A (#1119): bind the shared typed registry to the boot Engine so the
+	// bind the shared typed registry to the boot Engine so the
 	// palette derives navigation + entities from authoritative state.
 	app.palette_reg = d.palette_registry()
 	app.gg = gg.new_context(
@@ -2521,14 +2518,14 @@ fn on_init(mut app GuiApp) {
 	// Resolve once through the Engine so every workspace-bound view starts on
 	// the same canonical root with a real brokered file tree.
 	resolve_workspace_on_start(mut app)
-	// skills 227 — init harness root search state from Engine (super potent)
+	// skills 227 — init harness root search state from Engine
 	app.skills_query = ''
 	app.skills_domain = ''
 	app.git_rail = 'CHANGES'
 	// memory palace — semantic recall ready
 	app.memory_query = ''
 	app.memory_semantic = true
-	// super-potent onboarding: auto-show wizard if first run — workspace init, personas, capability, target, product
+	// onboarding: auto-show wizard if first run — workspace init, personas, capability, target, product
 	app.onboarding_harness = app.harness_root
 	app.onboarding_step = 0
 	app.show_onboarding = app.desktop.engine_is_first_run()
@@ -2725,7 +2722,7 @@ fn frame(mut app GuiApp) {
 			else { 120 }
 		}
 		// the onboarding shell owns the screen: cap the terminal at the
-		// source so the VT row budget, draw_terminal and onb_layout all agree
+		// source so the VT row budget, draw_terminal and onboarding_layout all agree
 		// (a MAX terminal would otherwise hide the board entirely)
 		if app.show_onboarding && app.term_height > 120 {
 			app.term_height = 120
@@ -2773,11 +2770,11 @@ fn frame(mut app GuiApp) {
 	h := app.gg.height
 	app.gg.begin()
 	app.gg.draw_rect_filled(0, 0, w, h, col_ink)
-	onb_shell_active := app.show_onboarding
-	// VC8 (#1187): every destination now shares the editorial masthead.
+	onboarding_shell_active := app.show_onboarding
+	// every destination now shares the editorial masthead.
 	// Onboarding keeps its quieter task rail while the setup journey owns focus.
 	draw_header(mut app, w)
-	if onb_shell_active {
+	if onboarding_shell_active {
 		draw_onboarding_sidebar(mut app, w, h)
 	} else {
 		draw_left_dock(mut app, h)
@@ -2785,7 +2782,7 @@ fn frame(mut app GuiApp) {
 	// MAX terminal owns the content area — skip panel + inspector rendering
 	// (negative-height panels would smear texts over the chrome). Not while
 	// onboarding owns the screen: its terminal is capped, the board must draw.
-	if app.term_mode == 2 && !onb_shell_active {
+	if app.term_mode == 2 && !onboarding_shell_active {
 		draw_terminal(mut app, w, h)
 		app.gg.end()
 		return
@@ -2794,16 +2791,16 @@ fn frame(mut app GuiApp) {
 	// panel is behind it — there is nothing to blend or dim underneath, so
 	// the normal panel dispatch is skipped entirely instead of drawing (and
 	// then papering over) the previous panel's geometry.
-	if onb_shell_active {
+	if onboarding_shell_active {
 		draw_onboarding(mut app, w, h)
 	} else {
-		// VC5 (#1173): Skills/Agents/Products/MCP share one Library
+		// Skills/Agents/Products/MCP share one Library
 		// composition (library_view.v) with its own detail column.
 		match app.selected_panel {
 			0 { draw_world(mut app, w, h) }
 			1, 2, 3, 10 { draw_library(mut app, w, h) }
 			4 { draw_targets(mut app, w, h) }
-			// VC6 (#1173): Doctor/Jobs/Loops/Swarm share the Operations
+			// Doctor/Jobs/Loops/Swarm share the Operations
 			// command center (operations_view.v)
 			5, 6, 7, 8 { draw_operations(mut app, w, h) }
 			9 { draw_workspace(mut app, w, h) }
@@ -2814,13 +2811,13 @@ fn frame(mut app GuiApp) {
 	}
 	if app.show_onboarding {
 		draw_onboarding_preview(mut app, w, h)
-	} else if lib_is_panel(app.selected_panel) {
+	} else if library_is_panel(app.selected_panel) {
 		draw_library_detail(mut app, w, h)
-	} else if ops_is_panel(app.selected_panel) {
-		// VC6 (#1173): the Details column replaces the Office inspector
+	} else if operations_is_panel(app.selected_panel) {
+		// the Details column replaces the Office inspector
 		draw_operations_detail(mut app, w, h)
 	} else if app.selected_panel == 9 {
-		// VC7 (#1173): Workspace and Insights own the right column with their
+		// Workspace and Insights own the right column with their
 		// own detail sheets instead of the generic Office inspector.
 		draw_workspace_detail(mut app, w, h)
 	} else if app.selected_panel == 12 {
@@ -3046,6 +3043,20 @@ struct HeaderLayout {
 	command_w   int
 }
 
+// shell_mast_h is shared by onboarding and every regular destination.
+// It follows the reference's editorial band while leaving useful content at
+// compact heights.
+fn shell_mast_h(h int) int {
+	mut m := h * 13 / 100
+	if m < 78 {
+		m = 78
+	}
+	if m > 128 {
+		m = 128
+	}
+	return m
+}
+
 // header_layout is shared by drawing and pointer routing. Controls anchor to
 // the right so the product lockup keeps its editorial measure at every
 // required viewport.
@@ -3166,7 +3177,7 @@ fn draw_header(mut app GuiApp, w int) {
 		size: scaled_size(9, z)
 		bold: true
 	})
-	app.gg.draw_text(l.workspace_x + 8, l.control_y + 17, workspace_path_label(app.harness_root, onb_fit(l.workspace_w - 28, 10)), gg.TextCfg{
+	app.gg.draw_text(l.workspace_x + 8, l.control_y + 17, workspace_path_label(app.harness_root, text_fit_chars(l.workspace_w - 28, 10)), gg.TextCfg{
 		color: if app.workspace_focus { col_paper } else { app.pnl_text }
 		size: scaled_size(10, z)
 		mono: true
@@ -3187,7 +3198,7 @@ fn draw_header(mut app GuiApp, w int) {
 	app.gg.draw_rect_filled(l.search_x, l.control_y, l.search_w, l.control_h, search_bg)
 	app.gg.draw_rect_empty(l.search_x, l.control_y, l.search_w, l.control_h, search_bd)
 	draw_search_lens(mut app, l.search_x + 9, l.control_y + 11)
-	app.gg.draw_text(l.search_x + 25, l.control_y + 10, utf8_truncate(search_txt, onb_fit(l.search_w - 48, 11)), gg.TextCfg{
+	app.gg.draw_text(l.search_x + 25, l.control_y + 10, utf8_truncate(search_txt, text_fit_chars(l.search_w - 48, 11)), gg.TextCfg{
 		color: if app.global_search == '' { col_ink_soft } else { col_ink }
 		size: scaled_size(11, z)
 		family: if app.global_search == '' { family_for(app, search_txt) } else { '' }
@@ -3288,7 +3299,7 @@ fn draw_left_dock(mut app GuiApp, h int) {
 	}
 	land_y := last_y + 8
 	if y1 - land_y >= 58 {
-		draw_onb_landscape(mut app, dock_l, land_y, dock_w, y1 - land_y, pid)
+		draw_onboarding_landscape(mut app, dock_l, land_y, dock_w, y1 - land_y, pid)
 	}
 }
 
@@ -3366,8 +3377,8 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 	}
 	attention_jobs := jobs.filter(it.status == .failed || it.status == .queued)
 	running_jobs := jobs.filter(it.status == .running)
-	// VC8 (#1173): office.jpg composition uses four truthful metric cards,
-	// the VC3.5 room as the hero, and the shell detail column for Roster and
+	// office.jpg composition uses four truthful metric cards,
+	// the room as the hero, and the shell detail column for Roster and
 	// Today. All values come from Engine state.
 	ensure_pixel_cache(mut app)
 	draw_office_cards(mut app, l, office_metrics(mut app, attention_jobs.len, agents.len, running_jobs.len))
@@ -3818,7 +3829,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// signature soft shadow under GOD panel — atelier floor shadow (ink 18%)
 	app.gg.draw_rect_filled(god_x + 4, god_y + 64, 76, 4, tint(app.pnl_text, 18))
 	app.gg.draw_rect_filled(god_x + 8, god_y + 66, 68, 2, tint(app.pnl_text, 12))
-	// ── Command deck — kanban / fleet / CI — super-potent workshop command (alt wood divergence, native gg)
+	// ── Command deck — kanban / fleet / CI workshop command (alt wood divergence, native gg)
 	// Signature atelier command deck: wood alt panel with brass grain, three columns for live kanban/fleet/CI
 	deck_x := fx + 8
 	deck_y := fy + fh - 68
@@ -3915,7 +3926,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(fx, fy + fh - 20, fw, 20, tint(app.pnl_text, 220))
 	draw_floor_legend(mut app, fx + 10, fy + fh - 14)
 	app.gg.draw_text(fx + fw - 148, fy + fh - 14, 'rev ${app.engine_rev}  api ${app.api_calls}', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-	// signature fleet minimap dots — 1px per desk status in legend bar (super-potent fleet glance)
+	// signature fleet minimap dots — 1px per desk status in legend bar
 	for i, d in desks {
 		mx2 := fx + fw - 148 - 22 - i * 6
 		mcol := match d.status {
@@ -3929,7 +3940,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	}
 }
 
-// ── Skills 227 — super potent, easy to manage ─────────────────────────────────────
+// ── Skills 227 — easy to manage ─────────────────────────────────────
 // Brokered via Desktop.engine_skills_search (Engine typed API, no shell, 227 searchable).
 // Fuzzy: substring + subsequence + word-boundary, ranked, virtualized 60 FPS.
 // Each section is a tiny helper: header → search → domain chips → list → footer.
@@ -4021,7 +4032,7 @@ fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance s
 	// no probe and no inspector_msg here: this runs on card *selection* (and
 	// lazily from the detail pane draw), so it must stay cheap and silent —
 	// template + receipt loading only. The probe (synchronous validation +
-	// health check) runs only from the explicit Probe action (lib_secondary),
+	// health check) runs only from the explicit Probe action (library_secondary),
 	// which also owns the toast. The pane shows "not run — press Probe" until then.
 }
 
@@ -4085,7 +4096,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	fw := panel_fw(app, w)
 	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	// install preview + receipts super-potent
+	// install preview + Engine-owned receipts
 	receipts := app.desktop.engine_list_install_receipts()
 	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.targets'), 'receipts ${receipts.len} · dry-run preview · provenance plugins/.provenance.json', 'install → receipt')
 	// dry-run diff for next install
@@ -4098,7 +4109,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 	tgts2 := app.desktop.engine_targets().map(it.id)
 	targets := app.desktop.engine_targets_enabled()
 	_ = targets
-	// S4D… er, #1129: typed tool discovery — one authoritative detector
+	// #1129: typed tool discovery — one authoritative detector
 	mut disco_map := map[string]desktop_engine.ToolDiscovery{}
 	if app.desktop != unsafe { nil } {
 		for d in app.desktop.engine_tool_discovery_catalog_cached() {
@@ -4198,7 +4209,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 	fw := panel_fw(app, w)
 	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	// super-potent Doctor: full Engine.doctor() with categories, receipts/provenance, fixable + Fix All via Engine TX
+	// Engine-owned Doctor: full Engine.doctor() with categories, receipts/provenance, fixable + Fix All via Engine TX
 	checks_engine := app.desktop.engine_doctor()
 	pass_cnt := checks_engine.filter(it.status == 'pass').len
 	warn_cnt := checks_engine.filter(it.status == 'warn').len
@@ -4217,7 +4228,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		app.pnl_border_hi
 	})
 	app.gg.draw_text(fx + fw - 76, fy + 15, 'Fix All', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	// category facets row — super-potent easy triage (14 categories via Engine).
+	// category facets row — easy triage over 14 Engine categories.
 	// Click a chip to fix that category via Engine TX (#1108); hit rects are
 	// stored for the mouse handler (rebuilt every frame, same geometry).
 	app.doctor_chips = []
@@ -4514,11 +4525,11 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		btn_y := y + 22
 		hover_cancel := app.jobs_hover_cancel == di
 		cbg := if hover_cancel { app.pnl_danger } else { app.pnl_text }
-		cfg := if hover_cancel { app.pnl_bg } else { app.pnl_text_mut }
+		cancel_color := if hover_cancel { app.pnl_bg } else { app.pnl_text_mut }
 		bd2 := if hover_cancel { app.pnl_danger } else { col_line }
 		app.gg.draw_rect_filled(fx + fw - 108, btn_y, 44, 16, cbg)
 		app.gg.draw_rect_empty(fx + fw - 108, btn_y, 44, 16, bd2)
-		app.gg.draw_text(fx + fw - 100, btn_y + 3, 'Cancel', gg.TextCfg{ color: cfg, size: 10 })
+		app.gg.draw_text(fx + fw - 100, btn_y + 3, 'Cancel', gg.TextCfg{ color: cancel_color, size: 10 })
 		hover_retry := app.jobs_hover_retry == di
 		rbg := if hover_retry { app.pnl_select } else { app.pnl_text }
 		rfg := if hover_retry { app.pnl_text } else { app.pnl_card_sel }
@@ -4538,7 +4549,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(fx + fw - 6, list_y0, 3, track_h, tint(app.pnl_text, 30))
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, app.pnl_border_hi)
 	}
-	// ── Approvals queue — super-potent spend/scope/destructive distinct bottom panel ──
+	// ── Approvals queue — spend/scope/destructive distinct bottom panel ──
 	aq_y := fy + fh - 104
 	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 96, app.pnl_card_sel)
 	app.gg.draw_rect_empty(fx + 8, aq_y, fw - 16, 96, app.pnl_border_hi)
@@ -5320,7 +5331,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	app.gg.draw_text(rx + 8, col_y + col_h - 14, 'EventBus: state_changed · swarm_handoff · process_log → one tick · rev ${app.engine_rev}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 }
 
-// ── Workspace IDE — super potent, easy to manage ────────────────────────────────
+// ── Workspace IDE — easy to manage ────────────────────────────────
 // Modular helpers: kanban → file-tree → editor tabs → git rails → diff → memory palace.
 // Each helper is 20-30 lines, single responsibility, brokered via Engine.
 // File-tree: left 180px, virtualized, twisty, git_status dots, click expands.
@@ -5500,10 +5511,10 @@ fn focus_workspace(mut app GuiApp) {
 	app.workspace_focus = true
 }
 
-// ── Products & Packs — super potent easy management ─────────────────────────────────
+// ── Products & Packs — easy management ─────────────────────────────────
 // Brokered via Desktop.engine_products_catalog / packs_catalog (Engine typed, no shell).
 // Easy to manage: product cards, pack chips, membership bulk, build preview, digest.
-// ── Onboarding — super-potent wizard: workspace init, persona bootstrap, capability/target/product ──
+// ── Onboarding — wizard: workspace init, persona bootstrap, capability/target/product ──
 // Single modal wizard where everything is possible and easy to manage. One view, seven steps:
 // Detect → Capabilities (227) → Targets (7) → Products/Packs (5+7) → Workspace Init → Personas → Tour → Done.
 // All actions wire via Desktop.onboarding_* proxies → Engine transactions → EventBus → AppState (no shell).
@@ -5546,7 +5557,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	iw := inspector_w
 	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, iw, ih, col_charcoal)
-	// VC3.5 (#1176): cabinet-drawer material. The dark column reads as one
+	// cabinet-drawer material. The dark column reads as one
 	// drawer of a technical filing cabinet: folder tab with the title,
 	// brass top edge, inner drawer inset, brass pull at the bottom. All
 	// content drawing below is unchanged.
@@ -5595,7 +5606,7 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	}
 	// ── Signature: per-desk libghostty-vt 40×6 multiplex — live VT preview (visible proof) ──
 	// Each desk owns a 40×6 GhosttyTerminal; selected desk's VT renders inline in inspector
-	// This is the designer's super-potent touch: multiplex is not hidden — it glows in the inspector
+	// multiplex is not hidden — it glows in the inspector
 	if app.selected_desk >= 0 && app.selected_desk < desks.len && app.per_desk_ghost.len > app.selected_desk {
 		vt_y := iy + 272
 		vt_h := 74
@@ -5752,19 +5763,19 @@ fn draw_inspector(mut app GuiApp, w int, h int) {
 	}
 	// bottom hint for inspector scroll
 	app.gg.draw_text(ix + 12, iy + ih - 14, '↑↓ scroll  •  click row to copy  •  / filters', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	// VC3.5 (#1176): brass drawer pull, last so nothing overdraws it. It
+	// brass drawer pull, last so nothing overdraws it. It
 	// lives in the strip reserved by inspector_log_h above the hint text.
 	app.gg.draw_rect_filled(ix + iw / 2 - 22, iy + ih - 22, 44, 4, app.pnl_select_hover)
 	app.gg.draw_rect_filled(ix + iw / 2 - 22, iy + ih - 22, 44, 1, app.pnl_select)
 }
 
-// onb_effective_term_h caps the terminal at a compact height while the
+// onboarding_capped_terminal_height caps the terminal at a compact height while the
 // onboarding shell owns the screen — the reference's terminal well reads as
 // ~12-15% of the window, well under the production 1x/2x heights, which
 // otherwise starve the board of the room its five sheets need.
-pub fn onb_effective_term_h(app &GuiApp) int {
+pub fn onboarding_capped_terminal_height(app &GuiApp) int {
 	// the cap is applied where term_height is computed (frame()); this stays
-	// as the single accessor onb_layout and draw_terminal share
+	// as the single accessor onboarding_layout and draw_terminal share
 	return app.term_height
 }
 
@@ -5786,7 +5797,7 @@ fn terminal_tab_rect(x0 int, y0 int, i int) (int, int, int, int) {
 }
 
 fn terminal_rect(app &GuiApp, w int, h int) (int, int, int, int) {
-	term_h := onb_effective_term_h(app)
+	term_h := onboarding_capped_terminal_height(app)
 	x := if app.lang.is_rtl() { 0 } else { dock_w }
 	return x, h - 28 - term_h, w - dock_w, term_h
 }
@@ -6212,7 +6223,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	}
 	qcol := if app.palette_query == '' { app.pnl_text_mut } else { app.pnl_bg }
 	app.gg.draw_text(cx + 20, cy + 42, '› ${q}', gg.TextCfg{ color: qcol, size: scaled_size(14, z) })
-	// S4B preview mode: show the real dry-run/diff lines instead of rows.
+	// preview mode: show the real dry-run/diff lines instead of rows.
 	if app.palette_preview.len > 0 {
 		app.gg.draw_text(cx + 20, cy + 62, 'Preview — nothing applied yet', gg.TextCfg{ color: app.pnl_select, size: scaled_size(12, z), bold: true })
 		for pi, line in app.palette_preview {
@@ -6245,7 +6256,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 			// subtle manila tab on unselected
 			app.gg.draw_rect_filled(cx + pw - 52, y + 4, 36, 6, app.pnl_card_sel)
 		}
-		// S4C: every row is registry-derived. Navigation rows keep localized
+		// every row is registry-derived. Navigation rows keep localized
 		// labels via their i18n key; entities and actions render their own
 		// registry labels.
 		pal_label := if it.is_action {
@@ -6255,7 +6266,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 		} else {
 			it.label
 		}
-		// S4C: every row is registry-derived. Navigation rows keep localized
+		// every row is registry-derived. Navigation rows keep localized
 		// labels and descriptions via their i18n keys; entities and actions
 		// render their own registry content; unavailable rows say why.
 		pal_desc := if it.is_action {
@@ -6302,7 +6313,7 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 	if filtered.len == 0 {
 		app.gg.draw_text(cx + 20, cy + 86, 'No matches — try another query', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(13, z) })
 	}
-	// footer hint paper tape — reflects the S4B action state honestly
+	// footer hint paper tape — reflects the action state honestly
 	footer := if app.palette_armed != '' {
 		'Enter again to confirm  •  Esc to cancel'
 	} else if filtered.any(it.is_recent) {
@@ -6361,18 +6372,18 @@ fn activate_palette_selection(mut app GuiApp) {
 		app.palette_selected
 	}
 	sel := filtered[clamped]
-	// S4D: recent rows re-run through the current registry (never replay)
+	// recent rows re-run through the current registry (never replay)
 	if sel.is_recent {
 		rerun_recent(mut app, sel)
 		return
 	}
-	// S4B: contextual action rows run through preview → confirm → execute.
+	// contextual action rows run through preview → confirm → execute.
 	if sel.is_action {
 		run_palette_action(mut app, sel)
 		return
 	}
-	// S4A: registry rows navigate to their typed panel destination. Entity
-	// rows open the owning panel and deep-link the canonical entity (S4B).
+	// registry rows navigate to their typed panel destination. Entity
+	// rows open the owning panel and deep-link the canonical entity.
 	if sel.is_entity {
 		idx := panel_index_for(sel.panel)
 		if idx >= 0 {
@@ -6390,14 +6401,14 @@ fn activate_palette_selection(mut app GuiApp) {
 		app.palette_armed = ''
 		return
 	}
-	// S4C: no legacy activation arms remain — every row is a registry entity
+	// no legacy activation arms remain — every row is a registry entity
 	// or action.
 	app.palette_open = false
 	app.palette_query = ''
 	app.palette_selected = 0
 }
 
-// run_palette_action drives the S4B contextual action flow:
+// run_palette_action drives the contextual action flow:
 // preview (real dry-run) → confirmation for mutating actions → execution.
 // Confirmation never comes silently: either the preview was shown or the
 // user pressed Enter twice.
@@ -6571,15 +6582,15 @@ fn onboarding_key(mut app GuiApp, e &gg.Event) bool {
 	if e.key_code == .left || e.char_code == `b` || e.char_code == `B` {
 		if app.onboarding_step > 0 {
 			app.onboarding_step--
-			app.onboarding_msg = '${onb_stages[app.onboarding_step]} — ${onb_stage_hints[app.onboarding_step]}'
+			app.onboarding_msg = '${onboarding_stages[app.onboarding_step]} — ${onboarding_stage_hints[app.onboarding_step]}'
 		}
 		return true
 	}
 	if e.key_code == .enter {
-		if app.onboarding_step >= onb_last_stage {
+		if app.onboarding_step >= onboarding_last_stage {
 			onboarding_advance(mut app)
 		} else {
-			onb_apply_stage(mut app)
+			onboarding_apply_stage(mut app)
 		}
 		return true
 	}
@@ -6678,7 +6689,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		if app.palette_open {
 			if e.key_code == .escape {
-				// S4B: Esc unwinds the innermost palette context first —
+				// Esc unwinds the innermost palette context first —
 				// preview mode, then expansion, then the palette itself
 				if app.palette_preview.len > 0 {
 					app.palette_preview = []
@@ -6701,7 +6712,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if e.key_code == .u {
-				// S4D: undo the selected recent execution (optimistic exact
+				// undo the selected recent execution (optimistic exact
 				// check runs again right before restoring). Only a recent
 				// row with undo consumes the key — otherwise 'u' falls
 				// through to normal query typing (#1162 review).
@@ -6720,7 +6731,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			if e.key_code == .tab {
-				// S4B: expand/collapse contextual actions of the selected
+				// expand/collapse contextual actions of the selected
 				// registry entity row
 				filtered_tab := filtered_palette(mut app)
 				if app.palette_selected >= 0 && app.palette_selected < filtered_tab.len {
@@ -6856,7 +6867,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
-		// VC6 (#1173): Operations text fields (search / swarm task) — an
+		// Operations text fields (search / swarm task) — an
 		// active text field outranks the terminal and panel shortcuts
 		if operations_key(mut app, e) {
 			return
@@ -6878,7 +6889,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if app.ghost_focused && app.term_visible {
-				// super potent: Esc first unfocuses Ghostty — preserves terminal data
+				// Esc first unfocuses Ghostty — preserves terminal data
 				app.ghost_focused = false
 				return
 			}
@@ -6890,10 +6901,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// panel-scoped Esc clears search fields — Esc must never hard-quit
 			// the app (that was a data-loss footgun; Ctrl+Q quits explicitly)
-			if lib_is_panel(app.selected_panel) {
+			if library_is_panel(app.selected_panel) {
 				app.skills_query = ''
 				app.skills_domain = ''
-				app.lib_filter = ''
+				app.library_filter = ''
 				return
 			}
 			if app.selected_panel == 9 {
@@ -6915,7 +6926,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
-		// libghostty-vt toggle — Tab flips ghost_focused, the super potent multiplexed terminal
+		// libghostty-vt toggle — Tab flips ghost_focused, the multiplexed terminal
 		if e.key_code == .tab {
 			if app.term_visible {
 				app.ghost_focused = !app.ghost_focused
@@ -6983,14 +6994,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.palette_selected = 0
 			return
 		}
-		// VC5 (#1173): the Library tabs (Skills/Agents/Products/MCP) share one
+		// the Library tabs (Skills/Agents/Products/MCP) share one
 		// search field and one key handler — typing filters (spaces included),
 		// ←/→ select, ↑/↓ scroll rows, Enter runs the primary Engine action
 		// (library_view.v). Like header_search_focus above, the field owns
 		// printable letters *before* the global letter shortcuts (h help,
 		// r handoff) so "github" / "review" can actually be typed; the
 		// documented nav keys (digits, p/i/o) still fall through.
-		if !app.palette_open && !app.show_help && lib_is_panel(app.selected_panel) {
+		if !app.palette_open && !app.show_help && library_is_panel(app.selected_panel) {
 			if library_key(mut app, e) {
 				return
 			}
@@ -7007,7 +7018,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
-		// super potent IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
+		// IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
 		// When skills or workspace panels active, capture typing there instead of ghost (easy to manage, brokered)
 		if !app.palette_open && !app.show_help {
 			// Doctor panel — f fixes all via Engine TX, Enter opens dry-run preview
@@ -7035,7 +7046,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						doctor_preview_confirm(mut app)
 						return
 					}
-					// open dry-run for first fixable — super-potent easy management
+					// open dry-run for first fixable
 					checks := app.desktop.engine_doctor()
 					for c in checks {
 						if c.fixable && c.status != 'pass' {
@@ -7080,7 +7091,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				// same nav-key fall-through as the Skills panel (see is_panel_nav_key)
 				if e.char_code > 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
-					// typing goes to memory palace semantic recall when workspace active (super potent)
+					// typing goes to memory palace semantic recall when workspace active
 					app.memory_query += rune(e.char_code).str()
 					return
 				}
@@ -7108,8 +7119,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// libghostty-vt — when focused, route typing to Ghostty terminal (libghostty-vt)
-		// Terminal is bottom strip; ghost has priority over log scroll when focused — super potent
-		// Exclude skills/MCP/doctor/workspace when they need typed search (super-potent easy management)
+		// Terminal is bottom strip; ghost has priority over log scroll when focused
+		// Exclude skills/MCP/doctor/workspace when they need typed search
 		if !app.palette_open && !app.show_help && app.ghost_focused && app.term_visible && app.selected_panel != 1 && app.selected_panel != 3 && app.selected_panel != 5 && app.selected_panel != 9 {
 			// Ctrl+L clears Ghostty (like terminal clear), Ctrl+C copies Ghostty visible
 			if (e.modifiers & u32(gg.Modifier.ctrl)) != 0 {
@@ -7354,7 +7365,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		if app.term_visible && app.mouse_x >= x0 && app.mouse_x <= x0 + tw
 			&& app.mouse_y >= y0 && app.mouse_y < y0 + term_h {
-			// super potent: when ghost_focused, wheel scrolls Ghostty scrollback 1000; otherwise logs
+			// when ghost_focused, wheel scrolls Ghostty scrollback 1000; otherwise logs
 			if app.ghost_focused {
 				app.ghost.scroll_by(delta)
 			} else {
@@ -7395,19 +7406,19 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// Library card-grid scroll uses the same layout as drawing and clicks.
-		if lib_is_panel(app.selected_panel)
+		if library_is_panel(app.selected_panel)
 			&& library_scroll(mut app, app.mouse_x, app.mouse_y, delta, w3, h3) {
 			return
 		}
-		// VC6 (#1173): Operations table scroll (Doctor/Jobs/Loops/Swarm)
+		// Operations table scroll (Doctor/Jobs/Loops/Swarm)
 		if operations_scroll(mut app, delta, w3, h3) {
 			return
 		}
-		// insights tables scroll (VC7) — same geometry as draw_ins_table
+		// insights tables scroll — same geometry as draw_insights_table
 		if app.selected_panel == 12 && insights_scroll_by(mut app, delta, w3, h3) {
 			return
 		}
-		// workspace IDE scroll — file tree, editor, git, memory palace (super potent)
+		// workspace IDE scroll — file tree, editor, git, memory palace
 		if app.selected_panel == 9 {
 			l := workspace_layout(app, w3, h3)
 			// file tree left
@@ -7433,12 +7444,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if app.mouse_x >= gx && app.mouse_x <= gx + l.git_w && app.mouse_y >= l.mid_y && app.mouse_y < l.mid_y + l.mid_h {
 				if app.git_rail == 'CHANGES' {
 					changes := app.desktop.engine_git_changes()
-					visible := ws_git_changes_visible(l.mid_h)
+					visible := workspace_git_changes_visible(l.mid_h)
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, changes.len, visible)
 				} else if app.git_rail == 'HISTORY' {
 					graph := app.desktop.engine_git_graph(20)
-					visible := ws_git_history_visible(l.mid_h)
+					visible := workspace_git_history_visible(l.mid_h)
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, graph.commits.len, visible)
 				} else {
@@ -7512,14 +7523,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// navigation while a setup stage owns focus.
 		w := app.gg.width
 		h := app.gg.height
-		onb_shell_active := app.show_onboarding
+		onboarding_shell_active := app.show_onboarding
 		hl := header_layout(w, h)
-		if !onb_shell_active && my >= 0 && my <= hl.mast_h {
-			if onb_hit(mx, my, hl.workspace_x, hl.control_y, hl.workspace_w, hl.control_h) {
+		if !onboarding_shell_active && my >= 0 && my <= hl.mast_h {
+			if rect_contains(mx, my, hl.workspace_x, hl.control_y, hl.workspace_w, hl.control_h) {
 				focus_workspace(mut app)
 				return
 			}
-			if onb_hit(mx, my, hl.search_x, hl.control_y, hl.search_w, hl.control_h) {
+			if rect_contains(mx, my, hl.search_x, hl.control_y, hl.search_w, hl.control_h) {
 				if mx >= hl.search_x + hl.search_w - 20 && app.global_search != '' {
 					app.global_search = ''
 					app.skills_query = ''
@@ -7531,11 +7542,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				return
 			}
-			if onb_hit(mx, my, hl.theme_x, hl.control_y, hl.theme_w, hl.control_h) {
+			if rect_contains(mx, my, hl.theme_x, hl.control_y, hl.theme_w, hl.control_h) {
 				cycle_appearance(mut app)
 				return
 			}
-			if onb_hit(mx, my, hl.lang_x, hl.control_y, hl.lang_w, hl.control_h) {
+			if rect_contains(mx, my, hl.lang_x, hl.control_y, hl.lang_w, hl.control_h) {
 				app.lang = match app.lang {
 					.en { Lang.es }
 					.es { Lang.zh }
@@ -7547,7 +7558,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.workspace_focus = false
 				return
 			}
-			if onb_hit(mx, my, hl.command_x, hl.control_y, hl.command_w, hl.control_h) {
+			if rect_contains(mx, my, hl.command_x, hl.control_y, hl.command_w, hl.control_h) {
 				app.palette_open = true
 				app.palette_query = ''
 				app.palette_selected = 0
@@ -7586,37 +7597,37 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// VC5 (#1173): Library panels own every click inside the panel and
+		// Library panels own every click inside the panel and
 		// its detail column (tabs, search, chips, cards, actions) — same
 		// geometry as draw_library / draw_library_detail.
-		if lib_is_panel(app.selected_panel) && !app.show_onboarding {
+		if library_is_panel(app.selected_panel) && !app.show_onboarding {
 			if library_click(mut app, mx, my, w, h) {
 				return
 			}
 		}
-		// VC6 (#1173): Operations panels (Doctor/Jobs/Loops/Swarm) own their
+		// Operations panels (Doctor/Jobs/Loops/Swarm) own their
 		// content area and the Details column — one shared layout for draw
 		// and hit-testing (operations_view.v)
 		if operations_click(mut app, mx, my, w, h) {
 			return
 		}
-		// VC8 (#1173): Office overview roster rows select a desk (same geometry
+		// Office overview roster rows select a desk (same geometry
 		// as draw_office_roster)
 		if app.selected_panel == 0 && !app.office_map_view && !app.show_onboarding {
 			if office_roster_click(mut app, mx, my, w, h) {
 				return
 			}
 		}
-		// VC7 (#1173): Workspace / Insights own the right column — their tabs,
+		// Workspace / Insights own the right column — their tabs,
 		// rows and detail sheets take the click before the inspector geometry.
-		if !onb_shell_active && app.selected_panel == 9
+		if !onboarding_shell_active && app.selected_panel == 9
 			&& workspace_detail_click(mut app, mx, my, w, h) {
 			return
 		}
-		if !onb_shell_active && app.selected_panel == 12 && insights_click(mut app, mx, my, w, h) {
+		if !onboarding_shell_active && app.selected_panel == 12 && insights_click(mut app, mx, my, w, h) {
 			return
 		}
-		if !onb_shell_active && app.selected_panel == 11 && settings_click(mut app, mx, my, w, h) {
+		if !onboarding_shell_active && app.selected_panel == 11 && settings_click(mut app, mx, my, w, h) {
 			return
 		}
 		// Inspector buttons — clickable
@@ -7635,7 +7646,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Terminal click — super potent: focus Ghostty + copy
+		// Terminal click — focus Ghostty + copy
 		if app.term_visible {
 			w3 := app.gg.width
 			h3 := app.gg.height
@@ -7654,7 +7665,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				for i, tab in terminal_tabs(app) {
 					tx, ty, tab_w, tab_h := terminal_tab_rect(x0, y0, i)
-					if onb_hit(mx, my, tx, ty, tab_w, tab_h) {
+					if rect_contains(mx, my, tx, ty, tab_w, tab_h) {
 						app.term_view = tab.view
 						app.ghost_focused = tab.view < 0
 						return
@@ -7830,20 +7841,20 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// Onboarding wizard click handling — super-potent easy management via Engine
+		// Onboarding wizard click handling via Engine
 		if app.show_onboarding {
 			if onboarding_click(mut app, int(e.mouse_x), int(e.mouse_y), app.gg.width, app.gg.height) {
 				return
 			}
 		}
-		// Insights tabs / rows / details: handled by insights_click above (VC7).
+		// Insights tabs / rows / details: handled by insights_click above.
 		// Workspace IDE — file-tree, editor tabs, git rails CHANGES/HISTORY/COMPARE, commit graph, diff, memory palace
 		// Super potent: brokered fs via Engine.open_path_validated (harness_root_escape), syntax, graph lanes, semantic recall
 		if app.selected_panel == 9 {
 			l := workspace_layout(app, w, h)
 			// #1128: known-workspace folder tabs — click fills the draft for
 			// the Validate/Switch controls (discovery never switches itself)
-			for kr in app.known_ws_rects {
+			for kr in app.known_workspace_rects {
 				if mx >= kr.x && mx <= kr.x + kr.w && my >= kr.y && my <= kr.y + kr.h2 {
 					app.workspace_draft = kr.path
 					validate_workspace_draft(mut app)
@@ -7970,7 +7981,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				graph := app.desktop.engine_git_graph(20)
 				row_h := 22
 				y0 := rail_y2 + 14
-				visible := ws_git_history_visible(l.mid_h)
+				visible := workspace_git_history_visible(l.mid_h)
 				if visible > 0 {
 					start := clamp_scroll(app.git_scroll, graph.commits.len, visible)
 					for idx in start .. graph.commits.len {
@@ -8163,10 +8174,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// VC5 (#1173): Library card/chrome hover shares lib_layout geometry
-		app.lib_hover = -1
-		app.lib_hover_ui = -1
-		if lib_is_panel(app.selected_panel) && !app.show_onboarding {
+		// Library card/chrome hover shares library_layout geometry
+		app.library_hover = -1
+		app.library_hover_ui = -1
+		if library_is_panel(app.selected_panel) && !app.show_onboarding {
 			library_hover_at(mut app, app.mouse_x, app.mouse_y, app.gg.width, app.gg.height)
 		}
 		// workspace file-tree hover — left 180
@@ -8198,7 +8209,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			if app.git_rail == 'CHANGES' {
 				changes := app.desktop.engine_git_changes()
 				row_h2 := 20
-				vis2 := ws_git_changes_visible(l.mid_h)
+				vis2 := workspace_git_changes_visible(l.mid_h)
 				start2 := clamp_scroll(app.git_scroll, changes.len, vis2)
 				mut end2_ch := start2 + vis2
 				if end2_ch > changes.len {
@@ -8215,7 +8226,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			} else if app.git_rail == 'HISTORY' {
 				graph := app.desktop.engine_git_graph(20)
 				row_h2 := 22
-				vis2 := ws_git_history_visible(l.mid_h)
+				vis2 := workspace_git_history_visible(l.mid_h)
 				start2 := clamp_scroll(app.git_scroll, graph.commits.len, vis2)
 				mut end2_hi := start2 + vis2
 				if end2_hi > graph.commits.len {
@@ -8250,9 +8261,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 		}
-		// VC6 (#1173): Operations hover (tabs, controls, rows, detail actions)
+		// Operations hover (tabs, controls, rows, detail actions)
 		operations_hover(mut app, app.gg.width, app.gg.height)
-		// insights hover — tabs share insights_layout with drawing (VC7)
+		// insights hover — tabs share insights_layout with drawing
 		if app.selected_panel == 12 {
 			insights_hover_at(mut app, app.mouse_x, app.mouse_y, app.gg.width, app.gg.height)
 		}

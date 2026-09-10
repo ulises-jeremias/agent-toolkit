@@ -4,9 +4,9 @@ import gg
 import desktop.pixelart
 import desktop_engine
 
-// VC8 (#1173) — Office overview refinement against office.jpg.
+// Office overview against office.jpg.
 //
-// The room itself is the VC3.5-locked composition (office_room.v). This
+// The room itself is composed in office_room.v and left untouched here. This
 // file adds the surrounding operational UI the reference shows around it:
 // four metric cards across the top, and — to the right of the room — an
 // Agent Roster and a Today column. Every number is real Engine state; on an
@@ -156,7 +156,7 @@ fn draw_office_cards(mut app GuiApp, l OfficeLayout, metrics []OfficeMetric) {
 			bold: true
 		})
 		if ch >= 66 {
-			app.gg.draw_text(tx, cy + ch - 18, utf8_truncate(m.sub, onb_fit(cx + cw - tx - 8, 11)), gg.TextCfg{
+			app.gg.draw_text(tx, cy + ch - 18, utf8_truncate(m.sub, text_fit_chars(cx + cw - tx - 8, 11)), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -203,13 +203,13 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 		}
 		agent := pixelart.with_identity(pixelart.agent_for_state(.idle), i % 3)
 		sc.draw(agent, pid, x + 12, ry + 2, 2)
-		app.gg.draw_text(x + 44, ry + 1, utf8_truncate(agent_entry.id, onb_fit(w - 120, 12)), gg.TextCfg{
+		app.gg.draw_text(x + 44, ry + 1, utf8_truncate(agent_entry.id, text_fit_chars(w - 120, 12)), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			bold: true
 		})
 		role := if agent_entry.role == '' { agent_entry.tier } else { agent_entry.role }
-		app.gg.draw_text(x + 44, ry + 16, utf8_truncate(role, onb_fit(w - 60, 10)), gg.TextCfg{
+		app.gg.draw_text(x + 44, ry + 16, utf8_truncate(role, text_fit_chars(w - 60, 10)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
@@ -263,7 +263,7 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 			if ry + 16 > y0 + h - 8 {
 				break
 			}
-			app.gg.draw_text(x + 16, ry, utf8_truncate('${j.status} · ${j.id}', onb_fit(w - 28, 11)), gg.TextCfg{
+			app.gg.draw_text(x + 16, ry, utf8_truncate('${j.status} · ${j.id}', text_fit_chars(w - 28, 11)), gg.TextCfg{
 				color: app.pnl_text
 				size: 11
 			})
@@ -291,7 +291,7 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 			bold: true
 		})
 		ry += 18
-		app.gg.draw_text(x + 16, ry, utf8_truncate('${first_warn} — see Operations', onb_fit(w - 28, 11)), gg.TextCfg{
+		app.gg.draw_text(x + 16, ry, utf8_truncate('${first_warn} — see Operations', text_fit_chars(w - 28, 11)), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 		})
@@ -315,7 +315,7 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 				break
 			}
 			app.gg.draw_rect_empty(x + 16, ry + 2, 10, 10, app.pnl_border_hi)
-			app.gg.draw_text(x + 32, ry, utf8_truncate(s, onb_fit(w - 44, 11)), gg.TextCfg{
+			app.gg.draw_text(x + 32, ry, utf8_truncate(s, text_fit_chars(w - 44, 11)), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})

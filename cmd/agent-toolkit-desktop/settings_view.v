@@ -3,7 +3,7 @@ module main
 import gg
 import desktop.pixelart
 
-// VC7 (#1173) — Preferences sheet.
+// Preferences sheet.
 //
 // Settings is a real destination and setup is an explicit overlay journey.
 // This sheet exposes ONLY the settings
@@ -57,7 +57,7 @@ fn draw_preferences_sheet(mut app GuiApp, x int, y int, w int) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	h := prefs_sheet_height()
-	paper_sheet(mut app, x, y, w, h)
+	draw_paper_sheet(mut app, x, y, w, h)
 	sc.draw(pixelart.environment_for(.gear), pid, x + 10, y + 6, 2)
 	app.gg.draw_text(x + 40, y + 6, 'Preferences', gg.TextCfg{
 		color: app.pnl_text
@@ -79,7 +79,7 @@ fn draw_preferences_sheet(mut app GuiApp, x int, y int, w int) {
 		for i, seg in segs {
 			sx, sy, sw, sh := prefs_seg_rect(x, y, w, r, i, segs.len)
 			on := i == active
-			hover := onb_hit(app.mouse_x, app.mouse_y, sx, sy, sw, sh)
+			hover := rect_contains(app.mouse_x, app.mouse_y, sx, sy, sw, sh)
 			app.gg.draw_rect_filled(sx, sy, sw, sh, if on {
 				app.pnl_text
 			} else if hover {
@@ -114,7 +114,7 @@ fn preferences_click(mut app GuiApp, x int, y int, w int, mx int, my int) bool {
 		segs := prefs_row_segments(r)
 		for i in 0 .. segs.len {
 			sx, sy, sw, sh := prefs_seg_rect(x, y, w, r, i, segs.len)
-			if !onb_hit(mx, my, sx, sy, sw, sh) {
+			if !rect_contains(mx, my, sx, sy, sw, sh) {
 				continue
 			}
 			match r {
@@ -206,7 +206,7 @@ fn settings_layout(app &GuiApp, w int, h int) SettingsLayout {
 	}
 }
 
-// draw_settings promotes the real VC7 preferences into their own product
+// draw_settings promotes the real preferences into their own product
 // destination. It exposes only state GuiApp can actually mutate and keeps the
 // setup journey as an explicit action rather than conflating Settings with it.
 fn draw_settings(mut app GuiApp, w int, h int) {
@@ -230,7 +230,7 @@ fn draw_settings(mut app GuiApp, w int, h int) {
 	if l.setup_h < 58 {
 		return
 	}
-	paper_sheet(mut app, l.prefs_x, l.setup_y, l.prefs_w, l.setup_h)
+	draw_paper_sheet(mut app, l.prefs_x, l.setup_y, l.prefs_w, l.setup_h)
 	st := app.desktop.onboarding_status(app.harness_root)
 	app.gg.draw_text(l.prefs_x + 14, l.setup_y + 12, 'Workspace setup', gg.TextCfg{
 		color: app.pnl_text
@@ -247,7 +247,7 @@ fn draw_settings(mut app GuiApp, w int, h int) {
 		'No active workspace selected'
 	} else {
 		app.harness_root
-	}, onb_fit(l.prefs_w - 32, 10)), gg.TextCfg{
+	}, text_fit_chars(l.prefs_w - 32, 10)), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 		mono: true
@@ -256,10 +256,10 @@ fn draw_settings(mut app GuiApp, w int, h int) {
 		// Static workshop scenery gives Preferences the same physical world as
 		// Office and Onboarding without claiming runtime activity.
 		scene_x := l.prefs_x + l.prefs_w * 42 / 100
-		draw_onb_scene(mut app, scene_x, l.setup_y + 12, l.prefs_x + l.prefs_w - 14 - scene_x, l.setup_h - 24, office_palette_id(app))
+		draw_onboarding_scene(mut app, scene_x, l.setup_y + 12, l.prefs_x + l.prefs_w - 14 - scene_x, l.setup_h - 24, office_palette_id(app))
 	}
 	if l.setup_h >= 102 {
-		hover := onb_hit(app.mouse_x, app.mouse_y, l.button_x, l.button_y, l.button_w, l.button_h)
+		hover := rect_contains(app.mouse_x, app.mouse_y, l.button_x, l.button_y, l.button_w, l.button_h)
 		app.gg.draw_rect_filled(l.button_x, l.button_y, l.button_w, l.button_h, if hover {
 			app.pnl_select_hover
 		} else {
@@ -313,7 +313,7 @@ fn draw_settings_detail(mut app GuiApp, w int, h int) {
 	if ih > 410 {
 		nook_y := iy + 220
 		nook_h := ih - 300
-		paper_sheet(mut app, ix + 12, nook_y, inspector_w - 24, nook_h)
+		draw_paper_sheet(mut app, ix + 12, nook_y, inspector_w - 24, nook_h)
 		shelf := pixelart.environment_for(.shelf)
 		couch := pixelart.environment_for(.couch)
 		lamp := pixelart.environment_for(.lamp)
@@ -335,10 +335,10 @@ fn settings_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		&& preferences_click(mut app, l.prefs_x, l.prefs_y, l.prefs_w, mx, my) {
 		return true
 	}
-	if l.setup_h >= 102 && onb_hit(mx, my, l.button_x, l.button_y, l.button_w, l.button_h) {
+	if l.setup_h >= 102 && rect_contains(mx, my, l.button_x, l.button_y, l.button_w, l.button_h) {
 		app.show_onboarding = true
 		app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
 		return true
 	}
-	return onb_hit(mx, my, inspector_x(app, w), panel_top(app), inspector_w, content_bottom(app, h) - panel_top(app))
+	return rect_contains(mx, my, inspector_x(app, w), panel_top(app), inspector_w, content_bottom(app, h) - panel_top(app))
 }

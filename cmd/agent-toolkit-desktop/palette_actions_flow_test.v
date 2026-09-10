@@ -5,26 +5,26 @@ import desktop.palette
 import os
 import time
 
-// S4B production-flow tests: preview → confirm → execute through the real
+// Production-flow tests: preview → confirm → execute through the real
 // registry, honest unavailability, requested-vs-running, canonical deep-link.
 
-struct S4bFixture {
+struct PaletteActionFlowFixture {
 mut:
 	app &GuiApp = unsafe { nil }
 	d   &desktop.Desktop = unsafe { nil }
-	tmp string
+	scratch_dir string
 }
 
-// s4b_app boots a headless Desktop + GuiApp with the registry bound. The
+// boot_palette_flow_app boots a headless Desktop + GuiApp with the registry bound. The
 // fixture owns its exact temp directory and removes it in cleanup().
-fn s4b_app(label string) &S4bFixture {
-	tmp := os.join_path(os.temp_dir(), 'atk-s4b-flow-${label}-${os.getpid()}-${time.now().unix_nano()}')
-	os.mkdir_all(tmp) or { panic(err.msg()) }
+fn boot_palette_flow_app(label string) &PaletteActionFlowFixture {
+	scratch_dir := os.join_path(os.temp_dir(), 'atk-palette-flow-${label}-${os.getpid()}-${time.now().unix_nano()}')
+	os.mkdir_all(scratch_dir) or { panic(err.msg()) }
 	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
 		config: desktop.DesktopConfig{
 			headless: true
 		}
-		persist_path: os.join_path(tmp, 'state.json')
+		persist_path: os.join_path(scratch_dir, 'state.json')
 	})
 	d.boot() or { panic(err.msg()) }
 	mut app := &GuiApp{
@@ -36,19 +36,19 @@ fn s4b_app(label string) &S4bFixture {
 	}
 	app.palette_reg = d.palette_registry()
 	app.palette_open = true
-	return &S4bFixture{
+	return &PaletteActionFlowFixture{
 		app: app
 		d: d
-		tmp: tmp
+		scratch_dir: scratch_dir
 	}
 }
 
 // cleanup stops the Desktop and removes this fixture's exact temp path.
-fn (mut f S4bFixture) cleanup() {
+fn (mut f PaletteActionFlowFixture) cleanup() {
 	f.d.shutdown() or {}
-	if f.tmp != '' {
-		os.rmdir_all(f.tmp) or {}
-		f.tmp = ''
+	if f.scratch_dir != '' {
+		os.rmdir_all(f.scratch_dir) or {}
+		f.scratch_dir = ''
 	}
 }
 
@@ -64,7 +64,7 @@ fn find_row(rows []PaletteRow, pred fn (PaletteRow) bool) ?PaletteRow {
 // preview → informed execution: the real dry-run is shown first and the
 // execution mutates real configuration state.
 fn test_palette_action_flow_preview_then_execute() {
-	mut f := s4b_app('flow')
+	mut f := boot_palette_flow_app('flow')
 	defer {
 		f.cleanup()
 	}
@@ -96,7 +96,7 @@ fn test_palette_action_flow_preview_then_execute() {
 
 // unavailable action rows never fake success.
 fn test_palette_action_unavailable_honest() {
-	mut f := s4b_app('unavail')
+	mut f := boot_palette_flow_app('unavail')
 	defer {
 		f.cleanup()
 	}
@@ -121,7 +121,7 @@ fn test_palette_action_unavailable_honest() {
 // swarm launch routes to the swarm panel launch form (task text + recipe +
 // backend are real typed inputs the palette cannot provide honestly).
 fn test_palette_swarm_launch_routes_to_panel_form() {
-	mut f := s4b_app('swarm')
+	mut f := boot_palette_flow_app('swarm')
 	defer {
 		f.cleanup()
 	}
@@ -143,7 +143,7 @@ fn test_palette_swarm_launch_routes_to_panel_form() {
 
 // deep-link preserves canonical entity identity: selection is resolved by id.
 fn test_deep_link_selects_canonical_skill() {
-	mut f := s4b_app('deeplink')
+	mut f := boot_palette_flow_app('deeplink')
 	defer {
 		f.cleanup()
 	}

@@ -5,13 +5,13 @@ import time
 import desktop.pixelart
 import desktop_engine
 
-// VC7 (#1173) — Insights destination, visual convergence pass.
+// Insights destination: Engine-backed metric tabs in one paper-sheet composition.
 //
 // Reference grammar: operations.jpg (metric row + dense table + right-hand
 // details), library.jpg (tab strip with a sage underline), concept-board.jpg
 // (materials). The seven real tabs stay — cost | waterfall | spans | budgets
 // | ci | realtime | gallery — each backed by the same Engine calls as before.
-// What changes is the composition: editorial header, four metric cards that
+// The composition: editorial header, four metric cards that
 // only show recorded values, pixel-marked tabs, one paper sheet per tab with
 // the operations table styling, selectable rows, and a "Report details"
 // column on the right that replaces the generic inspector.
@@ -111,9 +111,9 @@ fn insights_rows_visible(l InsightsLayout) int {
 
 // ── row model ───────────────────────────────────────────────────────────────
 
-// InsRow is one selectable record: table cells + the label/value pairs the
+// InsightsRow is one selectable record: table cells + the label/value pairs the
 // details column shows. tone marks the status cell (ok / warn / bad / '').
-struct InsRow {
+struct InsightsRow {
 	kind   string
 	id     string
 	tone   string
@@ -121,30 +121,30 @@ struct InsRow {
 	fields [][]string
 }
 
-struct InsTable {
+struct InsightsTable {
 	title string
 	sub   string
 	cols  []string
 	col_x []int // offsets from inner_x
-	rows  []InsRow
+	rows  []InsightsRow
 	empty string // one honest sentence when rows.len == 0
 	scene int // empty-state scene variant
 	hint  string // second muted line: where the real affordance lives
 	note  string // truthful caveat rendered under the rows (may be '')
 }
 
-fn ins_time(ts i64) string {
+fn insights_time(ts i64) string {
 	if ts <= 0 {
 		return '—'
 	}
 	return time.unix(ts).format()
 }
 
-fn ins_or_dash(s string) string {
+fn insights_or_dash(s string) string {
 	return if s.trim_space() == '' { '—' } else { s }
 }
 
-fn ins_status_tone(s string) string {
+fn insights_status_tone(s string) string {
 	low := s.to_lower()
 	if low.contains('fail') || low.contains('error') || low.contains('cancel') {
 		return 'bad'
@@ -162,20 +162,20 @@ fn ins_status_tone(s string) string {
 // width: drawing, metrics, click and details all read the SAME table in a
 // frame (collect_engine_logs scans state.data — building it four times a
 // frame is wasteful) and the next frame rebuilds so Engine updates show.
-fn insights_table(mut app GuiApp, tab string, inner_w int) InsTable {
+fn insights_table(mut app GuiApp, tab string, inner_w int) InsightsTable {
 	key := '${tab}:${inner_w}'
-	if app.ins_cache_frame == app.frame && app.ins_cache_key == key {
-		return app.ins_cache
+	if app.insights_cache_frame == app.frame && app.insights_cache_key == key {
+		return app.insights_cache
 	}
 	t := insights_table_build(mut app, tab, inner_w)
-	app.ins_cache = t
-	app.ins_cache_key = key
-	app.ins_cache_frame = app.frame
+	app.insights_cache = t
+	app.insights_cache_key = key
+	app.insights_cache_frame = app.frame
 	return t
 }
 
 // insights_table_build assembles the current tab's rows from the Engine.
-fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
+fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsightsTable {
 	has_engine := app.desktop != unsafe { nil }
 	match tab {
 		'cost' {
@@ -189,38 +189,38 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 			} else {
 				[]desktop_engine.JobRecord{}
 			}
-			mut rows := []InsRow{}
+			mut rows := []InsightsRow{}
 			for r in swarms {
-				rows << InsRow{
+				rows << InsightsRow{
 					kind: 'Swarm run'
 					id: r.id
-					tone: ins_status_tone(r.status.str())
+					tone: insights_status_tone(r.status.str())
 					cells: [r.id, '${r.recipe.str()} · ${r.status.str()}',
-						'${r.budget_spent} / ${r.budget_total}', ins_time(r.created_at)]
+						'${r.budget_spent} / ${r.budget_total}', insights_time(r.created_at)]
 					fields: [['Kind', 'Swarm run'], ['Recipe', r.recipe.str()],
 						['Backend', r.backend.str()], ['Status', r.status.str()],
 						['Budget spent', '${r.budget_spent}'],
 						['Budget total', '${r.budget_total} (as reported)'],
-						['Created', ins_time(r.created_at)], ['Task', ins_or_dash(r.task)],
-						['Worktree', ins_or_dash(r.worktree)], ['Trace', ins_or_dash(r.trace_id)]]
+						['Created', insights_time(r.created_at)], ['Task', insights_or_dash(r.task)],
+						['Worktree', insights_or_dash(r.worktree)], ['Trace', insights_or_dash(r.trace_id)]]
 				}
 			}
 			for j in jobs {
 				// every recorded job is a row — ids are Engine-issued, never filtered
-				rows << InsRow{
+				rows << InsightsRow{
 					kind: 'Job'
 					id: j.id
-					tone: ins_status_tone(j.status.str())
+					tone: insights_status_tone(j.status.str())
 					cells: [j.id, 'job · ${j.status.str()}', 'exit ${j.exit_code}',
-						ins_time(j.started_at)]
+						insights_time(j.started_at)]
 					fields: [['Kind', 'Job'], ['Status', j.status.str()],
 						['Exit code', '${j.exit_code}'], ['Duration', '${j.duration_ms} ms'],
-						['Started', ins_time(j.started_at)], ['Finished', ins_time(j.finished_at)],
-						['Command', ins_or_dash((j.cmd + ' ' + j.args.join(' ')).trim_space())],
-						['Work dir', ins_or_dash(j.work_dir)], ['Retries', '${j.retry_count}']]
+						['Started', insights_time(j.started_at)], ['Finished', insights_time(j.finished_at)],
+						['Command', insights_or_dash((j.cmd + ' ' + j.args.join(' ')).trim_space())],
+						['Work dir', insights_or_dash(j.work_dir)], ['Retries', '${j.retry_count}']]
 				}
 			}
-			return InsTable{
+			return InsightsTable{
 				title: 'Cost ledger'
 				sub: 'Swarm runs and jobs recorded by the Engine ledger. Budget units as reported — no currency is assumed.'
 				cols: ['Run / job', 'Kind · status', 'Budget spent / total', 'Started']
@@ -237,18 +237,18 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 			} else {
 				[]desktop_engine.AgentEntry{}
 			}
-			mut rows := []InsRow{}
+			mut rows := []InsightsRow{}
 			for a in agents {
-				rows << InsRow{
+				rows << InsightsRow{
 					kind: 'Agent'
 					id: a.id
 					cells: [a.id, a.tier, a.role, '—']
-					fields: [['Kind', 'Catalog agent'], ['Tier', ins_or_dash(a.tier)],
-						['Role', ins_or_dash(a.role)], ['Description', ins_or_dash(a.description)],
+					fields: [['Kind', 'Catalog agent'], ['Tier', insights_or_dash(a.tier)],
+						['Role', insights_or_dash(a.role)], ['Description', insights_or_dash(a.description)],
 						['Measured spans', 'none — no tool call has been observed']]
 				}
 			}
-			return InsTable{
+			return InsightsTable{
 				title: 'Tool waterfall'
 				sub: 'Per-agent tool spans. Agent identity alone is never evidence that a tool call happened.'
 				cols: ['Agent', 'Tier', 'Role', 'Measured spans']
@@ -267,7 +267,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 				pids, drops := app.desktop.engine_process_supervisor_stats()
 				sub = 'Jobs: pids=${pids} drops=${drops} total=${st.total} running=${st.running} failed=${st.failed}'
 			}
-			return InsTable{
+			return InsightsTable{
 				title: 'OTel spans'
 				sub: sub
 				empty: 'No measured spans yet. They appear once a job, loop or swarm emits telemetry.'
@@ -287,23 +287,23 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 				[]desktop_engine.LoopHistory{}
 			}
 			with_budget := loops.filter(it.budget.max_tokens > 0 || it.budget.max_wall_seconds > 0).len
-			mut rows := []InsRow{}
+			mut rows := []InsightsRow{}
 			for hrow in hist {
-				rows << InsRow{
+				rows << InsightsRow{
 					kind: 'Loop run'
 					id: hrow.run_id
-					tone: ins_status_tone(hrow.status)
+					tone: insights_status_tone(hrow.status)
 					cells: [hrow.run_id, hrow.loop_name, '${hrow.status} · ${hrow.exit_condition}',
 						'${hrow.budget_spent} tok', '${hrow.duration_ms} ms']
 					fields: [['Kind', 'Loop run'], ['Loop', hrow.loop_name],
-						['Status', ins_or_dash(hrow.status)],
-						['Exit condition', ins_or_dash(hrow.exit_condition)],
+						['Status', insights_or_dash(hrow.status)],
+						['Exit condition', insights_or_dash(hrow.exit_condition)],
 						['Budget spent', '${hrow.budget_spent} tokens'],
 						['Duration', '${hrow.duration_ms} ms'],
-						['Started', ins_time(hrow.started_at)]]
+						['Started', insights_time(hrow.started_at)]]
 				}
 			}
-			return InsTable{
+			return InsightsTable{
 				title: 'Budgets'
 				sub: '${with_budget} of ${loops.len} loop templates declare a budget · run history from the ledger'
 				cols: ['Run', 'Loop', 'Status · exit', 'Spent', 'Duration']
@@ -316,7 +316,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 			}
 		}
 		'ci' {
-			return InsTable{
+			return InsightsTable{
 				title: 'CI observations'
 				sub: 'No CI provider is connected in this build.'
 				empty: 'Nothing observed. Workflow names are not results — checks appear here only when a provider reports them.'
@@ -326,22 +326,22 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 		}
 		'realtime' {
 			logs := if has_engine { collect_engine_logs(app) } else { []TermLine{} }
-			mut rows := []InsRow{cap: logs.len}
+			mut rows := []InsightsRow{cap: logs.len}
 			// reversed snapshot order; the Engine records no per-event timestamps,
 			// so this is NOT chronological — the column is the ledger revision
 			for i := logs.len - 1; i >= 0; i-- {
 				l := logs[i]
-				rows << InsRow{
+				rows << InsightsRow{
 					kind: 'Event'
 					id: l.ts
-					tone: ins_status_tone(l.level)
+					tone: insights_status_tone(l.level)
 					cells: [l.ts, l.level, l.source, l.msg]
 					fields: [['Kind', 'Engine event'], ['Revision', l.ts],
-						['Level', ins_or_dash(l.level)], ['Source', ins_or_dash(l.source)],
-						['Message', ins_or_dash(l.msg)], ['Raw', ins_or_dash(l.raw)]]
+						['Level', insights_or_dash(l.level)], ['Source', insights_or_dash(l.source)],
+						['Message', insights_or_dash(l.msg)], ['Raw', insights_or_dash(l.raw)]]
 				}
 			}
-			return InsTable{
+			return InsightsTable{
 				title: 'Realtime feed'
 				sub: 'GOD envelopes ${app.god_inbox} in · ${app.god_outbox} out · rev ${app.engine_rev} · api ${app.api_calls} — EventBus, one tick, no polling'
 				cols: ['Revision', 'Level', 'Source', 'Message']
@@ -353,7 +353,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsTable {
 			}
 		}
 		else {
-			return InsTable{
+			return InsightsTable{
 				title: 'Gallery'
 			}
 		}
@@ -368,24 +368,24 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, app.pnl_bg)
 	destination_header(mut app, l.fx, l.fy, l.fw, l.head_h, pixelart.environment_for(.ledger), tr(app, 'panel.insights'), 'Metrics, traces and reports — every number comes from the Engine ledger')
 	if l.metric_h > 0 {
-		draw_ins_metrics(mut app, l)
+		draw_insights_metrics(mut app, l)
 	}
 	if l.tab_h == 0 || l.content_h < 40 {
 		return
 	}
-	draw_ins_tabs(mut app, l)
-	paper_sheet(mut app, l.fx + 12, l.content_y, l.fw - 24, l.content_h)
+	draw_insights_tabs(mut app, l)
+	draw_paper_sheet(mut app, l.fx + 12, l.content_y, l.fw - 24, l.content_h)
 	if app.insights_tab == 'gallery' {
 		draw_insights_gallery(mut app, l)
 		return
 	}
 	t := insights_table(mut app, app.insights_tab, l.inner_w)
-	draw_ins_table(mut app, l, t)
+	draw_insights_table(mut app, l, t)
 }
 
-// draw_ins_metrics — four recorded values, never estimates. Zero is a valid
+// draw_insights_metrics — four recorded values, never estimates. Zero is a valid
 // state and is written as 0 with a truthful sub-line.
-fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
+fn draw_insights_metrics(mut app GuiApp, l InsightsLayout) {
 	has_engine := app.desktop != unsafe { nil }
 	swarms := if has_engine { app.desktop.swarm_list() } else { []desktop_engine.SwarmRun{} }
 	jobs := if has_engine {
@@ -437,7 +437,7 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 		row := i / cols
 		x := l.fx + 12 + col * (cw + gap)
 		y := l.metric_y + row * (ch + gap)
-		paper_sheet(mut app, x, y, cw, ch)
+		draw_paper_sheet(mut app, x, y, cw, ch)
 		m := marks[i]
 		ms := if !l.compact && cw >= 230 { 3 } else { 2 }
 		sc.draw(m, pid, x + 10, y + (ch - m.height() * ms) / 2, ms)
@@ -455,7 +455,7 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 			size: if l.compact { 11 } else { 13 }
 			bold: true
 		})
-		// 11px Plex averages ~5.6px/char; onb_fit's 7px would clip real fits
+		// 11px Plex averages ~5.6px/char; text_fit_chars's 7px would clip real fits
 		if !l.compact {
 			app.gg.draw_text(tx, y + 56, utf8_truncate(c[2], (cw - (tx - x) - 8) / 6), gg.TextCfg{
 				color: app.pnl_text_mut
@@ -465,9 +465,9 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 	}
 }
 
-// draw_ins_tabs — pixel-marked tabs; the active one merges into the sheet
+// draw_insights_tabs — pixel-marked tabs; the active one merges into the sheet
 // below it and carries the sage underline (library.jpg grammar).
-fn draw_ins_tabs(mut app GuiApp, l InsightsLayout) {
+fn draw_insights_tabs(mut app GuiApp, l InsightsLayout) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	marks := [pixelart.environment_for(.ledger), pixelart.environment_for(.chart_mark),
@@ -502,7 +502,7 @@ fn draw_ins_tabs(mut app GuiApp, l InsightsLayout) {
 	}
 }
 
-fn ins_tone_color(app &GuiApp, tone string) gg.Color {
+fn insights_tone_color(app &GuiApp, tone string) gg.Color {
 	return match tone {
 		'ok' { app.pnl_success }
 		'warn' { app.pnl_select }
@@ -511,19 +511,19 @@ fn ins_tone_color(app &GuiApp, tone string) gg.Color {
 	}
 }
 
-// draw_ins_table renders one tab sheet: title, sub-line, column header,
+// draw_insights_table renders one tab sheet: title, sub-line, column header,
 // alternating rows with selection + hover, footer counter. Empty tables
 // render a small scene and one honest sentence instead of a blank grid.
-fn draw_ins_table(mut app GuiApp, l InsightsLayout, t InsTable) {
+fn draw_insights_table(mut app GuiApp, l InsightsLayout, t InsightsTable) {
 	app.gg.draw_text(l.inner_x, l.inner_y, t.title, gg.TextCfg{
 		color: app.pnl_text
 		size: 17
 		family: app.fonts.display
 	})
-	draw_onb_wrapped(mut app, l.inner_x, l.inner_y + 22, l.inner_w, t.sub, 2)
+	draw_wrapped_text(mut app, l.inner_x, l.inner_y + 22, l.inner_w, t.sub, 2)
 	bottom := l.content_y + l.content_h
 	if t.rows.len == 0 {
-		draw_ins_empty(mut app, l.inner_x, l.inner_y + 44, l.inner_w, bottom - (l.inner_y + 44) - 12, t.scene, t.empty, t.hint)
+		draw_insights_empty(mut app, l.inner_x, l.inner_y + 44, l.inner_w, bottom - (l.inner_y + 44) - 12, t.scene, t.empty, t.hint)
 		return
 	}
 	// column header
@@ -548,7 +548,7 @@ fn draw_ins_table(mut app GuiApp, l InsightsLayout, t InsTable) {
 		row := idx - start
 		ry := l.rows_y + row * l.row_h
 		selected := idx == app.insights_sel
-		hover := onb_hit(app.mouse_x, app.mouse_y, l.inner_x, ry, l.inner_w, l.row_h)
+		hover := rect_contains(app.mouse_x, app.mouse_y, l.inner_x, ry, l.inner_w, l.row_h)
 		if selected {
 			app.gg.draw_rect_filled(l.inner_x, ry, l.inner_w, l.row_h, tint(app.pnl_success, 70))
 			app.gg.draw_rect_filled(l.inner_x, ry, 3, l.row_h, app.pnl_success)
@@ -570,10 +570,10 @@ fn draw_ins_table(mut app GuiApp, l InsightsLayout, t InsTable) {
 			mut tx := cx
 			if ci == 1 && r.tone != '' {
 				// status cell: tone dot + text, never color alone
-				app.gg.draw_rect_filled(cx, ry + 7, 6, 6, ins_tone_color(app, r.tone))
+				app.gg.draw_rect_filled(cx, ry + 7, 6, 6, insights_tone_color(app, r.tone))
 				tx += 10
 			}
-			app.gg.draw_text(tx, ry + 4, utf8_truncate(cell, onb_fit(next - tx - 6, 11)), gg.TextCfg{
+			app.gg.draw_text(tx, ry + 4, utf8_truncate(cell, text_fit_chars(next - tx - 6, 11)), gg.TextCfg{
 				color: if ci == 0 || ci == r.cells.len - 1 {
 					app.pnl_text
 				} else {
@@ -597,9 +597,9 @@ fn draw_ins_table(mut app GuiApp, l InsightsLayout, t InsTable) {
 	})
 }
 
-// ins_center_lines draws text centered on cx, wrapping to at most max_lines
+// draw_centered_lines draws text centered on cx, wrapping to at most max_lines
 // of ~per characters; returns the y after the last line.
-fn ins_center_lines(mut app GuiApp, cx int, y int, per int, text string, size int, col gg.Color, max_lines int) int {
+fn draw_centered_lines(mut app GuiApp, cx int, y int, per int, text string, size int, col gg.Color, max_lines int) int {
 	mut lines := []string{}
 	mut line := ''
 	for word in text.split(' ') {
@@ -629,13 +629,13 @@ fn ins_center_lines(mut app GuiApp, cx int, y int, per int, text string, size in
 	return yy
 }
 
-// draw_ins_empty is the empty state: scene + sentence + affordance hint as
+// draw_insights_empty is the empty state: scene + sentence + affordance hint as
 // ONE centered group anchored in the upper-middle of the sheet (scene centre
 // at ~30% height), never a lone sprite floating mid-void.
-fn draw_ins_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentence string, hint string) {
+fn draw_insights_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentence string, hint string) {
 	cx := x + w / 2
 	if h < 90 {
-		ins_center_lines(mut app, cx, y + 8, onb_fit(w, 12), sentence, 12, app.pnl_text_mut, 2)
+		draw_centered_lines(mut app, cx, y + 8, text_fit_chars(w, 12), sentence, 12, app.pnl_text_mut, 2)
 		return
 	}
 	mut sc := app.pixel_cache
@@ -698,9 +698,9 @@ fn draw_ins_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentenc
 		sc.draw(picture, pid, cx - picture.width(), ay + 12, 2)
 	}
 	app.gg.draw_rect_empty(ax, ay, art_w, art_h, tint(pc(app, `W`), 100))
-	ty := ins_center_lines(mut app, cx, base + 18, onb_fit(w - 40, 12), sentence, 12, app.pnl_text, 2)
+	ty := draw_centered_lines(mut app, cx, base + 18, text_fit_chars(w - 40, 12), sentence, 12, app.pnl_text, 2)
 	if hint != '' {
-		ins_center_lines(mut app, cx, ty + 4, onb_fit(w - 40, 11), hint, 11, app.pnl_text_mut, 1)
+		draw_centered_lines(mut app, cx, ty + 4, text_fit_chars(w - 40, 11), hint, 11, app.pnl_text_mut, 1)
 	}
 }
 
@@ -831,7 +831,7 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 	if app.insights_sel >= 0 && app.insights_sel < t.rows.len {
 		r := t.rows[app.insights_sel]
 		paper_pill(mut app, ix + 16, y, r.kind, app.pnl_select)
-		app.gg.draw_text(ix + 16, y + 22, utf8_truncate(r.id, onb_fit(iw - 32, 13)), gg.TextCfg{
+		app.gg.draw_text(ix + 16, y + 22, utf8_truncate(r.id, text_fit_chars(iw - 32, 13)), gg.TextCfg{
 			color: app.pnl_text
 			size: 13
 			bold: true
@@ -840,7 +840,7 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 		y += 48
 		app.gg.draw_rect_filled(ix + 16, y - 6, iw - 32, 1, tint(pc(app, `W`), 90))
 		for f in r.fields {
-			long := f[1].len > onb_fit(iw - 32, 12)
+			long := f[1].len > text_fit_chars(iw - 32, 12)
 			need := if long { 46 } else { 32 }
 			if y + need > quote_y - 8 {
 				app.gg.draw_text(ix + 16, y, '… more fields than fit', gg.TextCfg{
@@ -854,7 +854,7 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 				size: 10
 			})
 			if long {
-				draw_onb_wrapped(mut app, ix + 16, y + 13, iw - 32, f[1], 2)
+				draw_wrapped_text(mut app, ix + 16, y + 13, iw - 32, f[1], 2)
 			} else {
 				app.gg.draw_text(ix + 16, y + 13, f[1], gg.TextCfg{
 					color: app.pnl_text
@@ -866,7 +866,7 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 	} else {
 		// truthful empty card — nothing selected, or nothing selectable
 		card_h := 132
-		paper_sheet(mut app, ix + 8, y, iw - 16, card_h)
+		draw_paper_sheet(mut app, ix + 8, y, iw - 16, card_h)
 		sc.draw(pixelart.environment_for(.ledger), pid, ix + 24, y + 18, 3)
 		app.gg.draw_text(ix + 76, y + 18, 'Nothing selected', gg.TextCfg{
 			color: app.pnl_text
@@ -878,9 +878,9 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 		} else {
 			'The ${tab_label} tab has no rows to select.'
 		}
-		draw_onb_wrapped(mut app, ix + 76, y + 40, iw - 92, sentence, 3)
+		draw_wrapped_text(mut app, ix + 76, y + 40, iw - 92, sentence, 3)
 		y += card_h + 16
-		ws_section_label(mut app, ix + 16, y, 'SOURCES')
+		workspace_section_label(mut app, ix + 16, y, 'SOURCES')
 		app.gg.draw_text(ix + 16, y + 20, 'Engine state · swarm and job ledger', gg.TextCfg{
 			color: app.pnl_text
 			size: 11
@@ -911,14 +911,14 @@ fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	if l.tab_h == 0 || l.content_h < 40 {
 		ix := inspector_x(app, w)
 		iy := panel_top(app)
-		if onb_hit(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
+		if rect_contains(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
 			return true
 		}
 		return false
 	}
 	for i, t in insights_tabs {
 		x, y, tw, th := insights_tab_rect(l, i)
-		if onb_hit(mx, my, x, y, tw, th) {
+		if rect_contains(mx, my, x, y, tw, th) {
 			if app.insights_tab != t {
 				app.insights_tab = t
 				app.insights_sel = -1
@@ -933,7 +933,7 @@ fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		if tbl.rows.len > 0 {
 			visible := insights_rows_visible(l)
 			start := clamp_scroll(app.insights_scroll, tbl.rows.len, visible)
-			if onb_hit(mx, my, l.inner_x, l.rows_y, l.inner_w, visible * l.row_h) {
+			if rect_contains(mx, my, l.inner_x, l.rows_y, l.inner_w, visible * l.row_h) {
 				idx := start + (my - l.rows_y) / l.row_h
 				if idx >= 0 && idx < tbl.rows.len {
 					app.insights_sel = if app.insights_sel == idx { -1 } else { idx }
@@ -946,7 +946,7 @@ fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	// generic inspector geometry never reacts underneath it
 	ix := inspector_x(app, w)
 	iy := panel_top(app)
-	if onb_hit(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
+	if rect_contains(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
 		return true
 	}
 	return false
@@ -958,7 +958,7 @@ fn insights_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
 	l := insights_layout(app, w, h)
 	for i in 0 .. insights_tabs.len {
 		x, y, tw, th := insights_tab_rect(l, i)
-		if onb_hit(mx, my, x, y, tw, th) {
+		if rect_contains(mx, my, x, y, tw, th) {
 			app.insights_hover = i
 			return
 		}
@@ -971,7 +971,7 @@ fn insights_scroll_by(mut app GuiApp, delta int, w int, h int) bool {
 		return false
 	}
 	l := insights_layout(app, w, h)
-	if !onb_hit(app.mouse_x, app.mouse_y, l.fx + 12, l.content_y, l.fw - 24, l.content_h) {
+	if !rect_contains(app.mouse_x, app.mouse_y, l.fx + 12, l.content_y, l.fw - 24, l.content_h) {
 		return false
 	}
 	tbl := insights_table(mut app, app.insights_tab, l.inner_w)
