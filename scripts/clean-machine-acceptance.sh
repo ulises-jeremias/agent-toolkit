@@ -66,13 +66,21 @@ tar xzf "$ARTIFACT" -C "$STAGE"
 CLEAN_HOME="$PREFIX/home"
 CLEAN_DATA="$CLEAN_HOME/.local/share"
 CLEAN_CONFIG="$CLEAN_HOME/.config"
-mkdir -p "$CLEAN_HOME"
+CLEAN_CACHE="$CLEAN_HOME/.cache"
+CLEAN_STATE="$CLEAN_HOME/.local/state"
+mkdir -p "$CLEAN_HOME" "$CLEAN_CACHE" "$CLEAN_STATE"
 INSTALLED_BIN="$CLEAN_DATA/agent-toolkit/bin/agent-toolkit-desktop"
 
-# minimal environment: no repo, no dev PATH — launcher-like
+# minimal environment: no repo, no dev PATH — launcher-like.
+# XDG_CACHE_HOME/XDG_STATE_HOME are isolated too: the app resolves its font
+# cache via XDG_CACHE_HOME first, and a dev desktop session usually exports
+# it — without this the run would read/write the REAL cache and the
+# embedded-resources check would prove nothing.
 export HOME="$CLEAN_HOME"
 export XDG_DATA_HOME="$CLEAN_DATA"
 export XDG_CONFIG_HOME="$CLEAN_CONFIG"
+export XDG_CACHE_HOME="$CLEAN_CACHE"
+export XDG_STATE_HOME="$CLEAN_STATE"
 export PATH="/usr/bin:/bin"
 unset AGENT_TOOLKIT_ROOT || true
 cd "$PREFIX"
