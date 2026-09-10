@@ -3,7 +3,7 @@ module desktop_engine
 import os
 import agent_toolkit_core
 
-// S7 evidence-truth regression gates. These tests enforce the contract from
+// Evidence-truth regression gates. These tests enforce the contract from
 // docs/desktop/TRUTH_LEDGER.md: receipts and provenance exist only as real
 // evidence, digests are real SHA-256 values, verified is earned by an actual
 // verification operation, and unknown stays unknown.

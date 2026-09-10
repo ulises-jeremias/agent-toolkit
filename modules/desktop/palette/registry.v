@@ -1,6 +1,6 @@
 module palette
 
-// S4A (#1119) — shared typed action & entity registry core.
+// Shared typed action registry core.
 //
 // One registry supplies palette/search results from authoritative Engine state:
 // catalog truth (skills, agents, targets, providers, products, packs, loops),
@@ -180,12 +180,12 @@ mut:
 	// authority), mirroring InstallOptionsEngine's own injection design.
 	install_home_dir    string
 	install_receipt_dir string
-	// S4D: the shell reports the current appearance through
+	// The shell reports the current appearance through
 	// observe_appearance (apply_appearance is the only mutation point), so
 	// appearance-undo prechecks compare real values instead of assuming.
 	observed_appearance string
-	// S4D (#1119): session-local execution journal (newest first, bounded)
-	// + undo sequence. Fresh session ⇒ empty journal. Never persisted.
+	// Execution journal + evidence-backed undo: session-local journal
+	// (newest first, bounded) + undo sequence. Fresh session ⇒ empty journal. Never persisted.
 	journal  []RecentAction
 	undo_seq u64
 }
@@ -306,7 +306,7 @@ fn (mut r Registry) build_entries() []RegistryEntry {
 	return out
 }
 
-// build_app_entries derives the application-level entity (S4C): the app
+// build_app_entries derives the application-level entity: the app
 // itself — appearance, updates, uninstall. This replaces the legacy static
 // command rows with one coherent, discoverable Setup entity.
 fn build_app_entries() []RegistryEntry {

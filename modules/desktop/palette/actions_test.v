@@ -428,7 +428,7 @@ fn test_fresh_engine_no_fabricated_runtime_actions() {
 	assert entries.filter(it.kind == .swarm_run).len == 0
 }
 
-// 12. application-level actions are honest (S4C).
+// 12. application-level actions are honest.
 fn test_app_actions_honest() {
 	mut fe := new_s4b_engine('app')
 	defer {

@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 
-// S7C Git truth gates: no fabricated Git data, honest availability markers,
+// Git truth gates: no fabricated Git data, honest availability markers,
 // and workspace surfaces that never fall back to the toolkit root or cwd.
 
 fn git_truth_engine(tmp string) &Engine {

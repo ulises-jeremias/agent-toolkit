@@ -1,6 +1,6 @@
 module desktop_engine
 
-// S4C (#1119) — thin typed Engine adapter over the core receipt-based
+// Thin typed Engine adapter over the core receipt-based
 // uninstall domain operation. Desktop actions never shell out to the CLI:
 // core's run_uninstall removes ONLY toolkit-owned (`created`) artifacts
 // recorded in real install receipts, explicitly skips `merged` (user-touched)

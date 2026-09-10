@@ -56,9 +56,6 @@ pub fn (w NativeWatcher) available() bool {
 	if os.getenv('WATCHER_FORCE_POLL') == '1' {
 		return false
 	}
-	if os.getenv('VVATCH_FORCE_POLL') == '1' {
-		return false
-	}
 	$if linux || macos {
 		return false
 	} $else {
@@ -81,15 +78,15 @@ pub mut:
 	dependencies     map[string]string
 }
 
-pub fn new_polling_watcher(cfg WatcherConfig) &PollingWatcher {
-	mut poll := cfg.poll_interval_ms
+pub fn new_polling_watcher(config WatcherConfig) &PollingWatcher {
+	mut poll := config.poll_interval_ms
 	if poll < 100 {
 		poll = 500
 	}
 	if poll == 0 {
 		poll = 500
 	}
-	mut deb := cfg.debounce_ms
+	mut deb := config.debounce_ms
 	if deb < 50 {
 		deb = 50
 	}
@@ -107,21 +104,21 @@ pub fn new_polling_watcher(cfg WatcherConfig) &PollingWatcher {
 }
 
 pub fn is_polling_forced() bool {
-	return os.getenv('WATCHER_FORCE_POLL') == '1' || os.getenv('VVATCH_FORCE_POLL') == '1'
+	return os.getenv('WATCHER_FORCE_POLL') == '1'
 }
 
-pub fn select_watcher(cfg WatcherConfig) Watcher {
+pub fn select_watcher(config WatcherConfig) Watcher {
 	if is_polling_forced() {
-		return new_polling_watcher(cfg)
+		return new_polling_watcher(config)
 	}
 	native := NativeWatcher{
-		poll_interval_ms: cfg.poll_interval_ms
-		debounce_ms: cfg.debounce_ms
+		poll_interval_ms: config.poll_interval_ms
+		debounce_ms: config.debounce_ms
 	}
 	if native.available() {
 		return native
 	}
-	return new_polling_watcher(cfg)
+	return new_polling_watcher(config)
 }
 
 pub fn (w PollingWatcher) dependency_for(path string) string {
@@ -441,11 +438,11 @@ pub fn new_state_watcher(repo &state.StateRepository, bus &eventbus.ToolkitEvent
 	if d < 50 || d > 150 || d == 0 {
 		d = 100
 	}
-	cfg := WatcherConfig{
+	config := WatcherConfig{
 		poll_interval_ms: p
 		debounce_ms: d
 	}
-	w := select_watcher(cfg)
+	w := select_watcher(config)
 	return &StateWatcher{
 		repo: repo
 		bus: bus

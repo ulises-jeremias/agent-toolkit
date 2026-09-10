@@ -203,7 +203,8 @@ pub fn (mut e Engine) target_enabled(target_id string) bool {
 // target_install_supported reports whether a target can be installed through
 // the Engine install flow: a bundled profile must exist and the tool must be
 // supported by the core installer. This mirrors the install_with_options
-// guard so registry availability truth matches execution truth (S4B #1119).
+// guard so registry availability truth matches execution truth
+// (preview→confirm→execute).
 pub fn (mut e Engine) target_install_supported(target_id string) bool {
 	for t in e.targets() {
 		if t.id == target_id {
@@ -236,7 +237,7 @@ pub fn (mut e Engine) diff(before []string, after []string) TargetDiff {
 	}
 }
 
-// install_preview returns dry-run diff without writing — super-potent preview.
+// install_preview returns dry-run diff without writing (preview→confirm→execute).
 pub fn (mut e Engine) install_preview(targets []string) TargetDiff {
 	e.mu.lock()
 	e.api_calls++

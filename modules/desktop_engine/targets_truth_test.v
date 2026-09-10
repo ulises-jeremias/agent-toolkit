@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 
-// S7B target/install truth gates: the supported roster comes from the
+// Target/install truth gates: the supported roster comes from the
 // canonical registry, nothing is enabled by default, detection is real, and
 // install evidence is real deployed files plus a real receipt.
 

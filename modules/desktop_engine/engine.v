@@ -89,33 +89,33 @@ pub:
 }
 
 // new creates an Engine but does not init/start it.
-pub fn new_engine(cfg EngineConfig) &Engine {
-	di := if cfg.di != unsafe { nil } { cfg.di } else { new_di_container() }
-	rep := if cfg.repo != unsafe { nil } {
-		cfg.repo
+pub fn new_engine(config EngineConfig) &Engine {
+	di := if config.di != unsafe { nil } { config.di } else { new_di_container() }
+	rep := if config.repo != unsafe { nil } {
+		config.repo
 	} else {
-		state.new_state_repository(cfg.persist_path)
+		state.new_state_repository(config.persist_path)
 	}
-	bus := if cfg.bus != unsafe { nil } { cfg.bus } else { eventbus.new_event_bus() }
-	mut poll := cfg.watcher_poll_ms
+	bus := if config.bus != unsafe { nil } { config.bus } else { eventbus.new_event_bus() }
+	mut poll := config.watcher_poll_ms
 	if poll < 100 {
 		poll = 500
 	}
-	mut deb := cfg.watcher_debounce_ms
+	mut deb := config.watcher_debounce_ms
 	if deb < 50 || deb > 150 {
 		deb = 100
 	}
-	rtp := runtime_path_for(cfg.persist_path, cfg.runtime_path)
+	rtp := runtime_path_for(config.persist_path, config.runtime_path)
 	return &Engine{
 		state: .created
 		di: di
 		repo: rep
 		bus: bus
 		runtime_path: rtp
-		watcher_paths: cfg.watcher_paths.clone()
+		watcher_paths: config.watcher_paths.clone()
 		watcher_poll_ms: poll
 		watcher_debounce_ms: deb
-		use_polling: cfg.use_polling || os.getenv('WATCHER_FORCE_POLL') == '1' || os.getenv('VVATCH_FORCE_POLL') == '1'
+		use_polling: config.use_polling || os.getenv('WATCHER_FORCE_POLL') == '1'
 	}
 }
 
@@ -762,7 +762,7 @@ pub fn (mut e Engine) doctor() []DoctorCheck {
 	return checks
 }
 
-// DoctorCheck is the typed diagnostic row (mirrors doctor.v shape) — super-potent with category/name.
+// DoctorCheck is the typed diagnostic row (mirrors doctor.v shape) — with category/name.
 pub struct DoctorCheck {
 pub:
 	id       string

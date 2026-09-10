@@ -4,7 +4,7 @@ import os
 import x.json2
 import agent_toolkit_core
 
-// AgentEntry mirrors personas + AGENT.md + registry — super-potent: delegates, collaborates, triggers, provenance.
+// AgentEntry mirrors personas + AGENT.md + registry — with delegates, collaborators, triggers, provenance.
 pub struct AgentEntry {
 pub mut:
 	id                string
@@ -141,7 +141,7 @@ fn role_for_tier(tier string) string {
 	}
 }
 
-// agent fuzzy search — super-potent management: query + tier filter.
+// agent fuzzy search — query + tier filter.
 struct AgentScored {
 	entry AgentEntry
 	score int
@@ -276,7 +276,7 @@ pub fn (mut e Engine) agents_tier_counts() map[string]int {
 	return m
 }
 
-// agents_stats returns super-potent aggregation.
+// agents_stats returns aggregated counts.
 pub fn (mut e Engine) agents_stats() AgentStats {
 	e.mu.lock()
 	e.api_calls++

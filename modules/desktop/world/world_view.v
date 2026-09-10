@@ -58,13 +58,13 @@ pub:
 }
 
 // new_world_view creates a WorldView with retained geometry buffer.
-pub fn new_world_view(cfg WorldViewConfig) &WorldView {
-	vp := cfg.viewport
+pub fn new_world_view(config WorldViewConfig) &WorldView {
+	vp := config.viewport
 	return &WorldView{
 		viewport: vp
 		buffer: new_retained_buffer(vp)
-		theme: cfg.theme
-		debounce_ms: cfg.debounce_ms
+		theme: config.theme
+		debounce_ms: config.debounce_ms
 	}
 }
 

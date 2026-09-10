@@ -5,7 +5,7 @@ import x.json2
 import crypto.sha256
 import agent_toolkit_core
 
-// ReceiptEntry is the Engine projection of a real install receipt (S7 evidence
+// ReceiptEntry is the Engine projection of a real install receipt (evidence
 // truth). A receipt exists only if the core installer wrote it under the user
 // config authority; this Engine never invents receipt rows.
 pub struct ReceiptEntry {
@@ -190,7 +190,7 @@ pub fn (mut e Engine) verify_provenance_full() []BuildDiagnostic {
 	return diags
 }
 
-// receipts_stats aggregates for super-potent dashboard.
+// receipts_stats aggregates for the dashboard.
 pub struct ReceiptStats {
 pub:
 	total      int

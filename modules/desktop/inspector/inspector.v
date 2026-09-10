@@ -238,12 +238,12 @@ pub:
 }
 
 // new_inspector_viewmodel builds inspector bound to Engine + Router + Theme.
-pub fn new_inspector_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.Router, th theme.Theme, cfg InspectorConfig) &InspectorViewModel {
-	mut vh := cfg.viewport_h
+pub fn new_inspector_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.Router, th theme.Theme, config InspectorConfig) &InspectorViewModel {
+	mut vh := config.viewport_h
 	if vh <= 0 {
 		vh = 600
 	}
-	mut rh := cfg.row_height
+	mut rh := config.row_height
 	if rh <= 0 {
 		rh = 24
 	}

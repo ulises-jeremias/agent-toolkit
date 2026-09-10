@@ -3,7 +3,7 @@ module desktop_engine
 import os
 
 // loop_runtime_paths_use_runtime_path ensures loop worktrees and hygiene scans
-// are scoped to the Engine runtime_path, never to toolkit_root. This is the S2
+// are scoped to the Engine runtime_path, never to toolkit_root. This is the
 // runtime-projection boundary: bundled catalog data is immutable; runtime
 // artifacts are mutable and isolated.
 fn test_loop_runtime_paths_use_runtime_path() {

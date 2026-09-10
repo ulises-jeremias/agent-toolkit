@@ -15,7 +15,7 @@ pub:
 	category string // Skills|Agents|Products|Navigation|Doctor|MCP|Workspace|Loops|Jobs
 	keywords string // extra searchable tokens
 	panel    nav.PanelId
-	// S4A entity identity (#1119) — present on registry-derived actions.
+	// Shared typed action registry identity — present on registry-derived actions.
 	desc               string // one-line truthful description (empty = unset)
 	keys               string // shortcut hint (navigation rows)
 	kind               EntityKind
@@ -170,7 +170,7 @@ mut:
 	engine        &desktop_engine.Engine
 	router        &nav.Router
 	theme         theme.Theme
-	registry      &Registry // S4A: single typed registry source
+	registry      &Registry // shared typed action registry: single source
 	actions       []PaletteAction
 	filtered      []PaletteAction
 	query         string
@@ -188,19 +188,19 @@ mut:
 }
 
 // new_palette_viewmodel builds a palette bound to Engine + Router + Theme.
-pub fn new_palette_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.Router, th theme.Theme, cfg PaletteConfig) &PaletteViewModel {
-	mut debounce := cfg.debounce_ms
+pub fn new_palette_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.Router, th theme.Theme, config PaletteConfig) &PaletteViewModel {
+	mut debounce := config.debounce_ms
 	if debounce < 0 {
 		debounce = 0
 	}
 	if debounce > 100 {
 		debounce = 16
 	}
-	mut vh := cfg.viewport_h
+	mut vh := config.viewport_h
 	if vh <= 0 {
 		vh = 400
 	}
-	mut rh := cfg.row_height
+	mut rh := config.row_height
 	if rh <= 0 {
 		rh = 32
 	}
@@ -219,7 +219,7 @@ pub fn new_palette_viewmodel(mut engine &desktop_engine.Engine, mut router &nav.
 }
 
 // build_actions collects all searchable actions through the shared typed
-// registry (S4A #1119) — Engine catalogs, configuration and runtime state.
+// action registry — Engine catalogs, configuration and runtime state.
 // Pure derivation, no shell, no fabricated filler rows.
 fn (mut vm PaletteViewModel) build_actions() []PaletteAction {
 	return vm.registry.all_actions()

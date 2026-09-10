@@ -5,7 +5,7 @@ import x.json2
 import crypto.sha256
 import agent_toolkit_core
 
-// SkillEntry mirrors catalogs/skill-catalog.yaml shape — super-potent: triggers, origin, products, kind.
+// SkillEntry mirrors catalogs/skill-catalog.yaml shape — with triggers, origin, products, kind.
 pub struct SkillEntry {
 pub mut:
 	id          string
@@ -181,7 +181,7 @@ pub fn (mut e Engine) skills_search(query string, domain_filter string) []SkillE
 	return out
 }
 
-// skills_search_advanced is the super-potent variant with stability/origin filtering.
+// skills_search_advanced is the variant with stability/origin filtering.
 pub fn (mut e Engine) skills_search_advanced(query string, domain string, stability string, origin string) []SkillEntry {
 	base := e.skills_search(query, domain)
 	if stability == '' && origin == '' {
@@ -295,7 +295,7 @@ pub fn (mut e Engine) skills_installed_detailed() []SkillEntry {
 	return out
 }
 
-// skills_stats returns aggregated counts — super-potent management.
+// skills_stats returns aggregated counts.
 pub fn (mut e Engine) skills_stats() SkillStats {
 	e.mu.lock()
 	e.api_calls++
@@ -349,7 +349,7 @@ pub fn (mut e Engine) skills_by_domain() map[string][]SkillEntry {
 
 // install_skill records the skill as selected in configuration state.
 // Selection is configuration truth only: it is NOT an installation and writes
-// no receipt or provenance evidence (S7 evidence truth). Receipts exist only
+// no receipt or provenance evidence (evidence truth). Receipts exist only
 // when the core installer deploys real artifacts.
 pub fn (mut e Engine) install_skill(id string) !u64 {
 	if id == '' {
@@ -419,7 +419,7 @@ pub fn (mut e Engine) install_skill_preview(id string) TargetDiff {
 }
 
 // restore_skill_selection restores an exact previously captured installed
-// selection (S4D undo). Every id must still resolve in the catalog — the
+// selection (execution journal + evidence-backed undo). Every id must still resolve in the catalog — the
 // restore never invents membership for deleted skills.
 pub fn (mut e Engine) restore_skill_selection(ids []string) !u64 {
 	for id in ids {

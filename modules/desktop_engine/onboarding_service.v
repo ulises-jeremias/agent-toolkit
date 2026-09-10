@@ -2,8 +2,8 @@ module desktop_engine
 
 import os
 
-// OnboardingStatus aggregates super-potent onboarding state for wizard.
-// Everything is possible and easy to manage: one call returns all gaps.
+// OnboardingStatus aggregates onboarding state for the wizard.
+// One call returns all gaps.
 pub struct OnboardingStatus {
 pub:
 	is_first_run          bool
@@ -242,7 +242,7 @@ pub fn (mut e Engine) onboarding_ensure_personas(harness_root string) !u64 {
 	return rev.revision
 }
 
-// onboarding_bulk_install_skills installs multiple skills in one transaction (super-potent).
+// onboarding_bulk_install_skills installs multiple skills in one transaction.
 pub fn (mut e Engine) onboarding_bulk_install_skills(skill_ids []string) !u64 {
 	if skill_ids.len == 0 {
 		return error('no skill ids')
@@ -295,7 +295,7 @@ pub fn (mut e Engine) onboarding_bulk_remove_skills(skill_ids []string) !u64 {
 	return rev.revision
 }
 
-// onboarding_set_targets_bulk replaces enabled set with exactly enabled_ids (super-potent).
+// onboarding_set_targets_bulk replaces enabled set with exactly enabled_ids.
 pub fn (mut e Engine) onboarding_set_targets_bulk(enabled_ids []string) !u64 {
 	if enabled_ids.len == 0 {
 		return error('no targets selected — at least one required')
@@ -355,7 +355,7 @@ pub fn (mut e Engine) onboarding_complete(harness_root string) !u64 {
 	return rev.revision
 }
 
-// onboarding_reset allows re-running wizard (super-potent: reset + pending).
+// onboarding_reset allows re-running wizard (reset + pending).
 pub fn (mut e Engine) onboarding_reset() !u64 {
 	e.mu.lock()
 	e.api_calls++

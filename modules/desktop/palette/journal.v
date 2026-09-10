@@ -1,6 +1,6 @@
 module palette
 
-// S4D (#1119) — truthful Recent Actions + evidence-backed Undo.
+// Truthful Recent Actions + evidence-backed undo.
 //
 // The registry owns ONE canonical execution journal. A record is appended
 // only after an action's real execution seam has actually run — never for

@@ -2,7 +2,7 @@ module desktop_engine
 
 import x.json2
 
-// ProductEntry mirrors distributions/products.yaml — super-potent with provenance/receipts.
+// ProductEntry mirrors distributions/products.yaml — with provenance/receipts.
 pub struct ProductEntry {
 pub mut:
 	id           string
@@ -15,7 +15,7 @@ pub mut:
 	version      string
 }
 
-// PackEntry mirrors packs/ (docs-only per ADR-006) — super-potent with provenance.
+// PackEntry mirrors packs/ (docs-only per ADR-006) — with provenance.
 pub struct PackEntry {
 pub:
 	id           string

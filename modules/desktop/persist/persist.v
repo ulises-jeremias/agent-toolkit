@@ -22,8 +22,8 @@ pub:
 }
 
 // new_persist creates Persist with sqlite DB (derived-only).
-pub fn new_persist(cfg PersistConfig) !&Persist {
-	mut path := cfg.db_path
+pub fn new_persist(config PersistConfig) !&Persist {
+	mut path := config.db_path
 	if path == '' {
 		cache := os.join_path(os.home_dir(), '.cache', 'agent-toolkit')
 		os.mkdir_all(cache) or {}
