@@ -658,6 +658,17 @@ fn library_pill(mut app GuiApp, x int, y int, w int, h int, label string, active
 	}, active)
 }
 
+// draw_library_card is the soft paper surface every collection card and the
+// detail column sit on: a quiet edge, a faint drop, no wireframe double
+// borders. Cards are intentionally rounded (radius 4); workspace sheets drawn
+// by draw_paper_sheet are sharp — the two components differ by design, so
+// they keep separate painters sharing the same paper/ink tokens.
+fn draw_library_card(mut app GuiApp, x int, y int, w int, h int) {
+	app.gg.draw_rect_filled(x + 2, y + 2, w, h, tint(col_ink, 12))
+	app.gg.draw_rounded_rect_filled(x, y, w, h, 4, pc(app, `P`))
+	app.gg.draw_rounded_rect_empty(x, y, w, h, 4, tint(pc(app, `W`), 60))
+}
+
 // library_tag is the small manila fact chip on cards and in the detail pane.
 fn library_tag(mut app GuiApp, x int, y int, label string, accent bool) int {
 	w := label.len * 6 + 14
@@ -1030,7 +1041,7 @@ fn draw_library_grid(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId, it
 		cx, cy, cw, ch := library_card_rect(l, idx - start)
 		is_sel := idx == sel
 		is_hover := idx == app.library_hover
-		draw_paper_sheet(mut app, cx, cy, cw, ch)
+		draw_library_card(mut app, cx, cy, cw, ch)
 		if is_sel {
 			app.gg.draw_rounded_rect_filled(cx, cy, cw, ch, 4, tint(app.pnl_success, 28))
 			app.gg.draw_rounded_rect_empty(cx, cy, cw, ch, 4, app.pnl_success)
