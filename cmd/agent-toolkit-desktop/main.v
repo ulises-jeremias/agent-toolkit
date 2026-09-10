@@ -1,5 +1,6 @@
 module main
 
+import agent_toolkit_core
 import desktop
 import desktop.nav
 import desktop.palette
@@ -410,9 +411,10 @@ fn desktop_commit() string {
 }
 
 // desktop_version is the single source of truth for the user-visible version.
-// Order: installed VERSION sibling (next to the binary install root) → repo
-// VERSION via env roots / CWD checkout walk → embedded build version.
-// The -d commit fallback surfaces via desktop_version_full for dev builds.
+// Order: installed VERSION sibling (next to the binary install root) →
+// agent_toolkit_core.resolve_toolkit_version (env roots / CWD checkout walk
+// → embedded build version). The -d commit fallback surfaces via
+// desktop_version_full for dev builds.
 fn desktop_version() string {
 	vp := os.join_path(os.dir(os.dir(os.executable())), 'VERSION')
 	if os.is_file(vp) {
@@ -420,30 +422,7 @@ fn desktop_version() string {
 			return v
 		}
 	}
-	for env in ['AGENT_TOOLKIT_ROOT', 'AI_WORKSPACE'] {
-		val := os.getenv(env).trim_space()
-		if val.len == 0 {
-			continue
-		}
-		if v := read_version_file(os.join_path(val, 'VERSION')) {
-			return v
-		}
-	}
-	mut cur := os.getwd()
-	for {
-		ver_path := os.join_path(cur, 'VERSION')
-		if v := read_version_file(ver_path) {
-			if os.is_dir(os.join_path(cur, 'skills')) || os.is_dir(os.join_path(cur, 'loops')) || os.is_dir(os.join_path(cur, 'profiles')) {
-				return v
-			}
-		}
-		parent := os.dir(cur)
-		if parent == cur || parent.len == 0 {
-			break
-		}
-		cur = parent
-	}
-	return embedded_desktop_version
+	return agent_toolkit_core.resolve_toolkit_version()
 }
 
 // desktop_version_full appends the build commit when known (dev observability).
@@ -623,7 +602,7 @@ fn pixel_panel(mut app GuiApp, x int, y int, w int, h int, variant string) {
 			}
 		}
 		'dialog' {
-			// dialog: ink outer, cream fill with brass header — for GOD mailbox
+			// dialog: ink outer, cream fill with brass header — for team inbox
 			app.gg.draw_rect_filled(x, y, w, h, app.pnl_text)
 			app.gg.draw_rect_filled(x + 2, y + 2, w - 4, h - 4, app.pnl_card_sel)
 			app.gg.draw_rect_filled(x + 4, y + 4, w - 8, h - 8, app.pnl_text)
@@ -979,10 +958,10 @@ mut:
 	stations       []Station
 	kanban         []KanbanTask
 	file_tree      []FileNode
-	god_inbox      int
-	god_outbox     int
+	team_inbox      int
+	team_outbox     int
 	approvals      []string
-	// swarm Engine-owned — GOD mailbox, Herdr/tmux, pair/team/full launch, approvals spend/scope/destructive, eventbus status/handoffs/logs wired to desktop_engine
+	// swarm Engine-owned — team inbox, pair/team/full launch, spend/scope/destructive approvals, live status/handoffs/logs wired to desktop_engine
 	swarm_backend          string = 'auto'
 	swarm_task             string = 'Implement feature via swarm'
 	swarm_selected         int = -1
@@ -1012,7 +991,7 @@ mut:
 	jobs_show_logs        bool
 	jobs_logs_job         string
 	loops_budget_hover    int = -1
-	// IDE state — file-tree + editor tabs + git rails + skills 227 + memory palace
+	// IDE state — file-tree + editor tabs + git rails + live skill catalog + memory palace
 	skills_query       string
 	skills_domain      string
 	skills_scroll      int
@@ -1079,7 +1058,7 @@ mut:
 	global_search       string
 	header_search_focus bool
 	header_search_hover int = -1
-	// insights — Engine-owned telemetry (cost ledger, tool waterfall, OTel spans, budget sparks, CI watcher)
+	// insights — Engine-owned telemetry (cost ledger, tool timing, spans, budget sparks, CI watcher)
 	insights_scroll int
 	insights_sel    int = -1 // selected row of the current tab
 	// per-frame Insights table cache (draw/metrics/click/details share it)
@@ -1162,11 +1141,11 @@ const i18n_table = {
 	'desc.doctor':          I18nRow{'Health checks + fix', 'Comprobaciones y reparación', '健康检查与修复', 'فحوصات وإصلاح'}
 	'desc.jobs':            I18nRow{'Jobs & process supervisor', 'Trabajos y supervisor', '作业与进程管理', 'المهام والعمليات'}
 	'desc.loops':           I18nRow{'Loops & missions — inner/outer', 'Bucles y misiones — internos/externos', '循环任务 · 内外环', 'المهام الدورية'}
-	'desc.swarm':           I18nRow{'GOD mailbox, Herdr/tmux, teams', 'Buzón GOD, Herdr/tmux, equipos', 'GOD 信箱 · 集群协作', 'صندوق GOD والفرق'}
+	'desc.swarm':           I18nRow{'Team inbox and crews', 'Bandeja del equipo y grupos', '团队收件箱与协作', 'صندوق الفريق والفرق'}
 	'desc.workspace':       I18nRow{'IDE — tree, editor, git rails', 'IDE — árbol, editor, git', '工作区 IDE · 编辑器', 'مساحة عمل IDE'}
 	'desc.products':        I18nRow{'Products and packs', 'Productos y paquetes', '产品与包', 'المنتجات والحزم'}
 	'desc.onboarding':      I18nRow{'Wizard — workspace to products', 'Asistente — de workspace a productos', '引导向导 · 一步到位', 'معالج الإعداد'}
-	'desc.insights':        I18nRow{'Cost, waterfall, spans, CI', 'Costos, cascada, spans, CI', '成本 · 瀑布 · CI', 'التكاليف والأداء'}
+	'desc.insights':        I18nRow{'Costs, timing, spans, CI', 'Costos, tiempos, spans, CI', '成本 · 耗时 · CI', 'التكاليف والأداء'}
 	// header
 	'header.tagline':       I18nRow{'Paper Co. Office', 'Oficina Paper Co.', '纸业公司办公室', 'مكتب شركة الورق'}
 	'header.search':        I18nRow{'Search skills, agents, files…', 'Buscar habilidades, agentes, archivos…', '搜索技能、代理和文件…', 'ابحث في المهارات والوكلاء والملفات…'}
@@ -1200,7 +1179,6 @@ const i18n_table = {
 	'world.working':        I18nRow{'working', 'trabajando', '工作中', 'يعمل'}
 	'world.idle':           I18nRow{'idle', 'libre', '空闲', 'خامل'}
 	'world.blocked':        I18nRow{'blocked', 'bloqueado', '受阻', 'معطل'}
-	'world.god':            I18nRow{'GOD — in', 'GOD — entra', 'GOD — 收', 'GOD — دخول'}
 	'world.out':            I18nRow{'out', 'sale', '发', 'خروج'}
 	// generic actions
 	'act.open_terminal':    I18nRow{'Open terminal', 'Abrir terminal', '打开终端', 'افتح الطرفية'}
@@ -1238,16 +1216,16 @@ const i18n_table = {
 	'pdesc.doctor':         I18nRow{'Fix checks', 'Reparar comprobaciones', '修复检查', 'أصلح الفحوصات'}
 	'pdesc.jobs':           I18nRow{'Live processes', 'Procesos en vivo', '实时进程', 'العمليات المباشرة'}
 	'pdesc.loops':          I18nRow{'Missions and schedules — inner/outer', 'Misiones y agendas — internas/externas', '任务与计划 · 内外环', 'المهام والجداول'}
-	'pdesc.swarm':          I18nRow{'GOD mailbox, Herdr/tmux, pair/team/full', 'Buzón GOD, Herdr/tmux, par/equipo/completo', 'GOD 信箱 · 集群规模', 'صندوق GOD والفرق'}
+	'pdesc.swarm':          I18nRow{'Team inbox, pair, team or full crew', 'Bandeja del equipo, par, equipo o completo', '团队收件箱 · 结对 / 团队 / 全员', 'صندوق الفريق والعمل الجماعي'}
 	'pdesc.workspace':      I18nRow{'Context and memory', 'Contexto y memoria', '上下文与记忆', 'السياق والذاكرة'}
 	'pdesc.products':       I18nRow{'Manage products/packs membership & digest', 'Gestionar productos/paquetes y resumen', '管理产品/包与摘要', 'أدر المنتجات والحزم'}
 	'pdesc.onboarding':     I18nRow{'Wizard: workspace, personas, capability, target, product', 'Asistente: workspace, personas, capacidad, destino, producto', '向导：工作区到产品', 'معالج: من المساحة إلى المنتج'}
-	'pdesc.insights':       I18nRow{'Cost ledger, waterfall, spans, CI, realtime, gallery', 'Costos, cascada, spans, CI, tiempo real, galería', '成本 · 瀑布 · CI · 实时 · 图库', 'التكاليف والأداء والمعرض'}
+	'pdesc.insights':       I18nRow{'Cost ledger, tool timing, spans, CI, live view, gallery', 'Costos, tiempos, spans, CI, vista en vivo, galería', '成本 · 耗时 · CI · 实时 · 图库', 'التكاليف والأداء والمعرض'}
 }
 
 // rtl_text — bidi-lite for the fontstash renderer (no shaping, no bidi):
 // Arabic draws left-to-right, so reverse each RTL run (and the run order) while
-// keeping Latin/digit runs intact — 'ابحث في 227' then paints visually correct.
+// keeping Latin/digit runs intact — digits inside Arabic then paint visually correct.
 fn rtl_text(s string) string {
 	if !needs_ar(s) {
 		return s
@@ -1652,11 +1630,11 @@ fn panel_desc(i int) string {
 		5 { 'Health checks' }
 		6 { 'Jobs & process supervisor' }
 		7 { 'Loops & missions — inner/outer' }
-		8 { 'Swarms — GOD mailbox, Herdr/tmux, pair/team/full' }
+		8 { 'Swarms — team inbox, pair, team, or full crew' }
 		9 { 'Workspace IDE — file-tree + editor tabs + CHANGES/HISTORY/COMPARE + memory palace' }
 		10 { 'Products and packs — membership & digest' }
 		11 { 'Onboarding — workspace init, persona bootstrap, capability/target/product wizard' }
-		12 { 'Insights — cost ledger, tool waterfall, OTel spans, budgets spark, CI watcher' }
+		12 { 'Insights — cost ledger, tool timing, spans, budgets, CI watcher' }
 		else { '' }
 	}
 }
@@ -2083,30 +2061,6 @@ fn collect_engine_logs(app &GuiApp) []TermLine {
 	return out
 }
 
-// count_engine_logs mirrors collect_engine_logs without allocating TermLine,
-// cells, or detail fields. Insights uses it for the headline count; the full
-// model is built only when the realtime table is visible.
-fn count_engine_logs(app &GuiApp) int {
-	state := app.desktop.current_engine_state()
-	mut count := 0
-	for k, v in state.data {
-		if k.starts_with('jobs/') && k.ends_with('/logs') && v.len > 0 {
-			for line in v.split('\n') {
-				if line.len > 0 {
-					count++
-				}
-			}
-		}
-		if k.starts_with('watcher_') && v.len > 0 {
-			count++
-		}
-		if k.starts_with('jobs/') && k.ends_with('/status') {
-			count++
-		}
-	}
-	return count
-}
-
 fn active_log_filter(app &GuiApp) string {
 	if app.palette_open && app.palette_query.trim_space().len > 0 {
 		return app.palette_query.trim_space().to_lower()
@@ -2456,8 +2410,8 @@ fn on_init(mut app GuiApp) {
 	// must fit (the pane rail already says Fleet).
 	app.ghost.prefix_feed('${agents_active_total(mut app)} agents · ${skills_total(mut app)} skills · ${loops_total(mut app)} loops · ${mcp_total(mut app)} MCP\r\n')
 	app.ghost_focused = false
-	app.god_inbox = 0
-	app.god_outbox = 0
+	app.team_inbox = 0
+	app.team_outbox = 0
 	load_ui_state(mut app)
 	// resolve persisted (or default Paper) appearance into the panel palette
 	// before the first frame — panel draw code reads app.pnl_* throughout
@@ -2518,7 +2472,7 @@ fn on_init(mut app GuiApp) {
 	// Resolve once through the Engine so every workspace-bound view starts on
 	// the same canonical root with a real brokered file tree.
 	resolve_workspace_on_start(mut app)
-	// skills 227 — init harness root search state from Engine
+	// skills search — init harness root search state from Engine (live catalog count)
 	app.skills_query = ''
 	app.skills_domain = ''
 	app.git_rail = 'CHANGES'
@@ -2682,11 +2636,11 @@ fn frame(mut app GuiApp) {
 		if os.getenv('ATK_GUI_FREEZE') != '' {
 			app.api_calls = 900
 		}
-		// wire GOD mailbox counts via desktop_engine eventbus (status/handoffs/logs)
+		// wire team inbox counts via the Engine handoff feed (status/handoffs/logs)
 		gi, go_ := app.desktop.god_mailbox_counts()
 		if gi != 0 || go_ != 0 || app.frame == 30 {
-			app.god_inbox = gi
-			app.god_outbox = go_
+			app.team_inbox = gi
+			app.team_outbox = go_
 		}
 		// detect new rev to auto-pin terminal to newest
 		if app.engine_rev != app.cached_rev {
@@ -2861,22 +2815,21 @@ fn frame(mut app GuiApp) {
 		app.gg.draw_rect_filled(tx + tw - 3, ty + 6, 1, 1, tint(col_ink, 30))
 		app.gg.draw_text(tx + 18, ty + 5, app.zoom_toast, gg.TextCfg{ color: col_ink, size: scaled_size(12, app.global_zoom), bold: true })
 	}
-	// left — commands hint + GOD mailbox envelopes glow + rev
+	// left — commands hint + handoff envelope glow + message counts
 	mut left_x := 12
 	app.gg.draw_text(left_x, h - 19, '/', gg.TextCfg{ color: col_brass, size: scaled_size(11, app.global_zoom), bold: true })
 	left_x += 24
 	draw_text_l(mut app, left_x, h - 19, 'status.palette', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
 	left_x += 46
 	// envelopes signature — drawn paper envelope with rust glow dot when inbox>0
-	env_col := if app.god_inbox > 0 { col_brass } else { col_slate }
+	env_col := if app.team_inbox > 0 { col_brass } else { col_slate }
 	draw_envelope(mut app, left_x, h - 17, env_col)
-	app.gg.draw_text(left_x + 12, h - 19, '${app.god_inbox}→${app.god_outbox}', gg.TextCfg{ color: env_col, size: scaled_size(11, app.global_zoom) })
-	if app.god_inbox > 0 && app.frame % 40 < 20 {
+	app.gg.draw_text(left_x + 12, h - 19, '${app.team_inbox}→${app.team_outbox}', gg.TextCfg{ color: env_col, size: scaled_size(11, app.global_zoom) })
+	if app.team_inbox > 0 && app.frame % 40 < 20 {
 		app.gg.draw_rect_filled(left_x - 6, h - 14, 4, 4, tint(col_oxide, 88))
 	}
 	left_x += 58
-	app.gg.draw_text(left_x, h - 19, '•  rev ${app.engine_rev}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
-	left_x += 92
+	// revision/api counters live in the inspector Engine section, not the footer
 	// version stamp — same single source of truth as the header (desktop_version).
 	app.gg.draw_text(left_x, h - 19, '•  v${app.version}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
 	left_x += 84
@@ -3401,7 +3354,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		draw_office_overview(mut app, w, h)
 		return
 	}
-	// Hero — office floor: munder checkerboard 32×32 tiles, desks as AgentCards, envelopes with GOD 4*t*(1-t) arc
+	// Hero — office floor: munder checkerboard 32×32 tiles, desks as AgentCards, envelopes with 4*t*(1-t) travel arc
 	// Super-potent signature: unique floor texture (wood grain + grass tuft + terrazzo speck), avatar trails,
 	// envelope floor shadows, station glow, command deck kanban/fleet/CI alt divergence — native V gg only.
 	fx := panel_fx(app)
@@ -3769,22 +3722,22 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// corridor divider — kraft tape seam between desk grid and the manager corner
 	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, fh - 130, tint(app.pnl_select, 60))
 	app.gg.draw_rect_filled(fx + fw - 124, fy + 44, 2, 8, tint(app.pnl_select, 110))
-	// GOD / Michael — manager's corner (right corridor), mailbox with envelope flap animation (signature)
-	god_x := fx + fw - 96
-	god_y := fy + 44
-	pixel_panel(mut app, god_x, god_y, 80, 64, 'dialog')
-	app.gg.draw_text(god_x + 8, god_y + 8, 'Michael', gg.TextCfg{ color: app.pnl_text, size: font_display_md, bold: false })
-	app.gg.draw_text(god_x + 8, god_y + 22, 'GOD', gg.TextCfg{ color: app.pnl_danger, size: font_display_sm })
-	app.gg.draw_text(god_x + 8, god_y + 34, 'in ${app.god_inbox} • out ${app.god_outbox}', gg.TextCfg{ color: app.pnl_text, size: font_body_sm })
+	// Michael — manager's corner (right corridor), inbox with envelope flap animation (signature)
+	inbox_x := fx + fw - 96
+	inbox_y := fy + 44
+	pixel_panel(mut app, inbox_x, inbox_y, 80, 64, 'dialog')
+	app.gg.draw_text(inbox_x + 8, inbox_y + 8, 'Michael', gg.TextCfg{ color: app.pnl_text, size: font_display_md, bold: false })
+	app.gg.draw_text(inbox_x + 8, inbox_y + 22, 'Inbox', gg.TextCfg{ color: app.pnl_danger, size: font_display_sm })
+	app.gg.draw_text(inbox_x + 8, inbox_y + 34, 'in ${app.team_inbox} • out ${app.team_outbox}', gg.TextCfg{ color: app.pnl_text, size: font_body_sm })
 	// Signature: mailbox flap physics — brass hinge + flap opens when inbox>0 (spring on frame % 90)
-	mailbox_x := god_x + 56
-	mailbox_y := god_y + 6
+	mailbox_x := inbox_x + 56
+	mailbox_y := inbox_y + 6
 	app.gg.draw_rect_filled(mailbox_x, mailbox_y + 8, 14, 14, app.pnl_text)
 	app.gg.draw_rect_filled(mailbox_x + 1, mailbox_y + 9, 12, 12, app.pnl_bg)
 	app.gg.draw_rect_filled(mailbox_x + 1, mailbox_y + 9, 12, 2, app.pnl_border_hi)
-	flap_open := app.god_inbox > 0 && (app.frame % 90 < 45)
-	flap_up := app.god_inbox > 0 && (app.frame % 60 < 30)
-	if app.god_inbox > 0 {
+	flap_open := app.team_inbox > 0 && (app.frame % 90 < 45)
+	flap_up := app.team_inbox > 0 && (app.frame % 60 < 30)
+	if app.team_inbox > 0 {
 		// flag pole + flag (flap_up toggles)
 		app.gg.draw_rect_filled(mailbox_x + 14, mailbox_y + 2, 2, 10, app.pnl_text)
 		flag_y := if flap_up { mailbox_y } else { mailbox_y + 3 }
@@ -3806,9 +3759,9 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(mailbox_x + 5, mailbox_y + 13, 4, 2, app.pnl_text)
 		}
 		// inbox count badge
-		badge_col := if app.god_inbox > 2 { app.pnl_danger } else { app.pnl_select }
+		badge_col := if app.team_inbox > 2 { app.pnl_danger } else { app.pnl_select }
 		app.gg.draw_rect_filled(mailbox_x + 2, mailbox_y - 2, 10, 8, badge_col)
-		app.gg.draw_text(mailbox_x + 4, mailbox_y - 1, '${app.god_inbox}', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
+		app.gg.draw_text(mailbox_x + 4, mailbox_y - 1, '${app.team_inbox}', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
 	} else {
 		// empty mailbox — flag down, flap closed
 		app.gg.draw_rect_filled(mailbox_x + 14, mailbox_y + 6, 2, 6, app.pnl_text)
@@ -3824,11 +3777,11 @@ fn draw_world(mut app GuiApp, w int, h int) {
 		if ap_txt.len > 14 {
 			ap_txt = ap_txt[..14] + '…'
 		}
-		app.gg.draw_text(god_x + 8, god_y + 44 + i * 10, '• ${ap_txt}', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+		app.gg.draw_text(inbox_x + 8, inbox_y + 44 + i * 10, '• ${ap_txt}', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	}
-	// signature soft shadow under GOD panel — atelier floor shadow (ink 18%)
-	app.gg.draw_rect_filled(god_x + 4, god_y + 64, 76, 4, tint(app.pnl_text, 18))
-	app.gg.draw_rect_filled(god_x + 8, god_y + 66, 68, 2, tint(app.pnl_text, 12))
+	// signature soft shadow under inbox panel — atelier floor shadow (ink 18%)
+	app.gg.draw_rect_filled(inbox_x + 4, inbox_y + 64, 76, 4, tint(app.pnl_text, 18))
+	app.gg.draw_rect_filled(inbox_x + 8, inbox_y + 66, 68, 2, tint(app.pnl_text, 12))
 	// ── Command deck — kanban / fleet / CI workshop command (alt wood divergence, native gg)
 	// Signature atelier command deck: wood alt panel with brass grain, three columns for live kanban/fleet/CI
 	deck_x := fx + 8
@@ -3888,19 +3841,19 @@ fn draw_world(mut app GuiApp, w int, h int) {
 				app.gg.draw_rect_empty(fx2 - 1, fy2 - 1, 6, 6, app.pnl_select)
 			}
 		}
-		app.gg.draw_text(fleet_x, deck_y + 36, 'rev ${app.engine_rev} • fleet glance', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+		app.gg.draw_text(fleet_x, deck_y + 36, 'fleet glance', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 		// CI — doctor + jobs live status (workshop CI strip)
 		ci_x := deck_x + col_w * 2 + 8
 		app.gg.draw_text(ci_x, deck_y + 6, 'CI', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
-		// handoff + mercylabs style dots — god inbox/outbox as CI signals
-		app.gg.draw_rect_filled(ci_x, deck_y + 18, 6, 6, if app.god_inbox > 0 {
+		// handoff dots — team inbox/outbox as CI signals
+		app.gg.draw_rect_filled(ci_x, deck_y + 18, 6, 6, if app.team_inbox > 0 {
 			app.pnl_select
 		} else {
 			app.pnl_success
 		})
-		app.gg.draw_text(ci_x + 10, deck_y + 17, 'handoff in ${app.god_inbox}', gg.TextCfg{ color: app.pnl_text, size: 10 })
+		app.gg.draw_text(ci_x + 10, deck_y + 17, 'handoff in ${app.team_inbox}', gg.TextCfg{ color: app.pnl_text, size: 10 })
 		app.gg.draw_rect_filled(ci_x + 70, deck_y + 18, 6, 6, app.pnl_text_mut)
-		app.gg.draw_text(ci_x + 80, deck_y + 17, 'out ${app.god_outbox}', gg.TextCfg{ color: app.pnl_text, size: 10 })
+		app.gg.draw_text(ci_x + 80, deck_y + 17, 'out ${app.team_outbox}', gg.TextCfg{ color: app.pnl_text, size: 10 })
 		// doctor checks miniature — 3 dots pass/warn
 		for di in 0 .. 3 {
 			dcol := if di == 0 {
@@ -3925,7 +3878,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// Floor legend + live stats (English only)
 	app.gg.draw_rect_filled(fx, fy + fh - 20, fw, 20, tint(app.pnl_text, 220))
 	draw_floor_legend(mut app, fx + 10, fy + fh - 14)
-	app.gg.draw_text(fx + fw - 148, fy + fh - 14, 'rev ${app.engine_rev}  api ${app.api_calls}', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + fw - 148, fy + fh - 14, '${desks.len} desks', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	// signature fleet minimap dots — 1px per desk status in legend bar
 	for i, d in desks {
 		mx2 := fx + fw - 148 - 22 - i * 6
@@ -3940,8 +3893,9 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	}
 }
 
-// ── Skills 227 — easy to manage ─────────────────────────────────────
-// Brokered via Desktop.engine_skills_search (Engine typed API, no shell, 227 searchable).
+// ── Skills — easy to manage ─────────────────────────────────────
+// Brokered via Desktop.engine_skills_search (Engine typed API, no shell;
+// count renders live via skills_total — never hardcode the catalog size).
 // Fuzzy: substring + subsequence + word-boundary, ranked, virtualized 60 FPS.
 // Each section is a tiny helper: header → search → domain chips → list → footer.
 // Easy to manage: 20-line helpers, single source of truth for filtering.
@@ -4037,7 +3991,7 @@ fn mcp_drawer_open(mut app GuiApp, id string, template_path string, provenance s
 }
 
 // mcp_open_template routes to the Workspace panel with the template loaded
-// (brokered open; synthetic tab fallback when the harness guard blocks the
+// (brokered open; preview-tab fallback when the file guard blocks the
 // absolute toolkit path, #1106).
 fn mcp_open_template(mut app GuiApp, id string, template_path string) {
 	title := '${id}.json'
@@ -4068,7 +4022,7 @@ fn mcp_open_template(mut app GuiApp, id string, template_path string) {
 	} else {
 		app.editor_tabs << EditorTab{template_path, title, app.mcp_drawer_template, 'json', false, 0}
 		app.active_tab = app.editor_tabs.len - 1
-		app.inspector_msg = 'Opened ${title} (harness guard: synthetic tab, content from masked preview)'
+		app.inspector_msg = 'Opened ${title} (limited preview — the file guard blocked the full path, showing the masked preview)'
 	}
 	select_panel(mut app, 9)
 }
@@ -4157,7 +4111,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 			app.gg.draw_text(fx + 170, y + 10, text, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: d.found })
 		}
 	}
-	app.gg.draw_text(fx + 20, fy + fh - 14, 'Install: engine.install([targets]) → receipt ~/.config/agent-toolkit/receipts · dry-run before write · toggle via Engine', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	app.gg.draw_text(fx + 20, fy + fh - 14, 'Install: preview first (dry-run), then write · receipt saved to ~/.config/agent-toolkit/receipts', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
 }
 
 // doctor_preview_geom is the single source for the dry-run card geometry —
@@ -4167,16 +4121,73 @@ fn doctor_preview_geom(fx int, fy int, fw int) (int, int, int, int) {
 	return fx + 60, fy + 110, pw, 158
 }
 
+// doctor_terminal_check is the honest terminal row (#1076): live session
+// counts from app.sessions plus required-binary detection via pty.detect().
+// No new engine subsystem — one synthetic DoctorCheck in the existing
+// 'engine' category, rendered through the shared rows/chips pattern. The
+// fix action focuses the terminal (no dry-run card: nothing is written).
+fn doctor_terminal_check(app &GuiApp) desktop_engine.DoctorCheck {
+	mut alive := 0
+	mut exited := 0
+	mut actionable := false
+	for s in app.sessions {
+		if s.exited {
+			exited++
+			if !s.dismissed {
+				actionable = true
+			}
+		} else {
+			alive++
+		}
+	}
+	det := pty_mod.detect()
+	mut found := 0
+	for d in det {
+		if d.found {
+			found++
+		}
+	}
+	status := if exited > 0 || found < det.len { 'warn' } else { 'pass' }
+	return desktop_engine.DoctorCheck{
+		id: 'terminal_sessions'
+		category: 'engine'
+		name: 'terminal'
+		status: status
+		message: '${alive} alive · ${exited} exited · tools ${found}/${det.len} found'
+		fixable: actionable
+	}
+}
+
+// doctor_checks_for_app is Engine.doctor() plus the synthetic terminal row —
+// the single list behind the Doctor panel, its Enter-to-fix handler, and counts.
+fn doctor_checks_for_app(mut app GuiApp) []desktop_engine.DoctorCheck {
+	mut out := app.desktop.engine_doctor()
+	out << doctor_terminal_check(app)
+	return out
+}
+
 // doctor_preview_open resolves the dry-run lines once (cached — render must
 // not bump engine_api_calls every frame) and opens the confirm card.
 fn doctor_preview_open(mut app GuiApp, check_id string) {
+	if check_id == 'terminal_sessions' {
+		// focus-terminal fix: showing the terminal writes nothing, so no
+		// dry-run card — reveal it and point at the exited sessions.
+		if app.term_mode == 3 {
+			app.term_mode = 0
+		}
+		app.term_visible = true
+		app.ghost_focused = true
+		save_ui_state(app)
+		app.inspector_msg = 'Doctor terminal: focused — restart or dismiss the exited sessions'
+		return
+	}
 	lines := app.desktop.engine_doctor_fix_preview(check_id) or {
 		app.inspector_msg = 'Doctor preview failed: ${err}'
 		return
 	}
 	app.doctor_preview = check_id
 	app.doctor_preview_lines = lines.clone()
-	app.inspector_msg = 'Doctor ${check_id}: dry-run preview — Confirm to apply via Engine TX'
+	app.inspector_msg = 'Doctor ${check_id}: preview — Confirm to apply (dry-run first, nothing written yet)'
 }
 
 // doctor_preview_confirm applies the previewed fix, closes the card, and
@@ -4200,7 +4211,7 @@ fn doctor_preview_confirm(mut app GuiApp) {
 	app.api_calls = app.desktop.engine_api_calls()
 	app.doctor_preview = ''
 	app.doctor_preview_lines = []
-	app.inspector_msg = 'Doctor ${id} fixed rev=${rev} • re-check flips the row to pass'
+	app.inspector_msg = 'Doctor ${id} fixed • re-check flips the row to pass'
 }
 
 fn draw_doctor(mut app GuiApp, w int, h int) {
@@ -4209,8 +4220,8 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 	fw := panel_fw(app, w)
 	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	// Engine-owned Doctor: full Engine.doctor() with categories, receipts/provenance, fixable + Fix All via Engine TX
-	checks_engine := app.desktop.engine_doctor()
+	// Engine-owned Doctor: full Engine.doctor() with categories, receipts/provenance, fixable + Fix All via Engine
+	checks_engine := doctor_checks_for_app(mut app)
 	pass_cnt := checks_engine.filter(it.status == 'pass').len
 	warn_cnt := checks_engine.filter(it.status == 'warn').len
 	fail_cnt := checks_engine.filter(it.status == 'fail').len
@@ -4218,7 +4229,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 	provenance := app.desktop.engine_provenance_catalog()
 	verify_diags := app.desktop.engine_verify_receipts()
 	paper_letterhead(mut app, fx, fy, fw, tr(app, 'panel.doctor'), '${checks_engine.len} checks · ${pass_cnt} pass · ${warn_cnt} warn · ${fail_cnt} fail · ${verify_diags.len} warnings', 'receipts ${receipts.len} · provenance ${provenance.len}')
-	// Fix All button — via Engine.doctor_fix_all() TX + EventBus → AppState (one tick)
+	// Fix All button — via Engine.doctor_fix_all() → AppState
 	is_hover_fixall := app.mouse_x >= fx + fw - 90 && app.mouse_x <= fx + fw - 10 && app.mouse_y >= fy + 8 && app.mouse_y <= fy + 28
 	fix_bg := if is_hover_fixall { app.pnl_success } else { app.pnl_card_sel }
 	app.gg.draw_rect_filled(fx + fw - 90, fy + 10, 80, 20, fix_bg)
@@ -4228,8 +4239,8 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		app.pnl_border_hi
 	})
 	app.gg.draw_text(fx + fw - 76, fy + 15, 'Fix All', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	// category facets row — easy triage over 14 Engine categories.
-	// Click a chip to fix that category via Engine TX (#1108); hit rects are
+	// category facets row — easy triage over the Engine categories.
+	// Click a chip to fix that category via Engine (#1108); hit rects are
 	// stored for the mouse handler (rebuilt every frame, same geometry).
 	app.doctor_chips = []
 	cats := ['root', 'engine', 'profiles', 'swarm', 'mcp', 'pack', 'loops', 'matrix', 'audit',
@@ -4331,7 +4342,7 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 		}
 		size: 11
 	})
-	// dry-run preview card — modal overlay, Confirm applies via Engine TX (#1108)
+	// dry-run preview card — modal overlay, Confirm applies the fix (#1108)
 	if app.doctor_preview != '' {
 		px, py, pw, ph := doctor_preview_geom(fx, fy, fw)
 		pixel_panel(mut app, px, py, pw, ph, 'dialog')
@@ -4385,7 +4396,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 78, fy + 16, 'ProcessSupervisor · StateRepository TX · EventBus · logs · approvals', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	app.gg.draw_text(fx + 78, fy + 16, 'Live processes · logs · approvals', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	// supervisor liveness dot via engine_api + proc count
 	stats := app.desktop.engine_job_stats()
 	proc_running, dropped := app.desktop.engine_process_supervisor_stats()
@@ -4421,7 +4432,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 		cx += tw + 6
 	}
 	// supervisor health extra: API calls + revision badge
-	app.gg.draw_text(fx + 12, sy + 24, 'Engine api ${app.api_calls} · rev ${app.engine_rev} · bus dropped ${dropped} · StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + 12, sy + 24, 'Live jobs · ${stats.running} running · ${proc_running} processes · ${dropped} skipped updates', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// Jobs come from the supervisor. Empty means no jobs are running.
 	mut jobs := app.desktop.engine_jobs_catalog()
 	// card metrics — paper cards with left status rail
@@ -4556,10 +4567,10 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(fx + 8, aq_y, fw - 16, 18, app.pnl_select)
 	app.gg.draw_text(fx + 16, aq_y + 4, 'Approvals Queue — spend / scope / destructive', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
 	mut aq := app.desktop.engine_approvals_queue()
-	app.gg.draw_text(fx + fw - 110, aq_y + 4, '${aq.len} pending • StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + fw - 110, aq_y + 4, '${aq.len} pending', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	if aq.len == 0 {
-		app.gg.draw_text(fx + 16, aq_y + 28, 'No pending approvals — queue is empty (awaiting_approval gates)', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-		app.gg.draw_text(fx + 16, aq_y + 42, 'spend / scope / destructive via Engine.swarm_request_approval() → TX + EventBus', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+		app.gg.draw_text(fx + 16, aq_y + 28, 'No pending approvals — nothing is waiting for you', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+		app.gg.draw_text(fx + 16, aq_y + 42, 'spending, scope, and destructive steps pause here until you approve', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	} else {
 		visible_aq := 3
 		if app.jobs_approvals_scroll < 0 {
@@ -4618,7 +4629,7 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 			app.gg.draw_rect_filled(fx + fw - 8, bar_y2, 2, bh2, app.pnl_border_hi)
 		}
 	}
-	app.gg.draw_text(fx + 12, fy + fh - 12, 'Engine jobs via StateRepository TX • supervisor health • approvals via Engine.swarm_approvals_queue() • virtualized 60 FPS', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + 12, fy + fh - 12, 'Live jobs · process health · approvals above', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 }
 
 fn draw_loops(mut app GuiApp, w int, h int) {
@@ -4640,7 +4651,7 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(fx + fw - 118, fy + 8, 104, 22, bg_new)
 	app.gg.draw_rect_empty(fx + fw - 118, fy + 8, 104, 22, app.pnl_select)
 	draw_text_l(mut app, fx + fw - 106, fy + 14, 'act.new_loop', gg.TextCfg{ color: fg_new, size: 10, bold: true })
-	app.gg.draw_text(fx + 20, fy + 44, 'loop.yaml: cadence / goal / allowlist / budget · exit: goal_met · budget_exhausted · human_escalation · verifier receipt · StateRepository TX', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + 20, fy + 44, 'schedule · goal · allowed tools · budget · ends on: goal met · budget spent · needs you · checked result', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// ── Super-potent Engine loops L1/L2/L3 with three budgets visualized distinctly from Jobs ──
 	mut loops := app.desktop.loops_catalog()
 	mut y0 := fy + 66
@@ -4861,8 +4872,8 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(fx + fw - 6, y0, 3, track_h, tint(app.pnl_text, 30))
 		app.gg.draw_rect_filled(fx + fw - 6, bar_y, 3, bh, app.pnl_border_hi)
 	}
-	app.gg.draw_text(fx + 14, fy + fh - 18, 'Budget ledger via StateRepository TX • exit_conditions gate • gh-gate tier • validate-loops', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	app.gg.draw_text(fx + fw - 220, fy + fh - 18, 'rev ${app.engine_rev} • api ${app.api_calls} • loops ${loops.len}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+	app.gg.draw_text(fx + 14, fy + fh - 18, 'Budget ledger · loops stop on goal, budget, or your call', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(fx + fw - 220, fy + fh - 18, 'loops ${loops.len}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 	if app.loops_show_create {
 		mx := fx + 40
 		my := fy + 50
@@ -4870,10 +4881,10 @@ fn draw_loops(mut app GuiApp, w int, h int) {
 		mh := 160
 		app.gg.draw_rect_filled(mx, my, mw, mh, tint(app.pnl_text, 45))
 		pixel_panel(mut app, mx + 2, my + 2, mw - 4, mh - 4, 'active')
-		app.gg.draw_text(mx + 18, my + 14, 'Create Loop — via Engine.create_loop() TX', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
+		app.gg.draw_text(mx + 18, my + 14, 'Create Loop', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
 		tier_str := ['L1', 'L2', 'L3'][app.loops_create_tier]
 		app.gg.draw_text(mx + 18, my + 32, 'name: ${app.loops_create_name}  tier: ${tier_str}  cadence: ${app.loops_create_cadence}  budget: 50k/1/600/20', gg.TextCfg{ color: app.pnl_text, size: 10, mono: true })
-		app.gg.draw_text(mx + 18, my + 52, 'Writes loops/<name>/loop.yaml + STATE.md + StateRepository transaction', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+		app.gg.draw_text(mx + 18, my + 52, 'Saves the loop files under loops/<name>/', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 		app.gg.draw_rect_filled(mx + 18, my + 74, 88, 26, app.pnl_success)
 		app.gg.draw_text(mx + 30, my + 82, 'Create', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
 		app.gg.draw_rect_filled(mx + 118, my + 74, 88, 26, app.pnl_text)
@@ -4896,11 +4907,13 @@ fn swarm_edge_artifact(line string) string {
 	return rest[..fin].trim_space()
 }
 
-// swarm_working_roles derives the active roles from handoff recency: the
-// participants of the most recent handoff are working, the rest queued.
-// No role-name hardcoding; deterministic on live and mock feeds (#1101).
-fn swarm_working_roles(handoffs []string) []string {
-	if handoffs.len == 0 {
+// swarm_live_roles returns the recent handoff participants that ALSO have a
+// live runtime record (a non-exited terminal session for that role).
+// Recency alone never marks a role working (#1101): without a live record
+// the role renders idle. No role-name hardcoding; deterministic on live and
+// mock feeds. Pure on its inputs — callers pass swarm_session_roles(app).
+fn swarm_live_roles(handoffs []string, live []string) []string {
+	if handoffs.len == 0 || live.len == 0 {
 		return []
 	}
 	last := handoffs[handoffs.len - 1]
@@ -4909,11 +4922,23 @@ fn swarm_working_roles(handoffs []string) []string {
 	rest := last[arrow + 5..].trim_space().split(' ') // 5-byte arrow (#1101)
 	dst_role := if rest.len > 0 { rest[0] } else { '' }
 	mut out := []string{}
-	if src_role != '' {
+	if src_role != '' && src_role in live {
 		out << src_role
 	}
-	if dst_role != '' && dst_role != src_role {
+	if dst_role != '' && dst_role != src_role && dst_role in live {
 		out << dst_role
+	}
+	return out
+}
+
+// swarm_session_roles collects agent names holding a live (non-exited)
+// terminal session — the runtime record swarm_live_roles intersects with.
+fn swarm_session_roles(app &GuiApp) []string {
+	mut out := []string{}
+	for s in app.sessions {
+		if !s.exited && s.agent != '' && s.agent !in out {
+			out << s.agent
+		}
 	}
 	return out
 }
@@ -4942,42 +4967,42 @@ fn esc_desk_fullscreen(mut app GuiApp) {
 }
 
 fn draw_swarm(mut app GuiApp, w int, h int) {
-	// Super-potent swarms — GOD mailbox routing, handoff artifact files, inner/outer loops,
-	// Swarm UI Herdr/tmux, approvals spend/scope/destructive, easy pair/team/full launch,
-	// wire to desktop_engine eventbus and show swarm status, handoffs, logs.
+	// Swarms — team inbox routing, handoff artifact files, inner/outer loops,
+	// launch backends, spend/scope/destructive approvals, easy pair/team/full launch,
+	// wire to desktop_engine and show swarm status, handoffs, logs.
 	fx := panel_fx(app)
 	fy := panel_top(app)
 	fw := panel_fw(app, w)
 	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
-	// header — GOD mailbox law
+	// header — team inbox summary
 	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 44, 'default')
 	app.gg.draw_text(fx + 18, fy + 12, tr(app, 'panel.swarm'), gg.TextCfg{
 		color: app.pnl_text
 		size: font_display_md
 		family: app.fonts.display
 	})
-	app.gg.draw_text(fx + 92, fy + 16, 'GOD mailbox routing · handoff artifacts · inner/outer loops · Herdr/tmux · approvals', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
-	// GOD mailbox indicator — in/out via desktop.god_mailbox_counts() eventbus
-	mut god_in := app.god_inbox
-	mut god_out := app.god_outbox
-	// try live from Engine if available (wire to desktop_engine eventbus)
+	app.gg.draw_text(fx + 92, fy + 16, 'Team inbox routing · handoff files · inner/outer loops · backends · approvals', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+	// team inbox indicator — in/out via desktop.god_mailbox_counts() handoff feed
+	mut team_in := app.team_inbox
+	mut team_out := app.team_outbox
+	// try live from Engine if available
 	if app.desktop != unsafe { nil } {
 		gi, go_ := app.desktop.god_mailbox_counts()
 		if gi != 0 || go_ != 0 {
-			god_in = gi
-			god_out = go_
+			team_in = gi
+			team_out = go_
 		}
 	}
 	mbx_x := fx + fw - 160
 	app.gg.draw_rect_filled(mbx_x, fy + 8, 140, 28, app.pnl_card_sel)
 	app.gg.draw_rect_empty(mbx_x, fy + 8, 140, 28, app.pnl_border_hi)
-	app.gg.draw_text(mbx_x + 10, fy + 12, 'GOD mailbox', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
-	app.gg.draw_text(mbx_x + 10, fy + 26, 'in ${god_in} · out ${god_out}', gg.TextCfg{ color: app.pnl_danger, size: 11, mono: true })
-	if god_in > 0 {
+	app.gg.draw_text(mbx_x + 10, fy + 12, 'Team inbox', gg.TextCfg{ color: app.pnl_text, size: 11, bold: true })
+	app.gg.draw_text(mbx_x + 10, fy + 26, 'in ${team_in} · out ${team_out}', gg.TextCfg{ color: app.pnl_danger, size: 11, mono: true })
+	if team_in > 0 {
 		app.gg.draw_rect_filled(mbx_x + 116, fy + 14, 8, 6, app.pnl_danger)
 	}
-	// Herdr/tmux backend toggle + easy launch pair/team/full
+	// launch backend toggle (auto/herdr/tmux values are the Engine contract) + easy pair/team/full
 	y_launch := fy + 56
 	pixel_panel(mut app, fx + 8, y_launch, fw - 16, 68, 'default')
 	app.gg.draw_text(fx + 20, y_launch + 8, 'Launch — pair / team / full', gg.TextCfg{ color: app.pnl_text, size: font_display_sm })
@@ -5009,14 +5034,14 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_empty(bx, y_launch + 36, 84, 22, app.pnl_border_hi)
 		app.gg.draw_text(bx + 18, y_launch + 42, rname, gg.TextCfg{ color: app.pnl_text, size: 13, bold: true })
 	}
-	app.gg.draw_text(fx + 320, y_launch + 44, '→ via Engine.swarm_launch() · EventBus swarm_created · status/handoffs/logs live', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
-	// ── topology strip — roles as paper nodes, handoff edges with GOD envelopes ──
+	app.gg.draw_text(fx + 320, y_launch + 44, '→ launches a team · status, handoffs and logs update live', gg.TextCfg{ color: app.pnl_text_mut, size: 11 })
+	// ── topology strip — roles as paper nodes, handoff edges with envelopes ──
 	// parse ordered roles + edges from the handoff feed ("X → Y …")
 	topo_y := y_launch + 78
 	topo_h := 112
 	pixel_panel(mut app, fx + 8, topo_y, fw - 16, topo_h, 'default')
 	app.gg.draw_text(fx + 20, topo_y + 8, 'Topology — handoff graph (live)', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-	app.gg.draw_text(fx + fw - 240, topo_y + 10, 'nodes = roles · edges = GOD handoffs · dot = 4·t·(1−t)', gg.TextCfg{ color: app.pnl_text_mut, size: 9 })
+	app.gg.draw_text(fx + fw - 240, topo_y + 10, 'nodes = roles · edges = handoffs · dot = moving handoff', gg.TextCfg{ color: app.pnl_text_mut, size: 9 })
 	mut topo_handoffs := []string{}
 	if app.desktop != unsafe { nil } && app.desktop.swarm_list().len > 0 {
 		first_id_t := if app.desktop.swarm_list().len > 0 {
@@ -5069,7 +5094,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(pxz, pyz, zw, zh, app.pnl_card_sel)
 		app.gg.draw_rect_empty(pxz, pyz, zw, zh, app.pnl_border)
 		app.gg.draw_text(pxz + 8, pyz + 3, '+', gg.TextCfg{ color: app.pnl_text, size: 12, bold: true })
-		working := swarm_working_roles(topo_handoffs)
+		working := swarm_live_roles(topo_handoffs, swarm_session_roles(app))
 		app.swarm_nodes = []
 		app.swarm_edges = []
 		// lane split: spread single lane when it fits (original geometry),
@@ -5139,9 +5164,9 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 				role
 			}
 			app.gg.draw_text(nx + 8, ny + 6, label, gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
-			app.gg.draw_text(nx + 8, ny + 19, if status_running { 'working' } else { 'queued' }, gg.TextCfg{ color: app.pnl_text_mut, size: 9, mono: true })
+			app.gg.draw_text(nx + 8, ny + 19, if status_running { 'working' } else { 'idle' }, gg.TextCfg{ color: app.pnl_text_mut, size: 9, mono: true })
 		}
-		// edges with travelling envelopes — GOD 4·t·(1−t) speed pulse
+		// edges with travelling envelopes — 4·t·(1−t) speed pulse
 		for ei, e in edges {
 			if e[0] !in centers_x || e[1] !in centers_x {
 				continue
@@ -5167,7 +5192,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	if col_h < 100 {
 		return
 	}
-	// left — swarm status (wired to desktop_engine eventbus)
+	// left — swarm status (wired to desktop_engine)
 	cw := (fw - 32) / 3
 	pixel_panel(mut app, fx + 8, col_y, cw, col_h, 'terminal')
 	app.gg.draw_rect_filled(fx + 8, col_y, cw, 20, app.pnl_text)
@@ -5199,12 +5224,12 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		} else if s.contains('completed') { app.pnl_text_mut } else { app.pnl_card }
 		app.gg.draw_text(fx + 18, y + 2, s, gg.TextCfg{ color: col, size: 12, mono: true })
 	}
-	app.gg.draw_text(fx + 12, col_y + col_h - 14, '${swarms.len} swarms · Herdr preferred → tmux fallback · rev ${app.engine_rev}', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
-	// middle — handoffs via GOD mailbox + artifact files
+	app.gg.draw_text(fx + 12, col_y + col_h - 14, '${swarms.len} swarms · ${app.swarm_backend} backend', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	// middle — handoffs via team inbox + artifact files
 	mx := fx + 12 + cw
 	pixel_panel(mut app, mx, col_y, cw, col_h, 'default')
 	app.gg.draw_rect_filled(mx, col_y, cw, 20, app.pnl_card_sel)
-	app.gg.draw_text(mx + 8, col_y + 5, 'Handoffs — GOD → mailbox → queued', gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
+	app.gg.draw_text(mx + 8, col_y + 5, 'Handoffs — teammate to teammate', gg.TextCfg{ color: app.pnl_text, size: 11, mono: true })
 	// handoff artifacts list + inner/outer loop hint
 	mut handoffs := []string{}
 	if app.desktop != unsafe { nil } && swarms.len > 0 {
@@ -5250,12 +5275,12 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 			mono: true
 		})
 	}
-	app.gg.draw_text(mx + 8, col_y + col_h - 14, 'Artifacts: .agent-toolkit/swarm/runs/<id>/artifacts/ · GOD outbox/queued', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+	app.gg.draw_text(mx + 8, col_y + col_h - 14, 'Artifacts: .agent-toolkit/swarm/runs/<id>/artifacts/ · team outbox', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// right — approvals spend/scope/destructive + logs
 	rx := mx + cw + 4
 	pixel_panel(mut app, rx, col_y, cw, col_h, 'default')
 	app.gg.draw_rect_filled(rx, col_y, cw, 20, app.pnl_text)
-	app.gg.draw_text(rx + 8, col_y + 5, 'Approvals & Logs — EventBus', gg.TextCfg{ color: app.pnl_card, size: 11, mono: true })
+	app.gg.draw_text(rx + 8, col_y + 5, 'Approvals & Logs — live', gg.TextCfg{ color: app.pnl_card, size: 11, mono: true })
 	// approvals spend/scope/destructive derived from app.approvals + Engine
 	mut apprs := app.approvals.clone()
 	if apprs.len == 0 && app.desktop != unsafe { nil } && swarms.len > 0 {
@@ -5300,7 +5325,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		app.gg.draw_rect_filled(rx + cw - 16, y - 1, 16, 12, app.pnl_danger)
 		app.gg.draw_text(rx + cw - 12, y, '×', gg.TextCfg{ color: app.pnl_bg, size: 10, bold: true })
 	}
-	// logs — wired to desktop_engine eventbus process_log + swarm_logs
+	// logs — wired to desktop_engine process_log + swarm_logs
 	app.gg.draw_text(rx + 8, col_y + 100, 'Logs — demultiplexed per swarm (1024 cap, backpressure)', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 	// collect logs via collect_engine_logs filtered for swarm
 	all_logs := collect_engine_logs(app)
@@ -5328,7 +5353,7 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 		y := col_y + 114 + i * 11
 		app.gg.draw_text(rx + 8, y, '${l.ts} ${l.msg[..if l.msg.len > 32 { 32 } else { l.msg.len }]}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 	}
-	app.gg.draw_text(rx + 8, col_y + col_h - 14, 'EventBus: state_changed · swarm_handoff · process_log → one tick · rev ${app.engine_rev}', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
+	app.gg.draw_text(rx + 8, col_y + col_h - 14, 'Live feed · no refresh needed', gg.TextCfg{ color: app.pnl_text_mut, size: 10, mono: true })
 }
 
 // ── Workspace IDE — easy to manage ────────────────────────────────
@@ -5516,8 +5541,12 @@ fn focus_workspace(mut app GuiApp) {
 // Easy to manage: product cards, pack chips, membership bulk, build preview, digest.
 // ── Onboarding — wizard: workspace init, persona bootstrap, capability/target/product ──
 // Single modal wizard where everything is possible and easy to manage. One view, seven steps:
-// Detect → Capabilities (227) → Targets (7) → Products/Packs (5+7) → Workspace Init → Personas → Tour → Done.
-// All actions wire via Desktop.onboarding_* proxies → Engine transactions → EventBus → AppState (no shell).
+// Setup Choice → Tools → Workspace → Capabilities → Review (see onboarding_stages).
+// Verified catalog sizes at write time: 116 skills across 14 domains
+// (catalogs/skill-catalog.yaml), 18 agents, 11 registry targets, 7 MCP
+// templates, 10 loops, 5 products + 7 packs. Step labels render live
+// counts from the Engine — never hardcode them here.
+// All actions wire via Desktop.onboarding_* proxies → Engine → AppState (no shell).
 // utf8_truncate returns at most max_runes runes — never splitting a
 // multi-byte UTF-8 character (#1168 review; byte offsets corrupt text).
 fn utf8_truncate(s string, max_runes int) string {
@@ -6329,24 +6358,34 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 fn draw_help(mut app GuiApp, w int, h int) {
 	z := app.global_zoom
 	app.gg.draw_rect_filled(0, 0, w, h, tint(app.pnl_text, 80))
-	cx := w / 2 - 250
-	cy := h / 2 - 150
-	pw := 500
-	ph := 300
+	cx := w / 2 - 310
+	cy := h / 2 - 210
+	pw := 620
+	ph := 420
 	pixel_panel(mut app, cx, cy, pw, ph, 'default')
 	app.gg.draw_text(cx + 16, cy + 12, 'Paper Co. — Shortcuts', gg.TextCfg{ color: app.pnl_text, size: scaled_size(14, z), bold: true })
+	// every binding in on_event (plus the onboarding/library/operations key
+	// helpers it dispatches to) is listed here — no behavior changes.
 	lines := [
-		'/  Command palette — fuzzy search ${skills_total(mut app)} skills, agents, panels (v${app.version})',
-		'Ctrl +  = / -  Zoom in/out   •   Ctrl + 0  Reset  •  Ctrl + Scroll',
-		'1 – 0 / p / i / o  Switch panel (World…Jobs, Products, Insights, Onboarding)',
-		'T  Cycle panel appearance (Paper → Ink → System, persists)',
-		'↑  ↓  Navigate palette / floor desks  •  Enter to activate',
-		'Esc  Close palette / help / onboarding  •  H  Toggle this help',
-		'Click  Desk, dock file-tab or inspector — hover for brass highlight',
-		'Enter  Open terminal for selected desk  •  R  Route handoff',
+		'/ or Ctrl+K — palette: ${skills_total(mut app)} skills, agents, panels',
+		'1–9 switch panel • 0 Workspace • P Products • I Insights • O Onboarding',
+		'Esc steps back: palette, help, search, previews — never quits',
+		'Ctrl+Q quits • H help • T panel look • R route handoff',
+		'Ctrl with = / − / 0 zooms • Ctrl+scroll zooms',
+		'Tab focuses terminal input • G shows / hides terminal',
+		'Ctrl+` terminal height • Ctrl+F searches terminal • PgUp/PgDn, J/K scroll',
+		'Terminal focused: Ctrl+L clears • Ctrl+C copies • typing goes to shell',
+		'C copies hovered log • Enter opens terminal for selected desk',
+		'Doctor: F fixes all • Enter previews / confirms',
+		'Palette: Enter runs • Tab actions • U undoes recent',
+		'Onboarding: N/→ next • B/← back • Enter applies',
+		'Library + search fields: type to filter • ↑↓ move • Enter runs',
+		'Workspace: J/K files • H/L tabs • typing searches memory',
+		'Office floor: arrows move • M map • click a desk • Enter opens it',
+		'Agent screen: typing goes to the agent • Esc back to list',
 	]
 	for i, l in lines {
-		app.gg.draw_text(cx + 16, cy + 38 + i * 18, l, gg.TextCfg{ color: app.pnl_text, size: scaled_size(13, z) })
+		app.gg.draw_text(cx + 16, cy + 36 + i * 17, l, gg.TextCfg{ color: app.pnl_text, size: scaled_size(12, z) })
 	}
 	// about stamp — version + live catalog counts, single source of truth.
 	app.gg.draw_text(cx + 16, cy + ph - 42, 'v${app.version_full} • ${skills_total(mut app)} skills · ${agents_active_total(mut app)} agents · ${mcp_total(mut app)} providers · ${targets_total(mut app)} targets · ${products_total(mut app)} products', gg.TextCfg{ color: app.pnl_border_hi, size: scaled_size(11, z), bold: true })
@@ -7018,10 +7057,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			return
 		}
-		// IDE typing — skills 227 fuzzy + memory palace semantic recall + file-tree nav
+		// IDE typing — live skills-catalog fuzzy + memory palace semantic recall + file-tree nav
 		// When skills or workspace panels active, capture typing there instead of ghost (easy to manage, brokered)
 		if !app.palette_open && !app.show_help {
-			// Doctor panel — f fixes all via Engine TX, Enter opens dry-run preview
+			// Doctor panel — f fixes all via Engine, Enter opens dry-run preview
 			// (Enter again confirms, Esc cancels), real repair + audit stamp
 			if app.selected_panel == 5 {
 				// (Esc-cancel lives in the global Esc block above — it runs first.)
@@ -7037,7 +7076,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.inspector_msg = if rev == 0 {
 						'Doctor: all fixable already pass ✓'
 					} else {
-						'Doctor Fix All rev=${rev} via Engine TX'
+						'Doctor Fix All applied — revision ${rev}'
 					}
 					return
 				}
@@ -7047,7 +7086,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 						return
 					}
 					// open dry-run for first fixable
-					checks := app.desktop.engine_doctor()
+					checks := doctor_checks_for_app(mut app)
 					for c in checks {
 						if c.fixable && c.status != 'pass' {
 							doctor_preview_open(mut app, c.id)
@@ -7743,6 +7782,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 							app.inspector_msg = 'Restart ${s.agent} error: ${err}'
 							return
 						}
+						s.sess.kill() // reap the dead session first — kill() is idempotent, no double-close
 						s.sess = ns
 						s.exited = false
 						s.dismissed = false

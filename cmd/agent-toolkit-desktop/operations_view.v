@@ -1249,7 +1249,7 @@ fn draw_operations_topology(mut app GuiApp, l OperationsLayout) {
 	zx, zy, pxz, pyz, zw, zh := operations_zoom_rects(l)
 	operations_button(mut app, zx, zy, zw, zh, '−', app.operations_hover == 50, false, false)
 	operations_button(mut app, pxz, pyz, zw, zh, '+', app.operations_hover == 51, false, false)
-	working := swarm_working_roles(handoffs)
+	working := swarm_live_roles(handoffs, swarm_session_roles(app))
 	node_w := 96 + app.swarm_zoom * 24
 	node_h := 30
 	lane_cap := (l.right_w - 16) / (node_w + 8)
@@ -1285,7 +1285,7 @@ fn draw_operations_topology(mut app GuiApp, l OperationsLayout) {
 			size: 11
 			bold: true
 		})
-		app.gg.draw_text(nx + 8, ny + 17, if running { 'working' } else { 'queued' }, gg.TextCfg{
+		app.gg.draw_text(nx + 8, ny + 17, if running { 'working' } else { 'idle' }, gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 9
 			mono: true
@@ -2225,7 +2225,7 @@ fn operations_click_doctor_strip(mut app GuiApp, l OperationsLayout, mx int, my 
 		app.inspector_msg = if rev == 0 {
 			'Doctor: all fixable already pass ✓'
 		} else {
-			'Doctor Fix All rev=${rev} — real repairs + audit stamps via Engine TX'
+			'Doctor Fix All applied — revision ${rev} · real repairs + audit stamps'
 		}
 		return true
 	}
@@ -2243,7 +2243,7 @@ fn operations_click_doctor_strip(mut app GuiApp, l OperationsLayout, mx int, my 
 			app.inspector_msg = if rev == 0 {
 				'Doctor ${chip.cat}: nothing fixable — all pass ✓'
 			} else {
-				'Doctor ${chip.cat} fixed rev=${rev} via Engine TX'
+				'Doctor ${chip.cat} fixed — revision ${rev}'
 			}
 			return true
 		}
