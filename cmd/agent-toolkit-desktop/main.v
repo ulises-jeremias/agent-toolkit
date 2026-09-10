@@ -1522,6 +1522,47 @@ fn nav_group_label(app &GuiApp, panel int) string {
 	}
 }
 
+// shell_max_term_h is the terminal height the dock layout assumes so the six
+// permanent dock rows always end on the dock surface: rows start at
+// shell_mast_h(h)+54 and the compressed minimum is six 26px steps with 22px
+// rows (top+152 <= y1). In short viewports (e.g. 1024x480 with the 320px
+// terminal) the dock keeps that room instead of collapsing with the panels —
+// panels still suppress via content_bottom and the terminal keeps its
+// user-set height. MAX mode (2) owns the screen by design and is exempt.
+// Degenerate windows floor the assumed terminal at 96px.
+fn shell_max_term_h(h int) int {
+	max_h := h - shell_mast_h(h) - 234
+	if max_h < 96 {
+		return 96
+	}
+	return max_h
+}
+
+fn shell_effective_term_h(term_visible bool, term_mode int, term_height int, h int) int {
+	if !term_visible {
+		return 0
+	}
+	if term_mode == 2 {
+		return term_height
+	}
+	max_h := shell_max_term_h(h)
+	if term_height > max_h {
+		return max_h
+	}
+	return term_height
+}
+
+// dock_bottom is the dock column's own vertical extent. It matches
+// content_bottom except in short viewports with a tall terminal, where the
+// dock keeps room for the six permanent nav rows instead of collapsing with
+// the panels (panels keep suppressing secondary chrome via content_bottom;
+// the terminal keeps its user-set height). draw_left_dock, nav_rows and the
+// dock click/hover paths all share this so drawn rows and hit targets agree.
+fn dock_bottom(app &GuiApp, h int) int {
+	term_h := shell_effective_term_h(app.term_visible, app.term_mode, app.term_height, h)
+	return h - 28 - term_h
+}
+
 // nav_rows keeps the six product destinations permanent. Library and
 // Operations own their local tabs; duplicating those children in the shell
 // made the rail read like an IDE tree instead of the reference's navigation.
@@ -1529,7 +1570,7 @@ fn nav_group_label(app &GuiApp, panel int) string {
 // room the rows compress to a single-line compact form rather than dropping
 // destinations off the permanent dock.
 fn nav_rows(app &GuiApp, h int) []NavRow {
-	bottom := content_bottom(app, h) - 4
+	bottom := dock_bottom(app, h) - 4
 	top := shell_mast_h(h) + 54
 	avail := bottom - top
 	mut row_h := 46
@@ -3171,7 +3212,7 @@ fn draw_left_dock(mut app GuiApp, h int) {
 	ensure_pixel_cache(mut app)
 	pid := office_palette_id(app)
 	y0 := panel_top(app)
-	y1 := content_bottom(app, h)
+	y1 := dock_bottom(app, h)
 	dock_l := dock_x(app, app.gg.width)
 	app.gg.draw_rect_filled(dock_l, y0, dock_w, y1 - y0, col_charcoal)
 	app.gg.draw_line(dock_l + dock_w, y0, dock_l + dock_w, y1, col_line)

@@ -63,6 +63,34 @@ fn test_primary_navigation_stays_reachable_with_tall_terminal() {
 	}
 }
 
+fn test_primary_navigation_stays_on_dock_in_short_viewport_with_tall_terminal() {
+	// #1191 review: at 1024x480 the raw 320px terminal leaves no dock room;
+	// the dock keeps room for the six rows instead of collapsing with the
+	// panels (draw, click and hover share nav_rows, so containment covers
+	// all three; panels keep suppressing via content_bottom).
+	app := &GuiApp{
+		selected_panel: 0
+		term_visible: true
+		term_mode: 1
+		term_height: 320
+	}
+	h := 480
+	rows := nav_rows(app, h)
+	assert rows.len == 6
+	y0 := panel_top(app)
+	y1 := dock_bottom(app, h)
+	assert y1 > y0
+	// the terminal keeps its user-set height; only the dock reserves room
+	assert content_bottom(app, h) < y1
+	for i, row in rows {
+		assert row.y >= y0
+		assert row.y + row.h <= y1
+		if i > 0 {
+			assert rows[i - 1].y < row.y
+		}
+	}
+}
+
 fn test_suppressed_insights_controls_stay_inert() {
 	mut app := &GuiApp{
 		selected_panel: 12
