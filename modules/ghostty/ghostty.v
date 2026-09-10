@@ -47,7 +47,7 @@ pub fn new_terminal(cols int, rows int) GhosttyTerminal {
 	}
 	t.feed('Welcome to Agent Toolkit — Ghostty VT (libghostty-vt)\r\n')
 	t.feed('Type `help` for commands, `clear` to clear, `skills` to list.\r\n')
-	t.feed('Engine wired — Ghostty shares the same desktop Engine.\r\n\r\n')
+	t.feed('Engine wired — Ghostty shares the same desktop Engine.\r\n')
 	return t
 }
 
