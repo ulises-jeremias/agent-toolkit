@@ -16,6 +16,10 @@
 #
 # Provenance gate inherited: the app runs from the installed path under a
 # clean HOME/XDG with no repo in PATH.
+#
+# Display: fixed (default :99, ATK_WSLC_DISPLAY to override) guarded by the
+# shared acceptance lock file, so local parallel runs fail loudly instead
+# of colliding (see scripts/first-run-acceptance.sh).
 set -euo pipefail
 
 ARCHIVE="${1:?usage: workspace-lifecycle-acceptance.sh <desktop-archive.tar.gz>}"
@@ -29,10 +33,27 @@ ART_NAME="$(basename "$ARCHIVE")"
 ART_SHA="$(sha256sum "$ARCHIVE" | cut -d' ' -f1)"
 echo "provenance: artifact=$ART_NAME sha256=$ART_SHA"
 
-PREFIX="$(mktemp -d /tmp/atk-wslc-XXXXXX)"
+PREFIX="$(mktemp -d "${TMPDIR:-/tmp}/atk-wslc-XXXXXX")"
 EVIDENCE="${EVIDENCE_DIR:-$PREFIX/evidence}"
 mkdir -p "$EVIDENCE"
-trap 'rm -rf "$PREFIX"' EXIT
+# shared display lock: parallel local runs must fail loudly, never collide
+DISP="${ATK_WSLC_DISPLAY:-:99}"
+DISPNUM="${DISP#:}"
+LOCK=""
+trap 'rm -rf "$PREFIX"; if [ -n "$LOCK" ]; then rm -rf "$LOCK"; fi' EXIT
+LOCK_CANDIDATE="${TMPDIR:-/tmp}/atk-acceptance-X${DISPNUM}.lock"
+if ! mkdir "$LOCK_CANDIDATE" 2>/dev/null; then
+  lock_owner="$(cat "$LOCK_CANDIDATE/pid" 2>/dev/null || echo unknown)"
+  if [ "$lock_owner" != unknown ] && ! kill -0 "$lock_owner" 2>/dev/null; then
+    echo "warning: stealing stale acceptance lock $LOCK_CANDIDATE (owner $lock_owner dead)" >&2
+    rm -rf "$LOCK_CANDIDATE"
+    mkdir "$LOCK_CANDIDATE" || fail "cannot take display lock $LOCK_CANDIDATE"
+  else
+    fail "display $DISP is locked by another acceptance run (owner pid $lock_owner)"
+  fi
+fi
+LOCK="$LOCK_CANDIDATE"
+echo "$$" >"$LOCK/pid"
 
 STAGE="$PREFIX/stage"
 mkdir -p "$STAGE"
@@ -62,13 +83,13 @@ VALIDATE_X=$((SWITCH_X - 6 - 68))
 
 launch() { # $1 home  $2 extra PATH prefix
   local home="$1" pathfix="${2:-}"
-  Xvfb :99 -screen 0 1280x800x24 &
+  Xvfb "$DISP" -screen 0 1280x800x24 &
   XVFB_PID=$!
   sleep 1
-  DISPLAY=:99 openbox &
+  DISPLAY="$DISP" openbox &
   OB_PID=$!
   sleep 1
-  env -i DISPLAY=:99 PATH="${pathfix:+$pathfix:}/usr/bin:/bin" \
+  env -i DISPLAY="$DISP" PATH="${pathfix:+$pathfix:}/usr/bin:/bin" \
     HOME="$home" LANG=C.UTF-8 \
     XDG_DATA_HOME="$home/.local/share" XDG_CONFIG_HOME="$home/.config" \
     XDG_CACHE_HOME="$home/.cache" \
@@ -76,12 +97,12 @@ launch() { # $1 home  $2 extra PATH prefix
   APP_PID=$!
   for _ in $(seq 1 30); do
     sleep 1
-    WIN_ID="$(DISPLAY=:99 xdotool search --onlyvisible --name 'Agent Toolkit' 2>/dev/null | head -1 || true)"
+    WIN_ID="$(DISPLAY="$DISP" xdotool search --onlyvisible --name 'Agent Toolkit' 2>/dev/null | head -1 || true)"
     [ -n "$WIN_ID" ] && break
   done
   [ -n "$WIN_ID" ] || fail "app window never appeared"
-  DISPLAY=:99 xdotool windowactivate --sync "$WIN_ID" 2>/dev/null || true
-  DISPLAY=:99 xdotool windowfocus "$WIN_ID" 2>/dev/null || true
+  DISPLAY="$DISP" xdotool windowactivate --sync "$WIN_ID" 2>/dev/null || true
+  DISPLAY="$DISP" xdotool windowfocus "$WIN_ID" 2>/dev/null || true
   sleep 1
 }
 
@@ -94,27 +115,29 @@ kill_session() {
   wait $XVFB_PID 2>/dev/null || true
 }
 
-shot() { DISPLAY=:99 import -window root "$EVIDENCE/$1" 2>/dev/null || true; }
+# shot captures NAMED evidence: a failed capture fails the run loudly
+# (missing evidence must never pass silently as an empty check).
+shot() { DISPLAY="$DISP" import -window root "$EVIDENCE/$1" 2>/dev/null || fail "evidence capture failed: $1"; }
 # click uses WINDOW-RELATIVE coords: openbox frames/places the window, so
 # screen-absolute mousemove would miss. Geometry is probed per click.
 click() { # $1 window-x  $2 window-y
   # --window: xdotool resolves the position against the app window itself,
   # immune to WM frame/placement offsets
-  DISPLAY=:99 xdotool mousemove --window "$WIN_ID" --sync "$1" "$2"
-  DISPLAY=:99 xdotool click 1
+  DISPLAY="$DISP" xdotool mousemove --window "$WIN_ID" --sync "$1" "$2"
+  DISPLAY="$DISP" xdotool click 1
   sleep 0.6
 }
 
 click() { # $1 window-x  $2 window-y
   # --window: xdotool resolves the position against the app window itself,
   # immune to WM frame/placement offsets
-  DISPLAY=:99 xdotool mousemove --window "$WIN_ID" --sync "$1" "$2"
-  DISPLAY=:99 xdotool click 1
+  DISPLAY="$DISP" xdotool mousemove --window "$WIN_ID" --sync "$1" "$2"
+  DISPLAY="$DISP" xdotool click 1
   sleep 0.6
 }
 
-key() { DISPLAY=:99 xdotool key "$1"; sleep 0.3; }
-type_text() { DISPLAY=:99 xdotool type --delay 40 "$1"; sleep 0.4; }
+key() { DISPLAY="$DISP" xdotool key "$1"; sleep 0.3; }
+type_text() { DISPLAY="$DISP" xdotool type --delay 40 "$1"; sleep 0.4; }
 clear_field() { for _ in $(seq 1 80); do key BackSpace; done; }
 
 state_data() {

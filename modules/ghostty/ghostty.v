@@ -1,5 +1,6 @@
 module ghostty
 
+import agent_toolkit_core
 import os
 
 // libghostty-vt — Ghostty VT terminal for Agent Toolkit Desktop — Dunder Mifflin Paper Company edition
@@ -274,13 +275,16 @@ fn (mut t GhosttyTerminal) push_line(s string, color int) {
 		t.lines << ''
 		t.colors << [color]
 	} else {
+		// rune-safe wrap: byte slicing can split a multi-byte UTF-8 rune
+		// (CJK, emoji). Width model is one cell per rune, matching the
+		// repo's utf8_truncate truncation approach.
+		r := s.runes()
 		mut start := 0
-		for start < s.len {
-			end := if start + c < s.len { start + c } else { s.len }
-			chunk := s[start..end]
+		for start < r.len {
+			end := if start + c < r.len { start + c } else { r.len }
+			chunk := r[start..end].string()
 			t.lines << chunk
-			mut ca := []int{len: chunk.len, init: color}
-			t.colors << ca
+			t.colors << []int{len: end - start, init: color}
 			start = end
 		}
 	}
@@ -375,11 +379,6 @@ pub fn (mut t GhosttyTerminal) scroll_by(delta int) {
 	}
 }
 
-// scroll_to_top scrolls to the top of scrollback.
-pub fn (mut t GhosttyTerminal) scroll_to_top() {
-	t.scroll = if t.lines.len < t.rows { t.lines.len } else { t.rows }
-}
-
 // scroll_to_bottom scrolls to the bottom (pinned).
 pub fn (mut t GhosttyTerminal) scroll_to_bottom() {
 	t.scroll = t.lines.len
@@ -395,33 +394,9 @@ pub fn (mut t GhosttyTerminal) page_down() {
 	t.scroll_down(t.rows)
 }
 
-// copy_all copies all scrollback lines.
-pub fn (t GhosttyTerminal) copy_all() string {
-	return t.lines.join('\n')
-}
-
 // copy_visible copies the currently visible lines.
 pub fn (t GhosttyTerminal) copy_visible() string {
 	return t.visible_lines().join('\n')
-}
-
-// copy_last copies the last n lines.
-pub fn (t GhosttyTerminal) copy_last(n int) string {
-	if n <= 0 || t.lines.len == 0 {
-		return ''
-	}
-	start := if t.lines.len - n < 0 { 0 } else { t.lines.len - n }
-	return t.lines[start..].join('\n')
-}
-
-// line_count returns the number of lines in scrollback.
-pub fn (t GhosttyTerminal) line_count() int {
-	return t.lines.len
-}
-
-// is_at_bottom returns true if the view is pinned to the bottom.
-pub fn (t GhosttyTerminal) is_at_bottom() bool {
-	return t.scroll >= t.lines.len
 }
 
 // scroll_offset returns how many lines we are scrolled from the bottom.
@@ -477,7 +452,7 @@ fn (mut t GhosttyTerminal) exec_line(line string) string {
 			return 'MCP: github healthy, slack idle, linear idle, notion idle …'
 		}
 		'version' {
-			return 'Agent Toolkit Desktop 1.28.0 (V master, build ${os.getenv('ATK_VER')})'
+			return 'Agent Toolkit Desktop ${agent_toolkit_core.resolve_toolkit_version()} (libghostty-vt ${lib_version})'
 		}
 		'echo' {
 			if parts.len > 1 {
@@ -741,15 +716,15 @@ pub fn (m GhosttyMultiplexer) copy_desk_all(idx int) string {
 	if idx < 0 || idx >= m.desks.len {
 		return ''
 	}
-	return m.desks[idx].copy_all()
+	return m.desks[idx].lines.join('\n')
 }
 
 // total_lines returns the sum of scrollback across all VTs — bounded at
 // desks×1000 + 1000, proving 60 FPS culling is honest.
 pub fn (m GhosttyMultiplexer) total_lines() int {
-	mut n := m.global.line_count()
+	mut n := m.global.lines.len
 	for d in m.desks {
-		n += d.line_count()
+		n += d.lines.len
 	}
 	return n
 }

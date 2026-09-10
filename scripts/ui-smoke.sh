@@ -10,11 +10,18 @@
 #
 # Requirements: Xvfb + xdotool + ImageMagick `import` (paths auto-probed).
 # Usage: ./scripts/ui-smoke.sh  [SMOKE_BIN=...] [SMOKE_OUT=/tmp/...]
+#
+# Display constraint: the smoke runs on a FIXED display (default :99,
+# SMOKE_DISPLAY to override) because tour coordinates are display-bound.
+# A lock file guards it so two local runs fail loudly instead of colliding.
+# The app runs under a temp HOME/XDG — real ~/.cache prefs are never read
+# or written. Temp paths honor $TMPDIR. System Xvfb/xdotool are preferred;
+# /tmp/opencode/xtools fallbacks stay (CI may rely on them).
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BIN="${SMOKE_BIN:-$ROOT/build/agent-toolkit-desktop-native}"
-OUT="${SMOKE_OUT:-/tmp/atk-ui-smoke}"
+OUT="${SMOKE_OUT:-${TMPDIR:-/tmp}/atk-ui-smoke}"
 XD="${XDOTOOL:-xdotool}"
 # preserve a caller-provided LD_LIBRARY_PATH (user-space Xvfb/xdotool installs
 # whose libs are not on the system loader path); default empty as before
@@ -23,20 +30,60 @@ if ! command -v "$XD" >/dev/null && [ -x /tmp/opencode/xtools/usr/bin/xdotool ];
 	XD=/tmp/opencode/xtools/usr/bin/xdotool
 	XLIB=/tmp/opencode/xtools/usr/lib
 fi
-xdt() { LD_LIBRARY_PATH="$XLIB" "$XD" "$@" 2>/dev/null || true; }
+# system Xvfb first, user-space fallback second (never drop the fallback)
+XVFB="${XVFB:-Xvfb}"
+if ! command -v "$XVFB" >/dev/null 2>&1 && [ -x /tmp/opencode/xtools/usr/bin/Xvfb ]; then
+	XVFB=/tmp/opencode/xtools/usr/bin/Xvfb
+fi
+EFFDIS="${SMOKE_DISPLAY:-:99}"
+EFFNUM="${EFFDIS#:}"
+xdt() { DISPLAY="$EFFDIS" LD_LIBRARY_PATH="$XLIB" "$XD" "$@" 2>/dev/null || true; }
 key() { xdt key "$@"; }
 clk() { xdt mousemove "$1" "$2" click 1; }
 
 mkdir -p "$OUT"
 
-# fresh Xvfb every run (servers degrade after many client cycles)
-pkill -f agent-toolkit-desktop-native 2>/dev/null || true
-pkill -x Xvfb 2>/dev/null || true
+# fixed-display lock: only processes owned by this run are ever signalled
+LOCK="${TMPDIR:-/tmp}/atk-uismoke-X${EFFNUM}.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+	owner="$(cat "$LOCK/pid" 2>/dev/null || echo unknown)"
+	if [ "$owner" != unknown ] && ! kill -0 "$owner" 2>/dev/null; then
+		echo "warning: stealing stale ui-smoke lock $LOCK (owner $owner dead)" >&2
+		rm -rf "$LOCK"
+		mkdir "$LOCK" || { echo "error: cannot take ui-smoke lock $LOCK" >&2; exit 2; }
+	else
+		echo "error: display $EFFDIS is locked by another ui-smoke run (owner pid $owner)" >&2
+		exit 2
+	fi
+fi
+echo "$$" >"$LOCK/pid"
+
+# temp HOME/XDG: the app must never read or write real user prefs
+SMOKE_HOME="$(mktemp -d "${TMPDIR:-/tmp}/atk-uismoke-home-XXXXXX")"
+export HOME="$SMOKE_HOME"
+export XDG_CACHE_HOME="$SMOKE_HOME/.cache"
+export XDG_CONFIG_HOME="$SMOKE_HOME/.config"
+export XDG_DATA_HOME="$SMOKE_HOME/.local/share"
+
+XVFB_PID=0
+APP_PID=0
+cleanup_uismoke() {
+	if [ "$APP_PID" != 0 ]; then kill "$APP_PID" 2>/dev/null || true; fi
+	if [ "$XVFB_PID" != 0 ]; then kill "$XVFB_PID" 2>/dev/null || true; fi
+	if [ "$APP_PID" != 0 ]; then wait "$APP_PID" 2>/dev/null || true; fi
+	if [ "$XVFB_PID" != 0 ]; then wait "$XVFB_PID" 2>/dev/null || true; fi
+	rm -rf "$SMOKE_HOME" "$LOCK"
+}
+trap cleanup_uismoke EXIT
+
+# fresh Xvfb every run (servers degrade after many client cycles),
+# owned by this run (PID-scoped kills only, never pkill)
 sleep 0.5
-rm -f /tmp/.X11-unix/X99 "$HOME/.cache/agent-toolkit/desktop/ui_state.env"
-/tmp/opencode/xtools/usr/bin/Xvfb :99 -screen 0 1280x800x24 -nolisten tcp >/tmp/atk-xvfb.log 2>&1 &
+rm -f "/tmp/.X11-unix/X${EFFNUM}"
+/usr/bin/env "$XVFB" "$EFFDIS" -screen 0 1280x800x24 -nolisten tcp >"${TMPDIR:-/tmp}/atk-xvfb.log" 2>&1 &
+XVFB_PID=$!
 sleep 2
-export DISPLAY="${SMOKE_DISPLAY:-:99}"
+export DISPLAY="$EFFDIS"
 up=0
 for _ in 1 2 3 4 5 6 7 8 9 10; do
 	if xdt getdisplaygeometry >/dev/null 2>&1; then
@@ -47,8 +94,10 @@ for _ in 1 2 3 4 5 6 7 8 9 10; do
 done
 [ "$up" = "1" ] || { echo "SMOKE FAIL: Xvfb not responding"; exit 1; }
 
-# boot the app — Wayland forced off (sokol prefers it when present)
-(env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET DISPLAY="$DISPLAY" "$BIN" >"$OUT/app.log" 2>&1 &)
+# boot the app — Wayland forced off (sokol prefers it when present).
+# Direct background (no subshell) so APP_PID is the owned app process.
+env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET DISPLAY="$DISPLAY" "$BIN" >"$OUT/app.log" 2>&1 &
+APP_PID=$!
 # software GL (llvmpipe) needs longer than 3s for the first frame — poll
 WID=""
 for _ in $(seq 1 45); do
@@ -71,7 +120,8 @@ shot() {
 	exit 1
 }
 alive() {
-	pgrep -f 'agent-toolkit-desktop-native' >/dev/null 2>&1
+	# PID-scoped: only the app process owned by this run counts
+	[ "$APP_PID" != 0 ] && kill -0 "$APP_PID" 2>/dev/null
 }
 
 # panel tour — numeric shortcuts cover every panel; onboarding via o
