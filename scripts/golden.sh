@@ -3,6 +3,10 @@
 #
 # capture mode (default): boot the app on the virtual display, navigate every
 # panel and save one fixture PNG per panel into tests/golden/.
+# The tour boots with ATK_GOLDEN_TERMINAL=1 so the integrated terminal well
+# stays open (compact 1×): the canonical design references show it open on
+# every destination, and the tour doubles as the compact-terminal-visible
+# responsive state.
 # compare mode: re-capture and ImageMagick-compare against fixtures; fails on
 # RMSE above the tolerance (catches layout drift and .notdef tofu).
 #
@@ -72,7 +76,7 @@ if [ "${ATK_GOLDEN_THEME:-paper}" = "ink" ]; then
 	mkdir -p "$HOME/.cache/agent-toolkit/desktop"
 	printf 'appearance=ink\n' >"$HOME/.cache/agent-toolkit/desktop/ui_state.env"
 fi
-(env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET ATK_GUI_FREEZE=1 DISPLAY=:77 "$BIN" >"$ROOT/tests/golden-app.log" 2>&1 &)
+(env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET ATK_GUI_FREEZE=1 ATK_GOLDEN_TERMINAL=1 DISPLAY=:77 "$BIN" >"$ROOT/tests/golden-app.log" 2>&1 &)
 # software GL (llvmpipe) needs longer than 3s for the first frame — poll
 WID=""
 for _ in $(seq 1 45); do

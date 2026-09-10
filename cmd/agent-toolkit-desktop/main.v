@@ -2450,6 +2450,13 @@ fn on_init(mut app GuiApp) {
 	// before the first frame — panel draw code reads app.pnl_* throughout
 	app.apply_appearance(app.appearance)
 	app.term_visible = app.term_mode == 0
+	// Golden tour: capture the integrated terminal well the canonical design
+	// references show open on every destination. Compact 1× is the same real
+	// user state the height buttons set — no test-only rendering path.
+	if os.getenv('ATK_GOLDEN_TERMINAL') != '' {
+		app.term_mode = 0
+		app.term_visible = true
+	}
 	app.ghost_focused = false
 	app.approvals = []
 	// seed auto-pin to bottom after first collect
