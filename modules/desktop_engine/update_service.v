@@ -154,8 +154,8 @@ pub fn (mut e Engine) check_for_update(current string, channel string) ?UpdateIn
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	mut svc := new_update_service_engine(e.repo, e.bus)
-	return svc.check_update(current, channel)
+	mut updater := new_update_service_engine(e.repo, e.bus)
+	return updater.check_update(current, channel)
 }
 
 // apply_update via Engine — unavailable until a real updater exists; a
@@ -164,8 +164,8 @@ pub fn (mut e Engine) apply_update(version string) bool {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	mut svc := new_update_service_engine(e.repo, e.bus)
-	return svc.apply(version)
+	mut updater := new_update_service_engine(e.repo, e.bus)
+	return updater.apply(version)
 }
 
 // update_history via Engine — only genuinely recorded updates.
@@ -173,8 +173,8 @@ pub fn (mut e Engine) update_history() []UpdateInfoEngine {
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	mut svc := new_update_service_engine(e.repo, e.bus)
-	return svc.history()
+	mut updater := new_update_service_engine(e.repo, e.bus)
+	return updater.history()
 }
 
 // update_verify performs a real SHA-256 verification of the provided
@@ -184,6 +184,6 @@ pub fn (mut e Engine) update_verify(content string, expected_sha256 string) bool
 	e.mu.lock()
 	e.api_calls++
 	e.mu.unlock()
-	mut svc := new_update_service_engine(e.repo, e.bus)
-	return svc.verify(content, expected_sha256)
+	mut updater := new_update_service_engine(e.repo, e.bus)
+	return updater.verify(content, expected_sha256)
 }

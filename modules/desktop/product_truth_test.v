@@ -2,7 +2,7 @@ module desktop
 
 import os
 
-// S7B target truth: the GUI target roster renders from this proxy — the
+// Target truth: the GUI target roster renders from this proxy — the
 // Engine catalog derived from the canonical registry
 // (capabilities/targets/registry.yaml). Locks the proxy to that roster and
 // to honest no-default-enabled configuration.

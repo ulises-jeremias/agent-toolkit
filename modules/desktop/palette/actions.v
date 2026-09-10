@@ -1,6 +1,6 @@
 module palette
 
-// S4B (#1119) — contextual actions with typed arguments, validation, preview
+// Contextual actions with typed arguments, validation, preview→confirm→execute
 // and truthful execution. Every action binds a real typed Engine operation;
 // nothing shells out to the CLI. Actions are classified against current code
 // before exposure (READY / READY_WITH_ADAPTER / UNAVAILABLE / OUT_OF_SCOPE):
@@ -12,7 +12,7 @@ module palette
 //
 // Governing contracts:
 // - docs/desktop/UX_ARCHITECTURE.md §Shared action and entity model
-// - docs/desktop/TRUTH_LEDGER.md (S7 gates must stay green)
+// - docs/desktop/TRUTH_LEDGER.md (evidence-truth gates must stay green)
 
 import desktop_engine
 import desktop.nav
@@ -357,7 +357,7 @@ pub fn (mut r Registry) actions_for(kind EntityKind, entity_id string) []Registr
 			}
 		}
 		.app {
-			// application-level actions (S4C): one coherent app entity, no
+			// application-level actions: one coherent app entity, no
 			// legacy command rows
 			out << RegistryAction{
 				kind: .app_theme_cycle
@@ -565,7 +565,7 @@ pub fn (mut r Registry) execute(kind EntityKind, entity_id string, action Action
 		}
 	}
 	// ── ACTUAL EXECUTION SEAM STARTS HERE ──────────────────────────────────
-	// S4D recording boundary: the journal records only what crosses this
+	// Execution journal recording boundary: the journal records only what crosses this
 	// line (succeeded / partial / failed). Validation failures,
 	// unavailable, not-confirmed and preview paths above never record.
 	// The undo's PREVIOUS state is captured here — strictly before the

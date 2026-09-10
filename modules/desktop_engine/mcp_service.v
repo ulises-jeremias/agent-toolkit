@@ -3,7 +3,7 @@ module desktop_engine
 import os
 import x.json2
 
-// McpProvider mirrors mcp/templates — super-potent: provenance, receipts, health detail.
+// McpProvider mirrors mcp/templates — with provenance, receipts, health detail.
 pub struct McpProvider {
 pub:
 	id              string
@@ -139,7 +139,7 @@ pub fn (mut e Engine) mcp_health_detailed(provider_id string) string {
 	return 'configured'
 }
 
-// mcp_stats returns super-potent aggregation.
+// mcp_stats returns aggregated counts.
 pub fn (mut e Engine) mcp_stats() McpStats {
 	e.mu.lock()
 	e.api_calls++
@@ -442,7 +442,7 @@ pub fn (mut e Engine) mcp_toggle(provider_id string) !u64 {
 }
 
 // McpStateSnapshot captures the complete authoritative state of one MCP
-// provider (S4D undo): exactly the state keys the Engine writes for it.
+// provider (execution journal + evidence-backed undo): exactly the state keys the Engine writes for it.
 // Snapshots are session-local, opaque and never rendered — stored configs
 // cannot contain raw secrets (the secret guard rejects them at write time),
 // but old migrated state is not assumed safe, so snapshots stay private.
@@ -479,7 +479,7 @@ pub fn (mut e Engine) mcp_state_snapshot(provider_id string) ?McpStateSnapshot {
 }
 
 // restore_mcp_state restores an exact previously captured provider state in
-// one transaction (S4D undo, Option B). It writes only the four keys the
+// one transaction (execution journal + evidence-backed undo). It writes only the four keys the
 // Engine itself owns for a provider — no generic state-map restoration. The
 // secret guard still applies to the restored config; a snapshot that
 // predates the guard and carries a raw secret is refused, and the caller

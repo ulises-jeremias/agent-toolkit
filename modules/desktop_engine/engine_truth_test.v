@@ -3,7 +3,7 @@ module desktop_engine
 import os
 import crypto.sha256
 
-// S7E truth gates for the remaining Engine surfaces: updates, memory,
+// Truth gates for the remaining Engine surfaces: updates, memory,
 // swarms, jobs and Doctor. Each value is real evidence or explicitly
 // unknown/unavailable — never a plausible fabrication.
 
@@ -43,11 +43,11 @@ fn test_update_service_is_honest_without_a_feed() {
 	assert eng.update_verify('', 'deadbeef') == false
 
 	// manifest verification is a real JSON structural parse
-	mut svc := new_update_service_engine(eng.repo, eng.bus)
-	assert svc.manifest_verify('{"version":"1.0","sha256":"abc","provenance":"p"}') == true
-	assert svc.manifest_verify('not json') == false
-	assert svc.manifest_verify('{"version":"1.0"}') == false, 'missing fields must fail'
-	assert svc.manifest_verify('the version and sha256 and provenance words in plain text') == false,
+	mut updater := new_update_service_engine(eng.repo, eng.bus)
+	assert updater.manifest_verify('{"version":"1.0","sha256":"abc","provenance":"p"}') == true
+	assert updater.manifest_verify('not json') == false
+	assert updater.manifest_verify('{"version":"1.0"}') == false, 'missing fields must fail'
+	assert updater.manifest_verify('the version and sha256 and provenance words in plain text') == false,
 		'substring presence is not validation'
 }
 

@@ -4,7 +4,7 @@ import os
 
 // embedded_catalog_resolution ensures a clean machine (no AGENT_TOOLKIT_ROOT,
 // no XDG data) still resolves bundled product catalogs from the embedded tier.
-// This is the S1 catalog-truth acceptance test: catalog must not depend on a
+// This is the catalog-truth acceptance test: catalog must not depend on a
 // checkout or pre-installed data directory.
 fn test_embedded_catalog_resolution_on_clean_machine() {
 	repo_root := os.dir(os.dir(os.dir(@FILE)))

@@ -101,7 +101,7 @@ pub fn (mut s JobStore) clear() {
 	s.order.clear()
 }
 
-// ---- Engine jobs — super-potent, easy to manage via one Engine ----
+// ---- Engine jobs via one Engine ----
 pub fn (mut e Engine) jobs_catalog() []JobRecord {
 	e.mu.lock()
 	e.api_calls++
@@ -195,7 +195,7 @@ pub fn (mut e Engine) jobs_filtered(filter JobFilter) []JobRecord {
 	return out
 }
 
-// jobs_by_status — super-potent helper.
+// jobs_by_status filters by status.
 pub fn (mut e Engine) jobs_by_status(status JobStatus) []JobRecord {
 	mut out := []JobRecord{}
 	for j in e.jobs_catalog() {

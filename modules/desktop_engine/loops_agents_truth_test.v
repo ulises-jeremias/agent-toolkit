@@ -2,7 +2,7 @@ module desktop_engine
 
 import os
 
-// S7D truth gates: loops never fabricate a catalog, history or spend, and
+// Truth gates: loops never fabricate a catalog, history or spend, and
 // agent catalog metadata comes only from real catalog data.
 
 // A valid toolkit root without loops yields an empty loop catalog — never a

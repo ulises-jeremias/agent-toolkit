@@ -17,7 +17,7 @@ pub enum ToolkitEventKind {
 	job_retry
 	engine_started
 	engine_stopped
-	// swarm-specific for super-potent swarms
+	// swarm-specific events
 	swarm_created
 	swarm_handoff
 	swarm_status
@@ -178,7 +178,7 @@ pub fn (mut b ToolkitEventBus) subscribe_ctx(mut ctx context.Context, kind Toolk
 	}()
 }
 
-// ---- Easy management helpers — super-potent one-liners ----
+// ---- Management helpers ----
 
 // publish_state is helper for state_changed with json payload.
 pub fn (mut b ToolkitEventBus) publish_state(revision u64, path string, payload string) {

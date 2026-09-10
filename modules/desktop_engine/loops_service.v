@@ -63,7 +63,7 @@ mut:
 	total map[string]int
 }
 
-// loop_budget_defaults returns super-potent defaults per tier — easy to manage.
+// loop_budget_defaults returns defaults per tier.
 // Audit-aligned: L1 80k/1/900 L2 150k/1/1200 L3 300k/1/1800
 pub fn loop_budget_defaults(tier LoopTier) LoopBudget {
 	return match tier {
@@ -276,7 +276,7 @@ pub fn (mut e Engine) upsert_loop(entry LoopEntry) !u64 {
 	if entry.description != '' {
 		tx.set('loops/${entry.name}/description', entry.description)
 	}
-	// new budget keys — super-potent three budgets (audit-aligned 900s)
+	// new budget keys — three budgets (audit-aligned 900s)
 	bud := if entry.budget.max_tokens != 0 {
 		entry.budget
 	} else {

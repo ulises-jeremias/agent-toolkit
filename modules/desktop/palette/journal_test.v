@@ -4,7 +4,7 @@ import os
 import time
 import desktop_engine
 
-// s4d journal/undo tests — every case from the S4D acceptance matrix.
+// Execution journal + evidence-backed undo tests — every acceptance case.
 
 // JrnEngine is the journal test fixture owning its exact temp directory.
 struct JrnEngine {

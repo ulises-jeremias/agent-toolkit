@@ -78,7 +78,7 @@ mut:
 	dock      shell.DockLayout
 	router    &nav.Router
 	bus       &eventbus.ToolkitEventBus
-	// S4A (#1119): shared typed action & entity registry, lazily built on the
+	// Shared typed action registry, lazily built on the
 	// boot Engine (see palette_registry()).
 	palette_reg &palette.Registry = unsafe { nil }
 }
@@ -94,7 +94,7 @@ pub:
 
 // new_desktop creates but does not boot desktop (new → init → start).
 pub fn new_desktop(args DesktopBootArgs) &Desktop {
-	cfg := if args.config.title == '' { default_desktop_config() } else { args.config }
+	config := if args.config.title == '' { default_desktop_config() } else { args.config }
 	persist := if args.persist_path.len > 0 {
 		args.persist_path
 	} else {
@@ -109,7 +109,7 @@ pub fn new_desktop(args DesktopBootArgs) &Desktop {
 		backend.new_headless_backend()
 	}
 	return &Desktop{
-		config: cfg
+		config: config
 		engine: eng
 		backend: *backend_inst
 		theme: theme.default_theme()
@@ -147,8 +147,8 @@ pub fn (mut d Desktop) is_running() bool {
 	return d.engine.is_running()
 }
 
-// palette_registry returns the shared typed action & entity registry (S4A,
-// #1119), lazily built on the boot Engine. One registry drives the palette,
+// palette_registry returns the shared typed action registry,
+// lazily built on the boot Engine. One registry drives the palette,
 // search and future entity actions; it never shells out to the CLI.
 pub fn (mut d Desktop) palette_registry() &palette.Registry {
 	if d.palette_reg == unsafe { nil } {
@@ -366,12 +366,12 @@ pub fn (mut d Desktop) engine_upsert_loop(entry desktop_engine.LoopEntry) !u64 {
 }
 
 // engine_target_install_supported reports whether a target can be installed
-// through the Engine install flow (registry availability truth, S4B).
+// through the Engine install flow (registry availability truth).
 pub fn (mut d Desktop) engine_target_install_supported(target_id string) bool {
 	return d.engine.target_install_supported(target_id)
 }
 
-// engine_target_enabled reads the target's real enabled state (S4D tests).
+// engine_target_enabled reads the target's real enabled state.
 pub fn (mut d Desktop) engine_target_enabled(target_id string) bool {
 	return d.engine.target_enabled(target_id)
 }
@@ -407,7 +407,7 @@ pub fn (mut d Desktop) inner_loops_for(run_id string) map[string]string {
 	return out
 }
 
-// ── Jobs & ProcessSupervisor — super-potent process health via Engine ──
+// ── Jobs & ProcessSupervisor — process health via Engine ──
 pub fn (mut d Desktop) engine_jobs_catalog() []desktop_engine.JobRecord {
 	return d.engine.jobs_catalog()
 }
@@ -626,7 +626,7 @@ pub fn (mut d Desktop) onboarding_init_with_templates(target string, with_person
 	return rev
 }
 
-// capability super-potent
+// capability management via Engine
 pub fn (mut d Desktop) engine_install_skills(ids []string) !u64 {
 	return d.engine.install_skills(ids)
 }
@@ -658,7 +658,7 @@ pub fn (mut d Desktop) engine_toggle_skill(id string) !u64 {
 	return rev
 }
 
-// target/product super-potent
+// target/product management via Engine
 // engine_targets exposes the full Engine target catalog (R2 product-truth:
 // the GUI renders this list instead of a hardcoded platform roster).
 pub fn (mut d Desktop) engine_targets() []desktop_engine.TargetEntry {
@@ -698,7 +698,7 @@ pub fn (mut d Desktop) engine_set_pack_enabled(pack_id string, enabled bool) !u6
 	return d.engine.set_pack_enabled(pack_id, enabled)
 }
 
-// workspace + persona super-potent
+// workspace + persona management via Engine
 pub fn (mut d Desktop) engine_ensure_workspace_structure(harness_root string) !u64 {
 	// wire via onboarding ensure (same scaffold)
 	rev := d.engine.onboarding_ensure_workspace(harness_root)!
@@ -748,7 +748,7 @@ pub fn (mut d Desktop) engine_doctor_fix_category(cat string) !u64 {
 	return rev
 }
 
-// ── super-potent unified: agents, MCP, doctor, receipts/provenance, install/update — easy management via Desktop ──
+// ── unified: agents, MCP, doctor, receipts/provenance, install/update — management via Desktop ──
 pub fn (mut d Desktop) engine_agents_search(query string, tier string) []desktop_engine.AgentEntry {
 	return d.engine.agents_search(query, tier)
 }
