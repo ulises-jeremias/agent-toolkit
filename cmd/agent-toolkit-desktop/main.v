@@ -514,6 +514,13 @@ fn targets_total(mut app GuiApp) int {
 	return 0
 }
 
+fn loops_total(mut app GuiApp) int {
+	if app.desktop != unsafe { nil } {
+		return app.desktop.loops_catalog().len
+	}
+	return 0
+}
+
 fn products_total(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_products_catalog().len
@@ -2442,6 +2449,12 @@ fn on_init(mut app GuiApp) {
 	app.inspector_hover = -1
 	app.cached_rev = app.engine_rev
 	app.ghost = ghostty.new_terminal(80, 18)
+	// Fleet status seed — the canonical design references open the terminal
+	// on a live fleet summary. Every count renders through the same
+	// Engine-backed helpers as the panels, so the terminal can never drift
+	// from them (idle environments read catalog/template counts, never
+	// fabricated live activity).
+	app.ghost.feed('Fleet: ${agents_active_total(mut app)} catalog agents · ${skills_total(mut app)} skills · ${loops_total(mut app)} loop templates · ${mcp_total(mut app)} MCP providers\r\n')
 	app.ghost_focused = false
 	app.god_inbox = 0
 	app.god_outbox = 0
