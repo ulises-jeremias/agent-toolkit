@@ -321,6 +321,8 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 	}
 	if l.known_h > 0 {
 		draw_ws_known(mut app, l)
+	} else {
+		app.known_ws_rects.clear()
 	}
 	// IDE block — the existing brokered surfaces, unchanged renderers
 	if l.mid_h > 0 {

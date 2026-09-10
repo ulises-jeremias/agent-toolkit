@@ -42,6 +42,44 @@ fn test_primary_navigation_has_six_two_line_rows() {
 	}
 }
 
+fn test_primary_navigation_stays_reachable_with_tall_terminal() {
+	for dims in [[1280, 800], [1024, 640]] {
+		app := &GuiApp{
+			selected_panel: 0
+			term_visible: true
+			term_mode: 1
+			term_height: 320
+		}
+		rows := nav_rows(app, dims[1])
+		assert rows.len == 6
+		bottom := content_bottom(app, dims[1]) - 4
+		for i, row in rows {
+			assert row.y >= shell_mast_h(dims[1])
+			assert row.y + row.h <= bottom + 4
+			if i > 0 {
+				assert rows[i - 1].y < row.y
+			}
+		}
+	}
+}
+
+fn test_suppressed_insights_controls_stay_inert() {
+	mut app := &GuiApp{
+		selected_panel: 12
+		term_visible: true
+		term_mode: 1
+		term_height: 320
+		insights_tab: 'cost'
+		insights_sel: -1
+	}
+	w, h := 1024, 480
+	l := insights_layout(app, w, h)
+	assert l.tab_h == 0
+	clicked := insights_click(mut app, l.tab_x0 + 10, l.tab_y + 10, w, h)
+	assert !clicked
+	assert app.insights_sel == -1
+}
+
 fn test_settings_is_a_destination_not_implicit_onboarding() {
 	mut app := &GuiApp{
 		selected_panel: 0

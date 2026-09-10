@@ -906,6 +906,16 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 // true when the click was consumed.
 fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	l := insights_layout(app, w, h)
+	// Mirrors draw_insights: suppressed tabs/rows are not drawn and must stay
+	// inert. The right column stays live so details remain reachable.
+	if l.tab_h == 0 || l.content_h < 40 {
+		ix := inspector_x(app, w)
+		iy := panel_top(app)
+		if onb_hit(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
+			return true
+		}
+		return false
+	}
 	for i, t in insights_tabs {
 		x, y, tw, th := insights_tab_rect(l, i)
 		if onb_hit(mx, my, x, y, tw, th) {

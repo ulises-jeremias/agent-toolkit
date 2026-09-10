@@ -1525,16 +1525,30 @@ fn nav_group_label(app &GuiApp, panel int) string {
 // nav_rows keeps the six product destinations permanent. Library and
 // Operations own their local tabs; duplicating those children in the shell
 // made the rail read like an IDE tree instead of the reference's navigation.
+// All six rows are always returned: when a tall terminal steals vertical
+// room the rows compress to a single-line compact form rather than dropping
+// destinations off the permanent dock.
 fn nav_rows(app &GuiApp, h int) []NavRow {
 	bottom := content_bottom(app, h) - 4
-	mut rows := []NavRow{}
-	mut y := shell_mast_h(h) + 54
-	for group in [0, 1, 6, 9, 12, 11] {
-		if y + 46 > bottom {
-			break
+	top := shell_mast_h(h) + 54
+	avail := bottom - top
+	mut row_h := 46
+	mut step := 50
+	if avail < 6 * step {
+		step = avail / 6
+		if step < 26 {
+			step = 26
 		}
-		rows << NavRow{ panel: group, y: y, h: 46, parent: true }
-		y += 50
+		row_h = step - 4
+		if row_h < 22 {
+			row_h = 22
+		}
+	}
+	mut rows := []NavRow{}
+	mut y := top
+	for group in [0, 1, 6, 9, 12, 11] {
+		rows << NavRow{ panel: group, y: y, h: row_h, parent: true }
+		y += step
 	}
 	return rows
 }
@@ -3200,10 +3214,12 @@ fn draw_left_dock(mut app GuiApp, h int) {
 			size: 13
 			bold: true
 		})
-		app.gg.draw_text(label_x, row.y + 24, utf8_truncate(nav_group_subtitle(row.panel), 25), gg.TextCfg{
-			color: if active { col_paper_dim } else { col_slate_dim }
-			size: 9
-		})
+		if row.h >= 40 {
+			app.gg.draw_text(label_x, row.y + 24, utf8_truncate(nav_group_subtitle(row.panel), 25), gg.TextCfg{
+				color: if active { col_paper_dim } else { col_slate_dim }
+				size: 9
+			})
+		}
 		last_y = row.y + row.h
 	}
 	land_y := last_y + 8
