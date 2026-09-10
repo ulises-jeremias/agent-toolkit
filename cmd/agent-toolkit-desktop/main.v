@@ -3062,6 +3062,22 @@ fn draw_header(mut app GuiApp, w int) {
 			family: app.fonts.display
 		})
 	}
+	if app.show_onboarding {
+		setup_right := l.command_x + l.command_w
+		setup_w := setup_right - l.workspace_x
+		app.gg.draw_rect_filled(l.workspace_x, l.control_y, setup_w, l.control_h, app.pnl_card)
+		app.gg.draw_rect_empty(l.workspace_x, l.control_y, setup_w, l.control_h, app.pnl_border)
+		app.gg.draw_text(l.workspace_x + 12, l.control_y + 5, 'SETUP JOURNEY', gg.TextCfg{
+			color: app.pnl_text
+			size: 10
+			bold: true
+		})
+		app.gg.draw_text(l.workspace_x + 12, l.control_y + 18, 'Finish or skip setup to use workspace controls.', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+		})
+		return
+	}
 
 	workspace_bg := if app.workspace_focus { col_ink700 } else { app.pnl_card }
 	workspace_border := if app.workspace_focus { pc(app, `W`) } else { app.pnl_border }
@@ -7406,6 +7422,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		if app.show_help {
 			app.show_help = false
+			return
+		}
+		if app.show_onboarding && my >= 0 && my <= shell_mast_h(app.gg.height) {
 			return
 		}
 		// Header controls share the editorial masthead geometry with drawing.

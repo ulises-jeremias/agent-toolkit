@@ -258,7 +258,7 @@ fn draw_settings(mut app GuiApp, w int, h int) {
 		scene_x := l.prefs_x + l.prefs_w * 42 / 100
 		draw_onb_scene(mut app, scene_x, l.setup_y + 12, l.prefs_x + l.prefs_w - 14 - scene_x, l.setup_h - 24, office_palette_id(app))
 	}
-	if l.setup_h >= 88 {
+	if l.setup_h >= 102 {
 		hover := onb_hit(app.mouse_x, app.mouse_y, l.button_x, l.button_y, l.button_w, l.button_h)
 		app.gg.draw_rect_filled(l.button_x, l.button_y, l.button_w, l.button_h, if hover {
 			app.pnl_select_hover
@@ -335,7 +335,7 @@ fn settings_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		&& preferences_click(mut app, l.prefs_x, l.prefs_y, l.prefs_w, mx, my) {
 		return true
 	}
-	if l.setup_h >= 88 && onb_hit(mx, my, l.button_x, l.button_y, l.button_w, l.button_h) {
+	if l.setup_h >= 102 && onb_hit(mx, my, l.button_x, l.button_y, l.button_w, l.button_h) {
 		app.show_onboarding = true
 		app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
 		return true
