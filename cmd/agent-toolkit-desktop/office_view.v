@@ -29,23 +29,26 @@ struct OfficeLayout {
 	side_x  int // roster + today column (inside the panel, right of the room)
 	side_w  int
 	compact bool
+	cards_x int
+	cards_w int
 }
 
 fn office_layout(app &GuiApp, w int, h int) OfficeLayout {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	fx := panel_fx(app)
-	fy := 52
+	fy := shell_mast_h(h)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fw < 700 || fh < 420
 	cards_y := fy + 50
 	card_h := if compact { 56 } else { 70 }
 	room_y := cards_y + card_h + 12
 	room_h := fh - (room_y - fy) - 12
-	// roster/today column only when the panel is wide enough to keep the
-	// room at its VC3.5 canonical width (≥ 560px); otherwise the room owns it
-	side_w := if fw >= 860 { 250 } else { 0 }
-	room_w := fw - 32 - (if side_w > 0 { side_w + 12 } else { 0 })
+	cards_x := if app.lang.is_rtl() { 16 } else { fx + 16 }
+	cards_w := w - dock_w - 32
+	// The global shell owns a destination detail column. Office uses that
+	// column for Roster + Today, leaving the room as the central hero.
+	side_w := 0
+	room_w := fw - 32
 	return OfficeLayout{
 		fx: fx
 		fy: fy
@@ -60,14 +63,26 @@ fn office_layout(app &GuiApp, w int, h int) OfficeLayout {
 		side_x: fx + 16 + room_w + 12
 		side_w: side_w
 		compact: compact
+		cards_x: cards_x
+		cards_w: cards_w
+	}
+}
+
+fn office_detail_layout(app &GuiApp, w int, h int) OfficeLayout {
+	base := office_layout(app, w, h)
+	return OfficeLayout{
+		side_x: inspector_x(app, w) + 8
+		side_w: inspector_w - 16
+		room_y: base.room_y
+		room_h: content_bottom(app, h) - base.room_y - 12
 	}
 }
 
 fn office_card_rect(l OfficeLayout, i int) (int, int, int, int) {
 	gap := 12
 	n := 4
-	cw := (l.fw - 32 - (n - 1) * gap) / n
-	return l.fx + 16 + i * (cw + gap), l.cards_y, cw, l.card_h
+	cw := (l.cards_w - (n - 1) * gap) / n
+	return l.cards_x + i * (cw + gap), l.cards_y, cw, l.card_h
 }
 
 struct OfficeMetric {
@@ -82,7 +97,7 @@ struct OfficeMetric {
 fn office_metrics(mut app GuiApp, attention int, agents int, running int) []OfficeMetric {
 	mut loops_sched := 0
 	mut mcp_enabled := 0
-	mut mcp_total := 0
+	mut provider_total := 0
 	if app.desktop != unsafe { nil } {
 		for lp in app.desktop.loops_catalog() {
 			if lp.cron_enabled {
@@ -90,7 +105,7 @@ fn office_metrics(mut app GuiApp, attention int, agents int, running int) []Offi
 			}
 		}
 		for p in app.desktop.engine_mcp_catalog() {
-			mcp_total++
+			provider_total++
 			if p.enabled {
 				mcp_enabled++
 			}
@@ -102,7 +117,7 @@ fn office_metrics(mut app GuiApp, attention int, agents int, running int) []Offi
 	// MCP: the GUI only knows health for providers it has probed (60s cache);
 	// enabled-count is the honest headline, health is stated only when known
 	mcp_sub := if mcp_enabled == 0 {
-		'${mcp_total} in catalog'
+		'${provider_total} in catalog'
 	} else if app.mcp_probe_id != '' && app.frame - app.mcp_probe_at < 3600 {
 		if app.mcp_probe_ok { 'last probe healthy' } else { 'last probe failed' }
 	} else {
@@ -149,10 +164,10 @@ fn draw_office_cards(mut app GuiApp, l OfficeLayout, metrics []OfficeMetric) {
 	}
 }
 
-// draw_office_roster lists the catalog desks with their deterministic
-// identity portrait and an honest state — idle unless a real running job is
-// attributed. Selecting a row selects the desk (same as the Floor Map).
-fn draw_office_roster(mut app GuiApp, l OfficeLayout, desks []Desk, running int, y0 int, h int) {
+// draw_office_roster lists resolved catalog agents with deterministic identity
+// portraits. Jobs currently have no agent attribution, so every roster row is
+// explicitly idle even when the separate aggregate says jobs are running.
+fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.AgentEntry, y0 int, h int) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	x := l.side_x
@@ -165,40 +180,43 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, desks []Desk, running int,
 		size: 15
 		family: app.fonts.display
 	})
-	app.gg.draw_text(x + w - 12 - 7 * '${desks.len} agents'.len, y0 + 12, '${desks.len} agents', gg.TextCfg{
+	app.gg.draw_text(x + w - 12 - 7 * '${agents.len} agents'.len, y0 + 12, '${agents.len} agents', gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 11
 	})
 	row_h := 34
 	mut ry := y0 + 32
-	for i, d in desks {
+	desks := desks_for_app(app)
+	for i, agent_entry in agents {
 		if ry + row_h > y0 + h - 4 {
-			left := desks.len - i
-			app.gg.draw_text(x + 12, y0 + h - 16, '+${left} more on the Floor Map', gg.TextCfg{
+			left := agents.len - i
+			app.gg.draw_text(x + 12, y0 + h - 16, '+${left} more catalog agents', gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
 			})
 			break
 		}
-		sel := app.selected_desk == i
+		sel := app.selected_desk >= 0 && app.selected_desk < desks.len
+			&& desks[app.selected_desk].id == agent_entry.id
 		if sel {
 			app.gg.draw_rect_filled(x + 4, ry - 2, w - 8, row_h - 2, tint(app.pnl_success, 200))
 		}
 		agent := pixelart.with_identity(pixelart.agent_for_state(.idle), i % 3)
 		sc.draw(agent, pid, x + 12, ry + 2, 2)
-		app.gg.draw_text(x + 44, ry + 1, utf8_truncate(d.label, onb_fit(w - 120, 12)), gg.TextCfg{
+		app.gg.draw_text(x + 44, ry + 1, utf8_truncate(agent_entry.id, onb_fit(w - 120, 12)), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			bold: true
 		})
-		app.gg.draw_text(x + 44, ry + 16, utf8_truncate(d.role, onb_fit(w - 60, 10)), gg.TextCfg{
+		role := if agent_entry.role == '' { agent_entry.tier } else { agent_entry.role }
+		app.gg.draw_text(x + 44, ry + 16, utf8_truncate(role, onb_fit(w - 60, 10)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
-		// state pill: only 'Idle' is ever asserted for catalog agents; running
-		// attribution is a real Engine fact when it exists
-		state := if i < running { 'Running' } else { 'Idle' }
-		pc_ := if i < running { app.pnl_success } else { app.pnl_text_mut }
+		// Jobs do not currently carry a catalog-agent attribution. A running
+		// aggregate must never be assigned to the first N roster rows.
+		state := 'Idle'
+		pc_ := app.pnl_text_mut
 		pw := state.len * 6 + 12
 		app.gg.draw_rect_filled(x + w - pw - 10, ry + 4, pw, 16, tint(pc_, 60))
 		app.gg.draw_text(x + w - pw - 4, ry + 6, state, gg.TextCfg{
@@ -273,26 +291,26 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 			bold: true
 		})
 		ry += 18
-		app.gg.draw_text(x + 16, ry, utf8_truncate('${first_warn} — see Health', onb_fit(w - 28, 11)), gg.TextCfg{
+		app.gg.draw_text(x + 16, ry, utf8_truncate('${first_warn} — see Operations', onb_fit(w - 28, 11)), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 		})
 		ry += 22
 	}
 	// recommended next steps — derived from real onboarding pending items
-	st := app.desktop.onboarding_status(app.harness_root)
+	has_desktop := app.desktop != unsafe { nil }
+	mut pending_items := []string{}
+	if has_desktop {
+		pending_items = app.desktop.onboarding_status(app.harness_root).pending_items.clone()
+	}
 	if ry + 40 < y0 + h {
-		app.gg.draw_text(x + 12, ry, 'Recommended next steps', gg.TextCfg{
+		app.gg.draw_text(x + 12, ry, 'Workspace setup', gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			bold: true
 		})
 		ry += 18
-		mut steps := st.pending_items.clone()
-		if steps.len == 0 {
-			steps = ['Explore new agents in Library', 'Launch a swarm in Operations']
-		}
-		for s in steps {
+		for s in pending_items {
 			if ry + 16 > y0 + h - 8 {
 				break
 			}
@@ -302,6 +320,17 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 				size: 11
 			})
 			ry += 16
+		}
+		if !has_desktop && ry + 16 <= y0 + h - 8 {
+			app.gg.draw_text(x + 16, ry, 'Setup state unavailable.', gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 11
+			})
+		} else if pending_items.len == 0 && ry + 16 <= y0 + h - 8 {
+			app.gg.draw_text(x + 16, ry, 'No onboarding steps pending.', gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 11
+			})
 		}
 	}
 	if attention.len == 0 && warns == 0 && ry + 30 < y0 + h {
@@ -313,23 +342,50 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 	}
 }
 
-// office_roster_click selects a desk from the roster (shared geometry).
+fn draw_office_detail(mut app GuiApp, w int, h int) {
+	l := office_detail_layout(app, w, h)
+	ix := inspector_x(app, w)
+	iy := l.room_y - 4
+	ih := content_bottom(app, h) - iy
+	app.gg.draw_rect_filled(ix, iy, inspector_w, ih, app.pnl_card)
+	app.gg.draw_line(ix, iy, ix, iy + ih, app.pnl_border)
+	mut agents := []desktop_engine.AgentEntry{}
+	mut attention := []desktop_engine.JobRecord{}
+	if app.desktop != unsafe { nil } {
+		agents = app.desktop.engine_agents_search('', '')
+		attention = app.desktop.engine_jobs_catalog().filter(it.status == .failed || it.status == .queued)
+	}
+	roster_h := l.room_h * 52 / 100
+	draw_office_roster(mut app, l, agents, l.room_y, roster_h)
+	draw_office_today(mut app, l, attention, l.room_y + roster_h + 10, l.room_h - roster_h - 10)
+}
+
+// office_roster_click selects the corresponding floor desk only when the real
+// catalog ID is represented there. Otherwise it leaves selection empty and
+// reports the catalog record without inventing a room mapping.
 fn office_roster_click(mut app GuiApp, mx int, my int, w int, h int) bool {
-	l := office_layout(app, w, h)
-	if l.side_w == 0 {
+	if app.desktop == unsafe { nil } {
 		return false
 	}
-	roster_h := l.room_h * 55 / 100
+	l := office_detail_layout(app, w, h)
+	roster_h := l.room_h * 52 / 100
 	x := l.side_x
 	row_h := 34
 	mut ry := l.room_y + 32
-	desks := desks_for_app(app)
-	for i, _ in desks {
+	agents := app.desktop.engine_agents_search('', '')
+	for agent_entry in agents {
 		if ry + row_h > l.room_y + roster_h - 4 {
 			break
 		}
 		if mx >= x + 4 && mx < x + l.side_w - 4 && my >= ry - 2 && my < ry + row_h - 2 {
-			app.selected_desk = i
+			app.selected_desk = -1
+			for di, desk in desks_for_app(app) {
+				if desk.id == agent_entry.id {
+					app.selected_desk = di
+					break
+				}
+			}
+			app.inspector_msg = 'Catalog agent: ${agent_entry.id} · runtime attribution unavailable'
 			return true
 		}
 		ry += row_h

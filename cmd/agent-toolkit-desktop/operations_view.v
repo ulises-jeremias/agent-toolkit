@@ -99,12 +99,11 @@ struct OpsLayout {
 }
 
 fn ops_layout(app &GuiApp, w int, h int) OpsLayout {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	tab := ops_tab_for_panel(app.selected_panel)
 	fx := panel_fx(app)
-	fy := 52
+	fy := shell_mast_h(h)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fh < 420 || fw < 640
 	head_y := fy + 8
 	head_h := if compact { 54 } else { 72 }
@@ -113,7 +112,9 @@ fn ops_layout(app &GuiApp, w int, h int) OpsLayout {
 	cards_y := head_y + head_h + 8
 	cards_rows := if cards_n == 4 { 1 } else { 2 }
 	body_y := cards_y + cards_rows * card_h + (cards_rows - 1) * 10 + 12
-	body_h := fy + fh - 10 - body_y
+	body_h_raw := fy + fh - 10 - body_y
+	body_h := if body_h_raw > 0 { body_h_raw } else { 0 }
+	has_body := body_h >= 60
 	// the floor is secondary environmental detail: it collapses before the
 	// table loses a single readable row (DESIGN.md §16)
 	mut floor_w := 0
@@ -126,14 +127,15 @@ fn ops_layout(app &GuiApp, w int, h int) OpsLayout {
 	floor_x := fx + 12
 	right_x := if floor_w > 0 { floor_x + floor_w + 14 } else { fx + 12 }
 	right_w := fx + fw - 12 - right_x
-	tab_h := 30
-	ctl_h := 26
-	strip_h := if tab == 2 || tab == 3 { 34 } else { 0 }
+	tab_h := if has_body { 30 } else { 0 }
+	ctl_h := if has_body { 26 } else { 0 }
+	strip_h := if has_body && (tab == 2 || tab == 3) { 34 } else { 0 }
 	tab_y := body_y
 	ctl_y := tab_y + tab_h + 6
 	strip_y := ctl_y + ctl_h + 6
 	table_y := strip_y + strip_h + if strip_h > 0 { 6 } else { 0 }
-	mut table_h := fy + fh - 10 - table_y
+	table_h_raw := fy + fh - 10 - table_y
+	mut table_h := if has_body && table_h_raw > 0 { table_h_raw } else { 0 }
 	mut topo_h := 0
 	if tab == 2 && table_h > 250 && app.swarm_nodes.len > 0 {
 		topo_h = 96

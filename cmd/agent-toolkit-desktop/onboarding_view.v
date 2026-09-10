@@ -34,13 +34,13 @@ const onb_last_stage = 4
 // setup-choice cards (stage 0) — each maps to real product behaviour
 const onb_choices = ['Set up for me', 'Existing setup', 'Find my setup']
 
-const onb_choice_copy = ['Detect tools, set up a workspace, enable capabilities.',
-	'Connect to a setup you already configured.', 'Search this computer for existing workspaces.']
+const onb_choice_copy = ['Create a new workspace.', 'Use a configured setup.',
+	'Find existing workspaces.']
 
 // workspace cards (stage 2)
 const onb_ws_choices = ['Create workspace', 'Reuse a workspace']
 
-const onb_ws_copy = ['Fresh workspace, recommended structure.', 'Use a folder you already have.']
+const onb_ws_copy = ['Create a fresh workspace.', 'Use an existing folder.']
 
 // recommended capabilities (stage 3) — labels are user-facing, the sub-line is
 // the real catalog fact behind each one
@@ -49,9 +49,10 @@ const onb_caps = ['Multi-agent collaboration (MCP)', 'Task planning and executio
 
 // ── the editorial shell (replaces the generic header + production sidebar) ──
 
-// onb_mast_h is the masthead band height: roughly the reference's ~13% of
-// the window, clamped so it stays usable at both 640 and 900 tall windows.
-fn onb_mast_h(h int) int {
+// shell_mast_h is shared by onboarding and every regular destination.
+// It follows the reference's editorial band while leaving useful content at
+// compact heights.
+fn shell_mast_h(h int) int {
 	mut m := h * 13 / 100
 	if m < 78 {
 		m = 78
@@ -62,103 +63,13 @@ fn onb_mast_h(h int) int {
 	return m
 }
 
-// draw_onboarding_masthead_shell is the full-width editorial banner above
-// both the sidebar and the board — the product identity the reference leads
-// with, not a generic app title bar.
-pub fn draw_onboarding_masthead_shell(mut app GuiApp, w int) {
-	ensure_pixel_cache(mut app)
-	mut sc := app.pixel_cache
-	pid := office_palette_id(app)
-	mh := onb_mast_h(app.gg.height)
-	app.gg.draw_rect_filled(0, 0, w, mh, app.pnl_bg)
-	app.gg.draw_line(0, mh - 2, w, mh - 2, app.pnl_border)
-	// a warm brass rule under the whole band, the same material language as
-	// the Office wall trim
-	app.gg.draw_rect_filled(0, mh - 4, w, 2, pc(app, `W`))
-
-	big := mh >= 100
-	ty := if big { 14 } else { 8 }
-	plant := pixelart.environment_for(.plant)
-	sc.draw(plant, pid, 16, ty - 2, if big { 4 } else { 3 })
-	tx := 16 + (if big { 60 } else { 46 })
-	app.gg.draw_text(tx, ty, 'Agent Toolkit Desktop', gg.TextCfg{
-		color: app.pnl_text
-		size: if big { 30 } else { 24 }
-		family: app.fonts.display
-	})
-	sub_y := ty + (if big { 32 } else { 26 })
-	app.gg.draw_text(tx + 2, sub_y, 'A  H O M E   F O R   Y O U R   A I   A G E N T S', gg.TextCfg{
-		color: app.pnl_text_mut
-		size: if big { 13 } else { 11 }
-	})
-	if big {
-		app.gg.draw_line(tx, sub_y + 20, tx + 430, sub_y + 20, app.pnl_border)
-		app.gg.draw_text(tx, sub_y + 26, 'PLAN · BUILD · DELEGATE · OBSERVE · TOGETHER', gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 11
-			bold: true
-		})
-	}
-
-	// right-side editorial rhythm, gated by width so it never crowds
-	if w >= 760 {
-		nest := pixelart.environment_for(.nest)
-		nsize := if big { 4 } else { 3 }
-		nx := w - 190
-		sc.draw(nest, pid, nx, ty - 2, nsize)
-		app.gg.draw_text(nx + 58, ty, 'Small Agents', gg.TextCfg{
-			color: app.pnl_text
-			size: if big { 16 } else { 13 }
-			family: app.fonts.display
-		})
-		app.gg.draw_text(nx + 58, ty + (if big { 20 } else { 16 }), 'Brighter Worlds.', gg.TextCfg{
-			color: app.pnl_text
-			size: if big { 16 } else { 13 }
-			family: app.fonts.display
-		})
-		if big {
-			app.gg.draw_text(nx + 58, ty + 44, 'INSPIRED BY NATURE.', gg.TextCfg{
-				color: app.pnl_text_mut
-				size: 9
-			})
-			app.gg.draw_text(nx + 58, ty + 56, 'BUILT FOR BUILDERS.', gg.TextCfg{
-				color: app.pnl_text_mut
-				size: 9
-			})
-		}
-	}
-	if w >= 1020 {
-		cx := w - 420
-		app.gg.draw_text(cx, ty, 'SAME', gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 12
-			bold: true
-		})
-		app.gg.draw_text(cx, ty + 15, 'CURIOSITY.', gg.TextCfg{
-			color: app.pnl_text
-			size: 12
-			bold: true
-		})
-		app.gg.draw_text(cx, ty + 34, 'MORE', gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 12
-			bold: true
-		})
-		app.gg.draw_text(cx, ty + 49, 'CAPABILITY.', gg.TextCfg{
-			color: app.pnl_text
-			size: 12
-			bold: true
-		})
-	}
-}
-
 // draw_onboarding_sidebar replaces the production nav with the reference's
 // simplified onboarding rail: brand, three quiet rows, and a landscape
 // illustration with an editorial quote filling the rest of the column.
 pub fn draw_onboarding_sidebar(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
 	pid := office_palette_id(app)
-	mh := onb_mast_h(h)
+	mh := shell_mast_h(h)
 	x0 := dock_x(app, w)
 	y0 := mh
 	y1 := h - 28
@@ -220,11 +131,37 @@ fn draw_onb_landscape(mut app GuiApp, x int, y int, w int, h int, pid pixelart.P
 	plant := pixelart.environment_for(.plant)
 	mut px := x + 10
 	for px < x + w - 20 {
-		sc.draw(plant, pid, px, hill1_y - plant.height() * 2 + 6, 2)
+		plant_scale := if ((px - x) / 34) % 3 == 0 { 3 } else { 2 }
+		sc.draw(plant, pid, px, hill1_y - plant.height() * plant_scale + 6, plant_scale)
 		px += 34
 	}
 	nest := pixelart.environment_for(.nest)
 	sc.draw(nest, pid, x + w / 2 - 14, hill2_y - 22, 2)
+	// A tiny hillside workshop gives the rail a real place, not a flat color
+	// field: stepped roof, lit window, path, and one idle catalog-world agent.
+	house_x := x + w - 70
+	house_y := ground - 48
+	app.gg.draw_rect_filled(house_x, house_y + 14, 46, 34, pc(app, `m`))
+	app.gg.draw_rect_filled(house_x - 4, house_y + 12, 54, 5, pc(app, `W`))
+	app.gg.draw_rect_filled(house_x + 2, house_y + 7, 42, 5, pc(app, `W`))
+	app.gg.draw_rect_filled(house_x + 8, house_y + 2, 30, 5, pc(app, `W`))
+	app.gg.draw_rect_filled(house_x + 8, house_y + 23, 12, 12, pc(app, `p`))
+	app.gg.draw_rect_empty(house_x + 8, house_y + 23, 12, 12, pc(app, `W`))
+	for step in 0 .. 4 {
+		app.gg.draw_rect_filled(x + 94 - step * 7, ground - 8 - step * 7, 24 + step * 14, 7, pc(app, `p`))
+	}
+	agent := pixelart.agent_for_state(.idle)
+	sc.draw(agent, pid, x + 54, ground - agent.height() * 2, 2)
+	// Foreground grove and a stepped path break up the broad hill mass.
+	path_col := tint(pc(app, `m`), 170)
+	path_h := (ground - hill2_y - 8) / 4
+	for step in 0 .. 4 {
+		path_x := x + w / 2 - 5 + (if step % 2 == 0 { -4 } else { 4 })
+		app.gg.draw_rect_filled(path_x, hill2_y + 8 + step * path_h, 10 + step * 2, path_h + 2, path_col)
+	}
+	for tx in [x + 10, x + w - 42] {
+		sc.draw(plant, pid, tx, ground - plant.height() * 3, 3)
+	}
 	app.gg.draw_text(x + 16, ground + 10, 'Different Agents.', gg.TextCfg{
 		color: col_paper
 		size: 11
@@ -260,7 +197,7 @@ struct OnbLayout {
 
 fn onb_layout(app &GuiApp, w int, h int) OnbLayout {
 	term_h := if app.term_visible { onb_effective_term_h(app) } else { 0 }
-	mh := onb_mast_h(h)
+	mh := shell_mast_h(h)
 	fy := mh
 	fh := h - mh - 28 - term_h
 	side_w := if w >= 1180 { 340 } else { 0 }
@@ -675,7 +612,7 @@ fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 		if sel {
 			app.gg.draw_rect_filled(cx + cw - 21, cy + 11, 8, 8, app.pnl_success)
 		}
-		band := if ch * 56 / 100 < 48 { 48 } else { ch * 56 / 100 }
+		band := if ch * 44 / 100 < 42 { 42 } else { ch * 44 / 100 }
 		draw_onb_choice_scene(mut app, i, cx + 8, cy + 4, cw - 16, band, pid)
 		ty := cy + band + 6
 		app.gg.draw_text(cx + 12, ty, title, gg.TextCfg{
@@ -684,8 +621,8 @@ fn draw_onb_choice(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId) {
 			family: app.fonts.display
 		})
 		mut lines := (cy + ch - 6 - (ty + 19)) / 14
-		if lines > 2 {
-			lines = 2
+		if lines > 3 {
+			lines = 3
 		}
 		draw_onb_wrapped(mut app, cx + 12, ty + 19, cw - 24, onb_choice_copy[i], lines)
 	}
@@ -810,7 +747,7 @@ fn draw_onb_tools(mut app GuiApp, l OnbLayout) {
 
 // stage 2 — where the agents live
 fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st desktop_engine.OnboardingStatus) {
-	draw_onb_sheet_title(mut app, l, 2, 'Workspace setup', 'Where your agents, tasks and data live')
+	draw_onb_sheet_title(mut app, l, 2, 'Workspace setup', 'Where agents and data live')
 	for i, title in onb_ws_choices {
 		cx, cy, cw, ch := onb_card_rect(l, 2, i, onb_ws_choices.len)
 		if ch == 0 {
@@ -862,7 +799,7 @@ fn draw_onb_workspace(mut app GuiApp, l OnbLayout, pid pixelart.PaletteId, st de
 
 // stage 3 — recommended capabilities in user language, real catalog facts
 fn draw_onb_capabilities(mut app GuiApp, l OnbLayout) {
-	draw_onb_sheet_title(mut app, l, 3, 'Recommended capabilities', 'A great starting point — change these later')
+	draw_onb_sheet_title(mut app, l, 3, 'Recommended capabilities', 'A useful starting point')
 	_, s3y, _, s3h := onb_sec_rect(l, 3)
 	for i, name in onb_caps {
 		cx, cy, cw, ch := onb_cap_rect(l, i)
@@ -905,10 +842,8 @@ fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 	found := cat.filter(it.found)
 	tools := if found.len == 0 {
 		'none detected'
-	} else if found.len <= 2 {
-		found.map(it.display_name).join(', ')
 	} else {
-		'${found[0].display_name}, ${found[1].display_name} +${found.len - 2} more'
+		'${found.len} found'
 	}
 	caps_on := app.onb_cap_on.filter(it).len
 	rows := [
@@ -916,12 +851,11 @@ fn draw_onb_review(mut app GuiApp, l OnbLayout, st desktop_engine.OnboardingStat
 		['Tools detected', tools],
 		['Workspace',
 			if st.workspace_exists { app.harness_root } else { onb_ws_choices[app.onb_ws_choice] }],
-		['Capabilities',
-			'${caps_on} of ${onb_caps.len} enabled · ${st.installed_count} skills installed'],
+		['Capabilities', '${caps_on} of ${onb_caps.len} enabled'],
 		['Personas', if st.persona_count > 0 {
 			'${st.persona_count} bootstrapped'
 		} else {
-			'will be created on finish'
+			'created on finish'
 		}],
 	]
 	sx, sy, sw, sh := onb_sec_rect(l, 4)
@@ -1101,7 +1035,7 @@ fn draw_onboarding_preview(mut app GuiApp, w int, h int) {
 	// illustrated welcome scene owns most of the column — a dense miniature
 	// office, not a narrow inspector strip
 	sy := y + 34
-	sh := ih * 62 / 100
+	sh := ih * 50 / 100
 	draw_onb_scene(mut app, x + 8, sy, iw - 16, sh, pid)
 
 	// compact truthful facts strip — two columns so it never sprawls
@@ -1377,6 +1311,7 @@ fn onboarding_advance(mut app GuiApp) {
 	app.engine_rev = app.desktop.app_state_snapshot().revision
 	app.api_calls = app.desktop.engine_api_calls()
 	app.onboarding_msg = 'Setup complete — welcome to the office (rev ${rev})'
+	app.workspace_initialized = app.desktop.onboarding_status(app.harness_root).workspace_exists
 	app.show_onboarding = false
 	app.selected_panel = 0
 	app.onb_diag = false
@@ -1411,6 +1346,7 @@ fn onb_apply_stage(mut app GuiApp) {
 				}
 				app.onboarding_msg = 'Workspace connected (rev ${rev})'
 			}
+			app.workspace_initialized = app.desktop.onboarding_status(harness).workspace_exists
 		}
 		3 {
 			cat := app.desktop.engine_skills_search('', '')

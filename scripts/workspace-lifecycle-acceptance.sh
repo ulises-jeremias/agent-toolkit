@@ -43,15 +43,15 @@ OB_PID=0
 XVFB_PID=0
 WIN_ID=""
 
-# geometry (1280x800, dock 200 + inspector 300): panel fx=208 fw=772.
+# geometry (1280x800, dock 184 + inspector 280): panel fx=192 fw=808.
 # Mirrors workspace_layout() in cmd/agent-toolkit-desktop/workspace_view.v
-# (VC7): non-compact (fh=572 with the 148px terminal) → head_h=60,
+# (VC8): non-compact (fh=548 with the 120px terminal) → head_h=60,
 # hero_y=fy+64, field_y=hero_y+46; the filing scene (200px) sits at the
 # hero's right edge, the buttons end 12px before it:
-#   right = fx+fw-12-200-12 = 548+fx ; init_w=78 switch_w=62 validate_w=68, gap 6
-FX=208
-FY=52
-FW=772
+#   right = fx+fw-12-200-12 = 584+fx ; init_w=78 switch_w=62 validate_w=68, gap 6
+FX=192
+FY=104
+FW=808
 HERO_Y=$((FY + 64))
 FIELD_X=$((FX + 24))
 FIELD_Y=$((HERO_Y + 46))
@@ -161,6 +161,9 @@ HOME_B="$PREFIX/home-b"
 mkdir -p "$HOME_B"
 WS_B="$HOME_B/work-b"
 launch "$HOME_B"
+# A fresh second HOME owns the onboarding overlay. Dismiss it explicitly;
+# modal precedence correctly prevents destination shortcuts leaking through.
+key Escape
 # select Workspace panel ('0')
 key 0
 sleep 1
@@ -201,6 +204,8 @@ assert_state "$STATE_B" "r.get('workspace_path', '') == '$WS_B'" "restart-restor
 
 # switch back to A (~/.ai-workspace)
 launch "$HOME_B"
+# HOME_B never finished onboarding, so the overlay owns the screen again.
+key Escape
 key 0
 sleep 1
 key Tab
@@ -224,6 +229,8 @@ echo "user seed file" > "$HOME_C/work-c/knowledge-README-COLLISION"  # unrelated
 mkdir -p "$HOME_C/work-c/knowledge"
 echo "# user custom knowledge" > "$HOME_C/work-c/knowledge/README.md"  # collision: user-modified
 launch "$HOME_C"
+# Fresh HOME_C also owns the onboarding overlay until dismissed.
+key Escape
 key 0
 sleep 1
 key Tab
@@ -240,6 +247,7 @@ grep -q "user custom knowledge" "$HOME_C/work-c/knowledge/README.md" || fail "se
 # idempotence: re-seed
 HOME_C_CONTENT1="$(cat "$HOME_C/work-c/knowledge/README.md")"
 launch "$HOME_C"
+key Escape
 key 0
 sleep 1
 key Tab
@@ -253,6 +261,7 @@ record "scenario-C" "PASS" "seed: scaffold beside user files, collision skipped,
 
 # ── Scenario D: invalid path → truthful error ──────────────────────────────
 launch "$HOME_B"
+key Escape
 key 0
 sleep 1
 click $((FIELD_X + 40)) $((FIELD_Y + 14))

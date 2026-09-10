@@ -56,14 +56,15 @@ struct WorkspaceLayout {
 
 fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 	fx := panel_fx(app)
-	fy := 52
+	fy := shell_mast_h(h)
 	fw := panel_fw(app, w)
-	term_h := if app.term_visible { app.term_height } else { 0 }
-	fh := h - fy - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fh < 520 || fw < 640
 	head_h := if compact { 44 } else { 60 }
 	hero_y := fy + head_h + 4
-	hero_h := if compact { 84 } else { 112 }
+	hero_h := if fh < 100 {
+		0
+	} else if compact { 84 } else { 112 }
 	scene_w := if !compact && fw >= 720 { 200 } else { 0 }
 	scene_x := fx + fw - 12 - scene_w
 	right := if scene_w > 0 { scene_x - 12 } else { fx + fw - 24 }
@@ -80,10 +81,15 @@ fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 		field_w = 120
 	}
 	known_y := hero_y + hero_h + 8
-	known_h := if compact { 46 } else { 78 }
+	known_h := if fh < 240 {
+		0
+	} else if compact { 46 } else { 78 }
 	mut mem_h := if compact { 44 } else { 92 }
 	mut mem_y := fy + fh - mem_h - 8
-	mid_y := known_y + known_h + 8
+	mut mid_y := known_y + known_h + 8
+	if mid_y > fy + fh {
+		mid_y = fy + fh
+	}
 	mut mid_h := mem_y - 8 - mid_y
 	if mid_h < 100 {
 		// short board (e.g. 1024x640 with the 2x terminal): drop the memory
@@ -310,8 +316,14 @@ fn draw_workspace(mut app GuiApp, w int, h int) {
 	l := workspace_layout(app, w, h)
 	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, app.pnl_bg)
 	destination_header(mut app, l.fx, l.fy, l.fw, l.head_h, pixelart.environment_for(.cabinet_tall), tr(app, 'panel.workspace'), 'Files, project context and memory for the active workspace')
-	draw_ws_hero(mut app, l)
-	draw_ws_known(mut app, l)
+	if l.hero_h > 0 {
+		draw_ws_hero(mut app, l)
+	}
+	if l.known_h > 0 {
+		draw_ws_known(mut app, l)
+	} else {
+		app.known_ws_rects.clear()
+	}
 	// IDE block — the existing brokered surfaces, unchanged renderers
 	if l.mid_h > 0 {
 		draw_file_tree_panel(mut app, l.fx + 12, l.mid_y, l.tree_w, l.mid_h)
@@ -614,11 +626,10 @@ struct WsDetailLayout {
 }
 
 fn ws_detail_layout(app &GuiApp, w int, h int) WsDetailLayout {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	iy := 52
+	iy := panel_top(app)
 	iw := inspector_w
-	ih := h - iy - 28 - term_h
+	ih := content_bottom(app, h) - iy
 	limit := iy + ih - 8
 	scaffold_y := iy + 40
 	mut y := scaffold_y + 22 + ws_scaffold_names.len * 17 + 10

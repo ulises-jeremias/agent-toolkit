@@ -67,10 +67,22 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	// Floor material follows the authored palette: warm tan on Paper; on Ink
 	// a neutral dark well so wood furniture stays legible (never invisible).
 	ink := app.appearance_dark
-	floor_col := if ink { mix(pc(app, `S`), pc(app, `w`), 0.22) } else { mix(pc(app, `w`), pc(app, `p`), 0.62) }
-	seam_col := if ink { mix(floor_col, pc(app, `k`), 0.40) } else { mix(pc(app, `W`), floor_col, 0.50) }
+	floor_col := if ink {
+		mix(pc(app, `S`), pc(app, `w`), 0.22)
+	} else {
+		mix(pc(app, `w`), pc(app, `p`), 0.62)
+	}
+	seam_col := if ink {
+		mix(floor_col, pc(app, `k`), 0.40)
+	} else {
+		mix(pc(app, `W`), floor_col, 0.50)
+	}
 	// subtle plank rhythm: alternate rows pull one step toward paper/wood
-	floor_col_hi := if ink { mix(floor_col, pc(app, `w`), 0.10) } else { mix(floor_col, pc(app, `p`), 0.22) }
+	floor_col_hi := if ink {
+		mix(floor_col, pc(app, `w`), 0.10)
+	} else {
+		mix(floor_col, pc(app, `p`), 0.22)
+	}
 	app.gg.draw_rect_filled(x, y, w, h, floor_col)
 	app.gg.draw_rect_filled(x, y, w, wall_h, wall_col)
 	app.gg.draw_rect_filled(x, y, w, 2, seam_col) // top trim — wall edge
@@ -114,7 +126,11 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	wx += shelf.width() * s + 8 * s
 	sc.draw(board, pid, wx, base - board.height() * s, s)
 	att := if attention == 0 { 'clear' } else { '${attention} open' }
-	zone_plate(mut app, wx, base + 14, 'board · ${att}', if attention == 0 { app.pnl_text_mut } else { app.pnl_select })
+	zone_plate(mut app, wx, base + 14, 'board · ${att}', if attention == 0 {
+		app.pnl_text_mut
+	} else {
+		app.pnl_select
+	})
 	wx += board.width() * s + 10 * s
 	// up to two windows (three at very wide widths); a long identical
 	// strip reads institutional, but a bare wall reads abandoned
@@ -210,18 +226,24 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	chh := chair.height() * s
 	cell_h := 42 * s
 	// lounge reserve: the couch corner keeps the bottom band clear of desks
-	lounge_h := if w >= 620 { couch.height() * s + 22 } else { 0 }
+	// The lounge is already excluded horizontally by ws_w. Reserving it a
+	// second time vertically reduced a tall room to one sparse desk row.
+	lounge_h := 0
 	avail_h := y + h - 12 - lounge_h - (floor_y + 8 * s)
 	// Row-first sizing: fill the vertical space first, then pick the cluster
 	// count that fits every catalog desk (fewer dead zones than a fixed grid).
 	mut rows := avail_h / cell_h
-	rows = if rows < 1 { 1 } else if rows > 4 { 4 } else { rows }
+	rows = if rows < 1 {
+		1
+	} else if rows > 4 { 4 } else { rows }
 	// clusters of two paired desks; aisles between clusters give rhythm
 	pod_w := 2 * dw + 4
 	// wide rooms breathe: wider aisles keep clusters from huddling left
 	aisle := if w >= 900 { 18 * s } else { 12 * s }
 	mut pods_per_row := (ws_w + aisle) / (pod_w + aisle)
-	pods_per_row = if pods_per_row < 1 { 1 } else if pods_per_row > 3 { 3 } else { pods_per_row }
+	pods_per_row = if pods_per_row < 1 {
+		1
+	} else if pods_per_row > 3 { 3 } else { pods_per_row }
 	if w < 560 {
 		pods_per_row = 1
 	}
@@ -236,7 +258,9 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	mut step := cell_h
 	if used_rows > 0 {
 		fit := avail_h / used_rows
-		step = if fit > cell_h * 2 { cell_h * 2 } else if fit > cell_h { fit } else { cell_h }
+		step = if fit > cell_h * 2 {
+			cell_h * 2
+		} else if fit > cell_h { fit } else { cell_h }
 	}
 	gy_extra := avail_h - used_rows * step
 	grid_y := floor_y + 8 * s + if gy_extra > 0 { gy_extra / 2 } else { 0 }
@@ -259,6 +283,16 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 			shift = if max_shift > 0 { max_shift } else { 0 }
 		}
 		cx := grid_x + pcol * (pod_w + aisle) + shift + inpod * (dw + 4)
+		if inpod == 0 {
+			// Each paired pod sits on a woven rug with a plant at the aisle.
+			// These are room materials, not runtime signals.
+			rug_s := if s >= 3 { 3 } else { 2 }
+			rug_x := cx + pod_w / 2 - rug.width() * rug_s / 2
+			sc.draw(rug, pid, rug_x, cy + ah + 4, rug_s)
+			if pcol > 0 {
+				sc.draw(plant, pid, cx - plant.width() * 2 - 6, cy + ah - plant.height() * 2 / 2, 2)
+			}
+		}
 		// Idle catalog agent behind the desk, deterministic identity variant.
 		agent := pixelart.with_identity(pixelart.agent_for_state(.idle), i % 3)
 		sc.draw(agent, pid, cx + (dw - aw) / 2, cy, s)
@@ -300,7 +334,11 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 		})
 	}
 	// footer note keeps clear of the lounge corner (geometry computed above)
-	note := if desks.len > shown { '${shown} of ${desks.len} catalog desks' } else { '${shown} catalog desks' }
+	note := if desks.len > shown {
+		'${shown} of ${desks.len} catalog desks'
+	} else {
+		'${shown} catalog desks'
+	}
 	note_x := x + w - 24 - note.len * 7 - if lounge_ok { lounge_w - 8 } else { 0 }
 	app.gg.draw_text(note_x, y + h - 16, note, gg.TextCfg{
 		color: app.pnl_text_mut

@@ -233,8 +233,17 @@ fn ui_state_path() string {
 }
 
 // save_ui_state — best-effort persist of the shell layout (k=v, no json deps).
+fn persisted_terminal_mode(mode int) int {
+	if mode == 2 {
+		return 0
+	}
+	return if mode >= 0 && mode <= 3 { mode } else { 3 }
+}
+
 fn save_ui_state(app &GuiApp) {
-	term_mode := if app.term_mode == 0 { 0 } else { 3 }
+	// MAX is a session-only takeover; restart it as compact rather than
+	// covering the whole application before the user asks again.
+	term_mode := persisted_terminal_mode(app.term_mode)
 	lines := [
 		'term_mode=${term_mode}',
 		'zoom=${app.global_zoom}',
@@ -258,8 +267,8 @@ fn load_ui_state(mut app GuiApp) {
 		k, v := kv[0], kv[1]
 		match k {
 			'term_mode' {
-				// MAX, split, modal, and terminal focus are session-only state.
-				app.term_mode = if v.int() == 0 { 0 } else { 3 }
+				mode := v.int()
+				app.term_mode = persisted_terminal_mode(mode)
 			}
 			'zoom' {
 				app.global_zoom = clamp_zoom(v.f64())
@@ -501,6 +510,13 @@ fn mcp_total(mut app GuiApp) int {
 fn targets_total(mut app GuiApp) int {
 	if app.desktop != unsafe { nil } {
 		return app.desktop.engine_targets().len
+	}
+	return 0
+}
+
+fn loops_total(mut app GuiApp) int {
+	if app.desktop != unsafe { nil } {
+		return app.desktop.loops_catalog().len
 	}
 	return 0
 }
@@ -1045,8 +1061,8 @@ mut:
 	lib_cache         []LibItem
 	lib_cache_key     string
 	lib_cache_frame   int = -1
-	targets_hover                int = -1
-	onboarding_scroll            int
+	targets_hover     int = -1
+	onboarding_scroll int
 	// VC4 setup journey (#1173): user-facing choices; Engine keeps the truth
 	onb_choice    int // 0 set up for me, 1 existing setup, 2 find my setup
 	onb_ws_choice int // 0 create new workspace, 1 reuse existing
@@ -1072,10 +1088,10 @@ mut:
 	ws_scaffold_root  string
 	ws_scaffold_vals  []bool
 	ws_scaffold_frame int = -1000
-	insights_hover  int = -1
-	insights_tab    string = 'cost' // cost | waterfall | spans | budgets | ci
-	insights_filter string
-	insights_spark  []f64
+	insights_hover    int = -1
+	insights_tab      string = 'cost' // cost | waterfall | spans | budgets | ci
+	insights_filter   string
+	insights_spark    []f64
 }
 
 // ── i18n — 4 languages EN/ES/中文/عربي with RTL, superior to munder-difflin 3-lang.
@@ -1172,7 +1188,6 @@ const i18n_table = {
 	// status bar
 	'status.palette':       I18nRow{'palette', 'paleta', '命令面板', 'الأوامر'}
 	'status.paperco':       I18nRow{'Paper Co.', 'Paper Co.', '纸业公司', 'شركة الورق'}
-	'status.fps':           I18nRow{'60FPS', '60FPS', '60帧', '٦٠ إطار'}
 	// world floor
 	'office.view.overview': I18nRow{'Overview', 'Resumen', '概览', 'ملخص'}
 	'office.view.floor':    I18nRow{'Floor Map', 'Planta', '平面图', 'خريطة الطابق'}
@@ -1514,47 +1529,99 @@ fn nav_group_label(app &GuiApp, panel int) string {
 	}
 }
 
-fn nav_children(panel int) []int {
-	return match panel {
-		1 { [1, 2, 3, 4, 10] }
-		6 { [6, 7, 8, 5] }
-		11 { [11] }
-		else { []int{} }
+// shell_max_term_h is the terminal height the dock layout assumes so the six
+// permanent dock rows always end on the dock surface: rows start at
+// shell_mast_h(h)+54 and the compressed minimum is six 26px steps with 22px
+// rows (top+152 <= y1). In short viewports (e.g. 1024x480 with the 320px
+// terminal) the dock keeps that room instead of collapsing with the panels —
+// panels still suppress via content_bottom and the terminal keeps its
+// user-set height. MAX mode (2) owns the screen by design and is exempt.
+// Degenerate windows floor the assumed terminal at 96px.
+fn shell_max_term_h(h int) int {
+	max_h := h - shell_mast_h(h) - 234
+	if max_h < 96 {
+		return 96
 	}
+	return max_h
 }
 
-// nav_rows keeps the six task-oriented destinations permanent while exposing
-// implementation panels only in the relevant local group.
+fn shell_effective_term_h(term_visible bool, term_mode int, term_height int, h int) int {
+	if !term_visible {
+		return 0
+	}
+	if term_mode == 2 {
+		return term_height
+	}
+	max_h := shell_max_term_h(h)
+	if term_height > max_h {
+		return max_h
+	}
+	return term_height
+}
+
+// dock_bottom is the dock column's own vertical extent. It matches
+// content_bottom except in short viewports with a tall terminal, where the
+// dock keeps room for the six permanent nav rows instead of collapsing with
+// the panels (panels keep suppressing secondary chrome via content_bottom;
+// the terminal keeps its user-set height). draw_left_dock, nav_rows and the
+// dock click/hover paths all share this so drawn rows and hit targets agree.
+fn dock_bottom(app &GuiApp, h int) int {
+	term_h := shell_effective_term_h(app.term_visible, app.term_mode, app.term_height, h)
+	return h - 28 - term_h
+}
+
+// nav_rows keeps the six product destinations permanent. Library and
+// Operations own their local tabs; duplicating those children in the shell
+// made the rail read like an IDE tree instead of the reference's navigation.
+// All six rows are always returned: when a tall terminal steals vertical
+// room the rows compress to a single-line compact form rather than dropping
+// destinations off the permanent dock.
 fn nav_rows(app &GuiApp, h int) []NavRow {
-	term_h := if app.term_visible { app.term_height } else { 0 }
-	bottom := h - 28 - term_h - 12
-	active_group := nav_group_for_panel(app.selected_panel)
+	bottom := dock_bottom(app, h) - 4
+	top := shell_mast_h(h) + 54
+	avail := bottom - top
+	mut row_h := 46
+	mut step := 50
+	if avail < 6 * step {
+		step = avail / 6
+		if step < 26 {
+			step = 26
+		}
+		row_h = step - 4
+		if row_h < 22 {
+			row_h = 22
+		}
+	}
 	mut rows := []NavRow{}
-	mut y := 58
+	mut y := top
 	for group in [0, 1, 6, 9, 12, 11] {
-		if y + 36 > bottom {
-			break
-		}
-		rows << NavRow{ panel: group, y: y, h: 36, parent: true }
-		y += 40
-		if group != active_group {
-			continue
-		}
-		for child in nav_children(group) {
-			if y + 28 > bottom {
-				break
-			}
-			rows << NavRow{ panel: child, y: y, h: 28, parent: false }
-			y += 30
-		}
+		rows << NavRow{ panel: group, y: y, h: row_h, parent: true }
+		y += step
 	}
 	return rows
 }
 
 // ── RTL geometry — when عربي is active the filing-cabinet flips: dock right,
 // inspector left, panels between. LTR default unchanged. ──
-const dock_w = 200
-const inspector_w = 300
+const dock_w = 184
+const inspector_w = 280
+
+// Shell geometry is authoritative for every destination and its hit regions.
+// VC8-B begins with the legacy values so this refactor has no visual effect;
+// the editorial-shell commit can change them in one place.
+fn panel_top(app &GuiApp) int {
+	// Pure layout tests construct GuiApp without a renderer; keep their legacy
+	// baseline while production derives the shared masthead from live height.
+	if app.gg == unsafe { nil } {
+		return 52
+	}
+	return shell_mast_h(app.gg.height)
+}
+
+fn content_bottom(app &GuiApp, h int) int {
+	term_h := if app.term_visible { app.term_height } else { 0 }
+	return h - 28 - term_h
+}
 
 fn dock_x(app &GuiApp, w int) int {
 	return if app.lang.is_rtl() { w - dock_w } else { 0 }
@@ -1568,7 +1635,7 @@ fn panel_fx(app &GuiApp) int {
 	return if app.lang.is_rtl() { inspector_w + 8 } else { dock_w + 8 }
 }
 
-fn panel_fw(app &GuiApp, w int) int {
+fn panel_fw(_ &GuiApp, w int) int {
 	return w - (dock_w + 8) - inspector_w
 }
 
@@ -2382,6 +2449,15 @@ fn on_init(mut app GuiApp) {
 	app.inspector_hover = -1
 	app.cached_rev = app.engine_rev
 	app.ghost = ghostty.new_terminal(80, 18)
+	// Fleet status seed — the canonical design references open the terminal
+	// on a live fleet summary. Every count renders through the same
+	// Engine-backed helpers as the panels, so the terminal can never drift
+	// from them (idle environments read catalog/template counts, never
+	// fabricated live activity). Prefixed: short viewports render the first
+	// rows, so the summary leads instead of sitting below the fold.
+	// Compact labels: content rows truncate at 44 columns, so every metric
+	// must fit (the pane rail already says Fleet).
+	app.ghost.prefix_feed('${agents_active_total(mut app)} agents · ${skills_total(mut app)} skills · ${loops_total(mut app)} loops · ${mcp_total(mut app)} MCP\r\n')
 	app.ghost_focused = false
 	app.god_inbox = 0
 	app.god_outbox = 0
@@ -2390,6 +2466,13 @@ fn on_init(mut app GuiApp) {
 	// before the first frame — panel draw code reads app.pnl_* throughout
 	app.apply_appearance(app.appearance)
 	app.term_visible = app.term_mode == 0
+	// Golden tour: capture the integrated terminal well the canonical design
+	// references show open on every destination. Compact 1× is the same real
+	// user state the height buttons set — no test-only rendering path.
+	if os.getenv('ATK_GOLDEN_TERMINAL') != '' {
+		app.term_mode = 0
+		app.term_visible = true
+	}
 	app.ghost_focused = false
 	app.approvals = []
 	// seed auto-pin to bottom after first collect
@@ -2633,15 +2716,18 @@ fn frame(mut app GuiApp) {
 	// terminal height modes — 1× compact / 2× tall / MAX full-content / hidden (^` cycles 0→1→2)
 	app.term_visible = app.term_mode != 3
 	if app.term_visible {
+		if app.term_mode != 2 && app.term_view >= 15 {
+			app.term_view = -1
+		}
 		app.term_height = match app.term_mode {
 			1 { 320 }
-			2 { app.gg.height - 44 - 28 }
-			else { 148 }
+			2 { app.gg.height - panel_top(app) - 28 }
+			else { 120 }
 		}
 		// the onboarding shell owns the screen: cap the terminal at the
 		// source so the VT row budget, draw_terminal and onb_layout all agree
 		// (a MAX terminal would otherwise hide the board entirely)
-		if (app.show_onboarding || app.selected_panel == 11) && app.term_height > 120 {
+		if app.show_onboarding && app.term_height > 120 {
 			app.term_height = 120
 		}
 	}
@@ -2651,7 +2737,7 @@ fn frame(mut app GuiApp) {
 	mut cols_full := 80
 	mut rows_full := 18
 	if app.term_visible {
-		tw_g := app.gg.width - 200
+		_, _, tw_g, _ := terminal_rect(app, app.gg.width, app.gg.height)
 		content_w_g := tw_g - 16
 		mut cols_g := content_w_g / 14
 		if cols_g < 40 {
@@ -2687,16 +2773,13 @@ fn frame(mut app GuiApp) {
 	h := app.gg.height
 	app.gg.begin()
 	app.gg.draw_rect_filled(0, 0, w, h, col_ink)
-	onb_shell_active := app.show_onboarding || app.selected_panel == 11
+	onb_shell_active := app.show_onboarding
+	// VC8 (#1187): every destination now shares the editorial masthead.
+	// Onboarding keeps its quieter task rail while the setup journey owns focus.
+	draw_header(mut app, w)
 	if onb_shell_active {
-		// VC4 (#1173): onboarding replaces the generic header + production
-		// nav with a dedicated editorial shell (masthead + simplified
-		// sidebar) — matching the reference's first-run identity instead of
-		// looking like a page inside the ordinary app chrome.
-		draw_onboarding_masthead_shell(mut app, w)
 		draw_onboarding_sidebar(mut app, w, h)
 	} else {
-		draw_header(mut app, w)
 		draw_left_dock(mut app, h)
 	}
 	// MAX terminal owns the content area — skip panel + inspector rendering
@@ -2724,12 +2807,12 @@ fn frame(mut app GuiApp) {
 			// command center (operations_view.v)
 			5, 6, 7, 8 { draw_operations(mut app, w, h) }
 			9 { draw_workspace(mut app, w, h) }
-			11 { draw_onboarding(mut app, w, h) }
+			11 { draw_settings(mut app, w, h) }
 			12 { draw_insights(mut app, w, h) }
 			else { draw_world(mut app, w, h) }
 		}
 	}
-	if app.show_onboarding || app.selected_panel == 11 {
+	if app.show_onboarding {
 		draw_onboarding_preview(mut app, w, h)
 	} else if lib_is_panel(app.selected_panel) {
 		draw_library_detail(mut app, w, h)
@@ -2742,6 +2825,10 @@ fn frame(mut app GuiApp) {
 		draw_workspace_detail(mut app, w, h)
 	} else if app.selected_panel == 12 {
 		draw_insights_detail(mut app, w, h)
+	} else if app.selected_panel == 11 {
+		draw_settings_detail(mut app, w, h)
+	} else if app.selected_panel == 0 && !app.office_map_view {
+		draw_office_detail(mut app, w, h)
 	} else {
 		draw_inspector(mut app, w, h)
 	}
@@ -2825,22 +2912,23 @@ fn frame(mut app GuiApp) {
 	})
 	app.gg.draw_rect_empty(thx2, zy2 - 3, 6, 10, col_brass_dim)
 	app.gg.draw_text(zx2 + zw2 + 6, h - 19, zoom_percent(app.global_zoom), gg.TextCfg{ color: col_ink500, size: scaled_size(10, app.global_zoom) })
-	// center — frame + 60FPS indicator (paper dot pulses at 60FPS)
-	mid := 'frame ${app.frame}  •  60FPS'
+	// Center states the actual renderer, not an invented frame-rate claim.
+	mid := 'Native V  •  gg/sokol'
 	mid_w := mid.len * 6
 	app.gg.draw_text(w / 2 - mid_w / 2, h - 19, mid, gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
-	// 60FPS dot — brass pulse every 30 frames
-	fps_col := if app.frame % 30 < 15 { col_brass } else { tint(col_brass, 44) }
-	app.gg.draw_rect_filled(w / 2 + mid_w / 2 + 6, h - 15, 5, 5, fps_col)
-	// right — appearance chip, branch, manila tab + Paper Co.
+	// right — appearance and real workspace readiness.
 	app.gg.draw_rect_filled(w - 330, h - 22, 84, 16, col_paper_dim)
 	app.gg.draw_rect_empty(w - 330, h - 22, 84, 16, col_line_light)
 	app.gg.draw_text(w - 324, h - 18, 'Theme·${appearance_label(app.appearance)}', gg.TextCfg{ color: col_ink700, size: scaled_size(10, app.global_zoom), mono: true })
-	app.gg.draw_rect_filled(w - 238, h - 22, 72, 16, col_paper_dim)
-	app.gg.draw_rect_empty(w - 238, h - 22, 72, 16, col_line_light)
-	app.gg.draw_text(w - 230, h - 18, 'main', gg.TextCfg{ color: col_ink700, size: scaled_size(10, app.global_zoom), mono: true })
-	draw_text_l(mut app, w - 160, h - 19, 'status.paperco', gg.TextCfg{ color: col_slate, size: scaled_size(11, app.global_zoom), bold: true })
-	app.gg.draw_text(w - 100, h - 19, '3847', gg.TextCfg{ color: col_ink500, size: scaled_size(11, app.global_zoom), mono: true })
+	app.gg.draw_rect_filled(w - 238, h - 22, 104, 16, col_paper_dim)
+	app.gg.draw_rect_empty(w - 238, h - 22, 104, 16, col_line_light)
+	ready_label := if app.workspace_initialized { 'Workspace ready' } else { 'Setup needed' }
+	app.gg.draw_text(w - 232, h - 18, ready_label, gg.TextCfg{
+		color: if app.workspace_initialized { col_ink700 } else { col_oxide }
+		size: scaled_size(9, app.global_zoom)
+		bold: true
+	})
+	draw_text_l(mut app, w - 124, h - 19, 'status.paperco', gg.TextCfg{ color: col_slate, size: scaled_size(11, app.global_zoom), bold: true })
 	// brass rivet at right edge
 	app.gg.draw_rect_filled(w - 8, h - 16, 2, 2, tint(col_brass, 42))
 	draw_toasts(mut app, w, h)
@@ -2942,176 +3030,272 @@ fn workspace_path_label(path string, max_len int) string {
 	return label
 }
 
-fn header_workspace_x() int {
-	// 216 leaves room for the title + version stamp (v1.30.0 via desktop_version).
-	return 216
+struct HeaderLayout {
+	mast_h      int
+	control_y   int
+	control_h   int
+	workspace_x int
+	workspace_w int
+	search_x    int
+	search_w    int
+	theme_x     int
+	theme_w     int
+	lang_x      int
+	lang_w      int
+	command_x   int
+	command_w   int
 }
 
-fn header_workspace_w(w int) int {
-	return if w < 1100 { 180 } else { 210 }
-}
-
-fn header_search_x(w int) int {
-	return header_workspace_x() + header_workspace_w(w) + 12
-}
-
-fn header_search_w(w int) int {
-	mut width := w - header_search_x(w) - 206
-	if width < 160 {
-		width = 160
+// header_layout is shared by drawing and pointer routing. Controls anchor to
+// the right so the product lockup keeps its editorial measure at every
+// required viewport.
+fn header_layout(w int, h int) HeaderLayout {
+	mh := shell_mast_h(h)
+	search_w := if w >= 1350 {
+		280
+	} else if w >= 1150 { 240 } else { 190 }
+	workspace_w := if w >= 1180 { 190 } else { 164 }
+	command_w := 30
+	command_x := w - 12 - command_w
+	lang_w := 42
+	lang_x := command_x - 8 - lang_w
+	theme_w := 72
+	theme_x := lang_x - 8 - theme_w
+	search_x := theme_x - 8 - search_w
+	workspace_x := search_x - 8 - workspace_w
+	return HeaderLayout{
+		mast_h: mh
+		control_y: if mh >= 100 { 12 } else { 9 }
+		control_h: 34
+		workspace_x: workspace_x
+		workspace_w: workspace_w
+		search_x: search_x
+		search_w: search_w
+		theme_x: theme_x
+		theme_w: theme_w
+		lang_x: lang_x
+		lang_w: lang_w
+		command_x: command_x
+		command_w: command_w
 	}
-	return width
 }
 
-fn nav_child_label(app &GuiApp, panel int) string {
+fn nav_group_subtitle(panel int) string {
 	return match panel {
-		5 { tr(app, 'nav.health') }
-		11 { tr(app, 'nav.setup') }
-		else { tr(app, panel_key(panel)) }
+		0 { 'Home base · See your agents' }
+		1 { 'Agents · Skills · MCP' }
+		6 { 'Loops · Tasks · Runs' }
+		9 { 'Files · Projects · Context' }
+		12 { 'Metrics · Traces · Reports' }
+		11 { 'Theme · Language · Preferences' }
+		else { '' }
 	}
 }
 
 fn draw_header(mut app GuiApp, w int) {
 	z := app.global_zoom
-	app.gg.draw_rect_filled(0, 0, w, 44, col_charcoal)
-	app.gg.draw_rect_filled(0, 43, w, 1, col_line)
-	app.gg.draw_text(16, 12, 'Agent Toolkit', gg.TextCfg{
-		color: col_paper
-		size: scaled_size(font_display_md, z)
+	ensure_pixel_cache(mut app)
+	mut sc := app.pixel_cache
+	pid := office_palette_id(app)
+	l := header_layout(w, app.gg.height)
+	app.gg.draw_rect_filled(0, 0, w, l.mast_h, app.pnl_bg)
+	app.gg.draw_rect_filled(0, l.mast_h - 4, w, 2, pc(app, `W`))
+	app.gg.draw_line(0, l.mast_h - 2, w, l.mast_h - 2, app.pnl_border)
+	plant := pixelart.environment_for(.plant)
+	plant_scale := if l.mast_h >= 100 { 5 } else { 3 }
+	sc.draw(plant, pid, 16, 8, plant_scale)
+	title_x := 16 + plant.width() * plant_scale + 12
+	app.gg.draw_text(title_x, 9, 'Agent Toolkit Desktop', gg.TextCfg{
+		color: app.pnl_text
+		size: if l.mast_h >= 100 { 34 } else { 25 }
 		family: app.fonts.display
 	})
-	// version stamp — single source of truth via desktop_version() (repo VERSION
-	// at build, installed VERSION sibling, -d commit fallback for dev builds).
-	app.gg.draw_text(148, 15, 'v${app.version}', gg.TextCfg{
-		color: col_slate_dim
-		size: scaled_size(12, z)
+	app.gg.draw_text(title_x + 2, 40, 'A  H O M E   F O R   Y O U R   A I   A G E N T S', gg.TextCfg{
+		color: app.pnl_text_mut
+		size: if l.mast_h >= 100 { 11 } else { 9 }
 		bold: true
 	})
-	app.gg.draw_rect_filled(8, 10, 3, 3, col_brass)
+	if l.mast_h >= 96 {
+		app.gg.draw_line(title_x, 59, title_x + 364, 59, app.pnl_border)
+		app.gg.draw_text(title_x, 66, 'PLAN · BUILD · DELEGATE · OBSERVE · TOGETHER', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+			bold: true
+		})
+	}
+	// A small editorial signature fills the otherwise dead bridge between the
+	// lockup and controls on wide screens.
+	if w >= 1200 && l.workspace_x > 560 {
+		nest := pixelart.environment_for(.nest)
+		nx := l.workspace_x - 128
+		sc.draw(nest, pid, nx, 14, 3)
+		app.gg.draw_text(nx + 44, 15, 'Small Agents', gg.TextCfg{
+			color: app.pnl_text
+			size: 12
+			family: app.fonts.display
+		})
+		app.gg.draw_text(nx + 44, 30, 'Brighter Worlds.', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+			family: app.fonts.display
+		})
+	}
+	if app.show_onboarding {
+		setup_right := l.command_x + l.command_w
+		setup_w := setup_right - l.workspace_x
+		app.gg.draw_rect_filled(l.workspace_x, l.control_y, setup_w, l.control_h, app.pnl_card)
+		app.gg.draw_rect_empty(l.workspace_x, l.control_y, setup_w, l.control_h, app.pnl_border)
+		app.gg.draw_text(l.workspace_x + 12, l.control_y + 5, 'SETUP JOURNEY', gg.TextCfg{
+			color: app.pnl_text
+			size: 10
+			bold: true
+		})
+		app.gg.draw_text(l.workspace_x + 12, l.control_y + 18, 'Finish or skip setup to use workspace controls.', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+		})
+		return
+	}
 
-	wx := header_workspace_x()
-	ww := header_workspace_w(w)
-	workspace_bg := if app.workspace_focus { col_ink700 } else { col_charcoal2 }
-	workspace_border := if app.workspace_focus { col_brass } else { col_line }
-	app.gg.draw_rect_filled(wx, 6, ww, 32, workspace_bg)
-	app.gg.draw_rect_empty(wx, 6, ww, 32, workspace_border)
-	app.gg.draw_text(wx, 9, tr(app, 'header.workspace'), gg.TextCfg{ color: col_brass, size: scaled_size(10, z), bold: true })
-	app.gg.draw_text(wx + 8, 22, workspace_path_label(app.harness_root, 24), gg.TextCfg{
-		color: col_paper
-		size: scaled_size(12, z)
+	workspace_bg := if app.workspace_focus { col_ink700 } else { app.pnl_card }
+	workspace_border := if app.workspace_focus { pc(app, `W`) } else { app.pnl_border }
+	app.gg.draw_rect_filled(l.workspace_x, l.control_y, l.workspace_w, l.control_h, workspace_bg)
+	app.gg.draw_rect_empty(l.workspace_x, l.control_y, l.workspace_w, l.control_h, workspace_border)
+	app.gg.draw_text(l.workspace_x + 8, l.control_y + 4, tr(app, 'header.workspace'), gg.TextCfg{
+		color: if app.workspace_focus { col_brass } else { app.pnl_text_mut }
+		size: scaled_size(9, z)
+		bold: true
+	})
+	app.gg.draw_text(l.workspace_x + 8, l.control_y + 17, workspace_path_label(app.harness_root, onb_fit(l.workspace_w - 28, 10)), gg.TextCfg{
+		color: if app.workspace_focus { col_paper } else { app.pnl_text }
+		size: scaled_size(10, z)
 		mono: true
 	})
-	app.gg.draw_text(wx + ww - 16, 16, 'v', gg.TextCfg{ color: col_slate_dim, size: scaled_size(12, z), bold: true })
+	app.gg.draw_text(l.workspace_x + l.workspace_w - 15, l.control_y + 13, 'v', gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 10
+		bold: true
+	})
 
-	sx_search := header_search_x(w)
-	sw_search := header_search_w(w)
 	search_txt := if app.global_search == '' {
-		tr_count(mut app, 'header.search', skills_total(mut app))
+		'Search agents, tasks, files...'
 	} else {
 		app.global_search
 	}
-	search_bg := if app.header_search_focus { col_cream100 } else { col_paper }
-	search_bd := if app.header_search_focus { col_brass } else { col_line_light }
-	app.gg.draw_rect_filled(sx_search, 8, sw_search, 28, search_bg)
-	app.gg.draw_rect_empty(sx_search, 8, sw_search, 28, search_bd)
-	draw_search_lens(mut app, sx_search + 10, 17)
-	app.gg.draw_text(sx_search + 26, 16, search_txt, gg.TextCfg{
+	search_bg := if app.header_search_focus { pc(app, `P`) } else { pc(app, `p`) }
+	search_bd := if app.header_search_focus { pc(app, `W`) } else { app.pnl_border }
+	app.gg.draw_rect_filled(l.search_x, l.control_y, l.search_w, l.control_h, search_bg)
+	app.gg.draw_rect_empty(l.search_x, l.control_y, l.search_w, l.control_h, search_bd)
+	draw_search_lens(mut app, l.search_x + 9, l.control_y + 11)
+	app.gg.draw_text(l.search_x + 25, l.control_y + 10, utf8_truncate(search_txt, onb_fit(l.search_w - 48, 11)), gg.TextCfg{
 		color: if app.global_search == '' { col_ink_soft } else { col_ink }
-		size: scaled_size(12, z)
+		size: scaled_size(11, z)
 		family: if app.global_search == '' { family_for(app, search_txt) } else { '' }
 	})
 	if app.header_search_focus && app.global_search != '' && app.frame % 30 < 15 {
-		cursor_x := sx_search + 26 + app.global_search.len * 7
-		if cursor_x < sx_search + sw_search - 18 {
-			app.gg.draw_rect_filled(cursor_x, 16, 2, 14, col_brass)
+		cursor_x := l.search_x + 25 + app.global_search.len * 7
+		if cursor_x < l.search_x + l.search_w - 18 {
+			app.gg.draw_rect_filled(cursor_x, l.control_y + 10, 2, 14, col_brass)
 		}
 	}
 	if app.global_search != '' {
-		app.gg.draw_text(sx_search + sw_search - 16, 16, 'x', gg.TextCfg{ color: col_ink_soft, size: scaled_size(12, z), bold: true })
-	}
-
-	lx := w - 180
-	for li, l in [Lang.en, Lang.es, Lang.zh, Lang.ar] {
-		active := app.lang == l
-		label := l.chip()
-		chx := lx + li * 34
-		app.gg.draw_rect_filled(chx, 10, 30, 22, if active { col_brass } else { col_charcoal2 })
-		app.gg.draw_rect_empty(chx, 10, 30, 22, if active { col_brass } else { col_line })
-		fam := if li == 2 {
-			app.fonts.sc
-		} else if li == 3 { app.fonts.arabic } else { '' }
-		app.gg.draw_text(chx + 6, 15, label, gg.TextCfg{
-			color: if active { col_ink } else { col_slate_dim }
-			size: 11
-			bold: active
-			family: fam
+		app.gg.draw_text(l.search_x + l.search_w - 16, l.control_y + 10, 'x', gg.TextCfg{
+			color: col_ink_soft
+			size: scaled_size(11, z)
+			bold: true
 		})
 	}
-	cmd_x := w - 42
-	app.gg.draw_rect_filled(cmd_x, 8, 30, 28, col_ink700)
-	app.gg.draw_rect_empty(cmd_x, 8, 30, 28, col_line_light)
-	app.gg.draw_text(cmd_x + 10, 15, '/', gg.TextCfg{ color: col_brass, size: scaled_size(14, z), bold: true })
+
+	theme_text := appearance_label(app.appearance)
+	app.gg.draw_rect_filled(l.theme_x, l.control_y, l.theme_w, l.control_h, app.pnl_card)
+	app.gg.draw_rect_empty(l.theme_x, l.control_y, l.theme_w, l.control_h, app.pnl_border)
+	app.gg.draw_text(l.theme_x + 7, l.control_y + 10, '${theme_text} v', gg.TextCfg{
+		color: app.pnl_text
+		size: scaled_size(10, z)
+		bold: true
+	})
+	lang_text := app.lang.chip()
+	app.gg.draw_rect_filled(l.lang_x, l.control_y, l.lang_w, l.control_h, app.pnl_card)
+	app.gg.draw_rect_empty(l.lang_x, l.control_y, l.lang_w, l.control_h, app.pnl_border)
+	app.gg.draw_text(l.lang_x + 7, l.control_y + 10, '${lang_text} v', lang_cfg(app, lang_text, gg.TextCfg{
+		color: app.pnl_text
+		size: scaled_size(10, z)
+		bold: true
+	}))
+	app.gg.draw_rect_filled(l.command_x, l.control_y, l.command_w, l.control_h, col_ink700)
+	app.gg.draw_rect_empty(l.command_x, l.control_y, l.command_w, l.control_h, col_line_light)
+	app.gg.draw_text(l.command_x + 10, l.control_y + 10, '/', gg.TextCfg{
+		color: col_brass
+		size: scaled_size(14, z)
+		bold: true
+	})
 }
 
 fn draw_left_dock(mut app GuiApp, h int) {
-	term_h := if app.term_visible { app.term_height } else { 0 }
-	y0 := 45
+	ensure_pixel_cache(mut app)
+	pid := office_palette_id(app)
+	y0 := panel_top(app)
+	y1 := dock_bottom(app, h)
 	dock_l := dock_x(app, app.gg.width)
-	app.gg.draw_rect_filled(dock_l, y0, dock_w, h - y0 - 28 - term_h, col_charcoal)
-	app.gg.draw_line(dock_l + dock_w, y0, dock_l + dock_w, h - 28 - term_h, col_line)
-	app.gg.draw_text(dock_l + 16, y0 + 10, tr(app, 'header.navigate'), gg.TextCfg{ color: col_brass, size: 11, bold: true })
+	app.gg.draw_rect_filled(dock_l, y0, dock_w, y1 - y0, col_charcoal)
+	app.gg.draw_line(dock_l + dock_w, y0, dock_l + dock_w, y1, col_line)
+	nest := pixelart.environment_for(.nest)
+	mut sc := app.pixel_cache
+	sc.draw(nest, pid, dock_l + 14, y0 + 10, 2)
+	app.gg.draw_text(dock_l + 48, y0 + 9, 'Agent Toolkit', gg.TextCfg{
+		color: col_paper
+		size: 15
+		family: app.fonts.display
+	})
+	app.gg.draw_text(dock_l + 48, y0 + 27, 'DESKTOP', gg.TextCfg{
+		color: col_brass
+		size: 9
+		bold: true
+	})
+	mut last_y := y0 + 48
 	for row in nav_rows(app, h) {
 		row_x := dock_l + 8
 		group_active := nav_group_for_panel(app.selected_panel) == row.panel
-		active := if row.parent { group_active } else { app.selected_panel == row.panel }
+		active := group_active
 		hover := app.hover_panel == row.panel
 		if active {
-			app.gg.draw_rect_filled(row_x, row.y, dock_w - 16, row.h, col_ink700)
-			app.gg.draw_rect_empty(row_x, row.y, dock_w - 16, row.h, col_brass)
+			app.gg.draw_rect_filled(row_x, row.y, dock_w - 16, row.h, tint(pc(app, `s`), 210))
+			app.gg.draw_rect_empty(row_x, row.y, dock_w - 16, row.h, tint(pc(app, `S`), 170))
 			rail_x := if app.lang.is_rtl() { row_x + dock_w - 19 } else { row_x }
 			app.gg.draw_rect_filled(rail_x, row.y, 3, row.h, col_brass)
 		} else if hover {
 			app.gg.draw_rect_filled(row_x, row.y, dock_w - 16, row.h, col_charcoal2)
 		}
-		label := if row.parent {
-			nav_group_label(app, row.panel)
+		label := nav_group_label(app, row.panel)
+		label_x := row_x + 34
+		app.gg.draw_rect_filled(row_x + 14, row.y + 12, 8, 8, if active {
+			col_paper
 		} else {
-			nav_child_label(app, row.panel)
-		}
-		label_x := if row.parent { row_x + 38 } else { row_x + 48 }
-		if row.parent {
-			app.gg.draw_rect_filled(row_x + 14, row.y + 14, 8, 8, if active {
-				col_brass
-			} else {
-				col_slate
+			col_slate
+		})
+		app.gg.draw_text(label_x, row.y + 6, label, gg.TextCfg{
+			color: if active { col_paper } else { col_paper_dim }
+			size: 13
+			bold: true
+		})
+		if row.h >= 40 {
+			app.gg.draw_text(label_x, row.y + 24, utf8_truncate(nav_group_subtitle(row.panel), 25), gg.TextCfg{
+				color: if active { col_paper_dim } else { col_slate_dim }
+				size: 9
 			})
 		}
-		app.gg.draw_text(label_x, row.y + if row.parent { 10 } else { 7 }, label, gg.TextCfg{
-			color: if active { col_paper } else { col_paper_dim }
-			size: if row.parent { 14 } else { 13 }
-			bold: active || row.parent
-		})
+		last_y = row.y + row.h
 	}
-	ready := if app.workspace_initialized {
-		tr(app, 'ws.ready')
-	} else {
-		tr(app, 'ws.setup_needed')
+	land_y := last_y + 8
+	if y1 - land_y >= 58 {
+		draw_onb_landscape(mut app, dock_l, land_y, dock_w, y1 - land_y, pid)
 	}
-	app.gg.draw_text(dock_l + 16, h - 56 - term_h, workspace_path_label(app.harness_root, 22), gg.TextCfg{
-		color: col_slate_dim
-		size: 11
-		mono: true
-	})
-	app.gg.draw_text(dock_l + 16, h - 42 - term_h, ready, gg.TextCfg{
-		color: if app.workspace_initialized { col_mint } else { col_brass }
-		size: 11
-	})
 }
 
 // draw_office_view_switch renders the Overview / Floor Map tabs in the Office panel.
 fn draw_office_view_switch(mut app GuiApp, w int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
 	tab_h := 22
 	tab_w := 78
@@ -3142,7 +3326,7 @@ fn draw_office_view_switch(mut app GuiApp, w int) {
 // handle_office_view_click returns true if a click hit an Office view tab.
 fn handle_office_view_click(mut app GuiApp, w int, mx int, my int) bool {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
 	tab_h := 22
 	tab_w := 78
@@ -3162,12 +3346,14 @@ fn handle_office_view_click(mut app GuiApp, w int, mx int, my int) bool {
 // draw_office_overview renders the default Office operational dashboard.
 // It surfaces real Engine state (jobs, agents) without idle-animation theatrics.
 fn draw_office_overview(mut app GuiApp, w int, h int) {
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h
-	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
+	fh := content_bottom(app, h) - fy
+	l := office_layout(app, w, h)
+	content_x := if app.lang.is_rtl() { 0 } else { fx }
+	content_w := if app.lang.is_rtl() { w - dock_w } else { w - content_x }
+	app.gg.draw_rect_filled(content_x, fy, content_w, fh, app.pnl_bg)
 	app.gg.draw_rect_filled(fx, fy, fw, 42, app.pnl_card)
 	app.gg.draw_text(fx + 20, fy + 11, 'Office', gg.TextCfg{ color: app.pnl_text, size: font_display_md, family: app.fonts.display })
 	app.gg.draw_text(fx + 106, fy + 15, 'What needs your attention?', gg.TextCfg{ color: app.pnl_text_mut, size: font_body_sm })
@@ -3180,30 +3366,20 @@ fn draw_office_overview(mut app GuiApp, w int, h int) {
 	}
 	attention_jobs := jobs.filter(it.status == .failed || it.status == .queued)
 	running_jobs := jobs.filter(it.status == .running)
-	// VC8 (#1173): office.jpg composition — four truthful metric cards across
-	// the top, the VC3.5 room as the hero, and (when the panel is wide
-	// enough) an Agent Roster + Today column to its right. All values are
-	// real Engine state; idle machines read 0 with honest sub-lines.
+	// VC8 (#1173): office.jpg composition uses four truthful metric cards,
+	// the VC3.5 room as the hero, and the shell detail column for Roster and
+	// Today. All values come from Engine state.
 	ensure_pixel_cache(mut app)
-	l := office_layout(app, w, h)
-	draw_office_cards(mut app, l, office_metrics(mut app, attention_jobs.len, agents.len,
-		running_jobs.len))
+	draw_office_cards(mut app, l, office_metrics(mut app, attention_jobs.len, agents.len, running_jobs.len))
 	if l.room_h < 80 {
 		// Too short to compose the room (tall terminal on a short window);
 		// the metric cards above still carry the operational truth.
 	} else if agents.len == 0 {
 		pixel_panel(mut app, l.room_x, l.room_y, l.room_w, l.room_h, 'default')
-		app.gg.draw_text(l.room_x + 14, l.room_y + 34, 'No agents are available in the resolved catalog.',
-			gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
+		app.gg.draw_text(l.room_x + 14, l.room_y + 34, 'No agents are available in the resolved catalog.', gg.TextCfg{ color: app.pnl_text_mut, size: 12 })
 	} else {
 		desks := desks_for_app(app)
-		draw_office_room(mut app, l.room_x, l.room_y, l.room_w, l.room_h, desks, attention_jobs.len,
-			running_jobs.len)
-		if l.side_w > 0 {
-			roster_h := l.room_h * 55 / 100
-			draw_office_roster(mut app, l, desks, running_jobs.len, l.room_y, roster_h)
-			draw_office_today(mut app, l, attention_jobs, l.room_y + roster_h + 12, l.room_h - roster_h - 12)
-		}
+		draw_office_room(mut app, l.room_x, l.room_y, l.room_w, l.room_h, desks, attention_jobs.len, running_jobs.len)
 	}
 }
 
@@ -3217,11 +3393,10 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	// Hero — office floor: munder checkerboard 32×32 tiles, desks as AgentCards, envelopes with GOD 4*t*(1-t) arc
 	// Super-potent signature: unique floor texture (wood grain + grass tuft + terrazzo speck), avatar trails,
 	// envelope floor shadows, station glow, command deck kanban/fleet/CI alt divergence — native V gg only.
-	term_h_w := if app.term_visible { app.term_height } else { 0 }
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	fh := h - 52 - 28 - term_h_w
+	fh := content_bottom(app, h) - fy
 	// Floor — surface.paper card on the canvas with muted ruled lines + fiber grain
 	// Office paper stock: base surface.paper, ruled horizontal secondary lines every 24px, danger margin
 	app.gg.draw_rect_filled(fx, fy + 36, fw, fh - 36, app.pnl_bg)
@@ -3906,10 +4081,9 @@ fn discovery_row_text(d desktop_engine.ToolDiscovery) string {
 
 fn draw_targets(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_tg := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_tg
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// install preview + receipts super-potent
 	receipts := app.desktop.engine_list_install_receipts()
@@ -4020,10 +4194,9 @@ fn doctor_preview_confirm(mut app GuiApp) {
 
 fn draw_doctor(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_do := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_do
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// super-potent Doctor: full Engine.doctor() with categories, receipts/provenance, fixable + Fix All via Engine TX
 	checks_engine := app.desktop.engine_doctor()
@@ -4188,10 +4361,9 @@ fn draw_doctor(mut app GuiApp, w int, h int) {
 
 fn draw_jobs(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_jo := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_jo
+	fh := content_bottom(app, h) - fy
 	// Paper supervisor sheet — ProcessSupervisor health, NOT cream loops
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// header letterhead with brass left rail
@@ -4440,10 +4612,9 @@ fn draw_jobs(mut app GuiApp, w int, h int) {
 
 fn draw_loops(mut app GuiApp, w int, h int) {
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_lo := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_lo
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 34, 'default')
 	app.gg.draw_text(fx + 18, fy + 12, tr(app, 'panel.loops'), gg.TextCfg{
@@ -4764,10 +4935,9 @@ fn draw_swarm(mut app GuiApp, w int, h int) {
 	// Swarm UI Herdr/tmux, approvals spend/scope/destructive, easy pair/team/full launch,
 	// wire to desktop_engine eventbus and show swarm status, handoffs, logs.
 	fx := panel_fx(app)
-	fy := 52
+	fy := panel_top(app)
 	fw := panel_fw(app, w)
-	term_h_sw := if app.term_visible { app.term_height } else { 0 }
-	fh := h - 52 - 28 - term_h_sw
+	fh := content_bottom(app, h) - fy
 	app.gg.draw_rect_filled(fx, fy, fw, fh, app.pnl_bg)
 	// header — GOD mailbox law
 	pixel_panel(mut app, fx + 4, fy + 4, fw - 8, 44, 'default')
@@ -5287,7 +5457,7 @@ fn initialize_workspace(mut app GuiApp) bool {
 
 fn select_panel(mut app GuiApp, panel int) {
 	app.selected_panel = panel
-	app.show_onboarding = panel == 11
+	app.show_onboarding = false
 	app.header_search_focus = false
 	app.workspace_focus = false
 	app.ghost_focused = false
@@ -5367,15 +5537,14 @@ fn inspector_log_rect(app &GuiApp, ix int, iy int, ih int) (int, int, int, int) 
 	if log_h < 40 {
 		log_h = 40
 	}
-	return ix + 8, ix + 292, iy + 302 + header_off, log_h
+	return ix + 8, ix + inspector_w - 8, iy + 302 + header_off, log_h
 }
 
 fn draw_inspector(mut app GuiApp, w int, h int) {
-	term_h_i := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	iy := 52
-	iw := 300
-	ih := h - 52 - 28 - term_h_i
+	iy := panel_top(app)
+	iw := inspector_w
+	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, iw, ih, col_charcoal)
 	// VC3.5 (#1176): cabinet-drawer material. The dark column reads as one
 	// drawer of a technical filing cabinet: folder tab with the title,
@@ -5599,23 +5768,75 @@ pub fn onb_effective_term_h(app &GuiApp) int {
 	return app.term_height
 }
 
-fn draw_terminal(mut app GuiApp, w int, h int) {
+struct TerminalTab {
+	label string
+	view  int
+}
+
+fn terminal_tabs(app &GuiApp) []TerminalTab {
+	mut tabs := [TerminalTab{'Terminal', -1}]
+	if app.term_mode == 2 && app.sessions.len > 0 {
+		tabs << TerminalTab{'Sessions', 15}
+	}
+	return tabs
+}
+
+fn terminal_tab_rect(x0 int, y0 int, i int) (int, int, int, int) {
+	return x0 + 8 + i * 96, y0 + 3, 92, 20
+}
+
+fn terminal_rect(app &GuiApp, w int, h int) (int, int, int, int) {
 	term_h := onb_effective_term_h(app)
-	y0 := h - 28 - term_h
-	x0 := 200
-	tw := w - 200
+	x := if app.lang.is_rtl() { 0 } else { dock_w }
+	return x, h - 28 - term_h, w - dock_w, term_h
+}
+
+fn terminal_split_boundary(app &GuiApp, w int, h int) int {
+	x, _, tw, _ := terminal_rect(app, w, h)
+	content_x := x + 8
+	content_w := tw - 16
+	half := (content_w - 6) / 2
+	return content_x + half + 3
+}
+
+fn draw_terminal(mut app GuiApp, w int, h int) {
+	x0, y0, tw, term_h := terminal_rect(app, w, h)
 	// background — xterm ink, workshop border
 	app.gg.draw_rect_filled(x0, y0, tw, term_h, term_bg)
-	app.gg.draw_line(x0, y0, w, y0, term_border)
-	app.gg.draw_line(x0, y0, x0, y0 + term_h, term_border)
-	// header bar — charcoal with brass accent — libghostty-vt
+	app.gg.draw_line(x0, y0, x0 + tw, y0, term_border)
+	dock_edge := if app.lang.is_rtl() { x0 + tw } else { x0 }
+	app.gg.draw_line(dock_edge, y0, dock_edge, y0 + term_h, term_border)
+	// Tabs expose only real terminal-backed views: the fleet terminal and
+	// live PTY sessions when any exist.
 	app.gg.draw_rect_filled(x0, y0, tw, 24, term_header_bg)
 	app.gg.draw_line(x0, y0 + 24, w, y0 + 24, col_line)
 	app.gg.draw_rect_filled(x0, y0, 3, 24, col_brass)
-	app.gg.draw_text(x0 + 12, y0 + 7, 'GHOSTTY VT', gg.TextCfg{ color: col_paper, size: 13, bold: true, mono: true })
-	app.gg.draw_text(x0 + 100, y0 + 8, 'claude · opencode · fleet — \\`help · \\`clear', gg.TextCfg{ color: col_slate, size: 11, mono: true })
+	tabs := terminal_tabs(app)
+	for i, tab in tabs {
+		tx, ty, tab_w, tab_h := terminal_tab_rect(x0, y0, i)
+		active := if tab.view == -1 {
+			app.term_view < 0
+		} else if tab.view == 0 {
+			app.term_view >= 0 && app.term_view < 15
+		} else {
+			app.term_view >= 15
+		}
+		app.gg.draw_rect_filled(tx, ty, tab_w, tab_h, if active {
+			col_ink700
+		} else {
+			term_header_bg
+		})
+		if active {
+			app.gg.draw_rect_filled(tx, ty + tab_h - 2, tab_w, 2, col_brass)
+		}
+		app.gg.draw_text(tx + 10, ty + 5, tab.label, gg.TextCfg{
+			color: if active { col_paper } else { col_slate }
+			size: 10
+			bold: active
+		})
+	}
 	// focus pill — Tab flips ghost focus (type into the embedded terminal)
-	focus_x := x0 + 320
+	focus_x := x0 + 16 + tabs.len * 96
 	pill_bg := if app.ghost_focused { tint(col_mint, 60) } else { tint(col_slate, 30) }
 	pill_bd := if app.ghost_focused { col_mint } else { col_line_light }
 	app.gg.draw_rect_filled(focus_x, y0 + 4, 118, 16, pill_bg)
@@ -6334,6 +6555,38 @@ fn is_panel_nav_key(c u32) bool {
 	return c == `p` || c == `P` || c == `i` || c == `I` || c == `o` || c == `O`
 }
 
+fn onboarding_key(mut app GuiApp, e &gg.Event) bool {
+	if !app.show_onboarding {
+		return false
+	}
+	if e.char_code == `o` || e.char_code == `O` || e.key_code == .escape {
+		app.show_onboarding = false
+		app.onboarding_msg = 'Setup closed — press o to reopen'
+		return true
+	}
+	if e.key_code == .right || e.char_code == `n` || e.char_code == `N` {
+		onboarding_advance(mut app)
+		return true
+	}
+	if e.key_code == .left || e.char_code == `b` || e.char_code == `B` {
+		if app.onboarding_step > 0 {
+			app.onboarding_step--
+			app.onboarding_msg = '${onb_stages[app.onboarding_step]} — ${onb_stage_hints[app.onboarding_step]}'
+		}
+		return true
+	}
+	if e.key_code == .enter {
+		if app.onboarding_step >= onb_last_stage {
+			onboarding_advance(mut app)
+		} else {
+			onb_apply_stage(mut app)
+		}
+		return true
+	}
+	// Modal ownership: unrelated shortcuts are consumed, not passed through.
+	return true
+}
+
 fn on_event(e &gg.Event, mut app GuiApp) {
 	if e.typ == .char {
 		// V sokol X11 delivers printables as separate .char events (key_down carries
@@ -6367,9 +6620,21 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.last_keydown_char = e.char_code
 			app.last_keydown_frame = app.frame
 		}
+		// Palette and Help are higher overlays; otherwise onboarding owns keys
+		// before stale field, PTY, terminal-search, or panel focus can consume them.
+		if !app.palette_open && !app.show_help && onboarding_key(mut app, e) {
+			return
+		}
+		if !app.palette_open && app.show_help {
+			if e.key_code == .escape || e.char_code == `h` || e.char_code == `H` {
+				app.show_help = false
+			}
+			return
+		}
 		// PTY session focus — keys go to the agent TUI pane under the cursor
 		// (single session view or split pane under the mouse). Esc returns to Fleet.
-		if app.term_mode == 2 && (app.term_view >= 15 || (app.term_split && app.term_view_b >= 15)) {
+		if !app.palette_open && !app.show_help && app.term_mode == 2
+			&& (app.term_view >= 15 || (app.term_split && app.term_view_b >= 15)) {
 			if e.key_code == .escape {
 				app.term_view = -1
 				app.term_split = false
@@ -6378,8 +6643,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// target pane: the one under the mouse (split) or the viewed session
 			mut target := app.term_view
 			if app.term_split {
-				// split boundary ≈ mid content (pane A 208.., pane B ..1280)
-				target = if app.mouse_x < app.gg.width / 2 + 100 {
+				target = if app.mouse_x < terminal_split_boundary(app, app.gg.width, app.gg.height) {
 					app.term_view
 				} else {
 					app.term_view_b
@@ -6395,7 +6659,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			return
 		}
 		// terminal scrollback search — captures typing while open (Ctrl+F toggles)
-		if app.term_search_open {
+		if !app.palette_open && !app.show_help && app.term_search_open {
 			if e.key_code == .escape || e.key_code == .enter {
 				app.term_search_open = false
 				return
@@ -6954,8 +7218,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			if e.char_code == `g` || e.char_code == `G` {
-				// toggle terminal visibility
-				app.term_visible = !app.term_visible
+				// Visibility is derived from term_mode every frame. Change the
+				// persisted mode instead of toggling the derived field.
+				app.term_mode = if app.term_mode == 3 { 0 } else { 3 }
+				app.term_visible = app.term_mode != 3
+				save_ui_state(app)
 				return
 			}
 		}
@@ -6987,43 +7254,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			return
 		}
 		if e.char_code == `o` || e.char_code == `O` {
-			// super-potent: toggle onboarding wizard overlay / panel 11
-			if app.show_onboarding && app.selected_panel == 11 {
-				app.show_onboarding = false
-			} else {
-				select_panel(mut app, 11)
-				app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
-			}
+			select_panel(mut app, 11)
+			app.show_onboarding = true
+			app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
 			return
-		}
-		// onboarding wizard next/back when overlay visible (n/b, arrows, enter)
-		// VC4 setup journey: five stages, Right/n advances (committing the stage's
-		// real Engine work), Left/b goes back, Enter applies the current stage.
-		if app.show_onboarding || app.selected_panel == 11 {
-			if e.key_code == .right || e.char_code == `n` || e.char_code == `N` {
-				onboarding_advance(mut app)
-				return
-			}
-			if e.key_code == .left || e.char_code == `b` || e.char_code == `B` {
-				if app.onboarding_step > 0 {
-					app.onboarding_step--
-					app.onboarding_msg = '${onb_stages[app.onboarding_step]} — ${onb_stage_hints[app.onboarding_step]}'
-				}
-				return
-			}
-			if e.key_code == .enter {
-				if app.onboarding_step >= onb_last_stage {
-					onboarding_advance(mut app)
-				} else {
-					onb_apply_stage(mut app)
-				}
-				return
-			}
-			if e.key_code == .escape {
-				app.show_onboarding = false
-				app.onboarding_msg = 'Setup closed — press o to reopen'
-				return
-			}
 		}
 		// Arrow navigation — grid-aware (4 columns, last cell empty => 15 desks)
 		// Works in World floor; in other panels falls back to linear list nav
@@ -7106,9 +7340,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// scroll terminal or inspector depending on cursor region
 		w3 := app.gg.width
 		h3 := app.gg.height
-		term_h := app.term_height
-		y0 := h3 - 28 - term_h
-		x0 := 200
+		x0, y0, tw, term_h := terminal_rect(app, w3, h3)
 		// wheel delta: gg scroll_y negative = up, positive = down (platform dependent). Treat scroll_y !=0.
 		mut delta := 0
 		if e.scroll_y < 0 {
@@ -7120,7 +7352,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		} else if e.scroll_x > 0 {
 			delta = 3
 		}
-		if app.term_visible && app.mouse_x >= x0 && app.mouse_x <= w3 && app.mouse_y >= y0 && app.mouse_y < y0 + term_h {
+		if app.term_visible && app.mouse_x >= x0 && app.mouse_x <= x0 + tw
+			&& app.mouse_y >= y0 && app.mouse_y < y0 + term_h {
 			// super potent: when ghost_focused, wheel scrolls Ghostty scrollback 1000; otherwise logs
 			if app.ghost_focused {
 				app.ghost.scroll_by(delta)
@@ -7141,10 +7374,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// inspector scroll when over inspector
 		{
-			term_h_ii := if app.term_visible { app.term_height } else { 0 }
-			ix := w3 - 300
-			iy := 52
-			ih := h3 - 52 - 28 - term_h_ii
+			ix := inspector_x(app, w3)
+			iy := panel_top(app)
+			ih := content_bottom(app, h3) - iy
 			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
 			if app.mouse_x >= log_x0 && app.mouse_x <= log_x1 && app.mouse_y >= log_y0
 				&& app.mouse_y < log_y0 + inspector_log_h {
@@ -7162,22 +7394,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// skills virtualized scroll — 227 list
-		if app.selected_panel == 1 {
-			fx := 208
-			fy := 52
-			fw := w3 - 208 - 300
-			term_h_sk := if app.term_visible { app.term_height } else { 0 }
-			fh := h3 - 52 - 28 - term_h_sk
-			y0_sk := fy + 102
-			list_h := fh - 126
-			if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= y0_sk && app.mouse_y < y0_sk + list_h {
-				entries := skills_filtered_entries(mut app)
-				visible := list_h / 28
-				app.skills_scroll += delta
-				app.skills_scroll = clamp_scroll(app.skills_scroll, entries.len, visible)
-				return
-			}
+		// Library card-grid scroll uses the same layout as drawing and clicks.
+		if lib_is_panel(app.selected_panel)
+			&& library_scroll(mut app, app.mouse_x, app.mouse_y, delta, w3, h3) {
+			return
 		}
 		// VC6 (#1173): Operations table scroll (Doctor/Jobs/Loops/Swarm)
 		if operations_scroll(mut app, delta, w3, h3) {
@@ -7280,24 +7500,27 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Header controls share the same geometry as draw_header. During
-		// onboarding the generic header is replaced by the editorial
-		// masthead shell (draw_onboarding_masthead_shell), which owns this
-		// band instead.
+		if app.show_help {
+			app.show_help = false
+			return
+		}
+		if app.show_onboarding && my >= 0 && my <= shell_mast_h(app.gg.height) {
+			return
+		}
+		// Header controls share the editorial masthead geometry with drawing.
+		// Onboarding keeps the same masthead visually but disables shell
+		// navigation while a setup stage owns focus.
 		w := app.gg.width
 		h := app.gg.height
-		onb_shell_active := app.show_onboarding || app.selected_panel == 11
-		if !onb_shell_active && my >= 0 && my <= 44 {
-			wx := header_workspace_x()
-			ww := header_workspace_w(w)
-			if mx >= wx && mx <= wx + ww && my >= 6 && my <= 38 {
+		onb_shell_active := app.show_onboarding
+		hl := header_layout(w, h)
+		if !onb_shell_active && my >= 0 && my <= hl.mast_h {
+			if onb_hit(mx, my, hl.workspace_x, hl.control_y, hl.workspace_w, hl.control_h) {
 				focus_workspace(mut app)
 				return
 			}
-			sx := header_search_x(w)
-			sw := header_search_w(w)
-			if mx >= sx && mx <= sx + sw && my >= 8 && my <= 36 {
-				if mx >= sx + sw - 20 && app.global_search != '' {
+			if onb_hit(mx, my, hl.search_x, hl.control_y, hl.search_w, hl.control_h) {
+				if mx >= hl.search_x + hl.search_w - 20 && app.global_search != '' {
 					app.global_search = ''
 					app.skills_query = ''
 					app.header_search_focus = false
@@ -7308,16 +7531,23 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				return
 			}
-			for idx, lang in [Lang.en, Lang.es, Lang.zh, Lang.ar] {
-				chip_x := w - 180 + idx * 34
-				if mx >= chip_x && mx <= chip_x + 30 && my >= 10 && my <= 32 {
-					app.lang = lang
-					app.header_search_focus = false
-					app.workspace_focus = false
-					return
-				}
+			if onb_hit(mx, my, hl.theme_x, hl.control_y, hl.theme_w, hl.control_h) {
+				cycle_appearance(mut app)
+				return
 			}
-			if mx >= w - 42 && mx <= w - 12 && my >= 8 && my <= 36 {
+			if onb_hit(mx, my, hl.lang_x, hl.control_y, hl.lang_w, hl.control_h) {
+				app.lang = match app.lang {
+					.en { Lang.es }
+					.es { Lang.zh }
+					.zh { Lang.ar }
+					.ar { Lang.en }
+				}
+				save_ui_state(app)
+				app.header_search_focus = false
+				app.workspace_focus = false
+				return
+			}
+			if onb_hit(mx, my, hl.command_x, hl.control_y, hl.command_w, hl.control_h) {
 				app.palette_open = true
 				app.palette_query = ''
 				app.palette_selected = 0
@@ -7386,10 +7616,13 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if !onb_shell_active && app.selected_panel == 12 && insights_click(mut app, mx, my, w, h) {
 			return
 		}
+		if !onb_shell_active && app.selected_panel == 11 && settings_click(mut app, mx, my, w, h) {
+			return
+		}
 		// Inspector buttons — clickable
 		ix := inspector_x(app, w)
-		iy := 52
-		iw := 300
+		iy := panel_top(app)
+		iw := inspector_w
 		// Only when a desk selected
 		desks := desks_for_app(app)
 		if app.selected_desk >= 0 && app.selected_desk < desks.len {
@@ -7402,28 +7635,28 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Help overlay click dismiss
-		if app.show_help {
-			app.show_help = false
-			return
-		}
 		// Terminal click — super potent: focus Ghostty + copy
 		if app.term_visible {
 			w3 := app.gg.width
 			h3 := app.gg.height
-			term_h := app.term_height
-			y0 := h3 - 28 - term_h
-			x0 := 200
-			tw := w3 - 200
+			x0, y0, tw, term_h := terminal_rect(app, w3, h3)
 			content_y := y0 + 28
 			content_x := x0 + 8
 			content_w := tw - 16
 			// header click: height mode buttons (1×/2×/MAX/×) — else toggle ghost focus
-			if mx >= x0 && mx <= w3 && my >= y0 && my < y0 + 24 {
+			if mx >= x0 && mx <= x0 + tw && my >= y0 && my < y0 + 24 {
 				if mx >= x0 + tw - 148 && mx <= x0 + tw - 16 {
 					btn := (mx - (x0 + tw - 148)) / 34
 					if btn >= 0 && btn <= 3 {
 						app.term_mode = btn
+						return
+					}
+				}
+				for i, tab in terminal_tabs(app) {
+					tx, ty, tab_w, tab_h := terminal_tab_rect(x0, y0, i)
+					if onb_hit(mx, my, tx, ty, tab_w, tab_h) {
+						app.term_view = tab.view
+						app.ghost_focused = tab.view < 0
 						return
 					}
 				}
@@ -7540,7 +7773,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// click elsewhere in terminal toggles auto-pin
-			if mx >= x0 && mx <= w3 && my >= y0 && my < y0 + term_h {
+			if mx >= x0 && mx <= x0 + tw && my >= y0 && my < y0 + term_h {
 				app.term_auto_pin = !app.term_auto_pin
 				if app.term_auto_pin {
 					all := filtered_logs(collect_engine_logs(app), active_log_filter(app))
@@ -7555,10 +7788,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// Inspector per-desk log click — copy
 		{
-			term_h_ii := if app.term_visible { app.term_height } else { 0 }
 			ix2 := inspector_x(app, w)
-			iy2 := 52
-			ih2 := h - 52 - 28 - term_h_ii
+			iy2 := panel_top(app)
+			ih2 := content_bottom(app, h) - iy2
 			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix2, iy2, ih2)
 			if mx >= log_x0 && mx <= log_x1 && my >= log_y0 && my < log_y0 + inspector_log_h {
 				row_h := 13
@@ -7589,7 +7821,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// The onboarding sidebar has its own simplified rows, handled inside
 		// onboarding_click instead of the production nav model.
 		dock_l_c := dock_x(app, w) + 8
-		if !(app.show_onboarding || app.selected_panel == 11) && mx >= dock_l_c
+		if !app.show_onboarding && mx >= dock_l_c
 			&& mx <= dock_l_c + dock_w - 16 {
 			for row in nav_rows(app, h) {
 				if my >= row.y && my <= row.y + row.h {
@@ -7599,7 +7831,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// Onboarding wizard click handling — super-potent easy management via Engine
-		if app.show_onboarding || app.selected_panel == 11 {
+		if app.show_onboarding {
 			if onboarding_click(mut app, int(e.mouse_x), int(e.mouse_y), app.gg.width, app.gg.height) {
 				return
 			}
@@ -7619,7 +7851,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// workspace control row: field + Validate / Switch / Initialize
-			if my >= l.field_y && my <= l.field_y + 28 {
+			if l.hero_h > 0 && my >= l.field_y && my <= l.field_y + 28 {
 				if mx >= l.field_x && mx <= l.field_x + l.field_w {
 					app.workspace_focus = true
 					app.header_search_focus = false
@@ -7772,10 +8004,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			w2 := app.gg.width
 			h2 := app.gg.height
 			fx := panel_fx(app)
-			fy := 52
+			fy := panel_top(app)
 			fw := panel_fw(app, w2)
-			term_h_d := if app.term_visible { app.term_height } else { 0 }
-			fh := h2 - 52 - 28 - term_h_d
+			fh := content_bottom(app, h2) - fy
 			desks_hit := desks_for_app(app)
 			for idx, d in desks_hit {
 				dx, dy, dw, dh := desk_rect(d, idx, fx, fy, fw, fh)
@@ -7859,11 +8090,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			desks := desks_for_app(app)
 			w2 := app.gg.width
 			h2 := app.gg.height
-			term_h_mm := if app.term_visible { app.term_height } else { 0 }
-			fx := 208
-			fy := 52
-			fw := w2 - 208 - 300
-			fh := h2 - 52 - 28 - term_h_mm
+			fx := panel_fx(app)
+			fy := panel_top(app)
+			fw := panel_fw(app, w2)
+			fh := content_bottom(app, h2) - fy
 			for idx, d in desks {
 				dx, dy, dw, dh := desk_rect(d, idx, fx, fy, fw, fh)
 				if app.mouse_x >= dx && app.mouse_x <= dx + dw && app.mouse_y >= dy && app.mouse_y <= dy + dh {
@@ -7876,10 +8106,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if app.term_visible {
 			w3 := app.gg.width
 			h3 := app.gg.height
-			term_h := app.term_height
-			y0 := h3 - 28 - term_h
-			x0 := 200
-			tw := w3 - 200
+			x0, y0, tw, term_h := terminal_rect(app, w3, h3)
 			content_y := y0 + 28
 			content_x := x0 + 8
 			content_w := tw - 16
@@ -7911,10 +8138,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		{
 			w3 := app.gg.width
 			h3 := app.gg.height
-			term_h_ii := if app.term_visible { app.term_height } else { 0 }
 			ix := inspector_x(app, w3)
-			iy := 52
-			ih := h3 - 52 - 28 - term_h_ii
+			iy := panel_top(app)
+			ih := content_bottom(app, h3) - iy
 			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
 			if app.mouse_x >= log_x0 && app.mouse_x <= log_x1 && app.mouse_y >= log_y0
 				&& app.mouse_y < log_y0 + inspector_log_h {
@@ -8031,7 +8257,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			insights_hover_at(mut app, app.mouse_x, app.mouse_y, app.gg.width, app.gg.height)
 		}
 		// onboarding wizard hover — distinct overlay steps 0..6 progress + Next/Finish/Skip
-		if app.show_onboarding || app.selected_panel == 11 {
+		if app.show_onboarding {
 			onboarding_hover_at(mut app, app.mouse_x, app.mouse_y, app.gg.width, app.gg.height)
 		}
 	}

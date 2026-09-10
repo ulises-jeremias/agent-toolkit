@@ -51,22 +51,28 @@ struct InsightsLayout {
 
 fn insights_layout(app &GuiApp, w int, h int) InsightsLayout {
 	fx := panel_fx(app)
-	fy := 52
+	fy := shell_mast_h(h)
 	fw := panel_fw(app, w)
-	term_h := if app.term_visible { app.term_height } else { 0 }
-	fh := h - fy - 28 - term_h
+	fh := content_bottom(app, h) - fy
 	compact := fh < 480 || fw < 640
 	head_h := if compact { 44 } else { 60 }
-	metric_h := if compact { 0 } else { 78 }
+	// At compact widths keep the 2×2 summary only when the remaining height
+	// still leaves a useful ledger sheet. Tall/MAX terminal modes win first.
+	metric_h := if compact {
+		if fh >= 320 { 100 } else { 0 }
+	} else {
+		78
+	}
 	metric_y := fy + head_h + 4
 	tab_y := metric_y + metric_h + if metric_h > 0 { 10 } else { 0 }
-	tab_h := 28
+	tab_h := if fh >= 120 { 28 } else { 0 }
 	mut tab_w := (fw - 24 - 6 * 6) / insights_tabs.len
 	if tab_w > 100 {
 		tab_w = 100
 	}
 	content_y := tab_y + tab_h
-	content_h := fy + fh - content_y - 8
+	content_h_raw := fy + fh - content_y - 8
+	content_h := if content_h_raw > 0 { content_h_raw } else { 0 }
 	inner_x := fx + 24
 	inner_y := content_y + 14
 	return InsightsLayout{
@@ -364,6 +370,9 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	if l.metric_h > 0 {
 		draw_ins_metrics(mut app, l)
 	}
+	if l.tab_h == 0 || l.content_h < 40 {
+		return
+	}
 	draw_ins_tabs(mut app, l)
 	paper_sheet(mut app, l.fx + 12, l.content_y, l.fw - 24, l.content_h)
 	if app.insights_tab == 'gallery' {
@@ -419,32 +428,40 @@ fn draw_ins_metrics(mut app GuiApp, l InsightsLayout) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	gap := 8
-	cw := (l.fw - 24 - 3 * gap) / 4
+	cols := if l.compact { 2 } else { 4 }
+	rows := if l.compact { 2 } else { 1 }
+	cw := (l.fw - 24 - (cols - 1) * gap) / cols
+	ch := (l.metric_h - (rows - 1) * gap) / rows
 	for i, c in cards {
-		x := l.fx + 12 + i * (cw + gap)
-		y := l.metric_y
-		paper_sheet(mut app, x, y, cw, l.metric_h)
+		col := i % cols
+		row := i / cols
+		x := l.fx + 12 + col * (cw + gap)
+		y := l.metric_y + row * (ch + gap)
+		paper_sheet(mut app, x, y, cw, ch)
 		m := marks[i]
-		ms := if cw >= 230 { 3 } else { 2 }
-		sc.draw(m, pid, x + 12, y + (l.metric_h - m.height() * ms) / 2, ms)
+		ms := if !l.compact && cw >= 230 { 3 } else { 2 }
+		sc.draw(m, pid, x + 10, y + (ch - m.height() * ms) / 2, ms)
 		tx := x + 10 + m.width() * ms + 10
 		// operations.jpg stack: number / label / fact — the label is never
 		// truncated; facts are authored short enough for the narrowest card
 		app.gg.draw_text(tx, y + 6, c[0], gg.TextCfg{
 			color: app.pnl_text
-			size: 22
+			size: if l.compact { 18 } else { 22 }
 			family: app.fonts.display
 		})
-		app.gg.draw_text(tx, y + 36, c[1], gg.TextCfg{
+		label_y := if l.compact { y + 24 } else { y + 36 }
+		app.gg.draw_text(tx, label_y, c[1], gg.TextCfg{
 			color: app.pnl_text
-			size: 13
+			size: if l.compact { 11 } else { 13 }
 			bold: true
 		})
 		// 11px Plex averages ~5.6px/char; onb_fit's 7px would clip real fits
-		app.gg.draw_text(tx, y + 56, utf8_truncate(c[2], (cw - (tx - x) - 8) / 6), gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 11
-		})
+		if !l.compact {
+			app.gg.draw_text(tx, y + 56, utf8_truncate(c[2], (cw - (tx - x) - 8) / 6), gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 11
+			})
+		}
 	}
 }
 
@@ -503,10 +520,7 @@ fn draw_ins_table(mut app GuiApp, l InsightsLayout, t InsTable) {
 		size: 17
 		family: app.fonts.display
 	})
-	app.gg.draw_text(l.inner_x, l.inner_y + 22, utf8_truncate(t.sub, onb_fit(l.inner_w, 11)), gg.TextCfg{
-		color: app.pnl_text_mut
-		size: 11
-	})
+	draw_onb_wrapped(mut app, l.inner_x, l.inner_y + 22, l.inner_w, t.sub, 2)
 	bottom := l.content_y + l.content_h
 	if t.rows.len == 0 {
 		draw_ins_empty(mut app, l.inner_x, l.inner_y + 44, l.inner_w, bottom - (l.inner_y + 44) - 12, t.scene, t.empty, t.hint)
@@ -643,28 +657,47 @@ fn draw_ins_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentenc
 			[pixelart.environment_for(.board), pixelart.environment_for(.plant)]
 		}
 	}
+	// Empty is still a place. Build a quiet records room rather than leaving
+	// three icons adrift in a large sheet. Props are static illustration only.
+	art_w := if w - 60 > 520 { 520 } else { w - 60 }
+	mut art_h := h * 52 / 100
+	if art_h > 220 {
+		art_h = 220
+	}
+	if art_h < 82 {
+		art_h = 82
+	}
+	ax := cx - art_w / 2
+	ay := y + 8
+	wall_h := art_h * 43 / 100
+	app.gg.draw_rect_filled(ax, ay, art_w, wall_h, pc(app, `p`))
+	app.gg.draw_rect_filled(ax, ay + wall_h, art_w, art_h - wall_h, pc(app, `m`))
+	app.gg.draw_rect_filled(ax, ay + wall_h - 3, art_w, 3, pc(app, `W`))
+	for ly := ay + wall_h + 12; ly < ay + art_h; ly += 12 {
+		app.gg.draw_line(ax, ly, ax + art_w, ly, tint(pc(app, `W`), 80))
+	}
+	s := if art_w >= 420 && art_h >= 150 {
+		4
+	} else if art_w >= 260 { 3 } else { 2 }
+	base := ay + art_h - 10
 	mut total_w := 0
-	mut max_h := 0
 	for sp in sprites {
-		total_w += sp.width() + 4
-		if sp.height() > max_h {
-			max_h = sp.height()
-		}
+		total_w += (sp.width() + 10) * s
 	}
-	// tall sheets afford one more scale step; never past 4 (sprite grain)
-	max_s := if h >= 400 { 4 } else { 3 }
-	mut s := onb_art_scale(total_w, max_h, w - 40, h * 40 / 100)
-	if s > max_s {
-		s = max_s
-	}
-	// the scene sits on a short floor line; its centre at ~30% of the sheet
-	base := y + h * 30 / 100 + max_h * s / 2
-	mut gx := cx - total_w * s / 2
+	mut gx := cx - total_w / 2
 	for sp in sprites {
 		sc.draw(sp, pid, gx, base - sp.height() * s, s)
-		gx += (sp.width() + 4) * s
+		gx += (sp.width() + 10) * s
 	}
-	app.gg.draw_rect_filled(cx - total_w * s / 2 - 10, base + 1, total_w * s + 20, 2, tint(pc(app, `W`), 110))
+	board := pixelart.environment_for(.board)
+	if art_w >= 300 {
+		sc.draw(board, pid, ax + art_w - board.width() * 2 - 14, ay + 10, 2)
+		shelf := pixelart.environment_for(.shelf)
+		sc.draw(shelf, pid, ax + 14, ay + wall_h - shelf.height() * 2, 2)
+		picture := pixelart.environment_for(.picture)
+		sc.draw(picture, pid, cx - picture.width(), ay + 12, 2)
+	}
+	app.gg.draw_rect_empty(ax, ay, art_w, art_h, tint(pc(app, `W`), 100))
 	ty := ins_center_lines(mut app, cx, base + 18, onb_fit(w - 40, 12), sentence, 12, app.pnl_text, 2)
 	if hint != '' {
 		ins_center_lines(mut app, cx, ty + 4, onb_fit(w - 40, 11), hint, 11, app.pnl_text_mut, 1)
@@ -774,13 +807,15 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	iy := 52
+	iy := panel_top(app)
 	iw := inspector_w
-	ih := h - iy - 28 - term_h
+	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, iw, ih, app.pnl_bg)
 	app.gg.draw_line(ix, iy, ix, iy + ih, app.pnl_border)
+	if ih < 80 {
+		return
+	}
 	app.gg.draw_text(ix + 16, iy + 10, 'Report details', gg.TextCfg{
 		color: app.pnl_text
 		size: 17
@@ -871,6 +906,16 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 // true when the click was consumed.
 fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	l := insights_layout(app, w, h)
+	// Mirrors draw_insights: suppressed tabs/rows are not drawn and must stay
+	// inert. The right column stays live so details remain reachable.
+	if l.tab_h == 0 || l.content_h < 40 {
+		ix := inspector_x(app, w)
+		iy := panel_top(app)
+		if onb_hit(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
+			return true
+		}
+		return false
+	}
 	for i, t in insights_tabs {
 		x, y, tw, th := insights_tab_rect(l, i)
 		if onb_hit(mx, my, x, y, tw, th) {
@@ -899,9 +944,9 @@ fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	}
 	// the right column is this destination's own surface: consume so the
 	// generic inspector geometry never reacts underneath it
-	term_h := if app.term_visible { app.term_height } else { 0 }
 	ix := inspector_x(app, w)
-	if onb_hit(mx, my, ix, 52, inspector_w, h - 52 - 28 - term_h) {
+	iy := panel_top(app)
+	if onb_hit(mx, my, ix, iy, inspector_w, content_bottom(app, h) - iy) {
 		return true
 	}
 	return false
