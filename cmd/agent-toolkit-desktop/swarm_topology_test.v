@@ -2,23 +2,34 @@ module main
 
 // Swarm topology helpers — recency truth + artifact parsing (#1101).
 fn test_swarm_edge_artifact_parsing() {
-	assert swarm_edge_artifact('planner → implementer via GOD mailbox (artifact task-contract.md)') == 'task-contract.md'
-	assert swarm_edge_artifact('implementer → reviewer commit a3f9… (GOD queued)') == ''
+	assert swarm_edge_artifact('planner → implementer via team inbox (artifact task-contract.md)') == 'task-contract.md'
+	assert swarm_edge_artifact('implementer → reviewer commit a3f9… (queued)') == ''
 	assert swarm_edge_artifact('no arrow here') == ''
 	assert swarm_edge_artifact('a → b (artifact deep/path.md) trailing') == 'deep/path.md'
 	assert swarm_edge_artifact('') == ''
 }
 
-fn test_swarm_working_roles_recency() {
-	mock := ['planner → implementer via GOD mailbox (artifact task-contract.md)',
-		'implementer → reviewer commit a3f9… (GOD queued)',
+fn test_swarm_live_roles_need_runtime_record() {
+	// #1101 truth fix: recency alone never reports working. Only recent
+	// participants WITH a live runtime record (session agents) qualify.
+	mock := ['planner → implementer via team inbox (artifact task-contract.md)',
+		'implementer → reviewer commit a3f9… (queued)',
 		'reviewer → architect feedback blocked max_round_trips']
-	w := swarm_working_roles(mock)
+	assert swarm_live_roles(mock, []string{}) == []string{}
+	assert swarm_live_roles(mock, ['planner']) == []string{}
+	w := swarm_live_roles(mock, ['reviewer', 'architect', 'planner'])
 	assert w.len == 2
 	assert 'reviewer' in w
 	assert 'architect' in w
-	assert swarm_working_roles([]string{}).len == 0
-	assert swarm_working_roles(['garbage line']) == []string{}
+	assert swarm_live_roles([]string{}, ['reviewer']).len == 0
+	assert swarm_live_roles(['garbage line'], ['garbage']) == []string{}
+}
+
+fn test_swarm_session_roles_only_live() {
+	mut app := &GuiApp{}
+	app.sessions << TermSession{agent: 'planner', exited: false}
+	app.sessions << TermSession{agent: 'reviewer', exited: true}
+	assert swarm_session_roles(app) == ['planner']
 }
 
 fn test_swarm_role_desk_mapping() {

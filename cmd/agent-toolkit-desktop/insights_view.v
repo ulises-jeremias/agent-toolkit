@@ -23,7 +23,7 @@ import desktop_engine
 
 const insights_tabs = ['cost', 'waterfall', 'spans', 'budgets', 'ci', 'realtime', 'gallery']
 
-const insights_tab_labels = ['Cost', 'Waterfall', 'Spans', 'Budgets', 'CI', 'Realtime', 'Gallery']
+const insights_tab_labels = ['Cost', 'Timing', 'Spans', 'Budgets', 'CI', 'Realtime', 'Gallery']
 
 // InsightsLayout is computed once per frame and shared by drawing, click,
 // hover and scroll handlers.
@@ -249,7 +249,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsightsTable {
 				}
 			}
 			return InsightsTable{
-				title: 'Tool waterfall'
+				title: 'Tool timing'
 				sub: 'Per-agent tool spans. Agent identity alone is never evidence that a tool call happened.'
 				cols: ['Agent', 'Tier', 'Role', 'Measured spans']
 				col_x: [0, inner_w * 32 / 100, inner_w * 50 / 100, inner_w * 78 / 100]
@@ -268,7 +268,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsightsTable {
 				sub = 'Jobs: pids=${pids} drops=${drops} total=${st.total} running=${st.running} failed=${st.failed}'
 			}
 			return InsightsTable{
-				title: 'OTel spans'
+				title: 'Spans'
 				sub: sub
 				empty: 'No measured spans yet. They appear once a job, loop or swarm emits telemetry.'
 				scene: 1
@@ -343,7 +343,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsightsTable {
 			}
 			return InsightsTable{
 				title: 'Realtime feed'
-				sub: 'GOD envelopes ${app.god_inbox} in · ${app.god_outbox} out · rev ${app.engine_rev} · api ${app.api_calls} — EventBus, one tick, no polling'
+				sub: 'Handoff envelopes ${app.team_inbox} in · ${app.team_outbox} out — updates live, no refresh needed'
 				cols: ['Revision', 'Level', 'Source', 'Message']
 				col_x: [0, inner_w * 14 / 100, inner_w * 26 / 100, inner_w * 44 / 100]
 				rows: rows
@@ -394,7 +394,7 @@ fn draw_insights_metrics(mut app GuiApp, l InsightsLayout) {
 		[]desktop_engine.JobRecord{}
 	}
 	loops := if has_engine { app.desktop.loops_catalog() } else { []desktop_engine.LoopEntry{} }
-	events := if has_engine { count_engine_logs(app) } else { 0 }
+	events := if has_engine { collect_engine_logs(app).len } else { 0 }
 	mut spent := 0
 	for r in swarms {
 		spent += r.budget_spent
@@ -885,7 +885,7 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 			color: app.pnl_text
 			size: 11
 		})
-		app.gg.draw_text(ix + 16, y + 35, 'EventBus feed · loop history', gg.TextCfg{
+		app.gg.draw_text(ix + 16, y + 35, 'Live update feed · loop history', gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 		})
