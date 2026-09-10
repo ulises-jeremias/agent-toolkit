@@ -51,21 +51,28 @@ struct InsightsLayout {
 
 fn insights_layout(app &GuiApp, w int, h int) InsightsLayout {
 	fx := panel_fx(app)
-	fy := panel_top(app)
+	fy := shell_mast_h(h)
 	fw := panel_fw(app, w)
 	fh := content_bottom(app, h) - fy
 	compact := fh < 480 || fw < 640
 	head_h := if compact { 44 } else { 60 }
-	metric_h := if compact { 100 } else { 78 }
+	// At compact widths keep the 2×2 summary only when the remaining height
+	// still leaves a useful ledger sheet. Tall/MAX terminal modes win first.
+	metric_h := if compact {
+		if fh >= 320 { 100 } else { 0 }
+	} else {
+		78
+	}
 	metric_y := fy + head_h + 4
 	tab_y := metric_y + metric_h + if metric_h > 0 { 10 } else { 0 }
-	tab_h := 28
+	tab_h := if fh >= 120 { 28 } else { 0 }
 	mut tab_w := (fw - 24 - 6 * 6) / insights_tabs.len
 	if tab_w > 100 {
 		tab_w = 100
 	}
 	content_y := tab_y + tab_h
-	content_h := fy + fh - content_y - 8
+	content_h_raw := fy + fh - content_y - 8
+	content_h := if content_h_raw > 0 { content_h_raw } else { 0 }
 	inner_x := fx + 24
 	inner_y := content_y + 14
 	return InsightsLayout{
@@ -362,6 +369,9 @@ fn draw_insights(mut app GuiApp, w int, h int) {
 	destination_header(mut app, l.fx, l.fy, l.fw, l.head_h, pixelart.environment_for(.ledger), tr(app, 'panel.insights'), 'Metrics, traces and reports — every number comes from the Engine ledger')
 	if l.metric_h > 0 {
 		draw_ins_metrics(mut app, l)
+	}
+	if l.tab_h == 0 || l.content_h < 40 {
+		return
 	}
 	draw_ins_tabs(mut app, l)
 	paper_sheet(mut app, l.fx + 12, l.content_y, l.fw - 24, l.content_h)
@@ -803,6 +813,9 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, iw, ih, app.pnl_bg)
 	app.gg.draw_line(ix, iy, ix, iy + ih, app.pnl_border)
+	if ih < 80 {
+		return
+	}
 	app.gg.draw_text(ix + 16, iy + 10, 'Report details', gg.TextCfg{
 		color: app.pnl_text
 		size: 17

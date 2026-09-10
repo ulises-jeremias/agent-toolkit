@@ -93,7 +93,7 @@ fn lib_layout(mut app GuiApp, w int, h int) LibLayout {
 	rtl := app.lang.is_rtl()
 	fx := if rtl { side_w + 8 } else { dock_w + 8 }
 	fw := w - dock_w - 8 - side_w
-	fy := panel_top(app)
+	fy := shell_mast_h(h)
 	fh := content_bottom(app, h) - fy
 	compact := fw < 560 || fh < 400
 	head_y := fy + 6

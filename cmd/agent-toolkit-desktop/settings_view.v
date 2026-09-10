@@ -180,11 +180,11 @@ struct SettingsLayout {
 
 fn settings_layout(app &GuiApp, w int, h int) SettingsLayout {
 	fx := panel_fx(app)
-	fy := panel_top(app)
+	fy := shell_mast_h(h)
 	fw := panel_fw(app, w)
 	fh := content_bottom(app, h) - fy
 	prefs_x := fx + 16
-	prefs_y := fy + 58
+	prefs_y := fy + if fh < 240 { 40 } else { 58 }
 	prefs_w := fw - 32
 	setup_y := prefs_y + prefs_sheet_height() + 12
 	setup_h := content_bottom(app, h) - setup_y - 12
@@ -217,10 +217,15 @@ fn draw_settings(mut app GuiApp, w int, h int) {
 		size: 24
 		family: app.fonts.display
 	})
-	app.gg.draw_text(l.fx + 18, l.fy + 35, 'Appearance, language, terminal and workspace setup', gg.TextCfg{
-		color: app.pnl_text_mut
-		size: 11
-	})
+	if l.fh >= 240 {
+		app.gg.draw_text(l.fx + 18, l.fy + 35, 'Appearance, language, terminal and workspace setup', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+		})
+	}
+	if l.prefs_y + prefs_sheet_height() > content_bottom(app, h) {
+		return
+	}
 	draw_preferences_sheet(mut app, l.prefs_x, l.prefs_y, l.prefs_w)
 	if l.setup_h < 58 {
 		return
@@ -275,6 +280,9 @@ fn draw_settings_detail(mut app GuiApp, w int, h int) {
 	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, inspector_w, ih, app.pnl_card)
 	app.gg.draw_line(ix, iy, ix, iy + ih, app.pnl_border)
+	if ih < 80 {
+		return
+	}
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	gear := pixelart.environment_for(.gear)
@@ -323,7 +331,8 @@ fn draw_settings_detail(mut app GuiApp, w int, h int) {
 
 fn settings_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	l := settings_layout(app, w, h)
-	if preferences_click(mut app, l.prefs_x, l.prefs_y, l.prefs_w, mx, my) {
+	if l.prefs_y + prefs_sheet_height() <= content_bottom(app, h)
+		&& preferences_click(mut app, l.prefs_x, l.prefs_y, l.prefs_w, mx, my) {
 		return true
 	}
 	if l.setup_h >= 88 && onb_hit(mx, my, l.button_x, l.button_y, l.button_w, l.button_h) {

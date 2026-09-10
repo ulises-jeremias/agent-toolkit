@@ -35,7 +35,7 @@ struct OfficeLayout {
 
 fn office_layout(app &GuiApp, w int, h int) OfficeLayout {
 	fx := panel_fx(app)
-	fy := panel_top(app)
+	fy := shell_mast_h(h)
 	fw := panel_fw(app, w)
 	fh := content_bottom(app, h) - fy
 	compact := fw < 700 || fh < 420
@@ -298,7 +298,11 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 		ry += 22
 	}
 	// recommended next steps — derived from real onboarding pending items
-	st := app.desktop.onboarding_status(app.harness_root)
+	has_desktop := app.desktop != unsafe { nil }
+	mut pending_items := []string{}
+	if has_desktop {
+		pending_items = app.desktop.onboarding_status(app.harness_root).pending_items.clone()
+	}
 	if ry + 40 < y0 + h {
 		app.gg.draw_text(x + 12, ry, 'Workspace setup', gg.TextCfg{
 			color: app.pnl_text
@@ -306,7 +310,7 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 			bold: true
 		})
 		ry += 18
-		for s in st.pending_items {
+		for s in pending_items {
 			if ry + 16 > y0 + h - 8 {
 				break
 			}
@@ -317,7 +321,12 @@ fn draw_office_today(mut app GuiApp, l OfficeLayout, attention []desktop_engine.
 			})
 			ry += 16
 		}
-		if st.pending_items.len == 0 && ry + 16 <= y0 + h - 8 {
+		if !has_desktop && ry + 16 <= y0 + h - 8 {
+			app.gg.draw_text(x + 16, ry, 'Setup state unavailable.', gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 11
+			})
+		} else if pending_items.len == 0 && ry + 16 <= y0 + h - 8 {
 			app.gg.draw_text(x + 16, ry, 'No onboarding steps pending.', gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
@@ -355,6 +364,9 @@ fn draw_office_detail(mut app GuiApp, w int, h int) {
 // catalog ID is represented there. Otherwise it leaves selection empty and
 // reports the catalog record without inventing a room mapping.
 fn office_roster_click(mut app GuiApp, mx int, my int, w int, h int) bool {
+	if app.desktop == unsafe { nil } {
+		return false
+	}
 	l := office_detail_layout(app, w, h)
 	roster_h := l.room_h * 52 / 100
 	x := l.side_x

@@ -233,8 +233,17 @@ fn ui_state_path() string {
 }
 
 // save_ui_state — best-effort persist of the shell layout (k=v, no json deps).
+fn persisted_terminal_mode(mode int) int {
+	if mode == 2 {
+		return 0
+	}
+	return if mode >= 0 && mode <= 3 { mode } else { 3 }
+}
+
 fn save_ui_state(app &GuiApp) {
-	term_mode := if app.term_mode == 0 { 0 } else { 3 }
+	// MAX is a session-only takeover; restart it as compact rather than
+	// covering the whole application before the user asks again.
+	term_mode := persisted_terminal_mode(app.term_mode)
 	lines := [
 		'term_mode=${term_mode}',
 		'zoom=${app.global_zoom}',
@@ -258,8 +267,8 @@ fn load_ui_state(mut app GuiApp) {
 		k, v := kv[0], kv[1]
 		match k {
 			'term_mode' {
-				// MAX, split, modal, and terminal focus are session-only state.
-				app.term_mode = if v.int() == 0 { 0 } else { 3 }
+				mode := v.int()
+				app.term_mode = persisted_terminal_mode(mode)
 			}
 			'zoom' {
 				app.global_zoom = clamp_zoom(v.f64())
@@ -1519,7 +1528,7 @@ fn nav_group_label(app &GuiApp, panel int) string {
 fn nav_rows(app &GuiApp, h int) []NavRow {
 	bottom := content_bottom(app, h) - 4
 	mut rows := []NavRow{}
-	mut y := panel_top(app) + 54
+	mut y := shell_mast_h(h) + 54
 	for group in [0, 1, 6, 9, 12, 11] {
 		if y + 46 > bottom {
 			break
@@ -2629,6 +2638,9 @@ fn frame(mut app GuiApp) {
 	// terminal height modes — 1× compact / 2× tall / MAX full-content / hidden (^` cycles 0→1→2)
 	app.term_visible = app.term_mode != 3
 	if app.term_visible {
+		if app.term_mode != 2 && app.term_view >= 15 {
+			app.term_view = -1
+		}
 		app.term_height = match app.term_mode {
 			1 { 320 }
 			2 { app.gg.height - panel_top(app) - 28 }
@@ -2647,7 +2659,7 @@ fn frame(mut app GuiApp) {
 	mut cols_full := 80
 	mut rows_full := 18
 	if app.term_visible {
-		tw_g := app.gg.width - 200
+		_, _, tw_g, _ := terminal_rect(app, app.gg.width, app.gg.height)
 		content_w_g := tw_g - 16
 		mut cols_g := content_w_g / 14
 		if cols_g < 40 {
@@ -5429,13 +5441,13 @@ fn inspector_log_rect(app &GuiApp, ix int, iy int, ih int) (int, int, int, int) 
 	if log_h < 40 {
 		log_h = 40
 	}
-	return ix + 8, ix + 292, iy + 302 + header_off, log_h
+	return ix + 8, ix + inspector_w - 8, iy + 302 + header_off, log_h
 }
 
 fn draw_inspector(mut app GuiApp, w int, h int) {
 	ix := inspector_x(app, w)
 	iy := panel_top(app)
-	iw := 300
+	iw := inspector_w
 	ih := content_bottom(app, h) - iy
 	app.gg.draw_rect_filled(ix, iy, iw, ih, col_charcoal)
 	// VC3.5 (#1176): cabinet-drawer material. The dark column reads as one
@@ -5667,7 +5679,7 @@ struct TerminalTab {
 
 fn terminal_tabs(app &GuiApp) []TerminalTab {
 	mut tabs := [TerminalTab{'Terminal', -1}]
-	if app.sessions.len > 0 {
+	if app.term_mode == 2 && app.sessions.len > 0 {
 		tabs << TerminalTab{'Sessions', 15}
 	}
 	return tabs
@@ -5677,15 +5689,27 @@ fn terminal_tab_rect(x0 int, y0 int, i int) (int, int, int, int) {
 	return x0 + 8 + i * 96, y0 + 3, 92, 20
 }
 
-fn draw_terminal(mut app GuiApp, w int, h int) {
+fn terminal_rect(app &GuiApp, w int, h int) (int, int, int, int) {
 	term_h := onb_effective_term_h(app)
-	y0 := h - 28 - term_h
-	x0 := 200
-	tw := w - 200
+	x := if app.lang.is_rtl() { 0 } else { dock_w }
+	return x, h - 28 - term_h, w - dock_w, term_h
+}
+
+fn terminal_split_boundary(app &GuiApp, w int, h int) int {
+	x, _, tw, _ := terminal_rect(app, w, h)
+	content_x := x + 8
+	content_w := tw - 16
+	half := (content_w - 6) / 2
+	return content_x + half + 3
+}
+
+fn draw_terminal(mut app GuiApp, w int, h int) {
+	x0, y0, tw, term_h := terminal_rect(app, w, h)
 	// background — xterm ink, workshop border
 	app.gg.draw_rect_filled(x0, y0, tw, term_h, term_bg)
-	app.gg.draw_line(x0, y0, w, y0, term_border)
-	app.gg.draw_line(x0, y0, x0, y0 + term_h, term_border)
+	app.gg.draw_line(x0, y0, x0 + tw, y0, term_border)
+	dock_edge := if app.lang.is_rtl() { x0 + tw } else { x0 }
+	app.gg.draw_line(dock_edge, y0, dock_edge, y0 + term_h, term_border)
 	// Tabs expose only real terminal-backed views: the fleet terminal and
 	// live PTY sessions when any exist.
 	app.gg.draw_rect_filled(x0, y0, tw, 24, term_header_bg)
@@ -6435,6 +6459,38 @@ fn is_panel_nav_key(c u32) bool {
 	return c == `p` || c == `P` || c == `i` || c == `I` || c == `o` || c == `O`
 }
 
+fn onboarding_key(mut app GuiApp, e &gg.Event) bool {
+	if !app.show_onboarding {
+		return false
+	}
+	if e.char_code == `o` || e.char_code == `O` || e.key_code == .escape {
+		app.show_onboarding = false
+		app.onboarding_msg = 'Setup closed — press o to reopen'
+		return true
+	}
+	if e.key_code == .right || e.char_code == `n` || e.char_code == `N` {
+		onboarding_advance(mut app)
+		return true
+	}
+	if e.key_code == .left || e.char_code == `b` || e.char_code == `B` {
+		if app.onboarding_step > 0 {
+			app.onboarding_step--
+			app.onboarding_msg = '${onb_stages[app.onboarding_step]} — ${onb_stage_hints[app.onboarding_step]}'
+		}
+		return true
+	}
+	if e.key_code == .enter {
+		if app.onboarding_step >= onb_last_stage {
+			onboarding_advance(mut app)
+		} else {
+			onb_apply_stage(mut app)
+		}
+		return true
+	}
+	// Modal ownership: unrelated shortcuts are consumed, not passed through.
+	return true
+}
+
 fn on_event(e &gg.Event, mut app GuiApp) {
 	if e.typ == .char {
 		// V sokol X11 delivers printables as separate .char events (key_down carries
@@ -6468,9 +6524,21 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			app.last_keydown_char = e.char_code
 			app.last_keydown_frame = app.frame
 		}
+		// Palette and Help are higher overlays; otherwise onboarding owns keys
+		// before stale field, PTY, terminal-search, or panel focus can consume them.
+		if !app.palette_open && !app.show_help && onboarding_key(mut app, e) {
+			return
+		}
+		if !app.palette_open && app.show_help {
+			if e.key_code == .escape || e.char_code == `h` || e.char_code == `H` {
+				app.show_help = false
+			}
+			return
+		}
 		// PTY session focus — keys go to the agent TUI pane under the cursor
 		// (single session view or split pane under the mouse). Esc returns to Fleet.
-		if app.term_mode == 2 && (app.term_view >= 15 || (app.term_split && app.term_view_b >= 15)) {
+		if !app.palette_open && !app.show_help && app.term_mode == 2
+			&& (app.term_view >= 15 || (app.term_split && app.term_view_b >= 15)) {
 			if e.key_code == .escape {
 				app.term_view = -1
 				app.term_split = false
@@ -6479,8 +6547,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// target pane: the one under the mouse (split) or the viewed session
 			mut target := app.term_view
 			if app.term_split {
-				// split boundary ≈ mid content (pane A 208.., pane B ..1280)
-				target = if app.mouse_x < app.gg.width / 2 + 100 {
+				target = if app.mouse_x < terminal_split_boundary(app, app.gg.width, app.gg.height) {
 					app.term_view
 				} else {
 					app.term_view_b
@@ -6496,7 +6563,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			return
 		}
 		// terminal scrollback search — captures typing while open (Ctrl+F toggles)
-		if app.term_search_open {
+		if !app.palette_open && !app.show_help && app.term_search_open {
 			if e.key_code == .escape || e.key_code == .enter {
 				app.term_search_open = false
 				return
@@ -7091,44 +7158,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			return
 		}
 		if e.char_code == `o` || e.char_code == `O` {
-			// Toggle the setup journey over the Settings destination.
-			if app.show_onboarding {
-				app.show_onboarding = false
-			} else {
-				select_panel(mut app, 11)
-				app.show_onboarding = true
-				app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
-			}
+			select_panel(mut app, 11)
+			app.show_onboarding = true
+			app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
 			return
-		}
-		// onboarding wizard next/back when overlay visible (n/b, arrows, enter)
-		// VC4 setup journey: five stages, Right/n advances (committing the stage's
-		// real Engine work), Left/b goes back, Enter applies the current stage.
-		if app.show_onboarding {
-			if e.key_code == .right || e.char_code == `n` || e.char_code == `N` {
-				onboarding_advance(mut app)
-				return
-			}
-			if e.key_code == .left || e.char_code == `b` || e.char_code == `B` {
-				if app.onboarding_step > 0 {
-					app.onboarding_step--
-					app.onboarding_msg = '${onb_stages[app.onboarding_step]} — ${onb_stage_hints[app.onboarding_step]}'
-				}
-				return
-			}
-			if e.key_code == .enter {
-				if app.onboarding_step >= onb_last_stage {
-					onboarding_advance(mut app)
-				} else {
-					onb_apply_stage(mut app)
-				}
-				return
-			}
-			if e.key_code == .escape {
-				app.show_onboarding = false
-				app.onboarding_msg = 'Setup closed — press o to reopen'
-				return
-			}
 		}
 		// Arrow navigation — grid-aware (4 columns, last cell empty => 15 desks)
 		// Works in World floor; in other panels falls back to linear list nav
@@ -7211,9 +7244,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// scroll terminal or inspector depending on cursor region
 		w3 := app.gg.width
 		h3 := app.gg.height
-		term_h := app.term_height
-		y0 := h3 - 28 - term_h
-		x0 := 200
+		x0, y0, tw, term_h := terminal_rect(app, w3, h3)
 		// wheel delta: gg scroll_y negative = up, positive = down (platform dependent). Treat scroll_y !=0.
 		mut delta := 0
 		if e.scroll_y < 0 {
@@ -7225,7 +7256,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		} else if e.scroll_x > 0 {
 			delta = 3
 		}
-		if app.term_visible && app.mouse_x >= x0 && app.mouse_x <= w3 && app.mouse_y >= y0 && app.mouse_y < y0 + term_h {
+		if app.term_visible && app.mouse_x >= x0 && app.mouse_x <= x0 + tw
+			&& app.mouse_y >= y0 && app.mouse_y < y0 + term_h {
 			// super potent: when ghost_focused, wheel scrolls Ghostty scrollback 1000; otherwise logs
 			if app.ghost_focused {
 				app.ghost.scroll_by(delta)
@@ -7246,7 +7278,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// inspector scroll when over inspector
 		{
-			ix := w3 - 300
+			ix := inspector_x(app, w3)
 			iy := panel_top(app)
 			ih := content_bottom(app, h3) - iy
 			log_x0, log_x1, log_y0, inspector_log_h := inspector_log_rect(app, ix, iy, ih)
@@ -7266,21 +7298,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// skills virtualized scroll — 227 list
-		if app.selected_panel == 1 {
-			fx := 208
-			fy := panel_top(app)
-			fw := w3 - 208 - 300
-			fh := content_bottom(app, h3) - fy
-			y0_sk := fy + 102
-			list_h := fh - 126
-			if app.mouse_x >= fx + 12 && app.mouse_x <= fx + fw - 12 && app.mouse_y >= y0_sk && app.mouse_y < y0_sk + list_h {
-				entries := skills_filtered_entries(mut app)
-				visible := list_h / 28
-				app.skills_scroll += delta
-				app.skills_scroll = clamp_scroll(app.skills_scroll, entries.len, visible)
-				return
-			}
+		// Library card-grid scroll uses the same layout as drawing and clicks.
+		if lib_is_panel(app.selected_panel)
+			&& library_scroll(mut app, app.mouse_x, app.mouse_y, delta, w3, h3) {
+			return
 		}
 		// VC6 (#1173): Operations table scroll (Doctor/Jobs/Loops/Swarm)
 		if operations_scroll(mut app, delta, w3, h3) {
@@ -7382,6 +7403,10 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				// continue to allow click through? close and return to avoid double action
 				return
 			}
+		}
+		if app.show_help {
+			app.show_help = false
+			return
 		}
 		// Header controls share the editorial masthead geometry with drawing.
 		// Onboarding keeps the same masthead visually but disables shell
@@ -7498,7 +7523,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// Inspector buttons — clickable
 		ix := inspector_x(app, w)
 		iy := panel_top(app)
-		iw := 300
+		iw := inspector_w
 		// Only when a desk selected
 		desks := desks_for_app(app)
 		if app.selected_desk >= 0 && app.selected_desk < desks.len {
@@ -7511,24 +7536,16 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 		}
-		// Help overlay click dismiss
-		if app.show_help {
-			app.show_help = false
-			return
-		}
 		// Terminal click — super potent: focus Ghostty + copy
 		if app.term_visible {
 			w3 := app.gg.width
 			h3 := app.gg.height
-			term_h := app.term_height
-			y0 := h3 - 28 - term_h
-			x0 := 200
-			tw := w3 - 200
+			x0, y0, tw, term_h := terminal_rect(app, w3, h3)
 			content_y := y0 + 28
 			content_x := x0 + 8
 			content_w := tw - 16
 			// header click: height mode buttons (1×/2×/MAX/×) — else toggle ghost focus
-			if mx >= x0 && mx <= w3 && my >= y0 && my < y0 + 24 {
+			if mx >= x0 && mx <= x0 + tw && my >= y0 && my < y0 + 24 {
 				if mx >= x0 + tw - 148 && mx <= x0 + tw - 16 {
 					btn := (mx - (x0 + tw - 148)) / 34
 					if btn >= 0 && btn <= 3 {
@@ -7657,7 +7674,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// click elsewhere in terminal toggles auto-pin
-			if mx >= x0 && mx <= w3 && my >= y0 && my < y0 + term_h {
+			if mx >= x0 && mx <= x0 + tw && my >= y0 && my < y0 + term_h {
 				app.term_auto_pin = !app.term_auto_pin
 				if app.term_auto_pin {
 					all := filtered_logs(collect_engine_logs(app), active_log_filter(app))
@@ -7735,7 +7752,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			// workspace control row: field + Validate / Switch / Initialize
-			if my >= l.field_y && my <= l.field_y + 28 {
+			if l.hero_h > 0 && my >= l.field_y && my <= l.field_y + 28 {
 				if mx >= l.field_x && mx <= l.field_x + l.field_w {
 					app.workspace_focus = true
 					app.header_search_focus = false
@@ -7974,9 +7991,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			desks := desks_for_app(app)
 			w2 := app.gg.width
 			h2 := app.gg.height
-			fx := 208
+			fx := panel_fx(app)
 			fy := panel_top(app)
-			fw := w2 - 208 - 300
+			fw := panel_fw(app, w2)
 			fh := content_bottom(app, h2) - fy
 			for idx, d in desks {
 				dx, dy, dw, dh := desk_rect(d, idx, fx, fy, fw, fh)
@@ -7990,10 +8007,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if app.term_visible {
 			w3 := app.gg.width
 			h3 := app.gg.height
-			term_h := app.term_height
-			y0 := h3 - 28 - term_h
-			x0 := 200
-			tw := w3 - 200
+			x0, y0, tw, term_h := terminal_rect(app, w3, h3)
 			content_y := y0 + 28
 			content_x := x0 + 8
 			content_w := tw - 16

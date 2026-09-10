@@ -1311,6 +1311,7 @@ fn onboarding_advance(mut app GuiApp) {
 	app.engine_rev = app.desktop.app_state_snapshot().revision
 	app.api_calls = app.desktop.engine_api_calls()
 	app.onboarding_msg = 'Setup complete — welcome to the office (rev ${rev})'
+	app.workspace_initialized = app.desktop.onboarding_status(app.harness_root).workspace_exists
 	app.show_onboarding = false
 	app.selected_panel = 0
 	app.onb_diag = false
@@ -1345,6 +1346,7 @@ fn onb_apply_stage(mut app GuiApp) {
 				}
 				app.onboarding_msg = 'Workspace connected (rev ${rev})'
 			}
+			app.workspace_initialized = app.desktop.onboarding_status(harness).workspace_exists
 		}
 		3 {
 			cat := app.desktop.engine_skills_search('', '')
