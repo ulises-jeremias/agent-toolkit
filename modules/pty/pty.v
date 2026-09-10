@@ -21,6 +21,8 @@ import os
 
 #include <sys/ioctl.h>
 
+#include <sys/wait.h>
+
 pub struct Winsize {
 pub:
 	ws_row    u16
@@ -50,6 +52,42 @@ fn C.read(fd int, buf voidptr, count usize) isize
 fn C.close(fd int) int
 
 fn C.kill(pid int, sig int) int
+
+fn C.waitpid(pid int, status &int, options int) int
+
+fn C.usleep(usec u32) int
+
+const sig_term = 15
+const sig_kill = 9
+// wnohang is WNOHANG: waitpid in the reap path never blocks.
+const wnohang = 1
+// kill_grace_polls × kill_grace_us bounds the SIGTERM grace period before
+// SIGKILL escalation (10 × 20ms = 200ms).
+const kill_grace_polls = 10
+const kill_grace_us = u32(20000)
+
+// child_exited — non-blocking reap check via waitpid(WNOHANG). Returns true
+// once the child is gone: reaped by this very call (zombie → reaped, never
+// reported alive) or already reaped earlier (ECHILD). Returns false while it
+// is still running. Never blocks. A pid <= 0 (zero-value Session) counts as
+// gone so kill(0, ·) process-group semantics are never reached.
+fn child_exited(pid int) bool {
+	if pid <= 0 {
+		return true
+	}
+	mut status := 0
+	res := C.waitpid(pid, &status, wnohang)
+	if res == pid {
+		return true
+	}
+	if res == 0 {
+		return false
+	}
+	// res < 0: ECHILD (already reaped) or a transient error. Confirm with
+	// kill 0 so a transient failure on a live child is not misread as dead
+	// (a zombie still owns its pid entry, so kill 0 succeeds on zombies).
+	return C.kill(pid, 0) != 0
+}
 
 fn C.ioctl(fd i32, request u64, args ...voidptr) i32
 
@@ -153,7 +191,13 @@ pub fn spawn(agent string, binary string, args []string, cols int, rows int) !Se
 
 // drain — reads all currently pending output (non-blocking), returns it as
 // a string for GhosttyTerminal.feed(). Empty string = nothing pending.
+// Reaps an exited child first (never blocks) and is a safe no-op once the
+// fd is closed (fd parked at -1 by kill).
 pub fn (mut s Session) drain() string {
+	if s.fd < 0 {
+		return ''
+	}
+	child_exited(s.pid)
 	mut out := []u8{}
 	mut buf := [8192]u8{}
 	for {
@@ -173,7 +217,8 @@ pub fn (mut s Session) drain() string {
 	return out.bytestr()
 }
 
-// write — send input bytes to the agent (keyboard path).
+// write — send input bytes to the agent (keyboard path). Documented no-op
+// on a closed (or never-opened) fd and on empty input — never crashes.
 pub fn (mut s Session) write(data string) {
 	if s.fd <= 0 || data.len == 0 {
 		return
@@ -181,8 +226,12 @@ pub fn (mut s Session) write(data string) {
 	C.write(s.fd, data.str, data.len)
 }
 
-// resize — TIOCSWINSZ on the master fd.
+// resize — TIOCSWINSZ on the master fd. Documented no-op once the fd is
+// closed (fd parked at -1 by kill) — never crashes.
 pub fn (mut s Session) resize(cols int, rows int) {
+	if s.fd < 0 {
+		return
+	}
 	ws := Winsize{
 		ws_row: u16(rows)
 		ws_col: u16(cols)
@@ -191,13 +240,43 @@ pub fn (mut s Session) resize(cols int, rows int) {
 	C.ioctl(s.fd, 0x5414, &ws)
 }
 
-// alive — false when the child exited (poll via kill 0).
+// alive — false once the child exited. waitpid(WNOHANG)-based: unlike the
+// old kill(pid, 0) probe this reaps zombies instead of reporting them
+// alive. Never blocks. A zero-value Session (pid <= 0) is never alive.
 pub fn (s Session) alive() bool {
-	return C.kill(s.pid, 0) == 0
+	return !child_exited(s.pid)
 }
 
-// kill — SIGTERM the child; caller closes fd afterwards.
+// close_fd closes the master fd exactly once and parks it at -1, so a
+// second kill can neither double-close nor close a recycled fd.
+fn (mut s Session) close_fd() {
+	if s.fd >= 0 {
+		C.close(s.fd)
+		s.fd = -1
+	}
+}
+
+// kill — SIGTERM the child, escalate to SIGKILL after a short grace
+// (kill_grace_polls × kill_grace_us), reap without blocking, then close the
+// master fd exactly once (fd parked at -1, close semantics kept). Safe to
+// call twice and safe on an already-closed or zero-value session: signals
+// are only sent to a child that waitpid still reports running, so an
+// already-reaped (possibly recycled) pid is never signalled.
 pub fn (mut s Session) kill() {
-	C.kill(s.pid, 15)
-	C.close(s.fd)
+	if s.pid > 0 && !child_exited(s.pid) {
+		C.kill(s.pid, sig_term)
+		for _ in 0 .. kill_grace_polls {
+			C.usleep(kill_grace_us)
+			if child_exited(s.pid) {
+				break
+			}
+		}
+		if !child_exited(s.pid) {
+			C.kill(s.pid, sig_kill)
+		}
+		// final non-blocking reap attempt; a slow-dying child is reaped
+		// by the next alive()/drain() poll instead
+		child_exited(s.pid)
+	}
+	s.close_fd()
 }

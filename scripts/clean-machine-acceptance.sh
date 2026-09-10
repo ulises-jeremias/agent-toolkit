@@ -42,7 +42,21 @@ COMMIT="$(git -c safe.directory='*' -C "$(dirname "$0")/.." rev-parse --short HE
 echo "provenance: artifact=$ART_NAME sha256=$ART_SHA size=$ART_SIZE version=$VERSION commit=$COMMIT"
 
 # ── neutral prefix: the ONLY place the artifact lives for validation ──────
-PREFIX="$(mktemp -d /tmp/atk-clean-XXXXXX)"
+PREFIX="$(mktemp -d "${TMPDIR:-/tmp}/atk-clean-XXXXXX")"
+# trap cleanup (first-run pattern): prefix/Xvfb/app are always released,
+# even on an early fail — evidence copies to EVIDENCE_DIR happen mid-run.
+APP_PID=0
+XVFB_PID=0
+cleanup_acceptance() {
+  for p in "$APP_PID" "$XVFB_PID"; do
+    if [ "$p" != 0 ]; then kill "$p" 2>/dev/null || true; fi
+  done
+  for p in "$APP_PID" "$XVFB_PID"; do
+    if [ "$p" != 0 ]; then wait "$p" 2>/dev/null || true; fi
+  done
+  rm -rf "$PREFIX"
+}
+trap cleanup_acceptance EXIT
 # EVIDENCE_DIR: when set (CI), durable copies of captures/evidence land here
 # BEFORE the prefix trap cleans up (#1130 harness contract).
 EVIDENCE_DIR="${EVIDENCE_DIR:-}"
@@ -137,8 +151,15 @@ if command -v Xvfb >/dev/null 2>&1 && command -v import >/dev/null 2>&1; then
   # fixed display: xvfb-run -a would pick one our capture cannot know
   Xvfb :98 -screen 0 1280x800x24 &
   XVFB_PID=$!
-  sleep 2
-  env DISPLAY=:98 PATH=/usr/bin:/bin HOME="$CLEAN_HOME" \
+  # Xvfb readiness probe (poll the X socket like the other harnesses probe
+  # the server — never a bare sleep before launching the app)
+  xready=0
+  for _ in $(seq 1 20); do
+    if [ -S /tmp/.X11-unix/X98 ]; then xready=1; break; fi
+    sleep 0.5
+  done
+  [ "$xready" = 1 ] || fail "Xvfb :98 did not become ready"
+  env DISPLAY=:98 PATH=/usr/bin:/bin HOME="$CLEAN_HOME" LANG=C.UTF-8 \
     XDG_DATA_HOME="$CLEAN_DATA" XDG_CONFIG_HOME="$CLEAN_CONFIG" \
     "$INSTALLED_BIN" &
   APP_PID=$!

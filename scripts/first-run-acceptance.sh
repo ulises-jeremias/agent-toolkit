@@ -14,6 +14,9 @@
 #
 # States are explicit per check (PASS/FAIL/NOT_PROVEN/MANUAL); captures
 # are staged into EVIDENCE_DIR for human inspection — never hash-approved.
+#
+# Display: fixed (default :99, ATK_FIRST_RUN_DISPLAY to override) guarded by
+# a shared lock file, so local parallel runs fail loudly instead of colliding.
 set -euo pipefail
 
 ARCHIVE="${1:?usage: first-run-acceptance.sh <desktop-archive.tar.gz>}"
@@ -31,10 +34,27 @@ ART_SHA="$(sha256sum "$ARCHIVE" | cut -d' ' -f1)"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 echo "provenance: artifact=$ART_NAME sha256=$ART_SHA"
 
-PREFIX="$(mktemp -d /tmp/atk-firstrun-XXXXXX)"
+PREFIX="$(mktemp -d "${TMPDIR:-/tmp}/atk-firstrun-XXXXXX")"
 EVIDENCE="${EVIDENCE_DIR:-$PREFIX/evidence}"
 mkdir -p "$EVIDENCE"
-trap 'rm -rf "$PREFIX"' EXIT
+# shared display lock: parallel local runs must fail loudly, never collide
+DISP="${ATK_FIRST_RUN_DISPLAY:-:99}"
+DISPNUM="${DISP#:}"
+LOCK=""
+trap 'rm -rf "$PREFIX"; if [ -n "$LOCK" ]; then rm -rf "$LOCK"; fi' EXIT
+LOCK_CANDIDATE="${TMPDIR:-/tmp}/atk-acceptance-X${DISPNUM}.lock"
+if ! mkdir "$LOCK_CANDIDATE" 2>/dev/null; then
+  lock_owner="$(cat "$LOCK_CANDIDATE/pid" 2>/dev/null || echo unknown)"
+  if [ "$lock_owner" != unknown ] && ! kill -0 "$lock_owner" 2>/dev/null; then
+    echo "warning: stealing stale acceptance lock $LOCK_CANDIDATE (owner $lock_owner dead)" >&2
+    rm -rf "$LOCK_CANDIDATE"
+    mkdir "$LOCK_CANDIDATE" || fail "cannot take display lock $LOCK_CANDIDATE"
+  else
+    fail "display $DISP is locked by another acceptance run (owner pid $lock_owner)"
+  fi
+fi
+LOCK="$LOCK_CANDIDATE"
+echo "$$" >"$LOCK/pid"
 
 # ── install via the real bundle script (#1130 chain) ───────────────────────
 STAGE="$PREFIX/stage"
@@ -51,18 +71,18 @@ record "artifact-install" "PASS" "receipt-backed install from $ART_NAME"
 
 launch() { # $1 home  $2 extra PATH prefix (fixture)  → sets APP_PID, WIN_ID
   local home="$1" pathfix="${2:-}"
-  Xvfb :99 -screen 0 1280x800x24 &
+  Xvfb "$DISP" -screen 0 1280x800x24 &
   XVFB_PID=$!
   sleep 1
   # a bare Xvfb has no WM → no window ever has input focus → XTEST keys
   # would go nowhere. openbox gives the journey real focus semantics.
-  DISPLAY=:99 openbox &
+  DISPLAY="$DISP" openbox &
   OB_PID=$!
   sleep 1
   # env -i: NO CI environment leakage — the app sees exactly the clean
   # launcher-like environment (a leaked XDG_CACHE_HOME would send engine
   # state outside the clean HOME and silently break the acceptance)
-  env -i DISPLAY=:99 PATH="${pathfix:+$pathfix:}/usr/bin:/bin" \
+  env -i DISPLAY="$DISP" PATH="${pathfix:+$pathfix:}/usr/bin:/bin" \
     HOME="$home" LANG=C.UTF-8 \
     XDG_DATA_HOME="$home/.local/share" XDG_CONFIG_HOME="$home/.config" \
     XDG_CACHE_HOME="$home/.cache" \
@@ -70,18 +90,18 @@ launch() { # $1 home  $2 extra PATH prefix (fixture)  → sets APP_PID, WIN_ID
   APP_PID=$!
   for _ in $(seq 1 30); do
     sleep 1
-    WIN_ID="$(DISPLAY=:99 xdotool search --onlyvisible --name 'Agent Toolkit' 2>/dev/null | head -1 || true)"
+    WIN_ID="$(DISPLAY="$DISP" xdotool search --onlyvisible --name 'Agent Toolkit' 2>/dev/null | head -1 || true)"
     [ -n "$WIN_ID" ] && break
   done
   [ -n "$WIN_ID" ] || fail "app window never appeared"
-  DISPLAY=:99 xdotool windowactivate --sync "$WIN_ID" 2>/dev/null || true
-  DISPLAY=:99 xdotool windowfocus "$WIN_ID" 2>/dev/null || true
+  DISPLAY="$DISP" xdotool windowactivate --sync "$WIN_ID" 2>/dev/null || true
+  DISPLAY="$DISP" xdotool windowfocus "$WIN_ID" 2>/dev/null || true
   sleep 1
   local focused
-  focused="$(DISPLAY=:99 xdotool getwindowfocus 2>/dev/null || true)"
+  focused="$(DISPLAY="$DISP" xdotool getwindowfocus 2>/dev/null || true)"
   if [ "$focused" != "$WIN_ID" ]; then
     echo "focus probe: focused=$focused want=$WIN_ID — retrying windowfocus" >&2
-    DISPLAY=:99 xdotool windowfocus "$WIN_ID" || true
+    DISPLAY="$DISP" xdotool windowfocus "$WIN_ID" || true
     sleep 1
   fi
 }
@@ -94,13 +114,15 @@ kill_session() {
   wait $XVFB_PID 2>/dev/null || true
 }
 
-journey_key() { DISPLAY=:99 xdotool key --window "$WIN_ID" "$1" 2>/dev/null || DISPLAY=:99 xdotool key "$1"; sleep 1; }
+journey_key() { DISPLAY="$DISP" xdotool key --window "$WIN_ID" "$1" 2>/dev/null || DISPLAY="$DISP" xdotool key "$1"; sleep 1; }
 # Enter actions are retried once: every step action is idempotent (bulk
 # installs are set-semantics, personas skip existing, workspace mkdir_all,
 # targets set-true), and a Return swallowed while a transaction commits
 # would otherwise leave the journey silently incomplete.
 journey_enter() { journey_key Return; sleep 0.8; journey_key Return; sleep 1; }
-shot() { DISPLAY=:99 import -window root "$EVIDENCE/$1" 2>/dev/null || true; }
+# shot captures NAMED evidence: a failed capture fails the run loudly
+# (missing evidence must never pass silently as an empty check).
+shot() { DISPLAY="$DISP" import -window root "$EVIDENCE/$1" 2>/dev/null || fail "evidence capture failed: $1"; }
 
 assert_state() { # $1 python-expr over the engine state json  $2 label
   python3 -c "
@@ -155,7 +177,7 @@ shot journey-final.png
 echo "journey diagnostics:" >&2
 find "$HOME_FRESH" -name '*.json' | head -5 >&2 || true
 find "$HOME_FRESH/knowledge" 2>/dev/null | head -3 >&2 || true
-DISPLAY=:99 xdotool getactivewindowname 2>/dev/null >&2 || true
+DISPLAY="$DISP" xdotool getactivewindowname 2>/dev/null >&2 || true
 
 STATE_FILE="$HOME_FRESH/.cache/agent-toolkit/desktop/engine_state.json"
 sleep 1
@@ -191,7 +213,6 @@ print('recent_workspace:', repr(r.get('recent_workspace')))
 " >&2 || true
   fail "personas not bootstrapped under ~/.ai-workspace"
 fi
-record "personas" "PASS" "personas bootstrapped under ~/.ai-workspace"
 record "personas" "PASS" "personas bootstrapped under ~/.ai-workspace"
 
 # restart — hard gate: wizard must NOT reappear, state preserved

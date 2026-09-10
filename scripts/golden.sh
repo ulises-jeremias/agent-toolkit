@@ -16,6 +16,13 @@
 #   ATK_GOLDEN_THEME=ink ./scripts/golden.sh capture|compare  # Ink fixtures
 # Requires: Xvfb/xdotool (see scripts/ui-smoke.sh), ImageMagick, built binary.
 #
+# Display constraint: captures run on a FIXED display (default :77,
+# GOLDEN_DISPLAY to override) because the window id is captured per run.
+# A lock file guards it so two local runs fail loudly instead of colliding.
+# The app runs under a temp HOME/XDG — real ~/.cache prefs are never read
+# or written. Temp paths honor $TMPDIR. System Xvfb/xdotool are preferred;
+# /tmp/opencode/xtools fallbacks stay (CI may rely on them).
+#
 # Fixture update policy (#1111): intentional visual changes re-capture with
 # capture (both themes) and include the RMSE summary in the PR description.
 # Never hand-edit a fixture; compare passing on the old set is the no-drift
@@ -44,39 +51,75 @@ if ! command -v "$XVFB" >/dev/null 2>&1 && [ -x /tmp/opencode/xtools/usr/bin/Xvf
 fi
 # timeout guards: a degraded Xvfb hangs xdotool/import forever — fail fast
 # instead (#1111; observed on a long-lived :77 server)
-xdt() { DISPLAY="${GOLDEN_DISPLAY:-:77}" LD_LIBRARY_PATH="$XLIB" timeout 30 "$XD" "$@"; }
-shot() { sleep 1.2; DISPLAY="${GOLDEN_DISPLAY:-:77}" timeout 60 import -window "$WID" "$1"; }
+EFFDIS="${GOLDEN_DISPLAY:-:77}"
+EFFNUM="${EFFDIS#:}"
+xdt() { DISPLAY="$EFFDIS" LD_LIBRARY_PATH="$XLIB" timeout 30 "$XD" "$@"; }
+shot() { sleep 1.2; DISPLAY="$EFFDIS" timeout 60 import -window "$WID" "$1"; }
 
 [ -x "$BIN" ] || { echo "error: build the desktop binary first" >&2; exit 2; }
 mkdir -p "$GOLD"
 
-# virtual display + app (Wayland forced off — sokol prefers it when present)
-pkill -f 'agent-toolkit-desktop-native' 2>/dev/null || true
+# fixed-display lock: only processes owned by this run are ever signalled
+LOCK="${TMPDIR:-/tmp}/atk-golden-X${EFFNUM}.lock"
+if ! mkdir "$LOCK" 2>/dev/null; then
+	owner="$(cat "$LOCK/pid" 2>/dev/null || echo unknown)"
+	if [ "$owner" != unknown ] && ! kill -0 "$owner" 2>/dev/null; then
+		echo "warning: stealing stale golden lock $LOCK (owner $owner dead)" >&2
+		rm -rf "$LOCK"
+		mkdir "$LOCK" || { echo "error: cannot take golden lock $LOCK" >&2; exit 2; }
+	else
+		echo "error: display $EFFDIS is locked by another golden run (owner pid $owner)" >&2
+		exit 2
+	fi
+fi
+echo "$$" >"$LOCK/pid"
+
+# temp HOME/XDG: the app must never read or write real user prefs
+GOLDEN_HOME="$(mktemp -d "${TMPDIR:-/tmp}/atk-golden-home-XXXXXX")"
+export HOME="$GOLDEN_HOME"
+export XDG_CACHE_HOME="$GOLDEN_HOME/.cache"
+export XDG_CONFIG_HOME="$GOLDEN_HOME/.config"
+export XDG_DATA_HOME="$GOLDEN_HOME/.local/share"
+
+XVFB_PID=0
+APP_PID=0
+cleanup_golden() {
+	if [ "$APP_PID" != 0 ]; then kill "$APP_PID" 2>/dev/null || true; fi
+	if [ "$XVFB_PID" != 0 ]; then kill "$XVFB_PID" 2>/dev/null || true; fi
+	if [ "$APP_PID" != 0 ]; then wait "$APP_PID" 2>/dev/null || true; fi
+	if [ "$XVFB_PID" != 0 ]; then wait "$XVFB_PID" 2>/dev/null || true; fi
+	rm -rf "$GOLDEN_HOME" "$LOCK"
+}
+trap cleanup_golden EXIT
+
+# virtual display + app (Wayland forced off — sokol prefers it when present).
 # Xvfb servers degrade after many client cycles — always start a fresh one
-pkill -x Xvfb 2>/dev/null || true
+# owned by this run (PID-scoped kills only, never pkill).
 sleep 0.5
-rm -f /tmp/.X11-unix/X77
-/usr/bin/env "$XVFB" :77 -screen 0 1280x800x24 -nolisten tcp >/tmp/atk-golden-xvfb.log 2>&1 &
+rm -f "/tmp/.X11-unix/X${EFFNUM}"
+/usr/bin/env "$XVFB" "$EFFDIS" -screen 0 1280x800x24 -nolisten tcp >"${TMPDIR:-/tmp}/atk-golden-xvfb.log" 2>&1 &
+XVFB_PID=$!
 sleep 1.5
 xprobe_ok=0
 for _ in 1 2 3 4 5 6 7 8 9 10; do
-	if timeout 5 env DISPLAY=:77 LD_LIBRARY_PATH="$XLIB" "$XD" getdisplaygeometry >/dev/null 2>&1; then
+	if timeout 5 env DISPLAY="$EFFDIS" LD_LIBRARY_PATH="$XLIB" "$XD" getdisplaygeometry >/dev/null 2>&1; then
 		xprobe_ok=1
 		break
 	fi
 	sleep 1
 done
 [ "$xprobe_ok" = "1" ] || {
-	echo "error: Xvfb :77 not responding" >&2
+	echo "error: Xvfb $EFFDIS not responding" >&2
 	exit 2
 }
-rm -f "$HOME/.cache/agent-toolkit/desktop/ui_state.env"
+# Paper determinism: temp HOME starts clean, so no ui_state.env exists yet.
 if [ "${ATK_GOLDEN_THEME:-paper}" = "ink" ]; then
-	# seed Ink appearance (deleted above for Paper determinism)
+	# seed Ink appearance under the TEMP home only
 	mkdir -p "$HOME/.cache/agent-toolkit/desktop"
 	printf 'appearance=ink\n' >"$HOME/.cache/agent-toolkit/desktop/ui_state.env"
 fi
-(env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET ATK_GUI_FREEZE=1 ATK_GOLDEN_TERMINAL=1 DISPLAY=:77 "$BIN" >"$ROOT/tests/golden-app.log" 2>&1 &)
+env -u WAYLAND_DISPLAY -u WAYLAND_SOCKET ATK_GUI_FREEZE=1 ATK_GOLDEN_TERMINAL=1 DISPLAY="$EFFDIS" "$BIN" >"$ROOT/tests/golden-app.log" 2>&1 &
+APP_PID=$!
 # software GL (llvmpipe) needs longer than 3s for the first frame — poll
 WID=""
 for _ in $(seq 1 45); do
@@ -133,7 +176,7 @@ for k in 1 2 3 4 5 6 7 8 9 0 p i o; do
 	fi
 done
 
-pkill -f 'agent-toolkit-desktop-native' 2>/dev/null || true
+# owned processes die via the EXIT trap (PID-scoped, never pkill)
 if [ "$MODE" = "compare" ]; then
 	[ "$fail" = "0" ] && echo "GOLDEN PASS" || { echo "GOLDEN FAIL"; exit 1; }
 else
