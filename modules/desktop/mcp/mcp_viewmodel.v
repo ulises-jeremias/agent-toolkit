@@ -81,7 +81,7 @@ pub fn (mut vm McpViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-// ── super-potent: stats, toggle, provenance, receipts, preview, search ──
+// ── engine-backed: stats, toggle, provenance, receipts, preview, search ──
 pub fn (vm McpViewModel) stats() desktop_engine.McpStats {
 	return vm.engine.mcp_stats()
 }

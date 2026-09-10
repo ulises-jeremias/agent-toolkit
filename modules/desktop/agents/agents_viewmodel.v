@@ -79,7 +79,7 @@ pub fn (mut vm AgentsViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-// ── super-potent: search, stats, provenance, receipts, delegation ──
+// ── engine-backed: search, stats, provenance, receipts, delegation ──
 pub fn (mut vm AgentsViewModel) search(query string, tier string) []desktop_engine.AgentEntry {
 	return vm.engine.agents_search(query, tier)
 }

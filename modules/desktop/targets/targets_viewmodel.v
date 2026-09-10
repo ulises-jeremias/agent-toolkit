@@ -47,7 +47,7 @@ pub fn (mut vm TargetsViewModel) app_state_projection() app_state.AppState {
 	return app_state.derive_app_state(snap)
 }
 
-// ── super-potent: preview, dry_run, receipts, provenance, toggle, stats ──
+// ── engine-backed: preview, dry_run, receipts, provenance, toggle, stats ──
 pub fn (vm TargetsViewModel) preview(targets []string) desktop_engine.TargetDiff {
 	return vm.engine.install_preview(targets)
 }

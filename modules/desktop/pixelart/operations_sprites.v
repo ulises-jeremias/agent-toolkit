@@ -1,6 +1,6 @@
 module pixelart
 
-// VC6 (#1173) — Operations props and marks. The Operations Floor is a
+// Operations props and marks. The Operations Floor is a
 // command-center room, so it needs infrastructure furniture (server rack,
 // monitor tower, checklist board, wall clock) that the Office set does not
 // carry, plus four small product marks for the metric cards and the detail
@@ -196,7 +196,7 @@ const env_alert_mark = Sprite{
 	]
 }
 
-// operations_sprites lists the VC6 additions for the asset manifest.
+// operations_sprites lists the Operations additions for the asset manifest.
 fn operations_sprites() []Sprite {
 	return [env_server_rack, env_wall_clock, env_gear_mark, env_monitor_tower, env_checklist_board,
 		env_play_mark, env_calendar_mark, env_swarm_mark, env_alert_mark]

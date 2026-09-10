@@ -1,6 +1,6 @@
 module pixelart
 
-// VC5 (#1173) — Library marks: original 16×16 product/domain glyphs that give
+// Library marks: original 16×16 product/domain glyphs that give
 // each catalog card a visual identity (DESIGN.md §13 class 2, "product/domain
 // pixel icons"). They share the Paper Co. palette keys and the same outline
 // philosophy as the environment set: one-pixel ink outline, flat fills, no

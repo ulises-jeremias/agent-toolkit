@@ -178,7 +178,7 @@ pub fn (vm OnboardingViewModel) is_persona_ready() bool {
 
 pub fn (mut vm OnboardingViewModel) next_super() OnboardingStep {
 	st := vm.engine.onboarding_status(vm.harness_root)
-	// super-potent: auto-skip completed gaps
+	// engine-backed: auto-skip completed gaps
 	if !st.workspace_ready {
 		vm.step = .detect
 		return vm.step
