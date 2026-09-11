@@ -17,6 +17,7 @@ on:
     paths:
       - ".github/workflows/release.yml"
       - ".github/actions/setup-v/**"
+      - "scripts/release-linkage.sh"
       - "cmd/agent-toolkit/**"
       - "cmd/agent-toolkit-desktop/**"
       - "modules/**"
@@ -210,47 +211,16 @@ jobs:
           fi
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          # Release linkage: production builds must not use V's default tcc
-          # backend — on macOS it bakes a runner-absolute @rpath/libgc.dylib
-          # (~/vlang-master/thirdparty/tcc) that dyld cannot load on user
-          # machines (dyld: Library not loaded). Upstream V reserves tcc for
-          # dev builds and recommends clang/gcc for -prod release builds.
-          # Windows keeps default flags: that leg runs the 0.5.2 fallback
-          # toolchain, which cannot -prod the stdlib `import json` still
-          # present in modules/agent_toolkit_server/server.veb.v.
-          VFLAGS=""
-          case "${RUNNER_OS:-}" in
-            macOS) VFLAGS="-prod -cc clang" ;;
-            Linux) VFLAGS="-prod -cc gcc" ;;
-          esac
+          # Release link flags + portability gate: single source of truth in
+          # scripts/release-linkage.sh (#1199) — never re-inline per-OS flags
+          # here, or the linkage-smoke job stops proving the release build.
+          VFLAGS="$("${GITHUB_WORKSPACE}/scripts/release-linkage.sh" flags)"
           # shellcheck disable=SC2086
           "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
-          # Linkage gates: never ship runner-absolute or unbundled native refs.
-          case "${RUNNER_OS:-}" in
-            macOS)
-              otool -L "build/${OUT_BIN}"
-              if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
-                echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
-                exit 1
-              fi
-              echo "macOS linkage: portable (no runner-absolute libgc)"
-              ;;
-            Linux)
-              ldd "build/${OUT_BIN}"
-              if ldd "build/${OUT_BIN}" | grep -q 'not found'; then
-                echo "::error::unresolved shared libraries in build/${OUT_BIN} (see ldd above)" >&2
-                exit 1
-              fi
-              echo "Linux linkage: all shared libraries resolved"
-              ;;
-            Windows*)
-              # log-only: inventory binary-vs-system DLLs for review
-              (objdump -p "build/${OUT_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
-              ;;
-          esac
+          "${GITHUB_WORKSPACE}/scripts/release-linkage.sh" gate "build/${OUT_BIN}"
           # #1057/#1116/#1130: validate the launcher entry shipped in the
           # desktop archives (ubuntu legs have desktop-file-utils)
           if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
@@ -341,19 +311,10 @@ jobs:
           fi
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          # Release linkage: production builds must not use V's default tcc
-          # backend — on macOS it bakes a runner-absolute @rpath/libgc.dylib
-          # (~/vlang-master/thirdparty/tcc) that dyld cannot load on user
-          # machines (dyld: Library not loaded). Upstream V reserves tcc for
-          # dev builds and recommends clang/gcc for -prod release builds.
-          # Windows keeps default flags: that leg runs the 0.5.2 fallback
-          # toolchain, which cannot -prod the stdlib `import json` still
-          # present in modules/agent_toolkit_server/server.veb.v.
-          VFLAGS=""
-          case "${RUNNER_OS:-}" in
-            macOS) VFLAGS="-prod -cc clang" ;;
-            Linux) VFLAGS="-prod -cc gcc" ;;
-          esac
+          # Release link flags + portability gate: single source of truth in
+          # scripts/release-linkage.sh (#1199) — never re-inline per-OS flags
+          # here, or the linkage-smoke job stops proving the release build.
+          VFLAGS="$("${GITHUB_WORKSPACE}/scripts/release-linkage.sh" flags)"
           if [[ "${ASSET}" == *desktop* ]]; then
             # gg_text_buff_size=4096 — 4096² fontstash atlas: room for Fraunces + Plex + Plex Mono + CJK/Arabic i18n at every type-ramp size (sfons cannot expand the atlas at runtime)
             # shellcheck disable=SC2086
@@ -365,29 +326,7 @@ jobs:
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
-          # Linkage gates: never ship runner-absolute or unbundled native refs.
-          case "${RUNNER_OS:-}" in
-            macOS)
-              otool -L "build/${OUT_BIN}"
-              if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
-                echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
-                exit 1
-              fi
-              echo "macOS linkage: portable (no runner-absolute libgc)"
-              ;;
-            Linux)
-              ldd "build/${OUT_BIN}"
-              if ldd "build/${OUT_BIN}" | grep -q 'not found'; then
-                echo "::error::unresolved shared libraries in build/${OUT_BIN} (see ldd above)" >&2
-                exit 1
-              fi
-              echo "Linux linkage: all shared libraries resolved"
-              ;;
-            Windows*)
-              # log-only: inventory binary-vs-system DLLs for review
-              (objdump -p "build/${OUT_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
-              ;;
-          esac
+          "${GITHUB_WORKSPACE}/scripts/release-linkage.sh" gate "build/${OUT_BIN}"
           # #1057/#1116/#1130: validate the launcher entry shipped in the
           # desktop archives (ubuntu legs have desktop-file-utils)
           if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
@@ -441,12 +380,10 @@ jobs:
           set -euo pipefail
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          # Same per-OS release flags as build-binaries/build-desktop above.
-          VFLAGS=""
-          case "${RUNNER_OS:-}" in
-            macOS) VFLAGS="-prod -cc clang" ;;
-            Linux) VFLAGS="-prod -cc gcc" ;;
-          esac
+          # Flags and gate come from the same helper as the release jobs, so
+          # this job proves the exact release build instead of a copy of it.
+          LINKAGE_HELPER="${GITHUB_WORKSPACE}/scripts/release-linkage.sh"
+          VFLAGS="$("${LINKAGE_HELPER}" flags)"
           CLI_BIN=agent-toolkit
           DESK_BIN=agent-toolkit-desktop
           case "${RUNNER_OS:-}" in
@@ -458,30 +395,7 @@ jobs:
           "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -d gg_text_buff_size=4096 -o "build/${DESK_BIN}" cmd/agent-toolkit-desktop
           "build/${CLI_BIN}" --version
           "build/${DESK_BIN}" --version
-          case "${RUNNER_OS:-}" in
-            macOS)
-              otool -L "build/${CLI_BIN}"
-              otool -L "build/${DESK_BIN}"
-              if otool -L "build/${CLI_BIN}" "build/${DESK_BIN}" | grep -E '/Users/runner|/home/runner|thirdparty/tcc|@rpath/libgc'; then
-                echo "::error::non-portable linkage (see otool above)" >&2
-                exit 1
-              fi
-              echo "macOS linkage: portable"
-              ;;
-            Linux)
-              ldd "build/${CLI_BIN}"
-              ldd "build/${DESK_BIN}"
-              if ldd "build/${CLI_BIN}" "build/${DESK_BIN}" | grep -q 'not found'; then
-                echo "::error::unresolved shared libraries (see ldd above)" >&2
-                exit 1
-              fi
-              echo "Linux linkage: all shared libraries resolved"
-              ;;
-            Windows*)
-              (objdump -p "build/${CLI_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
-              (objdump -p "build/${DESK_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
-              ;;
-          esac
+          "${LINKAGE_HELPER}" gate "build/${CLI_BIN}" "build/${DESK_BIN}"
 
   upload-assets:
     name: Attach V binaries, archives, SHA256SUMS, manifest
