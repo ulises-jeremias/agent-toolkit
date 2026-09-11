@@ -291,9 +291,11 @@ fn main() {
 		fail('onboarding completion did not persist after retries', 1)
 	}
 	h.shot('journey-final.png')
+	// diagnostics go to harness stdout (visible in CI logs) — never
+	// swallowed: os.execute captures child output, so print it explicitly.
 	eprintln('journey diagnostics:')
-	sh('find ${shellq(home_fresh)} -name \'*.json\' | head -5 >&2 || true')
-	sh("DISPLAY=${shellq(h.disp)} xdotool getactivewindowname 2>/dev/null >&2 || true")
+	println(sh('find ${shellq(home_fresh)} -name \'*.json\' | head -5 || true').output)
+	println(sh("DISPLAY=${shellq(h.disp)} xdotool getactivewindowname 2>/dev/null || true").output)
 
 	state_file := os.join_path(home_fresh, '.cache', 'agent-toolkit', 'desktop',
 		'engine_state.json')
@@ -301,12 +303,12 @@ fn main() {
 	h.cleanup()
 	if !os.is_file(state_file) {
 		eprintln('state file locations probed:')
-		sh('find ${shellq(home_fresh)} -name \'engine_state*\' >&2 || true')
+		println(sh('find ${shellq(home_fresh)} -name \'engine_state*\' || true').output)
 		fail('engine state file missing after first run', 1)
 	}
 	tf := os.join_path(h.prefix, 'assert.py')
-	os.write_file(tf, 'import json\nr = json.load(open(${shellq(state_file)})).get("data", {})\nprint("DBG onboarding_completed:", repr(r.get("onboarding_completed")))\nprint("DBG keys sample:", sorted(r.keys())[:24])\n') or {}
-	sh('python3 ${shellq(tf)} || true')
+	os.write_file(tf, 'import json\nr = json.load(open(${shellq(state_file)})).get("data", {})\nprint("DBG onboarding_completed:", repr(r.get("onboarding_completed")))\nprint("DBG revision:", repr(r.get("revision")))\nprint("DBG keys sample:", sorted(r.keys())[:40])\n') or {}
+	println(sh('python3 ${shellq(tf)} || true').output)
 	h.assert_state(state_file, "r.get('data', {}).get('onboarding_completed') == 'true'",
 		'first-run-completion-persisted')
 	h.assert_state(state_file, "len([s for s in (r.get('data', {}).get('installed_skills') or '').split(',') if s]) >= 1",
