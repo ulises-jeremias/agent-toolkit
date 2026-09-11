@@ -253,7 +253,7 @@ def test_matrix_per_target_details_include_tier():
 def test_matrix_generated_header():
     text = MATRIX.read_text(encoding="utf-8")
     assert "Generated from `capabilities/targets/registry.yaml` — do not hand-edit." in text
-    assert "Run `python3 scripts/generate-target-matrix.py`" in text
+    assert "Run `./scripts/generate-target-matrix.vsh`" in text
 
 
 def test_tier_not_confused_with_maturity():

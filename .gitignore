@@ -45,3 +45,5 @@ capabilities/upstream-apply-summary.json
 scripts/swarm-visual/.venv/
 knowledge/learnings/
 scripts/.pack_release_assets.v3cc.*
+# `v run` compiler cache dirs next to any executed .vsh (was per-file list)
+**/.*.v3cc.*

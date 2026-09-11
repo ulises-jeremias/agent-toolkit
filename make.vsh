@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // V foundation targets for modules/ (ADR-009).
-// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make]
+// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make|gen-surface|gen-target-matrix]
 // Optional: ./make.vsh compile-make && ./make <target>
 //
 // vlib build (context.run) only runs non-hyphen args as tasks; flags like
@@ -108,6 +108,7 @@ context.task(
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
 		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
 		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
+		println('  gen-surface | gen-target-matrix')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
 	}
 )
@@ -169,6 +170,24 @@ context.task(name: 'gen-embedded', help: 'Generate modules/agent_toolkit_core/em
 	rc := vcmd('run ${gen_vsh}')
 	if rc != 0 {
 		eprintln('gen-embedded vsh failed')
+		exit(rc)
+	}
+})
+
+context.task(name: 'gen-surface', help: 'Emit OpenAPI + CLI help from cli-contract.yaml', run: fn [r] (_ build.Task) ! {
+	println('==> gen-surface (vsh)')
+	rc := vcmd('run ${join_path(r, 'scripts', 'generate_surface.vsh')}')
+	if rc != 0 {
+		eprintln('gen-surface failed')
+		exit(rc)
+	}
+})
+
+context.task(name: 'gen-target-matrix', help: 'Emit docs/TARGET_CAPABILITY_MATRIX.md from targets registry', run: fn [r] (_ build.Task) ! {
+	println('==> gen-target-matrix (vsh)')
+	rc := vcmd('run ${join_path(r, 'scripts', 'generate-target-matrix.vsh')}')
+	if rc != 0 {
+		eprintln('gen-target-matrix failed')
 		exit(rc)
 	}
 })

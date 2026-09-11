@@ -16,7 +16,7 @@ Goal: "CLI, Server, TUI, GUI can do everything". Hand-maintaining four surfaces 
 
 `cli-contract.yaml` is the **single source of truth** for all surfaces.
 
-Codegen (`scripts/generate_surface.py`, Phase 0) emits:
+Codegen (`./scripts/generate_surface.vsh`, Phase 0) emits:
 
 | Artifact | Consumer |
 |---|---|

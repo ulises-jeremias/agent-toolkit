@@ -95,7 +95,7 @@ def test_openapi_version_matches_version_file():
     openapi_version = spec.get("info", {}).get("version", "")
     version_file = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     assert openapi_version == version_file, (
-        f"OpenAPI version {openapi_version!r} != VERSION {version_file!r} — run python3 scripts/generate_surface.py"
+        f"OpenAPI version {openapi_version!r} != VERSION {version_file!r} — run ./scripts/generate_surface.vsh"
     )
 
 
@@ -115,7 +115,7 @@ def test_contract_to_openapi_to_routes_triple_parity():
     registered.discard("/")
     # Also check CLI help generated from contract exists and is fresh (handled by generate_surface --check)
     help_path = ROOT / "docs" / "surface" / "cli-help.md"
-    assert help_path.exists(), "docs/surface/cli-help.md missing — run generate_surface.py"
+    assert help_path.exists(), "docs/surface/cli-help.md missing — run generate_surface.vsh"
     help_text = help_path.read_text(encoding="utf-8")
     for name in contract_api:
         assert f"`{name}`" in help_text, f"CLI help missing contract command {name!r}"

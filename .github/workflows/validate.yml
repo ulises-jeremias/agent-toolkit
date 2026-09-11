@@ -213,11 +213,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install dependencies
-        run: pip install pyyaml==6.0.2
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
 
       - name: Check generated surface artifacts (OpenAPI, CLI help) from cli-contract.yaml
-        run: python3 scripts/generate_surface.py --check
+        run: ./scripts/generate_surface.vsh --check
 
   check-catalogs:
     name: Check Generated Catalogs
@@ -258,6 +258,7 @@ jobs:
 
       - name: Validate target registry against schema
         run: |
+          set -euo pipefail
           python3 - <<'PYEOF'
           import json, yaml, sys
           from pathlib import Path
@@ -270,14 +271,12 @@ jobs:
               print(f"FAIL: capabilities/targets/registry.yaml: {e.message}", file=sys.stderr)
               sys.exit(1)
           print("OK: capabilities/targets/registry.yaml validates against target-capability-registry.schema.json")
-          # profiles coverage is validated inside generate-target-matrix.py
-          import subprocess
-          res = subprocess.run([sys.executable, "scripts/generate-target-matrix.py", "--check"])
-          sys.exit(res.returncode)
           PYEOF
+          # profiles coverage is validated inside the matrix generator
+          ./scripts/generate-target-matrix.vsh --check
 
       - name: Check target capability matrix drift
-        run: python3 scripts/generate-target-matrix.py --check
+        run: ./scripts/generate-target-matrix.vsh --check
 
   check-skill-capability:
     name: Check Skill Capability Registry (#863)
@@ -305,7 +304,7 @@ jobs:
           PYEOF
 
       - name: Check skill capability registry (no orphans, 116+ skills, design routing)
-        run: python3 scripts/validate-skill-capability.py --check
+        run: ./scripts/validate-skill-capability.vsh --check
 
   # ── Job 5: Validate loop.yaml files against loop.schema.json ──────────────
   validate-loops:
@@ -1027,9 +1026,9 @@ jobs:
           set -euo pipefail
           echo "Checking generate --check pattern for all artifacts"
           ./scripts/generate-catalogs.vsh --check
-          python3 scripts/generate-target-matrix.py --check
+          ./scripts/generate-target-matrix.vsh --check
           ./scripts/generate-skill-matrix.vsh --check
-          python3 scripts/generate_surface.py --check
+          ./scripts/generate_surface.vsh --check
           python3 scripts/provenance.py check
           python3 scripts/provenance.py lock --check
           python3 scripts/provenance.py docs --check

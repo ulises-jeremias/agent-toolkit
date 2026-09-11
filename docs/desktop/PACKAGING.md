@@ -35,7 +35,7 @@ translated strings — it harvests every CJK codepoint from `main.v`.
 |---|---|
 | `agent-toolkit-desktop` | native binary (fonts/resources embedded; resolves runtime state under XDG cache at first run) |
 | `agent-toolkit-desktop.desktop` | Desktop Entry spec launcher (`StartupWMClass` matches the window title) |
-| `icons/agent-toolkit-desktop-{16,24,32,48,64,128,256,512}.png` + `-scalable.svg` | hicolor icon set — Paper Co. envelope mark (deterministic generator: `packaging/linux/gen-icon.py`) |
+| `icons/agent-toolkit-desktop-{16,24,32,48,64,128,256,512}.png` + `-scalable.svg` | hicolor icon set — Paper Co. envelope mark (deterministic generator: `packaging/linux/gen-icon.vsh`) |
 | `share/man/man1/agent-toolkit-desktop.1` | man page (synopsis, keymap, env, files) |
 | `install-desktop.sh` | receipt-backed per-user install/uninstall |
 | `LICENSE` | license |
