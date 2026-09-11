@@ -90,18 +90,36 @@ fn (mut h Harness) record(key string, state string, detail string) {
 	}
 }
 
+// kill_graceful TERMs a pid and waits (bounded) for it to exit so the app
+// can flush persisted state — restart/restore assertions follow every kill,
+// and an early SIGKILL loses the workspace write. SIGKILL is only the
+// backstop for TERM-ignorers.
+fn kill_graceful(pid int, wait_secs int) {
+	if pid <= 0 || !alive(pid) {
+		return
+	}
+	sh('kill ${pid} 2>/dev/null || true')
+	for _ in 0 .. wait_secs * 2 {
+		if !alive(pid) {
+			return
+		}
+		time.sleep(500 * time.millisecond)
+	}
+	sh('kill -9 ${pid} 2>/dev/null || true')
+	for _ in 0 .. 4 {
+		if !alive(pid) {
+			break
+		}
+		time.sleep(250 * time.millisecond)
+	}
+}
+
 fn (mut h Harness) kill_session() {
-	for p in [h.app_pid, h.ob_pid, h.xvfb_pid] {
-		if p != 0 {
-			sh('kill ${p} 2>/dev/null || true')
-		}
-	}
-	time.sleep(300 * time.millisecond)
-	for p in [h.app_pid, h.ob_pid, h.xvfb_pid] {
-		if p != 0 {
-			sh('kill -9 ${p} 2>/dev/null || true')
-		}
-	}
+	// the app gets a generous flush window (state assertions follow every
+	// kill); the window manager and X server only need to die, not to flush.
+	kill_graceful(h.app_pid, 15)
+	kill_graceful(h.ob_pid, 3)
+	kill_graceful(h.xvfb_pid, 3)
 	h.app_pid = 0
 	h.ob_pid = 0
 	h.xvfb_pid = 0
