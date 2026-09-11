@@ -161,8 +161,13 @@ def test_upstream_pr_body_lists_applied_updates(tmp_path):
     vbin = os.environ.get("VBIN") or os.environ.get("V") or shutil.which("v") or "v"
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     proc = subprocess.run(
-        [vbin, "run", os.path.join(repo_root, "scripts", "upstream_pr_body.vsh"),
-         "--summary", str(summary_path)],
+        [
+            vbin,
+            "run",
+            os.path.join(repo_root, "scripts", "upstream_pr_body.vsh"),
+            "--summary",
+            str(summary_path),
+        ],
         capture_output=True,
         text=True,
         timeout=300,
