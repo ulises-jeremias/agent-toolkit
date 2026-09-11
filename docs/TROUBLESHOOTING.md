@@ -13,7 +13,7 @@ Actionable fixes for the top failure modes reported by `agent-toolkit doctor` an
 ```bash
 uv tool install --force agent-toolkit-cli   # wheel with data
 # or, from source checkout:
-scripts/prepare-package-data.sh
+scripts/prepare-package-data.vsh
 agent-toolkit install
 ```
 

@@ -132,6 +132,9 @@ jobs:
       - name: Validate agents taxonomy (holistic/specialist roster vs registry, products, AGENT_TAXONOMY.md)
         run: ./scripts/validate-agents-taxonomy.vsh --check
 
+      - name: Contrast gate (Paper/Ink theme tokens vs WCAG 2.1 4.5:1)
+        run: ./scripts/check-contrast.vsh
+
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
     name: Validate Marketplace Manifests

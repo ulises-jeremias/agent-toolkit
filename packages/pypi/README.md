@@ -30,6 +30,6 @@ PyPI installs a Python project so Hatch can emit console scripts. That package i
 | `src/agent_toolkit/launcher.py` | `agent-toolkit` / `agent-toolkit-cli` → `exec` the bundled V binary (npm-style) |
 | `src/agent_toolkit/__init__.py` / `__main__.py` | Version + `python -m agent_toolkit` |
 | `src/agent_toolkit/bin/` | Wheel-time home for the Release V binary (`scripts/pack_pypi.vsh`) |
-| `src/agent_toolkit/data/` | Capability trees from `scripts/prepare-package-data.sh` |
+| `src/agent_toolkit/data/` | Capability trees from `scripts/prepare-package-data.vsh` |
 
 The old Python CLI (`cli/`, `compiler/`, `installer/`, …) and `agent-toolkit-py` were **removed**. Product logic and tests live in V (`modules/**`, `*_test.v`) and CI.
