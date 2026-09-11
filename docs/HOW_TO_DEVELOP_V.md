@@ -13,6 +13,7 @@ Index: [`docs/v/README.md`](v/README.md) · packaging adapters: [`distribution/R
 | Layout | `modules/agent_toolkit_core`, `modules/agent_toolkit_cli`, `cmd/agent-toolkit` ([ADR-009](adrs/ADR-009-v-module-architecture.md)) |
 | Output | `./make.vsh build-cli` → `build/agent-toolkit` |
 | Scripts | Repo tooling is `.vsh` with shebang — run `./scripts/…` (not `v run scripts/…`); task runner is `./make.vsh` ([vlib `build`](https://github.com/vlang/v/tree/master/vlib/build), [example](https://github.com/vlang/v/blob/master/examples/build_system/build.vsh)) — no Makefile |
+| Script keepers | Four scripts stay non-V by design: `scripts/provenance.py` (SLSA chain), `scripts/validate-upstream.py` (network + YAML), `scripts/release-linkage.sh` (sourced flags library for release builds), `scripts/subset-sc-font.sh` (fontTools/curl wrapper, manual use) |
 
 ```bash
 v version          # second field must match .v-version
