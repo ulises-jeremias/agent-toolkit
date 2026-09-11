@@ -8,7 +8,7 @@
 
 ## Context
 
-Toolkit data can come from multiple places: editable repo checkout (`skills/`, `profiles/`, `loops/` at repo root), wheel-bundled `agent_toolkit/data/` (populated by `scripts/prepare-package-data.sh` before `uv build`), XDG cache (`~/.cache/agent-toolkit` or `~/.local/share/agent-toolkit/data`), or a GitHub Release tarball download. The resolution logic lives in `packages/pypi/agent-toolkit-cli/src/agent_toolkit/_paths.py` / `data_cache.py` / `data_sync.py` and is tribal knowledge for Homebrew/AUR packagers (#257/#258).
+Toolkit data can come from multiple places: editable repo checkout (`skills/`, `profiles/`, `loops/` at repo root), wheel-bundled `agent_toolkit/data/` (populated by `scripts/prepare-package-data.vsh` before `uv build`), XDG cache (`~/.cache/agent-toolkit` or `~/.local/share/agent-toolkit/data`), or a GitHub Release tarball download. The resolution logic lives in `packages/pypi/agent-toolkit-cli/src/agent_toolkit/_paths.py` / `data_cache.py` / `data_sync.py` and is tribal knowledge for Homebrew/AUR packagers (#257/#258).
 
 Brew/AUR bugs stem from misunderstanding this. Bus-factor hotspot: not documented centrally.
 
@@ -17,7 +17,7 @@ Brew/AUR bugs stem from misunderstanding this. Bus-factor hotspot: not documente
 ### Source of truth
 
 - **Canonical content SoT:** the monorepo trees `skills/`, `agents/`, `loops/`, `profiles/`, `mcp/`, `catalogs/`, `distributions/`, `packs/`, `capabilities/` at repo root. These are the only human-edited sources.
-- **Wheel SoT:** `packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/` is a **generated copy** of the canonical trees (via `scripts/prepare-package-data.sh`). It is gitignored and rebuilt on every `uv build`. Wheel installs never read the repo root.
+- **Wheel SoT:** `packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/` is a **generated copy** of the canonical trees (via `scripts/prepare-package-data.vsh`). It is gitignored and rebuilt on every `uv build`. Wheel installs never read the repo root.
 - **XDG cache SoT:** `~/.local/share/agent-toolkit/data` (or `XDG_DATA_HOME`) is a **derived cache** populated from a GitHub Release tarball by `data_sync.py` / `data_cache.py`. It is not committed.
 
 ### Resolution order (runtime)
@@ -36,7 +36,7 @@ Offline (`AGENT_TOOLKIT_OFFLINE=1|true|yes`) skips the network step and only che
 
 ### Packaging notes
 
-- **Wheel build:** `scripts/prepare-package-data.sh` copies all capability trees into `packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/` before `uv build --project packages/pypi/agent-toolkit-cli`. CI job `build-package` runs this; local dev must run it before `pip install` from sdist.
+- **Wheel build:** `scripts/prepare-package-data.vsh` copies all capability trees into `packages/pypi/agent-toolkit-cli/src/agent_toolkit/data/` before `uv build --project packages/pypi/agent-toolkit-cli`. CI job `build-package` runs this; local dev must run it before `pip install` from sdist.
 - **Editable install:** `uv sync --project packages/pypi/agent-toolkit-cli --all-extras` + `AGENT_TOOLKIT_ROOT=$PWD` uses the repo root directly; no need to prepare package data. The repo root is not a uv workspace.
 - **Homebrew / AUR (current):** Formula and `agent-toolkit-bin` install **GitHub Release V binaries** ([ADR-023](ADR-023-homebrew.md), [ADR-024](ADR-024-aur.md)). They do not consume this Python wheel. See [`distribution/`](../../distribution/README.md).
 - **Historical Python-wheel packaging notes:** if unpacking wheel `data/` separately, set `AGENT_TOOLKIT_ROOT` and `AGENT_TOOLKIT_OFFLINE=1` in sandboxed builds (see #257/#258).
@@ -57,7 +57,7 @@ Offline (`AGENT_TOOLKIT_OFFLINE=1|true|yes`) skips the network step and only che
 
 - `packages/pypi/agent-toolkit-cli/src/agent_toolkit/_paths.py` (`find_toolkit_root`, `toolkit_root`)
 - `packages/pypi/agent-toolkit-cli/src/agent_toolkit/data_cache.py` and `data_sync.py`
-- `scripts/prepare-package-data.sh`
+- `scripts/prepare-package-data.vsh`
 - `packages/pypi/agent-toolkit-cli/pyproject.toml` (`[tool.hatch.build.targets.wheel]` + sdist)
-- `.github/workflows/validate.yml` job `build-package` (runs prepare-package-data.sh before uv build)
+- `.github/workflows/validate.yml` job `build-package` (runs prepare-package-data.vsh before uv build)
 - Related packaging issues #257 (Homebrew), #258 (AUR)

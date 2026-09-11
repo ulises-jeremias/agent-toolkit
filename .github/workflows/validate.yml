@@ -130,7 +130,10 @@ jobs:
         run: ./scripts/validate-agents.vsh
 
       - name: Validate agents taxonomy (holistic/specialist roster vs registry, products, AGENT_TAXONOMY.md)
-        run: python3 scripts/validate-agents-taxonomy.py --check
+        run: ./scripts/validate-agents-taxonomy.vsh --check
+
+      - name: Contrast gate (Paper/Ink theme tokens vs WCAG 2.1 4.5:1)
+        run: ./scripts/check-contrast.vsh
 
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
@@ -522,10 +525,10 @@ jobs:
           VMODULES: ${{ github.workspace }}/modules
         run: |
           set -euo pipefail
-          bash scripts/prepare-package-data.sh
+          ./scripts/prepare-package-data.vsh
           uv build --sdist --out-dir dist packages/pypi/agent-toolkit-cli
           ./make.vsh build-cli
-          bash scripts/prepare-native-bin.sh
+          ./scripts/prepare-native-bin.vsh
           uv build --wheel --out-dir dist packages/pypi/agent-toolkit-cli
           ls -lh dist/
           python3 - <<'PY'

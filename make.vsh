@@ -112,6 +112,12 @@ fn run_harness(r string, script string, extra string) {
 	}
 }
 
+// has_flag reports a bare `--name` runtime flag (vlib/build skips hyphen
+// args when selecting tasks, so knobs arrive via os.args).
+fn has_flag(name string) bool {
+	return '--${name}' in os.args
+}
+
 fn need_artifact() string {
 	a := flag_value('artifact')
 	if a.len == 0 {
@@ -305,9 +311,9 @@ context.task(name: 'contrast', help: 'Contrast gate: Paper/Ink WCAG 4.5:1 from t
 	run_harness(r, 'check-contrast.vsh', '')
 })
 
-context.task(name: 'coverage', help: 'Workflow coverage report (--check to gate)', run: fn [r] (_ build.Task) ! {
+context.task(name: 'coverage', help: 'Workflow coverage report (add --check to gate)', run: fn [r] (_ build.Task) ! {
 	println('==> coverage')
-	run_harness(r, 'gui-coverage.vsh', '')
+	run_harness(r, 'gui-coverage.vsh', if has_flag('check') { '--check' } else { '' })
 })
 
 context.task(name: 'clean-machine', help: 'Layered clean-machine acceptance (needs --artifact=)', run: fn [r] (_ build.Task) ! {
