@@ -33,7 +33,7 @@ Classifications are recommendations requiring relevant runtime proof before clos
 
 | Issue | Classification | Priority | Evidence and next scope |
 |---|---|---|---|
-| [#1131](https://github.com/ulises-jeremias/agent-toolkit/issues/1131) feat(desktop): responsive layout matrix — min sizes, narrow windows, HiDPI | STILL_VALID | P1 | Define supported size/scale states and real screenshot matrix; scripts/golden.sh:55 fixes capture to 1280x800, so no cross-size proof. |
+| [#1131](https://github.com/ulises-jeremias/agent-toolkit/issues/1131) feat(desktop): responsive layout matrix — min sizes, narrow windows, HiDPI | STILL_VALID | P1 | Define supported size/scale states and real screenshot matrix; scripts/golden.vsh fixes capture to 1280x800, so no cross-size proof. |
 | [#1130](https://github.com/ulises-jeremias/agent-toolkit/issues/1130) feat(desktop): clean-machine packaging validation — install and launch from release artifacts | STILL_VALID | P0 | Clean artifact launch remains unproven; docs/desktop/PACKAGING.md and packaging/linux launcher are not acceptance evidence. |
 | [#1129](https://github.com/ulises-jeremias/agent-toolkit/issues/1129) feat(desktop): desktop-launch tool discovery and PATH transparency | STILL_VALID | P0 | Launcher PATH/tool discovery must be tested through real catalog and sparse environment; modules/pty/pty.v is current PTY backend. |
 | [#1128](https://github.com/ulises-jeremias/agent-toolkit/issues/1128) feat(desktop): managed-workspace lifecycle — discover, open, switch, seed without destructive changes | NEEDS_REWRITE | P0 | Keep safe lifecycle; remove prescribed harness-shaped sample requirement. Current onboarding ViewModel uses harness_root (modules/desktop/onboarding/onboarding_viewmodel.v:88). |

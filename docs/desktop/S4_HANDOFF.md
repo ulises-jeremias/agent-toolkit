@@ -125,7 +125,7 @@ Keep every slice independently shippable with its own green Required CI.
   semantics your actions will invoke (install writes real receipts; enabling
   MCP uses packaged templates; doctor fixes are real repairs; updates are
   honest-unavailable).
-- `scripts/gui-coverage.py` — evolve from CLI-row parity to task/workflow
+- `scripts/gui-coverage.vsh` — evolve from CLI-row parity to task/workflow
   coverage of the registry's critical workflows.
 - Full gates: `./make.vsh test`, production desktop build
   (`VJOBS=2 VMODULES="$PWD/modules" v -d gg_text_buff_size=4096 -o
