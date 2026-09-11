@@ -150,7 +150,7 @@ pub fn find_in_path(binary string) bool {
 	if path == '' {
 		return false
 	}
-	sep := ':'
+	mut sep := ':'
 	$if windows {
 		sep = ';'
 	}
