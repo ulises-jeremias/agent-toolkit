@@ -1,7 +1,7 @@
 # Target Capability Matrix
 
 > Generated from `capabilities/targets/registry.yaml` — do not hand-edit.
-> Run `python3 scripts/generate-target-matrix.py` to regenerate, or `python3 scripts/generate-target-matrix.py --check` in CI.
+> Run `./scripts/generate-target-matrix.vsh` to regenerate, or `./scripts/generate-target-matrix.vsh --check` in CI.
 
 _Researched at: 2026-08-25 — sources per target below._
 

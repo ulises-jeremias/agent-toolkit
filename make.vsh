@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v run
 // V foundation targets for modules/ (ADR-009).
-// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|ui-smoke|golden|browser-install|enter-regression|dmg-boot|clean-machine|first-run|workspace-lifecycle|compile-make]
+// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|ui-smoke|golden|browser-install|enter-regression|dmg-boot|clean-machine|first-run|workspace-lifecycle|gen-surface|gen-target-matrix|compile-make]
 // Artifact harnesses (clean-machine|first-run|workspace-lifecycle) take --artifact=<desktop-archive.tar.gz>.
 // Optional: ./make.vsh compile-make && ./make <target>
 //
@@ -145,6 +145,7 @@ context.task(
 		println('  ui-smoke | golden | browser-install | enter-regression | dmg-boot')
 		println('  tofu | contrast | coverage')
 		println('  clean-machine | first-run | workspace-lifecycle  (need --artifact=<desktop-archive.tar.gz>)')
+		println('  gen-surface | gen-target-matrix')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
 		println('  ui-smoke/golden/enter-regression need build/agent-toolkit-desktop-native (see release.yml build step)')
 	}
@@ -207,6 +208,24 @@ context.task(name: 'gen-embedded', help: 'Generate modules/agent_toolkit_core/em
 	rc := vcmd('run ${gen_vsh}')
 	if rc != 0 {
 		eprintln('gen-embedded vsh failed')
+		exit(rc)
+	}
+})
+
+context.task(name: 'gen-surface', help: 'Emit OpenAPI + CLI help from cli-contract.yaml', run: fn [r] (_ build.Task) ! {
+	println('==> gen-surface (vsh)')
+	rc := vcmd('run ${join_path(r, 'scripts', 'generate_surface.vsh')}')
+	if rc != 0 {
+		eprintln('gen-surface failed')
+		exit(rc)
+	}
+})
+
+context.task(name: 'gen-target-matrix', help: 'Emit docs/TARGET_CAPABILITY_MATRIX.md from targets registry', run: fn [r] (_ build.Task) ! {
+	println('==> gen-target-matrix (vsh)')
+	rc := vcmd('run ${join_path(r, 'scripts', 'generate-target-matrix.vsh')}')
+	if rc != 0 {
+		eprintln('gen-target-matrix failed')
 		exit(rc)
 	}
 })

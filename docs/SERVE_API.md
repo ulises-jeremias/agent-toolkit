@@ -25,7 +25,7 @@ agent-toolkit serve --port 8080 --no-browser
 Regenerate after changing the contract:
 
 ```bash
-python3 scripts/generate_surface.py        # or --check in CI
+./scripts/generate_surface.vsh        # or --check in CI
 ```
 
 ## Surface map

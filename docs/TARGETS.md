@@ -90,4 +90,4 @@ All capability claims are based on official documentation as of 2026-08-25 (rese
 See `docs/research/platform-capability-matrix.md` and `docs/research/source-ledger.md` (prior research 2026-08-04, refreshed per-#862/#868).
 
 Per-target certification: `docs/certification/windsurf.md` (customization bundle, ADR-002).
-`docs/TARGET_CAPABILITY_MATRIX.md` is the generated, CI-checked view of `capabilities/targets/registry.yaml` — run `python3 scripts/generate-target-matrix.py --check` or `agent-toolkit build --check`.
+`docs/TARGET_CAPABILITY_MATRIX.md` is the generated, CI-checked view of `capabilities/targets/registry.yaml` — run `./scripts/generate-target-matrix.vsh --check` or `agent-toolkit build --check`.

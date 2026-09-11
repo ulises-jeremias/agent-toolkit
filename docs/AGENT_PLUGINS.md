@@ -92,7 +92,7 @@ Other clients ignore `com.anthropic.claude-code`.
 - `pi` → `pi-package.json` (requires TypeScript ExtensionAPI, npm package)
 - `muse-code` → `muse-plugin` (custom `~/.config/muse/skills/<name>/SKILL.md` + `.agents/skills` fallback, no marketplace)
 
-For these `custom` targets, `agent_plugins_extension` in the registry records the required extension. A consumer must not expect a custom agent written for the portable `agent-plugins` bundle to run on a `custom` target without that extension — the matrix cell reads `` `custom` (requires <extension>) `` not `` `v1` ``. Validation: `python3 scripts/generate-target-matrix.py --check` fails on ambiguous `custom` without extension annotation — see `capabilities/targets/registry.yaml` (`agent_plugins_extension`) and `schemas/target-capability-registry.schema.json`.
+For these `custom` targets, `agent_plugins_extension` in the registry records the required extension. A consumer must not expect a custom agent written for the portable `agent-plugins` bundle to run on a `custom` target without that extension — the matrix cell reads `` `custom` (requires <extension>) `` not `` `v1` ``. Validation: `./scripts/generate-target-matrix.vsh --check` fails on ambiguous `custom` without extension annotation — see `capabilities/targets/registry.yaml` (`agent_plugins_extension`) and `schemas/target-capability-registry.schema.json`.
 
 **Not portable / no plugin (`none` + `agent_plugins_extension: none`):**
 

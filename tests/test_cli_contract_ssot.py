@@ -37,7 +37,7 @@ def test_cli_surfaces_contains_all_contract_commands():
 def test_generate_surface_check_wired():
     wf = (ROOT / ".github/workflows/validate.yml").read_text()
     assert "check-surface" in wf
-    assert "generate_surface.py --check" in wf
+    assert "generate_surface.vsh --check" in wf
     assert "check-surface" in wf.split("required-ci:")[1].split("needs:")[1].split("steps:")[0]
 
 
