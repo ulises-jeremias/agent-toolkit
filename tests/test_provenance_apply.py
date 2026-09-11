@@ -137,22 +137,38 @@ def test_apply_skill_update_sets_experimental(tmp_path, monkeypatch):
     assert result["body_checksum"] == prov._body_sha256(body)
 
 
-def test_upstream_pr_body_lists_applied_updates():
-    from scripts.upstream_pr_body import render
+def test_upstream_pr_body_lists_applied_updates(tmp_path):
+    # upstream_pr_body is a .vsh now (scripts/upstream_pr_body.vsh) — drive it
+    # through its CLI contract instead of importing it.
+    import json
+    import os
+    import shutil
+    import subprocess
 
-    md = render(
-        {
-            "applied": [
-                {
-                    "capability": "design/frontend-design",
-                    "source": "upstream",
-                    "old_commit": "a" * 40,
-                    "new_commit": "b" * 40,
-                    "body_checksum": "sha256:" + "c" * 64,
-                }
-            ]
-        }
+    summary = {
+        "applied": [
+            {
+                "capability": "design/frontend-design",
+                "source": "upstream",
+                "old_commit": "a" * 40,
+                "new_commit": "b" * 40,
+                "body_checksum": "sha256:" + "c" * 64,
+            }
+        ]
+    }
+    summary_path = tmp_path / "summary.json"
+    summary_path.write_text(json.dumps(summary), encoding="utf-8")
+    vbin = os.environ.get("VBIN") or os.environ.get("V") or shutil.which("v") or "v"
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    proc = subprocess.run(
+        [vbin, "run", os.path.join(repo_root, "scripts", "upstream_pr_body.vsh"),
+         "--summary", str(summary_path)],
+        capture_output=True,
+        text=True,
+        timeout=300,
     )
+    assert proc.returncode == 0, proc.stderr
+    md = proc.stdout
     assert "Do not auto-merge" in md
     assert "design/frontend-design" in md
     assert "experimental" in md

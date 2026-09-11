@@ -10,9 +10,9 @@ on:
       - 'packaging/linux/**'
       - 'distribution/**'
       - 'scripts/pack_release_assets.vsh'
-      - 'scripts/clean-machine-acceptance.sh'
-      - 'scripts/first-run-acceptance.sh'
-      - 'scripts/workspace-lifecycle-acceptance.sh'
+      - 'scripts/clean-machine.vsh'
+      - 'scripts/first-run.vsh'
+      - 'scripts/workspace-lifecycle.vsh'
       - 'cmd/agent-toolkit-desktop/**'
       - '.github/workflows/clean-machine-acceptance.yml'
       - 'VERSION'
@@ -22,9 +22,9 @@ on:
       - 'packaging/linux/**'
       - 'distribution/**'
       - 'scripts/pack_release_assets.vsh'
-      - 'scripts/clean-machine-acceptance.sh'
-      - 'scripts/first-run-acceptance.sh'
-      - 'scripts/workspace-lifecycle-acceptance.sh'
+      - 'scripts/clean-machine.vsh'
+      - 'scripts/first-run.vsh'
+      - 'scripts/workspace-lifecycle.vsh'
       - 'cmd/agent-toolkit-desktop/**'
       - '.github/workflows/clean-machine-acceptance.yml'
       - 'VERSION'
@@ -73,7 +73,7 @@ jobs:
           set -euo pipefail
           # the harness copies the artifact to a neutral prefix and runs with
           # a clean HOME/XDG and no repo in PATH; provenance is asserted
-          ./scripts/clean-machine-acceptance.sh \
+          ./scripts/clean-machine.vsh \
             release-assets/agent-toolkit-desktop-1.30.0-linux-x86_64.tar.gz
       - name: Run #1127 first-run acceptance (same packed artifact)
         env:
@@ -85,7 +85,7 @@ jobs:
           # (xdotool/XTEST under Xvfb) — never engine calls or state-file
           # driving. Scenario A (absolute clean) + B (fixture-labeled
           # integration) + failure/interrupt/existing-state/restart gates.
-          ./scripts/first-run-acceptance.sh \
+          ./scripts/first-run.vsh \
             release-assets/agent-toolkit-desktop-1.30.0-linux-x86_64.tar.gz
       - name: Run #1128 workspace lifecycle acceptance (same packed artifact)
         env:
@@ -98,7 +98,7 @@ jobs:
           # Xvfb) on the INSTALLED binary: multi-workspace switch A→B→A,
           # restart restore, seed safety (collision/foreign/idempotent),
           # invalid-path truthful error.
-          ./scripts/workspace-lifecycle-acceptance.sh \
+          ./scripts/workspace-lifecycle.vsh \
             release-assets/agent-toolkit-desktop-1.30.0-linux-x86_64.tar.gz
       - name: Stage GUI capture + evidence
         if: always()
