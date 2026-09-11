@@ -566,9 +566,12 @@ fn (mut r Registry) journal_execution(action_kind ActionKind, entity_kind Entity
 		undo_entry = finish_undo_expected(prev, mut r)
 		has_undo = true
 	}
-	r.record_execution(action_kind, entity_kind, entity_id, label, outcome.status, outcome.evidence, if has_undo {
-		undo_entry
+	// Explicit ?UndoEntry cast: an untyped struct-or-none if-expression makes
+	// V codegen wrap the value as &(void[]){...}, which mingw-gcc rejects.
+	undo_opt := if has_undo {
+		?UndoEntry(undo_entry)
 	} else {
 		none
-	})
+	}
+	r.record_execution(action_kind, entity_kind, entity_id, label, outcome.status, outcome.evidence, undo_opt)
 }

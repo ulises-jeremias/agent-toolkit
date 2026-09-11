@@ -1077,10 +1077,10 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 			continue
 		}
 		// skip old allowlist/deny dash items if we already emitted replacement
-		if (t.starts_with('- ') && out.len > 0 && out[out.len - 1].contains('allowlist: [')) {
+		if t.starts_with('- ') && out.len > 0 && out[out.len - 1].contains('allowlist: [') {
 			continue
 		}
-		if (t.starts_with('- ') && out.len > 0 && out[out.len - 1].contains('deny: [')) {
+		if t.starts_with('- ') && out.len > 0 && out[out.len - 1].contains('deny: [') {
 			continue
 		}
 		out << line

@@ -8,7 +8,7 @@ pub struct MotionTokens {
 
 	// Durations in milliseconds
 pub:
-	instant    int = 0
+	instant    int
 	fast       int = 120
 	base       int = 200
 	emphasized int = 340
