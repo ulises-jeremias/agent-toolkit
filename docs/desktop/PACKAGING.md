@@ -105,7 +105,9 @@ Icon: `static/icons/agent-toolkit.icns` generated via `iconutil -c icns` from `1
 `make.vsh package-desktop-macos` (and matrix entry `package-desktop`):
 
 - cross-build bundle structure on Linux (plist + icns layout without `codesign`/`hdiutil`, with doc ⚠️)
-- real `codesign`/`hdiutil` on `macos-latest` (`setup-v@0.5.2`)
+- real `codesign`/`hdiutil` on `macos-latest` (pinned V via `setup-v`)
+- release link flags: `v -prod -cc clang` (never default tcc — tcc emits a runner-absolute `@rpath/libgc.dylib` that aborts with `dyld: Library not loaded` on user machines; upstream V reserves tcc for dev builds)
+- linkage gate: `otool -L` must show no `/Users/runner`, `thirdparty/tcc`, or `@rpath/libgc` refs (`release.yml` fails the job; `package.sh` fails before codesign)
 - smoke `build/AgentToolkit.app/Contents/MacOS/agent-toolkit --version` + `doctor`; `file` Mach-O; `sha256sum`; `ls -lh` size vs `+4.8M` baseline.
 
 Artifact verified: `Info.plist` `CFBundleVersion == VERSION`, `file` Mach-O, `sha256sum` logged, size recorded.

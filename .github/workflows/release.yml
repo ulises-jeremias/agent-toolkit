@@ -202,10 +202,28 @@ jobs:
           fi
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
+          # macOS: production link via clang. The default tcc backend emits a
+          # runner-absolute @rpath/libgc.dylib (~/vlang-master/thirdparty/tcc)
+          # that dyld cannot load on user machines; upstream V reserves tcc
+          # for dev builds and recommends clang/gcc for -prod release builds.
+          VFLAGS=""
+          if [ "${RUNNER_OS:-}" = "macOS" ]; then
+            VFLAGS="-prod -cc clang"
+          fi
+          # shellcheck disable=SC2086
+          "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
+          # macOS linkage gate: never ship a runner-absolute or unbundled libgc ref.
+          if [ "${RUNNER_OS:-}" = "macOS" ]; then
+            otool -L "build/${OUT_BIN}"
+            if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
+              echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
+              exit 1
+            fi
+            echo "macOS linkage: portable (no runner-absolute libgc)"
+          fi
           # #1057/#1116/#1130: validate the launcher entry shipped in the
           # desktop archives (ubuntu legs have desktop-file-utils)
           if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
@@ -296,15 +314,34 @@ jobs:
           fi
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+          # macOS: production link via clang. The default tcc backend emits a
+          # runner-absolute @rpath/libgc.dylib (~/vlang-master/thirdparty/tcc)
+          # that dyld cannot load on user machines; upstream V reserves tcc
+          # for dev builds and recommends clang/gcc for -prod release builds.
+          VFLAGS=""
+          if [ "${RUNNER_OS:-}" = "macOS" ]; then
+            VFLAGS="-prod -cc clang"
+          fi
           if [[ "${ASSET}" == *desktop* ]]; then
             # gg_text_buff_size=4096 — 4096² fontstash atlas: room for Fraunces + Plex + Plex Mono + CJK/Arabic i18n at every type-ramp size (sfons cannot expand the atlas at runtime)
-            "${VBIN}" -d "commit=${COMMIT}" -d gg_text_buff_size=4096 -o "build/${OUT_BIN}" cmd/agent-toolkit-desktop
+            # shellcheck disable=SC2086
+            "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -d gg_text_buff_size=4096 -o "build/${OUT_BIN}" cmd/agent-toolkit-desktop
           else
-            "${VBIN}" -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
+            # shellcheck disable=SC2086
+            "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
           fi
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
+          # macOS linkage gate: never ship a runner-absolute or unbundled libgc ref.
+          if [ "${RUNNER_OS:-}" = "macOS" ]; then
+            otool -L "build/${OUT_BIN}"
+            if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
+              echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
+              exit 1
+            fi
+            echo "macOS linkage: portable (no runner-absolute libgc)"
+          fi
           # #1057/#1116/#1130: validate the launcher entry shipped in the
           # desktop archives (ubuntu legs have desktop-file-utils)
           if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then

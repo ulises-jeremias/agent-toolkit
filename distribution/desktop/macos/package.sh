@@ -66,6 +66,22 @@ if command -v plutil >/dev/null 2>&1; then
   plutil -lint "$CONTENTS/Info.plist" || true
 fi
 
+# Linkage gate (macOS): release builds must not carry the runner-absolute
+# @rpath/libgc.dylib emitted by V's default tcc backend (dyld abort on user
+# machines). Release binaries must be built with `v -prod -cc clang`; fail
+# loudly here instead of shipping a broken .app/DMG.
+if command -v otool >/dev/null 2>&1 && [ -f "$MACOS_DIR/agent-toolkit" ]; then
+  if file "$MACOS_DIR/agent-toolkit" 2>/dev/null | grep -q 'Mach-O'; then
+    echo "==> otool -L linkage gate"
+    otool -L "$MACOS_DIR/agent-toolkit" || true
+    if otool -L "$MACOS_DIR/agent-toolkit" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
+      echo "ERROR: non-portable libgc linkage — rebuild with v -prod -cc clang" >&2
+      exit 1
+    fi
+    echo "macOS linkage: portable (no runner-absolute libgc)"
+  fi
+fi
+
 # Codesign: ad-hoc on CI, real via env on release.yml
 if command -v codesign >/dev/null 2>&1; then
   if [ -n "${APPLE_CODESIGN_IDENTITY:-}" ]; then
