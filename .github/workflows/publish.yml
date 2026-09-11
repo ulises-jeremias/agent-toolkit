@@ -41,7 +41,7 @@ jobs:
       - name: Pack sdist + platform wheels (manylinux_2_38)
         run: |
           set -euo pipefail
-          bash scripts/prepare-package-data.sh
+          ./scripts/prepare-package-data.vsh
           export RELEASE_BIN_DIR=binaries
           export RELEASE_VERSION="$(tr -d '[:space:]' < VERSION)"
           export RELEASE_OUT_DIR=dist

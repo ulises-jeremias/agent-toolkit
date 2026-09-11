@@ -527,10 +527,10 @@ jobs:
           VMODULES: ${{ github.workspace }}/modules
         run: |
           set -euo pipefail
-          bash scripts/prepare-package-data.sh
+          ./scripts/prepare-package-data.vsh
           uv build --sdist --out-dir dist packages/pypi/agent-toolkit-cli
           ./make.vsh build-cli
-          bash scripts/prepare-native-bin.sh
+          ./scripts/prepare-native-bin.vsh
           uv build --wheel --out-dir dist packages/pypi/agent-toolkit-cli
           ls -lh dist/
           python3 - <<'PY'
