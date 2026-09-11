@@ -73,7 +73,7 @@ agent-toolkit install --dry-run
 
 ```bash
 ./scripts/generate-catalogs.vsh          # regenerate catalogs/*.yaml
-bash scripts/prepare-package-data.sh         # sync skills/catalogs into packages/pypi/.../data/
+./scripts/prepare-package-data.vsh         # sync skills/catalogs into packages/pypi/.../data/
 agent-toolkit skills validate
 ```
 ## Delegates to

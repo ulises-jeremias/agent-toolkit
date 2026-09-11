@@ -10,7 +10,7 @@ Baseline: `711c9f32a2cfd632f33f3a47b6ad8897caf806b2`, fetched 2026-09-10.
 > ("Dead/split action discovery") note is retained.
 
 This ledger is intentionally conservative. A control or method is not proof of a
-working journey. `scripts/gui-coverage.py` remains a command-affordance check only.
+working journey. `scripts/gui-coverage.vsh` reports registry-backed workflow reachability (advisory only — the V reachability gate is the authority, not this ledger).
 
 Legend: **P** source path exists but partial/unverified; **B** known blocking defect;
 **?** not exercised; **N/A** stage does not apply; **✓** exercised successfully with

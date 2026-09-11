@@ -97,7 +97,7 @@ jobs:
 
           git push -u origin "HEAD:$BRANCH"
 
-          python3 scripts/upstream_pr_body.py \
+          ./scripts/upstream_pr_body.vsh \
             --summary /tmp/upstream-apply-summary.json \
             --summary /tmp/apply.json \
             --output /tmp/pr-body.md

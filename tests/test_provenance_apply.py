@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
+import pytest
 import scripts.provenance as prov
 
 
@@ -137,22 +138,43 @@ def test_apply_skill_update_sets_experimental(tmp_path, monkeypatch):
     assert result["body_checksum"] == prov._body_sha256(body)
 
 
-def test_upstream_pr_body_lists_applied_updates():
-    from scripts.upstream_pr_body import render
+def test_upstream_pr_body_lists_applied_updates(tmp_path):
+    # render() moved to scripts/upstream_pr_body.vsh — exercise the real
+    # script end to end instead of importing Python that no longer exists.
+    import json
+    import shutil
+    import subprocess
 
-    md = render(
-        {
-            "applied": [
-                {
-                    "capability": "design/frontend-design",
-                    "source": "upstream",
-                    "old_commit": "a" * 40,
-                    "new_commit": "b" * 40,
-                    "body_checksum": "sha256:" + "c" * 64,
-                }
-            ]
-        }
+    vbin = shutil.which("v")
+    if not vbin:
+        pytest.skip("v toolchain not on PATH")
+    summary = tmp_path / "summary.json"
+    summary.write_text(
+        json.dumps(
+            {
+                "applied": [
+                    {
+                        "capability": "design/frontend-design",
+                        "source": "upstream",
+                        "old_commit": "a" * 40,
+                        "new_commit": "b" * 40,
+                        "body_checksum": "sha256:" + "c" * 64,
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
     )
+    repo = Path(__file__).resolve().parent.parent
+    proc = subprocess.run(
+        [vbin, "run", str(repo / "scripts" / "upstream_pr_body.vsh"), "--summary", str(summary)],
+        capture_output=True,
+        text=True,
+        cwd=repo,
+        timeout=300,
+    )
+    assert proc.returncode == 0, proc.stderr
+    md = proc.stdout
     assert "Do not auto-merge" in md
     assert "design/frontend-design" in md
     assert "experimental" in md

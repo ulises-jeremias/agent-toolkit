@@ -108,6 +108,7 @@ context.task(
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
 		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
 		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
+	println('  contrast | gui-coverage')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
 	}
 )
@@ -169,6 +170,24 @@ context.task(name: 'gen-embedded', help: 'Generate modules/agent_toolkit_core/em
 	rc := vcmd('run ${gen_vsh}')
 	if rc != 0 {
 		eprintln('gen-embedded vsh failed')
+		exit(rc)
+	}
+})
+
+context.task(name: 'contrast', help: 'WCAG 2.1 contrast gate for Paper/Ink theme tokens', run: fn [r] (_ build.Task) ! {
+	println('==> contrast (vsh)')
+	rc := vcmd('run ${join_path(r, 'scripts', 'check-contrast.vsh')}')
+	if rc != 0 {
+		eprintln('contrast gate failed')
+		exit(rc)
+	}
+})
+
+context.task(name: 'gui-coverage', help: 'Critical workflow coverage report for the Desktop', run: fn [r] (_ build.Task) ! {
+	println('==> gui-coverage (vsh)')
+	rc := vcmd('run ${join_path(r, 'scripts', 'gui-coverage.vsh')}')
+	if rc != 0 {
+		eprintln('gui-coverage report failed')
 		exit(rc)
 	}
 })

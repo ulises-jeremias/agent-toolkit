@@ -6,7 +6,7 @@
 
 ## Context
 
-Agent Toolkit ships large capability trees (`skills/`, `agents/`, `loops/`, `profiles/`, `mcp/`, `catalogs/`, `distributions/`, `capabilities/`, …). Python today copies them into the wheel via `scripts/prepare-package-data.sh` and also supports XDG cache / GitHub download (ADR-005). The V binary-first product must choose how those trees are packaged **without** compiling every file into opaque source constants, and without conflating packaging with **runtime resolution order** (owned by [#547](https://github.com/ulises-jeremias/agent-toolkit/issues/547) / ADR-005 amend).
+Agent Toolkit ships large capability trees (`skills/`, `agents/`, `loops/`, `profiles/`, `mcp/`, `catalogs/`, `distributions/`, `capabilities/`, …). The wheel bundles them via `scripts/prepare-package-data.vsh` (migrated from Python in the .vsh tooling consolidation) and also supports XDG cache / GitHub download (ADR-005). The V binary-first product must choose how those trees are packaged **without** compiling every file into opaque source constants, and without conflating packaging with **runtime resolution order** (owned by [#547](https://github.com/ulises-jeremias/agent-toolkit/issues/547) / ADR-005 amend).
 
 ## Options considered
 
@@ -39,7 +39,7 @@ Adopt **option C (Hybrid)**.
 ## References
 
 - ADR-005 (`docs/adrs/ADR-005-data-packaging.md`)
-- `scripts/prepare-package-data.sh`
+- `scripts/prepare-package-data.vsh`
 - `.github/workflows/release.yml` (native V binaries on ADR-018 names since v1.11.0)
 - Issues [#481](https://github.com/ulises-jeremias/agent-toolkit/issues/481), [#547](https://github.com/ulises-jeremias/agent-toolkit/issues/547)
 

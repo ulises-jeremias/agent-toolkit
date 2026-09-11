@@ -41,7 +41,7 @@ Wheels are platform-tagged (`manylinux_2_38_*` for Linux, never `linux_x86_64`) 
 
 ```bash
 ./make.vsh build-cli              # → build/agent-toolkit (+ copy build/agent-toolkit-v)
-scripts/prepare-native-bin.sh     # copies build/agent-toolkit into wheel src/agent_toolkit/bin/ before hatch wheel
+./scripts/prepare-native-bin.vsh   # copies build/agent-toolkit into wheel src/agent_toolkit/bin/ before hatch wheel
 # Hatch hook packages/pypi/agent-toolkit-cli/hatch_build.py trampolines to V; fallback delegates to AGENT_TOOLKIT_ROOT
 ```
 
