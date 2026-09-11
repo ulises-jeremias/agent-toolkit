@@ -130,7 +130,7 @@ jobs:
         run: ./scripts/validate-agents.vsh
 
       - name: Validate agents taxonomy (holistic/specialist roster vs registry, products, AGENT_TAXONOMY.md)
-        run: python3 scripts/validate-agents-taxonomy.py --check
+        run: ./scripts/validate-agents-taxonomy.vsh --check
 
   # ── Job 3: Validate marketplace manifests and plugin.json files ────────────
   validate-manifests:
@@ -253,6 +253,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
       - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
 
@@ -283,6 +286,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
 
       - name: Install dependencies
         run: pip install pyyaml==6.0.2 jsonschema==4.23.0
