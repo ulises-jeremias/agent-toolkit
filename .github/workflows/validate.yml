@@ -906,17 +906,46 @@ jobs:
       - name: Compare paper fixtures
         run: |
           set -euo pipefail
-          ./scripts/golden.sh compare
+          ./scripts/golden.vsh compare
 
       - name: Compare ink fixtures
         run: |
           set -euo pipefail
-          ATK_GOLDEN_THEME=ink ./scripts/golden.sh compare
+          ATK_GOLDEN_THEME=ink ./scripts/golden.vsh compare
+
+      - name: UI smoke (panel tour + screenshots)
+        env:
+          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
+        run: |
+          set -euo pipefail
+          ./scripts/ui-smoke.vsh
+
+      - name: Enter-key regression
+        env:
+          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
+        run: |
+          set -euo pipefail
+          ./scripts/enter-regression.vsh
+
+      - name: Browser-install acceptance (gui install path)
+        run: |
+          set -euo pipefail
+          ./scripts/browser-install.vsh
 
       - name: Tofu detector
         run: |
           set -euo pipefail
-          python3 scripts/check-tofu.py
+          ./scripts/check-tofu.vsh
+
+      - name: Contrast gate (Paper/Ink WCAG 4.5:1)
+        run: |
+          set -euo pipefail
+          ./scripts/check-contrast.vsh
+
+      - name: Workflow coverage report
+        run: |
+          set -euo pipefail
+          ./scripts/gui-coverage.vsh --check
 
       - name: Upload mismatch artifacts
         if: failure()

@@ -39,11 +39,18 @@ VJOBS=2 VMODULES="$PWD/modules" v -d gg_text_buff_size=4096 \
 ```
 
 `./make.vsh build-desktop` currently runs a headless harness, not this production
-build. `scripts/ui-smoke.sh` and `scripts/golden.sh` need isolation repairs before
-use on a shared workstation: they kill unrelated processes and remove saved user
-preferences; ui-smoke also references missing `/tmp/opencode` tools. Use an owned
-Xvfb process/display, preserve other processes and preferences, and clean up only
-owned resources. Tests must fail when navigation commands fail.
+build. The visual harnesses are V scripts with workstation isolation built in
+(no `pkill`, no user-preference writes — owned Xvfb/display guarded by the
+shared acceptance lock, temp HOME/XDG, PID-scoped cleanup; missing evidence
+fails loudly). Tests fail when navigation commands fail.
+
+| Harness | Command | What it proves |
+|---|---|---|
+| `scripts/ui-smoke.vsh` | `./make.vsh ui-smoke` | panel tour + per-state screenshots, app-alive assertions |
+| `scripts/golden.vsh` | `./make.vsh golden` (`ATK_GOLDEN_THEME=ink` for ink) | pixel compare vs `tests/golden/` fixtures (default fuzz 8%) |
+| `scripts/check-tofu.vsh` | `./scripts/check-tofu.vsh` | bundled-fonts proof from `tests/golden-app.log` + fixture sanity |
+| `scripts/check-contrast.vsh` | `./scripts/check-contrast.vsh` | Paper/Ink WCAG 4.5:1 text-on-surface gate from `tokens.v` |
+| `scripts/enter-regression.vsh` | `./make.vsh enter-regression` | Return keys never kill/hang/unmap the app under Xvfb |
 
 For clean-machine verification copy the built artifact outside the checkout and
 launch from an unrelated directory with temporary HOME, XDG_CONFIG_HOME,

@@ -1,6 +1,7 @@
 #!/usr/bin/env -S v run
 // V foundation targets for modules/ (ADR-009).
-// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|compile-make|gen-surface|gen-target-matrix]
+// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|ui-smoke|golden|browser-install|enter-regression|dmg-boot|clean-machine|first-run|workspace-lifecycle|gen-surface|gen-target-matrix|compile-make]
+// Artifact harnesses (clean-machine|first-run|workspace-lifecycle) take --artifact=<desktop-archive.tar.gz>.
 // Optional: ./make.vsh compile-make && ./make <target>
 //
 // vlib build (context.run) only runs non-hyphen args as tasks; flags like
@@ -93,6 +94,39 @@ fn each_mod(r string, label string, args string) {
 	}
 }
 
+// run_harness executes a scripts/*.vsh harness via VBIN (shebang/env -S is
+// unreliable on Windows GHA — see validate.yml). Artifact harnesses read
+// the --artifact= knob.
+fn run_harness(r string, script string, extra string) {
+	args := flag_value('artifact')
+	mut cmd := '"${vbin()}" run ${join_path(r, 'scripts', script)}'
+	if args.len > 0 {
+		cmd += ' "${args}"'
+	}
+	if extra.len > 0 {
+		cmd += ' ${extra}'
+	}
+	rc := system(cmd)
+	if rc != 0 {
+		exit(rc)
+	}
+}
+
+// has_flag reports a bare `--name` runtime flag (vlib/build skips hyphen
+// args when selecting tasks, so knobs arrive via os.args).
+fn has_flag(name string) bool {
+	return '--${name}' in os.args
+}
+
+fn need_artifact() string {
+	a := flag_value('artifact')
+	if a.len == 0 {
+		eprintln('missing --artifact=<desktop-archive.tar.gz> (build it via the release.yml pack step or scripts/pack_release_assets.vsh)')
+		exit(2)
+	}
+	return a
+}
+
 r := root()
 setenv('VMODULES', join_path(r, 'modules'), true)
 ensure_v(r)
@@ -108,8 +142,12 @@ context.task(
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
 		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
 		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
+		println('  ui-smoke | golden | browser-install | enter-regression | dmg-boot')
+		println('  tofu | contrast | coverage')
+		println('  clean-machine | first-run | workspace-lifecycle  (need --artifact=<desktop-archive.tar.gz>)')
 		println('  gen-surface | gen-target-matrix')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
+		println('  ui-smoke/golden/enter-regression need build/agent-toolkit-desktop-native (see release.yml build step)')
 	}
 )
 
@@ -255,6 +293,64 @@ context.task(name: 'build-desktop', help: 'Build desktop shell (headless vet; wi
 	if rc3 != 0 {
 		exit(rc3)
 	}
+})
+
+context.task(name: 'ui-smoke', help: 'Xvfb UI smoke: panel tour + screenshots (needs desktop binary)', run: fn [r] (_ build.Task) ! {
+	println('==> ui-smoke (needs build/agent-toolkit-desktop-native or SMOKE_BIN)')
+	run_harness(r, 'ui-smoke.vsh', '')
+})
+
+context.task(name: 'golden', help: 'Golden-image compare vs fixtures (ATK_GOLDEN_THEME=ink for ink)', run: fn [r] (_ build.Task) ! {
+	println('==> golden compare (needs build/agent-toolkit-desktop-native or SMOKE_BIN)')
+	run_harness(r, 'golden.vsh', 'compare')
+})
+
+context.task(name: 'browser-install', help: 'GUI install-path acceptance (builds CLI, isolated HOME)', run: fn [r] (_ build.Task) ! {
+	println('==> browser-install')
+	run_harness(r, 'browser-install.vsh', '')
+})
+
+context.task(name: 'enter-regression', help: 'Enter-key regression: keys never kill/hang/blank the app', run: fn [r] (_ build.Task) ! {
+	println('==> enter-regression')
+	run_harness(r, 'enter-regression.vsh', '')
+})
+
+context.task(name: 'dmg-boot', help: 'macOS DMG first-boot (SKIP elsewhere)', run: fn [r] (_ build.Task) ! {
+	println('==> dmg-boot')
+	run_harness(r, 'dmg-boot.vsh', '')
+})
+
+context.task(name: 'tofu', help: 'Tofu detector: bundled-fonts proof + fixture sanity (needs golden-app.log)', run: fn [r] (_ build.Task) ! {
+	println('==> tofu')
+	run_harness(r, 'check-tofu.vsh', '')
+})
+
+context.task(name: 'contrast', help: 'Contrast gate: Paper/Ink WCAG 4.5:1 from tokens.v', run: fn [r] (_ build.Task) ! {
+	println('==> contrast')
+	run_harness(r, 'check-contrast.vsh', '')
+})
+
+context.task(name: 'coverage', help: 'Workflow coverage report (add --check to gate)', run: fn [r] (_ build.Task) ! {
+	println('==> coverage')
+	run_harness(r, 'gui-coverage.vsh', if has_flag('check') { '--check' } else { '' })
+})
+
+context.task(name: 'clean-machine', help: 'Layered clean-machine acceptance (needs --artifact=)', run: fn [r] (_ build.Task) ! {
+	need_artifact()
+	println('==> clean-machine')
+	run_harness(r, 'clean-machine.vsh', '')
+})
+
+context.task(name: 'first-run', help: 'Zero-to-working first-run acceptance (needs --artifact=)', run: fn [r] (_ build.Task) ! {
+	need_artifact()
+	println('==> first-run')
+	run_harness(r, 'first-run.vsh', '')
+})
+
+context.task(name: 'workspace-lifecycle', help: 'Workspace panel lifecycle acceptance (needs --artifact=)', run: fn [r] (_ build.Task) ! {
+	need_artifact()
+	println('==> workspace-lifecycle')
+	run_harness(r, 'workspace-lifecycle.vsh', '')
 })
 
 context.task(name: 'package-desktop-macos', help: 'Package macOS bundle + DMG (cross-build on Linux, real on macos-latest)', run: fn [r] (_ build.Task) ! {

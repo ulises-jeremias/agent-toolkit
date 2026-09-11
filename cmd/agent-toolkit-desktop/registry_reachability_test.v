@@ -10,7 +10,7 @@ import time
 // Reachability gate: the canonical set of critical user
 // workflows must be reachable through the typed registry's semantics —
 // not through CLI command parity. This test is the coverage authority;
-// scripts/gui-coverage.py is only a human-readable report.
+// scripts/gui-coverage.vsh is only a human-readable report.
 
 struct ReachFixture {
 mut:
