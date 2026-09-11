@@ -6,7 +6,7 @@ module agent_toolkit_server
 import agent_toolkit_core
 import net.http
 import os
-import json
+import x.json2
 import strings
 import time
 import veb
@@ -818,7 +818,7 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	req := json.decode(JobCreateReq, ctx.req.data) or {
+	req := json2.decode[JobCreateReq](ctx.req.data) or {
 		ctx.res.set_status(.bad_request)
 		return ctx.json(DenyErr{ ok: false, error: 'invalid JSON body' })
 	}
