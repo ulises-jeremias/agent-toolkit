@@ -61,6 +61,24 @@ read it.
 
 `desktop-file-validate` runs in the release workflow on the shipped entry.
 
+### Acceptance harnesses (all `.vsh`, all in `make.vsh`)
+
+The install → launch → uninstall chain is proven by V harnesses against the
+real packed tarball (never the source tree), in CI
+(`.github/workflows/clean-machine-acceptance.yml`) and locally:
+
+| Harness | Command | What it proves |
+|---|---|---|
+| `scripts/clean-machine.vsh` | `./make.vsh clean-machine --artifact=<tarball>` | layers A–B (structure, receipt-backed install, provenance, fonts, tool discovery) + receipt-backed uninstall with foreign-file preservation; layer C (Xvfb first-render) where Xvfb exists |
+| `scripts/first-run.vsh` | `./make.vsh first-run --artifact=<tarball>` | #1127 zero-to-working onboarding via real keys (clean, fixture, failure, interrupted, existing-state scenarios) |
+| `scripts/workspace-lifecycle.vsh` | `./make.vsh workspace-lifecycle --artifact=<tarball>` | #1128 workspace switch/restart/seed-safety/invalid-path via real panel controls |
+| `scripts/browser-install.vsh` | `./make.vsh browser-install` | `agent-toolkit gui` install/run UX in an isolated HOME (release URL, prefix, missing-binary guidance) |
+| `scripts/dmg-boot.vsh` | `./make.vsh dmg-boot` | macOS DMG first-boot (SKIP on other OSes) |
+
+States are explicit per check (`PASS`/`FAIL`/`NOT_PROVEN`/`MANUAL`) — a missing
+tool or capture is never a silent pass. Parallel local runs take the shared
+acceptance display lock and fail loudly instead of colliding.
+
 ## macOS (7.3)
 
 `distribution/desktop/macos/` — packaging adapter.

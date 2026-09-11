@@ -5,7 +5,6 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-import pytest
 import scripts.provenance as prov
 
 
@@ -139,38 +138,38 @@ def test_apply_skill_update_sets_experimental(tmp_path, monkeypatch):
 
 
 def test_upstream_pr_body_lists_applied_updates(tmp_path):
-    # render() moved to scripts/upstream_pr_body.vsh — exercise the real
-    # script end to end instead of importing Python that no longer exists.
+    # upstream_pr_body is a .vsh now (scripts/upstream_pr_body.vsh) — drive it
+    # through its CLI contract instead of importing it.
     import json
+    import os
     import shutil
     import subprocess
 
-    vbin = shutil.which("v")
-    if not vbin:
-        pytest.skip("v toolchain not on PATH")
-    summary = tmp_path / "summary.json"
-    summary.write_text(
-        json.dumps(
+    summary = {
+        "applied": [
             {
-                "applied": [
-                    {
-                        "capability": "design/frontend-design",
-                        "source": "upstream",
-                        "old_commit": "a" * 40,
-                        "new_commit": "b" * 40,
-                        "body_checksum": "sha256:" + "c" * 64,
-                    }
-                ]
+                "capability": "design/frontend-design",
+                "source": "upstream",
+                "old_commit": "a" * 40,
+                "new_commit": "b" * 40,
+                "body_checksum": "sha256:" + "c" * 64,
             }
-        ),
-        encoding="utf-8",
-    )
-    repo = Path(__file__).resolve().parent.parent
+        ]
+    }
+    summary_path = tmp_path / "summary.json"
+    summary_path.write_text(json.dumps(summary), encoding="utf-8")
+    vbin = os.environ.get("VBIN") or os.environ.get("V") or shutil.which("v") or "v"
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     proc = subprocess.run(
-        [vbin, "run", str(repo / "scripts" / "upstream_pr_body.vsh"), "--summary", str(summary)],
+        [
+            vbin,
+            "run",
+            os.path.join(repo_root, "scripts", "upstream_pr_body.vsh"),
+            "--summary",
+            str(summary_path),
+        ],
         capture_output=True,
         text=True,
-        cwd=repo,
         timeout=300,
     )
     assert proc.returncode == 0, proc.stderr
