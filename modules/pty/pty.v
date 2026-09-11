@@ -3,7 +3,7 @@
 // Spawns agent CLIs (claude, opencode, cursor-agent, muse, pi, …) attached to
 // a pseudo-terminal so the GUI can run them interactively. The reader is
 // NON-BLOCKING and drained per frame by the caller — no threads, no races.
-// See modules/pty/README in the issue for the agent detection matrix.
+// Agent CLI detection matrix: see detect() below.
 //
 // Windows has no forkpty/pty.h: spawn() returns a clean error there (the
 // desktop surfaces it in the inspector message) and every other method is a
