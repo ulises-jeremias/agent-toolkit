@@ -309,11 +309,11 @@ fn main() {
 	tf := os.join_path(h.prefix, 'assert.py')
 	os.write_file(tf, 'import json\nr = json.load(open(${shellq(state_file)})).get("data", {})\nprint("DBG onboarding_completed:", repr(r.get("onboarding_completed")))\nprint("DBG revision:", repr(r.get("revision")))\nprint("DBG keys sample:", sorted(r.keys())[:40])\n') or {}
 	println(sh('python3 ${shellq(tf)} || true').output)
-	h.assert_state(state_file, "r.get('data', {}).get('onboarding_completed') == 'true'",
+	h.assert_state(state_file, "r.get('onboarding_completed') == 'true'",
 		'first-run-completion-persisted')
-	h.assert_state(state_file, "len([s for s in (r.get('data', {}).get('installed_skills') or '').split(',') if s]) >= 1",
+	h.assert_state(state_file, "len([s for s in (r.get('installed_skills') or '').split(',') if s]) >= 1",
 		'capabilities-installed')
-	h.assert_state(state_file, "any(r.get('data', {}).get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))",
+	h.assert_state(state_file, "any(r.get(f'target:{t}:enabled') == 'true' for t in ('claude-code','opencode','cursor'))",
 		'targets-enabled')
 	if !os.is_dir(os.join_path(home_fresh, '.ai-workspace', 'knowledge')) {
 		fail('workspace scaffold missing: ${home_fresh}/.ai-workspace/knowledge', 1)
@@ -332,9 +332,9 @@ fn main() {
 	h.launch(home_fresh, '')
 	h.shot('after-restart.png')
 	h.cleanup()
-	h.assert_state(state_file, "r.get('data', {}).get('onboarding_completed') == 'true'",
+	h.assert_state(state_file, "r.get('onboarding_completed') == 'true'",
 		'restart-completion-kept')
-	h.assert_state(state_file, "r.get('data', {}).get('workspace_path', '').endswith('.ai-workspace') or r.get('data', {}).get('recent_workspace', '').endswith('.ai-workspace')",
+	h.assert_state(state_file, "r.get('workspace_path', '').endswith('.ai-workspace') or r.get('recent_workspace', '').endswith('.ai-workspace')",
 		'restart-workspace-restored')
 	h.record('restart-persistence', 'PASS', 'same installed app relaunched: no onboarding restart, state preserved (capture after-restart.png)')
 
