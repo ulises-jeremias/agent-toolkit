@@ -106,8 +106,8 @@ Icon: `static/icons/agent-toolkit.icns` generated via `iconutil -c icns` from `1
 
 - cross-build bundle structure on Linux (plist + icns layout without `codesign`/`hdiutil`, with doc ⚠️)
 - real `codesign`/`hdiutil` on `macos-latest` (pinned V via `setup-v`)
-- release link flags: `v -prod -cc clang` (never default tcc — tcc emits a runner-absolute `@rpath/libgc.dylib` that aborts with `dyld: Library not loaded` on user machines; upstream V reserves tcc for dev builds)
-- linkage gate: `otool -L` must show no `/Users/runner`, `thirdparty/tcc`, or `@rpath/libgc` refs (`release.yml` fails the job; `package.sh` fails before codesign)
+- release link flags: `v -prod -cc clang` on macOS, `v -prod -cc gcc` on Linux (never default tcc — tcc emits a runner-absolute `@rpath/libgc.dylib` that aborts with `dyld: Library not loaded` on user machines; upstream V reserves tcc for dev builds). Windows keeps default flags: that leg runs the V 0.5.2 fallback toolchain, which cannot `-prod` the stdlib `import json` in `modules/agent_toolkit_server/server.veb.v`
+- linkage gates: macOS `otool -L` must show no `/Users/runner`, `thirdparty/tcc`, or `@rpath/libgc` refs; Linux `ldd` must show no `not found`; Windows logs the DLL inventory (`release.yml` fails the job; `package.sh` fails before codesign). PRs prove the flags via the `linkage-smoke` job (CLI + desktop on all three OSes)
 - smoke `build/AgentToolkit.app/Contents/MacOS/agent-toolkit --version` + `doctor`; `file` Mach-O; `sha256sum`; `ls -lh` size vs `+4.8M` baseline.
 
 Artifact verified: `Info.plist` `CFBundleVersion == VERSION`, `file` Mach-O, `sha256sum` logged, size recorded.

@@ -13,6 +13,14 @@ on:
   push:
     tags:
       - "v*"
+  pull_request:
+    paths:
+      - ".github/workflows/release.yml"
+      - ".github/actions/setup-v/**"
+      - "cmd/agent-toolkit/**"
+      - "cmd/agent-toolkit-desktop/**"
+      - "modules/**"
+      - "distribution/desktop/**"
   workflow_dispatch:
     inputs:
       environment:
@@ -202,28 +210,47 @@ jobs:
           fi
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          # macOS: production link via clang. The default tcc backend emits a
-          # runner-absolute @rpath/libgc.dylib (~/vlang-master/thirdparty/tcc)
-          # that dyld cannot load on user machines; upstream V reserves tcc
-          # for dev builds and recommends clang/gcc for -prod release builds.
+          # Release linkage: production builds must not use V's default tcc
+          # backend — on macOS it bakes a runner-absolute @rpath/libgc.dylib
+          # (~/vlang-master/thirdparty/tcc) that dyld cannot load on user
+          # machines (dyld: Library not loaded). Upstream V reserves tcc for
+          # dev builds and recommends clang/gcc for -prod release builds.
+          # Windows keeps default flags: that leg runs the 0.5.2 fallback
+          # toolchain, which cannot -prod the stdlib `import json` still
+          # present in modules/agent_toolkit_server/server.veb.v.
           VFLAGS=""
-          if [ "${RUNNER_OS:-}" = "macOS" ]; then
-            VFLAGS="-prod -cc clang"
-          fi
+          case "${RUNNER_OS:-}" in
+            macOS) VFLAGS="-prod -cc clang" ;;
+            Linux) VFLAGS="-prod -cc gcc" ;;
+          esac
           # shellcheck disable=SC2086
           "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
-          # macOS linkage gate: never ship a runner-absolute or unbundled libgc ref.
-          if [ "${RUNNER_OS:-}" = "macOS" ]; then
-            otool -L "build/${OUT_BIN}"
-            if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
-              echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
-              exit 1
-            fi
-            echo "macOS linkage: portable (no runner-absolute libgc)"
-          fi
+          # Linkage gates: never ship runner-absolute or unbundled native refs.
+          case "${RUNNER_OS:-}" in
+            macOS)
+              otool -L "build/${OUT_BIN}"
+              if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
+                echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
+                exit 1
+              fi
+              echo "macOS linkage: portable (no runner-absolute libgc)"
+              ;;
+            Linux)
+              ldd "build/${OUT_BIN}"
+              if ldd "build/${OUT_BIN}" | grep -q 'not found'; then
+                echo "::error::unresolved shared libraries in build/${OUT_BIN} (see ldd above)" >&2
+                exit 1
+              fi
+              echo "Linux linkage: all shared libraries resolved"
+              ;;
+            Windows*)
+              # log-only: inventory binary-vs-system DLLs for review
+              (objdump -p "build/${OUT_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
+              ;;
+          esac
           # #1057/#1116/#1130: validate the launcher entry shipped in the
           # desktop archives (ubuntu legs have desktop-file-utils)
           if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
@@ -314,14 +341,19 @@ jobs:
           fi
           mkdir -p build
           COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          # macOS: production link via clang. The default tcc backend emits a
-          # runner-absolute @rpath/libgc.dylib (~/vlang-master/thirdparty/tcc)
-          # that dyld cannot load on user machines; upstream V reserves tcc
-          # for dev builds and recommends clang/gcc for -prod release builds.
+          # Release linkage: production builds must not use V's default tcc
+          # backend — on macOS it bakes a runner-absolute @rpath/libgc.dylib
+          # (~/vlang-master/thirdparty/tcc) that dyld cannot load on user
+          # machines (dyld: Library not loaded). Upstream V reserves tcc for
+          # dev builds and recommends clang/gcc for -prod release builds.
+          # Windows keeps default flags: that leg runs the 0.5.2 fallback
+          # toolchain, which cannot -prod the stdlib `import json` still
+          # present in modules/agent_toolkit_server/server.veb.v.
           VFLAGS=""
-          if [ "${RUNNER_OS:-}" = "macOS" ]; then
-            VFLAGS="-prod -cc clang"
-          fi
+          case "${RUNNER_OS:-}" in
+            macOS) VFLAGS="-prod -cc clang" ;;
+            Linux) VFLAGS="-prod -cc gcc" ;;
+          esac
           if [[ "${ASSET}" == *desktop* ]]; then
             # gg_text_buff_size=4096 — 4096² fontstash atlas: room for Fraunces + Plex + Plex Mono + CJK/Arabic i18n at every type-ramp size (sfons cannot expand the atlas at runtime)
             # shellcheck disable=SC2086
@@ -333,15 +365,29 @@ jobs:
           cp -f "build/${OUT_BIN}" "build/${ASSET}"
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
-          # macOS linkage gate: never ship a runner-absolute or unbundled libgc ref.
-          if [ "${RUNNER_OS:-}" = "macOS" ]; then
-            otool -L "build/${OUT_BIN}"
-            if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
-              echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
-              exit 1
-            fi
-            echo "macOS linkage: portable (no runner-absolute libgc)"
-          fi
+          # Linkage gates: never ship runner-absolute or unbundled native refs.
+          case "${RUNNER_OS:-}" in
+            macOS)
+              otool -L "build/${OUT_BIN}"
+              if otool -L "build/${OUT_BIN}" | grep -E '/Users/runner|thirdparty/tcc|@rpath/libgc'; then
+                echo "::error::non-portable libgc linkage in build/${OUT_BIN} (see otool above)" >&2
+                exit 1
+              fi
+              echo "macOS linkage: portable (no runner-absolute libgc)"
+              ;;
+            Linux)
+              ldd "build/${OUT_BIN}"
+              if ldd "build/${OUT_BIN}" | grep -q 'not found'; then
+                echo "::error::unresolved shared libraries in build/${OUT_BIN} (see ldd above)" >&2
+                exit 1
+              fi
+              echo "Linux linkage: all shared libraries resolved"
+              ;;
+            Windows*)
+              # log-only: inventory binary-vs-system DLLs for review
+              (objdump -p "build/${OUT_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
+              ;;
+          esac
           # #1057/#1116/#1130: validate the launcher entry shipped in the
           # desktop archives (ubuntu legs have desktop-file-utils)
           if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
@@ -355,6 +401,87 @@ jobs:
           path: build/${{ matrix.artifact }}
           if-no-files-found: error
           retention-days: 7
+
+  # PR-only proof that the exact release link flags produce portable
+  # binaries on every OS. No release environment, no artifacts, no uploads —
+  # fails the PR before a broken binary can ever reach a tag build.
+  linkage-smoke:
+    name: Linkage smoke (${{ matrix.os }})
+    if: github.event_name == 'pull_request'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+          - os: macos-latest
+          - os: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install X11/GL dev headers (linux desktop only)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/microsoft-*.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            xorg-dev libgl1-mesa-dev libegl1-mesa-dev
+
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+
+      - name: Prod-link CLI + desktop with release flags
+        shell: bash
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          mkdir -p build
+          COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
+          # Same per-OS release flags as build-binaries/build-desktop above.
+          VFLAGS=""
+          case "${RUNNER_OS:-}" in
+            macOS) VFLAGS="-prod -cc clang" ;;
+            Linux) VFLAGS="-prod -cc gcc" ;;
+          esac
+          CLI_BIN=agent-toolkit
+          DESK_BIN=agent-toolkit-desktop
+          case "${RUNNER_OS:-}" in
+            Windows*) CLI_BIN=agent-toolkit.exe; DESK_BIN=agent-toolkit-desktop.exe ;;
+          esac
+          # shellcheck disable=SC2086
+          "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -o "build/${CLI_BIN}" cmd/agent-toolkit
+          # shellcheck disable=SC2086
+          "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -d gg_text_buff_size=4096 -o "build/${DESK_BIN}" cmd/agent-toolkit-desktop
+          "build/${CLI_BIN}" --version
+          "build/${DESK_BIN}" --version
+          case "${RUNNER_OS:-}" in
+            macOS)
+              otool -L "build/${CLI_BIN}"
+              otool -L "build/${DESK_BIN}"
+              if otool -L "build/${CLI_BIN}" "build/${DESK_BIN}" | grep -E '/Users/runner|/home/runner|thirdparty/tcc|@rpath/libgc'; then
+                echo "::error::non-portable linkage (see otool above)" >&2
+                exit 1
+              fi
+              echo "macOS linkage: portable"
+              ;;
+            Linux)
+              ldd "build/${CLI_BIN}"
+              ldd "build/${DESK_BIN}"
+              if ldd "build/${CLI_BIN}" "build/${DESK_BIN}" | grep -q 'not found'; then
+                echo "::error::unresolved shared libraries (see ldd above)" >&2
+                exit 1
+              fi
+              echo "Linux linkage: all shared libraries resolved"
+              ;;
+            Windows*)
+              (objdump -p "build/${CLI_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
+              (objdump -p "build/${DESK_BIN}" 2>/dev/null | grep 'DLL Name' || echo "objdump unavailable") | sort -u
+              ;;
+          esac
 
   upload-assets:
     name: Attach V binaries, archives, SHA256SUMS, manifest
