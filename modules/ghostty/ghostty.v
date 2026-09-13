@@ -593,13 +593,27 @@ pub fn (t GhosttyTerminal) visible_colors() [][]int {
 	return t.colors[start..end]
 }
 
-// prompt_line returns the prompt string with current input and cursor block.
-pub fn (t GhosttyTerminal) prompt_line() string {
-	if t.cursor >= t.input.len {
-		return t.prompt + t.input + '█'
+// prompt_text returns the prompt string with current input and NO cursor
+// marker. The cursor is presentation owned by the shell (drawn as a rect at
+// prompt_cursor_offset) — it must never live in buffer content, because the
+// U+2588 block is missing from IBM Plex Mono and font fallback rendered it
+// as a phantom `0`-like glyph after real input.
+pub fn (t GhosttyTerminal) prompt_text() string {
+	return t.prompt + t.input
+}
+
+// prompt_cursor_offset returns the byte offset into prompt_text() where the
+// cursor sits, clamped inside the input so a stale cursor can never point
+// outside the drawn text.
+pub fn (t GhosttyTerminal) prompt_cursor_offset() int {
+	c := if t.cursor < 0 {
+		0
+	} else if t.cursor > t.input.len {
+		t.input.len
+	} else {
+		t.cursor
 	}
-	// mid-line cursor: show block at cursor position
-	return t.prompt + t.input[..t.cursor] + '█' + t.input[t.cursor..]
+	return t.prompt.len + c
 }
 
 // ── Dunder Mifflin multiplex — flawless per-agent VT isolation ────────────
