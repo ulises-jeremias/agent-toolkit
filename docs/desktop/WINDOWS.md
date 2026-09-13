@@ -1,5 +1,8 @@
 # Windows — gg/sokol Limitations + Packaging Spike
 
+Status: **CURRENT GUIDE** (platform support honest: Windows is unproven —
+see Status section). Re-confirmed 2026-09-13 at `ecc4d67c`.
+
 > `V 0.5.2`, `VMODULES=modules`, production renderer is `gg`/`sokol`
 > (`import gg` + `gg.new_context`/`run` in `cmd/agent-toolkit-desktop/main.v`;
 > there is no `vlang/gui` dependency in the production path), plane guard: no
@@ -99,9 +102,11 @@ verified by directory listing):
 
 Windows high-DPI + IME gaps link to EPIC 7 §7.2 accessibility (high-DPI token scaling, `reduced-motion`, typography `CJK/emoji/BiDi`). Doc cross-refs `docs/desktop/PACKAGING.md` macOS/Windows packaging and `docs/desktop/WORLD_VIEW.md` workshop metaphor.
 
-## Status (2026-09-10, HEAD `711c9f32`)
+## Status (2026-09-13, HEAD `ecc4d67c`; previous `711c9f32`, 2026-09-10)
 
 Windows is unproven, not claimed: no `windows-latest` build, window smoke,
 or installer run has been recorded. The Inno Setup verdict and the spike
 table above are the evaluation gate; the installer implementation and the
-`windows-latest` evidence follow the verdict. Tracked by #1060.
+`windows-latest` evidence follow the verdict. Tracked by #1060. The
+Phase-0 feasibility implementation retired in #1206 does not change this
+status — the `gg`/`sokol`-direct production path is unchanged.

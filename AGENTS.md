@@ -26,7 +26,7 @@ Use the narrowest current source of truth instead of old issue prose or historic
 | Desktop journeys / coverage | [`docs/desktop/USER_JOURNEYS.md`](docs/desktop/USER_JOURNEYS.md), [`docs/desktop/WORKFLOW_COVERAGE.md`](docs/desktop/WORKFLOW_COVERAGE.md) |
 | Desktop truth ledger | [`docs/desktop/TRUTH_LEDGER.md`](docs/desktop/TRUTH_LEDGER.md) |
 | Desktop visual acceptance | [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md) |
-| Desktop backlog evidence | [`docs/desktop/BACKLOG_AUDIT.md`](docs/desktop/BACKLOG_AUDIT.md) |
+| Desktop backlog evidence (HISTORICAL AUDIT — archived 2026-09-10, do not update) | [`docs/desktop/BACKLOG_AUDIT.md`](docs/desktop/BACKLOG_AUDIT.md) |
 
 Historical ADRs and GitHub issues are evidence, not automatic implementation authority. Reconcile them with current code and governing contracts before acting.
 
@@ -179,7 +179,10 @@ Also read:
 - `USER_JOURNEYS.md` when changing a workflow;
 - `WORKFLOW_COVERAGE.md` when exposing/removing capabilities;
 - `VISUAL_QA.md` for any visual change;
-- `BACKLOG_AUDIT.md` before implementing old Desktop issue text.
+- `BACKLOG_AUDIT.md` is a frozen 2026-09-05 historical snapshot (archived);
+  consult it for provenance only, never as implementation authority — current
+  state lives in the master tracker, `TRUTH_LEDGER.md` and
+  `WORKFLOW_COVERAGE.md`.
 
 ### Desktop invariants
 

@@ -1,5 +1,7 @@
 # Desktop visual QA
 
+Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `ecc4d67c`.
+
 Visual acceptance requires build → run → navigate → capture PNG → open PNG →
 critique → fix → capture and inspect again. Golden comparison detects change, not
 quality. Never call a screenshot reviewed merely because it exists.
@@ -23,13 +25,15 @@ Include modal/text/terminal shortcut precedence, disabled explanations and Escap
 
 ## Build and capture
 
-The current production build reference is HEAD `711c9f32` (2026-09-10).
+The current production build reference is HEAD `ecc4d67c` (2026-09-13;
+previous `711c9f32`, 2026-09-10).
 
-> **Honest note (2026-09-10):** the full 7-viewport/theme/language matrix
+> **Honest note (2026-09-13):** the full 7-viewport/theme/language matrix
 > below remains unmet as a whole — the only fully opened/inspected captures
-> are the 2026-09-05 audit pair plus per-PR screenshots landed since VC0–VC8,
-> which are the de-facto visual evidence. Do not read this section as
-> claiming matrix completion at HEAD.
+> are the 2026-09-05 audit pair plus per-PR screenshots landed since VC0–VC8
+> and the Engine-persistence / spike-retirement refactors (#1205/#1206,
+> no visual change claimed), which are the de-facto visual evidence. Do not
+> read this section as claiming matrix completion at HEAD.
 
 The last fully built + captured baseline was `85853de`; build with:
 
