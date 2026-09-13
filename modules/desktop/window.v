@@ -262,7 +262,7 @@ pub fn (mut d Desktop) engine_api_calls() u64 {
 	return d.engine.api_call_count()
 }
 
-// smoke_message returns manual smoke log (mirrors agent_toolkit_gui window.v).
+// smoke_message returns manual smoke log for the production Desktop shell.
 pub fn (mut d Desktop) smoke_message() string {
 	mode := if d.config.headless {
 		'headless (no DISPLAY)'

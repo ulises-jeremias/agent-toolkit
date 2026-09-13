@@ -1,6 +1,6 @@
 # ADR-032 — Desktop GUI framework: vlang/gui wrap decision (Phase 0 spike #1018)
 
-- **Status:** Accepted (2026-08-31) — closes #1018 Phase 0 spike (0.1–0.5)
+- **Status:** Accepted (2026-08-31) — closes #1018 Phase 0 spike (0.1–0.5); feasibility implementation RETIRED (see Retirement note below) — gap-matrix appendix preserved as historical record
 - **Deciders:** ulises-jeremias (owner) + toolkit maintainers
 - **Related issues:** EPIC #1007 (Phase 0), #1018 (spike), EPICs #1008–#1015, #279, ADR-031 (V master)
 - **Supersedes:** n/a — first Desktop GUI framework decision (0.2–0.4 gate)
@@ -256,10 +256,30 @@ Rules:
 - **Planes:** `! grep -r 'import.*gui' modules/agent_toolkit_core` (and future
   `desktop_engine`) passes.
 
+## Retirement (feasibility implementation retired; decision record retained)
+
+- The Phase-0 feasibility implementation `modules/agent_toolkit_gui/` (spike
+  `gui.v`, `feasibility.v`, `native.v`, `window.v`, `perf.v`, `gui_test.v`) is
+  RETIRED and removed: production Desktop (`cmd/agent-toolkit-desktop/main.v`)
+  is `gg`/`sokol`-direct with zero runtime imports of it (verified:
+  no `import agent_toolkit_gui` outside the spike itself), and every
+  still-useful generic capability already lives in production code —
+  `is_headless_env`/`DesktopConfig.validate`/`smoke_message` in
+  `modules/desktop/window.v`, `DockPerfHarness` in `modules/desktop/shell/dock.v`,
+  `WorldPerfHarness` in `modules/desktop/world/world_view.v`, and the headless
+  native seam in `modules/desktop/backend/backend.v`. Nothing was migrated as
+  code because nothing was missing.
+- The gap-matrix / native-probe / Windows-limitation tables in the appendix
+  above are preserved as the historical feasibility record; they are no longer
+  rendered from code (`gap_matrix_markdown()` retired with the module).
+- `make.vsh` `mods` no longer lists `agent_toolkit_gui`; `modules/desktop/world/v.mod`
+  no longer depends on it. Residual `agent_toolkit_gui` mentions in code comments
+  are being reworded as encountered (dock/world/window harness comments).
+
 ## References
 
-- `.v-version` (`master`), `VERSION` (`1.27.0 @ 6807f29`), `make.vsh`,
-  `modules/agent_toolkit_gui/*` (`feasibility.v`, `perf.v`, `window.v`, `native.v`)
+- `.v-version` (`master`), `VERSION`, `make.vsh`,
+  retired `modules/agent_toolkit_gui/*` (`feasibility.v`, `perf.v`, `window.v`, `native.v` — see Retirement note)
 - `vlang/gui` https://github.com/vlang/gui (README, `docs/ROADMAP.md`,
   `docs/WINDOWS.md`, `examples/dock_layout.v`, `examples/snake.v`)
 - `vlib/sokol`, `vlib/gg`, `vglyph`, `vlib/x/async`, `vlib/eventbus`, `vlib/db/sqlite`,

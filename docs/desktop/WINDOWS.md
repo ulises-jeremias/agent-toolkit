@@ -35,12 +35,12 @@ Each gap is `✅` / `⚠️` with mitigation — no hidden claim. Links to a11y 
 
 ## Native surface probe (headless + manual)
 
-`modules/agent_toolkit_gui/native.v` — `probe_native()` headless-safe (never opens dialog/clipboard on CI). Manual `macos-latest` / `windows-latest` runner smoke documented in `distribution/desktop/*/package.sh` logs (`Native probe headless vs DISPLAY`).
+`modules/desktop/backend/backend.v` — `HeadlessBackend`/`VGuiBackend` headless seam (never opens dialog/clipboard on CI; supersedes the retired Phase-0 `agent_toolkit_gui/native.v` `probe_native()` spike, whose gap matrix is preserved in ADR-032). Manual `macos-latest` / `windows-latest` runner smoke documented in `distribution/desktop/*/package.sh` logs (`Native probe headless vs DISPLAY`).
 
 Windows probe on `windows-latest` (`setup-v@0.5.2`) is pending — no
 `distribution/desktop/windows/probe.vsh` exists at HEAD and no Windows run
 evidence has been recorded. The planned probe renders the headless
-`windows_limitations()` summary for the CI artifact (stubs expected headless:
+Windows-limitations summary (per the ADR-032 appendix table) for the CI artifact (stubs expected headless:
 dialog/clipboard via Win32, DnD deferred).
 
 CI on Linux shows bundle structure cross-build with ⚠️ doc when `windows-latest` runner unavailable.

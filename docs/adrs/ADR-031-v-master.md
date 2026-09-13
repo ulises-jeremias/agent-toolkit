@@ -24,7 +24,7 @@ Adopt `V master` as baseline for the entire Agent Toolkit.
 
 - `.v-version` → `master` (literal, not tag).
 - `.github/actions/setup-v/action.yml` → if `PIN == "master"` then `git clone --depth 1 https://github.com/vlang/v && make -j$(nproc)` and expose `vlang-master/v` (instead of downloading release zip).
-- All modules (`agent_toolkit_core`, `agent_toolkit_cli`, `agent_toolkit_server`, `agent_toolkit_gui` future) build with `V master`; `make.vsh vet/test/build-cli` run on `master`.
+- All modules (`agent_toolkit_core`, `agent_toolkit_cli`, `agent_toolkit_server`, plus `desktop_engine`/`desktop`) build with `V master`; `make.vsh vet/test/build-cli` run on `master`.
 - Release artifacts (floating binaries + `SHA256SUMS` + `manifest.json` + SBOM) are produced from `master`; `bump-version.vsh` still the single version source (`VERSION`), but compiler is `master`.
 - Desktop EPICs #1007-1015 and sub-issues #1016-1032 are retroactively re-baselined to `V master` (titles mentioning `0.5.2` are superseded by this ADR).
 - This ADR is the single source for the decision; no per-surface `V` pin.
