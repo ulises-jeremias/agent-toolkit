@@ -853,7 +853,7 @@ jobs:
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
 
-      # S4C (#1119): the Desktop shell test suite (incl. the registry
+      # The Desktop shell test suite (#1119, incl. the registry
       # reachability gate) compiles gg/sokol, which needs X11/GL dev headers
       # on Linux. Mirrors the Golden UI job's dependency list (headers only —
       # no xdotool/xvfb needed: tests run headless).

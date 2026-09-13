@@ -40,7 +40,7 @@ pub:
 }
 
 // ColorTokens are semantic color tokens — not raw hex per view.
-// F1 approved palette (gui-redesign-legibility plan, section 8) lives in the
+// Approved legibility palette (gui-redesign-legibility plan, section 8) lives in the
 // surface_*/text_*/signal_* fields below. The legacy bg/fg/primary/* fields are
 // frozen for backward compatibility (existing struct literals keep compiling);
 // new renderer code must use the surface_*/text_*/signal_* roles.
@@ -57,7 +57,7 @@ pub:
 	success     string = '#5A7D5A'
 	warning     string = '#C9A86B'
 	danger      string = '#C45A3C'
-	// F1 semantic roles — Paper defaults (plan section 8). Field defaults keep
+	// Semantic roles — Paper defaults (plan section 8). Field defaults keep
 	// every existing struct literal compiling (additive only).
 	surface_canvas   string = '#F3EBDD'
 	surface_paper    string = '#FFF9ED'
@@ -81,7 +81,7 @@ pub fn default_typography() TypographyScale {
 }
 
 // default_colors returns dark semantic palette (default) — Ink/Night Shift.
-// Legacy roles keep the frozen values; the F1 roles below carry the same
+// Legacy roles keep the frozen values; the semantic roles below carry the same
 // semantic jobs on dark surfaces. Signal hues are lightened versus Paper so
 // text in those hues keeps passing contrast on surface_cabinet.
 pub fn default_colors() ColorTokens {
@@ -136,7 +136,7 @@ pub fn ink_colors() ColorTokens {
 }
 
 // light_colors returns light semantic palette — Paper (plan section 8).
-// Legacy roles stay frozen; the F1 roles carry the approved values.
+// Legacy roles stay frozen; the semantic roles carry the approved values.
 pub fn light_colors() ColorTokens {
 	return ColorTokens{
 		bg: '#F4EFE6'

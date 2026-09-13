@@ -2,7 +2,7 @@
 // gui-coverage.vsh — critical product workflow coverage report for the
 // Desktop (V port of scripts/gui-coverage.py).
 //
-// Since S4 (#1119), the typed registry (modules/desktop/palette/registry.v +
+// Since the shared action/entity registry (#1119), the typed registry (modules/desktop/palette/registry.v +
 // actions.v) is the sole palette/search authority: the static palette_items()
 // command list was deleted. This report therefore no longer asserts CLI→palette
 // row parity. It reports how each **critical product workflow** is reachable
