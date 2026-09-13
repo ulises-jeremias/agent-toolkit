@@ -54,3 +54,17 @@ fn test_workspace_scaffold_projection_stamps_revision_and_api_call() {
 	assert !flags[0] && !flags[5], 'knowledge/ and AGENTS.md missing here'
 	assert flags[3], 'repos/ exists'
 }
+
+fn test_workspace_scaffold_probe_canonicalizes_symlinked_root() {
+	base := os.join_path(os.temp_dir(), 'engine-scaffold-link-${os.getpid()}')
+	os.mkdir_all(os.join_path(base, 'real', 'repos')) or { panic(err.msg()) }
+	defer { os.rmdir_all(base) or {} }
+	link := os.join_path(base, 'link')
+	os.symlink(os.join_path(base, 'real'), link) or { panic(err.msg()) }
+	// macOS /tmp -> /private/tmp: probing through a symlink must still
+	// report the canonical root, never the unresolved spelling.
+	s := probe_workspace_scaffold(link)
+	assert s.root == os.real_path(link)
+	assert s.root == os.real_path(os.join_path(base, 'real'))
+	assert s.present_flags()[3], 'repos/ visible through the link'
+}

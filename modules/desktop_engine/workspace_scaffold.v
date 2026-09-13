@@ -60,9 +60,13 @@ pub fn probe_workspace_scaffold(root string) WorkspaceScaffold {
 			root: root
 		}
 	}
+	// Canonicalize (macOS /tmp -> /private/tmp, symlinked checkouts, '..'):
+	// the projection root is an identity — revision-keyed view caches must
+	// not double-key the same directory under two spellings.
+	canon := os.real_path(clean)
 	mut entries := []WorkspaceScaffoldEntry{cap: workspace_scaffold_entry_names.len}
 	for name in workspace_scaffold_entry_names {
-		p := os.join_path(clean, name.trim_right('/'))
+		p := os.join_path(canon, name.trim_right('/'))
 		present := if name.ends_with('/') { os.is_dir(p) } else { os.is_file(p) }
 		entries << WorkspaceScaffoldEntry{
 			name: name
@@ -70,7 +74,7 @@ pub fn probe_workspace_scaffold(root string) WorkspaceScaffold {
 		}
 	}
 	return WorkspaceScaffold{
-		root: clean
+		root: canon
 		entries: entries
 	}
 }
