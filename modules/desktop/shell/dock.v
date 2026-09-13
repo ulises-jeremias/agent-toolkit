@@ -261,7 +261,7 @@ pub fn (d DockLayout) persist(path string) ! {
 }
 
 // DockPerfHarness stresses docking with 1000-widget nested flex + dock.
-// Wraps agent_toolkit_gui PerfHarness concept for dock-specific harness.
+// Synthetic headless measurement for dock chrome specifically.
 pub struct DockPerfHarness {
 pub:
 	widget_count int = 1000
@@ -298,7 +298,7 @@ fn pass_threshold_fps() f64 {
 }
 
 // run_headless executes headless synthetic measurement (no DISPLAY).
-// Same simulation as agent_toolkit_gui perf harness but with dock overhead.
+// Same simulation shape as the world harness but with dock overhead.
 pub fn (h DockPerfHarness) run_headless(iterations int) DockPerfResult {
 	n := if iterations <= 0 { 60 } else { iterations }
 	per_widget_us := 2.2 // slightly higher for dock chrome
