@@ -141,6 +141,39 @@ fn (mut t GhosttyTerminal) submit_input_void_helper(line string) {
 	t.submit_input()
 }
 
+// prompt_text carries no cursor marker: the cursor is presentation, never
+// buffer content — copy/search/scrollback must never see it, and no Unicode
+// block may leak into the drawn text (U+2588 rendered as phantom `0`).
+fn test_prompt_text_has_no_cursor_marker() {
+	mut t := clean_term(80, 18)
+	assert t.prompt_text() == 'toolkit> ', 'empty prompt text, got: ${t.prompt_text()}'
+	t.input = 'help'
+	t.cursor = t.input.len
+	assert t.prompt_text() == 'toolkit> help', 'got: ${t.prompt_text()}'
+	assert !t.prompt_text().contains('█'), 'cursor block must not be buffer content'
+	t.cursor = 2
+	assert t.prompt_text() == 'toolkit> help', 'mid-line cursor must not alter text, got: ${t.prompt_text()}'
+}
+
+// prompt_cursor_offset tracks the cursor inside the drawn text and clamps
+// stale positions so the shell rect can never point outside the line.
+fn test_prompt_cursor_offset_tracks_and_clamps() {
+	mut t := clean_term(80, 18)
+	assert t.prompt_cursor_offset() == t.prompt.len, 'empty input: cursor at prompt end'
+	t.input = 'help'
+	t.cursor = t.input.len
+	assert t.prompt_cursor_offset() == t.prompt.len + 4, 'cursor after text'
+	t.cursor = 1
+	assert t.prompt_cursor_offset() == t.prompt.len + 1, 'mid-line cursor'
+	t.cursor = 99
+	assert t.prompt_cursor_offset() == t.prompt.len + 4, 'stale cursor clamps to end'
+	t.cursor = -3
+	assert t.prompt_cursor_offset() == t.prompt.len, 'negative cursor clamps to prompt end'
+	// offset always resolves inside prompt_text()
+	line := t.prompt_text()
+	assert t.prompt_cursor_offset() <= line.len, 'offset must stay inside drawn text'
+}
+
 fn test_tmpdir_honored_for_temp_paths() {
 	base := os.temp_dir()
 	assert base.len > 0

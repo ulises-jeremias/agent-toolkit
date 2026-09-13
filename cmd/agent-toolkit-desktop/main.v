@@ -6206,7 +6206,22 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 		// prompt bg
 		app.gg.draw_rect_filled(content_x, prompt_y - 4, content_w, 18, tint(col_brass, 12))
 		prompt_col := if app.ghost_focused { col_brass } else { col_slate }
-		app.gg.draw_text(content_x + 8, prompt_y, app.ghost.prompt_line(), gg.TextCfg{ color: prompt_col, size: 13, mono: true, bold: app.ghost_focused })
+		pline := app.ghost.prompt_text()
+		app.gg.draw_text(content_x + 8, prompt_y, pline, gg.TextCfg{ color: prompt_col, size: 13, mono: true, bold: app.ghost_focused })
+		// renderer-owned block cursor at the cursor cell. The previous U+2588
+		// text cursor is gone on purpose — IBM Plex Mono lacks that glyph and
+		// font fallback rendered a phantom `0` after real input. Measured after
+		// drawing so text_width uses this exact font config; the rect follows
+		// scrolling/resize automatically because it anchors to the drawn text.
+		coff := app.ghost.prompt_cursor_offset()
+		if coff >= 0 && coff <= pline.len {
+			cx := content_x + 8 + app.gg.text_width(pline[..coff])
+			mut cw := app.gg.text_width('M')
+			if cw <= 0 {
+				cw = 8
+			}
+			app.gg.draw_rect_filled(cx, prompt_y - 13, cw, 15, prompt_col)
+		}
 	}
 	// focus hint
 	if !app.ghost_focused {
