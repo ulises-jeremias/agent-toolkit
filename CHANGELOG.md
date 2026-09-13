@@ -8,28 +8,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 <!-- markdownlint-disable MD024 -->
-## [1.30.1] — unreleased
+## [1.30.1] — 2026-09-13
 
-- **Chore (tooling)** — `.vsh` consolidation phase A: `prepare-package-data`, `prepare-native-bin`, `check-contrast`, `check-tofu`, `validate-agents-taxonomy`, `gui-coverage` and `upstream_pr_body` are now V scripts with byte-identical output (proven by old-vs-new diff runs); CI callers swapped, the orphaned contrast gate is wired as a required check, and `make.vsh` gains `contrast` + `gui-coverage` tasks. `provenance.py`, `validate-upstream.py`, the pytest suite, the PyPI launcher and shipped skill/hook scripts stay Python/sh by design
-- **Chore (tooling)** — `.vsh` consolidation phase B: `generate_surface` (byte-exact ordered JSON emitter), `generate-target-matrix` (fail-loud YAML-subset reader — V's `yaml` rejects the registries' block items and multi-line scalars), `validate-skill-capability` and `gen-icon` (SVG byte-identical, PNGs pixel-identical) are now V scripts; CI callers swapped, `make.vsh` gains `gen-surface` + `gen-target-matrix`. Full JSON-Schema validation stays in validate.yml (python jsonschema — V has no equivalent)
-- **Feat (desktop)** — README now surfaces the desktop GUI (`agent-toolkit gui --install`, alias `desktop`; release-tarball + `install-desktop.sh` path; `docs/desktop/` docs) — previously undiscoverable from the front page
-- **Chore (desktop)** — production-hardening pass (#1172, #1186, #1196, #1197, #1204): closed the truthfulness backlog — the man page matches the binary, all five quality gates run unmasked in CI, empty states name the real launch path, the help overlay documents the full bindings map, the first-run and clean-machine harnesses run hermetically in CI with real assertions, and the Linux tarball installs to an isolated prefix without touching the developer checkout
-- **Feat (desktop)** — VC8 global visual lock (#1187): all six destinations now share the Paper Co. editorial masthead, illustrated two-line navigation and compact terminal well. Office uses a full-width metric band with denser catalog-agent scenery; Settings is a real destination with an explicit setup overlay; Insights keeps truthful metrics at compact widths. Fabricated frame-rate, branch and numeric footer claims are removed
-- **Feat (desktop)** — VC8 Office overview refinement (#1173): four truthful metric cards (needs attention · catalog agents · scheduled loops · MCP enabled), and — beside the VC3.5 room when the panel is wide enough — an Agent Roster (catalog desks, identity portraits, honest Idle) and a Today column (real attention jobs, doctor warnings, onboarding pending items as next steps). Roster rows select a desk
-- **Feat (desktop)** — VC7 Workspace / Insights / Settings visual convergence (#1173): both destinations move out of `main.v` into `workspace_view.v` / `insights_view.v` and adopt the Paper Co. page grammar — editorial header with pixel mark and real local date/time, soft paper sheets, and a destination-owned right column replacing the generic inspector. Workspace: "Active workspace" hero (mono path field, Ready / Needs setup / No workspace pill, Validate / Switch / Initialize buttons with Initialize sage only while setup is needed, small filing scene), known workspaces as folder cards (active = sage outline, Missing / Active / Ready / Folder from real `known_workspaces()`), IDE block + memory palace kept, and a "Workspace details" column with a scaffold checklist from real `os.exists` on the active root, persisted seed warnings, active editor tab (MCP templates), git availability, and a compact Preferences sheet (`settings_view.v`) exposing only settings that already exist (appearance, language, terminal mode, zoom) through the existing `ui_state.env` path. Insights: four recorded-value metric cards (0 with a truthful sub-line when empty), pixel-marked tabs with a sage underline, operations-style tables with selectable rows feeding a "Report details" column, small-scene empty states; the hardcoded CI job list and the budget spark bars (defaulted totals) are gone — the CI tab now states that no provider is connected. New original sprites: `env_cabinet_tall`, `env_folder_stack`, `env_ledger`, `env_chart_mark`, `env_gear`
-- **Feat (desktop)** — VC5 Library visual convergence (#1173): Skills, Agents, Products and MCP now share one illustrated-collection composition (`library_view.v`) that follows `docs/desktop/assets/design/library.jpg` — editorial header with a composed pixel-art bookshelf banner spanning the content row, four tabs with pixel marks, a wide shared search field with an honest result count, category chips (catalog domains / tiers / kinds / MCP facets), a responsive 1–4 column card grid (48px domain mark, name, description, fact chips, configuration-truth footer) and a detail column that replaces the Office inspector with real actions (Install/Remove, Enable/Disable, Probe, Template, Copy id), Compatibility and Provenance rows, a checklist and an editorial card. Install counts, ratings, publishers, dates and "Verified" badges have no truthful source and are absent; the Engine's placeholder product `skill_ids`/`version`/`receipt_path` are deliberately not surfaced. New original assets: 17 `LibraryMark` glyphs (16×16), `env_bookshelf_wide`, `env_globe`, `env_scroll`, `env_chalkboard`, `env_ladder`, and `pixelart.with_materials` for scene material variants
-- **Fix (desktop)** — Palette registry took the Engine as `mut engine &Engine`; depending on file check order V emits `Engine**` for that parameter and the registry stored the address of the Desktop's *field* instead of the Engine, so the first palette keystroke segfaulted once a second file imported `desktop_engine`. `palette.new_registry` now takes a plain `&Engine` (33 call sites updated)
-- **Fix (desktop)** — Sprite cache is bounded (`pixelart.max_gpu_images`, LRU eviction): every cached sprite image owns a sokol sampler and the default 64-sampler pool is shared with the font atlases — exceeding it (`SAMPLER_POOL_EXHAUSTED`) made text glyphs silently disappear
-- **Feat (desktop)** — VC6 Operations visual convergence (#1173): Doctor, Jobs, Loops and Swarm now share one operational command center that follows `docs/desktop/assets/design/operations.jpg` — editorial header (gears, Fraunces title, real local date/time, house/tree vignette), four metric cards with real Engine counts (running jobs · scheduled loops · swarm sessions · doctor issues, honest zeros and truthful sub-lines), the pixel-art **Operations Floor** (checklist board, wall clock, server rack, monitor tower, workstations with idle catalog agents — only the real running-job count flips agents to running), a tabbed dense table (Jobs · Loops · Swarms · Doctor) with search, status filter and text+color status pills, and a **Details** column replacing the Office inspector on Operations panels. Empty states are paper sheets with a small scene and the real launch path. Actions now execute through the Engine and report the actual result: job Cancel/Retry (new `engine_cancel_job`/`engine_retry_job` proxies — the previous buttons only printed a "queued via Engine TX" message), Open logs, loop Run/Schedule, swarm launch pair/team/full with an editable task field and backend choice (previously drawn but inert), swarm approval approve/reject, Doctor Fix All / category chips / dry-run preview. No progress bars: the Engine has no measured fraction. New original sprites: `env_server_rack`, `env_wall_clock`, `env_gear_mark`, `env_monitor_tower`, `env_checklist_board`, `env_play_mark`, `env_calendar_mark`, `env_swarm_mark`, `env_alert_mark`
-- **Feat (desktop)** — VC4 Onboarding visual convergence (#1173): the setup journey is now a Paper Co. board that follows `docs/desktop/assets/design/onboarding.jpg` — editorial masthead, welcome header with real local date/time, five-stage progress strip, and all five setup sheets on screen at once (setup choice, detected tools, workspace, recommended capabilities, review + finish). The Office inspector is replaced during onboarding by a "Your setup so far" column with an illustrated pixel-art welcome scene, truthful setup facts and the Hornero card. Engine internals (revision, api counters, root-resolution chain, ADR ids) moved behind a Details affordance. New original sprites: `env_nest`, `env_welcome_desk`, `env_sign`, `env_books`
-- **Feat (desktop)** — VC3.5 Office visual lock (#1176): clustered desk pods with aisles and breathing rows, cream zone sign plates (library / board / archive / filing / meeting / inbox / lounge), framed standing poster on bare wall stretches, rug-anchored meeting zone and lounge corner (new `env_door` + `env_couch` sprites), plank-rhythm floor with baseboard, and recalibrated environment thresholds. Catalog desks stay idle-only — no runtime state is invented
-- **Fix (desktop)** — Inspector cabinet-drawer material (brass top edge, folder tab, drawer inset, brass pull) with a reserved footer strip so the log window no longer overdraws the pull; desk labels anchor under their own pod instead of drifting against the next row; `Live Engine inspector — no mock data.` fits on one line
-- **Feat (desktop)** — Toast tray: every Engine action feedback becomes an auto-expiring paper stamp (info/ok/warn/err rail, bottom-right stack) instead of a hidden inspector one-liner
-- **Feat (desktop)** — Shell layout persistence: panel, terminal mode, zoom, language, insights tab and swarm backend restore on relaunch (`ui_state.env` in the desktop cache dir, saved on settle/interval/Ctrl+Q)
-- **Feat (desktop)** — Terminal scrollback search: `Ctrl+F` opens a paper search field over the Ghostty feed with live match count and row highlighting
-- **Feat (desktop)** — Terminal session picker: in MAX mode a chip strip (Fleet + one chip per desk) renders any agent's multiplexed VT fullscreen (Esc returns to the fleet feed); MAX owns the content area — no more stray panel texts
-- **Feat (desktop)** — `scripts/gui-coverage.py`: CLI ↔ GUI coverage audit — every `agent-toolkit` command maps to a palette/panel affordance (22/22, 100%), CI-checkable via `--check`
-- **Feat (desktop)** — `scripts/ui-smoke.sh`: headless Xvfb UI smoke (panel tour, palette navigation, insights tabs, i18n cycle, terminal modes, Esc-safety) with per-state screenshots
+A product-hardening release: the native Agent Toolkit Desktop becomes a
+coherent, installable product with truthful Engine-backed state, a standalone
+Linux installation path, and a maintainable codebase. No new product surface
+beyond what 1.30.0 introduced — this release finishes it.
+
+### Native Agent Toolkit Desktop
+
+- Paper Co. product experience across six destinations — Office, Library,
+  Operations, Workspace, Insights, Settings — plus a guided onboarding board:
+  editorial mastheads, pixel-art scenery, destination-owned detail columns,
+  honest empty states that name the real launch path.
+- Truthful state everywhere: every user-visible value comes from Engine
+  evidence or renders explicitly as unknown/empty — no fabricated activity,
+  jobs, agents, health, receipts, metrics, progress, or installs.
+- Embedded terminal: real PTY with Ghostty-compatible VT (SGR palettes,
+  scrollback bounds, resize reflow, rune-safe CJK/emoji wrap), session
+  picker, scrollback search, height modes; covered by headless suites that
+  run in Required CI on Linux and macOS.
+- Shell layout persistence: panel, terminal mode, zoom, language, insights
+  tab, and swarm backend restore on relaunch; derived state stays
+  restorable, session-only values stay session-only.
+- Toast tray: Engine action feedback as auto-expiring paper stamps.
+
+### Standalone Linux installation
+
+- One canonical path: release tarball + receipt-backed per-user
+  `install-desktop.sh` (no sudo, XDG user scope) — binary, launcher entry
+  with absolute Exec, hicolor icons including a resolving scalable SVG, man
+  page, and a schema-versioned install receipt.
+- Idempotent reinstall (byte-identical owned files refresh, user-modified
+  files flip to preserved) and receipt-backed uninstall that removes only
+  owned artifacts.
+- Proven in CI and sandbox: fresh install → reinstall → foreign-file
+  preservation → uninstall, `desktop-file-validate` green, no source-path
+  leakage, no secrets in receipts. AppImage evaluated and deferred — the
+  tarball path is the single supported Linux install.
+- Clean-machine acceptance runs in CI: packaged artifact → clean install →
+  GUI launch → onboarding → discovery → workspace → restart persistence.
+
+### Reliability and maintainability
+
+- Codebase reads as designed, not accumulated: historical
+  implementation-campaign labels removed from production identifiers,
+  comments, and tests (history preserved in git/ADRs/frozen audits).
+- Engine owns domain truth: workspace-scaffold probing, dock-layout and
+  shell-layout persistence moved into typed Engine projections with focused
+  tests; views consume facts instead of discovering them.
+- Obsolete Phase-0 GUI feasibility spike retired (−834 lines); production
+  is `gg`/`sokol`-direct (recorded in ADR-032).
+- Hermetic V toolchain bootstrap: pinned V/VC/TCC inputs, pin-embedded
+  cache key, retries — reproducible cold builds.
+- Tooling consolidated to V scripts with byte-identical output
+  (`prepare-package-data`, `prepare-native-bin`, contrast/tofu checks,
+  taxonomy, icon generation, surface/target-matrix generators); contrast
+  gate enforced in CI for both themes.
+- Documentation reconciled: truth ledger and workflow coverage re-baselined
+  with re-evaluated claims; install/packaging docs describe the proven
+  path; platform support stated honestly.
+
+### Notable fixes
+
+- Palette registry Engine-pointer fix (first-keystroke segfault eliminated).
+- Bounded sprite cache with LRU eviction (glyphs no longer vanish when the
+  sampler pool exhausts).
+- Linux/X11 text input, glyph coverage, type-ramp atlas safety, UTF-8
+  Arabic/CJK font routing.
+- Inspector overdraw, desk-label anchoring, job Cancel/Retry and swarm
+  launch actions that previously only printed messages now execute through
+  the Engine and report real results.
+
+### Known limitations
+
+- Desktop-menu click acceptance stays manual; macOS/Windows install paths
+  unproven and unclaimed; updater honestly unavailable until a real feed
+  exists. Accessibility remainder (reduced-motion view wiring, focus
+  rings), i18n panel bodies, Arabic shaping decision, perf budgets, and
+  responsive matrix are tracked post-release work.
 
 ## [1.30.0] — 2026-09-02
 
