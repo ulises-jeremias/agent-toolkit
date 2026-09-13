@@ -75,6 +75,15 @@ fn default_persist_path() string {
 	return os.join_path(cache, 'agent-toolkit', 'desktop', 'state.json')
 }
 
+// persist_path_of returns the repository's persistence file path so the
+// Engine can derive sibling derived-state files (dock.json, ui_state.env)
+// next to it instead of discovering XDG paths in views.
+pub fn (mut r StateRepository) persist_path_of() string {
+	r.mu.rlock()
+	defer { r.mu.runlock() }
+	return r.persist_path
+}
+
 // snapshot returns immutable copy of current state (read-locked).
 pub fn (mut r StateRepository) snapshot() State {
 	r.mu.rlock()

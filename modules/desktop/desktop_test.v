@@ -8,6 +8,7 @@ import desktop.state as app_state
 import desktop.backend
 import desktop_engine.state as engine_state
 import desktop_engine.eventbus
+import desktop_engine
 
 fn test_desktop_window_opens_headless_and_closes_cleanly() {
 	tmp := os.join_path(os.temp_dir(), 'desktop-boot-${os.getpid()}')
@@ -344,6 +345,85 @@ fn test_localbackend_seam_injected_not_direct_os_calls() {
 	} else {
 		assert true
 	}
+}
+
+// --- Engine-owned projections: scaffold, dock persistence, ui state ---
+fn test_engine_workspace_scaffold_projection_matches_filesystem() {
+	tmp := os.join_path(os.temp_dir(), 'desktop-scaffold-${os.getpid()}')
+	os.mkdir_all(tmp) or { panic(err.msg()) }
+	defer { os.rmdir_all(tmp) or {} }
+	os.mkdir_all(os.join_path(tmp, 'knowledge')) or { panic(err.msg()) }
+	os.write_file(os.join_path(tmp, 'AGENTS.md'), '# contract\n') or { panic(err.msg()) }
+	mut d := new_desktop(DesktopBootArgs{
+		config: DesktopConfig{
+			headless: true
+		}
+		persist_path: os.join_path(tmp, 'state.json')
+	})
+	d.boot() or { panic(err.msg()) }
+	defer { d.shutdown() or {} }
+	s := d.engine_workspace_scaffold(tmp)
+	assert s.entries.len == 6
+	flags := s.present_flags()
+	assert flags[0] && flags[5], 'knowledge/ and AGENTS.md present'
+	assert !flags[1] && !flags[2], 'personas/ and packs/ missing'
+	assert d.engine_api_calls() > 0
+	unknown := d.engine_workspace_scaffold('')
+	assert unknown.present_flags().len == 0, 'no root → unknown, never missing'
+}
+
+fn test_update_dock_persists_via_engine_projection() {
+	tmp := os.join_path(os.temp_dir(), 'desktop-dock-engine-${os.getpid()}')
+	os.mkdir_all(tmp) or { panic(err.msg()) }
+	defer { os.rmdir_all(tmp) or {} }
+	mut d := new_desktop(DesktopBootArgs{
+		config: DesktopConfig{
+			headless: true
+		}
+		persist_path: os.join_path(tmp, 'state.json')
+	})
+	d.boot() or { panic(err.msg()) }
+	defer { d.shutdown() or {} }
+	// derived dock path is Engine-owned (sibling of the state file)
+	assert d.engine_dock_persist_path() == os.join_path(tmp, 'dock.json')
+	layout := shell.default_dock_layout()
+	next := layout.drag_to_target('doctor', 'left') or { panic(err.msg()) }
+	d.update_dock(next) or { panic(err.msg()) }
+	// payload round-trips through the Engine mirror + derived file
+	loaded := d.engine_load_dock_snapshot() or { panic('dock snapshot missing') }
+	assert loaded.contains('doctor')
+	assert loaded.contains('"revision":${next.revision}')
+	path := d.engine_dock_persist_path()
+	assert os.is_file(path), 'derived dock.json must exist at ${path}'
+	assert os.read_file(path) or { '' } == loaded
+	assert d.engine_api_calls() > 0
+}
+
+fn test_engine_ui_state_save_load_roundtrip_via_desktop() {
+	tmp := os.join_path(os.temp_dir(), 'desktop-uistate-${os.getpid()}')
+	os.mkdir_all(tmp) or { panic(err.msg()) }
+	defer { os.rmdir_all(tmp) or {} }
+	mut d := new_desktop(DesktopBootArgs{
+		config: DesktopConfig{
+			headless: true
+		}
+		persist_path: os.join_path(tmp, 'state.json')
+	})
+	d.boot() or { panic(err.msg()) }
+	defer { d.shutdown() or {} }
+	d.engine_save_ui_state(desktop_engine.UiShellState{
+		term_mode: 2
+		zoom: 1.0
+		lang: 1
+		insights_tab: 'cost'
+		swarm_backend: 'auto'
+		appearance: 'ink'
+	}) or { panic(err.msg()) }
+	loaded := d.engine_load_ui_state()
+	assert loaded.appearance == 'ink'
+	assert loaded.lang == 1
+	assert loaded.term_mode == 0, 'MAX persists as compact'
+	assert d.engine_api_calls() > 0
 }
 
 // --- Vet green checklist ---

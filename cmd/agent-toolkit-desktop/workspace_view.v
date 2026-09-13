@@ -1,7 +1,6 @@
 module main
 
 import gg
-import os
 import desktop.pixelart
 import desktop_engine
 
@@ -17,8 +16,8 @@ import desktop_engine
 // block below, and a "Workspace details" column on the right that replaces
 // the generic inspector.
 //
-// Truth: every value here comes from the Engine or a real filesystem check
-// (os.exists on the active root). Unknown renders as "—"; empty renders as
+// Truth: every value here comes from the Engine (the scaffold checklist via
+// the Engine scaffold projection). Unknown renders as "—"; empty renders as
 // an honest sentence. Nothing is inferred from the illustration.
 
 // WorkspaceLayout is computed once per frame and shared by drawing, click,
@@ -252,27 +251,25 @@ fn destination_header(mut app GuiApp, fx int, fy int, fw int, head_h int, mark p
 
 // workspace_scaffold_names are the scaffold entries the Engine seeds
 // (onboarding_ensure_workspace) plus the AGENTS.md contract that marks a
-// workspace as initialized (workspace_is_initialized).
-const workspace_scaffold_names = ['knowledge/', 'personas/', 'packs/', 'repos/', 'projects/', 'AGENTS.md']
+// workspace as initialized (workspace_is_initialized). Canonical list lives
+// in desktop_engine.workspace_scaffold_entry_names; this alias keeps view
+// indexing stable (locked by test).
+const workspace_scaffold_names = ['knowledge/', 'personas/', 'packs/', 'repos/', 'projects/',
+	'AGENTS.md']
 
 // workspace_scaffold_present checks the REAL directory state of root for each
-// scaffold entry. A trailing '/' entry must be a directory; a plain entry a
-// file. Returns an empty list when there is no root — unknown, not missing.
+// scaffold entry. Owned by the Engine projection
+// (desktop_engine.probe_workspace_scaffold); this wrapper keeps the
+// per-entry []bool shape views render. Empty list when there is no root —
+// unknown, not missing.
 fn workspace_scaffold_present(root string) []bool {
-	clean := os.expand_tilde_to_home(root.trim_space())
-	if clean == '' || !os.is_dir(clean) {
-		return []bool{}
-	}
-	mut out := []bool{cap: workspace_scaffold_names.len}
-	for name in workspace_scaffold_names {
-		p := os.join_path(clean, name.trim_right('/'))
-		out << if name.ends_with('/') { os.is_dir(p) } else { os.is_file(p) }
-	}
-	return out
+	return desktop_engine.probe_workspace_scaffold(root).present_flags()
 }
 
-// workspace_scaffold_cached memoizes workspace_scaffold_present by root, refreshed every
-// ~2s (120 frames) so a network mount cannot stall the render thread.
+// workspace_scaffold_cached memoizes the Engine scaffold projection by root,
+// refreshed every ~2s (120 frames) so a network mount cannot stall the render
+// thread. Consumes the Engine projection via Desktop; falls back to the pure
+// probe only when no Desktop is attached (pure layout tests).
 fn workspace_scaffold_cached(mut app GuiApp, root string) []bool {
 	// keyed by root AND engine revision: Initialize/Switch bump the revision,
 	// so the checklist flips from 'missing' to present on the very next frame
@@ -283,7 +280,11 @@ fn workspace_scaffold_cached(mut app GuiApp, root string) []bool {
 		return app.workspace_scaffold_vals
 	}
 	app.workspace_scaffold_root = key
-	app.workspace_scaffold_vals = workspace_scaffold_present(root)
+	if app.desktop != unsafe { nil } {
+		app.workspace_scaffold_vals = app.desktop.engine_workspace_scaffold(root).present_flags()
+	} else {
+		app.workspace_scaffold_vals = workspace_scaffold_present(root)
+	}
 	app.workspace_scaffold_frame = app.frame
 	return app.workspace_scaffold_vals
 }
@@ -698,7 +699,7 @@ fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 	})
 	sc.draw(pixelart.environment_for(.folder_stack), pid, x + d.iw - 44, y + 10, 2)
 
-	// scaffold checklist — real os.exists on the active root
+	// scaffold checklist — Engine scaffold projection for the active root
 	workspace_section_label(mut app, x + 16, d.scaffold_y, 'SCAFFOLD')
 	present := workspace_scaffold_cached(mut app, app.harness_root)
 	for i, name in workspace_scaffold_names {

@@ -197,18 +197,49 @@ pub fn (d Desktop) dock_layout() shell.DockLayout {
 	return d.dock
 }
 
-// update_dock persists derived layout (not canonical) and bumps app_state.
+// update_dock persists derived layout (not canonical) via Engine persistence
+// and refreshes the projection. One Engine transaction mirrors revision +
+// payload and writes the derived dock.json file; never blocks boot.
 pub fn (mut d Desktop) update_dock(layout shell.DockLayout) ! {
 	layout.validate()!
 	d.dock = layout
-	// persist derived (best-effort, never blocks boot)
-	d.dock.persist('') or { eprintln('dock persist ignored: ${err}') }
-	// also reflect in Engine state for cross-restart (derived)
-	mut v := d.mutate_via_engine('dock_layout', 'rev:${layout.revision}') or {
-		eprintln('mutate ignored: ${err}')
-		return
+	// persist derived via Engine (best-effort, never blocks boot)
+	d.engine.save_dock_snapshot(layout.persist_payload(), layout.revision) or {
+		eprintln('dock persist ignored: ${err}')
 	}
-	_ = v
+	d.refresh_app_state()
+}
+
+// engine_dock_persist_path exposes the Engine-owned derived dock file path.
+// Views consume this fact; the shell never derives persistence paths.
+pub fn (mut d Desktop) engine_dock_persist_path() string {
+	return d.engine.dock_persist_path()
+}
+
+// engine_save_dock_snapshot persists a serialized dock payload via the Engine.
+pub fn (mut d Desktop) engine_save_dock_snapshot(payload string, revision u64) !u64 {
+	return d.engine.save_dock_snapshot(payload, revision)
+}
+
+// engine_load_dock_snapshot returns the Engine-mirrored dock payload, if any.
+pub fn (mut d Desktop) engine_load_dock_snapshot() ?string {
+	return d.engine.load_dock_snapshot()
+}
+
+// engine_workspace_scaffold returns the Engine-owned scaffold projection for
+// root. Views consume these facts; they never probe the filesystem.
+pub fn (mut d Desktop) engine_workspace_scaffold(root string) desktop_engine.WorkspaceScaffold {
+	return d.engine.workspace_scaffold(root)
+}
+
+// engine_save_ui_state persists shell layout via Engine persistence.
+pub fn (mut d Desktop) engine_save_ui_state(s desktop_engine.UiShellState) !u64 {
+	return d.engine.save_ui_shell_state(s)
+}
+
+// engine_load_ui_state returns the Engine-persisted shell layout.
+pub fn (mut d Desktop) engine_load_ui_state() desktop_engine.UiShellState {
+	return d.engine.load_ui_shell_state()
 }
 
 // theme_snapshot returns current theme.

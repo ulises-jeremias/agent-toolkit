@@ -1,6 +1,7 @@
 module main
 
 import desktop
+import desktop_engine
 import os
 import time
 
@@ -100,6 +101,83 @@ fn test_workspace_scaffold_present_reads_real_directories() {
 fn test_workspace_scaffold_present_unknown_root_is_empty_not_missing() {
 	assert workspace_scaffold_present('').len == 0, 'no root → unknown, never "missing"'
 	assert workspace_scaffold_present('/definitely/not/a/dir/${os.getpid()}').len == 0
+}
+
+fn test_workspace_scaffold_view_matches_engine_projection() {
+	// the view alias must never drift from the Engine-owned canonical list
+	assert workspace_scaffold_names == desktop_engine.workspace_scaffold_entry_names
+	scratch_dir := make_scratch_dir('scaffold-engine')
+	defer {
+		os.rmdir_all(scratch_dir) or {}
+	}
+	os.mkdir_all(os.join_path(scratch_dir, 'repos')) or { panic(err.msg()) }
+	// view wrapper and Engine probe agree on every entry
+	assert workspace_scaffold_present(scratch_dir) == desktop_engine.probe_workspace_scaffold(scratch_dir).present_flags()
+	// attached Desktop: the cached checklist consumes the Engine projection
+	persist := os.join_path(scratch_dir, 'state.json')
+	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
+		config: desktop.DesktopConfig{
+			headless: true
+		}
+		persist_path: persist
+	})
+	d.boot() or { panic(err.msg()) }
+	defer {
+		d.shutdown() or {}
+	}
+	mut app := &GuiApp{
+		desktop: d
+		harness_root: scratch_dir
+		engine_rev: 0
+		frame: 1000
+	}
+	got := workspace_scaffold_cached(mut app, scratch_dir)
+	assert got == d.engine_workspace_scaffold(scratch_dir).present_flags()
+	assert got[3], 'repos/ present via the Engine projection'
+	assert !got[0], 'knowledge/ missing via the Engine projection'
+}
+
+fn test_save_load_ui_state_round_trips_through_engine() {
+	scratch_dir := make_scratch_dir('uistate-engine')
+	defer {
+		os.rmdir_all(scratch_dir) or {}
+	}
+	persist := os.join_path(scratch_dir, 'state.json')
+	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
+		config: desktop.DesktopConfig{
+			headless: true
+		}
+		persist_path: persist
+	})
+	d.boot() or { panic(err.msg()) }
+	defer {
+		d.shutdown() or {}
+	}
+	mut app := &GuiApp{
+		desktop: d
+		term_mode: 2
+		global_zoom: 1.0
+		lang: .es
+		insights_tab: 'waterfall'
+		swarm_backend: 'local'
+		appearance: .ink
+	}
+	save_ui_state(mut app)
+	// Engine mirror holds the clamped layout (MAX → compact)
+	stored := d.engine_load_ui_state()
+	assert stored.term_mode == 0, 'MAX persists as compact, got ${stored.term_mode}'
+	assert stored.lang == 1
+	assert stored.appearance == 'ink'
+	// a fresh view restores the same layout through the Engine
+	mut restored := &GuiApp{
+		desktop: d
+	}
+	load_ui_state(mut restored)
+	assert restored.term_mode == 0
+	assert restored.lang == .es
+	assert restored.insights_tab == 'waterfall'
+	assert restored.swarm_backend == 'local'
+	assert restored.appearance == .ink
 }
 
 fn test_workspace_state_label_follows_engine_truth() {
