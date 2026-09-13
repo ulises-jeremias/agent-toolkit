@@ -42,7 +42,7 @@ fn C.kill(pid int, sig int) int
 const sigterm = 15
 const sigkill = 9
 
-struct Ctx {
+struct GoldenRun {
 mut:
 	root     string
 	bin      string
@@ -68,13 +68,13 @@ fn sh(cmd string) os.Result {
 	return os.execute(cmd)
 }
 
-fn fail(mut c Ctx, msg string, code int) {
+fn fail(mut c GoldenRun, msg string, code int) {
 	eprintln(msg)
 	cleanup(mut c)
 	exit(code)
 }
 
-fn cleanup(mut c Ctx) {
+fn cleanup(mut c GoldenRun) {
 	for pid in [c.app_pid, c.xvfb_pid] {
 		if pid != 0 {
 			C.kill(pid, sigterm)
@@ -116,11 +116,11 @@ fn spawn_detached(cmd string, log string) int {
 	return pid
 }
 
-fn (c Ctx) xdt(args string) os.Result {
+fn (c GoldenRun) xdt(args string) os.Result {
 	return sh('DISPLAY="${c.effdis}" LD_LIBRARY_PATH="${c.xlib}" timeout 30 ${c.xd} ${args}')
 }
 
-fn (c Ctx) shot(path string) bool {
+fn (c GoldenRun) shot(path string) bool {
 	time.sleep(1200 * time.millisecond)
 	r := sh('DISPLAY="${c.effdis}" timeout 60 import -window ${c.wid} "${path}"')
 	return r.exit_code == 0
@@ -169,7 +169,7 @@ fn lock_owner_dead(lockd string) (string, bool) {
 	return owner, false
 }
 
-fn take_lock(mut c Ctx) {
+fn take_lock(mut c GoldenRun) {
 	lockd := c.lockd
 	os.mkdir(lockd) or {
 		owner, dead := lock_owner_dead(lockd)
@@ -194,7 +194,7 @@ fn main() {
 	if args.len > 0 && args[0].ends_with('.vsh') {
 		args = args[1..].clone()
 	}
-	mut c := Ctx{}
+	mut c := GoldenRun{}
 	c.root = os.dir(os.dir(@FILE))
 	if !os.is_file(os.join_path(c.root, 'VERSION')) {
 		c.root = os.getwd()

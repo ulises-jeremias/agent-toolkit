@@ -31,7 +31,7 @@ fn C.kill(pid int, sig int) int
 const sigterm = 15
 const sigkill = 9
 
-struct Ctx {
+struct SmokeRun {
 mut:
 	root     string
 	bin      string
@@ -52,13 +52,13 @@ fn sh(cmd string) os.Result {
 	return os.execute(cmd)
 }
 
-fn fail(mut c Ctx, msg string, code int) {
+fn fail(mut c SmokeRun, msg string, code int) {
 	eprintln(msg)
 	cleanup(mut c)
 	exit(code)
 }
 
-fn cleanup(mut c Ctx) {
+fn cleanup(mut c SmokeRun) {
 	for pid in [c.app_pid, c.xvfb_pid] {
 		if pid != 0 {
 			C.kill(pid, sigterm)
@@ -109,7 +109,7 @@ fn lock_owner_dead(lockd string) (string, bool) {
 	return owner, false
 }
 
-fn take_lock(mut c Ctx) {
+fn take_lock(mut c SmokeRun) {
 	lockd := c.lockd
 	os.mkdir(lockd) or {
 		owner, dead := lock_owner_dead(lockd)
@@ -128,15 +128,15 @@ fn take_lock(mut c Ctx) {
 
 // xdt mirrors the retired `xdt()` — guarded (exit status ignored by callers
 // that probe), display-scoped, XTEST-safe.
-fn (c Ctx) xdt(args string) os.Result {
+fn (c SmokeRun) xdt(args string) os.Result {
 	return sh('DISPLAY="${c.effdis}" LD_LIBRARY_PATH="${c.xlib}" ${c.xd} ${args} 2>/dev/null || true')
 }
 
-fn (c Ctx) alive() bool {
+fn (c SmokeRun) alive() bool {
 	return c.app_pid != 0 && C.kill(c.app_pid, 0) == 0
 }
 
-fn (mut c Ctx) shot(name string) {
+fn (mut c SmokeRun) shot(name string) {
 	time.sleep(1200 * time.millisecond)
 	for _ in 0 .. 3 {
 		r := sh('import -window "${c.wid}" "${c.out}/${name}.png" 2>/dev/null')
@@ -149,7 +149,7 @@ fn (mut c Ctx) shot(name string) {
 }
 
 fn main() {
-	mut c := Ctx{}
+	mut c := SmokeRun{}
 	c.root = os.dir(os.dir(@FILE))
 	if !os.is_file(os.join_path(c.root, 'VERSION')) {
 		c.root = os.getwd()
