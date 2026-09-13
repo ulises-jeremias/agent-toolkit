@@ -1,15 +1,15 @@
 # Desktop Engine truth ledger
 
-Status: re-baselined at HEAD `711c9f32`, 2026-09-10 (original S7 audit
-baseline 2026-09-06, `origin/main cf4a4eb8`). This ledger classifies
+Status: re-baselined at HEAD `711c9f32`, 2026-09-10 (original engine-truth
+audit baseline 2026-09-06, `origin/main cf4a4eb8`). This ledger classifies
 every Desktop Engine value by authority and records the replacement source for
-each contaminated API. It is the contract for S7 slices: **if Agent Toolkit
-cannot prove a fact, it must not manufacture it.** Unknown, unavailable, empty
-and unverified are valid states.
+each contaminated API. It is the contract for the engine-truth audit: **if
+Agent Toolkit cannot prove a fact, it must not manufacture it.** Unknown,
+unavailable, empty and unverified are valid states.
 
-The S-tags in the inventory below are the historical audit index — production
-code comments no longer carry per-finding slice tags (only `*_truth_test.v`
-file headers retain `S7*` labels).
+The slice tags in the inventory below are the historical audit index —
+production code comments and `*_truth_test.v` headers use domain language
+and carry no per-finding slice tags.
 
 ## Authority classes
 
@@ -32,9 +32,9 @@ file headers retain `S7*` labels).
 
 ## Status (final, 2026-09-06)
 
-S7 is complete. Every finding in the inventory below is resolved; the
-regression gates live in `modules/desktop_engine/*_truth_test.v` and
-`evidence_truth_test.v`.
+The engine-truth audit is complete. Every finding in the inventory below is
+resolved; the regression gates live in `modules/desktop_engine/*_truth_test.v`
+and `evidence_truth_test.v`.
 
 | Slice | Scope | Landed |
 |---|---|---|
@@ -45,11 +45,11 @@ regression gates live in `modules/desktop_engine/*_truth_test.v` and
 | S7E | Remaining sweep + gates | #1149 |
 | Fixtures | Golden recapture for intentional drift | #1150 |
 | S7F | Tracker reconciliation | #1097 closed (shipped via #1126/#1134); #1106/#1108 closed with evidence; #1101/#1111 rewritten to remaining gaps; #1139/#1132 closed as superseded; #1118 rewritten |
-| S4 | Shared action/entity registry | Deferred to #1119 — the Engine now exposes trustworthy semantics, so S4 may begin |
+| Registry | Shared action/entity registry | Deferred to #1119 — the Engine now exposes trustworthy semantics, so registry work may begin |
 
 ## Contamination inventory and replacements
 
-Severity: B = blocker, H = high, M = medium. Status: pending slices S7A–S7F.
+Severity: B = blocker, H = high, M = medium. Status: historical audit slices below, all landed.
 
 | File | Finding | Sev | Replacement source | Slice |
 |---|---|---|---|---|
@@ -67,7 +67,7 @@ Severity: B = blocker, H = high, M = medium. Status: pending slices S7A–S7F.
 | `agents_service.v` | `install_agent` state-only receipt (`1.0.0`, constructed path) | B | Selection config truth; real receipt evidence from plugin install artifacts | S7A |
 | `agents_service.v` | Hardcoded tier lists, invented triggers, default `architect` owner | H/M | AGENT.md frontmatter / agent catalog | S7D |
 | `agents_service.v` | `agent_provenance_detail` emits `verified: 'true'` unconditionally | H | Real provenance scan; false/none otherwise | S7A |
-| `loops_service.v` | Fabricated 10-loop fallback catalog with fake spend and future `next_run` | B | Bundled loops via data_* (already S1); empty when absent | S7D |
+| `loops_service.v` | Fabricated 10-loop fallback catalog with fake spend and future `next_run` | B | Bundled loops via data_* (tier-aware catalog resolution); empty when absent | S7D |
 | `loops_service.v` | Synthetic history rows, "treat synthetic history as completed", invented cost tiers | H | Real state history only; measured or unknown | S7D |
 | `receipts_service.v` | `sha256:abc`/`sha256:def`/`sha256:123` placeholders, unconditional `verified: true` | H | `agent_toolkit_core.list_install_receipts` + recomputed artifact digests | S7A |
 | `receipts_service.v` | Receipt dir read at `toolkit_root/.config` (wrong authority; raw os on embedded) | H | Core `default_receipt_dir()` (user config authority) | S7A |
@@ -85,7 +85,7 @@ Severity: B = blocker, H = high, M = medium. Status: pending slices S7A–S7F.
 | `di.v` | Undocumented `cwd` tier fallback | M | Document the ladder; embedded tier must not silently become cwd | S7E |
 | `onboarding_service.v` | State-only target enabling; hardcoded persona templates | H/M | Config truth + canonical agent/persona sources | S7B/D |
 
-## Evidence semantics (adopted in S7A)
+## Evidence semantics (adopted in the evidence & receipt truth pass)
 
 An Engine action that only records configuration state is **configuration**, not
 installation. States are distinguished as:

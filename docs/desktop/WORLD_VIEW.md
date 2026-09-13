@@ -1,12 +1,12 @@
 # World View — Workshop Metaphor
 
 > **SUPERSEDED 2026-09-08 (in part).** The governing visual authority is
-> now [DESIGN.md](DESIGN.md) (§0 Visual Convergence / Paper Co. v1) and the
+> now [DESIGN.md](DESIGN.md) (§0 visual-convergence goal / Paper Co. v1) and the
 > design references in [assets/design/](assets/design/). The **Workshop
 > metaphor, vector-sprite vocabulary, and workbench/rig zoning below are
 > historical**: the production visual language is the Paper Co. pixel-art
 > office (agent desks, operations, approvals, receipts, diagnostics) built
-> on the pixel-art foundation from the Visual Convergence milestone. The
+> on the pixel-art foundation from the Paper Co. visual-parity milestone. The
 > **motion/reduced-motion, no-fake-gamification, and plane-guard contracts
 > below remain binding.** Issue #1065 is narrowed to motion/HDPI/audio
 > stance accordingly.
