@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 <!-- markdownlint-disable MD024 -->
+## [Unreleased]
+
+### Fixed
+
+- Desktop keyboard input ownership: while a text-entry surface (header /
+  workspace / Library / memory / Operations search, terminal scrollback
+  search, focused embedded terminal) owns typing focus, printable keys go
+  to that surface and global single-letter shortcuts stay silent; clicking
+  a field claims focus (exactly one owner), Esc / panel navigation
+  releases it. Fixes `i` navigating to Insights while typing in Library
+  and `h` opening Help while typing in the terminal.
+
 ## [1.30.1] — 2026-09-13
 
 A product-hardening release: the native Agent Toolkit Desktop becomes a

@@ -1058,6 +1058,15 @@ mut:
 	global_search       string
 	header_search_focus bool
 	header_search_hover int = -1
+	// text-input focus ownership — keyboard routing contract: while any
+	// text surface owns typing focus, printable keys belong to that surface
+	// and global single-letter shortcuts stay silent (see
+	// text_input_focused). Clicking a field claims focus (clearing the
+	// previous owner via clear_text_focus); Esc/panel-switch releases.
+	// The Library search and memory palace fields are click-to-focus like
+	// the header field.
+	library_search_focus bool
+	memory_search_focus  bool
 	// insights — Engine-owned telemetry (cost ledger, tool timing, spans, budget sparks, CI watcher)
 	insights_scroll int
 	insights_sel    int = -1 // selected row of the current tab
@@ -4176,6 +4185,7 @@ fn doctor_preview_open(mut app GuiApp, check_id string) {
 			app.term_mode = 0
 		}
 		app.term_visible = true
+		clear_text_focus(mut app)
 		app.ghost_focused = true
 		save_ui_state(mut app)
 		app.inspector_msg = 'Doctor terminal: focused — restart or dismiss the exited sessions'
@@ -5494,9 +5504,8 @@ fn initialize_workspace(mut app GuiApp) bool {
 fn select_panel(mut app GuiApp, panel int) {
 	app.selected_panel = panel
 	app.show_onboarding = false
-	app.header_search_focus = false
-	app.workspace_focus = false
-	app.ghost_focused = false
+	// explicit navigation releases text focus (see text_input_focused)
+	clear_text_focus(mut app)
 	if panel != 0 {
 		app.selected_desk = -1
 	}
@@ -6595,14 +6604,55 @@ fn deep_link_select(mut app GuiApp, kind palette.EntityKind, id string) {
 
 // is_panel_nav_key reports whether c is a documented global panel shortcut
 // (digits select panels, p/i/o jump to Products/Insights/Onboarding — see the
-// help overlay). Panel type-to-filter capture must let these fall through to
+// help overlay). Unfocused type-to-filter capture lets these fall through to
 // the global handler, otherwise filter panels swallow digits and keyboard
-// users cannot navigate away.
+// users cannot navigate away. While a text surface owns focus (see
+// text_input_focused) the owner captures every printable including these.
 fn is_panel_nav_key(c u32) bool {
 	if c >= `0` && c <= `9` {
 		return true
 	}
 	return c == `p` || c == `P` || c == `i` || c == `I` || c == `o` || c == `O`
+}
+
+// text_input_focused reports whether any text-entry surface currently owns
+// typing focus. Keyboard routing contract: printable keys belong to the
+// focus owner — global single-letter shortcuts (/, h, r, t, g, j/k/c, f,
+// digits, p/i/o) must not fire while this returns true. Escape and modifier
+// combinations keep their documented behavior.
+fn text_input_focused(app &GuiApp) bool {
+	if app.palette_open || app.header_search_focus || app.workspace_focus {
+		return true
+	}
+	if app.library_search_focus || app.memory_search_focus || app.term_search_open {
+		return true
+	}
+	if app.operations_focus != 0 {
+		return true
+	}
+	if app.ghost_focused && app.term_visible {
+		return true
+	}
+	return false
+}
+
+// clear_text_focus releases every click-to-focus text surface. Call it
+// before claiming a new focus owner so typing always has exactly one owner,
+// and on explicit panel navigation (select_panel). Operations fields are
+// included: operations_key only consumes on its own panels, so a stale
+// operations_focus would silence global shortcuts with no owner left to
+// consume the keys.
+fn clear_text_focus(mut app GuiApp) {
+	app.header_search_focus = false
+	app.workspace_focus = false
+	app.library_search_focus = false
+	app.memory_search_focus = false
+	app.operations_focus = 0
+	// the scrollback-search handler runs before the panel fields, so a
+	// stale open search would steal keys from a newly claimed owner
+	app.term_search_open = false
+	app.term_search = ''
+	app.ghost_focused = false
 }
 
 fn onboarding_key(mut app GuiApp, e &gg.Event) bool {
@@ -6944,10 +6994,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				app.skills_query = ''
 				app.skills_domain = ''
 				app.library_filter = ''
+				app.library_search_focus = false
 				return
 			}
 			if app.selected_panel == 9 {
 				app.memory_query = ''
+				app.memory_search_focus = false
 				return
 			}
 			// doctor dry-run preview is modal — Esc cancels it from anywhere (#1108)
@@ -6968,6 +7020,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// libghostty-vt toggle — Tab flips ghost_focused, the multiplexed terminal
 		if e.key_code == .tab {
 			if app.term_visible {
+				if !app.ghost_focused {
+					clear_text_focus(mut app)
+				}
 				app.ghost_focused = !app.ghost_focused
 			}
 			return
@@ -6995,8 +7050,13 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			if e.key_code == .f {
 				if app.term_visible {
-					app.term_search_open = !app.term_search_open
+					// opening the search claims typing focus (see
+					// text_input_focused); closing just releases it
 					if !app.term_search_open {
+						clear_text_focus(mut app)
+						app.term_search_open = true
+					} else {
+						app.term_search_open = false
 						app.term_search = ''
 					}
 				}
@@ -7027,7 +7087,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// #1128: the workspace draft path needs '/' — the palette hotkey must
 		// not fire while the workspace field has focus (an absolute path was
 		// impossible to type before this guard)
-		if (e.key_code == .slash || (e.key_code == .k && is_mod)) && !app.workspace_focus {
+		if (e.key_code == .slash || (e.key_code == .k && is_mod)) && !app.workspace_focus
+			&& !text_input_focused(app) {
 			app.palette_open = true
 			app.palette_query = ''
 			app.palette_selected = 0
@@ -7039,17 +7100,21 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// (library_view.v). Like header_search_focus above, the field owns
 		// printable letters *before* the global letter shortcuts (h help,
 		// r handoff) so "github" / "review" can actually be typed; the
-		// documented nav keys (digits, p/i/o) still fall through.
+		// documented nav keys (digits, p/i/o) still fall through while the
+		// field is unfocused, and are captured once it owns click focus.
 		if !app.palette_open && !app.show_help && library_is_panel(app.selected_panel) {
 			if library_key(mut app, e) {
 				return
 			}
 		}
-		if e.char_code == `h` || e.char_code == `H` {
+		// single-letter shortcuts stay silent while a text surface owns
+		// typing focus (see text_input_focused) — the focused owner above
+		// already consumed this key.
+		if (e.char_code == `h` || e.char_code == `H`) && !text_input_focused(app) {
 			app.show_help = !app.show_help
 			return
 		}
-		if e.char_code == `r` || e.char_code == `R` {
+		if (e.char_code == `r` || e.char_code == `R`) && !text_input_focused(app) {
 			// Route handoff from inspector via keyboard
 			desks := desks_for_app(app)
 			if app.selected_desk >= 0 && app.selected_desk < desks.len {
@@ -7064,7 +7129,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// (Enter again confirms, Esc cancels), real repair + audit stamp
 			if app.selected_panel == 5 {
 				// (Esc-cancel lives in the global Esc block above — it runs first.)
-				if e.char_code == `f` || e.char_code == `F` {
+				// Silent while a text surface owns focus (e.g. focused terminal
+				// on the Doctor panel) — see text_input_focused.
+				if (e.char_code == `f` || e.char_code == `F`) && !text_input_focused(app) {
 					rev := app.desktop.engine_doctor_fix_all() or {
 						app.inspector_msg = 'Doctor fix all failed: ${err}'
 						return
@@ -7109,6 +7176,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 				if e.key_code == .escape {
 					app.memory_query = ''
+					app.memory_search_focus = false
 					return
 				}
 				if e.key_code == .up {
@@ -7128,8 +7196,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					}
 					return
 				}
-				// same nav-key fall-through as the Skills panel (see is_panel_nav_key)
-				if e.char_code > 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
+				// While the memory field owns click focus (memory_search_focus)
+			// it captures every printable including nav keys (see
+			// text_input_focused); unfocused, documented nav keys still
+			// fall through to global navigation.
+				if e.char_code > 32 && e.char_code < 127
+					&& (app.memory_search_focus || !is_panel_nav_key(e.char_code)) {
 					// typing goes to memory palace semantic recall when workspace active
 					app.memory_query += rune(e.char_code).str()
 					return
@@ -7158,9 +7230,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 		}
 		// libghostty-vt — when focused, route typing to Ghostty terminal (libghostty-vt)
-		// Terminal is bottom strip; ghost has priority over log scroll when focused
-		// Exclude skills/MCP/doctor/workspace when they need typed search
-		if !app.palette_open && !app.show_help && app.ghost_focused && app.term_visible && app.selected_panel != 1 && app.selected_panel != 3 && app.selected_panel != 5 && app.selected_panel != 9 {
+		// Terminal is bottom strip; ghost has priority over log scroll when focused.
+		// A focused terminal owns typing on every panel (see text_input_focused):
+		// focus owners are mutually exclusive via clear_text_focus, so panels
+		// with their own search keep it whenever the terminal is not focused.
+		if !app.palette_open && !app.show_help && app.ghost_focused && app.term_visible {
 			// Ctrl+L clears Ghostty (like terminal clear), Ctrl+C copies Ghostty visible
 			if (e.modifiers & u32(gg.Modifier.ctrl)) != 0 {
 				if e.char_code == `l` || e.char_code == `L` {
@@ -7575,6 +7649,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.skills_query = ''
 					app.header_search_focus = false
 				} else {
+					clear_text_focus(mut app)
 					app.header_search_focus = true
 					app.workspace_focus = false
 					app.ghost_focused = false
@@ -7706,9 +7781,19 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					tx, ty, tab_w, tab_h := terminal_tab_rect(x0, y0, i)
 					if rect_contains(mx, my, tx, ty, tab_w, tab_h) {
 						app.term_view = tab.view
-						app.ghost_focused = tab.view < 0
+						// claiming Ghostty focus releases the previous text
+						// owner (see text_input_focused)
+						if tab.view < 0 {
+							clear_text_focus(mut app)
+							app.ghost_focused = true
+						} else {
+							app.ghost_focused = false
+						}
 						return
 					}
+				}
+				if !app.ghost_focused {
+					clear_text_focus(mut app)
 				}
 				app.ghost_focused = !app.ghost_focused
 				return
@@ -7796,7 +7881,9 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			if mx >= content_x && mx <= content_x + content_w && my >= content_y + 16 && my < y0 + term_h - 18 {
-				// click inside terminal focuses Ghostty and copies — potent multiplexed
+				// click inside terminal focuses Ghostty and copies — potent multiplexed.
+				// Claiming focus releases other text surfaces (see text_input_focused).
+				clear_text_focus(mut app)
 				app.ghost_focused = true
 				if app.ghost.lines.len > 0 {
 					g_vis := app.ghost.visible_lines()
@@ -7904,9 +7991,8 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			// workspace control row: field + Validate / Switch / Initialize
 			if l.hero_h > 0 && my >= l.field_y && my <= l.field_y + 28 {
 				if mx >= l.field_x && mx <= l.field_x + l.field_w {
+					clear_text_focus(mut app)
 					app.workspace_focus = true
-					app.header_search_focus = false
-					app.ghost_focused = false
 					return
 				}
 				if mx >= l.validate_x && mx <= l.validate_x + l.validate_w {
@@ -8038,8 +8124,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					}
 				}
 			}
-			// memory palace search bar hit — bottom
+			// memory palace search bar hit — bottom; clicking claims typing
+			// focus (see text_input_focused)
 			if mx >= l.fx + 12 + 8 && mx <= l.fx + l.fw - 12 && my >= l.mem_y + 20 && my <= l.mem_y + 40 {
+				clear_text_focus(mut app)
+				app.memory_search_focus = true
 				app.inspector_msg = 'Memory palace focused — type to recall semantic (hybrid cosine)'
 				return
 			}

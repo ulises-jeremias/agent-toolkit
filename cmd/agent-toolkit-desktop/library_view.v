@@ -1754,7 +1754,9 @@ fn library_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	sx, sy, sw, sh := library_search_rect(l)
 	if rect_contains(mx, my, sx, sy, sw, sh) {
 		app.palette_open = false
-		app.ghost_focused = false
+		// clicking the field claims typing focus (see text_input_focused)
+		clear_text_focus(mut app)
+		app.library_search_focus = true
 		app.inspector_msg = 'Type to search — Esc clears'
 		return true
 	}
@@ -1875,6 +1877,7 @@ fn library_key(mut app GuiApp, e &gg.Event) bool {
 		app.skills_query = ''
 		app.skills_domain = ''
 		app.library_filter = ''
+		app.library_search_focus = false
 		return true
 	}
 	if e.key_code == .up {
@@ -1901,9 +1904,13 @@ fn library_key(mut app GuiApp, e &gg.Event) bool {
 		return true
 	}
 	// the shared search field owns printable text while a Library panel is
-	// active — including spaces, so multi-word queries ("code review") work;
-	// documented nav keys (digits, p/i/o) still fall through
-	if e.char_code >= 32 && e.char_code < 127 && !is_panel_nav_key(e.char_code) {
+	// active — including spaces, so multi-word queries ("code review") work.
+	// While the field owns click focus (library_search_focus) it captures
+	// every printable including nav keys (see text_input_focused) so "figma"
+	// or "review" can actually be typed; unfocused, documented nav keys
+	// (digits, p/i/o) still fall through to global navigation.
+	if e.char_code >= 32 && e.char_code < 127
+		&& (app.library_search_focus || !is_panel_nav_key(e.char_code)) {
 		app.skills_query += rune(e.char_code).str()
 		library_set_scroll_row(mut app, 0)
 		return true
