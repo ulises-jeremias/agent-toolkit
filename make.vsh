@@ -12,7 +12,7 @@
 import build
 import os
 
-const mods = ['agent_toolkit_core', 'agent_toolkit_cli', 'agent_toolkit_server', 'agent_toolkit_gui', 'desktop_engine', 'desktop']
+const mods = ['agent_toolkit_core', 'agent_toolkit_cli', 'agent_toolkit_server', 'desktop_engine', 'desktop']
 
 fn root() string {
 	d := dir(@FILE)

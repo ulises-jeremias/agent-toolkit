@@ -306,7 +306,7 @@ pub fn encode_state_json(proj WorldProjection) string {
 	return json2.encode(proj)
 }
 
-// workload for perf harness — derived from agent_toolkit_gui PerfHarness but for world.
+// workload for perf harness — world-node synthetic measurement for the workshop canvas.
 pub struct WorldPerfHarness {
 pub:
 	node_count int = 100

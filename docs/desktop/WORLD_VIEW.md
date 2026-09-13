@@ -57,7 +57,7 @@ No `points`, `coins`, `level up`, `XP` economy — `grep -r "points|coins|level 
 - gradients/shadows/blur only where `vlang/gui` supports — no custom GL shim
 - culling + LOD + clustering stub for 100+ nodes (full 1000+ stress in 6.5 follow-up)
 - virtualized lists (1000+ rows, 5k events): viewport `visible_range` + row pool keeps draw calls bounded
-- 60 FPS retained: `WorldPerfHarness` 100-node workshop sample `>=58 FPS` sustained; `agent_toolkit_gui.PerfHarness` 1000-widget `60 FPS` canonical harness
+- 60 FPS retained: `WorldPerfHarness` 100-node workshop sample `>=58 FPS` sustained; `DockPerfHarness` 1000-widget `60 FPS` canonical harness (retired Phase-0 `agent_toolkit_gui.PerfHarness` spike superseded; gap matrix preserved in ADR-032)
 - `reduced-motion` collapses tweens/springs to instant (`MotionTokens.effective_duration → 0`), light/dark via design tokens #1017
 
 ## Plane Guard & Version
