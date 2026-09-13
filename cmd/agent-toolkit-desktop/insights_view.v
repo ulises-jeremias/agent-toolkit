@@ -144,6 +144,13 @@ fn insights_or_dash(s string) string {
 	return if s.trim_space() == '' { '—' } else { s }
 }
 
+// loops_with_budget counts loop templates declaring a budget. Presentation
+// count over the Engine loops catalog; the budget rule lives here once so
+// both budgets views share it.
+fn loops_with_budget(loops []desktop_engine.LoopEntry) int {
+	return loops.filter(it.budget.max_tokens > 0 || it.budget.max_wall_seconds > 0).len
+}
+
 fn insights_status_tone(s string) string {
 	low := s.to_lower()
 	if low.contains('fail') || low.contains('error') || low.contains('cancel') {
@@ -286,7 +293,7 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsightsTable {
 			} else {
 				[]desktop_engine.LoopHistory{}
 			}
-			with_budget := loops.filter(it.budget.max_tokens > 0 || it.budget.max_wall_seconds > 0).len
+			with_budget := loops_with_budget(loops)
 			mut rows := []InsightsRow{}
 			for hrow in hist {
 				rows << InsightsRow{
@@ -399,7 +406,7 @@ fn draw_insights_metrics(mut app GuiApp, l InsightsLayout) {
 	for r in swarms {
 		spent += r.budget_spent
 	}
-	with_budget := loops.filter(it.budget.max_tokens > 0 || it.budget.max_wall_seconds > 0).len
+	with_budget := loops_with_budget(loops)
 	runs := swarms.len + jobs.len
 	cards := [
 		['${runs}', 'Runs recorded', if runs == 0 {

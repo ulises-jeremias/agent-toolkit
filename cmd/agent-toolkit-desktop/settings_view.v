@@ -9,9 +9,9 @@ import desktop.pixelart
 // This sheet exposes ONLY the settings
 // that already exist in GuiApp today — appearance, language, terminal
 // height mode, zoom — wired to the same state fields the header chips,
-// status bar and keyboard shortcuts mutate, and persisted through the
-// existing ui_state.env path (save_ui_state). It is mounted in the
-// Workspace details column, where it fits the "most technical destination".
+// status bar and keyboard shortcuts mutate, and persisted through Engine
+// persistence (save_ui_state → Engine ui shell projection). It is mounted in
+// the Workspace details column, where it fits the "most technical destination".
 
 const prefs_rows = ['Appearance', 'Language', 'Terminal', 'Zoom']
 
@@ -155,7 +155,7 @@ fn preferences_click(mut app GuiApp, x int, y int, w int, mx int, my int) bool {
 					app.zoom_toast_at = app.frame
 				}
 			}
-			save_ui_state(app)
+			save_ui_state(mut app)
 			return true
 		}
 	}

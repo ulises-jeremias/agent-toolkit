@@ -225,84 +225,84 @@ pub:
 	sc       string // Noto Sans SC subset — 中文 chrome
 }
 
-// ui_state_path — ~/.cache/agent-toolkit/desktop/ui_state.env
+// ui_state_path — default shell-layout path. Owned by the Engine projection
+// (desktop_engine.ui_state_default_path); per-Engine overrides live in
+// Engine.ui_state_path (sibling of the Engine state file).
 fn ui_state_path() string {
-	base := if os.getenv('XDG_CACHE_HOME') != '' {
-		os.getenv('XDG_CACHE_HOME')
-	} else {
-		os.join_path(os.home_dir(), '.cache')
-	}
-	return os.join_path(base, 'agent-toolkit', 'desktop', 'ui_state.env')
+	return desktop_engine.ui_state_default_path()
 }
 
-// save_ui_state — best-effort persist of the shell layout (k=v, no json deps).
+// persisted_terminal_mode clamps a terminal mode for persistence. Owned by
+// the Engine (desktop_engine.persisted_terminal_mode); MAX (2) is
+// session-only and restarts as compact (0).
 fn persisted_terminal_mode(mode int) int {
-	if mode == 2 {
-		return 0
+	return desktop_engine.persisted_terminal_mode(mode)
+}
+
+// ui_shell_state_of maps view enums to the Engine typed shell projection.
+fn ui_shell_state_of(app &GuiApp) desktop_engine.UiShellState {
+	return desktop_engine.UiShellState{
+		term_mode: desktop_engine.persisted_terminal_mode(app.term_mode)
+		zoom: app.global_zoom
+		lang: int(app.lang)
+		insights_tab: app.insights_tab
+		swarm_backend: app.swarm_backend
+		appearance: '${app.appearance}'
 	}
-	return if mode >= 0 && mode <= 3 { mode } else { 3 }
 }
 
-fn save_ui_state(app &GuiApp) {
-	// MAX is a session-only takeover; restart it as compact rather than
-	// covering the whole application before the user asks again.
-	term_mode := persisted_terminal_mode(app.term_mode)
-	lines := [
-		'term_mode=${term_mode}',
-		'zoom=${app.global_zoom}',
-		'lang=${int(app.lang)}',
-		'insights_tab=${app.insights_tab}',
-		'swarm_backend=${app.swarm_backend}',
-		'appearance=${app.appearance}',
-	]
-	os.mkdir_all(os.dir(ui_state_path())) or {}
-	os.write_file(ui_state_path(), lines.join('\n')) or {}
+// apply_ui_shell_state maps the Engine typed shell projection back onto view
+// enums (values clamped by callers).
+fn apply_ui_shell_state(mut app GuiApp, s desktop_engine.UiShellState) {
+	app.term_mode = desktop_engine.persisted_terminal_mode(s.term_mode)
+	app.global_zoom = clamp_zoom(s.zoom)
+	match s.lang {
+		1 {
+			app.lang = Lang.es
+		}
+		2 {
+			app.lang = Lang.zh
+		}
+		3 {
+			app.lang = Lang.ar
+		}
+		else {}
+	}
+	app.insights_tab = s.insights_tab
+	app.appearance = appearance_from_string(s.appearance)
+	app.swarm_backend = s.swarm_backend
 }
 
-// load_ui_state — restore the last shell layout (values clamped by callers).
+// save_ui_state — best-effort persist of the shell layout via Engine
+// persistence (StateRepository mirror + derived ui_state.env file). Falls
+// back to the legacy direct file write only when no Desktop is attached
+// (pure tests) or the Engine write fails.
+fn save_ui_state(mut app GuiApp) {
+	if app.desktop != unsafe { nil } {
+		app.desktop.engine_save_ui_state(ui_shell_state_of(app)) or {
+			write_ui_state_file(ui_state_path(), ui_shell_state_of(app))
+		}
+		return
+	}
+	write_ui_state_file(ui_state_path(), ui_shell_state_of(app))
+}
+
+// write_ui_state_file is the legacy direct file write: headless-test
+// fallback only, never the production path.
+fn write_ui_state_file(path string, s desktop_engine.UiShellState) {
+	os.mkdir_all(os.dir(path)) or {}
+	os.write_file(path, desktop_engine.encode_ui_state_env(s)) or {}
+}
+
+// load_ui_state — restore the last shell layout via Engine persistence.
+// Falls back to the legacy direct file read only when no Desktop is attached.
 fn load_ui_state(mut app GuiApp) {
-	txt := os.read_file(ui_state_path()) or { return }
-	for line in txt.split('\n') {
-		kv := line.split('=')
-		if kv.len != 2 {
-			continue
-		}
-		k, v := kv[0], kv[1]
-		match k {
-			'term_mode' {
-				mode := v.int()
-				app.term_mode = persisted_terminal_mode(mode)
-			}
-			'zoom' {
-				app.global_zoom = clamp_zoom(v.f64())
-			}
-			'lang' {
-				li := v.int()
-				match li {
-					1 {
-						app.lang = Lang.es
-					}
-					2 {
-						app.lang = Lang.zh
-					}
-					3 {
-						app.lang = Lang.ar
-					}
-					else {}
-				}
-			}
-			'insights_tab' {
-				app.insights_tab = v
-			}
-			'appearance' {
-				app.appearance = appearance_from_string(v)
-			}
-			'swarm_backend' {
-				app.swarm_backend = v
-			}
-			else {}
-		}
+	if app.desktop != unsafe { nil } {
+		apply_ui_shell_state(mut app, app.desktop.engine_load_ui_state())
+		return
 	}
+	txt := os.read_file(ui_state_path()) or { return }
+	apply_ui_shell_state(mut app, desktop_engine.decode_ui_state_env(txt))
 }
 
 // vt_for — resolve a view id to its VT: -1 fleet, 0..14 desks, 15+ sessions.
@@ -1838,7 +1838,7 @@ fn handle_palette_undo(mut app GuiApp, sel PaletteRow) {
 				return
 			}
 			app.apply_appearance(appearance_from_string(spec.previous_appearance))
-			save_ui_state(app)
+			save_ui_state(mut app)
 			out := app.palette_reg.mark_undo_consumed(sel.execution_id, 0)
 			app.inspector_msg = out.summary
 		}
@@ -2552,7 +2552,7 @@ fn frame(mut app GuiApp) {
 	}
 	// persist the shell layout every ~10s and at frame 60 (first settle)
 	if app.frame == 60 || app.frame % 600 == 0 {
-		save_ui_state(app)
+		save_ui_state(mut app)
 	}
 	// walk cycle 4 frames 8fps, 80px/s, bob ±1 (munder spec)
 	if app.frame % 4 == 0 {
@@ -4177,7 +4177,7 @@ fn doctor_preview_open(mut app GuiApp, check_id string) {
 		}
 		app.term_visible = true
 		app.ghost_focused = true
-		save_ui_state(app)
+		save_ui_state(mut app)
 		app.inspector_msg = 'Doctor terminal: focused — restart or dismiss the exited sessions'
 		return
 	}
@@ -5527,7 +5527,7 @@ fn cycle_appearance(mut app GuiApp) {
 		.system { Appearance.paper }
 	}
 	app.apply_appearance(app.appearance)
-	save_ui_state(app)
+	save_ui_state(mut app)
 	app.inspector_msg = 'Appearance: ${appearance_label(app.appearance)} — panel theme applied, chrome unchanged'
 }
 
@@ -7009,7 +7009,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			if e.key_code == .q {
 				// Ctrl+Q — explicit quit (Esc never kills the app; it cancels layers)
-				save_ui_state(app)
+				save_ui_state(mut app)
 				app.gg.quit()
 				return
 			}
@@ -7272,7 +7272,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				// persisted mode instead of toggling the derived field.
 				app.term_mode = if app.term_mode == 3 { 0 } else { 3 }
 				app.term_visible = app.term_mode != 3
-				save_ui_state(app)
+				save_ui_state(mut app)
 				return
 			}
 		}
@@ -7592,7 +7592,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					.zh { Lang.ar }
 					.ar { Lang.en }
 				}
-				save_ui_state(app)
+				save_ui_state(mut app)
 				app.header_search_focus = false
 				app.workspace_focus = false
 				return

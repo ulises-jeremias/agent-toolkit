@@ -226,19 +226,10 @@ pub fn (d DockLayout) resize_split(split_id string, position f64) !DockLayout {
 	return next
 }
 
-// default_persist_path returns derived persistence path (XDG cache, not canonical).
-fn default_persist_path() string {
-	base := os.getenv('XDG_CACHE_HOME')
-	home := os.home_dir()
-	cache := if base.len > 0 { base } else { os.join_path(home, '.cache') }
-	return os.join_path(cache, 'agent-toolkit', 'desktop', 'dock.json')
-}
-
-// persist writes derived dock layout atomically (derived only).
-pub fn (d DockLayout) persist(path string) ! {
-	p := if path.len > 0 { path } else { default_persist_path() }
-	dir := os.dir(p)
-	os.mkdir_all(dir) or { return error('mkdir failed: ${err}') }
+// persist_payload serializes the derived dock layout (derived only).
+// Pure serialization: the Engine owns the persist path and the write;
+// callers that need a path use the Engine dock_persist_path projection.
+pub fn (d DockLayout) persist_payload() string {
 	// Manual JSON to avoid json import variance across V versions
 	mut panels_json := '['
 	for i, panel in d.panels {
@@ -248,10 +239,22 @@ pub fn (d DockLayout) persist(path string) ! {
 		panels_json += '{"id":"${panel.id}","title":"${panel.title}","panel":"${panel.panel}","weight":${panel.weight},"visible":${panel.visible},' + '"closable":${panel.closable}}'
 	}
 	panels_json += ']'
-	payload := '{"revision":${d.revision},"timestamp":${d.timestamp},"panels":${panels_json}}'
-	tmp := '${p}.tmp.${os.getpid()}'
+	return '{"revision":${d.revision},"timestamp":${d.timestamp},"panels":${panels_json}}'
+}
+
+// persist writes a dock payload produced by persist_payload atomically to an
+// explicit path. The path must come from the Engine dock_persist_path
+// projection — the shell never derives persistence paths.
+pub fn (d DockLayout) persist(path string) ! {
+	if path.trim_space() == '' {
+		return error('dock persist path empty: use the Engine dock_persist_path projection')
+	}
+	dir := os.dir(path)
+	os.mkdir_all(dir) or { return error('mkdir failed: ${err}') }
+	payload := d.persist_payload()
+	tmp := '${path}.tmp.${os.getpid()}'
 	os.write_file(tmp, payload) or { return error('write tmp failed: ${err}') }
-	os.mv(tmp, p) or {
+	os.mv(tmp, path) or {
 		os.rm(tmp) or {}
 		return error('rename failed: ${err}')
 	}
