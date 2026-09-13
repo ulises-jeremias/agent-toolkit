@@ -1,8 +1,10 @@
 # Desktop user journeys
 
-These are acceptance journeys, not current feature claims. Each must cover success,
-empty/loading/error states and safe recovery through the production native UI.
-See [workflow coverage](WORKFLOW_COVERAGE.md) for current evidence.
+Status: **CURRENT GUIDE** — acceptance journeys, re-confirmed 2026-09-13 at
+`ecc4d67c`. These are acceptance journeys, not current feature claims. Each
+must cover success, empty/loading/error states and safe recovery through the
+production native UI. See [workflow coverage](WORKFLOW_COVERAGE.md) for
+current evidence.
 
 | Journey | Required path and outcome |
 |---|---|
@@ -35,9 +37,14 @@ See [workflow coverage](WORKFLOW_COVERAGE.md) for current evidence.
 
 One Engine classifier must distinguish managed Agent Toolkit, existing Agent
 Toolkit, My AI Workspace-style, harness-compatible, arbitrary project and
-invalid/legacy environments. Existing heuristics are inconsistent. The minimum
-managed workspace schema and transactional scaffold remain release-blocking work.
-Do not call an arbitrary cwd a valid workspace because it contains one directory.
+invalid/legacy environments. Existing heuristics are inconsistent. Scaffold
+*observation* is now Engine-owned (`probe_workspace_scaffold` in
+`modules/desktop_engine/workspace_scaffold.v` reports real on-disk presence
+of `knowledge/`, `personas/`, `packs/`, `repos/`, `projects/`, `AGENTS.md`;
+unknown root reads as unknown, never "all missing"); the minimum managed
+workspace schema and transactional scaffold *mutation* remain
+release-blocking work. Do not call an arbitrary cwd a valid workspace
+because it contains one directory.
 
 Executable discovery must not source arbitrary shell startup files. Search bounded
 catalog-supported locations and allow explicit selection of an executable. Explain

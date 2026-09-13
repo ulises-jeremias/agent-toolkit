@@ -1,5 +1,8 @@
 # Desktop Packaging
 
+Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `ecc4d67c`.
+See [WINDOWS.md](WINDOWS.md) for the honest Windows support status (unproven).
+
 > `VERSION 1.30.0` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
 
 ## GUI (native desktop) build
@@ -33,7 +36,7 @@ translated strings — it harvests every CJK codepoint from `main.v`.
 
 | Path in archive | Purpose |
 |---|---|
-| `agent-toolkit-desktop` | native binary (fonts/resources embedded; resolves runtime state under XDG cache at first run) |
+| `agent-toolkit-desktop` | native binary (fonts/resources embedded; Engine-owned derived state — `ui_state.env`, `dock.json` — resolves under XDG cache at first run, never in the checkout) |
 | `agent-toolkit-desktop.desktop` | Desktop Entry spec launcher (`StartupWMClass` matches the window title) |
 | `icons/agent-toolkit-desktop-{16,24,32,48,64,128,256,512}.png` + `-scalable.svg` | hicolor icon set — Paper Co. envelope mark (deterministic generator: `packaging/linux/gen-icon.vsh`) |
 | `share/man/man1/agent-toolkit-desktop.1` | man page (synopsis, keymap, env, files) |
@@ -136,9 +139,14 @@ Gatekeeper: `spctl -a -t exec -vv build/AgentToolkit.app` logged (allow ⚠️ f
 
 See also `docs/desktop/WINDOWS.md` cross-ref for Gatekeeper/notarization gaps.
 
-## Windows (7.3) — spike + impl
+## Windows (7.3) — spike decided, impl pending
 
 `distribution/desktop/windows/` + `docs/desktop/WINDOWS.md` spike doc.
+Windows is unproven at HEAD — no `windows-latest` build, window smoke, or
+installer run recorded. The Inno Setup verdict in WINDOWS.md is the
+evaluation gate; the installer implementation and `windows-latest` evidence
+follow the verdict. The Phase-0 feasibility implementation retired in #1206
+does not change this: production is `gg`/`sokol`-direct.
 
 ### Native deps bundling
 
@@ -146,7 +154,7 @@ See also `docs/desktop/WINDOWS.md` cross-ref for Gatekeeper/notarization gaps.
 
 - static link vs DLL side-by-side in `build/windows/`; `make.vsh package-desktop-windows` logs `ldd`/`objdump` + `sha256sum` of bundled DLLs; size impact vs `+4.8M` ELF baseline recorded; fallback to system `DirectWrite`/`GDI` where the `gg`/`sokol` renderer abstracts.
 
-### Installer spike (EVALUATE, not premature pick)
+### Installer spike (decided: Inno Setup — impl pending, not premature pick)
 
 | Criterion | WiX Toolset | Inno Setup | NSIS |
 |---|---|---|---|
@@ -156,7 +164,7 @@ See also `docs/desktop/WINDOWS.md` cross-ref for Gatekeeper/notarization gaps.
 | Per-user vs per-machine | ✅ | ✅ | ✅ |
 | Bundles native DLLs side-by-side | ✅ | ✅ | ✅ |
 | Code sign integration (`signtool`) | ✅ | ✅ | ✅ |
-| `gg`/`sokol` Windows window tested | probe pending (spike 0.3 #1018) | probe pending | probe pending |
+| `gg`/`sokol` Windows window tested | probe pending on `windows-latest` (Phase-0 spike #1018 closed; feasibility implementation retired #1206) | probe pending | probe pending |
 | CI `windows-latest` support | `wix` action | `iscc` | `makensis` |
 
 **Spike verdict: choose Inno Setup** (recommendation — simplicity, Pascal `iss` authoring, `iscc` CI support, bundles DLLs, `signtool` integration). WiX is MSI enterprise alternative, NSIS is lightweight zlib but script ergonomics lower. Verdict justified by probing the `gg`/`sokol` window on Windows, installer UX, CI cost — spike doc is acceptance gate, installer impl follows decision. No renderer code change required.
@@ -171,9 +179,16 @@ Cross-build installer structure on Linux (spike doc + bundle layout) + real `.ex
 
 All packaging respects `V 0.5.2`, single binary, `VMODULES`, `gen-embedded`; aligns `distribution/` contracts, ADR-022 `SHA256SUMS`, `docs/RELEASING.md` publish gated (no premature Homebrew/AUR/NPM/Store publish). No secrets in artifact (`grep` fail), `v vet` green.
 
-## Auto-update (7.4)
+## Auto-update (7.4) — design only, honestly unavailable
 
-`modules/desktop_engine/update_service.v` reuses the existing `release.yml` + `manifest.json` pattern (no second update server). The former `modules/desktop/update/` GUI-side mock feed was removed — update stays honestly unavailable until a real updater exists (see #1063).
+Update stays honestly unavailable until a real feed reader/updater exists:
+no release-feed reader or updater exists, so Update is an
+honestly-unavailable application action in the registry — it cannot execute
+(see #1063 and [WORKFLOW_COVERAGE.md](WORKFLOW_COVERAGE.md)). The design
+below is not implemented. `modules/desktop_engine/update_service.v` would
+reuse the existing `release.yml` + `manifest.json` pattern (no second update
+server). The former `modules/desktop/update/` GUI-side mock feed was
+removed.
 
 - Feed: `https://github.com/ulises-jeremias/agent-toolkit/releases` + `manifest.json` (ADR-022) as signed feed — `net.http` fetches `version`, `assets[] { name, sha256, url, provenance }`, `channel` (`stable` = `VERSION 1.30.0` line).
 - Check: `Engine.check_update(current: VERSION) -> ?UpdateInfo` compares semver, respects `channel: stable|next|pinned:$VERSION`, opt-in `update.auto_check` (default prompt, not silent).

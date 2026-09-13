@@ -1,6 +1,7 @@
 # Agent Toolkit Desktop Design Contract
 
-**Status:** governing visual and interaction design direction for Agent Toolkit Desktop.
+**Status: CURRENT CONTRACT** — governing visual and interaction design
+direction for Agent Toolkit Desktop. Re-confirmed 2026-09-13 at `ecc4d67c`.
 
 This document defines how Agent Toolkit Desktop should look, feel, and present information. It complements [PRODUCT_VISION.md](PRODUCT_VISION.md), [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md), [USER_JOURNEYS.md](USER_JOURNEYS.md), [WORKFLOW_COVERAGE.md](WORKFLOW_COVERAGE.md), and [VISUAL_QA.md](VISUAL_QA.md). It is not an executable token file and it does not override Engine truth, accessibility, or platform constraints.
 

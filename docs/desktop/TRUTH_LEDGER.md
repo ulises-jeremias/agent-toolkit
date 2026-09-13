@@ -1,8 +1,9 @@
 # Desktop Engine truth ledger
 
-Status: re-baselined at HEAD `711c9f32`, 2026-09-10 (original engine-truth
-audit baseline 2026-09-06, `origin/main cf4a4eb8`). This ledger classifies
-every Desktop Engine value by authority and records the replacement source for
+Status: **CURRENT CONTRACT** — re-baselined at HEAD `ecc4d67c`, 2026-09-13
+(previous re-baseline `711c9f32`, 2026-09-10; original engine-truth audit
+baseline 2026-09-06, `origin/main cf4a4eb8`). This ledger classifies every
+Desktop Engine value by authority and records the replacement source for
 each contaminated API. It is the contract for the engine-truth audit: **if
 Agent Toolkit cannot prove a fact, it must not manufacture it.** Unknown,
 unavailable, empty and unverified are valid states.
@@ -10,6 +11,37 @@ unavailable, empty and unverified are valid states.
 The slice tags in the inventory below are the historical audit index —
 production code comments and `*_truth_test.v` headers use domain language
 and carry no per-finding slice tags.
+
+## Re-baseline 2026-09-13 (`ecc4d67c`)
+
+Re-evaluated, not just SHA-bumped. Changes since `711c9f32`:
+
+- **Engine-owned persistence (new, #1205).** The Engine now owns three
+  derived-persistence projections, each with typed tests:
+  workspace-scaffold probing (`modules/desktop_engine/workspace_scaffold.v`),
+  dock-layout persistence (`modules/desktop_engine/dock_persistence.v`,
+  derived `dock.json` next to the state file), and shell-layout persistence
+  (`modules/desktop_engine/ui_state_persistence.v`, derived `ui_state.env`
+  for terminal mode, zoom, language, insights tab, swarm backend,
+  appearance). All three are **derived state** under the existing
+  "Desktop derived state" path authority (`EngineConfig.persist_path`,
+  XDG cache) — never canonical, restorable from defaults. Session-only
+  values stay session-only: terminal MAX restarts as compact, never
+  covering the app before the user asks again.
+- **Feasibility spike retired (#1206).** `modules/agent_toolkit_gui/`
+  (Phase-0 feasibility implementation) is removed; the production Desktop
+  is `gg`/`sokol`-direct with zero production imports of it (verified:
+  `grep -rn "import agent_toolkit_gui\|import gui"` over
+  `modules/desktop_engine`, `modules/desktop`, `cmd/agent-toolkit-desktop`
+  returns no production matches). The decision record is retained in
+  [ADR-032](../adrs/ADR-032-desktop-gui-framework.md) (retirement note;
+  gap-matrix appendix preserved as history).
+- **Contamination inventory re-check.** No placeholder digests in
+  production (`sha256:abc`-style values appear only in test comments
+  asserting they are forbidden); regression gates still live in
+  `modules/desktop_engine/*_truth_test.v` (evidence, targets, git,
+  loops/agents, engine, product). Every finding in the inventory below
+  remains resolved.
 
 ## Authority classes
 
@@ -30,7 +62,7 @@ and carry no per-finding slice tags.
 | Runtime artifacts | `Engine.runtime_path` (derived from persist_path) | `os` (mutable scratch) |
 | Active workspace | harness root / `recent_workspace` — never `toolkit_root` | `os` with validated paths |
 
-## Status (final, 2026-09-06)
+## Status (historical audit record, 2026-09-06; re-confirmed 2026-09-13)
 
 The engine-truth audit is complete. Every finding in the inventory below is
 resolved; the regression gates live in `modules/desktop_engine/*_truth_test.v`

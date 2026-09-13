@@ -1,6 +1,7 @@
 # Agent Toolkit Desktop product vision
 
-Status: governing product direction, adopted 2026-09-05. This document defines the
+Status: **CURRENT CONTRACT** — governing product direction, adopted
+2026-09-05, re-confirmed 2026-09-13 at `ecc4d67c`. This document defines the
 destination, not a claim that current builds meet it. Start with
 [workflow coverage](WORKFLOW_COVERAGE.md) for verified gaps and
 [visual QA](VISUAL_QA.md) for acceptance evidence.

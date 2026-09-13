@@ -1,5 +1,7 @@
 # Desktop design references
 
+Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `ecc4d67c`.
+
 These generated images are **directional visual references**, not implementation screenshots and not sources of product/runtime truth.
 
 - [`concept-board.jpg`](concept-board.jpg) — visual-language overview: Paper Co., pixel-art office, Hornero craftsmanship, terminal contrast, palette and component direction.

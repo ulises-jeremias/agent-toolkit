@@ -1,13 +1,26 @@
 # Desktop workflow coverage
 
-Baseline: `711c9f32a2cfd632f33f3a47b6ad8897caf806b2`, fetched 2026-09-10.
+Status: **CURRENT CONTRACT** — baseline `ecc4d67cb10a4fd37e6d3e365aa33d83da4a006f`, fetched 2026-09-13
+(previous baseline `711c9f32`, 2026-09-10).
 
-> **Re-baseline banner (2026-09-10):** the matrix below is restated as
+> **Re-baseline banner (2026-09-13):** the matrix below is restated as
 > unevidenced-at-HEAD. Per-cell verdicts were carried over unchanged from the
 > 2026-09-05 baseline (`85853de`), which is now historical — per-cell
 > re-verification against the current build is pending and requires running
-> the app; no cell below counts as proven at HEAD. The resolved S4A–S4C
-> ("Dead/split action discovery") note is retained.
+> the app; no cell below counts as proven at HEAD. The resolved shared-action-registry
+> slices 1–3 (historical audit index S4A–S4C, "Dead/split action discovery")
+> note is retained.
+>
+> **Since `711c9f32` (re-evaluated #1205/#1206):** the Engine now owns
+> workspace-scaffold probing, dock-layout persistence (`dock.json`) and
+> shell-layout persistence (`ui_state.env`) as derived state
+> (`modules/desktop_engine/workspace_scaffold.v`,
+> `dock_persistence.v`, `ui_state_persistence.v`, each with typed tests);
+> the Phase-0 feasibility implementation (`modules/agent_toolkit_gui/`) is
+> retired and removed — production is `gg`/`sokol`-direct. No per-cell
+> verdict above is upgraded by this re-baseline; Workspace create/switch and
+> Installed app/launcher rows still require runtime proof against the new
+> persistence behavior.
 
 This ledger is intentionally conservative. A control or method is not proof of a
 working journey. `scripts/gui-coverage.vsh` (`./scripts/gui-coverage.vsh --check`)
@@ -48,7 +61,7 @@ Source paths below refer to the baseline SHA; line numbers will move as fixes la
 | Fabricated running state and telemetry | `cmd/agent-toolkit-desktop/main.v:1754`, `:1859`, `:4463`, `:5155`, `:5311`, `:5359`, `:5420`, `:6970` | Clean setup remains empty; real events and processes produce matching UI |
 | False process success | `modules/desktop_engine/jobs_service.v:263` | Failed spawn reports failure, no running record |
 | Workspace safety and invented state | `onboarding_service.v:138`, `workspace_service.v:160`, `:271`, `:727` | Containment, no-overwrite, partial failure, actual Git and memory state |
-| Dead/split action discovery | Resolved 2026-09-07 (S4A–S4C, #1159 #1160; static `palette_items()` deleted) | Typed registry is the sole palette/search authority; entity identity + availability reasons + typed actions retained (`modules/desktop/palette/registry.v`, `actions.v`); critical-workflow reachability gated by `cmd/agent-toolkit-desktop/registry_reachability_test.v` in Required CI |
+| Dead/split action discovery | Resolved 2026-09-07 (shared-action-registry slices 1–3, historical index S4A–S4C, #1159 #1160; static `palette_items()` deleted) | Typed registry is the sole palette/search authority; entity identity + availability reasons + typed actions retained (`modules/desktop/palette/registry.v`, `actions.v`); critical-workflow reachability gated by `cmd/agent-toolkit-desktop/registry_reachability_test.v` in Required CI |
 | Domain duplication | CLI `dispatch.v` imports core; Desktop install services duplicate logic; `loops_service.v:480` invokes own CLI | Shared typed domain execution with GUI/CLI parity tests |
 | Native capability misreporting | `modules/desktop/backend/backend.v:139`, `:164`, `:193` | Actual clipboard/dialog operation or explicit unsupported result |
 | Terminal exit and identity | `modules/pty/pty.v:197`; `modules/ghostty/ghostty.v:5` | Reaped child/closed fd, no unexpected restart, honest VT compatibility |

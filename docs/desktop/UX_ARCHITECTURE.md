@@ -1,10 +1,13 @@
 # Desktop UX architecture
 
-Status: intended interaction contract, 2026-09-05. Current implementation is
+Status: **CURRENT CONTRACT** — intended interaction contract, 2026-09-05,
+re-confirmed 2026-09-13 at `ecc4d67c`. Current implementation is
 `cmd/agent-toolkit-desktop/main.v`, using gg/sokol. Historical
-[ADR-032](../adrs/ADR-032-desktop-gui-framework.md) describes a vlang/gui wrapper
-that is not the production renderer. Preserve that history; a superseding ADR is
-required to reconcile the implementation. This document does not approve a rewrite.
+[ADR-032](../adrs/ADR-032-desktop-gui-framework.md) records the vlang/gui
+Phase-0 feasibility decision and the retirement of its implementation
+(`modules/agent_toolkit_gui/` removed 2026-09-13, #1206); production is
+`gg`/`sokol`-direct. Preserve that history. This document does not approve
+a rewrite.
 
 ## Shell and navigation
 
@@ -93,6 +96,13 @@ collapse optional detail. Compact layouts use drawers/tabs, wrapping and scrolli
 they never shrink text to fit or clip primary actions. Validate breakpoints through
 the [resolution matrix](VISUAL_QA.md), including scaled text and long translations.
 
-Persist durable preferences only: appearance, language, density, reduced motion,
-scale, tool paths and setup configuration. Setup & Onboarding can be revisited
+Persist durable preferences only, and persist them through the Engine, never
+from views directly: appearance, language, density, reduced motion, scale,
+tool paths and setup configuration live in the Engine-owned derived
+`ui_state.env` (`modules/desktop_engine/ui_state_persistence.v`); dock
+layout lives in the Engine-owned derived `dock.json`
+(`modules/desktop_engine/dock_persistence.v`). Both are restorable derived
+state under the XDG-cache persist path, mirrored into the StateRepository.
+Session-only view state is never restored: terminal MAX restarts as compact
+(see `persisted_terminal_mode`). Setup & Onboarding can be revisited
 without resetting the environment.
