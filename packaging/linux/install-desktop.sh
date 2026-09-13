@@ -107,8 +107,10 @@ add(os.path.join(here, f"{product}.desktop"),
 for size in (16, 24, 32, 48, 64, 128, 256, 512):
     add(os.path.join(here, "icons", f"{product}-{size}.png"),
         os.path.join(xdg_data, "icons", "hicolor", f"{size}x{size}", "apps", f"{product}.png"))
+# Installed name must equal the Icon= basename (hicolor lookup finds
+# scalable/apps/<name>.svg, never <name>-scalable.svg).
 add(os.path.join(here, "icons", f"{product}-scalable.svg"),
-    os.path.join(xdg_data, "icons", "hicolor", "scalable", "apps", f"{product}-scalable.svg"))
+    os.path.join(xdg_data, "icons", "hicolor", "scalable", "apps", f"{product}.svg"))
 add(os.path.join(here, "share", "man", "man1", f"{product}.1"),
     os.path.join(xdg_data, "man", "man1", f"{product}.1"))
 
