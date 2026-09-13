@@ -1,6 +1,6 @@
 # Desktop Packaging
 
-Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `ecc4d67c`.
+Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `5c7f0e0d` (sandbox install-contract proof: fresh install → idempotent reinstall → foreign-file preservation → receipt-backed uninstall in a temp HOME/XDG; shipped + installed entries pass `desktop-file-validate`).
 See [WINDOWS.md](WINDOWS.md) for the honest Windows support status (unproven).
 
 > `VERSION 1.30.0` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
@@ -41,6 +41,7 @@ translated strings — it harvests every CJK codepoint from `main.v`.
 | `icons/agent-toolkit-desktop-{16,24,32,48,64,128,256,512}.png` + `-scalable.svg` | hicolor icon set — Paper Co. envelope mark (deterministic generator: `packaging/linux/gen-icon.vsh`) |
 | `share/man/man1/agent-toolkit-desktop.1` | man page (synopsis, keymap, env, files) |
 | `install-desktop.sh` | receipt-backed per-user install/uninstall |
+| `VERSION` | version pinned into the receipt (`install-desktop.sh` refuses without it) |
 | `LICENSE` | license |
 
 **Install** (no sudo, XDG user scope):
@@ -50,19 +51,46 @@ tar xzf agent-toolkit-desktop-<v>-linux-<arch>.tar.gz
 ./install-desktop.sh install
 ```
 
-lands: binary → `~/.local/share/agent-toolkit/bin/`, `.desktop` →
-`~/.local/share/applications/` (Exec rewritten to the installed binary so
-launcher sessions work without `~/.local/bin` on PATH — the #1129 concern),
-icons → `~/.local/share/icons/hicolor/<size>/apps/`, man →
+lands: binary → `~/.local/share/agent-toolkit/bin/`, plus a receipt-tracked
+copy of the installer itself →
+`~/.local/share/agent-toolkit/bin/agent-toolkit-desktop-installer.sh`,
+`.desktop` → `~/.local/share/applications/` (Exec rewritten to the installed
+binary so launcher sessions work without `~/.local/bin` on PATH — the #1129
+concern), icons → `~/.local/share/icons/hicolor/<size>/apps/`, man →
 `~/.local/share/man/man1/`, and a schemaVersion-1 install receipt →
 `~/.config/agent-toolkit/receipts/agent-toolkit-desktop-linux.json`.
+A fresh install records 13 `created` artifacts. All destinations honor
+`XDG_DATA_HOME`/`XDG_CONFIG_HOME` with the `~/.local/share`/`~/.config`
+fallbacks above.
 
 **Uninstall**: `./install-desktop.sh uninstall` — removes only receipt-owned
-(`created`) artifacts; pre-existing (`merged`) files are preserved. The
-receipt follows the core `InstallReceipt` schema, so provenance tooling can
-read it.
+(`created`) artifacts, including the installer copy; pre-existing (`merged`)
+files are preserved. A previously-owned file you modified flips to `merged`
+on the next run and is then preserved too (upgrade overwrites only
+byte-identical owned files). The receipt follows the core `InstallReceipt`
+schema, so provenance tooling can read it.
 
-`desktop-file-validate` runs in the release workflow on the shipped entry.
+`desktop-file-validate` runs in the release workflow on the shipped
+(source-tree) entry; the installed Exec-rewritten entry validates too
+(proven 2026-09-13 in a temp-HOME sandbox).
+
+### AppImage decision: no-go (deferred)
+
+Do **not** ship an AppImage: the tarball + `install-desktop.sh`
+receipt-backed per-user install is the single canonical Linux path.
+
+Rationale: the tarball path is proven end-to-end (fresh install → idempotent
+reinstall → foreign-file preservation → receipt-backed uninstall, XDG tier
+precedence, absolute Exec, `desktop-file-validate` green on shipped and
+installed entries, no source-path leakage, empty-secrets receipts — sandbox
+proof 2026-09-13; the BACKLOG_AUDIT precondition of verified installed
+assets and cwd independence is met). An AppImage would add a second,
+unfinished distribution surface (FUSE/`libfuse2` runtime variance across
+distros, desktop-integration prompts, a separate signing/update story) with
+no demonstrated user demand beyond the #1057 backlog line. One excellent
+install path beats five unfinished ones. Revisit only when a
+portable-single-file requirement is proven and someone owns the FUSE/distro-matrix
+testing.
 
 ### Acceptance harnesses (all `.vsh`, all in `make.vsh`)
 
