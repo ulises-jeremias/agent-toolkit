@@ -6648,6 +6648,10 @@ fn clear_text_focus(mut app GuiApp) {
 	app.library_search_focus = false
 	app.memory_search_focus = false
 	app.operations_focus = 0
+	// the scrollback-search handler runs before the panel fields, so a
+	// stale open search would steal keys from a newly claimed owner
+	app.term_search_open = false
+	app.term_search = ''
 	app.ghost_focused = false
 }
 
@@ -7046,8 +7050,13 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			if e.key_code == .f {
 				if app.term_visible {
-					app.term_search_open = !app.term_search_open
+					// opening the search claims typing focus (see
+					// text_input_focused); closing just releases it
 					if !app.term_search_open {
+						clear_text_focus(mut app)
+						app.term_search_open = true
+					} else {
+						app.term_search_open = false
 						app.term_search = ''
 					}
 				}
@@ -7772,9 +7781,19 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					tx, ty, tab_w, tab_h := terminal_tab_rect(x0, y0, i)
 					if rect_contains(mx, my, tx, ty, tab_w, tab_h) {
 						app.term_view = tab.view
-						app.ghost_focused = tab.view < 0
+						// claiming Ghostty focus releases the previous text
+						// owner (see text_input_focused)
+						if tab.view < 0 {
+							clear_text_focus(mut app)
+							app.ghost_focused = true
+						} else {
+							app.ghost_focused = false
+						}
 						return
 					}
+				}
+				if !app.ghost_focused {
+					clear_text_focus(mut app)
 				}
 				app.ghost_focused = !app.ghost_focused
 				return

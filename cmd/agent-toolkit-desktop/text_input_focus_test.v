@@ -153,6 +153,42 @@ fn test_panel_switch_releases_operations_focus() {
 	assert app.show_help, 'shortcuts must work after leaving the operations field'
 }
 
+// Claiming a new owner releases scrollback search: an open find must not
+// steal keys from the newly focused field (its handler runs before the
+// panel fields), and global shortcuts must work once it is released.
+fn test_focus_claim_releases_term_search() {
+	mut app := &GuiApp{
+		selected_panel: 1
+		term_search_open: true
+		term_search: 'hel'
+		term_visible: true
+	}
+	select_panel(mut app, 1)
+	assert !app.term_search_open, 'panel nav must close scrollback search'
+	assert app.term_search == '', 'panel nav must clear the abandoned query'
+	assert !text_input_focused(app), 'no owner may remain after release'
+	on_event(focus_key_event(u32(`i`)), mut app)
+	assert app.selected_panel == 12, 'shortcuts must work once search is released, got ${app.selected_panel}'
+}
+
+// Opening scrollback search claims typing focus: the previously focused
+// field must release so keys stop going to it.
+fn test_term_search_open_claims_focus() {
+	mut app := &GuiApp{
+		selected_panel: 1
+		library_search_focus: true
+		term_visible: true
+	}
+	on_event(&gg.Event{
+		typ:       .key_down
+		key_code:  .f
+		modifiers: u32(gg.Modifier.ctrl)
+	}, mut app)
+	assert app.term_search_open, 'Ctrl+F must open scrollback search'
+	assert !app.library_search_focus, 'opening search must release the field'
+	assert text_input_focused(app), 'search must own focus after opening'
+}
+
 // Escape precedence: with Help open and terminal focused, Esc closes Help
 // first and keeps terminal focus (documented modal precedence).
 fn test_escape_closes_help_before_releasing_terminal() {
