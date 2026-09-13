@@ -8,23 +8,52 @@ inputs:
 runs:
   using: composite
   steps:
-    # The master source build is expensive and its cold rebuild is
-    # non-deterministic: vlang's makefile re-pulls vc/tcc from moving upstream
-    # HEADs, and the pinned fastc-WIP commit built successfully at ~05:15 UTC
-    # and failed identically at ~05:40 UTC on 2026-09-07. Cache the proven
-    # build per OS/arch; later jobs and runs restore it instead of rebuilding.
+    # Reproducibility contract (#1158): a master cold build consumes ONLY the
+    # pinned immutable inputs below — V_PIN (vlang/v), VC_PIN (vlang/vc), and
+    # the per-OS/arch TCC_PINs (vlang/tccbin branch SHAs). The build runs as
+    # `make local=1`, which selects GNUmakefile's "Using local ..." stanzas so
+    # its fetch targets (vc pull --rebase, tccbin branch-HEAD refresh) never
+    # run. NOTE: `make local` (no `=1`) does NOT set the variable — it fails
+    # with "No rule to make target 'local'".
+    # Pin provenance: VC_PIN is the vc HEAD contemporaneous with the proven
+    # 2026-09-07 build window and v@c0e47bf's own upstream CI; the TCC_PINs
+    # have been stable since 2026-09-07 (branch HEAD == Sep-07 SHA). The full
+    # pinned set was verified with a cold `make local=1` producing a working
+    # `V 0.5.2 c0e47bf` (compile smoke test passes).
+    # To bump the toolchain: update the pins below AND the cache-key segments
+    # (the key embeds every pin, so any bump busts the cache). Network clones
+    # retry 3x; a persistent failure surfaces loudly instead of silently
+    # degrading, so the pin can be bumped.
     - name: Restore pinned V build
       if: ${{ runner.os != 'Windows' }}
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
       with:
         path: ~/vlang-master
-        key: setup-v-master-c0e47bf25-${{ runner.os }}-${{ runner.arch }}
+        # Segments: v-<V_PIN8>_vc-<VC_PIN8>_tcc-<linux-amd64>-<linux-aarch64>-<linux-arm64>-<macos-arm64>-<macos-amd64>.
+        key: setup-v-master_v-c0e47bf2_vc-9f82f2e3_tcc-d6e7ac1b-ecc2f67a-125ad2e1-1d0ad0ec-199fa783-${{ runner.os }}-${{ runner.arch }}
     - name: Install pinned V from GitHub Release
       shell: bash
       env:
         V_ZIP_INPUT: ${{ inputs.v_zip }}
       run: |
         set -euo pipefail
+        # Retry transient network flakes (clone/CDN). Local checkouts fail
+        # fast with no retry: a bad pin is deterministic, not transient.
+        retry() {
+          attempt=1
+          while [ "${attempt}" -le 3 ]; do
+            if "$@"; then
+              return 0
+            fi
+            if [ "${attempt}" -eq 3 ]; then
+              echo "command failed after 3 attempts: $*" >&2
+              return 1
+            fi
+            echo "attempt ${attempt}/3 failed — retrying in $((attempt * 5))s: $*" >&2
+            sleep "$((attempt * 5))"
+            attempt=$((attempt + 1))
+          done
+        }
         PIN="$(tr -d '[:space:]' < .v-version)"
         if [ "$PIN" = "master" ]; then
           case "${RUNNER_OS:-$(uname -s)}" in
@@ -52,17 +81,53 @@ runs:
                 "${VBIN}" version
                 exit 0
               fi
-              echo "Installing V from vlang/v — checkout the pinned known-good HEAD c0e47bf (bumped 2026-09-07: 78e581e predates the v1_fallback bootstrap change and no longer builds against current vc)"
+              # Hermetic bootstrap (#1158): seed every input at its pin, then
+              # build with `make local=1` so no moving HEAD is ever pulled.
+              V_PIN="c0e47bf255954df8b5453274b73d1a89a343f408"
+              VC_PIN="9f82f2e3a64fbad84c9820ea14f2a4a2c42dcb73"
+              V_REPO="https://github.com/vlang/v"
+              VC_REPO="https://github.com/vlang/vc"
+              TCC_REPO="https://github.com/vlang/tccbin"
+              TCC_LINUX_AMD64="d6e7ac1b1bcc98aed734a6ecbfa8509f24606c74"
+              TCC_LINUX_AARCH64="ecc2f67a0e0cc85878323d5796ef3dd63ca49e34"
+              TCC_LINUX_ARM64="125ad2e1153c7cb86f19ac4aa070063d18504462"
+              TCC_MACOS_ARM64="1d0ad0ecf70a91a1df64cebf215e683b1d5aedb5"
+              TCC_MACOS_AMD64="199fa78395ca413aac23d02ec69cc5e7b1d805a2"
+              # Branch selection mirrors GNUmakefile's uname -m mapping
+              # (x86_64->amd64; aarch64 stays aarch64 on Linux; arm64 stays
+              # arm64), so the seeded bundle is the one `make` would refresh.
+              TCC_PIN=""
+              TCC_BRANCH=""
+              case "$(uname -m)" in
+                x86_64) TCC_BRANCH="thirdparty-linux-amd64"; TCC_PIN="${TCC_LINUX_AMD64}" ;;
+                aarch64) TCC_BRANCH="thirdparty-linux-aarch64"; TCC_PIN="${TCC_LINUX_AARCH64}" ;;
+                arm64) TCC_BRANCH="thirdparty-linux-arm64"; TCC_PIN="${TCC_LINUX_ARM64}" ;;
+              esac
+              case "${RUNNER_OS:-$(uname -s)}" in
+                macOS|Darwin)
+                  case "$(uname -m)" in
+                    arm64|aarch64) TCC_BRANCH="thirdparty-macos-arm64"; TCC_PIN="${TCC_MACOS_ARM64}" ;;
+                    x86_64) TCC_BRANCH="thirdparty-macos-amd64"; TCC_PIN="${TCC_MACOS_AMD64}" ;;
+                  esac
+                  ;;
+              esac
+              echo "Installing V from pinned inputs: v=${V_PIN} vc=${VC_PIN} tcc=${TCC_BRANCH:-none}@${TCC_PIN:-none}"
               rm -rf "${VDIR}"
-              git clone --filter=blob:none --no-checkout https://github.com/vlang/v "${VDIR}"
-              git -C "${VDIR}" checkout --detach c0e47bf255954df8b5453274b73d1a89a343f408
-              # vlang's makefile re-pulls vc/tcc from moving upstream HEADs; one
-              # retry rides out transient breakage. A persistent failure is
-              # surfaced loudly so the pin can be bumped instead of silently
-              # degrading.
-              if ! make -C "${VDIR}" -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"; then
-                echo "pinned V cold build failed — retrying once with a fresh vc/tcc state" >&2
-                make -C "${VDIR}" -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
+              retry git clone --filter=blob:none --no-checkout "${V_REPO}" "${VDIR}"
+              git -C "${VDIR}" checkout --detach "${V_PIN}"
+              retry git clone --filter=blob:none --no-checkout "${VC_REPO}" "${VDIR}/vc"
+              git -C "${VDIR}/vc" checkout --detach "${VC_PIN}"
+              if [ -n "${TCC_PIN}" ]; then
+                mkdir -p "${VDIR}/thirdparty"
+                retry git clone --filter=blob:none --no-checkout "${TCC_REPO}" "${VDIR}/thirdparty/tcc"
+                git -C "${VDIR}/thirdparty/tcc" checkout --detach "${TCC_PIN}"
+              else
+                echo "no pinned tcc bundle for $(uname -s)/$(uname -m);" >&2
+                echo "building without bundled tcc (system cc is V's default)" >&2
+              fi
+              if ! make -C "${VDIR}" local=1 -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"; then
+                echo "pinned V cold build failed — retrying once with identical pinned inputs" >&2
+                make -C "${VDIR}" local=1 -j"$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)"
               fi
               VBIN="${VDIR}/v"
               echo "VBIN=${VBIN}" >> "${GITHUB_ENV}"
@@ -101,7 +166,8 @@ runs:
           esac
         fi
         echo "Installing V ${PIN} (${V_ZIP})"
-        curl -fsSL -o /tmp/v.zip "https://github.com/vlang/v/releases/download/${PIN}/${V_ZIP}"
+        curl --retry 3 --retry-all-errors --retry-delay 2 -fsSL -o /tmp/v.zip \
+          "https://github.com/vlang/v/releases/download/${PIN}/${V_ZIP}"
         rm -rf "${HOME}/vlang"
         mkdir -p "${HOME}/vlang"
         unzip -q /tmp/v.zip -d "${HOME}/vlang"
