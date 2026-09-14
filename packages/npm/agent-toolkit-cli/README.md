@@ -114,6 +114,21 @@ docker pull ghcr.io/ulises-jeremias/agent-toolkit
 
 Full walkthrough: [docs/INSTALLATION.md](https://github.com/ulises-jeremias/agent-toolkit/blob/main/docs/INSTALLATION.md)
 
+### Desktop GUI
+
+Prefer a graphical workspace? The native desktop app runs over the same Engine — Office, Library, Operations, and an embedded terminal:
+
+```bash
+agent-toolkit gui --install   # download the desktop binary from GitHub Releases
+agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
+```
+
+<div align="center">
+<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/office.png" width="92%" alt="Agent Toolkit Desktop — Office floor with agent desks, roster, and embedded terminal" />
+<br />
+<img src="https://raw.githubusercontent.com/ulises-jeremias/agent-toolkit/main/static/screenshots/library.png" width="92%" alt="Library: searchable skills catalog with detail inspector" />
+</div>
+
 ---
 
 ## Key concepts
