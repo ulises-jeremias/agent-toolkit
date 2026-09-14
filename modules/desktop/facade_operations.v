@@ -87,6 +87,11 @@ pub fn (mut d Desktop) swarm_task_done(run_id string, handoff_id string) !u64 {
 	return d.engine.swarm_task_complete(run_id, handoff_id)
 }
 
+// swarm_done_tasks lists completed handoffs — the Done column.
+pub fn (mut d Desktop) swarm_done_tasks(run_id string) []desktop_engine.SwarmTaskView {
+	return d.engine.swarm_done_tasks(run_id)
+}
+
 // swarm_budget_line renders the human budget string for a run.
 pub fn (mut d Desktop) swarm_budget_line(run_id string) string {
 	return d.engine.swarm_budget_display(run_id)

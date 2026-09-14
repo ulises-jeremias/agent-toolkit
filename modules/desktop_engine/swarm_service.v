@@ -1434,6 +1434,40 @@ pub fn (mut e Engine) swarm_queued_tasks(run_id string) []SwarmTaskView {
 	return out
 }
 
+// swarm_done_tasks lists completed handoffs in completion order — the Done
+// column behind the task board. Reads the same mailbox keys as the queued
+// side; nothing is reconstructed.
+pub fn (mut e Engine) swarm_done_tasks(run_id string) []SwarmTaskView {
+	snap := e.repo.snapshot()
+	prefix := 'swarm/handoffs/'
+	mut ids := []string{}
+	for k, _ in snap.data {
+		if k.starts_with(prefix) && k.ends_with('/status') && snap.data[k] == 'completed' {
+			id := k.all_after(prefix).all_before('/status')
+			if id !in ids {
+				ids << id
+			}
+		}
+	}
+	ids.sort()
+	mut out := []SwarmTaskView{}
+	for id in ids {
+		from := snap.data['swarm/handoffs/${id}/from'] or { '' }
+		to := snap.data['swarm/handoffs/${id}/to'] or { '' }
+		payload := snap.data['swarm/handoffs/${id}/payload'] or { '' }
+		by := snap.data['swarm/handoffs/${id}/completed_by'] or { '' }
+		out << SwarmTaskView{
+			handoff_id: id
+			run_id: if by != '' { by } else { run_id }
+			from_role: from
+			to_role: to
+			payload: payload
+			status: 'completed'
+		}
+	}
+	return out
+}
+
 // swarm_task_complete marks a queued handoff complete. Only the queued→
 // completed step exists; anything else is refused, never rewritten.
 pub fn (mut e Engine) swarm_task_complete(run_id string, handoff_id string) !u64 {
