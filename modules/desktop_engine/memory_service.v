@@ -1,6 +1,10 @@
 module desktop_engine
 
+import agent_toolkit_core
 import os
+import time
+import x.json2
+import desktop_engine.eventbus
 
 pub struct MemoryPalaceEntry {
 pub:
@@ -275,4 +279,170 @@ fn snippet_for(query string, body string) string {
 		return body[..120] + '…'
 	}
 	return body
+}
+
+// ── Slice D additive Engine wrappers: memory authoring (issue #1231) ─────
+// Thin typed wrappers over agent_toolkit_core.run_memory. No core behavior
+// change: the private memory_add/review/todo fns stay behind run_memory;
+// these only translate Engine workspace authority (active workspace root)
+// into MemoryOptions and return the core MemoryReport unchanged. Search and
+// palace read paths above are untouched.
+
+// resolve_authoring_workspace maps an explicit path (or the active workspace
+// root when empty) to a real workspace directory. Empty means unavailable —
+// never a cwd/toolkit-root fallback, never invented memories.
+fn (mut e Engine) resolve_authoring_workspace(workspace_path string) !string {
+	if workspace_path != '' {
+		clean := os.real_path(workspace_path)
+		if clean == '' || !os.is_dir(clean) {
+			return error('workspace invalid')
+		}
+		return clean
+	}
+	base := e.active_workspace_root()
+	if base == '' {
+		return error('no active workspace')
+	}
+	return base
+}
+
+// memory_add_entry records a learning, process or todo entry via the core
+// memory add path. Content is stored verbatim by core — the desktop never
+// invents semantic memories; only user/agent-supplied content is recorded.
+pub fn (mut e Engine) memory_add_entry(workspace_path string, entry_type string, title string, content string) agent_toolkit_core.MemoryReport {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path) or {
+		return agent_toolkit_core.MemoryReport{
+			ok: false
+			message: 'memory add unavailable: ${err.msg()}'
+		}
+	}
+	return agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{
+		subcommand: 'add'
+		workspace_path: root
+		entry_type: entry_type
+		title: title
+		content: content
+	})
+}
+
+// memory_search_report runs the core CLI-parity keyword search over the
+// workspace knowledge files. It complements memory_semantic_recall (hybrid
+// cosine over palace entries); both read real files, never fixtures.
+pub fn (mut e Engine) memory_search_report(workspace_path string, query string) agent_toolkit_core.MemoryReport {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path) or {
+		return agent_toolkit_core.MemoryReport{
+			ok: false
+			message: 'memory search unavailable: ${err.msg()}'
+		}
+	}
+	return agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{
+		subcommand: 'search'
+		workspace_path: root
+		query: query
+	})
+}
+
+// memory_review_report runs the core duplicate/stale/contradiction review.
+// fix only adds merge suggestions to the report — core never auto-edits.
+pub fn (mut e Engine) memory_review_report(workspace_path string, stale_after int, fix bool) agent_toolkit_core.MemoryReport {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path) or {
+		return agent_toolkit_core.MemoryReport{
+			ok: false
+			message: 'memory review unavailable: ${err.msg()}'
+		}
+	}
+	return agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{
+		subcommand: 'review'
+		workspace_path: root
+		stale_after: stale_after
+		fix: fix
+	})
+}
+
+// memory_todo_report lists pending (and optionally completed) todos via the
+// core todo path.
+pub fn (mut e Engine) memory_todo_report(workspace_path string, show_done bool) agent_toolkit_core.MemoryReport {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path) or {
+		return agent_toolkit_core.MemoryReport{
+			ok: false
+			message: 'memory todo unavailable: ${err.msg()}'
+		}
+	}
+	return agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{
+		subcommand: 'todo'
+		workspace_path: root
+		show_done: show_done
+	})
+}
+
+// memory_read_file reads one knowledge .md file for the memory browser read
+// pane. Containment-checked against the workspace root and restricted to
+// knowledge/ markdown — never an arbitrary filesystem read.
+pub fn (mut e Engine) memory_read_file(workspace_path string, rel_path string) !string {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path)!
+	clean := e.open_path_validated(root, os.join_path(root, rel_path))!
+	knowledge := os.join_path(root, 'knowledge')
+	knowledge_prefix := knowledge.trim_right('/\\') + os.path_separator
+	if clean != knowledge && !clean.starts_with(knowledge_prefix) {
+		return error('memory path outside knowledge/')
+	}
+	if !clean.ends_with('.md') {
+		return error('memory entries are markdown only')
+	}
+	return os.read_file(clean) or { return error('memory read failed: ${clean}') }
+}
+
+// memory_delete_file removes one knowledge .md file for the memory browser.
+// Callers (viewmodel/facade) apply the dirty-tree + running-agent guards;
+// the Engine validates containment and records the revision.
+pub fn (mut e Engine) memory_delete_file(workspace_path string, rel_path string) !u64 {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path)!
+	clean := e.open_path_validated(root, os.join_path(root, rel_path))!
+	knowledge := os.join_path(root, 'knowledge')
+	knowledge_prefix := knowledge.trim_right('/\\') + os.path_separator
+	if clean != knowledge && !clean.starts_with(knowledge_prefix) {
+		return error('memory path outside knowledge/')
+	}
+	if !clean.ends_with('.md') {
+		return error('memory entries are markdown only')
+	}
+	if os.is_dir(clean) {
+		return error('memory delete refuses directories')
+	}
+	if !os.is_file(clean) {
+		return error('memory file not found')
+	}
+	os.rm(clean) or { return error('memory delete failed: ${err}') }
+	mut repo := e.repo
+	mut tx := repo.begin('memory-delete')
+	tx.set('memory/deleted/${rel_path}', time.now().unix().str())
+	rev := e.put_transaction(mut tx)!
+	e.bus.publish(eventbus.ToolkitEvent{
+		kind: .workspace_changed
+		revision: rev.revision
+		path: 'memory:delete:${rel_path}'
+		payload: json2.encode({
+			'path': rel_path
+			'revision': rev.revision.str()
+		})
+	})
+	return rev.revision
 }
