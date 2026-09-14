@@ -5,10 +5,16 @@ name: Publish npm
 # Trust pin (after first publish):
 #   npm trust github agent-toolkit-cli --file publish-npm.yml --repository ulises-jeremias/agent-toolkit --allow-publish -y
 
+# Ordering contract: this workflow runs AFTER the Release workflow completes
+# successfully (workflow_run), so the V binaries it packs are guaranteed
+# present on the GitHub Release. It must NOT trigger on tag push in parallel
+# with Release — that raced asset upload and 404'd (v1.30.2). The asset wait
+# loop below remains only as CDN-propagation resilience, not as primary
+# synchronization.
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -16,12 +22,15 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-npm-${{ github.ref }}
+  group: publish-npm-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish agent-toolkit-cli to npm
+    # Only successful tag-push Release runs (or manual dispatch). In particular,
+    # pull_request runs of the Release workflow must not publish.
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'v') && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -29,6 +38,9 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # workflow_run checks out the default branch — pin the released tag.
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
@@ -49,9 +61,10 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
+          WR_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -euo pipefail
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${WR_BRANCH:-${GITHUB_REF_NAME}}"
           mkdir -p binaries
           ASSETS=(
             agent-toolkit-linux-x86_64
@@ -78,10 +91,13 @@ jobs:
           exit 1
 
       - name: Pack npm platform packages
+        env:
+          WR_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -euo pipefail
           export RELEASE_BIN_DIR=binaries
-          export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
+          TAG="${WR_BRANCH:-${GITHUB_REF_NAME}}"
+          export RELEASE_VERSION="${TAG#v}"
           ./scripts/pack_npm.vsh
 
       - name: Publish platform packages then meta-package
