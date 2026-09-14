@@ -122,7 +122,7 @@ agent-toolkit doctor
 **Recommended:** the product CLI is the **native V binary**. PyPI/`uv` is a thin launcher over that binary ([ADR-021](docs/adrs/ADR-021-pypi-binary.md)).
 
 ```bash
-# GitHub Release — native V binary + SHA256SUMS (v1.11.0+)
+# GitHub Release — native V binary + SHA256SUMS (v1.30.1+)
 # https://github.com/ulises-jeremias/agent-toolkit/releases/latest
 
 # Homebrew
@@ -132,8 +132,8 @@ brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
 yay -S agent-toolkit-bin
 
 # PyPI launcher (execs bundled V; ADR-021)
-uv tool install 'agent-toolkit-cli>=1.11.0'
-uvx --from 'agent-toolkit-cli>=1.11.0' agent-toolkit install
+uv tool install 'agent-toolkit-cli>=1.30.1'
+uvx --from 'agent-toolkit-cli>=1.30.1' agent-toolkit install
 
 # npm
 npm i -g agent-toolkit-cli

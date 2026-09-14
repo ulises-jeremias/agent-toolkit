@@ -3,7 +3,7 @@
 Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `5c7f0e0d` (sandbox install-contract proof: fresh install → idempotent reinstall → foreign-file preservation → receipt-backed uninstall in a temp HOME/XDG; shipped + installed entries pass `desktop-file-validate`).
 See [WINDOWS.md](WINDOWS.md) for the honest Windows support status (unproven).
 
-> `VERSION 1.30.0` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
+> `VERSION 1.30.1` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
 
 ## GUI (native desktop) build
 
@@ -218,7 +218,7 @@ reuse the existing `release.yml` + `manifest.json` pattern (no second update
 server). The former `modules/desktop/update/` GUI-side mock feed was
 removed.
 
-- Feed: `https://github.com/ulises-jeremias/agent-toolkit/releases` + `manifest.json` (ADR-022) as signed feed — `net.http` fetches `version`, `assets[] { name, sha256, url, provenance }`, `channel` (`stable` = `VERSION 1.30.0` line).
+- Feed: `https://github.com/ulises-jeremias/agent-toolkit/releases` + `manifest.json` (ADR-022) as signed feed — `net.http` fetches `version`, `assets[] { name, sha256, url, provenance }`, `channel` (`stable` = `VERSION 1.30.1` line).
 - Check: `Engine.check_update(current: VERSION) -> ?UpdateInfo` compares semver, respects `channel: stable|next|pinned:$VERSION`, opt-in `update.auto_check` (default prompt, not silent).
 - Download + verify: stream to `XDG_CACHE_HOME/agent-toolkit/updates/$VERSION/`, verify `SHA256` vs `SHA256SUMS` + `manifest.json` provenance; mismatch → discard + rollback (keep current binary).
 - Apply + restart: atomic replace (Linux binary swap, macOS bundle swap + xattr, Windows MSI/exe staged). `ProcessSupervisor` handles restart. Kill during update → consistent state (partial discarded, `StateRepository` revision unchanged).
