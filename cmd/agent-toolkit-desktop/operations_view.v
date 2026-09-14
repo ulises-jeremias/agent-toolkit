@@ -1911,7 +1911,8 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 			rows << ['Handoffs', '${app.desktop.swarm_handoffs(s.id).len}']
 			rows << ['Artifacts', '${app.desktop.handoff_artifacts(s.id).len}']
 			rows << ['Tasks', '${app.desktop.swarm_queued_tasks(s.id).len} in mailbox']
-			if pruned := app.desktop.swarm_pruned_at(s.id); pruned != '' {
+			pruned := app.desktop.swarm_pruned_at(s.id)
+			if pruned != '' {
 				rows << ['Pruned', format_started_time(pruned.i64())]
 			}
 			return rows, s.task
