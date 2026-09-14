@@ -271,6 +271,19 @@ fn operations_approval_rect(l OperationsLayout, i int) (int, int, int, int) {
 	return l.side_x + 12, l.side_y + l.side_h - 82 - 12 - (3 - i) * 22, l.side_w - 24, 20
 }
 
+// tasks (Swarms) live above the approvals strip, max four mixed rows:
+// queued first with a Complete button, then done. No drag/drop theater —
+// every transition is the queued→completed Engine seam with a receipt.
+fn operations_board_rect(l OperationsLayout, i int) (int, int, int, int) {
+	_, ay, _, _ := operations_approval_rect(l, 0)
+	return l.side_x + 12, ay - 30 - (4 - i) * 22, l.side_w - 24, 20
+}
+
+fn operations_board_done_rect(l OperationsLayout, i int) (int, int, int, int) {
+	x, y, w, h := operations_board_rect(l, i)
+	return x + w - 70, y, 70, h
+}
+
 fn rect_contains(mx int, my int, x int, y int, w int, h int) bool {
 	return w > 0 && h > 0 && mx >= x && mx < x + w && my >= y && my < y + h
 }
@@ -2141,7 +2154,13 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 	}
 	// pending approvals for the selected swarm — real gates, real resolve
 	if l.tab == 2 {
+		draw_operations_tasks(mut app, l, row.id)
 		draw_operations_approvals(mut app, l, row.id)
+	}
+	// recorded runs behind the loop schedule flag (slice I) — history only,
+	// never a next-run promise without a scheduler daemon
+	if l.tab == 1 {
+		draw_operations_history(mut app, l, row.id)
 	}
 	for i, a in acts {
 		ax, ay, aw, ah := operations_action_rect(l, i, acts.len)
@@ -2167,13 +2186,34 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 	}
 }
 
+// loop history (Loops) lives above the action row, max four rows: the
+// recorded runs behind the schedule flag. There is no scheduler daemon, so
+// no next-run row is ever rendered — history only, with honest status words.
+fn operations_history_rect(l OperationsLayout, i int) (int, int, int, int) {
+	_, ay, _, _ := operations_action_rect(l, 0, 1)
+	return l.side_x + 12, ay - 30 - (4 - i) * 22, l.side_w - 24, 20
+}
+
+// loop_history_line renders one history run as a single status line. Pure so
+// tests pin the copy without a window.
+fn loop_history_line(run_id string, status string, started_at i64, duration_ms int) string {
+	id := if run_id.len > 8 { run_id[..8] } else { run_id }
+	when := format_started_time(started_at)
+	dur := if duration_ms > 0 { ' · ${duration_ms}ms' } else { '' }
+	return '${id} · ${status}${dur} · ${when}'
+}
+
 // operations_detail_content_bottom is where fact rows must stop: above approvals
-// (Swarms) or above the action row.
+// (Swarms), above history (Loops), or above the action row.
 fn operations_detail_content_bottom(l OperationsLayout) int {
 	_, act_y, _, _ := operations_action_rect(l, 0, 1)
 	if l.tab == 2 {
-		_, ty, _, _ := operations_approval_rect(l, 0)
-		return ty - 20
+		_, ty, _, _ := operations_board_rect(l, 4)
+		return ty - 26
+	}
+	if l.tab == 1 {
+		_, ty, _, _ := operations_history_rect(l, 4)
+		return ty - 26
 	}
 	return act_y - 8
 }
@@ -2336,6 +2376,87 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 		}
 	}
 	return rows, ''
+}
+// draw_operations_history renders a loop's recorded runs: status line per
+// run plus the honest schedule note. Empty history says so; the schedule
+// flag is never rendered as an installed timer.
+fn draw_operations_history(mut app GuiApp, l OperationsLayout, loop_name string) {
+	runs := app.desktop.engine_loop_history(loop_name)
+	_, hy, _, _ := operations_history_rect(l, 4)
+	app.gg.draw_text(l.side_x + 16, hy - 4, if runs.len == 0 {
+		'No runs recorded — history fills as the loop runs'
+	} else {
+		'History · ${runs.len} run(s)'
+	}, gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 11
+		bold: runs.len > 0
+	})
+	mut shown := 0
+	for r in runs {
+		if shown >= 4 {
+			break
+		}
+		tx, ty, _, _ := operations_history_rect(l, 4 - shown)
+		app.gg.draw_text(tx + 6, ty + 3, utf8_truncate(loop_history_line(r.run_id, r.status, r.started_at, r.duration_ms), (l.side_w - 40) / 7), gg.TextCfg{
+			color: app.pnl_text
+			size: 11
+			mono: true
+		})
+		shown++
+	}
+}
+
+// draw_operations_tasks renders the run's task board: queued rows with a
+// Complete button plus done rows, all bound to mailbox records. The header
+// counts both columns; an empty mailbox says so instead of rendering rows.
+fn draw_operations_tasks(mut app GuiApp, l OperationsLayout, run_id string) {
+	queued := app.desktop.swarm_queued_tasks(run_id)
+	done := app.desktop.swarm_done_tasks(run_id)
+	_, hy, _, _ := operations_board_rect(l, 4)
+	app.gg.draw_text(l.side_x + 16, hy - 4, if queued.len == 0 && done.len == 0 {
+		'No tasks in mailbox'
+	} else {
+		'Tasks · ${queued.len} queued · ${done.len} done'
+	}, gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 11
+		bold: queued.len > 0
+	})
+	mut shown := 0
+	for q in queued {
+		if shown >= 4 {
+			break
+		}
+		tx, ty, tw, th := operations_board_rect(l, 4 - shown)
+		bx, by, bw, bh := operations_board_done_rect(l, 4 - shown)
+		app.gg.draw_rect_filled(tx, ty, tw, bh, tint(pc(app, `m`), 40))
+		app.gg.draw_text(tx + 6, ty + 3, utf8_truncate('${q.handoff_id} → ${q.to_role}', (tw - 90) / 7), gg.TextCfg{
+			color: app.pnl_text
+			size: 11
+			mono: true
+		})
+		app.gg.draw_rect_filled(bx, by, bw, bh, tint(app.pnl_select, 60))
+		app.gg.draw_text(bx + 8, by + 3, 'Complete', gg.TextCfg{
+			color: app.pnl_text
+			size: 10
+			bold: true
+		})
+		shown++
+		_ = th
+	}
+	for d in done {
+		if shown >= 4 {
+			break
+		}
+		tx, ty, _, _ := operations_board_rect(l, 4 - shown)
+		app.gg.draw_text(tx + 6, ty + 3, utf8_truncate('✓ ${d.handoff_id}', (l.side_w - 60) / 7), gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+			mono: true
+		})
+		shown++
+	}
 }
 
 // swarm_escalation_line names what needs the operator, if anything: pending
@@ -2871,6 +2992,28 @@ fn operations_click_detail(mut app GuiApp, l OperationsLayout, mx int, my int, t
 	if l.tab == 2 {
 		list := app.desktop.swarm_list()
 		if sel < list.len {
+			// task board Complete buttons — same row order as the draw
+			queued := app.desktop.swarm_queued_tasks(list[sel].id)
+			mut tshown := 0
+			for q in queued {
+				if tshown >= 4 {
+					break
+				}
+				bx, by, bw, bh := operations_board_done_rect(l, 4 - tshown)
+				if rect_contains(mx, my, bx, by, bw, bh) {
+					rev := app.desktop.swarm_task_done(list[sel].id, q.handoff_id) or {
+						app.inspector_msg = 'Task ${q.handoff_id} failed: ${err.msg()}'
+						return true
+					}
+					app.engine_rev = app.desktop.app_state_snapshot().revision
+					if app.engine_rev == 0 {
+						app.engine_rev = rev
+					}
+					app.inspector_msg = 'Task ${q.handoff_id} completed rev=${rev}'
+					return true
+				}
+				tshown++
+			}
 			pending := app.desktop.swarm_approvals(list[sel].id)
 			for i, p in pending {
 				if i >= 3 {
