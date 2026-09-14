@@ -1050,7 +1050,7 @@ mut:
 	active_tab         int
 	editor_scroll      int
 	editor_hover       int = -1
-	git_rail           string = 'CHANGES' // CHANGES, HISTORY, COMPARE
+	git_rail           string = 'CHANGES' // CHANGES, HISTORY, COMPARE, WORKTREES
 	git_selected       string
 	git_scroll         int
 	git_hover          int = -1
@@ -7645,6 +7645,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					visible := workspace_git_history_visible(l.mid_h)
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, graph.commits.len, visible)
+				} else if app.git_rail == 'WORKTREES' {
+					rows := workspace_worktree_rows(mut app)
+					visible := workspace_git_changes_visible(l.mid_h) / 2
+					app.git_scroll += delta
+					app.git_scroll = clamp_scroll(app.git_scroll, rows.len, visible)
 				} else {
 					app.diff_scroll += delta
 				}
@@ -8090,7 +8095,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// git rail tabs hit
 			rail_y := l.mid_y
-			for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
+			for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE', 'WORKTREES'] {
 				rx := l.fx + l.fw - l.git_w - 12 + 6 + ri * l.git_tab_w
 				if l.mid_h > 0 && mx >= rx && mx <= rx + l.git_tab_w - 4 && my >= rail_y
 					&& my <= rail_y + 22 {

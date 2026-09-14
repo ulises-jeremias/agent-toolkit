@@ -475,6 +475,10 @@ pub fn (mut d Desktop) engine_approvals_queue() []desktop_engine.SwarmApproval {
 	return d.engine.swarm_approvals_queue()
 }
 
+pub fn (mut d Desktop) engine_loop_worktree_path(loop_name string, run_id string) !string {
+	return d.engine.loop_worktree_path(loop_name, run_id)
+}
+
 pub fn (mut d Desktop) engine_loop_history(loop_name string) []desktop_engine.LoopHistory {
 	return d.engine.loops_history(loop_name)
 }
