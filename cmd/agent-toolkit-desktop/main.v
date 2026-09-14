@@ -435,6 +435,44 @@ fn desktop_version_full() string {
 	return '${v}+${c}'
 }
 
+// DesktopArgMode classifies non-GUI informational CLI flags. It is checked at
+// the very top of main(), before any display/window initialization, so
+// --version/--help print and exit even with no DISPLAY/WAYLAND_DISPLAY.
+enum DesktopArgMode {
+	launch
+	version
+	help
+	usage_error
+}
+
+fn classify_desktop_argv(argv []string) DesktopArgMode {
+	if argv.len == 0 {
+		return .launch
+	}
+	first := argv[0]
+	if first in ['--version', '-V', 'version'] {
+		return .version
+	}
+	if first in ['--help', '-h', 'help'] {
+		return .help
+	}
+	if first.starts_with('-') {
+		return .usage_error
+	}
+	return .launch
+}
+
+fn desktop_help_text() string {
+	return 'Agent Toolkit — Desktop (agent-toolkit-desktop)\n' + '\n' + 'Usage:\n' +
+		'  agent-toolkit-desktop [--version | --help]\n' + '\n' + 'Options:\n' +
+		'  --version, -V   Print the desktop version and exit\n' +
+		'  --help, -h      Print this help and exit\n' + '\n' + 'Examples:\n' +
+		'  agent-toolkit-desktop --version\n' +
+		'  agent-toolkit-desktop --help\n' + '\n' +
+		'With no flags the desktop window opens (needs a display). --version\n' +
+		'and --help never initialize the GUI and work without DISPLAY/WAYLAND_DISPLAY.\n'
+}
+
 fn read_version_file(path string) ?string {
 	if !os.is_file(path) {
 		return none
@@ -2222,6 +2260,25 @@ fn zoom_percent(z f64) string {
 }
 
 fn main() {
+	// Non-GUI informational flags are served before ANY display/window
+	// initialization — these paths must work with no DISPLAY/WAYLAND_DISPLAY.
+	argv := if os.args.len > 1 { os.args[1..].clone() } else { []string{} }
+	match classify_desktop_argv(argv) {
+		.version {
+			println(desktop_version())
+			return
+		}
+		.help {
+			print(desktop_help_text())
+			return
+		}
+		.usage_error {
+			eprintln('unknown flag: ${argv[0]}')
+			eprintln("Run 'agent-toolkit-desktop --help' for usage.")
+			exit(2)
+		}
+		.launch {}
+	}
 	headless := desktop.is_headless_env()
 	cfg := desktop.DesktopConfig{
 		title: 'Agent Toolkit — Desktop'
