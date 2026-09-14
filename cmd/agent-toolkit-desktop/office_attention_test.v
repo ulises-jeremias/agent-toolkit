@@ -103,7 +103,7 @@ fn test_office_loading_state_without_desktop() {
 
 fn test_office_job_states_resolve_from_engine_status() {
 	rows := desktop.office_project_runs(office_test_jobs(), [], [], [], true)
-	by_id := map[string]desktop.OfficeRunRow{}
+	mut by_id := map[string]desktop.OfficeRunRow{}
 	for r in rows {
 		by_id[r.id] = r
 	}
@@ -158,7 +158,7 @@ fn test_office_waiting_is_not_blocked_is_not_needs_me() {
 		},
 	]
 	rows := desktop.office_project_runs([], swarms, [], appr, true)
-	by_id := map[string]desktop.OfficeRunRow{}
+	mut by_id := map[string]desktop.OfficeRunRow{}
 	for r in rows {
 		by_id[r.id] = r
 	}
@@ -232,7 +232,7 @@ fn test_office_run_rows_carry_only_proven_attribution() {
 		assert r.agent == ''
 		assert r.provider_model == ''
 	}
-	by_id := map[string]desktop.OfficeRunRow{}
+	mut by_id := map[string]desktop.OfficeRunRow{}
 	for r in rows {
 		by_id[r.id] = r
 	}
@@ -326,7 +326,7 @@ fn test_office_loop_history_completions_and_failures() {
 	assert comps.len == 1 && comps[0].id == 'h-ok'
 	assert comps[0].detail == 'all green'
 	rows := desktop.office_project_runs([], [], histories, [], true)
-	by_id := map[string]desktop.OfficeRunRow{}
+	mut by_id := map[string]desktop.OfficeRunRow{}
 	for r in rows {
 		by_id[r.id] = r
 	}
@@ -337,7 +337,7 @@ fn test_office_loop_history_completions_and_failures() {
 
 fn test_office_actions_offer_only_currently_valid() {
 	rows := desktop.office_project_runs(office_test_jobs(), office_test_swarms(), [], office_test_approvals(), true)
-	by_id := map[string]desktop.OfficeRunRow{}
+	mut by_id := map[string]desktop.OfficeRunRow{}
 	for r in rows {
 		by_id[r.id] = r
 	}
