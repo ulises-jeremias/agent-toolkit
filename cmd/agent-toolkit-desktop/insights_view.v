@@ -602,6 +602,22 @@ fn draw_insights_table(mut app GuiApp, l InsightsLayout, t InsightsTable) {
 		color: app.pnl_text_mut
 		size: 10
 	})
+	// Export affordance (slice E): fixed geometry shared with insights_click.
+	bx, by, bw, bh := insights_export_btn_rect(l)
+	hover := rect_contains(app.mouse_x, app.mouse_y, bx, by, bw, bh)
+	app.gg.draw_rect_filled(bx, by, bw, bh, if hover { app.pnl_card_sel } else { tint(pc(app, `m`), 60) })
+	app.gg.draw_rect_empty(bx, by, bw, bh, app.pnl_border)
+	app.gg.draw_text(bx + 10, by + 5, 'Export CSV', gg.TextCfg{
+		color: app.pnl_text
+		size: 10
+		bold: true
+	})
+	if app.insights_export_msg != '' {
+		app.gg.draw_text(l.inner_x, bottom - 38, utf8_truncate(app.insights_export_msg, text_fit_chars(l.inner_w - 170, 10)), gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+		})
+	}
 }
 
 // draw_centered_lines draws text centered on cx, wrapping to at most max_lines
@@ -937,6 +953,12 @@ fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	}
 	if app.insights_tab != 'gallery' {
 		tbl := insights_table(mut app, app.insights_tab, l.inner_w)
+		bx, by, bw, bh := insights_export_btn_rect(l)
+		if rect_contains(mx, my, bx, by, bw, bh) {
+			insights_export_at(mut app, app.insights_tab, tbl)
+			app.inspector_msg = 'Insights → export ${app.insights_tab}'
+			return true
+		}
 		if tbl.rows.len > 0 {
 			visible := insights_rows_visible(l)
 			start := clamp_scroll(app.insights_scroll, tbl.rows.len, visible)

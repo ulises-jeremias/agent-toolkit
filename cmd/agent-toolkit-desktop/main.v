@@ -1119,6 +1119,7 @@ mut:
 	insights_hover    int = -1
 	insights_tab      string = 'cost' // cost | waterfall | spans | budgets | ci
 	insights_filter   string
+	insights_export_msg string // last Export CSV receipt or failure line (slice E)
 	insights_spark    []f64
 }
 
