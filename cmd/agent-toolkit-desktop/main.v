@@ -5,6 +5,7 @@ import desktop
 import desktop.nav
 import desktop.palette
 import desktop.pixelart
+import desktop.runtime.swarm as swarm_rt
 import desktop_engine
 import gg
 import ghostty
@@ -1029,6 +1030,13 @@ mut:
 	jobs_show_logs        bool
 	jobs_logs_job         string
 	loops_budget_hover    int = -1
+	// Slice B (#1229) Operations run control + queued guidance — owned by
+	// operations_view.v. Additive block: job spawn draft, guidance composer
+	// open-run, and per-run composers (drafts + queued/delivered history).
+	// Drafts are never auto-cleared; Escape only releases input focus.
+	ops_job_spawn string
+	ops_guide_run string // run id with the guidance composer open ('' = closed)
+	ops_composers map[string]swarm_rt.QueueComposer
 	// IDE state — file-tree + editor tabs + git rails + live skill catalog + memory palace
 	skills_query       string
 	skills_domain      string

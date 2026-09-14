@@ -3,6 +3,7 @@ module main
 import gg
 import time
 import desktop.pixelart
+import desktop.runtime.swarm as swarm_rt
 import desktop_engine
 
 // Operations: the operational command center.
@@ -128,7 +129,10 @@ fn operations_layout(app &GuiApp, w int, h int) OperationsLayout {
 	right_w := fx + fw - 12 - right_x
 	tab_h := if has_body { 30 } else { 0 }
 	ctl_h := if has_body { 26 } else { 0 }
-	strip_h := if has_body && (tab == 2 || tab == 3) { 34 } else { 0 }
+	// Slice B (#1229): Jobs carries a spawn strip (command + Spawn); Swarms
+	// keeps the launch strip, Doctor the repair strip. Loops has no strip —
+	// loop creation lives in the detail column so empty catalogs can create.
+	strip_h := if has_body && (tab == 0 || tab == 2 || tab == 3) { 34 } else { 0 }
 	tab_y := body_y
 	ctl_y := tab_y + tab_h + 6
 	strip_y := ctl_y + ctl_h + 6
@@ -759,7 +763,9 @@ fn draw_operations(mut app GuiApp, w int, h int) {
 	}
 	draw_operations_tabs(mut app, l)
 	draw_operations_controls(mut app, l)
-	if l.tab == 2 {
+	if l.tab == 0 {
+		draw_operations_spawn_strip(mut app, l)
+	} else if l.tab == 2 {
 		draw_operations_launch_strip(mut app, l)
 	} else if l.tab == 3 {
 		draw_operations_repair_strip(mut app, l)
@@ -993,6 +999,54 @@ fn draw_operations_repair_strip(mut app GuiApp, l OperationsLayout) {
 		app.doctor_chips << DoctorChip{cat, cx, cy, tw, 20}
 		cx += tw + 6
 	}
+}
+
+// operations_spawn_rect reserves the job command field inside the tab-0 strip.
+fn operations_spawn_rect(l OperationsLayout) (int, int, int, int) {
+	mut fw := l.right_w - 72 - 12
+	if fw < 120 {
+		fw = 120
+	}
+	return l.right_x, l.strip_y + 4, fw, l.strip_h - 8
+}
+
+// operations_spawn_button_rect places the Spawn button right of the field.
+fn operations_spawn_btn_rect(l OperationsLayout) (int, int, int, int) {
+	fx, fy, fw, fh := operations_spawn_rect(l)
+	return fx + fw + 8, fy, 72, fh
+}
+
+// draw_operations_spawn_strip is the real job spawn affordance: editable
+// command plus a Spawn button executing Desktop.engine_spawn_job.
+fn draw_operations_spawn_strip(mut app GuiApp, l OperationsLayout) {
+	fx, fy, fw, fh := operations_spawn_rect(l)
+	operations_field(mut app, fx, fy, fw, fh, app.ops_job_spawn, 'Spawn job: command…', app.operations_focus == 3, false)
+	bx, by, bw, bh := operations_spawn_btn_rect(l)
+	if bx + bw > l.right_x + l.right_w {
+		return // undrawn = inert (same overflow guard as other strips)
+	}
+	operations_button(mut app, bx, by, bw, bh, 'Spawn', app.operations_hover == 32, true, false)
+}
+
+// operations_click_spawn_strip routes tab-0 strip hits: field focus + Spawn.
+fn operations_click_spawn_strip(mut app GuiApp, l OperationsLayout, mx int, my int) bool {
+	fx, fy, fw, fh := operations_spawn_rect(l)
+	if rect_contains(mx, my, fx, fy, fw, fh) {
+		app.operations_focus = 3
+		app.header_search_focus = false
+		app.workspace_focus = false
+		app.ghost_focused = false
+		return true
+	}
+	bx, by, bw, bh := operations_spawn_btn_rect(l)
+	if bx + bw > l.right_x + l.right_w {
+		return false
+	}
+	if rect_contains(mx, my, bx, by, bw, bh) {
+		operations_spawn_submit(mut app)
+		return true
+	}
+	return false
 }
 
 fn draw_operations_table(mut app GuiApp, l OperationsLayout) {
@@ -1579,14 +1633,46 @@ fn operations_actions(mut app GuiApp, tab int, sel int) []OperationsAction {
 			}
 		}
 		1 {
+			// Slice B (#1229): creation owns its own buttons inside the
+			// create block (it must work with an empty catalog, where no
+			// action row renders), so the action row stays empty while open.
+			if app.loops_show_create {
+				return out
+			}
 			loops := app.desktop.loops_catalog()
 			if sel >= loops.len {
 				return out
 			}
 			out << OperationsAction{'Run', 'run', true, false}
 			out << OperationsAction{if loops[sel].cron_enabled { 'Unschedule' } else { 'Schedule' }, 'schedule', false, false}
+			out << OperationsAction{'New…', 'new', false, false}
+			out << OperationsAction{'Delete', 'delete', false, true}
 		}
 		2 {
+			list := app.desktop.swarm_list()
+			if sel >= list.len {
+				return out
+			}
+			s := list[sel]
+			// Slice B (#1229): run control wired to real Engine operations.
+			// Pause/steer/halt are omitted — the Engine proves no such
+			// operation (backend dependency, not a UI gap).
+			if app.ops_guide_run == s.id {
+				out << OperationsAction{'Queue guidance', 'queue', true, false}
+				out << OperationsAction{'Close guide', 'guide', false, false}
+				return out
+			}
+			if ops_swarm_is_active(s.status) {
+				out << OperationsAction{'Stop', 'stop', false, true}
+			}
+			tgt := ops_promote_target(s.recipe.str())
+			if tgt != '' && (s.status == .running || s.status == .awaiting_approval) {
+				out << OperationsAction{'Promote → ${tgt}', 'promote', true, false}
+			}
+			if ops_swarm_is_terminal(s.status) && app.desktop.swarm_pruned_at(s.id) == '' {
+				out << OperationsAction{'Prune', 'prune', false, false}
+			}
+			out << OperationsAction{'Guide…', 'guide', false, false}
 			out << OperationsAction{'Copy id', 'copy', false, false}
 		}
 		else {
@@ -1602,6 +1688,357 @@ fn operations_actions(mut app GuiApp, tab int, sel int) []OperationsAction {
 		}
 	}
 	return out
+}
+
+// ops_swarm_is_active reports whether a swarm run still accepts run control.
+fn ops_swarm_is_active(status desktop_engine.SwarmRunStatus) bool {
+	return status == .running || status == .awaiting_approval
+}
+
+// ops_swarm_is_terminal reports whether a swarm run reached a final state.
+fn ops_swarm_is_terminal(status desktop_engine.SwarmRunStatus) bool {
+	return status == .completed || status == .failed || status == .canceled
+}
+
+// ops_promote_target names the next recipe a run can promote to (pair→team→
+// full), or '' when the recipe is already maximal or unknown.
+fn ops_promote_target(recipe string) string {
+	if recipe == 'pair' {
+		return 'team'
+	}
+	if recipe == 'team' {
+		return 'full'
+	}
+	return ''
+}
+
+// loop_entry_canonical renders a loop entry as the canonical text the Engine
+// validator parses. Values come from the recorded entry — never invented.
+fn loop_entry_canonical(e desktop_engine.LoopEntry) string {
+	return 'name: ${e.name}\ntier: ${e.tier}\ncadence: ${e.cadence}\ngoal: ${e.goal}\nbudget_max_tokens: ${e.budget_total}\n'
+}
+
+// ── guidance composer ───────────────────────────────────────────────────────
+// Queued guidance is filed as a run handoff artifact on deliver — the run can
+// read it from its artifacts. It is never injected into a live process.
+
+// OpsGuideRow is one visible composer row: queued (cancelable), failed
+// (requeueable), or terminal history.
+struct OpsGuideRow {
+	id          string
+	label       string
+	state       string
+	can_cancel  bool
+	can_requeue bool
+}
+
+// ops_guide_visible_rows lists composer rows for a run: queued first, then
+// terminal history newest-last.
+fn ops_guide_visible_rows(mut app GuiApp, run_id string) []OpsGuideRow {
+	comp := app.ops_composers[run_id] or { return []OpsGuideRow{} }
+	mut rows := []OpsGuideRow{}
+	for it in comp.queued_items() {
+		rows << OpsGuideRow{it.id, it.text, 'queued', true, false}
+	}
+	for it in comp.history() {
+		if it.status == .delivered {
+			rows << OpsGuideRow{it.id, it.text, 'delivered', false, false}
+		} else if it.status == .failed {
+			rows << OpsGuideRow{it.id, it.text, 'failed', false, true}
+		} else if it.status == .canceled {
+			rows << OpsGuideRow{it.id, it.text, 'canceled', false, false}
+		}
+	}
+	return rows
+}
+
+// ops_guide_action_w is the fixed width of the row action button.
+fn ops_guide_action_w() int {
+	return 64
+}
+
+// ops_guide_origin is the facts-zone origin shared by draw, hover and click.
+fn ops_guide_origin(l OperationsLayout) (int, int, int) {
+	return l.side_x + 12, l.side_y + 64, l.side_w - 24
+}
+
+fn operations_guide_row_rect(l OperationsLayout, i int) (int, int, int, int) {
+	gx, gy, gw := ops_guide_origin(l)
+	return gx, gy + 46 + i * 22, gw, 20
+}
+
+// ops_guide_draft reads the preserved per-run draft ('' when none).
+fn ops_guide_draft(mut app GuiApp, run_id string) string {
+	comp := app.ops_composers[run_id] or { return '' }
+	return comp.draft_text()
+}
+
+// ops_guide_set_draft stores the per-run draft (get-modify-write: map values
+// are copies).
+fn ops_guide_set_draft(mut app GuiApp, run_id string, text string) {
+	mut comp := app.ops_composers[run_id] or { swarm_rt.new_queue_composer(run_id) }
+	comp.set_draft(text)
+	app.ops_composers[run_id] = comp
+}
+
+// ops_guide_type appends typed input to the run draft.
+fn ops_guide_type(mut app GuiApp, ch string) {
+	if app.ops_guide_run == '' {
+		return
+	}
+	ops_guide_set_draft(mut app, app.ops_guide_run, ops_guide_draft(mut app, app.ops_guide_run) + ch)
+}
+
+// ops_guide_backspace deletes one rune from the run draft.
+fn ops_guide_backspace(mut app GuiApp) {
+	if app.ops_guide_run == '' {
+		return
+	}
+	d := ops_guide_draft(mut app, app.ops_guide_run)
+	if d.len > 0 {
+		ops_guide_set_draft(mut app, app.ops_guide_run, d[..d.len - 1])
+	}
+}
+
+// draw_operations_guide renders the draft field plus queued/history rows for
+// a run inside the detail facts zone.
+fn draw_operations_guide(mut app GuiApp, l OperationsLayout, run_id string) {
+	gx, gy, gw := ops_guide_origin(l)
+	app.gg.draw_text(gx, gy, 'Guidance — ${run_id}', gg.TextCfg{
+		color: app.pnl_text
+		size: 12
+		bold: true
+	})
+	draft := ops_guide_draft(mut app, run_id)
+	operations_field(mut app, gx, gy + 16, gw, 24, draft, 'Type guidance, Enter queues…', app.operations_focus == 5, false)
+	rows := ops_guide_visible_rows(mut app, run_id)
+	for i, r in rows {
+		if i >= 6 {
+			break
+		}
+		rx, ry, rw, rh := operations_guide_row_rect(l, i)
+		app.gg.draw_text(rx, ry + 3, utf8_truncate(r.label, (rw - 70) / 6), gg.TextCfg{
+			color: app.pnl_text
+			size: 11
+		})
+		app.gg.draw_text(rx + rw - 130, ry + 3, r.state, gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+		})
+		if r.can_cancel {
+			operations_button(mut app, rx + rw - ops_guide_action_w(), ry, ops_guide_action_w(), rh, 'Cancel', app.operations_hover == 80 + i, false, false)
+		} else if r.can_requeue {
+			operations_button(mut app, rx + rw - ops_guide_action_w(), ry, ops_guide_action_w(), rh, 'Requeue', app.operations_hover == 80 + i, false, false)
+		}
+	}
+	app.gg.draw_text(gx, gy + 46 + 6 * 22 + 4, 'Queued guidance is filed as a run artifact on deliver — never injected into a live process.', gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 10
+	})
+}
+
+// operations_click_guide routes guide-block hits: field focus plus row
+// actions (cancel queued, requeue failed).
+fn operations_click_guide(mut app GuiApp, l OperationsLayout, mx int, my int, run_id string) bool {
+	gx, gy, gw := ops_guide_origin(l)
+	if rect_contains(mx, my, gx, gy + 16, gw, 24) {
+		app.operations_focus = 5
+		app.header_search_focus = false
+		app.workspace_focus = false
+		app.ghost_focused = false
+		return true
+	}
+	rows := ops_guide_visible_rows(mut app, run_id)
+	for i, r in rows {
+		if i >= 6 {
+			break
+		}
+		rx, ry, rw, rh := operations_guide_row_rect(l, i)
+		aw := ops_guide_action_w()
+		if rect_contains(mx, my, rx + rw - aw, ry, aw, rh) {
+			mut comp := app.ops_composers[run_id] or { return true }
+			if r.can_cancel {
+				comp.cancel_before_delivery(r.id) or {
+					app.inspector_msg = 'Cancel failed: ${err.msg()}'
+					return true
+				}
+				app.inspector_msg = 'Guidance ${r.id} canceled before delivery'
+			} else if r.can_requeue {
+				comp.requeue(r.id) or {
+					app.inspector_msg = 'Requeue failed: ${err.msg()}'
+					return true
+				}
+				app.inspector_msg = 'Guidance ${r.id} requeued'
+			} else {
+				return true
+			}
+			app.ops_composers[run_id] = comp
+			return true
+		}
+	}
+	return false
+}
+
+// operations_guide_submit queues the draft (when non-empty) and delivers all
+// queued items as run handoff artifacts. Failures keep the text: the item is
+// marked failed and the draft is restored, never lost.
+fn operations_guide_submit(mut app GuiApp, run_id string) {
+	if app.desktop == unsafe { nil } {
+		return
+	}
+	mut comp := app.ops_composers[run_id] or { swarm_rt.new_queue_composer(run_id) }
+	if ops_guide_draft(mut app, run_id).trim_space() != '' {
+		comp.enqueue() or {
+			app.inspector_msg = 'Queue failed: ${err.msg()}'
+			app.ops_composers[run_id] = comp
+			return
+		}
+	}
+	mut delivered := 0
+	for it in comp.queued_items() {
+		comp.begin_deliver(it.id) or {
+			app.inspector_msg = 'Deliver failed: ${err.msg()}'
+			continue
+		}
+		artifact := app.desktop.engine_write_handoff_artifact(run_id, 'guidance/${it.id}.md', it.text) or {
+			comp.mark_failed(it.id, err.msg()) or {}
+			comp.set_draft(it.text)
+			app.inspector_msg = 'Deliver failed (${it.id}): artifact write failed — text restored to draft'
+			continue
+		}
+		comp.mark_delivered(it.id, artifact) or {}
+		delivered++
+	}
+	app.ops_composers[run_id] = comp
+	app.engine_rev = app.desktop.app_state_snapshot().revision
+	app.api_calls = app.desktop.engine_api_calls()
+	if delivered > 0 {
+		app.inspector_msg = 'Guidance filed: ${delivered} artifact(s) on run ${run_id}'
+	} else {
+		app.inspector_msg = 'Nothing queued — type guidance first'
+		app.operations_focus = 5
+	}
+}
+
+// ── loop create block ───────────────────────────────────────────────────────
+
+// operations_create_tier_rect is the tier selector row (click cycles L1→L2→L3).
+fn operations_create_tier_rect(l OperationsLayout) (int, int, int, int) {
+	return l.side_x + 12, l.side_y + 64 + 30, l.side_w - 24, 22
+}
+
+// operations_create_btn_rect places the Create (0) / Cancel (1) buttons.
+fn operations_create_btn_rect(l OperationsLayout, i int) (int, int, int, int) {
+	bw := (l.side_w - 24 - 8) / 2
+	return l.side_x + 12 + i * (bw + 8), l.side_y + 64 + 58, bw, 24
+}
+
+// draw_operations_create renders the new-loop block: name field, tier chips,
+// cadence note, Create/Cancel. Works with an empty catalog.
+fn draw_operations_create(mut app GuiApp, l OperationsLayout) {
+	cx := l.side_x + 12
+	cw := l.side_w - 24
+	cy := l.side_y + 64
+	app.gg.draw_text(cx, cy, 'New loop', gg.TextCfg{
+		color: app.pnl_text
+		size: 12
+		bold: true
+	})
+	operations_field(mut app, cx, cy + 16, cw, 24, app.loops_create_name, 'Loop name (kebab-case)…', app.operations_focus == 4, false)
+	tx, ty, tw, th := operations_create_tier_rect(l)
+	tiers := ['L1', 'L2', 'L3']
+	for i, t in tiers {
+		sel := app.loops_create_tier == i
+		bw := tw / 3
+		bx := tx + i * bw
+		operations_button(mut app, bx, ty, bw - 4, th, t, app.operations_hover == 81, sel, false)
+	}
+	app.gg.draw_text(cx, cy + 30 + 26, 'cadence ${app.loops_create_cadence} · cron flag stays off until scheduled', gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 10
+	})
+	b0x, b0y, b0w, b0h := operations_create_btn_rect(l, 0)
+	operations_button(mut app, b0x, b0y, b0w, b0h, 'Create', app.operations_hover == 82, true, false)
+	b1x, b1y, b1w, b1h := operations_create_btn_rect(l, 1)
+	operations_button(mut app, b1x, b1y, b1w, b1h, 'Cancel', app.operations_hover == 83, false, false)
+}
+
+// operations_click_create routes create-block hits: tier cycle + Create/Cancel.
+fn operations_click_create(mut app GuiApp, l OperationsLayout, mx int, my int) bool {
+	cx := l.side_x + 12
+	cw := l.side_w - 24
+	cy := l.side_y + 64
+	if rect_contains(mx, my, cx, cy + 16, cw, 24) {
+		app.operations_focus = 4
+		app.header_search_focus = false
+		app.workspace_focus = false
+		app.ghost_focused = false
+		return true
+	}
+	tx, ty, tw, th := operations_create_tier_rect(l)
+	if rect_contains(mx, my, tx, ty, tw, th) {
+		app.loops_create_tier = (app.loops_create_tier + 1) % 3
+		return true
+	}
+	b0x, b0y, b0w, b0h := operations_create_btn_rect(l, 0)
+	if rect_contains(mx, my, b0x, b0y, b0w, b0h) {
+		operations_loop_create_submit(mut app)
+		return true
+	}
+	b1x, b1y, b1w, b1h := operations_create_btn_rect(l, 1)
+	if rect_contains(mx, my, b1x, b1y, b1w, b1h) {
+		app.loops_show_create = false
+		app.loops_create_name = ''
+		app.operations_focus = 0
+		return true
+	}
+	return false
+}
+
+// operations_spawn_submit spawns the typed job command (Enter key path).
+fn operations_spawn_submit(mut app GuiApp) {
+	if app.desktop == unsafe { nil } {
+		return
+	}
+	cmd := app.ops_job_spawn.trim_space()
+	if cmd == '' {
+		app.inspector_msg = 'Job spawn needs a command — type one in the field'
+		app.operations_focus = 3
+		return
+	}
+	job_id := app.desktop.engine_spawn_job(cmd, []) or {
+		app.inspector_msg = 'Job spawn failed: ${err.msg()}'
+		return
+	}
+	app.engine_rev = app.desktop.app_state_snapshot().revision
+	app.api_calls = app.desktop.engine_api_calls()
+	app.ops_job_spawn = ''
+	app.inspector_msg = 'Job requested: ${job_id}'
+}
+
+// operations_loop_create_submit creates the typed loop via the Engine.
+fn operations_loop_create_submit(mut app GuiApp) {
+	if app.desktop == unsafe { nil } {
+		return
+	}
+	name := app.loops_create_name.trim_space()
+	if name == '' {
+		app.inspector_msg = 'Loop create needs a name — kebab-case, e.g. nightly-audit'
+		app.operations_focus = 4
+		return
+	}
+	tiers := ['L1', 'L2', 'L3']
+	tier := tiers[app.loops_create_tier]
+	app.desktop.engine_create_loop(name, tier, app.loops_create_cadence, '') or {
+		app.inspector_msg = 'Loop create failed: ${err.msg()}'
+		return
+	}
+	app.engine_rev = app.desktop.app_state_snapshot().revision
+	app.api_calls = app.desktop.engine_api_calls()
+	app.loops_show_create = false
+	app.loops_create_name = ''
+	app.operations_focus = 0
+	app.inspector_msg = 'Loop created: ${name} (${tier})'
 }
 
 fn draw_operations_detail(mut app GuiApp, w int, h int) {
@@ -1637,21 +2074,29 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 		bold: true
 	})
 	facts, desc := operations_detail_facts(mut app, l.tab, sel)
-	mut cy := y + 64
-	if desc != '' {
-		draw_wrapped_text(mut app, name_x, cy, x + iw - name_x - 12, desc, 2)
-		cy += 30
-	}
-	cy += 12
-	app.gg.draw_rect_filled(x + 12, cy, iw - 24, 1, tint(pc(app, `W`), 70))
-	cy += 10
-	// fact rows: label column + value column; stop before the action zone
 	acts := operations_actions(mut app, l.tab, sel)
 	appr_top := operations_detail_content_bottom(l)
-	for f in facts {
-		if cy + 18 > appr_top {
-			break
+	// Slice B (#1229): the guidance composer (Swarms) and the loop create
+	// block (Loops) take the facts zone with fixed geometry so draw, hover
+	// and click always agree. Facts return when the block closes.
+	mut cy := y + 64
+	if l.tab == 2 && app.ops_guide_run == row.id {
+		draw_operations_guide(mut app, l, row.id)
+	} else if l.tab == 1 && app.loops_show_create {
+		draw_operations_create(mut app, l)
+	} else {
+		if desc != '' {
+			draw_wrapped_text(mut app, name_x, cy, x + iw - name_x - 12, desc, 2)
+			cy += 30
 		}
+		cy += 12
+		app.gg.draw_rect_filled(x + 12, cy, iw - 24, 1, tint(pc(app, `W`), 70))
+		cy += 10
+		// fact rows: label column + value column; stop before the action zone
+		for f in facts {
+			if cy + 18 > appr_top {
+				break
+			}
 		app.gg.draw_text(x + 16, cy, f[0], gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
@@ -1667,6 +2112,7 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 			})
 		}
 		cy += 20
+		}
 	}
 	// job logs sheet (Open logs) — real lines from the Engine, newest last
 	if l.tab == 0 && app.jobs_show_logs && app.jobs_logs_job == row.id && appr_top - cy > 60 {
@@ -1786,7 +2232,10 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 			e := loops[sel]
 			rows << ['Tier', loop_tier_label(e.tier)]
 			rows << ['Cadence', e.cadence]
-			rows << ['Schedule', if e.cron_enabled { 'cron ${e.schedule}' } else { 'On demand' }]
+			// Slice B (#1229): the cron value is a configuration flag —
+			// there is no scheduler daemon, so it is never rendered as an
+			// installed timer (no Next-run promise either).
+			rows << ['Schedule', app.desktop.engine_loop_schedule_state(e.name)]
 			if e.verifier.trim_space() != '' {
 				rows << ['Verifier', e.verifier]
 			}
@@ -1810,8 +2259,23 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 			if e.last_run.trim_space() != '' {
 				rows << ['Last run', e.last_run]
 			}
-			if e.next_run.trim_space() != '' && e.cron_enabled {
-				rows << ['Next run', e.next_run]
+			// Slice B (#1229): audit / cost / validate / receipts from the
+			// Engine. Missing values are omitted, never filled.
+			aud := app.desktop.engine_loop_audit(e.name)
+			if aud.len > 0 && aud[0].runs > 0 {
+				rows << ['Audit', '${aud[0].runs} runs · ${aud[0].success_rate} ok · ${aud[0].tokens} tok']
+			}
+			if cost := app.desktop.engine_loop_cost(e.name) {
+				if cost.budget.max_tokens > 0 {
+					rows << ['Cost', '${cost.spent} / ${cost.budget.max_tokens} tok · ${cost.cost_tier}']
+				}
+			}
+			content := loop_entry_canonical(e)
+			diags := app.desktop.engine_loop_validate(e.name, content)
+			rows << ['Validate', if diags.len == 0 { 'pass' } else { diags[0].message }]
+			rec := app.desktop.engine_loop_receipts(e.name)
+			if rec.len > 0 {
+				rows << ['Receipts', '${rec.len} kept']
 			}
 			if e.last_exit.trim_space() != '' {
 				rows << ['Last exit', e.last_exit]
@@ -1834,14 +2298,22 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 			rows << ['Backend', s.backend.str()]
 			rows << ['Status', swarm_status_key(s.status)]
 			rows << ['Started', format_started_time(s.created_at)]
+			// Slice B (#1229): the report view behind the facts — remaining
+			// budget, mailbox task backlog, prune stamp. Tokens, never
+			// currency; no CI provider is rendered anywhere.
 			if s.budget_total > 0 {
-				rows << ['Budget', '${s.budget_spent} / ${s.budget_total} tok']
+				rows << ['Budget', '${s.budget_spent} / ${s.budget_total} tok · ${s.budget_total - s.budget_spent} left']
 			}
 			if s.worktree != '' {
 				rows << ['Worktree', s.worktree]
 			}
 			rows << ['Handoffs', '${app.desktop.swarm_handoffs(s.id).len}']
 			rows << ['Artifacts', '${app.desktop.handoff_artifacts(s.id).len}']
+			rows << ['Tasks', '${app.desktop.swarm_queued_tasks(s.id).len} in mailbox']
+			pruned := app.desktop.swarm_pruned_at(s.id)
+			if pruned != '' {
+				rows << ['Pruned', format_started_time(pruned.i64())]
+			}
 			return rows, s.task
 		}
 		else {
@@ -1904,6 +2376,12 @@ fn draw_operations_approvals(mut app GuiApp, l OperationsLayout, run_id string) 
 // draw_operations_detail_empty is the truthful "nothing selected" card: a small
 // scene and the real totals behind the table.
 fn draw_operations_detail_empty(mut app GuiApp, l OperationsLayout, total int) {
+	// Slice B (#1229): the create block owns the column while open — an
+	// empty catalog is the most common place to create the first loop.
+	if l.tab == 1 && app.loops_show_create {
+		draw_operations_create(mut app, l)
+		return
+	}
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	x, y, iw := l.side_x, l.side_y, l.side_w
@@ -1974,6 +2452,13 @@ fn operations_hover(mut app GuiApp, w int, h int) {
 		app.operations_hover = 11
 		return
 	}
+	if l.tab == 0 && l.strip_h > 0 {
+		bx, by, bw, bh := operations_spawn_btn_rect(l)
+		if rect_contains(mx, my, bx, by, bw, bh) {
+			app.operations_hover = 32
+			return
+		}
+	}
 	if l.tab == 2 {
 		for i in 0 .. 3 {
 			bx, by, bw, bh := operations_backend_rect(l, i)
@@ -2040,6 +2525,37 @@ fn operations_hover(mut app GuiApp, w int, h int) {
 			return
 		}
 	}
+	if l.tab == 2 {
+		all_g := operations_rows(mut app, l.tab)
+		sel_g := operations_selected(app, l.tab, all_g.len)
+		if sel_g >= 0 && app.ops_guide_run == all_g[sel_g].id {
+			rows_g := ops_guide_visible_rows(mut app, all_g[sel_g].id)
+			for i in 0 .. rows_g.len {
+				gx, gy, gw, gh := operations_guide_row_rect(l, i)
+				if rect_contains(mx, my, gx + gw - ops_guide_action_w(), gy, ops_guide_action_w(), gh) {
+					app.operations_hover = 80 + i
+					return
+				}
+			}
+		}
+	}
+	if l.tab == 1 && app.loops_show_create {
+		tx, ty, tw, th := operations_create_tier_rect(l)
+		if rect_contains(mx, my, tx, ty, tw, th) {
+			app.operations_hover = 81
+			return
+		}
+		c0x, c0y, c0w, c0h := operations_create_btn_rect(l, 0)
+		if rect_contains(mx, my, c0x, c0y, c0w, c0h) {
+			app.operations_hover = 82
+			return
+		}
+		c1x, c1y, c1w, c1h := operations_create_btn_rect(l, 1)
+		if rect_contains(mx, my, c1x, c1y, c1w, c1h) {
+			app.operations_hover = 83
+			return
+		}
+	}
 	for i in 0 .. 2 {
 		rx, ry, rw, rh := operations_related_rect(l, i)
 		if rect_contains(mx, my, rx, ry, rw, rh) {
@@ -2096,6 +2612,9 @@ fn operations_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		labels, _ := operations_filter_options(l.tab)
 		app.operations_status_filter = (app.operations_status_filter + 1) % labels.len
 		operations_set_scroll(mut app, l.tab, 0)
+		return true
+	}
+	if l.tab == 0 && operations_click_spawn_strip(mut app, l, mx, my) {
 		return true
 	}
 	if l.tab == 2 && operations_click_swarm_strip(mut app, l, mx, my) {
@@ -2301,6 +2820,19 @@ fn operations_click_topology(mut app GuiApp, l OperationsLayout, mx int, my int)
 }
 
 fn operations_click_detail(mut app GuiApp, l OperationsLayout, mx int, my int, total int) bool {
+	// Slice B (#1229): the create block works with no selection (empty
+	// catalog), and the guide block owns its rows — both precede the
+	// selection-gated path below.
+	if l.tab == 1 && app.loops_show_create {
+		return operations_click_create(mut app, l, mx, my)
+	}
+	if l.tab == 2 && app.desktop != unsafe { nil } {
+		gall := operations_rows(mut app, l.tab)
+		gsel := operations_selected(app, l.tab, gall.len)
+		if gsel >= 0 && app.ops_guide_run == gall[gsel].id {
+			return operations_click_guide(mut app, l, mx, my, gall[gsel].id)
+		}
+	}
 	sel := operations_selected(app, l.tab, total)
 	if sel < 0 || app.desktop == unsafe { nil } {
 		return true
@@ -2413,16 +2945,89 @@ fn operations_run_action(mut app GuiApp, tab int, sel int, kind string) {
 						app.inspector_msg = 'Loop ${e.name} schedule failed: ${err.msg()}'
 						return
 					}
-					app.inspector_msg = 'Loop schedule ${if next { 'enabled' } else { 'disabled' }}: ${e.name}'
+					// the cron value is a flag, never an installed timer —
+					// the Schedule fact row says so explicitly.
+					app.inspector_msg = 'Loop schedule flag ${if next { 'set' } else { 'cleared' }}: ${e.name}'
+				}
+				'new' {
+					app.loops_show_create = true
+					app.operations_focus = 4
+					app.header_search_focus = false
+					app.workspace_focus = false
+					app.ghost_focused = false
+					app.inspector_msg = 'New loop — name it below, Enter creates'
+				}
+				'delete' {
+					app.desktop.engine_delete_loop(e.name) or {
+						app.inspector_msg = 'Loop delete failed: ${err.msg()}'
+						return
+					}
+					app.api_calls = app.desktop.engine_api_calls()
+					app.selected_loop = -1
+					app.inspector_msg = 'Loop deleted: ${e.name}'
 				}
 				else {}
 			}
 		}
 		2 {
 			list := app.desktop.swarm_list()
-			if sel < list.len && kind == 'copy' {
-				copy_to_clipboard(mut app, list[sel].id)
-				app.inspector_msg = 'Copied ${list[sel].id}'
+			if sel >= list.len {
+				return
+			}
+			s := list[sel]
+			match kind {
+				'copy' {
+					copy_to_clipboard(mut app, s.id)
+					app.inspector_msg = 'Copied ${s.id}'
+				}
+				'stop' {
+					// Stop and cancel share the Engine path — the run lands
+					// in 'canceled' either way; the message names the verb.
+					rev := app.desktop.swarm_stop(s.id) or {
+						app.inspector_msg = 'Swarm stop failed: ${err.msg()}'
+						return
+					}
+					app.engine_rev = rev
+					app.api_calls = app.desktop.engine_api_calls()
+					app.inspector_msg = 'Swarm stopped: ${s.id} (rev ${rev})'
+				}
+				'promote' {
+					tgt := ops_promote_target(s.recipe.str())
+					rev := app.desktop.swarm_promote(s.id, tgt) or {
+						app.inspector_msg = 'Swarm promote failed: ${err.msg()}'
+						return
+					}
+					app.engine_rev = rev
+					app.api_calls = app.desktop.engine_api_calls()
+					app.inspector_msg = 'Swarm promoted → ${tgt}: ${s.id} (rev ${rev})'
+				}
+				'prune' {
+					rev := app.desktop.swarm_prune(s.id) or {
+						app.inspector_msg = 'Swarm prune failed: ${err.msg()}'
+						return
+					}
+					app.engine_rev = rev
+					app.api_calls = app.desktop.engine_api_calls()
+					app.inspector_msg = 'Swarm pruned: ${s.id} — worktrees removed, artifacts kept (rev ${rev})'
+				}
+				'guide' {
+					if app.ops_guide_run == s.id {
+						app.ops_guide_run = ''
+						if app.operations_focus == 5 {
+							app.operations_focus = 0
+						}
+					} else {
+						app.ops_guide_run = s.id
+						app.operations_focus = 5
+						app.header_search_focus = false
+						app.workspace_focus = false
+						app.ghost_focused = false
+					}
+				}
+				'queue' {
+					operations_guide_submit(mut app, s.id)
+				}
+				else {}
 			}
 		}
 		else {
@@ -2463,19 +3068,59 @@ fn operations_key(mut app GuiApp, e &gg.Event) bool {
 	if app.operations_focus == 0 || !operations_is_panel(app.selected_panel) {
 		return false
 	}
+	// Slice B (#1229): Escape only releases focus — it never clears a draft,
+	// closes a block, or destroys queued work. Enter confirms the focused
+	// composer (spawn / create / guidance); search and swarm-task blur.
 	if e.key_code == .escape {
 		app.operations_focus = 0
 		return true
 	}
-	if e.key_code == .enter || e.key_code == .tab {
+	if e.key_code == .enter {
+		if app.operations_focus == 3 {
+			operations_spawn_submit(mut app)
+			return true
+		}
+		if app.operations_focus == 4 {
+			operations_loop_create_submit(mut app)
+			return true
+		}
+		if app.operations_focus == 5 && app.ops_guide_run != '' {
+			operations_guide_submit(mut app, app.ops_guide_run)
+			return true
+		}
+		app.operations_focus = 0
+		return true
+	}
+	if e.key_code == .tab {
 		app.operations_focus = 0
 		return true
 	}
 	if e.key_code == .backspace {
-		if app.operations_focus == 1 && app.jobs_filter.len > 0 {
-			app.jobs_filter = app.jobs_filter[..app.jobs_filter.len - 1]
-		} else if app.operations_focus == 2 && app.swarm_task.len > 0 {
-			app.swarm_task = app.swarm_task[..app.swarm_task.len - 1]
+		match app.operations_focus {
+			1 {
+				if app.jobs_filter.len > 0 {
+					app.jobs_filter = app.jobs_filter[..app.jobs_filter.len - 1]
+				}
+			}
+			2 {
+				if app.swarm_task.len > 0 {
+					app.swarm_task = app.swarm_task[..app.swarm_task.len - 1]
+				}
+			}
+			3 {
+				if app.ops_job_spawn.len > 0 {
+					app.ops_job_spawn = app.ops_job_spawn[..app.ops_job_spawn.len - 1]
+				}
+			}
+			4 {
+				if app.loops_create_name.len > 0 {
+					app.loops_create_name = app.loops_create_name[..app.loops_create_name.len - 1]
+				}
+			}
+			5 {
+				ops_guide_backspace(mut app)
+			}
+			else {}
 		}
 		return true
 	}
@@ -2485,8 +3130,14 @@ fn operations_key(mut app GuiApp, e &gg.Event) bool {
 		if app.operations_focus == 1 {
 			app.jobs_filter += ch
 			operations_set_scroll(mut app, operations_tab_for_panel(app.selected_panel), 0)
-		} else {
+		} else if app.operations_focus == 2 {
 			app.swarm_task += ch
+		} else if app.operations_focus == 3 {
+			app.ops_job_spawn += ch
+		} else if app.operations_focus == 4 {
+			app.loops_create_name += ch
+		} else if app.operations_focus == 5 {
+			ops_guide_type(mut app, ch)
 		}
 		return true
 	}
