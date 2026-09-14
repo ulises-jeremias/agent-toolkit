@@ -63,6 +63,12 @@ agent-toolkit doctor
 ```
 
 <div align="center">
+<img src="static/screenshots/office.png" width="92%" alt="Agent Toolkit Desktop — Office floor with agent desks, roster, and embedded terminal" />
+<br />
+<em>The native desktop GUI: your agents at work in the Paper Co. office. Two commands put skills, agents, and MCP into your editor — verified by <code>doctor</code>.</em>
+</div>
+
+<div align="center">
 <img src="https://github.com/ulises-jeremias/agent-toolkit/blob/main/static/architecture.svg?raw=true" width="88%">
 </div>
 
@@ -160,6 +166,14 @@ agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
 ```
 
 No CLI handy? Grab `agent-toolkit-desktop-<version>-linux-<arch>.tar.gz` from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest) and run `./install-desktop.sh install` (per-user, no sudo). Details: [docs/desktop/PRODUCT_VISION.md](docs/desktop/PRODUCT_VISION.md) · [docs/desktop/PACKAGING.md](docs/desktop/PACKAGING.md).
+
+| Onboarding | Library | Operations |
+|---|---|---|
+| <img src="static/screenshots/onboarding.png" width="100%" alt="Guided onboarding board: setup choice, tools, workspace, capabilities, review" /> | <img src="static/screenshots/library.png" width="100%" alt="Library: searchable skills catalog with detail inspector" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations floor: jobs, loops, swarms, and Doctor tabs" /> |
+| Terminal | Insights | Office |
+| <img src="static/screenshots/terminal.png" width="100%" alt="Embedded terminal with real PTY, focused prompt, and block cursor" /> | <img src="static/screenshots/insights.png" width="100%" alt="Insights: Engine-ledger cost and activity reports" /> | <img src="static/screenshots/office.png" width="100%" alt="Office floor overview with catalog desks and roster" /> |
+
+All screenshots are captures of the real app (Paper Co. theme). Empty states render truthfully — unknown values show as unknown, never fabricated.
 
 ### Advanced install methods
 
