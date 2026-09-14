@@ -47,7 +47,7 @@ struct WorkspaceLayout {
 	mid_h      int
 	tree_w     int // IDE column widths — read by the on_event handlers in main.v
 	git_w      int
-	git_tab_w  int // pitch of the CHANGES / HISTORY / COMPARE tabs
+	git_tab_w  int // pitch of the CHANGES / HISTORY / COMPARE / WORKTREES tabs
 	mem_y      int // memory palace strip
 	mem_h      int
 	compact    bool
@@ -139,7 +139,7 @@ fn workspace_layout(app &GuiApp, w int, h int) WorkspaceLayout {
 		mid_h: mid_h
 		tree_w: tree_w
 		git_w: git_w
-		git_tab_w: if git_w > 0 { (git_w - 12) / 3 } else { 0 }
+		git_tab_w: if git_w > 0 { (git_w - 12) / 4 } else { 0 }
 		mem_y: mem_y
 		mem_h: mem_h
 		compact: compact
@@ -1194,7 +1194,7 @@ fn workspace_git_history_visible(mid_h int) int {
 
 fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 	draw_paper_sheet(mut app, x, y, w, h)
-	for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
+	for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE', 'WORKTREES'] {
 		workspace_underline_tab(mut app, x + 6 + ri * tab_w, y + 2, tab_w - 4, 20, rn.to_lower().capitalize(), app.git_rail == rn, 11)
 	}
 	app.gg.draw_rect_filled(x + 8, y + 24, w - 16, 1, tint(pc(app, `W`), 70))
@@ -1357,6 +1357,54 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 					size: 11
 				})
 			}
+		}
+	} else if app.git_rail == 'WORKTREES' {
+		// Run-owned worktrees, bound to live run records (slice G). The rail
+		// is read-only: no git write backend is proven, so no checkout
+		// affordance is offered and the copy says so.
+		rows := workspace_worktree_rows(mut app)
+		summary := if rows.len == 0 {
+			'No run worktrees recorded'
+		} else {
+			'${rows.len} run worktree(s) · read-only, no checkout backend'
+		}
+		app.gg.draw_text(x + 10, y0, summary, gg.TextCfg{
+			color: app.pnl_text
+			size: 11
+		})
+		row_h := 32
+		visible := workspace_git_changes_visible(h) / 2
+		if visible < 1 {
+			return
+		}
+		app.git_scroll = clamp_scroll(app.git_scroll, rows.len, visible)
+		start := app.git_scroll
+		mut end := start + visible
+		if end > rows.len {
+			end = rows.len
+		}
+		for idx in start .. end {
+			r := rows[idx]
+			row := idx - start
+			ry := y0 + 20 + row * row_h
+			dot := if r.exists && !r.shared {
+				app.pnl_success
+			} else if r.shared {
+				app.pnl_select
+			} else {
+				app.pnl_danger
+			}
+			app.gg.draw_rect_filled(x + 10, ry + 4, 6, 6, dot)
+			app.gg.draw_text(x + 22, ry, '${utf8_truncate(r.owner, text_fit_chars(w - 90, 11))} · ${git_worktree_state(r)}', gg.TextCfg{
+				color: app.pnl_text
+				size: 11
+				mono: true
+			})
+			app.gg.draw_text(x + 22, ry + 15, utf8_truncate(r.path, text_fit_chars(w - 34, 9)), gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 9
+				mono: true
+			})
 		}
 	} else { // COMPARE
 		head, detail := workspace_git_unavailable(st)
