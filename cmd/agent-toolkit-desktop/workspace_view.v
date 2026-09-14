@@ -1169,8 +1169,25 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 		app.gg.draw_rect_filled(x + w - 8, content_y, 2, content_h, tint(pc(app, `W`), 60))
 		app.gg.draw_rect_filled(x + w - 8, bar_y, 2, bar_h, app.pnl_select)
 	}
-	state := if active.dirty { 'unsaved changes' } else { 'saved' }
-	app.gg.draw_text(x + 12, y + h - 16, '${active.syntax} · ${lines.len} lines · ${state}', gg.TextCfg{
+	// caret for the focused tab (slice F): rune-accurate row, mono advance
+	if app.editor_focused && app.active_tab >= 0 && app.active_tab < app.editor_tabs.len {
+		cline, ccol := editor_line_col(active)
+		if cline >= start && cline < end {
+			ly := content_y + 4 + (cline - start) * row_h
+			cx := x + 46 + ccol * 6
+			if cx < x + w - 12 {
+				app.gg.draw_rect_filled(cx, ly, 2, 13, app.pnl_select)
+			}
+		}
+	}
+	state := if app.editor_msg != '' {
+		app.editor_msg
+	} else if active.dirty {
+		'unsaved changes'
+	} else {
+		'saved'
+	}
+	app.gg.draw_text(x + 12, y + h - 16, utf8_truncate('${active.syntax} · ${lines.len} lines · ${state}', text_fit_chars(w - 24, 10)), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 		mono: true

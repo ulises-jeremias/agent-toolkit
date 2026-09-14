@@ -548,6 +548,12 @@ pub fn (mut d Desktop) engine_open_file_brokered(harness_root string, path strin
 	return d.engine.open_file_brokered(harness_root, path)
 }
 
+// engine_save_editor_tab persists a tab through the Engine's validated,
+// secret-guarded write path and returns the ledger revision as receipt.
+pub fn (mut d Desktop) engine_save_editor_tab(tab desktop_engine.EditorTab) !u64 {
+	return d.engine.save_editor_tab(tab)
+}
+
 pub fn (mut d Desktop) engine_highlight_syntax(content string, syntax string) [][]desktop_engine.SyntaxToken {
 	return desktop_engine.highlight_syntax(content, syntax)
 }
