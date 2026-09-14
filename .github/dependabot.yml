@@ -13,6 +13,13 @@ updates:
       - "dependencies"
     commit-message:
       prefix: "chore(deps)"
+    # CodeQL init + analyze must bump atomically: a lone bump leaves the
+    # workflow mixing two action versions, which CodeQL rejects
+    # ("Loaded a configuration file for version X, but running version Y").
+    groups:
+      codeql-action:
+        patterns:
+          - "github/codeql-action/*"
 
   # Python — PyPI adapter only (no root uv workspace)
   - package-ecosystem: "pip"

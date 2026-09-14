@@ -1,10 +1,16 @@
 # Notify aur-packages to update and publish the agent-toolkit PKGBUILD on release.
+#
+# Ordering contract: this workflow runs AFTER the Release workflow completes
+# successfully (workflow_run), so release assets are guaranteed present. It
+# must NOT trigger on tag push in parallel with Release — that raced asset
+# upload and 404'd (v1.30.2). The asset wait loop below remains only as
+# CDN-propagation resilience, not as primary synchronization.
 name: Notify AUR Package
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: ["Release"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       version:
@@ -12,19 +18,26 @@ on:
         required: true
 
 concurrency:
-  group: notify-aur-${{ github.ref }}
+  group: notify-aur-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: false
 
 jobs:
   notify:
+    # Only successful tag-push Release runs (or manual dispatch). In particular,
+    # pull_request runs of the Release workflow must not notify.
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'v') && github.event.workflow_run.conclusion == 'success')
     runs-on: ubuntu-latest
     environment: aur
     steps:
       - name: Resolve version
         id: ver
+        env:
+          WR_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           if [ -n "${{ github.event.inputs.version }}" ]; then
             VERSION="${{ github.event.inputs.version }}"
+          elif [ -n "$WR_BRANCH" ]; then
+            VERSION="${WR_BRANCH#v}"
           else
             VERSION="${GITHUB_REF_NAME#v}"
           fi
