@@ -1617,8 +1617,8 @@ fn operations_actions(mut app GuiApp, tab int, sel int) []OperationsAction {
 			if ops_swarm_is_active(s.status) {
 				out << OperationsAction{'Stop', 'stop', false, true}
 			}
-			if tgt := ops_promote_target(s.recipe.str()); tgt != ''
-				&& (s.status == .running || s.status == .awaiting_approval) {
+			tgt := ops_promote_target(s.recipe.str())
+			if tgt != '' && (s.status == .running || s.status == .awaiting_approval) {
 				out << OperationsAction{'Promote → ${tgt}', 'promote', true, false}
 			}
 			if ops_swarm_is_terminal(s.status) && app.desktop.swarm_pruned_at(s.id) == '' {
