@@ -254,7 +254,4 @@ pub fn (mut d Desktop) engine_product_receipt(product_id string) string {
 	return d.engine.product_receipt(product_id)
 }
 
-// engine_product_provenance exposes product provenance facts.
-pub fn (mut d Desktop) engine_product_provenance(product_id string) string {
-	return d.engine.product_provenance(product_id)
-}
+
