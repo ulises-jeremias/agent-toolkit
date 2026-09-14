@@ -11,7 +11,7 @@ brew tap ulises-jeremias/homebrew-tap && brew install agent-toolkit
 # AUR
 yay -S agent-toolkit-bin
 # PyPI launcher (execs bundled V; ADR-021)
-uv tool install 'agent-toolkit-cli>=1.11.0'
+uv tool install 'agent-toolkit-cli>=1.30.1'
 # npm
 npm i -g agent-toolkit-cli
 
@@ -120,6 +120,6 @@ Prerequisites: see [INSTALLATION.md — Swarms prerequisites](INSTALLATION.md#sw
 
 * `agent-toolkit doctor` reports missing tool → install that tool first
 * `inventory` empty → re-run `agent-toolkit install` with `--force`
-* Broken install channel → pick another: Homebrew, AUR `agent-toolkit-bin`, GitHub Release, `uv tool install 'agent-toolkit-cli>=1.11.0'`, or `npm i -g agent-toolkit-cli`
+* Broken install channel → pick another: Homebrew, AUR `agent-toolkit-bin`, GitHub Release, `uv tool install 'agent-toolkit-cli>=1.30.1'`, or `npm i -g agent-toolkit-cli`
 
 See also: [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for doctor error recipes.
