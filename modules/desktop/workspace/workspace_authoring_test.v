@@ -20,7 +20,7 @@ fn setup_workspace_vm(tag string) (string, string, &desktop_engine.Engine, &Work
 	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
 	th := theme.default_theme()
-	mut vm := new_workspace_viewmodel(mut eng, workspace, th)
+	mut vm := new_workspace_viewmodel(eng, workspace, th)
 	return tmp, workspace, eng, vm
 }
 

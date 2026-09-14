@@ -37,12 +37,17 @@ mut:
 
 // new_workspace_authoring_facade builds the facade over one Engine. The
 // harness root binds the file tree; '' leaves it unbound until set.
-pub fn new_workspace_authoring_facade(mut engine &desktop_engine.Engine, harness_root string, th theme.Theme) &WorkspaceAuthoringFacade {
+//
+// The Engine travels as a plain non-mut reference end to end: forwarding
+// a `mut &Engine` param through another `mut` argument re-takes its
+// address (V codegen takes `&e` for param aliases but passes call-result
+// locals through — the former corrupts every downstream Engine call).
+pub fn new_workspace_authoring_facade(engine &desktop_engine.Engine, harness_root string, th theme.Theme) &WorkspaceAuthoringFacade {
 	return &WorkspaceAuthoringFacade{
 		engine: engine
-		mem: memory.new_memory_viewmodel(mut engine, th)
-		ws: workspace.new_workspace_viewmodel(mut engine, harness_root, th)
-		gv: git.new_git_viewmodel(mut engine, th)
+		mem: memory.new_memory_viewmodel(engine, th)
+		ws: workspace.new_workspace_viewmodel(engine, harness_root, th)
+		gv: git.new_git_viewmodel(engine, th)
 	}
 }
 

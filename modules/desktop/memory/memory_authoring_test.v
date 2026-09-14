@@ -20,7 +20,7 @@ fn setup_memory_vm(tag string) (string, string, &desktop_engine.Engine, &MemoryP
 	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
 	th := theme.default_theme()
-	mut vm := new_memory_viewmodel(mut eng, th)
+	mut vm := new_memory_viewmodel(eng, th)
 	return tmp, workspace, eng, vm
 }
 

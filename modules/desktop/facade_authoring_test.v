@@ -19,7 +19,7 @@ fn setup_authoring_facade(tag string) (string, string, &desktop_engine.Engine, &
 	eng.init() or { panic(err.msg()) }
 	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
-	mut f := new_workspace_authoring_facade(mut eng, workspace, theme.default_theme())
+	mut f := new_workspace_authoring_facade(eng, workspace, theme.default_theme())
 	return tmp, workspace, eng, f
 }
 

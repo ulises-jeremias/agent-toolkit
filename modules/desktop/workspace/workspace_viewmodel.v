@@ -22,13 +22,13 @@ mut:
 	theme           theme.Theme
 }
 
-pub fn new_workspace_viewmodel(mut engine &desktop_engine.Engine, harness_root string, th theme.Theme) &WorkspaceViewModel {
+pub fn new_workspace_viewmodel(engine &desktop_engine.Engine, harness_root string, th theme.Theme) &WorkspaceViewModel {
 	mut vm := &WorkspaceViewModel{
 		engine: engine
 		harness_root: harness_root
 		theme: th
 		git_rail: 'CHANGES'
-		revision: engine.revision()
+		revision: 0
 	}
 	vm.refresh()
 	return vm

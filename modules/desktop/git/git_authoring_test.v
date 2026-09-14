@@ -20,7 +20,7 @@ fn setup_git_vm(tag string) (string, string, &desktop_engine.Engine, &GitViewMod
 	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
 	th := theme.default_theme()
-	mut vm := new_git_viewmodel(mut eng, th)
+	mut vm := new_git_viewmodel(eng, th)
 	return tmp, workspace, eng, vm
 }
 

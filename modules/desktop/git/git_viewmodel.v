@@ -15,8 +15,8 @@ mut:
 	theme          theme.Theme
 }
 
-pub fn new_git_viewmodel(mut engine &desktop_engine.Engine, th theme.Theme) &GitViewModel {
-	return &GitViewModel{ engine: engine, rail: 'CHANGES', revision: engine.revision(), theme: th }
+pub fn new_git_viewmodel(engine &desktop_engine.Engine, th theme.Theme) &GitViewModel {
+	return &GitViewModel{ engine: engine, rail: 'CHANGES', revision: 0, theme: th }
 }
 
 pub fn (mut vm GitViewModel) set_rail(rail string) {

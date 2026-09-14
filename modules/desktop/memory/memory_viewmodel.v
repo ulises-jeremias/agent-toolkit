@@ -16,8 +16,8 @@ mut:
 	theme    theme.Theme
 }
 
-pub fn new_memory_viewmodel(mut engine &desktop_engine.Engine, th theme.Theme) &MemoryPalaceViewModel {
-	mut vm := &MemoryPalaceViewModel{ engine: engine, theme: th, revision: engine.revision() }
+pub fn new_memory_viewmodel(engine &desktop_engine.Engine, th theme.Theme) &MemoryPalaceViewModel {
+	mut vm := &MemoryPalaceViewModel{ engine: engine, theme: th, revision: 0 }
 	vm.refresh()
 	return vm
 }
