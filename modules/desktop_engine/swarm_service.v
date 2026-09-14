@@ -1190,14 +1190,18 @@ pub fn (mut e Engine) swarm_graph_view(run_id string) SwarmGraphView {
 	for h in e.swarm_handoffs(run_id) {
 		mut from := ''
 		mut to := ''
-		if idx := h.index('->'); idx >= 0 {
+		idx := h.index('->')
+		if idx >= 0 {
 			left := h[..idx]
 			right := h[idx + 2..]
 			from = swarm_graph_role(left)
 			to = swarm_graph_role(right)
-		} else if idx := h.index(' → '); idx >= 0 {
-			from = h[..idx].trim_space().split(' ').last()
-			to = h[idx + 5..].trim_space().split(' ')[0]
+		} else {
+			idx2 := h.index(' → ')
+			if idx2 >= 0 {
+				from = h[..idx2].trim_space().split(' ').last()
+				to = h[idx2 + 5..].trim_space().split(' ')[0]
+			}
 		}
 		if from == '' || to == '' || from == to {
 			continue
