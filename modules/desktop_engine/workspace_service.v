@@ -1,5 +1,6 @@
 module desktop_engine
 
+import agent_toolkit_core
 import os
 import time
 import x.json2
@@ -742,4 +743,124 @@ pub fn (mut e Engine) save_editor_tab(tab EditorTab) !u64 {
 	tx.set('workspace/tabs/${tab.path}/dirty', 'false')
 	rev := e.put_transaction(mut tx)!
 	return rev.revision
+}
+
+// ── Slice D additive Engine wrappers: file/git-authoring foundations ─────
+// (issue #1231). New fns only — open_file_brokered, save_editor_tab and the
+// read-only git surface above are untouched. Git checkout/branches stay
+// omitted: git_workspace_status().backend_available is false until a real
+// git read backend is wired, so no write path is proven (see git_service.v).
+
+// FilePreview is the honest read state for one file-tree node: text content
+// for text files, a binary marker instead of mojibake, truncation instead of
+// loading huge files whole, and the validation error for anything outside
+// the harness root. It never changes open_file_brokered.
+pub struct FilePreview {
+pub:
+	path      string
+	title     string
+	content   string // '' when binary
+	syntax    string
+	size      i64
+	binary    bool
+	truncated bool
+}
+
+// max_preview_bytes caps a single preview read — large files truncate.
+pub const max_preview_bytes = 262144
+
+// open_file_preview opens one file for reading with binary + size states.
+// Directories, containment escapes and unreadable paths return errors.
+pub fn (mut e Engine) open_file_preview(harness_root string, path string, max_bytes int) !FilePreview {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	clean := e.open_path_validated(harness_root, path)!
+	if os.is_dir(clean) {
+		return error('is directory: ${clean}')
+	}
+	cap := if max_bytes <= 0 { max_preview_bytes } else { max_bytes }
+	size := os.file_size(clean)
+	raw := os.read_file(clean) or { return error('read failed: ${clean}: ${err}') }
+	if is_binary_bytes(raw) {
+		return FilePreview{
+			path: clean
+			title: clean.all_after_last('/')
+			content: ''
+			syntax: syntax_for_path(clean)
+			size: size
+			binary: true
+			truncated: false
+		}
+	}
+	if raw.len > cap {
+		return FilePreview{
+			path: clean
+			title: clean.all_after_last('/')
+			content: raw[..cap]
+			syntax: syntax_for_path(clean)
+			size: size
+			binary: false
+			truncated: true
+		}
+	}
+	return FilePreview{
+		path: clean
+		title: clean.all_after_last('/')
+		content: raw
+		syntax: syntax_for_path(clean)
+		size: size
+		binary: false
+		truncated: false
+	}
+}
+
+// is_binary_bytes sniffs for NUL bytes in the head of the content — the
+// standard binary heuristic. No extension allowlist is consulted.
+fn is_binary_bytes(s string) bool {
+	limit := if s.len < 8192 { s.len } else { 8192 }
+	for i in 0 .. limit {
+		if s[i] == 0 {
+			return true
+		}
+	}
+	return false
+}
+
+// project_list_report wraps the core project list path (read-only symlink +
+// directory scan). Trivially safe: no subprocess, no network, no writes.
+pub fn (mut e Engine) project_list_report(workspace_path string) agent_toolkit_core.ProjectReport {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path) or {
+		return agent_toolkit_core.ProjectReport{
+			ok: false
+			message: 'project list unavailable: ${err.msg()}'
+		}
+	}
+	return agent_toolkit_core.run_project(agent_toolkit_core.ProjectOptions{
+		subcommand: 'list'
+		workspace_path: root
+	})
+}
+
+// project_scan_report wraps the core project scan path (read-only link
+// health + repos inventory). Trivially safe — see project_list_report.
+// project clone is deliberately NOT wrapped: core spawns git/gh over the
+// network with a 10-minute timeout, which the desktop never shell-outs to.
+pub fn (mut e Engine) project_scan_report(workspace_path string) agent_toolkit_core.ProjectReport {
+	e.mu.lock()
+	e.api_calls++
+	e.mu.unlock()
+	root := e.resolve_authoring_workspace(workspace_path) or {
+		return agent_toolkit_core.ProjectReport{
+			ok: false
+			message: 'project scan unavailable: ${err.msg()}'
+		}
+	}
+	return agent_toolkit_core.run_project(agent_toolkit_core.ProjectOptions{
+		subcommand: 'scan'
+		workspace_path: root
+	})
 }

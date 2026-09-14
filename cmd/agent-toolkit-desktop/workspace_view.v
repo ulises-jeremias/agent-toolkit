@@ -622,6 +622,7 @@ struct WorkspaceDetailLayout {
 	seed_y     int
 	editor_y   int
 	git_y      int
+	run_y      int // 0 when the run binding section does not fit
 	prefs_y    int // 0 when the preferences sheet does not fit
 	quote_y    int // 0 when the editorial card does not fit
 }
@@ -647,9 +648,14 @@ fn workspace_detail_layout(app &GuiApp, w int, h int) WorkspaceDetailLayout {
 		y += 50
 	}
 	mut git_y := 0
-	if y + 50 <= limit {
+	if y + 64 <= limit {
 		git_y = y
-		y += 50
+		y += 64
+	}
+	mut run_y := 0
+	if y + 44 <= limit {
+		run_y = y
+		y += 44
 	}
 	mut prefs_y := 0
 	if y + prefs_sheet_height() <= limit {
@@ -669,6 +675,7 @@ fn workspace_detail_layout(app &GuiApp, w int, h int) WorkspaceDetailLayout {
 		seed_y: seed_y
 		editor_y: editor_y
 		git_y: git_y
+		run_y: run_y
 		prefs_y: prefs_y
 		quote_y: quote_y
 	}
@@ -749,6 +756,9 @@ fn draw_workspace_detail(mut app GuiApp, w int, h int) {
 	if d.git_y > 0 {
 		draw_workspace_detail_git(mut app, x, d)
 	}
+	if d.run_y > 0 {
+		draw_workspace_detail_run(mut app, x, d)
+	}
 	if d.prefs_y > 0 {
 		draw_preferences_sheet(mut app, x + 8, d.prefs_y, d.iw - 16)
 	}
@@ -794,8 +804,9 @@ fn draw_workspace_detail_editor(mut app GuiApp, x int, d WorkspaceDetailLayout) 
 			bold: true
 		})
 		paper_pill(mut app, x + d.iw - 16 - (kind.len * 6 + 18), d.editor_y + 18, kind, app.pnl_select)
-		app.gg.draw_text(x + 16, d.editor_y + 35, utf8_truncate(t.path, text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
-			color: app.pnl_text_mut
+		dirty := if t.dirty { ' · unsaved changes' } else { '' }
+		app.gg.draw_text(x + 16, d.editor_y + 35, utf8_truncate(t.path + dirty, text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
+			color: if t.dirty { app.pnl_select } else { app.pnl_text_mut }
 			size: 10
 			mono: true
 		})
@@ -836,7 +847,59 @@ fn draw_workspace_detail_git(mut app GuiApp, x int, d WorkspaceDetailLayout) {
 			color: app.pnl_text
 			size: 11
 		})
+		// worktree visibility — known workspaces (active first) stay visible
+		// beside the review rails so parallel checkouts are never hidden
+		known := app.desktop.engine_known_workspaces()
+		wt := workspace_worktrees_line(known.len)
+		app.gg.draw_text(x + 16, d.git_y + 36, utf8_truncate(wt, text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+			mono: true
+		})
 	}
+}
+
+// workspace_worktrees_line renders the worktree visibility line: a real
+// count, never a branch guess (branches stay omitted without a backend).
+fn workspace_worktrees_line(known int) string {
+	if known == 0 {
+		return 'No known workspaces.'
+	}
+	if known == 1 {
+		return '1 known workspace.'
+	}
+	return '${known} known workspaces.'
+}
+
+// workspace_run_summary renders the run/workspace binding line: live agents
+// beside the workspace. Pure over the Engine count so tests pin the copy.
+fn workspace_run_summary(running int) string {
+	if running == 0 {
+		return 'No agents running.'
+	}
+	if running == 1 {
+		return '1 agent running.'
+	}
+	return '${running} agents running.'
+}
+
+// draw_workspace_detail_run — run binding: live agents beside the workspace
+// (Engine job catalog), so destructive guards have a visible reason.
+fn draw_workspace_detail_run(mut app GuiApp, x int, d WorkspaceDetailLayout) {
+	workspace_section_label(mut app, x + 16, d.run_y, 'RUN')
+	if app.desktop == unsafe { nil } {
+		app.gg.draw_text(x + 16, d.run_y + 20, '—', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+		})
+		return
+	}
+	running := app.desktop.engine_jobs_by_status(desktop_engine.JobStatus.running).len
+	line := workspace_run_summary(running)
+	app.gg.draw_text(x + 16, d.run_y + 20, line, gg.TextCfg{
+		color: if running > 0 { app.pnl_select } else { app.pnl_text }
+		size: 11
+	})
 }
 
 // draw_paper_quote is the small editorial card the reference closes its
@@ -1360,6 +1423,21 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 	}
 }
 
+// workspace_memory_idle_row formats one idle browser line: title plus the
+// honest kind tag. Pure so tests pin the copy without a window.
+fn workspace_memory_idle_row(title string, kind string, max_chars int) string {
+	tag := if kind == '' { 'general' } else { kind }
+	mut t := title.trim_space()
+	if t == '' {
+		t = '(untitled)'
+	}
+	line := '${t} [${tag}]'
+	if max_chars > 4 && line.len > max_chars {
+		return line[..max_chars - 1] + '…'
+	}
+	return line
+}
+
 // draw_memory_palace_panel — bottom strip: recall query field + results.
 // Diagnostics (embedding scheme, broker path) are not user-facing copy.
 fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
@@ -1437,4 +1515,18 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 		color: app.pnl_text_mut
 		size: 11
 	})
+	// idle browser: first entries with kind tags (read-only render of data
+	// already in hand — no new Engine call, no new hit rects)
+	if entries.len > 0 && h >= 84 {
+		max_show := if entries.len < 2 { entries.len } else { 2 }
+		for i in 0 .. max_show {
+			en := entries[i]
+			row := workspace_memory_idle_row(en.title, en.kind, (w - 40) / 6)
+			app.gg.draw_text(x + 14, y + 64 + i * 14, row, gg.TextCfg{
+				color: app.pnl_text
+				size: 10
+				mono: true
+			})
+		}
+	}
 }

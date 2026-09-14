@@ -1,5 +1,6 @@
 module workspace
 
+import agent_toolkit_core
 import desktop_engine
 import desktop.theme
 import desktop.state as app_state
@@ -21,13 +22,13 @@ mut:
 	theme           theme.Theme
 }
 
-pub fn new_workspace_viewmodel(mut engine &desktop_engine.Engine, harness_root string, th theme.Theme) &WorkspaceViewModel {
+pub fn new_workspace_viewmodel(engine &desktop_engine.Engine, harness_root string, th theme.Theme) &WorkspaceViewModel {
 	mut vm := &WorkspaceViewModel{
 		engine: engine
 		harness_root: harness_root
 		theme: th
 		git_rail: 'CHANGES'
-		revision: engine.revision()
+		revision: 0
 	}
 	vm.refresh()
 	return vm
@@ -259,6 +260,12 @@ pub fn (mut vm WorkspaceViewModel) set_harness_root(path string) {
 	vm.refresh()
 }
 
+// harness_root_path reports the bound file-tree root for composition (the
+// facade reads it; the field itself stays viewmodel-private).
+pub fn (vm WorkspaceViewModel) harness_root_path() string {
+	return vm.harness_root
+}
+
 // ── Super-potent easy management — search, recent, stats, git status ──
 pub fn (mut vm WorkspaceViewModel) search(query string) []desktop_engine.FileNode {
 	return vm.engine.workspace_search(vm.harness_root, query)
@@ -281,5 +288,109 @@ pub fn (mut vm WorkspaceViewModel) save_active_tab() !u64 {
 		return error('no active tab')
 	}
 	tab := vm.tabs[vm.active_tab]
-	return vm.engine.save_editor_tab(tab)
+	rev := vm.engine.save_editor_tab(tab)!
+	vm.tabs[vm.active_tab].dirty = false
+	return rev
+}
+
+// ── Slice D: file-tree authoring foundations (issue #1231) ─────────────
+// Open/tabs/read/dirty/save/errors/binary states through the Engine.
+// Reads stay brokered (harness-root containment); saves keep the Engine
+// secret guard. A brokered external editor remains only a documented
+// complement — tabs are the native path.
+
+// preview_file reads one tree node with binary + truncation states for the
+// read pane. Directories, escapes and unreadable paths are errors.
+pub fn (mut vm WorkspaceViewModel) preview_file(path string) !desktop_engine.FilePreview {
+	return vm.engine.open_file_preview(vm.harness_root, path, 0)
+}
+
+// mark_active_dirty stages edited content into the active tab without
+// saving — the dirty dot the UI renders until save_active_tab clears it.
+pub fn (mut vm WorkspaceViewModel) mark_active_dirty(content string) bool {
+	if vm.tabs.len == 0 {
+		return false
+	}
+	if vm.active_tab < 0 || vm.active_tab >= vm.tabs.len {
+		return false
+	}
+	vm.tabs[vm.active_tab].content = content
+	vm.tabs[vm.active_tab].dirty = true
+	return true
+}
+
+// tab_state reports the read/dirty state of one tab for the tab strip.
+pub fn (vm WorkspaceViewModel) tab_state(idx int) (string, bool, string) {
+	if idx < 0 || idx >= vm.tabs.len {
+		return '', false, 'txt'
+	}
+	t := vm.tabs[idx]
+	return t.title, t.dirty, t.syntax
+}
+
+// close_tab_guarded closes a tab but refuses to drop unsaved changes
+// unless forced — the dirty-tab guard.
+pub fn (mut vm WorkspaceViewModel) close_tab_guarded(idx int, force bool) !bool {
+	if idx < 0 || idx >= vm.tabs.len {
+		return error('tab index out of range')
+	}
+	if vm.tabs[idx].dirty && !force {
+		return error('tab has unsaved changes')
+	}
+	return vm.close_tab(idx)
+}
+
+// ── Slice D: run/workspace binding + project panel (issue #1231) ───────
+// Run binding surfaces live agents beside the workspace; the project panel
+// only uses existing project APIs (list/scan are read-only Engine
+// wrappers; clone is omitted — core spawns git/gh over the network).
+
+// running_agents counts currently executing jobs for the run binding.
+pub fn (mut vm WorkspaceViewModel) running_agents() int {
+	return vm.engine.jobs_by_status(.running).len
+}
+
+// current_project returns the bound project id, '' when unbound.
+pub fn (mut vm WorkspaceViewModel) current_project() string {
+	return vm.engine.current_project()
+}
+
+// recent_projects returns the Engine-tracked recent project ids.
+pub fn (mut vm WorkspaceViewModel) recent_projects() []string {
+	return vm.engine.recent_projects()
+}
+
+// switch_project rebinds the workspace to another project id and refreshes.
+pub fn (mut vm WorkspaceViewModel) switch_project(project_id string) !desktop_engine.ProjectSwitchResult {
+	res := vm.engine.switch_project(project_id)!
+	vm.refresh()
+	return res
+}
+
+// project_list reports the projects/ symlinks via the read-only wrapper.
+pub fn (mut vm WorkspaceViewModel) project_list() agent_toolkit_core.ProjectReport {
+	return vm.engine.project_list_report(vm.harness_root)
+}
+
+// project_scan reports link health + repos inventory via the read-only
+// wrapper.
+pub fn (mut vm WorkspaceViewModel) project_scan() agent_toolkit_core.ProjectReport {
+	return vm.engine.project_scan_report(vm.harness_root)
+}
+
+// worktrees surfaces the known-workspace discovery list (active first).
+pub fn (mut vm WorkspaceViewModel) worktrees() []desktop_engine.KnownWorkspace {
+	return vm.engine.known_workspaces()
+}
+
+// guard_reason blocks destructive workspace ops while agents run or the
+// tree is dirty — same ordering as the memory browser guard.
+pub fn (mut vm WorkspaceViewModel) guard_reason() string {
+	if vm.running_agents() > 0 {
+		return 'an agent is running — wait for it to finish before changing the workspace'
+	}
+	if vm.git_status().total > 0 {
+		return 'working tree is dirty — save or discard changes first'
+	}
+	return ''
 }
