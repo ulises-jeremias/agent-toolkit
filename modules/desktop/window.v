@@ -475,6 +475,10 @@ pub fn (mut d Desktop) engine_approvals_queue() []desktop_engine.SwarmApproval {
 	return d.engine.swarm_approvals_queue()
 }
 
+pub fn (mut d Desktop) engine_loop_worktree_path(loop_name string, run_id string) !string {
+	return d.engine.loop_worktree_path(loop_name, run_id)
+}
+
 pub fn (mut d Desktop) engine_loop_history(loop_name string) []desktop_engine.LoopHistory {
 	return d.engine.loops_history(loop_name)
 }
@@ -546,6 +550,12 @@ fn file_node_proxy(node desktop_engine.FileNode) FileNodeProxy {
 
 pub fn (mut d Desktop) engine_open_file_brokered(harness_root string, path string) !desktop_engine.EditorTab {
 	return d.engine.open_file_brokered(harness_root, path)
+}
+
+// engine_save_editor_tab persists a tab through the Engine's validated,
+// secret-guarded write path and returns the ledger revision as receipt.
+pub fn (mut d Desktop) engine_save_editor_tab(tab desktop_engine.EditorTab) !u64 {
+	return d.engine.save_editor_tab(tab)
 }
 
 pub fn (mut d Desktop) engine_highlight_syntax(content string, syntax string) [][]desktop_engine.SyntaxToken {

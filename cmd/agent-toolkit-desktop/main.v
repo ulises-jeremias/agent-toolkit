@@ -777,6 +777,7 @@ mut:
 }
 
 struct EditorTab {
+mut:
 	path    string
 	title   string
 	content string
@@ -1048,9 +1049,11 @@ mut:
 	file_tree_selected string
 	editor_tabs        []EditorTab
 	active_tab         int
+	editor_focused     bool   // keystrokes own the active tab (slice F)
+	editor_msg         string // save receipt or refusal for the state line
 	editor_scroll      int
 	editor_hover       int = -1
-	git_rail           string = 'CHANGES' // CHANGES, HISTORY, COMPARE
+	git_rail           string = 'CHANGES' // CHANGES, HISTORY, COMPARE, WORKTREES
 	git_selected       string
 	git_scroll         int
 	git_hover          int = -1
@@ -6714,6 +6717,9 @@ fn text_input_focused(app &GuiApp) bool {
 	if app.ghost_focused && app.term_visible {
 		return true
 	}
+	if app.editor_focused {
+		return true
+	}
 	return false
 }
 
@@ -6734,6 +6740,7 @@ fn clear_text_focus(mut app GuiApp) {
 	app.term_search_open = false
 	app.term_search = ''
 	app.ghost_focused = false
+	app.editor_focused = false
 }
 
 fn onboarding_key(mut app GuiApp, e &gg.Event) bool {
@@ -7079,6 +7086,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				return
 			}
 			if app.selected_panel == 9 {
+				if app.editor_focused {
+					app.editor_focused = false
+					app.editor_msg = ''
+					return
+				}
 				app.memory_query = ''
 				app.memory_search_focus = false
 				return
@@ -7247,6 +7259,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			if app.selected_panel == 9 {
 				// workspace IDE — memory palace semantic query + file tree nav + editor scroll
+				// The focused editor owns keys first (slice F); unfocused, the
+				// memory field and tree nav keep their bindings.
+				if editor_key(mut app, e) {
+					return
+				}
 				if e.key_code == .backspace {
 					if app.memory_query.len > 0 {
 						app.memory_query = app.memory_query[..app.memory_query.len - 1]
@@ -7299,12 +7316,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				if e.char_code == `h` || e.char_code == `H` {
 					if app.active_tab > 0 {
 						app.active_tab -= 1
+						app.editor_msg = ''
 					}
 					return
 				}
 				if e.char_code == `l` || e.char_code == `L` {
 					if app.active_tab + 1 < app.editor_tabs.len {
 						app.active_tab += 1
+						app.editor_msg = ''
 					}
 					return
 				}
@@ -7646,6 +7665,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					visible := workspace_git_history_visible(l.mid_h)
 					app.git_scroll += delta
 					app.git_scroll = clamp_scroll(app.git_scroll, graph.commits.len, visible)
+				} else if app.git_rail == 'WORKTREES' {
+					rows := workspace_worktree_rows(mut app)
+					visible := workspace_git_changes_visible(l.mid_h) / 2
+					app.git_scroll += delta
+					app.git_scroll = clamp_scroll(app.git_scroll, rows.len, visible)
 				} else {
 					app.diff_scroll += delta
 				}
@@ -8091,7 +8115,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			}
 			// git rail tabs hit
 			rail_y := l.mid_y
-			for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE'] {
+			for ri, rn in ['CHANGES', 'HISTORY', 'COMPARE', 'WORKTREES'] {
 				rx := l.fx + l.fw - l.git_w - 12 + 6 + ri * l.git_tab_w
 				if l.mid_h > 0 && mx >= rx && mx <= rx + l.git_tab_w - 4 && my >= rail_y
 					&& my <= rail_y + 22 {
@@ -8154,6 +8178,12 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 									app.active_tab = app.editor_tabs.len - 1
 								}
 								app.inspector_msg = 'Opened ${n.name} via brokered fs — ${tab.syntax} syntax'
+							app.editor_focused = true
+							app.editor_msg = if tab.content.len > editor_max_edit_bytes {
+								'read-only: file too large to edit'
+							} else {
+								''
+							}
 							} else {
 								app.inspector_msg = 'Brokered guard blocked: ${n.path} (harness_root_escape)'
 							}
@@ -8176,10 +8206,18 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					}
 					if mx >= tx && mx <= tx + tw && my >= ed_y + 6 && my <= ed_y + 24 {
 						app.active_tab = i
+						app.editor_msg = ''
 						return
 					}
 					tx += tw + 4
 				}
+			}
+			// editor content hit — center below the tab strip; claims typing focus
+			if l.mid_h > 0 && app.editor_tabs.len > 0 && mx >= ed_x && mx <= ed_x + ed_w
+				&& my >= ed_y + 28 && my <= ed_y + l.mid_h {
+				clear_text_focus(mut app)
+				app.editor_focused = true
+				return
 			}
 			// HISTORY commit selection hit — inside git rails
 			if app.git_rail == 'HISTORY' {
