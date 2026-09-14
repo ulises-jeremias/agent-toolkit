@@ -14,10 +14,10 @@ fn setup_memory_authoring_ws(tag string) (string, &Engine) {
 	mut eng := new_engine(EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
-	eng.init()!
-	eng.start()!
+	eng.init() or { panic(err.msg()) }
+	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
-	return tmp, &eng
+	return tmp, eng
 }
 
 fn test_memory_add_todo_records_pending_entry() {
@@ -66,8 +66,8 @@ fn test_memory_add_without_workspace_is_unavailable() {
 	mut eng := new_engine(EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
-	eng.init()!
-	eng.start()!
+	eng.init() or { panic(err.msg()) }
+	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
 	// no switch_workspace: no active workspace — honest unavailability, never cwd-derived
 	rep := eng.memory_add_entry('', 'todo', '', 'orphan entry')

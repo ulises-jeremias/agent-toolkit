@@ -16,12 +16,12 @@ fn setup_workspace_vm(tag string) (string, string, &desktop_engine.Engine, &Work
 	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
-	eng.init()!
-	eng.start()!
+	eng.init() or { panic(err.msg()) }
+	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
 	th := theme.default_theme()
 	mut vm := new_workspace_viewmodel(mut eng, workspace, th)
-	return tmp, workspace, &eng, vm
+	return tmp, workspace, eng, vm
 }
 
 fn test_workspace_open_tracks_tabs_with_dirty_state() {

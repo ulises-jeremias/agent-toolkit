@@ -14,10 +14,10 @@ fn setup_workspace_authoring(tag string) (string, string, &Engine) {
 	mut eng := new_engine(EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
-	eng.init()!
-	eng.start()!
+	eng.init() or { panic(err.msg()) }
+	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
-	return tmp, workspace, &eng
+	return tmp, workspace, eng
 }
 
 fn test_file_preview_reads_text_with_syntax() {
@@ -141,8 +141,8 @@ fn test_project_reports_unavailable_without_workspace() {
 	mut eng := new_engine(EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
-	eng.init()!
-	eng.start()!
+	eng.init() or { panic(err.msg()) }
+	eng.start() or { panic(err.msg()) }
 	defer { eng.stop() or {} }
 	rep := eng.project_list_report('')
 	assert !rep.ok

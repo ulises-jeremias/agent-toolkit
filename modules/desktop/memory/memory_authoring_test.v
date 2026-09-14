@@ -16,12 +16,12 @@ fn setup_memory_vm(tag string) (string, string, &desktop_engine.Engine, &MemoryP
 	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
-	eng.init()!
-	eng.start()!
+	eng.init() or { panic(err.msg()) }
+	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
 	th := theme.default_theme()
 	mut vm := new_memory_viewmodel(mut eng, th)
-	return tmp, workspace, &eng, vm
+	return tmp, workspace, eng, vm
 }
 
 fn test_memory_browser_add_and_recall_roundtrip() {

@@ -16,11 +16,11 @@ fn setup_authoring_facade(tag string) (string, string, &desktop_engine.Engine, &
 	mut eng := desktop_engine.new_engine(desktop_engine.EngineConfig{
 		persist_path: os.join_path(tmp, 'state.json')
 	})
-	eng.init()!
-	eng.start()!
+	eng.init() or { panic(err.msg()) }
+	eng.start() or { panic(err.msg()) }
 	eng.switch_workspace(workspace) or { panic(err.msg()) }
 	mut f := new_workspace_authoring_facade(mut eng, workspace, theme.default_theme())
-	return tmp, workspace, &eng, f
+	return tmp, workspace, eng, f
 }
 
 fn seed_running_job(mut eng &desktop_engine.Engine) {
