@@ -123,3 +123,68 @@ pub fn (vm AgentsViewModel) verify() []desktop_engine.BuildDiagnostic {
 pub fn (vm AgentsViewModel) theme_tokens(t theme.Theme) theme.Theme {
 	return t
 }
+
+// ── Library install lifecycle (slice C): validate → preview → apply → verify ──
+// install_agent records a selection flag only — no receipt is written — so
+// lifecycle_state never reports more than configured without receipt
+// evidence recomputed from the Engine.
+
+// lifecycle_state maps one agent to its honesty state: unavailable when the id
+// is not in the catalog, verified only with receipt evidence, configured when
+// the selection flag is set, available otherwise.
+pub fn (mut vm AgentsViewModel) lifecycle_state(id string) string {
+	_ := vm.engine.agent_detail(id) or { return 'unavailable' }
+	if _ := vm.engine.agent_receipt(id) {
+		return 'verified'
+	}
+	snap := vm.engine.snapshot()
+	if (snap.data['agents:installed:${id}'] or { 'false' }) == 'true' {
+		return 'configured'
+	}
+	return 'available'
+}
+
+// configured_ids lists agent ids with a live selection flag (one snapshot read).
+pub fn (mut vm AgentsViewModel) configured_ids() []string {
+	snap := vm.engine.snapshot()
+	mut out := []string{}
+	for k, v in snap.data {
+		if k.starts_with('agents:installed:') && v == 'true' {
+			out << k.all_after('agents:installed:')
+		}
+	}
+	return out
+}
+
+// preview_install describes what install would change without mutating.
+// Returns an error for unknown ids so the view can explain + offer recovery.
+pub fn (mut vm AgentsViewModel) preview_install(id string) !string {
+	ag := vm.engine.agent_detail(id)!
+	if _ := vm.engine.agent_receipt(id) {
+		return 'already verified — receipt evidence exists, nothing to apply'
+	}
+	snap := vm.engine.snapshot()
+	if (snap.data['agents:installed:${id}'] or { 'false' }) == 'true' {
+		return 'already selected — no receipt yet; deploy targets, then verify'
+	}
+	mut bits := ['will set agents:installed:${id}=true (selection only, no receipt)']
+	if ag.delegates_to.len > 0 {
+		bits << 'declares delegates: ${ag.delegates_to.join(', ')}'
+	}
+	return bits.join(' · ')
+}
+
+// verify_install recomputes receipt evidence after apply. ok is true only
+// with a real receipt; the message always carries the evidence or the next
+// step, never a bare claim.
+pub fn (mut vm AgentsViewModel) verify_install(id string) (bool, string) {
+	_ := vm.engine.agent_detail(id) or { return false, 'unavailable: ${err.msg()}' }
+	if r := vm.engine.agent_receipt(id) {
+		return true, 'verified — ${r.receipt_path}'
+	}
+	snap := vm.engine.snapshot()
+	if (snap.data['agents:installed:${id}'] or { 'false' }) == 'true' {
+		return false, 'configured but unverified — deploy targets that ship agents/${id}/AGENT.md, then verify again'
+	}
+	return false, 'available — not selected, nothing to verify'
+}

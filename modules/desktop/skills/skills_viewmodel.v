@@ -295,3 +295,52 @@ pub fn (mut vm SkillViewModel) on_bus_event(revision u64) bool {
 	vm.refresh()
 	return true
 }
+
+// ── Library install lifecycle (slice C): preview/apply/verify/receipt ──
+
+// lifecycle_state maps one skill to its honesty state: unavailable when the id
+// is not in the catalog, verified only with receipt evidence, configured when
+// selected without a receipt, available otherwise.
+pub fn (mut vm SkillViewModel) lifecycle_state(id string) string {
+	_ := vm.engine.skill_detail(id) or { return 'unavailable' }
+	if _ := vm.engine.skill_receipt(id) {
+		return 'verified'
+	}
+	if id in vm.engine.skills_installed() {
+		return 'configured'
+	}
+	return 'available'
+}
+
+// preview_summary renders the dry-run diff without mutating.
+pub fn (mut vm SkillViewModel) preview_summary(id string) string {
+	_ := vm.engine.skill_detail(id) or { return 'cannot preview: ${err.msg()}' }
+	d := vm.engine.install_skill_preview(id)
+	if d.added.len == 0 && d.removed.len == 0 && d.modified.len == 0 {
+		return 'preview: no changes'
+	}
+	mut bits := []string{}
+	if d.added.len > 0 {
+		bits << 'adds ${d.added.join(', ')}'
+	}
+	if d.modified.len > 0 {
+		bits << 'already selected: ${d.modified.join(', ')}'
+	}
+	if d.removed.len > 0 {
+		bits << 'removes ${d.removed.join(', ')}'
+	}
+	return 'preview: ' + bits.join(' · ')
+}
+
+// verify_summary recomputes receipt evidence for one skill: verified with the
+// receipt path, or the honest next step. Selection alone never verifies.
+pub fn (mut vm SkillViewModel) verify_summary(id string) string {
+	_ := vm.engine.skill_detail(id) or { return 'unavailable: ${err.msg()}' }
+	if r := vm.engine.skill_receipt(id) {
+		return 'verified — ${r.receipt_path}'
+	}
+	if id in vm.engine.skills_installed() {
+		return 'configured but unverified — deploy targets, then verify again'
+	}
+	return 'available — not selected, nothing to verify'
+}

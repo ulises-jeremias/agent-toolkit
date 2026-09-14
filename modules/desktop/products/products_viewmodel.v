@@ -92,3 +92,33 @@ pub fn (vm ProductsViewModel) stats() map[string]int {
 		'packs':    vm.packs.len
 	}
 }
+
+// ── Library lifecycle (slice C): provenance + receipt evidence ──
+
+// provenance_text exposes Engine product provenance facts for the detail pane.
+pub fn (vm ProductsViewModel) provenance_text(product_id string) string {
+	return vm.engine.product_provenance(product_id)
+}
+
+// receipt_text reports real install receipt evidence for a product, or the
+// honest absence of it — membership alone is never receipt evidence. The
+// Engine answers absence with an installed:false payload, never an empty
+// string, so absence is detected by content, not by emptiness.
+pub fn (vm ProductsViewModel) receipt_text(product_id string) string {
+	r := vm.engine.product_receipt(product_id)
+	if r == '' || r.contains('no install receipt recorded') {
+		return 'none — no install receipt covers this product yet'
+	}
+	return r
+}
+
+// pack_preview describes what toggling a pack would change without mutating.
+pub fn (vm ProductsViewModel) pack_preview(pack_id string) string {
+	for p in vm.packs {
+		if p.id == pack_id {
+			verb := if p.enabled { 'disable' } else { 'enable' }
+			return 'will ${verb} pack ${pack_id} (${p.skill_count} skills referenced)'
+		}
+	}
+	return 'cannot preview: pack not in catalog: ${pack_id}'
+}

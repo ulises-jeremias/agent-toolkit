@@ -116,3 +116,43 @@ pub fn (vm TargetsViewModel) products_catalog() []desktop_engine.ProductEntry {
 pub fn (vm TargetsViewModel) packs_catalog() []desktop_engine.PackEntry {
 	return vm.engine.packs_catalog()
 }
+
+// ── Library lifecycle (slice C): preview/dry-run/verify surfacing ──
+// All three are read-only: preview and dry_run never mutate, verify
+// recomputes receipt evidence. Summaries carry counts so the view can show
+// them without claiming more than the Engine proved.
+
+// preview_summary renders the install diff without mutating.
+pub fn (vm TargetsViewModel) preview_summary(targets []string) string {
+	d := vm.engine.install_preview(targets)
+	if d.added.len == 0 && d.removed.len == 0 && d.modified.len == 0 {
+		return 'preview: no changes for ${targets.len} target(s)'
+	}
+	mut bits := []string{}
+	if d.added.len > 0 {
+		bits << 'adds ${d.added.join(', ')}'
+	}
+	if d.modified.len > 0 {
+		bits << 'updates ${d.modified.join(', ')}'
+	}
+	if d.removed.len > 0 {
+		bits << 'removes ${d.removed.join(', ')}'
+	}
+	return 'preview: ' + bits.join(' · ')
+}
+
+// dry_run_text renders the Engine dry-run plan without mutating.
+pub fn (vm TargetsViewModel) dry_run_text(targets []string) string {
+	return vm.engine.install_dry_run(targets)
+}
+
+// verify_summary recomputes install receipt evidence: clean with a count, or
+// the first diagnostic with its path so the view can explain + route to recovery.
+pub fn (vm TargetsViewModel) verify_summary() string {
+	diags := vm.engine.verify_install_receipts()
+	if diags.len == 0 {
+		n := vm.engine.list_install_receipts().len
+		return 'receipts verified clean (${n} checked)'
+	}
+	return 'receipt issue: ${diags[0].path}: ${diags[0].message}'
+}
