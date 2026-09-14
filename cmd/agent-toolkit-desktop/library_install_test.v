@@ -4,6 +4,19 @@ module main
 // without receipt evidence, and the fourth action rect never overlaps the
 // primary row or leaves the detail column.
 
+// Local GuiApp maker: each _test.v file compiles as its own binary, so the
+// maker in library_view_test.v is not visible here.
+fn make_library_install_test_app(panel int) &GuiApp {
+	return &GuiApp{
+		selected_panel: panel
+		hover_panel: -1
+		selected_desk: -1
+		hover_desk: -1
+		term_visible: true
+		term_height: 148
+	}
+}
+
 fn test_library_agent_state_label_never_claims_installed() {
 	assert library_agent_state_label(false, false) == 'available'
 	assert library_agent_state_label(false, true) == 'configured'
@@ -18,7 +31,7 @@ fn test_library_agent_state_label_never_claims_installed() {
 
 fn test_library_fourth_button_rect_geometry() {
 	for size in [[1280, 800], [1024, 640], [1440, 900]] {
-		mut app := make_library_test_app(3)
+		mut app := make_library_install_test_app(3)
 		l := library_layout(mut app, size[0], size[1])
 		bx, by, bw, bh := library_btn_rect(l, 3)
 		// inside the detail column

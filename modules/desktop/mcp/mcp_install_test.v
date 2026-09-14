@@ -29,7 +29,8 @@ fn test_mcp_probe_unknown_provider_fails_with_recovery() {
 	} else {
 		assert err.msg().contains('not found'), 'failure must name the cause for recovery: ${err.msg()}'
 	}
-	assert vm.stage('definitely-not-a-provider-xyz').0 == 'unknown'
+	unknown_stage, _ := vm.stage('definitely-not-a-provider-xyz')
+	assert unknown_stage == 'unknown'
 }
 
 fn test_mcp_validate_unknown_provider_reports_diagnostic() {
@@ -98,7 +99,8 @@ fn test_mcp_setup_enable_is_configured_never_healthy() {
 	mut vm := new_mcp_viewmodel(mut e)
 	cat := e.mcp_catalog()
 	if cat.len == 0 {
-		assert vm.stage('any-provider').0 == 'unknown'
+		empty_stage, _ := vm.stage('any-provider')
+		assert empty_stage == 'unknown'
 		return
 	}
 	id := cat[0].id
