@@ -1,5 +1,7 @@
 module main
 
+import desktop_engine
+
 // Slice B run-control helpers: status classification, promote targets, and
 // canonical loop entries. Behavior-named; no GUI boot required.
 
@@ -23,8 +25,10 @@ fn test_terminal_is_completed_failed_canceled() {
 }
 
 fn test_active_and_terminal_never_overlap() {
-	statuses := [desktop_engine.SwarmRunStatus.requested, .pending, .running, .awaiting_approval,
-		.completed, .failed, .canceled]
+	statuses := [desktop_engine.SwarmRunStatus.requested, desktop_engine.SwarmRunStatus.pending,
+		desktop_engine.SwarmRunStatus.running, desktop_engine.SwarmRunStatus.awaiting_approval,
+		desktop_engine.SwarmRunStatus.completed, desktop_engine.SwarmRunStatus.failed,
+		desktop_engine.SwarmRunStatus.canceled]
 	for s in statuses {
 		assert !(ops_swarm_is_active(s) && ops_swarm_is_terminal(s)), 'status must not be both active and terminal: ${s}'
 	}
