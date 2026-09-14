@@ -10,6 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.30.3] — 2026-09-14
+
+A reliability patch: deterministic distribution ordering, the headless-safe
+Desktop `--version`/`--help`, and the upstream-sync toolchain bootstrap.
+
+### Fixed
+
+- Distribution race: the npm, Homebrew-tap, and AUR notifiers triggered on
+  tag push in parallel with the Release workflow and 404'd while assets were
+  still uploading. They now run after Release completes successfully
+  (`workflow_run`), so prerequisites are guaranteed; the wait loops remain
+  only as CDN-propagation resilience.
+- Desktop binary: `agent-toolkit-desktop --version` and `--help` no longer
+  initialize the GUI. Informational flags are served before any
+  display/window setup, print and exit 0 with no `DISPLAY`/`WAYLAND_DISPLAY`
+  required; unknown flags fail cleanly with exit 2. Covered by
+  `cmd/agent-toolkit-desktop/desktop_args_test.v`.
+- Upstream sync: the scheduled Discover/sync workflow now provisions the
+  canonical pinned V toolchain required by `scripts/upstream_pr_body.vsh`.
+- Dependabot: `github/codeql-action/*` updates are grouped so init and
+  analyze bump atomically instead of failing on version skew.
+
 ## [1.30.2] — 2026-09-14
 
 A documentation release: real product screenshots across the root README
