@@ -5,6 +5,7 @@ import time
 import desktop.pixelart
 import desktop.runtime.swarm as swarm_rt
 import desktop_engine
+import pty as pty_mod
 
 // Operations: the operational command center.
 //
@@ -1674,6 +1675,7 @@ fn operations_actions(mut app GuiApp, tab int, sel int) []OperationsAction {
 			}
 			out << OperationsAction{'Guide…', 'guide', false, false}
 			out << OperationsAction{'Copy id', 'copy', false, false}
+			out << OperationsAction{'Terminal', 'terminal', false, false}
 		}
 		else {
 			checks := app.desktop.engine_doctor()
@@ -2310,6 +2312,10 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 			rows << ['Handoffs', '${app.desktop.swarm_handoffs(s.id).len}']
 			rows << ['Artifacts', '${app.desktop.handoff_artifacts(s.id).len}']
 			rows << ['Tasks', '${app.desktop.swarm_queued_tasks(s.id).len} in mailbox']
+			esc := swarm_escalation_line(s.status.str(), app.desktop.swarm_approvals(s.id).len)
+			if esc != '' {
+				rows << ['Needs you', esc]
+			}
 			pruned := app.desktop.swarm_pruned_at(s.id)
 			if pruned != '' {
 				rows << ['Pruned', format_started_time(pruned.i64())]
@@ -2330,6 +2336,22 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 		}
 	}
 	return rows, ''
+}
+
+// swarm_escalation_line names what needs the operator, if anything: pending
+// approvals first, then terminal failure, then bare waiting. Pure so tests
+// pin the copy. Empty means nothing needs you.
+fn swarm_escalation_line(status string, pending_approvals int) string {
+	if pending_approvals > 0 {
+		return '${pending_approvals} approval(s) pending'
+	}
+	if status == 'failed' {
+		return 'run failed — see report'
+	}
+	if status == 'awaiting_approval' {
+		return 'waiting on approval'
+	}
+	return ''
 }
 
 fn draw_operations_approvals(mut app GuiApp, l OperationsLayout, run_id string) {
@@ -2979,6 +3001,22 @@ fn operations_run_action(mut app GuiApp, tab int, sel int, kind string) {
 				'copy' {
 					copy_to_clipboard(mut app, s.id)
 					app.inspector_msg = 'Copied ${s.id}'
+				}
+				'terminal' {
+					// Per-run terminal (slice J): the next spawned session
+					// starts in the run worktree when one is recorded. The
+					// agent picker stays — no binary is presumed.
+					if s.worktree != '' {
+						app.pending_term_cwd = s.worktree
+					}
+					app.term_visible = true
+					app.sessions_dialog = true
+					app.sessions_detected = pty_mod.detect()
+					app.inspector_msg = if s.worktree != '' {
+						'Terminal for ${s.id} — pick an agent; shell opens in the run worktree'
+					} else {
+						'Terminal — pick an agent (run has no recorded worktree)'
+					}
 				}
 				'stop' {
 					// Stop and cancel share the Engine path — the run lands

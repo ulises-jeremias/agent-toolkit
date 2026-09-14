@@ -351,10 +351,20 @@ fn vt_label(app &GuiApp, id int) string {
 
 // spawn_session — spawn an agent CLI on a real PTY and focus it fullscreen.
 fn spawn_session(mut app &GuiApp, ab pty_mod.AgentBin) {
-	s := pty_mod.spawn(ab.agent, ab.binary, [], 120, 32) or {
+	mut s := pty_mod.spawn(ab.agent, ab.binary, [], 120, 32) or {
 		app.inspector_msg = 'Session ${ab.agent} error: ${err}'
+		app.pending_term_cwd = ''
 		return
 	}
+	// One-shot run binding (slice J): a pending cwd from the run Terminal
+	// action lands the fresh shell in the run worktree via a real cd.
+	cwd_msg := if app.pending_term_cwd != '' {
+		s.write('cd "${app.pending_term_cwd}"\n')
+		' · cwd ${app.pending_term_cwd}'
+	} else {
+		''
+	}
+	app.pending_term_cwd = ''
 	app.sessions << TermSession{
 		agent: ab.agent
 		sess: s
@@ -362,7 +372,7 @@ fn spawn_session(mut app &GuiApp, ab pty_mod.AgentBin) {
 	}
 	app.term_view = 15 + app.sessions.len - 1
 	app.sessions_dialog = false
-	app.inspector_msg = 'Session ${ab.agent} spawned (pid ${s.pid}) — Fleet chip returns'
+	app.inspector_msg = 'Session ${ab.agent} spawned (pid ${s.pid})${cwd_msg} — Fleet chip returns'
 }
 
 // session key router — TUI byte encoding (pty echoes; no local echo)
@@ -928,6 +938,7 @@ mut:
 	// real PTY sessions (agent CLIs) — see pty module
 	sessions          []TermSession
 	sessions_dialog   bool
+	pending_term_cwd  string // one-shot cwd for the next spawned session (slice J)
 	sessions_detected []pty_mod.Detected
 	// split view (MAX): two VT panes side-by-side
 	term_split       bool
