@@ -35,6 +35,7 @@ const library_ui_chip0 = 30 // 30..59 chips
 const library_ui_primary = 60
 const library_ui_second = 61
 const library_ui_third = 62
+const library_ui_fourth = 63 // destructive/advanced fourth action (MCP Remove)
 
 // library_is_panel reports whether a panel id is served by the Library composition.
 fn library_is_panel(p int) bool {
@@ -265,11 +266,16 @@ fn library_card_rect(l LibraryLayout, v int) (int, int, int, int) {
 	return l.fx + 12 + col * (l.card_w + l.gap), l.grid_y + row * (l.card_h + l.gap), l.card_w, l.card_h
 }
 
-// detail-pane action buttons: primary + up to two secondary
+// detail-pane action buttons: primary + up to two secondary on the first row,
+// plus an optional full-width fourth action on its own row (destructive or
+// advanced actions like MCP Remove that must not sit beside the safe ones).
 fn library_btn_rect(l LibraryLayout, which int) (int, int, int, int) {
 	x := l.side_x + 16
 	inner := l.side_w - 32
 	y := library_detail_actions_y(l)
+	if which == 3 {
+		return x, y + 34 + 8, inner, 30
+	}
 	pw := if inner >= 300 { 132 } else { 112 }
 	sw := (inner - pw - 16) / 2
 	return match which {
@@ -294,6 +300,19 @@ struct LibraryItem {
 	foot2 string // right footer fact (catalog truth)
 	mark  pixelart.Sprite
 	on    bool // installed / enabled — configuration truth only
+}
+
+// library_agent_state_label names one agent card's honesty state. Receipt
+// evidence wins over the selection flag; 'installed' is never emitted —
+// only verified (receipt-backed), configured (flag-only) or available.
+fn library_agent_state_label(verified bool, configured bool) string {
+	if verified {
+		return 'verified'
+	}
+	if configured {
+		return 'configured'
+	}
+	return 'available'
 }
 
 // library_chips returns the category chips for the active tab. Skills: catalog
@@ -394,6 +413,15 @@ fn library_items_uncached(mut app GuiApp) []LibraryItem {
 		}
 		1 {
 			tier := if app.library_filter == 'archived' { '' } else { app.library_filter }
+			// honesty state per card from one snapshot + one provenance read —
+			// never per-agent receipt IO. install_agent records a selection
+			// flag only, so 'configured' (flag) and 'verified' (receipt) stay
+			// distinct; 'installed' is never claimed without receipt evidence.
+			configured := app.desktop.engine_agents_configured()
+			mut verified := []string{}
+			for r in app.desktop.engine_agents_provenance() {
+				verified << r.agent_id
+			}
 			for i, a in app.desktop.engine_agents_search(q, tier) {
 				if app.library_filter == 'archived' && !a.archived {
 					continue
@@ -408,24 +436,21 @@ fn library_items_uncached(mut app GuiApp) []LibraryItem {
 				if a.archived {
 					tags << 'archived'
 				}
-				foot := if a.delegates_to.len > 0 {
+				state := library_agent_state_label(a.id in verified, a.id in configured)
+				foot2 := if a.delegates_to.len > 0 {
 					'delegates to ${a.delegates_to.len}'
 				} else {
 					'no delegation'
-				}
-				foot2 := if a.collaborates_with.len > 0 {
-					'${a.collaborates_with.len} collaborators'
-				} else {
-					''
 				}
 				out << LibraryItem{
 					id: a.id
 					name: a.id
 					desc: if a.description != '' { a.description } else { a.role }
 					tags: tags
-					foot: foot
+					foot: state
 					foot2: foot2
 					mark: pixelart.with_identity(pixelart.agent_for_state(.idle), i % 3)
+					on: state == 'configured' || state == 'verified'
 				}
 			}
 		}
@@ -1094,9 +1119,9 @@ fn draw_library_grid(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId, it
 	total_rows := (items.len + l.cols - 1) / l.cols
 	row := library_scroll_row(app)
 	foot := if items.len > end - start {
-		'${start + 1}–${end} of ${items.len} · wheel or ↑↓ to scroll · Enter toggles the selected card'
+		'${start + 1}–${end} of ${items.len} · wheel or ↑↓ to scroll · Enter runs the primary action'
 	} else {
-		'${items.len} shown · Enter toggles the selected card'
+		'${items.len} shown · Enter runs the primary action'
 	}
 	library_text(mut app, l.fx + 14, l.fy + l.fh - 16, utf8_truncate(foot, text_fit_chars(l.fw - 40, 11)), 11, app.pnl_text_mut, false)
 	if total_rows > l.rows && l.rows > 0 {
@@ -1132,6 +1157,7 @@ struct LibraryDetail {
 	quiet     bool // primary is a non-mutating helper (copy), drawn as a plain button
 	second    string
 	third     string
+	fourth    string // full-width second-row action (destructive/advanced only)
 	compatibility    []LibraryFact
 	prov      []LibraryFact
 	inc_title string
@@ -1172,6 +1198,29 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 		0 {
 			s := app.desktop.engine_skill_detail(item.id) or { return none }
 			installed := s.id in app.desktop.engine_skills_installed()
+			// preview (dry-run, no mutation) + verify (recomputed evidence)
+			// surfaced next to the apply action so the flow reads honestly.
+			pdiff := app.desktop.engine_install_skill_preview(s.id)
+			preview_txt := if pdiff.added.len > 0 {
+				'adds ${pdiff.added.join(', ')}'
+			} else if pdiff.modified.len > 0 {
+				'already selected — no changes'
+			} else {
+				'no changes'
+			}
+			mut verify_txt := 'no receipt — deploy targets to verify'
+			mut verify_ok := false
+			if r := app.desktop.engine_skill_receipt(s.id) {
+				verify_txt = 'verified — ${utf8_truncate(r.receipt_path, 26)}'
+				verify_ok = true
+			} else {
+				for dg in app.desktop.engine_verify_skill_receipts() {
+					if dg.path.contains(s.id) {
+						verify_txt = '${dg.path}: ${dg.message}'
+						break
+					}
+				}
+			}
 			mut prov := [
 				LibraryFact{'Source', 'skills/${s.id}/SKILL.md', false, true},
 				LibraryFact{'Stability', if s.stability != '' { s.stability } else { 'unknown' }, s.stability == 'stable', false},
@@ -1200,6 +1249,8 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 					LibraryFact{'Targets', tfact, tok, false},
 					LibraryFact{'Tools found', '${nfound} of ${found.len} on this computer', nfound > 0, false},
 					LibraryFact{'Selected', if installed { 'yes — in this workspace' } else { 'no' }, installed, false},
+					LibraryFact{'Preview', preview_txt, true, false},
+					LibraryFact{'Verify', verify_txt, verify_ok, true},
 				]
 				prov: prov
 				inc_title: "What's included"
@@ -1216,6 +1267,13 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 					break
 				}
 			}
+			// lifecycle first: validate → configured flag → recomputed receipt.
+			// The primary action is a real install flow (preview → apply →
+			// verify), never copy-id. Provider/model properties are omitted:
+			// AgentEntry carries none, so there is nothing truthful to show.
+			lc := app.desktop.library_agent_lifecycle(item.id)
+			preview := app.desktop.library_agent_preview(item.id)
+			selected := lc.state == .configured || lc.state == .verified
 			mut prov := [
 				LibraryFact{'Source', if ag.source_file != '' {
 					ag.source_file
@@ -1227,7 +1285,8 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				prov << LibraryFact{'Provenance', utf8_truncate(ag.provenance, 28), false, true}
 			}
 			if r := app.desktop.engine_agent_receipt(ag.id) {
-				prov << LibraryFact{'Receipt', r.installed_at, true, true}
+				prov << LibraryFact{'Receipt', '${r.installed_at} · v${r.version}', true, true}
+				prov << LibraryFact{'Receipt path', utf8_truncate(r.receipt_path, 28), false, true}
 			} else {
 				prov << LibraryFact{'Receipt', 'none — not deployed yet', false, false}
 			}
@@ -1244,10 +1303,13 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				desc: if ag.description != '' { ag.description } else { ag.role }
 				tags: item.tags
 				mark: item.mark
-				primary: 'Copy id'
-				quiet: true
-				second: ''
+				primary: if selected { 'Remove' } else { 'Install' }
+				on: selected
+				second: 'Verify'
+				third: 'Copy id'
 				compatibility: [
+					LibraryFact{'State', lc.display, lc.state == .verified, false},
+					LibraryFact{'Preview', utf8_truncate(preview, 34), lc.validate_ok, false},
 					LibraryFact{'Targets', tfact, tok, false},
 					LibraryFact{'Holistic owner', if ag.holistic_owner != '' {
 						ag.holistic_owner
@@ -1285,6 +1347,11 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 						LibraryFact{'Targets', tfact, tok, false},
 						LibraryFact{'Docs-only', if pk.docs_only { 'yes (ADR-006)' } else { 'no' }, true, false},
 						LibraryFact{'Enabled', if pk.enabled { 'yes' } else { 'no' }, pk.enabled, false},
+						LibraryFact{'Preview', if pk.enabled {
+							'will disable pack ${pk.id} (${pk.skill_count} skills)'
+						} else {
+							'will enable pack ${pk.id} (${pk.skill_count} skills)'
+						}, true, false},
 					]
 					prov: [
 						LibraryFact{'Source', if pk.provenance != '' {
@@ -1306,6 +1373,13 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 					break
 				}
 			}
+			praw := app.desktop.engine_product_receipt(pr.id)
+			preceipt := if praw == '' || praw.contains('no install receipt recorded') {
+				''
+			} else {
+				praw
+			}
+			pprov := app.desktop.engine_product_provenance(pr.id)
 			return LibraryDetail{
 				title: item.name
 				sub: 'products/${pr.id}'
@@ -1320,7 +1394,12 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				]
 				prov: [
 					LibraryFact{'Source', 'distributions/products.yaml', false, true},
-					LibraryFact{'Composition', 'not exposed by Engine yet', false, false},
+					LibraryFact{'Provenance', utf8_truncate(pprov, 30), pprov != '', true},
+					LibraryFact{'Receipt', if preceipt != '' {
+						utf8_truncate(preceipt, 30)
+					} else {
+						'none — no install receipt covers this product yet'
+					}, preceipt != '', true},
 				]
 				inc_title: ''
 				included: []
@@ -1345,6 +1424,24 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				LibraryFact{'Probe', utf8_truncate(app.mcp_probe_detail, 30), app.mcp_probe_ok, false}
 			} else {
 				LibraryFact{'Probe', 'not run — press Probe', false, false}
+			}
+			// setup/health/uninstall wiring: health is the recomputed Engine
+			// record (never the catalog default), stage names the honesty
+			// stage with evidence, validate previews setup acceptance, and
+			// the install preview shows what enabling would write.
+			health_now := app.desktop.engine_mcp_health_detailed(mp.id)
+			stage, stage_ev := app.desktop.library_mcp_stage(mp.id)
+			mdiags := app.desktop.engine_mcp_validate(mp.id)
+			setup_txt := if mdiags.len == 0 {
+				'setup accepted — config valid'
+			} else {
+				'setup blocked: ${mdiags[0].message}'
+			}
+			mprev := app.desktop.engine_mcp_install_preview(mp.id)
+			preview_txt := if mprev.will_write.len > 0 {
+				'writes ${mprev.will_write.join(', ')}'
+			} else {
+				'no packaged template — enable unavailable'
 			}
 			mut inc := []string{}
 			if app.mcp_drawer == mp.id {
@@ -1371,10 +1468,12 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				on: mp.enabled
 				second: 'Probe'
 				third: 'Template'
+				fourth: 'Remove'
 				compatibility: [
 					LibraryFact{'Targets', tfact, tok, false},
+					LibraryFact{'Stage', '${stage} — ${utf8_truncate(stage_ev, 22)}', stage == 'healthy', false},
 					LibraryFact{'Docker', if mp.requires_docker { 'required' } else { 'not required' }, !mp.requires_docker, false},
-					LibraryFact{'Health', if mp.health != '' { mp.health } else { 'unknown' }, mp.health == 'healthy', false},
+					LibraryFact{'Health', health_now, health_now == 'healthy', false},
 					probe,
 				]
 				prov: [
@@ -1389,6 +1488,8 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 						'mcp/registry'
 					}, false, true},
 					LibraryFact{'Version', if mp.version != '' { mp.version } else { 'unknown' }, mp.version != '', false},
+					LibraryFact{'Setup', setup_txt, mdiags.len == 0, false},
+					LibraryFact{'Preview', utf8_truncate(preview_txt, 30), mprev.will_write.len > 0, true},
 					LibraryFact{'Receipt', receipt, false, true},
 				]
 				inc_title: 'Template (secrets masked)'
@@ -1498,8 +1599,22 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 		app.gg.draw_rounded_rect_empty(sx, sy, sw, sh, 6, tint(pc(app, `W`), 90))
 		library_text(mut app, sx + (sw - lb.len * 7) / 2, sy + 10, utf8_truncate(lb, text_fit_chars(sw - 8, 12)), 12, app.pnl_text, false)
 	}
+	if d.fourth != '' {
+		fx4, fy4, fw4, fh4 := library_btn_rect(l, 3)
+		hov4 := app.library_hover_ui == library_ui_fourth
+		app.gg.draw_rounded_rect_filled(fx4, fy4, fw4, fh4, 6, if hov4 {
+			tint(app.pnl_danger, 40)
+		} else {
+			pc(app, `P`)
+		})
+		app.gg.draw_rounded_rect_empty(fx4, fy4, fw4, fh4, 6, app.pnl_danger)
+		library_text(mut app, fx4 + (fw4 - d.fourth.len * 7) / 2, fy4 + 8, d.fourth, 12, app.pnl_danger, false)
+	}
 	// fact sections
 	mut fy := ay + 34 + 14
+	if d.fourth != '' {
+		fy += 30 + 8
+	}
 	bottom := y + ih - 12
 	fy = draw_library_facts(mut app, px, fy, inner, 'Compatibility', d.compatibility, bottom)
 	fy = draw_library_facts(mut app, px, fy, inner, 'Provenance', d.prov, bottom)
@@ -1602,7 +1717,47 @@ fn library_primary(mut app GuiApp) {
 			library_invalidate(mut app)
 		}
 		1 {
-			copy_to_clipboard(mut app, item.id)
+			// real install flow: preview → apply → verify → receipt.
+			// install_agent records a selection flag only, so the message
+			// reports configured vs verified honestly; failures explain +
+			// offer recovery with Engine evidence.
+			lc := app.desktop.library_agent_lifecycle(item.id)
+			if lc.state == .unavailable {
+				app.inspector_msg = 'Agent ${item.id} unavailable: ${lc.validate_err} — pick a card from the catalog'
+				return
+			}
+			if lc.state == .configured || lc.state == .verified {
+				rev := app.desktop.engine_remove_agent(item.id) or {
+					app.inspector_msg = 'Agent ${item.id} remove failed: ${err} — retry, or verify Engine state'
+					return
+				}
+				app.engine_rev = rev
+				app.api_calls = app.desktop.engine_api_calls()
+				if r := app.desktop.engine_agent_receipt(item.id) {
+					app.inspector_msg = 'Agent ${item.id} selection cleared rev=${rev} · receipt retained (${r.receipt_path}) ✓'
+				} else {
+					app.inspector_msg = 'Agent ${item.id} selection cleared rev=${rev} ✓'
+				}
+				library_invalidate(mut app)
+				return
+			}
+			preview := app.desktop.library_agent_preview(item.id)
+			rev := app.desktop.engine_install_agent(item.id) or {
+				app.inspector_msg = 'Agent ${item.id} install failed: ${err} — retry after Engine recovery (preview was: ${preview})'
+				return
+			}
+			app.engine_rev = app.desktop.app_state_snapshot().revision
+			if app.engine_rev == 0 {
+				app.engine_rev = rev
+			}
+			app.api_calls = app.desktop.engine_api_calls()
+			after := app.desktop.library_agent_lifecycle(item.id)
+			if after.state == .verified {
+				app.inspector_msg = 'Agent ${item.id} installed + verified rev=${rev} · ${after.receipt_info} ✓'
+			} else {
+				app.inspector_msg = 'Agent ${item.id} selected rev=${rev} · ${preview} · not verified — deploy targets, then Verify ✓'
+			}
+			library_invalidate(mut app)
 		}
 		2 {
 			if item.tags.len > 0 && item.tags[0] == 'pack' {
@@ -1658,6 +1813,22 @@ fn library_secondary(mut app GuiApp, which int) {
 	}
 	item := items[sel]
 	match library_tab_for_panel(app.selected_panel) {
+		1 {
+			if which == 0 {
+				// Verify: recompute receipt evidence on demand. ok only
+				// with a real receipt; otherwise the honest next step.
+				lc := app.desktop.library_agent_lifecycle(item.id)
+				if lc.state == .verified {
+					app.inspector_msg = 'Agent ${item.id} verified — ${lc.receipt_info} (${lc.receipt_path}) ✓'
+				} else if lc.state == .unavailable {
+					app.inspector_msg = 'Agent ${item.id} unavailable: ${lc.validate_err}'
+				} else {
+					app.inspector_msg = 'Agent ${item.id} ${lc.display} — ${lc.evidence}'
+				}
+			} else {
+				copy_to_clipboard(mut app, item.id)
+			}
+		}
 		3 {
 			if which == 0 {
 				mcp_run_probe(mut app, item.id, true)
@@ -1683,6 +1854,36 @@ fn library_secondary(mut app GuiApp, which int) {
 	}
 }
 
+// library_fourth runs the fourth detail action (MCP Remove = uninstall path).
+// Failures explain + offer recovery; success reports the recomputed stage.
+fn library_fourth(mut app GuiApp) {
+	if app.desktop == unsafe { nil } {
+		return
+	}
+	items := library_items(mut app)
+	sel := library_selected(app)
+	if sel < 0 || sel >= items.len {
+		return
+	}
+	item := items[sel]
+	if library_tab_for_panel(app.selected_panel) != 3 {
+		return
+	}
+	rev := app.desktop.engine_remove_mcp_provider(item.id) or {
+		app.inspector_msg = 'MCP ${item.id} remove failed: ${err} — retry, or Disable first'
+		return
+	}
+	app.engine_rev = app.desktop.app_state_snapshot().revision
+	if app.engine_rev == 0 {
+		app.engine_rev = rev
+	}
+	app.api_calls = app.desktop.engine_api_calls()
+	stage, stage_ev := app.desktop.library_mcp_stage(item.id)
+	app.inspector_msg = 'MCP ${item.id} removed rev=${rev} · now ${stage} (${stage_ev}) ✓'
+	library_invalidate(mut app)
+	library_select_mcp(mut app, item.id)
+}
+
 // library_select_mcp loads the masked template/receipt/probe cache for the
 // selected provider so the detail pane can show them without per-frame IO.
 fn library_select_mcp(mut app GuiApp, id string) {
@@ -1706,8 +1907,20 @@ fn library_select(mut app GuiApp, idx int, items []LibraryItem) {
 			if r := app.desktop.engine_skill_receipt(item.id) {
 				app.inspector_msg = 'Receipt: ${r.skill_id} ${r.installed_at} digest=${r.digest}'
 			} else {
-				app.inspector_msg = 'Selected ${item.id} — Install → Engine TX'
+				pd := app.desktop.engine_install_skill_preview(item.id)
+				adds := if pd.added.len > 0 {
+					' — preview adds ${pd.added.join(', ')}'
+				} else if pd.modified.len > 0 {
+					' — already selected'
+				} else {
+					''
+				}
+				app.inspector_msg = 'Selected ${item.id} — Install → Engine TX${adds}'
 			}
+		}
+		1 {
+			lc := app.desktop.library_agent_lifecycle(item.id)
+			app.inspector_msg = 'Agent ${item.id} ${lc.display} — ${lc.evidence}'
 		}
 		3 {
 			library_select_mcp(mut app, item.id)
@@ -1797,6 +2010,13 @@ fn library_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 			return true
 		}
 	}
+	if d.fourth != '' {
+		x4, y4, w4, h4 := library_btn_rect(l, 3)
+		if rect_contains(mx, my, x4, y4, w4, h4) {
+			library_fourth(mut app)
+			return true
+		}
+	}
 	return true
 }
 
@@ -1825,7 +2045,7 @@ fn library_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
 			return
 		}
 	}
-	for i in 0 .. 3 {
+	for i in 0 .. 4 {
 		bx, by, bw, bh := library_btn_rect(l, i)
 		if rect_contains(mx, my, bx, by, bw, bh) {
 			app.library_hover_ui = library_ui_primary + i
