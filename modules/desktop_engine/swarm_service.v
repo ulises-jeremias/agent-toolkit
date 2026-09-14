@@ -1119,6 +1119,347 @@ pub fn (mut e Engine) swarm_artifacts_display(run_id string) map[string][]string
 	return out
 }
 
+// ── Slice B (Operations run control): thin typed Engine wrappers ─────────────
+// The filesystem-backed core swarm subcommands (promote/graph/watch/report/
+// prune/task-next/task-complete) stay private to agent_toolkit_core; the
+// wrappers below expose the same operations over Engine-owned state
+// (StateRepository + EventBus) so Desktop surfaces never shell out and never
+// invent state. No core behavior is changed — core modules are untouched.
+
+// SwarmReportView is the typed per-run report for the Operations detail column.
+pub struct SwarmReportView {
+pub:
+	run_id            string
+	recipe            string
+	backend           string
+	status            string
+	task              string
+	created_at        i64
+	budget_total      int
+	budget_spent      int
+	budget_remaining  int
+	handoffs          int
+	artifacts         int
+	approvals_pending int
+	log_lines         int
+	pruned_at         string
+}
+
+// swarm_report_view builds a report over Engine state; none when unknown.
+pub fn (mut e Engine) swarm_report_view(run_id string) ?SwarmReportView {
+	if run_id == '' {
+		return none
+	}
+	r := e.swarm_status(run_id) or { return none }
+	snap := e.repo.snapshot()
+	pruned := snap.data['swarm/runs/${run_id}/pruned_at'] or { '' }
+	return SwarmReportView{
+		run_id: r.id
+		recipe: r.recipe.str()
+		backend: r.backend.str()
+		status: r.status.str()
+		task: r.task
+		created_at: r.created_at
+		budget_total: r.budget_total
+		budget_spent: r.budget_spent
+		budget_remaining: r.budget_total - r.budget_spent
+		handoffs: e.swarm_handoffs(run_id).len
+		artifacts: e.list_handoff_artifacts(run_id).len
+		approvals_pending: e.swarm_pending_approvals(run_id).len
+		log_lines: e.swarm_logs(run_id).len
+		pruned_at: pruned
+	}
+}
+
+// SwarmGraphView is the role graph derived from recorded handoffs.
+pub struct SwarmGraphView {
+pub:
+	nodes []string
+	edges [][]string // [from, to] pairs in first-seen order
+}
+
+// swarm_graph_view parses Engine handoff records into a role graph.
+// Handoffs carry several spellings ('->', ' → '); anything unparseable is
+// skipped, never invented — an empty graph means no recorded edges.
+pub fn (mut e Engine) swarm_graph_view(run_id string) SwarmGraphView {
+	mut nodes := []string{}
+	mut edges := [][]string{}
+	if run_id == '' {
+		return SwarmGraphView{nodes, edges}
+	}
+	for h in e.swarm_handoffs(run_id) {
+		mut from := ''
+		mut to := ''
+		if idx := h.index('->'); idx >= 0 {
+			left := h[..idx]
+			right := h[idx + 2..]
+			from = swarm_graph_role(left)
+			to = swarm_graph_role(right)
+		} else if idx := h.index(' → '); idx >= 0 {
+			from = h[..idx].trim_space().split(' ').last()
+			to = h[idx + 5..].trim_space().split(' ')[0]
+		}
+		if from == '' || to == '' || from == to {
+			continue
+		}
+		if from !in nodes {
+			nodes << from
+		}
+		if to !in nodes {
+			nodes << to
+		}
+		mut dup := false
+		for ed in edges {
+			if ed[0] == from && ed[1] == to {
+				dup = true
+				break
+			}
+		}
+		if !dup {
+			edges << [from, to]
+		}
+	}
+	return SwarmGraphView{nodes, edges}
+}
+
+// swarm_graph_role extracts a trailing role token from a handoff fragment.
+fn swarm_graph_role(s string) string {
+	frag := s.trim_space()
+	if frag == '' {
+		return ''
+	}
+	// mailbox form 'from->to:payload:artifact:id' — role is before any ':'
+	head := frag.split(':')[0].trim_space()
+	parts := head.split(' ')
+	return parts.last().trim_space()
+}
+
+// swarm_watch_line is the one-line status snapshot for a run.
+// 'run not found' when the Engine holds no such run — never a guess.
+pub fn (mut e Engine) swarm_watch_line(run_id string) string {
+	if v := e.swarm_report_view(run_id) {
+		return '${v.run_id} status=${v.status} budget=${v.budget_spent}/${v.budget_total} handoffs=${v.handoffs} approvals=${v.approvals_pending} artifacts=${v.artifacts}'
+	}
+	return 'run not found: ${run_id}'
+}
+
+// swarm_promote_run raises a run one recipe step (pair→team→full) in Engine
+// state. Anything else — unknown run, non-running run, skipped or downward
+// step — is refused with an error, never silently applied.
+pub fn (mut e Engine) swarm_promote_run(run_id string, to_recipe string) !u64 {
+	if run_id == '' {
+		return error('run_id empty')
+	}
+	r := e.swarm_status(run_id) or { return error('swarm run not found: ${run_id}') }
+	if r.status != .running && r.status != .awaiting_approval {
+		return error('cannot promote from status ${r.status.str()} (expected running or awaiting_approval)')
+	}
+	to := swarm_recipe_from_string(to_recipe)
+	if to == r.recipe {
+		return error('already ${to.str()} — promotion must increase: pair->team->full')
+	}
+	rank := fn (k SwarmRecipeKind) int {
+		return match k {
+			.pair { 0 }
+			.team { 1 }
+			.full { 2 }
+		}
+	}
+	if rank(to) != rank(r.recipe) + 1 {
+		return error('cannot promote ${r.recipe.str()} -> ${to.str()} (must increase one step: pair->team->full)')
+	}
+	mut repo := e.repo
+	mut tx := repo.begin('swarm-promote')
+	tx.set('swarm/runs/${run_id}/recipe', to.str())
+	rev := e.put_transaction(mut tx)!
+	e.bus.publish(eventbus.ToolkitEvent{
+		kind: .state_changed
+		revision: rev.revision
+		path: 'swarm:promote:${run_id}'
+		payload: json2.encode({
+			'run_id': run_id
+			'from':   r.recipe.str()
+			'to':     to.str()
+		})
+	})
+	return rev.revision
+}
+
+// swarm_prune_preview lists terminal (completed/failed/canceled) runs whose
+// recorded start predates the cutoff. Runs with no recorded start are never
+// listed — age cannot be proven, so they are kept.
+pub fn (mut e Engine) swarm_prune_preview(older_than_days int) []string {
+	mut days := older_than_days
+	if days < 0 {
+		days = 0
+	}
+	cutoff := time.now().unix() - i64(days) * 86400
+	mut out := []string{}
+	for r in e.swarm_list() {
+		if r.status != .completed && r.status != .failed && r.status != .canceled {
+			continue
+		}
+		if r.created_at <= 0 || r.created_at >= cutoff {
+			continue
+		}
+		out << r.id
+	}
+	out.sort()
+	return out
+}
+
+// swarm_prune_run reclaims a single terminal run: its Engine-managed worktree
+// scratch is removed while handoff artifacts stay on disk (provenance kept).
+// Active runs are refused; missing scratch is reported, not fabricated.
+pub fn (mut e Engine) swarm_prune_run(run_id string) !u64 {
+	if run_id == '' {
+		return error('run_id empty')
+	}
+	r := e.swarm_status(run_id) or { return error('swarm run not found: ${run_id}') }
+	if r.status != .completed && r.status != .failed && r.status != .canceled {
+		return error('cannot prune status ${r.status.str()} (expected completed, failed or canceled — stop the run first)')
+	}
+	base := swarm_run_dir(run_id)
+	wt_dir := os.join_path(base, 'worktrees')
+	mut removed := false
+	if os.is_dir(wt_dir) {
+		os.rmdir_all(wt_dir) or { return error('prune worktrees failed: ${err}') }
+		removed = true
+	}
+	mut repo := e.repo
+	mut tx := repo.begin('swarm-prune')
+	tx.set('swarm/runs/${run_id}/pruned_at', time.now().unix().str())
+	rev := e.put_transaction(mut tx)!
+	e.bus.publish(eventbus.ToolkitEvent{
+		kind: .state_changed
+		revision: rev.revision
+		path: 'swarm:prune:${run_id}'
+		payload: json2.encode({
+			'run_id':          run_id
+			'worktrees_removed': removed.str()
+			'artifacts_kept':  'true'
+		})
+	})
+	return rev.revision
+}
+
+// swarm_pruned_at returns the recorded prune timestamp ('never pruned' when absent).
+pub fn (mut e Engine) swarm_pruned_at(run_id string) string {
+	snap := e.repo.snapshot()
+	return snap.data['swarm/runs/${run_id}/pruned_at'] or { '' }
+}
+
+// SwarmTaskView is one queued handoff awaiting a role's attention.
+pub struct SwarmTaskView {
+pub:
+	handoff_id string
+	run_id     string
+	from_role  string
+	to_role    string
+	payload    string
+	status     string
+}
+
+// swarm_task_next returns the oldest queued handoff touching a role —
+// none when the role has no queued work. Reads Engine handoff keys only.
+pub fn (mut e Engine) swarm_task_next(run_id string, role string) ?SwarmTaskView {
+	if run_id == '' || role == '' {
+		return none
+	}
+	snap := e.repo.snapshot()
+	prefix := 'swarm/handoffs/'
+	mut ids := []string{}
+	for k, _ in snap.data {
+		if k.starts_with(prefix) && k.ends_with('/status') && snap.data[k] == 'queued' {
+			id := k.all_after(prefix).all_before('/status')
+			if id !in ids {
+				ids << id
+			}
+		}
+	}
+	ids.sort()
+	for id in ids {
+		from := snap.data['swarm/handoffs/${id}/from'] or { '' }
+		to := snap.data['swarm/handoffs/${id}/to'] or { '' }
+		if from != role && to != role {
+			continue
+		}
+		payload := snap.data['swarm/handoffs/${id}/payload'] or { '' }
+		return SwarmTaskView{
+			handoff_id: id
+			run_id: run_id
+			from_role: from
+			to_role: to
+			payload: payload
+			status: 'queued'
+		}
+	}
+	return none
+}
+
+// swarm_queued_tasks lists every queued handoff in the Engine mailbox —
+// handoffs are mailbox-global, so the run_id only scopes the display and the
+// completed_by attribution. This is the task backlog the detail column shows.
+pub fn (mut e Engine) swarm_queued_tasks(run_id string) []SwarmTaskView {
+	snap := e.repo.snapshot()
+	prefix := 'swarm/handoffs/'
+	mut ids := []string{}
+	for k, _ in snap.data {
+		if k.starts_with(prefix) && k.ends_with('/status') && snap.data[k] == 'queued' {
+			id := k.all_after(prefix).all_before('/status')
+			if id !in ids {
+				ids << id
+			}
+		}
+	}
+	ids.sort()
+	mut out := []SwarmTaskView{}
+	for id in ids {
+		from := snap.data['swarm/handoffs/${id}/from'] or { '' }
+		to := snap.data['swarm/handoffs/${id}/to'] or { '' }
+		payload := snap.data['swarm/handoffs/${id}/payload'] or { '' }
+		out << SwarmTaskView{
+			handoff_id: id
+			run_id: run_id
+			from_role: from
+			to_role: to
+			payload: payload
+			status: 'queued'
+		}
+	}
+	return out
+}
+
+// swarm_task_complete marks a queued handoff complete. Only the queued→
+// completed step exists; anything else is refused, never rewritten.
+pub fn (mut e Engine) swarm_task_complete(run_id string, handoff_id string) !u64 {
+	if run_id == '' || handoff_id == '' {
+		return error('run/handoff id empty')
+	}
+	snap := e.repo.snapshot()
+	key := 'swarm/handoffs/${handoff_id}/status'
+	status := snap.data[key] or { return error('handoff not found: ${handoff_id}') }
+	if status != 'queued' {
+		return error('handoff ${handoff_id} is ${status} (expected queued)')
+	}
+	mut repo := e.repo
+	mut tx := repo.begin('swarm-task-complete')
+	tx.set(key, 'completed')
+	tx.set('swarm/handoffs/${handoff_id}/completed_by', run_id)
+	rev := e.put_transaction(mut tx)!
+	e.bus.publish(eventbus.ToolkitEvent{
+		kind: .swarm_handoff
+		revision: rev.revision
+		path: 'swarm/handoff/${handoff_id}:completed'
+		payload: json2.encode({
+			'id':     handoff_id
+			'run_id': run_id
+			'status': 'completed'
+		})
+	})
+	return rev.revision
+}
+
 // ProcessSupervisor easy management via Engine.
 pub fn (mut e Engine) process_supervisor_stats() (int, u64) {
 	if mut sup := e.supervisor {
