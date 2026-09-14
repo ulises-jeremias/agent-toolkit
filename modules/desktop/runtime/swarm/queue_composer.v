@@ -36,10 +36,11 @@ pub:
 	id         string
 	run_id     string
 	text       string
-	status     QueueItemStatus
-	artifact   string // artifact path once delivered
-	err        string // Engine error once failed
 	created_at i64
+pub mut:
+	status   QueueItemStatus
+	artifact string // artifact path once delivered
+	err      string // Engine error once failed
 }
 
 // QueueComposer holds one run's draft plus its queued items.

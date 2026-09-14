@@ -97,6 +97,12 @@ pub fn (mut d Desktop) swarm_run_artifacts(run_id string) map[string][]string {
 	return d.engine.swarm_artifacts_display(run_id)
 }
 
+// engine_write_handoff_artifact files user guidance as a run artifact the
+// run can read. Delivery is filing, never live-process injection.
+pub fn (mut d Desktop) engine_write_handoff_artifact(run_id string, rel_path string, content string) !string {
+	return d.engine.write_handoff_artifact(run_id, rel_path, content)
+}
+
 // ── loops ───────────────────────────────────────────────────────────────────
 
 // engine_create_loop creates a loop template (cron flag off at creation).
