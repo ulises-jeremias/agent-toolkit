@@ -2141,6 +2141,11 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 	if l.tab == 2 {
 		draw_operations_approvals(mut app, l, row.id)
 	}
+	// recorded runs behind the loop schedule flag (slice I) — history only,
+	// never a next-run promise without a scheduler daemon
+	if l.tab == 1 {
+		draw_operations_history(mut app, l, row.id)
+	}
 	for i, a in acts {
 		ax, ay, aw, ah := operations_action_rect(l, i, acts.len)
 		operations_button(mut app, ax, ay, aw, ah, a.label, app.operations_hover == 60 + i, a.primary, a.danger)
@@ -2165,13 +2170,34 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 	}
 }
 
+// loop history (Loops) lives above the action row, max four rows: the
+// recorded runs behind the schedule flag. There is no scheduler daemon, so
+// no next-run row is ever rendered — history only, with honest status words.
+fn operations_history_rect(l OperationsLayout, i int) (int, int, int, int) {
+	_, ay, _, _ := operations_action_rect(l, 0, 1)
+	return l.side_x + 12, ay - 30 - (4 - i) * 22, l.side_w - 24, 20
+}
+
+// loop_history_line renders one history run as a single status line. Pure so
+// tests pin the copy without a window.
+fn loop_history_line(run_id string, status string, started_at i64, duration_ms int) string {
+	id := if run_id.len > 8 { run_id[..8] } else { run_id }
+	when := format_started_time(started_at)
+	dur := if duration_ms > 0 { ' · ${duration_ms}ms' } else { '' }
+	return '${id} · ${status}${dur} · ${when}'
+}
+
 // operations_detail_content_bottom is where fact rows must stop: above approvals
-// (Swarms) or above the action row.
+// (Swarms), above history (Loops), or above the action row.
 fn operations_detail_content_bottom(l OperationsLayout) int {
 	_, act_y, _, _ := operations_action_rect(l, 0, 1)
 	if l.tab == 2 {
 		_, ty, _, _ := operations_approval_rect(l, 0)
 		return ty - 20
+	}
+	if l.tab == 1 {
+		_, ty, _, _ := operations_history_rect(l, 4)
+		return ty - 26
 	}
 	return act_y - 8
 }
@@ -2330,6 +2356,36 @@ fn operations_detail_facts(mut app GuiApp, tab int, sel int) ([][]string, string
 		}
 	}
 	return rows, ''
+}
+
+// draw_operations_history renders a loop's recorded runs: status line per
+// run plus the honest schedule note. Empty history says so; the schedule
+// flag is never rendered as an installed timer.
+fn draw_operations_history(mut app GuiApp, l OperationsLayout, loop_name string) {
+	runs := app.desktop.engine_loop_history(loop_name)
+	_, hy, _, _ := operations_history_rect(l, 4)
+	app.gg.draw_text(l.side_x + 16, hy - 4, if runs.len == 0 {
+		'No runs recorded — history fills as the loop runs'
+	} else {
+		'History · ${runs.len} run(s)'
+	}, gg.TextCfg{
+		color: app.pnl_text_mut
+		size: 11
+		bold: runs.len > 0
+	})
+	mut shown := 0
+	for r in runs {
+		if shown >= 4 {
+			break
+		}
+		tx, ty, _, _ := operations_history_rect(l, 4 - shown)
+		app.gg.draw_text(tx + 6, ty + 3, utf8_truncate(loop_history_line(r.run_id, r.status, r.started_at, r.duration_ms), (l.side_w - 40) / 7), gg.TextCfg{
+			color: app.pnl_text
+			size: 11
+			mono: true
+		})
+		shown++
+	}
 }
 
 fn draw_operations_approvals(mut app GuiApp, l OperationsLayout, run_id string) {
