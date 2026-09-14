@@ -10,15 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.30.2] — 2026-09-14
+
+A documentation release: real product screenshots across the root README
+and the npm/PyPI package pages, plus reconciled install floors.
+
+### Added
+
+- Six captures of the production desktop app (onboarding, Office hero,
+  Library search, Operations, terminal, Insights) under
+  `static/screenshots/`; hero + gallery in the root README, compact
+  Desktop GUI sections in the npm and PyPI READMEs.
+
 ### Fixed
 
-- Desktop keyboard input ownership: while a text-entry surface (header /
-  workspace / Library / memory / Operations search, terminal scrollback
-  search, focused embedded terminal) owns typing focus, printable keys go
-  to that surface and global single-letter shortcuts stay silent; clicking
-  a field claims focus (exactly one owner), Esc / panel navigation
-  releases it. Fixes `i` navigating to Insights while typing in Library
-  and `h` opening Help while typing in the terminal.
+- Stale install floors (`agent-toolkit-cli>=1.11.0` → `>=1.30.1`) and the
+  `VERSION 1.30.0` channel drift in packaging docs.
 
 ## [1.30.1] — 2026-09-13
 
