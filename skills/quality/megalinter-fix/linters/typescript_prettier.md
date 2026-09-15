@@ -3,7 +3,7 @@
 <!-- generated-descriptor-info-start -->
 - Linter: **prettier** (MegaLinter key: `TYPESCRIPT_PRETTIER`)
 - Descriptor: **TYPESCRIPT** (language)
-- MegaLinter documentation: <https://megalinter.io/10.0.0/descriptors/typescript_prettier/>
+- MegaLinter documentation: <https://megalinter.io/10.1.0/descriptors/typescript_prettier/>
 - Official documentation: <https://prettier.io/>
 - Auto-fix support: **yes** — add `TYPESCRIPT_PRETTIER` (or `all`) to the `APPLY_FIXES` variable, or run locally `npx mega-linter-runner --linter TYPESCRIPT_PRETTIER --fix` (runner and image versions follow `MEGALINTER_VERSION` of `.mega-linter.yml`: use `npx mega-linter-runner@beta` only when that property is `beta`)
 - Configuration file: `.prettierrc.json` (custom path can be defined with `TYPESCRIPT_PRETTIER_CONFIG_FILE`)
@@ -16,6 +16,8 @@
   - `TYPESCRIPT_PRETTIER_DISABLE_ERRORS_IF_LESS_THAN: <number>`: block only when the error count reaches the threshold — useful on a first install to accept the existing technical debt while preventing it from growing
   - `TYPESCRIPT_PRETTIER_FILTER_REGEX_EXCLUDE`: regex of files to exclude from this linter
   - `TYPESCRIPT_PRETTIER_ARGUMENTS`: additional CLI arguments for the linter
+- Known non-lint failure patterns (configuration/environment issues, see resolutions in the MegaLinter documentation page):
+  - `TYPESCRIPT_PRETTIER_ERROR_PLUGIN_NOT_FOUND`
 <!-- generated-descriptor-info-end -->
 
 ## Fix instructions
