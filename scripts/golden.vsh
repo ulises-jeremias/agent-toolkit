@@ -136,10 +136,15 @@ fn rmse_norm(rmse string) string {
 	for i < rmse.len {
 		j := rmse[i..].index(')') or { return '' }
 		inner := rmse[i + 1..i + j]
-		if inner.starts_with('0.') || inner.starts_with('.') {
-			mut ok := inner.len > 1
+		// Decimal (0.xxx) or scientific (1.5662e-05 — what ImageMagick
+		// prints for near-identical images). The parenthesized figure is
+		// the normalized RMSE in [0, 1], so any float shape here is the
+		// value the caller compares numerically.
+		if inner.len > 1 {
+			mut ok := inner[0].is_digit() || inner[0] == `+` || inner[0] == `-`
+				|| inner[0] == `.`
 			for ch in inner {
-				if !(ch.is_digit() || ch == `.`) {
+				if !(ch.is_digit() || ch in [`.`, `e`, `E`, `-`, `+`]) {
 					ok = false
 					break
 				}
