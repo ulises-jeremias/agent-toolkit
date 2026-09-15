@@ -78,3 +78,43 @@ fn test_editor_editable_limit() {
 	big.content = 'x'.repeat(editor_max_edit_bytes + 1)
 	assert !editor_editable(big), 'oversized buffers stay read-only'
 }
+
+fn save_test_app(tab EditorTab) GuiApp {
+	return GuiApp{
+		editor_tabs: [tab]
+		active_tab: 0
+	}
+}
+
+fn test_editor_save_refuses_without_open_tab() {
+	mut app := GuiApp{
+		editor_tabs: []EditorTab{}
+		active_tab: -1
+	}
+	editor_save_active(mut app)
+	assert app.editor_msg == 'nothing open to save'
+}
+
+fn test_editor_save_refuses_oversized_tab() {
+	mut big := f_tab('x'.repeat(editor_max_edit_bytes + 1))
+	big.dirty = true
+	mut app := save_test_app(big)
+	editor_save_active(mut app)
+	assert app.editor_msg == 'read-only: file too large to edit'
+	assert app.editor_tabs[0].dirty, 'refused save never clears dirty'
+}
+
+fn test_editor_save_refuses_clean_tab() {
+	mut app := save_test_app(f_tab('saved already'))
+	editor_save_active(mut app)
+	assert app.editor_msg == 'no changes to save'
+}
+
+fn test_editor_save_refuses_detached_engine() {
+	mut tab := f_tab('unsaved work')
+	tab.dirty = true
+	mut app := save_test_app(tab)
+	editor_save_active(mut app)
+	assert app.editor_msg == 'save unavailable: engine detached'
+	assert app.editor_tabs[0].dirty, 'failed save never clears dirty'
+}

@@ -468,7 +468,7 @@ pub fn office_no_actions_hint(row OfficeRunRow) string {
 		return 'State unknown — actions hidden until the Engine reports live run state.'
 	}
 	if row.kind == 'swarm' && (row.state == .running || row.state == .waiting) {
-		return 'No stop control is exposed for swarm runs yet — needs engine_swarm_cancel.'
+		return 'Stop this run from Operations → run control.'
 	}
 	if row.kind == 'swarm' {
 		return 'Terminal swarm run with no pending approvals — nothing to act on.'

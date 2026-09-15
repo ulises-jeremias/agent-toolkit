@@ -349,6 +349,12 @@ fn vt_label(app &GuiApp, id int) string {
 	return 'Fleet'
 }
 
+// term_shell_quote single-quotes a path for POSIX sh: safe against quotes,
+// dollars, and backticks in Engine-recorded worktree paths.
+fn term_shell_quote(path string) string {
+	return "'" + path.replace("'", "'\\''") + "'"
+}
+
 // spawn_session — spawn an agent CLI on a real PTY and focus it fullscreen.
 fn spawn_session(mut app &GuiApp, ab pty_mod.AgentBin) {
 	mut s := pty_mod.spawn(ab.agent, ab.binary, [], 120, 32) or {
@@ -358,8 +364,10 @@ fn spawn_session(mut app &GuiApp, ab pty_mod.AgentBin) {
 	}
 	// One-shot run binding (slice J): a pending cwd from the run Terminal
 	// action lands the fresh shell in the run worktree via a real cd.
+	// Single-quoted with escaping: paths are Engine records, but a quote or
+	// dollar must never break out of the intended command.
 	cwd_msg := if app.pending_term_cwd != '' {
-		s.write('cd "${app.pending_term_cwd}"\n')
+		s.write('cd ${term_shell_quote(app.pending_term_cwd)}\n')
 		' · cwd ${app.pending_term_cwd}'
 	} else {
 		''

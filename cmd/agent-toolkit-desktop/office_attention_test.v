@@ -352,10 +352,11 @@ fn test_office_actions_offer_only_currently_valid() {
 	assert gated.len == 2
 	assert gated[0].kind == 'approve' && gated[1].kind == 'reject'
 	assert gated[0].engine_op == 'swarm_approve'
-	// live swarm without a Desktop stop op: hidden, with the reason named
+	// live swarm: no inline stop in Office — the hint routes to Operations
+	// run control, never denies the shipped stop
 	live := desktop.office_run_actions(by_id['run-live'])
 	assert live.len == 0
-	assert desktop.office_no_actions_hint(by_id['run-live']).contains('engine_swarm_cancel')
+	assert desktop.office_no_actions_hint(by_id['run-live']).contains('Operations')
 	// rows with actions need no hint
 	assert desktop.office_no_actions_hint(by_id['job-fail-1']) == ''
 }
