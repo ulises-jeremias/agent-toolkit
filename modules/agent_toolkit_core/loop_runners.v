@@ -11,10 +11,9 @@ import x.json2
 // capture to the run dir. Availability is a PATH probe; unknown or missing
 // runners fail closed to skeleton with a clear message (ADR-020).
 
-// Implemented LLM runners. `cursor`, `copilot`, and `muse` are recognized
-// vocabulary (same as swarm) but land in phase 2; see unimplemented_runners.
-pub const loop_llm_runners = ['claude', 'opencode', 'codex']
-pub const loop_unimplemented_runners = ['cursor', 'copilot', 'muse']
+// Implemented LLM runners. `cursor`, `copilot`, and `muse` share the swarm
+// vocabulary; `pi` is loop-only (no swarm backend yet).
+pub const loop_llm_runners = ['claude', 'opencode', 'codex', 'cursor', 'copilot', 'muse', 'pi']
 
 // resolve_loop_runner maps the --runner flag (or AGENT_TOOLKIT_LOOP_RUNNER)
 // to a concrete runner name. Returns '' when the name is not recognized;
@@ -30,33 +29,51 @@ pub fn resolve_loop_runner(explicit string) string {
 	if name in loop_llm_runners || name == 'skeleton' {
 		return name
 	}
-	if name in loop_unimplemented_runners {
-		return name
+	return ''
+}
+
+// runner_bin_chain maps a runner name to its PATH binaries in probe order.
+// Cursor follows the Python-era chain (cursor-agent → agent → cursor).
+pub fn runner_bin_chain(name string) []string {
+	return match name {
+		'claude' { ['claude'] }
+		'opencode' { ['opencode'] }
+		'codex' { ['codex'] }
+		'cursor' { ['cursor-agent', 'agent', 'cursor'] }
+		'copilot' { ['copilot'] }
+		'muse' { ['muse'] }
+		'pi' { ['pi'] }
+		else { [] }
+	}
+}
+
+// runner_binary maps a runner name to its primary PATH binary.
+// Empty for non-binaries.
+pub fn runner_binary(name string) string {
+	chain := runner_bin_chain(name)
+	if chain.len == 0 {
+		return ''
+	}
+	return chain[0]
+}
+
+// resolve_runner_bin returns the first chain binary found on PATH, or ''.
+fn resolve_runner_bin(name string) string {
+	for bin in runner_bin_chain(name) {
+		found := os.find_abs_path_of_executable(bin) or { '' }
+		if found != '' {
+			return bin
+		}
 	}
 	return ''
 }
 
-// runner_binary maps a runner name to its PATH binary. Empty for non-binaries.
-pub fn runner_binary(name string) string {
-	return match name {
-		'claude' { 'claude' }
-		'opencode' { 'opencode' }
-		'codex' { 'codex' }
-		else { '' }
-	}
-}
-
-// runner_is_available probes PATH for the runner binary (no subprocess).
+// runner_is_available probes PATH for the runner binaries (no subprocess).
 pub fn runner_is_available(name string) bool {
-	bin := runner_binary(name)
-	if bin == '' {
-		return false
-	}
-	found := os.find_abs_path_of_executable(bin) or { '' }
-	return found != ''
+	return resolve_runner_bin(name) != ''
 }
 
-// auto_select_runner probes claude → opencode → codex, then skeleton.
+// auto_select_runner probes loop_llm_runners in order, then skeleton.
 // (Python-era order had harness first; the harness stays external, so V
 // auto covers LLM CLIs and ends at skeleton.)
 pub fn auto_select_runner() string {
@@ -73,13 +90,10 @@ pub fn auto_select_runner() string {
 pub fn select_loop_runner(explicit string) (string, string) {
 	name := resolve_loop_runner(explicit)
 	if name == '' {
-		return 'skeleton', "unknown runner '${explicit.trim_space()}' — failing closed to skeleton (use auto|skeleton|claude|opencode|codex)"
+		return 'skeleton', "unknown runner '${explicit.trim_space()}' — failing closed to skeleton (use auto|skeleton|claude|opencode|codex|cursor|copilot|muse|pi)"
 	}
 	if name == 'skeleton' {
 		return 'skeleton', ''
-	}
-	if name in loop_unimplemented_runners {
-		return 'skeleton', "runner '${name}' is not implemented yet — failing closed to skeleton"
 	}
 	if name == 'auto' {
 		picked := auto_select_runner()
@@ -129,18 +143,29 @@ pub fn sh_quote(s string) string {
 	return s
 }
 
+// loop_model returns AGENT_TOOLKIT_LOOP_MODEL trimmed ('' when unset).
+fn loop_model() string {
+	return os.getenv('AGENT_TOOLKIT_LOOP_MODEL').trim_space()
+}
+
 // runner_argv builds the child argv for a runner over prompt text.
 // prompt travels as a single argv element (ARG_MAX-safe for runbooks).
 pub fn runner_argv(name string, prompt string, sysprompt string) []string {
 	full := if sysprompt != '' { sysprompt + '\n\n---\n\n' + prompt } else { prompt }
+	model := loop_model()
 	return match name {
 		'claude' {
-			['claude', '--print', '--allowedTools', 'Bash(gh *) Bash(git *) Edit Read Write Glob Grep',
-				'--append-system-prompt', sysprompt, prompt]
+			mut argv := ['claude', '--print', '--allowedTools', 'Bash(gh *) Bash(git *) Edit Read Write Glob Grep',
+				'--append-system-prompt', sysprompt]
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << prompt
+			argv
 		}
 		'opencode' {
 			mut argv := ['opencode', 'run']
-			model := os.getenv('AGENT_TOOLKIT_LOOP_MODEL').trim_space()
 			if model != '' {
 				argv << '--model'
 				argv << model
@@ -149,10 +174,63 @@ pub fn runner_argv(name string, prompt string, sysprompt string) []string {
 			argv
 		}
 		'codex' {
-			['codex', 'exec', full]
+			mut argv := ['codex', 'exec']
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << full
+			argv
+		}
+		'cursor' {
+			// Python-era form: <bin> --print --force --trust
+			// --output-format text <prompt> (#228).
+			bin := resolve_runner_bin('cursor')
+			if bin == '' {
+				[]string{}
+			} else {
+				[bin, '--print', '--force', '--trust', '--output-format', 'text', prompt]
+			}
+		}
+		'copilot' {
+			// Python-era form: copilot -p <prompt> -s --no-ask-user
+			// --allow-all (#229); gh mutations still go through the gate.
+			mut argv := ['copilot', '-p', prompt, '-s', '--no-ask-user', '--allow-all']
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv
+		}
+		'muse' {
+			// muse exec runs one prompt headless; --approval-mode never
+			// keeps runs unattended without disabling the sandbox.
+			mut argv := ['muse', 'exec', '--approval-mode', 'never']
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << prompt
+			argv
+		}
+		'pi' {
+			// pi -p is non-interactive; the loop sysprompt travels as
+			// --append-system-prompt instead of fused into the prompt.
+			mut argv := ['pi']
+			if sysprompt != '' {
+				argv << '--append-system-prompt'
+				argv << sysprompt
+			}
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << '-p'
+			argv << prompt
+			argv
 		}
 		else {
-			[]
+			[]string{}
 		}
 	}
 }

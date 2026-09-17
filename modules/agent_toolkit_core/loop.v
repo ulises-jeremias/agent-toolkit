@@ -143,7 +143,7 @@ loop run options:
     --quiet       Suppress live runner output
     --pack PATH   Apply loop overrides from pack YAML
     --workspace PATH  Workspace root override
-    --runner NAME auto|skeleton|claude|opencode|codex (LLM runners need the CLI on PATH; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works)
+    --runner NAME auto|skeleton|claude|opencode|codex|cursor|copilot|muse|pi (LLM runners need the CLI on PATH; cursor probes cursor-agent→agent→cursor; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works; AGENT_TOOLKIT_LOOP_MODEL pins the model where the CLI supports --model)
     --no-llm      Alias for --runner skeleton (no network)
     --platform PLATFORM  Schedule platform: local (default, systemd/launchd) | github-actions
     --json        Structured CommandResult JSON
@@ -796,7 +796,7 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 			message: 'Usage: agent-toolkit loop schedule <loop-name> [--dry-run]'
 		}
 	}
-	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nExecStart=agent-toolkit loop run ${opts.name}${schedule_run_suffix(opts)}\n\n[Install]\nWantedBy=default.target\n'
+	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nWorkingDirectory=${ws}\nExecStart=agent-toolkit loop run ${opts.name}${schedule_run_suffix(opts)}\n\n[Install]\nWantedBy=default.target\n'
 	if opts.dry_run || opts.list_mode {
 		return LoopReport{
 			ok: true
