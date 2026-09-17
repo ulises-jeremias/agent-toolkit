@@ -41,8 +41,13 @@ pub fn classify_gh_argv(argv []string) string {
 	if rest[0] in ['auth', 'api', 'status', 'browse'] {
 		return ''
 	}
-	// git-like writes
-	if rest[0] in ['repo', 'release'] {
+	// Other top-level mutating commands (Python gh_gate.py parity):
+	// release/gist/repo/secret/variable/workflow default to `push`,
+	// but list/view/status/get are read-only.
+	if rest[0] in ['release', 'gist', 'repo', 'secret', 'variable', 'workflow'] {
+		if rest.len >= 2 && rest[1] in ['list', 'view', 'status', 'get'] {
+			return ''
+		}
 		return 'push'
 	}
 	return ''
