@@ -366,6 +366,14 @@ agent-toolkit loop sync --platform github-actions --dry-run  # exits 1 on drift
 agent-toolkit loop schedule oss-triage --platform github-actions --force
 ```
 
+Local units bake the runner the same way:
+
+```bash
+agent-toolkit loop schedule oss-triage --dry-run                          # ExecStart=... loop run oss-triage
+agent-toolkit loop schedule oss-triage --runner opencode --dry-run        # ... loop run oss-triage --runner opencode
+agent-toolkit loop schedule oss-triage --no-llm --dry-run                 # ... loop run oss-triage --no-llm
+```
+
 **How it works:**
 - `cadence` → cron: `15m`→`*/15 * * * *`, `4h`→`0 */4 * * *`, `1d`→`0 0 * * *`, `1w`→`0 0 * * 0`
 - Workflow is version-pinned: `uvx --from agent-toolkit-cli==1.18.0`

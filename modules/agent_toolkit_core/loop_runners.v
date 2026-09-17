@@ -11,10 +11,9 @@ import x.json2
 // capture to the run dir. Availability is a PATH probe; unknown or missing
 // runners fail closed to skeleton with a clear message (ADR-020).
 
-// Implemented LLM runners. `cursor`, `copilot`, and `muse` are recognized
-// vocabulary (same as swarm) but land in phase 2; see unimplemented_runners.
-pub const loop_llm_runners = ['claude', 'opencode', 'codex']
-pub const loop_unimplemented_runners = ['cursor', 'copilot', 'muse']
+// Implemented LLM runners. `cursor`, `copilot`, and `muse` share the swarm
+// vocabulary; `pi` is loop-only (no swarm backend yet).
+pub const loop_llm_runners = ['claude', 'opencode', 'codex', 'cursor', 'copilot', 'muse', 'pi']
 
 // resolve_loop_runner maps the --runner flag (or AGENT_TOOLKIT_LOOP_RUNNER)
 // to a concrete runner name. Returns '' when the name is not recognized;
@@ -30,33 +29,51 @@ pub fn resolve_loop_runner(explicit string) string {
 	if name in loop_llm_runners || name == 'skeleton' {
 		return name
 	}
-	if name in loop_unimplemented_runners {
-		return name
+	return ''
+}
+
+// runner_bin_chain maps a runner name to its PATH binaries in probe order.
+// Cursor follows the Python-era chain (cursor-agent → agent → cursor).
+pub fn runner_bin_chain(name string) []string {
+	return match name {
+		'claude' { ['claude'] }
+		'opencode' { ['opencode'] }
+		'codex' { ['codex'] }
+		'cursor' { ['cursor-agent', 'agent', 'cursor'] }
+		'copilot' { ['copilot'] }
+		'muse' { ['muse'] }
+		'pi' { ['pi'] }
+		else { [] }
+	}
+}
+
+// runner_binary maps a runner name to its primary PATH binary.
+// Empty for non-binaries.
+pub fn runner_binary(name string) string {
+	chain := runner_bin_chain(name)
+	if chain.len == 0 {
+		return ''
+	}
+	return chain[0]
+}
+
+// resolve_runner_bin returns the first chain binary found on PATH, or ''.
+fn resolve_runner_bin(name string) string {
+	for bin in runner_bin_chain(name) {
+		found := os.find_abs_path_of_executable(bin) or { '' }
+		if found != '' {
+			return bin
+		}
 	}
 	return ''
 }
 
-// runner_binary maps a runner name to its PATH binary. Empty for non-binaries.
-pub fn runner_binary(name string) string {
-	return match name {
-		'claude' { 'claude' }
-		'opencode' { 'opencode' }
-		'codex' { 'codex' }
-		else { '' }
-	}
-}
-
-// runner_is_available probes PATH for the runner binary (no subprocess).
+// runner_is_available probes PATH for the runner binaries (no subprocess).
 pub fn runner_is_available(name string) bool {
-	bin := runner_binary(name)
-	if bin == '' {
-		return false
-	}
-	found := os.find_abs_path_of_executable(bin) or { '' }
-	return found != ''
+	return resolve_runner_bin(name) != ''
 }
 
-// auto_select_runner probes claude → opencode → codex, then skeleton.
+// auto_select_runner probes loop_llm_runners in order, then skeleton.
 // (Python-era order had harness first; the harness stays external, so V
 // auto covers LLM CLIs and ends at skeleton.)
 pub fn auto_select_runner() string {
@@ -73,13 +90,10 @@ pub fn auto_select_runner() string {
 pub fn select_loop_runner(explicit string) (string, string) {
 	name := resolve_loop_runner(explicit)
 	if name == '' {
-		return 'skeleton', "unknown runner '${explicit.trim_space()}' — failing closed to skeleton (use auto|skeleton|claude|opencode|codex)"
+		return 'skeleton', "unknown runner '${explicit.trim_space()}' — failing closed to skeleton (use auto|skeleton|claude|opencode|codex|cursor|copilot|muse|pi)"
 	}
 	if name == 'skeleton' {
 		return 'skeleton', ''
-	}
-	if name in loop_unimplemented_runners {
-		return 'skeleton', "runner '${name}' is not implemented yet — failing closed to skeleton"
 	}
 	if name == 'auto' {
 		picked := auto_select_runner()
@@ -129,18 +143,29 @@ pub fn sh_quote(s string) string {
 	return s
 }
 
+// loop_model returns AGENT_TOOLKIT_LOOP_MODEL trimmed ('' when unset).
+fn loop_model() string {
+	return os.getenv('AGENT_TOOLKIT_LOOP_MODEL').trim_space()
+}
+
 // runner_argv builds the child argv for a runner over prompt text.
 // prompt travels as a single argv element (ARG_MAX-safe for runbooks).
 pub fn runner_argv(name string, prompt string, sysprompt string) []string {
 	full := if sysprompt != '' { sysprompt + '\n\n---\n\n' + prompt } else { prompt }
+	model := loop_model()
 	return match name {
 		'claude' {
-			['claude', '--print', '--allowedTools', 'Bash(gh *) Bash(git *) Edit Read Write Glob Grep',
-				'--append-system-prompt', sysprompt, prompt]
+			mut argv := ['claude', '--print', '--allowedTools', 'Bash(gh *) Bash(git *) Edit Read Write Glob Grep',
+				'--append-system-prompt', sysprompt]
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << prompt
+			argv
 		}
 		'opencode' {
 			mut argv := ['opencode', 'run']
-			model := os.getenv('AGENT_TOOLKIT_LOOP_MODEL').trim_space()
 			if model != '' {
 				argv << '--model'
 				argv << model
@@ -149,10 +174,63 @@ pub fn runner_argv(name string, prompt string, sysprompt string) []string {
 			argv
 		}
 		'codex' {
-			['codex', 'exec', full]
+			mut argv := ['codex', 'exec']
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << full
+			argv
+		}
+		'cursor' {
+			// Python-era form: <bin> --print --force --trust
+			// --output-format text <prompt> (#228).
+			bin := resolve_runner_bin('cursor')
+			if bin == '' {
+				[]string{}
+			} else {
+				[bin, '--print', '--force', '--trust', '--output-format', 'text', prompt]
+			}
+		}
+		'copilot' {
+			// Python-era form: copilot -p <prompt> -s --no-ask-user
+			// --allow-all (#229); gh mutations still go through the gate.
+			mut argv := ['copilot', '-p', prompt, '-s', '--no-ask-user', '--allow-all']
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv
+		}
+		'muse' {
+			// muse exec runs one prompt headless; --approval-mode never
+			// keeps runs unattended without disabling the sandbox.
+			mut argv := ['muse', 'exec', '--approval-mode', 'never']
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << prompt
+			argv
+		}
+		'pi' {
+			// pi -p is non-interactive; the loop sysprompt travels as
+			// --append-system-prompt instead of fused into the prompt.
+			mut argv := ['pi']
+			if sysprompt != '' {
+				argv << '--append-system-prompt'
+				argv << sysprompt
+			}
+			if model != '' {
+				argv << '--model'
+				argv << model
+			}
+			argv << '-p'
+			argv << prompt
+			argv
 		}
 		else {
-			[]
+			[]string{}
 		}
 	}
 }
@@ -171,8 +249,19 @@ pub:
 // streams child output straight to transcript.log (no pipe deadlock).
 // Returns ok=false only on spawn failure; timeouts and non-zero exits are
 // reported in the result (caller records them, run still counts).
-pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir string, run_dir string, wall_seconds int) RunnerResult {
+pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir string, run_dir string, wall_seconds int, gate GatePolicy) RunnerResult {
 	transcript := os.join_path(run_dir, 'transcript.log')
+	// Gate enforcement: per-run gate-bin/gh shim first on PATH, policy via env.
+	mut env_prefix := ''
+	if gate.tier != '' {
+		gate_bin := os.join_path(run_dir, 'gate-bin')
+		toolkit_bin := os.executable()
+		real_gh := os.find_abs_path_of_executable('gh') or { '' }
+		if real_gh != '' {
+			gate_write_shim(gate_bin, toolkit_bin, real_gh) or {}
+			env_prefix = 'ATK_GATE_TIER=' + sh_quote(gate.tier) + ' ATK_GATE_ALLOW=' + sh_quote(gate.allowlist.join(',')) + ' ATK_GATE_DENY=' + sh_quote(gate.deny.join(',')) + ' ATK_GATE_RUNDIR=' + sh_quote(run_dir) + ' ATK_GATE_RUNID=' + sh_quote(gate.run_id) + ' PATH=' + sh_quote(gate_bin + ':' + os.getenv('PATH')) + ' '
+		}
+	}
 	argv := runner_argv(name, prompt, sysprompt)
 	if argv == [] {
 		return RunnerResult{
@@ -186,7 +275,7 @@ pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir
 	for a in argv {
 		parts << sh_quote(a)
 	}
-	cmd := parts.join(' ') + ' > ' + sh_quote(transcript) + ' 2>&1'
+	cmd := env_prefix + parts.join(' ') + ' > ' + sh_quote(transcript) + ' 2>&1'
 	os.write_file(transcript, '') or {}
 	start := time.now()
 	mut p := os.new_process('/bin/sh')
@@ -240,7 +329,14 @@ fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid
 	lines << '[loop] LLM runner: ${runner_name} (wall ${wall}s)'
 	prompt := loop_run_prompt(loop_dir, meta.request)
 	sysp := loop_runner_sysprompt(loop_name, rid, meta.tier, run_dir, loop_dir)
-	res := execute_loop_runner(runner_name, prompt, sysp, ws, run_dir, wall)
+	gate := GatePolicy{
+		tier:      meta.tier
+		allowlist: meta.allowlist.clone()
+		deny:      meta.deny.clone()
+		run_dir:   run_dir
+		run_id:    rid
+	}
+	res := execute_loop_runner(runner_name, prompt, sysp, ws, run_dir, wall, gate)
 	if !res.ok {
 		return LoopReport{
 			ok:      false

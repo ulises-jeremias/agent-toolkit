@@ -85,6 +85,15 @@ pub fn run_loop(opts LoopOptions) LoopReport {
 		'list', 'ls' {
 			loop_list(ws)
 		}
+		'gate-exec' {
+			loop_gate_exec()
+		}
+		'gate-issue-receipt' {
+			loop_gate_issue_receipt_cmd()
+		}
+		'gate-check' {
+			loop_gate_check_cmd()
+		}
 		'templates' {
 			loop_templates(ws)
 		}
@@ -124,7 +133,7 @@ Usage:
     agent-toolkit loop status [loop]
     agent-toolkit loop audit [loop]
     agent-toolkit loop cost <loop>
-    agent-toolkit loop schedule <loop> [--dry-run] [--cron EXPR] [--platform PLATFORM] [--list] [--remove]
+    agent-toolkit loop schedule <loop> [--dry-run] [--cron EXPR] [--platform PLATFORM] [--list] [--remove] [--runner NAME] [--no-llm]
     agent-toolkit loop sync [--platform PLATFORM] [--dry-run]
     agent-toolkit loop templates
     agent-toolkit loop help
@@ -134,7 +143,7 @@ loop run options:
     --quiet       Suppress live runner output
     --pack PATH   Apply loop overrides from pack YAML
     --workspace PATH  Workspace root override
-    --runner NAME auto|skeleton|claude|opencode|codex (LLM runners need the CLI on PATH; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works)
+    --runner NAME auto|skeleton|claude|opencode|codex|cursor|copilot|muse|pi (LLM runners need the CLI on PATH; cursor probes cursor-agent→agent→cursor; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works; AGENT_TOOLKIT_LOOP_MODEL pins the model where the CLI supports --model)
     --no-llm      Alias for --runner skeleton (no network)
     --platform PLATFORM  Schedule platform: local (default, systemd/launchd) | github-actions
     --json        Structured CommandResult JSON
@@ -645,6 +654,19 @@ fn loop_cost(ws string, opts LoopOptions) LoopReport {
 	}
 }
 
+// schedule_run_suffix renders the runner args baked into scheduled units:
+// --no-llm wins, then explicit --runner, else plain (skeleton default).
+fn schedule_run_suffix(opts LoopOptions) string {
+	if opts.no_llm {
+		return ' --no-llm'
+	}
+	r := opts.runner.trim_space()
+	if r != '' {
+		return ' --runner ' + r
+	}
+	return ''
+}
+
 fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 	mut platform := opts.platform.trim_space()
 	if platform.len == 0 {
@@ -687,7 +709,7 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 			}
 		}
 		version := embedded_version
-		workflow := emit_github_workflow(opts.name, meta.tier, meta.cadence, cron, version)
+		workflow := emit_github_workflow(opts.name, meta.tier, meta.cadence, cron, version, schedule_run_suffix(opts))
 		if opts.dry_run {
 			return LoopReport{
 				ok: true
@@ -774,7 +796,7 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 			message: 'Usage: agent-toolkit loop schedule <loop-name> [--dry-run]'
 		}
 	}
-	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nExecStart=agent-toolkit loop run ${opts.name}\n\n[Install]\nWantedBy=default.target\n'
+	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nWorkingDirectory=${ws}\nExecStart=agent-toolkit loop run ${opts.name}${schedule_run_suffix(opts)}\n\n[Install]\nWantedBy=default.target\n'
 	if opts.dry_run || opts.list_mode {
 		return LoopReport{
 			ok: true
@@ -817,7 +839,7 @@ fn loop_sync(ws string, opts LoopOptions) LoopReport {
 			meta := parse_loop_meta(d)
 			cron := cadence_to_cron(meta.cadence) or { continue }
 			version := embedded_version
-			expected := emit_github_workflow(os.file_name(d), meta.tier, meta.cadence, cron, version)
+			expected := emit_github_workflow(os.file_name(d), meta.tier, meta.cadence, cron, version, '')
 			path := os.join_path(ws, '.github', 'workflows', 'agent-toolkit-${os.file_name(d)}.yml')
 			if !os.is_file(path) {
 				missing << '${os.file_name(d)} (expected ${path})'

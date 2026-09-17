@@ -124,6 +124,33 @@ fn test_loop_schedule_dry_run() {
 	assert r.message.contains('systemd')
 }
 
+fn test_schedule_run_suffix() {
+	assert schedule_run_suffix(LoopOptions{}) == ''
+	assert schedule_run_suffix(LoopOptions{runner: 'opencode'}) == ' --runner opencode'
+	assert schedule_run_suffix(LoopOptions{runner: 'skeleton'}) == ' --runner skeleton'
+	assert schedule_run_suffix(LoopOptions{runner: 'opencode', no_llm: true}) == ' --no-llm'
+	assert schedule_run_suffix(LoopOptions{no_llm: true}) == ' --no-llm'
+}
+
+fn test_schedule_dry_run_bakes_runner() {
+	r := run_loop(LoopOptions{
+		subcommand: 'schedule'
+		name: 'daily'
+		dry_run: true
+		runner: 'opencode'
+	})
+	assert r.ok, r.message
+	assert r.message.contains('ExecStart=agent-toolkit loop run daily --runner opencode')
+	assert r.message.contains('WorkingDirectory=')
+	r2 := run_loop(LoopOptions{
+		subcommand: 'schedule'
+		name: 'daily'
+		dry_run: true
+	})
+	assert r2.ok, r2.message
+	assert r2.message.contains('ExecStart=agent-toolkit loop run daily\n')
+}
+
 fn with_clean_runner_env(f fn ()) {
 	old_runner := os.getenv('AGENT_TOOLKIT_LOOP_RUNNER')
 	old_model := os.getenv('AGENT_TOOLKIT_LOOP_MODEL')
@@ -149,6 +176,9 @@ fn test_loop_runner_resolution() {
 		assert resolve_loop_runner('') == 'auto'
 		assert resolve_loop_runner('nope') == ''
 		assert resolve_loop_runner('cursor') == 'cursor'
+		assert resolve_loop_runner('copilot') == 'copilot'
+		assert resolve_loop_runner('muse') == 'muse'
+		assert resolve_loop_runner('pi') == 'pi'
 		os.setenv('AGENT_TOOLKIT_LOOP_RUNNER', 'codex', true)
 		assert resolve_loop_runner('') == 'codex'
 		assert resolve_loop_runner('claude') == 'claude'
@@ -186,7 +216,7 @@ fn test_loop_runner_select_fail_closed() {
 		assert note.contains('unknown runner')
 		name2, note2 := select_loop_runner('cursor')
 		assert name2 == 'skeleton'
-		assert note2.contains('not implemented yet')
+		assert note2.contains('not on PATH')
 		name3, note3 := select_loop_runner('claude')
 		assert name3 == 'skeleton'
 		assert note3.contains('not on PATH')
@@ -230,11 +260,118 @@ fn test_runner_argv_shapes() {
 		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'big-model', true)
 		om := runner_argv('opencode', 'do things', '')
 		assert om == ['opencode', 'run', '--model', 'big-model', 'do things']
+		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
 		x := runner_argv('codex', 'do things', 'sys here')
 		assert x[0] == 'codex' && x[1] == 'exec'
 		assert x[2].contains('sys here') && x[2].contains('do things')
 		assert runner_argv('nope', 'x', '') == []
 	})
+}
+
+fn test_runner_argv_phase2_shapes() {
+	with_clean_runner_env(fn () {
+		assert runner_argv('copilot', 'do things', 'sys here') == ['copilot', '-p', 'do things',
+			'-s', '--no-ask-user', '--allow-all']
+		assert runner_argv('muse', 'do things', 'sys here') == ['muse', 'exec', '--approval-mode',
+			'never', 'do things']
+		assert runner_argv('pi', 'do things', 'sys here') == ['pi', '--append-system-prompt',
+			'sys here', '-p', 'do things']
+		assert runner_argv('pi', 'do things', '') == ['pi', '-p', 'do things']
+		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'big-model', true)
+		assert runner_argv('claude', 'do things', 'sys here') == ['claude', '--print', '--allowedTools',
+			'Bash(gh *) Bash(git *) Edit Read Write Glob Grep', '--append-system-prompt', 'sys here',
+			'--model', 'big-model', 'do things']
+		assert runner_argv('codex', 'do things', 'sys here') == ['codex', 'exec', '--model',
+			'big-model', 'sys here\n\n---\n\ndo things']
+		assert runner_argv('copilot', 'do things', '') == ['copilot', '-p', 'do things',
+			'-s', '--no-ask-user', '--allow-all', '--model', 'big-model']
+		assert runner_argv('muse', 'do things', '') == ['muse', 'exec', '--approval-mode',
+			'never', '--model', 'big-model', 'do things']
+		assert runner_argv('pi', 'do things', 'sys here') == ['pi', '--append-system-prompt',
+			'sys here', '--model', 'big-model', '-p', 'do things']
+		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
+	})
+}
+
+fn test_cursor_probe_chain() {
+	with_clean_runner_env(fn () {
+		fake := os.join_path(os.temp_dir(), 'at-cursor-${os.getpid()}')
+		os.mkdir_all(fake) or { assert false, err.msg() }
+		defer {
+			os.rmdir_all(fake) or {}
+		}
+		// only the middle of the chain exists: cursor-agent missing
+		os.write_file(os.join_path(fake, 'agent'), '#!/bin/sh\necho hi\n') or {
+			assert false, err.msg()
+		}
+		os.chmod(os.join_path(fake, 'agent'), 0o755) or { assert false, err.msg() }
+		os.setenv('PATH', fake, true)
+		assert runner_binary('cursor') == 'cursor-agent'
+		assert runner_is_available('cursor')
+		assert auto_select_runner() == 'cursor'
+		assert runner_argv('cursor', 'do things', '') == ['agent', '--print', '--force',
+			'--trust', '--output-format', 'text', 'do things']
+		name, note := select_loop_runner('cursor')
+		assert name == 'cursor'
+		assert note == ''
+	})
+}
+
+fn test_auto_select_prefers_first_available() {
+	with_clean_runner_env(fn () {
+		fake := os.join_path(os.temp_dir(), 'at-auto2-${os.getpid()}')
+		os.mkdir_all(fake) or { assert false, err.msg() }
+		defer {
+			os.rmdir_all(fake) or {}
+		}
+		os.write_file(os.join_path(fake, 'pi'), '#!/bin/sh\necho hi\n') or {
+			assert false, err.msg()
+		}
+		os.chmod(os.join_path(fake, 'pi'), 0o755) or { assert false, err.msg() }
+		os.setenv('PATH', fake, true)
+		assert auto_select_runner() == 'pi'
+	})
+}
+
+fn test_execute_copilot_fake_e2e() {
+	$if windows {
+		return
+	}
+	fake := os.join_path(os.temp_dir(), 'at-exec-copilot-${os.getpid()}')
+	os.mkdir_all(fake) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(fake) or {}
+	}
+	os.write_file(os.join_path(fake, 'copilot'), '#!/bin/sh\necho "ran: $@"\n') or {
+		assert false, err.msg()
+	}
+	os.chmod(os.join_path(fake, 'copilot'), 0o755) or { assert false, err.msg() }
+	old_path := os.getenv('PATH')
+	os.setenv('PATH', fake + ':' + old_path, true)
+	defer {
+		os.setenv('PATH', old_path, true)
+	}
+	name, note := select_loop_runner('copilot')
+	assert name == 'copilot'
+	assert note == ''
+	run_dir := os.join_path(fake, 'run')
+	os.mkdir_all(run_dir) or { assert false, err.msg() }
+	policy := GatePolicy{
+		tier:      'L1'
+		allowlist: []string{}
+		deny:      []string{}
+		run_dir:   run_dir
+		run_id:    'test-run-copilot'
+	}
+	res := execute_loop_runner('copilot', 'hello world', '', fake, run_dir, 30, policy)
+	assert res.ok
+	assert !res.timed_out
+	assert res.exit_code == 0
+	assert res.runner == 'copilot'
+	out := os.read_file(res.transcript) or { '' }
+	assert out.contains('ran:')
+	assert out.contains('-p')
+	assert out.contains('hello world')
 }
 
 fn test_execute_loop_runner_echo_and_timeout() {
@@ -256,7 +393,14 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	}
 	run_dir := os.join_path(fake, 'run')
 	os.mkdir_all(run_dir) or { assert false, err.msg() }
-	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30)
+	policy := GatePolicy{
+		tier:      'L1'
+		allowlist: []string{}
+		deny:      []string{}
+		run_dir:   run_dir
+		run_id:    'test-run'
+	}
+	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30, policy)
 	assert res.ok
 	assert !res.timed_out
 	assert res.exit_code == 0
@@ -265,7 +409,7 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	assert out.contains('hello world')
 	// timeout path: replace the fake with a sleeper, tiny wall
 	os.write_file(claude_sh, '#!/bin/sh\nsleep 30\n') or { assert false, err.msg() }
-	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1)
+	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1, policy)
 	assert res2.ok
 	assert res2.timed_out
 	out2 := os.read_file(res2.transcript) or { '' }
