@@ -3,7 +3,7 @@
 **Issue:** [#523](https://github.com/ulises-jeremias/agent-toolkit/issues/523) (EPIC 5 [#462](https://github.com/ulises-jeremias/agent-toolkit/issues/462), disposition [#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) **REDESIGN**)  
 **Concurrency:** [ADR-020](../adrs/ADR-020-v-concurrency.md)
 
-Not a 1:1 port of Python `loop/runner.py` threads. The V CLI is a **single-threaded supervisor**; each iteration is an OS process (ProcessService). Until ProcessService stdin exists, LLM PATH runners **fail closed to skeleton** (`--no-llm` / `--runner skeleton`).
+Not a 1:1 port of Python `loop/runner.py` threads. The V CLI is a **single-threaded supervisor**; each iteration is an OS process (ProcessService). LLM PATH runners (`--runner claude|opencode|codex`, prompt as argv, wall timeout, transcript capture) run the adapter binary directly; unknown or missing runners **fail closed to skeleton** (`--no-llm` / `--runner skeleton`).
 
 Subcommands: `init` / `run` / `list` / `status` / `audit` / `cost` / `schedule` / `sync` / `templates`.
 
