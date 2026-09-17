@@ -60,6 +60,7 @@ pub fn build_root_command() cli.Command {
 		plugin_command(),
 		completion_command(),
 		loop_command(),
+		ci_wait_command(),
 		workspace_command(),
 		memory_command(),
 		project_command(),
@@ -465,6 +466,33 @@ fn loop_command() cli.Command {
 	}
 }
 
+fn ci_wait_command() cli.Command {
+	return cli.Command{
+		name: 'ci-wait'
+		description: 'Wait for PR checks (bin/ci-wait parity)'
+		execute: atk_exec
+		group: 'Advanced commands'
+		usage: '<repo> <pr> [--timeout SECS]'
+		flags: [
+			cli.Flag{
+				flag: .string
+				name: 'repo'
+				description: 'Target repo (owner/repo)'
+			},
+			cli.Flag{
+				flag: .string
+				name: 'pr'
+				description: 'Target PR number'
+			},
+			cli.Flag{
+				flag: .int
+				name: 'timeout'
+				description: 'Timeout seconds (default 1800)'
+			},
+		]
+	}
+}
+
 fn loop_flags() []cli.Flag {
 	return [
 		cli.Flag{
@@ -521,6 +549,11 @@ fn loop_flags() []cli.Flag {
 			flag: .string
 			name: 'cron'
 			description: 'Cron expression'
+		},
+		cli.Flag{
+			flag: .string
+			name: 'platform'
+			description: 'Schedule platform'
 		},
 	]
 }

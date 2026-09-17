@@ -867,6 +867,70 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 	}
 }
 
+fn parse_ci_wait_options(args []string) !agent_toolkit_core.CiWaitOptions {
+	mut repo := ''
+	mut pr := ''
+	mut timeout_secs := 0
+	mut positionals := []string{}
+	mut i := 0
+	for i < args.len {
+		a := args[i]
+		if a in ['--repo', '--pr', '--timeout'] {
+			if i + 1 >= args.len {
+				return error('${a} requires an argument')
+			}
+			val := args[i + 1]
+			match a {
+				'--repo' {
+					repo = val
+				}
+				'--pr' {
+					pr = val
+				}
+				'--timeout' {
+					timeout_secs = val.int()
+				}
+				else {}
+			}
+			i += 2
+			continue
+		}
+		if a.starts_with('--repo=') {
+			repo = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--pr=') {
+			pr = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--timeout=') {
+			timeout_secs = a.all_after('=').int()
+			i++
+			continue
+		}
+		if a.starts_with('-') {
+			i++
+			continue
+		}
+		positionals << a
+		i++
+	}
+	// Positional form mirrors bin/ci-wait: `ci-wait <repo> <pr>`.
+	if repo == '' && positionals.len > 0 {
+		repo = positionals[0]
+	}
+	if pr == '' && positionals.len > 1 {
+		pr = positionals[1]
+	}
+	return agent_toolkit_core.CiWaitOptions{
+		repo: repo
+		pr: pr
+		timeout_secs: timeout_secs
+	}
+}
+
 fn parse_swarm_options(args []string) !agent_toolkit_core.SwarmOptions {
 	mut sub := ''
 	mut workspace_path := ''
