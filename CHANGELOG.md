@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.31.0] — 2026-09-17
+
+Loop helpers graduate into the CLI: `loop run --runner` dispatches seven LLM
+runners, the `gh` gate and CI waiting are built in, and workspace `bin/`
+wrappers retire.
+
+### Added
+
+- `loop run --runner claude|opencode|codex|cursor|copilot|muse|pi` with PATH
+  probe, cursor `cursor-agent → agent → cursor` chain, and fail-closed
+  skeleton (ADR-020). `AGENT_TOOLKIT_LOOP_MODEL` pins `--model` on all seven.
+- Top-level `agent-toolkit ci-wait <repo> <pr>` (exit 0/1/2, exact-word
+  matching, 15→60s backoff).
+- In-process `gh` gate for loop runs (per-run shim, receipts, attribution,
+  `gate-denials.jsonl` audit); read-only `release/gist/repo/secret/variable/
+  workflow` subcommands pass.
+- `loop schedule --runner/--platform`; generated units carry
+  `WorkingDirectory`; skeleton runs log the runner fail-closed note.
+
 ## [1.30.3] — 2026-09-14
 
 A reliability patch: deterministic distribution ordering, the headless-safe
