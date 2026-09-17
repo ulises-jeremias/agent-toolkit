@@ -134,7 +134,7 @@ loop run options:
     --quiet       Suppress live runner output
     --pack PATH   Apply loop overrides from pack YAML
     --workspace PATH  Workspace root override
-    --runner NAME auto|skeleton (LLM PATH runners fail closed to skeleton without stdin)
+    --runner NAME auto|skeleton|claude|opencode|codex (LLM runners need the CLI on PATH; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works)
     --no-llm      Alias for --runner skeleton (no network)
     --platform PLATFORM  Schedule platform: local (default, systemd/launchd) | github-actions
     --json        Structured CommandResult JSON
@@ -418,6 +418,18 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	}
 	use_skeleton := opts.no_llm || opts.runner in ['skeleton', ''] || opts.runner == 'auto'
 	mut lines := []string{}
+	// LLM runner selection: explicit --runner, else AGENT_TOOLKIT_LOOP_RUNNER,
+	// else auto-probe. Unknown/missing runners fail closed to skeleton.
+	mut runner_name := 'skeleton'
+	mut runner_note := ''
+	if !opts.no_llm {
+		sel, note := select_loop_runner(opts.runner)
+		runner_name = sel
+		runner_note = note
+	}
+	if runner_name != 'skeleton' {
+		return run_loop_llm(ws, loop_name, meta, loop_dir, rid, run_dir, runs_today, escalations, wall, runner_name, runner_note)
+	}
 	lines << '[loop] Running ${loop_name} (tier=${meta.tier} cadence=${meta.cadence})'
 	lines << '[loop] ADR-020 process-per-run; skeleton fail-closed without ProcessService stdin'
 	if gate_info.len > 0 {
