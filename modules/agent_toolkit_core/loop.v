@@ -85,6 +85,15 @@ pub fn run_loop(opts LoopOptions) LoopReport {
 		'list', 'ls' {
 			loop_list(ws)
 		}
+		'gate-exec' {
+			loop_gate_exec()
+		}
+		'gate-issue-receipt' {
+			loop_gate_issue_receipt_cmd()
+		}
+		'gate-check' {
+			loop_gate_check_cmd()
+		}
 		'templates' {
 			loop_templates(ws)
 		}

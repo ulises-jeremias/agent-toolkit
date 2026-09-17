@@ -171,8 +171,19 @@ pub:
 // streams child output straight to transcript.log (no pipe deadlock).
 // Returns ok=false only on spawn failure; timeouts and non-zero exits are
 // reported in the result (caller records them, run still counts).
-pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir string, run_dir string, wall_seconds int) RunnerResult {
+pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir string, run_dir string, wall_seconds int, gate GatePolicy) RunnerResult {
 	transcript := os.join_path(run_dir, 'transcript.log')
+	// Gate enforcement: per-run gate-bin/gh shim first on PATH, policy via env.
+	mut env_prefix := ''
+	if gate.tier != '' {
+		gate_bin := os.join_path(run_dir, 'gate-bin')
+		toolkit_bin := os.executable()
+		real_gh := os.find_abs_path_of_executable('gh') or { '' }
+		if real_gh != '' {
+			gate_write_shim(gate_bin, toolkit_bin, real_gh) or {}
+			env_prefix = 'ATK_GATE_TIER=' + sh_quote(gate.tier) + ' ATK_GATE_ALLOW=' + sh_quote(gate.allowlist.join(',')) + ' ATK_GATE_DENY=' + sh_quote(gate.deny.join(',')) + ' ATK_GATE_RUNDIR=' + sh_quote(run_dir) + ' ATK_GATE_RUNID=' + sh_quote(gate.run_id) + ' PATH=' + sh_quote(gate_bin + ':' + os.getenv('PATH')) + ' '
+		}
+	}
 	argv := runner_argv(name, prompt, sysprompt)
 	if argv == [] {
 		return RunnerResult{
@@ -186,7 +197,7 @@ pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir
 	for a in argv {
 		parts << sh_quote(a)
 	}
-	cmd := parts.join(' ') + ' > ' + sh_quote(transcript) + ' 2>&1'
+	cmd := env_prefix + parts.join(' ') + ' > ' + sh_quote(transcript) + ' 2>&1'
 	os.write_file(transcript, '') or {}
 	start := time.now()
 	mut p := os.new_process('/bin/sh')
@@ -240,7 +251,14 @@ fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid
 	lines << '[loop] LLM runner: ${runner_name} (wall ${wall}s)'
 	prompt := loop_run_prompt(loop_dir, meta.request)
 	sysp := loop_runner_sysprompt(loop_name, rid, meta.tier, run_dir, loop_dir)
-	res := execute_loop_runner(runner_name, prompt, sysp, ws, run_dir, wall)
+	gate := GatePolicy{
+		tier:      meta.tier
+		allowlist: meta.allowlist.clone()
+		deny:      meta.deny.clone()
+		run_dir:   run_dir
+		run_id:    rid
+	}
+	res := execute_loop_runner(runner_name, prompt, sysp, ws, run_dir, wall, gate)
 	if !res.ok {
 		return LoopReport{
 			ok:      false
