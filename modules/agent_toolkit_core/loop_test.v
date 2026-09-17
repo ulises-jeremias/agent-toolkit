@@ -141,6 +141,7 @@ fn test_schedule_dry_run_bakes_runner() {
 	})
 	assert r.ok, r.message
 	assert r.message.contains('ExecStart=agent-toolkit loop run daily --runner opencode')
+	assert r.message.contains('WorkingDirectory=')
 	r2 := run_loop(LoopOptions{
 		subcommand: 'schedule'
 		name: 'daily'

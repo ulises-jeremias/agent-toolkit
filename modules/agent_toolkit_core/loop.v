@@ -796,7 +796,7 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 			message: 'Usage: agent-toolkit loop schedule <loop-name> [--dry-run]'
 		}
 	}
-	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nExecStart=agent-toolkit loop run ${opts.name}${schedule_run_suffix(opts)}\n\n[Install]\nWantedBy=default.target\n'
+	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nWorkingDirectory=${ws}\nExecStart=agent-toolkit loop run ${opts.name}${schedule_run_suffix(opts)}\n\n[Install]\nWantedBy=default.target\n'
 	if opts.dry_run || opts.list_mode {
 		return LoopReport{
 			ok: true
