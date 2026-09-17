@@ -3,7 +3,7 @@
 <!-- generated-descriptor-info-start -->
 - Linter: **prettier** (MegaLinter key: `JSON_PRETTIER`)
 - Descriptor: **JSON** (format)
-- MegaLinter documentation: <https://megalinter.io/10.0.0/descriptors/json_prettier/>
+- MegaLinter documentation: <https://megalinter.io/10.1.0/descriptors/json_prettier/>
 - Official documentation: <https://prettier.io/>
 - Auto-fix support: **yes** — add `JSON_PRETTIER` (or `all`) to the `APPLY_FIXES` variable, or run locally `npx mega-linter-runner --linter JSON_PRETTIER --fix` (runner and image versions follow `MEGALINTER_VERSION` of `.mega-linter.yml`: use `npx mega-linter-runner@beta` only when that property is `beta`)
 - Configuration file: `.prettierrc.json` (custom path can be defined with `JSON_PRETTIER_CONFIG_FILE`)
@@ -16,6 +16,8 @@
   - `JSON_PRETTIER_DISABLE_ERRORS_IF_LESS_THAN: <number>`: block only when the error count reaches the threshold — useful on a first install to accept the existing technical debt while preventing it from growing
   - `JSON_PRETTIER_FILTER_REGEX_EXCLUDE`: regex of files to exclude from this linter
   - `JSON_PRETTIER_ARGUMENTS`: additional CLI arguments for the linter
+- Known non-lint failure patterns (configuration/environment issues, see resolutions in the MegaLinter documentation page):
+  - `JSON_PRETTIER_ERROR_PLUGIN_NOT_FOUND`
 <!-- generated-descriptor-info-end -->
 
 ## Fix instructions
