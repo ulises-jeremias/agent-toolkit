@@ -88,11 +88,12 @@ pub fn ci_classify_checks(status string) string {
 }
 
 // ci_fetch_checks is the production checks source (live gh).
+// NOTE: `gh pr checks` exits non-zero (1 on failing checks, 8 while
+// pending) WITH the checks table on stdout, so the output is used
+// regardless of exit code. Empty output means no data (auth error,
+// unknown PR) and the caller keeps waiting.
 fn ci_fetch_checks(repo string, pr string) string {
 	res := os.execute('gh pr checks ${pr} --repo ${repo} 2>/dev/null')
-	if res.exit_code != 0 {
-		return ''
-	}
 	return res.output
 }
 
