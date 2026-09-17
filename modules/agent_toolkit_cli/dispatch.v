@@ -353,6 +353,25 @@ fn execute_command(cmd_name string, rest []string, mode agent_toolkit_core.Rende
 		report := agent_toolkit_core.run_loop(opts)
 		return render(agent_toolkit_core.loop_result(report), mode)
 	}
+	if cmd_name == 'ci-wait' {
+		opts := parse_ci_wait_options(rest) or {
+			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
+			return render_error(e, mode)
+		}
+		report := agent_toolkit_core.ci_wait_cmd(opts.repo, opts.pr, opts.timeout_secs)
+		code := render(agent_toolkit_core.ci_wait_result(report), mode)
+		// Preserve bin/ci-wait exit codes (0 pass, 1 fail, 2 timeout/usage).
+		if report.data['exit_code'] != '' {
+			want := report.data['exit_code'].int()
+			if report.ok {
+				return 0
+			}
+			if want == 1 || want == 2 {
+				return want
+			}
+		}
+		return code
+	}
 	if cmd_name == 'swarm' {
 		mut opts := parse_swarm_options(rest) or {
 			e := agent_toolkit_core.err_usage_flags('flag.invalid', err.msg())
@@ -616,6 +635,9 @@ If the matrix file is missing, prints where it is expected (research pipeline).
 	}
 	if name == 'insights' {
 		return insights_help_text()
+	}
+	if name == 'ci-wait' {
+		return agent_toolkit_core.ci_wait_help_text()
 	}
 	if name == 'release' {
 		return release_help_text()
