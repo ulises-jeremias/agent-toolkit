@@ -36,13 +36,20 @@ fn test_cadence_to_cron_invalid() {
 }
 
 fn test_emit_github_workflow_contains_cron() {
-	yml := emit_github_workflow('oss-triage', 'L1', '1d', '0 0 * * *', '1.18.0')
+	yml := emit_github_workflow('oss-triage', 'L1', '1d', '0 0 * * *', '1.18.0', '')
 	assert yml.contains("cron: '0 0 * * *'")
 	assert yml.contains('agent-toolkit — oss-triage')
 	assert yml.contains('concurrency:')
 	assert yml.contains('group: agent-toolkit-oss-triage')
 	assert yml.contains('uvx --from agent-toolkit-cli==1.18.0')
 	assert yml.contains('GITHUB_TOKEN')
+}
+
+fn test_emit_github_workflow_run_args() {
+	plain := emit_github_workflow('x', 'L1', '1d', '0 0 * * *', '1.18.0', '')
+	assert plain.contains('loop run x --non-interactive\n')
+	with_runner := emit_github_workflow('x', 'L1', '1d', '0 0 * * *', '1.18.0', ' --runner claude')
+	assert with_runner.contains('loop run x --non-interactive --runner claude')
 }
 
 fn test_remote_platforms() {
