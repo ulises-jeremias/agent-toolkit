@@ -143,7 +143,7 @@ loop run options:
     --quiet       Suppress live runner output
     --pack PATH   Apply loop overrides from pack YAML
     --workspace PATH  Workspace root override
-    --runner NAME auto|skeleton|claude|opencode|codex (LLM runners need the CLI on PATH; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works)
+    --runner NAME auto|skeleton|claude|opencode|codex|cursor|copilot|muse|pi (LLM runners need the CLI on PATH; cursor probes cursor-agent→agent→cursor; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works; AGENT_TOOLKIT_LOOP_MODEL pins the model where the CLI supports --model)
     --no-llm      Alias for --runner skeleton (no network)
     --platform PLATFORM  Schedule platform: local (default, systemd/launchd) | github-actions
     --json        Structured CommandResult JSON
