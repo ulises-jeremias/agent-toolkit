@@ -124,6 +124,32 @@ fn test_loop_schedule_dry_run() {
 	assert r.message.contains('systemd')
 }
 
+fn test_schedule_run_suffix() {
+	assert schedule_run_suffix(LoopOptions{}) == ''
+	assert schedule_run_suffix(LoopOptions{runner: 'opencode'}) == ' --runner opencode'
+	assert schedule_run_suffix(LoopOptions{runner: 'skeleton'}) == ' --runner skeleton'
+	assert schedule_run_suffix(LoopOptions{runner: 'opencode', no_llm: true}) == ' --no-llm'
+	assert schedule_run_suffix(LoopOptions{no_llm: true}) == ' --no-llm'
+}
+
+fn test_schedule_dry_run_bakes_runner() {
+	r := run_loop(LoopOptions{
+		subcommand: 'schedule'
+		name: 'daily'
+		dry_run: true
+		runner: 'opencode'
+	})
+	assert r.ok, r.message
+	assert r.message.contains('ExecStart=agent-toolkit loop run daily --runner opencode')
+	r2 := run_loop(LoopOptions{
+		subcommand: 'schedule'
+		name: 'daily'
+		dry_run: true
+	})
+	assert r2.ok, r2.message
+	assert r2.message.contains('ExecStart=agent-toolkit loop run daily\n')
+}
+
 fn with_clean_runner_env(f fn ()) {
 	old_runner := os.getenv('AGENT_TOOLKIT_LOOP_RUNNER')
 	old_model := os.getenv('AGENT_TOOLKIT_LOOP_MODEL')
