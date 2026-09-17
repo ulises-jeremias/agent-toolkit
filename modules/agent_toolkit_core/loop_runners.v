@@ -184,12 +184,19 @@ pub fn runner_argv(name string, prompt string, sysprompt string) []string {
 		}
 		'cursor' {
 			// Python-era form: <bin> --print --force --trust
-			// --output-format text <prompt> (#228).
+			// --output-format text <prompt> (#228); --model verified
+			// against the installed cursor-agent CLI.
 			bin := resolve_runner_bin('cursor')
 			if bin == '' {
 				[]string{}
 			} else {
-				[bin, '--print', '--force', '--trust', '--output-format', 'text', prompt]
+				mut argv := [bin, '--print', '--force', '--trust', '--output-format', 'text']
+				if model != '' {
+					argv << '--model'
+					argv << model
+				}
+				argv << prompt
+				argv
 			}
 		}
 		'copilot' {
