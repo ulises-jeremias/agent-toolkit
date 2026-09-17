@@ -3,7 +3,7 @@
 **Issue:** [#523](https://github.com/ulises-jeremias/agent-toolkit/issues/523) (EPIC 5 [#462](https://github.com/ulises-jeremias/agent-toolkit/issues/462), disposition [#560](https://github.com/ulises-jeremias/agent-toolkit/issues/560) **REDESIGN**)  
 **Concurrency:** [ADR-020](../adrs/ADR-020-v-concurrency.md)
 
-Not a 1:1 port of Python `loop/runner.py` threads. The V CLI is a **single-threaded supervisor**; each iteration is an OS process (ProcessService). LLM PATH runners (`--runner claude|opencode|codex|cursor|copilot|muse|pi`, prompt as argv, wall timeout, transcript capture) run the adapter binary directly; unknown or missing runners **fail closed to skeleton** (`--no-llm` / `--runner skeleton`). Cursor probes `cursor-agent` → `agent` → `cursor` (Python-era #228); copilot uses `-p -s --no-ask-user --allow-all` (#229). `AGENT_TOOLKIT_LOOP_MODEL` pins `--model` for every runner whose CLI supports it (all but cursor).
+Not a 1:1 port of Python `loop/runner.py` threads. The V CLI is a **single-threaded supervisor**; each iteration is an OS process (ProcessService). LLM PATH runners (`--runner claude|opencode|codex|cursor|copilot|muse|pi`, prompt as argv, wall timeout, transcript capture) run the adapter binary directly; unknown or missing runners **fail closed to skeleton** (`--no-llm` / `--runner skeleton`). Cursor probes `cursor-agent` → `agent` → `cursor` (Python-era #228); copilot uses `-p -s --no-ask-user --allow-all` (#229). `AGENT_TOOLKIT_LOOP_MODEL` pins `--model` for all seven runners.
 
 Subcommands: `init` / `run` / `list` / `status` / `audit` / `cost` / `schedule` / `sync` / `templates`.
 

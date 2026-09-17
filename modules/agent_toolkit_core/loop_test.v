@@ -311,6 +311,10 @@ fn test_cursor_probe_chain() {
 		assert auto_select_runner() == 'cursor'
 		assert runner_argv('cursor', 'do things', '') == ['agent', '--print', '--force',
 			'--trust', '--output-format', 'text', 'do things']
+		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'sonnet-4-thinking', true)
+		assert runner_argv('cursor', 'do things', '') == ['agent', '--print', '--force',
+			'--trust', '--output-format', 'text', '--model', 'sonnet-4-thinking', 'do things']
+		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
 		name, note := select_loop_runner('cursor')
 		assert name == 'cursor'
 		assert note == ''
