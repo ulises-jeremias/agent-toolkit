@@ -179,7 +179,7 @@ fn test_gate_exec_end_to_end() {
 	defer {
 		os.setenv('ATK_REAL_GH', old_real, true)
 	}
-	// read-only passes through (repo/release verbs are push-classified)
+	// read-only passes through (release/repo mutating verbs stay push-classified)
 	ro := GatePolicy{
 		tier:      'L1'
 		allowlist: []string{}
