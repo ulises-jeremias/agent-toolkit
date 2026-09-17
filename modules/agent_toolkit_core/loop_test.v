@@ -256,7 +256,14 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	}
 	run_dir := os.join_path(fake, 'run')
 	os.mkdir_all(run_dir) or { assert false, err.msg() }
-	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30)
+	policy := GatePolicy{
+		tier:      'L1'
+		allowlist: []string{}
+		deny:      []string{}
+		run_dir:   run_dir
+		run_id:    'test-run'
+	}
+	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30, policy)
 	assert res.ok
 	assert !res.timed_out
 	assert res.exit_code == 0
@@ -265,7 +272,7 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	assert out.contains('hello world')
 	// timeout path: replace the fake with a sleeper, tiny wall
 	os.write_file(claude_sh, '#!/bin/sh\nsleep 30\n') or { assert false, err.msg() }
-	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1)
+	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1, policy)
 	assert res2.ok
 	assert res2.timed_out
 	out2 := os.read_file(res2.transcript) or { '' }

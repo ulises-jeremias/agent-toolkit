@@ -406,6 +406,60 @@ fn loop_command() cli.Command {
 				description: 'List available templates'
 				execute: atk_exec
 			},
+			cli.Command{
+				name: 'gate-exec'
+				description: 'Enforce gh-gate over GH_ARGV then forward (internal)'
+				execute: atk_exec
+			},
+			cli.Command{
+				name: 'gate-issue-receipt'
+				description: 'Mint a verifier receipt (internal)'
+				execute: atk_exec
+				flags: [
+					cli.Flag{
+						flag: .string
+						name: 'actor'
+						description: 'Receipt actor'
+					},
+					cli.Flag{
+						flag: .string
+						name: 'ttl'
+						description: 'Receipt TTL seconds'
+					},
+					cli.Flag{
+						flag: .string
+						name: 'secret'
+						description: 'HMAC secret (or ATK_GATE_SECRET)'
+					},
+				]
+			},
+			cli.Command{
+				name: 'gate-check'
+				description: 'Classify argv and print the gate verdict (internal)'
+				execute: atk_exec
+				flags: [
+					cli.Flag{
+						flag: .string
+						name: 'tier'
+						description: 'Loop tier'
+					},
+					cli.Flag{
+						flag: .string
+						name: 'allow'
+						description: 'Comma allowlist'
+					},
+					cli.Flag{
+						flag: .string
+						name: 'deny'
+						description: 'Comma deny list'
+					},
+					cli.Flag{
+						flag: .string
+						name: 'secret'
+						description: 'HMAC secret (or ATK_GATE_SECRET)'
+					},
+				]
+			},
 		]
 		flags: loop_flags()
 	}
