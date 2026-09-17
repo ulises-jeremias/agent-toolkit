@@ -441,6 +441,9 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 	}
 	lines << '[loop] Running ${loop_name} (tier=${meta.tier} cadence=${meta.cadence})'
 	lines << '[loop] ADR-020 process-per-run; skeleton fail-closed without ProcessService stdin'
+	if runner_note != '' {
+		lines << '[loop] ${runner_note}'
+	}
 	if gate_info.len > 0 {
 		lines << '[loop] ${gate_info}'
 	}
