@@ -4758,6 +4758,24 @@ fn read_swarm_state(run_dir string) ?SwarmStateFile {
 	return st
 }
 
+// swarm_budget_violations ports Python swarm/budget.py check_limits: it names
+// every exhausted limit (>= comparison). A zero max means unset and is
+// skipped (V convention: recipe_budget fills defaults when max_total_tokens
+// is 0). The check_budget contract below is unchanged.
+fn swarm_budget_violations(b Budget, used BudgetConsumed, wall_seconds int) []string {
+	mut violated := []string{}
+	if b.max_total_tokens > 0 && used.total_tokens >= b.max_total_tokens {
+		violated << 'max_total_tokens'
+	}
+	if b.max_cost_usd > 0 && used.total_cost >= b.max_cost_usd {
+		violated << 'max_cost_usd'
+	}
+	if b.max_wall_seconds > 0 && wall_seconds >= b.max_wall_seconds {
+		violated << 'max_wall_seconds'
+	}
+	return violated
+}
+
 fn check_budget(run_dir string) ?string {
 	st := read_swarm_state(run_dir) or { return none }
 	mut b := st.budget
@@ -4766,7 +4784,7 @@ fn check_budget(run_dir string) ?string {
 	}
 	created := time.parse_rfc3339(st.created_at) or { time.utc() }
 	wall := int(time.utc().unix() - created.unix())
-	if st.budget_consumed.total_tokens >= b.max_total_tokens || st.budget_consumed.total_cost >= b.max_cost_usd || wall >= b.max_wall_seconds {
+	if swarm_budget_violations(b, st.budget_consumed, wall).len > 0 {
 		return 'budget_exhausted'
 	}
 	return none
