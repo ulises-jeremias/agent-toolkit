@@ -1613,9 +1613,45 @@ fn draw_operations_floor(mut app GuiApp, x int, y int, w int, h int, running int
 // OperationsAction is a real Engine action drawn in the detail column.
 struct OperationsAction {
 	label   string
-	kind    string // cancel | retry | logs | run | schedule | fix | copy
+	kind    string // cancel | cancel_all | retry | logs | run | schedule | stop | fix | copy
 	primary bool
 	danger  bool
+}
+
+// ops_cancelable_job_count counts the jobs Cancel-all would touch.
+fn ops_cancelable_job_count(jobs []desktop_engine.JobRecord) int {
+	mut n := 0
+	for j in jobs {
+		if j.status == .queued || j.status == .running {
+			n++
+		}
+	}
+	return n
+}
+
+// ops_cancel_all_visible gates the queue Cancel-all button: it earns its
+// place only with 2+ live jobs — a single live job already has its own
+// Cancel, and an idle queue must not offer bulk destruction.
+fn ops_cancel_all_visible(jobs []desktop_engine.JobRecord) bool {
+	return ops_cancelable_job_count(jobs) > 1
+}
+
+// ops_loop_can_stop gates the loop Stop button: Stop earns its place while
+// the loop still schedules (cron flag set) or still owns live queue work.
+// A fully idle loop has nothing to stop; Schedule re-arms a stopped loop.
+fn ops_loop_can_stop(cron_enabled bool, jobs []desktop_engine.JobRecord, loop_name string) bool {
+	if cron_enabled {
+		return true
+	}
+	if loop_name == '' {
+		return false
+	}
+	for j in jobs {
+		if (j.status == .queued || j.status == .running) && j.cmd.contains(loop_name) {
+			return true
+		}
+	}
+	return false
 }
 
 // operations_actions lists only the actions that exist for the selected record.
@@ -1636,6 +1672,12 @@ fn operations_actions(mut app GuiApp, tab int, sel int) []OperationsAction {
 			}
 			if j.status == .failed || j.status == .canceled || j.status == .done {
 				out << OperationsAction{'Retry', 'retry', true, false}
+			}
+			// Queue bulk control: Cancel-all is a real Engine seam
+			// (cancel_all_jobs), gated to 2+ live jobs by
+			// ops_cancel_all_visible — never on an idle queue.
+			if ops_cancel_all_visible(jobs) {
+				out << OperationsAction{'Cancel all', 'cancel_all', false, true}
 			}
 			logs := app.desktop.engine_job_logs(j.id)
 			if logs.len > 0 || j.logs.len > 0 {
@@ -1659,6 +1701,12 @@ fn operations_actions(mut app GuiApp, tab int, sel int) []OperationsAction {
 			}
 			out << OperationsAction{'Run', 'run', true, false}
 			out << OperationsAction{if loops[sel].cron_enabled { 'Unschedule' } else { 'Schedule' }, 'schedule', false, false}
+			// Run control-pause: Stop disables the cron flag and cancels
+			// the loop's queued/running jobs through engine_loop_stop.
+			// Schedule re-arms a stopped loop (the restore path).
+			if ops_loop_can_stop(loops[sel].cron_enabled, app.desktop.engine_jobs_catalog(), loops[sel].name) {
+				out << OperationsAction{'Stop', 'stop', false, true}
+			}
 			out << OperationsAction{'New…', 'new', false, false}
 			out << OperationsAction{'Delete', 'delete', false, true}
 		}
@@ -1731,6 +1779,127 @@ fn ops_promote_target(recipe string) string {
 // validator parses. Values come from the recorded entry — never invented.
 fn loop_entry_canonical(e desktop_engine.LoopEntry) string {
 	return 'name: ${e.name}\ntier: ${e.tier}\ncadence: ${e.cadence}\ngoal: ${e.goal}\nbudget_max_tokens: ${e.budget_total}\n'
+}
+
+// ── kanban-dispatch — command-deck board from Engine ops truth ──────────────
+// The Office command-deck kanban is a live projection, never a seeded list:
+// todo ← queued jobs + awaiting-approval swarms; doing ← running jobs +
+// running swarms; done ← recently finished jobs (finished_at desc, capped).
+// Card ids carry their Engine identity ('job:<id>' / 'swarm:<id>') so a deck
+// click dispatches to the live Operations record. Empty inputs yield an
+// empty board — a clean launch shows zero cards, never invented work.
+
+// kanban_done_cap bounds the done column: recent history, not an archive.
+const kanban_done_cap = 8
+
+// kanban_snapshot derives the deck board from live Engine records.
+fn kanban_snapshot(jobs []desktop_engine.JobRecord, swarms []desktop_engine.SwarmRun) []KanbanTask {
+	mut out := []KanbanTask{}
+	for j in jobs {
+		if j.status == .queued {
+			title := if j.cmd != '' { j.cmd } else { j.id }
+			pri := if j.retry_count > 0 { 'high' } else { 'low' }
+			out << KanbanTask{'job:${j.id}', title, 'todo', 'jobs', pri}
+		}
+	}
+	for s in swarms {
+		if s.status == .awaiting_approval {
+			title := if s.task != '' { s.task } else { s.id }
+			out << KanbanTask{'swarm:${s.id}', title, 'todo', 'swarm', 'high'}
+		}
+	}
+	for j in jobs {
+		if j.status == .running {
+			title := if j.cmd != '' { j.cmd } else { j.id }
+			out << KanbanTask{'job:${j.id}', title, 'doing', 'jobs', 'medium'}
+		}
+	}
+	for s in swarms {
+		if s.status == .running {
+			title := if s.task != '' { s.task } else { s.id }
+			out << KanbanTask{'swarm:${s.id}', title, 'doing', 'swarm', 'medium'}
+		}
+	}
+	mut done := jobs.filter(it.status == .done || it.status == .failed || it.status == .canceled)
+	done.sort(a.finished_at > b.finished_at)
+	for i, j in done {
+		if i >= kanban_done_cap {
+			break
+		}
+		title := if j.cmd != '' { j.cmd } else { j.id }
+		out << KanbanTask{'job:${j.id}', title, 'done', 'jobs', 'low'}
+	}
+	return out
+}
+
+// kanban_col_cards returns the board's cards in one column.
+fn kanban_col_cards(cards []KanbanTask, col string) []KanbanTask {
+	return cards.filter(it.col == col)
+}
+
+// kanban_deck_rect shares the command-deck strip geometry between draw and
+// hit-testing so clicks can never drift from the pixels.
+fn kanban_deck_rect(fx int, fy int, fw int, fh int) (int, int, int, int) {
+	return fx + 8, fy + fh - 68, fw - 16, 48
+}
+
+// kanban_deck_visible mirrors the draw guard: the deck (and its dispatch)
+// exists only when the strip actually renders.
+fn kanban_deck_visible(fw int, fh int) bool {
+	return fh - 68 > 36 && fw - 16 > 160
+}
+
+// kanban_col_at maps an x click inside the kanban third of the deck to its
+// sub-column (todo | doing | done, left to right like the labels), or ''
+// when the click falls outside the kanban third — the fleet/CI thirds never
+// dispatch.
+fn kanban_col_at(kanban_x int, kanban_w int, mx int) string {
+	if kanban_w <= 0 {
+		return ''
+	}
+	off := mx - kanban_x
+	if off < 0 || off >= kanban_w {
+		return ''
+	}
+	col := (off * 3) / kanban_w
+	if col == 0 {
+		return 'todo'
+	} else if col == 1 {
+		return 'doing'
+	}
+	return 'done'
+}
+
+// kanban_dispatch resolves a kanban column click to an Operations panel
+// (6 = Jobs, 8 = Swarms) plus the record index in the live catalog at click
+// time, so a stale board never mis-selects. ok=false means the column is
+// empty — idle, nothing to open. idx=-1 with ok=true means the card cleared
+// since the board rendered: the panel still opens, honestly.
+fn kanban_dispatch(col string, cards []KanbanTask, jobs []desktop_engine.JobRecord, swarms []desktop_engine.SwarmRun) (int, int, bool) {
+	for c in cards {
+		if c.col != col {
+			continue
+		}
+		if c.id.starts_with('job:') {
+			jid := c.id[4..]
+			for i, j in jobs {
+				if j.id == jid {
+					return 6, i, true
+				}
+			}
+			return 6, -1, true
+		}
+		if c.id.starts_with('swarm:') {
+			sid := c.id[6..]
+			for i, s in swarms {
+				if s.id == sid {
+					return 8, i, true
+				}
+			}
+			return 8, -1, true
+		}
+	}
+	return 6, -1, false
 }
 
 // ── guidance composer ───────────────────────────────────────────────────────
@@ -3079,6 +3248,15 @@ fn operations_run_action(mut app GuiApp, tab int, sel int, kind string) {
 					app.api_calls = app.desktop.engine_api_calls()
 					app.inspector_msg = 'Job retried: ${j.id} → ${new_id}'
 				}
+				'cancel_all' {
+					n := app.desktop.engine_cancel_all_jobs()
+					app.api_calls = app.desktop.engine_api_calls()
+					app.inspector_msg = if n > 0 {
+						'Queue drained: ${n} job(s) canceled'
+					} else {
+						'Queue already idle — nothing canceled'
+					}
+				}
 				'logs' {
 					if app.jobs_show_logs && app.jobs_logs_job == j.id {
 						app.jobs_show_logs = false
@@ -3113,6 +3291,17 @@ fn operations_run_action(mut app GuiApp, tab int, sel int, kind string) {
 					// the cron value is a flag, never an installed timer —
 					// the Schedule fact row says so explicitly.
 					app.inspector_msg = 'Loop schedule flag ${if next { 'set' } else { 'cleared' }}: ${e.name}'
+				}
+				'stop' {
+					// Pause: cron off + the loop's queued/running jobs
+					// canceled via the Engine. Schedule restores the flag.
+					rev := app.desktop.engine_loop_stop(e.name) or {
+						app.inspector_msg = 'Loop ${e.name} stop failed: ${err.msg()}'
+						return
+					}
+					app.engine_rev = rev
+					app.api_calls = app.desktop.engine_api_calls()
+					app.inspector_msg = 'Loop stopped: ${e.name} — Schedule restores it (rev ${rev})'
 				}
 				'new' {
 					app.loops_show_create = true

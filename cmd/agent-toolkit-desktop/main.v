@@ -3884,11 +3884,15 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(inbox_x + 8, inbox_y + 66, 68, 2, tint(app.pnl_text, 12))
 	// ── Command deck — kanban / fleet / CI workshop command (alt wood divergence, native gg)
 	// Signature atelier command deck: wood alt panel with brass grain, three columns for live kanban/fleet/CI
-	deck_x := fx + 8
-	deck_y := fy + fh - 68
-	deck_w := fw - 16
-	deck_h := 48
-	if deck_y > fy + 36 && deck_w > 160 {
+	// The kanban third is a live Engine projection (kanban_snapshot): queued
+	// jobs + awaiting swarms → todo, running → doing, recent finished → done.
+	// A click on a kanban sub-column dispatches to the Operations record
+	// (same kanban_deck_rect geometry for draw and hit-test).
+	if app.desktop != unsafe { nil } {
+		app.kanban = kanban_snapshot(app.desktop.engine_jobs_catalog(), app.desktop.swarm_list())
+	}
+	deck_x, deck_y, deck_w, deck_h := kanban_deck_rect(fx, fy, fw, fh)
+	if kanban_deck_visible(fw, fh) {
 		pixel_panel(mut app, deck_x, deck_y, deck_w, deck_h, 'alt')
 		col_w := deck_w / 3
 		// brass vertical dividers
@@ -3917,7 +3921,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			// inner gloss
 			app.gg.draw_line(deck_x + 11 + ki * 44, deck_y + 28, deck_x + 48 + ki * 44, deck_y + 28, tint(app.pnl_bg, 14))
 		}
-		app.gg.draw_text(deck_x + 10, deck_y + 36, '${app.kanban.len} cards • budgets • verifier', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+		app.gg.draw_text(deck_x + 10, deck_y + 36, '${app.kanban.len} cards · live queue — click a column to open', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 		// fleet — live health dots per desk + selected halo + working pulse
 		fleet_x := deck_x + col_w + 8
 		app.gg.draw_text(fleet_x, deck_y + 6, 'Fleet', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
@@ -8310,6 +8314,35 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.selected_desk = idx
 					app.inspector_msg = ''
 					return
+				}
+			}
+			// Command-deck kanban dispatch: a click on a kanban sub-column
+			// opens the underlying Operations record (Jobs 6 / Swarms 8).
+			// Same kanban_deck_rect geometry as draw; fleet/CI thirds ignore.
+			if app.desktop != unsafe { nil } && kanban_deck_visible(fw, fh) {
+				kx, ky, kw, kh := kanban_deck_rect(fx, fy, fw, fh)
+				if mx >= kx && mx < kx + kw / 3 && my >= ky && my < ky + kh {
+					col := kanban_col_at(kx, kw / 3, mx)
+					if col != '' {
+						jobs_live := app.desktop.engine_jobs_catalog()
+						swarms_live := app.desktop.swarm_list()
+						panel, idx, ok := kanban_dispatch(col, app.kanban, jobs_live, swarms_live)
+						if ok {
+							app.selected_panel = panel
+							if panel == 6 && idx >= 0 {
+								app.jobs_selected = idx
+								app.inspector_msg = 'Kanban ${col} → Jobs · ${jobs_live[idx].id}'
+							} else if panel == 8 && idx >= 0 {
+								app.swarm_selected = idx
+								app.inspector_msg = 'Kanban ${col} → Swarms · ${swarms_live[idx].id}'
+							} else {
+								app.inspector_msg = 'Kanban ${col} → Operations · record cleared since'
+							}
+						} else {
+							app.inspector_msg = 'Kanban ${col} is empty — queue is idle'
+						}
+						return
+					}
 				}
 			}
 		}
