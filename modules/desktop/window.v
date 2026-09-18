@@ -137,6 +137,13 @@ pub fn (mut d Desktop) boot() ! {
 	d.app_state = app_state.derive_app_state(snap)
 }
 
+// attach_process_supervisor wires a live ProcessSupervisor so spawned jobs
+// actually execute instead of queueing forever. Product entrypoints call
+// this after boot; headless tests opt in only when they spawn for real.
+pub fn (mut d Desktop) attach_process_supervisor() {
+	d.engine.attach_process_supervisor()
+}
+
 // shutdown stops Engine and drains UI channel.
 pub fn (mut d Desktop) shutdown() ! {
 	d.engine.stop()!
