@@ -735,6 +735,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 	mut cron := ''
 	mut list_mode := false
 	mut remove_mode := false
+	mut status_mode := false
 	mut platform := ''
 	mut i := 0
 	for i < args.len {
@@ -770,6 +771,11 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 		}
 		if a == '--remove' {
 			remove_mode = true
+			i++
+			continue
+		}
+		if a == '--status' {
+			status_mode = true
 			i++
 			continue
 		}
@@ -863,6 +869,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 		cron: cron
 		list_mode: list_mode
 		remove_mode: remove_mode
+		status_mode: status_mode
 		platform: platform
 	}
 }
