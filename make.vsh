@@ -148,6 +148,11 @@ context.task(
 		println('  gen-surface | gen-target-matrix')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
 		println('  ui-smoke/golden/enter-regression need build/agent-toolkit-desktop-native (see release.yml build step)')
+		println('  fixed displays (override to reproduce locally): ui-smoke :99 (SMOKE_DISPLAY),')
+		println('  golden :77 (GOLDEN_DISPLAY), enter-regression :97 (ATK_ENTER_DISPLAY),')
+		println('  clean-machine :98 (no lock — check :98 is free). Locked harnesses fail loudly')
+		println('  on a busy display instead of colliding. SMOKE_BIN overrides the binary.')
+		println('  coverage is the advisory critical-workflow report (add --check to gate).')
 	}
 )
 
