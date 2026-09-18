@@ -429,6 +429,16 @@ fn loop_command() cli.Command {
 					},
 					cli.Flag{
 						flag: .string
+						name: 'repo'
+						description: 'Bound target owner/name'
+					},
+					cli.Flag{
+						flag: .string
+						name: 'number'
+						description: 'Bound target PR/issue number'
+					},
+					cli.Flag{
+						flag: .string
 						name: 'secret'
 						description: 'HMAC secret (or ATK_GATE_SECRET)'
 					},
