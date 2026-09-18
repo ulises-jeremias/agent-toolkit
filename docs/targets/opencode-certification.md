@@ -28,7 +28,7 @@
 ## Gaps (documented, not hidden)
 
 1. **TypeScript plugin:** Lifecycle hooks, MCP wiring, and tool policy enforcement need a Bun/npm plugin exporting OpenCode's plugin API — out of scope for static companion assets.
-2. **Agent tool frontmatter:** `allowed_tools` / `denied_tools` IR fields are not yet populated from frontmatter (COMP-013); adapters cannot enforce tool policy until loader work lands.
+2. **Agent tool frontmatter:** `allowed_tools` / `denied_tools` / `read_only` IR fields are populated from AGENT.md frontmatter with fail-closed validation (COMP-013: explicit `allowed_tools` wins over the `tools` Claude-name map, unknown tokens and allowed∩denied overlap exclude the agent). Agent bytes are still emitted verbatim (Python parity); adapter-side enforcement (e.g. Gemini `excludeTools`) remains future work.
 
 ## Validation
 
