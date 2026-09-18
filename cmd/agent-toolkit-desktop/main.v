@@ -7992,7 +7992,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					if my >= dlg_y + 34 {
 						ri := (my - dlg_y - 34) / 26
 						if ri >= 0 && ri < det.len && det[ri].found {
-							spawn_session(mut app, det[ri].agent)
+							spawn_session(mut &app, det[ri].agent)
 						}
 						return
 					}
