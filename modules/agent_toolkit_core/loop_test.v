@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
 import os
+import time
 
 fn test_loop_help() {
 	r := run_loop(LoopOptions{
@@ -418,4 +419,97 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	assert res2.timed_out
 	out2 := os.read_file(res2.transcript) or { '' }
 	assert out2.contains('wall timeout')
+}
+
+fn test_tokens_from_trace_text_kind_aware() {
+	// token_usage lines count once via total_tokens (or total fallback)
+	assert tokens_from_trace_text('{"kind":"token_usage","total_tokens":100}\n') == 100
+	assert tokens_from_trace_text('{"kind":"token_usage","total":55}\n') == 55
+	assert tokens_from_trace_text('{"kind":"token_usage","prompt_tokens":5,"completion_tokens":7,"total_tokens":12}\n') == 12
+	// prompt/completion lines sum their parts
+	assert tokens_from_trace_text('{"kind":"prompt","prompt_tokens":10,"completion_tokens":20}\n') == 30
+	// run_end marker lines (incl. our own budget_exhausted markers) never count
+	assert tokens_from_trace_text('{"kind":"run_end","status":"budget_exhausted","tokens_used":100,"max_tokens":10}\n') == 0
+	assert tokens_from_trace_text('{"kind":"run_end","status":"completed"}\n') == 0
+	// undecodable lines are skipped, not parsed by substring
+	assert tokens_from_trace_text('not json\ntotal_tokens: 999\n') == 0
+	assert tokens_from_trace_text('') == 0
+}
+
+fn test_total_tokens_for_loop_day_filter() {
+	base := os.join_path(os.temp_dir(), 'at-loop-day-${os.getpid()}')
+	loop_dir := os.join_path(base, 'loops', 'tiny')
+	os.mkdir_all(os.join_path(loop_dir, 'runs', 'today')) or { panic(err.msg()) }
+	os.mkdir_all(os.join_path(loop_dir, 'runs', 'old')) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	ts := time.utc().format_rfc3339()
+	os.write_file(os.join_path(loop_dir, 'runs', 'today', 'trace.jsonl'),
+		'{"kind":"token_usage","ts":"${ts}","total_tokens":40}\n') or { panic(err.msg()) }
+	os.write_file(os.join_path(loop_dir, 'runs', 'old', 'trace.jsonl'),
+		'{"kind":"token_usage","ts":"2020-01-01T00:00:00Z","total_tokens":9999}\n') or {
+		panic(err.msg())
+	}
+	assert total_tokens_for_loop(loop_dir) == 40
+}
+
+fn test_wall_timeout_seconds_default_and_floor() {
+	assert wall_timeout_seconds(0) == 900
+	assert wall_timeout_seconds(-5) == 900
+	assert wall_timeout_seconds(5) == 30
+	assert wall_timeout_seconds(30) == 30
+	assert wall_timeout_seconds(600) == 600
+}
+
+fn test_loop_force_never_bypasses_token_budget() {
+	old_h := os.getenv('HARNESS_DIR')
+	old_ws := os.getenv('AGENT_TOOLKIT_WORKSPACE')
+	os.unsetenv('HARNESS_DIR')
+	os.unsetenv('AGENT_TOOLKIT_WORKSPACE')
+	base := os.join_path(os.temp_dir(), 'at-loop-force-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		if old_h.len > 0 {
+			os.setenv('HARNESS_DIR', old_h, true)
+		}
+		if old_ws.len > 0 {
+			os.setenv('AGENT_TOOLKIT_WORKSPACE', old_ws, true)
+		}
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# ws\n') or { panic(err.msg()) }
+	tpl := os.join_path(base, 'templates', 'loops')
+	os.mkdir_all(tpl) or { panic(err.msg()) }
+	os.write_file(os.join_path(tpl, 'tiny.yaml'), 'name: tiny\ntier: L1\ncadence: 1d\nmax_tokens: 10\ngoal: |\n  observe\nrequest: |\n  report status\n') or {
+		panic(err.msg())
+	}
+	init := run_loop(LoopOptions{
+		subcommand: 'init'
+		workspace_path: base
+		name: 'tiny'
+	})
+	assert init.ok, init.message
+	// plant today's exhausted token trace: the budget is already spent
+	ts := time.utc().format_rfc3339()
+	rundir := os.join_path(base, 'loops', 'tiny', 'runs', 'planted')
+	os.mkdir_all(rundir) or { panic(err.msg()) }
+	os.write_file(os.join_path(rundir, 'trace.jsonl'),
+		'{"kind":"token_usage","ts":"${ts}","total_tokens":100}\n') or { panic(err.msg()) }
+	plain := run_loop(LoopOptions{
+		subcommand: 'run'
+		workspace_path: base
+		name: 'tiny'
+		no_llm: true
+	})
+	assert plain.data['status'] == 'budget_exhausted', plain.message
+	// --force bypasses max_runs_per_day only: token exhaustion still blocks
+	forced := run_loop(LoopOptions{
+		subcommand: 'run'
+		workspace_path: base
+		name: 'tiny'
+		no_llm: true
+		force: true
+	})
+	assert forced.data['status'] == 'budget_exhausted', forced.message
 }

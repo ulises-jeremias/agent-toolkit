@@ -33,6 +33,28 @@ fn test_classify_gh_mutating() {
 	assert classify_gh_argv(['workflow', 'run', 'ci']) == 'push'
 }
 
+fn test_classify_api_attached_field_and_pulls_patch() {
+	// attached -F form implies POST (fail-closed): a field-bearing api call
+	// is never read-only
+	assert classify_gh_argv(['api', '-Ftitle=x', 'repos/o/r/pulls']) == 'push'
+	assert classify_gh_argv(['api', '-fbody=y', 'repos/o/r/issues/3']) == 'push'
+	// PATCH on a numbered pulls path closes (Python gh_gate parity)
+	assert classify_gh_argv(['api', 'repos/o/r/pulls/5', '-X', 'PATCH']) == 'close'
+	assert classify_gh_argv(['api', '--method=PATCH', 'repos/o/r/pulls/12']) == 'close'
+	// PATCH on issues stays push (could be close or assign)
+	assert classify_gh_argv(['api', '-X', 'PATCH', 'repos/o/r/issues/3']) == 'push'
+}
+
+fn test_loop_gate_l2_forbids_writes() {
+	// Python tier_forbids parity: L2 allows comment/label/assign only
+	assert loop_gate_allows('L2', ['push'], [], 'push') == false
+	assert loop_gate_allows('L2', ['approve'], [], 'approve') == false
+	assert loop_gate_allows('L2', ['delete'], [], 'delete') == false
+	assert loop_gate_allows('l2', ['push'], [], 'push') == false
+	assert loop_gate_allows('L2', ['label'], [], 'label') == true
+	assert loop_gate_allows('L2', ['assign'], [], 'assign') == true
+}
+
 fn test_loop_gate_tier() {
 	assert loop_gate_allows('L1', ['comment'], [], '') == true
 	assert loop_gate_allows('L1', ['comment'], [], 'comment') == false

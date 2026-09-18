@@ -52,12 +52,25 @@ fn test_gate_evaluate_matrix() {
 	}
 	ok9, reason9 := gate_evaluate(l2, 'merge', true)
 	assert !ok9
-	assert reason9.contains('L3')
+	assert reason9.contains('L2')
+	// L2 forbids all writes even when allowlisted (Python tier_forbids parity)
+	ok9b, _ := gate_evaluate(GatePolicy{
+		tier:      'L2'
+		allowlist: ['comment', 'push']
+		deny:      []string{}
+	}, 'push', false)
+	assert !ok9b
+	ok9c, _ := gate_evaluate(GatePolicy{
+		tier:      'L2'
+		allowlist: ['comment', 'approve']
+		deny:      []string{}
+	}, 'approve', false)
+	assert !ok9c
 }
 
 fn test_gate_canonical_payload_python_compat() {
-	got := gate_canonical_payload('merge', 'bot', '2026-09-17T10:00:00Z', '2026-09-17T11:00:00Z', 'n1')
-	assert got == '{"action":"merge","actor":"bot","expires_at":"2026-09-17T11:00:00Z","issued_at":"2026-09-17T10:00:00Z","nonce":"n1"}'
+	got := gate_canonical_payload('merge', 'bot', 'o/r', '5', '2026-09-17T10:00:00Z', '2026-09-17T11:00:00Z', 'n1')
+	assert got == '{"action":"merge","actor":"bot","expires_at":"2026-09-17T11:00:00Z","issued_at":"2026-09-17T10:00:00Z","nonce":"n1","number":"5","repo":"o/r"}'
 	assert gate_json_escape('a"b\\c') == '"a\\"b\\\\c"'
 }
 
@@ -68,26 +81,26 @@ fn test_gate_receipt_roundtrip_and_tamper() {
 		os.rmdir_all(base) or {}
 	}
 	// unsigned roundtrip (no secret configured)
-	rec := gate_issue_receipt(base, 'merge', 'verifier', 3600, '') or {
+	rec := gate_issue_receipt(base, 'merge', 'verifier', '', '', 3600, '') or {
 		assert false, err.msg()
 		return
 	}
 	assert rec.action == 'merge'
-	found := gate_find_receipt(base, 'merge', '') or {
+	found := gate_find_receipt(base, 'merge', '', '', '') or {
 		assert false, 'receipt should be found'
 		return
 	}
 	assert found.actor == 'verifier'
 	// wrong action does not match
-	miss := gate_find_receipt(base, 'close', '') or { GateReceipt{} }
+	miss := gate_find_receipt(base, 'close', '', '', '') or { GateReceipt{} }
 	assert miss.action == ''
 	// HMAC roundtrip
-	rec2 := gate_issue_receipt(base, 'close', 'v2', 3600, 's3cr3t') or {
+	rec2 := gate_issue_receipt(base, 'close', 'v2', '', '', 3600, 's3cr3t') or {
 		assert false, err.msg()
 		return
 	}
 	assert rec2.signature != ''
-	found2 := gate_find_receipt(base, 'close', 's3cr3t') or {
+	found2 := gate_find_receipt(base, 'close', '', '', 's3cr3t') or {
 		assert false, 'signed receipt should verify'
 		return
 	}
@@ -95,12 +108,71 @@ fn test_gate_receipt_roundtrip_and_tamper() {
 	// tampered file fails closed under a secret
 	raw := os.read_file(gate_receipt_path(base)) or { '' }
 	os.write_file(gate_receipt_path(base), raw.replace('"close"', '"merge"')) or {}
-	tampered := gate_find_receipt(base, 'merge', 's3cr3t') or { GateReceipt{} }
+	tampered := gate_find_receipt(base, 'merge', '', '', 's3cr3t') or { GateReceipt{} }
 	assert tampered.action == ''
 	// expired fixture fails closed
 	os.write_file(gate_receipt_path(base), '{"action":"merge","actor":"v","issued_at":"2020-01-01T00:00:00Z","expires_at":"2020-01-01T01:00:00Z","nonce":"old","signature":""}\n') or {}
-	stale := gate_find_receipt(base, 'merge', '') or { GateReceipt{} }
+	stale := gate_find_receipt(base, 'merge', '', '', '') or { GateReceipt{} }
 	assert stale.action == ''
+}
+
+fn test_gate_receipt_target_binding() {
+	base := os.join_path(os.temp_dir(), 'at-gate-bind-${os.getpid()}')
+	os.mkdir_all(base) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	rec := gate_issue_receipt(base, 'merge', 'verifier', 'o/r', '5', 3600, '') or {
+		assert false, err.msg()
+		return
+	}
+	assert rec.repo == 'o/r'
+	assert rec.number == '5'
+	// same target matches
+	same := gate_find_receipt(base, 'merge', 'o/r', '5', '') or {
+		assert false, 'bound receipt should match its target'
+		return
+	}
+	assert same.action == 'merge'
+	// another PR number does not match: one receipt cannot authorize any PR
+	other := gate_find_receipt(base, 'merge', 'o/r', '6', '') or { GateReceipt{} }
+	assert other.action == ''
+	// another repo does not match
+	fork := gate_find_receipt(base, 'merge', 'o/f', '5', '') or { GateReceipt{} }
+	assert fork.action == ''
+	// unbound receipt matches any target (wildcard, Python parity)
+	rec2 := gate_issue_receipt(base, 'close', 'v', '', '', 3600, '') or {
+		assert false, err.msg()
+		return
+	}
+	assert rec2.repo == ''
+	wild := gate_find_receipt(base, 'close', 'o/r', '9', '') or {
+		assert false, 'unbound receipt should match'
+		return
+	}
+	assert wild.action == 'close'
+}
+
+fn test_gate_target_from_argv() {
+	repo, number := gate_target_from_argv(['-R', 'o/r', 'pr', 'merge', '5'])
+	assert repo == 'o/r'
+	assert number == '5'
+	repo2, number2 := gate_target_from_argv(['pr', 'close', '12'])
+	assert repo2 == ''
+	assert number2 == '12'
+	repo3, number3 := gate_target_from_argv(['api', 'repos/o/r/pulls/7', '-X', 'PATCH'])
+	assert repo3 == 'o/r'
+	assert number3 == '7'
+	// flag values are never mistaken for the target number
+	repo4, number4 := gate_target_from_argv(['pr', 'view', '--comments', '5'])
+	assert repo4 == ''
+	assert number4 == ''
+	repo5, number5 := gate_target_from_argv(['--repo=o/r', 'issue', 'comment', '3'])
+	assert repo5 == 'o/r'
+	assert number5 == '3'
+	repo6, number6 := gate_target_from_argv(['pr', 'list'])
+	assert repo6 == ''
+	assert number6 == ''
 }
 
 fn test_gate_attribution() {
@@ -205,10 +277,15 @@ fn test_gate_exec_end_to_end() {
 	r3 := gate_exec_with(l3, ['pr', 'merge', '2'], '')
 	assert !r3.ok
 	assert r3.message.contains('receipt')
-	_ = gate_issue_receipt(base, 'merge', 'verifier', 3600, '') or {
+	// bound receipt authorizes its own target only
+	_ = gate_issue_receipt(base, 'merge', 'verifier', 'o/r', '2', 3600, '') or {
 		assert false, err.msg()
 		return
 	}
-	r4 := gate_exec_with(l3, ['pr', 'merge', '2'], '')
+	r4 := gate_exec_with(l3, ['-R', 'o/r', 'pr', 'merge', '2'], '')
 	assert r4.ok, r4.message
+	// same receipt does not authorize another PR
+	r5 := gate_exec_with(l3, ['-R', 'o/r', 'pr', 'merge', '3'], '')
+	assert !r5.ok
+	assert r5.message.contains('receipt')
 }

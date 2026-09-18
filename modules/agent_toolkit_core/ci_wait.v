@@ -3,8 +3,8 @@ module agent_toolkit_core
 import os
 import time
 
-// `agent-toolkit ci-wait <owner/repo> <pr> [timeout=300]` — exact port of
-// workspace bin/ci-wait: exact-word matching (so "skipping" never matches
+// `agent-toolkit ci-wait <owner/repo> <pr> [timeout=300]` — implements the
+// CI-wait contract: exact-word matching (so "skipping" never matches
 // "skip"), exponential backoff 15s doubling capped at 60s.
 // Exits: 0=pass, 1=fail (or usage error), 2=timeout.
 
