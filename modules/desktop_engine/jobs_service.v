@@ -4,6 +4,7 @@ import time
 import sync
 import x.json2
 import desktop_engine.eventbus
+import desktop_engine.process
 
 pub enum JobStatus {
 	queued
@@ -285,21 +286,25 @@ pub fn (mut e Engine) spawn_job(cmd string, args []string) !string {
 			})
 			return error('spawn failed: ${failed_msg}')
 		}
-		// update status to running via supervisor spawn
+		// update status to running on the ENGINE row (the catalog keys rows
+		// by cmd-bearing engine id) and link the supervisor handle for
+		// cancel and completion transcription.
 		mut tx2 := repo.begin('job-running')
-		tx2.set('jobs/${spawned}/status', 'running')
-		tx2.set('jobs/${spawned}/started_at', time.now().unix().str())
-		rev2 := e.put_transaction(mut tx2) or { return spawned }
+		tx2.set('jobs/${id}/status', 'running')
+		tx2.set('jobs/${id}/started_at', time.now().unix().str())
+		tx2.set('jobs/${id}/handle', spawned)
+		rev2 := e.put_transaction(mut tx2) or { return id }
 		e.bus.publish(eventbus.ToolkitEvent{
 			kind: .process_log
 			revision: rev2.revision
-			path: 'jobs:${spawned}'
+			path: 'jobs:${id}'
 			payload: json2.encode({
-				'id':  spawned
-				'msg': 'job running via ProcessSupervisor'
+				'id':     id
+				'handle': spawned
+				'msg':    'job running via ProcessSupervisor'
 			})
 		})
-		return spawned
+		return id
 	}
 	return id
 }
@@ -344,13 +349,81 @@ pub fn (mut e Engine) cancel_job(job_id string) !u64 {
 			'status': 'canceled'
 		})
 	})
-	// try supervisor cancel
+	// terminate the live process via the supervisor when a handle is linked.
+	// Best-effort: the row is already canceled above, so an unknown or
+	// already-dead handle is a no-op, never an error.
 	if mut sup := e.supervisor {
-		// supervisor may have handle; try to cancel via process
-		// We don't have direct handle, but we signal via eventbus
-		_ = sup
+		snap := e.repo.snapshot()
+		handle_id := snap.data['jobs/${job_id}/handle'] or { '' }
+		if handle_id != '' {
+			sup.cancel_job(handle_id)
+		}
 	}
 	return rev.revision
+}
+
+// attach_process_supervisor wires a live ProcessSupervisor to this Engine
+// and starts the exit-transcription loop. Idempotent. Desktop product
+// entrypoints call this at boot so spawned jobs actually execute; engine
+// tests opt in explicitly (a bare Engine honestly records queued-only).
+pub fn (mut e Engine) attach_process_supervisor() {
+	e.mu.lock()
+	if _ := e.supervisor {
+		e.mu.unlock()
+		return
+	}
+	sup := process.new_process_supervisor(e.bus)
+	e.supervisor = sup
+	mut ctx := e.ctx
+	e.mu.unlock()
+	ch := chan eventbus.ToolkitEvent{cap: 64}
+	e.bus.subscribe(.process_exited, ch)
+	spawn fn [mut e, ch, mut ctx] () {
+		done := ctx.done()
+		for {
+			select {
+				ev := <-ch {
+					e.transcribe_process_exit(ev)
+				}
+				_ := <-done {
+					e.bus.unsubscribe(.process_exited, ch)
+					break
+				}
+			}
+		}
+	}()
+}
+
+// transcribe_process_exit records the real outcome of a supervisor-run job.
+// It ignores the Engine's own transcriptions (jobs: paths, no code field),
+// restarts (the process will report again), unknown handles, and rows that
+// already reached a terminal state (cancel wins over a racy exit).
+fn (mut e Engine) transcribe_process_exit(ev eventbus.ToolkitEvent) {
+	if ev.path.starts_with('jobs:') {
+		return
+	}
+	decoded := json2.decode[map[string]string](ev.payload) or { return }
+	code_str := decoded['code'] or { return }
+	if (decoded['will_restart'] or { 'false' }) == 'true' {
+		return
+	}
+	handle_id := decoded['id'] or { return }
+	snap := e.repo.snapshot()
+	mut row_id := ''
+	for k, v in snap.data {
+		if k.ends_with('/handle') && v == handle_id {
+			row_id = k.all_after('jobs/').all_before('/handle')
+			break
+		}
+	}
+	if row_id == '' {
+		return
+	}
+	status_str := snap.data['jobs/${row_id}/status'] or { 'queued' }
+	if status_str == 'done' || status_str == 'failed' || status_str == 'canceled' {
+		return
+	}
+	e.job_complete(row_id, code_str.int()) or {}
 }
 
 // cancel_all_jobs — easy bulk management.

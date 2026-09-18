@@ -32,6 +32,10 @@ mut:
 	start(mut ctx context.Context) !
 	stop() !
 	spawn_job(cmd string, args []string) !string
+	// cancel_job terminates the live handle. True only when a live
+	// process was actually terminated — false when the handle is
+	// unknown or already dead, so callers can tell kill from no-op.
+	cancel_job(handle_id string) bool
 }
 
 // Engine owns headless lifecycle: new() → init() → start() → stop().

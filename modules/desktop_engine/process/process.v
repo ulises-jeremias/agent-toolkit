@@ -350,6 +350,19 @@ pub fn (mut s ProcessSupervisor) spawn_job(cmd string, args []string) !string {
 	return h.id
 }
 
+// cancel_job terminates the live handle. True only when a live process
+// was actually terminated; false when the handle is unknown or already
+// dead. Safe to call on exited handles.
+pub fn (mut s ProcessSupervisor) cancel_job(handle_id string) bool {
+	h := s.get_handle(handle_id) or { return false }
+	mut handle := unsafe { h }
+	if !handle.is_alive() {
+		return false
+	}
+	handle.cancel()
+	return true
+}
+
 pub fn (mut s ProcessSupervisor) count() int {
 	s.mu.rlock()
 	defer { s.mu.runlock() }
