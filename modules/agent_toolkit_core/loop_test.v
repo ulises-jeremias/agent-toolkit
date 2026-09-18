@@ -250,44 +250,57 @@ fn test_sh_quote() {
 	assert sh_quote("it's") == "'it'\\''s'"
 }
 
+fn test_loop_runner_aliases() {
+	// explicit names never read the environment, so no clean-env wrapper
+	assert resolve_loop_runner('cursor-agent') == 'cursor'
+	assert resolve_loop_runner('github-copilot') == 'copilot'
+	assert resolve_loop_runner('openai-codex') == 'codex'
+	assert resolve_loop_runner('muse-code') == 'muse'
+	// underscore forms normalize to the alias (Python _normalize parity)
+	assert resolve_loop_runner('openai_codex') == 'codex'
+	assert resolve_loop_runner('github_copilot') == 'copilot'
+	// near-miss names are NOT aliases: fail closed like any unknown runner
+	assert resolve_loop_runner('open_ai_codex') == ''
+}
+
 fn test_runner_argv_shapes() {
 	with_clean_runner_env(fn () {
-		c := runner_argv('claude', 'do things', 'sys here')
+		c := runner_argv('claude', 'do things', 'sys here', resolve_loop_model(''))
 		assert c[0] == 'claude' && c[1] == '--print'
 		assert c.contains('do things')
-		o := runner_argv('opencode', 'do things', '')
+		o := runner_argv('opencode', 'do things', '', resolve_loop_model(''))
 		assert o == ['opencode', 'run', 'do things']
 		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'big-model', true)
-		om := runner_argv('opencode', 'do things', '')
+		om := runner_argv('opencode', 'do things', '', resolve_loop_model(''))
 		assert om == ['opencode', 'run', '--model', 'big-model', 'do things']
 		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
-		x := runner_argv('codex', 'do things', 'sys here')
+		x := runner_argv('codex', 'do things', 'sys here', resolve_loop_model(''))
 		assert x[0] == 'codex' && x[1] == 'exec'
 		assert x[2].contains('sys here') && x[2].contains('do things')
-		assert runner_argv('nope', 'x', '') == []
+		assert runner_argv('nope', 'x', '', resolve_loop_model('')) == []
 	})
 }
 
 fn test_runner_argv_phase2_shapes() {
 	with_clean_runner_env(fn () {
-		assert runner_argv('copilot', 'do things', 'sys here') == ['copilot', '-p', 'do things',
+		assert runner_argv('copilot', 'do things', 'sys here', resolve_loop_model('')) == ['copilot', '-p', 'do things',
 			'-s', '--no-ask-user', '--allow-all']
-		assert runner_argv('muse', 'do things', 'sys here') == ['muse', 'exec', '--approval-mode',
+		assert runner_argv('muse', 'do things', 'sys here', resolve_loop_model('')) == ['muse', 'exec', '--approval-mode',
 			'never', 'do things']
-		assert runner_argv('pi', 'do things', 'sys here') == ['pi', '--append-system-prompt',
+		assert runner_argv('pi', 'do things', 'sys here', resolve_loop_model('')) == ['pi', '--append-system-prompt',
 			'sys here', '-p', 'do things']
-		assert runner_argv('pi', 'do things', '') == ['pi', '-p', 'do things']
+		assert runner_argv('pi', 'do things', '', resolve_loop_model('')) == ['pi', '-p', 'do things']
 		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'big-model', true)
-		assert runner_argv('claude', 'do things', 'sys here') == ['claude', '--print', '--allowedTools',
+		assert runner_argv('claude', 'do things', 'sys here', resolve_loop_model('')) == ['claude', '--print', '--allowedTools',
 			'Bash(gh *) Bash(git *) Edit Read Write Glob Grep', '--append-system-prompt', 'sys here',
 			'--model', 'big-model', 'do things']
-		assert runner_argv('codex', 'do things', 'sys here') == ['codex', 'exec', '--model',
+		assert runner_argv('codex', 'do things', 'sys here', resolve_loop_model('')) == ['codex', 'exec', '--model',
 			'big-model', 'sys here\n\n---\n\ndo things']
-		assert runner_argv('copilot', 'do things', '') == ['copilot', '-p', 'do things',
+		assert runner_argv('copilot', 'do things', '', resolve_loop_model('')) == ['copilot', '-p', 'do things',
 			'-s', '--no-ask-user', '--allow-all', '--model', 'big-model']
-		assert runner_argv('muse', 'do things', '') == ['muse', 'exec', '--approval-mode',
+		assert runner_argv('muse', 'do things', '', resolve_loop_model('')) == ['muse', 'exec', '--approval-mode',
 			'never', '--model', 'big-model', 'do things']
-		assert runner_argv('pi', 'do things', 'sys here') == ['pi', '--append-system-prompt',
+		assert runner_argv('pi', 'do things', 'sys here', resolve_loop_model('')) == ['pi', '--append-system-prompt',
 			'sys here', '--model', 'big-model', '-p', 'do things']
 		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
 	})
@@ -309,12 +322,19 @@ fn test_cursor_probe_chain() {
 		assert runner_binary('cursor') == 'cursor-agent'
 		assert runner_is_available('cursor')
 		assert auto_select_runner() == 'cursor'
-		assert runner_argv('cursor', 'do things', '') == ['agent', '--print', '--force',
+		assert runner_argv('cursor', 'do things', '', resolve_loop_model('')) == ['agent', '--print', '--force',
 			'--trust', '--output-format', 'text', 'do things']
 		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'sonnet-4-thinking', true)
-		assert runner_argv('cursor', 'do things', '') == ['agent', '--print', '--force',
+		assert runner_argv('cursor', 'do things', '', resolve_loop_model('')) == ['agent', '--print', '--force',
 			'--trust', '--output-format', 'text', '--model', 'sonnet-4-thinking', 'do things']
 		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
+		// explicit --model wins over the environment
+		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'env-model', true)
+		assert resolve_loop_model('flag-model') == 'flag-model'
+		assert runner_argv('cursor', 'do things', '', resolve_loop_model('flag-model')) == ['agent', '--print', '--force',
+			'--trust', '--output-format', 'text', '--model', 'flag-model', 'do things']
+		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
+		assert resolve_loop_model('') == ''
 		name, note := select_loop_runner('cursor')
 		assert name == 'cursor'
 		assert note == ''
@@ -367,7 +387,7 @@ fn test_execute_copilot_fake_e2e() {
 		run_dir:   run_dir
 		run_id:    'test-run-copilot'
 	}
-	res := execute_loop_runner('copilot', 'hello world', '', fake, run_dir, 30, policy)
+	res := execute_loop_runner('copilot', 'hello world', '', fake, run_dir, 30, policy, '')
 	assert res.ok
 	assert !res.timed_out
 	assert res.exit_code == 0
@@ -404,7 +424,7 @@ fn test_execute_loop_runner_echo_and_timeout() {
 		run_dir:   run_dir
 		run_id:    'test-run'
 	}
-	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30, policy)
+	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30, policy, '')
 	assert res.ok
 	assert !res.timed_out
 	assert res.exit_code == 0
@@ -413,7 +433,7 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	assert out.contains('hello world')
 	// timeout path: replace the fake with a sleeper, tiny wall
 	os.write_file(claude_sh, '#!/bin/sh\nsleep 30\n') or { assert false, err.msg() }
-	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1, policy)
+	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1, policy, '')
 	assert res2.ok
 	assert res2.timed_out
 	out2 := os.read_file(res2.transcript) or { '' }
