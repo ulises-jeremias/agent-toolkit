@@ -70,3 +70,21 @@ fn test_update_unknown_tool() {
 	assert !report.ok
 	assert report.message.contains('Unknown tool')
 }
+
+fn test_update_known_tool_without_mappings() {
+	base := os.join_path(os.temp_dir(), 'at-upd-nomap-${os.getpid()}')
+	os.mkdir_all(base) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	// copilot is a known tool (install_valid_tools parity): without update
+	// mappings it reports "No profile data", never "Unknown tool"
+	report := run_update(UpdateOptions{
+		tools: ['copilot']
+		home_dir: base
+		data_root: base
+		skip_data_refresh: true
+	})
+	assert report.ok, report.message
+	assert report.message.contains('No profile data for: copilot')
+}

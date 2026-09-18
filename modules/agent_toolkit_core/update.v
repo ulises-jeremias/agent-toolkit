@@ -3,8 +3,11 @@ module agent_toolkit_core
 import crypto.sha256
 import os
 
-// update_valid_tools lists profile tools supported by `agent-toolkit update`.
-pub const update_valid_tools = ['claude-code', 'cursor', 'opencode', 'windsurf', 'pi']
+// update_valid_tools lists profile tools supported by `agent-toolkit update`
+// (mirrors install_valid_tools: tools without update mappings report
+// "No profile data" instead of "Unknown tool", Python update.py parity).
+pub const update_valid_tools = ['claude-code', 'cursor', 'opencode', 'copilot', 'windsurf', 'pi',
+	'muse-code', 'muse']
 
 // UpdateOptions configures capability profile update (not binary self-update).
 pub struct UpdateOptions {
