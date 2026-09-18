@@ -15,7 +15,8 @@ The **canonical artifact** is the native V binary from a GitHub Release (`agent-
 ```bash
 # 1. Bump all version sources atomically
 ./scripts/bump-version.vsh 1.3.0
-git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json
+./make.vsh gen-surface  # regenerate docs/surface/openapi.json (reads VERSION)
+git diff --stat  # VERSION, packages/pypi/agent-toolkit-cli/src/agent_toolkit/__init__.py, package.json, packages/npm/*/package.json, .claude-plugin/marketplace.json, .cursor-plugin/marketplace.json, docs/surface/openapi.json
 
 # 2. Validate (CI parity)
 ./make.vsh test && ./make.vsh build-cli
