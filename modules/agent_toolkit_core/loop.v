@@ -20,6 +20,7 @@ pub:
 	cron           string
 	list_mode      bool
 	remove_mode    bool
+	status_mode    bool
 	platform       string // schedule platform: local | github-actions (Phase 1, #729)
 }
 
@@ -793,42 +794,536 @@ fn loop_schedule(ws string, opts LoopOptions) LoopReport {
 			}
 		}
 	}
+	// local platform: list/status need no loop name
+	if opts.list_mode {
+		return loop_schedule_list(os.home_dir())
+	}
+	if opts.status_mode {
+		return loop_schedule_status(os.home_dir())
+	}
 	if opts.name.len == 0 {
 		return LoopReport{
 			ok: false
-			message: 'Usage: agent-toolkit loop schedule <loop-name> [--dry-run]'
+			message: 'Usage: agent-toolkit loop schedule <loop-name> [--dry-run] [--remove] [--cron EXPR]'
 		}
 	}
-	unit := '[Unit]\nDescription=agent-toolkit loop ${opts.name}\n\n[Service]\nType=oneshot\nWorkingDirectory=${ws}\nExecStart=agent-toolkit loop run ${opts.name}${schedule_run_suffix(opts)}\n\n[Install]\nWantedBy=default.target\n'
-	if opts.dry_run || opts.list_mode {
+	if opts.remove_mode {
+		return loop_schedule_remove(opts.name, os.home_dir(), opts.dry_run)
+	}
+	loop_dir := resolve_loop_dir(ws, opts.name) or {
 		return LoopReport{
-			ok: true
-			message: '[loop] schedule dry-run (systemd user unit):\n${unit}'
+			ok: false
+			message: "Loop '${opts.name}' not found. Run: agent-toolkit loop init ${opts.name}"
+			data: {
+				'subcommand': 'schedule'
+				'workspace':  ws
+			}
+		}
+	}
+	meta := parse_loop_meta(loop_dir)
+	mut cron := opts.cron.trim_space()
+	if cron.len == 0 {
+		cron = cadence_to_cron(meta.cadence) or {
+			return LoopReport{
+				ok: false
+				message: 'invalid cadence "${meta.cadence}" for loop "${opts.name}": ${err.msg()}\n  Use --cron to override or fix loops/${opts.name}/loop.yaml'
+				data: {
+					'subcommand': 'schedule'
+					'workspace':  ws
+					'name':       opts.name
+				}
+			}
+		}
+	}
+	if os.user_os() == 'macos' {
+		return loop_schedule_install_launchd(opts.name, ws, meta.cadence, schedule_run_suffix(opts), os.home_dir(), opts.dry_run)
+	}
+	if os.user_os() != 'linux' {
+		return LoopReport{
+			ok: false
+			message: 'loop schedule install is supported on Linux (systemd) and macOS (launchd) only.'
 			data: {
 				'subcommand': 'schedule'
 				'workspace':  ws
 				'name':       opts.name
+			}
+		}
+	}
+	return loop_schedule_install_systemd(opts.name, ws, cron, schedule_run_suffix(opts), os.home_dir(), opts.dry_run)
+}
+
+// schedule_unit_base is the systemd/launchd unit basename for a loop.
+fn schedule_unit_base(name string) string {
+	return 'agent-toolkit-loop-${name}'
+}
+
+fn systemd_user_dir(home string) string {
+	return os.join_path(home, '.config', 'systemd', 'user')
+}
+
+fn launchd_agents_dir(home string) string {
+	return os.join_path(home, 'Library', 'LaunchAgents')
+}
+
+fn launchd_label(name string) string {
+	return 'com.agent-toolkit.${name}'
+}
+
+// emit_systemd_service renders the oneshot service for a loop run.
+fn emit_systemd_service(name string, ws string, run_suffix string) string {
+	return '[Unit]\nDescription=agent-toolkit loop ${name}\n\n[Service]\nType=oneshot\nWorkingDirectory=${ws}\nExecStart=agent-toolkit loop run ${name}${run_suffix}\n\n[Install]\nWantedBy=default.target\n'
+}
+
+// schedule_expand_step expands one cron field to an explicit value list
+// (lo..hi-1): '*' → all, '*/N' → stepped, plain int → itself.
+fn schedule_expand_step(field string, lo int, hi int) ![]string {
+	if field == '*' {
+		mut out := []string{}
+		for v in lo .. hi {
+			out << '${v:02d}'
+		}
+		return out
+	}
+	if field.starts_with('*/') {
+		step := field[2..].int()
+		if step <= 0 {
+			return error('bad step "${field}"')
+		}
+		mut out := []string{}
+		mut v := lo
+		for v < hi {
+			out << '${v:02d}'
+			v += step
+		}
+		return out
+	}
+	n := field.int()
+	if '${n}' == field && n >= lo && n < hi {
+		return ['${n:02d}']
+	}
+	return error('unsupported cron field "${field}"')
+}
+
+// schedule_cron_to_oncalendar maps cron expressions (as emitted by
+// cadence_to_cron, plus hourly/daily/weekly keywords) to systemd
+// OnCalendar expressions. Unknown shapes are an error — unlike the Python
+// era, we never write a timer systemd would reject.
+fn schedule_cron_to_oncalendar(cron string) !string {
+	c := cron.trim_space()
+	if c == 'hourly' {
+		return 'hourly'
+	}
+	if c == 'daily' {
+		return 'daily'
+	}
+	if c == 'weekly' {
+		return 'weekly'
+	}
+	parts := c.split(' ')
+	if parts.len != 5 {
+		return error('unsupported cron "${cron}" — use a cadence-derived value (e.g. 15m, 1h, 1d, 1w) or hourly/daily/weekly')
+	}
+	minute := parts[0]
+	hour := parts[1]
+	dom := parts[2]
+	mon := parts[3]
+	dow := parts[4]
+	if mon != '*' {
+		return error('unsupported cron "${cron}" — month field must be *')
+	}
+	mins := schedule_expand_step(minute, 0, 60) or {
+		return error('unsupported cron "${cron}" (${err.msg()})')
+	}
+	hours := schedule_expand_step(hour, 0, 24) or {
+		return error('unsupported cron "${cron}" (${err.msg()})')
+	}
+	clock_min := if mins.len == 60 { '*' } else { mins.join(',') }
+	clock_hr := if hours.len == 24 { '*' } else { hours.join(',') }
+	clock := '${clock_hr}:${clock_min}:00'
+	if dom == '*' && dow == '*' {
+		return '*-*-* ${clock}'
+	}
+	if dow == '*' {
+		days := schedule_expand_step(dom, 1, 32) or {
+			return error('unsupported cron "${cron}" (${err.msg()})')
+		}
+		return '*-*-${days.join(',')} ${clock}'
+	}
+	if dom == '*' {
+		names := {'0': 'Sun', '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri', '6': 'Sat', '7': 'Sun'}
+		mut days := []string{}
+		for d in dow.split(',') {
+			name := names[d] or { return error('unsupported cron "${cron}" — bad weekday "${d}"') }
+			days << name
+		}
+		return '${days.join(',')} *-*-* ${clock}'
+	}
+	return error('unsupported cron "${cron}" — day-of-month and weekday cannot both restrict')
+}
+
+// emit_systemd_timer renders the timer pairing the loop service.
+fn emit_systemd_timer(name string, oncalendar string) string {
+	return '[Unit]\nDescription=agent-toolkit loop timer: ${name}\n\n[Timer]\nOnCalendar=${oncalendar}\nPersistent=true\n\n[Install]\nWantedBy=timers.target\n'
+}
+
+// schedule_cadence_interval_secs converts a toolkit cadence (15m, 4h, 1d,
+// 1w) to launchd StartInterval seconds.
+fn schedule_cadence_interval_secs(cadence string) !int {
+	c := cadence.trim_space()
+	if c.len < 2 {
+		return error('invalid cadence "${cadence}"')
+	}
+	unit := c[c.len - 1..]
+	num_str := c[..c.len - 1]
+	for ch in num_str {
+		if ch < `0` || ch > `9` {
+			return error('invalid cadence "${cadence}"')
+		}
+	}
+	num := num_str.int()
+	if num <= 0 {
+		return error('invalid cadence "${cadence}"')
+	}
+	if unit == 'm' {
+		return num * 60
+	} else if unit == 'h' {
+		return num * 3600
+	} else if unit == 'd' {
+		return num * 86400
+	} else if unit == 'w' {
+		return num * 604800
+	}
+	return error('invalid cadence "${cadence}" — expected <N>m|h|d|w')
+}
+
+// emit_launchd_plist renders the macOS agent plist for a loop.
+fn emit_launchd_plist(label string, exe string, args []string, ws string, interval_secs int) string {
+	mut pargs := '\t\t<string>${exe}</string>\n'
+	for a in args {
+		pargs += '\t\t<string>${a}</string>\n'
+	}
+	return '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n\t<key>Label</key>\n\t<string>${label}</string>\n\t<key>ProgramArguments</key>\n\t<array>\n${pargs}\t</array>\n\t<key>WorkingDirectory</key>\n\t<string>${ws}</string>\n\t<key>StartInterval</key>\n\t<integer>${interval_secs}</integer>\n\t<key>RunAtLoad</key>\n\t<false/>\n</dict>\n</plist>\n'
+}
+
+// schedule_run_argv splits the run suffix back into argv for launchd.
+fn schedule_run_argv(name string, run_suffix string) []string {
+	mut args := ['loop', 'run', name]
+	for a in run_suffix.trim_space().split(' ') {
+		if a != '' {
+			args << a
+		}
+	}
+	return args
+}
+
+// loop_schedule_install_systemd writes service+timer, validates the
+// calendar when systemd-analyze exists, and enables/starts the timer
+// (best-effort: every step reports its real outcome).
+fn loop_schedule_install_systemd(name string, ws string, cron string, run_suffix string, home string, dry_run bool) LoopReport {
+	base := schedule_unit_base(name)
+	svc := emit_systemd_service(name, ws, run_suffix)
+	oncal := schedule_cron_to_oncalendar(cron) or {
+		return LoopReport{
+			ok: false
+			message: '${err.msg()}'
+			data: {
+				'subcommand': 'schedule'
+				'workspace':  ws
+				'name':       name
+			}
+		}
+	}
+	timer := emit_systemd_timer(name, oncal)
+	dir := systemd_user_dir(home)
+	svc_path := os.join_path(dir, base + '.service')
+	timer_path := os.join_path(dir, base + '.timer')
+	if dry_run {
+		return LoopReport{
+			ok: true
+			message: '[loop] schedule dry-run (systemd service+timer):\n--- ${svc_path} ---\n${svc}--- ${timer_path} ---\n${timer}Would enable: systemctl --user enable ${base}.timer\nWould start:  systemctl --user start ${base}.timer'
+			data: {
+				'subcommand': 'schedule'
+				'workspace':  ws
+				'name':       name
 				'mode':       'dry-run'
 			}
 		}
 	}
-	dir := os.join_path(os.home_dir(), '.config', 'systemd', 'user')
-	os.mkdir_all(dir) or {}
-	path := os.join_path(dir, 'agent-toolkit-loop-${opts.name}.service')
-	os.write_file(path, unit) or {
+	os.mkdir_all(dir) or {
+		return LoopReport{
+			ok: false
+			message: 'mkdir failed: ${err}'
+		}
+	}
+	if os.execute('command -v systemd-analyze').exit_code == 0 {
+		cal := os.execute("systemd-analyze calendar '${oncal}'")
+		if cal.exit_code != 0 {
+			return LoopReport{
+				ok: false
+				message: 'systemd rejected OnCalendar "${oncal}": ${cal.output.trim_space()}'
+				data: {
+					'subcommand': 'schedule'
+					'workspace':  ws
+					'name':       name
+				}
+			}
+		}
+	}
+	os.write_file(svc_path, svc) or {
 		return LoopReport{
 			ok: false
 			message: 'write unit failed: ${err}'
 		}
 	}
+	os.write_file(timer_path, timer) or {
+		return LoopReport{
+			ok: false
+			message: 'write timer failed: ${err}'
+		}
+	}
+	mut msg := '[loop] Wrote ${svc_path}\n[loop] Wrote ${timer_path}\n'
+	en := os.execute('systemctl --user enable ${base}.timer')
+	if en.exit_code == 0 {
+		msg += 'Enabled: ${base}.timer\n'
+	} else {
+		msg += 'Enable failed (exit ${en.exit_code}): ${en.output.trim_space()}\n  Enable manually: systemctl --user enable ${base}.timer\n'
+	}
+	st := os.execute('systemctl --user start ${base}.timer')
+	if st.exit_code == 0 {
+		msg += 'Started: ${base}.timer'
+	} else {
+		msg += 'Start failed (exit ${st.exit_code}): ${st.output.trim_space()}\n  Start manually: systemctl --user start ${base}.timer'
+	}
 	return LoopReport{
 		ok: true
-		message: '[loop] Wrote ${path}\nEnable with: systemctl --user enable --now agent-toolkit-loop-${opts.name}.service'
+		message: msg
 		data: {
 			'subcommand': 'schedule'
 			'workspace':  ws
-			'name':       opts.name
+			'name':       name
+			'path':       timer_path
+			'cron':       cron
+		}
+	}
+}
+
+// loop_schedule_install_launchd writes the agent plist and loads it
+// (best-effort: every step reports its real outcome).
+fn loop_schedule_install_launchd(name string, ws string, cadence string, run_suffix string, home string, dry_run bool) LoopReport {
+	interval := schedule_cadence_interval_secs(cadence) or {
+		return LoopReport{
+			ok: false
+			message: '${err.msg()}\n  Use --cron with a cadence-derived value or fix loops/${name}/loop.yaml'
+			data: {
+				'subcommand': 'schedule'
+				'workspace':  ws
+				'name':       name
+			}
+		}
+	}
+	label := launchd_label(name)
+	exe := os.executable()
+	plist := emit_launchd_plist(label, exe, schedule_run_argv(name, run_suffix), ws, interval)
+	dir := launchd_agents_dir(home)
+	path := os.join_path(dir, label + '.plist')
+	if dry_run {
+		return LoopReport{
+			ok: true
+			message: '[loop] schedule dry-run (launchd plist):\n--- ${path} ---\n${plist}Would load: launchctl load ${path}'
+			data: {
+				'subcommand': 'schedule'
+				'workspace':  ws
+				'name':       name
+				'mode':       'dry-run'
+			}
+		}
+	}
+	os.mkdir_all(dir) or {
+		return LoopReport{
+			ok: false
+			message: 'mkdir failed: ${err}'
+		}
+	}
+	os.write_file(path, plist) or {
+		return LoopReport{
+			ok: false
+			message: 'write plist failed: ${err}'
+		}
+	}
+	mut msg := '[loop] Wrote ${path}\n'
+	ld := os.execute('launchctl load ${path}')
+	if ld.exit_code == 0 {
+		msg += 'Loaded: ${label}'
+	} else {
+		msg += 'Load failed (exit ${ld.exit_code}): ${ld.output.trim_space()}\n  Load manually: launchctl load ${path}'
+	}
+	return LoopReport{
+		ok: true
+		message: msg
+		data: {
+			'subcommand': 'schedule'
+			'workspace':  ws
+			'name':       name
 			'path':       path
+		}
+	}
+}
+
+// loop_schedule_list lists installed loop timers/plists (no loop name needed).
+fn loop_schedule_list(home string) LoopReport {
+	mut names := []string{}
+	if os.user_os() == 'macos' {
+		dir := launchd_agents_dir(home)
+		for f in os.ls(dir) or { []string{} } {
+			if f.starts_with('com.agent-toolkit.') && f.ends_with('.plist') {
+				names << f['com.agent-toolkit.'.len..f.len - '.plist'.len]
+			}
+		}
+	} else {
+		dir := systemd_user_dir(home)
+		prefix := 'agent-toolkit-loop-'
+		for f in os.ls(dir) or { []string{} } {
+			if f.starts_with(prefix) && f.ends_with('.timer') {
+				names << f[prefix.len..f.len - '.timer'.len]
+			}
+		}
+	}
+	names.sort()
+	if names.len == 0 {
+		return LoopReport{
+			ok: true
+			message: '[loop] No scheduled loops found.'
+			data: {
+				'subcommand': 'schedule'
+				'mode':       'list'
+			}
+		}
+	}
+	return LoopReport{
+		ok: true
+		message: '[loop] Scheduled loops:\n  ' + names.join('\n  ')
+		data: {
+			'subcommand': 'schedule'
+			'mode':       'list'
+			'count':      '${names.len}'
+		}
+	}
+}
+
+// loop_schedule_status checks installed timers/plists health (no name needed).
+fn loop_schedule_status(home string) LoopReport {
+	mut issues := []string{}
+	mut checked := 0
+	if os.user_os() == 'macos' {
+		dir := launchd_agents_dir(home)
+		for f in os.ls(dir) or { []string{} } {
+			if f.starts_with('com.agent-toolkit.') && f.ends_with('.plist') {
+				label := f['com.agent-toolkit.'.len..f.len - '.plist'.len]
+				checked++
+				r := os.execute('launchctl list com.agent-toolkit.${label}')
+				if r.exit_code != 0 {
+					issues << '${label}: not loaded'
+				}
+			}
+		}
+	} else {
+		dir := systemd_user_dir(home)
+		prefix := 'agent-toolkit-loop-'
+		for f in os.ls(dir) or { []string{} } {
+			if f.starts_with(prefix) && f.ends_with('.timer') {
+				name := f[prefix.len..f.len - '.timer'.len]
+				checked++
+				r := os.execute('systemctl --user is-active ${prefix}${name}.timer')
+				if r.output.trim_space() != 'active' {
+					issues << '${name}: ${r.output.trim_space()}'
+				}
+			}
+		}
+	}
+	if checked == 0 {
+		return LoopReport{
+			ok: true
+			message: '[loop] No scheduled loops found.'
+			data: {
+				'subcommand': 'schedule'
+				'mode':       'status'
+			}
+		}
+	}
+	if issues.len > 0 {
+		return LoopReport{
+			ok: true
+			message: '[loop] Schedule issues:\n  ! ' + issues.join('\n  ! ')
+			data: {
+				'subcommand': 'schedule'
+				'mode':       'status'
+			}
+		}
+	}
+	return LoopReport{
+		ok: true
+		message: '[loop] All schedules healthy (${checked} checked).'
+		data: {
+			'subcommand': 'schedule'
+			'mode':       'status'
+		}
+	}
+}
+
+// loop_schedule_remove stops/disables and deletes a loop schedule.
+fn loop_schedule_remove(name string, home string, dry_run bool) LoopReport {
+	if os.user_os() == 'macos' {
+		label := launchd_label(name)
+		path := os.join_path(launchd_agents_dir(home), label + '.plist')
+		if dry_run {
+			return LoopReport{
+				ok: true
+				message: '[loop] Would remove: ${path}'
+				data: {
+					'subcommand': 'schedule'
+					'name':       name
+					'mode':       'remove-dry-run'
+				}
+			}
+		}
+		os.execute('launchctl unload ${path}')
+		os.rm(path) or {}
+		return LoopReport{
+			ok: true
+			message: '[loop] Removed schedule: ${name}'
+			data: {
+				'subcommand': 'schedule'
+				'name':       name
+				'mode':       'remove'
+			}
+		}
+	}
+	base := schedule_unit_base(name)
+	dir := systemd_user_dir(home)
+	svc_path := os.join_path(dir, base + '.service')
+	timer_path := os.join_path(dir, base + '.timer')
+	if dry_run {
+		return LoopReport{
+			ok: true
+			message: '[loop] Would remove: ${svc_path}\n[loop] Would remove: ${timer_path}'
+			data: {
+				'subcommand': 'schedule'
+				'name':       name
+				'mode':       'remove-dry-run'
+			}
+		}
+	}
+	os.execute('systemctl --user stop ${base}.timer')
+	os.execute('systemctl --user disable ${base}.timer')
+	os.rm(svc_path) or {}
+	os.rm(timer_path) or {}
+	return LoopReport{
+		ok: true
+		message: '[loop] Removed schedule: ${name}'
+		data: {
+			'subcommand': 'schedule'
+			'name':       name
+			'mode':       'remove'
 		}
 	}
 }
