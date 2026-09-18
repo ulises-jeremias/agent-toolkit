@@ -38,6 +38,7 @@ pub mut:
 	cadence              string
 	goal                 string
 	request              string
+	verifier             string
 	max_tokens           int
 	max_runs_per_day     int
 	max_wall_seconds     int
@@ -323,6 +324,9 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 				}
 				if overrides.request.len > 0 {
 					meta.request = overrides.request
+				}
+				if overrides.verifier.len > 0 {
+					meta.verifier = overrides.verifier
 				}
 				if overrides.allowlist.len > 0 {
 					meta.allowlist = overrides.allowlist.clone()
@@ -1334,6 +1338,8 @@ pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 			m.goal = t.all_after('goal:').trim_space().trim('|').trim_space()
 		} else if t.starts_with('request:') {
 			m.request = t.all_after('request:').trim_space().trim('|').trim_space()
+		} else if t.starts_with('verifier:') {
+			m.verifier = t.all_after('verifier:').trim_space().trim('"').trim("'")
 		}
 	}
 	return m

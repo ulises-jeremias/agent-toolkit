@@ -419,3 +419,13 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	out2 := os.read_file(res2.transcript) or { '' }
 	assert out2.contains('wall timeout')
 }
+
+fn test_loop_verifier_meta_and_pack_override() {
+	assert parse_loop_meta_text('name: x\ntier: L3\nverifier: alice\n', 'x').verifier == 'alice'
+	assert parse_loop_meta_text('name: x\ntier: L1\n', 'x').verifier == ''
+	assert parse_pack_overrides('loops:\n  x:\n    verifier: bob\n', 'x').verifier == 'bob'
+	sysp := loop_runner_sysprompt('x', 'r1', 'L3', '/runs/r1', '/loops/x', 'alice')
+	assert sysp.contains('Verifier for mutating actions: alice')
+	sysp_none := loop_runner_sysprompt('x', 'r1', 'L1', '/runs/r1', '/loops/x', '')
+	assert sysp_none.contains('treat all mutating actions as escalations')
+}
