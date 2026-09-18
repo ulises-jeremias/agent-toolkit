@@ -15,16 +15,35 @@ import x.json2
 // vocabulary; `pi` is loop-only (no swarm backend yet).
 pub const loop_llm_runners = ['claude', 'opencode', 'codex', 'cursor', 'copilot', 'muse', 'pi']
 
+// loop_runner_alias maps a Python-era alias name to its canonical runner
+// (RUNNER_ALIASES parity; '' when not an alias). harness/queue aliases are
+// intentionally absent: those runners were retired (harness stays external,
+// queue is devcompanion direct), so their old names fail closed to skeleton
+// like any unknown name. A match (not map lookup) is used deliberately.
+fn loop_runner_alias(name string) string {
+	return match name {
+		'cursor-agent' { 'cursor' }
+		'github-copilot' { 'copilot' }
+		'openai-codex' { 'codex' }
+		'muse-code' { 'muse' }
+		else { '' }
+	}
+}
+
 // resolve_loop_runner maps the --runner flag (or AGENT_TOOLKIT_LOOP_RUNNER)
 // to a concrete runner name. Returns '' when the name is not recognized;
 // callers fail closed to skeleton in that case.
 pub fn resolve_loop_runner(explicit string) string {
-	mut name := explicit.trim_space().to_lower()
+	mut name := explicit.trim_space().to_lower().split('_').join('-')
 	if name == '' {
-		name = os.getenv('AGENT_TOOLKIT_LOOP_RUNNER').trim_space().to_lower()
+		name = os.getenv('AGENT_TOOLKIT_LOOP_RUNNER').trim_space().to_lower().split('_').join('-')
 	}
 	if name == '' || name == 'auto' {
 		return 'auto'
+	}
+	alias := loop_runner_alias(name)
+	if alias != '' {
+		return alias
 	}
 	if name in loop_llm_runners || name == 'skeleton' {
 		return name
@@ -143,16 +162,19 @@ pub fn sh_quote(s string) string {
 	return s
 }
 
-// loop_model returns AGENT_TOOLKIT_LOOP_MODEL trimmed ('' when unset).
-fn loop_model() string {
+// resolve_loop_model returns the explicit --model flag trimmed, else
+// AGENT_TOOLKIT_LOOP_MODEL ('' when neither is set).
+pub fn resolve_loop_model(explicit string) string {
+	if explicit.trim_space() != '' {
+		return explicit.trim_space()
+	}
 	return os.getenv('AGENT_TOOLKIT_LOOP_MODEL').trim_space()
 }
 
 // runner_argv builds the child argv for a runner over prompt text.
 // prompt travels as a single argv element (ARG_MAX-safe for runbooks).
-pub fn runner_argv(name string, prompt string, sysprompt string) []string {
+pub fn runner_argv(name string, prompt string, sysprompt string, model string) []string {
 	full := if sysprompt != '' { sysprompt + '\n\n---\n\n' + prompt } else { prompt }
-	model := loop_model()
 	return match name {
 		'claude' {
 			mut argv := ['claude', '--print', '--allowedTools', 'Bash(gh *) Bash(git *) Edit Read Write Glob Grep',
@@ -256,7 +278,7 @@ pub:
 // streams child output straight to transcript.log (no pipe deadlock).
 // Returns ok=false only on spawn failure; timeouts and non-zero exits are
 // reported in the result (caller records them, run still counts).
-pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir string, run_dir string, wall_seconds int, gate GatePolicy) RunnerResult {
+pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir string, run_dir string, wall_seconds int, gate GatePolicy, model string) RunnerResult {
 	transcript := os.join_path(run_dir, 'transcript.log')
 	// Gate enforcement: per-run gate-bin/gh shim first on PATH, policy via env.
 	mut env_prefix := ''
@@ -269,7 +291,7 @@ pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir
 			env_prefix = 'ATK_GATE_TIER=' + sh_quote(gate.tier) + ' ATK_GATE_ALLOW=' + sh_quote(gate.allowlist.join(',')) + ' ATK_GATE_DENY=' + sh_quote(gate.deny.join(',')) + ' ATK_GATE_RUNDIR=' + sh_quote(run_dir) + ' ATK_GATE_RUNID=' + sh_quote(gate.run_id) + ' PATH=' + sh_quote(gate_bin + ':' + os.getenv('PATH')) + ' '
 		}
 	}
-	argv := runner_argv(name, prompt, sysprompt)
+	argv := runner_argv(name, prompt, sysprompt, model)
 	if argv == [] {
 		return RunnerResult{
 			ok:          false
@@ -327,7 +349,7 @@ pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir
 // the same artifacts skeleton does (plan.md, transcript.log, trace.jsonl,
 // report discipline via prompt, STATE.md). Called from run_loop after the
 // budget gates; gate enforcement around gh calls lands in PR2.
-fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid string, run_dir string, runs_today int, escalations []string, wall int, runner_name string, runner_note string) LoopReport {
+fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid string, run_dir string, runs_today int, escalations []string, wall int, runner_name string, runner_note string, model string) LoopReport {
 	mut lines := []string{}
 	if runner_note != '' {
 		lines << '[loop] ${runner_note}'
@@ -343,7 +365,7 @@ fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid
 		run_dir:   run_dir
 		run_id:    rid
 	}
-	res := execute_loop_runner(runner_name, prompt, sysp, ws, run_dir, wall, gate)
+	res := execute_loop_runner(runner_name, prompt, sysp, ws, run_dir, wall, gate, model)
 	if !res.ok {
 		return LoopReport{
 			ok:      false
