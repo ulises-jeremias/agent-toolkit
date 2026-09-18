@@ -954,7 +954,7 @@ mut:
 	term_view_b      int = -1
 	last_msg         string
 	last_msg_frame   int = -99
-	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
+	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 settings, 12 insights (onboarding is the show_onboarding overlay, not a panel)
 	office_map_view  bool // false = operational overview (default), true = floor map
 	hover_panel      int
 	selected_desk    int
@@ -1756,6 +1756,9 @@ struct KnownWsRect {
 
 // panel_index_for maps a registry panel destination to the production panel
 // index used by GuiApp.selected_panel (0 world … 12 insights).
+// Onboarding is a show_onboarding overlay, not a panel: Settings owns panel
+// 11, so onboarding maps to -1 and the palette activation path opens the
+// overlay explicitly (same as the `o` key) instead of landing on Settings.
 fn panel_index_for(p nav.PanelId) int {
 	return match p {
 		.world_view { 0 }
@@ -1769,7 +1772,6 @@ fn panel_index_for(p nav.PanelId) int {
 		.swarm { 8 }
 		.workspace { 9 }
 		.products { 10 }
-		.onboarding { 11 }
 		.insights { 12 }
 		else { -1 }
 	}
@@ -2855,6 +2857,7 @@ fn frame(mut app GuiApp) {
 			// command center (operations_view.v)
 			5, 6, 7, 8 { draw_operations(mut app, w, h) }
 			9 { draw_workspace(mut app, w, h) }
+			// Settings owns 11; onboarding is the show_onboarding overlay above.
 			11 { draw_settings(mut app, w, h) }
 			12 { draw_insights(mut app, w, h) }
 			else { draw_world(mut app, w, h) }
@@ -6535,7 +6538,22 @@ fn activate_palette_selection(mut app GuiApp) {
 	}
 	// registry rows navigate to their typed panel destination. Entity
 	// rows open the owning panel and deep-link the canonical entity.
+	// Onboarding has no panel (Settings owns 11): its registry row opens
+	// the setup-journey overlay exactly like the `o` key.
 	if sel.is_entity {
+		if sel.panel == nav.PanelId.onboarding {
+			select_panel(mut app, 11)
+			app.show_onboarding = true
+			app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
+			app.palette_open = false
+			app.palette_query = ''
+			app.palette_selected = 0
+			app.palette_expanded = ''
+			app.palette_preview = []
+			app.palette_preview_for = ''
+			app.palette_armed = ''
+			return
+		}
 		idx := panel_index_for(sel.panel)
 		if idx >= 0 {
 			// shared panel-selection transition (clears desk selection, focus

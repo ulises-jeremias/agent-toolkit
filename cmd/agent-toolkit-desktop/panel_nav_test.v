@@ -1,6 +1,10 @@
 module main
 
+import desktop
+import desktop.nav
 import gg
+import os
+import time
 
 // nav_key_event synthesizes a printable key press the way sokol/X11 delivers
 // it after .char replay: a .key_down carrying both char_code and key_code.
@@ -87,4 +91,50 @@ fn test_panel_nav_from_mcp_and_workspace() {
 	on_event(nav_key_event(u32(`4`)), mut wapp)
 	assert wapp.selected_panel == 3, 'digit 4 must leave Workspace for MCP, got panel ${wapp.selected_panel}'
 	assert wapp.memory_query == '', 'nav digit must not pollute the memory query'
+}
+
+// The /onboarding deep-link (palette "Go to Onboarding") must open the
+// setup-journey overlay, not the Settings panel that owns index 11.
+// Regression test for the panel-11 collision: panel_index_for(onboarding)
+// is -1, so activation takes the explicit overlay path (same as `o`).
+fn test_palette_onboarding_opens_overlay_not_settings() {
+	scratch_dir := os.join_path(os.temp_dir(), 'atk-onboarding-nav-${os.getpid()}-${time.now().unix_nano()}')
+	os.mkdir_all(scratch_dir) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(scratch_dir) or {}
+	}
+	mut d := desktop.new_desktop(desktop.DesktopBootArgs{
+		config: desktop.DesktopConfig{
+			headless: true
+		}
+		persist_path: os.join_path(scratch_dir, 'state.json')
+	})
+	d.boot() or { panic(err.msg()) }
+	defer {
+		d.shutdown() or {}
+	}
+	mut app := &GuiApp{
+		desktop: d
+		selected_panel: 0
+		hover_panel: -1
+		selected_desk: -1
+		hover_desk: -1
+	}
+	app.palette_reg = d.palette_registry()
+	app.palette_open = true
+	app.palette_query = 'onboarding'
+	rows := filtered_palette(mut app)
+	mut idx := -1
+	for i, r in rows {
+		if r.is_entity && r.panel == nav.PanelId.onboarding {
+			idx = i
+			break
+		}
+	}
+	assert idx >= 0, 'Go to Onboarding row must be reachable through the registry'
+	app.palette_selected = idx
+	activate_palette_selection(mut app)
+	assert app.show_onboarding, 'onboarding registry row must open the overlay, not Settings'
+	assert app.selected_panel == 11
+	assert !app.palette_open
 }
