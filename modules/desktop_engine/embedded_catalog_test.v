@@ -40,7 +40,7 @@ fn test_embedded_catalog_resolution_on_clean_machine() {
 	env := resolve_env()
 	assert env.tier == 'embedded', 'clean machine must resolve to embedded tier, got ${env.tier}'
 	assert eng.agents_catalog().len >= 18, 'agents catalog from embedded'
-	assert eng.skills_catalog().len >= 116, 'skills catalog from embedded'
+	assert eng.skills_catalog().len >= 103, 'skills catalog from embedded (was 116 before the upstream JIRA thin-skill migration)'
 	assert eng.mcp_catalog().len == 7, 'MCP catalog from embedded'
 	assert eng.packs_catalog().len == 7, 'packs catalog from embedded'
 	assert eng.products_catalog().len >= 2, 'products catalog from embedded'

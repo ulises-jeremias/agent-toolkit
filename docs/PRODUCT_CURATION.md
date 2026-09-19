@@ -44,7 +44,7 @@ Every product in `distributions/products.yaml` now emits **dual bundles**: porta
 
 ## Follow-ups (tracked)
 
-- [ ] Evaluate `slack`, `jira-issue`, `github-cli-workflow` for core vs forge (see matrix)
+- [ ] Evaluate `slack`, `jira-assistant` (thin skill, v5.0.0 upstream), `github-cli-workflow` for core vs forge (see matrix)
 - [ ] Review `figma` + `playwright` as forge defaults (after #268)
 
 See also: `distributions/products.yaml`, `docs/SKILL_PRODUCT_MATRIX.md`, `docs/CONCEPTS.md`.
