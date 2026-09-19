@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 116 skills × 18 agents._
+_Generated from 5 products × 103 skills × 18 agents._
 
 ## Products and targets
 
@@ -12,7 +12,7 @@ _Generated from 5 products × 116 skills × 18 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 116 | 18 |
+| `agent-toolkit-complete` | experimental | — | 103 | 18 |
 
 ## Skills → Products
 
@@ -93,20 +93,7 @@ _Generated from 5 products × 116 skills × 18 agents._
 | `integrations/confluence-space` | `agent-toolkit-complete` | — |
 | `integrations/confluence-template` | `agent-toolkit-complete` | — |
 | `integrations/confluence-watch` | `agent-toolkit-complete` | — |
-| `integrations/jira-administration` | `agent-toolkit-complete` | — |
-| `integrations/jira-agile-management` | `agent-toolkit-complete` | — |
 | `integrations/jira-assistant` | `agent-toolkit-complete` | — |
-| `integrations/jira-bulk-operations` | `agent-toolkit-complete` | — |
-| `integrations/jira-collaboration` | `agent-toolkit-complete` | — |
-| `integrations/jira-custom-fields` | `agent-toolkit-complete` | — |
-| `integrations/jira-developer-integration` | `agent-toolkit-complete` | — |
-| `integrations/jira-issue-management` | `agent-toolkit-complete` | — |
-| `integrations/jira-issue-relationships` | `agent-toolkit-complete` | — |
-| `integrations/jira-lifecycle-management` | `agent-toolkit-complete` | — |
-| `integrations/jira-operations` | `agent-toolkit-complete` | — |
-| `integrations/jira-search-jql` | `agent-toolkit-complete` | — |
-| `integrations/jira-service-management` | `agent-toolkit-complete` | — |
-| `integrations/jira-time-tracking` | `agent-toolkit-complete` | — |
 | `integrations/linear` | `agent-toolkit-complete` | — |
 | `integrations/mcp` | `agent-toolkit-complete` | — |
 | `integrations/slack-assistant` | `agent-toolkit-complete` | — |
