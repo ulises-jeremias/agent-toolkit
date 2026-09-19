@@ -30,7 +30,7 @@ fn test_palette_opens_via_hotkey_and_closes() {
 	assert !matches_hotkey('ctrl+p')
 	pal.toggle()
 	assert pal.is_open()
-	assert pal.count() >= 100 // 116 skills + agents + nav etc
+	assert pal.count() >= 100 // 103 skills + agents + nav etc
 	
 
 	pal.toggle()

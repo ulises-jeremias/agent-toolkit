@@ -17,7 +17,7 @@ fn test_capability_plane_skills_via_engine_no_shell() {
 	eng.start()!
 	defer { eng.stop() or {} }
 	cat := eng.skills_catalog()
-	assert cat.len >= 116, 'catalog 116+'
+	assert cat.len >= 103, 'catalog 103+ (was 116 before the upstream JIRA thin-skill migration)'
 	_ := eng.skill_detail(cat[0].id) or { panic(err.msg()) }
 	rev := eng.install_skill(cat[0].id) or { panic(err.msg()) }
 	assert rev >= 1

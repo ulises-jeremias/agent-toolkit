@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 116
+count: 103
 skills:
   - id: accessibility/review
     name: review
@@ -378,77 +378,10 @@ skills:
     domain: integrations
     description: Content watching and notifications. ALWAYS use when user wants to follow content or manage notifications.
     stability: stable
-  - id: integrations/jira-administration
-    name: jira-administration
-    domain: integrations
-    description: 'Complete JIRA project and system administration including projects, automation rules, permissions, users, notifications, screens, issue types, and workflows. Use when managing project structure, autom'
-    stability: stable
-  - id: integrations/jira-agile-management
-    name: jira-agile-management
-    domain: integrations
-    description: 'Epic creation and sprint management - create epics, manage sprints, view backlog, estimate with story points. TRIGGERS: ''create an epic'', ''create epic'', ''new epic'', ''show the backlog'', ''view backlog'','
-    stability: stable
   - id: integrations/jira-assistant
     name: jira-assistant
     domain: integrations
-    description: 'JIRA automation hub routing to 13 specialized skills for any JIRA task: issues, workflows, agile, search, time tracking, service management, and more.'
-    stability: stable
-  - id: integrations/jira-bulk-operations
-    name: jira-bulk-operations
-    domain: integrations
-    description: 'Bulk operations for multiple issues at scale. TRIGGERS: ''bulk update'', ''bulk close'', ''bulk transition'', ''bulk assign'', ''transition N issues'' (N >= 10), ''update all bugs'', ''close 50 issues'', ''mass tran'
-    stability: stable
-  - id: integrations/jira-collaboration
-    name: jira-collaboration
-    domain: integrations
-    description: 'Collaborate on issues: add/edit comments, share attachments, notify users,
-track activity. For team communication and coordination on JIRA issues.
-'
-    stability: stable
-  - id: integrations/jira-custom-fields
-    name: jira-custom-fields
-    domain: integrations
-    description: 'Custom field discovery and configuration. TRIGGERS: ''field ID for'', ''what''s the field ID'', ''what is the field ID'', ''list custom fields'', ''what fields are available'', ''what custom fields'', ''show custom'
-    stability: stable
-  - id: integrations/jira-developer-integration
-    name: jira-developer-integration
-    domain: integrations
-    description: 'Git and developer workflow integration. TRIGGERS: ''generate branch name'', ''create branch name'', ''branch name for'', ''write PR description'', ''PR description for'', ''link PR'', ''link pull request'', ''parse '
-    stability: stable
-  - id: integrations/jira-issue-management
-    name: jira-issue-management
-    domain: integrations
-    description: 'Core JIRA issue CRUD - create bugs/tasks/stories, get issue details, update fields, delete issues. TRIGGERS: ''show me [KEY]'', ''get issue [KEY]'', ''view issue'', ''create a bug/task/story'', ''update [KEY]'''
-    stability: stable
-  - id: integrations/jira-issue-relationships
-    name: jira-issue-relationships
-    domain: integrations
-    description: 'Issue linking, blockers, and dependency analysis. TRIGGERS: ''what''s blocking'', ''what is blocking'', ''is blocked by'', ''link issues'', ''link to'', ''blockers for'', ''depends on'', ''clone issue'', ''clone with'','
-    stability: stable
-  - id: integrations/jira-lifecycle-management
-    name: jira-lifecycle-management
-    domain: integrations
-    description: 'Manage issue lifecycle through workflow transitions and status changes. Control who does what and when via assignments, versions, and components.'
-    stability: stable
-  - id: integrations/jira-operations
-    name: jira-operations
-    domain: integrations
-    description: 'JIRA cache and performance operations. TRIGGERS: ''warm the cache'', ''warm cache'', ''cache status'', ''clear cache'', ''cache warm'', ''cache for project'', ''discover project'', ''project discovery'', ''cache hit r'
-    stability: stable
-  - id: integrations/jira-search-jql
-    name: jira-search-jql
-    domain: integrations
-    description: 'Find issues by criteria (status, assignee, priority, etc.) using JQL. Create filters, export results to CSV/JSON, bulk update. Ideal for reporting and automation.'
-    stability: stable
-  - id: integrations/jira-service-management
-    name: jira-service-management
-    domain: integrations
-    description: 'Complete ITSM/ITIL workflow support for JSM - service desks, requests, SLAs, customers, approvals, knowledge base. Use when managing service desk requests, tracking SLAs, or handling customer operatio'
-    stability: stable
-  - id: integrations/jira-time-tracking
-    name: jira-time-tracking
-    domain: integrations
-    description: 'Time tracking, worklogs, and time reports. TRIGGERS: ''log time'', ''time spent on'', ''log hours'', ''log work'', ''worklog'', ''time tracking'', ''timesheet'', ''how much time'', ''time logged'', ''time report'', ''expo'
+    description: 'Jira Cloud, Jira Software and Jira Service Management automation through the jira-as CLI (2.x). Run `jira-as help` first; find operations with `jira-as api search` and `jira-as api describe`.'
     stability: stable
   - id: integrations/linear
     name: linear
