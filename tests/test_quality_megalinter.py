@@ -49,8 +49,8 @@ SKILLS = {
     },
 }
 
-EXPECTED_COMMIT = "15e5b45552097e318c93de385779ce3b1084052c"
-EXPECTED_TAG = "v10.0.0"
+EXPECTED_COMMIT = "9949bad031045f366be2467e00e8371a7328a2e2"
+EXPECTED_TAG = "v10.1.0"
 EXPECTED_DOCKER_TAG = "ghcr.io/oxsecurity/megalinter:v10"
 EXPECTED_DOCKER_DIGEST = "sha256:939058f3ed31803e12583365e7126eacfb356724bf003fd29e96a93948aa2d33"
 
@@ -160,7 +160,13 @@ def test_orchestrator_upstream_workflow():
     assert "inline" in skill.lower()
     # Toolkit-only adapter headings must not be patched into the literal body
     assert "DISCOVER CONFIG" not in skill
-    assert "--force-with-lease" not in skill
+    # Upstream v10.1.0 documents one narrow exception to the force-push ban:
+    # re-pushing MegaLinter's own auto-fix commit with --force-with-lease.
+    # The ban stays for everything else: plain --force never appears and the
+    # exception stays scoped to the auto-fix commit context.
+    assert "Never use plain `--force`" in skill
+    assert "never force-push in any other situation" in skill
+    assert "[MegaLinter] Apply linters fixes" in skill
 
 
 def test_check_and_fix_upstream_contracts():

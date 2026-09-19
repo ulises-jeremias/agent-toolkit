@@ -40,11 +40,12 @@ Each gap is `✅` / `⚠️` with mitigation — no hidden claim. Links to a11y 
 
 `modules/desktop/backend/backend.v` — `HeadlessBackend`/`VGuiBackend` headless seam (never opens dialog/clipboard on CI; supersedes the retired Phase-0 `agent_toolkit_gui/native.v` `probe_native()` spike, whose gap matrix is preserved in ADR-032). Manual `macos-latest` / `windows-latest` runner smoke documented in `distribution/desktop/*/package.sh` logs (`Native probe headless vs DISPLAY`).
 
-Windows probe on `windows-latest` (`setup-v@0.5.2`) is pending — no
-`distribution/desktop/windows/probe.vsh` exists at HEAD and no Windows run
-evidence has been recorded. The planned probe renders the headless
-Windows-limitations summary (per the ADR-032 appendix table) for the CI artifact (stubs expected headless:
-dialog/clipboard via Win32, DnD deferred).
+Windows probe on `windows-latest` (`setup-v@0.5.2`) is pending — no Windows run
+evidence has been recorded. `distribution/desktop/windows/probe.vsh` renders
+the headless Windows-limitations summary (per the ADR-032 appendix table)
+for the CI artifact (stubs expected headless: dialog/clipboard via Win32,
+DnD deferred); `package.sh` writes it to `build/windows/windows-limitations.md`.
+The `windows-latest` window smoke itself remains unproven (see Status).
 
 CI on Linux shows bundle structure cross-build with ⚠️ doc when `windows-latest` runner unavailable.
 
@@ -84,11 +85,11 @@ Document how `FreeType`/`HarfBuzz`/`Pango`/`vglyph` (if used by the `gg`/`sokol`
 
 ## Packaging adapter
 
-`distribution/desktop/windows/` (only `package.sh` is checked in at HEAD —
+`distribution/desktop/windows/` (`package.sh` + `probe.vsh` checked in —
 verified by directory listing):
 
 - `package.sh` — cross-build installer structure on Linux + real `.exe` on `windows-latest` (`setup-v@0.5.2`); `file`/`sha256sum`/`ls -lh`; launch smoke `agent-toolkit.exe --version` + `doctor` (FHS/embedded tiers, receipts); deep-link registry smoke `reg query HKCU\Software\Classes\agent-toolkit`. Also generates `build/windows/installer.iss` at build time (Inno Setup script for `agent-toolkit.exe` + DLLs + URL handler + shortcut + uninstall; `signtool verify` path with `${WINDOWS_CODESIGN_CERT}` env — ad-hoc unsigned in PR, real sign `release.yml` gated, no cert in repo). The `.iss` is a build artifact, not a checked-in source.
-- `probe.vsh` — planned headless `windows_limitations()` markdown render for the CI artifact; does not exist at HEAD.
+- `probe.vsh` — headless `windows_limitations()` markdown render for the CI artifact (`v run distribution/desktop/windows/probe.vsh`); `package.sh` captures it to `build/windows/windows-limitations.md`. Headless reports stub, never a native claim.
 
 ## Verification
 
