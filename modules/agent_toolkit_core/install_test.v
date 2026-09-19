@@ -265,3 +265,40 @@ fn test_install_skips_claude_settings_json() {
 	assert os.is_file(os.join_path(home, '.claude', 'CLAUDE.md'))
 	assert !os.exists(os.join_path(home, '.claude', 'settings.json'))
 }
+
+fn test_merge_json_install_recursive() {
+	base := os.join_path(os.temp_dir(), 'at-ins-merge-${os.getpid()}')
+	os.mkdir_all(base) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	src := os.join_path(base, 'src.json')
+	dst := os.join_path(base, 'dst.json')
+	// nested objects merge key-by-key; existing user values are preserved
+	os.write_file(src, '{"editor":{"fontSize":14,"theme":"dark"},"top":"new"}\n') or {
+		assert false, err.msg()
+		return
+	}
+	os.write_file(dst, '{"editor":{"fontSize":12,"userKey":"keep"},"other":true}\n') or {
+		assert false, err.msg()
+		return
+	}
+	content, ownership := merge_json_install(src, dst)
+	assert ownership == 'merged', ownership
+	assert content.contains('"fontSize":12')
+	assert content.contains('"userKey":"keep"')
+	assert content.contains('"theme":"dark"')
+	assert content.contains('"top":"new"')
+	assert content.contains('"other":true')
+	// identical content is unchanged (original bytes preserved)
+	same, ownership2 := merge_json_install(src, src)
+	assert ownership2 == 'unchanged'
+	assert same.contains('"fontSize":14')
+	// non-object JSON is skipped, never half-merged
+	os.write_file(dst, '[1,2]\n') or {
+		assert false, err.msg()
+		return
+	}
+	_, ownership3 := merge_json_install(src, dst)
+	assert ownership3 == 'skipped'
+}

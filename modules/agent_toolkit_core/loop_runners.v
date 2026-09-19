@@ -141,8 +141,9 @@ pub fn loop_run_prompt(loop_dir string, meta_request string) string {
 }
 
 // loop_runner_sysprompt mirrors bin/loop-run-llm: report + STATE discipline.
-pub fn loop_runner_sysprompt(loop_name string, run_id string, tier string, run_dir string, loop_dir string) string {
-	return "You are executing loop '${loop_name}' (run ${run_id}, tier ${tier}). When finished, write your full report to ${run_dir}/report.md and refresh ${loop_dir}/report.md with the same content. Keep STATE.md checkpointing as instructed in the prompt."
+pub fn loop_runner_sysprompt(loop_name string, run_id string, tier string, run_dir string, loop_dir string, verifier string) string {
+	who := if verifier != '' { verifier } else { '(none — treat all mutating actions as escalations)' }
+	return "You are executing loop '${loop_name}' (run ${run_id}, tier ${tier}). Verifier for mutating actions: ${who}. When finished, write your full report to ${run_dir}/report.md and refresh ${loop_dir}/report.md with the same content. Keep STATE.md checkpointing as instructed in the prompt."
 }
 
 // sh_quote renders one argv element safe for POSIX sh -c.
@@ -357,7 +358,7 @@ fn run_loop_llm(ws string, loop_name string, meta LoopMeta, loop_dir string, rid
 	lines << '[loop] Running ${loop_name} (tier=${meta.tier} cadence=${meta.cadence})'
 	lines << '[loop] LLM runner: ${runner_name} (wall ${wall}s)'
 	prompt := loop_run_prompt(loop_dir, meta.request)
-	sysp := loop_runner_sysprompt(loop_name, rid, meta.tier, run_dir, loop_dir)
+	sysp := loop_runner_sysprompt(loop_name, rid, meta.tier, run_dir, loop_dir, meta.verifier)
 	gate := GatePolicy{
 		tier:      meta.tier
 		allowlist: meta.allowlist.clone()

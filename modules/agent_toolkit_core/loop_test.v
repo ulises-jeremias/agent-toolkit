@@ -439,3 +439,30 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	out2 := os.read_file(res2.transcript) or { '' }
 	assert out2.contains('wall timeout')
 }
+
+fn test_loop_verifier_meta_and_pack_override() {
+	assert parse_loop_meta_text('name: x\ntier: L3\nverifier: alice\n', 'x').verifier == 'alice'
+	assert parse_loop_meta_text('name: x\ntier: L1\n', 'x').verifier == ''
+	assert parse_pack_overrides('loops:\n  x:\n    verifier: bob\n', 'x').verifier == 'bob'
+	// a verifier-only pack must still invoke the patcher and persist (#1265)
+	base := os.join_path(os.temp_dir(), 'at-loop-verifier-${os.getpid()}')
+	os.mkdir_all(base) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	yaml_path := os.join_path(base, 'loop.yaml')
+	os.write_file(yaml_path, 'name: x\ntier: L1\n') or { assert false, err.msg() }
+	overrides := parse_pack_overrides('loops:\n  x:\n    verifier: bob\n', 'x')
+	patch_loop_yaml_with_overrides(yaml_path, overrides)
+	patched := os.read_file(yaml_path) or { '' }
+	assert patched.contains('verifier: bob'), 'verifier-only pack persists, got: ${patched}'
+	// an existing verifier line is replaced, not duplicated
+	os.write_file(yaml_path, 'name: x\ntier: L1\nverifier: alice\n') or { assert false, err.msg() }
+	patch_loop_yaml_with_overrides(yaml_path, overrides)
+	repatched := os.read_file(yaml_path) or { '' }
+	assert repatched.contains('verifier: bob') && !repatched.contains('alice')
+	sysp := loop_runner_sysprompt('x', 'r1', 'L3', '/runs/r1', '/loops/x', 'alice')
+	assert sysp.contains('Verifier for mutating actions: alice')
+	sysp_none := loop_runner_sysprompt('x', 'r1', 'L1', '/runs/r1', '/loops/x', '')
+	assert sysp_none.contains('treat all mutating actions as escalations')
+}
