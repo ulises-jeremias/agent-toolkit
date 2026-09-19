@@ -86,7 +86,7 @@ get_api_key_from_config() {
     done
     echo ""
     echo "Ensure your .claude.json contains:"
-    echo '  { "primaryApiKey": "sk-ant-api03-..." }'
+    echo '  { "primaryApiKey": "ANTHROPIC_API_KEY_PLACEHOLDER" }'
     return 1
 }
 
@@ -149,7 +149,7 @@ validate_auth() {
             echo_error "ANTHROPIC_API_KEY is not set"
             echo ""
             echo "Export your API key:"
-            echo "  export ANTHROPIC_API_KEY='sk-ant-api03-...'"
+            echo "  export ANTHROPIC_API_KEY='ANTHROPIC_API_KEY_PLACEHOLDER'"
             echo ""
             echo "Or use --api-key-from-config to read from .claude.json"
             echo "Or use OAuth mode (default) on macOS."

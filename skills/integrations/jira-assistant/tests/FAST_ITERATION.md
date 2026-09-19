@@ -225,7 +225,7 @@ For isolated, reproducible test environments, use the Docker-based test runner.
 ./run_container_tests.sh -- -k "TC001" -v
 
 # Run with API key (for CI/CD or Linux hosts)
-export ANTHROPIC_API_KEY="sk-ant-api03-..."
+export ANTHROPIC_API_KEY="ANTHROPIC_API_KEY_PLACEHOLDER"
 ./run_container_tests.sh --api-key
 ```
 
