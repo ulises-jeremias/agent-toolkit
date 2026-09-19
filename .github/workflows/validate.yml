@@ -278,11 +278,9 @@ jobs:
               sys.exit(1)
           print("OK: capabilities/targets/registry.yaml validates against target-capability-registry.schema.json")
           PYEOF
-          # profiles coverage is validated inside the matrix generator
+          # profiles coverage and matrix drift are validated inside the
+          # matrix generator (single --check invocation; do not duplicate)
           ./scripts/generate-target-matrix.vsh --check
-
-      - name: Check target capability matrix drift
-        run: ./scripts/generate-target-matrix.vsh --check
 
   check-skill-capability:
     name: Check Skill Capability Registry (#863)
@@ -881,7 +879,15 @@ jobs:
 
   # ── Job: golden-image regression for the desktop GUI (#1111) ──
   # Compares both theme fixture sets against a fresh build. Starts as
-  # non-blocking (continue-on-error) until 20 green runs prove stability.
+  # non-blocking (continue-on-error) until the promotion criteria prove
+  # stability. Promotion to blocking (remove continue-on-error) requires ALL
+  # of: (a) 20 consecutive green runs on main with no fixture churn;
+  # (b) every RMSE failure in that window triaged to a real visual change
+  # (no infra flakes: Xvfb/xdotool/compare availability proven per run);
+  # (c) paper + ink fixture sets re-captured from a release-build SHA and
+  # recorded in docs/desktop/VISUAL_QA.md; (d) mismatch artifacts
+  # (golden-mismatch upload) reviewed at least once end-to-end. Until then
+  # this job is advisory signal only, never a release-quality guarantee.
   golden-ui:
     name: Golden UI (paper + ink)
     runs-on: ubuntu-latest
@@ -913,11 +919,15 @@ jobs:
           "${VBIN:-v}" -d gg_text_buff_size=4096 -o build/agent-toolkit-desktop-native cmd/agent-toolkit-desktop
 
       - name: Compare paper fixtures
+        env:
+          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
         run: |
           set -euo pipefail
           ./scripts/golden.vsh compare
 
       - name: Compare ink fixtures
+        env:
+          SMOKE_BIN: ${{ github.workspace }}/build/agent-toolkit-desktop-native
         run: |
           set -euo pipefail
           ATK_GOLDEN_THEME=ink ./scripts/golden.vsh compare

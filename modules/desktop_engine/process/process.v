@@ -290,8 +290,16 @@ pub fn (mut s ProcessSupervisor) spawn(cmd string, args []string, opts SpawnOpts
 				}
 				time.sleep(delay * time.millisecond)
 				handle.mu.lock()
-				handle.restarts++
+				cancelled_after_backoff := handle.cancelled
+				if !cancelled_after_backoff {
+					handle.restarts++
+				}
 				handle.mu.unlock()
+				if cancelled_after_backoff {
+					// canceled during backoff: cancel() owns the old
+					// process lifecycle; never publish a replacement.
+					break
+				}
 				mut new_proc := os.new_process(cmd)
 				new_proc.set_args(args)
 				if handle.opts.work_dir.len > 0 {
@@ -309,9 +317,19 @@ pub fn (mut s ProcessSupervisor) spawn(cmd string, args []string, opts SpawnOpts
 				}
 				new_proc.set_redirect_stdio()
 				handle.mu.lock()
-				handle.proc = new_proc
-				handle.exit_code = none
+				cancelled_during_setup := handle.cancelled
+				if !cancelled_during_setup {
+					handle.proc = new_proc
+					handle.exit_code = none
+				}
 				handle.mu.unlock()
+				if cancelled_during_setup {
+					// canceled while building the replacement: drop it
+					// (close is safe on a never-started process) and
+					// keep the handle dead.
+					new_proc.close()
+					break
+				}
 				p.close()
 				p = new_proc
 				continue
@@ -348,6 +366,19 @@ pub fn (mut s ProcessSupervisor) start(mut ctx context.Context) ! {
 pub fn (mut s ProcessSupervisor) spawn_job(cmd string, args []string) !string {
 	h := s.spawn(cmd, args, SpawnOpts{})!
 	return h.id
+}
+
+// cancel_job terminates the live handle. True only when a live process
+// was actually terminated; false when the handle is unknown or already
+// dead. Safe to call on exited handles.
+pub fn (mut s ProcessSupervisor) cancel_job(handle_id string) bool {
+	h := s.get_handle(handle_id) or { return false }
+	mut handle := unsafe { h }
+	if !handle.is_alive() {
+		return false
+	}
+	handle.cancel()
+	return true
 }
 
 pub fn (mut s ProcessSupervisor) count() int {

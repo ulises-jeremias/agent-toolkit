@@ -25,8 +25,11 @@ Include modal/text/terminal shortcut precedence, disabled explanations and Escap
 
 ## Build and capture
 
-The current production build reference is HEAD `ecc4d67c` (2026-09-13;
-previous `711c9f32`, 2026-09-10).
+The last reviewed production build reference is `ecc4d67c` (2026-09-13;
+previous `711c9f32`, 2026-09-10). HEAD has moved on since (v1.31.0 release
+prep); no full-matrix capture is claimed past `ecc4d67c`, and re-baselining
+the reference against a release-build SHA is pending — see Golden policy
+below. Record the exact build SHA with every new capture.
 
 > **Honest note (2026-09-13):** the full 7-viewport/theme/language matrix
 > below remains unmet as a whole — the only fully opened/inspected captures
@@ -62,6 +65,32 @@ XDG_DATA_HOME and XDG_CACHE_HOME, minimal PATH and no toolkit override variables
 This is distinct from merely launching the checkout binary with a fresh HOME.
 Record fonts/catalog/schema/template/migration resolution and real install results.
 
+## Display map (reproducible captures)
+
+Every visual harness owns a FIXED virtual display because tour coordinates and
+the captured window id are display-bound. To reproduce a run locally, free the
+display (or point the override at a free one), build the desktop binary, and run
+the matching `make.vsh` target with `VJOBS=2`:
+
+| Harness | Target | Display | Override | Lock |
+|---|---|---|---|---|
+| `scripts/golden.vsh` | `./make.vsh golden` | `:77` | `GOLDEN_DISPLAY` | `atk-golden-X77.lock` |
+| `scripts/ui-smoke.vsh` | `./make.vsh ui-smoke` | `:99` | `SMOKE_DISPLAY` | `atk-uismoke-X99.lockd` |
+| `scripts/enter-regression.vsh` | `./make.vsh enter-regression` | `:97` | `ATK_ENTER_DISPLAY` | shared `atk-acceptance-X97.lock` |
+| `scripts/clean-machine.vsh` | `./make.vsh clean-machine` | `:98` | fixed | none — fails loudly if `:98` is busy |
+
+Rules: never run two harnesses on the same display at once — golden, ui-smoke
+and enter-regression take a PID-scoped lock each, and a second run on a locked
+display fails loudly instead of colliding. Stale locks (owner pid dead) are
+stolen with a warning. clean-machine takes no lock, so check `:98` is free
+first. The app
+always runs under a temp HOME/XDG, so real user preferences are never read or
+written. `SMOKE_BIN` overrides the binary under test (default
+`build/agent-toolkit-desktop-native`); CI sets it explicitly on every step.
+`ATK_GOLDEN_THEME=ink` selects the Ink fixture set. Missing evidence
+(Xvfb/xdotool/compare, no window, dead app) fails loudly — a missing tool is
+never a pass.
+
 ## Golden policy
 
 Fixtures must be explicit test inputs, isolated from normal runtime. Freeze only
@@ -69,6 +98,19 @@ visual nondeterminism, never invent operational state. Review every changed gold
 at actual size before accepting it. Keep failed diffs and logs. Record why each
 baseline changes. Current golden CI is `continue-on-error: true`; it is not a
 blocking release-quality guarantee.
+
+Promotion to a blocking golden gate requires ALL of:
+
+1. 20 consecutive green `golden-ui` runs on main with no fixture churn.
+2. Every RMSE failure in that window triaged to a real visual change — no
+   Xvfb/xdotool/`compare` infra flakes.
+3. Paper + Ink fixture sets re-captured from a release-build SHA and recorded
+   in the Build-and-capture reference above.
+4. The `golden-mismatch` artifact bundle reviewed end-to-end at least once
+   (failed diffs + `tests/golden-app.log` resolve to an understood cause).
+
+Until all four hold, golden comparison remains advisory change-detection, and
+only opened-and-inspected captures count as reviewed evidence.
 
 ## Initial visual audit, 2026-09-05
 

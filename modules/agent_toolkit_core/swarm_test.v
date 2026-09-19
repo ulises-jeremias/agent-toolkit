@@ -110,3 +110,50 @@ fn test_swarm_start_status_approve_cancel() {
 	assert doc.data['git'] == 'true'
 	assert doc.data['recipes'].contains('pair')
 }
+
+fn test_clamp_swarm_concurrency_bounds() {
+	assert clamp_swarm_concurrency(2) == 2
+	assert clamp_swarm_concurrency(1) == 1
+	assert clamp_swarm_concurrency(6) == 6
+	assert clamp_swarm_concurrency(0) == 1
+	assert clamp_swarm_concurrency(-3) == 1
+	assert clamp_swarm_concurrency(7) == 6
+	assert clamp_swarm_concurrency(99) == 6
+}
+
+fn test_swarm_budget_violations_names_each_limit() {
+	b := Budget{
+		max_total_tokens: 100
+		max_cost_usd: 4.0
+		max_wall_seconds: 60
+		max_concurrency: 2
+	}
+	// clean run violates nothing
+	assert swarm_budget_violations(b, BudgetConsumed{}, 0) == []
+	// boundary trips (>= parity with Python check_limits)
+	assert swarm_budget_violations(b, BudgetConsumed{ total_tokens: 100 }, 0) == ['max_total_tokens']
+	assert swarm_budget_violations(b, BudgetConsumed{ total_cost: 4.0 }, 0) == ['max_cost_usd']
+	assert swarm_budget_violations(b, BudgetConsumed{}, 60) == ['max_wall_seconds']
+	// just under the limit is clean
+	assert swarm_budget_violations(b, BudgetConsumed{ total_tokens: 99 }, 0) == []
+	// several limits can trip together, in stable order
+	assert swarm_budget_violations(b, BudgetConsumed{
+		total_tokens: 200
+		total_cost: 9.5
+	}, 500) == ['max_total_tokens', 'max_cost_usd', 'max_wall_seconds']
+	// zero max means unset and is skipped
+	unset := Budget{}
+	assert swarm_budget_violations(unset, BudgetConsumed{
+		total_tokens: 1000000
+		total_cost: 999.0
+	}, 100000) == []
+}
+
+fn test_resolve_swarm_config_keeps_valid_concurrency() {
+	r := resolve_swarm_config('', 'pair', '', '', '') or {
+		assert false, err.msg()
+		return
+	}
+	assert r.execution.max_concurrency == 2
+	assert r.spec.execution.max_concurrency == 2
+}
