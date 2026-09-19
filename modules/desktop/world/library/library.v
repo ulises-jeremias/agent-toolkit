@@ -70,12 +70,12 @@ pub:
 	digest_preview string // build_preview digest
 }
 
-// default_library_model creates model from 587-line catalog fixture (116 skills, 18 agents, 7 packs).
+// default_library_model creates model from catalog fixture (103 skills, 18 agents, 7 packs).
 pub fn default_library_model() LibraryViewModel {
-	mut skills := []LibrarySkillNode{cap: 116}
+	mut skills := []LibrarySkillNode{cap: 103}
 	domains := ['core', 'delivery', 'design', 'forge', 'integrations', 'data', 'tooling', 'ops',
 		'loops', 'agentic-security', 'architecture', 'cloud', 'accessibility', 'quality']
-	for i in 0 .. 116 {
+	for i in 0 .. 103 {
 		d := domains[i % domains.len]
 		skills << LibrarySkillNode{
 			id: 'skill-${i}'
@@ -201,11 +201,11 @@ pub fn new_library_station(repo &engine_state.StateRepository, bus &eventbus.Too
 
 // derive_from_state projects State snapshot (skills_count, agents_count).
 pub fn derive_library_from_state(s engine_state.State) LibraryViewModel {
-	// honor State data counts if present, else default 116/18
-	skill_cnt := if 'skills_count' in s.data { s.data['skills_count'].int() } else { 116 }
+	// honor State data counts if present, else default 103/18
+	skill_cnt := if 'skills_count' in s.data { s.data['skills_count'].int() } else { 103 }
 	agent_cnt := if 'agents_count' in s.data { s.data['agents_count'].int() } else { 18 }
 	mut vm := default_library_model()
-	if skill_cnt != 116 {
+	if skill_cnt != 103 {
 		vm.skills = vm.skills[..if skill_cnt < vm.skills.len { skill_cnt } else { vm.skills.len }]
 	}
 	if agent_cnt != 18 {
