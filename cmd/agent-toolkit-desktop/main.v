@@ -954,7 +954,7 @@ mut:
 	term_view_b      int = -1
 	last_msg         string
 	last_msg_frame   int = -99
-	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 onboarding, 12 insights
+	selected_panel   int // 0 world, 1 skills, 2 agents, 3 mcp, 4 targets, 5 doctor, 6 jobs, 7 loops, 8 swarm, 9 workspace, 10 products, 11 settings, 12 insights (onboarding is the show_onboarding overlay, not a panel)
 	office_map_view  bool // false = operational overview (default), true = floor map
 	hover_panel      int
 	selected_desk    int
@@ -1756,6 +1756,9 @@ struct KnownWsRect {
 
 // panel_index_for maps a registry panel destination to the production panel
 // index used by GuiApp.selected_panel (0 world … 12 insights).
+// Onboarding is a show_onboarding overlay, not a panel: Settings owns panel
+// 11, so onboarding maps to -1 and the palette activation path opens the
+// overlay explicitly (same as the `o` key) instead of landing on Settings.
 fn panel_index_for(p nav.PanelId) int {
 	return match p {
 		.world_view { 0 }
@@ -1769,7 +1772,6 @@ fn panel_index_for(p nav.PanelId) int {
 		.swarm { 8 }
 		.workspace { 9 }
 		.products { 10 }
-		.onboarding { 11 }
 		.insights { 12 }
 		else { -1 }
 	}
@@ -2855,6 +2857,7 @@ fn frame(mut app GuiApp) {
 			// command center (operations_view.v)
 			5, 6, 7, 8 { draw_operations(mut app, w, h) }
 			9 { draw_workspace(mut app, w, h) }
+			// Settings owns 11; onboarding is the show_onboarding overlay above.
 			11 { draw_settings(mut app, w, h) }
 			12 { draw_insights(mut app, w, h) }
 			else { draw_world(mut app, w, h) }
@@ -3881,11 +3884,15 @@ fn draw_world(mut app GuiApp, w int, h int) {
 	app.gg.draw_rect_filled(inbox_x + 8, inbox_y + 66, 68, 2, tint(app.pnl_text, 12))
 	// ── Command deck — kanban / fleet / CI workshop command (alt wood divergence, native gg)
 	// Signature atelier command deck: wood alt panel with brass grain, three columns for live kanban/fleet/CI
-	deck_x := fx + 8
-	deck_y := fy + fh - 68
-	deck_w := fw - 16
-	deck_h := 48
-	if deck_y > fy + 36 && deck_w > 160 {
+	// The kanban third is a live Engine projection (kanban_snapshot): queued
+	// jobs + awaiting swarms → todo, running → doing, recent finished → done.
+	// A click on a kanban sub-column dispatches to the Operations record
+	// (same kanban_deck_rect geometry for draw and hit-test).
+	if app.desktop != unsafe { nil } {
+		app.kanban = kanban_snapshot(app.desktop.engine_jobs_catalog(), app.desktop.swarm_list())
+	}
+	deck_x, deck_y, deck_w, deck_h := kanban_deck_rect(fx, fy, fw, fh)
+	if kanban_deck_visible(fw, fh) {
 		pixel_panel(mut app, deck_x, deck_y, deck_w, deck_h, 'alt')
 		col_w := deck_w / 3
 		// brass vertical dividers
@@ -3914,7 +3921,7 @@ fn draw_world(mut app GuiApp, w int, h int) {
 			// inner gloss
 			app.gg.draw_line(deck_x + 11 + ki * 44, deck_y + 28, deck_x + 48 + ki * 44, deck_y + 28, tint(app.pnl_bg, 14))
 		}
-		app.gg.draw_text(deck_x + 10, deck_y + 36, '${app.kanban.len} cards • budgets • verifier', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
+		app.gg.draw_text(deck_x + 10, deck_y + 36, '${app.kanban.len} cards · live queue — click a column to open', gg.TextCfg{ color: app.pnl_text_mut, size: 10 })
 		// fleet — live health dots per desk + selected halo + working pulse
 		fleet_x := deck_x + col_w + 8
 		app.gg.draw_text(fleet_x, deck_y + 6, 'Fleet', gg.TextCfg{ color: app.pnl_text, size: 10, bold: true })
@@ -6535,7 +6542,22 @@ fn activate_palette_selection(mut app GuiApp) {
 	}
 	// registry rows navigate to their typed panel destination. Entity
 	// rows open the owning panel and deep-link the canonical entity.
+	// Onboarding has no panel (Settings owns 11): its registry row opens
+	// the setup-journey overlay exactly like the `o` key.
 	if sel.is_entity {
+		if sel.panel == nav.PanelId.onboarding {
+			select_panel(mut app, 11)
+			app.show_onboarding = true
+			app.onboarding_msg = 'Setup journey opened — five stages, press o to toggle'
+			app.palette_open = false
+			app.palette_query = ''
+			app.palette_selected = 0
+			app.palette_expanded = ''
+			app.palette_preview = []
+			app.palette_preview_for = ''
+			app.palette_armed = ''
+			return
+		}
 		idx := panel_index_for(sel.panel)
 		if idx >= 0 {
 			// shared panel-selection transition (clears desk selection, focus
@@ -7970,7 +7992,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					if my >= dlg_y + 34 {
 						ri := (my - dlg_y - 34) / 26
 						if ri >= 0 && ri < det.len && det[ri].found {
-							spawn_session(mut app, det[ri].agent)
+							spawn_session(mut &app, det[ri].agent)
 						}
 						return
 					}
@@ -8292,6 +8314,35 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 					app.selected_desk = idx
 					app.inspector_msg = ''
 					return
+				}
+			}
+			// Command-deck kanban dispatch: a click on a kanban sub-column
+			// opens the underlying Operations record (Jobs 6 / Swarms 8).
+			// Same kanban_deck_rect geometry as draw; fleet/CI thirds ignore.
+			if app.desktop != unsafe { nil } && kanban_deck_visible(fw, fh) {
+				kx, ky, kw, kh := kanban_deck_rect(fx, fy, fw, fh)
+				if mx >= kx && mx < kx + kw / 3 && my >= ky && my < ky + kh {
+					col := kanban_col_at(kx, kw / 3, mx)
+					if col != '' {
+						jobs_live := app.desktop.engine_jobs_catalog()
+						swarms_live := app.desktop.swarm_list()
+						panel, idx, ok := kanban_dispatch(col, app.kanban, jobs_live, swarms_live)
+						if ok {
+							app.selected_panel = panel
+							if panel == 6 && idx >= 0 {
+								app.jobs_selected = idx
+								app.inspector_msg = 'Kanban ${col} → Jobs · ${jobs_live[idx].id}'
+							} else if panel == 8 && idx >= 0 {
+								app.swarm_selected = idx
+								app.inspector_msg = 'Kanban ${col} → Swarms · ${swarms_live[idx].id}'
+							} else {
+								app.inspector_msg = 'Kanban ${col} → Operations · record cleared since'
+							}
+						} else {
+							app.inspector_msg = 'Kanban ${col} is empty — queue is idle'
+						}
+						return
+					}
 				}
 			}
 		}

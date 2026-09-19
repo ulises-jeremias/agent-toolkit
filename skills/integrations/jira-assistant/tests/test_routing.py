@@ -1,37 +1,87 @@
 #!/usr/bin/env python3
 """
-Automated routing tests for jira-assistant skill.
+Two-skill routing check for the jira skill.
 
-Runs Claude Code non-interactively and verifies correct skill routing
-by checking debug logs for which skill was loaded.
+With one skill per plugin, disambiguating among the thirteen retired domain
+skills inside a single plugin is moot. What remains worth checking is
+*inter-plugin* discrimination: given a prompt, does Claude Code load the
+`jira` skill from this plugin, the `confluence` skill from the non-shipped
+`tests/fixtures/confluence-stub/` fixture plugin, or neither -- and does it
+get this right consistently across cold trials?
+
+This runs Claude Code non-interactively with BOTH plugin directories
+installed (this repo, plus the confluence-stub fixture) and observes which
+skill loaded ONLY from a `Skill` tool_use block in the
+`--output-format stream-json --verbose` transcript (review fix: the prior
+version grepped a debug log for a "skill is loading" string that appears
+in 0 debug logs on a real host, silently falling through to a keyword
+guess over the model's answer text -- that made every one of the eight
+product prompts pass whether or not either skill actually loaded, since
+the prompt itself names the product and the answer echoes it). A trial
+where no `Skill` tool_use block appears is treated as the skill loading
+being unobserved, never guessed at: for the four jira and four confluence
+prompts this correctly counts as a miss; for the two unrelated prompts
+"no skill observed" is the correct, expected outcome.
+
+Confinement, refined against authorized live-CLI probes: `--tools
+Bash,Skill` restricts the model to exactly those two tools -- `Skill`
+because a plugin's SKILL.md reaches the model only through the built-in
+`Skill` tool (https://code.claude.com/docs/en/tools-reference), so
+without it neither skill could ever be observed loading at all; `Bash`
+because the skill itself directs the model to run `jira-as`.
+`--allowedTools "Bash,Skill"` is passed alongside `--tools`: a probe
+found that under `--permission-mode dontAsk`, the Skill tool call is
+itself DENIED unless also pre-approved this way. `--strict-mcp-config
+--mcp-config <empty-mcp.json>` keeps the operator's own configured MCP
+servers (which a probe found still load and expose tools otherwise) out
+of a routing trial entirely. Each trial also runs with `cwd` set to a
+fresh, empty temporary directory (no project CLAUDE.md or other file
+from this repository applies) and with an environment built by
+tests/harness_env.py's build_harness_env() -- the same allowlist the
+help-only sufficiency arm uses, copying only PATH, HOME, USER, LOGNAME,
+TERM and LANG (the last two if present) and forcing
+JIRA_AS_TRANSPORT=simulation, so a routing trial can never inherit the
+operator's real Jira credentials.
+
+This is a routing check, not a task run: the only thing being measured
+is which skill (if any) loads on the model's first turn, so a trial ends
+there. `claude` is launched with `subprocess.Popen` (see
+tests/stream_observe.run_and_observe) and its stdout is read one
+stream-json line at a time; the instant a `Skill` tool_use block appears,
+the process is terminated (SIGTERM, then SIGKILL after a grace period)
+and the trial returns -- it never waits for the model to go on and
+actually perform the task. Run 1 of this check (9 of 10 prompts passed;
+jira-01 scored 2/5) found the previous, blocking `subprocess.run` design
+actively harmful: three of jira-01's five trials hit the then-60s timeout
+while the model was still executing a real search after the skill had
+already loaded, and `subprocess.run`'s `TimeoutExpired` handling discards
+the entire captured stdout -- including the Skill tool_use block seen
+seconds into the run -- turning an observed pass into a scored miss
+purely because the observation method kept reading long after it had its
+answer. The transcript is persisted line by line as it is read, not only
+at the end, so a trial that never observes a Skill tool_use (a timeout,
+or a slow process) still leaves a complete, inspectable partial
+transcript on disk instead of losing it. The per-trial timeout is 120s,
+matching the sufficiency arm's (tests/e2e/runner.py).
 
 Usage:
-    # Run all tests
+    # Run the full routing check (five cold trials per prompt)
     pytest test_routing.py -v
-
-    # Run specific category
-    pytest test_routing.py -v -k "direct"
-
-    # Run with debug output
-    pytest test_routing.py -v -s
-
-    # Run with OpenTelemetry metrics
-    pytest test_routing.py -v --otel
 
 Requirements:
     - Claude Code CLI installed and configured
-    - Plugin installed: claude plugins add /path/to/jira-assistant-skills
     - pytest: pip install pytest pyyaml
-    - OpenTelemetry (optional): pip install -r requirements-otel.txt
+
+Not run in CI: this launches the `claude` binary directly. See
+.github/workflows/ci.yml, which deselects this file, and
+tests/e2e/README.md for the host-triggered process this check belongs to.
 """
 
 import json
-import os
-import re
-import subprocess
 import sys
+import tempfile
 from pathlib import Path
-from typing import Callable, NamedTuple
+from typing import NamedTuple
 
 import pytest
 import yaml
@@ -39,873 +89,315 @@ import yaml
 # Mark all tests in this module as 'live' - they require the Claude CLI
 pytestmark = pytest.mark.live
 
-# Add tests directory to path for otel_metrics import
 TESTS_DIR = Path(__file__).parent
 if str(TESTS_DIR) not in sys.path:
     sys.path.insert(0, str(TESTS_DIR))
 
-# OpenTelemetry integration (optional)
-init_telemetry: Callable[[], bool] | None
-record_test_result: Callable[..., None] | None
-record_test_session_summary: Callable[..., None] | None
-otel_shutdown: Callable[[], None] | None
-try:
-    from otel_metrics import (  # noqa: I001
-        OTEL_AVAILABLE,
-        init_telemetry,
-        record_test_result,
-        record_test_session_summary,
-        shutdown as otel_shutdown,
-    )
-except ImportError:
-    OTEL_AVAILABLE = False
-    init_telemetry = None
-    record_test_result = None
-    record_test_session_summary = None
-    otel_shutdown = None
-
 # Import model config from conftest (after sys.path modification)
 from conftest import get_test_model  # noqa: E402
 
-# Path to the golden test set
+# The plugin under test (this repo) and the non-shipped fixture plugin used
+# only to give the routing check a second skill to discriminate against.
+REPO_ROOT = TESTS_DIR.parents[2]
+CONFLUENCE_STUB_DIR = REPO_ROOT / "tests" / "fixtures" / "confluence-stub"
+
+# The shared, allowlist-based subprocess environment (tests/harness_env.py)
+# also used by the help-only sufficiency arm.
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+from tests.harness_env import build_harness_env  # noqa: E402
+
+# Same empty MCP config the sufficiency arm uses, so the operator's own
+# configured MCP servers (found by a live probe to still load and expose
+# tools otherwise) never enter a routing trial either.
+EMPTY_MCP_CONFIG = (REPO_ROOT / "tests" / "e2e" / "empty-mcp.json").resolve()
+
+# Same evidence-persistence helpers the sufficiency arm uses (see
+# tests/evidence.py): every trial's transcript and observed skill is
+# written to disk, so a scoring question never requires re-running the
+# live check.
+from tests.evidence import new_run_dir, write_json, write_transcript  # noqa: E402
+
+# The generic Popen-based incremental reader (see its module docstring):
+# stops a trial the moment a Skill tool_use block is observed instead of
+# blocking until the model finishes an entire task or the timeout fires.
+from tests.stream_observe import run_and_observe  # noqa: E402
+
 GOLDEN_FILE = TESTS_DIR / "routing_golden.yaml"
-DEBUG_DIR = Path.home() / ".claude" / "debug"
+
+DEFAULT_MODEL = "claude-sonnet-5"
+TRIALS_PER_PROMPT = 5
+MIN_CORRECT_TRIALS = 4
+# Matches the sufficiency arm's per-trial timeout (tests/e2e/runner.py).
+# Run 1 of this check found the previous 60s ceiling actively harmful
+# (see the module docstring): raised now that a trial ends the instant
+# a Skill tool_use is observed instead of only at process completion.
+ROUTING_TIMEOUT_SECONDS = 120
+
+KNOWN_SKILLS = ("jira", "confluence")
+
+# One evidence directory per pytest session (this module is imported
+# once per run): every trial's transcript lands here, plus a running
+# summary of the observed skill per trial.
+_ROUTING_RUN_DIR = new_run_dir("jas55-routing")
+_ROUTING_TRIAL_COUNTERS: dict[str, int] = {}
+_ROUTING_SUMMARY: dict = {"run_dir": str(_ROUTING_RUN_DIR), "prompts": {}}
 
 
-class CommandMatch(NamedTuple):
-    """Result of matching a single expected command pattern."""
-
-    pattern: str
-    is_regex: bool
-    matched: bool
+def _next_routing_trial_number(test_id: str) -> int:
+    _ROUTING_TRIAL_COUNTERS[test_id] = _ROUTING_TRIAL_COUNTERS.get(test_id, 0) + 1
+    return _ROUTING_TRIAL_COUNTERS[test_id]
 
 
-class ToolUseResult(NamedTuple):
-    """Result of tool use accuracy check."""
+def _routing_transcript_path(test_id: str, trial_number: int) -> Path:
+    return _ROUTING_RUN_DIR / f"{test_id}-{trial_number}.transcript.jsonl"
 
-    total_patterns: int
-    matched_patterns: int
-    accuracy: float  # 0.0 to 1.0
-    matches: list[CommandMatch]
+
+def _persist_routing_trial(
+    test_id: str,
+    trial_number: int,
+    result: "RoutingResult",
+) -> None:
+    """Record this trial's outcome in the run-wide summary.json.
+
+    The transcript itself is no longer written here: run_claude_routing
+    writes it line by line, as each line is read from the subprocess, so
+    that a trial which times out or hangs still leaves a complete,
+    inspectable partial transcript on disk instead of losing it (the
+    previous subprocess.run-based implementation discarded the whole
+    transcript on a timeout -- see the module docstring). By the time
+    this function runs, the transcript file already holds everything
+    that trial captured.
+    """
+    _ROUTING_SUMMARY["prompts"].setdefault(test_id, []).append(
+        {
+            "trial": trial_number,
+            "skill_loaded": result.skill_loaded,
+            "observation_error": result.observation_error,
+        }
+    )
+    write_json(_ROUTING_RUN_DIR / "summary.json", _ROUTING_SUMMARY)
 
 
 class RoutingResult(NamedTuple):
-    """Result of a routing test."""
+    """Result of one cold trial."""
 
     skill_loaded: str | None
-    asked_clarification: bool
-    session_id: str
-    duration_ms: int
-    cost_usd: float
-    # Enhanced fields for tool use accuracy
-    response_text: str = ""
-    input_tokens: int = 0
-    output_tokens: int = 0
-    tool_use: ToolUseResult | None = None
+    observation_error: str = ""
 
 
 def load_golden_tests() -> list[dict]:
-    """Load test cases from routing_golden.yaml."""
+    """Load the ten routing prompts from routing_golden.yaml."""
     with open(GOLDEN_FILE) as f:
         data = yaml.safe_load(f)
     return data.get("tests", [])
 
 
-def validate_tool_use(
-    response_text: str, expected_commands: list[dict] | None
-) -> ToolUseResult:
+def normalize_skill_name(skill: str) -> str | None:
+    """Normalize a captured skill name to one of KNOWN_SKILLS, or None."""
+    skill = skill.strip().lower()
+    return skill if skill in KNOWN_SKILLS else None
+
+
+def extract_skill_from_transcript_line(line: str) -> str | None:
     """
-    Validate that expected command patterns appear in the response.
+    Parse ONE line of a `--output-format stream-json --verbose`
+    transcript and return the normalized skill name if this line is an
+    assistant message carrying a `Skill` tool_use block, else None.
 
-    Args:
-        response_text: The full response text from Claude
-        expected_commands: List of expected command patterns, each with:
-            - pattern: Literal string to match
-            - pattern_regex: Regex pattern to match (alternative to pattern)
+    This is the ONLY source of truth for which skill loaded. There is no
+    fallback that infers a skill from the model's answer text: a prompt
+    that names its product ("Jira"/"Confluence") makes the answer text an
+    unreliable signal, since the model can echo the product name whether
+    or not it actually loaded the corresponding skill.
 
-    Returns:
-        ToolUseResult with accuracy metrics and individual match results
+    A live probe showed the tool_use input is `{"skill":
+    "jira-assistant-skills:jira"}` -- the plugin-namespaced skill name
+    under the key `skill`, normalized here to the segment after the last
+    colon. Other field names once checked defensively (`name`,
+    `skill_name`, `command`) are not what the CLI actually sends and have
+    been dropped.
+
+    Used both as the `detect_line` callback `run_claude_routing` feeds to
+    `tests.stream_observe.run_and_observe` for incremental, one-line-at-a-
+    time reading, and by `extract_loaded_skill` below for a full,
+    already-captured transcript -- so the two can never disagree about
+    what counts as an observed skill load.
     """
-    if not expected_commands:
-        return ToolUseResult(
-            total_patterns=0,
-            matched_patterns=0,
-            accuracy=1.0,  # No expectations = 100% by default
-            matches=[],
-        )
+    line = line.strip()
+    if not line:
+        return None
+    try:
+        event = json.loads(line)
+    except json.JSONDecodeError:
+        return None
 
-    matches = []
-    matched_count = 0
+    if event.get("type") != "assistant":
+        return None
 
-    # Normalize response for matching (handle code blocks)
-    response_lower = response_text.lower()
-
-    for cmd in expected_commands:
-        if "pattern" in cmd:
-            # Literal string match (case-insensitive)
-            pattern = cmd["pattern"]
-            is_regex = False
-            matched = pattern.lower() in response_lower
-        elif "pattern_regex" in cmd:
-            # Regex match
-            pattern = cmd["pattern_regex"]
-            is_regex = True
-            try:
-                matched = bool(re.search(pattern, response_text, re.IGNORECASE))
-            except re.error:
-                matched = False
-        else:
+    message = event.get("message", {})
+    for block in message.get("content", []) or []:
+        if not isinstance(block, dict) or block.get("type") != "tool_use":
+            continue
+        if block.get("name") != "Skill":
             continue
 
-        matches.append(
-            CommandMatch(pattern=pattern, is_regex=is_regex, matched=matched)
-        )
+        skill_value = (block.get("input") or {}).get("skill")
+        if skill_value:
+            normalized = normalize_skill_name(str(skill_value).rsplit(":", 1)[-1])
+            if normalized:
+                return normalized
 
-        if matched:
-            matched_count += 1
+    return None
 
-    total = len(matches)
-    accuracy = matched_count / total if total > 0 else 1.0
 
-    return ToolUseResult(
-        total_patterns=total,
-        matched_patterns=matched_count,
-        accuracy=accuracy,
-        matches=matches,
-    )
+def extract_loaded_skill(transcript_lines: list[str]) -> str | None:
+    """
+    Scan a full transcript (one JSON object per line) and return the
+    skill named by the FIRST `Skill` tool_use block, or None if the
+    model never invoked the Skill tool. See
+    `extract_skill_from_transcript_line` for the per-line matching rule
+    this delegates to.
+    """
+    for line in transcript_lines:
+        skill = extract_skill_from_transcript_line(line)
+        if skill:
+            return skill
+    return None
 
 
 def run_claude_routing(
-    input_text: str, expected_commands: list[dict] | None = None, timeout: int = 60
+    test_id: str, input_text: str, timeout: int = ROUTING_TIMEOUT_SECONDS
 ) -> RoutingResult:
     """
-    Run Claude Code with input and extract routing result.
+    Run Claude Code non-interactively with both plugin directories loaded,
+    from a fresh empty temp directory and under the shared allowlist
+    environment, and return which skill (if any) it was OBSERVED to load,
+    for this one cold trial.
 
-    Args:
-        input_text: The user input to test
-        expected_commands: Optional list of expected command patterns for tool use validation
-        timeout: Maximum seconds to wait
+    Launched via `tests.stream_observe.run_and_observe`, not
+    `subprocess.run`: stdout is read one stream-json line at a time, and
+    the instant a line carries a `Skill` tool_use block
+    (`extract_skill_from_transcript_line`), the process is terminated and
+    this function returns -- it never waits for the model to go on and
+    actually perform the task the skill would have driven. See the
+    module docstring for why (run 1's jira-01 misses on the previous,
+    blocking design).
 
-    Returns:
-        RoutingResult with skill loaded, response text, and tool use metrics
+    Every line is written to `_ROUTING_RUN_DIR`'s transcript file for
+    this trial as it is read (the `on_line` callback below), so a trial
+    that never observes a Skill tool_use -- a timeout, or a slow process
+    -- still leaves a complete, inspectable partial transcript on disk.
+    A timeout is only recorded as an error when nothing was observed
+    before it fired; a process that simply finishes on its own without
+    ever invoking Skill (the correct, expected outcome for the two
+    "neither" prompts) is not.
     """
-    if not input_text:
-        # Empty input edge case
-        return RoutingResult(
-            skill_loaded=None,
-            asked_clarification=True,
-            session_id="",
-            duration_ms=0,
-            cost_usd=0.0,
-            response_text="",
-            input_tokens=0,
-            output_tokens=0,
-            tool_use=None,
-        )
+    model = get_test_model() or DEFAULT_MODEL
+    trial_number = _next_routing_trial_number(test_id)
+    transcript_path = _routing_transcript_path(test_id, trial_number)
 
-    # Build command with optional model
     cmd = [
         "claude",
         "--print",
         "--permission-mode",
         "dontAsk",
         "--output-format",
-        "json",
-        "--debug",
+        "stream-json",
+        "--verbose",
+        "--tools",
+        "Bash,Skill",
+        "--allowedTools",
+        "Bash,Skill",
+        "--strict-mcp-config",
+        "--mcp-config",
+        str(EMPTY_MCP_CONFIG),
+        "--plugin-dir",
+        str(REPO_ROOT),
+        "--plugin-dir",
+        str(CONFLUENCE_STUB_DIR),
+        "--model",
+        model,
     ]
 
-    # Add plugin-dir if specified via environment (for container testing)
-    plugin_dir = os.environ.get("CLAUDE_PLUGIN_DIR")
-    if plugin_dir:
-        cmd.extend(["--plugin-dir", plugin_dir])
+    lines_so_far: list[str] = []
 
-    # Add allowed tools if specified via environment (for sandboxed testing)
-    allowed_tools = os.environ.get("CLAUDE_ALLOWED_TOOLS")
-    if allowed_tools:
-        cmd.extend(["--allowedTools", allowed_tools])
+    def _on_line(line: str) -> None:
+        # Rewritten on every line, not just at the end, so the transcript
+        # on disk never lags more than one line behind what has actually
+        # been read from the subprocess.
+        lines_so_far.append(line)
+        write_transcript(transcript_path, lines_so_far)
 
-    # Add model flag if specified (e.g., --model haiku for faster tests)
-    model = get_test_model()
-    if model:
-        cmd.extend(["--model", model])
-
-    # Run Claude non-interactively
-    result = subprocess.run(
-        cmd,
-        input=input_text,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
-
-    # Parse JSON output
-    try:
-        output = json.loads(result.stdout)
-    except json.JSONDecodeError:
-        pytest.fail(f"Failed to parse Claude output: {result.stdout[:500]}")
-
-    session_id = output.get("session_id", "")
-    duration_ms = output.get("duration_ms", 0)
-    cost_usd = output.get("total_cost_usd", 0.0)
-    response_text = output.get("result", "")
-    permission_denials = output.get("permission_denials", [])
-
-    # Check if DISAMBIGUATION was asked (not just any question)
-    # "Would you like me to run this" is NOT disambiguation - it's confirmation
-    response_lower = response_text.lower()
-    asked_clarification = (
-        "?" in response_text
-        and any(
-            phrase in response_lower
-            for phrase in [
-                # Existing phrases
-                "which skill",
-                "which would you",
-                "did you mean",
-                "do you want sprint details or",
-                "do you want to delete them or close",
-                "update fields on one issue or multiple",
-                # NEW: Natural clarification patterns
-                "would you like to",
-                "do you want to",
-                "should i",
-                "which one",
-                "which issue",
-                "which project",
-                "could you clarify",
-                "could you specify",
-                "what would you like",
-                "are you looking for",
-                "do you mean",
-                "one issue or",
-                "single issue or",
-                "sprint details or",
-                "details or issues",
-                "fields or",
-                "status or",
-            ]
+    with tempfile.TemporaryDirectory(prefix="jas55-routing-") as scratch_dir:
+        observation = run_and_observe(
+            cmd,
+            input_text,
+            detect_line=extract_skill_from_transcript_line,
+            on_line=_on_line,
+            timeout=timeout,
+            env=build_harness_env(),
+            cwd=scratch_dir,
         )
-        and not any(
-            phrase in response_lower
-            for phrase in [
-                "would you like me to run",
-                "shall i run",
-                "shall i execute",
-                "want me to run",
-                "want me to execute",
-                "i need permission",  # NEW: exclude permission requests
-                "grant permission",  # NEW
-            ]
+
+    # observation.result is typed generically (run_and_observe knows
+    # nothing about skills), but this call's own detect_line
+    # (extract_skill_from_transcript_line) only ever returns str | None.
+    skill_loaded = observation.result if isinstance(observation.result, str) else None
+
+    if skill_loaded:
+        observation_error = ""
+    elif observation.timed_out:
+        observation_error = f"claude timed out after {timeout}s"
+    else:
+        observation_error = (
+            "skill load not observed (no Skill tool_use block in transcript)"
         )
+
+    routing_result = RoutingResult(
+        skill_loaded=skill_loaded, observation_error=observation_error
     )
-
-    # Detect skill from multiple sources
-    skill_loaded = None
-
-    # Method 1: Check debug log for explicit skill loading
-    debug_file = DEBUG_DIR / f"{session_id}.txt"
-    if debug_file.exists():
-        debug_content = debug_file.read_text()
-
-        # Look for skill loading pattern from Skill tool invocation
-        skill_match = re.search(
-            r"skill is loading.*?(jira-\w+)", debug_content, re.IGNORECASE
-        )
-        if skill_match:
-            skill_loaded = normalize_skill_name(skill_match.group(1))
-
-    # Method 2: Infer from CLI commands in response or permission denials
-    if not skill_loaded:
-        skill_loaded = infer_skill_from_response(response_text, permission_denials)
-
-    # Extract token counts
-    input_tokens = output.get("num_turns", 0)  # Fallback if not available
-    output_tokens = 0
-    if "usage" in output:
-        input_tokens = output["usage"].get("input_tokens", 0)
-        output_tokens = output["usage"].get("output_tokens", 0)
-
-    # Validate tool use accuracy if expected commands provided
-    tool_use_result = validate_tool_use(response_text, expected_commands)
-
-    # Verbose output for debugging (disable with ROUTING_TEST_QUIET=1)
-    if not os.environ.get("ROUTING_TEST_QUIET"):
-        print(f"\n{'=' * 70}")
-        print(f"INPUT: {input_text}")
-        print(f"SESSION: {session_id}")
-        print(f"SKILL DETECTED: {skill_loaded}")
-        print(f"ASKED CLARIFICATION: {asked_clarification}")
-        print(f"RESPONSE:\n{response_text}")
-        if permission_denials:
-            print(f"PERMISSION DENIALS: {json.dumps(permission_denials, indent=2)}")
-        print(f"{'=' * 70}\n")
-
-    return RoutingResult(
-        skill_loaded=skill_loaded,
-        asked_clarification=asked_clarification,
-        session_id=session_id,
-        duration_ms=duration_ms,
-        cost_usd=cost_usd,
-        response_text=response_text,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        tool_use=tool_use_result,
-    )
-
-
-def infer_skill_from_response(response: str, permission_denials: list) -> str | None:
-    """
-    Infer which skill was used based on response content and tool calls.
-
-    This handles cases where Claude responds directly without invoking
-    the Skill tool (e.g., using cached knowledge of CLI commands).
-    """
-    # Combine response and denied command inputs
-    all_text = response.lower()
-    for denial in permission_denials:
-        if isinstance(denial, dict):
-            cmd = denial.get("tool_input", {}).get("command", "")
-            all_text += " " + cmd.lower()
-
-    # REORDERED: Most specific skills first, generic last
-    # Note: jira-as is the CLI command, patterns support both "jira" and "jira-as"
-    patterns = {
-        # Priority 0: Meta/capability queries (check first)
-        "jira-assistant": [
-            r"what\s+can\s+(you|i|we)\s+do",  # "what can you do?"
-            r"(help|capabilities|commands|features)\s+(available|list)",
-            r"how\s+to\s+use",
-            r"quick\s+reference",
-            r"show\s+(me\s+)?(the\s+)?commands",
-            r"available\s+(commands|skills|features)",
-        ],
-        # Priority 1: Highly specific keywords (check first)
-        "jira-dev": [
-            r"jira[\s-]*as?\s+dev",
-            r"(write|generate|create)\s+pr\s+description",  # "write PR description"
-            r"pr\s+description\s+(for|from)",
-            r"(generate|create)\s+branch\s*name",  # "generate branch name"
-            r"branch\s+name\s+(for|from)",
-            r"link\s+(pr|pull\s+request)",
-            r"parse\s+commit",
-            r"smart\s+commit",
-        ],
-        "jira-fields": [
-            r"jira[\s-]*as?\s+fields?",
-            r"what\s+(custom\s+)?fields",  # "what custom fields", "what fields"
-            r"fields?\s+(are\s+)?available",
-            r"field\s+id\s+(for|of)",
-            r"list\s+(custom\s+)?fields",
-            r"customfield_\d+",
-        ],
-        "jira-ops": [
-            r"jira[\s-]*as?\s+ops",
-            r"warm\s+(the\s+)?cache",  # "warm the cache" or "warm cache"
-            r"cache\s+(status|clear|warm)",
-            r"clear\s+cache",
-            r"discover\s+project",
-        ],
-        # Priority 2: Quantity-based (bulk)
-        "jira-bulk": [
-            r"jira[\s-]*as?\s+bulk",
-            r"bulk\s+(update|transition|assign|close|delete)",
-            r"(transition|close|update|assign)\s+\d+\s+(issues?|bugs?|tasks?)",  # "transition 50 issues"
-            r"\d{2,}\s+(issues?|bugs?|tasks?)",  # "50 issues", "20 bugs" (2+ digits)
-            r"(update|close|transition)\s+(all|multiple)\s+",
-            r"mass\s+(update|transition|close)",
-        ],
-        # Priority 3: Workflow/lifecycle (with issue key patterns)
-        "jira-lifecycle": [
-            r"jira[\s-]*as?\s+lifecycle",
-            r"assign\s+[a-z]+-\d+\s+to",  # "assign TES-789 to"
-            r"transition\s+[a-z]+-\d+\s+to",
-            r"(close|resolve|reopen)\s+[a-z]+-\d+",
-            r"move\s+[a-z]+-\d+\s+to",
-            r"change\s+status",
-        ],
-        # Priority 4: Agile (epic/sprint specific)
-        "jira-agile": [
-            r"jira[\s-]*as?\s+agile",
-            r"create\s+(an?\s+)?epic",  # "create an epic" or "create epic"
-            r"epic\s+(called|named|for)",
-            r"(show|view)\s+(the\s+)?backlog",
-            r"(add|move)\s+to\s+sprint",
-            r"sprint\s+(list|planning|active)",
-            r"set\s+story\s*points?",
-            r"velocity",
-        ],
-        # Priority 5: Specific CLI subcommands (before generic jira-issue)
-        "jira-relationships": [
-            r"jira[\s-]*as?\s+relationships?",
-            r"what'?s\s+blocking",
-            r"blockers?\s+(for|on)",
-            r"is\s+blocked\s+by",
-            r"link\s+[a-z]+-\d+\s+to",
-            r"depends\s+on",
-            r"clone\s+(issue|[a-z]+-\d+)",
-            r"blocking\s+chain",
-            r"dependency\s+graph",
-            r"show\s+dependencies",
-        ],
-        "jira-collaborate": [
-            r"jira[\s-]*as?\s+collaborate",
-            r"add\s+(a\s+)?comment",
-            r"post\s+comment",
-            r"attach(ment)?",
-            r"watcher",
-            r"notify",
-        ],
-        "jira-time": [
-            r"jira[\s-]*as?\s+time",
-            r"time\s+spent\s+on",
-            r"log\s+(time|work|\d+\s*h)",
-            r"log\s+.*hours?",
-            r"worklog",
-            r"how\s+much\s+time",
-            r"time\s+report",
-            r"timesheet",
-            r"(original|remaining)\s+estimate",
-        ],
-        "jira-jsm": [
-            r"jira[\s-]*as?\s+jsm",
-            r"service\s*desk",
-            r"sla\s+(breach|target|status)",
-            r"customer\s+(request|portal)",
-            r"approval",
-            r"queue",
-        ],
-        # Priority 6: Generic issue/search (check after specific commands)
-        "jira-issue": [
-            r"jira[\s-]*as?\s+issue\s+(create|get|update|delete)",
-            r"show\s+me\s+[a-z]+-\d+",  # "show me TES-123"
-            r"(get|view)\s+(issue\s+)?[a-z]+-\d+",
-            r"create\s+(a\s+)?(new\s+)?(bug|task|story)(?!\s+.*epic)",
-            r"update\s+[a-z]+-\d+",
-            r"delete\s+[a-z]+-\d+",
-            r"^[a-z]+-\d+$",  # Standalone issue key (lowercase) like "tes-123"
-            r"\b[a-z]{2,}-\d+\b",  # Issue key pattern anywhere in response
-        ],
-        "jira-search": [
-            r"jira[\s-]*as?\s+search",
-            r"jql[:\s]",
-            r"find\s+(all\s+)?(open\s+)?issues",
-            r"search\s+for\s+issues",
-            r"search\s+jira",
-            r"list\s+(all\s+)?bugs",
-            r"export\s+.*results",
-        ],
-        # Last: Admin (fallback)
-        "jira-admin": [
-            r"jira[\s-]*as?\s+admin",
-            r"permission\s+scheme",
-            r"project\s+settings",
-            r"automation\s+rules?",
-            r"notification\s+scheme",
-            r"workflow\s+scheme",
-            r"issue\s+type\s+scheme",
-        ],
-    }
-
-    for skill, skill_patterns in patterns.items():
-        for pattern in skill_patterns:
-            if re.search(pattern, all_text):
-                return skill
-
-    return None
-
-
-def normalize_skill_name(skill: str) -> str:
-    """Normalize skill names to match golden test expectations."""
-    # Map internal names to canonical names
-    mappings = {
-        "jira-issue-management": "jira-issue",
-        "jira-issue-crud": "jira-issue",
-        # Add more mappings as discovered
-    }
-    return mappings.get(skill, skill)
+    _persist_routing_trial(test_id, trial_number, routing_result)
+    return routing_result
 
 
 # Load tests at module level for parametrization
 GOLDEN_TESTS = load_golden_tests()
 
 
-def get_direct_tests():
-    """Get high-certainty direct routing tests."""
-    return [t for t in GOLDEN_TESTS if t.get("category") == "direct"]
-
-
-def get_disambiguation_tests():
-    """Get disambiguation tests (should ask for clarification)."""
-    return [t for t in GOLDEN_TESTS if t.get("category") == "disambiguation"]
-
-
-def get_negative_tests():
-    """Get negative trigger tests (should NOT route to specific skill)."""
-    return [t for t in GOLDEN_TESTS if t.get("category") == "negative"]
-
-
-def get_context_tests():
-    """Get context-dependent tests."""
-    return [t for t in GOLDEN_TESTS if t.get("category") == "context"]
-
-
-def get_workflow_tests():
-    """Get multi-skill workflow tests."""
-    return [t for t in GOLDEN_TESTS if t.get("category") == "workflow"]
-
-
-def get_edge_tests():
-    """Get edge case tests."""
-    return [t for t in GOLDEN_TESTS if t.get("category") == "edge"]
-
-
-# =============================================================================
-# DIRECT ROUTING TESTS
-# =============================================================================
-
-
-@pytest.mark.parametrize("test_case", get_direct_tests(), ids=lambda t: t["id"])
-def test_direct_routing(test_case, record_otel):
-    """Test high-certainty direct routing."""
-    # Check for skip flag
-    if test_case.get("skip"):
-        pytest.skip(test_case.get("skip_reason", "Test marked as skip"))
-
-    input_text = test_case["input"]
-    expected_skill = test_case["expected_skill"]
-    alternate_skills = test_case.get("alternate_skills", [])
-    all_valid_skills = [expected_skill] + alternate_skills
-    expected_commands = test_case.get("expected_commands")
-    test_id = test_case["id"]
-
-    result = run_claude_routing(input_text, expected_commands=expected_commands)
-
-    # Pass if any valid skill matched
-    routing_passed = (
-        result.skill_loaded in all_valid_skills and not result.asked_clarification
-    )
-    tool_use_passed = result.tool_use is None or result.tool_use.accuracy >= 0.5
-
-    # Record to OpenTelemetry with enhanced context
-    record_otel(
-        test_id=test_id,
-        category="direct",
-        input_text=input_text,
-        expected_skill=expected_skill,
-        actual_skill=result.skill_loaded,
-        passed=routing_passed and tool_use_passed,
-        duration_ms=result.duration_ms,
-        cost_usd=result.cost_usd,
-        asked_clarification=result.asked_clarification,
-        session_id=result.session_id,
-        tokens_input=result.input_tokens,
-        tokens_output=result.output_tokens,
-        response_text=result.response_text,
-        tool_use_accuracy=result.tool_use.accuracy if result.tool_use else None,
-        tool_use_matched=result.tool_use.matched_patterns if result.tool_use else None,
-        tool_use_total=result.tool_use.total_patterns if result.tool_use else None,
-    )
-
-    # Assert skill is one of the valid options
-    if alternate_skills:
-        assert result.skill_loaded in all_valid_skills, (
-            f"Expected one of {all_valid_skills}, got {result.skill_loaded}\n"
-            f"Input: {input_text}\n"
-            f"Session: {result.session_id}"
-        )
-    else:
-        assert result.skill_loaded == expected_skill, (
-            f"Expected {expected_skill}, got {result.skill_loaded}\n"
-            f"Input: {input_text}\n"
-            f"Session: {result.session_id}"
-        )
-
-    # Direct routing should NOT ask for clarification
-    assert not result.asked_clarification, (
-        f"Direct routing should not ask clarification\nInput: {input_text}"
-    )
-
-    # Validate tool use accuracy if expected commands specified
-    if expected_commands and result.tool_use:
-        # Report unmatched patterns for debugging
-        unmatched = [m for m in result.tool_use.matches if not m.matched]
-        if unmatched:
-            unmatched_patterns = [m.pattern for m in unmatched]
-            print(f"  Unmatched command patterns: {unmatched_patterns}")
-
-        # Warn but don't fail if tool use accuracy is low (< 50%)
-        if result.tool_use.accuracy < 0.5:
-            print(
-                f"  WARNING: Low tool use accuracy {result.tool_use.accuracy:.0%} "
-                f"({result.tool_use.matched_patterns}/{result.tool_use.total_patterns})"
-            )
-
-
-# =============================================================================
-# DISAMBIGUATION TESTS
-# =============================================================================
-
-
-@pytest.mark.parametrize("test_case", get_disambiguation_tests(), ids=lambda t: t["id"])
-def test_disambiguation(test_case, record_otel):
-    """Test that ambiguous inputs ask for clarification."""
-    # Check for skip flag
-    if test_case.get("skip"):
-        pytest.skip(test_case.get("skip_reason", "Test marked as skip"))
-
-    input_text = test_case["input"]
-    expected_options = test_case.get("disambiguation_options", [])
-    test_id = test_case["id"]
-
-    result = run_claude_routing(input_text)
-
-    passed = result.asked_clarification
-
-    # Record to OpenTelemetry
-    record_otel(
-        test_id=test_id,
-        category="disambiguation",
-        input_text=input_text,
-        expected_skill="disambiguation",
-        actual_skill=result.skill_loaded if not result.asked_clarification else "asked",
-        passed=passed,
-        duration_ms=result.duration_ms,
-        cost_usd=result.cost_usd,
-        asked_clarification=result.asked_clarification,
-        session_id=result.session_id,
-    )
-
-    # Should ask for clarification
-    assert result.asked_clarification, (
-        f"Should ask for clarification\n"
-        f"Input: {input_text}\n"
-        f"Expected options: {expected_options}"
-    )
-
-
-# =============================================================================
-# NEGATIVE TRIGGER TESTS
-# =============================================================================
-
-
-@pytest.mark.parametrize("test_case", get_negative_tests(), ids=lambda t: t["id"])
-def test_negative_triggers(test_case, record_otel):
-    """Test that inputs route to correct skill, NOT to excluded skill."""
-    # Check for skip flag
-    if test_case.get("skip"):
-        pytest.skip(test_case.get("skip_reason", "Test marked as skip"))
-
-    input_text = test_case["input"]
-    expected_skill = test_case["expected_skill"]
-    alternate_skills = test_case.get("alternate_skills", [])
-    all_valid_skills = [expected_skill] + alternate_skills
-    not_skill = test_case.get("not_skill")
-    test_id = test_case["id"]
-
-    result = run_claude_routing(input_text)
-
-    passed = result.skill_loaded in all_valid_skills
-    if not_skill and result.skill_loaded == not_skill:
-        passed = False
-
-    # Record to OpenTelemetry
-    record_otel(
-        test_id=test_id,
-        category="negative",
-        input_text=input_text,
-        expected_skill=expected_skill,
-        actual_skill=result.skill_loaded,
-        passed=passed,
-        duration_ms=result.duration_ms,
-        cost_usd=result.cost_usd,
-        asked_clarification=result.asked_clarification,
-        session_id=result.session_id,
-    )
-
-    if alternate_skills:
-        assert result.skill_loaded in all_valid_skills, (
-            f"Expected one of {all_valid_skills}, got {result.skill_loaded}\n"
-            f"Input: {input_text}"
-        )
-    else:
-        assert result.skill_loaded == expected_skill, (
-            f"Expected {expected_skill}, got {result.skill_loaded}\nInput: {input_text}"
-        )
-
-    if not_skill:
-        assert result.skill_loaded != not_skill, (
-            f"Should NOT route to {not_skill}\nInput: {input_text}"
-        )
-
-
-# =============================================================================
-# EDGE CASE TESTS
-# =============================================================================
-
-
-@pytest.mark.parametrize("test_case", get_edge_tests(), ids=lambda t: t["id"])
-def test_edge_cases(test_case, record_otel):
-    """Test edge cases like empty input, explicit skill mention, etc."""
-    # Check for skip flag
-    if test_case.get("skip"):
-        pytest.skip(test_case.get("skip_reason", "Test marked as skip"))
-
-    input_text = test_case["input"]
-    expected_skill = test_case.get("expected_skill")
-    alternate_skills = test_case.get("alternate_skills", [])
-    all_valid_skills = [expected_skill] + alternate_skills if expected_skill else []
-    expected_action = test_case.get("action")
-    test_id = test_case["id"]
-
-    result = run_claude_routing(input_text)
-
-    passed = True
-    if expected_skill:
-        if alternate_skills:
-            passed = result.skill_loaded in all_valid_skills
-        else:
-            passed = result.skill_loaded == expected_skill
-    if expected_action == "ask_for_input":
-        passed = result.skill_loaded is None or result.asked_clarification
-    if expected_action == "show_quick_reference":
-        # Capability queries may route to jira-assistant or ask clarification
-        passed = result.skill_loaded == expected_skill or result.asked_clarification
-
-    # Record to OpenTelemetry
-    record_otel(
-        test_id=test_id,
-        category="edge",
-        input_text=input_text,
-        expected_skill=expected_skill or expected_action or "none",
-        actual_skill=result.skill_loaded,
-        passed=passed,
-        duration_ms=result.duration_ms,
-        cost_usd=result.cost_usd,
-        asked_clarification=result.asked_clarification,
-        session_id=result.session_id,
-    )
-
-    if expected_skill:
-        if alternate_skills:
-            assert result.skill_loaded in all_valid_skills, (
-                f"Expected one of {all_valid_skills}, got {result.skill_loaded}\n"
-                f"Input: '{input_text}'"
-            )
-        elif expected_action == "show_quick_reference":
-            # Capability queries are flexible - asking clarification is acceptable
-            assert (
-                result.skill_loaded == expected_skill or result.asked_clarification
-            ), (
-                f"Expected {expected_skill} or clarification, got {result.skill_loaded}\n"
-                f"Input: '{input_text}'"
-            )
-        else:
-            assert result.skill_loaded == expected_skill, (
-                f"Expected {expected_skill}, got {result.skill_loaded}\n"
-                f"Input: '{input_text}'"
-            )
-
-    if expected_action == "ask_for_input":
-        # Empty input should prompt for input
-        assert result.skill_loaded is None or result.asked_clarification
-
-
-# =============================================================================
-# WORKFLOW TESTS (informational - multi-skill sequences)
-# =============================================================================
-
-
-@pytest.mark.parametrize("test_case", get_workflow_tests(), ids=lambda t: t["id"])
-def test_workflows(test_case, record_otel):
+@pytest.mark.parametrize("test_case", GOLDEN_TESTS, ids=lambda t: t["id"])
+def test_routing(test_case):
     """
-    Test multi-skill workflow routing.
+    Run TRIALS_PER_PROMPT cold trials for one prompt.
 
-    These tests verify that ANY skill in the workflow is triggered.
-    Claude may reasonably start with any step in a multi-skill workflow.
-    Full workflow validation requires stateful testing.
+    A prompt passes at MIN_CORRECT_TRIALS or more matching trials out of
+    TRIALS_PER_PROMPT. `expected_skill: null` means the prompt should load
+    neither skill -- for those prompts, "skill load not observed" IS the
+    correct, expected outcome, since no Skill tool_use block should ever
+    appear. The routing check as a whole (this module) passes only when
+    every prompt passes.
     """
-    # Check for skip flag
-    if test_case.get("skip"):
-        pytest.skip(test_case.get("skip_reason", "Test marked as skip"))
-
     input_text = test_case["input"]
-    workflow = test_case.get("workflow", [])
+    expected_skill = test_case.get("expected_skill")  # None means "neither"
     test_id = test_case["id"]
 
-    if not workflow:
-        pytest.skip("No workflow defined")
+    correct = 0
+    observed = []
+    for _ in range(TRIALS_PER_PROMPT):
+        result = run_claude_routing(test_id, input_text)
+        observed.append(result.skill_loaded or f"<{result.observation_error}>")
+        if result.skill_loaded == expected_skill:
+            correct += 1
 
-    # Collect all skills in the workflow as valid options
-    workflow_skills = [step.get("skill") for step in workflow if step.get("skill")]
-    first_skill = workflow_skills[0] if workflow_skills else None
+    print(f"[{test_id}] evidence: {_ROUTING_RUN_DIR}")
 
-    result = run_claude_routing(input_text)
-
-    # Pass if ANY skill from the workflow is used, or clarification is asked
-    passed = result.skill_loaded in workflow_skills or result.asked_clarification
-
-    # Record to OpenTelemetry
-    record_otel(
-        test_id=test_id,
-        category="workflow",
-        input_text=input_text,
-        expected_skill=first_skill,
-        actual_skill=result.skill_loaded,
-        passed=passed,
-        duration_ms=result.duration_ms,
-        cost_usd=result.cost_usd,
-        asked_clarification=result.asked_clarification,
-        session_id=result.session_id,
+    assert correct >= MIN_CORRECT_TRIALS, (
+        f"[{test_id}] expected skill {expected_skill!r} in >= "
+        f"{MIN_CORRECT_TRIALS}/{TRIALS_PER_PROMPT} cold trials, "
+        f"got {correct}/{TRIALS_PER_PROMPT}\n"
+        f"Evidence directory: {_ROUTING_RUN_DIR}\n"
+        f"Input: {input_text}\nObserved: {observed}"
     )
-
-    # Workflow tests accept any skill from the workflow list
-    # Claude may reasonably start with different steps depending on interpretation
-    assert result.skill_loaded in workflow_skills or result.asked_clarification, (
-        f"Expected one of {workflow_skills} or clarification\n"
-        f"Got: {result.skill_loaded}\n"
-        f"Input: {input_text}"
-    )
-
-
-# =============================================================================
-# CONTEXT TESTS (require session state - marked as expected failures)
-# =============================================================================
-
-
-@pytest.mark.skip(reason="Context tests require multi-turn sessions")
-@pytest.mark.parametrize("test_case", get_context_tests(), ids=lambda t: t["id"])
-def test_context_dependent(test_case):
-    """
-    Test context-dependent routing.
-
-    These tests require multi-turn sessions and are not yet automated.
-    They should be run manually or with a session-aware test harness.
-    """
-    pytest.skip("Context tests require multi-turn sessions")
-
-
-# =============================================================================
-# SUMMARY REPORT
-# =============================================================================
-
-
-def pytest_terminal_summary(terminalreporter, exitstatus, config):
-    """Print routing test summary."""
-    passed = len(terminalreporter.stats.get("passed", []))
-    failed = len(terminalreporter.stats.get("failed", []))
-    skipped = len(terminalreporter.stats.get("skipped", []))
-
-    print("\n" + "=" * 60)
-    print("ROUTING TEST SUMMARY")
-    print("=" * 60)
-    print(f"Passed:  {passed}")
-    print(f"Failed:  {failed}")
-    print(f"Skipped: {skipped}")
-    print(f"Total:   {passed + failed + skipped}")
-    if passed + failed > 0:
-        accuracy = passed / (passed + failed) * 100
-        print(f"Accuracy: {accuracy:.1f}%")
-    print("=" * 60)
 
 
 if __name__ == "__main__":
