@@ -413,6 +413,9 @@ fn office_completion_inspector_text(c desktop.OfficeCompletion) string {
 const office_run_row_h = 30
 const office_line_h = 18
 const office_act_h = 28
+// office_appr_row_h fits the approval title plus its verbatim Engine message
+// plus inline Approve/Reject buttons: the gate reads and resolves in place.
+const office_appr_row_h = 40
 
 // OfficeAttentionLayout budgets the attention column top-down: runs first,
 // then approvals, then completions. Caps shrink completions first so live
@@ -440,7 +443,7 @@ fn office_attention_layout(y0 int, h int, nruns int, nappr int, ncomp int, sel_h
 	mut comp_cap := if ncomp < 3 { ncomp } else { 3 }
 	for {
 		runs_h := 22 + runs_cap * office_run_row_h + act_h + empty_pad
-		appr_h := 22 + appr_cap * office_line_h
+		appr_h := 22 + appr_cap * office_appr_row_h
 		comp_h := if comp_cap == 0 { 0 } else { 22 + comp_cap * office_line_h }
 		if runs_h + 10 + appr_h + 10 + comp_h <= h {
 			break
@@ -460,7 +463,7 @@ fn office_attention_layout(y0 int, h int, nruns int, nappr int, ncomp int, sel_h
 		break
 	}
 	runs_h := 22 + runs_cap * office_run_row_h + act_h + empty_pad
-	appr_h := 22 + appr_cap * office_line_h
+	appr_h := 22 + appr_cap * office_appr_row_h
 	comp_h := if comp_cap == 0 { 0 } else { 22 + comp_cap * office_line_h }
 	appr_y := y0 + runs_h + 10
 	comp_y := appr_y + appr_h + 10
@@ -495,9 +498,62 @@ fn office_action_rect(l OfficeLayout, ay int, i int, n int) (int, int, int, int)
 	return l.side_x + 4 + i * (bw + gap), ay, bw, 22
 }
 
-// office_appr_rect is the hit/draw rect of approval line i.
+// office_appr_rect is the hit/draw rect of approval row i: title plus the
+// verbatim Engine message, with inline Approve/Reject on the right.
 fn office_appr_rect(l OfficeLayout, appr_y int, i int) (int, int, int, int) {
-	return l.side_x + 4, appr_y + 22 + i * office_line_h, l.side_w - 8, office_line_h - 2
+	return l.side_x + 4, appr_y + 22 + i * office_appr_row_h, l.side_w - 8, office_appr_row_h - 2
+}
+
+// office_appr_btn_rect is the hit/draw rect of the inline gate button on
+// approval row i: btn 0 = Approve (primary), 1 = Reject (danger).
+// Same geometry for draw and hit-test.
+fn office_appr_btn_rect(l OfficeLayout, appr_y int, i int, btn int) (int, int, int, int) {
+	ax, ay, aw, _ := office_appr_rect(l, appr_y, i)
+	bh := 20
+	by := ay + (office_appr_row_h - 2 - bh) / 2
+	deny_w := 58
+	appr_w := 66
+	gap := 6
+	dx := ax + aw - deny_w
+	if btn == 1 {
+		return dx, by, deny_w, bh
+	}
+	return dx - gap - appr_w, by, appr_w, bh
+}
+
+// office_approval_text_w is the pixel width left for approval title/message
+// text once the inline buttons take their share.
+fn office_approval_text_w(l OfficeLayout) int {
+	_, _, aw, _ := office_appr_rect(l, 0, 0)
+	return aw - (66 + 6 + 58) - 28
+}
+
+// office_approval_run maps a pending gate back to its live run row so the
+// inline buttons dispatch through the same Engine path as the run actions.
+// Returns false when the run left the board: the caller reports that,
+// never a phantom approval.
+fn office_approval_run(rows []desktop.OfficeRunRow, item desktop.OfficeApprovalItem) (desktop.OfficeRunRow, bool) {
+	for r in rows {
+		if r.kind == 'swarm' && r.id == item.run_id {
+			return r, true
+		}
+	}
+	return desktop.OfficeRunRow{}, false
+}
+
+// office_warnings_line is the Doctor continuity line, or '' when there is
+// nothing to escalate. Text lives here so draw and hit-test cannot drift.
+fn office_warnings_line(doctor_warns int) string {
+	if doctor_warns <= 0 {
+		return ''
+	}
+	return '${doctor_warns} warnings — see Operations'
+}
+
+// office_warnings_target is the nav panel the warnings line opens: the
+// Doctor tab of Operations (operations_tab_panels maps Doctor to 5).
+fn office_warnings_target() int {
+	return 5
 }
 
 // office_comp_rect is the hit/draw rect of completion line i.
@@ -563,7 +619,7 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 			color: app.pnl_text_mut
 			size: 11
 		})
-		app.gg.draw_text(x + 12, y0 + 48, 'Engine not connected.', gg.TextCfg{
+		app.gg.draw_text(x + 12, y0 + 48, 'Engine not connected — see Doctor.', gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 		})
@@ -586,7 +642,7 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 		bold: true
 	})
 	if snap.rows.len == 0 {
-		app.gg.draw_text(x + 12, ry + 22, 'No runs recorded.', gg.TextCfg{
+		app.gg.draw_text(x + 12, ry + 22, 'No runs recorded — start one from Operations.', gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 		})
@@ -630,19 +686,31 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 		bold: true
 	})
 	if snap.approvals.len == 0 {
-		app.gg.draw_text(x + 12, al.appr_y + 22, 'No pending approvals.', gg.TextCfg{
+		app.gg.draw_text(x + 12, al.appr_y + 22, 'No pending approvals — nothing waiting on you.', gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 		})
 	} else {
+		tw := office_approval_text_w(l)
 		for i in 0 .. al.appr_cap {
 			item := snap.approvals[i]
 			_, ayy, _, _ := office_appr_rect(l, al.appr_y, i)
-			line := utf8_truncate('${item.kind} · ${item.run_title}', text_fit_chars(w - 28, 11))
+			line := utf8_truncate('${item.kind} · ${item.run_title}', text_fit_chars(tw, 11))
 			app.gg.draw_text(x + 16, ayy, line, gg.TextCfg{
 				color: app.pnl_text
 				size: 11
 			})
+			msg := utf8_truncate(item.message, text_fit_chars(tw, 10))
+			app.gg.draw_text(x + 16, ayy + 18, msg, gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 10
+			})
+			bax, bay, baw, bah := office_appr_btn_rect(l, al.appr_y, i, 0)
+			operations_button(mut app, bax, bay, baw, bah, 'Approve', false, true,
+				false)
+			bdx, bdy, bdw, bdh := office_appr_btn_rect(l, al.appr_y, i, 1)
+			operations_button(mut app, bdx, bdy, bdw, bdh, 'Reject', false, false,
+				true)
 		}
 	}
 	// completions section
@@ -653,7 +721,7 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 			bold: true
 		})
 		if snap.completions.len == 0 {
-			app.gg.draw_text(x + 12, al.comp_y + 22, 'No recent completions.', gg.TextCfg{
+			app.gg.draw_text(x + 12, al.comp_y + 22, 'No recent completions yet.', gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -669,8 +737,8 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 			}
 		}
 	}
-	if snap.doctor_warns > 0 && al.comp_y + al.comp_h + 18 < y0 + h {
-		app.gg.draw_text(x + 12, al.comp_y + al.comp_h + 4, '${snap.doctor_warns} warnings — see Operations', gg.TextCfg{
+	if office_warnings_line(snap.doctor_warns) != '' && al.comp_y + al.comp_h + 18 < y0 + h {
+		app.gg.draw_text(x + 12, al.comp_y + al.comp_h + 4, office_warnings_line(snap.doctor_warns), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
@@ -723,17 +791,37 @@ fn office_attention_click(mut app GuiApp, l OfficeLayout, mx int, my int) bool {
 		if i >= snap.approvals.len {
 			break
 		}
+		item := snap.approvals[i]
+		// inline gate buttons first (smallest targets, painted over the row)
+		bax, bay, baw, bah := office_appr_btn_rect(l, al.appr_y, i, 0)
+		if rect_contains(mx, my, bax, bay, baw, bah) {
+			row, ok := office_approval_run(snap.rows, item)
+			if ok {
+				office_run_dispatch(mut app, row, 'approve')
+			} else {
+				app.inspector_msg = office_approval_inspector_text(item) + ' · run no longer listed'
+			}
+			return true
+		}
+		bdx, bdy, bdw, bdh := office_appr_btn_rect(l, al.appr_y, i, 1)
+		if rect_contains(mx, my, bdx, bdy, bdw, bdh) {
+			row, ok := office_approval_run(snap.rows, item)
+			if ok {
+				office_run_dispatch(mut app, row, 'reject')
+			} else {
+				app.inspector_msg = office_approval_inspector_text(item) + ' · run no longer listed'
+			}
+			return true
+		}
 		ax, ayy, aw, ahh := office_appr_rect(l, al.appr_y, i)
 		if rect_contains(mx, my, ax, ayy, aw, ahh) {
-			item := snap.approvals[i]
-			for r in snap.rows {
-				if r.kind == 'swarm' && r.id == item.run_id {
-					office_select_run(mut app, r)
-					app.inspector_msg = office_approval_inspector_text(item)
-					return true
-				}
+			row, ok := office_approval_run(snap.rows, item)
+			if ok {
+				office_select_run(mut app, row)
+				app.inspector_msg = office_approval_inspector_text(item)
+			} else {
+				app.inspector_msg = office_approval_inspector_text(item) + ' · run no longer listed'
 			}
-			app.inspector_msg = office_approval_inspector_text(item) + ' · run no longer listed'
 			return true
 		}
 	}
@@ -744,6 +832,18 @@ fn office_attention_click(mut app GuiApp, l OfficeLayout, mx int, my int) bool {
 		cx, cy, cw, ch := office_comp_rect(l, al.comp_y, i)
 		if rect_contains(mx, my, cx, cy, cw, ch) {
 			app.inspector_msg = office_completion_inspector_text(snap.completions[i])
+			return true
+		}
+	}
+	// warnings line is a destination, not decoration: same text and
+	// visibility condition as the draw path.
+	if office_warnings_line(snap.doctor_warns) != '' && al.comp_y + al.comp_h + 18 < y0 + ah {
+		wx := l.side_x + 12
+		wy := al.comp_y + al.comp_h + 2
+		ww := office_warnings_line(snap.doctor_warns).len * 6
+		if rect_contains(mx, my, wx, wy, ww, 14) {
+			app.selected_panel = office_warnings_target()
+			app.inspector_msg = '${snap.doctor_warns} warnings — opened Doctor'
 			return true
 		}
 	}

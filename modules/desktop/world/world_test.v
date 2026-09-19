@@ -146,9 +146,9 @@ fn test_world_no_fake_gamification_and_vglyph() {
 	// honest motion only — no gamification, motion tied to State diff
 	// This test asserts node counts derive from real State, not toy economy
 	mut data := map[string]string{}
-	data['skills_count'] = '116'
+	data['skills_count'] = '103'
 	proj := world_projection_from_state(data, 1)
-	assert proj.nodes.len >= 116, 'shelf fill proportional to real catalog (587 lines → 116 nodes)'
+	assert proj.nodes.len >= 103, 'shelf fill proportional to real catalog (103 nodes)'
 	// presentation mapping uses real State diff, ensure sprite stub is vector not GPL raster
 	sprites := default_sprites_stub()
 	assert sprites.len > 0
