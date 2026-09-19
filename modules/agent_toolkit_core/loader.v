@@ -47,11 +47,22 @@ pub:
 }
 
 // LoadedAgent is a persona node from agents/<name>/AGENT.md.
+// allowed/denied_tools use the abstract tool vocabulary validated from
+// AGENT.md frontmatter (Python-era compiler contract, COMP-013); emitters
+// still copy agent bytes verbatim, so these fields are validation + IR only.
 pub struct LoadedAgent {
 pub:
 	id          string
 	name        string
 	source_path string
+pub mut:
+	description         string
+	allowed_tools       []string
+	denied_tools        []string
+	read_only           bool
+	delegates_to        []string
+	model_class         string
+	background_eligible bool
 }
 
 // LoadedHook is a canonical lifecycle hook from capabilities/hooks/*.yaml (#754).
@@ -110,7 +121,9 @@ pub fn load_graph(repo_root string) CanonicalGraph {
 		return g
 	}
 	g.skills = load_skill_ids(os.join_path(repo_root, 'skills'))
-	g.agents = load_agent_ids(os.join_path(repo_root, 'agents'))
+	agents, aerrs := load_agent_ids(os.join_path(repo_root, 'agents'))
+	g.agents = agents.clone()
+	g.errors << aerrs
 	g.hooks = load_hooks(os.join_path(repo_root, 'capabilities', 'hooks'))
 	products, perrs := load_products_file(os.join_path(repo_root, 'distributions', 'products.yaml'))
 	g.errors << perrs
@@ -175,21 +188,191 @@ fn load_skill_ids(skills_root string) map[string]LoadedSkill {
 	return out
 }
 
-fn load_agent_ids(agents_root string) map[string]LoadedAgent {
+// claude_tool_map ports the Python-era CLAUDE_TOOL_MAP
+// (compiler/tool_mapping.py): Claude tool names to abstract tools.
+const claude_tool_map = {
+	'Read':           'fs.read'
+	'Grep':           'fs.search'
+	'Glob':           'fs.search'
+	'Write':          'fs.write'
+	'Edit':           'fs.write'
+	'Bash':           'shell.execute'
+	'WebSearch':      'web.search'
+	'WebFetch':       'web.fetch'
+	'Task':           'agent.delegate'
+	'AskUserQuestion': 'user.ask'
+	'Git':            'git.read'
+	'GitCommit':      'git.write'
+	'GitPush':        'git.write'
+}
+
+// abstract_tools is the valid vocabulary for allowed_tools/denied_tools
+// (Python-era AbstractTool enum, compiler/model.py).
+const abstract_tools = ['fs.read', 'fs.search', 'fs.write', 'shell.readonly', 'shell.execute',
+	'git.read', 'git.write', 'web.search', 'web.fetch', 'agent.delegate', 'user.ask']
+
+// write_tools marks abstract tools that disqualify read_only inference.
+const write_tools = ['fs.write', 'shell.execute', 'git.write']
+
+// split_tool_list parses a frontmatter tool list (comma- and newline-separated).
+fn split_tool_list(raw string) []string {
+	mut out := []string{}
+	for part in raw.replace('\n', ',').split(',') {
+		token := part.trim_space()
+		if token.len > 0 {
+			out << token
+		}
+	}
+	return out
+}
+
+// map_claude_tools converts Claude tool names to abstract tools,
+// order-preserving with dedup. Returns the mapped list plus unknown names.
+fn map_claude_tools(names []string) ([]string, []string) {
+	mut mapped := []string{}
+	mut unknown := []string{}
+	for n in names {
+		abstract := claude_tool_map[n] or {
+			unknown << n
+			continue
+		}
+		if abstract !in mapped {
+			mapped << abstract
+		}
+	}
+	return mapped, unknown
+}
+
+// parse_abstract_tool_list validates tokens against the abstract vocabulary.
+// Returns the valid list plus invalid tokens.
+fn parse_abstract_tool_list(tokens []string) ([]string, []string) {
+	mut valid := []string{}
+	mut invalid := []string{}
+	for t in tokens {
+		if t in abstract_tools {
+			if t !in valid {
+				valid << t
+			}
+		} else {
+			invalid << t
+		}
+	}
+	return valid, invalid
+}
+
+// infer_read_only ports compiler/tool_mapping.py infer_read_only: a tool set
+// is read-only when non-empty and no write-capable tool is present.
+fn infer_read_only(allowed []string) bool {
+	if allowed.len == 0 {
+		return false
+	}
+	for t in allowed {
+		if t in write_tools {
+			return false
+		}
+	}
+	return true
+}
+
+// load_agent_tools resolves one agent's tool contract from its frontmatter:
+// explicit allowed_tools wins over the `tools` Claude-name list; unknown
+// tokens fail closed. Returns ok=false with the error message on violation.
+fn load_agent_tools(name string, fm map[string]string) ([]string, []string, bool, string) {
+	mut allowed := []string{}
+	if 'allowed_tools' in fm {
+		valid, invalid := parse_abstract_tool_list(split_tool_list(fm['allowed_tools']))
+		if invalid.len > 0 {
+			return []string{}, []string{}, false, "agent '${name}': unknown tool(s) in allowed_tools: ${invalid.join(', ')}"
+		}
+		allowed = valid.clone()
+	} else if 'tools' in fm {
+		mapped, unknown := map_claude_tools(split_tool_list(fm['tools']))
+		if unknown.len > 0 {
+			return []string{}, []string{}, false, "agent '${name}': unknown Claude tool(s): ${unknown.join(', ')}"
+		}
+		allowed = mapped.clone()
+	}
+	mut denied := []string{}
+	if 'denied_tools' in fm {
+		valid, invalid := parse_abstract_tool_list(split_tool_list(fm['denied_tools']))
+		if invalid.len > 0 {
+			return []string{}, []string{}, false, "agent '${name}': unknown tool(s) in denied_tools: ${invalid.join(', ')}"
+		}
+		denied = valid.clone()
+	}
+	for t in allowed {
+		if t in denied {
+			return []string{}, []string{}, false, "agent '${name}' lists the same tool in allowed_tools and denied_tools: ${t}"
+		}
+	}
+	read_only := if 'read_only' in fm {
+		fm['read_only'].trim_space().to_lower() == 'true'
+	} else {
+		infer_read_only(allowed)
+	}
+	return allowed, denied, read_only, ''
+}
+
+fn load_agent_ids(agents_root string) (map[string]LoadedAgent, []string) {
 	mut out := map[string]LoadedAgent{}
+	mut errors := []string{}
 	files := collect_named_files(agents_root, 'AGENT.md')
 	for p in files {
 		name := os.file_name(os.dir(p))
 		if name.len == 0 {
 			continue
 		}
-		out[name] = LoadedAgent{
+		mut agent := LoadedAgent{
 			id: name
 			name: name
 			source_path: p
 		}
+		text := os.read_file(p) or { '' }
+		if text.starts_with('---') {
+			fm := parse_skill_frontmatter(text) or { map[string]string{} }
+			agent.description = fm['description'] or { '' }
+			agent.model_class = fm['model_class'] or { '' }
+			agent.background_eligible = (fm['background_eligible'] or { '' }).trim_space().to_lower() == 'true'
+			allowed, denied, read_only, errmsg := load_agent_tools(name, fm)
+			if errmsg.len > 0 {
+				errors << errmsg
+				continue
+			}
+			agent.allowed_tools = allowed
+			agent.denied_tools = denied
+			agent.read_only = read_only
+			if 'delegates_to' in fm {
+				agent.delegates_to = split_tool_list(fm['delegates_to'])
+			}
+		}
+		out[name] = agent
 	}
-	return out
+	validate_agent_contracts(mut out, mut errors)
+	return out, errors
+}
+
+// validate_agent_contracts ports compiler/loader.py validate_agent_contracts:
+// delegates_to must reference known agents and never the agent itself.
+// Violating agents fail closed (excluded from the graph).
+fn validate_agent_contracts(mut agents map[string]LoadedAgent, mut errors []string) {
+	mut bad := []string{}
+	for name, agent in agents {
+		for d in agent.delegates_to {
+			if d == name {
+				errors << "agent '${name}' delegates to itself"
+				bad << name
+				break
+			}
+			if d !in agents {
+				errors << "agent '${name}': unknown delegates_to agent: ${d}"
+				bad << name
+				break
+			}
+		}
+	}
+	for name in bad {
+		agents.delete(name)
+	}
 }
 
 fn validate_product_refs(mut g CanonicalGraph) {

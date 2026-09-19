@@ -87,6 +87,37 @@ fn test_spawn_sleep_kill_and_no_zombie() {
 	assert handle.exit_code != none
 }
 
+fn test_cancel_during_backoff_publishes_no_replacement() {
+	// a job canceled while the monitor sleeps its restart backoff must
+	// stay dead: no replacement process, no restart counted (#1260).
+	mut bus := eventbus.new_event_bus()
+	mut sup := new_process_supervisor(bus)
+	cmd_false := if os.exists('/bin/false') { '/bin/false' } else { 'false' }
+	mut handle := sup.spawn(cmd_false, [], SpawnOpts{
+		restart: .always
+		max_restarts: 3
+		backoff_ms: 2000
+		capture_logs: false
+	}) or {
+		sup.spawn('sh', ['-c', 'exit 1'], SpawnOpts{
+			restart: .always
+			max_restarts: 3
+			backoff_ms: 2000
+			capture_logs: false
+		}) or {
+			assert false, err.msg()
+			return
+		}
+	}
+	// first exit happens fast; the monitor then sleeps ~2000ms backoff
+	time.sleep(300 * time.millisecond)
+	handle.cancel()
+	// past the backoff: a replacement would be alive and counted by now
+	time.sleep(2500 * time.millisecond)
+	assert handle.restarts == 0, 'canceled job must not restart'
+	assert !handle.is_alive(), 'no replacement process may outlive cancel'
+}
+
 fn test_restart_policy_matrix() {
 	mut bus := eventbus.new_event_bus()
 	mut sup := new_process_supervisor(bus)
