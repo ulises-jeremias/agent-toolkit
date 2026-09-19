@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sandbox validation tests for jira-assistant skill.
+Sandbox validation tests for the jira skill (skills/jira/).
 
 Verifies that sandboxed profiles correctly restrict tool access.
 Run these tests with specific sandbox profiles to validate restrictions.
@@ -9,9 +9,6 @@ Usage:
     # Test read-only profile (should block creates)
     SANDBOX_PROFILE=read-only CLAUDE_ALLOWED_TOOLS="Read Glob Grep WebFetch WebSearch Bash(jira-as issue get:*) Bash(jira-as search:*)" \
         pytest test_sandbox_validation.py -v -k "readonly"
-
-    # Test via run_sandboxed.sh
-    ./run_sandboxed.sh --profile read-only --validate
 
     # Run all validation tests
     pytest test_sandbox_validation.py -v
