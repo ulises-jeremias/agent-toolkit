@@ -474,6 +474,13 @@ pub fn (mut d Desktop) engine_retry_job(job_id string) !string {
 	return d.engine.retry_job(job_id)
 }
 
+// engine_cancel_all_jobs cancels every queued/running job through the Engine
+// queue seam and returns how many were actually canceled. Zero means the
+// queue was already idle — the caller reports that, never a success story.
+pub fn (mut d Desktop) engine_cancel_all_jobs() int {
+	return d.engine.cancel_all_jobs()
+}
+
 pub fn (mut d Desktop) engine_process_supervisor_stats() (int, u64) {
 	return d.engine.process_supervisor_stats()
 }

@@ -89,7 +89,9 @@ fn test_panel_index_for_matches_production_panels() {
 	assert panel_index_for(nav.PanelId.swarm) == 8
 	assert panel_index_for(nav.PanelId.workspace) == 9
 	assert panel_index_for(nav.PanelId.products) == 10
-	assert panel_index_for(nav.PanelId.onboarding) == 11
+	// Onboarding is a show_onboarding overlay, not a panel (Settings owns
+	// 11): it must not map to a panel index or /onboarding lands on Settings.
+	assert panel_index_for(nav.PanelId.onboarding) == -1
 	assert panel_index_for(nav.PanelId.insights) == 12
 	assert panel_index_for(nav.PanelId.unknown) == -1
 }

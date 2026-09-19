@@ -95,20 +95,7 @@
       "confluence-space",
       "confluence-template",
       "confluence-watch",
-      "jira-administration",
-      "jira-agile-management",
       "jira-assistant",
-      "jira-bulk-operations",
-      "jira-collaboration",
-      "jira-custom-fields",
-      "jira-developer-integration",
-      "jira-issue-management",
-      "jira-issue-relationships",
-      "jira-lifecycle-management",
-      "jira-operations",
-      "jira-search-jql",
-      "jira-service-management",
-      "jira-time-tracking",
       "linear",
       "mcp",
       "slack-assistant",
@@ -523,73 +510,8 @@
       "domain": "integrations"
     },
     {
-      "id": "integrations/jira-administration",
-      "name": "jira-administration",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-agile-management",
-      "name": "jira-agile-management",
-      "domain": "integrations"
-    },
-    {
       "id": "integrations/jira-assistant",
       "name": "jira-assistant",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-bulk-operations",
-      "name": "jira-bulk-operations",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-collaboration",
-      "name": "jira-collaboration",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-custom-fields",
-      "name": "jira-custom-fields",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-developer-integration",
-      "name": "jira-developer-integration",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-issue-management",
-      "name": "jira-issue-management",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-issue-relationships",
-      "name": "jira-issue-relationships",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-lifecycle-management",
-      "name": "jira-lifecycle-management",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-operations",
-      "name": "jira-operations",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-search-jql",
-      "name": "jira-search-jql",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-service-management",
-      "name": "jira-service-management",
-      "domain": "integrations"
-    },
-    {
-      "id": "integrations/jira-time-tracking",
-      "name": "jira-time-tracking",
       "domain": "integrations"
     },
     {
