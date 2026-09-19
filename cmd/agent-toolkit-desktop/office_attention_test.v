@@ -503,6 +503,67 @@ fn test_office_partial_inputs_still_project() {
 	assert office_completion_inspector_text(comps[0]).contains('exit 0')
 }
 
+fn test_office_approval_inline_buttons_resolve_live_run() {
+	rows := desktop.office_project_runs(office_test_jobs(), office_test_swarms(), [], office_test_approvals(), true)
+	items := desktop.office_pending_approvals(office_test_approvals(), fn (run_id string) string {
+		return run_id
+	})
+	assert items.len == 1
+	// the verbatim Engine message rides the row: the gate reads in place
+	assert items[0].message == 'spend 4 credits'
+	row, ok := office_approval_run(rows, items[0])
+	assert ok
+	assert row.kind == 'swarm' && row.id == 'run-gated'
+	assert row.approval_id == 'appr-1'
+	// inline buttons reuse the run-action path: same kinds, same engine op
+	acts := desktop.office_run_actions(row)
+	assert acts.len == 2
+	assert acts[0].kind == 'approve' && acts[1].kind == 'reject'
+	assert acts[0].engine_op == 'swarm_approve'
+	// a gate whose run left the board resolves to nothing, never a phantom
+	gone := desktop.OfficeApprovalItem{
+		id: 'appr-x'
+		run_id: 'run-gone'
+		run_title: 'gone'
+		kind: 'spend'
+		message: 'spend 1 credit'
+	}
+	_, found := office_approval_run(rows, gone)
+	assert !found
+}
+
+fn test_office_approval_row_geometry_holds_buttons() {
+	l := OfficeLayout{
+		side_x: 900
+		side_w: 264
+	}
+	ax, ay, aw, ah := office_appr_rect(l, 100, 0)
+	assert ah == office_appr_row_h - 2
+	bax, bay, baw, bah := office_appr_btn_rect(l, 100, 0, 0)
+	bdx, bdy, bdw, bdh := office_appr_btn_rect(l, 100, 0, 1)
+	// buttons sit inside the row, ordered Approve-then-Reject, no overlap
+	assert bax >= ax && bdx + bdw <= ax + aw
+	assert bax + baw <= bdx
+	assert bay >= ay && bay + bah <= ay + ah
+	assert bdy == bay && bdh == bah
+	// consecutive rows do not overlap
+	_, ay2, _, _ := office_appr_rect(l, 100, 1)
+	assert ay2 >= ay + ah
+	// text area stays positive on narrow columns
+	assert office_approval_text_w(l) > 0
+	// taller rows still fit the section math: caps shed completions first
+	al := office_attention_layout(100, 600, 6, 4, 5, true)
+	assert al.appr_y >= al.y0 + al.runs_h
+	assert al.comp_y >= al.appr_y + al.appr_h
+}
+
+fn test_office_warnings_line_opens_doctor() {
+	assert office_warnings_line(0) == ''
+	assert office_warnings_line(3) == '3 warnings — see Operations'
+	// Doctor tab of Operations: panels map Doctor to 5
+	assert office_warnings_target() == 5
+}
+
 fn test_office_state_keys_cover_every_pill() {
 	assert desktop.OfficeRunState.unknown.key() == 'unknown'
 	assert desktop.OfficeRunState.idle.key() == 'idle'
