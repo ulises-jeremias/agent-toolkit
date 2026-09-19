@@ -31,7 +31,7 @@ fn test_product_truth_catalog_counts() {
 	defer { eng.stop() or {} }
 
 	skills := eng.skills_catalog()
-	assert skills.len == 116, 'skills catalog must contain the source entries: got ${skills.len}'
+	assert skills.len == 103, 'skills catalog must contain the source entries: got ${skills.len} (was 116 before the upstream JIRA thin-skill migration)'
 	for skill in skills {
 		assert !skill.description.to_lower().contains('synthetic')
 		assert skill.id.contains('/')
