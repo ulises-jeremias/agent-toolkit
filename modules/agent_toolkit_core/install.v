@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
 import os
+import x.json2
 
 // install_valid_tools lists profile tools supported by `agent-toolkit install`.
 pub const install_valid_tools = ['claude-code', 'cursor', 'opencode', 'copilot', 'windsurf', 'pi',
@@ -310,6 +311,45 @@ fn stage_install_mapping(mut tx InstallTransaction, m FileMapping, force bool) !
 	return 'created'
 }
 
+// merge_json_objects_nondestructive merges overlay into base without
+// overwriting existing keys, recursing into nested objects (Python
+// installer/merge.py parity). Returns the merged object and whether
+// anything changed.
+fn merge_json_objects_nondestructive(base map[string]json2.Any, overlay map[string]json2.Any) (map[string]json2.Any, bool) {
+	mut merged := base.clone()
+	mut changed := false
+	for k, v in overlay {
+		if k !in merged {
+			merged[k] = v
+			changed = true
+			continue
+		}
+		bv := merged[k] or { continue }
+		if bv is map[string]json2.Any {
+			if v is map[string]json2.Any {
+				sub, sub_changed := merge_json_objects_nondestructive(bv, v)
+				if sub_changed {
+					merged[k] = sub
+					changed = true
+				}
+			}
+		}
+	}
+	return merged, changed
+}
+
+// encode_json_any_object renders an object with sorted keys.
+fn encode_json_any_object(m map[string]json2.Any) string {
+	mut keys := m.keys()
+	keys.sort()
+	mut parts := []string{}
+	for k in keys {
+		val := m[k] or { continue }
+		parts << gate_json_escape(k) + ':' + json2.encode(val)
+	}
+	return '{' + parts.join(',') + '}'
+}
+
 fn merge_json_install(src_path string, dst_path string) (string, string) {
 	src_text := if is_embedded_src(src_path) {
 		embedded_read_file(strip_embedded_prefix(src_path)) or { return '', 'skipped' }
@@ -317,90 +357,13 @@ fn merge_json_install(src_path string, dst_path string) (string, string) {
 		os.read_file(src_path) or { return '', 'skipped' }
 	}
 	dst_text := os.read_file(dst_path) or { return '', 'skipped' }
-	overlay := parse_flat_json_strings(src_text) or { return '', 'skipped' }
-	mut base := parse_flat_json_strings(dst_text) or { return '', 'skipped' }
-	mut changed := false
-	for k, v in overlay {
-		if k !in base {
-			base[k] = v
-			changed = true
-		}
-	}
+	overlay := json2.decode[map[string]json2.Any](src_text) or { return '', 'skipped' }
+	base := json2.decode[map[string]json2.Any](dst_text) or { return '', 'skipped' }
+	merged, changed := merge_json_objects_nondestructive(base, overlay)
 	if !changed {
 		return dst_text, 'unchanged'
 	}
-	return encode_flat_json_strings(base) + '\n', 'merged'
-}
-
-fn parse_flat_json_strings(text string) ?map[string]string {
-	s := text.trim_space()
-	if s.len < 2 || s[0] != `{` {
-		return none
-	}
-	mut out := map[string]string{}
-	mut i := 1
-	for i < s.len {
-		for i < s.len && (s[i].is_space() || s[i] == `,`) {
-			i++
-		}
-		if i >= s.len || s[i] == `}` {
-			break
-		}
-		if s[i] != `"` {
-			return none
-		}
-		i++
-		key_start := i
-		for i < s.len && s[i] != `"` {
-			i++
-		}
-		if i >= s.len {
-			return none
-		}
-		key := s[key_start..i]
-		i++
-		for i < s.len && s[i].is_space() {
-			i++
-		}
-		if i >= s.len || s[i] != `:` {
-			return none
-		}
-		i++
-		for i < s.len && s[i].is_space() {
-			i++
-		}
-		if i >= s.len || s[i] != `"` {
-			return none
-		}
-		i++
-		val_start := i
-		for i < s.len {
-			if s[i] == `\\` && i + 1 < s.len {
-				i += 2
-				continue
-			}
-			if s[i] == `"` {
-				break
-			}
-			i++
-		}
-		if i >= s.len {
-			return none
-		}
-		out[key] = s[val_start..i]
-		i++
-	}
-	return out
-}
-
-fn encode_flat_json_strings(m map[string]string) string {
-	mut keys := m.keys()
-	keys.sort()
-	mut parts := []string{}
-	for k in keys {
-		parts << '"${k}":"${m[k]}"'
-	}
-	return '{' + parts.join(',') + '}'
+	return encode_json_any_object(merged) + '\n', 'merged'
 }
 
 fn install_source_present(tool string, data_root string) bool {
