@@ -106,6 +106,14 @@ if [ -x "$WIN_BUILD/agent-toolkit.exe" ]; then
   "$WIN_BUILD/agent-toolkit.exe" doctor || echo " doctor non-zero (stub, doc ⚠️)"
 fi
 
+# Headless limitations probe (CI artifact; never opens a window)
+if command -v v >/dev/null 2>&1; then
+  v run "$ROOT/distribution/desktop/windows/probe.vsh" > "$WIN_BUILD/windows-limitations.md" 2>"$WIN_BUILD/windows-limitations.log" || echo "probe failed — doc ⚠️ (see $WIN_BUILD/windows-limitations.log)"
+  head -n 8 "$WIN_BUILD/windows-limitations.md" 2>/dev/null || true
+else
+  echo "v not available — probe skipped, doc ⚠️"
+fi
+
 # Deep-link registry smoke (windows-latest only)
 if command -v reg >/dev/null 2>&1; then
   reg query "HKCU\\Software\\Classes\\agent-toolkit" || echo "reg query failed — not installed yet, doc ⚠️"
