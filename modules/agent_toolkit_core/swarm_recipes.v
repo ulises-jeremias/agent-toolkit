@@ -414,6 +414,18 @@ fn swarm_yaml_string_field(text string, key string) string {
 	return yaml_string_field(text, key)
 }
 
+// clamp_swarm_concurrency bounds worker fan-out to the supported range
+// (Python swarm/budget.py resolve_budget parity: max(1, min(6, ...))).
+fn clamp_swarm_concurrency(n int) int {
+	if n < 1 {
+		return 1
+	}
+	if n > 6 {
+		return 6
+	}
+	return n
+}
+
 // resolve_swarm_config merges BUILTIN_RECIPES[recipe] with optional ws/swarm.yaml and CLI overrides.
 // Mirrors Python fbb2280:config.py:12 resolve_config.
 pub fn resolve_swarm_config(ws string, recipe string, ui string, runner string, model_profile string) !RecipeFull {
@@ -468,6 +480,10 @@ pub fn resolve_swarm_config(ws string, recipe string, ui string, runner string, 
 	// Keep spec.execution and budget in sync with top-level (for jq)
 	base.execution = base.spec.execution
 	base.budget = base.spec.budget
+	// Clamp concurrency to the supported range (Python swarm/budget.py
+	// resolve_budget parity).
+	base.spec.execution.max_concurrency = clamp_swarm_concurrency(base.spec.execution.max_concurrency)
+	base.execution.max_concurrency = base.spec.execution.max_concurrency
 	// Gates string list derived from gates spec
 	mut gates := []string{}
 	if base.spec.gates.require_plan_approval {
