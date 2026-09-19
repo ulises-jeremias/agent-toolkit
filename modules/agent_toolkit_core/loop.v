@@ -38,6 +38,7 @@ pub mut:
 	cadence              string
 	goal                 string
 	request              string
+	verifier             string
 	max_tokens           int
 	max_runs_per_day     int
 	max_wall_seconds     int
@@ -244,7 +245,7 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 			pack_text := os.read_file(pack_path) or { '' }
 			if pack_text.len > 0 {
 				overrides := parse_pack_overrides(pack_text, loop_name)
-				if overrides.tier.len > 0 || overrides.max_tokens > 0 || overrides.cadence.len > 0 || overrides.allowlist.len > 0 {
+				if overrides.tier.len > 0 || overrides.max_tokens > 0 || overrides.cadence.len > 0 || overrides.allowlist.len > 0 || overrides.verifier.len > 0 {
 					patch_loop_yaml_with_overrides(os.join_path(dest, 'loop.yaml'), overrides)
 				}
 			}
@@ -323,6 +324,9 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 				}
 				if overrides.request.len > 0 {
 					meta.request = overrides.request
+				}
+				if overrides.verifier.len > 0 {
+					meta.verifier = overrides.verifier
 				}
 				if overrides.allowlist.len > 0 {
 					meta.allowlist = overrides.allowlist.clone()
@@ -1069,6 +1073,7 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 	mut has_tier := false
 	mut has_cadence := false
 	mut has_max_tokens := false
+	mut has_verifier := false
 	for line in lines {
 		t := line.trim_space()
 		if t.starts_with('tier:') && overrides.tier.len > 0 {
@@ -1113,6 +1118,11 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 			out << 'deny: [${overrides.deny.join(', ')}]'
 			continue
 		}
+		if t.starts_with('verifier:') && overrides.verifier.len > 0 {
+			out << 'verifier: ${overrides.verifier}'
+			has_verifier = true
+			continue
+		}
 		// skip old allowlist/deny dash items if we already emitted replacement
 		if t.starts_with('- ') && out.len > 0 && out[out.len - 1].contains('allowlist: [') {
 			continue
@@ -1127,6 +1137,9 @@ fn patch_loop_yaml_with_overrides(path string, overrides LoopMeta) {
 	}
 	if !has_cadence && overrides.cadence.len > 0 && overrides.cadence != '?' {
 		out << 'cadence: ${overrides.cadence}'
+	}
+	if !has_verifier && overrides.verifier.len > 0 {
+		out << 'verifier: ${overrides.verifier}'
 	}
 	// ensure budget block exists for missing keys
 	if overrides.max_tokens > 0 && !has_max_tokens {
@@ -1334,6 +1347,8 @@ pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 			m.goal = t.all_after('goal:').trim_space().trim('|').trim_space()
 		} else if t.starts_with('request:') {
 			m.request = t.all_after('request:').trim_space().trim('|').trim_space()
+		} else if t.starts_with('verifier:') {
+			m.verifier = t.all_after('verifier:').trim_space().trim('"').trim("'")
 		}
 	}
 	return m
