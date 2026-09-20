@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.32.1] — 2026-09-20
+
+### Fixed
+
+- CI 100% green on main: provenance tests assert the honest experimental /
+  unbound trust state (no forged review bindings), stale upstream pin synced,
+  path-aware updates-discovery mocks, macOS launchd schedule asserts.
+
 ## [1.32.0] — 2026-09-20
 
 ### Changed

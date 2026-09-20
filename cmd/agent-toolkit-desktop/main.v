@@ -415,7 +415,7 @@ fn session_key_bytes(e &gg.Event) string {
 // embedded_desktop_version is the compile-time single source of truth for the
 // user-visible desktop version — keep in sync with the repo root VERSION via
 // scripts/bump-version.vsh (mirrors agent_toolkit_core.embedded_version).
-const embedded_desktop_version = '1.32.0'
+const embedded_desktop_version = '1.32.1'
 
 // embedded_commit is set at build via `v -d commit=<sha>` (make.vsh build-cli).
 const embedded_commit = $d('commit', 'unknown')
