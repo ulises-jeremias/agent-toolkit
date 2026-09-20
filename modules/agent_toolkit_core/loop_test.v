@@ -1,6 +1,7 @@
 module agent_toolkit_core
 
 import os
+import time
 
 fn test_loop_help() {
 	r := run_loop(LoopOptions{
@@ -409,44 +410,57 @@ fn test_sh_quote() {
 	assert sh_quote("it's") == "'it'\\''s'"
 }
 
+fn test_loop_runner_aliases() {
+	// explicit names never read the environment, so no clean-env wrapper
+	assert resolve_loop_runner('cursor-agent') == 'cursor'
+	assert resolve_loop_runner('github-copilot') == 'copilot'
+	assert resolve_loop_runner('openai-codex') == 'codex'
+	assert resolve_loop_runner('muse-code') == 'muse'
+	// underscore forms normalize to the alias (Python _normalize parity)
+	assert resolve_loop_runner('openai_codex') == 'codex'
+	assert resolve_loop_runner('github_copilot') == 'copilot'
+	// near-miss names are NOT aliases: fail closed like any unknown runner
+	assert resolve_loop_runner('open_ai_codex') == ''
+}
+
 fn test_runner_argv_shapes() {
 	with_clean_runner_env(fn () {
-		c := runner_argv('claude', 'do things', 'sys here')
+		c := runner_argv('claude', 'do things', 'sys here', resolve_loop_model(''))
 		assert c[0] == 'claude' && c[1] == '--print'
 		assert c.contains('do things')
-		o := runner_argv('opencode', 'do things', '')
+		o := runner_argv('opencode', 'do things', '', resolve_loop_model(''))
 		assert o == ['opencode', 'run', 'do things']
 		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'big-model', true)
-		om := runner_argv('opencode', 'do things', '')
+		om := runner_argv('opencode', 'do things', '', resolve_loop_model(''))
 		assert om == ['opencode', 'run', '--model', 'big-model', 'do things']
 		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
-		x := runner_argv('codex', 'do things', 'sys here')
+		x := runner_argv('codex', 'do things', 'sys here', resolve_loop_model(''))
 		assert x[0] == 'codex' && x[1] == 'exec'
 		assert x[2].contains('sys here') && x[2].contains('do things')
-		assert runner_argv('nope', 'x', '') == []
+		assert runner_argv('nope', 'x', '', resolve_loop_model('')) == []
 	})
 }
 
 fn test_runner_argv_phase2_shapes() {
 	with_clean_runner_env(fn () {
-		assert runner_argv('copilot', 'do things', 'sys here') == ['copilot', '-p', 'do things',
+		assert runner_argv('copilot', 'do things', 'sys here', resolve_loop_model('')) == ['copilot', '-p', 'do things',
 			'-s', '--no-ask-user', '--allow-all']
-		assert runner_argv('muse', 'do things', 'sys here') == ['muse', 'exec', '--approval-mode',
+		assert runner_argv('muse', 'do things', 'sys here', resolve_loop_model('')) == ['muse', 'exec', '--approval-mode',
 			'never', 'do things']
-		assert runner_argv('pi', 'do things', 'sys here') == ['pi', '--append-system-prompt',
+		assert runner_argv('pi', 'do things', 'sys here', resolve_loop_model('')) == ['pi', '--append-system-prompt',
 			'sys here', '-p', 'do things']
-		assert runner_argv('pi', 'do things', '') == ['pi', '-p', 'do things']
+		assert runner_argv('pi', 'do things', '', resolve_loop_model('')) == ['pi', '-p', 'do things']
 		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'big-model', true)
-		assert runner_argv('claude', 'do things', 'sys here') == ['claude', '--print', '--allowedTools',
+		assert runner_argv('claude', 'do things', 'sys here', resolve_loop_model('')) == ['claude', '--print', '--allowedTools',
 			'Bash(gh *) Bash(git *) Edit Read Write Glob Grep', '--append-system-prompt', 'sys here',
 			'--model', 'big-model', 'do things']
-		assert runner_argv('codex', 'do things', 'sys here') == ['codex', 'exec', '--model',
+		assert runner_argv('codex', 'do things', 'sys here', resolve_loop_model('')) == ['codex', 'exec', '--model',
 			'big-model', 'sys here\n\n---\n\ndo things']
-		assert runner_argv('copilot', 'do things', '') == ['copilot', '-p', 'do things',
+		assert runner_argv('copilot', 'do things', '', resolve_loop_model('')) == ['copilot', '-p', 'do things',
 			'-s', '--no-ask-user', '--allow-all', '--model', 'big-model']
-		assert runner_argv('muse', 'do things', '') == ['muse', 'exec', '--approval-mode',
+		assert runner_argv('muse', 'do things', '', resolve_loop_model('')) == ['muse', 'exec', '--approval-mode',
 			'never', '--model', 'big-model', 'do things']
-		assert runner_argv('pi', 'do things', 'sys here') == ['pi', '--append-system-prompt',
+		assert runner_argv('pi', 'do things', 'sys here', resolve_loop_model('')) == ['pi', '--append-system-prompt',
 			'sys here', '--model', 'big-model', '-p', 'do things']
 		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
 	})
@@ -468,12 +482,19 @@ fn test_cursor_probe_chain() {
 		assert runner_binary('cursor') == 'cursor-agent'
 		assert runner_is_available('cursor')
 		assert auto_select_runner() == 'cursor'
-		assert runner_argv('cursor', 'do things', '') == ['agent', '--print', '--force',
+		assert runner_argv('cursor', 'do things', '', resolve_loop_model('')) == ['agent', '--print', '--force',
 			'--trust', '--output-format', 'text', 'do things']
 		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'sonnet-4-thinking', true)
-		assert runner_argv('cursor', 'do things', '') == ['agent', '--print', '--force',
+		assert runner_argv('cursor', 'do things', '', resolve_loop_model('')) == ['agent', '--print', '--force',
 			'--trust', '--output-format', 'text', '--model', 'sonnet-4-thinking', 'do things']
 		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
+		// explicit --model wins over the environment
+		os.setenv('AGENT_TOOLKIT_LOOP_MODEL', 'env-model', true)
+		assert resolve_loop_model('flag-model') == 'flag-model'
+		assert runner_argv('cursor', 'do things', '', resolve_loop_model('flag-model')) == ['agent', '--print', '--force',
+			'--trust', '--output-format', 'text', '--model', 'flag-model', 'do things']
+		os.unsetenv('AGENT_TOOLKIT_LOOP_MODEL')
+		assert resolve_loop_model('') == ''
 		name, note := select_loop_runner('cursor')
 		assert name == 'cursor'
 		assert note == ''
@@ -526,7 +547,7 @@ fn test_execute_copilot_fake_e2e() {
 		run_dir:   run_dir
 		run_id:    'test-run-copilot'
 	}
-	res := execute_loop_runner('copilot', 'hello world', '', fake, run_dir, 30, policy)
+	res := execute_loop_runner('copilot', 'hello world', '', fake, run_dir, 30, policy, '')
 	assert res.ok
 	assert !res.timed_out
 	assert res.exit_code == 0
@@ -563,7 +584,7 @@ fn test_execute_loop_runner_echo_and_timeout() {
 		run_dir:   run_dir
 		run_id:    'test-run'
 	}
-	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30, policy)
+	res := execute_loop_runner('claude', 'hello world', '', fake, run_dir, 30, policy, '')
 	assert res.ok
 	assert !res.timed_out
 	assert res.exit_code == 0
@@ -572,11 +593,104 @@ fn test_execute_loop_runner_echo_and_timeout() {
 	assert out.contains('hello world')
 	// timeout path: replace the fake with a sleeper, tiny wall
 	os.write_file(claude_sh, '#!/bin/sh\nsleep 30\n') or { assert false, err.msg() }
-	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1, policy)
+	res2 := execute_loop_runner('claude', 'x', '', fake, run_dir, 1, policy, '')
 	assert res2.ok
 	assert res2.timed_out
 	out2 := os.read_file(res2.transcript) or { '' }
 	assert out2.contains('wall timeout')
+}
+
+fn test_tokens_from_trace_text_kind_aware() {
+	// token_usage lines count once via total_tokens (or total fallback)
+	assert tokens_from_trace_text('{"kind":"token_usage","total_tokens":100}\n') == 100
+	assert tokens_from_trace_text('{"kind":"token_usage","total":55}\n') == 55
+	assert tokens_from_trace_text('{"kind":"token_usage","prompt_tokens":5,"completion_tokens":7,"total_tokens":12}\n') == 12
+	// prompt/completion lines sum their parts
+	assert tokens_from_trace_text('{"kind":"prompt","prompt_tokens":10,"completion_tokens":20}\n') == 30
+	// run_end marker lines (incl. our own budget_exhausted markers) never count
+	assert tokens_from_trace_text('{"kind":"run_end","status":"budget_exhausted","tokens_used":100,"max_tokens":10}\n') == 0
+	assert tokens_from_trace_text('{"kind":"run_end","status":"completed"}\n') == 0
+	// undecodable lines are skipped, not parsed by substring
+	assert tokens_from_trace_text('not json\ntotal_tokens: 999\n') == 0
+	assert tokens_from_trace_text('') == 0
+}
+
+fn test_total_tokens_for_loop_day_filter() {
+	base := os.join_path(os.temp_dir(), 'at-loop-day-${os.getpid()}')
+	loop_dir := os.join_path(base, 'loops', 'tiny')
+	os.mkdir_all(os.join_path(loop_dir, 'runs', 'today')) or { panic(err.msg()) }
+	os.mkdir_all(os.join_path(loop_dir, 'runs', 'old')) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	ts := time.utc().format_rfc3339()
+	os.write_file(os.join_path(loop_dir, 'runs', 'today', 'trace.jsonl'),
+		'{"kind":"token_usage","ts":"${ts}","total_tokens":40}\n') or { panic(err.msg()) }
+	os.write_file(os.join_path(loop_dir, 'runs', 'old', 'trace.jsonl'),
+		'{"kind":"token_usage","ts":"2020-01-01T00:00:00Z","total_tokens":9999}\n') or {
+		panic(err.msg())
+	}
+	assert total_tokens_for_loop(loop_dir) == 40
+}
+
+fn test_wall_timeout_seconds_default_and_floor() {
+	assert wall_timeout_seconds(0) == 900
+	assert wall_timeout_seconds(-5) == 900
+	assert wall_timeout_seconds(5) == 30
+	assert wall_timeout_seconds(30) == 30
+	assert wall_timeout_seconds(600) == 600
+}
+
+fn test_loop_force_never_bypasses_token_budget() {
+	old_h := os.getenv('HARNESS_DIR')
+	old_ws := os.getenv('AGENT_TOOLKIT_WORKSPACE')
+	os.unsetenv('HARNESS_DIR')
+	os.unsetenv('AGENT_TOOLKIT_WORKSPACE')
+	base := os.join_path(os.temp_dir(), 'at-loop-force-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		if old_h.len > 0 {
+			os.setenv('HARNESS_DIR', old_h, true)
+		}
+		if old_ws.len > 0 {
+			os.setenv('AGENT_TOOLKIT_WORKSPACE', old_ws, true)
+		}
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# ws\n') or { panic(err.msg()) }
+	tpl := os.join_path(base, 'templates', 'loops')
+	os.mkdir_all(tpl) or { panic(err.msg()) }
+	os.write_file(os.join_path(tpl, 'tiny.yaml'), 'name: tiny\ntier: L1\ncadence: 1d\nmax_tokens: 10\ngoal: |\n  observe\nrequest: |\n  report status\n') or {
+		panic(err.msg())
+	}
+	init := run_loop(LoopOptions{
+		subcommand: 'init'
+		workspace_path: base
+		name: 'tiny'
+	})
+	assert init.ok, init.message
+	// plant today's exhausted token trace: the budget is already spent
+	ts := time.utc().format_rfc3339()
+	rundir := os.join_path(base, 'loops', 'tiny', 'runs', 'planted')
+	os.mkdir_all(rundir) or { panic(err.msg()) }
+	os.write_file(os.join_path(rundir, 'trace.jsonl'),
+		'{"kind":"token_usage","ts":"${ts}","total_tokens":100}\n') or { panic(err.msg()) }
+	plain := run_loop(LoopOptions{
+		subcommand: 'run'
+		workspace_path: base
+		name: 'tiny'
+		no_llm: true
+	})
+	assert plain.data['status'] == 'budget_exhausted', plain.message
+	// --force bypasses max_runs_per_day only: token exhaustion still blocks
+	forced := run_loop(LoopOptions{
+		subcommand: 'run'
+		workspace_path: base
+		name: 'tiny'
+		no_llm: true
+		force: true
+	})
+	assert forced.data['status'] == 'budget_exhausted', forced.message
 }
 
 fn test_loop_verifier_meta_and_pack_override() {

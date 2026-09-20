@@ -729,6 +729,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 	mut force := false
 	mut quiet := false
 	mut runner := ''
+	mut model := ''
 	mut pack := ''
 	mut no_llm := false
 	mut dry_run := false
@@ -779,7 +780,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 			i++
 			continue
 		}
-		if a in ['--name', '--runner', '--pack', '--workspace', '--cron', '--platform'] {
+		if a in ['--name', '--runner', '--model', '--pack', '--workspace', '--cron', '--platform'] {
 			if i + 1 >= args.len {
 				return error('${a} requires an argument')
 			}
@@ -790,6 +791,9 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 				}
 				'--runner' {
 					runner = val
+				}
+				'--model' {
+					model = val
 				}
 				'--pack' {
 					pack = val
@@ -815,6 +819,11 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 		}
 		if a.starts_with('--runner=') {
 			runner = a.all_after('=')
+			i++
+			continue
+		}
+		if a.starts_with('--model=') {
+			model = a.all_after('=')
 			i++
 			continue
 		}
@@ -863,6 +872,7 @@ fn parse_loop_options(args []string) !agent_toolkit_core.LoopOptions {
 		force: force
 		quiet: quiet
 		runner: runner
+		model: model
 		pack: pack
 		no_llm: no_llm
 		dry_run: dry_run
