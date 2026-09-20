@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.32.0] — 2026-09-20
+
+### Changed
+
+- JIRA integration migrated to the thin upstream skill (`jira-assistant`
+  v5.0.0, `jira-as` CLI as source of truth); the 13 granular skills were
+  removed and all mirrors, docs, and embedded data resynced.
+- Loop engine convergence: token-aware `gate-exec` verifier persistence,
+  kind-aware token accounting, wall-timeout floors, `--force` never bypasses
+  token budgets, target-bound gate receipts, `loop schedule` service
+  management (systemd/launchd) with `--list`/`--status`/`--remove`.
+- Desktop jobs supervisor cancel-race fix; swarm budget limits; agent-tools
+  validation; stale JIRA mentions purged from plugin mirrors.
+
 ## [1.31.0] — 2026-09-17
 
 Loop helpers graduate into the CLI: `loop run --runner` dispatches seven LLM
