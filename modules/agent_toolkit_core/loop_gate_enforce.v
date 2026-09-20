@@ -30,6 +30,8 @@ pub struct GateReceipt {
 pub:
 	action     string
 	actor      string
+	repo       string // bound target owner/name ('' = any)
+	number     string // bound target PR/issue number ('' = any)
 	issued_at  string
 	expires_at string
 	nonce      string
@@ -47,20 +49,22 @@ pub fn gate_policy_from_env() GatePolicy {
 	}
 }
 
-// gate_evaluate mirrors evaluate_action: returns (allowed, reason).
+// gate_evaluate mirrors Python gh_gate.evaluate_action: returns (allowed,
+// reason). Tier forbids first (L1 everything; L2 all writes), then deny,
+// then allowlist; receipt-gated actions additionally need a fresh receipt.
 pub fn gate_evaluate(policy GatePolicy, action string, has_receipt bool) (bool, string) {
 	if action == '' {
 		return true, ''
 	}
-	if action in policy.deny {
-		return false, "denied by loop deny list: '${action}'"
-	}
 	t := policy.tier.to_upper()
-	if t == 'L1' {
+	if t.starts_with('L1') || t == '1' {
 		return false, "tier L1 is read-only; mutating action '${action}' denied"
 	}
-	if action in gate_receipt_required && t != 'L3' {
-		return false, "action '${action}' requires tier L3 (loop tier ${policy.tier})"
+	if (t.starts_with('L2') || t == '2') && action in ['merge', 'close', 'approve', 'push', 'commit', 'force-push', 'delete'] {
+		return false, "tier L2 forbids '${action}' (allow comment/label/assign only)"
+	}
+	if action in policy.deny {
+		return false, "denied by loop deny list: '${action}'"
 	}
 	if policy.allowlist.len == 0 {
 		return false, 'empty loop allowlist denies everything'
@@ -98,10 +102,12 @@ fn gate_json_escape(s string) string {
 	return out.bytestr()
 }
 
-// gate_canonical_payload builds the signed payload (Python-compatible:
-// sort_keys + compact separators over action/actor/issued_at/expires_at/nonce).
-pub fn gate_canonical_payload(action string, actor string, issued_at string, expires_at string, nonce string) string {
-	return '{"action":' + gate_json_escape(action) + ',"actor":' + gate_json_escape(actor) + ',"expires_at":' + gate_json_escape(expires_at) + ',"issued_at":' + gate_json_escape(issued_at) + ',"nonce":' + gate_json_escape(nonce) + '}'
+// gate_canonical_payload builds the signed payload (sort_keys + compact
+// separators over action/actor/repo/number/issued_at/expires_at/nonce).
+// The bound target travels inside the signature so a receipt minted for one
+// PR cannot authorize another (Python verifier-receipt parity).
+pub fn gate_canonical_payload(action string, actor string, repo string, number string, issued_at string, expires_at string, nonce string) string {
+	return '{"action":' + gate_json_escape(action) + ',"actor":' + gate_json_escape(actor) + ',"expires_at":' + gate_json_escape(expires_at) + ',"issued_at":' + gate_json_escape(issued_at) + ',"nonce":' + gate_json_escape(nonce) + ',"number":' + gate_json_escape(number) + ',"repo":' + gate_json_escape(repo) + '}'
 }
 
 // gate_sign_receipt HMAC-SHA256 hex over the canonical payload (empty secret
@@ -119,27 +125,31 @@ pub fn gate_receipt_path(run_dir string) string {
 	return os.join_path(run_dir, 'gate-receipt.json')
 }
 
-// gate_issue_receipt mints and stores a receipt for action.
-pub fn gate_issue_receipt(run_dir string, action string, actor string, ttl_seconds int, secret string) !GateReceipt {
+// gate_issue_receipt mints and stores a receipt for action, optionally bound
+// to a target repo/number ('' = unbound, matches any target).
+pub fn gate_issue_receipt(run_dir string, action string, actor string, repo string, number string, ttl_seconds int, secret string) !GateReceipt {
 	now := time.utc()
 	issued := now.format_rfc3339()
 	expires := now.add_seconds(if ttl_seconds > 0 { ttl_seconds } else { gate_receipt_max_age_sec }).format_rfc3339()
 	nonce := '${now.unix_micro()}-${os.getpid()}'
-	canonical := gate_canonical_payload(action, actor, issued, expires, nonce)
+	canonical := gate_canonical_payload(action, actor, repo, number, issued, expires, nonce)
 	rec := GateReceipt{
 		action:     action
 		actor:      actor
+		repo:       repo
+		number:     number
 		issued_at:  issued
 		expires_at: expires
 		nonce:      nonce
 		signature:  gate_sign_receipt(canonical, secret)
 	}
-	doc := '{"action":' + gate_json_escape(rec.action) + ',"actor":' + gate_json_escape(rec.actor) + ',"issued_at":' + gate_json_escape(rec.issued_at) + ',"expires_at":' + gate_json_escape(rec.expires_at) + ',"nonce":' + gate_json_escape(rec.nonce) + ',"signature":' + gate_json_escape(rec.signature) + '}\n'
+	doc := '{"action":' + gate_json_escape(rec.action) + ',"actor":' + gate_json_escape(rec.actor) + ',"repo":' + gate_json_escape(rec.repo) + ',"number":' + gate_json_escape(rec.number) + ',"issued_at":' + gate_json_escape(rec.issued_at) + ',"expires_at":' + gate_json_escape(rec.expires_at) + ',"nonce":' + gate_json_escape(rec.nonce) + ',"signature":' + gate_json_escape(rec.signature) + '}\n'
 	os.write_file(gate_receipt_path(run_dir), doc)!
 	return rec
 }
 
-// gate_read_receipt parses a receipt file (none on any error).
+// gate_read_receipt parses a receipt file (none on any error; old receipts
+// without repo/number read as unbound).
 fn gate_read_receipt(path string) ?GateReceipt {
 	raw := os.read_file(path) or { return none }
 	obj := json2.decode[map[string]json2.Any](raw) or { return none }
@@ -150,6 +160,8 @@ fn gate_read_receipt(path string) ?GateReceipt {
 	return GateReceipt{
 		action:     str(obj, 'action')
 		actor:      str(obj, 'actor')
+		repo:       str(obj, 'repo')
+		number:     str(obj, 'number')
 		issued_at:  str(obj, 'issued_at')
 		expires_at: str(obj, 'expires_at')
 		nonce:      str(obj, 'nonce')
@@ -163,18 +175,26 @@ fn gate_receipt_expired(rec GateReceipt) bool {
 	return time.utc() > exp
 }
 
-// gate_find_receipt loads a live receipt for action (none when missing,
-// mismatched, expired, or badly signed when a secret is configured).
-pub fn gate_find_receipt(run_dir string, action string, secret string) ?GateReceipt {
+// gate_find_receipt loads a live receipt for action bound to repo/number
+// (none when missing, mismatched, expired, target-mismatched, or badly
+// signed when a secret is configured). Empty receipt or expected fields act
+// as wildcards (Python require_receipt parity).
+pub fn gate_find_receipt(run_dir string, action string, repo string, number string, secret string) ?GateReceipt {
 	rec := gate_read_receipt(gate_receipt_path(run_dir)) or { return none }
 	if rec.action == '' || rec.action != action {
+		return none
+	}
+	if rec.repo != '' && repo != '' && rec.repo != repo {
+		return none
+	}
+	if rec.number != '' && number != '' && rec.number != number {
 		return none
 	}
 	if gate_receipt_expired(rec) {
 		return none
 	}
 	if secret != '' {
-		canonical := gate_canonical_payload(rec.action, rec.actor, rec.issued_at, rec.expires_at, rec.nonce)
+		canonical := gate_canonical_payload(rec.action, rec.actor, rec.repo, rec.number, rec.issued_at, rec.expires_at, rec.nonce)
 		if gate_sign_receipt(canonical, secret) != rec.signature {
 			return none
 		}
@@ -250,13 +270,16 @@ pub fn gate_rewrite_argv(argv []string, actor string, run_id string) []string {
 }
 
 // loop_gate_issue_receipt_cmd implements hidden
-// `loop gate-issue-receipt <run_dir> <action> [--actor NAME] [--ttl SECS]`
-// using ATK_GATE_SECRET when set.
+// `loop gate-issue-receipt <run_dir> <action> [--actor NAME] [--repo R]
+// [--number N] [--ttl SECS]` using ATK_GATE_SECRET when set. The receipt is
+// bound to repo/number so it cannot authorize another target.
 pub fn loop_gate_issue_receipt_cmd() LoopReport {
 	rest := gate_cmd_rest('gate-issue-receipt')
 	mut run_dir := ''
 	mut action := ''
 	mut actor := os.getenv('ATK_GATE_ACTOR')
+	mut repo := ''
+	mut number := ''
 	mut ttl := gate_receipt_max_age_sec
 	if actor == '' {
 		actor = 'verifier'
@@ -267,6 +290,16 @@ pub fn loop_gate_issue_receipt_cmd() LoopReport {
 		a := rest[i]
 		if a == '--actor' && i + 1 < rest.len {
 			actor = rest[i + 1]
+			i += 2
+			continue
+		}
+		if a == '--repo' && i + 1 < rest.len {
+			repo = rest[i + 1]
+			i += 2
+			continue
+		}
+		if a == '--number' && i + 1 < rest.len {
+			number = rest[i + 1]
 			i += 2
 			continue
 		}
@@ -292,7 +325,7 @@ pub fn loop_gate_issue_receipt_cmd() LoopReport {
 	if run_dir == '' || action == '' {
 		return LoopReport{
 			ok:      false
-			message: 'usage: agent-toolkit loop gate-issue-receipt <run_dir> <action> [--actor NAME] [--ttl SECS]'
+			message: 'usage: agent-toolkit loop gate-issue-receipt <run_dir> <action> [--actor NAME] [--repo R] [--number N] [--ttl SECS]'
 			data:    {
 				'subcommand': 'gate-issue-receipt'
 				'status':     'usage_error'
@@ -300,7 +333,7 @@ pub fn loop_gate_issue_receipt_cmd() LoopReport {
 		}
 	}
 	secret := os.getenv('ATK_GATE_SECRET')
-	rec := gate_issue_receipt(run_dir, action, actor, ttl, secret) or {
+	rec := gate_issue_receipt(run_dir, action, actor, repo, number, ttl, secret) or {
 		return LoopReport{
 			ok:      false
 			message: 'receipt issue failed: ${err.msg()}'
@@ -310,9 +343,10 @@ pub fn loop_gate_issue_receipt_cmd() LoopReport {
 			}
 		}
 	}
+	bound := if rec.repo != '' || rec.number != '' { ' bound to ${rec.repo}#${rec.number}' } else { '' }
 	return LoopReport{
 		ok:      true
-		message: 'receipt issued for ${rec.action} (actor ${rec.actor}, expires ${rec.expires_at}) → ${gate_receipt_path(run_dir)}'
+		message: 'receipt issued for ${rec.action} (actor ${rec.actor}, expires ${rec.expires_at})${bound} → ${gate_receipt_path(run_dir)}'
 		data:    {
 			'subcommand': 'gate-issue-receipt'
 			'status':     'issued'
@@ -381,8 +415,13 @@ pub fn loop_gate_check_cmd() LoopReport {
 	secret := os.getenv('ATK_GATE_SECRET')
 	mut has_receipt := false
 	if action in gate_receipt_required && policy.run_dir != '' {
-		found := gate_find_receipt(policy.run_dir, action, secret) or { GateReceipt{} }
-		has_receipt = found.action != ''
+		repo, number := gate_target_from_argv(argv)
+		if repo != '' && number != '' {
+			found := gate_find_receipt(policy.run_dir, action, repo, number, secret) or {
+				GateReceipt{}
+			}
+			has_receipt = found.action != ''
+		}
 	}
 	allowed, reason := gate_evaluate(policy, action, has_receipt)
 	verdict := if allowed { 'allow' } else { 'deny' }
@@ -476,12 +515,19 @@ pub fn loop_gate_exec() LoopReport {
 }
 
 // gate_exec_with enforces policy over argv (testable core of gate-exec).
+// Receipt-gated actions need a receipt bound to the call's target: unknown
+// targets fail closed (Python require_receipt parity).
 pub fn gate_exec_with(policy GatePolicy, argv []string, secret string) LoopReport {
 	action := classify_gh_argv(argv)
 	mut has_receipt := false
 	if action in gate_receipt_required && policy.run_dir != '' {
-		found := gate_find_receipt(policy.run_dir, action, secret) or { GateReceipt{} }
-		has_receipt = found.action != ''
+		repo, number := gate_target_from_argv(argv)
+		if repo != '' && number != '' {
+			found := gate_find_receipt(policy.run_dir, action, repo, number, secret) or {
+				GateReceipt{}
+			}
+			has_receipt = found.action != ''
+		}
 	}
 	return gate_forward(policy, argv, action, has_receipt)
 }

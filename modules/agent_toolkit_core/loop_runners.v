@@ -292,7 +292,7 @@ pub fn execute_loop_runner(name string, prompt string, sysprompt string, workdir
 		p.work_folder = workdir
 	}
 	p.run()
-	wall := if wall_seconds > 0 { wall_seconds } else { 600 }
+	wall := if wall_seconds > 0 { wall_seconds } else { 900 }
 	deadline := start.add_seconds(wall)
 	mut timed_out := false
 	for p.is_alive() {

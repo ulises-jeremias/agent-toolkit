@@ -358,52 +358,51 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 			}
 		}
 	}
-	// --- budget enforcement (P2-06): max_tokens / max_wall_seconds vs trace.jsonl ---
-	wall := if meta.max_wall_seconds > 0 { meta.max_wall_seconds } else { 600 }
-	if !opts.force {
-		if meta.max_tokens > 0 {
-			used := total_tokens_for_loop(loop_dir)
-			if used >= meta.max_tokens {
-				rid_ex := loop_run_id()
-				os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
-				trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
-				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_tokens","tokens_used":${used},"max_tokens":${meta.max_tokens},"run_id":${json2.encode(rid_ex,
-					escape_unicode: true
-				)}}\n') or {}
-				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid_ex, runs_today, escalations)
-				return LoopReport{
-					ok: true
-					message: '[loop] Budget exhausted: max_tokens ${meta.max_tokens} reached (used ${used}). Re-run after increasing budget.max_tokens.'
-					data: {
-						'subcommand': 'run'
-						'workspace':  ws
-						'name':       loop_name
-						'status':     'budget_exhausted'
-						'run_id':     rid_ex
-					}
+	// --- budget enforcement: max_tokens / max_wall_seconds vs trace.jsonl.
+	// Never bypassed by --force (--force bypasses max_runs_per_day only).
+	wall := wall_timeout_seconds(meta.max_wall_seconds)
+	if meta.max_tokens > 0 {
+		used := total_tokens_for_loop(loop_dir)
+		if used >= meta.max_tokens {
+			rid_ex := loop_run_id()
+			os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
+			trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
+			os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_tokens","tokens_used":${used},"max_tokens":${meta.max_tokens},"run_id":${json2.encode(rid_ex,
+				escape_unicode: true
+			)}}\n') or {}
+			write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid_ex, runs_today, escalations)
+			return LoopReport{
+				ok: true
+				message: '[loop] Budget exhausted: max_tokens ${meta.max_tokens} reached (used ${used}). Re-run after increasing budget.max_tokens.'
+				data: {
+					'subcommand': 'run'
+					'workspace':  ws
+					'name':       loop_name
+					'status':     'budget_exhausted'
+					'run_id':     rid_ex
 				}
 			}
 		}
-		if meta.max_wall_seconds > 0 {
-			wall_used := total_wall_for_loop(loop_dir)
-			if wall_used > 0 && wall_used >= meta.max_wall_seconds {
-				rid_ex := loop_run_id()
-				os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
-				trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
-				os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_wall_seconds","wall_used":${wall_used},"max_wall_seconds":${meta.max_wall_seconds},"run_id":${json2.encode(rid_ex,
-					escape_unicode: true
-				)}}\n') or {}
-				write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid_ex, runs_today, escalations)
-				return LoopReport{
-					ok: true
-					message: '[loop] Budget exhausted: max_wall_seconds ${meta.max_wall_seconds}s exceeded (wall ${wall_used}s).'
-					data: {
-						'subcommand': 'run'
-						'workspace':  ws
-						'name':       loop_name
-						'status':     'budget_exhausted'
-						'run_id':     rid_ex
-					}
+	}
+	if meta.max_wall_seconds > 0 {
+		wall_used := total_wall_for_loop(loop_dir)
+		if wall_used > 0 && wall_used >= meta.max_wall_seconds {
+			rid_ex := loop_run_id()
+			os.mkdir_all(os.join_path(loop_dir, 'runs', rid_ex)) or {}
+			trace_ex := os.join_path(loop_dir, 'runs', rid_ex, 'trace.jsonl')
+			os.write_file(trace_ex, '{"kind":"run_end","status":"budget_exhausted","reason":"max_wall_seconds","wall_used":${wall_used},"max_wall_seconds":${meta.max_wall_seconds},"run_id":${json2.encode(rid_ex,
+				escape_unicode: true
+			)}}\n') or {}
+			write_state_md(loop_dir, time.utc().format_rfc3339(), 'budget_exhausted', rid_ex, runs_today, escalations)
+			return LoopReport{
+				ok: true
+				message: '[loop] Budget exhausted: max_wall_seconds ${meta.max_wall_seconds}s exceeded (wall ${wall_used}s).'
+				data: {
+					'subcommand': 'run'
+					'workspace':  ws
+					'name':       loop_name
+					'status':     'budget_exhausted'
+					'run_id':     rid_ex
 				}
 			}
 		}
@@ -1216,7 +1215,7 @@ pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 		tier: 'L1'
 		cadence: '?'
 		max_runs_per_day: 10
-		max_wall_seconds: 600
+		max_wall_seconds: 900
 		attribution_enabled: true
 		attribution_template: ''
 	}
@@ -1439,60 +1438,94 @@ fn parse_pack_overrides(pack_text string, loop_name string) LoopMeta {
 	return parse_loop_meta_text(snippet, loop_name)
 }
 
+// wall_timeout_seconds mirrors Python budget.wall_timeout_seconds: the
+// per-run wall-clock limit is never bypassed by --force. Unset or
+// non-positive means the 900s default; tiny values clamp to a 30s floor.
+fn wall_timeout_seconds(max_wall int) int {
+	if max_wall <= 0 {
+		return 900
+	}
+	if max_wall < 30 {
+		return 30
+	}
+	return max_wall
+}
+
+// trace_line_field extracts a top-level string field from a trace line
+// (best-effort `"key":"value"` scan; '' when absent).
+fn trace_line_field(line string, key string) string {
+	search := '"${key}":"'
+	if pos := line.index(search) {
+		rest := line[pos + search.len..]
+		if end := rest.index('"') {
+			return rest[..end]
+		}
+	}
+	return ''
+}
+
+// trace_line_int extracts a top-level integer field from a trace line
+// (best-effort `"key":<num>` scan; 0 when absent).
+fn trace_line_int(line string, key string) int {
+	search := '"${key}":'
+	if pos := line.index(search) {
+		rest := line[pos + search.len..].trim_space()
+		mut num_str := ''
+		for ch in rest {
+			if ch >= `0` && ch <= `9` {
+				num_str += ch.ascii_str()
+			} else if num_str.len > 0 {
+				break
+			}
+		}
+		if num_str.len > 0 {
+			return num_str.int()
+		}
+	}
+	return 0
+}
+
+// tokens_from_trace_text mirrors Python budget.tokens_from_trace: only
+// kind-aware token events count (token_usage via total_tokens/total,
+// prompt/completion via prompt+completion parts). run_end marker lines —
+// including our own budget_exhausted markers — never count, and
+// undecodable lines are skipped.
 fn tokens_from_trace_text(text string) int {
 	mut total := 0
 	for line in text.split_into_lines() {
-		if line.len == 0 {
+		if line.trim_space().len == 0 {
 			continue
 		}
-		if line.contains('prompt_tokens') || line.contains('completion_tokens') || line.contains('total_tokens') {
-			// best-effort integer extraction for keys prompt_tokens / completion_tokens / total_tokens / total
-			// we look for `"prompt_tokens": <num>` etc.
-			for key in ['prompt_tokens', 'completion_tokens', 'total_tokens', '"total"'] {
-				search := '"${key}":'
-				mut idx := 0
-				for {
-					pos := line[idx..].index(search) or { break }
-					abs_pos := idx + pos + search.len
-					rest := line[abs_pos..].trim_space()
-					mut num_str := ''
-					for ch in rest {
-						if ch >= `0` && ch <= `9` {
-							num_str += ch.ascii_str()
-						} else if num_str.len > 0 {
-							break
-						}
-					}
-					if num_str.len > 0 {
-						total += num_str.int()
-					}
-					idx = abs_pos + 1
-					if idx >= line.len {
-						break
-					}
-				}
+		kind := trace_line_field(line, 'kind')
+		if kind == 'token_usage' {
+			used := trace_line_int(line, 'total_tokens')
+			if used > 0 {
+				total += used
+			} else {
+				total += trace_line_int(line, 'total')
 			}
-		}
-		if line.contains('"tokens_used"') {
-			// budget_exhausted trace
-			search := '"tokens_used":'
-			if pos := line.index(search) {
-				rest := line[pos + search.len..].trim_space()
-				mut num_str := ''
-				for ch in rest {
-					if ch >= `0` && ch <= `9` {
-						num_str += ch.ascii_str()
-					} else if num_str.len > 0 {
-						break
-					}
-				}
-				if num_str.len > 0 {
-					total += num_str.int()
-				}
-			}
+		} else if kind == 'prompt' || kind == 'completion' {
+			total += trace_line_int(line, 'prompt_tokens') + trace_line_int(line, 'completion_tokens')
 		}
 	}
 	return total
+}
+
+// trace_run_is_today mirrors Python budget.tokens_today: a run counts
+// toward today's budget when its first trace line carries today's UTC date
+// in `ts`. Missing or unparsable timestamps count (fail-open, like Python).
+fn trace_run_is_today(text string, today string) bool {
+	for line in text.split_into_lines() {
+		if line.trim_space().len == 0 {
+			continue
+		}
+		ts := trace_line_field(line, 'ts')
+		if ts == '' {
+			return true
+		}
+		return ts.len >= 10 && ts[..10] == today
+	}
+	return true
 }
 
 fn total_tokens_for_loop(loop_dir string) int {
@@ -1500,6 +1533,7 @@ fn total_tokens_for_loop(loop_dir string) int {
 	if !os.is_dir(rd) {
 		return 0
 	}
+	today := time.utc().format_rfc3339()[..10]
 	mut total := 0
 	for name in os.ls(rd) or { []string{} } {
 		trace := os.join_path(rd, name, 'trace.jsonl')
@@ -1507,6 +1541,9 @@ fn total_tokens_for_loop(loop_dir string) int {
 			continue
 		}
 		text := os.read_file(trace) or { continue }
+		if !trace_run_is_today(text, today) {
+			continue
+		}
 		total += tokens_from_trace_text(text)
 	}
 	return total

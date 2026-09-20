@@ -9,5 +9,5 @@ Subcommands: `init` / `run` / `list` / `status` / `audit` / `cost` / `schedule` 
 
 - Instances live under workspace `loops/<name>/loop.yaml` (+ `STATE.md`, `runs/`).
 - Bundled templates come from toolkit `loops/*/loop.yaml`.
-- `gh` mutations are enforced in-core: per-run `gate-bin/gh` shim → hidden `loop gate-exec` (`classify_gh_argv` / `gate_evaluate`); Tier L1 is read-only Stages (not Layers — see `docs/ARCHITECTURE.md`); merge/close require Stage L3 + allowlist + fresh verifier receipt (`loop gate-issue-receipt`); AI attribution on outbound prose; denials audit-logged to `gate-denials.jsonl`.
+- `gh` mutations are enforced in-core: per-run `gate-bin/gh` shim → hidden `loop gate-exec` (`classify_gh_argv` / `gate_evaluate`); Tier L1 is read-only Stages (not Layers — see `docs/ARCHITECTURE.md`); merge/close require Stage L3 + allowlist + fresh target-bound verifier receipt (`loop gate-issue-receipt --repo R --number N`); AI attribution on outbound prose; denials audit-logged to `gate-denials.jsonl`.
 - `schedule` writes a systemd user unit on Unix; **not supported on Windows**.
