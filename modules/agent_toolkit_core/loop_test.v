@@ -299,8 +299,16 @@ fn test_schedule_dry_run_bakes_runner() {
 		runner: 'opencode'
 	})
 	assert r.ok, r.message
-	assert r.message.contains('ExecStart=agent-toolkit loop run daily --runner opencode')
-	assert r.message.contains('WorkingDirectory=')
+	$if linux {
+		assert r.message.contains('ExecStart=agent-toolkit loop run daily --runner opencode')
+		assert r.message.contains('WorkingDirectory=')
+	}
+	$if macos {
+		assert r.message.contains('launchd')
+		assert r.message.contains('com.agent-toolkit.daily')
+		assert r.message.contains('--runner')
+		assert r.message.contains('opencode')
+	}
 	r2 := run_loop(LoopOptions{
 		subcommand: 'schedule'
 		workspace_path: base
@@ -308,7 +316,13 @@ fn test_schedule_dry_run_bakes_runner() {
 		dry_run: true
 	})
 	assert r2.ok, r2.message
-	assert r2.message.contains('ExecStart=agent-toolkit loop run daily\n')
+	$if linux {
+		assert r2.message.contains('ExecStart=agent-toolkit loop run daily\n')
+	}
+	$if macos {
+		assert r2.message.contains('launchd')
+		assert r2.message.contains('com.agent-toolkit.daily')
+	}
 }
 
 fn with_clean_runner_env(f fn ()) {
