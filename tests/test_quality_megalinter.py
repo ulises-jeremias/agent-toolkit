@@ -81,9 +81,10 @@ def test_four_skills_vendored_with_license():
         assert upstream["commit"] == EXPECTED_COMMIT
         assert upstream["license"] == "AGPL-3.0"
         assert upstream.get("role") == meta["role"]
-        assert fm["trust"]["tier"] == "reviewed"
+        # Honest state: no human re-review, so experimental with no binding.
+        assert fm["trust"]["tier"] == "experimental"
         assert fm["trust"]["reviewed_by"] == "ulises-jeremias"
-        assert re.match(r"^sha256:[0-9a-f]{64}$", fm["trust"]["reviewed_provenance"])
+        assert not fm["trust"].get("reviewed_provenance")
         assert fm["security"]["shell"] is True
         assert fm["security"]["network"] is True
         # Fidelity: Toolkit overlay keys stay in frontmatter, not a sources[] adapter
@@ -97,7 +98,7 @@ def test_lock_vendored_provenance():
     for cap_id, meta in SKILLS.items():
         cap = data["capabilities"][cap_id]
         fm, _ = _fm(meta["dir"] / "SKILL.md")
-        assert cap["provenance_digest"] == fm["trust"]["reviewed_provenance"]
+        assert not fm["trust"].get("reviewed_provenance")
         assert cap["provenance_digest"] == prov._provenance_digest(cap["sources"])
         src = cap["sources"][meta["source_id"]]
         assert src["repository"] == "oxsecurity/megalinter"

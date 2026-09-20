@@ -46,7 +46,7 @@ def _sha256_hex(s: str) -> str:
 SHA_A = "a" * 40
 SHA_B = "b" * 40
 SHA_C = "c" * 40
-SHA_FRONTEND = "f17010c9bb483898c1d9c9f42dde2b3a98889434"
+SHA_FRONTEND = "41bbe19d1a1a7eaab5e7bb9050a417e5c6cffc8f"
 CK_A = "sha256:" + "a" * 64
 CK_B = "sha256:" + "b" * 64
 CK_C = "sha256:" + "c" * 64
@@ -360,18 +360,15 @@ def test_frontend_design_lock_entry_matches_real_checksums():
     assert cap["provenance_digest"] == _digest(cap["sources"])
 
 
-def test_frontend_design_review_binding_present_and_valid():
+def test_frontend_design_trust_experimental_unbound():
+    # Honest state: frontend-design has no human re-review, so tier is
+    # experimental with no reviewed_provenance binding. A human re-review
+    # restores tier reviewed + binding == lock provenance_digest.
     fm = prov._load_frontmatter(prov.REPO_ROOT / "skills/design/frontend-design/SKILL.md")
     trust = fm.get("trust") or {}
-    assert trust.get("tier") == "reviewed"
-    reviewed = trust.get("reviewed_provenance")
-    assert reviewed, (
-        "trust.reviewed_provenance must be set for frontend-design (binding to lock digest)"
-    )
-    lock = yaml.safe_load(prov.LOCK_PATH.read_text())
-    digest = lock["capabilities"]["design/frontend-design"]["provenance_digest"]
-    assert reviewed == digest, (
-        "reviewed_provenance must equal lock provenance_digest (update invalidates review)"
+    assert trust.get("tier") == "experimental"
+    assert not trust.get("reviewed_provenance"), (
+        "unreviewed skill must not carry a reviewed_provenance binding"
     )
 
 
@@ -493,24 +490,23 @@ def test_checksum_drift_detected():
 
 
 def test_review_binding_invalid_after_digest_change(monkeypatch):
-    # Changing lock digest must make existing reviewed_provenance mismatch
+    # Lock digest must be sensitive to resolved-commit changes, and an
+    # unreviewed skill must carry no binding that a new digest could stale.
     lock = yaml.safe_load(prov.LOCK_PATH.read_text())
     cap = lock["capabilities"]["design/frontend-design"]
     old_digest = cap["provenance_digest"]
     # Simulate new commit
-    new_sources = {k: dict(v) for k, v in cap["sources"].items()}
-    # Deep copy resolved
     import copy
 
     new_sources = copy.deepcopy(cap["sources"])
     new_sources["upstream"]["resolved"]["commit"] = SHA_A
     new_digest = _digest(new_sources)
     assert old_digest != new_digest
-    # If declaration still has old reviewed_provenance, check would fail
+    # Unreviewed skill carries no binding at all
     fm = prov._load_frontmatter(prov.REPO_ROOT / "skills/design/frontend-design/SKILL.md")
     reviewed = (fm.get("trust") or {}).get("reviewed_provenance")
-    assert reviewed == old_digest
-    assert reviewed != new_digest, "new lock digest must invalidate old review binding"
+    assert reviewed is None
+    assert old_digest != new_digest, "new lock digest must differ after commit change"
 
 
 def test_orphan_and_missing_detection_via_check(monkeypatch, tmp_path):
@@ -705,9 +701,11 @@ def test_updates_discovery_reports_no_update_when_at_head(monkeypatch):
     lock = yaml.safe_load(prov.LOCK_PATH.read_text())
 
     def _mock(repo, path=None):
+        # Path-aware like the real fetcher: same-repo skills may pin
+        # different commits per vendored path.
         for cap in lock["capabilities"].values():
             for src in cap["sources"].values():
-                if src["repository"] == repo:
+                if src["repository"] == repo and (path is None or src.get("path") == path):
                     return src["resolved"]["commit"]
         return None
 
@@ -749,7 +747,7 @@ def test_updates_discovery_reports_update_when_remote_ahead(monkeypatch):
             return fake_latest
         for cap in lock["capabilities"].values():
             for src in cap["sources"].values():
-                if src["repository"] == repo:
+                if src["repository"] == repo and (path is None or src.get("path") == path):
                     return src["resolved"]["commit"]
         return None
 
