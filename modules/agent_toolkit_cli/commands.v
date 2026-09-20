@@ -533,7 +533,7 @@ fn loop_flags() []cli.Flag {
 		cli.Flag{
 			flag: .bool
 			name: 'status'
-			description: 'Schedule status (legacy flag)'
+			description: 'Check schedule health'
 		},
 		cli.Flag{
 			flag: .string

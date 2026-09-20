@@ -116,13 +116,140 @@ fn test_loop_schedule_dry_run() {
 		assert r.message.contains('Windows')
 		return
 	}
+	old_h := os.getenv('HARNESS_DIR')
+	old_ws := os.getenv('AGENT_TOOLKIT_WORKSPACE')
+	os.unsetenv('HARNESS_DIR')
+	os.unsetenv('AGENT_TOOLKIT_WORKSPACE')
+	base := os.join_path(os.temp_dir(), 'at-loop-sched-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		if old_h.len > 0 {
+			os.setenv('HARNESS_DIR', old_h, true)
+		}
+		if old_ws.len > 0 {
+			os.setenv('AGENT_TOOLKIT_WORKSPACE', old_ws, true)
+		}
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# ws\n') or { panic(err.msg()) }
+	tpl := os.join_path(base, 'templates', 'loops')
+	os.mkdir_all(tpl) or { panic(err.msg()) }
+	os.write_file(os.join_path(tpl, 'daily.yaml'), 'name: daily\ntier: L1\ncadence: 1d\ngoal: |\n  observe\nrequest: |\n  report status\n') or {
+		panic(err.msg())
+	}
+	init := run_loop(LoopOptions{
+		subcommand: 'init'
+		workspace_path: base
+		name: 'daily'
+	})
+	assert init.ok, init.message
 	r := run_loop(LoopOptions{
 		subcommand: 'schedule'
+		workspace_path: base
 		name: 'daily'
 		dry_run: true
 	})
 	assert r.ok, r.message
-	assert r.message.contains('systemd')
+	assert r.message.contains('dry-run')
+	$if linux {
+		assert r.message.contains('OnCalendar=')
+	}
+	$if macos {
+		assert r.message.contains('launchd')
+	}
+}
+
+fn test_schedule_cron_to_oncalendar() {
+	assert schedule_cron_to_oncalendar('hourly')! == 'hourly'
+	assert schedule_cron_to_oncalendar('daily')! == 'daily'
+	assert schedule_cron_to_oncalendar('weekly')! == 'weekly'
+	assert schedule_cron_to_oncalendar('* * * * *')! == '*-*-* *:*:00'
+	assert schedule_cron_to_oncalendar('*/15 * * * *')! == '*-*-* *:00,15,30,45:00'
+	assert schedule_cron_to_oncalendar('0 * * * *')! == '*-*-* *:00:00'
+	assert schedule_cron_to_oncalendar('0 */4 * * *')! == '*-*-* 00,04,08,12,16,20:00:00'
+	assert schedule_cron_to_oncalendar('0 0 * * *')! == '*-*-* 00:00:00'
+	assert schedule_cron_to_oncalendar('0 0 */2 * *')! == '*-*-01,03,05,07,09,11,13,15,17,19,21,23,25,27,29,31 00:00:00'
+	assert schedule_cron_to_oncalendar('0 0 * * 0')! == 'Sun *-*-* 00:00:00'
+	assert schedule_cron_to_oncalendar('0 9 * * 1')! == 'Mon *-*-* 09:00:00'
+	// unknown shapes fail instead of writing timers systemd would reject
+	if _ := schedule_cron_to_oncalendar('0 0 * 5 *') {
+		assert false, 'month-restricted cron must fail'
+	}
+	if _ := schedule_cron_to_oncalendar('0 0 1 * 0') {
+		assert false, 'dom+dow cron must fail'
+	}
+	if _ := schedule_cron_to_oncalendar('nonsense') {
+		assert false, 'non-cron must fail'
+	}
+}
+
+fn test_schedule_cadence_interval_secs() {
+	assert schedule_cadence_interval_secs('15m')! == 900
+	assert schedule_cadence_interval_secs('4h')! == 14400
+	assert schedule_cadence_interval_secs('1d')! == 86400
+	assert schedule_cadence_interval_secs('1w')! == 604800
+	if _ := schedule_cadence_interval_secs('x') {
+		assert false, 'bad cadence must fail'
+	}
+	if _ := schedule_cadence_interval_secs('0d') {
+		assert false, 'zero cadence must fail'
+	}
+}
+
+fn test_schedule_emit_units() {
+	svc := emit_systemd_service('daily', '/ws', '')
+	assert svc.contains('Description=agent-toolkit loop daily')
+	assert svc.contains('WorkingDirectory=/ws')
+	assert svc.contains('ExecStart=agent-toolkit loop run daily')
+	timer := emit_systemd_timer('daily', 'daily')
+	assert timer.contains('OnCalendar=daily')
+	assert timer.contains('Persistent=true')
+	plist := emit_launchd_plist('com.agent-toolkit.daily', '/bin/atk', ['loop', 'run', 'daily'], '/ws', 86400)
+	assert plist.contains('<string>com.agent-toolkit.daily</string>')
+	assert plist.contains('<integer>86400</integer>')
+	assert plist.contains('<false/>')
+	assert schedule_run_argv('daily', ' --runner opencode') == ['loop', 'run', 'daily', '--runner', 'opencode']
+}
+
+fn test_schedule_remove_and_list_isolated_home() {
+	$if windows {
+		return
+	}
+	$if macos {
+		return
+	}
+	home := os.join_path(os.temp_dir(), 'at-sched-home-${os.getpid()}')
+	dir := os.join_path(home, '.config', 'systemd', 'user')
+	os.mkdir_all(dir) or { panic(err.msg()) }
+	defer {
+		os.rmdir_all(home) or {}
+	}
+	os.write_file(os.join_path(dir, 'agent-toolkit-loop-x.service'), 'svc') or { panic(err.msg()) }
+	os.write_file(os.join_path(dir, 'agent-toolkit-loop-x.timer'), 'tmr') or { panic(err.msg()) }
+	lst := loop_schedule_list(home)
+	assert lst.ok
+	assert lst.message.contains('x')
+	assert lst.data['count'] == '1'
+	dry := loop_schedule_remove('x', home, true)
+	assert dry.ok
+	assert dry.message.contains('Would remove')
+	assert os.is_file(os.join_path(dir, 'agent-toolkit-loop-x.timer'))
+	rm := loop_schedule_remove('x', home, false)
+	assert rm.ok, rm.message
+	assert rm.message.contains('Removed schedule: x')
+	assert !os.is_file(os.join_path(dir, 'agent-toolkit-loop-x.service'))
+	assert !os.is_file(os.join_path(dir, 'agent-toolkit-loop-x.timer'))
+	lst2 := loop_schedule_list(home)
+	assert lst2.message.contains('No scheduled loops')
+}
+
+fn test_schedule_install_systemd_dry_run() {
+	r := loop_schedule_install_systemd('daily', '/ws', '0 0 * * *', '', os.join_path(os.temp_dir(), 'at-sched-nobody-${os.getpid()}'), true)
+	assert r.ok, r.message
+	assert r.message.contains('OnCalendar=*-*-* 00:00:00')
+	assert r.message.contains('Would enable: systemctl --user enable agent-toolkit-loop-daily.timer')
+	bad := loop_schedule_install_systemd('daily', '/ws', '0 0 * 5 *', '', os.temp_dir(), true)
+	assert !bad.ok
 }
 
 fn test_schedule_run_suffix() {
@@ -134,8 +261,39 @@ fn test_schedule_run_suffix() {
 }
 
 fn test_schedule_dry_run_bakes_runner() {
+	$if windows {
+		return
+	}
+	old_h := os.getenv('HARNESS_DIR')
+	old_ws := os.getenv('AGENT_TOOLKIT_WORKSPACE')
+	os.unsetenv('HARNESS_DIR')
+	os.unsetenv('AGENT_TOOLKIT_WORKSPACE')
+	base := os.join_path(os.temp_dir(), 'at-loop-suffix-${os.getpid()}')
+	os.mkdir_all(base) or { panic(err.msg()) }
+	defer {
+		if old_h.len > 0 {
+			os.setenv('HARNESS_DIR', old_h, true)
+		}
+		if old_ws.len > 0 {
+			os.setenv('AGENT_TOOLKIT_WORKSPACE', old_ws, true)
+		}
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# ws\n') or { panic(err.msg()) }
+	tpl := os.join_path(base, 'templates', 'loops')
+	os.mkdir_all(tpl) or { panic(err.msg()) }
+	os.write_file(os.join_path(tpl, 'daily.yaml'), 'name: daily\ntier: L1\ncadence: 1d\ngoal: |\n  observe\nrequest: |\n  report status\n') or {
+		panic(err.msg())
+	}
+	init := run_loop(LoopOptions{
+		subcommand: 'init'
+		workspace_path: base
+		name: 'daily'
+	})
+	assert init.ok, init.message
 	r := run_loop(LoopOptions{
 		subcommand: 'schedule'
+		workspace_path: base
 		name: 'daily'
 		dry_run: true
 		runner: 'opencode'
@@ -145,6 +303,7 @@ fn test_schedule_dry_run_bakes_runner() {
 	assert r.message.contains('WorkingDirectory=')
 	r2 := run_loop(LoopOptions{
 		subcommand: 'schedule'
+		workspace_path: base
 		name: 'daily'
 		dry_run: true
 	})
