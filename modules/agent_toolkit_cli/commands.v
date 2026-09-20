@@ -547,6 +547,11 @@ fn loop_flags() []cli.Flag {
 		},
 		cli.Flag{
 			flag: .string
+			name: 'model'
+			description: 'Model passed to the runner'
+		},
+		cli.Flag{
+			flag: .string
 			name: 'pack'
 			description: 'Pack name'
 		},

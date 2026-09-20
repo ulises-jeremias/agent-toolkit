@@ -14,6 +14,7 @@ pub:
 	force          bool
 	quiet          bool
 	runner         string
+	model          string
 	pack           string
 	no_llm         bool
 	dry_run        bool
@@ -129,7 +130,7 @@ pub fn loop_help_text() string {
 
 Usage:
     agent-toolkit loop init <pattern> [--name NAME]
-    agent-toolkit loop run <loop> [--force] [--runner NAME] [--no-llm] [--quiet] [--pack PATH]
+    agent-toolkit loop run <loop> [--force] [--runner NAME] [--model MODEL] [--no-llm] [--quiet] [--pack PATH]
     agent-toolkit loop list
     agent-toolkit loop status [loop]
     agent-toolkit loop audit [loop]
@@ -144,7 +145,8 @@ loop run options:
     --quiet       Suppress live runner output
     --pack PATH   Apply loop overrides from pack YAML
     --workspace PATH  Workspace root override
-    --runner NAME auto|skeleton|claude|opencode|codex|cursor|copilot|muse|pi (LLM runners need the CLI on PATH; cursor probes cursor-agent→agent→cursor; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works; AGENT_TOOLKIT_LOOP_MODEL pins --model for all runners)
+    --runner NAME auto|skeleton|claude|opencode|codex|cursor|copilot|muse|pi (LLM runners need the CLI on PATH; cursor probes cursor-agent→agent→cursor; cursor-agent, github-copilot, openai-codex, muse-code are aliases; unknown or missing runners fail closed to skeleton; AGENT_TOOLKIT_LOOP_RUNNER also works)
+    --model MODEL model passed to the runner (AGENT_TOOLKIT_LOOP_MODEL also works)
     --no-llm      Alias for --runner skeleton (no network)
     --platform PLATFORM  Schedule platform: local (default, systemd/launchd) | github-actions
     --json        Structured CommandResult JSON
@@ -440,7 +442,7 @@ fn loop_run(ws string, opts LoopOptions) LoopReport {
 		runner_note = note
 	}
 	if runner_name != 'skeleton' {
-		return run_loop_llm(ws, loop_name, meta, loop_dir, rid, run_dir, runs_today, escalations, wall, runner_name, runner_note)
+		return run_loop_llm(ws, loop_name, meta, loop_dir, rid, run_dir, runs_today, escalations, wall, runner_name, runner_note, resolve_loop_model(opts.model))
 	}
 	lines << '[loop] Running ${loop_name} (tier=${meta.tier} cadence=${meta.cadence})'
 	lines << '[loop] ADR-020 process-per-run; skeleton fail-closed without ProcessService stdin'
