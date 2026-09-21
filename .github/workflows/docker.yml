@@ -89,7 +89,7 @@ jobs:
 
       - name: Build native image (PR smoke)
         if: github.event_name == 'pull_request' && steps.rel.outputs.exists == 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           load: true
@@ -107,7 +107,7 @@ jobs:
       # GitHub Release assets. Release.yml passes publish=true via workflow_call.
       - name: Build native image (main smoke)
         if: github.event_name == 'push' && env.DOCKER_PUBLISH != 'true' && steps.rel.outputs.exists == 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           load: true
@@ -137,7 +137,7 @@ jobs:
 
       - name: Build and push
         if: env.DOCKER_PUBLISH == 'true'
-        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           push: true
