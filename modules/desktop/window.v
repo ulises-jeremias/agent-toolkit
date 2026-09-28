@@ -424,6 +424,15 @@ pub fn (mut d Desktop) swarm_approve(run_id string, approval_id string, approved
 	return d.engine.swarm_approve(run_id, approval_id, approved)
 }
 
+// engine_handoff_to_reviewer routes an Office desk handoff through the GOD
+// mailbox — a real queued handoff id, never a message-only claim.
+pub fn (mut d Desktop) engine_handoff_to_reviewer(from string) !string {
+	id := d.engine.god_route(from, 'reviewer', 'office-handoff', '')!
+	snap := d.engine.snapshot()
+	d.app_state = app_state.derive_app_state(snap)
+	return id
+}
+
 // swarm_request_approval creates spend/scope/destructive gate.
 pub fn (mut d Desktop) swarm_request_approval(run_id string, kind desktop_engine.ApprovalKind, message string) !string {
 	return d.engine.swarm_request_approval(run_id, kind, message, 0)

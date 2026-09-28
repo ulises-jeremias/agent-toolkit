@@ -2975,7 +2975,22 @@ fn frame(mut app GuiApp) {
 	mid := 'Native V  •  gg/sokol'
 	mid_w := mid.len * 6
 	app.gg.draw_text(w / 2 - mid_w / 2, h - 19, mid, gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
-	// right — appearance and real workspace readiness.
+	// right — terminal toggle, appearance and real workspace readiness.
+	// The strip is keyboard-toggled by `g`; this chip is its visible,
+	// clickable twin (same helper, same state).
+	if w >= 900 {
+		term_on := app.term_mode != 3
+		tchip_x := w - 414
+		dot := if term_on { col_mint } else { col_slate }
+		app.gg.draw_rect_filled(tchip_x, h - 22, 78, 16, col_paper_dim)
+		app.gg.draw_rect_empty(tchip_x, h - 22, 78, 16, col_line_light)
+		app.gg.draw_rect_filled(tchip_x + 6, h - 17, 6, 6, dot)
+		app.gg.draw_text(tchip_x + 16, h - 18, 'Terminal', gg.TextCfg{
+			color: col_ink700
+			size: scaled_size(10, app.global_zoom)
+			mono: true
+		})
+	}
 	app.gg.draw_rect_filled(w - 330, h - 22, 84, 16, col_paper_dim)
 	app.gg.draw_rect_empty(w - 330, h - 22, 84, 16, col_line_light)
 	app.gg.draw_text(w - 324, h - 18, 'Theme·${appearance_label(app.appearance)}', gg.TextCfg{ color: col_ink700, size: scaled_size(10, app.global_zoom), mono: true })
@@ -6779,6 +6794,16 @@ fn text_input_focused(app &GuiApp) bool {
 // included: operations_key only consumes on its own panels, so a stale
 // operations_focus would silence global shortcuts with no owner left to
 // consume the keys.
+// toggle_terminal_strip flips the terminal strip visibility. Visibility is
+// derived from term_mode every frame — change the persisted mode instead of
+// toggling the derived field. Single source for the `g` key and the status
+// bar chip.
+fn toggle_terminal_strip(mut app GuiApp) {
+	app.term_mode = if app.term_mode == 3 { 0 } else { 3 }
+	app.term_visible = app.term_mode != 3
+	save_ui_state(mut app)
+}
+
 fn clear_text_focus(mut app GuiApp) {
 	app.header_search_focus = false
 	app.workspace_focus = false
@@ -6807,6 +6832,17 @@ fn onboarding_key(mut app GuiApp, e &gg.Event) bool {
 		return true
 	}
 	if e.char_code == `o` || e.char_code == `O` || e.key_code == .escape {
+		// Dismissing persists like Skip: the wizard must not return
+		// uninvited on the next launch. `o` resumes it on demand.
+		if app.desktop != unsafe { nil } {
+			app.desktop.engine_complete_onboarding() or {
+				app.onboarding_msg = 'Closed for now — setup will ask again next launch (${err.msg()})'
+				app.show_onboarding = false
+				return true
+			}
+			app.engine_rev = app.desktop.app_state_snapshot().revision
+			app.api_calls = app.desktop.engine_api_calls()
+		}
 		app.show_onboarding = false
 		app.onboarding_msg = 'Setup closed — press o to reopen'
 		return true
@@ -7267,10 +7303,20 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			return
 		}
 		if (e.char_code == `r` || e.char_code == `R`) && !text_input_focused(app) {
-			// Route handoff from inspector via keyboard
+			// Route handoff from inspector via keyboard — real GOD-mailbox queue.
 			desks := desks_for_app(app)
 			if app.selected_desk >= 0 && app.selected_desk < desks.len {
-				app.inspector_msg = 'Handoff routed: ${desks[app.selected_desk].label} → reviewer'
+				if app.desktop == unsafe { nil } {
+					app.inspector_msg = 'Handoff unavailable — Engine not attached'
+					return
+				}
+				id := app.desktop.engine_handoff_to_reviewer(desks[app.selected_desk].label) or {
+					app.inspector_msg = 'Handoff failed: ${err.msg()}'
+					return
+				}
+				app.engine_rev = app.desktop.app_state_snapshot().revision
+				app.api_calls = app.desktop.engine_api_calls()
+				app.inspector_msg = 'Handoff ${desks[app.selected_desk].label} → reviewer queued (${id})'
 			}
 			return
 		}
@@ -7501,11 +7547,7 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 				}
 			}
 			if e.char_code == `g` || e.char_code == `G` {
-				// Visibility is derived from term_mode every frame. Change the
-				// persisted mode instead of toggling the derived field.
-				app.term_mode = if app.term_mode == 3 { 0 } else { 3 }
-				app.term_visible = app.term_mode != 3
-				save_ui_state(mut app)
+				toggle_terminal_strip(mut app)
 				return
 			}
 		}
@@ -7599,7 +7641,15 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		if e.key_code == .enter {
 			desks := desks_for_app(app)
 			if app.selected_desk >= 0 && app.selected_desk < desks.len {
-				app.inspector_msg = 'Terminal opened: ${desks[app.selected_desk].label}'
+				// Enter on a desk reveals AND focuses the terminal.
+				if app.term_mode == 3 {
+					app.term_mode = 0
+				}
+				app.term_visible = true
+				clear_text_focus(mut app)
+				app.ghost_focused = true
+				save_ui_state(mut app)
+				app.inspector_msg = 'Terminal focused — type, Enter runs (${desks[app.selected_desk].label})'
 			}
 			return
 		}
@@ -7851,6 +7901,11 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		}
 		// status bar zoom slider at bottom
 		if my >= h - 28 && my <= h {
+			// terminal chip (see frame): the clickable twin of the `g` key
+			if w >= 900 && mx >= w - 414 && mx <= w - 336 && my >= h - 22 && my <= h - 6 {
+				toggle_terminal_strip(mut app)
+				return
+			}
 			// appearance chip (see frame): cycles Paper → Ink → System
 			if mx >= w - 330 && mx <= w - 246 && my >= h - 22 && my <= h - 6 {
 				cycle_appearance(mut app)
@@ -7916,11 +7971,30 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		desks := desks_for_app(app)
 		if app.selected_desk >= 0 && app.selected_desk < desks.len {
 			if mx >= ix + 12 && mx <= ix + iw - 12 && my >= iy + 180 && my <= iy + 208 {
-				app.inspector_msg = 'Terminal opened: ${desks[app.selected_desk].label}'
+				// Terminal button reveals AND focuses the strip — the click
+				// does the work, not just announces it.
+				if app.term_mode == 3 {
+					app.term_mode = 0
+				}
+				app.term_visible = true
+				clear_text_focus(mut app)
+				app.ghost_focused = true
+				save_ui_state(mut app)
+				app.inspector_msg = 'Terminal focused — type, Enter runs (${desks[app.selected_desk].label})'
 				return
 			}
 			if mx >= ix + 12 && mx <= ix + iw - 12 && my >= iy + 214 && my <= iy + 242 {
-				app.inspector_msg = 'Handoff routed: ${desks[app.selected_desk].label} → reviewer'
+				if app.desktop == unsafe { nil } {
+					app.inspector_msg = 'Handoff unavailable — Engine not attached'
+					return
+				}
+				id := app.desktop.engine_handoff_to_reviewer(desks[app.selected_desk].label) or {
+					app.inspector_msg = 'Handoff failed: ${err.msg()}'
+					return
+				}
+				app.engine_rev = app.desktop.app_state_snapshot().revision
+				app.api_calls = app.desktop.engine_api_calls()
+				app.inspector_msg = 'Handoff ${desks[app.selected_desk].label} → reviewer queued (${id})'
 				return
 			}
 		}
