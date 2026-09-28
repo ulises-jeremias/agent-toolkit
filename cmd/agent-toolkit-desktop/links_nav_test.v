@@ -42,6 +42,20 @@ fn test_insights_hint_target_names_first_action() {
 	assert insights_hint_target('unknown') == 0
 }
 
+fn test_ops_hint_lines_jump_to_their_tabs() {
+	mut app := &GuiApp{
+		selected_panel: 6
+		ops_hint_links: [
+			OfficeNavLink{x: 600, y: 500, w: 300, h: 18, target: 8},
+			OfficeNavLink{x: 600, y: 515, w: 300, h: 18, target: 7},
+		]!
+	}
+	assert office_nav_link_fire(mut app, app.ops_hint_links[0], 700, 509)
+	assert app.selected_panel == 8, 'first hint line must land on Swarms'
+	assert office_nav_link_fire(mut app, app.ops_hint_links[1], 700, 524)
+	assert app.selected_panel == 7, 'second hint line must land on Loops'
+}
+
 fn test_insights_detail_link_wins_table_link() {
 	mut app := &GuiApp{
 		selected_panel: 12

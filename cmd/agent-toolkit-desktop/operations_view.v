@@ -1112,6 +1112,9 @@ fn operations_click_spawn_strip(mut app GuiApp, l OperationsLayout, mx int, my i
 }
 
 fn draw_operations_table(mut app GuiApp, l OperationsLayout) {
+	// hint-line links live only on the empty state; any other frame zeroes.
+	app.ops_hint_links[0] = OfficeNavLink{}
+	app.ops_hint_links[1] = OfficeNavLink{}
 	if l.table_h < l.hdr_h + l.row_h {
 		return
 	}
@@ -1312,6 +1315,21 @@ fn draw_operations_empty(mut app GuiApp, l OperationsLayout, total int) {
 					size: 11
 					bold: true
 				})
+			}
+			// each hint line jumps to its tab — but only for the known
+			// jobs hint (Swarms first, Loops second); any other two-line
+			// hint keeps its words without a destination.
+			if hint == operations_jobs_hint {
+				targets := [8, 7]
+				for li in 0 .. 2 {
+					app.ops_hint_links[li] = OfficeNavLink{
+						x: ex
+						y: ty + 38 + li * 15
+						w: ew
+						h: 18
+						target: targets[li]
+					}
+				}
 			}
 		} else {
 			hw := utf8_truncate(hint, text_fit_chars(ew - 24, 11))
@@ -3012,6 +3030,14 @@ fn operations_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	}
 	if l.tab == 3 && operations_click_doctor_strip(mut app, l, mx, my) {
 		return true
+	}
+	// empty-state hint lines jump to their tabs (recorded only when the
+	// two-line jobs hint drew; zero otherwise, so populated tables never
+	// compete).
+	for i in 0 .. 2 {
+		if office_nav_link_fire(mut app, app.ops_hint_links[i], mx, my) {
+			return true
+		}
 	}
 	// table rows
 	all := operations_rows(mut app, l.tab)
