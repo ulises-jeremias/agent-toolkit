@@ -2956,6 +2956,27 @@ fn frame(mut app GuiApp) {
 		app.gg.draw_text(left_x, h - 19, keys_hint, gg.TextCfg{ color: col_brass, size: scaled_size(11, app.global_zoom) })
 		left_x += keys_hint.len * 6 + 14
 	}
+	// orientation cell — who owns typing, what Esc dismisses. Shown only
+	// when non-trivial so the bar stays quiet otherwise (M8/M9).
+	owner := text_focus_owner(app)
+	mut focus_txt := ''
+	mut focus_hot := false
+	if owner != '' {
+		focus_txt = 'typing · ${owner} — Esc releases'
+		focus_hot = true
+	} else {
+		tgt := esc_target(app)
+		if tgt != '' {
+			focus_txt = 'Esc · ${tgt}'
+		}
+	}
+	if focus_txt != '' && left_x + focus_txt.len * 6 + 8 < w / 2 - 60 {
+		app.gg.draw_text(left_x, h - 19, focus_txt, gg.TextCfg{
+			color: if focus_hot { col_brass } else { col_slate_dim }
+			size: scaled_size(11, app.global_zoom)
+		})
+		left_x += focus_txt.len * 6 + 14
+	}
 	// mini zoom slider in status bar — paper tape style
 	zx2 := left_x + 8
 	zy2 := h - 18
@@ -3182,6 +3203,40 @@ fn header_layout(w int, h int) HeaderLayout {
 	}
 }
 
+// nav_group_key is the keyboard address of a dock group: the digit/letter
+// selecting its landing panel (1–9 → panels 0–8, 0 → Workspace,
+// I → Insights). Settings has no single-letter address — 's' would hijack
+// type-to-filter capture in Library/Operations — so it shows none (M10).
+fn nav_group_key(panel int) string {
+	return match panel {
+		0 { '1' }
+		1 { '2' }
+		6 { '7' }
+		9 { '0' }
+		12 { 'I' }
+		else { '' }
+	}
+}
+
+// nav_active_child names the selected panel inside its group with its own
+// key, so hidden tab children gain a visible address exactly when you are
+// among them ('Agents · 3'). '' on group landings and single-panel groups —
+// the dock orients ('where am I'), the panel tab bar enumerates siblings.
+fn nav_active_child(panel int) string {
+	return match panel {
+		1 { 'Skills · 2' }
+		2 { 'Agents · 3' }
+		10 { 'Products · P' }
+		3 { 'MCP · 4' }
+		4 { 'Targets · 5' }
+		6 { 'Jobs · 7' }
+		7 { 'Loops · 8' }
+		8 { 'Swarms · 9' }
+		5 { 'Doctor · 6' }
+		else { '' }
+	}
+}
+
 fn nav_group_subtitle(panel int) string {
 	return match panel {
 		0 { 'Home base · See your agents' }
@@ -3279,8 +3334,10 @@ fn draw_header(mut app GuiApp, w int) {
 		bold: true
 	})
 
+	// palette scope is jumping somewhere, in-panel fields are filtering —
+	// the placeholder names the scope so the two searches are never confused.
 	search_txt := if app.global_search == '' {
-		'Search agents, tasks, files...'
+		'Jump to agents, tasks, files…'
 	} else {
 		app.global_search
 	}
@@ -3380,8 +3437,23 @@ fn draw_left_dock(mut app GuiApp, h int) {
 			size: 13
 			bold: true
 		})
+		// keyboard address badge: the digit/letter selecting this group.
+		// Settings has none ('s' would hijack type-to-filter) — shown clean.
+		key := nav_group_key(row.panel)
+		if key != '' {
+			app.gg.draw_text(row_x + dock_w - 16 - 16, row.y + 7, key, gg.TextCfg{
+				color: if active { col_brass } else { col_slate_dim }
+				size: 10
+				bold: active
+			})
+		}
 		if row.h >= 40 {
-			app.gg.draw_text(label_x, row.y + 24, utf8_truncate(nav_group_subtitle(row.panel), 25), gg.TextCfg{
+			// orientation over enumeration: inside Library/Operations the
+			// subtitle names the active child with its key; the panel tab
+			// bar (not the dock) lists the siblings.
+			child := if group_active { nav_active_child(app.selected_panel) } else { '' }
+			sub := if child == '' { nav_group_subtitle(row.panel) } else { child }
+			app.gg.draw_text(label_x, row.y + 24, utf8_truncate(sub, 25), gg.TextCfg{
 				color: if active { col_paper_dim } else { col_slate_dim }
 				size: 9
 			})
@@ -6535,7 +6607,7 @@ fn draw_help(mut app GuiApp, w int, h int) {
 	lines := [
 		'/ or Ctrl+K — palette: ${skills_total(mut app)} skills, agents, panels',
 		'1–9 switch panel • 0 Workspace • P Products • I Insights • O Onboarding',
-		'Esc steps back: palette, help, search, previews — never quits',
+		'Esc steps back (status bar names the target) — never quits',
 		'Ctrl+Q quits • H help • T panel look • R route handoff',
 		'Ctrl with = / − / 0 zooms • Ctrl+scroll zooms',
 		'Tab focuses terminal input • G shows / hides terminal',
@@ -6809,6 +6881,83 @@ fn text_input_focused(app &GuiApp) bool {
 		return true
 	}
 	return false
+}
+
+// text_focus_owner names the surface that currently owns typing, mirroring
+// text_input_focused branch-for-branch. '' when nobody owns it. The status
+// bar shows the owner so single-letter shortcuts failing to fire is never a
+// mystery (M9: 'typing in X — Esc releases' instead of silent death).
+fn text_focus_owner(app &GuiApp) string {
+	if app.palette_open {
+		return 'palette'
+	}
+	if app.header_search_focus {
+		return 'header search'
+	}
+	if app.workspace_focus {
+		return 'workspace'
+	}
+	if app.library_search_focus {
+		return 'library search'
+	}
+	if app.memory_search_focus {
+		return 'memory search'
+	}
+	if app.term_search_open {
+		return 'terminal search'
+	}
+	if app.operations_focus != 0 {
+		return 'operations field'
+	}
+	if app.ghost_focused && app.term_visible {
+		return 'terminal'
+	}
+	if app.editor_focused {
+		return 'editor'
+	}
+	return ''
+}
+
+// esc_target names what Esc would dismiss right now, mirroring the on_event
+// Esc dispatch order branch-for-branch. '' when Esc has no visible target.
+// The status bar shows it so the 7-layer stack is predictable (M8).
+fn esc_target(app &GuiApp) string {
+	// PTY session focus precedes the palette chain: Esc returns to Fleet.
+	if !app.palette_open && !app.show_help && app.term_mode == 2
+		&& (app.term_view >= 15 || (app.term_split && app.term_view_b >= 15)) {
+		return 'agent session'
+	}
+	if app.palette_open {
+		return 'palette'
+	}
+	if app.show_help {
+		return 'help'
+	}
+	if app.show_onboarding {
+		return 'setup'
+	}
+	if app.ghost_focused && app.term_visible {
+		return 'terminal focus'
+	}
+	if app.term_view >= 0 {
+		return 'desk fullscreen'
+	}
+	if library_is_panel(app.selected_panel) {
+		return 'panel search'
+	}
+	if app.selected_panel == 9 {
+		if app.editor_focused {
+			return 'editor'
+		}
+		return 'workspace search'
+	}
+	if app.doctor_preview != '' {
+		return 'dry-run preview'
+	}
+	if app.mcp_drawer != '' {
+		return 'MCP drawer'
+	}
+	return ''
 }
 
 // clear_text_focus releases every click-to-focus text surface. Call it
