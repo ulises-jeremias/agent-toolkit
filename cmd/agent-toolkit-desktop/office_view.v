@@ -814,6 +814,7 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 		})
 		lx, ly, lw, lh := office_empty_start_rect(l, ry)
 		_ = ly
+		_ = lw
 		_ = lh
 		app.gg.draw_text(lx, ry + 22, link, gg.TextCfg{
 			color: app.pnl_select
