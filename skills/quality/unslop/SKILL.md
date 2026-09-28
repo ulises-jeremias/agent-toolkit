@@ -6,16 +6,16 @@ origin:
 upstream:
   repository: cursor/plugins
   path: pstack/skills/unslop
-  ref: e8d856f0273b42ebafe0ec3546bd645709e7c1b0
+  ref: 70b2dc8b4b85c8d5648624ca40d692c421fff32f
   license: MIT
-  version: e8d856f
+  version: 70b2dc8
 trust:
   tier: experimental
-  reviewed_at: '2026-09-14'
+  reviewed_at: '2026-09-28'
   reviewed_by: ulises-jeremias
 maintenance:
   status: active
-  last_checked: '2026-09-14'
+  last_checked: '2026-09-28'
 distribution:
   mode: vendored
   redistribution_allowed: true
@@ -42,7 +42,6 @@ Edit text to remove AI patterns.
 
 1. Scan for the patterns below.
 2. Rewrite. Preserve meaning, match intended tone.
-3. Self-audit: "What makes this obviously AI generated?" Fix remaining tells.
 
 ## Patterns to detect and fix
 

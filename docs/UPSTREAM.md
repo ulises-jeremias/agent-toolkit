@@ -7,7 +7,7 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-09-28T04:00:02.140775Z
+Generated: 2026-09-28T06:44:14.155779Z
 Capabilities with external provenance: 29 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
@@ -446,23 +446,23 @@ Capabilities with external provenance: 29 (first-party omitted; lock is sparse)
 
 ## `quality/blast-radius`
 
-- **Trust:** `experimental` reviewed_at=2026-09-14 by=ulises-jeremias
+- **Trust:** `experimental` reviewed_at=2026-09-28 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:d884442353d3a3ef351f09766ce9c498dcb8a4561b757cc43676acf0f5eb604c`
+- **Provenance digest:** `sha256:f82fe38d17aae4201e317d6cae41c29c3bb257142bce56fe435c5d11dda4abab`
 
 ### Source `upstream` — `cursor/plugins/pstack/skills/blast-radius`
 
 - **Repository:** `cursor/plugins`
 - **Path:** `pstack/skills/blast-radius`
-- **Requested:** `commit` `d7cde2b84eadbcd6fd890302c876f4436ccb6d82` (declaration intent)
-- **Resolved commit:** `d7cde2b84eadbcd6fd890302c876f4436ccb6d82`
-- **Content checksum:** `sha256:6f7c722b6a12288c76433f925866c19fb0c36f87e142731647bc72027b4839e3`
-- **Body checksum:** `sha256:c45d83b78a3768f42cc40c5fecbb29c979fc6a4170c68de3ebbb5b4866e63268` (must match local SKILL.md body)
+- **Requested:** `commit` `70b2dc8b4b85c8d5648624ca40d692c421fff32f` (declaration intent)
+- **Resolved commit:** `70b2dc8b4b85c8d5648624ca40d692c421fff32f`
+- **Content checksum:** `sha256:f7baf32efffc7f88316f1fe357ca3d0dea0af19620b12dbe8a22ec1a1513831c`
+- **Body checksum:** `sha256:119263139d181b4eacddc1a84b6cf0cc141676a67177cfb9983a889ace8f0478` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/quality/blast-radius/LICENSE` checksum=`sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`d7cde2b`
+- **Resolved at:** `2026-09-28T06:44:13.910009Z` version=`70b2dc8`
 
 - **Per-skill attribution:** `skills/quality/blast-radius/UPSTREAM.md`
 
@@ -570,23 +570,23 @@ Capabilities with external provenance: 29 (first-party omitted; lock is sparse)
 
 ## `quality/unslop`
 
-- **Trust:** `experimental` reviewed_at=2026-09-14 by=ulises-jeremias
+- **Trust:** `experimental` reviewed_at=2026-09-28 by=ulises-jeremias
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=False network=False cve_policy=not-applicable mcp=[] hooks=[]
-- **Provenance digest:** `sha256:8013020c9d2b4ca97bf35e80db0de5b94dfc4fdff9c7719f84b4014d34435abd`
+- **Provenance digest:** `sha256:63ebab9dc38e06e243989be8520d0720c65d3a7050b77034595eaa327584e0a1`
 
 ### Source `upstream` — `cursor/plugins/pstack/skills/unslop`
 
 - **Repository:** `cursor/plugins`
 - **Path:** `pstack/skills/unslop`
-- **Requested:** `commit` `e8d856f0273b42ebafe0ec3546bd645709e7c1b0` (declaration intent)
-- **Resolved commit:** `e8d856f0273b42ebafe0ec3546bd645709e7c1b0`
-- **Content checksum:** `sha256:3e84bdc3f68b804b7926df5ac69c1ed359b1196e231502ef0cab2369087225a7`
-- **Body checksum:** `sha256:f51305e20767d34b0d28e1279916a3d704144a508a5229b1f9b950193ae60a71` (must match local SKILL.md body)
+- **Requested:** `commit` `70b2dc8b4b85c8d5648624ca40d692c421fff32f` (declaration intent)
+- **Resolved commit:** `70b2dc8b4b85c8d5648624ca40d692c421fff32f`
+- **Content checksum:** `sha256:d07f263267980db4579f5f804b252426c13057274a3ef34ca307d9b1ebaeb448`
+- **Body checksum:** `sha256:a71c9bdf6ca3b61e1c748e45d44d0267e802c8cb94e84828bc037bf79a658c88` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/quality/unslop/LICENSE` checksum=`sha256:bc957ca6bee02792566a1a028d105e02e247c6e77cf057061674273da77b200e`
   - Declaration expected `license: MIT` — mismatch requires review
-- **Resolved at:** `2026-09-14T15:51:22.926753Z` version=`e8d856f`
+- **Resolved at:** `2026-09-28T06:44:13.910009Z` version=`70b2dc8`
 
 - **Per-skill attribution:** `skills/quality/unslop/UPSTREAM.md`
 
