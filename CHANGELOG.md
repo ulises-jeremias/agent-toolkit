@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.33.0] — 2026-09-28
+
+### Added
+
+- Native Desktop UX convergence (V + gg/sokol, Paper Co. identity): floor IA
+  with live onboarding rail and honest-empty dialogs, attention summary strip
+  on the Office floor, Loops strip on the Operations floor, status-bar hints,
+  and Engine-level job-to-agent attribution with a live agent roster.
+- Golden UI fixtures (paper + ink) promoted from CI actuals reviewed at full
+  size for the combined hint + attention / Loops rendering.
+
 ## [1.32.1] — 2026-09-20
 
 ### Fixed
