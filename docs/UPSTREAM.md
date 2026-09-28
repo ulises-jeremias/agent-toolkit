@@ -7,7 +7,7 @@ Human-readable provenance for third-party capability content. Canonical sources:
 - **Resolution:** `capabilities/upstream.lock` (`version: 2`, `provenance_digest`) — see `schemas/upstream-lock.schema.json` and `docs/adrs/0001-*.md`
 - **Vendored bytes:** `skills/<domain>/<name>/SKILL.md` + `LICENSE.txt`
 
-Generated: 2026-09-21T06:40:27.359721Z
+Generated: 2026-09-28T04:00:02.140775Z
 Capabilities with external provenance: 29 (first-party omitted; lock is sparse)
 
 ## `design/frontend-design`
@@ -430,7 +430,7 @@ Capabilities with external provenance: 29 (first-party omitted; lock is sparse)
 - **Maintenance:** `active` last_activity=?
 - **Distribution:** `vendored` redistribution_allowed=True
 - **Security (declared):** scripts=False shell=False network=True cve_policy=None mcp=False hooks=False
-- **Provenance digest:** `sha256:3edf9507ed1107892fcee7d96d6354e389973c0cc0f9f54703d4a6381ef2c6b1`
+- **Provenance digest:** `sha256:baea1b4d8b8e5527f5eefd09c98542672673adfc6aaa5580c02502c2831b5cca`
 
 ### Source `upstream` — `grandcamel/JIRA-Assistant-Skills/skills/jira`
 
@@ -438,7 +438,7 @@ Capabilities with external provenance: 29 (first-party omitted; lock is sparse)
 - **Path:** `skills/jira`
 - **Requested:** `commit` `f78f19496d4c7432f5aa92236e3750ed96ccdbf4` (declaration intent)
 - **Resolved commit:** `f78f19496d4c7432f5aa92236e3750ed96ccdbf4`
-- **Content checksum:** `sha256:77a76f9e87ef31d6fef1334eabb2940b52dd5a836a74979ea6e5cec564d8dd99`
+- **Content checksum:** `sha256:446dd320d85d1360336592f1c75ac977570ae5cb3defc135ba2d457060a5c907`
 - **Body checksum:** `sha256:4cb72c43367616fe14752e48a02557223d270710d3e76af49ead1c6789b94e6a` (must match local SKILL.md body)
 - **Observed license:** `MIT` source_path=`skills/integrations/jira-assistant/LICENSE` checksum=`sha256:d921ba738025d2843edd84cf14940fa320516ac1c08785ae05fbcd4aa7c930f0`
   - Declaration expected `license: MIT` — mismatch requires review

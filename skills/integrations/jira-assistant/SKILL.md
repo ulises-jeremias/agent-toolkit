@@ -1,5 +1,5 @@
 ---
-name: jira
+name: jira-assistant
 description: Jira Cloud, Jira Software and Jira Service Management automation through the jira-as CLI
   (2.x). Run `jira-as help` first; find operations with `jira-as api search` and `jira-as api describe`.
 license: MIT
