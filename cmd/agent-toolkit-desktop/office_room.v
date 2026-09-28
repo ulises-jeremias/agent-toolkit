@@ -36,6 +36,31 @@ fn office_room_click(mut app GuiApp, mx int, my int) bool {
 	return false
 }
 
+// OfficeNavLink is a recorded text-link rect: absolute frame geometry plus
+// the destination panel for select_panel. target 0 (or an empty rect) means
+// inactive — the link was not drawn this frame, so clicks fall through.
+// Footer 'see …' pointers and empty-state hints share this one mechanism.
+struct OfficeNavLink {
+	x      int
+	y      int
+	w      int
+	h      int
+	target int
+}
+
+fn office_nav_link_hit(r OfficeNavLink, mx int, my int) bool {
+	return r.target != 0 && r.w > 0 && r.h > 0 && rect_contains(mx, my, r.x, r.y, r.w, r.h)
+}
+
+// office_nav_link_fire navigates when the click lands on the recorded link.
+fn office_nav_link_fire(mut app GuiApp, r OfficeNavLink, mx int, my int) bool {
+	if office_nav_link_hit(r, mx, my) {
+		select_panel(mut app, r.target)
+		return true
+	}
+	return false
+}
+
 // office_palette_id maps product appearance to the authored pixel-art palette
 // variant. Both variants are hand-authored; never an automatic inversion.
 fn office_palette_id(app &GuiApp) pixelart.PaletteId {
@@ -394,10 +419,21 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	}
 	// ── honest totals: bottom corners ────────────────────────────────────
 	if running > 0 {
-		app.gg.draw_text(x + 14, y + h - 16, '${running} running — see Operations', gg.TextCfg{
+		msg := '${running} running — see Operations'
+		app.gg.draw_text(x + 14, y + h - 16, msg, gg.TextCfg{
 			color: app.pnl_select
 			size: 10
 		})
+		// the footer pointer is a real link: same words, recorded rect.
+		app.room_ops_link = OfficeNavLink{
+			x: x + 14
+			y: y + h - 20
+			w: msg.len * 6 + 8
+			h: 18
+			target: 6
+		}
+	} else {
+		app.room_ops_link = OfficeNavLink{}
 	}
 	// footer note keeps clear of the lounge corner (geometry computed above)
 	note := if desks.len > shown {

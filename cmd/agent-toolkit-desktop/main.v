@@ -963,6 +963,13 @@ mut:
 	// (recorded by draw_office_room, consumed by office_room_click) —
 	// the immediate-mode record that makes the presentational room clickable.
 	room_desk_rects []RoomDeskHit
+	// recorded text-link rects (OfficeNavLink): footer 'see …' pointers
+	// and empty-state hints navigate through these; zero == not drawn.
+	room_ops_link       OfficeNavLink
+	roster_ops_link     OfficeNavLink
+	insights_link       OfficeNavLink
+	insights_detail_link OfficeNavLink
+	ops_hint_links      [2]OfficeNavLink
 	palette_open     bool
 	palette_query    string
 	palette_selected int
@@ -3441,6 +3448,11 @@ fn handle_office_view_click(mut app GuiApp, w int, mx int, my int) bool {
 // draw_office_overview renders the default Office operational dashboard.
 // It surfaces real Engine state (jobs, agents) without idle-animation theatrics.
 fn draw_office_overview(mut app GuiApp, w int, h int) {
+	// recorded geometry dies with the frame: a shrunken room, an emptied
+	// catalog, or a hidden roster must never leave clickable ghosts.
+	app.room_desk_rects.clear()
+	app.room_ops_link = OfficeNavLink{}
+	app.roster_ops_link = OfficeNavLink{}
 	fx := panel_fx(app)
 	fy := panel_top(app)
 	fw := panel_fw(app, w)
@@ -7960,6 +7972,14 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 		// through last frame's hit rects (office_room_click)
 		if app.selected_panel == 0 && !app.office_map_view && !app.show_onboarding {
 			if office_roster_click(mut app, mx, my, w, h) {
+				return
+			}
+			// footer 'see Operations' pointers fire before desk hits: an
+			// explicit link beats a nearby desk rect on overlap.
+			if office_nav_link_fire(mut app, app.roster_ops_link, mx, my) {
+				return
+			}
+			if office_nav_link_fire(mut app, app.room_ops_link, mx, my) {
 				return
 			}
 			if office_room_click(mut app, mx, my) {
