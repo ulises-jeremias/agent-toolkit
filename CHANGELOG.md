@@ -10,6 +10,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.34.0] — 2026-09-28
+
+### Added
+
+- Native Desktop onboarding that earns its place: a short staged flow whose
+  finish state and pending-tool rows are covered by Engine-independent view
+  tests.
+- Office floor orientation: the focused panel is named in place, dock tabs
+  carry single-key badges, and header search is scoped to the visible floor.
+- Library safety: keyboard-initiated Remove on installed or MCP rows now asks
+  for a second Enter before calling the Engine; clicks keep working directly.
+- Footer and empty-state hints that navigate: Office footers point at the tab
+  that owns the state, and the Operations hint jumps to Agents, Loops, or
+  History as named.
+
+### Changed
+
+- Desktop copy pass: user-voiced confirmations, sentence-case labels,
+  and a two-line Operations hint that no longer clips mid-phrase.
+- Golden UI fixtures (paper + ink) re-promoted from CI actuals reviewed at
+  full size for the orientation, confirm-gate, and navigation-link rendering.
+
 ## [1.33.1] — 2026-09-28
 
 ### Changed
