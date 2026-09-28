@@ -1108,6 +1108,9 @@ mut:
 	// tabs (Skills keeps skills_scroll/skills_selected/skills_domain)
 	library_scroll        int
 	library_sel           int
+	// library_arm holds the 'kind:id' armed for destructive keyboard
+	// removal (first Enter arms, second confirms) — clicks bypass it.
+	library_arm           string
 	library_hover         int = -1
 	library_hover_ui      int = -1
 	library_filter        string
@@ -5629,6 +5632,8 @@ fn select_panel(mut app GuiApp, panel int) {
 	app.show_onboarding = false
 	// explicit navigation releases text focus (see text_input_focused)
 	clear_text_focus(mut app)
+	// ...and any pending remove-confirm: arms never cross destinations.
+	app.library_arm = ''
 	if panel != 0 {
 		app.selected_desk = -1
 	}
@@ -6528,7 +6533,7 @@ fn draw_help(mut app GuiApp, w int, h int) {
 		'Doctor: F fixes all • Enter previews / confirms',
 		'Palette: Enter runs • Tab actions • U undoes recent',
 		'Onboarding: N/→ next • B/← back • Enter applies',
-		'Library + search fields: type to filter • ↑↓ move • Enter runs',
+		'Library: type to filter • ↑↓ move • Enter runs • Enter again removes',
 		'Workspace: J/K files • H/L tabs • typing searches memory',
 		'Office floor: arrows move • M map • click a desk • Enter opens it',
 		'Agent screen: typing goes to the agent • Esc back to list',
