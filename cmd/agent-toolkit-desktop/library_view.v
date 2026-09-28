@@ -1774,7 +1774,10 @@ fn library_primary(mut app GuiApp) {
 				library_invalidate(mut app)
 				return
 			}
-			rev := app.desktop.onboarding_set_products_bulk([item.id]) or {
+			// bare call: the revision lives in Engine receipts, the user
+			// message names the outcome (same shape as
+			// onboarding_apply_stage's bulk product install).
+			app.desktop.onboarding_set_products_bulk([item.id]) or {
 				app.onboarding_msg = 'products install failed: ${err}'
 				app.inspector_msg = 'Product ${item.id} error: ${err}'
 				return
