@@ -28,16 +28,21 @@ const onboarding_stage_hints = ['How would you like to begin?', "We'll find what
 
 const onboarding_last_stage = 4
 
-// setup-choice cards (stage 0) — each maps to real product behaviour
-const onboarding_choices = ['Set up for me', 'Existing setup', 'Find my setup']
+// setup-choice cards (stage 0) — exactly two honest paths: start clean, or
+// bring what this computer already has (tools and workspaces are detected,
+// never guessed). Stage 0 commits no Engine work; the choice only labels the
+// review summary, so collapsing the old three-way guess changes no behaviour.
+const onboarding_choices = ['Start fresh', 'Use my existing setup']
 
-const onboarding_choice_copy = ['Create a new workspace.', 'Use a configured setup.',
-	'Find existing workspaces.']
+const onboarding_choice_copy = ['Create a new workspace for your agents.',
+	'We detect your tools and workspaces.']
 
-// workspace cards (stage 2)
+// workspace cards (stage 2) — one short line each: the card column is too
+// narrow for two lines once the section footer is accounted for, and the
+// readiness state lives in the sheet title, not under the copy.
 const onboarding_workspace_choices = ['Create workspace', 'Reuse a workspace']
 
-const onboarding_workspace_copy = ['Create a fresh workspace.', 'Use an existing folder.']
+const onboarding_workspace_copy = ['Create a new folder.', 'Connect a folder.']
 
 // recommended capabilities (stage 3) — labels are user-facing, the sub-line is
 // the real catalog fact behind each one
@@ -433,10 +438,12 @@ fn onboarding_cap_fact(mut app GuiApp, i int) string {
 }
 
 fn onboarding_choice_verb(app &GuiApp) string {
+	// review values stay in the card's vocabulary ('Start fresh' mirrors
+	// its card; 'Use existing' shortens its card to fit the two-column
+	// review strip) — one name per path through the whole flow.
 	return match app.onboarding_choice {
-		1 { 'Connect to existing setup' }
-		2 { 'Search this computer' }
-		else { 'Set everything up for me' }
+		1 { 'Use existing' }
+		else { 'Start fresh' }
 	}
 }
 
@@ -521,6 +528,7 @@ fn draw_onboarding_steps(mut app GuiApp, l OnboardingLayout) {
 	app.gg.draw_rect_filled(l.fx + md / 2, rule_y, l.fw - md, 2, tint(pc(app, `W`), 90))
 	for i, name in onboarding_stages {
 		sx, sy, sw, sh := onboarding_step_rect(l, i)
+		_ = sw // column width only sized the removed hint captions
 		done := i < app.onboarding_step
 		here := i == app.onboarding_step
 		mx0 := sx
@@ -548,19 +556,18 @@ fn draw_onboarding_steps(mut app GuiApp, l OnboardingLayout) {
 				bold: true
 			})
 		}
+		// No per-stage hint caption: a fifth of the board fits ~12
+		// characters, so every hint rendered here clipped mid-word
+		// ('How would yo'). The stage names carry the rail; the full
+		// hint for the active stage lives in each sheet's title and in
+		// the footer message. onboarding_stage_hints is still the source
+		// for click/keyboard status messages.
 		label_x := sx + md + 10
 		app.gg.draw_text(label_x, sy + 3, name, gg.TextCfg{
 			color: if here { app.pnl_text } else { app.pnl_text_mut }
 			size: if sh >= 52 { 15 } else { 13 }
 			bold: here
 		})
-		hint_px := sx + sw - label_x - 8
-		if sh >= 52 && hint_px > 40 {
-			app.gg.draw_text(label_x, sy + 20, utf8_truncate(onboarding_stage_hints[i], text_fit_chars(hint_px, 11)), gg.TextCfg{
-				color: app.pnl_text_mut
-				size: 11
-			})
-		}
 	}
 }
 
@@ -614,6 +621,9 @@ fn draw_onboarding_choice(mut app GuiApp, l OnboardingLayout, pid pixelart.Palet
 			family: app.fonts.display
 		})
 		mut lines := (cy + ch - 6 - (ty + 19)) / 14
+		if lines < 1 {
+			lines = 1 // a single fitting line must still render (short cards)
+		}
 		if lines > 3 {
 			lines = 3
 		}
@@ -666,7 +676,14 @@ fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 	if sh_t < 40 {
 		return
 	}
-	draw_onboarding_sheet_title(mut app, l, 1, 'Detected developer tools', '${found} of ${cat.len} found on this computer')
+	// Missing tools are external programs we cannot install — say exactly
+	// that, and reassure the zero-tool case that setup continues regardless.
+	sub := if found == 0 {
+		'none found — continue anyway'
+	} else {
+		'${found} of ${cat.len} found on this computer'
+	}
+	draw_onboarding_sheet_title(mut app, l, 1, 'Detected developer tools', sub)
 	rx, ry, rw, rh := onboarding_rescan_rect(l)
 	if rh > 0 {
 		app.gg.draw_rect_filled(rx, ry, rw, rh, if app.onboarding_hover == 20 {
@@ -720,30 +737,42 @@ fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 			color: pill_c
 			size: 11
 		})
-		detail := if t.found {
-			t.resolved_path
-		} else {
-			'Install to enable seamless integration'
+		// Found rows show their resolved path; missing rows show no detail
+		// line at all — the ~6-char budget on these narrow cards clips any
+		// guidance mid-word ('Not on'), so the section speaks once, below.
+		if t.found {
+			app.gg.draw_text(name_x, cy + 32, utf8_truncate(t.resolved_path, text_fit_chars(cw - mk - 30 - pw, 11)), gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 11
+				mono: true
+			})
 		}
-		app.gg.draw_text(name_x, cy + 32, utf8_truncate(detail, text_fit_chars(cw - mk - 30 - pw, 11)), gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 11
-			mono: t.found
-		})
 		shown++
 	}
 	sx1, sy1, sw1, sh1 := onboarding_sec_rect(l, 1)
-	if cat.len > shown && sh1 >= 40 {
-		app.gg.draw_text(sx1 + sw1 - 190, sy1 + sh1 - 15, '+${cat.len - shown} more in Settings → Targets', gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 10
-		})
+	if sh1 >= 40 {
+		if cat.len - found > 0 {
+			// no in-flow install exists for external binaries: the one
+			// honest pointer, left-aligned where the eye lands first.
+			app.gg.draw_text(sx1 + 14, sy1 + sh1 - 15, utf8_truncate('Missing tools install outside, then Rescan', text_fit_chars(sw1 - 28, 10)), gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 10
+			})
+		} else if cat.len > shown {
+			app.gg.draw_text(sx1 + sw1 - 190, sy1 + sh1 - 15, '+${cat.len - shown} more in Settings → Targets', gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 10
+			})
+		}
 	}
 }
 
-// stage 2 — where the agents live
+// stage 2 — where the agents live. The readiness state rides in the sheet
+// title, never as an overlay at the card bottoms where it collides with
+// the copy (the harness path is display-only — diagnostics owns it).
 fn draw_onboarding_workspace(mut app GuiApp, l OnboardingLayout, pid pixelart.PaletteId, st desktop_engine.OnboardingStatus) {
-	draw_onboarding_sheet_title(mut app, l, 2, 'Workspace setup', 'Where agents and data live')
+	state := if st.workspace_exists { 'ready' } else { 'not created yet' }
+	draw_onboarding_sheet_title(mut app, l, 2, 'Workspace setup', 'Where agents live · ${state}')
 	for i, title in onboarding_workspace_choices {
 		cx, cy, cw, ch := onboarding_card_rect(l, 2, i, onboarding_workspace_choices.len)
 		if ch == 0 {
@@ -772,24 +801,13 @@ fn draw_onboarding_workspace(mut app GuiApp, l OnboardingLayout, pid pixelart.Pa
 			family: app.fonts.display
 		})
 		mut wlines := (cy + ch - 6 - (ty + 19)) / 14
+		if wlines < 1 {
+			wlines = 1 // the one-line workspace copy must render on short cards
+		}
 		if wlines > 2 {
 			wlines = 2
 		}
 		draw_wrapped_text(mut app, cx + 12, ty + 19, cw - 24, onboarding_workspace_copy[i], wlines)
-	}
-	sx, sy, sw, sh := onboarding_sec_rect(l, 2)
-	if sh > 0 {
-		path := if app.onboarding_harness != '' { app.onboarding_harness } else { app.harness_root }
-		state := if st.workspace_exists { 'ready' } else { 'not created yet' }
-		app.gg.draw_text(sx + 14, sy + sh - 16, utf8_truncate(path, text_fit_chars(sw - 140, 11)), gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 11
-			mono: true
-		})
-		app.gg.draw_text(sx + sw - 14 - state.len * 7, sy + sh - 16, state, gg.TextCfg{
-			color: if st.workspace_exists { app.pnl_success } else { app.pnl_text_mut }
-			size: 11
-		})
 	}
 }
 
@@ -953,18 +971,23 @@ fn draw_onboarding_footer(mut app GuiApp, l OnboardingLayout, st desktop_engine.
 			size: 13
 		})
 	}
-	nx, ny, nw, nh := onboarding_next_rect(l)
-	is_last := app.onboarding_step >= onboarding_last_stage
-	app.gg.draw_rect_filled(nx, ny, nw, nh, if app.onboarding_hover == 11 {
-		tint(app.pnl_select, 200)
-	} else {
-		app.pnl_select
-	})
-	app.gg.draw_text(nx + 20, ny + 8, if is_last { 'Finish' } else { 'Next →' }, gg.TextCfg{
-		color: app.pnl_bg
-		size: 13
-		bold: true
-	})
+	// One primary action per stage: on the review stage the in-strip CTA
+	// ('Finish setup and enter the office →') owns finishing, so the footer
+	// keeps Back/Skip/Details only. Keyboard (Enter/Right/n) still finishes
+	// via onboarding_advance — this hides the duplicate button, not the path.
+	if app.onboarding_step < onboarding_last_stage {
+		nx, ny, nw, nh := onboarding_next_rect(l)
+		app.gg.draw_rect_filled(nx, ny, nw, nh, if app.onboarding_hover == 11 {
+			tint(app.pnl_select, 200)
+		} else {
+			app.pnl_select
+		})
+		app.gg.draw_text(nx + 20, ny + 8, 'Next →', gg.TextCfg{
+			color: app.pnl_bg
+			size: 13
+			bold: true
+		})
+	}
 	msg := if app.onboarding_msg != '' {
 		app.onboarding_msg
 	} else {
@@ -1186,10 +1209,14 @@ fn onboarding_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		app.onboarding_step--
 		return true
 	}
-	nx, ny, nw, nh := onboarding_next_rect(l)
-	if rect_contains(mx, my, nx, ny, nw, nh) {
-		onboarding_advance(mut app)
-		return true
+	// Footer advance lives on stages 0..3 only; on the review stage the
+	// in-strip CTA is the single mouse path (drawn conditionally above).
+	if app.onboarding_step < onboarding_last_stage {
+		nx, ny, nw, nh := onboarding_next_rect(l)
+		if rect_contains(mx, my, nx, ny, nw, nh) {
+			onboarding_advance(mut app)
+			return true
+		}
 	}
 	sx2, sy2, sw2, sh2 := onboarding_skip_rect(l)
 	if rect_contains(mx, my, sx2 - 4, sy2 - 4, sw2 + 8, sh2 + 8) {
@@ -1302,9 +1329,11 @@ fn onboarding_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
 	if rect_contains(mx, my, bx, by, bw, bh) {
 		app.onboarding_hover = 10
 	}
-	nx, ny, nw, nh := onboarding_next_rect(l)
-	if rect_contains(mx, my, nx, ny, nw, nh) {
-		app.onboarding_hover = 11
+	if app.onboarding_step < onboarding_last_stage {
+		nx, ny, nw, nh := onboarding_next_rect(l)
+		if rect_contains(mx, my, nx, ny, nw, nh) {
+			app.onboarding_hover = 11
+		}
 	}
 	sx, sy, sw, sh := onboarding_skip_rect(l)
 	if rect_contains(mx, my, sx - 4, sy - 4, sw + 8, sh + 8) {
