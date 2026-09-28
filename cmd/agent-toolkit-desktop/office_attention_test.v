@@ -579,3 +579,55 @@ fn test_office_state_keys_cover_every_pill() {
 	assert desktop.office_format_ms(0) == '—'
 	assert desktop.office_format_ms(4200) == '4s'
 }
+
+fn office_test_summary_snapshot() OfficeAttentionSnapshot {
+	rows := desktop.office_project_runs(office_test_jobs(), office_test_swarms(), [], office_test_approvals(), true)
+	appr := desktop.office_pending_approvals(office_test_approvals(), fn (run_id string) string {
+		return run_id
+	})
+	comps := desktop.office_recent_completions(office_test_jobs(), office_test_swarms(), [], 5)
+	return OfficeAttentionSnapshot{
+		rows: rows
+		approvals: appr
+		completions: comps
+		engine_live: true
+	}
+}
+
+fn test_office_summary_counts_derive_from_snapshot() {
+	c := office_summary_counts(office_test_summary_snapshot())
+	// 2 live running rows (job-run-1, run-live), 2 hot rows + 1 pending
+	// gate needing the operator, 1 recent completion
+	assert c.running == 2
+	assert c.needs == 3
+	assert c.done == 1
+	empty := office_summary_counts(OfficeAttentionSnapshot{})
+	assert empty.running == 0 && empty.needs == 0 && empty.done == 0
+}
+
+fn test_office_summary_segments_stable_order_and_quiet() {
+	texts, kinds := office_summary_segments(office_summary_counts(office_test_summary_snapshot()))
+	assert texts == ['2 running', '3 need you', '1 done']
+	assert kinds == ['running', 'needs', 'done']
+	// singular grammar for a single need
+	single, skinds := office_summary_segments(OfficeSummaryCounts{needs: 1})
+	assert single == ['1 needs you']
+	assert skinds == ['needs']
+	// empty floor: no segments (draw path says so statically)
+	quiet_texts, _ := office_summary_segments(OfficeSummaryCounts{})
+	assert quiet_texts.len == 0
+}
+
+fn test_office_summary_rects_share_draw_click_geometry() {
+	texts, _ := office_summary_segments(office_summary_counts(office_test_summary_snapshot()))
+	rects := office_summary_rects(912, 130, texts)
+	assert rects.len == texts.len
+	// left-to-right, no overlap, each rect covers its text
+	mut cx := 912
+	for i, t in texts {
+		assert rects[i][0] == cx
+		assert rects[i][1] == 130 && rects[i][3] == 18
+		assert rects[i][2] >= t.len * 7
+		cx += rects[i][2] + 14
+	}
+}
