@@ -287,19 +287,34 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 	}
 	// Honest aggregate: active runs no roster desk owns are named once,
 	// here, instead of contradicting the Idle pills above. The overflow
-	// line shares the footer slot when the roster does not fit.
+	// line shares the footer slot when the roster does not fit. Either
+	// footer is a real link to Operations (recorded, not decoration).
 	unattached := office_roster_unattached(agents.map(it.id), rows)
 	if overflow_left > 0 {
+		// the overflow line's subject is the catalog, not Operations —
+		// it stays plain text; only the pure aggregate line below links.
 		extra := if unattached > 0 { ' · ${unattached} active off-desk' } else { '' }
-		app.gg.draw_text(x + 12, y0 + h - 16, '+${overflow_left} more catalog agents${extra}', gg.TextCfg{
+		msg := '+${overflow_left} more catalog agents${extra}'
+		app.gg.draw_text(x + 12, y0 + h - 16, msg, gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
+		app.roster_ops_link = OfficeNavLink{}
 	} else if unattached > 0 && ry <= y0 + h - 16 {
-		app.gg.draw_text(x + 12, y0 + h - 16, '${unattached} active — none on a roster desk · see Operations', gg.TextCfg{
+		msg := '${unattached} active — none on a roster desk · see Operations'
+		app.gg.draw_text(x + 12, y0 + h - 16, msg, gg.TextCfg{
 			color: app.pnl_select
 			size: 10
 		})
+		app.roster_ops_link = OfficeNavLink{
+			x: x + 12
+			y: y0 + h - 20
+			w: msg.len * 6 + 8
+			h: 18
+			target: 6
+		}
+	} else {
+		app.roster_ops_link = OfficeNavLink{}
 	}
 }
 

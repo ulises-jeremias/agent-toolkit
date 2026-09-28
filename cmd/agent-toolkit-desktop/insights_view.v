@@ -23,6 +23,19 @@ import desktop_engine
 
 const insights_tabs = ['cost', 'waterfall', 'spans', 'budgets', 'ci', 'realtime', 'gallery']
 
+// insights_hint_target maps an empty Insights tab to the panel owning its
+// first action: ledger tabs feed from Operations work, Timing rows come
+// from the Library catalog, Gallery tokens live in Settings. 0 means the
+// hint names no destination (CI: no provider connects in this build).
+fn insights_hint_target(tab string) int {
+	return match tab {
+		'cost', 'spans', 'budgets', 'realtime' { 6 }
+		'waterfall' { 2 }
+		'gallery' { 11 }
+		else { 0 }
+	}
+}
+
 const insights_tab_labels = ['Cost', 'Timing', 'Spans', 'Budgets', 'CI', 'Realtime', 'Gallery']
 
 // InsightsLayout is computed once per frame and shared by drawing, click,
@@ -382,6 +395,9 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsightsTable {
 
 fn draw_insights(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
+	// hint links live only on empty tables; any other frame zeroes them.
+	app.insights_link = OfficeNavLink{}
+	app.insights_detail_link = OfficeNavLink{}
 	l := insights_layout(app, w, h)
 	app.gg.draw_rect_filled(l.fx, l.fy, l.fw, l.fh, app.pnl_bg)
 	destination_header(mut app, l.fx, l.fy, l.fw, l.head_h, pixelart.environment_for(.ledger), tr(app, 'panel.insights'), 'Metrics, traces and reports — every number comes from the Engine ledger')
@@ -670,6 +686,8 @@ fn draw_insights_empty(mut app GuiApp, x int, y int, w int, h int, scene int, se
 	cx := x + w / 2
 	if h < 90 {
 		draw_centered_lines(mut app, cx, y + 8, text_fit_chars(w, 12), sentence, 12, app.pnl_text_mut, 2)
+		// no hint drawn on the cramped path — no link either.
+		app.insights_link = OfficeNavLink{}
 		return
 	}
 	mut sc := app.pixel_cache
@@ -735,6 +753,23 @@ fn draw_insights_empty(mut app GuiApp, x int, y int, w int, h int, scene int, se
 	ty := draw_centered_lines(mut app, cx, base + 18, text_fit_chars(w - 40, 12), sentence, 12, app.pnl_text, 2)
 	if hint != '' {
 		draw_centered_lines(mut app, cx, ty + 4, text_fit_chars(w - 40, 11), hint, 11, app.pnl_text_mut, 1)
+		// the hint is the affordance: a full-band link around its line so
+		// the empty state jumps where it points (same words, same target
+		// as the detail sentence).
+		target := insights_hint_target(app.insights_tab)
+		if target > 0 {
+			app.insights_link = OfficeNavLink{
+				x: x
+				y: ty + 2
+				w: w
+				h: 30
+				target: target
+			}
+		} else {
+			app.insights_link = OfficeNavLink{}
+		}
+	} else {
+		app.insights_link = OfficeNavLink{}
 	}
 }
 
@@ -962,6 +997,20 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 			'No ${tab_label} rows yet. ${t.hint}.'
 		}
 		draw_wrapped_text(mut app, ix + 76, y + 40, iw - 92, sentence, 3)
+		// the empty sentence carries the tab's first-action hint, so it
+		// links where the hint points (same target as the table state).
+		if t.rows.len == 0 {
+			target := insights_hint_target(app.insights_tab)
+			if target > 0 {
+				app.insights_detail_link = OfficeNavLink{
+					x: ix + 76
+					y: y + 38
+					w: iw - 92
+					h: 46
+					target: target
+				}
+			}
+		}
 		y += card_h + 16
 		workspace_section_label(mut app, ix + 16, y, 'SOURCES')
 		app.gg.draw_text(ix + 16, y + 20, 'Engine state · swarm and job ledger', gg.TextCfg{
@@ -1010,6 +1059,15 @@ fn insights_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 			app.inspector_msg = 'Insights → ${insights_tab_labels[i]}'
 			return true
 		}
+	}
+	// empty-state hints are recorded links: the table invitation and the
+	// detail sentence jump where their words point. Live only when empty,
+	// so row selection below never competes with them.
+	if office_nav_link_fire(mut app, app.insights_detail_link, mx, my) {
+		return true
+	}
+	if office_nav_link_fire(mut app, app.insights_link, mx, my) {
+		return true
 	}
 	if app.insights_tab != 'gallery' {
 		tbl := insights_table(mut app, app.insights_tab, l.inner_w)
