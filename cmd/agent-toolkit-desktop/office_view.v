@@ -172,7 +172,22 @@ fn draw_office_cards(mut app GuiApp, l OfficeLayout, metrics []OfficeMetric) {
 // draw_office_roster lists resolved catalog agents with deterministic identity
 // portraits. Jobs currently have no agent attribution, so every roster row is
 // explicitly idle even when the separate aggregate says jobs are running.
-fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.AgentEntry, y0 int, h int) {
+// office_roster_live finds the first run row Engine-attributed to a catalog
+// agent. Rows arrive hot-first, so a live match wins over terminal ones.
+// False when no record names the agent — the roster then honestly says Idle.
+fn office_roster_live(agent_id string, rows []desktop.OfficeRunRow) (desktop.OfficeRunState, bool) {
+	if agent_id == '' {
+		return desktop.OfficeRunState.idle, false
+	}
+	for r in rows {
+		if r.agent == agent_id {
+			return r.state, true
+		}
+	}
+	return desktop.OfficeRunState.idle, false
+}
+
+fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.AgentEntry, rows []desktop.OfficeRunRow, y0 int, h int) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	x := l.side_x
@@ -218,16 +233,29 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 			color: app.pnl_text_mut
 			size: 10
 		})
-		// Jobs do not currently carry a catalog-agent attribution. A running
-		// aggregate must never be assigned to the first N roster rows.
-		state := 'Idle'
-		pc_ := app.pnl_text_mut
-		pw := state.len * 6 + 12
-		app.gg.draw_rect_filled(x + w - pw - 10, ry + 4, pw, 16, tint(pc_, 60))
-		app.gg.draw_text(x + w - pw - 4, ry + 6, state, gg.TextCfg{
-			color: pc_
-			size: 10
-		})
+		// Live pill when an Engine run row names this agent
+		// (spawn_job_for_agent); otherwise honestly Idle. A running
+		// aggregate is never assigned to the first N roster rows.
+		live_state, live := office_roster_live(agent_entry.id, rows)
+		if live {
+			state := live_state.label()
+			pc_ := office_state_color(app, live_state)
+			pw := state.len * 6 + 12
+			app.gg.draw_rect_filled(x + w - pw - 10, ry + 4, pw, 16, tint(pc_, 60))
+			app.gg.draw_text(x + w - pw - 4, ry + 6, state, gg.TextCfg{
+				color: pc_
+				size: 10
+			})
+		} else {
+			state := 'Idle'
+			pc_ := app.pnl_text_mut
+			pw := state.len * 6 + 12
+			app.gg.draw_rect_filled(x + w - pw - 10, ry + 4, pw, 16, tint(pc_, 60))
+			app.gg.draw_text(x + w - pw - 4, ry + 6, state, gg.TextCfg{
+				color: pc_
+				size: 10
+			})
+		}
 		ry += row_h
 	}
 }
@@ -251,8 +279,8 @@ fn draw_office_detail(mut app GuiApp, w int, h int) {
 	// space below it is the attention surface: live runs, approvals as a
 	// projection over the Engine queue, and recent completions.
 	roster_h := l.room_h * 40 / 100
-	draw_office_roster(mut app, l, agents, l.room_y, roster_h)
 	snap := office_attention_snapshot(mut app)
+	draw_office_roster(mut app, l, agents, snap.rows, l.room_y, roster_h)
 	draw_office_attention(mut app, l, l.room_y + roster_h + 10, l.room_h - roster_h - 10,
 		snap)
 }
@@ -344,6 +372,118 @@ fn office_attention_snapshot(mut app GuiApp) OfficeAttentionSnapshot {
 		engine_live: true
 		doctor_warns: warns
 	}
+}
+
+// ── activity summary line ────────────────────────────────────────────────
+// The morning-ledger line: counts derived from the same snapshot the sections
+// below render, so the line can never disagree with them. Segments are
+// clickable shortcuts to the first relevant item; an empty floor says so
+// statically instead of showing zeros.
+
+// OfficeSummaryCounts tallies one attention snapshot for the summary line.
+struct OfficeSummaryCounts {
+	running int
+	needs   int
+	done    int
+}
+
+// office_summary_counts tallies live running rows, rows plus gates needing
+// the operator, and recent completions. Pure viewmodel math over the snap.
+fn office_summary_counts(snap OfficeAttentionSnapshot) OfficeSummaryCounts {
+	mut running := 0
+	mut needs := snap.approvals.len
+	for r in snap.rows {
+		if r.state == .running {
+			running++
+		}
+		if r.attention {
+			needs++
+		}
+	}
+	return OfficeSummaryCounts{
+		running: running
+		needs: needs
+		done: snap.completions.len
+	}
+}
+
+// office_summary_segments renders the non-zero segments in stable order with
+// their kinds, so draw and click share geometry and order.
+fn office_summary_segments(c OfficeSummaryCounts) ([]string, []string) {
+	mut texts := []string{}
+	mut kinds := []string{}
+	if c.running > 0 {
+		texts << '${c.running} running'
+		kinds << 'running'
+	}
+	if c.needs > 0 {
+		texts << if c.needs == 1 { '1 needs you' } else { '${c.needs} need you' }
+		kinds << 'needs'
+	}
+	if c.done > 0 {
+		texts << '${c.done} done'
+		kinds << 'done'
+	}
+	return texts, kinds
+}
+
+// office_summary_rects lays segment hit rects left-to-right from x at y with
+// the same size-11 text metrics the draw path uses.
+fn office_summary_rects(x int, y int, texts []string) [][]int {
+	mut out := [][]int{}
+	mut cx := x
+	for t in texts {
+		w := t.len * 7 + 8
+		out << [cx, y, w, 18]
+		cx += w + 14
+	}
+	return out
+}
+
+// office_summary_activate selects the first visible item behind a summary
+// segment, reusing the row/approval/completion click behavior. False when the
+// segment's items sit below the visible caps (nothing to select).
+fn office_summary_activate(mut app GuiApp, snap OfficeAttentionSnapshot, al OfficeAttentionLayout, kind string) bool {
+	match kind {
+		'running' {
+			for i in 0 .. al.runs_cap {
+				if snap.rows[i].state == .running {
+					office_select_run(mut app, snap.rows[i])
+					return true
+				}
+			}
+		}
+		'needs' {
+			for i in 0 .. al.runs_cap {
+				if snap.rows[i].attention {
+					office_select_run(mut app, snap.rows[i])
+					return true
+				}
+			}
+			for i in 0 .. al.appr_cap {
+				if i >= snap.approvals.len {
+					break
+				}
+				row, ok := office_approval_run(snap.rows, snap.approvals[i])
+				if ok {
+					office_select_run(mut app, row)
+					app.inspector_msg = office_approval_inspector_text(snap.approvals[i])
+					return true
+				}
+			}
+		}
+		'done' {
+			for i in 0 .. al.comp_cap {
+				if i >= snap.completions.len {
+					break
+				}
+				app.inspector_msg = office_completion_inspector_text(snap.completions[i])
+				return true
+			}
+		}
+		else {}
+	}
+	return false
 }
 
 // office_selected_row resolves the visible selected run from the existing
@@ -603,7 +743,7 @@ fn office_draw_state_pill(mut app GuiApp, x int, y int, s desktop.OfficeRunState
 fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap OfficeAttentionSnapshot) {
 	x := l.side_x
 	w := l.side_w
-	if h < 60 {
+	if h < 84 {
 		return
 	}
 	app.gg.draw_rect_filled(x + 2, y0 + 3, w, h, tint(col_ink, 14))
@@ -630,9 +770,27 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 		color: if hot > 0 { app.pnl_danger } else { app.pnl_text_mut }
 		size: 11
 	})
+	// activity summary line: same-snapshot counts, segments jump to the
+	// first relevant item (see office_attention_click).
+	sum_texts, sum_kinds := office_summary_segments(office_summary_counts(snap))
+	if sum_texts.len == 0 {
+		app.gg.draw_text(x + 12, y0 + 32, 'All quiet — no live runs.', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+		})
+	} else {
+		srects := office_summary_rects(x + 12, 0, sum_texts)
+		for i, t in sum_texts {
+			app.gg.draw_text(srects[i][0], y0 + 32, t, gg.TextCfg{
+				color: if sum_kinds[i] == 'needs' { app.pnl_danger } else { app.pnl_text }
+				size: 11
+				bold: sum_kinds[i] == 'needs'
+			})
+		}
+	}
 	sel := office_selected_row(app, snap.rows)
 	sel_has_actions := sel >= 0 && desktop.office_run_actions(snap.rows[sel]).len > 0
-	al := office_attention_layout(y0 + 30, h - 30, snap.rows.len, snap.approvals.len,
+	al := office_attention_layout(y0 + 54, h - 54, snap.rows.len, snap.approvals.len,
 		snap.completions.len, sel_has_actions)
 	ry := al.y0
 	// runs section
@@ -759,14 +917,25 @@ fn office_attention_click(mut app GuiApp, l OfficeLayout, mx int, my int) bool {
 	roster_h := l.room_h * 40 / 100
 	y0 := l.room_y + roster_h + 10
 	ah := l.room_h - roster_h - 10
-	if ah < 60 {
+	if ah < 84 {
 		return false
 	}
 	snap := office_attention_snapshot(mut app)
 	sel := office_selected_row(app, snap.rows)
 	sel_has_actions := sel >= 0 && desktop.office_run_actions(snap.rows[sel]).len > 0
-	al := office_attention_layout(y0 + 30, ah - 30, snap.rows.len, snap.approvals.len,
+	al := office_attention_layout(y0 + 54, ah - 54, snap.rows.len, snap.approvals.len,
 		snap.completions.len, sel_has_actions)
+	// activity summary segments first (same geometry as the draw path):
+	// each jumps to the first relevant item behind it.
+	sum_texts, sum_kinds := office_summary_segments(office_summary_counts(snap))
+	if sum_texts.len > 0 {
+		srects := office_summary_rects(l.side_x + 12, y0 + 30, sum_texts)
+		for i, r in srects {
+			if rect_contains(mx, my, r[0], r[1], r[2], r[3]) {
+				return office_summary_activate(mut app, snap, al, sum_kinds[i])
+			}
+		}
+	}
 	ry := al.y0
 	// action buttons first (smallest targets, painted over the runs section)
 	if sel >= 0 && sel < al.runs_cap {

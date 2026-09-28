@@ -28,10 +28,39 @@ pub:
 	label  string
 	kind   WorldNodeKind
 	domain string // skill domain color
-	status string // enabled / disabled / pass / fail / etc
+	status string // honest_node_status result: honest_status_vocab term or 'unknown'
 	pos    Point
 	color  string // token color per domain/status
 	tier   string // holistic / specialist / etc
+}
+
+// honest_status_vocab is the closed status vocabulary the world projection may
+// render. Every term is written by an Engine authority (JobStatus,
+// SwarmRunStatus, handoff/approval transitions) or is the explicit unknown
+// state. View-layer synonyms ('in_progress', 'started', 'healthy', 'online',
+// 'enabled', 'idle', 'holistic', 'active' as a guess) are NOT members: the
+// projection maps them to 'unknown' instead of inventing meaning.
+const honest_status_vocab = ['unknown', 'queued', 'requested', 'pending', 'active',
+	'running', 'awaiting_approval', 'completed', 'approved', 'rejected', 'done',
+	'failed', 'canceled']!
+
+// honest_node_status resolves the status for one projected node from Engine
+// state. It reads the per-item key the owning authority actually writes
+// (e.g. 'jobs/<id>/status', 'swarm/handoffs/<id>/status') and returns it only
+// when it belongs to honest_status_vocab. A missing, blank, or unrecognized
+// value is 'unknown' — never a convenient default. Catalog-only entries
+// (repos, skills, agents, loops listed without runtime records) have no
+// per-item authority, so callers pass a key that does not exist and get
+// 'unknown' honestly.
+pub fn honest_node_status(data map[string]string, key string) string {
+	s := data[key].trim_space().to_lower()
+	if s == '' {
+		return 'unknown'
+	}
+	if s in honest_status_vocab {
+		return s
+	}
+	return 'unknown'
 }
 
 // WorldEdge is a directed dependency/handoff edge.
@@ -89,25 +118,28 @@ pub fn filter_nodes(nodes []WorldNode, f EntityFilter) []WorldNode {
 pub fn world_projection_from_state(data map[string]string, revision u64) WorldProjection {
 	mut nodes := []WorldNode{}
 	mut edges := []WorldEdge{}
-	// repos
+	// repos: catalog listing only — no per-repo runtime authority exists, so
+	// status is unknown until one does.
 	if repos_str := data['repos'] {
 		repos := repos_str.split(',')
 		for i, r in repos {
-			if r.trim_space() == '' {
+			name := r.trim_space()
+			if name == '' {
 				continue
 			}
 			nodes << WorldNode{
-				id: 'repo:${r.trim_space()}'
-				label: r.trim_space()
+				id: 'repo:${name}'
+				label: name
 				kind: .repo
 				domain: 'core'
-				status: 'active'
+				status: honest_node_status(data, 'repos/${name}/status')
 				pos: Point{ x: 120 + f64(i % 10) * 36, y: 120 + f64(i / 10) * 32 }
 				color: '#1B2F4A'
 			}
 		}
 	}
-	// skills
+	// skills: count-derived catalog nodes — the count proves existence, not
+	// enablement, so status stays unknown.
 	skill_count := if 'skills_count' in data { data['skills_count'].int() } else { 0 }
 	for i in 0 .. skill_count {
 		nodes << WorldNode{
@@ -115,12 +147,13 @@ pub fn world_projection_from_state(data map[string]string, revision u64) WorldPr
 			label: 'skill-${i}'
 			kind: .skill
 			domain: skill_domain_for_index(i)
-			status: 'enabled'
+			status: 'unknown'
 			pos: Point{ x: 540 + f64(i % 12) * 24, y: 100 + f64(i / 12) * 22 }
 			color: domain_color(skill_domain_for_index(i))
 		}
 	}
-	// agents
+	// agents: count-derived catalog nodes — tier is catalog truth carried on
+	// the tier field; selection/enablement is unproven here, so unknown.
 	agent_count := if 'agents_count' in data { data['agents_count'].int() } else { 0 }
 	for i in 0 .. agent_count {
 		nodes << WorldNode{
@@ -128,65 +161,71 @@ pub fn world_projection_from_state(data map[string]string, revision u64) WorldPr
 			label: 'agent-${i}'
 			kind: .agent
 			domain: 'agents'
-			status: 'holistic'
+			status: 'unknown'
 			pos: Point{ x: 560 + f64(i % 6) * 44, y: 180 + f64(i / 6) * 28 }
 			color: '#C45A3C'
 			tier: if i < 11 {
 				'holistic'} else if i < 13 { 'orchestrator' } else { 'specialist' }
 		}
 	}
-	// loops
+	// loops: resolved from the per-loop Engine key when the Engine records
+	// one ('loops/<name>/status'); a bare listing is not idleness proof.
 	if loops_str := data['loops'] {
 		loops := loops_str.split(',')
 		for i, l in loops {
-			if l.trim_space() == '' {
+			name := l.trim_space()
+			if name == '' {
 				continue
 			}
 			nodes << WorldNode{
-				id: 'loop:${l.trim_space()}'
-				label: l.trim_space()
+				id: 'loop:${name}'
+				label: name
 				kind: .loop
 				domain: 'loops'
-				status: 'idle'
+				status: honest_node_status(data, 'loops/${name}/status')
 				pos: Point{ x: 120 + f64(i % 5) * 48, y: 460 + f64(i / 5) * 28 }
 				color: '#C45A3C'
 			}
 		}
 	}
-	// jobs
+	// jobs: resolved from the per-job Engine key ('jobs/<id>/status', written
+	// by the job lifecycle). Listing a job never means it is running.
 	if jobs_str := data['jobs'] {
 		jobs := jobs_str.split(',')
 		for i, j in jobs {
-			if j.trim_space() == '' {
+			name := j.trim_space()
+			if name == '' {
 				continue
 			}
 			nodes << WorldNode{
-				id: 'job:${j.trim_space()}'
-				label: j.trim_space()
+				id: 'job:${name}'
+				label: name
 				kind: .job
 				domain: 'runtime'
-				status: 'running'
+				status: honest_node_status(data, 'jobs/${name}/status')
 				pos: Point{ x: 380 + f64(i % 5) * 48, y: 480 + f64(i / 5) * 28 }
 				color: '#6B8F71'
 			}
 		}
 	}
-	// handoffs
+	// handoffs: resolved from the per-handoff Engine key
+	// ('swarm/handoffs/<entry>/status'); a listed handoff is not pending proof.
 	if handoffs_str := data['handoffs'] {
 		handoffs := handoffs_str.split(',')
 		for i, h in handoffs {
-			if h.trim_space() == '' {
+			entry := h.trim_space()
+			if entry == '' {
 				continue
 			}
-			parts := h.trim_space().split('->')
+			parts := entry.split('->')
 			from_id := if parts.len > 1 { parts[0].trim_space() } else { 'agent:0' }
 			to_id := if parts.len > 1 { parts[1].trim_space() } else { parts[0].trim_space() }
 			nodes << WorldNode{
-				id: 'handoff:${h.trim_space()}'
-				label: h.trim_space()
+				id: 'handoff:${entry}'
+				label: entry
 				kind: .handoff
 				domain: 'swarm'
-				status: 'pending'
+				status: honest_node_status(data, 'swarm/handoffs/${entry}/status')
 				pos: Point{ x: 700 + f64(i % 4) * 52, y: 400 + f64(i / 4) * 30 }
 				color: '#B23C1F'
 			}

@@ -46,8 +46,25 @@ const onboarding_caps = ['Multi-agent collaboration (MCP)', 'Task planning and e
 
 // ── the editorial shell (replaces the generic header + production sidebar) ──
 
+// onboarding_rail_rows is the journey rail: every row is live. Get Started
+// holds the journey, Help opens the shortcut overlay above the shell, and
+// Settings pauses the journey onto the real Settings destination (o resumes).
+const onboarding_rail_rows = ['Get Started', 'Help', 'Settings']
+
+// onboarding_rail_hover_base is the hover-id base for the rail rows in
+// onboarding_hover_at (40 + row index); drawing matches on the same ids.
+const onboarding_rail_hover_base = 40
+
+// onboarding_rail_row_rect is the single source of rail-row geometry, shared
+// by draw_onboarding_sidebar, onboarding_click and onboarding_hover_at.
+fn onboarding_rail_row_rect(app &GuiApp, w int, h int, i int) (int, int, int, int) {
+	y0 := shell_mast_h(h)
+	x0 := dock_x(app, w)
+	return x0 + 8, y0 + 74 + i * 34 - 6, dock_w - 16, 26
+}
+
 // draw_onboarding_sidebar replaces the production nav with the reference's
-// simplified onboarding rail: brand, three quiet rows, and a landscape
+// simplified onboarding rail: brand, three live rows, and a landscape
 // illustration with an editorial quote filling the rest of the column.
 pub fn draw_onboarding_sidebar(mut app GuiApp, w int, h int) {
 	ensure_pixel_cache(mut app)
@@ -70,16 +87,18 @@ pub fn draw_onboarding_sidebar(mut app GuiApp, w int, h int) {
 		family: app.fonts.display
 	})
 
-	rows := ['Get Started', 'Help', 'Settings']
-	for i, label in rows {
-		ry := y0 + 74 + i * 34
+	for i, label in onboarding_rail_rows {
+		rx, ry, rw, rh := onboarding_rail_row_rect(app, w, h, i)
 		active := i == 0
+		hover := !active && app.onboarding_hover == onboarding_rail_hover_base + i
 		if active {
-			app.gg.draw_rect_filled(x0 + 8, ry - 6, dock_w - 16, 26, col_ink700)
-			app.gg.draw_rect_filled(x0 + 8, ry - 6, 3, 26, col_brass)
+			app.gg.draw_rect_filled(rx, ry, rw, rh, col_ink700)
+			app.gg.draw_rect_filled(rx, ry, 3, rh, col_brass)
+		} else if hover {
+			app.gg.draw_rect_filled(rx, ry, rw, rh, col_charcoal2)
 		}
-		app.gg.draw_text(x0 + 22, ry, label, gg.TextCfg{
-			color: if active { col_paper } else { col_slate_dim }
+		app.gg.draw_text(x0 + 22, ry + 6, label, gg.TextCfg{
+			color: if active { col_paper } else if hover { col_paper_dim } else { col_slate_dim }
 			size: 13
 			bold: active
 		})
@@ -88,7 +107,7 @@ pub fn draw_onboarding_sidebar(mut app GuiApp, w int, h int) {
 	// landscape band: rolling hills, a tree line and the nest, filling the
 	// rest of the rail — the editorial illustration the reference closes
 	// its sidebar with, not dead space
-	land_y := y0 + 74 + rows.len * 34 + 14
+	land_y := y0 + 74 + onboarding_rail_rows.len * 34 + 14
 	land_h := y1 - land_y
 	if land_h > 60 {
 		draw_onboarding_landscape(mut app, x0, land_y, dock_w, land_h, pid)
@@ -1180,9 +1199,29 @@ fn onboarding_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		app.onboarding_diag = !app.onboarding_diag
 		return true
 	}
-	// simplified onboarding sidebar rows — Get Started is the active row and
-	// stays put; Help/Settings are decorative during first run (no
-	// navigation surface exists to jump to yet without leaving the journey)
+	// journey rail rows — every row is live (shared geometry with the drawn
+	// rail above, so hits can never drift from highlights). Get Started holds
+	// the journey, Help opens the shortcut overlay above the shell, Settings
+	// pauses the journey onto the real Settings destination (o resumes it).
+	for i in 0 .. onboarding_rail_rows.len {
+		gx, gy, gw, gh := onboarding_rail_row_rect(app, w, h, i)
+		if rect_contains(mx, my, gx, gy, gw, gh) {
+			match i {
+				1 {
+					app.show_help = true
+					app.onboarding_msg = 'Shortcuts — press H or Esc to close'
+				}
+				2 {
+					select_panel(mut app, 11)
+					app.onboarding_msg = 'Setup journey paused — press o to resume'
+				}
+				else {
+					app.onboarding_msg = '${onboarding_stages[app.onboarding_step]} — ${onboarding_stage_hints[app.onboarding_step]}'
+				}
+			}
+			return true
+		}
+	}
 	// every sheet on the board is live, not only the active one
 	for i in 0 .. onboarding_choices.len {
 		cx, cy, cw, ch := onboarding_card_rect(l, 0, i, onboarding_choices.len)
@@ -1262,6 +1301,12 @@ fn onboarding_hover_at(mut app GuiApp, mx int, my int, w int, h int) {
 	cx, cy, cw, ch := onboarding_cta_rect(l)
 	if rect_contains(mx, my, cx, cy, cw, ch) {
 		app.onboarding_hover = 30
+	}
+	for i in 0 .. onboarding_rail_rows.len {
+		hx, hy, hw, hh := onboarding_rail_row_rect(app, w, h, i)
+		if rect_contains(mx, my, hx, hy, hw, hh) {
+			app.onboarding_hover = onboarding_rail_hover_base + i
+		}
 	}
 }
 

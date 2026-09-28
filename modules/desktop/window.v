@@ -76,6 +76,7 @@ mut:
 	theme     theme.Theme
 	app_state app_state.AppState
 	dock      shell.DockLayout
+	floor     FloorLayout
 	router    &nav.Router
 	bus       &eventbus.ToolkitEventBus
 	// Shared typed action registry, lazily built on the
@@ -114,6 +115,7 @@ pub fn new_desktop(args DesktopBootArgs) &Desktop {
 		backend: *backend_inst
 		theme: theme.default_theme()
 		dock: shell.default_dock_layout()
+		floor: default_floor_layout()
 		router: nav.new_router()
 		bus: eng.event_bus()
 	}
@@ -135,6 +137,9 @@ pub fn (mut d Desktop) boot() ! {
 	d.engine.start()!
 	snap := d.engine.snapshot()
 	d.app_state = app_state.derive_app_state(snap)
+	// Restore derived floor prefs from the Engine mirror (absent keys stay
+	// at defaults — the shell never invents visibility).
+	d.floor = floor_prefs_from_snapshot(snap.data)
 }
 
 // attach_process_supervisor wires a live ProcessSupervisor so spawned jobs
@@ -215,6 +220,66 @@ pub fn (mut d Desktop) update_dock(layout shell.DockLayout) ! {
 		eprintln('dock persist ignored: ${err}')
 	}
 	d.refresh_app_state()
+}
+
+// ── Floor IA — three-zone office floor (rail | floor | dashboard) ──
+// The floor canvas is the permanent center; rail collapse and dashboard
+// visibility are derived prefs mirrored through the Engine (single writer).
+// Views read floor_layout()/floor_visible_zones()/floor_zone_width(); they
+// never compute visibility themselves.
+
+// floor_layout returns the current derived floor layout.
+pub fn (d Desktop) floor_layout() FloorLayout {
+	return d.floor.clone()
+}
+
+// update_floor_layout validates, mirrors prefs via one Engine transaction,
+// and refreshes the projection. Returns the Engine revision as receipt.
+pub fn (mut d Desktop) update_floor_layout(layout FloorLayout) !u64 {
+	layout.validate()!
+	d.floor = layout.clone()
+	rev := d.persist_floor_prefs()!
+	d.refresh_app_state()
+	return rev
+}
+
+// persist_floor_prefs mirrors collapse/visibility/active through the Engine.
+fn (mut d Desktop) persist_floor_prefs() !u64 {
+	mut repo := d.engine.state_repo()
+	mut tx := repo.begin('desktop-floor')
+	for k, v in d.floor.floor_prefs_to_keys() {
+		tx.set(k, v)
+	}
+	rev := d.engine.put_transaction(mut tx)!
+	return rev.revision
+}
+
+// set_floor_zone_collapsed collapses/expands a side zone by id.
+// 'floor' errors (center canvas is permanent); unknown ids error.
+pub fn (mut d Desktop) set_floor_zone_collapsed(zone_id string, collapsed bool) !u64 {
+	next := d.floor.set_zone_collapsed_by_id(zone_id, collapsed)!
+	return d.update_floor_layout(next)
+}
+
+// toggle_floor_dashboard flips dashboard visibility via the Engine.
+pub fn (mut d Desktop) toggle_floor_dashboard() !u64 {
+	return d.update_floor_layout(d.floor.toggle_dashboard())
+}
+
+// set_floor_active_zone moves zone focus (focusing dashboard re-shows it).
+pub fn (mut d Desktop) set_floor_active_zone(zone_id string) !u64 {
+	zone := floor_zone_from_string(zone_id)!
+	return d.update_floor_layout(d.floor.set_active(zone))
+}
+
+// floor_visible_zones returns the zones actually rendered, left-to-right.
+pub fn (d Desktop) floor_visible_zones() []string {
+	return d.floor.visible_zones()
+}
+
+// floor_zone_width returns the px width of a zone in a window_width window.
+pub fn (d Desktop) floor_zone_width(zone_id string, window_width int) !int {
+	return d.floor.zone_width(zone_id, window_width)
 }
 
 // engine_dock_persist_path exposes the Engine-owned derived dock file path.
@@ -974,4 +1039,58 @@ pub fn (mut d Desktop) engine_complete_onboarding() !u64 {
 
 pub fn (mut d Desktop) engine_resolve_paths() []string {
 	return d.engine.resolve_paths()
+}
+
+// ── Honest-empty + headless dialogs — empty/headless UX ──
+// Every surface reports absence instead of fabricating state: no workspace
+// yields an empty tree with a reason, no native dialog yields a stubbed none
+// plus a reason, and toasts fall back to the in-app tray recorded on the
+// backend seam. The shell calls these Desktop methods, never the backend
+// directly, keeping one UX contract over the seam. Engine stays the single
+// writer; these methods never mutate Engine state.
+
+// is_headless reports headless boot (ATK_GUI_HEADLESS or no DISPLAY).
+pub fn (d Desktop) is_headless() bool {
+	return d.config.headless
+}
+
+// open_file_dialog routes via the backend seam; headless returns none
+// without blocking (stubbed dialog, honest-empty).
+pub fn (mut d Desktop) open_file_dialog(filter string) ?string {
+	return d.backend.open_dialog(filter)
+}
+
+// save_file_dialog routes via the backend seam; headless returns none
+// without blocking (stubbed dialog, honest-empty).
+pub fn (mut d Desktop) save_file_dialog(filter string) ?string {
+	return d.backend.save_dialog(filter)
+}
+
+// select_folder_dialog routes via the backend seam; headless returns none
+// without blocking (stubbed dialog, honest-empty).
+pub fn (mut d Desktop) select_folder_dialog() ?string {
+	return d.backend.select_folder()
+}
+
+// dialog_unavailable_reason explains a stubbed dialog when no native surface
+// exists; empty when native dialogs are available (nothing to explain).
+// The reason comes from the backend seam itself (seam truth, never invented).
+pub fn (d Desktop) dialog_unavailable_reason() string {
+	return d.backend.dialog_unavailable_reason()
+}
+
+// notify records an in-app toast via the backend seam (fallback per ADR-032,
+// never a native notification; visible in both headless and window modes).
+pub fn (mut d Desktop) notify(message string) {
+	d.backend.show_toast(message)
+}
+
+// toast_count returns recorded in-app toasts (honest-empty: 0 when fresh).
+pub fn (d Desktop) toast_count() int {
+	return d.backend.toast_count()
+}
+
+// last_toast returns the last in-app toast ('' when none — honest-empty).
+pub fn (d Desktop) last_toast() string {
+	return d.backend.last_toast()
 }

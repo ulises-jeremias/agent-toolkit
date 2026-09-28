@@ -6797,6 +6797,15 @@ fn onboarding_key(mut app GuiApp, e &gg.Event) bool {
 	if !app.show_onboarding {
 		return false
 	}
+	// Help stays reachable mid-journey: H opens the overlay above the shell,
+	// exactly like the rail Help row does by pointer. It is set here (not
+	// passed through) so a Library panel behind the journey cannot eat it as
+	// filter text; H/Esc close it via the show_help block in on_event.
+	if e.char_code == `h` || e.char_code == `H` {
+		app.show_help = true
+		app.onboarding_msg = 'Shortcuts — press H or Esc to close'
+		return true
+	}
 	if e.char_code == `o` || e.char_code == `O` || e.key_code == .escape {
 		app.show_onboarding = false
 		app.onboarding_msg = 'Setup closed — press o to reopen'
