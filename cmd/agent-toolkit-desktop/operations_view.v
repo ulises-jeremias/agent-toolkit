@@ -3316,7 +3316,7 @@ fn operations_run_action(mut app GuiApp, tab int, sel int, kind string) {
 					}
 					app.engine_rev = rev
 					app.api_calls = app.desktop.engine_api_calls()
-					app.inspector_msg = 'Job canceled: ${j.id} (rev ${rev})'
+					app.inspector_msg = 'Job ${j.id} canceled'
 				}
 				'retry' {
 					new_id := app.desktop.engine_retry_job(j.id) or {

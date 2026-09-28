@@ -579,6 +579,9 @@ fn library_selected(app &GuiApp) int {
 }
 
 fn library_set_selected(mut app GuiApp, v int) {
+	// a new selection is a new intent: a pending remove-confirm never
+	// survives it.
+	app.library_arm = ''
 	if library_tab_for_panel(app.selected_panel) == 0 {
 		app.skills_selected = v
 	} else {
@@ -1119,9 +1122,9 @@ fn draw_library_grid(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId, it
 	total_rows := (items.len + l.cols - 1) / l.cols
 	row := library_scroll_row(app)
 	foot := if items.len > end - start {
-		'${start + 1}–${end} of ${items.len} · wheel or ↑↓ to scroll · Enter runs the primary action'
+		'${start + 1}–${end} of ${items.len} · wheel or ↑↓ to scroll · Enter runs · Enter again confirms removal'
 	} else {
-		'${items.len} shown · Enter runs the primary action'
+		'${items.len} shown · Enter runs · Enter again confirms removal'
 	}
 	library_text(mut app, l.fx + 14, l.fy + l.fh - 16, utf8_truncate(foot, text_fit_chars(l.fw - 40, 11)), 11, app.pnl_text_mut, false)
 	if total_rows > l.rows && l.rows > 0 {
@@ -1689,8 +1692,25 @@ fn draw_library_facts(mut app GuiApp, x int, y0 int, w int, title string, facts 
 
 // ── actions (real Engine calls only) ────────────────────────────────────────
 
+// library_confirm_remove gates a destructive keyboard primary behind a
+// second Enter — the palette's 'Enter again to confirm' contract, applied
+// to Library. Clicks never need it (the pointer is already on the button).
+// key is 'kind:id' so a skill and an agent sharing an id never share an
+// arm. Returns true when the action may proceed.
+fn library_confirm_remove(mut app GuiApp, key string, what string) bool {
+	if app.library_arm == key {
+		app.library_arm = ''
+		return true
+	}
+	app.library_arm = key
+	app.inspector_msg = 'Press Enter again to remove ${what} — Esc cancels'
+	return false
+}
+
 // library_primary runs the primary action for the selected card of the active tab.
-fn library_primary(mut app GuiApp) {
+// via_keyboard routes destructive directions through library_confirm_remove;
+// clicks carry their own intent and bypass it.
+fn library_primary(mut app GuiApp, via_keyboard bool) {
 	if app.desktop == unsafe { nil } {
 		return
 	}
@@ -1702,6 +1722,14 @@ fn library_primary(mut app GuiApp) {
 	item := items[sel]
 	match library_tab_for_panel(app.selected_panel) {
 		0 {
+			removing := item.id in app.desktop.engine_skills_installed()
+			if via_keyboard && removing {
+				// removing via filter+Enter is the silent-uninstall
+				// footgun: the toggle only fires on the confirming Enter.
+				if !library_confirm_remove(mut app, 'skill:${item.id}', 'skill ${item.id}') {
+					return
+				}
+			}
 			rev := app.desktop.engine_toggle_skill(item.id) or {
 				app.inspector_msg = 'Skill ${item.id} error: ${err}'
 				return
@@ -1729,6 +1757,11 @@ fn library_primary(mut app GuiApp) {
 				return
 			}
 			if lc.state == .configured || lc.state == .verified {
+				if via_keyboard {
+					if !library_confirm_remove(mut app, 'agent:${item.id}', 'agent ${item.id}') {
+						return
+					}
+				}
 				rev := app.desktop.engine_remove_agent(item.id) or {
 					app.inspector_msg = 'Agent ${item.id} remove failed: ${err} — retry, or verify Engine state'
 					return
@@ -2000,10 +2033,10 @@ fn library_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		}
 		return true
 	}
-	// detail column buttons
+	// detail column buttons — clicks carry their own intent, no confirm gate
 	bx, by, bw, bh := library_btn_rect(l, 0)
 	if rect_contains(mx, my, bx, by, bw, bh) {
-		library_primary(mut app)
+		library_primary(mut app, false)
 		return true
 	}
 	d := library_detail(mut app, items) or { return true }
@@ -2105,6 +2138,7 @@ fn library_key(mut app GuiApp, e &gg.Event) bool {
 		app.skills_domain = ''
 		app.library_filter = ''
 		app.library_search_focus = false
+		app.library_arm = ''
 		return true
 	}
 	if e.key_code == .up {
@@ -2127,7 +2161,9 @@ fn library_key(mut app GuiApp, e &gg.Event) bool {
 		return true
 	}
 	if e.key_code == .enter {
-		library_primary(mut app)
+		// keyboard Enter routes destructive directions through the
+		// remove-confirm gate (filter+Enter never silently uninstalls)
+		library_primary(mut app, true)
 		return true
 	}
 	// the shared search field owns printable text while a Library panel is
