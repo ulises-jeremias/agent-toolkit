@@ -1713,7 +1713,9 @@ fn library_primary(mut app GuiApp) {
 			}
 			app.api_calls = app.desktop.engine_api_calls()
 			action := if installed_now { 'installed' } else { 'removed' }
-			app.inspector_msg = 'Skill ${item.id} ${action} rev=${rev} • Engine TX ✓'
+			// user voice: the card itself shows the new state; the
+			// revision and transaction id stay in Engine receipts.
+			app.inspector_msg = 'Skill ${item.id} ${action}'
 			library_invalidate(mut app)
 		}
 		1 {
@@ -1733,10 +1735,10 @@ fn library_primary(mut app GuiApp) {
 				}
 				app.engine_rev = rev
 				app.api_calls = app.desktop.engine_api_calls()
-				if r := app.desktop.engine_agent_receipt(item.id) {
-					app.inspector_msg = 'Agent ${item.id} selection cleared rev=${rev} · receipt retained (${r.receipt_path}) ✓'
+				if app.desktop.engine_agent_receipt(item.id) != none {
+					app.inspector_msg = 'Agent ${item.id} removed — receipt kept'
 				} else {
-					app.inspector_msg = 'Agent ${item.id} selection cleared rev=${rev} ✓'
+					app.inspector_msg = 'Agent ${item.id} removed'
 				}
 				library_invalidate(mut app)
 				return
@@ -1753,9 +1755,9 @@ fn library_primary(mut app GuiApp) {
 			app.api_calls = app.desktop.engine_api_calls()
 			after := app.desktop.library_agent_lifecycle(item.id)
 			if after.state == .verified {
-				app.inspector_msg = 'Agent ${item.id} installed + verified rev=${rev} · ${after.receipt_info} ✓'
+				app.inspector_msg = 'Agent ${item.id} installed and verified'
 			} else {
-				app.inspector_msg = 'Agent ${item.id} selected rev=${rev} · ${preview} · not verified — deploy targets, then Verify ✓'
+				app.inspector_msg = 'Agent ${item.id} selected — not verified yet: deploy targets, then Verify'
 			}
 			library_invalidate(mut app)
 		}
@@ -1768,17 +1770,20 @@ fn library_primary(mut app GuiApp) {
 				app.engine_rev = rev
 				app.api_calls = app.desktop.engine_api_calls()
 				verb := if item.on { 'disabled' } else { 'enabled' }
-				app.inspector_msg = 'Pack ${item.id} ${verb} rev=${rev} ✓'
+				app.inspector_msg = 'Pack ${item.id} ${verb}'
 				library_invalidate(mut app)
 				return
 			}
-			rev := app.desktop.onboarding_set_products_bulk([item.id]) or {
+			// bare call: the revision lives in Engine receipts, the user
+			// message names the outcome (same shape as
+			// onboarding_apply_stage's bulk product install).
+			app.desktop.onboarding_set_products_bulk([item.id]) or {
 				app.onboarding_msg = 'products install failed: ${err}'
 				app.inspector_msg = 'Product ${item.id} error: ${err}'
 				return
 			}
-			app.onboarding_msg = 'Product ${item.id} installed rev=${rev} ✓'
-			app.inspector_msg = 'Product ${item.id} installed rev=${rev} ✓'
+			app.onboarding_msg = 'Product ${item.id} installed'
+			app.inspector_msg = 'Product ${item.id} installed'
 			app.engine_rev = app.desktop.app_state_snapshot().revision
 			app.api_calls = app.desktop.engine_api_calls()
 		}
@@ -1787,13 +1792,15 @@ fn library_primary(mut app GuiApp) {
 				app.inspector_msg = 'MCP ${item.id} toggle failed: ${err} (secret guard? use \${ENV_VAR})'
 				return
 			}
-			prov_json := app.desktop.engine_mcp_provenance_json(item.id)
 			app.engine_rev = app.desktop.app_state_snapshot().revision
 			if app.engine_rev == 0 {
 				app.engine_rev = rev
 			}
 			app.api_calls = app.desktop.engine_api_calls()
-			app.inspector_msg = 'MCP ${item.id} toggled rev=${rev} • ${prov_json} • Engine TX'
+			// provenance JSON lives in the detail drawer (selected just
+			// below); the confirmation names the outcome only.
+			verb := if item.on { 'disabled' } else { 'enabled' }
+			app.inspector_msg = 'MCP ${item.id} ${verb}'
 			library_invalidate(mut app)
 			library_select_mcp(mut app, item.id)
 		}
@@ -1878,8 +1885,8 @@ fn library_fourth(mut app GuiApp) {
 		app.engine_rev = rev
 	}
 	app.api_calls = app.desktop.engine_api_calls()
-	stage, stage_ev := app.desktop.library_mcp_stage(item.id)
-	app.inspector_msg = 'MCP ${item.id} removed rev=${rev} · now ${stage} (${stage_ev}) ✓'
+	stage, _ := app.desktop.library_mcp_stage(item.id)
+	app.inspector_msg = 'MCP ${item.id} removed — now ${stage}'
 	library_invalidate(mut app)
 	library_select_mcp(mut app, item.id)
 }
@@ -1915,7 +1922,7 @@ fn library_select(mut app GuiApp, idx int, items []LibraryItem) {
 				} else {
 					''
 				}
-				app.inspector_msg = 'Selected ${item.id} — Install → Engine TX${adds}'
+				app.inspector_msg = 'Selected ${item.id} — press Install to confirm${adds}'
 			}
 		}
 		1 {

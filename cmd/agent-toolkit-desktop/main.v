@@ -3237,7 +3237,7 @@ fn draw_header(mut app GuiApp, w int) {
 		setup_w := setup_right - l.workspace_x
 		app.gg.draw_rect_filled(l.workspace_x, l.control_y, setup_w, l.control_h, app.pnl_card)
 		app.gg.draw_rect_empty(l.workspace_x, l.control_y, setup_w, l.control_h, app.pnl_border)
-		app.gg.draw_text(l.workspace_x + 12, l.control_y + 5, 'SETUP JOURNEY', gg.TextCfg{
+		app.gg.draw_text(l.workspace_x + 12, l.control_y + 5, 'Setup journey', gg.TextCfg{
 			color: app.pnl_text
 			size: 10
 			bold: true
@@ -6013,10 +6013,12 @@ fn draw_terminal(mut app GuiApp, w int, h int) {
 	pill_bd := if app.ghost_focused { col_mint } else { col_line_light }
 	app.gg.draw_rect_filled(focus_x, y0 + 4, 118, 16, pill_bg)
 	app.gg.draw_rect_empty(focus_x, y0 + 4, 118, 16, pill_bd)
+	// one voice for terminal focus, both surfaces: the strip pill and the
+	// prompt hint say the same thing in the same words.
 	app.gg.draw_text(focus_x + 8, y0 + 7, if app.ghost_focused {
-		'FOCUSED · Tab to release'
+		'Focused · Tab exits'
 	} else {
-		'UNFOCUSED · Tab to type'
+		'Click to focus'
 	}, gg.TextCfg{
 		color: if app.ghost_focused { col_mint } else { col_slate }
 		size: 10

@@ -956,7 +956,10 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 		sentence := if t.rows.len > 0 {
 			'Select a row in the ${tab_label} tab to see its recorded fields.'
 		} else {
-			'The ${tab_label} tab has no rows to select.'
+			// teach the future, not the void: every tab carries its own
+			// first-action hint, reused here so the detail column invites
+			// instead of tautologizing.
+			'No ${tab_label} rows yet. ${t.hint}.'
 		}
 		draw_wrapped_text(mut app, ix + 76, y + 40, iw - 92, sentence, 3)
 		y += card_h + 16
