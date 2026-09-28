@@ -579,3 +579,37 @@ fn test_office_state_keys_cover_every_pill() {
 	assert desktop.office_format_ms(0) == '—'
 	assert desktop.office_format_ms(4200) == '4s'
 }
+
+fn test_office_roster_live_matches_attributed_runs() {
+	rows := [
+		desktop.OfficeRunRow{
+			id: 'j-fail'
+			kind: 'job'
+			agent: 'implementer'
+			state: .failed
+		},
+		desktop.OfficeRunRow{
+			id: 'j-run'
+			kind: 'job'
+			agent: 'implementer'
+			state: .running
+		},
+		desktop.OfficeRunRow{
+			id: 'j-other'
+			kind: 'job'
+			agent: ''
+			state: .failed
+		},
+	]
+	// hot-first order wins: first attributed match, even terminal
+	st, ok := office_roster_live('implementer', rows)
+	assert ok
+	assert st == .failed
+	// unknown agents and empty ids stay honestly unmatched (Idle)
+	_, ok2 := office_roster_live('reviewer', rows)
+	assert !ok2
+	_, ok3 := office_roster_live('', rows)
+	assert !ok3
+	_, ok4 := office_roster_live('implementer', [])
+	assert !ok4
+}

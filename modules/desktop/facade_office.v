@@ -246,7 +246,7 @@ pub fn office_project_runs(jobs []desktop_engine.JobRecord, swarms []desktop_eng
 			kind: 'job'
 			id: j.id
 			title: title
-			agent: ''
+			agent: j.agent
 			provider_model: ''
 			workspace: j.work_dir
 			activity: activity

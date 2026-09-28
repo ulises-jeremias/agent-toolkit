@@ -28,6 +28,9 @@ pub mut:
 	canceled    bool
 	retry_count int
 	work_dir    string
+	// agent is the catalog agent id this job runs for, or '' when the
+	// spawner declared none. Empty is honest absence, never a guess.
+	agent string
 }
 
 // JobStats — easy to manage queue health.
@@ -144,6 +147,7 @@ pub fn (mut e Engine) jobs_catalog() []JobRecord {
 		retry := retry_str.int()
 		canceled := (snap.data['jobs/${id}/canceled'] or { 'false' }) == 'true'
 		work_dir := snap.data['jobs/${id}/work_dir'] or { '' }
+		agent := snap.data['jobs/${id}/agent'] or { '' }
 		out << JobRecord{
 			id: id
 			cmd: cmd
@@ -156,6 +160,7 @@ pub fn (mut e Engine) jobs_catalog() []JobRecord {
 			canceled: canceled
 			retry_count: retry
 			work_dir: work_dir
+			agent: agent
 		}
 	}
 	// sort by started_at newest first for easy management
@@ -224,6 +229,13 @@ pub fn (mut e Engine) job_stats() JobStats {
 }
 
 pub fn (mut e Engine) spawn_job(cmd string, args []string) !string {
+	return e.spawn_job_for_agent('', cmd, args)
+}
+
+// spawn_job_for_agent records which catalog agent the job runs for, so the
+// Office roster can show live work per agent instead of a hardcoded state.
+// Empty agent keeps the old unattributed behavior byte-for-byte.
+pub fn (mut e Engine) spawn_job_for_agent(agent string, cmd string, args []string) !string {
 	if cmd == '' {
 		return error('cmd empty')
 	}
@@ -237,6 +249,7 @@ pub fn (mut e Engine) spawn_job(cmd string, args []string) !string {
 	all_args << args
 	tx.set('jobs/${id}/cmd', all_args.join(' '))
 	tx.set('jobs/${id}/args', args.join(' '))
+	tx.set('jobs/${id}/agent', agent)
 	tx.set('jobs/${id}/status', 'queued')
 	tx.set('jobs/${id}/started_at', time.now().unix().str())
 	// exit code stays unset until a real completion records it

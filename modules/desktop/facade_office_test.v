@@ -1,5 +1,7 @@
 module desktop
 
+import desktop_engine
+
 // Release UAT: the Office attention surface must never deny a capability
 // the product ships — stop lives in Operations run control.
 
@@ -26,4 +28,24 @@ fn test_office_hint_routes_waiting_swarm_to_operations_stop() {
 fn test_office_hint_unknown_hides_actions_honestly() {
 	hint := office_no_actions_hint(office_hint_row('swarm', .unknown))
 	assert hint.contains('unknown'), 'unknown state names itself: ${hint}'
+}
+
+fn test_office_project_runs_carries_declared_agent() {
+	jobs := [
+		desktop_engine.JobRecord{
+			id: 'job-1'
+			cmd: 'echo'
+			status: .running
+			agent: 'implementer'
+		},
+		desktop_engine.JobRecord{
+			id: 'job-2'
+			cmd: 'echo'
+			status: .running
+		},
+	]
+	rows := office_project_runs(jobs, [], [], [], false)
+	assert rows.len == 2
+	assert rows[0].agent == 'implementer'
+	assert rows[1].agent == '', 'undeclared stays empty, never guessed'
 }
