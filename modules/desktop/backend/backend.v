@@ -21,6 +21,7 @@ mut:
 	supports_dnd() bool
 	supports_native_dialog() bool
 	native_probe() string
+	dialog_unavailable_reason() string
 	clipboard_get() string
 	clipboard_set(text string) bool
 }
@@ -97,6 +98,12 @@ pub fn (mut b HeadlessBackend) supports_native_dialog() bool {
 
 pub fn (mut b HeadlessBackend) native_probe() string {
 	return 'HeadlessBackend: no native dialog/clipboard/dnd — stub for CI; Windows limitations: MSVC/D3D11 IME/DPI per docs/WINDOWS.md gap matrix (ADR-032)'
+}
+
+// dialog_unavailable_reason explains a stubbed dialog — always non-empty here:
+// headless never has a native surface, so picks stay in-app.
+pub fn (b HeadlessBackend) dialog_unavailable_reason() string {
+	return 'HeadlessBackend stub: no native dialog surface (no DISPLAY) — file picks stay in-app'
 }
 
 // show_toast records in-app toast (fallback per ADR-032, not native).
@@ -199,6 +206,15 @@ pub fn (mut b VGuiBackend) native_probe() string {
 		return 'VGuiBackend: native dialog via sokol+tinyfiledialogs (Linux headless fallback), clipboard via sokol, DnD via sokol dropped-files; Windows: Win32 common dialogs via sokol, D3D11 auto, IME/DPI partial per docs/WINDOWS.md (ADR-032 gap matrix: 2 ❌ 8 ⚠️)'
 	}
 	return 'VGuiBackend(headless): delegates to stub — no DISPLAY/WAYLAND_DISPLAY; Windows limitations enumerated via ADR-032 gap (MSVC/D3D11/IME/DPI)'
+}
+
+// dialog_unavailable_reason is empty when native dialogs exist (nothing to
+// explain) and names the missing surface otherwise.
+pub fn (b VGuiBackend) dialog_unavailable_reason() string {
+	if b.use_native {
+		return ''
+	}
+	return 'VGuiBackend(headless): no DISPLAY/WAYLAND_DISPLAY — file picks stay in-app'
 }
 
 pub fn (b VGuiBackend) toast_count() int {

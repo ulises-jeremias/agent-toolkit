@@ -360,8 +360,19 @@ fn insights_table_build(mut app GuiApp, tab string, inner_w int) InsightsTable {
 			}
 		}
 		else {
+			// gallery — the live style guide, not ledger rows: full route
+			// metadata so the detail column and export never meet a bare
+			// title. Rows stay empty honestly (nothing is ledger-recorded),
+			// the sheet itself is always drawable from live theme tokens.
 			return InsightsTable{
 				title: 'Gallery'
+				sub: 'Paper Co. design tokens and type, live from the current appearance.'
+				cols: ['Swatch', 'Token']
+				col_x: [0, inner_w * 30 / 100]
+				rows: []InsightsRow{}
+				empty: 'The gallery is a live style guide — no ledger rows to list.'
+				scene: 3
+				hint: 'Change the live tokens in Settings → Preferences'
 			}
 		}
 	}
@@ -824,6 +835,47 @@ fn draw_insights_gallery(mut app GuiApp, l InsightsLayout) {
 	})
 }
 
+// draw_insights_gallery_detail renders the gallery's right column: the live
+// facts behind the style-guide sheet. Same label/value grammar as the row
+// details above, so the column never degrades to "no rows to select".
+fn draw_insights_gallery_detail(mut app GuiApp, ix int, y int, iw int, quote_y int) int {
+	mut yy := y
+	paper_pill(mut app, ix + 16, yy, 'Style guide', app.pnl_select)
+	app.gg.draw_text(ix + 16, yy + 22, 'Live tokens', gg.TextCfg{
+		color: app.pnl_text
+		size: 13
+		bold: true
+		mono: true
+	})
+	yy += 48
+	app.gg.draw_rect_filled(ix + 16, yy - 6, iw - 32, 1, tint(pc(app, `W`), 90))
+	facts := [
+		['Appearance', appearance_label(app.appearance)],
+		['Language', app.lang.chip()],
+		['Zoom', zoom_percent(app.global_zoom)],
+		['Terminal', prefs_row_segments(2)[app.term_mode]],
+	]
+	for f in facts {
+		if yy + 32 > quote_y - 8 {
+			app.gg.draw_text(ix + 16, yy, '… more fields than fit', gg.TextCfg{
+				color: app.pnl_text_mut
+				size: 10
+			})
+			break
+		}
+		app.gg.draw_text(ix + 16, yy, f[0], gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+		})
+		app.gg.draw_text(ix + 16, yy + 13, f[1], gg.TextCfg{
+			color: app.pnl_text
+			size: 12
+		})
+		yy += 32
+	}
+	return yy
+}
+
 // ── right column: "Report details" (replaces the inspector on panel 12) ────
 
 fn draw_insights_detail(mut app GuiApp, w int, h int) {
@@ -851,7 +903,12 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 	tab_label := if tab_i >= 0 { insights_tab_labels[tab_i] } else { app.insights_tab }
 	mut y := iy + 44
 	quote_y := iy + ih - 8 - 62
-	if app.insights_sel >= 0 && app.insights_sel < t.rows.len {
+	if app.insights_tab == 'gallery' {
+		// the gallery has no ledger rows to select, so the column states the
+		// live facts the sheet is showing — appearance, language, zoom and
+		// terminal mode, all real GuiApp state, never Engine estimates
+		y = draw_insights_gallery_detail(mut app, ix, y, iw, quote_y)
+	} else if app.insights_sel >= 0 && app.insights_sel < t.rows.len {
 		r := t.rows[app.insights_sel]
 		paper_pill(mut app, ix + 16, y, r.kind, app.pnl_select)
 		app.gg.draw_text(ix + 16, y + 22, utf8_truncate(r.id, text_fit_chars(iw - 32, 13)), gg.TextCfg{

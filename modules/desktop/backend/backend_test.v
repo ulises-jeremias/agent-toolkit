@@ -18,6 +18,8 @@ fn test_localbackend_seam_headless_and_mock() {
 	h.show_toast('test toast')
 	assert h.toast_count() == 1
 	assert h.last_toast() == 'test toast'
+	// stubbed dialogs always carry an honest reason on headless
+	assert h.dialog_unavailable_reason().contains('no native dialog surface')
 	// MockBackend alias
 	mut m := new_mock_backend()
 	assert m.read_clipboard() == ''
@@ -44,7 +46,12 @@ fn test_vgui_backend_delegates_and_headless_fallback() {
 	// should mention Windows limitations per ADR-032
 	assert probe.contains('Windows') || probe.contains('gap')
 	_ = v.supports_dnd()
-	_ = v.supports_native_dialog()
+	// reason is empty exactly when native dialogs exist
+	if v.supports_native_dialog() {
+		assert v.dialog_unavailable_reason() == ''
+	} else {
+		assert v.dialog_unavailable_reason().contains('stay in-app')
+	}
 }
 
 fn test_localbackend_interface_polymorphism() {

@@ -146,3 +146,23 @@ fn digest_runes(s string) []bool {
 	}
 	return out
 }
+
+// A job records no agent unless the spawner declares one; declared agents
+// hydrate back so the roster can show live work per agent.
+fn test_spawn_job_for_agent_roundtrips_attribution() {
+	repo_root := os.dir(os.dir(os.dir(@FILE)))
+	prev_root := os.getenv('AGENT_TOOLKIT_ROOT')
+	os.setenv('AGENT_TOOLKIT_ROOT', repo_root, true)
+	defer { os.setenv('AGENT_TOOLKIT_ROOT', prev_root, true) }
+	tmp := os.join_path(os.temp_dir(), 'jobs-agent-truth-${os.getpid()}')
+	os.mkdir_all(tmp) or { panic(err.msg()) }
+	defer { os.rmdir_all(tmp) or {} }
+	mut eng := engine_truth_engine(tmp)
+	defer { eng.stop() or {} }
+
+	plain := eng.spawn_job('echo', ['hello']) or { panic(err.msg()) }
+	attr := eng.spawn_job_for_agent('implementer', 'echo', ['hi']) or { panic(err.msg()) }
+	recs := eng.jobs_catalog()
+	assert recs.filter(it.id == plain)[0].agent == '', 'unattributed spawn stays empty, never guessed'
+	assert recs.filter(it.id == attr)[0].agent == 'implementer'
+}

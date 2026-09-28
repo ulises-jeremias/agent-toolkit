@@ -172,7 +172,22 @@ fn draw_office_cards(mut app GuiApp, l OfficeLayout, metrics []OfficeMetric) {
 // draw_office_roster lists resolved catalog agents with deterministic identity
 // portraits. Jobs currently have no agent attribution, so every roster row is
 // explicitly idle even when the separate aggregate says jobs are running.
-fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.AgentEntry, y0 int, h int) {
+// office_roster_live finds the first run row Engine-attributed to a catalog
+// agent. Rows arrive hot-first, so a live match wins over terminal ones.
+// False when no record names the agent — the roster then honestly says Idle.
+fn office_roster_live(agent_id string, rows []desktop.OfficeRunRow) (desktop.OfficeRunState, bool) {
+	if agent_id == '' {
+		return desktop.OfficeRunState.idle, false
+	}
+	for r in rows {
+		if r.agent == agent_id {
+			return r.state, true
+		}
+	}
+	return desktop.OfficeRunState.idle, false
+}
+
+fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.AgentEntry, rows []desktop.OfficeRunRow, y0 int, h int) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
 	x := l.side_x
@@ -218,16 +233,29 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 			color: app.pnl_text_mut
 			size: 10
 		})
-		// Jobs do not currently carry a catalog-agent attribution. A running
-		// aggregate must never be assigned to the first N roster rows.
-		state := 'Idle'
-		pc_ := app.pnl_text_mut
-		pw := state.len * 6 + 12
-		app.gg.draw_rect_filled(x + w - pw - 10, ry + 4, pw, 16, tint(pc_, 60))
-		app.gg.draw_text(x + w - pw - 4, ry + 6, state, gg.TextCfg{
-			color: pc_
-			size: 10
-		})
+		// Live pill when an Engine run row names this agent
+		// (spawn_job_for_agent); otherwise honestly Idle. A running
+		// aggregate is never assigned to the first N roster rows.
+		live_state, live := office_roster_live(agent_entry.id, rows)
+		if live {
+			state := live_state.label()
+			pc_ := office_state_color(app, live_state)
+			pw := state.len * 6 + 12
+			app.gg.draw_rect_filled(x + w - pw - 10, ry + 4, pw, 16, tint(pc_, 60))
+			app.gg.draw_text(x + w - pw - 4, ry + 6, state, gg.TextCfg{
+				color: pc_
+				size: 10
+			})
+		} else {
+			state := 'Idle'
+			pc_ := app.pnl_text_mut
+			pw := state.len * 6 + 12
+			app.gg.draw_rect_filled(x + w - pw - 10, ry + 4, pw, 16, tint(pc_, 60))
+			app.gg.draw_text(x + w - pw - 4, ry + 6, state, gg.TextCfg{
+				color: pc_
+				size: 10
+			})
+		}
 		ry += row_h
 	}
 }
@@ -251,8 +279,8 @@ fn draw_office_detail(mut app GuiApp, w int, h int) {
 	// space below it is the attention surface: live runs, approvals as a
 	// projection over the Engine queue, and recent completions.
 	roster_h := l.room_h * 40 / 100
-	draw_office_roster(mut app, l, agents, l.room_y, roster_h)
 	snap := office_attention_snapshot(mut app)
+	draw_office_roster(mut app, l, agents, snap.rows, l.room_y, roster_h)
 	draw_office_attention(mut app, l, l.room_y + roster_h + 10, l.room_h - roster_h - 10,
 		snap)
 }
