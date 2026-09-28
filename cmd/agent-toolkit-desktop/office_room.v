@@ -10,6 +10,32 @@ import gg
 // motion. The room is presentational — selection/hit-testing stays in the
 // floor-map view, which keeps its own geometry.
 
+// RoomDeskHit is one overview-room desk hit record: absolute frame rect +
+// catalog index into desks_for_app (the same index selected_desk uses).
+struct RoomDeskHit {
+	x        int
+	y        int
+	w        int
+	h        int
+	desk_idx int
+}
+
+// office_room_click selects the desk whose last-drawn room rect contains the
+// click, mirroring the floor-map desk selection (selected_desk + cleared
+// inspector message). Last-drawn wins on overlap. False when the click hit
+// no recorded desk — the room never swallows clicks it cannot answer.
+fn office_room_click(mut app GuiApp, mx int, my int) bool {
+	for i := app.room_desk_rects.len - 1; i >= 0; i-- {
+		r := app.room_desk_rects[i]
+		if rect_contains(mx, my, r.x, r.y, r.w, r.h) {
+			app.selected_desk = r.desk_idx
+			app.inspector_msg = ''
+			return true
+		}
+	}
+	return false
+}
+
 // office_palette_id maps product appearance to the authored pixel-art palette
 // variant. Both variants are hand-authored; never an automatic inversion.
 fn office_palette_id(app &GuiApp) pixelart.PaletteId {
@@ -57,6 +83,9 @@ fn zone_plate(mut app GuiApp, gx int, gy int, txt string, txt_col gg.Color) {
 // honestly (footer counts desks actually drawn).
 fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, attention int, running int) {
 	ensure_pixel_cache(mut app)
+	// cleared first — before any early return — so a shrunken or emptied
+	// room never leaves ghost hit rects behind for clicks to land on.
+	app.room_desk_rects.clear()
 	pid := office_palette_id(app)
 	sc := app.pixel_cache
 	s := if w < 560 { 2 } else { 3 }
@@ -267,6 +296,10 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 	// shown counts desks actually drawn — the loop can stop early when a
 	// row would not fit, and the footer must never overstate (honest totals).
 	mut shown := 0
+	// selected plate capture: the full name renders once, after the loop, so
+	// a wide plate is never overdrawn by a later neighbour's sprites.
+	mut sel_plate := RoomDeskHit{}
+	mut sel_full := ''
 	for i in 0 .. capacity {
 		pod := i / 2
 		prow := pod / pods_per_row
@@ -324,7 +357,40 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 			size: 10
 			mono: true
 		})
+		hx := cx - 4
+		hy := cy - 2
+		hh := chair_y + chh + 14 - hy
+		app.room_desk_rects << RoomDeskHit{
+			x: hx
+			y: hy
+			w: dw + 8
+			h: hh
+			desk_idx: i
+		}
+		if app.selected_desk == i {
+			// selection cue identical to the floor map (pnl_select ring),
+			// never the role color — and the full catalog name, since the
+			// clipped footprint label cannot map a desk to its agent.
+			app.gg.draw_rect_empty(hx, hy, dw + 8, hh, app.pnl_select)
+			sel_full = desks[i].label
+			sel_plate = RoomDeskHit{
+				x: cx + dw / 2 - (sel_full.len * 6 + 12) / 2
+				y: chair_y + chh + 2
+				w: sel_full.len * 6 + 12
+				h: 16
+				desk_idx: i
+			}
+		}
 		shown++
+	}
+	if sel_full != '' {
+		app.gg.draw_rect_filled(sel_plate.x, sel_plate.y, sel_plate.w, sel_plate.h, pc(app, `p`))
+		app.gg.draw_rect_empty(sel_plate.x, sel_plate.y, sel_plate.w, sel_plate.h, app.pnl_select)
+		app.gg.draw_text(sel_plate.x + 6, sel_plate.y + 3, sel_full, gg.TextCfg{
+			color: app.pnl_text
+			size: 10
+			mono: true
+		})
 	}
 	// ── honest totals: bottom corners ────────────────────────────────────
 	if running > 0 {
