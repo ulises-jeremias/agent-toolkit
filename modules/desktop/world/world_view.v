@@ -160,16 +160,20 @@ pub fn (mut w WorldView) rebuild_buffer() {
 			color: w.theme.colors.fg_muted
 		})
 	}
-	// nodes as arcs (circles) + labels
+	// nodes as arcs (circles) + labels. Provenance is visible: nodes whose
+	// status is Engine-proven render filled in their domain color, while
+	// 'unknown' (unproven) nodes render as hollow muted rings — the canvas
+	// never presents a guess with the same visual confidence as a fact.
 	for n in w.projection.nodes {
+		proven := n.status != 'unknown'
 		w.buffer.push(Primitive{
 			kind: .arc
 			center: n.pos
 			radius: 10
 			angle_start: 0
 			angle_end: 360
-			color: n.color
-			filled: true
+			color: if proven { n.color } else { w.theme.colors.fg_muted }
+			filled: proven
 		})
 		// text measurement via vglyph path
 		_ = measure_text(n.label, 'xs', 1.0, w.theme)
