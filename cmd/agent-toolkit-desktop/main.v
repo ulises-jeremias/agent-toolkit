@@ -1247,6 +1247,7 @@ const i18n_table = {
 	'ws.setup_needed':      I18nRow{'setup needed', 'falta configurar', '需要设置', 'يحتاج إعداد'}
 	// status bar
 	'status.palette':       I18nRow{'palette', 'paleta', '命令面板', 'الأوامر'}
+	'status.shortcuts':     I18nRow{'h shortcuts', 'h atajos', 'h 快捷键', 'h الاختصارات'}
 	'status.paperco':       I18nRow{'Paper Co.', 'Paper Co.', '纸业公司', 'شركة الورق'}
 	// world floor
 	'office.view.overview': I18nRow{'Overview', 'Resumen', '概览', 'ملخص'}
@@ -2933,6 +2934,14 @@ fn frame(mut app GuiApp) {
 	// version stamp — same single source of truth as the header (desktop_version).
 	app.gg.draw_text(left_x, h - 19, '•  v${app.version}', gg.TextCfg{ color: col_slate_dim, size: scaled_size(11, app.global_zoom) })
 	left_x += 84
+	// key hints — the only on-screen trace of the keyboard map (the help
+	// overlay is keyboard-only otherwise). Skipped when it would collide
+	// with the centered renderer stamp on narrow windows.
+	keys_hint := tr(app, 'status.shortcuts')
+	if left_x + keys_hint.len * 6 + 8 < w / 2 - 60 {
+		app.gg.draw_text(left_x, h - 19, keys_hint, gg.TextCfg{ color: col_brass, size: scaled_size(11, app.global_zoom) })
+		left_x += keys_hint.len * 6 + 14
+	}
 	// mini zoom slider in status bar — paper tape style
 	zx2 := left_x + 8
 	zy2 := h - 18
