@@ -175,3 +175,13 @@ fn test_operations_detail_anchors_stay_inside_column() {
 	assert apy < ay0
 	assert operations_detail_content_bottom(l) < apy
 }
+
+fn test_operations_jobs_hint_splits_into_two_lines() {
+	parts := operations_jobs_hint.split(', or ')
+	assert parts.len == 2, 'jobs hint must keep its two-line separator: ${operations_jobs_hint}'
+	for p in parts {
+		assert p.trim_space() != '', 'both hint lines must say something'
+		assert p.bytes().len <= 60, 'each hint line must fit one centered line at normal widths: ${p}'
+	}
+	assert operations_jobs_hint.contains('Swarms') && operations_jobs_hint.contains('Loops'), 'hint must name both launch paths with their real tab names'
+}

@@ -64,7 +64,7 @@ fn draw_preferences_sheet(mut app GuiApp, x int, y int, w int) {
 		size: 15
 		family: app.fonts.display
 	})
-	app.gg.draw_text(x + 40, y + 22, 'saved to ui_state.env', gg.TextCfg{
+	app.gg.draw_text(x + 40, y + 22, 'Saved automatically', gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 9
 	})

@@ -1224,6 +1224,11 @@ fn draw_operations_table(mut app GuiApp, l OperationsLayout) {
 	}
 }
 
+// operations_jobs_hint names both launch paths. The empty state splits it on
+// ', or ' into two centered lines, so the separator is load-bearing: remove
+// it and the hint falls back to one truncated line.
+const operations_jobs_hint = 'Swarms → pair · team · full, or Loops → Run'
+
 // draw_operations_empty is the truthful empty state: a paper sheet with a small
 // scene and the real way to create work — never a placeholder row.
 fn draw_operations_empty(mut app GuiApp, l OperationsLayout, total int) {
@@ -1250,7 +1255,7 @@ fn draw_operations_empty(mut app GuiApp, l OperationsLayout, total int) {
 			0 {
 				head = 'No jobs yet'
 				copy = 'Jobs appear here when a loop run or a swarm launch starts work.'
-				hint = 'Launch via Swarms → pair · team · full, or Loops → Run'
+				hint = operations_jobs_hint
 			}
 			1 {
 				head = 'No loop templates'
@@ -1295,12 +1300,27 @@ fn draw_operations_empty(mut app GuiApp, l OperationsLayout, total int) {
 		})
 	}
 	if hint != '' && ty + 58 < ey + eh {
-		hw := utf8_truncate(hint, text_fit_chars(ew - 24, 11))
-		app.gg.draw_text(ex + (ew - hw.len * 6) / 2, ty + 40, hw, gg.TextCfg{
-			color: app.pnl_success
-			size: 11
-			bold: true
-		})
+		// two centered lines on the natural comma break — a single
+		// truncated line clipped mid-word at narrow widths
+		// ('or Loops → Ru'), teaching nowhere.
+		parts := hint.split(', or ')
+		if parts.len == 2 && ty + 74 < ey + eh {
+			for li, part in parts {
+				hw := utf8_truncate(part, text_fit_chars(ew - 24, 11))
+				app.gg.draw_text(ex + (ew - hw.len * 6) / 2, ty + 40 + li * 15, hw, gg.TextCfg{
+					color: app.pnl_success
+					size: 11
+					bold: true
+				})
+			}
+		} else {
+			hw := utf8_truncate(hint, text_fit_chars(ew - 24, 11))
+			app.gg.draw_text(ex + (ew - hw.len * 6) / 2, ty + 40, hw, gg.TextCfg{
+				color: app.pnl_success
+				size: 11
+				bold: true
+			})
+		}
 	}
 }
 
