@@ -357,3 +357,17 @@ fn test_workspace_detail_layout_drops_sections_from_the_bottom() {
 		assert ds.git_y + 50 <= limit
 	}
 }
+
+fn test_status_shortcuts_hint_resolves_every_locale() {
+	mut app := &GuiApp{}
+	app.lang = .en
+	assert tr(app, 'status.shortcuts') == 'h shortcuts'
+	app.lang = .es
+	assert tr(app, 'status.shortcuts') == 'h atajos'
+	app.lang = .zh
+	assert tr(app, 'status.shortcuts') == 'h 快捷键'
+	app.lang = .ar
+	assert tr(app, 'status.shortcuts') != '' && tr(app, 'status.shortcuts') != 'status.shortcuts'
+	// unknown keys fall back to the key itself (existing tr contract)
+	assert tr(app, 'status.nope') == 'status.nope'
+}
