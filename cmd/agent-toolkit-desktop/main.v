@@ -959,6 +959,10 @@ mut:
 	hover_panel      int
 	selected_desk    int
 	hover_desk       int
+	// room_desk_rects holds last frame's overview-room desk hit rects
+	// (recorded by draw_office_room, consumed by office_room_click) —
+	// the immediate-mode record that makes the presentational room clickable.
+	room_desk_rects []RoomDeskHit
 	palette_open     bool
 	palette_query    string
 	palette_selected int
@@ -7945,9 +7949,13 @@ fn on_event(e &gg.Event, mut app GuiApp) {
 			return
 		}
 		// Office overview roster rows select a desk (same geometry
-		// as draw_office_roster)
+		// as draw_office_roster); the room itself answers desk clicks
+		// through last frame's hit rects (office_room_click)
 		if app.selected_panel == 0 && !app.office_map_view && !app.show_onboarding {
 			if office_roster_click(mut app, mx, my, w, h) {
+				return
+			}
+			if office_room_click(mut app, mx, my) {
 				return
 			}
 		}

@@ -187,6 +187,32 @@ fn office_roster_live(agent_id string, rows []desktop.OfficeRunRow) (desktop.Off
 	return desktop.OfficeRunState.idle, false
 }
 
+// office_roster_unattached counts active run rows no roster agent owns:
+// running/waiting/blocked/needs-me rows whose agent field is empty or names
+// nobody in the catalog. Pure Engine projection math — no GUI. (M1: the home
+// screen must answer 'what is working right now' without assigning the
+// aggregate to the first N Idle rows.)
+fn office_roster_unattached(agent_ids []string, rows []desktop.OfficeRunRow) int {
+	mut n := 0
+	for r in rows {
+		if r.state != .running && r.state != .waiting && r.state != .blocked
+			&& r.state != .needs_me {
+			continue
+		}
+		mut owned := false
+		for id in agent_ids {
+			if id != '' && r.agent == id {
+				owned = true
+				break
+			}
+		}
+		if !owned {
+			n++
+		}
+	}
+	return n
+}
+
 fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.AgentEntry, rows []desktop.OfficeRunRow, y0 int, h int) {
 	mut sc := app.pixel_cache
 	pid := office_palette_id(app)
@@ -206,14 +232,11 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 	})
 	row_h := 34
 	mut ry := y0 + 32
+	mut overflow_left := 0
 	desks := desks_for_app(app)
 	for i, agent_entry in agents {
 		if ry + row_h > y0 + h - 4 {
-			left := agents.len - i
-			app.gg.draw_text(x + 12, y0 + h - 16, '+${left} more catalog agents', gg.TextCfg{
-				color: app.pnl_text_mut
-				size: 10
-			})
+			overflow_left = agents.len - i
 			break
 		}
 		sel := app.selected_desk >= 0 && app.selected_desk < desks.len
@@ -223,7 +246,15 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 		}
 		agent := pixelart.with_identity(pixelart.agent_for_state(.idle), i % 3)
 		sc.draw(agent, pid, x + 12, ry + 2, 2)
-		app.gg.draw_text(x + 44, ry + 1, utf8_truncate(agent_entry.id, text_fit_chars(w - 120, 12)), gg.TextCfg{
+		// Live pill when an Engine run row names this agent
+		// (spawn_job_for_agent); otherwise honestly Idle. A running
+		// aggregate is never assigned to the first N roster rows.
+		live_state, live := office_roster_live(agent_entry.id, rows)
+		// the name spends exactly what the pill does not: identity gets
+		// every spare pixel without ever sliding under the pill.
+		pill_chars := if live { live_state.label().len } else { 4 }
+		budget := w - 44 - (pill_chars * 6 + 12 + 10) - 8
+		app.gg.draw_text(x + 44, ry + 1, utf8_truncate(agent_entry.id, text_fit_chars(budget, 12)), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			bold: true
@@ -233,10 +264,6 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 			color: app.pnl_text_mut
 			size: 10
 		})
-		// Live pill when an Engine run row names this agent
-		// (spawn_job_for_agent); otherwise honestly Idle. A running
-		// aggregate is never assigned to the first N roster rows.
-		live_state, live := office_roster_live(agent_entry.id, rows)
 		if live {
 			state := live_state.label()
 			pc_ := office_state_color(app, live_state)
@@ -257,6 +284,22 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 			})
 		}
 		ry += row_h
+	}
+	// Honest aggregate: active runs no roster desk owns are named once,
+	// here, instead of contradicting the Idle pills above. The overflow
+	// line shares the footer slot when the roster does not fit.
+	unattached := office_roster_unattached(agents.map(it.id), rows)
+	if overflow_left > 0 {
+		extra := if unattached > 0 { ' · ${unattached} active off-desk' } else { '' }
+		app.gg.draw_text(x + 12, y0 + h - 16, '+${overflow_left} more catalog agents${extra}', gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 10
+		})
+	} else if unattached > 0 && ry <= y0 + h - 16 {
+		app.gg.draw_text(x + 12, y0 + h - 16, '${unattached} active — none on a roster desk · see Operations', gg.TextCfg{
+			color: app.pnl_select
+			size: 10
+		})
 	}
 }
 
