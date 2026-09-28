@@ -46,10 +46,33 @@ fn test_operations_layout_shares_geometry_and_collapses_floor() {
 	assert n.right_x == n.fx + 12
 	assert n.cards_n == 2
 	assert operations_visible_rows(n) >= 3
-	// Doctor/Swarms carry a strip; Jobs/Loops do not
+	// every tab carries its strip: spawn (Jobs), new-loop (Loops),
+	// launch (Swarms), repair (Doctor)
 	assert n.strip_h > 0
 	app.selected_panel = 7
-	assert operations_layout(app, 900, 620).strip_h == 0
+	assert operations_layout(app, 900, 620).strip_h > 0
+}
+
+fn test_operations_loops_strip_reveals_create_form() {
+	mut app := &GuiApp{}
+	app.selected_panel = 7
+	l := operations_layout(app, 1280, 800)
+	assert l.tab == 1 && l.strip_h > 0
+	// button sits at the strip start inside the right column
+	bx, by, bw, bh := operations_newloop_btn_rect(l)
+	assert bx == l.right_x && bw == 96
+	assert bx + bw <= l.right_x + l.right_w
+	assert by == l.strip_y + 4 && bh == l.strip_h - 8
+	// clicking it reveals the detail-column create form (same as 'new')
+	assert !app.loops_show_create
+	assert operations_click_loops_strip(mut app, l, bx + 4, by + 4)
+	assert app.loops_show_create
+	assert app.operations_focus == 4
+	assert app.inspector_msg.contains('Enter creates')
+	// misses change nothing
+	mut app2 := &GuiApp{}
+	assert !operations_click_loops_strip(mut app2, l, l.right_x + l.right_w + 40, by)
+	assert !app2.loops_show_create
 }
 
 fn test_operations_rows_are_never_fabricated_without_engine() {

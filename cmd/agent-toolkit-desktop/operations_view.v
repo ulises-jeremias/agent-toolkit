@@ -131,9 +131,11 @@ fn operations_layout(app &GuiApp, w int, h int) OperationsLayout {
 	tab_h := if has_body { 30 } else { 0 }
 	ctl_h := if has_body { 26 } else { 0 }
 	// Slice B (#1229): Jobs carries a spawn strip (command + Spawn); Swarms
-	// keeps the launch strip, Doctor the repair strip. Loops has no strip —
-	// loop creation lives in the detail column so empty catalogs can create.
-	strip_h := if has_body && (tab == 0 || tab == 2 || tab == 3) { 34 } else { 0 }
+	// keeps the launch strip, Doctor the repair strip. Loops carries a New
+	// loop strip revealing the detail-column create form (name + tier +
+	// cron) so creation is discoverable on the tab itself; the form keeps
+	// living in the detail column where tier and cadence fit.
+	strip_h := if has_body && (tab == 0 || tab == 1 || tab == 2 || tab == 3) { 34 } else { 0 }
 	tab_y := body_y
 	ctl_y := tab_y + tab_h + 6
 	strip_y := ctl_y + ctl_h + 6
@@ -779,6 +781,8 @@ fn draw_operations(mut app GuiApp, w int, h int) {
 	draw_operations_controls(mut app, l)
 	if l.tab == 0 {
 		draw_operations_spawn_strip(mut app, l)
+	} else if l.tab == 1 {
+		draw_operations_loops_strip(mut app, l)
 	} else if l.tab == 2 {
 		draw_operations_launch_strip(mut app, l)
 	} else if l.tab == 3 {
@@ -1040,6 +1044,50 @@ fn draw_operations_spawn_strip(mut app GuiApp, l OperationsLayout) {
 		return // undrawn = inert (same overflow guard as other strips)
 	}
 	operations_button(mut app, bx, by, bw, bh, 'Spawn', app.operations_hover == 32, true, false)
+}
+
+// operations_newloop_btn_rect places the New-loop button at the tab-1 strip
+// start; the hint text flows right of it when the column fits.
+fn operations_newloop_btn_rect(l OperationsLayout) (int, int, int, int) {
+	return l.right_x, l.strip_y + 4, 96, l.strip_h - 8
+}
+
+// draw_operations_loops_strip is the Loops entry affordance: one New-loop
+// button revealing the detail-column create form, plus an honest hint naming
+// what the form asks. Same overflow guard as the other strips: undrawn is
+// inert, and the click path rechecks it.
+fn draw_operations_loops_strip(mut app GuiApp, l OperationsLayout) {
+	bx, by, bw, bh := operations_newloop_btn_rect(l)
+	if bx + bw > l.right_x + l.right_w {
+		return
+	}
+	operations_button(mut app, bx, by, bw, bh, 'New loop', app.operations_hover == 34, true, false)
+	hint := 'name · tier · cron stays off until scheduled'
+	if bx + bw + 10 + hint.len * 6 < l.right_x + l.right_w {
+		app.gg.draw_text(bx + bw + 10, by + 4, hint, gg.TextCfg{
+			color: app.pnl_text_mut
+			size: 11
+		})
+	}
+}
+
+// operations_click_loops_strip routes tab-1 strip hits: reveal the
+// detail-column create form (same effect as the loop 'new' action).
+fn operations_click_loops_strip(mut app GuiApp, l OperationsLayout, mx int, my int) bool {
+	bx, by, bw, bh := operations_newloop_btn_rect(l)
+	if bx + bw > l.right_x + l.right_w {
+		return false
+	}
+	if rect_contains(mx, my, bx, by, bw, bh) {
+		app.loops_show_create = true
+		app.operations_focus = 4
+		app.header_search_focus = false
+		app.workspace_focus = false
+		app.ghost_focused = false
+		app.inspector_msg = 'New loop — name it below, Enter creates'
+		return true
+	}
+	return false
 }
 
 // operations_click_spawn_strip routes tab-0 strip hits: field focus + Spawn.
@@ -2771,6 +2819,13 @@ fn operations_hover(mut app GuiApp, w int, h int) {
 			return
 		}
 	}
+	if l.tab == 1 && l.strip_h > 0 {
+		nx, ny, nw, nh := operations_newloop_btn_rect(l)
+		if rect_contains(mx, my, nx, ny, nw, nh) {
+			app.operations_hover = 34
+			return
+		}
+	}
 	if l.tab == 2 {
 		for i in 0 .. 3 {
 			bx, by, bw, bh := operations_backend_rect(l, i)
@@ -2927,6 +2982,9 @@ fn operations_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 		return true
 	}
 	if l.tab == 0 && operations_click_spawn_strip(mut app, l, mx, my) {
+		return true
+	}
+	if l.tab == 1 && operations_click_loops_strip(mut app, l, mx, my) {
 		return true
 	}
 	if l.tab == 2 && operations_click_swarm_strip(mut app, l, mx, my) {
