@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.33.1] — 2026-09-28
+
+### Changed
+
+- Upstream skill sync vendored into main (blast-radius, unslop).
+
 ## [1.33.0] — 2026-09-28
 
 ### Added
