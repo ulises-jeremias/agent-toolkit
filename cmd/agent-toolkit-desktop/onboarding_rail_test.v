@@ -90,3 +90,17 @@ fn test_onboarding_h_key_opens_help_mid_journey() {
 	assert app.show_help, 'H must open Help during onboarding'
 	assert app.show_onboarding, 'H must not dismiss the journey'
 }
+
+fn test_onboarding_skip_click_dismisses_journey() {
+	mut app := &GuiApp{
+		show_onboarding: true
+		onboarding_step: 2
+		selected_panel: 0
+	}
+	l := onboarding_layout(app, 1280, 800)
+	sx, sy, sw, sh := onboarding_skip_rect(l)
+	// click with the same +8px slop the handler grants
+	assert onboarding_click(mut app, sx + sw / 2, sy + sh / 2, 1280, 800), 'Skip click must be consumed'
+	assert !app.show_onboarding, 'Skip must dismiss the journey overlay'
+	assert app.onboarding_msg.contains('o to resume'), 'skip message must name the resume key: ${app.onboarding_msg}'
+}

@@ -325,7 +325,10 @@ fn onboarding_tool_rect(l OnboardingLayout, i int) (int, int, int, int) {
 	cols := 2
 	cw := (sw - gap) / cols
 	rows := 2
-	ch := (sh - 40 - (rows - 1) * gap) / rows
+	mut ch := (sh - 40 - (rows - 1) * gap) / rows
+	if ch < 56 {
+		ch = 56 // floor: name + detail + status pill never overlap each other
+	}
 	col := i % cols
 	row := i / cols
 	return sx + col * (cw + gap), sy + 40 + row * (ch + gap), cw, ch
@@ -702,15 +705,18 @@ fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 		label := if t.found { 'Ready' } else { 'Missing' }
 		pill_c := if t.found { app.pnl_success } else { app.pnl_text_mut }
 		name_x := cx + 16 + mk
-		pw := label.len * 7 + 16
-		app.gg.draw_text(name_x, cy + 12, utf8_truncate(t.display_name, text_fit_chars(cw - (mk + 26) - pw, 14)), gg.TextCfg{
+		pw := label.len * 6 + 14
+		// Identity first: the name owns the full row width so short
+		// product names ('Claude Code') never truncate to stubs; the
+		// status pill lives on the detail line.
+		app.gg.draw_text(name_x, cy + 12, utf8_truncate(t.display_name, text_fit_chars(cw - (mk + 26) - 8, 14)), gg.TextCfg{
 			color: app.pnl_text
 			size: 14
 			bold: true
 		})
-		app.gg.draw_rect_filled(cx + cw - pw - 10, cy + 10, pw, 20, tint(pill_c, 60))
-		app.gg.draw_rect_empty(cx + cw - pw - 10, cy + 10, pw, 20, pill_c)
-		app.gg.draw_text(cx + cw - pw - 2, cy + 15, label, gg.TextCfg{
+		app.gg.draw_rect_filled(cx + cw - pw - 10, cy + ch - 22, pw, 18, tint(pill_c, 60))
+		app.gg.draw_rect_empty(cx + cw - pw - 10, cy + ch - 22, pw, 18, pill_c)
+		app.gg.draw_text(cx + cw - pw - 2, cy + ch - 17, label, gg.TextCfg{
 			color: pill_c
 			size: 11
 		})
@@ -719,7 +725,7 @@ fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 		} else {
 			'Install to enable seamless integration'
 		}
-		app.gg.draw_text(name_x, cy + 32, utf8_truncate(detail, text_fit_chars(cw - mk - 30, 11)), gg.TextCfg{
+		app.gg.draw_text(name_x, cy + 32, utf8_truncate(detail, text_fit_chars(cw - mk - 30 - pw, 11)), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 			mono: t.found
@@ -1187,6 +1193,20 @@ fn onboarding_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 	}
 	sx2, sy2, sw2, sh2 := onboarding_skip_rect(l)
 	if rect_contains(mx, my, sx2 - 4, sy2 - 4, sw2 + 8, sh2 + 8) {
+		// Skipping is a decision, not a deferral: persist it so the
+		// wizard never ambushes the next launch. `o` resumes it.
+		if app.desktop != unsafe { nil } {
+			app.desktop.engine_complete_onboarding() or {
+				app.onboarding_msg = 'Skip noted for now — setup will ask again next launch (${err.msg()})'
+				app.show_onboarding = false
+				if app.selected_panel == 11 {
+					app.selected_panel = 0
+				}
+				return true
+			}
+			app.engine_rev = app.desktop.app_state_snapshot().revision
+			app.api_calls = app.desktop.engine_api_calls()
+		}
 		app.show_onboarding = false
 		if app.selected_panel == 11 {
 			app.selected_panel = 0

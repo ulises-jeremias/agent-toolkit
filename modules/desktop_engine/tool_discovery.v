@@ -39,8 +39,48 @@ pub mut:
 // interactive process from the Desktop.
 const version_probe_tools = ['claude', 'opencode', 'gemini', 'copilot', 'codex', 'pi', 'muse']
 
+// wellknown_bin_dirs are static per-user install locations checked when PATH
+// lookup misses. A Desktop process started from a GUI launcher inherits a
+// minimal PATH (no ~/.local/bin, no tool shims) while the user shells see
+// everything — without this fallback the wizard reports "0 of 11 found" on
+// machines that have the tools. Static names only: no shell-config parsing,
+// no PATH mutation, no execution — a resolved path is still the evidence.
+fn wellknown_bin_dirs(home string) []string {
+	return [
+		os.join_path(home, '.local', 'bin'),
+		os.join_path(home, '.opencode', 'bin'),
+		'/usr/local/bin',
+	]
+}
+
+// find_in_wellknown resolves an executable name against the static
+// well-known bins. Returns '' when absent or not executable.
+fn find_in_wellknown(name string, home string) string {
+	if name.trim_space() == '' || name.contains('/') || name.contains('\\') {
+		return ''
+	}
+	for dir in wellknown_bin_dirs(home) {
+		cand := os.join_path(dir, name)
+		if os.is_file(cand) && os.is_executable(cand) {
+			return cand
+		}
+	}
+	return ''
+}
+
 // version probe budget: bounded and explainable.
 const version_probe_timeout_ms = 3000
+
+// resolve_tool_binary resolves an executable on this session's PATH, falling
+// back to the static well-known bins (GUI-launcher minimal PATH, see
+// wellknown_bin_dirs). '' when neither sees it.
+fn resolve_tool_binary(name string, home string) string {
+	found := os.find_abs_path_of_executable(name) or { '' }
+	if found != '' {
+		return found
+	}
+	return find_in_wellknown(name, home)
+}
 
 // tool_probe is THE authoritative per-tool detector: it resolves the
 // executable on this session's PATH and collects known configuration
@@ -54,49 +94,49 @@ pub fn tool_probe(id string) ToolProbe {
 	match id {
 		'claude-code' {
 			p.tool_name = 'claude'
-			p.resolved_path = os.find_abs_path_of_executable('claude') or { '' }
+			p.resolved_path = resolve_tool_binary('claude', home)
 			p.add_config_if_exists(os.join_path(home, '.claude'))
 		}
 		'cursor' {
 			p.tool_name = 'cursor'
-			p.resolved_path = os.find_abs_path_of_executable('cursor') or { '' }
+			p.resolved_path = resolve_tool_binary('cursor', home)
 			p.add_config_if_exists(os.join_path(home, '.cursor'))
 		}
 		'opencode' {
 			p.tool_name = 'opencode'
-			p.resolved_path = os.find_abs_path_of_executable('opencode') or { '' }
+			p.resolved_path = resolve_tool_binary('opencode', home)
 			p.add_config_if_exists(os.join_path(home, '.config', 'opencode'))
 		}
 		'windsurf' {
 			p.tool_name = 'windsurf'
-			p.resolved_path = os.find_abs_path_of_executable('windsurf') or { '' }
+			p.resolved_path = resolve_tool_binary('windsurf', home)
 			p.add_config_if_exists(os.join_path(home, '.codeium', 'windsurf'))
 			p.add_config_if_exists(os.join_path(home, '.windsurf'))
 			p.add_config_if_exists(os.join_path(home, '.codeium'))
 		}
 		'pi' {
 			p.tool_name = 'pi'
-			p.resolved_path = os.find_abs_path_of_executable('pi') or { '' }
+			p.resolved_path = resolve_tool_binary('pi', home)
 		}
 		'muse-code' {
 			p.tool_name = 'muse'
-			p.resolved_path = os.find_abs_path_of_executable('muse') or { '' }
+			p.resolved_path = resolve_tool_binary('muse', home)
 			p.add_config_if_exists(os.join_path(home, '.config', 'muse'))
 			p.add_config_if_exists(os.join_path(home, '.agents'))
 		}
 		'gemini-cli' {
 			p.tool_name = 'gemini'
-			p.resolved_path = os.find_abs_path_of_executable('gemini') or { '' }
+			p.resolved_path = resolve_tool_binary('gemini', home)
 			p.add_config_if_exists(os.join_path(home, '.gemini'))
 		}
 		'copilot-cli' {
 			p.tool_name = 'copilot'
-			p.resolved_path = os.find_abs_path_of_executable('copilot') or { '' }
+			p.resolved_path = resolve_tool_binary('copilot', home)
 			p.add_config_if_exists(os.join_path(home, '.config', 'github-copilot'))
 		}
 		'codex' {
 			p.tool_name = 'codex'
-			p.resolved_path = os.find_abs_path_of_executable('codex') or { '' }
+			p.resolved_path = resolve_tool_binary('codex', home)
 			p.add_config_if_exists(os.join_path(home, '.codex'))
 		}
 		else {

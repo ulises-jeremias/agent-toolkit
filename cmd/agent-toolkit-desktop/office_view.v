@@ -310,7 +310,10 @@ fn office_roster_click(mut app GuiApp, mx int, my int, w int, h int) bool {
 					break
 				}
 			}
-			app.inspector_msg = 'Catalog agent: ${agent_entry.id} · runtime attribution unavailable'
+			// No desk to attach — but never a dead end: preset the Jobs
+			// filter so Operations shows this agent's runs on arrival.
+			app.jobs_filter = agent_entry.id
+			app.inspector_msg = 'Catalog agent: ${agent_entry.id} · no desk attached — Jobs filter set, see Operations'
 			return true
 		}
 		ry += row_h
@@ -800,9 +803,23 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 		bold: true
 	})
 	if snap.rows.len == 0 {
-		app.gg.draw_text(x + 12, ry + 22, 'No runs recorded — start one from Operations.', gg.TextCfg{
+		// Empty runs is an invitation, not a wall: the start link jumps
+		// to Operations with the spawn field focused (see
+		// office_empty_start_rect, shared with the click path).
+		prefix := 'No runs recorded — '
+		link := 'start your first job →'
+		app.gg.draw_text(x + 12, ry + 22, prefix, gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
+		})
+		lx, ly, lw, lh := office_empty_start_rect(l, ry)
+		_ = ly
+		_ = lw
+		_ = lh
+		app.gg.draw_text(lx, ry + 22, link, gg.TextCfg{
+			color: app.pnl_select
+			size: 11
+			bold: true
 		})
 	} else {
 		for i in 0 .. al.runs_cap {
@@ -905,6 +922,23 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 
 // ── attention surface: input ───────────────────────────────────────────────
 
+// office_empty_start_rect is the hit/draw rect of the empty-runs start
+// link ('start your first job →'), sharing the len*6 advance convention
+// with the draw path so hits never drift from paint.
+fn office_empty_start_rect(l OfficeLayout, ry int) (int, int, int, int) {
+	prefix_w := 'No runs recorded — '.len * 6
+	link_w := 'start your first job →'.len * 6
+	return l.side_x + 12 + prefix_w, ry + 16, link_w, 20
+}
+
+// office_empty_start_activate jumps to the Operations Jobs tab with the
+// spawn field focused. Pure shell state — no Engine needed.
+fn office_empty_start_activate(mut app GuiApp) {
+	select_panel(mut app, 6)
+	app.operations_focus = 3
+	app.inspector_msg = 'Jobs — type a command, Enter spawns'
+}
+
 // office_attention_click hit-tests the attention surface with the same layout
 // the draw path uses. Run rows select their Engine record for the inspector,
 // approval rows resolve to their run, completion rows drill evidence, and
@@ -937,6 +971,15 @@ fn office_attention_click(mut app GuiApp, l OfficeLayout, mx int, my int) bool {
 		}
 	}
 	ry := al.y0
+	// empty runs: the start link jumps to Operations with the spawn field
+	// focused — a first action, not a dead sentence.
+	if snap.rows.len == 0 {
+		ex, ey, ew, eh := office_empty_start_rect(l, ry)
+		if rect_contains(mx, my, ex, ey, ew, eh) {
+			office_empty_start_activate(mut app)
+			return true
+		}
+	}
 	// action buttons first (smallest targets, painted over the runs section)
 	if sel >= 0 && sel < al.runs_cap {
 		acts := desktop.office_run_actions(snap.rows[sel])

@@ -868,6 +868,13 @@ pub fn (mut e Engine) god_route(from string, to string, payload string, artifact
 	id := 'h-${time.now().unix_nano() % 1000000:06d}'
 	mut repo := e.repo
 	mut tx := repo.begin('god-route')
+	// mailbox counters must reflect every queued handoff, whichever entry
+	// point created it — otherwise inbox/outbox read 0 after real queues.
+	prev := repo.snapshot()
+	prev_inbox := (prev.data['swarm/mailbox/inbox'] or { '0' }).int()
+	prev_outbox := (prev.data['swarm/mailbox/outbox'] or { '0' }).int()
+	tx.set('swarm/mailbox/inbox', (prev_inbox + 1).str())
+	tx.set('swarm/mailbox/outbox', (prev_outbox + 1).str())
 	tx.set('swarm/handoffs/${id}/from', from)
 	tx.set('swarm/handoffs/${id}/to', to)
 	tx.set('swarm/handoffs/${id}/payload', payload)

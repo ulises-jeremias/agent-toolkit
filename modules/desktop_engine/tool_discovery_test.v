@@ -252,3 +252,40 @@ fn test_discovery_cache_probe_counts() {
 	cached_again := eng.tool_discovery_catalog_cached()
 	assert cached_again.len == refreshed.len
 }
+
+// WELLKNOWN FALLBACK: a GUI launcher inherits a minimal PATH without the
+// user's bins — a tool installed under ~/.local/bin must still resolve with
+// its real path, never as missing.
+fn test_discovery_wellknown_fallback_resolves() {
+	mut f := td_fixture('', '')
+	defer {
+		f.cleanup()
+	}
+	home := os.join_path(f.tmp, 'home')
+	local_bin := os.join_path(home, '.local', 'bin')
+	os.mkdir_all(local_bin) or { panic(err.msg()) }
+	script := '#!/bin/sh\necho "FakeTool 9.9.9 (claude-local)"\n'
+	p := os.join_path(local_bin, 'claude')
+	os.write_file(p, script) or { panic(err.msg()) }
+	os.chmod(p, 0o755) or { panic(err.msg()) }
+	mut eng := td_engine(mut f)
+	d := eng.tool_discovery('claude-code')
+	assert d.found, 'tool under ~/.local/bin must resolve despite minimal PATH'
+	assert d.resolved_path == p, 'resolved path must be the real location, got: ${d.resolved_path}'
+	assert d.version_known, 'version probe runs against the resolved path'
+	assert d.version.contains('FakeTool 9.9.9')
+}
+
+// WELLKNOWN GUARDS: traversal names never resolve; non-executables never count.
+fn test_discovery_wellknown_rejects_unsafe() {
+	home := os.join_path(os.temp_dir(), 'atk-td-unsafe-${os.getpid()}')
+	os.mkdir_all(home) or { panic(err.msg()) }
+	defer { os.rmdir_all(home) or {} }
+	assert find_in_wellknown('../x', home) == '', 'path traversal must never resolve'
+	assert find_in_wellknown('', home) == '', 'empty name must never resolve'
+	plain := os.join_path(home, '.local', 'bin', 'claude')
+	os.mkdir_all(os.dir(plain)) or { panic(err.msg()) }
+	os.write_file(plain, 'not executable') or { panic(err.msg()) }
+	os.chmod(plain, 0o644) or { panic(err.msg()) }
+	assert find_in_wellknown('claude', home) == '', 'non-executable file must never count'
+}
