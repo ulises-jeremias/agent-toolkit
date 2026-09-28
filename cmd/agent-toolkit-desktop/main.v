@@ -1117,7 +1117,7 @@ mut:
 	targets_hover     int = -1
 	onboarding_scroll int
 	// setup journey: user-facing choices; Engine keeps the truth
-	onboarding_choice    int // 0 set up for me, 1 existing setup, 2 find my setup
+	onboarding_choice    int // 0 start fresh, 1 use existing setup (display only)
 	onboarding_workspace_choice int // 0 create new workspace, 1 reuse existing
 	onboarding_cap_on    []bool = [true, true, true, true]
 	onboarding_diag      bool // internals live behind Details, not in the journey
