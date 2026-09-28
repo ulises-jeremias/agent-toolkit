@@ -233,6 +233,33 @@ fn test_insights_table_without_engine_is_empty_and_honest() {
 	}
 }
 
+// The gallery is a full route too: title, sub-line, empty sentence and hint
+// must all be present so the detail column and export never meet a bare
+// title — while rows stay honestly empty (nothing is ledger-recorded).
+fn test_insights_gallery_route_is_complete() {
+	mut app := &GuiApp{
+		selected_panel: 12
+	}
+	t := insights_table(mut app, 'gallery', 600)
+	assert t.title == 'Gallery'
+	assert t.sub != '', 'gallery needs its sub-line'
+	assert t.empty != '', 'gallery needs its honest empty sentence'
+	assert t.hint != '', 'gallery needs its affordance hint'
+	assert t.rows.len == 0, 'gallery lists no ledger rows'
+}
+
+fn test_insights_gallery_refuses_export() {
+	mut app := &GuiApp{
+		selected_panel: 12
+	}
+	t := insights_table(mut app, 'gallery', 600)
+	if _ := insights_export_write('gallery', t, 3) {
+		assert false, 'empty gallery must never produce an export file'
+	} else {
+		assert err.msg().contains('nothing to export'), 'refusal names the cause: ${err.msg()}'
+	}
+}
+
 fn test_insights_click_selects_tab_and_row() {
 	scratch_dir := make_scratch_dir('insights')
 	os.setenv('XDG_CACHE_HOME', scratch_dir, true)
