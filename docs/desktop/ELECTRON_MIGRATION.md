@@ -52,6 +52,7 @@ Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
   shows a "Backend crashed … Restart backend" banner plus per-panel Retry,
   and clicking Restart relaunches a fresh backend (`restarts` increments,
   new dynamic port, status returns to `ready`, UI recovers, no restart loop).
+  Evidence: [crash banner](assets/electron/crash-banner.png).
 
 ## Packaging rule: rebuild the backend before `dist`
 
