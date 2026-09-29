@@ -10,6 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.35.0] — 2026-09-29
+
+### Added
+
+- Measured-text core for the native Desktop GUI: `measure_text`/`fit_text`
+  with a cache replaces fixed-average truncation and byte slicing, so labels
+  and help bindings clip on grapheme boundaries at their real width.
+- Attention and help affordances: the Office zero-state scopes to failed and
+  queued jobs, and the help card is content-sized to the longest measured
+  binding line.
+
+### Changed
+
+- Palette Setup row opens the Settings panel with the setup-journey overlay,
+  matching the row's promise instead of a dead end.
+- Golden UI fixtures (paper + ink) re-promoted from CI actuals reviewed at
+  full size; tool probes freeze to a bare machine under `ATK_GUI_FREEZE` so
+  golden captures stay hermetic.
+
 ## [1.34.0] — 2026-09-28
 
 ### Added
