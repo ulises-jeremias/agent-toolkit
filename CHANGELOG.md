@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - First-party Desktop mutation gate: `X-Atk-Desktop: 1` lets the Electron
   `file://` client POST on loopback while cross-site browser pages stay
   rejected.
+- Job lifecycle on `agent-toolkit serve`: `POST /api/v1/jobs/:id/cancel`
+  terminates a running job's child (SIGTERM, grace, SIGKILL) and marks it
+  `canceled`; `DELETE /api/v1/jobs/:id` removes terminal jobs (running jobs
+  need `?force=true`). Desktop Operations exposes cancel and delete.
 
 ## [1.35.0] — 2026-09-29
 

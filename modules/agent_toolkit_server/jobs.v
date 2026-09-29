@@ -148,19 +148,20 @@ fn (mut r JobRunner) watch(id string, mut p os.Process) {
 		}
 		buf += err
 	}
-	final_log := if buf.len > 0 {
+	mut final_log := if buf.len > 0 {
 		'[running]\n' + buf + '\n[exit ${p.code}]\n'
 	} else {
 		'[exit ${p.code}]\n'
 	}
-	os.write_file(r.log_path(id), final_log) or {}
 	r.mut.lock()
 	defer {
 		r.mut.unlock()
 	}
 	// Cancel wins over a racy exit: only transcribe the process outcome
 	// when the job is still active; a concurrent cancel already flipped
-	// the state, decremented running, and owns the canceled marker.
+	// the state and decremented running. The watcher is the sole writer of
+	// the final log for tracked processes (so the canceled marker is never
+	// clobbered) and never recreates the log of a force-deleted job.
 	// Cleanup (proc entry, close) always runs: a force-deleted job leaves
 	// no registry entry but its watcher still owns the process lifecycle.
 	if id in r.jobs {
@@ -169,7 +170,10 @@ fn (mut r JobRunner) watch(id string, mut p os.Process) {
 			r.jobs[id].exit_code = p.code
 			r.jobs[id].ended_at = time.utc().format_rfc3339()
 			r.running--
+		} else if r.jobs[id].status == 'canceled' {
+			final_log += '[canceled]\n'
 		}
+		os.write_file(r.log_path(id), final_log) or {}
 	}
 	r.procs.delete(id)
 	p.close()
@@ -226,8 +230,9 @@ pub fn (mut r JobRunner) cancel(id string) !Job {
 		if p.is_alive() {
 			p.signal_kill()
 		}
+	} else {
+		append_canceled_marker(r.log_path(id))
 	}
-	append_canceled_marker(r.log_path(id))
 	return job
 }
 
@@ -246,7 +251,14 @@ pub fn (mut r JobRunner) delete(id string, force bool) ! {
 	}
 	r.mut.unlock()
 	if active {
-		r.cancel(id)!
+		// The job may finish (or be deleted) between the unlock above and
+		// cancel; force delete still proceeds in that case.
+		r.cancel(id) or {
+			msg := err.msg()
+			if !msg.starts_with('job already') && !msg.starts_with('job not found') {
+				return err
+			}
+		}
 	}
 	r.mut.lock()
 	r.jobs.delete(id)

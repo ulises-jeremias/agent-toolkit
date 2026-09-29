@@ -225,11 +225,13 @@ fn test_delete_running_needs_force() {
 		status: 'running'
 	}
 	runner.running = 1
+	mut conflicted := false
 	runner.delete('job_live_x1', false) or {
 		assert err.msg().starts_with('job is running')
-		return
+		conflicted = true
 	}
-	assert false, 'expected running conflict'
+	assert conflicted, 'expected running conflict'
+	assert 'job_live_x1' in runner.jobs
 	// force cancels first, then removes
 	runner.delete('job_live_x1', true) or { panic(err.msg()) }
 	assert !('job_live_x1' in runner.jobs)
@@ -278,4 +280,7 @@ fn test_cancel_kills_live_job() {
 	}
 	final := runner.get(job.id) or { panic(err.msg()) }
 	assert final.status == 'canceled'
+	// the watcher's final log write keeps exactly one canceled marker
+	log := os.read_file(os.join_path(runs, job.id + '.log')) or { panic(err.msg()) }
+	assert log.count('[canceled]') == 1
 }
