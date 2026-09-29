@@ -9,6 +9,11 @@ on:
       - 'pnpm-lock.yaml'
       - 'docs/surface/openapi.json'
       - '.github/workflows/desktop.yml'
+      # The gates build the V backend for packaging and check the TS
+      # client against it: backend changes must retrigger this workflow.
+      - 'modules/agent_toolkit_server/**'
+      - 'modules/agent_toolkit_core/**'
+      - 'cmd/agent-toolkit/**'
   pull_request:
     paths:
       - 'apps/desktop/**'
@@ -16,6 +21,9 @@ on:
       - 'pnpm-lock.yaml'
       - 'docs/surface/openapi.json'
       - '.github/workflows/desktop.yml'
+      - 'modules/agent_toolkit_server/**'
+      - 'modules/agent_toolkit_core/**'
+      - 'cmd/agent-toolkit/**'
 
 jobs:
   gates:

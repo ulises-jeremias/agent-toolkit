@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { BackendSupervisor } from './backend';
+import { BackendSupervisor, resolveExpectedBackendMajor } from './backend';
 
 const FIXTURE_SOURCE = `#!/usr/bin/env node
 // Minimal 'agent-toolkit serve' stand-in: serves /api/v1/health only.
@@ -72,6 +72,13 @@ describe('BackendSupervisor', () => {
     await supervisor.stop();
     expect(supervisor.snapshot().status).toBe('stopped');
   }, 90_000);
+
+  it('parses the expected-major override', () => {
+    process.env.ATK_EXPECTED_BACKEND_MAJOR = 'v2.0.0';
+    expect(resolveExpectedBackendMajor()).toBe('2');
+    process.env.ATK_EXPECTED_BACKEND_MAJOR = '9';
+    expect(resolveExpectedBackendMajor()).toBe('9');
+  });
 
   it('reports version-mismatch instead of ready on major drift', async () => {
     process.env.ATK_EXPECTED_BACKEND_MAJOR = '1';

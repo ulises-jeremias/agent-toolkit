@@ -14,6 +14,7 @@ const bridge: AtkBridge = {
     };
   },
   ptyList: () => ipcRenderer.invoke('atk:pty-list'),
+  ptyTail: (id: string) => ipcRenderer.invoke('atk:pty-tail', id),
   ptyCreate: (options: PtyCreateOptions) => ipcRenderer.invoke('atk:pty-create', options),
   ptyWrite: (id: string, data: string) => ipcRenderer.invoke('atk:pty-write', id, data),
   ptyResize: (id: string, cols: number, rows: number) => ipcRenderer.invoke('atk:pty-resize', id, cols, rows),

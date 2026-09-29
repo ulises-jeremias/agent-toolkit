@@ -245,9 +245,28 @@ function TerminalPane({
     termRef.current = term;
     searchAddonRef.current = searchAddon;
 
+    // Catch up on output buffered before this pane mounted (prompt, early
+    // output) or while another tab was active. Subscribe first so nothing
+    // emitted during the tail fetch is lost; chunks racing the fetch may
+    // duplicate one boundary line under heavy output — accepted over loss.
+    let caughtUp = false;
+    const pending: string[] = [];
     const offData = bridge.onPtyData((event) => {
-      if (event.id === session.id) term.write(event.chunk);
+      if (event.id !== session.id) return;
+      if (caughtUp) term.write(event.chunk);
+      else pending.push(event.chunk);
     });
+    void bridge
+      .ptyTail(session.id)
+      .then((tail) => {
+        if (tail) term.write(tail);
+        for (const chunk of pending) term.write(chunk);
+        pending.length = 0;
+        caughtUp = true;
+      })
+      .catch(() => {
+        caughtUp = true;
+      });
     const offExit = bridge.onPtyExit((event) => {
       if (event.id === session.id) setExitCode(event.exitCode);
     });

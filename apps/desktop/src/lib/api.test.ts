@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError, namedJobStreamEvent, parseJobStreamEvent, toEnvelope } from './api';
+import { normalizeLoopback } from './query';
 
 describe('toEnvelope', () => {
   it('recovers data spread at the top level (V result_to_http shape)', () => {
@@ -17,6 +18,25 @@ describe('toEnvelope', () => {
   it('rejects non-object bodies', () => {
     expect(() => toEnvelope(null)).toThrow(ApiError);
     expect(() => toEnvelope('oops')).toThrow(ApiError);
+  });
+
+  it('merges the nested CmdResp data map instead of stringifying it', () => {
+    // Wire shape of matrix/insights/:sub routes: {ok, message, data: {...}}.
+    const envelope = toEnvelope({ ok: true, message: 'm', data: { tool: 'matrix', days: 7 } });
+    expect(envelope.data).toEqual({ tool: 'matrix', days: '7' });
+  });
+
+  it('keeps top-level spread fields for raw-map routes', () => {
+    const envelope = toEnvelope({ id: 'j1', status: 'running' });
+    expect(envelope.data).toEqual({ id: 'j1', status: 'running' });
+  });
+});
+
+describe('normalizeLoopback', () => {
+  it('rewrites localhost to the CSP-allowlisted 127.0.0.1', () => {
+    expect(normalizeLoopback('http://localhost:3847')).toBe('http://127.0.0.1:3847');
+    expect(normalizeLoopback('http://127.0.0.1:3847')).toBe('http://127.0.0.1:3847');
+    expect(normalizeLoopback('not a url')).toBe('not a url');
   });
 });
 

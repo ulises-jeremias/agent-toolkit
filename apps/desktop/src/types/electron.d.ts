@@ -48,6 +48,7 @@ export interface AtkBridge {
   backendRestart: () => Promise<boolean>;
   onBackendState: (listener: (state: BackendState) => void) => Unsubscribe;
   ptyList: () => Promise<PtySessionInfo[]>;
+  ptyTail: (id: string) => Promise<string>;
   ptyCreate: (options: PtyCreateOptions) => Promise<PtySessionInfo | null>;
   ptyWrite: (id: string, data: string) => Promise<boolean>;
   ptyResize: (id: string, cols: number, rows: number) => Promise<boolean>;

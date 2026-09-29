@@ -7,6 +7,7 @@ import { registerIpc } from './ipc';
 let mainWindow: BrowserWindow | null = null;
 let backend: BackendSupervisor | null = null;
 let terminals: TerminalService | null = null;
+let ipcRegistered = false;
 
 function resolveRendererUrl(): { url: string; isDev: boolean } {
   const devUrl = process.env.ATK_DESKTOP_DEV_URL;
@@ -15,8 +16,11 @@ function resolveRendererUrl(): { url: string; isDev: boolean } {
 }
 
 async function createWindow(): Promise<void> {
-  backend = new BackendSupervisor();
-  terminals = new TerminalService();
+  // Singleflight: macOS `activate` re-enters createWindow. Rebuilding the
+  // services would orphan the running backend/PTYs and re-registering IPC
+  // handlers throws. Reuse what exists.
+  if (!backend) backend = new BackendSupervisor();
+  if (!terminals) terminals = new TerminalService();
 
   const { url, isDev } = resolveRendererUrl();
 
@@ -35,16 +39,30 @@ async function createWindow(): Promise<void> {
     },
   });
 
-  registerIpc({
-    getBackend: () => backend,
-    getTerminals: () => terminals,
-    getWindow: () => mainWindow,
+  // Drop the reference as soon as the window closes so later sends and
+  // backend-startup paths never touch a destroyed BrowserWindow.
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
+
+  if (!ipcRegistered) {
+    registerIpc({
+      getBackend: () => backend,
+      getTerminals: () => terminals,
+      getWindow: () => mainWindow,
+    });
+    ipcRegistered = true;
+  }
 
   terminals.attachWindow(() => mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler(({ url: target }) => {
-    void shell.openExternal(target);
+    try {
+      const protocol = new URL(target).protocol;
+      if (protocol === 'http:' || protocol === 'https:') void shell.openExternal(target);
+    } catch {
+      // Malformed URL: stay denied.
+    }
     return { action: 'deny' };
   });
 
@@ -64,10 +82,6 @@ async function createWindow(): Promise<void> {
   if (!started) {
     mainWindow?.webContents.send('atk:backend-state', backend.snapshot());
   }
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
 }
 
 void app.whenReady().then(createWindow);

@@ -25,6 +25,9 @@ describe('TerminalService', () => {
         });
       });
       expect(output).toContain('hello-pty');
+      // Buffered tail supports pane-mount catch-up.
+      expect(service.tail(session.id)).toContain('hello-pty');
+      expect(service.tail('no-such-id')).toBe('');
 
       const exitCode = await new Promise<number>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('no pty exit within 10s')), 10_000);

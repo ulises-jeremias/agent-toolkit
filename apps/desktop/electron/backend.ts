@@ -29,6 +29,43 @@ export interface HealthPayload {
 const START_TIMEOUT_MS = 30_000;
 const POLL_INTERVAL_MS = 250;
 const STOP_GRACE_MS = 5_000;
+const MAX_STDERR_TAIL = 8_192;
+
+/**
+ * Major version the running backend must match. `stage-backend` writes the
+ * staged binary's version to `resources/backend-version.json`, so a stale
+ * bundled backend is caught at startup instead of failing mysteriously.
+ * Returns null when no pin is available (dev without staging): the caller
+ * must say so honestly instead of comparing the version against itself.
+ */
+export function resolveExpectedBackendMajor(): string | null {
+  const override = process.env.ATK_EXPECTED_BACKEND_MAJOR?.trim();
+  if (override) return override.replace(/^v/, '').split('.')[0] ?? null;
+  for (const dir of candidateResourceDirs()) {
+    try {
+      const raw = fs.readFileSync(path.join(dir, 'backend-version.json'), 'utf8');
+      const parsed = JSON.parse(raw) as { version?: unknown };
+      if (typeof parsed.version === 'string' && parsed.version.trim()) {
+        return parsed.version.trim().replace(/^v/, '').split('.')[0] ?? null;
+      }
+    } catch {
+      // Missing or unreadable pin in this dir; try the next.
+    }
+  }
+  return null;
+}
+
+function candidateResourceDirs(): string[] {
+  const dirs: string[] = [];
+  const resourcesPath =
+    typeof (process as NodeJS.Process & { resourcesPath?: unknown }).resourcesPath === 'string'
+      ? (process as NodeJS.Process & { resourcesPath: string }).resourcesPath
+      : '';
+  if (resourcesPath) dirs.push(resourcesPath);
+  // Dev layout: compiled main lives in apps/desktop/dist-electron.
+  dirs.push(path.resolve(__dirname, '..', 'resources'));
+  return dirs;
+}
 
 /** Locate the bundled V backend binary, else PATH, else a dev checkout. */
 export function resolveBackendBinary(): { bin: string; argsPrefix: string[]; source: string } {
@@ -135,9 +172,9 @@ export class BackendSupervisor {
     const url = `http://127.0.0.1:${port}`;
     this.emit({ status: 'starting', url, version: null, detail: `launching ${source} backend` });
 
+    // No --auth-token on argv: it would expose the secret in ps output.
+    // The child inherits AGENT_TOOLKIT_TOKEN through env, which serve reads.
     const args = [...argsPrefix, 'serve', '--host', '127.0.0.1', '--port', String(port), '--no-browser'];
-    const token = process.env.AGENT_TOOLKIT_TOKEN;
-    if (token) args.push('--auth-token', token);
     const child = spawn(bin, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: { ...process.env, NO_COLOR: '1', TERM: 'dumb' },
@@ -146,6 +183,19 @@ export class BackendSupervisor {
     this.proc = child;
     this.stopping = false;
 
+    // Drain both pipes: an unread pipe blocks the backend once the OS
+    // buffer (~64 KiB) fills, freezing serve without exiting. Keep a
+    // bounded stderr tail for crash detail.
+    let stderrTail = '';
+    child.stdout?.resume();
+    child.stdout?.on('error', () => undefined);
+    child.stderr?.setEncoding('utf8');
+    child.stderr?.on('data', (chunk: string) => {
+      stderrTail = (stderrTail + chunk).slice(-MAX_STDERR_TAIL);
+    });
+    child.stderr?.on('error', () => undefined);
+    child.stderr?.resume();
+
     child.on('exit', (code, signal) => {
       const wasStopping = this.stopping;
       this.proc = null;
@@ -153,9 +203,12 @@ export class BackendSupervisor {
         this.emit({ status: 'stopped', detail: null });
         return;
       }
+      const tail = stderrTail.trim().slice(-200);
       this.emit({
         status: 'crashed',
-        detail: `backend exited code=${code ?? 'null'} signal=${signal ?? 'null'} (source=${source})`,
+        detail:
+          `backend exited code=${code ?? 'null'} signal=${signal ?? 'null'} (source=${source})` +
+          (tail ? ` stderr: ${tail}` : ''),
       });
     });
     child.on('error', (error) => {
@@ -180,15 +233,18 @@ export class BackendSupervisor {
       }
       return false;
     }
-    const expectedMajor = majorOf(process.env.ATK_EXPECTED_BACKEND_MAJOR ?? health.version);
-    const status: BackendStatus = majorOf(health.version) === expectedMajor ? 'ready' : 'version-mismatch';
+    const expectedMajor = resolveExpectedBackendMajor();
+    const actualMajor = majorOf(health.version);
+    const status: BackendStatus =
+      expectedMajor === null || actualMajor === expectedMajor ? 'ready' : 'version-mismatch';
     this.emit({
       status,
       version: health.version,
       detail:
         status === 'version-mismatch'
-          ? `backend ${health.version} differs from expected major ${expectedMajor}; reinstall recommended`
-          : `backend ${health.version} via ${source}`,
+          ? `backend ${health.version} differs from staged major ${expectedMajor}; reinstall recommended`
+          : `backend ${health.version} via ${source}` +
+            (expectedMajor === null ? ' (no staged version pin; set ATK_EXPECTED_BACKEND_MAJOR to enforce)' : ''),
     });
     return status === 'ready';
   }

@@ -1,5 +1,5 @@
 import { QueryClientProvider, useQuery } from '@tanstack/react-query';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { BackendState } from './types/electron';
 import { ApiClient } from './lib/api';
 import { createQueryClient, queryKeys, resolveBackendUrl } from './lib/query';
@@ -31,6 +31,9 @@ function useSupervisedBackend(): {
   const [backend, setBackend] = useState<BackendState | null>(null);
   const [backendUrl, setBackendUrl] = useState<string | null>(null);
   const [ticket, setTicket] = useState(0);
+  // Stable across renders so the BackendInner context memo is not busted by
+  // the 10s health-query refetch cycle.
+  const refresh = useCallback(() => setTicket((t) => t + 1), []);
 
   useEffect(() => {
     const bridge = window.atk;
@@ -65,7 +68,7 @@ function useSupervisedBackend(): {
     retry: false,
   });
 
-  return { client, backend, backendUrl, refresh: () => setTicket((t) => t + 1) };
+  return { client, backend, backendUrl, refresh };
 }
 
 export function BackendProvider({ children }: { children: ReactNode }) {

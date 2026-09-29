@@ -32,3 +32,17 @@ fs.mkdirSync(destDir, { recursive: true });
 fs.copyFileSync(source, path.join(destDir, exe));
 fs.chmodSync(path.join(destDir, exe), 0o755);
 console.log(`staged backend ${source} -> ${path.join(destDir, exe)}`);
+
+// Pin the staged binary's version for the supervisor's startup check:
+// a stale bundled backend is caught as version-mismatch instead of
+// failing mysteriously at runtime.
+const resDir = path.resolve(appDir, 'resources');
+fs.mkdirSync(resDir, { recursive: true });
+try {
+  const out = execFileSync(path.join(destDir, exe), ['--version'], { encoding: 'utf8' }).trim();
+  const version = out.split(/\s+/).pop();
+  fs.writeFileSync(path.join(resDir, 'backend-version.json'), JSON.stringify({ version }) + '\n');
+  console.log(`pinned backend version ${version}`);
+} catch (error) {
+  console.warn(`could not pin backend version: ${error.message}`);
+}

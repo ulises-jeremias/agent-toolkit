@@ -26,9 +26,19 @@ export function toEnvelope(wire: unknown): CommandEnvelope {
   const ok = record['ok'] === true;
   const message = typeof record['message'] === 'string' ? record['message'] : '';
   const data: Record<string, string> = {};
-  for (const [key, value] of Object.entries(record)) {
-    if (key === 'ok' || key === 'message') continue;
-    data[key] = typeof value === 'string' ? value : JSON.stringify(value);
+  const mergeFields = (obj: Record<string, unknown>): void => {
+    for (const [key, value] of Object.entries(obj)) {
+      if (key === 'ok' || key === 'message' || key === 'data') continue;
+      data[key] = typeof value === 'string' ? value : JSON.stringify(value);
+    }
+  };
+  mergeFields(record);
+  // CmdResp routes (matrix, insights, :sub proxies) nest the payload under
+  // `data`; merge it so callers see fields, not one stringified blob.
+  // Nested wins on key conflict: it is the structured server payload.
+  const nested = record['data'];
+  if (typeof nested === 'object' && nested !== null && !Array.isArray(nested)) {
+    mergeFields(nested as Record<string, unknown>);
   }
   return { ok, message, data };
 }

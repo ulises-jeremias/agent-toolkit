@@ -165,9 +165,13 @@ function JobDetail({ job, onClose }: { job: Job; onClose: () => void }) {
     refetchInterval: job.status === 'running' || job.status === 'queued' ? 2_000 : false,
   });
 
+  // Subscribe once per active job: depending on `job.status` directly would
+  // tear down and reopen the EventSource on every queued->running
+  // transition, duplicating replayed log lines into liveLines.
+  const isActive = job.status === 'running' || job.status === 'queued';
   useEffect(() => {
     if (!client) return;
-    if (job.status !== 'running' && job.status !== 'queued') return;
+    if (!isActive) return;
     const controller = new AbortController();
     void client.subscribeJobEvents(
       job.id,
@@ -185,7 +189,7 @@ function JobDetail({ job, onClose }: { job: Job; onClose: () => void }) {
       controller.signal,
     );
     return () => controller.abort();
-  }, [client, job.id, job.status, queryClient]);
+  }, [client, job.id, isActive, queryClient]);
 
   return (
     <Panel

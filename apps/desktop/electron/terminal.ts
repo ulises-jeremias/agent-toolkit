@@ -63,6 +63,11 @@ export class TerminalService {
     return [...this.sessions.values()].map(({ proc: _proc, tail: _tail, ...info }) => info);
   }
 
+  /** Buffered output tail for a session (catch-up on pane mount / tab switch). */
+  tail(id: string): string {
+    return this.sessions.get(id)?.tail ?? '';
+  }
+
   create(options: { agent: string; cmd: string; args?: string[]; cwd?: string; cols?: number; rows?: number }): TerminalSessionInfo {
     const id = randomUUID();
     const cols = options.cols ?? 120;
