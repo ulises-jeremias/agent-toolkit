@@ -760,7 +760,7 @@ fn draw_library_header(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId) 
 	} else {
 		l.fw - (tx - l.fx) - 20
 	}
-	app.gg.draw_text(tx, y + (if l.compact { 30 } else { 46 }), utf8_truncate(sub, text_fit_chars(max_px, 13)), gg.TextCfg{
+	app.gg.draw_text(tx, y + (if l.compact { 30 } else { 46 }), fit_text(mut app, sub, max_px, 13, false, false), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 13
 	})
@@ -965,7 +965,7 @@ fn draw_library_tabs(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId) {
 		ms := 1
 		my := ty + (th - m.height() * ms) / 2 - 1
 		sc.draw(m, pid, tx + 8, my, ms)
-		library_text(mut app, tx + 8 + m.width() * ms + 8, ty + 7, utf8_truncate(lb, text_fit_chars(tw - 40, 14)), 14, if active {
+		library_text(mut app, tx + 8 + m.width() * ms + 8, ty + 7, fit_text(mut app, lb, tw - 40, 14, active, false), 14, if active {
 			app.pnl_text
 		} else {
 			app.pnl_text_mut
@@ -999,7 +999,7 @@ fn draw_library_search(mut app GuiApp, l LibraryLayout, count int) {
 		else { 'Search MCP providers, e.g. "github", "slack"…' }
 	}
 	shown := if q == '' { hint } else { q }
-	library_text(mut app, sx + 30, sy + 8, utf8_truncate(shown, text_fit_chars(sw - 44, 13)), 13, if q == '' {
+	library_text(mut app, sx + 30, sy + 8, fit_text(mut app, shown, sw - 44, 13, false, false), 13, if q == '' {
 		app.pnl_text_mut
 	} else {
 		app.pnl_text
@@ -1085,9 +1085,9 @@ fn draw_library_grid(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId, it
 		sc.draw(item.mark, pid, mx + (48 - item.mark.width() * ms) / 2, my + (48 - item.mark.height() * ms) / 2, ms)
 		tx := cx + 70
 		tw := cw - 70 - 10
-		library_text(mut app, tx, cy + 9, truncate_with_ellipsis(item.name, text_fit_chars(tw, 14)), 14, app.pnl_text, true)
+		library_text(mut app, tx, cy + 9, fit_text(mut app, item.name, tw, 14, true, false), 14, app.pnl_text, true)
 		desc_lines := if ch >= 120 { 3 } else { 2 }
-		for li, ln in wrap_text_lines(item.desc, text_fit_chars(tw, 12), desc_lines) {
+		for li, ln in wrap_text_lines(item.desc, fit_chars(mut app, tw, 12, false, false), desc_lines) {
 			library_text(mut app, tx, cy + 28 + li * 14, ln, 12, app.pnl_text_mut, false)
 		}
 		// tags row; short cards fold the configuration fact into an accent tag
@@ -1126,7 +1126,7 @@ fn draw_library_grid(mut app GuiApp, l LibraryLayout, pid pixelart.PaletteId, it
 	} else {
 		'${items.len} shown · Enter runs · Enter again confirms removal'
 	}
-	library_text(mut app, l.fx + 14, l.fy + l.fh - 16, utf8_truncate(foot, text_fit_chars(l.fw - 40, 11)), 11, app.pnl_text_mut, false)
+	library_text(mut app, l.fx + 14, l.fy + l.fh - 16, fit_text(mut app, foot, l.fw - 40, 11, false, false), 11, app.pnl_text_mut, false)
 	if total_rows > l.rows && l.rows > 0 {
 		track_x := l.fx + l.fw - 8
 		bar_h := if l.grid_h * l.rows / total_rows < 16 {
@@ -1534,8 +1534,8 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 	sc.draw(d.mark, pid, px + 2 + (64 - d.mark.width() * ms) / 2, y + 18 + (64 - d.mark.height() * ms) / 2, ms)
 	tx := px + 80
 	tw := inner - 80
-	library_text(mut app, tx, y + 18, truncate_with_ellipsis(d.title, text_fit_chars(tw, 17)), 17, app.pnl_text, true)
-	app.gg.draw_text(tx, y + 40, truncate_with_ellipsis(d.sub, tw / 6), gg.TextCfg{
+	library_text(mut app, tx, y + 18, fit_text(mut app, d.title, tw, 17, true, false), 17, app.pnl_text, true)
+	app.gg.draw_text(tx, y + 40, fit_text(mut app, d.sub, tw, 11, false, true), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 11
 		mono: true
@@ -1551,7 +1551,7 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 	}
 	// description
 	mut dy := y + 92
-	for ln in wrap_text_lines(d.desc, text_fit_chars(inner, 12), 5) {
+	for ln in wrap_text_lines(d.desc, fit_chars(mut app, inner, 12, false, false), 5) {
 		library_text(mut app, px, dy, ln, 12, app.pnl_text, false)
 		dy += 14
 	}
@@ -1600,7 +1600,7 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 			tint(pc(app, `m`), 80)
 		})
 		app.gg.draw_rounded_rect_empty(sx, sy, sw, sh, 6, tint(pc(app, `W`), 90))
-		library_text(mut app, sx + (sw - lb.len * 7) / 2, sy + 10, utf8_truncate(lb, text_fit_chars(sw - 8, 12)), 12, app.pnl_text, false)
+		draw_centered_text(mut app, sx + sw / 2, sy + 10, sw - 8, lb, 12, app.pnl_text, false)
 	}
 	if d.fourth != '' {
 		fx4, fy4, fw4, fh4 := library_btn_rect(l, 3)
@@ -1630,7 +1630,7 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 				break
 			}
 			if d.inc_mono {
-				app.gg.draw_text(px + 6, fy, utf8_truncate(item, (inner - 6) / 6), gg.TextCfg{
+				app.gg.draw_text(px + 6, fy, fit_text(mut app, item, inner - 6, 11, false, true), gg.TextCfg{
 					color: app.pnl_text
 					size: 11
 					mono: true
@@ -1638,7 +1638,7 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 			} else {
 				app.gg.draw_rect_filled(px, fy + 1, 12, 12, tint(app.pnl_success, 60))
 				draw_check_glyph(mut app, px + 2, fy + 1, app.pnl_success)
-				library_text(mut app, px + 18, fy, utf8_truncate(item, text_fit_chars(inner - 18, 11)), 11, app.pnl_text, false)
+				library_text(mut app, px + 18, fy, fit_text(mut app, item, inner - 18, 11, false, false), 11, app.pnl_text, false)
 			}
 			fy += 15
 		}
@@ -1649,7 +1649,7 @@ fn draw_library_detail(mut app GuiApp, w int, h int) {
 	if fy + qh + 6 < bottom && d.quote != '' {
 		qy := fy + 4
 		app.gg.draw_rounded_rect_filled(px, qy, inner, qh, 6, tint(pc(app, `m`), 60))
-		app.gg.draw_text(px + 12, qy + 10, truncate_with_ellipsis(d.quote, text_fit_chars(inner - 52, 12)), gg.TextCfg{
+		app.gg.draw_text(px + 12, qy + 10, fit_text(mut app, d.quote, inner - 52, 12, false, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			family: app.fonts.display
@@ -1679,7 +1679,7 @@ fn draw_library_facts(mut app GuiApp, x int, y0 int, w int, title string, facts 
 		} else {
 			app.gg.draw_rect_filled(x + lw - 14, y + 7, 6, 1, app.pnl_text_mut)
 		}
-		per := if f.mono { (w - lw) / 6 } else { text_fit_chars(w - lw, 11) }
+		per := fit_chars(mut app, w - lw, 11, false, f.mono)
 		app.gg.draw_text(x + lw, y, utf8_truncate(f.value, per), gg.TextCfg{
 			color: app.pnl_text
 			size: 11

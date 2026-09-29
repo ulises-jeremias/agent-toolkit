@@ -489,9 +489,8 @@ fn draw_insights_metrics(mut app GuiApp, l InsightsLayout) {
 			size: if l.compact { 11 } else { 13 }
 			bold: true
 		})
-		// 11px Plex averages ~5.6px/char; text_fit_chars's 7px would clip real fits
 		if !l.compact {
-			app.gg.draw_text(tx, y + 56, utf8_truncate(c[2], (cw - (tx - x) - 8) / 6), gg.TextCfg{
+			app.gg.draw_text(tx, y + 56, fit_text(mut app, c[2], cw - (tx - x) - 8, 11, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -607,7 +606,7 @@ fn draw_insights_table(mut app GuiApp, l InsightsLayout, t InsightsTable) {
 				app.gg.draw_rect_filled(cx, ry + 7, 6, 6, insights_tone_color(app, r.tone))
 				tx += 10
 			}
-			app.gg.draw_text(tx, ry + 4, utf8_truncate(cell, text_fit_chars(next - tx - 6, 11)), gg.TextCfg{
+			app.gg.draw_text(tx, ry + 4, fit_text(mut app, cell, next - tx - 6, 11, false, false), gg.TextCfg{
 				color: if ci == 0 || ci == r.cells.len - 1 {
 					app.pnl_text
 				} else {
@@ -640,7 +639,7 @@ fn draw_insights_table(mut app GuiApp, l InsightsLayout, t InsightsTable) {
 		bold: true
 	})
 	if app.insights_export_msg != '' {
-		app.gg.draw_text(l.inner_x, bottom - 38, utf8_truncate(app.insights_export_msg, text_fit_chars(l.inner_w - 170, 10)), gg.TextCfg{
+		app.gg.draw_text(l.inner_x, bottom - 38, fit_text(mut app, app.insights_export_msg, l.inner_w - 170, 10, false, false), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
@@ -664,13 +663,15 @@ fn draw_centered_lines(mut app GuiApp, cx int, y int, per int, text string, size
 	if line != '' {
 		lines << line
 	}
-	adv := if size <= 11 { 6 } else { 7 }
 	mut yy := y
 	for i, ln in lines {
 		if i >= max_lines {
 			break
 		}
-		app.gg.draw_text(cx - ln.len * adv / 2, yy, ln, gg.TextCfg{
+		// measured centering — byte-length × fixed advance drifted
+		// off-center for narrow glyphs and multibyte text.
+		x := cx - int(measure_text(mut app, ln, size, false, false)) / 2
+		app.gg.draw_text(x, yy, ln, gg.TextCfg{
 			color: col
 			size: size
 		})
@@ -685,7 +686,7 @@ fn draw_centered_lines(mut app GuiApp, cx int, y int, per int, text string, size
 fn draw_insights_empty(mut app GuiApp, x int, y int, w int, h int, scene int, sentence string, hint string) {
 	cx := x + w / 2
 	if h < 90 {
-		draw_centered_lines(mut app, cx, y + 8, text_fit_chars(w, 12), sentence, 12, app.pnl_text_mut, 2)
+		draw_centered_lines(mut app, cx, y + 8, fit_chars(mut app, w, 12, false, false), sentence, 12, app.pnl_text_mut, 2)
 		// no hint drawn on the cramped path — no link either.
 		app.insights_link = OfficeNavLink{}
 		return
@@ -750,9 +751,9 @@ fn draw_insights_empty(mut app GuiApp, x int, y int, w int, h int, scene int, se
 		sc.draw(picture, pid, cx - picture.width(), ay + 12, 2)
 	}
 	app.gg.draw_rect_empty(ax, ay, art_w, art_h, tint(pc(app, `W`), 100))
-	ty := draw_centered_lines(mut app, cx, base + 18, text_fit_chars(w - 40, 12), sentence, 12, app.pnl_text, 2)
+	ty := draw_centered_lines(mut app, cx, base + 18, fit_chars(mut app, w - 40, 12, false, false), sentence, 12, app.pnl_text, 2)
 	if hint != '' {
-		draw_centered_lines(mut app, cx, ty + 4, text_fit_chars(w - 40, 11), hint, 11, app.pnl_text_mut, 1)
+		draw_centered_lines(mut app, cx, ty + 4, fit_chars(mut app, w - 40, 11, false, false), hint, 11, app.pnl_text_mut, 1)
 		// the hint is the affordance: a full-band link around its line so
 		// the empty state jumps where it points (same words, same target
 		// as the detail sentence).
@@ -946,7 +947,7 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 	} else if app.insights_sel >= 0 && app.insights_sel < t.rows.len {
 		r := t.rows[app.insights_sel]
 		paper_pill(mut app, ix + 16, y, r.kind, app.pnl_select)
-		app.gg.draw_text(ix + 16, y + 22, utf8_truncate(r.id, text_fit_chars(iw - 32, 13)), gg.TextCfg{
+		app.gg.draw_text(ix + 16, y + 22, fit_text(mut app, r.id, iw - 32, 13, true, true), gg.TextCfg{
 			color: app.pnl_text
 			size: 13
 			bold: true
@@ -955,7 +956,7 @@ fn draw_insights_detail(mut app GuiApp, w int, h int) {
 		y += 48
 		app.gg.draw_rect_filled(ix + 16, y - 6, iw - 32, 1, tint(pc(app, `W`), 90))
 		for f in r.fields {
-			long := f[1].len > text_fit_chars(iw - 32, 12)
+			long := measure_text(mut app, f[1], 12, false, false) > f32(iw - 32)
 			need := if long { 46 } else { 32 }
 			if y + need > quote_y - 8 {
 				app.gg.draw_text(ix + 16, y, '… more fields than fit', gg.TextCfg{

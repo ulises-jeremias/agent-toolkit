@@ -618,7 +618,9 @@ fn operations_metrics(mut app GuiApp) []OperationsMetric {
 	loops_sub := if loops.len == 0 {
 		'No loop templates found'
 	} else if scheduled == 0 {
-		'No loops scheduled · ${loops.len} on demand'
+		// the card owns one short line: the count carries the meaning,
+		// 'none scheduled' is what the number above already says.
+		'${loops.len} on demand'
 	} else {
 		'${loops.len - scheduled} on demand'
 	}
@@ -893,7 +895,7 @@ fn draw_operations_cards(mut app GuiApp, l OperationsLayout) {
 			bold: true
 		})
 		if ch >= 66 {
-			app.gg.draw_text(tx, cy + ch - 18, utf8_truncate(m.sub, text_fit_chars(cx + cw - tx - 8, 11)), gg.TextCfg{
+			app.gg.draw_text(tx, cy + ch - 18, fit_text(mut app, m.sub, cx + cw - tx - 8, 11, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -1296,11 +1298,7 @@ fn draw_operations_empty(mut app GuiApp, l OperationsLayout, total int) {
 		family: app.fonts.display
 	})
 	if ty + 40 < ey + eh {
-		cw := utf8_truncate(copy, text_fit_chars(ew - 24, 12))
-		app.gg.draw_text(ex + (ew - cw.len * 6) / 2, ty + 22, cw, gg.TextCfg{
-			color: app.pnl_text_mut
-			size: 12
-		})
+		draw_centered_text(mut app, ex + ew / 2, ty + 22, ew - 24, copy, 12, app.pnl_text_mut, false)
 	}
 	if hint != '' && ty + 58 < ey + eh {
 		// two centered lines on the natural comma break — a single
@@ -1309,12 +1307,7 @@ fn draw_operations_empty(mut app GuiApp, l OperationsLayout, total int) {
 		parts := hint.split(', or ')
 		if parts.len == 2 && ty + 74 < ey + eh {
 			for li, part in parts {
-				hw := utf8_truncate(part, text_fit_chars(ew - 24, 11))
-				app.gg.draw_text(ex + (ew - hw.len * 6) / 2, ty + 40 + li * 15, hw, gg.TextCfg{
-					color: app.pnl_success
-					size: 11
-					bold: true
-				})
+				draw_centered_text(mut app, ex + ew / 2, ty + 40 + li * 15, ew - 24, part, 11, app.pnl_success, true)
 			}
 			// each hint line jumps to its tab — but only for the known
 			// jobs hint (Swarms first, Loops second); any other two-line
@@ -1332,12 +1325,7 @@ fn draw_operations_empty(mut app GuiApp, l OperationsLayout, total int) {
 				}
 			}
 		} else {
-			hw := utf8_truncate(hint, text_fit_chars(ew - 24, 11))
-			app.gg.draw_text(ex + (ew - hw.len * 6) / 2, ty + 40, hw, gg.TextCfg{
-				color: app.pnl_success
-				size: 11
-				bold: true
-			})
+			draw_centered_text(mut app, ex + ew / 2, ty + 40, ew - 24, hint, 11, app.pnl_success, true)
 		}
 	}
 }
@@ -2338,7 +2326,7 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 	mark := pixelart.environment_for(operations_tab_marks[l.tab])
 	sc.draw(mark, pid, x + 16, y + 44, 3)
 	name_x := x + 16 + mark.width() * 3 + 12
-	app.gg.draw_text(name_x, y + 44, utf8_truncate(row.cells[0], text_fit_chars(x + iw - name_x - 12, 15)), gg.TextCfg{
+	app.gg.draw_text(name_x, y + 44, fit_text(mut app, row.cells[0], x + iw - name_x - 12, 15, true, false), gg.TextCfg{
 		color: app.pnl_text
 		size: 15
 		bold: true
@@ -2375,7 +2363,7 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 		if f[0] == 'Status' {
 			operations_draw_pill(mut app, vx, cy - 3, row.status, x + iw - vx - 14)
 		} else {
-			app.gg.draw_text(vx, cy, utf8_truncate(f[1], text_fit_chars(x + iw - vx - 12, 12)), gg.TextCfg{
+			app.gg.draw_text(vx, cy, fit_text(mut app, f[1], x + iw - vx - 12, 12, false, f[0] in ['ID', 'Command', 'Work dir', 'Worktree', 'Schedule', 'Budget']), gg.TextCfg{
 				color: app.pnl_text
 				size: 12
 				mono: f[0] in ['ID', 'Command', 'Work dir', 'Worktree', 'Schedule', 'Budget']

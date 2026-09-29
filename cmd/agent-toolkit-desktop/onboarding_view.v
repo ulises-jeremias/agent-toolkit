@@ -423,6 +423,128 @@ fn text_fit_chars(px int, size int) int {
 // text_fit_chars and draw_check_glyph live here as the single shared
 // definitions; rect_contains lives in operations_view.v and the paper surface
 // draw_paper_sheet lives in workspace_view.v.
+//
+// Measured fitting (measure_text/fit_chars/fit_text) is the replacement for
+// text_fit_chars' fixed-average heuristic: gg measures with the exact font
+// config a label draws with (set cfg BEFORE text_width — gg measures with
+// whatever cfg was last set), so budgets stop clipping real fits. Widths are
+// cached per size/bold/mono/zoom/text; the gg context is touched only on a
+// cache miss, and never when it is nil (headless/unit under &GuiApp{}).
+
+// est_adv is the old fixed-average advance, kept ONLY as the nil-gg fallback
+// (headless unit tests) and the zero-measurement guard. Production widths
+// always come from measure_text.
+fn est_adv(size int) int {
+	return if size <= 10 {
+		5
+	} else if size <= 13 {
+		7
+	} else {
+		8
+	}
+}
+
+// measure_key builds the text_measure_cache key. Zoom is embedded so a zoom
+// change can never reuse stale widths.
+fn measure_key(size int, bold bool, mono bool, zoom f64, s string) string {
+	return '${size}|${bold}|${mono}|${zoom}|${s}'
+}
+
+// measure_text returns the width in px of s drawn at size/bold/mono. Cache
+// first; gg second with the exact draw config set before measuring; fixed
+// average only when there is no gg context at all (unit tests).
+fn measure_text(mut app GuiApp, s string, size int, bold bool, mono bool) f32 {
+	if s == '' {
+		return 0
+	}
+	key := measure_key(size, bold, mono, app.global_zoom, s)
+	if key in app.text_measure_cache {
+		return app.text_measure_cache[key]
+	}
+	if app.gg == unsafe { nil } {
+		return f32(est_adv(size) * s.runes().len)
+	}
+	app.gg.set_text_cfg(gg.TextCfg{
+		size: size
+		bold: bold
+		mono: mono
+	})
+	w := app.gg.text_width_f(s)
+	if app.text_measure_cache.len > 6000 {
+		app.text_measure_cache.clear()
+	}
+	app.text_measure_cache[key] = w
+	return w
+}
+
+// measured_avg_adv returns the real mean rune advance of the UI font at
+// size/bold/mono from one cached measurement — robust across fonts, sizes,
+// languages and zoom where a fixed 5/7/8px advance is not.
+fn measured_avg_adv(mut app GuiApp, size int, bold bool, mono bool) f32 {
+	abc := 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .,—…'
+	w := measure_text(mut app, abc, size, bold, mono)
+	if w <= 0 {
+		return f32(est_adv(size))
+	}
+	return w / f32(abc.runes().len)
+}
+
+// fit_chars is the measured drop-in for text_fit_chars: how many runes fit
+// in px at size/bold/mono. Zero budget fits zero runes — callers must not
+// draw beyond their rect in narrow windows.
+fn fit_chars(mut app GuiApp, px int, size int, bold bool, mono bool) int {
+	if px <= 0 {
+		return 0
+	}
+	n := int(f32(px) / measured_avg_adv(mut app, size, bold, mono))
+	return if n < 1 { 1 } else { n }
+}
+
+// fit_text fits s into px on ONE line, returning s whole when it fits and a
+// rune-prefix plus '…' otherwise. The ellipsis is measured, not assumed.
+fn fit_text(mut app GuiApp, s string, px int, size int, bold bool, mono bool) string {
+	if s == '' || px <= 0 {
+		return ''
+	}
+	if measure_text(mut app, s, size, bold, mono) <= f32(px) {
+		return s
+	}
+	rs := s.runes()
+	ell := measure_text(mut app, '…', size, bold, mono)
+	budget := f32(px) - ell
+	if budget <= 0 {
+		return ''
+	}
+	// Estimate from the measured average, then adjust by measuring: shrink
+	// while over budget, grow while the next rune still fits. Each step is
+	// one cached measurement, so the common case costs ~2 lookups.
+	mut n := int(budget / measured_avg_adv(mut app, size, bold, mono))
+	if n < 1 {
+		n = 1
+	}
+	if n > rs.len {
+		n = rs.len
+	}
+	for n > 1 && measure_text(mut app, rs[..n].string(), size, bold, mono) > budget {
+		n--
+	}
+	for n < rs.len && measure_text(mut app, rs[..n + 1].string(), size, bold, mono) <= budget {
+		n++
+	}
+	return rs[..n].string() + '…'
+}
+
+// draw_centered_text fits s into w then draws it centered on cx: one measured
+// pass, never byte-length centering, never drawing past the rect.
+fn draw_centered_text(mut app GuiApp, cx int, y int, w int, s string, size int, col gg.Color, bold bool) {
+	fitted := fit_text(mut app, s, w, size, bold, false)
+	x := cx - int(measure_text(mut app, fitted, size, bold, false)) / 2
+	app.gg.draw_text(x, y, fitted, gg.TextCfg{
+		color: col
+		size:  size
+		bold:  bold
+	})
+}
 
 // ── truth helpers ───────────────────────────────────────────────────────────
 
@@ -582,7 +704,7 @@ fn draw_onboarding_sheet_title(mut app GuiApp, l OnboardingLayout, sec int, titl
 		family: app.fonts.display
 	})
 	if sub != '' && sw > 300 {
-		app.gg.draw_text(sx + 14, sy + 28, utf8_truncate(sub, text_fit_chars(sw - 130, 11)), gg.TextCfg{
+		app.gg.draw_text(sx + 14, sy + 28, fit_text(mut app, sub, sw - 130, 11, false, false), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 		})
@@ -726,7 +848,7 @@ fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 		// Identity first: the name owns the full row width so short
 		// product names ('Claude Code') never truncate to stubs; the
 		// status pill lives on the detail line.
-		app.gg.draw_text(name_x, cy + 12, utf8_truncate(t.display_name, text_fit_chars(cw - (mk + 26) - 8, 14)), gg.TextCfg{
+		app.gg.draw_text(name_x, cy + 12, fit_text(mut app, t.display_name, cw - (mk + 26) - 8, 14, true, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 14
 			bold: true
@@ -741,7 +863,7 @@ fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 		// line at all — the ~6-char budget on these narrow cards clips any
 		// guidance mid-word ('Not on'), so the section speaks once, below.
 		if t.found {
-			app.gg.draw_text(name_x, cy + 32, utf8_truncate(t.resolved_path, text_fit_chars(cw - mk - 30 - pw, 11)), gg.TextCfg{
+			app.gg.draw_text(name_x, cy + 32, fit_text(mut app, t.resolved_path, cw - mk - 30 - pw, 11, false, true), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 				mono: true
@@ -754,7 +876,7 @@ fn draw_onboarding_tools(mut app GuiApp, l OnboardingLayout) {
 		if cat.len - found > 0 {
 			// no in-flow install exists for external binaries: the one
 			// honest pointer, left-aligned where the eye lands first.
-			app.gg.draw_text(sx1 + 14, sy1 + sh1 - 15, utf8_truncate('Missing tools install outside, then Rescan', text_fit_chars(sw1 - 28, 10)), gg.TextCfg{
+			app.gg.draw_text(sx1 + 14, sy1 + sh1 - 15, fit_text(mut app, 'Missing tools install outside, then Rescan', sw1 - 28, 10, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
 			})
@@ -835,13 +957,13 @@ fn draw_onboarding_capabilities(mut app GuiApp, l OnboardingLayout) {
 		if on {
 			draw_check_glyph(mut app, cx + 14 + box / 2 - 4, cy + (ch - box) / 2 + box / 2 - 3, app.pnl_bg)
 		}
-		app.gg.draw_text(cx + 46, cy + ch / 2 - 15, utf8_truncate(name, text_fit_chars(cw - 60, 13)), gg.TextCfg{
+		app.gg.draw_text(cx + 46, cy + ch / 2 - 15, fit_text(mut app, name, cw - 60, 13, true, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 13
 			bold: true
 		})
 		if ch >= 34 {
-			app.gg.draw_text(cx + 46, cy + ch / 2 + 1, utf8_truncate(onboarding_cap_fact(mut app, i), text_fit_chars(cw - 60, 11)), gg.TextCfg{
+			app.gg.draw_text(cx + 46, cy + ch / 2 + 1, fit_text(mut app, onboarding_cap_fact(mut app, i), cw - 60, 11, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -891,7 +1013,7 @@ fn draw_onboarding_review(mut app GuiApp, l OnboardingLayout, st desktop_engine.
 			color: app.pnl_text_mut
 			size: 12
 		})
-		app.gg.draw_text(rx + 96, ry, utf8_truncate(r[1], text_fit_chars(col_w - 96, 12)), gg.TextCfg{
+		app.gg.draw_text(rx + 96, ry, fit_text(mut app, r[1], col_w - 96, 12, false, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 		})
@@ -993,14 +1115,14 @@ fn draw_onboarding_footer(mut app GuiApp, l OnboardingLayout, st desktop_engine.
 	} else {
 		'step ${app.onboarding_step + 1} of ${onboarding_stages.len} · ${st.pending_items.len} pending'
 	}
-	app.gg.draw_text(l.fx + 130, l.foot_y + 8, utf8_truncate(msg, text_fit_chars(l.fw - 380, 11)), gg.TextCfg{
+	app.gg.draw_text(l.fx + 130, l.foot_y + 8, fit_text(mut app, msg, l.fw - 380, 11, false, false), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 11
 	})
 }
 
 fn draw_wrapped_text(mut app GuiApp, x int, y int, w int, s string, max_lines int) {
-	per := text_fit_chars(w, 12)
+	per := fit_chars(mut app, w, 12, false, false)
 	words := s.split(' ')
 	mut line := ''
 	mut ln := 0
