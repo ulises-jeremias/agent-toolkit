@@ -5,6 +5,12 @@
   "description": "Agent Toolkit Desktop — Electron + React workstation over the `agent-toolkit serve` backend",
   "author": "ulises-jeremias",
   "license": "MIT",
+  "homepage": "https://github.com/ulises-jeremias/agent-toolkit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ulises-jeremias/agent-toolkit.git",
+    "directory": "apps/desktop"
+  },
   "engines": {
     "node": ">=22.22.0",
     "pnpm": ">=10.0.0"
