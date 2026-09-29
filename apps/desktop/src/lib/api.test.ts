@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ApiError, parseJobStreamEvent, toEnvelope } from './api';
+import { ApiError, namedJobStreamEvent, parseJobStreamEvent, toEnvelope } from './api';
 
 describe('toEnvelope', () => {
   it('recovers data spread at the top level (V result_to_http shape)', () => {
@@ -41,6 +41,18 @@ describe('parseJobStreamEvent', () => {
   it('marks malformed JSON as unknown', () => {
     const event = parseJobStreamEvent('{oops');
     expect(event.type).toBe('unknown');
+  });
+});
+
+describe('namedJobStreamEvent', () => {
+  it('maps V named SSE events (server emits event: status/log/done, never onmessage)', () => {
+    expect(namedJobStreamEvent('status', 'running')).toEqual({ type: 'status', status: 'running' });
+    expect(namedJobStreamEvent('log', 'agent-toolkit 1.35.0')).toEqual({
+      type: 'log',
+      line: 'agent-toolkit 1.35.0',
+    });
+    expect(namedJobStreamEvent('done', 'completed')).toEqual({ type: 'done', exitCode: 0 });
+    expect(namedJobStreamEvent('done', 'failed')).toEqual({ type: 'done', exitCode: 1 });
   });
 });
 

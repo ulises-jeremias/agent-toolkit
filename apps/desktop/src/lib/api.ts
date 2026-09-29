@@ -227,7 +227,12 @@ export class ApiClient {
     return response.text();
   }
 
-  /** Subscribe to a job's SSE stream; resolves when the stream closes. */
+  /**
+   * Subscribe to a job's SSE stream; resolves when the stream closes.
+   *
+   * The V server emits *named* SSE events (`status`, `log`, `done`), which
+   * never reach `EventSource.onmessage` — they require explicit listeners.
+   */
   subscribeJobEvents(id: string, onEvent: (event: JobStreamEvent) => void, signal: AbortSignal): Promise<void> {
     const source = new EventSource(`${this.baseUrl}/api/v1/jobs/${encodeURIComponent(id)}/events`);
     return new Promise<void>((resolve) => {
@@ -237,6 +242,15 @@ export class ApiClient {
         resolve();
       };
       signal.addEventListener('abort', done);
+      const named = (type: 'status' | 'log' | 'done') => (message: Event) => {
+        onEvent(namedJobStreamEvent(type, (message as MessageEvent<string>).data ?? ''));
+        if (type === 'done') done();
+      };
+      source.addEventListener('status', named('status'));
+      source.addEventListener('log', named('log'));
+      source.addEventListener('done', named('done'));
+      // Unnamed frames are not part of the V contract; keep a fallback parse
+      // so a future unnamed frame still surfaces instead of vanishing.
       source.onmessage = (message: MessageEvent<string>) => {
         onEvent(parseJobStreamEvent(message.data));
       };
@@ -253,6 +267,22 @@ export type JobStreamEvent =
   | { type: 'log'; line: string }
   | { type: 'done'; exitCode: number }
   | { type: 'unknown'; raw: string };
+
+/**
+ * Map a named SSE event from the V jobs stream to a typed client event.
+ *
+ * Server contract (`GET /api/v1/jobs/:id/events`): `status` carries the job
+ * status word, `log` carries one raw output line, `done` carries the terminal
+ * status word. The stream carries no numeric exit code — `done` reports 0
+ * for `completed` and 1 otherwise; the authoritative exit code arrives via
+ * the `jobs` query refetch the caller performs on `done`.
+ */
+export function namedJobStreamEvent(type: 'status' | 'log' | 'done', data: string): JobStreamEvent {
+  if (type === 'status') return { type: 'status', status: data.trim() };
+  if (type === 'log') return { type: 'log', line: data };
+  if (type === 'done') return { type: 'done', exitCode: data.trim() === 'completed' ? 0 : 1 };
+  return { type: 'unknown', raw: `${type}:${data}` };
+}
 
 export function parseJobStreamEvent(data: string): JobStreamEvent {
   const trimmed = data.trim();
