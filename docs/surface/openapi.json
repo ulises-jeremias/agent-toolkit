@@ -524,6 +524,32 @@
         }
       }
     },
+    "/api/v1/jobs/{id}/cancel": {
+      "post": {
+        "operationId": "cancel_job",
+        "summary": "Server-native endpoint (cancel_job)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "delete": {
+        "operationId": "delete_job",
+        "summary": "Server-native endpoint (delete_job)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/doctor/fix": {
       "post": {
         "operationId": "doctor_fix",

@@ -83,6 +83,11 @@ export interface JobCreateRequest {
   workspace?: string;
 }
 
+export interface JobDeleteResponse {
+  ok: boolean;
+  message: string;
+}
+
 export interface DenyError {
   ok: false;
   error: string;
@@ -227,6 +232,17 @@ export class ApiClient {
 
   jobsCreate(req: JobCreateRequest): Promise<Job> {
     return this.request<Job>('/api/v1/jobs', { method: 'POST', body: JSON.stringify(req) });
+  }
+
+  jobsCancel(id: string): Promise<Job> {
+    return this.request<Job>(`/api/v1/jobs/${encodeURIComponent(id)}/cancel`, { method: 'POST' });
+  }
+
+  jobsDelete(id: string, force = false): Promise<JobDeleteResponse> {
+    const suffix = force ? '?force=true' : '';
+    return this.request<JobDeleteResponse>(`/api/v1/jobs/${encodeURIComponent(id)}${suffix}`, {
+      method: 'DELETE',
+    });
   }
 
   async jobsLog(id: string): Promise<string> {

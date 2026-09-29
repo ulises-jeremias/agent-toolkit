@@ -10,8 +10,8 @@ import { MutationResult, errorMessage } from '../shared';
 /**
  * Operations — what work is running and how can I control it?
  * Jobs are created against the real backend; live output arrives over SSE and
- * reconciles with the TanStack Query jobs cache. The server exposes no
- * cancel/delete endpoint, so none is offered.
+ * reconciles with the TanStack Query jobs cache. Running jobs can be
+ * canceled (child process terminated); finished jobs can be deleted.
  */
 export default function Operations() {
   const { client } = useBackend();
@@ -165,6 +165,30 @@ function JobDetail({ job, onClose }: { job: Job; onClose: () => void }) {
     refetchInterval: job.status === 'running' || job.status === 'queued' ? 2_000 : false,
   });
 
+  const cancel = useMutation({
+    mutationFn: async () => {
+      if (!client) throw new Error('backend not connected');
+      return client.jobsCancel(job.id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.jobs });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.jobLog(job.id) });
+    },
+  });
+
+  const remove = useMutation({
+    mutationFn: async (force: boolean) => {
+      if (!client) throw new Error('backend not connected');
+      return client.jobsDelete(job.id, force);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.jobs });
+      onClose();
+    },
+  });
+  const mutationError =
+    cancel.error instanceof Error ? cancel.error : remove.error instanceof Error ? remove.error : undefined;
+
   // Subscribe once per active job: depending on `job.status` directly would
   // tear down and reopen the EventSource on every queued->running
   // transition, duplicating replayed log lines into liveLines.
@@ -191,15 +215,31 @@ function JobDetail({ job, onClose }: { job: Job; onClose: () => void }) {
     return () => controller.abort();
   }, [client, job.id, isActive, queryClient]);
 
+  const handleDelete = () => {
+    if (isActive && !window.confirm(`Delete running job ${job.id}? The child process is terminated first.`)) return;
+    remove.mutate(isActive);
+  };
+
   return (
     <Panel
       title={`Job ${job.id}`}
       actions={
-        <button type="button" className={styles.button} onClick={onClose}>
-          Close
-        </button>
+        <>
+          {isActive && (
+            <button type="button" className={styles.button} onClick={() => cancel.mutate()} disabled={cancel.isPending}>
+              {cancel.isPending ? 'Canceling…' : 'Cancel'}
+            </button>
+          )}
+          <button type="button" className={styles.button} onClick={handleDelete} disabled={remove.isPending}>
+            {remove.isPending ? 'Deleting…' : 'Delete'}
+          </button>
+          <button type="button" className={styles.button} onClick={onClose}>
+            Close
+          </button>
+        </>
       }
     >
+      <MutationResult error={mutationError} />
       <p>
         <StatusDot status={job.status === 'completed' ? 'ok' : job.status === 'failed' ? 'err' : 'warn'} />{' '}
         {liveStatus ?? job.status} · <span className={styles.mono}>{[job.cmd, ...job.args.slice(1)].join(' ')}</span>

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { ApiError, namedJobStreamEvent, parseJobStreamEvent, toEnvelope } from './api';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ApiClient, ApiError, namedJobStreamEvent, parseJobStreamEvent, toEnvelope } from './api';
 import { normalizeLoopback } from './query';
 
 describe('toEnvelope', () => {
@@ -83,5 +83,58 @@ describe('ApiError', () => {
     expect(error.kind).toBe('not-found');
     expect(error.status).toBe(404);
     expect(error.message).toBe('missing');
+  });
+});
+
+describe('ApiClient job lifecycle', () => {
+  const calls: Array<{ url: string; init?: RequestInit }> = [];
+  const stubFetch = (body: unknown, status = 200) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        calls.push({ url, init });
+        return {
+          ok: status >= 200 && status < 300,
+          status,
+          json: async () => body,
+        } as Response;
+      }),
+    );
+  };
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    calls.length = 0;
+  });
+
+  it('jobsCancel POSTs to the cancel route with the desktop header', async () => {
+    stubFetch({ id: 'job_x', status: 'canceled' });
+    const job = await new ApiClient('http://127.0.0.1:9').jobsCancel('job_x');
+    expect(job.status).toBe('canceled');
+    expect(calls).toHaveLength(1);
+    const [first] = calls;
+    expect(first?.url).toBe('http://127.0.0.1:9/api/v1/jobs/job_x/cancel');
+    expect(first?.init?.method).toBe('POST');
+    expect((first?.init?.headers as Record<string, string>)['x-atk-desktop']).toBe('1');
+  });
+
+  it('jobsDelete sends DELETE, adding ?force=true only when forced', async () => {
+    stubFetch({ ok: true, message: 'deleted job_x' });
+    const client = new ApiClient('http://127.0.0.1:9');
+    await client.jobsDelete('job_x');
+    await client.jobsDelete('job_y', true);
+    expect(calls.map((call) => call.url)).toEqual([
+      'http://127.0.0.1:9/api/v1/jobs/job_x',
+      'http://127.0.0.1:9/api/v1/jobs/job_y?force=true',
+    ]);
+    expect(calls.every((call) => call.init?.method === 'DELETE')).toBe(true);
+  });
+
+  it('maps 409 from cancel to a conflict error', async () => {
+    stubFetch({ ok: false, error: 'job already completed: job_x' }, 409);
+    await expect(new ApiClient('http://127.0.0.1:9').jobsCancel('job_x')).rejects.toMatchObject({
+      kind: 'conflict',
+      status: 409,
+    });
   });
 });
