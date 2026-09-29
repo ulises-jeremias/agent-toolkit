@@ -6604,12 +6604,6 @@ fn draw_palette(mut app GuiApp, w int, h int) {
 fn draw_help(mut app GuiApp, w int, h int) {
 	z := app.global_zoom
 	app.gg.draw_rect_filled(0, 0, w, h, tint(app.pnl_text, 80))
-	cx := w / 2 - 310
-	cy := h / 2 - 210
-	pw := 620
-	ph := 420
-	pixel_panel(mut app, cx, cy, pw, ph, 'default')
-	app.gg.draw_text(cx + 16, cy + 12, 'Paper Co. — Shortcuts', gg.TextCfg{ color: app.pnl_text, size: scaled_size(14, z), bold: true })
 	// every binding in on_event (plus the onboarding/library/operations key
 	// helpers it dispatches to) is listed here — no behavior changes.
 	lines := [
@@ -6630,11 +6624,41 @@ fn draw_help(mut app GuiApp, w int, h int) {
 		'Office floor: arrows move • M map • click a desk • Enter opens it',
 		'Agent screen: typing goes to the agent • Esc back to list',
 	]
+	// Size the card to its content: width follows the longest measured
+	// binding line, height follows the fixed line block plus stamps.
+	mut maxw := measure_text(mut app, 'Paper Co. — Shortcuts', scaled_size(14, z), true, false)
+	for l in lines {
+		lw := measure_text(mut app, l, scaled_size(12, z), false, false)
+		if lw > maxw {
+			maxw = lw
+		}
+	}
+	mut pw := int(maxw) + 48
+	if pw < 480 {
+		pw = 480
+	}
+	if pw > w - 80 {
+		pw = w - 80
+	}
+	// 36 top + 16 lines × 17 + 12 gap + two stamps + 22 bottom margin.
+	ph := 350
+	cx := w / 2 - pw / 2
+	cy := h / 2 - ph / 2
+	pixel_panel(mut app, cx, cy, pw, ph, 'default')
+	app.gg.draw_text(cx + 16, cy + 12, 'Paper Co. — Shortcuts', gg.TextCfg{ color: app.pnl_text, size: scaled_size(14, z), bold: true })
 	for i, l in lines {
-		app.gg.draw_text(cx + 16, cy + 36 + i * 17, l, gg.TextCfg{ color: app.pnl_text, size: scaled_size(12, z) })
+		app.gg.draw_text(cx + 16, cy + 36 + i * 17, fit_text(mut app, l, pw - 32, scaled_size(12, z), false, false), gg.TextCfg{
+			color: app.pnl_text
+			size: scaled_size(12, z)
+		})
 	}
 	// about stamp — version + live catalog counts, single source of truth.
-	app.gg.draw_text(cx + 16, cy + ph - 42, 'v${app.version_full} • ${skills_total(mut app)} skills · ${agents_active_total(mut app)} agents · ${mcp_total(mut app)} providers · ${targets_total(mut app)} targets · ${products_total(mut app)} products', gg.TextCfg{ color: app.pnl_border_hi, size: scaled_size(11, z), bold: true })
+	stamp := 'v${app.version_full} • ${skills_total(mut app)} skills · ${agents_active_total(mut app)} agents · ${mcp_total(mut app)} providers · ${targets_total(mut app)} targets · ${products_total(mut app)} products'
+	app.gg.draw_text(cx + 16, cy + ph - 42, fit_text(mut app, stamp, pw - 32, scaled_size(11, z), true, false), gg.TextCfg{
+		color: app.pnl_border_hi
+		size: scaled_size(11, z)
+		bold: true
+	})
 	app.gg.draw_text(cx + 16, cy + ph - 22, 'Fraunces display • IBM Plex body • IBM Plex Mono  •  Press H or Esc to close.', gg.TextCfg{ color: app.pnl_text_mut, size: scaled_size(11, z) })
 }
 

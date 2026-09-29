@@ -665,3 +665,17 @@ fn test_office_roster_live_matches_attributed_runs() {
 	_, ok4 := office_roster_live('implementer', [])
 	assert !ok4
 }
+
+fn test_office_attention_zero_state_names_its_scope() {
+	mut app := GuiApp{}
+	quiet := office_metrics(mut app, 0, 18, 0)
+	assert quiet[0].label == 'Needs attention'
+	assert quiet[0].value == 0
+	// the zero-state names failed + queued jobs only: doctor advisories
+	// are not urgency, so the card never reads as 'all clear'
+	assert quiet[0].sub == 'no failed or queued jobs'
+	assert !quiet[0].alert
+	busy := office_metrics(mut app, 2, 18, 1)
+	assert busy[0].sub == 'see Operations'
+	assert busy[0].alert
+}
