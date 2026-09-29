@@ -28,7 +28,7 @@ Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
 
 ## Live verification (2026-09-29, backend 1.35.0 @ 19f87ad + branch V fixes)
 
-- `pnpm lint`, `pnpm type-check`, `pnpm test` (15/15), `pnpm build:all` green.
+- `pnpm lint`, `pnpm type-check`, `pnpm test` (16/16), `pnpm build:all` green.
 - V: `v test modules/agent_toolkit_server/` 4/4 with pinned V c0e47bf
   (includes new `test_is_first_party_mutation`).
 - Playwright smoke 3/3 against a live backend: navigation, all destinations,
@@ -44,6 +44,29 @@ Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
 - Screenshots (packaged artifact, CDP capture): [office](assets/electron/office.png),
   [operations job loop](assets/electron/operations-job.png),
   [live terminal](assets/electron/terminal-live.png).
+- Named SSE events proven live in the packaged app: `status=running` →
+  `status=completed` → `log` lines → `done=completed` delivered to named
+  `EventSource` listeners for a real job.
+- Backend crash/restart proven in the packaged app: `SIGKILL` on the
+  supervised child flips the bridge to `crashed` with signal detail, the UI
+  shows a "Backend crashed … Restart backend" banner plus per-panel Retry,
+  and clicking Restart relaunches a fresh backend (`restarts` increments,
+  new dynamic port, status returns to `ready`, UI recovers, no restart loop).
+
+## Packaging rule: rebuild the backend before `dist`
+
+`stage-backend` copies `dist/agent-toolkit` verbatim. A packaged artifact
+built from a stale binary silently ships old server behavior (observed: an
+AppImage whose bundled backend predated the `X-Atk-Desktop` gate rejected
+every first-party job POST with 403). Always rebuild first:
+
+```sh
+VMODULES=$PWD/modules v -prod -cc gcc -d "commit=$(git rev-parse --short HEAD)" \
+  -o dist/agent-toolkit cmd/agent-toolkit
+```
+
+then `pnpm --filter agent-toolkit-desktop dist`. CI (`desktop.yml`) builds the
+backend from source on every run, so release artifacts never go stale there.
 
 ## Backend strengthening backlog (land in V, never in TS workarounds)
 
@@ -66,6 +89,13 @@ Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
   of command responses (no nested `data`); the TS client normalizes via
   `toEnvelope` (tested in `api.test.ts`). OpenAPI still describes the
   top-level shape — a future backend pass should document it per-endpoint.
+- **Named SSE subscription**: the V jobs stream emits named events
+  (`event: status/log/done`), which never reach `EventSource.onmessage` —
+  the client's "Live output" was silently dead and masked by 2s log
+  polling. `subscribeJobEvents` now registers named listeners via
+  `namedJobStreamEvent` (tested in `api.test.ts`); the `done` exit code is
+  0 for `completed`, 1 otherwise, with the authoritative code arriving via
+  the `jobs` refetch on `done`.
 
 ## Native GUI retirement checklist (only after verified replacement)
 
