@@ -73,8 +73,13 @@ const version_probe_timeout_ms = 3000
 
 // resolve_tool_binary resolves an executable on this session's PATH, falling
 // back to the static well-known bins (GUI-launcher minimal PATH, see
-// wellknown_bin_dirs). '' when neither sees it.
+// wellknown_bin_dirs). '' when neither sees it. Under ATK_GUI_FREEZE (golden
+// captures) no lookup runs at all: the frozen session is a bare machine, so
+// local and CI captures agree byte-for-byte on tool rows.
 fn resolve_tool_binary(name string, home string) string {
+	if os.getenv('ATK_GUI_FREEZE') != '' {
+		return ''
+	}
 	found := os.find_abs_path_of_executable(name) or { '' }
 	if found != '' {
 		return found
@@ -150,6 +155,11 @@ pub fn tool_probe(id string) ToolProbe {
 }
 
 fn (mut p ToolProbe) add_config_if_exists(path string) {
+	// frozen sessions report no configuration sentinels either — same bare
+	// machine as the binary lookup above.
+	if os.getenv('ATK_GUI_FREEZE') != '' {
+		return
+	}
 	if os.exists(path) {
 		p.config_paths << path
 	}
