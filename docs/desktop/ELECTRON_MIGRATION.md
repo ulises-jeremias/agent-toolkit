@@ -98,6 +98,32 @@ backend from source on every run, so release artifacts never go stale there.
   0 for `completed`, 1 otherwise, with the authoritative code arriving via
   the `jobs` refetch on `done`.
 
+## Native GUI functional coverage audit (2026-09-29)
+
+`agent-toolkit serve` imports only `agent_toolkit_core` — no route handler
+touches `modules/desktop/` facades or `modules/desktop_engine/`. The native
+GUI (`cmd/agent-toolkit-desktop`, gg/sokol) renders typed engine views that
+have no `serve` equivalent. Coverage per area:
+
+| Native capability | serve route | Electron status |
+|---|---|---|
+| Office state (backend health, selfcheck, jobs) | `health`, `selfcheck`, `jobs` | Covered; "needs attention" derived client-side from these three |
+| Office swarm/loop liveness, approvals, completions, budget | no typed route (only `swarms/:sub`, `loops/:sub` CLI proxies) | **Gap**: native `office_*` facade rules live neither in `serve` nor Electron; retirement blocker |
+| Jobs (spawn, list, log, stream) | `POST/GET /api/v1/jobs`, `:id/log`, `:id/events` | Fully covered, verified live |
+| Swarm run control + task views (graph, queue, handoffs, budgets, artifacts) | `swarms/:sub` CLI proxy only — no typed views | **Gap**: not surfaced in Electron; retirement blocker |
+| Loop audit / cost / receipts / validate / schedule state | `loops/:sub` CLI proxy only — no typed views | **Gap**: not surfaced in Electron; retirement blocker |
+| Workspace authoring guard | `workspace/:sub` proxy | Covered via POST actions |
+| Library installs, skills/MCP/plugins | `install`, `update`, `uninstall`, `skills/:sub`, `mcp/:sub`, `plugin/:sub` | Covered |
+| Terminals | n/a (node-pty adapter in Electron main) | Covered, verified live |
+
+Before native retirement, the typed `desktop_engine` views the UI needs
+(swarm/task state, loop audit/cost/receipts) must move down into
+core/server as typed `serve` routes — never reimplemented as TS domain
+logic or CLI-output parsing. The Electron app follows the same rule the
+native facades document: omit what the backend cannot prove rather than
+drawing dead buttons (no pause/steer/halt, no job cancel/delete, no
+scheduler-install claims).
+
 ## Native GUI retirement checklist (only after verified replacement)
 
 - [ ] Electron is installable from a packaged artifact on Linux (blocker)
