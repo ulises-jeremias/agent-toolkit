@@ -13,6 +13,10 @@ extraResources:
     to: bin
     filter:
       - '**/*'
+  # Staged backend version pin (written by `pnpm stage:backend`, which the
+  # dist scripts always run first). Lets the app detect a stale bundle.
+  - from: resources/backend-version.json
+    to: backend-version.json
 directories:
   output: release
   buildResources: build
