@@ -30,6 +30,19 @@ jobs:
           node-version-file: '.node-version'
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+        with:
+          v_zip: v_linux.zip
+      - name: Build V backend for packaging
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          "${VBIN}" -prod -cc gcc -d "commit=$(git rev-parse --short HEAD)" \
+            -o dist/agent-toolkit cmd/agent-toolkit
+          ./dist/agent-toolkit --version
       - run: pnpm --filter agent-toolkit-desktop gen:api
       - run: git diff --exit-code -- apps/desktop/src/lib/api-schema.d.ts
       - run: pnpm --filter agent-toolkit-desktop lint
