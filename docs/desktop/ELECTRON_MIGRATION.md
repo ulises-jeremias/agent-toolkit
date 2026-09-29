@@ -131,3 +131,7 @@ scheduler-install claims).
 - [ ] Remove native GUI from packaging/release paths (keep V domain code)
 - [ ] Update ARCHITECTURE.md + ADRs; remove Electron-forbidden statements
 - [ ] v2.0.0 (or version per history) published; public artifact re-tested
+- [ ] `release.yml`: replace/extend the native `build-desktop` matrix (sokol
+  `agent-toolkit-desktop` binaries) with electron-builder artifacts
+  (Linux AppImage/deb blocker; macOS/Windows when verified), built from a
+  freshly compiled `dist/agent-toolkit` per the packaging rule above
