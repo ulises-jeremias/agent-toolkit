@@ -49,6 +49,13 @@ Regenerate after changing the contract:
   plus a bearer token (`--auth-token` or `AGENT_TOOLKIT_TOKEN`).
 - Scopes derive from capability effects (`read:*`, `write:*`); destructive
   operations are flagged `x-confirm-required` in OpenAPI.
+- Browser CSRF guard: mutating routes on a loopback bind reject
+  `Sec-Fetch-Site: cross-site` requests. First-party non-browser clients
+  (Electron Desktop over `file://`, which Chromium always flags cross-site)
+  send `X-Atk-Desktop: 1` instead. Browsers cannot send that header
+  cross-origin without a CORS preflight the server never answers (no
+  `Access-Control-Allow-Origin` is emitted), and non-loopback `Origin` values
+  stay rejected — so browser pages must remain same-origin.
 - See [security/threat-model-serve.md](security/threat-model-serve.md).
 
 ## Parity semantics

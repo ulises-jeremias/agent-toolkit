@@ -40,6 +40,19 @@ fn test_origin_host() {
 	assert origin_host('https://EXAMPLE.COM') == 'example.com'
 }
 
+fn test_is_first_party_mutation() {
+	// Non-cross-site mutations are unaffected.
+	assert is_first_party_mutation('', '') == true
+	assert is_first_party_mutation('same-origin', '') == true
+	assert is_first_party_mutation('same-origin', '1') == true
+	// Cross-site browser pages stay forbidden without the first-party mark.
+	assert is_first_party_mutation('cross-site', '') == false
+	assert is_first_party_mutation('cross-site', '0') == false
+	assert is_first_party_mutation('cross-site', 'true') == false
+	// First-party non-browser clients (Electron Desktop) pass with the mark.
+	assert is_first_party_mutation('cross-site', '1') == true
+}
+
 fn test_is_loopback_extended() {
 	assert is_loopback('127.0.0.1') == true
 	assert is_loopback('localhost') == true

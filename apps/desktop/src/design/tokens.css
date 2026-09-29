@@ -1,0 +1,97 @@
+/**
+ * Paper Co. semantic tokens — warm editorial workstation.
+ * Design reference: docs/desktop/assets/design/ (office.jpg, concept-board.jpg).
+ * Ink on paper; manila for secondary surfaces; brass for accents that earn it.
+ */
+
+:root {
+  --paper: #f3ead3;
+  --paper-raised: #faf5e6;
+  --paper-sunken: #e9ddc0;
+  --manila: #e4cf9f;
+  --manila-deep: #d3b981;
+  --ink: #2b2417;
+  --ink-soft: #5c5138;
+  --ink-faint: #8a7c5c;
+  --brass: #a97e2f;
+  --brass-bright: #c79a3b;
+  --brass-deep: #7d5c1e;
+  --oxblood: #7c2e22;
+  --moss: #4f6b3a;
+  --slate-blue: #3d5a73;
+  --terminal-bg: #1d1a12;
+  --terminal-ink: #ecdfc0;
+  --terminal-brass: #d9a83f;
+  --line: #c9b98d;
+  --line-strong: #a89568;
+  --danger: #a33224;
+  --ok: #4f6b3a;
+  --warn: #a97e2f;
+
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-body: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --font-mono: 'Berkeley Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-8: 3rem;
+
+  --radius-1: 3px;
+  --radius-2: 6px;
+  --radius-3: 10px;
+
+  --shadow-card: 0 1px 0 rgba(43, 36, 23, 0.25), 0 6px 18px rgba(43, 36, 23, 0.12);
+  --shadow-drawer: 0 12px 40px rgba(43, 36, 23, 0.3);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  margin: 0 0 var(--space-3);
+}
+
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brass-deep);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

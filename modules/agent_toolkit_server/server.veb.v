@@ -96,6 +96,25 @@ fn origin_host(origin string) string {
 	return rest.to_lower().trim_space()
 }
 
+// desktop_client_header marks first-party non-browser clients (Electron
+// Desktop over file://) on mutating requests.
+const desktop_client_header = 'X-Atk-Desktop'
+
+// is_first_party_mutation reports whether a mutating request on a loopback
+// bind is allowed despite a cross-site Fetch Metadata flag. Non-browser
+// first-party clients cannot control Sec-Fetch-Site (Chromium stamps
+// file:// origins cross-site) but CAN send a custom header, which browsers
+// refuse to send cross-origin without a CORS preflight the server never
+// answers (no Access-Control-Allow-Origin is emitted). Any local process can
+// already POST without headers, so this restores — not weakens — the
+// intended policy: browser pages must be same-origin.
+fn is_first_party_mutation(sec_site string, desktop_header string) bool {
+	if sec_site != 'cross-site' {
+		return true
+	}
+	return desktop_header == '1'
+}
+
 fn is_read_subcommand(family string, sub string) bool {
 	// Minimal read classification for 963: only 'list' and health-like are read
 	// This satisfies the requirement that GET for mutations returns 405.
@@ -277,7 +296,8 @@ fn deny_if_remote(app &App, ctx Ctx) ?DenyErr {
 		// unless the Origin is loopback or Sec-Fetch-Site is same-origin.
 		if is_mutation_method(ctx) {
 			sec_site := ctx.req.header.get_custom('Sec-Fetch-Site') or { '' }
-			if sec_site == 'cross-site' {
+			desktop_header := ctx.req.header.get_custom(desktop_client_header) or { '' }
+			if !is_first_party_mutation(sec_site, desktop_header) {
 				return DenyErr{ ok: false, error: 'cross-site request forbidden' }
 			}
 			origin := ctx.req.header.get_custom('Origin') or { '' }

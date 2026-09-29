@@ -1,0 +1,61 @@
+name: desktop
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - 'docs/surface/openapi.json'
+      - '.github/workflows/desktop.yml'
+      # The gates build the V backend for packaging and check the TS
+      # client against it: backend changes must retrigger this workflow.
+      - 'modules/agent_toolkit_server/**'
+      - 'modules/agent_toolkit_core/**'
+      - 'cmd/agent-toolkit/**'
+  pull_request:
+    paths:
+      - 'apps/desktop/**'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - 'docs/surface/openapi.json'
+      - '.github/workflows/desktop.yml'
+      - 'modules/agent_toolkit_server/**'
+      - 'modules/agent_toolkit_core/**'
+      - 'cmd/agent-toolkit/**'
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Setup pinned V
+        uses: ./.github/actions/setup-v
+        with:
+          v_zip: v_linux.zip
+      - name: Build V backend for packaging
+        env:
+          VMODULES: ${{ github.workspace }}/modules
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          "${VBIN}" -prod -cc gcc -d "commit=$(git rev-parse --short HEAD)" \
+            -o dist/agent-toolkit cmd/agent-toolkit
+          ./dist/agent-toolkit --version
+      - run: pnpm --filter agent-toolkit-desktop gen:api
+      - run: git diff --exit-code -- apps/desktop/src/lib/api-schema.d.ts
+      - run: pnpm --filter agent-toolkit-desktop lint
+      - run: pnpm --filter agent-toolkit-desktop type-check
+      - run: pnpm --filter agent-toolkit-desktop test
+      - run: pnpm --filter agent-toolkit-desktop build:all
+      - run: pnpm --filter agent-toolkit-desktop exec playwright install chromium --with-deps
+      - run: pnpm --filter agent-toolkit-desktop dist:dir

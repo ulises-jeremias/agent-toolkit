@@ -1,0 +1,11 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# Declarative build approvals (non-interactive, CI-safe).
+# electron: downloads the platform binary in postinstall.
+# node-pty: compiles the native PTY module (terminal transport).
+onlyBuiltDependencies:
+  - electron
+  - node-pty
+  - unrs-resolver
