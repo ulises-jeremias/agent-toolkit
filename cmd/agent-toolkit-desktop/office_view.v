@@ -161,7 +161,7 @@ fn draw_office_cards(mut app GuiApp, l OfficeLayout, metrics []OfficeMetric) {
 			bold: true
 		})
 		if ch >= 66 {
-			app.gg.draw_text(tx, cy + ch - 18, utf8_truncate(m.sub, text_fit_chars(cx + cw - tx - 8, 11)), gg.TextCfg{
+			app.gg.draw_text(tx, cy + ch - 18, fit_text(mut app, m.sub, cx + cw - tx - 8, 11, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 11
 			})
@@ -254,13 +254,13 @@ fn draw_office_roster(mut app GuiApp, l OfficeLayout, agents []desktop_engine.Ag
 		// every spare pixel without ever sliding under the pill.
 		pill_chars := if live { live_state.label().len } else { 4 }
 		budget := w - 44 - (pill_chars * 6 + 12 + 10) - 8
-		app.gg.draw_text(x + 44, ry + 1, utf8_truncate(agent_entry.id, text_fit_chars(budget, 12)), gg.TextCfg{
+		app.gg.draw_text(x + 44, ry + 1, fit_text(mut app, agent_entry.id, budget, 12, true, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			bold: true
 		})
 		role := if agent_entry.role == '' { agent_entry.tier } else { agent_entry.role }
-		app.gg.draw_text(x + 44, ry + 16, utf8_truncate(role, text_fit_chars(w - 60, 10)), gg.TextCfg{
+		app.gg.draw_text(x + 44, ry + 16, fit_text(mut app, role, w - 60, 10, false, false), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
@@ -887,7 +887,7 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 				app.gg.draw_rect_filled(rx - 2, ryy - 2, rw + 4, office_run_row_h + 2, tint(app.pnl_select, 60))
 			}
 			office_draw_state_pill(mut app, rx, ryy + 1, row.state, 96)
-			title := utf8_truncate(row.title, text_fit_chars(rx + rw - rx - 108, 12))
+			title := fit_text(mut app, row.title, rw - 108, 12, row.attention, false)
 			app.gg.draw_text(rx + 108, ryy + 1, title, gg.TextCfg{
 				color: app.pnl_text
 				size: 12
@@ -897,7 +897,7 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 			if row.approval_id != '' {
 				sub = 'approval ${row.approval_id} · ' + sub
 			}
-			app.gg.draw_text(rx + 108, ryy + 15, utf8_truncate(sub, text_fit_chars(rx + rw - rx - 108, 10)), gg.TextCfg{
+			app.gg.draw_text(rx + 108, ryy + 15, fit_text(mut app, sub, rw - 108, 10, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
 			})
@@ -928,12 +928,12 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 		for i in 0 .. al.appr_cap {
 			item := snap.approvals[i]
 			_, ayy, _, _ := office_appr_rect(l, al.appr_y, i)
-			line := utf8_truncate('${item.kind} · ${item.run_title}', text_fit_chars(tw, 11))
+			line := fit_text(mut app, '${item.kind} · ${item.run_title}', tw, 11, false, false)
 			app.gg.draw_text(x + 16, ayy, line, gg.TextCfg{
 				color: app.pnl_text
 				size: 11
 			})
-			msg := utf8_truncate(item.message, text_fit_chars(tw, 10))
+			msg := fit_text(mut app, item.message, tw, 10, false, false)
 			app.gg.draw_text(x + 16, ayy + 18, msg, gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
@@ -962,7 +962,7 @@ fn draw_office_attention(mut app GuiApp, l OfficeLayout, y0 int, h int, snap Off
 			for i in 0 .. al.comp_cap {
 				c := snap.completions[i]
 				_, cy, _, _ := office_comp_rect(l, al.comp_y, i)
-				line := utf8_truncate('${c.title} · ${c.detail}', text_fit_chars(w - 28, 11))
+				line := fit_text(mut app, '${c.title} · ${c.detail}', w - 28, 11, false, false)
 				app.gg.draw_text(x + 16, cy, line, gg.TextCfg{
 					color: app.pnl_text_mut
 					size: 11

@@ -226,7 +226,7 @@ fn destination_header(mut app GuiApp, fx int, fy int, fw int, head_h int, mark p
 	stamp, clock := local_stamp()
 	clock_w := if fw > 560 { 96 } else { 0 }
 	if big {
-		app.gg.draw_text(tx + 2, fy + 38, utf8_truncate(subtitle, text_fit_chars(fw - (tx - fx) - clock_w - 24, 12)), gg.TextCfg{
+		app.gg.draw_text(tx + 2, fy + 38, fit_text(mut app, subtitle, fw - (tx - fx) - clock_w - 24, 12, false, false), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 12
 		})
@@ -369,7 +369,7 @@ fn draw_workspace_hero(mut app GuiApp, l WorkspaceLayout) {
 	if app.workspace_focus {
 		app.gg.draw_rect_empty(l.field_x + 1, l.field_y + 1, l.field_w - 2, 26, field_bd)
 	}
-	max_chars := (l.field_w - 16) / 7
+	max_chars := fit_chars(mut app, l.field_w - 16, 12, false, true)
 	path_label := workspace_path_label(app.workspace_draft, if max_chars < 12 {
 		12
 	} else {
@@ -381,7 +381,7 @@ fn draw_workspace_hero(mut app GuiApp, l WorkspaceLayout) {
 		mono: true
 	})
 	if app.workspace_focus && app.frame % 30 < 15 {
-		cursor_x := l.field_x + 8 + path_label.len * 7
+		cursor_x := l.field_x + 8 + int(measure_text(mut app, path_label, 12, false, true))
 		if cursor_x < l.field_x + l.field_w - 4 {
 			app.gg.draw_rect_filled(cursor_x, l.field_y + 6, 2, 16, app.pnl_success)
 		}
@@ -397,7 +397,7 @@ fn draw_workspace_hero(mut app GuiApp, l WorkspaceLayout) {
 	if app.workspace_notice != '' {
 		bad := app.workspace_notice.contains('error') || app.workspace_notice.contains('Could not')
 			|| app.workspace_notice.contains('failed')
-		app.gg.draw_text(l.field_x, l.field_y + 34, utf8_truncate(app.workspace_notice, text_fit_chars(l.field_w + 180, 11)), gg.TextCfg{
+		app.gg.draw_text(l.field_x, l.field_y + 34, fit_text(mut app, app.workspace_notice, l.field_w + 180, 11, false, false), gg.TextCfg{
 			color: if bad { app.pnl_danger } else { app.pnl_text_mut }
 			size: 11
 		})
@@ -596,7 +596,7 @@ fn draw_workspace_known_card(mut app GuiApp, x int, y int, w int, h int, k deskt
 		bold: true
 	})
 	paper_pill(mut app, x + w - pill_w - 8, y + 7, label, tone)
-	app.gg.draw_text(x + 40, y + 25, utf8_truncate(k.path, text_fit_chars(w - 48, 10)), gg.TextCfg{
+	app.gg.draw_text(x + 40, y + 25, fit_text(mut app, k.path, w - 48, 10, false, true), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 		mono: true
@@ -783,7 +783,7 @@ fn draw_workspace_detail_seed(mut app GuiApp, x int, d WorkspaceDetailLayout) {
 			size: 11
 			bold: true
 		})
-		app.gg.draw_text(x + 16, d.seed_y + 34, utf8_truncate(warns[0], text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
+		app.gg.draw_text(x + 16, d.seed_y + 34, fit_text(mut app, warns[0], d.iw - 32, 10, false, true), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 			mono: true
@@ -798,14 +798,14 @@ fn draw_workspace_detail_editor(mut app GuiApp, x int, d WorkspaceDetailLayout) 
 	if app.editor_tabs.len > 0 && app.active_tab >= 0 && app.active_tab < app.editor_tabs.len {
 		t := app.editor_tabs[app.active_tab]
 		kind := if t.syntax == 'json' && t.path.contains('mcp') { 'MCP template' } else { t.syntax }
-		app.gg.draw_text(x + 16, d.editor_y + 20, utf8_truncate(t.title, text_fit_chars(d.iw - 120, 12)), gg.TextCfg{
+		app.gg.draw_text(x + 16, d.editor_y + 20, fit_text(mut app, t.title, d.iw - 120, 12, true, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 12
 			bold: true
 		})
 		paper_pill(mut app, x + d.iw - 16 - (kind.len * 6 + 18), d.editor_y + 18, kind, app.pnl_select)
 		dirty := if t.dirty { ' · unsaved changes' } else { '' }
-		app.gg.draw_text(x + 16, d.editor_y + 35, utf8_truncate(t.path + dirty, text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
+		app.gg.draw_text(x + 16, d.editor_y + 35, fit_text(mut app, t.path + dirty, d.iw - 32, 10, false, true), gg.TextCfg{
 			color: if t.dirty { app.pnl_select } else { app.pnl_text_mut }
 			size: 10
 			mono: true
@@ -851,7 +851,7 @@ fn draw_workspace_detail_git(mut app GuiApp, x int, d WorkspaceDetailLayout) {
 		// beside the review rails so parallel checkouts are never hidden
 		known := app.desktop.engine_known_workspaces()
 		wt := workspace_worktrees_line(known.len)
-		app.gg.draw_text(x + 16, d.git_y + 36, utf8_truncate(wt, text_fit_chars(d.iw - 32, 10)), gg.TextCfg{
+		app.gg.draw_text(x + 16, d.git_y + 36, fit_text(mut app, wt, d.iw - 32, 10, false, true), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 			mono: true
@@ -961,7 +961,7 @@ fn workspace_sheet_title(mut app GuiApp, x int, y int, title string) {
 // workspace_empty_copy renders product copy (12px) with the technical detail as a
 // second muted line (11px) — never implementation-speak as the headline.
 fn workspace_empty_copy(mut app GuiApp, x int, y int, w int, head string, detail string) {
-	app.gg.draw_text(x, y, utf8_truncate(head, text_fit_chars(w, 12)), gg.TextCfg{
+	app.gg.draw_text(x, y, fit_text(mut app, head, w, 12, false, false), gg.TextCfg{
 		color: app.pnl_text
 		size: 12
 	})
@@ -1187,7 +1187,7 @@ fn draw_editor_panel(mut app GuiApp, x int, y int, w int, h int) {
 	} else {
 		'saved'
 	}
-	app.gg.draw_text(x + 12, y + h - 16, utf8_truncate('${active.syntax} · ${lines.len} lines · ${state}', text_fit_chars(w - 24, 10)), gg.TextCfg{
+	app.gg.draw_text(x + 12, y + h - 16, fit_text(mut app, '${active.syntax} · ${lines.len} lines · ${state}', w - 24, 10, false, true), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 		mono: true
@@ -1412,12 +1412,12 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 				app.pnl_danger
 			}
 			app.gg.draw_rect_filled(x + 10, ry + 4, 6, 6, dot)
-			app.gg.draw_text(x + 22, ry, '${utf8_truncate(r.owner, text_fit_chars(w - 90, 11))} · ${git_worktree_state(r)}', gg.TextCfg{
+			app.gg.draw_text(x + 22, ry, '${fit_text(mut app, r.owner, w - 90, 11, false, true)} · ${git_worktree_state(r)}', gg.TextCfg{
 				color: app.pnl_text
 				size: 11
 				mono: true
 			})
-			app.gg.draw_text(x + 22, ry + 15, utf8_truncate(r.path, text_fit_chars(w - 34, 9)), gg.TextCfg{
+			app.gg.draw_text(x + 22, ry + 15, fit_text(mut app, r.path, w - 34, 9, false, true), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 9
 				mono: true
@@ -1576,7 +1576,7 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 	} else {
 		'${entries.len} memories recorded'
 	}
-	app.gg.draw_text(x + 14, y + 48, utf8_truncate(line, text_fit_chars(w - 28, 11)), gg.TextCfg{
+	app.gg.draw_text(x + 14, y + 48, fit_text(mut app, line, w - 28, 11, false, false), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 11
 	})

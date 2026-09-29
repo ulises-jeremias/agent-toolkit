@@ -1124,6 +1124,12 @@ mut:
 	library_cache         []LibraryItem
 	library_cache_key     string
 	library_cache_frame   int = -1
+	// text_measure_cache maps measure_key(size/bold/mono/zoom/text) → width
+	// in px from gg.text_width_f. Keys embed zoom so a zoom change can never
+	// reuse stale widths; the map is capped inside measure_text. Views must
+	// fit labels from this cache (measure_text/fit_text) instead of
+	// fixed-average heuristics that clip real fits or overflow budgets.
+	text_measure_cache  map[string]f32
 	targets_hover     int = -1
 	onboarding_scroll int
 	// setup journey: user-facing choices; Engine keeps the truth
@@ -3125,18 +3131,24 @@ fn draw_floor_legend(mut app GuiApp, x int, y int) {
 }
 
 fn workspace_path_label(path string, max_len int) string {
-	if path == '' {
-		return 'Choose workspace'
-	}
-	home := os.home_dir()
-	mut label := path
-	if home != '' && path.starts_with(home) {
-		label = '~' + path[home.len..]
-	}
+	label := workspace_path_short(path)
 	if label.len > max_len {
 		return '...' + label[label.len - max_len + 3..]
 	}
 	return label
+}
+
+// workspace_path_short shortens home to ~ without any width budget —
+// callers fit with fit_text at the drawn (possibly zoom-scaled) size.
+fn workspace_path_short(path string) string {
+	if path == '' {
+		return 'Choose workspace'
+	}
+	home := os.home_dir()
+	if home != '' && path.starts_with(home) {
+		return '~' + path[home.len..]
+	}
+	return path
 }
 
 struct HeaderLayout {
@@ -3323,7 +3335,7 @@ fn draw_header(mut app GuiApp, w int) {
 		size: scaled_size(9, z)
 		bold: true
 	})
-	app.gg.draw_text(l.workspace_x + 8, l.control_y + 17, workspace_path_label(app.harness_root, text_fit_chars(l.workspace_w - 28, 10)), gg.TextCfg{
+	app.gg.draw_text(l.workspace_x + 8, l.control_y + 17, fit_text(mut app, workspace_path_short(app.harness_root), l.workspace_w - 28, scaled_size(10, z), false, true), gg.TextCfg{
 		color: if app.workspace_focus { col_paper } else { app.pnl_text }
 		size: scaled_size(10, z)
 		mono: true
@@ -3346,7 +3358,7 @@ fn draw_header(mut app GuiApp, w int) {
 	app.gg.draw_rect_filled(l.search_x, l.control_y, l.search_w, l.control_h, search_bg)
 	app.gg.draw_rect_empty(l.search_x, l.control_y, l.search_w, l.control_h, search_bd)
 	draw_search_lens(mut app, l.search_x + 9, l.control_y + 11)
-	app.gg.draw_text(l.search_x + 25, l.control_y + 10, utf8_truncate(search_txt, text_fit_chars(l.search_w - 48, 11)), gg.TextCfg{
+	app.gg.draw_text(l.search_x + 25, l.control_y + 10, fit_text(mut app, search_txt, l.search_w - 48, scaled_size(11, z), false, false), gg.TextCfg{
 		color: if app.global_search == '' { col_ink_soft } else { col_ink }
 		size: scaled_size(11, z)
 		family: if app.global_search == '' { family_for(app, search_txt) } else { '' }

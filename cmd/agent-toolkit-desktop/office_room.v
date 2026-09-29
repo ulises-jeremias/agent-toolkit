@@ -371,12 +371,9 @@ fn draw_office_room(mut app GuiApp, x int, y int, w int, h int, desks []Desk, at
 		// at the row pitch (which drifts against the next row when the
 		// rows breathe apart on tall floors)
 		// clipped to the desk footprint: long catalog ids used to run into
-		// the neighbouring pod's label
-		max_chars := (dw + 2) / 6
-		mut lbl := desks[i].label
-		if max_chars > 1 && lbl.len > max_chars {
-			lbl = lbl[..max_chars - 1] + '…'
-		}
+		// the neighbouring pod's label. Measured mono fit — byte slicing
+		// both broke multibyte ids and clipped real fits.
+		lbl := fit_text(mut app, desks[i].label, dw + 2, 10, false, true)
 		app.gg.draw_text(cx, chair_y + chh + 4, lbl, gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10

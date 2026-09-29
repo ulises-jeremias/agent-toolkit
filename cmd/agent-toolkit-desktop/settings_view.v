@@ -243,11 +243,11 @@ fn draw_settings(mut app GuiApp, w int, h int) {
 		size: 11
 		bold: true
 	})
-	app.gg.draw_text(l.prefs_x + 14, l.setup_y + 52, utf8_truncate(if app.harness_root == '' {
+	app.gg.draw_text(l.prefs_x + 14, l.setup_y + 52, fit_text(mut app, if app.harness_root == '' {
 		'No active workspace selected'
 	} else {
 		app.harness_root
-	}, text_fit_chars(l.prefs_w - 32, 10)), gg.TextCfg{
+	}, l.prefs_w - 32, 10, false, true), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 		mono: true
