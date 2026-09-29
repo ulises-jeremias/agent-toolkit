@@ -23,6 +23,7 @@ export interface PtySessionInfo {
   id: string;
   agent: string;
   cmd: string;
+  args: string[];
   cwd: string;
   cols: number;
   rows: number;

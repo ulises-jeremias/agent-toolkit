@@ -9,6 +9,10 @@ describe('TerminalService', () => {
     try {
       const session = service.create({ agent: 'test', cmd: '/bin/echo', args: ['hello-pty'] });
       expect(session.exitCode).toBeNull();
+      // Spawn identity is preserved for faithful restart and display.
+      expect(session.cmd).toBe('/bin/echo');
+      expect(session.args).toEqual(['hello-pty']);
+      expect(service.list()[0]).toMatchObject({ cmd: '/bin/echo', args: ['hello-pty'] });
 
       const output = await new Promise<string>((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('no pty output within 10s')), 10_000);

@@ -16,6 +16,8 @@ export interface TerminalSessionInfo {
   id: string;
   agent: string;
   cmd: string;
+  /** argv used at spawn (cmd excluded); exposed so restart reproduces the session. */
+  args: string[];
   cwd: string;
   cols: number;
   rows: number;
@@ -76,7 +78,8 @@ export class TerminalService {
     const session: Session = {
       id,
       agent: options.agent,
-      cmd: [options.cmd, ...(options.args ?? [])].join(' '),
+      cmd: options.cmd,
+      args: options.args ?? [],
       cwd,
       cols,
       rows,

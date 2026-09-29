@@ -33,7 +33,8 @@ export default function TerminalView() {
       setActiveId((current) => current ?? list[0]?.id ?? null);
       setLoading(false);
     });
-    const offData = bridge.onPtyData(() => {});
+    // Output reaches xterm via each TerminalPane's own onPtyData subscription
+    // below; no view-level listener is needed here.
     const offExit = bridge.onPtyExit(() => {
       void bridge.ptyList().then((list) => {
         if (!cancelled) setSessions(list);
@@ -41,7 +42,6 @@ export default function TerminalView() {
     });
     return () => {
       cancelled = true;
-      offData();
       offExit();
     };
   }, [bridge]);
@@ -88,7 +88,8 @@ export default function TerminalView() {
     setSessions((list) => list.filter((item) => item.id !== session.id));
     const created = await bridge.ptyCreate({
       agent: session.agent,
-      cmd: session.cmd.split(' ')[0] ?? session.cmd,
+      cmd: session.cmd,
+      args: session.args,
       cwd: session.cwd,
       cols: session.cols,
       rows: session.rows,
@@ -281,12 +282,13 @@ function TerminalPane({
   }, [search]);
 
   const exited = exitCode !== null;
+  const commandLine = [session.cmd, ...session.args].join(' ');
 
   return (
     <div className={styles.chrome}>
       <div className={styles.chromeBar}>
-        <span className={styles.chromeTitle} title={session.cmd}>
-          {session.agent} · {session.cmd} · {session.cwd}
+        <span className={styles.chromeTitle} title={commandLine}>
+          {session.agent} · {commandLine} · {session.cwd}
         </span>
         {exited && (
           <span role="status">

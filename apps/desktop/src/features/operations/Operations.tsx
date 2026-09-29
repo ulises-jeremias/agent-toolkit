@@ -68,7 +68,9 @@ export default function Operations() {
                   </td>
                   <td className={styles.mono}>{[job.cmd, ...job.args.slice(1)].join(' ')}</td>
                   <td className={styles.mono}>{job.started_at}</td>
-                  <td className={styles.mono}>{job.exit_code}</td>
+                  <td className={styles.mono}>
+                    {job.status === 'completed' || job.status === 'failed' ? job.exit_code : '—'}
+                  </td>
                 </tr>
               ))}
             </tbody>
