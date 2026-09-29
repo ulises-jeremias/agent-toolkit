@@ -788,7 +788,7 @@ fn office_draw_state_pill(mut app GuiApp, x int, y int, s desktop.OfficeRunState
 	app.gg.draw_rect_filled(x, y, pw, 18, tint(col, 42))
 	app.gg.draw_rect_empty(x, y, pw, 18, tint(col, 140))
 	app.gg.draw_rect_filled(x + 6, y + 6, 6, 6, col)
-	app.gg.draw_text(x + 16, y + 3, utf8_truncate(label, (pw - 18) / 7), gg.TextCfg{
+	app.gg.draw_text(x + 16, y + 3, fit_text(mut app, label, pw - 18, 11, true, false), gg.TextCfg{
 		color: if app.appearance_dark { app.pnl_text } else { mix(col, app.pnl_text, 0.45) }
 		size: 11
 		bold: true

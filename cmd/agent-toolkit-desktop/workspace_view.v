@@ -589,8 +589,7 @@ fn draw_workspace_known_card(mut app GuiApp, x int, y int, w int, h int, k deskt
 	leaf := k.path.all_after_last('/')
 	label, tone := workspace_known_state(app, k)
 	pill_w := label.len * 6 + 18
-	name_max := (w - 44 - pill_w - 16) / 7
-	app.gg.draw_text(x + 40, y + 7, utf8_truncate(leaf, if name_max < 6 { 6 } else { name_max }), gg.TextCfg{
+	app.gg.draw_text(x + 40, y + 7, fit_text(mut app, leaf, w - 44 - pill_w - 16, 13, true, false), gg.TextCfg{
 		color: app.pnl_text
 		size: 13
 		bold: true
@@ -602,7 +601,7 @@ fn draw_workspace_known_card(mut app GuiApp, x int, y int, w int, h int, k deskt
 		mono: true
 	})
 	why := if k.has_projects { '${k.why} · has projects' } else { k.why }
-	app.gg.draw_text(x + 40, y + 39, utf8_truncate(why, (w - 48) / 6), gg.TextCfg{
+	app.gg.draw_text(x + 40, y + 39, fit_text(mut app, why, w - 48, 10, false, false), gg.TextCfg{
 		color: app.pnl_text_mut
 		size: 10
 	})
@@ -1067,8 +1066,7 @@ fn draw_file_tree_panel(mut app GuiApp, x int, y int, w int, h int) {
 			app.gg.draw_rect_empty(x + 21 + indent, ry + 4, 7, 9, tint(pc(app, `W`), 120))
 		}
 		name_col := if sel || n.kind == 'dir' { app.pnl_text } else { app.pnl_text_mut }
-		max_chars := (w - 34 - indent - 16) / 7
-		lbl := utf8_truncate(n.name, if max_chars < 4 { 4 } else { max_chars })
+		lbl := fit_text(mut app, n.name, w - 34 - indent - 16, 12, false, n.kind == 'file')
 		app.gg.draw_text(x + 34 + indent, ry + 3, lbl, gg.TextCfg{
 			color: name_col
 			size: 12
@@ -1262,12 +1260,12 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 				else { app.pnl_text_mut }
 			}
 			app.gg.draw_rect_filled(x + 10, ry + 6, 7, 7, status_col)
-			app.gg.draw_text(x + 22, ry + 2, utf8_truncate(c.path.all_after_last('/'), (w - 90) / 7), gg.TextCfg{
+			app.gg.draw_text(x + 22, ry + 2, fit_text(mut app, c.path.all_after_last('/'), w - 90, 12, false, true), gg.TextCfg{
 				color: app.pnl_text
 				size: 12
 				mono: true
 			})
-			app.gg.draw_text(x + 22, ry + 12, utf8_truncate(c.path, (w - 40) / 6), gg.TextCfg{
+			app.gg.draw_text(x + 22, ry + 12, fit_text(mut app, c.path, w - 40, 9, false, true), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 9
 				mono: true
@@ -1336,16 +1334,16 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 				size: 11
 				mono: true
 			})
-			app.gg.draw_text(x + 44, ry + 11, utf8_truncate(c.message, (w - 100) / 6), gg.TextCfg{
+			app.gg.draw_text(x + 44, ry + 11, fit_text(mut app, c.message, w - 100, 10, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
 			})
-			app.gg.draw_text(x + w - 52, ry + 1, utf8_truncate(c.author, 7), gg.TextCfg{
+			app.gg.draw_text(x + w - 52, ry + 1, fit_text(mut app, c.author, 44, 10, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
 			})
 			if c.refs.len > 0 {
-				app.gg.draw_text(x + w - 52, ry + 11, utf8_truncate(c.refs[0], 7), gg.TextCfg{
+				app.gg.draw_text(x + w - 52, ry + 11, fit_text(mut app, c.refs[0], 44, 10, false, false), gg.TextCfg{
 					color: app.pnl_success
 					size: 10
 				})
@@ -1473,7 +1471,7 @@ fn draw_git_rails_panel(mut app GuiApp, x int, y int, w int, h int, tab_w int) {
 		for idx in app.diff_scroll .. end_i {
 			row := idx - app.diff_scroll
 			is_file := flat_text[idx].starts_with('— ')
-			app.gg.draw_text(if is_file { x + 10 } else { x + 14 }, y0 + 14 + row * row_h, utf8_truncate(flat_text[idx], (w - 28) / 6), gg.TextCfg{
+			app.gg.draw_text(if is_file { x + 10 } else { x + 14 }, y0 + 14 + row * row_h, fit_text(mut app, flat_text[idx], w - 28, 11, false, true), gg.TextCfg{
 				color: flat_col[idx]
 				size: 11
 				mono: true
@@ -1556,11 +1554,11 @@ fn draw_memory_palace_panel(mut app GuiApp, x int, y int, w int, h int) {
 				size: 11
 				bold: pct > 70
 			})
-			app.gg.draw_text(x + 50, ry + 2, utf8_truncate(r.entry.title, 40), gg.TextCfg{
+			app.gg.draw_text(x + 50, ry + 2, fit_text(mut app, r.entry.title, 40 * 7, 11, false, false), gg.TextCfg{
 				color: app.pnl_text
 				size: 11
 			})
-			app.gg.draw_text(x + 50 + 40 * 7, ry + 3, utf8_truncate(r.snippet, (w - 50 - 40 * 7 - 20) / 6), gg.TextCfg{
+			app.gg.draw_text(x + 50 + 40 * 7, ry + 3, fit_text(mut app, r.snippet, w - 50 - 40 * 7 - 20, 10, false, false), gg.TextCfg{
 				color: app.pnl_text_mut
 				size: 10
 			})
