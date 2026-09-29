@@ -116,7 +116,10 @@ fn office_metrics(mut app GuiApp, attention int, agents int, running int) []Offi
 			}
 		}
 	}
-	att_sub := if attention == 0 { 'nothing to fix' } else { 'see Operations' }
+	// attention counts failed + queued jobs only — doctor advisories are not
+	// urgency. The zero-state names its scope so it never reads as 'all
+	// clear' next to the Doctor count.
+	att_sub := if attention == 0 { 'no failed or queued jobs' } else { 'see Operations' }
 	ag_sub := if running == 0 { 'none running' } else { '${running} running' }
 	lp_sub := if loops_sched == 0 { 'none scheduled' } else { 'cron enabled' }
 	// MCP: the GUI only knows health for providers it has probed (60s cache);
