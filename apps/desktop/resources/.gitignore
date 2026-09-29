@@ -1,0 +1,2 @@
+# Staged V backend binary (populated by `pnpm stage:backend`, never committed).
+bin/

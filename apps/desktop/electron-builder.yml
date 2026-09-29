@@ -1,0 +1,32 @@
+appId: com.agent-toolkit.desktop
+productName: Agent Toolkit
+copyright: Copyright © ulises-jeremias
+asar: true
+files:
+  - dist/**/*
+  - dist-electron/**/*
+  - package.json
+extraResources:
+  # Bundled V backend: release automation places the platform binary at
+  # resources/bin/agent-toolkit(.exe). Electron falls back to PATH in dev.
+  - from: resources/bin
+    to: bin
+    filter:
+      - '**/*'
+directories:
+  output: release
+  buildResources: build
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Development
+  maintainer: ulises-jeremias
+mac:
+  target:
+    - dmg
+  category: public.app-category.developer-tools
+win:
+  target:
+    - nsis
+publish: null

@@ -1,0 +1,38 @@
+name: desktop
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/desktop/**'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - 'docs/surface/openapi.json'
+      - '.github/workflows/desktop.yml'
+  pull_request:
+    paths:
+      - 'apps/desktop/**'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - 'docs/surface/openapi.json'
+      - '.github/workflows/desktop.yml'
+
+jobs:
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter agent-toolkit-desktop gen:api
+      - run: git diff --exit-code -- apps/desktop/src/lib/api-schema.d.ts
+      - run: pnpm --filter agent-toolkit-desktop lint
+      - run: pnpm --filter agent-toolkit-desktop type-check
+      - run: pnpm --filter agent-toolkit-desktop test
+      - run: pnpm --filter agent-toolkit-desktop build:all
+      - run: pnpm --filter agent-toolkit-desktop exec playwright install chromium --with-deps
+      - run: pnpm --filter agent-toolkit-desktop dist:dir

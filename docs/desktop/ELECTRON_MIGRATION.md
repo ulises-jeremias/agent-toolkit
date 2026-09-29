@@ -1,0 +1,76 @@
+# Electron migration — rollback, status, and parity ledger
+
+Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
+[DESIGN.md](DESIGN.md). Template foundation: Create Awesome Node App
+`react-vite-starter` (React 19, Vite 8, TS 6, ESLint + jsx-a11y + Prettier).
+
+## Rollback (proven 2026-09-29, branch `feat/electron-desktop` base)
+
+- Tag `v1.35.0` (`bd8e28c`) has an **empty tree diff** against `origin/main`
+  (`19f87adb`, merge of PR #1308): `git diff --stat v1.35.0..origin/main`
+  reports no changes, so the tag exactly preserves the native Desktop sources.
+- `gh release view v1.35.0` is final with all 10 native desktop artifacts plus
+  manifest/SBOM/SHA256.
+- **Rollback = check out `v1.35.0` / reinstall its assets. No new tag needed;
+  existing tags are never moved or rewritten.**
+
+## Architecture (this branch)
+
+- `apps/desktop/` — Electron + React workstation; one canonical
+  `pnpm-lock.yaml` at repo root; `pnpm-workspace.yaml` declares
+  `onlyBuiltDependencies` (electron, node-pty, unrs-resolver).
+- V stays authoritative: every destination reads/mutates through
+  `agent-toolkit serve` typed client (`src/lib/api.ts`, schema generated from
+  `docs/surface/openapi.json` via `pnpm gen:api`).
+- Electron main supervises `agent-toolkit serve --host 127.0.0.1 --port
+  <dynamic> --no-browser` (health-gated, version-checked, crash-detected,
+  clean shutdown). Terminals use node-pty in main as a transport adapter only.
+
+## Live verification (2026-09-29, backend 1.35.0 @ 19f87ad + branch V fixes)
+
+- `pnpm lint`, `pnpm type-check`, `pnpm test` (14/14), `pnpm build:all` green.
+- V: `v test modules/agent_toolkit_server/` 4/4 with pinned V c0e47bf
+  (includes new `test_is_first_party_mutation`).
+- Playwright smoke 3/3 against a live backend: navigation, all destinations,
+  terminal fallback outside Electron.
+- Endpoint probe: read APIs, sub-proxies, jobs create/log, help all 200.
+  `GET workspace/personas` and `GET memory/todo` return 405 (server read
+  allowlist); the UI uses POST actions for those — no dead controls.
+- Packaged app (`electron-builder --dir`, Linux, bundled backend 1.35.0):
+  window boots with zero console errors, supervises its own backend on a
+  dynamic localhost port, renders all 7 destinations, opens a real bash PTY
+  with interactive echo round-trip, and creates a real job end-to-end
+  (listed completed/exit 0 with persisted log).
+- Screenshots (packaged artifact, CDP capture): [office](assets/electron/office.png),
+  [operations job loop](assets/electron/operations-job.png),
+  [live terminal](assets/electron/terminal-live.png).
+
+## Backend strengthening backlog (land in V, never in TS workarounds)
+
+1. Typed domain models beyond generic `{ok, message, data: string-map}`
+   envelopes for catalog/skills/agents/receipts/evidence/budgets.
+2. Read-classified GET subs for `workspace/personas`, `memory/todo`
+   (currently POST-only via `is_read_subcommand`).
+3. Job cancellation/delete endpoint (server exposes create/list/log/events).
+4. V-owned PTY session API as a future alternative to the node-pty adapter.
+5. `x-confirm-required` enforcement/negotiation (currently contract metadata).
+
+## Landed during migration (branch `feat/electron-desktop`)
+
+- **First-party Desktop mutations**: `X-Atk-Desktop: 1` header gate
+  (`is_first_party_mutation`, tested in `server_security_test.v`) lets the
+  Electron `file://` client POST on loopback while cross-site browser pages
+  stay 403 and non-loopback origins stay rejected. Verified live:
+  403 without header / 200 with header / 403 evil origin.
+- **Top-level envelope normalizer**: V spreads data fields at the top level
+  of command responses (no nested `data`); the TS client normalizes via
+  `toEnvelope` (tested in `api.test.ts`). OpenAPI still describes the
+  top-level shape — a future backend pass should document it per-endpoint.
+
+## Native GUI retirement checklist (only after verified replacement)
+
+- [ ] Electron is installable from a packaged artifact on Linux (blocker)
+- [ ] Packaged-app UAT passes (backend lifecycle, terminals, jobs, installs)
+- [ ] Remove native GUI from packaging/release paths (keep V domain code)
+- [ ] Update ARCHITECTURE.md + ADRs; remove Electron-forbidden statements
+- [ ] v2.0.0 (or version per history) published; public artifact re-tested
