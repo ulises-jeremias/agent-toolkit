@@ -3465,7 +3465,7 @@ fn draw_left_dock(mut app GuiApp, h int) {
 			// bar (not the dock) lists the siblings.
 			child := if group_active { nav_active_child(app.selected_panel) } else { '' }
 			sub := if child == '' { nav_group_subtitle(row.panel) } else { child }
-			app.gg.draw_text(label_x, row.y + 24, utf8_truncate(sub, 25), gg.TextCfg{
+			app.gg.draw_text(label_x, row.y + 24, fit_text(mut app, sub, dock_w - 74, 9, false, false), gg.TextCfg{
 				color: if active { col_paper_dim } else { col_slate_dim }
 				size: 9
 			})
@@ -4266,13 +4266,9 @@ fn discovery_row_text(d desktop_engine.ToolDiscovery) string {
 		if d.version_known {
 			s += ' · ${d.version}'
 		}
-		return utf8_truncate(s, 46) + if s.runes().len > 46 { '…' } else { '' }
+		return s
 	}
-	mut r := d.reason
-	if r.runes().len > 46 {
-		r = utf8_truncate(r, 46) + '…'
-	}
-	return r
+	return d.reason
 }
 
 fn draw_targets(mut app GuiApp, w int, h int) {
@@ -4338,7 +4334,7 @@ fn draw_targets(mut app GuiApp, w int, h int) {
 		// Calm muted text: a missing tool on a fresh machine is a normal,
 		// actionable state, not an error (#1163 visual review).
 		if d := disco_map[t] {
-			text := discovery_row_text(d)
+			text := fit_text(mut app, discovery_row_text(d), fw - 280, 11, false, d.found)
 			app.gg.draw_text(fx + 170, y + 10, text, gg.TextCfg{ color: app.pnl_text_mut, size: 11, mono: d.found })
 		}
 	}

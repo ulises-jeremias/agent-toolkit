@@ -1214,7 +1214,7 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 			mut verify_txt := 'no receipt — deploy targets to verify'
 			mut verify_ok := false
 			if r := app.desktop.engine_skill_receipt(s.id) {
-				verify_txt = 'verified — ${utf8_truncate(r.receipt_path, 26)}'
+				verify_txt = 'verified — ${r.receipt_path}'
 				verify_ok = true
 			} else {
 				for dg in app.desktop.engine_verify_skill_receipts() {
@@ -1230,13 +1230,13 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 			]
 			if r := app.desktop.engine_skill_receipt(s.id) {
 				prov << LibraryFact{'Receipt', '${r.installed_at} · v${r.version}', true, true}
-				prov << LibraryFact{'Digest', utf8_truncate(r.digest, 16), false, true}
+				prov << LibraryFact{'Digest', r.digest, false, true}
 			} else {
 				prov << LibraryFact{'Receipt', 'none — not deployed yet', false, false}
 			}
 			mut inc := ['SKILL.md — definition and instructions']
 			if s.triggers != '' {
-				inc << 'Triggers: ${utf8_truncate(s.triggers, 40)}'
+				inc << 'Triggers: ${s.triggers}'
 			}
 			return LibraryDetail{
 				title: item.name
@@ -1285,11 +1285,11 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				}, false, true},
 			]
 			if ag.provenance != '' {
-				prov << LibraryFact{'Provenance', utf8_truncate(ag.provenance, 28), false, true}
+				prov << LibraryFact{'Provenance', ag.provenance, false, true}
 			}
 			if r := app.desktop.engine_agent_receipt(ag.id) {
 				prov << LibraryFact{'Receipt', '${r.installed_at} · v${r.version}', true, true}
-				prov << LibraryFact{'Receipt path', utf8_truncate(r.receipt_path, 28), false, true}
+				prov << LibraryFact{'Receipt path', r.receipt_path, false, true}
 			} else {
 				prov << LibraryFact{'Receipt', 'none — not deployed yet', false, false}
 			}
@@ -1312,7 +1312,7 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				third: 'Copy id'
 				compatibility: [
 					LibraryFact{'State', lc.display, lc.state == .verified, false},
-					LibraryFact{'Preview', utf8_truncate(preview, 34), lc.validate_ok, false},
+					LibraryFact{'Preview', preview, lc.validate_ok, false},
 					LibraryFact{'Targets', tfact, tok, false},
 					LibraryFact{'Holistic owner', if ag.holistic_owner != '' {
 						ag.holistic_owner
@@ -1397,9 +1397,9 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				]
 				prov: [
 					LibraryFact{'Source', 'distributions/products.yaml', false, true},
-					LibraryFact{'Provenance', utf8_truncate(pprov, 30), pprov != '', true},
+					LibraryFact{'Provenance', pprov, pprov != '', true},
 					LibraryFact{'Receipt', if preceipt != '' {
-						utf8_truncate(preceipt, 30)
+						preceipt
 					} else {
 						'none — no install receipt covers this product yet'
 					}, preceipt != '', true},
@@ -1424,7 +1424,7 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				library_select_mcp(mut app, mp.id)
 			}
 			probe := if mcp_probe_fresh(app, mp.id) {
-				LibraryFact{'Probe', utf8_truncate(app.mcp_probe_detail, 30), app.mcp_probe_ok, false}
+				LibraryFact{'Probe', app.mcp_probe_detail, app.mcp_probe_ok, false}
 			} else {
 				LibraryFact{'Probe', 'not run — press Probe', false, false}
 			}
@@ -1457,7 +1457,7 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				}
 			}
 			receipt := if app.mcp_drawer == mp.id && !app.mcp_drawer_receipt.starts_with('(no receipt') {
-				utf8_truncate(app.mcp_drawer_receipt, 30)
+				app.mcp_drawer_receipt
 			} else {
 				'none — enable to create one'
 			}
@@ -1474,7 +1474,7 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 				fourth: 'Remove'
 				compatibility: [
 					LibraryFact{'Targets', tfact, tok, false},
-					LibraryFact{'Stage', '${stage} — ${utf8_truncate(stage_ev, 22)}', stage == 'healthy', false},
+					LibraryFact{'Stage', '${stage} — ${stage_ev}', stage == 'healthy', false},
 					LibraryFact{'Docker', if mp.requires_docker { 'required' } else { 'not required' }, !mp.requires_docker, false},
 					LibraryFact{'Health', health_now, health_now == 'healthy', false},
 					probe,
@@ -1492,7 +1492,7 @@ fn library_detail(mut app GuiApp, items []LibraryItem) ?LibraryDetail {
 					}, false, true},
 					LibraryFact{'Version', if mp.version != '' { mp.version } else { 'unknown' }, mp.version != '', false},
 					LibraryFact{'Setup', setup_txt, mdiags.len == 0, false},
-					LibraryFact{'Preview', utf8_truncate(preview_txt, 30), mprev.will_write.len > 0, true},
+					LibraryFact{'Preview', preview_txt, mprev.will_write.len > 0, true},
 					LibraryFact{'Receipt', receipt, false, true},
 				]
 				inc_title: 'Template (secrets masked)'
@@ -1679,8 +1679,7 @@ fn draw_library_facts(mut app GuiApp, x int, y0 int, w int, title string, facts 
 		} else {
 			app.gg.draw_rect_filled(x + lw - 14, y + 7, 6, 1, app.pnl_text_mut)
 		}
-		per := fit_chars(mut app, w - lw, 11, false, f.mono)
-		app.gg.draw_text(x + lw, y, utf8_truncate(f.value, per), gg.TextCfg{
+		app.gg.draw_text(x + lw, y, fit_text(mut app, f.value, w - lw, 11, false, f.mono), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 			mono: f.mono

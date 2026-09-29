@@ -406,22 +406,8 @@ fn draw_check_glyph(mut app GuiApp, x int, y int, c gg.Color) {
 	app.gg.draw_rect_filled(x + 7, y + 1, 2, 4, c)
 }
 
-// text_fit_chars returns how many characters of the UI font fit in px at a size.
-// Plex Sans averages ~0.56em, so this is deliberately slightly conservative.
-fn text_fit_chars(px int, size int) int {
-	adv := if size <= 10 {
-		5
-	} else if size <= 13 {
-		7
-	} else {
-		8
-	}
-	n := px / adv
-	return if n < 4 { 4 } else { n }
-}
-
-// text_fit_chars and draw_check_glyph live here as the single shared
-// definitions; rect_contains lives in operations_view.v and the paper surface
+// draw_check_glyph lives here as the single shared definition;
+// rect_contains lives in operations_view.v and the paper surface
 // draw_paper_sheet lives in workspace_view.v.
 //
 // Measured fitting (measure_text/fit_chars/fit_text) is the replacement for
@@ -1054,7 +1040,7 @@ fn draw_onboarding_diagnostics(mut app GuiApp, l OnboardingLayout, st desktop_en
 		'pending: ${st.pending_items.len} · skills ${st.installed_count} · targets ${st.enabled_targets_count} · personas ${st.persona_count}',
 	]
 	for i, ln in lines {
-		app.gg.draw_text(l.fx + 12, dy + 24 + i * 16, utf8_truncate(ln, (l.fw - 30) / 6), gg.TextCfg{
+		app.gg.draw_text(l.fx + 12, dy + 24 + i * 16, fit_text(mut app, ln, l.fw - 30, 11, false, true), gg.TextCfg{
 			color: col_slate_dim
 			size: 11
 			mono: true

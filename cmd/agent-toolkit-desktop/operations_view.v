@@ -698,7 +698,7 @@ fn operations_draw_pill(mut app GuiApp, x int, y int, status string, max_w int) 
 	app.gg.draw_rect_filled(x, y, pw, 18, tint(col, 42))
 	app.gg.draw_rect_empty(x, y, pw, 18, tint(col, 140))
 	app.gg.draw_rect_filled(x + 6, y + 6, 6, 6, col)
-	app.gg.draw_text(x + 16, y + 3, utf8_truncate(label, (pw - 18) / 7), gg.TextCfg{
+	app.gg.draw_text(x + 16, y + 3, fit_text(mut app, label, pw - 18, 11, true, false), gg.TextCfg{
 		color: if app.appearance_dark { app.pnl_text } else { mix(col, app.pnl_text, 0.45) }
 		size: 11
 		bold: true
@@ -732,7 +732,7 @@ fn operations_button(mut app GuiApp, x int, y int, w int, h int, label string, h
 	app.gg.draw_rect_empty(x, y, w, h, bd)
 	tw := label.len * 7
 	tx := x + if tw + 8 < w { (w - tw) / 2 } else { 6 }
-	app.gg.draw_text(tx, y + (h - 14) / 2, utf8_truncate(label, (w - 8) / 7), gg.TextCfg{
+	app.gg.draw_text(tx, y + (h - 14) / 2, fit_text(mut app, label, w - 8, 12, primary || danger, false), gg.TextCfg{
 		color: fg
 		size: 12
 		bold: primary || danger
@@ -748,20 +748,18 @@ fn operations_field(mut app GuiApp, x int, y int, w int, h int, value string, hi
 		draw_search_lens(mut app, x + 8, y + (h - 12) / 2)
 		tx = x + 26
 	}
-	shown := if value == '' { hint } else { value }
-	max_c := (x + w - tx - 6) / 7
-	app.gg.draw_text(tx, y + (h - 14) / 2, utf8_truncate(shown, max_c), gg.TextCfg{
+	shown := fit_text(mut app, if value == '' { hint } else { value }, x + w - tx - 6, 12, false, false)
+	app.gg.draw_text(tx, y + (h - 14) / 2, shown, gg.TextCfg{
 		color: if value == '' { app.pnl_text_mut } else { app.pnl_text }
 		size: 12
 	})
 	if focused && app.frame % 30 < 15 {
-		shown_len := if value.len > max_c { max_c } else { value.len }
-		cx := tx + shown_len * 7 + 1
+		cx := tx + int(measure_text(mut app, shown, 12, false, false)) + 1
 		app.gg.draw_rect_filled(cx, y + 6, 1, h - 12, app.pnl_text)
 	}
 }
 
-// draw_check_glyph and text_fit_chars live once in onboarding_view.v.
+// draw_check_glyph and the measured-text core live once in onboarding_view.v.
 
 // ── drawing: panel ──────────────────────────────────────────────────────────
 
@@ -937,7 +935,7 @@ fn draw_operations_controls(mut app GuiApp, l OperationsLayout) {
 	app.gg.draw_rect_filled(fx, fy, fw, fh, if hover { app.pnl_hover } else { app.pnl_card_sel })
 	app.gg.draw_rect_empty(fx, fy, fw, fh, app.pnl_border)
 	label := operations_filter_label(l.tab, app.operations_status_filter)
-	app.gg.draw_text(fx + 8, fy + (fh - 14) / 2, utf8_truncate(label, (fw - 26) / 7), gg.TextCfg{
+	app.gg.draw_text(fx + 8, fy + (fh - 14) / 2, fit_text(mut app, label, fw - 26, 12, false, false), gg.TextCfg{
 		color: app.pnl_text
 		size: 12
 	})
@@ -1144,7 +1142,7 @@ fn draw_operations_table(mut app GuiApp, l OperationsLayout) {
 	hy := l.table_y
 	app.gg.draw_rect_filled(l.right_x + 1, hy + 1, l.right_w - 2, l.hdr_h, tint(pc(app, `m`), 70))
 	for i, hd in cols.headers {
-		app.gg.draw_text(col_x[i] + 4, hy + 5, utf8_truncate(hd, (col_w[i] - 6) / 7), gg.TextCfg{
+		app.gg.draw_text(col_x[i] + 4, hy + 5, fit_text(mut app, hd, col_w[i] - 6, 11, true, false), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 			bold: true
@@ -1189,11 +1187,7 @@ fn draw_operations_table(mut app GuiApp, l OperationsLayout) {
 			}
 			fix_col := l.tab == 3 && ci == 4
 			mono := (l.tab == 0 && ci == 1) || (l.tab == 1 && ci == 2)
-			app.gg.draw_text(col_x[ci] + 4, ry + 6, utf8_truncate(cell, (col_w[ci] - 6) / (if mono {
-				7
-			} else {
-				6
-			})), gg.TextCfg{
+			app.gg.draw_text(col_x[ci] + 4, ry + 6, fit_text(mut app, cell, col_w[ci] - 6, 12, ci == 0 || fix_col, mono), gg.TextCfg{
 				color: if ci == 0 {
 					app.pnl_text
 				} else if fix_col {
@@ -1422,7 +1416,7 @@ fn draw_operations_topology(mut app GuiApp, l OperationsLayout) {
 		} else {
 			app.pnl_border
 		})
-		app.gg.draw_text(nx + 8, ny + 4, utf8_truncate(role, (node_w - 16) / 7), gg.TextCfg{
+		app.gg.draw_text(nx + 8, ny + 4, fit_text(mut app, role, node_w - 16, 11, true, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 			bold: true
@@ -1461,7 +1455,7 @@ fn draw_operations_doctor_preview(mut app GuiApp, l OperationsLayout) {
 		if ln >= 5 {
 			break
 		}
-		app.gg.draw_text(px + 18, py + 46 + ln * 16, utf8_truncate(line, (pw - 36) / 7), gg.TextCfg{
+		app.gg.draw_text(px + 18, py + 46 + ln * 16, fit_text(mut app, line, pw - 36, 11, false, true), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 			mono: true
@@ -2075,7 +2069,7 @@ fn draw_operations_guide(mut app GuiApp, l OperationsLayout, run_id string) {
 			break
 		}
 		rx, ry, rw, rh := operations_guide_row_rect(l, i)
-		app.gg.draw_text(rx, ry + 3, utf8_truncate(r.label, (rw - 70) / 6), gg.TextCfg{
+		app.gg.draw_text(rx, ry + 3, fit_text(mut app, r.label, rw - 70, 11, false, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 		})
@@ -2381,7 +2375,7 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 		max_rows := (lh - 8) / 13
 		start := if logs.len > max_rows { logs.len - max_rows } else { 0 }
 		for i in start .. logs.len {
-			app.gg.draw_text(x + 18, cy + 4 + (i - start) * 13, utf8_truncate(logs[i], (iw - 40) / 7), gg.TextCfg{
+			app.gg.draw_text(x + 18, cy + 4 + (i - start) * 13, fit_text(mut app, logs[i], iw - 40, 10, false, true), gg.TextCfg{
 				color: col_slate_dim
 				size: 10
 				mono: true
@@ -2414,7 +2408,7 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 	for i, r in rel {
 		rx, ry, rw, rh := operations_related_rect(l, i)
 		hover := app.operations_hover == 70 + i
-		app.gg.draw_text(rx, ry + 3, utf8_truncate(r[0] + ' →', (rw - 4) / 7), gg.TextCfg{
+		app.gg.draw_text(rx, ry + 3, fit_text(mut app, r[0] + ' →', rw - 4, 12, true, false), gg.TextCfg{
 			color: if hover { app.pnl_text } else { app.pnl_success }
 			size: 12
 			bold: true
@@ -2422,7 +2416,7 @@ fn draw_operations_detail(mut app GuiApp, w int, h int) {
 		_ = rh
 	}
 	if app.inspector_msg != '' {
-		app.gg.draw_text(x + 12, y + ih - 16, utf8_truncate(app.inspector_msg, (iw - 24) / 6), gg.TextCfg{
+		app.gg.draw_text(x + 12, y + ih - 16, fit_text(mut app, app.inspector_msg, iw - 24, 10, false, false), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
@@ -2641,7 +2635,7 @@ fn draw_operations_history(mut app GuiApp, l OperationsLayout, loop_name string)
 			break
 		}
 		tx, ty, _, _ := operations_history_rect(l, 4 - shown)
-		app.gg.draw_text(tx + 6, ty + 3, utf8_truncate(loop_history_line(r.run_id, r.status, r.started_at, r.duration_ms), (l.side_w - 40) / 7), gg.TextCfg{
+		app.gg.draw_text(tx + 6, ty + 3, fit_text(mut app, loop_history_line(r.run_id, r.status, r.started_at, r.duration_ms), l.side_w - 40, 11, false, true), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 			mono: true
@@ -2674,7 +2668,7 @@ fn draw_operations_tasks(mut app GuiApp, l OperationsLayout, run_id string) {
 		tx, ty, tw, th := operations_board_rect(l, 4 - shown)
 		bx, by, bw, bh := operations_board_done_rect(l, 4 - shown)
 		app.gg.draw_rect_filled(tx, ty, tw, bh, tint(pc(app, `m`), 40))
-		app.gg.draw_text(tx + 6, ty + 3, utf8_truncate('${q.handoff_id} → ${q.to_role}', (tw - 90) / 7), gg.TextCfg{
+		app.gg.draw_text(tx + 6, ty + 3, fit_text(mut app, '${q.handoff_id} → ${q.to_role}', tw - 90, 11, false, true), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 			mono: true
@@ -2693,7 +2687,7 @@ fn draw_operations_tasks(mut app GuiApp, l OperationsLayout, run_id string) {
 			break
 		}
 		tx, ty, _, _ := operations_board_rect(l, 4 - shown)
-		app.gg.draw_text(tx + 6, ty + 3, utf8_truncate('✓ ${d.handoff_id}', (l.side_w - 60) / 7), gg.TextCfg{
+		app.gg.draw_text(tx + 6, ty + 3, fit_text(mut app, '✓ ${d.handoff_id}', l.side_w - 60, 11, false, true), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 11
 			mono: true
@@ -2743,7 +2737,7 @@ fn draw_operations_approvals(mut app GuiApp, l OperationsLayout, run_id string) 
 		}
 		app.gg.draw_rect_filled(ax, ay, aw, ah, tint(kcol, 24))
 		app.gg.draw_rect_empty(ax, ay, aw, ah, tint(kcol, 120))
-		app.gg.draw_text(ax + 6, ay + 3, utf8_truncate('${kind} · ${p.message}', (aw - 64) / 7), gg.TextCfg{
+		app.gg.draw_text(ax + 6, ay + 3, fit_text(mut app, '${kind} · ${p.message}', aw - 64, 11, false, false), gg.TextCfg{
 			color: app.pnl_text
 			size: 11
 		})
@@ -2808,7 +2802,7 @@ fn draw_operations_detail_empty(mut app GuiApp, l OperationsLayout, total int) {
 		size: 12
 	})
 	if app.inspector_msg != '' {
-		app.gg.draw_text(x + 12, y + l.side_h - 16, utf8_truncate(app.inspector_msg, (iw - 24) / 6), gg.TextCfg{
+		app.gg.draw_text(x + 12, y + l.side_h - 16, fit_text(mut app, app.inspector_msg, iw - 24, 10, false, false), gg.TextCfg{
 			color: app.pnl_text_mut
 			size: 10
 		})
