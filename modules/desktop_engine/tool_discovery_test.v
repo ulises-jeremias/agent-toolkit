@@ -276,6 +276,32 @@ fn test_discovery_wellknown_fallback_resolves() {
 	assert d.version.contains('FakeTool 9.9.9')
 }
 
+// FROZEN SESSIONS (ATK_GUI_FREEZE, golden captures) are a bare machine:
+// even a tool present on PATH with configuration present reports not found
+// with no sentinels, so local and CI captures agree.
+fn test_discovery_frozen_session_reports_bare_machine() {
+	old_freeze := os.getenv_opt('ATK_GUI_FREEZE') or { '' }
+	os.setenv('ATK_GUI_FREEZE', '1', true)
+	defer {
+		if old_freeze == '' {
+			os.unsetenv('ATK_GUI_FREEZE')
+		} else {
+			os.setenv('ATK_GUI_FREEZE', old_freeze, true)
+		}
+	}
+	mut f := td_fixture('claude', 'claude')
+	defer {
+		f.cleanup()
+	}
+	mut eng := td_engine(mut f)
+	d := eng.tool_discovery('claude-code')
+	assert !d.found
+	assert d.resolved_path == ''
+	assert !d.version_known
+	assert d.config_paths.len == 0
+	assert d.reason == "claude not found on this session's PATH"
+}
+
 // WELLKNOWN GUARDS: traversal names never resolve; non-executables never count.
 fn test_discovery_wellknown_rejects_unsafe() {
 	home := os.join_path(os.temp_dir(), 'atk-td-unsafe-${os.getpid()}')
