@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Electron + React Desktop (`apps/desktop/`, pnpm-only) over the canonical
+  `agent-toolkit serve` backend: Office/Operations/Workspace/Library/
+  Insights/Settings/Terminal destinations, typed OpenAPI client with
+  TanStack Query server state, named SSE job streaming, xterm terminals
+  over a node-pty transport adapter, supervised bundled backend
+  (health-gated, crash-detected, restartable), and electron-builder
+  Linux AppImage/deb packaging (ADR-033).
+- First-party Desktop mutation gate: `X-Atk-Desktop: 1` lets the Electron
+  `file://` client POST on loopback while cross-site browser pages stay
+  rejected.
+
 ## [1.35.0] — 2026-09-29
 
 ### Added
