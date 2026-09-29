@@ -1,12 +1,16 @@
 import { expect, test } from '@playwright/test';
 
 /**
- * Renderer smoke tests against vite dev + a live `agent-toolkit serve`.
- * Requires the V backend on VITE_ATK_BACKEND_URL (default 127.0.0.1:3847).
- * Full Electron packaged-app UAT is tracked in docs/desktop/ELECTRON_MIGRATION.md.
+ * Renderer smoke tests against vite dev.
+ * Backend-independent: asserts the app shell (nav, headings, fallbacks)
+ * renders with no backend running. Live-backend behavior (queries,
+ * mutations, SSE, terminals) is covered by unit tests, the packaged-app CDP
+ * tour, and manual UAT — see docs/desktop/ELECTRON_MIGRATION.md.
+ * Set VITE_ATK_BACKEND_URL to point at a live `agent-toolkit serve` to also
+ * exercise backend-driven panels locally.
  */
 test.describe('desktop smoke', () => {
-  test('office loads with backend-backed attention', async ({ page }) => {
+  test('office shell loads', async ({ page }) => {
     await page.goto('/#/office');
     await expect(page.getByRole('heading', { name: 'Office' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();

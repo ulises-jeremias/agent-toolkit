@@ -28,7 +28,7 @@ Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
 
 ## Live verification (2026-09-29, backend 1.35.0 @ 19f87ad + branch V fixes)
 
-- `pnpm lint`, `pnpm type-check`, `pnpm test` (14/14), `pnpm build:all` green.
+- `pnpm lint`, `pnpm type-check`, `pnpm test` (15/15), `pnpm build:all` green.
 - V: `v test modules/agent_toolkit_server/` 4/4 with pinned V c0e47bf
   (includes new `test_is_first_party_mutation`).
 - Playwright smoke 3/3 against a live backend: navigation, all destinations,
