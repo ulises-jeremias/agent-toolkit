@@ -56,7 +56,7 @@ function patchParams(setParams: ReturnType<typeof useSearchParams>[1], patch: Re
 }
 
 /**
- * Operations is the workshop inspector: jobs, loops, swarms and doctor.
+ * Operations inspector: jobs, loops, swarms and doctor.
  * The world and Office link here. This destination is not a second home.
  */
 export default function Operations() {
@@ -77,7 +77,7 @@ export default function Operations() {
     <>
       <PageHeader
         eyebrow="Operations"
-        title="Workshop"
+        title="Operations"
         lede="The world opens a job, loop, swarm or doctor report here. The board lists only what serve returned."
         actions={
           <>

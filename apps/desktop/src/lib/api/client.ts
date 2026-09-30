@@ -16,6 +16,9 @@ import type {
   SwarmRunResponse,
   ToolsResponse,
   VersionResponse,
+  WorkspaceFileListResponse,
+  WorkspaceFileReadResponse,
+  WorkspaceFileSearchResponse,
 } from './contracts';
 import { toEnvelope, type CommandEnvelope } from './envelope';
 import { ApiError, kindForStatus } from './errors';
@@ -253,6 +256,34 @@ export class ApiClient {
 
   archiveMemoryFile(body: { path: string; workspace?: string }): Promise<MemoryWriteResponse> {
     return this.json('POST', '/api/v1/memory/file/archive' satisfies PathWith<'post'>, { body });
+  }
+
+  listFiles(query?: { path?: string; depth?: string; workspace?: string }): Promise<WorkspaceFileListResponse> {
+    const params: Record<string, string> = {};
+    if (query?.path) params.path = query.path;
+    if (query?.depth) params.depth = query.depth;
+    if (query?.workspace) params.workspace = query.workspace;
+    return this.json('GET', '/api/v1/files' satisfies PathWith<'get'>, {
+      query: Object.keys(params).length ? params : undefined,
+    });
+  }
+
+  searchFiles(q: string, query?: { workspace?: string }): Promise<WorkspaceFileSearchResponse> {
+    return this.json('GET', '/api/v1/files/hits' satisfies PathWith<'get'>, {
+      query: {
+        q,
+        ...(query?.workspace ? { workspace: query.workspace } : {}),
+      },
+    });
+  }
+
+  readFile(path: string, query?: { workspace?: string }): Promise<WorkspaceFileReadResponse> {
+    return this.json('GET', '/api/v1/files/content' satisfies PathWith<'get'>, {
+      query: {
+        path,
+        ...(query?.workspace ? { workspace: query.workspace } : {}),
+      },
+    });
   }
 
   async loopStatus(name: string): Promise<CommandEnvelope> {

@@ -88,10 +88,13 @@ export default function WorldView() {
 
   const jobs = useMemo(() => sortJobs(jobsQuery.data), [jobsQuery.data]);
 
+  const harnessNotice = backend?.harness?.notice ?? null;
+
   const model = useMemo(
     () =>
       buildWorldModel({
         workspacePath,
+        harnessNotice,
         projects,
         projectsKnown: projectsQuery.isSuccess,
         memory,
@@ -106,7 +109,17 @@ export default function WorldView() {
         })),
         focusProjectId: focusProject,
       }),
-    [workspacePath, projects, projectsQuery.isSuccess, memory, tools, toolsQuery.isSuccess, jobs, focusProject],
+    [
+      workspacePath,
+      harnessNotice,
+      projects,
+      projectsQuery.isSuccess,
+      memory,
+      tools,
+      toolsQuery.isSuccess,
+      jobs,
+      focusProject,
+    ],
   );
 
   const layout = useMemo(() => layoutWorld(model), [model]);
@@ -150,7 +163,17 @@ export default function WorldView() {
   const goBackFromDetail = useCallback(() => {
     navigate(href('/world', worldDetailBackExtra(focusProject)));
   }, [navigate, href, focusProject]);
-  useWorldDetailEscape(goBackFromDetail, detailOpen);
+  const goBackFromWorld = useCallback(() => {
+    if (detailOpen) {
+      goBackFromDetail();
+      return;
+    }
+    if (focusProject) {
+      navigate(href('/world'));
+    }
+  }, [detailOpen, goBackFromDetail, focusProject, navigate, href]);
+  // Escape: leave memory/tool detail first; else leave project interior to grounds.
+  useWorldDetailEscape(goBackFromWorld, detailOpen || Boolean(focusProject));
 
   return (
     <div className={styles.world} data-focus={model.focusProjectId ? 'interior' : 'grounds'}>
@@ -159,8 +182,8 @@ export default function WorldView() {
         title={model.focusProjectId ? `${model.focusProjectId} house` : model.workspaceLabel || 'Workspace world'}
         lede={
           model.focusProjectId
-            ? 'Inside this project house — Paper Co. room with memory records, terminal, and detected tools only. No fake dashboard.'
-            : 'Paper Co. grounds: real project houses, memory archive when the API exists, Library annex for capabilities. Calm when idle.'
+            ? 'Inside this project house — memory, files, terminal, and detected tools only. No fake dashboard.'
+            : 'A quiet campus of project houses. Library, Memory, Files, Operations, and Terminal are real places. Calm when idle.'
         }
         actions={
           model.focusProjectId ? (

@@ -67,6 +67,18 @@ describe('jobBelongsToProject', () => {
 });
 
 describe('buildWorldModel', () => {
+  it('surfaces harness notices on the workspace grounds tile', () => {
+    const model = buildWorldModel(
+      baseInput({
+        workspacePath: '/tmp/fallback-cwd',
+        harnessNotice: 'Default harness /home/me/.ai-workspace not found; serve starts in /tmp/fallback-cwd',
+      }),
+    );
+    const grounds = model.entities.find((e) => e.id === 'place:workspace');
+    expect(grounds?.state).toBe('notice');
+    expect(grounds?.detail).toContain('Default harness');
+  });
+
   it('builds grounds with memory archive and job characters', () => {
     const model = buildWorldModel(
       baseInput({

@@ -36,10 +36,12 @@ the managed environment that organizes projects, configuration and operations.
 - Use task language before internal vocabulary. Reveal technical details on request.
 - Keep the Engine authoritative. CLI and GUI consume shared typed domain operations.
   The GUI must not parse its own CLI output or duplicate installation logic.
-- Maintain native V, gg/sokol and real PTY terminal operation. Do not replace the
-  application with Electron, Tauri, a WebView or a browser frontend.
+- V remains core, CLI, and `agent-toolkit serve` backend authority. Desktop
+  presentation is Electron + React (`apps/desktop/`, [ADR-033](../adrs/ADR-033-electron-desktop.md)).
+  Do not reintroduce a second domain backend in TypeScript, and do not treat the
+  historical native gg/sokol Desktop as the shipping product surface.
 - Accessibility, localization, keyboard use and responsive layout are product work.
-  Document native toolkit limitations without claiming unsupported conformance.
+  Document toolkit limitations without claiming unsupported conformance.
 
 ## Paper Co. identity
 

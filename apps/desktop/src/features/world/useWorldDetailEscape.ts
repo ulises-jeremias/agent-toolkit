@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 
 /**
- * Escape leaves the open memory/tool detail without dropping other world
- * scope. Ignores Escape while a native dialog is open (e.g. install confirm).
+ * Escape leaves the current world overlay (memory/tool detail, or project
+ * interior when the caller wires that). Ignores Escape while a native dialog
+ * is open (e.g. install confirm). Caller decides the back target.
  */
 export function useWorldDetailEscape(onBack: () => void, active: boolean): void {
   useEffect(() => {

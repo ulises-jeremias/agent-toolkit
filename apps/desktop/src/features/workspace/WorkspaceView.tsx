@@ -1,5 +1,7 @@
+import { useSearchParams } from 'react-router';
 import { useSubQuery } from '../../data/commands';
 import { CommandReport, Grid, KeyValue, PageHeader, Panel, QueryView, Stack, StatusBadge, type Tone } from '../../ui';
+import { FilesPanel } from './FilesPanel';
 
 function riskTone(risk: string | undefined): Tone {
   switch (risk?.toUpperCase()) {
@@ -19,8 +21,11 @@ function riskTone(risk: string | undefined): Tone {
  * Reads the real `workspace` and `project` subcommands. Their output is CLI
  * text until Phase 2 gives them typed responses; structured fields the
  * server already returns (budget, violation counts) are shown as data.
+ * Files panel uses typed GET /api/v1/files (not CLI parsing).
  */
 export default function WorkspaceView() {
+  const [params] = useSearchParams();
+  const focusFiles = params.get('panel') === 'files';
   const context = useSubQuery('workspace', 'context');
   const projects = useSubQuery('project', 'list');
   const budget = useSubQuery('workspace', 'budget');
@@ -38,6 +43,7 @@ export default function WorkspaceView() {
         lede={path}
       />
       <Stack>
+        {focusFiles ? <FilesPanel /> : null}
         <Grid>
           <Panel title="Context budget" meta="How much this workspace adds to every agent's context">
             <QueryView query={budget} loading="Measuring context" errorTitle="Could not measure the context budget">
@@ -92,6 +98,7 @@ export default function WorkspaceView() {
             </QueryView>
           </Panel>
         </Grid>
+        {!focusFiles ? <FilesPanel /> : null}
         <Panel tone="manila" title="Agent start context" meta="What an agent sees when it starts here">
           <QueryView query={context} loading="Reading start context" errorTitle="Could not read the start context">
             {(envelope) => <CommandReport envelope={envelope} label="Session context" />}

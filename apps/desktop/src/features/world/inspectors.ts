@@ -36,10 +36,11 @@ export function memoryFilePath(entry: Pick<MemoryEntryRecord, 'id' | 'provenance
 /** World query extras that open the memory-file inspector for one record. */
 export function memoryInspectExtra(
   entry: Pick<MemoryEntryRecord, 'id' | 'provenance'>,
-  projectId: string,
+  projectId?: string,
 ): Record<string, string | undefined> {
+  const trimmed = projectId?.trim() || '';
   return {
-    project: projectId,
+    project: trimmed || undefined,
     memory: memoryFilePath(entry),
     tool: undefined,
     place: undefined,
@@ -47,9 +48,10 @@ export function memoryInspectExtra(
 }
 
 /** World query extras that open the tools-catalog inspector for one tool id. */
-export function toolInspectExtra(toolId: string, projectId: string): Record<string, string | undefined> {
+export function toolInspectExtra(toolId: string, projectId?: string): Record<string, string | undefined> {
+  const trimmed = projectId?.trim() || '';
   return {
-    project: projectId,
+    project: trimmed || undefined,
     tool: toolId,
     memory: undefined,
     place: undefined,

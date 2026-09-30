@@ -120,11 +120,19 @@ describe('useWorldDetailEscape', () => {
     expect(onBack).toHaveBeenCalledTimes(1);
   });
 
-  it('Escape does nothing when detail is closed', async () => {
+  it('Escape does nothing when inactive', async () => {
     const onBack = vi.fn();
     const user = userEvent.setup();
     render(<Harness active={false} onBack={onBack} />);
     await user.keyboard('{Escape}');
     expect(onBack).not.toHaveBeenCalled();
+  });
+
+  it('Escape can leave a project interior when the caller marks it active', async () => {
+    const onBack = vi.fn();
+    const user = userEvent.setup();
+    render(<Harness active onBack={onBack} />);
+    await user.keyboard('{Escape}');
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 });

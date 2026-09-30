@@ -84,7 +84,7 @@ function ReadyStep({
         <PageHeader
           eyebrow="Welcome desk"
           title="A world for coding agents"
-          lede="Sit at the desk. The backend is real. Next you choose a folder, then you enter the world: projects as places, shared knowledge as a place."
+          lede="Sit at the desk. The backend is real. Next you choose a folder, then you enter the world: each project is a house, shared knowledge and tools live as places — never fake scenery."
         />
         <Stack>
           <Panel tone="manila" title="Backend" meta={ready ? 'Ready' : 'Starting'}>

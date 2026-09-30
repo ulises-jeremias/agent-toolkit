@@ -141,24 +141,28 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       state: count > 0 ? `${count} records` : 'empty',
       themeKey: 'memory.index',
       availability: count > 0 ? 'present' : 'empty',
-      hrefPath: '/workspace',
+      // Overview only — open a record tile (or stay selected). Never pretend Workspace is memory.
       detail:
         count > 0
           ? `${count} workspace-level memory record${count === 1 ? '' : 's'} (typed memory API)`
           : 'Memory API reachable; archive is empty',
     });
 
-    entities.push({
-      id: 'object:memory-index',
-      kind: 'object',
-      concept: 'Memory search / hits',
-      name: 'Card index',
-      state: count > 0 ? 'ready' : 'empty',
-      themeKey: 'memory.index',
-      availability: count > 0 ? 'present' : 'empty',
-      hrefPath: '/workspace',
-      detail: 'Search memory hits via GET /api/v1/memory/hits',
-    });
+    for (const entry of archive) {
+      const path = memoryFilePath(entry);
+      entities.push({
+        id: `object:memory:${entry.id}`,
+        kind: 'object',
+        concept: 'Memory entry',
+        name: entry.title || entry.id,
+        state: entry.kind || 'listed',
+        themeKey: 'memory.entry',
+        availability: 'present',
+        hrefPath: '/world',
+        hrefExtra: memoryInspectExtra(entry),
+        detail: provenanceDetail(entry) || path,
+      });
+    }
   }
 
   entities.push({
@@ -178,12 +182,51 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     id: 'object:library',
     kind: 'object',
     concept: 'Capability library',
-    name: 'Library annex',
+    name: 'Library',
     state: 'catalog',
     themeKey: 'capability.shelf',
     availability: 'present',
     hrefPath: '/library',
-    detail: 'Skills, agents, packs — knowledge inspector lives here',
+    detail: 'Skills, agents, packs — reusable catalog capabilities',
+  });
+
+  // Files use the typed workspace tree API — open Workspace Files panel.
+  entities.push({
+    id: 'object:files',
+    kind: 'object',
+    concept: 'Workspace files',
+    name: 'Files',
+    state: 'ready',
+    themeKey: 'knowledge.workspace',
+    availability: 'present',
+    hrefPath: '/workspace',
+    hrefExtra: { panel: 'files' },
+    detail: 'Workspace-contained tree via GET /api/v1/files',
+  });
+
+  // Operations is the shared runtime building — not a second home.
+  entities.push({
+    id: 'object:operations',
+    kind: 'object',
+    concept: 'Operations / runtime',
+    name: 'Operations',
+    state: 'ready',
+    themeKey: 'ops.crate',
+    availability: 'present',
+    hrefPath: '/operations',
+    detail: 'Jobs, loops, swarms, and doctor — real serve state only',
+  });
+
+  entities.push({
+    id: 'object:settings',
+    kind: 'object',
+    concept: 'Settings',
+    name: 'Settings',
+    state: 'ready',
+    themeKey: 'ops.lamp',
+    availability: 'present',
+    hrefPath: '/settings',
+    detail: 'Appearance, harness, and coding-tool connections',
   });
 
   entities.push({
@@ -195,7 +238,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     themeKey: 'attention.inbox',
     availability: 'present',
     hrefPath: '/office',
-    detail: 'Failures and blocked work',
+    detail: 'Failures and blocked work — attention inspector, not home',
   });
 
   const tools = input.toolsKnown ? visibleTools(input.tools) : [];
@@ -217,7 +260,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       themeKey: 'project.building',
       availability: 'empty',
       hrefPath: '/workspace',
-      detail: 'Run project clone / add, or open Workspace',
+      detail: 'Add or open a project — the world stays quiet until then',
     });
   } else {
     for (const project of input.projects) {
@@ -362,6 +405,20 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     detail: `Open Terminal · cwd hint ${project.target}`,
   });
 
+  entities.push({
+    id: `object:files-project:${project.name}`,
+    kind: 'object',
+    concept: 'Project files',
+    name: 'Files',
+    state: 'ready',
+    themeKey: 'knowledge.project',
+    availability: 'present',
+    hrefPath: '/workspace',
+    hrefExtra: { panel: 'files' },
+    projectId: project.name,
+    detail: `Workspace files panel · project path ${project.target}`,
+  });
+
   const tools = input.toolsKnown ? visibleTools(input.tools) : [];
   if (input.toolsKnown) {
     if (tools.length === 0) {
@@ -416,8 +473,9 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
  * DOMAIN STATE → SEMANTIC WORLD MODEL.
  * Grounds vs project interior. Characters only for proven jobs.
  * Memory archive only when the typed memory API exists (omit on 404).
- * Project knowledge places stay omitted until a world-wired list API
- * feeds them; Library annex is the knowledge inspector destination.
+ * Workspace files open the Workspace Files panel (GET /api/v1/files).
+ * Operations and Settings are shared commons places (also on the dock).
+ * Library is the capability/catalog inspector destination.
  */
 export function buildWorldModel(input: WorldDomainInput): WorldModel {
   const focus = input.focusProjectId?.trim() || null;

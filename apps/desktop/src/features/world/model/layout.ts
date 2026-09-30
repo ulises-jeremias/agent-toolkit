@@ -33,11 +33,12 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   const room = sorted.find((e) => e.id.startsWith('place:project:'));
   const memory = sorted.find((e) => e.id.startsWith('place:memory-project:'));
   const terminal = sorted.find((e) => e.id.startsWith('object:terminal-project:'));
+  const files = sorted.find((e) => e.id.startsWith('object:files-project:'));
   const tools = sorted.filter((e) => e.id.startsWith('object:tool:') || e.id === 'object:tools-empty');
   const memoryEntries = sorted.filter((e) => e.id.startsWith('object:memory:'));
   const characters = sorted.filter((e) => e.kind === 'character');
   const used = new Set(
-    [exit, room, memory, terminal, ...tools, ...memoryEntries, ...characters].filter(Boolean).map((e) => e!.id),
+    [exit, room, memory, terminal, files, ...tools, ...memoryEntries, ...characters].filter(Boolean).map((e) => e!.id),
   );
   const rest = sorted.filter((e) => !used.has(e.id));
 
@@ -46,8 +47,9 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
   if (exit) place(exit, 0, 0);
   if (memory) place(memory, 2 + PLACE_W + 1, 0);
   if (terminal) place(terminal, 0, PLACE_H + 1);
+  if (files) place(files, OBJECT_W + 1, PLACE_H + 1);
 
-  let toolX = OBJECT_W + 1;
+  let toolX = (OBJECT_W + 1) * 2;
   const toolY = PLACE_H + 1;
   for (const tool of tools) {
     place(tool, toolX, toolY);
@@ -101,12 +103,15 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   const grounds = entities.find((e) => e.id === 'place:workspace');
   const memoryPlace = entities.find((e) => e.id === 'place:memory');
+  const memoryEntries = entities.filter((e) => e.id.startsWith('object:memory:'));
   const sharedObjects = entities.filter(
     (e) =>
       e.id === 'object:terminal' ||
       e.id === 'object:library' ||
+      e.id === 'object:files' ||
+      e.id === 'object:operations' ||
+      e.id === 'object:settings' ||
       e.id === 'object:attention' ||
-      e.id === 'object:memory-index' ||
       e.id === 'place:projects-empty',
   );
   const projects = entities.filter((e) => e.id.startsWith('place:project:'));
@@ -115,6 +120,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     (e) =>
       e !== grounds &&
       e !== memoryPlace &&
+      !memoryEntries.includes(e) &&
       !sharedObjects.includes(e) &&
       !projects.includes(e) &&
       !characters.includes(e),
@@ -133,6 +139,12 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Commons district — workspace lot + memory archive on the north strip.
   if (grounds) place(grounds, 0, 0);
   if (memoryPlace) place(memoryPlace, PLACE_W + 1, 0);
+
+  let entryX = (PLACE_W + 1) * 2;
+  for (const entry of memoryEntries) {
+    place(entry, entryX, 0);
+    entryX += OBJECT_W + 1;
+  }
 
   let objX = 0;
   const objY = PLACE_H + 1;

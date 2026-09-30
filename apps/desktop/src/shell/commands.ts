@@ -65,14 +65,14 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     id: 'session:start-job',
     group: 'Session',
     title: 'Start a job',
-    hint: 'Workshop · inspect the job that serve returns',
+    hint: 'Operations · inspect the job that serve returns',
     keywords: ['job', 'operations', 'workshop'],
   },
   {
     id: 'session:run-loop',
     group: 'Session',
     title: 'Run a loop as a job',
-    hint: 'Workshop · POST /loops/{name}/run',
+    hint: 'Operations · POST /loops/{name}/run',
     keywords: ['loop', 'operations', 'workshop'],
   },
   {

@@ -191,7 +191,7 @@ test('a job started from Operations runs on the backend and streams to completio
 test('Operations shows doctor, loops and swarms from live endpoints', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Workshop' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Operations' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Doctor' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Board' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
@@ -260,7 +260,7 @@ test('a failed job appears in Office attention and Next that needs me opens it',
   await expect(needsYou).toContainText(/no-such-command failed/);
   await expect(needsYou).not.toContainText(/Nothing needs you/);
   await expect(page.getByRole('main')).not.toContainText(/quiet/i);
-  await expect(needsYou.locator('tr[data-attention="failed-job"]')).toBeVisible();
+  await expect(needsYou.locator('tr[data-attention="failed-job"]').first()).toBeVisible();
   await expect(page.getByRole('region', { name: 'Failed' })).toContainText('no-such-command');
 
   await page.keyboard.press('Control+k');

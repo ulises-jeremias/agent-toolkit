@@ -121,6 +121,45 @@ export interface MemoryWriteResponse {
   path: string;
 }
 
+/** OpenAPI `WorkspaceFileNode` from GET /api/v1/files. */
+export interface WorkspaceFileNode {
+  name: string;
+  path: string;
+  kind: 'file' | 'dir';
+  size: number;
+  depth: number;
+  masked: boolean;
+}
+
+export interface WorkspaceFileListResponse {
+  ok: boolean;
+  root: string;
+  nodes: WorkspaceFileNode[];
+}
+
+export interface WorkspaceFileReadResponse {
+  ok: boolean;
+  path: string;
+  name: string;
+  content: string;
+  size: number;
+  binary: boolean;
+  truncated: boolean;
+  masked: boolean;
+}
+
+export interface WorkspaceFileHit {
+  path: string;
+  line: number;
+  snippet: string;
+}
+
+export interface WorkspaceFileSearchResponse {
+  ok: boolean;
+  query: string;
+  hits: WorkspaceFileHit[];
+}
+
 /** OpenAPI `ApiEvent.type` on GET /api/v1/events. Unknown types stay verbatim. */
 export type ApiEventType =
   | 'backend.ready'

@@ -105,13 +105,13 @@ describe('world follows GET /api/v1/events', () => {
     const queryClient = new QueryClient();
     const listed: MemoryListResponse = {
       ok: true,
-      message: '',
       entries: [
         {
           id: 'knowledge/learnings/a.md',
           kind: 'learning',
           title: 'Note',
           snippet: '',
+          body: '',
           tags: [],
           provenance: {
             file: 'knowledge/learnings/a.md',
@@ -141,6 +141,7 @@ describe('world follows GET /api/v1/events', () => {
           kind: 'learning',
           title: 'Newer',
           snippet: '',
+          body: '',
           tags: [],
           provenance: {
             file: 'knowledge/learnings/b.md',
@@ -164,7 +165,7 @@ describe('world follows GET /api/v1/events', () => {
     queryClient.setQueryData<JobRegistry>(qk.jobs.list(), {
       job_1: job({ id: 'job_1', status: 'running', workspace: '/r/alpha' }),
     });
-    queryClient.setQueryData(qk.memory.list(), { ok: true, message: '', entries: [] });
+    queryClient.setQueryData(qk.memory.list(), { ok: true, entries: [] });
 
     applyBusEvent(
       queryClient,
@@ -177,7 +178,7 @@ describe('world follows GET /api/v1/events', () => {
 
   it('backend.ready shares the same resync path as foreign boot', () => {
     const queryClient = new QueryClient();
-    queryClient.setQueryData(qk.memory.list(), { ok: true, message: '', entries: [] });
+    queryClient.setQueryData(qk.memory.list(), { ok: true, entries: [] });
     applyBusEvent(queryClient, bus({ type: 'backend.ready', subject: 'serve', status: 'ok' }));
     expect(queryClient.getQueryState(qk.memory.list())?.isInvalidated).toBe(true);
   });

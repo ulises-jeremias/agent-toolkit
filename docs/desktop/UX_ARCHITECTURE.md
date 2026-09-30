@@ -1,13 +1,12 @@
 # Desktop UX architecture
 
-Status: **CURRENT CONTRACT** — intended interaction contract, 2026-09-05,
-re-confirmed 2026-09-13 at `ecc4d67c`. Current implementation is
-`cmd/agent-toolkit-desktop/main.v`, using gg/sokol. Historical
-[ADR-032](../adrs/ADR-032-desktop-gui-framework.md) records the vlang/gui
-Phase-0 feasibility decision and the retirement of its implementation
-(`modules/agent_toolkit_gui/` removed 2026-09-13, #1206); production is
-`gg`/`sokol`-direct. Preserve that history. This document does not approve
-a rewrite.
+Status: **CURRENT CONTRACT** — intended interaction contract. Updated 2026-09-30
+for the Electron + React shipping Desktop ([ADR-033](../adrs/ADR-033-electron-desktop.md),
+[ADR-034](../adrs/ADR-034-semantic-world.md)). Historical presentation lived in
+`cmd/agent-toolkit-desktop/main.v` (gg/sokol); that tree remains a functional
+reference only. [ADR-032](../adrs/ADR-032-desktop-gui-framework.md) records the
+vlang/gui Phase-0 decision and retirement (`modules/agent_toolkit_gui/` removed
+2026-09-13, #1206). Domain truth stays in V via `agent-toolkit serve`.
 
 ## Shell and navigation
 
@@ -20,7 +19,7 @@ primary destinations (see [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md),
 | **World** (default home) | Where am I in this toolkit, and what is real here? | Semantic places/objects/characters from domain state; list fallback; click → inspectors |
 | Office | What needs attention now? | Failures, blocked work, self-check, backend; running work summary |
 | Library | What can I use or add? | Skills, agents, products and packs with clear distinctions |
-| Operations | How do I inspect and control this job, loop, swarm or doctor check? | Workshop inspector. The world and Office link here; this is not a second home. |
+| Operations | How do I inspect and control this job, loop, swarm or doctor check? | Jobs, loops, swarms, doctor. The world and Office link here; this is not a second home. |
 | Workspace | Where am I working? | Workspace lifecycle, projects, context, files and relevant Git changes |
 | Insights | What happened over time? | Measured usage, cost, budgets and execution history |
 | Terminal | Where do I work with agents directly? | PTY sessions |

@@ -4,7 +4,12 @@ import { layoutWorld } from './layout';
 import { jobStandAtId, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 import type { MemoryEntryRecord, ToolRecord, WorldDomainInput } from './types';
 
-function entry(partial: Partial<MemoryEntryRecord> & Pick<MemoryEntryRecord, 'id' | 'title'>): MemoryEntryRecord {
+function entry(
+  partial: Omit<Partial<MemoryEntryRecord>, 'provenance' | 'id' | 'title'> &
+    Pick<MemoryEntryRecord, 'id' | 'title'> & {
+      provenance?: Partial<MemoryEntryRecord['provenance']>;
+    },
+): MemoryEntryRecord {
   const { provenance: provenancePartial, ...rest } = partial;
   return {
     kind: 'learning',
@@ -125,7 +130,10 @@ describe('buildWorldModel memory + standAt', () => {
 
     const grounds = buildWorldModel(base({ memory }));
     expect(grounds.entities.find((e) => e.id === 'place:memory')?.state).toBe('2 records');
-    expect(grounds.entities.filter((e) => e.id.startsWith('object:memory:'))).toEqual([]);
+    expect(grounds.entities.map((e) => e.id)).toContain('object:memory:ws.md');
+    expect(grounds.entities.map((e) => e.id)).toContain('object:memory:none.md');
+    expect(grounds.entities.map((e) => e.id)).not.toContain('object:memory:a.md');
+    expect(grounds.entities.map((e) => e.id)).not.toContain('object:memory:b.md');
 
     const alpha = buildWorldModel(base({ memory, focusProjectId: 'alpha' }));
     expect(alpha.entities.find((e) => e.id === 'place:memory-project:alpha')?.state).toBe('1 records');
