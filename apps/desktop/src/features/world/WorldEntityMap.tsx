@@ -35,6 +35,13 @@ function toneForState(state: string): Tone {
   return 'idle';
 }
 
+/** Interior furniture replaces outdoor landmark sprites. Domain keys stay the same. */
+const INTERIOR_SPRITE: Partial<Record<string, string>> = {
+  'tool.terminal': '/world/interior-terminal.png',
+  'knowledge.project': '/world/interior-files.png',
+  'memory.index': '/world/interior-records.png',
+};
+
 function activateEntity(
   entity: LaidOutEntity,
   onSelect: (id: string) => void,
@@ -132,7 +139,7 @@ export function WorldEntityMap({
                 height: entity.h * tile,
                 ...(asset.kind === 'sprite'
                   ? {
-                      backgroundImage: `url(${asset.src})`,
+                      backgroundImage: `url(${mode === 'interior' ? (INTERIOR_SPRITE[entity.themeKey] ?? asset.src) : asset.src})`,
                       backgroundSize: 'contain',
                       backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'center bottom',
