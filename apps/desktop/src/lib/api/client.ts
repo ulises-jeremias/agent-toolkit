@@ -1,10 +1,17 @@
 import type {
+  AgentsResponse,
   Job,
   JobCreateRequest,
   JobRegistry,
   MemoryListResponse,
   MessageResponse,
+  ModelsResponse,
+  ProvidersResponse,
   SelfcheckResponse,
+  SwarmActionResponse,
+  SwarmListResponse,
+  SwarmRunResponse,
+  ToolsResponse,
   VersionResponse,
 } from './contracts';
 import { toEnvelope, type CommandEnvelope } from './envelope';
@@ -153,10 +160,12 @@ export class ApiClient {
     return toEnvelope(await this.json<unknown>('POST', path, { body: body ?? {} }));
   }
 
-  jobs(): Promise<JobRegistry> {
-    // V serves GET /api/v1/jobs (jobs_list), but openapi.json only documents
-    // the POST on this path; anchor to that until the contract lists both.
-    return this.json('GET', '/api/v1/jobs' satisfies PathWith<'post'>);
+  jobs(): Promise<ResponseOf<OperationOf<'/api/v1/jobs', 'get'>, JobRegistry>> {
+    return this.json('GET', '/api/v1/jobs' satisfies PathWith<'get'>);
+  }
+
+  job(id: string): Promise<ResponseOf<OperationOf<'/api/v1/jobs/{id}', 'get'>, Job>> {
+    return this.json('GET', fillPath('/api/v1/jobs/{id}' satisfies PathWith<'get'>, { id }));
   }
 
   createJob(request: JobCreateRequest): Promise<Job> {
@@ -165,6 +174,10 @@ export class ApiClient {
 
   cancelJob(id: string): Promise<Job> {
     return this.json('POST', fillPath('/api/v1/jobs/{id}/cancel' satisfies PathWith<'post'>, { id }));
+  }
+
+  retryJob(id: string): Promise<ResponseOf<OperationOf<'/api/v1/jobs/{id}/retry', 'post'>, Job>> {
+    return this.json('POST', fillPath('/api/v1/jobs/{id}/retry' satisfies PathWith<'post'>, { id }));
   }
 
   deleteJob(id: string, force = false): Promise<MessageResponse> {
@@ -193,5 +206,63 @@ export class ApiClient {
 
   listMemory(): Promise<MemoryListResponse> {
     return this.json('GET', '/api/v1/memory' satisfies PathWith<'get'>);
+  }
+
+  async loopStatus(name: string): Promise<CommandEnvelope> {
+    return toEnvelope(
+      await this.json<unknown>('GET', fillPath('/api/v1/loops/{name}/status' satisfies PathWith<'get'>, { name })),
+    );
+  }
+
+  runLoop(name: string): Promise<Job> {
+    return this.json('POST', fillPath('/api/v1/loops/{name}/run' satisfies PathWith<'post'>, { name }));
+  }
+
+  async scheduleLoop(name: string): Promise<CommandEnvelope> {
+    return toEnvelope(
+      await this.json<unknown>('POST', fillPath('/api/v1/loops/{name}/schedule' satisfies PathWith<'post'>, { name })),
+    );
+  }
+
+  agents(): Promise<ResponseOf<OperationOf<'/api/v1/agents', 'get'>, AgentsResponse>> {
+    return this.json('GET', '/api/v1/agents' satisfies PathWith<'get'>);
+  }
+
+  tools(): Promise<ResponseOf<OperationOf<'/api/v1/tools', 'get'>, ToolsResponse>> {
+    return this.json('GET', '/api/v1/tools' satisfies PathWith<'get'>);
+  }
+
+  providers(): Promise<ResponseOf<OperationOf<'/api/v1/providers', 'get'>, ProvidersResponse>> {
+    return this.json('GET', '/api/v1/providers' satisfies PathWith<'get'>);
+  }
+
+  models(): Promise<ResponseOf<OperationOf<'/api/v1/models', 'get'>, ModelsResponse>> {
+    return this.json('GET', '/api/v1/models' satisfies PathWith<'get'>);
+  }
+
+  swarms(): Promise<ResponseOf<OperationOf<'/api/v1/swarms', 'get'>, SwarmListResponse>> {
+    return this.json('GET', '/api/v1/swarms' satisfies PathWith<'get'>);
+  }
+
+  swarmRun(id: string): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}', 'get'>, SwarmRunResponse>> {
+    return this.json('GET', fillPath('/api/v1/swarms/runs/{id}' satisfies PathWith<'get'>, { id }));
+  }
+
+  approveSwarm(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/approve', 'post'>, SwarmActionResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/approve' satisfies PathWith<'post'>, { id }));
+  }
+
+  rejectSwarm(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/reject', 'post'>, SwarmActionResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/reject' satisfies PathWith<'post'>, { id }));
+  }
+
+  stopSwarm(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/stop', 'post'>, SwarmActionResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/stop' satisfies PathWith<'post'>, { id }));
   }
 }

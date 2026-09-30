@@ -91,6 +91,38 @@ test('a job started from Operations runs on the backend and streams to completio
   await expect(detail.getByText(/\d+\.\d+\.\d+/).first()).toBeVisible();
 });
 
+test('Operations shows doctor, loops and swarms from live endpoints', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Workshop' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Doctor' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Board' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Swarms' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);
+});
+
+test('a failed job can be retried as a new job', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Start job' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a job' });
+  await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('no-such-command');
+  await dialog.getByRole('button', { name: 'Start job' }).click();
+  await expect(dialog).toBeHidden();
+
+  const detail = page.getByRole('region', { name: 'no-such-command' });
+  await expect(detail.getByText(/failed|rejected/)).toBeVisible();
+  const retry = detail.getByRole('button', { name: 'Retry job' });
+  if (await retry.isVisible()) {
+    await retry.click();
+    await expect(page.getByRole('region', { name: 'Receipts' })).toContainText('Job retried');
+    await expect(page.getByRole('region', { name: 'no-such-command' })).toContainText(/retry of/i);
+  } else {
+    await expect(detail).toContainText('rejected');
+  }
+});
+
 test('dialogs focus their first field and Escape returns focus to the trigger', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();

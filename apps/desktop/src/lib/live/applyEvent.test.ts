@@ -2,7 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import type { Job, JobRegistry } from '../api';
 import { qk } from '../query/keys';
-import { applyLiveEvent, MAX_LIVE_LINES } from './applyEvent';
+import { applyBusEvent, applyLiveEvent, MAX_LIVE_LINES } from './applyEvent';
 
 const job: Job = {
   id: 'job_1',
@@ -13,6 +13,7 @@ const job: Job = {
   ended_at: '',
   exit_code: 0,
   workspace: '/ws',
+  retry_of: '',
 };
 
 function client(): QueryClient {
@@ -53,5 +54,60 @@ describe('applyLiveEvent', () => {
     expect(queryClient.getQueryData<JobRegistry>(qk.jobs.list())?.[job.id]?.status).toBe('failed');
     expect(queryClient.getQueryState(qk.jobs.list())?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(qk.jobs.log(job.id))?.isInvalidated).toBe(true);
+  });
+});
+
+describe('applyBusEvent', () => {
+  it('invalidates jobs on job.created without inventing a record', () => {
+    const queryClient = client();
+    applyBusEvent(queryClient, {
+      seq: 1,
+      boot: 'b',
+      type: 'job.created',
+      at: '',
+      subject: 'job_new',
+      status: 'queued',
+      exit_code: 0,
+      ref: '',
+      message: '',
+    });
+    expect(queryClient.getQueryData<JobRegistry>(qk.jobs.list())?.['job_new']).toBeUndefined();
+    expect(queryClient.getQueryState(qk.jobs.list())?.isInvalidated).toBe(true);
+  });
+
+  it('drops a deleted job from the registry', () => {
+    const queryClient = client();
+    applyBusEvent(queryClient, {
+      seq: 2,
+      boot: 'b',
+      type: 'job.deleted',
+      at: '',
+      subject: job.id,
+      status: '',
+      exit_code: 0,
+      ref: '',
+      message: '',
+    });
+    expect(queryClient.getQueryData<JobRegistry>(qk.jobs.list())?.[job.id]).toBeUndefined();
+  });
+
+  it('refetches operations domains on backend.resync', () => {
+    const queryClient = client();
+    queryClient.setQueryData(qk.loops.status('demo'), { ok: true, message: '', data: {} });
+    queryClient.setQueryData(qk.swarms.list(), []);
+    applyBusEvent(queryClient, {
+      seq: 3,
+      boot: 'b',
+      type: 'backend.resync',
+      at: '',
+      subject: 'serve',
+      status: 'ok',
+      exit_code: 0,
+      ref: '',
+      message: 'refetch',
+    });
+    expect(queryClient.getQueryState(qk.jobs.list())?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(qk.loops.status('demo'))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(qk.swarms.list())?.isInvalidated).toBe(true);
   });
 });

@@ -325,7 +325,7 @@ Feels like an organized capability library rather than a generic app marketplace
 
 ### Operations
 
-More serious command-center tone. Jobs, loops, swarms, and Doctor use dense conventional controls. A pixel-art operations room may reinforce context without stealing space from status and actions. Job progress is shown only when it is measured from real runtime sources; otherwise it is indeterminate or omitted — never estimated to fill a bar.
+Workshop / inspector — a Paper Co. operations board the world opens, not a second home dashboard. Real job table (status, command, started, duration, exit). Manila for doctor. Brass marks the selected row. No decorative NPCs. Job progress is shown only when it is measured from real runtime sources; otherwise it is omitted — never estimated to fill a bar.
 
 ### Workspace
 

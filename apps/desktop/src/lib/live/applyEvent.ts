@@ -1,5 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
-import type { JobRegistry } from '../api';
+import type { ApiEvent, JobRegistry } from '../api';
 import { qk } from '../query/keys';
 import type { LiveEvent } from './jobStreams';
 
@@ -11,6 +11,24 @@ function setJobStatus(queryClient: QueryClient, jobId: string, status: string): 
     if (!registry || !job || job.status === status) return registry;
     return { ...registry, [jobId]: { ...job, status } };
   });
+}
+
+function dropJob(queryClient: QueryClient, jobId: string): void {
+  queryClient.setQueryData<JobRegistry>(qk.jobs.list(), (registry) => {
+    if (!registry || !(jobId in registry)) return registry;
+    const next = { ...registry };
+    delete next[jobId];
+    return next;
+  });
+  queryClient.removeQueries({ queryKey: qk.jobs.log(jobId) });
+  queryClient.removeQueries({ queryKey: qk.jobs.live(jobId) });
+}
+
+function refetchOperations(queryClient: QueryClient): void {
+  void queryClient.invalidateQueries({ queryKey: qk.domain('jobs') });
+  void queryClient.invalidateQueries({ queryKey: qk.domain('loops') });
+  void queryClient.invalidateQueries({ queryKey: qk.domain('swarms') });
+  void queryClient.invalidateQueries({ queryKey: qk.domain('doctor') });
 }
 
 /** Write one live event into the Query cache. The only writer of `qk.jobs.live`. */
@@ -36,6 +54,46 @@ export function applyLiveEvent(queryClient: QueryClient, { jobId, event }: LiveE
       void queryClient.invalidateQueries({ queryKey: qk.jobs.log(jobId) });
       return;
     case 'unknown':
+      return;
+  }
+}
+
+/**
+ * Apply one GET /api/v1/events frame. Events are hints: they patch a known
+ * job status or invalidate the owning domain. They never invent a job, log
+ * line, or progress value that the read APIs have not returned.
+ */
+export function applyBusEvent(queryClient: QueryClient, event: ApiEvent): void {
+  switch (event.type) {
+    case 'backend.resync':
+      refetchOperations(queryClient);
+      return;
+    case 'job.created':
+      void queryClient.invalidateQueries({ queryKey: qk.jobs.list() });
+      return;
+    case 'job.updated':
+      if (event.subject && event.status) setJobStatus(queryClient, event.subject, event.status);
+      void queryClient.invalidateQueries({ queryKey: qk.jobs.list() });
+      return;
+    case 'job.deleted':
+      if (event.subject) dropJob(queryClient, event.subject);
+      void queryClient.invalidateQueries({ queryKey: qk.jobs.list() });
+      return;
+    case 'loop.started':
+    case 'loop.finished':
+      void queryClient.invalidateQueries({ queryKey: qk.domain('loops') });
+      if (event.ref) void queryClient.invalidateQueries({ queryKey: qk.jobs.list() });
+      return;
+    case 'swarm.changed':
+      void queryClient.invalidateQueries({ queryKey: qk.domain('swarms') });
+      return;
+    case 'install.started':
+    case 'install.finished':
+      void queryClient.invalidateQueries({ queryKey: qk.domain('doctor') });
+      void queryClient.invalidateQueries({ queryKey: qk.domain('inventory') });
+      return;
+    case 'backend.ready':
+    case 'memory.changed':
       return;
   }
 }

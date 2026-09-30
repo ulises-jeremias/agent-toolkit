@@ -15,6 +15,10 @@
   }
 }
 
+.board :global(tbody tr[data-selected='true'] > *) {
+  box-shadow: inset 3px 0 0 var(--accent-brass-fill);
+}
+
 .rowButton {
   display: flex;
   flex-direction: column;
@@ -53,4 +57,16 @@
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--text-muted);
+}
+
+.subsection {
+  margin-top: var(--space-5);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  font-size: var(--text-sm);
 }

@@ -20,7 +20,7 @@ primary destinations (see [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md),
 | **World** (default home) | Where am I in this toolkit, and what is real here? | Semantic places/objects/characters from domain state; list fallback; click → inspectors |
 | Office | What needs attention now? | Failures, blocked work, self-check, backend; running work summary |
 | Library | What can I use or add? | Skills, agents, products and packs with clear distinctions |
-| Operations | What is running and how do I control it? | Jobs, loops, swarms, Doctor |
+| Operations | How do I inspect and control this job, loop, swarm or doctor check? | Workshop inspector. The world and Office link here; this is not a second home. |
 | Workspace | Where am I working? | Workspace lifecycle, projects, context, files and relevant Git changes |
 | Insights | What happened over time? | Measured usage, cost, budgets and execution history |
 | Terminal | Where do I work with agents directly? | PTY sessions |

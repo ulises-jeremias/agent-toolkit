@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { LiveStatus } from '../data/live';
+import type { LiveSnapshot } from '../lib/live/jobStreams';
 import type { BackendState } from '../types/electron';
 import { indicatorState } from './LiveIndicator';
 
+const IDLE: LiveSnapshot = { state: 'idle', streams: 0, nextRetryAt: null };
+
 const online: LiveStatus = {
   connection: 'online',
-  streams: { state: 'idle', streams: 0, nextRetryAt: null },
+  streams: IDLE,
+  bus: IDLE,
   lastHealthyAt: Date.parse('2026-09-29T10:00:00Z'),
 };
 
@@ -48,5 +52,13 @@ describe('indicatorState', () => {
 
   it('is quietly connected with no running jobs', () => {
     expect(indicatorState(backend('ready'), online)).toMatchObject({ tone: 'ok', label: 'Connected' });
+  });
+
+  it('is live from the global event bus with no job streams', () => {
+    const state = indicatorState(backend('ready'), {
+      ...online,
+      bus: { state: 'live', streams: 1, nextRetryAt: null },
+    });
+    expect(state).toMatchObject({ tone: 'ok', label: 'Live', detail: 'Event stream open', live: true });
   });
 });

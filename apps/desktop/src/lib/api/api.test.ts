@@ -154,4 +154,48 @@ describe('ApiClient', () => {
   it('builds the job events URL on the same origin', () => {
     expect(client({}).jobEventsUrl('job_1')).toBe('http://127.0.0.1:9/api/v1/jobs/job_1/events');
   });
+
+  it('lists jobs with GET and retries with POST', async () => {
+    const api = client({ id: 'job_y', status: 'queued', retry_of: 'job_x' });
+    await api.jobs();
+    await api.job('job_x');
+    await api.retryJob('job_x');
+    expect(calls.map((call) => `${call.init?.method} ${call.url}`)).toEqual([
+      'GET http://127.0.0.1:9/api/v1/jobs',
+      'GET http://127.0.0.1:9/api/v1/jobs/job_x',
+      'POST http://127.0.0.1:9/api/v1/jobs/job_x/retry',
+    ]);
+  });
+
+  it('builds the global events URL with a type filter', () => {
+    const url = new URL(client({}).eventsUrl({ types: 'job.,loop.' }));
+    expect(url.pathname).toBe('/api/v1/events');
+    expect(url.searchParams.get('types')).toBe('job.,loop.');
+  });
+
+  it('reads the typed agents and tools catalogs', async () => {
+    const api = client({ ok: true, agents: [], tools: [] });
+    await api.agents();
+    await api.tools();
+    expect(calls.map((call) => call.url)).toEqual([
+      'http://127.0.0.1:9/api/v1/agents',
+      'http://127.0.0.1:9/api/v1/tools',
+    ]);
+  });
+
+  it('lists swarm runs and posts typed run actions', async () => {
+    const api = client({ ok: true, runs: [], message: 'ok', run_id: 'run_1', status: 'stopped' });
+    await api.swarms();
+    await api.swarmRun('run_1');
+    await api.approveSwarm('run_1');
+    await api.rejectSwarm('run_1');
+    await api.stopSwarm('run_1');
+    expect(calls.map((call) => `${call.init?.method} ${call.url}`)).toEqual([
+      'GET http://127.0.0.1:9/api/v1/swarms',
+      'GET http://127.0.0.1:9/api/v1/swarms/runs/run_1',
+      'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/approve',
+      'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/reject',
+      'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/stop',
+    ]);
+  });
 });

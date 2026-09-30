@@ -9,4 +9,5 @@ export {
   type JobStreamEvent,
   type JobStreamEventName,
 } from './jobStream';
+export { isApiEventType, parseApiEvent } from './eventStream';
 export type { SubBody, SubCommand, SubFamily } from './schema';

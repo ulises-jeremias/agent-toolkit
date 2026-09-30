@@ -60,6 +60,22 @@ export function indicatorState(backend: BackendState | null, status: LiveStatus)
         live: true,
       };
     default:
+      break;
+  }
+  switch (status.bus.state) {
+    case 'reconnecting':
+      return {
+        tone: 'warn',
+        label: 'Reconnecting',
+        detail: status.bus.nextRetryAt
+          ? `Event stream resumes by ${clock(status.bus.nextRetryAt)}`
+          : 'Event stream paused',
+        live: false,
+      };
+    case 'live':
+    case 'connecting':
+      return { tone: 'ok', label: 'Live', detail: 'Event stream open', live: true };
+    default:
       return { tone: 'ok', label: 'Connected', detail: 'No running jobs', live: false };
   }
 }
