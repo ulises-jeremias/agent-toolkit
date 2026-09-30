@@ -8,7 +8,6 @@ import {
   ConfirmAction,
   EmptyState,
   Grid,
-  KeyValue,
   Mono,
   PageHeader,
   Panel,
@@ -44,6 +43,7 @@ function toolSummary(tools: readonly ToolInfo[]): string {
  */
 export default function Library() {
   const inventory = useReport('inventory');
+  const catalogRoot = inventory.data?.data['root'];
   const tools = useTools();
   const agents = useAgents();
   const providers = useProviders();
@@ -65,7 +65,11 @@ export default function Library() {
       <PageHeader
         eyebrow="Library"
         title="What can I use"
-        lede="Catalog is what the toolkit ships. Detected, configured and verified are this machine. Running is unknown here."
+        lede={
+          catalogRoot
+            ? `This catalog is the toolkit tree at ${catalogRoot}. Detected, configured and verified are this machine. Running is unknown here.`
+            : 'Catalog is what the toolkit ships. Detected, configured and verified are this machine. Running is unknown here.'
+        }
         actions={
           <ConfirmAction
             label="Install profiles"
@@ -80,22 +84,6 @@ export default function Library() {
         }
       />
       <Stack>
-        <Panel title="Inventory" meta="What this toolkit ships">
-          <QueryView query={inventory} loading="Counting capabilities" errorTitle="Could not read the inventory">
-            {(envelope) => (
-              <KeyValue
-                items={[
-                  { label: 'Skills', value: envelope.data['skill_count'] ?? 'Unknown' },
-                  { label: 'Domains', value: envelope.data['domain_count'] ?? 'Unknown' },
-                  { label: 'Agents', value: envelope.data['agent_count'] ?? 'Unknown' },
-                  { label: 'Products', value: envelope.data['product_count'] ?? 'Unknown' },
-                  { label: 'Toolkit root', value: envelope.data['root'] ?? 'Unknown', mono: true },
-                ]}
-              />
-            )}
-          </QueryView>
-        </Panel>
-
         <Panel title="Coding tools" meta={tools.data ? toolSummary(tools.data.tools) : undefined}>
           <QueryView query={tools} loading="Discovering coding tools" errorTitle="Could not list coding tools">
             {(response) =>
