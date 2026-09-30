@@ -151,6 +151,7 @@
   flex: 1;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
 }
 
 .notice {
@@ -384,12 +385,12 @@
 
 .dock[data-mode='compact'] {
   flex: none;
-  height: 16rem;
+  height: 14rem;
 }
 
 .dock[data-mode='expanded'] {
-  flex: 1 1 20rem;
-  min-height: 16rem;
+  flex: 1 1 0;
+  min-height: 12rem;
 }
 
 .dockBar {

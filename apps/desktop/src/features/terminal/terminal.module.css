@@ -1,9 +1,7 @@
-/* The terminal destination fills the content height instead of scrolling the page. */
+/* Destination chrome only. Sessions live in the shell dock. */
 .page {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 24rem;
 }
 
 .page > header {
