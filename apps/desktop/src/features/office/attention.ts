@@ -1,5 +1,6 @@
 import type { ConnectionState } from '../../data/live';
 import { isTerminalJobStatus, type Job, type SelfcheckCheck, type SelfcheckResponse } from '../../lib/api';
+import { backendBannerCopy } from '../../lib/backend-copy';
 import { jobCommandLine } from '../../lib/format';
 import type { BackendState } from '../../types/electron';
 
@@ -94,7 +95,7 @@ export function collectAttention(input: AttentionInput): AttentionItem[] {
       kind: 'crash',
       tone: 'err',
       title: `Backend ${backend.status}`,
-      detail: backend.detail ?? 'Nothing below can refresh until it answers.',
+      detail: backendBannerCopy(backend),
       href: href('/settings'),
       label: 'Open backend settings',
     });
@@ -104,7 +105,7 @@ export function collectAttention(input: AttentionInput): AttentionItem[] {
       kind: 'mismatch',
       tone: 'warn',
       title: 'Backend version mismatch',
-      detail: backend.detail ?? `Backend ${backend.version ?? 'of unknown version'} does not match this Desktop build.`,
+      detail: backendBannerCopy(backend),
       href: href('/settings'),
       label: 'Open backend settings',
     });

@@ -38,6 +38,9 @@ const backend = (status: BackendState['status'], detail: string | null = 'died')
   detail,
   restarts: 0,
   harness: null,
+  binary: null,
+  rejected: [],
+  problem: null,
 });
 
 const selfcheckOk: SelfcheckResponse = {
@@ -88,6 +91,19 @@ describe('collectAttention', () => {
         }),
       ]),
     );
+  });
+
+  it('surfaces a rejected backend binary as failed attention, not quiet', () => {
+    const rejected = input({
+      backend: {
+        ...backend('failed', '/usr/bin/agent-toolkit (path, 1.16.0): too old: has no `serve` command'),
+        problem: 'binary-rejected',
+      },
+    });
+    const items = collectAttention(rejected);
+    expect(items[0]?.kind).toBe('crash');
+    expect(items[0]?.detail).toMatch(/too old/);
+    expect(officeLede(rejected, items)).not.toMatch(/Nothing needs you|quiet/i);
   });
 
   it('surfaces version-mismatch before claiming the desk is clear', () => {
