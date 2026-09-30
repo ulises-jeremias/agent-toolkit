@@ -270,9 +270,24 @@
 }
 
 .tileMemory {
+  /* Ledger page / single record. */
   background:
     repeating-linear-gradient(90deg, #efdcb6 0 6px, #d4b483 6px 8px),
     #efdcb6;
+}
+
+.tileMemoryIndex {
+  /* Archive / card-index place — manila drawers, distinct from Library shelf. */
+  background:
+    linear-gradient(180deg, #6b604c 0 12%, transparent 12%),
+    repeating-linear-gradient(
+      0deg,
+      #d4b483 0 8px,
+      #b08d57 8px 10px,
+      #f6ebd7 10px 18px,
+      #d4a94b 18px 20px
+    ),
+    #d4b483;
 }
 
 .tileSwarm {

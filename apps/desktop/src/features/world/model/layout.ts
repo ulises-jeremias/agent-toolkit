@@ -23,26 +23,29 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const laid: LaidOutEntity[] = [];
 
   const grounds = entities.find((e) => e.id === 'place:workspace');
-  const knowledge = entities.find((e) => e.id === 'place:knowledge-workspace');
+  const memoryPlace = entities.find((e) => e.id === 'place:memory');
   const sharedObjects = entities.filter(
     (e) =>
       e.id === 'object:terminal' ||
       e.id === 'object:library' ||
       e.id === 'object:attention' ||
+      e.id === 'object:memory-index' ||
       e.id === 'place:projects-empty',
   );
   const projects = entities.filter((e) => e.id.startsWith('place:project:'));
   const projectExtras = entities.filter(
-    (e) => e.id.startsWith('place:knowledge-project:') || e.id.startsWith('object:terminal-project:'),
+    (e) => e.id.startsWith('place:memory-project:') || e.id.startsWith('object:terminal-project:'),
   );
+  const memoryEntries = entities.filter((e) => e.id.startsWith('object:memory:'));
   const characters = entities.filter((e) => e.kind === 'character');
   const rest = entities.filter(
     (e) =>
       e !== grounds &&
-      e !== knowledge &&
+      e !== memoryPlace &&
       !sharedObjects.includes(e) &&
       !projects.includes(e) &&
       !projectExtras.includes(e) &&
+      !memoryEntries.includes(e) &&
       !characters.includes(e),
   );
 
@@ -57,7 +60,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   };
 
   if (grounds) place(grounds, 0, 0);
-  if (knowledge) place(knowledge, PLACE_W + 1, 0);
+  if (memoryPlace) place(memoryPlace, PLACE_W + 1, 0);
 
   let objX = 0;
   const objY = PLACE_H + 1;
@@ -79,6 +82,13 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   for (const extra of projectExtras) {
     place(extra, extraX, extraY);
     extraX += OBJECT_W + 1;
+  }
+
+  let entryX = 0;
+  const entryY = (laid.reduce((m, e) => Math.max(m, e.y + e.h), 0) || extraY) + 1;
+  for (const entry of memoryEntries) {
+    place(entry, entryX, entryY);
+    entryX += OBJECT_W + 1;
   }
 
   let charX = 0;

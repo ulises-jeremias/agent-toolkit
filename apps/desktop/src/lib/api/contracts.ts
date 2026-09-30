@@ -96,6 +96,31 @@ export interface MemoryListResponse {
   entries: MemoryEntry[];
 }
 
+/** OpenAPI `MemoryHit` from GET /api/v1/memory/hits. */
+export interface MemoryHit {
+  path: string;
+  line: number;
+  snippet: string;
+  kind: string;
+}
+
+export interface MemorySearchResponse {
+  ok: boolean;
+  query: string;
+  hits: MemoryHit[];
+}
+
+export interface MemoryReadResponse {
+  ok: boolean;
+  entry: MemoryEntry;
+}
+
+export interface MemoryWriteResponse {
+  ok: boolean;
+  message: string;
+  path: string;
+}
+
 /** OpenAPI `ApiEvent.type` on GET /api/v1/events. Unknown types stay verbatim. */
 export type ApiEventType =
   | 'backend.ready'

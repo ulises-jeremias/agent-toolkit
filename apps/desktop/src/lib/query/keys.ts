@@ -40,6 +40,8 @@ export const qk = {
 
   memory: {
     list: (scope: Record<string, string> = {}) => ['memory', 'list', scope] as const,
+    hits: (q: string, scope: Record<string, string> = {}) => ['memory', 'hits', q, scope] as const,
+    file: (path: string, scope: Record<string, string> = {}) => ['memory', 'file', path, scope] as const,
   },
 
   report: (kind: ReportKind) => [kind, 'report'] as const,

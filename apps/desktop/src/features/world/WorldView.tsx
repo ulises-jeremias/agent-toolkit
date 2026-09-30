@@ -63,13 +63,28 @@ export default function WorldView() {
   }, [projectsQuery.data, projectsQuery.isSuccess]);
 
   const memory: MemorySummary = useMemo(() => {
-    if (memoryQuery.isError) return { available: false, entryCount: 0, projectKeys: [] };
-    if (!memoryQuery.isSuccess || !memoryQuery.data) return { available: false, entryCount: 0, projectKeys: [] };
-    const entries = memoryQuery.data.entries ?? [];
+    // 404 / any list failure → omit memory place (never invent an archive).
+    if (memoryQuery.isError) return { available: false, entries: [], projectKeys: [] };
+    if (!memoryQuery.isSuccess || !memoryQuery.data) return { available: false, entries: [], projectKeys: [] };
+    const entries = (memoryQuery.data.entries ?? []).map((entry) => ({
+      id: entry.id,
+      kind: entry.kind ?? '',
+      title: entry.title ?? entry.id,
+      snippet: entry.snippet ?? '',
+      // List omits body — do not invent document contents for the world.
+      tags: entry.tags ?? [],
+      provenance: {
+        file: entry.provenance?.file ?? '',
+        author: entry.provenance?.author ?? '',
+        timestamp: entry.provenance?.timestamp ?? '',
+        project: entry.provenance?.project ?? '',
+        agent: entry.provenance?.agent ?? '',
+      },
+    }));
     const projectKeys = [
-      ...new Set(entries.map((entry) => entry.provenance?.project).filter((value): value is string => Boolean(value))),
+      ...new Set(entries.map((row) => row.provenance.project).filter((value): value is string => Boolean(value))),
     ];
-    return { available: true, entryCount: entries.length, projectKeys };
+    return { available: true, entries, projectKeys };
   }, [memoryQuery.data, memoryQuery.isError, memoryQuery.isSuccess]);
 
   const jobs = useMemo(() => sortJobs(jobsQuery.data), [jobsQuery.data]);
@@ -106,8 +121,8 @@ export default function WorldView() {
         title={model.focusProjectId ? `${model.focusProjectId} space` : model.workspaceLabel || 'Workspace world'}
         lede={
           model.focusProjectId
-            ? 'Project interior — knowledge, memory, and terminal open real inspectors. No fake activity.'
-            : 'Workspace grounds: project houses and a shared library. Enter a place; inspectors stay Paper Co.'
+            ? 'Project interior — memory archive, terminal, and inspectors. No fake activity.'
+            : 'Workspace grounds: project houses, memory archive when the API exists, and a capability library. Inspectors stay Paper Co.'
         }
         actions={
           model.focusProjectId ? (
