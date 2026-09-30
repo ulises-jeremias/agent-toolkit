@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
-import { useSubQuery } from '../../data/commands';
+import { useOperation, useSubQuery } from '../../data/commands';
 import { sortJobs, useJobs } from '../../data/jobs';
-import { useMemoryList } from '../../data/memory';
+import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { envelopeText } from '../../lib/api';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -14,8 +14,10 @@ import {
   PageHeader,
   Panel,
   Stack,
+  useActionReceipt,
 } from '../../ui';
 import { entityAccessibleName } from './inspectors';
+import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
   buildWorldModel,
   layoutWorld,
@@ -25,13 +27,13 @@ import {
   type ToolRecord,
 } from './model';
 import { cozyTopdownTheme } from './theme/cozyTopdown';
+import { ToolRecordInspector } from './ToolRecordInspector';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
 import styles from './world.module.css';
 
 /**
  * World: semantic spatial home. Domain → model → layout → cozy theme → DOM tiles.
- * Inspectors stay on existing destinations via href(); entities without a path
- * stay non-activating (no invented screens).
+ * Memory/tool detail inspectors stay on `/world` query params and call real APIs.
  */
 export default function WorldView() {
   const { backend } = useBackend();
@@ -40,11 +42,16 @@ export default function WorldView() {
   const [params] = useSearchParams();
   const focusProject = params.get('project');
   const focusPlace = params.get('place');
+  const memoryPath = params.get('memory')?.trim() || '';
+  const toolId = params.get('tool')?.trim() || '';
 
   const projectsQuery = useSubQuery('project', 'list');
   const memoryQuery = useMemoryList();
+  const memoryFileQuery = useMemoryFile(memoryPath, { enabled: memoryPath.length > 0 });
   const jobsQuery = useJobs();
   const toolsQuery = useTools();
+  const install = useOperation('install');
+  const installReceipt = useActionReceipt('Profiles installed');
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const workspacePath =
@@ -120,27 +127,49 @@ export default function WorldView() {
 
   const layout = useMemo(() => layoutWorld(model), [model]);
   const selected = layout.entities.find((entity) => entity.id === selectedId) ?? null;
+  const inspectedTool = toolsQuery.data?.tools.find((tool) => tool.id === toolId) ?? null;
 
   useEffect(() => {
-    if (!focusPlace || focusPlace === 'projects') return;
-    if (layout.entities.some((entity) => entity.id === focusPlace)) {
-      setSelectedId(focusPlace);
+    if (memoryPath) {
+      const hit = layout.entities.find((entity) => entity.hrefExtra?.memory === memoryPath);
+      if (hit) setSelectedId(hit.id);
+      return;
     }
-  }, [focusPlace, layout.entities]);
-
-  useEffect(() => {
-    if (!focusProject) return;
-    const roomId = `place:project:${focusProject}`;
-    if (layout.entities.some((entity) => entity.id === roomId)) {
-      setSelectedId(roomId);
+    if (toolId) {
+      const hit = layout.entities.find((entity) => entity.hrefExtra?.tool === toolId);
+      if (hit) setSelectedId(hit.id);
+      return;
     }
-  }, [focusProject, layout.entities]);
+    if (focusPlace && focusPlace !== 'projects') {
+      if (layout.entities.some((entity) => entity.id === focusPlace)) {
+        setSelectedId(focusPlace);
+      }
+      return;
+    }
+    if (focusProject) {
+      const roomId = `place:project:${focusProject}`;
+      if (layout.entities.some((entity) => entity.id === roomId)) {
+        setSelectedId(roomId);
+      }
+    }
+  }, [memoryPath, toolId, focusPlace, focusProject, layout.entities]);
 
   const gathering = projectsQuery.isPending || jobsQuery.isPending;
 
   const openEntity = (entity: LaidOutEntity) => {
     if (!entity.hrefPath) return;
     navigate(href(entity.hrefPath, entity.hrefExtra));
+  };
+
+  const closeDetail = () => {
+    navigate(
+      href('/world', {
+        project: focusProject || undefined,
+        memory: undefined,
+        tool: undefined,
+        place: undefined,
+      }),
+    );
   };
 
   return (
@@ -202,6 +231,30 @@ export default function WorldView() {
             />
           ) : null}
         </Panel>
+
+        {memoryPath ? (
+          <MemoryRecordInspector
+            path={memoryPath}
+            data={memoryFileQuery.data}
+            error={memoryFileQuery.error}
+            isPending={memoryFileQuery.isPending}
+            onClose={closeDetail}
+            onRetry={() => void memoryFileQuery.refetch()}
+          />
+        ) : null}
+
+        {toolId && !memoryPath ? (
+          <ToolRecordInspector
+            toolId={toolId}
+            tool={inspectedTool}
+            isPending={toolsQuery.isPending}
+            error={toolsQuery.error}
+            onInstall={() => install.mutate(undefined, installReceipt)}
+            installBusy={install.isPending}
+            onClose={closeDetail}
+            onRetry={() => void toolsQuery.refetch()}
+          />
+        ) : null}
 
         <Panel title="Structured list" meta="Accessibility fallback for every spatial entity">
           {layout.entities.length === 0 ? (

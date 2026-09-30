@@ -584,3 +584,30 @@
     animation: none;
   }
 }
+
+.detailInspector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.detailBody {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  max-height: 18rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--font-mono, 'IBM Plex Mono', ui-monospace, monospace);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  background: color-mix(in srgb, var(--paper-cream, #f7f1e3) 88%, #1c1917);
+  border: 1px solid color-mix(in srgb, var(--ink, #1c1917) 12%, transparent);
+  border-radius: 2px;
+}
+
+.detailEmpty {
+  margin: 0;
+  color: color-mix(in srgb, var(--ink, #1c1917) 65%, transparent);
+  font-size: 0.9rem;
+}

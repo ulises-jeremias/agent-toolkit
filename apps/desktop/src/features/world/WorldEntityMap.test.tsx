@@ -87,16 +87,22 @@ describe('world inspector targets', () => {
     expect(byId['character:job:j-run']).toMatchObject({ hrefPath: '/operations' });
   });
 
-  it('leaves memory records and detected tools non-activating (no invented screens)', () => {
+  it('opens memory records and tools on /world query inspectors', () => {
     const interior = buildWorldModel(baseInput({ focusProjectId: 'alpha' }));
     const memory = interior.entities.find((e) => e.id === 'object:memory:knowledge/learnings/a.md');
     const tool = interior.entities.find((e) => e.id === 'object:tool:claude');
     const terminal = interior.entities.find((e) => e.id === 'object:terminal-project:alpha');
 
-    expect(entityHasInspector(memory!)).toBe(false);
-    expect(memory?.hrefPath).toBeUndefined();
-    expect(entityHasInspector(tool!)).toBe(false);
-    expect(tool?.hrefPath).toBeUndefined();
+    expect(memory).toMatchObject({
+      hrefPath: '/world',
+      hrefExtra: { project: 'alpha', memory: 'knowledge/learnings/a.md' },
+    });
+    expect(entityHasInspector(memory!)).toBe(true);
+    expect(tool).toMatchObject({
+      hrefPath: '/world',
+      hrefExtra: { project: 'alpha', tool: 'claude' },
+    });
+    expect(entityHasInspector(tool!)).toBe(true);
     expect(terminal).toMatchObject({ hrefPath: '/terminal' });
   });
 });
@@ -186,28 +192,48 @@ describe('WorldEntityMap activation', () => {
     expect(terminalInspect?.getAttribute('href')).toContain('/terminal');
   });
 
-  it('does not activate memory records or tools; list shows — for them', async () => {
+  it('activates memory records and tools via click and keyboard on /world', async () => {
     const { onActivate, user } = renderMap(baseInput({ focusProjectId: 'alpha' }));
 
     const memoryBtn = screen.getByRole('button', { name: /Alpha note · Memory entry/i });
-    expect(memoryBtn.getAttribute('data-activates')).toBe('false');
+    expect(memoryBtn.getAttribute('data-activates')).toBe('true');
     await user.click(memoryBtn);
-    expect(onActivate).not.toHaveBeenCalled();
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        id: 'object:memory:knowledge/learnings/a.md',
+        hrefPath: '/world',
+        hrefExtra: expect.objectContaining({ memory: 'knowledge/learnings/a.md', project: 'alpha' }),
+      }),
+    );
 
     onActivate.mockClear();
     memoryBtn.focus();
     await user.keyboard('{Enter}');
-    expect(onActivate).not.toHaveBeenCalled();
-
-    const toolBtn = screen.getByRole('button', { name: /Claude Code · Coding tool/i });
-    expect(toolBtn.getAttribute('data-activates')).toBe('false');
-    await user.click(toolBtn);
-    expect(onActivate).not.toHaveBeenCalled();
-
-    expect(document.querySelector('[data-entity-inspect="object:memory:knowledge/learnings/a.md"]')?.getAttribute('data-inactive')).toBe(
-      'true',
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:memory:knowledge/learnings/a.md', hrefPath: '/world' }),
     );
-    expect(document.querySelector('[data-entity-inspect="object:tool:claude"]')?.getAttribute('data-inactive')).toBe('true');
+
+    onActivate.mockClear();
+    const toolBtn = screen.getByRole('button', { name: /Claude Code · Coding tool/i });
+    expect(toolBtn.getAttribute('data-activates')).toBe('true');
+    await user.click(toolBtn);
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        id: 'object:tool:claude',
+        hrefPath: '/world',
+        hrefExtra: expect.objectContaining({ tool: 'claude', project: 'alpha' }),
+      }),
+    );
+
+    onActivate.mockClear();
+    toolBtn.focus();
+    await user.keyboard(' ');
+    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'object:tool:claude', hrefPath: '/world' }));
+
+    const memoryInspect = document.querySelector('[data-entity-inspect="object:memory:knowledge/learnings/a.md"]');
+    expect(memoryInspect?.getAttribute('href')).toContain('memory=');
+    const toolInspect = document.querySelector('[data-entity-inspect="object:tool:claude"]');
+    expect(toolInspect?.getAttribute('href')).toContain('tool=claude');
   });
 
   it('gives every entity accessible name and state text independent of color', () => {
