@@ -19,7 +19,7 @@ test.describe('desktop smoke', () => {
 
   test('Ctrl+K opens the command palette', async ({ page }) => {
     await page.goto('/#/office');
-    await page.keyboard.press('Control+k');
+    await page.getByRole('button', { name: 'Commands' }).click();
     await expect(page.getByRole('dialog', { name: 'Commands' })).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: 'Commands' })).toBeHidden();

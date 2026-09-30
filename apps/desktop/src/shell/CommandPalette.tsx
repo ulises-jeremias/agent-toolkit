@@ -9,6 +9,12 @@ import { DESTINATIONS } from './destinations';
 import { useSessionContext } from './useSessionContext';
 import styles from './shell.module.css';
 
+export const OPEN_PALETTE_EVENT = 'atk:open-palette';
+
+export function openCommandPalette(): void {
+  window.dispatchEvent(new Event(OPEN_PALETTE_EVENT));
+}
+
 function isPaletteChord(event: KeyboardEvent): boolean {
   return (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !event.altKey;
 }
@@ -48,8 +54,16 @@ export function CommandPalette() {
         setQuery('');
       }
     };
+    const onOpen = () => {
+      setOpen(true);
+      setShortcuts(false);
+    };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    window.addEventListener(OPEN_PALETTE_EVENT, onOpen);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener(OPEN_PALETTE_EVENT, onOpen);
+    };
   }, []);
 
   useEffect(() => {

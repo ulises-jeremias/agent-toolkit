@@ -66,6 +66,7 @@ test('every destination renders from live data without a crash boundary', async 
 
 test('workspace reads the scratch workspace through the backend', async () => {
   const { page } = desktop;
+  await waitForBackend(page);
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
   await expect(page.getByRole('region', { name: 'Context budget' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);

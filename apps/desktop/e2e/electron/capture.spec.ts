@@ -60,7 +60,7 @@ test('capture every destination in Paper and Ink at both sizes', async () => {
   await startJob(page, 'no-such-command');
 
   await nav(page).getByRole('link', { name: 'Terminal' }).click();
-  await page.getByRole('button', { name: 'New session' }).click();
+  await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
   const session = page.getByRole('dialog', { name: 'New terminal session' });
   await session.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
   await session.getByRole('textbox', { name: 'Label', exact: true }).fill('shell');

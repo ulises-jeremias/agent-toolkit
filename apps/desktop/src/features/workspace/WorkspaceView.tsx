@@ -92,8 +92,8 @@ export default function WorkspaceView() {
             </QueryView>
           </Panel>
         </Grid>
-        <Panel tone="manila" title="Session context" meta="What an agent sees when it starts here">
-          <QueryView query={context} loading="Reading session context" errorTitle="Could not read the session context">
+        <Panel tone="manila" title="Agent start context" meta="What an agent sees when it starts here">
+          <QueryView query={context} loading="Reading start context" errorTitle="Could not read the start context">
             {(envelope) => <CommandReport envelope={envelope} label="Session context" />}
           </QueryView>
         </Panel>

@@ -2,6 +2,7 @@ import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { Link } from 'react-router';
 import { useBackend } from '../data/backend';
 import { Kbd, Mono } from '../ui';
+import { openCommandPalette } from './CommandPalette';
 import { basename } from './sessionContext';
 import { useSessionContext } from './useSessionContext';
 import styles from './shell.module.css';
@@ -93,10 +94,10 @@ export function ContextBar() {
       ) : null}
       <Field label="Agent" value={context.agent} placeholder="Any agent" onCommit={(agent) => setContext({ agent })} />
       <Field label="Run" value={context.run} placeholder="No run" mono onCommit={(run) => setContext({ run })} />
-      <p className={styles.contextHint}>
+      <button type="button" className={styles.contextHint} onClick={openCommandPalette} aria-haspopup="dialog">
         <Kbd keys={['Ctrl', 'K']} />
         <span>Commands</span>
-      </p>
+      </button>
     </form>
   );
 }
