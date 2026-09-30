@@ -12,20 +12,29 @@ import { expect, test } from '@playwright/test';
 test.describe('desktop smoke', () => {
   test('office shell loads', async ({ page }) => {
     await page.goto('/#/office');
-    await expect(page.getByRole('heading', { name: 'Office' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'What needs you' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
   });
 
   test('destinations navigate without dead ends', async ({ page }) => {
+    const nav = page.getByRole('navigation', { name: 'Destinations' });
     for (const destination of ['Operations', 'Workspace', 'Library', 'Insights', 'Terminal', 'Settings']) {
       await page.goto('/#/office');
-      await page.getByRole('link', { name: destination, exact: true }).click();
-      await expect(page.getByRole('heading', { name: destination, exact: true })).toBeVisible();
+      await nav.getByRole('link', { name: destination }).click();
+      await expect(page).toHaveURL(new RegExp(`#/${destination.toLowerCase()}`));
+      await expect(nav.getByRole('link', { name: destination })).toHaveAttribute('aria-current', 'page');
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     }
   });
 
   test('terminal explains itself outside Electron', async ({ page }) => {
     await page.goto('/#/terminal');
-    await expect(page.getByRole('heading', { name: 'Terminal' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Terminal' })).toBeVisible();
+    await expect(page.getByText('Interactive terminals need the Desktop app.')).toBeVisible();
+  });
+
+  test('unknown routes land on Office', async ({ page }) => {
+    await page.goto('/#/nowhere');
+    await expect(page).toHaveURL(/#\/office/);
   });
 });
