@@ -158,7 +158,7 @@ describe('WorldEntityMap activation', () => {
     );
 
     onActivate.mockClear();
-    const library = screen.getByRole('button', { name: /Library annex/i });
+    const library = screen.getByRole('button', { name: /Library/i });
     await user.click(library);
     expect(onActivate).toHaveBeenLastCalledWith(
       expect.objectContaining({ id: 'object:library', hrefPath: '/library' }),

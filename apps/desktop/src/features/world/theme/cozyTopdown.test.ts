@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cozyTopdownTheme, resolveThemeAsset } from './cozyTopdown';
+import { cozyTopdownTheme, resolveEntityAsset, resolveThemeAsset } from './cozyTopdown';
 
 describe('cozyTopdownTheme', () => {
   it('ships Paper Co. craft at readable tile scale with semantic CSS keys', () => {
@@ -18,5 +18,24 @@ describe('cozyTopdownTheme', () => {
 
     const missing = resolveThemeAsset(cozyTopdownTheme, 'agent.catalog');
     expect(missing).toMatchObject({ kind: 'css', className: 'worldTileFallback' });
+  });
+
+  it('maps landmark and house façades to production sprites under /world/', () => {
+    expect(
+      resolveEntityAsset(cozyTopdownTheme, { themeKey: 'project.building', facade: 'house-cottage' }),
+    ).toMatchObject({
+      kind: 'sprite',
+      src: '/world/house-cottage.png',
+    });
+    expect(
+      resolveEntityAsset(cozyTopdownTheme, { themeKey: 'capability.shelf', facade: 'landmark-library' }),
+    ).toMatchObject({
+      kind: 'sprite',
+      src: '/world/landmark-library.png',
+    });
+    expect(resolveEntityAsset(cozyTopdownTheme, { themeKey: 'project.building' })).toMatchObject({
+      kind: 'css',
+      className: 'tileBuilding',
+    });
   });
 });

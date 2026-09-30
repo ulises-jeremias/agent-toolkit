@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { StatusBadge, Table, VisuallyHidden, type Tone } from '../../ui';
 import { entityActivateLabel, entityHasInspector } from './inspectors';
 import type { LaidOutEntity } from './model';
-import { resolveThemeAsset, type WorldThemePack } from './theme/cozyTopdown';
+import { resolveEntityAsset, type WorldThemePack } from './theme/cozyTopdown';
 import styles from './world.module.css';
 
 export type WorldHref = (path: string, extra?: Record<string, string | undefined>) => string;
@@ -86,12 +86,14 @@ export function WorldEntityMap({
         }}
       >
         {entities.map((entity) => {
-          const asset = resolveThemeAsset(theme, entity.themeKey);
-          const tileClass =
+          const asset = resolveEntityAsset(theme, entity);
+          const cssClass =
             asset.kind === 'css' && asset.className in styles
               ? styles[asset.className as keyof typeof styles]
-              : styles.worldTileFallback;
-          const className = `${styles.entity} ${tileClass}`;
+              : asset.kind === 'sprite'
+                ? styles.tileSprite
+                : styles.worldTileFallback;
+          const className = `${styles.entity} ${cssClass}`;
           const canInspect = entityHasInspector(entity);
           return (
             <button
@@ -101,6 +103,7 @@ export function WorldEntityMap({
               data-kind={entity.kind}
               data-theme-key={entity.themeKey}
               data-entity-id={entity.id}
+              data-facade={entity.facade ?? undefined}
               data-activity={entity.activity ?? 'calm'}
               data-activates={canInspect ? 'true' : 'false'}
               data-selected={entity.id === selectedId ? 'true' : undefined}
@@ -111,6 +114,14 @@ export function WorldEntityMap({
                 top: entity.y * tile,
                 width: entity.w * tile,
                 height: entity.h * tile,
+                ...(asset.kind === 'sprite'
+                  ? {
+                      backgroundImage: `url(${asset.src})`,
+                      backgroundSize: 'contain',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundPosition: 'center bottom',
+                    }
+                  : {}),
               }}
               onClick={() => activateEntity(entity, onSelect, onActivate)}
               onKeyDown={(event) => onKeyDown(event, entity)}

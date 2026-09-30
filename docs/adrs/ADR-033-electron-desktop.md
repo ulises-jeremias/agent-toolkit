@@ -1,9 +1,10 @@
 # ADR-033 — Desktop: Electron + React canonical, V remains core/CLI/backend
 
-- **Status:** Proposed (2026-09-29) — branch `feat/electron-desktop`
+- **Status:** Accepted (2026-09-30) — shipped via #1311 and follow-ons; presentation authority for Desktop
 - **Deciders:** ulises-jeremias (owner)
 - **Supersedes (presentation only):** ADR-032 (native vlang/gui Desktop)
 - **Amends:** ADR-027 (server/core boundary), ADR-028 (server security), ADR-030 (binary-first contract)
+- **Amended by:** ADR-034 (semantic world as primary home)
 - **Rollback:** v1.35.0 (native Desktop preserved; see `docs/desktop/ELECTRON_MIGRATION.md`)
 
 ## Context
@@ -49,8 +50,9 @@ From now on:
   receipts, workspaces, memory, jobs, loops, swarms, approvals, budgets,
   Doctor, Insights, safety) stays in V and is consumed over typed HTTP APIs.
 - **Electron + React = Desktop application** (`apps/desktop/`, pnpm, Vite,
-  TypeScript strict, TanStack Query for server state, Zustand for client-only
-  UI state, xterm.js terminals, Vitest + RTL + Playwright, electron-builder).
+  TypeScript strict, TanStack Query for server state, React context/local
+  state for client-only UI, xterm.js terminals, Vitest + RTL + Playwright,
+  electron-builder).
 - Electron main/preload own **desktop infrastructure only**: lifecycle,
   supervising the bundled `agent-toolkit serve`, native integrations, secure
   IPC, updater, and the node-pty terminal transport adapter.
@@ -76,12 +78,12 @@ From now on:
 
 ## References
 
-- Branch: `feat/electron-desktop` → PR (TBD; links EPIC for Desktop v2.0.0)
-- Rollback proof: `docs/desktop/ELECTRON_MIGRATION.md` (v1.35.0 == main tree)
+- Shipped: #1311 (Electron Desktop) and follow-on Desktop PRs on main at v1.36.0+
+- Rollback proof: `docs/desktop/ELECTRON_MIGRATION.md` (v1.35.0 == native rollback tree)
 - Template: Create Awesome Node App `react-vite-starter`
   (`projects/cna-templates/templates/react-vite-starter`)
 - Capability reference: `docs/desktop/WORKSTATION_REFERENCE_ANALYSIS.md`
   (in-repo; Munder Difflin + Agent Office as capability references only;
   identity not copied). Workspace note
   `agent-toolkit-vs-munder-difflin-analysis.md` is historical.
-- Review: owner review required before ACCEPTED (human review gate).
+- Spatial home: [ADR-034](ADR-034-semantic-world.md)

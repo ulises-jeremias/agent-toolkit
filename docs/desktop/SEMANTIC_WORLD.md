@@ -230,6 +230,20 @@ A working `/world` home that:
 7. Unit tests assert semantic entities from N projects + M jobs; plus one
    opened screenshot critique (not screenshot-only CI).
 
+### Implemented on main (honest scope)
+
+| Concept | Status |
+|---|---|
+| `/world` home + project interiors | **Implemented** |
+| Project houses from roster | **Implemented** (CLI-text parser transitional) |
+| Memory archive + per-entry tiles → memory-file inspector | **Implemented** |
+| Library annex → `/library` | **Implemented** |
+| Operations / settings / files commons places | **Implemented** |
+| Job characters (queued/running/failed/rejected) | **Implemented** |
+| Event bus presence (`job.*`, `memory.*`, `backend.*`) | **Implemented** |
+| Swarm / loop / crate / lamp / catalog nameplate as dedicated places | **Theme-ready; Operations uses `ops.crate`, Settings uses `ops.lamp` as place chrome — no invented swarm/loop tiles** |
+| Escape: detail → interior → grounds | **Implemented** |
+
 ## 11. Alignment for sibling feature agents
 
 If you own Office, Onboarding, Operations, Terminal, Library, Insights, or

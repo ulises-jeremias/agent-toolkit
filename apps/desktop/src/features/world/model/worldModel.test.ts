@@ -67,6 +67,18 @@ describe('jobBelongsToProject', () => {
 });
 
 describe('buildWorldModel', () => {
+  it('surfaces harness notices on the workspace grounds tile', () => {
+    const model = buildWorldModel(
+      baseInput({
+        workspacePath: '/tmp/fallback-cwd',
+        harnessNotice: 'Default harness /home/me/.ai-workspace not found; serve starts in /tmp/fallback-cwd',
+      }),
+    );
+    const grounds = model.entities.find((e) => e.id === 'place:workspace');
+    expect(grounds?.state).toBe('notice');
+    expect(grounds?.detail).toContain('Default harness');
+  });
+
   it('builds grounds with memory archive and job characters', () => {
     const model = buildWorldModel(
       baseInput({
@@ -108,6 +120,10 @@ describe('buildWorldModel', () => {
     expect(ids).not.toContain('place:knowledge-workspace');
     expect(model.entities.find((e) => e.id === 'object:library')?.hrefPath).toBe('/library');
     expect(model.entities.find((e) => e.id === 'object:library')?.concept).toBe('Capability library');
+    expect(model.entities.find((e) => e.id === 'object:library')?.kind).toBe('place');
+    expect(model.entities.find((e) => e.id === 'object:library')?.facade).toBe('landmark-library');
+    expect(model.entities.find((e) => e.id === 'object:operations')?.facade).toBe('landmark-operations');
+    expect(model.entities.find((e) => e.id === 'place:project:alpha')?.facade).toMatch(/^house-/);
     expect(model.entities.find((e) => e.id === 'place:project:alpha')?.activity).toBe('working');
     expect(model.entities.find((e) => e.id === 'place:project:beta')?.activity).toBe('blocked');
     expect(model.entities.find((e) => e.id === 'character:job:j1')?.projectId).toBe('alpha');
@@ -145,6 +161,23 @@ describe('buildWorldModel', () => {
     const memory = model.entities.find((e) => e.id === 'place:memory');
     expect(memory?.state).toBe('empty');
     expect(model.entities.filter((e) => e.id.startsWith('object:memory:'))).toEqual([]);
+  });
+
+  it('caps workspace memory ledgers on the grounds so the campus stays scannable', () => {
+    const entries = [1, 2, 3, 4, 5].map((n) =>
+      entry({
+        id: `ws/${n}.md`,
+        title: `Note ${n}`,
+        provenance: { file: `knowledge/${n}.md`, author: '', timestamp: '', project: '', agent: '' },
+      }),
+    );
+    const model = buildWorldModel(
+      baseInput({
+        memory: emptyMemory(true, entries),
+      }),
+    );
+    expect(model.entities.find((e) => e.id === 'place:memory')?.state).toBe('5 records');
+    expect(model.entities.filter((e) => e.id.startsWith('object:memory:'))).toHaveLength(3);
   });
 
   it('opens a project interior with memory, terminal, and detected tools only', () => {
@@ -361,9 +394,27 @@ describe('layoutWorld', () => {
     const a = layout.entities.find((e) => e.id === 'place:project:a')!;
     const e = layout.entities.find((e) => e.id === 'place:project:e')!;
     const memory = layout.entities.find((e) => e.id === 'place:memory')!;
+    const library = layout.entities.find((e) => e.id === 'object:library')!;
+    // Landmark boulevard is place-sized (3×3); projects sit south of it.
+    expect(library.w).toBe(3);
+    expect(library.h).toBe(3);
     // Fifth house wraps to row 2 of the district (4 cols).
     expect(e.y).toBeGreaterThan(a.y);
     expect(a.y).toBeGreaterThan(memory.y);
+    expect(a.y).toBeGreaterThan(library.y);
+  });
+
+  it('never invents decorative characters on an idle grounds', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: [{ name: 'solo', target: '/solo', status: 'ok' }],
+          memory: emptyMemory(true, []),
+          jobs: [],
+        }),
+      ),
+    );
+    expect(layout.entities.filter((e) => e.kind === 'character')).toEqual([]);
   });
 
   it('lays out an interior without outdoor library annex', () => {

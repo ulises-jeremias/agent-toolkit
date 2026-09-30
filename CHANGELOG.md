@@ -10,6 +10,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Fixed
+
+- Desktop type-check: world memory fixtures match `MemoryEntry` (`body`) and
+  nested provenance partials so CI gates can run again after the v1.36.0 cut.
+
+### Changed
+
+- Desktop world Escape leaves memory/tool detail first, then project interiors
+  back to workspace grounds (same as the Back link).
+- Desktop world memory archive places workspace-level record tiles that open
+  the real memory-file inspector on `/world` (no longer a false trip to
+  Workspace). Files object opens Workspace Files (`?panel=files`).
+- Operations destination title is "Operations" (Workshop naming retired from
+  chrome; palette hints match).
+- PRODUCT_VISION / UX_ARCHITECTURE / ADR-033 reconciled: Electron + React is
+  the shipping Desktop presentation; V remains core/`serve` authority;
+  ADR-033 Accepted.
+
+### Added
+
+- Workspace Files panel over typed `GET /api/v1/files` (+ content / hits):
+  real tree, masked/binary honesty, search hits — no invented nodes.
+- Desktop world commons: Operations and Settings places on the grounds (same
+  destinations as the dock), plus a Files anchor inside project interiors.
+- Design boards for the cozy semantic world (`asset-sheet-cozy-world.jpg`,
+  product/UI boards) landed under `docs/desktop/assets/design/` with usage
+  rules (slice sprites before wiring; no decorative NPCs from character rows).
+- Desktop world production sprites under `apps/desktop/public/world/` (original
+  Paper Co. pixel buildings) mapped via theme façades; `WorldEntityMap` renders
+  `ThemeAsset.kind = 'sprite'`. Project houses pick stable cottage/studio/
+  workshop/lab variants; commons landmarks are place-sized with distinct
+  silhouettes (Library, Archive, Operations, Files, Terminal, Settings,
+  Attention). Grounds memory ledgers capped so the campus stays scannable.
+
+### Changed
+
+- Desktop world Library place is labeled "Library" (capability catalog); empty
+  project district CTA stays quiet and truthful.
+- World CSS tiles differentiate Library / Archive / Operations / Settings /
+  Files façades toward the asset-sheet building archetypes (CSS remains the
+  fallback when a sprite façade is missing).
+- Shared world landmarks use place footprints; interior room plate no longer
+  navigates away to Workspace on activate.
+
 ## [1.36.0] — 2026-09-30
 
 ### Changed
