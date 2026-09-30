@@ -45,10 +45,12 @@ the managed environment that organizes projects, configuration and operations.
 
 Paper Co. is a design language: warm paper, ink, manila, brass, rust and sage;
 Fraunces, IBM Plex Sans and IBM Plex Mono; filing tabs, ledgers and restrained
-stamps. Typography and spacing establish hierarchy. Decoration must not compete
-with status, actions or text. A floor map may be an optional view if useful; it is
-not the primary navigation or operational model. Motion communicates real state
-changes. Reduced Motion removes nonessential movement.
+stamps. Typography and spacing establish hierarchy. Decorations must not compete
+with status, actions or text. The **semantic spatial world** is the default home
+([SEMANTIC_WORLD.md](SEMANTIC_WORLD.md), [ADR-034](../adrs/ADR-034-semantic-world.md)):
+it explains workspace, projects, knowledge, tools and proven runtime work; other
+destinations are inspectors. Motion communicates real state changes. Reduced
+Motion removes nonessential movement. Never invent activity.
 
 ## First use and daily use
 
