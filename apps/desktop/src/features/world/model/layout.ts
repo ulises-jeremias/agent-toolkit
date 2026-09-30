@@ -61,11 +61,17 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
     entryX += OBJECT_W + 1;
   }
 
-  let charX = 2;
-  const charY = Math.max(1, PLACE_H - 1);
+  // Characters at named interior objects when job.cmd matches; else room porch.
+  let porchX = 2;
+  const porchY = Math.max(1, PLACE_H - 1);
   for (const character of characters) {
-    place(character, charX, charY);
-    charX += CHAR_W + 1;
+    const anchor = character.standAtId ? laid.find((row) => row.id === character.standAtId) : undefined;
+    if (anchor) {
+      place(character, anchor.x + Math.max(0, anchor.w - 1), anchor.y + Math.max(0, anchor.h - 1));
+    } else {
+      place(character, porchX, porchY);
+      porchX += CHAR_W + 1;
+    }
   }
 
   for (const entity of rest) {
@@ -147,10 +153,15 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
 
-  // Characters at their house porch; unmatched walk the commons row.
+  // Characters: stand at named commons object when job.cmd matches; else house porch.
   let orphanX = 0;
   const orphanY = Math.max(1, PLACE_H - 1);
   for (const character of characters) {
+    const anchor = character.standAtId ? laid.find((row) => row.id === character.standAtId) : undefined;
+    if (anchor) {
+      place(character, anchor.x + Math.max(0, anchor.w - 1), anchor.y + Math.max(0, anchor.h - 1));
+      continue;
+    }
     const slot = character.projectId ? projectSlots.get(character.projectId) : undefined;
     if (slot) {
       place(character, slot.x + 1, slot.y + PLACE_H - 1);

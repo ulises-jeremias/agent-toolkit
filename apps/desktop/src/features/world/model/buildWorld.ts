@@ -1,4 +1,5 @@
 import { isTerminalJobStatus } from '../../../lib/api';
+import { jobStandAtId, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 import type {
   MemoryEntryRecord,
   PlaceActivity,
@@ -74,11 +75,25 @@ function visibleTools(tools: ToolRecord[]): ToolRecord[] {
   return tools.filter((tool) => tool.detected).sort((a, b) => a.id.localeCompare(b.id));
 }
 
-function pushJobCharacters(entities: SemanticEntity[], jobs: WorldDomainInput['jobs'], projectId?: string): void {
+function pushJobCharacters(
+  entities: SemanticEntity[],
+  jobs: WorldDomainInput['jobs'],
+  opts: {
+    projectId?: string;
+    tools: readonly ToolRecord[];
+    memoryPlaceId?: string;
+    terminalObjectId?: string;
+  },
+): void {
   for (const job of jobs) {
     const active = !isTerminalJobStatus(job.status);
     const blocked = job.status === 'failed' || job.status === 'rejected';
     if (!active && !blocked) continue;
+    const standAtId = jobStandAtId(job, {
+      tools: opts.tools,
+      memoryPlaceId: opts.memoryPlaceId,
+      terminalObjectId: opts.terminalObjectId,
+    });
     // Failed/rejected → attention inspector; queued/running → Operations job.
     entities.push({
       id: `character:job:${job.id}`,
@@ -90,9 +105,10 @@ function pushJobCharacters(entities: SemanticEntity[], jobs: WorldDomainInput['j
       availability: 'present',
       hrefPath: blocked ? '/office' : '/operations',
       hrefExtra: blocked ? { inspect: job.id } : { job: job.id },
-      projectId,
+      projectId: opts.projectId,
       detail: `Job ${job.id}`,
       activity: blocked ? 'blocked' : 'working',
+      standAtId,
     });
   }
 }
@@ -113,7 +129,9 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
   });
 
   if (input.memory.available) {
-    const count = input.memory.entries.length;
+    // World archive: workspace-level only (empty project or non-roster label).
+    const archive = workspaceLevelMemory(input.memory.entries, input.projects);
+    const count = archive.length;
     entities.push({
       id: 'place:memory',
       kind: 'place',
@@ -125,7 +143,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       hrefPath: '/workspace',
       detail:
         count > 0
-          ? `${count} memory record${count === 1 ? '' : 's'} (typed memory API)`
+          ? `${count} workspace-level memory record${count === 1 ? '' : 's'} (typed memory API)`
           : 'Memory API reachable; archive is empty',
     });
 
@@ -179,6 +197,13 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     detail: 'Failures and blocked work',
   });
 
+  const tools = input.toolsKnown ? visibleTools(input.tools) : [];
+  const groundsStand = {
+    tools,
+    memoryPlaceId: input.memory.available ? 'place:memory' : undefined,
+    terminalObjectId: 'object:terminal',
+  };
+
   if (!input.projectsKnown) {
     // Omit fabricated project buildings when the list call failed.
   } else if (input.projects.length === 0) {
@@ -220,14 +245,14 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         activity,
       });
 
-      // Characters stand at the house when the job belongs to this project.
-      pushJobCharacters(entities, projectJobs, project.name);
+      // Characters stand at house porch unless job.cmd names a grounds object.
+      pushJobCharacters(entities, projectJobs, { projectId: project.name, ...groundsStand });
     }
   }
 
   // Workspace-scoped jobs (no project match) still appear on the grounds.
   const unmatched = input.jobs.filter((job) => !input.projects.some((project) => jobBelongsToProject(job, project)));
-  pushJobCharacters(entities, unmatched);
+  pushJobCharacters(entities, unmatched, groundsStand);
 
   return entities;
 }
@@ -288,7 +313,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
   });
 
   if (input.memory.available) {
-    const scoped = input.memory.entries.filter((entry) => entry.provenance.project === project.name);
+    const scoped = projectScopedMemory(input.memory.entries, project.name);
     entities.push({
       id: `place:memory-project:${project.name}`,
       kind: 'place',
@@ -334,8 +359,8 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     detail: `Open Terminal · cwd hint ${project.target}`,
   });
 
+  const tools = input.toolsKnown ? visibleTools(input.tools) : [];
   if (input.toolsKnown) {
-    const tools = visibleTools(input.tools);
     if (tools.length === 0) {
       entities.push({
         id: 'object:tools-empty',
@@ -373,7 +398,12 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     }
   }
 
-  pushJobCharacters(entities, projectJobs, project.name);
+  pushJobCharacters(entities, projectJobs, {
+    projectId: project.name,
+    tools,
+    memoryPlaceId: input.memory.available ? `place:memory-project:${project.name}` : undefined,
+    terminalObjectId: `object:terminal-project:${project.name}`,
+  });
 
   return entities;
 }
