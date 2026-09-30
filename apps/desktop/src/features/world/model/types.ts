@@ -27,6 +27,9 @@ export type EntityKind = 'place' | 'object' | 'character' | 'marker';
 
 export type EntityAvailability = 'present' | 'empty' | 'unavailable' | 'omitted';
 
+/** House / place activity derived only from proven jobs (never invented). */
+export type PlaceActivity = 'calm' | 'working' | 'blocked';
+
 export interface SemanticEntity {
   /** Stable id for layout + a11y list (not a display name). */
   id: string;
@@ -43,6 +46,8 @@ export interface SemanticEntity {
   projectId?: string;
   /** Provenance note for tooltips (e.g. job id, memory count). */
   detail?: string;
+  /** Real activity for houses / lamps — omitted when calm/unknown. */
+  activity?: PlaceActivity;
 }
 
 export interface LaidOutEntity extends SemanticEntity {
@@ -99,12 +104,26 @@ export interface MemorySummary {
   projectKeys: string[];
 }
 
+/** Coding tool row from GET /api/v1/tools — only real detections. */
+export interface ToolRecord {
+  id: string;
+  toolName: string;
+  detected: boolean;
+  configured: boolean;
+  enabled: string;
+  verified: boolean;
+  version: string;
+}
+
 export interface WorldDomainInput {
   workspacePath: string;
   harnessNotice?: string | null;
   projects: ProjectRecord[];
   projectsKnown: boolean;
   memory: MemorySummary;
+  /** Detected tools from GET /api/v1/tools; empty when the call failed. */
+  tools: ToolRecord[];
+  toolsKnown: boolean;
   jobs: ReadonlyArray<{
     id: string;
     cmd: string;

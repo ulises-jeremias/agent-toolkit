@@ -13,12 +13,79 @@ function sizeFor(entity: SemanticEntity): { w: number; h: number } {
   return { w: PLACE_W, h: PLACE_H };
 }
 
+function layoutInterior(entities: SemanticEntity[]): WorldLayout {
+  const sorted = [...entities].sort((a, b) => a.id.localeCompare(b.id));
+  const laid: LaidOutEntity[] = [];
+  let maxX = 0;
+  let maxY = 0;
+
+  const place = (entity: SemanticEntity, x: number, y: number) => {
+    const { w, h } = sizeFor(entity);
+    laid.push({ ...entity, x, y, w, h });
+    maxX = Math.max(maxX, x + w);
+    maxY = Math.max(maxY, y + h);
+  };
+
+  const exit = sorted.find((e) => e.id === 'object:exit-grounds');
+  const room = sorted.find((e) => e.id.startsWith('place:project:'));
+  const memory = sorted.find((e) => e.id.startsWith('place:memory-project:'));
+  const terminal = sorted.find((e) => e.id.startsWith('object:terminal-project:'));
+  const tools = sorted.filter((e) => e.id.startsWith('object:tool:') || e.id === 'object:tools-empty');
+  const memoryEntries = sorted.filter((e) => e.id.startsWith('object:memory:'));
+  const characters = sorted.filter((e) => e.kind === 'character');
+  const used = new Set(
+    [exit, room, memory, terminal, ...tools, ...memoryEntries, ...characters].filter(Boolean).map((e) => e!.id),
+  );
+  const rest = sorted.filter((e) => !used.has(e.id));
+
+  // Room frame at origin; exit door left; furniture along the south wall.
+  if (room) place(room, 2, 0);
+  if (exit) place(exit, 0, 0);
+  if (memory) place(memory, 2 + PLACE_W + 1, 0);
+  if (terminal) place(terminal, 0, PLACE_H + 1);
+
+  let toolX = OBJECT_W + 1;
+  const toolY = PLACE_H + 1;
+  for (const tool of tools) {
+    place(tool, toolX, toolY);
+    toolX += OBJECT_W + 1;
+  }
+
+  let entryX = 0;
+  const entryY = toolY + OBJECT_H + 1;
+  for (const entry of memoryEntries) {
+    place(entry, entryX, entryY);
+    entryX += OBJECT_W + 1;
+  }
+
+  let charX = 2;
+  const charY = Math.max(1, PLACE_H - 1);
+  for (const character of characters) {
+    place(character, charX, charY);
+    charX += CHAR_W + 1;
+  }
+
+  for (const entity of rest) {
+    place(entity, maxX + 1, 0);
+  }
+
+  return {
+    cols: Math.max(maxX, 10),
+    rows: Math.max(maxY, 8),
+    entities: laid,
+  };
+}
+
 /**
  * Deterministic layout from structured entities. Same ids → same slots.
- * Grounds stay at origin; projects fill a stable sorted grid; characters
- * stand on the grounds row after shared objects.
+ * Grounds: houses on a stable grid; characters stand at their house when
+ * project-scoped. Interior: room furniture, not a second dashboard.
  */
 export function layoutWorld(model: WorldModel): WorldLayout {
+  if (model.focusProjectId) {
+    return layoutInterior(model.entities);
+  }
+
   const entities = [...model.entities].sort((a, b) => a.id.localeCompare(b.id));
   const laid: LaidOutEntity[] = [];
 
@@ -33,10 +100,6 @@ export function layoutWorld(model: WorldModel): WorldLayout {
       e.id === 'place:projects-empty',
   );
   const projects = entities.filter((e) => e.id.startsWith('place:project:'));
-  const projectExtras = entities.filter(
-    (e) => e.id.startsWith('place:memory-project:') || e.id.startsWith('object:terminal-project:'),
-  );
-  const memoryEntries = entities.filter((e) => e.id.startsWith('object:memory:'));
   const characters = entities.filter((e) => e.kind === 'character');
   const rest = entities.filter(
     (e) =>
@@ -44,8 +107,6 @@ export function layoutWorld(model: WorldModel): WorldLayout {
       e !== memoryPlace &&
       !sharedObjects.includes(e) &&
       !projects.includes(e) &&
-      !projectExtras.includes(e) &&
-      !memoryEntries.includes(e) &&
       !characters.includes(e),
   );
 
@@ -71,31 +132,27 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   const projectStartY = objY + OBJECT_H + 1;
   const cols = Math.max(1, Math.ceil(Math.sqrt(Math.max(projects.length, 1))));
+  const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % cols;
     const row = Math.floor(index / cols);
-    place(project, col * (PLACE_W + 1), projectStartY + row * (PLACE_H + 1));
+    const x = col * (PLACE_W + 1);
+    const y = projectStartY + row * (PLACE_H + 1);
+    place(project, x, y);
+    if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
 
-  let extraX = 0;
-  const extraY = (laid.reduce((m, e) => Math.max(m, e.y + e.h), 0) || projectStartY) + 1;
-  for (const extra of projectExtras) {
-    place(extra, extraX, extraY);
-    extraX += OBJECT_W + 1;
-  }
-
-  let entryX = 0;
-  const entryY = (laid.reduce((m, e) => Math.max(m, e.y + e.h), 0) || extraY) + 1;
-  for (const entry of memoryEntries) {
-    place(entry, entryX, entryY);
-    entryX += OBJECT_W + 1;
-  }
-
-  let charX = 0;
-  const charY = Math.max(1, PLACE_H - 1);
+  // Characters at their house porch; unmatched walk the grounds row.
+  let orphanX = 0;
+  const orphanY = Math.max(1, PLACE_H - 1);
   for (const character of characters) {
-    place(character, charX + 1, charY);
-    charX += CHAR_W + 1;
+    const slot = character.projectId ? projectSlots.get(character.projectId) : undefined;
+    if (slot) {
+      place(character, slot.x + 1, slot.y + PLACE_H - 1);
+    } else {
+      place(character, orphanX + 1, orphanY);
+      orphanX += CHAR_W + 1;
+    }
   }
 
   for (const entity of rest) {
