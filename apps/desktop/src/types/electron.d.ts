@@ -2,7 +2,8 @@
 
 export type BackendStatus = 'starting' | 'ready' | 'version-mismatch' | 'crashed' | 'stopped' | 'failed';
 
-export type HarnessSource = 'default' | 'override' | 'fallback';
+/** Precedence: override (env) > user (saved Desktop choice) > default (~/.ai-workspace) > fallback. */
+export type HarnessSource = 'override' | 'user' | 'default' | 'fallback';
 
 export interface HarnessResolution {
   path: string;
@@ -12,6 +13,30 @@ export interface HarnessResolution {
   notice: string | null;
 }
 
+export type BackendBinarySource = 'env' | 'bundled' | 'staged' | 'path';
+
+export interface BackendBinaryInfo {
+  path: string;
+  source: BackendBinarySource;
+  version: string | null;
+}
+
+export interface RejectedBackendBinary extends BackendBinaryInfo {
+  reason: string;
+}
+
+/** Cause behind a non-ready status (see electron/backend.ts for each meaning). */
+export type BackendProblem =
+  | 'no-backend'
+  | 'binary-rejected'
+  | 'spawn-error'
+  | 'exited-during-start'
+  | 'health-timeout'
+  | 'major-mismatch'
+  | 'desktop-gate-missing'
+  | 'exited'
+  | 'port';
+
 export interface BackendState {
   status: BackendStatus;
   url: string | null;
@@ -19,12 +44,44 @@ export interface BackendState {
   detail: string | null;
   restarts: number;
   harness: HarnessResolution | null;
+  binary: BackendBinaryInfo | null;
+  rejected: RejectedBackendBinary[];
+  problem: BackendProblem | null;
 }
+
+export interface HarnessRecentEntry {
+  path: string;
+  exists: boolean;
+  current: boolean;
+}
+
+export interface HarnessStatus {
+  resolution: HarnessResolution;
+  recent: HarnessRecentEntry[];
+  switching: boolean;
+  lockedBy: string | null;
+}
+
+export type HarnessSwitchError =
+  | 'invalid-path'
+  | 'not-found'
+  | 'not-a-directory'
+  | 'not-accessible'
+  | 'cancelled'
+  | 'env-override'
+  | 'busy'
+  | 'persist-failed'
+  | 'unavailable';
+
+export type HarnessSwitchResult =
+  | { ok: true; restarted: boolean; harness: HarnessResolution; backend: BackendState }
+  | { ok: false; error: HarnessSwitchError; message: string };
 
 export interface PtyCreateOptions {
   agent: string;
   cmd: string;
   args?: string[];
+  /** Defaults to the resolved harness; relative paths resolve against it; must exist. */
   cwd?: string;
   cols?: number;
   rows?: number;
@@ -58,6 +115,14 @@ export interface AtkBridge {
   backendStatus: () => Promise<BackendState | null>;
   backendRestart: () => Promise<boolean>;
   onBackendState: (listener: (state: BackendState) => void) => Unsubscribe;
+  harnessStatus: () => Promise<HarnessStatus | null>;
+  harnessRecent: () => Promise<HarnessRecentEntry[]>;
+  /** Validate, persist, and restart the backend in `path` (absolute or `~/...`). */
+  harnessSet: (path: string) => Promise<HarnessSwitchResult>;
+  /** Native folder picker, then the same flow as harnessSet. */
+  harnessChoose: () => Promise<HarnessSwitchResult>;
+  /** Forget the Desktop choice; back to ~/.ai-workspace (or fallback). */
+  harnessReset: () => Promise<HarnessSwitchResult>;
   ptyList: () => Promise<PtySessionInfo[]>;
   ptyTail: (id: string) => Promise<string>;
   ptyCreate: (options: PtyCreateOptions) => Promise<PtySessionInfo | null>;

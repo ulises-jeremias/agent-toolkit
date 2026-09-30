@@ -16,6 +16,9 @@ const backend = (status: BackendState['status']): BackendState => ({
   detail: null,
   restarts: 0,
   harness: null,
+  binary: null,
+  rejected: [],
+  problem: null,
 });
 
 describe('indicatorState', () => {

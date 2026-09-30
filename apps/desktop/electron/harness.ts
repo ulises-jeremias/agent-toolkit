@@ -2,13 +2,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-export type HarnessSource = 'default' | 'override' | 'fallback';
+export type HarnessSource = 'override' | 'user' | 'default' | 'fallback';
 
 /**
  * Where the supervised `agent-toolkit serve` is rooted. `path` is the
- * directory serve runs in; for `default`/`override` it is also exported as
- * AGENT_TOOLKIT_WORKSPACE so core `find_workspace_root` agrees with the
- * cwd-rooted jobs dir and containment checks.
+ * directory serve runs in; for every source except `fallback` it is also
+ * exported as AGENT_TOOLKIT_WORKSPACE so core `find_workspace_root` agrees
+ * with the cwd-rooted jobs dir and containment checks.
  */
 export interface HarnessResolution {
   path: string;
@@ -29,6 +29,8 @@ export interface HarnessInputs {
   homeDir: string;
   cwd: string;
   isDirectory: (candidate: string) => boolean;
+  /** Harness persisted by a Desktop switch (absolute), if any. */
+  userChoice?: string | null;
 }
 
 export function isDirectory(candidate: string): boolean {
@@ -39,14 +41,15 @@ export function isDirectory(candidate: string): boolean {
   }
 }
 
-function expandHome(value: string, homeDir: string): string {
+export function expandHome(value: string, homeDir: string): string {
   if (value === '~') return homeDir;
   if (value.startsWith('~/') || value.startsWith('~\\')) return path.join(homeDir, value.slice(2));
   return value;
 }
 
 /**
- * Resolve the Desktop harness. Never creates directories: Agent Toolkit must
+ * Resolve the Desktop harness: env override > persisted user choice >
+ * `~/.ai-workspace` > fallback. Never creates directories: Agent Toolkit must
  * stay usable without My AI Workspace, so a missing default or a broken
  * override falls back to the pre-default behavior (serve inherits the
  * Desktop process cwd and resolves its workspace from there).
@@ -78,20 +81,89 @@ export function resolveHarness(inputs: HarnessInputs): HarnessResolution {
       notice: `Harness override ${rejected.join(', ')}; serve starts in ${inputs.cwd} and resolves its workspace by walking up from there`,
     };
   }
+  // A saved choice that vanished (unmounted drive, deleted folder) is kept on
+  // disk so it wins again once it is back; this start uses the next tier.
+  let staleChoice: string | null = null;
+  const choice = inputs.userChoice?.trim();
+  if (choice) {
+    if (inputs.isDirectory(choice)) {
+      return { path: choice, source: 'user', defaultPath, overrideVar: null, notice: null };
+    }
+    staleChoice = `Saved harness ${choice} is not a directory`;
+  }
   if (inputs.isDirectory(defaultPath)) {
-    return { path: defaultPath, source: 'default', defaultPath, overrideVar: null, notice: null };
+    return {
+      path: defaultPath,
+      source: 'default',
+      defaultPath,
+      overrideVar: null,
+      notice: staleChoice ? `${staleChoice}; using the default ${defaultPath}` : null,
+    };
   }
   return {
     path: inputs.cwd,
     source: 'fallback',
     defaultPath,
     overrideVar: null,
-    notice: `Default harness ${defaultPath} not found; serve starts in ${inputs.cwd} and resolves its workspace by walking up from there`,
+    notice:
+      (staleChoice ? `${staleChoice}. ` : '') +
+      `Default harness ${defaultPath} not found; serve starts in ${inputs.cwd} and resolves its workspace by walking up from there`,
   };
 }
 
-export function resolveHarnessFromProcess(): HarnessResolution {
-  return resolveHarness({ env: process.env, homeDir: os.homedir(), cwd: process.cwd(), isDirectory });
+export function resolveHarnessFromProcess(userChoice: string | null = null): HarnessResolution {
+  return resolveHarness({ env: process.env, homeDir: os.homedir(), cwd: process.cwd(), isDirectory, userChoice });
+}
+
+/** First override var set to a non-blank value: while set, Desktop cannot switch the harness. */
+export function activeOverrideVar(env: NodeJS.ProcessEnv): (typeof HARNESS_OVERRIDE_VARS)[number] | null {
+  return HARNESS_OVERRIDE_VARS.find((name) => env[name]?.trim()) ?? null;
+}
+
+export type HarnessPathError = 'invalid-path' | 'not-found' | 'not-a-directory' | 'not-accessible';
+
+export type HarnessPathCheck = { ok: true; path: string } | { ok: false; error: HarnessPathError; message: string };
+
+const MAX_PATH_LENGTH = 4096;
+
+/**
+ * Validate a harness path coming from the renderer or a native dialog.
+ * Requires an absolute (or `~`) path to an existing directory serve can
+ * read and write (it writes `<harness>/.agent-toolkit/server`). Never creates
+ * anything.
+ */
+export function validateHarnessPath(raw: unknown, homeDir: string = os.homedir()): HarnessPathCheck {
+  if (typeof raw !== 'string' || !raw.trim()) {
+    return { ok: false, error: 'invalid-path', message: 'Harness path must be a non-empty string' };
+  }
+  const value = raw.trim();
+  if (value.length > MAX_PATH_LENGTH || value.includes('\0')) {
+    return { ok: false, error: 'invalid-path', message: 'Harness path is too long or contains a NUL byte' };
+  }
+  const expanded = expandHome(value, homeDir);
+  if (!path.isAbsolute(expanded)) {
+    return { ok: false, error: 'invalid-path', message: `Harness path must be absolute: ${value}` };
+  }
+  const resolved = path.resolve(expanded);
+  let stat: fs.Stats;
+  try {
+    stat = fs.statSync(resolved);
+  } catch {
+    return { ok: false, error: 'not-found', message: `${resolved} does not exist` };
+  }
+  if (!stat.isDirectory()) {
+    return { ok: false, error: 'not-a-directory', message: `${resolved} is not a directory` };
+  }
+  try {
+    fs.accessSync(resolved, fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK);
+  } catch {
+    return {
+      ok: false,
+      error: 'not-accessible',
+      message: `${resolved} is not readable and writable by this user (serve writes .agent-toolkit/server there)`,
+    };
+  }
+  return { ok: true, path: resolved };
 }
 
 /** cwd + env for the serve child. Fallback leaves both untouched (prior behavior). */

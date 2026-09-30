@@ -1,10 +1,25 @@
 import { spawn, type ChildProcess } from 'node:child_process';
-import fs from 'node:fs';
 import net from 'node:net';
-import path from 'node:path';
+import {
+  defaultCandidateInputs,
+  describeRejected,
+  isExecutableFile,
+  listBackendCandidates,
+  majorOf,
+  probeDesktopGate,
+  resolveBackendPin,
+  runBinary,
+  selectBackendBinary,
+  type BackendBinaryInfo,
+  type BackendPin,
+  type BinarySelection,
+  type DesktopGateProbe,
+  type RejectedBackendBinary,
+} from './backend-binary';
 import { harnessSpawnContext, resolveHarnessFromProcess, type HarnessResolution } from './harness';
 
 export type { HarnessResolution, HarnessSource } from './harness';
+export type { BackendBinaryInfo, BackendBinarySource, RejectedBackendBinary } from './backend-binary';
 
 export type BackendStatus =
   | 'starting'
@@ -14,6 +29,30 @@ export type BackendStatus =
   | 'stopped'
   | 'failed';
 
+/**
+ * Machine-readable cause behind a non-ready status, so UI can offer the right
+ * next action instead of a generic "crashed":
+ * - `no-backend`: no candidate binary exists anywhere
+ * - `binary-rejected`: candidates exist but none passed the pre-spawn probe
+ * - `spawn-error`: the OS refused to launch the selected binary
+ * - `exited-during-start`: serve exited before its health check passed
+ * - `health-timeout`: serve ran but never answered /api/v1/health
+ * - `major-mismatch`: healthy serve reports a major other than the pin
+ * - `desktop-gate-missing`: healthy serve rejects Desktop mutations (403)
+ * - `exited`: serve exited after it was ready (a real crash)
+ * - `port`: no free localhost port
+ */
+export type BackendProblem =
+  | 'no-backend'
+  | 'binary-rejected'
+  | 'spawn-error'
+  | 'exited-during-start'
+  | 'health-timeout'
+  | 'major-mismatch'
+  | 'desktop-gate-missing'
+  | 'exited'
+  | 'port';
+
 export interface BackendState {
   status: BackendStatus;
   url: string | null;
@@ -22,11 +61,22 @@ export interface BackendState {
   restarts: number;
   /** Harness the current (or last) backend was spawned in; null before first start. */
   harness: HarnessResolution | null;
+  /** Binary selected for the current (or last) start; null when none was usable. */
+  binary: BackendBinaryInfo | null;
+  /** Candidates skipped by the last selection, with the reason for each. */
+  rejected: RejectedBackendBinary[];
+  problem: BackendProblem | null;
 }
 
 export interface BackendSupervisorOptions {
   /** Re-evaluated on every start so restarts pick up a changed harness. */
   resolveHarness?: () => HarnessResolution;
+  /** Candidate discovery + probe; injectable for tests. */
+  selectBinary?: (cwd: string | undefined) => Promise<BinarySelection>;
+  resolvePin?: () => BackendPin | null;
+  probeGate?: (url: string) => Promise<DesktopGateProbe>;
+  spawnProcess?: typeof spawn;
+  startTimeoutMs?: number;
 }
 
 export interface HealthPayload {
@@ -41,80 +91,18 @@ const POLL_INTERVAL_MS = 250;
 const STOP_GRACE_MS = 5_000;
 const MAX_STDERR_TAIL = 8_192;
 
-/**
- * Major version the running backend must match. `stage-backend` writes the
- * staged binary's version to `resources/backend-version.json`, so a stale
- * bundled backend is caught at startup instead of failing mysteriously.
- * Returns null when no pin is available (dev without staging): the caller
- * must say so honestly instead of comparing the version against itself.
- */
+/** Major from the staged pin or ATK_EXPECTED_BACKEND_MAJOR; null when unpinned. */
 export function resolveExpectedBackendMajor(): string | null {
-  const override = process.env.ATK_EXPECTED_BACKEND_MAJOR?.trim();
-  if (override) return override.replace(/^v/, '').split('.')[0] ?? null;
-  for (const dir of candidateResourceDirs()) {
-    try {
-      const raw = fs.readFileSync(path.join(dir, 'backend-version.json'), 'utf8');
-      const parsed = JSON.parse(raw) as { version?: unknown };
-      if (typeof parsed.version === 'string' && parsed.version.trim()) {
-        return parsed.version.trim().replace(/^v/, '').split('.')[0] ?? null;
-      }
-    } catch {
-      // Missing or unreadable pin in this dir; try the next.
-    }
-  }
-  return null;
+  return resolveBackendPin()?.major ?? null;
 }
 
-function candidateResourceDirs(): string[] {
-  const dirs: string[] = [];
-  const resourcesPath =
-    typeof (process as NodeJS.Process & { resourcesPath?: unknown }).resourcesPath === 'string'
-      ? (process as NodeJS.Process & { resourcesPath: string }).resourcesPath
-      : '';
-  if (resourcesPath) dirs.push(resourcesPath);
-  // Dev layout: compiled main lives in apps/desktop/dist-electron.
-  dirs.push(path.resolve(__dirname, '..', 'resources'));
-  return dirs;
-}
-
-/** Locate the bundled V backend binary, else PATH, else a dev checkout. */
-export function resolveBackendBinary(): { bin: string; argsPrefix: string[]; source: string } {
-  const exe = process.platform === 'win32' ? 'agent-toolkit.exe' : 'agent-toolkit';
-  // process.resourcesPath exists only inside Electron; plain Node (tests, dev
-  // tooling) falls through to PATH.
-  const resourcesPath =
-    typeof (process as NodeJS.Process & { resourcesPath?: unknown }).resourcesPath === 'string'
-      ? (process as NodeJS.Process & { resourcesPath: string }).resourcesPath
-      : '';
-  if (resourcesPath) {
-    const bundled = path.join(resourcesPath, 'bin', exe);
-    if (fs.existsSync(bundled)) {
-      return { bin: bundled, argsPrefix: [], source: 'bundled' };
-    }
-  }
-  const fromPath = findOnPath(exe);
-  if (fromPath) {
-    return { bin: fromPath, argsPrefix: [], source: 'path' };
-  }
-  return { bin: exe, argsPrefix: [], source: 'path-fallback' };
-}
-
-function findOnPath(exe: string): string | null {
-  const pathEnv = process.env.PATH ?? '';
-  const sep = process.platform === 'win32' ? ';' : ':';
-  for (const dir of pathEnv.split(sep)) {
-    if (!dir) continue;
-    // Absolute: serve is spawned with the harness as cwd, so a relative PATH
-    // entry must not be re-resolved against it.
-    const candidate = path.resolve(dir, exe);
-    try {
-      fs.accessSync(candidate, fs.constants.X_OK);
-      return candidate;
-    } catch {
-      // keep searching
-    }
-  }
-  return null;
+export function defaultSelectBinary(cwd: string | undefined): Promise<BinarySelection> {
+  return selectBackendBinary(listBackendCandidates(defaultCandidateInputs()), {
+    pin: resolveBackendPin(),
+    run: runBinary,
+    cwd,
+    isExecutable: isExecutableFile,
+  });
 }
 
 function pickFreePort(): Promise<number> {
@@ -139,13 +127,14 @@ async function fetchHealth(url: string): Promise<HealthPayload | null> {
   }
 }
 
-function majorOf(version: string): string {
-  return version.replace(/^v/, '').split('.')[0] ?? '';
+function describeBinary(binary: BackendBinaryInfo): string {
+  return `${binary.path} (${binary.source}${binary.version ? `, ${binary.version}` : ''})`;
 }
 
 /**
- * Owns the `agent-toolkit serve` child process: dynamic localhost port,
- * health-gated readiness, version compatibility, crash reporting, clean stop.
+ * Owns the `agent-toolkit serve` child process: deterministic binary
+ * selection with a compatibility probe, dynamic localhost port, health-gated
+ * readiness, version + Desktop-gate checks, crash reporting, clean stop.
  * Desktop infrastructure only — no Agent Toolkit domain logic lives here.
  */
 export class BackendSupervisor {
@@ -157,17 +146,37 @@ export class BackendSupervisor {
     detail: null,
     restarts: 0,
     harness: null,
+    binary: null,
+    rejected: [],
+    problem: null,
   };
   private listeners = new Set<(state: BackendState) => void>();
-  private stopping = false;
+  private starting: Promise<boolean> | null = null;
+  /** Bumped by stop(); an in-flight start() whose generation changed abandons itself. */
+  private generation = 0;
   private readonly resolveHarness: () => HarnessResolution;
+  private readonly selectBinary: (cwd: string | undefined) => Promise<BinarySelection>;
+  private readonly resolvePin: () => BackendPin | null;
+  private readonly probeGate: (url: string) => Promise<DesktopGateProbe>;
+  private readonly spawnProcess: typeof spawn;
+  private readonly startTimeoutMs: number;
 
   constructor(options: BackendSupervisorOptions = {}) {
-    this.resolveHarness = options.resolveHarness ?? resolveHarnessFromProcess;
+    this.resolveHarness = options.resolveHarness ?? (() => resolveHarnessFromProcess());
+    this.selectBinary = options.selectBinary ?? defaultSelectBinary;
+    this.resolvePin = options.resolvePin ?? resolveBackendPin;
+    this.probeGate = options.probeGate ?? ((url) => probeDesktopGate(url));
+    this.spawnProcess = options.spawnProcess ?? spawn;
+    this.startTimeoutMs = options.startTimeoutMs ?? START_TIMEOUT_MS;
   }
 
   snapshot(): BackendState {
-    return { ...this.state, harness: this.state.harness ? { ...this.state.harness } : null };
+    return {
+      ...this.state,
+      harness: this.state.harness ? { ...this.state.harness } : null,
+      binary: this.state.binary ? { ...this.state.binary } : null,
+      rejected: this.state.rejected.map((entry) => ({ ...entry })),
+    };
   }
 
   onState(listener: (state: BackendState) => void): () => void {
@@ -183,33 +192,66 @@ export class BackendSupervisor {
     for (const listener of this.listeners) listener(snapshot);
   }
 
-  async start(): Promise<boolean> {
-    if (this.proc || this.stopping) return this.state.status === 'ready';
-    const { bin, argsPrefix, source } = resolveBackendBinary();
+  /** Singleflight: concurrent callers share one start attempt. */
+  start(): Promise<boolean> {
+    if (this.proc) return Promise.resolve(this.state.status === 'ready');
+    if (!this.starting) {
+      const attempt = this.doStart(this.generation).finally(() => {
+        if (this.starting === attempt) this.starting = null;
+      });
+      this.starting = attempt;
+    }
+    return this.starting;
+  }
+
+  private async doStart(generation: number): Promise<boolean> {
+    const stale = (): boolean => generation !== this.generation;
+    const harness = this.resolveHarness();
+    const spawnContext = harnessSpawnContext(harness, process.env);
+    this.emit({
+      status: 'starting',
+      url: null,
+      version: null,
+      detail: 'selecting backend binary',
+      harness,
+      binary: null,
+      rejected: [],
+      problem: null,
+    });
+
+    const selection = await this.selectBinary(spawnContext.cwd);
+    if (stale()) return false;
+    if (!selection.ok) {
+      this.emit({ status: 'failed', detail: selection.message, rejected: selection.rejected, problem: selection.problem });
+      return false;
+    }
+    const { binary, rejected } = selection;
+    const skipped = rejected.length ? `; skipped ${describeRejected(rejected)}` : '';
+
     let port = 0;
     try {
       port = await pickFreePort();
     } catch (error) {
-      this.emit({ status: 'failed', detail: `no free localhost port: ${String(error)}` });
+      this.emit({ status: 'failed', detail: `no free localhost port: ${String(error)}`, binary, rejected, problem: 'port' });
       return false;
     }
+    if (stale()) return false;
     const url = `http://127.0.0.1:${port}`;
-    const harness = this.resolveHarness();
-    this.emit({ status: 'starting', url, version: null, detail: `launching ${source} backend`, harness });
+    this.emit({ url, detail: `launching ${describeBinary(binary)}${skipped}`, binary, rejected });
 
     // No --auth-token on argv: it would expose the secret in ps output.
     // The child inherits AGENT_TOOLKIT_TOKEN through env, which serve reads.
     // serve roots its jobs dir and containment at cwd, so cwd is the harness.
-    const args = [...argsPrefix, 'serve', '--host', '127.0.0.1', '--port', String(port), '--no-browser'];
-    const spawnContext = harnessSpawnContext(harness, process.env);
-    const child = spawn(bin, args, {
+    const args = ['serve', '--host', '127.0.0.1', '--port', String(port), '--no-browser'];
+    const child = this.spawnProcess(binary.path, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
       cwd: spawnContext.cwd,
       env: { ...spawnContext.env, NO_COLOR: '1', TERM: 'dumb' },
       windowsHide: true,
     });
     this.proc = child;
-    this.stopping = false;
+    let ready = false;
+    let exitedEarly = false;
 
     // Drain both pipes: an unread pipe blocks the backend once the OS
     // buffer (~64 KiB) fills, freezing serve without exiting. Keep a
@@ -225,62 +267,97 @@ export class BackendSupervisor {
     child.stderr?.resume();
 
     child.on('exit', (code, signal) => {
-      const wasStopping = this.stopping;
+      if (this.proc !== child) return;
       this.proc = null;
-      if (wasStopping) {
-        this.emit({ status: 'stopped', detail: null });
-        return;
-      }
+      if (stale()) return;
+      exitedEarly = !ready;
       const tail = stderrTail.trim().slice(-200);
-      this.emit({
-        status: 'crashed',
-        detail:
-          `backend exited code=${code ?? 'null'} signal=${signal ?? 'null'} (source=${source})` +
-          (tail ? ` stderr: ${tail}` : ''),
-      });
+      const how = `code=${code ?? 'null'} signal=${signal ?? 'null'}`;
+      this.emit(
+        ready
+          ? {
+              status: 'crashed',
+              problem: 'exited',
+              detail: `backend ${describeBinary(binary)} exited ${how}` + (tail ? ` stderr: ${tail}` : ''),
+            }
+          : {
+              status: 'failed',
+              problem: 'exited-during-start',
+              detail:
+                `backend ${describeBinary(binary)} exited during startup ${how}` + (tail ? ` stderr: ${tail}` : ''),
+            },
+      );
     });
     child.on('error', (error) => {
+      if (this.proc !== child) return;
       this.proc = null;
+      if (stale()) return;
+      exitedEarly = true;
       this.emit({
         status: 'failed',
+        problem: 'spawn-error',
         detail:
-          `cannot launch backend ${bin}` +
+          `cannot launch backend ${binary.path}` +
           (spawnContext.cwd ? ` in harness ${spawnContext.cwd}` : '') +
           `: ${error.message}`,
       });
     });
 
-    const deadline = Date.now() + START_TIMEOUT_MS;
+    const deadline = Date.now() + this.startTimeoutMs;
     let health: HealthPayload | null = null;
-    let lastError: string | null = null;
     while (Date.now() < deadline) {
-      if (this.proc === null) break; // exited early; exit handler already emitted
+      if (this.proc !== child || stale()) break;
       health = await fetchHealth(url);
       if (health?.ok) break;
-      lastError = `health check pending (${source} ${bin})`;
       await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
     }
+    if (stale() || exitedEarly || this.proc !== child) return false;
     if (!health?.ok) {
-      if (this.state.status === 'starting') {
-        await this.killChild();
-        this.emit({ status: 'failed', detail: lastError ?? 'backend did not become healthy' });
+      await this.killChild();
+      if (!stale()) {
+        this.emit({
+          status: 'failed',
+          problem: 'health-timeout',
+          detail: `backend ${describeBinary(binary)} did not answer /api/v1/health within ${Math.round(this.startTimeoutMs / 1000)} s`,
+        });
       }
       return false;
     }
-    const expectedMajor = resolveExpectedBackendMajor();
-    const actualMajor = majorOf(health.version);
-    const status: BackendStatus =
-      expectedMajor === null || actualMajor === expectedMajor ? 'ready' : 'version-mismatch';
+
+    const pin = this.resolvePin();
+    if (pin && majorOf(health.version) !== pin.major) {
+      ready = true;
+      this.emit({
+        status: 'version-mismatch',
+        problem: 'major-mismatch',
+        version: health.version,
+        detail: `backend ${binary.path} reports ${health.version}; this Desktop build needs major ${pin.major} (${pin.source} = ${pin.version}). Reinstall or set ATK_BACKEND_BIN.`,
+      });
+      return false;
+    }
+    const gate = await this.probeGate(url);
+    if (stale() || this.proc !== child) return false;
+    ready = true;
+    if (gate === 'missing') {
+      this.emit({
+        status: 'version-mismatch',
+        problem: 'desktop-gate-missing',
+        version: health.version,
+        detail: `backend ${describeBinary(binary)} predates the X-Atk-Desktop first-party gate: reads work, but jobs, installs and other Desktop actions are rejected with 403. Set ATK_BACKEND_BIN to a newer build, or put one first on PATH.`,
+      });
+      return false;
+    }
     this.emit({
-      status,
+      status: 'ready',
       version: health.version,
+      problem: null,
       detail:
-        status === 'version-mismatch'
-          ? `backend ${health.version} differs from staged major ${expectedMajor}; reinstall recommended`
-          : `backend ${health.version} via ${source}` +
-            (expectedMajor === null ? ' (no staged version pin; set ATK_EXPECTED_BACKEND_MAJOR to enforce)' : ''),
+        `backend ${health.version} via ${binary.source} ${binary.path}` +
+        (pin === null ? ' (no staged version pin; set ATK_EXPECTED_BACKEND_MAJOR to enforce)' : '') +
+        (gate === 'unknown' ? ' (Desktop gate probe inconclusive)' : '') +
+        skipped,
     });
-    return status === 'ready';
+    return true;
   }
 
   async restart(): Promise<boolean> {
@@ -290,21 +367,16 @@ export class BackendSupervisor {
   }
 
   async stop(): Promise<void> {
-    this.stopping = true;
+    this.generation += 1;
+    this.starting = null;
     await this.killChild();
-    // Clear the flag so a later start()/restart() is not blocked: stopping
-    // only guards the exit handler against reporting an intentional shutdown
-    // as a crash.
-    this.stopping = false;
-    this.emit({ status: 'stopped', url: null, version: null, detail: null });
+    this.emit({ status: 'stopped', url: null, version: null, detail: null, problem: null });
   }
 
   private async killChild(): Promise<void> {
     const child = this.proc;
-    if (!child || child.exitCode !== null) {
-      this.proc = null;
-      return;
-    }
+    this.proc = null;
+    if (!child || child.exitCode !== null || child.signalCode !== null) return;
     await new Promise<void>((resolve) => {
       const timer = setTimeout(() => {
         try {
@@ -318,13 +390,11 @@ export class BackendSupervisor {
         resolve();
       });
       try {
-        const sig: NodeJS.Signals = process.platform === 'win32' ? 'SIGTERM' : 'SIGTERM';
-        child.kill(sig);
+        child.kill('SIGTERM');
       } catch {
         clearTimeout(timer);
         resolve();
       }
     });
-    this.proc = null;
   }
 }
