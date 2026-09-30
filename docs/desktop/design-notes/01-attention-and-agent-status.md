@@ -26,6 +26,21 @@ ordered only by wait time. There is no severity, no failure item, no
 approval/gate item and no cross-project ordering (N stays on the current
 project and only *names* another project that has someone waiting).
 
+## Interim (Phase 4.2 Office inspector)
+
+Until V emits `AttentionItem`, Electron Office is the **attention
+inspector** the semantic world opens — not the product home. It answers
+the five questions from today's typed sources only: supervisor
+`backend-status` (crash / version mismatch / harness), `GET /api/v1/jobs`
++ status, selfcheck, health, and the #1320 bus (`GET /api/v1/events`).
+Manila "Needs you" is crash, mismatch, harness, failed jobs, and failing
+self-checks. Running and completed stay in their own sections. Empty copy
+is "Nothing needs you." only after the job list and self-check succeed —
+never on a crash or a failed query. Palette "Next that needs me" cycles
+crash/mismatch → failed jobs → running jobs. The world focuses a row with
+`?inspect=<key>`. The completed-needing-review slot stays empty until
+Phase 2 PR E. This is honesty, not the V attention queue. No fake NPCs.
+
 ## Decision
 
 ### V owns attention items; React only renders them

@@ -6,6 +6,7 @@ import { LiveProvider } from '../data/live';
 import { TerminalProvider } from '../data/terminal';
 import { Onboarding } from '../features/onboarding/Onboarding';
 import { REPLAY_ONBOARDING_EVENT, shouldRunOnboarding } from '../features/onboarding/complete';
+import { useAttention } from '../features/office/useAttention';
 import { DestinationBoundary, LoadingState, ReceiptsProvider } from '../ui';
 import { CommandPalette } from './CommandPalette';
 import { ContextBar } from './ContextBar';
@@ -18,12 +19,25 @@ import styles from './shell.module.css';
 
 function NavCount({ path }: { path: string }) {
   const jobs = useJobs();
+  if (path === '/office') {
+    return <OfficeNavCount />;
+  }
   if (path !== '/operations') return null;
   const active = activeJobIds(jobs.data).length;
   if (active === 0) return null;
   return (
     <span className={styles.navCount} aria-label={`${active} running`}>
       {active}
+    </span>
+  );
+}
+
+function OfficeNavCount() {
+  const { items } = useAttention();
+  if (items.length === 0) return null;
+  return (
+    <span className={styles.navCount} aria-label={`${items.length} need you`}>
+      {items.length}
     </span>
   );
 }

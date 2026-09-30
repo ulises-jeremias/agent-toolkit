@@ -282,6 +282,15 @@ AO `N` + oldest-wait is the UX to steal. Do not flatten kinds. V owns
 `AttentionItem` (design note 01). Failures and approvals outrank "done".
 Backend-down is a local supervisor item, not a fabricated V fact.
 
+Phase 4.2 Office is the honesty **inspector** (design note 01), not the
+product home. The world owns lights/characters; this destination is the
+detailed list. Manila "Needs you" from crash / version-mismatch / harness
+/ failed jobs / failing self-checks; running and completed stay separate;
+empty copy only after jobs + selfcheck succeed; palette "Next that needs
+me" cycles crash → failed → running on the current harness. World link:
+`href('/office', { inspect: key })`. Approvals and review-ready still
+wait on V. Cross-workspace later.
+
 ### I. Changes / PR — **BACKEND then LATER**
 
 Natural home is the run/session inspector (prompt → session → files → diff →
@@ -345,9 +354,12 @@ dir, resize-owns-typist, scrubbed env. Detached host is G3 only.
 
 ### React — do not start from this research
 
-Consume the typed hooks that landed in #1321. Render attention/session
-facets when V emits them. No derived "quiet". Compact destinations must
-work without Office decor. Visual system stays Paper Co.
+Consume the typed hooks that landed in #1321. Office (Phase 4.2) is the
+attention inspector the world opens — not the product home. It renders
+today's sources honestly and consumes #1320 events; it does not invent
+`AttentionItem` or NPCs. Render V attention/session facets when they exist.
+No derived "quiet". Compact destinations must work without Office decor.
+Visual system stays Paper Co.
 
 ### Testing (durability modes separately)
 

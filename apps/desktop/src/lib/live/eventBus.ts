@@ -46,7 +46,14 @@ export class EventBusManager {
   }
 
   setOffline(offline: boolean): void {
-    if (this.disposed || offline === this.offline) return;
+    if (this.disposed) return;
+    if (offline === this.offline) {
+      if (!offline && this.phase === 'idle' && this.timer === null) {
+        this.attempt = 0;
+        this.connect();
+      }
+      return;
+    }
     this.offline = offline;
     if (offline) {
       this.clearTimer();
@@ -54,7 +61,8 @@ export class EventBusManager {
       this.source = null;
       this.phase = 'waiting';
       this.retryAt = null;
-    } else if (this.phase === 'waiting' && this.timer === null) {
+    } else if ((this.phase === 'waiting' || this.phase === 'idle') && this.timer === null) {
+      this.attempt = 0;
       this.connect();
     }
     this.publish();

@@ -100,7 +100,7 @@ export function LiveProvider({
   useEffect(() => {
     jobManager?.setOffline(connection === 'offline');
     busManager?.setOffline(connection === 'offline');
-  }, [jobManager, busManager, connection]);
+  }, [jobManager, busManager, connection, health.dataUpdatedAt]);
 
   const activeKey = activeJobIds(jobs.data).sort().join('\n');
   useEffect(() => {

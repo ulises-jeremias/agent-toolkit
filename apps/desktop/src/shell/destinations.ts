@@ -18,7 +18,7 @@ export const DESTINATIONS: readonly Destination[] = [
   {
     path: '/office',
     label: 'Office',
-    question: 'What is happening and what needs me?',
+    question: 'What needs attention now?',
     component: lazy(() => import('../features/office/Office')),
   },
   {

@@ -1,5 +1,42 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend, type Desktop } from './fixtures';
+
+/**
+ * Kill the supervised `agent-toolkit serve` child. After ADR-034 the renderer
+ * sees `backend.url` as the loopback static+proxy server, not serve — SIGKILL
+ * on that port takes down the UI and hangs Playwright instead of crashing the
+ * backend.
+ */
+function killSupervisedServe(binaryPath: string): void {
+  const basename = path.basename(binaryPath);
+  const procDir = '/proc';
+  if (!fs.existsSync(procDir)) {
+    throw new Error('crash probe requires /proc to find the serve child');
+  }
+  let killed = 0;
+  for (const entry of fs.readdirSync(procDir)) {
+    if (!/^\d+$/.test(entry)) continue;
+    try {
+      const args = fs
+        .readFileSync(path.join(procDir, entry, 'cmdline'))
+        .toString()
+        .split('\0')
+        .filter(Boolean);
+      const argv0 = args[0] ?? '';
+      const isBinary = argv0 === binaryPath || path.basename(argv0) === basename;
+      if (!isBinary || !args.includes('serve') || !args.includes('--no-browser')) continue;
+      process.kill(Number(entry), 'SIGKILL');
+      killed += 1;
+    } catch {
+      // vanished, or not readable
+    }
+  }
+  if (killed === 0) {
+    throw new Error(`no supervised serve process for ${binaryPath}`);
+  }
+}
 
 const DESTINATIONS: ReadonlyArray<{ link: string; path: string }> = [
   { link: 'World', path: '/world' },
@@ -21,7 +58,20 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await desktop?.close();
+  if (!desktop) return;
+  const child = desktop.app.process();
+  const watchdog = setTimeout(() => {
+    try {
+      child.kill('SIGKILL');
+    } catch {
+      // already gone
+    }
+  }, 20_000);
+  try {
+    await desktop.close();
+  } finally {
+    clearTimeout(watchdog);
+  }
 });
 
 test('supervisor starts the real backend and the shell connects', async () => {
@@ -147,6 +197,32 @@ test('theme choice applies immediately and survives a reload', async () => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'paper');
 });
 
+test('a failed job appears in Office attention and Next that needs me opens it', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Start job' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a job' });
+  await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('no-such-command');
+  await dialog.getByRole('button', { name: 'Start job' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('region', { name: 'no-such-command' }).getByText('failed')).toBeVisible();
+
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Attention' })).toBeVisible();
+  const needsYou = page.getByRole('region', { name: 'Needs you' });
+  await expect(needsYou).toContainText(/no-such-command failed/);
+  await expect(needsYou).not.toContainText(/Nothing needs you/);
+  await expect(page.getByRole('main')).not.toContainText(/quiet/i);
+  await expect(needsYou.locator('tr[data-attention="failed-job"]')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Failed' })).toContainText('no-such-command');
+
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Next that needs me');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/job=/);
+});
+
 test('terminal runs a real pseudo-terminal session that survives navigation', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
@@ -243,4 +319,22 @@ test('an exited session keeps its output and can restart', async () => {
   await expect(page.getByRole('status').filter({ hasText: 'exit code 7' })).toBeVisible();
   await page.getByRole('button', { name: 'Restart' }).click();
   await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
+});
+
+test('a crashed backend is attention, not a quiet office', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  const binaryPath = await page.evaluate(async () => {
+    const state = await window.atk?.backendStatus();
+    return state?.binary?.path ?? null;
+  });
+  expect(binaryPath).toBeTruthy();
+  if (!binaryPath) return;
+  killSupervisedServe(binaryPath);
+
+  await expect(page.getByRole('alert')).toContainText(/crashed|not answering|stopped/i);
+  const needsYou = page.getByRole('region', { name: 'Needs you' });
+  await expect(needsYou).toContainText(/Backend crashed|Backend not answering|Backend failed/i);
+  await expect(needsYou).not.toContainText(/Nothing needs you/);
+  await expect(page.getByRole('main')).not.toContainText(/the workstation is quiet/i);
 });

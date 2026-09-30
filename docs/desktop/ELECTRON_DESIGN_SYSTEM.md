@@ -183,7 +183,8 @@ active job:
 500 lines. On `done` it sets the final status and invalidates the list and the
 log. `EventBusManager` consumes `GET /api/v1/events` and `applyBusEvent`
 invalidates jobs/loops/swarms/doctor (or patches a known job status) without
-inventing records. Per-job streams remain the log source.
+inventing records. Per-job streams remain the log source. If the bus never
+opens, Office polls jobs every 5 seconds and says the list may be stale.
 
 The shell's `LiveIndicator` turns backend state plus live status into one
 label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
@@ -191,8 +192,17 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
 
 ## Patterns
 
-- **Needs-you first.** Office lists failures and warnings before anything
-  running, each with a link to the exact item (`/operations?job=<id>`).
+- **Needs-you inspector.** `/world` is the app home (ADR-034). Office at
+  `/office` is the detailed attention list, not a second home. The world
+  owns lights/characters/needs-me and opens this destination with
+  `href('/office')` or `href('/office', { inspect: <key> })` (`backend-crash`,
+  `backend-mismatch`, `backend-offline`, `harness`, `job-<id>`,
+  `check-<name>`). Failures list first, each with a link to the subject
+  (`/operations?job=<id>`, Settings). The palette command "Next that
+  needs me" cycles crash/mismatch → failed jobs → running jobs.
+  Completed-needing-review is omitted until the backend can distinguish
+  it (approvals / review flags). Never "quiet" after a failed job or a
+  crashed backend.
 - **Selection lives in the URL.** List and detail views keep the selection in
   search params, so reloads, links and the back button work. Session scope
   (`workspace`, `agent`, `run`) is the same contract: the context bar writes
@@ -272,6 +282,12 @@ Regenerate `03-world.png` with `ATK_CAPTURE=1`.
 - Most sub-command responses are text envelopes, so views render CLI output
   verbatim. Structured panels (project lists, persona tables) wait for JSON
   fields in the contract.
+- Office agent/run rows wait on typed agents and runs (Phase 2 PR C / E).
+  Rows today show only real job fields (`cmd`, `status`, `workspace`,
+  times, `exit_code`) and link through `href()`.
+- Human approvals and "completed needing review" wait on typed approvals
+  (Phase 2 PR E). The palette cycle has the slot; it stays empty rather
+  than inventing a queue.
 - In a fresh install (no toolkit checkout), `plugin check` and `mcp list`
   report "Cannot locate toolkit directory". The views show that failure as
   it is.
