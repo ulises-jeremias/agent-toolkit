@@ -24,7 +24,9 @@ export function applyLiveEvent(queryClient: QueryClient, { jobId, event }: LiveE
       return;
     case 'log':
       queryClient.setQueryData<string[]>(qk.jobs.live(jobId), (lines = []) =>
-        lines.length >= MAX_LIVE_LINES ? [...lines.slice(lines.length - MAX_LIVE_LINES + 1), event.line] : [...lines, event.line],
+        lines.length >= MAX_LIVE_LINES
+          ? [...lines.slice(lines.length - MAX_LIVE_LINES + 1), event.line]
+          : [...lines, event.line],
       );
       return;
     case 'done':

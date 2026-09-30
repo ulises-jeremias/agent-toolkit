@@ -36,9 +36,8 @@ type SubPath<F extends SubFamily> = Extract<SubTemplate, `/api/v1/${F}/{sub}`>;
 export type SubOperation<F extends SubFamily> = OperationOf<SubPath<F>, 'post'>;
 
 /** Allowlisted subcommands for a family (server returns 404 for anything else). */
-export type SubCommand<F extends SubFamily> = SubOperation<F> extends { parameters: { path: { sub: infer S } } }
-  ? S
-  : never;
+export type SubCommand<F extends SubFamily> =
+  SubOperation<F> extends { parameters: { path: { sub: infer S } } } ? S : never;
 
 /** Typed request body for a family; the route path, never the body, names the subcommand. */
 export type SubBody<F extends SubFamily> = BodyOf<SubOperation<F>>;

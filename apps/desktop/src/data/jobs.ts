@@ -92,11 +92,9 @@ export function useDeleteJob() {
     mutationKey: ['jobs', 'delete'],
     mutationFn: ({ id, force }) => requireClient(client).deleteJob(id, force),
     onSuccess: (_result, { id }) => {
-      queryClient.setQueryData<JobRegistry>(qk.jobs.list(), (registry) => {
-        if (!registry) return registry;
-        const { [id]: _removed, ...rest } = registry;
-        return rest;
-      });
+      queryClient.setQueryData<JobRegistry>(qk.jobs.list(), (registry) =>
+        registry ? Object.fromEntries(Object.entries(registry).filter(([key]) => key !== id)) : registry,
+      );
       queryClient.removeQueries({ queryKey: qk.jobs.log(id) });
       queryClient.removeQueries({ queryKey: qk.jobs.live(id) });
     },

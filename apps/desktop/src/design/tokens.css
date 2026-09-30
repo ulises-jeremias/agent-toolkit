@@ -144,6 +144,7 @@
   --accent-brass: var(--pc-brass-600);
   --accent-brass-strong: var(--pc-brass-700);
   --accent-brass-fill: var(--pc-brass-400);
+  --accent-brass-on: var(--pc-char-900);
   --focus-ring: var(--pc-brass-600);
   --focus-halo: var(--pc-cream-50);
 
@@ -175,6 +176,10 @@
   --surface-terminal-chrome: var(--pc-char-850);
   --text-terminal: var(--pc-terminal-fg);
   --text-terminal-muted: var(--pc-bone-500);
+  --text-terminal-err: #ec9a84;
+  --surface-terminal-hover: rgba(233, 225, 207, 0.08);
+  --surface-terminal-err: rgba(236, 154, 132, 0.12);
+  --border-terminal: rgba(233, 225, 207, 0.18);
   --accent-terminal: var(--pc-terminal-neon);
 
   color-scheme: light;
@@ -210,6 +215,7 @@
   --accent-brass: var(--pc-brass-400);
   --accent-brass-strong: #e6c070;
   --accent-brass-fill: var(--pc-brass-400);
+  --accent-brass-on: var(--pc-char-900);
   --focus-ring: #e2b85a;
   --focus-halo: var(--pc-char-900);
 

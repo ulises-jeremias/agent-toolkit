@@ -73,10 +73,8 @@ export class JobStreamManager {
     for (const id of [...this.streams.keys()]) {
       if (!wanted.has(id)) this.drop(id);
     }
-    if (!this.offline) {
-      for (const id of wanted) {
-        if (!this.streams.has(id)) this.open(id, 0);
-      }
+    for (const id of wanted) {
+      if (!this.streams.has(id)) this.open(id, 0);
     }
     this.publish();
   }
@@ -106,10 +104,11 @@ export class JobStreamManager {
     this.disposed = true;
   }
 
+  /** Track a wanted job; while offline it waits and connects when `setOffline(false)` arrives. */
   private open(id: string, attempt: number): void {
-    const entry: StreamEntry = { source: null, phase: 'connecting', attempt, timer: null, retryAt: null };
+    const entry: StreamEntry = { source: null, phase: 'waiting', attempt, timer: null, retryAt: null };
     this.streams.set(id, entry);
-    this.connect(id, entry);
+    if (!this.offline) this.connect(id, entry);
   }
 
   private connect(id: string, entry: StreamEntry): void {

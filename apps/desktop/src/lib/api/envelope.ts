@@ -35,6 +35,25 @@ export function toEnvelope(wire: unknown): CommandEnvelope {
   return { ok, message, data };
 }
 
+/**
+ * Human-readable output of an envelope. Some commands (insights) put their
+ * whole JSON payload in `message` with the text under `report`.
+ */
+export function envelopeText(envelope: CommandEnvelope): string {
+  const message = envelope.message;
+  if (message.trimStart().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(message) as unknown;
+      if (typeof parsed === 'object' && parsed !== null && 'report' in parsed && typeof parsed.report === 'string') {
+        return parsed.report;
+      }
+    } catch {
+      return message;
+    }
+  }
+  return message;
+}
+
 /** Treat a command-level failure as an error so views render it as one. */
 export function requireOk(envelope: CommandEnvelope): CommandEnvelope {
   if (!envelope.ok) {

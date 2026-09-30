@@ -44,6 +44,25 @@ export function useHealth() {
   });
 }
 
+export function useSelfcheck() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.backend.selfcheck(),
+    queryFn: () => requireClient(client).selfcheck(),
+    enabled: client !== null,
+  });
+}
+
+export function useHelp(options: { enabled?: boolean } = {}) {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.backend.help(),
+    queryFn: () => requireClient(client).help(),
+    enabled: client !== null && (options.enabled ?? true),
+    staleTime: Infinity,
+  });
+}
+
 function useSupervisedBackend() {
   const [backend, setBackend] = useState<BackendState | null>(null);
   const [backendUrl, setBackendUrl] = useState<string | null>(null);

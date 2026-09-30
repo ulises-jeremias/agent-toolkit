@@ -28,18 +28,23 @@ export function useReport(kind: ReportKind, options: { enabled?: boolean } = {})
 
 /**
  * Read through an allowlisted subcommand (e.g. `workspace/context`,
- * `project/list`). A command that reports `ok: false` surfaces as an error.
+ * `project/list`). By default `ok: false` surfaces as an error; checks whose
+ * failure is the answer (validate) pass `failureIsData`.
  */
 export function useSubQuery<F extends SubFamily>(
   family: F,
   sub: SubCommand<F>,
   body?: SubBody<F>,
-  options: { enabled?: boolean; staleTime?: number } = {},
+  options: { enabled?: boolean; staleTime?: number; failureIsData?: boolean } = {},
 ) {
   const { client } = useBackend();
+  const failureIsData = options.failureIsData ?? false;
   return useQuery({
     queryKey: qk.sub(family, sub, body),
-    queryFn: async () => requireOk(await requireClient(client).sub(family, sub, body)),
+    queryFn: async () => {
+      const envelope = await requireClient(client).sub(family, sub, body);
+      return failureIsData ? envelope : requireOk(envelope);
+    },
     enabled: client !== null && (options.enabled ?? true),
     staleTime: options.staleTime,
   });

@@ -1,81 +1,177 @@
+/* The terminal destination fills the content height instead of scrolling the page. */
+.page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 24rem;
+}
+
+.page > header {
+  margin-bottom: var(--space-4);
+}
+
+.sessions {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: var(--space-3);
-  align-items: end;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  color: var(--text-primary);
 }
 
 .tabs {
   display: flex;
-  gap: var(--space-1);
   flex-wrap: wrap;
-  margin-bottom: var(--space-2);
+  gap: var(--space-0-5);
 }
 
 .tab {
-  background: var(--paper-sunken);
-  border: 1px solid var(--line-strong);
-  border-bottom: none;
-  border-radius: var(--radius-1) var(--radius-1) 0 0;
-  padding: var(--space-2) var(--space-3);
-  cursor: pointer;
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: var(--space-2);
+  min-height: var(--target-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-default);
+  border-bottom: 0;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  cursor: pointer;
 }
 
-.tabActive {
-  composes: tab;
-  background: var(--terminal-bg);
-  color: var(--terminal-ink);
+.tab[aria-selected='true'] {
+  background: var(--surface-terminal-chrome);
+  border-color: var(--surface-terminal-chrome);
+  color: var(--text-terminal);
+}
+
+.tabAgent {
+  font-weight: 500;
+}
+
+.tabState {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  opacity: 0.8;
+}
+
+.tabState[data-tone='err'] {
+  color: var(--status-err-fg);
+  opacity: 1;
+}
+
+.tab[aria-selected='true'] .tabState[data-tone='err'] {
+  color: var(--text-terminal-err);
 }
 
 .chrome {
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-2);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   overflow: hidden;
-  box-shadow: var(--shadow-card);
+  border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
+  background: var(--surface-terminal);
+  box-shadow: var(--shadow-raised);
 }
 
 .chromeBar {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  background: var(--ink);
-  color: var(--paper);
-  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 2.75rem;
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+  background: var(--surface-terminal-chrome);
+  color: var(--text-terminal);
+}
+
+.chromeBar button[data-variant='ghost'] {
+  color: var(--text-terminal);
+}
+
+.chromeBar button[data-variant='ghost']:hover:not(:disabled) {
+  background: var(--surface-terminal-hover);
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .chromeTitle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   font-family: var(--font-mono);
-  font-size: 0.8rem;
-  margin-right: auto;
+  line-height: var(--leading-tight);
+}
+
+.chromeCmd,
+.chromeCwd {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 32rem;
+}
+
+.chromeCmd {
+  font-size: var(--text-sm);
+}
+
+.chromeCwd {
+  font-size: var(--text-2xs);
+  color: var(--text-terminal-muted);
+}
+
+.controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .search {
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  font-size: 0.85rem;
+  margin-right: var(--space-2);
+}
+
+.searchLabel {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-terminal-muted);
 }
 
 .search input {
-  font: inherit;
-  background: var(--terminal-bg);
-  color: var(--terminal-ink);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-1);
-  padding: 0.2rem 0.4rem;
-  width: 10rem;
+  width: 9rem;
+  min-height: 1.75rem;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border-terminal);
+  border-radius: var(--radius-sm);
+  background: var(--surface-terminal);
+  color: var(--text-terminal);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+.exitNotice {
+  padding: var(--space-1) var(--space-3);
+  background: var(--surface-terminal-err);
+  color: var(--text-terminal-err);
+  font-size: var(--text-xs);
 }
 
 .viewport {
-  background: var(--terminal-bg);
-  padding: var(--space-2);
-  height: 28rem;
+  flex: 1;
+  min-height: 12rem;
+  padding: var(--space-2) var(--space-3);
 }

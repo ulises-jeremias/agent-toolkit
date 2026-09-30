@@ -153,7 +153,9 @@ export class ApiClient {
   }
 
   jobs(): Promise<JobRegistry> {
-    return this.json('GET', '/api/v1/jobs' satisfies PathWith<'get'>);
+    // V serves GET /api/v1/jobs (jobs_list), but openapi.json only documents
+    // the POST on this path; anchor to that until the contract lists both.
+    return this.json('GET', '/api/v1/jobs' satisfies PathWith<'post'>);
   }
 
   createJob(request: JobCreateRequest): Promise<Job> {

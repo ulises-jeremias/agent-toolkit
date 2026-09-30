@@ -1,93 +1,199 @@
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
-import { useBackend } from '../../backend';
-import { queryKeys } from '../../lib/query';
-import { Empty, Loading, LoadError, Panel, StatusDot } from '../../components/ui';
-import styles from '../../components/ui.module.css';
-import { errorMessage } from '../shared';
+import { useBackend, useSelfcheck } from '../../data/backend';
+import { sortJobs, useJobs } from '../../data/jobs';
+import { useLiveStatus } from '../../data/live';
+import { isTerminalJobStatus, type Job } from '../../lib/api';
+import { formatDuration, formatWhen, jobCommandLine, jobDuration } from '../../lib/format';
+import {
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Mono,
+  PageHeader,
+  Panel,
+  Stack,
+  StatusBadge,
+  Table,
+  VisuallyHidden,
+  jobTone,
+} from '../../ui';
+
+const RECENT_FAILURE_MS = 24 * 60 * 60 * 1000;
+
+interface AttentionItem {
+  key: string;
+  tone: 'err' | 'warn';
+  title: string;
+  detail: string;
+  action: { to: string; label: string };
+}
 
 /**
- * Office — what is happening and what needs me?
- * Attention = backend health + selfcheck warn/err + running jobs.
+ * Office: what is happening and what needs me?
+ * Needs-me is only what a person must act on: the backend being down,
+ * failed work, and failing self-checks. Running work is shown separately.
  */
 export default function Office() {
-  const { client, backend, backendUrl } = useBackend();
+  const { backend } = useBackend();
+  const live = useLiveStatus();
+  const jobs = useJobs();
+  const selfcheck = useSelfcheck();
+  const now = Date.now();
 
-  const health = useQuery({
-    queryKey: queryKeys.health,
-    queryFn: () => {
-      if (!client) throw new Error('backend not connected');
-      return client.health();
-    },
-    enabled: client !== null,
+  const all = sortJobs(jobs.data);
+  const running = all.filter((job) => !isTerminalJobStatus(job.status));
+  const finished = all.filter((job) => isTerminalJobStatus(job.status));
+  const recentFailures = finished.filter((job) => {
+    if (job.status !== 'failed' && job.status !== 'rejected') return false;
+    const ended = Date.parse(job.ended_at || job.started_at);
+    return Number.isNaN(ended) || now - ended < RECENT_FAILURE_MS;
   });
 
-  const selfcheck = useQuery({
-    queryKey: queryKeys.selfcheck,
-    queryFn: () => {
-      if (!client) throw new Error('backend not connected');
-      return client.selfcheck();
-    },
-    enabled: client !== null,
-  });
+  const attention: AttentionItem[] = [];
+  const backendDown = backend?.status === 'crashed' || backend?.status === 'failed' || backend?.status === 'stopped';
+  if (backendDown || live.connection === 'offline') {
+    attention.push({
+      key: 'backend',
+      tone: 'err',
+      title: backendDown ? `Backend ${backend?.status}` : 'Backend not answering',
+      detail: backend?.detail ?? 'Nothing below can refresh until it answers.',
+      action: { to: '/settings', label: 'Open backend settings' },
+    });
+  }
+  for (const job of recentFailures) {
+    attention.push({
+      key: job.id,
+      tone: 'err',
+      title: `${job.cmd} ${job.status}`,
+      detail: `${jobCommandLine(job)} · exit ${job.exit_code} · ${formatWhen(job.ended_at || job.started_at, now)}`,
+      action: { to: `/operations?job=${encodeURIComponent(job.id)}`, label: 'Review job' },
+    });
+  }
+  for (const check of selfcheck.data?.checks ?? []) {
+    if (check.status === 'ok') continue;
+    attention.push({
+      key: `check-${check.name}`,
+      tone: check.status === 'err' ? 'err' : 'warn',
+      title: `Self-check: ${check.name}`,
+      detail: check.detail,
+      action: { to: '/settings', label: 'See self-check' },
+    });
+  }
 
-  const jobs = useQuery({
-    queryKey: queryKeys.jobs,
-    queryFn: () => {
-      if (!client) throw new Error('backend not connected');
-      return client.jobsList();
-    },
-    enabled: client !== null,
-    refetchInterval: 5_000,
-  });
-
-  const running = jobs.data
-    ? Object.values(jobs.data).filter((job) => job.status === 'running' || job.status === 'queued')
-    : [];
-  const attention = selfcheck.data?.checks.filter((check) => check.status !== 'ok') ?? [];
+  const gathering = jobs.isPending || selfcheck.isPending;
+  const failedToGather = jobs.isError && selfcheck.isError;
 
   return (
     <>
-      <h1>Office</h1>
-      <Panel title="Backend">
-        {health.isPending ? (
-          <Loading label="Checking backend" />
-        ) : health.isError ? (
-          <LoadError message={errorMessage(health.error)} onRetry={() => void health.refetch()} />
-        ) : (
-          <p>
-            <StatusDot status="ok" /> backend {health.data.version}
-            {backend?.version && backend.version !== health.data.version
-              ? ` (main reports ${backend.version})`
-              : ''} · <span className={styles.mono}>{backendUrl}</span>
-          </p>
-        )}
-      </Panel>
-      <Panel title={`Needs attention (${attention.length + running.length})`}>
-        {selfcheck.isPending || jobs.isPending ? (
-          <Loading label="Gathering attention items" />
-        ) : (
-          <>
-            {attention.length === 0 && running.length === 0 && (
-              <Empty message="Nothing needs you. The workstation is quiet." />
-            )}
-            <ul>
-              {attention.map((check) => (
-                <li key={check.name}>
-                  <StatusDot status={check.status === 'warn' ? 'warn' : 'err'} /> <strong>{check.name}</strong> —{' '}
-                  {check.detail} <Link to="/insights">Inspect</Link>
-                </li>
-              ))}
-              {running.map((job) => (
-                <li key={job.id}>
-                  <StatusDot status="warn" /> job <span className={styles.mono}>{job.id}</span> ({job.cmd}) is{' '}
-                  {job.status} <Link to="/operations">Open in Operations</Link>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-      </Panel>
+      <PageHeader
+        eyebrow="Office"
+        title="What needs you"
+        lede="Failures and blocked work first, then what is running."
+      />
+      <Stack>
+        <Panel
+          tone="manila"
+          title="Needs you"
+          meta={gathering ? undefined : `${attention.length} ${attention.length === 1 ? 'item' : 'items'}`}
+        >
+          {gathering && attention.length === 0 ? (
+            <LoadingState label="Checking jobs and self-checks" />
+          ) : failedToGather && attention.length === 0 ? (
+            <ErrorState
+              title="Could not check for attention items"
+              error={jobs.error}
+              onRetry={() => void jobs.refetch()}
+            />
+          ) : attention.length === 0 ? (
+            <EmptyState title="Nothing needs you.">
+              No failed jobs in the last day and every self-check passes.
+            </EmptyState>
+          ) : (
+            <Table>
+              <thead>
+                <tr>
+                  <th scope="col">State</th>
+                  <th scope="col">What</th>
+                  <th scope="col">Detail</th>
+                  <th scope="col">
+                    <VisuallyHidden>Action</VisuallyHidden>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {attention.map((item) => (
+                  <tr key={item.key}>
+                    <td>
+                      <StatusBadge tone={item.tone} label={item.tone === 'err' ? 'Failed' : 'Warning'} />
+                    </td>
+                    <th scope="row">{item.title}</th>
+                    <td>{item.detail}</td>
+                    <td data-align="end">
+                      <Link to={item.action.to}>{item.action.label}</Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Panel>
+
+        <Panel title="Running now" meta={jobs.isSuccess ? `${running.length} active` : undefined}>
+          {jobs.isPending ? (
+            <LoadingState label="Loading jobs" />
+          ) : jobs.isError ? (
+            <ErrorState title="Could not load jobs" error={jobs.error} onRetry={() => void jobs.refetch()} />
+          ) : running.length === 0 ? (
+            <EmptyState title="No work is running.">
+              <Link to="/operations">Start a job in Operations</Link>
+            </EmptyState>
+          ) : (
+            <JobRows jobs={running} now={now} />
+          )}
+        </Panel>
+
+        {jobs.isSuccess && finished.length > 0 ? (
+          <Panel title="Recently finished" meta="Last five">
+            <JobRows jobs={finished.slice(0, 5)} now={now} />
+          </Panel>
+        ) : null}
+      </Stack>
     </>
+  );
+}
+
+function JobRows({ jobs, now }: { jobs: Job[]; now: number }) {
+  return (
+    <Table>
+      <thead>
+        <tr>
+          <th scope="col">Status</th>
+          <th scope="col">Command</th>
+          <th scope="col">Started</th>
+          <th scope="col" data-align="end">
+            Duration
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {jobs.map((job) => {
+          const duration = jobDuration(job, now);
+          return (
+            <tr key={job.id}>
+              <td>
+                <StatusBadge tone={jobTone(job.status)} label={job.status} live={!isTerminalJobStatus(job.status)} />
+              </td>
+              <th scope="row">
+                <Link to={`/operations?job=${encodeURIComponent(job.id)}`}>
+                  <Mono>{jobCommandLine(job)}</Mono>
+                </Link>
+              </th>
+              <td>{formatWhen(job.started_at, now)}</td>
+              <td data-align="end">{duration === null ? '—' : formatDuration(duration)}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </Table>
   );
 }
