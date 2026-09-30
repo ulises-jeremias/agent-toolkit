@@ -198,6 +198,8 @@ export default function Settings() {
             <p className={styles.dangerTitle}>Remove</p>
             <ConfirmAction
               label="Uninstall profiles"
+              triggerVariant="danger"
+              variant="danger"
               title="Uninstall tool profiles?"
               description="Runs agent-toolkit uninstall: removes the toolkit-managed skills, agents and rules from every coding tool. Install them again from Library."
               confirmLabel="Uninstall"

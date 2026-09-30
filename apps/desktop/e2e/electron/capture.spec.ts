@@ -70,6 +70,9 @@ test('capture every destination in Paper and Ink at both sizes', async () => {
   await page.keyboard.type('agent-toolkit version');
   await page.keyboard.press('Enter');
   await expect(terminal.locator('.xterm-rows')).toContainText(/\d+\.\d+/);
+  await expect(page.getByRole('region', { name: 'Receipts' }).getByRole('listitem')).toHaveCount(0, {
+    timeout: 20_000,
+  });
 
   for (const theme of THEMES) {
     await nav(page).getByRole('link', { name: 'Settings' }).click();

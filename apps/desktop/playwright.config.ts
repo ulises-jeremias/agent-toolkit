@@ -10,7 +10,9 @@ const PORT = process.env.PORT ?? '3000';
  */
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  // Parallel cold loads race vite's first-run dependency optimization (which
+  // reloads the page), and each Electron spec owns a backend process.
+  workers: 1,
   retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
@@ -32,7 +34,6 @@ export default defineConfig({
     {
       name: 'electron',
       testMatch: ['electron/**/*.spec.ts'],
-      fullyParallel: false,
       timeout: 90_000,
       expect: { timeout: 20_000 },
     },

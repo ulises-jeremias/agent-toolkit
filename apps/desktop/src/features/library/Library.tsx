@@ -29,7 +29,8 @@ export default function Library() {
   const install = useOperation('install');
   const installReceipt = useActionReceipt('Profiles installed');
 
-  const drift = plugins.data?.data['drift'];
+  // A failed check still reports drift=0; only a successful check can say "in sync".
+  const drift = plugins.data?.ok ? plugins.data.data['drift'] : undefined;
 
   return (
     <>

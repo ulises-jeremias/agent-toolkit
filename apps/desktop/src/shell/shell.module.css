@@ -195,6 +195,7 @@
 
 .content > * {
   max-width: var(--page-max);
+  margin-inline: auto;
 }
 
 @media (max-width: 1100px) {
