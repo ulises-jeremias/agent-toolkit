@@ -17,8 +17,9 @@ pub:
 	agent     string
 }
 
-// MemoryEntry is one knowledge/*.md file. body is populated on read and
-// empty on list (list carries snippet only).
+// MemoryEntry is one memory file (learnings, processes, or todos).
+// body is populated on read and empty on list (list carries snippet only).
+// Workspace knowledge files outside those directories are not memory.
 pub struct MemoryEntry {
 pub:
 	id         string
@@ -30,7 +31,7 @@ pub:
 	provenance MemoryProvenance
 }
 
-// MemoryHit is one search match inside a knowledge file.
+// MemoryHit is one search match inside a memory file.
 pub struct MemoryHit {
 pub:
 	path    string
@@ -65,17 +66,20 @@ pub:
 	path    string
 }
 
-// list_memory_entries returns one row per knowledge/*.md file. Missing
-// knowledge/ is an empty list, not an error.
+// list_memory_entries returns one row per memory file (learnings, processes,
+// todos). Other knowledge/*.md files are not memory. Missing dirs are an
+// empty list, not an error. Missing workspace is also empty so GET /memory
+// can exist as a catalog even when no harness is configured.
 pub fn list_memory_entries(workspace string) ![]MemoryEntry {
-	ws := require_memory_workspace(workspace)!
-	knowledge := os.join_path(ws, 'knowledge')
-	if !os.is_dir(knowledge) {
-		return []MemoryEntry{}
+	ws := require_memory_workspace(workspace) or {
+		if err.msg().contains('workspace not found') {
+			return []MemoryEntry{}
+		}
+		return err
 	}
-	project := os.file_name(ws)
 	mut out := []MemoryEntry{}
-	for md in list_md_files(knowledge) {
+	project := os.file_name(ws)
+	for md in list_memory_md_files(ws) {
 		rel := pack_rel_path(ws, md)
 		text := os.read_file(md) or { continue }
 		out << memory_entry_from_file(ws, rel, text, project, false, '')
@@ -91,13 +95,9 @@ pub fn search_memory_entries(workspace string, query string) ![]MemoryHit {
 		return error('query is required')
 	}
 	ws := require_memory_workspace(workspace)!
-	knowledge := os.join_path(ws, 'knowledge')
-	if !os.is_dir(knowledge) {
-		return []MemoryHit{}
-	}
 	low := q.to_lower()
 	mut hits := []MemoryHit{}
-	for md in list_md_files(knowledge) {
+	for md in list_memory_md_files(ws) {
 		rel := pack_rel_path(ws, md)
 		text := os.read_file(md) or { continue }
 		kind := memory_kind_from_path(rel)
@@ -115,7 +115,7 @@ pub fn search_memory_entries(workspace string, query string) ![]MemoryHit {
 	return hits
 }
 
-// read_memory_entry returns one contained knowledge/*.md file.
+// read_memory_entry returns one contained memory markdown file.
 pub fn read_memory_entry(workspace string, rel_path string) !MemoryEntry {
 	ws := require_memory_workspace(workspace)!
 	abs := resolve_knowledge_file(ws, rel_path)!
@@ -147,7 +147,7 @@ pub fn add_memory_entry(workspace string, entry_type string, title string, conte
 	}
 }
 
-// edit_memory_entry replaces a knowledge/*.md file atomically.
+// edit_memory_entry replaces a memory markdown file atomically.
 pub fn edit_memory_entry(workspace string, rel_path string, body string) !MemoryWriteResponse {
 	ws := require_memory_workspace(workspace)!
 	abs := resolve_knowledge_file(ws, rel_path)!
@@ -172,7 +172,7 @@ pub fn edit_memory_entry(workspace string, rel_path string, body string) !Memory
 	}
 }
 
-// archive_memory_entry moves a knowledge file under knowledge/archive/,
+// archive_memory_entry moves a memory file under knowledge/archive/,
 // keeping the rest of the relative path. It does not delete.
 pub fn archive_memory_entry(workspace string, rel_path string) !MemoryWriteResponse {
 	ws := require_memory_workspace(workspace)!
@@ -206,8 +206,9 @@ fn require_memory_workspace(workspace string) !string {
 	return os.real_path(ws)
 }
 
-// resolve_knowledge_file requires a knowledge/*.md path contained in ws
-// after symlink resolution.
+// resolve_knowledge_file requires a memory markdown path contained in
+// knowledge/{learnings,processes,todos}/ or those trees under
+// knowledge/archive/ after symlink resolution.
 fn resolve_knowledge_file(ws string, rel_path string) !string {
 	rel := rel_path.trim_space().trim_left('/')
 	if rel.len == 0 {
@@ -232,7 +233,27 @@ fn resolve_knowledge_file(ws string, rel_path string) !string {
 	if knowledge.len == 0 || (real != knowledge && !real.starts_with(knowledge + sep)) {
 		return error('path outside knowledge/')
 	}
+	rel_out := pack_rel_path(ws, real)
+	if !is_memory_rel(rel_out) {
+		return error('not a memory entry')
+	}
 	return real
+}
+
+fn list_memory_md_files(ws string) []string {
+	mut out := []string{}
+	for kind in ['learnings', 'processes', 'todos'] {
+		out << list_md_files(os.join_path(ws, 'knowledge', kind))
+	}
+	return out
+}
+
+fn is_memory_rel(rel string) bool {
+	norm := rel.replace('\\', '/')
+	return norm.starts_with('knowledge/learnings/') || norm.starts_with('knowledge/processes/')
+		|| norm.starts_with('knowledge/todos/') || norm.starts_with('knowledge/archive/learnings/')
+		|| norm.starts_with('knowledge/archive/processes/')
+		|| norm.starts_with('knowledge/archive/todos/')
 }
 
 fn check_memory_body(body string) ! {

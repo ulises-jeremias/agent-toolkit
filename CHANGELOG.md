@@ -76,8 +76,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   profiles). Tool `enabled` is `unknown` until serve owns enablement.
 - `serve`: typed memory catalog — `GET /api/v1/memory`, `/memory/hits`,
   `/memory/file`; `POST`/`PUT /memory/file`; `POST /memory/file/archive`.
-  Provenance is file/timestamp/project plus git author on read. GET is
-  allowed for `memory` `inject` and `todo` (read-only).
+  List/search cover `knowledge/{learnings,processes,todos}/` only
+  (workspace knowledge files are not memory). `GET /memory` is `200`
+  with an empty list when no workspace is configured. `body` is empty
+  on list. Provenance is file/timestamp/project plus git author on
+  read. GET is allowed for `memory` `inject` and `todo` (read-only).
 - `serve`: typed swarm runs/tasks/handoffs/approvals/artifacts and loop
   list/status/audit/history/cost. Cost is `unavailable` unless accounted.
 

@@ -1615,7 +1615,7 @@
     "/api/v1/memory": {
       "get": {
         "operationId": "list_memory",
-        "summary": "Knowledge files in the workspace",
+        "summary": "Memory files (learnings, processes, todos). Empty when no workspace.",
         "x-scope": "read:*",
         "x-confirm-required": false,
         "responses": {
@@ -1648,16 +1648,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": "workspace not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
           }
         }
       }
@@ -1665,7 +1655,7 @@
     "/api/v1/memory/hits": {
       "get": {
         "operationId": "search_memory",
-        "summary": "Case-insensitive knowledge search",
+        "summary": "Case-insensitive memory search",
         "x-scope": "read:*",
         "x-confirm-required": false,
         "responses": {
@@ -1715,7 +1705,7 @@
     "/api/v1/memory/file": {
       "get": {
         "operationId": "read_memory",
-        "summary": "Read one knowledge markdown file",
+        "summary": "Read one memory markdown file",
         "x-scope": "read:*",
         "x-confirm-required": false,
         "responses": {
@@ -1811,7 +1801,7 @@
       },
       "put": {
         "operationId": "edit_memory",
-        "summary": "Replace a knowledge markdown file",
+        "summary": "Replace a memory markdown file",
         "x-scope": "write:*",
         "x-confirm-required": false,
         "responses": {
@@ -1861,7 +1851,7 @@
     "/api/v1/memory/file/archive": {
       "post": {
         "operationId": "archive_memory",
-        "summary": "Move a knowledge file under knowledge/archive/",
+        "summary": "Move a memory file under knowledge/archive/",
         "x-scope": "write:*",
         "x-confirm-required": false,
         "responses": {
@@ -3082,7 +3072,7 @@
       },
       "MemoryEntry": {
         "type": "object",
-        "description": "One knowledge/*.md file. body is set on read and empty on list.",
+        "description": "One memory file (learnings, processes, or todos). body is set on read and empty on list. Other knowledge/*.md files are not memory.",
         "properties": {
           "id": {
             "type": "string"

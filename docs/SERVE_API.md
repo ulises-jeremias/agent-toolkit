@@ -59,7 +59,8 @@ Regenerate after changing the contract:
   (swarm model-profile slots). See [Agents and tools](#agents-and-tools)
 - Memory — typed `GET /api/v1/memory`, `/memory/hits`, `/memory/file`
   plus `POST`/`PUT` `/memory/file` and `POST /memory/file/archive`.
-  See [Memory](#memory). The generic `memory/:sub` route remains for
+  Memory is learnings/processes/todos, not the knowledge tree. See
+  [Memory](#memory). The generic `memory/:sub` route remains for
   CLI-parity add/search/inject/review/todo.
 - `GET /` — minimal static status page (not a product surface)
 
@@ -156,22 +157,28 @@ meaningful for `job.*` and `loop.*`.
 
 ## Memory
 
-Typed knowledge-file API. `?workspace=` (or `workspace` in the body)
-is contained like other serve workspace fields; empty uses the default
-harness root. Entries are `knowledge/**/*.md` only. Symlinks and `..`
-that leave `knowledge/` are rejected.
+Typed memory API, distinct from the workspace knowledge tree and from
+`GET /api/v1/files`. `?workspace=` (or `workspace` in the body) is
+contained like other serve workspace fields; empty uses the default
+harness root. Entries are markdown under
+`knowledge/{learnings,processes,todos}/` only. Other `knowledge/*.md`
+files (including `scratch.md`) are not memory. Symlinks and `..` that
+leave `knowledge/` are rejected.
 
 - `GET /api/v1/memory` — list files (`id`, `kind`, `title`, `snippet`,
-  `tags`, `provenance`). `body` is empty on list.
+  `tags`, `provenance`). `body` is empty on list. Missing workspace is
+  `200` with `entries: []`, so the catalog exists even when no harness
+  is configured.
 - `GET /api/v1/memory/hits?q=` — case-insensitive line hits (`path`,
   `line`, `snippet`, `kind`). Empty `q` is `400`.
 - `GET /api/v1/memory/file?path=` — read one file (`body` populated).
   `provenance.author` is the last git committer when `.git` exists,
   otherwise empty. `provenance.agent` is empty unless recorded.
+  Missing files are `404`.
 - `POST /api/v1/memory/file` — `{entry_type, title?, content}` adds a
   learning, process, or todo via the same writer as `memory add`.
 - `PUT /api/v1/memory/file` — `{path, content}` atomically replaces a
-  markdown file (64 KiB cap, no NUL).
+  memory markdown file (64 KiB cap, no NUL).
 - `POST /api/v1/memory/file/archive` — `{path}` moves the file under
   `knowledge/archive/`. Already-archived paths are `409`. Nothing is
   deleted.

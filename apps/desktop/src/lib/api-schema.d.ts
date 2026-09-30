@@ -590,7 +590,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Knowledge files in the workspace */
+        /** Memory files (learnings, processes, todos). Empty when no workspace. */
         get: operations["list_memory"];
         put?: never;
         post?: never;
@@ -607,7 +607,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Case-insensitive knowledge search */
+        /** Case-insensitive memory search */
         get: operations["search_memory"];
         put?: never;
         post?: never;
@@ -624,9 +624,9 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Read one knowledge markdown file */
+        /** Read one memory markdown file */
         get: operations["read_memory"];
-        /** Replace a knowledge markdown file */
+        /** Replace a memory markdown file */
         put: operations["edit_memory"];
         /** Add a learning, process, or todo entry */
         post: operations["add_memory"];
@@ -645,7 +645,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Move a knowledge file under knowledge/archive/ */
+        /** Move a memory file under knowledge/archive/ */
         post: operations["archive_memory"];
         delete?: never;
         options?: never;
@@ -1061,7 +1061,7 @@ export interface components {
             project: string;
             agent: string;
         };
-        /** @description One knowledge/*.md file. body is set on read and empty on list. */
+        /** @description One memory file (learnings, processes, or todos). body is set on read and empty on list. Other knowledge/*.md files are not memory. */
         MemoryEntry: {
             id: string;
             kind: string;
@@ -2694,15 +2694,6 @@ export interface operations {
             };
             /** @description workspace outside allowed roots */
             403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ApiError"];
-                };
-            };
-            /** @description workspace not found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };

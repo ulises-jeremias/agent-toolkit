@@ -96,33 +96,56 @@ fn test_edit_then_archive() {
 	defer {
 		os.rmdir_all(base) or {}
 	}
-	os.write_file(os.join_path(base, 'knowledge', 'scratch.md'), '# Scratch\n\nold\n') or {
-		panic(err.msg())
-	}
-	edited := edit_memory_entry(base, 'knowledge/scratch.md', '# Scratch\n\nnew #tag\n') or {
+	dir := os.join_path(base, 'knowledge', 'learnings')
+	os.mkdir_all(dir) or { panic(err.msg()) }
+	path := os.join_path(dir, 'scratch.md')
+	os.write_file(path, '# Scratch\n\nold\n') or { panic(err.msg()) }
+	edited := edit_memory_entry(base, 'knowledge/learnings/scratch.md', '# Scratch\n\nnew #tag\n') or {
 		panic(err.msg())
 	}
 	assert edited.ok
-	assert edited.path == 'knowledge/scratch.md'
-	read := read_memory_entry(base, 'knowledge/scratch.md') or { panic(err.msg()) }
+	assert edited.path == 'knowledge/learnings/scratch.md'
+	read := read_memory_entry(base, 'knowledge/learnings/scratch.md') or { panic(err.msg()) }
 	assert read.body.contains('new #tag')
 	assert 'tag' in read.tags
-	arch := archive_memory_entry(base, 'knowledge/scratch.md') or { panic(err.msg()) }
+	arch := archive_memory_entry(base, 'knowledge/learnings/scratch.md') or { panic(err.msg()) }
 	assert arch.ok
-	assert arch.path == 'knowledge/archive/scratch.md'
-	assert !os.is_file(os.join_path(base, 'knowledge', 'scratch.md'))
-	assert os.is_file(os.join_path(base, 'knowledge', 'archive', 'scratch.md'))
-	if _ := archive_memory_entry(base, 'knowledge/archive/scratch.md') {
+	assert arch.path == 'knowledge/archive/learnings/scratch.md'
+	assert !os.is_file(path)
+	assert os.is_file(os.join_path(base, 'knowledge', 'archive', 'learnings', 'scratch.md'))
+	if _ := archive_memory_entry(base, 'knowledge/archive/learnings/scratch.md') {
 		assert false, 'second archive must fail'
 	} else {
 		assert err.msg().contains('already archived')
 	}
 }
 
-fn test_missing_workspace_is_error() {
-	if _ := list_memory_entries('/nonexistent/atk-memcat-ws') {
-		assert false
-	} else {
-		assert err.msg().contains('workspace not found')
+fn test_general_knowledge_is_not_memory() {
+	base := setup_catalog_ws('scratch')
+	defer {
+		os.rmdir_all(base) or {}
 	}
+	os.write_file(os.join_path(base, 'knowledge', 'scratch.md'), '# Scratch\n\ngeneral knowledge\n') or {
+		panic(err.msg())
+	}
+	add_memory_entry(base, 'learning', '', 'Catalog row stays memory')
+	entries := list_memory_entries(base) or { panic(err.msg()) }
+	for e in entries {
+		assert e.id != 'knowledge/scratch.md'
+		assert e.kind != 'general'
+	}
+	hits := search_memory_entries(base, 'general knowledge') or { panic(err.msg()) }
+	for h in hits {
+		assert h.path != 'knowledge/scratch.md'
+	}
+	if _ := read_memory_entry(base, 'knowledge/scratch.md') {
+		assert false, 'scratch.md is knowledge, not memory'
+	} else {
+		assert err.msg().contains('not a memory entry')
+	}
+}
+
+fn test_missing_workspace_is_empty_list() {
+	entries := list_memory_entries('/nonexistent/atk-memcat-ws') or { panic(err.msg()) }
+	assert entries.len == 0
 }
