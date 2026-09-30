@@ -196,3 +196,84 @@ def test_sub_route_bodies_match_contract():
             "application/json"
         ]["schema"]
         assert set(schema["properties"]) == set(contract), f"{family}: requestBody drift"
+
+
+API_SCHEMAS = ROOT / "docs" / "compatibility" / "api-schemas.yaml"
+V_STRUCT_DIRS = [ROOT / "modules" / "agent_toolkit_server", ROOT / "modules" / "agent_toolkit_core"]
+V_SCALARS = {"string": "string", "bool": "boolean", "int": "integer", "i64": "integer",
+             "u64": "integer", "f64": "number"}
+
+
+def _v_struct_sources():
+    out = {}
+    for d in V_STRUCT_DIRS:
+        for f in sorted(d.glob("*.v")):
+            if f.name.endswith("_test.v"):
+                continue
+            text = f.read_text(encoding="utf-8")
+            for m in re.finditer(r"^(?:pub )?struct (\w+) \{\n(.*?)^\}", text, re.DOTALL | re.MULTILINE):
+                out.setdefault(m.group(1), m.group(2))
+    return out
+
+
+def _v_type_to_schema(vtype, struct_to_schema):
+    if vtype.startswith("[]"):
+        return _v_type_to_schema(vtype[2:], struct_to_schema) + "[]"
+    if vtype.startswith("map[string]"):
+        return f"map<{_v_type_to_schema(vtype[len('map[string]'):], struct_to_schema)}>"
+    if vtype in V_SCALARS:
+        return V_SCALARS[vtype]
+    if vtype in struct_to_schema:
+        return "#" + struct_to_schema[vtype]
+    return f"<unmapped {vtype}>"
+
+
+def _v_json_fields(body, struct_to_schema):
+    fields = {}
+    for raw in body.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("//") or line.endswith(":"):
+            continue
+        attrs = re.search(r"@\[(.*?)\]", line)
+        attr = attrs.group(1) if attrs else ""
+        if "skip" in attr.split(";") or "json: '-'" in attr:
+            continue
+        decl = line.split("@[")[0].split("=")[0].split("//")[0].split()
+        if len(decl) < 2:
+            continue
+        name, vtype = decl[0], decl[1]
+        rename = re.search(r"json:\s*'([^']+)'", attr)
+        fields[rename.group(1) if rename else name] = _v_type_to_schema(vtype, struct_to_schema)
+    return fields
+
+
+def test_response_schemas_match_v_structs():
+    """Every api-schemas.yaml schema has exactly the JSON fields (name + type)
+    that its V struct encodes, so typed clients never drift from the server."""
+    data = yaml.safe_load(API_SCHEMAS.read_text(encoding="utf-8"))
+    schemas = data["schemas"]
+    struct_to_schema = {s.get("v_struct", s["name"]): s["name"] for s in schemas}
+    sources = _v_struct_sources()
+    for s in schemas:
+        struct = s.get("v_struct", s["name"])
+        assert struct in sources, f"schema {s['name']}: V struct {struct} not found"
+        v_fields = _v_json_fields(sources[struct], struct_to_schema)
+        declared = {}
+        for spec in s["fields"]:
+            name, typ = spec.split(":", 1)
+            declared[name.rstrip("?")] = typ.split("=", 1)[0]
+        assert v_fields == declared, f"schema {s['name']} != struct {struct}: {v_fields} vs {declared}"
+
+
+def test_native_endpoints_match_route_methods():
+    """Each api-schemas.yaml native endpoint is served with that HTTP method."""
+    data = yaml.safe_load(API_SCHEMAS.read_text(encoding="utf-8"))
+    text = SERVER.read_text(encoding="utf-8")
+    served = {}
+    for path, methods in re.findall(r"@\['([^']+)';\s*([^\]]+)\]", text):
+        served.setdefault(path, set()).update(m.strip() for m in methods.split(";"))
+    for entry in data["native"]:
+        route = entry["path"].replace("{", ":").replace("}", "")
+        assert entry["method"] in served.get(route, set()), (
+            f"{entry['method'].upper()} {entry['path']} ({entry['op']}) has no route attribute"
+        )

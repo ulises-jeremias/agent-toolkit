@@ -39,6 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never creates the directory. Settings and Office show the resolved harness
   and its source.
 
+- `serve`: global event stream `GET /api/v1/events` (SSE; `job.*`,
+  `loop.*`, `swarm.changed`, `memory.changed`, `install.*`, `backend.*`)
+  with `Last-Event-ID` resume and type filters; `GET /api/v1/jobs/{id}`;
+  `POST /api/v1/jobs/{id}/retry` for failed or canceled jobs.
+- OpenAPI now carries typed response schemas (`components.schemas`) for
+  health, selfcheck, jobs and events, sourced from
+  `docs/compatibility/api-schemas.yaml` and parity-checked against the V
+  structs. `GET /api/v1/jobs` is now documented.
+
 ### Changed
 
 - `serve` no longer reaches `loops run`, `loops gate-*` or `swarms attach`

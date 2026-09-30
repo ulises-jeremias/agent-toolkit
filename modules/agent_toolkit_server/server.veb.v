@@ -17,6 +17,7 @@ pub mut:
 	opts    ServeOptions
 	started time.Time
 	runner  &JobRunner = unsafe { nil }
+	bus     &EventBus = unsafe { nil }
 }
 
 fn is_loopback(host string) bool {
@@ -216,7 +217,7 @@ fn is_valid_loop_name(name string) bool {
 	if name.len == 0 || name.len > 64 {
 		return false
 	}
-	if name.contains('/') || name.contains('\\') || name.contains('..') || name.contains('%') || name.contains('\0') {
+	if name.contains('/') || name.contains('\\') || name.contains('..') || name.contains('%') || name.contains('\x00') {
 		return false
 	}
 	if name.starts_with('-') || name.starts_with('.') {
@@ -238,6 +239,15 @@ pub fn validate_bind(host string, allow_remote bool, token string) ! {
 
 pub fn new_app(opts ServeOptions) &App {
 	host := if opts.host.len == 0 { '127.0.0.1' } else { opts.host }
+	mut bus := new_event_bus()
+	mut runner := new_job_runner(os.join_path(os.getwd(), '.agent-toolkit', 'server'))
+	runner.bus = bus
+	bus.publish(ApiEvent{
+		kind: 'backend.ready'
+		subject: 'serve'
+		status: 'ok'
+		message: agent_toolkit_core.resolve_toolkit_version()
+	})
 	return &App{
 		opts: ServeOptions{
 			host: host
@@ -248,9 +258,38 @@ pub fn new_app(opts ServeOptions) &App {
 			json_logs: opts.json_logs
 		}
 		started: time.utc()
-		runner: new_job_runner(os.join_path(os.getwd(), '.agent-toolkit', 'server'))
+		runner: runner
+		bus: bus
 	}
 }
+
+// emit publishes e on the global event bus (no-op without a bus, e.g. in
+// handler unit tests that build App by hand).
+fn (app &App) emit(e ApiEvent) {
+	if app.bus == unsafe { nil } {
+		return
+	}
+	mut bus := app.bus
+	bus.publish(e)
+}
+
+// run_install_action wraps a synchronous install/update/uninstall run with
+// install.started / install.finished events.
+fn (app &App) run_install_action(action string, run fn () agent_toolkit_core.CommandResult) CmdResp {
+	app.emit(ApiEvent{ kind: 'install.started', subject: action, status: 'running' })
+	res := run()
+	app.emit(ApiEvent{
+		kind: 'install.finished'
+		subject: action
+		status: if res.ok { 'completed' } else { 'failed' }
+		message: res.message
+	})
+	return cmd_resp(res)
+}
+
+// swarm_mutating_subs are the swarm subcommands that change run state.
+const swarm_mutating_subs = ['start', 'init', 'plan', 'activate', 'deactivate', 'promote', 'approve',
+	'reject', 'cancel', 'pause', 'resume', 'stop', 'cleanup', 'prune', 'handoff', 'task']
 
 // Ctx embeds veb.Context as required by veb generics (X{Context: ctx}).
 pub struct Ctx {
@@ -436,7 +475,9 @@ const registered_api_routes = [
 	'/api/v1/jobs/:id/log',
 	'/api/v1/jobs/:id/events',
 	'/api/v1/jobs/:id/cancel',
+	'/api/v1/jobs/:id/retry',
 	'/api/v1/jobs/:id',
+	'/api/v1/events',
 ]
 
 // SelfcheckCheck is one named runtime coherence result.
@@ -502,8 +543,10 @@ pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 		name: 'openapi_fresh'
 		status: if openapi_ok { 'ok' } else { 'err' }
 		detail: if openapi_ok {
-			'embedded openapi.json matches runtime version ${version}'} else {
-			'embedded openapi.json declares ${declared}, runtime is ${version} — regenerate with scripts/generate_surface.py'}
+			'embedded openapi.json matches runtime version ${version}'
+		} else {
+			'embedded openapi.json declares ${declared}, runtime is ${version} — regenerate with scripts/generate_surface.py'
+		}
 	}
 
 	// 2. Jobs directory writable (async execution available).
@@ -537,8 +580,10 @@ pub fn (app &App) selfcheck(mut ctx Ctx) veb.Result {
 		name: 'route_manifest_match'
 		status: if manifest_ok { 'ok' } else { 'err' }
 		detail: if manifest_ok {
-			'${reg.len} routes match embedded OpenAPI'} else {
-			'mismatch — missing_in_openapi: ${missing_in_openapi.join(',')} undeclared_in_server: ${undeclared_in_server.join(',')}'}
+			'${reg.len} routes match embedded OpenAPI'
+		} else {
+			'mismatch — missing_in_openapi: ${missing_in_openapi.join(',')} undeclared_in_server: ${undeclared_in_server.join(',')}'
+		}
 	}
 
 	ok := checks.all(it.status != 'err')
@@ -666,7 +711,9 @@ pub fn (app &App) install(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{}))))
+	return ctx.json(app.run_install_action('install', fn () agent_toolkit_core.CommandResult {
+		return agent_toolkit_core.install_result(agent_toolkit_core.run_install(agent_toolkit_core.InstallOptions{}))
+	}))
 }
 
 @['/api/v1/update'; post]
@@ -675,7 +722,9 @@ pub fn (app &App) update(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.update_result(agent_toolkit_core.run_update(agent_toolkit_core.UpdateOptions{}))))
+	return ctx.json(app.run_install_action('update', fn () agent_toolkit_core.CommandResult {
+		return agent_toolkit_core.update_result(agent_toolkit_core.run_update(agent_toolkit_core.UpdateOptions{}))
+	}))
 }
 
 @['/api/v1/uninstall'; post]
@@ -684,7 +733,9 @@ pub fn (app &App) uninstall_route(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{}))))
+	return ctx.json(app.run_install_action('uninstall', fn () agent_toolkit_core.CommandResult {
+		return agent_toolkit_core.uninstall_result(agent_toolkit_core.run_uninstall(agent_toolkit_core.UninstallOptions{}))
+	}))
 }
 
 @['/api/v1/skills/:sub'; get; post]
@@ -728,7 +779,16 @@ pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 		return respond_deny(mut ctx, deny)
 	}
 	opts := build_swarms_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
-	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(opts))))
+	res := agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(opts))
+	if res.ok && sub in swarm_mutating_subs {
+		app.emit(ApiEvent{
+			kind: 'swarm.changed'
+			subject: opts.run_id
+			status: 'ok'
+			message: sub
+		})
+	}
+	return ctx.json(cmd_resp(res))
 }
 
 @['/api/v1/mcp/:sub'; get; post]
@@ -784,7 +844,16 @@ pub fn (app &App) memory(mut ctx Ctx, sub string) veb.Result {
 		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for memory/${sub}' })
 	}
 	opts := build_memory_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
-	return ctx.json(cmd_resp(agent_toolkit_core.memory_result(agent_toolkit_core.run_memory(opts))))
+	res := agent_toolkit_core.memory_result(agent_toolkit_core.run_memory(opts))
+	if res.ok && sub == 'add' {
+		app.emit(ApiEvent{
+			kind: 'memory.changed'
+			subject: opts.entry_type
+			status: 'ok'
+			message: sub
+		})
+	}
+	return ctx.json(cmd_resp(res))
 }
 
 @['/api/v1/project/:sub'; get; post]
@@ -856,7 +925,7 @@ pub fn (mut app App) jobs_create(mut ctx Ctx) veb.Result {
 	mut workspace := ''
 	if req.workspace.len > 0 {
 		// Reject traversal / encoded traversal early (400)
-		if req.workspace.contains('..') || req.workspace.contains('%') || req.workspace.contains('\0') {
+		if req.workspace.contains('..') || req.workspace.contains('%') || req.workspace.contains('\x00') {
 			ctx.res.set_status(.bad_request)
 			return ctx.json(DenyErr{ ok: false, error: 'invalid workspace path' })
 		}
@@ -1014,6 +1083,168 @@ pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
 		}
 	}()
 	return veb.no_result()
+}
+
+// jobs_get returns one job. 400 invalid id, 404 unknown.
+@['/api/v1/jobs/:id'; get]
+pub fn (app &App) jobs_get(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	if !is_valid_job_id(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
+	job := app.runner.get(id) or {
+		ctx.res.set_status(.not_found)
+		return ctx.json(DenyErr{ ok: false, error: 'job not found: ${id}' })
+	}
+	return ctx.json(job)
+}
+
+// jobs_retry re-runs a failed or canceled job as a new job (same cmd, args
+// and workspace; `retry_of` links back). The original is left untouched.
+// 404 unknown id or vanished workspace, 403 workspace no longer allowed,
+// 409 job not failed/canceled, 429 at capacity.
+@['/api/v1/jobs/:id/retry'; post]
+pub fn (mut app App) jobs_retry(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	if !is_valid_job_id(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
+	src := app.runner.retry_source(id) or {
+		msg := err.msg()
+		ctx.res.set_status(if msg.starts_with('job not found') { .not_found } else { .conflict })
+		return ctx.json(DenyErr{ ok: false, error: msg })
+	}
+	if src.workspace.len > 0 {
+		if !os.is_dir(src.workspace) {
+			ctx.res.set_status(.not_found)
+			return ctx.json(DenyErr{ ok: false, error: 'workspace not found: ${src.workspace}' })
+		}
+		if !is_allowed_workspace(src.workspace) {
+			ctx.res.set_status(.forbidden)
+			return ctx.json(DenyErr{ ok: false, error: 'workspace outside allowed roots' })
+		}
+	}
+	job := app.runner.create_job(src.cmd, src.args, src.workspace, src.id) or {
+		msg := err.msg()
+		ctx.res.set_status(if msg.contains('max concurrent') {
+			.too_many_requests
+		} else {
+			.internal_server_error
+		})
+		return ctx.json(DenyErr{ ok: false, error: msg })
+	}
+	return ctx.json(job)
+}
+
+// events streams the global event bus over SSE. Each message carries
+// `id: <seq>`, `event: <type>` and a JSON ApiEvent in `data`. Resume with
+// `Last-Event-ID` (or ?since=<seq>); a cursor older than the retained ring
+// or from an earlier server process first gets a `backend.resync` event
+// (refetch state), then every retained event. ?types=job.,loop.finished
+// filters by exact type or `family.` prefix. A `: ping` comment every 15s
+// detects dead clients.
+@['/api/v1/events'; get]
+pub fn (app &App) events(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	if app.bus == unsafe { nil } {
+		ctx.res.set_status(.service_unavailable)
+		return ctx.json(DenyErr{ ok: false, error: 'event bus unavailable' })
+	}
+	raw_cursor := ctx.query['since'] or { ctx.req.header.get_custom('Last-Event-ID') or { '' } }
+	start := parse_event_cursor(raw_cursor) or {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid since or Last-Event-ID' })
+	}
+	types_raw := ctx.query['types'] or { '' }
+	filter := types_raw.split(',').map(it.trim_space()).filter(it.len > 0)
+	mut bus := app.bus
+	if !bus.acquire() {
+		ctx.res.set_status(.service_unavailable)
+		return ctx.json(DenyErr{ ok: false, error: 'too many event subscribers' })
+	}
+	ctx.takeover_conn()
+	if ctx.conn == unsafe { nil } {
+		bus.release()
+		return ctx.text('')
+	}
+	mut sb := strings.new_builder(256)
+	sb.write_string('HTTP/1.1 200 OK\r\n')
+	sb.write_string('Content-Type: text/event-stream\r\n')
+	sb.write_string('Connection: keep-alive\r\n')
+	sb.write_string('Cache-Control: no-cache\r\n')
+	sb.write_string('\r\n')
+	ctx.conn.write(sb) or {
+		bus.release()
+		return veb.no_result()
+	}
+	mut stream_conn := &sse.SSEConnection{
+		conn: ctx.conn
+	}
+	spawn stream_events(mut bus, mut stream_conn, start, filter)
+	return veb.no_result()
+}
+
+fn stream_events(mut bus EventBus, mut conn sse.SSEConnection, start int, filter []string) {
+	defer {
+		bus.release()
+		conn.conn.close() or {}
+	}
+	mut cursor := start
+	mut idle_ms := 0
+	for {
+		batch, missed := bus.since(cursor)
+		if missed {
+			resync := ApiEvent{
+				seq: bus.last_seq()
+				kind: 'backend.resync'
+				at: time.utc().format_rfc3339()
+				subject: 'serve'
+				status: 'ok'
+				message: 'events after ${cursor} are no longer retained; refetch state'
+			}
+			if !send_api_event(mut conn, resync, false) {
+				return
+			}
+		}
+		for ev in batch {
+			cursor = ev.seq
+			if !event_matches(ev.kind, filter) {
+				continue
+			}
+			if !send_api_event(mut conn, ev, true) {
+				return
+			}
+			idle_ms = 0
+		}
+		time.sleep(250 * time.millisecond)
+		idle_ms += 250
+		if idle_ms >= 15000 {
+			conn.conn.write_string(': ping\n\n') or { return }
+			idle_ms = 0
+		}
+	}
+}
+
+// send_api_event writes one SSE message; with_id=false omits `id:` so a
+// synthetic resync never moves the client's Last-Event-ID.
+fn send_api_event(mut conn sse.SSEConnection, ev ApiEvent, with_id bool) bool {
+	conn.send_message(
+		id: if with_id { ev.seq.str() } else { '' }
+		event: ev.kind
+		data: json2.encode(ev)
+	) or { return false }
+	return true
 }
 
 // jobs_cancel flips a queued/running job to canceled and terminates its

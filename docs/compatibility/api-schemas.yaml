@@ -1,0 +1,185 @@
+# Typed response schemas and server-native endpoints for `agent-toolkit serve`.
+#
+# SSOT for the `components.schemas` section and the non-contract paths of
+# docs/surface/openapi.json (scripts/generate_surface.vsh). Contract-mirrored
+# routes stay in cli-contract.yaml.
+#
+# Field grammar: `name[?]:type[=a|b|c]`
+#   type  = string | boolean | integer | number | object
+#         | #Schema (reference) | <type>[] (array) | map<type> (string-keyed object)
+#   `?`   = optional (omitted from `required`)
+#   `=..` = enum values (string fields only)
+#
+# tests/test_surface_parity.py checks every schema against the V struct named
+# by `v_struct` (default: `name`) in modules/agent_toolkit_server: same JSON
+# field names (honouring @[json: '...']) and compatible types.
+
+schemas:
+  - name: ApiError
+    v_struct: DenyErr
+    description: Error body for every non-2xx JSON response.
+    fields:
+      - ok:boolean
+      - error:string
+
+  - name: MessageResponse
+    v_struct: MsgResp
+    description: Generic success acknowledgement.
+    fields:
+      - ok:boolean
+      - message:string
+
+  - name: VersionResponse
+    v_struct: VersionResp
+    fields:
+      - ok:boolean
+      - version:string
+      - commit:string
+      - uptime_s:integer
+
+  - name: SelfcheckCheck
+    fields:
+      - name:string
+      - status:string=ok|warn|err
+      - detail:string
+
+  - name: SelfcheckResponse
+    v_struct: SelfcheckResp
+    fields:
+      - ok:boolean
+      - version:string
+      - commit:string
+      - 'checks:#SelfcheckCheck[]'
+
+  - name: Job
+    description: A supervised `agent-toolkit` subprocess run.
+    fields:
+      - id:string
+      - cmd:string
+      - args:string[]
+      - status:string=queued|running|completed|failed|canceled|rejected
+      - started_at:string
+      - ended_at:string
+      - exit_code:integer
+      - workspace:string
+      - retry_of:string
+
+  - name: ApiEvent
+    description: >-
+      One entry of the global event stream (GET /api/v1/events). `seq` is
+      monotonic per server process and doubles as the SSE `id`; `subject` is
+      the job id, loop name, swarm run id or memory entry type the event is
+      about.
+    fields:
+      - seq:integer
+      - type:string=backend.ready|backend.resync|job.created|job.updated|job.deleted|loop.started|loop.finished|swarm.changed|memory.changed|install.started|install.finished
+      - at:string
+      - subject:string
+      - status:string
+      - exit_code:integer
+      - ref:string
+      - message:string
+
+# Server-native endpoints (ADR-030): capabilities of the API itself, not
+# mirrors of CLI contract commands. `response` is a field type (see grammar),
+# `text` (text/plain) or `sse` (text/event-stream of `event_schema`).
+# `errors` lists `code:description` pairs answered with #ApiError.
+native:
+  - path: /api/v1/health
+    method: get
+    op: health
+    response: '#VersionResponse'
+  - path: /api/v1/openapi.json
+    method: get
+    op: get_openapi
+    response: text
+  - path: /api/v1/selfcheck
+    method: get
+    op: selfcheck
+    response: '#SelfcheckResponse'
+  - path: /api/v1/jobs
+    method: post
+    op: create_job
+    response: '#Job'
+    errors:
+      - '400:invalid JSON body or workspace path'
+      - '403:workspace outside allowed roots'
+      - '404:workspace not found'
+      - '422:cmd is required'
+      - '429:max concurrent jobs reached'
+  - path: /api/v1/jobs
+    method: get
+    op: list_jobs
+    summary: List jobs keyed by id
+    response: 'map<#Job>'
+  - path: /api/v1/jobs/{id}
+    method: get
+    op: get_job
+    summary: Get one job
+    response: '#Job'
+    errors:
+      - '400:invalid job id'
+      - '404:job not found'
+  - path: /api/v1/jobs/{id}/log
+    method: get
+    op: get_job_log
+    response: text
+  - path: /api/v1/jobs/{id}/events
+    method: get
+    op: stream_job_events
+    response: sse
+  - path: /api/v1/jobs/{id}/cancel
+    method: post
+    op: cancel_job
+    response: '#Job'
+    errors:
+      - '400:invalid job id'
+      - '404:job not found'
+      - '409:job already terminal'
+  - path: /api/v1/jobs/{id}/retry
+    method: post
+    op: retry_job
+    summary: Re-run a failed or canceled job as a new job
+    response: '#Job'
+    errors:
+      - '400:invalid job id'
+      - '403:workspace outside allowed roots'
+      - '404:job or workspace not found'
+      - '409:job is not failed or canceled'
+      - '429:max concurrent jobs reached'
+  - path: /api/v1/jobs/{id}
+    method: delete
+    op: delete_job
+    response: '#MessageResponse'
+    errors:
+      - '400:invalid job id'
+      - '404:job not found'
+      - '409:job is running (use ?force=true)'
+  - path: /api/v1/events
+    method: get
+    op: stream_events
+    summary: Global server event stream (SSE)
+    response: sse
+    event_schema: ApiEvent
+    errors:
+      - '400:invalid since or Last-Event-ID'
+      - '503:too many event subscribers'
+  - path: /api/v1/doctor/fix
+    method: post
+    op: doctor_fix
+    response: '#MessageResponse'
+  - path: /api/v1/loops/{name}/status
+    method: get
+    op: loop_status_by_name
+  - path: /api/v1/loops/{name}/run
+    method: post
+    op: run_loop_by_name
+  - path: /api/v1/loops/{name}/schedule
+    method: post
+    op: schedule_loop_by_name
+  - path: /api/v1/swarms
+    method: get
+    op: list_swarms
+  - path: /api/v1/loops
+    method: get
+    op: list_loops

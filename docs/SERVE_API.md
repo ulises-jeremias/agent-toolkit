@@ -21,6 +21,7 @@ agent-toolkit serve --port 8080 --no-browser
 | `/api/v1/openapi.json` | OpenAPI 3.1 spec — every capability, scope and confirmation flag |
 | `docs/surface/openapi.json` | same file, generated from `docs/compatibility/cli-contract.yaml` |
 | `docs/compatibility/cli-contract.yaml` | canonical capability contract (SSOT) |
+| `docs/compatibility/api-schemas.yaml` | typed response schemas (`components.schemas`) and server-native endpoints; each schema is parity-checked against its V struct |
 
 Regenerate after changing the contract:
 
@@ -40,12 +41,17 @@ Regenerate after changing the contract:
   `project/:sub`, `loops/:sub`, `dc/:sub`, `swarms/:sub`, `build`)
 - Generic subcommand routes (`<family>/:sub`) take a typed JSON body — see
   [Typed subcommand bodies](#typed-subcommand-bodies)
-- Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id/log`,
+- Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id`,
+  `GET /api/v1/jobs/:id/log`,
   **SSE streaming** via `GET /api/v1/jobs/:id/events` (`status` transitions,
   `log` lines, terminal `done`; process-per-run, bounded concurrency),
   `POST /api/v1/jobs/:id/cancel` (running → `canceled`, child terminated;
-  409 when already terminal), `DELETE /api/v1/jobs/:id` (terminal jobs;
-  running jobs need `?force=true`)
+  409 when already terminal), `POST /api/v1/jobs/:id/retry` (failed or
+  canceled job → new job with the same cmd/args/workspace and `retry_of`;
+  409 otherwise), `DELETE /api/v1/jobs/:id` (terminal jobs; running jobs
+  need `?force=true`). Job bodies are the `Job` schema.
+- Events — `GET /api/v1/events`, the global SSE bus (see
+  [Event stream](#event-stream))
 - `GET /` — minimal static status page (not a product surface)
 
 ## Typed subcommand bodies
@@ -90,6 +96,33 @@ from cwd. To root serve at a harness, launch it
 from that directory with `AGENT_TOOLKIT_WORKSPACE` pointing at the same path.
 Desktop does this for its default harness; see
 [desktop/ELECTRON_MIGRATION.md](desktop/ELECTRON_MIGRATION.md#default-harness).
+
+## Event stream
+
+`GET /api/v1/events` streams server events over SSE. Each message has
+`id: <seq>`, `event: <type>` and a JSON `ApiEvent` in `data`
+(`seq`, `type`, `at`, `subject`, `status`, `exit_code`, `ref`, `message`).
+
+| Type | `subject` | Notes |
+|---|---|---|
+| `backend.ready` | `serve` | once per server process; `message` = version |
+| `backend.resync` | `serve` | cursor too old or from an earlier process — refetch state; carries no `id:` |
+| `job.created` / `job.updated` / `job.deleted` | job id | `status`, `exit_code`; `ref` = `retry_of` |
+| `loop.started` / `loop.finished` | loop name | for `loop run` jobs; `ref` = job id |
+| `swarm.changed` | run id (may be empty) | after a successful mutating `swarms/{sub}`; `message` = sub |
+| `memory.changed` | entry type | after a successful `memory/add` |
+| `install.started` / `install.finished` | `install`, `update` or `uninstall` | `status` = `completed` or `failed` |
+
+- **Resume** with `Last-Event-ID` (browsers send it on reconnect) or
+  `?since=<seq>`. The server keeps the last 512 events; a cursor older than
+  that, or greater than the current `seq` (server restarted), gets
+  `backend.resync` followed by every retained event.
+- **Filter** with `?types=job.,loop.finished` (exact types or `family.`
+  prefixes).
+- A `: ping` comment every 15 s keeps the connection alive and detects
+  dead clients; at most 16 concurrent subscribers (`503` beyond that).
+- Events describe what the server did; they are not persisted. Read
+  endpoints remain the source of truth.
 
 ## Security defaults (ADR-028)
 

@@ -41,6 +41,29 @@ struct Contract {
 	commands []Cmd
 }
 
+// Typed schemas + server-native endpoints (docs/compatibility/api-schemas.yaml).
+struct SchemaDef {
+	name        string
+	v_struct    string
+	description string
+	fields      []string
+}
+
+struct NativeDef {
+	path         string
+	method       string
+	op           string
+	summary      string
+	response     string
+	event_schema string
+	errors       []string
+}
+
+struct ApiSchemas {
+	schemas []SchemaDef
+	native  []NativeDef
+}
+
 fn cmd_api(cmd Cmd) bool {
 	return cmd.api or { true }
 }
@@ -412,7 +435,7 @@ fn sub_route_extras(cmd Cmd) JObj {
 	return extra
 }
 
-fn gen_openapi(contract Contract, version string) JObj {
+fn gen_openapi(contract Contract, api ApiSchemas, version string) JObj {
 	mut paths := jobj()
 	for cmd in contract.commands {
 		if !cmd_api(cmd) {
@@ -440,43 +463,24 @@ fn gen_openapi(contract Contract, version string) JObj {
 	}
 	// Server-native infrastructure endpoints (ADR-030): capabilities of the
 	// API itself, not mirrors of CLI contract commands.
-	native := [
-		['/api/v1/health', 'get', 'health'],
-		['/api/v1/openapi.json', 'get', 'get_openapi'],
-		['/api/v1/selfcheck', 'get', 'selfcheck'],
-		['/api/v1/jobs', 'post', 'create_job'],
-		['/api/v1/jobs/{id}/log', 'get', 'get_job_log'],
-		['/api/v1/jobs/{id}/events', 'get', 'stream_job_events'],
-		['/api/v1/jobs/{id}/cancel', 'post', 'cancel_job'],
-		['/api/v1/jobs/{id}', 'delete', 'delete_job'],
-		['/api/v1/doctor/fix', 'post', 'doctor_fix'],
-		['/api/v1/loops/{name}/status', 'get', 'loop_status_by_name'],
-		['/api/v1/loops/{name}/run', 'post', 'run_loop_by_name'],
-		['/api/v1/loops/{name}/schedule', 'post', 'schedule_loop_by_name'],
-		['/api/v1/swarms', 'get', 'list_swarms'],
-		['/api/v1/loops', 'get', 'list_loops'],
-	]
-	for entry in native {
-		path, method, op_id := entry[0], entry[1], entry[2]
-		if paths.has(path) {
+	for entry in api.native {
+		mut methods := if existing := paths.get(entry.path) {
+			if existing is JObj { existing } else { jobj() }
+		} else {
+			jobj()
+		}
+		if methods.has(entry.method) {
 			continue
 		}
-		mut r := jobj()
-		mut ok := jobj()
-		ok.put('description', JStr{'OK'})
-		r.put('200', ok)
-		scope := if method == 'get' { 'read:*' } else { 'write:*' }
-		// Native ops carry no tags key (mirrors the retired generator).
-		mut bare := jobj()
-		bare.put('operationId', JStr{op_id})
-		bare.put('summary', JStr{'Server-native endpoint (${op_id})'})
-		bare.put('x-scope', JStr{scope})
-		bare.put('x-confirm-required', JBool{false})
-		bare.put('responses', r)
-		mut methods := jobj()
-		methods.put(method, bare)
-		paths.put(path, methods)
+		methods.put(entry.method, native_op(entry))
+		paths.put(entry.path, methods)
 	}
+	mut schemas := jobj()
+	for def in api.schemas {
+		schemas.put(def.name, schema_object(def))
+	}
+	mut components := jobj()
+	components.put('schemas', schemas)
 	mut doc := jobj()
 	doc.put('openapi', JStr{'3.1.0'})
 	mut info := jobj()
@@ -485,7 +489,159 @@ fn gen_openapi(contract Contract, version string) JObj {
 	info.put('description', JStr{'Generated from docs/compatibility/cli-contract.yaml — do not hand-edit.'})
 	doc.put('info', info)
 	doc.put('paths', paths)
+	doc.put('components', components)
 	return doc
+}
+
+// type_schema renders one api-schemas.yaml field type (see the grammar in
+// that file's header).
+fn type_schema(typ string) JObj {
+	mut s := jobj()
+	if typ.starts_with('map<') && typ.ends_with('>') {
+		s.put('type', JStr{'object'})
+		s.put('additionalProperties', type_schema(typ[4..typ.len - 1]))
+	} else if typ.ends_with('[]') {
+		s.put('type', JStr{'array'})
+		s.put('items', type_schema(typ[..typ.len - 2]))
+	} else if typ.starts_with('#') {
+		s.put('\$ref', JStr{'#/components/schemas/${typ[1..]}'})
+	} else {
+		s.put('type', JStr{typ})
+	}
+	return s
+}
+
+fn schema_object(def SchemaDef) JObj {
+	mut props := jobj()
+	mut required := []string{}
+	for spec in def.fields {
+		mut name := spec.all_before(':')
+		mut typ := spec.all_after(':')
+		optional := name.ends_with('?')
+		if optional {
+			name = name[..name.len - 1]
+		} else {
+			required << name
+		}
+		mut enum_vals := []string{}
+		if typ.contains('=') {
+			enum_vals = typ.all_after('=').split('|')
+			typ = typ.all_before('=')
+		}
+		mut field := type_schema(typ)
+		if enum_vals.len > 0 {
+			field.put('enum', str_arr(enum_vals))
+		}
+		props.put(name, field)
+	}
+	mut s := jobj()
+	s.put('type', JStr{'object'})
+	if def.description.len > 0 {
+		s.put('description', JStr{def.description})
+	}
+	s.put('properties', props)
+	s.put('required', str_arr(required))
+	return s
+}
+
+fn media_of(content_type string, schema JObj) JObj {
+	mut media := jobj()
+	media.put('schema', schema)
+	mut content := jobj()
+	content.put(content_type, media)
+	return content
+}
+
+fn native_op(entry NativeDef) JObj {
+	mut ok := jobj()
+	ok.put('description', JStr{'OK'})
+	match entry.response {
+		'' {}
+		'text' {
+			ok.put('content', media_of('text/plain', type_schema('string')))
+		}
+		'sse' {
+			mut s := type_schema('string')
+			if entry.event_schema.len > 0 {
+				s.put('x-event-schema', type_schema('#${entry.event_schema}'))
+			}
+			ok.put('content', media_of('text/event-stream', s))
+		}
+		else {
+			ok.put('content', media_of('application/json', type_schema(entry.response)))
+		}
+	}
+	mut r := jobj()
+	r.put('200', ok)
+	for e in entry.errors {
+		mut resp := jobj()
+		resp.put('description', JStr{e.all_after(':')})
+		resp.put('content', media_of('application/json', type_schema('#ApiError')))
+		r.put(e.all_before(':'), resp)
+	}
+	scope := if entry.method == 'get' { 'read:*' } else { 'write:*' }
+	summary := if entry.summary.len > 0 {
+		entry.summary
+	} else {
+		'Server-native endpoint (${entry.op})'
+	}
+	// Native ops carry no tags key (mirrors the retired generator).
+	mut op := jobj()
+	op.put('operationId', JStr{entry.op})
+	op.put('summary', JStr{summary})
+	op.put('x-scope', JStr{scope})
+	op.put('x-confirm-required', JBool{false})
+	mut params := []JVal{}
+	for seg in entry.path.split('/') {
+		if seg.starts_with('{') && seg.ends_with('}') {
+			mut p := jobj()
+			p.put('name', JStr{seg[1..seg.len - 1]})
+			p.put('in', JStr{'path'})
+			p.put('required', JBool{true})
+			p.put('schema', type_schema('string'))
+			params << JVal(p)
+		}
+	}
+	if params.len > 0 {
+		op.put('parameters', JArr{params})
+	}
+	op.put('responses', r)
+	return op
+}
+
+// check_schema_refs fails generation on dangling `#Schema` references so a
+// typo never ships as an unresolved $ref.
+fn check_schema_refs(api ApiSchemas) []string {
+	mut known := map[string]bool{}
+	for def in api.schemas {
+		known[def.name] = true
+	}
+	mut types := []string{}
+	for def in api.schemas {
+		for spec in def.fields {
+			types << spec.all_after(':').all_before('=')
+		}
+	}
+	for entry in api.native {
+		if entry.response !in ['', 'text', 'sse'] {
+			types << entry.response
+		}
+		if entry.event_schema.len > 0 {
+			types << '#${entry.event_schema}'
+		}
+		if entry.errors.len > 0 {
+			types << '#ApiError'
+		}
+	}
+	mut bad := []string{}
+	for t in types {
+		idx := t.index('#') or { continue }
+		name := t[idx + 1..].trim_right('>[]')
+		if name !in known {
+			bad << name
+		}
+	}
+	return bad
 }
 
 // ---------------------------------------------------------------------------
@@ -584,6 +740,20 @@ fn main() {
 		eprintln('cannot parse ${contract_path}: ${err}')
 		exit(2)
 	}
+	schemas_path := os.join_path(root, 'docs', 'compatibility', 'api-schemas.yaml')
+	schemas_text := os.read_file(schemas_path) or {
+		eprintln('cannot read ${schemas_path}: ${err}')
+		exit(2)
+	}
+	api := yaml.decode[ApiSchemas](schemas_text) or {
+		eprintln('cannot parse ${schemas_path}: ${err}')
+		exit(2)
+	}
+	dangling := check_schema_refs(api)
+	if dangling.len > 0 {
+		eprintln('${schemas_path}: unknown schema reference(s): ${dangling.join(', ')}')
+		exit(2)
+	}
 	out_dir := os.join_path(root, 'docs', 'surface')
 	os.mkdir_all(out_dir) or {}
 
@@ -614,7 +784,7 @@ fn main() {
 	}
 
 	version := os.read_file(os.join_path(root, 'VERSION')) or { '' }.trim_space()
-	openapi_text := enc(gen_openapi(contract, version), 0) + '\n'
+	openapi_text := enc(gen_openapi(contract, api, version), 0) + '\n'
 	artifacts := {
 		os.join_path(out_dir, 'openapi.json'): openapi_text
 		os.join_path(out_dir, 'cli-help.md'):  gen_help_md(contract)
