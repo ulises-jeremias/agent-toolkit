@@ -687,6 +687,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/loops/{name}/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (loop_audit_by_name) */
+        get: operations["loop_audit_by_name"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loops/{name}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (loop_history_by_name) */
+        get: operations["loop_history_by_name"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/loops/{name}/cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (loop_cost_by_name) */
+        get: operations["loop_cost_by_name"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/loops/{name}/run": {
         parameters: {
             query?: never;
@@ -732,6 +783,142 @@ export interface paths {
         get: operations["list_swarms"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (get_swarm_run) */
+        get: operations["get_swarm_run"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}/handoffs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (list_swarm_handoffs) */
+        get: operations["list_swarm_handoffs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (list_swarm_tasks) */
+        get: operations["list_swarm_tasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}/approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (list_swarm_approvals) */
+        get: operations["list_swarm_approvals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}/artifacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Server-native endpoint (list_swarm_artifacts) */
+        get: operations["list_swarm_artifacts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Server-native endpoint (approve_swarm_run) */
+        post: operations["approve_swarm_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Server-native endpoint (reject_swarm_run) */
+        post: operations["reject_swarm_run"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/swarms/runs/{id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Server-native endpoint (stop_swarm_run) */
+        post: operations["stop_swarm_run"];
         delete?: never;
         options?: never;
         head?: never;
@@ -908,6 +1095,153 @@ export interface components {
             ok: boolean;
             message: string;
             path: string;
+        };
+        SwarmRunInfo: {
+            run_id: string;
+            recipe: string;
+            backend: string;
+            run_state: string;
+            created_at: string;
+            task: string;
+        };
+        SwarmListResponse: {
+            ok: boolean;
+            runs: components["schemas"]["SwarmRunInfo"][];
+        };
+        SwarmBudgetView: {
+            max_total_tokens: number;
+            total_tokens: number;
+            max_cost_usd: number;
+            total_cost: number;
+            max_wall_seconds: number;
+            /** @enum {string} */
+            cost_status: "accounted" | "unavailable";
+        };
+        SwarmGate: {
+            id: string;
+            description: string;
+            required: boolean;
+            approved: boolean;
+            rejected: boolean;
+            reason: string;
+        };
+        SwarmHandoffView: {
+            id: string;
+            htype: string;
+            from_role: string;
+            to_role: string;
+            priority: number;
+            artifact: string;
+            commit: string;
+            branch: string;
+            blocking: boolean;
+            state: string;
+            created_at: string;
+        };
+        SwarmTaskView: {
+            id: string;
+            status: string;
+            priority: number;
+            owner: string;
+            from_role: string;
+            dependencies: string;
+            blocked_reason: string;
+            created_at: string;
+        };
+        SwarmArtifactView: {
+            name: string;
+            path: string;
+            size: number;
+        };
+        SwarmRunResponse: {
+            ok: boolean;
+            run: components["schemas"]["SwarmRunInfo"];
+            runner: string;
+            model: string;
+            budget: components["schemas"]["SwarmBudgetView"];
+            approvals: components["schemas"]["SwarmGate"][];
+            handoffs: components["schemas"]["SwarmHandoffView"][];
+            tasks: components["schemas"]["SwarmTaskView"][];
+            artifacts: components["schemas"]["SwarmArtifactView"][];
+            trace_tail: string[];
+        };
+        SwarmHandoffsResponse: {
+            ok: boolean;
+            run_id: string;
+            handoffs: components["schemas"]["SwarmHandoffView"][];
+        };
+        SwarmTasksResponse: {
+            ok: boolean;
+            run_id: string;
+            tasks: components["schemas"]["SwarmTaskView"][];
+        };
+        SwarmApprovalsResponse: {
+            ok: boolean;
+            run_id: string;
+            approvals: components["schemas"]["SwarmGate"][];
+        };
+        SwarmArtifactsResponse: {
+            ok: boolean;
+            run_id: string;
+            artifacts: components["schemas"]["SwarmArtifactView"][];
+        };
+        SwarmActionResponse: {
+            ok: boolean;
+            message: string;
+            run_id: string;
+            status: string;
+        };
+        LoopInfo: {
+            name: string;
+            tier: string;
+            cadence: string;
+            goal: string;
+            runs: number;
+            last: string;
+            status: string;
+        };
+        LoopListResponse: {
+            ok: boolean;
+            loops: components["schemas"]["LoopInfo"][];
+        };
+        LoopBudgetView: {
+            max_tokens: number;
+            max_runs_per_day: number;
+            max_wall_seconds: number;
+            /** @enum {string} */
+            cost_status: "unavailable" | "accounted";
+        };
+        LoopStatusResponse: {
+            ok: boolean;
+            info: components["schemas"]["LoopInfo"];
+            budget: components["schemas"]["LoopBudgetView"];
+        };
+        LoopAuditResponse: {
+            ok: boolean;
+            name: string;
+            completed: number;
+            failed: number;
+            tokens: number;
+            rate: string;
+        };
+        LoopHistoryEntry: {
+            id: string;
+            status: string;
+        };
+        LoopHistoryResponse: {
+            ok: boolean;
+            name: string;
+            last_id: string;
+            last: string;
+            status: string;
+            runs: components["schemas"]["LoopHistoryEntry"][];
+        };
+        LoopCostResponse: {
+            ok: boolean;
+            name: string;
+            /** @enum {string} */
+            cost_status: "unavailable" | "accounted";
+            detail: string;
         };
     };
     responses: never;
@@ -2658,7 +2992,147 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LoopStatusResponse"];
+                };
+            };
+            /** @description invalid loop name */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description loop not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    loop_audit_by_name: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoopAuditResponse"];
+                };
+            };
+            /** @description invalid loop name */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description loop not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    loop_history_by_name: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoopHistoryResponse"];
+                };
+            };
+            /** @description invalid loop name */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description loop not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    loop_cost_by_name: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                name: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoopCostResponse"];
+                };
+            };
+            /** @description invalid loop name */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description loop not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
             };
         };
     };
@@ -2716,7 +3190,329 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["SwarmListResponse"];
+                };
+            };
+        };
+    };
+    get_swarm_run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmRunResponse"];
+                };
+            };
+            /** @description invalid run_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_swarm_handoffs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmHandoffsResponse"];
+                };
+            };
+            /** @description invalid run_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_swarm_tasks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmTasksResponse"];
+                };
+            };
+            /** @description invalid run_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_swarm_approvals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmApprovalsResponse"];
+                };
+            };
+            /** @description invalid run_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_swarm_artifacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmArtifactsResponse"];
+                };
+            };
+            /** @description invalid run_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    approve_swarm_run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmActionResponse"];
+                };
+            };
+            /** @description invalid gate_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run or gate not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    reject_swarm_run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmActionResponse"];
+                };
+            };
+            /** @description reason required */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run or gate not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    stop_swarm_run: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmActionResponse"];
+                };
+            };
+            /** @description invalid run_id */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description run not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
             };
         };
     };
@@ -2734,7 +3530,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["LoopListResponse"];
+                };
             };
         };
     };

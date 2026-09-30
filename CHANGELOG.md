@@ -78,6 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `/memory/file`; `POST`/`PUT /memory/file`; `POST /memory/file/archive`.
   Provenance is file/timestamp/project plus git author on read. GET is
   allowed for `memory` `inject` and `todo` (read-only).
+- `serve`: typed swarm runs/tasks/handoffs/approvals/artifacts and loop
+  list/status/audit/history/cost. Cost is `unavailable` unless accounted.
 
 ### Changed
 

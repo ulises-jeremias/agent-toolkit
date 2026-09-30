@@ -467,6 +467,9 @@ const registered_api_routes = [
 	'/api/v1/insights',
 	'/api/v1/loops',
 	'/api/v1/loops/:name/status',
+	'/api/v1/loops/:name/audit',
+	'/api/v1/loops/:name/history',
+	'/api/v1/loops/:name/cost',
 	'/api/v1/loops/:name/run',
 	'/api/v1/loops/:name/schedule',
 	'/api/v1/loops/:sub',
@@ -487,6 +490,14 @@ const registered_api_routes = [
 	'/api/v1/dc/:sub',
 	'/api/v1/build',
 	'/api/v1/swarms',
+	'/api/v1/swarms/runs/:id',
+	'/api/v1/swarms/runs/:id/handoffs',
+	'/api/v1/swarms/runs/:id/tasks',
+	'/api/v1/swarms/runs/:id/approvals',
+	'/api/v1/swarms/runs/:id/artifacts',
+	'/api/v1/swarms/runs/:id/approve',
+	'/api/v1/swarms/runs/:id/reject',
+	'/api/v1/swarms/runs/:id/stop',
 	'/api/v1/swarms/:sub',
 	'/api/v1/jobs',
 	'/api/v1/jobs/:id/log',
@@ -731,11 +742,8 @@ pub fn (app &App) loops_list(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
-	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
-		subcommand: 'list'
-		workspace_path: ws
-	}))))
+	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(agent_toolkit_core.list_loops_typed(ws))
 }
 
 @['/api/v1/loops/:name/status'; get]
@@ -748,17 +756,11 @@ pub fn (app &App) loops_status(mut ctx Ctx, name string) veb.Result {
 		ctx.res.set_status(.bad_request)
 		return ctx.json(DenyErr{ ok: false, error: 'invalid loop name' })
 	}
-	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
-	report := agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
-		subcommand: 'status'
-		workspace_path: ws
-		name: name
-	})
-	if !report.ok && report.message.contains('not found') {
-		ctx.res.set_status(.not_found)
-		return ctx.json(DenyErr{ ok: false, error: 'loop not found: ${name}' })
+	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
+	got := agent_toolkit_core.get_loop_status_typed(ws, name) or {
+		return work_catalog_error(mut ctx, err)
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(report)))
+	return ctx.json(got)
 }
 
 @['/api/v1/help'; get]
@@ -954,7 +956,8 @@ pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{ subcommand: 'list' }))))
+	ws := serve_memory_workspace(ctx, '') or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(agent_toolkit_core.list_swarm_runs_typed(ws))
 }
 
 // web_index_html is embedded at compile time so serve always has a UI.

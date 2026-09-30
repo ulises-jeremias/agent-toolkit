@@ -200,6 +200,171 @@ schemas:
       - message:string
       - path:string
 
+  - name: SwarmRunInfo
+    fields:
+      - run_id:string
+      - recipe:string
+      - backend:string
+      - run_state:string
+      - created_at:string
+      - task:string
+
+  - name: SwarmListResponse
+    fields:
+      - ok:boolean
+      - 'runs:#SwarmRunInfo[]'
+
+  - name: SwarmBudgetView
+    fields:
+      - max_total_tokens:integer
+      - total_tokens:integer
+      - max_cost_usd:number
+      - total_cost:number
+      - max_wall_seconds:integer
+      - cost_status:string=accounted|unavailable
+
+  - name: SwarmGate
+    fields:
+      - id:string
+      - description:string
+      - required:boolean
+      - approved:boolean
+      - rejected:boolean
+      - reason:string
+
+  - name: SwarmHandoffView
+    fields:
+      - id:string
+      - htype:string
+      - from_role:string
+      - to_role:string
+      - priority:integer
+      - artifact:string
+      - commit:string
+      - branch:string
+      - blocking:boolean
+      - state:string
+      - created_at:string
+
+  - name: SwarmTaskView
+    fields:
+      - id:string
+      - status:string
+      - priority:integer
+      - owner:string
+      - from_role:string
+      - dependencies:string
+      - blocked_reason:string
+      - created_at:string
+
+  - name: SwarmArtifactView
+    fields:
+      - name:string
+      - path:string
+      - size:integer
+
+  - name: SwarmRunResponse
+    fields:
+      - ok:boolean
+      - 'run:#SwarmRunInfo'
+      - runner:string
+      - model:string
+      - 'budget:#SwarmBudgetView'
+      - 'approvals:#SwarmGate[]'
+      - 'handoffs:#SwarmHandoffView[]'
+      - 'tasks:#SwarmTaskView[]'
+      - 'artifacts:#SwarmArtifactView[]'
+      - trace_tail:string[]
+
+  - name: SwarmHandoffsResponse
+    fields:
+      - ok:boolean
+      - run_id:string
+      - 'handoffs:#SwarmHandoffView[]'
+
+  - name: SwarmTasksResponse
+    fields:
+      - ok:boolean
+      - run_id:string
+      - 'tasks:#SwarmTaskView[]'
+
+  - name: SwarmApprovalsResponse
+    fields:
+      - ok:boolean
+      - run_id:string
+      - 'approvals:#SwarmGate[]'
+
+  - name: SwarmArtifactsResponse
+    fields:
+      - ok:boolean
+      - run_id:string
+      - 'artifacts:#SwarmArtifactView[]'
+
+  - name: SwarmActionResponse
+    fields:
+      - ok:boolean
+      - message:string
+      - run_id:string
+      - status:string
+
+  - name: LoopInfo
+    fields:
+      - name:string
+      - tier:string
+      - cadence:string
+      - goal:string
+      - runs:integer
+      - last:string
+      - status:string
+
+  - name: LoopListResponse
+    fields:
+      - ok:boolean
+      - 'loops:#LoopInfo[]'
+
+  - name: LoopBudgetView
+    fields:
+      - max_tokens:integer
+      - max_runs_per_day:integer
+      - max_wall_seconds:integer
+      - cost_status:string=unavailable|accounted
+
+  - name: LoopStatusResponse
+    fields:
+      - ok:boolean
+      - 'info:#LoopInfo'
+      - 'budget:#LoopBudgetView'
+
+  - name: LoopAuditResponse
+    fields:
+      - ok:boolean
+      - name:string
+      - completed:integer
+      - failed:integer
+      - tokens:integer
+      - rate:string
+
+  - name: LoopHistoryEntry
+    fields:
+      - id:string
+      - status:string
+
+  - name: LoopHistoryResponse
+    fields:
+      - ok:boolean
+      - name:string
+      - last_id:string
+      - last:string
+      - status:string
+      - 'runs:#LoopHistoryEntry[]'
+
+  - name: LoopCostResponse
+    fields:
+      - ok:boolean
+      - name:string
+      - cost_status:string=unavailable|accounted
+      - detail:string
+
 # Server-native endpoints (ADR-030): capabilities of the API itself, not
 # mirrors of CLI contract commands. `response` is a field type (see grammar),
 # `text` (text/plain) or `sse` (text/event-stream of `event_schema`).
@@ -366,6 +531,31 @@ native:
   - path: /api/v1/loops/{name}/status
     method: get
     op: loop_status_by_name
+    response: '#LoopStatusResponse'
+    errors:
+      - '400:invalid loop name'
+      - '404:loop not found'
+  - path: /api/v1/loops/{name}/audit
+    method: get
+    op: loop_audit_by_name
+    response: '#LoopAuditResponse'
+    errors:
+      - '400:invalid loop name'
+      - '404:loop not found'
+  - path: /api/v1/loops/{name}/history
+    method: get
+    op: loop_history_by_name
+    response: '#LoopHistoryResponse'
+    errors:
+      - '400:invalid loop name'
+      - '404:loop not found'
+  - path: /api/v1/loops/{name}/cost
+    method: get
+    op: loop_cost_by_name
+    response: '#LoopCostResponse'
+    errors:
+      - '400:invalid loop name'
+      - '404:loop not found'
   - path: /api/v1/loops/{name}/run
     method: post
     op: run_loop_by_name
@@ -375,6 +565,64 @@ native:
   - path: /api/v1/swarms
     method: get
     op: list_swarms
+    response: '#SwarmListResponse'
+  - path: /api/v1/swarms/runs/{id}
+    method: get
+    op: get_swarm_run
+    response: '#SwarmRunResponse'
+    errors:
+      - '400:invalid run_id'
+      - '404:run not found'
+  - path: /api/v1/swarms/runs/{id}/handoffs
+    method: get
+    op: list_swarm_handoffs
+    response: '#SwarmHandoffsResponse'
+    errors:
+      - '400:invalid run_id'
+      - '404:run not found'
+  - path: /api/v1/swarms/runs/{id}/tasks
+    method: get
+    op: list_swarm_tasks
+    response: '#SwarmTasksResponse'
+    errors:
+      - '400:invalid run_id'
+      - '404:run not found'
+  - path: /api/v1/swarms/runs/{id}/approvals
+    method: get
+    op: list_swarm_approvals
+    response: '#SwarmApprovalsResponse'
+    errors:
+      - '400:invalid run_id'
+      - '404:run not found'
+  - path: /api/v1/swarms/runs/{id}/artifacts
+    method: get
+    op: list_swarm_artifacts
+    response: '#SwarmArtifactsResponse'
+    errors:
+      - '400:invalid run_id'
+      - '404:run not found'
+  - path: /api/v1/swarms/runs/{id}/approve
+    method: post
+    op: approve_swarm_run
+    response: '#SwarmActionResponse'
+    errors:
+      - '400:invalid gate_id'
+      - '404:run or gate not found'
+  - path: /api/v1/swarms/runs/{id}/reject
+    method: post
+    op: reject_swarm_run
+    response: '#SwarmActionResponse'
+    errors:
+      - '400:reason required'
+      - '404:run or gate not found'
+  - path: /api/v1/swarms/runs/{id}/stop
+    method: post
+    op: stop_swarm_run
+    response: '#SwarmActionResponse'
+    errors:
+      - '400:invalid run_id'
+      - '404:run not found'
   - path: /api/v1/loops
     method: get
     op: list_loops
+    response: '#LoopListResponse'

@@ -1956,7 +1956,184 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopStatusResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid loop name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "loop not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/loops/{name}/audit": {
+      "get": {
+        "operationId": "loop_audit_by_name",
+        "summary": "Server-native endpoint (loop_audit_by_name)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopAuditResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid loop name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "loop not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/loops/{name}/history": {
+      "get": {
+        "operationId": "loop_history_by_name",
+        "summary": "Server-native endpoint (loop_history_by_name)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopHistoryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid loop name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "loop not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/loops/{name}/cost": {
+      "get": {
+        "operationId": "loop_cost_by_name",
+        "summary": "Server-native endpoint (loop_cost_by_name)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopCostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid loop name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "loop not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2015,7 +2192,414 @@
         "x-confirm-required": false,
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}": {
+      "get": {
+        "operationId": "get_swarm_run",
+        "summary": "Server-native endpoint (get_swarm_run)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmRunResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid run_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}/handoffs": {
+      "get": {
+        "operationId": "list_swarm_handoffs",
+        "summary": "Server-native endpoint (list_swarm_handoffs)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmHandoffsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid run_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}/tasks": {
+      "get": {
+        "operationId": "list_swarm_tasks",
+        "summary": "Server-native endpoint (list_swarm_tasks)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmTasksResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid run_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}/approvals": {
+      "get": {
+        "operationId": "list_swarm_approvals",
+        "summary": "Server-native endpoint (list_swarm_approvals)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmApprovalsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid run_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}/artifacts": {
+      "get": {
+        "operationId": "list_swarm_artifacts",
+        "summary": "Server-native endpoint (list_swarm_artifacts)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmArtifactsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid run_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}/approve": {
+      "post": {
+        "operationId": "approve_swarm_run",
+        "summary": "Server-native endpoint (approve_swarm_run)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid gate_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run or gate not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}/reject": {
+      "post": {
+        "operationId": "reject_swarm_run",
+        "summary": "Server-native endpoint (reject_swarm_run)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "reason required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run or gate not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/swarms/runs/{id}/stop": {
+      "post": {
+        "operationId": "stop_swarm_run",
+        "summary": "Server-native endpoint (stop_swarm_run)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SwarmActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid run_id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "run not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -2028,7 +2612,14 @@
         "x-confirm-required": false,
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoopListResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2624,6 +3215,609 @@
           "ok",
           "message",
           "path"
+        ]
+      },
+      "SwarmRunInfo": {
+        "type": "object",
+        "properties": {
+          "run_id": {
+            "type": "string"
+          },
+          "recipe": {
+            "type": "string"
+          },
+          "backend": {
+            "type": "string"
+          },
+          "run_state": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "task": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "recipe",
+          "backend",
+          "run_state",
+          "created_at",
+          "task"
+        ]
+      },
+      "SwarmListResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmRunInfo"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "runs"
+        ]
+      },
+      "SwarmBudgetView": {
+        "type": "object",
+        "properties": {
+          "max_total_tokens": {
+            "type": "integer"
+          },
+          "total_tokens": {
+            "type": "integer"
+          },
+          "max_cost_usd": {
+            "type": "number"
+          },
+          "total_cost": {
+            "type": "number"
+          },
+          "max_wall_seconds": {
+            "type": "integer"
+          },
+          "cost_status": {
+            "type": "string",
+            "enum": [
+              "accounted",
+              "unavailable"
+            ]
+          }
+        },
+        "required": [
+          "max_total_tokens",
+          "total_tokens",
+          "max_cost_usd",
+          "total_cost",
+          "max_wall_seconds",
+          "cost_status"
+        ]
+      },
+      "SwarmGate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "approved": {
+            "type": "boolean"
+          },
+          "rejected": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "required",
+          "approved",
+          "rejected",
+          "reason"
+        ]
+      },
+      "SwarmHandoffView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "htype": {
+            "type": "string"
+          },
+          "from_role": {
+            "type": "string"
+          },
+          "to_role": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "integer"
+          },
+          "artifact": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "string"
+          },
+          "branch": {
+            "type": "string"
+          },
+          "blocking": {
+            "type": "boolean"
+          },
+          "state": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "htype",
+          "from_role",
+          "to_role",
+          "priority",
+          "artifact",
+          "commit",
+          "branch",
+          "blocking",
+          "state",
+          "created_at"
+        ]
+      },
+      "SwarmTaskView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "integer"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "from_role": {
+            "type": "string"
+          },
+          "dependencies": {
+            "type": "string"
+          },
+          "blocked_reason": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "priority",
+          "owner",
+          "from_role",
+          "dependencies",
+          "blocked_reason",
+          "created_at"
+        ]
+      },
+      "SwarmArtifactView": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "size": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "name",
+          "path",
+          "size"
+        ]
+      },
+      "SwarmRunResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run": {
+            "$ref": "#/components/schemas/SwarmRunInfo"
+          },
+          "runner": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/SwarmBudgetView"
+          },
+          "approvals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmGate"
+            }
+          },
+          "handoffs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmHandoffView"
+            }
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmTaskView"
+            }
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmArtifactView"
+            }
+          },
+          "trace_tail": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "run",
+          "runner",
+          "model",
+          "budget",
+          "approvals",
+          "handoffs",
+          "tasks",
+          "artifacts",
+          "trace_tail"
+        ]
+      },
+      "SwarmHandoffsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "handoffs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmHandoffView"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "run_id",
+          "handoffs"
+        ]
+      },
+      "SwarmTasksResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "tasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmTaskView"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "run_id",
+          "tasks"
+        ]
+      },
+      "SwarmApprovalsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "approvals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmGate"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "run_id",
+          "approvals"
+        ]
+      },
+      "SwarmArtifactsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SwarmArtifactView"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "run_id",
+          "artifacts"
+        ]
+      },
+      "SwarmActionResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "message",
+          "run_id",
+          "status"
+        ]
+      },
+      "LoopInfo": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string"
+          },
+          "cadence": {
+            "type": "string"
+          },
+          "goal": {
+            "type": "string"
+          },
+          "runs": {
+            "type": "integer"
+          },
+          "last": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "tier",
+          "cadence",
+          "goal",
+          "runs",
+          "last",
+          "status"
+        ]
+      },
+      "LoopListResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "loops": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LoopInfo"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "loops"
+        ]
+      },
+      "LoopBudgetView": {
+        "type": "object",
+        "properties": {
+          "max_tokens": {
+            "type": "integer"
+          },
+          "max_runs_per_day": {
+            "type": "integer"
+          },
+          "max_wall_seconds": {
+            "type": "integer"
+          },
+          "cost_status": {
+            "type": "string",
+            "enum": [
+              "unavailable",
+              "accounted"
+            ]
+          }
+        },
+        "required": [
+          "max_tokens",
+          "max_runs_per_day",
+          "max_wall_seconds",
+          "cost_status"
+        ]
+      },
+      "LoopStatusResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "info": {
+            "$ref": "#/components/schemas/LoopInfo"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/LoopBudgetView"
+          }
+        },
+        "required": [
+          "ok",
+          "info",
+          "budget"
+        ]
+      },
+      "LoopAuditResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          },
+          "tokens": {
+            "type": "integer"
+          },
+          "rate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "name",
+          "completed",
+          "failed",
+          "tokens",
+          "rate"
+        ]
+      },
+      "LoopHistoryEntry": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "LoopHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "last_id": {
+            "type": "string"
+          },
+          "last": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LoopHistoryEntry"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "name",
+          "last_id",
+          "last",
+          "status",
+          "runs"
+        ]
+      },
+      "LoopCostResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "name": {
+            "type": "string"
+          },
+          "cost_status": {
+            "type": "string",
+            "enum": [
+              "unavailable",
+              "accounted"
+            ]
+          },
+          "detail": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "name",
+          "cost_status",
+          "detail"
         ]
       }
     }
