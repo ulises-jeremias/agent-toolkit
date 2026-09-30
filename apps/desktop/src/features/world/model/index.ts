@@ -1,4 +1,6 @@
 export { buildWorldModel, jobBelongsToProject } from './buildWorld';
+export { groundDecor } from './groundDecor';
+export type { GroundDecor, GroundDecorKind } from './groundDecor';
 export { PROJECT_FACADES, projectFacade } from './facades';
 export type { BuildingFacade, LandmarkFacade, ProjectFacade } from './facades';
 export { layoutWorld } from './layout';

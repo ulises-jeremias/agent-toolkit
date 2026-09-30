@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Desktop world grounds grow a tile-aligned path, trees, and an east creek in
+  empty cells only, on a tiled lawn. Decor is not a place, character, or
+  inspectable entity.
+- Project interiors swap outdoor landmark sprites for room furniture (terminal
+  desk, files shelf, records cabinet).
+
 ## [1.37.0] — 2026-09-30
 
 ### Added

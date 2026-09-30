@@ -25,11 +25,10 @@
   position: relative;
   border: 2px solid var(--pc-ink-900);
   border-radius: 2px;
-  /* Paper Co. grassy grounds — concept boards, not flat SaaS. */
-  background:
-    radial-gradient(ellipse at 18% 12%, color-mix(in srgb, var(--pc-brass-100) 40%, transparent), transparent 42%),
-    radial-gradient(ellipse at 82% 78%, color-mix(in srgb, #4e7c7b 22%, transparent), transparent 48%),
-    repeating-linear-gradient(0deg, #8aab86 0 3px, #7b9e7e 3px 10px, #6f926f 10px 12px, #7b9e7e 12px 20px);
+  /* Paper Co. grassy grounds — tiled lawn, not flat SaaS. */
+  background-color: #7b9e7e;
+  background-image: url('/world/grass.png');
+  background-size: 48px 48px;
   overflow: auto;
   min-height: 28rem;
   image-rendering: pixelated;
@@ -45,19 +44,33 @@
     repeating-linear-gradient(90deg, #c4a574 0 14px, #b8955f 14px 16px, #c9ad7a 16px 30px, #b08d57 30px 32px);
 }
 
-/* Soft ground path under the landmark boulevard — CSS only, not a fake place. */
-.mapRegion[data-mode='grounds']::before {
-  content: '';
+.decor {
   position: absolute;
-  left: 8%;
-  right: 8%;
-  top: 36%;
-  height: 22px;
-  border-radius: 2px;
-  background: repeating-linear-gradient(90deg, #c4a574 0 10px, #b8955f 10px 12px, #d4b483 12px 22px);
-  opacity: 0.6;
   pointer-events: none;
   z-index: 0;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+}
+
+.decor[data-decor='tree'][data-variant='round'] {
+  background-image: url('/world/tree-round.png');
+}
+
+.decor[data-decor='tree'][data-variant='tall'] {
+  background-image: url('/world/tree-tall.png');
+}
+
+.decor[data-decor='path'] {
+  background-image: url('/world/path-dirt.png');
+  background-size: 100% 40%;
+  background-position: center center;
+}
+
+.decor[data-decor='creek'] {
+  background-image: url('/world/creek.png');
+  opacity: 0.9;
 }
 
 /* Ambient garden plants on grounds — decorative environment only. */
@@ -197,7 +210,7 @@
   background-color: transparent;
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-size: 85% auto;
+  background-size: 92% auto;
   border-color: transparent;
   box-shadow: none;
   overflow: visible;
@@ -208,10 +221,13 @@
 }
 
 .tileSprite .entityLabel {
-  border: 1px solid color-mix(in srgb, var(--pc-ink-900) 40%, transparent);
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  border: 1px solid color-mix(in srgb, var(--pc-ink-900) 35%, transparent);
   border-radius: 1px;
-  margin-top: auto;
   box-shadow: 1px 1px 0 color-mix(in srgb, var(--pc-ink-900) 18%, transparent);
+  z-index: 2;
 }
 
 .tileSprite .entityState {
