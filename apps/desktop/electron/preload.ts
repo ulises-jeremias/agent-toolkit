@@ -15,7 +15,8 @@ const bridge: AtkBridge = {
   },
   harnessStatus: () => ipcRenderer.invoke('atk:harness-status'),
   harnessRecent: () => ipcRenderer.invoke('atk:harness-recent'),
-  harnessSet: (path: string) => ipcRenderer.invoke('atk:harness-set', { path }),
+  harnessSet: (path: string, options) =>
+    ipcRenderer.invoke('atk:harness-set', { path, create: options?.create === true }),
   harnessChoose: () => ipcRenderer.invoke('atk:harness-choose'),
   harnessReset: () => ipcRenderer.invoke('atk:harness-reset'),
   ptyList: () => ipcRenderer.invoke('atk:pty-list'),

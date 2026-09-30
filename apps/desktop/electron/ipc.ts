@@ -1,5 +1,6 @@
 import { ipcMain, type BrowserWindow } from 'electron';
 import type { BackendSupervisor } from './backend';
+import { createDefaultHarnessFromProcess, isDefaultHarnessPath } from './harness';
 import type { HarnessController, HarnessSwitchResult } from './harness-controller';
 import { TerminalCwdError, type TerminalService } from './terminal';
 
@@ -41,6 +42,26 @@ export function registerIpc(deps: IpcDeps): void {
     if (!harness) return NO_HARNESS;
     if (!isRecord(request) || typeof request.path !== 'string') {
       return { ok: false, error: 'invalid-path', message: 'Expected { path: string }' } satisfies HarnessSwitchResult;
+    }
+    // mkdir is opt-in and default-path only. harnessSet/Choose/Reset never
+    // create ~/.ai-workspace unless the renderer passed create:true after confirm.
+    if (request.create === true) {
+      if (!isDefaultHarnessPath(request.path)) {
+        return {
+          ok: false,
+          error: 'invalid-path',
+          message: 'create:true only applies to the default ~/.ai-workspace path',
+        } satisfies HarnessSwitchResult;
+      }
+      const created = createDefaultHarnessFromProcess();
+      if (!created.ok) {
+        return {
+          ok: false,
+          error: 'not-found',
+          message: created.error ?? 'Could not create the default harness folder.',
+        } satisfies HarnessSwitchResult;
+      }
+      return harness.set(created.path);
     }
     return harness.set(request.path);
   });

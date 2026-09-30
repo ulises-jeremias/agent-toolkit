@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useOperation } from '../../data/commands';
 import { useBackend, useHealth, useHelp, useSelfcheck } from '../../data/backend';
 import type { HarnessSwitchResult } from '../../types/electron';
+import { requestOnboardingReplay } from '../onboarding/complete';
 import {
   setMotionPreference,
   setThemePreference,
@@ -158,9 +159,14 @@ export default function Settings() {
             meta="The agent-toolkit serve process this window talks to"
             actions={
               window.atk ? (
-                <Button size="sm" onClick={() => void restartBackend()}>
-                  Restart backend
-                </Button>
+                <ButtonRow>
+                  <Button size="sm" onClick={() => void restartBackend()}>
+                    Restart backend
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={requestOnboardingReplay}>
+                    Run first-run setup again
+                  </Button>
+                </ButtonRow>
               ) : null
             }
           >

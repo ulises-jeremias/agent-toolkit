@@ -37,16 +37,27 @@ function assertBuilt(): void {
 export interface Desktop {
   app: ElectronApplication;
   page: Page;
-  /** Scratch workspace scaffolded by the real CLI; the backend's cwd. */
+  /** Scratch HOME; the default harness is `$HOME/.ai-workspace` when created. */
+  home: string;
+  /** Scratch workspace scaffolded by the real CLI when `initWorkspace` is true. */
   workspace: string;
   close: () => Promise<void>;
+}
+
+export interface OpenDesktopOptions {
+  /** Scaffold ~/.ai-workspace with `workspace init`. Default true. */
+  initWorkspace?: boolean;
+  /** Persist first-run complete so existing specs land on World. Default true. */
+  skipOnboarding?: boolean;
 }
 
 /**
  * Launches the built app against the real backend inside a throwaway HOME
  * and workspace, so runs never read or write the developer's own state.
  */
-export async function openDesktop(): Promise<Desktop> {
+export async function openDesktop(options: OpenDesktopOptions = {}): Promise<Desktop> {
+  const initWorkspace = options.initWorkspace ?? true;
+  const skipOnboarding = options.skipOnboarding ?? true;
   assertBuilt();
   const backendBin = backendBinary();
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-desktop-e2e-'));
@@ -67,21 +78,31 @@ export async function openDesktop(): Promise<Desktop> {
   env['PATH'] = `${path.dirname(backendBin)}${path.delimiter}${process.env.PATH ?? ''}`;
   env['NO_COLOR'] = '1';
 
-  execFileSync(backendBin, ['workspace', 'init', '--dir', workspace], {
-    env,
-    stdio: 'pipe',
-  });
+  if (initWorkspace) {
+    execFileSync(backendBin, ['workspace', 'init', '--dir', workspace], {
+      env,
+      stdio: 'pipe',
+    });
+  }
 
   const args = [APP_DIR, `--user-data-dir=${path.join(root, 'user-data')}`];
   // GitHub runners have no setuid sandbox helper for Chromium.
   if (process.env.CI) args.push('--no-sandbox');
-  const app = await electron.launch({ args, cwd: workspace, env });
+  const app = await electron.launch({ args, cwd: initWorkspace ? workspace : home, env });
   const page = await app.firstWindow();
   await page.waitForLoadState('domcontentloaded');
+  if (skipOnboarding) {
+    await page.addInitScript(() => {
+      localStorage.setItem('atk.desktop.onboarding.complete', '1');
+    });
+    await page.reload();
+    await page.waitForLoadState('domcontentloaded');
+  }
 
   return {
     app,
     page,
+    home,
     workspace,
     close: async () => {
       await app.close();

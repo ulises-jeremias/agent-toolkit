@@ -1,13 +1,16 @@
-import { Suspense } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { HashRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router';
 import { useBackend, useHealth } from '../data/backend';
 import { activeJobIds, useJobs } from '../data/jobs';
 import { LiveProvider } from '../data/live';
 import { TerminalProvider } from '../data/terminal';
+import { Onboarding } from '../features/onboarding/Onboarding';
+import { REPLAY_ONBOARDING_EVENT, shouldRunOnboarding } from '../features/onboarding/complete';
 import { DestinationBoundary, LoadingState, ReceiptsProvider } from '../ui';
 import { CommandPalette } from './CommandPalette';
 import { ContextBar } from './ContextBar';
 import { DESTINATIONS } from './destinations';
+import { HOME_PATH } from './home';
 import { LiveIndicator, StaleNotice } from './LiveIndicator';
 import { TerminalDock } from './TerminalDock';
 import { useSessionContext } from './useSessionContext';
@@ -77,7 +80,7 @@ function ShellFrame() {
         <StaleNotice />
         <main id="main" className={styles.content} tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<RedirectTo path="/world" />} />
+            <Route path="/" element={<RedirectTo path={HOME_PATH} />} />
             {DESTINATIONS.map(({ path, label, component: Destination }) => (
               <Route
                 key={path}
@@ -91,7 +94,7 @@ function ShellFrame() {
                 }
               />
             ))}
-            <Route path="*" element={<RedirectTo path="/world" />} />
+            <Route path="*" element={<RedirectTo path={HOME_PATH} />} />
           </Routes>
         </main>
         <TerminalDock />
@@ -101,13 +104,30 @@ function ShellFrame() {
   );
 }
 
+function useOnboardingGate() {
+  const [active, setActive] = useState(shouldRunOnboarding);
+  useEffect(() => {
+    const replay = () => setActive(true);
+    window.addEventListener(REPLAY_ONBOARDING_EVENT, replay);
+    return () => window.removeEventListener(REPLAY_ONBOARDING_EVENT, replay);
+  }, []);
+  const complete = useCallback(() => setActive(false), []);
+  return { active, complete };
+}
+
+function ShellRoot() {
+  const { active, complete } = useOnboardingGate();
+  if (active) return <Onboarding onComplete={complete} />;
+  return <ShellFrame />;
+}
+
 export default function Shell() {
   return (
     <HashRouter>
       <ReceiptsProvider>
         <LiveProvider>
           <TerminalProvider>
-            <ShellFrame />
+            <ShellRoot />
           </TerminalProvider>
         </LiveProvider>
       </ReceiptsProvider>

@@ -62,6 +62,13 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     keywords: ['serve', 'crash'],
   },
   {
+    id: 'session:replay-onboarding',
+    group: 'Session',
+    title: 'Run first-run setup again',
+    hint: 'Replay harness confirm, then enter the world',
+    keywords: ['onboarding', 'setup', 'welcome'],
+  },
+  {
     id: 'appearance:paper',
     group: 'Appearance',
     title: 'Use Paper theme',

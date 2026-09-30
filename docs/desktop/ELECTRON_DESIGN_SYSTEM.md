@@ -116,6 +116,17 @@ Everything is exported from `src/ui/index.ts`.
 | `CommandReport({ envelope, label, failureLabel?, hideFields? })` | A command envelope: its text output plus its scalar `data` fields. |
 | `DestinationBoundary({ name })` | Per-route error boundary in the shell. It resets on navigation. |
 
+### First run
+
+Electron only, until `localStorage['atk.desktop.onboarding.complete']` is set
+(Settings and the command palette can replay it). First-run is a Paper Co.
+welcome desk (paper / manila / sage, pixel tools, no numbered wizard, no
+invented agents), then the path into the world: backend ready →
+`window.atk.harnessChoose` / confirm then `harnessSet(default, { create: true })`
+/ `harnessReset` (never mkdir `~/.ai-workspace` without confirm). Desktop
+never invents tool INSTALLED badges. Replay is `session:replay-onboarding`.
+Home after setup is `/world` (semantic world from #1335).
+
 ### Shell contracts later destinations must use
 
 Do not invent a second session scope, toast, dialog, or terminal host. Destination PRs compose these:
@@ -211,7 +222,9 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
   - a real job run end to end;
   - dialog focus handling;
   - theme persistence;
-  - a real PTY session.
+  - a real PTY session;
+  - first-run happy path (existing `~/.ai-workspace`) and missing-harness
+    confirm-create (`e2e/electron/onboarding.spec.ts`).
 
   Point it at a backend with `ATK_E2E_BACKEND_BIN`; CI uses the
   `dist/agent-toolkit` it builds. On Linux without a display, run it under
@@ -239,6 +252,17 @@ during the run.
 
 All 28 captures are in `assets/electron/foundations/`, named
 `<theme>-<width>x<height>-<destination>.png`.
+
+First-run captures (Phase 4.1) live in `assets/electron/onboarding/`. Ready and
+harness frames are in tree; World home is the #1335 semantic slice (`WorldView`).
+Regenerate `03-world.png` with `ATK_CAPTURE=1`.
+
+| Step | Existing harness | Missing harness |
+|---|---|---|
+| Welcome desk | ![](assets/electron/onboarding/01-ready.png) | (same step) |
+| The folder | ![](assets/electron/onboarding/02-harness-existing.png) | ![](assets/electron/onboarding/fallback-01-missing.png) |
+| Confirm create | — | ![](assets/electron/onboarding/fallback-02-confirm.png) |
+| After create | — | ![](assets/electron/onboarding/fallback-03-created.png) |
 
 ## Known gaps
 

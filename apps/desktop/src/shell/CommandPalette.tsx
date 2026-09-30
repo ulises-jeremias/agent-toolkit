@@ -4,6 +4,7 @@ import { useBackend } from '../data/backend';
 import { useTerminalSessions } from '../data/terminal';
 import { setThemePreference, type ThemePreference } from '../design/theme';
 import { Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
+import { requestOnboardingReplay } from '../features/onboarding/complete';
 import { filterCommands, PALETTE_COMMANDS, SHORTCUTS, type PaletteCommand } from './commands';
 import { DESTINATIONS } from './destinations';
 import { useSessionContext } from './useSessionContext';
@@ -114,6 +115,9 @@ export function CommandPalette() {
         break;
       case 'session:restart-backend':
         void restartBackend();
+        break;
+      case 'session:replay-onboarding':
+        requestOnboardingReplay();
         break;
       case 'appearance:paper':
       case 'appearance:ink':
