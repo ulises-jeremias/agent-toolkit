@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.36.0] — 2026-09-30
+
 ### Changed
 
 - Desktop world memory and tool detail inspectors expose a Back control and
@@ -1026,7 +1028,9 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.25.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.36.0...HEAD
+[1.36.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.35.0...v1.36.0
+[1.35.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.35.0
 [1.25.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.25.0
 [1.24.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.24.0
 [1.23.1]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.23.1
