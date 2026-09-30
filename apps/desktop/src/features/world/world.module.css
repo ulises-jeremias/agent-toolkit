@@ -70,7 +70,15 @@
 
 .decor[data-decor='creek'] {
   background-image: url('/world/creek.png');
-  opacity: 0.9;
+  background-size: 70% 100%;
+  background-position: center center;
+  opacity: 0.95;
+}
+
+.decor[data-decor='bridge'] {
+  background-image: url('/world/bridge.png');
+  background-size: 100% 100%;
+  z-index: 1;
 }
 
 /* Ambient garden plants on grounds — decorative environment only. */
