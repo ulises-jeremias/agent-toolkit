@@ -112,3 +112,54 @@ fn test_memory_unknown_type() {
 	})
 	assert !r.ok
 }
+
+fn test_memory_add_learning_keeps_table_rows_separate() {
+	base := os.join_path(os.temp_dir(), 'at-mem-rows-${os.getpid()}')
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	init := run_workspace(WorkspaceOptions{
+		subcommand: 'init'
+		dir: base
+	})
+	assert init.ok, init.message
+	os.rm(os.join_path(base, 'knowledge', 'learnings', 'general.md')) or {}
+	for content in ['first learning', 'second learning', 'third learning'] {
+		r := run_memory(MemoryOptions{
+			subcommand: 'add'
+			entry_type: 'learning'
+			content: content
+			workspace_path: base
+		})
+		assert r.ok, r.message
+	}
+	text := os.read_file(os.join_path(base, 'knowledge', 'learnings', 'general.md')) or {
+		panic(err)
+	}
+	lines := text.split('\n')
+	sep := lines.index('|------|----------|---------|')
+	assert sep > 0
+	assert lines[sep - 1] == '| Date | Learning | Context |'
+	assert lines[sep + 1].contains('| third learning | Session |')
+	assert lines[sep + 2].contains('| second learning | Session |')
+	assert lines[sep + 3].contains('| first learning | Session |')
+	assert !text.contains('||')
+	assert !text.contains('---------|\n\n')
+}
+
+fn test_insert_table_row_heals_blank_line_and_preserves_content() {
+	header := '| Date | Learning | Context |'
+	row := '| 2026-09-30 | new | Session |'
+	legacy := '# L\n\n${header}\n|------|----------|---------|\n\n| 2026-09-29 | old | Session |\n\n## Next\n'
+	assert insert_table_row(legacy, legacy.index(header) or { -1 }, header, row) == '# L\n\n${header}\n|------|----------|---------|\n${row}\n| 2026-09-29 | old | Session |\n\n## Next\n'
+	empty := '${header}\n|------|----------|---------|\n\n## Next\n'
+	assert insert_table_row(empty, 0, header, row) == '${header}\n|------|----------|---------|\n${row}\n\n## Next\n'
+	no_sep := '${header}\n| 2026-09-29 | old | Session |\n'
+	assert insert_table_row(no_sep, 0, header, row) == '${header}\n${row}\n| 2026-09-29 | old | Session |\n'
+	dashes := '${header}\n| 2026-09-29 | front-matter starts with --- | Session |\n'
+	assert insert_table_row(dashes, 0, header, row) == '${header}\n${row}\n| 2026-09-29 | front-matter starts with --- | Session |\n'
+	assert is_table_separator('|------|:---:|---|\n')
+	assert !is_table_separator('| a --- b |')
+	bare := header
+	assert insert_table_row(bare, 0, header, row) == '${header}\n${row}\n'
+}
