@@ -77,13 +77,7 @@ export function WorldEntityMap({
   };
 
   return (
-    <div
-      className={styles.mapRegion}
-      role="application"
-      aria-label={ariaLabel}
-      data-theme={theme.id}
-      data-mode={mode}
-    >
+    <div className={styles.mapRegion} role="application" aria-label={ariaLabel} data-theme={theme.id} data-mode={mode}>
       <div
         className={styles.map}
         style={{

@@ -148,4 +148,3 @@ describe('applyBusEvent', () => {
     expect(queryClient.getQueryState(qk.jobs.list())?.isInvalidated).toBe(true);
   });
 });
-

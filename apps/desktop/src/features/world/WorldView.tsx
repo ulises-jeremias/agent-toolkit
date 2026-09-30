@@ -7,15 +7,7 @@ import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { envelopeText } from '../../lib/api';
 import { useSessionContext } from '../../shell/useSessionContext';
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PageHeader,
-  Panel,
-  Stack,
-  useActionReceipt,
-} from '../../ui';
+import { EmptyState, ErrorState, LoadingState, PageHeader, Panel, Stack, useActionReceipt } from '../../ui';
 import { entityAccessibleName, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
@@ -114,16 +106,7 @@ export default function WorldView() {
         })),
         focusProjectId: focusProject,
       }),
-    [
-      workspacePath,
-      projects,
-      projectsQuery.isSuccess,
-      memory,
-      tools,
-      toolsQuery.isSuccess,
-      jobs,
-      focusProject,
-    ],
+    [workspacePath, projects, projectsQuery.isSuccess, memory, tools, toolsQuery.isSuccess, jobs, focusProject],
   );
 
   const layout = useMemo(() => layoutWorld(model), [model]);
@@ -259,12 +242,7 @@ export default function WorldView() {
           {layout.entities.length === 0 ? (
             <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
           ) : (
-            <WorldEntityList
-              entities={layout.entities}
-              selectedId={selectedId}
-              href={href}
-              onSelect={setSelectedId}
-            />
+            <WorldEntityList entities={layout.entities} selectedId={selectedId} href={href} onSelect={setSelectedId} />
           )}
         </Panel>
       </Stack>

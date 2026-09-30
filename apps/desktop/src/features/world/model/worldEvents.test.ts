@@ -77,10 +77,7 @@ describe('world follows GET /api/v1/events', () => {
     expect(before.entities.find((e) => e.id === 'place:project:alpha')?.activity).toBe('working');
     expect(before.entities.some((e) => e.id === `character:job:${running.id}`)).toBe(true);
 
-    applyBusEvent(
-      queryClient,
-      bus({ type: 'job.updated', subject: running.id, status: 'completed', boot: 'boot-a' }),
-    );
+    applyBusEvent(queryClient, bus({ type: 'job.updated', subject: running.id, status: 'completed', boot: 'boot-a' }));
 
     const afterJobs = Object.values(queryClient.getQueryData<JobRegistry>(qk.jobs.list()) ?? {});
     expect(afterJobs.find((j) => j.id === running.id)?.status).toBe('completed');
@@ -128,10 +125,7 @@ describe('world follows GET /api/v1/events', () => {
     };
     queryClient.setQueryData(qk.memory.list(), listed);
 
-    applyBusEvent(
-      queryClient,
-      bus({ type: 'memory.changed', subject: 'learning', status: 'ok', message: 'add' }),
-    );
+    applyBusEvent(queryClient, bus({ type: 'memory.changed', subject: 'learning', status: 'ok', message: 'add' }));
 
     // Event subject is entry type only — cache rows stay until refetch; world must not invent.
     expect(queryClient.getQueryData<MemoryListResponse>(qk.memory.list())?.entries).toHaveLength(1);
@@ -191,10 +185,7 @@ describe('world follows GET /api/v1/events', () => {
   it('swarm.changed does not invent house activity — payload has no project id', () => {
     const queryClient = new QueryClient();
     queryClient.setQueryData(qk.swarms.list(), []);
-    applyBusEvent(
-      queryClient,
-      bus({ type: 'swarm.changed', subject: 'run_abc', status: 'ok', message: 'status' }),
-    );
+    applyBusEvent(queryClient, bus({ type: 'swarm.changed', subject: 'run_abc', status: 'ok', message: 'status' }));
     expect(queryClient.getQueryState(qk.swarms.list())?.isInvalidated).toBe(true);
     // No project on the event → world house activity stays job-driven only.
     const model = buildWorldModel(worldFromJobs([]));
