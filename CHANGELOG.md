@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Changed
+
+- World building and landmark sprites fill their lot (nearest-neighbor), so
+  houses and shared places read as buildings instead of small icons in a cell.
+
 ## [1.39.0] — 2026-09-30
 
 ### Added

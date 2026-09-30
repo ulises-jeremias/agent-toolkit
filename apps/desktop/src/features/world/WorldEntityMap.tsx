@@ -140,7 +140,7 @@ export function WorldEntityMap({
                 ...(asset.kind === 'sprite'
                   ? {
                       backgroundImage: `url(${mode === 'interior' ? (INTERIOR_SPRITE[entity.themeKey] ?? asset.src) : asset.src})`,
-                      backgroundSize: 'contain',
+                      backgroundSize: '100% 100%',
                       backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'center bottom',
                     }
