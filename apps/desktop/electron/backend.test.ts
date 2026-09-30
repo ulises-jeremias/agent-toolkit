@@ -3,7 +3,16 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { BackendSupervisor, resolveExpectedBackendMajor } from './backend';
+import { BackendSupervisor, resolveBackendBinary, resolveExpectedBackendMajor } from './backend';
+
+/** Keeps lifecycle tests independent of the developer's real ~/.ai-workspace and env. */
+const fallbackHarness = () => ({
+  path: process.cwd(),
+  source: 'fallback' as const,
+  defaultPath: '/nonexistent/.ai-workspace',
+  overrideVar: null,
+  notice: 'test fallback',
+});
 
 const FIXTURE_SOURCE = `#!/usr/bin/env node
 // Minimal 'agent-toolkit serve' stand-in: serves /api/v1/health only.
@@ -14,6 +23,9 @@ const server = http.createServer((req, res) => {
   if (req.url === '/api/v1/health') {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ ok: true, version: '9.9.9-test', uptime_s: 1 }));
+  } else if (req.url === '/__fixture/spawn') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ cwd: process.cwd(), workspace: process.env.AGENT_TOOLKIT_WORKSPACE ?? null }));
   } else {
     res.writeHead(404);
     res.end('{}');
@@ -56,7 +68,7 @@ describe('BackendSupervisor', () => {
   });
 
   it('starts, reports ready with a version, restarts, and stops', async () => {
-    supervisor = new BackendSupervisor();
+    supervisor = new BackendSupervisor({ resolveHarness: fallbackHarness });
     const started = await supervisor.start();
     expect(started).toBe(true);
 
@@ -73,6 +85,39 @@ describe('BackendSupervisor', () => {
     expect(supervisor.snapshot().status).toBe('stopped');
   }, 90_000);
 
+  it('spawns serve rooted at the resolved harness and reports it', async () => {
+    const harnessDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'atk-harness-')));
+    const harness = {
+      path: harnessDir,
+      source: 'default' as const,
+      defaultPath: harnessDir,
+      overrideVar: null,
+      notice: null,
+    };
+    try {
+      supervisor = new BackendSupervisor({ resolveHarness: () => harness });
+      expect(await supervisor.start()).toBe(true);
+      const snapshot = supervisor.snapshot();
+      expect(snapshot.harness).toEqual(harness);
+      const spawned = (await (await fetch(`${snapshot.url}/__fixture/spawn`)).json()) as {
+        cwd: string;
+        workspace: string | null;
+      };
+      expect(spawned).toEqual({ cwd: harnessDir, workspace: harnessDir });
+    } finally {
+      await supervisor?.stop();
+      supervisor = null;
+      fs.rmSync(harnessDir, { recursive: true, force: true });
+    }
+  }, 90_000);
+
+  it('resolves a relative PATH entry to an absolute backend path', () => {
+    process.env.PATH = `${path.relative(process.cwd(), fixtureDir)}${path.delimiter}${savedPath}`;
+    const { bin, source } = resolveBackendBinary();
+    expect(source).toBe('path');
+    expect(bin).toBe(path.join(fixtureDir, 'agent-toolkit'));
+  });
+
   it('parses the expected-major override', () => {
     process.env.ATK_EXPECTED_BACKEND_MAJOR = 'v2.0.0';
     expect(resolveExpectedBackendMajor()).toBe('2');
@@ -82,7 +127,7 @@ describe('BackendSupervisor', () => {
 
   it('reports version-mismatch instead of ready on major drift', async () => {
     process.env.ATK_EXPECTED_BACKEND_MAJOR = '1';
-    supervisor = new BackendSupervisor();
+    supervisor = new BackendSupervisor({ resolveHarness: fallbackHarness });
     const started = await supervisor.start();
     expect(started).toBe(false);
     expect(supervisor.snapshot().status).toBe('version-mismatch');

@@ -148,6 +148,25 @@ export default function Settings() {
                 { label: 'URL', value: backendUrl ?? 'Not connected', mono: backendUrl !== null },
                 { label: 'Version', value: health.data?.version ?? backend?.version ?? 'Unknown' },
                 ...(health.data?.commit ? [{ label: 'Commit', value: health.data.commit, mono: true }] : []),
+                ...(backend
+                  ? [
+                      {
+                        label: 'Harness',
+                        value: backend.harness
+                          ? `${backend.harness.path} (${backend.harness.source}${backend.harness.overrideVar ? ` via ${backend.harness.overrideVar}` : ''})`
+                          : 'Not resolved yet',
+                        mono: backend.harness !== null,
+                      },
+                    ]
+                  : []),
+                ...(backend?.harness?.notice
+                  ? [
+                      {
+                        label: 'Harness notice',
+                        value: backend.harness.notice,
+                      },
+                    ]
+                  : []),
                 ...(backend ? [{ label: 'Restarts', value: String(backend.restarts) }] : []),
                 ...(backend?.detail ? [{ label: 'Detail', value: backend.detail }] : []),
               ]}

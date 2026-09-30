@@ -37,6 +37,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   receipts and per-destination error boundaries, the design brief
   `docs/desktop/ELECTRON_DESIGN_SYSTEM.md`, and Playwright E2E that drives
   the built Electron app against the real backend under xvfb in CI.
+- Desktop default harness: the supervised backend runs in `~/.ai-workspace`
+  (cwd and `AGENT_TOOLKIT_WORKSPACE`) when it exists. The existing
+  `AGENT_TOOLKIT_WORKSPACE`/`HARNESS_DIR` overrides still win. When neither
+  resolves, Desktop falls back to the inherited cwd with a visible notice and
+  never creates the directory. Settings and Office show the resolved harness
+  and its source.
 
 ### Changed
 

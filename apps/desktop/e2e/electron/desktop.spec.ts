@@ -30,6 +30,13 @@ test('supervisor starts the real backend and the shell connects', async () => {
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
+test('the backend runs in the default ~/.ai-workspace harness', async () => {
+  const { page, workspace } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
+  await expect(page.getByRole('region', { name: 'Backend' })).toContainText(`${workspace} (default)`);
+  await expect(page.getByText('Harness notice')).toHaveCount(0);
+});
+
 test('every destination renders from live data without a crash boundary', async () => {
   const { page } = desktop;
   const nav = page.getByRole('navigation', { name: 'Destinations' });

@@ -15,6 +15,7 @@ const backend = (status: BackendState['status']): BackendState => ({
   version: '1.35.0',
   detail: null,
   restarts: 0,
+  harness: null,
 });
 
 describe('indicatorState', () => {

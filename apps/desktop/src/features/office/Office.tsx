@@ -60,6 +60,15 @@ export default function Office() {
       action: { to: '/settings', label: 'Open backend settings' },
     });
   }
+  if (backend?.harness?.notice) {
+    attention.push({
+      key: 'harness',
+      tone: 'warn',
+      title: backend.harness.source === 'fallback' ? 'Harness not found' : 'Harness override ignored',
+      detail: backend.harness.notice,
+      action: { to: '/settings', label: 'See harness' },
+    });
+  }
   for (const job of recentFailures) {
     attention.push({
       key: job.id,

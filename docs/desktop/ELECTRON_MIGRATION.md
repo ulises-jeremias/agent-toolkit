@@ -26,6 +26,53 @@ Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
   <dynamic> --no-browser` (health-gated, version-checked, crash-detected,
   clean shutdown). Terminals use node-pty in main as a transport adapter only.
 
+## Default harness
+
+Desktop's default harness is `~/.ai-workspace`, expanded with the OS home
+directory. `electron/harness.ts` resolves it again on every backend start:
+
+1. **override**: `AGENT_TOOLKIT_WORKSPACE`, then its alias `HARNESS_DIR`
+   (the order core `find_workspace_root` uses, see
+   [env-precedence.md](../compatibility/env-precedence.md)). Desktop expands
+   `~` and relative paths and passes the absolute result to serve; core does
+   not expand `~`. A value that is not a directory is skipped.
+2. **default**: `~/.ai-workspace`, if it is a directory.
+3. **fallback**: the behavior from before this default existed. serve
+   inherits the Desktop process cwd and resolves its workspace from there.
+   This applies when an override is set but broken, or when the default is
+   missing. Desktop never creates `~/.ai-workspace`, so Agent Toolkit stays
+   usable without My AI Workspace.
+
+For `default` and `override`, serve is spawned with `cwd` set to the harness
+and `AGENT_TOOLKIT_WORKSPACE` set to the same path. That keeps the jobs dir,
+containment roots and `find_workspace_root` in agreement (see
+[SERVE_API.md](../SERVE_API.md#workspace-rooting)). The resolution
+(`path`, `source`, `defaultPath`, `overrideVar`, `notice`) travels on
+`BackendState.harness` through `atk:backend-status` and `atk:backend-state`.
+Settings shows the harness and any notice, and Office shows it on the backend
+line.
+
+Known caveats: serve writes job logs to `<harness>/.agent-toolkit/server`,
+so a harness that is a git repository should ignore `.agent-toolkit/`. A dev
+backend with no embedded data and no XDG data can mistake a harness that has
+`loops/` and `profiles/` for toolkit data, through core's cwd tier in
+`find_toolkit_root`. Packaged and installed backends are unaffected because
+they ship embedded data.
+
+Switching the harness at runtime means restarting the backend: serve is
+cwd-rooted, so one backend serves one harness. The supervisor takes a
+`resolveHarness` option, so a later onboarding or workspace picker can
+provide a chosen path and call `restart()`.
+
+Verified 2026-09-29 in the Electron dev app against the installed backend
+1.35.0. By default, the serve child ran in `~/.ai-workspace` with the env
+set. Selfcheck `jobs_dir_writable`, `GET /loops` and `workspace/context` all
+reported `~/.ai-workspace`. With `AGENT_TOOLKIT_WORKSPACE` pointing at a
+missing directory, Settings showed the fallback notice, serve stayed in the
+inherited cwd, and nothing was created. Evidence:
+[default](assets/electron/settings-harness-default.png),
+[fallback](assets/electron/settings-harness-fallback.png).
+
 ## Live verification (2026-09-29, backend 1.35.0 @ 19f87ad + branch V fixes)
 
 - `pnpm lint`, `pnpm type-check`, `pnpm test` (16/16), `pnpm build:all` green.

@@ -51,12 +51,15 @@ export async function openDesktop(): Promise<Desktop> {
   const backendBin = backendBinary();
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-desktop-e2e-'));
   const home = path.join(root, 'home');
-  const workspace = path.join(root, 'workspace');
+  // The default harness, so the supervisor resolves it without an override.
+  const workspace = path.join(home, '.ai-workspace');
   fs.mkdirSync(home, { recursive: true });
 
+  // Harness overrides from the developer's shell would point at their real workspace.
+  const dropped = new Set(['ELECTRON_RUN_AS_NODE', 'AGENT_TOOLKIT_WORKSPACE', 'HARNESS_DIR']);
   const env: Record<string, string> = {};
   for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined && key !== 'ELECTRON_RUN_AS_NODE') env[key] = value;
+    if (value !== undefined && !dropped.has(key)) env[key] = value;
   }
   env['HOME'] = home;
   env['XDG_CONFIG_HOME'] = path.join(home, '.config');
