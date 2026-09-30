@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.40.0] — 2026-09-30
+
 ### Changed
 
 - World building and landmark sprites fill their lot (nearest-neighbor), so
@@ -1086,7 +1088,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.39.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.40.0...HEAD
+[1.40.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.39.0...v1.40.0
 [1.39.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.38.0...v1.39.0
 [1.38.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.37.0...v1.38.0
 [1.37.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.36.0...v1.37.0
