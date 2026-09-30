@@ -167,4 +167,80 @@ test('terminal runs a real pseudo-terminal session that survives navigation', as
   const dock = page.getByRole('complementary', { name: 'Terminal dock' });
   await expect(dock.getByRole('tab', { name: /e2e-shell/ })).toBeVisible();
   await expect(dock.getByLabel('Terminal for e2e-shell').locator('.xterm-rows')).toContainText('atk-e2e-42');
+  await expect(page.getByRole('button', { name: 'New session' })).toHaveCount(1);
+});
+
+test('the world focuses a real PTY and does not invent one', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
+  const dialog = page.getByRole('dialog', { name: 'New terminal session' });
+  await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
+  await dialog.getByRole('textbox', { name: 'Label', exact: true }).fill('e2e-world');
+  await dialog.getByRole('button', { name: 'Open session' }).click();
+
+  const first = page.getByRole('tab', { name: /e2e-shell/ });
+  const second = page.getByRole('tab', { name: /e2e-world/ });
+  const firstId = await first.getAttribute('data-session-id');
+  const secondId = await second.getAttribute('data-session-id');
+  expect(firstId).toBeTruthy();
+  expect(secondId).toBeTruthy();
+  if (!firstId || !secondId) throw new Error('missing session id');
+  await expect(second).toHaveAttribute('aria-selected', 'true');
+  expect(page.url()).toContain(`pty=${secondId}`);
+
+  await first.click();
+  await expect(first).toHaveAttribute('aria-selected', 'true');
+  expect(page.url()).toContain(`pty=${firstId}`);
+
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  expect(page.url()).toContain(`pty=${firstId}`);
+  await expect(first).toHaveAttribute('aria-selected', 'true');
+
+  await page.evaluate((id) => {
+    const raw = window.location.hash.slice(1);
+    const q = raw.indexOf('?');
+    const path = q >= 0 ? raw.slice(0, q) : raw;
+    const params = new URLSearchParams(q >= 0 ? raw.slice(q + 1) : '');
+    params.set('pty', id);
+    window.location.hash = `${path}?${params}`;
+  }, secondId);
+  await expect(second).toHaveAttribute('aria-selected', 'true');
+
+  const before = await page.getByRole('tab').count();
+  await page.evaluate(() => {
+    const raw = window.location.hash.slice(1);
+    const q = raw.indexOf('?');
+    const path = q >= 0 ? raw.slice(0, q) : raw;
+    const params = new URLSearchParams(q >= 0 ? raw.slice(q + 1) : '');
+    params.set('pty', 'missing-world-pty');
+    window.location.hash = `${path}?${params}`;
+  });
+  await expect(page.getByRole('tab')).toHaveCount(before);
+  await expect(second).toHaveAttribute('aria-selected', 'true');
+});
+
+test('an exited session keeps its output and can restart', async () => {
+  const { page } = desktop;
+  // Bind a real run identity so the dock tab (and restart) carry it — do not invent labels in asserts.
+  const runField = page.getByRole('form', { name: 'Session context' }).getByRole('textbox', { name: 'Run' });
+  await runField.fill('e2e-run');
+  await runField.press('Enter');
+  await expect(page).toHaveURL(/run=e2e-run/);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
+  await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
+  const dialog = page.getByRole('dialog', { name: 'New terminal session' });
+  await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('/bin/sh');
+  await dialog.getByRole('textbox', { name: 'Label', exact: true }).fill('e2e-exit');
+  await dialog.getByRole('button', { name: 'Open session' }).click();
+
+  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
+  const terminal = page.getByLabel('Terminal for e2e-exit');
+  await terminal.click();
+  await page.keyboard.type('exit 7');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · exited 7/ })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'exit code 7' })).toBeVisible();
+  await page.getByRole('button', { name: 'Restart' }).click();
+  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
 });

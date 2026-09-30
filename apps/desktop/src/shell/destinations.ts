@@ -48,7 +48,7 @@ export const DESTINATIONS: readonly Destination[] = [
   {
     path: '/terminal',
     label: 'Terminal',
-    question: 'Where do I work with agents directly?',
+    question: 'Where is the workstation for this agent, run and harness?',
     component: lazy(() => import('../features/terminal/TerminalView')),
   },
   {

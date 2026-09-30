@@ -137,7 +137,7 @@ Do not invent a second session scope, toast, dialog, or terminal host. Destinati
 | Command palette | Ctrl/Cmd+K, `src/shell/CommandPalette.tsx` | Add a `PALETTE_COMMANDS` entry for new global actions. Do not bind a second Ctrl+K. |
 | Dialog / confirm | `Dialog`, `ConfirmAction` | Native `<dialog>`. No custom modal stacks. |
 | Toasts | `useActionReceipt` / `useReceipts` | Receipts are the only toast surface. |
-| Terminal | `useTerminalSessions` + the dock | xterm instances mount in `TerminalHost` only. A destination may create/attach a session; it must not construct its own `Terminal`. |
+| Terminal | `useTerminalSessions` + the dock | xterm instances mount in `TerminalHost` only. A destination may create/attach a session; it must not construct its own `Terminal`. The world focuses a real session with `href('/terminal', { pty })` or agent/run/cwd identity — never a fake PTY. |
 | Query / live | `qk`, `useSubQuery` / `useJobs`, `useLiveStatus` | Keys come from the factory. SSE writes go through `applyLiveEvent`. |
 | Visual | tokens + `src/ui` | Paper/Ink/System via `theme.ts`. Fraunces + IBM Plex via `@fontsource`. No new typefaces. |
 
@@ -200,7 +200,8 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
 - **Command palette is the shortcut map.** Ctrl/Cmd+K opens it; `?` opens the
   binding list. Destination-local shortcuts stay on those screens.
 - **The terminal dock is the host.** Sessions stay mounted across navigation.
-  Tabs show agent, run, cwd and process state.
+  Tabs show agent, run, cwd and process state. Terminal is a workstation
+  place, not a second product home; `pty` in the URL focuses a real session.
 - **Offline disables and explains.** Actions that need the backend are
   disabled with a `title` that says why. They are never hidden.
 - **Command preview.** Dialogs that run a command show the exact command line

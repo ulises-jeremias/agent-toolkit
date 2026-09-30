@@ -37,6 +37,12 @@ describe('withContext', () => {
   it('omits the query when nothing is in scope', () => {
     expect(withContext('/office', EMPTY_CONTEXT)).toBe('/office');
   });
+
+  it('lets the world focus a real PTY the way Operations focuses a job', () => {
+    expect(withContext('/terminal', { workspace: '/ws', agent: 'a', run: 'r1' }, { pty: 'pty-a' })).toBe(
+      '/terminal?workspace=%2Fws&agent=a&run=r1&pty=pty-a',
+    );
+  });
 });
 
 describe('basename', () => {

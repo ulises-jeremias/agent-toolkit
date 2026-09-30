@@ -38,7 +38,7 @@ export function writeContext(params: URLSearchParams, patch: Partial<SessionCont
   return next;
 }
 
-/** Destination path plus session context, and any extra view params (job, …). */
+/** Destination path plus session context, and any extra view params (`job`, `pty`, …). */
 export function withContext(
   path: string,
   context: SessionContext,

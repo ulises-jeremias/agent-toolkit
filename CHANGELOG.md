@@ -60,6 +60,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   bundled → staged → PATH, with a version-pin and `serve` capability probe
   before spawn. Incompatible binaries report `failed`/`binary-rejected` (or
   `version-mismatch`) with path, source, version and reason — not "crashed".
+- Desktop Terminal workstation: session inventory (agent, run, cwd, process
+  state) over the persistent dock — no second xterm — plus copy/paste,
+  interrupt/terminate/kill, restart after exit, and drag-drop of `file:`
+  paths into the PTY. Main keeps a 3000-line G1 tail. The world focuses a
+  real session with `?pty=` or agent/run/harness identity; unknown ids do
+  not create a session. Electron E2E covers harness cwd, identity labels,
+  navigation survival, world focus, and exit recovery.
 
 - `serve`: global event stream `GET /api/v1/events` (SSE; `job.*`,
   `loop.*`, `swarm.changed`, `memory.changed`, `install.*`, `backend.*`).
