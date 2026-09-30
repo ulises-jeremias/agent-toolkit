@@ -68,11 +68,13 @@ platform, game, generic AI SaaS dashboard or general terminal-emulator competito
 Preserve the terminal as a flagship coding-agent workflow without expanding into
 unrelated terminal features.
 
-[Munder Difflin](https://munderdiffl.in/) is a category benchmark, inspected
-2026-09-05. Its landing page makes the local CLI-agent relationship, download and
-setup story prominent. Learn from that immediate explanation and discoverability;
-do not copy its interface, terms, assets or implementation. Marketing claims are
-not independently verified runtime evidence.
+[Munder Difflin](https://munderdiffl.in/) and
+[Agent Office](https://github.com/AgentSystemLabs/agent-office) are capability
+references, not visual authorities. Inspected revisions and the comparison live
+in [WORKSTATION_REFERENCE_ANALYSIS.md](WORKSTATION_REFERENCE_ANALYSIS.md).
+Learn user outcomes (setup discoverability, session durability, attention);
+do not copy interfaces, terms, assets, 3D/game surfaces or implementation.
+Marketing claims are not independently verified runtime evidence.
 
 ## Delivery and completion
 

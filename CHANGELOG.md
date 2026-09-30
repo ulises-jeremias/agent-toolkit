@@ -62,6 +62,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `serve` no longer reaches `loops run`, `loops gate-*` or `swarms attach`
   through the generic `:sub` routes; use `POST /api/v1/loops/{name}/run`
   or the CLI.
+- Renamed `docs/desktop/MUNDER_GAP.md` to
+  `docs/desktop/WORKSTATION_REFERENCE_ANALYSIS.md` and expanded it into the
+  three-way workstation decision artifact (Agent Toolkit, Munder Difflin,
+  Agent Office). The Electron capture recipe and baseline screenshot
+  references are unchanged.
 
 ### Fixed
 

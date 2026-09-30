@@ -80,6 +80,8 @@ From now on:
 - Rollback proof: `docs/desktop/ELECTRON_MIGRATION.md` (v1.35.0 == main tree)
 - Template: Create Awesome Node App `react-vite-starter`
   (`projects/cna-templates/templates/react-vite-starter`)
-- Capability reference: `agent-toolkit-vs-munder-difflin-analysis.md`
-  (workspace knowledge; behavior ported, identity not copied)
+- Capability reference: `docs/desktop/WORKSTATION_REFERENCE_ANALYSIS.md`
+  (in-repo; Munder Difflin + Agent Office as capability references only;
+  identity not copied). Workspace note
+  `agent-toolkit-vs-munder-difflin-analysis.md` is historical.
 - Review: owner review required before ACCEPTED (human review gate).
