@@ -120,7 +120,7 @@ fn test_memory_add_learning_keeps_table_rows_separate() {
 	}
 	init := run_workspace(WorkspaceOptions{
 		subcommand: 'init'
-		dir:        base
+		dir: base
 	})
 	assert init.ok, init.message
 	os.rm(os.join_path(base, 'knowledge', 'learnings', 'general.md')) or {}
@@ -156,6 +156,10 @@ fn test_insert_table_row_heals_blank_line_and_preserves_content() {
 	assert insert_table_row(empty, 0, header, row) == '${header}\n|------|----------|---------|\n${row}\n\n## Next\n'
 	no_sep := '${header}\n| 2026-09-29 | old | Session |\n'
 	assert insert_table_row(no_sep, 0, header, row) == '${header}\n${row}\n| 2026-09-29 | old | Session |\n'
+	dashes := '${header}\n| 2026-09-29 | front-matter starts with --- | Session |\n'
+	assert insert_table_row(dashes, 0, header, row) == '${header}\n${row}\n| 2026-09-29 | front-matter starts with --- | Session |\n'
+	assert is_table_separator('|------|:---:|---|\n')
+	assert !is_table_separator('| a --- b |')
 	bare := header
 	assert insert_table_row(bare, 0, header, row) == '${header}\n${row}\n'
 }

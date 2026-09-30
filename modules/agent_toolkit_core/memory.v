@@ -578,7 +578,7 @@ fn insert_table_row(content string, header_idx int, header_row string, new_row s
 	pos = end_of_line(content, pos)
 	if pos < content.len {
 		next_end := end_of_line(content, pos)
-		if content[pos..next_end].contains('---') {
+		if is_table_separator(content[pos..next_end]) {
 			pos = next_end
 		}
 	}
@@ -591,6 +591,13 @@ fn insert_table_row(content string, header_idx int, header_row string, new_row s
 		tail = tail.trim_left('\n')
 	}
 	return head + new_row + '\n' + tail
+}
+
+// is_table_separator reports whether line is a markdown table delimiter row
+// (`|---|:--:|`), so a data row that merely mentions `---` is not skipped.
+fn is_table_separator(line string) bool {
+	t := line.trim_space()
+	return t.starts_with('|') && t.contains('-') && t.trim('|-: ').len == 0
 }
 
 // end_of_line returns the index just past the newline ending the line that
