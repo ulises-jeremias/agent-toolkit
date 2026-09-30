@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Desktop world grounds keep trees beside buildings and cross the east creek
+  on a bridge. Decor stays non-inspectable.
+
 ## [1.38.0] — 2026-09-30
 
 ### Added

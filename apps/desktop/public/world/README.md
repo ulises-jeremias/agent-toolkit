@@ -8,5 +8,6 @@ Rendered via `ThemeAsset.kind = 'sprite'` in `cozyTopdown.ts`.
 Nearest-neighbor / `image-rendering: pixelated` in the world CSS.
 
 Characters / animals are **not** shipped here (ADR-034: no decorative NPCs).
-Trees, the dirt path, the creek, and `grass.png` are environment only (`groundDecor`).
+Trees stand beside buildings. The dirt path, the east creek, and the bridge
+where they cross are environment only (`groundDecor`).
 `interior-*.png` are room furniture for project interiors (terminal desk, files shelf, records cabinet).

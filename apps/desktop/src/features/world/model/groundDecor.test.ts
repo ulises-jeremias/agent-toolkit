@@ -36,9 +36,11 @@ describe('groundDecor', () => {
     const house = layout.entities.find((entity) => entity.id === 'place:project:alpha')!;
     const decor = groundDecor(layout.entities, layout.cols, layout.rows);
     expect(decor.some((cell) => cell.kind === 'path' && cell.y === house.y - 1)).toBe(true);
-    expect(decor.every((cell) => cell.kind !== 'tree' || cell.variant === 'round' || cell.variant === 'tall')).toBe(
-      true,
-    );
+    const bridge = decor.find((cell) => cell.kind === 'bridge');
+    expect(bridge).toMatchObject({ y: house.y - 1, x: layout.cols - 1, variant: 'bridge' });
+    const creek = decor.filter((cell) => cell.kind === 'creek');
+    expect(creek.length).toBeGreaterThan(0);
+    expect(creek.every((cell) => cell.x === layout.cols - 1)).toBe(true);
   });
 
   it('is deterministic', () => {
