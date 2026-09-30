@@ -14,10 +14,8 @@ import {
   PageHeader,
   Panel,
   Stack,
-  StatusBadge,
-  Table,
-  VisuallyHidden,
 } from '../../ui';
+import { entityAccessibleName } from './inspectors';
 import {
   buildWorldModel,
   layoutWorld,
@@ -26,49 +24,14 @@ import {
   type MemorySummary,
   type ToolRecord,
 } from './model';
-import { cozyTopdownTheme, resolveThemeAsset } from './theme/cozyTopdown';
+import { cozyTopdownTheme } from './theme/cozyTopdown';
+import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
 import styles from './world.module.css';
-
-function toneForState(state: string): 'ok' | 'warn' | 'err' | 'idle' | 'info' {
-  if (
-    state === 'ok' ||
-    state === 'running' ||
-    state === 'known' ||
-    state === 'ready' ||
-    state === 'present' ||
-    state === 'calm' ||
-    state.endsWith(' active')
-  ) {
-    return 'ok';
-  }
-  if (
-    state === 'broken' ||
-    state === 'failed' ||
-    statusErr(state) ||
-    state === 'missing' ||
-    state === 'needs attention'
-  ) {
-    return 'err';
-  }
-  if (state === 'queued' || state === 'notice' || state === 'empty' || state === 'unavailable') return 'warn';
-  if (state === 'inspector' || state === 'catalog') return 'info';
-  return 'idle';
-}
-
-function statusErr(state: string): boolean {
-  return state === 'rejected' || state === 'err';
-}
-
-function tooltipFor(entity: LaidOutEntity): string {
-  const parts = [entity.name, entity.concept, entity.state];
-  if (entity.detail) parts.push(entity.detail);
-  if (entity.activity && entity.activity !== 'calm') parts.push(`activity ${entity.activity}`);
-  return parts.join(' · ');
-}
 
 /**
  * World: semantic spatial home. Domain → model → layout → cozy theme → DOM tiles.
- * Inspectors stay on existing destinations via href().
+ * Inspectors stay on existing destinations via href(); entities without a path
+ * stay non-activating (no invented screens).
  */
 export default function WorldView() {
   const { backend } = useBackend();
@@ -96,31 +59,22 @@ export default function WorldView() {
   }, [projectsQuery.data, projectsQuery.isSuccess]);
 
   const memory: MemorySummary = useMemo(() => {
-    // 404 / any list failure → omit memory place (never invent an archive).
     if (memoryQuery.isError) return { available: false, entries: [], projectKeys: [] };
     if (!memoryQuery.isSuccess || !memoryQuery.data) return { available: false, entries: [], projectKeys: [] };
     const entries = (memoryQuery.data.entries ?? []).map((entry) => ({
       id: entry.id,
-      kind: entry.kind ?? '',
-      title: entry.title ?? entry.id,
-      snippet: entry.snippet ?? '',
-      tags: entry.tags ?? [],
-      provenance: {
-        file: entry.provenance?.file ?? '',
-        author: entry.provenance?.author ?? '',
-        timestamp: entry.provenance?.timestamp ?? '',
-        project: entry.provenance?.project ?? '',
-        agent: entry.provenance?.agent ?? '',
-      },
+      kind: entry.kind,
+      title: entry.title,
+      snippet: entry.snippet,
+      tags: entry.tags,
+      provenance: entry.provenance,
     }));
-    const projectKeys = [
-      ...new Set(entries.map((row) => row.provenance.project).filter((value): value is string => Boolean(value))),
-    ];
+    const projectKeys = [...new Set(entries.map((entry) => entry.provenance.project).filter(Boolean))];
     return { available: true, entries, projectKeys };
   }, [memoryQuery.data, memoryQuery.isError, memoryQuery.isSuccess]);
 
   const tools: ToolRecord[] = useMemo(() => {
-    if (!toolsQuery.isSuccess || !toolsQuery.data?.tools) return [];
+    if (!toolsQuery.isSuccess || !toolsQuery.data) return [];
     return toolsQuery.data.tools.map((tool) => ({
       id: tool.id,
       toolName: tool.tool_name,
@@ -128,7 +82,7 @@ export default function WorldView() {
       configured: tool.configured,
       enabled: tool.enabled,
       verified: tool.verified,
-      version: tool.version ?? '',
+      version: tool.version,
     }));
   }, [toolsQuery.data, toolsQuery.isSuccess]);
 
@@ -138,33 +92,35 @@ export default function WorldView() {
     () =>
       buildWorldModel({
         workspacePath,
-        harnessNotice: backend?.harness?.notice ?? null,
         projects,
         projectsKnown: projectsQuery.isSuccess,
         memory,
         tools,
         toolsKnown: toolsQuery.isSuccess,
-        jobs,
+        jobs: jobs.map((job) => ({
+          id: job.id,
+          cmd: job.cmd,
+          args: job.args,
+          status: job.status,
+          workspace: job.workspace,
+        })),
         focusProjectId: focusProject,
       }),
     [
-      backend?.harness?.notice,
-      focusProject,
-      jobs,
-      memory,
+      workspacePath,
       projects,
       projectsQuery.isSuccess,
+      memory,
       tools,
       toolsQuery.isSuccess,
-      workspacePath,
+      jobs,
+      focusProject,
     ],
   );
 
   const layout = useMemo(() => layoutWorld(model), [model]);
   const selected = layout.entities.find((entity) => entity.id === selectedId) ?? null;
-  const tile = cozyTopdownTheme.tileSize;
 
-  // Palette / deep-link focus: ?place=<entity-id> selects that semantic tile.
   useEffect(() => {
     if (!focusPlace || focusPlace === 'projects') return;
     if (layout.entities.some((entity) => entity.id === focusPlace)) {
@@ -172,7 +128,6 @@ export default function WorldView() {
     }
   }, [focusPlace, layout.entities]);
 
-  // Entering a project interior selects the room place.
   useEffect(() => {
     if (!focusProject) return;
     const roomId = `place:project:${focusProject}`;
@@ -184,7 +139,7 @@ export default function WorldView() {
   const gathering = projectsQuery.isPending || jobsQuery.isPending;
 
   const openEntity = (entity: LaidOutEntity) => {
-    setSelectedId(entity.id);
+    if (!entity.hrefPath) return;
     navigate(href(entity.hrefPath, entity.hrefExtra));
   };
 
@@ -209,7 +164,7 @@ export default function WorldView() {
       <Stack>
         <p className={styles.hint}>
           Theme <strong>{cozyTopdownTheme.label}</strong> · semantic keys only · characters only for proven jobs · calm
-          houses when idle · click opens inspectors.
+          houses when idle · click opens existing inspectors only.
         </p>
 
         <Panel
@@ -219,63 +174,24 @@ export default function WorldView() {
         >
           {gathering ? (
             <LoadingState label="Reading workspace, projects, memory, tools, and jobs" />
+          ) : layout.entities.length === 0 ? (
+            <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
           ) : (
-            <div
-              className={styles.mapRegion}
-              role="application"
-              aria-label={model.focusProjectId ? `Interior of ${model.focusProjectId}` : 'Semantic workspace world'}
-              data-theme={cozyTopdownTheme.id}
-              data-mode={model.focusProjectId ? 'interior' : 'grounds'}
-            >
-              <div
-                className={styles.map}
-                style={{
-                  width: layout.cols * tile,
-                  height: layout.rows * tile,
-                }}
-              >
-                {layout.entities.map((entity) => {
-                  const asset = resolveThemeAsset(cozyTopdownTheme, entity.themeKey);
-                  const tileClass =
-                    asset.kind === 'css' && asset.className in styles
-                      ? styles[asset.className as keyof typeof styles]
-                      : styles.worldTileFallback;
-                  const className = `${styles.entity} ${tileClass}`;
-                  const tip = tooltipFor(entity);
-                  return (
-                    <button
-                      key={entity.id}
-                      type="button"
-                      className={className}
-                      data-kind={entity.kind}
-                      data-theme-key={entity.themeKey}
-                      data-entity-id={entity.id}
-                      data-activity={entity.activity ?? 'calm'}
-                      data-selected={entity.id === selectedId ? 'true' : undefined}
-                      title={tip}
-                      aria-label={`${tip}. Activate to inspect.`}
-                      style={{
-                        left: entity.x * tile,
-                        top: entity.y * tile,
-                        width: entity.w * tile,
-                        height: entity.h * tile,
-                      }}
-                      onClick={() => openEntity(entity)}
-                      onFocus={() => setSelectedId(entity.id)}
-                    >
-                      <span className={styles.entityState} data-tone={toneForState(entity.state)} aria-hidden="true" />
-                      <span className={styles.entityLabel}>{entity.name}</span>
-                    </button>
-                  );
-                })}
-                <span className={styles.hornero} aria-hidden="true" title="Hornero" />
-              </div>
-            </div>
+            <WorldEntityMap
+              entities={layout.entities}
+              selectedId={selectedId}
+              theme={cozyTopdownTheme}
+              cols={layout.cols}
+              rows={layout.rows}
+              ariaLabel={model.focusProjectId ? `Interior of ${model.focusProjectId}` : 'Semantic workspace world'}
+              mode={model.focusProjectId ? 'interior' : 'grounds'}
+              onSelect={setSelectedId}
+              onActivate={openEntity}
+            />
           )}
           {selected ? (
             <p className={styles.hint}>
-              Selected: <strong>{selected.name}</strong> — {selected.concept}. State: {selected.state}.{' '}
-              {selected.detail}
+              Selected: <strong>{selected.name}</strong> — {entityAccessibleName(selected)}.
             </p>
           ) : null}
           {projectsQuery.isError ? (
@@ -291,36 +207,12 @@ export default function WorldView() {
           {layout.entities.length === 0 ? (
             <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
           ) : (
-            <Table>
-              <thead>
-                <tr>
-                  <th scope="col">Name</th>
-                  <th scope="col">Concept</th>
-                  <th scope="col">State</th>
-                  <th scope="col">Kind</th>
-                  <th scope="col">
-                    <VisuallyHidden>Open</VisuallyHidden>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {layout.entities.map((entity) => (
-                  <tr key={`list:${entity.id}`} data-selected={entity.id === selectedId ? 'true' : undefined}>
-                    <th scope="row">{entity.name}</th>
-                    <td>{entity.concept}</td>
-                    <td>
-                      <StatusBadge tone={toneForState(entity.state)} label={entity.state} />
-                    </td>
-                    <td>{entity.kind}</td>
-                    <td data-align="end">
-                      <Link to={href(entity.hrefPath, entity.hrefExtra)} onClick={() => setSelectedId(entity.id)}>
-                        Inspect
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            <WorldEntityList
+              entities={layout.entities}
+              selectedId={selectedId}
+              href={href}
+              onSelect={setSelectedId}
+            />
           )}
         </Panel>
       </Stack>
