@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Desktop world project houses get dirt streets in the gutters between them,
   and the east creek is two tiles wide where the path crosses on a bridge.
 
+### Changed
+
+- World houses and shared landmarks are roof-first pixel buildings so the
+  campus reads from above: cottage, studio, workshop, lab, library stacks,
+  archive, operations, files, terminal, and settings.
+
 ## [1.40.0] — 2026-09-30
 
 ### Changed
