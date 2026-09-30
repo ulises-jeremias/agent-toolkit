@@ -116,6 +116,15 @@ Everything is exported from `src/ui/index.ts`.
 | `CommandReport({ envelope, label, failureLabel?, hideFields? })` | A command envelope: its text output plus its scalar `data` fields. |
 | `DestinationBoundary({ name })` | Per-route error boundary in the shell. It resets on navigation. |
 
+### First run
+
+Electron only, until `localStorage['atk.desktop.onboarding.complete']` is set
+(Settings and the command palette can replay it). Steps: backend ready →
+choose or confirm-create `~/.ai-workspace` (never mkdir without confirm) →
+coding-agent CLI detection when a typed API exists, otherwise an honest
+unavailable state plus Doctor → agent/provider/model only if typed APIs
+exist → a real job or PTY with live output. Replay is `session:replay-onboarding`.
+
 ### Shell contracts later destinations must use
 
 Do not invent a second session scope, toast, dialog, or terminal host. Destination PRs compose these:
@@ -205,7 +214,9 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
   - a real job run end to end;
   - dialog focus handling;
   - theme persistence;
-  - a real PTY session.
+  - a real PTY session;
+  - first-run happy path (existing `~/.ai-workspace`) and missing-harness
+    confirm-create (`e2e/electron/onboarding.spec.ts`).
 
   Point it at a backend with `ATK_E2E_BACKEND_BIN`; CI uses the
   `dist/agent-toolkit` it builds. On Linux without a display, run it under
@@ -233,6 +244,19 @@ during the run.
 
 All 28 captures are in `assets/electron/foundations/`, named
 `<theme>-<width>x<height>-<destination>.png`.
+
+First-run captures (Phase 4.1) live in `assets/electron/onboarding/`:
+
+| Step | Existing harness | Missing harness |
+|---|---|---|
+| Backend ready | ![](assets/electron/onboarding/01-ready.png) | (same step) |
+| Harness | ![](assets/electron/onboarding/02-harness-existing.png) | ![](assets/electron/onboarding/fallback-01-missing.png) |
+| Confirm create | — | ![](assets/electron/onboarding/fallback-02-confirm.png) |
+| After create | — | ![](assets/electron/onboarding/fallback-03-created.png) |
+| Tools / Doctor | ![](assets/electron/onboarding/03-tools-unavailable.png) | ![](assets/electron/onboarding/fallback-03-tools-unavailable.png) |
+| Agent API gap | ![](assets/electron/onboarding/04-agent-unavailable.png) | ![](assets/electron/onboarding/fallback-04-agent-unavailable.png) |
+| First work | ![](assets/electron/onboarding/05-first-work-live.png) | ![](assets/electron/onboarding/fallback-05-first-work-live.png) |
+| Office | ![](assets/electron/onboarding/06-office.png) | ![](assets/electron/onboarding/fallback-06-office.png) |
 
 ## Known gaps
 

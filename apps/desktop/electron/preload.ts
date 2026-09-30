@@ -4,6 +4,7 @@ import type { AtkBridge, PtyCreateOptions, PtyExitEvent, PtyDataEvent } from '..
 const bridge: AtkBridge = {
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
   backendRestart: () => ipcRenderer.invoke('atk:backend-restart'),
+  harnessCreateDefault: () => ipcRenderer.invoke('atk:harness-create-default'),
   onBackendState: (listener) => {
     const wrapped = (_event: unknown, state: unknown): void => {
       listener(state as Parameters<Parameters<AtkBridge['onBackendState']>[0]>[0]);

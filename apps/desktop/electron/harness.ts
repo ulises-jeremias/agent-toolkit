@@ -166,6 +166,56 @@ export function validateHarnessPath(raw: unknown, homeDir: string = os.homedir()
   return { ok: true, path: resolved };
 }
 
+export interface HarnessMutationResult {
+  ok: boolean;
+  path: string;
+  created: boolean;
+  error: string | null;
+}
+
+/**
+ * Create the default harness directory only. Does not scaffold files — that
+ * is `workspace init` after serve is re-rooted here. Never called unless
+ * the renderer confirmed.
+ */
+export function createDefaultHarnessDirectory(inputs: {
+  homeDir: string;
+  isDirectory: (candidate: string) => boolean;
+  mkdir: (candidate: string) => void;
+}): HarnessMutationResult {
+  const defaultPath = path.join(inputs.homeDir, '.ai-workspace');
+  if (inputs.isDirectory(defaultPath)) {
+    return { ok: true, path: defaultPath, created: false, error: null };
+  }
+  try {
+    inputs.mkdir(defaultPath);
+  } catch (error) {
+    return {
+      ok: false,
+      path: defaultPath,
+      created: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+  if (!inputs.isDirectory(defaultPath)) {
+    return {
+      ok: false,
+      path: defaultPath,
+      created: false,
+      error: `created ${defaultPath} but it is not a directory`,
+    };
+  }
+  return { ok: true, path: defaultPath, created: true, error: null };
+}
+
+export function createDefaultHarnessFromProcess(): HarnessMutationResult {
+  return createDefaultHarnessDirectory({
+    homeDir: os.homedir(),
+    isDirectory,
+    mkdir: (candidate) => fs.mkdirSync(candidate, { recursive: true }),
+  });
+}
+
 /** cwd + env for the serve child. Fallback leaves both untouched (prior behavior). */
 export function harnessSpawnContext(
   harness: HarnessResolution,

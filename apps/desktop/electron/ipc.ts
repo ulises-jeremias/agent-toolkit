@@ -1,5 +1,6 @@
 import { ipcMain, type BrowserWindow } from 'electron';
 import type { BackendSupervisor } from './backend';
+import { createDefaultHarnessFromProcess } from './harness';
 import type { HarnessController, HarnessSwitchResult } from './harness-controller';
 import { TerminalCwdError, type TerminalService } from './terminal';
 
@@ -33,6 +34,19 @@ export function registerIpc(deps: IpcDeps): void {
     return publicUrl && snapshot.url ? { ...snapshot, url: publicUrl } : snapshot;
   });
   ipcMain.handle('atk:backend-restart', async () => deps.getBackend()?.restart() ?? false);
+  ipcMain.handle('atk:harness-create-default', async () => {
+    const created = createDefaultHarnessFromProcess();
+    if (!created.ok) {
+      return {
+        ok: false,
+        error: 'not-found',
+        message: created.error ?? 'Could not create the default harness folder.',
+      } satisfies HarnessSwitchResult;
+    }
+    const harness = deps.getHarness();
+    if (!harness) return NO_HARNESS;
+    return harness.set(created.path);
+  });
 
   ipcMain.handle('atk:harness-status', () => deps.getHarness()?.status() ?? null);
   ipcMain.handle('atk:harness-recent', () => deps.getHarness()?.recent() ?? []);

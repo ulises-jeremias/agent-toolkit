@@ -114,6 +114,8 @@ export type Unsubscribe = () => void;
 export interface AtkBridge {
   backendStatus: () => Promise<BackendState | null>;
   backendRestart: () => Promise<boolean>;
+  /** Confirm-gated mkdir of ~/.ai-workspace, then the same persist+restart as harnessSet. */
+  harnessCreateDefault: () => Promise<HarnessSwitchResult>;
   onBackendState: (listener: (state: BackendState) => void) => Unsubscribe;
   harnessStatus: () => Promise<HarnessStatus | null>;
   harnessRecent: () => Promise<HarnessRecentEntry[]>;

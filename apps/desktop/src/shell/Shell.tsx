@@ -1,9 +1,11 @@
-import { Suspense } from 'react';
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { HashRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router';
 import { useBackend, useHealth } from '../data/backend';
 import { activeJobIds, useJobs } from '../data/jobs';
 import { LiveProvider } from '../data/live';
 import { TerminalProvider } from '../data/terminal';
+import { Onboarding } from '../features/onboarding/Onboarding';
+import { REPLAY_ONBOARDING_EVENT, shouldRunOnboarding } from '../features/onboarding/complete';
 import { DestinationBoundary, LoadingState, ReceiptsProvider } from '../ui';
 import { CommandPalette } from './CommandPalette';
 import { ContextBar } from './ContextBar';
@@ -101,13 +103,30 @@ function ShellFrame() {
   );
 }
 
+function useOnboardingGate() {
+  const [active, setActive] = useState(shouldRunOnboarding);
+  useEffect(() => {
+    const replay = () => setActive(true);
+    window.addEventListener(REPLAY_ONBOARDING_EVENT, replay);
+    return () => window.removeEventListener(REPLAY_ONBOARDING_EVENT, replay);
+  }, []);
+  const complete = useCallback(() => setActive(false), []);
+  return { active, complete };
+}
+
+function ShellRoot() {
+  const { active, complete } = useOnboardingGate();
+  if (active) return <Onboarding onComplete={complete} />;
+  return <ShellFrame />;
+}
+
 export default function Shell() {
   return (
     <HashRouter>
       <ReceiptsProvider>
         <LiveProvider>
           <TerminalProvider>
-            <ShellFrame />
+            <ShellRoot />
           </TerminalProvider>
         </LiveProvider>
       </ReceiptsProvider>

@@ -1,0 +1,111 @@
+.frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  background: var(--surface-canvas);
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-6);
+  background: var(--surface-chrome);
+  color: var(--text-on-chrome);
+  border-bottom: 1px solid var(--border-chrome);
+}
+
+.mark {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1.5px solid var(--accent-brass-fill);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--accent-brass-fill);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 560;
+  line-height: var(--leading-tight);
+}
+
+.brandSub {
+  display: block;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-on-chrome-muted);
+}
+
+.page {
+  flex: 1;
+  width: min(var(--page-max), 100%);
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-10);
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-6);
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-panel);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.step[data-current='true'] {
+  border-color: var(--accent-brass);
+  background: var(--surface-manila);
+  color: var(--text-primary);
+}
+
+.step[data-done='true'] {
+  color: var(--text-secondary);
+}
+
+.index {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: var(--text-muted);
+}
+
+.preview {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.previewLabel {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.choice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 40rem;
+}

@@ -1,6 +1,10 @@
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = process.env.PORT ?? '3000';
+const APP_DIR = path.resolve(__dirname);
+// Avoid colliding with sibling worktrees that reuse :3000 (reuseExistingServer
+// would then smoke-test a different Office).
+const PORT = process.env.PORT ?? '3177';
 
 /**
  * Two projects:
@@ -20,7 +24,8 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: `pnpm dev --port ${PORT}`,
+    command: `pnpm --dir "${APP_DIR}" dev --port ${PORT}`,
+    cwd: APP_DIR,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,

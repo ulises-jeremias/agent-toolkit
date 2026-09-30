@@ -5,6 +5,7 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   activeOverrideVar,
+  createDefaultHarnessDirectory,
   harnessSpawnContext,
   isDirectory,
   resolveHarness,
@@ -215,5 +216,53 @@ describe('harnessSpawnContext', () => {
       base,
     );
     expect(ctx).toEqual({ cwd: undefined, env: base });
+  });
+});
+
+describe('createDefaultHarnessDirectory', () => {
+  let home = '';
+
+  beforeEach(() => {
+    home = fs.mkdtempSync(path.join(os.tmpdir(), 'atk-home-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(home, { recursive: true, force: true });
+  });
+
+  it('creates ~/.ai-workspace when missing and does not when it already exists', () => {
+    const created: string[] = [];
+    const first = createDefaultHarnessDirectory({
+      homeDir: home,
+      isDirectory,
+      mkdir: (candidate) => {
+        created.push(candidate);
+        fs.mkdirSync(candidate, { recursive: true });
+      },
+    });
+    expect(first).toEqual({ ok: true, path: path.join(home, '.ai-workspace'), created: true, error: null });
+    expect(created).toEqual([path.join(home, '.ai-workspace')]);
+
+    const second = createDefaultHarnessDirectory({
+      homeDir: home,
+      isDirectory,
+      mkdir: () => {
+        throw new Error('must not create again');
+      },
+    });
+    expect(second.created).toBe(false);
+    expect(second.ok).toBe(true);
+  });
+
+  it('reports a failure when the path exists as a file', () => {
+    fs.writeFileSync(path.join(home, '.ai-workspace'), 'not a dir');
+    const result = createDefaultHarnessDirectory({
+      homeDir: home,
+      isDirectory,
+      mkdir: (candidate) => fs.mkdirSync(candidate),
+    });
+    expect(result.ok).toBe(false);
+    expect(result.created).toBe(false);
+    expect(result.error).toBeTruthy();
   });
 });
