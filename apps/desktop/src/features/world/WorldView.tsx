@@ -92,7 +92,7 @@ export default function WorldView() {
   const selected = layout.entities.find((entity) => entity.id === selectedId) ?? null;
   const tile = cozyTopdownTheme.tileSize;
 
-  const gathering = projectsQuery.isPending && jobsQuery.isPending && memoryQuery.isPending;
+  const gathering = projectsQuery.isPending || jobsQuery.isPending;
 
   const openEntity = (entity: LaidOutEntity) => {
     setSelectedId(entity.id);
@@ -104,7 +104,11 @@ export default function WorldView() {
       <PageHeader
         eyebrow="World"
         title={model.focusProjectId ? `${model.focusProjectId} space` : model.workspaceLabel || 'Workspace world'}
-        lede="Places and characters are real Agent Toolkit concepts. Click opens an inspector — no walking required."
+        lede={
+          model.focusProjectId
+            ? 'Project interior — knowledge, memory, and terminal open real inspectors. No fake activity.'
+            : 'Workspace grounds: project houses and a shared library. Enter a place; inspectors stay Paper Co.'
+        }
         actions={
           model.focusProjectId ? (
             <Link to={href('/world')}>Back to workspace grounds</Link>
@@ -115,8 +119,8 @@ export default function WorldView() {
       />
       <Stack>
         <p className={styles.hint}>
-          Theme <strong>{cozyTopdownTheme.label}</strong> · semantic keys only · characters appear only for proven jobs
-          · calm empty world is valid.
+          Theme <strong>{cozyTopdownTheme.label}</strong> (Paper Co. boards as visual language) · semantic keys only ·
+          characters only for proven jobs · quiet empty world is valid · click opens inspectors, not a walk.
         </p>
 
         <Panel
@@ -170,6 +174,7 @@ export default function WorldView() {
                     </button>
                   );
                 })}
+                <span className={styles.hornero} aria-hidden="true" title="Hornero" />
               </div>
             </div>
           )}

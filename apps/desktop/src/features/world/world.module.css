@@ -16,20 +16,49 @@
   max-width: 62ch;
 }
 
+.hint strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 .mapRegion {
   position: relative;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
+  /* Paper Co. grassy grounds — concept boards, not flat SaaS. */
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--pc-sage-100) 55%, var(--surface-canvas)), var(--surface-canvas));
+    radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--pc-brass-100) 35%, transparent), transparent 45%),
+    repeating-linear-gradient(
+      0deg,
+      #8aab86 0 2px,
+      #7b9e7e 2px 8px,
+      #739675 8px 10px,
+      #7b9e7e 10px 16px
+    );
   overflow: auto;
-  min-height: 22rem;
+  min-height: 26rem;
   image-rendering: pixelated;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-ink-900) 8%, transparent);
 }
 
 .map {
   position: relative;
-  margin: var(--space-3);
+  margin: var(--space-4);
+}
+
+.hornero {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  width: 18px;
+  height: 14px;
+  border: 1px solid var(--pc-ink-900);
+  border-radius: 2px 6px 2px 2px;
+  background:
+    linear-gradient(135deg, #b08d57 0 45%, #8a3624 45% 70%, #2a241b 70% 100%);
+  opacity: 0.85;
+  pointer-events: none;
+  image-rendering: pixelated;
 }
 
 .entity {
@@ -46,14 +75,15 @@
   font: inherit;
   color: var(--pc-ink-950);
   image-rendering: pixelated;
-  box-shadow: 2px 2px 0 color-mix(in srgb, var(--pc-ink-900) 35%, transparent);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--pc-ink-900) 30%, transparent);
   transition: transform 120ms ease, box-shadow 120ms ease;
+  overflow: hidden;
 }
 
 .entity:hover,
 .entity:focus-visible {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pc-brass-600) 50%, transparent);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pc-brass-600) 45%, transparent);
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   z-index: 2;
@@ -72,14 +102,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 0 2px 2px;
-  background: color-mix(in srgb, var(--pc-cream-50) 88%, transparent);
+  padding: 1px 3px 2px;
+  background: color-mix(in srgb, var(--pc-cream-50) 92%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--pc-ink-900) 20%, transparent);
+  width: 100%;
+  text-align: center;
 }
 
 .entityState {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 3px;
+  right: 3px;
   width: 0.55rem;
   height: 0.55rem;
   border: 1px solid var(--pc-ink-900);
@@ -106,62 +139,130 @@
   background: var(--pc-teal-500);
 }
 
-/* Original cozy tiles — CSS only, no third-party sprites. */
+/* Original cozy tiles — Paper Co. boards as language, not copied sprites. */
+
 .tileGrounds {
   background:
+    linear-gradient(180deg, #c9a46a 0 18%, transparent 18%),
     repeating-linear-gradient(
       90deg,
-      #7b9e7e 0 8px,
-      #6f926f 8px 16px
+      #c4a574 0 10px,
+      #b8955f 10px 12px,
+      #c4a574 12px 22px
     ),
-    #7b9e7e;
+    #c4a574;
+}
+
+.tileGrounds::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 10px;
+  width: 10px;
+  height: 14px;
+  border: 1px solid var(--pc-ink-900);
+  background: linear-gradient(180deg, #4e7c7b 0 30%, #f6ebd7 30% 100%);
+  box-shadow: 16px 4px 0 0 #7b9e7e;
+  pointer-events: none;
 }
 
 .tileKnowledge {
+  /* Shared library annex — bookshelf room language from concept boards. */
   background:
-    linear-gradient(180deg, #d4b483 0 30%, #b08d57 30% 100%);
+    linear-gradient(180deg, #6b604c 0 14%, transparent 14%),
+    repeating-linear-gradient(
+      90deg,
+      #d4b483 0 8px,
+      #b08d57 8px 10px,
+      #8a3624 10px 14px,
+      #4e7c7b 14px 18px,
+      #d4b483 18px 26px
+    ),
+    #d4b483;
 }
 
 .tileKnowledgeProject {
   background:
-    linear-gradient(180deg, #efdcb6 0 35%, #d4b483 35% 100%);
+    linear-gradient(180deg, #4e7c7b 0 16%, transparent 16%),
+    repeating-linear-gradient(
+      90deg,
+      #efdcb6 0 7px,
+      #d4b483 7px 9px,
+      #7b9e7e 9px 13px,
+      #efdcb6 13px 20px
+    ),
+    #efdcb6;
 }
 
 .tileBuilding {
+  /* Project house — cottage roof + cream walls + wood base. */
   background:
-    linear-gradient(180deg, #4e7c7b 0 22%, #f6ebd7 22% 78%, #b08d57 78% 100%);
+    linear-gradient(180deg, #b5523c 0 22%, #f6ebd7 22% 78%, #b08d57 78% 100%);
+  box-shadow: inset 0 22% 0 0 transparent;
+}
+
+.tileBuilding::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 14px;
+  height: 16px;
+  transform: translateX(-50%);
+  border: 1px solid var(--pc-ink-900);
+  background: linear-gradient(180deg, #4e7c7b 0 35%, #39ff9b 35% 42%, #1f1f1f 42% 100%);
+  pointer-events: none;
 }
 
 .tileTerminal {
+  /* Terminal workstation — ink desk + neon phosphor. */
   background:
-    linear-gradient(180deg, #2a241b 0 70%, #39ff9b 70% 100%);
+    linear-gradient(180deg, #4a4133 0 28%, #1f1f1f 28% 72%, #b08d57 72% 100%);
   color: #f6ebd7;
+}
+
+.tileTerminal::before {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 38%;
+  height: 22%;
+  border: 1px solid #39ff9b;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 2px,
+    color-mix(in srgb, #39ff9b 35%, transparent) 2px 3px
+  );
+  pointer-events: none;
 }
 
 .tileShelf {
   background:
+    linear-gradient(180deg, #5c5241 0 12%, transparent 12%),
     repeating-linear-gradient(
       180deg,
-      #d4b483 0 6px,
-      #b08d57 6px 8px
+      #d4b483 0 7px,
+      #b08d57 7px 9px,
+      #7b9e7e 9px 12px
     );
 }
 
 .tileInbox {
   background:
-    linear-gradient(135deg, #b5523c, #d4a94b);
+    linear-gradient(160deg, #f6ebd7 0 35%, #b5523c 35% 70%, #d4a94b 70% 100%);
 }
 
 .tileAgentWorking {
-  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 35%, #4e7c7b 36% 100%);
+  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 32%, #4e7c7b 33% 100%);
 }
 
 .tileAgentBlocked {
-  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 35%, #b5523c 36% 100%);
+  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 32%, #b5523c 33% 100%);
 }
 
 .tileAgentIdle {
-  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 35%, #6b604c 36% 100%);
+  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 32%, #6b604c 33% 100%);
 }
 
 .tileLamp {
@@ -169,7 +270,9 @@
 }
 
 .tileMemory {
-  background: #efdcb6;
+  background:
+    repeating-linear-gradient(90deg, #efdcb6 0 6px, #d4b483 6px 8px),
+    #efdcb6;
 }
 
 .tileSwarm {
@@ -190,18 +293,6 @@
 
 .list {
   width: 100%;
-}
-
-.visuallyHidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

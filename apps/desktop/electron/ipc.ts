@@ -8,6 +8,8 @@ export interface IpcDeps {
   getTerminals: () => TerminalService | null;
   getWindow: () => BrowserWindow | null;
   getHarness: () => HarnessController | null;
+  /** When set, rewrite backend.url to the same-origin renderer proxy. */
+  getPublicBackendUrl?: () => string | null;
 }
 
 const NO_HARNESS: HarnessSwitchResult = { ok: false, error: 'unavailable', message: 'Harness controller is not ready' };
@@ -24,7 +26,12 @@ const NO_HARNESS: HarnessSwitchResult = { ok: false, error: 'unavailable', messa
  * do, so frame checks would be theater.)
  */
 export function registerIpc(deps: IpcDeps): void {
-  ipcMain.handle('atk:backend-status', () => deps.getBackend()?.snapshot() ?? null);
+  ipcMain.handle('atk:backend-status', () => {
+    const snapshot = deps.getBackend()?.snapshot() ?? null;
+    if (!snapshot) return null;
+    const publicUrl = deps.getPublicBackendUrl?.();
+    return publicUrl && snapshot.url ? { ...snapshot, url: publicUrl } : snapshot;
+  });
   ipcMain.handle('atk:backend-restart', async () => deps.getBackend()?.restart() ?? false);
 
   ipcMain.handle('atk:harness-status', () => deps.getHarness()?.status() ?? null);

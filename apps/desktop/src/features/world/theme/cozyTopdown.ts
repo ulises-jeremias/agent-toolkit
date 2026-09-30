@@ -6,8 +6,8 @@ import type { WorldThemePack } from './types';
  */
 export const cozyTopdownTheme: WorldThemePack = {
   id: 'cozy-topdown',
-  label: 'Cozy top-down',
-  tileSize: 32,
+  label: 'Cozy top-down (Paper Co.)',
+  tileSize: 40,
   assets: {
     'workspace.grounds': { kind: 'css', className: 'tileGrounds', label: 'Workspace grounds' },
     'knowledge.workspace': { kind: 'css', className: 'tileKnowledge', label: 'Shared knowledge' },

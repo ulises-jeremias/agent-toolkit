@@ -3,13 +3,15 @@ import path from 'node:path';
 import { BackendSupervisor, type BackendState } from './backend';
 import { HarnessController } from './harness-controller';
 import { HARNESS_STORE_FILE, HarnessStore } from './harness-store';
-import { TerminalService } from './terminal';
 import { registerIpc } from './ipc';
+import { startRendererServer, type RendererServer } from './renderer-server';
+import { TerminalService } from './terminal';
 
 let mainWindow: BrowserWindow | null = null;
 let backend: BackendSupervisor | null = null;
 let terminals: TerminalService | null = null;
 let harness: HarnessController | null = null;
+let rendererServer: RendererServer | null = null;
 let ipcRegistered = false;
 
 async function chooseHarnessDirectory(defaultPath: string): Promise<string | null> {
@@ -25,10 +27,15 @@ async function chooseHarnessDirectory(defaultPath: string): Promise<string | nul
   return result.canceled ? null : (result.filePaths[0] ?? null);
 }
 
-function resolveRendererUrl(): { url: string; isDev: boolean } {
+async function resolveRendererUrl(): Promise<string> {
   const devUrl = process.env.ATK_DESKTOP_DEV_URL;
-  if (devUrl) return { url: devUrl, isDev: true };
-  return { url: `file://${path.join(__dirname, '..', 'dist', 'index.html')}`, isDev: false };
+  if (devUrl) return devUrl;
+  // Packaged / local production: serve dist over loopback (not file://) so
+  // mutating calls to serve keep a loopback Origin. See renderer-server.ts.
+  if (!rendererServer) {
+    rendererServer = await startRendererServer(path.join(__dirname, '..', 'dist'));
+  }
+  return rendererServer.url;
 }
 
 async function createWindow(): Promise<void> {
@@ -52,7 +59,7 @@ async function createWindow(): Promise<void> {
     });
   }
 
-  const { url, isDev } = resolveRendererUrl();
+  const url = await resolveRendererUrl();
 
   mainWindow = new BrowserWindow({
     width: 1440,
@@ -60,7 +67,7 @@ async function createWindow(): Promise<void> {
     minWidth: 1024,
     minHeight: 640,
     title: 'Agent Toolkit',
-    backgroundColor: '#f3ead3',
+    backgroundColor: '#f6ebd7',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -81,6 +88,7 @@ async function createWindow(): Promise<void> {
       getTerminals: () => terminals,
       getWindow: () => mainWindow,
       getHarness: () => harness,
+      getPublicBackendUrl: () => rendererServer?.url ?? null,
     });
     ipcRegistered = true;
   }
@@ -98,20 +106,23 @@ async function createWindow(): Promise<void> {
   });
 
   const onBackendState = (state: BackendState): void => {
+    if (rendererServer && state.url) {
+      rendererServer.setBackendTarget(state.url);
+      mainWindow?.webContents.send('atk:backend-state', { ...state, url: rendererServer.url });
+      return;
+    }
     mainWindow?.webContents.send('atk:backend-state', state);
   };
   backend.onState(onBackendState);
 
-  if (isDev) {
-    await mainWindow.loadURL(url);
-  } else {
-    await mainWindow.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
-  }
+  await mainWindow.loadURL(`${url}/`);
 
   // Start the bundled V backend after the window exists so failures are visible.
   const started = await backend.start();
   if (!started) {
-    mainWindow?.webContents.send('atk:backend-state', backend.snapshot());
+    onBackendState(backend.snapshot());
+  } else {
+    onBackendState(backend.snapshot());
   }
 }
 
@@ -139,5 +150,9 @@ async function shutdown(): Promise<void> {
   if (backend) {
     await backend.stop();
     backend = null;
+  }
+  if (rendererServer) {
+    await rendererServer.close().catch(() => undefined);
+    rendererServer = null;
   }
 }

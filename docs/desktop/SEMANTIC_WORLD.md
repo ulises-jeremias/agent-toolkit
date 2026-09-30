@@ -116,7 +116,20 @@ tails; the world prefers the global bus for presence.
 
 ## 4. Theme contract
 
-Default theme id: `cozy-topdown` (Paper Co. cozy workshop exterior/interior).
+Default theme id: `cozy-topdown` (Paper Co. cozy workshop / project-houses world).
+
+**Visual language** (from [assets/design/](assets/design/) concept boards — aesthetic only):
+
+- Paper Cream / Manila / Sage / Dusty Teal / Rust / Brass / Ink hexes from DESIGN.md;
+- cozy top-down readable furniture (desk, bookshelf, terminal, plants);
+- serif product moments + warm editorial chrome; dark terminal dock;
+- small Hornero bird as a restrained accent — not a mascot crowd;
+- Library place reads as a bookshelf annex; Operations opens the workshop inspector;
+- **Home is a world of project houses + shared library**, not a single Office Floor
+  dashboard. Pixel rooms are **interiors you enter**, not the whole product.
+
+**Do not take from the boards:** fake counts ("6 agents online", "12.4K installs",
+"62% progress"), decorative NPCs, card-dashboard home, marketplace popularity.
 
 ### Rules
 
