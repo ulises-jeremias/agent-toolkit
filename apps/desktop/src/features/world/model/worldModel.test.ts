@@ -233,6 +233,69 @@ describe('buildWorldModel', () => {
     expect(model.entities.filter((e) => e.kind === 'character')).toEqual([]);
     expect(model.entities.find((e) => e.id === 'place:project:only')?.activity).toBe('calm');
   });
+
+  it('locks house activity to real API job statuses', () => {
+    const projects = [
+      { name: 'alpha', target: '/r/alpha', status: 'ok' as const },
+      { name: 'beta', target: '/r/beta', status: 'ok' as const },
+      { name: 'gamma', target: '/r/gamma', status: 'ok' as const },
+      { name: 'delta', target: '/r/delta', status: 'ok' as const },
+    ];
+    const model = buildWorldModel(
+      baseInput({
+        projects,
+        jobs: [
+          { id: 'q1', cmd: 'lint', args: [], status: 'queued', workspace: '/r/alpha' },
+          { id: 'r1', cmd: 'test', args: [], status: 'running', workspace: '/r/beta' },
+          { id: 'f1', cmd: 'build', args: [], status: 'failed', workspace: '/r/gamma' },
+          { id: 'x1', cmd: 'ship', args: [], status: 'rejected', workspace: '/r/delta' },
+          { id: 'c1', cmd: 'done', args: [], status: 'completed', workspace: '/r/alpha' },
+          { id: 'z1', cmd: 'stop', args: [], status: 'canceled', workspace: '/r/beta' },
+        ],
+      }),
+    );
+
+    const byId = Object.fromEntries(model.entities.map((e) => [e.id, e]));
+
+    // queued / running → character + working lamp at that house
+    expect(byId['character:job:q1']?.themeKey).toBe('agent.working');
+    expect(byId['character:job:q1']?.projectId).toBe('alpha');
+    expect(byId['character:job:q1']?.hrefPath).toBe('/operations');
+    expect(byId['place:project:alpha']?.activity).toBe('working');
+    expect(byId['place:project:alpha']?.hrefPath).toBe('/world');
+
+    expect(byId['character:job:r1']?.themeKey).toBe('agent.working');
+    expect(byId['place:project:beta']?.activity).toBe('working');
+
+    // failed / rejected → character + attention; house opens /office
+    expect(byId['character:job:f1']?.themeKey).toBe('agent.blocked');
+    expect(byId['character:job:f1']?.hrefPath).toBe('/office');
+    expect(byId['place:project:gamma']?.activity).toBe('blocked');
+    expect(byId['place:project:gamma']?.state).toBe('needs attention');
+    expect(byId['place:project:gamma']?.hrefPath).toBe('/office');
+
+    expect(byId['character:job:x1']?.themeKey).toBe('agent.blocked');
+    expect(byId['place:project:delta']?.hrefPath).toBe('/office');
+
+    // completed / canceled → no character (calm wins only when no live jobs)
+    expect(byId['character:job:c1']).toBeUndefined();
+    expect(byId['character:job:z1']).toBeUndefined();
+  });
+
+  it('stays calm for completed and canceled when nothing else is live', () => {
+    const model = buildWorldModel(
+      baseInput({
+        projects: [{ name: 'solo', target: '/r/solo', status: 'ok' }],
+        jobs: [
+          { id: 'c1', cmd: 'a', args: [], status: 'completed', workspace: '/r/solo' },
+          { id: 'z1', cmd: 'b', args: [], status: 'canceled', workspace: '/r/solo' },
+        ],
+      }),
+    );
+    expect(model.entities.filter((e) => e.kind === 'character')).toEqual([]);
+    expect(model.entities.find((e) => e.id === 'place:project:solo')?.activity).toBe('calm');
+    expect(model.entities.find((e) => e.id === 'place:project:solo')?.hrefPath).toBe('/world');
+  });
 });
 
 describe('layoutWorld', () => {
@@ -256,15 +319,32 @@ describe('layoutWorld', () => {
     );
   });
 
-  it('keeps stable house slots when project count grows', () => {
-    const one = layoutWorld(
+  it('keeps stable house slots when project count grows past √n thresholds', () => {
+    const names9 = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'];
+    const names10 = [...names9, 'j'];
+    const nine = layoutWorld(
       buildWorldModel(
         baseInput({
-          projects: [{ name: 'a', target: '/a', status: 'ok' }],
+          projects: names9.map((name) => ({ name, target: `/${name}`, status: 'ok' as const })),
         }),
       ),
     );
-    const five = layoutWorld(
+    const ten = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: names10.map((name) => ({ name, target: `/${name}`, status: 'ok' as const })),
+        }),
+      ),
+    );
+    for (const name of names9) {
+      const left = nine.entities.find((e) => e.id === `place:project:${name}`);
+      const right = ten.entities.find((e) => e.id === `place:project:${name}`);
+      expect({ id: name, x: left!.x, y: left!.y }).toEqual({ id: name, x: right!.x, y: right!.y });
+    }
+  });
+
+  it('lays projects on a fixed-width district under the commons strip', () => {
+    const layout = layoutWorld(
       buildWorldModel(
         baseInput({
           projects: ['a', 'b', 'c', 'd', 'e'].map((name) => ({
@@ -272,13 +352,16 @@ describe('layoutWorld', () => {
             target: `/${name}`,
             status: 'ok' as const,
           })),
+          memory: emptyMemory(true, []),
         }),
       ),
     );
-    const a1 = one.entities.find((e) => e.id === 'place:project:a');
-    const a5 = five.entities.find((e) => e.id === 'place:project:a');
-    expect(a1 && a5).toBeTruthy();
-    expect({ x: a1!.x, y: a1!.y }).toEqual({ x: a5!.x, y: a5!.y });
+    const a = layout.entities.find((e) => e.id === 'place:project:a')!;
+    const e = layout.entities.find((e) => e.id === 'place:project:e')!;
+    const memory = layout.entities.find((e) => e.id === 'place:memory')!;
+    // Fifth house wraps to row 2 of the district (4 cols).
+    expect(e.y).toBeGreaterThan(a.y);
+    expect(a.y).toBeGreaterThan(memory.y);
   });
 
   it('lays out an interior without outdoor library annex', () => {

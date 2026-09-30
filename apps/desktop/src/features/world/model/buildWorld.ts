@@ -79,6 +79,7 @@ function pushJobCharacters(entities: SemanticEntity[], jobs: WorldDomainInput['j
     const active = !isTerminalJobStatus(job.status);
     const blocked = job.status === 'failed' || job.status === 'rejected';
     if (!active && !blocked) continue;
+    // Failed/rejected → attention inspector; queued/running → Operations job.
     entities.push({
       id: `character:job:${job.id}`,
       kind: 'character',
@@ -87,8 +88,8 @@ function pushJobCharacters(entities: SemanticEntity[], jobs: WorldDomainInput['j
       state: job.status,
       themeKey: characterTheme(job.status),
       availability: 'present',
-      hrefPath: '/operations',
-      hrefExtra: { job: job.id },
+      hrefPath: blocked ? '/office' : '/operations',
+      hrefExtra: blocked ? { inspect: job.id } : { job: job.id },
       projectId,
       detail: `Job ${job.id}`,
       activity: blocked ? 'blocked' : 'working',
@@ -199,6 +200,11 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       const liveCount = projectJobs.filter(
         (job) => !isTerminalJobStatus(job.status) || job.status === 'failed' || job.status === 'rejected',
       ).length;
+      // Blocked houses open Office attention; calm/working open the interior.
+      const houseHref =
+        activity === 'blocked'
+          ? { hrefPath: '/office' as const, hrefExtra: undefined }
+          : { hrefPath: '/world' as const, hrefExtra: { project: project.name } };
       entities.push({
         id: `place:project:${project.name}`,
         kind: 'place',
@@ -207,8 +213,8 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         state: houseState(project, activity, liveCount),
         themeKey: 'project.building',
         availability: 'present',
-        hrefPath: '/world',
-        hrefExtra: { project: project.name },
+        hrefPath: houseHref.hrefPath,
+        hrefExtra: houseHref.hrefExtra,
         projectId: project.name,
         detail: `${project.status} → ${project.target}${liveCount ? ` · ${liveCount} job(s)` : ''}`,
         activity,

@@ -15,9 +15,11 @@ describe('filterCommands', () => {
     expect(office?.hint).toBe('What needs attention now?');
   });
 
-  it('matches keywords for the terminal dock', () => {
+  it('matches keywords for the terminal dock and world terminal place', () => {
     const hits = filterCommands(PALETTE_COMMANDS, 'pty');
-    expect(hits.map((command) => command.id)).toEqual(['go:world-terminal', 'session:new-terminal']);
+    expect(hits.map((command) => command.id)).toEqual(
+      expect.arrayContaining(['go:world-terminal', 'session:new-terminal']),
+    );
   });
 
   it('finds the terminal as a workstation place', () => {
@@ -29,5 +31,15 @@ describe('filterCommands', () => {
     expect(PALETTE_COMMANDS.map((command) => command.id)).toContain('session:next-needs-me');
     const hits = filterCommands(PALETTE_COMMANDS, 'needs me');
     expect(hits.map((command) => command.id)).toContain('session:next-needs-me');
+  });
+
+  it('exposes world jumps for memory, projects, terminal, and attention', () => {
+    const ids = PALETTE_COMMANDS.map((command) => command.id);
+    expect(ids).toEqual(
+      expect.arrayContaining(['go:world-memory', 'go:world-projects', 'go:world-terminal', 'go:world-attention']),
+    );
+    expect(filterCommands(PALETTE_COMMANDS, 'memory archive').map((c) => c.id)).toContain('go:world-memory');
+    expect(filterCommands(PALETTE_COMMANDS, 'project houses').map((c) => c.id)).toContain('go:world-projects');
+    expect(filterCommands(PALETTE_COMMANDS, 'needs you').map((c) => c.id)).toContain('go:world-attention');
   });
 });

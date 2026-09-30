@@ -12,14 +12,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desktop world layout uses a fixed-width project district under the commons
+  strip so house slots stay stable when the roster grows past √n thresholds.
+  Failed/rejected houses and job characters open `/office` attention; queued
+  and running still light the house and open Operations.
+- Command palette jumps focus semantic world places (memory archive, project
+  houses, terminal, Needs you) and offer per-project "Open project …" rows
+  from the live project list — no invented houses.
+
+### Added
+
 - Desktop semantic world default theme craft: richer Paper Co. DOM/CSS tiles
   (readable cottage silhouettes, wooden interior floors, card-index drawers,
   phosphor terminal desk), 48px tile scale, and CSS-only ambient motion that
   respects `prefers-reduced-motion`. No Pixi/Phaser; still semantic keys only;
   no invented knowledge rooms, NPCs, or metrics.
-
-### Added
-
 - Upstream `design/brag` and `design/brag-slim` from
   [latent-spaces/brag](https://github.com/latent-spaces/brag) (MIT, pinned
   `c893c5ed52aed84e3e2ee56787de869fccdae6b0`). Full `/brag` vendors

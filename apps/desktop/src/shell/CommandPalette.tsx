@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useBackend } from '../data/backend';
+import { useSubQuery } from '../data/commands';
 import { useTerminalSessions } from '../data/terminal';
 import { setThemePreference, type ThemePreference } from '../design/theme';
 import { takeNextNeedsMe } from '../features/office/attention';
 import { useAttention } from '../features/office/useAttention';
-import { Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
 import { requestOnboardingReplay } from '../features/onboarding/complete';
+import { parseProjectListMessage } from '../features/world/model';
+import { projectWorldCommands, resolveWorldJump } from '../features/world/worldJumps';
+import { envelopeText } from '../lib/api';
+import { Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
 import { filterCommands, PALETTE_COMMANDS, SHORTCUTS, type PaletteCommand } from './commands';
 import { DESTINATIONS } from './destinations';
 import { useSessionContext } from './useSessionContext';
@@ -37,6 +41,13 @@ export function CommandPalette() {
   const { restartBackend } = useBackend();
   const terminals = useTerminalSessions();
   const attention = useAttention();
+  const projectsQuery = useSubQuery('project', 'list');
+
+  const projectCommands = useMemo((): readonly PaletteCommand[] => {
+    if (!projectsQuery.isSuccess || !projectsQuery.data) return [];
+    const names = parseProjectListMessage(envelopeText(projectsQuery.data)).map((row) => row.name);
+    return projectWorldCommands(names);
+  }, [projectsQuery.data, projectsQuery.isSuccess]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -78,7 +89,8 @@ export function CommandPalette() {
     }
   }, [open]);
 
-  const matches = useMemo(() => filterCommands(PALETTE_COMMANDS, query), [query]);
+  const catalog = useMemo(() => [...PALETTE_COMMANDS, ...projectCommands], [projectCommands]);
+  const matches = useMemo(() => filterCommands(catalog, query), [catalog, query]);
   const active = matches[Math.min(selected, Math.max(matches.length - 1, 0))];
 
   useEffect(() => {
@@ -98,8 +110,9 @@ export function CommandPalette() {
         navigate(href('/library'));
         return;
       }
-      if (target === 'world-terminal') {
-        navigate(href('/terminal'));
+      const jump = resolveWorldJump(target);
+      if (jump) {
+        navigate(href(jump.path, jump.extra));
         return;
       }
       navigate(href(target));
@@ -117,8 +130,8 @@ export function CommandPalette() {
         navigate(href('/operations', { dialog: 'run-loop' }));
         break;
       case 'session:next-needs-me': {
-        const target = takeNextNeedsMe(attention.targets);
-        navigate(target ? target.href : href('/office'));
+        const next = takeNextNeedsMe(attention.targets);
+        navigate(next ? next.href : href('/office'));
         break;
       }
       case 'session:restart-backend':
