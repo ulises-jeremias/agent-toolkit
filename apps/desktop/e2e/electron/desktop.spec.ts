@@ -137,6 +137,7 @@ test('library shows catalog vs detected vs configured vs verified without dumpin
   await expect(personas).toBeVisible();
   await expect(personas).toContainText(/in catalog|No personas in the catalog/i);
   await expect(page.getByText(/plugin\/list/i)).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/review/library.png', fullPage: true });
 });
 
 test('insights shows doctor checks and usage without invented cost', async () => {
@@ -152,16 +153,19 @@ test('insights shows doctor checks and usage without invented cost', async () =>
   const usage = page.getByRole('region', { name: 'Usage by tool' });
   await expect(usage).toBeVisible();
   await expect(usage).toContainText(/Unknown|No usage rows/);
+  await page.screenshot({ path: 'test-results/review/insights.png', fullPage: true });
 });
 
 test('settings keeps Paper/Ink/System and names a rejected binary as a table when present', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
-  await expect(page.getByRole('radio', { name: /Paper/ })).toBeVisible();
-  await expect(page.getByRole('radio', { name: /Ink/ })).toBeVisible();
-  await expect(page.getByRole('radio', { name: /System/ })).toBeVisible();
+  const theme = page.getByRole('group', { name: 'Theme' });
+  await expect(theme.getByRole('radio', { name: /Paper/ })).toBeVisible();
+  await expect(theme.getByRole('radio', { name: /Ink/ })).toBeVisible();
+  await expect(theme.getByRole('radio', { name: /System/ })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Backend' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Change harness…' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/review/settings.png', fullPage: true });
 });
 
 test('a job started from Operations runs on the backend and streams to completion', async () => {
