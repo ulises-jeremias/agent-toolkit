@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
+import { patchContext, readContext } from '../../lib/context';
 import {
   useCancelJob,
   useCreateJob,
@@ -42,24 +43,29 @@ import styles from './operations.module.css';
  */
 export default function Operations() {
   const [params, setParams] = useSearchParams();
-  const selectedId = params.get('job');
+  const { ws, run: selectedId } = readContext(params);
+  const starting = params.get('start') === '1';
   const jobs = useJobs();
-  const [starting, setStarting] = useState(false);
   const { connection } = useLiveStatus();
 
-  const select = (id: string | null) => {
+  // One update per event: react-router applies each call to the params of
+  // the last render, so two calls in a row would drop the first.
+  const update = (patch: { run?: string | null; start?: boolean }) => {
     setParams(
       (current) => {
-        const next = new URLSearchParams(current);
-        if (id) next.set('job', id);
-        else next.delete('job');
+        const next = 'run' in patch ? patchContext(current, { run: patch.run ?? null }) : new URLSearchParams(current);
+        if (patch.start === true) next.set('start', '1');
+        else if (patch.start === false) next.delete('start');
         return next;
       },
       { replace: true },
     );
   };
+  const select = (id: string | null) => update({ run: id });
+  const setStarting = (open: boolean) => update({ start: open });
 
-  const list = sortJobs(jobs.data);
+  const all = sortJobs(jobs.data);
+  const list = ws ? all.filter((job) => sameFolder(job.workspace, ws)) : all;
   const selected = selectedId ? jobs.data?.[selectedId] : undefined;
 
   return (
@@ -79,13 +85,21 @@ export default function Operations() {
           </Button>
         }
       />
-      <StartJobDialog open={starting} onClose={() => setStarting(false)} onStarted={select} />
+      <StartJobDialog
+        open={starting}
+        defaultWorkspace={ws}
+        onClose={() => setStarting(false)}
+        onStarted={(id) => update({ run: id, start: false })}
+      />
       <div className={styles.split}>
-        <Panel title="All jobs" meta={jobs.isSuccess ? `${list.length} total` : undefined}>
+        <Panel
+          title={ws ? 'Jobs in this workspace' : 'All jobs'}
+          meta={jobs.isSuccess ? (ws ? `${list.length} of ${all.length}` : `${list.length} total`) : undefined}
+        >
           <QueryView query={jobs} loading="Loading jobs" errorTitle="Could not load jobs">
             {() =>
               list.length === 0 ? (
-                <EmptyState title="No jobs yet.">
+                <EmptyState title={ws && all.length > 0 ? 'No jobs in this workspace.' : 'No jobs yet.'}>
                   Start one to run an agent-toolkit command in the background.
                 </EmptyState>
               ) : (
@@ -171,18 +185,31 @@ function splitArgs(raw: string): string[] {
   return raw.split(/\s+/).filter(Boolean);
 }
 
+function sameFolder(a: string, b: string): boolean {
+  const trim = (path: string) => path.replace(/\/+$/, '');
+  return trim(a) === trim(b);
+}
+
 function StartJobDialog({
   open,
+  defaultWorkspace,
   onClose,
   onStarted,
 }: {
   open: boolean;
+  defaultWorkspace: string | null;
   onClose: () => void;
+  /** Called instead of onClose once the job exists; the parent closes the dialog. */
   onStarted: (id: string) => void;
 }) {
   const [cmd, setCmd] = useState('doctor');
   const [args, setArgs] = useState('');
-  const [workspace, setWorkspace] = useState('');
+  const [workspace, setWorkspace] = useState(defaultWorkspace ?? '');
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setWorkspace(defaultWorkspace ?? '');
+  }
   const create = useCreateJob();
   const receipt = useActionReceipt('Job started');
   const cmdRef = useRef<HTMLInputElement>(null);
@@ -197,7 +224,6 @@ function StartJobDialog({
         onSuccess: (job) => {
           receipt.onSuccess({ message: jobCommandLine(job) });
           onStarted(job.id);
-          onClose();
         },
       },
     );

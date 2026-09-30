@@ -15,6 +15,8 @@ import * as pty from 'node-pty';
 export interface TerminalSessionInfo {
   id: string;
   agent: string;
+  /** Job or run the session was opened for; display metadata only. */
+  run: string | null;
   cmd: string;
   /** argv used at spawn (cmd excluded); exposed so restart reproduces the session. */
   args: string[];
@@ -68,7 +70,15 @@ export class TerminalService {
     return this.sessions.get(id)?.tail ?? '';
   }
 
-  create(options: { agent: string; cmd: string; args?: string[]; cwd?: string; cols?: number; rows?: number }): TerminalSessionInfo {
+  create(options: {
+    agent: string;
+    run?: string;
+    cmd: string;
+    args?: string[];
+    cwd?: string;
+    cols?: number;
+    rows?: number;
+  }): TerminalSessionInfo {
     const id = randomUUID();
     const cols = options.cols ?? 120;
     const rows = options.rows ?? 30;
@@ -83,6 +93,7 @@ export class TerminalService {
     const session: Session = {
       id,
       agent: options.agent,
+      run: options.run ?? null,
       cmd: options.cmd,
       args: options.args ?? [],
       cwd,

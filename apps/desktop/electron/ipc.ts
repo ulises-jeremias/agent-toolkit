@@ -30,18 +30,19 @@ export function registerIpc(deps: IpcDeps): void {
     'atk:pty-create',
     (
       _event,
-      options: { agent: string; cmd: string; args?: string[]; cwd?: string; cols?: number; rows?: number },
+      options: { agent: string; run?: string; cmd: string; args?: string[]; cwd?: string; cols?: number; rows?: number },
     ) => {
       if (!isRecord(options)) return null;
-      const { agent, cmd, args, cwd, cols, rows } = options;
+      const { agent, run, cmd, args, cwd, cols, rows } = options;
       if (typeof agent !== 'string' || !agent.trim()) return null;
+      if (run !== undefined && (typeof run !== 'string' || run.length > 200)) return null;
       if (typeof cmd !== 'string' || !cmd.trim()) return null;
       if (args !== undefined && (!Array.isArray(args) || args.some((a) => typeof a !== 'string'))) return null;
       if (cwd !== undefined && typeof cwd !== 'string') return null;
       if (cols !== undefined && !isPositiveInt(cols)) return null;
       if (rows !== undefined && !isPositiveInt(rows)) return null;
       return (
-        deps.getTerminals()?.create({ agent, cmd, args: args ?? [], cwd, cols, rows }) ?? null
+        deps.getTerminals()?.create({ agent, run: run || undefined, cmd, args: args ?? [], cwd, cols, rows }) ?? null
       );
     },
   );

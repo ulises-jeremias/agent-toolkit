@@ -7,6 +7,7 @@ import {
   type SelectHTMLAttributes,
 } from 'react';
 import { errorMessage, recoveryHint } from '../lib/api';
+import { displayKeys, IS_MAC } from '../lib/shortcuts';
 import styles from './ui.module.css';
 
 export type Tone = 'ok' | 'warn' | 'err' | 'info' | 'idle';
@@ -171,10 +172,11 @@ export function Report({ text, label }: { text: string; label?: string }) {
 
 // ---------- Keyboard ----------
 
+/** Key chord; the token "Mod" renders as Ctrl, or ⌘ on macOS. */
 export function Kbd({ keys }: { keys: readonly string[] }) {
   return (
     <span className={styles.kbdGroup}>
-      {keys.map((key) => (
+      {displayKeys(keys, IS_MAC).map((key) => (
         <kbd key={key} className={styles.kbd}>
           {key}
         </kbd>

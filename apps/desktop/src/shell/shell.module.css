@@ -198,8 +198,160 @@
   margin-inline: auto;
 }
 
+/* On /terminal the page is only its header; the dock fills the rest. */
+.main[data-terminal='full'] .content {
+  flex: none;
+  overflow: visible;
+  padding-bottom: var(--space-4);
+}
+
 @media (max-width: 1100px) {
   .content {
     padding: var(--space-6) var(--space-5) var(--space-10);
   }
+
+  .main[data-terminal='full'] .content {
+    padding-bottom: var(--space-4);
+  }
+}
+
+/* ---------- Context bar: which workspace, agent and run the window is about ---------- */
+
+.contextBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-6);
+  min-height: 2.5rem;
+  padding: var(--space-1) var(--space-8);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-panel);
+  font-size: var(--text-sm);
+}
+
+.contextList {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-6);
+  min-width: 0;
+  margin: 0;
+}
+
+.contextItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contextLabel {
+  flex: none;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.contextValue {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+}
+
+.contextPath {
+  overflow: hidden;
+  max-width: 28rem;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.contextMuted {
+  color: var(--text-secondary);
+}
+
+.contextActions {
+  display: flex;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+@media (max-width: 1100px) {
+  .contextBar {
+    padding-inline: var(--space-5);
+  }
+}
+
+/* ---------- Command palette ---------- */
+
+.paletteInput {
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--text-md);
+}
+
+.paletteList {
+  display: flex;
+  flex-direction: column;
+  max-height: min(24rem, 50vh);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.paletteOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--target-min);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.paletteOption[aria-selected='true'] {
+  background: var(--surface-selected);
+  box-shadow: inset 2px 0 0 var(--accent-brass-fill);
+}
+
+.paletteOption[aria-disabled='true'] {
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+.paletteLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.paletteGroup {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.paletteEmpty {
+  padding: var(--space-3);
+  color: var(--text-secondary);
+}
+
+.paletteHint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 auto 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
 }

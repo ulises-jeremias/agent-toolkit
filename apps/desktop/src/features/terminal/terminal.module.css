@@ -1,20 +1,95 @@
-/* The terminal destination fills the content height instead of scrolling the page. */
-.page {
+/* ---------- Dock host (lives in the shell, outside the routes) ---------- */
+
+.dock {
   display: flex;
+  flex: none;
   flex-direction: column;
-  height: 100%;
-  min-height: 24rem;
+  min-height: 0;
+  border-top: 1px solid var(--border-strong);
+  background: var(--surface-canvas);
 }
 
-.page > header {
-  margin-bottom: var(--space-4);
+.dock[data-mode='docked'] {
+  height: clamp(14rem, 40vh, 34rem);
 }
 
-.sessions {
+/* On /terminal the dock takes the space below the page header. */
+.dock[data-mode='full'] {
+  flex: 1;
+  border-top: 0;
+  padding: 0 var(--space-8) var(--space-6);
+}
+
+/*
+ * Collapsed, not display:none: xterm keeps measuring its cells, and panes
+ * skip fitting at zero size so the PTY keeps its geometry.
+ */
+.dock[data-open='false'] {
+  height: 0;
+  border-top: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+.dockBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-4) 0;
+}
+
+.dock[data-mode='full'] .dockBar {
+  padding: 0;
+}
+
+.dockTitle {
+  align-self: center;
+  margin-right: var(--space-2);
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.dockActions {
+  display: flex;
+  align-self: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.panes {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
   min-height: 0;
+  padding: 0 var(--space-4) var(--space-3);
+}
+
+.dock[data-mode='full'] .panes {
+  padding: 0;
+}
+
+.dockEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) 0;
+}
+
+/* Every pane stays mounted; only the selected one is shown. */
+.panes > .chrome[data-active='false'] {
+  position: absolute;
+  inset: 0 var(--space-4) var(--space-3);
+  visibility: hidden;
+}
+
+.dock[data-mode='full'] .panes > .chrome[data-active='false'] {
+  inset: 0;
 }
 
 .form {
@@ -52,6 +127,15 @@
 
 .tabAgent {
   font-weight: 500;
+}
+
+.tabMeta {
+  max-width: 12rem;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tabState {
@@ -172,6 +256,6 @@
 
 .viewport {
   flex: 1;
-  min-height: 12rem;
+  min-height: 6rem;
   padding: var(--space-2) var(--space-3);
 }

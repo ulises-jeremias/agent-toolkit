@@ -1,4 +1,5 @@
 import { useSubQuery } from '../../data/commands';
+import { useShellContext } from '../../shell/context';
 import { CommandReport, Grid, KeyValue, PageHeader, Panel, QueryView, Stack, StatusBadge, type Tone } from '../../ui';
 
 function riskTone(risk: string | undefined): Tone {
@@ -21,12 +22,14 @@ function riskTone(risk: string | undefined): Tone {
  * server already returns (budget, violation counts) are shown as data.
  */
 export default function WorkspaceView() {
-  const context = useSubQuery('workspace', 'context');
+  const { ws } = useShellContext();
+  const body = ws ? { workspace: ws } : undefined;
+  const context = useSubQuery('workspace', 'context', body);
   const projects = useSubQuery('project', 'list');
-  const budget = useSubQuery('workspace', 'budget');
-  const validation = useSubQuery('workspace', 'validate', undefined, { failureIsData: true });
-  const personas = useSubQuery('workspace', 'personas');
-  const profiles = useSubQuery('workspace', 'profiles');
+  const budget = useSubQuery('workspace', 'budget', body);
+  const validation = useSubQuery('workspace', 'validate', body, { failureIsData: true });
+  const personas = useSubQuery('workspace', 'personas', body);
+  const profiles = useSubQuery('workspace', 'profiles', body);
 
   const path = budget.data?.data['workspace'];
 

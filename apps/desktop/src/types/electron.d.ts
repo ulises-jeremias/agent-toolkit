@@ -12,6 +12,8 @@ export interface BackendState {
 
 export interface PtyCreateOptions {
   agent: string;
+  /** Job or run the session belongs to, if any. Display metadata only. */
+  run?: string;
   cmd: string;
   args?: string[];
   cwd?: string;
@@ -22,6 +24,7 @@ export interface PtyCreateOptions {
 export interface PtySessionInfo {
   id: string;
   agent: string;
+  run: string | null;
   cmd: string;
   args: string[];
   cwd: string;
