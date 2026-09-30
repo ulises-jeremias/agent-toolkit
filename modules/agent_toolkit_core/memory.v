@@ -565,21 +565,42 @@ fn prepend_table_row(path string, header_row string, new_row string) ! {
 		os.write_file(path, content + '\n' + new_row + '\n')!
 		return
 	}
-	start := idx + header_row.len
-	rest := content[start..]
-	mut skip := 0
-	if rest.starts_with('\n') {
-		skip = 1
-		line := rest[1..].all_before('\n')
-		if line.contains('---') {
-			skip = 1 + line.len
-			if skip < rest.len && rest[skip] == `\n` {
-				skip++
-			}
+	os.write_file(path, insert_table_row(content, idx, header_row, new_row))!
+}
+
+// insert_table_row puts new_row as the first body row of the markdown table
+// whose header starts at header_idx, keeping every row on its own line.
+// Blank lines between the separator and existing rows (left by an older
+// writer) are dropped so the table stays contiguous; a blank line before
+// non-table content is kept.
+fn insert_table_row(content string, header_idx int, header_row string, new_row string) string {
+	mut pos := header_idx + header_row.len
+	pos = end_of_line(content, pos)
+	if pos < content.len {
+		next_end := end_of_line(content, pos)
+		if content[pos..next_end].contains('---') {
+			pos = next_end
 		}
 	}
-	insert_at := start + skip
-	os.write_file(path, content[..insert_at] + '\n' + new_row + content[insert_at..])!
+	mut head := content[..pos]
+	if !head.ends_with('\n') {
+		head += '\n'
+	}
+	mut tail := content[pos..]
+	if tail.trim_left('\n').starts_with('|') {
+		tail = tail.trim_left('\n')
+	}
+	return head + new_row + '\n' + tail
+}
+
+// end_of_line returns the index just past the newline ending the line that
+// contains pos (or content.len for the last line).
+fn end_of_line(content string, pos int) int {
+	if pos >= content.len {
+		return content.len
+	}
+	nl := content[pos..].index('\n') or { return content.len }
+	return pos + nl + 1
 }
 
 fn process_slug(s string) string {

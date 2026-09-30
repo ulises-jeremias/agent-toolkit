@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   through the generic `:sub` routes; use `POST /api/v1/loops/{name}/run`
   or the CLI.
 
+### Fixed
+
+- `memory add --type learning` no longer corrupts the learnings table: each
+  new row gets its own line (previously the second add left a blank line
+  after the separator and glued rows together). A blank line left between
+  the separator and existing rows by older builds is removed on the next add.
+
 ## [1.35.0] — 2026-09-29
 
 ### Added
