@@ -13,33 +13,17 @@ async function capture(page: Desktop['page'], name: string): Promise<void> {
   await page.screenshot({ path: path.join(OUT_DIR, `${name}.png`) });
 }
 
-async function walkSharedSteps(page: Desktop['page'], prefix: string): Promise<void> {
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'What is on this machine?' })).toBeVisible();
-  await expect(page.getByText('CLI detection is not available as a typed list.')).toBeVisible();
-  await page.getByRole('button', { name: 'Open Doctor report' }).click();
-  await expect(page.getByRole('region', { name: 'Doctor' })).toBeVisible();
-  await expect(page.getByText(/Running doctor/)).toHaveCount(0, { timeout: 30_000 });
-  await capture(page, `${prefix}03-tools-unavailable`);
-
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'First agent' })).toBeVisible();
-  await expect(page.getByText('No typed agent, provider or model API.')).toBeVisible();
-  await capture(page, `${prefix}04-agent-unavailable`);
-
-  await page.getByRole('button', { name: 'Continue' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Run something real' })).toBeVisible();
-  await page.getByRole('button', { name: 'Start version job' }).click();
-  const output = page.getByLabel('Live output');
-  await expect(output.getByText('completed')).toBeVisible({ timeout: 30_000 });
-  await expect(output.getByText(/Loading log/)).toHaveCount(0, { timeout: 20_000 });
-  await expect(output).toContainText(/\d+\.\d+|agent-toolkit/, { timeout: 20_000 });
-  await capture(page, `${prefix}05-first-work-live`);
-
-  await page.getByRole('button', { name: 'Finish and open Office' }).click();
+async function enterWorld(page: Desktop['page'], prefix: string): Promise<void> {
+  await page.getByRole('button', { name: 'Enter the world' }).click();
   await waitForBackend(page);
-  await expect(page.getByRole('heading', { level: 1, name: 'What needs you' })).toBeVisible();
-  await capture(page, `${prefix}06-office`);
+  await expect(page).toHaveURL(/#\/world/);
+  await expect(
+    page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }),
+  ).toHaveAttribute('aria-current', 'page');
+  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.getByText('INSTALLED')).toHaveCount(0);
+  await capture(page, `${prefix}03-world`);
 }
 
 test.describe('first-run happy path', () => {
@@ -53,9 +37,9 @@ test.describe('first-run happy path', () => {
     await desktop?.close();
   });
 
-  test('existing ~/.ai-workspace: choose harness, honest gaps, live version job', async () => {
+  test('existing ~/.ai-workspace: confirm harness then enter the world', async () => {
     const { page, workspace } = desktop;
-    await expect(page.getByRole('heading', { level: 1, name: 'A workstation for coding agents' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'A world for coding agents' })).toBeVisible();
     await expect(page.getByText('ready', { exact: true })).toBeVisible({ timeout: 30_000 });
     await capture(page, '01-ready');
 
@@ -67,7 +51,7 @@ test.describe('first-run happy path', () => {
     await expect(page.getByRole('button', { name: 'Choose folder' })).toBeVisible();
     await capture(page, '02-harness-existing');
 
-    await walkSharedSteps(page, '');
+    await enterWorld(page, '');
   });
 });
 
@@ -82,10 +66,10 @@ test.describe('first-run missing harness', () => {
     await desktop?.close();
   });
 
-  test('confirms before creating ~/.ai-workspace then reaches live output', async () => {
+  test('confirms before creating ~/.ai-workspace then enters the world', async () => {
     const { page, workspace } = desktop;
     expect(fs.existsSync(workspace)).toBe(false);
-    await expect(page.getByRole('heading', { level: 1, name: 'A workstation for coding agents' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'A world for coding agents' })).toBeVisible();
     await expect(page.getByText('ready', { exact: true })).toBeVisible({ timeout: 30_000 });
 
     await page.getByRole('button', { name: 'Continue' }).click();
@@ -101,10 +85,10 @@ test.describe('first-run missing harness', () => {
     await capture(page, 'fallback-02-confirm');
     await confirm.getByRole('button', { name: 'Create harness' }).click();
     await expect(confirm).toBeHidden();
-    await expect(page.getByRole('button', { name: 'Continue' })).toBeEnabled({ timeout: 45_000 });
+    await expect(page.getByRole('button', { name: 'Enter the world' })).toBeEnabled({ timeout: 45_000 });
     expect(fs.existsSync(workspace)).toBe(true);
     await capture(page, 'fallback-03-created');
 
-    await walkSharedSteps(page, 'fallback-');
+    await enterWorld(page, 'fallback-');
   });
 });

@@ -119,11 +119,13 @@ Everything is exported from `src/ui/index.ts`.
 ### First run
 
 Electron only, until `localStorage['atk.desktop.onboarding.complete']` is set
-(Settings and the command palette can replay it). Steps: backend ready →
+(Settings and the command palette can replay it). First-run is a Paper Co.
+welcome desk (paper / manila / sage, pixel tools, no numbered wizard, no
+invented agents), then the path into the world: backend ready →
 `window.atk.harnessChoose` / confirm then `harnessSet(default, { create: true })`
 / `harnessReset` (never mkdir `~/.ai-workspace` without confirm). Desktop
 never invents tool INSTALLED badges. Replay is `session:replay-onboarding`.
-Home after setup is `/world`.
+Home after setup is `/world` (semantic world from #1335).
 
 ### Shell contracts later destinations must use
 
@@ -245,18 +247,16 @@ during the run.
 All 28 captures are in `assets/electron/foundations/`, named
 `<theme>-<width>x<height>-<destination>.png`.
 
-First-run captures (Phase 4.1) live in `assets/electron/onboarding/`:
+First-run captures (Phase 4.1) live in `assets/electron/onboarding/`. Ready and
+harness frames are in tree; World home is the #1335 semantic slice (`WorldView`).
+Regenerate `03-world.png` with `ATK_CAPTURE=1`.
 
 | Step | Existing harness | Missing harness |
 |---|---|---|
-| Backend ready | ![](assets/electron/onboarding/01-ready.png) | (same step) |
-| Harness | ![](assets/electron/onboarding/02-harness-existing.png) | ![](assets/electron/onboarding/fallback-01-missing.png) |
+| Welcome desk | ![](assets/electron/onboarding/01-ready.png) | (same step) |
+| The folder | ![](assets/electron/onboarding/02-harness-existing.png) | ![](assets/electron/onboarding/fallback-01-missing.png) |
 | Confirm create | — | ![](assets/electron/onboarding/fallback-02-confirm.png) |
 | After create | — | ![](assets/electron/onboarding/fallback-03-created.png) |
-| Tools / Doctor | ![](assets/electron/onboarding/03-tools-unavailable.png) | ![](assets/electron/onboarding/fallback-03-tools-unavailable.png) |
-| Agent API gap | ![](assets/electron/onboarding/04-agent-unavailable.png) | ![](assets/electron/onboarding/fallback-04-agent-unavailable.png) |
-| First work | ![](assets/electron/onboarding/05-first-work-live.png) | ![](assets/electron/onboarding/fallback-05-first-work-live.png) |
-| Office | ![](assets/electron/onboarding/06-office.png) | ![](assets/electron/onboarding/fallback-06-office.png) |
 
 ## Known gaps
 

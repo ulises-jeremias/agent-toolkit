@@ -47,7 +47,7 @@ export interface Desktop {
 export interface OpenDesktopOptions {
   /** Scaffold ~/.ai-workspace with `workspace init`. Default true. */
   initWorkspace?: boolean;
-  /** Persist first-run complete so existing specs land on Office. Default true. */
+  /** Persist first-run complete so existing specs land on World. Default true. */
   skipOnboarding?: boolean;
 }
 

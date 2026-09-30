@@ -58,7 +58,7 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     id: 'session:replay-onboarding',
     group: 'Session',
     title: 'Run first-run setup again',
-    hint: 'Replay harness, tools and first work',
+    hint: 'Replay harness confirm, then enter the world',
     keywords: ['onboarding', 'setup', 'welcome'],
   },
   {

@@ -10,6 +10,7 @@ import { DestinationBoundary, LoadingState, ReceiptsProvider } from '../ui';
 import { CommandPalette } from './CommandPalette';
 import { ContextBar } from './ContextBar';
 import { DESTINATIONS } from './destinations';
+import { HOME_PATH } from './home';
 import { LiveIndicator, StaleNotice } from './LiveIndicator';
 import { TerminalDock } from './TerminalDock';
 import { useSessionContext } from './useSessionContext';
@@ -79,7 +80,7 @@ function ShellFrame() {
         <StaleNotice />
         <main id="main" className={styles.content} tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<RedirectTo path="/world" />} />
+            <Route path="/" element={<RedirectTo path={HOME_PATH} />} />
             {DESTINATIONS.map(({ path, label, component: Destination }) => (
               <Route
                 key={path}
@@ -93,7 +94,7 @@ function ShellFrame() {
                 }
               />
             ))}
-            <Route path="*" element={<RedirectTo path="/world" />} />
+            <Route path="*" element={<RedirectTo path={HOME_PATH} />} />
           </Routes>
         </main>
         <TerminalDock />

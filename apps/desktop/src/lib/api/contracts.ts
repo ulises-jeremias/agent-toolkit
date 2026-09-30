@@ -112,3 +112,18 @@ export interface ApiEvent {
   ref: string;
   message: string;
 }
+
+/** `GET /api/v1/memory` (#1328). Knowledge is a place, not a dashboard metric. */
+export interface MemoryEntry {
+  id: string;
+  kind: string;
+  title: string;
+  snippet: string;
+  body: string;
+  tags: string[];
+}
+
+export interface MemoryListResponse {
+  ok: boolean;
+  entries: MemoryEntry[];
+}

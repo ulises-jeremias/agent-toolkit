@@ -7,8 +7,8 @@ describe('filterCommands', () => {
   });
 
   it('matches destination names and questions', () => {
-    const hits = filterCommands(PALETTE_COMMANDS, 'office');
-    expect(hits.map((command) => command.id)).toContain('go:/office');
+    const hits = filterCommands(PALETTE_COMMANDS, 'world');
+    expect(hits.map((command) => command.id)).toContain('go:/world');
   });
 
   it('matches keywords for the terminal dock', () => {

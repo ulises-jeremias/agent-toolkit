@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BackendState, HarnessResolution } from '../../types/electron';
-import {
-  agentProviderModelApiAvailable,
-  backendIsReady,
-  codingAgentDiscoveryAvailable,
-  harnessIsChosen,
-  harnessNeedsCreate,
-} from './steps';
+import { backendIsReady, harnessIsChosen, harnessNeedsCreate } from './steps';
 
 const harness = (source: HarnessResolution['source']): HarnessResolution => ({
   path: '/ws',
@@ -30,10 +24,5 @@ describe('onboarding step gates', () => {
     expect(backendIsReady({ status: 'ready' } as BackendState)).toBe(true);
     expect(backendIsReady({ status: 'starting' } as BackendState)).toBe(false);
     expect(backendIsReady(null)).toBe(false);
-  });
-
-  it('does not claim typed discovery or agent-setup APIs that serve does not expose', () => {
-    expect(codingAgentDiscoveryAvailable()).toBe(false);
-    expect(agentProviderModelApiAvailable()).toBe(false);
   });
 });
