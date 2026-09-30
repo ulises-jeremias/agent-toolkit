@@ -172,6 +172,7 @@ test('a failed job appears in Office attention and Next that needs me opens it',
   await expect(page.getByRole('region', { name: 'no-such-command' }).getByText('failed')).toBeVisible();
 
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Attention' })).toBeVisible();
   const needsYou = page.getByRole('region', { name: 'Needs you' });
   await expect(needsYou).toContainText(/no-such-command failed/);
   await expect(needsYou).not.toContainText(/Nothing needs you/);

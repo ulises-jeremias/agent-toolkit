@@ -45,9 +45,9 @@ export default function Office() {
   };
 
   return (
-    <>
+    <div className={styles.inspector} role="region" aria-label="Attention inspector">
       <PageHeader
-        eyebrow="Office"
+        eyebrow="Inspector"
         title="Attention"
         lede={<span className={styles.ledeFresh}>{model.lede}</span>}
         actions={
@@ -175,7 +175,7 @@ export default function Office() {
           )}
         </Panel>
       </Stack>
-    </>
+    </div>
   );
 }
 
