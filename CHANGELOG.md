@@ -12,6 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desktop world memory archive shows workspace-level records only; records
+  whose `provenance.project` exactly names a roster project appear in that
+  house. Empty provenance stays on the world archive — never copied into
+  every interior. Job characters stand at a matching interior object when
+  `job.cmd` exactly names `memory`, `terminal`/`pty`, or a detected tool.
+
 - Desktop world layout uses a fixed-width project district under the commons
   strip so house slots stay stable when the roster grows past √n thresholds.
   Failed/rejected houses and job characters open `/office` attention; queued

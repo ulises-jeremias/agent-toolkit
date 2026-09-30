@@ -1,5 +1,6 @@
-export { buildWorldModel } from './buildWorld';
+export { buildWorldModel, jobBelongsToProject } from './buildWorld';
 export { layoutWorld } from './layout';
+export { jobStandAtId, memoryProjectScope, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 export { parseProjectListMessage } from './parseProjects';
 export type {
   EntityAvailability,
@@ -16,5 +17,3 @@ export type {
   WorldLayout,
   WorldModel,
 } from './types';
-
-export { jobBelongsToProject } from './buildWorld';

@@ -48,6 +48,11 @@ export interface SemanticEntity {
   detail?: string;
   /** Real activity for houses / lamps — omitted when calm/unknown. */
   activity?: PlaceActivity;
+  /**
+   * Optional layout anchor: entity id this character stands at when the job
+   * cmd names that object. Missing → house porch / default slot.
+   */
+  standAtId?: string;
 }
 
 export interface LaidOutEntity extends SemanticEntity {

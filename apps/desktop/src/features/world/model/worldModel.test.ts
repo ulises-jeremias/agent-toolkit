@@ -111,6 +111,8 @@ describe('buildWorldModel', () => {
     expect(model.entities.find((e) => e.id === 'place:project:alpha')?.activity).toBe('working');
     expect(model.entities.find((e) => e.id === 'place:project:beta')?.activity).toBe('blocked');
     expect(model.entities.find((e) => e.id === 'character:job:j1')?.projectId).toBe('alpha');
+    // Project-scoped memory stays off the world archive (partition).
+    expect(model.entities.find((e) => e.id === 'place:memory')?.state).toBe('empty');
   });
 
   it('shows a memory location when the endpoint is present', () => {
