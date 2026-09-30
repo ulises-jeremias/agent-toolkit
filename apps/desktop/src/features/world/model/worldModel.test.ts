@@ -105,9 +105,9 @@ describe('buildWorldModel', () => {
     expect(ids).toContain('character:job:j3');
     expect(ids).not.toContain('character:job:j2');
     expect(ids).not.toContain('object:exit-grounds');
-    expect(ids).toContain('place:knowledge-workspace');
-    expect(model.entities.find((e) => e.id === 'place:knowledge-workspace')?.hrefPath).toBe('/library');
+    expect(ids).not.toContain('place:knowledge-workspace');
     expect(model.entities.find((e) => e.id === 'object:library')?.hrefPath).toBe('/library');
+    expect(model.entities.find((e) => e.id === 'object:library')?.concept).toBe('Capability library');
     expect(model.entities.find((e) => e.id === 'place:project:alpha')?.activity).toBe('working');
     expect(model.entities.find((e) => e.id === 'place:project:beta')?.activity).toBe('blocked');
     expect(model.entities.find((e) => e.id === 'character:job:j1')?.projectId).toBe('alpha');
@@ -122,14 +122,14 @@ describe('buildWorldModel', () => {
     const memory = model.entities.find((e) => e.id === 'place:memory');
     expect(memory?.concept).toBe('Memory archive');
     expect(memory?.themeKey).toBe('memory.index');
-    expect(model.entities.find((e) => e.id === 'place:knowledge-workspace')?.hrefPath).toBe('/library');
+    expect(model.entities.map((e) => e.id)).not.toContain('place:knowledge-workspace');
   });
 
   it('omits the memory location when the endpoint 404s / is unavailable', () => {
     const model = buildWorldModel(baseInput({ memory: emptyMemory(false) }));
     const ids = model.entities.map((e) => e.id);
     expect(ids).not.toContain('place:memory');
-    expect(ids).toContain('place:knowledge-workspace');
+    expect(ids).not.toContain('place:knowledge-workspace');
     expect(ids).toContain('object:library');
   });
 
@@ -194,8 +194,7 @@ describe('buildWorldModel', () => {
     expect(ids).toContain('object:exit-grounds');
     expect(ids).toContain('place:project:alpha');
     expect(ids).toContain('place:memory-project:alpha');
-    expect(ids).toContain('place:knowledge-project:alpha');
-    expect(model.entities.find((e) => e.id === 'place:knowledge-project:alpha')?.hrefPath).toBe('/library');
+    expect(ids).not.toContain('place:knowledge-project:alpha');
     expect(ids).toContain('object:memory:p.md');
     expect(ids).not.toContain('object:memory:other.md');
     expect(ids).toContain('object:terminal-project:alpha');
