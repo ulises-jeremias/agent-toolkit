@@ -5,6 +5,7 @@ export type {
   EntityAvailability,
   EntityKind,
   LaidOutEntity,
+  MemoryEntryRecord,
   MemorySummary,
   ProjectRecord,
   SemanticEntity,

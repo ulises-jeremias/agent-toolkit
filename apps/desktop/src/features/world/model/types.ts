@@ -71,10 +71,30 @@ export interface ProjectRecord {
   status: 'ok' | 'broken';
 }
 
+/** List-row projection of OpenAPI MemoryEntry (body empty on list). */
+export interface MemoryEntryRecord {
+  id: string;
+  kind: string;
+  title: string;
+  snippet: string;
+  tags: string[];
+  provenance: {
+    file: string;
+    author: string;
+    timestamp: string;
+    project: string;
+    agent: string;
+  };
+}
+
 export interface MemorySummary {
-  /** True when the typed memory API answered successfully. */
+  /**
+   * True when GET /api/v1/memory succeeded. False on 404 / transport failure —
+   * the world omits the memory place entirely (never fabricates an archive).
+   */
   available: boolean;
-  entryCount: number;
+  /** Real list rows only; never invent documents. */
+  entries: MemoryEntryRecord[];
   /** Distinct project provenance values when present. */
   projectKeys: string[];
 }

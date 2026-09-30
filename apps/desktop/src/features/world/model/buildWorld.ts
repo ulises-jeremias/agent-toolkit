@@ -1,5 +1,5 @@
 import { isTerminalJobStatus } from '../../../lib/api';
-import type { SemanticEntity, WorldDomainInput, WorldModel } from './types';
+import type { MemoryEntryRecord, SemanticEntity, WorldDomainInput, WorldModel } from './types';
 
 function workspaceLabel(path: string): string {
   const trimmed = path.replace(/[/\\]+$/, '');
@@ -17,10 +17,21 @@ function characterTheme(status: string): SemanticEntity['themeKey'] {
   return 'agent.idle';
 }
 
+function provenanceDetail(entry: MemoryEntryRecord): string {
+  const parts = [
+    entry.kind,
+    entry.provenance.project ? `project ${entry.provenance.project}` : '',
+    entry.provenance.author ? `by ${entry.provenance.author}` : '',
+    entry.provenance.file || '',
+  ].filter(Boolean);
+  return parts.join(' · ') || entry.id;
+}
+
 /**
  * DOMAIN STATE → SEMANTIC WORLD MODEL.
- * Characters only for proven jobs. Knowledge places only when memory API
- * evidence exists (or honest empty after a successful empty list).
+ * Characters only for proven jobs. Memory archive only when the typed
+ * memory API exists (omit on 404). Knowledge stays the Library annex —
+ * never collapse memory into knowledge.
  */
 export function buildWorldModel(input: WorldDomainInput): WorldModel {
   const focus = input.focusProjectId?.trim() || null;
@@ -39,20 +50,49 @@ export function buildWorldModel(input: WorldDomainInput): WorldModel {
   });
 
   if (input.memory.available) {
+    const count = input.memory.entries.length;
     entities.push({
-      id: 'place:knowledge-workspace',
+      id: 'place:memory',
       kind: 'place',
-      concept: 'Workspace knowledge / memory',
-      name: 'Shared knowledge',
-      state: input.memory.entryCount > 0 ? `${input.memory.entryCount} entries` : 'empty',
-      themeKey: 'knowledge.workspace',
-      availability: input.memory.entryCount > 0 ? 'present' : 'empty',
+      concept: 'Memory archive',
+      name: 'Memory archive',
+      state: count > 0 ? `${count} records` : 'empty',
+      themeKey: 'memory.index',
+      availability: count > 0 ? 'present' : 'empty',
       hrefPath: '/workspace',
       detail:
-        input.memory.entryCount > 0
-          ? `${input.memory.entryCount} memory file${input.memory.entryCount === 1 ? '' : 's'}`
-          : 'Memory API reachable; no entries yet',
+        count > 0
+          ? `${count} memory record${count === 1 ? '' : 's'} (typed memory API)`
+          : 'Memory API reachable; archive is empty',
     });
+
+    // Card index — retrieval surface for GET /api/v1/memory/hits.
+    entities.push({
+      id: 'object:memory-index',
+      kind: 'object',
+      concept: 'Memory search / hits',
+      name: 'Card index',
+      state: count > 0 ? 'ready' : 'empty',
+      themeKey: 'memory.index',
+      availability: count > 0 ? 'present' : 'empty',
+      hrefPath: '/workspace',
+      detail: 'Search memory hits via GET /api/v1/memory/hits',
+    });
+
+    for (const entry of input.memory.entries) {
+      entities.push({
+        id: `object:memory:${entry.id}`,
+        kind: 'object',
+        concept: 'Memory entry',
+        name: entry.title || entry.id,
+        state: entry.kind || 'listed',
+        themeKey: 'memory.entry',
+        availability: 'present',
+        hrefPath: '/workspace',
+        projectId: entry.provenance.project || undefined,
+        detail: provenanceDetail(entry),
+      });
+    }
   }
 
   entities.push({
@@ -67,6 +107,7 @@ export function buildWorldModel(input: WorldDomainInput): WorldModel {
     detail: 'Open the Terminal destination or dock',
   });
 
+  // Library stays capabilities — not memory.
   entities.push({
     id: 'object:library',
     kind: 'object',
@@ -123,23 +164,25 @@ export function buildWorldModel(input: WorldDomainInput): WorldModel {
       });
 
       if (focus === project.name) {
-        const projectMemory = input.memory.available ? input.memory.projectKeys.includes(project.name) : false;
-        entities.push({
-          id: `place:knowledge-project:${project.name}`,
-          kind: 'place',
-          concept: 'Project knowledge / memory',
-          name: `${project.name} knowledge`,
-          state: !input.memory.available ? 'unavailable' : projectMemory ? 'present' : 'empty',
-          themeKey: 'knowledge.project',
-          availability: !input.memory.available ? 'unavailable' : projectMemory ? 'present' : 'empty',
-          hrefPath: '/workspace',
-          projectId: project.name,
-          detail: !input.memory.available
-            ? 'Memory API unavailable'
-            : projectMemory
+        const projectMemory = input.memory.available
+          ? input.memory.entries.some((entry) => entry.provenance.project === project.name)
+          : false;
+        if (input.memory.available) {
+          entities.push({
+            id: `place:memory-project:${project.name}`,
+            kind: 'place',
+            concept: 'Project memory records',
+            name: `${project.name} records`,
+            state: projectMemory ? 'present' : 'empty',
+            themeKey: 'memory.entry',
+            availability: projectMemory ? 'present' : 'empty',
+            hrefPath: '/workspace',
+            projectId: project.name,
+            detail: projectMemory
               ? 'Memory entries reference this project'
-              : 'No memory entries scoped to this project',
-        });
+              : 'No memory records scoped to this project',
+          });
+        }
         entities.push({
           id: `object:terminal-project:${project.name}`,
           kind: 'object',

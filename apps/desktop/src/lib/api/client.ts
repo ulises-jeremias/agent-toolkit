@@ -4,6 +4,9 @@ import type {
   JobCreateRequest,
   JobRegistry,
   MemoryListResponse,
+  MemoryReadResponse,
+  MemorySearchResponse,
+  MemoryWriteResponse,
   MessageResponse,
   ModelsResponse,
   ProvidersResponse,
@@ -72,7 +75,7 @@ export class ApiClient {
   }
 
   private async send(
-    method: 'GET' | 'POST' | 'DELETE',
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     path: string,
     options: { body?: unknown; query?: Record<string, string> } = {},
   ): Promise<Response> {
@@ -104,7 +107,7 @@ export class ApiClient {
   }
 
   private async json<T>(
-    method: 'GET' | 'POST' | 'DELETE',
+    method: 'GET' | 'POST' | 'PUT' | 'DELETE',
     path: string,
     options?: { body?: unknown; query?: Record<string, string> },
   ): Promise<T> {
@@ -204,8 +207,46 @@ export class ApiClient {
     return `${this.baseUrl}${'/api/v1/events' satisfies PathWith<'get'>}${suffix ? `?${suffix}` : ''}`;
   }
 
-  listMemory(): Promise<MemoryListResponse> {
-    return this.json('GET', '/api/v1/memory' satisfies PathWith<'get'>);
+  listMemory(query?: { workspace?: string }): Promise<MemoryListResponse> {
+    return this.json('GET', '/api/v1/memory' satisfies PathWith<'get'>, {
+      query: query?.workspace ? { workspace: query.workspace } : undefined,
+    });
+  }
+
+  searchMemory(q: string, query?: { workspace?: string }): Promise<MemorySearchResponse> {
+    return this.json('GET', '/api/v1/memory/hits' satisfies PathWith<'get'>, {
+      query: {
+        q,
+        ...(query?.workspace ? { workspace: query.workspace } : {}),
+      },
+    });
+  }
+
+  readMemoryFile(path: string, query?: { workspace?: string }): Promise<MemoryReadResponse> {
+    return this.json('GET', '/api/v1/memory/file' satisfies PathWith<'get'>, {
+      query: {
+        path,
+        ...(query?.workspace ? { workspace: query.workspace } : {}),
+      },
+    });
+  }
+
+  addMemoryFile(body: {
+    entry_type: string;
+    title?: string;
+    content: string;
+    workspace?: string;
+  }): Promise<MemoryWriteResponse> {
+    return this.json('POST', '/api/v1/memory/file' satisfies PathWith<'post'>, { body });
+  }
+
+  editMemoryFile(body: { path: string; content: string; workspace?: string }): Promise<MemoryWriteResponse> {
+    // OpenAPI documents PUT; PathWith<'get'> anchors the template until put is in PathWith.
+    return this.json('PUT', '/api/v1/memory/file', { body });
+  }
+
+  archiveMemoryFile(body: { path: string; workspace?: string }): Promise<MemoryWriteResponse> {
+    return this.json('POST', '/api/v1/memory/file/archive' satisfies PathWith<'post'>, { body });
   }
 
   async loopStatus(name: string): Promise<CommandEnvelope> {
