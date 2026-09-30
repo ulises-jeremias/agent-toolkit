@@ -1,6 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useOperation } from '../../data/commands';
 import { useBackend, useHealth, useHelp, useSelfcheck } from '../../data/backend';
+import type { HarnessSwitchResult } from '../../types/electron';
 import {
   setMotionPreference,
   setThemePreference,
@@ -27,6 +29,8 @@ import {
   type Tone,
 } from '../../ui';
 import styles from './settings.module.css';
+
+const HARNESS_QUERY_KEY = ['desktop', 'harness'] as const;
 
 const THEMES: ReadonlyArray<{ value: ThemePreference; label: string; hint: string }> = [
   { value: 'system', label: 'System', hint: 'Follow the operating system' },
@@ -99,6 +103,31 @@ export default function Settings() {
   const uninstallReceipt = useActionReceipt('Profiles uninstalled');
   const [showHelp, setShowHelp] = useState(false);
   const help = useHelp({ enabled: showHelp });
+  const bridge = typeof window !== 'undefined' ? window.atk : undefined;
+  const [harnessBusy, setHarnessBusy] = useState(false);
+  const [harnessError, setHarnessError] = useState<string | null>(null);
+  const harnessStatus = useQuery({
+    queryKey: HARNESS_QUERY_KEY,
+    queryFn: () => {
+      if (!bridge) throw new Error('harness bridge unavailable');
+      return bridge.harnessStatus();
+    },
+    enabled: Boolean(bridge),
+  });
+  const switchHarness = async (action: () => Promise<HarnessSwitchResult>): Promise<void> => {
+    setHarnessBusy(true);
+    setHarnessError(null);
+    try {
+      const result = await action();
+      if (!result.ok && result.error !== 'cancelled') setHarnessError(result.message);
+      await harnessStatus.refetch();
+    } finally {
+      setHarnessBusy(false);
+    }
+  };
+  const lockedBy = harnessStatus.data?.lockedBy ?? null;
+  const recent = harnessStatus.data?.recent ?? [];
+  const switchDisabled = harnessBusy || Boolean(lockedBy);
 
   return (
     <>
@@ -148,6 +177,28 @@ export default function Settings() {
                 { label: 'URL', value: backendUrl ?? 'Not connected', mono: backendUrl !== null },
                 { label: 'Version', value: health.data?.version ?? backend?.version ?? 'Unknown' },
                 ...(health.data?.commit ? [{ label: 'Commit', value: health.data.commit, mono: true }] : []),
+                ...(backend?.binary
+                  ? [
+                      {
+                        label: 'Binary',
+                        value: `${backend.binary.path} (${backend.binary.source}${backend.binary.version ? `, ${backend.binary.version}` : ''})`,
+                        mono: true,
+                      },
+                    ]
+                  : []),
+                ...(backend?.problem
+                  ? [
+                      {
+                        label: 'Problem',
+                        value: (
+                          <StatusBadge
+                            tone={backend.status === 'version-mismatch' ? 'warn' : 'err'}
+                            label={backend.problem}
+                          />
+                        ),
+                      },
+                    ]
+                  : []),
                 ...(backend
                   ? [
                       {
@@ -167,10 +218,75 @@ export default function Settings() {
                       },
                     ]
                   : []),
+                ...(lockedBy
+                  ? [
+                      {
+                        label: 'Harness lock',
+                        value: `${lockedBy} is set and takes precedence. Unset it and relaunch Desktop to switch harness here.`,
+                      },
+                    ]
+                  : []),
+                ...(harnessError
+                  ? [
+                      {
+                        label: 'Harness switch',
+                        value: harnessError,
+                      },
+                    ]
+                  : []),
                 ...(backend ? [{ label: 'Restarts', value: String(backend.restarts) }] : []),
                 ...(backend?.detail ? [{ label: 'Detail', value: backend.detail }] : []),
               ]}
             />
+            {bridge ? (
+              <ButtonRow>
+                <Button
+                  size="sm"
+                  disabled={switchDisabled}
+                  busy={harnessBusy}
+                  busyLabel="Switching…"
+                  onClick={() => void switchHarness(bridge.harnessChoose)}
+                >
+                  Change harness…
+                </Button>
+                {backend?.harness?.source === 'user' ? (
+                  <Button size="sm" variant="ghost" disabled={switchDisabled} onClick={() => void switchHarness(bridge.harnessReset)}>
+                    Use default
+                  </Button>
+                ) : null}
+              </ButtonRow>
+            ) : null}
+            {recent.length > 0 ? (
+              <ul className={styles.recent}>
+                {recent.map((entry) => (
+                  <li key={entry.path}>
+                    {bridge ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={switchDisabled || !entry.exists || entry.current}
+                        onClick={() => void switchHarness(() => bridge.harnessSet(entry.path))}
+                      >
+                        Use
+                      </Button>
+                    ) : null}{' '}
+                    <Mono>{entry.path}</Mono>
+                    {entry.current ? ' (current)' : ''}
+                    {entry.exists ? '' : ' (missing)'}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            {backend?.rejected && backend.rejected.length > 0 ? (
+              <ul className={styles.recent}>
+                {backend.rejected.map((entry) => (
+                  <li key={`${entry.source}:${entry.path}`}>
+                    <Mono>{entry.path}</Mono> ({entry.source}
+                    {entry.version ? `, ${entry.version}` : ''}): {entry.reason}
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </Panel>
           <Panel title="Self-check">
             <QueryView query={selfcheck} loading="Running self-check" errorTitle="Self-check could not run">

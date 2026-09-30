@@ -28,31 +28,55 @@ Template foundation: Create Awesome Node App
   <dynamic> --no-browser` (health-gated, version-checked, crash-detected,
   clean shutdown). Terminals use node-pty in main as a transport adapter only.
 
-## Default harness
+## Default harness and runtime switch
 
 Desktop's default harness is `~/.ai-workspace`, expanded with the OS home
-directory. `electron/harness.ts` resolves it again on every backend start:
+directory. `electron/harness.ts` resolves it again on every backend start
+(and after every Settings switch):
 
 1. **override**: `AGENT_TOOLKIT_WORKSPACE`, then its alias `HARNESS_DIR`
    (the order core `find_workspace_root` uses, see
    [env-precedence.md](../compatibility/env-precedence.md)). Desktop expands
    `~` and relative paths and passes the absolute result to serve; core does
-   not expand `~`. A value that is not a directory is skipped.
-2. **default**: `~/.ai-workspace`, if it is a directory.
-3. **fallback**: the behavior from before this default existed. serve
+   not expand `~`. A value that is not a directory is skipped. While an
+   override is set, Desktop refuses `atk:harness-set` / `choose` / `reset`.
+2. **user**: the persisted Desktop choice in
+   `<userData>/harness.json` (`current` + MRU `recent`, cap 8), if that
+   path is still a directory. A vanished choice stays on disk (so it wins
+   again when it returns) and the next tier is used for this start, with a
+   notice.
+3. **default**: `~/.ai-workspace`, if it is a directory.
+4. **fallback**: the behavior from before this default existed. serve
    inherits the Desktop process cwd and resolves its workspace from there.
    This applies when an override is set but broken, or when the default is
    missing. Desktop never creates `~/.ai-workspace`, so Agent Toolkit stays
    usable without My AI Workspace.
 
-For `default` and `override`, serve is spawned with `cwd` set to the harness
-and `AGENT_TOOLKIT_WORKSPACE` set to the same path. That keeps the jobs dir,
-containment roots and `find_workspace_root` in agreement (see
-[SERVE_API.md](../SERVE_API.md#workspace-rooting)). The resolution
-(`path`, `source`, `defaultPath`, `overrideVar`, `notice`) travels on
-`BackendState.harness` through `atk:backend-status` and `atk:backend-state`.
-Settings shows the harness and any notice, and Office shows it on the backend
-line.
+For every source except `fallback`, serve is spawned with `cwd` set to the
+harness and `AGENT_TOOLKIT_WORKSPACE` set to the same path. That keeps the
+jobs dir, containment roots and `find_workspace_root` in agreement (see
+[SERVE_API.md](../SERVE_API.md#workspace-rooting)). New terminal sessions
+default their cwd to the same resolved harness (`TerminalService.defaultCwd`);
+existing sessions keep the cwd they already report.
+
+The resolution (`path`, `source`, `defaultPath`, `overrideVar`, `notice`)
+travels on `BackendState.harness` through `atk:backend-status` and
+`atk:backend-state`. Settings shows the harness, any notice, and the MRU
+list; Office shows the harness on the backend line.
+
+### IPC (`window.atk`)
+
+| Channel | Bridge | Purpose |
+|---|---|---|
+| `atk:harness-status` | `harnessStatus()` | Current resolution, MRU, `switching`, `lockedBy` |
+| `atk:harness-recent` | `harnessRecent()` | MRU entries with `exists` / `current` |
+| `atk:harness-set` | `harnessSet(path)` | Validate (absolute or `~/…`, existing writable dir), persist, restart serve |
+| `atk:harness-choose` | `harnessChoose()` | Native folder picker, then the same flow as `harnessSet` |
+| `atk:harness-reset` | `harnessReset()` | Clear the Desktop choice; back to `~/.ai-workspace` (or fallback) |
+
+A successful set/choose/reset restarts the supervised backend (stop → spawn
+in the new cwd → health gate) unless the resolved path is unchanged. Types
+live on `window.atk` (`apps/desktop/src/types/electron.d.ts`).
 
 Known caveats: serve writes job logs to `<harness>/.agent-toolkit/server`,
 so a harness that is a git repository should ignore `.agent-toolkit/`. A dev
@@ -61,19 +85,64 @@ backend with no embedded data and no XDG data can mistake a harness that has
 `find_toolkit_root`. Packaged and installed backends are unaffected because
 they ship embedded data.
 
-Switching the harness at runtime means restarting the backend: serve is
-cwd-rooted, so one backend serves one harness. The supervisor takes a
-`resolveHarness` option, so a later onboarding or workspace picker can
-provide a chosen path and call `restart()`.
+Verified 2026-09-30 in the Electron dev app (CDP recipe in
+[WORKSTATION_REFERENCE_ANALYSIS.md](WORKSTATION_REFERENCE_ANALYSIS.md#appendix-b--capture-recipe-reusable),
+no V rebuild):
 
-Verified 2026-09-29 in the Electron dev app against the installed backend
-1.35.0. By default, the serve child ran in `~/.ai-workspace` with the env
-set. Selfcheck `jobs_dir_writable`, `GET /loops` and `workspace/context` all
-reported `~/.ai-workspace`. With `AGENT_TOOLKIT_WORKSPACE` pointing at a
-missing directory, Settings showed the fallback notice, serve stayed in the
-inherited cwd, and nothing was created. Evidence:
+- Default harness `~/.ai-workspace` (`source=default`); Settings shows
+  **Change harness…**. Evidence:
+  [settings-harness-switch.png](assets/electron/settings-harness-switch.png).
+- `window.atk.harnessSet` to a temp folder returned `{ok:true, restarted:true,
+  harness.source:'user'}`, persisted the MRU, and respawned serve in that
+  cwd. Evidence:
+  [settings-harness-switched.png](assets/electron/settings-harness-switched.png).
+- New terminal form defaults cwd to the harness
+  ([terminal-harness-cwd.png](assets/electron/terminal-harness-cwd.png)).
+- Installed `~/.local/bin/agent-toolkit` 1.35.0 is selected from PATH and
+  reported as `version-mismatch` / `desktop-gate-missing` (honest; not
+  crashed). `/usr/bin/agent-toolkit` 1.16.0 is listed under Rejected
+  binaries: `too old: has no serve command`.
+- With PATH=`/usr/bin` only: `failed` / `binary-rejected` naming the stale
+  binary. Evidence:
+  [settings-backend-rejected.png](assets/electron/settings-backend-rejected.png).
+
+Earlier default/fallback captures (2026-09-29):
 [default](assets/electron/settings-harness-default.png),
 [fallback](assets/electron/settings-harness-fallback.png).
+
+## Backend binary resolution
+
+`electron/backend-binary.ts` picks the `agent-toolkit` the supervisor
+spawns, then probes it **before** `serve` starts. Order:
+
+1. **`ATK_BACKEND_BIN`** — explicit, authoritative. A broken path does not
+   fall through to PATH.
+2. **bundled** — `<process.resourcesPath>/bin/agent-toolkit` in a packaged
+   app. Also authoritative (a stale bundle must not silently run a foreign
+   PATH binary).
+3. **staged** — `apps/desktop/resources/bin` written by `pnpm stage:backend`
+   (dev only).
+4. **PATH** — every `agent-toolkit` on `PATH`, in PATH order, de-duplicated
+   by realpath.
+
+Each candidate must be an executable file, print a version from
+`--version`, match the major pin (`ATK_EXPECTED_BACKEND_MAJOR` or
+`resources/backend-version.json`), and answer `serve --help`. After health
+passes, the supervisor also probes the `X-Atk-Desktop` first-party gate.
+
+Honest `BackendState` (never a generic "crashed" for a selection failure):
+
+| `status` | `problem` | Meaning |
+|---|---|---|
+| `failed` | `no-backend` | No candidate exists |
+| `failed` | `binary-rejected` | Candidates exist; each rejection names path, source, version, and reason (`too old`, not executable, `--version` failed, major pin) |
+| `failed` | `spawn-error` / `exited-during-start` / `health-timeout` / `port` | OS or startup failure after a binary was chosen |
+| `version-mismatch` | `major-mismatch` | Healthy serve reports another major than the pin |
+| `version-mismatch` | `desktop-gate-missing` | Healthy serve rejects Desktop mutations (403) |
+| `crashed` | `exited` | Serve exited **after** it was ready |
+
+Settings shows the selected binary, any rejected candidates, and the
+problem code. The shell banner prefers `detail` over "Backend crashed".
 
 ## Live verification (2026-09-29, backend 1.35.0 @ 19f87ad + branch V fixes)
 

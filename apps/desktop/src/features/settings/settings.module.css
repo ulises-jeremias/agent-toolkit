@@ -72,3 +72,11 @@
   text-transform: uppercase;
   color: var(--status-err-fg);
 }
+
+.recent {
+  margin: var(--space-3) 0 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}

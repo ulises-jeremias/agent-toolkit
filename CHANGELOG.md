@@ -45,6 +45,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   resolves, Desktop falls back to the inherited cwd with a visible notice and
   never creates the directory. Settings and Office show the resolved harness
   and its source.
+- Desktop harness switch: Settings can pick a folder (`atk:harness-choose` /
+  `atk:harness-set`) or return to the default (`atk:harness-reset`). The
+  choice and an MRU list persist in `<userData>/harness.json`. Precedence is
+  env override > persisted choice > `~/.ai-workspace` > fallback. A switch
+  restarts the supervised backend in the new cwd. New terminals default
+  their cwd to the resolved harness.
+- Desktop backend binary resolution: `ATK_BACKEND_BIN` (authoritative) →
+  bundled → staged → PATH, with a version-pin and `serve` capability probe
+  before spawn. Incompatible binaries report `failed`/`binary-rejected` (or
+  `version-mismatch`) with path, source, version and reason — not "crashed".
 
 - `serve`: global event stream `GET /api/v1/events` (SSE; `job.*`,
   `loop.*`, `swarm.changed`, `memory.changed`, `install.*`, `backend.*`).

@@ -74,12 +74,13 @@ is the rollback tag ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md)).
 | [#1318](https://github.com/ulises-jeremias/agent-toolkit/pull/1318) | **MERGED** | Memory `prepend_table_row` fix |
 | [#1321](https://github.com/ulises-jeremias/agent-toolkit/pull/1321) | **MERGED** `a25496ad` | Paper/Ink design system, typed data layer, real Electron E2E, context bar |
 | [#1320](https://github.com/ulises-jeremias/agent-toolkit/pull/1320) | **MERGED** `ada41cfc` | `GET /api/v1/events` SSE ring, job get/retry, typed schemas. Kinds today: `backend.*`, `job.*`, `loop.*`, `swarm.changed`, `memory.changed`, `install.*`. Room remains for `attention.*` / `session.*`. |
-| [#1322](https://github.com/ulises-jeremias/agent-toolkit/pull/1322) | OPEN, **CONFLICTING** vs post-#1321 `main` | Runtime harness switch + honest backend binary resolution. Owner rebases. |
+| [#1322](https://github.com/ulises-jeremias/agent-toolkit/pull/1322) | OPEN, rebased onto post-#1323 `main` | Runtime harness switch + honest backend binary resolution. Settings picker / MRU; env > persisted > `~/.ai-workspace` > fallback; switch restarts serve. |
 
 #1320 and #1321 have landed. #1321's context bar encodes workspace/agent/run
-in the URL and seeds workspace from the #1314 harness; there is still no
-picker, and switching workspace still requires a backend restart. This
-artifact does not change #1322.
+in the URL and seeds workspace from the resolved harness. Settings can now
+change that harness (`atk:harness-choose` / `set` / `recent` / `reset`); a
+switch still restarts the one supervised backend (cwd-rooted). No first-run
+wizard or "add a repo" yet.
 
 ### Stale statements (do not follow)
 
@@ -508,7 +509,7 @@ What worked on Linux/Hyprland (Wayland) with no Xvfb installed:
    `env -u ELECTRON_RUN_AS_NODE PATH="<dir with agent-toolkit>:$PATH" setsid -f electron apps/desktop --remote-debugging-port=9333 --user-data-dir=/tmp/<profile>`.
    `setsid -f` matters: without it the app dies when the launching shell exits.
 3. Drive and capture through CDP on `127.0.0.1:9333`: `Runtime.evaluate` (set `location.hash`, click buttons), `Input.insertText` / `Input.dispatchKeyEvent` for xterm typing, `Emulation.setDeviceMetricsOverride` for a fixed 1440×900 or 1024×640 viewport, `Page.captureScreenshot` for PNGs. Works while the window is tiled on another workspace.
-4. Backend: the supervisor uses `resources/bin/agent-toolkit` when packaged, else the first `agent-toolkit` on `PATH`. Put a gate-capable build first on `PATH` for dev; for packaged runs set `ATK_BACKEND_BIN=<binary>` before `pnpm dist:dir` (no V build needed if a binary exists).
+4. Backend: the supervisor probes `ATK_BACKEND_BIN` → bundled → staged → PATH (version pin + `serve` capability). Put a gate-capable build first on `PATH` for dev; for packaged runs set `ATK_BACKEND_BIN=<binary>` before `pnpm dist:dir` (no V build needed if a binary exists). A stale PATH binary is `failed`/`binary-rejected` (path, version, reason), not "crashed".
 5. Stop by exact PID of the Electron main process (`SIGTERM`); the supervisor stops its `serve` child. Verify no `agent-toolkit serve --host 127.0.0.1` remains.
 
 Screenshots from that baseline live in [`assets/electron/baseline/`](assets/electron/baseline/).
@@ -522,5 +523,6 @@ domain gaps in the matrix remain.
 
 ## Appendix C — Evidence log
 
+- 2026-09-30 — Harness switch + honest backend binary resolution on `feat/desktop-harness-switch` (Settings picker / MRU / restart; env > persisted > `~/.ai-workspace` > fallback; terminals default cwd = resolved harness; `ATK_BACKEND_BIN` → bundled → PATH with version pin). Live Electron (CDP 9333, no V rebuild): `harnessSet` restarted serve into a user harness; PATH `/usr/bin/agent-toolkit` 1.16.0 reported `failed`/`binary-rejected` ("too old", not crashed); installed 1.35.0 reported `desktop-gate-missing`. Evidence: [settings-harness-switch.png](assets/electron/settings-harness-switch.png), [settings-harness-switched.png](assets/electron/settings-harness-switched.png), [settings-backend-too-old.png](assets/electron/settings-backend-too-old.png), [settings-backend-rejected.png](assets/electron/settings-backend-rejected.png), [office-harness-switch.png](assets/electron/office-harness-switch.png), [office-backend-too-old.png](assets/electron/office-backend-too-old.png), [terminal-harness-cwd.png](assets/electron/terminal-harness-cwd.png).
 - 2026-09-29 — Live baseline: ATK dev Electron + packaged `dist:dir` at `d4ff3731`; Munder `5756722e` run locally (onboarding, Command Center tabs, add-agent, IDE, settings). Munder terminal crash recovery not exercised (source-read only).
 - 2026-09-30 — Three-way decision artifact. ATK reconstructed from GitHub `origin/main` `ada41cfc` (#1320 after #1321 `a25496ad`). Agent Office `f88a31f` (v0.1.174+2) studied from source; #198 is pointer-lock settle only (capability unchanged since `13c104eb`). Local AO server probed earlier (302 login, no floors, no paid agent). Munder capability refresh: `origin/main` `ed06e3e` is SEO-only vs `5756722e`. #1321 context-bar / palette / dock folded in from `main`.

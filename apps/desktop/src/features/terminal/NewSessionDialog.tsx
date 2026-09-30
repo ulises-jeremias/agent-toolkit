@@ -86,7 +86,7 @@ export function NewSessionDialog() {
             />
           )}
         </Field>
-        <Field label="Working folder" hint="Optional. Defaults to the current workspace.">
+        <Field label="Working folder" hint="Optional. Defaults to the resolved harness.">
           {(control) => (
             <TextInput
               mono

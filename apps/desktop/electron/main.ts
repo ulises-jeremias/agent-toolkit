@@ -1,13 +1,29 @@
-import { app, BrowserWindow, shell } from 'electron';
+import { app, BrowserWindow, dialog, shell } from 'electron';
 import path from 'node:path';
 import { BackendSupervisor, type BackendState } from './backend';
+import { HarnessController } from './harness-controller';
+import { HARNESS_STORE_FILE, HarnessStore } from './harness-store';
 import { TerminalService } from './terminal';
 import { registerIpc } from './ipc';
 
 let mainWindow: BrowserWindow | null = null;
 let backend: BackendSupervisor | null = null;
 let terminals: TerminalService | null = null;
+let harness: HarnessController | null = null;
 let ipcRegistered = false;
+
+async function chooseHarnessDirectory(defaultPath: string): Promise<string | null> {
+  const options: Electron.OpenDialogOptions = {
+    title: 'Choose harness folder',
+    buttonLabel: 'Use as harness',
+    defaultPath,
+    // createDirectory is macOS-only; elsewhere the native picker offers its own
+    // "new folder" action, which is an explicit user choice.
+    properties: ['openDirectory', 'createDirectory'],
+  };
+  const result = mainWindow ? await dialog.showOpenDialog(mainWindow, options) : await dialog.showOpenDialog(options);
+  return result.canceled ? null : (result.filePaths[0] ?? null);
+}
 
 function resolveRendererUrl(): { url: string; isDev: boolean } {
   const devUrl = process.env.ATK_DESKTOP_DEV_URL;
@@ -19,8 +35,22 @@ async function createWindow(): Promise<void> {
   // Singleflight: macOS `activate` re-enters createWindow. Rebuilding the
   // services would orphan the running backend/PTYs and re-registering IPC
   // handlers throws. Reuse what exists.
-  if (!backend) backend = new BackendSupervisor();
-  if (!terminals) terminals = new TerminalService();
+  if (!harness) {
+    harness = new HarnessController({
+      store: new HarnessStore(path.join(app.getPath('userData'), HARNESS_STORE_FILE)),
+      getSupervisor: () => backend,
+      chooseDirectory: chooseHarnessDirectory,
+    });
+  }
+  const harnessController = harness;
+  if (!backend) backend = new BackendSupervisor({ resolveHarness: () => harnessController.resolve() });
+  const supervisor = backend;
+  if (!terminals) {
+    // New shells open where serve runs; before the first start, where it will run.
+    terminals = new TerminalService({
+      defaultCwd: () => supervisor.snapshot().harness?.path ?? harnessController.resolve().path,
+    });
+  }
 
   const { url, isDev } = resolveRendererUrl();
 
@@ -50,6 +80,7 @@ async function createWindow(): Promise<void> {
       getBackend: () => backend,
       getTerminals: () => terminals,
       getWindow: () => mainWindow,
+      getHarness: () => harness,
     });
     ipcRegistered = true;
   }

@@ -1,6 +1,9 @@
 // @vitest-environment node
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { TerminalService } from './terminal';
+import { TerminalCwdError, TerminalService } from './terminal';
 
 /** Real PTY round-trips through node-pty (no display required). */
 describe('TerminalService', () => {
@@ -50,6 +53,30 @@ describe('TerminalService', () => {
       service.dispose();
     }
   }, 30_000);
+
+  it('opens in the default cwd (the harness) and validates requested cwds', () => {
+    const harness = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'atk-term-harness-')));
+    fs.mkdirSync(path.join(harness, 'sub'));
+    const service = new TerminalService({ defaultCwd: () => harness });
+    try {
+      expect(service.resolveCwd()).toBe(harness);
+      expect(service.resolveCwd('  ')).toBe(harness);
+      expect(service.resolveCwd('sub')).toBe(path.join(harness, 'sub'));
+      expect(service.resolveCwd(os.tmpdir())).toBe(path.resolve(os.tmpdir()));
+      expect(() => service.resolveCwd(path.join(harness, 'missing'))).toThrow(TerminalCwdError);
+      expect(fs.existsSync(path.join(harness, 'missing'))).toBe(false);
+
+      const session = service.create({ agent: 'test', cmd: '/bin/sleep', args: ['5'] });
+      expect(session.cwd).toBe(harness);
+      expect(() => service.create({ agent: 'test', cmd: '/bin/sleep', cwd: '/definitely/missing' })).toThrow(
+        TerminalCwdError,
+      );
+      expect(service.list()).toHaveLength(1);
+    } finally {
+      service.dispose();
+      fs.rmSync(harness, { recursive: true, force: true });
+    }
+  });
 
   it('resizes, signals, and closes a live session', async () => {
     const service = new TerminalService();

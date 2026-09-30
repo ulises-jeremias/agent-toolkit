@@ -84,7 +84,8 @@ export function StaleNotice() {
     return (
       <div className={styles.notice} data-tone="warn" role="alert">
         <p>
-          Backend {backend.version ?? 'of unknown version'} does not match this Desktop build. Some actions may fail.
+          {backend.detail ??
+            `Backend ${backend.version ?? 'of unknown version'} does not match this Desktop build. Some actions may fail.`}
         </p>
       </div>
     );

@@ -1,6 +1,9 @@
 import type { BrowserWindow } from 'electron';
 import { randomUUID } from 'node:crypto';
+import os from 'node:os';
+import path from 'node:path';
 import * as pty from 'node-pty';
+import { expandHome, isDirectory } from './harness';
 
 /**
  * Terminal transport adapter (Electron main only).
@@ -35,11 +38,23 @@ const MAX_TAIL_CHARS = 8 * 1024;
 type DataListener = (id: string, chunk: string) => void;
 type ExitListener = (id: string, exitCode: number) => void;
 
+export interface TerminalServiceOptions {
+  /** cwd for sessions created without one: the resolved harness in the app. */
+  defaultCwd?: () => string;
+}
+
+export class TerminalCwdError extends Error {}
+
 export class TerminalService {
   private sessions = new Map<string, Session>();
   private dataListeners = new Set<DataListener>();
   private exitListeners = new Set<ExitListener>();
   private windowOf: (() => BrowserWindow | null) | null = null;
+  private readonly defaultCwd: () => string;
+
+  constructor(options: TerminalServiceOptions = {}) {
+    this.defaultCwd = options.defaultCwd ?? (() => process.cwd());
+  }
 
   attachWindow(getWindow: () => BrowserWindow | null): void {
     this.windowOf = getWindow;
@@ -68,11 +83,20 @@ export class TerminalService {
     return this.sessions.get(id)?.tail ?? '';
   }
 
+  /** Absolute, existing cwd for a new session; relative paths resolve against the default cwd. */
+  resolveCwd(requested?: string): string {
+    const base = this.defaultCwd();
+    const cwd = requested?.trim() ? path.resolve(base, expandHome(requested.trim(), os.homedir())) : base;
+    if (!isDirectory(cwd)) throw new TerminalCwdError(`terminal cwd ${cwd} is not an existing directory`);
+    return cwd;
+  }
+
+  /** Throws TerminalCwdError when the cwd does not exist; never creates it. */
   create(options: { agent: string; cmd: string; args?: string[]; cwd?: string; cols?: number; rows?: number }): TerminalSessionInfo {
     const id = randomUUID();
     const cols = options.cols ?? 120;
     const rows = options.rows ?? 30;
-    const cwd = options.cwd ?? process.cwd();
+    const cwd = this.resolveCwd(options.cwd);
     const proc = pty.spawn(options.cmd, options.args ?? [], {
       name: 'xterm-256color',
       cols,
