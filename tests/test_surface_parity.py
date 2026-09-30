@@ -71,13 +71,23 @@ def test_retired_presentation_artifacts_absent():
         )
 
 
+def _server_route_attributes():
+    """Every @['...'] route in the serve module (handlers may live outside server.veb.v)."""
+    attrs = set()
+    server_dir = ROOT / "modules" / "agent_toolkit_server"
+    for src in sorted(server_dir.glob("*.v")):
+        if src.name.endswith("_test.v"):
+            continue
+        attrs.update(re.findall(r"@\['([^']+)';", src.read_text(encoding="utf-8")))
+    attrs.discard("/")
+    return attrs
+
+
 def test_registered_routes_const_matches_attributes():
     """The `registered_api_routes` const consumed by runtime selfcheck must
-    exactly mirror the @['...'] route attributes in server.veb.v."""
+    exactly mirror the @['...'] route attributes in the serve module."""
+    attrs = _server_route_attributes()
     text = SERVER.read_text(encoding="utf-8")
-    attrs = set(re.findall(r"@\['([^']+)';", text))
-    attrs.discard("/")
-
     m = re.search(r"const registered_api_routes = \[(.*?)\]", text, re.DOTALL)
     assert m, "registered_api_routes const missing"
     const_items = set(re.findall(r"'([^']+)'", m.group(1)))
@@ -93,9 +103,7 @@ def test_openapi_paths_match_registered_routes():
     landing '/' is presentation, not an API path)."""
     spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
     openapi_paths = {p.replace("{", ":").replace("}", "") for p in spec["paths"]}
-    text = SERVER.read_text(encoding="utf-8")
-    registered = set(re.findall(r"@\['([^']+)';", text))
-    registered.discard("/")
+    registered = _server_route_attributes()
 
     missing_in_openapi = registered - openapi_paths
     assert not missing_in_openapi, f"routes without OpenAPI docs: {sorted(missing_in_openapi)}"
@@ -282,10 +290,14 @@ def test_response_schemas_match_v_structs():
 def test_native_endpoints_match_route_methods():
     """Each api-schemas.yaml native endpoint is served with that HTTP method."""
     data = yaml.safe_load(API_SCHEMAS.read_text(encoding="utf-8"))
-    text = SERVER.read_text(encoding="utf-8")
     served = {}
-    for path, methods in re.findall(r"@\['([^']+)';\s*([^\]]+)\]", text):
-        served.setdefault(path, set()).update(m.strip() for m in methods.split(";"))
+    server_dir = ROOT / "modules" / "agent_toolkit_server"
+    for src in sorted(server_dir.glob("*.v")):
+        if src.name.endswith("_test.v"):
+            continue
+        text = src.read_text(encoding="utf-8")
+        for path, methods in re.findall(r"@\['([^']+)';\s*([^\]]+)\]", text):
+            served.setdefault(path, set()).update(m.strip() for m in methods.split(";"))
     for entry in data["native"]:
         route = entry["path"].replace("{", ":").replace("}", "")
         assert entry["method"] in served.get(route, set()), (

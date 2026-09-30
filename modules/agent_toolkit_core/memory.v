@@ -137,6 +137,7 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 				data: {
 					'subcommand': 'add'
 					'type':       'learning'
+					'path':       rel
 				}
 			}
 		}
@@ -161,6 +162,7 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 				data: {
 					'subcommand': 'add'
 					'type':       'process'
+					'path':       rel
 				}
 			}
 		}
@@ -182,6 +184,7 @@ fn memory_add(ws string, knowledge string, opts MemoryOptions) MemoryReport {
 				data: {
 					'subcommand': 'add'
 					'type':       'todo'
+					'path':       rel
 				}
 			}
 		}

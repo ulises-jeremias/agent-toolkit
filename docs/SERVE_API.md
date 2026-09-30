@@ -56,6 +56,10 @@ Regenerate after changing the contract:
   `GET /api/v1/tools` (coding-agent CLI discovery),
   `GET /api/v1/providers` (swarm runners), `GET /api/v1/models`
   (swarm model-profile slots). See [Agents and tools](#agents-and-tools)
+- Memory — typed `GET /api/v1/memory`, `/memory/hits`, `/memory/file`
+  plus `POST`/`PUT` `/memory/file` and `POST /memory/file/archive`.
+  See [Memory](#memory). The generic `memory/:sub` route remains for
+  CLI-parity add/search/inject/review/todo.
 - `GET /` — minimal static status page (not a product surface)
 
 ## Typed subcommand bodies
@@ -148,6 +152,33 @@ meaningful for `job.*` and `loop.*`.
   …, `skeleton`). `auto` is a resolver and is omitted.
 - `GET /api/v1/models` — flattened `swarm_model_profiles()` slots
   (`profile`, `runner`, `model`).
+
+## Memory
+
+Typed knowledge-file API. `?workspace=` (or `workspace` in the body)
+is contained like other serve workspace fields; empty uses the default
+harness root. Entries are `knowledge/**/*.md` only. Symlinks and `..`
+that leave `knowledge/` are rejected.
+
+- `GET /api/v1/memory` — list files (`id`, `kind`, `title`, `snippet`,
+  `tags`, `provenance`). `body` is empty on list.
+- `GET /api/v1/memory/hits?q=` — case-insensitive line hits (`path`,
+  `line`, `snippet`, `kind`). Empty `q` is `400`.
+- `GET /api/v1/memory/file?path=` — read one file (`body` populated).
+  `provenance.author` is the last git committer when `.git` exists,
+  otherwise empty. `provenance.agent` is empty unless recorded.
+- `POST /api/v1/memory/file` — `{entry_type, title?, content}` adds a
+  learning, process, or todo via the same writer as `memory add`.
+- `PUT /api/v1/memory/file` — `{path, content}` atomically replaces a
+  markdown file (64 KiB cap, no NUL).
+- `POST /api/v1/memory/file/archive` — `{path}` moves the file under
+  `knowledge/archive/`. Already-archived paths are `409`. Nothing is
+  deleted.
+- `GET` on `memory/{sub}` is allowed for `list`, `search`, `show`,
+  `get`, `inject`, and `todo`. `list`/`show`/`get` are reserved names
+  for the typed routes above; they are not CLI subcommands yet.
+
+Add/edit/archive emit `memory.changed`.
 
 ## Security defaults (ADR-028)
 

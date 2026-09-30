@@ -134,7 +134,7 @@ fn is_read_subcommand(family string, sub string) bool {
 			return sub in ['list', 'info']
 		}
 		'memory' {
-			return sub in ['list', 'search', 'show', 'get']
+			return sub in ['list', 'search', 'show', 'get', 'inject', 'todo']
 		}
 		'project' {
 			return sub in ['list', 'info']
@@ -478,6 +478,10 @@ const registered_api_routes = [
 	'/api/v1/mcp/:sub',
 	'/api/v1/plugin/:sub',
 	'/api/v1/workspace/:sub',
+	'/api/v1/memory',
+	'/api/v1/memory/hits',
+	'/api/v1/memory/file',
+	'/api/v1/memory/file/archive',
 	'/api/v1/memory/:sub',
 	'/api/v1/project/:sub',
 	'/api/v1/dc/:sub',

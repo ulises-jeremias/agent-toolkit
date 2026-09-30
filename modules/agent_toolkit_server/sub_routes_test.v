@@ -287,6 +287,11 @@ fn test_get_guard_still_classifies_mutations() {
 	assert !is_read_subcommand('workspace', 'init')
 	assert !is_read_subcommand('project', 'clone')
 	assert is_read_subcommand('memory', 'search')
+	assert is_read_subcommand('memory', 'list')
+	assert is_read_subcommand('memory', 'show')
+	assert is_read_subcommand('memory', 'get')
+	assert is_read_subcommand('memory', 'inject')
+	assert is_read_subcommand('memory', 'todo')
 	assert is_read_subcommand('skills', 'list')
 	assert is_read_subcommand('mcp', 'health')
 }

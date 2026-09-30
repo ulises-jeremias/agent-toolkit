@@ -1612,6 +1612,312 @@
         }
       }
     },
+    "/api/v1/memory": {
+      "get": {
+        "operationId": "list_memory",
+        "summary": "Knowledge files in the workspace",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "workspace outside allowed roots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/memory/hits": {
+      "get": {
+        "operationId": "search_memory",
+        "summary": "Case-insensitive knowledge search",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemorySearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "query is required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "workspace outside allowed roots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/memory/file": {
+      "get": {
+        "operationId": "read_memory",
+        "summary": "Read one knowledge markdown file",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryReadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "path outside knowledge/",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "memory file not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "add_memory",
+        "summary": "Add a learning, process, or todo entry",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryWriteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid body or entry_type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "workspace outside allowed roots",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "workspace not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "edit_memory",
+        "summary": "Replace a knowledge markdown file",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryWriteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid path or content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "path outside knowledge/",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "memory file not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/memory/file/archive": {
+      "post": {
+        "operationId": "archive_memory",
+        "summary": "Move a knowledge file under knowledge/archive/",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryWriteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "path outside knowledge/",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "memory file not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "already archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/doctor/fix": {
       "post": {
         "operationId": "doctor_fix",
@@ -2153,6 +2459,171 @@
         "required": [
           "ok",
           "models"
+        ]
+      },
+      "MemoryProvenance": {
+        "type": "object",
+        "description": "Honest origin for a knowledge file. author is the last git committer on read when `.git` exists; agent is empty unless a real source records it. timestamp is the first YYYY-MM-DD in the file, else mtime.",
+        "properties": {
+          "file": {
+            "type": "string"
+          },
+          "author": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string"
+          },
+          "project": {
+            "type": "string"
+          },
+          "agent": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "author",
+          "timestamp",
+          "project",
+          "agent"
+        ]
+      },
+      "MemoryEntry": {
+        "type": "object",
+        "description": "One knowledge/*.md file. body is set on read and empty on list.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/MemoryProvenance"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "snippet",
+          "body",
+          "tags",
+          "provenance"
+        ]
+      },
+      "MemoryHit": {
+        "type": "object",
+        "description": "One line match from GET /api/v1/memory/hits.",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "line": {
+            "type": "integer"
+          },
+          "snippet": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "line",
+          "snippet",
+          "kind"
+        ]
+      },
+      "MemoryListResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemoryEntry"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "entries"
+        ]
+      },
+      "MemorySearchResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "query": {
+            "type": "string"
+          },
+          "hits": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemoryHit"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "query",
+          "hits"
+        ]
+      },
+      "MemoryReadResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "entry": {
+            "$ref": "#/components/schemas/MemoryEntry"
+          }
+        },
+        "required": [
+          "ok",
+          "entry"
+        ]
+      },
+      "MemoryWriteResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "message",
+          "path"
         ]
       }
     }
