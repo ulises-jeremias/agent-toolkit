@@ -198,8 +198,215 @@
   margin-inline: auto;
 }
 
+.shell[data-destination='/terminal'] .content {
+  flex: none;
+  padding-bottom: var(--space-4);
+}
+
 @media (max-width: 1100px) {
   .content {
     padding: var(--space-6) var(--space-5) var(--space-10);
   }
+}
+
+/* ---------- Context bar ---------- */
+
+.contextBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-4);
+  min-height: var(--contextbar-height);
+  padding: var(--space-1) var(--space-6);
+  background: var(--surface-manila);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.contextField {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.contextLabel {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.contextInput {
+  min-width: 8rem;
+  max-width: 22rem;
+  min-height: 1.75rem;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+}
+
+.contextInput[data-mono] {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.contextInput:hover,
+.contextInput:focus {
+  border-color: var(--border-default);
+  background: var(--surface-panel);
+}
+
+.contextMeta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.contextMeta[data-tone='warn'] {
+  color: var(--status-warn-fg);
+}
+
+.contextHint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ---------- Command palette ---------- */
+
+.palette {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.paletteList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 22rem;
+  overflow: auto;
+}
+
+.paletteItem {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  width: 100%;
+  min-height: var(--target-min);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.paletteItem[aria-selected='true'],
+.paletteItem:hover {
+  background: var(--surface-selected);
+}
+
+.paletteGroup {
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.paletteTitle {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.paletteItemHint {
+  grid-column: 2;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.paletteEmpty,
+.paletteHint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.shortcutTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.shortcutTable th,
+.shortcutTable td {
+  padding: var(--space-2) 0;
+  text-align: left;
+  font-weight: 400;
+}
+
+.shortcutTable th {
+  color: var(--text-primary);
+}
+
+/* ---------- Terminal dock ---------- */
+
+.dock {
+  display: flex;
+  flex-direction: column;
+  z-index: var(--z-dock);
+  min-height: 0;
+  background: var(--surface-terminal);
+  border-top: 1px solid var(--border-terminal);
+  color: var(--text-terminal);
+}
+
+.dock[data-mode='collapsed'] {
+  flex: none;
+}
+
+.dock[data-mode='compact'] {
+  flex: none;
+  height: 16rem;
+}
+
+.dock[data-mode='expanded'] {
+  flex: 1 1 20rem;
+  min-height: 16rem;
+}
+
+.dockBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-height: 2.25rem;
+  padding: 0 var(--space-3);
+  background: var(--surface-terminal-chrome);
+}
+
+.dockTitle {
+  margin: 0;
+  font-size: var(--text-2xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-terminal-muted);
+}
+
+.dockBar button[data-variant='ghost'] {
+  color: var(--text-terminal);
+}
+
+.dockTabs {
+  flex: 1;
+  min-width: 0;
 }

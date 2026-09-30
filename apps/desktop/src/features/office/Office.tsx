@@ -4,6 +4,7 @@ import { sortJobs, useJobs } from '../../data/jobs';
 import { useLiveStatus } from '../../data/live';
 import { isTerminalJobStatus, type Job } from '../../lib/api';
 import { formatDuration, formatWhen, jobCommandLine, jobDuration } from '../../lib/format';
+import { useSessionContext } from '../../shell/useSessionContext';
 import {
   EmptyState,
   ErrorState,
@@ -35,6 +36,7 @@ interface AttentionItem {
  */
 export default function Office() {
   const { backend } = useBackend();
+  const { href } = useSessionContext();
   const live = useLiveStatus();
   const jobs = useJobs();
   const selfcheck = useSelfcheck();
@@ -57,7 +59,7 @@ export default function Office() {
       tone: 'err',
       title: backendDown ? `Backend ${backend?.status}` : 'Backend not answering',
       detail: backend?.detail ?? 'Nothing below can refresh until it answers.',
-      action: { to: '/settings', label: 'Open backend settings' },
+      action: { to: href('/settings'), label: 'Open backend settings' },
     });
   }
   if (backend?.harness?.notice) {
@@ -66,7 +68,7 @@ export default function Office() {
       tone: 'warn',
       title: backend.harness.source === 'fallback' ? 'Harness not found' : 'Harness override ignored',
       detail: backend.harness.notice,
-      action: { to: '/settings', label: 'See harness' },
+      action: { to: href('/settings'), label: 'See harness' },
     });
   }
   for (const job of recentFailures) {
@@ -75,7 +77,7 @@ export default function Office() {
       tone: 'err',
       title: `${job.cmd} ${job.status}`,
       detail: `${jobCommandLine(job)} · exit ${job.exit_code} · ${formatWhen(job.ended_at || job.started_at, now)}`,
-      action: { to: `/operations?job=${encodeURIComponent(job.id)}`, label: 'Review job' },
+      action: { to: href('/operations', { job: job.id }), label: 'Review job' },
     });
   }
   for (const check of selfcheck.data?.checks ?? []) {
@@ -85,7 +87,7 @@ export default function Office() {
       tone: check.status === 'err' ? 'err' : 'warn',
       title: `Self-check: ${check.name}`,
       detail: check.detail,
-      action: { to: '/settings', label: 'See self-check' },
+      action: { to: href('/settings'), label: 'See self-check' },
     });
   }
 
@@ -154,16 +156,16 @@ export default function Office() {
             <ErrorState title="Could not load jobs" error={jobs.error} onRetry={() => void jobs.refetch()} />
           ) : running.length === 0 ? (
             <EmptyState title="No work is running.">
-              <Link to="/operations">Start a job in Operations</Link>
+              <Link to={href('/operations')}>Start a job in Operations</Link>
             </EmptyState>
           ) : (
-            <JobRows jobs={running} now={now} />
+            <JobRows jobs={running} now={now} href={href} />
           )}
         </Panel>
 
         {jobs.isSuccess && finished.length > 0 ? (
           <Panel title="Recently finished" meta="Last five">
-            <JobRows jobs={finished.slice(0, 5)} now={now} />
+            <JobRows jobs={finished.slice(0, 5)} now={now} href={href} />
           </Panel>
         ) : null}
       </Stack>
@@ -171,7 +173,15 @@ export default function Office() {
   );
 }
 
-function JobRows({ jobs, now }: { jobs: Job[]; now: number }) {
+function JobRows({
+  jobs,
+  now,
+  href,
+}: {
+  jobs: Job[];
+  now: number;
+  href: (path: string, extra?: Record<string, string | undefined>) => string;
+}) {
   return (
     <Table>
       <thead>
@@ -193,7 +203,7 @@ function JobRows({ jobs, now }: { jobs: Job[]; now: number }) {
                 <StatusBadge tone={jobTone(job.status)} label={job.status} live={!isTerminalJobStatus(job.status)} />
               </td>
               <th scope="row">
-                <Link to={`/operations?job=${encodeURIComponent(job.id)}`}>
+                <Link to={href('/operations', { job: job.id })}>
                   <Mono>{jobCommandLine(job)}</Mono>
                 </Link>
               </th>

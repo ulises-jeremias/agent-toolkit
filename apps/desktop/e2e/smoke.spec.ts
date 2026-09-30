@@ -14,6 +14,15 @@ test.describe('desktop smoke', () => {
     await page.goto('/#/office');
     await expect(page.getByRole('heading', { level: 1, name: 'What needs you' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Destinations' })).toBeVisible();
+    await expect(page.getByRole('form', { name: 'Session context' })).toBeVisible();
+  });
+
+  test('Ctrl+K opens the command palette', async ({ page }) => {
+    await page.goto('/#/office');
+    await page.keyboard.press('Control+k');
+    await expect(page.getByRole('dialog', { name: 'Commands' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog', { name: 'Commands' })).toBeHidden();
   });
 
   test('destinations navigate without dead ends', async ({ page }) => {

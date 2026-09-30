@@ -30,7 +30,7 @@ working reference for implementing it in React.
 | `src/lib/` | Transport, envelopes, query keys, SSE bridge, formatting. No React. | nothing above it |
 | `src/data/` | React hooks over TanStack Query and the Electron bridge. | `lib` |
 | `src/ui/` | Presentational primitives. No data fetching. | `lib` types only |
-| `src/shell/` | App frame: router, sidebar, live indicator, error boundaries. | all of the above |
+| `src/shell/` | App frame: router, context bar, command palette, terminal dock, live indicator, error boundaries. | all of the above |
 | `src/features/` | One folder per destination; composition only. | all of the above |
 
 Domain logic stays in the V backend. The renderer maps envelopes to UI and
@@ -112,6 +112,20 @@ Everything is exported from `src/ui/index.ts`.
 | `CommandReport({ envelope, label, failureLabel?, hideFields? })` | A command envelope: its text output plus its scalar `data` fields. |
 | `DestinationBoundary({ name })` | Per-route error boundary in the shell. It resets on navigation. |
 
+### Shell contracts later destinations must use
+
+Do not invent a second session scope, toast, dialog, or terminal host. Destination PRs compose these:
+
+| Contract | Where | Rule |
+|---|---|---|
+| Session context | `useSessionContext()` / `withContext()` | `workspace`, `agent` and `run` live in the URL. Seed workspace from `backend.harness` (the #1314 `backend-status` IPC). Every in-app link uses `href(path, extra)` so navigation never drops scope. |
+| Command palette | Ctrl/Cmd+K, `src/shell/CommandPalette.tsx` | Add a `PALETTE_COMMANDS` entry for new global actions. Do not bind a second Ctrl+K. |
+| Dialog / confirm | `Dialog`, `ConfirmAction` | Native `<dialog>`. No custom modal stacks. |
+| Toasts | `useActionReceipt` / `useReceipts` | Receipts are the only toast surface. |
+| Terminal | `useTerminalSessions` + the dock | xterm instances mount in `TerminalHost` only. A destination may create/attach a session; it must not construct its own `Terminal`. |
+| Query / live | `qk`, `useSubQuery` / `useJobs`, `useLiveStatus` | Keys come from the factory. SSE writes go through `applyLiveEvent`. |
+| Visual | tokens + `src/ui` | Paper/Ink/System via `theme.ts`. Fraunces + IBM Plex via `@fontsource`. No new typefaces. |
+
 ### Vocabulary
 
 Use the same words the CLI uses (`job`, `completed`, `failed`, `workspace`,
@@ -159,7 +173,13 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
 - **Needs-you first.** Office lists failures and warnings before anything
   running, each with a link to the exact item (`/operations?job=<id>`).
 - **Selection lives in the URL.** List and detail views keep the selection in
-  search params, so reloads, links and the back button work.
+  search params, so reloads, links and the back button work. Session scope
+  (`workspace`, `agent`, `run`) is the same contract: the context bar writes
+  it, destinations only read and preserve it.
+- **Command palette is the shortcut map.** Ctrl/Cmd+K opens it; `?` opens the
+  binding list. Destination-local shortcuts stay on those screens.
+- **The terminal dock is the host.** Sessions stay mounted across navigation.
+  Tabs show agent, run, cwd and process state.
 - **Offline disables and explains.** Actions that need the backend are
   disabled with a `title` that says why. They are never hidden.
 - **Command preview.** Dialogs that run a command show the exact command line
