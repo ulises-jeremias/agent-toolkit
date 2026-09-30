@@ -1,6 +1,6 @@
 version: 1
 generated: true
-count: 103
+count: 105
 skills:
   - id: accessibility/review
     name: review
@@ -201,6 +201,16 @@ skills:
     name: workflow-generic-project
     domain: delivery
     description: 'WHAT — Generic client delivery: Jira or ClickUp, full repo context, human gates, English traceability on tickets, draft PR via delegated forge skills. Use workspace packs for client/account overlays'
+    stability: stable
+  - id: design/brag
+    name: brag
+    domain: design
+    description: 'Turn the current project website into a short, polished, shareable launch video using Hyperframes. Use when someone says "/brag", "let''s brag about this", "make a launch video", "turn this into a vide'
+    stability: stable
+  - id: design/brag-slim
+    name: brag-slim
+    domain: design
+    description: 'Turn a project directory or a website URL into a short, shareable launch video with music, motion, and share copy. One file, no bundled assets — built entirely by the model with the tools already on'
     stability: stable
   - id: design/design-assessment
     name: design-assessment

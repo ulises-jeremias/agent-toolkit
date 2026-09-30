@@ -166,6 +166,8 @@ products:
         - design/figma-create-design-system-rules
         - design/figma-create-new-file
         - design/figma-implement-design
+        - design/brag
+        - design/brag-slim
         - design/design-assessment
         - design/design-improvement
         - design/frontend-design

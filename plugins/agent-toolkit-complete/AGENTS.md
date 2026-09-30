@@ -38,6 +38,8 @@ Full stable skill catalog coverage for consumers who want everything (
 - **figma-create-design-system-rules**: design/figma-create-design-system-rules
 - **figma-create-new-file**: design/figma-create-new-file
 - **figma-implement-design**: design/figma-implement-design
+- **brag**: design/brag
+- **brag-slim**: design/brag-slim
 - **design-assessment**: design/design-assessment
 - **design-improvement**: design/design-improvement
 - **frontend-design**: design/frontend-design

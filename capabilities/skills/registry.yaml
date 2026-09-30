@@ -3,7 +3,7 @@
 # Do not hand-edit counts; validate with: python3 scripts/validate-skill-capability.py --check
 # Schema: schemas/skill-capability-registry.schema.json
 version: 1
-count: 103
+count: 105
 generated: true
 skills:
 - id: accessibility/review
@@ -1291,6 +1291,78 @@ skills:
   specialist_justified: false
   contraindications: Use workspace packs for client overlay; delegate CLI/ticket ops to forge/integrations;
     human gates required
+- id: design/brag
+  domain: design
+  purpose: HOW — Turn the current project into a short Hyperframes launch video
+    with plan, storyboard, render, and share copy. Use when the user says /brag
+    or asks to make a launch video from the repo.
+  origin: upstream
+  holistic_owner: designer
+  role: creation
+  context_cost: high
+  network_required: true
+  mcp_required: []
+  requires: []
+  triggers:
+  - /brag
+  - make a launch video
+  - brag about this
+  - share what I built as a video
+  overlap:
+  - design/brag-slim
+  complementary:
+  - design/brag-slim
+  - design/frontend-design
+  prerequisites: []
+  follow_ups:
+  - design/brag-slim
+  secondary_owners:
+  - implementer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Hyperframes full workflow — not for UI design, design review,
+    or a11y; on Opus 5.5 prefer brag-slim unless the user asks for --full
+  upstream:
+    repository: latent-spaces/brag
+    path: skills/brag
+    ref: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+    license: MIT
+    version: c893c5e
+- id: design/brag-slim
+  domain: design
+  purpose: HOW — Lean launch-video skill that builds story, visuals, audio, and
+    render with tools already on the machine. No Hyperframes and no bundled assets.
+  origin: upstream
+  holistic_owner: designer
+  role: creation
+  context_cost: high
+  network_required: true
+  mcp_required: []
+  requires: []
+  triggers:
+  - /brag-slim
+  - make a launch video
+  - brag about this URL
+  - share what I built as a video
+  overlap:
+  - design/brag
+  complementary:
+  - design/brag
+  - design/frontend-design
+  prerequisites: []
+  follow_ups: []
+  secondary_owners:
+  - implementer
+  specialist_agents: []
+  specialist_justified: false
+  contraindications: Launch video only — not for UI design, design review, or a11y;
+    if /brag is installed let it dispatch here on Opus 5.5
+  upstream:
+    repository: latent-spaces/brag
+    path: skills/brag-slim
+    ref: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+    license: MIT
+    version: c893c5e
 - id: design/design-assessment
   domain: design
   purpose: WHAT - Evidence-based design-unit assessment orchestrated by project-assessment. Evaluates

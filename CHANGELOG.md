@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Upstream `design/brag` and `design/brag-slim` from
+  [latent-spaces/brag](https://github.com/latent-spaces/brag) (MIT, pinned
+  `c893c5ed52aed84e3e2ee56787de869fccdae6b0`). Full `/brag` vendors
+  instructions, references, and helper scripts; bundled music/SFX under
+  `assets/` are omitted (unverified ende.app redistribution terms).
 - Electron + React Desktop (`apps/desktop/`, pnpm-only) over the canonical
   `agent-toolkit serve` backend: Office/Operations/Workspace/Library/
   Insights/Settings/Terminal destinations, typed OpenAPI client with

@@ -8,7 +8,7 @@ remains the generated id→description index. For canonical holistic roster + mi
 **Rule:** **WHAT** skills (workflows, companion framing) define phases and gates; **HOW** skills
 (forge, tooling, integrations) own CLI/API procedures — do not inline HOW steps inside WHAT skills.
 
-**Design routing rule (#863):** The **designer** agent owns contextual selection among the 10 `design/*`
+**Design routing rule (#863):** The **designer** agent owns contextual selection among the 12 `design/*`
 plus `accessibility/review` skills. Do not mechanically chain all design skills on one task — pick one
 primary driver per task (see Design section and `docs/SKILL_ROUTING.md`).
 
@@ -90,6 +90,7 @@ Reserved for anti-slop, static analysis, and deep review. Skills in this section
 | Iterative browser-grounded remediation (implement → run → capture → re-review until Blocking cleared) | `design/design-improvement` (consumes `design-assessment` findings; requires rendered evidence) |
 | Figma-driven work | `design/figma` → `figma-implement-design` (node → code 1:1), `figma-code-connect-components` (Code Connect), `figma-create-design-system-rules` (`AGENTS.md` rules), `figma-create-new-file` (new file via `whoami`); canvas Plugin API → opt-in `figma-use` pack |
 | Accessibility-sensitive UI (needs WCAG 2.2 AA, SC mapping, mode-aware findings) | `accessibility/review` |
+| Launch / share video for a project or site | `design/brag` (Hyperframes) or `design/brag-slim` (model-built, no bundled assets) |
 
 **Anti-pattern — do not mechanically chain:** `design-assessment` → `frontend-design-review` → `web-design-guidelines` → `frontend-design` → `design-improvement` on every ticket. Typically one of (assessment **or** review **or** guidelines) plus at most one Figma skill and optionally `accessibility/review`; `design-improvement` only after an assessment exists. See `capabilities/skills/registry.yaml` for `overlap`/`contraindications` and `agents/designer/AGENT.md` five-scenario test.
 
