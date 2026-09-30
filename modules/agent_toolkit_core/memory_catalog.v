@@ -201,7 +201,9 @@ pub fn archive_memory_entry(workspace string, rel_path string) !MemoryWriteRespo
 
 fn require_memory_workspace(workspace string) !string {
 	ws := find_workspace_root(workspace) or { return error('workspace not found') }
-	return ws
+	// real_path so pack_rel_path matches resolve_knowledge_file on macOS
+	// (/var/folders -> /private/var/folders).
+	return os.real_path(ws)
 }
 
 // resolve_knowledge_file requires a knowledge/*.md path contained in ws
