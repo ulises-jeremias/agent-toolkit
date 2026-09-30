@@ -12,6 +12,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desktop world follows `GET /api/v1/events`: LiveProvider subscribes to
+  `memory.` as well as `backend.`, `job.`, `loop.`, `swarm.`, and `install.`.
+  `job.updated` patches known job status so house lamps and characters update
+  before the next poll; `memory.changed` invalidates the memory domain without
+  inventing archive rows; `backend.ready` / `backend.resync` resync jobs and
+  memory (foreign boot = refetch, not a guessed picture). Swarm and loop events
+  keep domain invalidation only — payloads lack a project id, so no house
+  activity is invented from them.
+
 - Desktop world memory archive shows workspace-level records only; records
   whose `provenance.project` exactly names a roster project appear in that
   house. Empty provenance stays on the world archive — never copied into
