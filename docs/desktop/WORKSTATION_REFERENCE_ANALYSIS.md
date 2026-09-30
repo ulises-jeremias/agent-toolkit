@@ -343,9 +343,9 @@ dir, resize-owns-typist, scrubbed env. Detached host is G3 only.
 
 ### React — do not start from this research
 
-Consume typed hooks from #1321. Render attention/session facets when V
-emits them. No derived "quiet". Compact destinations must work without
-Office decor. Visual system stays Paper Co.
+Consume the typed hooks that landed in #1321. Render attention/session
+facets when V emits them. No derived "quiet". Compact destinations must
+work without Office decor. Visual system stays Paper Co.
 
 ### Testing (durability modes separately)
 
@@ -425,9 +425,11 @@ then git write; then scoped agent ops; then services; then multi-repo.
 
 ## 11. Report A–J (for the parent track)
 
-**A. Current ATK.** Electron+React over `serve` on `main` (`a25496ad`, #1321).
-ADR-033 Proposed. #1320/#1321 open+conflicting. Native parity slices are
-not Electron truth. Session entity missing. Git Engine stubs.
+**A. Current ATK.** Electron+React over `serve` on `main` (`ada41cfc`,
+#1320 after #1321 `a25496ad`). ADR-033 Proposed. Native parity slices are
+not Electron truth. Session entity missing. Git Engine stubs. Electron
+Office attention is still a client derivation. #1322 is the only
+in-flight Desktop PR this research must not derail.
 
 **B. Agent Office.** Floor = repo; worker = persisted runtime; detached PTY
 host; provider adapters including ACP; worktrees/PRs/queue/MCP. Strongest:
@@ -447,13 +449,13 @@ REJECT: god-agent, 3D/game/brand, TS Worker.
 **E. Recommendations.** V: session + adapter + attention + git. Main: G1
 mirror. React: render only. MCP: same ops as HTTP, later. No V PTY daemon.
 
-**F. Roadmap.** Update #1227/#1118 only. No new issues. Order: #1320/#1321
-→ session identity → adapter → G1 → git read/write → scoped ops.
+**F. Roadmap.** Update #1227/#1118 only. No new issues. Order: session
+identity → adapter → G1 → git read/write → scoped ops.
 
-**G. Impact on current work.** Nothing in this doc blocks current PRs.
-Backend owner: leave room on the event bus for `attention.*` / `session.*`;
-do not invent those types in #1320. Frontend owner: do not build a Worker
-model; keep compact destinations independent of Office decor.
+**G. Impact on current work.** Nothing in this doc blocks #1322. Backend
+owner: leave room on the landed #1320 bus for `attention.*` / `session.*`.
+Frontend owner: do not build a Worker model; keep compact destinations
+independent of Office decor. Palette is chrome, not the typed registry.
 
 **H. Security.** ATK wins: contained paths, first-party gate, no hook
 listener port (file jsonl sink), scrubbed env, isolated hook config, no
@@ -464,8 +466,9 @@ Cwd-based service ownership is not fact.
 **I. Test plan.** Separate durability failures; V schema parity; Electron
 E2E already in #1321; git fixtures; hook allowlist; no V builds in this PR.
 
-**J. Next actions.** Merge this docs PR. Comment #1227/#1118. Let #1320/#1321
-rebase. First implementation slice after that: V session identity (not G3).
+**J. Next actions.** Merge this docs PR. Comment #1227/#1118 with the
+refreshed SHAs. First implementation slice after that: V session identity
+(not G3).
 
 ---
 
@@ -514,10 +517,10 @@ Munder screenshots were reviewed but are intentionally **not** committed.
 The detailed 2026-09-29 per-destination UX critique (Office quiet-after-fail,
 truncated job ids, raw CLI Library/Insights, missing `xterm.css`) remains
 valid as the Electron baseline at `d4ff3731` and is in git history of this
-file before this revision. #1321 is the active remediation of chrome/typed
-data, not of the domain gaps in the matrix.
+file before this revision. #1321 remediates chrome/typed data on `main`;
+domain gaps in the matrix remain.
 
 ## Appendix C — Evidence log
 
 - 2026-09-29 — Live baseline: ATK dev Electron + packaged `dist:dir` at `d4ff3731`; Munder `5756722e` run locally (onboarding, Command Center tabs, add-agent, IDE, settings). Munder terminal crash recovery not exercised (source-read only).
-- 2026-09-30 — Three-way decision artifact. ATK `origin/main` `a25496ad` (#1321). Agent Office `13c104eb` (v0.1.174+1) studied from source; local server probed (302 login, no floors, no paid agent). Munder capability refresh: `origin/main` `ed06e3e` is SEO-only vs `5756722e`. #1321 context-bar note folded in on rebase.
+- 2026-09-30 — Three-way decision artifact. ATK reconstructed from GitHub `origin/main` `ada41cfc` (#1320 after #1321 `a25496ad`). Agent Office `f88a31f` (v0.1.174+2) studied from source; #198 is pointer-lock settle only (capability unchanged since `13c104eb`). Local AO server probed earlier (302 login, no floors, no paid agent). Munder capability refresh: `origin/main` `ed06e3e` is SEO-only vs `5756722e`. #1321 context-bar / palette / dock folded in from `main`.
