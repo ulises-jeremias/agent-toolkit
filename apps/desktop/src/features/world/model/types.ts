@@ -39,8 +39,12 @@ export interface SemanticEntity {
   state: string;
   themeKey: SemanticKey;
   availability: EntityAvailability;
-  /** Destination path opened on activate (without session query). */
-  hrefPath: string;
+  /**
+   * Destination path opened on activate (without session query).
+   * Omit when no real inspector exists for this concept — tile stays
+   * non-activating (never invent a dashboard or dead deep-link).
+   */
+  hrefPath?: string;
   hrefExtra?: Record<string, string | undefined>;
   /** Optional project scope when inside a project building. */
   projectId?: string;

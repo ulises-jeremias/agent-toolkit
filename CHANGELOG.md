@@ -12,6 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Desktop world activation opens only existing inspectors: failed/rejected
+  houses and blocked job characters → `/office`, calm/working project houses →
+  `/world?project=`, terminal → `/terminal`, Library annex → `/library`, living
+  jobs → `/operations`. Memory records and detected tools stay non-activating —
+  there is no per-file memory view or per-tool detail route yet (no invented
+  screens). Map keyboard Enter/Space matches click; the structured list exposes
+  the same targets (or — when none).
+
 - Desktop world follows `GET /api/v1/events`: LiveProvider subscribes to
   `memory.` as well as `backend.`, `job.`, `loop.`, `swarm.`, and `install.`.
   `job.updated` patches known job status so house lamps and characters update

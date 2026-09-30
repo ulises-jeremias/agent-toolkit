@@ -331,6 +331,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     });
 
     for (const entry of scoped) {
+      // No desktop memory/file inspector yet — stay non-activating (do not invent a screen).
       entities.push({
         id: `object:memory:${entry.id}`,
         kind: 'object',
@@ -339,7 +340,6 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
         state: entry.kind || 'listed',
         themeKey: 'memory.entry',
         availability: 'present',
-        hrefPath: '/workspace',
         projectId: project.name,
         detail: provenanceDetail(entry),
       });
@@ -382,6 +382,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
           tool.verified ? 'verified' : '',
           tool.version || '',
         ].filter(Boolean);
+        // Library lists tools; there is no per-tool detail route — no click target.
         entities.push({
           id: `object:tool:${tool.id}`,
           kind: 'object',
@@ -390,7 +391,6 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
           state: bits.join(' · ') || 'detected',
           themeKey: 'tool.coding',
           availability: 'present',
-          hrefPath: '/library',
           projectId: project.name,
           detail: tool.id,
         });
