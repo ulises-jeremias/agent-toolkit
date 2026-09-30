@@ -177,8 +177,8 @@ export default function WorldView() {
         title={model.focusProjectId ? `${model.focusProjectId} house` : model.workspaceLabel || 'Workspace world'}
         lede={
           model.focusProjectId
-            ? 'Inside this project — memory records, terminal, and detected tools only. No fake dashboard.'
-            : 'Workspace grounds: project houses light from real jobs. Memory archive when the API exists; Library stays capabilities.'
+            ? 'Inside this project house — Paper Co. room with memory records, terminal, and detected tools only. No fake dashboard.'
+            : 'Paper Co. grounds: real project houses, memory archive when the API exists, Library annex for capabilities. Calm when idle.'
         }
         actions={
           model.focusProjectId ? (
@@ -231,6 +231,7 @@ export default function WorldView() {
                       className={className}
                       data-kind={entity.kind}
                       data-theme-key={entity.themeKey}
+                      data-entity-id={entity.id}
                       data-activity={entity.activity ?? 'calm'}
                       title={tip}
                       aria-label={`${tip}. Activate to inspect.`}

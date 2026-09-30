@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Changed
+
+- Desktop semantic world default theme craft: richer Paper Co. DOM/CSS tiles
+  (readable cottage silhouettes, wooden interior floors, card-index drawers,
+  phosphor terminal desk), 48px tile scale, and CSS-only ambient motion that
+  respects `prefers-reduced-motion`. No Pixi/Phaser; still semantic keys only;
+  no invented knowledge rooms, NPCs, or metrics.
+
 ### Added
 
 - Upstream `design/brag` and `design/brag-slim` from
