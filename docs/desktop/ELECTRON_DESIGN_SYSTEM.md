@@ -192,10 +192,10 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
 
 ## Patterns
 
-- **Needs-you inspector.** Office is the detailed attention list, not the
-  product home. The semantic world owns lights/characters/needs-me and
-  opens this destination with `href('/office')` or
-  `href('/office', { inspect: <key> })` (`backend-crash`,
+- **Needs-you inspector.** `/world` is the app home (ADR-034). Office at
+  `/office` is the detailed attention list, not a second home. The world
+  owns lights/characters/needs-me and opens this destination with
+  `href('/office')` or `href('/office', { inspect: <key> })` (`backend-crash`,
   `backend-mismatch`, `backend-offline`, `harness`, `job-<id>`,
   `check-<name>`). Failures list first, each with a link to the subject
   (`/operations?job=<id>`, Settings). The palette command "Next that
