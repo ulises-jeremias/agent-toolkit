@@ -10,15 +10,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Desktop world memory-record and coding-tool detail inspectors stay on
+  `/world` (`?memory=` / `?tool=`). Memory loads `GET /api/v1/memory/file?path=`;
+  tools show catalog fields from `GET /api/v1/tools` (enabled `unknown` stays
+  unknown). Non-empty `install_hint` offers Install via `POST /api/v1/install`.
+
 ### Changed
 
-- Desktop world activation opens only existing inspectors: failed/rejected
-  houses and blocked job characters → `/office`, calm/working project houses →
+- Desktop world activation opens existing inspectors: failed/rejected houses
+  and blocked job characters → `/office`, calm/working project houses →
   `/world?project=`, terminal → `/terminal`, Library annex → `/library`, living
-  jobs → `/operations`. Memory records and detected tools stay non-activating —
-  there is no per-file memory view or per-tool detail route yet (no invented
-  screens). Map keyboard Enter/Space matches click; the structured list exposes
-  the same targets (or — when none).
+  jobs → `/operations`, memory records → `/world?memory=` (file read), tools →
+  `/world?tool=` (catalog row). Map keyboard Enter/Space matches click; the
+  structured list exposes the same targets.
 
 - Desktop world follows `GET /api/v1/events`: LiveProvider subscribes to
   `memory.` as well as `backend.`, `job.`, `loop.`, `swarm.`, and `install.`.
