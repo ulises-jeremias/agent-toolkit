@@ -37,14 +37,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Design boards for the cozy semantic world (`asset-sheet-cozy-world.jpg`,
   product/UI boards) landed under `docs/desktop/assets/design/` with usage
   rules (slice sprites before wiring; no decorative NPCs from character rows).
+- Desktop world production sprites under `apps/desktop/public/world/` (original
+  Paper Co. pixel buildings) mapped via theme façades; `WorldEntityMap` renders
+  `ThemeAsset.kind = 'sprite'`. Project houses pick stable cottage/studio/
+  workshop/lab variants; commons landmarks are place-sized with distinct
+  silhouettes (Library, Archive, Operations, Files, Terminal, Settings,
+  Attention). Grounds memory ledgers capped so the campus stays scannable.
 
 ### Changed
 
 - Desktop world Library place is labeled "Library" (capability catalog); empty
   project district CTA stays quiet and truthful.
 - World CSS tiles differentiate Library / Archive / Operations / Settings /
-  Files façades toward the asset-sheet building archetypes (still CSS craft
-  until sliced sprites land).
+  Files façades toward the asset-sheet building archetypes (CSS remains the
+  fallback when a sprite façade is missing).
+- Shared world landmarks use place footprints; interior room plate no longer
+  navigates away to Workspace on activate.
 
 ## [1.36.0] — 2026-09-30
 

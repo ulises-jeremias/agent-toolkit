@@ -89,8 +89,9 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
 
 /**
  * Deterministic layout from structured entities. Same ids → same slots.
- * Grounds: commons strip (workspace, memory, inspectors) then a fixed-width
- * project district — never a √n reshape. Characters stand at their house porch.
+ * Grounds: north commons (workspace + archive + memory ledgers), mid landmark
+ * boulevard (place-sized shared buildings), south project district.
+ * Characters stand at their house porch or named commons object.
  * Interior: room furniture, not a second dashboard.
  */
 export function layoutWorld(model: WorldModel): WorldLayout {
@@ -104,16 +105,18 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const grounds = entities.find((e) => e.id === 'place:workspace');
   const memoryPlace = entities.find((e) => e.id === 'place:memory');
   const memoryEntries = entities.filter((e) => e.id.startsWith('object:memory:'));
-  const sharedObjects = entities.filter(
-    (e) =>
-      e.id === 'object:terminal' ||
-      e.id === 'object:library' ||
-      e.id === 'object:files' ||
-      e.id === 'object:operations' ||
-      e.id === 'object:settings' ||
-      e.id === 'object:attention' ||
-      e.id === 'place:projects-empty',
-  );
+  // Stable landmark boulevard order (scannable settlement, not alpha noise).
+  const landmarkOrder = [
+    'object:attention',
+    'object:library',
+    'object:files',
+    'object:operations',
+    'object:terminal',
+    'object:settings',
+    'place:projects-empty',
+  ];
+  const sharedById = new Map(entities.filter((e) => landmarkOrder.includes(e.id)).map((e) => [e.id, e] as const));
+  const sharedObjects = landmarkOrder.map((id) => sharedById.get(id)).filter(Boolean) as SemanticEntity[];
   const projects = entities.filter((e) => e.id.startsWith('place:project:'));
   const characters = entities.filter((e) => e.kind === 'character');
   const rest = entities.filter(
@@ -146,15 +149,17 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     entryX += OBJECT_W + 1;
   }
 
-  let objX = 0;
-  const objY = PLACE_H + 1;
-  for (const obj of sharedObjects) {
-    place(obj, objX, objY);
-    objX += OBJECT_W + 1;
+  // Landmark boulevard — place-sized shared destinations (Library, Ops, …).
+  let landmarkX = 0;
+  const landmarkY = PLACE_H + 1;
+  for (const landmark of sharedObjects) {
+    place(landmark, landmarkX, landmarkY);
+    const { w } = sizeFor(landmark);
+    landmarkX += w + 1;
   }
 
   // Project district — sorted names, fixed column count (stable as roster grows).
-  const projectStartY = objY + OBJECT_H + 1;
+  const projectStartY = landmarkY + PLACE_H + 1;
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % PROJECT_DISTRICT_COLS;
@@ -188,7 +193,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   return {
-    cols: Math.max(maxX, PROJECT_DISTRICT_COLS * (PLACE_W + 1)),
+    cols: Math.max(maxX, PROJECT_DISTRICT_COLS * (PLACE_W + 1), landmarkX),
     rows: Math.max(maxY, 8),
     entities: laid,
   };

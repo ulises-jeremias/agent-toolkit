@@ -1,8 +1,8 @@
 import type { WorldThemePack } from './types';
 
 /**
- * Default cozy top-down pack. Assets are original CSS pixel tiles (no
- * third-party game art). Features resolve semantic keys only.
+ * Default cozy top-down pack. Semantic keys keep CSS fallbacks; façades map to
+ * original Paper Co. sprites under `/world/` (not cropped concept sheets).
  */
 export const cozyTopdownTheme: WorldThemePack = {
   id: 'cozy-topdown',
@@ -28,7 +28,21 @@ export const cozyTopdownTheme: WorldThemePack = {
     'loop.clock': { kind: 'css', className: 'tileLoop', label: 'Loop' },
     'ops.crate': { kind: 'css', className: 'tileCrate', label: 'Install' },
   },
+  facades: {
+    'house-cottage': { kind: 'sprite', src: '/world/house-cottage.png', label: 'Cottage' },
+    'house-studio': { kind: 'sprite', src: '/world/house-studio.png', label: 'Studio' },
+    'house-workshop': { kind: 'sprite', src: '/world/house-workshop.png', label: 'Workshop' },
+    'house-lab': { kind: 'sprite', src: '/world/house-lab.png', label: 'Lab' },
+    'landmark-workspace': { kind: 'sprite', src: '/world/landmark-workspace.png', label: 'Workspace lot' },
+    'landmark-archive': { kind: 'sprite', src: '/world/landmark-archive.png', label: 'Memory archive' },
+    'landmark-library': { kind: 'sprite', src: '/world/landmark-library.png', label: 'Library' },
+    'landmark-files': { kind: 'sprite', src: '/world/landmark-files.png', label: 'Files' },
+    'landmark-operations': { kind: 'sprite', src: '/world/landmark-operations.png', label: 'Operations' },
+    'landmark-settings': { kind: 'sprite', src: '/world/landmark-settings.png', label: 'Settings' },
+    'landmark-terminal': { kind: 'sprite', src: '/world/landmark-terminal.png', label: 'Terminal hub' },
+    'landmark-attention': { kind: 'sprite', src: '/world/landmark-attention.png', label: 'Needs you' },
+  },
 };
 
-export { resolveThemeAsset } from './types';
+export { resolveEntityAsset, resolveThemeAsset } from './types';
 export type { ThemeAsset, WorldThemePack } from './types';

@@ -57,6 +57,11 @@ export interface SemanticEntity {
    * cmd names that object. Missing → house porch / default slot.
    */
   standAtId?: string;
+  /**
+   * Theme-layer silhouette hint (cottage / library / ops HQ…). Never encodes
+   * invented domain state — layout and inspectors ignore this field.
+   */
+  facade?: string;
 }
 
 export interface LaidOutEntity extends SemanticEntity {

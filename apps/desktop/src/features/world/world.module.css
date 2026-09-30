@@ -45,17 +45,17 @@
     repeating-linear-gradient(90deg, #c4a574 0 14px, #b8955f 14px 16px, #c9ad7a 16px 30px, #b08d57 30px 32px);
 }
 
-/* Soft ground path — CSS only, not a fake place. */
+/* Soft ground path under the landmark boulevard — CSS only, not a fake place. */
 .mapRegion[data-mode='grounds']::before {
   content: '';
   position: absolute;
-  left: 12%;
-  right: 12%;
-  top: 42%;
-  height: 18px;
+  left: 8%;
+  right: 8%;
+  top: 36%;
+  height: 22px;
   border-radius: 2px;
   background: repeating-linear-gradient(90deg, #c4a574 0 10px, #b8955f 10px 12px, #d4b483 12px 22px);
-  opacity: 0.55;
+  opacity: 0.6;
   pointer-events: none;
   z-index: 0;
 }
@@ -192,7 +192,63 @@
   background: var(--pc-teal-500);
 }
 
-/* Original cozy tiles — Paper Co. boards as language, not copied sprites. */
+/* Sprite tiles — nearest-neighbor; façades supply the silhouette. */
+.tileSprite {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: 85% auto;
+  border-color: transparent;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.tileSprite::before {
+  content: none;
+}
+
+.tileSprite .entityLabel {
+  border: 1px solid color-mix(in srgb, var(--pc-ink-900) 40%, transparent);
+  border-radius: 1px;
+  margin-top: auto;
+  box-shadow: 1px 1px 0 color-mix(in srgb, var(--pc-ink-900) 18%, transparent);
+}
+
+.tileSprite .entityState {
+  top: 2px;
+  right: 2px;
+}
+
+/* Interior room plate still uses CSS craft — sprites stay outdoor silhouettes. */
+.mapRegion[data-mode='interior'] .tileSprite[data-theme-key='project.building'],
+.mapRegion[data-mode='interior'] .tileBuilding {
+  background-image: none !important;
+  background:
+    radial-gradient(ellipse at 50% 42%, color-mix(in srgb, #4e7c7b 18%, transparent), transparent 55%),
+    linear-gradient(180deg, #b08d57 0 10%, transparent 10%),
+    repeating-linear-gradient(90deg, #efdcb6 0 14px, #e3d0ac 14px 16px, #f0e2c4 16px 30px), #efdcb6;
+  border-color: var(--pc-ink-900);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pc-ink-900) 28%, transparent);
+  overflow: hidden;
+}
+
+.mapRegion[data-mode='interior'] .tileSprite[data-theme-key='project.building']::before,
+.mapRegion[data-mode='interior'] .tileBuilding::before {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 28%;
+  height: 34%;
+  border: 1px solid var(--pc-ink-900);
+  background:
+    repeating-linear-gradient(90deg, #d4b483 0 6px, #b08d57 6px 8px, #7b9e7e 8px 12px),
+    linear-gradient(180deg, #c4a574, #b08d57);
+  box-shadow: 0 28px 0 -2px #8a3624;
+  pointer-events: none;
+}
+
+/* Original cozy tiles — Paper Co. boards as language; CSS is fallback when no façade sprite. */
 
 .tileGrounds {
   /* Workshop lot: dirt path + cream workshop roof + porch. */
@@ -422,8 +478,8 @@
   pointer-events: none;
 }
 
-/* Library annex — taller façade + book-block sign (asset-sheet Library). */
-.entity[data-entity-id='object:library'] {
+/* Library annex — CSS fallback when sprite façade unavailable. */
+.entity[data-entity-id='object:library']:not(.tileSprite) {
   background:
     linear-gradient(180deg, #4a4133 0 14%, #c4a574 14% 22%, transparent 22%),
     repeating-linear-gradient(
@@ -437,7 +493,7 @@
     #d4b483;
 }
 
-.entity[data-entity-id='object:library']::before {
+.entity[data-entity-id='object:library']:not(.tileSprite)::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -451,12 +507,12 @@
   pointer-events: none;
 }
 
-/* Operations HQ — industrial block + brass plate (asset-sheet Operations). */
-.entity[data-entity-id='object:operations'] {
+/* Operations HQ — CSS fallback. */
+.entity[data-entity-id='object:operations']:not(.tileSprite) {
   background: linear-gradient(180deg, #6b604c 0 18%, #a67c22 18% 30%, #d4b483 30% 78%, #4a4133 78% 100%);
 }
 
-.entity[data-entity-id='object:operations']::before {
+.entity[data-entity-id='object:operations']:not(.tileSprite)::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -472,12 +528,12 @@
   pointer-events: none;
 }
 
-/* Settings gate — gear motif on manila (asset-sheet Settings). */
-.entity[data-entity-id='object:settings'] {
+/* Settings gate — CSS fallback. */
+.entity[data-entity-id='object:settings']:not(.tileSprite) {
   background: linear-gradient(180deg, #6b604c 0 16%, #efdcb6 16% 72%, #b08d57 72% 100%);
 }
 
-.entity[data-entity-id='object:settings']::before {
+.entity[data-entity-id='object:settings']:not(.tileSprite)::before {
   content: '';
   position: absolute;
   left: 50%;
@@ -494,16 +550,16 @@
   pointer-events: none;
 }
 
-/* Files shed — filing façade (asset-sheet knowledge/files language). */
-.entity[data-entity-id='object:files'],
-.entity[data-entity-id^='object:files-project:'] {
+/* Files shed — CSS fallback. */
+.entity[data-entity-id='object:files']:not(.tileSprite),
+.entity[data-entity-id^='object:files-project:']:not(.tileSprite) {
   background:
     linear-gradient(180deg, #5c5241 0 14%, transparent 14%),
     repeating-linear-gradient(90deg, #d4b483 0 10px, #b08d57 10px 12px, #efdcb6 12px 22px), #d4b483;
 }
 
-.entity[data-entity-id='object:files']::before,
-.entity[data-entity-id^='object:files-project:']::before {
+.entity[data-entity-id='object:files']:not(.tileSprite)::before,
+.entity[data-entity-id^='object:files-project:']:not(.tileSprite)::before {
   content: '';
   position: absolute;
   left: 18%;

@@ -1,5 +1,6 @@
 import { isTerminalJobStatus } from '../../../lib/api';
 import { memoryFilePath, memoryInspectExtra, toolInspectExtra } from '../inspectors';
+import { projectFacade } from './facades';
 import { jobStandAtId, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 import type {
   MemoryEntryRecord,
@@ -127,6 +128,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     availability: input.workspacePath ? 'present' : 'empty',
     hrefPath: '/workspace',
     detail: input.harnessNotice || input.workspacePath || 'No workspace path in session context',
+    facade: 'landmark-workspace',
   });
 
   if (input.memory.available) {
@@ -146,10 +148,14 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         count > 0
           ? `${count} workspace-level memory record${count === 1 ? '' : 's'} (typed memory API)`
           : 'Memory API reachable; archive is empty',
+      facade: 'landmark-archive',
     });
 
-    for (const entry of archive) {
+    // Keep the grounds scannable — a few recent ledgers beside the archive, not a card wall.
+    const GROUNDS_MEMORY_LEDGERS = 3;
+    for (const entry of archive.slice(0, GROUNDS_MEMORY_LEDGERS)) {
       const path = memoryFilePath(entry);
+      const more = count > GROUNDS_MEMORY_LEDGERS ? ` · showing ${GROUNDS_MEMORY_LEDGERS} of ${count} on grounds` : '';
       entities.push({
         id: `object:memory:${entry.id}`,
         kind: 'object',
@@ -160,14 +166,15 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         availability: 'present',
         hrefPath: '/world',
         hrefExtra: memoryInspectExtra(entry),
-        detail: provenanceDetail(entry) || path,
+        detail: (provenanceDetail(entry) || path) + more,
       });
     }
   }
 
+  // Shared landmarks are places (3×3 footprints) so silhouettes read as buildings.
   entities.push({
     id: 'object:terminal',
-    kind: 'object',
+    kind: 'place',
     concept: 'Terminal / PTY workstation',
     name: 'Terminal',
     state: 'ready',
@@ -175,12 +182,13 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     availability: 'present',
     hrefPath: '/terminal',
     detail: 'Open the Terminal destination or dock',
+    facade: 'landmark-terminal',
   });
 
   // Library is the knowledge/capability inspector — not a second invented room.
   entities.push({
     id: 'object:library',
-    kind: 'object',
+    kind: 'place',
     concept: 'Capability library',
     name: 'Library',
     state: 'catalog',
@@ -188,12 +196,13 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     availability: 'present',
     hrefPath: '/library',
     detail: 'Skills, agents, packs — reusable catalog capabilities',
+    facade: 'landmark-library',
   });
 
   // Files use the typed workspace tree API — open Workspace Files panel.
   entities.push({
     id: 'object:files',
-    kind: 'object',
+    kind: 'place',
     concept: 'Workspace files',
     name: 'Files',
     state: 'ready',
@@ -202,12 +211,13 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     hrefPath: '/workspace',
     hrefExtra: { panel: 'files' },
     detail: 'Workspace-contained tree via GET /api/v1/files',
+    facade: 'landmark-files',
   });
 
   // Operations is the shared runtime building — not a second home.
   entities.push({
     id: 'object:operations',
-    kind: 'object',
+    kind: 'place',
     concept: 'Operations / runtime',
     name: 'Operations',
     state: 'ready',
@@ -215,11 +225,12 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     availability: 'present',
     hrefPath: '/operations',
     detail: 'Jobs, loops, swarms, and doctor — real serve state only',
+    facade: 'landmark-operations',
   });
 
   entities.push({
     id: 'object:settings',
-    kind: 'object',
+    kind: 'place',
     concept: 'Settings',
     name: 'Settings',
     state: 'ready',
@@ -227,11 +238,12 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     availability: 'present',
     hrefPath: '/settings',
     detail: 'Appearance, harness, and coding-tool connections',
+    facade: 'landmark-settings',
   });
 
   entities.push({
     id: 'object:attention',
-    kind: 'object',
+    kind: 'place',
     concept: 'Attention inbox',
     name: 'Needs you',
     state: 'inspector',
@@ -239,6 +251,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     availability: 'present',
     hrefPath: '/office',
     detail: 'Failures and blocked work — attention inspector, not home',
+    facade: 'landmark-attention',
   });
 
   const tools = input.toolsKnown ? visibleTools(input.tools) : [];
@@ -287,6 +300,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         projectId: project.name,
         detail: `${project.status} → ${project.target}${liveCount ? ` · ${liveCount} job(s)` : ''}`,
         activity,
+        facade: projectFacade(project.name),
       });
 
       // Characters stand at house porch unless job.cmd names a grounds object.
@@ -350,10 +364,11 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     state: houseState(project, activity, liveCount),
     themeKey: 'project.building',
     availability: 'present',
-    hrefPath: '/workspace',
+    // Room plate selects only — Workspace inspector stays on the header link.
     projectId: project.name,
     detail: `${project.status} → ${project.target}`,
     activity,
+    facade: projectFacade(project.name),
   });
 
   if (input.memory.available) {
@@ -372,6 +387,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
         scoped.length > 0
           ? `${scoped.length} memory record${scoped.length === 1 ? '' : 's'} for this project`
           : 'Memory API reachable; no records scoped to this project',
+      facade: 'landmark-archive',
     });
 
     for (const entry of scoped) {
@@ -403,6 +419,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     hrefPath: '/terminal',
     projectId: project.name,
     detail: `Open Terminal · cwd hint ${project.target}`,
+    facade: 'landmark-terminal',
   });
 
   entities.push({
@@ -417,6 +434,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     hrefExtra: { panel: 'files' },
     projectId: project.name,
     detail: `Workspace files panel · project path ${project.target}`,
+    facade: 'landmark-files',
   });
 
   const tools = input.toolsKnown ? visibleTools(input.tools) : [];

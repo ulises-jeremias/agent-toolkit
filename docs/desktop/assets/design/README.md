@@ -9,26 +9,30 @@ screenshots and not sources of product/runtime truth.
 
 | File | Role |
 |---|---|
-| [`asset-sheet-cozy-world.jpg`](asset-sheet-cozy-world.jpg) | Tilesets, building archetypes (project house, library, archive, operations, terminal hub, toolsmith…), UI chrome, badges, logos. **Source atlas for future sprite slices.** |
+| [`asset-sheet-cozy-world.jpg`](asset-sheet-cozy-world.jpg) | Tilesets, building archetypes (project house, library, archive, operations, terminal hub, toolsmith…), UI chrome, badges, logos. **Directional atlas — do not ship as a runtime sprite sheet.** |
 | [`semantic-world-product-board.jpg`](semantic-world-product-board.jpg) | Product IA board: `/world` campus of project houses + shared places; interiors; Library/Office/Operations/Memory/Terminal as inspectors. |
 | [`semantic-world-ui-board.jpg`](semantic-world-ui-board.jpg) | UI destinations board (same IA; denser mock surfaces). |
 
-**How to use the asset sheet**
+**Production sprites** (original Paper Co. pixel buildings, archetype-inspired — not JPG crops) live at:
 
-1. Slice individual sprites (buildings, tiles, icons) into
-   `apps/desktop/public/world/` (or theme pack paths) before wiring
-   `ThemeAsset.kind = 'sprite'`.
-2. Map slices to **semantic keys** in
+`apps/desktop/public/world/`
+
+Wired through `cozyTopdownTheme.facades` → `ThemeAsset.kind = 'sprite'` in `WorldEntityMap`.
+
+**How to evolve the asset sheet into more sprites**
+
+1. Author or slice individual sprites into `apps/desktop/public/world/` (transparent PNG, nearest-neighbor).
+2. Map slices to **façade ids** / semantic keys in
    [`apps/desktop/src/features/world/theme/cozyTopdown.ts`](../../../apps/desktop/src/features/world/theme/cozyTopdown.ts)
    — never hardcode filenames inside feature code.
 3. **Characters / ambient animals** on the sheet are art vocabulary only.
    Production characters appear only for proven jobs/runs (ADR-034). Do not
    spawn decorative NPCs, walking agents, or invented “busy” states from
    these frames.
-4. Building archetypes suggest material language (red-roof cottage = project,
-   bookshelf façade = library, stone vault = memory archive, monitor hub =
-   terminal, industrial HQ = operations). The live world may use CSS craft
-   until sliced sprites land.
+4. Building archetypes: cottage / studio / workshop / lab (projects);
+   library, archive, operations HQ, files shed, terminal hub, settings booth,
+   attention stamp (commons). CSS craft remains the fallback when a façade
+   sprite is missing.
 
 ## Historical Paper Co. boards (still binding for inspector craft)
 
