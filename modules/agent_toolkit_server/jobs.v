@@ -335,7 +335,11 @@ pub fn (mut r JobRunner) delete(id string, force bool) ! {
 		}
 	}
 	r.mut.lock()
-	gone := r.jobs[id] or { job }
+	gone := r.jobs[id] or {
+		// A concurrent delete won the race; only one caller reports success.
+		r.mut.unlock()
+		return error('job not found: ${id}')
+	}
 	r.jobs.delete(id)
 	r.procs.delete(id)
 	r.persist_locked()

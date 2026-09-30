@@ -40,9 +40,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and its source.
 
 - `serve`: global event stream `GET /api/v1/events` (SSE; `job.*`,
-  `loop.*`, `swarm.changed`, `memory.changed`, `install.*`, `backend.*`)
-  with `Last-Event-ID` resume and type filters; `GET /api/v1/jobs/{id}`;
-  `POST /api/v1/jobs/{id}/retry` for failed or canceled jobs.
+  `loop.*`, `swarm.changed`, `memory.changed`, `install.*`, `backend.*`).
+  Each event has a process `boot` and SSE `id` `<boot>-<seq>`;
+  `Last-Event-ID` wins over `?since` and a cursor from another process
+  yields `backend.resync`. `GET /api/v1/jobs/{id}` and
+  `POST /api/v1/jobs/{id}/retry` (failed or canceled only).
 - OpenAPI now carries typed response schemas (`components.schemas`) for
   health, selfcheck, jobs and events, sourced from
   `docs/compatibility/api-schemas.yaml` and parity-checked against the V

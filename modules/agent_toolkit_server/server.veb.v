@@ -289,7 +289,20 @@ fn (app &App) run_install_action(action string, run fn () agent_toolkit_core.Com
 
 // swarm_mutating_subs are the swarm subcommands that change run state.
 const swarm_mutating_subs = ['start', 'init', 'plan', 'activate', 'deactivate', 'promote', 'approve',
-	'reject', 'cancel', 'pause', 'resume', 'stop', 'cleanup', 'prune', 'handoff', 'task']
+	'reject', 'cancel', 'pause', 'resume', 'stop', 'cleanup', 'prune']
+
+// swarm_sub_mutates reports whether a swarms/{sub} call changes state:
+// dry runs never do; handoff/task only for their writing sub-operations.
+fn swarm_sub_mutates(sub string, opts agent_toolkit_core.SwarmOptions) bool {
+	if opts.dry_run {
+		return false
+	}
+	return match sub {
+		'handoff' { opts.handoff_sub == 'create' }
+		'task' { opts.handoff_sub in ['next', 'complete'] }
+		else { sub in swarm_mutating_subs }
+	}
+}
 
 // Ctx embeds veb.Context as required by veb generics (X{Context: ctx}).
 pub struct Ctx {
@@ -780,7 +793,7 @@ pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 	}
 	opts := build_swarms_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
 	res := agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(opts))
-	if res.ok && sub in swarm_mutating_subs {
+	if res.ok && swarm_sub_mutates(sub, opts) {
 		app.emit(ApiEvent{
 			kind: 'swarm.changed'
 			subject: opts.run_id
@@ -1145,10 +1158,10 @@ pub fn (mut app App) jobs_retry(mut ctx Ctx, id string) veb.Result {
 }
 
 // events streams the global event bus over SSE. Each message carries
-// `id: <seq>`, `event: <type>` and a JSON ApiEvent in `data`. Resume with
-// `Last-Event-ID` (or ?since=<seq>); a cursor older than the retained ring
-// or from an earlier server process first gets a `backend.resync` event
-// (refetch state), then every retained event. ?types=job.,loop.finished
+// `id: <boot>-<seq>`, `event: <type>` and a JSON ApiEvent in `data`. Resume
+// with `Last-Event-ID` (or ?since=<seq> for this process); a cursor older
+// than the retained ring or from another server process first gets a
+// `backend.resync` event (refetch state), then every retained event. ?types=job.,loop.finished
 // filters by exact type or `family.` prefix. A `: ping` comment every 15s
 // detects dead clients.
 @['/api/v1/events'; get]
@@ -1161,14 +1174,19 @@ pub fn (app &App) events(mut ctx Ctx) veb.Result {
 		ctx.res.set_status(.service_unavailable)
 		return ctx.json(DenyErr{ ok: false, error: 'event bus unavailable' })
 	}
-	raw_cursor := ctx.query['since'] or { ctx.req.header.get_custom('Last-Event-ID') or { '' } }
-	start := parse_event_cursor(raw_cursor) or {
+	// EventSource reconnects to the same URL plus Last-Event-ID, so the
+	// header must win over the ?since the stream was first opened with.
+	last_event_id := ctx.req.header.get_custom('Last-Event-ID') or { '' }
+	since := ctx.query['since'] or { '' }
+	header_cursor := last_event_id.trim_space()
+	raw_cursor := if header_cursor.len > 0 { header_cursor } else { since }
+	mut bus := app.bus
+	start := parse_event_cursor(raw_cursor, bus.boot) or {
 		ctx.res.set_status(.bad_request)
 		return ctx.json(DenyErr{ ok: false, error: 'invalid since or Last-Event-ID' })
 	}
 	types_raw := ctx.query['types'] or { '' }
 	filter := types_raw.split(',').map(it.trim_space()).filter(it.len > 0)
-	mut bus := app.bus
 	if !bus.acquire() {
 		ctx.res.set_status(.service_unavailable)
 		return ctx.json(DenyErr{ ok: false, error: 'too many event subscribers' })
@@ -1186,6 +1204,7 @@ pub fn (app &App) events(mut ctx Ctx) veb.Result {
 	sb.write_string('\r\n')
 	ctx.conn.write(sb) or {
 		bus.release()
+		ctx.conn.close() or {}
 		return veb.no_result()
 	}
 	mut stream_conn := &sse.SSEConnection{
@@ -1195,26 +1214,34 @@ pub fn (app &App) events(mut ctx Ctx) veb.Result {
 	return veb.no_result()
 }
 
-fn stream_events(mut bus EventBus, mut conn sse.SSEConnection, start int, filter []string) {
+fn stream_events(mut bus EventBus, mut conn sse.SSEConnection, start EventCursor, filter []string) {
 	defer {
 		bus.release()
 		conn.conn.close() or {}
 	}
-	mut cursor := start
+	// A cursor from another server process says nothing about this one:
+	// resync, then replay everything retained.
+	mut cursor := if start.foreign { 0 } else { start.seq }
+	mut force_resync := start.foreign
 	mut idle_ms := 0
 	for {
-		batch, missed := bus.since(cursor)
-		if missed {
+		batch, ring_missed := bus.since(cursor)
+		if ring_missed || force_resync {
+			force_resync = false
 			resync := ApiEvent{
 				seq: bus.last_seq()
+				boot: bus.boot
 				kind: 'backend.resync'
 				at: time.utc().format_rfc3339()
 				subject: 'serve'
 				status: 'ok'
-				message: 'events after ${cursor} are no longer retained; refetch state'
+				message: 'events after the resume cursor are not available; refetch state'
 			}
 			if !send_api_event(mut conn, resync, false) {
 				return
+			}
+			if batch.len == 0 {
+				cursor = resync.seq
 			}
 		}
 		for ev in batch {
@@ -1240,7 +1267,7 @@ fn stream_events(mut bus EventBus, mut conn sse.SSEConnection, start int, filter
 // synthetic resync never moves the client's Last-Event-ID.
 fn send_api_event(mut conn sse.SSEConnection, ev ApiEvent, with_id bool) bool {
 	conn.send_message(
-		id: if with_id { ev.seq.str() } else { '' }
+		id: if with_id { event_sse_id(ev) } else { '' }
 		event: ev.kind
 		data: json2.encode(ev)
 	) or { return false }

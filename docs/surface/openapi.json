@@ -1812,10 +1812,13 @@
       },
       "ApiEvent": {
         "type": "object",
-        "description": "One entry of the global event stream (GET /api/v1/events). `seq` is monotonic per server process and doubles as the SSE `id`; `subject` is the job id, loop name, swarm run id or memory entry type the event is about.",
+        "description": "One entry of the global event stream (GET /api/v1/events). `seq` is monotonic per server process, `boot` identifies that process, and the SSE `id` is `<boot>-<seq>`. `subject` is the job id, loop name, swarm run id or memory entry type the event is about; `exit_code` is only meaningful for job.* and loop.* events.",
         "properties": {
           "seq": {
             "type": "integer"
+          },
+          "boot": {
+            "type": "string"
           },
           "type": {
             "type": "string",
@@ -1854,6 +1857,7 @@
         },
         "required": [
           "seq",
+          "boot",
           "type",
           "at",
           "subject",

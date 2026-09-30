@@ -8,6 +8,7 @@ import time
 pub struct ApiEvent {
 pub mut:
 	seq       int
+	boot      string
 	kind      string @[json: 'type']
 	at        string
 	subject   string
@@ -26,10 +27,13 @@ const max_event_subscribers = 16
 
 // EventBus is an in-memory, sequence-numbered ring of recent events.
 // Subscribers poll by cursor instead of holding channels, so a slow or dead
-// SSE client can never block publishers; a cursor older than the ring gets a
-// backend.resync and should refetch state.
+// SSE client can never block publishers; a cursor older than the ring, or
+// from another server process (different boot), gets a backend.resync and
+// should refetch state.
 @[heap]
 pub struct EventBus {
+pub:
+	boot string
 mut:
 	mu          sync.Mutex
 	events      []ApiEvent
@@ -39,7 +43,9 @@ mut:
 }
 
 pub fn new_event_bus() &EventBus {
-	return &EventBus{}
+	return &EventBus{
+		boot: time.utc().unix_milli().str()
+	}
 }
 
 // publish stamps seq/at on e, retains it, and returns the stored event.
@@ -50,6 +56,7 @@ pub fn (mut b EventBus) publish(e ApiEvent) ApiEvent {
 	}
 	mut ev := e
 	ev.seq = b.next_seq
+	ev.boot = b.boot
 	ev.at = time.utc().format_rfc3339()
 	b.next_seq++
 	b.events << ev
@@ -126,19 +133,57 @@ pub fn event_matches(kind string, filter []string) bool {
 	return false
 }
 
-// parse_event_cursor parses a since/Last-Event-ID value (empty = 0).
-pub fn parse_event_cursor(raw string) !int {
+// EventCursor is a parsed resume position. foreign is true when the cursor
+// was issued by another server process, so nothing after it is known.
+pub struct EventCursor {
+pub:
+	seq     int
+	foreign bool
+}
+
+// parse_event_cursor parses a Last-Event-ID (`<boot>-<seq>`, as sent in SSE
+// ids) or a bare `<seq>` from ?since (assumed to be this process). Empty = 0.
+pub fn parse_event_cursor(raw string, boot string) !EventCursor {
 	s := raw.trim_space()
 	if s.len == 0 {
-		return 0
+		return EventCursor{}
 	}
-	if s.len > 10 {
+	if s.contains('-') {
+		epoch := s.all_before('-')
+		seq := parse_event_seq(s.all_after('-'))!
+		if !is_digits(epoch) {
+			return error('invalid event cursor')
+		}
+		return EventCursor{
+			seq: seq
+			foreign: epoch != boot
+		}
+	}
+	return EventCursor{
+		seq: parse_event_seq(s)!
+	}
+}
+
+fn parse_event_seq(s string) !int {
+	if s.len == 0 || s.len > 9 || !is_digits(s) {
 		return error('invalid event cursor')
+	}
+	return s.int()
+}
+
+fn is_digits(s string) bool {
+	if s.len == 0 {
+		return false
 	}
 	for ch in s {
 		if ch < `0` || ch > `9` {
-			return error('invalid event cursor')
+			return false
 		}
 	}
-	return s.int()
+	return true
+}
+
+// event_sse_id is the SSE `id:` for ev, round-tripped by parse_event_cursor.
+pub fn event_sse_id(ev ApiEvent) string {
+	return '${ev.boot}-${ev.seq}'
 }

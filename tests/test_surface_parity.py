@@ -200,8 +200,14 @@ def test_sub_route_bodies_match_contract():
 
 API_SCHEMAS = ROOT / "docs" / "compatibility" / "api-schemas.yaml"
 V_STRUCT_DIRS = [ROOT / "modules" / "agent_toolkit_server", ROOT / "modules" / "agent_toolkit_core"]
-V_SCALARS = {"string": "string", "bool": "boolean", "int": "integer", "i64": "integer",
-             "u64": "integer", "f64": "number"}
+V_SCALARS = {
+    "string": "string",
+    "bool": "boolean",
+    "int": "integer",
+    "i64": "integer",
+    "u64": "integer",
+    "f64": "number",
+}
 
 
 def _v_struct_sources():
@@ -211,8 +217,10 @@ def _v_struct_sources():
             if f.name.endswith("_test.v"):
                 continue
             text = f.read_text(encoding="utf-8")
-            for m in re.finditer(r"^(?:pub )?struct (\w+) \{\n(.*?)^\}", text, re.DOTALL | re.MULTILINE):
-                out.setdefault(m.group(1), m.group(2))
+            for m in re.finditer(
+                r"^(?:pub )?struct (\w+) \{\n(.*?)^\}", text, re.DOTALL | re.MULTILINE
+            ):
+                out.setdefault(m.group(1), []).append(m.group(2))
     return out
 
 
@@ -220,7 +228,7 @@ def _v_type_to_schema(vtype, struct_to_schema):
     if vtype.startswith("[]"):
         return _v_type_to_schema(vtype[2:], struct_to_schema) + "[]"
     if vtype.startswith("map[string]"):
-        return f"map<{_v_type_to_schema(vtype[len('map[string]'):], struct_to_schema)}>"
+        return f"map<{_v_type_to_schema(vtype[len('map[string]') :], struct_to_schema)}>"
     if vtype in V_SCALARS:
         return V_SCALARS[vtype]
     if vtype in struct_to_schema:
@@ -231,16 +239,17 @@ def _v_type_to_schema(vtype, struct_to_schema):
 def _v_json_fields(body, struct_to_schema):
     fields = {}
     for raw in body.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("//") or line.endswith(":"):
+        line = raw.split("//")[0].strip()
+        if not line or line.endswith(":"):
             continue
+        assert len(line.split()) >= 2, (
+            f"embedded struct {line!r} is not supported by the schema parity check"
+        )
         attrs = re.search(r"@\[(.*?)\]", line)
         attr = attrs.group(1) if attrs else ""
         if "skip" in attr.split(";") or "json: '-'" in attr:
             continue
-        decl = line.split("@[")[0].split("=")[0].split("//")[0].split()
-        if len(decl) < 2:
-            continue
+        decl = line.split("@[")[0].split("=")[0].split()
         name, vtype = decl[0], decl[1]
         rename = re.search(r"json:\s*'([^']+)'", attr)
         fields[rename.group(1) if rename else name] = _v_type_to_schema(vtype, struct_to_schema)
@@ -257,12 +266,17 @@ def test_response_schemas_match_v_structs():
     for s in schemas:
         struct = s.get("v_struct", s["name"])
         assert struct in sources, f"schema {s['name']}: V struct {struct} not found"
-        v_fields = _v_json_fields(sources[struct], struct_to_schema)
+        assert len(sources[struct]) == 1, (
+            f"schema {s['name']}: V struct {struct} is defined more than once"
+        )
+        v_fields = _v_json_fields(sources[struct][0], struct_to_schema)
         declared = {}
         for spec in s["fields"]:
             name, typ = spec.split(":", 1)
             declared[name.rstrip("?")] = typ.split("=", 1)[0]
-        assert v_fields == declared, f"schema {s['name']} != struct {struct}: {v_fields} vs {declared}"
+        assert v_fields == declared, (
+            f"schema {s['name']} != struct {struct}: {v_fields} vs {declared}"
+        )
 
 
 def test_native_endpoints_match_route_methods():

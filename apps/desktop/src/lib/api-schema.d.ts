@@ -662,9 +662,10 @@ export interface components {
             workspace: string;
             retry_of: string;
         };
-        /** @description One entry of the global event stream (GET /api/v1/events). `seq` is monotonic per server process and doubles as the SSE `id`; `subject` is the job id, loop name, swarm run id or memory entry type the event is about. */
+        /** @description One entry of the global event stream (GET /api/v1/events). `seq` is monotonic per server process, `boot` identifies that process, and the SSE `id` is `<boot>-<seq>`. `subject` is the job id, loop name, swarm run id or memory entry type the event is about; `exit_code` is only meaningful for job.* and loop.* events. */
         ApiEvent: {
             seq: number;
+            boot: string;
             /** @enum {string} */
             type: "backend.ready" | "backend.resync" | "job.created" | "job.updated" | "job.deleted" | "loop.started" | "loop.finished" | "swarm.changed" | "memory.changed" | "install.started" | "install.finished";
             at: string;

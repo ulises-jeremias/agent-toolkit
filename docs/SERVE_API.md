@@ -100,8 +100,10 @@ Desktop does this for its default harness; see
 ## Event stream
 
 `GET /api/v1/events` streams server events over SSE. Each message has
-`id: <seq>`, `event: <type>` and a JSON `ApiEvent` in `data`
-(`seq`, `type`, `at`, `subject`, `status`, `exit_code`, `ref`, `message`).
+`id: <boot>-<seq>`, `event: <type>` and a JSON `ApiEvent` in `data`
+(`seq`, `boot`, `type`, `at`, `subject`, `status`, `exit_code`, `ref`,
+`message`). `boot` changes whenever the server restarts; `exit_code` is only
+meaningful for `job.*` and `loop.*`.
 
 | Type | `subject` | Notes |
 |---|---|---|
@@ -113,10 +115,13 @@ Desktop does this for its default harness; see
 | `memory.changed` | entry type | after a successful `memory/add` |
 | `install.started` / `install.finished` | `install`, `update` or `uninstall` | `status` = `completed` or `failed` |
 
-- **Resume** with `Last-Event-ID` (browsers send it on reconnect) or
-  `?since=<seq>`. The server keeps the last 512 events; a cursor older than
-  that, or greater than the current `seq` (server restarted), gets
+- **Resume** with `Last-Event-ID` (browsers send it on reconnect, and it
+  wins over `?since`) or `?since=<seq>` (a bare seq of the current process).
+  The server keeps the last 512 events; a cursor older than that, or one
+  issued by another server process (different `boot`), gets
   `backend.resync` followed by every retained event.
+- `swarm.changed` is not emitted for `dry_run` calls, nor for `handoff` /
+  `task` sub-operations that only read.
 - **Filter** with `?types=job.,loop.finished` (exact types or `family.`
   prefixes).
 - A `: ping` comment every 15 s keeps the connection alive and detects

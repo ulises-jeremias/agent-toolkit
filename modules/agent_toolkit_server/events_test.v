@@ -1,5 +1,6 @@
 module agent_toolkit_server
 
+import agent_toolkit_core
 import os
 import time
 import x.json2
@@ -55,13 +56,54 @@ fn test_event_filter_and_cursor_parsing() {
 	assert event_matches('loop.finished', ['job.', 'loop.finished'])
 	assert !event_matches('loop.started', ['job.', 'loop.finished'])
 	assert !event_matches('jobx.created', ['job.'])
-	assert parse_event_cursor('')! == 0
-	assert parse_event_cursor(' 42 ')! == 42
-	for bad in ['-1', '1e3', 'abc', '12345678901'] {
-		if _ := parse_event_cursor(bad) {
+	assert parse_event_cursor('', '11')!.seq == 0
+	assert parse_event_cursor(' 42 ', '11')! == EventCursor{
+		seq: 42
+	}
+	assert parse_event_cursor('11-7', '11')! == EventCursor{
+		seq: 7
+	}
+	assert parse_event_cursor('99-7', '100')! == EventCursor{
+		seq: 7
+		foreign: true
+	}
+	for bad in ['-1', '1e3', 'abc', '1234567890', 'x-1', '12-', '12-a'] {
+		if _ := parse_event_cursor(bad, '12') {
 			assert false, 'accepted ${bad}'
 		}
 	}
+}
+
+fn test_sse_id_round_trips_and_other_boot_is_foreign() {
+	mut bus := new_event_bus()
+	ev := bus.publish(ApiEvent{ kind: 'job.created' })
+	assert ev.boot == bus.boot
+	id := event_sse_id(ev)
+	assert parse_event_cursor(id, bus.boot)! == EventCursor{
+		seq: ev.seq
+	}
+	restarted := EventBus{
+		boot: '${bus.boot}0'
+	}
+	assert parse_event_cursor(id, restarted.boot)!.foreign
+}
+
+fn test_api_event_types_match_schema_enum() {
+	schemas := os.join_path(os.dir(@FILE), '..', '..', 'docs', 'compatibility', 'api-schemas.yaml')
+	text := os.read_file(schemas) or { panic(err) }
+	line := text.split_into_lines().filter(it.trim_space().starts_with('- type:string='))
+	assert line.len == 1
+	assert line[0].all_after('=').split('|') == api_event_types
+}
+
+fn test_swarm_sub_mutates() {
+	assert swarm_sub_mutates('start', agent_toolkit_core.SwarmOptions{})
+	assert !swarm_sub_mutates('start', agent_toolkit_core.SwarmOptions{ dry_run: true })
+	assert !swarm_sub_mutates('status', agent_toolkit_core.SwarmOptions{})
+	assert swarm_sub_mutates('handoff', agent_toolkit_core.SwarmOptions{ handoff_sub: 'create' })
+	assert !swarm_sub_mutates('handoff', agent_toolkit_core.SwarmOptions{})
+	assert swarm_sub_mutates('task', agent_toolkit_core.SwarmOptions{ handoff_sub: 'complete' })
+	assert !swarm_sub_mutates('task', agent_toolkit_core.SwarmOptions{ handoff_sub: 'help' })
 }
 
 fn test_api_event_json_uses_type_key() {
