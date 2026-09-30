@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Desktop world grounds grow a tile-aligned path, trees, and an east creek in
+  empty cells only. Decor is not a place, character, or inspectable entity.
+
 ## [1.37.0] — 2026-09-30
 
 ### Added

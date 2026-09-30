@@ -8,3 +8,4 @@ Rendered via `ThemeAsset.kind = 'sprite'` in `cozyTopdown.ts`.
 Nearest-neighbor / `image-rendering: pixelated` in the world CSS.
 
 Characters / animals are **not** shipped here (ADR-034: no decorative NPCs).
+Trees, the dirt path, and the creek are environment only (`groundDecor`).

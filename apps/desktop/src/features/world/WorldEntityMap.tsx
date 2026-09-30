@@ -2,7 +2,7 @@ import type { KeyboardEvent, ReactNode } from 'react';
 import { Link } from 'react-router';
 import { StatusBadge, Table, VisuallyHidden, type Tone } from '../../ui';
 import { entityActivateLabel, entityHasInspector } from './inspectors';
-import type { LaidOutEntity } from './model';
+import { groundDecor, type LaidOutEntity } from './model';
 import { resolveEntityAsset, type WorldThemePack } from './theme/cozyTopdown';
 import styles from './world.module.css';
 
@@ -69,6 +69,7 @@ export function WorldEntityMap({
   onActivate,
 }: WorldEntityMapProps): ReactNode {
   const tile = theme.tileSize;
+  const decor = mode === 'grounds' ? groundDecor(entities, cols, rows) : [];
 
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>, entity: LaidOutEntity) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -85,6 +86,21 @@ export function WorldEntityMap({
           height: rows * tile,
         }}
       >
+        {decor.map((cell) => (
+          <span
+            key={`${cell.kind}:${cell.x},${cell.y}`}
+            className={styles.decor}
+            data-decor={cell.kind}
+            data-variant={cell.variant}
+            aria-hidden="true"
+            style={{
+              left: cell.x * tile,
+              top: cell.y * tile,
+              width: tile,
+              height: tile,
+            }}
+          />
+        ))}
         {entities.map((entity) => {
           const asset = resolveEntityAsset(theme, entity);
           const cssClass =

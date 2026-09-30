@@ -45,19 +45,33 @@
     repeating-linear-gradient(90deg, #c4a574 0 14px, #b8955f 14px 16px, #c9ad7a 16px 30px, #b08d57 30px 32px);
 }
 
-/* Soft ground path under the landmark boulevard — CSS only, not a fake place. */
-.mapRegion[data-mode='grounds']::before {
-  content: '';
+.decor {
   position: absolute;
-  left: 8%;
-  right: 8%;
-  top: 36%;
-  height: 22px;
-  border-radius: 2px;
-  background: repeating-linear-gradient(90deg, #c4a574 0 10px, #b8955f 10px 12px, #d4b483 12px 22px);
-  opacity: 0.6;
   pointer-events: none;
   z-index: 0;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
+}
+
+.decor[data-decor='tree'][data-variant='round'] {
+  background-image: url('/world/tree-round.png');
+}
+
+.decor[data-decor='tree'][data-variant='tall'] {
+  background-image: url('/world/tree-tall.png');
+}
+
+.decor[data-decor='path'] {
+  background-image: url('/world/path-dirt.png');
+  background-size: 100% 40%;
+  background-position: center center;
+}
+
+.decor[data-decor='creek'] {
+  background-image: url('/world/creek.png');
+  opacity: 0.9;
 }
 
 /* Ambient garden plants on grounds — decorative environment only. */
