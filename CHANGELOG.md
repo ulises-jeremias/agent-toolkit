@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Changed
+
+- Desktop world memory and tool detail inspectors expose a Back control and
+  Escape that return to the project interior when `?project=` is set, otherwise
+  to the world grounds — without dropping the project.
+
 ### Added
 
 - Desktop world memory-record and coding-tool detail inspectors stay on

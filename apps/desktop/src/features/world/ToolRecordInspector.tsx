@@ -21,7 +21,9 @@ export interface ToolRecordInspectorProps {
   /** Real POST /api/v1/install when install_hint is non-empty. Omit → hint is text only. */
   onInstall?: () => void;
   installBusy?: boolean;
-  onClose: () => void;
+  /** Visible Back control — returns to project interior or world. */
+  onBack: () => void;
+  backLabel?: string;
   onRetry?: () => void;
 }
 
@@ -36,7 +38,8 @@ export function ToolRecordInspector({
   error,
   onInstall,
   installBusy,
-  onClose,
+  onBack,
+  backLabel = 'Back',
   onRetry,
 }: ToolRecordInspectorProps) {
   const hint = tool?.install_hint?.trim() ?? '';
@@ -47,8 +50,8 @@ export function ToolRecordInspector({
       title="Coding tool"
       meta={toolId}
       actions={
-        <Button type="button" onClick={onClose}>
-          Close
+        <Button type="button" onClick={onBack} aria-label={backLabel}>
+          Back
         </Button>
       }
     >

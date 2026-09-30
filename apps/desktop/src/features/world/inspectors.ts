@@ -55,3 +55,22 @@ export function toolInspectExtra(toolId: string, projectId: string): Record<stri
     place: undefined,
   };
 }
+
+/**
+ * Leave a memory/tool detail inspector. Keeps `?project=` when set so Back
+ * returns to the interior that opened the detail; otherwise returns to grounds.
+ */
+export function worldDetailBackExtra(project: string | null | undefined): Record<string, string | undefined> {
+  const trimmed = project?.trim() || '';
+  return {
+    project: trimmed || undefined,
+    memory: undefined,
+    tool: undefined,
+    place: undefined,
+  };
+}
+
+export function worldDetailBackLabel(project: string | null | undefined): string {
+  const trimmed = project?.trim() || '';
+  return trimmed ? `Back to ${trimmed} house` : 'Back to world';
+}
