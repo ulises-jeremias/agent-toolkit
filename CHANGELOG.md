@@ -34,11 +34,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   real tree, masked/binary honesty, search hits — no invented nodes.
 - Desktop world commons: Operations and Settings places on the grounds (same
   destinations as the dock), plus a Files anchor inside project interiors.
+- Design boards for the cozy semantic world (`asset-sheet-cozy-world.jpg`,
+  product/UI boards) landed under `docs/desktop/assets/design/` with usage
+  rules (slice sprites before wiring; no decorative NPCs from character rows).
 
 ### Changed
 
 - Desktop world Library place is labeled "Library" (capability catalog); empty
   project district CTA stays quiet and truthful.
+- World CSS tiles differentiate Library / Archive / Operations / Settings /
+  Files façades toward the asset-sheet building archetypes (still CSS craft
+  until sliced sprites land).
 
 ## [1.36.0] — 2026-09-30
 

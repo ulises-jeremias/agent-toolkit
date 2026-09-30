@@ -46,6 +46,17 @@ aesthetic goal for inspector craft**: warm Paper Co. materials, editorial
 typography, dark terminal treatment, coherent pixel materials — not stickers
 on generic panels.
 
+**Semantic world art direction** (2026-09-30) lives alongside those boards:
+
+- [`asset-sheet-cozy-world.jpg`](assets/design/asset-sheet-cozy-world.jpg) —
+  tilesets + building archetypes + UI chrome (slice before wiring sprites).
+- [`semantic-world-product-board.jpg`](assets/design/semantic-world-product-board.jpg)
+  / [`semantic-world-ui-board.jpg`](assets/design/semantic-world-ui-board.jpg)
+  — world-first IA (project houses + shared places + professional inspectors).
+
+Character rows on the asset sheet are **not** a license to invent NPCs.
+See [`assets/design/README.md`](assets/design/README.md) and ADR-034.
+
 The end state is not "a native GUI using warm colors". It is a serious
 coding-agent workstation whose **home** is a truthful cozy top-down world and
 whose **panels** feel like the rich Paper Co. references. Concept images stay

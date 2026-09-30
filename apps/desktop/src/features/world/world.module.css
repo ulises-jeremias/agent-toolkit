@@ -405,6 +405,7 @@
 }
 
 .tileShelf {
+  /* Library building — stone/bookshelf façade language from asset-sheet. */
   background:
     linear-gradient(180deg, #5c5241 0 12%, transparent 12%),
     repeating-linear-gradient(180deg, #d4b483 0 7px, #b08d57 7px 9px, #7b9e7e 9px 12px, #8a3624 12px 15px);
@@ -418,6 +419,101 @@
   top: 28%;
   height: 8%;
   background: #6b604c;
+  pointer-events: none;
+}
+
+/* Library annex — taller façade + book-block sign (asset-sheet Library). */
+.entity[data-entity-id='object:library'] {
+  background:
+    linear-gradient(180deg, #4a4133 0 14%, #c4a574 14% 22%, transparent 22%),
+    repeating-linear-gradient(
+      90deg,
+      #d4b483 0 6px,
+      #8a3624 6px 10px,
+      #4e7c7b 10px 14px,
+      #b08d57 14px 18px,
+      #efdcb6 18px 24px
+    ),
+    #d4b483;
+}
+
+.entity[data-entity-id='object:library']::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  width: 42%;
+  height: 22%;
+  transform: translateX(-50%);
+  border: 1px solid var(--pc-ink-900);
+  background: linear-gradient(180deg, #efdcb6 0 35%, #8a3624 35% 100%);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* Operations HQ — industrial block + brass plate (asset-sheet Operations). */
+.entity[data-entity-id='object:operations'] {
+  background: linear-gradient(180deg, #6b604c 0 18%, #a67c22 18% 30%, #d4b483 30% 78%, #4a4133 78% 100%);
+}
+
+.entity[data-entity-id='object:operations']::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 28%;
+  height: 28%;
+  transform: translateX(-50%);
+  border: 1px solid var(--pc-ink-900);
+  background:
+    linear-gradient(0deg, transparent 0 42%, #2a241b 42% 58%, transparent 58%),
+    linear-gradient(90deg, transparent 0 42%, #2a241b 42% 58%, transparent 58%), #d4a94b;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* Settings gate — gear motif on manila (asset-sheet Settings). */
+.entity[data-entity-id='object:settings'] {
+  background: linear-gradient(180deg, #6b604c 0 16%, #efdcb6 16% 72%, #b08d57 72% 100%);
+}
+
+.entity[data-entity-id='object:settings']::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: 34%;
+  height: 34%;
+  transform: translateX(-50%);
+  border: 2px solid var(--pc-ink-900);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, #efdcb6 0 28%, transparent 29%),
+    repeating-conic-gradient(from 12deg, #b08d57 0 18deg, #6b604c 18deg 36deg);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* Files shed — filing façade (asset-sheet knowledge/files language). */
+.entity[data-entity-id='object:files'],
+.entity[data-entity-id^='object:files-project:'] {
+  background:
+    linear-gradient(180deg, #5c5241 0 14%, transparent 14%),
+    repeating-linear-gradient(90deg, #d4b483 0 10px, #b08d57 10px 12px, #efdcb6 12px 22px), #d4b483;
+}
+
+.entity[data-entity-id='object:files']::before,
+.entity[data-entity-id^='object:files-project:']::before {
+  content: '';
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  top: 32%;
+  height: 36%;
+  border: 1px solid var(--pc-ink-900);
+  background:
+    linear-gradient(180deg, #efdcb6 0 22%, #b08d57 22% 28%, #efdcb6 28% 50%, #b08d57 50% 56%, #efdcb6 56% 100%);
+  box-shadow: none;
   pointer-events: none;
 }
 
@@ -480,10 +576,10 @@
 }
 
 .tileMemoryIndex {
-  /* Archive / card-index — manila drawer stack, distinct from Library shelf. */
+  /* Archive / stone vault — asset-sheet Archive building language. */
   background:
-    linear-gradient(180deg, #6b604c 0 12%, transparent 12%),
-    repeating-linear-gradient(0deg, #d4b483 0 9px, #b08d57 9px 11px, #f6ebd7 11px 20px, #d4a94b 20px 22px), #d4b483;
+    linear-gradient(180deg, #4a4133 0 14%, transparent 14%),
+    repeating-linear-gradient(0deg, #9a8b74 0 8px, #7a6d5a 8px 10px, #b0a08a 10px 18px), #9a8b74;
 }
 
 .tileMemoryIndex::before {
@@ -491,14 +587,13 @@
   position: absolute;
   left: 50%;
   top: 36%;
-  width: 10px;
-  height: 4px;
+  width: 36%;
+  height: 40%;
   transform: translateX(-50%);
   border: 1px solid var(--pc-ink-900);
-  background: #d4a94b;
-  box-shadow:
-    0 14px 0 0 #d4a94b,
-    0 28px 0 0 #d4a94b;
+  border-radius: 1px 1px 0 0;
+  background: linear-gradient(180deg, #6b604c 0 18%, #4a4133 18% 100%);
+  box-shadow: inset 0 -2px 0 #d4a94b;
   pointer-events: none;
 }
 
