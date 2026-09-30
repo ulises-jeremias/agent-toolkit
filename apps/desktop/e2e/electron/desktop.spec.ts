@@ -190,6 +190,11 @@ test('the world focuses a real PTY and does not invent one', async () => {
 
 test('an exited session keeps its output and can restart', async () => {
   const { page } = desktop;
+  // Bind a real run identity so the dock tab (and restart) carry it — do not invent labels in asserts.
+  const runField = page.getByRole('form', { name: 'Session context' }).getByRole('textbox', { name: 'Run' });
+  await runField.fill('e2e-run');
+  await runField.press('Enter');
+  await expect(page).toHaveURL(/run=e2e-run/);
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
   await page.getByRole('main').getByRole('button', { name: 'New session' }).click();
   const dialog = page.getByRole('dialog', { name: 'New terminal session' });
@@ -197,6 +202,7 @@ test('an exited session keeps its output and can restart', async () => {
   await dialog.getByRole('textbox', { name: 'Label', exact: true }).fill('e2e-exit');
   await dialog.getByRole('button', { name: 'Open session' }).click();
 
+  await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
   const terminal = page.getByLabel('Terminal for e2e-exit');
   await terminal.click();
   await page.keyboard.type('exit 7');
