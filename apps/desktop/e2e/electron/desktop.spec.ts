@@ -137,6 +137,8 @@ test('library shows catalog vs detected vs configured vs verified without dumpin
   await expect(personas).toBeVisible();
   await expect(personas).toContainText(/in catalog|No personas in the catalog/i);
   await expect(page.getByText(/plugin\/list/i)).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Memory' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
   await page.screenshot({ path: 'test-results/review/library.png', fullPage: true });
 });
 

@@ -141,6 +141,19 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
     });
   }
 
+  // Knowledge annex — catalog inspector, independent of the memory API.
+  entities.push({
+    id: 'place:knowledge-workspace',
+    kind: 'place',
+    concept: 'Shared knowledge',
+    name: 'Shared knowledge',
+    state: 'catalog',
+    themeKey: 'knowledge.workspace',
+    availability: 'present',
+    hrefPath: '/library',
+    detail: 'Library inspector · catalog knowledge, not memory',
+  });
+
   entities.push({
     id: 'object:terminal',
     kind: 'object',
@@ -156,13 +169,13 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
   entities.push({
     id: 'object:library',
     kind: 'object',
-    concept: 'Capability library',
+    concept: 'Shared knowledge inspector',
     name: 'Library annex',
     state: 'catalog',
     themeKey: 'capability.shelf',
     availability: 'present',
     hrefPath: '/library',
-    detail: 'Skills, agents, packs',
+    detail: 'Catalog knowledge the world opens here',
   });
 
   entities.push({
@@ -315,6 +328,19 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
   }
 
   entities.push({
+    id: `place:knowledge-project:${project.name}`,
+    kind: 'place',
+    concept: 'Project knowledge',
+    name: 'Knowledge',
+    state: 'catalog',
+    themeKey: 'knowledge.project',
+    availability: 'present',
+    hrefPath: '/library',
+    projectId: project.name,
+    detail: 'Library inspector · catalog knowledge, not memory',
+  });
+
+  entities.push({
     id: `object:terminal-project:${project.name}`,
     kind: 'object',
     concept: 'Terminal / PTY workstation',
@@ -375,6 +401,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
  * DOMAIN STATE → SEMANTIC WORLD MODEL.
  * Grounds vs project interior. Characters only for proven jobs.
  * Memory archive only when the typed memory API exists (omit on 404).
+ * Shared knowledge opens the Library inspector — never a fake memory UI.
  */
 export function buildWorldModel(input: WorldDomainInput): WorldModel {
   const focus = input.focusProjectId?.trim() || null;

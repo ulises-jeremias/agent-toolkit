@@ -38,9 +38,10 @@ function toolSummary(tools: readonly ToolInfo[]): string {
 }
 
 /**
- * Library: the bookshelf room. Catalog vs this machine, as an inspector.
- * Knowledge files and memory files are not this destination.
- * Running and marketplace install counts are omitted when the API has none.
+ * Library: Paper Co. interior the world opens for shared/project knowledge.
+ * Catalog vs this machine. Memory is a different place and is omitted when
+ * GET /api/v1/memory is gone — this inspector does not invent a memory UI.
+ * Running and marketplace install counts stay unknown unless the API reports them.
  */
 export default function Library() {
   const inventory = useReport('inventory');
@@ -69,8 +70,8 @@ export default function Library() {
         title="Library board"
         lede={
           catalogRoot
-            ? `Shelves from ${catalogRoot}. Catalog, detected, configured and verified stay distinct. Knowledge and memory are other rooms. Running is unknown here.`
-            : 'Shelves of what this toolkit ships and what this machine has. Knowledge and memory are other rooms. Running is unknown here.'
+            ? `Shelves from ${catalogRoot}. Catalog, detected, configured and verified stay distinct. Memory is not this room. Running is unknown here.`
+            : 'Inspector for catalog knowledge the world opens here. Memory is not this room. Running is unknown here.'
         }
         actions={
           <ConfirmAction

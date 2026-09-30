@@ -95,7 +95,7 @@ export function CommandPalette() {
     if (command.id.startsWith('go:')) {
       const target = command.id.slice(3);
       if (target === 'world-knowledge') {
-        navigate(href('/world'));
+        navigate(href('/library'));
         return;
       }
       if (target === 'world-terminal') {

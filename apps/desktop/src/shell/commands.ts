@@ -22,9 +22,9 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
   {
     id: 'go:world-knowledge',
     group: 'Go',
-    title: 'Go to shared knowledge (World)',
-    hint: 'Semantic place · workspace knowledge / memory',
-    keywords: ['world', 'knowledge', 'memory', 'archive'],
+    title: 'Go to shared knowledge (Library)',
+    hint: 'Inspector the world opens · catalog knowledge, not memory',
+    keywords: ['world', 'knowledge', 'library', 'archive'],
   },
   {
     id: 'go:world-terminal',
