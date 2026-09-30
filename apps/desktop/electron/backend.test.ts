@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { BackendSupervisor, resolveExpectedBackendMajor } from './backend';
+import { BackendSupervisor, resolveBackendBinary, resolveExpectedBackendMajor } from './backend';
 
 const FIXTURE_SOURCE = `#!/usr/bin/env node
 // Minimal 'agent-toolkit serve' stand-in: serves /api/v1/health only.
@@ -101,6 +101,13 @@ describe('BackendSupervisor', () => {
       fs.rmSync(harnessDir, { recursive: true, force: true });
     }
   }, 90_000);
+
+  it('resolves a relative PATH entry to an absolute backend path', () => {
+    process.env.PATH = `${path.relative(process.cwd(), fixtureDir)}${path.delimiter}${savedPath}`;
+    const { bin, source } = resolveBackendBinary();
+    expect(source).toBe('path');
+    expect(bin).toBe(path.join(fixtureDir, 'agent-toolkit'));
+  });
 
   it('parses the expected-major override', () => {
     process.env.ATK_EXPECTED_BACKEND_MAJOR = 'v2.0.0';

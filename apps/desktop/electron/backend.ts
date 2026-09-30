@@ -104,7 +104,9 @@ function findOnPath(exe: string): string | null {
   const sep = process.platform === 'win32' ? ';' : ':';
   for (const dir of pathEnv.split(sep)) {
     if (!dir) continue;
-    const candidate = path.join(dir, exe);
+    // Absolute: serve is spawned with the harness as cwd, so a relative PATH
+    // entry must not be re-resolved against it.
+    const candidate = path.resolve(dir, exe);
     try {
       fs.accessSync(candidate, fs.constants.X_OK);
       return candidate;
