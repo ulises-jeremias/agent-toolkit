@@ -2,6 +2,7 @@ import type {
   Job,
   JobCreateRequest,
   JobRegistry,
+  MemoryListResponse,
   MessageResponse,
   SelfcheckResponse,
   VersionResponse,
@@ -179,5 +180,18 @@ export class ApiClient {
 
   jobEventsUrl(id: string): string {
     return `${this.baseUrl}${fillPath('/api/v1/jobs/{id}/events' satisfies PathWith<'get'>, { id })}`;
+  }
+
+  /** Global bus (`GET /api/v1/events`). Prefer for world presence; job logs stay on jobEventsUrl. */
+  eventsUrl(query?: { types?: string; after?: string }): string {
+    const params = new URLSearchParams();
+    if (query?.types) params.set('types', query.types);
+    if (query?.after) params.set('after', query.after);
+    const suffix = params.toString();
+    return `${this.baseUrl}${'/api/v1/events' satisfies PathWith<'get'>}${suffix ? `?${suffix}` : ''}`;
+  }
+
+  listMemory(): Promise<MemoryListResponse> {
+    return this.json('GET', '/api/v1/memory' satisfies PathWith<'get'>);
   }
 }

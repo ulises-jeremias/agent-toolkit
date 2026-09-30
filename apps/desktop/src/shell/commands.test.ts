@@ -13,6 +13,6 @@ describe('filterCommands', () => {
 
   it('matches keywords for the terminal dock', () => {
     const hits = filterCommands(PALETTE_COMMANDS, 'pty');
-    expect(hits.map((command) => command.id)).toEqual(['session:new-terminal']);
+    expect(hits.map((command) => command.id)).toEqual(['go:world-terminal', 'session:new-terminal']);
   });
 });

@@ -77,7 +77,7 @@ function ShellFrame() {
         <StaleNotice />
         <main id="main" className={styles.content} tabIndex={-1}>
           <Routes>
-            <Route path="/" element={<RedirectTo path="/office" />} />
+            <Route path="/" element={<RedirectTo path="/world" />} />
             {DESTINATIONS.map(({ path, label, component: Destination }) => (
               <Route
                 key={path}
@@ -91,7 +91,7 @@ function ShellFrame() {
                 }
               />
             ))}
-            <Route path="*" element={<RedirectTo path="/office" />} />
+            <Route path="*" element={<RedirectTo path="/world" />} />
           </Routes>
         </main>
         <TerminalDock />

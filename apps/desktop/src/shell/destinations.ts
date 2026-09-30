@@ -10,6 +10,12 @@ export interface Destination {
 
 export const DESTINATIONS: readonly Destination[] = [
   {
+    path: '/world',
+    label: 'World',
+    question: 'Where am I in this toolkit, and what is real here?',
+    component: lazy(() => import('../features/world/WorldView')),
+  },
+  {
     path: '/office',
     label: 'Office',
     question: 'What is happening and what needs me?',

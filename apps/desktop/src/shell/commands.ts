@@ -20,6 +20,20 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     keywords: [destination.label, destination.path.slice(1)],
   })),
   {
+    id: 'go:world-knowledge',
+    group: 'Go',
+    title: 'Go to shared knowledge (World)',
+    hint: 'Semantic place · workspace knowledge / memory',
+    keywords: ['world', 'knowledge', 'memory', 'archive'],
+  },
+  {
+    id: 'go:world-terminal',
+    group: 'Go',
+    title: 'Go to terminal workstation',
+    hint: 'Semantic object · open Terminal',
+    keywords: ['world', 'terminal', 'pty'],
+  },
+  {
     id: 'session:new-terminal',
     group: 'Session',
     title: 'New terminal session',

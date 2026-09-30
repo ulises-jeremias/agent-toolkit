@@ -16,7 +16,16 @@ const SIZES = [
   { width: 1920, height: 1080 },
 ] as const;
 const THEMES = ['paper', 'ink'] as const;
-const DESTINATIONS = ['Office', 'Operations', 'Workspace', 'Library', 'Insights', 'Terminal', 'Settings'] as const;
+const DESTINATIONS = [
+  'World',
+  'Office',
+  'Operations',
+  'Workspace',
+  'Library',
+  'Insights',
+  'Terminal',
+  'Settings',
+] as const;
 
 test.describe.configure({ mode: 'serial' });
 test.skip(!CAPTURE, 'Set ATK_CAPTURE=1 to capture design review screenshots.');

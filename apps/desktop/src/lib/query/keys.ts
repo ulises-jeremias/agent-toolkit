@@ -6,7 +6,8 @@ import type { ReportKind, SubBody, SubCommand, SubFamily } from '../api';
  * Keys that depend on request scope (workspace, filters) carry the body, so
  * switching workspace never serves another workspace's cached answer.
  */
-export type Domain = 'backend' | 'jobs' | 'inventory' | 'doctor' | 'matrix' | 'diff' | 'insights' | SubFamily;
+export type Domain =
+  'backend' | 'jobs' | 'memory' | 'inventory' | 'doctor' | 'matrix' | 'diff' | 'insights' | SubFamily;
 
 export const qk = {
   domain: (domain: Domain) => [domain] as const,
@@ -23,6 +24,10 @@ export const qk = {
     log: (id: string) => ['jobs', 'log', id] as const,
     /** Lines received over SSE for one job; written only by the live bridge. */
     live: (id: string) => ['jobs', 'live', id] as const,
+  },
+
+  memory: {
+    list: (scope: Record<string, string> = {}) => ['memory', 'list', scope] as const,
   },
 
   report: (kind: ReportKind) => [kind, 'report'] as const,
