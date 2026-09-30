@@ -23,7 +23,7 @@ describe('ToolRecordInspector', () => {
   it('renders only catalog fields and keeps enabled unknown as unknown', () => {
     render(
       <ReceiptsProvider>
-        <ToolRecordInspector toolId="claude" tool={fixture} onClose={() => undefined} onInstall={() => undefined} />
+        <ToolRecordInspector toolId="claude" tool={fixture} onBack={() => undefined} onInstall={() => undefined} />
       </ReceiptsProvider>,
     );
 
@@ -42,7 +42,7 @@ describe('ToolRecordInspector', () => {
     const user = userEvent.setup();
     render(
       <ReceiptsProvider>
-        <ToolRecordInspector toolId="claude" tool={fixture} onClose={() => undefined} onInstall={onInstall} />
+        <ToolRecordInspector toolId="claude" tool={fixture} onBack={() => undefined} onInstall={onInstall} />
       </ReceiptsProvider>,
     );
 
@@ -54,7 +54,7 @@ describe('ToolRecordInspector', () => {
   it('shows install_hint as text only when no install API handler is provided', () => {
     render(
       <ReceiptsProvider>
-        <ToolRecordInspector toolId="claude" tool={fixture} onClose={() => undefined} />
+        <ToolRecordInspector toolId="claude" tool={fixture} onBack={() => undefined} />
       </ReceiptsProvider>,
     );
     expect(screen.getByText(/Install hint is text only/i)).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('ToolRecordInspector', () => {
         <ToolRecordInspector
           toolId="claude"
           tool={{ ...fixture, install_hint: '' }}
-          onClose={() => undefined}
+          onBack={() => undefined}
           onInstall={() => undefined}
         />
       </ReceiptsProvider>,

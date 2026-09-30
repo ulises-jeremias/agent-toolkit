@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
@@ -16,7 +16,7 @@ import {
   Stack,
   useActionReceipt,
 } from '../../ui';
-import { entityAccessibleName } from './inspectors';
+import { entityAccessibleName, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
   buildWorldModel,
@@ -28,6 +28,7 @@ import {
 } from './model';
 import { cozyTopdownTheme } from './theme/cozyTopdown';
 import { ToolRecordInspector } from './ToolRecordInspector';
+import { useWorldDetailEscape } from './useWorldDetailEscape';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
 import styles from './world.module.css';
 
@@ -161,16 +162,12 @@ export default function WorldView() {
     navigate(href(entity.hrefPath, entity.hrefExtra));
   };
 
-  const closeDetail = () => {
-    navigate(
-      href('/world', {
-        project: focusProject || undefined,
-        memory: undefined,
-        tool: undefined,
-        place: undefined,
-      }),
-    );
-  };
+  const detailOpen = Boolean(memoryPath || toolId);
+  const backLabel = worldDetailBackLabel(focusProject);
+  const goBackFromDetail = useCallback(() => {
+    navigate(href('/world', worldDetailBackExtra(focusProject)));
+  }, [navigate, href, focusProject]);
+  useWorldDetailEscape(goBackFromDetail, detailOpen);
 
   return (
     <div className={styles.world} data-focus={model.focusProjectId ? 'interior' : 'grounds'}>
@@ -238,7 +235,8 @@ export default function WorldView() {
             data={memoryFileQuery.data}
             error={memoryFileQuery.error}
             isPending={memoryFileQuery.isPending}
-            onClose={closeDetail}
+            onBack={goBackFromDetail}
+            backLabel={backLabel}
             onRetry={() => void memoryFileQuery.refetch()}
           />
         ) : null}
@@ -251,7 +249,8 @@ export default function WorldView() {
             error={toolsQuery.error}
             onInstall={() => install.mutate(undefined, installReceipt)}
             installBusy={install.isPending}
-            onClose={closeDetail}
+            onBack={goBackFromDetail}
+            backLabel={backLabel}
             onRetry={() => void toolsQuery.refetch()}
           />
         ) : null}

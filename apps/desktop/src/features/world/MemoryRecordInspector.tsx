@@ -8,7 +8,9 @@ export interface MemoryRecordInspectorProps {
   data?: MemoryReadResponse;
   error?: Error | null;
   isPending?: boolean;
-  onClose: () => void;
+  /** Visible Back control — returns to project interior or world. */
+  onBack: () => void;
+  backLabel?: string;
   onRetry?: () => void;
 }
 
@@ -18,7 +20,8 @@ export function MemoryRecordInspector({
   data,
   error,
   isPending,
-  onClose,
+  onBack,
+  backLabel = 'Back',
   onRetry,
 }: MemoryRecordInspectorProps) {
   const entry = data?.entry;
@@ -29,8 +32,8 @@ export function MemoryRecordInspector({
       title="Memory record"
       meta={path}
       actions={
-        <Button type="button" onClick={onClose}>
-          Close
+        <Button type="button" onClick={onBack} aria-label={backLabel}>
+          Back
         </Button>
       }
     >

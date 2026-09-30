@@ -25,7 +25,7 @@ const fixture: MemoryReadResponse = {
 
 describe('MemoryRecordInspector', () => {
   it('renders provenance and body from a fixture memory-file payload', () => {
-    render(<MemoryRecordInspector path={fixture.entry.provenance.file} data={fixture} onClose={() => undefined} />);
+    render(<MemoryRecordInspector path={fixture.entry.provenance.file} data={fixture} onBack={() => undefined} />);
 
     expect(screen.getByRole('region', { name: /Memory record knowledge\/learnings\/fixture.md/i })).toBeInTheDocument();
     expect(screen.getByText('Fixture note')).toBeInTheDocument();
@@ -41,7 +41,7 @@ describe('MemoryRecordInspector', () => {
       entry: { ...fixture.entry, body: '', snippet: 'Only snippet' },
     };
     const { rerender } = render(
-      <MemoryRecordInspector path={emptyBody.entry.id} data={emptyBody} onClose={() => undefined} />,
+      <MemoryRecordInspector path={emptyBody.entry.id} data={emptyBody} onBack={() => undefined} />,
     );
     expect(screen.getByLabelText('Memory snippet')).toHaveTextContent('Only snippet');
 
@@ -49,7 +49,7 @@ describe('MemoryRecordInspector', () => {
       <MemoryRecordInspector
         path={emptyBody.entry.id}
         data={{ ok: true, entry: { ...fixture.entry, body: '', snippet: '' } }}
-        onClose={() => undefined}
+        onBack={() => undefined}
       />,
     );
     expect(screen.getByLabelText('Memory body')).toHaveTextContent('Body is empty.');
@@ -60,17 +60,17 @@ describe('MemoryRecordInspector', () => {
       <MemoryRecordInspector
         path="knowledge/learnings/missing.md"
         error={new Error('memory file not found')}
-        onClose={() => undefined}
+        onBack={() => undefined}
       />,
     );
     expect(screen.getByRole('alert')).toHaveTextContent('memory file not found');
   });
 
-  it('Close dismisses the inspector', async () => {
-    const onClose = vi.fn();
+  it('Back dismisses the inspector', async () => {
+    const onBack = vi.fn();
     const user = userEvent.setup();
-    render(<MemoryRecordInspector path={fixture.entry.id} data={fixture} onClose={onClose} />);
-    await user.click(screen.getByRole('button', { name: 'Close' }));
-    expect(onClose).toHaveBeenCalledTimes(1);
+    render(<MemoryRecordInspector path={fixture.entry.id} data={fixture} onBack={onBack} />);
+    await user.click(screen.getByRole('button', { name: 'Back' }));
+    expect(onBack).toHaveBeenCalledTimes(1);
   });
 });
