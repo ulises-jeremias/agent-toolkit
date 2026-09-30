@@ -146,32 +146,44 @@ describe('WorldEntityMap activation', () => {
 
     const terminal = screen.getByRole('button', { name: /Terminal · Terminal \/ PTY/i });
     await user.click(terminal);
-    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'object:terminal', hrefPath: '/terminal' }));
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:terminal', hrefPath: '/terminal' }),
+    );
 
     onActivate.mockClear();
     terminal.focus();
     await user.keyboard('{Enter}');
-    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'object:terminal', hrefPath: '/terminal' }));
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:terminal', hrefPath: '/terminal' }),
+    );
 
     onActivate.mockClear();
     const library = screen.getByRole('button', { name: /Library annex/i });
     await user.click(library);
-    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'object:library', hrefPath: '/library' }));
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:library', hrefPath: '/library' }),
+    );
 
     onActivate.mockClear();
     library.focus();
     await user.keyboard(' ');
-    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'object:library', hrefPath: '/library' }));
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:library', hrefPath: '/library' }),
+    );
 
     onActivate.mockClear();
     const failedHouse = screen.getByRole('button', { name: /beta · Project · needs attention/i });
     await user.click(failedHouse);
-    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'place:project:beta', hrefPath: '/office' }));
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'place:project:beta', hrefPath: '/office' }),
+    );
 
     onActivate.mockClear();
     failedHouse.focus();
     await user.keyboard('{Enter}');
-    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'place:project:beta', hrefPath: '/office' }));
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'place:project:beta', hrefPath: '/office' }),
+    );
 
     onActivate.mockClear();
     const calmHouse = screen.getByRole('button', { name: /alpha · Project · 1 active/i });
@@ -228,7 +240,9 @@ describe('WorldEntityMap activation', () => {
     onActivate.mockClear();
     toolBtn.focus();
     await user.keyboard(' ');
-    expect(onActivate).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'object:tool:claude', hrefPath: '/world' }));
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:tool:claude', hrefPath: '/world' }),
+    );
 
     const memoryInspect = document.querySelector('[data-entity-inspect="object:memory:knowledge/learnings/a.md"]');
     expect(memoryInspect?.getAttribute('href')).toContain('memory=');

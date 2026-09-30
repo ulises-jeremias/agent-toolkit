@@ -1,5 +1,16 @@
 import type { ToolEnabled, ToolInfo } from '../../lib/api';
-import { Button, ConfirmAction, ErrorState, KeyValue, LoadingState, Mono, Panel, Stack, StatusBadge, type Tone } from '../../ui';
+import {
+  Button,
+  ConfirmAction,
+  ErrorState,
+  KeyValue,
+  LoadingState,
+  Mono,
+  Panel,
+  Stack,
+  StatusBadge,
+  type Tone,
+} from '../../ui';
 import styles from './world.module.css';
 
 function yesNo(value: boolean): { tone: Tone; label: string } {

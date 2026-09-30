@@ -50,9 +50,7 @@ describe('worldDetailBackExtra', () => {
       memory: 'knowledge/learnings/a.md',
     });
     // Building the back href clears memory/tool and keeps project.
-    expect(withContext('/world', session, worldDetailBackExtra('alpha'))).toBe(
-      '/world?workspace=%2Fws&project=alpha',
-    );
+    expect(withContext('/world', session, worldDetailBackExtra('alpha'))).toBe('/world?workspace=%2Fws&project=alpha');
     expect(withProject).toContain('memory=');
     expect(withContext('/world', session, worldDetailBackExtra('alpha'))).not.toContain('memory=');
     expect(withContext('/world', session, worldDetailBackExtra('alpha'))).not.toContain('tool=');
