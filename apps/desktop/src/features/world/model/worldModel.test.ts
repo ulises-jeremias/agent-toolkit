@@ -5,9 +5,7 @@ import { parseProjectListMessage } from './parseProjects';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
 
 function emptyMemory(available: boolean, entries: MemoryEntryRecord[] = []): MemorySummary {
-  const projectKeys = [
-    ...new Set(entries.map((entry) => entry.provenance.project).filter(Boolean)),
-  ];
+  const projectKeys = [...new Set(entries.map((entry) => entry.provenance.project).filter(Boolean))];
   return { available, entries, projectKeys };
 }
 
