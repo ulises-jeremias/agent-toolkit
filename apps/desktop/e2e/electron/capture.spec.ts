@@ -55,7 +55,9 @@ async function startJob(page: Page, cmd: string): Promise<void> {
 
 async function settle(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await expect(page.getByText(/^(Loading|Checking|Listing|Running)/)).toHaveCount(0, { timeout: 30_000 });
+  await expect(
+    page.getByText(/^(Loading|Checking|Listing|Counting|Discovering|Running|Reading|Comparing|Probing)/),
+  ).toHaveCount(0, { timeout: 30_000 });
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
 

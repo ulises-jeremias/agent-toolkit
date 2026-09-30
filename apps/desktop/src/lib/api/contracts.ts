@@ -151,6 +151,7 @@ export type AgentsResponse = components['schemas']['AgentsResponse'];
 export type AgentInfo = components['schemas']['AgentInfo'];
 export type ToolsResponse = components['schemas']['ToolsResponse'];
 export type ToolInfo = components['schemas']['ToolInfo'];
+export type ToolEnabled = ToolInfo['enabled'];
 export type ProvidersResponse = components['schemas']['ProvidersResponse'];
 export type ProviderInfo = components['schemas']['ProviderInfo'];
 export type ModelsResponse = components['schemas']['ModelsResponse'];

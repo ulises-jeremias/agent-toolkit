@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useOperation } from '../../data/commands';
 import { useBackend, useHealth, useHelp, useSelfcheck } from '../../data/backend';
+import { backendProblemCopy } from '../../lib/backend-copy';
 import type { HarnessSwitchResult } from '../../types/electron';
 import { requestOnboardingReplay } from '../onboarding/complete';
 import {
@@ -134,7 +135,16 @@ export default function Settings() {
     <>
       <PageHeader eyebrow="Settings" title="Desktop settings" />
       <Stack>
-        <Panel title="Appearance">
+        <Panel
+          title="Appearance"
+          meta={
+            appearance.theme === 'system'
+              ? `System is ${appearance.resolvedTheme === 'paper' ? 'Paper' : 'Ink'} on this machine`
+              : appearance.resolvedTheme === 'paper'
+                ? 'Paper'
+                : 'Ink'
+          }
+        >
           <div className={styles.choices}>
             <Choice
               legend="Theme"
@@ -156,6 +166,7 @@ export default function Settings() {
         <Grid>
           <Panel
             title="Backend"
+            tone={backend?.problem === 'binary-rejected' || backend?.problem === 'no-backend' ? 'manila' : 'paper'}
             meta="The agent-toolkit serve process this window talks to"
             actions={
               window.atk ? (
@@ -203,6 +214,9 @@ export default function Settings() {
                           />
                         ),
                       },
+                      ...(backendProblemCopy(backend)
+                        ? [{ label: 'Cause', value: backendProblemCopy(backend) as string }]
+                        : []),
                     ]
                   : []),
                 ...(backend
@@ -289,14 +303,30 @@ export default function Settings() {
               </ul>
             ) : null}
             {backend?.rejected && backend.rejected.length > 0 ? (
-              <ul className={styles.recent}>
-                {backend.rejected.map((entry) => (
-                  <li key={`${entry.source}:${entry.path}`}>
-                    <Mono>{entry.path}</Mono> ({entry.source}
-                    {entry.version ? `, ${entry.version}` : ''}): {entry.reason}
-                  </li>
-                ))}
-              </ul>
+              <Table caption="Rejected binaries">
+                <thead>
+                  <tr>
+                    <th scope="col">Source</th>
+                    <th scope="col">Path</th>
+                    <th scope="col">Version</th>
+                    <th scope="col">Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {backend.rejected.map((entry) => (
+                    <tr key={`${entry.source}:${entry.path}`}>
+                      <th scope="row">{entry.source}</th>
+                      <td>
+                        <Mono>{entry.path}</Mono>
+                      </td>
+                      <td>
+                        <Mono>{entry.version ?? 'Unknown'}</Mono>
+                      </td>
+                      <td>{entry.reason}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
             ) : null}
           </Panel>
           <Panel title="Self-check">

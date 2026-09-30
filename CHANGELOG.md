@@ -67,6 +67,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   real session with `?pty=` or agent/run/harness identity; unknown ids do
   not create a session. Electron E2E covers harness cwd, identity labels,
   navigation survival, world focus, and exit recovery.
+- Desktop Library, Insights and Settings: catalog tables from typed
+  `GET /api/v1/{agents,tools,providers}` and real subcommands
+  (`skills/list`, `plugin/check`, `mcp/list`). Detected / configured /
+  enabled / verified stay distinct; running and cost stay unknown when
+  the API does not report them. Settings extends the #1322 harness UI
+  with Paper/Ink/System resolution and a rejected-binary table.
 
 - `serve`: global event stream `GET /api/v1/events` (SSE; `job.*`,
   `loop.*`, `swarm.changed`, `memory.changed`, `install.*`, `backend.*`).

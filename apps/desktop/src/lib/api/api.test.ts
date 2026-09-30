@@ -183,6 +183,14 @@ describe('ApiClient', () => {
     ]);
   });
 
+  it('reads typed catalog GETs without wrapping them as envelopes', async () => {
+    const api = client({ ok: true, tools: [{ id: 'cursor', enabled: 'unknown', detected: true }] });
+    const tools = await api.tools();
+    expect(tools.tools[0]?.enabled).toBe('unknown');
+    expect(calls[0]?.url).toBe('http://127.0.0.1:9/api/v1/tools');
+    expect(calls[0]?.init?.method).toBe('GET');
+  });
+
   it('lists swarm runs and posts typed run actions', async () => {
     const api = client({ ok: true, runs: [], message: 'ok', run_id: 'run_1', status: 'stopped' });
     await api.swarms();

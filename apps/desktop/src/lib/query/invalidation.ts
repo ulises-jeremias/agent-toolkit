@@ -7,9 +7,9 @@ import { qk, type Domain } from './keys';
  * an install never blows away unrelated caches (jobs, backend health).
  */
 export const OPERATION_EFFECTS: Record<OperationKind, readonly Domain[]> = {
-  install: ['skills', 'mcp', 'plugin', 'inventory', 'doctor', 'diff'],
-  update: ['skills', 'mcp', 'plugin', 'inventory', 'doctor', 'diff'],
-  uninstall: ['skills', 'mcp', 'plugin', 'inventory', 'doctor', 'diff'],
+  install: ['skills', 'mcp', 'plugin', 'inventory', 'doctor', 'diff', 'tools'],
+  update: ['skills', 'mcp', 'plugin', 'inventory', 'doctor', 'diff', 'tools'],
+  uninstall: ['skills', 'mcp', 'plugin', 'inventory', 'doctor', 'diff', 'tools'],
   build: ['plugin', 'diff', 'inventory'],
   doctorFix: ['doctor', 'inventory', 'diff'],
 };

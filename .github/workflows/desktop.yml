@@ -75,4 +75,12 @@ jobs:
             apps/desktop/playwright-report
             apps/desktop/test-results
           retention-days: 7
+      - name: Upload Electron review screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: electron-review-screenshots
+          path: apps/desktop/test-results/review
+          if-no-files-found: ignore
+          retention-days: 7
       - run: pnpm --filter agent-toolkit-desktop dist:dir

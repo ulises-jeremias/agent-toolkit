@@ -123,6 +123,53 @@ test('workspace reads the scratch workspace through the backend', async () => {
   await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);
 });
 
+test('library shows catalog vs detected vs configured vs verified without dumping envelopes', async () => {
+  const { page } = desktop;
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  const tools = page.getByRole('region', { name: 'Coding tools' });
+  await expect(tools.getByRole('columnheader', { name: 'Detected' })).toBeVisible();
+  await expect(tools.getByRole('columnheader', { name: 'Configured' })).toBeVisible();
+  await expect(tools.getByRole('columnheader', { name: 'Enabled' })).toBeVisible();
+  await expect(tools.getByRole('columnheader', { name: 'Verified' })).toBeVisible();
+  await expect(tools.getByText('unknown').first()).toBeVisible();
+  const personas = page.getByRole('region', { name: 'Personas' });
+  await expect(personas).toBeVisible();
+  await expect(personas).toContainText(/in catalog|No personas in the catalog/i);
+  await expect(page.getByText(/plugin\/list/i)).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Memory' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1, name: 'Library board' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/review/library.png', fullPage: true });
+});
+
+test('insights shows doctor checks and usage without invented cost', async () => {
+  const { page } = desktop;
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Insights' }).click();
+  const doctor = page.getByRole('region', { name: 'Doctor' });
+  await expect(doctor).toBeVisible();
+  await expect(
+    doctor.getByRole('columnheader', { name: 'Check' }).or(doctor.getByText('Doctor returned no structured checks.')),
+  ).toBeVisible();
+  await expect(doctor.getByText(/health score:\s*\d|\$\d/i)).toHaveCount(0);
+  const usage = page.getByRole('region', { name: 'Usage by tool' });
+  await expect(usage).toBeVisible();
+  await expect(usage).toContainText(/Unknown|No usage rows/);
+  await page.screenshot({ path: 'test-results/review/insights.png', fullPage: true });
+});
+
+test('settings keeps Paper/Ink/System and names a rejected binary as a table when present', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
+  const theme = page.getByRole('group', { name: 'Theme' });
+  await expect(theme.getByRole('radio', { name: /Paper/ })).toBeVisible();
+  await expect(theme.getByRole('radio', { name: /Ink/ })).toBeVisible();
+  await expect(theme.getByRole('radio', { name: /System/ })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Backend' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Change harness…' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/review/settings.png', fullPage: true });
+});
+
 test('a job started from Operations runs on the backend and streams to completion', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
