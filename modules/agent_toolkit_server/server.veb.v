@@ -426,6 +426,8 @@ const registered_api_routes = [
 	'/api/v1/jobs',
 	'/api/v1/jobs/:id/log',
 	'/api/v1/jobs/:id/events',
+	'/api/v1/jobs/:id/cancel',
+	'/api/v1/jobs/:id',
 ]
 
 // SelfcheckCheck is one named runtime coherence result.
@@ -1007,6 +1009,57 @@ pub fn (app &App) jobs_events(mut ctx Ctx, id string) veb.Result {
 		}
 	}()
 	return veb.no_result()
+}
+
+// jobs_cancel flips a queued/running job to canceled and terminates its
+// child process. 404 unknown id, 409 already terminal. Returns the
+// canceled Job (typed, like jobs_create).
+@['/api/v1/jobs/:id/cancel'; post]
+pub fn (mut app App) jobs_cancel(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	if !is_valid_job_id(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
+	job := app.runner.cancel(id) or {
+		msg := err.msg()
+		if msg.starts_with('job not found') {
+			ctx.res.set_status(.not_found)
+		} else {
+			ctx.res.set_status(.conflict)
+		}
+		return ctx.json(DenyErr{ ok: false, error: msg })
+	}
+	return ctx.json(job)
+}
+
+// jobs_delete removes a job's registry entry and log file. Running/queued
+// jobs need ?force=true (cancels first); terminal jobs delete directly.
+// 404 unknown id, 409 running without force.
+@['/api/v1/jobs/:id'; delete]
+pub fn (mut app App) jobs_delete(mut ctx Ctx, id string) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	if !is_valid_job_id(id) {
+		ctx.res.set_status(.bad_request)
+		return ctx.json(DenyErr{ ok: false, error: 'invalid job id' })
+	}
+	force := ctx.query['force'] or { '' } == 'true'
+	app.runner.delete(id, force) or {
+		msg := err.msg()
+		if msg.starts_with('job not found') {
+			ctx.res.set_status(.not_found)
+		} else {
+			ctx.res.set_status(.conflict)
+		}
+		return ctx.json(DenyErr{ ok: false, error: msg })
+	}
+	return ctx.json(MsgResp{ ok: true, message: 'deleted ${id}' })
 }
 
 @['/api/v1/doctor/fix'; post]

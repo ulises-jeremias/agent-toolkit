@@ -24,6 +24,10 @@ pub struct JobRunner {
 pub mut:
 	mut         sync.Mutex
 	jobs        map[string]Job
+	// procs tracks live child handles for cancel. watch() owns wait/close;
+	// cancel() only signals through this entry (term → grace → kill),
+	// mirroring desktop_engine/process cancel semantics.
+	procs       map[string]&os.Process
 	max_running int = 2
 	running     int
 	dir         string
@@ -102,6 +106,7 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 	p.set_redirect_stdio()
 	p.run()
 	r.jobs[id].status = 'running'
+	r.procs[id] = p
 	r.running++
 	r.persist_locked()
 	os.write_file(r.log_path(id), '[running]\n') or {}
@@ -143,23 +148,35 @@ fn (mut r JobRunner) watch(id string, mut p os.Process) {
 		}
 		buf += err
 	}
-	final_log := if buf.len > 0 {
+	mut final_log := if buf.len > 0 {
 		'[running]\n' + buf + '\n[exit ${p.code}]\n'
 	} else {
 		'[exit ${p.code}]\n'
 	}
-	os.write_file(r.log_path(id), final_log) or {}
 	r.mut.lock()
 	defer {
 		r.mut.unlock()
 	}
+	// Cancel wins over a racy exit: only transcribe the process outcome
+	// when the job is still active; a concurrent cancel already flipped
+	// the state and decremented running. The watcher is the sole writer of
+	// the final log for tracked processes (so the canceled marker is never
+	// clobbered) and never recreates the log of a force-deleted job.
+	// Cleanup (proc entry, close) always runs: a force-deleted job leaves
+	// no registry entry but its watcher still owns the process lifecycle.
 	if id in r.jobs {
-		r.jobs[id].status = if p.code == 0 { 'completed' } else { 'failed' }
-		r.jobs[id].exit_code = p.code
-		r.jobs[id].ended_at = time.utc().format_rfc3339()
-		p.close()
+		if r.jobs[id].status == 'running' || r.jobs[id].status == 'queued' {
+			r.jobs[id].status = if p.code == 0 { 'completed' } else { 'failed' }
+			r.jobs[id].exit_code = p.code
+			r.jobs[id].ended_at = time.utc().format_rfc3339()
+			r.running--
+		} else if r.jobs[id].status == 'canceled' {
+			final_log += '[canceled]\n'
+		}
+		os.write_file(r.log_path(id), final_log) or {}
 	}
-	r.running--
+	r.procs.delete(id)
+	p.close()
 	r.persist_locked()
 }
 
@@ -173,6 +190,85 @@ pub fn (r &JobRunner) get(id string) ?Job {
 		return r.jobs[id]
 	}
 	return none
+}
+
+// cancel flips a queued/running job to canceled and terminates its child
+// (SIGTERM, grace, SIGKILL — same escalation as desktop_engine/process).
+// State first: the row is canceled under lock, so a concurrent watch exit
+// transcription never overwrites it and running is decremented exactly once.
+// A missing or already-reaped handle is a no-op, never an error.
+pub fn (mut r JobRunner) cancel(id string) !Job {
+	r.mut.lock()
+	mut job := r.jobs[id] or {
+		r.mut.unlock()
+		return error('job not found: ${id}')
+	}
+	if is_terminal(job.status) {
+		r.mut.unlock()
+		return error('job already ${job.status}: ${id}')
+	}
+	proc := r.procs[id] or { unsafe { nil } }
+	job.status = 'canceled'
+	job.ended_at = time.utc().format_rfc3339()
+	r.jobs[id] = job
+	if r.running > 0 {
+		r.running--
+	}
+	r.persist_locked()
+	r.mut.unlock()
+	if proc != unsafe { nil } {
+		mut p := unsafe { proc }
+		p.signal_term()
+		mut waited := 0
+		for waited < 2000 {
+			if !p.is_alive() {
+				break
+			}
+			time.sleep(50 * time.millisecond)
+			waited += 50
+		}
+		if p.is_alive() {
+			p.signal_kill()
+		}
+	} else {
+		append_canceled_marker(r.log_path(id))
+	}
+	return job
+}
+
+// delete removes a job's registry entry and log file. Running/queued jobs
+// need force=true (which cancels first); terminal jobs delete directly.
+pub fn (mut r JobRunner) delete(id string, force bool) ! {
+	r.mut.lock()
+	job := r.jobs[id] or {
+		r.mut.unlock()
+		return error('job not found: ${id}')
+	}
+	active := job.status == 'running' || job.status == 'queued'
+	if active && !force {
+		r.mut.unlock()
+		return error('job is ${job.status}: ${id}')
+	}
+	r.mut.unlock()
+	if active {
+		// The job may finish (or be deleted) between the unlock above and
+		// cancel; force delete still proceeds in that case.
+		r.cancel(id) or {
+			msg := err.msg()
+			if !msg.starts_with('job already') && !msg.starts_with('job not found') {
+				return err
+			}
+		}
+	}
+	r.mut.lock()
+	r.jobs.delete(id)
+	r.procs.delete(id)
+	r.persist_locked()
+	r.mut.unlock()
+	lp := r.log_path(id)
+	if os.is_file(lp) && !os.is_link(lp) {
+		os.rm(lp) or {}
+	}
 }
 
 // is_valid_job_id reports whether id matches the strict job ID format.
@@ -210,6 +306,17 @@ pub fn is_valid_job_id_strict(id string) bool {
 		return false
 	}
 	return true
+}
+
+// append_canceled_marker records cancellation in the job log without
+// destroying prior output. Best-effort: logging never fails a cancel.
+fn append_canceled_marker(log_path string) {
+	prev := os.read_file(log_path) or { '' }
+	mut body := prev
+	if body.len > 0 && !body.ends_with('\n') {
+		body += '\n'
+	}
+	os.write_file(log_path, body + '[canceled]\n') or {}
 }
 
 // is_terminal reports whether a job status is final (no further events).

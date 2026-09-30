@@ -39,8 +39,11 @@ Regenerate after changing the contract:
   `skills/:sub`, `mcp/:sub`, `plugin/:sub`, `workspace/:sub`, `memory/:sub`,
   `project/:sub`, `loops/:sub`, `dc/:sub`, `swarms/:sub`, `build`)
 - Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id/log`,
-  and **SSE streaming** via `GET /api/v1/jobs/:id/events` (`status` transitions,
-  `log` lines, terminal `done`; process-per-run, bounded concurrency)
+  **SSE streaming** via `GET /api/v1/jobs/:id/events` (`status` transitions,
+  `log` lines, terminal `done`; process-per-run, bounded concurrency),
+  `POST /api/v1/jobs/:id/cancel` (running → `canceled`, child terminated;
+  409 when already terminal), `DELETE /api/v1/jobs/:id` (terminal jobs;
+  running jobs need `?force=true`)
 - `GET /` — minimal static status page (not a product surface)
 
 ## Security defaults (ADR-028)

@@ -359,6 +359,8 @@ fn gen_openapi(contract Contract, version string) JObj {
 		['/api/v1/jobs', 'post', 'create_job'],
 		['/api/v1/jobs/{id}/log', 'get', 'get_job_log'],
 		['/api/v1/jobs/{id}/events', 'get', 'stream_job_events'],
+		['/api/v1/jobs/{id}/cancel', 'post', 'cancel_job'],
+		['/api/v1/jobs/{id}', 'delete', 'delete_job'],
 		['/api/v1/doctor/fix', 'post', 'doctor_fix'],
 		['/api/v1/loops/{name}/status', 'get', 'loop_status_by_name'],
 		['/api/v1/loops/{name}/run', 'post', 'run_loop_by_name'],
