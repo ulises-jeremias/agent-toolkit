@@ -491,6 +491,10 @@ const registered_api_routes = [
 	'/api/v1/jobs/:id/retry',
 	'/api/v1/jobs/:id',
 	'/api/v1/events',
+	'/api/v1/agents',
+	'/api/v1/tools',
+	'/api/v1/providers',
+	'/api/v1/models',
 ]
 
 // SelfcheckCheck is one named runtime coherence result.
@@ -625,6 +629,54 @@ pub fn (app &App) inventory(mut ctx Ctx) veb.Result {
 		product_count: snap.product_count
 		domain_count: snap.domain_count
 		message: snap.message
+	})
+}
+
+@['/api/v1/agents'; get]
+pub fn (app &App) agents(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.AgentsResponse{
+		ok: true
+		agents: agent_toolkit_core.list_agents()
+	})
+}
+
+@['/api/v1/tools'; get]
+pub fn (app &App) tools(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.ToolsResponse{
+		ok: true
+		tools: agent_toolkit_core.list_coding_tools()
+	})
+}
+
+@['/api/v1/providers'; get]
+pub fn (app &App) providers(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.ProvidersResponse{
+		ok: true
+		providers: agent_toolkit_core.list_providers()
+	})
+}
+
+@['/api/v1/models'; get]
+pub fn (app &App) models(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.ModelsResponse{
+		ok: true
+		models: agent_toolkit_core.list_models()
 	})
 }
 

@@ -82,6 +82,71 @@ schemas:
       - ref:string
       - message:string
 
+  - name: AgentInfo
+    description: One persona from agents/<id>/AGENT.md.
+    fields:
+      - id:string
+      - name:string
+      - kind:string
+      - description:string
+      - source_file:string
+
+  - name: AgentsResponse
+    fields:
+      - ok:boolean
+      - 'agents:#AgentInfo[]'
+
+  - name: ToolInfo
+    description: >-
+      Coding-agent CLI discovery. detected = binary on PATH;
+      configured = a known settings sentinel exists; enabled is
+      `unknown` until serve owns an enablement store; verified =
+      `--version` exited 0. install_hint is empty unless a real
+      first-party install argv exists.
+    fields:
+      - id:string
+      - tool_name:string
+      - detected:boolean
+      - configured:boolean
+      - enabled:string=unknown|true|false
+      - verified:boolean
+      - resolved_path:string
+      - config_paths:string[]
+      - version:string
+      - reason:string
+      - install_hint:string
+
+  - name: ToolsResponse
+    fields:
+      - ok:boolean
+      - 'tools:#ToolInfo[]'
+
+  - name: ProviderInfo
+    description: A swarm runner CLI. `auto` is a resolver and is omitted.
+    fields:
+      - id:string
+      - bin:string
+      - available:boolean
+      - capability:string
+      - version:string
+
+  - name: ProvidersResponse
+    fields:
+      - ok:boolean
+      - 'providers:#ProviderInfo[]'
+
+  - name: ModelInfo
+    description: One (profile, runner) slot from swarm_model_profiles.
+    fields:
+      - profile:string
+      - runner:string
+      - model:string
+
+  - name: ModelsResponse
+    fields:
+      - ok:boolean
+      - 'models:#ModelInfo[]'
+
 # Server-native endpoints (ADR-030): capabilities of the API itself, not
 # mirrors of CLI contract commands. `response` is a field type (see grammar),
 # `text` (text/plain) or `sse` (text/event-stream of `event_schema`).
@@ -166,6 +231,26 @@ native:
     errors:
       - '400:invalid since or Last-Event-ID'
       - '503:too many event subscribers'
+  - path: /api/v1/agents
+    method: get
+    op: list_agents
+    summary: Persona catalog from agents/*/AGENT.md
+    response: '#AgentsResponse'
+  - path: /api/v1/tools
+    method: get
+    op: list_tools
+    summary: Coding-agent CLI discovery (detected/configured/enabled/verified)
+    response: '#ToolsResponse'
+  - path: /api/v1/providers
+    method: get
+    op: list_providers
+    summary: Swarm runner CLIs
+    response: '#ProvidersResponse'
+  - path: /api/v1/models
+    method: get
+    op: list_models
+    summary: Swarm model profile slots
+    response: '#ModelsResponse'
   - path: /api/v1/doctor/fix
     method: post
     op: doctor_fix

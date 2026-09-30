@@ -1532,6 +1532,86 @@
         }
       }
     },
+    "/api/v1/agents": {
+      "get": {
+        "operationId": "list_agents",
+        "summary": "Persona catalog from agents/*/AGENT.md",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tools": {
+      "get": {
+        "operationId": "list_tools",
+        "summary": "Coding-agent CLI discovery (detected/configured/enabled/verified)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ToolsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/providers": {
+      "get": {
+        "operationId": "list_providers",
+        "summary": "Swarm runner CLIs",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvidersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/models": {
+      "get": {
+        "operationId": "list_models",
+        "summary": "Swarm model profile slots",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/doctor/fix": {
       "post": {
         "operationId": "doctor_fix",
@@ -1865,6 +1945,214 @@
           "exit_code",
           "ref",
           "message"
+        ]
+      },
+      "AgentInfo": {
+        "type": "object",
+        "description": "One persona from agents/<id>/AGENT.md.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "source_file": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind",
+          "description",
+          "source_file"
+        ]
+      },
+      "AgentsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "agents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentInfo"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "agents"
+        ]
+      },
+      "ToolInfo": {
+        "type": "object",
+        "description": "Coding-agent CLI discovery. detected = binary on PATH; configured = a known settings sentinel exists; enabled is `unknown` until serve owns an enablement store; verified = `--version` exited 0. install_hint is empty unless a real first-party install argv exists.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "tool_name": {
+            "type": "string"
+          },
+          "detected": {
+            "type": "boolean"
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "enabled": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "true",
+              "false"
+            ]
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "resolved_path": {
+            "type": "string"
+          },
+          "config_paths": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "install_hint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tool_name",
+          "detected",
+          "configured",
+          "enabled",
+          "verified",
+          "resolved_path",
+          "config_paths",
+          "version",
+          "reason",
+          "install_hint"
+        ]
+      },
+      "ToolsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "tools": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ToolInfo"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "tools"
+        ]
+      },
+      "ProviderInfo": {
+        "type": "object",
+        "description": "A swarm runner CLI. `auto` is a resolver and is omitted.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "bin": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "capability": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bin",
+          "available",
+          "capability",
+          "version"
+        ]
+      },
+      "ProvidersResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProviderInfo"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "providers"
+        ]
+      },
+      "ModelInfo": {
+        "type": "object",
+        "description": "One (profile, runner) slot from swarm_model_profiles.",
+        "properties": {
+          "profile": {
+            "type": "string"
+          },
+          "runner": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "profile",
+          "runner",
+          "model"
+        ]
+      },
+      "ModelsResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelInfo"
+            }
+          }
+        },
+        "required": [
+          "ok",
+          "models"
         ]
       }
     }
