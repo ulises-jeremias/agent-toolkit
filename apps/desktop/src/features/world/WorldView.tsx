@@ -190,8 +190,8 @@ export default function WorldView() {
       />
       <Stack>
         <p className={styles.hint}>
-          Theme <strong>{cozyTopdownTheme.label}</strong> · semantic keys only · characters only for proven jobs ·
-          calm houses when idle · click opens inspectors.
+          Theme <strong>{cozyTopdownTheme.label}</strong> · semantic keys only · characters only for proven jobs · calm
+          houses when idle · click opens inspectors.
         </p>
 
         <Panel
