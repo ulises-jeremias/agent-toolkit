@@ -17,9 +17,10 @@ const harness = (source: HarnessResolution['source']): HarnessResolution => ({
 });
 
 describe('onboarding step gates', () => {
-  it('treats default and override harnesses as chosen', () => {
+  it('treats default, override, and user-chosen harnesses as chosen', () => {
     expect(harnessIsChosen(harness('default'))).toBe(true);
     expect(harnessIsChosen(harness('override'))).toBe(true);
+    expect(harnessIsChosen(harness('user'))).toBe(true);
     expect(harnessIsChosen(harness('fallback'))).toBe(false);
     expect(harnessNeedsCreate(harness('fallback'))).toBe(true);
     expect(harnessNeedsCreate(harness('default'))).toBe(false);

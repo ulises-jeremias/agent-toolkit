@@ -114,13 +114,15 @@ export type Unsubscribe = () => void;
 export interface AtkBridge {
   backendStatus: () => Promise<BackendState | null>;
   backendRestart: () => Promise<boolean>;
-  /** Confirm-gated mkdir of ~/.ai-workspace, then the same persist+restart as harnessSet. */
-  harnessCreateDefault: () => Promise<HarnessSwitchResult>;
   onBackendState: (listener: (state: BackendState) => void) => Unsubscribe;
   harnessStatus: () => Promise<HarnessStatus | null>;
   harnessRecent: () => Promise<HarnessRecentEntry[]>;
-  /** Validate, persist, and restart the backend in `path` (absolute or `~/...`). */
-  harnessSet: (path: string) => Promise<HarnessSwitchResult>;
+  /**
+   * Validate, persist, and restart the backend in `path`. Never mkdirs unless
+   * `create: true`, which is allowed only for the default ~/.ai-workspace path
+   * after the renderer confirmed.
+   */
+  harnessSet: (path: string, options?: { create?: boolean }) => Promise<HarnessSwitchResult>;
   /** Native folder picker, then the same flow as harnessSet. */
   harnessChoose: () => Promise<HarnessSwitchResult>;
   /** Forget the Desktop choice; back to ~/.ai-workspace (or fallback). */

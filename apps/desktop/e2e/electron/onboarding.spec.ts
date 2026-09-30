@@ -64,6 +64,7 @@ test.describe('first-run happy path', () => {
     await expect(page.getByText(workspace, { exact: false }).first()).toBeVisible();
     await expect(page.getByText(/already exists/i)).toBeVisible();
     await expect(page.getByRole('button', { name: 'Create harness' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Choose folder' })).toBeVisible();
     await capture(page, '02-harness-existing');
 
     await walkSharedSteps(page, '');
@@ -90,6 +91,7 @@ test.describe('first-run missing harness', () => {
     await page.getByRole('button', { name: 'Continue' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Where should work live?' })).toBeVisible();
     await expect(page.getByText(/No harness folder is present/)).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Choose folder' })).toBeVisible();
     await capture(page, 'fallback-01-missing');
 
     await page.getByRole('button', { name: 'Create harness' }).click();

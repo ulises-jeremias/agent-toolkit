@@ -120,10 +120,10 @@ Everything is exported from `src/ui/index.ts`.
 
 Electron only, until `localStorage['atk.desktop.onboarding.complete']` is set
 (Settings and the command palette can replay it). Steps: backend ready →
-choose or confirm-create `~/.ai-workspace` (never mkdir without confirm) →
-coding-agent CLI detection when a typed API exists, otherwise an honest
-unavailable state plus Doctor → agent/provider/model only if typed APIs
-exist → a real job or PTY with live output. Replay is `session:replay-onboarding`.
+`window.atk.harnessChoose` / confirm then `harnessSet(default, { create: true })`
+/ `harnessReset` (never mkdir `~/.ai-workspace` without confirm). Desktop
+never invents tool INSTALLED badges. Replay is `session:replay-onboarding`.
+Home after setup is `/world`.
 
 ### Shell contracts later destinations must use
 

@@ -7,6 +7,7 @@ import { useTerminalSessions } from '../../data/terminal';
 import { ApiClient, isTerminalJobStatus, requireOk } from '../../lib/api';
 import { jobCommandLine } from '../../lib/format';
 import { useSessionContext } from '../../shell/useSessionContext';
+import type { HarnessSwitchResult } from '../../types/electron';
 import {
   Button,
   ButtonRow,
@@ -14,7 +15,6 @@ import {
   ConfirmAction,
   EmptyState,
   ErrorState,
-  Field,
   KeyValue,
   LoadingState,
   Mono,
@@ -25,7 +25,6 @@ import {
   Stack,
   StatusBadge,
   Table,
-  TextInput,
   jobTone,
   selfcheckTone,
   useActionReceipt,
@@ -160,7 +159,6 @@ function HarnessStep({
 }) {
   const { setContext } = useSessionContext();
   const receipt = useActionReceipt('Harness ready');
-  const [otherPath, setOtherPath] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const harness = backend?.harness ?? null;
@@ -186,47 +184,30 @@ function HarnessStep({
     }
   }, [defaultPath, receipt, setContext]);
 
-  const createDefault = useCallback(async () => {
-    if (!window.atk) {
-      setError(new Error('Creating a harness needs the Desktop app.'));
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await window.atk.harnessCreateDefault();
-      if (!result.ok) {
-        setError(new Error(result.message));
+  const applySwitch = useCallback(
+    async (op: () => Promise<HarnessSwitchResult>) => {
+      if (!window.atk) {
+        setError(new Error('Choosing a harness needs the Desktop app.'));
         return;
       }
-      await afterRooted();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause : new Error(String(cause)));
-    } finally {
-      setBusy(false);
-    }
-  }, [afterRooted]);
-
-  const applyOtherFolder = useCallback(async () => {
-    if (!window.atk) {
-      setError(new Error('Choosing a harness needs the Desktop app.'));
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await window.atk.harnessSet(otherPath);
-      if (!result.ok) {
-        setError(new Error(result.message));
-        return;
+      setBusy(true);
+      setError(null);
+      try {
+        const result = await op();
+        if (!result.ok) {
+          if (result.error === 'cancelled') return;
+          setError(new Error(result.message));
+          return;
+        }
+        await afterRooted();
+      } catch (cause) {
+        setError(cause instanceof Error ? cause : new Error(String(cause)));
+      } finally {
+        setBusy(false);
       }
-      await afterRooted();
-    } catch (cause) {
-      setError(cause instanceof Error ? cause : new Error(String(cause)));
-    } finally {
-      setBusy(false);
-    }
-  }, [afterRooted, otherPath]);
+    },
+    [afterRooted],
+  );
 
   return (
     <>
@@ -263,30 +244,36 @@ function HarnessStep({
                 description={`Creates ${defaultPath} and scaffolds a workspace there. Existing files are left in place.`}
                 confirmLabel="Create harness"
                 busy={busy}
-                onConfirm={() => void createDefault()}
+                onConfirm={() => void applySwitch(() => window.atk!.harnessSet(defaultPath, { create: true }))}
               />
             </>
           ) : (
-            <p>This folder already exists. Continue uses it in place; nothing is copied or overwritten.</p>
+            <>
+              <p>This folder already exists. Continue uses it in place; nothing is copied or overwritten.</p>
+              {harness?.source === 'user' ? (
+                <Button
+                  variant="ghost"
+                  disabled={busy}
+                  busy={busy}
+                  busyLabel="Switching harness…"
+                  onClick={() => void applySwitch(() => window.atk!.harnessReset())}
+                >
+                  Use default
+                </Button>
+              ) : null}
+            </>
           )}
         </Panel>
         <Panel title="Use a different existing folder">
-          <p>The folder must already exist. Desktop will not create a custom path.</p>
-          <div className={styles.choice}>
-            <Field label="Existing folder" hint="Absolute path. Must already be a directory.">
-              {(control) => (
-                <TextInput mono value={otherPath} onChange={(event) => setOtherPath(event.target.value)} {...control} />
-              )}
-            </Field>
-            <Button
-              disabled={!otherPath.trim() || busy}
-              busy={busy}
-              busyLabel="Switching harness…"
-              onClick={() => void applyOtherFolder()}
-            >
-              Use this folder
-            </Button>
-          </div>
+          <p>The native picker only accepts a folder that already exists. Desktop will not create a custom path.</p>
+          <Button
+            disabled={busy}
+            busy={busy}
+            busyLabel="Switching harness…"
+            onClick={() => void applySwitch(() => window.atk!.harnessChoose())}
+          >
+            Choose folder
+          </Button>
         </Panel>
         {error ? <ErrorState title="Harness setup failed" error={error} /> : null}
         <ButtonRow>

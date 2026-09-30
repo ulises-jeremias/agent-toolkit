@@ -13,7 +13,7 @@ export const STEP_LABELS: Record<OnboardingStep, string> = {
 };
 
 export function harnessIsChosen(harness: HarnessResolution | null | undefined): boolean {
-  return harness?.source === 'default' || harness?.source === 'override';
+  return harness != null && harness.source !== 'fallback';
 }
 
 export function harnessNeedsCreate(harness: HarnessResolution | null | undefined): boolean {

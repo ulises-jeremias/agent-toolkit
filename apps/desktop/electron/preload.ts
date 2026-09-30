@@ -4,7 +4,6 @@ import type { AtkBridge, PtyCreateOptions, PtyExitEvent, PtyDataEvent } from '..
 const bridge: AtkBridge = {
   backendStatus: () => ipcRenderer.invoke('atk:backend-status'),
   backendRestart: () => ipcRenderer.invoke('atk:backend-restart'),
-  harnessCreateDefault: () => ipcRenderer.invoke('atk:harness-create-default'),
   onBackendState: (listener) => {
     const wrapped = (_event: unknown, state: unknown): void => {
       listener(state as Parameters<Parameters<AtkBridge['onBackendState']>[0]>[0]);
@@ -16,7 +15,8 @@ const bridge: AtkBridge = {
   },
   harnessStatus: () => ipcRenderer.invoke('atk:harness-status'),
   harnessRecent: () => ipcRenderer.invoke('atk:harness-recent'),
-  harnessSet: (path: string) => ipcRenderer.invoke('atk:harness-set', { path }),
+  harnessSet: (path: string, options) =>
+    ipcRenderer.invoke('atk:harness-set', { path, create: options?.create === true }),
   harnessChoose: () => ipcRenderer.invoke('atk:harness-choose'),
   harnessReset: () => ipcRenderer.invoke('atk:harness-reset'),
   ptyList: () => ipcRenderer.invoke('atk:pty-list'),

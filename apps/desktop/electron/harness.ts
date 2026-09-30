@@ -47,6 +47,13 @@ export function expandHome(value: string, homeDir: string): string {
   return value;
 }
 
+/** True when `raw` expands to this user's designed default, `~/.ai-workspace`. */
+export function isDefaultHarnessPath(raw: string, homeDir: string = os.homedir()): boolean {
+  const trimmed = raw.trim();
+  if (!trimmed) return false;
+  return path.resolve(expandHome(trimmed, homeDir)) === path.join(homeDir, '.ai-workspace');
+}
+
 /**
  * Resolve the Desktop harness: env override > persisted user choice >
  * `~/.ai-workspace` > fallback. Never creates directories: Agent Toolkit must

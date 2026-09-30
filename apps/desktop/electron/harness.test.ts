@@ -7,6 +7,7 @@ import {
   activeOverrideVar,
   createDefaultHarnessDirectory,
   harnessSpawnContext,
+  isDefaultHarnessPath,
   isDirectory,
   resolveHarness,
   validateHarnessPath,
@@ -216,6 +217,16 @@ describe('harnessSpawnContext', () => {
       base,
     );
     expect(ctx).toEqual({ cwd: undefined, env: base });
+  });
+});
+
+describe('isDefaultHarnessPath', () => {
+  it('matches the expanded default and rejects other paths', () => {
+    const home = '/home/paper';
+    expect(isDefaultHarnessPath(`${home}/.ai-workspace`, home)).toBe(true);
+    expect(isDefaultHarnessPath('~/.ai-workspace', home)).toBe(true);
+    expect(isDefaultHarnessPath('~/other', home)).toBe(false);
+    expect(isDefaultHarnessPath('', home)).toBe(false);
   });
 });
 
