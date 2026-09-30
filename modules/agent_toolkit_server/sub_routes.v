@@ -79,9 +79,9 @@ fn decode_sub_body[T](body string) !T {
 	if !trimmed.starts_with('{') {
 		return sub_err(.bad_request, 'request body must be a JSON object')
 	}
-	return json2.decode[T](trimmed) or {
-		return sub_err(.bad_request, 'invalid JSON body: ${err.msg()}')
-	}
+	// The decoder message embeds terminal color codes and echoes the body;
+	// keep the response stable and non-reflective.
+	return json2.decode[T](trimmed) or { return sub_err(.bad_request, 'invalid JSON body') }
 }
 
 fn is_ident_char(ch u8) bool {
