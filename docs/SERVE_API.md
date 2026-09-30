@@ -70,7 +70,7 @@ curl -s -X POST http://127.0.0.1:3847/api/v1/memory/search \
   process with a terminal). `swarms start` never attaches a terminal.
 - **Bodies.** Empty body keeps the defaults. A non-object or malformed JSON
   body is `400`. Unknown keys are ignored.
-- **Paths.** `workspace` and `workspace dir` follow `POST /api/v1/jobs`:
+- **Paths.** `workspace` (and `dir` on `workspace/{sub}`) follow `POST /api/v1/jobs`:
   traversal `400`, missing `404`, outside the allowed roots (symlinks
   resolved) `403`. Relative path references (`pack`, `artifact`, `recipe`,
   `workspace load` / `project add` `arg`) must not traverse; absolute ones
