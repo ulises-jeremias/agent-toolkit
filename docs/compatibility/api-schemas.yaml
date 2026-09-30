@@ -160,7 +160,7 @@ schemas:
       - agent:string
 
   - name: MemoryEntry
-    description: One knowledge/*.md file. body is set on read and empty on list.
+    description: One memory file (learnings, processes, or todos). body is set on read and empty on list. Other knowledge/*.md files are not memory.
     fields:
       - id:string
       - kind:string
@@ -472,16 +472,15 @@ native:
   - path: /api/v1/memory
     method: get
     op: list_memory
-    summary: Knowledge files in the workspace
+    summary: Memory files (learnings, processes, todos). Empty when no workspace.
     response: '#MemoryListResponse'
     errors:
       - '400:invalid workspace'
       - '403:workspace outside allowed roots'
-      - '404:workspace not found'
   - path: /api/v1/memory/hits
     method: get
     op: search_memory
-    summary: Case-insensitive knowledge search
+    summary: Case-insensitive memory search
     response: '#MemorySearchResponse'
     errors:
       - '400:query is required'
@@ -490,7 +489,7 @@ native:
   - path: /api/v1/memory/file
     method: get
     op: read_memory
-    summary: Read one knowledge markdown file
+    summary: Read one memory markdown file
     response: '#MemoryReadResponse'
     errors:
       - '400:invalid path'
@@ -508,7 +507,7 @@ native:
   - path: /api/v1/memory/file
     method: put
     op: edit_memory
-    summary: Replace a knowledge markdown file
+    summary: Replace a memory markdown file
     response: '#MemoryWriteResponse'
     errors:
       - '400:invalid path or content'
@@ -517,7 +516,7 @@ native:
   - path: /api/v1/memory/file/archive
     method: post
     op: archive_memory
-    summary: Move a knowledge file under knowledge/archive/
+    summary: Move a memory file under knowledge/archive/
     response: '#MemoryWriteResponse'
     errors:
       - '400:invalid path'
