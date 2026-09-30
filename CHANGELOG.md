@@ -32,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   schemas and a `sub` enum. The route path stays authoritative, unknown
   subcommands return 404, malformed bodies 400, and workspace/path/name
   fields are validated and contained.
+- Desktop design foundations: DESIGN.md tokens (Paper/Ink/System, Fraunces
+  and IBM Plex), a primitive library with a native `<dialog>`, action
+  receipts and per-destination error boundaries, the design brief
+  `docs/desktop/ELECTRON_DESIGN_SYSTEM.md`, and Playwright E2E that drives
+  the built Electron app against the real backend under xvfb in CI.
 
 ### Changed
 
