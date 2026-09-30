@@ -35,14 +35,24 @@ console.log(`staged backend ${source} -> ${path.join(destDir, exe)}`);
 
 // Pin the staged binary's version for the supervisor's startup check:
 // a stale bundled backend is caught as version-mismatch instead of
-// failing mysteriously at runtime.
+// failing mysteriously at runtime. The previous pin is removed first and
+// any probe failure aborts staging, so `dist` can never package a pin that
+// describes a different binary.
 const resDir = path.resolve(appDir, 'resources');
+const pinPath = path.join(resDir, 'backend-version.json');
 fs.mkdirSync(resDir, { recursive: true });
+fs.rmSync(pinPath, { force: true });
+let version = '';
 try {
   const out = execFileSync(path.join(destDir, exe), ['--version'], { encoding: 'utf8' }).trim();
-  const version = out.split(/\s+/).pop();
-  fs.writeFileSync(path.join(resDir, 'backend-version.json'), JSON.stringify({ version }) + '\n');
-  console.log(`pinned backend version ${version}`);
+  version = out.split(/\s+/).pop() ?? '';
 } catch (error) {
-  console.warn(`could not pin backend version: ${error.message}`);
+  console.error(`could not probe staged backend version: ${error.message}`);
+  process.exit(1);
 }
+if (!version) {
+  console.error('staged backend printed no version; refusing to write a pin');
+  process.exit(1);
+}
+fs.writeFileSync(pinPath, JSON.stringify({ version }) + '\n');
+console.log(`pinned backend version ${version}`);
