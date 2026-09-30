@@ -1,28 +1,470 @@
-# Munder Difflin vs Agent Toolkit Desktop: live gap ledger
+# Workstation reference analysis
 
-Status: **LIVE LEDGER**, baseline 2026-09-29. Update a row whenever a phase of
-the desktop workstation program lands. Every row cites how it was verified.
+Status: **ENGINEERING DECISION ARTIFACT** (2026-09-30).
+Renamed from `MUNDER_GAP.md` via `git mv` (history preserved).
+This is the single in-repo comparison of Agent Toolkit Desktop against two
+external capability references. It is not a feature-parity program and not a
+visual brief.
 
-## Baseline identity
+Visual authority remains [DESIGN.md](DESIGN.md) and
+[assets/design/](assets/design/).
+Design notes:
 
-| Product | Revision | How it ran |
+- [01 — Attention and agent status](design-notes/01-attention-and-agent-status.md)
+- [02 — Sessions, adapters, durability](design-notes/02-sessions-terminals-and-durability.md)
+- [03 — Git / worktree write lifecycle](design-notes/03-git-worktree-write.md)
+
+Classification vocabulary used below:
+
+| Label | Meaning |
+| --- | --- |
+| **SOLVED** | Agent Toolkit already delivers the user outcome |
+| **ATK-BETTER** | Agent Toolkit's model is already the one to keep |
+| **ADOPT** | Take the concept as-is into ATK architecture |
+| **ADAPT** | Take the user outcome; re-express it in V + Electron |
+| **BACKEND** | Useful, but a V primitive must land first |
+| **LATER** | Valuable after current Electron/typed-API work |
+| **REJECT** | Do not implement; rationale recorded |
+| **N/A** | Not a Desktop product concern |
+
+---
+
+## 1. Reference SHAs (2026-09-30)
+
+| Product | Revision | Date | How verified |
+| --- | --- | --- | --- |
+| Agent Toolkit `origin/main` | `2d06bae2` (merge of #1318) | 2026-09-30 01:17 -0300 | GitHub + local fetch. Latest tag **v1.35.0** (2026-09-29). This worktree started at `600186b2` (#1314); #1318 landed while writing. |
+| Agent Toolkit Electron app | shipped on `main` since #1311; default harness #1314 | 2026-09-29/30 | Source + #1317 live ledger at `d4ff3731`. |
+| Agent Office `main` | `13c104eb13a8a72be0b003507dee353bb9786237` | 2026-09-30 00:06:27 -0400 | Fetched. Tag `v0.1.174` (`c1924dbf`); HEAD is `v0.1.174-1-g13c104e` (#197 lost-worktree wait). Clone: `repos/agent-office`. |
+| Munder Difflin local | `5756722e93980610e024a3f1ee7e918365ef60ec` | 2026-09-29 00:05 +0530 | Same SHA as the 2026-09-29 live run (package 0.4.6 / tag `v0.5.3-40`). |
+| Munder `origin/main` | `ed06e3e7618b3477a9fb325203e243a53037d5d2` | 2026-09-29 15:22 +0530 | **SEO-engine blog commits only** after `5756722e`. No product/runtime change. Capability refresh = no-op. |
+
+Agent Office local run (this research): CLI `--help` succeeded; `node bin/agent-office.js --host 127.0.0.1 --port 14600 --home /tmp/ao-probe-*` printed "agent-office is open" and `GET /` + `GET /lite` returned **302** (login). No floors, no paid provider, no 3D client. Exact PID stopped (`SIGTERM`); leftover research instance on :4817 also stopped. Probe home deleted. **No generated password is recorded here.**
+
+Verification legend: **SRC** = read source; **RUN** = exercised; **DOC** = project docs only; **GH** = GitHub issue/PR.
+
+---
+
+## 2. Current Agent Toolkit reality (reconstructed)
+
+### Architecture now
+
+ADR-033 (**Proposed**, 2026-09-29 — human acceptance gate still open; **not
+accepted**) records the intended split:
+
+- **V** = core + CLI + `agent-toolkit serve` (domain authority).
+- **Electron + React** = Desktop (`apps/desktop/`).
+- Electron main/preload = infrastructure only (lifecycle, bundled `serve`,
+  IPC, node-pty adapter).
+- React must not become a second domain implementation.
+
+Implementation on `main` already advances that split (#1311 Electron app,
+#1312/#1316 backend pin, #1313 job cancel/delete, #1314 default harness
+`~/.ai-workspace`, #1315 typed `:sub` bodies, #1318 memory table fix).
+**Do not treat Proposed as Accepted. Do not treat the native gg/sokol GUI as
+the current presentation plan.** ADR-032 remains the native-GUI decision;
+ADR-033 *proposes* to supersede it at the presentation layer only. v1.35.0
+is the rollback tag ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md)).
+
+### Open work (do not derail)
+
+| PR | State | Role |
 | --- | --- | --- |
-| Munder Difflin | `5756722e93980610e024a3f1ee7e918365ef60ec` (2026-09-29, package 0.4.6) | `npm install` (native rebuild of node-pty and better-sqlite3 succeeded on Linux) and `npm run dev` (electron-vite). Isolated `HOME`/`XDG_*`, `DO_NOT_TRACK=1`, provider API keys unset, no paid agent launched. |
-| Agent Toolkit Desktop | `d4ff3731` (`main`, merge of #1312) | Dev Electron (`build:all`, then `electron apps/desktop`) and packaged `pnpm dist:dir` (`release/linux-unpacked`) with a bundled backend. Linux, Hyprland/Wayland. |
-| ATK backend | `agent-toolkit` 1.35.0 | Dev runs used a locally built binary that includes the `X-Atk-Desktop` first-party gate (sha256 prefix `ebffe23c3b8d`). The released 1.35.0 on `~/.local/bin` lacks the gate (see failure rows). |
+| [#1318](https://github.com/ulises-jeremias/agent-toolkit/pull/1318) | **MERGED** `2d06bae2` | Memory `prepend_table_row` fix |
+| [#1320](https://github.com/ulises-jeremias/agent-toolkit/pull/1320) | OPEN, **CONFLICTING** vs `main` | `GET /api/v1/events` SSE ring, job get/retry, typed schemas |
+| [#1321](https://github.com/ulises-jeremias/agent-toolkit/pull/1321) | OPEN, **CONFLICTING** | Paper/Ink design system, typed data layer, real Electron E2E |
 
-Verification legend for the last column:
+#1320/#1321 owners rebase. This artifact does not change those PRs.
 
-- **ATK run** — exercised in the running Electron app at the baseline SHA, with a screenshot.
-- **ATK src** — read from source only.
-- **M run** — observed in the running Munder app.
-- **M src** — read from Munder source only (not exercised).
+### Stale statements (do not follow)
 
-Screenshots live in [`assets/electron/baseline/`](assets/electron/baseline/).
-Munder screenshots were reviewed but are intentionally **not** committed: they are
-full of Munder brand art and characters.
+| Claim | Where | Current truth |
+| --- | --- | --- |
+| "native V + gg/sokol" as Desktop invariant | #1227 body | Presentation is Electron+React on `main`. Native GUI is rollback/reference until ADR-033 is accepted and Electron replaces it. |
+| #1227 slices A–J "DONE on main" as Electron truth | #1227 | Those slices landed on the **native** Desktop. Electron Office/Operations still derive attention from health/selfcheck/jobs and render many panels as CLI envelopes ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md) coverage table). |
+| `git_service.v` is a git backend | native engine | `backend_available` is **hard-false**; `git_changes`/`git_history`/`git_diff` return empty. Checkout is omitted with a reason string. Worktree *visibility* in native GUI ≠ a write lifecycle and ≠ a `serve` git API. |
+| PTY durability exists | #1073 / #1227 OPEN-future | Electron terminals are node-pty in main; they die with the window. 8 KiB tail replay only. |
+| ADR-033 is accepted | none yet | Status line is **Proposed**. Owner review required. |
+| #1118 "production is gg/sokol-direct" | #1118 2026-09-13 body | True of the native binary at that SHA. Electron is now the active Desktop implementation track. Visual lock (Paper Co.) is unchanged. |
 
-## Do not copy (vocabulary, brand, defaults)
+### Domain entities that exist in V today
+
+| Entity | Where | Notes |
+| --- | --- | --- |
+| Agent (catalog) | agents catalog / Library | Definition, not a running process |
+| Job | `serve` jobs | CLI invocation; SSE; cancel/delete (#1313); get/retry in #1320 |
+| Swarm run | `swarm.v` state | Roles, worktrees, handoffs, gates, budgets |
+| Loop | loops + optional cron *flag* | No scheduler daemon (honest) |
+| Task / handoff | swarm mailbox | Not a standalone Task entity |
+| Terminal session | Electron main ad-hoc ids; native `modules/pty.Session` | **No V session record** linking provider + run + process |
+| Approval | swarm `approvals.json`; `x-confirm-required` metadata | No typed Desktop approval inbox yet |
+| Memory | core memory files | #1318 fixed table rows |
+| Git | Engine stubs; native read rails in Desktop modules | No `serve` git/write API |
+
+**Do not invent a TypeScript `Worker`.** The row people point at is
+`Agent + Run + Session + Job` projected by ids from V.
+
+---
+
+## 3. Agent Office architecture (how it actually works)
+
+Node HTTP server + browser client. A **floor** is one git checkout. Workers
+are first-class runtime rows persisted in `<floor>/.agent-office/workers.json`
+(direct overwrite, mode `0600`, **not** atomic). Each worker has provider,
+model, effort, desk, worktree, optional extra repos, `sessionId`, PTY claim,
+`midTurn`.
+
+**Strongest technical ideas (SRC at `13c104eb`):**
+
+1. **Detached PTY host** (`ptyhost.ts` / `ptys.ts`): Unix `detached`+`unref`
+   process, owner-only Unix socket + 24-byte token file, protocol version 1,
+   newest office wins, 30-minute orphan timeout, headless xterm snapshot on
+   attach. **Process durability ≠ conversation durability.**
+2. **Per-provider adapters** (Claude, Codex, OpenCode, Grok, Muse, DSH/ACP)
+   with hook-captured session ids and resume argv / ACP `session/resume`.
+3. **Worktree lifecycle** (`office/<name>-<4hex>`), dirty/unpushed protection,
+   merged-PR `headRefOid` exemption for squash, leave-on-merge, prune, #197
+   lost-worktree rebuild (user action, not automatic).
+4. **Capability-scoped worker ops** via loopback `office-workers` + MCP
+   (`list` / `hire` / `tell` / `home`), authenticated per worker token — not
+   a central planning brain.
+5. **Attention as "oldest waiting first"** (`nextup.ts`: `needs_input` +
+   unseen `done`, `N` with a per-round visited set).
+6. **Service discovery** (`services.ts`): `ss`/`lsof` + ppid walk to PTY,
+   then `AGENT_OFFICE_WORKER_ID` env, then worktree cwd; HTTP probe before
+   publish. User-owned terminals are excluded.
+7. **`/lite`**: same floor operations without the 3D world.
+
+**Weaknesses / tradeoffs:**
+
+- Domain truth lives in Node. Restart persistence is a JSON file overwrite.
+- One flat `needs_input` mixes permission, question, and "finished".
+- PRs are never drafts; queue completion ≠ PR opened.
+- 3D office + game surfaces are the product identity, not the capability.
+- Windows: no PTY host (in-process only).
+- Service attribution falls back to cwd heuristics after detach/`nohup`.
+- Machine pressure is warn-only; `--max-workers` is the hard cap.
+
+---
+
+## 4. What each reference is for
+
+| | Munder Difflin | Agent Office |
+| --- | --- | --- |
+| Best as | Command-center IA, agent cards, memory/tasks, IDE/Git chrome, polished desktop product, onboarding gating | Direct manipulation of live agent sessions, durable PTY, provider resume, worktrees/PRs, multi-repo, queue, agent-to-agent *tools*, attention shortcut, services, `/lite` |
+| Overlap | Hire/configure an agent, per-agent terminal, worktree isolation, "what needs me" | Same user outcomes, different runtime |
+| Fundamentally different | Always-on god orchestrator ("Michael"), Sims floor as primary, auto-mode defaults | Multiplayer 3D office, workers as the entity, MCP `office-workers`, detached PTY host |
+| Visual/brand | REJECT (parody cast, maroon/gold, Pixi floor) | REJECT (3D, walking, elevators, rooftop/arcade/sports/cars/dog/weather) |
+
+ATK keeps Paper Co., typed Engine/`serve` truth, gated permissions, no
+telemetry-by-default, no god-agent as domain authority.
+
+---
+
+## 5. Unified capability matrix
+
+Desired end state is always **ATK's own model**, not a union of the two
+references.
+
+| Capability | ATK now | Munder | Agent Office | Desired ATK | Class |
+| --- | --- | --- | --- | --- | --- |
+| Agent lifecycle (define → launch → inspect → stop) | Catalog + jobs + swarm runs; no session entity; Electron launch is free-form argv | Hire modal + command preview + restore team | Hire/tell/home + persist + resume | Catalog Agent + Run + Session; typed launch form | **ADAPT** |
+| Provider abstraction | Split: `tool_discovery.v`, swarm runners, profiles; #1227 OPEN-future | 13 presets + model chips | One module per provider + ACP | One V `ProviderAdapter` table | **ADAPT** / **BACKEND** |
+| Model / effort per session | Absent in Desktop | Per-agent model | Per-worker model + effort | Session fields from adapter | **ADAPT** / **BACKEND** |
+| Sessions | Missing in V | Provider `--resume` on respawn | `sessionId` + midTurn + carry-on | V Session record | **ADAPT** / **BACKEND** |
+| Terminal architecture | node-pty in Electron main (ADR-033) | In-process node-pty | Hosted Unix PTY + in-process Windows | Main owns bytes; V owns identity | **ATK-BETTER** (split) |
+| PTY persistence | 8 KiB tail; dies with window | Process dies; conversation resume | Detached host + 3k-line snapshot + 15s `.ansi` | G1 mirror now; G2 resume; G3 optional host | **ADAPT** |
+| Status / attention | Electron: health + jobs; native: richer, stale vs Electron | ASK ME = blocked-on-human | Oldest `needs_input`/`done` + `N` | Typed `AttentionItem` kinds + severity | **ADAPT** |
+| Approvals | Contract metadata; swarm gates in core | ASK ME + who-can-hire | Provider permission hooks | Server-enforced, first in Office | **BACKEND** |
+| Orchestration | Swarm recipes, budgets, gates | God agent + dispatch | Queue + meetings + MCP hire | Typed swarm/queue; no god | **ATK-BETTER** |
+| Task queue | Jobs + loop run + swarm; composer in native | Kanban + god assign | FIFO queue, max workers, issue claim | Converge on jobs/loops/swarm; no fourth queue | **ADAPT** |
+| Worktrees | Native visibility rail; Engine git stubs; no serve write | Per-agent isolation | Full create/protect/prune/rebuild | V-owned write lifecycle | **BACKEND** |
+| Multi-repo | Harness / workspace is one root | Multi-floor (source) | One worker, N worktrees, linked PRs | Later, harness-shaped | **LATER** |
+| Git lifecycle | Read omitted in Engine; Electron has no Git panel | IDE Changes/History/Compare | Changes beside worker; merge-base | Run inspector facet after V git | **BACKEND** |
+| PR integration | None | CI on-demand (thin) | `gh pr create` (not draft); leave-on-merge | Optional, receipted, never a GH clone | **LATER** |
+| Services / previews | None | None comparable | Port scan + PTY/env/cwd attribution | Only with proven ownership | **LATER** |
+| Scheduler / loops | Loops exist; cron flag ≠ daemon | Triggers + immediate fire on first run | Queue pump 10s | Keep honest flag; daemon later | **ATK-BETTER** (honesty) |
+| Memory / context | Files + #1318; Desktop surface thin | Memory tab + MemPalace | Chat log + task cards (Haiku summaries) | Provenance-first memory | **ATK-BETTER** |
+| Costs / budgets | Config; unmeasured in UI | OTel + breaker (Claude) | Provider usage fields | Show only accounted | **ATK-BETTER** |
+| GitHub integration | `gh` via skills, not Desktop | Slack/org workers | Issues/PRs/queue/`gh` | Keep as skill/CLI; Desktop later | **LATER** |
+| Command / search | Native typed registry; Electron palette pending (#1321 foundations) | IDE palette | Palette = live entities; search ≠ palette | Typed registry authority; terminal search separate | **ATK-BETTER** + **ADAPT** |
+| Persistence | Jobs on disk; sessions not | Hive files + sqlite scalars | `workers.json` / `queue.json` | V session dir + jsonl events | **ADAPT** |
+| Crash recovery | Supervised `serve` restart (ATK strength) | Restore team | SIGTERM keeps host; SIGINT kills | Keep supervisor; add session reload | **ATK-BETTER** + **ADAPT** |
+| Resumability | Restart same argv | Provider `--resume` | Adapter resume + carry-on | V `provider_session` | **ADAPT** |
+| Collaboration | Single-user Desktop | Single-user | Multiplayer / voice / screenshare | Single-user workstation | **REJECT** (multiplayer product) |
+| Accessibility | Electron a11y path; native incomplete | Pixel-font headings | `/lite` + 3D primary | Compact/text twin required | **ADAPT** (lesson) |
+| Compact / narrow | 1024 captures; Office still sparse | Command Center column is the real UI | `/lite` | Every workflow without Office decor | **ADAPT** |
+| Security | First-party gate, contained paths, no CLI parse | Auto-mode default on | Loopback token, env scrub, isolated homes | ATK model wins on conflict | **ATK-BETTER** |
+| Architecture boundary | V domain / TS infra (Proposed) | Electron monolith domain | Node domain | Keep the split | **ATK-BETTER** |
+
+---
+
+## 6. Areas A–L (Agent Office → ATK)
+
+### A. Provider abstraction — **ADAPT / BACKEND**
+
+AO separates identity, discovery, argv, model/effort, isolated HOME/XDG,
+hooks, session-id capture, resume, usage, permissions. DSH is ACP-over-stdio
+rendered as ANSI into the same headless xterm (not a fake PTY).
+
+ATK already has discovery + swarm runners. Collapse them into one V adapter
+table (design note 02). #1227 "provider/model per-agent = OPEN-future" stays
+open but is no longer "intentionally absent forever" — it becomes a Session
+field once the adapter exists. **Do not implement provider parity in
+TypeScript.**
+
+### B. Durable terminals — **ADAPT in tiers (G1 now / G2 next / G3 later)**
+
+AO host: detached Node, Unix socket, token, snapshot, 30 min orphan.
+ATK already chose node-pty in Electron main (ADR-033). **Do not copy the host
+into V.** PTYs survive a `serve` restart *by construction* if main owns them.
+
+Guarantee table (never say "sessions survive restart"):
+
+| Failure | Process | Screen | Conversation | Commit |
+| --- | --- | --- | --- | --- |
+| Renderer reload / window recreate | kept | replay | kept | **G1** |
+| `serve` restart | kept | kept | kept | **G1** |
+| Electron main crash | lost | persisted tail | resumable if id known | **G2** |
+| Quit / reboot | lost (default) | persisted tail | resumable | **G2**; **G3** = opt-in keep-alive |
+
+G3 (detached host) only with an explicit "keep sessions after quit" setting,
+Unix first, visible list. Windows has no AO host.
+
+### C. Workers as entities — **REJECT as a new type; ADAPT the lifecycle**
+
+AO worker = ATK Agent + Run + Session. Lifecycle (hire/assign/working/
+waiting/done/resume/tell/changes/PR/cleanup) maps onto V ops + projections.
+Missing piece is **Session**, not Worker.
+
+### D. Worktree lifecycle — **BACKEND**
+
+AO is the best write-lifecycle evidence we have (fetch current branch, record
+base/`from`/`made`, dirty/unpushed, squash `headRefOid`, prune, #197 rebuild).
+ATK: native visibility only; Engine git `backend_available=false`; no serve
+git. **Do not expose Desktop git writes until V owns preview + receipt.**
+See design note 03.
+
+### E. Multi-repo workers — **LATER**
+
+Useful for cross-repo refactors. ATK's harness is one workspace root today
+(#1314). Do not add a second workspace model. Revisit after single-repo
+worktree writes exist. Classify user outcomes worth keeping: linked PRs,
+`GIT_CEILING_DIRECTORIES`, all-or-nothing create, per-repo PR failure.
+
+### F. Queue — **ADAPT (converge, do not add a fourth system)**
+
+AO: FIFO, `maxWorkers` (default 3), machine cap, issue assign, restart marks
+running tasks exited. ATK already has jobs, loops, swarm, native queue
+composer. Completion = worker status, not PR. Use jobs/loops/swarm; add
+concurrency caps as V policy.
+
+### G. Agents managing agents — **refine the rejection**
+
+Keep **REJECT** of a central god-agent / agent-manager as domain authority
+(Munder "Michael", inbox flood). **ADAPT later**: capability-scoped tools
+(`list_runs`, `inspect_run`, `create_run`, `send_message`, `cancel_run`,
+`list_pending_approvals`, `inspect_worktree`, `cleanup_completed_run`) that
+only call Engine/`serve` ops, same policy as the human. MCP must not become
+an orchestration engine. `office-workers` is evidence that this distinction
+is real.
+
+### H. Attention — **ADAPT**
+
+AO `N` + oldest-wait is the UX to steal. Do not flatten kinds. V owns
+`AttentionItem` (design note 01). Failures and approvals outrank "done".
+Backend-down is a local supervisor item, not a fabricated V fact.
+
+### I. Changes / PR — **BACKEND then LATER**
+
+Natural home is the run/session inspector (prompt → session → files → diff →
+tests → commit → PR → cleanup). Not a GitHub client. Draft-by-default if ATK
+ever opens PRs (AO does not use `--draft` — we should).
+
+### J. Services — **LATER, only if attribution is proven**
+
+AO order: PTY ancestor, then env, then worktree cwd; HTTP probe; exclude
+agent-own ports. Cwd fallback is **not** fact. ATK may ship a "possible
+preview" only when pid ancestry or an ATK env id is proven; otherwise
+"unattributed listener".
+
+### K. Search / scrollback / palette — **ATK-BETTER + ADAPT**
+
+Keep the typed action/entity registry as palette authority. Terminal
+full-text search is a different surface (AO does this correctly). Persist a
+bounded serialized screen in the run directory (atomic write — AO does not).
+
+### L. `/lite` — **ADAPT the lesson, REJECT the product**
+
+ATK is not a web collaboration app. Every workflow must work without Office
+pixel-art composition (a11y, reduced motion, 1024×640, screen reader). That
+is the `/lite` lesson.
+
+---
+
+## 7. Explicit rejections
+
+**From Agent Office — do not copy:** 3D office, first-person walking,
+elevators as navigation, rooftop bar, arcade, basketball, axe throwing,
+cars, office dog, weather, day/night, avatar navigation, decorative
+multiplayer, voice chat, screen sharing, gamification, their assets / maps /
+characters / wording / branding. MIT license does not authorize a port.
+Independent implementation only; attribute if any snippet is ever reused.
+
+**From Munder — do not copy:** Michael / GOD / Dunder cast, floor/hive/hire
+vocabulary, maroon/gold, Pixi floor as primary, auto-mode and telemetry on
+by default, scheduled prompts that fire on first run.
+
+**Architecture:** no TypeScript Worker; no god-agent as truth; no
+motion-as-doctrine; no V-owned PTY on Windows (POSIX-only `modules/pty`).
+
+---
+
+## 8. Implications
+
+### Backend (V) — later slices, after #1320
+
+1. Session identity + `provider_session` + events.jsonl (notes 01–02).
+2. `ProviderAdapter` table (discovery, launch, resume, hooks).
+3. `AttentionItem` + events on the #1320 bus (`attention.*`).
+4. Git read API on `serve`, then guarded write (worktree add/remove, commit,
+   push) with preview + receipt (note 03).
+5. Optional MCP ops surface that calls the same routes as Desktop.
+
+### Electron main — after G1 commitment
+
+Headless xterm mirror, serialize-on-attach, atomic scrollback in the run
+dir, resize-owns-typist, scrubbed env. Detached host is G3 only.
+
+### React — do not start from this research
+
+Consume typed hooks from #1321. Render attention/session facets when V
+emits them. No derived "quiet". Compact destinations must work without
+Office decor. Visual system stays Paper Co.
+
+### Testing (durability modes separately)
+
+Renderer reload; BrowserWindow recreate; `serve` restart; renderer crash;
+main crash; intentional quit; unexpected death; reboot. Never one test
+named "sessions survive restart". Plus path-containment, worktree delete
+guards, hook allowlists, Paper+Ink+1024 captures.
+
+### Migration
+
+Does **not** block #1320/#1321. Informs the *next* backend/frontend slices.
+Native #1227 "DONE" rows stay historically true of gg/sokol and are **not**
+Electron acceptance.
+
+---
+
+## 9. Issue mapping
+
+| Tracker | Action |
+| --- | --- |
+| #1227 | Comment + body note: Electron/ADR-033 Proposed; AO as second reference; refine god-agent wording; re-state OPEN items with evidence. No silent close. |
+| #1118 | Comment: visual authority unchanged; Electron is presentation, not a new look; do not copy AO/Munder art. |
+| #1073 SessionBackend | Still the optional native-PTY eval; Electron durability is G1–G3 here, not a rewrite of #1073. |
+| New issues | **None created.** Dependency chain lives in this doc until #1320/#1321 land. First *future* issue, if filed: session identity contract (not "durable sessions"). |
+
+Proposed later chain (not filed): session identity → provider adapter →
+session metadata → G1 mirror → G2 resume → crash acceptance → UI recovery;
+then git write; then scoped agent ops; then services; then multi-repo.
+
+---
+
+## 10. Fifteen answers
+
+1. **Formal multi-provider adapter?** Yes, in V, data-driven. Stop spreading
+   provider behavior across target / swarm / run / discovery.
+2. **Canonical entity?** Composition: **Agent** (catalog) + **Run** (unit of
+   work) + **Session** (provider process/conversation) + **Job** (one CLI
+   invocation). Not Worker.
+3. **Detached PTY host in Electron?** Applicable as **G3 opt-in**, not
+   default. Offer G1 (main-owned PTY + mirror) now. Never claim more.
+4. **PTYs survive `serve` restart with V as authority?** Yes, if main owns
+   the PTY and V owns the session record. V must not own the bytes.
+5. **Who owns terminal/session?** V owns identity/status/resume. Electron
+   main owns PTY bytes. A separate supervisor is G3 only. V `serve` must
+   not become the PTY daemon.
+6. **Provider session ids?**
+   `provider_session { provider, id, captured_from, captured_at, verified }`
+   on the V Session. Resume only when id + adapter resume exist.
+7. **Git write now?** No Desktop exposure until V git read is real, then
+   guarded writes. Native checkout stays omitted for the right reason.
+8. **Multi-repo?** Valuable later; unnecessary scope for the Electron
+   migration. One harness/workspace first.
+9. **Agent-to-agent compatible with rejecting god-agent?** Yes, if it is a
+   thin MCP/HTTP face over Engine ops. The god-agent rejection stands.
+10. **Engine-backed MCP ops?** Improves ATK only if it is the same API the
+    Desktop uses. Otherwise it duplicates CLI/API and will drift. Later.
+11. **Run/session facets?** Yes, first-class: changes, worktree, terminal,
+    approvals, artifacts, provider/model, recovery state. Services and PR
+    when attributed/receipted. Not all required on day one.
+12. **Service discovery shippable?** Not yet. Ship only proven pid/env
+    attribution; cwd match is a hint.
+13. **AO superior to Munder?** Durable PTY host, provider resume adapters,
+    worktree write lifecycle, `office-workers` MCP (scoped), oldest-wait
+    `N`, service attribution attempt, `/lite` operational fallback,
+    multi-repo related PRs.
+14. **AO decisions to reject?** 3D/game/brand; god-like central planner
+    (AO does not have Munder's Michael — keep rejecting that anyway);
+    non-atomic persist; flattening attention; non-draft PRs; Windows host
+    absence presented as fine; Haiku task-card summaries as default.
+15. **What changes in #1227?** Record Electron + ADR-033 Proposed; mark
+    gg/sokol wording stale; add AO as evidence; keep Sims/visual rejection;
+    refine god-agent rejection; move provider/model from "intentionally
+    absent" to BACKEND; keep git write / PTY durability OPEN with G1–G3
+    and V-first git; do not close the tracker.
+
+---
+
+## 11. Report A–J (for the parent track)
+
+**A. Current ATK.** Electron+React over `serve` on `main` (`2d06bae2`).
+ADR-033 Proposed. #1320/#1321 open+conflicting. Native parity slices are
+not Electron truth. Session entity missing. Git Engine stubs.
+
+**B. Agent Office.** Floor = repo; worker = persisted runtime; detached PTY
+host; provider adapters including ACP; worktrees/PRs/queue/MCP. Strongest:
+durability split, adapters, worktree lifecycle, scoped tools, `N`. Weak:
+Node as domain, flat attention, 3D identity.
+
+**C. Munder vs AO.** Munder = IA/product chrome/memory/IDE. AO = live
+session runtime. Overlap on hire/terminal/worktree/attention. Different
+entities (god vs worker) and surfaces (Command Center vs 3D+`/lite`).
+
+**D. Matrix.** SOLVED/ATK-BETTER: supervised backend, honest empty states,
+typed-registry direction, no telemetry/auto-mode. ADAPT: adapters,
+sessions, G1 PTY, attention kinds, worktree *design*, scoped MCP.
+BACKEND: session, git write, approvals. LATER: multi-repo, services, PRs.
+REJECT: god-agent, 3D/game/brand, TS Worker.
+
+**E. Recommendations.** V: session + adapter + attention + git. Main: G1
+mirror. React: render only. MCP: same ops as HTTP, later. No V PTY daemon.
+
+**F. Roadmap.** Update #1227/#1118 only. No new issues. Order: #1320/#1321
+→ session identity → adapter → G1 → git read/write → scoped ops.
+
+**G. Impact on current work.** Nothing in this doc blocks current PRs.
+Backend owner: leave room on the event bus for `attention.*` / `session.*`;
+do not invent those types in #1320. Frontend owner: do not build a Worker
+model; keep compact destinations independent of Office decor.
+
+**H. Security.** ATK wins: contained paths, first-party gate, no hook
+listener port (file jsonl sink), scrubbed env, isolated hook config, no
+Desktop rewrite of user Claude settings, confirm on git destroy, no
+approval bypass via MCP. AO loopback+token is a pattern, not a free pass.
+Cwd-based service ownership is not fact.
+
+**I. Test plan.** Separate durability failures; V schema parity; Electron
+E2E already in #1321; git fixtures; hook allowlist; no V builds in this PR.
+
+**J. Next actions.** Merge this docs PR. Comment #1227/#1118. Let #1320/#1321
+rebase. First implementation slice after that: V session identity (not G3).
+
+---
+
+## Appendix A — Do not copy (vocabulary, brand, defaults)
 
 Munder is a parody-branded product. None of the following may appear in
 Agent Toolkit UI, docs, code identifiers or assets:
@@ -36,193 +478,18 @@ Agent Toolkit UI, docs, code identifiers or assets:
   Pixi office floor with desks and character avatars as the primary surface.
 - Unsafe defaults: autonomous "auto mode" (`--permission-mode bypassPermissions`,
   Codex sandbox bypass) **on by default**, telemetry **on by default**, and
-  scheduled prompts that fire immediately after onboarding (the "hourly ops
-  standup" showed "fired just now" on first run).
+  scheduled prompts that fire immediately after onboarding.
+
+Agent Office brand/game surfaces are equally off-limits (section 7).
 
 Agent Toolkit keeps its own Paper Co. language from [DESIGN.md](DESIGN.md):
 workspace, agent, run, job, loop, swarm, task, approval, receipt.
 
-## Workflow ledger
+---
 
-Each row: what Munder achieves for the user, what ATK achieves today, the gap,
-the chosen ATK solution (with the program phase from the desktop workstation
-plan), and how each side was verified.
+## Appendix B — Capture recipe (reusable)
 
-### First run and setup
-
-| Workflow | Munder outcome | ATK outcome today | Gap | Chosen ATK solution | Verified |
-| --- | --- | --- | --- | --- | --- |
-| First-run onboarding | 6-step wizard: technical/non-technical persona, feature tour, harness home folder, orchestrator engine + model, repos, permissions & reliability. Ends in a live orchestrator terminal. | None. The app opens on Office with backend health only ([office.png](assets/electron/baseline/office.png)). | Total | Phase 4.1 Onboarding: backend ready, then choose workspace, detect coding-agent CLIs, configure agent/provider/model, launch first real work, live terminal. Benchmarked step by step against Munder's wizard. | ATK run · M run |
-| Coding-agent CLI detection | Engine list with per-CLI state: INSTALLED, NOT INSTALLED, INSTALLS ON FIRST RUN, WORKERS ONLY; recommended engine; model picker per engine. | None in Desktop. `tool_discovery.v` exists only in the native engine; no serve route. | Total | Phase 2 PR C: typed discovery split into detected / configured / enabled / verified, with install hints only where a real command exists. Phase 4.1 renders it. | ATK src · M run |
-| Workspace selection | Harness home folder picker plus "add a repo" (native folder picker) during onboarding. | Context bar encodes workspace/agent/run in the URL and seeds workspace from the #1314 harness IPC (`~/.ai-workspace` when it exists). No picker yet; switching workspace still requires a backend restart. | Picker / multi-window | Phase 4.1 workspace step; evaluate one supervised backend per window/workspace. | ATK src · M run |
-| Prerequisites / setup health | Settings → Prerequisites: "9 of 16 ready", one card per tool with READY state, resolved path and docs link, plus a button that asks the orchestrator agent to install what is missing. | Insights → Doctor is a flattened CLI text dump with a `--fix` confirm button ([insights.png](assets/electron/baseline/insights.png)). Settings → Selfcheck is a clean 4-row table. | Doctor is not actionable or scannable | Phase 4.3 Doctor with per-check impact, preview and apply-fix; Phase 4.1 reuses it for setup. Needs typed doctor checks from V. | ATK run · M run |
-| Stale/missing backend | n/a (single bundled app). | A stale `/usr/bin/agent-toolkit` 1.16.0 without `serve` was picked from `PATH` and reported as "Backend crashed … Unknown command: serve"; Office still showed "Gathering attention items…" about 9 s after launch; Restart would relaunch the same `PATH` binary (per `backend.ts`) ([backend-missing-office.png](assets/electron/baseline/backend-missing-office.png)). | Wrong diagnosis, no next action | Phase 5 failure matrix: classify "incompatible backend" (version/capability probe before `serve`), show which binary was found and how to fix. | ATK run |
-| Telemetry | PostHog analytics, opt-out (default on), honors `DO_NOT_TRACK`. | None. | Intentional difference | Keep telemetry absent; anything added later must be opt-in and receipt-visible. | ATK src · M run |
-| Auto-update | Checks every 6 hours; version badge "click to check for updates". | None. | Gap | Required before a v2 release; out of scope for Phases 3–4. | ATK src · M run |
-
-### Agents, runs and attention
-
-| Workflow | Munder outcome | ATK outcome today | Gap | Chosen ATK solution | Verified |
-| --- | --- | --- | --- | --- | --- |
-| See agents and what they are doing | Agent strip cards (name, role, status, voice); Monitor tab lists each agent with cwd, budget bar, tool-call count, engine + model and "restart & continue". Canvas speech bubbles ("running the floor", "awaiting"). | Office shows backend version/URL and "Needs attention" only ([office.png](assets/electron/baseline/office.png)). No agent or run entity exists in the UI. | Total | Phase 2 PR C (agents catalog) + PR E (runs) + PR B (event bus), then Phase 4.2 Office: run rows with provider, model, workspace, current task, blocked reason, each linking to terminal/diff/evidence. No avatars, no fake progress. | ATK run · M run |
-| Attention truth | ASK ME tab: "Nothing needs you right now" plus the rule for what lands there (blocked on your input or a to-do only you can do). | "Nothing needs you. The workstation is quiet." is shown right after a job **failed** ([office-after-jobs.png](assets/electron/baseline/office-after-jobs.png)) and while the backend is **crashed** ([crash-banner-office-after-health.png](assets/electron/baseline/crash-banner-office-after-health.png)). Running jobs are counted as attention. | Office misstates state | Phase 4.2: needs-me = approvals, failures, blocked, backend down; running and recently completed are separate sections. Fed by PR B events. | ATK run · M run |
-| Launch/configure an agent | Add-agent dialog: identity, workspace (project, git worktree isolation, resume session id), engine (13 providers incl. custom, model list), briefing. Shows the exact command it will run. Import from a JSON manifest. | Only free-form job argv in Operations and free-form command in Terminal. | Total | Phase 2 PR C + Phase 4.1/4.3: typed agent-launch form with provider, model, workspace, isolation and an exact command preview. Gated permissions by default. | ATK run · M run |
-| Human approvals | ASK ME queue, a "who can add agents: only me" setting, and onboarding lists human approvals under guardrails. | `x-confirm-required` is contract metadata only; no approval UI. | Total | Phase 2 PR E typed approvals (approve/reject with reason), Phase 4.2 surfaces them first in Office. Server-enforced, never a client allowlist. | ATK src · M run |
-| Queue input while an agent is busy | QUEUE composer under the terminal (text, file attachments, voice); messages drain one by one when the agent goes idle. | None. | Gap | Phase 4.5 only if queue semantics are real in V; never a local echo. | ATK src · M run + M src |
-| Dispatch work to an orchestrator | Monitor → "Dispatch": free-text task, suggested owner, orchestrator decomposes and assigns. | None (jobs are single CLI invocations). | Gap by design | Phase 4.3 swarm launch with explicit recipe, scope and budget preview instead of an always-on orchestrator persona. | M run |
-
-### Operations: jobs, loops, swarms, schedules
-
-| Workflow | Munder outcome | ATK outcome today | Gap | Chosen ATK solution | Verified |
-| --- | --- | --- | --- | --- | --- |
-| Run a job and watch it | n/a (work happens inside agent terminals). | Real `doctor` job: created ([operations-job-running.png](assets/electron/baseline/operations-job-running.png)), live SSE lines, `completed` exit 0, persisted log ([operations-job-done.png](assets/electron/baseline/operations-job-done.png)). Failed job shows `failed`/exit 1 with log ([operations-job-failed-detail.png](assets/electron/baseline/operations-job-failed-detail.png)). Jobs persist across backend restarts. | ATK strength, but rough | Phase 4.3: typed forms instead of argv, full job IDs (every row currently reads `job_2026`), detail beside the list, cancel/retry/delete once PR B lands. | ATK run |
-| Job creation against the released backend | n/a | Released 1.35.0 rejects Desktop POSTs: "cross-site request forbidden" with no explanation ([operations-job-403-installed-1.35.0.png](assets/electron/baseline/operations-job-403-installed-1.35.0.png)); the supervisor still said `ready` because dev has no version pin. | Non-actionable error | Phase 5: map 403-from-gate to "backend too old for this Desktop build", and pin/verify capability, not only major version. | ATK run |
-| Schedules / triggers | Triggers tab: schedules with interval, target, last/next fire and on/off; context compaction; webhooks; organisation link. | Loops exist in CLI (`loops/:sub` proxy) but no Desktop surface. | Total in UI | Phase 2 PR E typed loop list/status/history/receipts + Phase 4.3 loops: configure, schedule, budgets, gates, history. Schedules never auto-enabled. | ATK src · M run |
-| Task board | Tasks kanban (TODO / DOING / BLOCKED …) fed by dispatched work; task detail overlay. | None. | Total | Phase 2 PR E tasks (status, owner, dependencies, blocked reason, history) + Phase 4.4 Work: list and board. | ATK src · M run |
-| Message topology / activity | Graph tab (agents as nodes, legend request/query/propose/agree/refuse/inform) and Activity log (spawn, message, drop, app-start) plus a shared board. | None. | Gap | Phase 2 PR B event bus; Phase 4.3 swarm topology from real handoffs; activity feed from events. | M run |
-| Budgets and circuit breaker | Floor token budget, token velocity, repeated-tool and error-storm limits; steer → constrain → stop; hard-stop toggle. Monitor shows Σ tokens and tok/min (OpenTelemetry, Claude only per source). | Token budgets exist as config; nothing measured or shown. | Total in UI | Phase 2 PR E budgets + Phase 4.9 Insights: show measured usage only where accounted, otherwise "unmeasured". | ATK src · M run + M src |
-| Background workers (Slack) | Workers tab: isolated workers spun up per Slack message (0 / 4). | None. | Out of scope | Explicit decision later; not in this program. | M run |
-
-### Terminal
-
-| Workflow | Munder outcome | ATK outcome today | Gap | Chosen ATK solution | Verified |
-| --- | --- | --- | --- | --- | --- |
-| Live interactive terminal | Orchestrator PTY is live in the Command Center with font size controls and a focus-mode toggle. | Real bash PTY: typed input, colored output, `exit 3` reported with Restart ([terminal-live.png](assets/electron/baseline/terminal-live.png), [terminal-exited.png](assets/electron/baseline/terminal-exited.png)). Session survives navigation through tail replay ([terminal-after-nav.png](assets/electron/baseline/terminal-after-nav.png)). | Parity on basics; defects | Phase 3 persistent terminal dock (xterm stays mounted) + Phase 4.5 identity/split/lifecycle. Immediate defects: `xterm.css` is never imported (helper textarea and measure element render as a stray box top-left); a prompt is duplicated by the live/tail race; exit state wraps the toolbar. | ATK run · M run |
-| Terminal bound to an agent/run | Every terminal belongs to an agent; header shows `live · pty <id>`. | Free-text "Run / agent identity" field; no link to a run, job or workspace. | Gap | Phase 4.5: tabs show agent, run, cwd and process state from typed entities. | ATK run · M run |
-| Crash/exit recovery | Provider-aware `--resume` on respawn, "restore team" after quit, power-resume detection; quit is intercepted while PTYs are live. | Exit shows "exited N" + Restart (same args); PTYs die with the window. | Gap on reattach | Phase 4.5 relaunch-in-same-context; PTY reattach needs a transport design first. | ATK run · M src |
-
-### Workspace: files, git, memory, skills
-
-| Workflow | Munder outcome | ATK outcome today | Gap | Chosen ATK solution | Verified |
-| --- | --- | --- | --- | --- | --- |
-| Files and editor | IDE scoped to the agent and its folder: file tree, Monaco with tabs, copy path, save, find/replace/palette shortcuts shown in the empty state. | None. Workspace destination shows `workspace/info`, which the CLI rejects ("Unknown workspace subcommand: info"), rendered as a field table ([workspace.png](assets/electron/baseline/workspace.png)). | Total + a dead default call | Phase 2 PR F workspace-contained files API + Phase 4.6 Monaco editor. Phase 1 PR A allowlists turn the unknown `info` sub into a 404; the UI must stop calling it. | ATK run · M run |
-| Git changes, history, compare | IDE Changes / History / Compare tabs; honest "Not a git repo." when applicable; per-agent git worktree isolation. | None. `git_service.v` is stubs only. | Total | Phase 2 PR G read-first git (status, diff, log, graph, branches, compare, worktrees) + Phase 4.6 Git panel scoped to agent/run. | ATK src · M run |
-| Memory | Memory tab: text search across board/tasks/memory, semantic search (reports "not set up" honestly), per-agent memory file viewer/editor. | No Memory screen (only a `memory/:sub` proxy). | Total | Phase 2 PR D typed memory with provenance + Phase 4.7 Memory, beating Munder on provenance (file, author, timestamp, project/agent). | ATK src · M run |
-| Skills | Skills tab: "Installed (17)", browse, search, cards with provider and BUNDLED badges, path, open folder. | Library → Skills catalog is one flattened paragraph of CLI output with descriptions truncated mid-word and a mojibake `CI�` from a byte-cut UTF-8 sequence ([library.png](assets/electron/baseline/library.png)). Plugins panel calls `plugin/list`, which does not exist ("Valid subcommands: sync, check"). | Unusable presentation, dead call | Phase 2 typed catalog + Phase 4.8 Library: separate agents/skills/packs/MCP/plugins views with catalog / installed / configured / verified / running states and install → verify → receipt. | ATK run · M run |
-| MCP / connections | Settings lists a Connections section (not opened in this run). | Library → MCP servers is a health text dump. | Gap | Phase 4.8 + 4.10: MCP connections with masked config, probe and repair. | ATK run · M run (not opened) |
-
-### Insights, settings, shell
-
-| Workflow | Munder outcome | ATK outcome today | Gap | Chosen ATK solution | Verified |
-| --- | --- | --- | --- | --- | --- |
-| Insights / reporting | Monitor token totals; activity feed. | Insights report shows escaped JSON twice (`JSON`, `__RAW_JSON` rows); capability matrix is Markdown flattened into a paragraph; diff surface is CLI text ([insights.png](assets/electron/baseline/insights.png)). | Raw output, no metrics | Phase 4.9: real activity, outcomes, durations, token usage and cost only where accounted; receipts and failures. Needs typed insights from V. | ATK run · M run |
-| Settings | Modal with sections: General (version, updates, home folder), Prerequisites, Agents & Models, Autonomy & Budgets, Connections, Voice, Memory & Knowledge. | Backend identity + Restart, Selfcheck table, Update/Uninstall profiles (destructive button beside a benign one), full CLI help as a `<pre>` that overflows horizontally ([settings.png](assets/electron/baseline/settings.png)). | Gap | Phase 4.10: appearance, scale, motion, tools/MCP connections, backend diagnostics; move help behind a link; destructive actions confirmed in a dialog. | ATK run · M run |
-| Backend crash and restart | n/a | SIGKILL of the supervised `serve` child flips to `crashed` with signal detail and a Restart banner; Restart relaunches on a new port, `restarts` increments, panels recover, no loop ([crash-banner-operations.png](assets/electron/baseline/crash-banner-operations.png), [backend-restarted-office.png](assets/electron/baseline/backend-restarted-office.png)). During restart the banner disappears while panels still show the old-port error ([backend-restarting.png](assets/electron/baseline/backend-restarting.png)). | ATK strength; copy/controls need work | Phase 5: human-readable crash copy, disable mutations (Start job stays enabled while crashed), per-panel Retry hidden while the backend itself is down. | ATK run |
-| Packaged app | Munder ships AppImage/dmg/exe with auto-update (not exercised). | `pnpm dist:dir` with `ATK_BACKEND_BIN` staged: bundled backend used ("via bundled"), ready within about 1.2 s, real job and PTY work ([packaged-office.png](assets/electron/baseline/packaged-office.png), [packaged-settings.png](assets/electron/baseline/packaged-settings.png), [packaged-terminal.png](assets/electron/baseline/packaged-terminal.png)). | Parity on boot | Final UAT: AppImage/deb across the 15 journeys in [USER_JOURNEYS.md](USER_JOURNEYS.md). | ATK run |
-| Keyboard and command palette | IDE lists shortcuts (Ctrl+F, Ctrl+H, F1 palette, Ctrl+G, Ctrl+Shift+O); focus mode toggle. | Skip link and visible 2px brass focus ring on every control ([focus-nav-keyboard.png](assets/electron/baseline/focus-nav-keyboard.png), [focus-input-keyboard.png](assets/electron/baseline/focus-input-keyboard.png)); no palette, no shortcuts. | Gap | Phase 3 command palette (Ctrl/Cmd+K) over real commands + discoverable shortcut map. | ATK run · M run |
-| Themes and typography | Light/dark toggle; pixel display font for headings, sans body. | Paper only. Fonts are not bundled: the stack falls back from Iowan Old Style/Palatino to P052 on this machine, so headings and body are the same serif at 15px. | Gap vs DESIGN.md | Phase 3: bundle Fraunces + IBM Plex Sans/Mono via `@fontsource`; Paper, Ink, System tokens. | ATK run · M run |
-| Multi-project | Multiple "floors" keep running when a window closes (source: close dialog "Other floors keep running", `HivePicker.tsx`). | Single cwd-rooted workspace. | Gap | Context-bar workspace switching first; multi-window only if journeys prove it. | ATK run · M src |
-
-## Top 15 prioritized UX gaps
-
-Ordered by user impact on the first 10 minutes and on trust. Phase refers to
-the desktop workstation plan.
-
-| # | Gap | Phase |
-| --- | --- | --- |
-| 1 | No first-run onboarding: no workspace choice, CLI detection or engine/model setup | 4.1 (+ 2 PR C) |
-| 2 | No workspace chooser/switcher; outside a workspace every action fails with an env-var instruction | 3 context bar, 4.1 |
-| 3 | Office misstates reality: "workstation is quiet" after a failed job and while the backend is down | 4.2 (+ 2 PR B) |
-| 4 | No agent or run presence (provider, model, status, current action) anywhere | 2 PR C/E, 4.2 |
-| 5 | No typed way to launch agent work; only free-form argv with no command preview | 2 PR C, 4.1/4.3 |
-| 6 | Library, Insights and Workspace render raw CLI text, escaped JSON and mojibake; two panels call subcommands that do not exist (`workspace/info`, `plugin/list`) | 1 PR A, 2, 4.8/4.9 |
-| 7 | Terminal is not a flagship: form dominates, viewport below the fold at 1024×640, missing `xterm.css`, toolbar wraps on exit, no dock | 3 dock, 4.5 |
-| 8 | No human approvals / needs-me inbox | 2 PR E, 4.2 |
-| 9 | No task board or task detail | 2 PR E, 4.4 |
-| 10 | No files/editor or git changes/history/compare | 2 PR F/G, 4.6 |
-| 11 | No memory browse/search/edit | 2 PR D, 4.7 |
-| 12 | Failure diagnosis: stale backend on PATH reported as a crash; gate 403 shown as "cross-site request forbidden"; Start job enabled while crashed | 5 failure matrix |
-| 13 | No budgets, usage or circuit-breaker visibility | 2 PR E, 4.9 |
-| 14 | No loops/schedules surface | 2 PR E, 4.3 |
-| 15 | No command palette or shortcut map; fonts not bundled (DESIGN.md typography unmet) | 3 |
-
-## Baseline UX critique per ATK destination
-
-All captures at 1440×900 unless named `compact-*` (1024×640), dev Electron at `d4ff3731`.
-
-### Office — [office.png](assets/electron/baseline/office.png), [compact-office.png](assets/electron/baseline/compact-office.png)
-
-- **Hierarchy:** infrastructure first. The largest element is "backend 1.35.0 · `http://127.0.0.1:<port>`", which answers nothing about work.
-- **Density:** two short panels; more than half of the viewport height is empty.
-- **Typography:** single serif family (fallback P052) for heading, labels and body; weak contrast between levels.
-- **Actions:** none. No way to start work, open a run or respond to anything.
-- **State communication:** wrong. Reports "quiet" after a failure and during a crash. The attention panel has no error branch: when the backend never starts it shows "Gathering attention items…" and, once the queries give up, can only fall back to "Nothing needs you".
-- **Keyboard/focus:** skip link and visible focus ring work; nothing actionable to reach.
-
-### Operations — [operations.png](assets/electron/baseline/operations.png), [operations-job-done.png](assets/electron/baseline/operations-job-done.png), [operations-job-failed-detail.png](assets/electron/baseline/operations-job-failed-detail.png)
-
-- **Hierarchy:** the "Start work" form outranks the job list; job detail opens below the fold.
-- **Density:** table is reasonable, but the ID column truncates every ID to the identical `job_2026`, and full ISO timestamps waste width.
-- **Typography:** mono for commands and IDs is correct; headings and labels share one serif.
-- **Actions:** free-form "Command/Arguments/Workspace" text fields; no cancel, retry or delete.
-- **State communication:** status dots plus words (good, not color-only); live output and persisted log duplicate the same content.
-- **Keyboard/focus:** tab order and focus ring are fine; the job ID button is the only way to open detail.
-
-### Workspace — [workspace.png](assets/electron/baseline/workspace.png), [emptyws-workspace-actions.png](assets/electron/baseline/emptyws-workspace-actions.png)
-
-- **Hierarchy:** the default panel shows a CLI error as if it were data.
-- **Density:** four action buttons with no explanation of what each produces.
-- **Typography:** field table in uppercase serif labels; nothing editorial.
-- **Actions:** buttons that run CLI subcommands; results are one-line messages.
-- **State communication:** failures ("workspace not found…") render as plain paragraphs, not errors, and point at an env var instead of an in-app action.
-- **Keyboard/focus:** reachable; no disabled explanations.
-
-### Library — [library.png](assets/electron/baseline/library.png), [compact-library.png](assets/electron/baseline/compact-library.png)
-
-- **Hierarchy:** none. The skills catalog is a single wall of text.
-- **Density:** extreme and unscannable; descriptions are cut mid-word.
-- **Typography:** body serif at 15px for a catalog that needs a list/table; mojibake `CI�` visible.
-- **Actions:** one "Install profiles" confirm button; no per-item inspect, install or verify.
-- **State communication:** Plugins panel shows "Unknown subcommand: list"; MCP health is prose.
-- **Keyboard/focus:** long page with no in-page navigation or search.
-
-### Insights — [insights.png](assets/electron/baseline/insights.png)
-
-- **Hierarchy:** four equal panels of raw output; no summary numbers.
-- **Density:** the insights report repeats the same escaped JSON three times (message, `JSON`, `__RAW_JSON`).
-- **Typography:** Markdown tables flattened into paragraphs.
-- **Actions:** "Run doctor --fix" with confirm; no preview of what it changes.
-- **State communication:** session counts per tool exist in the payload but are never charted or tabulated.
-- **Keyboard/focus:** fine; nothing to navigate to.
-
-### Terminal — [terminal.png](assets/electron/baseline/terminal.png), [terminal-live.png](assets/electron/baseline/terminal-live.png), [terminal-exited.png](assets/electron/baseline/terminal-exited.png), [compact-terminal.png](assets/electron/baseline/compact-terminal.png)
-
-- **Hierarchy:** the new-session form sits above the terminal on every visit; at 1024×640 the viewport starts below the fold.
-- **Density:** fixed-height viewport; the page scrolls instead of the terminal filling the destination.
-- **Typography:** xterm mono fallback is fine; the missing `xterm.css` leaves a visible helper box and dotted measure line top-left.
-- **Actions:** Ctrl-C, Terminate, Close, Restart, search all work; Close is destructive and styled red, good.
-- **State communication:** tab dot turns red and "exited 3" appears, but the toolbar wraps and the body never says the process ended.
-- **Keyboard/focus:** xterm takes focus on open; no shortcut to switch tabs or open a new session.
-
-### Settings — [settings.png](assets/electron/baseline/settings.png), [packaged-settings.png](assets/electron/baseline/packaged-settings.png)
-
-- **Hierarchy:** backend identity first is right for a diagnostics section, but there are no appearance or tool settings.
-- **Density:** the full CLI help `<pre>` causes a horizontal scrollbar across the whole page.
-- **Typography:** `dl` renders as indented serif text; selfcheck table is the cleanest table in the app.
-- **Actions:** "Uninstall profiles" (destructive) sits next to "Update profiles" with the same weight except color.
-- **State communication:** status/version/detail are honest, including "no staged version pin".
-- **Keyboard/focus:** fine.
-
-### Shell-wide
-
-- Sidebar is a plain list with no counts, status or current context; brand text is the only header.
-- The crash banner is the only global state surface; there is no stale/offline indicator and no toast/receipt surface.
-
-## Where ATK is already stronger
-
-- Supervised backend lifecycle: health-gated start, crash detection with signal detail, one-click restart that recovers on a new port without a loop.
-- Server-side jobs that persist across backend restarts and app instances, with named SSE events.
-- Honest refusal to show controls the backend cannot prove (no fake cancel, no fake progress).
-- Safe defaults: no telemetry, no autonomous permission bypass, nothing scheduled on first run.
-
-## Munder UX notes (for calibration, not imitation)
-
-- The Pixi office canvas takes about two thirds of the window and carries little operational information; the useful surface is the Command Center column. ATK should give that space to runs, attention and the terminal.
-- Ten Command Center tabs in a 4×3 grid are dense; several are empty on a fresh install.
-- Pixel-font uppercase headings hurt scanning at small sizes.
-- Strong ideas worth matching in ATK's own language: install-state badges per CLI, the exact command preview before launch, per-agent worktree isolation, agent-scoped IDE, honest "not set up / not a git repo" states, quit interception while terminals are live.
-
-## Capture recipe (reusable)
+Preserved from the 2026-09-29 Electron/Munder live ledger (#1317).
 
 What worked on Linux/Hyprland (Wayland) with no Xvfb installed:
 
@@ -234,6 +501,16 @@ What worked on Linux/Hyprland (Wayland) with no Xvfb installed:
 4. Backend: the supervisor uses `resources/bin/agent-toolkit` when packaged, else the first `agent-toolkit` on `PATH`. Put a gate-capable build first on `PATH` for dev; for packaged runs set `ATK_BACKEND_BIN=<binary>` before `pnpm dist:dir` (no V build needed if a binary exists).
 5. Stop by exact PID of the Electron main process (`SIGTERM`); the supervisor stops its `serve` child. Verify no `agent-toolkit serve --host 127.0.0.1` remains.
 
-## Evidence log
+Screenshots from that baseline live in [`assets/electron/baseline/`](assets/electron/baseline/).
+Munder screenshots were reviewed but are intentionally **not** committed.
 
-- 2026-09-29 — Live baseline: ATK dev Electron + packaged `dist:dir` at `d4ff3731`; Munder `5756722e` run locally (onboarding, Command Center tabs, add-agent, IDE, settings). Munder terminal crash recovery not exercised (source-read only). Replaces the earlier code-tour matrix at Munder `ed06e3e`.
+The detailed 2026-09-29 per-destination UX critique (Office quiet-after-fail,
+truncated job ids, raw CLI Library/Insights, missing `xterm.css`) remains
+valid as the Electron baseline at `d4ff3731` and is in git history of this
+file before this revision. #1321 is the active remediation of chrome/typed
+data, not of the domain gaps in the matrix.
+
+## Appendix C — Evidence log
+
+- 2026-09-29 — Live baseline: ATK dev Electron + packaged `dist:dir` at `d4ff3731`; Munder `5756722e` run locally (onboarding, Command Center tabs, add-agent, IDE, settings). Munder terminal crash recovery not exercised (source-read only).
+- 2026-09-30 — Three-way decision artifact. ATK `origin/main` `2d06bae2` (#1318). Agent Office `13c104eb` (v0.1.174+1) studied from source; local server probed (302 login, no floors, no paid agent). Munder capability refresh: `origin/main` `ed06e3e` is SEO-only vs `5756722e`.

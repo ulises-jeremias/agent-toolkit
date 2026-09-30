@@ -1,7 +1,9 @@
 # Electron migration — rollback, status, and parity ledger
 
 Canonical plan: [ADR-033](../adrs/ADR-033-electron-desktop.md). Design contract:
-[DESIGN.md](DESIGN.md). Template foundation: Create Awesome Node App
+[DESIGN.md](DESIGN.md). Capability references (not visual authorities):
+[WORKSTATION_REFERENCE_ANALYSIS.md](WORKSTATION_REFERENCE_ANALYSIS.md).
+Template foundation: Create Awesome Node App
 `react-vite-starter` (React 19, Vite 8, TS 6, ESLint + jsx-a11y + Prettier).
 
 ## Rollback (proven 2026-09-29, branch `feat/electron-desktop` base)
