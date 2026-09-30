@@ -7,7 +7,19 @@ import type { ReportKind, SubBody, SubCommand, SubFamily } from '../api';
  * switching workspace never serves another workspace's cached answer.
  */
 export type Domain =
-  'backend' | 'jobs' | 'memory' | 'inventory' | 'doctor' | 'matrix' | 'diff' | 'insights' | SubFamily;
+  | 'backend'
+  | 'jobs'
+  | 'memory'
+  | 'inventory'
+  | 'doctor'
+  | 'matrix'
+  | 'diff'
+  | 'insights'
+  | 'agents'
+  | 'tools'
+  | 'providers'
+  | 'models'
+  | SubFamily;
 
 export const qk = {
   domain: (domain: Domain) => [domain] as const,
@@ -31,6 +43,17 @@ export const qk = {
   },
 
   report: (kind: ReportKind) => [kind, 'report'] as const,
+
+  catalog: {
+    agents: () => ['agents', 'list'] as const,
+    tools: () => ['tools', 'list'] as const,
+    providers: () => ['providers', 'list'] as const,
+    models: () => ['models', 'list'] as const,
+  },
+
+  loops: {
+    status: (name: string) => ['loops', 'status', name] as const,
+  },
 
   sub: <F extends SubFamily>(family: F, sub: SubCommand<F>, body?: SubBody<F>) =>
     [family, 'sub', sub, body ?? {}] as const,

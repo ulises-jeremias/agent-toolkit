@@ -1,0 +1,43 @@
+import { useQuery } from '@tanstack/react-query';
+import { qk } from '../lib/query/keys';
+import { requireClient, useBackend } from './backend';
+
+/** GET /api/v1/tools probes `--version` per CLI; cache instead of refetching on every render. */
+export const TOOLS_STALE_MS = 60_000;
+
+export function useAgents() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.agents(),
+    queryFn: () => requireClient(client).agents(),
+    enabled: client !== null,
+  });
+}
+
+export function useTools() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.tools(),
+    queryFn: () => requireClient(client).tools(),
+    enabled: client !== null,
+    staleTime: TOOLS_STALE_MS,
+  });
+}
+
+export function useProviders() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.providers(),
+    queryFn: () => requireClient(client).providers(),
+    enabled: client !== null,
+  });
+}
+
+export function useModels() {
+  const { client } = useBackend();
+  return useQuery({
+    queryKey: qk.catalog.models(),
+    queryFn: () => requireClient(client).models(),
+    enabled: client !== null,
+  });
+}

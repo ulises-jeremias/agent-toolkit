@@ -48,6 +48,13 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     keywords: ['job', 'operations'],
   },
   {
+    id: 'session:run-loop',
+    group: 'Session',
+    title: 'Run a loop as a job',
+    hint: 'Operations · POST /loops/{name}/run',
+    keywords: ['loop', 'operations'],
+  },
+  {
     id: 'session:restart-backend',
     group: 'Session',
     title: 'Restart backend',

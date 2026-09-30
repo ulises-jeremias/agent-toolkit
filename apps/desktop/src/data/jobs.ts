@@ -101,3 +101,16 @@ export function useDeleteJob() {
     onSettled: () => queryClient.invalidateQueries({ queryKey: qk.jobs.list() }),
   });
 }
+
+export function useRetryJob() {
+  const { client } = useBackend();
+  const queryClient = useQueryClient();
+  return useMutation<Job, Error, string>({
+    mutationKey: ['jobs', 'retry'],
+    mutationFn: (id) => requireClient(client).retryJob(id),
+    onSuccess: (job) => {
+      queryClient.setQueryData<JobRegistry>(qk.jobs.list(), (registry) => ({ ...registry, [job.id]: job }));
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: qk.jobs.list() }),
+  });
+}

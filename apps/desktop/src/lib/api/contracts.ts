@@ -3,6 +3,7 @@
  * the V server. Each is used only as the `Fallback` of `ResponseOf`, so a
  * schema that starts documenting the route takes over automatically.
  */
+import type { components } from '../api-schema';
 
 /** modules/agent_toolkit_server/server.veb.v `health` / `version`. */
 export interface VersionResponse {
@@ -32,9 +33,15 @@ export interface SelfcheckResponse {
 export type JobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'canceled' | 'rejected';
 
 const TERMINAL_JOB_STATUSES: ReadonlySet<string> = new Set(['completed', 'failed', 'canceled', 'rejected']);
+const RETRYABLE_JOB_STATUSES: ReadonlySet<string> = new Set(['failed', 'canceled']);
 
 export function isTerminalJobStatus(status: string): boolean {
   return TERMINAL_JOB_STATUSES.has(status);
+}
+
+/** POST /api/v1/jobs/{id}/retry accepts only failed or canceled jobs (409 otherwise). */
+export function isRetryableJobStatus(status: string): boolean {
+  return RETRYABLE_JOB_STATUSES.has(status);
 }
 
 /** jobs.v `Job`. `status` stays open: an unknown word is shown verbatim, never coerced. */
@@ -47,6 +54,8 @@ export interface Job {
   ended_at: string;
   exit_code: number;
   workspace: string;
+  /** Empty unless this run was created by POST /api/v1/jobs/{id}/retry. */
+  retry_of: string;
 }
 
 /** `GET /api/v1/jobs` returns the registry keyed by job id. */
@@ -87,7 +96,7 @@ export interface MemoryListResponse {
   entries: MemoryEntry[];
 }
 
-/** OpenAPI `ApiEvent.type` on GET /api/v1/events. */
+/** OpenAPI `ApiEvent.type` on GET /api/v1/events. Unknown types stay verbatim. */
 export type ApiEventType =
   | 'backend.ready'
   | 'backend.resync'
@@ -112,3 +121,26 @@ export interface ApiEvent {
   ref: string;
   message: string;
 }
+
+export type AgentsResponse = components['schemas']['AgentsResponse'];
+export type AgentInfo = components['schemas']['AgentInfo'];
+export type ToolsResponse = components['schemas']['ToolsResponse'];
+export type ToolInfo = components['schemas']['ToolInfo'];
+export type ProvidersResponse = components['schemas']['ProvidersResponse'];
+export type ProviderInfo = components['schemas']['ProviderInfo'];
+export type ModelsResponse = components['schemas']['ModelsResponse'];
+export type ModelInfo = components['schemas']['ModelInfo'];
+
+export const API_EVENT_TYPES: readonly ApiEventType[] = [
+  'backend.ready',
+  'backend.resync',
+  'job.created',
+  'job.updated',
+  'job.deleted',
+  'loop.started',
+  'loop.finished',
+  'swarm.changed',
+  'memory.changed',
+  'install.started',
+  'install.finished',
+] as const;

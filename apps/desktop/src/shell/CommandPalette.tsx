@@ -107,7 +107,10 @@ export function CommandPalette() {
         terminals.setCreating(true);
         break;
       case 'session:start-job':
-        navigate(href('/operations'));
+        navigate(href('/operations', { dialog: 'start-job' }));
+        break;
+      case 'session:run-loop':
+        navigate(href('/operations', { dialog: 'run-loop' }));
         break;
       case 'session:restart-backend':
         void restartBackend();

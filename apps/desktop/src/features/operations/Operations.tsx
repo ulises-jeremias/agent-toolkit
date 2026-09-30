@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import {
   useCancelJob,
@@ -7,11 +7,13 @@ import {
   useJobLiveLines,
   useJobLog,
   useJobs,
+  useRetryJob,
   sortJobs,
 } from '../../data/jobs';
 import { useLiveStatus } from '../../data/live';
-import { isTerminalJobStatus, type Job } from '../../lib/api';
+import { isRetryableJobStatus, isTerminalJobStatus, type Job } from '../../lib/api';
 import { formatDuration, formatWhen, jobCommandLine, jobDuration } from '../../lib/format';
+import { useSessionContext } from '../../shell/useSessionContext';
 import {
   Button,
   ButtonRow,
@@ -27,38 +29,46 @@ import {
   Panel,
   QueryView,
   Report,
+  Stack,
   StatusBadge,
   Table,
   TextInput,
   jobTone,
   useActionReceipt,
 } from '../../ui';
+import { DoctorPanel } from './Doctor';
+import { LoopsPanel } from './Loops';
+import { SwarmsPanel } from './Swarms';
 import styles from './operations.module.css';
+
+function patchParams(setParams: ReturnType<typeof useSearchParams>[1], patch: Record<string, string | null>): void {
+  setParams(
+    (current) => {
+      const next = new URLSearchParams(current);
+      for (const [key, value] of Object.entries(patch)) {
+        if (value) next.set(key, value);
+        else next.delete(key);
+      }
+      return next;
+    },
+    { replace: true },
+  );
+}
 
 /**
  * Operations: what work is running and how do I control it?
- * Jobs live in V; this view lists them, streams output through the shared
- * live bridge, and exposes cancel/delete where the server supports them.
+ * Jobs, loops (run-as-job), swarms (typed {sub} bodies) and doctor live in V.
  */
 export default function Operations() {
   const [params, setParams] = useSearchParams();
   const selectedId = params.get('job');
+  const selectedLoop = params.get('loop');
+  const dialog = params.get('dialog');
   const jobs = useJobs();
-  const [starting, setStarting] = useState(false);
   const { connection } = useLiveStatus();
+  const offline = connection === 'offline';
 
-  const select = (id: string | null) => {
-    setParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-        if (id) next.set('job', id);
-        else next.delete('job');
-        return next;
-      },
-      { replace: true },
-    );
-  };
-
+  const selectJob = (id: string | null) => patchParams(setParams, { job: id });
   const list = sortJobs(jobs.data);
   const selected = selectedId ? jobs.data?.[selectedId] : undefined;
 
@@ -66,47 +76,75 @@ export default function Operations() {
     <>
       <PageHeader
         eyebrow="Operations"
-        title="Jobs"
-        lede="Every agent-toolkit command started from Desktop, the CLI or another window."
+        title="Work in flight"
+        lede="Jobs, loops, swarms and doctor — only what the backend reports."
         actions={
-          <Button
-            variant="primary"
-            onClick={() => setStarting(true)}
-            disabled={connection === 'offline'}
-            title={connection === 'offline' ? 'The backend is not answering' : undefined}
-          >
-            Start job
-          </Button>
+          <>
+            <Button
+              onClick={() => patchParams(setParams, { dialog: 'run-loop' })}
+              disabled={offline}
+              title={offline ? 'The backend is not answering' : undefined}
+            >
+              Run loop
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => patchParams(setParams, { dialog: 'start-job' })}
+              disabled={offline}
+              title={offline ? 'The backend is not answering' : undefined}
+            >
+              Start job
+            </Button>
+          </>
         }
       />
-      <StartJobDialog open={starting} onClose={() => setStarting(false)} onStarted={select} />
-      <div className={styles.split}>
-        <Panel title="All jobs" meta={jobs.isSuccess ? `${list.length} total` : undefined}>
-          <QueryView query={jobs} loading="Loading jobs" errorTitle="Could not load jobs">
-            {() =>
-              list.length === 0 ? (
-                <EmptyState title="No jobs yet.">
-                  Start one to run an agent-toolkit command in the background.
-                </EmptyState>
-              ) : (
-                <JobTable jobs={list} selectedId={selectedId} onSelect={select} />
-              )
-            }
-          </QueryView>
-        </Panel>
-        {selectedId ? (
-          selected ? (
-            <JobDetail job={selected} onClose={() => select(null)} />
-          ) : jobs.isSuccess ? (
-            <Panel title="Job not found">
-              <EmptyState title={`No job with id ${selectedId}.`}>It may have been deleted.</EmptyState>
-              <Button size="sm" onClick={() => select(null)}>
-                Clear selection
-              </Button>
-            </Panel>
-          ) : null
-        ) : null}
-      </div>
+      <StartJobDialog
+        open={dialog === 'start-job'}
+        onClose={() => patchParams(setParams, { dialog: null })}
+        onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
+      />
+      <Stack>
+        <DoctorPanel />
+        <div className={styles.split}>
+          <Panel title="Jobs" meta={jobs.isSuccess ? `${list.length} total` : undefined}>
+            <QueryView query={jobs} loading="Loading jobs" errorTitle="Could not load jobs">
+              {() =>
+                list.length === 0 ? (
+                  <EmptyState title="No jobs yet.">
+                    Start one to run an agent-toolkit command in the background.
+                  </EmptyState>
+                ) : (
+                  <JobTable jobs={list} selectedId={selectedId} onSelect={selectJob} />
+                )
+              }
+            </QueryView>
+          </Panel>
+          {selectedId ? (
+            selected ? (
+              <JobDetail
+                job={selected}
+                onClose={() => selectJob(null)}
+                onRetried={(id) => patchParams(setParams, { job: id })}
+              />
+            ) : jobs.isSuccess ? (
+              <Panel title="Job not found">
+                <EmptyState title={`No job with id ${selectedId}.`}>It may have been deleted.</EmptyState>
+                <Button size="sm" onClick={() => selectJob(null)}>
+                  Clear selection
+                </Button>
+              </Panel>
+            ) : null
+          ) : null}
+        </div>
+        <LoopsPanel
+          selectedName={selectedLoop}
+          dialogOpen={dialog === 'run-loop'}
+          onSelect={(name) => patchParams(setParams, { loop: name })}
+          onCloseDialog={() => patchParams(setParams, { dialog: null })}
+          onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
+        />
+        <SwarmsPanel />
+      </Stack>
     </>
   );
 }
@@ -153,7 +191,7 @@ function JobTable({
                   aria-current={job.id === selectedId ? 'true' : undefined}
                 >
                   <Mono>{jobCommandLine(job)}</Mono>
-                  <span className={styles.jobId}>{job.id}</span>
+                  <span className={styles.jobId}>{job.retry_of ? `${job.id} · retry of ${job.retry_of}` : job.id}</span>
                 </button>
               </th>
               <td>{formatWhen(job.started_at, now)}</td>
@@ -180,24 +218,32 @@ function StartJobDialog({
   onClose: () => void;
   onStarted: (id: string) => void;
 }) {
+  const { context } = useSessionContext();
   const [cmd, setCmd] = useState('doctor');
   const [args, setArgs] = useState('');
-  const [workspace, setWorkspace] = useState('');
+  const [workspace, setWorkspace] = useState(context.workspace);
   const create = useCreateJob();
   const receipt = useActionReceipt('Job started');
   const cmdRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!workspace && context.workspace) setWorkspace(context.workspace);
+  }, [context.workspace, workspace]);
 
   const preview = ['agent-toolkit', cmd.trim() || '<command>', ...splitArgs(args)].join(' ');
 
   const submit = () => {
     if (!cmd.trim()) return;
     create.mutate(
-      { cmd: cmd.trim(), args: splitArgs(args), workspace: workspace.trim() || undefined },
+      {
+        cmd: cmd.trim(),
+        args: splitArgs(args),
+        workspace: workspace.trim() || context.workspace || undefined,
+      },
       {
         onSuccess: (job) => {
           receipt.onSuccess({ message: jobCommandLine(job) });
           onStarted(job.id);
-          onClose();
         },
       },
     );
@@ -208,7 +254,7 @@ function StartJobDialog({
       open={open}
       onClose={onClose}
       title="Start a job"
-      description="Runs one agent-toolkit command in the background on the backend. Output streams into Operations."
+      description="POST /api/v1/jobs with cmd, args and workspace. Output streams into Operations."
       initialFocus={cmdRef}
       footer={
         <>
@@ -234,7 +280,10 @@ function StartJobDialog({
           submit();
         }}
       >
-        <Field label="Command" hint="An agent-toolkit subcommand, for example doctor, loop or swarm.">
+        <Field
+          label="Command"
+          hint="JobCreateReq.cmd — an agent-toolkit subcommand. OpenAPI has no argv schema for this route."
+        >
           {(control) => (
             <TextInput
               ref={cmdRef}
@@ -246,10 +295,10 @@ function StartJobDialog({
             />
           )}
         </Field>
-        <Field label="Arguments" hint="Separated by spaces. Optional.">
+        <Field label="Arguments" hint="JobCreateReq.args, separated by spaces. Optional.">
           {(control) => <TextInput mono value={args} onChange={(event) => setArgs(event.target.value)} {...control} />}
         </Field>
-        <Field label="Workspace folder" hint="Optional. Defaults to the backend's workspace.">
+        <Field label="Workspace folder" hint="Optional. Defaults to the session workspace.">
           {(control) => (
             <TextInput mono value={workspace} onChange={(event) => setWorkspace(event.target.value)} {...control} />
           )}
@@ -265,12 +314,15 @@ function StartJobDialog({
   );
 }
 
-function JobDetail({ job, onClose }: { job: Job; onClose: () => void }) {
+function JobDetail({ job, onClose, onRetried }: { job: Job; onClose: () => void; onRetried: (id: string) => void }) {
   const active = !isTerminalJobStatus(job.status);
+  const retryable = isRetryableJobStatus(job.status);
   const cancel = useCancelJob();
   const remove = useDeleteJob();
+  const retry = useRetryJob();
   const cancelReceipt = useActionReceipt('Job canceled');
   const deleteReceipt = useActionReceipt('Job deleted');
+  const retryReceipt = useActionReceipt('Job retried');
   const duration = jobDuration(job);
 
   return (
@@ -287,6 +339,25 @@ function JobDetail({ job, onClose }: { job: Job; onClose: () => void }) {
               onClick={() => cancel.mutate(job.id, cancelReceipt)}
             >
               Cancel job
+            </Button>
+          ) : null}
+          {retryable ? (
+            <Button
+              size="sm"
+              variant="primary"
+              busy={retry.isPending}
+              busyLabel="Retrying…"
+              onClick={() =>
+                retry.mutate(job.id, {
+                  onSuccess: (next) => {
+                    retryReceipt.onSuccess({ message: jobCommandLine(next) });
+                    onRetried(next.id);
+                  },
+                  onError: retryReceipt.onError,
+                })
+              }
+            >
+              Retry job
             </Button>
           ) : null}
           <ConfirmAction
@@ -323,6 +394,7 @@ function JobDetail({ job, onClose }: { job: Job; onClose: () => void }) {
           { label: 'Status', value: <StatusBadge tone={jobTone(job.status)} label={job.status} live={active} /> },
           { label: 'Command', value: jobCommandLine(job), mono: true },
           { label: 'Workspace', value: job.workspace || 'Backend default', mono: job.workspace !== '' },
+          { label: 'Retry of', value: job.retry_of || '—', mono: Boolean(job.retry_of) },
           { label: 'Started', value: formatWhen(job.started_at) },
           { label: 'Duration', value: duration === null ? '—' : formatDuration(duration) },
           { label: 'Exit code', value: active ? 'Still running' : String(job.exit_code) },

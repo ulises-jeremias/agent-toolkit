@@ -165,8 +165,9 @@ active job:
 
 `applyLiveEvent` writes stream events into the Query cache, keeping the last
 500 lines. On `done` it sets the final status and invalidates the list and the
-log. When the backend ships the bus at `/api/v1/events`, the manager's source
-factory is the only piece that changes.
+log. `EventBusManager` consumes `GET /api/v1/events` and `applyBusEvent`
+invalidates jobs/loops/swarms/doctor (or patches a known job status) without
+inventing records. Per-job streams remain the log source.
 
 The shell's `LiveIndicator` turns backend state plus live status into one
 label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
@@ -236,8 +237,8 @@ All 28 captures are in `assets/electron/foundations/`, named
 
 ## Known gaps
 
-- `GET /api/v1/jobs` is served but missing from `openapi.json`. The client
-  anchors the path to the POST entry until the contract lists it.
+- `GET /api/v1/jobs` is documented and the Desktop client uses the GET
+  operation. Job `retry_of` and `POST /api/v1/jobs/{id}/retry` are wired.
 - Most sub-command responses are text envelopes, so views render CLI output
   verbatim. Structured panels (project lists, persona tables) wait for JSON
   fields in the contract.

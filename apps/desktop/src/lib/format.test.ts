@@ -11,6 +11,7 @@ const base: Job = {
   ended_at: '2026-09-29T10:00:05Z',
   exit_code: 0,
   workspace: '',
+  retry_of: '',
 };
 
 describe('jobCommandLine', () => {
