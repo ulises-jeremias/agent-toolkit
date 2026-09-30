@@ -18,6 +18,7 @@ import {
   useActionReceipt,
   type Tone,
 } from '../../ui';
+import styles from './library.module.css';
 
 function yesNo(value: boolean): { tone: Tone; label: string } {
   return value ? { tone: 'ok', label: 'yes' } : { tone: 'idle', label: 'no' };
@@ -37,9 +38,9 @@ function toolSummary(tools: readonly ToolInfo[]): string {
 }
 
 /**
- * Library: what can I use or add?
- * Catalog, detected, configured, verified and running stay distinct.
- * Running is not on the tools API, so it is omitted rather than guessed.
+ * Library: the bookshelf room. Catalog vs this machine, as an inspector.
+ * Knowledge files and memory files are not this destination.
+ * Running and marketplace install counts are omitted when the API has none.
  */
 export default function Library() {
   const inventory = useReport('inventory');
@@ -61,14 +62,15 @@ export default function Library() {
   const pluginRows = plugins.data ? parsePluginBundles(envelopeText(plugins.data)) : [];
 
   return (
-    <>
+    <div className={styles.room}>
+      <p className={styles.mark}>Paper Co. · library board</p>
       <PageHeader
         eyebrow="Library"
-        title="What can I use"
+        title="Library board"
         lede={
           catalogRoot
-            ? `This catalog is the toolkit tree at ${catalogRoot}. Detected, configured and verified are this machine. Running is unknown here.`
-            : 'Catalog is what the toolkit ships. Detected, configured and verified are this machine. Running is unknown here.'
+            ? `Shelves from ${catalogRoot}. Catalog, detected, configured and verified stay distinct. Knowledge and memory are other rooms. Running is unknown here.`
+            : 'Shelves of what this toolkit ships and what this machine has. Knowledge and memory are other rooms. Running is unknown here.'
         }
         actions={
           <ConfirmAction
@@ -83,122 +85,51 @@ export default function Library() {
           />
         }
       />
-      <Stack>
-        <Panel title="Coding tools" meta={tools.data ? toolSummary(tools.data.tools) : undefined}>
-          <QueryView query={tools} loading="Discovering coding tools" errorTitle="Could not list coding tools">
-            {(response) =>
-              response.tools.length === 0 ? (
-                <EmptyState title="No coding tools in the catalog." />
-              ) : (
-                <Table>
-                  <thead>
-                    <tr>
-                      <th scope="col">Tool</th>
-                      <th scope="col">Detected</th>
-                      <th scope="col">Configured</th>
-                      <th scope="col">Enabled</th>
-                      <th scope="col">Verified</th>
-                      <th scope="col">Path</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {response.tools.map((tool) => {
-                      const detected = yesNo(tool.detected);
-                      const configured = yesNo(tool.configured);
-                      const enabled = enabledBadge(tool.enabled);
-                      const verified = yesNo(tool.verified);
-                      return (
-                        <tr key={tool.id}>
-                          <th scope="row">
-                            {tool.tool_name || tool.id}
-                            {tool.reason ? <div>{tool.reason}</div> : null}
-                          </th>
-                          <td>
-                            <StatusBadge tone={detected.tone} label={detected.label} />
-                          </td>
-                          <td>
-                            <StatusBadge tone={configured.tone} label={configured.label} />
-                          </td>
-                          <td>
-                            <StatusBadge tone={enabled.tone} label={enabled.label} />
-                          </td>
-                          <td>
-                            <StatusBadge tone={verified.tone} label={verified.label} />
-                          </td>
-                          <td>
-                            <Mono>{tool.resolved_path || tool.version || '—'}</Mono>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              )
-            }
-          </QueryView>
-        </Panel>
-
-        <Grid>
-          <Panel title="Personas" meta={agents.data ? `${agents.data.agents.length} in catalog` : undefined}>
-            <QueryView query={agents} loading="Loading personas" errorTitle="Could not list personas">
+      <div className={styles.shelves}>
+        <Stack>
+          <Panel title="Coding tools" meta={tools.data ? toolSummary(tools.data.tools) : undefined}>
+            <QueryView query={tools} loading="Discovering coding tools" errorTitle="Could not list coding tools">
               {(response) =>
-                response.agents.length === 0 ? (
-                  <EmptyState title="No personas in the catalog.">The agents tree was empty or unavailable.</EmptyState>
+                response.tools.length === 0 ? (
+                  <EmptyState title="No coding tools in the catalog." />
                 ) : (
                   <Table>
                     <thead>
                       <tr>
-                        <th scope="col">Id</th>
-                        <th scope="col">Kind</th>
-                        <th scope="col">Description</th>
+                        <th scope="col">Tool</th>
+                        <th scope="col">Detected</th>
+                        <th scope="col">Configured</th>
+                        <th scope="col">Enabled</th>
+                        <th scope="col">Verified</th>
+                        <th scope="col">Path</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {response.agents.map((agent) => (
-                        <tr key={agent.id}>
-                          <th scope="row">
-                            <Mono>{agent.id}</Mono>
-                          </th>
-                          <td>{agent.kind || 'Unknown'}</td>
-                          <td>{agent.description || agent.name}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                )
-              }
-            </QueryView>
-          </Panel>
-          <Panel
-            title="Swarm runners"
-            meta={providers.data ? `${providers.data.providers.length} in catalog` : undefined}
-          >
-            <QueryView query={providers} loading="Listing swarm runners" errorTitle="Could not list swarm runners">
-              {(response) =>
-                response.providers.length === 0 ? (
-                  <EmptyState title="No swarm runners in the catalog." />
-                ) : (
-                  <Table>
-                    <thead>
-                      <tr>
-                        <th scope="col">Runner</th>
-                        <th scope="col">Available</th>
-                        <th scope="col">Version</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {response.providers.map((provider) => {
-                        const available = yesNo(provider.available);
+                      {response.tools.map((tool) => {
+                        const detected = yesNo(tool.detected);
+                        const configured = yesNo(tool.configured);
+                        const enabled = enabledBadge(tool.enabled);
+                        const verified = yesNo(tool.verified);
                         return (
-                          <tr key={provider.id}>
+                          <tr key={tool.id}>
                             <th scope="row">
-                              <Mono>{provider.id}</Mono>
+                              {tool.tool_name || tool.id}
+                              {tool.reason ? <div>{tool.reason}</div> : null}
                             </th>
                             <td>
-                              <StatusBadge tone={available.tone} label={available.label} />
+                              <StatusBadge tone={detected.tone} label={detected.label} />
                             </td>
                             <td>
-                              <Mono>{provider.version || 'Unknown'}</Mono>
+                              <StatusBadge tone={configured.tone} label={configured.label} />
+                            </td>
+                            <td>
+                              <StatusBadge tone={enabled.tone} label={enabled.label} />
+                            </td>
+                            <td>
+                              <StatusBadge tone={verified.tone} label={verified.label} />
+                            </td>
+                            <td>
+                              <Mono>{tool.resolved_path || tool.version || '—'}</Mono>
                             </td>
                           </tr>
                         );
@@ -209,165 +140,249 @@ export default function Library() {
               }
             </QueryView>
           </Panel>
-        </Grid>
 
-        <Grid>
-          <Panel
-            title="Plugins"
-            meta="Generated plugin bundles compared with their sources"
-            actions={
-              drift !== undefined ? (
-                <StatusBadge
-                  tone={drift === '0' ? 'ok' : 'warn'}
-                  label={drift === '0' ? 'in sync' : `${drift} drifted`}
-                />
-              ) : null
-            }
-          >
-            <QueryView query={plugins} loading="Checking plugins" errorTitle="Could not check plugins">
-              {(envelope) =>
-                pluginRows.length === 0 ? (
-                  <EmptyState title="Plugin check returned no bundle names.">
-                    {envelope.ok
-                      ? 'Drift is unknown until the check lists bundles.'
-                      : envelope.message || 'The check failed.'}
-                  </EmptyState>
-                ) : (
-                  <Table>
-                    <thead>
-                      <tr>
-                        <th scope="col">Bundle</th>
-                        <th scope="col">Check</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pluginRows.map((row) => (
-                        <tr key={row.name}>
-                          <th scope="row">
-                            <Mono>{row.name}</Mono>
-                          </th>
-                          <td>
-                            <StatusBadge tone={envelope.ok ? 'ok' : 'warn'} label={envelope.ok ? 'checked' : 'drift'} />
-                          </td>
+          <Grid>
+            <Panel title="Personas" meta={agents.data ? `${agents.data.agents.length} in catalog` : undefined}>
+              <QueryView query={agents} loading="Loading personas" errorTitle="Could not list personas">
+                {(response) =>
+                  response.agents.length === 0 ? (
+                    <EmptyState title="No personas in the catalog.">
+                      The agents tree was empty or unavailable.
+                    </EmptyState>
+                  ) : (
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Id</th>
+                          <th scope="col">Kind</th>
+                          <th scope="col">Description</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                )
-              }
-            </QueryView>
-          </Panel>
-          <Panel
-            title="MCP servers"
-            meta="Catalog vs configured. Running is unknown until a probe."
-            actions={
-              <Button
-                size="sm"
-                onClick={() => (probeMcp ? void mcpHealth.refetch() : setProbeMcp(true))}
-                busy={mcpHealth.isFetching}
-                busyLabel="Probing…"
-              >
-                Check health
-              </Button>
-            }
-          >
-            <QueryView query={mcp} loading="Listing MCP servers" errorTitle="Could not list MCP servers">
-              {(envelope) =>
-                mcpRows.length === 0 ? (
-                  <EmptyState title="No MCP providers as a table.">
-                    {envelope.data['count'] ? `${envelope.data['count']} in catalog; rows unknown.` : envelope.message}
-                  </EmptyState>
-                ) : (
-                  <Table>
-                    <thead>
-                      <tr>
-                        <th scope="col">Provider</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Required env</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {mcpRows.map((row) => (
-                        <tr key={row.provider}>
-                          <th scope="row">
-                            <Mono>{row.provider}</Mono>
-                          </th>
-                          <td>
-                            <StatusBadge tone={mcpStatusTone(row.status)} label={row.status} />
-                          </td>
-                          <td>
-                            <Mono>{row.env || '—'}</Mono>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                )
-              }
-            </QueryView>
-            {probeMcp ? (
-              <QueryView query={mcpHealth} loading="Probing MCP servers" errorTitle="Health check failed">
-                {(envelope) => (
-                  <p>
-                    {envelope.ok
-                      ? 'Health probe finished. Running is still unknown unless the probe named a live process.'
-                      : envelope.message || 'Health probe failed.'}
-                  </p>
-                )}
+                      </thead>
+                      <tbody>
+                        {response.agents.map((agent) => (
+                          <tr key={agent.id}>
+                            <th scope="row">
+                              <Mono>{agent.id}</Mono>
+                            </th>
+                            <td>{agent.kind || 'Unknown'}</td>
+                            <td>{agent.description || agent.name}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  )
+                }
               </QueryView>
-            ) : (
-              <p>Running is unknown until a health probe reports a live process.</p>
-            )}
-          </Panel>
-        </Grid>
-
-        <Panel
-          title="Skills catalog"
-          meta={
-            skills.data?.data['count']
-              ? `${skills.data.data['count']} in catalog · installed-in-tool unknown`
-              : 'installed-in-tool unknown'
-          }
-        >
-          <QueryView query={skills} loading="Loading the skills catalog" errorTitle="Could not load the skills catalog">
-            {() =>
-              skillRows.length === 0 ? (
-                <EmptyState title="Skills catalog is not a table yet.">
-                  Count is {skills.data?.data['count'] ?? 'unknown'}. Installed-in-tool stays unknown.
-                </EmptyState>
-              ) : (
-                <Table>
-                  <thead>
-                    <tr>
-                      <th scope="col">Skill</th>
-                      <th scope="col">Domain</th>
-                      <th scope="col">In catalog</th>
-                      <th scope="col">Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {skillRows.map((row) => {
-                      const catalog = yesNo(row.inCatalog);
-                      return (
-                        <tr key={`${row.domain}/${row.name}`}>
-                          <th scope="row">
-                            <Mono>{row.name}</Mono>
-                          </th>
-                          <td>{row.domain}</td>
-                          <td>
-                            <StatusBadge tone={catalog.tone} label={catalog.label} />
-                          </td>
-                          <td>{row.description || '—'}</td>
+            </Panel>
+            <Panel
+              title="Swarm runners"
+              meta={providers.data ? `${providers.data.providers.length} in catalog` : undefined}
+            >
+              <QueryView query={providers} loading="Listing swarm runners" errorTitle="Could not list swarm runners">
+                {(response) =>
+                  response.providers.length === 0 ? (
+                    <EmptyState title="No swarm runners in the catalog." />
+                  ) : (
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Runner</th>
+                          <th scope="col">Available</th>
+                          <th scope="col">Version</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </Table>
-              )
+                      </thead>
+                      <tbody>
+                        {response.providers.map((provider) => {
+                          const available = yesNo(provider.available);
+                          return (
+                            <tr key={provider.id}>
+                              <th scope="row">
+                                <Mono>{provider.id}</Mono>
+                              </th>
+                              <td>
+                                <StatusBadge tone={available.tone} label={available.label} />
+                              </td>
+                              <td>
+                                <Mono>{provider.version || 'Unknown'}</Mono>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </Table>
+                  )
+                }
+              </QueryView>
+            </Panel>
+          </Grid>
+
+          <Grid>
+            <Panel
+              title="Plugins"
+              meta="Generated plugin bundles compared with their sources"
+              actions={
+                drift !== undefined ? (
+                  <StatusBadge
+                    tone={drift === '0' ? 'ok' : 'warn'}
+                    label={drift === '0' ? 'in sync' : `${drift} drifted`}
+                  />
+                ) : null
+              }
+            >
+              <QueryView query={plugins} loading="Checking plugins" errorTitle="Could not check plugins">
+                {(envelope) =>
+                  pluginRows.length === 0 ? (
+                    <EmptyState title="Plugin check returned no bundle names.">
+                      {envelope.ok
+                        ? 'Drift is unknown until the check lists bundles.'
+                        : envelope.message || 'The check failed.'}
+                    </EmptyState>
+                  ) : (
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Bundle</th>
+                          <th scope="col">Check</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pluginRows.map((row) => (
+                          <tr key={row.name}>
+                            <th scope="row">
+                              <Mono>{row.name}</Mono>
+                            </th>
+                            <td>
+                              <StatusBadge
+                                tone={envelope.ok ? 'ok' : 'warn'}
+                                label={envelope.ok ? 'checked' : 'drift'}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  )
+                }
+              </QueryView>
+            </Panel>
+            <Panel
+              title="MCP servers"
+              meta="Catalog vs configured. Running is unknown until a probe."
+              actions={
+                <Button
+                  size="sm"
+                  onClick={() => (probeMcp ? void mcpHealth.refetch() : setProbeMcp(true))}
+                  busy={mcpHealth.isFetching}
+                  busyLabel="Probing…"
+                >
+                  Check health
+                </Button>
+              }
+            >
+              <QueryView query={mcp} loading="Listing MCP servers" errorTitle="Could not list MCP servers">
+                {(envelope) =>
+                  mcpRows.length === 0 ? (
+                    <EmptyState title="No MCP providers as a table.">
+                      {envelope.data['count']
+                        ? `${envelope.data['count']} in catalog; rows unknown.`
+                        : envelope.message}
+                    </EmptyState>
+                  ) : (
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th scope="col">Provider</th>
+                          <th scope="col">Status</th>
+                          <th scope="col">Required env</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mcpRows.map((row) => (
+                          <tr key={row.provider}>
+                            <th scope="row">
+                              <Mono>{row.provider}</Mono>
+                            </th>
+                            <td>
+                              <StatusBadge tone={mcpStatusTone(row.status)} label={row.status} />
+                            </td>
+                            <td>
+                              <Mono>{row.env || '—'}</Mono>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  )
+                }
+              </QueryView>
+              {probeMcp ? (
+                <QueryView query={mcpHealth} loading="Probing MCP servers" errorTitle="Health check failed">
+                  {(envelope) => (
+                    <p>
+                      {envelope.ok
+                        ? 'Health probe finished. Running is still unknown unless the probe named a live process.'
+                        : envelope.message || 'Health probe failed.'}
+                    </p>
+                  )}
+                </QueryView>
+              ) : (
+                <p>Running is unknown until a health probe reports a live process.</p>
+              )}
+            </Panel>
+          </Grid>
+
+          <Panel
+            title="Skills catalog"
+            meta={
+              skills.data?.data['count']
+                ? `${skills.data.data['count']} in catalog · installed-in-tool unknown`
+                : 'installed-in-tool unknown'
             }
-          </QueryView>
-        </Panel>
-      </Stack>
-    </>
+          >
+            <QueryView
+              query={skills}
+              loading="Loading the skills catalog"
+              errorTitle="Could not load the skills catalog"
+            >
+              {() =>
+                skillRows.length === 0 ? (
+                  <EmptyState title="Skills catalog is not a table yet.">
+                    Count is {skills.data?.data['count'] ?? 'unknown'}. Installed-in-tool stays unknown.
+                  </EmptyState>
+                ) : (
+                  <Table>
+                    <thead>
+                      <tr>
+                        <th scope="col">Skill</th>
+                        <th scope="col">Domain</th>
+                        <th scope="col">In catalog</th>
+                        <th scope="col">Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {skillRows.map((row) => {
+                        const catalog = yesNo(row.inCatalog);
+                        return (
+                          <tr key={`${row.domain}/${row.name}`}>
+                            <th scope="row">
+                              <Mono>{row.name}</Mono>
+                            </th>
+                            <td>{row.domain}</td>
+                            <td>
+                              <StatusBadge tone={catalog.tone} label={catalog.label} />
+                            </td>
+                            <td>{row.description || '—'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </Table>
+                )
+              }
+            </QueryView>
+          </Panel>
+        </Stack>
+      </div>
+    </div>
   );
 }

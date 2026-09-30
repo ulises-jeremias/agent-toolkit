@@ -38,7 +38,7 @@ export default function Insights() {
       <PageHeader
         eyebrow="Insights"
         title="What the toolkit reports"
-        lede="Doctor checks, measured sessions, and plugin drift. Cost is omitted unless a tool reports it."
+        lede="Doctor checks, measured sessions, and plugin drift. Cost and health scores are omitted. Knowledge and memory are not this archive."
       />
       <Stack>
         <Panel

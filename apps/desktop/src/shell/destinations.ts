@@ -36,7 +36,7 @@ export const DESTINATIONS: readonly Destination[] = [
   {
     path: '/library',
     label: 'Library',
-    question: 'What can I use or add?',
+    question: 'What sits on the shelves?',
     component: lazy(() => import('../features/library/Library')),
   },
   {
