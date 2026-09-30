@@ -33,9 +33,9 @@ Classification vocabulary used below:
 
 | Product | Revision | Date | How verified |
 | --- | --- | --- | --- |
-| Agent Toolkit `origin/main` | `2d06bae2` (merge of #1318) | 2026-09-30 01:17 -0300 | GitHub + local fetch. Latest tag **v1.35.0** (2026-09-29). This worktree started at `600186b2` (#1314); #1318 landed while writing. |
-| Agent Toolkit Electron app | shipped on `main` since #1311; default harness #1314 | 2026-09-29/30 | Source + #1317 live ledger at `d4ff3731`. |
-| Agent Office `main` | `13c104eb13a8a72be0b003507dee353bb9786237` | 2026-09-30 00:06:27 -0400 | Fetched. Tag `v0.1.174` (`c1924dbf`); HEAD is `v0.1.174-1-g13c104e` (#197 lost-worktree wait). Clone: `repos/agent-office`. |
+| Agent Toolkit `origin/main` | `ada41cfc` (merge of #1320) | 2026-09-30 | Reconstructed from GitHub `commits/main`. Parents: #1321 `a25496ad` then #1320. Latest tag **v1.35.0** (2026-09-29). |
+| Agent Toolkit Electron app | shipped on `main` since #1311; default harness #1314; foundations #1321 | 2026-09-29/30 | GitHub tree after #1321: context bar, Ctrl+K palette, persistent dock, Paper/Ink primitives, Playwright E2E. Baseline captures still at `d4ff3731` (#1317). |
+| Agent Office `main` | `f88a31f18269b7ea11491e51ca9ba9b64daf04c2` | 2026-09-30 00:26:25 -0400 | Fetched `origin/main`. Tag `v0.1.174` (`c1924dbf`); HEAD is `v0.1.174-2-gf88a31f`. #197 lost-worktree wait (`13c104eb`) plus #198 pointer-lock settle only (`player.ts` SETTLE 100/150 ms — 3D camera, not capability). Clone: `repos/agent-office`. |
 | Munder Difflin local | `5756722e93980610e024a3f1ee7e918365ef60ec` | 2026-09-29 00:05 +0530 | Same SHA as the 2026-09-29 live run (package 0.4.6 / tag `v0.5.3-40`). |
 | Munder `origin/main` | `ed06e3e7618b3477a9fb325203e243a53037d5d2` | 2026-09-29 15:22 +0530 | **SEO-engine blog commits only** after `5756722e`. No product/runtime change. Capability refresh = no-op. |
 
@@ -60,7 +60,8 @@ accepted**) records the intended split:
 
 Implementation on `main` already advances that split (#1311 Electron app,
 #1312/#1316 backend pin, #1313 job cancel/delete, #1314 default harness
-`~/.ai-workspace`, #1315 typed `:sub` bodies, #1318 memory table fix).
+`~/.ai-workspace`, #1315 typed `:sub` bodies, #1318 memory table fix,
+#1321 design system / typed data layer / Electron E2E / context bar).
 **Do not treat Proposed as Accepted. Do not treat the native gg/sokol GUI as
 the current presentation plan.** ADR-032 remains the native-GUI decision;
 ADR-033 *proposes* to supersede it at the presentation layer only. v1.35.0
@@ -70,18 +71,22 @@ is the rollback tag ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md)).
 
 | PR | State | Role |
 | --- | --- | --- |
-| [#1318](https://github.com/ulises-jeremias/agent-toolkit/pull/1318) | **MERGED** `2d06bae2` | Memory `prepend_table_row` fix |
-| [#1320](https://github.com/ulises-jeremias/agent-toolkit/pull/1320) | OPEN, **CONFLICTING** vs `main` | `GET /api/v1/events` SSE ring, job get/retry, typed schemas |
-| [#1321](https://github.com/ulises-jeremias/agent-toolkit/pull/1321) | OPEN, **CONFLICTING** | Paper/Ink design system, typed data layer, real Electron E2E |
+| [#1318](https://github.com/ulises-jeremias/agent-toolkit/pull/1318) | **MERGED** | Memory `prepend_table_row` fix |
+| [#1321](https://github.com/ulises-jeremias/agent-toolkit/pull/1321) | **MERGED** `a25496ad` | Paper/Ink design system, typed data layer, real Electron E2E, context bar |
+| [#1320](https://github.com/ulises-jeremias/agent-toolkit/pull/1320) | **MERGED** `ada41cfc` | `GET /api/v1/events` SSE ring, job get/retry, typed schemas. Kinds today: `backend.*`, `job.*`, `loop.*`, `swarm.changed`, `memory.changed`, `install.*`. Room remains for `attention.*` / `session.*`. |
+| [#1322](https://github.com/ulises-jeremias/agent-toolkit/pull/1322) | OPEN, **CONFLICTING** vs post-#1321 `main` | Runtime harness switch + honest backend binary resolution. Owner rebases. |
 
-#1320/#1321 owners rebase. This artifact does not change those PRs.
+#1320 and #1321 have landed. #1321's context bar encodes workspace/agent/run
+in the URL and seeds workspace from the #1314 harness; there is still no
+picker, and switching workspace still requires a backend restart. This
+artifact does not change #1322.
 
 ### Stale statements (do not follow)
 
 | Claim | Where | Current truth |
 | --- | --- | --- |
 | "native V + gg/sokol" as Desktop invariant | #1227 body | Presentation is Electron+React on `main`. Native GUI is rollback/reference until ADR-033 is accepted and Electron replaces it. |
-| #1227 slices A–J "DONE on main" as Electron truth | #1227 | Those slices landed on the **native** Desktop. Electron Office/Operations still derive attention from health/selfcheck/jobs and render many panels as CLI envelopes ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md) coverage table). |
+| #1227 slices A–J "DONE on main" as Electron truth | #1227 | Those slices landed on the **native** Desktop. Electron Office (`Office.tsx` after #1321) still builds a **client** `AttentionItem[]` from backend health, harness notice, recent failed jobs, and failing self-checks — not a V `AttentionItem` bus. |
 | `git_service.v` is a git backend | native engine | `backend_available` is **hard-false**; `git_changes`/`git_history`/`git_diff` return empty. Checkout is omitted with a reason string. Worktree *visibility* in native GUI ≠ a write lifecycle and ≠ a `serve` git API. |
 | PTY durability exists | #1073 / #1227 OPEN-future | Electron terminals are node-pty in main; they die with the window. 8 KiB tail replay only. |
 | ADR-033 is accepted | none yet | Status line is **Proposed**. Owner review required. |
@@ -92,7 +97,7 @@ is the rollback tag ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md)).
 | Entity | Where | Notes |
 | --- | --- | --- |
 | Agent (catalog) | agents catalog / Library | Definition, not a running process |
-| Job | `serve` jobs | CLI invocation; SSE; cancel/delete (#1313); get/retry in #1320 |
+| Job | `serve` jobs | CLI invocation; SSE; cancel/delete (#1313); get/retry + `GET /api/v1/events` (#1320 on `main`) |
 | Swarm run | `swarm.v` state | Roles, worktrees, handoffs, gates, budgets |
 | Loop | loops + optional cron *flag* | No scheduler daemon (honest) |
 | Task / handoff | swarm mailbox | Not a standalone Task entity |
@@ -114,7 +119,7 @@ are first-class runtime rows persisted in `<floor>/.agent-office/workers.json`
 model, effort, desk, worktree, optional extra repos, `sessionId`, PTY claim,
 `midTurn`.
 
-**Strongest technical ideas (SRC at `13c104eb`):**
+**Strongest technical ideas (SRC at `f88a31f`; capability code unchanged since `13c104eb`):**
 
 1. **Detached PTY host** (`ptyhost.ts` / `ptys.ts`): Unix `detached`+`unref`
    process, owner-only Unix socket + 24-byte token file, protocol version 1,
@@ -187,7 +192,7 @@ references.
 | Memory / context | Files + #1318; Desktop surface thin | Memory tab + MemPalace | Chat log + task cards (Haiku summaries) | Provenance-first memory | **ATK-BETTER** |
 | Costs / budgets | Config; unmeasured in UI | OTel + breaker (Claude) | Provider usage fields | Show only accounted | **ATK-BETTER** |
 | GitHub integration | `gh` via skills, not Desktop | Slack/org workers | Issues/PRs/queue/`gh` | Keep as skill/CLI; Desktop later | **LATER** |
-| Command / search | Native typed registry; Electron palette pending (#1321 foundations) | IDE palette | Palette = live entities; search ≠ palette | Typed registry authority; terminal search separate | **ATK-BETTER** + **ADAPT** |
+| Command / search | Native typed registry; Electron Ctrl+K palette shipped in #1321 (static Go/Session/Appearance/Help — not live entities, not Engine registry) | IDE palette | Palette = live entities; search ≠ palette | Typed registry authority; terminal search separate | **ATK-BETTER** + **ADAPT** |
 | Persistence | Jobs on disk; sessions not | Hive files + sqlite scalars | `workers.json` / `queue.json` | V session dir + jsonl events | **ADAPT** |
 | Crash recovery | Supervised `serve` restart (ATK strength) | Restore team | SIGTERM keeps host; SIGINT kills | Keep supervisor; add session reload | **ATK-BETTER** + **ADAPT** |
 | Resumability | Restart same argv | Provider `--resume` | Adapter resume + carry-on | V `provider_session` | **ADAPT** |
@@ -322,7 +327,7 @@ motion-as-doctrine; no V-owned PTY on Windows (POSIX-only `modules/pty`).
 
 ## 8. Implications
 
-### Backend (V) — later slices, after #1320
+### Backend (V) — later slices, after #1320/#1321 (both on `main`)
 
 1. Session identity + `provider_session` + events.jsonl (notes 01–02).
 2. `ProviderAdapter` table (discovery, launch, resume, hooks).
@@ -351,7 +356,7 @@ guards, hook allowlists, Paper+Ink+1024 captures.
 
 ### Migration
 
-Does **not** block #1320/#1321. Informs the *next* backend/frontend slices.
+Does **not** block remaining Desktop PRs (#1322). Informs the *next* backend/frontend slices.
 Native #1227 "DONE" rows stay historically true of gg/sokol and are **not**
 Electron acceptance.
 
@@ -364,7 +369,7 @@ Electron acceptance.
 | #1227 | Comment + body note: Electron/ADR-033 Proposed; AO as second reference; refine god-agent wording; re-state OPEN items with evidence. No silent close. |
 | #1118 | Comment: visual authority unchanged; Electron is presentation, not a new look; do not copy AO/Munder art. |
 | #1073 SessionBackend | Still the optional native-PTY eval; Electron durability is G1–G3 here, not a rewrite of #1073. |
-| New issues | **None created.** Dependency chain lives in this doc until #1320/#1321 land. First *future* issue, if filed: session identity contract (not "durable sessions"). |
+| New issues | **None created.** Dependency chain lives in this doc. First *future* issue, if filed: session identity contract (not "durable sessions"). |
 
 Proposed later chain (not filed): session identity → provider adapter →
 session metadata → G1 mirror → G2 resume → crash acceptance → UI recovery;
@@ -420,7 +425,7 @@ then git write; then scoped agent ops; then services; then multi-repo.
 
 ## 11. Report A–J (for the parent track)
 
-**A. Current ATK.** Electron+React over `serve` on `main` (`2d06bae2`).
+**A. Current ATK.** Electron+React over `serve` on `main` (`a25496ad`, #1321).
 ADR-033 Proposed. #1320/#1321 open+conflicting. Native parity slices are
 not Electron truth. Session entity missing. Git Engine stubs.
 
@@ -490,6 +495,8 @@ workspace, agent, run, job, loop, swarm, task, approval, receipt.
 ## Appendix B — Capture recipe (reusable)
 
 Preserved from the 2026-09-29 Electron/Munder live ledger (#1317).
+#1321 later added a context bar that seeds workspace from the #1314 harness;
+the 2026-09-29 workflow tables stay in git history of this file (pre-rewrite).
 
 What worked on Linux/Hyprland (Wayland) with no Xvfb installed:
 
@@ -513,4 +520,4 @@ data, not of the domain gaps in the matrix.
 ## Appendix C — Evidence log
 
 - 2026-09-29 — Live baseline: ATK dev Electron + packaged `dist:dir` at `d4ff3731`; Munder `5756722e` run locally (onboarding, Command Center tabs, add-agent, IDE, settings). Munder terminal crash recovery not exercised (source-read only).
-- 2026-09-30 — Three-way decision artifact. ATK `origin/main` `2d06bae2` (#1318). Agent Office `13c104eb` (v0.1.174+1) studied from source; local server probed (302 login, no floors, no paid agent). Munder capability refresh: `origin/main` `ed06e3e` is SEO-only vs `5756722e`.
+- 2026-09-30 — Three-way decision artifact. ATK `origin/main` `a25496ad` (#1321). Agent Office `13c104eb` (v0.1.174+1) studied from source; local server probed (302 login, no floors, no paid agent). Munder capability refresh: `origin/main` `ed06e3e` is SEO-only vs `5756722e`. #1321 context-bar note folded in on rebase.
