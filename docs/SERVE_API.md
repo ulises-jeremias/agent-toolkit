@@ -62,6 +62,8 @@ Regenerate after changing the contract:
   Memory is learnings/processes/todos, not the knowledge tree. See
   [Memory](#memory). The generic `memory/:sub` route remains for
   CLI-parity add/search/inject/review/todo.
+- Files — typed `GET /api/v1/files`, `/files/hits`, `/files/content`
+  and `PUT /files/content`. See [Files](#files).
 - `GET /` — minimal static status page (not a product surface)
 
 ## Typed subcommand bodies
@@ -209,6 +211,24 @@ is contained like other serve workspace fields.
   `/audit`, `/history`, `/cost`. Cost is `unavailable` unless traces
   record tokens (audit). The generic `swarms/:sub` and `loops/:sub`
   routes remain for CLI-parity writes.
+
+## Files
+
+Workspace-contained tree, read, search, and atomic write. `?workspace=`
+is contained like other serve workspace fields. Symlinks that resolve
+outside the workspace are omitted from the tree and rejected on read.
+
+- `GET /api/v1/files?path=&depth=` — flattened tree (`name`, `path`,
+  `kind`, `size`, `depth`, `masked`). `.git`, `node_modules`, and other
+  build dirs are skipped. Default depth 3, max 6.
+- `GET /api/v1/files/content?path=` — read one file. Secret names
+  (`.env*`, keys, `credentials.json`) return `masked=true` and empty
+  `content`. Binary files return `binary=true` and empty content. Text
+  over 256 KiB is truncated.
+- `GET /api/v1/files/hits?q=` — filename and line hits. Empty `q` is
+  `400`. Secret files are not searched.
+- `PUT /api/v1/files/content` — `{path, content}` atomic write (256 KiB
+  cap, no NUL). Parent must stay inside the workspace.
 
 ## Security defaults (ADR-028)
 

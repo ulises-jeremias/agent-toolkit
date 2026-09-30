@@ -365,6 +365,50 @@ schemas:
       - cost_status:string=unavailable|accounted
       - detail:string
 
+  - name: WorkspaceFileNode
+    fields:
+      - name:string
+      - path:string
+      - kind:string=file|dir
+      - size:integer
+      - depth:integer
+      - masked:boolean
+
+  - name: WorkspaceFileListResponse
+    fields:
+      - ok:boolean
+      - root:string
+      - 'nodes:#WorkspaceFileNode[]'
+
+  - name: WorkspaceFileReadResponse
+    fields:
+      - ok:boolean
+      - path:string
+      - name:string
+      - content:string
+      - size:integer
+      - binary:boolean
+      - truncated:boolean
+      - masked:boolean
+
+  - name: WorkspaceFileHit
+    fields:
+      - path:string
+      - line:integer
+      - snippet:string
+
+  - name: WorkspaceFileSearchResponse
+    fields:
+      - ok:boolean
+      - query:string
+      - 'hits:#WorkspaceFileHit[]'
+
+  - name: WorkspaceFileWriteResponse
+    fields:
+      - ok:boolean
+      - message:string
+      - path:string
+
 # Server-native endpoints (ADR-030): capabilities of the API itself, not
 # mirrors of CLI contract commands. `response` is a field type (see grammar),
 # `text` (text/plain) or `sse` (text/event-stream of `event_schema`).
@@ -625,3 +669,33 @@ native:
     method: get
     op: list_loops
     response: '#LoopListResponse'
+  - path: /api/v1/files
+    method: get
+    op: list_files
+    response: '#WorkspaceFileListResponse'
+    errors:
+      - '400:invalid path'
+      - '403:path outside workspace'
+      - '404:workspace or path not found'
+  - path: /api/v1/files/hits
+    method: get
+    op: search_files
+    response: '#WorkspaceFileSearchResponse'
+    errors:
+      - '400:query is required'
+  - path: /api/v1/files/content
+    method: get
+    op: read_file
+    response: '#WorkspaceFileReadResponse'
+    errors:
+      - '400:invalid path'
+      - '403:path outside workspace'
+      - '404:file not found'
+  - path: /api/v1/files/content
+    method: put
+    op: write_file
+    response: '#WorkspaceFileWriteResponse'
+    errors:
+      - '400:invalid path or binary content'
+      - '403:path outside workspace'
+      - '404:workspace not found'
