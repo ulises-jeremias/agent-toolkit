@@ -55,6 +55,11 @@ export const qk = {
     status: (name: string) => ['loops', 'status', name] as const,
   },
 
+  swarms: {
+    list: () => ['swarms', 'list'] as const,
+    run: (id: string) => ['swarms', 'run', id] as const,
+  },
+
   sub: <F extends SubFamily>(family: F, sub: SubCommand<F>, body?: SubBody<F>) =>
     [family, 'sub', sub, body ?? {}] as const,
 };

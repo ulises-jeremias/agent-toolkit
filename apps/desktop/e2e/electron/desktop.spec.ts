@@ -94,12 +94,12 @@ test('a job started from Operations runs on the backend and streams to completio
 test('Operations shows doctor, loops and swarms from live endpoints', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
-  await expect(page.getByRole('heading', { level: 1, name: 'Work in flight' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Workshop' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Doctor' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Jobs' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Swarms' })).toContainText('POST /api/v1/swarms/');
+  await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);
 });
 
 test('a failed job can be retried as a new job', async () => {

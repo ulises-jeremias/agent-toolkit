@@ -80,11 +80,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   allowed for `memory` `inject` and `todo` (read-only).
 - `serve`: typed swarm runs/tasks/handoffs/approvals/artifacts and loop
   list/status/audit/history/cost. Cost is `unavailable` unless accounted.
-- Desktop Operations consumes `GET /api/v1/events`, job get/retry (#1320),
-  loops list/status/run-as-job, doctor/fix, typed swarm `{sub}` bodies, and
+- Desktop Operations is the workshop inspector (jobs, loops, swarms, doctor),
+  not a second home. It consumes `GET /api/v1/events`, job get/retry (#1320),
+  loops list/status/run-as-job, doctor/fix, typed swarm run/task/handoff/
+  approval routes plus `{sub}` start bodies, and
   `GET /api/v1/agents|tools|providers|models` (#1324) for swarm/loop forms.
   Retry is offered only for failed/canceled jobs. Swarm and loop actions
-  use OpenAPI bodies, not freeform argv.
+  use OpenAPI bodies, not freeform argv. Events never invent progress.
 
 ### Changed
 

@@ -130,6 +130,10 @@ export type ProvidersResponse = components['schemas']['ProvidersResponse'];
 export type ProviderInfo = components['schemas']['ProviderInfo'];
 export type ModelsResponse = components['schemas']['ModelsResponse'];
 export type ModelInfo = components['schemas']['ModelInfo'];
+export type SwarmListResponse = components['schemas']['SwarmListResponse'];
+export type SwarmRunInfo = components['schemas']['SwarmRunInfo'];
+export type SwarmRunResponse = components['schemas']['SwarmRunResponse'];
+export type SwarmActionResponse = components['schemas']['SwarmActionResponse'];
 
 export const API_EVENT_TYPES: readonly ApiEventType[] = [
   'backend.ready',

@@ -8,6 +8,9 @@ import type {
   ModelsResponse,
   ProvidersResponse,
   SelfcheckResponse,
+  SwarmActionResponse,
+  SwarmListResponse,
+  SwarmRunResponse,
   ToolsResponse,
   VersionResponse,
 } from './contracts';
@@ -235,5 +238,31 @@ export class ApiClient {
 
   models(): Promise<ResponseOf<OperationOf<'/api/v1/models', 'get'>, ModelsResponse>> {
     return this.json('GET', '/api/v1/models' satisfies PathWith<'get'>);
+  }
+
+  swarms(): Promise<ResponseOf<OperationOf<'/api/v1/swarms', 'get'>, SwarmListResponse>> {
+    return this.json('GET', '/api/v1/swarms' satisfies PathWith<'get'>);
+  }
+
+  swarmRun(id: string): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}', 'get'>, SwarmRunResponse>> {
+    return this.json('GET', fillPath('/api/v1/swarms/runs/{id}' satisfies PathWith<'get'>, { id }));
+  }
+
+  approveSwarm(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/approve', 'post'>, SwarmActionResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/approve' satisfies PathWith<'post'>, { id }));
+  }
+
+  rejectSwarm(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/reject', 'post'>, SwarmActionResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/reject' satisfies PathWith<'post'>, { id }));
+  }
+
+  stopSwarm(
+    id: string,
+  ): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}/stop', 'post'>, SwarmActionResponse>> {
+    return this.json('POST', fillPath('/api/v1/swarms/runs/{id}/stop' satisfies PathWith<'post'>, { id }));
   }
 }

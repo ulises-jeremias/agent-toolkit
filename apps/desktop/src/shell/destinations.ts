@@ -24,7 +24,7 @@ export const DESTINATIONS: readonly Destination[] = [
   {
     path: '/operations',
     label: 'Operations',
-    question: 'What work is running and how do I control it?',
+    question: 'How do I inspect and control this job, loop, swarm or doctor check?',
     component: lazy(() => import('../features/operations/Operations')),
   },
   {

@@ -182,4 +182,20 @@ describe('ApiClient', () => {
       'http://127.0.0.1:9/api/v1/tools',
     ]);
   });
+
+  it('lists swarm runs and posts typed run actions', async () => {
+    const api = client({ ok: true, runs: [], message: 'ok', run_id: 'run_1', status: 'stopped' });
+    await api.swarms();
+    await api.swarmRun('run_1');
+    await api.approveSwarm('run_1');
+    await api.rejectSwarm('run_1');
+    await api.stopSwarm('run_1');
+    expect(calls.map((call) => `${call.init?.method} ${call.url}`)).toEqual([
+      'GET http://127.0.0.1:9/api/v1/swarms',
+      'GET http://127.0.0.1:9/api/v1/swarms/runs/run_1',
+      'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/approve',
+      'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/reject',
+      'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/stop',
+    ]);
+  });
 });

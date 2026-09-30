@@ -56,13 +56,14 @@ function patchParams(setParams: ReturnType<typeof useSearchParams>[1], patch: Re
 }
 
 /**
- * Operations: what work is running and how do I control it?
- * Jobs, loops (run-as-job), swarms (typed {sub} bodies) and doctor live in V.
+ * Operations is the workshop inspector: jobs, loops, swarms and doctor.
+ * The world and Office link here. This destination is not a second home.
  */
 export default function Operations() {
   const [params, setParams] = useSearchParams();
   const selectedId = params.get('job');
   const selectedLoop = params.get('loop');
+  const selectedSwarm = params.get('swarm');
   const dialog = params.get('dialog');
   const jobs = useJobs();
   const { connection } = useLiveStatus();
@@ -76,10 +77,17 @@ export default function Operations() {
     <>
       <PageHeader
         eyebrow="Operations"
-        title="Work in flight"
-        lede="Jobs, loops, swarms and doctor — only what the backend reports."
+        title="Workshop"
+        lede="Inspect a job, loop, swarm or doctor report. The world and Office link here — this is not a second home."
         actions={
           <>
+            <Button
+              onClick={() => patchParams(setParams, { dialog: 'start-swarm' })}
+              disabled={offline}
+              title={offline ? 'The backend is not answering' : undefined}
+            >
+              Start swarm
+            </Button>
             <Button
               onClick={() => patchParams(setParams, { dialog: 'run-loop' })}
               disabled={offline}
@@ -104,14 +112,13 @@ export default function Operations() {
         onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
       />
       <Stack>
-        <DoctorPanel />
         <div className={styles.split}>
-          <Panel title="Jobs" meta={jobs.isSuccess ? `${list.length} total` : undefined}>
+          <Panel title="Jobs" meta={jobs.isSuccess ? `${list.length} on the backend` : undefined}>
             <QueryView query={jobs} loading="Loading jobs" errorTitle="Could not load jobs">
               {() =>
                 list.length === 0 ? (
-                  <EmptyState title="No jobs yet.">
-                    Start one to run an agent-toolkit command in the background.
+                  <EmptyState title="No jobs on the backend.">
+                    Open one from the world, or start a command here. Nothing is invented while the list is empty.
                   </EmptyState>
                 ) : (
                   <JobTable jobs={list} selectedId={selectedId} onSelect={selectJob} />
@@ -134,7 +141,14 @@ export default function Operations() {
                 </Button>
               </Panel>
             ) : null
-          ) : null}
+          ) : (
+            <Panel title="Inspector">
+              <EmptyState title="Nothing selected.">
+                Pick a job, loop or swarm. Progress and status come from GET /api/v1/events and the job log — never a
+                decorative bar.
+              </EmptyState>
+            </Panel>
+          )}
         </div>
         <LoopsPanel
           selectedName={selectedLoop}
@@ -143,7 +157,13 @@ export default function Operations() {
           onCloseDialog={() => patchParams(setParams, { dialog: null })}
           onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
         />
-        <SwarmsPanel />
+        <SwarmsPanel
+          selectedId={selectedSwarm}
+          dialogOpen={dialog === 'start-swarm'}
+          onSelect={(id) => patchParams(setParams, { swarm: id })}
+          onCloseDialog={() => patchParams(setParams, { dialog: null })}
+        />
+        <DoctorPanel />
       </Stack>
     </>
   );
@@ -254,7 +274,7 @@ function StartJobDialog({
       open={open}
       onClose={onClose}
       title="Start a job"
-      description="POST /api/v1/jobs with cmd, args and workspace. Output streams into Operations."
+      description="POST /api/v1/jobs with cmd, args and workspace. The inspector follows the job the backend creates."
       initialFocus={cmdRef}
       footer={
         <>
