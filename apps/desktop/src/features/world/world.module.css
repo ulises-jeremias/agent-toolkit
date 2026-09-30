@@ -23,42 +23,84 @@
 
 .mapRegion {
   position: relative;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  border: 2px solid var(--pc-ink-900);
+  border-radius: 2px;
   /* Paper Co. grassy grounds — concept boards, not flat SaaS. */
   background:
-    radial-gradient(ellipse at 20% 10%, color-mix(in srgb, var(--pc-brass-100) 35%, transparent), transparent 45%),
-    repeating-linear-gradient(
-      0deg,
-      #8aab86 0 2px,
-      #7b9e7e 2px 8px,
-      #739675 8px 10px,
-      #7b9e7e 10px 16px
-    );
+    radial-gradient(ellipse at 18% 12%, color-mix(in srgb, var(--pc-brass-100) 40%, transparent), transparent 42%),
+    radial-gradient(ellipse at 82% 78%, color-mix(in srgb, #4e7c7b 22%, transparent), transparent 48%),
+    repeating-linear-gradient(0deg, #8aab86 0 3px, #7b9e7e 3px 10px, #6f926f 10px 12px, #7b9e7e 12px 20px);
   overflow: auto;
-  min-height: 26rem;
+  min-height: 28rem;
   image-rendering: pixelated;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-ink-900) 8%, transparent);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--pc-cream-50) 35%, transparent),
+    3px 3px 0 color-mix(in srgb, var(--pc-ink-900) 18%, transparent);
+}
+
+/* Project interiors: wooden plank room, not outdoor grass. */
+.mapRegion[data-mode='interior'] {
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--pc-ink-900) 8%, transparent) 0 1px, transparent 1px) 0 0 / 28px 100%,
+    repeating-linear-gradient(90deg, #c4a574 0 14px, #b8955f 14px 16px, #c9ad7a 16px 30px, #b08d57 30px 32px);
+}
+
+/* Soft ground path — CSS only, not a fake place. */
+.mapRegion[data-mode='grounds']::before {
+  content: '';
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 42%;
+  height: 18px;
+  border-radius: 2px;
+  background: repeating-linear-gradient(90deg, #c4a574 0 10px, #b8955f 10px 12px, #d4b483 12px 22px);
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ambient garden plants on grounds — decorative environment only. */
+.mapRegion[data-mode='grounds']::after {
+  content: '';
+  position: absolute;
+  right: 1.25rem;
+  top: 1rem;
+  width: 10px;
+  height: 16px;
+  border: 1px solid var(--pc-ink-900);
+  background: linear-gradient(180deg, #4e7c7b 0 40%, #7b9e7e 40% 100%);
+  box-shadow:
+    18px 8px 0 0 #5f8a62,
+    36px 2px 0 -1px #4e7c7b,
+    54px 10px 0 0 #7b9e7e;
+  opacity: 0.7;
+  pointer-events: none;
+  z-index: 0;
+  animation: plantSway 5.5s ease-in-out infinite;
 }
 
 .map {
   position: relative;
   margin: var(--space-4);
+  z-index: 1;
 }
 
 .hornero {
   position: absolute;
   right: var(--space-3);
   bottom: var(--space-3);
-  width: 18px;
-  height: 14px;
+  width: 20px;
+  height: 16px;
   border: 1px solid var(--pc-ink-900);
-  border-radius: 2px 6px 2px 2px;
-  background:
-    linear-gradient(135deg, #b08d57 0 45%, #8a3624 45% 70%, #2a241b 70% 100%);
-  opacity: 0.85;
+  border-radius: 2px 7px 2px 2px;
+  background: linear-gradient(135deg, #b08d57 0 42%, #8a3624 42% 68%, #2a241b 68% 100%);
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--pc-ink-900) 25%, transparent);
+  opacity: 0.9;
   pointer-events: none;
   image-rendering: pixelated;
+  animation: softBob 3.8s ease-in-out infinite;
+  z-index: 4;
 }
 
 .entity {
@@ -75,15 +117,17 @@
   font: inherit;
   color: var(--pc-ink-950);
   image-rendering: pixelated;
-  box-shadow: 2px 2px 0 color-mix(in srgb, var(--pc-ink-900) 30%, transparent);
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pc-ink-900) 28%, transparent);
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease;
   overflow: hidden;
 }
 
 .entity:hover,
 .entity:focus-visible {
   transform: translate(-1px, -1px);
-  box-shadow: 3px 3px 0 color-mix(in srgb, var(--pc-brass-600) 45%, transparent);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--pc-brass-600) 50%, transparent);
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   z-index: 2;
@@ -92,6 +136,7 @@
 .entity[data-kind='character'] {
   border-radius: 999px;
   z-index: 3;
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--pc-ink-900) 35%, transparent);
 }
 
 .entityLabel {
@@ -102,21 +147,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 1px 3px 2px;
-  background: color-mix(in srgb, var(--pc-cream-50) 92%, transparent);
-  border-top: 1px solid color-mix(in srgb, var(--pc-ink-900) 20%, transparent);
+  padding: 2px 4px 3px;
+  background: color-mix(in srgb, var(--pc-cream-50) 94%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--pc-ink-900) 22%, transparent);
   width: 100%;
   text-align: center;
+  letter-spacing: 0.01em;
 }
 
 .entityState {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 0.55rem;
-  height: 0.55rem;
+  top: 4px;
+  right: 4px;
+  width: 0.6rem;
+  height: 0.6rem;
   border: 1px solid var(--pc-ink-900);
   border-radius: 1px;
+  z-index: 2;
 }
 
 .entityState[data-tone='ok'] {
@@ -142,27 +189,70 @@
 /* Original cozy tiles — Paper Co. boards as language, not copied sprites. */
 
 .tileGrounds {
+  /* Workshop lot: dirt path + cream workshop roof + porch. */
   background:
-    linear-gradient(180deg, #c9a46a 0 18%, transparent 18%),
-    repeating-linear-gradient(
-      90deg,
-      #c4a574 0 10px,
-      #b8955f 10px 12px,
-      #c4a574 12px 22px
-    ),
-    #c4a574;
+    linear-gradient(180deg, #6b604c 0 14%, transparent 14%), linear-gradient(180deg, #b08d57 0 20%, transparent 20%),
+    repeating-linear-gradient(90deg, #c4a574 0 12px, #b8955f 12px 14px, #c4a574 14px 26px), #c4a574;
 }
 
 .tileGrounds::before {
   content: '';
   position: absolute;
-  left: 6px;
-  top: 10px;
-  width: 10px;
-  height: 14px;
+  left: 8px;
+  top: 22%;
+  width: 12px;
+  height: 18px;
   border: 1px solid var(--pc-ink-900);
-  background: linear-gradient(180deg, #4e7c7b 0 30%, #f6ebd7 30% 100%);
-  box-shadow: 16px 4px 0 0 #7b9e7e;
+  background: linear-gradient(180deg, #4e7c7b 0 28%, #f6ebd7 28% 100%);
+  box-shadow:
+    18px 6px 0 0 #7b9e7e,
+    34px 2px 0 -1px #5f8a62;
+  pointer-events: none;
+}
+
+.tileGrounds::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 28%;
+  height: 18%;
+  border: 1px solid var(--pc-ink-900);
+  background: linear-gradient(180deg, #4a4133 0 30%, #2a241b 30% 100%);
+  pointer-events: none;
+}
+
+/* Exit door — same grounds key, door silhouette via entity id. */
+.entity[data-entity-id='object:exit-grounds'] {
+  background: linear-gradient(180deg, #6b604c 0 18%, #b08d57 18% 28%, #d4b483 28% 100%);
+}
+
+.entity[data-entity-id='object:exit-grounds']::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  width: 38%;
+  height: 48%;
+  transform: translateX(-50%);
+  border: 1px solid var(--pc-ink-900);
+  border-radius: 1px 1px 0 0;
+  background:
+    linear-gradient(90deg, transparent 0 42%, #2a241b 42% 58%, transparent 58%), linear-gradient(180deg, #8a3624 0 100%);
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.entity[data-entity-id='object:exit-grounds']::after {
+  content: '';
+  position: absolute;
+  left: 58%;
+  top: 48%;
+  width: 4px;
+  height: 4px;
+  border-radius: 1px;
+  background: #d4a94b;
+  border: 1px solid var(--pc-ink-900);
   pointer-events: none;
 }
 
@@ -184,34 +274,51 @@
 .tileKnowledgeProject {
   background:
     linear-gradient(180deg, #4e7c7b 0 16%, transparent 16%),
-    repeating-linear-gradient(
-      90deg,
-      #efdcb6 0 7px,
-      #d4b483 7px 9px,
-      #7b9e7e 9px 13px,
-      #efdcb6 13px 20px
-    ),
-    #efdcb6;
+    repeating-linear-gradient(90deg, #efdcb6 0 7px, #d4b483 7px 9px, #7b9e7e 9px 13px, #efdcb6 13px 20px), #efdcb6;
 }
 
 .tileBuilding {
-  /* Project house — cottage roof + cream walls + wood base. */
+  /* Project house — rust roof, cream walls, wood base, window + chimney.
+     ::after stays free for real job activity lamps. */
   background:
-    linear-gradient(180deg, #b5523c 0 22%, #f6ebd7 22% 78%, #b08d57 78% 100%);
-  box-shadow: inset 0 22% 0 0 transparent;
+    linear-gradient(135deg, transparent 49%, #8a3624 50%) 0 0 / 50% 22% no-repeat,
+    linear-gradient(225deg, transparent 49%, #a0402c 50%) 100% 0 / 50% 22% no-repeat,
+    linear-gradient(180deg, #8a3624 0 26%, #f6ebd7 26% 78%, #b08d57 78% 100%);
 }
 
 .tileBuilding::before {
   content: '';
   position: absolute;
   left: 50%;
-  top: 38%;
-  width: 14px;
-  height: 16px;
+  top: 40%;
+  width: 16px;
+  height: 18px;
   transform: translateX(-50%);
   border: 1px solid var(--pc-ink-900);
-  background: linear-gradient(180deg, #4e7c7b 0 35%, #39ff9b 35% 42%, #1f1f1f 42% 100%);
+  background: linear-gradient(180deg, #4e7c7b 0 32%, #39ff9b 32% 40%, #1f1f1f 40% 100%);
+  box-shadow:
+    22px -20px 0 -4px #6b604c,
+    -28% 42% 0 0 #8a3624;
   pointer-events: none;
+}
+
+/* Interior: house place reads as a floor rug / room plate, not outdoor cottage. */
+.mapRegion[data-mode='interior'] .tileBuilding {
+  clip-path: none;
+  background:
+    radial-gradient(ellipse at 50% 55%, color-mix(in srgb, #b5523c 22%, transparent), transparent 62%),
+    repeating-linear-gradient(0deg, #efdcb6 0 10px, #e3d0ac 10px 12px, #efdcb6 12px 22px), #efdcb6;
+  border-radius: 2px;
+}
+
+.mapRegion[data-mode='interior'] .tileBuilding::before {
+  left: 50%;
+  top: 30%;
+  width: 42%;
+  height: 28%;
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(90deg, #d4b483 0 6px, #b08d57 6px 8px, #7b9e7e 8px 12px);
+  box-shadow: 0 36px 0 -2px #b08d57;
 }
 
 /* House activity lamp — real jobs only; calm when nothing is running. */
@@ -219,98 +326,128 @@
 .entity[data-activity='blocked']::after {
   content: '';
   position: absolute;
-  top: 4px;
-  left: 4px;
-  width: 0.55rem;
-  height: 0.55rem;
+  top: 5px;
+  left: 5px;
+  width: 0.6rem;
+  height: 0.6rem;
   border: 1px solid var(--pc-ink-900);
   border-radius: 1px;
   pointer-events: none;
+  z-index: 2;
 }
 
 .entity[data-activity='working']::after {
   background: var(--pc-brass-400);
+  animation: lampPulse 1.6s ease-in-out infinite;
 }
 
 .entity[data-activity='blocked']::after {
   background: var(--pc-rust-500);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .entity[data-activity='working']::after,
-  .entity[data-activity='blocked']::after {
-    animation: none;
-  }
+  animation: lampPulse 1.1s ease-in-out infinite;
 }
 
 .tileTerminal {
-  /* Terminal workstation — ink desk + neon phosphor. */
-  background:
-    linear-gradient(180deg, #4a4133 0 28%, #1f1f1f 28% 72%, #b08d57 72% 100%);
+  /* Terminal workstation — ink desk + neon phosphor scanlines. */
+  background: linear-gradient(180deg, #6b604c 0 16%, #1f1f1f 16% 74%, #b08d57 74% 100%);
   color: #f6ebd7;
 }
 
 .tileTerminal::before {
   content: '';
   position: absolute;
-  left: 18%;
-  right: 18%;
-  top: 38%;
-  height: 22%;
+  left: 16%;
+  right: 16%;
+  top: 34%;
+  height: 28%;
   border: 1px solid #39ff9b;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0 2px,
-    color-mix(in srgb, #39ff9b 35%, transparent) 2px 3px
-  );
+  background:
+    repeating-linear-gradient(0deg, transparent 0 2px, color-mix(in srgb, #39ff9b 28%, transparent) 2px 3px), #0a1a12;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #39ff9b 35%, transparent);
+  pointer-events: none;
+  animation: phosphorGlow 2.8s ease-in-out infinite;
+}
+
+.tileTerminal::after {
+  content: '';
+  position: absolute;
+  left: 28%;
+  right: 28%;
+  bottom: 30%;
+  height: 6%;
+  background: #4a4133;
+  border: 1px solid var(--pc-ink-900);
   pointer-events: none;
 }
 
 .tileTool {
   /* Tool rack slot — brass peg on manila board. */
-  background:
-    linear-gradient(180deg, #6b604c 0 18%, #d4b483 18% 100%);
+  background: linear-gradient(180deg, #6b604c 0 16%, #d4b483 16% 100%);
 }
 
 .tileTool::before {
   content: '';
   position: absolute;
   left: 50%;
-  top: 40%;
-  width: 10px;
-  height: 14px;
+  top: 34%;
+  width: 12px;
+  height: 16px;
   transform: translateX(-50%);
   border: 1px solid var(--pc-ink-900);
-  background: #d4a94b;
+  background: linear-gradient(180deg, #d4a94b 0 55%, #b08d57 55% 100%);
+  box-shadow: 0 10px 0 -4px #4a4133;
   pointer-events: none;
 }
 
 .tileShelf {
   background:
     linear-gradient(180deg, #5c5241 0 12%, transparent 12%),
-    repeating-linear-gradient(
-      180deg,
-      #d4b483 0 7px,
-      #b08d57 7px 9px,
-      #7b9e7e 9px 12px
-    );
+    repeating-linear-gradient(180deg, #d4b483 0 7px, #b08d57 7px 9px, #7b9e7e 9px 12px, #8a3624 12px 15px);
+}
+
+.tileShelf::before {
+  content: '';
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 28%;
+  height: 8%;
+  background: #6b604c;
+  pointer-events: none;
 }
 
 .tileInbox {
-  background:
-    linear-gradient(160deg, #f6ebd7 0 35%, #b5523c 35% 70%, #d4a94b 70% 100%);
+  background: linear-gradient(160deg, #f6ebd7 0 32%, #b5523c 32% 68%, #d4a94b 68% 100%);
+}
+
+.tileInbox::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 40%;
+  height: 28%;
+  transform: translateX(-50%) rotate(-6deg);
+  border: 1px solid var(--pc-ink-900);
+  background: #efdcb6;
+  pointer-events: none;
 }
 
 .tileAgentWorking {
-  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 32%, #4e7c7b 33% 100%);
+  background:
+    radial-gradient(circle at 50% 28%, #f6ebd7 0 22%, transparent 23%),
+    radial-gradient(circle at 50% 68%, #4e7c7b 0 38%, transparent 39%), #4e7c7b;
 }
 
 .tileAgentBlocked {
-  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 32%, #b5523c 33% 100%);
+  background:
+    radial-gradient(circle at 50% 28%, #f6ebd7 0 22%, transparent 23%),
+    radial-gradient(circle at 50% 68%, #b5523c 0 38%, transparent 39%), #b5523c;
 }
 
 .tileAgentIdle {
-  background: radial-gradient(circle at 40% 35%, #f6ebd7 0 32%, #6b604c 33% 100%);
+  background:
+    radial-gradient(circle at 50% 28%, #f6ebd7 0 22%, transparent 23%),
+    radial-gradient(circle at 50% 68%, #6b604c 0 38%, transparent 39%), #6b604c;
 }
 
 .tileLamp {
@@ -320,34 +457,57 @@
 .tileMemory {
   /* Ledger page / single record. */
   background:
-    repeating-linear-gradient(90deg, #efdcb6 0 6px, #d4b483 6px 8px),
-    #efdcb6;
+    linear-gradient(90deg, #b08d57 0 10%, transparent 10%),
+    repeating-linear-gradient(90deg, #efdcb6 0 6px, #d4b483 6px 8px), #efdcb6;
+}
+
+.tileMemory::before {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 14%;
+  top: 34%;
+  height: 2px;
+  background: color-mix(in srgb, var(--pc-ink-900) 35%, transparent);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--pc-ink-900) 28%, transparent);
+  pointer-events: none;
 }
 
 .tileMemoryIndex {
-  /* Archive / card-index place — manila drawers, distinct from Library shelf. */
+  /* Archive / card-index — manila drawer stack, distinct from Library shelf. */
   background:
     linear-gradient(180deg, #6b604c 0 12%, transparent 12%),
-    repeating-linear-gradient(
-      0deg,
-      #d4b483 0 8px,
-      #b08d57 8px 10px,
-      #f6ebd7 10px 18px,
-      #d4a94b 18px 20px
-    ),
-    #d4b483;
+    repeating-linear-gradient(0deg, #d4b483 0 9px, #b08d57 9px 11px, #f6ebd7 11px 20px, #d4a94b 20px 22px), #d4b483;
+}
+
+.tileMemoryIndex::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 36%;
+  width: 10px;
+  height: 4px;
+  transform: translateX(-50%);
+  border: 1px solid var(--pc-ink-900);
+  background: #d4a94b;
+  box-shadow:
+    0 14px 0 0 #d4a94b,
+    0 28px 0 0 #d4a94b;
+  pointer-events: none;
 }
 
 .tileSwarm {
-  background: #4e7c7b;
+  background:
+    radial-gradient(circle at 30% 40%, #efdcb6 0 18%, transparent 19%),
+    radial-gradient(circle at 70% 40%, #efdcb6 0 18%, transparent 19%), #4e7c7b;
 }
 
 .tileLoop {
-  background: #7b9e7e;
+  background: radial-gradient(circle at 50% 45%, transparent 0 28%, #efdcb6 29% 36%, transparent 37%), #7b9e7e;
 }
 
 .tileCrate {
-  background: #b08d57;
+  background: linear-gradient(180deg, #d4a94b 0 18%, #b08d57 18% 100%);
 }
 
 .worldTileFallback {
@@ -358,6 +518,48 @@
   width: 100%;
 }
 
+@keyframes lampPulse {
+  0%,
+  100% {
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% {
+    opacity: 0.55;
+    filter: brightness(1.25);
+  }
+}
+
+@keyframes phosphorGlow {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #39ff9b 30%, transparent);
+  }
+  50% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, #39ff9b 70%, transparent);
+  }
+}
+
+@keyframes softBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes plantSway {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(1px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .entity {
     transition: none;
@@ -366,5 +568,13 @@
   .entity:hover,
   .entity:focus-visible {
     transform: none;
+  }
+
+  .entity[data-activity='working']::after,
+  .entity[data-activity='blocked']::after,
+  .tileTerminal::before,
+  .hornero,
+  .mapRegion[data-mode='grounds']::after {
+    animation: none;
   }
 }
