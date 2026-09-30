@@ -18,12 +18,14 @@ pub mut:
 	ended_at   string
 	exit_code  int = -1
 	workspace  string
+	// retry_of is the id of the failed/canceled job this run re-executes.
+	retry_of string
 }
 
 pub struct JobRunner {
 pub mut:
-	mut         sync.Mutex
-	jobs        map[string]Job
+	mut  sync.Mutex
+	jobs map[string]Job
 	// procs tracks live child handles for cancel. watch() owns wait/close;
 	// cancel() only signals through this entry (term → grace → kill),
 	// mirroring desktop_engine/process cancel semantics.
@@ -31,6 +33,8 @@ pub mut:
 	max_running int = 2
 	running     int
 	dir         string
+	// bus receives job.* / loop.* lifecycle events (nil = not published).
+	bus &EventBus = unsafe { nil }
 }
 
 pub fn new_job_runner(dir string) &JobRunner {
@@ -80,6 +84,11 @@ fn (mut r JobRunner) persist_locked() {
 }
 
 pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job {
+	return r.create_job(cmd, args, workdir, '')
+}
+
+// create_job spawns a job; retry_of links it to the job it re-runs.
+pub fn (mut r JobRunner) create_job(cmd string, args []string, workdir string, retry_of string) !Job {
 	r.mut.lock()
 	defer {
 		r.mut.unlock()
@@ -96,6 +105,7 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 		status: 'queued'
 		started_at: time.utc().format_rfc3339()
 		workspace: workdir
+		retry_of: retry_of
 	}
 	r.jobs[id] = job
 	mut p := os.new_process('agent-toolkit')
@@ -110,8 +120,70 @@ pub fn (mut r JobRunner) create(cmd string, args []string, workdir string) !Job 
 	r.running++
 	r.persist_locked()
 	os.write_file(r.log_path(id), '[running]\n') or {}
+	r.emit_job('job.created', r.jobs[id])
 	go r.watch(id, mut p)
 	return r.jobs[id]
+}
+
+// retry_source returns the job to re-run; only failed or canceled jobs
+// qualify (completed runs are not retried, active ones are still running).
+pub fn (r &JobRunner) retry_source(id string) !Job {
+	job := r.get(id) or { return error('job not found: ${id}') }
+	if job.status !in ['failed', 'canceled'] {
+		return error('job is ${job.status}: ${id}')
+	}
+	return job
+}
+
+// emit_job publishes a job lifecycle event, plus the matching loop.* event
+// for `loop run` jobs. Callers hold r.mut; the bus lock is a leaf lock.
+fn (mut r JobRunner) emit_job(kind string, job Job) {
+	if r.bus == unsafe { nil } {
+		return
+	}
+	r.bus.publish(ApiEvent{
+		kind: kind
+		subject: job.id
+		status: job.status
+		exit_code: job.exit_code
+		ref: job.retry_of
+	})
+	loop_name := job_loop_name(job)
+	if loop_name.len == 0 {
+		return
+	}
+	if kind == 'job.created' {
+		r.bus.publish(ApiEvent{
+			kind: 'loop.started'
+			subject: loop_name
+			status: job.status
+			exit_code: job.exit_code
+			ref: job.id
+		})
+	} else if kind == 'job.updated' && is_terminal(job.status) {
+		r.bus.publish(ApiEvent{
+			kind: 'loop.finished'
+			subject: loop_name
+			status: job.status
+			exit_code: job.exit_code
+			ref: job.id
+		})
+	}
+}
+
+// job_loop_name returns the loop name of a `loop run <name>` job, else ''.
+fn job_loop_name(job Job) string {
+	if job.cmd != 'loop' {
+		return ''
+	}
+	mut rest := job.args.clone()
+	if rest.len > 0 && rest[0] == 'loop' {
+		rest = rest[1..].clone()
+	}
+	if rest.len >= 2 && rest[0] == 'run' && !rest[1].starts_with('-') {
+		return rest[1]
+	}
+	return ''
 }
 
 fn (mut r JobRunner) watch(id string, mut p os.Process) {
@@ -170,6 +242,7 @@ fn (mut r JobRunner) watch(id string, mut p os.Process) {
 			r.jobs[id].exit_code = p.code
 			r.jobs[id].ended_at = time.utc().format_rfc3339()
 			r.running--
+			r.emit_job('job.updated', r.jobs[id])
 		} else if r.jobs[id].status == 'canceled' {
 			final_log += '[canceled]\n'
 		}
@@ -215,6 +288,7 @@ pub fn (mut r JobRunner) cancel(id string) !Job {
 		r.running--
 	}
 	r.persist_locked()
+	r.emit_job('job.updated', job)
 	r.mut.unlock()
 	if proc != unsafe { nil } {
 		mut p := unsafe { proc }
@@ -261,9 +335,22 @@ pub fn (mut r JobRunner) delete(id string, force bool) ! {
 		}
 	}
 	r.mut.lock()
+	gone := r.jobs[id] or {
+		// A concurrent delete won the race; only one caller reports success.
+		r.mut.unlock()
+		return error('job not found: ${id}')
+	}
 	r.jobs.delete(id)
 	r.procs.delete(id)
 	r.persist_locked()
+	if r.bus != unsafe { nil } {
+		r.bus.publish(ApiEvent{
+			kind: 'job.deleted'
+			subject: id
+			status: gone.status
+			exit_code: gone.exit_code
+		})
+	}
 	r.mut.unlock()
 	lp := r.log_path(id)
 	if os.is_file(lp) && !os.is_link(lp) {
@@ -280,7 +367,7 @@ pub fn is_valid_job_id(id string) bool {
 	}
 	// Reject any path separator, traversal, null byte, or URL-encoded traversal.
 	// URL-encoded `%` is never valid in a job ID (alphanumeric + _ - only).
-	if id.contains('/') || id.contains('\\') || id.contains('..') || id.contains('\0') || id.contains('%') {
+	if id.contains('/') || id.contains('\\') || id.contains('..') || id.contains('\x00') || id.contains('%') {
 		return false
 	}
 	// Absolute path check
@@ -379,7 +466,7 @@ pub fn is_valid_workspace_path(path string) bool {
 	if path.len == 0 {
 		return false
 	}
-	if path.contains('..') || path.contains('%') || path.contains('\0') {
+	if path.contains('..') || path.contains('%') || path.contains('\x00') {
 		return false
 	}
 	if !os.is_dir(path) {
