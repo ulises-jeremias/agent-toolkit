@@ -97,6 +97,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `GET /api/v1/agents|tools|providers|models` (#1324) for swarm/loop forms.
   Retry is offered only for failed/canceled jobs. Swarm and loop actions
   use OpenAPI bodies, not freeform argv. Events never invent progress.
+- `serve`: workspace-contained files — `GET /api/v1/files`, `/files/hits`,
+  `/files/content`; `PUT /files/content`. Escaping symlinks are rejected,
+  secret filenames are masked, and writes are atomic with size/binary guards.
 
 ### Changed
 
