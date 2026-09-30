@@ -250,7 +250,12 @@ export default function Settings() {
                   Change harness…
                 </Button>
                 {backend?.harness?.source === 'user' ? (
-                  <Button size="sm" variant="ghost" disabled={switchDisabled} onClick={() => void switchHarness(bridge.harnessReset)}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={switchDisabled}
+                    onClick={() => void switchHarness(bridge.harnessReset)}
+                  >
                     Use default
                   </Button>
                 ) : null}
