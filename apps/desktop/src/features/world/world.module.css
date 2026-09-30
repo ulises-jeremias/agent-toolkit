@@ -133,6 +133,12 @@
   z-index: 2;
 }
 
+.entity[data-selected='true'] {
+  outline: 2px solid var(--pc-brass-400);
+  outline-offset: 2px;
+  z-index: 2;
+}
+
 .entity[data-kind='character'] {
   border-radius: 999px;
   z-index: 3;

@@ -7,6 +7,9 @@ const OBJECT_H = 2;
 const CHAR_W = 1;
 const CHAR_H = 1;
 
+/** Fixed project-district width — never reshuffle when the roster grows past √n thresholds. */
+export const PROJECT_DISTRICT_COLS = 4;
+
 function sizeFor(entity: SemanticEntity): { w: number; h: number } {
   if (entity.kind === 'character') return { w: CHAR_W, h: CHAR_H };
   if (entity.kind === 'object' || entity.kind === 'marker') return { w: OBJECT_W, h: OBJECT_H };
@@ -78,8 +81,9 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
 
 /**
  * Deterministic layout from structured entities. Same ids → same slots.
- * Grounds: houses on a stable grid; characters stand at their house when
- * project-scoped. Interior: room furniture, not a second dashboard.
+ * Grounds: commons strip (workspace, memory, inspectors) then a fixed-width
+ * project district — never a √n reshape. Characters stand at their house porch.
+ * Interior: room furniture, not a second dashboard.
  */
 export function layoutWorld(model: WorldModel): WorldLayout {
   if (model.focusProjectId) {
@@ -120,6 +124,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     maxY = Math.max(maxY, y + h);
   };
 
+  // Commons district — workspace lot + memory archive on the north strip.
   if (grounds) place(grounds, 0, 0);
   if (memoryPlace) place(memoryPlace, PLACE_W + 1, 0);
 
@@ -130,19 +135,19 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     objX += OBJECT_W + 1;
   }
 
+  // Project district — sorted names, fixed column count (stable as roster grows).
   const projectStartY = objY + OBJECT_H + 1;
-  const cols = Math.max(1, Math.ceil(Math.sqrt(Math.max(projects.length, 1))));
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
-    const col = index % cols;
-    const row = Math.floor(index / cols);
+    const col = index % PROJECT_DISTRICT_COLS;
+    const row = Math.floor(index / PROJECT_DISTRICT_COLS);
     const x = col * (PLACE_W + 1);
     const y = projectStartY + row * (PLACE_H + 1);
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
 
-  // Characters at their house porch; unmatched walk the grounds row.
+  // Characters at their house porch; unmatched walk the commons row.
   let orphanX = 0;
   const orphanY = Math.max(1, PLACE_H - 1);
   for (const character of characters) {
@@ -160,7 +165,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   return {
-    cols: Math.max(maxX, 8),
+    cols: Math.max(maxX, PROJECT_DISTRICT_COLS * (PLACE_W + 1)),
     rows: Math.max(maxY, 8),
     entities: laid,
   };

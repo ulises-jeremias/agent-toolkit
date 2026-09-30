@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
@@ -76,6 +76,7 @@ export default function WorldView() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const focusProject = params.get('project');
+  const focusPlace = params.get('place');
 
   const projectsQuery = useSubQuery('project', 'list');
   const memoryQuery = useMemoryList();
@@ -163,6 +164,23 @@ export default function WorldView() {
   const selected = layout.entities.find((entity) => entity.id === selectedId) ?? null;
   const tile = cozyTopdownTheme.tileSize;
 
+  // Palette / deep-link focus: ?place=<entity-id> selects that semantic tile.
+  useEffect(() => {
+    if (!focusPlace || focusPlace === 'projects') return;
+    if (layout.entities.some((entity) => entity.id === focusPlace)) {
+      setSelectedId(focusPlace);
+    }
+  }, [focusPlace, layout.entities]);
+
+  // Entering a project interior selects the room place.
+  useEffect(() => {
+    if (!focusProject) return;
+    const roomId = `place:project:${focusProject}`;
+    if (layout.entities.some((entity) => entity.id === roomId)) {
+      setSelectedId(roomId);
+    }
+  }, [focusProject, layout.entities]);
+
   const gathering = projectsQuery.isPending || jobsQuery.isPending;
 
   const openEntity = (entity: LaidOutEntity) => {
@@ -233,6 +251,7 @@ export default function WorldView() {
                       data-theme-key={entity.themeKey}
                       data-entity-id={entity.id}
                       data-activity={entity.activity ?? 'calm'}
+                      data-selected={entity.id === selectedId ? 'true' : undefined}
                       title={tip}
                       aria-label={`${tip}. Activate to inspect.`}
                       style={{
