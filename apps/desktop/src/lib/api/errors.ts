@@ -1,4 +1,13 @@
-export type ApiErrorKind = 'network' | 'denied' | 'not-found' | 'conflict' | 'rate-limited' | 'invalid' | 'server';
+export type ApiErrorKind =
+  | 'network'
+  | 'denied'
+  | 'not-found'
+  | 'conflict'
+  | 'rate-limited'
+  | 'invalid'
+  | 'server'
+  /** HTTP succeeded but the command reported `ok: false`. */
+  | 'command';
 
 export class ApiError extends Error {
   readonly kind: ApiErrorKind;
@@ -33,6 +42,10 @@ export function recoveryHint(error: unknown): string {
     case 'network':
       return 'The backend is not answering. Wait for it to restart, or restart it from Settings.';
     case 'denied':
+      // The released 1.35.0 backend predates the X-Atk-Desktop first-party gate.
+      if (/cross-site/i.test(error.message)) {
+        return 'This backend is older than the Desktop build and rejects its requests. Update agent-toolkit.';
+      }
       return 'The backend refused this request. Check that the path is inside the active workspace.';
     case 'not-found':
       return 'This backend does not provide that resource. It may be older than this Desktop build.';
@@ -44,5 +57,10 @@ export function recoveryHint(error: unknown): string {
       return 'The request was rejected as invalid. Adjust the input and try again.';
     case 'server':
       return 'The backend failed while handling this. Try again, or check Doctor in Insights.';
+    case 'command':
+      if (/workspace not found/i.test(error.message)) {
+        return 'No workspace is active. Start the backend from inside a workspace folder.';
+      }
+      return 'The command ran and reported a failure. Its output is shown above.';
   }
 }

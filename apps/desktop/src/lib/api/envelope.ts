@@ -34,3 +34,11 @@ export function toEnvelope(wire: unknown): CommandEnvelope {
   }
   return { ok, message, data };
 }
+
+/** Treat a command-level failure as an error so views render it as one. */
+export function requireOk(envelope: CommandEnvelope): CommandEnvelope {
+  if (!envelope.ok) {
+    throw new ApiError('command', 200, envelope.message || envelope.data['error'] || 'The command failed.');
+  }
+  return envelope;
+}
