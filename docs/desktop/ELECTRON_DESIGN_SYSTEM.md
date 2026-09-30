@@ -31,11 +31,15 @@ working reference for implementing it in React.
 | `src/data/` | React hooks over TanStack Query and the Electron bridge. | `lib` |
 | `src/ui/` | Presentational primitives. No data fetching. | `lib` types only |
 | `src/shell/` | App frame: router, context bar, command palette, terminal dock, live indicator, error boundaries. | all of the above |
-| `src/features/` | One folder per destination; composition only. | all of the above |
+| `src/features/` | One folder per destination; composition only. World owns semantic projection + theme resolution + renderer chrome. | all of the above |
+| `src/features/world/model/` | Pure semantic world model + deterministic layout (no React, no sprites as truth). | `lib` |
+| `src/features/world/theme/` | Theme packs keyed by semantic ids ([SEMANTIC_WORLD.md](SEMANTIC_WORLD.md)). | nothing above model |
 
 Domain logic stays in the V backend. The renderer maps envelopes to UI and
 never interprets command semantics beyond what the envelope's `ok` and `data`
-fields say.
+fields say. Spatial presentation follows
+[SEMANTIC_WORLD.md](SEMANTIC_WORLD.md) / [ADR-034](../adrs/ADR-034-semantic-world.md):
+world home, inspectors for work, characters only from proven runtime rows.
 
 ## Tokens
 

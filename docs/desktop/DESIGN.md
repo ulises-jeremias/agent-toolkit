@@ -1,35 +1,55 @@
 # Agent Toolkit Desktop Design Contract
 
 **Status: CURRENT CONTRACT** — governing visual and interaction design
-direction for Agent Toolkit Desktop. Re-confirmed 2026-09-13 at `ecc4d67c`.
+direction for Agent Toolkit Desktop. Re-confirmed 2026-09-13 at `ecc4d67c`;
+**spatial home evolved 2026-09-30** ([ADR-034](../adrs/ADR-034-semantic-world.md),
+[SEMANTIC_WORLD.md](SEMANTIC_WORLD.md)).
 
-This document defines how Agent Toolkit Desktop should look, feel, and present information. It complements [PRODUCT_VISION.md](PRODUCT_VISION.md), [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md), [USER_JOURNEYS.md](USER_JOURNEYS.md), [WORKFLOW_COVERAGE.md](WORKFLOW_COVERAGE.md), and [VISUAL_QA.md](VISUAL_QA.md). It is not an executable token file and it does not override Engine truth, accessibility, or platform constraints.
+This document defines how Agent Toolkit Desktop should look, feel, and present information. It complements [PRODUCT_VISION.md](PRODUCT_VISION.md), [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md), [USER_JOURNEYS.md](USER_JOURNEYS.md), [WORKFLOW_COVERAGE.md](WORKFLOW_COVERAGE.md), [VISUAL_QA.md](VISUAL_QA.md), and [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md). It is not an executable token file and it does not override Engine truth, accessibility, or platform constraints.
 
 The goal is simple:
 
-> A serious native workstation for coding agents, expressed through a warm pixel-art office world.
+> A serious workstation for coding agents: a warm **semantic pixel-art world**
+> that explains the product, with Paper Co. **inspectors** for professional work.
 
-## 0. Visual convergence goal (product direction, 2026-09-07)
+## 0. Visual convergence goal (product direction)
 
-The user has explicitly confirmed the visual direction in
-[`assets/design/`](assets/design/) — anchored by
+### 0.1 Semantic world is the primary spatial goal (2026-09-30)
+
+The **semantic spatial world** is the default home and the primary way the
+product explains itself. Paper Co. inspectors (Operations, Library, Terminal,
+Office attention, Workspace, Insights, Settings) stay professional, dense, and
+fast. Policy:
+
+- **World explains the product.** Places and objects are projections of real
+  domain concepts (workspace, projects, knowledge, memory, tools, jobs).
+- **Inspectors do the work.** Clicking a place opens an existing destination
+  via `href()` / command palette — not a parallel fake dashboard.
+- **No fake life.** Characters exist only for proven agents/runs/jobs. Ambient
+  environment animation is allowed; system activity comes only from real state
+  / SSE. Empty and calm are valid.
+- **Not game-before-tool.** Palette, keyboard, terminal dock, and direct open
+  remain. Do not require walking to be productive.
+- Full vocabulary, theme keys, layout, and renderer decision:
+  [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md) and
+  [ADR-034](../adrs/ADR-034-semantic-world.md).
+
+### 0.2 Paper Co. × concept references (2026-09-07, still binding for inspectors)
+
+The visual direction in [`assets/design/`](assets/design/) — anchored by
 [`concept-board.jpg`](assets/design/concept-board.jpg) and
 [`office.jpg`](assets/design/office.jpg), and guiding
 [`library.jpg`](assets/design/library.jpg),
 [`operations.jpg`](assets/design/operations.jpg),
-[`onboarding.jpg`](assets/design/onboarding.jpg) — as a **first-class product
-goal**: the production Desktop converges as closely as reasonably possible
-toward that aesthetic.
+[`onboarding.jpg`](assets/design/onboarding.jpg) — remains a **first-class
+aesthetic goal for inspector craft**: warm Paper Co. materials, editorial
+typography, dark terminal treatment, coherent pixel materials — not stickers
+on generic panels.
 
 The end state is not "a native GUI using warm colors". It is a serious
-coding-agent workstation that *feels* like the rich Paper Co. pixel-art world
-of those references: original pixel-art agents; desks that unmistakably look
-like desks; coherent office rooms/zones with furniture, shelves, cabinets,
-plants, lamps, rugs, meeting tables; operational props; document/paper/receipt
-objects; warm Paper Co. materials; rich but calm environmental detail;
-editorial typography; the integrated dark terminal treatment; a crafted, cozy,
-premium native-workstation feeling. Pixel art is a coherent **material
-system**, not stickers on generic panels.
+coding-agent workstation whose **home** is a truthful cozy top-down world and
+whose **panels** feel like the rich Paper Co. references. Concept images stay
+directional: do not copy their fictional metrics, statuses, or IA.
 
 For every visible GUI change, actively ask:
 
@@ -78,13 +98,22 @@ Personality is important. It never outranks understanding, safety, input focus, 
 - **Craft over novelty.** Reusable visual grammar beats one-off clever screens.
 - **Standalone identity.** The design may echo Hornero craftsmanship but must not depend on HorneroConfig or sibling repositories.
 
-## 2. Identity: Paper Co. × pixel-art office
+## 2. Identity: Paper Co. inspectors × semantic pixel world
 
-Paper Co. remains the base design language: warm paper, ink, manila, brass, rust, sage, folders, receipts, ledgers, tabs, stamps, and editorial typography.
+Paper Co. remains the base design language for chrome and inspectors: warm
+paper, ink, manila, brass, rust, sage, folders, receipts, ledgers, tabs,
+stamps, and editorial typography.
 
-The evolution is a **pixel-art office workstation** inspired by the broad qualities of classic top-down adventure interiors and cozy simulation games: readable rooms, wooden floors, plants, desks, lamps, bookshelves, filing cabinets, meeting tables, rugs, tiny purposeful characters, and carefully placed environmental details.
+The spatial evolution is a **semantic cozy top-down world** (default theme
+`cozy-topdown`): readable grounds and buildings that mean workspace/projects,
+knowledge annexes, terminal workstations, and characters only when runtime
+evidence exists. Inspectors stay Paper Co.; the world uses original/licensed
+pixel materials resolved through **semantic theme keys**, not hardcoded
+filenames in features.
 
-These are references to a visual tradition, not assets to copy. Do not reproduce copyrighted game sprites, maps, characters, UI, or Munder Difflin artwork.
+These are references to a visual tradition, not assets to copy. Do not
+reproduce copyrighted game sprites, maps, characters, UI, or Munder Difflin /
+Agent Office / Stardew / Zelda artwork.
 
 ### Hornero signature
 
@@ -235,39 +264,44 @@ The shell remains conventional and fast:
 
 Pixel art decorates and contextualizes this shell. It does not replace standard affordances such as buttons, tabs, fields, tables, scrollbars, selection, focus, or resize handles.
 
-The current six primary destinations remain the baseline until journey evidence proves otherwise:
+Primary destinations (Electron shell):
 
-- Office
+- **World** (default home — `/` → `/world`) — semantic spatial explanation
+- Office — attention inspector ("what needs me?")
 - Library
 - Operations
 - Workspace
 - Insights
+- Terminal
 - Settings
 
-Connections may become first-class only if journey evidence justifies it; do not change information architecture merely because a concept image includes a destination.
+World is the home. The others are inspectors / workstations opened from places
+or the nav/palette. Do not add destinations merely to mirror a concept image.
+See [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md).
 
-## 9. Office and Floor Map
+## 9. World and Office
 
-Office is the flagship expression of the product identity.
+**World** is the flagship spatial expression of product identity (ADR-034).
 
-It must answer, without requiring the Floor Map:
+It must answer at a glance, without forcing a walk:
 
-- what needs attention;
-- which work is active;
-- which agents exist and which are running;
-- failures and approvals;
-- relevant recent activity;
-- how to enter a real session or operation.
+- which workspace/harness is active;
+- which projects exist (real `projects/` / project list);
+- whether shared knowledge/memory is present or honestly empty;
+- which jobs/runs have characters (proven only);
+- how to open terminal, workspace, library, or operations in one click / Cmd+K.
 
-The Floor Map is a spatial representation of authoritative agent identity and real activity, not the product's only navigation model.
+**Office** remains the attention inspector: failures, blocked work, self-check
+problems, backend down — without inventing activity.
 
 A useful model is:
 
-> **Operational overview + optional/integrated office world**
+> **Semantic world home + Paper Co. inspectors**
 
-Desks visually read as desks. Rooms remain legible at a glance. Use spatial zones only when they communicate something useful. Candidate zones include Workspace, Meeting, Library, Operations, Lounge, Diagnostics, and Archive; do not create rooms merely to mirror navigation labels.
-
-A catalog agent may have a desk while idle. Only runtime evidence changes the presentation to running, waiting, attention, error, handoff, or other active states.
+Places mean domain concepts. Catalog agents may appear as nameplates/desks
+while idle; only runtime evidence (jobs / swarm runs / sessions) creates
+characters. Do not create rooms merely to mirror every nav label or to preview
+unavailable APIs.
 
 ## 10. Screen-specific design intent
 
@@ -275,9 +309,15 @@ A catalog agent may have a desk while idle. Only runtime evidence changes the pr
 
 Warm reception/welcome-desk feeling. Explain the next choice before technical vocabulary. Pixel illustration builds confidence; it does not compete with setup decisions.
 
+### World
+
+Most expressive visual surface. Semantic places/objects/characters only from
+real state; list fallback always present; clicks open inspectors.
+
 ### Office
 
-Most expressive visual surface. Operational overview and Floor Map coexist without sacrificing truth or discoverability.
+Attention inspector. Dense Paper Co. tables for needs-you and running work;
+not the default home.
 
 ### Library
 
@@ -467,7 +507,7 @@ Update this document when changing a durable visual rule, including:
 - typography roles;
 - pixel-art scale/rendering rules;
 - shell presentation;
-- Office/Floor philosophy;
+- World / Office spatial philosophy (also update [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md) / ADR-034);
 - major component grammar;
 - motion philosophy;
 - visual asset taxonomy.
