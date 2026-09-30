@@ -93,7 +93,8 @@ describe('applyBusEvent', () => {
 
   it('refetches operations domains on backend.resync', () => {
     const queryClient = client();
-    queryClient.setQueryData(qk.report('loops'), { ok: true, message: '', data: {} });
+    queryClient.setQueryData(qk.loops.status('demo'), { ok: true, message: '', data: {} });
+    queryClient.setQueryData(qk.swarms.list(), []);
     applyBusEvent(queryClient, {
       seq: 3,
       boot: 'b',
@@ -106,6 +107,7 @@ describe('applyBusEvent', () => {
       message: 'refetch',
     });
     expect(queryClient.getQueryState(qk.jobs.list())?.isInvalidated).toBe(true);
-    expect(queryClient.getQueryState(qk.report('loops'))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(qk.loops.status('demo'))?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(qk.swarms.list())?.isInvalidated).toBe(true);
   });
 });

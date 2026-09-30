@@ -26,8 +26,8 @@ function dropJob(queryClient: QueryClient, jobId: string): void {
 
 function refetchOperations(queryClient: QueryClient): void {
   void queryClient.invalidateQueries({ queryKey: qk.domain('jobs') });
-  void queryClient.invalidateQueries({ queryKey: qk.report('loops') });
-  void queryClient.invalidateQueries({ queryKey: qk.report('swarms') });
+  void queryClient.invalidateQueries({ queryKey: qk.domain('loops') });
+  void queryClient.invalidateQueries({ queryKey: qk.domain('swarms') });
   void queryClient.invalidateQueries({ queryKey: qk.domain('doctor') });
 }
 
