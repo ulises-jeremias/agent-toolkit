@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router';
 import { useBackend } from '../data/backend';
 import { useTerminalSessions } from '../data/terminal';
 import { setThemePreference, type ThemePreference } from '../design/theme';
+import { takeNextNeedsMe } from '../features/office/attention';
+import { useAttention } from '../features/office/useAttention';
 import { Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
 import { requestOnboardingReplay } from '../features/onboarding/complete';
 import { filterCommands, PALETTE_COMMANDS, SHORTCUTS, type PaletteCommand } from './commands';
@@ -34,6 +36,7 @@ export function CommandPalette() {
   const { href } = useSessionContext();
   const { restartBackend } = useBackend();
   const terminals = useTerminalSessions();
+  const attention = useAttention();
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -113,6 +116,11 @@ export function CommandPalette() {
       case 'session:run-loop':
         navigate(href('/operations', { dialog: 'run-loop' }));
         break;
+      case 'session:next-needs-me': {
+        const target = takeNextNeedsMe(attention.targets);
+        navigate(target ? target.href : href('/office'));
+        break;
+      }
       case 'session:restart-backend':
         void restartBackend();
         break;

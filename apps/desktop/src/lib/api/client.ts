@@ -172,6 +172,10 @@ export class ApiClient {
     return this.json('POST', '/api/v1/jobs' satisfies PathWith<'post'>, { body: request });
   }
 
+  getJob(id: string): Promise<Job> {
+    return this.json('GET', fillPath('/api/v1/jobs/{id}' satisfies PathWith<'get'>, { id }));
+  }
+
   cancelJob(id: string): Promise<Job> {
     return this.json('POST', fillPath('/api/v1/jobs/{id}/cancel' satisfies PathWith<'post'>, { id }));
   }
@@ -195,13 +199,15 @@ export class ApiClient {
     return `${this.baseUrl}${fillPath('/api/v1/jobs/{id}/events' satisfies PathWith<'get'>, { id })}`;
   }
 
-  /** Global bus (`GET /api/v1/events`). Prefer for world presence; job logs stay on jobEventsUrl. */
-  eventsUrl(query?: { types?: string; after?: string }): string {
-    const params = new URLSearchParams();
-    if (query?.types) params.set('types', query.types);
-    if (query?.after) params.set('after', query.after);
-    const suffix = params.toString();
-    return `${this.baseUrl}${'/api/v1/events' satisfies PathWith<'get'>}${suffix ? `?${suffix}` : ''}`;
+  /** Global bus (`GET /api/v1/events`). EventSource sends Last-Event-ID; `since`/`after` for our reopen. */
+  eventsUrl(options: { types?: string; since?: number; after?: string } = {}): string {
+    const path = '/api/v1/events' satisfies PathWith<'get'>;
+    const query = new URLSearchParams();
+    if (options.types) query.set('types', options.types);
+    if (options.since !== undefined) query.set('since', String(options.since));
+    if (options.after) query.set('after', options.after);
+    const suffix = query.toString();
+    return suffix ? `${this.baseUrl}${path}?${suffix}` : `${this.baseUrl}${path}`;
   }
 
   listMemory(): Promise<MemoryListResponse> {

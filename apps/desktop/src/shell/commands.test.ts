@@ -20,4 +20,10 @@ describe('filterCommands', () => {
     const hits = filterCommands(PALETTE_COMMANDS, 'workstation');
     expect(hits.map((command) => command.id)).toEqual(expect.arrayContaining(['go:/terminal', 'session:new-terminal']));
   });
+
+  it('lists Next that needs me as a session command', () => {
+    expect(PALETTE_COMMANDS.map((command) => command.id)).toContain('session:next-needs-me');
+    const hits = filterCommands(PALETTE_COMMANDS, 'needs me');
+    expect(hits.map((command) => command.id)).toContain('session:next-needs-me');
+  });
 });

@@ -55,6 +55,13 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     keywords: ['loop', 'operations', 'workshop'],
   },
   {
+    id: 'session:next-needs-me',
+    group: 'Session',
+    title: 'Next that needs me',
+    hint: 'Cycle crash, failed jobs, then running work',
+    keywords: ['attention', 'failed', 'crash', 'next', 'needs'],
+  },
+  {
     id: 'session:restart-backend',
     group: 'Session',
     title: 'Restart backend',

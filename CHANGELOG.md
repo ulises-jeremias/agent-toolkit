@@ -74,6 +74,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `Last-Event-ID` wins over `?since` and a cursor from another process
   yields `backend.resync`. `GET /api/v1/jobs/{id}` and
   `POST /api/v1/jobs/{id}/retry` (failed or canceled only).
+- Desktop Office is attention-first: Needs you (crash / version-mismatch /
+  harness / failed jobs / failing self-checks), Happening now, Failed,
+  Completed, and What next. Rows use only real job fields and `href()`
+  links. The command palette's "Next that needs me" cycles crash → failed
+  jobs → running jobs. The renderer consumes `GET /api/v1/events` and
+  says so when it must poll.
 - OpenAPI now carries typed response schemas (`components.schemas`) for
   health, selfcheck, jobs and events, sourced from
   `docs/compatibility/api-schemas.yaml` and parity-checked against the V

@@ -18,6 +18,13 @@ test.describe('desktop smoke', () => {
     await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
   });
 
+  test('Office is the Needs you inspector, not home', async ({ page }) => {
+    await page.goto('/#/office');
+    await expect(page.getByRole('heading', { level: 1, name: 'What is happening' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Needs you' })).toBeVisible();
+    await expect(page).not.toHaveURL(/#\/$/);
+  });
+
   test('Ctrl+K opens the command palette', async ({ page }) => {
     await page.goto('/#/world');
     await page.getByRole('button', { name: 'Commands' }).click();

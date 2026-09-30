@@ -1,5 +1,19 @@
+import { execFileSync } from 'node:child_process';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend, type Desktop } from './fixtures';
+
+function killPortListener(port: string): void {
+  try {
+    const pids = execFileSync('lsof', ['-t', `-iTCP:${port}`, '-sTCP:LISTEN'], { encoding: 'utf8' })
+      .trim()
+      .split('\n')
+      .filter(Boolean);
+    for (const pid of pids) process.kill(Number(pid), 'SIGKILL');
+    return;
+  } catch {
+    execFileSync('fuser', ['-k', `${port}/tcp`], { stdio: 'pipe' });
+  }
+}
 
 const DESTINATIONS: ReadonlyArray<{ link: string; path: string }> = [
   { link: 'World', path: '/world' },
@@ -147,6 +161,30 @@ test('theme choice applies immediately and survives a reload', async () => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'paper');
 });
 
+test('a failed job appears in Office attention and Next that needs me opens it', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
+  await page.getByRole('button', { name: 'Start job' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Start a job' });
+  await dialog.getByRole('textbox', { name: 'Command', exact: true }).fill('no-such-command');
+  await dialog.getByRole('button', { name: 'Start job' }).click();
+  await expect(dialog).toBeHidden();
+  await expect(page.getByRole('region', { name: 'no-such-command' }).getByText('failed')).toBeVisible();
+
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  const needsYou = page.getByRole('region', { name: 'Needs you' });
+  await expect(needsYou).toContainText(/no-such-command failed/);
+  await expect(needsYou).not.toContainText(/Nothing needs you/);
+  await expect(page.getByRole('main')).not.toContainText(/quiet/i);
+  await expect(page.getByRole('region', { name: 'Failed' })).toContainText('no-such-command');
+
+  await page.keyboard.press('Control+k');
+  const palette = page.getByRole('dialog', { name: 'Commands' });
+  await palette.getByLabel('Filter commands').fill('Next that needs me');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/job=/);
+});
+
 test('terminal runs a real pseudo-terminal session that survives navigation', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }).click();
@@ -243,4 +281,22 @@ test('an exited session keeps its output and can restart', async () => {
   await expect(page.getByRole('status').filter({ hasText: 'exit code 7' })).toBeVisible();
   await page.getByRole('button', { name: 'Restart' }).click();
   await expect(page.getByRole('tab', { name: /e2e-exit · e2e-run · \.ai-workspace · running/ })).toBeVisible();
+});
+
+test('a crashed backend is attention, not a quiet office', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
+  const url = await page.evaluate(async () => {
+    const state = await window.atk?.backendStatus();
+    return state?.url ?? null;
+  });
+  expect(url).toBeTruthy();
+  const port = new URL(url as string).port;
+  killPortListener(port);
+
+  await expect(page.getByRole('alert')).toContainText(/crashed|not answering|stopped/i);
+  const needsYou = page.getByRole('region', { name: 'Needs you' });
+  await expect(needsYou).toContainText(/Backend crashed|Backend not answering|Backend failed/i);
+  await expect(needsYou).not.toContainText(/Nothing needs you/);
+  await expect(page.getByRole('main')).not.toContainText(/the workstation is quiet/i);
 });

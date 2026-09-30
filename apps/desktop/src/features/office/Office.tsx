@@ -1,11 +1,8 @@
-import { Link } from 'react-router';
-import { useBackend, useSelfcheck } from '../../data/backend';
-import { sortJobs, useJobs } from '../../data/jobs';
-import { useLiveStatus } from '../../data/live';
+import { Link, useNavigate } from 'react-router';
 import { isTerminalJobStatus, type Job } from '../../lib/api';
 import { formatDuration, formatWhen, jobCommandLine, jobDuration } from '../../lib/format';
-import { useSessionContext } from '../../shell/useSessionContext';
 import {
+  Button,
   EmptyState,
   ErrorState,
   LoadingState,
@@ -18,106 +15,64 @@ import {
   VisuallyHidden,
   jobTone,
 } from '../../ui';
-
-const RECENT_FAILURE_MS = 24 * 60 * 60 * 1000;
-
-interface AttentionItem {
-  key: string;
-  tone: 'err' | 'warn';
-  title: string;
-  detail: string;
-  action: { to: string; label: string };
-}
+import { attentionVacancy, takeNextNeedsMe, type HrefFn } from './attention';
+import { useAttention } from './useAttention';
+import styles from './office.module.css';
 
 /**
- * Office: what is happening and what needs me?
- * Needs-me is only what a person must act on: the backend being down,
- * failed work, and failing self-checks. Running work is shown separately.
+ * Office: attention-first home for the current harness.
+ * Answers happening / needs me / failed / completed / next from health,
+ * self-check, jobs and backend-status. Never invents agent or run fields.
  */
 export default function Office() {
-  const { backend } = useBackend();
-  const { href } = useSessionContext();
-  const live = useLiveStatus();
-  const jobs = useJobs();
-  const selfcheck = useSelfcheck();
+  const navigate = useNavigate();
+  const model = useAttention();
+  const vacancy = attentionVacancy(model.input, model.items);
   const now = Date.now();
+  const bus = model.live.bus;
+  const stale =
+    bus.state === 'unavailable'
+      ? 'Live events unavailable; jobs refresh every 5 seconds.'
+      : bus.state === 'reconnecting' || bus.state === 'offline'
+        ? 'Event bus is not live; showing last-known jobs.'
+        : null;
 
-  const all = sortJobs(jobs.data);
-  const running = all.filter((job) => !isTerminalJobStatus(job.status));
-  const finished = all.filter((job) => isTerminalJobStatus(job.status));
-  const recentFailures = finished.filter((job) => {
-    if (job.status !== 'failed' && job.status !== 'rejected') return false;
-    const ended = Date.parse(job.ended_at || job.started_at);
-    return Number.isNaN(ended) || now - ended < RECENT_FAILURE_MS;
-  });
-
-  const attention: AttentionItem[] = [];
-  const backendDown = backend?.status === 'crashed' || backend?.status === 'failed' || backend?.status === 'stopped';
-  if (backendDown || live.connection === 'offline') {
-    attention.push({
-      key: 'backend',
-      tone: 'err',
-      title: backendDown ? `Backend ${backend?.status}` : 'Backend not answering',
-      detail: backend?.detail ?? 'Nothing below can refresh until it answers.',
-      action: { to: href('/settings'), label: 'Open backend settings' },
-    });
-  }
-  if (backend?.harness?.notice) {
-    attention.push({
-      key: 'harness',
-      tone: 'warn',
-      title: backend.harness.source === 'fallback' ? 'Harness not found' : 'Harness override ignored',
-      detail: backend.harness.notice,
-      action: { to: href('/settings'), label: 'See harness' },
-    });
-  }
-  for (const job of recentFailures) {
-    attention.push({
-      key: job.id,
-      tone: 'err',
-      title: `${job.cmd} ${job.status}`,
-      detail: `${jobCommandLine(job)} · exit ${job.exit_code} · ${formatWhen(job.ended_at || job.started_at, now)}`,
-      action: { to: href('/operations', { job: job.id }), label: 'Review job' },
-    });
-  }
-  for (const check of selfcheck.data?.checks ?? []) {
-    if (check.status === 'ok') continue;
-    attention.push({
-      key: `check-${check.name}`,
-      tone: check.status === 'err' ? 'err' : 'warn',
-      title: `Self-check: ${check.name}`,
-      detail: check.detail,
-      action: { to: href('/settings'), label: 'See self-check' },
-    });
-  }
-
-  const gathering = jobs.isPending || selfcheck.isPending;
-  const failedToGather = jobs.isError && selfcheck.isError;
+  const goNext = () => {
+    const target = takeNextNeedsMe(model.targets);
+    navigate(target ? target.href : model.href('/office'));
+  };
 
   return (
     <>
       <PageHeader
         eyebrow="Office"
-        title="What needs you"
-        lede="Failures and blocked work first, then what is running."
+        title="What is happening"
+        lede={<span className={styles.ledeFresh}>{model.lede}</span>}
+        actions={
+          <Button variant="primary" onClick={goNext} disabled={model.targets.length === 0}>
+            Next that needs me
+          </Button>
+        }
       />
       <Stack>
         <Panel
           tone="manila"
           title="Needs you"
-          meta={gathering ? undefined : `${attention.length} ${attention.length === 1 ? 'item' : 'items'}`}
+          meta={
+            model.items.length > 0 ? `${model.items.length} ${model.items.length === 1 ? 'item' : 'items'}` : undefined
+          }
         >
-          {gathering && attention.length === 0 ? (
+          {vacancy.kind === 'gathering' && model.items.length === 0 ? (
             <LoadingState label="Checking jobs and self-checks" />
-          ) : failedToGather && attention.length === 0 ? (
+          ) : vacancy.kind === 'unknown' && model.items.length === 0 ? (
             <ErrorState
-              title="Could not check for attention items"
-              error={jobs.error}
-              onRetry={() => void jobs.refetch()}
+              title="Could not prove that nothing needs you"
+              error={model.jobs.error ?? model.selfcheck.error ?? new Error(vacancy.reason)}
+              onRetry={() => void model.jobs.refetch()}
             />
-          ) : attention.length === 0 ? (
+          ) : model.items.length === 0 ? (
             <EmptyState title="Nothing needs you.">
-              No failed jobs in the last day and every self-check passes.
+              No failed jobs and every self-check passes. Running work is listed below, not here.
             </EmptyState>
           ) : (
             <Table>
@@ -132,15 +87,15 @@ export default function Office() {
                 </tr>
               </thead>
               <tbody>
-                {attention.map((item) => (
-                  <tr key={item.key}>
+                {model.items.map((item) => (
+                  <tr key={item.key} data-attention={item.kind}>
                     <td>
-                      <StatusBadge tone={item.tone} label={item.tone === 'err' ? 'Failed' : 'Warning'} />
+                      <StatusBadge tone={item.tone} label={item.tone === 'err' ? 'failed' : 'warning'} />
                     </td>
                     <th scope="row">{item.title}</th>
                     <td>{item.detail}</td>
                     <td data-align="end">
-                      <Link to={item.action.to}>{item.action.label}</Link>
+                      <Link to={item.href}>{item.label}</Link>
                     </td>
                   </tr>
                 ))}
@@ -149,54 +104,96 @@ export default function Office() {
           )}
         </Panel>
 
-        <Panel title="Running now" meta={jobs.isSuccess ? `${running.length} active` : undefined}>
-          {jobs.isPending ? (
+        <Panel
+          title="Happening now"
+          meta={
+            model.jobs.isSuccess
+              ? `${model.running.length} running`
+              : bus.state === 'live'
+                ? 'event bus live'
+                : undefined
+          }
+        >
+          {stale ? <p className={styles.stale}>{stale}</p> : null}
+          {model.jobs.isPending ? (
             <LoadingState label="Loading jobs" />
-          ) : jobs.isError ? (
-            <ErrorState title="Could not load jobs" error={jobs.error} onRetry={() => void jobs.refetch()} />
-          ) : running.length === 0 ? (
+          ) : model.jobs.isError ? (
+            <ErrorState
+              title="Could not load jobs"
+              error={model.jobs.error}
+              onRetry={() => void model.jobs.refetch()}
+            />
+          ) : model.running.length === 0 ? (
             <EmptyState title="No work is running.">
-              <Link to={href('/operations')}>Start a job in Operations</Link>
+              <Link to={model.href('/operations')}>Start a job in Operations</Link>
             </EmptyState>
           ) : (
-            <JobRows jobs={running} now={now} href={href} />
+            <JobRows jobs={model.running} now={now} href={model.href} />
           )}
         </Panel>
 
-        {jobs.isSuccess && finished.length > 0 ? (
-          <Panel title="Recently finished" meta="Last five">
-            <JobRows jobs={finished.slice(0, 5)} now={now} href={href} />
+        <Panel title="Failed" meta={model.jobs.isSuccess ? `${model.failed.length}` : undefined}>
+          {model.jobs.isPending ? (
+            <LoadingState label="Loading jobs" />
+          ) : model.jobs.isError ? (
+            <ErrorState
+              title="Could not list failed jobs"
+              error={model.jobs.error}
+              onRetry={() => void model.jobs.refetch()}
+            />
+          ) : model.failed.length === 0 ? (
+            <EmptyState title="Nothing has failed.">Failed and rejected jobs land here and in Needs you.</EmptyState>
+          ) : (
+            <JobRows jobs={model.failed} now={now} href={model.href} />
+          )}
+        </Panel>
+
+        {model.jobs.isSuccess && model.finished.length > 0 ? (
+          <Panel title="Completed" meta={`${model.finished.length} recently finished`}>
+            <JobRows jobs={model.finished.slice(0, 5)} now={now} href={model.href} />
           </Panel>
         ) : null}
+
+        <Panel title="What next">
+          {model.actions.length === 0 ? (
+            <EmptyState title="No next step from this harness." />
+          ) : (
+            <ol className={styles.nextList}>
+              {model.actions.map((action) => (
+                <li key={action.key}>
+                  <Link to={action.href}>{action.label}</Link>
+                  <span className={styles.nextDetail}>{action.detail}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </Panel>
       </Stack>
     </>
   );
 }
 
-function JobRows({
-  jobs,
-  now,
-  href,
-}: {
-  jobs: Job[];
-  now: number;
-  href: (path: string, extra?: Record<string, string | undefined>) => string;
-}) {
+function JobRows({ jobs, now, href }: { jobs: Job[]; now: number; href: HrefFn }) {
   return (
     <Table>
       <thead>
         <tr>
           <th scope="col">Status</th>
           <th scope="col">Command</th>
+          <th scope="col">Workspace</th>
           <th scope="col">Started</th>
           <th scope="col" data-align="end">
             Duration
+          </th>
+          <th scope="col">
+            <VisuallyHidden>Open</VisuallyHidden>
           </th>
         </tr>
       </thead>
       <tbody>
         {jobs.map((job) => {
           const duration = jobDuration(job, now);
+          const extra = job.workspace ? { workspace: job.workspace } : undefined;
           return (
             <tr key={job.id}>
               <td>
@@ -207,8 +204,18 @@ function JobRows({
                   <Mono>{jobCommandLine(job)}</Mono>
                 </Link>
               </th>
+              <td>
+                <Mono>{job.workspace || '—'}</Mono>
+              </td>
               <td>{formatWhen(job.started_at, now)}</td>
               <td data-align="end">{duration === null ? '—' : formatDuration(duration)}</td>
+              <td data-align="end">
+                <div className={styles.rowLinks}>
+                  <Link to={href('/operations', { job: job.id })}>Operations</Link>
+                  <Link to={href('/terminal', extra)}>Terminal</Link>
+                  <Link to={href('/insights', extra)}>Insights</Link>
+                </div>
+              </td>
             </tr>
           );
         })}
