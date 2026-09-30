@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { qk } from '../lib/query/keys';
 import { requireClient, useBackend } from './backend';
 
+/** Typed catalog GETs (`/agents`, `/tools`, `/providers`, `/models`). Not subcommand envelopes. */
 /** GET /api/v1/tools probes `--version` per CLI; cache instead of refetching on every render. */
 export const TOOLS_STALE_MS = 60_000;
 

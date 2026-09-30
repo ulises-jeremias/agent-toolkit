@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BackendState } from '../types/electron';
-import { backendBannerCopy, backendCanRestart } from './backend-copy';
+import { backendBannerCopy, backendCanRestart, backendProblemCopy } from './backend-copy';
 
 const base: BackendState = {
   status: 'failed',
@@ -71,5 +71,13 @@ describe('backendCanRestart', () => {
     expect(backendCanRestart({ ...base, status: 'starting' })).toBe(false);
     expect(backendCanRestart({ ...base, status: 'version-mismatch' })).toBe(false);
     expect(backendCanRestart({ ...base, status: 'ready' })).toBe(false);
+  });
+});
+
+describe('backendProblemCopy', () => {
+  it('names binary-rejected separately from a crash', () => {
+    expect(backendProblemCopy({ ...base, problem: 'binary-rejected' })).toMatch(/stale binary/);
+    expect(backendProblemCopy({ ...base, problem: 'no-backend' })).toMatch(/No agent-toolkit binary/);
+    expect(backendProblemCopy({ ...base, problem: null })).toBeNull();
   });
 });

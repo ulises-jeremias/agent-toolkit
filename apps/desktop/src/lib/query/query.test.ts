@@ -15,6 +15,8 @@ describe('query keys', () => {
       qk.sub('workspace', 'budget', { workspace: '/b' }),
     );
     expect(qk.sub('workspace', 'context')).toEqual(qk.sub('workspace', 'context', {}));
+    expect(qk.catalog.tools()[0]).toBe('tools');
+    expect(qk.catalog.agents()[0]).toBe('agents');
   });
 });
 

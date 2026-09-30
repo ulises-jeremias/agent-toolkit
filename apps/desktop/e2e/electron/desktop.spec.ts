@@ -123,6 +123,42 @@ test('workspace reads the scratch workspace through the backend', async () => {
   await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);
 });
 
+test('library shows catalog vs detected vs configured vs verified without dumping envelopes', async () => {
+  const { page } = desktop;
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Library' }).click();
+  const tools = page.getByRole('region', { name: 'Coding tools' });
+  await expect(tools.getByRole('columnheader', { name: 'Detected' })).toBeVisible();
+  await expect(tools.getByRole('columnheader', { name: 'Configured' })).toBeVisible();
+  await expect(tools.getByRole('columnheader', { name: 'Enabled' })).toBeVisible();
+  await expect(tools.getByRole('columnheader', { name: 'Verified' })).toBeVisible();
+  await expect(tools.getByText('unknown').first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Personas' })).toContainText(/architect|implementer/);
+  await expect(page.getByText(/plugin\/list/i)).toHaveCount(0);
+});
+
+test('insights shows doctor checks and usage without invented cost', async () => {
+  const { page } = desktop;
+  await waitForBackend(page);
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Insights' }).click();
+  const doctor = page.getByRole('region', { name: 'Doctor' });
+  await expect(doctor.getByRole('columnheader', { name: 'Check' })).toBeVisible();
+  await expect(doctor.getByText(/health score|\$\d/i)).toHaveCount(0);
+  const usage = page.getByRole('region', { name: 'Usage by tool' });
+  await expect(usage.getByRole('columnheader', { name: 'Cost' })).toBeVisible();
+  await expect(usage.getByText('Unknown').first()).toBeVisible();
+});
+
+test('settings keeps Paper/Ink/System and names a rejected binary as a table when present', async () => {
+  const { page } = desktop;
+  await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
+  await expect(page.getByRole('radio', { name: /Paper/ })).toBeVisible();
+  await expect(page.getByRole('radio', { name: /Ink/ })).toBeVisible();
+  await expect(page.getByRole('radio', { name: /System/ })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Backend' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Change harness…' })).toBeVisible();
+});
+
 test('a job started from Operations runs on the backend and streams to completion', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
