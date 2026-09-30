@@ -138,9 +138,10 @@ running.", "Could not list personas". Status labels stay lowercase because
 they are the backend's status words. Buttons are verbs ("Start job", "Apply
 fixes"), and confirmation buttons repeat the verb ("Uninstall").
 
-Operations is the **workshop inspector** (jobs, loops, swarms, doctor), not a
-second home. The world and Office link here with `job=` / `loop=`. Do not
-invent NPCs, progress bars, or dashboard metrics the backend did not return.
+Operations is the **workshop inspector** — a Paper Co. operations board the
+world opens (`job=` / `loop=` / `swarm=`). Paper job table, manila doctor,
+brass on the selected row. Do not invent NPCs, progress bars, or dashboard
+metrics the backend did not return.
 
 ## Data hooks
 

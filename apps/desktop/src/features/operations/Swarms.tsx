@@ -53,7 +53,7 @@ export function SwarmsPanel({
 
   return (
     <>
-      <div className={styles.split}>
+      <div className={`${styles.split} ${styles.board}`}>
         <Panel title="Swarms" meta={list.isSuccess ? `${runs.length} on the backend` : 'GET /api/v1/swarms'}>
           <QueryView query={list} loading="Listing swarm runs" errorTitle="Could not list swarm runs">
             {() =>

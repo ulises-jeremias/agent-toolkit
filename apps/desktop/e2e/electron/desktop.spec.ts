@@ -96,7 +96,7 @@ test('Operations shows doctor, loops and swarms from live endpoints', async () =
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Operations' }).click();
   await expect(page.getByRole('heading', { level: 1, name: 'Workshop' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Doctor' })).toBeVisible();
-  await expect(page.getByRole('region', { name: 'Jobs' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Board' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Loops' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Swarms' })).toContainText(/GET \/api\/v1\/swarms|No swarm runs/);

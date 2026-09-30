@@ -325,7 +325,7 @@ Feels like an organized capability library rather than a generic app marketplace
 
 ### Operations
 
-Workshop / inspector, not a second home dashboard. The world links here to inspect a real job, loop, swarm, or doctor report. Dense conventional controls. No decorative NPCs. Job progress is shown only when it is measured from real runtime sources; otherwise it is omitted — never estimated to fill a bar.
+Workshop / inspector — a Paper Co. operations board the world opens, not a second home dashboard. Real job table (status, command, started, duration, exit). Manila for doctor. Brass marks the selected row. No decorative NPCs. Job progress is shown only when it is measured from real runtime sources; otherwise it is omitted — never estimated to fill a bar.
 
 ### Workspace
 

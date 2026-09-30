@@ -78,7 +78,7 @@ export default function Operations() {
       <PageHeader
         eyebrow="Operations"
         title="Workshop"
-        lede="Inspect a job, loop, swarm or doctor report. The world and Office link here — this is not a second home."
+        lede="The world opens a job, loop, swarm or doctor report here. The board lists only what serve returned."
         actions={
           <>
             <Button
@@ -112,8 +112,8 @@ export default function Operations() {
         onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
       />
       <Stack>
-        <div className={styles.split}>
-          <Panel title="Jobs" meta={jobs.isSuccess ? `${list.length} on the backend` : undefined}>
+        <div className={`${styles.split} ${styles.board}`}>
+          <Panel title="Board" meta={jobs.isSuccess ? `${list.length} on the backend` : undefined}>
             <QueryView query={jobs} loading="Loading jobs" errorTitle="Could not load jobs">
               {() =>
                 list.length === 0 ? (
