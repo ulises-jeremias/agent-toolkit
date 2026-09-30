@@ -36,6 +36,8 @@ Single source: [`docs/adrs/`](./) — 35 records. Engineering ADRs use `ADR-0xx`
 | [ADR-030](ADR-030-capability-contract-binary-first.md) | Capability contract — binary-first (supersedes ADR-029) |
 | [ADR-031](ADR-031-v-master.md) | V master as baseline for entire toolkit |
 | [ADR-032](ADR-032-desktop-gui-framework.md) | Desktop GUI framework: vlang/gui wrap (Phase 0 spike #1018) |
+| [ADR-033](ADR-033-electron-desktop.md) | Desktop: Electron + React canonical; V remains core/CLI/backend (Proposed) |
+| [ADR-034](ADR-034-semantic-world.md) | Desktop: semantic spatial world as primary home |
 | [0001](0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
 | [0002](0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
 | [0003](0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |

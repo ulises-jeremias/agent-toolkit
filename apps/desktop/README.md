@@ -18,8 +18,10 @@ with **pnpm** only — one canonical lockfile at the repo root.
   (health-gated, version-checked, crash-detected, clean shutdown), narrow
   typed preload bridge (`contextIsolation`, no `nodeIntegration`), and the
   node-pty terminal transport adapter.
-- Destinations: Office, Operations, Workspace, Library, Insights, Terminal,
-  Settings — all controls hit real backend endpoints.
+- Destinations: **World** (default home), Office, Operations, Workspace,
+  Library, Insights, Terminal, Settings — all controls hit real backend
+  endpoints. Spatial contract:
+  [SEMANTIC_WORLD.md](../../docs/desktop/SEMANTIC_WORLD.md).
 
 ## Develop
 

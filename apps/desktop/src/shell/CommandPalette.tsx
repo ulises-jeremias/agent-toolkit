@@ -89,8 +89,16 @@ export function CommandPalette() {
     }
     setOpen(false);
     if (command.id.startsWith('go:')) {
-      const path = command.id.slice(3);
-      navigate(href(path));
+      const target = command.id.slice(3);
+      if (target === 'world-knowledge') {
+        navigate(href('/world'));
+        return;
+      }
+      if (target === 'world-terminal') {
+        navigate(href('/terminal'));
+        return;
+      }
+      navigate(href(target));
       return;
     }
     switch (command.id) {

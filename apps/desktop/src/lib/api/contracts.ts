@@ -64,3 +64,51 @@ export interface MessageResponse {
   ok: boolean;
   message: string;
 }
+
+/** OpenAPI `MemoryEntry` (list omits body). */
+export interface MemoryEntry {
+  id: string;
+  kind: string;
+  title: string;
+  snippet: string;
+  body: string;
+  tags: string[];
+  provenance: {
+    file: string;
+    author: string;
+    timestamp: string;
+    project: string;
+    agent: string;
+  };
+}
+
+export interface MemoryListResponse {
+  ok: boolean;
+  entries: MemoryEntry[];
+}
+
+/** OpenAPI `ApiEvent.type` on GET /api/v1/events. */
+export type ApiEventType =
+  | 'backend.ready'
+  | 'backend.resync'
+  | 'job.created'
+  | 'job.updated'
+  | 'job.deleted'
+  | 'loop.started'
+  | 'loop.finished'
+  | 'swarm.changed'
+  | 'memory.changed'
+  | 'install.started'
+  | 'install.finished';
+
+export interface ApiEvent {
+  seq: number;
+  boot: string;
+  type: ApiEventType | (string & {});
+  at: string;
+  subject: string;
+  status: string;
+  exit_code: number;
+  ref: string;
+  message: string;
+}

@@ -11,17 +11,23 @@ a rewrite.
 
 ## Shell and navigation
 
-The active workspace and Search / Run are always discoverable. Keep six primary
-destinations while validating actual journeys:
+The active workspace and Search / Run are always discoverable. Electron Desktop
+primary destinations (see [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md),
+[ADR-034](../adrs/ADR-034-semantic-world.md)):
 
 | Destination | User question | Contents |
 |---|---|---|
-| Office | What needs attention now? | Setup, approvals, failures, running work, recent activity, session entry |
+| **World** (default home) | Where am I in this toolkit, and what is real here? | Semantic places/objects/characters from domain state; list fallback; click → inspectors |
+| Office | What needs attention now? | Failures, blocked work, self-check, backend; running work summary |
 | Library | What can I use or add? | Skills, agents, products and packs with clear distinctions |
 | Operations | What is running and how do I control it? | Jobs, loops, swarms, Doctor |
 | Workspace | Where am I working? | Workspace lifecycle, projects, context, files and relevant Git changes |
 | Insights | What happened over time? | Measured usage, cost, budgets and execution history |
+| Terminal | Where do I work with agents directly? | PTY sessions |
 | Settings | How is the product configured? | Appearance, language, scale, motion, setup and coding-tool/MCP connections |
+
+World is the home. Other destinations are inspectors/workstations opened from
+places, the nav, or the command palette — not competing spatial homes.
 
 Connections initially have a clearly labeled setup home in Settings and contextual
 entry points from installation and Doctor. Promote Connections to primary navigation
@@ -30,8 +36,8 @@ merely to match a CLI command.
 
 Office prioritizes attention, running operations and useful next actions. An empty
 runtime says "No agents are currently running." A catalog agent is not a running
-process. Recent activity contains real events only. The optional floor map must
-not be needed to find operations or sessions.
+process. Recent activity contains real events only. The world must not be required
+to find operations or sessions — palette and nav remain.
 
 ## Shared action and entity model
 

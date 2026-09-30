@@ -23,6 +23,7 @@ Use the narrowest current source of truth instead of old issue prose or historic
 | Desktop product | [`docs/desktop/PRODUCT_VISION.md`](docs/desktop/PRODUCT_VISION.md) |
 | Desktop interaction model | [`docs/desktop/UX_ARCHITECTURE.md`](docs/desktop/UX_ARCHITECTURE.md) |
 | Desktop visual design | [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md) |
+| Desktop semantic world (primary spatial home) | [`docs/desktop/SEMANTIC_WORLD.md`](docs/desktop/SEMANTIC_WORLD.md), [`docs/adrs/ADR-034-semantic-world.md`](docs/adrs/ADR-034-semantic-world.md) |
 | Desktop journeys / coverage | [`docs/desktop/USER_JOURNEYS.md`](docs/desktop/USER_JOURNEYS.md), [`docs/desktop/WORKFLOW_COVERAGE.md`](docs/desktop/WORKFLOW_COVERAGE.md) |
 | Desktop truth ledger | [`docs/desktop/TRUTH_LEDGER.md`](docs/desktop/TRUTH_LEDGER.md) |
 | Desktop visual acceptance | [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md) |

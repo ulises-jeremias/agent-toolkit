@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend, type Desktop } from './fixtures';
 
 const DESTINATIONS: ReadonlyArray<{ link: string; path: string }> = [
+  { link: 'World', path: '/world' },
   { link: 'Office', path: '/office' },
   { link: 'Operations', path: '/operations' },
   { link: 'Workspace', path: '/workspace' },
@@ -26,7 +27,7 @@ test.afterAll(async () => {
 test('supervisor starts the real backend and the shell connects', async () => {
   const { page } = desktop;
   await waitForBackend(page);
-  await expect(page.getByRole('heading', { level: 1, name: 'What needs you' })).toBeVisible();
+  await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toBeVisible();
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 

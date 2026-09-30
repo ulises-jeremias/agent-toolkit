@@ -1,15 +1,18 @@
 # World View — Workshop Metaphor
 
-> **SUPERSEDED 2026-09-08 (in part).** The governing visual authority is
-> now [DESIGN.md](DESIGN.md) (§0 visual-convergence goal / Paper Co. v1) and the
-> design references in [assets/design/](assets/design/). The **Workshop
-> metaphor, vector-sprite vocabulary, and workbench/rig zoning below are
-> historical**: the production visual language is the Paper Co. pixel-art
-> office (agent desks, operations, approvals, receipts, diagnostics) built
-> on the pixel-art foundation from the Paper Co. visual-parity milestone. The
-> **motion/reduced-motion, no-fake-gamification, and plane-guard contracts
-> below remain binding.** Issue #1065 is narrowed to motion/HDPI/audio
-> stance accordingly.
+> **SUPERSEDED 2026-09-30 for spatial product authority.** The primary spatial
+> contract is now [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md) and
+> [ADR-034](../adrs/ADR-034-semantic-world.md): Electron hybrid semantic world
+> as default home; Paper Co. inspectors for work. The Workshop metaphor,
+> vector-sprite vocabulary, and workbench/rig zoning below are **historical**.
+>
+> **Still binding from this document:** no-fake-gamification; motion only from
+> real state; `reduced-motion`; plane-guard lessons (domain truth not in the
+> view). Issue #1065 motion/HDPI/audio stance remains relevant where native
+> surfaces still exist.
+>
+> **SUPERSEDED 2026-09-08 (in part).** Paper Co. visual authority:
+> [DESIGN.md](DESIGN.md).
 
 > **EPIC #1013 — World View + game presentation** — Workshop vertical slice.
 > `modules/desktop/world/` — `V 0.5.2`, `VMODULES=modules`, `import json`, single-repo-one-binary `1.27.0`, `make.vsh` + `gen-embedded`, `docs/ARCHITECTURE.md` planes.
