@@ -35,7 +35,8 @@ Regenerate after changing the contract:
 - `GET /api/v1/selfcheck` — runtime coherence: embedded OpenAPI freshness vs
   running binary, jobs dir writability, bind policy, and a live diff of
   registered routes vs the embedded OpenAPI (`route_manifest_match`)
-- Read APIs — `inventory`, `doctor`, `matrix`, `diff`, `loops`, `swarms`
+- Read APIs — `inventory`, `doctor`, `matrix`, `diff`, typed `loops` /
+  `swarms` (see [Swarms and loops](#swarms-and-loops))
 - Execution APIs — thin proxies over core (`install`, `update`, `uninstall`,
   `skills/:sub`, `mcp/:sub`, `plugin/:sub`, `workspace/:sub`, `memory/:sub`,
   `project/:sub`, `loops/:sub`, `dc/:sub`, `swarms/:sub`, `build`)
@@ -179,6 +180,28 @@ that leave `knowledge/` are rejected.
   for the typed routes above; they are not CLI subcommands yet.
 
 Add/edit/archive emit `memory.changed`.
+
+## Swarms and loops
+
+Typed work APIs over the filesystem swarm SoT and loop dirs. `?workspace=`
+is contained like other serve workspace fields.
+
+- `GET /api/v1/swarms` — runs (`run_id`, `recipe`, `backend`, `run_state`,
+  `created_at`, `task`).
+- `GET /api/v1/swarms/runs/{id}` — run plus budget, approvals, handoffs,
+  tasks, artifacts, trace tail. `budget.cost_status` is `unavailable`
+  unless a cost limit or spend is recorded.
+- `GET /api/v1/swarms/runs/{id}/handoffs|tasks|approvals|artifacts`
+- `POST /api/v1/swarms/runs/{id}/approve` `{gate_id}`
+- `POST /api/v1/swarms/runs/{id}/reject` `{gate_id, reason}`
+- `POST /api/v1/swarms/runs/{id}/stop` — cancel. Mutations emit
+  `swarm.changed`.
+- Tasks are the durable handoff queue (status = handoff state, owner =
+  `to` role, `blocked_reason` only when `blocking` and not terminal).
+- `GET /api/v1/loops` — installed loops. `GET /loops/{name}/status`,
+  `/audit`, `/history`, `/cost`. Cost is `unavailable` unless traces
+  record tokens (audit). The generic `swarms/:sub` and `loops/:sub`
+  routes remain for CLI-parity writes.
 
 ## Security defaults (ADR-028)
 
