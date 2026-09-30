@@ -143,6 +143,8 @@ commands:
     platform_notes: []
     tests: ["tests/test_skills_cli.py"]
     migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
+    api_subcommands: ["list", "sync", "validate", "help"]
+    api_body: ["domain:string", "tools:string[]"]
 
   - name: mcp
     aliases: []
@@ -159,6 +161,8 @@ commands:
     platform_notes: []
     tests: ["tests/test_mcp_cli.py"]
     migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
+    api_subcommands: ["list", "setup", "health", "doctor", "uninstall", "help"]
+    api_body: ["provider:string", "offline:boolean"]
 
   - name: plugin
     aliases: []
@@ -175,6 +179,8 @@ commands:
     platform_notes: []
     tests: []
     migration: {wave: 4, complexity: medium, risk: medium, disposition: rewrite-v}
+    api_subcommands: ["sync", "check", "help"]
+    api_body: []
 
   - name: completion
     api: false
@@ -208,6 +214,10 @@ commands:
     platform_notes: ["runner availability varies"]
     tests: ["tests/test_loop_*.py"]
     migration: {wave: 5, complexity: high, risk: high, disposition: rewrite-v}
+    # HTTP excludes `run` (use POST /api/v1/loops/{name}/run, job-backed) and
+    # the gate-* plumbing (reads the server process argv/env).
+    api_subcommands: ["init", "status", "audit", "cost", "schedule", "sync", "list", "ls", "templates", "help"]
+    api_body: ["workspace:string", "name:string", "custom_name:string", "force:boolean", "runner:string", "model:string", "pack:string", "no_llm:boolean", "dry_run:boolean", "cron:string", "platform:string=local|github-actions", "list_mode:boolean", "remove_mode:boolean", "status_mode:boolean"]
 
   - name: workspace
     aliases: []
@@ -224,6 +234,8 @@ commands:
     platform_notes: []
     tests: ["tests/test_workspace_commands.py", "modules/agent_toolkit_core/workspace_test.v"]
     migration: {wave: 5, complexity: high, risk: medium, disposition: rewrite-v}
+    api_subcommands: ["init", "context", "sync", "use-persona", "handoff", "history", "personas", "load", "profiles", "validate", "budget", "help"]
+    api_body: ["workspace:string", "dir:string", "name:string", "explain:boolean", "arg:string", "profile:string", "pack:string"]
 
   - name: memory
     aliases: []
@@ -240,6 +252,8 @@ commands:
     platform_notes: []
     tests: ["tests/test_memory.py", "modules/agent_toolkit_core/memory_test.v"]
     migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
+    api_subcommands: ["add", "search", "inject", "review", "todo", "help"]
+    api_body: ["workspace:string", "entry_type:string=learning|process|todo", "title:string", "content:string", "query:string", "stale_after:integer", "fix:boolean", "show_done:boolean"]
 
   - name: project
     aliases: []
@@ -256,6 +270,8 @@ commands:
     platform_notes: ["requires git"]
     tests: ["tests/test_project.py"]
     migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
+    api_subcommands: ["init", "clone", "list", "add", "remove", "scan", "help"]
+    api_body: ["workspace:string", "arg:string", "ssh:boolean"]
 
   - name: devcompanion
     aliases: ["dc"]
@@ -272,6 +288,8 @@ commands:
     platform_notes: []
     tests: ["tests/test_devcompanion.py"]
     migration: {wave: 5, complexity: medium, risk: medium, disposition: rewrite-v}
+    api_subcommands: ["queue", "run-once", "status", "done", "sync-todos", "llm-status", "help"]
+    api_body: ["workspace:string", "arg:string", "template:string", "request:string", "job_id:string", "no_llm:boolean"]
 
 
   - name: build
@@ -338,6 +356,10 @@ commands:
     platform_notes: ["tmux/Herdr required for full modes"]
     tests: ["tests/test_swarm*.py"]
     migration: {wave: 6, complexity: high, risk: high, disposition: rewrite-v}
+    # HTTP excludes `attach` (execvp replaces the server process) and never
+    # attaches a terminal on `start`.
+    api_subcommands: ["recipes", "recipe", "backends", "doctor", "runners", "models", "start", "init", "plan", "activate", "deactivate", "promote", "list", "status", "approve", "reject", "cancel", "pause", "resume", "stop", "cleanup", "graph", "handoff", "task", "watch", "report", "artifacts", "handoffs", "logs", "approvals", "prune", "help"]
+    api_body: ["workspace:string", "run_id:string", "gate_id:string", "recipe:string", "backend:string", "runner:string", "model_profile:string", "task:string", "reason:string", "dry_run:boolean", "force:boolean", "current:boolean", "issue_ref:string", "base_ref:string", "handoff_sub:string", "htype:string", "from_role:string", "to_role:string", "priority:integer", "artifact:string", "commit:string", "branch:string", "blocking:boolean", "role:string", "handoff_id:string", "to_recipe:string", "older_than:string"]
 
   # NOTE (ADR-030 — capability contract over presentation parity):
   # - `tui` REMOVED in 1.23.0 (no entry; CLI keeps a removal-notice stub).

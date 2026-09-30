@@ -17,6 +17,21 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT = ROOT / "docs" / "compatibility" / "cli-contract.yaml"
 OPENAPI = ROOT / "docs" / "surface" / "openapi.json"
 SERVER = ROOT / "modules" / "agent_toolkit_server" / "server.veb.v"
+SUB_ROUTES = ROOT / "modules" / "agent_toolkit_server" / "sub_routes.v"
+
+# contract command -> (server allowlist family, request DTO struct)
+SUB_ROUTE_FAMILIES = {
+    "skills": ("skills", "SkillsSubReq"),
+    "mcp": ("mcp", "McpSubReq"),
+    "plugin": ("plugin", "PluginSubReq"),
+    "workspace": ("workspace", "WorkspaceSubReq"),
+    "memory": ("memory", "MemorySubReq"),
+    "project": ("project", "ProjectSubReq"),
+    "loop": ("loops", "LoopsSubReq"),
+    "devcompanion": ("dc", "DcSubReq"),
+    "swarm": ("swarms", "SwarmsSubReq"),
+}
+V_TO_SCHEMA_TYPE = {"string": "string", "bool": "boolean", "int": "integer", "[]string": "string[]"}
 
 RETIRED_ARTIFACTS = [
     ROOT / "modules" / "agent_toolkit_server" / "tui_registry.v",
@@ -119,3 +134,65 @@ def test_contract_to_openapi_to_routes_triple_parity():
     help_text = help_path.read_text(encoding="utf-8")
     for name in contract_api:
         assert f"`{name}`" in help_text, f"CLI help missing contract command {name!r}"
+
+
+def _server_sub_allowlists():
+    text = SUB_ROUTES.read_text(encoding="utf-8")
+    m = re.search(r"const sub_route_allowlist = \{(.*?)\n\}", text, re.DOTALL)
+    assert m, "sub_route_allowlist const missing in sub_routes.v"
+    out = {}
+    for family, items in re.findall(r"'([a-z]+)':\s*\[(.*?)\]", m.group(1), re.DOTALL):
+        out[family] = re.findall(r"'([^']+)'", items)
+    return out
+
+
+def _server_dto_fields(struct_name):
+    text = SUB_ROUTES.read_text(encoding="utf-8")
+    m = re.search(rf"struct {struct_name} \{{(.*?)\}}", text, re.DOTALL)
+    assert m, f"struct {struct_name} missing in sub_routes.v"
+    fields = {}
+    for line in m.group(1).splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and not parts[0].startswith("//"):
+            fields[parts[0]] = V_TO_SCHEMA_TYPE[parts[1]]
+    return fields
+
+
+def test_sub_route_allowlists_match_contract():
+    """The server's per-family :sub allowlist is exactly the contract's
+    api_subcommands, which is exactly the OpenAPI `sub` enum."""
+    data = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    by_name = {c["name"]: c for c in data.get("commands", [])}
+    server = _server_sub_allowlists()
+    spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
+    assert set(server) == {fam for fam, _ in SUB_ROUTE_FAMILIES.values()}
+    for cmd_name, (family, _) in SUB_ROUTE_FAMILIES.items():
+        contract_subs = by_name[cmd_name].get("api_subcommands")
+        assert contract_subs, f"{cmd_name}: api_subcommands missing in contract"
+        assert server[family] == contract_subs, (
+            f"{cmd_name}: server allowlist {server[family]} != contract {contract_subs}"
+        )
+        path = f"/api/v1/{family}/{{sub}}"
+        params = spec["paths"][path]["post"]["parameters"]
+        sub_param = next(p for p in params if p["name"] == "sub")
+        assert sub_param["schema"]["enum"] == contract_subs, f"{path}: OpenAPI sub enum drift"
+
+
+def test_sub_route_bodies_match_contract():
+    """Every typed DTO field (name + type) is declared as a contract api_body
+    field and an OpenAPI requestBody property, and no DTO has a subcommand."""
+    data = yaml.safe_load(CONTRACT.read_text(encoding="utf-8"))
+    by_name = {c["name"]: c for c in data.get("commands", [])}
+    spec = json.loads(OPENAPI.read_text(encoding="utf-8"))
+    for cmd_name, (family, struct_name) in SUB_ROUTE_FAMILIES.items():
+        dto = _server_dto_fields(struct_name)
+        assert "subcommand" not in dto, f"{struct_name} must not carry a subcommand"
+        contract = {}
+        for spec_field in by_name[cmd_name].get("api_body", []):
+            name, typ = spec_field.split(":", 1)
+            contract[name] = typ.split("=", 1)[0]
+        assert dto == contract, f"{cmd_name}: DTO {dto} != contract api_body {contract}"
+        schema = spec["paths"][f"/api/v1/{family}/{{sub}}"]["post"]["requestBody"]["content"][
+            "application/json"
+        ]["schema"]
+        assert set(schema["properties"]) == set(contract), f"{family}: requestBody drift"

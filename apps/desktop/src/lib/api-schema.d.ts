@@ -821,10 +821,19 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "list" | "sync" | "validate" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    domain?: string;
+                    tools?: string[];
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -833,8 +842,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -853,10 +876,19 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "list" | "setup" | "health" | "doctor" | "uninstall" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    provider?: string;
+                    offline?: boolean;
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -865,8 +897,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -885,10 +931,16 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "sync" | "check" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -897,8 +949,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -917,10 +983,32 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "init" | "status" | "audit" | "cost" | "schedule" | "sync" | "list" | "ls" | "templates" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    workspace?: string;
+                    name?: string;
+                    custom_name?: string;
+                    force?: boolean;
+                    runner?: string;
+                    model?: string;
+                    pack?: string;
+                    no_llm?: boolean;
+                    dry_run?: boolean;
+                    cron?: string;
+                    /** @enum {string} */
+                    platform?: "local" | "github-actions";
+                    list_mode?: boolean;
+                    remove_mode?: boolean;
+                    status_mode?: boolean;
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -929,8 +1017,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -949,10 +1051,24 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "init" | "context" | "sync" | "use-persona" | "handoff" | "history" | "personas" | "load" | "profiles" | "validate" | "budget" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    workspace?: string;
+                    dir?: string;
+                    name?: string;
+                    explain?: boolean;
+                    arg?: string;
+                    profile?: string;
+                    pack?: string;
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -961,8 +1077,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -981,10 +1111,26 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "add" | "search" | "inject" | "review" | "todo" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    workspace?: string;
+                    /** @enum {string} */
+                    entry_type?: "learning" | "process" | "todo";
+                    title?: string;
+                    content?: string;
+                    query?: string;
+                    stale_after?: number;
+                    fix?: boolean;
+                    show_done?: boolean;
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -993,8 +1139,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1013,10 +1173,20 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "init" | "clone" | "list" | "add" | "remove" | "scan" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    workspace?: string;
+                    arg?: string;
+                    ssh?: boolean;
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -1025,8 +1195,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1045,10 +1229,23 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "queue" | "run-once" | "status" | "done" | "sync-todos" | "llm-status" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    workspace?: string;
+                    arg?: string;
+                    template?: string;
+                    request?: string;
+                    job_id?: string;
+                    no_llm?: boolean;
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -1057,8 +1254,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1173,10 +1384,44 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                sub: "recipes" | "recipe" | "backends" | "doctor" | "runners" | "models" | "start" | "init" | "plan" | "activate" | "deactivate" | "promote" | "list" | "status" | "approve" | "reject" | "cancel" | "pause" | "resume" | "stop" | "cleanup" | "graph" | "handoff" | "task" | "watch" | "report" | "artifacts" | "handoffs" | "logs" | "approvals" | "prune" | "help";
+            };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody?: {
+            content: {
+                "application/json": {
+                    workspace?: string;
+                    run_id?: string;
+                    gate_id?: string;
+                    recipe?: string;
+                    backend?: string;
+                    runner?: string;
+                    model_profile?: string;
+                    task?: string;
+                    reason?: string;
+                    dry_run?: boolean;
+                    force?: boolean;
+                    current?: boolean;
+                    issue_ref?: string;
+                    base_ref?: string;
+                    handoff_sub?: string;
+                    htype?: string;
+                    from_role?: string;
+                    to_role?: string;
+                    priority?: number;
+                    artifact?: string;
+                    commit?: string;
+                    branch?: string;
+                    blocking?: boolean;
+                    role?: string;
+                    handoff_id?: string;
+                    to_recipe?: string;
+                    older_than?: string;
+                };
+            };
+        };
         responses: {
             /** @description ok */
             200: {
@@ -1185,8 +1430,22 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description scope denied */
+            /** @description invalid request body or field */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description scope denied or path outside allowed roots */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description unknown subcommand or path not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -30,6 +30,11 @@ struct Cmd {
 	effects Effects
 	// api is optional: absent means True (Python `cmd.get("api", True)`).
 	api ?bool
+	// Generic `{sub}` routes: the HTTP subcommand allowlist and typed body
+	// fields (`name:type`, type = string|boolean|integer|string[], optional
+	// `=a|b` enum suffix). Mirrored by modules/agent_toolkit_server/sub_routes.v.
+	api_subcommands []string
+	api_body        []string
 }
 
 struct Contract {
@@ -305,25 +310,106 @@ fn route_for(cmd Cmd) Route {
 	return Route{'GET', '/api/v1/${n}'}
 }
 
-fn op_object(operation_id string, summary string, tag string, scope string, confirm bool, responses JObj) JObj {
+fn op_object(operation_id string, summary string, tag string, scope string, confirm bool, extra JObj, responses JObj) JObj {
 	mut op := jobj()
 	op.put('operationId', JStr{operation_id})
 	op.put('summary', JStr{summary})
 	op.put('tags', JArr{[JVal(JStr{tag})]})
 	op.put('x-scope', JStr{scope})
 	op.put('x-confirm-required', JBool{confirm})
+	for i, k in extra.keys {
+		op.put(k, extra.vals[i])
+	}
 	op.put('responses', responses)
 	return op
 }
 
-fn std_responses() JObj {
+fn responses_of(codes [][]string) JObj {
 	mut r := jobj()
-	for code, desc in {'200': 'ok', '403': 'scope denied', '428': 'confirm required'} {
+	for pair in codes {
 		mut o := jobj()
-		o.put('description', JStr{desc})
-		r.put(code, o)
+		o.put('description', JStr{pair[1]})
+		r.put(pair[0], o)
 	}
 	return r
+}
+
+fn std_responses() JObj {
+	return responses_of([['200', 'ok'], ['403', 'scope denied'], ['428', 'confirm required']])
+}
+
+fn sub_responses() JObj {
+	return responses_of([['200', 'ok'], ['400', 'invalid request body or field'],
+		['403', 'scope denied or path outside allowed roots'],
+		['404', 'unknown subcommand or path not found'], ['428', 'confirm required']])
+}
+
+fn str_arr(items []string) JArr {
+	mut out := []JVal{}
+	for s in items {
+		out << JVal(JStr{s})
+	}
+	return JArr{out}
+}
+
+// body_field_schema renders one `name:type[=a|b]` api_body entry.
+fn body_field_schema(spec string) (string, JObj) {
+	name := spec.all_before(':')
+	mut typ := spec.all_after(':')
+	mut enum_vals := []string{}
+	if typ.contains('=') {
+		enum_vals = typ.all_after('=').split('|')
+		typ = typ.all_before('=')
+	}
+	mut schema := jobj()
+	if typ.ends_with('[]') {
+		schema.put('type', JStr{'array'})
+		mut items := jobj()
+		items.put('type', JStr{typ.trim_string_right('[]')})
+		schema.put('items', items)
+	} else {
+		schema.put('type', JStr{typ})
+	}
+	if enum_vals.len > 0 {
+		schema.put('enum', str_arr(enum_vals))
+	}
+	return name, schema
+}
+
+// sub_route_extras declares the `{sub}` enum and the typed JSON body for a
+// generic subcommand route (empty when the command has no allowlist).
+fn sub_route_extras(cmd Cmd) JObj {
+	mut extra := jobj()
+	if cmd.api_subcommands.len == 0 {
+		return extra
+	}
+	mut sub_schema := jobj()
+	sub_schema.put('type', JStr{'string'})
+	sub_schema.put('enum', str_arr(cmd.api_subcommands))
+	mut param := jobj()
+	param.put('name', JStr{'sub'})
+	param.put('in', JStr{'path'})
+	param.put('required', JBool{true})
+	param.put('schema', sub_schema)
+	extra.put('parameters', JArr{[JVal(param)]})
+	mut props := jobj()
+	for spec in cmd.api_body {
+		name, schema := body_field_schema(spec)
+		props.put(name, schema)
+	}
+	mut schema := jobj()
+	schema.put('type', JStr{'object'})
+	schema.put('description', JStr{'Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.'})
+	schema.put('properties', props)
+	mut media := jobj()
+	media.put('schema', schema)
+	mut content := jobj()
+	content.put('application/json', media)
+	mut body := jobj()
+	body.put('required', JBool{false})
+	body.put('content', content)
+	extra.put('requestBody', body)
+	return extra
 }
 
 fn gen_openapi(contract Contract, version string) JObj {
@@ -336,8 +422,10 @@ fn gen_openapi(contract Contract, version string) JObj {
 		route := route_for(cmd)
 		summary := if cmd.summary.len > 0 { cmd.summary } else { cmd.name }
 		tag := if cmd.surface.len > 0 { cmd.surface } else { 'misc' }
-		op := op_object(cmd.name, summary, tag, scope_for(cmd), needs_confirm(cmd),
-			std_responses())
+		extra := sub_route_extras(cmd)
+		responses := if cmd.api_subcommands.len > 0 { sub_responses() } else { std_responses() }
+		op := op_object(cmd.name, summary, tag, scope_for(cmd), needs_confirm(cmd), extra,
+			responses)
 		if paths.has(route.path) {
 			mut existing := paths.get(route.path) or { jobj() }
 			if mut existing is JObj {
