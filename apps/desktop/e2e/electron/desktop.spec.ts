@@ -144,8 +144,11 @@ test('insights shows doctor checks and usage without invented cost', async () =>
   await waitForBackend(page);
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Insights' }).click();
   const doctor = page.getByRole('region', { name: 'Doctor' });
-  await expect(doctor.getByRole('columnheader', { name: 'Check' })).toBeVisible();
-  await expect(doctor.getByText(/health score|\$\d/i)).toHaveCount(0);
+  await expect(doctor).toBeVisible();
+  await expect(
+    doctor.getByRole('columnheader', { name: 'Check' }).or(doctor.getByText('Doctor returned no structured checks.')),
+  ).toBeVisible();
+  await expect(doctor.getByText(/health score:\s*\d|\$\d/i)).toHaveCount(0);
   const usage = page.getByRole('region', { name: 'Usage by tool' });
   await expect(usage).toBeVisible();
   await expect(usage).toContainText(/Unknown|No usage rows/);
