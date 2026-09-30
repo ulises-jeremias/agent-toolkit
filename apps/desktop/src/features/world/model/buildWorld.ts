@@ -36,13 +36,13 @@ function provenanceDetail(entry: MemoryEntryRecord): string {
 }
 
 /** Match a job to a project via workspace path — never invent ownership. */
-export function jobBelongsToProject(
-  job: { workspace: string },
-  project: ProjectRecord,
-): boolean {
+export function jobBelongsToProject(job: { workspace: string }, project: ProjectRecord): boolean {
   const ws = job.workspace.trim();
   if (!ws) return false;
-  if (project.target && (ws === project.target || ws.startsWith(`${project.target}/`) || ws.startsWith(`${project.target}\\`))) {
+  if (
+    project.target &&
+    (ws === project.target || ws.startsWith(`${project.target}/`) || ws.startsWith(`${project.target}\\`))
+  ) {
     return true;
   }
   const needle = `/${project.name}`;
@@ -74,11 +74,7 @@ function visibleTools(tools: ToolRecord[]): ToolRecord[] {
   return tools.filter((tool) => tool.detected).sort((a, b) => a.id.localeCompare(b.id));
 }
 
-function pushJobCharacters(
-  entities: SemanticEntity[],
-  jobs: WorldDomainInput['jobs'],
-  projectId?: string,
-): void {
+function pushJobCharacters(entities: SemanticEntity[], jobs: WorldDomainInput['jobs'], projectId?: string): void {
   for (const job of jobs) {
     const active = !isTerminalJobStatus(job.status);
     const blocked = job.status === 'failed' || job.status === 'rejected';
@@ -223,9 +219,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
   }
 
   // Workspace-scoped jobs (no project match) still appear on the grounds.
-  const unmatched = input.jobs.filter(
-    (job) => !input.projects.some((project) => jobBelongsToProject(job, project)),
-  );
+  const unmatched = input.jobs.filter((job) => !input.projects.some((project) => jobBelongsToProject(job, project)));
   pushJobCharacters(entities, unmatched);
 
   return entities;
