@@ -24,8 +24,16 @@ function dropJob(queryClient: QueryClient, jobId: string): void {
   queryClient.removeQueries({ queryKey: qk.jobs.live(jobId) });
 }
 
-function refetchOperations(queryClient: QueryClient): void {
+/**
+ * Families LiveProvider subscribes to on GET /api/v1/events.
+ * Includes memory so the world archive refreshes without inventing entry payloads.
+ */
+export const BUS_TYPE_FILTER = 'backend.,job.,loop.,swarm.,memory.,install.';
+
+/** Foreign boot / ready: refetch domains the world and operations share. Never invents rows. */
+function refetchWorldDomains(queryClient: QueryClient): void {
   void queryClient.invalidateQueries({ queryKey: qk.domain('jobs') });
+  void queryClient.invalidateQueries({ queryKey: qk.domain('memory') });
   void queryClient.invalidateQueries({ queryKey: qk.domain('loops') });
   void queryClient.invalidateQueries({ queryKey: qk.domain('swarms') });
   void queryClient.invalidateQueries({ queryKey: qk.domain('doctor') });
@@ -65,13 +73,16 @@ export function applyLiveEvent(queryClient: QueryClient, { jobId, event }: LiveE
  */
 export function applyBusEvent(queryClient: QueryClient, event: ApiEvent): void {
   switch (event.type) {
+    case 'backend.ready':
     case 'backend.resync':
-      refetchOperations(queryClient);
+      // Foreign boot and ready share one path: resync from read APIs, never guess.
+      refetchWorldDomains(queryClient);
       return;
     case 'job.created':
       void queryClient.invalidateQueries({ queryKey: qk.jobs.list() });
       return;
     case 'job.updated':
+      // Patch known status immediately so house lamps/characters update before poll.
       if (event.subject && event.status) setJobStatus(queryClient, event.subject, event.status);
       void queryClient.invalidateQueries({ queryKey: qk.jobs.list() });
       return;
@@ -81,19 +92,23 @@ export function applyBusEvent(queryClient: QueryClient, event: ApiEvent): void {
       return;
     case 'loop.started':
     case 'loop.finished':
+      // Event has loop name + status + optional job ref — no project id. Do not
+      // invent house activity; invalidate loops and the linked job list only.
       void queryClient.invalidateQueries({ queryKey: qk.domain('loops') });
       if (event.ref) void queryClient.invalidateQueries({ queryKey: qk.jobs.list() });
       return;
     case 'swarm.changed':
+      // Payload is run_id + ok — no project id. Skip house mapping; refetch list.
       void queryClient.invalidateQueries({ queryKey: qk.domain('swarms') });
+      return;
+    case 'memory.changed':
+      // subject is entry type only — never invent an archive row from the event.
+      void queryClient.invalidateQueries({ queryKey: qk.domain('memory') });
       return;
     case 'install.started':
     case 'install.finished':
       void queryClient.invalidateQueries({ queryKey: qk.domain('doctor') });
       void queryClient.invalidateQueries({ queryKey: qk.domain('inventory') });
-      return;
-    case 'backend.ready':
-    case 'memory.changed':
       return;
   }
 }

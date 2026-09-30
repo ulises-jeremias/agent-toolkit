@@ -91,10 +91,11 @@ describe('applyBusEvent', () => {
     expect(queryClient.getQueryData<JobRegistry>(qk.jobs.list())?.[job.id]).toBeUndefined();
   });
 
-  it('refetches operations domains on backend.resync', () => {
+  it('refetches operations and memory domains on backend.resync', () => {
     const queryClient = client();
     queryClient.setQueryData(qk.loops.status('demo'), { ok: true, message: '', data: {} });
     queryClient.setQueryData(qk.swarms.list(), []);
+    queryClient.setQueryData(qk.memory.list(), { ok: true, message: '', entries: [] });
     applyBusEvent(queryClient, {
       seq: 3,
       boot: 'b',
@@ -107,7 +108,44 @@ describe('applyBusEvent', () => {
       message: 'refetch',
     });
     expect(queryClient.getQueryState(qk.jobs.list())?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(qk.memory.list())?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(qk.loops.status('demo'))?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(qk.swarms.list())?.isInvalidated).toBe(true);
   });
+
+  it('invalidates memory on memory.changed without inventing an entry', () => {
+    const queryClient = client();
+    queryClient.setQueryData(qk.memory.list(), { ok: true, message: '', entries: [] });
+    applyBusEvent(queryClient, {
+      seq: 4,
+      boot: 'b',
+      type: 'memory.changed',
+      at: '',
+      subject: 'learning',
+      status: 'ok',
+      exit_code: 0,
+      ref: '',
+      message: 'add',
+    });
+    expect(queryClient.getQueryData(qk.memory.list())).toEqual({ ok: true, message: '', entries: [] });
+    expect(queryClient.getQueryState(qk.memory.list())?.isInvalidated).toBe(true);
+  });
+
+  it('patches job status on job.updated before invalidate', () => {
+    const queryClient = client();
+    applyBusEvent(queryClient, {
+      seq: 5,
+      boot: 'b',
+      type: 'job.updated',
+      at: '',
+      subject: job.id,
+      status: 'failed',
+      exit_code: 1,
+      ref: '',
+      message: '',
+    });
+    expect(queryClient.getQueryData<JobRegistry>(qk.jobs.list())?.[job.id]?.status).toBe('failed');
+    expect(queryClient.getQueryState(qk.jobs.list())?.isInvalidated).toBe(true);
+  });
 });
+

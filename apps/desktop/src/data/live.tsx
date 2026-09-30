@@ -1,6 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { applyBusEvent, applyLiveEvent } from '../lib/live/applyEvent';
+import { applyBusEvent, applyLiveEvent, BUS_TYPE_FILTER } from '../lib/live/applyEvent';
 import { EventBusManager } from '../lib/live/eventBus';
 import { JobStreamManager, type EventSourceLike, type LiveSnapshot } from '../lib/live/jobStreams';
 import { useBackend, useHealth } from './backend';
@@ -36,13 +36,10 @@ function defaultSource(url: string): EventSourceLike {
   return new EventSource(url);
 }
 
-/** Operations-relevant families; memory.changed is not this destination's concern. */
-const BUS_TYPES = 'backend.,job.,loop.,swarm.,install.';
-
 /**
  * Mounted once in the shell. Streams every active job into the Query cache
- * and keeps one GET /api/v1/events bus so Office, Operations and the dock
- * read the same live state.
+ * and keeps one GET /api/v1/events bus so World, Office, Operations and the
+ * dock read the same live state (including memory.changed for the archive).
  */
 export function LiveProvider({
   children,
@@ -71,7 +68,7 @@ export function LiveProvider({
   const busManager = useMemo(() => {
     if (!client) return null;
     return new EventBusManager({
-      url: client.eventsUrl({ types: BUS_TYPES }),
+      url: client.eventsUrl({ types: BUS_TYPE_FILTER }),
       createSource,
       onEvent: (event) => applyBusEvent(queryClient, event),
       onSnapshot: setBus,
