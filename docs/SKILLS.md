@@ -64,7 +64,7 @@ Skills live under `skills/<domain>/<name>/`. There are **14 domains** (103+ skil
 |--------|------:|----------|
 | `core` | 8 | `assistant`, `dev-companion`, `workspace`, `project`, `onboarding` |
 | `delivery` | 21 | `adr`, `prd`, `bug`, `planning`, `work-item` |
-| `design` | 10 | `figma-implement-design`, `frontend-design` |
+| `design` | 12 | `figma-implement-design`, `frontend-design`, `brag`, `brag-slim` |
 | `forge` | 7 | `github-cli-workflow`, `gh-fix-ci`, `worktree`, `fix-merge-conflicts` |
 | `integrations` | 5 | `slack-cli`, `linear`, `clickup-cli`, `mcp` |
 | `data` | 2 | `dbt-validation`, `snowflake-validation` |

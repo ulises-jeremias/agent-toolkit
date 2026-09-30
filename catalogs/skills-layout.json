@@ -56,6 +56,8 @@
       "workflow-generic-project"
     ],
     "design": [
+      "brag",
+      "brag-slim",
       "design-assessment",
       "design-improvement",
       "figma",
@@ -333,6 +335,16 @@
       "id": "delivery/workflow-generic-project",
       "name": "workflow-generic-project",
       "domain": "delivery"
+    },
+    {
+      "id": "design/brag",
+      "name": "brag",
+      "domain": "design"
+    },
+    {
+      "id": "design/brag-slim",
+      "name": "brag-slim",
+      "domain": "design"
     },
     {
       "id": "design/design-assessment",

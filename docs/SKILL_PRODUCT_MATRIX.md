@@ -2,7 +2,7 @@
 
 > Generated from `distributions/products.yaml` — do not hand-edit. Run `./scripts/generate-skill-matrix.vsh` to regenerate, or `./scripts/generate-skill-matrix.vsh --check` in CI.
 
-_Generated from 5 products × 103 skills × 18 agents._
+_Generated from 5 products × 105 skills × 18 agents._
 
 ## Products and targets
 
@@ -12,7 +12,7 @@ _Generated from 5 products × 103 skills × 18 agents._
 | `agent-toolkit-agents` | stable | claude-code, cursor | 0 | 18 |
 | `agent-toolkit-forge` | stable | claude-code, cursor | 8 | 0 |
 | `agent-toolkit-craft` | stable | claude-code, cursor | 3 | 0 |
-| `agent-toolkit-complete` | experimental | — | 103 | 18 |
+| `agent-toolkit-complete` | experimental | — | 105 | 18 |
 
 ## Skills → Products
 
@@ -58,6 +58,8 @@ _Generated from 5 products × 103 skills × 18 agents._
 | `delivery/work-item` | `agent-toolkit-complete` | — |
 | `delivery/workflow-client-bootstrap` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
 | `delivery/workflow-generic-project` | `agent-toolkit-complete`, `agent-toolkit-forge` | claude-code, cursor |
+| `design/brag` | `agent-toolkit-complete` | — |
+| `design/brag-slim` | `agent-toolkit-complete` | — |
 | `design/design-assessment` | `agent-toolkit-complete` | — |
 | `design/design-improvement` | `agent-toolkit-complete` | — |
 | `design/figma` | `agent-toolkit-complete` | — |

@@ -1,4 +1,42 @@
 capabilities:
+  design/brag:
+    provenance_digest: sha256:73e297c0d8ebeb43d95e669b65efde9560e1d80654026e1307841fbcbd47d7f1
+    sources:
+      upstream:
+        path: skills/brag
+        repository: latent-spaces/brag
+        requested:
+          ref: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+          type: commit
+        resolved:
+          body_checksum: sha256:de183e219a87cdc4119951b6742388641024fcd2836e2d06d35ec3c6342da9ff
+          commit: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+          content_checksum: sha256:30bda37da0fe99c66ab653a2f3556aaf8289655858941758d10a7674187d2b4d
+          license:
+            checksum: sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089
+            source_path: skills/design/brag/LICENSE
+            spdx: MIT
+          resolved_at: '2026-09-30T05:09:15.685176Z'
+          version: c893c5e
+  design/brag-slim:
+    provenance_digest: sha256:baacba6055c7792bc1726fcfe9c92e70d063f1030f0b2c1b49fb7c22b24dda5e
+    sources:
+      upstream:
+        path: skills/brag-slim
+        repository: latent-spaces/brag
+        requested:
+          ref: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+          type: commit
+        resolved:
+          body_checksum: sha256:fb7cc9efd8a171b46b7eedb522d8c111ca668ee17c7b0a9592609ef4b25589d7
+          commit: c893c5ed52aed84e3e2ee56787de869fccdae6b0
+          content_checksum: sha256:53ebaa71176352950736d818a76bfbfe5a30f5d3ec215a2b2aa4b662bac7fe70
+          license:
+            checksum: sha256:92d538e0da9abeaafff8ecfc62e142f5053fa92b2c3ef29978742c325c554089
+            source_path: skills/design/brag-slim/LICENSE
+            spdx: MIT
+          resolved_at: '2026-09-30T05:09:15.685176Z'
+          version: c893c5e
   design/frontend-design:
     provenance_digest: sha256:607628946521b586e97cea8dfb1c14c92c99a4b4dbe40d2106031c5498208255
     sources:

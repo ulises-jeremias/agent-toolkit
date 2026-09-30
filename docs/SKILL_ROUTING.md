@@ -13,7 +13,7 @@ All 103+ skills are owned. No orphans: every skill has exactly one `holistic_own
 | `assistant` | Orchestrator, session bootstrap, workspace | `assistant` | `core` (assistant, dev-companion, onboarding, output-handshake, pr-fallback, workspace, workspace-knowledge-sync) |
 | `planner` | Delivery planning, roadmap, risk, breakdown | `planner` | `delivery` (planning, epic, work-item, project-assessment router, workflow-generic-project) |
 | `architect` | System design, tradeoffs, C4, diagrams, ADRs/TRDs | `architect` | `architecture` (c4-model, architecture-diagram), `delivery` (adr, decision-log, trd, technical-unit-assessment), `cloud` |
-| `designer` | Visual direction, UX, Figma, a11y, design system | `designer` (new) | `design` (10 skills), `accessibility` (review) |
+| `designer` | Visual direction, UX, Figma, a11y, design system | `designer` (new) | `design` (12 skills), `accessibility` (review) |
 | `implementer` | Code delivery, scaffolding, docs generation | — (shared) | `delivery` (task), `ops` (docs-generator) |
 | `reviewer` | Quality, craft, anti-slop, change-safety | `code-reviewer` (archived: `typescript-reviewer`/`database-reviewer`/`performance-optimizer`/`refactor-cleaner` → `reviewer/references/*.md` via `deep-review`/`deslop`) | `quality` (blast-radius, deep-review, deslop, unslop) |
 | `qa-engineer` | Lint gates, browser validation, test infra | `e2e-runner`, `code-reviewer` | `quality` (megalinter*), `tooling` (playwright-cli, chrome-devtools) |
@@ -37,6 +37,7 @@ Selection must remain **contextual**. The `designer` agent owns this decision; d
 | Iterative browser-grounded remediation (implement → run → capture → re-review) | `design/design-improvement` | Consumes `design-assessment` or `frontend-design-review` findings, triages safe vs ambiguous changes, implements within existing design-system tokens, requires rendered evidence (screenshot via `playwright-cli`/`chrome-devtools`) before "good". Iterate until Blocking cleared. |
 | Figma-driven work | `design/figma` → specialized Figma skill | `figma` is the entry router. Then: `figma-implement-design` (node → production code 1:1), `figma-code-connect-components` (Code Connect mappings, needs published components + Enterprise plan), `figma-create-design-system-rules` (author `AGENTS.md` rules from codebase patterns), `figma-create-new-file` (new blank file via `whoami`/`planKey`). For canvas writes (Plugin API) use the opt-in `figma-use` pack. |
 | Accessibility-sensitive UI (needs WCAG 2.2 AA, SC mapping, mode-aware findings) | `accessibility/review` | Curated WCAG 2.2 AA gates with mode (automatically detectable / browser-assisted / manual-human-judgment), SC mapping, and fix code. Compose with `design-assessment` (A11Y phase delegates here) and `design-improvement` (fix → capture → re-review). Never claim full AA from automated checks alone. |
+| Launch / share video for a project or site | `design/brag` or `design/brag-slim` | Short launch video and share copy. `brag-slim` is the portable path (no Hyperframes, no bundled assets). `brag` is the Hyperframes / `--full` / `--voice` path. Not for UI design, review, or a11y. |
 
 **Anti-pattern — do not mechanically chain:**
 
@@ -101,6 +102,8 @@ Generated from `capabilities/skills/registry.yaml`. Counts must match `catalogs/
 | `delivery/work-item` | planner | creation | low | no |
 | `delivery/workflow-client-bootstrap` | assistant | ops | low | no |
 | `delivery/workflow-generic-project` | planner | ops | low | no |
+| `design/brag` | designer | creation | high | no |
+| `design/brag-slim` | designer | creation | high | no |
 | `design/design-assessment` | designer | review | high | yes |
 | `design/design-improvement` | designer | creation | high | no |
 | `design/figma` | designer | ops | medium | no |
