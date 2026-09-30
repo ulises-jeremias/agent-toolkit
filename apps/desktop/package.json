@@ -35,18 +35,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
     "@tanstack/react-query": "^5.104.0",
     "@xterm/addon-fit": "^0.11.0",
     "@xterm/addon-search": "^0.16.0",
     "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
     "node-pty": "^1.1.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-error-boundary": "^6.1.2",
     "react-router": "^8.4.0",
-    "web-vitals": "^6.0.1",
-    "xterm": "^5.3.0",
-    "zustand": "^5.0.15"
+    "web-vitals": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
