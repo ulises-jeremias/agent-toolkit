@@ -33,8 +33,9 @@ directory. `electron/harness.ts` resolves it again on every backend start:
 
 1. **override**: `AGENT_TOOLKIT_WORKSPACE`, then its alias `HARNESS_DIR`
    (the order core `find_workspace_root` uses, see
-   [env-precedence.md](../compatibility/env-precedence.md)). `~` and relative
-   paths are expanded. A value that is not a directory is skipped.
+   [env-precedence.md](../compatibility/env-precedence.md)). Desktop expands
+   `~` and relative paths and passes the absolute result to serve; core does
+   not expand `~`. A value that is not a directory is skipped.
 2. **default**: `~/.ai-workspace`, if it is a directory.
 3. **fallback**: the behavior from before this default existed. serve
    inherits the Desktop process cwd and resolves its workspace from there.
@@ -50,6 +51,13 @@ containment roots and `find_workspace_root` in agreement (see
 `BackendState.harness` through `atk:backend-status` and `atk:backend-state`.
 Settings shows the harness and any notice, and Office shows it on the backend
 line.
+
+Known caveats: serve writes job logs to `<harness>/.agent-toolkit/server`,
+so a harness that is a git repository should ignore `.agent-toolkit/`. A dev
+backend with no embedded data and no XDG data can mistake a harness that has
+`loops/` and `profiles/` for toolkit data, through core's cwd tier in
+`find_toolkit_root`. Packaged and installed backends are unaffected because
+they ship embedded data.
 
 Switching the harness at runtime means restarting the backend: serve is
 cwd-rooted, so one backend serves one harness. The supervisor takes a

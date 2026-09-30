@@ -5,6 +5,15 @@ import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BackendSupervisor, resolveBackendBinary, resolveExpectedBackendMajor } from './backend';
 
+/** Keeps lifecycle tests independent of the developer's real ~/.ai-workspace and env. */
+const fallbackHarness = () => ({
+  path: process.cwd(),
+  source: 'fallback' as const,
+  defaultPath: '/nonexistent/.ai-workspace',
+  overrideVar: null,
+  notice: 'test fallback',
+});
+
 const FIXTURE_SOURCE = `#!/usr/bin/env node
 // Minimal 'agent-toolkit serve' stand-in: serves /api/v1/health only.
 const http = require('node:http');
@@ -59,7 +68,7 @@ describe('BackendSupervisor', () => {
   });
 
   it('starts, reports ready with a version, restarts, and stops', async () => {
-    supervisor = new BackendSupervisor();
+    supervisor = new BackendSupervisor({ resolveHarness: fallbackHarness });
     const started = await supervisor.start();
     expect(started).toBe(true);
 
@@ -118,7 +127,7 @@ describe('BackendSupervisor', () => {
 
   it('reports version-mismatch instead of ready on major drift', async () => {
     process.env.ATK_EXPECTED_BACKEND_MAJOR = '1';
-    supervisor = new BackendSupervisor();
+    supervisor = new BackendSupervisor({ resolveHarness: fallbackHarness });
     const started = await supervisor.start();
     expect(started).toBe(false);
     expect(supervisor.snapshot().status).toBe('version-mismatch');

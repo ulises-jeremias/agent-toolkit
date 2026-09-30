@@ -241,7 +241,13 @@ export class BackendSupervisor {
     });
     child.on('error', (error) => {
       this.proc = null;
-      this.emit({ status: 'failed', detail: `cannot launch backend ${bin}: ${error.message}` });
+      this.emit({
+        status: 'failed',
+        detail:
+          `cannot launch backend ${bin}` +
+          (spawnContext.cwd ? ` in harness ${spawnContext.cwd}` : '') +
+          `: ${error.message}`,
+      });
     });
 
     const deadline = Date.now() + START_TIMEOUT_MS;

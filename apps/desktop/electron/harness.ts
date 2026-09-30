@@ -75,7 +75,7 @@ export function resolveHarness(inputs: HarnessInputs): HarnessResolution {
       source: 'fallback',
       defaultPath,
       overrideVar: HARNESS_OVERRIDE_VARS.find((name) => inputs.env[name]?.trim()) ?? null,
-      notice: `Harness override ${rejected.join(', ')}; serve resolves its workspace from ${inputs.cwd}`,
+      notice: `Harness override ${rejected.join(', ')}; serve starts in ${inputs.cwd} and resolves its workspace by walking up from there`,
     };
   }
   if (inputs.isDirectory(defaultPath)) {
@@ -86,7 +86,7 @@ export function resolveHarness(inputs: HarnessInputs): HarnessResolution {
     source: 'fallback',
     defaultPath,
     overrideVar: null,
-    notice: `Default harness ${defaultPath} not found; serve resolves its workspace from ${inputs.cwd}`,
+    notice: `Default harness ${defaultPath} not found; serve starts in ${inputs.cwd} and resolves its workspace by walking up from there`,
   };
 }
 
