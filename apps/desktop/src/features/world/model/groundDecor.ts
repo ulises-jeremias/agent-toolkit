@@ -32,25 +32,34 @@ function besideBuilding(x: number, y: number, occupied: Set<string>): boolean {
   return false;
 }
 
+function isStreet(x: number, y: number, houses: readonly LaidOutEntity[]): boolean {
+  const left = houses.some((house) => house.x + house.w === x && y >= house.y && y < house.y + house.h);
+  const right = houses.some((house) => house.x === x + 1 && y >= house.y && y < house.y + house.h);
+  if (left && right) return true;
+  const above = houses.some((house) => house.y + house.h === y && x >= house.x && x < house.x + house.w);
+  const below = houses.some((house) => house.y === y + 1 && x >= house.x && x < house.x + house.w);
+  return above && below;
+}
+
 /**
- * Decorative grounds only. A dirt path runs above the project district, a
- * creek runs down the east edge, and a bridge sits where they cross. Trees
- * stand beside buildings, not in a forest of empty cells. Nothing here is a
- * semantic entity.
+ * Decorative grounds only. A path runs above the project district and in the
+ * gutters between houses. A two-tile creek runs down the east edge, with a
+ * bridge where the path crosses it. Trees stand beside buildings. Nothing
+ * here is a semantic entity.
  */
 export function groundDecor(entities: readonly LaidOutEntity[], cols: number, rows: number): GroundDecor[] {
   if (cols <= 0 || rows <= 0) return [];
   const occupied = occupiedCells(entities);
-  const projectYs = entities.filter((entity) => entity.id.startsWith('place:project:')).map((entity) => entity.y);
+  const houses = entities.filter((entity) => entity.id.startsWith('place:project:'));
+  const projectYs = houses.map((entity) => entity.y);
   const pathY = projectYs.length > 0 ? Math.min(...projectYs) - 1 : -1;
-  const creekX = cols - 1;
   const decor: GroundDecor[] = [];
 
   for (let y = 0; y < rows; y += 1) {
     for (let x = 0; x < cols; x += 1) {
       if (occupied.has(`${x},${y}`)) continue;
-      const onPath = y === pathY && pathY >= 0;
-      const onCreek = x === creekX;
+      const onPath = (y === pathY && pathY >= 0) || isStreet(x, y, houses);
+      const onCreek = x >= cols - 2;
       if (onPath && onCreek) {
         decor.push({ x, y, kind: 'bridge', variant: 'bridge' });
         continue;
