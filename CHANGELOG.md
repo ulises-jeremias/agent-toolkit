@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Desktop world project houses get dirt streets in the gutters between them,
+  and the east creek is two tiles wide where the path crosses on a bridge.
+
 ## [1.40.0] — 2026-09-30
 
 ### Changed
