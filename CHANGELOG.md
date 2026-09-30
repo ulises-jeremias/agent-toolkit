@@ -59,6 +59,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `serve`: typed `GET /api/v1/agents`, `/tools`, `/providers`, `/models`
   (persona catalog, coding-agent CLI discovery, swarm runners and model
   profiles). Tool `enabled` is `unknown` until serve owns enablement.
+- `serve`: typed memory catalog — `GET /api/v1/memory`, `/memory/hits`,
+  `/memory/file`; `POST`/`PUT /memory/file`; `POST /memory/file/archive`.
+  Provenance is file/timestamp/project plus git author on read. GET is
+  allowed for `memory` `inject` and `todo` (read-only).
 
 ### Changed
 
