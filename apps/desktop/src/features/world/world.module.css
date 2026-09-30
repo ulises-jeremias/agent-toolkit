@@ -211,7 +211,7 @@
   background-color: transparent;
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-size: 85% auto;
+  background-size: 92% auto;
   border-color: transparent;
   box-shadow: none;
   overflow: visible;
@@ -222,10 +222,13 @@
 }
 
 .tileSprite .entityLabel {
-  border: 1px solid color-mix(in srgb, var(--pc-ink-900) 40%, transparent);
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  border: 1px solid color-mix(in srgb, var(--pc-ink-900) 35%, transparent);
   border-radius: 1px;
-  margin-top: auto;
   box-shadow: 1px 1px 0 color-mix(in srgb, var(--pc-ink-900) 18%, transparent);
+  z-index: 2;
 }
 
 .tileSprite .entityState {

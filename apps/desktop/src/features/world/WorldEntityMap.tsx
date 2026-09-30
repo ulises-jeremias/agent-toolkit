@@ -83,7 +83,7 @@ export function WorldEntityMap({
         className={styles.map}
         style={{
           width: cols * tile,
-          height: rows * tile,
+          height: rows * tile + (mode === 'grounds' ? 18 : 0),
         }}
       >
         {decor.map((cell) => (
