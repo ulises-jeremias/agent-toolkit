@@ -2,6 +2,9 @@ import { spawn, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
+import { harnessSpawnContext, resolveHarnessFromProcess, type HarnessResolution } from './harness';
+
+export type { HarnessResolution, HarnessSource } from './harness';
 
 export type BackendStatus =
   | 'starting'
@@ -17,6 +20,13 @@ export interface BackendState {
   version: string | null;
   detail: string | null;
   restarts: number;
+  /** Harness the current (or last) backend was spawned in; null before first start. */
+  harness: HarnessResolution | null;
+}
+
+export interface BackendSupervisorOptions {
+  /** Re-evaluated on every start so restarts pick up a changed harness. */
+  resolveHarness?: () => HarnessResolution;
 }
 
 export interface HealthPayload {
@@ -138,12 +148,24 @@ function majorOf(version: string): string {
  */
 export class BackendSupervisor {
   private proc: ChildProcess | null = null;
-  private state: BackendState = { status: 'stopped', url: null, version: null, detail: null, restarts: 0 };
+  private state: BackendState = {
+    status: 'stopped',
+    url: null,
+    version: null,
+    detail: null,
+    restarts: 0,
+    harness: null,
+  };
   private listeners = new Set<(state: BackendState) => void>();
   private stopping = false;
+  private readonly resolveHarness: () => HarnessResolution;
+
+  constructor(options: BackendSupervisorOptions = {}) {
+    this.resolveHarness = options.resolveHarness ?? resolveHarnessFromProcess;
+  }
 
   snapshot(): BackendState {
-    return { ...this.state };
+    return { ...this.state, harness: this.state.harness ? { ...this.state.harness } : null };
   }
 
   onState(listener: (state: BackendState) => void): () => void {
@@ -170,14 +192,18 @@ export class BackendSupervisor {
       return false;
     }
     const url = `http://127.0.0.1:${port}`;
-    this.emit({ status: 'starting', url, version: null, detail: `launching ${source} backend` });
+    const harness = this.resolveHarness();
+    this.emit({ status: 'starting', url, version: null, detail: `launching ${source} backend`, harness });
 
     // No --auth-token on argv: it would expose the secret in ps output.
     // The child inherits AGENT_TOOLKIT_TOKEN through env, which serve reads.
+    // serve roots its jobs dir and containment at cwd, so cwd is the harness.
     const args = [...argsPrefix, 'serve', '--host', '127.0.0.1', '--port', String(port), '--no-browser'];
+    const spawnContext = harnessSpawnContext(harness, process.env);
     const child = spawn(bin, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: { ...process.env, NO_COLOR: '1', TERM: 'dumb' },
+      cwd: spawnContext.cwd,
+      env: { ...spawnContext.env, NO_COLOR: '1', TERM: 'dumb' },
       windowsHide: true,
     });
     this.proc = child;

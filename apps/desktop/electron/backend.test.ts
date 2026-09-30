@@ -14,6 +14,9 @@ const server = http.createServer((req, res) => {
   if (req.url === '/api/v1/health') {
     res.writeHead(200, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ ok: true, version: '9.9.9-test', uptime_s: 1 }));
+  } else if (req.url === '/__fixture/spawn') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ cwd: process.cwd(), workspace: process.env.AGENT_TOOLKIT_WORKSPACE ?? null }));
   } else {
     res.writeHead(404);
     res.end('{}');
@@ -71,6 +74,32 @@ describe('BackendSupervisor', () => {
 
     await supervisor.stop();
     expect(supervisor.snapshot().status).toBe('stopped');
+  }, 90_000);
+
+  it('spawns serve rooted at the resolved harness and reports it', async () => {
+    const harnessDir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'atk-harness-')));
+    const harness = {
+      path: harnessDir,
+      source: 'default' as const,
+      defaultPath: harnessDir,
+      overrideVar: null,
+      notice: null,
+    };
+    try {
+      supervisor = new BackendSupervisor({ resolveHarness: () => harness });
+      expect(await supervisor.start()).toBe(true);
+      const snapshot = supervisor.snapshot();
+      expect(snapshot.harness).toEqual(harness);
+      const spawned = (await (await fetch(`${snapshot.url}/__fixture/spawn`)).json()) as {
+        cwd: string;
+        workspace: string | null;
+      };
+      expect(spawned).toEqual({ cwd: harnessDir, workspace: harnessDir });
+    } finally {
+      await supervisor?.stop();
+      supervisor = null;
+      fs.rmSync(harnessDir, { recursive: true, force: true });
+    }
   }, 90_000);
 
   it('parses the expected-major override', () => {

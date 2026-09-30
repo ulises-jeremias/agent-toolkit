@@ -79,6 +79,18 @@ curl -s -X POST http://127.0.0.1:3847/api/v1/memory/search \
   models, git refs, commits, cron) are validated and rejected with `400`;
   option-like values (leading `-`) are never accepted.
 
+## Workspace rooting
+
+serve has no `--workspace` flag. It keeps its jobs dir at
+`<cwd>/.agent-toolkit/server`, counts cwd as an allowed containment root, and
+resolves the workspace for `loops`, `memory`, `workspace`, `swarms` and
+`project` with core `find_workspace_root` when a request does not pass
+`workspace`: `AGENT_TOOLKIT_WORKSPACE`, then `HARNESS_DIR`, then walking up
+from cwd. To root serve at a harness, launch it
+from that directory with `AGENT_TOOLKIT_WORKSPACE` pointing at the same path.
+Desktop does this for its default harness; see
+[desktop/ELECTRON_MIGRATION.md](desktop/ELECTRON_MIGRATION.md#default-harness).
+
 ## Security defaults (ADR-028)
 
 - Binds `127.0.0.1` only. Remote binding requires explicit `--allow-remote`

@@ -60,6 +60,12 @@ export default function Office() {
             {backend?.version && backend.version !== health.data.version
               ? ` (main reports ${backend.version})`
               : ''} · <span className={styles.mono}>{backendUrl}</span>
+            {backend?.harness && (
+              <>
+                {' '}
+                · harness <span className={styles.mono}>{backend.harness.path}</span> ({backend.harness.source})
+              </>
+            )}
           </p>
         )}
       </Panel>

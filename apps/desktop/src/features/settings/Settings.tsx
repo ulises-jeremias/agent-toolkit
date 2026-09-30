@@ -51,6 +51,25 @@ export default function Settings() {
           <dd>{backend?.status ?? 'unknown'}</dd>
           <dt>Version</dt>
           <dd>{backend?.version ?? 'unknown'}</dd>
+          <dt>Harness</dt>
+          <dd>
+            {backend?.harness ? (
+              <>
+                <span className={styles.mono}>{backend.harness.path}</span> ({backend.harness.source}
+                {backend.harness.overrideVar ? ` via ${backend.harness.overrideVar}` : ''})
+              </>
+            ) : (
+              'not resolved yet'
+            )}
+          </dd>
+          {backend?.harness?.notice && (
+            <>
+              <dt>Harness notice</dt>
+              <dd>
+                <StatusDot status="warn" /> {backend.harness.notice}
+              </dd>
+            </>
+          )}
           {backend?.detail && (
             <>
               <dt>Detail</dt>
