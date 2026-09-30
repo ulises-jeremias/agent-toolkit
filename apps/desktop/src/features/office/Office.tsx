@@ -33,7 +33,7 @@ export default function Office() {
   const now = Date.now();
   const bus = model.live.bus;
   const stale =
-    bus.state === 'unavailable'
+    bus.state === 'idle'
       ? 'Live events unavailable; jobs refresh every 5 seconds.'
       : bus.state === 'reconnecting' || bus.state === 'offline'
         ? 'Event bus is not live; showing last-known jobs.'

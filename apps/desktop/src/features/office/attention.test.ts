@@ -9,6 +9,7 @@ import {
   inspectorHref,
   matchesInspect,
   officeLede,
+  queryAttentionStatus,
   resetNeedsMeCursor,
   takeNextNeedsMe,
   type AttentionInput,
@@ -30,6 +31,7 @@ const job = (patch: Partial<Job> & Pick<Job, 'id' | 'status'>): Job => ({
   ended_at: patch.ended_at ?? '',
   exit_code: patch.exit_code ?? 0,
   workspace: patch.workspace ?? '/ws',
+  retry_of: patch.retry_of ?? '',
   ...patch,
 });
 
@@ -125,6 +127,14 @@ describe('collectAttention', () => {
     });
   });
 
+  it('treats a failed refetch of retained empty jobs as unknown, not clear', () => {
+    const broken = input({ jobs: [], jobsStatus: 'error' });
+    const items = collectAttention(broken);
+    expect(items).toEqual([]);
+    expect(attentionVacancy(broken, items).kind).toBe('unknown');
+    expect(officeLede(broken, items)).not.toMatch(/Nothing needs you|quiet/i);
+  });
+
   it('may say nothing needs you only after jobs and self-check succeeded', () => {
     const clear = input();
     const items = collectAttention(clear);
@@ -174,5 +184,18 @@ describe('inspectorHref / matchesInspect', () => {
     expect(matchesInspect('backend-crash', 'backend-crash')).toBe(true);
     expect(matchesInspect('job-job_fail', 'failed-job_fail')).toBe(true);
     expect(matchesInspect('backend-crash', 'job_fail')).toBe(false);
+  });
+});
+
+describe('queryAttentionStatus', () => {
+  it('lets isError win over retained data', () => {
+    expect(queryAttentionStatus(true, true, false)).toBe('error');
+    expect(queryAttentionStatus(true, false, false)).toBe('error');
+  });
+
+  it('reports success only when data is present and the query is not in error', () => {
+    expect(queryAttentionStatus(false, true, false)).toBe('success');
+    expect(queryAttentionStatus(false, false, true)).toBe('pending');
+    expect(queryAttentionStatus(false, false, false)).toBe('error');
   });
 });

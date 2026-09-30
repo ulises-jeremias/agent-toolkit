@@ -7,8 +7,12 @@ describe('filterCommands', () => {
   });
 
   it('matches destination names and questions', () => {
-    const hits = filterCommands(PALETTE_COMMANDS, 'world');
-    expect(hits.map((command) => command.id)).toContain('go:/world');
+    const world = filterCommands(PALETTE_COMMANDS, 'world');
+    expect(world.map((command) => command.id)).toContain('go:/world');
+    const officeHits = filterCommands(PALETTE_COMMANDS, 'office');
+    expect(officeHits.map((command) => command.id)).toContain('go:/office');
+    const office = PALETTE_COMMANDS.find((command) => command.id === 'go:/office');
+    expect(office?.hint).toBe('What needs attention now?');
   });
 
   it('matches keywords for the terminal dock', () => {

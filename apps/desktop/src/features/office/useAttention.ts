@@ -11,6 +11,7 @@ import {
   finishedJobs,
   nextActions,
   officeLede,
+  queryAttentionStatus,
   runningJobs,
   type AttentionInput,
 } from './attention';
@@ -28,16 +29,9 @@ export function useAttention() {
       backend,
       connection: live.connection,
       jobs: jobs.data ? list : undefined,
-      jobsStatus: jobs.isError && !jobs.data ? 'error' : jobs.data ? 'success' : jobs.isPending ? 'pending' : 'error',
+      jobsStatus: queryAttentionStatus(jobs.isError, Boolean(jobs.data), jobs.isPending),
       selfcheck: selfcheck.data,
-      selfcheckStatus:
-        selfcheck.isError && !selfcheck.data
-          ? 'error'
-          : selfcheck.data
-            ? 'success'
-            : selfcheck.isPending
-              ? 'pending'
-              : 'error',
+      selfcheckStatus: queryAttentionStatus(selfcheck.isError, Boolean(selfcheck.data), selfcheck.isPending),
       href,
     }),
     [

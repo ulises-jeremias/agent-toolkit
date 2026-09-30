@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ApiEvent } from '../api';
-import { EventBusManager, type BusSnapshot } from './eventBus';
-import type { EventSourceLike } from './jobStreams';
+import { EventBusManager } from './eventBus';
+import type { EventSourceLike, LiveSnapshot } from './jobStreams';
 
 class FakeSource implements EventSourceLike {
   onopen: ((event: Event) => void) | null = null;
@@ -36,10 +36,10 @@ class FakeSource implements EventSourceLike {
 function harness() {
   const sources: FakeSource[] = [];
   const events: ApiEvent[] = [];
-  const snapshots: BusSnapshot[] = [];
+  const snapshots: LiveSnapshot[] = [];
   const timers: Array<{ callback: () => void; ms: number; cleared: boolean }> = [];
   const manager = new EventBusManager({
-    urlFor: (since) => `http://backend/api/v1/events?types=job.,backend.${since === null ? '' : `&since=${since}`}`,
+    url: 'http://backend/api/v1/events?types=backend.,job.',
     createSource: (url) => {
       const source = new FakeSource(url);
       sources.push(source);
@@ -49,7 +49,6 @@ function harness() {
     onSnapshot: (snapshot) => snapshots.push(snapshot),
     backoff: { baseMs: 1_000, maxMs: 8_000, jitter: 0 },
     now: () => 0,
-    giveUpAfter: 2,
     setTimer: (callback, ms) => {
       const timer = { callback, ms, cleared: false };
       timers.push(timer);
@@ -59,13 +58,7 @@ function harness() {
       (handle as { cleared: boolean }).cleared = true;
     },
   });
-  const fire = () => {
-    const timer = timers.find((candidate) => !candidate.cleared);
-    if (!timer) throw new Error('no pending timer');
-    timer.cleared = true;
-    timer.callback();
-  };
-  return { manager, sources, events, snapshots, timers, fire };
+  return { manager, sources, events, snapshots, timers };
 }
 
 describe('EventBusManager', () => {
@@ -91,23 +84,23 @@ describe('EventBusManager', () => {
     expect(events[0]).toMatchObject({ type: 'job.updated', subject: 'job_1', status: 'failed', exit_code: 1 });
   });
 
-  it('resumes with since= last seq after a drop', () => {
-    const { manager, sources, fire } = harness();
-    manager.start();
+  it('reconnects from idle when health stays online', () => {
+    const { manager, sources } = harness();
+    manager.setOffline(false);
+    expect(sources).toHaveLength(1);
     sources[0]?.open();
-    sources[0]?.emit('job.created', JSON.stringify({ seq: 4, boot: '9', type: 'job.created', subject: 'job_1' }));
-    sources[0]?.fail();
-    expect(manager.snapshot().state).toBe('reconnecting');
-    fire();
-    expect(sources[1]?.url).toContain('since=4');
+    expect(manager.snapshot().state).toBe('live');
   });
 
-  it('marks the bus unavailable if it never opens', () => {
-    const { manager, sources, fire } = harness();
+  it('reconnects after an offline stretch', () => {
+    const { manager, sources } = harness();
     manager.start();
-    sources[0]?.fail();
-    fire();
-    sources[1]?.fail();
-    expect(manager.snapshot().state).toBe('unavailable');
+    sources[0]?.open();
+    manager.setOffline(true);
+    expect(manager.snapshot().state).toBe('offline');
+    manager.setOffline(false);
+    expect(sources).toHaveLength(2);
+    sources[1]?.open();
+    expect(manager.snapshot().state).toBe('live');
   });
 });

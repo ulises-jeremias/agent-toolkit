@@ -55,6 +55,17 @@ export interface NeedsMeTarget {
 
 export type QueryStatus = 'pending' | 'success' | 'error';
 
+/**
+ * TanStack Query keeps last `data` after a failed refetch. isError must win,
+ * or an empty retained list looks like a proven-clear desk.
+ */
+export function queryAttentionStatus(isError: boolean, hasData: boolean, isPending: boolean): QueryStatus {
+  if (isError) return 'error';
+  if (hasData) return 'success';
+  if (isPending) return 'pending';
+  return 'error';
+}
+
 export interface AttentionInput {
   backend: BackendState | null;
   connection: ConnectionState;
