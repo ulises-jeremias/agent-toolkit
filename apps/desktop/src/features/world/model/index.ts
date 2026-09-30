@@ -7,10 +7,14 @@ export type {
   LaidOutEntity,
   MemoryEntryRecord,
   MemorySummary,
+  PlaceActivity,
   ProjectRecord,
   SemanticEntity,
   SemanticKey,
+  ToolRecord,
   WorldDomainInput,
   WorldLayout,
   WorldModel,
 } from './types';
+
+export { jobBelongsToProject } from './buildWorld';

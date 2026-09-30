@@ -14,6 +14,7 @@ export const cozyTopdownTheme: WorldThemePack = {
     'knowledge.project': { kind: 'css', className: 'tileKnowledgeProject', label: 'Project knowledge' },
     'project.building': { kind: 'css', className: 'tileBuilding', label: 'Project building' },
     'tool.terminal': { kind: 'css', className: 'tileTerminal', label: 'Terminal' },
+    'tool.coding': { kind: 'css', className: 'tileTool', label: 'Coding tool' },
     'capability.shelf': { kind: 'css', className: 'tileShelf', label: 'Library' },
     'attention.inbox': { kind: 'css', className: 'tileInbox', label: 'Needs you' },
     'agent.working': { kind: 'css', className: 'tileAgentWorking', label: 'Working' },

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useBackend } from '../../data/backend';
+import { useTools } from '../../data/catalog';
 import { useSubQuery } from '../../data/commands';
 import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryList } from '../../data/memory';
@@ -17,15 +18,38 @@ import {
   Table,
   VisuallyHidden,
 } from '../../ui';
-import { buildWorldModel, layoutWorld, parseProjectListMessage, type LaidOutEntity, type MemorySummary } from './model';
+import {
+  buildWorldModel,
+  layoutWorld,
+  parseProjectListMessage,
+  type LaidOutEntity,
+  type MemorySummary,
+  type ToolRecord,
+} from './model';
 import { cozyTopdownTheme, resolveThemeAsset } from './theme/cozyTopdown';
 import styles from './world.module.css';
 
 function toneForState(state: string): 'ok' | 'warn' | 'err' | 'idle' | 'info' {
-  if (state === 'ok' || state === 'running' || state === 'known' || state === 'ready' || state === 'present') {
+  if (
+    state === 'ok' ||
+    state === 'running' ||
+    state === 'known' ||
+    state === 'ready' ||
+    state === 'present' ||
+    state === 'calm' ||
+    state.endsWith(' active')
+  ) {
     return 'ok';
   }
-  if (state === 'broken' || state === 'failed' || statusErr(state) || state === 'missing') return 'err';
+  if (
+    state === 'broken' ||
+    state === 'failed' ||
+    statusErr(state) ||
+    state === 'missing' ||
+    state === 'needs attention'
+  ) {
+    return 'err';
+  }
   if (state === 'queued' || state === 'notice' || state === 'empty' || state === 'unavailable') return 'warn';
   if (state === 'inspector' || state === 'catalog') return 'info';
   return 'idle';
@@ -33,6 +57,13 @@ function toneForState(state: string): 'ok' | 'warn' | 'err' | 'idle' | 'info' {
 
 function statusErr(state: string): boolean {
   return state === 'rejected' || state === 'err';
+}
+
+function tooltipFor(entity: LaidOutEntity): string {
+  const parts = [entity.name, entity.concept, entity.state];
+  if (entity.detail) parts.push(entity.detail);
+  if (entity.activity && entity.activity !== 'calm') parts.push(`activity ${entity.activity}`);
+  return parts.join(' · ');
 }
 
 /**
@@ -49,6 +80,7 @@ export default function WorldView() {
   const projectsQuery = useSubQuery('project', 'list');
   const memoryQuery = useMemoryList();
   const jobsQuery = useJobs();
+  const toolsQuery = useTools();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const workspacePath =
@@ -71,7 +103,6 @@ export default function WorldView() {
       kind: entry.kind ?? '',
       title: entry.title ?? entry.id,
       snippet: entry.snippet ?? '',
-      // List omits body — do not invent document contents for the world.
       tags: entry.tags ?? [],
       provenance: {
         file: entry.provenance?.file ?? '',
@@ -87,6 +118,19 @@ export default function WorldView() {
     return { available: true, entries, projectKeys };
   }, [memoryQuery.data, memoryQuery.isError, memoryQuery.isSuccess]);
 
+  const tools: ToolRecord[] = useMemo(() => {
+    if (!toolsQuery.isSuccess || !toolsQuery.data?.tools) return [];
+    return toolsQuery.data.tools.map((tool) => ({
+      id: tool.id,
+      toolName: tool.tool_name,
+      detected: tool.detected,
+      configured: tool.configured,
+      enabled: tool.enabled,
+      verified: tool.verified,
+      version: tool.version ?? '',
+    }));
+  }, [toolsQuery.data, toolsQuery.isSuccess]);
+
   const jobs = useMemo(() => sortJobs(jobsQuery.data), [jobsQuery.data]);
 
   const model = useMemo(
@@ -97,10 +141,22 @@ export default function WorldView() {
         projects,
         projectsKnown: projectsQuery.isSuccess,
         memory,
+        tools,
+        toolsKnown: toolsQuery.isSuccess,
         jobs,
         focusProjectId: focusProject,
       }),
-    [backend?.harness?.notice, focusProject, jobs, memory, projects, projectsQuery.isSuccess, workspacePath],
+    [
+      backend?.harness?.notice,
+      focusProject,
+      jobs,
+      memory,
+      projects,
+      projectsQuery.isSuccess,
+      tools,
+      toolsQuery.isSuccess,
+      workspacePath,
+    ],
   );
 
   const layout = useMemo(() => layoutWorld(model), [model]);
@@ -115,14 +171,14 @@ export default function WorldView() {
   };
 
   return (
-    <div className={styles.world}>
+    <div className={styles.world} data-focus={model.focusProjectId ? 'interior' : 'grounds'}>
       <PageHeader
-        eyebrow="World"
-        title={model.focusProjectId ? `${model.focusProjectId} space` : model.workspaceLabel || 'Workspace world'}
+        eyebrow={model.focusProjectId ? 'Project interior' : 'World'}
+        title={model.focusProjectId ? `${model.focusProjectId} house` : model.workspaceLabel || 'Workspace world'}
         lede={
           model.focusProjectId
-            ? 'Project interior — memory archive, terminal, and inspectors. No fake activity.'
-            : 'Workspace grounds: project houses, memory archive when the API exists, and a capability library. Inspectors stay Paper Co.'
+            ? 'Inside this project — memory records, terminal, and detected tools only. No fake dashboard.'
+            : 'Workspace grounds: project houses light from real jobs. Memory archive when the API exists; Library stays capabilities.'
         }
         actions={
           model.focusProjectId ? (
@@ -134,23 +190,24 @@ export default function WorldView() {
       />
       <Stack>
         <p className={styles.hint}>
-          Theme <strong>{cozyTopdownTheme.label}</strong> (Paper Co. boards as visual language) · semantic keys only ·
-          characters only for proven jobs · quiet empty world is valid · click opens inspectors, not a walk.
+          Theme <strong>{cozyTopdownTheme.label}</strong> · semantic keys only · characters only for proven jobs ·
+          calm houses when idle · click opens inspectors.
         </p>
 
         <Panel
           tone="manila"
-          title="Spatial map"
+          title={model.focusProjectId ? 'Interior map' : 'Spatial map'}
           meta={`${layout.entities.length} entities · ${cozyTopdownTheme.tileSize}px tiles`}
         >
           {gathering ? (
-            <LoadingState label="Reading workspace, projects, memory, and jobs" />
+            <LoadingState label="Reading workspace, projects, memory, tools, and jobs" />
           ) : (
             <div
               className={styles.mapRegion}
               role="application"
-              aria-label="Semantic workspace world"
+              aria-label={model.focusProjectId ? `Interior of ${model.focusProjectId}` : 'Semantic workspace world'}
               data-theme={cozyTopdownTheme.id}
+              data-mode={model.focusProjectId ? 'interior' : 'grounds'}
             >
               <div
                 className={styles.map}
@@ -166,6 +223,7 @@ export default function WorldView() {
                       ? styles[asset.className as keyof typeof styles]
                       : styles.worldTileFallback;
                   const className = `${styles.entity} ${tileClass}`;
+                  const tip = tooltipFor(entity);
                   return (
                     <button
                       key={entity.id}
@@ -173,8 +231,9 @@ export default function WorldView() {
                       className={className}
                       data-kind={entity.kind}
                       data-theme-key={entity.themeKey}
-                      title={`${entity.name} · ${entity.concept} · ${entity.state}`}
-                      aria-label={`${entity.name}, ${entity.concept}, ${entity.state}. Activate to inspect.`}
+                      data-activity={entity.activity ?? 'calm'}
+                      title={tip}
+                      aria-label={`${tip}. Activate to inspect.`}
                       style={{
                         left: entity.x * tile,
                         top: entity.y * tile,

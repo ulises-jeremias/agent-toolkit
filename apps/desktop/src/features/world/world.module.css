@@ -214,6 +214,35 @@
   pointer-events: none;
 }
 
+/* House activity lamp — real jobs only; calm when nothing is running. */
+.entity[data-activity='working']::after,
+.entity[data-activity='blocked']::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 1px solid var(--pc-ink-900);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.entity[data-activity='working']::after {
+  background: var(--pc-brass-400);
+}
+
+.entity[data-activity='blocked']::after {
+  background: var(--pc-rust-500);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entity[data-activity='working']::after,
+  .entity[data-activity='blocked']::after {
+    animation: none;
+  }
+}
+
 .tileTerminal {
   /* Terminal workstation — ink desk + neon phosphor. */
   background:
@@ -234,6 +263,25 @@
     transparent 0 2px,
     color-mix(in srgb, #39ff9b 35%, transparent) 2px 3px
   );
+  pointer-events: none;
+}
+
+.tileTool {
+  /* Tool rack slot — brass peg on manila board. */
+  background:
+    linear-gradient(180deg, #6b604c 0 18%, #d4b483 18% 100%);
+}
+
+.tileTool::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 10px;
+  height: 14px;
+  transform: translateX(-50%);
+  border: 1px solid var(--pc-ink-900);
+  background: #d4a94b;
   pointer-events: none;
 }
 
