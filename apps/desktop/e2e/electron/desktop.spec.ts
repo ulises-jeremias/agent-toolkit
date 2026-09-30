@@ -1,17 +1,40 @@
-import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
 import { openDesktop, waitForBackend, type Desktop } from './fixtures';
 
-function killPortListener(port: string): void {
-  try {
-    const pids = execFileSync('lsof', ['-t', `-iTCP:${port}`, '-sTCP:LISTEN'], { encoding: 'utf8' })
-      .trim()
-      .split('\n')
-      .filter(Boolean);
-    for (const pid of pids) process.kill(Number(pid), 'SIGKILL');
-    return;
-  } catch {
-    execFileSync('fuser', ['-k', `${port}/tcp`], { stdio: 'pipe' });
+/**
+ * Kill the supervised `agent-toolkit serve` child. After ADR-034 the renderer
+ * sees `backend.url` as the loopback static+proxy server, not serve — SIGKILL
+ * on that port takes down the UI and hangs Playwright instead of crashing the
+ * backend.
+ */
+function killSupervisedServe(binaryPath: string): void {
+  const basename = path.basename(binaryPath);
+  const procDir = '/proc';
+  if (!fs.existsSync(procDir)) {
+    throw new Error('crash probe requires /proc to find the serve child');
+  }
+  let killed = 0;
+  for (const entry of fs.readdirSync(procDir)) {
+    if (!/^\d+$/.test(entry)) continue;
+    try {
+      const args = fs
+        .readFileSync(path.join(procDir, entry, 'cmdline'))
+        .toString()
+        .split('\0')
+        .filter(Boolean);
+      const argv0 = args[0] ?? '';
+      const isBinary = argv0 === binaryPath || path.basename(argv0) === basename;
+      if (!isBinary || !args.includes('serve') || !args.includes('--no-browser')) continue;
+      process.kill(Number(entry), 'SIGKILL');
+      killed += 1;
+    } catch {
+      // vanished, or not readable
+    }
+  }
+  if (killed === 0) {
+    throw new Error(`no supervised serve process for ${binaryPath}`);
   }
 }
 
@@ -35,7 +58,20 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
-  await desktop?.close();
+  if (!desktop) return;
+  const child = desktop.app.process();
+  const watchdog = setTimeout(() => {
+    try {
+      child.kill('SIGKILL');
+    } catch {
+      // already gone
+    }
+  }, 20_000);
+  try {
+    await desktop.close();
+  } finally {
+    clearTimeout(watchdog);
+  }
 });
 
 test('supervisor starts the real backend and the shell connects', async () => {
@@ -288,13 +324,13 @@ test('an exited session keeps its output and can restart', async () => {
 test('a crashed backend is attention, not a quiet office', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Office' }).click();
-  const url = await page.evaluate(async () => {
+  const binaryPath = await page.evaluate(async () => {
     const state = await window.atk?.backendStatus();
-    return state?.url ?? null;
+    return state?.binary?.path ?? null;
   });
-  expect(url).toBeTruthy();
-  const port = new URL(url as string).port;
-  killPortListener(port);
+  expect(binaryPath).toBeTruthy();
+  if (!binaryPath) return;
+  killSupervisedServe(binaryPath);
 
   await expect(page.getByRole('alert')).toContainText(/crashed|not answering|stopped/i);
   const needsYou = page.getByRole('region', { name: 'Needs you' });
