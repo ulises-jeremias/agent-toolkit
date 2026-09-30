@@ -56,6 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   health, selfcheck, jobs and events, sourced from
   `docs/compatibility/api-schemas.yaml` and parity-checked against the V
   structs. `GET /api/v1/jobs` is now documented.
+- `serve`: typed `GET /api/v1/agents`, `/tools`, `/providers`, `/models`
+  (persona catalog, coding-agent CLI discovery, swarm runners and model
+  profiles). Tool `enabled` is `unknown` until serve owns enablement.
 
 ### Changed
 

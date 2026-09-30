@@ -515,6 +515,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/agents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Persona catalog from agents/*\/AGENT.md */
+        get: operations["list_agents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tools": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Coding-agent CLI discovery (detected/configured/enabled/verified) */
+        get: operations["list_tools"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Swarm runner CLIs */
+        get: operations["list_providers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Swarm model profile slots */
+        get: operations["list_models"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/doctor/fix": {
         parameters: {
             query?: never;
@@ -674,6 +742,59 @@ export interface components {
             exit_code: number;
             ref: string;
             message: string;
+        };
+        /** @description One persona from agents/<id>/AGENT.md. */
+        AgentInfo: {
+            id: string;
+            name: string;
+            kind: string;
+            description: string;
+            source_file: string;
+        };
+        AgentsResponse: {
+            ok: boolean;
+            agents: components["schemas"]["AgentInfo"][];
+        };
+        /** @description Coding-agent CLI discovery. detected = binary on PATH; configured = a known settings sentinel exists; enabled is `unknown` until serve owns an enablement store; verified = `--version` exited 0. install_hint is empty unless a real first-party install argv exists. */
+        ToolInfo: {
+            id: string;
+            tool_name: string;
+            detected: boolean;
+            configured: boolean;
+            /** @enum {string} */
+            enabled: "unknown" | "true" | "false";
+            verified: boolean;
+            resolved_path: string;
+            config_paths: string[];
+            version: string;
+            reason: string;
+            install_hint: string;
+        };
+        ToolsResponse: {
+            ok: boolean;
+            tools: components["schemas"]["ToolInfo"][];
+        };
+        /** @description A swarm runner CLI. `auto` is a resolver and is omitted. */
+        ProviderInfo: {
+            id: string;
+            bin: string;
+            available: boolean;
+            capability: string;
+            version: string;
+        };
+        ProvidersResponse: {
+            ok: boolean;
+            providers: components["schemas"]["ProviderInfo"][];
+        };
+        /** @description One (profile, runner) slot from swarm_model_profiles. */
+        ModelInfo: {
+            profile: string;
+            runner: string;
+            model: string;
+        };
+        ModelsResponse: {
+            ok: boolean;
+            models: components["schemas"]["ModelInfo"][];
         };
     };
     responses: never;
@@ -2013,6 +2134,86 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    list_agents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgentsResponse"];
+                };
+            };
+        };
+    };
+    list_tools: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ToolsResponse"];
+                };
+            };
+        };
+    };
+    list_providers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProvidersResponse"];
+                };
+            };
+        };
+    };
+    list_models: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModelsResponse"];
                 };
             };
         };

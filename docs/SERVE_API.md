@@ -52,6 +52,10 @@ Regenerate after changing the contract:
   need `?force=true`). Job bodies are the `Job` schema.
 - Events — `GET /api/v1/events`, the global SSE bus (see
   [Event stream](#event-stream))
+- Agents and tools — `GET /api/v1/agents` (persona catalog),
+  `GET /api/v1/tools` (coding-agent CLI discovery),
+  `GET /api/v1/providers` (swarm runners), `GET /api/v1/models`
+  (swarm model-profile slots). See [Agents and tools](#agents-and-tools)
 - `GET /` — minimal static status page (not a product surface)
 
 ## Typed subcommand bodies
@@ -128,6 +132,22 @@ meaningful for `job.*` and `loop.*`.
   dead clients; at most 16 concurrent subscribers (`503` beyond that).
 - Events describe what the server did; they are not persisted. Read
   endpoints remain the source of truth.
+
+## Agents and tools
+
+- `GET /api/v1/agents` — personas from `agents/<id>/AGENT.md` (`id`,
+  `name`, `kind`, `description`, `source_file`). Empty when the toolkit
+  root has no `agents/` tree.
+- `GET /api/v1/tools` — coding-agent CLIs with split planes:
+  `detected` (binary on this session's PATH), `configured` (known
+  settings sentinel exists), `enabled` (`unknown` until serve owns an
+  enablement store; Desktop Engine SQLite is not this process),
+  `verified` (`--version` exited 0). `install_hint` is empty unless a
+  real first-party install argv exists.
+- `GET /api/v1/providers` — swarm runner CLIs (`opencode`, `claude`,
+  …, `skeleton`). `auto` is a resolver and is omitted.
+- `GET /api/v1/models` — flattened `swarm_model_profiles()` slots
+  (`profile`, `runner`, `model`).
 
 ## Security defaults (ADR-028)
 
