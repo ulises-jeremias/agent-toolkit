@@ -2,12 +2,23 @@
 
 export type BackendStatus = 'starting' | 'ready' | 'version-mismatch' | 'crashed' | 'stopped' | 'failed';
 
+export type HarnessSource = 'default' | 'override' | 'fallback';
+
+export interface HarnessResolution {
+  path: string;
+  source: HarnessSource;
+  defaultPath: string;
+  overrideVar: string | null;
+  notice: string | null;
+}
+
 export interface BackendState {
   status: BackendStatus;
   url: string | null;
   version: string | null;
   detail: string | null;
   restarts: number;
+  harness: HarnessResolution | null;
 }
 
 export interface PtyCreateOptions {
