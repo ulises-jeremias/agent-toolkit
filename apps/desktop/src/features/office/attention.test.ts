@@ -6,6 +6,8 @@ import {
   collectAttention,
   collectNeedsMe,
   completedNeedingReview,
+  inspectorHref,
+  matchesInspect,
   officeLede,
   resetNeedsMeCursor,
   takeNextNeedsMe,
@@ -156,5 +158,21 @@ describe('collectNeedsMe / takeNextNeedsMe', () => {
     const done = job({ id: 'job_ok', status: 'completed', ended_at: '2026-09-30T10:01:00Z' });
     expect(completedNeedingReview([done])).toEqual([]);
     expect(collectNeedsMe(input({ jobs: [done] }))).toEqual([]);
+  });
+});
+
+describe('inspectorHref / matchesInspect', () => {
+  it('lets the world open the inspector without dropping extra context', () => {
+    expect(inspectorHref(href)).toBe('/office');
+    expect(inspectorHref(href, 'backend-crash')).toBe('/office?inspect=backend-crash');
+    expect(inspectorHref(href, 'job_fail')).toBe('/office?inspect=job_fail');
+  });
+
+  it('matches a job row by inspect key or raw job id', () => {
+    expect(matchesInspect('job-job_fail', 'job-job_fail')).toBe(true);
+    expect(matchesInspect('job-job_fail', 'job_fail')).toBe(true);
+    expect(matchesInspect('backend-crash', 'backend-crash')).toBe(true);
+    expect(matchesInspect('job-job_fail', 'failed-job_fail')).toBe(true);
+    expect(matchesInspect('backend-crash', 'job_fail')).toBe(false);
   });
 });

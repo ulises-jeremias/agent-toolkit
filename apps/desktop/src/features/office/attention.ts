@@ -6,6 +6,33 @@ import type { BackendState } from '../../types/electron';
 
 export type HrefFn = (path: string, extra?: Record<string, string | undefined>) => string;
 
+/** Stable destination the semantic world opens as an inspector, not as home. */
+export const INSPECTOR_PATH = '/office';
+
+/** Query key world/palette use to focus one attention item. */
+export const INSPECT_PARAM = 'inspect';
+
+/** Open the attention inspector, optionally focused on one item key. */
+export function inspectorHref(href: HrefFn, inspect?: string): string {
+  return inspect ? href(INSPECTOR_PATH, { [INSPECT_PARAM]: inspect }) : href(INSPECTOR_PATH);
+}
+
+/** True when `inspect` (from the URL) names this row. Accepts item keys or a raw job id. */
+export function matchesInspect(key: string, inspect: string | null | undefined): boolean {
+  if (!inspect) return false;
+  if (key === inspect) return true;
+  const keyTail = inspectTail(key);
+  const inspectTailValue = inspectTail(inspect);
+  return keyTail === inspect || inspectTailValue === key || keyTail === inspectTailValue;
+}
+
+function inspectTail(value: string): string {
+  for (const prefix of ['job-', 'failed-', 'running-', 'check-']) {
+    if (value.startsWith(prefix)) return value.slice(prefix.length);
+  }
+  return value;
+}
+
 export type AttentionKind = 'crash' | 'mismatch' | 'offline' | 'harness' | 'failed-job' | 'selfcheck';
 
 export interface AttentionItem {

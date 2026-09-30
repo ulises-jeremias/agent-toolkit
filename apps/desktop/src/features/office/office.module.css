@@ -44,3 +44,11 @@
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
+
+tr[data-inspect='true'] > * {
+  background: var(--surface-manila);
+}
+
+tr[data-inspect='true'] > :first-child {
+  box-shadow: inset 3px 0 0 var(--accent-brass);
+}

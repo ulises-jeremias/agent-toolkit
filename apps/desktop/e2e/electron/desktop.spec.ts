@@ -176,6 +176,7 @@ test('a failed job appears in Office attention and Next that needs me opens it',
   await expect(needsYou).toContainText(/no-such-command failed/);
   await expect(needsYou).not.toContainText(/Nothing needs you/);
   await expect(page.getByRole('main')).not.toContainText(/quiet/i);
+  await expect(needsYou.locator('tr[data-attention="failed-job"]')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Failed' })).toContainText('no-such-command');
 
   await page.keyboard.press('Control+k');

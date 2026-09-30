@@ -192,11 +192,17 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
 
 ## Patterns
 
-- **Needs-you first.** Office lists failures and warnings before anything
-  running, each with a link to the exact item (`/operations?job=<id>`).
-  The palette command "Next that needs me" cycles crash/mismatch → failed
-  jobs → running jobs. Completed-needing-review is omitted until the
-  backend can distinguish it (approvals / review flags).
+- **Needs-you inspector.** Office is the detailed attention list, not the
+  product home. The semantic world owns lights/characters/needs-me and
+  opens this destination with `href('/office')` or
+  `href('/office', { inspect: <key> })` (`backend-crash`,
+  `backend-mismatch`, `backend-offline`, `harness`, `job-<id>`,
+  `check-<name>`). Failures list first, each with a link to the subject
+  (`/operations?job=<id>`, Settings). The palette command "Next that
+  needs me" cycles crash/mismatch → failed jobs → running jobs.
+  Completed-needing-review is omitted until the backend can distinguish
+  it (approvals / review flags). Never "quiet" after a failed job or a
+  crashed backend.
 - **Selection lives in the URL.** List and detail views keep the selection in
   search params, so reloads, links and the back button work. Session scope
   (`workspace`, `agent`, `run`) is the same contract: the context bar writes

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { isTerminalJobStatus, type Job } from '../../lib/api';
 import { formatDuration, formatWhen, jobCommandLine, jobDuration } from '../../lib/format';
 import {
@@ -15,17 +15,19 @@ import {
   VisuallyHidden,
   jobTone,
 } from '../../ui';
-import { attentionVacancy, takeNextNeedsMe, type HrefFn } from './attention';
+import { attentionVacancy, inspectorHref, matchesInspect, takeNextNeedsMe, type HrefFn } from './attention';
 import { useAttention } from './useAttention';
 import styles from './office.module.css';
 
 /**
- * Office: attention-first home for the current harness.
- * Answers happening / needs me / failed / completed / next from health,
- * self-check, jobs and backend-status. Never invents agent or run fields.
+ * Attention inspector for the current harness. The semantic world is the
+ * product front door; this destination is the detailed list the world (or
+ * palette) opens. Never invents agent or run fields.
  */
 export default function Office() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const inspect = params.get('inspect');
   const model = useAttention();
   const vacancy = attentionVacancy(model.input, model.items);
   const now = Date.now();
@@ -39,14 +41,14 @@ export default function Office() {
 
   const goNext = () => {
     const target = takeNextNeedsMe(model.targets);
-    navigate(target ? target.href : model.href('/office'));
+    navigate(target ? target.href : inspectorHref(model.href));
   };
 
   return (
     <>
       <PageHeader
         eyebrow="Office"
-        title="What is happening"
+        title="Attention"
         lede={<span className={styles.ledeFresh}>{model.lede}</span>}
         actions={
           <Button variant="primary" onClick={goNext} disabled={model.targets.length === 0}>
@@ -88,7 +90,11 @@ export default function Office() {
               </thead>
               <tbody>
                 {model.items.map((item) => (
-                  <tr key={item.key} data-attention={item.kind}>
+                  <tr
+                    key={item.key}
+                    data-attention={item.kind}
+                    data-inspect={matchesInspect(item.key, inspect) ? 'true' : undefined}
+                  >
                     <td>
                       <StatusBadge tone={item.tone} label={item.tone === 'err' ? 'failed' : 'warning'} />
                     </td>
@@ -128,7 +134,7 @@ export default function Office() {
               <Link to={model.href('/operations')}>Start a job in Operations</Link>
             </EmptyState>
           ) : (
-            <JobRows jobs={model.running} now={now} href={model.href} />
+            <JobRows jobs={model.running} now={now} href={model.href} inspect={inspect} />
           )}
         </Panel>
 
@@ -144,13 +150,13 @@ export default function Office() {
           ) : model.failed.length === 0 ? (
             <EmptyState title="Nothing has failed.">Failed and rejected jobs land here and in Needs you.</EmptyState>
           ) : (
-            <JobRows jobs={model.failed} now={now} href={model.href} />
+            <JobRows jobs={model.failed} now={now} href={model.href} inspect={inspect} />
           )}
         </Panel>
 
         {model.jobs.isSuccess && model.finished.length > 0 ? (
           <Panel title="Completed" meta={`${model.finished.length} recently finished`}>
-            <JobRows jobs={model.finished.slice(0, 5)} now={now} href={model.href} />
+            <JobRows jobs={model.finished.slice(0, 5)} now={now} href={model.href} inspect={inspect} />
           </Panel>
         ) : null}
 
@@ -173,7 +179,7 @@ export default function Office() {
   );
 }
 
-function JobRows({ jobs, now, href }: { jobs: Job[]; now: number; href: HrefFn }) {
+function JobRows({ jobs, now, href, inspect }: { jobs: Job[]; now: number; href: HrefFn; inspect: string | null }) {
   return (
     <Table>
       <thead>
@@ -194,8 +200,9 @@ function JobRows({ jobs, now, href }: { jobs: Job[]; now: number; href: HrefFn }
         {jobs.map((job) => {
           const duration = jobDuration(job, now);
           const extra = job.workspace ? { workspace: job.workspace } : undefined;
+          const focused = matchesInspect(`job-${job.id}`, inspect) || matchesInspect(job.id, inspect);
           return (
-            <tr key={job.id}>
+            <tr key={job.id} data-inspect={focused ? 'true' : undefined}>
               <td>
                 <StatusBadge tone={jobTone(job.status)} label={job.status} live={!isTerminalJobStatus(job.status)} />
               </td>

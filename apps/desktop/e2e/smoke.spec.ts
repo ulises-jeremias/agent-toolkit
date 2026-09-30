@@ -20,9 +20,9 @@ test.describe('desktop smoke', () => {
 
   test('Office is the Needs you inspector, not home', async ({ page }) => {
     await page.goto('/#/office');
-    await expect(page.getByRole('heading', { level: 1, name: 'What is happening' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Attention' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Needs you' })).toBeVisible();
-    await expect(page).not.toHaveURL(/#\/$/);
+    await expect(page).toHaveURL(/#\/office/);
   });
 
   test('Ctrl+K opens the command palette', async ({ page }) => {
