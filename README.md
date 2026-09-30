@@ -17,6 +17,7 @@
 [![Discord](https://img.shields.io/discord/1527933660764831825?style=flat&label=Discord&labelColor=1f2937&logo=discord&logoColor=white&color=5865F2)](https://discord.gg/bR5VyATgka)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-16a34a?style=flat&labelColor=1f2937)](https://github.com/vercel-labs/skills)
 [![Agent Plugins](https://img.shields.io/badge/Agent%20Plugins-1.0-7c3aed?style=flat&labelColor=1f2937)](https://agent-plugins.org)
+[![Mentioned in Awesome Agent Skills](https://awesome.re/mentioned-badge.svg)](https://github.com/junminhong/awesome-agent-skills)
 
 [![npm](https://img.shields.io/npm/v/agent-toolkit-cli?style=flat&label=npm&labelColor=1f2937&color=7c3aed&logo=npm&logoColor=white)](https://www.npmjs.com/package/agent-toolkit-cli)
 [![npm downloads](https://img.shields.io/npm/dm/agent-toolkit-cli?style=flat&label=npm%20downloads&labelColor=1f2937&color=0891b2)](https://www.npmjs.com/package/agent-toolkit-cli)
