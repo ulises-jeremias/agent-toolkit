@@ -33,7 +33,7 @@ export function TerminalHost() {
 }
 
 export function TerminalTabs() {
-  const { sessions, extras, activeId, setActiveId } = useTerminalSessions();
+  const { sessions, extras, activeId, focusSession } = useTerminalSessions();
   if (sessions.length === 0) return null;
   return (
     <div className={styles.tabs} role="tablist" aria-label="Sessions">
@@ -47,8 +47,10 @@ export function TerminalTabs() {
             role="tab"
             aria-selected={session.id === activeId}
             className={styles.tab}
-            onClick={() => setActiveId(session.id)}
-            title={`${session.agent}${run ? ` · ${run}` : ''} · ${session.cwd}`}
+            onClick={() => focusSession(session.id)}
+            data-session-id={session.id}
+            aria-label={`${session.agent}${run ? ` · ${run}` : ''} · ${basename(session.cwd)} · ${state.label}`}
+            title={`${session.agent}${run ? ` · ${run}` : ''} · ${session.cwd} · ${state.label}`}
           >
             <span className={styles.tabAgent}>{session.agent}</span>
             {run ? <span className={styles.tabRun}>{run}</span> : null}

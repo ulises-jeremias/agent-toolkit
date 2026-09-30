@@ -37,8 +37,8 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     id: 'session:new-terminal',
     group: 'Session',
     title: 'New terminal session',
-    hint: 'Open a PTY in the dock',
-    keywords: ['pty', 'shell', 'dock'],
+    hint: 'Open a PTY at this workstation',
+    keywords: ['pty', 'shell', 'dock', 'workstation'],
   },
   {
     id: 'session:start-job',

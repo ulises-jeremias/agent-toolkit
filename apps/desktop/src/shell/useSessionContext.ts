@@ -40,8 +40,11 @@ export function useSessionContext(): SessionContextApi {
   );
 
   const href = useCallback(
-    (path: string, extra: Record<string, string | undefined> = {}) => withContext(path, context, extra),
-    [context],
+    (path: string, extra: Record<string, string | undefined> = {}) => {
+      const pty = 'pty' in extra ? extra.pty : (params.get('pty') ?? undefined);
+      return withContext(path, context, { ...extra, pty });
+    },
+    [context, params],
   );
 
   return { context, setContext, href };

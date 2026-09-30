@@ -15,4 +15,9 @@ describe('filterCommands', () => {
     const hits = filterCommands(PALETTE_COMMANDS, 'pty');
     expect(hits.map((command) => command.id)).toEqual(['go:world-terminal', 'session:new-terminal']);
   });
+
+  it('finds the terminal as a workstation place', () => {
+    const hits = filterCommands(PALETTE_COMMANDS, 'workstation');
+    expect(hits.map((command) => command.id)).toEqual(expect.arrayContaining(['go:/terminal', 'session:new-terminal']));
+  });
 });

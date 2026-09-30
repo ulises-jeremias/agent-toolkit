@@ -1,4 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useSearchParams } from 'react-router';
+import { matchWorkstationSession } from '../lib/workstation';
 import type { PtyCreateOptions, PtySessionInfo } from '../types/electron';
 
 export interface SessionExtras {
@@ -14,6 +16,8 @@ export interface TerminalSessionsValue {
   creating: boolean;
   setCreating: (open: boolean) => void;
   setActiveId: (id: string | null) => void;
+  /** Select a real PTY and put it in the URL so the world can focus it. False if it does not exist. */
+  focusSession: (id: string) => boolean;
   create: (options: PtyCreateOptions, extras?: SessionExtras) => Promise<PtySessionInfo | null>;
   close: (id: string) => Promise<void>;
   restart: (session: PtySessionInfo) => Promise<void>;
@@ -33,11 +37,37 @@ export function useTerminalSessions(): TerminalSessionsValue {
  */
 export function TerminalProvider({ children }: { children: ReactNode }) {
   const bridge = typeof window !== 'undefined' ? window.atk : undefined;
+  const [params, setParams] = useSearchParams();
   const [sessions, setSessions] = useState<PtySessionInfo[]>([]);
   const [extras, setExtras] = useState<Record<string, SessionExtras>>({});
   const [activeId, setActiveId] = useState<string | null>(null);
   const [loading, setLoading] = useState(Boolean(bridge));
   const [creating, setCreating] = useState(false);
+
+  const writePty = useCallback(
+    (id: string | null) => {
+      setParams(
+        (current) => {
+          const next = new URLSearchParams(current);
+          if (id) next.set('pty', id);
+          else next.delete('pty');
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setParams],
+  );
+
+  const focusSession = useCallback(
+    (id: string): boolean => {
+      if (!sessions.some((session) => session.id === id)) return false;
+      setActiveId(id);
+      writePty(id);
+      return true;
+    },
+    [sessions, writePty],
+  );
 
   useEffect(() => {
     if (!bridge) {
@@ -48,7 +78,6 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
     void bridge.ptyList().then((list) => {
       if (cancelled) return;
       setSessions(list);
-      setActiveId((current) => current ?? list[0]?.id ?? null);
       setLoading(false);
     });
     const offExit = bridge.onPtyExit(() => {
@@ -62,6 +91,25 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
     };
   }, [bridge]);
 
+  useEffect(() => {
+    if (loading) return;
+    const pty = params.get('pty') ?? undefined;
+    const matched = matchWorkstationSession(sessions, extras, {
+      pty,
+      agent: pty ? undefined : params.get('agent') || undefined,
+      run: pty ? undefined : params.get('run') || undefined,
+      cwd: pty ? undefined : params.get('workspace') || undefined,
+    });
+    if (matched) {
+      setActiveId(matched.id);
+      return;
+    }
+    if (pty) return;
+    setActiveId((current) =>
+      current && sessions.some((session) => session.id === current) ? current : (sessions[0]?.id ?? null),
+    );
+  }, [loading, params, sessions, extras]);
+
   const create = useCallback(
     async (options: PtyCreateOptions, extra?: SessionExtras): Promise<PtySessionInfo | null> => {
       if (!bridge) return null;
@@ -69,10 +117,11 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
       if (!created) return null;
       setSessions((list) => [...list, created]);
       setActiveId(created.id);
+      writePty(created.id);
       if (extra) setExtras((current) => ({ ...current, [created.id]: extra }));
       return created;
     },
-    [bridge],
+    [bridge, writePty],
   );
 
   const close = useCallback(
@@ -81,7 +130,9 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
       await bridge.ptyClose(id);
       setSessions((list) => {
         const rest = list.filter((session) => session.id !== id);
-        setActiveId((current) => (current === id ? (rest[0]?.id ?? null) : current));
+        const nextId = activeId === id ? (rest[0]?.id ?? null) : activeId;
+        setActiveId(nextId);
+        writePty(nextId);
         return rest;
       });
       setExtras((current) => {
@@ -91,7 +142,7 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
         return rest;
       });
     },
-    [bridge],
+    [bridge, activeId, writePty],
   );
 
   const restart = useCallback(
@@ -113,11 +164,12 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
       creating,
       setCreating,
       setActiveId,
+      focusSession,
       create,
       close,
       restart,
     }),
-    [bridge, loading, sessions, extras, activeId, creating, create, close, restart],
+    [bridge, loading, sessions, extras, activeId, creating, focusSession, create, close, restart],
   );
 
   return <TerminalContext.Provider value={value}>{children}</TerminalContext.Provider>;
