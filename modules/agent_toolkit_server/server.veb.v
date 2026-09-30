@@ -155,6 +155,15 @@ fn is_allowed_workspace(path string) bool {
 	if !is_valid_workspace_path(path) {
 		return false
 	}
+	return is_under_allowed_roots(path)
+}
+
+// is_under_allowed_roots reports whether an existing path resolves (symlinks
+// followed) inside one of the allowed roots used by is_allowed_workspace.
+fn is_under_allowed_roots(path string) bool {
+	if !os.exists(path) {
+		return false
+	}
 	real := os.real_path(path)
 	if real.len == 0 {
 		return false
@@ -688,7 +697,8 @@ pub fn (app &App) skills(mut ctx Ctx, sub string) veb.Result {
 		ctx.res.set_status(.method_not_allowed)
 		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for skills/${sub}' })
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.skills_result(agent_toolkit_core.run_skills(agent_toolkit_core.SkillsOptions{ subcommand: sub }))))
+	opts := build_skills_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.skills_result(agent_toolkit_core.run_skills(opts))))
 }
 
 @['/api/v1/loops/:sub'; post]
@@ -697,11 +707,8 @@ pub fn (app &App) loops_generic(mut ctx Ctx, sub string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
-	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(agent_toolkit_core.LoopOptions{
-		subcommand: sub
-		workspace_path: ws
-	}))))
+	opts := build_loops_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.loop_result(agent_toolkit_core.run_loop(opts))))
 }
 
 @['/api/v1/dc/:sub'; post]
@@ -710,11 +717,8 @@ pub fn (app &App) devcompanion_generic(mut ctx Ctx, sub string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
-	return ctx.json(cmd_resp(agent_toolkit_core.devcompanion_result(agent_toolkit_core.run_devcompanion(agent_toolkit_core.DevcompanionOptions{
-		subcommand: sub
-		workspace_path: ws
-	}))))
+	opts := build_dc_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.devcompanion_result(agent_toolkit_core.run_devcompanion(opts))))
 }
 
 @['/api/v1/swarms/:sub'; post]
@@ -723,11 +727,8 @@ pub fn (app &App) swarms_generic(mut ctx Ctx, sub string) veb.Result {
 	if deny != none {
 		return respond_deny(mut ctx, deny)
 	}
-	ws := agent_toolkit_core.find_workspace_root('') or { os.getwd() }
-	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(agent_toolkit_core.SwarmOptions{
-		subcommand: sub
-		workspace_path: ws
-	}))))
+	opts := build_swarms_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.swarm_result(agent_toolkit_core.run_swarm(opts))))
 }
 
 @['/api/v1/mcp/:sub'; get; post]
@@ -740,7 +741,8 @@ pub fn (app &App) mcp_route(mut ctx Ctx, sub string) veb.Result {
 		ctx.res.set_status(.method_not_allowed)
 		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for mcp/${sub}' })
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.mcp_result(agent_toolkit_core.run_mcp(agent_toolkit_core.McpOptions{ subcommand: sub }))))
+	opts := build_mcp_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.mcp_result(agent_toolkit_core.run_mcp(opts))))
 }
 
 @['/api/v1/plugin/:sub'; get; post]
@@ -753,7 +755,8 @@ pub fn (app &App) plugin_route(mut ctx Ctx, sub string) veb.Result {
 		ctx.res.set_status(.method_not_allowed)
 		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for plugin/${sub}' })
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.plugin_result(agent_toolkit_core.run_plugin(agent_toolkit_core.PluginOptions{ subcommand: sub }))))
+	opts := build_plugin_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.plugin_result(agent_toolkit_core.run_plugin(opts))))
 }
 
 @['/api/v1/workspace/:sub'; get; post]
@@ -766,7 +769,7 @@ pub fn (app &App) workspace(mut ctx Ctx, sub string) veb.Result {
 		ctx.res.set_status(.method_not_allowed)
 		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for workspace/${sub}' })
 	}
-	opts := agent_toolkit_core.WorkspaceOptions{ subcommand: sub }
+	opts := build_workspace_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
 	return ctx.json(cmd_resp(agent_toolkit_core.workspace_result(agent_toolkit_core.run_workspace(opts))))
 }
 
@@ -780,7 +783,8 @@ pub fn (app &App) memory(mut ctx Ctx, sub string) veb.Result {
 		ctx.res.set_status(.method_not_allowed)
 		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for memory/${sub}' })
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.memory_result(agent_toolkit_core.run_memory(agent_toolkit_core.MemoryOptions{ subcommand: sub }))))
+	opts := build_memory_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.memory_result(agent_toolkit_core.run_memory(opts))))
 }
 
 @['/api/v1/project/:sub'; get; post]
@@ -793,7 +797,8 @@ pub fn (app &App) project(mut ctx Ctx, sub string) veb.Result {
 		ctx.res.set_status(.method_not_allowed)
 		return ctx.json(DenyErr{ ok: false, error: 'method not allowed: use POST for project/${sub}' })
 	}
-	return ctx.json(cmd_resp(agent_toolkit_core.project_result(agent_toolkit_core.run_project(agent_toolkit_core.ProjectOptions{ subcommand: sub }))))
+	opts := build_project_options(sub, ctx.req.data) or { return respond_sub_error(mut ctx, err) }
+	return ctx.json(cmd_resp(agent_toolkit_core.project_result(agent_toolkit_core.run_project(opts))))
 }
 
 @['/api/v1/build'; post]

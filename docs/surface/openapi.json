@@ -169,12 +169,56 @@
         ],
         "x-scope": "write:catalog",
         "x-confirm-required": true,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "list",
+                "sync",
+                "validate",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "domain": {
+                    "type": "string"
+                  },
+                  "tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -191,12 +235,55 @@
         ],
         "x-scope": "write:mcp",
         "x-confirm-required": true,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "list",
+                "setup",
+                "health",
+                "doctor",
+                "uninstall",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "provider": {
+                    "type": "string"
+                  },
+                  "offline": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -213,12 +300,45 @@
         ],
         "x-scope": "write:plugins",
         "x-confirm-required": true,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "sync",
+                "check",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {}
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -235,12 +355,99 @@
         ],
         "x-scope": "write:loops",
         "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "init",
+                "status",
+                "audit",
+                "cost",
+                "schedule",
+                "sync",
+                "list",
+                "ls",
+                "templates",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "workspace": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "custom_name": {
+                    "type": "string"
+                  },
+                  "force": {
+                    "type": "boolean"
+                  },
+                  "runner": {
+                    "type": "string"
+                  },
+                  "model": {
+                    "type": "string"
+                  },
+                  "pack": {
+                    "type": "string"
+                  },
+                  "no_llm": {
+                    "type": "boolean"
+                  },
+                  "dry_run": {
+                    "type": "boolean"
+                  },
+                  "cron": {
+                    "type": "string"
+                  },
+                  "platform": {
+                    "type": "string",
+                    "enum": [
+                      "local",
+                      "github-actions"
+                    ]
+                  },
+                  "list_mode": {
+                    "type": "boolean"
+                  },
+                  "remove_mode": {
+                    "type": "boolean"
+                  },
+                  "status_mode": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -257,12 +464,76 @@
         ],
         "x-scope": "write:workspace",
         "x-confirm-required": true,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "init",
+                "context",
+                "sync",
+                "use-persona",
+                "handoff",
+                "history",
+                "personas",
+                "load",
+                "profiles",
+                "validate",
+                "budget",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "workspace": {
+                    "type": "string"
+                  },
+                  "dir": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "explain": {
+                    "type": "boolean"
+                  },
+                  "arg": {
+                    "type": "string"
+                  },
+                  "profile": {
+                    "type": "string"
+                  },
+                  "pack": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -279,12 +550,78 @@
         ],
         "x-scope": "write:memory",
         "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "add",
+                "search",
+                "inject",
+                "review",
+                "todo",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "workspace": {
+                    "type": "string"
+                  },
+                  "entry_type": {
+                    "type": "string",
+                    "enum": [
+                      "learning",
+                      "process",
+                      "todo"
+                    ]
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "query": {
+                    "type": "string"
+                  },
+                  "stale_after": {
+                    "type": "integer"
+                  },
+                  "fix": {
+                    "type": "boolean"
+                  },
+                  "show_done": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -301,12 +638,59 @@
         ],
         "x-scope": "write:projects",
         "x-confirm-required": true,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "init",
+                "clone",
+                "list",
+                "add",
+                "remove",
+                "scan",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "workspace": {
+                    "type": "string"
+                  },
+                  "arg": {
+                    "type": "string"
+                  },
+                  "ssh": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -323,12 +707,68 @@
         ],
         "x-scope": "write:dc",
         "x-confirm-required": true,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "queue",
+                "run-once",
+                "status",
+                "done",
+                "sync-todos",
+                "llm-status",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "workspace": {
+                    "type": "string"
+                  },
+                  "arg": {
+                    "type": "string"
+                  },
+                  "template": {
+                    "type": "string"
+                  },
+                  "request": {
+                    "type": "string"
+                  },
+                  "job_id": {
+                    "type": "string"
+                  },
+                  "no_llm": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"
@@ -411,12 +851,156 @@
         ],
         "x-scope": "write:swarm",
         "x-confirm-required": true,
+        "parameters": [
+          {
+            "name": "sub",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "recipes",
+                "recipe",
+                "backends",
+                "doctor",
+                "runners",
+                "models",
+                "start",
+                "init",
+                "plan",
+                "activate",
+                "deactivate",
+                "promote",
+                "list",
+                "status",
+                "approve",
+                "reject",
+                "cancel",
+                "pause",
+                "resume",
+                "stop",
+                "cleanup",
+                "graph",
+                "handoff",
+                "task",
+                "watch",
+                "report",
+                "artifacts",
+                "handoffs",
+                "logs",
+                "approvals",
+                "prune",
+                "help"
+              ]
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Typed options for the subcommand. The {sub} path segment is authoritative: a body `subcommand` key is ignored. Empty body = defaults.",
+                "properties": {
+                  "workspace": {
+                    "type": "string"
+                  },
+                  "run_id": {
+                    "type": "string"
+                  },
+                  "gate_id": {
+                    "type": "string"
+                  },
+                  "recipe": {
+                    "type": "string"
+                  },
+                  "backend": {
+                    "type": "string"
+                  },
+                  "runner": {
+                    "type": "string"
+                  },
+                  "model_profile": {
+                    "type": "string"
+                  },
+                  "task": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  },
+                  "dry_run": {
+                    "type": "boolean"
+                  },
+                  "force": {
+                    "type": "boolean"
+                  },
+                  "current": {
+                    "type": "boolean"
+                  },
+                  "issue_ref": {
+                    "type": "string"
+                  },
+                  "base_ref": {
+                    "type": "string"
+                  },
+                  "handoff_sub": {
+                    "type": "string"
+                  },
+                  "htype": {
+                    "type": "string"
+                  },
+                  "from_role": {
+                    "type": "string"
+                  },
+                  "to_role": {
+                    "type": "string"
+                  },
+                  "priority": {
+                    "type": "integer"
+                  },
+                  "artifact": {
+                    "type": "string"
+                  },
+                  "commit": {
+                    "type": "string"
+                  },
+                  "branch": {
+                    "type": "string"
+                  },
+                  "blocking": {
+                    "type": "boolean"
+                  },
+                  "role": {
+                    "type": "string"
+                  },
+                  "handoff_id": {
+                    "type": "string"
+                  },
+                  "to_recipe": {
+                    "type": "string"
+                  },
+                  "older_than": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "ok"
           },
+          "400": {
+            "description": "invalid request body or field"
+          },
           "403": {
-            "description": "scope denied"
+            "description": "scope denied or path outside allowed roots"
+          },
+          "404": {
+            "description": "unknown subcommand or path not found"
           },
           "428": {
             "description": "confirm required"

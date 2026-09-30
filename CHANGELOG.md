@@ -26,6 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   terminates a running job's child (SIGTERM, grace, SIGKILL) and marks it
   `canceled`; `DELETE /api/v1/jobs/:id` removes terminal jobs (running jobs
   need `?force=true`). Desktop Operations exposes cancel and delete.
+- Typed request bodies for the generic `serve` subcommand routes
+  (`skills`, `mcp`, `plugin`, `workspace`, `memory`, `project`, `loops`,
+  `dc`, `swarms`): per-family JSON options with OpenAPI `requestBody`
+  schemas and a `sub` enum. The route path stays authoritative, unknown
+  subcommands return 404, malformed bodies 400, and workspace/path/name
+  fields are validated and contained.
+
+### Changed
+
+- `serve` no longer reaches `loops run`, `loops gate-*` or `swarms attach`
+  through the generic `:sub` routes; use `POST /api/v1/loops/{name}/run`
+  or the CLI.
 
 ## [1.35.0] — 2026-09-29
 

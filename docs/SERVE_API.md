@@ -38,6 +38,8 @@ Regenerate after changing the contract:
 - Execution APIs — thin proxies over core (`install`, `update`, `uninstall`,
   `skills/:sub`, `mcp/:sub`, `plugin/:sub`, `workspace/:sub`, `memory/:sub`,
   `project/:sub`, `loops/:sub`, `dc/:sub`, `swarms/:sub`, `build`)
+- Generic subcommand routes (`<family>/:sub`) take a typed JSON body — see
+  [Typed subcommand bodies](#typed-subcommand-bodies)
 - Jobs — `POST /api/v1/jobs`, `GET /api/v1/jobs`, `GET /api/v1/jobs/:id/log`,
   **SSE streaming** via `GET /api/v1/jobs/:id/events` (`status` transitions,
   `log` lines, terminal `done`; process-per-run, bounded concurrency),
@@ -45,6 +47,37 @@ Regenerate after changing the contract:
   409 when already terminal), `DELETE /api/v1/jobs/:id` (terminal jobs;
   running jobs need `?force=true`)
 - `GET /` — minimal static status page (not a product surface)
+
+## Typed subcommand bodies
+
+`skills`, `mcp`, `plugin`, `workspace`, `memory`, `project`, `loops`, `dc` and
+`swarms` expose `POST /api/v1/<family>/{sub}` (read subcommands also accept
+`GET`). The body is a JSON object of typed options for that family; its
+schema is the operation's `requestBody` in OpenAPI, sourced from `api_body`
+in `docs/compatibility/cli-contract.yaml`.
+
+```bash
+curl -s -X POST http://127.0.0.1:3847/api/v1/memory/search \
+  -H 'Content-Type: application/json' -d '{"query":"veb"}'
+```
+
+- **The path is authoritative.** Bodies have no `subcommand` field; a
+  `"subcommand"` key is ignored, so a body can never turn `search` into `add`.
+- **Allowlist.** `{sub}` must be in the family's `api_subcommands` (the
+  OpenAPI `sub` enum), otherwise `404`. Not exposed over HTTP: `loops run`
+  (use the job-backed `POST /api/v1/loops/{name}/run`), `loops gate-*` (reads
+  the server process argv/env), and `swarms attach` (replaces the server
+  process with a terminal). `swarms start` never attaches a terminal.
+- **Bodies.** Empty body keeps the defaults. A non-object or malformed JSON
+  body is `400`. Unknown keys are ignored.
+- **Paths.** `workspace` and `workspace dir` follow `POST /api/v1/jobs`:
+  traversal `400`, missing `404`, outside the allowed roots (symlinks
+  resolved) `403`. Relative path references (`pack`, `artifact`, `recipe`,
+  `workspace load` / `project add` `arg`) must not traverse; absolute ones
+  must exist inside the allowed roots.
+- **Names and ids** (loop names, run/gate/handoff ids, roles, runners,
+  models, git refs, commits, cron) are validated and rejected with `400`;
+  option-like values (leading `-`) are never accepted.
 
 ## Security defaults (ADR-028)
 
