@@ -10,13 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.38.0] — 2026-09-30
+
 ### Added
 
 - Desktop world grounds grow a tile-aligned path, trees, and an east creek in
   empty cells only, on a tiled lawn. Decor is not a place, character, or
   inspectable entity.
 - Project interiors swap outdoor landmark sprites for room furniture (terminal
-  desk, files shelf, records cabinet).
+  desk, files shelf, records cabinet). Façade sprites sit on the lawn with
+  labels underneath, not inside a card frame.
+
+### Fixed
+
+- OpenAPI surface version matches `VERSION` after the 1.37.0 bump.
 
 ## [1.37.0] — 2026-09-30
 
@@ -1067,7 +1074,8 @@ The canonical compiler pipeline now generates native artifacts for 9 AI coding t
 
 ---
 
-[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.37.0...HEAD
+[Unreleased]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.38.0...HEAD
+[1.38.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.37.0...v1.38.0
 [1.37.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.36.0...v1.37.0
 [1.36.0]: https://github.com/ulises-jeremias/agent-toolkit/compare/v1.35.0...v1.36.0
 [1.35.0]: https://github.com/ulises-jeremias/agent-toolkit/releases/tag/v1.35.0
