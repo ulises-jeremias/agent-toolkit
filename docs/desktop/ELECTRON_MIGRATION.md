@@ -61,7 +61,9 @@ Verified 2026-09-29 in the Electron dev app against the installed backend
 set. Selfcheck `jobs_dir_writable`, `GET /loops` and `workspace/context` all
 reported `~/.ai-workspace`. With `AGENT_TOOLKIT_WORKSPACE` pointing at a
 missing directory, Settings showed the fallback notice, serve stayed in the
-inherited cwd, and nothing was created.
+inherited cwd, and nothing was created. Evidence:
+[default](assets/electron/settings-harness-default.png),
+[fallback](assets/electron/settings-harness-fallback.png).
 
 ## Live verification (2026-09-29, backend 1.35.0 @ 19f87ad + branch V fixes)
 
