@@ -411,6 +411,11 @@
   color: var(--text-terminal-muted);
 }
 
+.dock :focus-visible {
+  outline-color: var(--accent-brass-fill);
+  box-shadow: 0 0 0 4px var(--surface-terminal);
+}
+
 .dockBar button[data-variant='ghost'] {
   color: var(--text-terminal);
 }

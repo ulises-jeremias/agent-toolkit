@@ -14,7 +14,7 @@ export const TERMINAL_OPTIONS: ITerminalOptions = {
     selectionBackground: 'rgba(212, 169, 75, 0.35)',
     black: '#161510',
     red: '#e07a62',
-    green: '#9dc49f',
+    green: '#39ff9b',
     yellow: '#d4a94b',
     blue: '#7fa8c4',
     magenta: '#b894b8',
