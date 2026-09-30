@@ -1,51 +1,252 @@
 /**
- * Paper Co. semantic tokens — warm editorial workstation.
- * Design reference: docs/desktop/assets/design/ (office.jpg, concept-board.jpg).
- * Ink on paper; manila for secondary surfaces; brass for accents that earn it.
+ * Agent Toolkit Desktop design tokens (Paper Co.).
+ *
+ * Two layers:
+ *   1. Primitives (--pc-*): raw palette anchors from docs/desktop/DESIGN.md §5.
+ *      Feature code never reads these directly.
+ *   2. Semantic tokens: surface/text/border/action/status/terminal roles.
+ *      Themes (Paper, Ink) remap semantic tokens; System resolves to one of
+ *      them through [data-theme] set by src/design/theme.ts.
+ *
+ * Contrast targets: text-primary/secondary/muted >= 4.5:1 on surface-canvas
+ * and surface-panel in both themes; status foregrounds >= 4.5:1 on their
+ * status background. Brief: docs/desktop/ELECTRON_DESIGN_SYSTEM.md.
  */
 
 :root {
-  --paper: #f3ead3;
-  --paper-raised: #faf5e6;
-  --paper-sunken: #e9ddc0;
-  --manila: #e4cf9f;
-  --manila-deep: #d3b981;
-  --ink: #2b2417;
-  --ink-soft: #5c5138;
-  --ink-faint: #8a7c5c;
-  --brass: #a97e2f;
-  --brass-bright: #c79a3b;
-  --brass-deep: #7d5c1e;
-  --oxblood: #7c2e22;
-  --moss: #4f6b3a;
-  --slate-blue: #3d5a73;
-  --terminal-bg: #1d1a12;
-  --terminal-ink: #ecdfc0;
-  --terminal-brass: #d9a83f;
-  --line: #c9b98d;
-  --line-strong: #a89568;
-  --danger: #a33224;
-  --ok: #4f6b3a;
-  --warn: #a97e2f;
+  /* Primitives: paper */
+  --pc-cream-50: #fcf7ec;
+  --pc-cream-100: #f6ebd7;
+  --pc-cream-200: #eee0c4;
+  --pc-cream-300: #e3d0ac;
+  --pc-manila-100: #efdcb6;
+  --pc-manila-300: #d4b483;
+  --pc-manila-500: #b08d57;
+  --pc-ink-950: #1f1b14;
+  --pc-ink-900: #2a241b;
+  --pc-ink-700: #4a4133;
+  --pc-ink-600: #5c5241;
+  --pc-ink-500: #6b604c;
+  --pc-sage-100: #dde7d6;
+  --pc-sage-500: #7b9e7e;
+  --pc-sage-700: #3f6243;
+  --pc-teal-100: #d3e3e0;
+  --pc-teal-500: #4e7c7b;
+  --pc-teal-700: #2f5352;
+  --pc-rust-100: #f3d6cc;
+  --pc-rust-500: #b5523c;
+  --pc-rust-700: #8a3624;
+  --pc-brass-100: #f3e3b9;
+  --pc-brass-400: #d4a94b;
+  --pc-brass-600: #a67c22;
+  --pc-brass-700: #735512;
 
-  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --font-body: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-  --font-mono: 'Berkeley Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Primitives: ink (dark) */
+  --pc-char-1000: #0f0e0c;
+  --pc-char-950: #151411;
+  --pc-char-900: #1b1a16;
+  --pc-char-850: #22201b;
+  --pc-char-800: #2b2822;
+  --pc-char-700: #3b372e;
+  --pc-char-600: #4e493d;
+  --pc-bone-100: #efe6d3;
+  --pc-bone-300: #c9bea6;
+  --pc-bone-500: #a39881;
 
+  /* Primitives: terminal */
+  --pc-terminal-bg: #161510;
+  --pc-terminal-fg: #e9e1cf;
+  --pc-terminal-neon: #39ff9b;
+
+  /* Typography */
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'IBM Plex Sans', system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --text-2xs: 0.6875rem; /* 11px: eyebrows, table headers */
+  --text-xs: 0.75rem; /* 12px: captions, badges */
+  --text-sm: 0.8125rem; /* 13px: dense rows, mono detail */
+  --text-md: 0.875rem; /* 14px: body, controls */
+  --text-lg: 1rem; /* 16px: lead copy */
+  --text-xl: 1.25rem; /* 20px: panel titles (display) */
+  --text-2xl: 1.75rem; /* 28px: destination titles (display) */
+  --text-3xl: 2.25rem; /* 36px: rare editorial moments */
+
+  --leading-tight: 1.2;
+  --leading-snug: 1.35;
+  --leading-normal: 1.5;
+  --tracking-caps: 0.08em;
+
+  /* Spacing: 4px rhythm */
+  --space-0-5: 0.125rem;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
-  --space-5: 1.5rem;
-  --space-6: 2rem;
-  --space-8: 3rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
 
-  --radius-1: 3px;
-  --radius-2: 6px;
-  --radius-3: 10px;
+  --radius-sm: 3px;
+  --radius-md: 5px;
+  --radius-lg: 8px;
 
-  --shadow-card: 0 1px 0 rgba(43, 36, 23, 0.25), 0 6px 18px rgba(43, 36, 23, 0.12);
-  --shadow-drawer: 0 12px 40px rgba(43, 36, 23, 0.3);
+  /* Geometry */
+  --target-min: 2rem; /* 32px minimum interactive target */
+  --row-height: 2.25rem;
+  --sidebar-width: 14.5rem;
+  --contextbar-height: 2.75rem;
+  --page-max: 100rem;
+
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Layers (dialogs use the native top layer) */
+  --z-sticky: 10;
+  --z-dock: 20;
+  --z-toast: 60;
+
+  color-scheme: light;
+}
+
+/* Paper — canonical warm expression (default). */
+:root,
+:root[data-theme='paper'] {
+  --surface-canvas: var(--pc-cream-100);
+  --surface-panel: var(--pc-cream-50);
+  --surface-sunken: var(--pc-cream-200);
+  --surface-manila: var(--pc-manila-100);
+  --surface-manila-strong: var(--pc-manila-300);
+  --surface-hover: rgba(42, 36, 27, 0.06);
+  --surface-selected: rgba(166, 124, 34, 0.14);
+  --surface-chrome: var(--pc-char-900);
+  --surface-chrome-raised: var(--pc-char-800);
+  --surface-chrome-selected: var(--pc-char-700);
+  --surface-overlay: rgba(31, 27, 20, 0.42);
+
+  --text-primary: var(--pc-ink-900);
+  --text-secondary: var(--pc-ink-700);
+  --text-muted: var(--pc-ink-500);
+  --text-inverse: var(--pc-cream-50);
+  --text-on-chrome: var(--pc-bone-100);
+  --text-on-chrome-muted: var(--pc-bone-500);
+  --text-link: var(--pc-teal-700);
+
+  --border-subtle: #e4d4b6;
+  --border-default: #cdb68a;
+  --border-strong: #9c865a;
+  --border-chrome: var(--pc-char-700);
+
+  --accent-brass: var(--pc-brass-600);
+  --accent-brass-strong: var(--pc-brass-700);
+  --accent-brass-fill: var(--pc-brass-400);
+  --accent-brass-on: var(--pc-char-900);
+  --focus-ring: var(--pc-brass-600);
+  --focus-halo: var(--pc-cream-50);
+
+  --action-primary-bg: var(--pc-ink-900);
+  --action-primary-bg-hover: var(--pc-ink-700);
+  --action-primary-fg: var(--pc-cream-50);
+  --action-secondary-bg: var(--pc-manila-100);
+  --action-secondary-bg-hover: #e6cf9f;
+  --action-secondary-fg: var(--pc-ink-900);
+  --action-danger-bg: var(--pc-rust-700);
+  --action-danger-bg-hover: #722b1c;
+  --action-danger-fg: var(--pc-cream-50);
+
+  --status-ok-fg: var(--pc-sage-700);
+  --status-ok-bg: var(--pc-sage-100);
+  --status-warn-fg: var(--pc-brass-700);
+  --status-warn-bg: var(--pc-brass-100);
+  --status-err-fg: var(--pc-rust-700);
+  --status-err-bg: var(--pc-rust-100);
+  --status-info-fg: var(--pc-teal-700);
+  --status-info-bg: var(--pc-teal-100);
+  --status-idle-fg: var(--pc-ink-600);
+  --status-idle-bg: var(--pc-cream-200);
+
+  --shadow-panel: 0 1px 0 rgba(42, 36, 27, 0.06), 0 1px 3px rgba(42, 36, 27, 0.06);
+  --shadow-raised: 0 1px 0 rgba(42, 36, 27, 0.08), 0 10px 30px rgba(42, 36, 27, 0.16);
+
+  --surface-terminal: var(--pc-terminal-bg);
+  --surface-terminal-chrome: var(--pc-char-850);
+  --text-terminal: var(--pc-terminal-fg);
+  --text-terminal-muted: var(--pc-bone-500);
+  --text-terminal-err: #ec9a84;
+  --surface-terminal-hover: rgba(233, 225, 207, 0.08);
+  --surface-terminal-err: rgba(236, 154, 132, 0.12);
+  --border-terminal: rgba(233, 225, 207, 0.18);
+  --accent-terminal: var(--pc-terminal-neon);
+
+  color-scheme: light;
+}
+
+/* Ink — deliberate dark expression, not an inversion. */
+:root[data-theme='ink'] {
+  --surface-canvas: var(--pc-char-900);
+  --surface-panel: var(--pc-char-850);
+  --surface-sunken: var(--pc-char-950);
+  --surface-manila: #33291c;
+  --surface-manila-strong: #4a3b24;
+  --surface-hover: rgba(239, 230, 211, 0.06);
+  --surface-selected: rgba(212, 169, 75, 0.16);
+  --surface-chrome: var(--pc-char-1000);
+  --surface-chrome-raised: var(--pc-char-900);
+  --surface-chrome-selected: var(--pc-char-800);
+  --surface-overlay: rgba(0, 0, 0, 0.55);
+
+  --text-primary: var(--pc-bone-100);
+  --text-secondary: var(--pc-bone-300);
+  --text-muted: var(--pc-bone-500);
+  --text-inverse: var(--pc-char-900);
+  --text-on-chrome: var(--pc-bone-100);
+  --text-on-chrome-muted: var(--pc-bone-500);
+  --text-link: #8cc3bf;
+
+  --border-subtle: #2f2c25;
+  --border-default: #423d33;
+  --border-strong: #6a6252;
+  --border-chrome: var(--pc-char-800);
+
+  --accent-brass: var(--pc-brass-400);
+  --accent-brass-strong: #e6c070;
+  --accent-brass-fill: var(--pc-brass-400);
+  --accent-brass-on: var(--pc-char-900);
+  --focus-ring: #e2b85a;
+  --focus-halo: var(--pc-char-900);
+
+  --action-primary-bg: #e8dcc0;
+  --action-primary-bg-hover: #f6ecd6;
+  --action-primary-fg: var(--pc-char-900);
+  --action-secondary-bg: #342d22;
+  --action-secondary-bg-hover: #41382a;
+  --action-secondary-fg: var(--pc-bone-100);
+  --action-danger-bg: #a7432f;
+  --action-danger-bg-hover: #bb5039;
+  --action-danger-fg: #fff6ea;
+
+  --status-ok-fg: #a5c9a7;
+  --status-ok-bg: #213024;
+  --status-warn-fg: #e6c070;
+  --status-warn-bg: #362b15;
+  --status-err-fg: #ec9a84;
+  --status-err-bg: #3b1f19;
+  --status-info-fg: #8cc3bf;
+  --status-info-bg: #1a2f2e;
+  --status-idle-fg: var(--pc-bone-300);
+  --status-idle-bg: var(--pc-char-800);
+
+  --shadow-panel: 0 1px 0 rgba(0, 0, 0, 0.35);
+  --shadow-raised: 0 1px 0 rgba(0, 0, 0, 0.4), 0 12px 36px rgba(0, 0, 0, 0.5);
+
+  --surface-terminal: var(--pc-char-1000);
+  --surface-terminal-chrome: var(--pc-char-950);
+
+  color-scheme: dark;
 }
 
 *,
@@ -62,29 +263,59 @@ body,
 
 body {
   margin: 0;
-  background: var(--paper);
-  color: var(--ink);
+  background: var(--surface-canvas);
+  color: var(--text-primary);
   font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
+  font-kerning: normal;
 }
 
 h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  letter-spacing: 0.01em;
-  margin: 0 0 var(--space-3);
+  font-optical-sizing: auto;
+  font-weight: 560;
+  letter-spacing: -0.005em;
+  line-height: var(--leading-tight);
+  margin: 0;
+  color: var(--text-primary);
 }
 
-button {
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--text-link);
+  text-underline-offset: 0.18em;
+}
+
+button,
+input,
+select,
+textarea {
   font: inherit;
+  color: inherit;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background: var(--surface-selected);
 }
 
 :focus-visible {
-  outline: 2px solid var(--brass-deep);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
+  box-shadow: 0 0 0 4px var(--focus-halo);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -92,6 +323,16 @@ button {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
 }

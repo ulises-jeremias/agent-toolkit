@@ -1,0 +1,64 @@
+import { useTerminalSessions } from '../../data/terminal';
+import { basename } from '../../shell/sessionContext';
+import { TerminalPane } from './TerminalPane';
+import { sessionState } from './sessionState';
+import styles from './terminal.module.css';
+
+/**
+ * Persistent host for every xterm instance. Panes stay mounted; only the
+ * active one is shown. The dock and the Terminal destination share this.
+ */
+export function TerminalHost() {
+  const { sessions, extras, activeId, close, restart } = useTerminalSessions();
+  if (sessions.length === 0) return null;
+  return (
+    <div className={styles.host}>
+      {sessions.map((session) => (
+        <div
+          key={session.id}
+          className={styles.hostPane}
+          data-active={session.id === activeId}
+          aria-hidden={session.id !== activeId}
+        >
+          <TerminalPane
+            session={session}
+            run={extras[session.id]?.run}
+            onClose={() => void close(session.id)}
+            onRestart={() => void restart(session)}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function TerminalTabs() {
+  const { sessions, extras, activeId, setActiveId } = useTerminalSessions();
+  if (sessions.length === 0) return null;
+  return (
+    <div className={styles.tabs} role="tablist" aria-label="Sessions">
+      {sessions.map((session) => {
+        const state = sessionState(session.exitCode);
+        const run = extras[session.id]?.run;
+        return (
+          <button
+            key={session.id}
+            type="button"
+            role="tab"
+            aria-selected={session.id === activeId}
+            className={styles.tab}
+            onClick={() => setActiveId(session.id)}
+            title={`${session.agent}${run ? ` · ${run}` : ''} · ${session.cwd}`}
+          >
+            <span className={styles.tabAgent}>{session.agent}</span>
+            {run ? <span className={styles.tabRun}>{run}</span> : null}
+            <span className={styles.tabCwd}>{basename(session.cwd)}</span>
+            <span className={styles.tabState} data-tone={state.tone}>
+              {state.label}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}

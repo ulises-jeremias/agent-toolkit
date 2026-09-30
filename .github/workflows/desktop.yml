@@ -58,4 +58,21 @@ jobs:
       - run: pnpm --filter agent-toolkit-desktop test
       - run: pnpm --filter agent-toolkit-desktop build:all
       - run: pnpm --filter agent-toolkit-desktop exec playwright install chromium --with-deps
+      - name: E2E (renderer)
+        run: pnpm --filter agent-toolkit-desktop exec playwright test --project=renderer
+      - name: E2E (Electron + real backend)
+        env:
+          ATK_E2E_BACKEND_BIN: ${{ github.workspace }}/dist/agent-toolkit
+        run: >-
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24"
+          pnpm --filter agent-toolkit-desktop exec playwright test --project=electron
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            apps/desktop/playwright-report
+            apps/desktop/test-results
+          retention-days: 7
       - run: pnpm --filter agent-toolkit-desktop dist:dir

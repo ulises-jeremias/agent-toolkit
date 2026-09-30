@@ -2,9 +2,17 @@ import { defineConfig, devices } from '@playwright/test';
 
 const PORT = process.env.PORT ?? '3000';
 
+/**
+ * Two projects:
+ * - renderer: the React app under vite dev, no backend (shell, fallbacks).
+ * - electron: the built app (`pnpm build:all`) launched through Playwright's
+ *   Electron driver with the real V backend (see e2e/electron/fixtures.ts).
+ */
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  // Parallel cold loads race vite's first-run dependency optimization (which
+  // reloads the page), and each Electron spec owns a backend process.
+  workers: 1,
   retries: process.env.CI ? 2 : 0,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
@@ -17,5 +25,17 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'renderer',
+      testIgnore: ['electron/**'],
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'electron',
+      testMatch: ['electron/**/*.spec.ts'],
+      timeout: 90_000,
+      expect: { timeout: 20_000 },
+    },
+  ],
 });

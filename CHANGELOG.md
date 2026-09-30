@@ -32,6 +32,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   schemas and a `sub` enum. The route path stays authoritative, unknown
   subcommands return 404, malformed bodies 400, and workspace/path/name
   fields are validated and contained.
+- Desktop design foundations: DESIGN.md tokens (Paper/Ink/System, Fraunces
+  and IBM Plex), a primitive library with a native `<dialog>`, action
+  receipts and per-destination error boundaries, a URL-backed context bar
+  (workspace/agent/run, seeded from the #1314 harness IPC), a Ctrl/Cmd+K
+  command palette, a persistent terminal dock, the design brief
+  `docs/desktop/ELECTRON_DESIGN_SYSTEM.md`, and Playwright E2E that drives
+  the built Electron app against the real backend under xvfb in CI.
 - Desktop default harness: the supervised backend runs in `~/.ai-workspace`
   (cwd and `AGENT_TOOLKIT_WORKSPACE`) when it exists. The existing
   `AGENT_TOOLKIT_WORKSPACE`/`HARNESS_DIR` overrides still win. When neither
