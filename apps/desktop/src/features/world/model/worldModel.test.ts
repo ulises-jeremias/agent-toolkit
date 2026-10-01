@@ -395,11 +395,27 @@ describe('layoutWorld', () => {
     const e = layout.entities.find((e) => e.id === 'place:project:e')!;
     const memory = layout.entities.find((e) => e.id === 'place:memory')!;
     const library = layout.entities.find((e) => e.id === 'object:library')!;
-    // Landmark boulevard is place-sized (3×3); projects sit south of it.
-    expect(library.w).toBe(3);
-    expect(library.h).toBe(3);
-    // Fifth house wraps to row 2 of the district (4 cols).
-    expect(e.y).toBeGreaterThan(a.y);
+    // Commons landmarks read as real buildings (4×4 library); projects sit south.
+    expect(library.w).toBe(4);
+    expect(library.h).toBe(4);
+    // With ≤10 projects the district uses 5 lanes — the fifth stays on row 1.
+    expect(e.y).toBe(a.y);
+    // A 16-project roster wraps to row 2 (7 lanes).
+    const wide = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: Array.from({ length: 16 }, (_, i) => ({
+            name: `p${String(i).padStart(2, '0')}`,
+            target: `/p${i}`,
+            status: 'ok' as const,
+          })),
+          memory: emptyMemory(true, []),
+        }),
+      ),
+    );
+    const first = wide.entities.find((row) => row.id === 'place:project:p00')!;
+    const eighth = wide.entities.find((row) => row.id === 'place:project:p07')!;
+    expect(eighth.y).toBeGreaterThan(first.y);
     expect(a.y).toBeGreaterThan(memory.y);
     expect(a.y).toBeGreaterThan(library.y);
   });

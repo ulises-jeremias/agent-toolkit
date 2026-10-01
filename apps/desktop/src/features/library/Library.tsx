@@ -38,7 +38,7 @@ function toolSummary(tools: readonly ToolInfo[]): string {
 }
 
 /**
- * Library: Paper Co. interior the world opens for shared/project knowledge.
+ * Library: the capability room the world opens for shared/project knowledge.
  * Catalog vs this machine. Memory is a different place and is omitted when
  * GET /api/v1/memory is gone — this inspector does not invent a memory UI.
  * Running and marketplace install counts stay unknown unless the API reports them.
@@ -64,7 +64,7 @@ export default function Library() {
 
   return (
     <div className={styles.room}>
-      <p className={styles.mark}>Paper Co. · library board</p>
+      <p className={styles.mark}>Cozy Pixel World · library board</p>
       <PageHeader
         eyebrow="Library"
         title="Library board"

@@ -7,7 +7,7 @@ import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { envelopeText } from '../../lib/api';
 import { useSessionContext } from '../../shell/useSessionContext';
-import { EmptyState, ErrorState, LoadingState, PageHeader, Panel, Stack, useActionReceipt } from '../../ui';
+import { EmptyState, ErrorState, LoadingState, useActionReceipt } from '../../ui';
 import { entityAccessibleName, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
 import { MemoryRecordInspector } from './MemoryRecordInspector';
 import {
@@ -18,15 +18,16 @@ import {
   type MemorySummary,
   type ToolRecord,
 } from './model';
-import { cozyTopdownTheme } from './theme/cozyTopdown';
+import { cozyValleyTheme } from './theme/cozyValley';
 import { ToolRecordInspector } from './ToolRecordInspector';
 import { useWorldDetailEscape } from './useWorldDetailEscape';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
 import styles from './world.module.css';
 
 /**
- * World: semantic spatial home. Domain → model → layout → cozy theme → DOM tiles.
- * Memory/tool detail inspectors stay on `/world` query params and call real APIs.
+ * World: semantic spatial home. Domain → model → layout → theme →
+ * terrain canvas + pixel sprites. The world is the screen; memory/tool
+ * detail inspectors stay on `/world` query params and call real APIs.
  */
 export default function WorldView() {
   const { backend } = useBackend();
@@ -175,100 +176,89 @@ export default function WorldView() {
   // Escape: leave memory/tool detail first; else leave project interior to grounds.
   useWorldDetailEscape(goBackFromWorld, detailOpen || Boolean(focusProject));
 
+  const title = model.focusProjectId ? `${model.focusProjectId} house` : model.workspaceLabel || 'Workspace world';
+
   return (
     <div className={styles.world} data-focus={model.focusProjectId ? 'interior' : 'grounds'}>
-      <PageHeader
-        eyebrow={model.focusProjectId ? 'Project interior' : 'World'}
-        title={model.focusProjectId ? `${model.focusProjectId} house` : model.workspaceLabel || 'Workspace world'}
-        lede={
-          model.focusProjectId
-            ? 'Inside this project house — memory, files, terminal, and detected tools only. No fake dashboard.'
-            : 'A quiet campus of project houses. Library, Memory, Files, Operations, and Terminal are real places. Calm when idle.'
-        }
-        actions={
-          model.focusProjectId ? (
-            <Link to={href('/world')}>Back to workspace grounds</Link>
-          ) : (
-            <Link to={href('/workspace')}>Open Workspace inspector</Link>
-          )
-        }
-      />
-      <Stack>
-        <p className={styles.hint}>
-          Theme <strong>{cozyTopdownTheme.label}</strong> · semantic keys only · characters only for proven jobs · calm
-          houses when idle · click opens existing inspectors only.
-        </p>
+      <header className={styles.worldHeader}>
+        <h1 className={styles.worldTitle}>{title}</h1>
+        <span className={styles.worldMeta}>
+          {model.focusProjectId ? 'project interior' : 'workspace valley'} · {layout.entities.length} places
+        </span>
+        {selected ? (
+          <span className={styles.selectedChip} aria-live="polite">
+            Selected: <strong>{selected.name}</strong> — {entityAccessibleName(selected)}
+          </span>
+        ) : null}
+        <Link className={styles.worldHeaderLink} to={model.focusProjectId ? href('/world') : href('/workspace')}>
+          {model.focusProjectId ? '← grounds' : 'Workspace inspector'}
+        </Link>
+      </header>
 
-        <Panel
-          tone="manila"
-          title={model.focusProjectId ? 'Interior map' : 'Spatial map'}
-          meta={`${layout.entities.length} entities · ${cozyTopdownTheme.tileSize}px tiles`}
-        >
-          {gathering ? (
-            <LoadingState label="Reading workspace, projects, memory, tools, and jobs" />
-          ) : layout.entities.length === 0 ? (
-            <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
-          ) : (
-            <WorldEntityMap
-              entities={layout.entities}
-              selectedId={selectedId}
-              theme={cozyTopdownTheme}
-              cols={layout.cols}
-              rows={layout.rows}
-              ariaLabel={model.focusProjectId ? `Interior of ${model.focusProjectId}` : 'Semantic workspace world'}
-              mode={model.focusProjectId ? 'interior' : 'grounds'}
-              onSelect={setSelectedId}
-              onActivate={openEntity}
-            />
-          )}
-          {selected ? (
-            <p className={styles.hint}>
-              Selected: <strong>{selected.name}</strong> — {entityAccessibleName(selected)}.
-            </p>
-          ) : null}
-          {projectsQuery.isError ? (
-            <ErrorState
-              title="Could not list projects"
-              error={projectsQuery.error}
-              onRetry={() => void projectsQuery.refetch()}
-            />
-          ) : null}
-        </Panel>
-
-        {memoryPath ? (
-          <MemoryRecordInspector
-            path={memoryPath}
-            data={memoryFileQuery.data}
-            error={memoryFileQuery.error}
-            isPending={memoryFileQuery.isPending}
-            onBack={goBackFromDetail}
-            backLabel={backLabel}
-            onRetry={() => void memoryFileQuery.refetch()}
+      <div className={styles.mapWrap}>
+        {gathering ? (
+          <LoadingState label="Reading workspace, projects, memory, tools, and jobs" />
+        ) : layout.entities.length === 0 ? (
+          <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
+        ) : (
+          <WorldEntityMap
+            entities={layout.entities}
+            selectedId={selectedId}
+            theme={cozyValleyTheme}
+            cols={layout.cols}
+            rows={layout.rows}
+            ariaLabel={model.focusProjectId ? `Interior of ${model.focusProjectId}` : 'Semantic workspace world'}
+            mode={model.focusProjectId ? 'interior' : 'grounds'}
+            onSelect={setSelectedId}
+            onActivate={openEntity}
+          />
+        )}
+        {projectsQuery.isError ? (
+          <ErrorState
+            title="Could not list projects"
+            error={projectsQuery.error}
+            onRetry={() => void projectsQuery.refetch()}
           />
         ) : null}
+      </div>
 
-        {toolId && !memoryPath ? (
-          <ToolRecordInspector
-            toolId={toolId}
-            tool={inspectedTool}
-            isPending={toolsQuery.isPending}
-            error={toolsQuery.error}
-            onInstall={() => install.mutate(undefined, installReceipt)}
-            installBusy={install.isPending}
-            onBack={goBackFromDetail}
-            backLabel={backLabel}
-            onRetry={() => void toolsQuery.refetch()}
-          />
-        ) : null}
+      {memoryPath ? (
+        <MemoryRecordInspector
+          path={memoryPath}
+          data={memoryFileQuery.data}
+          error={memoryFileQuery.error}
+          isPending={memoryFileQuery.isPending}
+          onBack={goBackFromDetail}
+          backLabel={backLabel}
+          onRetry={() => void memoryFileQuery.refetch()}
+        />
+      ) : null}
 
-        <Panel title="Structured list" meta="Accessibility fallback for every spatial entity">
-          {layout.entities.length === 0 ? (
-            <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
-          ) : (
-            <WorldEntityList entities={layout.entities} selectedId={selectedId} href={href} onSelect={setSelectedId} />
-          )}
-        </Panel>
-      </Stack>
+      {toolId && !memoryPath ? (
+        <ToolRecordInspector
+          toolId={toolId}
+          tool={inspectedTool}
+          isPending={toolsQuery.isPending}
+          error={toolsQuery.error}
+          onInstall={() => install.mutate(undefined, installReceipt)}
+          installBusy={install.isPending}
+          onBack={goBackFromDetail}
+          backLabel={backLabel}
+          onRetry={() => void toolsQuery.refetch()}
+        />
+      ) : null}
+
+      <details className={styles.entityListWrap}>
+        <summary>
+          <span className={styles.worldTitle}>Structured list</span>{' '}
+          <span className={styles.worldMeta}>— every place, object, and character as a table</span>
+        </summary>
+        {layout.entities.length === 0 ? (
+          <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
+        ) : (
+          <WorldEntityList entities={layout.entities} selectedId={selectedId} href={href} onSelect={setSelectedId} />
+        )}
+      </details>
     </div>
   );
 }

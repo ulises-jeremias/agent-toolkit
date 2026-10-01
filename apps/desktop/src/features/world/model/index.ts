@@ -1,9 +1,9 @@
 export { buildWorldModel, jobBelongsToProject } from './buildWorld';
-export { groundDecor } from './groundDecor';
-export type { GroundDecor, GroundDecorKind } from './groundDecor';
 export { PROJECT_FACADES, projectFacade } from './facades';
 export type { BuildingFacade, LandmarkFacade, ProjectFacade } from './facades';
-export { layoutWorld } from './layout';
+export { footprintFor, layoutWorld, projectDistrictCols } from './layout';
+export { paintInterior, paintTerrain } from './terrain';
+export type { DecorSprite, TerrainCell, TerrainPlan } from './terrain';
 export { jobStandAtId, memoryProjectScope, projectScopedMemory, workspaceLevelMemory } from './memoryScope';
 export { parseProjectListMessage } from './parseProjects';
 export type {

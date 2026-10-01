@@ -42,21 +42,18 @@ function OfficeNavCount() {
   );
 }
 
-function Sidebar() {
+function Hud() {
   const { backend } = useBackend();
   const health = useHealth();
   const { href } = useSessionContext();
   const version = health.data?.version ?? backend?.version ?? null;
   return (
-    <nav className={styles.sidebar} aria-label="Destinations">
+    <nav className={styles.hud} aria-label="Destinations">
       <div className={styles.brand}>
         <span className={styles.brandMark} aria-hidden="true">
           A
         </span>
-        <span>
-          <span className={styles.brandName}>Agent Toolkit</span>
-          <span className={styles.brandSub}>Desktop workstation</span>
-        </span>
+        <span className={styles.brandName}>Agent Toolkit</span>
       </div>
       <ul className={styles.navList}>
         {DESTINATIONS.map((destination) => (
@@ -68,10 +65,10 @@ function Sidebar() {
           </li>
         ))}
       </ul>
-      <footer className={styles.sidebarFooter}>
+      <div className={styles.hudStatus}>
         <LiveIndicator />
         <p className={styles.version}>{version ? `agent-toolkit ${version}` : 'agent-toolkit version unknown'}</p>
-      </footer>
+      </div>
     </nav>
   );
 }
@@ -88,9 +85,9 @@ function ShellFrame() {
       <a className={styles.skipLink} href="#main">
         Skip to content
       </a>
-      <Sidebar />
+      <Hud />
+      <ContextBar />
       <div className={styles.main}>
-        <ContextBar />
         <StaleNotice />
         <main id="main" className={styles.content} tabIndex={-1}>
           <Routes>

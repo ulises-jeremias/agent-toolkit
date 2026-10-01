@@ -241,7 +241,7 @@ test('theme choice applies immediately and survives a reload', async () => {
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'ink');
   await page.getByRole('radio', { name: /Paper/ }).check();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'paper');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'meadow');
 });
 
 test('a failed job appears in Office attention and Next that needs me opens it', async () => {

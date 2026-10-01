@@ -99,7 +99,7 @@ export default function WorkspaceView() {
           </Panel>
         </Grid>
         {!focusFiles ? <FilesPanel /> : null}
-        <Panel tone="manila" title="Agent start context" meta="What an agent sees when it starts here">
+        <Panel tone="notice" title="Agent start context" meta="What an agent sees when it starts here">
           <QueryView query={context} loading="Reading start context" errorTitle="Could not read the start context">
             {(envelope) => <CommandReport envelope={envelope} label="Session context" />}
           </QueryView>

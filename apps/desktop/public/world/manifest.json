@@ -1,0 +1,485 @@
+{
+  "generated": "gen-world-assets.mjs",
+  "sprites": {
+    "house-cottage": {
+      "file": "house-cottage.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "house-studio": {
+      "file": "house-studio.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "house-workshop": {
+      "file": "house-workshop.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "house-tower": {
+      "file": "house-tower.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "house-cabin": {
+      "file": "house-cabin.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "house-brick": {
+      "file": "house-brick.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "landmark-workspace": {
+      "file": "landmark-workspace.png",
+      "w": 80,
+      "h": 64,
+      "frames": 1
+    },
+    "landmark-archive": {
+      "file": "landmark-archive.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1
+    },
+    "landmark-library": {
+      "file": "landmark-library.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1
+    },
+    "landmark-operations": {
+      "file": "landmark-operations.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1
+    },
+    "landmark-terminal": {
+      "file": "landmark-terminal.png",
+      "w": 64,
+      "h": 64,
+      "frames": 1
+    },
+    "landmark-files": {
+      "file": "landmark-files.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "landmark-settings": {
+      "file": "landmark-settings.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "landmark-attention": {
+      "file": "landmark-attention.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "memory-index": {
+      "file": "memory-index.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "knowledge-shelf": {
+      "file": "knowledge-shelf.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "memory-entry": {
+      "file": "memory-entry.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1
+    },
+    "tool-rack": {
+      "file": "tool-rack.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "tool-terminal-desk": {
+      "file": "tool-terminal-desk.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "agent-plate": {
+      "file": "agent-plate.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "swarm-table": {
+      "file": "swarm-table.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "loop-clock": {
+      "file": "loop-clock.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1
+    },
+    "ops-crate": {
+      "file": "ops-crate.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "attention-inbox": {
+      "file": "attention-inbox.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "lamp": {
+      "file": "lamp.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "bridge": {
+      "file": "bridge.png",
+      "w": 48,
+      "h": 48,
+      "frames": 1
+    },
+    "tree-round": {
+      "file": "tree-round.png",
+      "w": 32,
+      "h": 40,
+      "frames": 1
+    },
+    "tree-pine": {
+      "file": "tree-pine.png",
+      "w": 32,
+      "h": 40,
+      "frames": 1
+    },
+    "bush": {
+      "file": "bush.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1
+    },
+    "rock": {
+      "file": "rock.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1
+    },
+    "tall-grass": {
+      "file": "tall-grass.png",
+      "w": 16,
+      "h": 8,
+      "frames": 1
+    },
+    "mushroom": {
+      "file": "mushroom.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1
+    },
+    "reeds": {
+      "file": "reeds.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "lily": {
+      "file": "lily.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "stump": {
+      "file": "stump.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1
+    },
+    "fence-h": {
+      "file": "fence-h.png",
+      "w": 16,
+      "h": 12,
+      "frames": 1
+    },
+    "fence-v": {
+      "file": "fence-v.png",
+      "w": 12,
+      "h": 16,
+      "frames": 1
+    },
+    "sign": {
+      "file": "sign.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "floor-wood": {
+      "file": "floor-wood.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "floor-wood-b": {
+      "file": "floor-wood-b.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "wall-top": {
+      "file": "wall-top.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "door-exit": {
+      "file": "door-exit.png",
+      "w": 16,
+      "h": 24,
+      "frames": 1
+    },
+    "rug": {
+      "file": "rug.png",
+      "w": 32,
+      "h": 16,
+      "frames": 1
+    },
+    "plant": {
+      "file": "plant.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "desk-terminal": {
+      "file": "desk-terminal.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "shelf-books": {
+      "file": "shelf-books.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "cabinet-memory": {
+      "file": "cabinet-memory.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "bench-tools": {
+      "file": "bench-tools.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "board-map": {
+      "file": "board-map.png",
+      "w": 32,
+      "h": 32,
+      "frames": 1
+    },
+    "crate": {
+      "file": "crate.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "bubble-alert": {
+      "file": "bubble-alert.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "butterfly": {
+      "file": "butterfly.png",
+      "w": 8,
+      "h": 8,
+      "frames": 2
+    },
+    "firefly": {
+      "file": "firefly.png",
+      "w": 6,
+      "h": 6,
+      "frames": 2
+    },
+    "hornero": {
+      "file": "hornero.png",
+      "w": 16,
+      "h": 12,
+      "frames": 2
+    },
+    "grass-a": {
+      "file": "grass-a.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-b": {
+      "file": "grass-b.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-c": {
+      "file": "grass-c.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "flowers-poppy": {
+      "file": "flowers-poppy.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "flowers-daisy": {
+      "file": "flowers-daisy.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "flowers-lavender": {
+      "file": "flowers-lavender.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "flowers-gold": {
+      "file": "flowers-gold.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt": {
+      "file": "dirt.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-n": {
+      "file": "dirt-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-s": {
+      "file": "dirt-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-e": {
+      "file": "dirt-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-w": {
+      "file": "dirt-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-nw": {
+      "file": "dirt-nw.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-ne": {
+      "file": "dirt-ne.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-sw": {
+      "file": "dirt-sw.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "dirt-se": {
+      "file": "dirt-se.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "plaza": {
+      "file": "plaza.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "plaza-b": {
+      "file": "plaza-b.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "water": {
+      "file": "water.png",
+      "w": 16,
+      "h": 16,
+      "frames": 2
+    },
+    "water-edge-n": {
+      "file": "water-edge-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "water-edge-s": {
+      "file": "water-edge-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "water-edge-e": {
+      "file": "water-edge-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "water-edge-w": {
+      "file": "water-edge-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "char-teal": {
+      "file": "char-teal.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-gold": {
+      "file": "char-gold.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-brick": {
+      "file": "char-brick.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    }
+  }
+}

@@ -1,11 +1,12 @@
 /**
- * Agent Toolkit Desktop design tokens (Paper Co.).
+ * Agent Toolkit Desktop design tokens (Cozy Pixel World, ADR-035).
  *
  * Two layers:
- *   1. Primitives (--pc-*): raw palette anchors from docs/desktop/DESIGN.md §5.
- *      Feature code never reads these directly.
+ *   1. Primitives (--cw-*): raw palette anchors from docs/desktop/DESIGN.md §5
+ *      (valley environment + game-menu chrome). Feature code never reads
+ *      these directly.
  *   2. Semantic tokens: surface/text/border/action/status/terminal roles.
- *      Themes (Paper, Ink) remap semantic tokens; System resolves to one of
+ *      Themes (Meadow, Dusk) remap semantic tokens; System resolves to one of
  *      them through [data-theme] set by src/design/theme.ts.
  *
  * Contrast targets: text-primary/secondary/muted >= 4.5:1 on surface-canvas
@@ -14,68 +15,78 @@
  */
 
 :root {
-  /* Primitives: paper */
-  --pc-cream-50: #fcf7ec;
-  --pc-cream-100: #f6ebd7;
-  --pc-cream-200: #eee0c4;
-  --pc-cream-300: #e3d0ac;
-  --pc-manila-100: #efdcb6;
-  --pc-manila-300: #d4b483;
-  --pc-manila-500: #b08d57;
-  --pc-ink-950: #1f1b14;
-  --pc-ink-900: #2a241b;
-  --pc-ink-700: #4a4133;
-  --pc-ink-600: #5c5241;
-  --pc-ink-500: #6b604c;
-  --pc-sage-100: #dde7d6;
-  --pc-sage-500: #7b9e7e;
-  --pc-sage-700: #3f6243;
-  --pc-teal-100: #d3e3e0;
-  --pc-teal-500: #4e7c7b;
-  --pc-teal-700: #2f5352;
-  --pc-rust-100: #f3d6cc;
-  --pc-rust-500: #b5523c;
-  --pc-rust-700: #8a3624;
-  --pc-brass-100: #f3e3b9;
-  --pc-brass-400: #d4a94b;
-  --pc-brass-600: #a67c22;
-  --pc-brass-700: #735512;
+  /* Primitives: valley environment */
+  --cw-grass: #5fb454;
+  --cw-grass-dark: #4e9c43;
+  --cw-foliage: #3e7d3a;
+  --cw-forest: #2f6230;
+  --cw-forest-deep: #24491f;
+  --cw-dirt: #c9a066;
+  --cw-dirt-dark: #a87f4c;
+  --cw-sand: #e7d7a8;
+  --cw-stone: #9aa0a8;
+  --cw-stone-dark: #767c85;
+  --cw-water: #3fa7d6;
+  --cw-water-deep: #2e7fa3;
+  --cw-wood: #8a5a32;
+  --cw-wood-light: #b07b4a;
+  --cw-wood-dark: #5e3d22;
+  --cw-plaster: #f2e6c9;
+  --cw-brick: #b5654a;
 
-  /* Primitives: ink (dark) */
-  --pc-char-1000: #0f0e0c;
-  --pc-char-950: #151411;
-  --pc-char-900: #1b1a16;
-  --pc-char-850: #22201b;
-  --pc-char-800: #2b2822;
-  --pc-char-700: #3b372e;
-  --pc-char-600: #4e493d;
-  --pc-bone-100: #efe6d3;
-  --pc-bone-300: #c9bea6;
-  --pc-bone-500: #a39881;
+  /* Primitives: game menu (deep indigo-spruce) */
+  --cw-menu-950: #171a2b;
+  --cw-menu-900: #1d2136;
+  --cw-menu-850: #232842;
+  --cw-menu-800: #2a2f4d;
+  --cw-menu-700: #3a4166;
+  --cw-menu-500: #5a628f;
+  --cw-ivory: #f3edda;
+  --cw-ivory-dim: #d8d0b6;
+  --cw-menu-muted: #b9b4ce;
+  --cw-gold: #f0bd5e;
+  --cw-gold-strong: #ffd97a;
+  --cw-gold-deep: #c99a3f;
+  --cw-teal: #5fd3c6;
+  --cw-teal-deep: #3fa89d;
+  --cw-rose: #e46a5c;
+  --cw-rose-deep: #b84a40;
+
+  /* Primitives: status */
+  --cw-ok: #58c98b;
+  --cw-ok-deep: #2f7d54;
+  --cw-warn: #f2c14e;
+  --cw-warn-deep: #a87f2c;
+  --cw-err: #e4574c;
+  --cw-err-deep: #a33327;
+  --cw-info: #5ab0f2;
+  --cw-info-deep: #2f6ea3;
+  --cw-idle: #9a93a8;
 
   /* Primitives: terminal */
-  --pc-terminal-bg: #161510;
-  --pc-terminal-fg: #e9e1cf;
-  --pc-terminal-neon: #39ff9b;
+  --cw-terminal-bg: #14161f;
+  --cw-terminal-fg: #e6efdf;
+  --cw-terminal-glow: #5fe3d0;
 
-  /* Typography */
-  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  /* Typography: display (pixel), body (sans), mono (terminal/logs) */
+  --font-display: 'Silkscreen', 'IBM Plex Mono', ui-monospace, monospace;
   --font-body: 'IBM Plex Sans', system-ui, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 
+  /* Display sizes keep pixel type on integer px (Silkscreen grid is 8px). */
   --text-2xs: 0.6875rem; /* 11px: eyebrows, table headers */
   --text-xs: 0.75rem; /* 12px: captions, badges */
   --text-sm: 0.8125rem; /* 13px: dense rows, mono detail */
   --text-md: 0.875rem; /* 14px: body, controls */
-  --text-lg: 1rem; /* 16px: lead copy */
+  --text-lg: 1rem; /* 16px: lead copy, display labels */
   --text-xl: 1.25rem; /* 20px: panel titles (display) */
-  --text-2xl: 1.75rem; /* 28px: destination titles (display) */
-  --text-3xl: 2.25rem; /* 36px: rare editorial moments */
+  --text-2xl: 1.5rem; /* 24px: destination titles (display) */
+  --text-3xl: 2rem; /* 32px: rare display moments */
 
-  --leading-tight: 1.2;
+  --leading-tight: 1.25;
   --leading-snug: 1.35;
   --leading-normal: 1.5;
-  --tracking-caps: 0.08em;
+  --tracking-caps: 0.06em;
 
   /* Spacing: 4px rhythm */
   --space-0-5: 0.125rem;
@@ -89,15 +100,16 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
 
-  --radius-sm: 3px;
-  --radius-md: 5px;
-  --radius-lg: 8px;
+  /* Pixel-cut menus: square corners; a 2px notch only. */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
 
   /* Geometry */
   --target-min: 2rem; /* 32px minimum interactive target */
   --row-height: 2.25rem;
-  --sidebar-width: 14.5rem;
-  --contextbar-height: 2.75rem;
+  --hud-height: 3rem;
+  --contextbar-height: 2.5rem;
   --page-max: 100rem;
 
   /* Motion */
@@ -110,141 +122,158 @@
   --z-dock: 20;
   --z-toast: 60;
 
+  /* Hard pixel shadows — never blurred (DESIGN.md §7). */
+  --shadow-menu: 3px 3px 0 rgba(15, 12, 26, 0.55);
+  --shadow-chip: 2px 2px 0 rgba(15, 12, 26, 0.45);
+
   color-scheme: light;
 }
 
-/* Paper — canonical warm expression (default). */
+/* Meadow — valley daylight (default). */
 :root,
-:root[data-theme='paper'] {
-  --surface-canvas: var(--pc-cream-100);
-  --surface-panel: var(--pc-cream-50);
-  --surface-sunken: var(--pc-cream-200);
-  --surface-manila: var(--pc-manila-100);
-  --surface-manila-strong: var(--pc-manila-300);
-  --surface-hover: rgba(42, 36, 27, 0.06);
-  --surface-selected: rgba(166, 124, 34, 0.14);
-  --surface-chrome: var(--pc-char-900);
-  --surface-chrome-raised: var(--pc-char-800);
-  --surface-chrome-selected: var(--pc-char-700);
-  --surface-overlay: rgba(31, 27, 20, 0.42);
+:root[data-theme='meadow'] {
+  --surface-canvas: #dcecd0;
+  --surface-panel: var(--cw-menu-900);
+  --surface-raised: var(--cw-menu-800);
+  --surface-sunken: var(--cw-menu-950);
+  --surface-notice: #33290f;
+  --surface-notice-strong: #4a3b18;
+  --surface-hover: rgba(243, 237, 218, 0.08);
+  --surface-selected: rgba(240, 189, 94, 0.18);
+  --surface-chrome: var(--cw-menu-950);
+  --surface-chrome-raised: var(--cw-menu-900);
+  --surface-chrome-selected: var(--cw-menu-800);
+  --surface-overlay: rgba(15, 12, 26, 0.6);
 
-  --text-primary: var(--pc-ink-900);
-  --text-secondary: var(--pc-ink-700);
-  --text-muted: var(--pc-ink-500);
-  --text-inverse: var(--pc-cream-50);
-  --text-on-chrome: var(--pc-bone-100);
-  --text-on-chrome-muted: var(--pc-bone-500);
-  --text-link: var(--pc-teal-700);
+  --text-primary: var(--cw-ivory);
+  --text-secondary: var(--cw-ivory-dim);
+  --text-muted: var(--cw-menu-muted);
+  --text-inverse: var(--cw-menu-950);
+  --text-on-chrome: var(--cw-ivory);
+  --text-on-chrome-muted: var(--cw-menu-muted);
+  --text-link: var(--cw-teal);
 
-  --border-subtle: #e4d4b6;
-  --border-default: #cdb68a;
-  --border-strong: #9c865a;
-  --border-chrome: var(--pc-char-700);
+  --border-subtle: var(--cw-menu-800);
+  --border-default: var(--cw-menu-700);
+  --border-strong: var(--cw-menu-500);
+  --border-chrome: var(--cw-menu-800);
 
-  --accent-brass: var(--pc-brass-600);
-  --accent-brass-strong: var(--pc-brass-700);
-  --accent-brass-fill: var(--pc-brass-400);
-  --accent-brass-on: var(--pc-char-900);
-  --focus-ring: var(--pc-brass-600);
-  --focus-halo: var(--pc-cream-50);
+  --accent-gold: var(--cw-gold);
+  --accent-gold-strong: var(--cw-gold-strong);
+  --accent-gold-on: var(--cw-menu-950);
+  --focus-ring: var(--cw-gold-strong);
+  --focus-halo: rgba(240, 189, 94, 0.3);
 
-  --action-primary-bg: var(--pc-ink-900);
-  --action-primary-bg-hover: var(--pc-ink-700);
-  --action-primary-fg: var(--pc-cream-50);
-  --action-secondary-bg: var(--pc-manila-100);
-  --action-secondary-bg-hover: #e6cf9f;
-  --action-secondary-fg: var(--pc-ink-900);
-  --action-danger-bg: var(--pc-rust-700);
-  --action-danger-bg-hover: #722b1c;
-  --action-danger-fg: var(--pc-cream-50);
+  --action-primary-bg: var(--cw-gold);
+  --action-primary-bg-hover: var(--cw-gold-strong);
+  --action-primary-fg: var(--cw-menu-950);
+  --action-secondary-bg: var(--cw-menu-800);
+  --action-secondary-bg-hover: var(--cw-menu-700);
+  --action-secondary-fg: var(--cw-ivory);
+  --action-danger-bg: var(--cw-rose-deep);
+  --action-danger-bg-hover: var(--cw-rose);
+  --action-danger-fg: #fff3e8;
 
-  --status-ok-fg: var(--pc-sage-700);
-  --status-ok-bg: var(--pc-sage-100);
-  --status-warn-fg: var(--pc-brass-700);
-  --status-warn-bg: var(--pc-brass-100);
-  --status-err-fg: var(--pc-rust-700);
-  --status-err-bg: var(--pc-rust-100);
-  --status-info-fg: var(--pc-teal-700);
-  --status-info-bg: var(--pc-teal-100);
-  --status-idle-fg: var(--pc-ink-600);
-  --status-idle-bg: var(--pc-cream-200);
+  --status-ok-fg: #8fe3b0;
+  --status-ok-bg: #1e3a2a;
+  --status-warn-fg: #ffd97a;
+  --status-warn-bg: #3a2e14;
+  --status-err-fg: #f59a90;
+  --status-err-bg: #421d18;
+  --status-info-fg: #8ecdf7;
+  --status-info-bg: #1a2f44;
+  --status-idle-fg: var(--cw-ivory-dim);
+  --status-idle-bg: var(--cw-menu-800);
 
-  --shadow-panel: 0 1px 0 rgba(42, 36, 27, 0.06), 0 1px 3px rgba(42, 36, 27, 0.06);
-  --shadow-raised: 0 1px 0 rgba(42, 36, 27, 0.08), 0 10px 30px rgba(42, 36, 27, 0.16);
+  --shadow-panel: var(--shadow-menu);
+  --shadow-raised: 4px 4px 0 rgba(15, 12, 26, 0.65);
 
-  --surface-terminal: var(--pc-terminal-bg);
-  --surface-terminal-chrome: var(--pc-char-850);
-  --text-terminal: var(--pc-terminal-fg);
-  --text-terminal-muted: var(--pc-bone-500);
-  --text-terminal-err: #ec9a84;
-  --surface-terminal-hover: rgba(233, 225, 207, 0.08);
-  --surface-terminal-err: rgba(236, 154, 132, 0.12);
-  --border-terminal: rgba(233, 225, 207, 0.18);
-  --accent-terminal: var(--pc-terminal-neon);
+  --surface-terminal: var(--cw-terminal-bg);
+  --surface-terminal-chrome: var(--cw-menu-950);
+  --text-terminal: var(--cw-terminal-fg);
+  --text-terminal-muted: #93a08a;
+  --text-terminal-err: #f59a90;
+  --surface-terminal-hover: rgba(230, 239, 223, 0.08);
+  --surface-terminal-err: rgba(228, 87, 76, 0.14);
+  --border-terminal: rgba(230, 239, 223, 0.2);
+  --accent-terminal: var(--cw-terminal-glow);
+
+  /* World backdrop behind the map (forest depth). */
+  --world-outside: #2c4a28;
+  --world-outside-interior: #3f2f1f;
+  --world-plaque-fg: var(--cw-ivory);
+  --world-plaque-bg: rgba(23, 26, 43, 0.88);
+  --world-plaque-border: var(--cw-menu-500);
 
   color-scheme: light;
 }
 
-/* Ink — deliberate dark expression, not an inversion. */
-:root[data-theme='ink'] {
-  --surface-canvas: var(--pc-char-900);
-  --surface-panel: var(--pc-char-850);
-  --surface-sunken: var(--pc-char-950);
-  --surface-manila: #33291c;
-  --surface-manila-strong: #4a3b24;
-  --surface-hover: rgba(239, 230, 211, 0.06);
-  --surface-selected: rgba(212, 169, 75, 0.16);
-  --surface-chrome: var(--pc-char-1000);
-  --surface-chrome-raised: var(--pc-char-900);
-  --surface-chrome-selected: var(--pc-char-800);
-  --surface-overlay: rgba(0, 0, 0, 0.55);
+/* Dusk — deliberate evening valley, glowing windows. */
+:root[data-theme='dusk'] {
+  --surface-canvas: #10121f;
+  --surface-panel: var(--cw-menu-900);
+  --surface-raised: var(--cw-menu-800);
+  --surface-sunken: #12152a;
+  --surface-notice: #2e2510;
+  --surface-notice-strong: #443517;
+  --surface-hover: rgba(243, 237, 218, 0.07);
+  --surface-selected: rgba(255, 217, 122, 0.2);
+  --surface-chrome: #0d0f1a;
+  --surface-chrome-raised: var(--cw-menu-950);
+  --surface-chrome-selected: var(--cw-menu-900);
+  --surface-overlay: rgba(4, 5, 12, 0.72);
 
-  --text-primary: var(--pc-bone-100);
-  --text-secondary: var(--pc-bone-300);
-  --text-muted: var(--pc-bone-500);
-  --text-inverse: var(--pc-char-900);
-  --text-on-chrome: var(--pc-bone-100);
-  --text-on-chrome-muted: var(--pc-bone-500);
-  --text-link: #8cc3bf;
+  --text-primary: var(--cw-ivory);
+  --text-secondary: var(--cw-ivory-dim);
+  --text-muted: var(--cw-menu-muted);
+  --text-inverse: var(--cw-menu-950);
+  --text-on-chrome: var(--cw-ivory);
+  --text-on-chrome-muted: var(--cw-menu-muted);
+  --text-link: var(--cw-teal);
 
-  --border-subtle: #2f2c25;
-  --border-default: #423d33;
-  --border-strong: #6a6252;
-  --border-chrome: var(--pc-char-800);
+  --border-subtle: var(--cw-menu-850);
+  --border-default: var(--cw-menu-700);
+  --border-strong: var(--cw-menu-500);
+  --border-chrome: var(--cw-menu-900);
 
-  --accent-brass: var(--pc-brass-400);
-  --accent-brass-strong: #e6c070;
-  --accent-brass-fill: var(--pc-brass-400);
-  --accent-brass-on: var(--pc-char-900);
-  --focus-ring: #e2b85a;
-  --focus-halo: var(--pc-char-900);
+  --accent-gold: var(--cw-gold-strong);
+  --accent-gold-strong: #ffe6a3;
+  --accent-gold-on: var(--cw-menu-950);
+  --focus-ring: var(--cw-gold-strong);
+  --focus-halo: rgba(255, 217, 122, 0.32);
 
-  --action-primary-bg: #e8dcc0;
-  --action-primary-bg-hover: #f6ecd6;
-  --action-primary-fg: var(--pc-char-900);
-  --action-secondary-bg: #342d22;
-  --action-secondary-bg-hover: #41382a;
-  --action-secondary-fg: var(--pc-bone-100);
-  --action-danger-bg: #a7432f;
-  --action-danger-bg-hover: #bb5039;
-  --action-danger-fg: #fff6ea;
+  --action-primary-bg: var(--cw-gold-strong);
+  --action-primary-bg-hover: #ffe6a3;
+  --action-primary-fg: var(--cw-menu-950);
+  --action-secondary-bg: var(--cw-menu-800);
+  --action-secondary-bg-hover: var(--cw-menu-700);
+  --action-secondary-fg: var(--cw-ivory);
+  --action-danger-bg: var(--cw-rose-deep);
+  --action-danger-bg-hover: var(--cw-rose);
+  --action-danger-fg: #fff3e8;
 
-  --status-ok-fg: #a5c9a7;
-  --status-ok-bg: #213024;
-  --status-warn-fg: #e6c070;
-  --status-warn-bg: #362b15;
-  --status-err-fg: #ec9a84;
-  --status-err-bg: #3b1f19;
-  --status-info-fg: #8cc3bf;
-  --status-info-bg: #1a2f2e;
-  --status-idle-fg: var(--pc-bone-300);
-  --status-idle-bg: var(--pc-char-800);
+  --status-ok-fg: #8fe3b0;
+  --status-ok-bg: #16281e;
+  --status-warn-fg: #ffd97a;
+  --status-warn-bg: #2c2310;
+  --status-err-fg: #f59a90;
+  --status-err-bg: #331511;
+  --status-info-fg: #8ecdf7;
+  --status-info-bg: #14263a;
+  --status-idle-fg: var(--cw-ivory-dim);
+  --status-idle-bg: var(--cw-menu-900);
 
-  --shadow-panel: 0 1px 0 rgba(0, 0, 0, 0.35);
-  --shadow-raised: 0 1px 0 rgba(0, 0, 0, 0.4), 0 12px 36px rgba(0, 0, 0, 0.5);
+  --shadow-panel: var(--shadow-menu);
+  --shadow-raised: 4px 4px 0 rgba(0, 0, 0, 0.7);
 
-  --surface-terminal: var(--pc-char-1000);
-  --surface-terminal-chrome: var(--pc-char-950);
+  --surface-terminal: #0d0f17;
+  --surface-terminal-chrome: #0d0f1a;
+
+  --world-outside: #182818;
+  --world-outside-interior: #2c2115;
+  --world-plaque-fg: var(--cw-ivory);
+  --world-plaque-bg: rgba(13, 15, 26, 0.92);
+  --world-plaque-border: var(--cw-menu-500);
 
   color-scheme: dark;
 }
@@ -276,9 +305,8 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  font-optical-sizing: auto;
-  font-weight: 560;
-  letter-spacing: -0.005em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: var(--leading-tight);
   margin: 0;
   color: var(--text-primary);
@@ -335,4 +363,19 @@ samp {
   animation-duration: 0.01ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.01ms !important;
+}
+
+/* --- Compatibility aliases (Cozy Pixel World) ---
+   Older feature CSS still references Paper-era token names; map them onto
+   the game-menu system so there is one visual language. New code uses the
+   --accent-gold-* / --surface-notice-* names directly. */
+:root,
+:root[data-theme='meadow'],
+:root[data-theme='dusk'] {
+  --accent-brass: var(--accent-gold);
+  --accent-brass-strong: var(--accent-gold-strong);
+  --accent-brass-fill: var(--accent-gold);
+  --accent-brass-on: var(--accent-gold-on);
+  --surface-manila: var(--surface-notice);
+  --surface-manila-strong: var(--surface-notice-strong);
 }

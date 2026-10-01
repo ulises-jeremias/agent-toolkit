@@ -21,7 +21,7 @@ export function FilesPanel() {
 
   return (
     <Stack>
-      <Panel tone="manila" title="Files" meta={tree.data?.root ? `root ${tree.data.root}` : 'GET /api/v1/files'}>
+      <Panel tone="notice" title="Files" meta={tree.data?.root ? `root ${tree.data.root}` : 'GET /api/v1/files'}>
         <p className={styles.lede}>
           Workspace-contained tree from the serve files API. Secret names stay masked; binary files are marked without
           inventing text.

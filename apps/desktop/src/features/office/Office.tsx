@@ -58,7 +58,7 @@ export default function Office() {
       />
       <Stack>
         <Panel
-          tone="manila"
+          tone="notice"
           title="Needs you"
           meta={
             model.items.length > 0 ? `${model.items.length} ${model.items.length === 1 ? 'item' : 'items'}` : undefined

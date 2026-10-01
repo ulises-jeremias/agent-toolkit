@@ -28,7 +28,7 @@ export function MemoryRecordInspector({
 
   return (
     <Panel
-      tone="manila"
+      tone="notice"
       title="Memory record"
       meta={path}
       actions={

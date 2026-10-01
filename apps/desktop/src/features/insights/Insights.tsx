@@ -42,7 +42,7 @@ export default function Insights() {
       />
       <Stack>
         <Panel
-          tone="manila"
+          tone="notice"
           title="Doctor"
           meta="Checks from doctor, not a health score"
           actions={

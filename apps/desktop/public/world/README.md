@@ -1,13 +1,19 @@
-# World theme sprites (cozy-topdown)
+# World assets (Cozy Pixel World)
 
-Original Paper Co. pixel buildings for Agent Toolkit Desktop.
-Inspired by `docs/desktop/assets/design/asset-sheet-cozy-world.jpg` archetypes —
-**not** cropped from that JPG.
+Every PNG in this directory is **original pixel art generated in-repo** by
+[`../../scripts/gen-world-assets.mjs`](../../scripts/gen-world-assets.mjs):
 
-Rendered via `ThemeAsset.kind = 'sprite'` in `cozyTopdown.ts`.
-Nearest-neighbor / `image-rendering: pixelated` in the world CSS.
+```bash
+node scripts/gen-world-assets.mjs          # regenerate
+node scripts/gen-world-assets.mjs --check  # verify freshness (CI)
+```
 
-Characters / animals are **not** shipped here (ADR-034: no decorative NPCs).
-Trees stand beside buildings. The dirt path, the east creek, and the bridge
-where they cross are environment only (`groundDecor`).
-`interior-*.png` are room furniture for project interiors (terminal desk, files shelf, records cabinet).
+- Source grid: 16×16 px per tile; buildings/objects at integer multiples.
+- Animated sprites pack frames horizontally (frame width = manifest `w`).
+- `manifest.json` lists every sprite with source size and frame count.
+- License: original Agent Toolkit artwork, same license as the repository.
+  No third-party or copyrighted game art is included or derived.
+
+Feature code never references these filenames directly — sprites resolve
+through semantic theme keys in `src/features/world/theme/` (ADR-034,
+ADR-035).
