@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent-toolkit/person@1",
+  "title": "Durable Person, not a runtime session",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec", "id", "name", "role", "goal", "archived"],
+  "properties": {
+    "spec": {"const": "agent-toolkit/person@1"},
+    "id": {"$ref": "#/$defs/id"},
+    "name": {"type": "string", "minLength": 1, "maxLength": 128},
+    "role": {"$ref": "#/$defs/id"},
+    "goal": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "archived": {"type": "boolean"},
+    "definition_id": {"$ref": "#/$defs/ref"},
+    "avatar": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "character": {"$ref": "#/$defs/id"},
+        "accent": {"type": "string", "pattern": "^#[0-9a-fA-F]{6}$"}
+      }
+    },
+    "preferred_provider": {"$ref": "#/$defs/ref"},
+    "preferred_model": {"$ref": "#/$defs/ref"},
+    "capabilities": {"$ref": "#/$defs/refs"},
+    "skills": {"$ref": "#/$defs/refs"},
+    "mcp_servers": {"$ref": "#/$defs/refs"},
+    "isolation": {"enum": ["inherited", "worktree", "session"]},
+    "budget": {
+      "description": "Omitted limits are inherited or unknown, never unlimited.",
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "max_tokens": {"type": "integer", "minimum": 0, "maximum": 1000000000},
+        "max_cost_usd": {"type": "number", "minimum": 0, "maximum": 1000000},
+        "max_seconds": {"type": "integer", "minimum": 0, "maximum": 31536000}
+      }
+    },
+    "import_source": {
+      "description": "Inert provenance only, not instructions or runtime authority.",
+      "type": "object", "additionalProperties": false,
+      "required": ["spec", "review_required", "auto_spawn", "auto_install", "live_sync"],
+      "properties": {
+        "spec": {"const": "munder-difflin/hire@1"},
+        "id": {"$ref": "#/$defs/ref"},
+        "review_required": {"const": true},
+        "auto_spawn": {"const": false},
+        "auto_install": {"const": false},
+        "live_sync": {"const": false},
+        "original_character": {"type": "string", "maxLength": 128},
+        "original_accent": {"type": "string", "maxLength": 128}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "maxLength": 64, "pattern": "^[a-z0-9][a-z0-9_-]*$"},
+    "ref": {"type": "string", "maxLength": 128, "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:/-]*$"},
+    "refs": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/ref"}}
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent-toolkit/people-bindings@1",
+  "title": "People role preferences, not recipe or permission overrides",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["spec", "roles"],
+  "properties": {
+    "spec": {"const": "agent-toolkit/people-bindings@1"},
+    "roles": {
+      "type": "object", "maxProperties": 64,
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false,
+        "properties": {
+          "person_id": {"$ref": "#/$defs/id"},
+          "preferred_people": {
+            "type": "array", "maxItems": 32, "uniqueItems": true,
+            "items": {"$ref": "#/$defs/id"}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "maxLength": 64, "pattern": "^[a-z0-9][a-z0-9_-]*$"}
+  }
+}

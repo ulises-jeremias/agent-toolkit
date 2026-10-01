@@ -1,0 +1,26 @@
+{
+  "spec": "agent-toolkit/import-mapping@1",
+  "source_spec": "munder-difflin/hire@1",
+  "target_spec": "agent-toolkit/person@1",
+  "status": "contract-only",
+  "review_required": true,
+  "auto_spawn": false,
+  "auto_install": false,
+  "live_sync": false,
+  "mapping": {
+    "name": "name",
+    "role": "role",
+    "goal": "goal",
+    "provider": "preferred_provider",
+    "model": "preferred_model",
+    "skills": "skills",
+    "mcp_servers": "mcp_servers",
+    "character": "import_source.original_character",
+    "accent": "import_source.original_accent"
+  },
+  "human_review": ["id", "definition_id", "capability compatibility", "provider/model availability", "MCP references", "budget and isolation"],
+  "unknown_fields": "blocked",
+  "unsafe_fields": "blocked",
+  "art_policy": "Original character/accent are inert attribution. Use original Toolkit art only.",
+  "runtime_authority": "Toolkit runtime evidence only; never hive/registry.json"
+}
