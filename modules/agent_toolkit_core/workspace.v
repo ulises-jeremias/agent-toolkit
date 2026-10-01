@@ -129,6 +129,7 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 		'knowledge/learnings/general.md': workspace_learnings_general
 		'knowledge/todos/pending.md':     workspace_todos_pending
 		'packs/README.md':                workspace_packs_readme
+		'people/README.md':               workspace_people_readme
 		'personas/implementer.md':        workspace_persona_implementer
 		'personas/reviewer.md':           workspace_persona_reviewer
 		'personas/researcher.md':         workspace_persona_researcher
@@ -136,6 +137,21 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 	}
 	mut keys := files.keys()
 	keys.sort()
+	// Preflight EVERY scaffold destination, including the projects/.gitkeep and
+	// repos/.gitkeep markers, before any scaffold content is written. A
+	// symlinked descendant (a dangling link, a link to outside scratch) rejects
+	// the whole init so no scaffold file lands next to untrusted paths.
+	mut destinations := keys.clone()
+	destinations << 'projects/.gitkeep'
+	destinations << 'repos/.gitkeep'
+	for rel in destinations {
+		preflight_scaffold_destination(target, rel) or {
+			return WorkspaceReport{
+				ok: false
+				message: 'workspace init rejected: ${err}'
+			}
+		}
+	}
 	for rel in keys {
 		path := os.join_path(target, rel)
 		if os.exists(path) {
@@ -189,6 +205,27 @@ fn workspace_init(opts WorkspaceOptions) WorkspaceReport {
 			'created':    '${created.len}'
 		}
 	}
+}
+
+// preflight_scaffold_destination rejects a scaffold destination when any path
+// component between the workspace root and the destination is a symlink. It
+// runs before any scaffold write so a link to outside scratch (people ->
+// elsewhere, a linked AGENTS.md) never receives scaffold content. Paths that
+// do not exist yet are fine; mkdir_all creates them inside the workspace.
+fn preflight_scaffold_destination(target string, rel string) ! {
+	real_root := os.real_path(target)
+	mut cur := real_root
+	for part in rel.split('/') {
+		cur = os.join_path(cur, part)
+		if os.is_link(cur) {
+			return error('symlinked destination rejected at ${rel}')
+		}
+	}
+	// Resolve what exists after the links; a created path must land inside the
+	// workspace even when an intermediate link pointed elsewhere. real_path on a
+	// missing tail returns the would-be absolute path, which still contains.
+	real := os.real_path(cur)
+	contain_in_workspace(real_root, real)!
 }
 
 fn missing_workspace(sub string) WorkspaceReport {
