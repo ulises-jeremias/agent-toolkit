@@ -140,8 +140,8 @@ export function CommandPalette() {
       case 'session:replay-onboarding':
         requestOnboardingReplay();
         break;
-      case 'appearance:paper':
-      case 'appearance:ink':
+      case 'appearance:meadow':
+      case 'appearance:dusk':
       case 'appearance:system':
         setThemePreference(command.id.slice('appearance:'.length) as ThemePreference);
         break;

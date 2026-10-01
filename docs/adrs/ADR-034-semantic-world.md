@@ -2,7 +2,10 @@
 
 - **Status:** Accepted (2026-09-30) — branch `feat/semantic-world`
 - **Deciders:** ulises-jeremias (owner); architecture authority for Desktop spatial UX
-- **Amends:** ADR-033 (Electron presentation), DESIGN.md Paper Co. policy
+- **Amends:** ADR-033 (Electron presentation)
+- **Amended by:** [ADR-035](ADR-035-cozy-pixel-world.md) (visual language:
+  Cozy Pixel World replaces the Paper Co. policy referenced below; semantic
+  pipeline and truth rules here remain binding)
 - **Supersedes (spatial presentation):** Office-as-default-home; historical
   Workshop vector world in [WORLD_VIEW.md](../desktop/WORLD_VIEW.md) as
   production authority (motion/truth contracts from that doc remain binding)

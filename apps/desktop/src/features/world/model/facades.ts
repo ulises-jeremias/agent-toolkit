@@ -4,7 +4,14 @@
  * the project name so the district is scannable without fake metadata.
  */
 
-export const PROJECT_FACADES = ['house-cottage', 'house-studio', 'house-workshop', 'house-lab'] as const;
+export const PROJECT_FACADES = [
+  'house-cottage',
+  'house-studio',
+  'house-workshop',
+  'house-tower',
+  'house-cabin',
+  'house-brick',
+] as const;
 
 export type ProjectFacade = (typeof PROJECT_FACADES)[number];
 

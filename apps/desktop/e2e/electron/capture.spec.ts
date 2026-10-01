@@ -15,7 +15,7 @@ const SIZES = [
   { width: 1024, height: 640 },
   { width: 1920, height: 1080 },
 ] as const;
-const THEMES = ['paper', 'ink'] as const;
+const THEMES = ['meadow', 'dusk'] as const;
 const DESTINATIONS = [
   'World',
   'Office',
@@ -87,7 +87,7 @@ test('capture every destination in Paper and Ink at both sizes', async () => {
 
   for (const theme of THEMES) {
     await nav(page).getByRole('link', { name: 'Settings' }).click();
-    await page.getByRole('radio', { name: new RegExp(theme === 'paper' ? 'Paper' : 'Ink') }).check();
+    await page.getByRole('radio', { name: new RegExp(theme === 'meadow' ? 'Meadow' : 'Dusk') }).check();
     await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
     for (const size of SIZES) {
       await setViewport(app, size.width, size.height);

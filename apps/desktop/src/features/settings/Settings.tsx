@@ -36,8 +36,8 @@ const HARNESS_QUERY_KEY = ['desktop', 'harness'] as const;
 
 const THEMES: ReadonlyArray<{ value: ThemePreference; label: string; hint: string }> = [
   { value: 'system', label: 'System', hint: 'Follow the operating system' },
-  { value: 'paper', label: 'Paper', hint: 'Warm light' },
-  { value: 'ink', label: 'Ink', hint: 'Deliberate dark' },
+  { value: 'meadow', label: 'Meadow', hint: 'Valley daylight' },
+  { value: 'dusk', label: 'Dusk', hint: 'Evening, glowing windows' },
 ];
 
 const MOTION: ReadonlyArray<{ value: MotionPreference; label: string; hint: string }> = [
@@ -139,8 +139,8 @@ export default function Settings() {
           title="Appearance"
           meta={
             appearance.theme === 'system'
-              ? `System is ${appearance.resolvedTheme === 'paper' ? 'Paper' : 'Ink'} on this machine`
-              : appearance.resolvedTheme === 'paper'
+              ? `System is ${appearance.resolvedTheme === 'meadow' ? 'Meadow' : 'Dusk'} on this machine`
+              : appearance.resolvedTheme === 'meadow'
                 ? 'Paper'
                 : 'Ink'
           }
@@ -166,7 +166,7 @@ export default function Settings() {
         <Grid>
           <Panel
             title="Backend"
-            tone={backend?.problem === 'binary-rejected' || backend?.problem === 'no-backend' ? 'manila' : 'paper'}
+            tone={backend?.problem === 'binary-rejected' || backend?.problem === 'no-backend' ? 'notice' : 'menu'}
             meta="The agent-toolkit serve process this window talks to"
             actions={
               window.atk ? (

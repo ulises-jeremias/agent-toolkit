@@ -3,7 +3,7 @@
   flex-direction: column;
   min-height: 100%;
   background:
-    radial-gradient(1200px 480px at 50% -40px, var(--status-ok-bg), transparent 70%),
+    linear-gradient(180deg, var(--surface-sunken) 0, var(--surface-canvas) 40%),
     var(--surface-canvas);
 }
 
@@ -12,8 +12,8 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-5) var(--space-6) var(--space-4);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--surface-manila);
+  border-bottom: 2px solid var(--border-chrome);
+  background: var(--surface-chrome);
 }
 
 .mark {
@@ -35,7 +35,7 @@
   font-size: var(--text-xl);
   font-weight: 560;
   line-height: var(--leading-tight);
-  color: var(--text-primary);
+  color: var(--text-on-chrome);
 }
 
 .brandSub {
@@ -43,7 +43,7 @@
   font-size: var(--text-2xs);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--text-on-chrome-muted);
 }
 
 .board {
@@ -90,8 +90,8 @@
   justify-self: end;
   width: 12.5rem;
   padding: var(--space-4);
-  background: var(--surface-manila);
-  border: 1px solid var(--border-default);
+  background: var(--surface-raised);
+  border: 2px solid var(--border-default);
   box-shadow: var(--shadow-panel);
 }
 

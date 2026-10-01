@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { entityAccessibleName, entityHasInspector } from './inspectors';
 import { buildWorldModel, layoutWorld } from './model';
 import type { MemoryEntryRecord, WorldDomainInput } from './model/types';
-import { cozyTopdownTheme } from './theme/cozyTopdown';
+import { cozyValleyTheme } from './theme/cozyValley';
 import { WorldEntityList, WorldEntityMap } from './WorldEntityMap';
 
 function entry(
@@ -127,7 +127,7 @@ describe('WorldEntityMap activation', () => {
         <WorldEntityMap
           entities={layout.entities}
           selectedId={null}
-          theme={cozyTopdownTheme}
+          theme={cozyValleyTheme}
           cols={layout.cols}
           rows={layout.rows}
           ariaLabel="test world"

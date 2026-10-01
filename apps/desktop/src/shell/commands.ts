@@ -97,13 +97,13 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     keywords: ['onboarding', 'setup', 'welcome'],
   },
   {
-    id: 'appearance:paper',
+    id: 'appearance:meadow',
     group: 'Appearance',
     title: 'Use Paper theme',
     keywords: ['light', 'theme'],
   },
   {
-    id: 'appearance:ink',
+    id: 'appearance:dusk',
     group: 'Appearance',
     title: 'Use Ink theme',
     keywords: ['dark', 'theme'],

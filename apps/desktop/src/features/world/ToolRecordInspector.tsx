@@ -57,7 +57,7 @@ export function ToolRecordInspector({
 
   return (
     <Panel
-      tone="manila"
+      tone="notice"
       title="Coding tool"
       meta={toolId}
       actions={

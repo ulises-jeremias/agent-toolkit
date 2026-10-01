@@ -87,7 +87,7 @@ function ReadyStep({
           lede="Sit at the desk. The backend is real. Next you choose a folder, then you enter the world: each project is a house, shared knowledge and tools live as places — never fake scenery."
         />
         <Stack>
-          <Panel tone="manila" title="Backend" meta={ready ? 'Ready' : 'Starting'}>
+          <Panel tone="notice" title="Backend" meta={ready ? 'Ready' : 'Starting'}>
             {backend ? (
               <KeyValue
                 items={[
@@ -197,7 +197,7 @@ function HarnessStep({
         lede="The default is ~/.ai-workspace. Desktop never creates that folder unless you confirm. After this, you enter the world."
       />
       <Stack>
-        <Panel tone="manila" title="Default harness" meta={harness?.source ?? 'unknown'}>
+        <Panel tone="notice" title="Default harness" meta={harness?.source ?? 'unknown'}>
           <KeyValue
             items={[
               { label: 'Default', value: defaultPath, mono: true },

@@ -1,9 +1,10 @@
 # Semantic World — Desktop spatial product contract
 
 **Status: CURRENT CONTRACT** (2026-09-30) — primary product goal for Agent
-Toolkit Desktop spatial UX. Governing ADR:
-[ADR-034](../adrs/ADR-034-semantic-world.md). Complements
-[DESIGN.md](DESIGN.md), [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md),
+Toolkit Desktop spatial UX. Governing ADRs:
+[ADR-034](../adrs/ADR-034-semantic-world.md) (spatial pipeline) and
+[ADR-035](../adrs/ADR-035-cozy-pixel-world.md) (visual language — Cozy Pixel
+World). Complements [DESIGN.md](DESIGN.md), [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md),
 [ELECTRON_DESIGN_SYSTEM.md](ELECTRON_DESIGN_SYSTEM.md), and
 [WORKSTATION_REFERENCE_ANALYSIS.md](WORKSTATION_REFERENCE_ANALYSIS.md).
 
@@ -11,35 +12,37 @@ English is authoritative.
 
 ## 0. One-sentence product goal
 
-> A calm, cozy top-down **semantic world** that *explains* Agent Toolkit
-> (workspace, projects, knowledge, memory, tools, agents, jobs) while Paper Co.
-> **inspectors** stay the professional way to act fast.
+> A calm, cozy top-down **semantic pixel world** that *is* the screen and
+> *explains* Agent Toolkit (workspace, projects, knowledge, memory, tools,
+> agents, jobs) while game-menu **inspectors** stay the professional way to
+> act fast.
 
-The world is the home. The palette, keyboard, terminal dock, and destination
-inspectors remain mandatory productivity rails. This is not pixel-art SaaS and
-not "game before tool".
+The world is the home and visually dominates it. The palette, keyboard,
+terminal dock, and destination inspectors remain mandatory productivity rails.
+This is not pixel-art SaaS and not "game before tool".
 
 ## 1. Decision audit (KEEP / EVOLVE / REPLACE / REMOVE)
 
 | Decision | Verdict | Notes |
 |---|---|---|
-| Paper Co. palette, materials, Fraunces / IBM Plex | **KEEP** | Inspectors, chrome, tables, terminal stay Paper Co. |
+| Paper Co. palette, materials, Fraunces / IBM Plex editorial type | **REMOVE (2026-09-30, ADR-035)** | Visual language deprecated; superseded by Cozy Pixel World (DESIGN.md). |
+| Cozy Pixel World language (pixel world + game-menu panels) | **KEEP** | Single visual contract: world + inspectors share one art direction |
 | Design hierarchy Clarity → Control → Feedback → Discoverability → Personality → Delight | **KEEP** | Personality never outranks truth or input focus |
 | Operational truth before animation; empty is valid | **KEEP** | Ambient *environment* motion OK; system activity only from real state |
-| No fake gamification / XP / invented metrics | **KEEP** | Already binding in DESIGN.md and WORLD_VIEW.md |
+| No fake gamification / XP / invented metrics | **KEEP** | Binding in DESIGN.md and here |
 | Command palette, keyboard, terminal dock, conventional controls | **KEEP** | Click must not require a 30s walk |
 | Accessibility, reduced motion, non-color status | **KEEP** | Every spatial entity has a structured list fallback |
 | V = domain truth; React maps envelopes (ADR-033) | **KEEP** | Semantic model is a *projection*, not a second backend |
 | Canonical entities `Agent + Run + Session + Job` | **KEEP** | Do not invent a TypeScript `Worker` |
-| Concept images in `assets/design/` | **KEEP (directional)** | Aesthetic only; never copy mock data or IA blindly |
-| Office as default home / flagship spatial surface | **REPLACE** | World (`/world`) is default home; Office becomes attention inspector |
-| Floor Map / Workshop zones as decorative side view | **EVOLVE** | Become the semantic world model + layout |
+| Concept images in `assets/design/` (Paper Co. era) | **REMOVE (authority)** | Historical reference only — do not restore as visual goal |
+| Office as default home / flagship spatial surface | **REPLACE** | World (`/world`) is default home; Office is the attention inspector |
+| Floor Map / Workshop zones as decorative side view | **EVOLVE** | Became the semantic world model + layout |
 | Pixel art as sticker decoration on dashboards | **REPLACE** | Pixel art is the world material system via theme packs |
 | Hardcoded asset filenames in features (`cottage-blue.png`) | **REMOVE** | Features resolve **semantic theme keys** only |
-| Fake NPCs / ambient agent walking without backend proof | **REMOVE** | No agent → no character; no fake activity |
-| Phaser / Pixi / full game shell for v1 | **REMOVE (defer)** | Hybrid DOM tile/sprite inside Electron shell; engine optional later |
+| Fake NPCs / ambient agent walking without backend proof | **REMOVE** | No agent → no character; ambient life (birds, butterflies, fireflies, water) is environmental only |
+| Phaser / Pixi / full game shell for v1 | **REMOVE (defer)** | Hybrid DOM tile/sprite + canvas terrain inside Electron shell; engine optional later |
 | Native gg World View as production spatial authority | **REPLACE** | Electron hybrid world; native retained as historical reference |
-| Cyberpunk / space / alternate themes now | **REMOVE (defer)** | One excellent cozy top-down default; architecture allows more later |
+| Cyberpunk / space / alternate themes now | **REMOVE (defer)** | One excellent cozy world; architecture allows more later |
 | Forcing Office Floor metaphor onto every workflow | **REMOVE** | World explains structure; inspectors own dense work |
 | Historical Workshop vector-sprite vocabulary as visual authority | **REMOVE** | WORLD_VIEW.md motion/truth contracts remain binding |
 
@@ -116,42 +119,52 @@ tails; the world prefers the global bus for presence.
 
 ## 4. Theme contract
 
-Default theme id: `cozy-topdown` (Paper Co. cozy workshop / project-houses world).
+Default theme pack id: `cozy-valley` (the Cozy Pixel World village).
 
-**Visual language** (from [assets/design/](assets/design/) concept boards — aesthetic only):
+**Visual language** (from [DESIGN.md](DESIGN.md) §5/§7 — executable tokens and
+the asset generator are canonical):
 
-- Paper Cream / Manila / Sage / Dusty Teal / Rust / Brass / Ink hexes from DESIGN.md;
-- cozy top-down readable furniture (desk, bookshelf, terminal, plants);
-- serif product moments + warm editorial chrome; dark terminal dock;
-- small Hornero bird as a restrained accent — not a mascot crowd;
-- Library place reads as a bookshelf annex; Operations opens the workshop inspector;
-- **Home is a world of project houses + shared library**, not a single Office Floor
-  dashboard. Pixel rooms are **interiors you enter**, not the whole product.
+- a lush daytime valley: layered grass greens, warm dirt roads, clear creek
+  water (2-frame), forest edges, flowers, lamps and signs;
+- roof-first readable buildings (terracotta, slate, teal, rust, moss, straw)
+  with doors, windows, shadows and environmental integration;
+- gently magical tech accents: glowing windows, cyan terminal light, warm
+  lanterns, fireflies, tiny rune-like glows;
+- the hornero bird as a restrained ambient signature near the hall;
+- game-menu inspectors (deep framed panels, pixel display type) opened from
+  places — the world and the menus share one art direction.
 
-**Do not take from the boards:** fake counts ("6 agents online", "12.4K installs",
-"62% progress"), decorative NPCs, card-dashboard home, marketplace popularity.
+Historical Paper Co. concept boards are not visual authority (ADR-035).
+
+**Do not take from any reference:** fake counts ("6 agents online", "12.4K
+installs", "62% progress"), decorative NPCs, card-dashboard home, marketplace
+popularity, copied game artwork.
 
 ### Rules
 
 1. Feature code references **semantic keys** only (column "Theme key" above).
-2. A theme pack is a JSON/TS module:
-   `{ id, label, tileSize, assets: Record<SemanticKey, AssetRef>, labels?: … }`.
-3. `AssetRef` may be `{ kind: 'sprite', src, frame? }` or
-   `{ kind: ' procedural', fill, stroke }` for the default pack's minimal
-   originals. Missing keys fall back to a labeled placeholder glyph — never
-   silently borrow another product's art.
+2. A theme pack is a TS module:
+   `{ id, label, tileSize, assets: Record<SemanticKey, AssetRef>, decor, facades, labels? }`.
+3. `AssetRef` is `{ kind: 'sprite', src, frame? }`; decor/terrain follow the
+   same manifest. Missing keys fall back to a labeled placeholder glyph —
+   never silently borrow another product's art. Procedural CSS tiles (`kind:
+   'css'`) remain transitional for keys without authored sprites; the goal is
+   authored art for every key.
 4. Alternate themes (cyberpunk, space, …) are **extension points only**. Do
    not ship them in this track.
-5. Pixel rendering: nearest-neighbor, integer scale when possible, one light
-   direction, original/licensed art only.
+5. Pixel rendering: 16×16 source grid, integer scale (2×/3×/4×),
+   nearest-neighbor, one light direction, original/licensed art only
+   (DESIGN.md §7).
 
 ### Default pack obligations
 
-- Small footprint (prefer simple SVG/PNG tiles under a few KB each).
+- Original pixel assets generated by `apps/desktop/scripts/gen-world-assets.mjs`
+  (repeatable, license-clean); imported art only with recorded license.
 - Distinguish at least: grounds, building, knowledge annex, terminal desk,
   working character, blocked/attention mark, empty slot.
-- Critical state must include text/shape in the list fallback and tooltip, not
+- Critical state includes text/shape in the list fallback and tooltip, not
   only hue or motion.
+- Ambient decor (water, glows, critters) never encodes domain state.
 
 ## 5. Layout contract
 

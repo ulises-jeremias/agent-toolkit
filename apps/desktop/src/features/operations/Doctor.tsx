@@ -9,7 +9,7 @@ export function DoctorPanel() {
 
   return (
     <Panel
-      tone="manila"
+      tone="notice"
       title="Doctor"
       meta="Toolkit data, profiles and tool integrations"
       actions={

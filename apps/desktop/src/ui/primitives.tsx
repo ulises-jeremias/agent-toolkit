@@ -80,14 +80,14 @@ export function Panel({
   title,
   meta,
   actions,
-  tone = 'paper',
+  tone = 'menu',
   headingLevel = 2,
   children,
 }: {
   title: string;
   meta?: ReactNode;
   actions?: ReactNode;
-  tone?: 'paper' | 'manila';
+  tone?: 'menu' | 'notice';
   headingLevel?: 2 | 3;
   children: ReactNode;
 }) {

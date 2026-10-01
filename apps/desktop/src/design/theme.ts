@@ -8,8 +8,8 @@ import { useSyncExternalStore } from 'react';
  * owns UI preferences this module becomes a thin cache over that endpoint.
  */
 
-export type ThemePreference = 'system' | 'paper' | 'ink';
-export type ResolvedTheme = 'paper' | 'ink';
+export type ThemePreference = 'system' | 'meadow' | 'dusk';
+export type ResolvedTheme = 'meadow' | 'dusk';
 export type MotionPreference = 'system' | 'reduced';
 
 export interface Appearance {
@@ -38,7 +38,7 @@ function writeStorage(key: string, value: string): void {
 }
 
 export function parseThemePreference(raw: string | null): ThemePreference {
-  return raw === 'paper' || raw === 'ink' || raw === 'system' ? raw : 'system';
+  return raw === 'meadow' || raw === 'dusk' || raw === 'system' ? raw : 'system';
 }
 
 export function parseMotionPreference(raw: string | null): MotionPreference {
@@ -46,7 +46,7 @@ export function parseMotionPreference(raw: string | null): MotionPreference {
 }
 
 export function resolveTheme(preference: ThemePreference, prefersDark: boolean): ResolvedTheme {
-  if (preference === 'system') return prefersDark ? 'ink' : 'paper';
+  if (preference === 'system') return prefersDark ? 'dusk' : 'meadow';
   return preference;
 }
 

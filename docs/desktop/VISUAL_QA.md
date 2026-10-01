@@ -1,6 +1,9 @@
 # Desktop visual QA
 
-Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `ecc4d67c`.
+Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `ecc4d67c`; theme
+names updated 2026-09-30 for the Cozy Pixel World reset
+([ADR-035](../adrs/ADR-035-cozy-pixel-world.md)): Paper/Ink are now
+**Meadow/Dusk**.
 
 Visual acceptance requires build → run → navigate → capture PNG → open PNG →
 critique → fix → capture and inspect again. Golden comparison detects change, not
@@ -13,7 +16,7 @@ Required viewport sizes: 1024×640, 1280×720, 1280×800, 1440×900, 1600×900,
 125%, 150% and 200% scaling where the backend supports it, including meaningful
 HiDPI/multi-monitor checks on supported platforms.
 
-Themes: Paper, Ink, System with both OS appearances. Languages: English, Spanish,
+Themes: Meadow, Dusk, System with both OS appearances. Languages: English, Spanish,
 Chinese, Arabic, plus long strings. Arabic requires shaping/bidi review, not simply
 reversed characters. Include keyboard-only, visible focus, reduced motion, zoom,
 color-independent statuses and readable contrast. Current OS accessibility-tree
