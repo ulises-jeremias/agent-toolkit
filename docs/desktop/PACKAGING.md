@@ -3,6 +3,10 @@
 Status: **CURRENT GUIDE** — re-confirmed 2026-09-13 at `5c7f0e0d` (sandbox install-contract proof: fresh install → idempotent reinstall → foreign-file preservation → receipt-backed uninstall in a temp HOME/XDG; shipped + installed entries pass `desktop-file-validate`).
 See [WINDOWS.md](WINDOWS.md) for the honest Windows support status (unproven).
 
+> For the reviewed evidence set and current per-journey ledger of the shipping
+> Electron app, see [`PIXEL_VALLEY_REVIEW.md`](PIXEL_VALLEY_REVIEW.md) and
+> [`workflows.yaml`](workflows.yaml).
+
 > `VERSION 1.30.1` channel, single-repo-one-binary `V 0.5.2`, `VMODULES=modules`, `gen-embedded`, `distribution/` contracts, `manifest.json`+`SHA256SUMS` per ADR-022, `docs/RELEASING.md` signed-tag gate (maintainer-only, no premature publish).
 
 ## GUI (native desktop) build
