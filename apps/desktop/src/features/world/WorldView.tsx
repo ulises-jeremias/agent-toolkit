@@ -209,6 +209,7 @@ export default function WorldView() {
             rows={layout.rows}
             ariaLabel={model.focusProjectId ? `Interior of ${model.focusProjectId}` : 'Semantic workspace world'}
             mode={model.focusProjectId ? 'interior' : 'grounds'}
+            suspended={detailOpen}
             onSelect={setSelectedId}
             onActivate={openEntity}
           />
