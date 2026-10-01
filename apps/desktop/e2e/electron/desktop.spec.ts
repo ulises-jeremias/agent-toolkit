@@ -158,12 +158,12 @@ test('insights shows doctor checks and usage without invented cost', async () =>
   await page.screenshot({ path: 'test-results/review/insights.png', fullPage: true });
 });
 
-test('settings keeps Paper/Ink/System and names a rejected binary as a table when present', async () => {
+test('settings keeps Meadow/Dusk/System and names a rejected binary as a table when present', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
   const theme = page.getByRole('group', { name: 'Theme' });
-  await expect(theme.getByRole('radio', { name: /Paper/ })).toBeVisible();
-  await expect(theme.getByRole('radio', { name: /Ink/ })).toBeVisible();
+  await expect(theme.getByRole('radio', { name: /Meadow/ })).toBeVisible();
+  await expect(theme.getByRole('radio', { name: /Dusk/ })).toBeVisible();
   await expect(theme.getByRole('radio', { name: /System/ })).toBeVisible();
   await expect(page.getByRole('region', { name: 'Backend' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Change harness…' })).toBeVisible();
@@ -236,11 +236,11 @@ test('dialogs focus their first field and Escape returns focus to the trigger', 
 test('theme choice applies immediately and survives a reload', async () => {
   const { page } = desktop;
   await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Settings' }).click();
-  await page.getByRole('radio', { name: /Ink/ }).check();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'ink');
+  await page.getByRole('radio', { name: /Dusk/ }).check();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dusk');
   await page.reload();
-  await expect(page.locator('html')).toHaveAttribute('data-theme', 'ink');
-  await page.getByRole('radio', { name: /Paper/ }).check();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dusk');
+  await page.getByRole('radio', { name: /Meadow/ }).check();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'meadow');
 });
 
