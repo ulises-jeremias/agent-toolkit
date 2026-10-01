@@ -1,6 +1,6 @@
 .lede {
   margin: 0 0 0.75rem;
-  color: var(--ink-muted, #5c5346);
+  color: var(--text-secondary);
   max-width: 42rem;
 }
 
@@ -23,9 +23,9 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  border: 1px solid var(--rule, #d9cfc0);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
-  background: var(--paper, #f7f1e6);
+  background: var(--surface-sunken);
   max-height: 22rem;
   overflow: auto;
 }
@@ -39,7 +39,7 @@
   text-align: left;
   padding: 0.4rem 0.55rem;
   border: 0;
-  border-bottom: 1px solid var(--rule, #ebe3d6);
+  border-bottom: 1px solid var(--border-subtle);
   background: transparent;
   color: inherit;
   font: inherit;
@@ -48,20 +48,20 @@
 
 .row:hover,
 .row:focus-visible {
-  background: var(--manila, #efe4cf);
+  background: var(--surface-raised);
   outline: none;
 }
 
 .selected {
-  background: var(--manila, #efe4cf);
-  box-shadow: inset 3px 0 0 var(--brass, #b08d57);
+  background: var(--surface-selected);
+  box-shadow: inset 3px 0 0 var(--accent-gold);
 }
 
 .preview {
-  border: 1px solid var(--rule, #d9cfc0);
+  border: 1px solid var(--border-default);
   border-radius: 4px;
   padding: 0.75rem;
-  background: var(--paper-raised, #fffaf2);
+  background: var(--surface-raised);
   min-height: 16rem;
 }
 
@@ -79,8 +79,8 @@
   max-height: 18rem;
   overflow: auto;
   border-radius: 3px;
-  background: var(--ink-wash, #2a241c);
-  color: var(--paper, #f7f1e6);
+  background: var(--surface-sunken);
+  color: var(--text-primary);
   font-family: var(--font-mono, 'IBM Plex Mono', ui-monospace, monospace);
   font-size: 0.8rem;
   line-height: 1.45;

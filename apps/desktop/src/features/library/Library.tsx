@@ -143,11 +143,19 @@ export default function Library() {
           </Panel>
 
           <Grid>
-            <Panel title="Personas" meta={agents.data ? `${agents.data.agents.length} in catalog` : undefined}>
-              <QueryView query={agents} loading="Loading personas" errorTitle="Could not list personas">
+            <Panel title="Agent definitions" meta={agents.data ? `${agents.data.agents.length} in catalog` : undefined}>
+              <p className={styles.definitionsNote}>
+                Reusable persona templates from the toolkit catalog. These are not configured People (workspace
+                collaborators) and not running sessions.
+              </p>
+              <QueryView
+                query={agents}
+                loading="Loading agent definitions"
+                errorTitle="Could not list agent definitions"
+              >
                 {(response) =>
                   response.agents.length === 0 ? (
-                    <EmptyState title="No personas in the catalog.">
+                    <EmptyState title="No agent definitions in the catalog.">
                       The agents tree was empty or unavailable.
                     </EmptyState>
                   ) : (

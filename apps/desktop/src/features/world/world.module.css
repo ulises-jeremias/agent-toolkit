@@ -28,7 +28,7 @@
 .worldMeta {
   font-family: var(--font-body);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--text-on-chrome-muted);
 }
 
 .worldHeaderLink {
