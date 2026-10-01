@@ -6,10 +6,9 @@ import hashlib
 import json
 import math
 import os
-from pathlib import Path
 import re
 import stat
-
+from pathlib import Path
 
 LIMIT = 64 * 1024
 FILES = {
@@ -88,15 +87,23 @@ def parse_json(data):
 def verify_mirrors(workspace):
     """STOP before parsing/evaluating any schema if any locked bytes have changed."""
     lock = parse_json(read(workspace / LOCK))
-    if (not isinstance(lock, dict) or set(lock) != {"spec", "source", "files"}
-            or lock["spec"] != "agent-toolkit/people-contracts-lock@1"
-            or lock["source"] != "https://github.com/ulises-jeremias/agent-toolkit"
-            or not isinstance(lock["files"], dict) or set(lock["files"]) != set(FILES)):
+    if (
+        not isinstance(lock, dict)
+        or set(lock) != {"spec", "source", "files"}
+        or lock["spec"] != "agent-toolkit/people-contracts-lock@1"
+        or lock["source"] != "https://github.com/ulises-jeremias/agent-toolkit"
+        or not isinstance(lock["files"], dict)
+        or set(lock["files"]) != set(FILES)
+    ):
         raise ValueError("invalid contract lock")
     payloads = {}
     for rel, source in FILES.items():
         entry = lock["files"][rel]
-        if not isinstance(entry, dict) or set(entry) != {"source", "sha256"} or entry["source"] != source:
+        if (
+            not isinstance(entry, dict)
+            or set(entry) != {"source", "sha256"}
+            or entry["source"] != source
+        ):
             raise ValueError("invalid contract lock entry")
         data = read(workspace / rel)
         if hashlib.sha256(data).hexdigest() != entry["sha256"]:
@@ -107,12 +114,14 @@ def verify_mirrors(workspace):
 
 def no_network(uri):
     from referencing.exceptions import NoSuchResource
+
     raise NoSuchResource(ref=uri)
 
 
 def validator(schema):
     from jsonschema import Draft202012Validator
     from referencing import Registry
+
     Draft202012Validator.check_schema(schema)
     return Draft202012Validator(schema, registry=Registry(retrieve=no_network))
 
@@ -124,7 +133,9 @@ def parse_yaml(data):
         pass
 
     def mapping(loader, node):
-        return pairs((loader.construct_object(k), loader.construct_object(v)) for k, v in node.value)
+        return pairs(
+            (loader.construct_object(k), loader.construct_object(v)) for k, v in node.value
+        )
 
     UniqueLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, mapping)
     value = yaml.load(data.decode("utf-8"), Loader=UniqueLoader)
@@ -162,7 +173,9 @@ def validate(workspace):
         if next(bindings_validator.iter_errors(bindings), None) is not None:
             raise ValueError("People bindings schema violation")
         for choice in bindings["roles"].values():
-            refs = choice.get("preferred_people", []) + ([choice["person_id"]] if "person_id" in choice else [])
+            refs = choice.get("preferred_people", []) + (
+                [choice["person_id"]] if "person_id" in choice else []
+            )
             if any(ref not in people for ref in refs):
                 raise ValueError("People binding references missing Person")
     return len(people)
@@ -180,7 +193,9 @@ def main():
     except Exception:
         # Never echo values, dynamic keys, validator paths, or exception text.
         # A static diagnostic is intentionally less detailed than jsonschema's message.
-        print("People validation failed: unsafe/malformed declaration, missing reference, or contract drift.")
+        print(
+            "People validation failed: unsafe/malformed declaration, missing reference, or contract drift."
+        )
         return 1
     print(f"People declarations valid: {count} configured. No runtime activity inferred.")
     return 0

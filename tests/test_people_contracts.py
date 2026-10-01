@@ -14,8 +14,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
-
 REPO = Path(__file__).absolute().parent.parent
 SYNC = REPO / "scripts" / "sync-people-contracts.py"
 VALIDATE = REPO / "scripts" / "workspace" / "validate-people.py"
@@ -127,7 +125,11 @@ class TestSyncMirrors:
         assert lock["spec"] == "agent-toolkit/people-contracts-lock@1"
         assert lock["source"] == "https://github.com/ulises-jeremias/agent-toolkit"
         for rel, entry in lock["files"].items():
-            assert entry["source"] in ("schemas/person.schema.json", "schemas/people-bindings.schema.json", "scripts/workspace/validate-people.py")
+            assert entry["source"] in (
+                "schemas/person.schema.json",
+                "schemas/people-bindings.schema.json",
+                "scripts/workspace/validate-people.py",
+            )
             digest = hashlib.sha256((ws / rel).read_bytes()).hexdigest()
             assert entry["sha256"] == digest
 
@@ -218,12 +220,16 @@ class TestOfflineValidation:
 
     def test_id_filename_mismatch_rejected(self, tmp_path):
         ws = seeded_workspace(tmp_path)
-        (ws / "people" / "other-name.json").write_text(json.dumps(person()) + "\n", encoding="utf-8")
+        (ws / "people" / "other-name.json").write_text(
+            json.dumps(person()) + "\n", encoding="utf-8"
+        )
         assert run_validate(ws).returncode == 1
 
     def test_uppercase_id_rejected(self, tmp_path):
         ws = seeded_workspace(tmp_path)
-        (ws / "people" / "Bad-ID.json").write_text(json.dumps(person(id="Bad-ID")) + "\n", encoding="utf-8")
+        (ws / "people" / "Bad-ID.json").write_text(
+            json.dumps(person(id="Bad-ID")) + "\n", encoding="utf-8"
+        )
         assert run_validate(ws).returncode == 1
 
     def test_oversized_declaration_rejected(self, tmp_path):
@@ -319,7 +325,9 @@ class TestOfflineValidation:
         # marker must not surface in the static diagnostic.
         declaration = person(name=secret)
         del declaration["archived"]
-        (ws / "people" / "test-worker.json").write_text(json.dumps(declaration) + "\n", encoding="utf-8")
+        (ws / "people" / "test-worker.json").write_text(
+            json.dumps(declaration) + "\n", encoding="utf-8"
+        )
         result = run_validate(ws)
         assert result.returncode == 1
         assert "hunter2" not in result.stdout + result.stderr
@@ -352,7 +360,9 @@ class TestOfflineValidation:
         ws = seeded_workspace(tmp_path)
         bindings = {
             "spec": "agent-toolkit/people-bindings@1",
-            "roles": {"reviewer": {"person_id": "test-worker", "preferred_people": ["test-worker"]}},
+            "roles": {
+                "reviewer": {"person_id": "test-worker", "preferred_people": ["test-worker"]}
+            },
         }
         (ws / "people" / "bindings.yaml").write_text(json.dumps(bindings) + "\n", encoding="utf-8")
         result = run_validate(ws)
@@ -372,10 +382,18 @@ class TestOfflineValidation:
 
     def test_templates_people_validated_when_present(self, tmp_path):
         ws = seeded_workspace(tmp_path)
-        template = {"spec": "agent-toolkit/person@1", "id": "review-example", "name": "Review Example",
-                    "role": "reviewer", "goal": "Example template.", "archived": True}
+        template = {
+            "spec": "agent-toolkit/person@1",
+            "id": "review-example",
+            "name": "Review Example",
+            "role": "reviewer",
+            "goal": "Example template.",
+            "archived": True,
+        }
         (ws / "templates" / "people").mkdir(parents=True)
-        (ws / "templates" / "people" / "review-example.json").write_text(json.dumps(template) + "\n", encoding="utf-8")
+        (ws / "templates" / "people" / "review-example.json").write_text(
+            json.dumps(template) + "\n", encoding="utf-8"
+        )
         result = run_validate(ws)
         assert result.returncode == 0, result.stdout + result.stderr
         # Templates are validated but never counted as configured people.
@@ -416,7 +434,11 @@ class TestValidatorProcess:
 
     def test_mirrors_are_regular_files_after_write(self, tmp_path):
         ws = seeded_workspace(tmp_path)
-        for rel in ("schemas/person.schema.json", "schemas/people-bindings.schema.json", "scripts/validate-people.py"):
+        for rel in (
+            "schemas/person.schema.json",
+            "schemas/people-bindings.schema.json",
+            "scripts/validate-people.py",
+        ):
             mode = (ws / rel).lstat().st_mode
             assert stat.S_ISREG(mode)
             assert not stat.S_ISLNK(mode)
