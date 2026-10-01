@@ -12,6 +12,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Desktop world camera: shared integer-zoom math for terrain, art and hit
+  geometry; sprites keep manifest dimensions inside their semantic footprint;
+  drag with a sub-5px threshold stays a click; zoom keeps the viewport center
+  anchored; animation suspends under hidden inspectors and hidden tabs.
+- Desktop workflow ledger `docs/desktop/workflows.yaml` (Electron journeys,
+  verified by `workflowLedger.test.ts`) and review ledger
+  `docs/desktop/PIXEL_VALLEY_REVIEW.md` with the opened evidence set.
+- People contracts (`docs/PEOPLE.md`, ADR-036): `agent-toolkit/person@1` and
+  `people-bindings@1` schemas, `munder-difflin/hire@1` contract-only import
+  mapping, mirror sync with SHA256 lock, and the offline
+  `scripts/validate-people.py` validator. Workspace init scaffolds `people/`
+  and rejects symlinked destinations. GUI CRUD/import/Start/swarm-picker are
+  explicit future work.
 - Desktop world project houses get dirt streets in the gutters between them,
   and the east creek is two tiles wide where the path crosses on a bridge.
 
