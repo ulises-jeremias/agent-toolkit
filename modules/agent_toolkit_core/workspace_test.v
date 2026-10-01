@@ -156,3 +156,82 @@ fn test_workspace_missing_root_fails() {
 	assert !report.ok
 	assert report.message.contains('workspace not found')
 }
+
+fn test_workspace_init_preserves_existing_people_readme() {
+	base := os.join_path(os.temp_dir(), 'at-ws-people-keep-${os.getpid()}')
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.mkdir_all(os.join_path(base, 'people')) or {}
+	os.write_file(os.join_path(base, 'people', 'README.md'), '# my people, do not clobber') or {}
+	report := run_workspace(WorkspaceOptions{
+		subcommand: 'init'
+		dir: base
+	})
+	assert report.ok, report.message
+	assert os.read_file(os.join_path(base, 'people', 'README.md')) or { '' } == '# my people, do not clobber'
+	assert report.message.contains('skip')
+}
+
+fn test_workspace_init_rejects_symlinked_people_before_any_writes() {
+	base := os.join_path(os.temp_dir(), 'at-ws-people-link-${os.getpid()}')
+	outside := os.join_path(os.temp_dir(), 'at-ws-people-outside-${os.getpid()}')
+	defer {
+		os.rmdir_all(base) or {}
+		os.rmdir_all(outside) or {}
+	}
+	os.mkdir_all(base) or {}
+	os.mkdir_all(outside) or {}
+	os.symlink(outside, os.join_path(base, 'people')) or {}
+	report := run_workspace(WorkspaceOptions{
+		subcommand: 'init'
+		dir: base
+	})
+	assert !report.ok, 'init must reject a symlinked people directory'
+	assert report.message.contains('rejected'), report.message
+	// No scaffold content landed anywhere: not inside, not through the link.
+	assert !os.exists(os.join_path(base, 'AGENTS.md'))
+	assert !os.exists(os.join_path(base, '.gitignore'))
+	assert !os.exists(os.join_path(base, 'people', 'README.md'))
+	assert !os.exists(os.join_path(outside, 'README.md'))
+}
+
+fn test_workspace_init_rejects_symlinked_agents_md() {
+	base := os.join_path(os.temp_dir(), 'at-ws-agents-link-${os.getpid()}')
+	outside := os.join_path(os.temp_dir(), 'at-ws-agents-outside-${os.getpid()}')
+	defer {
+		os.rmdir_all(base) or {}
+		os.rmdir_all(outside) or {}
+	}
+	os.mkdir_all(base) or {}
+	os.mkdir_all(outside) or {}
+	victim := os.join_path(outside, 'AGENTS.md')
+	os.write_file(victim, 'do not clobber') or {}
+	os.symlink(victim, os.join_path(base, 'AGENTS.md')) or {}
+	report := run_workspace(WorkspaceOptions{
+		subcommand: 'init'
+		dir: base
+	})
+	assert !report.ok, 'init must reject a symlinked AGENTS.md destination'
+	assert os.read_file(victim) or { '' } == 'do not clobber'
+	// The preflight ran before any scaffold write, so nothing else landed.
+	assert !os.exists(os.join_path(base, '.gitignore'))
+}
+
+fn test_workspace_init_rejects_symlinked_projects_marker() {
+	base := os.join_path(os.temp_dir(), 'at-ws-projects-link-${os.getpid()}')
+	outside := os.join_path(os.temp_dir(), 'at-ws-projects-outside-${os.getpid()}')
+	defer {
+		os.rmdir_all(base) or {}
+		os.rmdir_all(outside) or {}
+	}
+	os.mkdir_all(base) or {}
+	os.mkdir_all(outside) or {}
+	os.symlink(outside, os.join_path(base, 'projects')) or {}
+	report := run_workspace(WorkspaceOptions{
+		subcommand: 'init'
+		dir: base
+	})
+	assert !report.ok, 'init must reject a symlinked projects destination'
+	assert !os.exists(os.join_path(outside, '.gitkeep'))
+}
