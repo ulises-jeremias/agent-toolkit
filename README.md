@@ -66,7 +66,7 @@ agent-toolkit doctor
 <div align="center">
 <img src="static/screenshots/office.png" width="92%" alt="Agent Toolkit Desktop — Office floor with agent desks, roster, and embedded terminal" />
 <br />
-<em>The native desktop GUI: your agents at work in the Paper Co. office. Two commands put skills, agents, and MCP into your editor — verified by <code>doctor</code>.</em>
+<em>Agent Toolkit Desktop: your agents at work in a cozy pixel world. Two commands put skills, agents, and MCP into your editor — verified by <code>doctor</code>.</em>
 </div>
 
 <div align="center">
@@ -159,7 +159,7 @@ agent-toolkit doctor     # verify everything is set up
 
 ### Desktop app (GUI)
 
-Prefer a graphical workspace? The native desktop GUI runs over the same Engine — Paper Co. office, skills/agents library, operations floor, terminal fleet, and guided onboarding:
+Prefer a graphical workspace? Agent Toolkit Desktop runs over the same Engine — a cozy pixel world of project houses, a skills/agents library, an operations board, terminal fleet, and guided onboarding:
 
 ```bash
 agent-toolkit gui --install   # download the desktop binary from GitHub Releases
@@ -174,7 +174,7 @@ No CLI handy? Grab `agent-toolkit-desktop-<version>-linux-<arch>.tar.gz` from [R
 | Terminal | Insights | Office |
 | <img src="static/screenshots/terminal.png" width="100%" alt="Embedded terminal with real PTY, focused prompt, and block cursor" /> | <img src="static/screenshots/insights.png" width="100%" alt="Insights: Engine-ledger cost and activity reports" /> | <img src="static/screenshots/office.png" width="100%" alt="Office floor overview with catalog desks and roster" /> |
 
-All screenshots are captures of the real app (Paper Co. theme). Empty states render truthfully — unknown values show as unknown, never fabricated.
+Screenshots in this section predate the 2026-09-30 Cozy Pixel World visual reset ([ADR-035](docs/adrs/ADR-035-cozy-pixel-world.md)) and the Electron Desktop; regenerating them from the current app is tracked in the desktop docs. Empty states render truthfully — unknown values show as unknown, never fabricated.
 
 ### Advanced install methods
 

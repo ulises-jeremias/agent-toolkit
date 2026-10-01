@@ -38,7 +38,7 @@ translated strings — it harvests every CJK codepoint from `main.v`.
 |---|---|
 | `agent-toolkit-desktop` | native binary (fonts/resources embedded; Engine-owned derived state — `ui_state.env`, `dock.json` — resolves under XDG cache at first run, never in the checkout) |
 | `agent-toolkit-desktop.desktop` | Desktop Entry spec launcher (`StartupWMClass` matches the window title) |
-| `icons/agent-toolkit-desktop-{16,24,32,48,64,128,256,512}.png` + `-scalable.svg` | hicolor icon set — Paper Co. envelope mark (deterministic generator: `packaging/linux/gen-icon.vsh`) |
+| `icons/agent-toolkit-desktop-{16,24,32,48,64,128,256,512}.png` + `-scalable.svg` | hicolor icon set — app icon (deterministic generator: `packaging/linux/gen-icon.vsh`; the historical Paper Co. envelope mark is deprecated per [ADR-035](../adrs/ADR-035-cozy-pixel-world.md)) |
 | `share/man/man1/agent-toolkit-desktop.1` | man page (synopsis, keymap, env, files) |
 | `install-desktop.sh` | receipt-backed per-user install/uninstall |
 | `VERSION` | version pinned into the receipt (`install-desktop.sh` refuses without it) |

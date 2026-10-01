@@ -2,12 +2,18 @@
 
 Status: **ENGINEERING DECISION ARTIFACT** (2026-09-30).
 Renamed from `MUNDER_GAP.md` via `git mv` (history preserved).
+
+> **Visual-authority note (2026-09-30):** the Paper Co. visual language this
+> document references ("ATK keeps Paper Co.") is **deprecated by
+> [ADR-035](../adrs/ADR-035-cozy-pixel-world.md)**. The capability matrix and
+> reference lessons below remain valid; visual claims are superseded by
+> [DESIGN.md](DESIGN.md) (Cozy Pixel World).
+
 This is the single in-repo comparison of Agent Toolkit Desktop against two
 external capability references. It is not a feature-parity program and not a
 visual brief.
 
-Visual authority remains [DESIGN.md](DESIGN.md) and
-[assets/design/](assets/design/).
+Visual authority is [DESIGN.md](DESIGN.md) (Cozy Pixel World).
 Design notes:
 
 - [01 — Attention and agent status](design-notes/01-attention-and-agent-status.md)

@@ -2,26 +2,30 @@
 
 The single design system for the Electron Desktop (`apps/desktop`). Every
 destination is built from these tokens, primitives and hooks; a new screen
-should not need new CSS beyond its own layout. The visual direction and the
-reasons behind it live in [DESIGN.md](DESIGN.md); this document is the
-working reference for implementing it in React.
-
-![Office, Paper, 1920x1080](assets/electron/foundations/paper-1920x1080-office.png)
+should not need new CSS beyond its own layout. The visual direction is
+**Cozy Pixel World** (see [DESIGN.md](DESIGN.md) and
+[ADR-035](../adrs/ADR-035-cozy-pixel-world.md)); this document is the working
+reference for implementing it in React. The former Paper Co. system is
+deprecated.
 
 ## Principles
 
-- **Editorial, not SaaS.** Warm paper, ink rules, manila folders for the
-  panels that ask for attention, brass for focus and the current selection.
-  No gradients, glass, emoji or illustration.
+- **Game menu, not SaaS.** Deep framed panels, hard borders, square
+  pixel-cut corners, flat colors, hard offset shadows, compact status chips.
+  Pixel display type (Silkscreen) for titles and labels; readable sans for
+  dense data. No gradients, glass, emoji, or giant rounded cards.
+- **The world is the screen.** `/world` fills the shell edge-to-edge; the
+  HUD and docks stay slim. Inspectors open over the world, not instead of a
+  world.
 - **Truth over polish.** Every value on screen comes from the backend or the
   Electron supervisor. When the backend says `ok: false`, the view shows that
   output and says it failed. Nothing is invented to fill an empty state.
 - **Keyboard first.** Every action is a real `<button>` or link, dialogs are
   native `<dialog>` with focus placed and restored, and focus is always
-  visible as a brass ring.
+  visible as a gold ring.
 - **Motion is optional.** Transitions are short and only communicate state.
   `prefers-reduced-motion` and the Settings "Reduced" choice both turn them
-  off, including the pulsing live dot.
+  off, including ambient world animation and the live lamp pulse.
 
 ## Layers
 
@@ -45,36 +49,41 @@ world home, inspectors for work, characters only from proven runtime rows.
 
 All tokens are CSS custom properties in `src/design/tokens.css`, in two tiers.
 
-- **Primitives** (`--pc-*`) are named colours: cream, manila, bone, ink, char,
-  brass, sage, rust, teal and the terminal set. Components never use them
-  directly.
+- **Primitives** (`--cw-*`) are named colors: valley environment ramps (grass,
+  foliage, dirt, sand, stone, water, wood, roofs), magic/tech glow accents,
+  and the deep menu ramps (night, ivory text, gold/teal/rose accents).
+  Components never use them directly.
 - **Semantic tokens** are what components use, and they are re-pointed per
   theme:
-  - surfaces: `--surface-canvas`, `-panel`, `-sunken`, `-manila`, `-chrome`, `-terminal`, …
-  - text: `--text-primary`, `-secondary`, `-muted`, `-link`, `-on-chrome`, `-terminal`, …
+  - surfaces: `--surface-canvas`, `-panel`, `-raised`, `-sunken`, `-accent`,
+    `-chrome`, `-terminal`, …
+  - text: `--text-primary`, `-secondary`, `-muted`, `-link`, `-on-chrome`,
+    `-terminal`, …
   - borders: `--border-subtle`, `-default`, `-strong`, `-chrome`, `-terminal`
   - actions: `--action-{primary,secondary,danger}-{bg,bg-hover,fg}`
   - status: `--status-{ok,warn,err,info,idle}-{fg,bg}`
-  - accent and focus: `--accent-brass*`, `--focus-ring`, `--focus-halo`
+  - accent and focus: `--accent-gold*`, `--focus-ring`, `--focus-halo`
 
-**Themes.** `:root[data-theme='paper']` is the default (warm light) and
-`:root[data-theme='ink']` is the deliberate dark. "System" resolves to one of
-the two from `prefers-color-scheme`. `src/design/theme.ts` owns the
-preference:
+**Themes.** `:root[data-theme='meadow']` is the default (valley daylight) and
+`:root[data-theme='dusk']` is the deliberate dark evening. "System" resolves
+to one of the two from `prefers-color-scheme`. The ids `paper` / `ink` are
+retired (ADR-035). `src/design/theme.ts` owns the preference:
 
 - `initAppearance()` applies it before the first paint;
 - `setThemePreference()` and `setMotionPreference()` change it;
 - `useAppearance()` reads it.
 
-The sidebar chrome is dark in both themes, so the frame stays put while the
-page changes.
+The HUD chrome is deep-toned in both themes, so the frame stays put while the
+world changes.
 
 **Scale.**
 
 - Spacing: `--space-0-5` … `--space-12`, on a 4px base.
-- Radii: `--radius-sm|md|lg`.
-- Row and target sizes: `--row-height` (36px) and `--target-min` (32px, above the WCAG 2.2 minimum of 24px).
+- Radii: `--radius-sm` (2px pixel-cut max; menus are square-cornered).
+- Row and target sizes: `--row-height` (36px) and `--target-min` (32px, above
+  the WCAG 2.2 minimum of 24px).
 - Content width: `--page-max`, 100rem (1600px), centered in the content area.
+  The world destination ignores it — the world is the screen.
 
 ## Typography
 
@@ -83,13 +92,13 @@ Fonts are bundled through `@fontsource` (OFL) and imported once in
 
 | Role | Family | Token |
 |---|---|---|
-| Destination and panel titles, rare editorial moments | Fraunces Variable (optical size axis) | `--font-display` |
+| Destination and panel titles, HUD labels, buttons, chips, world plaques | Silkscreen 400/700 | `--font-display` |
 | UI and body | IBM Plex Sans 400/500/600 | `--font-body` |
 | Commands, paths, IDs, logs, terminal | IBM Plex Mono 400/500 | `--font-mono` |
 
-The type scale runs from `--text-2xs` (11px, eyebrows and table headers) to
-`--text-3xl` (36px). Eyebrows and table headers use uppercase with
-`--tracking-caps`. Body copy is capped at 62ch.
+Display type runs at integer pixel sizes. Eyebrows and table headers use
+Silkscreen with `--tracking-caps`. Body copy is capped at 68ch. Pixel type
+never replaces body or terminal text (DESIGN.md §6).
 
 ## Primitives
 
@@ -97,10 +106,10 @@ Everything is exported from `src/ui/index.ts`.
 
 | Primitive | Use |
 |---|---|
-| `PageHeader({ eyebrow, title, lede?, actions? })` | One per destination. The `<h1>` is the destination's answer, and the eyebrow is its name. |
-| `Panel({ title, meta?, actions?, tone?: 'paper' \| 'manila', headingLevel? })` | A `<section>` region labelled by its heading. `manila` is reserved for "needs you" content: attention items, doctor, session context. |
+| `PageHeader({ eyebrow, title, lede?, actions? })` | One per destination. The `<h1>` is the destination's answer, and the eyebrow is its name. Silkscreen display type. |
+| `Panel({ title, meta?, actions?, tone?: 'menu' \| 'notice', headingLevel? })` | A `<section>` region labelled by its heading, framed as a game menu. `notice` is reserved for "needs you" content: attention items, doctor, session context. |
 | `Stack`, `Grid` | Vertical rhythm, and an auto-fit grid with columns at least 24rem wide that drops to one column when narrower. |
-| `Table` | Editorial table with ink-ruled headers. Use `<th scope="row">` for the row's identity, and add `data-align="end"` for numbers. |
+| `Table` | Dense menu table with hard-ruled headers. Use `<th scope="row">` for the row's identity, and add `data-align="end"` for numbers. |
 | `KeyValue({ items })` | Label/value definition list; `mono` per item for paths and IDs. |
 | `StatusBadge({ tone, label, live? })` | The shape carries meaning as well as colour: square for failure, dot for ok. `live` pulses unless motion is reduced. |
 | `Button({ variant, size, busy, busyLabel })` | Variants are `primary` (one per view), `secondary`, `ghost` and `danger`. `busy` disables it and swaps in the label. |
@@ -119,9 +128,9 @@ Everything is exported from `src/ui/index.ts`.
 ### First run
 
 Electron only, until `localStorage['atk.desktop.onboarding.complete']` is set
-(Settings and the command palette can replay it). First-run is a Paper Co.
-welcome desk (paper / manila / sage, pixel tools, no numbered wizard, no
-invented agents), then the path into the world: backend ready →
+(Settings and the command palette can replay it). First-run is a valley-edge
+welcome sign (pixel menu language, no numbered wizard, no invented agents),
+then the path into the world: backend ready →
 `window.atk.harnessChoose` / confirm then `harnessSet(default, { create: true })`
 / `harnessReset` (never mkdir `~/.ai-workspace` without confirm). Desktop
 never invents tool INSTALLED badges. Replay is `session:replay-onboarding`.
@@ -139,7 +148,7 @@ Do not invent a second session scope, toast, dialog, or terminal host. Destinati
 | Toasts | `useActionReceipt` / `useReceipts` | Receipts are the only toast surface. |
 | Terminal | `useTerminalSessions` + the dock | xterm instances mount in `TerminalHost` only. A destination may create/attach a session; it must not construct its own `Terminal`. The world focuses a real session with `href('/terminal', { pty })` or agent/run/cwd identity — never a fake PTY. |
 | Query / live | `qk`, `useSubQuery` / `useJobs`, `useLiveStatus` | Keys come from the factory. SSE writes go through `applyLiveEvent`. |
-| Visual | tokens + `src/ui` | Paper/Ink/System via `theme.ts`. Fraunces + IBM Plex via `@fontsource`. No new typefaces. |
+| Visual | tokens + `src/ui` | Meadow/Dusk/System via `theme.ts`. Silkscreen display + IBM Plex Sans/Mono via `@fontsource`. No new typefaces. |
 
 ### Vocabulary
 
@@ -149,10 +158,10 @@ running.", "Could not list personas". Status labels stay lowercase because
 they are the backend's status words. Buttons are verbs ("Start job", "Apply
 fixes"), and confirmation buttons repeat the verb ("Uninstall").
 
-Operations is the **workshop inspector** — a Paper Co. operations board the
-world opens (`job=` / `loop=` / `swarm=`). Paper job table, manila doctor,
-brass on the selected row. Do not invent NPCs, progress bars, or dashboard
-metrics the backend did not return.
+Operations is the **workshop inspector** — the game-menu operations board the
+world opens (`job=` / `loop=` / `swarm=`). Panel job table, notice-tone
+doctor, gold on the selected row. Do not invent NPCs, progress bars, or
+dashboard metrics the backend did not return.
 
 ## Data hooks
 
@@ -242,31 +251,20 @@ label ("Connected", "Live", "Reconnecting", "Offline", "Backend down").
   `xvfb-run`.
 
 `ATK_CAPTURE=1 pnpm exec playwright test --project=electron capture`
-regenerates the screenshots below:
+regenerates the screenshot matrix:
 
 - every destination;
-- Paper and Ink;
+- Meadow and Dusk;
 - 1024x640 (the minimum window) and 1920x1080.
 
 The jobs and the terminal session they show are created through the UI
-during the run.
+during the run. Captures live in `assets/electron/foundations/`, named
+`<theme>-<width>x<height>-<destination>.png` with `theme ∈ {meadow, dusk}`.
+The matrix is re-captured as part of every major visual change (last:
+Cozy Pixel World reset, [ADR-035](../adrs/ADR-035-cozy-pixel-world.md)).
 
-| Destination | Paper | Ink |
-|---|---|---|
-| Office | ![](assets/electron/foundations/paper-1024x640-office.png) | ![](assets/electron/foundations/ink-1024x640-office.png) |
-| Operations | ![](assets/electron/foundations/paper-1920x1080-operations.png) | ![](assets/electron/foundations/ink-1920x1080-operations.png) |
-| Workspace | ![](assets/electron/foundations/paper-1920x1080-workspace.png) | ![](assets/electron/foundations/ink-1920x1080-workspace.png) |
-| Library | ![](assets/electron/foundations/paper-1920x1080-library.png) | ![](assets/electron/foundations/ink-1920x1080-library.png) |
-| Insights | ![](assets/electron/foundations/paper-1920x1080-insights.png) | ![](assets/electron/foundations/ink-1920x1080-insights.png) |
-| Terminal | ![](assets/electron/foundations/paper-1920x1080-terminal.png) | ![](assets/electron/foundations/ink-1920x1080-terminal.png) |
-| Settings | ![](assets/electron/foundations/paper-1024x640-settings.png) | ![](assets/electron/foundations/ink-1024x640-settings.png) |
-
-All 28 captures are in `assets/electron/foundations/`, named
-`<theme>-<width>x<height>-<destination>.png`.
-
-First-run captures (Phase 4.1) live in `assets/electron/onboarding/`. Ready and
-harness frames are in tree; World home is the #1335 semantic slice (`WorldView`).
-Regenerate `03-world.png` with `ATK_CAPTURE=1`.
+First-run captures live in `assets/electron/onboarding/`. Home after setup is
+the semantic world (`WorldView`).
 
 | Step | Existing harness | Missing harness |
 |---|---|---|

@@ -1,8 +1,10 @@
 # Agent Toolkit Desktop product vision
 
 Status: **CURRENT CONTRACT** — governing product direction, adopted
-2026-09-05, re-confirmed 2026-09-13 at `ecc4d67c`. This document defines the
-destination, not a claim that current builds meet it. Start with
+2026-09-05, re-confirmed 2026-09-13 at `ecc4d67c`; **visual direction reset
+2026-09-30** ([ADR-035](../adrs/ADR-035-cozy-pixel-world.md)): Cozy Pixel
+World replaces Paper Co. This document defines the destination, not a claim
+that current builds meet it. Start with
 [workflow coverage](WORKFLOW_COVERAGE.md) for verified gaps and
 [visual QA](VISUAL_QA.md) for acceptance evidence.
 
@@ -43,16 +45,20 @@ the managed environment that organizes projects, configuration and operations.
 - Accessibility, localization, keyboard use and responsive layout are product work.
   Document toolkit limitations without claiming unsupported conformance.
 
-## Paper Co. identity
+## Cozy Pixel World identity
 
-Paper Co. is a design language: warm paper, ink, manila, brass, rust and sage;
-Fraunces, IBM Plex Sans and IBM Plex Mono; filing tabs, ledgers and restrained
-stamps. Typography and spacing establish hierarchy. Decorations must not compete
-with status, actions or text. The **semantic spatial world** is the default home
+Agent Toolkit Desktop presents as a **beautiful cozy top-down pixel world that
+happens to be a real developer workstation** (visual contract:
+[DESIGN.md](DESIGN.md), decision: [ADR-035](../adrs/ADR-035-cozy-pixel-world.md);
+the former Paper Co. language is deprecated). The **semantic spatial world** is
+the default home and visually dominates it
 ([SEMANTIC_WORLD.md](SEMANTIC_WORLD.md), [ADR-034](../adrs/ADR-034-semantic-world.md)):
-it explains workspace, projects, knowledge, tools and proven runtime work; other
-destinations are inspectors. Motion communicates real state changes. Reduced
-Motion removes nonessential movement. Never invent activity.
+it explains workspace, projects, knowledge, tools and proven runtime work;
+other destinations are inspectors rendered in the same game-menu language.
+Pixel display type carries titles and world labels; dense body text and the
+terminal stay crisp and readable. Motion communicates real state changes;
+ambient world life never implies agent activity. Reduced Motion removes
+nonessential movement. Never invent activity.
 
 ## First use and daily use
 
