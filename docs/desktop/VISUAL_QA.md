@@ -9,6 +9,12 @@ Visual acceptance requires build → run → navigate → capture PNG → open P
 critique → fix → capture and inspect again. Golden comparison detects change, not
 quality. Never call a screenshot reviewed merely because it exists.
 
+The current reviewed evidence set is
+[`assets/electron/pixel-valley-recovery/`](assets/electron/pixel-valley-recovery/)
+(Meadow/Dusk × compact/large × all destinations, opened and critiqued at the
+2026-10-01 recovery build); the review ledger and limitations live in
+[`PIXEL_VALLEY_REVIEW.md`](PIXEL_VALLEY_REVIEW.md).
+
 ## Matrix
 
 Required viewport sizes: 1024×640, 1280×720, 1280×800, 1440×900, 1600×900,
