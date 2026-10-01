@@ -148,6 +148,12 @@
   --text-primary: var(--cw-ivory);
   --text-secondary: var(--cw-ivory-dim);
   --text-muted: var(--cw-menu-muted);
+  /* Text on the bright valley canvas (page headings above dark panels).
+     >= 4.5:1 on #dcecd0; measured: primary 11.2, secondary 8.3, muted 4.9. */
+  --text-canvas-primary: #262b45;
+  --text-canvas-secondary: #3a4057;
+  --text-canvas-muted: #5a6180;
+  --accent-canvas: #7a5a20; /* deep gold eyebrow on the light canvas: 5.1:1 */
   --text-inverse: var(--cw-menu-950);
   --text-on-chrome: var(--cw-ivory);
   --text-on-chrome-muted: var(--cw-menu-muted);
@@ -226,6 +232,11 @@
   --text-primary: var(--cw-ivory);
   --text-secondary: var(--cw-ivory-dim);
   --text-muted: var(--cw-menu-muted);
+  /* Dusk canvas is dark; canvas text mirrors the menu text ramp. */
+  --text-canvas-primary: var(--cw-ivory);
+  --text-canvas-secondary: var(--cw-ivory-dim);
+  --text-canvas-muted: var(--cw-menu-muted);
+  --accent-canvas: var(--cw-gold-strong);
   --text-inverse: var(--cw-menu-950);
   --text-on-chrome: var(--cw-ivory);
   --text-on-chrome-muted: var(--cw-menu-muted);

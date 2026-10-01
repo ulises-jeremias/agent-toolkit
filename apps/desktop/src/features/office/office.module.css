@@ -2,8 +2,9 @@
   max-width: var(--page-max);
 }
 
+/* The lede sits on the bright meadow canvas above the dark panels. */
 .ledeFresh {
-  color: var(--text-secondary);
+  color: var(--text-canvas-secondary);
 }
 
 .rowLinks {
