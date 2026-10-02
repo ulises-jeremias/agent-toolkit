@@ -78,7 +78,7 @@ test('links an existing project from the GUI and places it in the world', async 
       ]) {
         await setViewport(desktop.app, size.width, size.height);
         await page.getByRole('button', { name: 'Fit world' }).click();
-        await expect(world).toHaveAttribute('data-zoom', size.key === 'large' ? '32' : '16');
+        await expect(world).toHaveAttribute('data-zoom', size.key === 'large' ? '48' : '16');
         await page.screenshot({ path: path.join(captureDir, `world-one-project-${size.key}.png`) });
       }
     }
@@ -90,7 +90,7 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(world).toHaveAttribute('data-zoom', '16');
     await setViewport(desktop.app, 1920, 1080);
     await page.getByRole('button', { name: 'Fit world' }).click();
-    await expect(world).toHaveAttribute('data-zoom', '32');
+    await expect(world).toHaveAttribute('data-zoom', '48');
     // Spatial and direct navigation share the same canonical destinations:
     // entering the house opens its project interior; its terminal desk opens
     // the actual Terminal route.
