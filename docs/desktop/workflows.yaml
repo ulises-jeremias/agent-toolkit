@@ -35,7 +35,7 @@ journeys:
     status: ok
     evidence:
       - note: Registered project house opens a project overview board; its filing cabinet opens Workspace Files scoped to the registered project root, and the GUI reads a real README through the typed API
-        build: "feat/desktop-world-interaction-polish (see PR review screenshots)"
+        build: "4847b25434c53162fbeb979baa92a97931daf841 (Linux Electron E2E)"
         screenshots:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
