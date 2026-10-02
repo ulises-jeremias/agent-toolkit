@@ -101,3 +101,28 @@ Opened files:
   [completed run](assets/electron/loops/loop-report-after-run.png).
 
 The old native V Paper/Ink golden fixtures and Xvfb coordinate scripts were retired with that GUI. Electron E2E and packaged-app acceptance are the executable gates. Screenshots checked into `static/screenshots/` are documentation examples and must be recaptured from the current app whenever the pictured UI changes.
+
+## Rich meadow and single-project scale review — 2026-10-02
+
+Source build `f8d94a94`, Linux Electron capture against a bundled local backend
+and temporary HOME. The one-project valley now fits at
+integer zoom 48 in a large window; three projects remain at integer zoom 32.
+The terrain generator now uses deterministic, hand-authored clover and blade
+clusters in its six grass variants, and the checked-in PNGs were regenerated
+from that source.
+
+Opened the compact one-project capture, the large one-project capture, the
+large three-project capture, and the large project interior. Increasing the
+one-project zoom made houses, path approaches, trees and bridge easier to read.
+The grass motifs add visible texture without turning the ground into a grid of
+stripes. The review still finds large calm areas too uniform, the creek bends
+too mechanically, and the project interior leaves substantial empty floor
+between its semantic objects. These remain follow-up art/composition work; the
+new scale and texture are an incremental improvement, not the end-state.
+
+Opened files:
+
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, large](assets/electron/world/project-files-room-large.png).

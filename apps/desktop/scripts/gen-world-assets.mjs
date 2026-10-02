@@ -830,27 +830,29 @@ function objLamp() {
 
 function grassTile(seed) {
   const img = new Img(16, 16).rect(0, 0, 15, 15, 'g');
-  // Six quiet meadow samples keep details grouped and varied at map scale;
-  // avoid tiny diagonal marks that turn a large field into striped wallpaper.
+  // Small hand-authored clover and blade clusters make the broad valley feel
+  // grassy at normal zoom. Their varied spacing avoids a repeating stripe
+  // pattern while preserving enough calm ground around semantic buildings.
   const s = seed * 19 + 7;
-  const x = ((s * 3) % 11) + 2;
-  const y = ((s * 5) % 11) + 2;
-  img
-    .set(x, y, 'gd')
-    .set(x + 1, y, 'gd')
-    .set(x, y + 1, 'fo')
-    .set(x + 1, y + 1, 'gd');
+  const patches = [
+    [[1, 2, 'gl'], [2, 2, 'gl'], [2, 3, 'fl'], [3, 3, 'gd']],
+    [[7, 1, 'gd'], [8, 2, 'fl'], [9, 2, 'gl'], [8, 3, 'gl']],
+    [[12, 4, 'gl'], [13, 4, 'fl'], [13, 5, 'gd']],
+    [[3, 8, 'gd'], [4, 8, 'fl'], [5, 9, 'gl'], [4, 10, 'gl']],
+    [[10, 10, 'gd'], [11, 9, 'fl'], [12, 9, 'gl'], [12, 10, 'gl']],
+    [[7, 13, 'gl'], [8, 12, 'fl'], [9, 12, 'gd'], [9, 13, 'gl']],
+  ];
+  const rotation = s % patches.length;
+  for (let i = 0; i < patches.length; i++) {
+    // Each tile gets three or four clusters in a different order; the fixed
+    // motifs keep pixels crisp and readable instead of relying on noise.
+    if ((i + seed) % 2 === 0 || (i + rotation) % 3 === 0) {
+      for (const [x, y, color] of patches[(i + rotation) % patches.length]) img.set(x, y, color);
+    }
+  }
   const glintX = ((s * 7) % 13) + 1;
   const glintY = ((s * 11) % 13) + 1;
   img.set(glintX, glintY, 'gt');
-  if (seed % 3 === 0) {
-    const tuftX = ((s * 13) % 12) + 2;
-    const tuftY = ((s * 17) % 12) + 2;
-    img
-      .set(tuftX, tuftY, 'fo')
-      .set(tuftX - 1, tuftY + 1, 'fd')
-      .set(tuftX + 1, tuftY + 1, 'fd');
-  }
   return img;
 }
 

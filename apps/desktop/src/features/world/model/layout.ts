@@ -225,7 +225,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // Project houses form a distinct southern neighborhood. Slightly wider,
   // offset rows give each house a garden edge and break the spreadsheet grid.
-  const districtY = 14;
+  // Keep a short shoulder between the civic street and the project lane. On
+  // a single-project valley this caps the map at 17 tiles tall, so a large
+  // window can render the entire settlement at crisp 48px scale instead of
+  // shrinking every landmark to 32px.
+  const districtY = 12;
   const districtX = projectDistrictX;
   if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
