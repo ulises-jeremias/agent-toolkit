@@ -125,26 +125,29 @@ export function WorldEntityMap({
     [mode, entities, cols, rows],
   );
 
-  const fitWorld = useCallback(() => {
-    const region = regionRef.current;
-    if (!region) return;
-    // Start at a legible game scale so the world remains the main interface.
-    // Home gives the full valley overview; projects can also be reached by search.
-    const minimumZoom = mode === 'grounds' ? (region.clientWidth >= 1400 ? 48 : 32) : 16;
-    const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }, minimumZoom);
-    setZoom(camera.zoom);
-    setPan(
-      clampCamera(
-        camera.pan,
-        { x: region.clientWidth, y: region.clientHeight },
-        { x: cols * camera.zoom, y: rows * camera.zoom },
-      ),
-    );
-  }, [cols, rows, mode]);
+  const fitWorld = useCallback(
+    (strict = false) => {
+      const region = regionRef.current;
+      if (!region) return;
+      // Start at a legible game scale so the world remains the main interface.
+      // Explicit Fit/Home requests favor a complete overview over the automatic game scale.
+      const minimumZoom = strict || mode !== 'grounds' ? 16 : region.clientWidth >= 1400 ? 48 : 32;
+      const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }, minimumZoom);
+      setZoom(camera.zoom);
+      setPan(
+        clampCamera(
+          camera.pan,
+          { x: region.clientWidth, y: region.clientHeight },
+          { x: cols * camera.zoom, y: rows * camera.zoom },
+        ),
+      );
+    },
+    [cols, rows, mode],
+  );
 
   useEffect(() => {
     if (cameraMode === 'manual') return;
-    fitWorld();
+    fitWorld(cameraMode === 'fit');
   }, [cameraMode, fitWorld]);
 
   useEffect(() => {
@@ -152,7 +155,7 @@ export function WorldEntityMap({
     if (!region) return;
     const observer = new ResizeObserver(() => {
       if (cameraMode !== 'manual') {
-        fitWorld();
+        fitWorld(cameraMode === 'fit');
       } else {
         setPan((p) => clampCamera(p, { x: region.clientWidth, y: region.clientHeight }, { x: viewW, y: viewH }));
       }
@@ -317,7 +320,7 @@ export function WorldEntityMap({
           className={styles.hudButton}
           onClick={() => {
             setCameraMode('fit');
-            fitWorld();
+            fitWorld(true);
           }}
           aria-label="Fit world"
         >

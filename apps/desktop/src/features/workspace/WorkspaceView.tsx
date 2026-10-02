@@ -67,6 +67,10 @@ export default function WorkspaceView() {
 
   const chooseProject = async () => {
     setPickerError(null);
+    if (!projects.isSuccess) {
+      setPickerError('Wait for the current project list to load before choosing a folder.');
+      return;
+    }
     if (!window.atk) {
       setPickerError('The native folder picker is available in Agent Toolkit Desktop.');
       return;
@@ -171,7 +175,7 @@ export default function WorkspaceView() {
                 : 'Give each real project its own place in the world'
             }
             actions={
-              <Button onClick={() => void chooseProject()} disabled={!path}>
+              <Button onClick={() => void chooseProject()} disabled={!path || !projects.isSuccess}>
                 Link existing folder
               </Button>
             }
@@ -207,12 +211,14 @@ export default function WorkspaceView() {
       </Stack>
       <Dialog
         open={candidate !== null}
-        onClose={() => setCandidate(null)}
+        onClose={() => {
+          if (!projectMutation.isPending) setCandidate(null);
+        }}
         title="Review project link"
         description="This creates or updates a project entry in the current workspace. The repository itself stays where it is."
         footer={
           <ButtonRow>
-            <Button variant="ghost" onClick={() => setCandidate(null)}>
+            <Button variant="ghost" onClick={() => setCandidate(null)} disabled={projectMutation.isPending}>
               Cancel
             </Button>
             <Button
@@ -220,7 +226,7 @@ export default function WorkspaceView() {
               onClick={confirmProject}
               busy={projectMutation.isPending}
               busyLabel="Linking…"
-              disabled={!path || !candidateName}
+              disabled={!path || !candidateName || !projects.isSuccess}
             >
               Link {candidateName || 'project'}
             </Button>
@@ -254,7 +260,11 @@ export default function WorkspaceView() {
             },
             {
               label: 'Existing link',
-              value: previousTarget ? `${previousTarget} will be replaced` : 'None; a new link will be created',
+              value: projects.isSuccess
+                ? previousTarget
+                  ? `${previousTarget} will be replaced`
+                  : 'None; a new link will be created'
+                : 'Loading project links…',
             },
           ]}
         />
