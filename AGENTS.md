@@ -175,16 +175,14 @@ Before changing Desktop behavior, read at least:
 Also read:
 
 - `USER_JOURNEYS.md` when changing a workflow;
-- `WORKFLOW_COVERAGE.md` when exposing/removing capabilities;
+- `workflows.yaml` when exposing/removing capabilities;
 - `VISUAL_QA.md` for any visual change;
-- `BACKLOG_AUDIT.md` is a frozen 2026-09-05 historical snapshot (archived);
-  consult it for provenance only, never as implementation authority — current
-  state lives in the master tracker, `TRUTH_LEDGER.md` and
-  `WORKFLOW_COVERAGE.md`.
+- The git history and ADRs for historical architecture context; current
+  behavior is defined by source, tests, and the workflow ledger.
 
 ### Desktop invariants
 
-- Keep the production application native V with `gg`/sokol unless a new approved ADR changes that direction.
+- Keep the production application Electron + React over `agent-toolkit serve` (ADR-033); keep domain operations in canonical V core/server APIs.
 - Engine/shared typed domain APIs remain authoritative. Do not implement Agent Toolkit business logic by shelling out to the Agent Toolkit CLI and parsing output.
 - Keep catalog truth, user configuration, runtime state, and evidence/provenance distinct.
 - Never invent operational activity to make the Office look alive.

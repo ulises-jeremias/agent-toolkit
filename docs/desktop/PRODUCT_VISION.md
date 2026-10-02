@@ -5,7 +5,7 @@ Status: **CURRENT CONTRACT** — governing product direction, adopted
 2026-09-30** ([ADR-035](../adrs/ADR-035-cozy-pixel-world.md)): Cozy Pixel
 World replaces Paper Co. This document defines the destination, not a claim
 that current builds meet it. Start with
-[workflow coverage](WORKFLOW_COVERAGE.md) for verified gaps and
+[the workflow ledger](workflows.yaml) for verified gaps and
 [visual QA](VISUAL_QA.md) for acceptance evidence.
 
 Agent Toolkit Desktop makes a coding-agent environment understandable, discoverable,
@@ -15,7 +15,7 @@ necessary evidence where applicable, but do not establish product quality.
 
 ## Users and standalone promise
 
-A new user can install one native application, open it from an OS launcher, create
+A new user can install one Electron application, open it from an OS launcher, create
 or reuse a workspace, detect coding tools, install something useful and operate it.
 Required terminal commands, external repository clones and manual configuration
 edits must each be zero. A source checkout, V compiler, developer cwd, developer

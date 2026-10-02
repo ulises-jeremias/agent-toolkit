@@ -9,7 +9,7 @@ deprecated and survives only in git history.
 This document defines how Agent Toolkit Desktop should look, feel, and present
 information. It complements [PRODUCT_VISION.md](PRODUCT_VISION.md),
 [UX_ARCHITECTURE.md](UX_ARCHITECTURE.md), [USER_JOURNEYS.md](USER_JOURNEYS.md),
-[WORKFLOW_COVERAGE.md](WORKFLOW_COVERAGE.md), [VISUAL_QA.md](VISUAL_QA.md), and
+[workflows.yaml](workflows.yaml), [VISUAL_QA.md](VISUAL_QA.md), and
 [SEMANTIC_WORLD.md](SEMANTIC_WORLD.md). It is not an executable token file and
 it does not override Engine truth, accessibility, or platform constraints.
 

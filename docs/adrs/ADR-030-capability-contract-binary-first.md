@@ -49,9 +49,9 @@ Consequences of the semantic shift:
   v1.23.0 (git history preserves it); `agent-toolkit tui` prints a removal
   notice pointing to the CLI and API. A future TUI would be an external
   consumer of Core/API, not repo-owned presentation.
-- The **Web application is retired**: `web/index.html` is reduced to a minimal
-  static server status page (health/version/links). No dashboard, no domain
-  workflows, no frontend toolchain. `web_nav.json` generation removed.
+- The **Web application is retired**: its standalone HTML dashboard was removed.
+  `agent-toolkit serve` exposes only a small API status page at `/`, plus the
+  typed API and OpenAPI schema. `web_nav.json` generation is retired.
 
 ## Generated artifacts (after this ADR)
 

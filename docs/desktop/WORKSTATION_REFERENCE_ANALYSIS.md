@@ -71,7 +71,8 @@ Implementation on `main` already advances that split (#1311 Electron app,
 **Do not treat Proposed as Accepted. Do not treat the native gg/sokol GUI as
 the current presentation plan.** ADR-032 remains the native-GUI decision;
 ADR-033 *proposes* to supersede it at the presentation layer only. v1.35.0
-is the rollback tag ([ELECTRON_MIGRATION.md](ELECTRON_MIGRATION.md)).
+is preserved as a historical release; current rollback/package guidance is in
+[PACKAGING.md](PACKAGING.md).
 
 ### Open work (do not derail)
 

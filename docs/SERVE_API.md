@@ -107,7 +107,7 @@ resolves the workspace for `loops`, `memory`, `workspace`, `swarms` and
 from cwd. To root serve at a harness, launch it
 from that directory with `AGENT_TOOLKIT_WORKSPACE` pointing at the same path.
 Desktop does this for its default harness; see
-[desktop/ELECTRON_MIGRATION.md](desktop/ELECTRON_MIGRATION.md#default-harness).
+[desktop/UX_ARCHITECTURE.md](desktop/UX_ARCHITECTURE.md).
 
 ## Event stream
 

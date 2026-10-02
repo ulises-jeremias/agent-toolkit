@@ -966,14 +966,15 @@ pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 	return ctx.json(agent_toolkit_core.list_swarm_runs_typed(ws))
 }
 
-// web_index_html is embedded at compile time so serve always has a UI.
-const web_index_html = $embed_file('../../web/index.html')
 const openapi_json = $embed_file('../../docs/surface/openapi.json')
 const cli_help_md = $embed_file('../../docs/surface/cli-help.md')
 
+// The HTTP server is a backend API, not a second Desktop frontend.
+const status_html = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Agent Toolkit API</title><body><main><h1>Agent Toolkit backend</h1><p>The API is running. Open Agent Toolkit Desktop to use the workspace.</p><p><a href="/openapi.json">OpenAPI schema</a> · <a href="/api/v1/health">Health</a></p></main></body></html>'
+
 @['/'; get]
 pub fn (app &App) index(mut ctx Ctx) veb.Result {
-	return ctx.html(web_index_html.to_string())
+	return ctx.html(status_html)
 }
 
 fn is_file(p string) bool {

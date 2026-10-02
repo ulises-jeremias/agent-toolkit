@@ -11,8 +11,7 @@ import { expandHome, isDirectory } from './harness';
  * node-pty is strictly a PTY runtime adapter: it spawns interactive processes
  * (agent CLIs, shells) and shuttles bytes. It owns no Agent Toolkit domain
  * state — catalog, jobs, memory, approvals all stay behind `agent-toolkit
- * serve`. Chosen over the V `modules/pty` backend because node-pty gives us
- * ConPTY on Windows; the V PTY module is POSIX-only by design.
+ * serve`. node-pty supports native PTY processes on Linux, macOS, and Windows.
  */
 
 export interface TerminalSessionInfo {

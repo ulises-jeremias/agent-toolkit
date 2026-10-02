@@ -5,7 +5,7 @@ import { expect, test } from '@playwright/test';
  * Backend-independent: asserts the app shell (nav, headings, fallbacks)
  * renders with no backend running. Live-backend behavior (queries,
  * mutations, SSE, terminals) is covered by unit tests, the packaged-app CDP
- * tour, and manual UAT — see docs/desktop/ELECTRON_MIGRATION.md.
+ * tour, and manual UAT — see docs/desktop/PACKAGING.md and VISUAL_QA.md.
  * Set VITE_ATK_BACKEND_URL to point at a live `agent-toolkit serve` to also
  * exercise backend-driven panels locally.
  */

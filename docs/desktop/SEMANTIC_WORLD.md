@@ -44,7 +44,7 @@ This is not pixel-art SaaS and not "game before tool".
 | Native gg World View as production spatial authority | **REPLACE** | Electron hybrid world; native retained as historical reference |
 | Cyberpunk / space / alternate themes now | **REMOVE (defer)** | One excellent cozy world; architecture allows more later |
 | Forcing Office Floor metaphor onto every workflow | **REMOVE** | World explains structure; inspectors own dense work |
-| Historical Workshop vector-sprite vocabulary as visual authority | **REMOVE** | WORLD_VIEW.md motion/truth contracts remain binding |
+| Historical Workshop vector-sprite vocabulary as visual authority | **REMOVE** | Runtime truth and ambient motion rules are in this document and UX_ARCHITECTURE.md |
 
 ## 2. Pipeline (hard rule)
 
