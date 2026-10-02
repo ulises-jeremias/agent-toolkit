@@ -480,6 +480,30 @@
       "w": 16,
       "h": 24,
       "frames": 2
+    },
+    "char-scout": {
+      "file": "char-scout.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-maker": {
+      "file": "char-maker.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-scholar": {
+      "file": "char-scholar.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
+    },
+    "char-keeper": {
+      "file": "char-keeper.png",
+      "w": 16,
+      "h": 24,
+      "frames": 2
     }
   }
 }

@@ -241,6 +241,16 @@ function shadow(img, x0, x1, y) {
 function gableRoof(img, cx, ry0, ry1, topHalf, botHalf, k, kd, kl) {
   img.trapezoid(cx, ry0, ry1, topHalf, botHalf, k, 'k');
   img.trapezoid(cx, ry0 + 1, ry1 - 1, Math.max(1, topHalf - 1), botHalf - 1, k, null);
+  // Short staggered courses give a roof texture at both overview and close zoom.
+  // The gaps are deterministic and stay inside the roof silhouette.
+  for (let y = ry0 + 4; y < ry1 - 2; y += 4) {
+    const t = (y - ry0) / Math.max(1, ry1 - ry0);
+    const half = Math.round(topHalf + (botHalf - topHalf) * t) - 3;
+    for (let x = cx - half + ((y / 4) % 2) * 3; x < cx + half - 1; x += 7) {
+      img.hline(x, Math.min(x + 3, cx + half), y, kd);
+      img.set(x + 1, y - 1, kl);
+    }
+  }
   img.hline(cx - topHalf, cx + topHalf, ry0, kl); // sunlit ridge
   const eaveHalf = botHalf;
   img.hline(cx - eaveHalf, cx + eaveHalf, ry1, kd); // dark eave course
@@ -734,11 +744,13 @@ function objLamp() {
 
 function grassTile(seed) {
   const img = new Img(16, 16).rect(0, 0, 15, 15, 'g');
-  // sparse dapple — 3-5 accents per tile, not a checkerboard
+  // Tufts and short dappled streaks break up the flat lawn without noise.
   const s = seed * 7 + 3;
-  img.set((s % 11) + 2, ((s * 3) % 11) + 2, 'gd');
-  img.set(((s * 5) % 13) + 1, ((s * 7) % 13) + 1, 'gl');
-  if (seed % 2) img.set(((s * 11) % 14) + 1, ((s * 13) % 14) + 1, 'gt');
+  const x = (s % 10) + 2;
+  const y = ((s * 3) % 10) + 3;
+  img.set(x, y, 'gd').set(x - 1, y + 1, 'gd').set(x + 1, y + 1, 'gd');
+  img.set(x, y - 1, 'gl').set((x + 6) % 14 + 1, (y + 7) % 14 + 1, 'gt');
+  if (seed % 2) img.hline(10, 12, 4, 'gl');
   return img;
 }
 
@@ -855,9 +867,12 @@ function treeRound() {
   img.set(14, 28, 'o').set(17, 31, 'o').set(15, 34, 'o');
   img.ellipse(16, 14, 14, 13, 'k');
   img.ellipse(16, 13, 13, 12, 'fo');
-  img.ellipse(11, 9, 7, 6, 'fl');
-  img.ellipse(22, 21, 6, 5, 'fd');
-  img.set(8, 7, 'gt').set(13, 4, 'fl').set(21, 9, 'fl').set(24, 14, 'fd');
+  img.ellipse(9, 12, 5, 6, 'fl');
+  img.ellipse(17, 7, 7, 5, 'fl');
+  img.ellipse(24, 13, 4, 6, 'fd');
+  img.ellipse(14, 19, 6, 4, 'fd');
+  img.hline(6, 9, 9, 'gt').hline(15, 19, 5, 'gt').hline(10, 12, 17, 'fo');
+  img.set(22, 17, 'gl').set(20, 21, 'fl').set(7, 15, 'gt').set(25, 10, 'fl');
   return [{ name: 'tree-round', img }];
 }
 
@@ -865,10 +880,13 @@ function treePine() {
   const img = new Img(32, 40);
   img.ellipse(16, 38, 9, 2, 'sh');
   img.rect(13, 26, 18, 37, 'k').rect(14, 26, 17, 36, 'od');
-  img.trapezoid(16, 2, 33, 1, 14, 'fd');
-  img.trapezoid(16, 1, 27, 1, 10, 'fo');
-  img.trapezoid(16, 0, 18, 0, 6, 'fl');
-  img.set(16, 0, 'gt').set(12, 10, 'fl').set(20, 16, 'fd');
+  // Three overlapping bough tiers read as a fir rather than one triangle.
+  img.trapezoid(16, 15, 34, 4, 14, 'k');
+  img.trapezoid(16, 16, 32, 3, 12, 'fd');
+  img.trapezoid(16, 8, 25, 3, 11, 'fo');
+  img.trapezoid(16, 1, 17, 1, 8, 'fl');
+  img.hline(8, 12, 24, 'fl').hline(10, 13, 31, 'fo');
+  img.set(16, 0, 'gt').set(12, 10, 'gt').set(20, 16, 'fl').set(22, 22, 'fd');
   return [{ name: 'tree-pine', img }];
 }
 
@@ -1116,18 +1134,17 @@ function crate() {
  *    16x24 source, 2-frame working bob. Palette variant per stable hash.
  * ------------------------------------------------------------------ */
 
-function character(robe, robeDark, accent) {
+function character(robe, robeDark, accent, hair = 'od', skin = 'sk') {
   const base = (bob) => {
     const img = new Img(16, 24);
     const by = bob ? -1 : 0;
-    // hood
-    img.set(7, 1 + by, robe).rect(6, 2 + by, 9, 3 + by, robe).rect(5, 4 + by, 10, 6 + by, robe);
-    img.set(5, 4 + by, robeDark).set(10, 5 + by, robeDark);
-    // face
-    img.rect(6, 5 + by, 9, 9 + by, 'k').rect(6, 5 + by, 9, 8 + by, 'sk');
+    // Distinct hair, skin and coat make a durable Person recognizable.
+    img.rect(6, 2 + by, 9, 3 + by, 'k').rect(5, 4 + by, 10, 6 + by, 'k');
+    img.rect(6, 2 + by, 9, 4 + by, hair).set(5, 5 + by, hair).set(10, 5 + by, hair);
+    img.rect(6, 5 + by, 9, 9 + by, 'k').rect(6, 5 + by, 9, 8 + by, skin);
     img.set(7, 7 + by, 'k').set(9, 7 + by, 'k');
     img.set(6, 9 + by, 'skd').set(9, 9 + by, 'skd');
-    img.set(6, 6 + by, 'sk').set(8, 9 + by, 'iv');
+    img.set(8, 9 + by, 'iv');
     // robe body
     img.rect(4, 11 + by, 11, 19, 'k');
     img.rect(5, 11 + by, 10, 18, robe);
@@ -1282,6 +1299,10 @@ function collect() {
     ['char-teal', character('re', 'red', 'cy')],
     ['char-gold', character('rw', 'rwd', 'gg')],
     ['char-brick', character('bk', 'bkd', 'wy')],
+    ['char-scout', character('re', 'red', 'cy', 'od')],
+    ['char-maker', character('rw', 'rwd', 'gg', 'rrd', 'skd')],
+    ['char-scholar', character('rs', 'rsd', 'lv', 'inkd')],
+    ['char-keeper', character('rm', 'rmd', 'wy', 'rw', 'skd')],
   ])
     put(name, ch.frames[0], ch.frames);
   return sprites;

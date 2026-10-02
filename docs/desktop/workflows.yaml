@@ -71,18 +71,22 @@ journeys:
       - exit/reap and restart-on-backend-crash review not on file
   - id: people-crud
     title: Create, edit and archive a Person
-    destinations: []
-    status: not-implemented
-    evidence: []
+    destinations: [people]
+    status: partial
+    evidence:
+      - note: Electron screenshot tour creates Lina through the UI and confirms the offline roster; V people_test.v covers CRUD, archive, restore and invalid declarations
+        build: 'feat/product-stabilization (pre-merge)'
     blockers:
-      - 'schemas/scaffold/validation land first (ADR-036); GUI CRUD is explicit future work'
+      - GUI edit/archive/restore failure paths need full Electron review
   - id: people-import-review
     title: Review a munder-difflin/hire@1 import
-    destinations: []
-    status: not-implemented
-    evidence: []
+    destinations: [people]
+    status: partial
+    evidence:
+      - note: Electron screenshot tour reviews Maya JSON, displays ignored command field, saves and observes offline roster; importMunder.test.ts covers inert source mapping
+        build: 'feat/product-stabilization (pre-merge)'
     blockers:
-      - 'import is contract-only: review_required, no auto-spawn/install/live-sync'
+      - malformed-file and collision recovery need full Electron review
   - id: people-start-session
     title: Start a session as a Person
     destinations: []

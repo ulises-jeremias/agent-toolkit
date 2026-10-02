@@ -1,9 +1,11 @@
 # People — durable collaborators, not running sessions
 
-Status: **CURRENT CONTRACT (partial delivery)** — schemas, storage ownership,
-scaffolding, mirror sync and offline validation are implemented. People CRUD,
-import review, Start, session binding and swarm role selection in Desktop are
-**not implemented**; see [Gaps](#gaps).
+Status: **PARTIAL PRODUCT DELIVERY** — Desktop supports roster CRUD and reviewed
+one-way Munder import, backed by the V People storage API. Start, session
+binding and swarm role selection remain unimplemented; see [Gaps](#gaps).
+
+The [People creation screen](../static/screenshots/people-create.png) shows the
+guided form at compact size. Saving creates a durable identity, not a process.
 
 A Person is a collaborator you have chosen and reviewed. It persists in your
 workspace, not in the toolkit. Configuration alone never creates a character:
@@ -64,11 +66,12 @@ with a static message; it never evaluates tampered schemas.
 
 ## Imports (munder-difflin/hire@1)
 
-`capabilities/imports/munder-hire-v1.json` is a **contract-only** mapping:
+`capabilities/imports/munder-hire-v1.json` defines the one-way mapping:
 `review_required: true`, `auto_spawn: false`, `auto_install: false`,
 `live_sync: false`. It maps name/role/goal/provider/model/skills/MCP fields;
-the `definition_id` is chosen during human review. Unknown and unsafe fields
-are blocked. Original character/accent are retained as inert attribution, not
+the `definition_id` is chosen during human review. The Desktop importer shows
+ignored fields before an explicit save; it never executes or persists embedded
+commands. Original character/accent are retained as inert attribution, not
 external art. Never treat `hive/registry.json` as runtime authority; there is
 no live synchronization.
 
@@ -96,17 +99,25 @@ When a swarm recipe names a role:
 
 Not implemented yet; see below.
 
+## Desktop implementation
+
+The People destination lists configured and archived collaborators, and lets
+the user create, edit, archive and restore them. The V server validates writes
+against the durable declaration shape, stores `people/<id>.json` atomically,
+and rejects symlinked storage. The import picker accepts a local
+`munder-difflin/hire@1` JSON file, previews every mapped domain field and the
+names of ignored fields, and requires a separate save action. Saving or
+importing never starts a process or creates a world character. The portrait
+uses original Toolkit sprites; source appearance is attribution only.
+
 ## Gaps
 
 The following are explicitly **not implemented**. Do not represent schemas or
 file authoring as the user interface:
 
-- People CRUD in Desktop (create/edit/archive through the GUI).
-- Import review flow in Desktop (reviewing a `munder-difflin/hire@1` payload).
 - Start / session binding (starting a session as a Person).
 - Swarm role picker with pre-start Person selection.
 - Runtime enforcement of the resolution order above.
 
-Until these land, the contract is the schema set, the scaffold, the mirrors
-and the offline validator. Each gap lands with real GUI journeys, not
-documentation-only claims.
+The remaining gaps require real runtime evidence and canonical backend
+operations before Desktop can truthfully show live People.

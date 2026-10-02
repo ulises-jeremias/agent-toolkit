@@ -1181,6 +1181,132 @@
         }
       }
     },
+    "/api/v1/people": {
+      "get": {
+        "operationId": "list_people",
+        "summary": "List validated durable People in a workspace",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "create_person",
+        "summary": "Create a reviewed durable Person",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}": {
+      "get": {
+        "operationId": "get_person",
+        "summary": "Server-native endpoint (get_person)",
+        "x-scope": "read:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "update_person",
+        "summary": "Server-native endpoint (update_person)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}/archive": {
+      "post": {
+        "operationId": "archive_person",
+        "summary": "Server-native endpoint (archive_person)",
+        "x-scope": "write:*",
+        "x-confirm-required": false,
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/jobs/{id}": {
       "get": {
         "operationId": "get_job",

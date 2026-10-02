@@ -84,8 +84,8 @@ pub:
 	models []ModelInfo
 }
 
-// list_agents reads personas from the toolkit agents/ tree. Missing data
-// is empty; nothing is fabricated.
+// list_agents reads definitions from the resolved toolkit data root, including
+// the in-memory embedded root used by a standalone Desktop package.
 pub fn list_agents() []AgentInfo {
 	root := find_toolkit_root() or { return []AgentInfo{} }
 	return list_agents_at(root.path)
@@ -93,21 +93,21 @@ pub fn list_agents() []AgentInfo {
 
 pub fn list_agents_at(root string) []AgentInfo {
 	dir := os.join_path(root, 'agents')
-	if !os.is_dir(dir) {
+	if !data_is_dir(root, dir) {
 		return []AgentInfo{}
 	}
 	mut out := []AgentInfo{}
-	mut names := os.ls(dir) or { return out }
+	mut names := data_ls(root, dir)
 	names.sort()
 	for name in names {
 		if name.starts_with('.') {
 			continue
 		}
 		agent_md := os.join_path(dir, name, 'AGENT.md')
-		if !os.is_file(agent_md) {
+		if !data_is_file(root, agent_md) {
 			continue
 		}
-		text := os.read_file(agent_md) or { continue }
+		text := data_read_file(root, agent_md) or { continue }
 		fm_name, kind, description := parse_agent_frontmatter(text)
 		out << AgentInfo{
 			id: name

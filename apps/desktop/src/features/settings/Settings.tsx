@@ -141,8 +141,8 @@ export default function Settings() {
             appearance.theme === 'system'
               ? `System is ${appearance.resolvedTheme === 'meadow' ? 'Meadow' : 'Dusk'} on this machine`
               : appearance.resolvedTheme === 'meadow'
-                ? 'Paper'
-                : 'Ink'
+                ? 'Meadow'
+                : 'Dusk'
           }
         >
           <div className={styles.choices}>

@@ -118,6 +118,18 @@
   color: var(--text-canvas-secondary);
 }
 
+.pageHeader[data-surface='panel'] .eyebrow {
+  color: var(--accent-gold);
+}
+
+.pageHeader[data-surface='panel'] .pageTitle {
+  color: var(--text-primary);
+}
+
+.pageHeader[data-surface='panel'] .lede {
+  color: var(--text-secondary);
+}
+
 /* ---------- Panel ---------- */
 
 .panel {
@@ -475,6 +487,7 @@
   background: var(--surface-panel);
   color: var(--text-primary);
   box-shadow: var(--shadow-raised);
+  overflow: hidden;
 }
 
 .dialog[data-size='wide'] {
@@ -502,6 +515,8 @@
 }
 
 .dialogBody {
+  flex: 1;
+  min-height: 0;
   padding: var(--space-2) var(--space-5) var(--space-4);
   overflow: auto;
   color: var(--text-secondary);

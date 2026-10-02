@@ -13,10 +13,11 @@ export interface Point {
 }
 
 /** Largest integer zoom step that fits the viewport inside a 24px gutter. */
-export function fitCamera(viewport: Point, tiles: Point): { zoom: number; pan: Point } {
-  const zoom =
+export function fitCamera(viewport: Point, tiles: Point, minimumZoom = 16): { zoom: number; pan: Point } {
+  const fittingZoom =
     [...WORLD_ZOOMS].reverse().find((step) => tiles.x * step <= viewport.x - 24 && tiles.y * step <= viewport.y - 24) ??
     WORLD_ZOOMS[0];
+  const zoom = Math.max(fittingZoom, minimumZoom);
   return {
     zoom,
     pan: {

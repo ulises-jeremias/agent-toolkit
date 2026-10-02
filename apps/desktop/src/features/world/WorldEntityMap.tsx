@@ -101,7 +101,7 @@ export function WorldEntityMap({
   const regionRef = useRef<HTMLDivElement>(null);
   const [zoom, setZoom] = useState<number>(48);
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [fit, setFit] = useState(true);
+  const [cameraMode, setCameraMode] = useState<'frame' | 'fit' | 'manual'>('frame');
   const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const [tabVisible, setTabVisible] = useState(() => document.visibilityState !== 'hidden');
@@ -125,32 +125,46 @@ export function WorldEntityMap({
     [mode, entities, cols, rows],
   );
 
-  const fitWorld = useCallback(() => {
-    const region = regionRef.current;
-    if (!region) return;
-    const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows });
-    setZoom(camera.zoom);
-    setPan(camera.pan);
-  }, [cols, rows]);
+  const fitWorld = useCallback(
+    (strict = false) => {
+      const region = regionRef.current;
+      if (!region) return;
+      // Start at readable game scale. Home still fits the entire valley.
+      const minimumZoom = !strict && mode === 'grounds' ? (region.clientWidth >= 1400 ? 48 : 32) : 16;
+      const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }, minimumZoom);
+      setZoom(camera.zoom);
+      setPan(
+        clampCamera(
+          {
+            ...camera.pan,
+            y: camera.pan.y + (!strict && mode === 'grounds' && region.clientWidth < 1400 ? camera.zoom * 2 : 0),
+          },
+          { x: region.clientWidth, y: region.clientHeight },
+          { x: cols * camera.zoom, y: rows * camera.zoom },
+        ),
+      );
+    },
+    [cols, rows, mode],
+  );
 
   useEffect(() => {
-    if (!fit) return;
-    fitWorld();
-  }, [fit, fitWorld]);
+    if (cameraMode === 'manual') return;
+    fitWorld(cameraMode === 'fit');
+  }, [cameraMode, fitWorld]);
 
   useEffect(() => {
     const region = regionRef.current;
     if (!region) return;
     const observer = new ResizeObserver(() => {
-      if (fit) {
-        fitWorld();
+      if (cameraMode !== 'manual') {
+        fitWorld(cameraMode === 'fit');
       } else {
         setPan((p) => clampCamera(p, { x: region.clientWidth, y: region.clientHeight }, { x: viewW, y: viewH }));
       }
     });
     observer.observe(region);
     return () => observer.disconnect();
-  }, [fit, fitWorld, viewW, viewH]);
+  }, [cameraMode, fitWorld, viewW, viewH]);
 
   const clampPan = useCallback(
     (x: number, y: number) => {
@@ -180,7 +194,7 @@ export function WorldEntityMap({
       suppressClick.current = true;
       event.currentTarget.setPointerCapture?.(event.pointerId);
     }
-    setFit(false);
+    setCameraMode('manual');
     setPan(clampPan(panX + event.clientX - x, panY + event.clientY - y));
   };
   const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -193,30 +207,30 @@ export function WorldEntityMap({
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     const step = zoom;
     if (event.key === 'ArrowLeft') {
-      setFit(false);
+      setCameraMode('manual');
       setPan((p) => clampPan(p.x + step, p.y));
       event.preventDefault();
     } else if (event.key === 'ArrowRight') {
-      setFit(false);
+      setCameraMode('manual');
       setPan((p) => clampPan(p.x - step, p.y));
       event.preventDefault();
     } else if (event.key === 'ArrowUp') {
-      setFit(false);
+      setCameraMode('manual');
       setPan((p) => clampPan(p.x, p.y + step));
       event.preventDefault();
     } else if (event.key === 'ArrowDown') {
-      setFit(false);
+      setCameraMode('manual');
       setPan((p) => clampPan(p.x, p.y - step));
       event.preventDefault();
     } else if (event.key === 'Home') {
-      setFit(true);
+      setCameraMode('fit');
       event.preventDefault();
     }
   };
 
   const changeZoom = (next: number) => {
     const region = regionRef.current;
-    setFit(false);
+    setCameraMode('manual');
     if (region) {
       setPan(zoomCamera(pan, zoom, next, { x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }));
     }
@@ -229,6 +243,11 @@ export function WorldEntityMap({
     <div
       ref={regionRef}
       className={styles.mapRegion}
+      style={
+        mode === 'grounds'
+          ? { backgroundImage: "url('/world/grass-a.png')", backgroundSize: `${zoom}px ${zoom}px` }
+          : undefined
+      }
       role="application"
       aria-label={ariaLabel}
       data-theme={theme.id}
@@ -302,8 +321,8 @@ export function WorldEntityMap({
           type="button"
           className={styles.hudButton}
           onClick={() => {
-            setFit(true);
-            fitWorld();
+            setCameraMode('fit');
+            fitWorld(true);
           }}
           aria-label="Fit world"
         >

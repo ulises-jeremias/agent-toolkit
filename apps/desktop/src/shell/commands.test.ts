@@ -33,6 +33,15 @@ describe('filterCommands', () => {
     expect(hits.map((command) => command.id)).toContain('session:next-needs-me');
   });
 
+  it('reaches the swarm start flow and uses the current world theme names', () => {
+    expect(filterCommands(PALETTE_COMMANDS, 'start a swarm').map((command) => command.id)).toContain(
+      'session:start-swarm',
+    );
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'appearance:meadow')?.title).toBe('Use Meadow theme');
+    expect(PALETTE_COMMANDS.find((command) => command.id === 'appearance:dusk')?.title).toBe('Use Dusk theme');
+    expect(PALETTE_COMMANDS.some((command) => /Paper|\bInk\b/.test(command.title))).toBe(false);
+  });
+
   it('exposes world jumps for memory, projects, terminal, and attention', () => {
     const ids = PALETTE_COMMANDS.map((command) => command.id);
     expect(ids).toEqual(

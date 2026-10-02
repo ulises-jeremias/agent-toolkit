@@ -142,18 +142,19 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const grounds = entities.find((e) => e.id === 'place:workspace');
   const memoryPlace = entities.find((e) => e.id === 'place:memory');
   const memoryEntries = entities.filter((e) => e.id.startsWith('object:memory:'));
-  // Stable commons lane order (scannable settlement, not alpha noise).
+  // Civic places occupy two small streets around a shared square. Their
+  // positions communicate hierarchy without turning the valley into one row.
   const landmarkOrder = [
-    'object:attention',
     'object:library',
-    'object:files',
     'object:operations',
     'object:terminal',
+    'object:attention',
+    'object:files',
     'object:settings',
-    'place:projects-empty',
   ];
   const sharedById = new Map(entities.filter((e) => landmarkOrder.includes(e.id)).map((e) => [e.id, e] as const));
   const sharedObjects = landmarkOrder.map((id) => sharedById.get(id)).filter(Boolean) as SemanticEntity[];
+  const emptyProject = entities.find((e) => e.id === 'place:projects-empty');
   const projects = entities.filter((e) => e.id.startsWith('place:project:'));
   const characters = entities.filter((e) => e.kind === 'character');
   const rest = entities.filter(
@@ -162,6 +163,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
       e !== memoryPlace &&
       !memoryEntries.includes(e) &&
       !sharedObjects.includes(e) &&
+      e !== emptyProject &&
       !projects.includes(e) &&
       !characters.includes(e),
   );
@@ -179,15 +181,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // District widths first so the core is centered on the map, not the lane.
   const districtCols = projectDistrictCols(projects.length);
   const districtW = Math.max(0, districtCols * 4 - 1); // 3-wide houses + gutters
-  const commonsW = Math.max(
-    0,
-    sharedObjects.reduce((acc, e) => acc + sizeFor(e).w + 1, -1),
-  );
-  const contentW = Math.max(districtW, commonsW, 10); // hall + gap + archive
+  const contentW = Math.max(districtW, 22); // civic square + hall + archive
   const mapW = contentW + 8; // 4-tile forest frame each side
 
   // North core: hall west, memory archive east, ledgers beside it.
-  const coreX = 4 + Math.max(0, Math.floor((contentW - 10) / 2));
+  const coreX = 4 + Math.max(0, Math.floor((contentW - 12) / 2));
   if (grounds) place(grounds, coreX, 1);
   if (memoryPlace) place(memoryPlace, coreX + 6, 1);
   let entryX = coreX + 11;
@@ -196,17 +194,26 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     entryX += 2;
   }
 
-  // Commons lane: directly south of the hall, centered under the core.
-  const laneY = 6;
-  let laneX = 4 + Math.max(0, Math.floor((contentW - commonsW) / 2));
+  // The Library and Operations face the northern commons. Smaller service
+  // buildings face its southern side; the east edge leads to the creek.
+  const civicX = 4 + Math.floor((contentW - 22) / 2);
+  const civicSlots: Record<string, { x: number; y: number }> = {
+    'object:library': { x: civicX + 1, y: 6 },
+    'object:operations': { x: civicX + 8, y: 6 },
+    'object:terminal': { x: civicX + 15, y: 6 },
+    'object:attention': { x: civicX + 3, y: 11 },
+    'object:files': { x: civicX + 8, y: 11 },
+    'object:settings': { x: civicX + 13, y: 11 },
+  };
   for (const landmark of sharedObjects) {
-    place(landmark, laneX, laneY);
-    laneX += sizeFor(landmark).w + 1;
+    const slot = civicSlots[landmark.id]!;
+    place(landmark, slot.x, slot.y);
   }
 
-  // Project district: south of the lane, centered, row-major.
-  const districtY = laneY + 5;
+  // Project houses form a distinct southern neighborhood.
+  const districtY = 17;
   const districtX = 4 + Math.max(0, Math.floor((contentW - districtW) / 2));
+  if (emptyProject) place(emptyProject, districtX + 4, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % districtCols;
@@ -219,7 +226,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // Characters: stand at named commons object when job.cmd matches; else house porch.
   let orphanX = coreX;
-  const orphanY = Math.max(1, laneY - 1);
+  const orphanY = 5;
   for (const character of characters) {
     const anchor = character.standAtId ? laid.find((row) => row.id === character.standAtId) : undefined;
     if (anchor) {
@@ -243,7 +250,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const mapRows = districtY + Math.max(0, districtRows) * 4 + 3;
   return {
     cols: Math.max(mapW, maxX + 4),
-    rows: Math.max(maxY + 3, mapRows),
+    rows: Math.max(maxY + 1, mapRows),
     entities: laid,
   };
 }

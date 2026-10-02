@@ -178,23 +178,27 @@ function bridgeAt(p: Painter, creekX: number, y: number) {
   p.sprite(`bridge:${creekX},${y}`, creekX - 1, y - 1, 'bridge', 48, 48, 0, -8, false);
 }
 
-/** Trees around the rim + scattered groves, avoiding blocked cells. */
+/** Framing groves with natural gaps around buildings and paths. */
 function forest(p: Painter, creekX: number) {
+  const planted = new Set<string>();
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
       if (!p.get(x, y).startsWith('grass')) continue;
-      const rim = x === 0 || y === 0 || x >= p.cols - 1 || y === p.rows - 1;
+      const edge = x < 4 || x >= p.cols - 4 || y < 2 || y >= p.rows - 3;
       const nearCreek = Math.abs(x - creekX) <= 2;
-      const roll = h2(x, y, 3) % 29;
-      const wantTree = rim ? roll < 4 : nearCreek ? roll === 5 : false;
+      const roll = h2(x, y, 3) % 31;
+      const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
+      const nearTree = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => planted.has(key(x + dx, y + dy))));
+      const wantTree = !nearBuilding && !nearTree && (edge ? roll < 11 : nearCreek ? roll < 5 : roll === 1);
       if (wantTree) {
         const pine = h2(x, y, 4) % 3 === 0;
         p.sprite(`tree:${x},${y}`, x, y, pine ? 'tree-pine' : 'tree-round', 32, 40, -8, -26, true);
+        planted.add(key(x, y));
       } else if (roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
       else if (roll === 7) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
       else if (roll === 8) p.sprite(`grass-tuft:${x},${y}`, x, y, 'tall-grass', 16, 8, 0, 8);
-      else if (roll === 9 && rim) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
+      else if (roll === 9 && edge) p.sprite(`shroom:${x},${y}`, x, y, 'mushroom', 16, 12, 0, 5);
     }
   }
 }
@@ -209,6 +213,15 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
       if (free) {
         for (let x = hall.x; x < hall.x + hall.w && x < p.cols; x++)
           p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+      }
+    }
+    // A small paved commons gives the two civic streets a readable center.
+    const center = hall.x + Math.floor(hall.w / 2);
+    for (let y = 9; y <= 11; y++) {
+      for (let x = center - 2; x <= center + 2; x++) {
+        if (!p.isBlocked(x, y) && p.get(x, y).startsWith('grass')) {
+          p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b');
+        }
       }
     }
   }
@@ -272,9 +285,20 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
   const creekX = creek(p, cols - 4, new Set([roadY]));
   (p as unknown as { creekX: number }).creekX = creekX;
   road(p, roadY);
-  // north lane: commons ↔ road, aligned under the hall
+  // A continuous north-south path links the hall, civic square and projects.
   const hallCx = hall ? hall.x + Math.floor(hall.w / 2) : 3;
-  lane(p, hallCx, roadY, Math.max(0, roadY - 5));
+  lane(p, hallCx, roadY, hall ? hall.y + hall.h : 2);
+  // Each landmark has a short approach from its front door to the civic path.
+  for (const place of commons) {
+    if (place.id === 'place:memory') continue;
+    const doorX = place.x + Math.floor(place.w / 2);
+    const doorY = place.y + place.h;
+    const targetY = doorY <= 11 ? 10 : roadY;
+    lane(p, doorX, doorY, targetY);
+    if (targetY === 10) {
+      for (let x = Math.min(doorX, hallCx); x <= Math.max(doorX, hallCx); x++) p.set(x, targetY, 'dirt');
+    }
+  }
   // street lanes between project columns
   const colXs = [...new Set(projects.map((e) => e.x))].sort((a, b) => a - b);
   const projectBottom = projects.length ? Math.max(...projects.map((e) => e.y + e.h)) : roadY;

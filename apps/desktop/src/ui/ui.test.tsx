@@ -11,6 +11,7 @@ import {
   ErrorState,
   Field,
   Panel,
+  PageHeader,
   ReceiptsProvider,
   StatusBadge,
   TextInput,
@@ -27,6 +28,15 @@ describe('Panel', () => {
     );
     expect(screen.getByRole('region', { name: 'Jobs' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: 'Jobs' })).toBeInTheDocument();
+  });
+});
+
+describe('PageHeader', () => {
+  it('uses the panel contrast ramp when the header sits inside a framed room', () => {
+    const { container } = render(
+      <PageHeader surface="panel" eyebrow="Library" title="Library board" lede="Catalog knowledge." />,
+    );
+    expect(container.querySelector('header[data-surface="panel"]')).toBeInTheDocument();
   });
 });
 

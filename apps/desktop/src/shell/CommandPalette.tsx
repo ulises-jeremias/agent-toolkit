@@ -129,6 +129,9 @@ export function CommandPalette() {
       case 'session:run-loop':
         navigate(href('/operations', { dialog: 'run-loop' }));
         break;
+      case 'session:start-swarm':
+        navigate(href('/operations', { dialog: 'start-swarm' }));
+        break;
       case 'session:next-needs-me': {
         const next = takeNextNeedsMe(attention.targets);
         navigate(next ? next.href : href('/office'));
