@@ -3800,7 +3800,7 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceFileListResponse"];
                 };
             };
-            /** @description invalid path */
+            /** @description invalid project */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3818,7 +3818,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
-            /** @description workspace or path not found */
+            /** @description workspace, registered project, or path not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -3851,8 +3851,17 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceFileSearchResponse"];
                 };
             };
-            /** @description query is required */
+            /** @description invalid project */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description registered project not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3884,7 +3893,7 @@ export interface operations {
                     "application/json": components["schemas"]["WorkspaceFileReadResponse"];
                 };
             };
-            /** @description invalid path */
+            /** @description invalid project */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -3902,7 +3911,7 @@ export interface operations {
                     "application/json": components["schemas"]["ApiError"];
                 };
             };
-            /** @description file not found */
+            /** @description registered project or file not found */
             404: {
                 headers: {
                     [name: string]: unknown;
