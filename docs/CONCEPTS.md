@@ -75,6 +75,19 @@ loops:
 
 See also: `packs/README.md` (solution packs), `workspace load` CLI help, `loop/pack.py` (override logic), `docs/adrs/ADR-006-packs-docs-only.md`.
 
+## People — durable workspace collaborators (not a toolkit capability plane)
+
+Durable People are **workspace-owned declarations** in `people/<id>.json`
+(`agent-toolkit/person@1`), not toolkit capabilities and not runtime
+characters. A Person is a collaborator the user chose and reviewed; the
+toolkit owns only the canonical schema set, the scaffold, the mirror sync and
+the offline validator ([docs/PEOPLE.md](PEOPLE.md),
+[ADR-036](adrs/ADR-036-durable-people.md)). Agent definitions (`agents/`),
+agent profiles (`profiles/`), People and sessions stay distinct; configuring a
+Person never creates a world character. Import of `munder-difflin/hire@1` is
+contract-only (review required, no auto-spawn/install/live sync); import
+mapping lives in `capabilities/imports/`.
+
 ## Key rules
 
 1. **Products compose capabilities** — edit `distributions/products.yaml`, then `build`.
