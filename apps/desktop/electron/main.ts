@@ -27,6 +27,17 @@ async function chooseHarnessDirectory(defaultPath: string): Promise<string | nul
   return result.canceled ? null : (result.filePaths[0] ?? null);
 }
 
+async function chooseProjectDirectory(defaultPath: string): Promise<string | null> {
+  const options: Electron.OpenDialogOptions = {
+    title: 'Choose an existing project folder',
+    buttonLabel: 'Review project link',
+    defaultPath,
+    properties: ['openDirectory'],
+  };
+  const result = mainWindow ? await dialog.showOpenDialog(mainWindow, options) : await dialog.showOpenDialog(options);
+  return result.canceled ? null : (result.filePaths[0] ?? null);
+}
+
 async function resolveRendererUrl(): Promise<string> {
   const devUrl = process.env.ATK_DESKTOP_DEV_URL;
   if (devUrl) return devUrl;
@@ -89,6 +100,7 @@ async function createWindow(): Promise<void> {
       getWindow: () => mainWindow,
       getHarness: () => harness,
       getPublicBackendUrl: () => rendererServer?.url ?? null,
+      chooseProjectDirectory,
     });
     ipcRegistered = true;
   }

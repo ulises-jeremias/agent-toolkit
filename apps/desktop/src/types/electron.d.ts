@@ -127,6 +127,8 @@ export interface AtkBridge {
   harnessChoose: () => Promise<HarnessSwitchResult>;
   /** Forget the Desktop choice; back to ~/.ai-workspace (or fallback). */
   harnessReset: () => Promise<HarnessSwitchResult>;
+  /** Native project folder picker; selection is reviewed before the renderer links it. */
+  projectChooseDirectory: (defaultPath: string) => Promise<string | null>;
   ptyList: () => Promise<PtySessionInfo[]>;
   ptyTail: (id: string) => Promise<string>;
   ptyCreate: (options: PtyCreateOptions) => Promise<PtySessionInfo | null>;

@@ -51,6 +51,7 @@ function key(x: number, y: number) {
 
 class Painter {
   cells = new Map<string, string>();
+  paths = new Set<string>();
   decor: DecorSprite[] = [];
   blocked = new Set<string>();
   cols: number;
@@ -92,6 +93,11 @@ class Painter {
   ) {
     this.decor.push({ id, x, y, sprite, w, h, dx, dy, over, ambient });
   }
+
+  path(x: number, y: number) {
+    if (x < 0 || y < 0 || x >= this.cols || y >= this.rows || this.blocked.has(key(x, y))) return;
+    this.paths.add(key(x, y));
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -101,9 +107,9 @@ function baseGround(p: Painter) {
   for (let y = 0; y < p.rows; y++) {
     for (let x = 0; x < p.cols; x++) {
       if (p.isBlocked(x, y)) continue;
-      const bed = h2(x >> 2, y >> 2, 11) % 17;
+      const bed = h2(x >> 2, y >> 2, 11) % 11;
       const roll = h2(x, y, 1) % 23;
-      if (bed === 0 && roll < 6) {
+      if (bed === 0 && roll < 11) {
         p.set(x, y, ['flowers-poppy', 'flowers-daisy', 'flowers-lavender', 'flowers-gold'][h2(x, y, 12) % 4]!);
       } else {
         p.set(x, y, `grass-${h2(x, y, 2) % 3}`);
@@ -112,18 +118,47 @@ function baseGround(p: Painter) {
   }
 }
 
-/** Dirt road along a horizontal lane, with gentle vertical wander. */
+/** Main commons path. Its Y is chosen in the open lane between districts. */
 function road(p: Painter, y: number) {
-  for (let x = 0; x < p.cols; x++) {
-    const wob = h2(x, 0, 7) % 11 === 0 ? (h2(x, 0, 8) % 2 ? 1 : -1) : 0;
-    p.set(x, y, 'dirt', true);
-    if (wob !== 0 && p.get(x, y + wob).startsWith('grass')) p.set(x, y + wob, 'dirt');
-  }
+  for (let x = 4; x < p.cols - 4; x++) p.path(x, y);
 }
 
 /** Vertical lane (village street) connecting two road rows at column x. */
 function lane(p: Painter, x: number, y0: number, y1: number) {
-  for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) p.set(x, y, 'dirt', true);
+  for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) p.path(x, y);
+}
+
+/** Resolve the actual path network into connected, correctly shaped tiles. */
+function renderPaths(p: Painter) {
+  const names = [
+    'dot',
+    'end-n',
+    'end-s',
+    'v',
+    'end-w',
+    'turn-nw',
+    'turn-sw',
+    'tee-e',
+    'end-e',
+    'turn-ne',
+    'turn-se',
+    'tee-w',
+    'h',
+    'tee-s',
+    'tee-n',
+    'cross',
+  ];
+  for (const at of p.paths) {
+    const [xText, yText] = at.split(',');
+    const x = Number(xText);
+    const y = Number(yText);
+    let mask = 0;
+    if (p.paths.has(key(x, y - 1))) mask |= 1;
+    if (p.paths.has(key(x, y + 1))) mask |= 2;
+    if (p.paths.has(key(x - 1, y))) mask |= 4;
+    if (p.paths.has(key(x + 1, y))) mask |= 8;
+    p.set(x, y, `trail-${names[mask] ?? 'dot'}`, true);
+  }
 }
 
 /** Creek down a column band with shoreline edges. Returns the creek column. */
@@ -190,10 +225,12 @@ function forest(p: Painter, creekX: number) {
       const roll = h2(x, y, 3) % 31;
       const nearBuilding = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => p.blocked.has(key(x + dx, y + dy))));
       const nearTree = [-1, 0, 1].some((dy) => [-1, 0, 1].some((dx) => planted.has(key(x + dx, y + dy))));
-      const wantTree = !nearBuilding && !nearTree && (edge ? roll < 11 : nearCreek ? roll < 5 : roll === 1);
+      const grove = h2(x >> 2, y >> 2, 23) % 6 === 0;
+      const wantTree = !nearBuilding && !nearTree && (edge ? roll < 11 : nearCreek ? roll < 5 : grove && roll < 12);
       if (wantTree) {
-        const pine = h2(x, y, 4) % 3 === 0;
-        p.sprite(`tree:${x},${y}`, x, y, pine ? 'tree-pine' : 'tree-round', 32, 40, -8, -26, true);
+        const kind = h2(x, y, 4) % 12;
+        const tree = kind < 3 ? 'tree-pine' : kind === 3 ? 'tree-blossom' : kind === 4 ? 'tree-amber' : 'tree-round';
+        p.sprite(`tree:${x},${y}`, x, y, tree, 32, 40, -8, -26, true);
         planted.add(key(x, y));
       } else if (roll === 6) p.sprite(`bush:${x},${y}`, x, y, 'bush', 16, 12, 0, 4);
       else if (roll === 7) p.sprite(`rock:${x},${y}`, x, y, 'rock', 16, 12, 0, 5);
@@ -208,17 +245,15 @@ function plazaCore(p: Painter, hall: LaidOutEntity | undefined, commons: readonl
   if (hall) {
     const y = hall.y + hall.h;
     if (y < p.rows) {
-      let free = true;
-      for (let x = hall.x; x < hall.x + hall.w && x < p.cols; x++) if (p.isBlocked(x, y)) free = false;
-      if (free) {
-        for (let x = hall.x; x < hall.x + hall.w && x < p.cols; x++)
-          p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
+      const center = hall.x + Math.floor(hall.w / 2);
+      for (let x = center - 1; x <= center + 1; x++) {
+        if (!p.isBlocked(x, y)) p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b', true);
       }
     }
     // A small paved commons gives the two civic streets a readable center.
     const center = hall.x + Math.floor(hall.w / 2);
-    for (let y = 9; y <= 11; y++) {
-      for (let x = center - 2; x <= center + 2; x++) {
+    for (let y = 9; y <= 10; y++) {
+      for (let x = center - 1; x <= center + 1; x++) {
         if (!p.isBlocked(x, y) && p.get(x, y).startsWith('grass')) {
           p.set(x, y, (x + y) % 2 ? 'plaza' : 'plaza-b');
         }
@@ -279,7 +314,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     (e) => e.kind === 'place' && e.id !== 'place:workspace' && !e.id.startsWith('place:project:'),
   );
   const projectYs = projects.map((e) => e.y);
-  const roadY = projectYs.length ? Math.min(...projectYs) - 1 : Math.max(2, (hall?.y ?? 0) + (hall?.h ?? 0) + 1);
+  const roadY = projectYs.length ? Math.min(...projectYs) - 1 : 15;
 
   // creek first so roads bridge it
   const creekX = creek(p, cols - 4, new Set([roadY]));
@@ -296,7 +331,7 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     const targetY = doorY <= 11 ? 10 : roadY;
     lane(p, doorX, doorY, targetY);
     if (targetY === 10) {
-      for (let x = Math.min(doorX, hallCx); x <= Math.max(doorX, hallCx); x++) p.set(x, targetY, 'dirt');
+      for (let x = Math.min(doorX, hallCx); x <= Math.max(doorX, hallCx); x++) p.path(x, targetY);
     }
   }
   // street lanes between project columns
@@ -306,6 +341,11 @@ export function paintTerrain(entities: readonly LaidOutEntity[], cols: number, r
     const gx = colXs[i]! + 3; // gutter between 3-wide houses
     lane(p, gx, roadY, projectBottom - 1);
   }
+  if (projects.length === 0) {
+    const marker = entities.find((e) => e.id === 'place:projects-empty');
+    if (marker) lane(p, marker.x + Math.floor(marker.w / 2), marker.y + marker.h, roadY);
+  }
+  renderPaths(p);
   bridgeAt(p, creekX, roadY);
   feather(p);
   plazaCore(p, hall, commons);

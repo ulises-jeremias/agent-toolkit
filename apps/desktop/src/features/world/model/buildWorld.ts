@@ -271,6 +271,7 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       themeKey: 'project.building',
       availability: 'empty',
       hrefPath: '/workspace',
+      hrefExtra: { panel: 'projects' },
       detail: 'Add or open a project — the world stays quiet until then',
     });
   } else {

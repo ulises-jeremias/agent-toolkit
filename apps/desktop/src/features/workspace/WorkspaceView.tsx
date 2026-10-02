@@ -1,7 +1,24 @@
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
-import { useSubQuery } from '../../data/commands';
-import { CommandReport, Grid, KeyValue, PageHeader, Panel, QueryView, Stack, StatusBadge, type Tone } from '../../ui';
+import { useSubMutation, useSubQuery } from '../../data/commands';
+import { envelopeText, errorMessage, recoveryHint } from '../../lib/api';
+import {
+  Button,
+  ButtonRow,
+  CommandReport,
+  Dialog,
+  Grid,
+  KeyValue,
+  PageHeader,
+  Panel,
+  QueryView,
+  Stack,
+  StatusBadge,
+  type Tone,
+  useActionReceipt,
+} from '../../ui';
 import { FilesPanel } from './FilesPanel';
+import { parseProjectListMessage } from '../world/model/parseProjects';
 
 function riskTone(risk: string | undefined): Tone {
   switch (risk?.toUpperCase()) {
@@ -26,14 +43,55 @@ function riskTone(risk: string | undefined): Tone {
 export default function WorkspaceView() {
   const [params] = useSearchParams();
   const focusFiles = params.get('panel') === 'files';
+  const focusProjects = params.get('panel') === 'projects';
+  const projectPanel = useRef<HTMLDivElement>(null);
   const context = useSubQuery('workspace', 'context');
   const projects = useSubQuery('project', 'list');
   const budget = useSubQuery('workspace', 'budget');
   const validation = useSubQuery('workspace', 'validate', undefined, { failureIsData: true });
   const personas = useSubQuery('workspace', 'personas');
   const profiles = useSubQuery('workspace', 'profiles');
+  const projectMutation = useSubMutation('project', 'add', { invalidates: ['workspace'] });
+  const projectReceipt = useActionReceipt('Project linked');
+  const [candidate, setCandidate] = useState<string | null>(null);
+  const [pickerError, setPickerError] = useState<string | null>(null);
 
   const path = budget.data?.data['workspace'];
+  const linkedProjects = projects.data ? parseProjectListMessage(envelopeText(projects.data)) : [];
+  const candidateName = candidate?.split(/[\\/]/).filter(Boolean).at(-1) ?? '';
+  const previousTarget = linkedProjects.find((project) => project.name === candidateName)?.target;
+
+  useEffect(() => {
+    if (focusProjects) projectPanel.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [focusProjects]);
+
+  const chooseProject = async () => {
+    setPickerError(null);
+    if (!window.atk) {
+      setPickerError('The native folder picker is available in Agent Toolkit Desktop.');
+      return;
+    }
+    try {
+      const selected = await window.atk.projectChooseDirectory(path ?? '');
+      if (selected) setCandidate(selected);
+    } catch (error) {
+      setPickerError(`${errorMessage(error)} ${recoveryHint(error)}`);
+    }
+  };
+
+  const confirmProject = () => {
+    if (!candidate || !path) return;
+    projectMutation.mutate(
+      { arg: candidate, workspace: path },
+      {
+        ...projectReceipt,
+        onSuccess: (result) => {
+          projectReceipt.onSuccess(result);
+          setCandidate(null);
+        },
+      },
+    );
+  };
 
   return (
     <>
@@ -104,11 +162,30 @@ export default function WorkspaceView() {
             {(envelope) => <CommandReport envelope={envelope} label="Session context" />}
           </QueryView>
         </Panel>
-        <Panel title="Projects">
-          <QueryView query={projects} loading="Listing projects" errorTitle="Could not list projects">
-            {(envelope) => <CommandReport envelope={envelope} label="Projects" />}
-          </QueryView>
-        </Panel>
+        <div ref={projectPanel}>
+          <Panel
+            title="Projects"
+            meta={
+              linkedProjects.length
+                ? `${linkedProjects.length} linked project${linkedProjects.length === 1 ? '' : 's'}`
+                : 'Give each real project its own place in the world'
+            }
+            actions={
+              <Button onClick={() => void chooseProject()} disabled={!path}>
+                Link existing folder
+              </Button>
+            }
+          >
+            <p>
+              Choose a repository already on this computer. Agent Toolkit will add a workspace link; it will not copy or
+              change files inside the repository.
+            </p>
+            {pickerError ? <p role="alert">{pickerError}</p> : null}
+            <QueryView query={projects} loading="Listing projects" errorTitle="Could not list projects">
+              {(envelope) => <CommandReport envelope={envelope} label="Projects" />}
+            </QueryView>
+          </Panel>
+        </div>
         <Grid>
           <Panel
             title="Personas"
@@ -128,6 +205,66 @@ export default function WorkspaceView() {
           </Panel>
         </Grid>
       </Stack>
+      <Dialog
+        open={candidate !== null}
+        onClose={() => setCandidate(null)}
+        title="Review project link"
+        description="This creates or updates a project entry in the current workspace. The repository itself stays where it is."
+        footer={
+          <ButtonRow>
+            <Button variant="ghost" onClick={() => setCandidate(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={confirmProject}
+              busy={projectMutation.isPending}
+              busyLabel="Linking…"
+              disabled={!path || !candidateName}
+            >
+              Link {candidateName || 'project'}
+            </Button>
+          </ButtonRow>
+        }
+      >
+        {pickerError ? <p role="alert">{pickerError}</p> : null}
+        {projectMutation.error ? (
+          <p role="alert">
+            {errorMessage(projectMutation.error)} {recoveryHint(projectMutation.error)}
+          </p>
+        ) : null}
+        <Button
+          variant="ghost"
+          onClick={() => {
+            projectMutation.reset();
+            void chooseProject();
+          }}
+          disabled={projectMutation.isPending}
+        >
+          Choose another folder
+        </Button>
+        <KeyValue
+          items={[
+            { label: 'Project', value: candidateName || 'Unknown folder' },
+            { label: 'Repository folder', value: candidate ?? '—', mono: true },
+            {
+              label: 'Workspace link',
+              value: candidateName ? `${path ?? 'workspace'}/projects/${candidateName}` : '—',
+              mono: true,
+            },
+            {
+              label: 'Existing link',
+              value: previousTarget ? `${previousTarget} will be replaced` : 'None; a new link will be created',
+            },
+          ]}
+        />
+        {previousTarget ? (
+          <p role="status">
+            The old repository remains untouched; only its workspace symlink and project entry will point to the
+            selected folder.
+          </p>
+        ) : null}
+      </Dialog>
     </>
   );
 }

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildWorldModel, jobBelongsToProject } from './buildWorld';
 import { layoutWorld } from './layout';
 import { parseProjectListMessage } from './parseProjects';
+import { paintTerrain } from './terrain';
 import type { MemoryEntryRecord, MemorySummary, ToolRecord, WorldDomainInput } from './types';
 
 function emptyMemory(available: boolean, entries: MemoryEntryRecord[] = []): MemorySummary {
@@ -420,6 +421,40 @@ describe('layoutWorld', () => {
     expect(a.y).toBeGreaterThan(library.y);
   });
 
+  it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
+    for (const count of [0, 1, 2, 5, 12, 24]) {
+      const layout = layoutWorld(
+        buildWorldModel(
+          baseInput({
+            projects: Array.from({ length: count }, (_, i) => ({
+              name: `project-${String(i).padStart(2, '0')}`,
+              target: `/project-${i}`,
+              status: 'ok' as const,
+            })),
+          }),
+        ),
+      );
+      const houses = layout.entities.filter((entity) => entity.id.startsWith('place:project:'));
+      expect(new Set(houses.map(({ x, y }) => `${x},${y}`)).size).toBe(houses.length);
+      for (const [index, a] of houses.entries()) {
+        for (const b of houses.slice(index + 1)) {
+          expect(a.x + a.w <= b.x || b.x + b.w <= a.x || a.y + a.h <= b.y || b.y + b.h <= a.y).toBe(true);
+        }
+      }
+      expect(layout.cols).toBeGreaterThan(0);
+      expect(layout.rows).toBeGreaterThan(0);
+    }
+  });
+
+  it('makes the no-project building lead to the real project linking workflow', () => {
+    const model = buildWorldModel(baseInput({ projects: [] }));
+    const marker = model.entities.find((entity) => entity.id === 'place:projects-empty');
+    expect(marker).toMatchObject({ hrefPath: '/workspace', hrefExtra: { panel: 'projects' } });
+    const layout = layoutWorld(model);
+    const plan = paintTerrain(layout.entities, layout.cols, layout.rows);
+    expect(plan.cells.some(({ tile }) => tile === 'trail-cross')).toBe(true);
+  });
+
   it('never invents decorative characters on an idle grounds', () => {
     const layout = layoutWorld(
       buildWorldModel(
@@ -431,6 +466,25 @@ describe('layoutWorld', () => {
       ),
     );
     expect(layout.entities.filter((e) => e.kind === 'character')).toEqual([]);
+  });
+
+  it('composes narrow connected footpaths and stable creek crossings', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: ['north', 'east', 'south', 'west'].map((name) => ({
+            name,
+            target: `/${name}`,
+            status: 'ok' as const,
+          })),
+        }),
+      ),
+    );
+    const first = paintTerrain(layout.entities, layout.cols, layout.rows);
+    const second = paintTerrain(layout.entities, layout.cols, layout.rows);
+    expect(first.cells).toEqual(second.cells);
+    expect(first.cells.some((cell) => cell.tile.startsWith('trail'))).toBe(true);
+    expect(first.decor.some((sprite) => sprite.sprite === 'bridge')).toBe(true);
   });
 
   it('lays out an interior without outdoor library annex', () => {

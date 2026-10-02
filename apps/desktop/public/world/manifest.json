@@ -163,6 +163,18 @@
       "h": 40,
       "frames": 1
     },
+    "tree-blossom": {
+      "file": "tree-blossom.png",
+      "w": 32,
+      "h": 40,
+      "frames": 1
+    },
+    "tree-amber": {
+      "file": "tree-amber.png",
+      "w": 32,
+      "h": 40,
+      "frames": 1
+    },
     "tree-pine": {
       "file": "tree-pine.png",
       "w": 32,
@@ -369,6 +381,102 @@
     },
     "dirt": {
       "file": "dirt.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-dot": {
+      "file": "trail-dot.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-n": {
+      "file": "trail-end-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-s": {
+      "file": "trail-end-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-v": {
+      "file": "trail-v.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-w": {
+      "file": "trail-end-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-nw": {
+      "file": "trail-turn-nw.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-sw": {
+      "file": "trail-turn-sw.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-e": {
+      "file": "trail-tee-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-end-e": {
+      "file": "trail-end-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-ne": {
+      "file": "trail-turn-ne.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-turn-se": {
+      "file": "trail-turn-se.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-w": {
+      "file": "trail-tee-w.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-h": {
+      "file": "trail-h.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-s": {
+      "file": "trail-tee-s.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-tee-n": {
+      "file": "trail-tee-n.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "trail-cross": {
+      "file": "trail-cross.png",
       "w": 16,
       "h": 16,
       "frames": 1
