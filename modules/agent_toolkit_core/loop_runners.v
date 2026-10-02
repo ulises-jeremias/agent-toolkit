@@ -128,7 +128,8 @@ pub fn select_loop_runner(explicit string) (string, string) {
 }
 
 // loop_run_prompt returns the full run prompt: loops/<name>/request.md when
-// present (full runbooks live there), else the loop.yaml request: field.
+// present (legacy sidecar, kept for backward compatibility), else the
+// loop.yaml request: field (canonical home of full runbook prompts).
 pub fn loop_run_prompt(loop_dir string, meta_request string) string {
 	req_path := os.join_path(loop_dir, 'request.md')
 	if os.is_file(req_path) {
