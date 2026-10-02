@@ -17,7 +17,7 @@ The world is the dominant `/world` surface. Projects are actual buildings and sh
 
 ## Latest opened review — 2026-10-02
 
-Source build `22835874` (Linux Electron E2E). The project-link tour captures
+Source build `9deb8f6b` (Linux Electron E2E). The project-link tour captures
 empty, one-project and three-project worlds at 1024×640 and 1920×1080, then
 enters a project and opens its real Files and Terminal routes. The People
 session tour captures Lina offline, the real PTY-bound character at her project

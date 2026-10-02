@@ -40,7 +40,7 @@ journeys:
           - assets/electron/world/project-files-room-compact.png
           - assets/electron/world/project-files-room-large.png
       - note: World composition keeps shared landmarks on the commons bank and registered project houses across a traversable bridge; empty, one-project, and three-project layouts are captured at compact and large viewports, with semantic project link and building entry exercised through the GUI
-        build: "22835874 (Linux Electron E2E; project-link.spec.ts)"
+        build: "9deb8f6b (Linux Electron E2E; project-link.spec.ts)"
         screenshots:
           - assets/electron/world/world-empty-compact.png
           - assets/electron/world/world-empty-large.png
@@ -78,7 +78,7 @@ journeys:
     status: ok
     evidence:
       - note: Operations starts the real `version` job through the backend and shows its output and terminal result; `worldEvents.test.ts` confirms terminal jobs leave the world projection
-        build: "22835874 (Linux Electron E2E; desktop.spec.ts and interior.spec.ts)"
+        build: "9deb8f6b (Linux Electron E2E; desktop.spec.ts and interior.spec.ts)"
         screenshots:
           - assets/electron/world/world-job-completed-large.png
     blockers: []
@@ -124,7 +124,7 @@ journeys:
           - assets/electron/people/people-offline-after-stop.png
       - note: Ctrl+K Start Person opens the same review flow as People; the active Person command opens its existing PTY; apps/desktop/e2e/electron/people-session.spec.ts covers start, world presence, terminal binding, and verified stop
       - note: After the project-valley layout update, the real Lina PTY character remains beside the linked agent-toolkit house while the PTY is open and disappears from the map after exit is confirmed; captures were regenerated and opened at compact and large sizes
-        build: "22835874 (Linux Electron E2E; people-session.spec.ts)"
+        build: "9deb8f6b (Linux Electron E2E; people-session.spec.ts)"
         screenshots:
           - assets/electron/people/world-person-compact.png
           - assets/electron/people/world-person-large.png
