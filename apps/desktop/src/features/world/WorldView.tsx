@@ -17,6 +17,7 @@ import {
   buildWorldModel,
   layoutWorld,
   parseProjectListMessage,
+  pathIsWithin,
   type LaidOutEntity,
   type MemorySummary,
   type ToolRecord,
@@ -109,7 +110,7 @@ export default function WorldView() {
     return livePersonPtys.flatMap((session) => {
       const person = session.personId ? peopleById.get(session.personId) : undefined;
       const project = projects.find(
-        (candidate) => candidate.name === session.projectId && isWithin(session.cwd, candidate.target),
+        (candidate) => candidate.name === session.projectId && pathIsWithin(session.cwd, candidate.target),
       );
       if (!person || !project) return [];
       return [
@@ -315,14 +316,4 @@ export default function WorldView() {
       </details>
     </div>
   );
-}
-
-function isWithin(path: string, root: string): boolean {
-  const normalize = (value: string) => value.replace(/\\/g, '/').replace(/\/+$/, '') || '/';
-  const candidate = normalize(path);
-  const parent = normalize(root);
-  const windowsPath = /^[a-z]:\//i.test(candidate) || /^[a-z]:\//i.test(parent);
-  const left = windowsPath ? candidate.toLowerCase() : candidate;
-  const right = windowsPath ? parent.toLowerCase() : parent;
-  return left === right || (right === '/' ? left.startsWith('/') : left.startsWith(`${right}/`));
 }

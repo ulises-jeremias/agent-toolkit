@@ -10,6 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Desktop People can start real local PTY sessions in healthy project folders.
+  Sessions retain Person and project identity, appear in the world only while
+  the process is live, remain independent of the saved Person profile, and
+  stay visible until a requested stop is confirmed by the process exit event.
+
 ### Changed
 
 - Desktop is packaged exclusively from the Electron app with a matching bundled V backend on Linux, macOS, and Windows. Release CI packages platform installers and verifies source, backend, and app version coherence.

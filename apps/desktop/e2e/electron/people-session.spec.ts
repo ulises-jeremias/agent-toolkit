@@ -91,7 +91,7 @@ test('a Person starts a discovered runner PTY in a project and can stop it', asy
     await page.getByRole('button', { name: 'Stop session' }).click();
     const stopDialog = page.getByRole('dialog', { name: "Stop Lina's session?" });
     await stopDialog.getByRole('button', { name: 'Stop session' }).click();
-    await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible({ timeout: 20_000 });
     if (CAPTURE) await page.screenshot({ path: path.join(CAPTURE_DIR, 'people-offline-after-stop.png') });
   } finally {
     await desktop.close();

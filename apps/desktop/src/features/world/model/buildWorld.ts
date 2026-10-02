@@ -517,7 +517,7 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
   return entities;
 }
 
-function pathIsWithin(path: string, root: string): boolean {
+export function pathIsWithin(path: string, root: string): boolean {
   const normalize = (value: string) => value.replace(/\\/g, '/').replace(/\/+$/, '') || '/';
   const candidate = normalize(path);
   const parent = normalize(root);

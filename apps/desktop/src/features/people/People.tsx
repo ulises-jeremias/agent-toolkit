@@ -332,6 +332,8 @@ export default function People() {
   const [startProject, setStartProject] = useState('');
   const [startProvider, setStartProvider] = useState('');
   const [startModel, setStartModel] = useState('');
+  const [stoppingSessionId, setStoppingSessionId] = useState<string | null>(null);
+  const [sessionActionError, setSessionActionError] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
   const [startBusy, setStartBusy] = useState(false);
   const projectsQuery = useSubQuery('project', 'list');
@@ -576,8 +578,10 @@ export default function People() {
                   <p>{selected.goal}</p>
                   {selectedSession ? (
                     <p role="status">
-                      A real PTY session is open in project {selectedSession.projectId || 'unassigned'} at{' '}
-                      {selectedSession.cwd}.
+                      {stoppingSessionId === selectedSession.id ? 'Stop requested. ' : ''}A real PTY session is
+                      {stoppingSessionId === selectedSession.id ? ' still running' : ' open'} in project{' '}
+                      {selectedSession.projectId || 'unassigned'} at {selectedSession.cwd}. It will leave the world
+                      after its process exits.
                     </p>
                   ) : selectedRecentSession ? (
                     <p role="status">Last local PTY exited with code {selectedRecentSession.exitCode ?? 'unknown'}.</p>
@@ -610,9 +614,19 @@ export default function People() {
                         <ConfirmAction
                           label="Stop session"
                           title={`Stop ${selected.name}'s session?`}
-                          description="This closes the real PTY process. The saved Person stays in the roster."
+                          description="Desktop sends a termination signal and keeps the real session visible until the process exits. The saved Person stays in the roster."
                           confirmLabel="Stop session"
-                          onConfirm={() => void terminals.close(selectedSession.id)}
+                          disabled={stoppingSessionId === selectedSession.id}
+                          onConfirm={() => {
+                            setSessionActionError(null);
+                            void terminals.stop(selectedSession.id).then((stopped) => {
+                              if (stopped) setStoppingSessionId(selectedSession.id);
+                              else
+                                setSessionActionError(
+                                  'Desktop could not signal this session. It may have already exited.',
+                                );
+                            });
+                          }}
                         />
                       </>
                     ) : !selected.archived ? (
@@ -647,6 +661,7 @@ export default function People() {
                       busy={archive.isPending}
                     />
                   </ButtonRow>
+                  {sessionActionError ? <ErrorState title="Could not stop session" error={sessionActionError} /> : null}
                   {archive.error ? <ErrorState title="Could not change archive state" error={archive.error} /> : null}
                 </div>
               </Panel>
