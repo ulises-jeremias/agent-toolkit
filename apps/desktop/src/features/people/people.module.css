@@ -84,6 +84,15 @@
   display: grid;
   gap: var(--space-4);
 }
+.formActions {
+  position: sticky;
+  bottom: calc(-1 * var(--space-4));
+  z-index: 2;
+  margin: 0 calc(-1 * var(--space-5));
+  padding: var(--space-3) var(--space-5);
+  border-top: 2px solid var(--border-subtle);
+  background: var(--surface-panel);
+}
 .formGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -4,6 +4,9 @@ Status: **PARTIAL PRODUCT DELIVERY** — Desktop supports roster CRUD and review
 one-way Munder import, backed by the V People storage API. Start, session
 binding and swarm role selection remain unimplemented; see [Gaps](#gaps).
 
+The [People creation screen](../static/screenshots/people-create.png) shows the
+guided form at compact size. Saving creates a durable identity, not a process.
+
 A Person is a collaborator you have chosen and reviewed. It persists in your
 workspace, not in the toolkit. Configuration alone never creates a character:
 a `people/<id>.json` file is a declaration, and the Desktop world shows only

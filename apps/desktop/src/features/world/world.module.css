@@ -220,6 +220,16 @@
   z-index: 7;
 }
 
+/* Individual archive records are inspectable signs. Their titles can be long;
+   reveal the plaque on inspection so neighboring signs stay readable. */
+.entity[data-theme-key='memory.entry'] .entityLabel {
+  opacity: 0;
+}
+
+.entity[data-theme-key='memory.entry']:is(:hover, :focus-visible, [data-selected='true']) .entityLabel {
+  opacity: 1;
+}
+
 /* Blocked characters raise a red "!" bubble. */
 .alertBubble {
   position: absolute;

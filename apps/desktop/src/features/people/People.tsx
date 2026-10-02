@@ -306,12 +306,14 @@ function PersonForm({
           {errorMessage(error)}. Review the highlighted fields and try again.
         </p>
       ) : null}
-      <ButtonRow>
-        <Button type="submit" variant="primary" busy={busy} busyLabel="Saving…">
-          {editing ? 'Save changes' : 'Create Person'}
-        </Button>
-        <Button onClick={onCancel}>Cancel</Button>
-      </ButtonRow>
+      <div className={styles.formActions}>
+        <ButtonRow>
+          <Button type="submit" variant="primary" busy={busy} busyLabel="Saving…">
+            {editing ? 'Save changes' : 'Create Person'}
+          </Button>
+          <Button onClick={onCancel}>Cancel</Button>
+        </ButtonRow>
+      </div>
     </form>
   );
 }

@@ -10,6 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+### Added
+
+- Validated workspace People CRUD and a reviewed, one-way Munder import flow in Desktop; offline collaborators remain absent from the world until real runtime evidence exists.
+
+### Changed
+
+- Refined the semantic valley, compact camera, original generated sprites, People forms, and swarm controls; refreshed Electron screenshots from opened Meadow captures.
+
 ## [1.41.0] — 2026-10-02
 
 ### Added

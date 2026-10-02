@@ -129,13 +129,16 @@ export function WorldEntityMap({
     (strict = false) => {
       const region = regionRef.current;
       if (!region) return;
-      // Large windows open on a readable settlement; Home fits all of it.
-      const minimumZoom = !strict && mode === 'grounds' && region.clientWidth >= 1400 ? 48 : 16;
+      // Start at readable game scale. Home still fits the entire valley.
+      const minimumZoom = !strict && mode === 'grounds' ? (region.clientWidth >= 1400 ? 48 : 32) : 16;
       const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }, minimumZoom);
       setZoom(camera.zoom);
       setPan(
         clampCamera(
-          camera.pan,
+          {
+            ...camera.pan,
+            y: camera.pan.y + (!strict && mode === 'grounds' && region.clientWidth < 1400 ? camera.zoom * 2 : 0),
+          },
           { x: region.clientWidth, y: region.clientHeight },
           { x: cols * camera.zoom, y: rows * camera.zoom },
         ),
