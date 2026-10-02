@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useAgents, useModels, useProviders, useTools } from '../../data/catalog';
 import { useLiveStatus } from '../../data/live';
 import { useSwarmCommand, useSwarmRun, useSwarmRunAction, useSwarms } from '../../data/swarms';
-import type { SubBody, SwarmRunInfo, SwarmRunResponse } from '../../lib/api';
+import type { CommandEnvelope, SubBody, SwarmRunInfo, SwarmRunResponse } from '../../lib/api';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
   Button,
@@ -151,8 +151,12 @@ function SwarmInspector({
 }) {
   const detail = useSwarmRun(runId);
   const action = useSwarmRunAction();
+  const command = useSwarmCommand();
   const receipt = useActionReceipt('Swarm run updated');
+  const [cleanupOpen, setCleanupOpen] = useState(false);
+  const [cleanupPreview, setCleanupPreview] = useState<CommandEnvelope | null>(null);
   const run = detail.data?.run ?? summary;
+  const { context } = useSessionContext();
   const offline = useLiveStatus().connection === 'offline';
 
   const act = (kind: 'approve' | 'reject' | 'stop') =>
@@ -163,6 +167,22 @@ function SwarmInspector({
         onError: receipt.onError,
       },
     );
+
+  const actLifecycle = (sub: 'pause' | 'resume' | 'promote', body: SubBody<'swarms'>) =>
+    command.mutate(
+      { sub, body },
+      {
+        onSuccess: (result) => {
+          if (result.ok) receipt.onSuccess({ message: result.message || `${sub} completed` });
+          else receipt.onError(new Error(result.message || `${sub} failed`));
+        },
+        onError: receipt.onError,
+      },
+    );
+
+  const canPause = ['running', 'awaiting_human', 'awaiting_plan_approval'].includes(run?.run_state ?? '');
+  const canResume = ['paused', 'budget_exhausted', 'failed'].includes(run?.run_state ?? '');
+  const promotionTarget = run?.recipe === 'pair' ? 'team' : run?.recipe === 'team' ? 'full' : null;
 
   return (
     <Panel
@@ -205,6 +225,116 @@ function SwarmInspector({
         </ButtonRow>
       }
     >
+      <ButtonRow>
+        {canPause ? (
+          <Button
+            size="sm"
+            disabled={offline || command.isPending}
+            busy={command.isPending}
+            onClick={() =>
+              actLifecycle('pause', {
+                workspace: context.workspace || undefined,
+                run_id: runId,
+              })
+            }
+          >
+            Pause run
+          </Button>
+        ) : null}
+        {canResume ? (
+          <Button
+            size="sm"
+            disabled={offline || command.isPending}
+            busy={command.isPending}
+            onClick={() =>
+              actLifecycle('resume', {
+                workspace: context.workspace || undefined,
+                run_id: runId,
+              })
+            }
+          >
+            Resume run
+          </Button>
+        ) : null}
+        {promotionTarget ? (
+          <ConfirmAction
+            label={`Promote to ${promotionTarget}`}
+            title={`Promote this run to ${promotionTarget}?`}
+            description={`This changes the run recipe from ${run?.recipe} to ${promotionTarget} and adds the approval gates required by that recipe. The run ID and existing artifacts stay in place.`}
+            confirmLabel={`Promote to ${promotionTarget}`}
+            triggerVariant="secondary"
+            variant="primary"
+            disabled={offline || command.isPending}
+            busy={command.isPending}
+            onConfirm={() =>
+              actLifecycle('promote', {
+                workspace: context.workspace || undefined,
+                run_id: runId,
+                to_recipe: promotionTarget,
+              })
+            }
+          />
+        ) : null}
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={offline || command.isPending}
+          onClick={() => {
+            setCleanupPreview(null);
+            setCleanupOpen(true);
+            command.mutate(
+              {
+                sub: 'cleanup',
+                body: { workspace: context.workspace || undefined, run_id: runId, dry_run: true },
+              },
+              { onSuccess: setCleanupPreview, onError: receipt.onError },
+            );
+          }}
+        >
+          Preview cleanup
+        </Button>
+      </ButtonRow>
+      <Dialog
+        open={cleanupOpen}
+        onClose={() => setCleanupOpen(false)}
+        title="Clean up this swarm run"
+        description="Review the backend preview before removing any Toolkit-owned worktrees. Branches are preserved. Cleanup refuses worktrees that contain uncommitted changes."
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setCleanupOpen(false)}>
+              Keep run
+            </Button>
+            <Button
+              variant="danger"
+              disabled={!cleanupPreview?.ok || offline || command.isPending}
+              busy={command.isPending}
+              onClick={() =>
+                command.mutate(
+                  { sub: 'cleanup', body: { workspace: context.workspace || undefined, run_id: runId } },
+                  {
+                    onSuccess: (result) => {
+                      if (result.ok) {
+                        receipt.onSuccess({ message: result.message || 'Cleanup completed' });
+                        setCleanupOpen(false);
+                      } else receipt.onError(new Error(result.message || 'Cleanup failed'));
+                    },
+                    onError: receipt.onError,
+                  },
+                )
+              }
+            >
+              Remove previewed worktrees
+            </Button>
+          </>
+        }
+      >
+        {command.isPending && !cleanupPreview ? <p role="status">Reading the cleanup preview…</p> : null}
+        {cleanupPreview ? <Report text={cleanupPreview.message} label="Backend cleanup preview" /> : null}
+        {command.error ? <ErrorState title="Cleanup could not continue" error={command.error} /> : null}
+        {cleanupPreview && !cleanupPreview.ok ? (
+          <ErrorState title="Cleanup preview failed" error={cleanupPreview.message} />
+        ) : null}
+      </Dialog>
       <QueryView query={detail} loading="Loading swarm run" errorTitle="Could not load this swarm run">
         {(data) => <SwarmRunBody data={data} />}
       </QueryView>

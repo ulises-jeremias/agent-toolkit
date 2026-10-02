@@ -64,9 +64,9 @@ agent-toolkit doctor
 ```
 
 <div align="center">
-<img src="static/screenshots/office.png" width="92%" alt="Agent Toolkit Desktop — Office floor with agent desks, roster, and embedded terminal" />
+<img src="static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings for Library, Operations, Memory, Terminal and projects" />
 <br />
-<em>Agent Toolkit Desktop: your agents at work in a cozy pixel world. Two commands put skills, agents, and MCP into your editor — verified by <code>doctor</code>.</em>
+<em>Agent Toolkit Desktop: a semantic pixel world for projects and real work, with precise inspectors and a real terminal.</em>
 </div>
 
 <div align="center">
@@ -168,13 +168,13 @@ agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
 
 No CLI handy? Grab `agent-toolkit-desktop-<version>-linux-<arch>.tar.gz` from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest) and run `./install-desktop.sh install` (per-user, no sudo). Details: [docs/desktop/PRODUCT_VISION.md](docs/desktop/PRODUCT_VISION.md) · [docs/desktop/PACKAGING.md](docs/desktop/PACKAGING.md).
 
-| Onboarding | Library | Operations |
+| World | Library | Operations |
 |---|---|---|
-| <img src="static/screenshots/onboarding.png" width="100%" alt="Guided onboarding board: setup choice, tools, workspace, capabilities, review" /> | <img src="static/screenshots/library.png" width="100%" alt="Library: searchable skills catalog with detail inspector" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations floor: jobs, loops, swarms, and Doctor tabs" /> |
-| Terminal | Insights | Office |
-| <img src="static/screenshots/terminal.png" width="100%" alt="Embedded terminal with real PTY, focused prompt, and block cursor" /> | <img src="static/screenshots/insights.png" width="100%" alt="Insights: Engine-ledger cost and activity reports" /> | <img src="static/screenshots/office.png" width="100%" alt="Office floor overview with catalog desks and roster" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="Semantic workspace valley with shared places and project houses" /> | <img src="static/screenshots/library.png" width="100%" alt="Library: real catalog of reusable capabilities" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations: observed jobs and orchestration controls" /> |
+| People | Import review | Terminal |
+| <img src="static/screenshots/people.png" width="100%" alt="People roster showing saved offline collaborators" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder import review displaying mapped and ignored fields before saving" /> | <img src="static/screenshots/terminal.png" width="100%" alt="Integrated terminal backed by a real PTY" /> |
 
-Screenshots in this section predate the 2026-09-30 Cozy Pixel World visual reset ([ADR-035](docs/adrs/ADR-035-cozy-pixel-world.md)) and the Electron Desktop; regenerating them from the current app is tracked in the desktop docs. Empty states render truthfully — unknown values show as unknown, never fabricated.
+These screenshots come from the Electron app's E2E capture tour at large and compact viewports. Offline People do not create world characters; runtime activity is shown only when observed.
 
 ### Advanced install methods
 

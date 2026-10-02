@@ -21,6 +21,12 @@ fn test_list_agents_at_reads_frontmatter() {
 	assert got[0].source_file == 'agents/architect/AGENT.md'
 }
 
+fn test_list_agents_from_embedded_root() {
+	agents := list_agents_at('embedded')
+	assert agents.len >= 18
+	assert agents.any(it.id == 'architect')
+}
+
 fn test_probe_coding_tool_unknown_id_is_empty() {
 	t := probe_coding_tool('not-a-tool')
 	assert t.id == 'not-a-tool'

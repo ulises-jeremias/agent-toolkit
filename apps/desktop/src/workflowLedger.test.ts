@@ -21,9 +21,14 @@ describe('Desktop workflow ledger (docs/desktop/workflows.yaml)', () => {
     for (const journey of journeys) {
       expect(['ok', 'partial', 'blocked', 'not-implemented']).toContain(journey.status);
     }
-    // People journeys are explicit future work; schemas and file authoring are
-    // not the user interface.
-    for (const id of ['people-crud', 'people-import-review', 'people-start-session', 'swarm-role-picker']) {
+    // CRUD/import have real Desktop journeys. Start/session and role binding
+    // remain explicit gaps; a schema alone cannot make them complete.
+    for (const id of ['people-crud', 'people-import-review']) {
+      const journey = journeys.find((j) => j.id === id);
+      expect(journey, id).toBeDefined();
+      expect(journey!.status).toBe('partial');
+    }
+    for (const id of ['people-start-session', 'swarm-role-picker']) {
       const journey = journeys.find((j) => j.id === id);
       expect(journey, id).toBeDefined();
       expect(journey!.status).toBe('not-implemented');

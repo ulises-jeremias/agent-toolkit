@@ -176,15 +176,14 @@ describe('buildWorldModel memory + standAt', () => {
     expect(body.y).toBe(tool.y + tool.h - 1);
   });
 
-  it('keeps untargeted characters at the house and failed houses on /office', () => {
+  it('keeps a failed house enterable without retaining a finished worker', () => {
     const model = buildWorldModel(
       base({
         jobs: [{ id: 'j2', cmd: 'doctor', args: [], status: 'failed', workspace: '/r/alpha' }],
       }),
     );
     const character = model.entities.find((e) => e.id === 'character:job:j2');
-    expect(character?.standAtId).toBeUndefined();
-    expect(character?.hrefPath).toBe('/office');
-    expect(model.entities.find((e) => e.id === 'place:project:alpha')?.hrefPath).toBe('/office');
+    expect(character).toBeUndefined();
+    expect(model.entities.find((e) => e.id === 'place:project:alpha')?.hrefPath).toBe('/world');
   });
 });

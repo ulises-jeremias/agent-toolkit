@@ -40,6 +40,12 @@ export const DESTINATIONS: readonly Destination[] = [
     component: lazy(() => import('../features/library/Library')),
   },
   {
+    path: '/people',
+    label: 'People',
+    question: 'Which durable collaborators are configured in this workspace?',
+    component: lazy(() => import('../features/people/People')),
+  },
+  {
     path: '/insights',
     label: 'Insights',
     question: 'What happened over time?',

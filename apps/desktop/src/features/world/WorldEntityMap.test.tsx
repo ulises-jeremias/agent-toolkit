@@ -79,11 +79,11 @@ describe('world inspector targets', () => {
       hrefPath: '/world',
       hrefExtra: { project: 'alpha' },
     });
-    expect(byId['place:project:beta']).toMatchObject({ hrefPath: '/office' });
+    expect(byId['place:project:beta']).toMatchObject({ hrefPath: '/world', hrefExtra: { project: 'beta' } });
     expect(byId['object:terminal']).toMatchObject({ hrefPath: '/terminal' });
     expect(byId['object:library']).toMatchObject({ hrefPath: '/library' });
     expect(byId['object:attention']).toMatchObject({ hrefPath: '/office' });
-    expect(byId['character:job:j-fail']).toMatchObject({ hrefPath: '/office' });
+    expect(byId['character:job:j-fail']).toBeUndefined();
     expect(byId['character:job:j-run']).toMatchObject({ hrefPath: '/operations' });
   });
 
@@ -141,7 +141,7 @@ describe('WorldEntityMap activation', () => {
     return { layout, onActivate, onSelect, user };
   }
 
-  it('click and keyboard open the same inspector for terminal, library, failed house, and project house', async () => {
+  it('click and keyboard open the same inspector for terminal, library, and project houses', async () => {
     const { onActivate, user } = renderMap();
 
     const terminal = screen.getByRole('button', { name: /Terminal · Terminal \/ PTY/i });
@@ -175,14 +175,14 @@ describe('WorldEntityMap activation', () => {
     const failedHouse = screen.getByRole('button', { name: /beta · Project · needs attention/i });
     await user.click(failedHouse);
     expect(onActivate).toHaveBeenLastCalledWith(
-      expect.objectContaining({ id: 'place:project:beta', hrefPath: '/office' }),
+      expect.objectContaining({ id: 'place:project:beta', hrefPath: '/world', hrefExtra: { project: 'beta' } }),
     );
 
     onActivate.mockClear();
     failedHouse.focus();
     await user.keyboard('{Enter}');
     expect(onActivate).toHaveBeenLastCalledWith(
-      expect.objectContaining({ id: 'place:project:beta', hrefPath: '/office' }),
+      expect.objectContaining({ id: 'place:project:beta', hrefPath: '/world', hrefExtra: { project: 'beta' } }),
     );
 
     onActivate.mockClear();

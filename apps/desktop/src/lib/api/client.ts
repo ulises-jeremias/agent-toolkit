@@ -9,6 +9,9 @@ import type {
   MemoryWriteResponse,
   MessageResponse,
   ModelsResponse,
+  PeopleResponse,
+  PersonResponse,
+  Person,
   ProvidersResponse,
   SelfcheckResponse,
   SwarmActionResponse,
@@ -304,6 +307,32 @@ export class ApiClient {
 
   agents(): Promise<ResponseOf<OperationOf<'/api/v1/agents', 'get'>, AgentsResponse>> {
     return this.json('GET', '/api/v1/agents' satisfies PathWith<'get'>);
+  }
+
+  people(workspace: string): Promise<PeopleResponse> {
+    return this.json('GET', '/api/v1/people' satisfies PathWith<'get'>, { query: { workspace } });
+  }
+
+  person(workspace: string, id: string): Promise<PersonResponse> {
+    return this.json('GET', fillPath('/api/v1/people/{id}' satisfies PathWith<'get'>, { id }), {
+      query: { workspace },
+    });
+  }
+
+  createPerson(workspace: string, person: Person): Promise<PersonResponse> {
+    return this.json('POST', '/api/v1/people' satisfies PathWith<'post'>, { body: { workspace, person } });
+  }
+
+  updatePerson(workspace: string, person: Person): Promise<PersonResponse> {
+    return this.json('PUT', fillPath('/api/v1/people/{id}' satisfies PathWith<'put'>, { id: person.id }), {
+      body: { workspace, person },
+    });
+  }
+
+  archivePerson(workspace: string, id: string): Promise<PersonResponse> {
+    return this.json('POST', fillPath('/api/v1/people/{id}/archive' satisfies PathWith<'post'>, { id }), {
+      body: { workspace },
+    });
   }
 
   tools(): Promise<ResponseOf<OperationOf<'/api/v1/tools', 'get'>, ToolsResponse>> {

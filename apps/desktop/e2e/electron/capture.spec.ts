@@ -22,6 +22,7 @@ const DESTINATIONS = [
   'Operations',
   'Workspace',
   'Library',
+  'People',
   'Insights',
   'Terminal',
   'Settings',
@@ -61,10 +62,11 @@ async function settle(page: Page): Promise<void> {
   await page.evaluate(() => document.fonts.ready.then(() => undefined));
 }
 
-test('capture every destination in Paper and Ink at both sizes', async () => {
+test('capture every destination in Meadow and Dusk at both sizes', async () => {
   test.setTimeout(10 * 60_000);
   const { app, page } = desktop;
   await waitForBackend(page);
+  let createdPerson = false;
 
   await startJob(page, 'version');
   await startJob(page, 'workspace');
@@ -94,6 +96,45 @@ test('capture every destination in Paper and Ink at both sizes', async () => {
       await expect.poll(() => page.evaluate(() => [innerWidth, innerHeight])).toEqual([size.width, size.height]);
       for (const destination of DESTINATIONS) {
         await nav(page).getByRole('link', { name: destination }).click();
+        if (destination === 'People' && !createdPerson) {
+          await page.getByRole('button', { name: 'Create Person' }).click();
+          const dialog = page.getByRole('dialog', { name: 'Create Person' });
+          await dialog.getByRole('textbox', { name: 'Name' }).fill('Lina');
+          await dialog.getByRole('textbox', { name: 'ID' }).fill('lina');
+          await dialog.getByRole('textbox', { name: 'Role' }).fill('reviewer');
+          await dialog.getByRole('textbox', { name: 'Goal' }).fill('Review project changes');
+          await page.screenshot({
+            path: path.join(OUT_DIR, `${theme}-${size.width}x${size.height}-person-create.png`),
+          });
+          await dialog.getByRole('button', { name: 'Create Person' }).click();
+          await expect(dialog).toBeHidden();
+          await expect(page.getByRole('button', { name: /Lina.*reviewer.*Offline/ })).toBeVisible();
+          await page.locator('input[aria-label="Choose Munder hire JSON"]').setInputFiles({
+            name: 'maya.json',
+            mimeType: 'application/json',
+            buffer: Buffer.from(
+              JSON.stringify({
+                spec: 'munder-difflin/hire@1',
+                id: 'maya',
+                name: 'Maya',
+                role: 'architect',
+                goal: 'Plan project work',
+                provider: 'opencode',
+                skills: ['planning'],
+                command: 'ignored and never executed',
+              }),
+            ),
+          });
+          const importDialog = page.getByRole('dialog', { name: 'Review Munder import' });
+          await expect(importDialog).toContainText('command');
+          await page.screenshot({
+            path: path.join(OUT_DIR, `${theme}-${size.width}x${size.height}-munder-import-review.png`),
+          });
+          await importDialog.getByRole('button', { name: 'Save Person' }).click();
+          await expect(importDialog).toBeHidden();
+          await expect(page.getByRole('button', { name: /Maya.*architect.*Offline/ })).toBeVisible();
+          createdPerson = true;
+        }
         if (destination === 'Operations') {
           await page.getByRole('button', { name: /^agent-toolkit version/ }).click();
         }

@@ -66,6 +66,7 @@ export default function Library() {
     <div className={styles.room}>
       <p className={styles.mark}>Cozy Pixel World · library board</p>
       <PageHeader
+        surface="panel"
         eyebrow="Library"
         title="Library board"
         lede={

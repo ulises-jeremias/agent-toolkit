@@ -54,14 +54,17 @@ export function PageHeader({
   title,
   lede,
   actions,
+  surface = 'canvas',
 }: {
   eyebrow?: string;
   title: string;
   lede?: ReactNode;
   actions?: ReactNode;
+  /** Text contrast ramp matching the surface behind this header. */
+  surface?: 'canvas' | 'panel';
 }) {
   return (
-    <header className={styles.pageHeader}>
+    <header className={styles.pageHeader} data-surface={surface}>
       <div>
         {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
         <h1 className={styles.pageTitle}>{title}</h1>

@@ -76,6 +76,13 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
     keywords: ['loop', 'operations', 'workshop'],
   },
   {
+    id: 'session:start-swarm',
+    group: 'Session',
+    title: 'Start a swarm',
+    hint: 'Choose a recipe and task in Operations',
+    keywords: ['team', 'agents', 'operations', 'recipe'],
+  },
+  {
     id: 'session:next-needs-me',
     group: 'Session',
     title: 'Next that needs me',
@@ -99,13 +106,13 @@ export const PALETTE_COMMANDS: readonly PaletteCommand[] = [
   {
     id: 'appearance:meadow',
     group: 'Appearance',
-    title: 'Use Paper theme',
+    title: 'Use Meadow theme',
     keywords: ['light', 'theme'],
   },
   {
     id: 'appearance:dusk',
     group: 'Appearance',
-    title: 'Use Ink theme',
+    title: 'Use Dusk theme',
     keywords: ['dark', 'theme'],
   },
   {

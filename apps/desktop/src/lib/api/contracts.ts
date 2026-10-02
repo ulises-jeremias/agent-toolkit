@@ -74,6 +74,44 @@ export interface MessageResponse {
   message: string;
 }
 
+/** Workspace people/<id>.json, validated by the V backend before persistence. */
+export interface Person {
+  spec: 'agent-toolkit/person@1';
+  id: string;
+  name: string;
+  role: string;
+  goal: string;
+  archived: boolean;
+  definition_id?: string;
+  avatar?: { character?: string; accent?: string };
+  preferred_provider?: string;
+  preferred_model?: string;
+  capabilities?: string[];
+  skills?: string[];
+  mcp_servers?: string[];
+  isolation?: 'inherited' | 'worktree' | 'session';
+  budget?: { max_tokens?: number; max_cost_usd?: number; max_seconds?: number };
+  import_source?: {
+    spec: 'munder-difflin/hire@1';
+    id?: string;
+    review_required: true;
+    auto_spawn: false;
+    auto_install: false;
+    live_sync: false;
+    original_character?: string;
+    original_accent?: string;
+  };
+}
+
+export interface PeopleResponse {
+  ok: boolean;
+  people: Person[];
+}
+export interface PersonResponse {
+  ok: boolean;
+  person: Person;
+}
+
 /** OpenAPI `MemoryEntry` (list omits body). */
 export interface MemoryEntry {
   id: string;

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useLocation } from 'react-router';
 import { useTerminalSessions } from '../data/terminal';
 import { NewSessionDialog } from '../features/terminal/NewSessionDialog';
@@ -7,10 +8,10 @@ import styles from './shell.module.css';
 
 type DockMode = 'hidden' | 'collapsed' | 'compact' | 'expanded';
 
-function dockMode(pathname: string, available: boolean, sessionCount: number): DockMode {
+function dockMode(pathname: string, available: boolean, sessionCount: number, compactOpen: boolean): DockMode {
   if (!available) return 'hidden';
   if (pathname === '/terminal') return sessionCount === 0 ? 'collapsed' : 'expanded';
-  return sessionCount === 0 ? 'collapsed' : 'compact';
+  return sessionCount === 0 || !compactOpen ? 'collapsed' : 'compact';
 }
 
 /**
@@ -20,7 +21,8 @@ function dockMode(pathname: string, available: boolean, sessionCount: number): D
 export function TerminalDock() {
   const location = useLocation();
   const { available, sessions, setCreating } = useTerminalSessions();
-  const mode = dockMode(location.pathname, available, sessions.length);
+  const [compactOpen, setCompactOpen] = useState(false);
+  const mode = dockMode(location.pathname, available, sessions.length, compactOpen);
   if (mode === 'hidden') return <NewSessionDialog />;
 
   return (
@@ -30,11 +32,18 @@ export function TerminalDock() {
         <div className={styles.dockTabs}>
           <TerminalTabs />
         </div>
+        {sessions.length > 0 && location.pathname !== '/terminal' ? (
+          <Button size="sm" variant="ghost" onClick={() => setCompactOpen((open) => !open)}>
+            {mode === 'collapsed' ? 'Show terminal' : 'Hide terminal'}
+          </Button>
+        ) : null}
         <Button size="sm" variant="ghost" onClick={() => setCreating(true)}>
           New session
         </Button>
       </div>
-      {mode !== 'collapsed' ? <TerminalHost /> : null}
+      <div className={styles.dockTerminal} hidden={mode === 'collapsed'}>
+        <TerminalHost />
+      </div>
       <NewSessionDialog />
     </aside>
   );

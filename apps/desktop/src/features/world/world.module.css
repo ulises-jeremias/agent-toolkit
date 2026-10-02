@@ -65,6 +65,7 @@
   min-height: 26rem;
   overflow: hidden;
   background: var(--world-outside, #2e4a2f);
+  image-rendering: pixelated;
   cursor: grab;
   touch-action: none;
   outline: none;

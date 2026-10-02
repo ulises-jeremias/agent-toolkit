@@ -436,6 +436,28 @@ native:
       - '404:workspace not found'
       - '422:cmd is required'
       - '429:max concurrent jobs reached'
+  - path: /api/v1/people
+    method: get
+    op: list_people
+    summary: List validated durable People in a workspace
+    response: object
+  - path: /api/v1/people
+    method: post
+    op: create_person
+    summary: Create a reviewed durable Person
+    response: object
+  - path: /api/v1/people/{id}
+    method: get
+    op: get_person
+    response: object
+  - path: /api/v1/people/{id}
+    method: put
+    op: update_person
+    response: object
+  - path: /api/v1/people/{id}/archive
+    method: post
+    op: archive_person
+    response: object
   - path: /api/v1/jobs
     method: get
     op: list_jobs

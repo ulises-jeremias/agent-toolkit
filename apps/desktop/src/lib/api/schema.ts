@@ -10,7 +10,7 @@
  */
 import type { paths } from '../api-schema';
 
-export type HttpMethod = 'get' | 'post' | 'delete';
+export type HttpMethod = 'get' | 'post' | 'put' | 'delete';
 
 /** Route templates that declare `method` in the OpenAPI contract. */
 export type PathWith<M extends HttpMethod> = {

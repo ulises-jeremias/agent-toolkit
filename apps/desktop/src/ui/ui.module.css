@@ -118,6 +118,18 @@
   color: var(--text-canvas-secondary);
 }
 
+.pageHeader[data-surface='panel'] .eyebrow {
+  color: var(--accent-gold);
+}
+
+.pageHeader[data-surface='panel'] .pageTitle {
+  color: var(--text-primary);
+}
+
+.pageHeader[data-surface='panel'] .lede {
+  color: var(--text-secondary);
+}
+
 /* ---------- Panel ---------- */
 
 .panel {

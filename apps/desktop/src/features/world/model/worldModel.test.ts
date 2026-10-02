@@ -114,7 +114,7 @@ describe('buildWorldModel', () => {
     expect(ids).toContain('place:project:alpha');
     expect(ids).toContain('place:project:beta');
     expect(ids).toContain('character:job:j1');
-    expect(ids).toContain('character:job:j3');
+    expect(ids).not.toContain('character:job:j3');
     expect(ids).not.toContain('character:job:j2');
     expect(ids).not.toContain('object:exit-grounds');
     expect(ids).not.toContain('place:knowledge-workspace');
@@ -302,15 +302,15 @@ describe('buildWorldModel', () => {
     expect(byId['character:job:r1']?.themeKey).toBe('agent.working');
     expect(byId['place:project:beta']?.activity).toBe('working');
 
-    // failed / rejected → character + attention; house opens /office
-    expect(byId['character:job:f1']?.themeKey).toBe('agent.blocked');
-    expect(byId['character:job:f1']?.hrefPath).toBe('/office');
+    // Failed work marks the house for attention; no finished process remains as a character.
+    expect(byId['character:job:f1']).toBeUndefined();
     expect(byId['place:project:gamma']?.activity).toBe('blocked');
     expect(byId['place:project:gamma']?.state).toBe('needs attention');
-    expect(byId['place:project:gamma']?.hrefPath).toBe('/office');
+    expect(byId['place:project:gamma']?.hrefPath).toBe('/world');
+    expect(byId['place:project:gamma']?.hrefExtra).toEqual({ project: 'gamma' });
 
-    expect(byId['character:job:x1']?.themeKey).toBe('agent.blocked');
-    expect(byId['place:project:delta']?.hrefPath).toBe('/office');
+    expect(byId['character:job:x1']).toBeUndefined();
+    expect(byId['place:project:delta']?.hrefPath).toBe('/world');
 
     // completed / canceled → no character (calm wins only when no live jobs)
     expect(byId['character:job:c1']).toBeUndefined();

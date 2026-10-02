@@ -221,6 +221,20 @@
 }
 
 @media (max-width: 1100px) {
+  .brandName,
+  .version,
+  .indicatorDetail {
+    display: none;
+  }
+
+  .navList {
+    gap: 0;
+  }
+
+  .navLink {
+    padding-inline: var(--space-1);
+  }
+
   .content {
     padding: var(--space-4) var(--space-4) var(--space-8);
   }
@@ -448,4 +462,14 @@
 .dockTabs {
   flex: 1;
   min-width: 0;
+}
+
+.dockTerminal {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.dockTerminal[hidden] {
+  display: none;
 }

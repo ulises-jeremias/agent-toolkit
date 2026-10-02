@@ -31,6 +31,13 @@ describe('fitCamera', () => {
     expect(camera.pan.x).toBe(80);
     expect(camera.pan.y).toBe(44);
   });
+
+  it('frames a large window at readable integer scale while retaining a strict fit', () => {
+    const viewport = { x: 1920, y: 900 };
+    const tiles = { x: 30, y: 20 };
+    expect(fitCamera(viewport, tiles).zoom).toBe(32);
+    expect(fitCamera(viewport, tiles, 48).zoom).toBe(48);
+  });
 });
 
 describe('clampCamera', () => {
