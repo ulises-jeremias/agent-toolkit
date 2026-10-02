@@ -21,14 +21,19 @@ describe('Desktop workflow ledger (docs/desktop/workflows.yaml)', () => {
     for (const journey of journeys) {
       expect(['ok', 'partial', 'blocked', 'not-implemented']).toContain(journey.status);
     }
-    // CRUD/import have real Desktop journeys. Start/session and role binding
-    // remain explicit gaps; a schema alone cannot make them complete.
+    // CRUD/import and an initial PTY-backed start journey exist, but are not
+    // end-to-end complete until recovery and durable AgentSession binding land.
     for (const id of ['people-crud', 'people-import-review']) {
       const journey = journeys.find((j) => j.id === id);
       expect(journey, id).toBeDefined();
       expect(journey!.status).toBe('partial');
     }
-    for (const id of ['people-start-session', 'swarm-role-picker']) {
+    for (const id of ['people-start-session']) {
+      const journey = journeys.find((j) => j.id === id);
+      expect(journey, id).toBeDefined();
+      expect(journey!.status).toBe('partial');
+    }
+    for (const id of ['swarm-role-picker']) {
       const journey = journeys.find((j) => j.id === id);
       expect(journey, id).toBeDefined();
       expect(journey!.status).toBe('not-implemented');

@@ -186,7 +186,7 @@ describe('WorldEntityMap activation', () => {
     );
 
     onActivate.mockClear();
-    const calmHouse = screen.getByRole('button', { name: /alpha · Project · 1 active/i });
+    const calmHouse = screen.getByRole('button', { name: /alpha · Project · 1 job active/i });
     await user.click(calmHouse);
     expect(onActivate).toHaveBeenLastCalledWith(
       expect.objectContaining({ id: 'place:project:alpha', hrefPath: '/world', hrefExtra: { project: 'alpha' } }),

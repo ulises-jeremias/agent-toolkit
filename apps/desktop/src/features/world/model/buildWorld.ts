@@ -65,11 +65,42 @@ function activityForJobs(jobs: WorldDomainInput['jobs']): PlaceActivity {
   return 'calm';
 }
 
-function houseState(project: ProjectRecord, activity: PlaceActivity, jobCount: number): string {
+function projectWorldState(
+  project: ProjectRecord,
+  activity: PlaceActivity,
+  jobCount: number,
+  personCount: number,
+): string {
   if (project.status === 'broken') return 'broken';
-  if (activity === 'working') return `${jobCount} active`;
+  if (activity === 'working') return `${jobCount} job${jobCount === 1 ? '' : 's'} active`;
   if (activity === 'blocked') return 'needs attention';
+  if (personCount > 0) return `${personCount} Person session${personCount === 1 ? '' : 's'} open`;
   return 'calm';
+}
+
+function pushPersonCharacters(
+  entities: SemanticEntity[],
+  sessions: NonNullable<WorldDomainInput['personSessions']>,
+  projectId?: string,
+  terminalObjectId?: string,
+): void {
+  for (const session of sessions) {
+    entities.push({
+      id: `character:person:${session.personId}:${session.id}`,
+      kind: 'character',
+      concept: 'Person session',
+      name: session.name,
+      state: 'session open',
+      themeKey: 'agent.idle',
+      characterSprite: session.avatarCharacter,
+      availability: 'present',
+      hrefPath: '/people',
+      hrefExtra: { person: session.personId, session: session.id },
+      projectId,
+      detail: `${session.role} · ${session.provider ?? 'runner unknown'}${session.model ? ` · ${session.model}` : ''} · PTY ${session.id}`,
+      standAtId: terminalObjectId,
+    });
+  }
 }
 
 function visibleTools(tools: ToolRecord[]): ToolRecord[] {
@@ -277,6 +308,9 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
   } else {
     for (const project of input.projects) {
       const projectJobs = input.jobs.filter((job) => jobBelongsToProject(job, project));
+      const projectSessions = (input.personSessions ?? []).filter(
+        (session) => session.projectId === project.name && pathIsWithin(session.cwd, project.target),
+      );
       const activity = activityForJobs(projectJobs);
       const liveCount = projectJobs.filter((job) => !isTerminalJobStatus(job.status)).length;
       entities.push({
@@ -284,26 +318,26 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
         kind: 'place',
         concept: 'Project',
         name: project.name,
-        state: houseState(project, activity, liveCount),
+        state: projectWorldState(project, activity, liveCount, projectSessions.length),
         themeKey: 'project.building',
         availability: 'present',
         hrefPath: '/world',
         hrefExtra: { project: project.name },
         projectId: project.name,
-        detail: `${project.status} → ${project.target}${liveCount ? ` · ${liveCount} job(s)` : ''}`,
+        detail: `${project.status} → ${project.target}${liveCount ? ` · ${liveCount} job(s)` : ''}${projectSessions.length ? ` · ${projectSessions.length} Person session(s)` : ''}`,
         activity,
         facade: projectFacade(project.name),
       });
 
       // Characters stand at house porch unless job.cmd names a grounds object.
       pushJobCharacters(entities, projectJobs, { projectId: project.name, ...groundsStand });
+      pushPersonCharacters(entities, projectSessions, project.name, `object:terminal-project:${project.name}`);
     }
   }
 
   // Workspace-scoped jobs (no project match) still appear on the grounds.
   const unmatched = input.jobs.filter((job) => !input.projects.some((project) => jobBelongsToProject(job, project)));
   pushJobCharacters(entities, unmatched, groundsStand);
-
   return entities;
 }
 
@@ -343,6 +377,9 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
   }
 
   const projectJobs = input.jobs.filter((job) => jobBelongsToProject(job, project));
+  const projectSessions = (input.personSessions ?? []).filter(
+    (session) => session.projectId === project.name && pathIsWithin(session.cwd, project.target),
+  );
   const activity = activityForJobs(projectJobs);
   const liveCount = projectJobs.filter(
     (job) => !isTerminalJobStatus(job.status) || job.status === 'failed' || job.status === 'rejected',
@@ -353,12 +390,12 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     kind: 'place',
     concept: 'Project interior',
     name: project.name,
-    state: houseState(project, activity, liveCount),
+    state: projectWorldState(project, activity, liveCount, projectSessions.length),
     themeKey: 'project.building',
     availability: 'present',
     // Room plate selects only — Workspace inspector stays on the header link.
     projectId: project.name,
-    detail: `${project.status} → ${project.target}`,
+    detail: `${project.status} → ${project.target}${projectSessions.length ? ` · ${projectSessions.length} Person session(s)` : ''}`,
     activity,
     facade: projectFacade(project.name),
   });
@@ -475,8 +512,19 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
     memoryPlaceId: input.memory.available ? `place:memory-project:${project.name}` : undefined,
     terminalObjectId: `object:terminal-project:${project.name}`,
   });
+  pushPersonCharacters(entities, projectSessions, project.name, `object:terminal-project:${project.name}`);
 
   return entities;
+}
+
+export function pathIsWithin(path: string, root: string): boolean {
+  const normalize = (value: string) => value.replace(/\\/g, '/').replace(/\/+$/, '') || '/';
+  const candidate = normalize(path);
+  const parent = normalize(root);
+  const windowsPath = /^[a-z]:\//i.test(candidate) || /^[a-z]:\//i.test(parent);
+  const left = windowsPath ? candidate.toLowerCase() : candidate;
+  const right = windowsPath ? parent.toLowerCase() : parent;
+  return left === right || (right === '/' ? left.startsWith('/') : left.startsWith(`${right}/`));
 }
 
 /**

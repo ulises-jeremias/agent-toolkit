@@ -19,6 +19,8 @@ export interface TerminalSessionsValue {
   /** Select a real PTY and put it in the URL so the world can focus it. False if it does not exist. */
   focusSession: (id: string) => boolean;
   create: (options: PtyCreateOptions, extras?: SessionExtras) => Promise<PtySessionInfo | null>;
+  /** Request a graceful process stop; the session remains visible until its exit event arrives. */
+  stop: (id: string) => Promise<boolean>;
   close: (id: string) => Promise<void>;
   restart: (session: PtySessionInfo) => Promise<void>;
 }
@@ -145,11 +147,28 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
     [bridge, activeId, writePty],
   );
 
+  const stop = useCallback(
+    async (id: string): Promise<boolean> => (bridge ? bridge.ptySignal(id, 'term') : false),
+    [bridge],
+  );
+
   const restart = useCallback(
     async (session: PtySessionInfo): Promise<void> => {
       const extra = extras[session.id];
       await close(session.id);
-      await create({ agent: session.agent, cmd: session.cmd, args: session.args, cwd: session.cwd }, extra);
+      await create(
+        {
+          agent: session.agent,
+          personId: session.personId,
+          projectId: session.projectId,
+          provider: session.provider,
+          model: session.model,
+          cmd: session.cmd,
+          args: session.args,
+          cwd: session.cwd,
+        },
+        extra,
+      );
     },
     [close, create, extras],
   );
@@ -166,10 +185,11 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
       setActiveId,
       focusSession,
       create,
+      stop,
       close,
       restart,
     }),
-    [bridge, loading, sessions, extras, activeId, creating, focusSession, create, close, restart],
+    [bridge, loading, sessions, extras, activeId, creating, focusSession, create, stop, close, restart],
   );
 
   return <TerminalContext.Provider value={value}>{children}</TerminalContext.Provider>;

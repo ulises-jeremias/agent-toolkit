@@ -89,11 +89,22 @@ journeys:
       - malformed-file and collision recovery need full Electron review
   - id: people-start-session
     title: Start a session as a Person
-    destinations: []
-    status: not-implemented
-    evidence: []
+    destinations: [people, terminal, world]
+    status: partial
+    evidence:
+      - note: People can review project, discovered runner and model, then open a real Electron PTY tagged with Person/project identity; a live PTY plus its saved Person and matching project is projected as a character, including while that real session is stopping
+        build: 'feat/desktop-people-session (local, pending review)'
+        screenshots:
+          - assets/electron/people/people-roster-compact.png
+          - assets/electron/people/person-start-compact.png
+          - assets/electron/people/person-start-large.png
+          - assets/electron/people/world-person-compact.png
+          - assets/electron/people/world-person-large.png
+          - assets/electron/people/people-offline-after-stop.png
+      - note: apps/desktop/e2e/electron/people-session.spec.ts and focused Electron terminal, runner-option, and world-model tests
     blockers:
-      - session binding is explicit future work
+      - the process is a local PTY binding, not a server-side AgentSession with durable history
+      - Person goal/capabilities, budgets, and isolation are not yet enforced by this PTY workflow
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
     destinations: []

@@ -78,6 +78,35 @@ describe('TerminalService', () => {
     }
   });
 
+  it('retains Person and project identity on a real PTY until it is reaped', () => {
+    const service = new TerminalService();
+    try {
+      const session = service.create({
+        agent: 'Lina',
+        personId: 'lina',
+        projectId: 'agent-toolkit',
+        provider: 'opencode',
+        model: 'model-x',
+        cmd: '/bin/sleep',
+        args: ['30'],
+        cwd: process.cwd(),
+      });
+      expect(service.list()[0]).toMatchObject({
+        id: session.id,
+        agent: 'Lina',
+        personId: 'lina',
+        projectId: 'agent-toolkit',
+        provider: 'opencode',
+        model: 'model-x',
+        exitCode: null,
+      });
+      expect(service.close(session.id)).toBe(true);
+      expect(service.list()).toHaveLength(0);
+    } finally {
+      service.dispose();
+    }
+  });
+
   it('resizes, signals, and closes a live session', async () => {
     const service = new TerminalService();
     try {
