@@ -142,26 +142,44 @@ journeys:
   - id: loops-run-report
     title: Install a loop template, run once and read its report
     destinations: [operations]
-    status: partial
+    status: ok
     evidence:
-      - note: focused Electron journey adds daily-triage through a reviewed confirmation, runs it with the skeleton runner, then reads typed history/audit and honest unavailable cost; compact and large screenshots reviewed locally
-        build: "feat/desktop-loop-reports (local; CI review pending)"
+      - note: >-
+          Focused Electron journey adds daily-triage through reviewed
+          confirmation, runs it with the skeleton runner, then reads typed
+          history/audit and honest unavailable cost; compact and large
+          screenshots are reviewed.
+        build: "233b9159 (Linux Electron E2E; loops.spec.ts)"
         screenshots:
           - assets/electron/loops/loop-report-compact.png
           - assets/electron/loops/loop-report-large.png
           - assets/electron/loops/loop-report-after-run.png
-      - note: V core tests cover embedded template discovery/read, and a packaged-style binary from fresh HOME/XDG lists 10 embedded templates and initializes one
+      - note: >-
+          V core tests cover embedded template discovery/read; a packaged-style
+          binary from fresh HOME/XDG lists embedded templates and initializes
+          one.
         build: "feat/desktop-loop-reports (VJOBS=2 local validation)"
-    blockers:
-      - Desktop scheduling, pause/disable and schedule recovery are not exposed yet
-      - packaged CI evidence for this branch is pending
+    blockers: []
   - id: loops-schedule
     title: Preview, create and disable a loop schedule
     destinations: [operations]
-    status: not-implemented
-    evidence: []
-    blockers:
-      - schedule lifecycle requires a dedicated preview and typed Desktop workflow
+    status: ok
+    evidence:
+      - note: >-
+          Operations reads actual scheduler inventory, previews generated unit
+          paths and cadence, exposes exact scheduler files on demand, installs
+          and removes user-level units through the canonical loops operation,
+          escapes systemd workspace paths, and reports partial scheduler
+          changes with a working retry action. Electron E2E uses an isolated
+          HOME and first-in-PATH fake systemctl to verify failure, recovery,
+          file creation, list, and removal without changing the host scheduler.
+        build: "884a9dbb (Linux Electron E2E; loops.spec.ts)"
+        screenshots:
+          - assets/electron/loops/loop-schedule-preview-compact.png
+          - assets/electron/loops/loop-schedule-preview-large.png
+          - assets/electron/loops/loop-schedule-recovery-compact.png
+          - assets/electron/loops/loop-schedule-recovery-large.png
+    blockers: []
   - id: swarm-run-watch
     title: Run a swarm and watch lane progress
     destinations: [operations]

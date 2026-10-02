@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSubQuery } from '../../data/commands';
+import { useSubMutation, useSubQuery } from '../../data/commands';
 import {
   useInitializeLoop,
   useLoopAudit,
@@ -9,7 +9,7 @@ import {
   useLoops,
   useRunLoop,
 } from '../../data/loops';
-import type { LoopInfo } from '../../lib/api';
+import { envelopeText, type CommandEnvelope, type LoopInfo } from '../../lib/api';
 import { jobCommandLine } from '../../lib/format';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
@@ -24,6 +24,7 @@ import {
   Mono,
   Panel,
   QueryView,
+  Report,
   Select,
   StatusBadge,
   Table,
@@ -57,6 +58,7 @@ export function LoopsPanel({
   ).filter((entry) => !installed.some((loop) => loop.name === entry.name));
   const selectedLoop = installed.find((loop) => loop.name === selectedName);
   const selectedTemplate = templateEntries.find((entry) => entry.name === selectedName);
+  const [scheduleName, setScheduleName] = useState<string | null>(null);
 
   return (
     <>
@@ -87,7 +89,13 @@ export function LoopsPanel({
             onRetry={() => void templates.refetch()}
           />
         ) : null}
-        {selectedLoop ? <LoopDetail loop={selectedLoop} onRun={() => onRun(selectedLoop.name)} /> : null}
+        {selectedLoop ? (
+          <LoopDetail
+            loop={selectedLoop}
+            onRun={() => onRun(selectedLoop.name)}
+            onSchedule={() => setScheduleName(selectedLoop.name)}
+          />
+        ) : null}
         {selectedTemplate ? <TemplateDetail entry={selectedTemplate} onInitialized={onSelect} /> : null}
       </Panel>
       <RunLoopDialog
@@ -96,6 +104,11 @@ export function LoopsPanel({
         initialName={selectedName}
         onClose={onCloseDialog}
         onStarted={onStarted}
+      />
+      <ManageLoopScheduleDialog
+        open={scheduleName !== null}
+        loop={installed.find((loop) => loop.name === scheduleName) ?? null}
+        onClose={() => setScheduleName(null)}
       />
     </>
   );
@@ -173,7 +186,7 @@ function TemplateDetail({ entry, onInitialized }: { entry: LoopListEntry; onInit
   );
 }
 
-function LoopDetail({ loop, onRun }: { loop: LoopInfo; onRun: () => void }) {
+function LoopDetail({ loop, onRun, onSchedule }: { loop: LoopInfo; onRun: () => void; onSchedule: () => void }) {
   const status = useLoopStatus(loop.name);
   const history = useLoopHistory(loop.name);
   const audit = useLoopAudit(loop.name);
@@ -185,9 +198,12 @@ function LoopDetail({ loop, onRun }: { loop: LoopInfo; onRun: () => void }) {
           <p className={styles.previewLabel}>Loop report</p>
           <h3>{loop.name}</h3>
         </div>
-        <Button variant="primary" onClick={onRun}>
-          Run once
-        </Button>
+        <ButtonRow>
+          <Button onClick={onSchedule}>Manage schedule</Button>
+          <Button variant="primary" onClick={onRun}>
+            Run once
+          </Button>
+        </ButtonRow>
       </div>
       <QueryView query={status} loading="Reading loop definition and budget" errorTitle="Could not read loop status">
         {(report) => (
@@ -267,6 +283,183 @@ function LoopDetail({ loop, onRun }: { loop: LoopInfo; onRun: () => void }) {
         )}
       </QueryView>
     </div>
+  );
+}
+
+function ManageLoopScheduleDialog({
+  open,
+  loop,
+  onClose,
+}: {
+  open: boolean;
+  loop: LoopInfo | null;
+  onClose: () => void;
+}) {
+  const schedules = useSubQuery('loops', 'schedule', { list_mode: true }, { enabled: open });
+  const action = useSubMutation('loops', 'schedule');
+  const receipt = useActionReceipt('Loop schedule updated');
+  const [reviewed, setReviewed] = useState<('install' | 'remove') | null>(null);
+  const [requestedPreview, setRequestedPreview] = useState<('install' | 'remove') | null>(null);
+  const [plan, setPlan] = useState<CommandEnvelope | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      setReviewed(null);
+      setRequestedPreview(null);
+      setPlan(null);
+    }
+  }, [open]);
+
+  const preview = (kind: 'install' | 'remove') => {
+    if (!loop) return;
+    setRequestedPreview(kind);
+    setReviewed(null);
+    setPlan(null);
+    action.mutate(
+      { name: loop.name, dry_run: true, remove_mode: kind === 'remove' },
+      {
+        onSuccess: (result) => {
+          setPlan(result);
+          setReviewed(kind);
+        },
+      },
+    );
+  };
+
+  const apply = () => {
+    if (!loop || !reviewed) return;
+    action.mutate(
+      { name: loop.name, remove_mode: reviewed === 'remove' },
+      {
+        onSuccess: (result) => {
+          receipt.onSuccess(result);
+          setPlan(null);
+          setReviewed(null);
+          setRequestedPreview(null);
+        },
+      },
+    );
+  };
+
+  return (
+    <Dialog
+      open={open && loop !== null}
+      onClose={onClose}
+      title={`Schedule ${loop?.name ?? 'loop'}`}
+      description="Schedules run this loop automatically using the cadence in its definition. Review the real scheduler changes before applying them."
+      footer={
+        <>
+          <Button variant="ghost" onClick={onClose}>
+            Close
+          </Button>
+          {reviewed ? (
+            <Button
+              variant={reviewed === 'remove' ? 'danger' : 'primary'}
+              onClick={apply}
+              busy={action.isPending}
+              busyLabel="Applying…"
+            >
+              {reviewed === 'remove' ? 'Disable schedule' : 'Install schedule'}
+            </Button>
+          ) : null}
+        </>
+      }
+    >
+      {loop ? (
+        <>
+          <KeyValue
+            items={[
+              { label: 'Loop', value: <Mono>{loop.name}</Mono> },
+              { label: 'Cadence', value: loop.cadence },
+              { label: 'Scheduler', value: 'Current user · systemd or launchd' },
+              { label: 'Automatic run', value: loop.goal },
+            ]}
+          />
+          <section className={styles.subsection} aria-label="Installed loop schedules">
+            <p className={styles.previewLabel}>Schedules on this machine</p>
+            <QueryView query={schedules} loading="Checking installed schedules" errorTitle="Could not check schedules">
+              {(result) => <Report text={envelopeText(result)} label="Installed schedules from the local scheduler" />}
+            </QueryView>
+          </section>
+          <ButtonRow>
+            <Button onClick={() => preview('install')} busy={action.isPending}>
+              Review install
+            </Button>
+            <Button onClick={() => preview('remove')} busy={action.isPending}>
+              Review disable
+            </Button>
+          </ButtonRow>
+          {reviewed && plan ? (
+            <section className={styles.subsection} aria-label="Schedule change preview">
+              <p className={styles.previewLabel}>{reviewed === 'remove' ? 'Disable preview' : 'Install preview'}</p>
+              <KeyValue
+                items={[
+                  ...(plan.data['service_path']
+                    ? [
+                        {
+                          label: reviewed === 'remove' ? 'Remove service' : 'Create service',
+                          value: <Mono>{plan.data['service_path']}</Mono>,
+                        },
+                      ]
+                    : []),
+                  ...(plan.data['timer_path']
+                    ? [
+                        {
+                          label: reviewed === 'remove' ? 'Remove timer' : 'Create timer',
+                          value: <Mono>{plan.data['timer_path']}</Mono>,
+                        },
+                      ]
+                    : []),
+                  ...(plan.data['plist_path']
+                    ? [
+                        {
+                          label: reviewed === 'remove' ? 'Remove launch agent' : 'Create launch agent',
+                          value: <Mono>{plan.data['plist_path']}</Mono>,
+                        },
+                      ]
+                    : []),
+                  ...(plan.data['on_calendar']
+                    ? [{ label: 'Runs on', value: <Mono>{plan.data['on_calendar']}</Mono> }]
+                    : []),
+                  ...(plan.data['interval_seconds']
+                    ? [{ label: 'Run interval', value: `${plan.data['interval_seconds']} seconds` }]
+                    : []),
+                ]}
+              />
+              <details className={styles.scheduleDetails}>
+                <summary>View generated scheduler details</summary>
+                <Report text={envelopeText(plan)} label="Exact scheduler files and commands" />
+              </details>
+              <p>
+                {reviewed === 'remove'
+                  ? 'This removes only this loop’s user-level timer or launch agent. The loop definition and past reports stay in the workspace.'
+                  : 'Applying writes a user-level service and timer (Linux) or launch agent (macOS), then asks the OS scheduler to enable it.'}
+              </p>
+            </section>
+          ) : null}
+          {action.error ? (
+            <ErrorState
+              title="Scheduler change needs attention"
+              error={action.error}
+              guidance={
+                reviewed === null
+                  ? 'The preview could not be prepared, so no schedule change was applied. Check the error, then retry the preview.'
+                  : reviewed === 'remove'
+                    ? 'The timer may already be stopped, but its files remain when cleanup fails. Check the scheduler output, then retry the disable action.'
+                    : 'Installation may have written scheduler files before activation failed. Review the output, then retry to complete or replace the schedule.'
+              }
+              retryLabel={
+                reviewed === null ? 'Retry preview' : reviewed === 'remove' ? 'Retry disable' : 'Retry install'
+              }
+              onRetry={() => {
+                if (reviewed) apply();
+                else if (requestedPreview) preview(requestedPreview);
+              }}
+            />
+          ) : null}
+        </>
+      ) : null}
+    </Dialog>
   );
 }
 

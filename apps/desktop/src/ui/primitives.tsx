@@ -274,20 +274,24 @@ export function ErrorState({
   title = 'Could not load this',
   error,
   onRetry,
+  guidance,
+  retryLabel = 'Try again',
 }: {
   title?: string;
   error: unknown;
   onRetry?: () => void;
+  guidance?: string;
+  retryLabel?: string;
 }) {
   const message = errorMessage(error);
   return (
     <div className={styles.state} data-tone="err" role="alert">
       <p className={styles.stateTitle}>{title}</p>
       {message.includes('\n') ? <Report text={message} label="Error output" /> : <p>{message}</p>}
-      <p className={styles.stateHint}>{recoveryHint(error)}</p>
+      <p className={styles.stateHint}>{guidance ?? recoveryHint(error)}</p>
       {onRetry ? (
         <Button size="sm" onClick={onRetry}>
-          Try again
+          {retryLabel}
         </Button>
       ) : null}
     </div>

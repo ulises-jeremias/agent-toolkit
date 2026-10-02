@@ -35,6 +35,38 @@ Opened files:
 - [Project interior, compact](assets/electron/world/project-files-room-compact.png).
 - [Live Person session, compact](assets/electron/people/world-person-compact.png),
   [live Person session, large](assets/electron/people/world-person-large.png),
-  and [offline Person after stop](assets/electron/people/people-offline-after-stop.png).
+and [offline Person after stop](assets/electron/people/people-offline-after-stop.png).
+
+## Loop scheduling review — 2026-10-02
+
+Source build `884a9dbb` (Linux Electron E2E, temporary HOME). The schedule
+journey lists the real user-level scheduler state, previews file paths and
+cadence, then installs and disables a schedule through the existing backend
+operation. The test's first-in-PATH `systemctl` shim forces install and stop
+failures, verifies that files remain after an incomplete disable, and retries
+the real action; generated unit files are created and removed under the
+temporary HOME. The V unit fixture uses the same isolation principle. Neither
+test can enable, stop, or disable a timer on the host.
+
+The first screenshot review showed the entire generated unit taking over the
+dialog. I changed the preview to lead with the exact target paths and trigger,
+put the full generated service/timer behind an expandable details row, and kept
+the confirm action fixed in the dialog footer. The compact capture still scrolls
+the long content while keeping that action visible. I also dismissed the run
+receipt before capturing the final report so it no longer obscures real state.
+The recovery capture initially showed a generic backend hint, so I replaced it
+with schedule-specific guidance and a retry button that repeats the failed
+preview or apply step. At compact size the dialog scrolls to the recovery
+message while the close and disable controls stay fixed at the bottom.
+
+Opened files:
+
+- [Schedule preview, compact](assets/electron/loops/loop-schedule-preview-compact.png)
+  and [large](assets/electron/loops/loop-schedule-preview-large.png).
+- [Schedule recovery, compact](assets/electron/loops/loop-schedule-recovery-compact.png)
+  and [large](assets/electron/loops/loop-schedule-recovery-large.png).
+- [Loop report, compact](assets/electron/loops/loop-report-compact.png),
+  [large](assets/electron/loops/loop-report-large.png), and
+  [completed run](assets/electron/loops/loop-report-after-run.png).
 
 The old native V Paper/Ink golden fixtures and Xvfb coordinate scripts were retired with that GUI. Electron E2E and packaged-app acceptance are the executable gates. Screenshots checked into `static/screenshots/` are documentation examples and must be recaptured from the current app whenever the pictured UI changes.
