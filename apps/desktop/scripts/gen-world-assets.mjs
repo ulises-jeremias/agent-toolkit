@@ -269,7 +269,7 @@ function flatRoof(img, x0, x1, y, k, kd, skylight) {
   img.hline(x0, x1, y, k.replace('d', 'l'));
   img.hline(x0, x1, y + 3, kd);
   if (skylight) {
-    const mx = Math.floor((x2c(x0, x1)));
+    const mx = Math.floor(x2c(x0, x1));
     img.rect(mx - 4, y + 1, mx + 2, y + 2, 'k').rect(mx - 3, y + 1, mx + 1, y + 2, 'cy');
   }
   return img;
@@ -366,7 +366,10 @@ function wall(img, x0, y0, x1, y1, material) {
 function chimney(img, x, y) {
   img.rect(x, y, x + 3, y + 7, 'k').rect(x + 1, y, x + 2, y + 6, 'bk');
   img.hline(x - 1, x + 4, y, 'sd');
-  img.set(x + 1, y - 2, 'sl').set(x + 2, y - 3, 'sl').set(x + 1, y - 4, 'sd'); // smoke wisps
+  img
+    .set(x + 1, y - 2, 'sl')
+    .set(x + 2, y - 3, 'sl')
+    .set(x + 1, y - 4, 'sd'); // smoke wisps
   return img;
 }
 
@@ -381,16 +384,29 @@ function sign(img, x, y, kind) {
     img.set(x + 1, y + 2, 'k').set(x + 2, y + 2, 'k');
   } else if (kind === 'book') {
     img.rect(x - 2, y, x + 6, y + 5, 'k').rect(x - 1, y + 1, x + 5, y + 4, 'iv');
-    img.vline(x + 2, y + 1, y + 4, 'rr').set(x, y + 2, 'pd').set(x + 4, y + 2, 'pd');
+    img
+      .vline(x + 2, y + 1, y + 4, 'rr')
+      .set(x, y + 2, 'pd')
+      .set(x + 4, y + 2, 'pd');
   } else if (kind === 'scroll') {
     img.rect(x - 1, y, x + 4, y + 5, 'k').rect(x, y + 1, x + 3, y + 4, 'iv');
-    img.set(x, y, 'od').set(x + 3, y, 'od').set(x + 1, y + 2, 'rr').set(x + 2, y + 2, 'rr');
+    img
+      .set(x, y, 'od')
+      .set(x + 3, y, 'od')
+      .set(x + 1, y + 2, 'rr')
+      .set(x + 2, y + 2, 'rr');
   } else if (kind === 'note') {
     img.rect(x - 1, y, x + 4, y + 4, 'k').rect(x, y + 1, x + 3, y + 3, 'iv');
     img.set(x + 1, y + 1, 'ink').set(x + 1, y + 2, 'ink');
   } else if (kind === 'bell') {
-    img.rect(x, y, x + 3, y + 3, 'k').rect(x + 1, y, x + 2, y + 2, 'go').set(x + 1, y + 3, 'god');
-    img.set(x + 5, y + 1, 'err').set(x + 5, y, 'err').set(x + 6, y, 'rr');
+    img
+      .rect(x, y, x + 3, y + 3, 'k')
+      .rect(x + 1, y, x + 2, y + 2, 'go')
+      .set(x + 1, y + 3, 'god');
+    img
+      .set(x + 5, y + 1, 'err')
+      .set(x + 5, y, 'err')
+      .set(x + 6, y, 'rr');
   }
   return img;
 }
@@ -398,7 +414,10 @@ function sign(img, x, y, kind) {
 /** Pennant banner on a pole (workspace hall). */
 function banner(img, x, y) {
   img.vline(x, y, y + 12, 'k').vline(x + 1, y, y + 12, 'od');
-  img.set(x + 2, y, 'gg').set(x + 3, y, 'gg').set(x + 4, y, 'god');
+  img
+    .set(x + 2, y, 'gg')
+    .set(x + 3, y, 'gg')
+    .set(x + 4, y, 'god');
   img.set(x + 2, y + 1, 'gg').set(x + 3, y + 1, 'god');
   img.set(x + 2, y + 2, 'god');
   return img;
@@ -462,12 +481,71 @@ function house(spec) {
 }
 
 const HOUSES = [
-  { name: 'house-cottage', wall: 'plaster', roof: 'gable', roofKey: 'rt', roofDark: 'rtd', roofLite: 'rtl', windows: 2, chimney: 'right', flowerBox: true },
-  { name: 'house-studio', wall: 'plaster', roof: 'flat', roofKey: 'rs', roofDark: 'rsd', skylight: true, windows: 'band', doorX: 30 },
-  { name: 'house-workshop', wall: 'wood', roof: 'gable', roofKey: 'rr', roofDark: 'rrd', roofLite: 'rrl', windows: 0, doorX: 18, doorW: 12, gearSign: true },
-  { name: 'house-tower', wall: 'stone', roof: 'point', roofKey: 're', roofDark: 'red', roofLite: 'rel', windows: 'left', doorX: 21 },
-  { name: 'house-cabin', wall: 'wood', roof: 'gable', roofKey: 'rm', roofDark: 'rmd', roofLite: 'rm', windows: 'left', chimney: 'left', logs: true, doorX: 24 },
-  { name: 'house-brick', wall: 'brick', roof: 'gable', roofKey: 'rs', roofDark: 'rsd', roofLite: 'rsl', windows: 2, doorX: 20 },
+  {
+    name: 'house-cottage',
+    wall: 'plaster',
+    roof: 'gable',
+    roofKey: 'rt',
+    roofDark: 'rtd',
+    roofLite: 'rtl',
+    windows: 2,
+    chimney: 'right',
+    flowerBox: true,
+  },
+  {
+    name: 'house-studio',
+    wall: 'plaster',
+    roof: 'flat',
+    roofKey: 'rs',
+    roofDark: 'rsd',
+    skylight: true,
+    windows: 'band',
+    doorX: 30,
+  },
+  {
+    name: 'house-workshop',
+    wall: 'wood',
+    roof: 'gable',
+    roofKey: 'rr',
+    roofDark: 'rrd',
+    roofLite: 'rrl',
+    windows: 0,
+    doorX: 18,
+    doorW: 12,
+    gearSign: true,
+  },
+  {
+    name: 'house-tower',
+    wall: 'stone',
+    roof: 'point',
+    roofKey: 're',
+    roofDark: 'red',
+    roofLite: 'rel',
+    windows: 'left',
+    doorX: 21,
+  },
+  {
+    name: 'house-cabin',
+    wall: 'wood',
+    roof: 'gable',
+    roofKey: 'rm',
+    roofDark: 'rmd',
+    roofLite: 'rm',
+    windows: 'left',
+    chimney: 'left',
+    logs: true,
+    doorX: 24,
+  },
+  {
+    name: 'house-brick',
+    wall: 'brick',
+    roof: 'gable',
+    roofKey: 'rs',
+    roofDark: 'rsd',
+    roofLite: 'rsl',
+    windows: 2,
+    doorX: 20,
+  },
 ];
 
 function landmarkWorkspace() {
@@ -679,9 +757,12 @@ function objSwarmTable() {
   img.ellipse(16, 14, 6, 4, 'ol');
   img.set(14, 13, 'iv').set(18, 15, 'gg');
   for (const [x, y] of [
-    [4, 24], [26, 24], [4, 7], [26, 7],
+    [4, 24],
+    [26, 24],
+    [4, 7],
+    [26, 7],
   ]) {
-    img.rect(x, y, x + 3, y + 3, 'k').rect(x + 1, y , x + 2, y + 2, 'o');
+    img.rect(x, y, x + 3, y + 3, 'k').rect(x + 1, y, x + 2, y + 2, 'o');
   }
   return [{ name: 'swarm-table', img }];
 }
@@ -749,20 +830,26 @@ function objLamp() {
 
 function grassTile(seed) {
   const img = new Img(16, 16).rect(0, 0, 15, 15, 'g');
-  // Quiet, grouped dapple and little three-pixel grass tufts. Clusters read
-  // as terrain at map zoom; they do not become a confetti pattern.
-  const s = seed * 7 + 3;
-  const x = (s % 9) + 3;
-  const y = ((s * 3) % 9) + 3;
-  img.set(x, y, 'gd').set(x - 1, y, 'gd').set(x, y + 1, 'gd');
-  img.set(x + 1, y - 1, 'gl').set(x + 2, y - 1, 'gl');
-  const x2 = (s * 5) % 11 + 2;
-  const y2 = (s * 7) % 11 + 2;
-  img.set(x2, y2, 'gt').set(x2 + 1, y2, 'gl');
-  if (seed % 2) {
-    const tx = (s * 3) % 12 + 2;
-    const ty = (s * 11) % 12 + 2;
-    img.set(tx, ty + 1, 'fo').set(tx - 1, ty + 2, 'fd').set(tx + 1, ty + 2, 'fd');
+  // Six quiet meadow samples keep details grouped and varied at map scale;
+  // avoid tiny diagonal marks that turn a large field into striped wallpaper.
+  const s = seed * 19 + 7;
+  const x = ((s * 3) % 11) + 2;
+  const y = ((s * 5) % 11) + 2;
+  img
+    .set(x, y, 'gd')
+    .set(x + 1, y, 'gd')
+    .set(x, y + 1, 'fo')
+    .set(x + 1, y + 1, 'gd');
+  const glintX = ((s * 7) % 13) + 1;
+  const glintY = ((s * 11) % 13) + 1;
+  img.set(glintX, glintY, 'gt');
+  if (seed % 3 === 0) {
+    const tuftX = ((s * 13) % 12) + 2;
+    const tuftY = ((s * 17) % 12) + 2;
+    img
+      .set(tuftX, tuftY, 'fo')
+      .set(tuftX - 1, tuftY + 1, 'fd')
+      .set(tuftX + 1, tuftY + 1, 'fd');
   }
   return img;
 }
@@ -771,7 +858,10 @@ function flowerTile(kind) {
   const img = grassTile(kind * 3 + 1);
   const heads = { poppy: 'pop', daisy: 'iv', lavender: 'lv', gold: 'go' };
   const spots = [
-    [3, 11], [8, 5], [12, 12], [6, 8],
+    [3, 11],
+    [8, 5],
+    [12, 12],
+    [6, 8],
   ];
   const kc = heads[['poppy', 'daisy', 'lavender', 'gold'][kind % 4]];
   spots.forEach(([x, y], i) => {
@@ -793,8 +883,22 @@ function dirtTiles() {
   };
   out.push({ name: 'dirt', img: base() });
   const pathNames = [
-    'dot', 'end-n', 'end-s', 'v', 'end-w', 'turn-nw', 'turn-sw', 'tee-e',
-    'end-e', 'turn-ne', 'turn-se', 'tee-w', 'h', 'tee-s', 'tee-n', 'cross',
+    'dot',
+    'end-n',
+    'end-s',
+    'v',
+    'end-w',
+    'turn-nw',
+    'turn-sw',
+    'tee-e',
+    'end-e',
+    'turn-ne',
+    'turn-se',
+    'tee-w',
+    'h',
+    'tee-s',
+    'tee-n',
+    'cross',
   ];
   pathNames.forEach((name, mask) => {
     const img = new Img(16, 16);
@@ -819,7 +923,12 @@ function dirtTiles() {
     for (let y = 0; y < 16; y++) {
       for (let x = 0; x < 16; x++) {
         if (!body[y][x]) continue;
-        const edge = [[0, -1], [0, 1], [-1, 0], [1, 0]].some(([dx, dy]) => !neighborIsPath(x, y, dx, dy));
+        const edge = [
+          [0, -1],
+          [0, 1],
+          [-1, 0],
+          [1, 0],
+        ].some(([dx, dy]) => !neighborIsPath(x, y, dx, dy));
         img.set(x, y, edge ? 'dd' : 'd');
       }
     }
@@ -847,7 +956,12 @@ function dirtTiles() {
     img.set(gx + 2, gy + 2, 'gd').set(gx + 1, gy + 3, 'gt');
     return img;
   };
-  for (const [a, b] of [['n', 'w'], ['n', 'e'], ['s', 'w'], ['s', 'e']])
+  for (const [a, b] of [
+    ['n', 'w'],
+    ['n', 'e'],
+    ['s', 'w'],
+    ['s', 'e'],
+  ])
     out.push({ name: `dirt-${a}${b}`, img: corner(a, b) });
   return out;
 }
@@ -858,7 +972,7 @@ function plazaTiles() {
     img.hline(0, 15, 0, 'paverDark').hline(0, 15, 8, 'paverDark');
     img.vline(0, 0, 15, 'paverDark').vline(15, 0, 15, 'paverDark');
     const offset = alt ? 8 : 0;
-    img.vline(7 + offset % 4, 1, 7, 'paverDark').vline(7 + (offset + 4) % 8, 9, 15, 'paverDark');
+    img.vline(7 + (offset % 4), 1, 7, 'paverDark').vline(7 + ((offset + 4) % 8), 9, 15, 'paverDark');
     img.hline(2, 5, 3, 'paverLight').hline(10, 13, 12, 'paver');
     return img;
   };
@@ -871,11 +985,11 @@ function plazaTiles() {
 function waterTiles() {
   const mk = (off) => {
     const img = new Img(16, 16).rect(0, 0, 15, 15, 'w');
-    const y = (3 + off) % 11 + 2;
-    const x = (2 + off * 2) % 11 + 2;
+    const y = ((3 + off) % 11) + 2;
+    const x = ((2 + off * 2) % 11) + 2;
     img.hline(x, Math.min(x + 3, 14), y, 'wl').set(x + 1, y - 1, 'wf');
-    img.hline((10 + off) % 12 + 1, (13 + off) % 13 + 2, (9 + off) % 12 + 2, 'wd');
-    img.set((6 + off) % 14 + 1, (12 + off) % 13 + 1, 'wl');
+    img.hline(((10 + off) % 12) + 1, ((13 + off) % 13) + 2, ((9 + off) % 12) + 2, 'wd');
+    img.set(((6 + off) % 14) + 1, ((12 + off) % 13) + 1, 'wl');
     return img;
   };
   const shore = (dir) => {
@@ -903,7 +1017,10 @@ function bridge() {
   img.hline(2, 45, 20, 'k').hline(2, 45, 27, 'k');
   for (const y of [16, 31]) {
     img.hline(0, 47, y + 3, 'k');
-    img.rect(0, y, 4, y + 2, 'od').rect(20, y, 24, y + 2, 'od').rect(43, y, 47, y + 2, 'od');
+    img
+      .rect(0, y, 4, y + 2, 'od')
+      .rect(20, y, 24, y + 2, 'od')
+      .rect(43, y, 47, y + 2, 'od');
     img.set(1, y, 'ol').set(21, y, 'ol').set(44, y, 'ol');
   }
   img.hline(2, 45, 28, 'sh'); // deck shadow on water
@@ -917,10 +1034,20 @@ function bridge() {
 function leafyCanopy(img, flowers = false, amber = false) {
   // Layered crown masses make a broad, hand-clustered canopy rather than a
   // single perfect ball. Top-left highlights follow the same light direction.
-  for (const [cx, cy, rx, ry] of [[16, 15, 14, 12], [8, 17, 8, 8], [23, 16, 8, 9], [13, 8, 8, 7]]) {
+  for (const [cx, cy, rx, ry] of [
+    [16, 15, 14, 12],
+    [8, 17, 8, 8],
+    [23, 16, 8, 9],
+    [13, 8, 8, 7],
+  ]) {
     img.ellipse(cx, cy, rx, ry, 'k');
   }
-  for (const [cx, cy, rx, ry] of [[16, 14, 13, 11], [8, 16, 7, 7], [23, 15, 7, 8], [13, 8, 7, 6]]) {
+  for (const [cx, cy, rx, ry] of [
+    [16, 14, 13, 11],
+    [8, 16, 7, 7],
+    [23, 15, 7, 8],
+    [13, 8, 7, 6],
+  ]) {
     img.ellipse(cx, cy, rx, ry, 'fo');
   }
   img.ellipse(9, 12, 5, 5, amber ? 'go' : flowers ? 'fl' : 'fl');
@@ -930,7 +1057,14 @@ function leafyCanopy(img, flowers = false, amber = false) {
   img.hline(6, 9, 9, 'gt').hline(15, 19, 5, 'gt').hline(10, 12, 17, 'fo');
   img.set(22, 17, 'gl').set(20, 21, 'fl').set(7, 15, 'gt').set(25, 10, 'fl');
   if (flowers) {
-    for (const [x, y] of [[8, 14], [19, 8], [24, 18], [13, 20], [20, 14]]) img.set(x, y, 'pop');
+    for (const [x, y] of [
+      [8, 14],
+      [19, 8],
+      [24, 18],
+      [13, 20],
+      [20, 14],
+    ])
+      img.set(x, y, 'pop');
     img.set(9, 13, 'iv').set(20, 7, 'iv').set(25, 17, 'iv');
   } else if (amber) {
     img.set(7, 17, 'go').set(17, 10, 'gt').set(23, 20, 'go').set(11, 22, 'god');
@@ -976,6 +1110,36 @@ function treePine() {
   img.hline(8, 12, 24, 'fl').hline(10, 13, 31, 'fo');
   img.set(16, 0, 'gt').set(12, 10, 'gt').set(20, 16, 'fl').set(22, 22, 'fd');
   return [{ name: 'tree-pine', img }];
+}
+
+function treeWillow() {
+  const img = new Img(32, 40);
+  img.ellipse(16, 38, 11, 2, 'sh');
+  // A low, spreading canopy and visible branch curtains mark the creek bank.
+  img.rect(14, 22, 17, 37, 'k').rect(15, 22, 16, 36, 'od');
+  img.vline(9, 16, 31, 'od').vline(23, 14, 30, 'od');
+  for (const [cx, cy, rx, ry, tone] of [
+    [16, 12, 14, 9, 'k'],
+    [8, 15, 8, 7, 'k'],
+    [24, 15, 8, 8, 'k'],
+    [16, 12, 13, 8, 'fo'],
+    [8, 15, 7, 6, 'fl'],
+    [24, 15, 7, 7, 'fd'],
+    [16, 7, 7, 5, 'gl'],
+  ])
+    img.ellipse(cx, cy, rx, ry, tone);
+  for (const [x, end] of [
+    [6, 29],
+    [10, 33],
+    [21, 32],
+    [26, 28],
+  ]) {
+    img.vline(x, 18, end, 'fo');
+    img.set(x - 1, end, 'fl').set(x + 1, end - 2, 'gd');
+  }
+  img.set(9, 10, 'gt').set(12, 8, 'gt').set(17, 6, 'gt').set(23, 10, 'gl');
+  img.set(7, 14, 'fl').set(12, 13, 'gl').set(20, 12, 'fl').set(25, 16, 'fo');
+  return [{ name: 'tree-willow', img }];
 }
 
 function bush() {
@@ -1033,11 +1197,15 @@ function reeds() {
 
 function lily() {
   const img = new Img(16, 16);
-  img.rect(0, 0, 15, 15, 'w');
-  img.set(3, 2, 'wl').set(12, 11, 'wd');
-  img.ellipse(8, 8, 5, 3, 'fd');
-  img.ellipse(8, 7, 4, 3, 'fo');
-  img.set(8, 6, 'pop').set(7, 5, 'iv').set(9, 5, 'iv');
+  img.ellipse(8, 12, 6, 2, 'sh');
+  // Floating pad with a cut notch, bead-like highlights and a small bloom.
+  img.ellipse(8, 10, 6, 3, 'fd');
+  img.ellipse(8, 9, 5, 2, 'fl');
+  img.set(8, 9, 'w').set(8, 8, 'w');
+  img.set(4, 8, 'gl').set(6, 7, 'gt').set(11, 9, 'gl');
+  img.set(8, 3, 'fo').set(8, 4, 'fo').set(8, 5, 'fo');
+  img.set(6, 4, 'iv').set(7, 3, 'iv').set(9, 3, 'iv').set(10, 4, 'iv');
+  img.set(7, 5, 'pop').set(8, 4, 'go').set(9, 5, 'pop');
   return [{ name: 'lily', img }];
 }
 
@@ -1101,9 +1269,7 @@ function wallBand() {
   img.rect(0, 4, 15, 15, 'p');
   img.hline(0, 15, 4, 'ol').hline(0, 15, 12, 'pd');
   img.set(3, 7, 'pd').set(11, 9, 'pd');
-  return [
-    { name: 'wall-top', img },
-  ];
+  return [{ name: 'wall-top', img }];
 }
 
 function doorExit() {
@@ -1261,7 +1427,10 @@ function character(robe, robeDark, accent, hair = 'od', skin = 'sk') {
     const by = bob ? -1 : 0;
     // Distinct hair, skin and coat make a durable Person recognizable.
     img.rect(6, 2 + by, 9, 3 + by, 'k').rect(5, 4 + by, 10, 6 + by, 'k');
-    img.rect(6, 2 + by, 9, 4 + by, hair).set(5, 5 + by, hair).set(10, 5 + by, hair);
+    img
+      .rect(6, 2 + by, 9, 4 + by, hair)
+      .set(5, 5 + by, hair)
+      .set(10, 5 + by, hair);
     img.rect(6, 5 + by, 9, 9 + by, 'k').rect(6, 5 + by, 9, 8 + by, skin);
     img.set(7, 7 + by, 'k').set(9, 7 + by, 'k');
     img.set(6, 9 + by, 'skd').set(9, 9 + by, 'skd');
@@ -1387,6 +1556,7 @@ function collect() {
     treeBlossom(),
     treeAmber(),
     treePine(),
+    treeWillow(),
     bush(),
     rock(),
     tallGrass(),
@@ -1415,7 +1585,7 @@ function collect() {
     hornero(),
   ])
     for (const s of group) put(s.name, s.img, s.frames);
-  for (let i = 0; i < 3; i++) put(`grass-${'abc'[i]}`, grassTile(i + 1));
+  for (let i = 0; i < 6; i++) put(`grass-${'abcdef'[i]}`, grassTile(i + 1));
   for (let i = 0; i < 4; i++) put(`flowers-${['poppy', 'daisy', 'lavender', 'gold'][i]}`, flowerTile(i));
   for (const t of dirtTiles()) put(t.name, t.img);
   for (const t of plazaTiles()) put(t.name, t.img);

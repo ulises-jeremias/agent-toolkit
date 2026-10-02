@@ -1,13 +1,28 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { openDesktop, waitForBackend } from './fixtures';
+import { openDesktop, setViewport, waitForBackend } from './fixtures';
 
 test('links an existing project from the GUI and places it in the world', async () => {
   const desktop = await openDesktop();
   try {
     const { page, home } = desktop;
     await waitForBackend(page);
+    const captureDir =
+      process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
+    if (process.env.ATK_CAPTURE === '1') {
+      fs.mkdirSync(captureDir, { recursive: true });
+      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+      await expect(page.getByRole('button', { name: /No projects yet/ })).toBeVisible();
+      for (const size of [
+        { width: 1024, height: 640, key: 'compact' },
+        { width: 1920, height: 1080, key: 'large' },
+      ]) {
+        await setViewport(desktop.app, size.width, size.height);
+        await page.getByRole('button', { name: 'Fit world' }).click();
+        await page.screenshot({ path: path.join(captureDir, `world-empty-${size.key}.png`) });
+      }
+    }
     const projectPath = path.join(home, '.ai-workspace', 'repos', 'local', 'garden-api');
     fs.mkdirSync(projectPath, { recursive: true });
     fs.writeFileSync(path.join(projectPath, 'README.md'), '# Garden API\n');
@@ -56,28 +71,26 @@ test('links an existing project from the GUI and places it in the world', async 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     await expect(page.getByRole('button', { name: /garden-api.*Project/ })).toBeVisible();
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
-    await page.setViewportSize({ width: 1024, height: 640 });
+    if (process.env.ATK_CAPTURE === '1') {
+      for (const size of [
+        { width: 1024, height: 640, key: 'compact' },
+        { width: 1920, height: 1080, key: 'large' },
+      ]) {
+        await setViewport(desktop.app, size.width, size.height);
+        await page.getByRole('button', { name: 'Fit world' }).click();
+        await expect(world).toHaveAttribute('data-zoom', size.key === 'large' ? '32' : '16');
+        await page.screenshot({ path: path.join(captureDir, `world-one-project-${size.key}.png`) });
+      }
+    }
+    await setViewport(desktop.app, 1024, 640);
     await page.getByRole('button', { name: 'Fit world' }).click();
     await expect(world).toHaveAttribute('data-zoom', '16');
-    if (process.env.ATK_CAPTURE === '1') {
-      const captureDir =
-        process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
-      fs.mkdirSync(captureDir, { recursive: true });
-      await page.screenshot({ path: path.join(captureDir, 'meadow-1024x640-world-project.png') });
-    }
     await page.getByRole('button', { name: 'Pan map with arrow keys; Home fits the world' }).focus();
     await page.keyboard.press('Home');
     await expect(world).toHaveAttribute('data-zoom', '16');
-    await page.setViewportSize({ width: 1920, height: 1080 });
+    await setViewport(desktop.app, 1920, 1080);
     await page.getByRole('button', { name: 'Fit world' }).click();
     await expect(world).toHaveAttribute('data-zoom', '32');
-    if (process.env.ATK_CAPTURE === '1') {
-      const captureDir =
-        process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
-      fs.mkdirSync(captureDir, { recursive: true });
-      await page.screenshot({ path: path.join(captureDir, 'meadow-1920x1080-world-project.png') });
-    }
-
     // Spatial and direct navigation share the same canonical destinations:
     // entering the house opens its project interior; its terminal desk opens
     // the actual Terminal route.
@@ -87,9 +100,9 @@ test('links an existing project from the GUI and places it in the world', async 
       const captureDir =
         process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
       fs.mkdirSync(captureDir, { recursive: true });
-      await page.setViewportSize({ width: 1024, height: 640 });
+      await setViewport(desktop.app, 1024, 640);
       await page.screenshot({ path: path.join(captureDir, 'project-files-room-compact.png') });
-      await page.setViewportSize({ width: 1920, height: 1080 });
+      await setViewport(desktop.app, 1920, 1080);
       await page.screenshot({ path: path.join(captureDir, 'project-files-room-large.png') });
     }
     await page.getByRole('button', { name: /Files · Project files/ }).click();
@@ -105,6 +118,39 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(
       page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }),
     ).toHaveAttribute('aria-current', 'page');
+
+    if (process.env.ATK_CAPTURE === '1') {
+      // Add two more registered projects through the same reviewed GUI flow,
+      // then capture the actual multi-house world at both product scales.
+      for (const name of ['maple-worker', 'river-notes']) {
+        const target = path.join(home, '.ai-workspace', 'repos', 'local', name);
+        fs.mkdirSync(target, { recursive: true });
+        fs.writeFileSync(path.join(target, 'README.md'), `# ${name}\n`);
+        await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Workspace' }).click();
+        await page.getByRole('button', { name: 'Link existing folder' }).click();
+        const review = page.getByRole('dialog', { name: 'Review project link' });
+        await pick(target);
+        await review.getByRole('button', { name: 'Choose another folder' }).click();
+        await expect(review.getByText(new RegExp(`projects/${name}`))).toBeVisible();
+        await review.getByRole('button', { name: `Link ${name}` }).click();
+        await expect(review).toBeHidden();
+        await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
+      }
+      await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
+      await expect(page.getByRole('button', { name: /garden-api.*Project/ })).toBeVisible();
+      for (const size of [
+        { width: 1024, height: 640, key: 'compact' },
+        { width: 1920, height: 1080, key: 'large' },
+      ]) {
+        await setViewport(desktop.app, size.width, size.height);
+        await page.getByRole('button', { name: 'Fit world' }).click();
+        await expect(page.getByRole('application', { name: 'Semantic workspace world' })).toHaveAttribute(
+          'data-zoom',
+          size.key === 'large' ? '32' : '16',
+        );
+        await page.screenshot({ path: path.join(captureDir, `world-several-projects-${size.key}.png`) });
+      }
+    }
   } finally {
     await desktop.close();
   }

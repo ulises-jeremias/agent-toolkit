@@ -181,6 +181,12 @@
       "h": 40,
       "frames": 1
     },
+    "tree-willow": {
+      "file": "tree-willow.png",
+      "w": 32,
+      "h": 40,
+      "frames": 1
+    },
     "bush": {
       "file": "bush.png",
       "w": 16,
@@ -363,6 +369,24 @@
     },
     "grass-c": {
       "file": "grass-c.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-d": {
+      "file": "grass-d.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-e": {
+      "file": "grass-e.png",
+      "w": 16,
+      "h": 16,
+      "frames": 1
+    },
+    "grass-f": {
+      "file": "grass-f.png",
       "w": 16,
       "h": 16,
       "frames": 1

@@ -48,6 +48,7 @@ function sizeFor(entity: SemanticEntity): { w: number; h: number } {
 
 /** Project district columns adapt to roster size (1 → 3 → 5 lanes). */
 export function projectDistrictCols(count: number): number {
+  if (count <= 1) return 1;
   if (count <= 3) return 3;
   if (count <= 10) return 5;
   return 7;
@@ -128,12 +129,11 @@ function layoutInterior(entities: SemanticEntity[]): WorldLayout {
 
 /**
  * Deterministic layout from structured entities. Same ids → same slots.
- * Grounds compose a valley: plaza core with the workspace hall (north),
- * memory archive beside it, the commons landmarks along a mid lane, and the
- * project district south of the road. Streets run between districts; a creek
- * crosses the east edge with a bridge at the road. Characters stand at their
- * house porch or named commons object. Interior: room furniture, not a
- * second dashboard.
+ * Grounds compose a valley: the civic commons and shared landmarks sit west
+ * of the creek; a bridge carries the main path to the project neighborhood on
+ * the east bank. This makes the crossing useful and the project district a
+ * real place. Characters stand at their house porch or named commons object.
+ * Interior: room furniture, not a second dashboard.
  */
 export function layoutWorld(model: WorldModel): WorldLayout {
   if (model.focusProjectId) {
@@ -182,14 +182,16 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     maxY = Math.max(maxY, y + h);
   };
 
-  // District widths first so the core is centered on the map, not the lane.
+  // Keep the civic quarter compact; the natural creek marks its edge and the
+  // project neighborhood begins on the opposite bank.
   const districtCols = projectDistrictCols(projects.length);
   const districtW = projects.length ? districtCols * 5 - 1 : 0; // room for staggered lanes
-  const contentW = Math.max(districtW, 46); // broad civic valley + project lanes
-  const mapW = contentW + 8; // 4-tile forest frame each side
+  const projectDistrictX = 36;
+  const emptyMarkerX = projectDistrictX + 4;
+  const mapW = Math.max(52, projectDistrictX + (projects.length ? districtW : 7) + 4);
 
-  // North core: hall west, memory archive east, ledgers beside it.
-  const coreX = 4 + Math.max(0, Math.floor((contentW - 12) / 2));
+  // North core: hall west, memory archive beside it, ledgers on the commons edge.
+  const coreX = 10;
   if (grounds) place(grounds, coreX, 1);
   if (memoryPlace) place(memoryPlace, coreX + 6, 1);
   let entryX = coreX + 11;
@@ -200,7 +202,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // The Library and Operations face the northern commons. Smaller service
   // buildings face its southern side; the east edge leads to the creek.
-  const civicX = 4 + Math.floor((contentW - 22) / 2);
+  const civicX = 7;
   const civicSlots: Record<string, { x: number; y: number }> = {
     'object:library': { x: civicX + 1, y: 6 },
     'object:operations': { x: civicX + 8, y: 6 },
@@ -217,8 +219,8 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Project houses form a distinct southern neighborhood. Slightly wider,
   // offset rows give each house a garden edge and break the spreadsheet grid.
   const districtY = 17;
-  const districtX = 4 + Math.max(0, Math.floor((contentW - districtW) / 2));
-  if (emptyProject) place(emptyProject, districtX + 4, districtY);
+  const districtX = projectDistrictX;
+  if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
   projects.forEach((project, index) => {
     const col = index % districtCols;
@@ -257,7 +259,9 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
   const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + (projects.length ? 7 : 3);
   return {
-    cols: Math.max(mapW, maxX + 4),
+    // Reserve a complete creek + bank margin beyond the last project lot so
+    // the river never cuts through a real building when the roster grows.
+    cols: Math.max(mapW, maxX + 5),
     rows: Math.max(maxY + 1, mapRows),
     entities: laid,
   };
