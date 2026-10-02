@@ -103,18 +103,19 @@
   font-size: 10px;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--accent-gold);
+  color: var(--accent-canvas);
 }
 
 .pageTitle {
   font-size: var(--text-2xl);
+  color: var(--text-canvas-primary);
 }
 
 .lede {
   margin-top: var(--space-2);
   max-width: 68ch;
   font-size: var(--text-md);
-  color: var(--text-secondary);
+  color: var(--text-canvas-secondary);
 }
 
 /* ---------- Panel ---------- */

@@ -28,7 +28,7 @@
 .worldMeta {
   font-family: var(--font-body);
   font-size: var(--text-xs);
-  color: var(--text-muted);
+  color: var(--text-on-chrome-muted);
 }
 
 .worldHeaderLink {
@@ -126,8 +126,8 @@
 }
 
 @keyframes decor-frame {
-  from { background-position-x: 0; }
-  to { background-position-x: calc(var(--frames, 1) * -100%); }
+  from { background-position-x: 0%; }
+  to { background-position-x: 100%; }
 }
 
 @keyframes decor-sway {
@@ -140,21 +140,31 @@
   50% { transform: translate(2px, -2px); }
 }
 
-/* Entity tiles — transparent hit boxes over sprite art. */
+/* Entity tiles — transparent hit boxes; the sprite span keeps its manifest
+   dimensions, anchored bottom-center inside the semantic footprint. */
 .entity {
   position: absolute;
   display: block;
   padding: 0;
   border: none;
   background-color: transparent;
-  background-repeat: no-repeat;
-  background-size: calc(var(--frames, 1) * 100%) 100%;
-  background-position: left bottom;
   image-rendering: pixelated;
   cursor: pointer;
 }
 
-.entity[data-activity='working'] {
+.entitySprite {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  image-rendering: pixelated;
+  background-repeat: no-repeat;
+  background-size: calc(var(--frames, 1) * 100%) 100%;
+  background-position: left bottom;
+}
+
+.entity[data-activity='working'] .entitySprite {
   animation: decor-frame 0.9s steps(2) infinite;
 }
 
@@ -285,14 +295,20 @@
 
 @media (prefers-reduced-motion: reduce) {
   .decorSprite,
-  .entity[data-activity='working'] {
+  .entity[data-activity='working'] .entitySprite {
     animation: none;
   }
 }
 
 :root[data-motion='reduced'] .decorSprite,
-:root[data-motion='reduced'] .entity[data-activity='working'] {
+:root[data-motion='reduced'] .entity[data-activity='working'] .entitySprite {
   animation: none;
+}
+
+/* Hidden tab or inspector panel: pause animation, keep manual zoom. */
+.mapRegion[data-suspended='true'] .decorSprite,
+.mapRegion[data-suspended='true'] .entitySprite {
+  animation-play-state: paused;
 }
 
 /* Invisible keyboard pan target (arrow keys / Home); the region stays a plain application region. */

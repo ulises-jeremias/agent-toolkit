@@ -1,0 +1,120 @@
+# Desktop workflow ledger (Electron + React, ADR-033)
+# Declarative companion to WORKFLOW_COVERAGE.md: each journey lists the
+# discover → configure/execute → observe → recover state with an honest
+# status. A journey is "ok" only with linked reviewed evidence at a recorded
+# build SHA; everything else stays a blocker. Generic command/argument
+# dialogs and manual declaration file edits never qualify as a journey.
+spec: agent-toolkit/desktop-workflows@1
+status: current-contract
+scope: |
+  Electron + React shipping Desktop. The native-V workflow matrix in
+  WORKFLOW_COVERAGE.md is historical (ADR-032 retirement, ADR-033); this YAML
+  is the current per-journey ledger for the Electron app.
+journeys:
+  - id: first-run-onboarding
+    title: First run to a created or reused workspace
+    destinations: [onboarding]
+    status: ok
+    evidence:
+      - note: copied Linux package launched outside the checkout with fresh
+          HOME/XDG and minimal PATH, workspace created entirely through the GUI
+        build: '1.40.0 @ feat/cozy-pixel-world cb7394b2 (2026-09-30)'
+      - note: e2e/electron/onboarding.spec.ts
+    blockers: []
+    recovery: guided retry on backend failure; no partial workspace left behind
+  - id: workspace-switch-inspect
+    title: Switch workspace and read its truth in the World
+    destinations: [world, workspace]
+    status: partial
+    evidence: []
+    blockers:
+      - per-state visual evidence at compact and large viewports reviewed in a PR, not yet on file
+  - id: capability-discovery
+    title: Browse skills/agents/packs in the Library
+    destinations: [library]
+    status: partial
+    evidence:
+      - note: Library renders catalog definitions over the serve API
+    blockers:
+      - no installed-vs-catalog distinction review with mixed states on file
+  - id: install-capabilities
+    title: Install skills/agents from the Library
+    destinations: [library]
+    status: blocked
+    evidence: []
+    blockers:
+      - destructive-action preview and rollback review not on file
+  - id: mcp-configure-probe
+    title: Configure an MCP provider and probe it
+    destinations: [settings, operations]
+    status: blocked
+    evidence: []
+    blockers:
+      - typed MCP configuration journey without manual file edits not implemented
+  - id: jobs-run-observe
+    title: Start a job, watch it work, see the outcome
+    destinations: [operations, world]
+    status: ok
+    evidence:
+      - note: GUI-started `build --check` figure appears in the world on run and
+          disappears on completion (captured 2026-09-30 pre-restart run, reopening
+          pending on this rebuild)
+      - note: e2e/electron/desktop.spec.ts
+    blockers: []
+  - id: terminal-lifecycle
+    title: Open, use, and close a real PTY terminal
+    destinations: [terminal]
+    status: partial
+    evidence:
+      - note: real node-pty transport over the typed preload bridge
+    blockers:
+      - exit/reap and restart-on-backend-crash review not on file
+  - id: people-crud
+    title: Create, edit and archive a Person
+    destinations: []
+    status: not-implemented
+    evidence: []
+    blockers:
+      - 'schemas/scaffold/validation land first (ADR-036); GUI CRUD is explicit future work'
+  - id: people-import-review
+    title: Review a munder-difflin/hire@1 import
+    destinations: []
+    status: not-implemented
+    evidence: []
+    blockers:
+      - 'import is contract-only: review_required, no auto-spawn/install/live-sync'
+  - id: people-start-session
+    title: Start a session as a Person
+    destinations: []
+    status: not-implemented
+    evidence: []
+    blockers:
+      - session binding is explicit future work
+  - id: swarm-role-picker
+    title: Choose People for swarm roles before start
+    destinations: []
+    status: not-implemented
+    evidence: []
+    blockers:
+      - resolution order (explicit Person, preferred Person, ephemeral session) is contract-only
+  - id: loops-run-schedule
+    title: Run a loop and read its report
+    destinations: [operations]
+    status: blocked
+    evidence: []
+    blockers:
+      - loop run + report readout remedy against the current build not on file
+  - id: swarm-run-watch
+    title: Run a swarm and watch lane progress
+    destinations: [operations]
+    status: blocked
+    evidence: []
+    blockers:
+      - swarm run/watch journey against the current build not on file
+  - id: universal-search-actions
+    title: Search/Run palette reaches everything with permission preview
+    destinations: [shell]
+    status: blocked
+    evidence: []
+    blockers:
+      - typed action registry reachability for critical journeys not on file for Electron

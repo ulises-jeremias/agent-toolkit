@@ -261,4 +261,104 @@ describe('WorldEntityMap activation', () => {
       expect(entity.state.trim().length).toBeGreaterThan(0);
     }
   });
+
+  it('a drag that starts on an entity pans without opening its inspector', async () => {
+    const { onActivate, user } = renderMap();
+    const terminal = screen.getByRole('button', { name: /Terminal · Terminal \/ PTY/i });
+    // pointer down on the entity, a real drag, then release: no activation.
+    await user.pointer([
+      { keys: '[MouseLeft>]', target: terminal, coords: { x: 10, y: 10 } },
+      { coords: { x: 80, y: 60 } },
+      { keys: '[/MouseLeft]', target: terminal, coords: { x: 80, y: 60 } },
+    ]);
+    expect(onActivate).not.toHaveBeenCalled();
+
+    // A plain click still activates.
+    await user.click(terminal);
+    expect(onActivate).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: 'object:terminal', hrefPath: '/terminal' }),
+    );
+  });
+
+  it('renders entity sprites at manifest dimensions inside the semantic footprint', () => {
+    renderMap();
+    // The workspace hall sprite is 80x64 source px (5x4 tiles); the hit box
+    // keeps the same footprint. Sprite size follows the live camera zoom.
+    const hall = document.querySelector('[data-entity-id="place:workspace"]') as HTMLElement;
+    expect(hall).not.toBeNull();
+    const sprite = hall.querySelector('span[style*="background-image"]') as HTMLElement | null;
+    expect(sprite).not.toBeNull();
+    expect(sprite!.style.backgroundImage).toContain('/world/landmark-workspace.png');
+    const zoom = parseInt(
+      document.querySelector('[role="application"][aria-label="test world"]')!.getAttribute('data-zoom')!,
+      10,
+    );
+    expect(zoom).toBeGreaterThan(0);
+    // 80x64 source px scaled by zoom/16, bottom-center anchored.
+    expect(parseInt(sprite!.style.width, 10)).toBe((80 * zoom) / 16);
+    expect(parseInt(sprite!.style.height, 10)).toBe((64 * zoom) / 16);
+    // Hit box keeps the footprint size (5x4 tiles), independent of sprite anchoring.
+    expect(parseInt(hall.style.width, 10)).toBe(5 * zoom);
+    expect(parseInt(hall.style.height, 10)).toBe(4 * zoom);
+  });
+
+  it('exposes zoom state and pauses animation when suspended', async () => {
+    const model = buildWorldModel(baseInput());
+    const layout = layoutWorld(model);
+    const { rerender } = render(
+      <MemoryRouter>
+        <WorldEntityMap
+          entities={layout.entities}
+          selectedId={null}
+          theme={cozyValleyTheme}
+          cols={layout.cols}
+          rows={layout.rows}
+          ariaLabel="suspension world"
+          mode="grounds"
+          suspended={false}
+          onSelect={vi.fn()}
+          onActivate={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+    const region = document.querySelector('[role="application"][aria-label="suspension world"]') as HTMLElement;
+    expect(region.getAttribute('data-suspended')).toBeNull();
+    expect(region.getAttribute('data-zoom')).not.toBeNull();
+    rerender(
+      <MemoryRouter>
+        <WorldEntityMap
+          entities={layout.entities}
+          selectedId={null}
+          theme={cozyValleyTheme}
+          cols={layout.cols}
+          rows={layout.rows}
+          ariaLabel="suspension world"
+          mode="grounds"
+          suspended
+          onSelect={vi.fn()}
+          onActivate={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+    expect(region.getAttribute('data-suspended')).toBe('true');
+    // Manual zoom is preserved: the data-zoom attribute does not reset on suspension.
+    const before = region.getAttribute('data-zoom');
+    rerender(
+      <MemoryRouter>
+        <WorldEntityMap
+          entities={layout.entities}
+          selectedId={null}
+          theme={cozyValleyTheme}
+          cols={layout.cols}
+          rows={layout.rows}
+          ariaLabel="suspension world"
+          mode="grounds"
+          suspended
+          onSelect={vi.fn()}
+          onActivate={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+    expect(region.getAttribute('data-zoom')).toBe(before);
+  });
 });

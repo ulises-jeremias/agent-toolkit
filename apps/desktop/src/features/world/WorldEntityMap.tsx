@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { StatusBadge, Table, VisuallyHidden, type Tone } from '../../ui';
+import { clampCamera, fitCamera, WORLD_ZOOMS, zoomCamera } from './camera';
 import { entityActivateLabel, entityHasInspector } from './inspectors';
 import { paintInterior, paintTerrain, type DecorSprite, type LaidOutEntity } from './model';
+import spriteManifest from '../../../public/world/manifest.json';
 import { TerrainCanvas } from './TerrainRenderer';
 import { resolveEntityAsset, type WorldThemePack } from './theme/cozyValley';
 import styles from './world.module.css';
@@ -62,12 +64,23 @@ export interface WorldEntityMapProps {
   rows: number;
   ariaLabel: string;
   mode: 'grounds' | 'interior';
+  /** Hidden inspector panel — pause terrain/CSS animation, keep manual zoom. */
+  suspended?: boolean;
   onSelect: (id: string) => void;
   onActivate: (entity: LaidOutEntity) => void;
 }
 
 /** Integer zoom steps (display px per 16px source tile). */
-const ZOOMS = [32, 48, 64] as const;
+const ZOOMS = WORLD_ZOOMS;
+
+/** Sprite manifest dimensions by sprite id (generator-owned; sprites keep their authored size). */
+type SpriteManifestEntry = { file: string; w: number; h: number; frames: number };
+
+function manifestEntry(spriteId: string | undefined): SpriteManifestEntry | undefined {
+  if (!spriteId) return undefined;
+  const sprites = spriteManifest.sprites as Record<string, SpriteManifestEntry>;
+  return sprites[spriteId];
+}
 
 /**
  * The world is the screen: terrain canvas + décor + semantic entities inside
@@ -81,6 +94,7 @@ export function WorldEntityMap({
   rows,
   ariaLabel,
   mode,
+  suspended = false,
   onSelect,
   onActivate,
 }: WorldEntityMapProps): ReactNode {
@@ -88,7 +102,15 @@ export function WorldEntityMap({
   const [zoom, setZoom] = useState<number>(48);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [fit, setFit] = useState(true);
-  const drag = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+  const drag = useRef<{ x: number; y: number; panX: number; panY: number; moved: boolean } | null>(null);
+  const suppressClick = useRef(false);
+  const [tabVisible, setTabVisible] = useState(() => document.visibilityState !== 'hidden');
+
+  useEffect(() => {
+    const update = () => setTabVisible(document.visibilityState !== 'hidden');
+    document.addEventListener('visibilitychange', update);
+    return () => document.removeEventListener('visibilitychange', update);
+  }, []);
 
   const sourceTile = theme.sourceTile;
   const worldW = cols * sourceTile;
@@ -96,75 +118,75 @@ export function WorldEntityMap({
   const scale = zoom / sourceTile;
   const viewW = worldW * scale;
   const viewH = worldH * scale;
+  const animate = tabVisible && !suspended;
 
   const plan = useMemo(
     () => (mode === 'grounds' ? paintTerrain(entities, cols, rows) : paintInterior(entities, cols, rows)),
     [mode, entities, cols, rows],
   );
 
-  const fitZoom = useCallback(() => {
+  const fitWorld = useCallback(() => {
     const region = regionRef.current;
-    if (!region) return 48;
-    const pad = 24;
-    const zx = Math.floor((region.clientWidth - pad) / worldW) * sourceTile;
-    const zy = Math.floor((region.clientHeight - pad) / worldH) * sourceTile;
-    const z = Math.min(zx, zy);
-    return ZOOMS.reduce((best, step) => (step <= Math.max(16, z) ? step : best), 16);
-  }, [worldW, worldH, sourceTile]);
+    if (!region) return;
+    const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows });
+    setZoom(camera.zoom);
+    setPan(camera.pan);
+  }, [cols, rows]);
 
   useEffect(() => {
     if (!fit) return;
-    const z = fitZoom();
-    setZoom(z);
-    const region = regionRef.current;
-    if (region) {
-      setPan({
-        x: Math.max(0, Math.floor((region.clientWidth - worldW * (z / sourceTile)) / 2)),
-        y: Math.max(0, Math.floor((region.clientHeight - worldH * (z / sourceTile)) / 2)),
-      });
-    }
-  }, [fit, fitZoom, worldW, worldH, sourceTile]);
+    fitWorld();
+  }, [fit, fitWorld]);
 
   useEffect(() => {
     const region = regionRef.current;
     if (!region) return;
     const observer = new ResizeObserver(() => {
       if (fit) {
-        const z = fitZoom();
-        setZoom(z);
-        setPan({
-          x: Math.max(0, Math.floor((region.clientWidth - worldW * (z / sourceTile)) / 2)),
-          y: Math.max(0, Math.floor((region.clientHeight - worldH * (z / sourceTile)) / 2)),
-        });
+        fitWorld();
+      } else {
+        setPan((p) => clampCamera(p, { x: region.clientWidth, y: region.clientHeight }, { x: viewW, y: viewH }));
       }
     });
     observer.observe(region);
     return () => observer.disconnect();
-  }, [fit, fitZoom, worldW, worldH, sourceTile]);
+  }, [fit, fitWorld, viewW, viewH]);
 
   const clampPan = useCallback(
     (x: number, y: number) => {
       const region = regionRef.current;
-      const maxX = 24;
-      const maxY = 24;
-      const minX = region ? Math.min(24, region.clientWidth - viewW - 24) : -viewW;
-      const minY = region ? Math.min(24, region.clientHeight - viewH - 24) : -viewH;
-      return { x: Math.min(maxX, Math.max(minX, x)), y: Math.min(maxY, Math.max(minY, y)) };
+      return clampCamera(
+        { x, y },
+        { x: region?.clientWidth ?? 0, y: region?.clientHeight ?? 0 },
+        { x: viewW, y: viewH },
+      );
     },
     [viewW, viewH],
   );
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y };
-    (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
+    if (event.button !== 0) return;
+    if ((event.target as HTMLElement).closest('[aria-label="Map view controls"]')) return;
+    suppressClick.current = false;
+    drag.current = { x: event.clientX, y: event.clientY, panX: pan.x, panY: pan.y, moved: false };
   };
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!drag.current) return;
     const { x, y, panX, panY } = drag.current;
+    // A sub-threshold move is still a click: only real drags pan and suppress activation.
+    if (!drag.current.moved && Math.hypot(event.clientX - x, event.clientY - y) < 5) return;
+    if (!drag.current.moved) {
+      drag.current.moved = true;
+      suppressClick.current = true;
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    }
     setFit(false);
     setPan(clampPan(panX + event.clientX - x, panY + event.clientY - y));
   };
-  const onPointerUp = () => {
+  const onPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     drag.current = null;
   };
 
@@ -192,14 +214,16 @@ export function WorldEntityMap({
     }
   };
 
-  const zoomIn = () => {
+  const changeZoom = (next: number) => {
+    const region = regionRef.current;
     setFit(false);
-    setZoom((z) => ZOOMS.find((s) => s > z) ?? 64);
+    if (region) {
+      setPan(zoomCamera(pan, zoom, next, { x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }));
+    }
+    setZoom(next);
   };
-  const zoomOut = () => {
-    setFit(false);
-    setZoom((z) => [...ZOOMS].reverse().find((s) => s < z) ?? 16);
-  };
+  const zoomIn = () => changeZoom(ZOOMS.find((s) => s > zoom) ?? 64);
+  const zoomOut = () => changeZoom([...ZOOMS].reverse().find((s) => s < zoom) ?? 16);
 
   return (
     <div
@@ -209,12 +233,21 @@ export function WorldEntityMap({
       aria-label={ariaLabel}
       data-theme={theme.id}
       data-mode={mode}
+      data-zoom={zoom}
+      data-suspended={!animate ? 'true' : undefined}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
+      onClickCapture={(event) => {
+        // A drag that started on an entity must not open its inspector.
+        if (suppressClick.current && event.detail !== 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          suppressClick.current = false;
+        }
+      }}
     >
-      {/* Keyboard pan lives on a real button so the map region itself stays non-interactive. */}
       {/* Keyboard pan lives on a real button so the map region itself stays non-interactive. */}
       <button
         type="button"
@@ -226,11 +259,19 @@ export function WorldEntityMap({
         className={styles.mapWorld}
         style={{ transform: `translate(${pan.x}px, ${pan.y}px)`, width: viewW, height: viewH }}
       >
-        <TerrainCanvas theme={theme} cells={plan.cells} cols={cols} rows={rows} mode={mode} animate />
+        <TerrainCanvas
+          theme={theme}
+          cells={plan.cells}
+          cols={cols}
+          rows={rows}
+          mode={mode}
+          animate={animate}
+          tileSize={zoom}
+        />
         {plan.decor
           .filter((d) => !d.over)
           .map((d) => (
-            <DecorSpriteView key={d.id} decor={d} theme={theme} />
+            <DecorSpriteView key={d.id} decor={d} theme={theme} scale={scale} />
           ))}
         {entities.map((entity) => (
           <EntityTile
@@ -239,6 +280,7 @@ export function WorldEntityMap({
             theme={theme}
             selectedId={selectedId}
             mode={mode}
+            tileSize={zoom}
             onSelect={onSelect}
             onActivate={onActivate}
           />
@@ -246,7 +288,7 @@ export function WorldEntityMap({
         {plan.decor
           .filter((d) => d.over)
           .map((d) => (
-            <DecorSpriteView key={d.id} decor={d} theme={theme} />
+            <DecorSpriteView key={d.id} decor={d} theme={theme} scale={scale} />
           ))}
       </div>
       <div className={styles.cameraHud} role="group" aria-label="Map view controls">
@@ -256,7 +298,15 @@ export function WorldEntityMap({
         <button type="button" className={styles.hudButton} onClick={zoomIn} aria-label="Zoom in">
           +
         </button>
-        <button type="button" className={styles.hudButton} onClick={() => setFit(true)} aria-label="Fit world">
+        <button
+          type="button"
+          className={styles.hudButton}
+          onClick={() => {
+            setFit(true);
+            fitWorld();
+          }}
+          aria-label="Fit world"
+        >
           ⌂
         </button>
       </div>
@@ -264,10 +314,9 @@ export function WorldEntityMap({
   );
 }
 
-function DecorSpriteView({ decor, theme }: { decor: DecorSprite; theme: WorldThemePack }) {
+function DecorSpriteView({ decor, theme, scale }: { decor: DecorSprite; theme: WorldThemePack; scale: number }) {
   const asset = theme.decor?.[decor.sprite] ?? theme.interior?.[decor.sprite];
   if (!asset || asset.kind !== 'sprite') return null;
-  const scale = theme.tileSize / theme.sourceTile;
   return (
     <span
       aria-hidden="true"
@@ -291,6 +340,7 @@ function EntityTile({
   theme,
   selectedId,
   mode,
+  tileSize,
   onSelect,
   onActivate,
 }: {
@@ -298,6 +348,7 @@ function EntityTile({
   theme: WorldThemePack;
   selectedId: string | null;
   mode: 'grounds' | 'interior';
+  tileSize: number;
   onSelect: (id: string) => void;
   onActivate: (entity: LaidOutEntity) => void;
 }) {
@@ -312,7 +363,16 @@ function EntityTile({
           ? interiorOverride(theme, entity.themeKey, asset.src)
           : asset.src
       : null;
-  const frames = asset.kind === 'sprite' ? (asset.frames ?? 1) : 1;
+  // Sprites keep their manifest dimensions, scaled by the camera; the hit box
+  // keeps its semantic footprint. Anchored bottom-center like a standing figure.
+  const sprite = manifestEntry(
+    src
+      ?.split('/')
+      .pop()
+      ?.replace(/\.png$/, ''),
+  );
+  const frames = sprite?.frames ?? (asset.kind === 'sprite' ? (asset.frames ?? 1) : 1);
+  const spriteScale = tileSize / theme.sourceTile;
   const canInspect = entityHasInspector(entity);
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -332,22 +392,27 @@ function EntityTile({
       title={entityActivateLabel(entity)}
       aria-label={entityActivateLabel(entity)}
       style={{
-        left: entity.x * theme.tileSize,
-        top: entity.y * theme.tileSize,
-        width: entity.w * theme.tileSize,
-        height: entity.h * theme.tileSize,
-        ...(src
-          ? {
-              backgroundImage: `url(${src})`,
-              backgroundSize: `${frames * entity.w * theme.tileSize}px ${entity.h * theme.tileSize}px`,
-              ['--frames' as string]: frames,
-            }
-          : {}),
+        left: entity.x * tileSize,
+        top: entity.y * tileSize,
+        width: entity.w * tileSize,
+        height: entity.h * tileSize,
       }}
       onClick={() => activateEntity(entity, onSelect, onActivate)}
       onKeyDown={onKeyDown}
       onFocus={() => onSelect(entity.id)}
     >
+      {src ? (
+        <span
+          aria-hidden="true"
+          className={styles.entitySprite}
+          style={{
+            width: (sprite?.w ?? entity.w * theme.sourceTile) * spriteScale,
+            height: (sprite?.h ?? entity.h * theme.sourceTile) * spriteScale,
+            backgroundImage: `url(${src})`,
+            ['--frames' as string]: frames,
+          }}
+        />
+      ) : null}
       {entity.kind === 'character' && entity.activity === 'blocked' ? (
         <span className={styles.alertBubble} aria-hidden="true" />
       ) : null}

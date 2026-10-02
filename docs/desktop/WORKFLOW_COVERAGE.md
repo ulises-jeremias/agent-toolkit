@@ -3,6 +3,16 @@
 Status: **CURRENT CONTRACT** — baseline `ecc4d67cb10a4fd37e6d3e365aa33d83da4a006f`, fetched 2026-09-13
 (previous baseline `711c9f32`, 2026-09-10).
 
+> **Re-baseline banner (2026-10-01, Electron Desktop):** the shipping Desktop is
+> Electron + React (ADR-033). The native-V cell matrix and file:line blockers
+> below (`cmd/agent-toolkit-desktop/main.v`, `modules/desktop_engine/*`) are
+> **historical evidence only** for the retired native Desktop. The current
+> per-journey ledger for the Electron app lives in
+> [`workflows.yaml`](workflows.yaml) (`spec: agent-toolkit/desktop-workflows@1`,
+> checked by `apps/desktop/src/workflowLedger.test.ts`). People journeys
+> (CRUD, import review, Start, swarm picker) are explicitly not implemented —
+> schemas and file authoring are not the user interface.
+>
 > **Re-baseline banner (2026-09-13):** the matrix below is restated as
 > unevidenced-at-HEAD. Per-cell verdicts were carried over unchanged from the
 > 2026-09-05 baseline (`85853de`), which is now historical — per-cell

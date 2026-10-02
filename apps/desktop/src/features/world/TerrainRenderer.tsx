@@ -49,9 +49,11 @@ export interface TerrainCanvasProps {
   rows: number;
   mode: 'grounds' | 'interior';
   animate: boolean;
+  /** Display px per source tile (the shared camera zoom). */
+  tileSize: number;
 }
 
-export function TerrainCanvas({ theme, cells, cols, rows, mode, animate }: TerrainCanvasProps) {
+export function TerrainCanvas({ theme, cells, cols, rows, mode, animate, tileSize }: TerrainCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { motion } = useAppearance();
   const ts = theme.sourceTile;
@@ -122,7 +124,7 @@ export function TerrainCanvas({ theme, cells, cols, rows, mode, animate }: Terra
       width={cols * ts}
       height={rows * ts}
       aria-hidden="true"
-      style={{ width: cols * theme.tileSize, height: rows * theme.tileSize }}
+      style={{ width: cols * tileSize, height: rows * tileSize }}
     />
   );
 }
