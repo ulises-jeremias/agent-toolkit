@@ -503,7 +503,7 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
   };
 
   const submit = () => {
-    if (!context.workspace || !task.trim() || !selectedRecipe || catalog.isLoading) return;
+    if (!context.workspace || !task.trim() || !selectedRecipe || catalog.isLoading || mutate.isPending) return;
     mutate.mutate(
       { sub: 'start', body },
       {
@@ -628,7 +628,14 @@ function StartSwarmDialog({ open, onClose }: { open: boolean; onClose: () => voi
             <FormRow>
               <Field label="Runner" hint="Coding-agent runtime.">
                 {(control) => (
-                  <Select value={runner} onChange={(event) => setRunner(event.target.value)} {...control}>
+                  <Select
+                    value={runner}
+                    onChange={(event) => {
+                      setRunner(event.target.value);
+                      setModel('');
+                    }}
+                    {...control}
+                  >
                     <option value="">Automatic runner</option>
                     {availableProviders.map((provider) => (
                       <option key={provider.id} value={provider.id}>
