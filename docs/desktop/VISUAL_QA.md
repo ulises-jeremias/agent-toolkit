@@ -35,6 +35,30 @@ Opened files:
 - [Project interior, compact](assets/electron/world/project-files-room-compact.png).
 - [Live Person session, compact](assets/electron/people/world-person-compact.png),
   [live Person session, large](assets/electron/people/world-person-large.png),
-  and [offline Person after stop](assets/electron/people/people-offline-after-stop.png).
+and [offline Person after stop](assets/electron/people/people-offline-after-stop.png).
+
+## Loop scheduling review — 2026-10-02
+
+Source build `233b9159` (Linux Electron E2E, temporary HOME). The schedule
+journey lists the real user-level scheduler state, previews file paths and
+cadence, then installs and disables a schedule through the existing backend
+operation. The test's `systemctl` shim forces one install failure, verifies the
+error is shown, and then permits a retry; generated unit files are created and
+removed under the temporary HOME. It never enables a timer on the host.
+
+The first screenshot review showed the entire generated unit taking over the
+dialog. I changed the preview to lead with the exact target paths and trigger,
+put the full generated service/timer behind an expandable details row, and kept
+the confirm action fixed in the dialog footer. The compact capture still scrolls
+the long content while keeping that action visible. I also dismissed the run
+receipt before capturing the final report so it no longer obscures real state.
+
+Opened files:
+
+- [Schedule preview, compact](assets/electron/loops/loop-schedule-preview-compact.png)
+  and [large](assets/electron/loops/loop-schedule-preview-large.png).
+- [Loop report, compact](assets/electron/loops/loop-report-compact.png),
+  [large](assets/electron/loops/loop-report-large.png), and
+  [completed run](assets/electron/loops/loop-report-after-run.png).
 
 The old native V Paper/Ink golden fixtures and Xvfb coordinate scripts were retired with that GUI. Electron E2E and packaged-app acceptance are the executable gates. Screenshots checked into `static/screenshots/` are documentation examples and must be recaptured from the current app whenever the pictured UI changes.
