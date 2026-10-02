@@ -216,6 +216,8 @@ fn test_schedule_emit_units() {
 	assert svc.contains('Description=agent-toolkit loop daily')
 	assert svc.contains('WorkingDirectory=/ws')
 	assert svc.contains('ExecStart=agent-toolkit loop run daily')
+	escaped_svc := emit_systemd_service('daily', '/home/Name With "Quotes"/100%/repo', '')
+	assert escaped_svc.contains('WorkingDirectory=/home/Name\\x20With\\x20\\"Quotes\\"/100%%/repo')
 	timer := emit_systemd_timer('daily', 'daily')
 	assert timer.contains('OnCalendar=daily')
 	assert timer.contains('Persistent=true')
@@ -234,6 +236,19 @@ fn test_schedule_remove_and_list_isolated_home() {
 		return
 	}
 	home := os.join_path(os.temp_dir(), 'at-sched-home-${os.getpid()}')
+	bin := os.join_path(home, 'bin')
+	os.mkdir_all(bin) or { panic(err.msg()) }
+	fake_systemctl := os.join_path(bin, 'systemctl')
+	os.write_file(fake_systemctl, '#!/bin/sh\nif [ -f "$HOME/fail-stop" ] && [ "$2" = stop ]; then echo "scheduler fixture failure" >&2; exit 1; fi\nexit 0\n') or { panic(err.msg()) }
+	os.chmod(fake_systemctl, 0o755) or { panic(err.msg()) }
+	previous_path := os.getenv('PATH')
+	previous_home := os.getenv('HOME')
+	os.setenv('PATH', '${bin}:${previous_path}', true)
+	os.setenv('HOME', home, true)
+	defer {
+		os.setenv('PATH', previous_path, true)
+		os.setenv('HOME', previous_home, true)
+	}
 	dir := os.join_path(home, '.config', 'systemd', 'user')
 	os.mkdir_all(dir) or { panic(err.msg()) }
 	defer {
@@ -251,6 +266,13 @@ fn test_schedule_remove_and_list_isolated_home() {
 	assert dry.data['service_path'].ends_with('agent-toolkit-loop-x.service')
 	assert dry.data['timer_path'].ends_with('agent-toolkit-loop-x.timer')
 	assert os.is_file(os.join_path(dir, 'agent-toolkit-loop-x.timer'))
+	os.write_file(os.join_path(home, 'fail-stop'), 'fail') or { panic(err.msg()) }
+	failed_rm := loop_schedule_remove('x', home, false)
+	assert !failed_rm.ok
+	assert failed_rm.message.contains('scheduler files were kept')
+	assert os.is_file(os.join_path(dir, 'agent-toolkit-loop-x.service'))
+	assert os.is_file(os.join_path(dir, 'agent-toolkit-loop-x.timer'))
+	os.rm(os.join_path(home, 'fail-stop')) or { panic(err.msg()) }
 	rm := loop_schedule_remove('x', home, false)
 	assert rm.ok, rm.message
 	assert rm.message.contains('Removed schedule: x')

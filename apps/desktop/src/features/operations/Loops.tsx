@@ -299,17 +299,20 @@ function ManageLoopScheduleDialog({
   const action = useSubMutation('loops', 'schedule');
   const receipt = useActionReceipt('Loop schedule updated');
   const [reviewed, setReviewed] = useState<('install' | 'remove') | null>(null);
+  const [requestedPreview, setRequestedPreview] = useState<('install' | 'remove') | null>(null);
   const [plan, setPlan] = useState<CommandEnvelope | null>(null);
 
   useEffect(() => {
     if (!open) {
       setReviewed(null);
+      setRequestedPreview(null);
       setPlan(null);
     }
   }, [open]);
 
   const preview = (kind: 'install' | 'remove') => {
     if (!loop) return;
+    setRequestedPreview(kind);
     setReviewed(null);
     setPlan(null);
     action.mutate(
@@ -332,6 +335,7 @@ function ManageLoopScheduleDialog({
           receipt.onSuccess(result);
           setPlan(null);
           setReviewed(null);
+          setRequestedPreview(null);
         },
       },
     );
@@ -433,7 +437,26 @@ function ManageLoopScheduleDialog({
               </p>
             </section>
           ) : null}
-          {action.error ? <ErrorState title="The schedule was not changed" error={action.error} /> : null}
+          {action.error ? (
+            <ErrorState
+              title="Scheduler change needs attention"
+              error={action.error}
+              guidance={
+                reviewed === null
+                  ? 'The preview could not be prepared, so no schedule change was applied. Check the error, then retry the preview.'
+                  : reviewed === 'remove'
+                    ? 'The timer may already be stopped, but its files remain when cleanup fails. Check the scheduler output, then retry the disable action.'
+                    : 'Installation may have written scheduler files before activation failed. Review the output, then retry to complete or replace the schedule.'
+              }
+              retryLabel={
+                reviewed === null ? 'Retry preview' : reviewed === 'remove' ? 'Retry disable' : 'Retry install'
+              }
+              onRetry={() => {
+                if (reviewed) apply();
+                else if (requestedPreview) preview(requestedPreview);
+              }}
+            />
+          ) : null}
         </>
       ) : null}
     </Dialog>

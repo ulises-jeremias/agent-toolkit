@@ -12,11 +12,13 @@ test('adds a loop from the Library template, runs it, and reads its typed report
   const fakeSystemctl = path.join(fakeBin, 'systemctl');
   fs.writeFileSync(
     fakeSystemctl,
-    '#!/bin/sh\nif [ -f "$HOME/fail-systemctl" ]; then echo "scheduler fixture failure" >&2; exit 1; fi\nexit 0\n',
+    '#!/bin/sh\nif [ -f "$HOME/fail-enable" ] && [ "$2" = enable ]; then echo "scheduler fixture failure" >&2; exit 1; fi\nif [ -f "$HOME/fail-stop" ] && [ "$2" = stop ]; then echo "scheduler fixture failure" >&2; exit 1; fi\nexit 0\n',
     { mode: 0o755 },
   );
   const previousPath = process.env.PATH;
+  const previousShim = process.env.ATK_E2E_SYSTEMCTL_SHIM;
   process.env.PATH = `${fakeBin}${path.delimiter}${previousPath ?? ''}`;
+  process.env.ATK_E2E_SYSTEMCTL_SHIM = fakeBin;
   let desktop: Awaited<ReturnType<typeof openDesktop>> | undefined;
   try {
     desktop = await openDesktop();
@@ -54,10 +56,10 @@ test('adds a loop from the Library template, runs it, and reads its typed report
     }
     await schedule.getByText('View generated scheduler details').click();
     await expect(schedule).toContainText('Would enable: systemctl --user enable');
-    fs.writeFileSync(path.join(desktop.home, 'fail-systemctl'), 'fail');
+    fs.writeFileSync(path.join(desktop.home, 'fail-enable'), 'fail');
     await schedule.getByRole('button', { name: 'Install schedule' }).click();
     await expect(schedule).toContainText('Enable failed');
-    fs.rmSync(path.join(desktop.home, 'fail-systemctl'), { force: true });
+    fs.rmSync(path.join(desktop.home, 'fail-enable'), { force: true });
     await schedule.getByRole('button', { name: 'Install schedule' }).click();
     await expect(schedule).toContainText('Scheduled loops:');
     await expect(schedule).toContainText('daily-triage');
@@ -65,7 +67,22 @@ test('adds a loop from the Library template, runs it, and reads its typed report
     await expect(schedule.getByRole('region', { name: 'Schedule change preview' })).toContainText(
       'agent-toolkit-loop-daily-triage.service',
     );
+    fs.writeFileSync(path.join(desktop.home, 'fail-stop'), 'fail');
     await schedule.getByRole('button', { name: 'Disable schedule' }).click();
+    await expect(schedule).toContainText('Could not stop agent-toolkit-loop-daily-triage.timer');
+    await expect(schedule).toContainText('scheduler files were kept');
+    await expect(schedule).toContainText('daily-triage');
+    if (process.env.ATK_CAPTURE === '1') {
+      await page.setViewportSize({ width: 1024, height: 640 });
+      await schedule.getByText(/Could not stop agent-toolkit-loop-daily-triage/).scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'loop-schedule-recovery-compact.png') });
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await schedule.getByText(/Could not stop agent-toolkit-loop-daily-triage/).scrollIntoViewIfNeeded();
+      await page.screenshot({ path: path.join(CAPTURE_DIR, 'loop-schedule-recovery-large.png') });
+      await page.setViewportSize({ width: 1024, height: 640 });
+    }
+    fs.rmSync(path.join(desktop.home, 'fail-stop'), { force: true });
+    await schedule.getByRole('button', { name: 'Retry disable' }).click();
     await expect(schedule).toContainText('No scheduled loops found.');
     await schedule.getByRole('button', { name: 'Close' }).click();
 
@@ -98,6 +115,8 @@ test('adds a loop from the Library template, runs it, and reads its typed report
     }
   } finally {
     process.env.PATH = previousPath;
+    if (previousShim === undefined) delete process.env.ATK_E2E_SYSTEMCTL_SHIM;
+    else process.env.ATK_E2E_SYSTEMCTL_SHIM = previousShim;
     await desktop?.close();
     fs.rmSync(fakeBin, { recursive: true, force: true });
   }

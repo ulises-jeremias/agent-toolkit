@@ -884,9 +884,28 @@ fn launchd_label(name string) string {
 	return 'com.agent-toolkit.${name}'
 }
 
+// systemd_escape_value protects a scalar unit-file value from token splitting,
+// quote parsing, and specifier expansion while preserving its original bytes.
+fn systemd_escape_value(value string) string {
+	mut out := []u8{}
+	for ch in value.bytes() {
+		match ch {
+			` ` { out << '\\x20'.bytes() }
+			`\t` { out << '\\x09'.bytes() }
+			`\n` { out << '\\x0a'.bytes() }
+			`\r` { out << '\\x0d'.bytes() }
+			`%` { out << '%%'.bytes() }
+			`\\` { out << '\\\\'.bytes() }
+			`"` { out << '\\"'.bytes() }
+			else { out << ch }
+		}
+	}
+	return out.bytestr()
+}
+
 // emit_systemd_service renders the oneshot service for a loop run.
 fn emit_systemd_service(name string, ws string, run_suffix string) string {
-	return '[Unit]\nDescription=agent-toolkit loop ${name}\n\n[Service]\nType=oneshot\nWorkingDirectory=${ws}\nExecStart=agent-toolkit loop run ${name}${run_suffix}\n\n[Install]\nWantedBy=default.target\n'
+	return '[Unit]\nDescription=agent-toolkit loop ${name}\n\n[Service]\nType=oneshot\nWorkingDirectory=${systemd_escape_value(ws)}\nExecStart=agent-toolkit loop run ${name}${run_suffix}\n\n[Install]\nWantedBy=default.target\n'
 }
 
 // schedule_expand_step expands one cron field to an explicit value list
@@ -1308,8 +1327,35 @@ fn loop_schedule_remove(name string, home string, dry_run bool) LoopReport {
 				}
 			}
 		}
-		os.execute('launchctl unload ${path}')
-		os.rm(path) or {}
+		if !os.is_file(path) {
+			return LoopReport{
+				ok: true
+				message: '[loop] No scheduled launch agent found for ${name}.'
+				data: {
+					'subcommand': 'schedule'
+					'name':       name
+					'mode':       'remove'
+				}
+			}
+		}
+		unload := os.execute('launchctl unload ${path}')
+		if unload.exit_code != 0 {
+			return LoopReport{
+				ok: false
+				message: 'Could not unload ${label}; the launch agent file was kept so you can retry. ${unload.output.trim_space()}\nRetry with: launchctl unload ${path}'
+				data: {
+					'subcommand': 'schedule'
+					'name':       name
+					'plist_path': path
+				}
+			}
+		}
+		os.rm(path) or {
+			return LoopReport{
+				ok: false
+				message: 'Unloaded ${label}, but could not remove ${path}: ${err}. The file is still present.'
+			}
+		}
 		return LoopReport{
 			ok: true
 			message: '[loop] Removed schedule: ${name}'
@@ -1337,10 +1383,59 @@ fn loop_schedule_remove(name string, home string, dry_run bool) LoopReport {
 			}
 		}
 	}
-	os.execute('systemctl --user stop ${base}.timer')
-	os.execute('systemctl --user disable ${base}.timer')
-	os.rm(svc_path) or {}
-	os.rm(timer_path) or {}
+	if !os.is_file(svc_path) && !os.is_file(timer_path) {
+		return LoopReport{
+			ok: true
+			message: '[loop] No scheduled timer found for ${name}.'
+			data: {
+				'subcommand': 'schedule'
+				'name':       name
+				'mode':       'remove'
+			}
+		}
+	}
+	stopped := os.execute('systemctl --user stop ${base}.timer')
+	if stopped.exit_code != 0 {
+		return LoopReport{
+			ok: false
+			message: 'Could not stop ${base}.timer; scheduler files were kept. ${stopped.output.trim_space()}\nRetry with: systemctl --user stop ${base}.timer'
+			data: {
+				'subcommand':   'schedule'
+				'name':         name
+				'service_path': svc_path
+				'timer_path':   timer_path
+			}
+		}
+	}
+	disabled := os.execute('systemctl --user disable ${base}.timer')
+	if disabled.exit_code != 0 {
+		return LoopReport{
+			ok: false
+			message: 'Stopped ${base}.timer, but could not disable it; scheduler files were kept. ${disabled.output.trim_space()}\nRetry with: systemctl --user disable ${base}.timer'
+			data: {
+				'subcommand':   'schedule'
+				'name':         name
+				'service_path': svc_path
+				'timer_path':   timer_path
+			}
+		}
+	}
+	for file in [svc_path, timer_path] {
+		if os.is_file(file) {
+			os.rm(file) or {
+				return LoopReport{
+					ok: false
+					message: 'Disabled ${base}.timer, but could not remove ${file}: ${err}. The remaining scheduler files are listed for retry.'
+					data: {
+						'subcommand':   'schedule'
+						'name':         name
+						'service_path': svc_path
+						'timer_path':   timer_path
+					}
+				}
+			}
+		}
+	}
 	return LoopReport{
 		ok: true
 		message: '[loop] Removed schedule: ${name}'
