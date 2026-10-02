@@ -7,7 +7,7 @@ Terminal, Phase 5 failure matrix.
 
 ## Entities: composition, not a "Worker"
 
-ATK keeps V as the only domain authority (ADR-033, proposed). The Desktop row
+ATK keeps V as the only domain authority (ADR-033, accepted). The Desktop row
 people call "an agent" is a projection of four V concepts:
 
 | Entity | Meaning | Exists today |

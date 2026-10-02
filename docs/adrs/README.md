@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-Single source: [`docs/adrs/`](./) — 35 records. Engineering ADRs use `ADR-0xx` prefix; product/pack semantics ADRs use `000x` prefix (legacy numbering kept for stability). Status is in each file header.
+Single source: [`docs/adrs/`](./) — 40 records. Engineering ADRs use `ADR-0xx` prefix; product/pack semantics ADRs use `000x` prefix (legacy numbering kept for stability). Status is in each file header.
 
 | ADR | Title |
 |-----|-------|
@@ -35,9 +35,11 @@ Single source: [`docs/adrs/`](./) — 35 records. Engineering ADRs use `ADR-0xx`
 | [ADR-029](ADR-029-surface-parity-ssot.md) | Surface-parity SSOT (contract → all surfaces) — **superseded by ADR-030** |
 | [ADR-030](ADR-030-capability-contract-binary-first.md) | Capability contract — binary-first (supersedes ADR-029) |
 | [ADR-031](ADR-031-v-master.md) | V master as baseline for entire toolkit |
-| [ADR-032](ADR-032-desktop-gui-framework.md) | Desktop GUI framework: vlang/gui wrap (Phase 0 spike #1018) |
+| [ADR-032](ADR-032-desktop-gui-framework.md) | Native V Desktop framework (historical; superseded by ADR-033) |
 | [ADR-033](ADR-033-electron-desktop.md) | Desktop: Electron + React canonical; V remains core/CLI/backend (Accepted) |
 | [ADR-034](ADR-034-semantic-world.md) | Desktop: semantic spatial world as primary home |
+| [ADR-035](ADR-035-cozy-pixel-world.md) | Desktop visual reset: Cozy Pixel World |
+| [ADR-036](ADR-036-durable-people.md) | Durable People distinct from definitions and runtime |
 | [0001](0001-capability-declaration-and-external-provenance-lock.md) | Capability declaration and external provenance lock |
 | [0002](0002-design-assessment-as-design-unit.md) | Design assessment as design unit |
 | [0003](0003-pack-semantics-products-own-installation.md) | Pack semantics — products own installation |
