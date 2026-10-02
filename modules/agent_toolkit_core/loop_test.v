@@ -248,6 +248,8 @@ fn test_schedule_remove_and_list_isolated_home() {
 	dry := loop_schedule_remove('x', home, true)
 	assert dry.ok
 	assert dry.message.contains('Would remove')
+	assert dry.data['service_path'].ends_with('agent-toolkit-loop-x.service')
+	assert dry.data['timer_path'].ends_with('agent-toolkit-loop-x.timer')
 	assert os.is_file(os.join_path(dir, 'agent-toolkit-loop-x.timer'))
 	rm := loop_schedule_remove('x', home, false)
 	assert rm.ok, rm.message
@@ -263,6 +265,9 @@ fn test_schedule_install_systemd_dry_run() {
 	assert r.ok, r.message
 	assert r.message.contains('OnCalendar=*-*-* 00:00:00')
 	assert r.message.contains('Would enable: systemctl --user enable agent-toolkit-loop-daily.timer')
+	assert r.data['service_path'].ends_with('agent-toolkit-loop-daily.service')
+	assert r.data['timer_path'].ends_with('agent-toolkit-loop-daily.timer')
+	assert r.data['on_calendar'] == '*-*-* 00:00:00'
 	bad := loop_schedule_install_systemd('daily', '/ws', '0 0 * 5 *', '', os.temp_dir(), true)
 	assert !bad.ok
 }

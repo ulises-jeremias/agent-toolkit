@@ -1057,10 +1057,13 @@ fn loop_schedule_install_systemd(name string, ws string, cron string, run_suffix
 			ok: true
 			message: '[loop] schedule dry-run (systemd service+timer):\n--- ${svc_path} ---\n${svc}--- ${timer_path} ---\n${timer}Would enable: systemctl --user enable ${base}.timer\nWould start:  systemctl --user start ${base}.timer'
 			data: {
-				'subcommand': 'schedule'
-				'workspace':  ws
-				'name':       name
-				'mode':       'dry-run'
+				'subcommand':   'schedule'
+				'workspace':    ws
+				'name':         name
+				'mode':         'dry-run'
+				'service_path': svc_path
+				'timer_path':   timer_path
+				'on_calendar':  oncal
 			}
 		}
 	}
@@ -1110,7 +1113,7 @@ fn loop_schedule_install_systemd(name string, ws string, cron string, run_suffix
 		msg += 'Start failed (exit ${st.exit_code}): ${st.output.trim_space()}\n  Start manually: systemctl --user start ${base}.timer'
 	}
 	return LoopReport{
-		ok: true
+		ok: en.exit_code == 0 && st.exit_code == 0
 		message: msg
 		data: {
 			'subcommand': 'schedule'
@@ -1146,10 +1149,13 @@ fn loop_schedule_install_launchd(name string, ws string, cadence string, run_suf
 			ok: true
 			message: '[loop] schedule dry-run (launchd plist):\n--- ${path} ---\n${plist}Would load: launchctl load ${path}'
 			data: {
-				'subcommand': 'schedule'
-				'workspace':  ws
-				'name':       name
-				'mode':       'dry-run'
+				'subcommand':       'schedule'
+				'workspace':        ws
+				'name':             name
+				'mode':             'dry-run'
+				'plist_path':       path
+				'label':            label
+				'interval_seconds': '${interval}'
 			}
 		}
 	}
@@ -1173,7 +1179,7 @@ fn loop_schedule_install_launchd(name string, ws string, cadence string, run_suf
 		msg += 'Load failed (exit ${ld.exit_code}): ${ld.output.trim_space()}\n  Load manually: launchctl load ${path}'
 	}
 	return LoopReport{
-		ok: true
+		ok: ld.exit_code == 0
 		message: msg
 		data: {
 			'subcommand': 'schedule'
@@ -1298,6 +1304,7 @@ fn loop_schedule_remove(name string, home string, dry_run bool) LoopReport {
 					'subcommand': 'schedule'
 					'name':       name
 					'mode':       'remove-dry-run'
+					'plist_path': path
 				}
 			}
 		}
@@ -1322,9 +1329,11 @@ fn loop_schedule_remove(name string, home string, dry_run bool) LoopReport {
 			ok: true
 			message: '[loop] Would remove: ${svc_path}\n[loop] Would remove: ${timer_path}'
 			data: {
-				'subcommand': 'schedule'
-				'name':       name
-				'mode':       'remove-dry-run'
+				'subcommand':   'schedule'
+				'name':         name
+				'mode':         'remove-dry-run'
+				'service_path': svc_path
+				'timer_path':   timer_path
 			}
 		}
 	}

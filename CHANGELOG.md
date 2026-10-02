@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Operations can inspect existing loop schedules, review the exact service/timer
+  paths and cadence before installing or disabling one, expand the generated
+  scheduler details when needed, and recover clearly when the OS scheduler
+  rejects an install.
 - Desktop's command palette adds direct Person actions: inspect a saved profile,
   start an offline collaborator through the normal review dialog, or open the
   real terminal for a live Person-bound PTY.

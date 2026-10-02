@@ -59,6 +59,27 @@
   color: var(--text-muted);
 }
 
+.scheduleDetails {
+  margin-top: var(--space-3);
+}
+
+.scheduleDetails summary {
+  min-height: var(--target-min);
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.scheduleDetails[open] > :global(pre) {
+  margin-top: var(--space-2);
+  max-height: 12rem;
+}
+
 .subsection {
   margin-top: var(--space-5);
 }
