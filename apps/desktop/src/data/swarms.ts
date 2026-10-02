@@ -7,6 +7,7 @@ import {
   type SwarmActionResponse,
   type SwarmListResponse,
   type SwarmRunResponse,
+  type SwarmRecipesResponse,
 } from '../lib/api';
 import { qk } from '../lib/query/keys';
 import { requireClient, useBackend } from './backend';
@@ -16,6 +17,15 @@ export function useSwarms() {
   return useQuery({
     queryKey: qk.swarms.list(),
     queryFn: () => requireClient(client).swarms(),
+    enabled: client !== null,
+  });
+}
+
+export function useSwarmRecipes() {
+  const { client } = useBackend();
+  return useQuery<SwarmRecipesResponse>({
+    queryKey: qk.swarms.recipes(),
+    queryFn: () => requireClient(client).swarmRecipes(),
     enabled: client !== null,
   });
 }

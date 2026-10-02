@@ -842,6 +842,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/swarms/recipes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List canonical swarm recipes and adapter availability */
+        get: operations["list_swarm_recipes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/swarms/runs/{id}": {
         parameters: {
             query?: never;
@@ -1212,6 +1229,40 @@ export interface components {
         SwarmListResponse: {
             ok: boolean;
             runs: components["schemas"]["SwarmRunInfo"][];
+        };
+        SwarmRecipeRoleView: {
+            name: string;
+            persona: string;
+            policy: string;
+            model_profile: string;
+            receive_mode: string;
+            consumes: string[];
+            produces: string[];
+            skills: string[];
+        };
+        SwarmRecipeView: {
+            name: string;
+            description: string;
+            roles: components["schemas"]["SwarmRecipeRoleView"][];
+            budget: components["schemas"]["SwarmBudgetView"];
+            workspace_strategy: string;
+            keep_on_failure: boolean;
+            max_concurrency: number;
+            max_wall_seconds: number;
+            require_plan_approval: boolean;
+            require_final_approval: boolean;
+            allow_direct_base_merge: boolean;
+            allow_push: boolean;
+        };
+        SwarmBackendView: {
+            name: string;
+            available: boolean;
+            detail: string;
+        };
+        SwarmRecipesResponse: {
+            ok: boolean;
+            recipes: components["schemas"]["SwarmRecipeView"][];
+            backends: components["schemas"]["SwarmBackendView"][];
         };
         SwarmBudgetView: {
             max_total_tokens: number;
@@ -3433,6 +3484,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SwarmListResponse"];
+                };
+            };
+        };
+    };
+    list_swarm_recipes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SwarmRecipesResponse"];
                 };
             };
         };

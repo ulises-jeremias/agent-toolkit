@@ -13,7 +13,7 @@ fn main() {
 		if !os.is_dir(p) {
 			continue
 		}
-		walk(p, root, mut files)
+		walk(p, root, mut &files)
 	}
 	files.sort()
 	mut out_content := ''
@@ -123,7 +123,7 @@ fn walk(cur string, root string, mut out []string) {
 			continue
 		}
 		if os.is_dir(p) {
-			walk(p, root, mut out)
+			walk(p, root, mut &out)
 		} else if os.is_file(p) {
 			mut rel := p[root.len..].trim_string_left(os.path_separator)
 			rel = rel.replace('\\', '/')

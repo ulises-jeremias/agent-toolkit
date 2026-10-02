@@ -26,6 +26,28 @@ fn test_swarm_recipes() {
 	assert one.data['roles'].contains('implementer')
 }
 
+fn test_swarm_recipe_catalog_exposes_canonical_topology_and_backends() {
+	catalog := list_swarm_recipes_typed()
+	assert catalog.ok
+	assert catalog.recipes.len == 3
+	team := catalog.recipes.filter(it.name == 'team')[0]
+	assert team.roles.len > 1
+	assert team.max_concurrency > 0
+	assert team.budget.max_total_tokens > 0
+	assert team.roles.any(it.name == 'implementer' && it.persona.len > 0)
+	assert team.require_plan_approval
+	pair := catalog.recipes.filter(it.name == 'pair')[0]
+	assert pair.roles.len == 3
+	assert pair.description.contains('Three-role')
+	assert pair.workspace_strategy == 'worktree-per-writer'
+	assert pair.keep_on_failure
+	assert !pair.allow_direct_base_merge
+	assert !pair.allow_push
+	assert pair.max_wall_seconds > 0
+	assert catalog.backends.any(it.name == 'auto' && it.available)
+	assert catalog.backends.any(it.name == 'headless' && it.available)
+}
+
 fn test_swarm_start_status_approve_cancel() {
 	old_h := os.getenv('HARNESS_DIR')
 	old_ws := os.getenv('AGENT_TOOLKIT_WORKSPACE')
@@ -131,8 +153,12 @@ fn test_swarm_budget_violations_names_each_limit() {
 	// clean run violates nothing
 	assert swarm_budget_violations(b, BudgetConsumed{}, 0) == []
 	// boundary trips (>= parity with Python check_limits)
-	assert swarm_budget_violations(b, BudgetConsumed{ total_tokens: 100 }, 0) == ['max_total_tokens']
-	assert swarm_budget_violations(b, BudgetConsumed{ total_cost: 4.0 }, 0) == ['max_cost_usd']
+	assert swarm_budget_violations(b, BudgetConsumed{ total_tokens: 100 }, 0) == [
+		'max_total_tokens',
+	]
+	assert swarm_budget_violations(b, BudgetConsumed{ total_cost: 4.0 }, 0) == [
+		'max_cost_usd',
+	]
 	assert swarm_budget_violations(b, BudgetConsumed{}, 60) == ['max_wall_seconds']
 	// just under the limit is clean
 	assert swarm_budget_violations(b, BudgetConsumed{ total_tokens: 99 }, 0) == []

@@ -21,6 +21,7 @@ import type {
   SelfcheckResponse,
   SwarmActionResponse,
   SwarmListResponse,
+  SwarmRecipesResponse,
   SwarmRunResponse,
   ToolsResponse,
   VersionResponse,
@@ -386,6 +387,10 @@ export class ApiClient {
 
   swarms(): Promise<ResponseOf<OperationOf<'/api/v1/swarms', 'get'>, SwarmListResponse>> {
     return this.json('GET', '/api/v1/swarms' satisfies PathWith<'get'>);
+  }
+
+  swarmRecipes(): Promise<ResponseOf<OperationOf<'/api/v1/swarms/recipes', 'get'>, SwarmRecipesResponse>> {
+    return this.json('GET', '/api/v1/swarms/recipes' satisfies PathWith<'get'>);
   }
 
   swarmRun(id: string): Promise<ResponseOf<OperationOf<'/api/v1/swarms/runs/{id}', 'get'>, SwarmRunResponse>> {

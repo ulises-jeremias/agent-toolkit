@@ -70,6 +70,7 @@ export const qk = {
 
   swarms: {
     list: () => ['swarms', 'list'] as const,
+    recipes: () => ['swarms', 'recipes'] as const,
     run: (id: string) => ['swarms', 'run', id] as const,
   },
 

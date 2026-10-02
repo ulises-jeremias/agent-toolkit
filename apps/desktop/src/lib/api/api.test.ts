@@ -222,4 +222,12 @@ describe('ApiClient', () => {
       'POST http://127.0.0.1:9/api/v1/swarms/runs/run_1/stop',
     ]);
   });
+
+  it('reads canonical swarm recipe topology through the typed catalog route', async () => {
+    const api = client({ ok: true, recipes: [], backends: [] });
+    await api.swarmRecipes();
+    expect(calls.map((call) => `${call.init?.method} ${new URL(call.url).pathname}`)).toEqual([
+      'GET /api/v1/swarms/recipes',
+    ]);
+  });
 });

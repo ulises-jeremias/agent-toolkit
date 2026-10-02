@@ -966,6 +966,15 @@ pub fn (app &App) swarms_list(mut ctx Ctx) veb.Result {
 	return ctx.json(agent_toolkit_core.list_swarm_runs_typed(ws))
 }
 
+@['/api/v1/swarms/recipes'; get]
+pub fn (app &App) swarms_recipes(mut ctx Ctx) veb.Result {
+	deny := deny_if_remote(app, ctx)
+	if deny != none {
+		return respond_deny(mut ctx, deny)
+	}
+	return ctx.json(agent_toolkit_core.list_swarm_recipes_typed())
+}
+
 const openapi_json = $embed_file('../../docs/surface/openapi.json')
 const cli_help_md = $embed_file('../../docs/surface/cli-help.md')
 
