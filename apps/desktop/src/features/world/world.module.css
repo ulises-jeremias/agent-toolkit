@@ -271,10 +271,11 @@
 }
 
 .entity[data-kind='place'] .entityLabel {
-  width: calc(100% + 4px);
+  width: max-content;
   max-width: 12rem;
   font-size: clamp(7px, calc(var(--world-tile-size, 16px) * 0.34), 12px);
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  overflow-wrap: normal;
 }
 
 .entity[data-selected='true'] .entityLabel,

@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { useBackend } from '../../data/backend';
+import { useQuery } from '@tanstack/react-query';
+import { requireClient, useBackend } from '../../data/backend';
 import { useTools } from '../../data/catalog';
 import { useOperation, useSubQuery } from '../../data/commands';
 import { sortJobs, useJobs } from '../../data/jobs';
 import { useMemoryFile, useMemoryList } from '../../data/memory';
 import { envelopeText } from '../../lib/api';
+import { useTerminalSessions } from '../../data/terminal';
+import { personCharacterSprite } from '../people/avatar';
 import { useSessionContext } from '../../shell/useSessionContext';
 import { EmptyState, ErrorState, LoadingState, useActionReceipt } from '../../ui';
 import { entityAccessibleName, worldDetailBackExtra, worldDetailBackLabel } from './inspectors';
@@ -30,8 +33,9 @@ import styles from './world.module.css';
  * detail inspectors stay on `/world` query params and call real APIs.
  */
 export default function WorldView() {
-  const { backend } = useBackend();
+  const { backend, client } = useBackend();
   const { context, href } = useSessionContext();
+  const terminalSessions = useTerminalSessions();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const focusProject = params.get('project');
@@ -44,6 +48,16 @@ export default function WorldView() {
   const memoryFileQuery = useMemoryFile(memoryPath, { enabled: memoryPath.length > 0 });
   const jobsQuery = useJobs();
   const toolsQuery = useTools();
+  const livePersonPtys = useMemo(
+    () => terminalSessions.sessions.filter((session) => session.personId && session.exitCode === null),
+    [terminalSessions.sessions],
+  );
+  const peopleQuery = useQuery({
+    queryKey: ['people', context.workspace],
+    queryFn: () => requireClient(client).people(context.workspace),
+    enabled: Boolean(client && context.workspace && livePersonPtys.length > 0),
+    staleTime: 15_000,
+  });
   const install = useOperation('install');
   const installReceipt = useActionReceipt('Profiles installed');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -89,6 +103,31 @@ export default function WorldView() {
 
   const jobs = useMemo(() => sortJobs(jobsQuery.data), [jobsQuery.data]);
 
+  const personSessions = useMemo(() => {
+    if (!peopleQuery.data) return [];
+    const peopleById = new Map(peopleQuery.data.people.map((person) => [person.id, person]));
+    return livePersonPtys.flatMap((session) => {
+      const person = session.personId ? peopleById.get(session.personId) : undefined;
+      const project = projects.find(
+        (candidate) => candidate.name === session.projectId && isWithin(session.cwd, candidate.target),
+      );
+      if (!person || !project) return [];
+      return [
+        {
+          id: session.id,
+          personId: person.id,
+          name: person.name,
+          role: person.role,
+          cwd: session.cwd,
+          projectId: project.name,
+          provider: session.provider,
+          model: session.model,
+          avatarCharacter: personCharacterSprite(person),
+        },
+      ];
+    });
+  }, [livePersonPtys, peopleQuery.data, projects]);
+
   const harnessNotice = backend?.harness?.notice ?? null;
 
   const model = useMemo(
@@ -108,6 +147,7 @@ export default function WorldView() {
           status: job.status,
           workspace: job.workspace,
         })),
+        personSessions,
         focusProjectId: focusProject,
       }),
     [
@@ -119,6 +159,7 @@ export default function WorldView() {
       tools,
       toolsQuery.isSuccess,
       jobs,
+      personSessions,
       focusProject,
     ],
   );
@@ -152,7 +193,12 @@ export default function WorldView() {
     }
   }, [memoryPath, toolId, focusPlace, focusProject, layout.entities]);
 
-  const gathering = projectsQuery.isPending || jobsQuery.isPending || memoryQuery.isPending || toolsQuery.isPending;
+  const gathering =
+    projectsQuery.isPending ||
+    jobsQuery.isPending ||
+    memoryQuery.isPending ||
+    toolsQuery.isPending ||
+    (livePersonPtys.length > 0 && peopleQuery.isPending);
 
   const openEntity = (entity: LaidOutEntity) => {
     if (!entity.hrefPath) return;
@@ -197,7 +243,7 @@ export default function WorldView() {
 
       <div className={styles.mapWrap}>
         {gathering ? (
-          <LoadingState label="Reading workspace, projects, memory, tools, and jobs" />
+          <LoadingState label="Reading workspace, projects, memory, tools, jobs, and active People sessions" />
         ) : layout.entities.length === 0 ? (
           <EmptyState title="Nothing to place yet.">Waiting on workspace context.</EmptyState>
         ) : (
@@ -219,6 +265,13 @@ export default function WorldView() {
             title="Could not list projects"
             error={projectsQuery.error}
             onRetry={() => void projectsQuery.refetch()}
+          />
+        ) : null}
+        {livePersonPtys.length > 0 && peopleQuery.isError ? (
+          <ErrorState
+            title="Person presence is temporarily unavailable"
+            error={peopleQuery.error}
+            onRetry={() => void peopleQuery.refetch()}
           />
         ) : null}
       </div>
@@ -262,4 +315,14 @@ export default function WorldView() {
       </details>
     </div>
   );
+}
+
+function isWithin(path: string, root: string): boolean {
+  const normalize = (value: string) => value.replace(/\\/g, '/').replace(/\/+$/, '') || '/';
+  const candidate = normalize(path);
+  const parent = normalize(root);
+  const windowsPath = /^[a-z]:\//i.test(candidate) || /^[a-z]:\//i.test(parent);
+  const left = windowsPath ? candidate.toLowerCase() : candidate;
+  const right = windowsPath ? parent.toLowerCase() : parent;
+  return left === right || (right === '/' ? left.startsWith('/') : left.startsWith(`${right}/`));
 }

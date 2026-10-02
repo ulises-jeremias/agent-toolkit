@@ -149,7 +149,19 @@ export function TerminalProvider({ children }: { children: ReactNode }) {
     async (session: PtySessionInfo): Promise<void> => {
       const extra = extras[session.id];
       await close(session.id);
-      await create({ agent: session.agent, cmd: session.cmd, args: session.args, cwd: session.cwd }, extra);
+      await create(
+        {
+          agent: session.agent,
+          personId: session.personId,
+          projectId: session.projectId,
+          provider: session.provider,
+          model: session.model,
+          cmd: session.cmd,
+          args: session.args,
+          cwd: session.cwd,
+        },
+        extra,
+      );
     },
     [close, create, extras],
   );

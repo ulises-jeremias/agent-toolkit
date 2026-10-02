@@ -64,7 +64,7 @@ agent-toolkit doctor
 ```
 
 <div align="center">
-<img src="static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings for Library, Operations, Memory, Terminal and projects" />
+<img src="static/screenshots/world.png" width="92%" alt="Agent Toolkit Desktop — workspace valley with semantic buildings and Lina present only while her real project session is running" />
 <br />
 <em>Agent Toolkit Desktop: a semantic pixel world for projects and real work, with precise inspectors and a real terminal.</em>
 </div>
@@ -163,7 +163,7 @@ Agent Toolkit Desktop is the flagship Electron application over the canonical V 
 
 | World | Library | Operations |
 |---|---|---|
-| <img src="static/screenshots/world.png" width="100%" alt="Semantic workspace valley with shared places and project houses" /> | <img src="static/screenshots/library.png" width="100%" alt="Library: real catalog of reusable capabilities" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations: observed jobs and orchestration controls" /> |
+| <img src="static/screenshots/world.png" width="100%" alt="Semantic workspace valley with shared places, project houses, and a real active Person session" /> | <img src="static/screenshots/library.png" width="100%" alt="Library: real catalog of reusable capabilities" /> | <img src="static/screenshots/operations.png" width="100%" alt="Operations: observed jobs and orchestration controls" /> |
 | People | Import review | Terminal |
 | <img src="static/screenshots/people.png" width="100%" alt="People roster showing saved offline collaborators" /> | <img src="static/screenshots/people-import.png" width="100%" alt="Munder import review displaying mapped and ignored fields before saving" /> | <img src="static/screenshots/terminal.png" width="100%" alt="Integrated terminal backed by a real PTY" /> |
 

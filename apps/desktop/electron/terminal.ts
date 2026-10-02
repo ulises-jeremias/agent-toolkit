@@ -17,6 +17,11 @@ import { expandHome, isDirectory } from './harness';
 export interface TerminalSessionInfo {
   id: string;
   agent: string;
+  /** Person identity when this PTY was started from the People roster. */
+  personId?: string;
+  projectId?: string;
+  provider?: string;
+  model?: string;
   cmd: string;
   /** argv used at spawn (cmd excluded); exposed so restart reproduces the session. */
   args: string[];
@@ -91,7 +96,18 @@ export class TerminalService {
   }
 
   /** Throws TerminalCwdError when the cwd does not exist; never creates it. */
-  create(options: { agent: string; cmd: string; args?: string[]; cwd?: string; cols?: number; rows?: number }): TerminalSessionInfo {
+  create(options: {
+    agent: string;
+    personId?: string;
+    projectId?: string;
+    provider?: string;
+    model?: string;
+    cmd: string;
+    args?: string[];
+    cwd?: string;
+    cols?: number;
+    rows?: number;
+  }): TerminalSessionInfo {
     const id = randomUUID();
     const cols = options.cols ?? 120;
     const rows = options.rows ?? 30;
@@ -106,6 +122,10 @@ export class TerminalService {
     const session: Session = {
       id,
       agent: options.agent,
+      personId: options.personId,
+      projectId: options.projectId,
+      provider: options.provider,
+      model: options.model,
       cmd: options.cmd,
       args: options.args ?? [],
       cwd,

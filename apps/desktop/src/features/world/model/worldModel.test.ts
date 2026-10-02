@@ -68,6 +68,76 @@ describe('jobBelongsToProject', () => {
 });
 
 describe('buildWorldModel', () => {
+  it('shows only explicitly supplied live Person sessions in their real project and near its terminal', () => {
+    const project = { name: 'alpha', target: '/repos/alpha', status: 'ok' as const };
+    const base = baseInput({
+      projects: [project],
+      personSessions: [
+        {
+          id: 'pty-1',
+          personId: 'lina',
+          name: 'Lina',
+          role: 'reviewer',
+          cwd: '/repos/alpha/src',
+          projectId: 'alpha',
+          provider: 'opencode',
+          model: 'model-x',
+          avatarCharacter: 'char-scholar',
+        },
+      ],
+    });
+    const grounds = buildWorldModel(base);
+    const character = grounds.entities.find((entity) => entity.id === 'character:person:lina:pty-1');
+    expect(character).toMatchObject({
+      name: 'Lina',
+      characterSprite: 'char-scholar',
+      state: 'session open',
+      hrefPath: '/people',
+      hrefExtra: { person: 'lina', session: 'pty-1' },
+      projectId: 'alpha',
+      standAtId: 'object:terminal-project:alpha',
+    });
+    expect(character?.detail).toContain('reviewer · opencode · model-x');
+    expect(grounds.entities.find((entity) => entity.id === 'place:project:alpha')?.state).toBe('1 Person session open');
+
+    const noRuntime = buildWorldModel(baseInput({ projects: [project] }));
+    expect(noRuntime.entities.some((entity) => entity.kind === 'character')).toBe(false);
+
+    const wrongProject = buildWorldModel(
+      baseInput({
+        projects: [project],
+        personSessions: [
+          {
+            id: 'pty-2',
+            personId: 'lina',
+            name: 'Lina',
+            role: 'reviewer',
+            cwd: '/repos/elsewhere',
+            projectId: 'alpha',
+          },
+        ],
+      }),
+    );
+    expect(wrongProject.entities.some((entity) => entity.id.startsWith('character:person:'))).toBe(false);
+
+    const wrongCase = buildWorldModel(
+      baseInput({
+        projects: [project],
+        personSessions: [
+          {
+            id: 'pty-3',
+            personId: 'lina',
+            name: 'Lina',
+            role: 'reviewer',
+            cwd: '/repos/ALPHA/src',
+            projectId: 'alpha',
+          },
+        ],
+      }),
+    );
+    expect(wrongCase.entities.some((entity) => entity.id.startsWith('character:person:'))).toBe(false);
+  });
+
   it('surfaces harness notices on the workspace grounds tile', () => {
     const model = buildWorldModel(
       baseInput({

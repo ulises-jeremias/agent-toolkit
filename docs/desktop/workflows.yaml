@@ -89,11 +89,15 @@ journeys:
       - malformed-file and collision recovery need full Electron review
   - id: people-start-session
     title: Start a session as a Person
-    destinations: []
-    status: not-implemented
-    evidence: []
+    destinations: [people, terminal, world]
+    status: partial
+    evidence:
+      - note: People can review project, discovered runner and model, then open a real Electron PTY tagged with Person/project identity; only a live PTY plus a saved, non-archived Person is projected as a character in that project
+        build: 'feat/desktop-people-session (local, pending review)'
+      - note: focused Electron terminal, Person runner-option and world-model tests
     blockers:
-      - session binding is explicit future work
+      - the process is a local PTY binding, not a server-side AgentSession with durable history
+      - Person goal/capabilities, budgets, and isolation are not yet enforced by this PTY workflow
   - id: swarm-role-picker
     title: Choose People for swarm roles before start
     destinations: []

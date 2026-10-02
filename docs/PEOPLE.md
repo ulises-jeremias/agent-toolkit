@@ -1,16 +1,30 @@
 # People — durable collaborators, not running sessions
 
-Status: **PARTIAL PRODUCT DELIVERY** — Desktop supports roster CRUD and reviewed
-one-way Munder import, backed by the V People storage API. Start, session
-binding and swarm role selection remain unimplemented; see [Gaps](#gaps).
+Status: **PARTIAL PRODUCT DELIVERY** — Desktop supports roster CRUD, reviewed
+one-way Munder import, and starting a discovered runner as a real local PTY
+bound to a Person and project. That PTY is not yet a durable server-side
+`AgentSession`, and Person budgets/isolation are not enforced by this path; see
+[Gaps](#gaps).
 
-The [People creation screen](../static/screenshots/people-create.png) shows the
-guided form at compact size. Saving creates a durable identity, not a process.
+The screenshots below were captured from the live Electron app and backend at
+both compact and large sizes. A configured Person is offline until a real PTY
+starts. The world shows the selected Person only while that PTY is alive and
+assigned to a registered project.
+
+| Roster at 1024×640 | Start review at 1920×1080 |
+|---|---|
+| ![Offline Person in the roster](desktop/assets/electron/people/people-roster-compact.png) | ![Runner, model, project, goal and local-session limits reviewed before start](desktop/assets/electron/people/person-start-large.png) |
+
+| Real Person session in the world | Person after the PTY stops |
+|---|---|
+| ![Lina present at her project only while the real PTY is open](desktop/assets/electron/people/world-person-large.png) | ![Lina remains configured and offline after the real session stops](desktop/assets/electron/people/people-offline-after-stop.png) |
 
 A Person is a collaborator you have chosen and reviewed. It persists in your
 workspace, not in the toolkit. Configuration alone never creates a character:
-a `people/<id>.json` file is a declaration, and the Desktop world shows only
-runtime truth from `agent-toolkit serve` (ADR-034).
+a `people/<id>.json` file is a declaration. The current Desktop slice uses
+Electron's real PTY state plus the saved Person/project association to project
+presence; it does not infer activity from People declarations or fabricate
+output.
 
 ## Identity model
 
@@ -107,17 +121,23 @@ against the durable declaration shape, stores `people/<id>.json` atomically,
 and rejects symlinked storage. The import picker accepts a local
 `munder-difflin/hire@1` JSON file, previews every mapped domain field and the
 names of ignored fields, and requires a separate save action. Saving or
-importing never starts a process or creates a world character. The portrait
-uses original Toolkit sprites; source appearance is attribution only.
+importing never starts a process. The Start review selects a real project,
+discovered runner and optional runner model, then opens that runner in the
+project's real working folder through node-pty. The PTY retains the Person and
+project IDs so a living process can be inspected from the world and reopened in
+Terminal; stopping/reaping it leaves the Person untouched. The portrait uses
+original Toolkit sprites; source appearance is attribution only.
 
 ## Gaps
 
 The following are explicitly **not implemented**. Do not represent schemas or
 file authoring as the user interface:
 
-- Start / session binding (starting a session as a Person).
+- Durable backend `AgentSession` records, session history across Desktop
+  restarts, and runner-specific injection of the saved Person goal/definition.
+- Runtime enforcement of Person budget and isolation preferences for the local
+  PTY Start flow.
 - Swarm role picker with pre-start Person selection.
-- Runtime enforcement of the resolution order above.
 
-The remaining gaps require real runtime evidence and canonical backend
-operations before Desktop can truthfully show live People.
+Swarm resolution still requires canonical backend operations before Desktop
+can offer explicit/preferred Person binding with ephemeral fallback.

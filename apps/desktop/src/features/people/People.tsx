@@ -1,8 +1,11 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAgents, useProviders } from '../../data/catalog';
+import { useAgents, useModels, useProviders } from '../../data/catalog';
 import { requireClient, useBackend } from '../../data/backend';
-import { errorMessage, type Person } from '../../lib/api';
+import { errorMessage, envelopeText, type Person } from '../../lib/api';
+import { useSubQuery } from '../../data/commands';
+import { useTerminalSessions } from '../../data/terminal';
 import { useSessionContext } from '../../shell/useSessionContext';
 import {
   Button,
@@ -22,6 +25,9 @@ import {
 } from '../../ui';
 import styles from './people.module.css';
 import { reviewMunderHire, type MunderReview } from './importMunder';
+import { parseProjectListMessage } from '../world/model';
+import { personSessionOptions } from './personRunner';
+import { personCharacter } from './avatar';
 
 const blank: Person = {
   spec: 'agent-toolkit/person@1',
@@ -31,16 +37,6 @@ const blank: Person = {
   goal: '',
   archived: false,
 };
-
-const characterChoices = ['scout', 'maker', 'scholar', 'keeper'] as const;
-
-function portraitFor(person: Person): string {
-  if (characterChoices.some((choice) => choice === person.avatar?.character)) return person.avatar!.character!;
-  // An untouched Person still has a stable, distinct original portrait.
-  let hash = 2166136261;
-  for (const letter of person.id) hash = Math.imul(hash ^ letter.charCodeAt(0), 16777619);
-  return characterChoices[(hash >>> 0) % characterChoices.length]!;
-}
 
 function commaList(value: string): string[] {
   return value
@@ -320,7 +316,10 @@ function PersonForm({
 
 export default function People() {
   const { client } = useBackend();
-  const { context } = useSessionContext();
+  const { context, href } = useSessionContext();
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const terminals = useTerminalSessions();
   const workspace = context.workspace;
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<Person | null>(null);
@@ -329,6 +328,15 @@ export default function People() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [importReview, setImportReview] = useState<MunderReview | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [starting, setStarting] = useState<Person | null>(null);
+  const [startProject, setStartProject] = useState('');
+  const [startProvider, setStartProvider] = useState('');
+  const [startModel, setStartModel] = useState('');
+  const [startError, setStartError] = useState<string | null>(null);
+  const [startBusy, setStartBusy] = useState(false);
+  const projectsQuery = useSubQuery('project', 'list');
+  const providersQuery = useProviders();
+  const modelsQuery = useModels();
   const importInput = useRef<HTMLInputElement>(null);
   const chooseImport = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -372,7 +380,85 @@ export default function People() {
   });
   const people = list.data?.people ?? [];
   const selected = people.find((person) => person.id === selectedId) ?? people[0];
+  const projects = useMemo(
+    () =>
+      projectsQuery.isSuccess && projectsQuery.data ? parseProjectListMessage(envelopeText(projectsQuery.data)) : [],
+    [projectsQuery.data, projectsQuery.isSuccess],
+  );
+  const selectedSession = selected
+    ? terminals.sessions.find((session) => session.personId === selected.id && session.exitCode === null)
+    : undefined;
+  const selectedRecentSession = selected
+    ? terminals.sessions
+        .filter((session) => session.personId === selected.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]
+    : undefined;
+  const displaySession = selectedSession ?? selectedRecentSession;
+  const activePersonIds = useMemo(
+    () =>
+      new Set(
+        terminals.sessions.flatMap((session) =>
+          session.personId && session.exitCode === null ? [session.personId] : [],
+        ),
+      ),
+    [terminals.sessions],
+  );
+  const providers = useMemo(() => providersQuery.data?.providers ?? [], [providersQuery.data]);
+  const models = useMemo(() => modelsQuery.data?.models ?? [], [modelsQuery.data]);
+  const matchingModels = models.filter((model) => model.runner === startProvider);
+  const chosenProvider = providers.find((provider) => provider.id === startProvider);
+  const chosenModel = matchingModels.find((model) => model.model === startModel);
+  const chosenProject = projects.find((project) => project.name === startProject);
   const formOpen = creating || editing !== null || importDraft !== null;
+
+  useEffect(() => {
+    const personId = params.get('person');
+    if (personId) setSelectedId(personId);
+  }, [params]);
+
+  useEffect(() => {
+    if (!starting) return;
+    setStartProject((current) => current || projects[0]?.name || '');
+    setStartProvider(
+      starting.preferred_provider ||
+        providers.find((provider) => provider.available && provider.id !== 'skeleton')?.id ||
+        '',
+    );
+    setStartModel(starting.preferred_model || '');
+    setStartError(null);
+  }, [starting, projects, providers]);
+
+  const beginPerson = async () => {
+    if (!starting || !chosenProvider || !chosenProject || startBusy) return;
+    setStartError(null);
+    const options = personSessionOptions(
+      starting,
+      chosenProvider,
+      chosenModel,
+      chosenProject.target,
+      chosenProject.name,
+    );
+    if (!options) {
+      setStartError(
+        'This runner is not available for a local PTY session. Choose an installed runner and a valid project.',
+      );
+      return;
+    }
+    setStartBusy(true);
+    try {
+      const session = await terminals.create(options);
+      if (!session)
+        throw new Error(
+          'The session was not created. Recheck the project folder and confirm Desktop is still connected.',
+        );
+      setStarting(null);
+      navigate(href('/terminal', { pty: session.id }));
+    } catch (error) {
+      setStartError(errorMessage(error));
+    } finally {
+      setStartBusy(false);
+    }
+  };
 
   return (
     <>
@@ -435,7 +521,7 @@ export default function People() {
                             style={
                               {
                                 '--person-accent': person.avatar?.accent ?? '#56a6a0',
-                                '--person-sprite': `url(/world/char-${portraitFor(person)}.png)`,
+                                '--person-sprite': `url(/world/char-${personCharacter(person)}.png)`,
                               } as React.CSSProperties
                             }
                             aria-hidden="true"
@@ -445,8 +531,16 @@ export default function People() {
                             <small>{person.role}</small>
                           </span>
                           <StatusBadge
-                            tone={person.archived ? 'idle' : 'info'}
-                            label={person.archived ? 'Archived' : 'Offline'}
+                            tone={activePersonIds.has(person.id) ? 'ok' : person.archived ? 'idle' : 'info'}
+                            label={
+                              activePersonIds.has(person.id)
+                                ? person.archived
+                                  ? 'Archived · session open'
+                                  : 'Session open'
+                                : person.archived
+                                  ? 'Archived'
+                                  : 'Offline'
+                            }
                           />
                         </button>
                       ))}
@@ -461,20 +555,38 @@ export default function People() {
                 meta={selected.role}
                 actions={
                   <StatusBadge
-                    tone={selected.archived ? 'idle' : 'info'}
-                    label={selected.archived ? 'Archived' : 'Configured · offline'}
+                    tone={selectedSession ? 'ok' : selected.archived ? 'idle' : 'info'}
+                    label={
+                      selectedSession
+                        ? selected.archived
+                          ? 'Archived · session open'
+                          : 'Session open'
+                        : selected.archived
+                          ? 'Archived'
+                          : 'Configured · offline'
+                    }
                   />
                 }
               >
                 <div className={styles.profile}>
                   <p>{selected.goal}</p>
+                  {selectedSession ? (
+                    <p role="status">
+                      A real PTY session is open in project {selectedSession.projectId || 'unassigned'} at{' '}
+                      {selectedSession.cwd}.
+                    </p>
+                  ) : selectedRecentSession ? (
+                    <p role="status">Last local PTY exited with code {selectedRecentSession.exitCode ?? 'unknown'}.</p>
+                  ) : null}
                   <dl>
                     <dt>Definition</dt>
                     <dd>{selected.definition_id || 'Choose when starting'}</dd>
+                    <dt>Project</dt>
+                    <dd>{displaySession?.projectId || 'Choose when starting'}</dd>
                     <dt>Runner</dt>
-                    <dd>{selected.preferred_provider || 'Choose when starting'}</dd>
+                    <dd>{displaySession?.provider || selected.preferred_provider || 'Choose when starting'}</dd>
                     <dt>Model</dt>
-                    <dd>{selected.preferred_model || 'Choose when starting'}</dd>
+                    <dd>{displaySession?.model || selected.preferred_model || 'Runner default'}</dd>
                     <dt>Isolation</dt>
                     <dd>{selected.isolation || 'Inherited'}</dd>
                     <dt>Skills</dt>
@@ -483,6 +595,31 @@ export default function People() {
                     <dd>{selected.mcp_servers?.join(', ') || 'None configured'}</dd>
                   </dl>
                   <ButtonRow>
+                    {selectedSession ? (
+                      <>
+                        <Button
+                          variant="primary"
+                          onClick={() => navigate(href('/terminal', { pty: selectedSession.id }))}
+                        >
+                          Open session
+                        </Button>
+                        <ConfirmAction
+                          label="Stop session"
+                          title={`Stop ${selected.name}'s session?`}
+                          description="This closes the real PTY process. The saved Person stays in the roster."
+                          confirmLabel="Stop session"
+                          onConfirm={() => void terminals.close(selectedSession.id)}
+                        />
+                      </>
+                    ) : !selected.archived ? (
+                      <Button
+                        variant="primary"
+                        disabled={!terminals.available || projectsQuery.isPending || providersQuery.isPending}
+                        onClick={() => setStarting(selected)}
+                      >
+                        Start {selected.name}
+                      </Button>
+                    ) : null}
                     <Button
                       onClick={() => {
                         save.reset();
@@ -497,7 +634,9 @@ export default function People() {
                       description={
                         selected.archived
                           ? 'This returns the Person to the active roster. It does not start a session.'
-                          : 'The Person remains stored and can be restored later. No session is started or stopped by archiving.'
+                          : selectedSession
+                            ? 'The Person is archived but remains stored. This does not stop the active PTY; that real session remains visible until you stop it.'
+                            : 'The Person remains stored and can be restored later. No session is started or stopped by archiving.'
                       }
                       confirmLabel={selected.archived ? 'Restore' : 'Archive'}
                       onConfirm={() => archive.mutate(selected)}
@@ -535,6 +674,132 @@ export default function People() {
           busy={save.isPending}
           error={save.error}
         />
+      </Dialog>
+      <Dialog
+        open={starting !== null}
+        onClose={() => setStarting(null)}
+        title={starting ? `Start ${starting.name}` : 'Start Person'}
+        description="This opens the runner in a real local terminal. The goal is shown for reference but not sent automatically; this PTY does not enforce Person budgets or isolation."
+        size="wide"
+        footer={
+          <ButtonRow>
+            <Button onClick={() => setStarting(null)}>Cancel</Button>
+            <Button
+              variant="primary"
+              busy={startBusy}
+              busyLabel="Starting…"
+              disabled={!chosenProject || !chosenProvider || startBusy}
+              onClick={() => void beginPerson()}
+            >
+              Start and open terminal
+            </Button>
+          </ButtonRow>
+        }
+      >
+        {starting ? (
+          <div className={styles.form}>
+            <div className={styles.formGrid}>
+              <Field label="Project and working folder">
+                {(control) => (
+                  <Select {...control} value={startProject} onChange={(event) => setStartProject(event.target.value)}>
+                    <option value="">Choose a project</option>
+                    {projects
+                      .filter((project) => project.status === 'ok')
+                      .map((project) => (
+                        <option key={project.name} value={project.name}>
+                          {project.name} · {project.target}
+                        </option>
+                      ))}
+                  </Select>
+                )}
+              </Field>
+              <Field label="Runner">
+                {(control) => (
+                  <Select
+                    {...control}
+                    value={startProvider}
+                    onChange={(event) => {
+                      setStartProvider(event.target.value);
+                      setStartModel('');
+                    }}
+                  >
+                    <option value="">Choose an installed runner</option>
+                    {providers.map((provider) => (
+                      <option
+                        key={provider.id}
+                        value={provider.id}
+                        disabled={!provider.available || provider.id === 'skeleton'}
+                      >
+                        {provider.id}
+                        {provider.available ? '' : ' · unavailable'}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </Field>
+              <Field label="Model" hint="Optional. Only models discovered for this runner are offered.">
+                {(control) => (
+                  <Select {...control} value={startModel} onChange={(event) => setStartModel(event.target.value)}>
+                    <option value="">Runner default</option>
+                    {startModel && !matchingModels.some((model) => model.model === startModel) ? (
+                      <option value={startModel} disabled>
+                        {startModel} · not discovered
+                      </option>
+                    ) : null}
+                    {matchingModels.map((model) => (
+                      <option key={`${model.profile}:${model.model}`} value={model.model}>
+                        {model.profile} · {model.model}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </Field>
+            </div>
+            <Panel title="Start preview" meta={starting.role}>
+              <p>
+                <strong>Goal:</strong> {starting.goal}
+              </p>
+              <p>
+                <strong>Command:</strong>{' '}
+                <code>
+                  {chosenProvider?.bin || 'Choose a runner'}
+                  {chosenModel ? ` --model ${chosenModel.model}` : ''}
+                </code>
+              </p>
+              {startModel && !chosenModel ? (
+                <p role="status">
+                  Preferred model “{startModel}” is not in this runner&apos;s discovered catalog; the runner default
+                  will be used.
+                </p>
+              ) : null}
+              <p>
+                <strong>Working folder:</strong> <code>{chosenProject?.target || 'Choose a project'}</code>
+              </p>
+              <p>The runner opens interactively. Enter the task in its terminal to begin.</p>
+            </Panel>
+            {projectsQuery.isError ? <ErrorState title="Could not load projects" error={projectsQuery.error} /> : null}
+            {providersQuery.isError ? (
+              <ErrorState title="Could not discover runners" error={providersQuery.error} />
+            ) : null}
+            {providersQuery.isSuccess &&
+            !providers.some((provider) => provider.available && provider.id !== 'skeleton') ? (
+              <p role="status">
+                No interactive runner is installed. Install or configure one from Library, then retry.
+              </p>
+            ) : null}
+            {projectsQuery.isSuccess && !projects.some((project) => project.status === 'ok') ? (
+              <p role="status">
+                No healthy project is linked yet. Link an existing folder from World or Workspace before starting this
+                Person.
+              </p>
+            ) : null}
+            {startError ? (
+              <p role="alert" className={styles.error}>
+                {startError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </Dialog>
       <Dialog
         open={importReview !== null}

@@ -62,6 +62,8 @@ export interface SemanticEntity {
    * invented domain state — layout and inspectors ignore this field.
    */
   facade?: string;
+  /** Durable Person appearance, only projected while its real PTY is alive. */
+  characterSprite?: 'char-scout' | 'char-maker' | 'char-scholar' | 'char-keeper';
 }
 
 export interface LaidOutEntity extends SemanticEntity {
@@ -144,6 +146,17 @@ export interface WorldDomainInput {
     args: string[];
     status: string;
     workspace: string;
+  }>;
+  personSessions?: ReadonlyArray<{
+    id: string;
+    personId: string;
+    name: string;
+    role: string;
+    cwd: string;
+    projectId?: string;
+    provider?: string;
+    model?: string;
+    avatarCharacter?: SemanticEntity['characterSprite'];
   }>;
   focusProjectId?: string | null;
 }

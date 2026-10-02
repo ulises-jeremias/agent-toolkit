@@ -79,6 +79,10 @@ export type HarnessSwitchResult =
 
 export interface PtyCreateOptions {
   agent: string;
+  personId?: string;
+  projectId?: string;
+  provider?: string;
+  model?: string;
   cmd: string;
   args?: string[];
   /** Defaults to the resolved harness; relative paths resolve against it; must exist. */
@@ -90,6 +94,10 @@ export interface PtyCreateOptions {
 export interface PtySessionInfo {
   id: string;
   agent: string;
+  personId?: string;
+  projectId?: string;
+  provider?: string;
+  model?: string;
   cmd: string;
   args: string[];
   cwd: string;

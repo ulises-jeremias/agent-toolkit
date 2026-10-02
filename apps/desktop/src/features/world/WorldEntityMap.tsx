@@ -48,7 +48,8 @@ function activateEntity(
 }
 
 /** Character sprite variant by stable entity hash (never runtime state). */
-function characterSprite(id: string, themeKey: string): string {
+function characterSprite(id: string, themeKey: string, durableSprite?: string): string {
+  if (durableSprite) return durableSprite;
   let hash = 0;
   for (let i = 0; i < id.length; i += 1) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
   const variants = ['char-teal', 'char-gold', 'char-brick'];
@@ -366,7 +367,7 @@ function EntityTile({
 }) {
   const asset = resolveEntityAsset(theme, entity);
   const isCharacter = entity.kind === 'character';
-  const spriteName = isCharacter ? characterSprite(entity.id, entity.themeKey) : null;
+  const spriteName = isCharacter ? characterSprite(entity.id, entity.themeKey, entity.characterSprite) : null;
   const src =
     asset.kind === 'sprite'
       ? spriteName
