@@ -19,9 +19,9 @@ on:
       - ".github/actions/setup-v/**"
       - "scripts/release-linkage.sh"
       - "cmd/agent-toolkit/**"
-      - "cmd/agent-toolkit-desktop/**"
+      - "apps/desktop/**"
+      - "pnpm-lock.yaml"
       - "modules/**"
-      - "distribution/desktop/**"
   workflow_dispatch:
     inputs:
       environment:
@@ -221,12 +221,6 @@ jobs:
           "build/${OUT_BIN}" --version
           "build/${OUT_BIN}" --help | head -n 20
           "${GITHUB_WORKSPACE}/scripts/release-linkage.sh" gate "build/${OUT_BIN}"
-          # #1057/#1116/#1130: validate the launcher entry shipped in the
-          # desktop archives (ubuntu legs have desktop-file-utils)
-          if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
-            desktop-file-validate packaging/linux/agent-toolkit-desktop.desktop
-            echo "desktop entry: valid"
-          fi
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
@@ -236,108 +230,91 @@ jobs:
           retention-days: 7
 
   build-desktop:
-    name: Build ${{ matrix.artifact }}
-    if: github.event_name == 'push'
-    needs: create-release
+    name: Package Electron Desktop (${{ matrix.os }})
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
-    environment: release
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
-            artifact: agent-toolkit-desktop-linux-x86_64
+            artifact: linux-x86_64
             v_zip: v_linux.zip
-            bin: agent-toolkit-desktop
-            expect_arch: x86_64
+            backend: agent-toolkit
           - os: ubuntu-24.04-arm
-            artifact: agent-toolkit-desktop-linux-arm64
+            artifact: linux-arm64
             v_zip: v_linux_arm64.zip
-            bin: agent-toolkit-desktop
-            expect_arch: arm64
+            backend: agent-toolkit
           - os: macos-latest
-            artifact: agent-toolkit-desktop-macos-arm64
+            artifact: macos-arm64
             v_zip: v_macos_arm64.zip
-            bin: agent-toolkit-desktop
-            expect_arch: arm64
+            backend: agent-toolkit
           - os: macos-15-intel
-            artifact: agent-toolkit-desktop-macos-x86_64
+            artifact: macos-x86_64
             v_zip: v_macos_x86_64.zip
-            bin: agent-toolkit-desktop
-            expect_arch: x86_64
+            backend: agent-toolkit
           - os: windows-latest
-            artifact: agent-toolkit-desktop-windows-x86_64.exe
+            artifact: windows-x86_64
             v_zip: v_windows.zip
-            bin: agent-toolkit-desktop.exe
-            expect_arch: x86_64
+            backend: agent-toolkit.exe
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # Linux desktop needs X11/GL headers for sokol.sapp + sokol.gfx (X11/Xlib.h,
-      # XInput2, XCursor, GL/EGL) — runner images ship without them.
-      - name: Install X11/GL dev headers (linux desktop only)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends \
-            desktop-file-utils \
-            xorg-dev libgl1-mesa-dev libegl1-mesa-dev
-
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
         with:
           v_zip: ${{ matrix.v_zip }}
-
-      - name: Build native V CLI
+      - name: Build canonical backend for the package
         shell: bash
         env:
-          OUT_BIN: ${{ matrix.bin }}
-          ASSET: ${{ matrix.artifact }}
           VMODULES: ${{ github.workspace }}/modules
-          EXPECT_ARCH: ${{ matrix.expect_arch }}
+          BACKEND: ${{ matrix.backend }}
         run: |
           set -euo pipefail
-          got="$(uname -m | tr 'A-Z' 'a-z')"
-          case "${got}" in
-            aarch64|arm64) got=arm64 ;;
-            x86_64|amd64) got=x86_64 ;;
-          esac
-          if [ "${got}" != "${EXPECT_ARCH}" ]; then
-            echo "architecture mismatch: ${got} != ${EXPECT_ARCH}" >&2
-            exit 1
-          fi
           mkdir -p build
-          COMMIT="$(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-          # Release link flags + portability gate: single source of truth in
-          # scripts/release-linkage.sh (#1199) — never re-inline per-OS flags
-          # here, or the linkage-smoke job stops proving the release build.
           VFLAGS="$("${GITHUB_WORKSPACE}/scripts/release-linkage.sh" flags)"
-          if [[ "${ASSET}" == *desktop* ]]; then
-            # gg_text_buff_size=4096 — 4096² fontstash atlas: room for Fraunces + Plex + Plex Mono + CJK/Arabic i18n at every type-ramp size (sfons cannot expand the atlas at runtime)
-            # shellcheck disable=SC2086
-            "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -d gg_text_buff_size=4096 -o "build/${OUT_BIN}" cmd/agent-toolkit-desktop
-          else
-            # shellcheck disable=SC2086
-            "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -o "build/${OUT_BIN}" cmd/agent-toolkit
-          fi
-          cp -f "build/${OUT_BIN}" "build/${ASSET}"
-          "build/${OUT_BIN}" --version
-          "build/${OUT_BIN}" --help | head -n 20
-          "${GITHUB_WORKSPACE}/scripts/release-linkage.sh" gate "build/${OUT_BIN}"
-          # #1057/#1116/#1130: validate the launcher entry shipped in the
-          # desktop archives (ubuntu legs have desktop-file-utils)
-          if [[ "${ASSET}" == *desktop* ]] && command -v desktop-file-validate >/dev/null 2>&1; then
-            desktop-file-validate packaging/linux/agent-toolkit-desktop.desktop
-            echo "desktop entry: valid"
-          fi
-
+          # shellcheck disable=SC2086
+          "${VBIN}" ${VFLAGS} -d "commit=$(git rev-parse --short HEAD)" -o "build/${BACKEND}" cmd/agent-toolkit
+          "build/${BACKEND}" --version
+          "${GITHUB_WORKSPACE}/scripts/release-linkage.sh" gate "build/${BACKEND}"
+      - name: Package Electron with its matching backend
+        shell: bash
+        env:
+          ATK_BACKEND_BIN: ${{ github.workspace }}/build/${{ matrix.backend }}
+        run: pnpm --filter agent-toolkit-desktop dist
+      - name: Verify packaged backend version
+        shell: bash
+        env:
+          BACKEND: ${{ matrix.backend }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PYCODE'
+          import json
+          from pathlib import Path
+          version = Path('VERSION').read_text().strip()
+          pin = json.loads(Path('apps/desktop/resources/backend-version.json').read_text())['version']
+          package = json.loads(Path('apps/desktop/package.json').read_text())['version']
+          if version != pin or version != package:
+              raise SystemExit(f'version mismatch: source={version}, backend={pin}, desktop={package}')
+          print(f'Electron and backend: {version}')
+          PYCODE
+          find apps/desktop/release -maxdepth 1 -type f -print
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: ${{ matrix.artifact }}
-          path: build/${{ matrix.artifact }}
+          name: electron-${{ matrix.artifact }}
+          path: |
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.exe
           if-no-files-found: error
           retention-days: 7
 
@@ -359,20 +336,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Install X11/GL dev headers (linux desktop only)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/microsoft-*.list
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq --no-install-recommends \
-            xorg-dev libgl1-mesa-dev libegl1-mesa-dev
-
       - name: Setup pinned V
         uses: ./.github/actions/setup-v
 
-      - name: Prod-link CLI + desktop with release flags
+      - name: Prod-link CLI with release flags
         shell: bash
         env:
           VMODULES: ${{ github.workspace }}/modules
@@ -385,17 +352,14 @@ jobs:
           LINKAGE_HELPER="${GITHUB_WORKSPACE}/scripts/release-linkage.sh"
           VFLAGS="$("${LINKAGE_HELPER}" flags)"
           CLI_BIN=agent-toolkit
-          DESK_BIN=agent-toolkit-desktop
           case "${RUNNER_OS:-}" in
-            Windows*) CLI_BIN=agent-toolkit.exe; DESK_BIN=agent-toolkit-desktop.exe ;;
+            Windows*) CLI_BIN=agent-toolkit.exe ;;
           esac
           # shellcheck disable=SC2086
           "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -o "build/${CLI_BIN}" cmd/agent-toolkit
           # shellcheck disable=SC2086
-          "${VBIN}" ${VFLAGS} -d "commit=${COMMIT}" -d gg_text_buff_size=4096 -o "build/${DESK_BIN}" cmd/agent-toolkit-desktop
           "build/${CLI_BIN}" --version
-          "build/${DESK_BIN}" --version
-          "${LINKAGE_HELPER}" gate "build/${CLI_BIN}" "build/${DESK_BIN}"
+          "${LINKAGE_HELPER}" gate "build/${CLI_BIN}"
 
   upload-assets:
     name: Attach V binaries, archives, SHA256SUMS, manifest
@@ -414,7 +378,7 @@ jobs:
         with:
           path: binaries/
           merge-multiple: true
-      - name: Pack archives + SHA256SUMS + manifest.json
+      - name: Pack CLI archives + SHA256SUMS + manifest.json
         env:
           RELEASE_BIN_DIR: binaries
           RELEASE_OUT_DIR: release-assets
@@ -423,6 +387,9 @@ jobs:
           set -euo pipefail
           export RELEASE_VERSION="${GITHUB_REF_NAME#v}"
           ./scripts/pack_release_assets.vsh
+          cp binaries/agent-toolkit-desktop-* release-assets/
+          sha256sum release-assets/agent-toolkit-desktop-* | sed 's#release-assets/##' >> release-assets/SHA256SUMS
+          sort -k2,2 -o release-assets/SHA256SUMS release-assets/SHA256SUMS
           ls -lh release-assets/
       - name: Upload release assets (retry)
         env:
@@ -432,7 +399,7 @@ jobs:
           set -euo pipefail
           for attempt in $(seq 1 10); do
             if gh release upload "${GITHUB_REF_NAME}" release-assets/* --clobber; then
-              echo "✓ V binaries, archives, SHA256SUMS, manifest attached"
+              echo "✓ CLI and Electron Desktop assets attached"
               exit 0
             fi
             echo "Attempt $attempt/10 failed; retrying in 10s..."

@@ -1378,42 +1378,39 @@ fn gui_command() cli.Command {
 	return cli.Command{
 		name: 'gui'
 		alias: 'desktop'
-		description: 'Launch or install the native desktop GUI (V + vlang/gui)'
+		description: 'Launch the installed Electron Desktop'
 		execute: atk_exec
 		group: 'Consumer commands'
 		examples: [
 			'\$ agent-toolkit gui',
-			'\$ agent-toolkit gui --install',
-			'\$ agent-toolkit gui --headless --dry-run',
-			'\$ agent-toolkit gui --run --headless',
-			'\$ agent-toolkit desktop --install --prefix ~/.local',
+			'\$ agent-toolkit gui --dry-run',
 		]
-		learn_more: 'Desktop runs as separate binary agent-toolkit-desktop over same Engine, distributed via GitHub Release. CLI only downloads/launches. See docs/ARCHITECTURE.md.'
+		learn_more: 'Install Agent Toolkit Desktop from GitHub Releases; the CLI launches an already installed Electron app.'
 		flags: [
 			cli.Flag{
 				flag: .bool
 				name: 'install'
-				description: 'Download and install desktop binary from GitHub Release to <prefix>/bin/agent-toolkit-desktop'
+				description: 'Deprecated; prints the current installer guidance without changing files'
 			},
 			cli.Flag{
 				flag: .bool
 				name: 'run'
-				description: 'Launch desktop (default if built)'
+				description: 'Launch installed Desktop (default)'
 			},
 			cli.Flag{
 				flag: .bool
 				name: 'headless'
-				description: 'Run headless smoke (ATK_GUI_HEADLESS=1, no window) — CI friendly'
+				description: 'Deprecated; use agent-toolkit serve for headless automation'
 			},
 			cli.Flag{
 				flag: .string
 				name: 'prefix'
-				description: 'Install prefix for --install (default ~/.local, or env PREFIX)'
+				description: 'Deprecated with --install'
 			},
 			cli.Flag{
 				flag: .bool
 				name: 'force'
-				description: 'Overwrite existing binary without prompting'
+				description: 'Deprecated with --install'
 			},
 			cli.Flag{
 				flag: .bool
@@ -1423,7 +1420,7 @@ fn gui_command() cli.Command {
 			cli.Flag{
 				flag: .bool
 				name: 'yes'
-				description: 'Skip confirmation (alias for --force in gui)'
+				description: 'Deprecated with --install'
 			},
 		]
 	}

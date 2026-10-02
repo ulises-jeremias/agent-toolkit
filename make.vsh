@@ -1,7 +1,6 @@
 #!/usr/bin/env -S v run
 // V foundation targets for modules/ (ADR-009).
-// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|ui-smoke|golden|browser-install|enter-regression|dmg-boot|clean-machine|first-run|workspace-lifecycle|gen-surface|gen-target-matrix|compile-make]
-// Artifact harnesses (clean-machine|first-run|workspace-lifecycle) take --artifact=<desktop-archive.tar.gz>.
+// Usage: ./make.vsh [--tasks] [help|fmt|fmt-check|vet|test|build|build-cli|install-cli|build-desktop|gen-surface|gen-target-matrix|compile-make]
 // Optional: ./make.vsh compile-make && ./make <target>
 //
 // vlib build (context.run) only runs non-hyphen args as tasks; flags like
@@ -10,9 +9,8 @@
 // Style: bobatea/make.vsh + examples/build_system/build.vsh
 
 import build
-import os
 
-const mods = ['agent_toolkit_core', 'agent_toolkit_cli', 'agent_toolkit_server', 'desktop_engine', 'desktop']
+const mods = ['agent_toolkit_core', 'agent_toolkit_cli', 'agent_toolkit_server']
 
 fn root() string {
 	d := dir(@FILE)
@@ -94,39 +92,6 @@ fn each_mod(r string, label string, args string) {
 	}
 }
 
-// run_harness executes a scripts/*.vsh harness via VBIN (shebang/env -S is
-// unreliable on Windows GHA — see validate.yml). Artifact harnesses read
-// the --artifact= knob.
-fn run_harness(r string, script string, extra string) {
-	args := flag_value('artifact')
-	mut cmd := '"${vbin()}" run ${join_path(r, 'scripts', script)}'
-	if args.len > 0 {
-		cmd += ' "${args}"'
-	}
-	if extra.len > 0 {
-		cmd += ' ${extra}'
-	}
-	rc := system(cmd)
-	if rc != 0 {
-		exit(rc)
-	}
-}
-
-// has_flag reports a bare `--name` runtime flag (vlib/build skips hyphen
-// args when selecting tasks, so knobs arrive via os.args).
-fn has_flag(name string) bool {
-	return '--${name}' in os.args
-}
-
-fn need_artifact() string {
-	a := flag_value('artifact')
-	if a.len == 0 {
-		eprintln('missing --artifact=<desktop-archive.tar.gz> (build it via the release.yml pack step or scripts/pack_release_assets.vsh)')
-		exit(2)
-	}
-	return a
-}
-
 r := root()
 setenv('VMODULES', join_path(r, 'modules'), true)
 ensure_v(r)
@@ -141,18 +106,10 @@ context.task(
 	run:  fn [r] (_ build.Task) ! {
 		pin := (read_file(join_path(r, '.v-version')) or { 'pending' }).trim_space()
 		println('V targets (pin: ${pin}) — ./make.vsh --tasks')
-		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | compile-make')
-		println('  ui-smoke | golden | browser-install | enter-regression | dmg-boot')
-		println('  tofu | contrast | coverage')
-		println('  clean-machine | first-run | workspace-lifecycle  (need --artifact=<desktop-archive.tar.gz>)')
+		println('  fmt | fmt-check | vet | test | build | build-cli | install-cli | build-desktop | compile-make')
 		println('  gen-surface | gen-target-matrix')
 		println('  install-cli flags: --prefix=/path  (or PREFIX env; default ~/.local)')
-		println('  ui-smoke/golden/enter-regression need build/agent-toolkit-desktop-native (see release.yml build step)')
-		println('  fixed displays (override to reproduce locally): ui-smoke :99 (SMOKE_DISPLAY),')
-		println('  golden :77 (GOLDEN_DISPLAY), enter-regression :97 (ATK_ENTER_DISPLAY),')
-		println('  clean-machine :98 (no lock — check :98 is free). Locked harnesses fail loudly')
-		println('  on a busy display instead of colliding. SMOKE_BIN overrides the binary.')
-		println('  coverage is the advisory critical-workflow report (add --check to gate).')
+		println('  build-desktop packages apps/desktop (Electron) for the current host.')
 	}
 )
 
@@ -170,21 +127,6 @@ context.task(name: 'vet', help: 'Vet modules', run: fn [r] (_ build.Task) ! {
 
 context.task(name: 'test', help: 'Run unit tests', run: fn [r] (_ build.Task) ! {
 	each_mod(r, 'test', 'test')
-	// The production Desktop shell's tests (#1119) — including the
-	// registry reachability gate for critical workflows — live under
-	// cmd/agent-toolkit-desktop and are part of the Required CI test path.
-	// The suite compiles gg/sokol + pty C interop; the pinned master V build
-	// cannot resolve macOS SDK headers on CI runners (the release toolchain
-	// builds the same binary fine from the V 0.5.2 zip), so it runs on Linux
-	// runners. macOS legs keep covering modules. Packaging validation
-	// (#1130) will revisit macOS shell testing.
-	if os.user_os() == 'linux' {
-		println('==> test cmd/agent-toolkit-desktop')
-		rc := vcmd('test ${join_path(r, 'cmd', 'agent-toolkit-desktop')}')
-		if rc != 0 {
-			exit(rc)
-		}
-	}
 })
 
 context.task(name: 'build', help: 'Compile-smoke each module', run: fn (_ build.Task) ! {
@@ -276,127 +218,16 @@ context.task(
 	}
 )
 
-context.task(name: 'build-desktop', help: 'Build desktop shell (headless vet; window boot smoke)', run: fn [r] (_ build.Task) ! {
-	println('==> build-desktop (desktop shell vet + headless boot)')
-	// vet desktop + deps headless — window not opened in CI
-	rc1 := vcmd('vet ${join_path(r, 'modules', 'desktop')}')
-	if rc1 != 0 {
-		exit(rc1)
-	}
-	rc2 := vcmd('test ${join_path(r, 'modules', 'desktop')}')
-	if rc2 != 0 {
-		exit(rc2)
-	}
-	// headless boot smoke via v run of window harness
-	tmpdir := join_path(temp_dir(), 'atk-desktop-smoke')
-	rmdir_all(tmpdir) or {}
-	mkdir_all(tmpdir) or {}
-	main_v := join_path(tmpdir, 'main.v')
-	write_file(main_v, 'module main\nimport desktop\nimport os\nfn main() { os.setenv("ATK_GUI_HEADLESS", "1", true)\nmut d := desktop.new_desktop(desktop.DesktopBootArgs{})\nd.boot() or { panic(err) }\nprintln(d.smoke_message())\nd.shutdown() or { panic(err) }\nprintln("desktop smoke PASS") }\n') or {}
-	rc3 := vcmd('run ${main_v}')
-	rmdir_all(tmpdir) or {}
-	if rc3 != 0 {
-		exit(rc3)
-	}
-})
-
-context.task(name: 'ui-smoke', help: 'Xvfb UI smoke: panel tour + screenshots (needs desktop binary)', run: fn [r] (_ build.Task) ! {
-	println('==> ui-smoke (needs build/agent-toolkit-desktop-native or SMOKE_BIN)')
-	run_harness(r, 'ui-smoke.vsh', '')
-})
-
-context.task(name: 'golden', help: 'Golden-image compare vs fixtures (ATK_GOLDEN_THEME=ink for ink)', run: fn [r] (_ build.Task) ! {
-	println('==> golden compare (needs build/agent-toolkit-desktop-native or SMOKE_BIN)')
-	run_harness(r, 'golden.vsh', 'compare')
-})
-
-context.task(name: 'browser-install', help: 'GUI install-path acceptance (builds CLI, isolated HOME)', run: fn [r] (_ build.Task) ! {
-	println('==> browser-install')
-	run_harness(r, 'browser-install.vsh', '')
-})
-
-context.task(name: 'enter-regression', help: 'Enter-key regression: keys never kill/hang/blank the app', run: fn [r] (_ build.Task) ! {
-	println('==> enter-regression')
-	run_harness(r, 'enter-regression.vsh', '')
-})
-
-context.task(name: 'dmg-boot', help: 'macOS DMG first-boot (SKIP elsewhere)', run: fn [r] (_ build.Task) ! {
-	println('==> dmg-boot')
-	run_harness(r, 'dmg-boot.vsh', '')
-})
-
-context.task(name: 'tofu', help: 'Tofu detector: bundled-fonts proof + fixture sanity (needs golden-app.log)', run: fn [r] (_ build.Task) ! {
-	println('==> tofu')
-	run_harness(r, 'check-tofu.vsh', '')
-})
-
-context.task(name: 'contrast', help: 'Contrast gate: Paper/Ink WCAG 4.5:1 from tokens.v', run: fn [r] (_ build.Task) ! {
-	println('==> contrast')
-	run_harness(r, 'check-contrast.vsh', '')
-})
-
-context.task(name: 'coverage', help: 'Workflow coverage report (add --check to gate)', run: fn [r] (_ build.Task) ! {
-	println('==> coverage')
-	run_harness(r, 'gui-coverage.vsh', if has_flag('check') { '--check' } else { '' })
-})
-
-context.task(name: 'clean-machine', help: 'Layered clean-machine acceptance (needs --artifact=)', run: fn [r] (_ build.Task) ! {
-	need_artifact()
-	println('==> clean-machine')
-	run_harness(r, 'clean-machine.vsh', '')
-})
-
-context.task(name: 'first-run', help: 'Zero-to-working first-run acceptance (needs --artifact=)', run: fn [r] (_ build.Task) ! {
-	need_artifact()
-	println('==> first-run')
-	run_harness(r, 'first-run.vsh', '')
-})
-
-context.task(name: 'workspace-lifecycle', help: 'Workspace panel lifecycle acceptance (needs --artifact=)', run: fn [r] (_ build.Task) ! {
-	need_artifact()
-	println('==> workspace-lifecycle')
-	run_harness(r, 'workspace-lifecycle.vsh', '')
-})
-
-context.task(name: 'package-desktop-macos', help: 'Package macOS bundle + DMG (cross-build on Linux, real on macos-latest)', run: fn [r] (_ build.Task) ! {
-	script := join_path(r, 'distribution', 'desktop', 'macos', 'package.sh')
-	if !is_file(script) {
-		eprintln('missing ${script}')
+context.task(name: 'build-desktop', help: 'Package the Electron Desktop for the current host', run: fn [r] (_ build.Task) ! {
+	app := join_path(r, 'apps', 'desktop')
+	if !is_dir(app) {
+		eprintln('missing Electron Desktop at ${app}')
 		exit(1)
 	}
-	rc := system('bash ${script}')
+	println('==> package Electron Desktop')
+	rc := system('pnpm --dir "${app}" dist:dir')
 	if rc != 0 {
 		exit(rc)
-	}
-})
-
-context.task(name: 'package-desktop-windows', help: 'Package Windows installer (cross-build on Linux, real on windows-latest)', run: fn [r] (_ build.Task) ! {
-	script := join_path(r, 'distribution', 'desktop', 'windows', 'package.sh')
-	if !is_file(script) {
-		eprintln('missing ${script}')
-		exit(1)
-	}
-	rc := system('bash ${script}')
-	if rc != 0 {
-		exit(rc)
-	}
-})
-
-context.task(name: 'package-desktop', help: 'Package desktop for current host (macos/windows bundle structure)', run: fn [r] (_ build.Task) ! {
-	// cross-build both structures on Linux for CI artifact
-	macos := join_path(r, 'distribution', 'desktop', 'macos', 'package.sh')
-	windows := join_path(r, 'distribution', 'desktop', 'windows', 'package.sh')
-	if is_file(macos) {
-		rc1 := system('bash ${macos}')
-		if rc1 != 0 {
-			exit(rc1)
-		}
-	}
-	if is_file(windows) {
-		rc2 := system('bash ${windows}')
-		if rc2 != 0 {
-			exit(rc2)
-		}
 	}
 })
 

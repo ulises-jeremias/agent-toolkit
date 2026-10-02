@@ -159,14 +159,7 @@ agent-toolkit doctor     # verify everything is set up
 
 ### Desktop app (GUI)
 
-Prefer a graphical workspace? Agent Toolkit Desktop runs over the same Engine — a cozy pixel world of project houses, a skills/agents library, an operations board, terminal fleet, and guided onboarding:
-
-```bash
-agent-toolkit gui --install   # download the desktop binary from GitHub Releases
-agent-toolkit gui             # launch it (alias: agent-toolkit desktop)
-```
-
-No CLI handy? Grab `agent-toolkit-desktop-<version>-linux-<arch>.tar.gz` from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest) and run `./install-desktop.sh install` (per-user, no sudo). Details: [docs/desktop/PRODUCT_VISION.md](docs/desktop/PRODUCT_VISION.md) · [docs/desktop/PACKAGING.md](docs/desktop/PACKAGING.md).
+Agent Toolkit Desktop is the flagship Electron application over the canonical V backend: a cozy pixel world of real project houses, a capability Library, Operations, People, terminals, and guided onboarding. Install the matching AppImage or `.deb` on Linux, DMG on macOS, or NSIS installer on Windows from [Releases](https://github.com/ulises-jeremias/agent-toolkit/releases/latest). The app bundles its backend; a CLI install or source checkout is not required. Details: [product vision](docs/desktop/PRODUCT_VISION.md) · [packaging](docs/desktop/PACKAGING.md).
 
 | World | Library | Operations |
 |---|---|---|

@@ -1,5 +1,6 @@
 appId: com.agent-toolkit.desktop
 productName: Agent Toolkit
+artifactName: agent-toolkit-desktop-${version}-${os}-${arch}.${ext}
 copyright: Copyright © ulises-jeremias
 asar: true
 files:

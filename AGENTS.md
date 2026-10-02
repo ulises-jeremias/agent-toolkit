@@ -24,10 +24,8 @@ Use the narrowest current source of truth instead of old issue prose or historic
 | Desktop interaction model | [`docs/desktop/UX_ARCHITECTURE.md`](docs/desktop/UX_ARCHITECTURE.md) |
 | Desktop visual design | [`docs/desktop/DESIGN.md`](docs/desktop/DESIGN.md) |
 | Desktop semantic world (primary spatial home) | [`docs/desktop/SEMANTIC_WORLD.md`](docs/desktop/SEMANTIC_WORLD.md), [`docs/adrs/ADR-034-semantic-world.md`](docs/adrs/ADR-034-semantic-world.md) |
-| Desktop journeys / coverage | [`docs/desktop/USER_JOURNEYS.md`](docs/desktop/USER_JOURNEYS.md), [`docs/desktop/WORKFLOW_COVERAGE.md`](docs/desktop/WORKFLOW_COVERAGE.md) |
-| Desktop truth ledger | [`docs/desktop/TRUTH_LEDGER.md`](docs/desktop/TRUTH_LEDGER.md) |
+| Desktop journeys / coverage | [`docs/desktop/USER_JOURNEYS.md`](docs/desktop/USER_JOURNEYS.md), [`docs/desktop/workflows.yaml`](docs/desktop/workflows.yaml) |
 | Desktop visual acceptance | [`docs/desktop/VISUAL_QA.md`](docs/desktop/VISUAL_QA.md) |
-| Desktop backlog evidence (HISTORICAL AUDIT — archived 2026-09-10, do not update) | [`docs/desktop/BACKLOG_AUDIT.md`](docs/desktop/BACKLOG_AUDIT.md) |
 
 Historical ADRs and GitHub issues are evidence, not automatic implementation authority. Reconcile them with current code and governing contracts before acting.
 
@@ -85,12 +83,11 @@ Key source areas:
 - `catalogs/` — generated discovery catalogs
 - `schemas/` — validation schemas (skills, agents, loops, targets, products)
 - `modules/agent_toolkit_core/` — shared core/domain implementation
-- `modules/desktop_engine/` — Desktop-facing typed domain layer
-- `modules/desktop/` — Desktop view/presentation support
+- `modules/agent_toolkit_server/` — typed HTTP API over the canonical V domain
 - `cmd/agent-toolkit/` — native V CLI entrypoint
-- `cmd/agent-toolkit-desktop/` — production native Desktop entrypoint
+- `apps/desktop/` — shipping Electron + React Desktop, assets, tests, and packaging
 - `packages/` — PyPI/npm launcher trampolines
-- `tests/` — golden fixtures and adapter test suites
+- `tests/` — parity, security, and adapter test suites
 - `docs/` — human-facing contracts, guides, ADRs
 - `scripts/` — validation/generation automation
 
@@ -218,8 +215,8 @@ Use the smallest matrix that honestly covers the changed surface, plus any check
 | Loop | `validate-loops`, catalog check |
 | Catalog/compiler/profile | generator check, `build --check`, relevant target tests |
 | V core/CLI | relevant V tests, `./make.vsh build-cli`, integration where affected |
-| Desktop Engine | relevant `modules/desktop_engine` tests + production Desktop build |
-| Desktop visual | Desktop build + focused tests + smoke/capture + **opened screenshot** + relevant goldens |
+| Desktop API | relevant server/core tests + generated API check + Electron E2E |
+| Desktop visual | Desktop build + focused tests + smoke/capture + **opened screenshot** |
 | Packaging | platform/package-specific checks plus clean-launch evidence |
 | Docs-only | formatting/link/repository validation affected by the docs; no unrelated expensive suite merely for ceremony |
 
