@@ -733,3 +733,40 @@ fn test_loop_verifier_meta_and_pack_override() {
 	sysp_none := loop_runner_sysprompt('x', 'r1', 'L1', '/runs/r1', '/loops/x', '')
 	assert sysp_none.contains('treat all mutating actions as escalations')
 }
+
+fn test_parse_loop_meta_request_literal_block() {
+	text := 'name: demo\ntier: L2\nrequest: |\n  line one\n  line two\n\n  # kept verbatim\n  - kept verbatim\nverifier: bob\n'
+	m := parse_loop_meta_text(text, 'demo')
+	assert m.request == 'line one\nline two\n\n# kept verbatim\n- kept verbatim\n'
+	assert m.verifier == 'bob'
+}
+
+fn test_parse_loop_meta_request_folded_strip_keep() {
+	folded := parse_loop_meta_text('name: x\nrequest: >\n  folded\n  lines\n\n  next para\n', 'x')
+	assert folded.request == 'folded lines\nnext para\n'
+	stripped := parse_loop_meta_text('name: x\nrequest: |-\n  a\n  b\n', 'x')
+	assert stripped.request == 'a\nb'
+	kept := parse_loop_meta_text('name: x\nrequest: |+\n  a\n\n\n', 'x')
+	assert kept.request == 'a\n\n\n'
+}
+
+fn test_parse_loop_meta_goal_block_and_single_line() {
+	m := parse_loop_meta_text('name: x\ngoal: |\n  multi\n  line goal\nrequest: single line stays\n', 'x')
+	assert m.goal == 'multi\nline goal\n'
+	assert m.request == 'single line stays'
+}
+
+fn test_parse_loop_meta_request_block_eof_relative_indent() {
+	m := parse_loop_meta_text('name: x\nrequest: |\n  gh api repos/x --jq y \\\n    --paginate\n', 'x')
+	assert m.request == 'gh api repos/x --jq y \\\n  --paginate\n'
+}
+
+fn test_parse_loop_meta_request_legacy_forms_untouched() {
+	// single-line values and '|' header with trailing text keep legacy behavior
+	m := parse_loop_meta_text('name: x\nrequest: do the thing\n', 'x')
+	assert m.request == 'do the thing'
+	piped := parse_loop_meta_text('name: x\nrequest: | inline\n', 'x')
+	assert piped.request == 'inline'
+	commented := parse_loop_meta_text('name: x\nrequest: | # full prompt\n  body here\n', 'x')
+	assert commented.request == 'body here\n'
+}

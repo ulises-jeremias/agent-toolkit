@@ -34,6 +34,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   campus reads from above: cottage, studio, workshop, lab, library stacks,
   archive, operations, files, terminal, and settings.
 
+### Fixed
+
+- Loop runner parses multi-line `goal:`/`request:` YAML block scalars
+  (`|`, `>`, chomping and indent indicators) instead of dropping them to
+  empty. Full runbook prompts can now live in `loop.yaml` with no
+  `request.md` sidecar.
+
 ## [1.40.0] — 2026-09-30
 
 ### Changed

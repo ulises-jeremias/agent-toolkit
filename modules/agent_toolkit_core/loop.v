@@ -1706,6 +1706,98 @@ fn parse_loop_meta(loop_dir string) LoopMeta {
 	return parse_loop_meta_text(text, os.file_name(loop_dir))
 }
 
+// block_scalar_indent counts leading spaces/tabs of a raw line.
+fn block_scalar_indent(line string) int {
+	trimmed := line.trim_left(' \t')
+	return line.len - trimmed.len
+}
+
+// block_header_token strips a trailing ' # comment' for block-header
+// detection only; single-line values keep their full text.
+fn block_header_token(rest string) string {
+	idx := rest.index(' #') or { return rest }
+	return rest[..idx].trim_space()
+}
+
+// parse_block_header recognizes a YAML block scalar header (|, >, chomping,
+// indent indicator) after goal:/request:. Returns style, chomp (0 clip,
+// 1 strip, 2 keep), explicit indent (-1 auto) and whether it matched.
+// A bare key (empty rest) leniently starts a literal block.
+fn parse_block_header(rest string) (u8, int, int, bool) {
+	if rest == '' {
+		return `|`, 0, -1, true
+	}
+	style := rest[0]
+	if style != `|` && style != `>` {
+		return `|`, 0, -1, false
+	}
+	mut chomp := 0
+	mut indent := -1
+	mut i := 1
+	for i < rest.len {
+		c := rest[i]
+		if c == `-` || c == `+` {
+			if chomp != 0 {
+				return `|`, 0, -1, false
+			}
+			chomp = if c == `-` { 1 } else { 2 }
+		} else if c >= `0` && c <= `9` {
+			if indent != -1 {
+				return `|`, 0, -1, false
+			}
+			indent = int(c) - 48
+		} else {
+			return `|`, 0, -1, false
+		}
+		i++
+	}
+	if indent == 0 {
+		return `|`, 0, -1, false
+	}
+	return style, chomp, indent, true
+}
+
+// finalize_block_scalar renders collected block lines per style/chomping.
+// Leading blank lines are dropped; trailing blanks feed keep (+) chomping.
+fn finalize_block_scalar(style u8, chomp int, lines []string) string {
+	mut start := 0
+	for start < lines.len && lines[start] == '' {
+		start++
+	}
+	mut end := lines.len
+	for end > start && lines[end - 1] == '' {
+		end--
+	}
+	trailing := lines.len - end
+	mut body := ''
+	if style == `>` {
+		for i := start; i < end; i++ {
+			ln := lines[i]
+			if ln == '' {
+				body += '\n'
+				continue
+			}
+			if body == '' || body.ends_with('\n') {
+				body += ln
+			} else {
+				body += ' ' + ln
+			}
+		}
+	} else {
+		body = lines[start..end].join('\n')
+	}
+	if body == '' {
+		return ''
+	}
+	if chomp == 1 {
+		return body
+	}
+	if chomp == 2 {
+		return body + '\n'.repeat(trailing + 1)
+	}
+	return body + '\n'
+}
+
 pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 	mut m := LoopMeta{
 		name: default_name
@@ -1720,7 +1812,37 @@ pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 	mut in_deny := false
 	mut in_budget := false
 	mut in_attribution := false
+	mut in_block := '' // 'goal' | 'request' | '' — inside a YAML block scalar
+	mut block_style := `|`
+	mut block_chomp := 0 // 0 clip, 1 strip, 2 keep
+	mut block_key_indent := 0
+	mut block_indent := -1 // -1 = auto-detect from first content line
+	mut block_lines := []string{}
 	for line in text.split_into_lines() {
+		// YAML block scalars (|, >) for goal:/request:: consume content lines
+		// verbatim — blank lines and '#' lines included — until dedent or EOF.
+		if in_block != '' {
+			if line.trim_space().len == 0 {
+				block_lines << ''
+				continue
+			}
+			indent := block_scalar_indent(line)
+			if indent <= block_key_indent || (block_indent >= 0 && indent < block_indent) {
+				finalized := finalize_block_scalar(block_style, block_chomp, block_lines)
+				if in_block == 'goal' {
+					m.goal = finalized
+				} else {
+					m.request = finalized
+				}
+				in_block = ''
+			} else {
+				if block_indent < 0 {
+					block_indent = indent
+				}
+				block_lines << line[block_indent..].clone()
+				continue
+			}
+		}
 		t := line.trim_space()
 		if t.starts_with('#') || t.len == 0 {
 			if t.len == 0 {
@@ -1840,11 +1962,41 @@ pub fn parse_loop_meta_text(text string, default_name string) LoopMeta {
 				in_deny = true
 			}
 		} else if t.starts_with('goal:') {
-			m.goal = t.all_after('goal:').trim_space().trim('|').trim_space()
+			rest := t.all_after('goal:').trim_space()
+			style, chomp, explicit, is_block := parse_block_header(block_header_token(rest))
+			if is_block {
+				in_block = 'goal'
+				block_style = style
+				block_chomp = chomp
+				block_key_indent = block_scalar_indent(line)
+				block_indent = if explicit > 0 { block_key_indent + explicit } else { -1 }
+				block_lines = []string{}
+				continue
+			}
+			m.goal = rest.trim('|').trim_space()
 		} else if t.starts_with('request:') {
-			m.request = t.all_after('request:').trim_space().trim('|').trim_space()
+			rest := t.all_after('request:').trim_space()
+			style, chomp, explicit, is_block := parse_block_header(block_header_token(rest))
+			if is_block {
+				in_block = 'request'
+				block_style = style
+				block_chomp = chomp
+				block_key_indent = block_scalar_indent(line)
+				block_indent = if explicit > 0 { block_key_indent + explicit } else { -1 }
+				block_lines = []string{}
+				continue
+			}
+			m.request = rest.trim('|').trim_space()
 		} else if t.starts_with('verifier:') {
 			m.verifier = t.all_after('verifier:').trim_space().trim('"').trim("'")
+		}
+	}
+	if in_block != '' {
+		finalized := finalize_block_scalar(block_style, block_chomp, block_lines)
+		if in_block == 'goal' {
+			m.goal = finalized
+		} else {
+			m.request = finalized
 		}
 	}
 	return m
