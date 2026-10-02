@@ -326,6 +326,13 @@ The workshop board: real job table (status, command, started, duration,
 exit), loops, swarms, doctor. Selected row reads clearly; progress only when
 measured — never decorative bars.
 
+Loop templates must be added to the active workspace before they can run. The
+add dialog previews the destination and refuses overwrites; Run once starts a
+real backend job. The report shows definition budgets, run history, audit and
+cost evidence, including an explicit unavailable state when accounting is not
+recorded. [Loop report screenshots](assets/electron/loops/) show the compact,
+large and completed-run states.
+
 ### Workspace
 
 The most technical destination: files, project context, git state when

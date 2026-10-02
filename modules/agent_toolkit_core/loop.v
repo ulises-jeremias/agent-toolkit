@@ -191,6 +191,16 @@ fn loop_init(ws string, opts LoopOptions) LoopReport {
 		}
 	}
 	loop_name := if opts.custom_name.len > 0 { opts.custom_name } else { pattern }
+	if !valid_loop_name(pattern) || !valid_loop_name(loop_name) {
+		return LoopReport{
+			ok: false
+			message: 'Loop names may contain only letters, numbers, hyphens, and underscores.'
+			data: {
+				'subcommand': 'init'
+				'workspace':  ws
+			}
+		}
+	}
 	dest := os.join_path(loops_dir(ws), loop_name)
 	if os.exists(dest) {
 		return LoopReport{
@@ -1512,14 +1522,10 @@ fn list_loop_templates(ws string) []string {
 		}
 	}
 	if root := find_toolkit_root() {
-		bundled := os.join_path(root.path, 'loops')
-		if os.is_dir(bundled) {
-			for f in os.ls(bundled) or { []string{} } {
-				p := os.join_path(bundled, f)
-				if os.is_dir(p) && os.is_file(os.join_path(p, 'loop.yaml')) && f !in seen {
-					seen[f] = true
-					names << f
-				}
+		for f in loop_template_names_from_root(root) {
+			if f !in seen {
+				seen[f] = true
+				names << f
 			}
 		}
 	}
@@ -1527,7 +1533,27 @@ fn list_loop_templates(ws string) []string {
 	return names
 }
 
+fn loop_template_names_from_root(root ToolkitRoot) []string {
+	bundled := os.join_path(root.path, 'loops')
+	if !data_is_dir(root.path, bundled) {
+		return []
+	}
+	mut names := []string{}
+	for f in data_ls(root.path, bundled) {
+		p := os.join_path(bundled, f)
+		if valid_loop_name(f) && data_is_dir(root.path, p)
+			&& data_is_file(root.path, os.join_path(p, 'loop.yaml')) {
+			names << f
+		}
+	}
+	names.sort()
+	return names
+}
+
 fn load_loop_template(ws string, pattern string) !string {
+	if !valid_loop_name(pattern) {
+		return error('invalid loop template name')
+	}
 	user_file := os.join_path(ws, 'templates', 'loops', '${pattern}.yaml')
 	if os.is_file(user_file) {
 		return os.read_file(user_file)!
@@ -1537,12 +1563,30 @@ fn load_loop_template(ws string, pattern string) !string {
 		return os.read_file(user_dir)!
 	}
 	if root := find_toolkit_root() {
-		bundled := os.join_path(root.path, 'loops', pattern, 'loop.yaml')
-		if os.is_file(bundled) {
-			return os.read_file(bundled)!
-		}
+		return load_loop_template_from_root(root, pattern)
 	}
 	return error('not found')
+}
+
+fn load_loop_template_from_root(root ToolkitRoot, pattern string) !string {
+	bundled := os.join_path(root.path, 'loops', pattern, 'loop.yaml')
+	if data_is_file(root.path, bundled) {
+		return data_read_file(root.path, bundled)
+	}
+	return error('not found')
+}
+
+fn valid_loop_name(name string) bool {
+	if name.len == 0 || name.len > 64 {
+		return false
+	}
+	for c in name {
+		if !((c >= `a` && c <= `z`) || (c >= `A` && c <= `Z`) || (c >= `0` && c <= `9`)
+			|| c == `-` || c == `_`) {
+			return false
+		}
+	}
+	return true
 }
 
 fn rewrite_loop_name(text string, name string) string {

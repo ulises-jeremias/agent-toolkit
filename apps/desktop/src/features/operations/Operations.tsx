@@ -154,6 +154,7 @@ export default function Operations() {
           selectedName={selectedLoop}
           dialogOpen={dialog === 'run-loop'}
           onSelect={(name) => patchParams(setParams, { loop: name })}
+          onRun={(name) => patchParams(setParams, { loop: name, dialog: 'run-loop' })}
           onCloseDialog={() => patchParams(setParams, { dialog: null })}
           onStarted={(id) => patchParams(setParams, { job: id, dialog: null })}
         />

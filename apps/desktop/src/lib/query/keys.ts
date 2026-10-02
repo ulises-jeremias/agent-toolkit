@@ -61,7 +61,11 @@ export const qk = {
   },
 
   loops: {
+    list: () => ['loops', 'list'] as const,
     status: (name: string) => ['loops', 'status', name] as const,
+    history: (name: string) => ['loops', 'history', name] as const,
+    audit: (name: string) => ['loops', 'audit', name] as const,
+    cost: (name: string) => ['loops', 'cost', name] as const,
   },
 
   swarms: {

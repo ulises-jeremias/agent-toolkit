@@ -18,7 +18,7 @@ journeys:
     evidence:
       - note: copied Linux package launched outside the checkout with fresh
           HOME/XDG and minimal PATH, workspace created entirely through the GUI
-        build: '1.40.0 @ feat/cozy-pixel-world cb7394b2 (2026-09-30)'
+        build: "1.40.0 @ feat/cozy-pixel-world cb7394b2 (2026-09-30)"
       - note: e2e/electron/onboarding.spec.ts
     blockers: []
     recovery: guided retry on backend failure; no partial workspace left behind
@@ -75,7 +75,7 @@ journeys:
     status: partial
     evidence:
       - note: Electron screenshot tour creates Lina through the UI and confirms the offline roster; V people_test.v covers CRUD, archive, restore and invalid declarations
-        build: 'feat/product-stabilization (pre-merge)'
+        build: "feat/product-stabilization (pre-merge)"
     blockers:
       - GUI edit/archive/restore failure paths need full Electron review
   - id: people-import-review
@@ -84,7 +84,7 @@ journeys:
     status: partial
     evidence:
       - note: Electron screenshot tour reviews Maya JSON, displays ignored command field, saves and observes offline roster; importMunder.test.ts covers inert source mapping
-        build: 'feat/product-stabilization (pre-merge)'
+        build: "feat/product-stabilization (pre-merge)"
     blockers:
       - malformed-file and collision recovery need full Electron review
   - id: people-start-session
@@ -101,13 +101,29 @@ journeys:
     evidence: []
     blockers:
       - resolution order (explicit Person, preferred Person, ephemeral session) is contract-only
-  - id: loops-run-schedule
-    title: Run a loop and read its report
+  - id: loops-run-report
+    title: Install a loop template, run once and read its report
     destinations: [operations]
-    status: blocked
+    status: partial
+    evidence:
+      - note: focused Electron journey adds daily-triage through a reviewed confirmation, runs it with the skeleton runner, then reads typed history/audit and honest unavailable cost; compact and large screenshots reviewed locally
+        build: "feat/desktop-loop-reports (local; CI review pending)"
+        screenshots:
+          - assets/electron/loops/loop-report-compact.png
+          - assets/electron/loops/loop-report-large.png
+          - assets/electron/loops/loop-report-after-run.png
+      - note: V core tests cover embedded template discovery/read, and a packaged-style binary from fresh HOME/XDG lists 10 embedded templates and initializes one
+        build: "feat/desktop-loop-reports (VJOBS=2 local validation)"
+    blockers:
+      - Desktop scheduling, pause/disable and schedule recovery are not exposed yet
+      - packaged CI evidence for this branch is pending
+  - id: loops-schedule
+    title: Preview, create and disable a loop schedule
+    destinations: [operations]
+    status: not-implemented
     evidence: []
     blockers:
-      - loop run + report readout remedy against the current build not on file
+      - schedule lifecycle requires a dedicated preview and typed Desktop workflow
   - id: swarm-run-watch
     title: Run a swarm and watch lane progress
     destinations: [operations]

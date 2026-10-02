@@ -14,6 +14,21 @@ fn test_loop_help() {
 	assert r.message.contains('ADR-020')
 }
 
+fn test_embedded_loop_templates_are_discoverable_and_readable() {
+	root := ToolkitRoot{
+		path: 'embedded'
+		tier: 'embedded'
+	}
+	names := loop_template_names_from_root(root)
+	assert 'daily-triage' in names
+	assert names.len > 0
+	text := load_loop_template_from_root(root, 'daily-triage') or { panic(err.msg()) }
+	assert text.contains('name: daily-triage')
+	assert !valid_loop_name('../daily-triage')
+	assert !valid_loop_name('a/b')
+	assert valid_loop_name('daily-triage_2')
+}
+
 fn test_loop_init_run_status_audit_sync() {
 	old_h := os.getenv('HARNESS_DIR')
 	old_ws := os.getenv('AGENT_TOOLKIT_WORKSPACE')
