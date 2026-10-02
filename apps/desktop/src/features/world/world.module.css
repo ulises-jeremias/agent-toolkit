@@ -332,6 +332,7 @@
   border: none;
   background: transparent;
   cursor: grab;
+  pointer-events: none;
 }
 
 .panFocus:focus-visible {

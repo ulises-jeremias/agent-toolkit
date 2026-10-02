@@ -165,21 +165,26 @@ function art(rows) {
 const P = {
   k: [0x26, 0x20, 0x33],
   iv: [0xf3, 0xed, 0xda],
-  g: [0x5f, 0xb4, 0x54],
-  gd: [0x4e, 0x9c, 0x43],
-  gl: [0x72, 0xc2, 0x64],
-  gt: [0x8a, 0xd4, 0x78],
-  fo: [0x3e, 0x7d, 0x3a],
-  fd: [0x2f, 0x62, 0x30],
-  fl: [0x58, 0xa3, 0x4e],
-  d: [0xc9, 0xa0, 0x66],
-  dd: [0xa8, 0x7f, 0x4c],
-  dl: [0xdd, 0xbe, 0x8a],
+  // Fern, olive and spring-light form a softer valley base. This keeps
+  // landmarks vivid without letting the lawn compete with their silhouettes.
+  g: [0x68, 0xa8, 0x5f],
+  gd: [0x4f, 0x8b, 0x4b],
+  gl: [0x83, 0xbd, 0x70],
+  gt: [0xb2, 0xd3, 0x87],
+  fo: [0x48, 0x72, 0x3e],
+  fd: [0x37, 0x5d, 0x36],
+  fl: [0x65, 0x91, 0x4b],
+  d: [0xb7, 0x91, 0x63],
+  dd: [0x96, 0x73, 0x4d],
+  dl: [0xd0, 0xb0, 0x7b],
   sa: [0xe7, 0xd7, 0xa8],
   sad: [0xcd, 0xb8, 0x86],
   st: [0x9a, 0xa0, 0xa8],
   sd: [0x76, 0x7c, 0x85],
   sl: [0xc6, 0xcb, 0xcf],
+  paver: [0xc5, 0xa7, 0x78],
+  paverDark: [0x91, 0x73, 0x50],
+  paverLight: [0xe0, 0xca, 0x9d],
   w: [0x3f, 0xa7, 0xd6],
   wd: [0x2e, 0x7f, 0xa3],
   wl: [0x7c, 0xd0, 0xec],
@@ -744,13 +749,21 @@ function objLamp() {
 
 function grassTile(seed) {
   const img = new Img(16, 16).rect(0, 0, 15, 15, 'g');
-  // Tufts and short dappled streaks break up the flat lawn without noise.
+  // Quiet, grouped dapple and little three-pixel grass tufts. Clusters read
+  // as terrain at map zoom; they do not become a confetti pattern.
   const s = seed * 7 + 3;
-  const x = (s % 10) + 2;
-  const y = ((s * 3) % 10) + 3;
-  img.set(x, y, 'gd').set(x - 1, y + 1, 'gd').set(x + 1, y + 1, 'gd');
-  img.set(x, y - 1, 'gl').set((x + 6) % 14 + 1, (y + 7) % 14 + 1, 'gt');
-  if (seed % 2) img.hline(10, 12, 4, 'gl');
+  const x = (s % 9) + 3;
+  const y = ((s * 3) % 9) + 3;
+  img.set(x, y, 'gd').set(x - 1, y, 'gd').set(x, y + 1, 'gd');
+  img.set(x + 1, y - 1, 'gl').set(x + 2, y - 1, 'gl');
+  const x2 = (s * 5) % 11 + 2;
+  const y2 = (s * 7) % 11 + 2;
+  img.set(x2, y2, 'gt').set(x2 + 1, y2, 'gl');
+  if (seed % 2) {
+    const tx = (s * 3) % 12 + 2;
+    const ty = (s * 11) % 12 + 2;
+    img.set(tx, ty + 1, 'fo').set(tx - 1, ty + 2, 'fd').set(tx + 1, ty + 2, 'fd');
+  }
   return img;
 }
 
@@ -772,10 +785,47 @@ function dirtTiles() {
   const out = [];
   const base = () => {
     const img = new Img(16, 16).rect(0, 0, 15, 15, 'd');
-    img.set(3, 4, 'dl').set(10, 9, 'dl').set(6, 13, 'dd').set(13, 3, 'dd').set(1, 9, 'dl');
+    // Warm, compact grit with irregular pebble pairs and faint foot-worn marks.
+    img.set(3, 4, 'dl').set(4, 4, 'dl').set(10, 9, 'dl').set(6, 13, 'dd');
+    img.set(13, 3, 'dd').set(1, 9, 'dl').set(12, 13, 'dd').set(8, 2, 'dl');
+    img.set(5, 8, 'dd').set(6, 8, 'dd').set(11, 5, 'dl');
     return img;
   };
   out.push({ name: 'dirt', img: base() });
+  const pathNames = [
+    'dot', 'end-n', 'end-s', 'v', 'end-w', 'turn-nw', 'turn-sw', 'tee-e',
+    'end-e', 'turn-ne', 'turn-se', 'tee-w', 'h', 'tee-s', 'tee-n', 'cross',
+  ];
+  pathNames.forEach((name, mask) => {
+    const img = new Img(16, 16);
+    const body = Array.from({ length: 16 }, () => new Array(16).fill(false));
+    const fill = (x0, y0, x1, y1) => {
+      for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) body[y][x] = true;
+    };
+    fill(5, 5, 10, 10);
+    if (mask & 1) fill(5, 0, 10, 7);
+    if (mask & 2) fill(5, 8, 10, 15);
+    if (mask & 4) fill(0, 5, 7, 10);
+    if (mask & 8) fill(8, 5, 15, 10);
+    const neighborIsPath = (x, y, dx, dy) => {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx >= 0 && ny >= 0 && nx < 16 && ny < 16) return body[ny][nx];
+      if (nx < 0) return Boolean(mask & 4) && y >= 5 && y <= 10;
+      if (nx >= 16) return Boolean(mask & 8) && y >= 5 && y <= 10;
+      if (ny < 0) return Boolean(mask & 1) && x >= 5 && x <= 10;
+      return Boolean(mask & 2) && x >= 5 && x <= 10;
+    };
+    for (let y = 0; y < 16; y++) {
+      for (let x = 0; x < 16; x++) {
+        if (!body[y][x]) continue;
+        const edge = [[0, -1], [0, 1], [-1, 0], [1, 0]].some(([dx, dy]) => !neighborIsPath(x, y, dx, dy));
+        img.set(x, y, edge ? 'dd' : 'd');
+      }
+    }
+    img.set(6, 6, 'dl').set(9, 9, 'dd');
+    out.push({ name: `trail-${name}`, img });
+  });
   const edge = (dir) => {
     const img = base();
     for (let i = 0; i < 16; i += 2) {
@@ -804,9 +854,12 @@ function dirtTiles() {
 
 function plazaTiles() {
   const slab = (alt) => {
-    const img = new Img(16, 16).rect(0, 0, 15, 15, alt ? 'sl' : 'st');
-    img.hline(0, 15, 0, 'sd').vline(0, 0, 15, 'sd');
-    if (alt) img.set(7, 7, 'st').set(8, 7, 'st').set(7, 8, 'st').set(8, 8, 'st');
+    const img = new Img(16, 16).rect(0, 0, 15, 15, alt ? 'paverLight' : 'paver');
+    img.hline(0, 15, 0, 'paverDark').hline(0, 15, 8, 'paverDark');
+    img.vline(0, 0, 15, 'paverDark').vline(15, 0, 15, 'paverDark');
+    const offset = alt ? 8 : 0;
+    img.vline(7 + offset % 4, 1, 7, 'paverDark').vline(7 + (offset + 4) % 8, 9, 15, 'paverDark');
+    img.hline(2, 5, 3, 'paverLight').hline(10, 13, 12, 'paver');
     return img;
   };
   return [
@@ -818,10 +871,11 @@ function plazaTiles() {
 function waterTiles() {
   const mk = (off) => {
     const img = new Img(16, 16).rect(0, 0, 15, 15, 'w');
-    for (let y = 8; y < 16; y += 6) img.hline(0, 15, y, 'wd');
-    img.set((2 + off) % 15, (3 + off) % 12, 'wl').set((3 + off) % 15, (3 + off) % 12, 'wl');
-    img.set((9 + off) % 15, (8 + off) % 12, 'wl');
-    img.set((6 + off) % 15, (12 + off) % 13, 'wd');
+    const y = (3 + off) % 11 + 2;
+    const x = (2 + off * 2) % 11 + 2;
+    img.hline(x, Math.min(x + 3, 14), y, 'wl').set(x + 1, y - 1, 'wf');
+    img.hline((10 + off) % 12 + 1, (13 + off) % 13 + 2, (9 + off) % 12 + 2, 'wd');
+    img.set((6 + off) % 14 + 1, (12 + off) % 13 + 1, 'wl');
     return img;
   };
   const shore = (dir) => {
@@ -860,20 +914,54 @@ function bridge() {
  * 7. Nature decor.
  * ------------------------------------------------------------------ */
 
+function leafyCanopy(img, flowers = false, amber = false) {
+  // Layered crown masses make a broad, hand-clustered canopy rather than a
+  // single perfect ball. Top-left highlights follow the same light direction.
+  for (const [cx, cy, rx, ry] of [[16, 15, 14, 12], [8, 17, 8, 8], [23, 16, 8, 9], [13, 8, 8, 7]]) {
+    img.ellipse(cx, cy, rx, ry, 'k');
+  }
+  for (const [cx, cy, rx, ry] of [[16, 14, 13, 11], [8, 16, 7, 7], [23, 15, 7, 8], [13, 8, 7, 6]]) {
+    img.ellipse(cx, cy, rx, ry, 'fo');
+  }
+  img.ellipse(9, 12, 5, 5, amber ? 'go' : flowers ? 'fl' : 'fl');
+  img.ellipse(16, 7, 6, 4, amber ? 'gt' : 'gl');
+  img.ellipse(24, 13, 4, 6, 'fd');
+  img.ellipse(14, 19, 6, 4, 'fd');
+  img.hline(6, 9, 9, 'gt').hline(15, 19, 5, 'gt').hline(10, 12, 17, 'fo');
+  img.set(22, 17, 'gl').set(20, 21, 'fl').set(7, 15, 'gt').set(25, 10, 'fl');
+  if (flowers) {
+    for (const [x, y] of [[8, 14], [19, 8], [24, 18], [13, 20], [20, 14]]) img.set(x, y, 'pop');
+    img.set(9, 13, 'iv').set(20, 7, 'iv').set(25, 17, 'iv');
+  } else if (amber) {
+    img.set(7, 17, 'go').set(17, 10, 'gt').set(23, 20, 'go').set(11, 22, 'god');
+  }
+}
+
 function treeRound() {
   const img = new Img(32, 40);
   img.ellipse(16, 38, 10, 2, 'sh');
   img.rect(13, 24, 18, 37, 'k').rect(14, 24, 17, 36, 'od');
   img.set(14, 28, 'o').set(17, 31, 'o').set(15, 34, 'o');
-  img.ellipse(16, 14, 14, 13, 'k');
-  img.ellipse(16, 13, 13, 12, 'fo');
-  img.ellipse(9, 12, 5, 6, 'fl');
-  img.ellipse(17, 7, 7, 5, 'fl');
-  img.ellipse(24, 13, 4, 6, 'fd');
-  img.ellipse(14, 19, 6, 4, 'fd');
-  img.hline(6, 9, 9, 'gt').hline(15, 19, 5, 'gt').hline(10, 12, 17, 'fo');
-  img.set(22, 17, 'gl').set(20, 21, 'fl').set(7, 15, 'gt').set(25, 10, 'fl');
+  leafyCanopy(img);
   return [{ name: 'tree-round', img }];
+}
+
+function treeBlossom() {
+  const img = new Img(32, 40);
+  img.ellipse(16, 38, 10, 2, 'sh');
+  img.rect(13, 24, 18, 37, 'k').rect(14, 24, 17, 36, 'od');
+  img.set(14, 28, 'o').set(17, 31, 'o').set(15, 34, 'o');
+  leafyCanopy(img, true);
+  return [{ name: 'tree-blossom', img }];
+}
+
+function treeAmber() {
+  const img = new Img(32, 40);
+  img.ellipse(16, 38, 10, 2, 'sh');
+  img.rect(13, 24, 18, 37, 'k').rect(14, 24, 17, 36, 'od');
+  img.set(14, 28, 'o').set(17, 31, 'o').set(15, 34, 'o');
+  leafyCanopy(img, false, true);
+  return [{ name: 'tree-amber', img }];
 }
 
 function treePine() {
@@ -1263,6 +1351,8 @@ function collect() {
     objLamp(),
     bridge(),
     treeRound(),
+    treeBlossom(),
+    treeAmber(),
     treePine(),
     bush(),
     rock(),

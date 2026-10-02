@@ -317,8 +317,15 @@ fn project_add(ws string, opts ProjectOptions) ProjectReport {
 			message: 'Error: not a directory: ${repo_path}'
 		}
 	}
-	repo_name := os.file_name(repo_path)
+	workspace_real := os.real_path(ws)
 	projects_dir := os.join_path(ws, 'projects')
+	if repo_path == workspace_real || (os.is_dir(projects_dir) && repo_path == os.real_path(projects_dir)) {
+		return ProjectReport{
+			ok: false
+			message: 'Error: workspace management folders cannot be linked as projects; choose a repository folder instead'
+		}
+	}
+	repo_name := os.file_name(repo_path)
 	link_path := os.join_path(projects_dir, repo_name)
 	os.mkdir_all(projects_dir) or {}
 	mut lines := []string{}

@@ -129,16 +129,14 @@ export function WorldEntityMap({
     (strict = false) => {
       const region = regionRef.current;
       if (!region) return;
-      // Start at readable game scale. Home still fits the entire valley.
-      const minimumZoom = !strict && mode === 'grounds' ? (region.clientWidth >= 1400 ? 48 : 32) : 16;
+      // Start at a legible game scale so the world remains the main interface.
+      // Explicit Fit/Home requests favor a complete overview over the automatic game scale.
+      const minimumZoom = strict || mode !== 'grounds' ? 16 : region.clientWidth >= 1400 ? 48 : 32;
       const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }, minimumZoom);
       setZoom(camera.zoom);
       setPan(
         clampCamera(
-          {
-            ...camera.pan,
-            y: camera.pan.y + (!strict && mode === 'grounds' && region.clientWidth < 1400 ? camera.zoom * 2 : 0),
-          },
+          camera.pan,
           { x: region.clientWidth, y: region.clientHeight },
           { x: cols * camera.zoom, y: rows * camera.zoom },
         ),

@@ -19,6 +19,7 @@ const bridge: AtkBridge = {
     ipcRenderer.invoke('atk:harness-set', { path, create: options?.create === true }),
   harnessChoose: () => ipcRenderer.invoke('atk:harness-choose'),
   harnessReset: () => ipcRenderer.invoke('atk:harness-reset'),
+  projectChooseDirectory: (defaultPath: string) => ipcRenderer.invoke('atk:project-choose-directory', defaultPath),
   ptyList: () => ipcRenderer.invoke('atk:pty-list'),
   ptyTail: (id: string) => ipcRenderer.invoke('atk:pty-tail', id),
   ptyCreate: (options: PtyCreateOptions) => ipcRenderer.invoke('atk:pty-create', options),

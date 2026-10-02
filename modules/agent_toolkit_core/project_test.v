@@ -94,3 +94,29 @@ fn test_project_help() {
 	assert r.message.contains('clone')
 	assert r.message.contains('scan')
 }
+
+fn test_project_add_rejects_workspace_management_roots() {
+	base := os.join_path(os.temp_dir(), 'at-proj-invalid-${os.getpid()}')
+	os.mkdir_all(base) or { assert false, err.msg() }
+	defer {
+		os.rmdir_all(base) or {}
+	}
+	os.write_file(os.join_path(base, 'AGENTS.md'), '# ws\n') or { assert false, err.msg() }
+	init := run_project(ProjectOptions{
+		subcommand: 'init'
+		workspace_path: base
+	})
+	assert init.ok, init.message
+
+	for candidate in [base, os.join_path(base, 'projects')] {
+		result := run_project(ProjectOptions{
+			subcommand: 'add'
+			workspace_path: base
+			arg: candidate
+		})
+		assert !result.ok
+		assert result.message.contains('cannot be linked as projects')
+	}
+	entries := os.ls(os.join_path(base, 'projects')) or { []string{} }
+	assert entries.len == 0
+}

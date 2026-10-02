@@ -9,6 +9,7 @@ export interface IpcDeps {
   getTerminals: () => TerminalService | null;
   getWindow: () => BrowserWindow | null;
   getHarness: () => HarnessController | null;
+  chooseProjectDirectory?: (defaultPath: string) => Promise<string | null>;
   /** When set, rewrite backend.url to the same-origin renderer proxy. */
   getPublicBackendUrl?: () => string | null;
 }
@@ -67,6 +68,10 @@ export function registerIpc(deps: IpcDeps): void {
   });
   ipcMain.handle('atk:harness-choose', async () => deps.getHarness()?.choose() ?? NO_HARNESS);
   ipcMain.handle('atk:harness-reset', async () => deps.getHarness()?.reset() ?? NO_HARNESS);
+  ipcMain.handle('atk:project-choose-directory', async (_event, defaultPath: unknown) => {
+    if (typeof defaultPath !== 'string') return null;
+    return deps.chooseProjectDirectory?.(defaultPath) ?? null;
+  });
 
   ipcMain.handle('atk:pty-list', () => deps.getTerminals()?.list() ?? []);
   ipcMain.handle('atk:pty-tail', (_event, id: unknown) =>

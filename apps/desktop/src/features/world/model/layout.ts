@@ -180,7 +180,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // District widths first so the core is centered on the map, not the lane.
   const districtCols = projectDistrictCols(projects.length);
-  const districtW = Math.max(0, districtCols * 4 - 1); // 3-wide houses + gutters
+  const districtW = projects.length ? districtCols * 5 - 1 : 0; // room for staggered lanes
   const contentW = Math.max(districtW, 22); // civic square + hall + archive
   const mapW = contentW + 8; // 4-tile forest frame each side
 
@@ -210,7 +210,8 @@ export function layoutWorld(model: WorldModel): WorldLayout {
     place(landmark, slot.x, slot.y);
   }
 
-  // Project houses form a distinct southern neighborhood.
+  // Project houses form a distinct southern neighborhood. Slightly wider,
+  // offset rows give each house a garden edge and break the spreadsheet grid.
   const districtY = 17;
   const districtX = 4 + Math.max(0, Math.floor((contentW - districtW) / 2));
   if (emptyProject) place(emptyProject, districtX + 4, districtY);
@@ -218,8 +219,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   projects.forEach((project, index) => {
     const col = index % districtCols;
     const row = Math.floor(index / districtCols);
-    const x = districtX + col * 4;
-    const y = districtY + row * 4;
+    const rowInset = row % 2 === 1 ? 2 : 0;
+    // Keep existing lots fixed as a roster grows; only new lots are appended.
+    const rowStart = districtX + rowInset;
+    const x = rowStart + col * 5;
+    const y = districtY + row * 5 + (col % 2 === 1 ? 1 : 0);
     place(project, x, y);
     if (project.projectId) projectSlots.set(project.projectId, { x, y });
   });
@@ -247,7 +251,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const mapRows = districtY + Math.max(0, districtRows) * 4 + 3;
+  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + (projects.length ? 7 : 3);
   return {
     cols: Math.max(mapW, maxX + 4),
     rows: Math.max(maxY + 1, mapRows),
