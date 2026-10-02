@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { filterCommands, PALETTE_COMMANDS } from './commands';
+import { filterCommands, PALETTE_COMMANDS, personCommands } from './commands';
 
 describe('filterCommands', () => {
   it('returns every command when the query is empty', () => {
@@ -50,5 +50,27 @@ describe('filterCommands', () => {
     expect(filterCommands(PALETTE_COMMANDS, 'memory archive').map((c) => c.id)).toContain('go:world-memory');
     expect(filterCommands(PALETTE_COMMANDS, 'project houses').map((c) => c.id)).toContain('go:world-projects');
     expect(filterCommands(PALETTE_COMMANDS, 'needs you').map((c) => c.id)).toContain('go:world-attention');
+  });
+
+  it('offers truthful People actions and hides Start for archived or live collaborators', () => {
+    const commands = personCommands(
+      [
+        { id: 'lina', name: 'Lina', role: 'reviewer', archived: false },
+        { id: 'maya', name: 'Maya', role: 'architect', archived: true },
+        { id: 'alex', name: 'Alex', role: 'implementer', archived: false },
+      ],
+      [{ personId: 'alex', projectId: 'agent-toolkit', exitCode: null }],
+    );
+    expect(commands.map((command) => command.title)).toEqual([
+      'Inspect Alex',
+      "Open Alex's terminal",
+      'Inspect Lina',
+      'Start Lina',
+      'Inspect Maya',
+    ]);
+    expect(filterCommands(commands, 'Start Lina').map((command) => command.id)).toEqual(['people:start:lina']);
+    expect(filterCommands(commands, 'terminal agent-toolkit').map((command) => command.id)).toEqual([
+      'people:session:alex',
+    ]);
   });
 });

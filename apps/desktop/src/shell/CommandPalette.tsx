@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useBackend } from '../data/backend';
+import { useQuery } from '@tanstack/react-query';
+import { requireClient, useBackend } from '../data/backend';
 import { useSubQuery } from '../data/commands';
 import { useTerminalSessions } from '../data/terminal';
 import { setThemePreference, type ThemePreference } from '../design/theme';
@@ -11,7 +12,7 @@ import { parseProjectListMessage } from '../features/world/model';
 import { projectWorldCommands, resolveWorldJump } from '../features/world/worldJumps';
 import { envelopeText } from '../lib/api';
 import { Dialog, Kbd, TextInput, VisuallyHidden } from '../ui';
-import { filterCommands, PALETTE_COMMANDS, SHORTCUTS, type PaletteCommand } from './commands';
+import { filterCommands, PALETTE_COMMANDS, personCommands, SHORTCUTS, type PaletteCommand } from './commands';
 import { DESTINATIONS } from './destinations';
 import { useSessionContext } from './useSessionContext';
 import styles from './shell.module.css';
@@ -37,17 +38,28 @@ export function CommandPalette() {
   const [shortcuts, setShortcuts] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const { href } = useSessionContext();
-  const { restartBackend } = useBackend();
+  const { context, href } = useSessionContext();
+  const { client, restartBackend } = useBackend();
   const terminals = useTerminalSessions();
   const attention = useAttention();
   const projectsQuery = useSubQuery('project', 'list');
+  const peopleQuery = useQuery({
+    queryKey: ['people', context.workspace],
+    queryFn: () => requireClient(client).people(context.workspace),
+    enabled: client !== null && Boolean(context.workspace),
+    staleTime: 15_000,
+  });
 
   const projectCommands = useMemo((): readonly PaletteCommand[] => {
     if (!projectsQuery.isSuccess || !projectsQuery.data) return [];
     const names = parseProjectListMessage(envelopeText(projectsQuery.data)).map((row) => row.name);
     return projectWorldCommands(names);
   }, [projectsQuery.data, projectsQuery.isSuccess]);
+
+  const peoplePaletteCommands = useMemo(
+    () => personCommands(peopleQuery.data?.people ?? [], terminals.sessions),
+    [peopleQuery.data, terminals.sessions],
+  );
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -89,7 +101,10 @@ export function CommandPalette() {
     }
   }, [open]);
 
-  const catalog = useMemo(() => [...PALETTE_COMMANDS, ...projectCommands], [projectCommands]);
+  const catalog = useMemo(
+    () => [...PALETTE_COMMANDS, ...projectCommands, ...peoplePaletteCommands],
+    [peoplePaletteCommands, projectCommands],
+  );
   const matches = useMemo(() => filterCommands(catalog, query), [catalog, query]);
   const active = matches[Math.min(selected, Math.max(matches.length - 1, 0))];
 
@@ -104,6 +119,21 @@ export function CommandPalette() {
       return;
     }
     setOpen(false);
+    if (command.id.startsWith('people:')) {
+      const [, action, personId] = command.id.split(':');
+      if (!personId) return;
+      if (action === 'start') {
+        navigate(href('/people', { person: personId, start: '1' }));
+      } else if (action === 'session') {
+        const session = terminals.sessions.find(
+          (candidate) => candidate.personId === personId && candidate.exitCode === null,
+        );
+        navigate(session ? href('/terminal', { pty: session.id }) : href('/people', { person: personId }));
+      } else {
+        navigate(href('/people', { person: personId }));
+      }
+      return;
+    }
     if (command.id.startsWith('go:')) {
       const target = command.id.slice(3);
       if (target === 'world-knowledge') {

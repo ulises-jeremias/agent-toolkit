@@ -318,7 +318,7 @@ export default function People() {
   const { client } = useBackend();
   const { context, href } = useSessionContext();
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const terminals = useTerminalSessions();
   const workspace = context.workspace;
   const queryClient = useQueryClient();
@@ -417,6 +417,16 @@ export default function People() {
     const personId = params.get('person');
     if (personId) setSelectedId(personId);
   }, [params]);
+
+  useEffect(() => {
+    if (params.get('start') !== '1' || !list.isSuccess) return;
+    const personId = params.get('person');
+    const person = list.data?.people.find((candidate) => candidate.id === personId);
+    if (person && !person.archived) setStarting(person);
+    const next = new URLSearchParams(params);
+    next.delete('start');
+    setParams(next, { replace: true });
+  }, [list.data, list.isSuccess, params, setParams]);
 
   useEffect(() => {
     if (!starting) return;
