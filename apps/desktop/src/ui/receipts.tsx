@@ -76,13 +76,24 @@ export function ReceiptsProvider({ children }: { children: ReactNode }) {
     setVisible((ids) => ids.filter((candidate) => candidate !== id));
   }, []);
 
-  const push = useCallback((input: ReceiptInput) => {
-    counter += 1;
-    const receipt: Receipt = { ...input, id: `receipt-${counter}`, at: Date.now() };
-    setHistory((items) => [receipt, ...items].slice(0, HISTORY_LIMIT));
-    setVisible((ids) => [receipt.id, ...ids].slice(0, VISIBLE_LIMIT));
-    return receipt.id;
-  }, []);
+  const push = useCallback(
+    (input: ReceiptInput) => {
+      counter += 1;
+      const receipt: Receipt = { ...input, id: `receipt-${counter}`, at: Date.now() };
+      const recoveredFailureIds =
+        input.tone === 'ok'
+          ? new Set(
+              history
+                .filter((item) => item.tone === 'err' && item.title === `${input.title} failed`)
+                .map((item) => item.id),
+            )
+          : new Set<string>();
+      setHistory((items) => [receipt, ...items].slice(0, HISTORY_LIMIT));
+      setVisible((ids) => [receipt.id, ...ids.filter((id) => !recoveredFailureIds.has(id))].slice(0, VISIBLE_LIMIT));
+      return receipt.id;
+    },
+    [history],
+  );
 
   const value = useMemo(() => ({ history, push, dismiss }), [history, push, dismiss]);
   const byId = new Map(history.map((receipt) => [receipt.id, receipt]));

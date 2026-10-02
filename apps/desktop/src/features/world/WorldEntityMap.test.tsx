@@ -250,6 +250,20 @@ describe('WorldEntityMap activation', () => {
     expect(toolInspect?.getAttribute('href')).toContain('tool=claude');
   });
 
+  it('explains a world entity on hover with its real concept, state, and action', async () => {
+    const { user } = renderMap();
+    const library = screen.getByRole('button', { name: /Library/i });
+    await user.hover(library);
+    const tooltipId = library.getAttribute('aria-describedby');
+    expect(tooltipId).toContain('world-entity-tip-object%3Alibrary');
+    const tooltip = document.getElementById(tooltipId!);
+    if (!tooltip) throw new Error('Expected an accessible world tooltip');
+    expect(tooltip).toHaveTextContent('Library');
+    expect(tooltip).toHaveTextContent('Capability library');
+    expect(tooltip).toHaveTextContent('catalog');
+    expect(tooltip).toHaveTextContent('Click to open');
+  });
+
   it('gives every entity accessible name and state text independent of color', () => {
     const grounds = layoutWorld(buildWorldModel(baseInput()));
     const interior = layoutWorld(buildWorldModel(baseInput({ focusProjectId: 'alpha' })));

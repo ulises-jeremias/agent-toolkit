@@ -119,26 +119,48 @@
   animation: decor-frame 1.2s steps(2) infinite;
 }
 
-.decorSprite[data-sprite='water'] { animation-duration: 1.8s; }
-.decorSprite[data-sprite='firefly'] { animation-duration: 2.2s; }
-.decorSprite[data-sprite='hornero'] { animation-duration: 2.6s; }
+.decorSprite[data-sprite='water'] {
+  animation-duration: 1.8s;
+}
+.decorSprite[data-sprite='firefly'] {
+  animation-duration: 2.2s;
+}
+.decorSprite[data-sprite='hornero'] {
+  animation-duration: 2.6s;
+}
 .decorSprite[data-sprite='butterfly'] {
-  animation: decor-frame 0.7s steps(2) infinite, decor-hover 3.2s ease-in-out infinite;
+  animation:
+    decor-frame 0.7s steps(2) infinite,
+    decor-hover 3.2s ease-in-out infinite;
 }
 
 @keyframes decor-frame {
-  from { background-position-x: 0%; }
-  to { background-position-x: 100%; }
+  from {
+    background-position-x: 0%;
+  }
+  to {
+    background-position-x: 100%;
+  }
 }
 
 @keyframes decor-sway {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-1px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
 }
 
 @keyframes decor-hover {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(2px, -2px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(2px, -2px);
+  }
 }
 
 /* Entity tiles — transparent hit boxes; the sprite span keeps its manifest
@@ -185,6 +207,48 @@
   z-index: 4;
 }
 
+.entityTooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  z-index: 8;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  max-width: min(15rem, calc(100vw - 2rem));
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--world-plaque-border, #55486b);
+  color: var(--world-plaque-fg, #f3edda);
+  background: var(--world-plaque-bg, rgba(26, 22, 38, 0.96));
+  box-shadow: 3px 3px 0 rgb(13 16 27 / 42%);
+  font: var(--text-xs) / 1.35 var(--font-body);
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition:
+    opacity 100ms steps(2),
+    transform 100ms steps(2);
+}
+
+.entityTooltip strong {
+  color: var(--accent-gold);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+}
+
+.entityTooltip small {
+  margin-top: 2px;
+  color: var(--accent-gold);
+}
+
+.entity:hover .entityTooltip,
+.entity:focus-visible .entityTooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 /* Game-style name plaque under places/objects. */
 .entityLabel {
   position: absolute;
@@ -192,13 +256,14 @@
   bottom: -2px;
   transform: translate(-50%, 100%);
   font-family: var(--font-display);
-  font-size: 10px;
+  font-size: clamp(7px, calc(var(--world-tile-size, 16px) * 0.34), 12px);
   line-height: 1.3;
   color: var(--world-plaque-fg, #f3edda);
   background: var(--world-plaque-bg, rgba(26, 22, 38, 0.86));
   border: 1px solid var(--world-plaque-border, #55486b);
   padding: 1px 4px;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
   pointer-events: none;
   max-width: 12rem;
   overflow: hidden;
@@ -206,7 +271,10 @@
 }
 
 .entity[data-kind='place'] .entityLabel {
-  font-size: 11px;
+  width: calc(100% + 4px);
+  max-width: 12rem;
+  font-size: clamp(7px, calc(var(--world-tile-size, 16px) * 0.34), 12px);
+  overflow-wrap: anywhere;
 }
 
 .entity[data-selected='true'] .entityLabel,
@@ -242,11 +310,11 @@
   image-rendering: pixelated;
 }
 
-/* Camera HUD: chunky game buttons, bottom right. */
+/* Camera HUD: chunky game buttons, top right, clear of the receipt rail. */
 .cameraHud {
   position: absolute;
   right: var(--space-3);
-  bottom: var(--space-3);
+  top: var(--space-3);
   display: flex;
   gap: var(--space-1);
   z-index: 8;
@@ -279,8 +347,37 @@
 /* The structured list lives in a menu panel under the map. */
 .entityListWrap {
   border-top: 2px solid var(--border-chrome);
-  background: var(--surface-canvas);
-  padding: var(--space-3);
+  background: var(--surface-chrome);
+  padding: 0 var(--space-3);
+  color: var(--text-on-chrome);
+}
+
+.entityListWrap > summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-height: 2rem;
+  padding: var(--space-1) 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.entityListWrap > summary::-webkit-details-marker {
+  display: none;
+}
+
+.entityListWrap > summary::before {
+  content: '▸';
+  color: var(--accent-gold);
+  font-family: var(--font-display);
+}
+
+.entityListWrap[open] > summary::before {
+  content: '▾';
+}
+
+.entityListWrap > :not(summary) {
+  padding: var(--space-2) 0 var(--space-3);
 }
 
 .entityListWrap h2 {
@@ -298,6 +395,11 @@
   background: var(--surface-chrome-raised);
   border: 2px solid var(--border-chrome);
   padding: var(--space-1) var(--space-2);
+  max-width: min(34vw, 30rem);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .selectedChip strong {

@@ -153,6 +153,21 @@ describe('receipts', () => {
     );
   }
 
+  function RecoveryPusher() {
+    const { push, history } = useReceipts();
+    return (
+      <>
+        <button type="button" onClick={() => push({ tone: 'err', title: 'Project link failed' })}>
+          fail
+        </button>
+        <button type="button" onClick={() => push({ tone: 'ok', title: 'Project link' })}>
+          recover
+        </button>
+        <output>{history.length}</output>
+      </>
+    );
+  }
+
   it('auto-dismisses successes but keeps them in the session history', () => {
     vi.useFakeTimers();
     render(
@@ -179,5 +194,19 @@ describe('receipts', () => {
     expect(screen.getByRole('alert')).toHaveTextContent('Receipt err');
     act(() => screen.getByRole('button', { name: 'Dismiss: Receipt err' }).click());
     expect(screen.queryByText('Receipt err')).not.toBeInTheDocument();
+  });
+
+  it('clears a matching failure from the toast rail after successful recovery but keeps both receipts in history', () => {
+    render(
+      <ReceiptsProvider>
+        <RecoveryPusher />
+      </ReceiptsProvider>,
+    );
+    act(() => screen.getByRole('button', { name: 'fail' }).click());
+    expect(screen.getByRole('alert')).toHaveTextContent('Project link failed');
+    act(() => screen.getByRole('button', { name: 'recover' }).click());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent('2');
+    expect(screen.getByText('Project link')).toBeInTheDocument();
   });
 });

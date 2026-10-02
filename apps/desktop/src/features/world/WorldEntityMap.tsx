@@ -125,29 +125,24 @@ export function WorldEntityMap({
     [mode, entities, cols, rows],
   );
 
-  const fitWorld = useCallback(
-    (strict = false) => {
-      const region = regionRef.current;
-      if (!region) return;
-      // Start at a legible game scale so the world remains the main interface.
-      // Explicit Fit/Home requests favor a complete overview over the automatic game scale.
-      const minimumZoom = strict || mode !== 'grounds' ? 16 : region.clientWidth >= 1400 ? 48 : 32;
-      const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows }, minimumZoom);
-      setZoom(camera.zoom);
-      setPan(
-        clampCamera(
-          camera.pan,
-          { x: region.clientWidth, y: region.clientHeight },
-          { x: cols * camera.zoom, y: rows * camera.zoom },
-        ),
-      );
-    },
-    [cols, rows, mode],
-  );
+  const fitWorld = useCallback(() => {
+    const region = regionRef.current;
+    if (!region) return;
+    // Use the largest crisp integer scale that shows the complete valley.
+    const camera = fitCamera({ x: region.clientWidth, y: region.clientHeight }, { x: cols, y: rows });
+    setZoom(camera.zoom);
+    setPan(
+      clampCamera(
+        camera.pan,
+        { x: region.clientWidth, y: region.clientHeight },
+        { x: cols * camera.zoom, y: rows * camera.zoom },
+      ),
+    );
+  }, [cols, rows]);
 
   useEffect(() => {
     if (cameraMode === 'manual') return;
-    fitWorld(cameraMode === 'fit');
+    fitWorld();
   }, [cameraMode, fitWorld]);
 
   useEffect(() => {
@@ -155,7 +150,7 @@ export function WorldEntityMap({
     if (!region) return;
     const observer = new ResizeObserver(() => {
       if (cameraMode !== 'manual') {
-        fitWorld(cameraMode === 'fit');
+        fitWorld();
       } else {
         setPan((p) => clampCamera(p, { x: region.clientWidth, y: region.clientHeight }, { x: viewW, y: viewH }));
       }
@@ -320,7 +315,7 @@ export function WorldEntityMap({
           className={styles.hudButton}
           onClick={() => {
             setCameraMode('fit');
-            fitWorld(true);
+            fitWorld();
           }}
           aria-label="Fit world"
         >
@@ -404,15 +399,18 @@ function EntityTile({
       data-theme-key={entity.themeKey}
       data-entity-id={entity.id}
       data-activity={entity.activity ?? 'calm'}
+      data-state={entity.state}
       data-activates={canInspect ? 'true' : 'false'}
       data-selected={entity.id === selectedId ? 'true' : undefined}
       title={entityActivateLabel(entity)}
       aria-label={entityActivateLabel(entity)}
+      aria-describedby={canInspect ? `world-entity-tip-${encodeURIComponent(entity.id)}` : undefined}
       style={{
         left: entity.x * tileSize,
         top: entity.y * tileSize,
         width: entity.w * tileSize,
         height: entity.h * tileSize,
+        ['--world-tile-size' as string]: `${tileSize}px`,
       }}
       onClick={() => activateEntity(entity, onSelect, onActivate)}
       onKeyDown={onKeyDown}
@@ -434,6 +432,17 @@ function EntityTile({
         <span className={styles.alertBubble} aria-hidden="true" />
       ) : null}
       {entity.kind !== 'character' ? <span className={styles.entityLabel}>{entity.name}</span> : null}
+      {canInspect ? (
+        <span className={styles.entityTooltip} id={`world-entity-tip-${encodeURIComponent(entity.id)}`}>
+          <strong>{entity.name}</strong>
+          <span>{entity.concept}</span>
+          <span>
+            {entity.state}
+            {entity.detail ? ` · ${entity.detail}` : ''}
+          </span>
+          <small>Click to open</small>
+        </span>
+      ) : null}
       {entity.kind === 'character' ? <VisuallyHidden>{entity.name}</VisuallyHidden> : null}
     </button>
   );

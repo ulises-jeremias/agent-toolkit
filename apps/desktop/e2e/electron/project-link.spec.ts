@@ -29,7 +29,8 @@ test('links an existing project from the GUI and places it in the world', async 
     await pick(outsideAllowedRoots);
 
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
-    await page.getByRole('button', { name: /No projects yet/ }).click();
+    const emptyMarker = page.getByRole('button', { name: /No projects yet/ });
+    await emptyMarker.click();
     await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible();
     await page.getByRole('button', { name: 'Link existing folder' }).click();
 
@@ -48,18 +49,45 @@ test('links an existing project from the GUI and places it in the world', async 
     await expect(
       page.getByRole('region', { name: 'Receipts' }).getByText('Project linked', { exact: true }),
     ).toBeVisible();
+    await page.getByRole('button', { name: 'Dismiss: Project linked' }).click();
 
     const linkPath = path.join(home, '.ai-workspace', 'projects', 'garden-api');
     await expect.poll(() => fs.realpathSync(linkPath)).toBe(fs.realpathSync(projectPath));
     await page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'World' }).click();
     await expect(page.getByRole('button', { name: /garden-api.*Project/ })).toBeVisible();
-    await page.setViewportSize({ width: 1024, height: 640 });
     const world = page.getByRole('application', { name: 'Semantic workspace world' });
+    await page.setViewportSize({ width: 1024, height: 640 });
     await page.getByRole('button', { name: 'Fit world' }).click();
     await expect(world).toHaveAttribute('data-zoom', '16');
+    if (process.env.ATK_CAPTURE === '1') {
+      const captureDir =
+        process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
+      fs.mkdirSync(captureDir, { recursive: true });
+      await page.screenshot({ path: path.join(captureDir, 'meadow-1024x640-world-project.png') });
+    }
     await page.getByRole('button', { name: 'Pan map with arrow keys; Home fits the world' }).focus();
     await page.keyboard.press('Home');
     await expect(world).toHaveAttribute('data-zoom', '16');
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    await page.getByRole('button', { name: 'Fit world' }).click();
+    await expect(world).toHaveAttribute('data-zoom', '32');
+    if (process.env.ATK_CAPTURE === '1') {
+      const captureDir =
+        process.env.ATK_CAPTURE_DIR ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
+      fs.mkdirSync(captureDir, { recursive: true });
+      await page.screenshot({ path: path.join(captureDir, 'meadow-1920x1080-world-project.png') });
+    }
+
+    // Spatial and direct navigation share the same canonical destinations:
+    // entering the house opens its project interior; its terminal desk opens
+    // the actual Terminal route.
+    await page.getByRole('button', { name: /garden-api · Project/ }).click();
+    await expect(page.getByRole('application', { name: 'Interior of garden-api' })).toBeVisible();
+    await page.getByRole('button', { name: /Terminal · Terminal \/ PTY workstation/ }).click();
+    await expect(page).toHaveURL(/terminal/);
+    await expect(
+      page.getByRole('navigation', { name: 'Destinations' }).getByRole('link', { name: 'Terminal' }),
+    ).toHaveAttribute('aria-current', 'page');
   } finally {
     await desktop.close();
   }
