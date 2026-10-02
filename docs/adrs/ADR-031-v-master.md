@@ -1,10 +1,15 @@
-# ADR-031 — V master as baseline for entire Agent Toolkit (including Desktop)
+# ADR-031 — V master as baseline for Agent Toolkit's V surfaces
 
 - **Status:** Accepted (2026-08-31)
 - **Deciders:** ulises-jeremias
 - **Related issues:** Desktop EPICs #1007-1015, #279, user request 2026-08-31 “usar directamente la versión de la rama master de V para todo agent toolkit”
 - **Supersedes:** implicit pin `0.5.2` in `.v-version` (2026-07-12) for all surfaces
 - **Amends:** ADR-012 (Python/V coexistence), ADR-020 (V concurrency), ADR-026 (full-embed) build assumptions
+
+> **Current scope:** V remains authoritative for Agent Toolkit core, CLI, and
+> `agent-toolkit serve`. The historical GUI direction in this ADR was replaced
+> by [ADR-033](ADR-033-electron-desktop.md): the shipping Desktop UI is
+> Electron + React. This ADR does not require or describe a V GUI.
 
 ## Context
 

@@ -60,12 +60,14 @@ Verification legend: **SRC** = read source; **RUN** = exercised; **DOC** = proje
 
 ---
 
-## 2. Current Agent Toolkit reality (reconstructed)
+## 2. Agent Toolkit snapshot from the research date
 
 ### Architecture now
 
-ADR-033 (**Proposed**, 2026-09-29 — human acceptance gate still open; **not
-accepted**) records the intended split:
+At the time of this research on 2026-09-30, ADR-033 was still proposed. It was
+accepted on 2026-09-30 and is now the current presentation authority. This
+snapshot is retained to explain the comparison, not to describe today's state.
+The accepted architecture is:
 
 - **V** = core + CLI + `agent-toolkit serve` (domain authority).
 - **Electron + React** = Desktop (`apps/desktop/`).
@@ -77,10 +79,9 @@ Implementation on `main` already advances that split (#1311 Electron app,
 #1312/#1316 backend pin, #1313 job cancel/delete, #1314 default harness
 `~/.ai-workspace`, #1315 typed `:sub` bodies, #1318 memory table fix,
 #1321 design system / typed data layer / Electron E2E / context bar).
-**Do not treat Proposed as Accepted. Do not treat the native gg/sokol GUI as
-the current presentation plan.** ADR-032 remains the native-GUI decision;
-ADR-033 *proposes* to supersede it at the presentation layer only. v1.35.0
-is preserved as a historical release; current rollback/package guidance is in
+ADR-033 supersedes ADR-032 at the presentation layer; V remains the core,
+CLI, and backend authority. v1.35.0 is preserved as a historical release;
+current package guidance is in
 [PACKAGING.md](PACKAGING.md).
 
 ### Open work (do not derail)
@@ -102,11 +103,11 @@ wizard or "add a repo" yet.
 
 | Claim | Where | Current truth |
 | --- | --- | --- |
-| "native V + gg/sokol" as Desktop invariant | #1227 body | Presentation is Electron+React on `main`. Native GUI is rollback/reference until ADR-033 is accepted and Electron replaces it. |
+| "native V + gg/sokol" as Desktop invariant | #1227 body | Historical direction; ADR-033 now makes Electron + React the canonical presentation. |
 | #1227 slices A–J "DONE on main" as Electron truth | #1227 | Those slices landed on the **native** Desktop. Electron Office (`Office.tsx` after #1321) still builds a **client** `AttentionItem[]` from backend health, harness notice, recent failed jobs, and failing self-checks — not a V `AttentionItem` bus. |
 | `git_service.v` is a git backend | native engine | `backend_available` is **hard-false**; `git_changes`/`git_history`/`git_diff` return empty. Checkout is omitted with a reason string. Worktree *visibility* in native GUI ≠ a write lifecycle and ≠ a `serve` git API. |
 | PTY durability exists | #1073 / #1227 OPEN-future | Electron terminals are node-pty in main; they die with the window. 8 KiB tail replay only. |
-| ADR-033 is accepted | none yet | Status line is **Proposed**. Owner review required. |
+| ADR-033 is still proposed | this 2026-09-30 research snapshot | Accepted and current; see [ADR-033](../adrs/ADR-033-electron-desktop.md). |
 | #1118 "production is gg/sokol-direct" | #1118 2026-09-13 body | True of the native binary at that SHA. Electron is now the active Desktop implementation track. Visual lock (Paper Co.) is unchanged. |
 
 ### Domain entities that exist in V today

@@ -1,10 +1,16 @@
-# ADR-032 — Desktop GUI framework: vlang/gui wrap decision (Phase 0 spike #1018)
+# ADR-032 — Native V Desktop framework decision (historical)
 
-- **Status:** Accepted (2026-08-31) — closes #1018 Phase 0 spike (0.1–0.5); feasibility implementation RETIRED (see Retirement note below) — gap-matrix appendix preserved as historical record
+- **Status:** Superseded by [ADR-033](ADR-033-electron-desktop.md) on 2026-09-30; Phase 0 feasibility record retained
 - **Deciders:** ulises-jeremias (owner) + toolkit maintainers
 - **Related issues:** EPIC #1007 (Phase 0), #1018 (spike), EPICs #1008–#1015, #279, ADR-031 (V master)
 - **Supersedes:** n/a — first Desktop GUI framework decision (0.2–0.4 gate)
 - **Amends:** ADR-009 (module architecture), ADR-015/026 (runtime/embedded), ADR-030 (binary-first contract)
+
+> This record documents the former native V GUI direction and its feasibility
+> work. It is not the current Desktop architecture. The shipping app is
+> Electron + React; V remains the authority for core, CLI, and backend. The
+> active product contract is [ADR-033](ADR-033-electron-desktop.md) and
+> [PRODUCT_VISION.md](../desktop/PRODUCT_VISION.md).
 
 ## Context
 
@@ -256,30 +262,20 @@ Rules:
 - **Planes:** `! grep -r 'import.*gui' modules/agent_toolkit_core` (and future
   `desktop_engine`) passes.
 
-## Retirement (feasibility implementation retired; decision record retained)
+## Retirement (historical implementation removed; decision record retained)
 
-- The Phase-0 feasibility implementation `modules/agent_toolkit_gui/` (spike
-  `gui.v`, `feasibility.v`, `native.v`, `window.v`, `perf.v`, `gui_test.v`) is
-  RETIRED and removed: production Desktop (`cmd/agent-toolkit-desktop/main.v`)
-  is `gg`/`sokol`-direct with zero runtime imports of it (verified:
-  no `import agent_toolkit_gui` outside the spike itself), and every
-  still-useful generic capability already lives in production code —
-  `is_headless_env`/`DesktopConfig.validate`/`smoke_message` in
-  `modules/desktop/window.v`, `DockPerfHarness` in `modules/desktop/shell/dock.v`,
-  `WorldPerfHarness` in `modules/desktop/world/world_view.v`, and the headless
-  native seam in `modules/desktop/backend/backend.v`. Nothing was migrated as
-  code because nothing was missing.
-- The gap-matrix / native-probe / Windows-limitation tables in the appendix
-  above are preserved as the historical feasibility record; they are no longer
-  rendered from code (`gap_matrix_markdown()` retired with the module).
-- `make.vsh` `mods` no longer lists `agent_toolkit_gui`; `modules/desktop/world/v.mod`
-  no longer depends on it. Residual `agent_toolkit_gui` mentions in code comments
-  are being reworded as encountered (dock/world/window harness comments).
+- The native V feasibility implementation and native Desktop source tree are
+  retired and absent from the current checkout. ADR-033 records the replacement
+  architecture. The supported `agent-toolkit gui` command is only a launcher
+  for the packaged Electron Desktop; it does not start a V GUI.
+- The gap-matrix, native-probe, and Windows-limitation material above records
+  the 2026-08 feasibility investigation. Its implementation and conclusions
+  are not current product requirements.
 
 ## References
 
-- `.v-version` (`master`), `VERSION`, `make.vsh`,
-  retired `modules/agent_toolkit_gui/*` (`feasibility.v`, `perf.v`, `window.v`, `native.v` — see Retirement note)
+- Historical `.v-version`, `VERSION`, and `make.vsh` state from the 2026-08
+  feasibility investigation (see Retirement note)
 - `vlang/gui` https://github.com/vlang/gui (README, `docs/ROADMAP.md`,
   `docs/WINDOWS.md`, `examples/dock_layout.v`, `examples/snake.v`)
 - `vlib/sokol`, `vlib/gg`, `vglyph`, `vlib/x/async`, `vlib/eventbus`, `vlib/db/sqlite`,
@@ -291,8 +287,6 @@ Rules:
   `git clone --depth 1 https://github.com/vlang/v && make` on Linux/macOS,
   fallback `0.5.2` on `Windows*`)
 
-**Verified:** 2026-08-31 — `VJOBS=2 ./make.vsh vet` four modules green, `v test
-modules/agent_toolkit_gui` green (1000-widget 60 FPS harness passing), headless
-native probe + Windows limitations matrix published, `make.vsh build-cli` +
-`./build/agent-toolkit --help` smoke passing, manual Linux smoke logged per
-`window.v:smoke_message`.
+**Historical verification:** 2026-08-31 — the feasibility spike's tests and
+headless probe passed at that revision. This does not describe the current
+shipping Desktop or current repository layout.
