@@ -37,6 +37,37 @@ Opened files:
   [live Person session, large](assets/electron/people/world-person-large.png),
 and [offline Person after stop](assets/electron/people/people-offline-after-stop.png).
 
+## Semantic world interaction review — 2026-10-02
+
+Source build `91cc2058` (Linux Electron E2E; temporary workspace/backend). The
+capture journey was rerun after
+the map bounds, semantic activation labels, memory archive routes and project
+lot dressing changed. Opened the fresh empty, one-project (compact and large),
+several-projects (compact and large), and project Files-room captures.
+
+The large one-project capture still exposes a substantial art/composition gap:
+the landmarks are useful and legible, but the grass field dominates, buildings
+read as small isolated icons, and the terrain/path composition is too regular
+and sparse for the intended cozy game-world quality. This is a concrete follow-
+up for the world-art pass; the current change improves spatial scale and direct
+interaction without claiming that the art direction is finished. In response
+to the compact camera review, the map now sizes its horizontal bounds around
+occupied project lots and keeps the first house nearer the commons. In response
+to the semantic interaction review, active controls now name their actual
+destination, environmental decoration is no longer focusable, and archive
+objects focus the corresponding real Memory archive in the World index.
+
+Opened files:
+
+- [Empty world, compact](assets/electron/world/world-empty-compact.png) and
+  [large](assets/electron/world/world-empty-large.png).
+- [One project, compact](assets/electron/world/world-one-project-compact.png)
+  and [large](assets/electron/world/world-one-project-large.png).
+- [Several projects, compact](assets/electron/world/world-several-projects-compact.png)
+  and [large](assets/electron/world/world-several-projects-large.png).
+- [Project Files room, compact](assets/electron/world/project-files-room-compact.png)
+  and [large](assets/electron/world/project-files-room-large.png).
+
 ## Loop scheduling review — 2026-10-02
 
 Source build `884a9dbb` (Linux Electron E2E, temporary HOME). The schedule

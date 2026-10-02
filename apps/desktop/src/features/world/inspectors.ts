@@ -20,11 +20,42 @@ export function entityAccessibleName(
   return parts.join(' · ');
 }
 
+/** Short, truthful action label shared by map tooltips and the world index. */
+export function entityActivateVerb(
+  entity: Pick<SemanticEntity, 'id' | 'hrefPath' | 'name' | 'concept' | 'themeKey' | 'kind'>,
+): string {
+  if (!entityHasInspector(entity)) return 'No action available';
+  if (entity.concept === 'Project overview board') return `Open ${entity.name} project overview`;
+  if (entity.id.startsWith('place:project:')) return `Enter ${entity.name} house`;
+  if (entity.id.startsWith('character:person:')) return `Inspect ${entity.name}'s active session`;
+  if (entity.id.startsWith('character:job:')) return `Open ${entity.name} in Operations`;
+  if (entity.id.startsWith('object:memory:')) return `Inspect ${entity.name} record`;
+
+  const destination: Record<string, string> = {
+    'capability.shelf': 'Library',
+    'memory.index': 'Memory archive',
+    'tool.terminal': 'Terminal',
+    'ops.crate': 'Operations',
+    'attention.inbox': 'Office',
+    'files.workspace': 'Workspace files',
+    'files.project': 'Project files',
+    'workspace.grounds': 'Workspace inspector',
+    'project.building': 'Project interior',
+  };
+  const label = destination[entity.themeKey] ?? entity.concept;
+  return `Open ${label}`;
+}
+
 export function entityActivateLabel(
-  entity: Pick<SemanticEntity, 'hrefPath' | 'name' | 'concept' | 'state' | 'detail' | 'activity'>,
+  entity: Pick<
+    SemanticEntity,
+    'id' | 'hrefPath' | 'name' | 'concept' | 'state' | 'detail' | 'activity' | 'themeKey' | 'kind'
+  >,
 ): string {
   const base = entityAccessibleName(entity);
-  return entityHasInspector(entity) ? `${base}. Activate to inspect.` : `${base}. No inspector for this object.`;
+  return entityHasInspector(entity)
+    ? `${base}. ${entityActivateVerb(entity)}.`
+    : `${base}. No action available for this environmental object.`;
 }
 
 /** Path for GET /api/v1/memory/file — provenance.file when set, else list id. */

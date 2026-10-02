@@ -199,7 +199,7 @@ describe('WorldEntityMap activation', () => {
       expect.objectContaining({ id: 'place:project:alpha', hrefPath: '/world' }),
     );
 
-    expect(screen.getAllByRole('link', { name: 'Inspect' }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: /^Open/ }).length).toBeGreaterThan(0);
     const terminalInspect = document.querySelector('[data-entity-inspect="object:terminal"]');
     expect(terminalInspect?.getAttribute('href')).toContain('/terminal');
   });
@@ -261,7 +261,7 @@ describe('WorldEntityMap activation', () => {
     expect(tooltip).toHaveTextContent('Library');
     expect(tooltip).toHaveTextContent('Capability library');
     expect(tooltip).toHaveTextContent('catalog');
-    expect(tooltip).toHaveTextContent('Click to open');
+    expect(tooltip).toHaveTextContent('Click to open library');
   });
 
   it('gives every entity accessible name and state text independent of color', () => {

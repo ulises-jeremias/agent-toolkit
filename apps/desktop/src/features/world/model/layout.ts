@@ -185,13 +185,20 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   // Keep the civic quarter compact; the natural creek marks its edge and the
   // project neighborhood begins on the opposite bank.
   const districtCols = projectDistrictCols(projects.length);
-  const districtW = projects.length ? districtCols * 5 - 1 : 0; // room for staggered lanes
-  const projectDistrictX = 36;
+  // Size the camera bounds for occupied lots, not every available lane. The
+  // previous reservation made one house inherit the width of a five-lot
+  // district, which turned a small workspace into a mostly empty panorama.
+  // Lot coordinates remain stable as projects are added.
+  const districtW = projects.length ? (Math.min(projects.length, districtCols) - 1) * 5 + 3 : 0;
+  // The eastern neighborhood starts one bridge-span beyond the shared
+  // services. The original x=36 left a long unclaimed field between town and
+  // the first house, especially obvious in a one-project workspace.
+  const projectDistrictX = 32;
   const emptyMarkerX = projectDistrictX + 4;
-  const mapW = Math.max(52, projectDistrictX + (projects.length ? districtW : 7) + 4);
+  const mapW = Math.max(38, projectDistrictX + (projects.length ? districtW : 7) + 4);
 
   // North core: hall west, memory archive beside it, ledgers on the commons edge.
-  const coreX = 10;
+  const coreX = 7;
   if (grounds) place(grounds, coreX, 1);
   if (memoryPlace) place(memoryPlace, coreX + 6, 1);
   let entryX = coreX + 11;
@@ -202,14 +209,14 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // The Library and Operations face the northern commons. Smaller service
   // buildings face its southern side; the east edge leads to the creek.
-  const civicX = 7;
+  const civicX = 4;
   const civicSlots: Record<string, { x: number; y: number }> = {
-    'object:library': { x: civicX + 1, y: 6 },
-    'object:operations': { x: civicX + 8, y: 6 },
-    'object:terminal': { x: civicX + 15, y: 6 },
-    'object:attention': { x: civicX + 3, y: 11 },
-    'object:files': { x: civicX + 8, y: 11 },
-    'object:settings': { x: civicX + 13, y: 11 },
+    'object:library': { x: civicX + 1, y: 5 },
+    'object:operations': { x: civicX + 7, y: 5 },
+    'object:terminal': { x: civicX + 13, y: 5 },
+    'object:attention': { x: civicX + 2, y: 9 },
+    'object:files': { x: civicX + 7, y: 9 },
+    'object:settings': { x: civicX + 12, y: 9 },
   };
   for (const landmark of sharedObjects) {
     const slot = civicSlots[landmark.id]!;
@@ -218,7 +225,7 @@ export function layoutWorld(model: WorldModel): WorldLayout {
 
   // Project houses form a distinct southern neighborhood. Slightly wider,
   // offset rows give each house a garden edge and break the spreadsheet grid.
-  const districtY = 17;
+  const districtY = 14;
   const districtX = projectDistrictX;
   if (emptyProject) place(emptyProject, emptyMarkerX, districtY);
   const projectSlots = new Map<string, { x: number; y: number }>();
@@ -257,11 +264,11 @@ export function layoutWorld(model: WorldModel): WorldLayout {
   }
 
   const districtRows = Math.ceil(projects.length / Math.max(1, districtCols));
-  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + (projects.length ? 7 : 3);
+  const mapRows = districtY + Math.max(0, districtRows - 1) * 5 + (projects.length ? 3 : 2);
   return {
     // Reserve a complete creek + bank margin beyond the last project lot so
     // the river never cuts through a real building when the roster grows.
-    cols: Math.max(mapW, maxX + 5),
+    cols: Math.max(mapW, maxX + 3),
     rows: Math.max(maxY + 1, mapRows),
     entities: laid,
   };

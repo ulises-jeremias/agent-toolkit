@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent, 
 import { Link } from 'react-router';
 import { StatusBadge, Table, VisuallyHidden, type Tone } from '../../ui';
 import { clampCamera, fitCamera, WORLD_ZOOMS, zoomCamera } from './camera';
-import { entityActivateLabel, entityHasInspector } from './inspectors';
+import { entityActivateLabel, entityActivateVerb, entityHasInspector } from './inspectors';
 import { paintInterior, paintTerrain, type DecorSprite, type LaidOutEntity } from './model';
 import spriteManifest from '../../../public/world/manifest.json';
 import { TerrainCanvas } from './TerrainRenderer';
@@ -387,14 +387,15 @@ function EntityTile({
   const frames = sprite?.frames ?? (asset.kind === 'sprite' ? (asset.frames ?? 1) : 1);
   const spriteScale = tileSize / theme.sourceTile;
   const canInspect = entityHasInspector(entity);
+  const EntityControl = canInspect ? 'button' : 'span';
   const onKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (!canInspect || (event.key !== 'Enter' && event.key !== ' ')) return;
     event.preventDefault();
     activateEntity(entity, onSelect, onActivate);
   };
   return (
-    <button
-      type="button"
+    <EntityControl
+      type={canInspect ? 'button' : undefined}
       className={styles.entity}
       data-kind={entity.kind}
       data-theme-key={entity.themeKey}
@@ -404,7 +405,9 @@ function EntityTile({
       data-activates={canInspect ? 'true' : 'false'}
       data-selected={entity.id === selectedId ? 'true' : undefined}
       title={entityActivateLabel(entity)}
-      aria-label={entityActivateLabel(entity)}
+      aria-label={canInspect ? entityActivateLabel(entity) : undefined}
+      aria-hidden={!canInspect}
+      tabIndex={canInspect ? 0 : undefined}
       aria-describedby={canInspect ? `world-entity-tip-${encodeURIComponent(entity.id)}` : undefined}
       style={{
         left: entity.x * tileSize,
@@ -413,9 +416,9 @@ function EntityTile({
         height: entity.h * tileSize,
         ['--world-tile-size' as string]: `${tileSize}px`,
       }}
-      onClick={() => activateEntity(entity, onSelect, onActivate)}
-      onKeyDown={onKeyDown}
-      onFocus={() => onSelect(entity.id)}
+      onClick={canInspect ? () => activateEntity(entity, onSelect, onActivate) : undefined}
+      onKeyDown={canInspect ? onKeyDown : undefined}
+      onFocus={canInspect ? () => onSelect(entity.id) : undefined}
     >
       {src ? (
         <span
@@ -441,11 +444,11 @@ function EntityTile({
             {entity.state}
             {entity.detail ? ` · ${entity.detail}` : ''}
           </span>
-          <small>Click to open</small>
+          <small>Click to {entityActivateVerb(entity).toLowerCase()}</small>
         </span>
       ) : null}
       {entity.kind === 'character' ? <VisuallyHidden>{entity.name}</VisuallyHidden> : null}
-    </button>
+    </EntityControl>
   );
 }
 
@@ -499,10 +502,11 @@ export function WorldEntityList({ entities, selectedId, href, onSelect }: WorldE
               {entityHasInspector(entity) && entity.hrefPath ? (
                 <Link
                   to={href(entity.hrefPath, entity.hrefExtra)}
+                  aria-label={`${entityActivateVerb(entity)}: ${entity.name}`}
                   onClick={() => onSelect(entity.id)}
                   data-entity-inspect={entity.id}
                 >
-                  Inspect
+                  Open
                 </Link>
               ) : (
                 <span data-entity-inspect={entity.id} data-inactive="true">

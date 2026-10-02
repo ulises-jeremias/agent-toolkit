@@ -172,6 +172,8 @@ function buildGrounds(input: WorldDomainInput): SemanticEntity[] {
       state: count > 0 ? `${count} records` : 'empty',
       themeKey: 'memory.index',
       availability: count > 0 ? 'present' : 'empty',
+      hrefPath: '/world',
+      hrefExtra: { place: 'place:memory' },
       // Overview only — open a record tile (or stay selected). Never pretend Workspace is memory.
       detail:
         count > 0
@@ -412,7 +414,8 @@ function buildInterior(input: WorldDomainInput, focus: string): SemanticEntity[]
       state: scoped.length > 0 ? `${scoped.length} records` : 'empty',
       themeKey: 'memory.index',
       availability: scoped.length > 0 ? 'present' : 'empty',
-      hrefPath: '/workspace',
+      hrefPath: '/world',
+      hrefExtra: { project: project.name, place: `place:memory-project:${project.name}` },
       projectId: project.name,
       detail:
         scoped.length > 0

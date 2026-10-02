@@ -497,6 +497,24 @@ describe('layoutWorld', () => {
     expect(a.y).toBeGreaterThan(library.y);
   });
 
+  it('fits camera bounds to occupied project lots without moving existing houses', () => {
+    const layoutFor = (names: string[]) =>
+      layoutWorld(
+        buildWorldModel(
+          baseInput({
+            projects: names.map((name) => ({ name, target: `/${name}`, status: 'ok' as const })),
+            memory: emptyMemory(true, []),
+          }),
+        ),
+      );
+    const one = layoutFor(['alpha']);
+    const two = layoutFor(['alpha', 'beta']);
+    expect(two.cols - one.cols).toBe(5);
+    const firstAlpha = one.entities.find((entity) => entity.id === 'place:project:alpha')!;
+    const secondAlpha = two.entities.find((entity) => entity.id === 'place:project:alpha')!;
+    expect(secondAlpha).toMatchObject({ x: firstAlpha.x, y: firstAlpha.y, w: firstAlpha.w, h: firstAlpha.h });
+  });
+
   it('keeps the project neighborhood stable, separated, and collision-free at every scale', () => {
     for (const count of [0, 1, 2, 5, 12, 24]) {
       const layout = layoutWorld(
@@ -534,6 +552,28 @@ describe('layoutWorld', () => {
     expect(plan.cells.some(({ x, y, tile }) => `${x},${y}` === pathFront && tile.startsWith('trail'))).toBe(true);
   });
 
+  it('makes shared and project memory archives focus their real world index', () => {
+    const grounds = layoutWorld(buildWorldModel(baseInput({ memory: emptyMemory(true, []) })));
+    expect(grounds.entities.find((entity) => entity.id === 'place:memory')).toMatchObject({
+      hrefPath: '/world',
+      hrefExtra: { place: 'place:memory' },
+    });
+
+    const interior = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: [{ name: 'alpha', target: '/alpha', status: 'ok' }],
+          focusProjectId: 'alpha',
+          memory: emptyMemory(true, []),
+        }),
+      ),
+    );
+    expect(interior.entities.find((entity) => entity.id === 'place:memory-project:alpha')).toMatchObject({
+      hrefPath: '/world',
+      hrefExtra: { project: 'alpha', place: 'place:memory-project:alpha' },
+    });
+  });
+
   it('never invents decorative characters on an idle grounds', () => {
     const layout = layoutWorld(
       buildWorldModel(
@@ -545,6 +585,20 @@ describe('layoutWorld', () => {
       ),
     );
     expect(layout.entities.filter((e) => e.kind === 'character')).toEqual([]);
+  });
+
+  it('adds a small project garden only where the real house lot has free ground', () => {
+    const layout = layoutWorld(
+      buildWorldModel(
+        baseInput({
+          projects: [{ name: 'solo', target: '/solo', status: 'ok' }],
+          memory: emptyMemory(true, []),
+        }),
+      ),
+    );
+    const plan = paintTerrain(layout.entities, layout.cols, layout.rows);
+    expect(plan.decor.some((sprite) => sprite.id.startsWith('project-fence:place:project:solo:'))).toBe(true);
+    expect(plan.cells.some(({ tile }) => tile.startsWith('flowers-'))).toBe(true);
   });
 
   it('composes narrow connected footpaths and stable creek crossings', () => {

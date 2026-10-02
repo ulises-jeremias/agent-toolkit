@@ -172,6 +172,10 @@
   border: none;
   background-color: transparent;
   image-rendering: pixelated;
+  cursor: default;
+}
+
+.entity[data-activates='true'] {
   cursor: pointer;
 }
 
