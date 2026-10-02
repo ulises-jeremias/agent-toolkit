@@ -92,9 +92,16 @@ journeys:
     destinations: [people, terminal, world]
     status: partial
     evidence:
-      - note: People can review project, discovered runner and model, then open a real Electron PTY tagged with Person/project identity; only a live PTY plus a saved, non-archived Person is projected as a character in that project
+      - note: People can review project, discovered runner and model, then open a real Electron PTY tagged with Person/project identity; a live PTY plus its saved Person and matching project is projected as a character, including while that real session is stopping
         build: 'feat/desktop-people-session (local, pending review)'
-      - note: focused Electron terminal, Person runner-option and world-model tests
+        screenshots:
+          - assets/electron/people/people-roster-compact.png
+          - assets/electron/people/person-start-compact.png
+          - assets/electron/people/person-start-large.png
+          - assets/electron/people/world-person-compact.png
+          - assets/electron/people/world-person-large.png
+          - assets/electron/people/people-offline-after-stop.png
+      - note: apps/desktop/e2e/electron/people-session.spec.ts and focused Electron terminal, runner-option, and world-model tests
     blockers:
       - the process is a local PTY binding, not a server-side AgentSession with durable history
       - Person goal/capabilities, budgets, and isolation are not yet enforced by this PTY workflow
