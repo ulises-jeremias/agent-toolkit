@@ -174,7 +174,8 @@ function road(p: Painter, y: number, bridgeX: number, routeEndX: number): Map<nu
     const sideEnd = x <= bridgeX ? bridgeX : endX;
     const t = (x - sideStart) / Math.max(1, sideEnd - sideStart);
     const bend = Math.sin(t * Math.PI) * Math.sin(t * Math.PI * 2 + phase) * 3.2;
-    const current = { x, y: x === bridgeX ? y : y + Math.round(bend) };
+    const crossing = x >= bridgeX && x < bridgeX + 3;
+    const current = { x, y: crossing ? y : y + Math.round(bend) };
     rasterLine(p, previous.x, previous.y, current.x, current.y);
     rows.set(x, current.y);
     previous = current;
@@ -283,7 +284,7 @@ function feather(p: Painter) {
 
 /** Bridge planks where a road crosses the creek. */
 function bridgeAt(p: Painter, creekX: number, y: number) {
-  p.sprite(`bridge:${creekX},${y}`, creekX - 1, y - 1, 'bridge', 48, 48, 0, -8, false);
+  p.sprite(`bridge:${creekX},${y}`, creekX, y - 1, 'bridge', 48, 48, 0, -8, false);
 }
 
 /** Framing groves with natural gaps around buildings and paths. */

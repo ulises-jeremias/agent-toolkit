@@ -571,11 +571,15 @@ describe('layoutWorld', () => {
     );
     const trails = new Set(first.cells.filter((cell) => cell.tile.startsWith('trail')).map(({ x, y }) => `${x},${y}`));
     const water = new Set(first.cells.filter(({ tile }) => tile === 'water').map(({ x, y }) => `${x},${y}`));
+    const bridgeRoadY = bridge!.y + 1;
+    for (let dx = 0; dx < 3; dx++) {
+      expect(trails.has(`${bridge!.x + dx},${bridgeRoadY}`)).toBe(true);
+    }
     for (const project of layout.entities.filter((entity) => entity.id.startsWith('place:project:'))) {
       const doorX = project.x + Math.floor(project.w / 2);
       const doorFrontY = project.y + project.h;
       expect(trails.has(`${doorX},${doorFrontY}`)).toBe(true);
-      expect(project.x).toBeGreaterThan(bridge!.x + bridge!.w / 16);
+      expect(project.x).toBeGreaterThan(bridge!.x + bridge!.w / 16 - 1);
       for (let y = project.y; y < project.y + project.h; y++) {
         for (let x = project.x; x < project.x + project.w; x++) {
           expect(water.has(`${x},${y}`)).toBe(false);
