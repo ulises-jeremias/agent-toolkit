@@ -169,13 +169,16 @@ journeys:
           Operations reads actual scheduler inventory, previews generated unit
           paths and cadence, exposes exact scheduler files on demand, installs
           and removes user-level units through the canonical loops operation,
-          and reports scheduler failures so the user can retry. Electron E2E
-          uses an isolated HOME and fake systemctl to verify failure, recovery,
+          escapes systemd workspace paths, and reports partial scheduler
+          changes with a working retry action. Electron E2E uses an isolated
+          HOME and first-in-PATH fake systemctl to verify failure, recovery,
           file creation, list, and removal without changing the host scheduler.
-        build: "233b9159 (Linux Electron E2E; loops.spec.ts)"
+        build: "884a9dbb (Linux Electron E2E; loops.spec.ts)"
         screenshots:
           - assets/electron/loops/loop-schedule-preview-compact.png
           - assets/electron/loops/loop-schedule-preview-large.png
+          - assets/electron/loops/loop-schedule-recovery-compact.png
+          - assets/electron/loops/loop-schedule-recovery-large.png
     blockers: []
   - id: swarm-run-watch
     title: Run a swarm and watch lane progress
