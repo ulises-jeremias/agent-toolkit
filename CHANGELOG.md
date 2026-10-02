@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 <!-- markdownlint-disable MD024 -->
 ## [Unreleased]
 
+## [1.41.0] — 2026-10-02
+
 ### Added
 
 - Desktop world camera: shared integer-zoom math for terrain, art and hit
