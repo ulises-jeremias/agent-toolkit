@@ -1,16 +1,16 @@
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { openDesktop, waitForBackend } from './fixtures';
+import { openDesktop, setViewport, waitForBackend } from './fixtures';
 
 /**
- * Focused capture for the world interior + runtime activity: a real job is
- * started through the GUI, its project house opens into the interior, and the
- * working character is captured next to real furniture (collision-free slot
- * search from layout). Images land in the recovery evidence dir.
+ * A short real job must not leave a decorative worker in the world after its
+ * process ends. Capture only on explicit request and only after the world and
+ * its live job projection have settled.
  */
-const OUT_DIR = path.resolve(__dirname, '../../../../docs/desktop/assets/electron/pixel-valley-recovery');
+const OUT_DIR =
+  process.env['ATK_CAPTURE_DIR'] ?? path.resolve(__dirname, '../../../../docs/desktop/assets/electron/world');
 
-test('project interior with a working character', async () => {
+test('the world removes a worker after a short real job completes', async () => {
   const desktop = await openDesktop();
   try {
     const { page } = desktop;
@@ -27,11 +27,21 @@ test('project interior with a working character', async () => {
     await dialog.getByRole('button', { name: 'Start job' }).click();
     await expect(dialog).toBeHidden();
 
-    // Grounds while the job runs.
+    // The command is intentionally short; once the canonical job is terminal,
+    // the World must not retain its runtime character.
     await nav.getByRole('link', { name: 'World' }).click();
-    await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-    await page.mouse.move(1000, 600);
-    await page.screenshot({ path: path.join(OUT_DIR, 'world-with-running-job.png') });
+    const world = page.getByRole('application', { name: 'Semantic workspace world' });
+    await expect(world).toBeVisible();
+    await expect(
+      page.getByText('Reading workspace, projects, memory, tools, jobs, and active People sessions...'),
+    ).toBeHidden();
+    await expect(world.locator('[data-entity-id^="character:job:"]')).toHaveCount(0, { timeout: 20_000 });
+    const receiptDismiss = page.getByRole('button', { name: 'Dismiss: Job started' });
+    if (await receiptDismiss.isVisible()) await receiptDismiss.click();
+    if (process.env['ATK_CAPTURE'] === '1') {
+      await setViewport(desktop.app, 1920, 1080);
+      await page.screenshot({ path: path.join(OUT_DIR, 'world-job-completed-large.png') });
+    }
   } finally {
     await desktop.close();
   }

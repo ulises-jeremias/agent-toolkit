@@ -1,7 +1,9 @@
 # Pixel Valley recovery — review ledger
 
-Status: **CURRENT REVIEW** — 2026-10-01, worktree `pixel-valley-recovery`
-(branch `feat/pixel-valley-recovery`), build `agent-toolkit 1.40.0`.
+Status: **HISTORICAL RECOVERY REVIEW** — 2026-10-01, worktree
+`pixel-valley-recovery` (branch `feat/pixel-valley-recovery`), build
+`agent-toolkit 1.40.0`. For current product status and fresh captures, see
+[`VISUAL_QA.md`](VISUAL_QA.md) and [`workflows.yaml`](workflows.yaml).
 
 This is the honest review of the recovered work after the `/tmp/opencode`
 restart. Everything here was rebuilt, tested, and captured again on this host;
@@ -40,10 +42,9 @@ authoring are not the user interface.
 
 ## Evidence (opened, critiqued, recaptured)
 
-33 PNGs in `docs/desktop/assets/electron/pixel-valley-recovery/`: Meadow/Dusk
+32 PNGs in `docs/desktop/assets/electron/pixel-valley-recovery/`: Meadow/Dusk
 × 1024×640 / 1920×1080 × World/Office/Operations/Workspace/Library/Insights/
-Terminal/Settings, plus `world-with-running-job.png` from a real GUI-started
-job. Critiques acted on: Meadow heading contrast (fixed, recaptured),
+Terminal/Settings. Critiques acted on: Meadow heading contrast (fixed, recaptured),
 Paper-era file panel (fixed, recaptured), world meta text on the chrome bar
 (fixed). Dusk and Meadow both read as the intended game-menu language.
 
@@ -64,14 +65,26 @@ Paper-era file panel (fixed, recaptured), world meta text on the chrome bar
 
 ## Known limitations (not shipped, not claimed)
 
-- **People GUI journeys** (CRUD, import review, Start/session binding, swarm
-  role picker) are not implemented — contracts only (ADR-036).
-- MCP typed configuration, loop run/report, swarm run/watch, install
-  preview/rollback, and palette reachability are ledger-blocked.
+- People CRUD, reviewed import, and local PTY Start/Stop now exist in Desktop.
+  Server-side AgentSession history, enforced Person budgets/isolation, and the
+  swarm Person role picker remain incomplete (see ADR-036 and the workflow
+  ledger).
+- Typed MCP setup/probe, swarm run/watch, loop scheduling, installation
+  preview/rollback, and universal action reachability remain incomplete.
 - HiDPI/scaling, OS accessibility tree, Arabic bidi and soak are unverified;
   no screen-reader or full WCAG claim.
 - GPU launch on this host's Wayland needs `--ozone-platform=x11` (Vulkan
   incompatibility); first-run on Wayland stock flags is untested here.
+
+## Evidence correction — 2026-10-02
+
+The former `world-with-running-job.png` was reopened during current review. It
+showed a “Job started” toast but no real runtime character, so it did not prove
+the claimed visual state and has been removed. The current
+[`VISUAL_QA.md`](VISUAL_QA.md) records reviewed captures of Lina's real
+Person-bound PTY at her project house and the offline roster after exit; the
+workflow ledger keeps the job completion and runtime-presence evidence
+separate.
 
 ## Provenance
 
