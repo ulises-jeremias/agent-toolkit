@@ -65,7 +65,7 @@ button**, only "Start a new session in this run".
 | Concern | Owner | Why |
 | --- | --- | --- |
 | Session identity, run link, provider session id, status facets, lifecycle state, resume decision | **V** (`serve`) | domain truth; survives Desktop restarts; visible to CLI and loops |
-| PTY bytes, resize, input, screen mirror | **Electron main** (ADR-033: node-pty adapter, no domain state) | ConPTY on Windows; V `modules/pty` is POSIX-only |
+| PTY bytes, resize, input, screen mirror | **Electron main** (ADR-033: node-pty adapter, no domain state) | Native terminal transport on supported Electron platforms |
 | Swarm roles on tmux/herdr backends | the backend (tmux/herdr) | already detached; V records `transport: tmux|herdr` |
 | Detached PTY host (later, opt-in) | a small supervisor spawned by Electron main | only for process durability across app quit/crash |
 

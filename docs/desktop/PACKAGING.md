@@ -19,4 +19,4 @@ The package contains the compiled renderer, Electron main process, and backend. 
 
 The tag workflow publishes platform installers from electron-builder alongside CLI binaries and archives. The CLI archives and `manifest.json` describe the CLI only; Desktop installers are separate release assets named `agent-toolkit-desktop-<version>-<os>-<arch>.<ext>`. Linux users can install the `.deb` or run the AppImage. macOS uses DMG and Windows uses NSIS. Signing/notarization must be configured separately before claiming trusted OS distribution.
 
-The GUI command in older CLI releases advertised a native V binary. Use the Desktop installer from the release page until the CLI's Electron installer path is verified end to end. A local launcher may point at the unpacked package, but it is machine-specific and not part of the release artifact.
+The CLI's `agent-toolkit gui` command launches an already-installed Desktop package; it does not download or install one. Install the platform package from the release page first. A local launcher may point at an unpacked package, but it is machine-specific and not part of the release artifact.
